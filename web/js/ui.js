@@ -5,7 +5,8 @@ import { G, S } from "./state.js";
 import { A, sprite, size, has, entityIni, configRead, preload } from "./assets.js";
 import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextMid, centreText, textWidth, fitText,
   wrapLines, roundBox, fontPx, setFont } from "./util.js";
-import { dayFraction, isNight, timeText } from "./sky.js";
+import { dayFraction, isNight, timeText, fogEnabled } from "./sky.js";
+import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel } from "./verbs.js";
 
 export const TAB_TEXT = [243, 232, 136];
@@ -155,28 +156,47 @@ function minimapGeometry() {
   return { name, ps, ox, oy, zoom: U.minimapZoom };
 }
 
-const mmCache = { key: "", canvas: null };
+const mmCache = { key: "", canvas: null, at: 0 };
 function minimapImage(g) {
+  // The minimap with what you haven't seen blacked out, tile by tile: a tile shows once any of its fog-of-war cells
+  // has been uncovered (the same cells that take the black off the world)
   const im = sprite(g.name);
   if (!im) return null;
-  const explored = [...S.explored.keys()].sort().join("|");
-  const key = g.name + "|" + explored;
+  const key = g.name + "|" + S.explored.size + "|" + (S.exploredVersion || 0) + "|" + fogEnabled();
   if (mmCache.key === key) return mmCache.canvas;
-  const c = document.createElement("canvas");
+  const now = performance.now();
+  if (mmCache.canvas && mmCache.key.split("|")[0] === g.name && now - mmCache.at < 400) return mmCache.canvas;
+  const c = mmCache.canvas && mmCache.canvas.width === im.width && mmCache.canvas.height === im.height ?
+    mmCache.canvas : document.createElement("canvas");
   c.width = im.width; c.height = im.height;
   const x = c.getContext("2d");
+  x.clearRect(0, 0, c.width, c.height);
   x.drawImage(im, 0, 0);
-  if (val(configRead("Minimap", "Blackout", "1")) === 1) {
+  if (val(configRead("Minimap", "Blackout", "1")) === 1 && fogEnabled()) {
     x.fillStyle = "rgb(18,18,28)";
-    const mw = G.xt * g.ps, mh = G.yt * g.ps;
-    for (const n of A.m.maps) {
-      const [mx, my, mz] = n.split(",").map(Number);
-      if (mz !== S.mapZ || S.explored.has(n)) continue;
-      x.fillRect((mx - g.ox) * mw, (my - g.oy) * mh, mw, mh);
+    const ps = g.ps, n = fogCell(), fxt = Math.ceil(G.sw / n);
+    for (const name of A.m.maps) {
+      const [mx, my, mz] = name.split(",").map(Number);
+      if (mz !== S.mapZ) continue;
+      const bx = (mx - g.ox) * G.xt * ps, by = (my - g.oy) * G.yt * ps;
+      const seen = S.explored.get(name);
+      if (seen === "all") continue;
+      if (!seen || !seen.size) { x.fillRect(bx, by, G.xt * ps, G.yt * ps); continue; }
+      for (let ty = 0; ty < G.yt; ty++) {
+        const cy0 = Math.floor(ty * G.th / n), cy1 = Math.floor(((ty + 1) * G.th - 1) / n);
+        for (let tx = 0; tx < G.xt; tx++) {
+          const cx0 = Math.floor(tx * G.tw / n), cx1 = Math.floor(((tx + 1) * G.tw - 1) / n);
+          let shown = false;
+          for (let cy = cy0; cy <= cy1 && !shown; cy++)
+            for (let cx = cx0; cx <= cx1 && !shown; cx++) if (seen.has(cy * fxt + cx + 1)) shown = true;
+          if (!shown) x.fillRect(bx + tx * ps, by + ty * ps, ps, ps);
+        }
+      }
     }
   }
   mmCache.key = key;
   mmCache.canvas = c;
+  mmCache.at = now;
   return c;
 }
 

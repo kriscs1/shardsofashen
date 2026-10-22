@@ -143,6 +143,7 @@ export function markExplored(name, cell) {
   if (!s) { s = new Set(); S.explored.set(name, s); }
   if (s.has(cell)) return false;
   s.add(cell);
+  S.exploredVersion = (S.exploredVersion || 0) + 1;
   let n = S.exploredNew.get(name);
   if (!n) { n = []; S.exploredNew.set(name, n); }
   n.push(cell);
