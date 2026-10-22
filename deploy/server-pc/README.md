@@ -22,6 +22,38 @@ and log in again.
    https://github.com/users/kriscs1/packages/container/dragonsword/settings > at the bottom, **Change visibility** >
    **Public**. (Your code stays private; anyone who knows the image's name could download the game itself.)
 
+### On Unraid
+
+1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
+
+   ```
+   docker run --rm ghcr.io/kriscs1/dragonsword cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-DragonSword.xml
+   ```
+
+2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
+   **Apply**. It's filled in already:
+   - Port 8080.
+   - Game data in `/mnt/user/appdata/dragonsword`.
+   - It runs as nobody:users.
+   - Set an invite code here if you like.
+3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
+   **Settings > Auto Update Applications > Docker Auto Update Settings**:
+   - Update Check Frequency: **Hourly** (or Custom, e.g. `*/15 * * * *` for every 15 minutes).
+   - Set DragonSword to update.
+
+   (Without this, the Docker tab's **Check for Updates** does it by hand.)
+
+Players open `http://<your Unraid server>:8080`; the WebUI entry of the container's menu opens it too. It starts with
+the array and keeps everyone's progress in appdata (your appdata backups cover it).
+
+Accounts (Unraid's Terminal):
+
+```
+docker exec -u 99:100 DragonSword python tools/admin.py list
+docker exec -u 99:100 DragonSword python tools/admin.py password <Name>
+docker exec -u 99:100 DragonSword python tools/admin.py admin <Name> on
+```
+
 ### On a Linux server (nothing to copy)
 
 1. Install Docker (once): `curl -fsSL https://get.docker.com | sudo sh`
