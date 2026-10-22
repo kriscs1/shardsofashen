@@ -7,3 +7,6 @@ web/assets
 .pytest_cache
 Saves/*.png
 deploy/*.env
+deploy/**/.env
+.env
+.github

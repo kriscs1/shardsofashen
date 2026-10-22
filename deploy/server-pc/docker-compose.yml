@@ -1,0 +1,45 @@
+# The server PC: the game from GitHub's registry, and an updater that looks for a newer image every few minutes and
+# restarts the game with it (everyone's progress is kept in the gamedata volume). Both start again on their own
+# whenever Docker starts. Set it up with "Start Server.bat" (settings in .env: copy example.env).
+name: dragonsword
+
+services:
+  game:
+    image: ${DS_IMAGE:?set DS_IMAGE in .env}
+    restart: unless-stopped
+    ports:
+      - "${DS_PORT:-8080}:8080"
+    environment:
+      DS_MAX_PLAYERS: ${DS_MAX_PLAYERS:-5}
+      DS_REGISTRATION: ${DS_REGISTRATION:-open}
+      DS_INVITE_CODE: ${DS_INVITE_CODE:-}
+    volumes:
+      - gamedata:/data
+    stop_grace_period: 30s
+
+  # Docker's own command line (the official image), checking GitHub's registry for a new version of the game.
+  # "pull" downloads only what changed; "up -d game" restarts the game only if its image is new.
+  updater:
+    image: docker:28-cli
+    restart: unless-stopped
+    depends_on: [game]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/deploy:ro
+    working_dir: /deploy
+    environment:
+      GHCR_USER: ${GHCR_USER:-}
+      GHCR_TOKEN: ${GHCR_TOKEN:-}
+      DS_UPDATE_SECONDS: ${DS_UPDATE_SECONDS:-300}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        if [ -n "$$GHCR_TOKEN" ]; then echo "$$GHCR_TOKEN" | docker login ghcr.io -u "$$GHCR_USER" --password-stdin; fi;
+        echo "Checking for updates every $$DS_UPDATE_SECONDS seconds";
+        while true; do
+          sleep "$$DS_UPDATE_SECONDS";
+          if docker compose -p dragonsword pull -q game; then docker compose -p dragonsword up -d game; fi;
+        done
+
+volumes:
+  gamedata:

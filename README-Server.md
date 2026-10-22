@@ -69,6 +69,16 @@ python tools/admin.py password Kris       # imported characters need a password 
 python tools/admin.py admin Kris on       # the Admin button (give items, set skills, god mode)
 ```
 
+## Changing the game and updating the server: one click
+
+| On your PC (where you edit) | |
+|---|---|
+| **Test Locally.bat** | Builds the server from these files in Docker and starts it at http://localhost:8080, to try changes first. It has its own test characters. |
+| **Publish Update.bat** | Saves your changes and sends them to your private GitHub repository. GitHub builds the server image, and the server PC updates itself within minutes. |
+| **Link GitHub.bat** | Once, at the start: links this folder to the GitHub repository. |
+
+Setting up the server PC, which runs it and updates itself: see `deploy/server-pc/README.md`.
+
 ## A server on a Linux VPS (Docker)
 
 1. Point a DNS name at the VPS (an A record), and open ports 80 and 443.
