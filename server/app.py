@@ -30,7 +30,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code=""):
     @web.middleware
     async def caching(request, handler):
         resp = await handler(request)
-        if request.path.startswith("/assets/"):
+        if request.path.startswith(("/assets/", "/img/")):
             resp.headers.setdefault("Cache-Control", "public, max-age=3600")
         elif request.path.startswith(("/js/", "/css/")):
             resp.headers.setdefault("Cache-Control", "no-cache")
@@ -46,6 +46,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code=""):
         log.warning("web/assets is missing: run tools/export_web_assets.py")
     app.router.add_static("/js/", os.path.join(web_dir, "js"))
     app.router.add_static("/css/", os.path.join(web_dir, "css"))
+    app.router.add_static("/img/", os.path.join(web_dir, "img"))
 
     async def start_tick(app):
         app[TICK] = asyncio.create_task(game.run())

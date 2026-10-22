@@ -12,6 +12,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   height: 100%;
@@ -45,7 +47,15 @@ html, body {
 
 .overlay[hidden] { display: none; }
 
-#login, #loading { background: radial-gradient(ellipse at center, #3a2418 0%, #180e0a 75%); }
+#login, #loading {
+  /* a view of Southport (tools/make_login_background.py), darkened round the edges so the panel stands out */
+  background:
+    radial-gradient(ellipse at center, rgba(24, 14, 10, 0.25) 0%, rgba(24, 14, 10, 0.55) 55%, rgba(24, 14, 10, 0.92) 100%),
+    url("/img/login-bg.jpg") center / cover no-repeat,
+    #180e0a;
+  image-rendering: pixelated;
+}
+#login .panel, #loading .panel { background: rgba(51, 34, 27, 0.94); backdrop-filter: blur(2px); }
 
 .panel {
   background: var(--panel);
