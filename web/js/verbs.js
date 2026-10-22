@@ -81,7 +81,8 @@ export function getVerbs(e) {
       addVerbs(v, entityIni(e.n, "Use.Words", ""));
       addVerb(v, equipVerb(e.n));
       addVerb(v, "Use");
-      if (e.q > 1) { addVerb(v, "Drop All"); addVerb(v, "Drop 1"); } else addVerb(v, "Drop");
+      if (entityIni(e.n, "Droppable", "1").trim() === "0") { /* (kept: quest things, the Access Crystal) */ }
+      else if (e.q > 1) { addVerb(v, "Drop All"); addVerb(v, "Drop 1"); } else addVerb(v, "Drop");
       addVerb(v, "Examine");
       addVerb(v, (S.me.hotbar || []).includes(e.n) ? "Off hotbar" : "Hotbar");
     }
@@ -103,7 +104,7 @@ export function getVerbs(e) {
     addVerb(v, "Talk to");
     addVerb(v, "Examine");
   } else if (t === T.PLAYER) {
-    v = e.pvp ? ["Attack", "Examine"] : ["Examine"];          // (the server says when you may fight them: the arena)
+    v = e.pvp ? ["Attack", "Whisper", "Examine"] : ["Whisper", "Examine"];   // (the server says when you may fight: the arena)
   }
   if (S.itemInUse && !(e.k === T.INVITEM && e.u === S.itemInUse) && !mode) v = ["Use with", ...v];
   return v;

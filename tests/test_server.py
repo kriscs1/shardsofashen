@@ -112,3 +112,43 @@ def test_world_survives_a_restart(tmp_path):
 
     asyncio.run(first())
     asyncio.run(second())
+
+
+async def chats(ws, seconds=1.0):
+    out = []
+    end = asyncio.get_event_loop().time() + seconds
+    while True:
+        left = end - asyncio.get_event_loop().time()
+        if left <= 0:
+            return out
+        try:
+            msg = await asyncio.wait_for(ws.receive(), left)
+        except asyncio.TimeoutError:
+            return out
+        if msg.type != aiohttp.WSMsgType.TEXT:
+            return out
+        data = json.loads(msg.data)
+        out += [m for m in (data if isinstance(data, list) else [data]) if m.get("t") == "chat"]
+
+
+def test_chat_and_whispers(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "c.db"))
+        async with aiohttp.ClientSession() as http:
+            a, _ = await login(http, url, "Anna Lee", "pw12")
+            b, _ = await login(http, url, "Bo", "pw12")
+            c, _ = await login(http, url, "Cy", "pw12")
+            await chats(a, 0.3), await chats(b, 0.3), await chats(c, 0.3)
+            await a.send_json({"t": "chat", "text": "/w Bo psst"})
+            got_b, got_c = await chats(b), await chats(c)
+            assert any(m.get("whisper") == "from" and m["text"] == "psst" and m["from"] == "Anna Lee" for m in got_b)
+            assert not any(m.get("text") == "psst" for m in got_c)          # only Bo hears it
+            await b.send_json({"t": "chat", "text": "/r hi back"})
+            got_a = await chats(a)
+            assert any(m.get("whisper") == "from" and m["text"] == "hi back" for m in got_a)
+            await c.send_json({"t": "chat", "text": "/w Anna Lee hello"})  # (a name with a space)
+            assert any(m.get("text") == "hello" for m in await chats(a))
+            await c.send_json({"t": "chat", "text": "hello all"})
+            assert any(m.get("text") == "hello all" and not m.get("whisper") for m in await chats(b))
+        await runner.cleanup()
+    asyncio.run(run())

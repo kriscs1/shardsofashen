@@ -788,10 +788,12 @@ class ItemsMixin:
         if old and old.get("items"):
             self.display_message("Your old grave crumbles away, and what was in it with it.", "DAMAGE")
         self.grave_remove_entity()
-        items = [(e.name, e.quantity, e.wear) for e in self.inv]
+        kept = [e for e in self.inv if self.kept_on_death(e.name)]
+        items = [(e.name, e.quantity, e.wear) for e in self.inv if e not in kept]
         for e in self.inv:
-            e.alive = False
-        self.inv[:] = []
+            if e not in kept:
+                e.alive = False
+        self.inv[:] = kept
         self.dirty_me = True
         self.check_locks(True)
         if not items:
@@ -803,6 +805,11 @@ class ItemsMixin:
                       "left": self.grave_minutes() * 60000}
         self.display_message("Everything you carried lies in a grave where you fell (map %s). Get back to it within "
                              "%s minutes!" % (m.name, lbstr(self.grave_minutes())), "DAMAGE")
+
+    def kept_on_death(self, name):
+        """Entities.ini Keep.On.Death=1 (by default, whatever can't be dropped: quest things, the Access Crystal)."""
+        undroppable = val(self.entity_ini(name, "Droppable", "1")) == 0
+        return val(self.entity_ini(name, "Keep.On.Death", "1" if undroppable else "0")) == 1
 
     def grave_place(self):
         g = self.grave

@@ -177,6 +177,7 @@ export function chooseVerb(verb, e, wx, wy) {
     send({ t: "verb", verb, x: wx, y: wy });
     return;
   }
+  if (verb === "Whisper" && e && e.k === T.PLAYER) { window.dsUI.openChat("/w " + e.n + " "); return; }
   const msg = { t: "verb", verb, target: targetOf(e), x: wx, y: wy };
   if (verb === "Use with") msg.item = S.itemInUse;
   if (verb === "Use with" || verb !== "Use") S.itemInUse = verb === "Use with" ? 0 : S.itemInUse;

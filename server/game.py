@@ -279,12 +279,55 @@ class GameServer:
                             "explored": s.explored_for_client(), "time": w.clock_event()})
         self.broadcast(self.players_message())
 
+    WHISPER = ("/w ", "/whisper ", "/tell ", "/msg ")
+
+    def chat_command(self, s, text):
+        """/w <name> <words>: only they hear it (names may have spaces: the longest online name that fits).
+        /r <words>: answers whoever whispered to you last."""
+        low = text.lower()
+        if low.startswith("/r ") or low.startswith("/reply "):
+            to = getattr(s, "last_whisper_from", "")
+            words = text.split(" ", 1)[1].strip()
+            if not to:
+                s.emit({"t": "chat", "from": "", "text": "Nobody has whispered to you yet."})
+                return
+            return self.whisper(s, to, words)
+        for cmd in self.WHISPER:
+            if low.startswith(cmd):
+                rest = text[len(cmd):].strip()
+                names = sorted(self.world.sessions, key=len, reverse=True)
+                to = next((n for n in names if rest.lower().startswith(n.lower()) and
+                           (len(rest) == len(n) or rest[len(n)] == " ")), None)
+                if to is None:
+                    who = rest.split(" ", 1)[0]
+                    s.emit({"t": "chat", "from": "", "text": "%s isn't here. (Whisper: /w <name> <words>)" % who})
+                    return
+                return self.whisper(s, to, rest[len(to):].strip())
+        s.emit({"t": "chat", "from": "", "text": "Chat: just type to talk to everyone. /w <name> <words> whispers to "
+                                                  "one player; /r <words> answers the last whisper."})
+
+    def whisper(self, s, to, words):
+        o = self.world.sessions.get(to)
+        if o is None or not o.connected:
+            s.emit({"t": "chat", "from": "", "text": "%s isn't here." % to})
+            return
+        if not words:
+            return
+        if o is s:
+            s.emit({"t": "chat", "from": "", "text": "You mutter to yourself."})
+            return
+        o.last_whisper_from = s.player_name
+        o.emit({"t": "chat", "from": s.player_name, "text": words, "whisper": "from"})
+        s.emit({"t": "chat", "from": s.player_name, "to": to, "text": words, "whisper": "to"})
+
     def handle_game(self, c, data):
         s = c.session
         t = data.get("t")
         if t == "chat":
             text = " ".join(str(data.get("text", "")).split())[:CHAT_MAX]
-            if text:
+            if text.startswith("/"):
+                self.chat_command(s, text)
+            elif text:
                 self.broadcast({"t": "chat", "from": s.player_name, "text": text})
             return
         if t == "quit":

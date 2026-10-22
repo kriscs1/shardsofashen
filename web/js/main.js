@@ -78,7 +78,8 @@ function placeChat() {
   box.style.bottom = "auto";
 }
 
-function openChat() {
+function openChat(start) {
+  if (typeof start === "string") $("chat-input").value = start;
   const box = $("chat-entry");
   box.hidden = false;
   placeChat();
@@ -337,8 +338,10 @@ N.onMessage = (m) => {
       break;
     case "msg": addMessage(m.text, messageColour(m.kind)); break;
     case "chat":
-      addMessage(m.from ? `${m.from}: ${m.text}` : m.text, m.from ? "30 60 140" : "darkgray");
-      if (m.from && m.from !== S.name) playSound("Pickup");
+      if (m.whisper === "from") addMessage(`${m.from} whispers: ${m.text}`, "140 40 140");
+      else if (m.whisper === "to") addMessage(`You whisper to ${m.to}: ${m.text}`, "140 40 140");
+      else addMessage(m.from ? `${m.from}: ${m.text}` : m.text, m.from ? "30 60 140" : "darkgray");
+      if (m.from && m.from !== S.name && m.whisper !== "to") playSound("Pickup");
       break;
     case "players": S.players = m.list; S.max = m.max; break;
     case "sound": playSound(m.name, "x" in m ? [m.x, m.y] : null); break;

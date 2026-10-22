@@ -308,3 +308,15 @@ def test_home_bed_is_where_you_wake(world):
     world.tick(0.05)
     assert a.on_own_home()
     leave(world, a)
+
+
+def test_undroppable_things_stay_with_you_when_you_die(world):
+    a = join(world, "Faller")
+    stock(a, Access_Crystal=1, Logs=3, **{"Gold_Coin(s)": 100})
+    a.drop_inventory_item(a.inv_item(next(e.uid for e in a.inv if e.name == "Access_Crystal")), 1)
+    assert a.items_held("Access_Crystal") == 1                      # can't be dropped
+    a.player_dies()
+    assert a.items_held("Access_Crystal") == 1                      # nor lost when you die
+    assert a.items_held("Logs") == 0 and a.items_held("Gold_Coin(s)") == 0
+    assert any(i[0] == "Logs" for i in a.grave["items"])
+    leave(world, a)
