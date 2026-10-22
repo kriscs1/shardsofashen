@@ -30,3 +30,5 @@ NPC	Skeleton_Archer	384	608	Attitude=Bad
 StaticObject	Waystone	288	224
 Id	Dunerest_Square	10	4
 Id	Waystone_Dunerest	12	8
+
+StaticObject	Homestone	256	256

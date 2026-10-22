@@ -276,6 +276,12 @@ class ActionsMixin:
             if lk is not None:
                 self.display_message(lk.message, "FAIL")
                 return
+        if name == "Homestone" and verb in ("Touch", "Travel", "Use"):
+            self.homestone_touched(e)
+            return
+        if name == "Home_Chest" and verb == "Open":
+            self.open_home_chest(e)
+            return
         if t != ACTIONBOXITEM:
             script = self.find_action_script(verb, name, t, e.npc_id)
             if script:
@@ -331,7 +337,8 @@ class ActionsMixin:
         elif verb == "Attack":
             self.start_attack(e)
         elif verb == "Sleep":
-            self.start_sleep("Next")
+            if self.start_sleep("Next"):
+                self.slept_at_home(e)
         elif verb == "Climb Up":
             self.climb_ladder(1)
         elif verb == "Climb Down":
@@ -591,6 +598,17 @@ class ActionsMixin:
             self.look = clean_look(msg.get("look"))
             self.dirty_me = True
             self.save_requested = True
+        elif t in ("build", "unbuild"):
+            if self.sleep_state:
+                return
+            try:
+                x, y = int(msg.get("x", 0)), int(msg.get("y", 0))
+            except (TypeError, ValueError):
+                return
+            if t == "build":
+                self.build(x, y, str(msg.get("piece", "")))
+            else:
+                self.unbuild(x, y)
         elif t == "admin" and self.admin_enabled:
             self.admin_command(msg)
 

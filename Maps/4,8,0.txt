@@ -32,3 +32,5 @@ NPC	Goblin_Shaman	608	32	Attitude=Bad
 StaticObject	Waystone	256	352
 Id	Highwatch_Square	9	8
 Id	Waystone_Highwatch	11	12
+
+StaticObject	Homestone	288	384

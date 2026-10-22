@@ -213,3 +213,98 @@ def test_pvp_fight_to_the_end_costs_nothing(world):
     assert a.player_attack_target is None
     leave(world, a)
     leave(world, b)
+
+
+def stock(s, **items):
+    for name, q in items.items():
+        s.add_inventory_item(name, q, quiet=True)
+
+
+def test_homestead_needs_the_crystal_and_starts_closed(world):
+    a, b = join(world, "Homer"), join(world, "Guest")
+    a.go_home()
+    world.tick(0.05)
+    assert not world.homes.is_home_map(a.cur_map.name)          # no Access Crystal: nowhere to go
+    stock(a, Access_Crystal=1)
+    a.go_home()
+    world.tick(0.05)
+    assert world.homes.owner_of(a.cur_map.name) == "Homer" and a.on_own_home()
+    assert world.homes.home_of("Homer")["visit"] == "closed"
+    assert "Homer" not in world.homes.visitable_by("Guest")
+    b.visit_home("Homer")
+    world.tick(0.05)
+    assert b.cur_map is not a.cur_map
+    a.set_visit("open")
+    b.visit_home("Homer")
+    world.tick(0.05)
+    assert b.cur_map is a.cur_map
+    a.set_visit("closed")                                         # closing sends visitors back
+    world.tick(0.05)
+    assert b.cur_map is not a.cur_map
+    leave(world, a)
+    leave(world, b)
+
+
+def test_building_uses_materials_and_is_shared(world):
+    a, b = join(world, "Builder"), join(world, "Friend")
+    stock(a, Access_Crystal=1)
+    a.go_home()
+    world.tick(0.05)
+    m = a.cur_map
+    assert not a.build(6, 6, "Plank001")                          # no planks
+    stock(a, Plank=30, Nails=60)
+    assert a.build(6, 6, "Plank001")
+    assert a.items_held("Plank") == 29 and m.tile[m.cell(6, 6)] == "Plank001"
+    assert not a.build(6, 6, "Stone_Wall001")                     # Construction too low
+    assert not b.build(7, 6, "Plank001")                          # not their home
+    assert not a.build(*world.homes.arrival, "Plank001")          # where the homestone puts you down
+    a.update_skill("Construction", "=10")
+    for x in range(4, 8):
+        for y in range(9, 12):
+            assert a.build(x, y, "Shingle")
+    assert m.roof[m.cell(4, 9)] == "Shingle_Roof001" and m.roof[m.cell(7, 11)] == "Shingle_Roof015"
+    assert m.roof[m.cell(5, 10)] == "Shingle_Roof008"
+    assert a.unbuild(5, 10) and m.roof[m.cell(5, 10)] == ""
+    assert a.unbuild(6, 6) and m.tile[m.cell(6, 6)] == world.homes.template.tile[m.cell(6, 6)]
+    a.friends_menu()
+    a.add_friend("Friend")
+    a.set_visit("friends")
+    assert world.homes.may_visit("Builder", "Friend")
+    leave(world, a)
+    leave(world, b)
+
+
+def test_homes_are_saved_and_come_back(world):
+    a = join(world, "Keeper")
+    stock(a, Access_Crystal=1, Plank=10, Nails=40, Iron_Bar=4)
+    a.update_skill("Construction", "=10")
+    a.go_home()
+    world.tick(0.05)
+    assert a.build(8, 8, "Home_Chest") and a.build(9, 8, "Timber001")
+    saved = world.homes.state()
+    leave(world, a)
+    w2 = World(ROOT)
+    w2.homes.load(saved)
+    m = w2.homes.map_of("Keeper")
+    assert m.tile[m.cell(9, 8)] == "Timber001"
+    assert w2.homes.object_at(m, 8, 8).name == "Home_Chest"
+    s = Session(w2, "Other")
+    s.load_state({"map": m.name, "x": 384, "y": 536})             # logged out in a home that's closed to them
+    w2.sessions["Other"] = s
+    s.enter_world()
+    w2.tick(0.05)
+    assert s.cur_map is not m
+
+
+def test_home_bed_is_where_you_wake(world):
+    a = join(world, "Sleeper")
+    stock(a, Access_Crystal=1, Plank=10, Nails=20, Wool=6)
+    a.update_skill("Construction", "=10")
+    a.go_home()
+    world.tick(0.05)
+    assert a.build(10, 10, "Bed001")
+    world.homes.home_of("Sleeper")["bed"] = [10, 10]
+    a.player_dies()
+    world.tick(0.05)
+    assert a.on_own_home()
+    leave(world, a)

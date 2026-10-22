@@ -21,7 +21,8 @@ class Lock:
 
 
 class MapData:
-    def __init__(self, data, name):
+    def __init__(self, data, name, lines=None):
+        """lines: the map's text, when it isn't a file in Maps (a homestead: homes.py)."""
         self.data = data
         self.name = name
         self.mx = int(val(word(name, 1, ",")))
@@ -48,13 +49,14 @@ class MapData:
         self.grid = None                # walk grid (grid_cell cells, locks open): bytearray gw x gh, or None = stale
         self.regions = None
         self.version = 0                # goes up whenever a tile changes (the browsers ask for it again)
-        self.load()
+        self.load(lines)
 
     # ----- reading the file
-    def load(self):
+    def load(self, lines=None):
         d = self.data
         xt, yt = d.xt, d.yt
-        lines = d.read_lines(d.map_path(self.name))
+        if lines is None:
+            lines = d.read_lines(d.map_path(self.name))
         for y in range(1, yt + 1):
             row = trim(lines[y - 1]) if y - 1 < len(lines) else ""
             for x in range(1, xt + 1):
@@ -149,6 +151,18 @@ class MapData:
         self.grid_dirty()
         self.version += 1
         return True
+
+    def set_roofs(self, roofs):
+        """roofs: cell -> (roof tile, group) for every roofed cell (the rest have none). True if anything changed."""
+        changed = False
+        for c in range(1, len(self.roof)):
+            r, g = roofs.get(c, ("", 0))
+            if (self.roof[c], self.roof_group[c]) != (r, g):
+                self.roof[c], self.roof_group[c] = r, g
+                changed = True
+        if changed:
+            self.version += 1
+        return changed
 
     def grid_dirty(self):
         self.grid = None

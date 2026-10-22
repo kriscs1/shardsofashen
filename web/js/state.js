@@ -150,7 +150,10 @@ export function markExplored(name, cell) {
   return true;
 }
 
+export const isHomeMap = (name) => /^0,0,\d+$/.test(name || "") && Number(name.split(",")[2]) >= 1000;
+
 export function isExplored(name, cell) {
+  if (isHomeMap(name)) return true;                 // (a homestead is all known: no fog there)
   const s = S.explored.get(name);
   return s === "all" || (s && s.has(cell));
 }

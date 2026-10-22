@@ -34,3 +34,5 @@ StaticObject	Waystone	288	352
 Id	Emberwatch_Scout	16	8
 Id	Emberwatch_Square	10	8
 Id	Waystone_Emberwatch	12	12
+
+StaticObject	Homestone	256	384

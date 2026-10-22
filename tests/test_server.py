@@ -88,6 +88,11 @@ def test_world_survives_a_restart(tmp_path):
             assert m["t"] == "welcome"
             s = game.world.sessions["Saver"]
             s.add_inventory_item("Logs", 5, quiet=True)
+            h = game.world.homes.create("Saver")
+            h["visit"] = "open"
+            m = game.world.homes.map_of("Saver")
+            game.world.change_tile(m, 5, 5, "Timber001")
+            h["cells"]["5,5"] = {"tile": "Timber001"}
             await ws.close()
             await asyncio.sleep(0.3)
         await runner.cleanup()
@@ -99,6 +104,10 @@ def test_world_survives_a_restart(tmp_path):
         assert abs(game.world.day_fraction() - 0.6) < 0.02
         st = Store(db).load_character("Saver")
         assert any(i[0] == "Logs" and i[1] >= 5 for i in st["inventory"])
+        homes = game.world.homes
+        assert homes.home_of("Saver")["visit"] == "open"
+        m = homes.map_of("Saver")
+        assert m is not None and m.tile[m.cell(5, 5)] == "Timber001"
         await runner.cleanup()
 
     asyncio.run(first())

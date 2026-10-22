@@ -1,7 +1,7 @@
 // The interface round the world (the desktop game's ui.py, the rest of render): the sidebar (minimap, clock, buttons,
 // Stats / Gear / Quests, the inventory), the chat bar and the hover box, the ActionBox and its responses, the right-click
 // menu, the hotbar, the level-up banner. Laid out at 768 high, as wide as the screen's shape wants (1024 to 1792).
-import { G, S } from "./state.js";
+import { G, S, cellOf, isHomeMap } from "./state.js";
 import { A, sprite, size, has, entityIni, configRead, preload } from "./assets.js";
 import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextMid, centreText, textWidth, fitText,
   wrapLines, roundBox, fontPx, setFont } from "./util.js";
@@ -144,7 +144,13 @@ function sidebarButton(ctx, x, y, label, hot, fills, inks, edge) {
 function minimapGeometry() {
   const z = S.mapZ;
   const name = "Minimap" + z;
-  if (!has(name)) return null;
+  if (!has(name)) {
+    // A homestead (made as the game runs, so the asset export has no minimap of it): drawn from its tiles
+    const m = S.maps.get(S.mapName);
+    if (!m || !isHomeMap(m.name)) return null;
+    if (U.minimapZoom <= 0) U.minimapZoom = 1;
+    return { name: "live:" + m.name, ps: 4, ox: m.mx, oy: m.my, zoom: U.minimapZoom, live: m };
+  }
   let ps = val(configRead("Minimap", "Pixel.Size", "0"));
   const origin = configRead("Minimap", "Origin." + z, "");
   let ox, oy;
@@ -159,9 +165,38 @@ function minimapGeometry() {
 }
 
 const mmCache = { key: "", canvas: null, at: 0 };
+const liveCache = { key: "", canvas: null, at: 0 };
+function liveMinimap(g) {
+  // A map's tiles, decor and roofs drawn small (a homestead's minimap); again when it changes, or while pictures load
+  const m = g.live;
+  const now = performance.now();
+  const key = m.name + "|" + m.v;
+  if (liveCache.key === key && (liveCache.complete || now - liveCache.at < 1000)) return liveCache.canvas;
+  const ps = g.ps;
+  const c = liveCache.canvas || document.createElement("canvas");
+  c.width = G.xt * ps; c.height = G.yt * ps;
+  const x = c.getContext("2d");
+  x.imageSmoothingEnabled = true;
+  let complete = true;
+  for (let ty = 1; ty <= G.yt; ty++) {
+    for (let tx = 1; tx <= G.xt; tx++) {
+      const [tile, decor, roof] = cellOf(m, tx, ty);
+      for (const n of roof ? [roof] : [tile, decor]) {
+        if (!n) continue;
+        const im = sprite(n);
+        if (im) x.drawImage(im, 0, 0, im.width, im.height, (tx - 1) * ps, (ty - 1) * ps, ps, ps);
+        else complete = false;
+      }
+    }
+  }
+  liveCache.key = key; liveCache.canvas = c; liveCache.at = now; liveCache.complete = complete;
+  return c;
+}
+
 function minimapImage(g) {
   // The minimap with what you haven't seen blacked out, tile by tile: a tile shows once any of its fog-of-war cells
   // has been uncovered (the same cells that take the black off the world)
+  if (g.live) return liveMinimap(g);
   const im = sprite(g.name);
   if (!im) return null;
   const key = g.name + "|" + S.explored.size + "|" + (S.exploredVersion || 0) + "|" + fogEnabled();

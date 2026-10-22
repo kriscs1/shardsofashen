@@ -72,7 +72,7 @@ function layer(name, w, h) {
 }
 
 export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
-  if (!S.clock.on || S.mapZ !== 0) return;
+  if (!S.clock.on || (S.mapZ !== 0 && S.mapZ < 1000)) return;      // (homesteads, 1000 up, are outdoors)
   const t = dayFraction(now);
   let [r, g, b, a] = sky(t);
   if (underRoof) a = Math.floor(a * val(iniValue("daynight", "Night", "Indoors", "0.55")));

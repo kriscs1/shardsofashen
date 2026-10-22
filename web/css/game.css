@@ -193,3 +193,33 @@ button:disabled { opacity: 0.5; cursor: default; }
   .panel { padding: 16px; }
   .panel h1 { font-size: 28px; }
 }
+
+/* ----- building on your homestead (build.js) */
+#build-button {
+  position: fixed; left: 12px; top: 44px; z-index: 5;
+  font: 15px var(--font); color: var(--ink); background: rgba(51, 34, 27, 0.92);
+  border: 2px solid var(--edge); border-radius: 6px; padding: 6px 12px; cursor: pointer;
+}
+#build-button:hover { background: #4a3226; }
+#build-panel {
+  position: fixed; left: 8px; top: 40px; z-index: 5; width: 272px; max-height: calc(100vh - 80px);
+  display: flex; flex-direction: column; gap: 6px; padding: 8px;
+  background: rgba(40, 26, 20, 0.93); border: 2px solid var(--edge); border-radius: 8px;
+  font-size: 14px; color: var(--parchment);
+}
+#build-tabs { display: flex; flex-wrap: wrap; gap: 3px; }
+#build-panel button {
+  font: 13px var(--font); color: var(--parchment); background: #4a3226; border: 1px solid var(--edge);
+  border-radius: 4px; padding: 3px 6px; cursor: pointer;
+}
+#build-panel button.on { background: #7e4d3f; color: var(--ink); border-color: var(--ink); }
+#build-grid { display: grid; grid-template-columns: repeat(6, 40px); gap: 4px; overflow-y: auto; min-height: 44px; }
+#build-grid button { position: relative; width: 40px; height: 40px; padding: 3px; background: #2a1b15; }
+#build-grid img { width: 32px; height: 32px; image-rendering: pixelated; display: block; }
+#build-grid button.short img { opacity: 0.55; }
+#build-grid button.locked img { opacity: 0.25; filter: grayscale(1); }
+#build-grid button span { position: absolute; right: 2px; bottom: 0; font-size: 11px; color: var(--bad); }
+#build-info { min-height: 58px; line-height: 1.35; }
+#build-info .ok { color: #6fdc8c; }
+#build-info .bad { color: var(--bad); }
+#build-panel .buttons { display: flex; justify-content: space-between; }

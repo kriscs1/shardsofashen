@@ -35,3 +35,5 @@ NPC	Rabbit	128	320	Attitude=Bad
 NPC	Butterfly	736	480	Attitude=Good
 Id	Thornwick_Square	9	11
 Id	Waystone_Thornwick	11	15
+
+StaticObject	Homestone	224	480

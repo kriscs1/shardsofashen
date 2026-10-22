@@ -61,6 +61,41 @@ view) goes full screen. Press **Enter** to chat with the other players.
   scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
   missing.
 
+## Homesteads (a home of your own)
+
+- **Getting one.** The settler by the homestone in Ashford has the quest *A Place of Your Own*:
+  - Bring her 10 planks and 4 stone blocks. Make them at her carpenter's bench: planks from logs, blocks from stone.
+    Rocks can be mined for stone with a pickaxe.
+  - She gives you the **Access Crystal**.
+- **Going home.** Touch a **homestone**, the amber obelisk beside every town's waystone, and choose *Take me home*.
+  You need the crystal in your pack.
+  - After the quest she also sells **Homestead Scrolls**. They take you home from anywhere and need Magic 12.
+  - Your homestone at home takes you back to where you came from.
+- **Visitors.** Visiting starts **closed** (only you). Your homestone at home changes it:
+  - Only you, your friends, or anyone.
+  - Add friends from the players who are on.
+  - Others visit from any homestone (*Visit someone's home...*).
+  - Closing it sends visitors back.
+- **Building.** At home, press **B** (or the Build button):
+  - Choose a piece, then click or drag on your land. Esc or a right-click stops.
+  - The pieces: floors, walls, doors, windows (on a matching wall), roofs (the pieces follow the roof's shape),
+    furniture, lights, the garden (herbs, bushes, trees and wheat you can pick, chop and harvest), and workshops.
+  - **Take down** removes the top thing on a tile and gives back half its materials. It also clears the land's own
+    trees, rocks and flowers.
+  - Each piece needs materials and a level of the new **Construction** skill, and building gives Construction
+    experience.
+- **What works at home.**
+  - A bed you've slept in is where you wake if you fall.
+  - A chest opens onto your bank, and only for you.
+  - The bench, range, anvil, furnace and alchemy table work like the towns' ones.
+- **Shared.** Homes are part of the shared world and are saved with it. There's no fog of war on them.
+- **Changing it.**
+  - `Data/Buildables.ini`: what can be built, of what, at which level. Kinds: `Tile`, `Decor`, `Roof`, `Object`.
+  - `Data/Homestead.txt`: the land a new home starts as.
+  - Config `[Homestead]`: where you arrive, and the town a homestone sends you back to by default.
+  - `Dev/migrate/build_homestead.py` makes all of it: run it again after rebuilding the world; it only adds what's
+    missing.
+
 ## Bringing over desktop characters
 
 ```

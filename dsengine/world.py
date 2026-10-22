@@ -16,6 +16,7 @@ from .data import GameData
 from .entity import (Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE,
                      TYPE_NAMES, normalise_type, attitude_of_type, parse_attitude)
 from .maps import MapData
+from .homes import Homes
 from .npcs import NPCMixin
 
 log = logging.getLogger("dragonsword.world")
@@ -52,6 +53,7 @@ class World(NPCMixin):
         self.active = set()             # (mx, my, mz) of maps someone is near: their NPCs think
         self.tile_listeners = []        # callables (map, x, y) when a tile changes
         self.load_maps()
+        self.homes = Homes(self)        # players' homesteads (their maps join self.maps as they're made)
 
     # =================================================================================================================
     # Maps

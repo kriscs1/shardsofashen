@@ -13,6 +13,7 @@ import { setWeather, fogInit, revealCell } from "./sky.js";
 import { messageColour, clamp, val, pretty } from "./util.js";
 import { buildPicker, DEFAULT_LOOK } from "./look.js";
 import { preload } from "./assets.js";
+import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, buildMouseDown, buildMouseMove, drawBuild } from "./build.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("game");
@@ -324,6 +325,7 @@ N.onMessage = (m) => {
     case "me":
       S.me = m;
       S.view = m.view;
+      updateBuild();
       if (S.itemInUse && !m.inv.some((i) => i[0] === S.itemInUse)) S.itemInUse = 0;
       break;
     case "quests": S.quests = m.quests; S.marks = m.marks; S.level = m.level; break;
@@ -360,6 +362,7 @@ N.onMessage = (m) => {
       break;
     case "sleep": S.sleep = { start: now, fade: m.fade, hold: m.hold, text: m.text }; break;
     case "journal": S.journal = m; break;
+    case "buildables": onBuildables(m); break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;
@@ -407,6 +410,7 @@ function frame(now) {
     ctx.restore();
   } else {
     drawWorld(ctx, L.VW, L.VH, now, dt, smoothing);
+    drawBuild(ctx, I.mx, I.my, smoothing);
     ctx.imageSmoothingEnabled = smoothing;
     drawUI(ctx, now);
   }
@@ -429,11 +433,13 @@ canvas.addEventListener("mousemove", (ev) => {
   const [x, y] = toLogical(ev);
   I.mx = x; I.my = y;
   mouseDrag(y, ev.buttons & 1);
+  if (running && !overlayOpen()) buildMouseMove(x, y, ev.buttons & 1);
 });
 canvas.addEventListener("mousedown", (ev) => {
   if (!running || overlayOpen()) return;
   canvas.focus();
   const [x, y] = toLogical(ev);
+  if (buildMouseDown(ev.button, x, y)) return;
   mouseDown(ev.button, x, y);
 });
 canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
@@ -445,6 +451,8 @@ canvas.addEventListener("wheel", (ev) => {
 }, { passive: false });
 window.addEventListener("keydown", (ev) => {
   if (!running || overlayOpen()) return;
+  if (B.on && ev.code === "Escape") { ev.preventDefault(); setBuild(false); return; }
+  if (ev.code === "KeyB" && !J.open && S.me && S.me.home && S.me.home.own) { ev.preventDefault(); toggleBuild(); return; }
   keyDown(ev);
 });
 window.addEventListener("keyup", (ev) => { if (running) keyUp(ev); });
@@ -471,6 +479,7 @@ async function boot() {
   fogInit();
   loadOptions();
   loadView();
+  initBuildUI();
   onLoaded(() => {});
   connect();
 }

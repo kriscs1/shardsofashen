@@ -325,11 +325,15 @@ class ItemsMixin:
 
     def close_action_box(self, result):
         """Closes the ActionBox; a script waiting on it carries on (result -1 = cancelled)."""
+        self.native_menu = None
         self.hide_action_box()
         if self.script_state in ("CONVERSATION", "RACK"):
             self.script_result = result
 
     def action_box_response_chosen(self, n):
+        if self.ab_mode == "Conversation" and self.native_menu is not None:
+            self.native_menu_chosen(n)
+            return
         if self.ab_mode == "Conversation":
             self.close_action_box(n)
             return

@@ -448,7 +448,11 @@ class CombatMixin:
         for e in self.w.ents:
             if e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
-        if d.map_exists(d.start_map):
+        bed = self.home_respawn()
+        if bed is not None:
+            self.teleport(*bed)
+            self.display_message("You wake in your own bed.", "INFO")
+        elif d.map_exists(d.start_map):
             self.teleport(d.start_map, d.start_x, d.start_y)
         self.dirty_me = True
 
@@ -668,6 +672,15 @@ class CombatMixin:
             self.display_message("The world spins around you...", "SUCCESS")
             self.player_attack_target = None
             self.teleport(m, x, y)
+        elif effect == "HOME":
+            if not self.home_spell_ok():
+                return
+            self.spell_begin(scroll, spell)
+            if self.spell_fizzled:
+                return
+            self.spell_glow(spell)
+            self.display_message("The world spins around you...", "SUCCESS")
+            self.go_home()
         else:
             self.display_message("Nothing interesting happens.", "FAIL")
 
