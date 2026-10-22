@@ -6,5 +6,8 @@ def all_pages():
     from .racks import RackPage
     from .spells import SpellPage
     from .quests import QuestPage
+    from .buildables import BuildablePage
+    from .crops import CropPage
     from .minimaps import MinimapPage
-    return [MapPage, ScriptPage, TilePage, EntityPage, RackPage, SpellPage, QuestPage, MinimapPage]
+    return [MapPage, ScriptPage, TilePage, EntityPage, RackPage, SpellPage, QuestPage, BuildablePage, CropPage,
+            MinimapPage]

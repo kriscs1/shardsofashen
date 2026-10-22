@@ -1,6 +1,6 @@
 # The server
 aiohttp>=3.9
-# Building web/assets (tools/export_web_assets.py) and the desktop game
+# Building web/assets (tools/export_web_assets.py)
 pygame>=2.5
 numpy>=1.24
 # Tests

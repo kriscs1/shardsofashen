@@ -9,7 +9,7 @@ from PIL import Image, ImageEnhance
 
 from .. import theme as T
 from ..app import Page
-from ..project import MapDoc, Entity, parse_map_name, tile_family, TILE_FAMILIES, ENTITY_TYPES
+from ..project import MapDoc, Entity, parse_map_name, tile_family, TILE_FAMILIES, ENTITY_TYPES, HOMESTEAD_MAP
 from ..render import render, walk_overlay, tile_image
 from ..widgets import (PaletteGrid, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
@@ -243,6 +243,10 @@ class MapPage(Page):
         self.render_neighbours()
         self.redraw(full=True, center=True)
         self.show_inspector()
+        if name == HOMESTEAD_MAP:
+            self.app.status("The homestead: the land every home is made from (Data\Homestead.txt). Existing homes "
+                            "change too, except where their owners have built. Keep the Homestone and Home_Arrival.",
+                            "warn")
         for d, b in self.arrow_btns.items():
             b.state(["!disabled"])
         self.app.refresh_chrome()
@@ -322,7 +326,8 @@ class MapPage(Page):
         self.fill_palette()
 
     def search_items(self):
-        return [(m, "Map " + m) for m in self.project.maps()]
+        return [(m, "Map " + m + (" (homestead: the land a new home starts as)" if m == HOMESTEAD_MAP else ""))
+                for m in self.project.maps()]
 
     def selected_spot(self):
         """(map, tile x, tile y) of the selected tile (Quests' markers), or None."""

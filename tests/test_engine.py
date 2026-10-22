@@ -374,3 +374,31 @@ def test_farming_grows_and_only_the_sower_harvests(world):
     farms.clock = clock
     leave(world, a)
     leave(world, b)
+
+
+def test_the_settlers_quest_gives_the_crystal(world):
+    st = next(e for e in world.ents if getattr(e, "npc_id", "") == "Homestead_Settler")
+    m = world.maps[st.map]
+    s = join(world, "Apprentice", st.map, int(st.x - m.ox), int(st.y - m.oy + 34))
+
+    def talk(answer, ticks=10):
+        s.do_action("Talk to", st)
+        for _ in range(10):
+            world.tick(0.05)
+        words = list(s.responses)
+        s.action_box_response_chosen(answer)
+        for _ in range(ticks):
+            world.tick(0.05)
+        return words
+
+    talk(1)
+    assert s.get_attribute("HomeQuest") in ("", "0")                 # not before the ferry
+    s.attributes.append(["FerryQuest", "4"])
+    assert talk(1)[0] == "I'll do it!"
+    assert s.get_attribute("HomeQuest") == "1"
+    stock(s, Plank=10, Stone_Block=4)
+    talk(1, ticks=40)
+    assert s.get_attribute("HomeQuest") == "2" and s.items_held("Access_Crystal") == 1
+    assert s.items_held("Plank") == 0
+    assert talk(1)[0] == "Sell me something." and s.ab_mode == "Shop"
+    leave(world, s)

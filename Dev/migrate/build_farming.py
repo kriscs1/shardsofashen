@@ -326,10 +326,32 @@ def write_farm():
         print("The farmer tells you about the furrows")
 
 
+def write_minimap_colours():
+    """Dev\\Minimap Colours.txt: a colour for each new tile (its picture over the soil, averaged)."""
+    path = os.path.join(ROOT, "Dev", "Minimap Colours.txt")
+    raw = open(path, "rb").read().decode("cp1252")
+    nl = "\r\n" if "\r\n" in raw else "\n"
+    have = {ln.split("\t")[0] for ln in raw.splitlines() if ln.strip()}
+    soil = pygame.image.load(os.path.join(TILES, "Soil001.png"))
+    add = []
+    for name in ["Soil001"] + ["%s_Crop%03d" % (c, n) for c in CROPS for n in (1, 2, 3)]:
+        if name in have or not os.path.exists(os.path.join(TILES, name + ".png")):
+            continue
+        t = soil.copy()
+        t.blit(pygame.image.load(os.path.join(TILES, name + ".png")), (0, 0))
+        r, g, b, _ = pygame.transform.smoothscale(t, (1, 1)).get_at((0, 0))
+        add.append("%s\t%d %d %d" % (name, r, g, b))
+    if add:
+        with open(path, "wb") as f:
+            f.write((raw.rstrip("\r\n") + nl + nl.join(add) + nl).encode("cp1252"))
+        print("Minimap colours for %d tiles" % len(add))
+
+
 def main():
     make_sprites()
     write_data()
     write_farm()
+    write_minimap_colours()
 
 
 if __name__ == "__main__":

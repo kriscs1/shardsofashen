@@ -1,11 +1,17 @@
 """The Dragon Sword Editor: one window for the whole game. A rail of sections on the left (Maps, Scripts, Tiles,
-Entities, Item Racks, Spells, Quests, Minimaps), the section on the right, and everything linked: a trigger opens its
-script, a placed entity its Entities page, an item in a rack its entity, "Used in" lists jump to the place.
-Ctrl+K: go to anything. Ctrl+S save, Ctrl+Z / Ctrl+Y undo / redo (in the section you're in). F5: play the game."""
+Entities, Item Racks, Spells, Quests, Buildables, Crops, Minimaps), the section on the right, and everything linked: a
+trigger opens its script, a placed entity its Entities page, an item in a rack its entity, "Used in" lists jump to the
+place. Ctrl+K: go to anything. Ctrl+S save, Ctrl+Z / Ctrl+Y undo / redo (in the section you're in).
+F5: play what you've made, in the browser (a local server started from these files)."""
 import os
+import queue
 import subprocess
 import sys
+import threading
+import time
 import tkinter as tk
+import urllib.request
+import webbrowser
 from tkinter import ttk, messagebox
 
 from . import theme as T
@@ -223,7 +229,7 @@ class App:
     def add_rail_footer(self):
         foot = tk.Frame(self.rail, bg=T.RAIL)
         foot.pack(side="bottom", fill="x", pady=14)
-        for text, cmd in (("▶  Play the game   F5", self.play), ("⌕  Go to anything   Ctrl+K", self.quick_open)):
+        for text, cmd in (("▶  Play in the browser   F5", self.play), ("⌕  Go to anything   Ctrl+K", self.quick_open)):
             l = tk.Label(foot, text=text, bg=T.RAIL, fg="#c9b89f", font=("Segoe UI", 9), anchor="w", padx=18,
                          cursor="hand2")
             l.pack(fill="x", pady=2)
@@ -267,8 +273,8 @@ class App:
         return next(p for p in self.pages if p.kind == kind)
 
     def goto(self, kind, key, **kw):
-        """Opens key in the section kind (map, script, tile, entity, rack, spell, quest, minimap, or place: a named
-        place's map, at its tile)."""
+        """Opens key in the section kind (map, script, tile, entity, rack, spell, quest, buildable, crop, minimap, or
+        place: a named place's map, at its tile)."""
         if kind == "place":
             pl = self.project.places().get(key.upper())
             if pl is None:
@@ -297,11 +303,68 @@ class App:
                 self.status("Saved %s." % (self.page.current() or self.page.title), "ok")
         self.refresh_chrome()
 
+    PLAY_PORT = 8080
+    play_news = queue.Queue()
+
     def play(self):
-        game = os.path.join(self.project.root, "Dragon Sword.py")
-        if os.path.exists(game):
-            subprocess.Popen([sys.executable, game], cwd=self.project.root)
-            self.status("Started the game.", "ok")
+        """F5: the game as it is in these files, in the browser. The pictures are made again (only what changed), the
+        local server (in a window of its own) is started, or restarted to read the changes, and the game opens.
+        Its players and world are kept in server-data\ (not the real server's)."""
+        if getattr(self, "_playing", False):
+            return
+        for p in self.pages:
+            if p.is_dirty():
+                p.save()
+        self._playing = True
+        self.status("Getting the game ready: making the pictures...", "info")
+        threading.Thread(target=self._play_thread, daemon=True).start()
+
+    def _play_thread(self):
+        root = self.project.root
+        url = "http://localhost:%d/" % self.PLAY_PORT
+        say = lambda text, kind="info": self.play_news.put((text, kind))       # (shown by watch(), in Tk's thread)
+        try:
+            r = subprocess.run([sys.executable, os.path.join(root, "tools", "export_web_assets.py")], cwd=root,
+                               capture_output=True, text=True,
+                               creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            if r.returncode != 0:
+                say("Making the pictures failed: %s" % (r.stderr.strip().splitlines() or ["?"])[-1], "error")
+                return
+            proc = getattr(self, "_server", None)
+            if proc is not None and proc.poll() is None:
+                say("Restarting the local server...")
+                proc.terminate()
+                proc.wait(10)
+            elif self._server_up(url):
+                say("A server is already running at %s (not one F5 started): opened it. Restart it to see changes."
+                    % url, "warn")
+                webbrowser.open(url)
+                return
+            env = dict(os.environ, DS_PORT=str(self.PLAY_PORT))
+            self._server = subprocess.Popen([sys.executable, "-m", "server"], cwd=root, env=env,
+                                            creationflags=getattr(subprocess, "CREATE_NEW_CONSOLE", 0))
+            for _ in range(60):
+                if self._server.poll() is not None:
+                    say("The local server stopped: look at its window for why.", "error")
+                    return
+                if self._server_up(url):
+                    break
+                time.sleep(0.5)
+            webbrowser.open(url)
+            say("Playing at %s (the server runs in its own window; F5 again restarts it with your changes)." % url,
+                "ok")
+        except Exception as e:      # (anything at all: the editor carries on)
+            say("Couldn't start the game: %s" % e, "error")
+        finally:
+            self._playing = False
+
+    @staticmethod
+    def _server_up(url):
+        try:
+            with urllib.request.urlopen(url + "health", timeout=1) as r:
+                return r.status == 200
+        except Exception:
+            return False
 
     def bind_keys(self):
         r = self.root
@@ -314,12 +377,14 @@ class App:
         r.bind_all("<Control-z>", lambda e: None if in_text() else (self.page.undo(), "break")[1])
         r.bind_all("<Control-y>", lambda e: None if in_text() else (self.page.redo(), "break")[1])
         r.bind_all("<F5>", lambda e: self.play())
-        for i in range(len(self.pages)):
+        for i in range(min(9, len(self.pages))):              # (Ctrl+1..9: the first nine sections)
             r.bind_all("<Control-Key-%d>" % (i + 1), lambda e, i=i: self.show(self.pages[i]))
 
     def watch(self):
         """Every so often: the dots and buttons, and files changed by something else (a rebuild)."""
         try:
+            while not self.play_news.empty():
+                self.status(*self.play_news.get_nowait())
             self.refresh_chrome()
         finally:
             self.root.after(800, self.watch)

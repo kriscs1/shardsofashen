@@ -10,7 +10,8 @@ accounts, characters and the shared world (SQLite).
 | `web/` | The browser game (HTML5 canvas, no build step). `web/assets` is made by `tools/export_web_assets.py` |
 | `tools/` | `export_web_assets.py`, `admin.py` (passwords, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
 | `deploy/` | Docker, docker-compose with Caddy (HTTPS), a systemd unit |
-| `dragonsword/`, `dsedit/` | The desktop game and the editor, as before |
+| `dsedit/` | The editor (`Dragon Sword Editor.py`): F5 plays your changes in the browser, on a local server |
+| `dragonsword/` | Helpers shared by the server, the editor and the tools (the desktop game itself is retired) |
 
 ## Playing locally
 
@@ -119,7 +120,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
 - **Changing it.** `Data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
   each crop. `Dev/migrate/build_farming.py` makes it all, like the other builders.
 
-## Bringing over desktop characters
+## Bringing over old desktop characters
 
 ```
 python tools/import_saves.py              # every Saves\*.ini (their waiting respawns join the shared world)

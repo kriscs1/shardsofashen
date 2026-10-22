@@ -6,7 +6,7 @@ from .. import theme as T
 from ..widgets import photo
 from .iniform import IniFormPage
 
-EFFECTS = ["Bolt", "Area", "Heal", "Boost", "Teleport"]
+EFFECTS = ["Bolt", "Area", "Heal", "Boost", "Teleport", "Home"]
 ONLY = {   # key -> the effects it's for
     "Damage": ("Bolt", "Area"), "Range": ("Bolt",), "Slow": ("Bolt",), "Missile": ("Bolt",), "Radius": ("Area",),
     "Heal": ("Heal",), "Attack": ("Boost", "Shield"), "Defence": ("Boost", "Shield"), "Magic": ("Boost", "Shield"),
@@ -45,7 +45,7 @@ class SpellPage(IniFormPage):
         self.add(f, r, 0, "Effect", ttk.Combobox(f, textvariable=self.var("Effect"), values=EFFECTS, state="readonly",
                                                  width=14),
                  "Bolt: one foe. Area: every foe within Radius. Heal. Boost: Attack / Defence / Magic / Sight for a "
-                 "while. Teleport.")
+                 "while. Teleport. Home: to your homestead (needs the Access Crystal).")
         self.add(f, r, 2, "Kind", ttk.Combobox(f, textvariable=self.var("Kind"), values=["Scroll", "Potion"],
                                                state="readonly", width=10),
                  "Scroll: read (needs the skill level). Potion: drunk.")

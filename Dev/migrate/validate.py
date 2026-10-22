@@ -1003,9 +1003,10 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
                "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
-               "Light", "Walkable.Data"}                                          # what lights the dark; an object's footprint
+               "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
+               "Crop", "Keep.On.Death"}                                          # a seed's crop (Crops.ini); kept on death
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
-                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists"}
+                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1377,6 +1378,8 @@ def check_gathering(entities_ini, tiles_ini, skills):
                 words = [w.strip() for w in (ini_src.get(src, "Use.Words") or "").split(",")]
                 if verb not in words:
                     err(where, "Verb %r is not in the Use.Words of %s" % (verb, src))
+                if verb == "Harvest" and "_Crop" in src:
+                    continue                    # (a crop: the server harvests it, dsengine/farming.py, Data\Crops.ini)
                 script = find_verb_script(verb, src)
                 if not script:
                     err(where, "no '%s %s' script" % (verb, strip_digits(src)))
@@ -1420,8 +1423,8 @@ def check_spells(entities_ini, skills):
         where = "%s [%s]" % (rel(path), sec)
         spells.add(sec)
         effect = (ini.get(sec, "Effect") or "Bolt").strip().upper()
-        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT"):
-            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost or Teleport" % effect)
+        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME"):
+            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport or Home" % effect)
         scroll = (ini.get(sec, "Scroll") or "").strip()
         if not scroll:
             err(where, "Scroll missing")

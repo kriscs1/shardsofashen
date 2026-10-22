@@ -1,16 +1,17 @@
 # Dragon Sword v2: data formats and conventions
 
-This is the contract shared by the game (the Python package `dragonsword\`, started by `Dragon Sword.py`) and
-the editor (the Python package `dsedit\`, started by `Dragon Sword Editor.py`: maps, scripts, tiles, entities, item racks,
-spells, quests and minimaps in one window) and the builders in `Dev\migrate`. If you change a format, update this file.
-(The game and the editor were Liberty BASIC, `Dragon Sword.bas` and `Dragon Sword Editor.bas`, until they were ported
-to Python in October 2026.)
+This is the contract shared by the game (the browser game: the server in `server\` and `dsengine\`, the client in
+`web\`; see README-Server.md), the editor (the Python package `dsedit\`, started by `Dragon Sword Editor.py`: maps,
+scripts, tiles, entities, item racks, spells, quests, buildables, crops and minimaps in one window) and the builders in
+`Dev\migrate`. If you change a format, update this file. (The game and the editor were Liberty BASIC,
+`Dragon Sword.bas` and `Dragon Sword Editor.bas`, until they were ported to Python in October 2026. The desktop
+Python game, `Dragon Sword.py`, was retired for the browser game; `dragonsword\` keeps only the helpers they share.)
 
 All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 
 ## Language and checking
 
-* The game: Python 3 with pygame and numpy. The editor: Liberty BASIC 4.04
+* The game: Python 3 with aiohttp (the server), and pygame and numpy to make its pictures (tools\export_web_assets.py). The editor: Liberty BASIC 4.04
   (`C:\Program Files (x86)\Liberty BASIC v4.04\liberty.exe`).
   The command line can't syntax-check, so run `python Dev\lblint.py <file.bas> --locals`
   after every edit. It reports unbalanced blocks, bad goto/gosub targets, unknown

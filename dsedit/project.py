@@ -509,6 +509,9 @@ class ScriptDoc:
 # =================================================================================================================
 # The project
 # =================================================================================================================
+HOMESTEAD_MAP = "0,0,1000"     # the land a new homestead starts as (Data\Homestead.txt; the homes are 0,0,1001 up)
+
+
 class Project:
     def __init__(self, root):
         self.root = root
@@ -521,6 +524,8 @@ class Project:
         self.racks_ini = IniDoc(self.p("Data", "ItemRacks.ini"))
         self.spells_ini = IniDoc(self.p("Data", "Spells.ini"))
         self.quests_ini = IniDoc(self.p("Data", "Quests.ini"))
+        self.buildables_ini = IniDoc(self.p("Data", "Buildables.ini"))
+        self.crops_ini = IniDoc(self.p("Data", "Crops.ini"))
         self._sprites = {}
         self._lists = {}
         self._index = None
@@ -533,6 +538,8 @@ class Project:
         return os.path.join(self.root, *parts)
 
     def map_path(self, name):
+        if name == HOMESTEAD_MAP:
+            return self.p("Data", self.config.get("Homestead", "Template", "Homestead.txt") or "Homestead.txt")
         return self.p("Maps", name + ".txt")
 
     def script_path(self, name):
@@ -642,6 +649,8 @@ class Project:
         if "maps" not in self._lists:
             d = self.p("Maps")
             names = [f[:-4] for f in os.listdir(d) if f.endswith(".txt") and parse_map_name(f[:-4])]
+            if os.path.exists(self.map_path(HOMESTEAD_MAP)) and HOMESTEAD_MAP not in names:
+                names.append(HOMESTEAD_MAP)
             self._lists["maps"] = sorted(names, key=lambda n: (parse_map_name(n)[2], parse_map_name(n)[1],
                                                                parse_map_name(n)[0]))
         return self._lists["maps"]
