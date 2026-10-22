@@ -1,0 +1,43 @@
+01	Get.Value	ATTRIBUTE	RemedyQuest	Variable.1$
+02	Display.Conversation	Herbalist	Herbs, potions, remedies... what ails you, dear?\Bring me three herbs and an empty vial and I'll brew you a healing potion.	Brew me a potion.	03	Show me your potions.	16	Can I help you?	18	Goodbye.	43
+03	>Got.Item	Herb	3	12
+04	>Got.Item	Empty_Vial	1	14
+05	Take.Item	Herb	3
+06	Take.Item	Empty_Vial	1
+07	Display.Message	Cyan	The herbalist grinds the herbs and stirs them into the vial...
+08	Wait	1.5
+09	Give.Item	Basic_Potion	1
+10	Display.Message	Yellow	She hands you a healing potion!
+11	End
+12	Display.Conversation	Herbalist	I need three herbs, dear. They grow wild all over the Southlands.	I'll find some.	43
+13	End
+14	Display.Conversation	Herbalist	You'll need an empty vial to carry it in. I sell them, or drink a potion and keep the vial.	I see.	43
+15	End
+16	Display.Item.Rack	SPECIFIC	Herbalist	SHOP-Herbalist	43
+17	End
+18	>Conditional	$Variable.1=0	27
+19	Display.Conversation	Herbalist	Bless you, I could use a hand. Three of the King's guards were bitten by giant spiders down the mine.\For a poultice I need 3 cave mushrooms (they glow in the old iron mine) and 2 spider silk from the spiders in the mine depths.	I'll gather them.	21	Not now.	43
+20	End
+21	Update.Attribute	RemedyQuest	=1
+22	Quest.Note	RemedyQuest	Pick 3 Cave Mushrooms in the old iron mine.
+23	Quest.Note	RemedyQuest	Get 2 Spider Silk from the giant spiders in the mine depths.
+24	Quest.Note	RemedyQuest	Bring them all to the Herbalist's cottage on the Ashford farmlands.
+25	Display.Message	Yellow	Quest started: The Herbalist's Remedy.
+26	End
+27	>Conditional	$Variable.1=1	42
+28	>Got.Item	Cave_Mushroom	3	40
+29	>Got.Item	Spider_Silk	2	40
+30	Take.Item	Cave_Mushroom	3
+31	Take.Item	Spider_Silk	2
+32	Display.Conversation	Herbalist	You found them all! The guards will be on their feet in no time.\Take these potions, and let me show you a thing or two about herblore. My alchemy table is yours to use.	Thank you!	33
+33	Give.Item	Super_Potion	2
+34	Give.Item	Gold_Coin(s)	60
+35	Update.Skill	Herblore	+2
+36	Update.Attribute	RemedyQuest	=2
+37	Quest.Note.Done	RemedyQuest	*
+38	Display.Message	Yellow	Quest complete! You receive 2 super potions, 60 gold and Herblore experience.
+39	End
+40	Display.Conversation	Herbalist	I still need 3 cave mushrooms and 2 spider silk, dear.\Pick the mushrooms in the old iron mine; the giant spiders live in the mine depths beyond it.	I'll keep looking.	43
+41	End
+42	Display.Conversation	Herbalist	The guards are mending nicely, thanks to you. Use my alchemy table whenever you like.	Glad to help.	43
+43	End

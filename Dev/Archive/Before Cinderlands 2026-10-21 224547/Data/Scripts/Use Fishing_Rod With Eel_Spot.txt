@@ -1,0 +1,2 @@
+01	Goto.Script	Fish Eel_Spot
+02	End

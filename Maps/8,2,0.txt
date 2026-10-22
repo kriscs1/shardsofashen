@@ -1,0 +1,32 @@
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001
+Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001
+Water001:Water001:Sand_Water009:Sand001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand_Water007:Water001:Water001
+Sand001:Sand001:Sand001:Sand001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Water001:Water001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall003:City_Wall001:City_Wall001:City_Wall001:City_Wall001:City_Wall001:City_Wall001:City_Wall001:City_Wall001:City_Wall001:City_Wall003:Cinder001:Cinder001:Sand001:Sand001:Sand001:Sand_Water007:Water001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall005:City_Wall004:City_Wall004:City_Wall004:City_Wall004:City_Wall004:City_Wall004:City_Wall004:City_Wall004:City_Wall004:City_Wall005:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Water001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001+Decor(Ember_Vent001):Cinder001:Cinder001:Cinder001+Decor(Cult_Shrine001):Cinder001:Cinder001:Cinder001+Decor(Ember_Vent001):Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Water001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Water001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Water001
+Cinder001+Decor(Basalt_Rock001):Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Sand_Water007
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall002:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Sand001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall003:City_Wall001:City_Wall001:City_Wall003:Cinder001:Dirt001:Cinder001:City_Wall003:City_Wall001:City_Wall001:City_Wall003:Cinder001:Cinder001:Cinder001:Sand001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:City_Wall005:City_Wall004:City_Wall004:City_Wall005:Cinder001:Dirt001:Cinder001:City_Wall005:City_Wall004:City_Wall004:City_Wall005:Cinder001:Cinder001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001+Decor(Mithril_Rock001):Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Sand001:Sand001:Sand001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001+Decor(Mithril_Rock001):Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Lava001:Lava001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Lava001:Lava001:Cinder001:Cinder001:Dirt001:Dirt001:Dirt001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001+Decor(Basalt_Rock001):Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+NPC	Ashen_Priest	384	256	Attitude=Bad Stand=1
+NPC	Ashen_Cultist	288	320	Attitude=Bad
+NPC	Ashen_Cultist	480	320	Attitude=Bad
+NPC	Ashen_Cultist	352	352	Attitude=Bad
+NPC	Ashen_Cultist	448	256	Attitude=Bad
+NPC	Ashen_Cultist	64	224	Attitude=Bad
+NPC	Ashen_Cultist	544	576	Attitude=Bad
+NPC	Ember_Hound	128	480	Attitude=Bad
+StaticObject	Salmon_Spot	704	64
+Id	Cinder_Fort	13	14
+Trigger	Cinder Fort Gate	13	14

@@ -1,0 +1,33 @@
+Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001+Decor(Rock001):Stone001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001+Decor(Rock001):Grass001:Grass001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Tall_Grass001):Grass001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Sea_Rock002:Water001
+Grass001:Grass001:Grass001:Grass001:Stone001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Stone002:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001+Decor(Flowers003):Stone001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Standing_Stone001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001+Decor(Sea_Rock001):Water001
+Grass001:Grass001:Grass001+Decor(Flowers002):Grass001+Decor(Flowers001):Grass001:Ruined_Wall002:Ruined_Wall001:Ruined_Wall002:Grass001+Decor(Pebbles003):Ruined_Wall002:Ruined_Wall001:Ruined_Wall002:Stone001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Grass001+Decor(Flowers002):Grass001:Grass001:Grass001+Decor(Sage_Patch001):Grass001+Decor(Pebbles001):Ruined_Wall001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Ruined_Wall001:Grass001:Standing_Stone001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Grave003):Grass001:Grass001+Decor(Grave001):Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001+Decor(Tree002):Cave_Floor001+Decor(Coal_Rock001):Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Grave001):Grass001:Grass001:Grass001:Grass001+Decor(Grave002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Sage_Patch001):Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Stone001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001+Decor(Pebbles003):Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Dirt001:Dirt001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Stone002:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Stone001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001+Decor(Tree002):Sand001:Sand001:Sand001:Sand001:Sand_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Dirt001:Cave_Floor001+Decor(Coal_Rock001):Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+NPC	Barrow_King	256	352	Attitude=Bad
+NPC	Skeleton	192	416	Attitude=Bad
+NPC	Skeleton	320	416	Attitude=Bad
+MapItem	Bones	225	450	1
+MapItem	Bones	289	482	1
+NPC	Skeleton	160	128	Attitude=Bad
+NPC	Skeleton	512	512	Attitude=Bad
+NPC	Bat	416	160	Attitude=Bad
+NPC	Skeleton_Archer	288	256	Attitude=Bad
+StaticObject	Swordfish_Spot	544	160
+Id	Barrow	9	14
+Trigger	Barrow Door	9	17

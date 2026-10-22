@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Southport. Gulls wheel over the harbour.
+02	End

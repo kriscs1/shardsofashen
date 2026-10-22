@@ -1,0 +1,37 @@
+01	Get.Value	ATTRIBUTE	DwarfQuest	Variable.1$
+02	Display.Conversation	Dwarf	Well met! Brokk Stonebeard, last of the deep miners.\Gold, gems, good steel: I trade in all of it. And my forge is hot if you've ore to work.	What do you trade?	03	Can I use your forge?	05	Do you need help?	10	Goodbye.	37
+03	Display.Item.Rack	SPECIFIC	Dwarf	SHOP-Dwarf	37
+04	End
+05	Display.Conversation	Dwarf	Furnace's on the left, anvil on the right. Mind your beard.\Smelt ore into bars at the furnace, then hammer the bars into tools and armour on the anvil.	The furnace: smelt ore.	06	The anvil: smith bars.	08	Never mind.	37
+06	Display.Item.Rack	GENERAL	Dwarf	CRAFT-Smelting	37
+07	End
+08	Display.Item.Rack	GENERAL	Dwarf	CRAFT-Smithing	37
+09	End
+10	>Conditional	$Variable.1=0	21
+11	Display.Conversation	Dwarf	Help? Aye. The dead walk in my halls: skeletons of the old miners, raised by who knows what.\And a cave troll has taken the crystal vein by the lake. Smash four skeletons and kill the troll, and I'll make it worth your while.	Consider it done.	13	Not now.	37
+12	End
+13	Update.Attribute	DwarfQuest	=1
+14	Quest.Note	DwarfQuest	Smash four skeletons in the Deep Hollow.
+15	Quest.Note	DwarfQuest	Slay the cave troll in the Deep Hollow.
+16	Quest.Note	DwarfQuest	Then go back to Brokk.
+17	Update.Attribute	SkeletonsSlain	=0
+18	Update.Attribute	TrollSlain	=0
+19	Display.Message	Yellow	Quest started: The Dwarf's Grudge.
+20	End
+21	>Conditional	$Variable.1=1	36
+22	Get.Value	ATTRIBUTE	SkeletonsSlain	Variable.2$
+23	Get.Value	ATTRIBUTE	TrollSlain	Variable.3$
+24	>Conditional	$Variable.2>=4 and $Variable.3>=1	34
+25	Display.Conversation	Dwarf	Ha! The troll is dead and the bones lie still. My halls are mine again!\Take this blade: dwarf steel, the best there is. And some stones from the vein.\My vault, west of the forge, is open to you now.	Thank you, Brokk.	26
+26	Give.Item	Steel_Sword	1
+27	Give.Item	Sapphire	2
+28	Give.Item	Gold_Coin(s)	150
+29	Update.Skill	Mining	+2
+30	Update.Attribute	DwarfQuest	=2
+31	Quest.Note.Done	DwarfQuest	*
+32	Display.Message	Yellow	Quest complete! You receive a steel sword, 2 sapphires, 150 gold and Mining experience. Brokk's vault is open to you.
+33	End
+34	Display.Conversation	Dwarf	Skeletons smashed: $Variable.2 of 4. Trolls slain: $Variable.3 of 1.\The skeletons wander all over the Hollow; the troll lairs south-east, past the lake.	I'll get back to it.	37
+35	End
+36	Display.Conversation	Dwarf	My halls are quiet again, friend. Mine the crystal vein any time you like, if you've the skill for it.\And help yourself to what's in my vault, west of the forge.	Thanks.	37
+37	End

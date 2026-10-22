@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The Royal Isle: King Tyron's palace.
+02	End

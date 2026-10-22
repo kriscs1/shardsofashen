@@ -1,0 +1,5 @@
+01	Play.Sound	EmptyBucket
+02	Take.Item	Bucket_of_Water	1
+03	Give.Item	Bucket	1
+04	Display.Message	Cyan	You empty the contents of the bucket onto the floor.
+05	End

@@ -1,0 +1,1050 @@
+{
+ "Banner001": [
+  "Stone_Wall",
+  "Banner001"
+ ],
+ "Barrel001": [
+  "Grass001",
+  "Barrel001"
+ ],
+ "Barrel002": [
+  "Plank001",
+  "Barrel002"
+ ],
+ "Bed001": [
+  "Plank001",
+  "Bed001"
+ ],
+ "Bed002": [
+  "Plank001",
+  "Bed002"
+ ],
+ "Bed101": [
+  "Tile001",
+  "Bed001"
+ ],
+ "Bed102": [
+  "Tile001",
+  "Bed102"
+ ],
+ "Bed201": [
+  "Marble001",
+  "Bed201"
+ ],
+ "Bed202": [
+  "Marble001",
+  "Bed102"
+ ],
+ "Bed_Plaster_Thin_Plank001": [
+  "Plaster_Thin_Plank001",
+  "Bed001"
+ ],
+ "Bed_Sandstone_Thin_Plank001": [
+  "Sandstone_Thin_Plank001",
+  "Bed001"
+ ],
+ "Bed_Stone_Wall_Thin_Plank001": [
+  "Stone_Wall_Thin_Plank001",
+  "Bed001"
+ ],
+ "Bench001": [
+  "Grass001",
+  "Bench001"
+ ],
+ "Berry_Bush001": [
+  "Grass001",
+  "Berry_Bush001"
+ ],
+ "Berry_Bush002": [
+  "Grass001",
+  "Berry_Bush002"
+ ],
+ "Bog_Myrtle001": [
+  "Marsh001",
+  "Bog_Myrtle001"
+ ],
+ "Bog_Myrtle002": [
+  "Marsh001",
+  "Bog_Myrtle002"
+ ],
+ "Bookshelf001": [
+  "Plank001",
+  "Bookshelf001"
+ ],
+ "Bookshelf101": [
+  "Tile001",
+  "Bookshelf001"
+ ],
+ "Bookshelf201": [
+  "Marble001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Brick_Thin_Plank001": [
+  "Brick_Thin_Plank001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Brick_Thin_Plank004": [
+  "Brick_Thin_Plank004",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Brick_Thin_Tile001": [
+  "Brick_Thin_Tile001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Brick_Thin_Tile002": [
+  "Brick_Thin_Tile002",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Plaster_Thin_Plank001": [
+  "Plaster_Thin_Plank001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Plaster_Thin_Plank002": [
+  "Plaster_Thin_Plank002",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Plaster_Thin_Plank004": [
+  "Plaster_Thin_Plank004",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Sandstone_Thin_Plank002": [
+  "Sandstone_Thin_Plank002",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Stone_Wall_Thin_Plank001": [
+  "Stone_Wall_Thin_Plank001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Stone_Wall_Thin_Plank002": [
+  "Stone_Wall_Thin_Plank002",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Stone_Wall_Thin_Plank004": [
+  "Stone_Wall_Thin_Plank004",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Stone_Wall_Thin_Tile001": [
+  "Stone_Wall_Thin_Tile001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Timber_Thin_Plank001": [
+  "Timber_Thin_Plank001",
+  "Bookshelf001"
+ ],
+ "Bookshelf_Timber_Thin_Plank002": [
+  "Timber_Thin_Plank002",
+  "Bookshelf001"
+ ],
+ "Brick_Ivy001": [
+  "Brick001",
+  "Ivy001"
+ ],
+ "Brick_Ivy002": [
+  "Brick001",
+  "Ivy002"
+ ],
+ "Brick_Ivy003": [
+  "Brick001",
+  "Ivy003"
+ ],
+ "Brick_Sign001": [
+  "Brick001",
+  "Sign001"
+ ],
+ "Brick_Sign002": [
+  "Brick001",
+  "Sign002"
+ ],
+ "Brick_Sign003": [
+  "Brick001",
+  "Sign003"
+ ],
+ "Brick_Sign004": [
+  "Brick001",
+  "Sign004"
+ ],
+ "Brick_Sign005": [
+  "Brick001",
+  "Sign005"
+ ],
+ "Brick_Sign006": [
+  "Brick001",
+  "Sign006"
+ ],
+ "Brick_Sign007": [
+  "Brick001",
+  "Sign007"
+ ],
+ "Brick_Sign008": [
+  "Brick001",
+  "Sign008"
+ ],
+ "Brick_Window001": [
+  "Brick001",
+  "Brick_Window001"
+ ],
+ "Brick_Window002": [
+  "Brick001",
+  "Brick_Window002"
+ ],
+ "Brick_Window003": [
+  "Brick001",
+  "Brick_Window003"
+ ],
+ "Brick_Window004": [
+  "Brick001",
+  "Brick_Window004"
+ ],
+ "Brick_Window005": [
+  "Brick001",
+  "Brick_Window005"
+ ],
+ "Bush001": [
+  "Grass001",
+  "Bush001"
+ ],
+ "Cactus001": [
+  "Sand001",
+  "Cactus001"
+ ],
+ "Candles001": [
+  "Plank001",
+  "Candles001"
+ ],
+ "Cauldron001": [
+  "Plank001",
+  "Cauldron001"
+ ],
+ "Chair001": [
+  "Plank001",
+  "Chair001"
+ ],
+ "Chair002": [
+  "Plank001",
+  "Chair002"
+ ],
+ "Chair003": [
+  "Plank001",
+  "Chair003"
+ ],
+ "Chair004": [
+  "Plank001",
+  "Chair004"
+ ],
+ "Chair101": [
+  "Tile001",
+  "Chair101"
+ ],
+ "Chair102": [
+  "Tile001",
+  "Chair002"
+ ],
+ "Chair103": [
+  "Tile001",
+  "Chair103"
+ ],
+ "Chair104": [
+  "Tile001",
+  "Chair004"
+ ],
+ "Chair201": [
+  "Marble001",
+  "Chair101"
+ ],
+ "Chair202": [
+  "Marble001",
+  "Chair002"
+ ],
+ "Chair203": [
+  "Marble001",
+  "Chair103"
+ ],
+ "Chair204": [
+  "Marble001",
+  "Chair004"
+ ],
+ "Coal_Rock001": [
+  "Cave_Floor001",
+  "Coal_Rock001"
+ ],
+ "Coin_Chest001": [
+  "Plank001",
+  "Coin_Chest001"
+ ],
+ "Copper_Rock001": [
+  "Cave_Floor001",
+  "Copper_Rock001"
+ ],
+ "Counter001": [
+  "Plank001",
+  "Counter001"
+ ],
+ "Crate001": [
+  "Grass001",
+  "Crate001"
+ ],
+ "Crate002": [
+  "Plank001",
+  "Crate002"
+ ],
+ "Desert_Rock001": [
+  "Sand001",
+  "Desert_Rock001"
+ ],
+ "Fallen_Log001": [
+  "Grass001",
+  "Fallen_Log001"
+ ],
+ "Fence001": [
+  "Grass001",
+  "Fence001"
+ ],
+ "Fence002": [
+  "Grass001",
+  "Fence002"
+ ],
+ "Fish_Barrel001": [
+  "Plank001",
+  "Fish_Barrel001"
+ ],
+ "Flower_Bed001": [
+  "Grass001",
+  "Flower_Bed001"
+ ],
+ "Flower_Bed002": [
+  "Grass001",
+  "Flower_Bed002"
+ ],
+ "Flower_Bed003": [
+  "Grass001",
+  "Flower_Bed003"
+ ],
+ "Flowers001": [
+  "Grass001",
+  "Flowers001"
+ ],
+ "Flowers002": [
+  "Grass001",
+  "Flowers002"
+ ],
+ "Flowers003": [
+  "Grass001",
+  "Flowers003"
+ ],
+ "Fountain001": [
+  "Paving001",
+  "Fountain001"
+ ],
+ "Gem_Rock001": [
+  "Cave_Floor001",
+  "Gem_Rock001"
+ ],
+ "Gold_Rock001": [
+  "Cave_Floor001",
+  "Gold_Rock001"
+ ],
+ "Grave001": [
+  "Grass001",
+  "Grave001"
+ ],
+ "Grave002": [
+  "Grass001",
+  "Grave002"
+ ],
+ "Grave003": [
+  "Grass001",
+  "Grave003"
+ ],
+ "Haystack001": [
+  "Grass001",
+  "Haystack001"
+ ],
+ "Herb_Patch001": [
+  "Grass001",
+  "Herb_Patch001"
+ ],
+ "Herb_Patch002": [
+  "Grass001",
+  "Herb_Patch002"
+ ],
+ "Herb_Rack001": [
+  "Plank001",
+  "Herb_Rack001"
+ ],
+ "Herb_Rack_Brick_Thin_Plank001": [
+  "Brick_Thin_Plank001",
+  "Herb_Rack_Brick_Thin_Plank001"
+ ],
+ "Ladder001": [
+  "Tile001",
+  "Ladder001"
+ ],
+ "Ladder002": [
+  "Tile001",
+  "Ladder002"
+ ],
+ "Ladder003": [
+  "Tile001",
+  "Ladder003"
+ ],
+ "Ladder004": [
+  "Cave_Floor002",
+  "Ladder001"
+ ],
+ "Ladder005": [
+  "Cave_Floor002",
+  "Ladder002"
+ ],
+ "Ladder006": [
+  "Grass001",
+  "Ladder006"
+ ],
+ "Ladder007": [
+  "Dirt001",
+  "Ladder006"
+ ],
+ "Ladder008": [
+  "Plank001",
+  "Ladder008"
+ ],
+ "Ladder009": [
+  "Plank001",
+  "Ladder009"
+ ],
+ "Lamp_Post001": [
+  "Grass001",
+  "Lamp_Post001"
+ ],
+ "Mithril_Rock001": [
+  "Cave_Floor001",
+  "Mithril_Rock001"
+ ],
+ "Mushroom_Patch001": [
+  "Cave_Floor003",
+  "Mushroom_Patch001"
+ ],
+ "Mushroom_Patch002": [
+  "Cave_Floor003",
+  "Mushroom_Patch002"
+ ],
+ "Mushroom_Ring001": [
+  "Grass001",
+  "Mushroom_Ring001"
+ ],
+ "Nest001": [
+  "Grass001",
+  "Nest001"
+ ],
+ "Nest002": [
+  "Grass001",
+  "Nest002"
+ ],
+ "Nets001": [
+  "Plank001",
+  "Nets001"
+ ],
+ "Nets_Brick_Thin_Plank001": [
+  "Brick_Thin_Plank001",
+  "Nets_Brick_Thin_Plank001"
+ ],
+ "Oak_Tree001": [
+  "Grass001",
+  "Oak_Tree001"
+ ],
+ "Ore_Rock001": [
+  "Cave_Floor001",
+  "Ore_Rock001"
+ ],
+ "Ore_Rock002": [
+  "Cave_Floor001",
+  "Ore_Rock002"
+ ],
+ "Pebbles001": [
+  "Grass001",
+  "Pebbles001"
+ ],
+ "Pebbles002": [
+  "Grass001",
+  "Pebbles002"
+ ],
+ "Pebbles003": [
+  "Grass001",
+  "Pebbles003"
+ ],
+ "Pillar001": [
+  "Marble001",
+  "Pillar001"
+ ],
+ "Pine_Tree001": [
+  "Stone001",
+  "Pine_Tree001"
+ ],
+ "Plaster_Ivy001": [
+  "Plaster001",
+  "Ivy001"
+ ],
+ "Plaster_Ivy002": [
+  "Plaster001",
+  "Ivy002"
+ ],
+ "Plaster_Ivy003": [
+  "Plaster001",
+  "Ivy003"
+ ],
+ "Plaster_Sign001": [
+  "Plaster001",
+  "Sign001"
+ ],
+ "Plaster_Sign002": [
+  "Plaster001",
+  "Sign002"
+ ],
+ "Plaster_Sign003": [
+  "Plaster001",
+  "Sign003"
+ ],
+ "Plaster_Sign004": [
+  "Plaster001",
+  "Sign004"
+ ],
+ "Plaster_Sign005": [
+  "Plaster001",
+  "Sign005"
+ ],
+ "Plaster_Sign006": [
+  "Plaster001",
+  "Sign006"
+ ],
+ "Plaster_Sign007": [
+  "Plaster001",
+  "Sign007"
+ ],
+ "Plaster_Sign008": [
+  "Plaster001",
+  "Sign008"
+ ],
+ "Plaster_Window001": [
+  "Plaster001",
+  "Plaster_Window001"
+ ],
+ "Plaster_Window002": [
+  "Plaster001",
+  "Plaster_Window002"
+ ],
+ "Plaster_Window003": [
+  "Plaster001",
+  "Plaster_Window003"
+ ],
+ "Plaster_Window004": [
+  "Plaster001",
+  "Plaster_Window004"
+ ],
+ "Plaster_Window005": [
+  "Plaster001",
+  "Plaster_Window005"
+ ],
+ "Portal001": [
+  "Cave_Floor001",
+  "Portal001"
+ ],
+ "Potion_Shelf001": [
+  "Plank001",
+  "Potion_Shelf001"
+ ],
+ "Potted_Plant001": [
+  "Plank001",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant101": [
+  "Tile001",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant201": [
+  "Marble001",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Brick_Thin_Plank001": [
+  "Brick_Thin_Plank001",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Brick_Thin_Plank002": [
+  "Brick_Thin_Plank002",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Brick_Thin_Plank004": [
+  "Brick_Thin_Plank004",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Brick_Thin_Tile002": [
+  "Brick_Thin_Tile002",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Brick_Thin_Tile004": [
+  "Brick_Thin_Tile004",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Plaster_Thin_Plank002": [
+  "Plaster_Thin_Plank002",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Plaster_Thin_Plank004": [
+  "Plaster_Thin_Plank004",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Sandstone_Thin_Plank004": [
+  "Sandstone_Thin_Plank004",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Stone_Wall_Thin_Plank001": [
+  "Stone_Wall_Thin_Plank001",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Stone_Wall_Thin_Plank002": [
+  "Stone_Wall_Thin_Plank002",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Stone_Wall_Thin_Plank004": [
+  "Stone_Wall_Thin_Plank004",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Stone_Wall_Thin_Tile001": [
+  "Tile001",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Timber_Thin_Plank002": [
+  "Timber_Thin_Plank002",
+  "Potted_Plant001"
+ ],
+ "Potted_Plant_Timber_Thin_Plank004": [
+  "Timber_Thin_Plank004",
+  "Potted_Plant001"
+ ],
+ "Reeds001": [
+  "Marsh001",
+  "Reeds001"
+ ],
+ "Rock001": [
+  "Grass001",
+  "Rock001"
+ ],
+ "Rock002": [
+  "Grass001",
+  "Rock002"
+ ],
+ "Rock003": [
+  "Grass001",
+  "Rock003"
+ ],
+ "Rug001": [
+  "Plank001",
+  "Rug001"
+ ],
+ "Rug002": [
+  "Plank001",
+  "Rug002"
+ ],
+ "Rug003": [
+  "Plank001",
+  "Rug003"
+ ],
+ "Rug004": [
+  "Plank001",
+  "Rug004"
+ ],
+ "Rug005": [
+  "Plank001",
+  "Rug005"
+ ],
+ "Rug006": [
+  "Plank001",
+  "Rug006"
+ ],
+ "Rug007": [
+  "Plank001",
+  "Rug007"
+ ],
+ "Rug008": [
+  "Plank001",
+  "Rug008"
+ ],
+ "Rug009": [
+  "Plank001",
+  "Rug009"
+ ],
+ "Rug011": [
+  "Plank001",
+  "Rug011"
+ ],
+ "Rug012": [
+  "Plank001",
+  "Rug012"
+ ],
+ "Rug013": [
+  "Plank001",
+  "Rug013"
+ ],
+ "Rug014": [
+  "Plank001",
+  "Rug014"
+ ],
+ "Rug015": [
+  "Plank001",
+  "Rug015"
+ ],
+ "Rug016": [
+  "Plank001",
+  "Rug016"
+ ],
+ "Rug017": [
+  "Plank001",
+  "Rug017"
+ ],
+ "Rug031": [
+  "Tile001",
+  "Rug001"
+ ],
+ "Rug032": [
+  "Tile001",
+  "Rug002"
+ ],
+ "Rug033": [
+  "Tile001",
+  "Rug003"
+ ],
+ "Rug034": [
+  "Tile001",
+  "Rug004"
+ ],
+ "Rug035": [
+  "Tile001",
+  "Rug005"
+ ],
+ "Rug036": [
+  "Tile001",
+  "Rug006"
+ ],
+ "Rug037": [
+  "Tile001",
+  "Rug007"
+ ],
+ "Rug038": [
+  "Tile001",
+  "Rug008"
+ ],
+ "Rug039": [
+  "Tile001",
+  "Rug009"
+ ],
+ "Rug041": [
+  "Tile001",
+  "Rug011"
+ ],
+ "Rug042": [
+  "Tile001",
+  "Rug012"
+ ],
+ "Rug043": [
+  "Tile001",
+  "Rug013"
+ ],
+ "Rug044": [
+  "Tile001",
+  "Rug014"
+ ],
+ "Rug045": [
+  "Tile001",
+  "Rug015"
+ ],
+ "Rug046": [
+  "Tile001",
+  "Rug016"
+ ],
+ "Rug047": [
+  "Tile001",
+  "Rug017"
+ ],
+ "Sacks001": [
+  "Plank001",
+  "Sacks001"
+ ],
+ "Sandstone_Ivy001": [
+  "Sandstone001",
+  "Ivy001"
+ ],
+ "Sandstone_Ivy002": [
+  "Sandstone001",
+  "Ivy002"
+ ],
+ "Sandstone_Ivy003": [
+  "Sandstone001",
+  "Ivy003"
+ ],
+ "Sandstone_Sign001": [
+  "Sandstone001",
+  "Sign001"
+ ],
+ "Sandstone_Sign002": [
+  "Sandstone001",
+  "Sign002"
+ ],
+ "Sandstone_Sign003": [
+  "Sandstone001",
+  "Sign003"
+ ],
+ "Sandstone_Sign004": [
+  "Sandstone001",
+  "Sign004"
+ ],
+ "Sandstone_Sign005": [
+  "Sandstone001",
+  "Sign005"
+ ],
+ "Sandstone_Sign006": [
+  "Sandstone001",
+  "Sign006"
+ ],
+ "Sandstone_Sign007": [
+  "Sandstone001",
+  "Sign007"
+ ],
+ "Sandstone_Sign008": [
+  "Sandstone001",
+  "Sign008"
+ ],
+ "Sandstone_Window001": [
+  "Sandstone001",
+  "Sandstone_Window001"
+ ],
+ "Sandstone_Window002": [
+  "Sandstone001",
+  "Sandstone_Window002"
+ ],
+ "Sandstone_Window003": [
+  "Sandstone001",
+  "Sandstone_Window003"
+ ],
+ "Sandstone_Window004": [
+  "Sandstone001",
+  "Sandstone_Window004"
+ ],
+ "Sandstone_Window005": [
+  "Sandstone001",
+  "Sandstone_Window005"
+ ],
+ "Scarecrow001": [
+  "Grass001",
+  "Scarecrow001"
+ ],
+ "Sea_Rock001": [
+  "Water001",
+  "Sea_Rock001"
+ ],
+ "Shelf_Goods001": [
+  "Plank001",
+  "Shelf_Goods001"
+ ],
+ "Silver_Rock001": [
+  "Cave_Floor001",
+  "Silver_Rock001"
+ ],
+ "Snow_Pine001": [
+  "Snow001",
+  "Snow_Pine001"
+ ],
+ "Snow_Rock001": [
+  "Snow001",
+  "Snow_Rock001"
+ ],
+ "Statue001": [
+  "Grass001",
+  "Statue001"
+ ],
+ "Statue002": [
+  "Paving001",
+  "Statue002"
+ ],
+ "Stone_Wall_Ivy001": [
+  "Stone_Wall001",
+  "Ivy001"
+ ],
+ "Stone_Wall_Ivy002": [
+  "Stone_Wall001",
+  "Ivy002"
+ ],
+ "Stone_Wall_Ivy003": [
+  "Stone_Wall001",
+  "Ivy003"
+ ],
+ "Stone_Wall_Sign001": [
+  "Stone_Wall001",
+  "Sign001"
+ ],
+ "Stone_Wall_Sign002": [
+  "Stone_Wall001",
+  "Sign002"
+ ],
+ "Stone_Wall_Sign003": [
+  "Stone_Wall001",
+  "Sign003"
+ ],
+ "Stone_Wall_Sign004": [
+  "Stone_Wall001",
+  "Sign004"
+ ],
+ "Stone_Wall_Sign005": [
+  "Stone_Wall001",
+  "Sign005"
+ ],
+ "Stone_Wall_Sign006": [
+  "Stone_Wall001",
+  "Sign006"
+ ],
+ "Stone_Wall_Sign007": [
+  "Stone_Wall001",
+  "Sign007"
+ ],
+ "Stone_Wall_Sign008": [
+  "Stone_Wall001",
+  "Sign008"
+ ],
+ "Stone_Wall_Window001": [
+  "Stone_Wall001",
+  "Stone_Wall_Window001"
+ ],
+ "Stone_Wall_Window002": [
+  "Stone_Wall001",
+  "Stone_Wall_Window002"
+ ],
+ "Stone_Wall_Window003": [
+  "Stone_Wall001",
+  "Stone_Wall_Window003"
+ ],
+ "Stone_Wall_Window004": [
+  "Stone_Wall001",
+  "Stone_Wall_Window004"
+ ],
+ "Stone_Wall_Window005": [
+  "Stone_Wall001",
+  "Stone_Wall_Window005"
+ ],
+ "Table001": [
+  "Plank001",
+  "Table001"
+ ],
+ "Table101": [
+  "Tile001",
+  "Table001"
+ ],
+ "Table201": [
+  "Marble001",
+  "Table001"
+ ],
+ "Tall_Grass001": [
+  "Grass001",
+  "Tall_Grass001"
+ ],
+ "Tent001": [
+  "Grass001",
+  "Tent001"
+ ],
+ "Tent002": [
+  "Grass001",
+  "Tent002"
+ ],
+ "Timber_Ivy001": [
+  "Timber001",
+  "Ivy001"
+ ],
+ "Timber_Ivy002": [
+  "Timber001",
+  "Ivy002"
+ ],
+ "Timber_Ivy003": [
+  "Timber001",
+  "Ivy003"
+ ],
+ "Timber_Sign001": [
+  "Timber001",
+  "Sign001"
+ ],
+ "Timber_Sign002": [
+  "Timber001",
+  "Sign002"
+ ],
+ "Timber_Sign003": [
+  "Timber001",
+  "Sign003"
+ ],
+ "Timber_Sign004": [
+  "Timber001",
+  "Sign004"
+ ],
+ "Timber_Sign005": [
+  "Timber001",
+  "Sign005"
+ ],
+ "Timber_Sign006": [
+  "Timber001",
+  "Sign006"
+ ],
+ "Timber_Sign007": [
+  "Timber001",
+  "Sign007"
+ ],
+ "Timber_Sign008": [
+  "Timber001",
+  "Sign008"
+ ],
+ "Timber_Window001": [
+  "Timber001",
+  "Timber_Window001"
+ ],
+ "Timber_Window002": [
+  "Timber001",
+  "Timber_Window002"
+ ],
+ "Timber_Window003": [
+  "Timber001",
+  "Timber_Window003"
+ ],
+ "Timber_Window004": [
+  "Timber001",
+  "Timber_Window004"
+ ],
+ "Timber_Window005": [
+  "Timber001",
+  "Timber_Window005"
+ ],
+ "Tin_Rock001": [
+  "Cave_Floor001",
+  "Tin_Rock001"
+ ],
+ "Tree001": [
+  "Grass001",
+  "Tree001"
+ ],
+ "Tree002": [
+  "Grass001",
+  "Tree002"
+ ],
+ "Tree_Stump001": [
+  "Grass001",
+  "Tree_Stump001"
+ ],
+ "Wall_Torch001": [
+  "Stone_Wall",
+  "Wall_Torch001"
+ ],
+ "Well001": [
+  "Grass001",
+  "Well001"
+ ],
+ "Willow_Tree001": [
+  "Grass001",
+  "Willow_Tree001"
+ ],
+ "Yew_Tree001": [
+  "Grass001",
+  "Yew_Tree001"
+ ]
+}

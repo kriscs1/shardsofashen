@@ -1,0 +1,8 @@
+01	Play.Sound	DigHole
+02	Wait	0.5
+03	Take.Item	Bones	1
+04	Display.Message	Cyan	You bury the Bones!
+05	>Random	10	08
+06	Display.Message	Yellow	The Gods have blessed you with Gold!
+07	Give.Item	Gold_Coin(s)	1-4
+08	End

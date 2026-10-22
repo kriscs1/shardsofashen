@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Woodcutting: chop trees with an axe.
+02	End

@@ -1,0 +1,27 @@
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Lava001:Lava001:Lava001:Lava001:Lava001:Lava001:Lava001:Lava001:Lava001:Lava001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Lava001:Lava001:Lava001:Lava001:Lava001:Cinder001:Cinder001+Decor(Coal_Rock001):Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Lava001:Lava001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001+Decor(Basalt_Rock001):Cinder001:Lava001:Lava001:Lava001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Lava001:Lava001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001+Decor(Mithril_Rock001):Cinder001:Lava001:Lava001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Lava001:Lava001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Lava001:Lava001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001
+Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Dirt001
+Ash001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001
+Ash001:Ash001:Ash001+Decor(Dead_Tree001):Cinder001:Cinder001:Cinder001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001
+Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Emberroot_Patch001):Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree001):Ash001:Dirt001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Grass001:Grass001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Dirt001:Ash001+Decor(Cult_Shrine001):Ash001:Dirt001:Ash001:Ash001:Grass001:Grass001:Grass001
+Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Emberroot_Patch001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Dirt001:Dirt001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Dirt001:Dirt001:Ash001:Dirt001:Dirt001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+Grass001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+NPC	Ashen_Cultist	608	544	Attitude=Bad
+NPC	Ember_Hound	416	320	Attitude=Bad
+NPC	Ember_Hound	160	160	Attitude=Bad
+NPC	Ashen_Cultist	672	576	Attitude=Bad
+Id	Burnt_Shrine_3	18	18
+Trigger	Ashen Shrine 3	18	18

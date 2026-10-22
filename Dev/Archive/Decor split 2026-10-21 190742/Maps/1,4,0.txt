@@ -1,0 +1,39 @@
+Water001:Water001:Flowers001:Grass001:Grass001:Grass001:Grass001:Flowers003:Grass001:Grass001:Flowers003:Flowers002:Dirt001:Grass001:Grass001:Grass001:Grass001:Flowers002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Water001:Tree001:Willow_Tree001:Willow_Tree001:Grass001:Grass001:Oak_Tree001:Grass001:Flowers003:Flowers003:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree002:Grass001:Grass001:Grass001:Grass001
+Forest001:Oak_Tree001:Oak_Tree001:Willow_Tree001:Grass001:Grass001:Grass001:Grass001:Tree001:Grass001:Fallen_Log001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Forest001:Oak_Tree001:Tree001:Grass001:Grass001:Grass001:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001+Infront(Pine_Tree002):Flowers001+Infront(Pine_Tree002):Grass001:Grass001:Grass001:Flowers002:Grass001:Grass001
+Forest001:Oak_Tree001:Grass001:Grass001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Grass001:Grass001:Tall_Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Pine_Tree001:Pine_Tree001:Grass001:Grass001:Grass001:Tree002:Grass001:Tall_Grass001
+Forest001:Flowers003:Grass001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Flowers002:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Tree001:Grass001
+Forest001:Grass001:Grass001:Cave_Wall001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall001:Cave_Wall001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Bush001:Grass001:Flowers003:Tree002:Grass001:Grass001:Tall_Grass001:Flowers003:Grass001
+Forest001:Tree001:Grass001:Cave_Wall001:Cave_Wall001:Dirt001:Ladder007:Dirt001:Cave_Wall001:Cave_Wall001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Bush001:Grass001
+Forest001:Grass001:Berry_Bush001:Cave_Wall001:Cave_Wall001:Dirt001:Dirt001:Dirt001:Cave_Wall001:Cave_Wall001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Berry_Bush001:Grass001:Grass001:Grass001:Flowers001
+Forest001:Tree001:Grass001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Door003:Cave_Wall002:Cave_Wall002:Cave_Wall002:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Forest001:Grass001:Grass001:Grass001:Herb_Patch001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Berry_Bush001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
+Forest001:Tree001:Grass001:Grass001:Grass001:Flowers002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tall_Grass001:Grass001:Flowers002:Grass001:Grass001:Grass001:Flowers001:Grass001:Grass001:Grass001:Grass001:Grass001
+Forest001:Tree002:Oak_Tree001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree002:Grass001:Grass001:Grass001:Grass001:Oak_Tree001:Forest001
+Forest001:Forest001:Oak_Tree001:Tree002:Grass001:Mushroom_Ring001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Infront(Pine_Tree002):Grass001+Infront(Pine_Tree002):Grass001:Grass001:Grass001:Oak_Tree001:Tree001:Forest001
+Forest001:Forest001:Oak_Tree001:Oak_Tree001:Tree001:Grass001:Flowers003:Tree002:Grass001:Grass001:Grass001:Grass001:Grass001:Tree001:Grass001:Grass001:Grass001:Pine_Tree001:Pine_Tree001:Grass001:Grass001:Yew_Tree001:Oak_Tree001:Forest001:Forest001
+Forest001:Forest001:Oak_Tree001:Oak_Tree001:Tree001:Tree001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Herb_Patch001:Grass001:Grass001:Grass001:Grass001:Flowers003:Tree001:Oak_Tree001:Tree002:Tree001:Forest001:Forest001
+Forest001:Forest001:Forest001:Yew_Tree001:Tree002:Tree001:Tree001:Grass001:Grass001:Grass001:Tree001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Oak_Tree001:Tree001:Oak_Tree001:Oak_Tree001:Yew_Tree001:Forest001:Forest001:Forest001
+Forest001:Forest001:Forest001:Forest001:Forest001:Tree001:Tree001:Oak_Tree001:Grass001:Grass001:Flowers003:Grass001:Flowers001:Yew_Tree001:Tree001:Tree001:Tree001:Oak_Tree001:Tree001:Oak_Tree001:Forest001:Forest001:Forest001:Forest001:Forest001
+Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Tree001:Tree001:Oak_Tree001:Tree001:Tree001:Tree001:Yew_Tree001:Tree001:Tree002:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
+Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
+Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
+StaticObject	Notice	321	290	Id=Ashford_Iron_Mine
+MapItem	Logs	449	354	2
+MapItem	Herb	608	288	1
+MapItem	Herb	96	352	1
+MapItem	Egg	672	96	1
+NPC	Wolf	256	448	Attitude=Bad Zone=5,13,13,18 Chase=3,12,16,18
+NPC	Wolf	448	512	Attitude=Bad Zone=10,15,18,18 Chase=7,12,20,18
+NPC	Wolf	608	416	Attitude=Bad Zone=16,12,22,15 Chase=13,12,23,17
+NPC	Guard	224	320	Attitude=Good Patrol=5,11/11,11 PatrolMode=PingPong Pause=3-6
+StaticObject	Chest	288	480
+NPC	Rabbit	416	224	Attitude=Bad
+NPC	Rabbit	288	384	Attitude=Bad
+NPC	Rabbit	192	64	Attitude=Bad
+NPC	Butterfly	640	224	Attitude=Good
+Trigger	Mine Gate	6	9
+Trigger	Mine Gate	7	9
+Trigger	Mine Gate	8	9
+Lock	7	10	$Equipped.Body<>none or $Attr.HobgoblinQuest>=1 or $Attr.MineGatePassed>=1	The guard blocks the gate: no one goes down the mine without body armour, unless the King sent them.

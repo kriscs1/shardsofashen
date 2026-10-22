@@ -1,0 +1,2 @@
+01	Goto.Script	Use Raw_Cave_Eel With Fire
+02	End

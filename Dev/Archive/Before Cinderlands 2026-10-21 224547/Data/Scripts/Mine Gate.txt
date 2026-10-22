@@ -1,0 +1,7 @@
+// Triggers on the south row of the yard round the mine hatch (1,4,0): once the player has been in the yard
+// the guard lets them through the gate (its Lock checks MineGatePassed), so coming up the ladder without
+// armour never shuts them in.
+01	Get.Value	ATTRIBUTE	MineGatePassed	Variable.1$
+02	>Conditional	$Variable.1=0	04
+03	Update.Attribute	MineGatePassed	=1
+04	End

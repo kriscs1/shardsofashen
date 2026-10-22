@@ -1,0 +1,25 @@
+Ash001:Ash001:Ash001:Ash001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Ash001+Decor(Dead_Tree001):Grass001:Grass001:Grass001:Grass001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree002):Grass001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree002):Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree002):Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001+Decor(Flowers003):Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree002)
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree002):Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002)
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001+Decor(Emberroot_Patch001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001
+Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+Ash001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Tree_Stump001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001
+Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Dirt001:Dirt001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Emberroot_Patch001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Sand001:Sand001
+Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree002):Dirt001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Dirt001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001
+Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Ash001:Sand001:Sand001:Sand001:Sand001:Sand_Water004
+Ash001:Ash001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Sand001:Water001
+Ash001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001+Decor(Tall_Grass001):Ash001:Ash001:Ash001+Decor(Dead_Tree002):Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Grass001:Sand001:Sand001:Sand001:Sand_Water005:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+StaticObject	Notice	481	578	Id=The_Cinderlands
+NPC	Ember_Hound	480	352	Attitude=Bad
+NPC	Ember_Hound	448	96	Attitude=Bad
+NPC	Ashen_Cultist	96	224	Attitude=Bad

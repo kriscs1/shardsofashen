@@ -1,0 +1,14 @@
+// Milking: an empty bucket on a cow.
+01	>Distance.From.Clicked.Entity	45	12
+02	Display.Message	Cyan	You crouch down and milk the cow...
+03	Play.Sound	FillBucket
+04	Wait	2
+05	>Got.Item	Bucket	1	10
+06	Take.Item	Bucket	1
+07	Give.Item	Bucket_of_Milk	1
+08	Display.Message	Yellow	...and fill the bucket with warm milk.
+09	End
+10	Display.Message	DarkRed	You need an empty bucket!
+11	End
+12	Display.Message	DarkRed	You are too far away!
+13	End

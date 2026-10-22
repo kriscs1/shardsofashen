@@ -1,0 +1,2 @@
+01	Goto.Script	Use Raw_Swordfish With Fire
+02	End

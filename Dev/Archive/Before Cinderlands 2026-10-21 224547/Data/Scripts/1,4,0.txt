@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The Whispering Woods. The trees creak in the wind.
+02	End

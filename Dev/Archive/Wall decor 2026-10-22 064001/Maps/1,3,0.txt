@@ -1,0 +1,37 @@
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Weed001:Grass001:Grass001:Grass001:Grass001
+Water001:Water001:Water001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Barrel001):Grass001+Decor(Barrel001):Grass001+Decor(Crate001):Grass001+Decor(Pebbles002):Grass001:Grass001
+Water001:Water001:Grass001+Decor(Berry_Bush001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Stone001:Grass001+Decor(Crate001):Grass001:Grass001:Grass001:Grass001
+Water001:Water001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Flowers001):Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
+Water001:Water001:Grass001:Brick_Thin_Plank008+Roof(Clay_Roof001.01):Brick_Thin_Plank001+Roof(Clay_Roof002.01):Brick_Thin_Plank001+Roof(Clay_Roof002.01):Brick_Thin_Plank001+Decor(Nets_Brick_Thin_Plank001)+Roof(Clay_Roof017.01):Brick_Thin_Plank005+Roof(Clay_Roof003.01):Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Dirt001+Decor(Bank_Counter001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Water001:Water001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Brick_Thin_Plank002+Roof(Clay_Roof015.01):Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Weed001:Grass001:Grass001:Grass001
+Water001:Water001:Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.01):Plank001+Roof(Brick_Upper001.01):Plank001+Roof(Brick_Upper002.01):Plank001+Roof(Brick_Upper001.01):Brick_Thin_Plank002+Roof(Brick_Upper002.01):Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001+Decor(Tree001):Grass001
+Water001:Water001:Grass001:Brick001:Brick_Window004:Door037:Brick_Window004:Brick001:Grass001+Decor(Barrel001):Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Stone002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Water001:Water001:Grass001:Grass001+Decor(Flower_Bed003):Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Water001:Water001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Berry_Bush001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Water001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Herb_Patch001):Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Water001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Berry_Bush001):Grass001:Grass001:Grass001
+Water001:Water001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+NPC	Woman	448	96	Attitude=Good Stand=1
+StaticObject	Notice	417	258	Id=Southport
+MapItem	Fishing_Rod	544	224	1
+MapItem	Bait	576	224	5
+MapItem	Tinderbox	129	418	1
+MapItem	Logs	193	450	2
+MapItem	Herb	640	544	1
+NPC	Fisherman	128	416	Attitude=Good Zone=4,14,6,15 Pause=4-10
+NPC	Villager	480	384	Attitude=Good Zone=14,10,22,15
+NPC	Dog	256	352	Attitude=Good Zone=4,9,12,13
+NPC	Man	512	256	Attitude=Good Zone=14,7,24,9
+StaticObject	Fish_Spot	640	160
+StaticObject	Boat001	384	48
+NPC	Duck	128	320	Attitude=Bad
+NPC	Duck	96	544	Attitude=Bad
+NPC	Banker	384	352	Attitude=Good Stand=1

@@ -1,0 +1,9 @@
+// The same X,Y one level up. If that map doesn't exist the engine says it leads nowhere
+// and the player stays put, so the message is only shown once the map has really changed.
+01	Get.Value	CALCULATION	$Map.Z+1	Variable.9$
+02	Get.Value	CALCULATION	$Map.Name	Variable.8$
+03	Teleport	$Player.X,$Player.Y	$Map.X,$Map.Y,$Variable.9
+04	>Conditional	$Map.Name<>$Variable.8	07
+05	Play.Sound	Ladder
+06	Display.Message	Cyan	You climb up the ladder.
+07	End

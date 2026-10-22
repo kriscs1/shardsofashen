@@ -1,0 +1,14 @@
+// Run by the engine (Kill.NPC looks up Kill <Name>) whenever a hobgoblin dies
+01	Get.Value	ATTRIBUTE	HobgoblinQuest	Variable.1$
+02	>Conditional	$Variable.1=1	13
+03	Get.Value	ATTRIBUTE	HobgoblinsSlain	Variable.2$
+04	>Conditional	$Variable.2<5	13
+05	Update.Attribute	HobgoblinsSlain	+1
+06	Get.Value	CALCULATION	$Variable.2+1	Variable.2$
+07	>Conditional	$Variable.2<5	10
+08	Display.Message	Yellow	Hobgoblins slain for King Tyron: $Variable.2 of 5.
+09	End
+10	Quest.Note.Done	HobgoblinQuest	Slay five hobgoblins.
+11	Quest.Note	HobgoblinQuest	Return to King Tyron in his keep for your reward.
+12	Display.Message	Yellow	That's five hobgoblins! Return to King Tyron for your reward.
+13	End

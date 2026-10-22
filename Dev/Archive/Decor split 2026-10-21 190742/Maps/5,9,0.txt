@@ -1,0 +1,28 @@
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Rock001:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Grass001:Grass001:Grass001:Grass001:Grass001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Mithril_Rock001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Water001
+Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Water001
+Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Water001
+Snow001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow001:Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Mithril_Rock001:Snow001:Snow001:Snow001:Water001
+Dirt001:Dirt001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow001:Snow001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Dirt001:Dirt001:Dirt001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow001:Snow_Pine001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow001:Snow_Pine001:Snow001:Snow001:Snow001:Snow_Water005:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Rock001:Snow_Rock001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow001:Snow_Pine001:Snow001:Snow_Pine001:Snow001:Snow_Water004:Water001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Snow001:Snow001:Snow_Rock001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow_Pine001:Snow001:Snow001:Water001:Water001:Water001
+NPC	Frost_Troll	384	352	Attitude=Bad
+MapItem	Bones	353	386	1
+MapItem	Bones	449	354	1
+NPC	Snow_Wolf	672	256	Attitude=Bad
+NPC	Snow_Wolf	128	192	Attitude=Bad
+NPC	Frost_Witch	576	96	Attitude=Bad
+MapItem	Frost_Lily	416	416	1

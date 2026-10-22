@@ -1,0 +1,2 @@
+01	Display.Message	DarkRed	The Deep Hollow. Torchlight flickers ahead... and bones rattle in the dark.
+02	End

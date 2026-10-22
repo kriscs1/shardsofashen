@@ -1,0 +1,25 @@
+Forest001:Forest001:Tree002:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree002:Grass001:Grass001:Grass001:Grass001:Pebbles002:Grass001:Tall_Grass001:Grass001:Grass001
+Tree001:Grass001:Tree001:Grass001:Oak_Tree001:Forest001:Forest001:Grave003:Flowers003:Grass001:Grass001:Pebbles002:Flowers001:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles001:Tall_Grass001:Grass001
+Yew_Tree001:Tree001:Oak_Tree001:Oak_Tree001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Fallen_Log001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Flowers003:Grass001:Pebbles003:Grass001:Flowers001:Grass001:Pebbles001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Flowers002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree002:Grass001:Grass001:Grass001:Stone002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Coal_Rock001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Rock001:Rock001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Pebbles003:Grass001:Grass001:Grass001:Grass001:Tall_Grass001:Pebbles003:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Flowers002:Flowers003:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tree002:Flowers002:Grass001:Grass001:Grass001:Pebbles002:Grass001:Pebbles002:Grass001:Grass001:Grass001:Tree002
+Grass001:Grass001:Grass001:Grass001:Pebbles002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Stone001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Coal_Rock001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Rock003:Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles002:Grass001:Flowers001:Grass001:Grass001:Pebbles003:Rock002:Grass001:Pebbles002:Grass001:Grass001:Flowers001:Tall_Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles002:Grass001:Grass001:Pebbles003:Grass001:Grass001:Pebbles002:Pebbles001:Grass001:Grass001:Grass001:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tall_Grass001
+Grass001:Grass001:Grass001:Pebbles002:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Pebbles001:Flowers001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles001:Tree002:Grass001:Grass001:Grass001:Flowers002:Grass001
+Grass001:Grass001:Grass001:Grave002:Grass001:Grass001:Grass001:Pebbles003:Grass001:Grass001:Rock001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Tall_Grass001:Grass001:Flowers001:Tall_Grass001:Grass001:Grass001:Tall_Grass001:Grass001
+Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Rock001:Grass001:Rock001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Flowers001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Dirt001:Dirt001:Dirt001:Pebbles002:Pebbles001:Grass001:Grass001:Flowers003:Flowers002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Flowers003
+Pebbles003:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Pebbles001:Grass001:Grass001:Flowers003:Flowers002:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Pebbles002:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Flowers003:Pebbles003:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Coal_Rock001:Grass001:Grass001:Rock001:Pebbles003:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Pebbles002:Grass001:Tree002:Grass001:Grass001:Pebbles001:Grass001:Tall_Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001
+Pebbles003:Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles001:Tall_Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles003:Dirt001:Dirt001:Grass001:Grass001:Grass001:Flowers001:Grass001:Grass001:Dirt001:Dirt001
+Grass001:Grass001:Grass001:Grass001:Pebbles002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Flowers003:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001
+NPC	Skeleton	672	384	Attitude=Bad
+NPC	Skeleton	416	256	Attitude=Bad
+NPC	Bat	704	224	Attitude=Bad
+NPC	Skeleton_Archer	160	192	Attitude=Bad

@@ -1,0 +1,3 @@
+01	Display.Conversation	Shopkeeper	Welcome to the Ashford General Store!\Tools, buckets, fishing gear: if you need it, I've got it.	Show me your wares.	02	Goodbye.	03
+02	Display.Item.Rack	GENERAL	Shopkeeper	SHOP-Ashford	03
+03	End

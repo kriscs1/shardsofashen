@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The grotto under the Isle. Water drips into a black pool.
+02	End

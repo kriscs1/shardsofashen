@@ -1,0 +1,35 @@
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor002:Cave_Rubble001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002+Decor(Ladder001):Cave_Floor002:Cave_Floor003:Cave_Floor003:Cave_Wall002:Black001
+Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall001
+Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor001+Decor(Silver_Rock001):Cave_Floor001:Cave_Floor001:Cave_Floor001+Decor(Ore_Rock001):Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Rubble001:Cave_Floor002:Cave_Floor001:Cave_Wall001
+Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Wall001:Cave_Wall001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Wall001
+Black001:Black001:Black001:Cave_Wall002:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001+Decor(Ore_Rock001):Cave_Floor001:Cave_Floor001:Cave_Wall001
+Black001:Black001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Wall001
+Black001:Black001:Cave_Wall001:Cave_Floor001:Cave_Floor002+Decor(Ladder002):Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Rubble001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall001:Cave_Wall001
+Black001:Black001:Cave_Wall001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001+Decor(Silver_Rock001):Cave_Floor002:Cave_Floor001:Cave_Wall001:Cave_Wall001:Black001:Black001
+Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Rubble001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001
+Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Stalagmite001:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+NPC	Hobgoblin	288	192	Attitude=Bad Zone=7,5,14,9
+NPC	Hobgoblin	512	256	Attitude=Bad Zone=14,6,22,10
+NPC	Hobgoblin	256	416	Attitude=Bad Zone=5,12,12,16
+NPC	Hobgoblin	448	384	Attitude=Bad Zone=12,11,19,15
+NPC	Hobgoblin	608	320	Attitude=Bad Zone=17,9,23,13
+NPC	Skeleton	160	256	Attitude=Bad Zone=4,8,9,12
+MapItem	Beggars_House_Key	128	416	1
+MapItem	Ruby	256	480	1
+MapItem	Gold_Coin(s)	354	163	25
+MapItem	Basic_Potion	672	352	1
+MapItem	Bones	481	290	1
+MapItem	Bones	225	290	1
+MapItem	Bones	417	450	1
+MapItem	Bones	641	226	1

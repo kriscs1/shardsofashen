@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Mining: use a pickaxe on rocks in the mines. Copper and iron at level 1, coal 5, gold 15, gems 20.
+02	End

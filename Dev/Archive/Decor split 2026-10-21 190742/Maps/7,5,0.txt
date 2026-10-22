@@ -1,0 +1,27 @@
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Forest001:Sand001:Sand001:Sand001:Sand_Water007:Sand_Water009:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Forest001:Forest001:Forest001:Sand001:Sand001:Sand001:Sand001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Forest001:Forest001:Forest001:Forest001:Sand001:Sand001:Sand001:Grass001:Grass001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Forest001:Forest001:Forest001:Tree001:Sand001:Sand001:Grass001:Grass001:Grass001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Oak_Tree001:Sand001:Sand001:Fallen_Log001:Flowers003:Grass001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001
+Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Forest001:Sand001:Sand001:Sand001
+Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Grass001:Grass001:Oak_Tree001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Forest001:Forest001:Forest001:Sand001:Sand001
+Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Oak_Tree001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Sand001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
+Tall_Grass001:Grass001:Flowers002:Grass001:Grass001:Grass001:Grass001:Grass001:Pebbles003:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
+Flowers002:Grass001:Grass001:Grass001:Fallen_Log001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Oak_Tree001:Tree002:Grass001
+Tall_Grass001:Grass001:Flowers003:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Oak_Tree001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001:Tree002:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Pebbles001:Grass001:Bush001:Grass001:Flowers002:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Oak_Tree001:Grass001:Grass001:Sand001:Grass001
+Grass001:Grass001:Mushroom_Patch001:Grass001:Grass001:Grass001:Grass001:Flowers003:Grass001:Tall_Grass001:Grass001:Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Tree001:Oak_Tree001:Grass001:Grass001:Flowers002:Sand001:Tall_Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Yew_Tree001:Forest001:Forest001:Forest001:Forest001:Forest001:Oak_Tree001:Grass001:Grass001:Pebbles003:Tall_Grass001:Grass001:Grass001
+NPC	Wolf	352	352	Attitude=Bad
+NPC	Bear	256	256	Attitude=Bad
+NPC	Giant_Spider	64	544	Attitude=Bad
+NPC	Rabbit	704	576	Attitude=Bad
+NPC	Rabbit	128	512	Attitude=Bad
+NPC	Butterfly	32	448	Attitude=Good

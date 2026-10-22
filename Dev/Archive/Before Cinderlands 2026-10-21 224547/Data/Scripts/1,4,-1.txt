@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The old iron mine. The air is cold and smells of rust.
+02	End

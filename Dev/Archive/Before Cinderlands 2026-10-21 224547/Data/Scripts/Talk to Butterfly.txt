@@ -1,0 +1,5 @@
+01	>Random	50	04
+02	Display.Message	Cyan	The butterfly lands on your nose for a moment, then flutters off.
+03	End
+04	Display.Message	Cyan	The butterfly has nothing to say. It's a butterfly.
+05	End

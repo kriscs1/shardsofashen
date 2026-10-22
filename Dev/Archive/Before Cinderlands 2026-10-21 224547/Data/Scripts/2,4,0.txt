@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Tyron's Keep, the King's garrison.
+02	End

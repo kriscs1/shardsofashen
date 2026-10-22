@@ -1,0 +1,2 @@
+01	Goto.Script	Unlock Door001
+02	End

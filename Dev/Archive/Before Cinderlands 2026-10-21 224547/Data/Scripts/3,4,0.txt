@@ -1,0 +1,2 @@
+01	Display.Message	DarkRed	Smoke and the stink of goblins... this is their camp!
+02	End

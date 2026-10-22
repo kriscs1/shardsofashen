@@ -1,0 +1,2 @@
+01	Display.Message	DarkRed	Nothing's biting here. Look for a fishing spot: ripples where the fish gather.
+02	End

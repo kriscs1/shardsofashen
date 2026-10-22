@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The wizard's study. Strange smells drift from the bubbling vials.
+02	End

@@ -1,0 +1,16 @@
+01	>Distance.From.Clicked.Entity	30	15
+02	Take.Item	Raw_Chicken	1
+03	Display.Message	Cyan	You place the Raw Chicken on the Fire..
+04	Play.Sound	CookingFood
+05	Wait	3
+06	Get.Value	SKILL	Cooking	Variable.1$
+07	>Conditional	($Variable.1+40)>$Random.Percent	12
+08	Display.Message	Yellow	..and cook it perfectly!
+09	Update.Skill	Cooking	+0.05
+10	Give.Item	Cooked_Chicken	1
+11	End
+12	Display.Message	DarkRed	..but accidentally burn it!
+13	Give.Item	Burnt_Chicken	1
+14	End
+15	Display.Message	DarkRed	You are too far away!
+16	End

@@ -1,0 +1,41 @@
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall001:Cave_Wall001:Cave_Wall002:Cave_Wall003:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall003:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall003:Cave_Wall002:Cave_Wall001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Cave_Wall001:Black001:Black001
+Black001:Cave_Wall001:Mithril_Rock001:Cave_Floor003:Cave_Floor001:Cave_Wall002:Cave_Wall002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Wall001:Cave_Wall002:Gem_Rock001:Cave_Floor003:Cave_Wall002:Cave_Wall001:Black001
+Black001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Door015:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Wall002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Wall002:Black001
+Black001:Cave_Wall001:Gem_Rock001:Cave_Floor003:Cave_Floor002:Cave_Wall002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor001:Gem_Rock001:Gold_Rock001:Cave_Floor002:Cave_Floor001:Cave_Wall001
+Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall002:Mine_Support001:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Wall001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Wall001
+Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Gold_Rock001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Wall001
+Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Wall002:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor002:Cave_Floor002:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Gem_Rock001:Cave_Wall002:Cave_Wall001
+Black001:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Stalagmite001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Black001:Cave_Wall001:Cave_Floor002:Cave_Floor003:Cave_Wall001:Cave_Wall001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor002:Cave_Floor001:Gold_Rock001:Cave_Floor001:Cave_Floor002:Cave_Wall001
+Black001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Floor002:Cave_Floor001:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Wall002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall001
+Black001:Cave_Wall001:Cave_Floor002:Cave_Floor001:Ladder004:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Wall001:Black001
+Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall002:Cave_Wall002:Black001
+Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Mushroom_Patch001:Cave_Wall002:Cave_Wall002:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Wall002:Cave_Wall001:Cave_Rubble001:Mithril_Rock001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Wall001
+Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Floor003:Cave_Floor003:Cave_Floor003:Cave_Wall002:Cave_Rubble001:Cave_Rubble001:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Floor002:Cave_Wall001
+Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Floor003:Cave_Floor003:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Rubble001:Cave_Floor002:Mithril_Rock001:Cave_Wall001
+Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor003:Cave_Floor003:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Pool001:Cave_Floor003:Cave_Floor003:Cave_Wall001:Cave_Wall001:Cave_Floor002:Cave_Rubble001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall001
+Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor003:Cave_Floor003:Mushroom_Patch001:Cave_Floor003:Cave_Floor003:Cave_Floor003:Mushroom_Patch001:Cave_Floor003:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Wall001:Cave_Wall001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+NPC	Dwarf	352	128	Attitude=Good Zone=11,5,14,6 Pause=3-8
+StaticObject	Furnace	224	96
+StaticObject	Anvil	288	96
+StaticObject	Workbench	448	96
+StaticObject	Fire	385	194
+NPC	Skeleton	672	128	Attitude=Bad Zone=20,4,23,7 Chase=19,4,24,13
+NPC	Skeleton	640	256	Attitude=Bad Zone=19,8,23,11 Chase=19,4,24,13
+NPC	Skeleton	96	288	Attitude=Bad Zone=3,8,7,12 Chase=2,8,9,14
+NPC	Skeleton	480	384	Attitude=Bad Patrol=12,12/19,13/14,14 Pause=2-5 Chase=9,9,22,17
+NPC	Skeleton	160	480	Attitude=Bad Zone=5,15,8,18
+NPC	Cave_Troll	640	480	Attitude=Bad Zone=19,14,23,17 Chase=17,12,24,18
+NPC	Bat	320	352	Attitude=Bad Zone=8,11,16,13
+MapItem	Bones	609	450	1
+MapItem	Bones	705	514	1
+MapItem	Bones	577	546	1
+MapItem	Gold_Coin(s)	674	547	30
+MapItem	Super_Potion	64	352	1
+StaticObject	Chest	96	96
+StaticObject	Eel_Spot	320	512
+Lock	6	5	$Attr.DwarfQuest>=2	Brokk's vault. The door is barred, and Brokk only opens it for a friend of the deep.
