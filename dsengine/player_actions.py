@@ -583,6 +583,11 @@ class ActionsMixin:
             self.stop_player_walk()
             self.player_attack_target = None
             self.dirty_me = True
+        elif t == "look":
+            from .session import clean_look
+            self.look = clean_look(msg.get("look"))
+            self.dirty_me = True
+            self.save_requested = True
         elif t == "admin" and self.admin_enabled:
             self.admin_command(msg)
 

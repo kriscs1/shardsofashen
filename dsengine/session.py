@@ -21,6 +21,19 @@ from .quests import QuestMixin
 log = logging.getLogger("dragonsword.session")
 
 HOTBAR_SLOTS = 5
+LOOK_PARTS = ("skin", "hair", "shirt", "legs")
+
+
+def clean_look(look):
+    """A character's colours ({"skin": "#rrggbb", ...}): only the four parts, only colours; None if there are none."""
+    if not isinstance(look, dict):
+        return None
+    out = {}
+    for k in LOOK_PARTS:
+        v = str(look.get(k, "")).strip().lower()
+        if len(v) == 7 and v[0] == "#" and all(c in "0123456789abcdef" for c in v[1:]):
+            out[k] = v
+    return out or None
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
@@ -63,6 +76,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
         self.explored = {}                  # map -> "all" or a set of fog cell numbers
         self.hotbar = [""] * HOTBAR_SLOTS
         self.grave = None
+        self.look = None                    # their colours (skin, hair, shirt, legs), or None
         self.grave_ent = None
         self.status = {}
         self.cooldowns = {}
@@ -280,6 +294,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
         self.hotbar = [self.renamed(h) for h in self.hotbar]
         self.explored = {k: ("all" if v == "all" else set(v)) for k, v in st.get("explored", {}).items()}
         g = st.get("grave")
+        self.look = clean_look(st.get("look"))
         if g and g.get("items"):
             self.grave = {"map": g["map"], "x": val(g["x"]), "y": val(g["y"]), "left": val(g["left"]),
                           "items": [tuple(i) for i in g["items"]]}
@@ -342,6 +357,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
             "hotbar": list(self.hotbar),
             "explored": {k: ("all" if v == "all" else sorted(v)) for k, v in self.explored.items()},
             "grave": self.grave,
+            "look": self.look,
         }
         return st
 
@@ -831,7 +847,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],
             "totals": [self.equip_attack_total, self.equip_defence_total, self.equip_magic_total],
             "hotbar": self.hotbar, "status": sorted(self.status), "input": self.user_input_enabled,
-            "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(),
+            "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(), "look": self.look,
             "view": self.fog_view_distance + self.spell_sight_bonus,
             "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,
             "level": self.player_level(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},

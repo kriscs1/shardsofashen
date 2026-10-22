@@ -8,6 +8,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
 import { dayFraction, isNight, timeText, fogEnabled } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel } from "./verbs.js";
+import { lookImage } from "./look.js";
 
 export const TAB_TEXT = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -603,7 +604,7 @@ function drawBox(ctx) {
   const x0 = L.abX, y0 = L.abY;
   if (bg) ctx.drawImage(bg, x0, y0);
   else roundBox(ctx, x0, y0, w, h, [51, 34, 27], [126, 77, 63], 2, 10);
-  const portrait = sprite(b.image);
+  const portrait = /^Player/.test(b.image || "") && S.me.look ? lookImage(b.image, S.me.look) : sprite(b.image);
   const [pw, ph] = size(b.image);
   let titleX, titleY;
   if (b.mode === "Conversation") {

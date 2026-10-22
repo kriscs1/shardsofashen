@@ -153,3 +153,14 @@ def test_save_round_trip(world):
     assert b.get_attribute("SomeQuest") == "2"
     assert "X@1,1" in b.taken_once
     assert b.save_state()["map"] == st["map"]
+
+
+def test_look_is_kept_and_shown_to_others(world):
+    from dsengine.view import player_state
+    a, b = join(world, "Lia"), join(world, "Max")
+    a.handle({"t": "look", "look": {"hair": "#A83A1A", "shirt": "red", "skin": "#ffdcc0"}})
+    assert a.look == {"hair": "#a83a1a", "skin": "#ffdcc0"}          # (only real colours are kept)
+    assert player_state(a, b)["look"] == a.look
+    assert a.save_state()["look"] == a.look
+    leave(world, a)
+    leave(world, b)

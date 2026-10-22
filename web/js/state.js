@@ -120,7 +120,7 @@ export function myPlayer() {
   if (!p || !me) return null;
   const [w, h] = sizeOfImage(p.i);
   return { u: S.uid, k: 1, n: S.name, i: p.i, x: p.x, y: p.y, dx: p.dx, dy: p.dy, w, h, a: me.visible ? 1 : 0,
-    hp: me.hp, mh: me.max_hp, b: me.hp < me.max_hp ? 1 : 0, worn: me.worn || [], self: true };
+    hp: me.hp, mh: me.max_hp, b: me.hp < me.max_hp ? 1 : 0, worn: me.worn || [], look: me.look, self: true };
 }
 
 function sizeOfImage(name) {

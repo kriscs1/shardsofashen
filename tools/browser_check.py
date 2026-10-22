@@ -33,7 +33,13 @@ async def main():
         await page.wait_for_timeout(1500)
         err = await page.text_content("#login-error")
         if err and "No character" in err:
-            await page.click("#register-button")
+            await page.click("#register-button")          # shows the appearance picker
+            await page.wait_for_timeout(500)
+            for part, n in ((1, 4), (2, 5), (3, 2)):        # hair, shirt, trousers: a swatch each
+                await page.locator(".look-row").nth(part).locator(".swatch").nth(n).click()
+            await page.wait_for_timeout(1200)
+            await page.screenshot(path=os.path.join(args.out, "0-new-character.png"))
+            await page.click("#register-button")          # makes the character
         await page.wait_for_function("document.getElementById('login').hidden && document.getElementById('loading').hidden",
                                      timeout=20000)
         await page.wait_for_timeout(3500)

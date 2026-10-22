@@ -262,7 +262,11 @@ class GameServer:
                 s.enter_world()
         else:
             s = Session(w, name, admin=bool(admin))
-            s.load_state(self.store.load_character(name))
+            saved = self.store.load_character(name)
+            s.load_state(saved)
+            if saved is None and t == "register":
+                from dsengine.session import clean_look
+                s.look = clean_look(data.get("look"))
             w.sessions[name] = s
             s.enter_world()
             self.save_session(s)

@@ -156,7 +156,30 @@ button:disabled { opacity: 0.5; cursor: default; }
 .admin #admin-skills label { flex-direction: row; align-items: center; gap: 6px; margin: 2px 0; font-size: 14px; }
 .admin #admin-skills input[type=text] { width: 54px; padding: 2px 6px; font-size: 14px; }
 
+.look { display: flex; gap: 14px; align-items: center; margin: 6px 0 4px; }
+.look-title { color: var(--ink); margin: 14px 0 2px; font-size: 15px; }
+.look-preview {
+  width: 96px; height: 96px; flex: none;
+  image-rendering: pixelated;
+  background: radial-gradient(circle at 50% 60%, #5b7a3c 0%, #3b5226 70%);
+  border: 2px solid var(--edge); border-radius: 10px;
+}
+.look-rows { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.look-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.look-row span { width: 64px; color: var(--ink); font-size: 14px; }
+.swatch {
+  width: 20px; height: 20px; padding: 0; border-radius: 5px;
+  border: 2px solid #241510; cursor: pointer;
+}
+.swatch:hover, .swatch:focus-visible { border-color: var(--parchment); background-image: none; }
+.swatch.on { border-color: var(--ink); box-shadow: 0 0 0 1px #000; }
+.look-row input[type=color] {
+  width: 26px; height: 22px; padding: 0; border: 2px solid var(--edge); border-radius: 5px;
+  background: #241510; cursor: pointer;
+}
+
 @media (max-width: 480px) {
+  .look { flex-direction: column; align-items: flex-start; }
   .panel { padding: 16px; }
   .panel h1 { font-size: 28px; }
 }

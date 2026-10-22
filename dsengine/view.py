@@ -33,6 +33,8 @@ def player_state(s, viewer):
           "a": 1 if s.player_visible else 0, "hp": p.hp, "mh": s.player_max_hp,
           "b": 1 if (p.hp < s.player_max_hp or 0 <= s.now - s.player_last_combat < 5000) else 0,
           "worn": s.worn_items()}
+    if s.look:
+        st["look"] = s.look
     if s.sleeping():
         st["zz"] = 1
     return st

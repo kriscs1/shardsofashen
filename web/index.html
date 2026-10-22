@@ -16,6 +16,10 @@
     <label>Name <input id="login-name" name="username" maxlength="20" autocomplete="username" required></label>
     <label>Password <input id="login-password" name="password" type="password" maxlength="200"
                            autocomplete="current-password" required></label>
+    <div id="look-section" hidden>
+      <p class="look-title">How your adventurer looks</p>
+      <div id="look-picker" class="look"></div>
+    </div>
     <label id="invite-row" hidden>Invite code <input id="login-invite" maxlength="60"></label>
     <div class="buttons">
       <button type="submit" id="login-button">Log in</button>
@@ -45,6 +49,7 @@
     <div class="row"><span>Quest markers on the minimap</span><input type="checkbox" id="opt-markers"></div>
     <div class="row"><span>Smooth scaling (easier text; off = sharp pixels)</span><input type="checkbox" id="opt-smooth"></div>
     <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
+    <div class="row"><span>Your appearance</span><button type="button" id="opt-look">Change</button></div>
     <div class="row"><span>Full screen</span><button type="button" id="opt-fullscreen">Toggle</button></div>
     <div class="buttons"><button type="button" id="options-done">Done</button></div>
   </div>
@@ -76,6 +81,15 @@
     <div class="buttons"><button type="button" id="admin-save">Save skills</button>
       <button type="button" id="admin-close">Close</button></div>
     <p id="admin-status" class="dim"></p>
+  </div>
+</div>
+
+<div id="appearance" class="overlay" hidden>
+  <div class="panel wide">
+    <h2>Your appearance</h2>
+    <div id="appearance-picker" class="look"></div>
+    <div class="buttons"><button type="button" id="appearance-save">Save</button>
+      <button type="button" id="appearance-cancel">Cancel</button></div>
   </div>
 </div>
 

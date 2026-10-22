@@ -6,6 +6,7 @@ import { chunkOf, updateChunk, endFrame, setHiddenRoof, clearHiddenRoofs, forget
 import { drawSky, drawWeather, drawFog, fogUpdate, fogCovers, drawFlash, weatherTick } from "./sky.js";
 import { val, clamp, drawText, textWidth, setFont } from "./util.js";
 import { T } from "./verbs.js";
+import { lookImage } from "./look.js";
 
 export const V = {
   zoom: 1, zooms: [0.75, 1, 1.5, 2, 3],
@@ -227,7 +228,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     shown.push(e);
   }
   const draw = (e) => {
-    const im = entityImage(e, now);
+    const im = e.k === T.PLAYER && e.look ? lookImage(e.i, e.look) : entityImage(e, now);
     const [nx, ny] = nudgeOf(e.u, now);
     const x = Math.round(e.dx - cam.x + nx), y = Math.round(e.dy - cam.y + ny);
     if (im) ctx.drawImage(im, x, y);

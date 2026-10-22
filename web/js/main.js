@@ -11,6 +11,8 @@ import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell } from "./sky.js";
 import { messageColour, clamp, val, pretty } from "./util.js";
+import { buildPicker, DEFAULT_LOOK } from "./look.js";
+import { preload } from "./assets.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("game");
@@ -99,7 +101,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 });
 
 function overlayOpen() {
-  return ["options", "quit", "admin", "message", "login", "loading"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
+  return ["options", "quit", "admin", "message", "login", "loading", "appearance"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -131,6 +133,18 @@ $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.check
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-fullscreen").onclick = toggleFullscreen;
+let appearancePick = null;
+$("opt-look").onclick = () => {
+  $("options").hidden = true;
+  $("appearance").hidden = false;
+  appearancePick = buildPicker($("appearance-picker"), S.me && S.me.look);
+};
+$("appearance-save").onclick = () => {
+  if (appearancePick) send({ t: "look", look: appearancePick() });
+  $("appearance").hidden = true;
+  canvas.focus();
+};
+$("appearance-cancel").onclick = () => { $("appearance").hidden = true; canvas.focus(); };
 $("options-done").onclick = () => { $("options").hidden = true; canvas.focus(); playSound("Coins"); };
 
 function saveView() {
@@ -204,7 +218,7 @@ $("admin-save").onclick = () => {
 };
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
-for (const id of ["admin", "options", "quit", "message"]) {
+for (const id of ["admin", "options", "quit", "message", "appearance"]) {
   $(id).addEventListener("keydown", (ev) => {
     ev.stopPropagation();
     if (ev.key === "Escape") { $(id).hidden = true; canvas.focus(); }
@@ -231,13 +245,26 @@ $("login-form").addEventListener("submit", (ev) => {
   unlock();
   login("login");
 });
-$("register-button").onclick = () => { unlock(); login("register"); };
+let pickLook = null;
+$("register-button").onclick = () => {
+  unlock();
+  if ($("look-section").hidden) {           // first: how they look, then the same button makes them
+    $("look-section").hidden = false;
+    setLoginError("");
+    pickLook = buildPicker($("look-picker"), DEFAULT_LOOK);
+    $("register-button").textContent = "Create character";
+    $("login-password").setAttribute("autocomplete", "new-password");
+    return;
+  }
+  login("register");
+};
 
 function login(mode) {
   loginMode = mode;
   setLoginError("");
   if (!N.open) { setLoginError("Not connected to the server yet..."); return; }
-  send({ t: mode, name: $("login-name").value, password: $("login-password").value, invite: $("login-invite").value });
+  send({ t: mode, name: $("login-name").value, password: $("login-password").value, invite: $("login-invite").value,
+    look: mode === "register" && pickLook ? pickLook() : undefined });
   $("login-button").disabled = $("register-button").disabled = true;
 }
 
@@ -438,6 +465,7 @@ async function boot() {
     return;
   }
   setGeometry();
+  preload(["Player1a", "Player2a", "Player4a", "Player8a"]);
   layout(screen.W);
   resize();
   fogInit();
