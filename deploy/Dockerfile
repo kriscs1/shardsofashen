@@ -25,6 +25,9 @@ COPY dsengine dsengine
 COPY server server
 COPY tools tools
 COPY web web
+# (the server's compose file travels with the game, so a server can be set up from the image alone:
+#  docker run --rm ghcr.io/<you>/dragonsword cat docker-compose.yml > docker-compose.yml && docker compose up -d)
+COPY deploy/server-pc/docker-compose.yml docker-compose.yml
 COPY --from=assets /game/web/assets web/assets
 RUN mkdir -p /data && chown -R dragon:dragon /data /game/Data
 USER dragon

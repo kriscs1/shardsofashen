@@ -22,7 +22,26 @@ and log in again.
    https://github.com/users/kriscs1/packages/container/dragonsword/settings > at the bottom, **Change visibility** >
    **Public**. (Your code stays private; anyone who knows the image's name could download the game itself.)
 
-### On the server PC
+### On a Linux server (nothing to copy)
+
+1. Install Docker (once): `curl -fsSL https://get.docker.com | sudo sh`
+2. Set up and start the server, all from GitHub, with this one line:
+
+   ```
+   mkdir -p ~/dragonsword && cd ~/dragonsword &&    docker run --rm ghcr.io/kriscs1/dragonsword cat docker-compose.yml > docker-compose.yml &&    docker compose up -d
+   ```
+
+That's all:
+
+- **Starting:** Docker starts with Linux (no one needs to sign in), and the game and its updater start with Docker.
+- **Updates:** they arrive by themselves, a few minutes after each **Publish Update**.
+- **Connecting:** players use `http://<the server's address>:8080`.
+- **Day to day,** in `~/dragonsword`:
+  - `docker compose logs -f` shows what it's doing.
+  - `docker compose pull game && docker compose up -d` updates at once.
+  - `docker compose stop` stops it.
+
+### On a Windows server PC
 
 1. Install Docker Desktop (https://www.docker.com/products/docker-desktop/) and start it. In its Settings > General,
    tick **Start Docker Desktop when you sign in to your computer**.
