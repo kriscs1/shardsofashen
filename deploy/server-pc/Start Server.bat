@@ -1,23 +1,20 @@
 @echo off
-rem Starts the Dragon Sword server (the first time: signs in to GitHub's registry and downloads it).
+rem Starts the Dragon Sword server (the first time, downloads it). The same as: docker compose up -d
 rem After this it starts by itself whenever Docker Desktop starts, and updates itself.
 title Dragon Sword server
 cd /d "%~dp0"
 call "%~dp0_docker.bat" || goto :end
 
-if not exist ".env" (
-    copy example.env .env >nul
-    echo Fill in the settings first: .env is opening in Notepad. Save it, close Notepad, then run this again.
-    notepad .env
-    goto :end
-)
-
-for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
+set GHCR_USER=
+set GHCR_TOKEN=
+if exist ".env" for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
     if /i "%%a"=="GHCR_USER" set GHCR_USER=%%b
     if /i "%%a"=="GHCR_TOKEN" set GHCR_TOKEN=%%b
 )
-echo Signing in to GitHub's registry as %GHCR_USER%...
-echo %GHCR_TOKEN%| docker login ghcr.io -u %GHCR_USER% --password-stdin || goto :failed
+if defined GHCR_TOKEN (
+    echo Signing in to GitHub's registry as %GHCR_USER%...
+    echo %GHCR_TOKEN%| docker login ghcr.io -u %GHCR_USER% --password-stdin || goto :failed
+)
 
 echo Downloading the latest version...
 docker compose pull || goto :failed
@@ -31,7 +28,7 @@ goto :end
 
 :failed
 echo.
-echo Something went wrong (see above). Check the settings in .env, and that Docker Desktop is running.
+echo Something went wrong (see above). Is Docker Desktop running? Has GitHub finished building the image (and is it public)?
 
 :end
 echo.

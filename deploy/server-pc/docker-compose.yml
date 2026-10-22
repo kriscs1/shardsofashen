@@ -1,11 +1,15 @@
 # The server PC: the game from GitHub's registry, and an updater that looks for a newer image every few minutes and
 # restarts the game with it (everyone's progress is kept in the gamedata volume). Both start again on their own
-# whenever Docker starts. Set it up with "Start Server.bat" (settings in .env: copy example.env).
+# whenever Docker starts.
+#
+#   docker compose up -d          (in this folder; nothing else is needed)
+#
+# Settings are optional: copy example.env to .env to change the port, the number of players, an invite code...
 name: dragonsword
 
 services:
   game:
-    image: ${DS_IMAGE:?set DS_IMAGE in .env}
+    image: ${DS_IMAGE:-ghcr.io/kriscs1/dragonsword:latest}
     restart: unless-stopped
     ports:
       - "${DS_PORT:-8080}:8080"
