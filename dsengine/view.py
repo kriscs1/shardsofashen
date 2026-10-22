@@ -62,7 +62,7 @@ def snapshot(w, s):
             out.append(dict(m.to_client(), t="mapdata"))
     if s.cells_dirty:
         s.cells_dirty = False
-        out.append({"t": "cells", "cells": s.cells_for_view()})
+        out.append({"t": "cells", "cells": s.cells_for_view(), "locks": s.locks_for_view()})
     if s.dirty_me:
         s.dirty_me = False
         out.append(s.me_state())

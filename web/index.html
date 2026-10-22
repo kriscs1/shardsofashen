@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Dragon Sword</title>
+<link rel="stylesheet" href="/css/game.css">
+</head>
+<body>
+<canvas id="game" tabindex="0" aria-label="Dragon Sword"></canvas>
+
+<div id="login" class="overlay">
+  <form id="login-form" class="panel" autocomplete="on">
+    <h1>Dragon Sword</h1>
+    <p id="login-online" class="dim">Connecting...</p>
+    <label>Name <input id="login-name" name="username" maxlength="20" autocomplete="username" required></label>
+    <label>Password <input id="login-password" name="password" type="password" maxlength="200"
+                           autocomplete="current-password" required></label>
+    <label id="invite-row" hidden>Invite code <input id="login-invite" maxlength="60"></label>
+    <div class="buttons">
+      <button type="submit" id="login-button">Log in</button>
+      <button type="button" id="register-button">New character</button>
+    </div>
+    <p id="login-error" class="error" role="alert"></p>
+    <p class="dim small">Up to five adventurers share this world. Full screen: F11 or the button in the game.</p>
+  </form>
+</div>
+
+<div id="loading" class="overlay" hidden>
+  <div class="panel"><h1>Dragon Sword</h1><p id="loading-text">Loading...</p>
+    <div class="bar"><div id="loading-bar"></div></div></div>
+</div>
+
+<div id="chat-entry" hidden><input id="chat-input" maxlength="200" placeholder="Say something (Enter to send, Esc to cancel)"></div>
+
+<div id="options" class="overlay" hidden>
+  <div class="panel wide">
+    <h2>Options</h2>
+    <div class="row"><span>Sound effects</span><input type="checkbox" id="opt-sound"></div>
+    <div class="row"><span>Volume</span><input type="range" id="opt-volume" min="0" max="100" step="5"></div>
+    <div class="row"><span>Music</span><input type="checkbox" id="opt-music"></div>
+    <div class="row"><span>Music volume</span><input type="range" id="opt-music-volume" min="0" max="100" step="5"></div>
+    <div class="row"><span>Background sounds</span><input type="checkbox" id="opt-ambient"></div>
+    <div class="row"><span>Background volume</span><input type="range" id="opt-ambient-volume" min="0" max="100" step="5"></div>
+    <div class="row"><span>Quest markers on the minimap</span><input type="checkbox" id="opt-markers"></div>
+    <div class="row"><span>Smooth scaling (easier text; off = sharp pixels)</span><input type="checkbox" id="opt-smooth"></div>
+    <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
+    <div class="row"><span>Full screen</span><button type="button" id="opt-fullscreen">Toggle</button></div>
+    <div class="buttons"><button type="button" id="options-done">Done</button></div>
+  </div>
+</div>
+
+<div id="quit" class="overlay" hidden>
+  <div class="panel">
+    <h2>Leave Dragon Sword?</h2>
+    <p class="dim">Your game is saved on the server.</p>
+    <div class="buttons">
+      <button type="button" id="quit-yes">Save and leave</button>
+      <button type="button" id="quit-options">Options</button>
+      <button type="button" id="quit-no">Keep playing</button>
+    </div>
+  </div>
+</div>
+
+<div id="admin" class="overlay" hidden>
+  <div class="panel wide admin">
+    <h2>Admin</h2>
+    <div class="row"><span>Give yourself:</span>
+      <input id="admin-filter" placeholder="type to search..." maxlength="24">
+      <input id="admin-qty" value="1" size="5" maxlength="6">
+      <button type="button" id="admin-give">Give</button></div>
+    <select id="admin-items" size="8"></select>
+    <p class="dim small">Skills: untick to switch one off (for everyone); type a level to set yours.</p>
+    <div id="admin-skills"></div>
+    <div class="row"><label><input type="checkbox" id="admin-god"> God mode (nothing can hurt you)</label></div>
+    <div class="buttons"><button type="button" id="admin-save">Save skills</button>
+      <button type="button" id="admin-close">Close</button></div>
+    <p id="admin-status" class="dim"></p>
+  </div>
+</div>
+
+<div id="message" class="overlay" hidden>
+  <div class="panel"><h2 id="message-title">Dragon Sword</h2><p id="message-text"></p>
+    <div class="buttons"><button type="button" id="message-ok">OK</button></div></div>
+</div>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>

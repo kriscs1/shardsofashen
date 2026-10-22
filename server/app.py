@@ -10,6 +10,8 @@ from aiohttp import web
 from .game import GameServer
 
 log = logging.getLogger("dragonsword.server")
+GAME = web.AppKey("game", GameServer)
+TICK = web.AppKey("tick", asyncio.Task)
 
 
 def make_app(root, db_path, max_players=5, registration="open", invite_code=""):
@@ -17,7 +19,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code=""):
     web_dir = os.path.join(root, "web")
     assets = os.path.join(web_dir, "assets")
     app = web.Application()
-    app["game"] = game
+    app[GAME] = game
 
     async def index(request):
         return web.FileResponse(os.path.join(web_dir, "index.html"), headers={"Cache-Control": "no-cache"})
@@ -46,11 +48,11 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code=""):
     app.router.add_static("/css/", os.path.join(web_dir, "css"))
 
     async def start_tick(app):
-        app["tick"] = asyncio.create_task(game.run())
+        app[TICK] = asyncio.create_task(game.run())
 
     async def stop_tick(app):
         await game.shutdown()
-        app["tick"].cancel()
+        app[TICK].cancel()
 
     app.on_startup.append(start_tick)
     app.on_shutdown.append(stop_tick)

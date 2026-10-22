@@ -623,6 +623,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
                 key = (m.name, lk.n)
                 prev = self.lock_seen.get(key)
                 self.lock_seen[key] = closed
+                if prev != closed:
+                    self.cells_dirty = True
                 cell = (m.name, lk.x, lk.y)
                 if lk.opened:
                     want = None if closed else lk.opened
@@ -701,6 +703,13 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
         """[(map, x, y, tile, decor)] of this player's own tiles on the maps round them (for their browser)."""
         names = {m.name for m in self.w.neighbours(self.cur_map)} if self.cur_map else set()
         return [[n, x, y, o[0], o[1]] for (n, x, y), o in self.cell_override.items() if n in names]
+
+    def locks_for_view(self):
+        """[(map, x, y, message)] of the locks shut for this player on the maps round them."""
+        if self.cur_map is None:
+            return []
+        return [[m.name, lk.x, lk.y, lk.message] for m in self.w.neighbours(self.cur_map) for lk in m.locks
+                if self.lock_closed(m, lk)]
 
     def cell_names(self, m, x, y):
         return self.w.cell_names(m, x, y, self)
@@ -822,7 +831,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],
             "totals": [self.equip_attack_total, self.equip_defence_total, self.equip_magic_total],
             "hotbar": self.hotbar, "status": sorted(self.status), "input": self.user_input_enabled,
-            "visible": self.player_visible, "sprite": self.player_sprite_base,
+            "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(),
             "view": self.fog_view_distance + self.spell_sight_bonus,
             "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,
             "level": self.player_level(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
