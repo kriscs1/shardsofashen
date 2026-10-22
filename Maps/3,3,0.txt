@@ -11,9 +11,9 @@ Grass001:Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.01):Plank001+Roof(Bric
 Grass001+Decor(Pebbles003):Grass001+Decor(Bench001):Brick001+Decor(Ivy001):Brick001+Decor(Brick_Window005):Door001:Brick001+Decor(Brick_Window005):Brick001+Decor(Sign007):Brick001+Decor(Ivy003):Grass001+Decor(Barrel001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water001:Water001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water001
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Plank001:Plank001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Plank001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Marigold_Patch001):Water001:Water001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Herb_Patch001):Grass001:Water001
-Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Pebbles003):Water001:Water001:Grass001:Brick_Thin_Plank008+Roof(Clay_Roof001.02):Brick_Thin_Plank001+Decor(Herb_Rack_Brick_Thin_Plank001)+Roof(Clay_Roof002.02):Brick_Thin_Plank001+Roof(Clay_Roof002.02):Potion_Shelf_Brick_Thin_Plank001+Roof(Clay_Roof017.02):Brick_Thin_Plank005+Roof(Clay_Roof003.02):Water001
+Grass001:Grass001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Pebbles003):Water001:Water001:Grass001:Brick_Thin_Plank008+Roof(Clay_Roof001.02):Brick_Thin_Plank001+Decor(Herb_Rack_Brick_Thin_Plank001)+Roof(Clay_Roof002.02):Brick_Thin_Plank001+Roof(Clay_Roof002.02):Potion_Shelf_Brick_Thin_Plank001+Roof(Clay_Roof017.02):Brick_Thin_Plank005+Roof(Clay_Roof003.02):Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Water001:Water001:Grass001+Decor(Tall_Grass001):Brick_Thin_Plank004+Roof(Clay_Roof013.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Brick_Thin_Plank002+Roof(Clay_Roof015.02):Water001
-Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Flowers001):Dirt001:Grass001+Decor(Flowers003):Grass001:Grass001:Water001:Water001:Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Plank001+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Brick_Thin_Plank002+Roof(Brick_Upper002.02):Water001
+Grass001:Grass001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Soil001:Grass001+Decor(Flowers001):Dirt001:Grass001+Decor(Flowers003):Grass001:Grass001:Water001:Water001:Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Plank001+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Brick_Thin_Plank002+Roof(Brick_Upper002.02):Water001
 Grass001:Grass001+Decor(Haystack001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Water001:Water001:Grass001:Brick001:Brick001+Decor(Brick_Window004):Door037:Brick001+Decor(Brick_Window004):Brick001:Water001
 Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Dirt001:Grass001:Grass001:Water005:Water001:Water001:Water001:Grass001:Grass001+Decor(Marigold_Patch001):Dirt001:Grass001:Water001:Water001
 Grass001+Decor(Flowers003):Grass001+Decor(Tree001):Grass001:Field001:Field001:Field001:Field001:Field001:Field001:Field001:Field001:Grass001:Dirt001:Grass001:Water001:Water001:Water001:Water001:Water001:Water001:Grass001:Dirt001:Grass001:Water001:Water001
@@ -25,11 +25,6 @@ NPC	Chicken	288	256	Attitude=Bad Zone=9,8,15,10
 NPC	Chicken	384	256	Attitude=Bad Zone=9,8,15,10
 NPC	Chicken	320	288	Attitude=Bad Zone=9,8,15,10
 StaticObject	Notice	417	386	Id=Farmlands_Crossroads
-MapItem	Cabbage	97	418	1
-MapItem	Cabbage	193	418	1
-MapItem	Cabbage	289	418	1
-MapItem	Cabbage	129	482	1
-MapItem	Cabbage	257	482	1
 MapItem	Cabbage	65	546	1
 MapItem	Cabbage	161	546	1
 MapItem	Cabbage	321	546	1

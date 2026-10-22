@@ -95,7 +95,8 @@ class ItemsMixin:
         self.check_locks(True)
 
     def drop_on_floor(self, name, quantity, wear=0):
-        """Puts items on the ground at the player's feet (everyone can see them); they despawn after a while."""
+        """Puts items on the ground at the player's feet; they despawn after a while. For the first seconds (Config
+        [Gameplay] Drop.Private.Seconds, 10) only the one who dropped them sees them; then everyone does."""
         if quantity <= 0:
             return
         p = self.player
@@ -106,6 +107,10 @@ class ItemsMixin:
         if e is not None:
             e.wear = wear
             e.source = "DROPPED"
+            secs = val(self.data.config_read("Gameplay", "Drop.Private.Seconds", "10"))
+            if secs > 0:
+                e.private_to = self
+                e.public_at = self.now + secs * 1000
             m = self.w.maps.get(e.map)
             if m is not None:
                 self.w.add_action_to_queue("REMOVE", name, "MapItem", lbstr(quantity), m.name,
@@ -788,12 +793,7 @@ class ItemsMixin:
         if old and old.get("items"):
             self.display_message("Your old grave crumbles away, and what was in it with it.", "DAMAGE")
         self.grave_remove_entity()
-        kept = [e for e in self.inv if self.kept_on_death(e.name)]
-        items = [(e.name, e.quantity, e.wear) for e in self.inv if e not in kept]
-        for e in self.inv:
-            if e not in kept:
-                e.alive = False
-        self.inv[:] = kept
+        items = self.death_sort()
         self.dirty_me = True
         self.check_locks(True)
         if not items:
@@ -805,6 +805,59 @@ class ItemsMixin:
                       "left": self.grave_minutes() * 60000}
         self.display_message("Everything you carried lies in a grave where you fell (map %s). Get back to it within "
                              "%s minutes!" % (m.name, lbstr(self.grave_minutes())), "DAMAGE")
+
+    def death_sort(self):
+        """Dying: what you can't drop stays with you, and so do your most valuable things (Config [Gameplay]
+        Death.Keep.Items, 5: single items, worn or carried; not gold). The rest goes in the grave: [(name, qty, wear)]."""
+        d = self.data
+        keep_n = max(0, int(val(d.config_read("Gameplay", "Death.Keep.Items", "5"))))
+        units = []                      # (value, order, where, index): one per single item
+        for k, e in enumerate(self.inv):
+            if self.kept_on_death(e.name) or e.name == "Gold_Coin(s)":
+                continue
+            worth = val(self.entity_ini(e.name, "Value", "0"))
+            for _ in range(min(e.quantity, keep_n)):
+                units.append((worth, len(units), "inv", k))
+        for i in range(1, d.equip_slots + 1):
+            if self.equipped[i]:
+                units.append((val(self.entity_ini(self.equipped[i], "Value", "0")), len(units), "eq", i))
+        units.sort(key=lambda u: (-u[0], u[1]))
+        keep_inv, keep_eq = {}, set()
+        for worth, _, where, k in units[:keep_n]:
+            if where == "inv":
+                keep_inv[k] = keep_inv.get(k, 0) + 1
+            else:
+                keep_eq.add(k)
+        grave, kept_inv, kept_names = [], [], []
+        for k, e in enumerate(self.inv):
+            if self.kept_on_death(e.name) and e.name != "Gold_Coin(s)":
+                kept_inv.append(e)
+                continue
+            stay = keep_inv.get(k, 0)
+            if stay:
+                kept_names += [e.name] * stay
+            if stay >= e.quantity:
+                kept_inv.append(e)
+                continue
+            grave.append((e.name, e.quantity - stay, e.wear))
+            if stay:
+                e.quantity = stay
+                kept_inv.append(e)
+            else:
+                e.alive = False
+        self.inv[:] = kept_inv
+        for i in range(1, d.equip_slots + 1):
+            if self.equipped[i] and i not in keep_eq:
+                grave.append((self.equipped[i], 1, self.equip_wear[i]))
+                self.equipped[i] = ""
+                self.equip_wear[i] = 0
+            elif self.equipped[i]:
+                kept_names.append(self.equipped[i])
+        self.recalc_equipment()
+        if kept_names:
+            self.display_message("You keep your most valuable things: %s." %
+                                 ", ".join(pretty(n) for n in kept_names), "INFO")
+        return grave
 
     def kept_on_death(self, name):
         """Entities.ini Keep.On.Death=1 (by default, whatever can't be dropped: quest things, the Access Crystal)."""

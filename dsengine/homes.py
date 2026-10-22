@@ -734,6 +734,9 @@ class HomeMixin:
             w.remove_entity(homes.object_at(m, x, y))
             w.objects_dirty.add(m.name)
             self.refund(name)
+        elif (m.name, x, y) in w.farms.plots:
+            w.farms.clear(m, x, y)
+            self.display_message("You pull up the crop.", "INFO")
         elif m.decor[c]:
             if cell.get("decor"):
                 self.refund(cell.pop("decor"))

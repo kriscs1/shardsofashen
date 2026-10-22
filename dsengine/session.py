@@ -19,6 +19,7 @@ from .scripting import ScriptMixin
 from .quests import QuestMixin
 from .pvp import PvPMixin
 from .homes import HomeMixin
+from .farming import FarmMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -38,7 +39,7 @@ def clean_look(look):
     return out or None
 
 
-class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin):
+class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data

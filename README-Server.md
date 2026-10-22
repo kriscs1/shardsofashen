@@ -42,6 +42,15 @@ view) goes full screen. Press **Enter** to chat with the other players.
     `>Quest.Can.Start`).
 - **Forcing it in a script.** The new commands `Personal` and `Shared` set what a script's following lines change.
 - **Sleeping.** The night passes only when everyone online is asleep. Otherwise you just wake up healed.
+- **Dropping things.** Only you see what you drop for its first 10 seconds; then everyone does (Config
+  `[Gameplay] Drop.Private.Seconds`).
+- **Dying.**
+  - You keep your 5 most valuable single items, worn or carried (Config `[Gameplay] Death.Keep.Items`).
+  - You also keep whatever can't be dropped (`Droppable=0`: quest things, the Access Crystal; `Keep.On.Death`
+    overrides it per item).
+  - The rest, and the gold you didn't lose, goes in your grave.
+- **Chat.** Enter talks to everyone. `/w <name> <words>` whispers to one player, and `/r <words>` answers the last
+  whisper. Right-click a player: Whisper.
 
 ## The arena (players fighting players)
 
@@ -95,6 +104,20 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - Config `[Homestead]`: where you arrive, and the town a homestone sends you back to by default.
   - `Dev/migrate/build_homestead.py` makes all of it: run it again after rebuilding the world; it only adds what's
     missing.
+
+## Farming
+
+- **Sowing.** Buy seeds from the farmer on the farmlands east of Ashford, and use them on **tilled soil**.
+  - His furrows by the cabbages are free for anyone to sow.
+  - On your homestead, lay tilled soil from the Build panel (Garden). Only you can sow there.
+- **Growing.** Crops grow through three stages on the server's clock, even while you're logged out or the server is
+  off. Everyone sees them grow. Examine one to see whose it is and when it'll be ripe.
+- **Harvesting.** Only whoever sowed a crop can harvest it. A harvest gives produce (more at higher Farming), Farming
+  experience, and sometimes a seed back. On the farmer's furrows a ripe crop withers if it waits an hour.
+- **Crops.** Potato (Farming 1), onion, cabbage, wheat, carrot, herbs, and pumpkin (Farming 25). The range cooks baked
+  potatoes, vegetable stew and pumpkin pie.
+- **Changing it.** `Data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
+  each crop. `Dev/migrate/build_farming.py` makes it all, like the other builders.
 
 ## Bringing over desktop characters
 

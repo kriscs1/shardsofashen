@@ -17,6 +17,7 @@ from .entity import (Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MI
                      TYPE_NAMES, normalise_type, attitude_of_type, parse_attitude)
 from .maps import MapData
 from .homes import Homes
+from .farming import Farms
 from .npcs import NPCMixin
 
 log = logging.getLogger("dragonsword.world")
@@ -54,6 +55,7 @@ class World(NPCMixin):
         self.tile_listeners = []        # callables (map, x, y) when a tile changes
         self.load_maps()
         self.homes = Homes(self)        # players' homesteads (their maps join self.maps as they're made)
+        self.farms = Farms(self)        # what's growing in tilled soil
 
     # =================================================================================================================
     # Maps
@@ -188,6 +190,12 @@ class World(NPCMixin):
         they've already taken, not something their quest took away."""
         if e.owner is not None and e.owner is not viewer:
             return False
+        if e.private_to is not None:
+            if self.now < e.public_at:
+                if viewer is not e.private_to:
+                    return False
+            else:
+                e.private_to = None
         if viewer is not None:
             if e.uid in viewer.hidden_uids:
                 return False
@@ -1294,4 +1302,5 @@ class World(NPCMixin):
             self.last_queue_check = self.now
             self.run_action_queue()
         self.update_doors()
+        self.farms.tick()
         self.weather_tick()

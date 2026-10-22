@@ -21,6 +21,8 @@ class Entity(_Entity):
         self.sched_away = False
         self.sched_stuck = 0
         self.edits_done = set()     # (script, line): a quest's one-off edits already made to it
+        self.private_to = None      # a Session: just dropped by them, only they see it until public_at (ms)
+        self.public_at = 0
 
 
 class InvItem:

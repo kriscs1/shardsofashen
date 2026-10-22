@@ -93,6 +93,8 @@ def test_world_survives_a_restart(tmp_path):
             m = game.world.homes.map_of("Saver")
             game.world.change_tile(m, 5, 5, "Timber001")
             h["cells"]["5,5"] = {"tile": "Timber001"}
+            farm = game.world.maps["3,3,0"]
+            game.world.farms.sow(farm, 5, 14, "Potato", "Saver")
             await ws.close()
             await asyncio.sleep(0.3)
         await runner.cleanup()
@@ -108,6 +110,9 @@ def test_world_survives_a_restart(tmp_path):
         assert homes.home_of("Saver")["visit"] == "open"
         m = homes.map_of("Saver")
         assert m is not None and m.tile[m.cell(5, 5)] == "Timber001"
+        farm = game.world.maps["3,3,0"]
+        assert game.world.farms.plots[("3,3,0", 5, 14)]["owner"] == "Saver"
+        assert farm.decor[farm.cell(5, 14)].startswith("Potato_Crop")
         await runner.cleanup()
 
     asyncio.run(first())

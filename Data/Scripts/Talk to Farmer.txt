@@ -1,4 +1,4 @@
-01	Display.Conversation	Farmer	Ah, a visitor! Help yourself to a cabbage or two, there's plenty.\Just don't go chasing my chickens... unless you're buying.	What do you sell?	02	Seen any goblins?	04	Goodbye.	05
+01	Display.Conversation	Farmer	Ah, a visitor! Help yourself to a cabbage or two, there's plenty. And the tilled furrows by the cabbages are free for anyone to sow: buy seeds from me, use them on the soil, and what you sow is yours to harvest.\Just don't go chasing my chickens... unless you're buying.	What do you sell?	02	Seen any goblins?	04	Goodbye.	05
 02	Display.Item.Rack	SPECIFIC	Farmer	SHOP-Farm	05
 03	End
 04	Display.Conversation	Farmer	Seen them? They steal my eggs every night!\Their camp is just down the road to the south. King Tyron ought to do something.	I'll speak to the King.	05

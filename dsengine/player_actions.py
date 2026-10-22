@@ -276,6 +276,8 @@ class ActionsMixin:
             if lk is not None:
                 self.display_message(lk.message, "FAIL")
                 return
+        if t == TILE and self.crop_action(verb, e):
+            return
         if name == "Homestone" and verb in ("Touch", "Travel", "Use"):
             self.homestone_touched(e)
             return
@@ -381,6 +383,8 @@ class ActionsMixin:
         tname = TYPE_NAMES.get(target.type, "")
         self.item_in_use_name = a
         self.clicked_ent = target
+        if self.sow_seed(item, target):
+            return
         if self.entity_ini(a, "Spell", "") and not self.script_exists("Use %s With %s" % (a, b)):
             self.cast_scroll(item, target)
             return

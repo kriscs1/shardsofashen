@@ -310,13 +310,67 @@ def test_home_bed_is_where_you_wake(world):
     leave(world, a)
 
 
-def test_undroppable_things_stay_with_you_when_you_die(world):
+def test_dying_keeps_undroppables_and_the_five_most_valuable(world):
     a = join(world, "Faller")
-    stock(a, Access_Crystal=1, Logs=3, **{"Gold_Coin(s)": 100})
+    value = lambda n: int(float(world.data.entity_ini(n, "Value", "0") or 0))
+    stock(a, Access_Crystal=1, Logs=5, Sapphire=3, Iron_Bar=3, **{"Gold_Coin(s)": 100})
     a.drop_inventory_item(a.inv_item(next(e.uid for e in a.inv if e.name == "Access_Crystal")), 1)
     assert a.items_held("Access_Crystal") == 1                      # can't be dropped
+    slot = 1
+    a.equipped[slot] = "Iron_Sword" if value("Iron_Sword") else a.equipped[slot]
     a.player_dies()
     assert a.items_held("Access_Crystal") == 1                      # nor lost when you die
-    assert a.items_held("Logs") == 0 and a.items_held("Gold_Coin(s)") == 0
+    assert a.items_held("Gold_Coin(s)") == 0 and a.items_held("Logs") == 0
+    kept = sorted([e.name for e in a.inv for _ in range(e.quantity) if e.name != "Access_Crystal"] +
+                  [n for n in a.equipped[1:] if n])
+    pool = sorted(["Sapphire"] * 3 + ["Iron_Bar"] * 3 + ["Logs"] * 5 + ["Iron_Sword"], key=value, reverse=True)
+    assert len(kept) == 5
+    assert sorted(value(n) for n in kept) == sorted(value(n) for n in pool[:5])
     assert any(i[0] == "Logs" for i in a.grave["items"])
     leave(world, a)
+
+
+def test_dropped_things_are_yours_alone_for_ten_seconds(world):
+    a, b = join(world, "Dropper"), join(world, "Watcher")
+    stock(a, Logs=1)
+    a.drop_inventory_item(a.inv_item(next(e.uid for e in a.inv if e.name == "Logs")), 1)
+    e = next(x for x in world.ents if x.name == "Logs" and x.private_to is a)
+    assert world.visible_to(e, a) and not world.visible_to(e, b)
+    world.tick(0.05, now=world.now + 11000)
+    assert world.visible_to(e, b)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_farming_grows_and_only_the_sower_harvests(world):
+    a, b = join(world, "Farmer Jo"), join(world, "Thief")
+    farms = world.farms
+    m = world.maps["3,3,0"]
+    x, y = 4, 14
+    assert m.tile[m.cell(x, y)] == "Soil001"
+    for s in (a, b):
+        s.player.x, s.player.y = m.ox + (x - 1) * 32, m.oy + y * 32
+    world.tick(0.05)
+    stock(a, Potato_Seed=2, Pumpkin_Seed=1)
+    soil = a.tile_entity_at(m.ox + (x - 0.5) * 32, m.oy + (y - 0.5) * 32)
+    a.script_cursor_x, a.script_cursor_y = soil.x + 16, soil.y + 16
+    a.item_in_use = a.inv_item(next(e.uid for e in a.inv if e.name == "Pumpkin_Seed"))
+    a.use_item_with(soil)
+    assert (m.name, x, y) not in farms.plots                        # Farming too low for pumpkins
+    a.item_in_use = a.inv_item(next(e.uid for e in a.inv if e.name == "Potato_Seed"))
+    a.use_item_with(soil)
+    assert farms.plots[(m.name, x, y)]["owner"] == "Farmer Jo" and m.decor[m.cell(x, y)] == "Potato_Crop001"
+    start, clock = farms.clock(), farms.clock
+    farms.clock = lambda: start + 10 * 60                           # time passes
+    world.tick(0.05, now=world.now + 2000)
+    assert m.decor[m.cell(x, y)] == "Potato_Crop003"
+    crop = a.tile_entity_at(m.ox + (x - 0.5) * 32, m.oy + (y - 0.5) * 32)
+    for s in (a, b):
+        s.script_cursor_x, s.script_cursor_y = crop.x + 16, crop.y + 16
+    b.do_action("Harvest", crop)
+    assert b.items_held("Potato") == 0 and (m.name, x, y) in farms.plots
+    a.do_action("Harvest", crop)
+    assert a.items_held("Potato") >= 3 and (m.name, x, y) not in farms.plots and m.decor[m.cell(x, y)] == ""
+    farms.clock = clock
+    leave(world, a)
+    leave(world, b)
