@@ -1,0 +1,22 @@
+01	Display.Conversation	Miner	Careful, friend! The hobgoblins dug up from the deep and drove us all out.\There's still good iron in these rocks, though. Copper and tin too, in the south gallery.	How do I mine?	02	Where did the hobgoblins come from?	21	Goodbye.	22
+02	>Got.Item	Mithril_Pickaxe	1	06
+03	Get.Value	CALCULATION	24	Variable.2$
+04	Get.Value	CALCULATION	4	Variable.3$
+05	Goto.Line	17
+06	>Got.Item	Steel_Pickaxe	1	10
+07	Get.Value	CALCULATION	14	Variable.2$
+08	Get.Value	CALCULATION	3	Variable.3$
+09	Goto.Line	17
+10	>Got.Item	Pickaxe	1	14
+11	Get.Value	CALCULATION	6	Variable.2$
+12	Get.Value	CALCULATION	2	Variable.3$
+13	Goto.Line	17
+14	>Got.Item	Bronze_Pickaxe	1	19
+15	Get.Value	CALCULATION	0	Variable.2$
+16	Get.Value	CALCULATION	1	Variable.3$
+17	Display.Conversation	Miner	Click a rock with ore in it and swing. Better pickaxes strike more often.\Smelt the ore at a furnace.\At Mining 10 the guild's deep seam opens: coal, silver and gold!	Thanks!	22
+18	End
+19	Display.Conversation	Miner	You'll need a pickaxe. I dropped my spare by the ladder when I ran.\The Ashford blacksmith sells them too.	Thanks!	22
+20	End
+21	Display.Conversation	Miner	There's a hatch in the tunnels to the east that goes down to their warren.\I saw them carry off all sorts down there. Keys, coins, gems...	I'll take a look.	22
+22	End

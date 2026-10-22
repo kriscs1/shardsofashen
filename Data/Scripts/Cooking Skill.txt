@@ -1,0 +1,2 @@
+01	Display.Item.Rack	SPECIFIC	Chefs_Hat	CRAFT-Cooking	02
+02	End

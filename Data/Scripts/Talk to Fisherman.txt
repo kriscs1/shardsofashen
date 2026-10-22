@@ -1,0 +1,5 @@
+01	Display.Conversation	Fisherman	Fish are biting today! Bait your hook with a worm and anything in the sea will bite.\Once you're handy with a rod, the trout go mad for it.	What do you sell?	02	Any big catches about?	04	Goodbye.	05
+02	Display.Item.Rack	SPECIFIC	Fisherman	SHOP-Fishing	05
+03	End
+04	Display.Conversation	Fisherman	Cave eels! Pale as ghosts, they live in the black pools deep underground. You'll want real skill (Fishing 15) to land one.\I pay well for them, cooked or raw.	I'll look for them.	05
+05	End

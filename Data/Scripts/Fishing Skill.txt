@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Fishing: find a fishing spot (ripples on the water) and fish there with a rod and bait. Better fish in harder places.
+02	End

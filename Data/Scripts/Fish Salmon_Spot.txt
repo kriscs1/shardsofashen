@@ -1,0 +1,25 @@
+// Fishing at a salmon spot (build_fishing.py): a rod, Fishing 20 and one bait a catch (a miss keeps it).
+01	>Distance.From.Clicked.Entity	64	23
+02	>Got.Item	Fishing_Rod	1	19
+03	Get.Value	SKILL	Fishing	Variable.1$
+04	>Conditional	$Variable.1>=20	21
+05	>Got.Item	Bait	1	17
+06	Display.Message	Cyan	You bait the hook and cast into the run of leaping salmon...
+07	Play.Sound	Splash
+08	Wait	4
+09	>Conditional	($Variable.1-20+40)>$Random.Percent	15
+10	Take.Item	Bait	1
+11	Display.Message	Yellow	...and land a salmon!
+12	Give.Item	Raw_Salmon	1
+13	Update.Skill	Fishing	+0.35
+14	End
+15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
+16	End
+17	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
+18	End
+19	Display.Message	DarkRed	You need a fishing rod.
+20	End
+21	Display.Message	DarkRed	You need level 20 Fishing to catch the salmon here.
+22	End
+23	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
+24	End

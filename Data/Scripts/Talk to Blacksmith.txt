@@ -1,0 +1,10 @@
+01	Display.Conversation	Blacksmith	Mind the forge, it's hot!\Bring me ore from the mines: copper and tin make bronze, iron makes iron, and iron with coal makes steel.\With bars and some logs you can make your own tools. Better tools dig and chop faster.	Let me use the forge.	02	What do you sell?	07	Where are the mines?	09	Goodbye.	10
+02	Display.Conversation	Blacksmith	Help yourself.\Smelt ore into bars at the furnace, then hammer the bars into tools and armour on the anvil.	The furnace: smelt ore.	03	The anvil: smith bars.	05	Never mind.	10
+03	Display.Item.Rack	GENERAL	Blacksmith	CRAFT-Smelting	10
+04	End
+05	Display.Item.Rack	GENERAL	Blacksmith	CRAFT-Smithing	10
+06	End
+07	Display.Item.Rack	SPECIFIC	Blacksmith	SHOP-Smith	10
+08	End
+09	Display.Conversation	Blacksmith	Copper, tin and coal: in the grotto under the beggar's cellar.\Iron: the old mine in the Whispering Woods, past the King's guard. Wear armour.\Silver lies deeper down. Brokk the dwarf has found mithril in the Deep Hollow.	Thanks.	10
+10	End

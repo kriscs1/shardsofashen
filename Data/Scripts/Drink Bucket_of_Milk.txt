@@ -1,0 +1,5 @@
+01	Take.Item	Bucket_of_Milk	1
+02	Display.Message	Cyan	You drink the milk. Delicious!
+03	Update.Skill	Hitpoints	+3
+04	Give.Item	Bucket	1
+05	End

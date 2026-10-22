@@ -1,0 +1,6 @@
+// A notice without an Id= on its map line (each notice's own text is "Read Notice <Id>": the game tries that first)
+01	>Distance.From.Clicked.Entity	64	04
+02	Display.Message	Yellow	The writing on this notice has faded away.
+03	End
+04	Display.Message	DarkRed	You can't read that from here!
+05	End

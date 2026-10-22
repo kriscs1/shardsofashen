@@ -1,0 +1,19 @@
+01	Get.Value	ATTRIBUTE	BeggarQuest	Variable.1$
+02	>Conditional	$Variable.1=2	05
+03	Display.Conversation	Beggar	You found my old key? Then the house on the Isle is yours, friend.\Mind the cellar. The back wall fell in years ago, and there are rats down there the size of dogs.	Thanks!	17
+04	End
+05	Display.Conversation	Beggar	Spare a coin for a poor old man?	Here's a coin.	06	Sorry, no.	17
+06	>Got.Item	Gold_Coin(s)	1	16
+07	Take.Item	Gold_Coin(s)	1
+08	Display.Conversation	Beggar	Bless you! I wasn't always like this, you know.\I had a fine brick house on the Isle, but I lost the key in the old iron mine when the hobgoblins chased me out. They took it down to their warren.\If you ever find it, the house is yours. I'll never go back.	I'll look for it.	09
+09	>Conditional	$Variable.1=0	17
+10	>Quest.Can.Start	BeggarQuest	18
+11	Update.Attribute	BeggarQuest	=1
+12	Quest.Note	BeggarQuest	The hobgoblins took the beggar's key down to their warren, below the old iron mine.
+13	Quest.Note	BeggarQuest	His house is on the Isle: unlock its door with the key and it's yours.
+14	Display.Message	Yellow	Quest started: The Beggar's Lost Key.
+15	End
+16	Display.Message	DarkRed	You don't have any gold!
+17	End
+18	Display.Conversation	Beggar	Spare a coin? ...I lost something, out where it's not safe. You'd not last a night there, the state of you. Toughen up, then ask me again.	I'll be back.	19
+19	End

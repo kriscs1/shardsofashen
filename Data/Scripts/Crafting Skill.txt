@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Crafting: shear sheep, then tan, spin and make jewellery at a workbench.
+02	End

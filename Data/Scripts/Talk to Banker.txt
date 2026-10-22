@@ -1,0 +1,3 @@
+01	Display.Conversation	Banker	Good day. Your valuables are safe with the Bank of Ashford.	I'd like to use my bank.	02	No thanks.	03
+02	Display.Item.Rack	BANK	Banker	-	03
+03	End

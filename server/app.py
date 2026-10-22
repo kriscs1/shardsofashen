@@ -65,7 +65,7 @@ def main():
     p = argparse.ArgumentParser(description="Dragon Sword multiplayer server")
     root_default = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     p.add_argument("--root", default=os.environ.get("DS_ROOT", root_default), help="the game folder (Data, Maps...)")
-    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(root_default, "data", "dragonsword.db")))
+    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(root_default, "server-data", "dragonsword.db")))
     p.add_argument("--host", default=os.environ.get("DS_HOST", "0.0.0.0"))
     p.add_argument("--port", type=int, default=int(os.environ.get("DS_PORT", "8080")))
     p.add_argument("--max-players", type=int, default=int(os.environ.get("DS_MAX_PLAYERS", "5")))

@@ -1,0 +1,2 @@
+01	Display.Conversation	Dog	Woof! Woof!\(The dog wags its tail hopefully.)	Good dog.	02
+02	End

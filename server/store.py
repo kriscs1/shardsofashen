@@ -1,4 +1,4 @@
-"""Everything the server keeps: accounts, characters and the shared world, in one SQLite database (data/dragonsword.db
+"""Everything the server keeps: accounts, characters and the shared world, in one SQLite database (server-data/dragonsword.db
 by default; DS_DB to put it elsewhere). Characters and the world are JSON."""
 import json
 import os

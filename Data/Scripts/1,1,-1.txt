@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	A damp cellar. The far wall has fallen in, and something squeaks in the dark.
+02	End

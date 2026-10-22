@@ -105,7 +105,7 @@ Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HT
 |---|---|---|
 | `DS_PORT` | 8080 | |
 | `DS_HOST` | 0.0.0.0 | |
-| `DS_DB` | `data/dragonsword.db` | |
+| `DS_DB` | `server-data/dragonsword.db` | (not `data/`: on Windows that is the game's own `Data` folder) |
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |

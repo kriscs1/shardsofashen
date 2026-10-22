@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Ashford village. You smell fresh bread.
+02	End

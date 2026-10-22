@@ -1,0 +1,3 @@
+01	Display.Conversation	Quartermaster	Swords, shields, armour and supplies for the King's men... and for anyone else with coin.\Leather for beginners, iron for the brave. I'll buy good steel too, if you forge any.	Show me your stock.	02	Goodbye.	03
+02	Display.Item.Rack	SPECIFIC	Quartermaster	SHOP-Keep	03
+03	End

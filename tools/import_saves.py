@@ -97,7 +97,7 @@ def read_save(d, path):
 def main():
     p = argparse.ArgumentParser(description="Import desktop saves into the server")
     p.add_argument("names", nargs="*")
-    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "data", "dragonsword.db")))
+    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "server-data", "dragonsword.db")))
     p.add_argument("--replace", action="store_true")
     args = p.parse_args()
     d = GameData(ROOT)

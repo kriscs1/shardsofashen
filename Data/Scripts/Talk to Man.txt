@@ -1,0 +1,6 @@
+01	>Random	50	04
+02	Display.Conversation	Man	Southport's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.	Thanks.	06
+03	End
+04	Display.Conversation	Man	Heading inland? Ashford's east of here. Mind the woods to the south: wolves, and worse past the old mine.	Thanks.	06
+05	End
+06	End

@@ -3,7 +3,7 @@
   python tools/admin.py list
   python tools/admin.py password <name>            set a password (asks for it) - also makes the account if needed
   python tools/admin.py admin <name> on|off        the Admin button (give items, set skills, god mode)
-  python tools/admin.py backup                     a copy of the database in data/backups
+  python tools/admin.py backup                     a copy of the database in server-data/backups
 
 --db <path> (or DS_DB) for a database somewhere else."""
 import argparse
@@ -20,7 +20,7 @@ from server.store import Store  # noqa: E402
 
 def main():
     p = argparse.ArgumentParser(description="Dragon Sword server accounts")
-    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "data", "dragonsword.db")))
+    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "server-data", "dragonsword.db")))
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list")
     pw = sub.add_parser("password")

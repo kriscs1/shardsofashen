@@ -1,0 +1,2 @@
+01	Goto.Script	Mine Silver_Rock
+02	End

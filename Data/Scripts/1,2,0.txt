@@ -1,0 +1,4 @@
+// Map entry script for the island pier: the ferrywoman and her notice (the map file itself is unchanged)
+01	Add.Entity	Isle_Ferry_Pier	Woman	NPC	-
+02	Add.Entity	Isle_Ferry_Notice	Notice	StaticObject	Id=Ferry_To_Southport
+03	End

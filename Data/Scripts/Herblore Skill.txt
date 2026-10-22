@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	Herblore: pick herbs, berries and mushrooms, and brew potions at an alchemy table.
+02	End

@@ -1,0 +1,7 @@
+// The troll for Brokk (DwarfQuest=1)
+01	Get.Value	ATTRIBUTE	DwarfQuest	Variable.1$
+02	>Conditional	$Variable.1=1	06
+03	Update.Attribute	TrollSlain	=1
+04	Quest.Note.Done	DwarfQuest	Slay the cave troll in the Deep Hollow.
+05	Display.Message	Yellow	The cave troll is dead! Brokk will want to hear about this.
+06	End

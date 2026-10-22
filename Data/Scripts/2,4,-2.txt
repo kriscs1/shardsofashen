@@ -1,0 +1,2 @@
+01	Display.Message	DarkRed	The hobgoblin warren! Bones crunch underfoot.
+02	End

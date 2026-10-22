@@ -1,0 +1,21 @@
+01	>On.Map	4,4,0	04
+02	Display.Conversation	Guard	Welcome to the Royal Isle. King Tyron holds court in the throne hall.\Mind your manners before the throne, and keep your blade sheathed.	Goodbye.	21
+03	End
+04	>On.Map	5,3,0	07
+05	Goto.Script	Wardhaven Guard
+06	End
+07	>On.Map	1,4,0	12
+08	Display.Conversation	Guard	Halt! The mine is closed by order of King Tyron.\No one goes through this gate without body armour on. The hobgoblins down there would gut you.\Unless the King himself sent you, of course.	Where can I get armour?	10	Goodbye.	21
+09	End
+10	Display.Conversation	Guard	The quartermaster at the keep sells leather and iron. Or tan some cowhide and make your own on a workbench.\And wear it! In your pack it won't stop a hobgoblin's axe.	Thanks.	21
+11	End
+12	>On.Map	2,3,0	15
+13	Display.Conversation	Guard	Keep the peace in Ashford, citizen.\If you're looking for work, the King pays well for hobgoblin ears.\His palace is on the Royal Isle: south to his keep, east along the goblin camp road, then over the causeway.	Any other news?	17	Goodbye.	21
+14	End
+15	Display.Conversation	Guard	Halt! ...ah, you look honest enough. Go on in.\The King holds court in the great hall.\The quartermaster in the courtyard sells arms.	Any other news?	17	Goodbye.	21
+16	End
+17	>Random	50	20
+18	Display.Conversation	Guard	Three of the lads were bitten by giant spiders down the old mine. The herbalist is trying to brew something for them.	I'll ask her.	21
+19	End
+20	Display.Conversation	Guard	They say a dwarf lives right at the bottom of the mine, below the hobgoblin warren. Mad, if you ask me.	Interesting.	21
+21	End

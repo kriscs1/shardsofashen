@@ -1,0 +1,13 @@
+01	>Got.Item	Cooked_Meat	1	10
+02	>Got.Item	Bread	1	12
+03	Take.Item	Cooked_Meat	1
+04	Take.Item	Bread	1
+05	Wait	0.5
+06	Display.Message	Cyan	You make a Meat Sandwich!
+07	Update.Skill	Cooking	+0.05
+08	Give.Item	Meat_Sandwich	1
+09	End
+10	Display.Message	DarkRed	You need (1) Cooked Meat!
+11	End
+12	Display.Message	DarkRed	You need (1) Bread!
+13	End

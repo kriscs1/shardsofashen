@@ -1,6 +1,6 @@
 .git
 Dev
-data
+server-data
 web/assets
 **/__pycache__
 **/*.pyc

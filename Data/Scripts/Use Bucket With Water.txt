@@ -1,0 +1,9 @@
+01	>Distance.From.Cursor	35	08
+02	Play.Sound	FillBucket
+03	Display.Message	Cyan	You fill the bucket with water!
+04	Wait	0.5
+05	Take.Item	Bucket	1
+06	Give.Item	Bucket_of_Water	1
+07	End
+08	Display.Message	DarkRed	You are too far away!
+09	End

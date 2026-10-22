@@ -1,0 +1,10 @@
+01	>Distance.From.Clicked.Entity	40	09
+02	Play.Sound	PutFireOut
+03	Display.Message	Cyan	You throw the contents of the bucket over the fire and put it out.
+04	Take.Item	Bucket_of_Water	1
+05	Give.Item	Bucket	1
+06	Remove.Entity	$Object.under.Cursor.X,$Object.under.Cursor.Y	Fire
+07	Remove.Action.From.Queue	REMOVE[TAB]Fire[TAB]StaticObject[TAB]-[TAB]$Map.Name[TAB]$Object.under.Cursor.X,$Object.under.Cursor.Y*
+08	End
+09	Display.Message	DarkRed	You are too far away!
+10	End

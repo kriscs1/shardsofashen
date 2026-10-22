@@ -1,0 +1,5 @@
+01	Take.Item	Basic_Potion	1
+02	Display.Message	Cyan	You drink the potion. It tastes of mint and mud.
+03	Update.Skill	Hitpoints	+15
+04	Give.Item	Empty_Vial	1
+05	End

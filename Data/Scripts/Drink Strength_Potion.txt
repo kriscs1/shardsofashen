@@ -1,0 +1,6 @@
+01	Take.Item	Strength_Potion	1
+02	Display.Message	Cyan	You drink the potion. Your arms tingle with strength!
+03	Update.Skill	Hitpoints	+5
+04	Update.Skill	Strength	+0.5
+05	Give.Item	Empty_Vial	1
+06	End
