@@ -164,3 +164,52 @@ def test_look_is_kept_and_shown_to_others(world):
     assert a.save_state()["look"] == a.look
     leave(world, a)
     leave(world, b)
+
+
+def test_pvp_only_on_the_arena_sand(world):
+    a, b = join(world, "Ned"), join(world, "Ola")                 # in Ashford's neighbour: no fighting
+    assert "Attack" not in a.get_verbs(b.player)
+    assert not a.pvp_ok(b)
+    # the arena: on the paving, still safe; on the sand, fair game
+    for s, x in ((a, 300), (b, 330)):
+        s.teleport("0,0,5", x, 530)                               # (the paving by the gate)
+        s.do_pending_map_change()
+    world.tick(0.05)
+    assert a.in_arena() and not a.on_arena_ground()
+    assert "Attack" not in a.get_verbs(b.player)
+    for s, x in ((a, 384), (b, 416)):
+        s.teleport("0,0,5", x, 300)                               # (the middle of the sand)
+        s.do_pending_map_change()
+    world.tick(0.05)
+    assert a.on_arena_ground() and b.on_arena_ground()
+    assert "Attack" in a.get_verbs(b.player)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_pvp_fight_to_the_end_costs_nothing(world):
+    a, b = join(world, "Pip"), join(world, "Quin")
+    for s, x in ((a, 384), (b, 410)):
+        s.teleport("0,0,5", x, 300)
+        s.do_pending_map_change()
+    world.tick(0.05)
+    a.equipped[1] = "Bronze_Sword"
+    a.recalc_equipment()
+    b.add_inventory_item("Gold_Coin(s)", 50, quiet=True)
+    gold, items = b.items_held("Gold_Coin(s)"), len(b.inv)
+    a.start_attack(b.player)
+    assert a.player_attack_target is b.player
+    t = world.now
+    for _ in range(3000):                                          # (up to 150 seconds of the world's time)
+        t += 50
+        world.tick(0.05, t)
+        if b.get_attribute("ArenaLosses") == "1":
+            break
+    assert b.get_attribute("ArenaLosses") == "1"
+    assert a.get_attribute("ArenaWins") == "1"
+    assert b.player.hp == b.player_max_hp
+    assert b.items_held("Gold_Coin(s)") == gold and len(b.inv) == items and b.grave is None
+    assert b.screen_name == "0,0,5" and not b.on_arena_ground()   # (by the gate, on the paving)
+    assert a.player_attack_target is None
+    leave(world, a)
+    leave(world, b)

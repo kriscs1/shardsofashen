@@ -2,7 +2,7 @@
 its hitpoints go down for everyone, and it fights whoever hit it), spells and status effects (extras.py)."""
 from dragonsword.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
 
-from .entity import NPC, TYPE_NAMES
+from .entity import NPC, PLAYER, TYPE_NAMES
 
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
@@ -179,6 +179,11 @@ class CombatMixin:
         return 1 + max(0, int(self.w.stat_for(e, self, "strength") * self.data.monster_damage))
 
     def start_attack(self, e):
+        if e.type == PLAYER and self.pvp_ok(self.session_of(e)):
+            self.player_attack_target = e
+            self.player_walk_stuck = 0
+            self.dirty_me = True
+            return
         if e.type != NPC:
             self.display_message("You can't attack that!", "FAIL")
             return
@@ -197,6 +202,8 @@ class CombatMixin:
 
     def provoke(self, t):
         """This player hit NPC t: it fights back (or runs) at them."""
+        if t.type == PLAYER:
+            return
         t.in_combat = True
         t.last_combat = self.now
         if t.ai is not None and (t.target is None or not t.target.in_world() or t.ai.state not in (3, 4)):
@@ -210,6 +217,11 @@ class CombatMixin:
         if not t.alive or not self.w.visible_to(t, self) or t.z != self.player.z:
             self.player_attack_target = None
             self.dirty_me = True
+            return
+        if t.type == PLAYER and not self.pvp_ok(self.session_of(t)):
+            self.player_attack_target = None
+            self.dirty_me = True
+            self.display_message("You can only fight other players on the arena's sand.", "FAIL")
             return
         p = self.player
         rng = 36 + self.reach_extra(t)
@@ -248,6 +260,9 @@ class CombatMixin:
 
     def player_strike(self, t, ranged):
         if not t.alive:
+            return
+        if t.type == PLAYER:
+            self.pvp_strike(t, ranged)
             return
         w = self.w
         what = "Your arrow" if ranged else "You"
@@ -412,6 +427,9 @@ class CombatMixin:
         if self.god_mode:
             self.player.hp = self.player_max_hp
             return
+        if self.in_arena():
+            self.arena_defeat()
+            return
         d = self.data
         self.display_message("Oh dear, you are dead!", "ERROR")
         self.play_sound("Death", (self.player.cx, self.player.cy))
@@ -447,6 +465,8 @@ class CombatMixin:
         return random_number(int(a), int(max(a, b)))
 
     def spell_target_ok(self, e):
+        if e is not None and e.type == PLAYER:
+            return self.pvp_ok(self.session_of(e))
         return e is not None and e.alive and e.type == NPC and e.active and self.w.visible_to(e, self)
 
     def spell_auto_target(self, rng):
@@ -584,6 +604,9 @@ class CombatMixin:
             targets = [e for e in w.ents if e.type == NPC and e.z == p.z and w.hostile_for(e, self) and
                        self.spell_target_ok(e) and distance(pcx, pcy, e.cx, e.cy) <= radius and
                        w.in_line_of_sight(p.z, pcx, pcy, e.cx, e.cy)]
+            targets += [s.player for s in w.sessions.values() if self.pvp_ok(s) and
+                        distance(pcx, pcy, s.player.cx, s.player.cy) <= radius and
+                        w.in_line_of_sight(p.z, pcx, pcy, s.player.cx, s.player.cy)]
             if not targets:
                 self.display_message("There are no enemies close enough for %s." % name, "FAIL")
                 return
@@ -661,6 +684,9 @@ class CombatMixin:
         w = self.w
         damage = (self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Magic") / 4) +
                   self.equip_magic_total + self.spell_magic_bonus)
+        if e.type == PLAYER:
+            self.pvp_spell_hit(spell, e, damage)
+            return
         impact = self.spell_ini(spell, "Impact", "")
         if impact:
             self.fx_anim(impact, e.cx, e.cy, 450)

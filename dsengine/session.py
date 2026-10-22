@@ -17,6 +17,7 @@ from .player_combat import CombatMixin
 from .player_actions import ActionsMixin
 from .scripting import ScriptMixin
 from .quests import QuestMixin
+from .pvp import PvPMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -36,7 +37,7 @@ def clean_look(look):
     return out or None
 
 
-class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
+class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -565,6 +566,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
         m = self.w.map_at(p.z, p.fx, p.fy) or self.cur_map
         if m is None or m is self.cur_map:
             return
+        arenas = self.pvp_rules()[0]
+        if self.cur_map is not None and self.cur_map.name in arenas and m.name not in arenas:
+            self.fog_view_distance = self.data.fog_view_distance      # (the arena lifts the fog; out of it, it's back)
+            self.dirty_me = True
         self.cur_map = m
         self.player_tile = None
         self.add_explored_map(m.name)
@@ -850,7 +855,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin):
             "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(), "look": self.look,
             "view": self.fog_view_distance + self.spell_sight_bonus,
             "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,
-            "level": self.player_level(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
+            "level": self.player_level(), "arena": self.on_arena_ground(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
             "boosts": {"attack": self.spell_attack_bonus, "defence": self.spell_defence_bonus,
                        "magic": self.spell_magic_bonus, "sight": self.spell_sight_bonus},
             "grave": ({"map": self.grave["map"], "left": int(self.grave["left"])} if self.grave else None),

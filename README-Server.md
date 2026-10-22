@@ -43,6 +43,24 @@ view) goes full screen. Press **Enter** to chat with the other players.
 - **Forcing it in a script.** The new commands `Personal` and `Shared` set what a script's following lines change.
 - **Sleeping.** The night passes only when everyone online is asleep. Otherwise you just wake up healed.
 
+## The arena (players fighting players)
+
+- **Getting there.** The Arena Master, a guard in the middle of Ashford, takes you there. The Arena Keeper by the gate
+  brings you back.
+- **Where you can fight.** Players can only fight each other on the arena's sand: right-click another player, then
+  Attack. The paving round it is safe for watching. Swords, bows and attack scrolls all work, and your gear counts.
+- **Losing.** You lose nothing: no gold, no grave. You wake by the gate, healed. Everyone in the arena hears who won.
+- **Records.** Wins and losses are kept as the attributes `ArenaWins` and `ArenaLosses`. Examine a player to see
+  theirs.
+- **Settings.** Config `[PvP]`:
+  - `Maps`: the arena maps (several are separated by `;`).
+  - `Ground`: the tiles you must both stand on.
+  - `Respawn.Map`, `Respawn.X`, `Respawn.Y`: where the beaten wake.
+  - Anywhere else, players can't fight each other.
+- **Rebuilding.** `Dev/migrate/build_arena.py` makes the arena: `Maps/0,0,5.txt`, a level of its own, plus its
+  scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
+  missing.
+
 ## Bringing over desktop characters
 
 ```

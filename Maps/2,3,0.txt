@@ -39,3 +39,4 @@ StaticObject	Trout_Spot	480	96
 NPC	Butterfly	736	320	Attitude=Good
 NPC	Butterfly	352	448	Attitude=Good
 Id	Waystone_Ashford	10	12
+NPC	Guard	384	216	Attitude=Good Stand=1 Id=Arena_Master

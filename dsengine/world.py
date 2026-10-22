@@ -1276,8 +1276,9 @@ class World(NPCMixin):
                     act.add((mx + i, my + j, p.z))
         self.active = act
 
-    def tick(self, dt):
-        self.now = clock_ms()
+    def tick(self, dt, now=None):
+        """now: the time in clock_ms (tests run the world faster than the clock)."""
+        self.now = clock_ms() if now is None else now
         self.dt = max(0.0, min(0.1, dt))
         self.update_active()
         self.update_object_blocks()

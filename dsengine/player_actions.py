@@ -123,7 +123,7 @@ class ActionsMixin:
             verbs = self.add_verb(verbs, "Talk to")
             verbs = self.add_verb(verbs, "Examine")
         elif t == PLAYER:
-            verbs = "Examine"
+            verbs = "Attack,Examine" if self.pvp_ok(self.session_of(e)) else "Examine"
         return verbs
 
     def verb_range(self, verb, e):
@@ -402,8 +402,11 @@ class ActionsMixin:
         if e.type == PLAYER:
             s = next((s for s in self.w.sessions.values() if s.player is e), None)
             if s is not None:
-                self.display_message("%s, level %d (%d/%d hitpoints)." % (s.player_name, s.player_level(), e.hp,
-                                                                         s.player_max_hp), "EXAMINE")
+                record = ""
+                if val(s.get_attribute("ArenaWins")) or val(s.get_attribute("ArenaLosses")):
+                    record = " Arena: %s wins, %s losses." % (s.get_attribute("ArenaWins"), s.get_attribute("ArenaLosses"))
+                self.display_message("%s, level %d (%d/%d hitpoints).%s" % (s.player_name, s.player_level(), e.hp,
+                                                                           s.player_max_hp, record), "EXAMINE")
             return
         text = self.examine_text(e) or "It's not very interesting."
         if e.type == INVENTORYITEM and self.dur_text(e.name, e.wear):

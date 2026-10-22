@@ -111,6 +111,7 @@ export function drawUI(ctx, now) {
   drawHotbar(ctx);
   drawBanner(ctx, now);
   drawOnline(ctx, now);
+  drawArena(ctx, now);
   drawSleep(ctx, now);
   ctx.restore();
   drawMinimap(ctx);
@@ -948,6 +949,17 @@ function drawOnline(ctx, now) {
     [3, 9, 3, 13], [3, 13, 7, 13]]) { ctx.moveTo(fx + a, 4 + b); ctx.lineTo(fx + c, 4 + d); }
   ctx.stroke();
   U.fullscreenRect = [fx, 4, 16, 16];
+}
+
+function drawArena(ctx, now) {
+  // On the arena's sand: you can fight other players here, and they can fight you
+  if (!S.me.arena) return;
+  const text = "ARENA  -  other players can fight you here";
+  const w = textWidth(ctx, text, 10, true) + 28;
+  const x = Math.floor((L.VW - w) / 2), y = 8;
+  const pulse = 0.75 + 0.25 * Math.sin(now / 300);
+  roundBox(ctx, x, y, w, 24, `rgba(70,10,8,${0.82 * pulse})`, [214, 90, 60], 2, 10);
+  drawTextMid(ctx, text, x + 14, y, 24, 10, true, [255, 220, 170]);
 }
 
 function drawSleep(ctx, now) {

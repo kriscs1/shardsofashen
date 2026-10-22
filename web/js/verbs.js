@@ -103,7 +103,7 @@ export function getVerbs(e) {
     addVerb(v, "Talk to");
     addVerb(v, "Examine");
   } else if (t === T.PLAYER) {
-    v = ["Examine"];
+    v = e.pvp ? ["Attack", "Examine"] : ["Examine"];          // (the server says when you may fight them: the arena)
   }
   if (S.itemInUse && !(e.k === T.INVITEM && e.u === S.itemInUse) && !mode) v = ["Use with", ...v];
   return v;

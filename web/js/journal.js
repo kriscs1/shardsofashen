@@ -30,6 +30,7 @@ const CONTROLS = [
   ["M", "Minimap - and +", "Zoom the minimap out and in."],
   ["M", "Mouse wheel", "Over the map: zoom in and out (75% to 300%)."],
   ["M", "Other players", "Up to five of you share this world: what you do (chopping, mining, fighting, picking things up) is seen by everyone; your quests are your own."],
+  ["M", "The arena", "Talk to the Arena Master in Ashford. On the arena's sand you can fight other players (right-click: Attack); the paving round it is safe. Beaten, you lose nothing."],
   ["K", "Arrows or W A S D", "Walk (two at once walks diagonally)."],
   ["K", "Enter", "Talk to the other players (the chat)."],
   ["K", "H or F1", "Open or close this journal."],

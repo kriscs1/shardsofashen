@@ -35,6 +35,8 @@ def player_state(s, viewer):
           "worn": s.worn_items()}
     if s.look:
         st["look"] = s.look
+    if viewer.pvp_ok(s):
+        st["pvp"] = 1
     if s.sleeping():
         st["zz"] = 1
     return st
