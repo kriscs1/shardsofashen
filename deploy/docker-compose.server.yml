@@ -1,10 +1,11 @@
-# The server PC: the game from GitHub's registry, and an updater that looks for a newer image every few minutes and
-# restarts the game with it (everyone's progress is kept in the gamedata volume). Both start again on their own
-# whenever Docker starts.
+# A plain Linux server without Unraid: the game from GitHub's registry, and an updater that looks for a newer image
+# every few minutes and restarts the game with it (everyone's progress is kept in the gamedata volume). Both start
+# again on their own whenever Docker starts. This file is inside the game's image, so a server needs nothing else:
 #
-#   docker compose up -d          (in this folder; nothing else is needed)
+#   docker run --rm ghcr.io/kriscs1/dragonsword cat docker-compose.yml > docker-compose.yml && docker compose up -d
 #
-# Settings are optional: copy example.env to .env to change the port, the number of players, an invite code...
+# Optional settings in a .env file beside it: DS_PORT, DS_MAX_PLAYERS, DS_REGISTRATION, DS_INVITE_CODE,
+# DS_UPDATE_SECONDS, and GHCR_USER / GHCR_TOKEN if the image is private.
 name: dragonsword
 
 services:

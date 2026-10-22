@@ -77,7 +77,68 @@ python tools/admin.py admin Kris on       # the Admin button (give items, set sk
 | **Publish Update.bat** | Saves your changes and sends them to your private GitHub repository. GitHub builds the server image, and the server PC updates itself within minutes. |
 | **Link GitHub.bat** | Once, at the start: links this folder to the GitHub repository. |
 
-Setting up the server PC, which runs it and updates itself: see `deploy/server-pc/README.md`.
+## The server: Unraid (or any Linux)
+
+Each **Publish Update** sends your changes to https://github.com/kriscs1/dragonsword. GitHub tests them and builds
+the server image, `ghcr.io/kriscs1/dragonsword`; you can watch it in the repository's **Actions** tab. The server
+downloads the new image and restarts the game with it. Everyone's progress is kept through every update.
+
+Once, before the first install: when the first build is green, make the image public, so the server can download it
+without signing in. Go to https://github.com/users/kriscs1/packages/container/dragonsword/settings > **Change
+visibility** > **Public**. Your code stays private.
+
+### Unraid
+
+1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
+
+   ```
+   docker run --rm ghcr.io/kriscs1/dragonsword cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-DragonSword.xml
+   ```
+
+2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
+   **Apply**. It's filled in already:
+   - Port 8080.
+   - Game data in `/mnt/user/appdata/dragonsword`.
+   - It runs as nobody:users.
+   - Set an invite code here if you like.
+3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
+   **Settings > Auto Update Applications > Docker Auto Update Settings**:
+   - Update Check Frequency: **Hourly** (or Custom, e.g. `*/15 * * * *` for every 15 minutes).
+   - Set DragonSword to update.
+
+   (Without this, the Docker tab's **Check for Updates** does it by hand.)
+
+Players open `http://<your Unraid server>:8080`; the WebUI entry of the container's menu opens it too. It starts with
+the array and keeps everyone's progress in appdata (your appdata backups cover it).
+
+Accounts (Unraid's Terminal):
+
+```
+docker exec -u 99:100 DragonSword python tools/admin.py list
+docker exec -u 99:100 DragonSword python tools/admin.py password <Name>
+docker exec -u 99:100 DragonSword python tools/admin.py admin <Name> on
+```
+
+### A plain Linux server
+
+1. Install Docker (once): `curl -fsSL https://get.docker.com | sudo sh`
+2. Set up and start the server, all from GitHub, with this one line:
+
+   ```
+   mkdir -p ~/dragonsword && cd ~/dragonsword &&    docker run --rm ghcr.io/kriscs1/dragonsword cat docker-compose.yml > docker-compose.yml &&    docker compose up -d
+   ```
+
+That's all:
+
+- **Starting:** Docker starts with Linux (no one needs to sign in), and the game and its updater start with Docker.
+- **Updates:** they arrive by themselves, a few minutes after each **Publish Update**.
+- **Connecting:** players use `http://<the server's address>:8080`.
+- **Day to day,** in `~/dragonsword`:
+  - `docker compose logs -f` shows what it's doing.
+  - `docker compose pull game && docker compose up -d` updates at once.
+  - `docker compose stop` stops it.
+
+
 
 ## A server on a Linux VPS (Docker)
 

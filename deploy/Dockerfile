@@ -27,7 +27,7 @@ COPY tools tools
 COPY web web
 # (the server's compose file travels with the game, so a server can be set up from the image alone:
 #  docker run --rm ghcr.io/<you>/dragonsword cat docker-compose.yml > docker-compose.yml && docker compose up -d)
-COPY deploy/server-pc/docker-compose.yml docker-compose.yml
+COPY deploy/docker-compose.server.yml docker-compose.yml
 # (and Unraid's template: docker run --rm ghcr.io/<you>/dragonsword cat unraid.xml > .../templates-user/my-DragonSword.xml)
 COPY deploy/unraid/dragonsword.xml unraid.xml
 COPY --from=assets /game/web/assets web/assets

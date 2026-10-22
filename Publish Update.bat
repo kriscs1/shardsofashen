@@ -1,6 +1,6 @@
 @echo off
 rem One click after changing the game (maps, scripts, sprites, data, code): saves the changes and sends them to
-rem GitHub. GitHub builds the new server image (a few minutes) and the server PC picks it up by itself.
+rem GitHub. GitHub builds the new server image (a few minutes) and the server picks it up by itself.
 title Dragon Sword: publish an update
 cd /d "%~dp0"
 git remote get-url origin >nul 2>&1 || (
@@ -22,7 +22,7 @@ git commit -q -m "%MSG%" || goto :failed
 echo Sending to GitHub...
 git push origin HEAD:main || goto :failed
 echo.
-echo Sent. GitHub is building the new version (see the repository's Actions tab); the server PC
+echo Sent. GitHub is building the new version (see the repository's Actions tab); the server
 echo updates itself a few minutes after that build finishes.
 goto :end
 :failed

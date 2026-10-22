@@ -3,7 +3,17 @@ rem One click: builds the server from these files in Docker and (re)starts it he
 rem to try changes before publishing them. The test server keeps its own characters, apart from the real one.
 title Dragon Sword: test locally
 cd /d "%~dp0"
-call "%~dp0deploy\server-pc\_docker.bat" || goto :end
+docker info >nul 2>&1 || (
+    echo Starting Docker Desktop...
+    start "" "%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
+    for /l %%i in (1,1,90) do (
+        timeout /t 2 /nobreak >nul
+        docker info >nul 2>&1 && goto :ready
+    )
+    echo Docker Desktop didn't start. Is it installed? https://www.docker.com/products/docker-desktop/
+    goto :end
+)
+:ready
 echo Building (the first time takes a few minutes; after that only what changed)...
 docker compose -f deploy\docker-compose.local.yml up -d --build || goto :failed
 echo.
