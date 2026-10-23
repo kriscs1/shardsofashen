@@ -680,3 +680,20 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
     a.use_item_with(wolf)                                         # (then clicked on the wolf)
     assert a.items_held("Fire_Bolt_Scroll") == 1
     leave(world, a)
+
+
+def test_the_way_down_is_through_the_chapel(world):
+    def climb(s, verb, tx, ty):
+        m = s.cur_map
+        e = s.tile_entity_at(m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16)
+        assert verb in s.get_verbs(e)
+        s.do_action(verb, e)
+        for _ in range(40):
+            world.tick(0.05)
+        return s.cur_map.name
+
+    s = join(world, "Pilgrim", "3,1,0", 17 * 32, 8 * 32)
+    assert climb(s, "Climb Down", 18, 8) == "3,1,-1"               # the chapel's steps, down to the cellar
+    assert climb(s, "Climb Down", 14, 9) == "2,1,-1"               # the hole in its floor, down to the grotto
+    assert climb(s, "Climb Up", 20, 10) == "3,1,-1"                # and the grotto's ladder back up
+    leave(world, s)

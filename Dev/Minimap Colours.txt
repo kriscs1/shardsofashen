@@ -719,3 +719,5 @@ Wheat_Crop001	109 89 48
 Wheat_Crop002	114 99 51
 Wheat_Crop003	144 117 60
 Dug_Hole001	87 116 53
+Basement_Hole001	255 0 0
+Cave_Ladder001	255 0 0
