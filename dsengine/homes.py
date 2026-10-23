@@ -1,7 +1,8 @@
 """Homesteads: a home of your own, on a map of its own, to build on; other players may visit if you let them.
 
-  * Each home is a map "0,0,<1000+n>" (a level of its own, so nothing joins it), made from Data\\Homestead.txt (the
-    land a home starts as) and what its owner has built there. It's part of the shared world: visitors see it as it is.
+  * Each home is a map "0,0,<1000+n>" (a level of its own, so nothing joins it). When it's made it gets its own copy
+    of Data\\Homestead.txt (the land a home starts as: changing that file later only changes new homes); what its owner
+    builds is kept on top of that copy. It's part of the shared world: visitors see it as it is.
   * Homestones (Entities.ini [Homestone], placed by Dev\\migrate\\build_homestead.py) take you home, if you carry an
     Access Crystal (the quest "A Place of Your Own"), or to a home someone has let you visit. On your own home, the
     homestone also sets who may visit: only you (the start), your friends, or anyone. Closing it sends visitors back.
@@ -53,12 +54,10 @@ class Homes:
         self.arrival = (int(val(cfg("Arrival.X", "13"))), int(val(cfg("Arrival.Y", "18"))))
         self.return_map = trim(cfg("Return.Map", d.start_map))
         self.catalog = self.read_catalog()
+        while self.template_lines and not self.template_lines[-1].strip():
+            self.template_lines.pop()
         self.template = MapData(d, "0,0,%d" % HOME_LEVEL, self.template_lines) if self.template_lines else None
-        self.protected = set()          # tiles nobody can build on: where you arrive, and the template's objects
-        if self.template is not None:
-            self.protected.add(self.arrival)
-            for etype, name, x, y, misc in self.template.entity_lines:
-                self.protected.add((int(x // d.tw) + 1, int(y // d.th) + 1))
+        self.bases = {}                 # owner -> their land as it was made (a MapData not in the world)
 
     @property
     def available(self):
@@ -137,20 +136,21 @@ class Homes:
         n = 1
         while n in used:
             n += 1
-        h = {"n": n, "visit": "closed", "friends": [], "cells": {}, "cleared": [], "objects": {}, "bed": None}
+        h = {"n": n, "visit": "closed", "friends": [], "cells": {}, "cleared": [], "objects": {}, "bed": None,
+             "land": list(self.template_lines)}          # (its own copy of the land: later changes to it don't come)
         self.homes[owner] = h
         self.make_map(owner)
         return h
 
     def make_map(self, owner):
-        """The home's map, from the template and what's been built on it, put into the world."""
+        """The home's map, from its own land and what's been built on it, put into the world."""
         h = self.homes[owner]
         w, d = self.w, self.d
         name = self.map_name(h["n"])
         old = w.maps.get(name)
         if old is not None:
             return old
-        m = MapData(d, name, self.template_lines)
+        m = MapData(d, name, h["land"])
         for key in h["cleared"]:
             x, y = (int(v) for v in key.split(","))
             if m.inside(x, y):
@@ -187,6 +187,23 @@ class Homes:
             w.objects_dirty.add(m.name)
         return e
 
+    def base_of(self, owner):
+        """The owner's land as it was when the home was made (what taking a floor up goes back to)."""
+        b = self.bases.get(owner)
+        if b is None:
+            h = self.homes[owner]
+            b = self.bases[owner] = MapData(self.d, self.map_name(h["n"]), h["land"])
+        return b
+
+    def protected_of(self, owner):
+        """Tiles nobody can build on at this home: where you arrive, and where its land's objects (the homestone)
+        stand."""
+        d = self.d
+        out = {self.arrival}
+        for etype, name, x, y, misc in self.base_of(owner).entity_lines:
+            out.add((int(x // d.tw) + 1, int(y // d.th) + 1))
+        return out
+
     def object_at(self, m, x, y):
         w = self.w
         gx, gy = m.ox + (x - 1) * w.tw, m.oy + (y - 1) * w.th
@@ -207,7 +224,9 @@ class Homes:
                                  for k, v in h.get("cells", {}).items()},
                        "cleared": [str(k) for k in h.get("cleared", [])],
                        "objects": {str(k): str(v) for k, v in h.get("objects", {}).items()},
-                       "bed": list(h["bed"]) if h.get("bed") else None}
+                       "bed": list(h["bed"]) if h.get("bed") else None,
+                       # (a home saved before homes had their own land gets the land as it is now, once)
+                       "land": [str(ln) for ln in h["land"]] if h.get("land") else list(self.template_lines)}
             except (KeyError, TypeError, ValueError):
                 log.error("A broken home for %s was left out", owner)
                 continue
@@ -311,8 +330,9 @@ class HomeMixin:
         h = self.homes.home_of(self.player_name)
         m = self.cur_map
         here = self.homes.owner_of(m.name) if m is not None else None
-        return {"has": h is not None, "own": here is not None and here == self.player_name, "here": here,
-                "visit": h["visit"] if h else "closed"}
+        own = here is not None and here == self.player_name
+        return {"has": h is not None, "own": own, "here": here, "visit": h["visit"] if h else "closed",
+                "protected": sorted(self.homes.protected_of(self.player_name)) if own else []}
 
     def has_home_access(self):
         return self.items_held("Access_Crystal") > 0
@@ -584,7 +604,7 @@ class HomeMixin:
         if not (2 <= x <= self.xt - 1 and 2 <= y <= self.yt - 1):
             self.build_fail("That's the edge of your land.")
             return None
-        if (x, y) in self.homes.protected:
+        if (x, y) in self.homes.protected_of(self.player_name):
             self.build_fail("Leave that clear: it's where the homestone puts you down.")
             return None
         return m
@@ -725,7 +745,7 @@ class HomeMixin:
         cell = h["cells"].get(key, {})
         c = m.cell(x, y)
         w = self.w
-        tmpl = homes.template
+        base = homes.base_of(self.player_name)
         if cell.get("roof"):
             self.refund(cell.pop("roof"))
             m.set_roofs(homes.roof_cells(h, m))
@@ -748,7 +768,7 @@ class HomeMixin:
         elif cell.get("tile"):
             self.refund(cell.pop("tile"))
             self.forget_regrowth(m, x, y)
-            w.change_tile(m, x, y, tmpl.tile[tmpl.cell(x, y)], keep_decor=True)
+            w.change_tile(m, x, y, base.tile[base.cell(x, y)], keep_decor=True)
         else:
             self.display_message("There's nothing there to take down.", "INFO")
             return False

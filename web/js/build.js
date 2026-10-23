@@ -8,7 +8,7 @@ import { V, screenToWorld } from "./render.js";
 import { L } from "./ui.js";
 import { pretty } from "./util.js";
 
-export const B = { on: false, pieces: [], byId: new Map(), protected: new Set(), cat: "", piece: "", remove: false,
+export const B = { on: false, pieces: [], byId: new Map(), cat: "", piece: "", remove: false,
   last: "", drag: false };
 const $ = (id) => document.getElementById(id);
 const CATS = ["Floors", "Walls", "Doors", "Windows", "Roofs", "Furniture", "Lights", "Garden", "Workshops"];
@@ -16,7 +16,6 @@ const CATS = ["Floors", "Walls", "Doors", "Windows", "Roofs", "Furniture", "Ligh
 export function onBuildables(m) {
   B.pieces = m.pieces || [];
   B.byId = new Map(B.pieces.map((p) => [p.id, p]));
-  B.protected = new Set((m.protected || []).map(([x, y]) => x + "," + y));
   B.cat = B.cat || (B.pieces[0] && B.pieces[0].cat) || "";
   fillTabs();
 }
@@ -175,7 +174,8 @@ export function drawBuild(ctx, mx, my, smoothing) {
   ctx.scale(V.zoom, V.zoom);
   ctx.imageSmoothingEnabled = smoothing && V.zoom !== Math.floor(V.zoom);
   const x = t.m.ox + (t.tx - 1) * G.tw - cam.x, y = t.m.oy + (t.ty - 1) * G.th - cam.y;
-  const edge = t.tx < 2 || t.ty < 2 || t.tx > G.xt - 1 || t.ty > G.yt - 1 || B.protected.has(t.tx + "," + t.ty);
+  const kept = ((S.me.home && S.me.home.protected) || []).some(([px, py]) => px === t.tx && py === t.ty);
+  const edge = t.tx < 2 || t.ty < 2 || t.tx > G.xt - 1 || t.ty > G.yt - 1 || kept;
   let ok = !edge;
   if (B.remove) {
     ctx.strokeStyle = ok ? "rgba(230,90,70,0.95)" : "rgba(120,120,120,0.8)";

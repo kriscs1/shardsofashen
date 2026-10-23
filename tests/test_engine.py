@@ -265,7 +265,7 @@ def test_building_uses_materials_and_is_shared(world):
     assert m.roof[m.cell(4, 9)] == "Shingle_Roof001" and m.roof[m.cell(7, 11)] == "Shingle_Roof015"
     assert m.roof[m.cell(5, 10)] == "Shingle_Roof008"
     assert a.unbuild(5, 10) and m.roof[m.cell(5, 10)] == ""
-    assert a.unbuild(6, 6) and m.tile[m.cell(6, 6)] == world.homes.template.tile[m.cell(6, 6)]
+    assert a.unbuild(6, 6) and m.tile[m.cell(6, 6)] == world.homes.base_of("Builder").tile[m.cell(6, 6)]
     a.friends_menu()
     a.add_friend("Friend")
     a.set_visit("friends")
@@ -402,3 +402,27 @@ def test_the_settlers_quest_gives_the_crystal(world):
     assert s.items_held("Plank") == 0
     assert talk(1)[0] == "Sell me something." and s.ab_mode == "Shop"
     leave(world, s)
+
+
+def test_each_home_keeps_its_own_land(world):
+    a = join(world, "Landholder")
+    stock(a, Access_Crystal=1)
+    a.go_home()
+    world.tick(0.05)
+    saved = world.homes.state()
+    assert saved["Landholder"]["land"][:21] == world.homes.template_lines[:21]
+    w2 = World(ROOT)
+    changed = list(w2.homes.template_lines)                       # the starting land is redesigned: all sand
+    changed[:21] = [":".join(["Sand001"] * 25)] * 21
+    w2.homes.template_lines = changed
+    old = dict(saved["Landholder"])
+    del old["land"]                                               # (a home saved before homes kept their land)
+    w2.homes.load({"Landholder": saved["Landholder"], "Oldtimer": dict(old, n=old["n"] + 50)})
+    m = w2.homes.map_of("Landholder")
+    assert m.tile[m.cell(5, 5)] == "Grass001"                     # the existing home is as it was
+    assert w2.homes.map_of("Oldtimer").tile[w2.homes.map_of("Oldtimer").cell(5, 5)] == "Sand001"
+    assert w2.homes.state()["Oldtimer"]["land"][0].startswith("Sand001")   # (copied once, kept from now on)
+    new = w2.homes.create("Newcomer")
+    assert w2.homes.map_of("Newcomer").tile[w2.homes.map_of("Newcomer").cell(5, 5)] == "Sand001"
+    assert new["land"] == changed
+    leave(world, a)

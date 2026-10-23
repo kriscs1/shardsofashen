@@ -101,7 +101,8 @@ view) goes full screen. Press **Enter** to chat with the other players.
 - **Shared.** Homes are part of the shared world and are saved with it. There's no fog of war on them.
 - **Changing it.**
   - `Data/Buildables.ini`: what can be built, of what, at which level. Kinds: `Tile`, `Decor`, `Roof`, `Object`.
-  - `Data/Homestead.txt`: the land a new home starts as.
+  - `Data/Homestead.txt`: the land a new home starts as (in the editor: the map **Homestead**). Each home gets its
+    own copy when it's made, so changing it only changes homes made after that.
   - Config `[Homestead]`: where you arrive, and the town a homestone sends you back to by default.
   - `Dev/migrate/build_homestead.py` makes all of it: run it again after rebuilding the world; it only adds what's
     missing.

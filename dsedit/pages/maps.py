@@ -244,11 +244,11 @@ class MapPage(Page):
         self.redraw(full=True, center=True)
         self.show_inspector()
         if name == HOMESTEAD_MAP:
-            self.app.status("The homestead: the land every home is made from (Data\Homestead.txt). Existing homes "
-                            "change too, except where their owners have built. Keep the Homestone and Home_Arrival.",
-                            "warn")
+            self.app.status("Homestead: the land a new home starts as (Data\Homestead.txt). Each home gets its own "
+                            "copy when it's made, so changes here are for new homes only. Keep the Homestone and "
+                            "Home_Arrival.", "warn")
         for d, b in self.arrow_btns.items():
-            b.state(["!disabled"])
+            b.state(["disabled"] if name == HOMESTEAD_MAP else ["!disabled"])     # (nothing next to it)
         self.app.refresh_chrome()
 
     def open(self, key, tile=None, **kw):
@@ -326,7 +326,7 @@ class MapPage(Page):
         self.fill_palette()
 
     def search_items(self):
-        return [(m, "Map " + m + (" (homestead: the land a new home starts as)" if m == HOMESTEAD_MAP else ""))
+        return [(m, "Map " + m + (": the land a new home starts as" if m == HOMESTEAD_MAP else ""))
                 for m in self.project.maps()]
 
     def selected_spot(self):
@@ -337,7 +337,7 @@ class MapPage(Page):
 
     # --- moving between maps
     def step(self, dx, dy, dz):
-        if not self.doc:
+        if not self.doc or self.doc.name == HOMESTEAD_MAP:
             return
         x, y, z = parse_map_name(self.doc.name)
         self.open("%d,%d,%d" % (x + dx, y + dy, z + dz))

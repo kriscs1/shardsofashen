@@ -427,6 +427,10 @@ class MapDoc:
 
 
 def parse_map_name(name):
+    """(x, y, z) of a map's name. The homestead's starting land isn't in the world: it's drawn as level 1000 (the
+    homes themselves are 0,0,1001 up, made by the server), so it has no neighbours."""
+    if name == HOMESTEAD_MAP:
+        return 0, 0, 1000
     try:
         x, y, z = (int(v) for v in name.split(","))
         return x, y, z
@@ -509,7 +513,7 @@ class ScriptDoc:
 # =================================================================================================================
 # The project
 # =================================================================================================================
-HOMESTEAD_MAP = "0,0,1000"     # the land a new homestead starts as (Data\Homestead.txt; the homes are 0,0,1001 up)
+HOMESTEAD_MAP = "Homestead"    # the land a new homestead starts as (Data\Homestead.txt), on a level of its own
 
 
 class Project:
