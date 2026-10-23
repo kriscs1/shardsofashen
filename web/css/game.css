@@ -223,3 +223,12 @@ button:disabled { opacity: 0.5; cursor: default; }
 #build-info .ok { color: #6fdc8c; }
 #build-info .bad { color: var(--bad); }
 #build-panel .buttons { display: flex; justify-content: space-between; }
+
+/* the login screen's music switch */
+#login-form { position: relative; }
+#login-form .music-toggle {
+  position: absolute; top: 10px; right: 12px;
+  font: 13px var(--font); color: var(--ink); background: rgba(74, 50, 38, 0.9);
+  border: 1px solid var(--edge); border-radius: 12px; padding: 2px 10px; cursor: pointer;
+}
+#login-form .music-toggle.off { color: var(--dim); text-decoration: line-through; }

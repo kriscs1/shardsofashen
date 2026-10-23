@@ -9,7 +9,7 @@ export const O = {               // the options (kept in the browser)
   sound: true, volume: 100, music: true, musicVolume: 80, ambient: true, ambientVolume: 70, chatSound: true,
 };
 
-const AU = { ctx: null, buffers: new Map(), master: null, music: null, musicGain: null, musicTheme: null,
+export const AU = { ctx: null, buffers: new Map(), master: null, music: null, musicGain: null, musicTheme: null,
   musicFile: "", resume: {}, turns: {}, fade: null, want: null, wantAt: 0, ambient: null, ambientWant: "",
   ambientName: "", effect: false };
 

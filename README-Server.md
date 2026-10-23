@@ -185,11 +185,16 @@ visibility** > **Public**. Your code stays private.
 
 ### Unraid
 
-1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
+1. **Add the template and the icon.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
 
    ```
    docker run --rm ghcr.io/kriscs1/dragonsword cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-DragonSword.xml
+   mkdir -p /boot/config/plugins/dockerMan/images
+   docker run --rm ghcr.io/kriscs1/dragonsword cat web/img/icon.png > /boot/config/plugins/dockerMan/images/DragonSword-icon.png
    ```
+
+   (The icon also comes from the game itself, `http://localhost:8080/img/icon.png`, the template's Icon URL: change
+   the port there too if you change the Web port.)
 
 2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
    **Apply**. It's filled in already:

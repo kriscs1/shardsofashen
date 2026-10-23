@@ -431,6 +431,7 @@ function frame(now) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#180e0a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (!running && A.m) musicTick(false, "Title");      // (the login screen: the title music, once a click lets it)
   if (!running || !A.m || !S.me) return;
   ctx.setTransform(screen.k, 0, 0, screen.k, screen.ox, screen.oy);
   ctx.imageSmoothingEnabled = smoothing;
@@ -496,6 +497,20 @@ document.addEventListener("fullscreenchange", resize);
 // ================================================================================================================
 // Starting
 // ================================================================================================================
+// The login screen's music: browsers only let sound start after a click or a key, so the first one starts it
+function loginMusicButton() {
+  const b = $("login-music");
+  b.textContent = O.music && O.sound ? "♫ Music on" : "♫ Music off";
+  b.classList.toggle("off", !(O.music && O.sound));
+}
+for (const ev of ["pointerdown", "keydown"]) document.addEventListener(ev, () => unlock(), true);
+$("login-music").addEventListener("click", () => {
+  unlock();
+  if (O.music && O.sound) { O.music = false; stopMusic(); } else { O.music = true; O.sound = true; }
+  saveOptions();
+  loginMusicButton();
+});
+
 async function boot() {
   resize();
   requestAnimationFrame(frame);
@@ -511,6 +526,7 @@ async function boot() {
   resize();
   fogInit();
   loadOptions();
+  loginMusicButton();
   loadView();
   initBuildUI();
   onLoaded(() => {});
