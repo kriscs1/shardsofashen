@@ -74,6 +74,8 @@ export function getVerbs(e) {
     if (val(e.misc) === 1 || e.uw || examineText(e)) addVerb(v, "Examine");
   } else if (t === T.MAPITEM) {
     v = ["Pickup", "Examine"];
+  } else if (mode === "Chest" && (t === T.INVITEM || t === T.RACKITEM)) {
+    v = t === T.RACKITEM ? ["Take 1", "Take all", "Examine"] : ["Examine"];
   } else if (t === T.INVITEM && mode === "Market") {
     const sellable = e.n !== "Gold_Coin(s)" && entityIni(e.n, "Droppable", "1").trim() !== "0";
     v = sellable ? ["Sell on the market", "Examine"] : ["Examine"];
@@ -115,7 +117,7 @@ export function getVerbs(e) {
   return v;
 }
 
-function itemPrice(name, rate) {
+export function itemPrice(name, rate) {
   return Math.max(1, Math.floor(val(entityIni(name, "Value", "0")) * rate + 0.5));
 }
 
@@ -197,7 +199,7 @@ export function spellStatus(name) {
   const level = val(spellIni(spell, "Level", "1"));
   const skill = spellIni(spell, "Skill", "Magic");
   const have = skillLevel(skill);
-  if (have < level) return `Needs ${skill} ${lbstr(level)} (you have ${have})`;
+  if (have < level) return `Needs ${skill} ${lbstr(level)}`;
   const chance = Math.min(98, Math.max(20, 60 + (have - level) * 7));
   const cost = val(spellIni(spell, "Cost", "0"));
   let s = `${lbstr(cost)} mana, ${chance}% to work`;

@@ -115,27 +115,40 @@
 <div id="admin" class="overlay" hidden>
   <div class="panel wide admin">
     <h2>Admin</h2>
-    <div class="row"><span>Give yourself:</span>
-      <input id="admin-filter" placeholder="type to search..." maxlength="24">
-      <input id="admin-qty" value="1" size="5" maxlength="6">
-      <button type="button" id="admin-give">Give</button></div>
-    <select id="admin-items" size="8"></select>
-    <p class="dim small">Skills: untick to switch one off (for everyone); type a level to set yours.</p>
-    <div id="admin-skills"></div>
-    <div class="row"><span>Reset a player's password:</span>
-      <input id="admin-pw-name" placeholder="their name" maxlength="20">
-      <input id="admin-pw-new" placeholder="new password" maxlength="200">
-      <button type="button" id="admin-pw-go">Set</button></div>
-    <div class="row"><span>Go to a place:</span>
-      <input id="admin-place" placeholder="e.g. Ashford_Market" maxlength="40">
-      <button type="button" id="admin-goto">Go</button></div>
-    <div class="row"><span>Start a monster attack:</span>
-      <input id="admin-wave" value="Ashford_Raid" maxlength="40">
-      <button type="button" id="admin-wave-go">Start</button></div>
-    <div class="row"><label><input type="checkbox" id="admin-god"> God mode (nothing can hurt you)</label></div>
+    <div class="admin-body">
+      <div class="admin-cols">
+        <section>
+          <h3>Give yourself</h3>
+          <div class="row"><input id="admin-filter" placeholder="type to search..." maxlength="24">
+            <input id="admin-qty" value="1" size="5" maxlength="6">
+            <button type="button" id="admin-give">Give</button></div>
+          <select id="admin-items" size="7"></select>
+        </section>
+        <section>
+          <h3>Skills</h3>
+          <p class="dim small">Untick to switch one off (for everyone); type a level to set yours.</p>
+          <div id="admin-skills"></div>
+        </section>
+      </div>
+      <h3>Tools</h3>
+      <div class="admin-tools">
+        <span>Reset a player's password</span>
+        <div class="row"><input id="admin-pw-name" placeholder="their name" maxlength="20">
+          <input id="admin-pw-new" placeholder="new password" maxlength="200">
+          <button type="button" id="admin-pw-go">Set</button></div>
+        <span>Go to a place</span>
+        <div class="row"><input id="admin-place" placeholder="e.g. Ashford_Market" maxlength="40">
+          <button type="button" id="admin-goto">Go</button></div>
+        <span>Start a monster attack</span>
+        <div class="row"><input id="admin-wave" value="Ashford_Raid" maxlength="40">
+          <button type="button" id="admin-wave-go">Start</button></div>
+        <span>God mode</span>
+        <div class="row"><label class="inline"><input type="checkbox" id="admin-god"> nothing can hurt you</label></div>
+      </div>
+    </div>
+    <p id="admin-status" class="dim"></p>
     <div class="buttons"><button type="button" id="admin-save">Save skills</button>
       <button type="button" id="admin-close">Close</button></div>
-    <p id="admin-status" class="dim"></p>
   </div>
 </div>
 

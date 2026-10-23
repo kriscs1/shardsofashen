@@ -7,7 +7,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
   wrapLines, roundBox, fontPx, setFont } from "./util.js";
 import { dayFraction, isNight, timeText, fogEnabled } from "./sky.js";
 import { fogCell } from "./state.js";
-import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel } from "./verbs.js";
+import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice } from "./verbs.js";
 import { lookImage } from "./look.js";
 
 export const TAB_TEXT = [243, 232, 136];
@@ -630,9 +630,9 @@ export function invItemAt(x, y) {
 
 // ----- the ActionBox: a conversation, a shop, the bank, crafting
 export function boxBackground() {
-  const mode = S.box.mode;
-  if (has("AB_" + mode)) return "AB_" + mode;
-  return has("AB_Bank") ? "AB_Bank" : "AB_Conversation";
+  // (every box has the conversation's frame: the item lists' own pictures had a close button over the edge;
+  // what's inside an item list is drawn here instead)
+  return has("AB_Conversation") ? "AB_Conversation" : "AB_Bank";
 }
 
 function drawBox(ctx) {
@@ -655,11 +655,18 @@ function drawBox(ctx) {
     }
     titleX = 24 + Math.max(32, pw) * 2 + 16; titleY = 18;
   } else {
-    if (portrait) ctx.drawImage(portrait, x0 + 37 - Math.floor(pw / 2), y0 + 52);
-    titleX = 22; titleY = 21;
+    // the trader (or the chest, the board) in a frame on the left
+    roundBox(ctx, x0 + 13, y0 + 44, 46, 52, [30, 19, 14], [150, 104, 62], 2, 8);
+    if (portrait) {
+      ctx.save(); ctx.imageSmoothingEnabled = false;
+      const k = pw <= 24 && ph <= 24 ? 2 : 1;
+      ctx.drawImage(portrait, x0 + 36 - Math.floor(pw * k / 2), y0 + 70 - Math.floor(ph * k / 2), pw * k, ph * k);
+      ctx.restore();
+    }
+    titleX = 22; titleY = 18;
   }
   const tw = drawText(ctx, b.title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
-  const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Market: "everyone's goods" }[b.mode];
+  const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Market: "everyone's goods", Chest: "take what you want" }[b.mode];
   if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + 5, 9, false, [212, 191, 126]);
   if (b.mode === "Conversation") {
     const maxW = w - titleX - 28;
@@ -679,16 +686,36 @@ function drawBox(ctx) {
     return;
   }
   const cols = Math.min(9, Math.max(1, val(configRead("Interface", "ActionBox.Columns", "9"))));
+  const rows = Math.min(3, Math.max(1, val(configRead("Interface", "ActionBox.Rows", "3"))));
   const gap = G.tw + 5;
+  // the tray the things sit in, a slot for each place
+  roundBox(ctx, x0 + 61, y0 + 40, gap * cols + 6, gap * rows + 6, [26, 16, 12], [150, 104, 62], 2, 8);
+  const hover = boxItemAt(U.mx ?? -1, U.my ?? -1);
+  for (let n = 0; n < cols * rows; n++) {
+    const x = x0 + 64 + gap * (n % cols), y = y0 + 43 + gap * Math.floor(n / cols);
+    const hot = hover && b.items[n] && hover.i === b.items[n].i;
+    roundBox(ctx, x, y, G.tw + 4, G.th + 4, hot ? [70, 48, 34] : [44, 30, 22], hot ? [236, 196, 92] : [74, 52, 38], 1, 6);
+  }
   b.items.forEach((it, n) => {
     const x = x0 + 66 + gap * (n % cols), y = y0 + 45 + gap * Math.floor(n / cols);
-    const price = b.mode === "Market" ? (b.prices || [])[it.i] : 0;     // (the market: each thing's price on it)
+    // each thing's price on it: the market's (the seller's), a shop's (what it costs here)
+    const price = b.mode === "Market" ? (b.prices || [])[it.i] :
+      b.mode === "Shop" ? itemPrice(it.name, b.buy_rate || 1.2) : 0;
     slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : price ? price + "g" : "",
       cross: !!(it.short || it.missing), badgeInk: price ? [255, 222, 90] : null });
   });
-  if (b.pages > 1) {
-    centreText(ctx, x0 + 415, y0 + 100, `${b.page}/${b.pages}`, 7, true, [212, 191, 126]);
-  }
+  // the pages: up and down buttons, and which page this is
+  const arrow = (y, up, on) => {
+    roundBox(ctx, x0 + 405, y, 20, 18, on ? [74, 50, 36] : [40, 28, 22], on ? [236, 196, 92] : [90, 64, 46], 1, 6);
+    ctx.fillStyle = on ? "rgb(250,230,170)" : "rgb(110,84,62)";
+    ctx.beginPath();
+    if (up) { ctx.moveTo(x0 + 409, y + 13); ctx.lineTo(x0 + 421, y + 13); ctx.lineTo(x0 + 415, y + 5); }
+    else { ctx.moveTo(x0 + 409, y + 5); ctx.lineTo(x0 + 421, y + 5); ctx.lineTo(x0 + 415, y + 13); }
+    ctx.fill();
+  };
+  arrow(y0 + 42, true, b.page > 1);
+  arrow(y0 + 144, false, b.page < b.pages);
+  centreText(ctx, x0 + 415, y0 + 92, `${b.page || 1}/${b.pages || 1}`, 8, true, [212, 191, 126]);
 }
 
 export function boxItemAt(x, y) {

@@ -23,6 +23,7 @@ from .farming import FarmMixin
 from .market import MarketMixin
 from .digging import DigMixin
 from .tavern import TavernMixin
+from .containers import ChestMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -42,7 +43,7 @@ def clean_look(look):
     return out or None
 
 
-class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin):
+class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -153,6 +154,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.init_home()
         self.init_market()
         self.init_digging()
+        self.init_chests()
         self.verb_price = self.verb_qty = 0   # (the market's Sell / Set price: what the player typed)
         self.init_scripts()
 
@@ -228,6 +230,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if message[:14].upper() == "QUEST COMPLETE":
             self.play_sound("Quest")
         self.emit({"t": "msg", "text": message, "kind": str(mtype)})
+
+    def refuse(self, message):
+        """Something the player isn't skilled enough for (wearing, casting, making...): said, with a sound."""
+        self.display_message(message, "FAIL")
+        self.play_sound("Denied")
 
     def play_sound(self, sound, at=None):
         """A sound: at = the global point it is made at (everyone near hears it), None = only this player."""
@@ -306,6 +313,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.explored = {k: ("all" if v == "all" else set(v)) for k, v in st.get("explored", {}).items()}
         g = st.get("grave")
         self.look = clean_look(st.get("look"))
+        self.load_chests(st.get("chests"))
         r = st.get("home_return")
         if isinstance(r, list) and len(r) == 3:
             self.home_return = (str(r[0]), val(r[1]), val(r[2]))
@@ -373,6 +381,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "grave": self.grave,
             "look": self.look,
             "home_return": list(self.home_return) if self.home_return else None,
+            "chests": self.chests_state(),
         }
         return st
 

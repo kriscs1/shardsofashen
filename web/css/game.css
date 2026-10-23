@@ -162,6 +162,17 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 .admin select { width: 100%; margin: 6px 0; }
+/* the admin panel: wide, in two columns, and it scrolls inside itself on a short screen (the buttons stay) */
+.panel.admin { width: min(900px, 100%); max-height: calc(100vh - 24px); display: flex; flex-direction: column; }
+.admin .admin-body { overflow-y: auto; min-height: 0; padding-right: 4px; }
+.admin h3 { margin: 4px 0 6px; color: var(--ink); font-size: 16px; }
+.admin .admin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; }
+.admin .admin-tools { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; align-items: center; }
+.admin .admin-tools .row, .admin section .row { display: flex; gap: 6px; margin: 0; align-items: center; }
+.admin .admin-tools input:not([type=checkbox]) { flex: 1; min-width: 0; }
+.admin label.inline { flex-direction: row; align-items: center; gap: 6px; margin: 0; }
+.admin #admin-status { margin: 6px 0 0; min-height: 1.2em; }
+@media (max-width: 720px) { .admin .admin-cols, .admin .admin-tools { grid-template-columns: 1fr; } }
 .admin #admin-skills { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 .admin #admin-skills label { flex-direction: row; align-items: center; gap: 6px; margin: 2px 0; font-size: 14px; }
 .admin #admin-skills input[type=text] { width: 54px; padding: 2px 6px; font-size: 14px; }

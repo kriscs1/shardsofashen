@@ -116,6 +116,8 @@ class ScriptMixin:
         return 0
 
     def end_script(self):
+        if self.loot_collect is not None and not self.loot_hold:
+            self.loot_finish()
         self.script_running = False
         self.script_state = ""
         self.script_line_no = 0
@@ -438,7 +440,8 @@ class ScriptMixin:
         elif c == "Display.Message":
             self.display_message(arg[2], arg[1])
         elif c == "Give.Item":
-            self.add_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
+            if not self.loot_give(arg[1], parse_quantity(arg[2] or "1")):      # (a chest's script fills the chest)
+                self.add_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
         elif c == "Take.Item":
             self.remove_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
         elif c == "Remove.Entity":
@@ -501,8 +504,12 @@ class ScriptMixin:
             self.script_jump(arg[1])
         elif c == "Goto.Script":
             personal, forced, entry = self.script_personal, self.script_forced, self.script_entry
+            self.loot_hold = True                       # (a chest's script going on in another file: same chest)
             self.end_script()
+            self.loot_hold = False
             self.start_script(arg[1], False, entry)
+            if not self.script_running and self.loot_collect is not None:
+                self.loot_finish()
             if self.script_running:
                 self.script_personal, self.script_forced = personal, forced
         elif c == "Block.Player":

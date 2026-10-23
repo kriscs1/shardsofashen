@@ -59,6 +59,7 @@ function under(x, y) {
 
 export function mouseMove(x, y) {
   I.mx = x; I.my = y;
+  U.mx = x; U.my = y;                     // (the item boxes light up the slot under the mouse)
   if (J.open) {
     const h = journalHit(x - (L.W - 1024) / 2, y);
     if (h !== J.hover) J.hover = h;

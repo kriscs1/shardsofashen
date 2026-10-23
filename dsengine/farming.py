@@ -194,8 +194,7 @@ class FarmMixin:
             return True
         level = self.skill_level("Farming")
         if level < c["level"]:
-            self.display_message("You need level %d Farming to grow %s (you have %d)." %
-                                 (c["level"], c["name"].lower(), level), "FAIL")
+            self.refuse("You need level %d Farming to grow %s (you have %d)." % (c["level"], c["name"].lower(), level))
             return True
         self.remove_inventory_item(item.name, 1)
         farms.sow(m, x, y, c["name"], self.player_name)

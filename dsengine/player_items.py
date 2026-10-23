@@ -345,6 +345,8 @@ class ItemsMixin:
         action = self.response_actions[n - 1] if 0 <= n - 1 < len(self.response_actions) else ""
         if action.startswith("MARKET_"):
             self.market_response(action)
+        elif action.startswith("CHEST_"):
+            self.chest_response(action)
         elif action == "NEXT":
             self.rack_page += 1
             self.show_market() if self.ab_mode == "Market" else self.show_rack_page(False)
@@ -496,7 +498,7 @@ class ItemsMixin:
             return
         r = self.rack[i]
         if r["level"] > 0 and self.rack_skill and self.skill_level(self.rack_skill) < r["level"]:
-            self.display_message("You need level %s %s to make that!" % (lbstr(r["level"]), self.rack_skill), "FAIL")
+            self.refuse("You need level %s %s to make that!" % (lbstr(r["level"]), self.rack_skill))
             return
         ingredients = r["info"]
         j = 1
@@ -598,12 +600,12 @@ class ItemsMixin:
         item = e.name
         s = self.item_equip_slot(item)
         if s == 0:
-            self.display_message("You can't wear that!", "FAIL")
+            self.refuse("You can't wear that!")
             return
         verb = self.equip_verb(item).lower()
         need = self.equip_requirement(item)
         if need:
-            self.display_message("You need %s to %s the %s." % (need, verb, pretty(item)), "FAIL")
+            self.refuse("You need %s to %s the %s." % (need, verb, pretty(item)))
             return
         old = self.equipped[s]
         if old:
@@ -741,7 +743,7 @@ class ItemsMixin:
             return True
         _, need, level = mat
         if self.skill_level("Smithing") < level:
-            self.display_message("You need level %d Smithing to mend the %s." % (level, pretty(name)), "FAIL")
+            self.refuse("You need level %d Smithing to mend the %s." % (level, pretty(name)))
             return True
         if self.items_held(need) < 1:
             self.display_message("You need %s to mend the %s." % (pretty(need), pretty(name)), "FAIL")

@@ -582,3 +582,44 @@ def test_tavern_games(world, monkeypatch):
     assert a.items_held("Gold_Coin(s)") == 230 and b.items_held("Gold_Coin(s)") == 200   # (a tie: they share)
     leave(world, a)
     leave(world, b)
+
+
+def test_a_chest_shows_what_is_in_it_before_it_is_yours(world):
+    m = world.maps["2,2,0"]
+    chest = next(e for e in world.ents if e.name == "Chest" and e.map == m.name)
+    s = join(world, "Looter", m.name, int(chest.x - m.ox), int(chest.y - m.oy + 36))
+    gold = s.items_held("Gold_Coin(s)")
+    s.do_action("Open", chest)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.ab_mode == "Chest"
+    names = [it["name"] for it in s.box_state()["items"]]
+    assert "Fire_Bolt_Scroll" in names and "Bronze_Sword" in names and "Gold_Coin(s)" in names
+    assert s.items_held("Fire_Bolt_Scroll") == 0 and s.items_held("Gold_Coin(s)") == gold    # (not yours yet)
+    i = names.index("Fire_Bolt_Scroll")
+    assert s.get_verbs(s.rack_pseudo(i)) == "Take 1,Take all,Examine"
+    s.do_action("Take 1", s.rack_pseudo(i))
+    assert s.items_held("Fire_Bolt_Scroll") == 1
+    s.close_action_box(-1)
+    saved = s.save_state()
+    assert any(it[0] == "Fire_Bolt_Scroll" and it[1] == 2 for v in saved["chests"].values() for it in v)
+    s.do_action("Open", chest)                                     # (what's left is still there, for them)
+    assert s.ab_mode == "Chest"
+    s.action_box_response_chosen(1)                                # Take everything
+    assert s.items_held("Fire_Bolt_Scroll") == 3 and s.items_held("Bronze_Sword") == 1
+    assert s.items_held("Gold_Coin(s)") == gold + 30 and not s.chests
+    s.do_action("Open", chest)                                     # (empty now: the script says so)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.ab_mode != "Chest"
+    leave(world, s)
+
+
+def test_not_skilled_enough_plays_a_sound(world):
+    s = join(world, "Novice")
+    stock(s, Ice_Bolt_Scroll=1)
+    scroll = next(e for e in s.inv if e.name == "Ice_Bolt_Scroll")
+    s.out.clear()
+    s.cast_scroll(scroll, None)
+    assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in s.out)
+    leave(world, s)

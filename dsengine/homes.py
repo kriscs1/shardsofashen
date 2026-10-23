@@ -632,7 +632,8 @@ class HomeMixin:
             return False
         level = self.skill_level("Construction")
         if level < p["level"]:
-            return self.build_fail("You need level %d Construction to build that (you have %d)." % (p["level"], level))
+            self.refuse("You need level %d Construction to build that (you have %d)." % (p["level"], level))
+            return False
         h = homes.home_of(self.player_name)
         key = "%d,%d" % (x, y)
         cell = h["cells"].get(key, {})

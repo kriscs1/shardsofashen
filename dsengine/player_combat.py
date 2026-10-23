@@ -594,8 +594,8 @@ class CombatMixin:
         skill = self.spell_ini(spell, "Skill", "Magic")
         potion = self.spell_is_potion(spell)
         if not potion and self.skill_level(skill) < level:
-            self.display_message("You need level %s %s to cast %s (you have %d)." %
-                                 (lbstr(level), skill, name, self.skill_level(skill)), "FAIL")
+            self.refuse("You need level %s %s to cast %s (you have %d)." %
+                        (lbstr(level), skill, name, self.skill_level(skill)))
             return
         if not potion:
             wait = self.spell_cooldown_left(spell)

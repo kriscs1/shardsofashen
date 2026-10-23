@@ -69,6 +69,8 @@ class ActionsMixin:
         verbs = ""
         if self.ab_mode == "Market" and t in (INVENTORYITEM, ACTIONBOXITEM):
             return self.market_verbs(e)
+        if self.ab_mode == "Chest" and t in (INVENTORYITEM, ACTIONBOXITEM):
+            return self.chest_verbs(e)
         if t in (TILE, INFRONTTILE):
             verbs = self.add_verbs(verbs, uw)
             if self.tile_lock_of(e) is not None:
@@ -210,7 +212,7 @@ class ActionsMixin:
             return self.infront_entity_at(self.script_cursor_x, self.script_cursor_y)
         if k == "inv":
             return self.inv_item(t.get("uid"))
-        if k == "rack" and self.ab_mode in ("Shop", "Bank", "Craft", "Market"):
+        if k == "rack" and self.ab_mode in ("Shop", "Bank", "Craft", "Market", "Chest"):
             i = t.get("i")
             if not isinstance(i, int):
                 return None
@@ -273,7 +275,8 @@ class ActionsMixin:
         if verb == "Use with":
             self.use_item_with(e)
             return
-        if (self.market_do(verb, e, self.verb_price, self.verb_qty) or self.board_action(verb, e) or
+        if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or
+                self.board_action(verb, e) or
                 self.tavern_action(verb, e)):
             return
         if verb == "Open" and t == TILE:
@@ -294,8 +297,12 @@ class ActionsMixin:
             return
         if t != ACTIONBOXITEM:
             script = self.find_action_script(verb, name, t, e.npc_id)
+            if self.chest_action(verb, e, script):
+                return
             if script:
                 self.start_script(script, True)
+                if not (self.script_running and self.script_name == script):
+                    self.loot_key = self.loot_collect = None        # (it didn't start: nothing to fill)
                 return
         if verb == "Examine":
             self.examine_entity(e)
