@@ -2,7 +2,7 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001
+Water001:Water001:Water001:Sand001+Decor(Barrel001):Sand001+Decor(Barrel001):Sand001+Decor(Bench001):Sand001:Sand001+Decor(Bench001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001
 Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001
 Sand001:Sand001:Brick_Thin_Tile008+Roof(Shingle_Roof001.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Fireplace003+Roof(Shingle_Roof002.01):Brick_Thin_Tile005+Roof(Shingle_Roof003.01):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Thin_Plank008+Roof(Slate_Roof001.02):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Decor(Potted_Plant003)+Roof(Slate_Roof002.02):Brick_Thin_Plank005+Roof(Slate_Roof003.02):Sand001:Sand001:Sand001
 Sand001:Grass001:Brick_Thin_Tile004+Roof(Shingle_Roof007.01):Tile001+Roof(Shingle_Roof008.01):Tile001+Roof(Shingle_Roof008.01):Tile001+Decor(Table001)+Roof(Shingle_Roof008.01):Tile001+Decor(Chair004)+Roof(Shingle_Roof008.01):Tile001+Roof(Shingle_Roof023.01):Brick_Thin_Tile002+Decor(Bookshelf001)+Roof(Shingle_Roof009.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof007.02):Plank001+Roof(Slate_Roof008.02):Plank001+Decor(Rug001)+Roof(Slate_Roof008.02):Plank001+Decor(Rug002)+Roof(Slate_Roof008.02):Plank001+Decor(Rug003)+Roof(Slate_Roof008.02):Plank001+Roof(Slate_Roof023.02):Brick_Thin_Plank002+Roof(Slate_Roof009.02):Grass001:Grass001:Sand001
@@ -47,15 +47,29 @@ StaticObject	Carpenters_Bench	480	416
 Id	Homestead_Yard	15	13
 
 StaticObject	Sign_Market	64	592
-StaticObject	Market_Stall	128	592	Id=Stall_1
-StaticObject	Market_Stall	192	592	Id=Stall_2
-StaticObject	Market_Stall	256	592	Id=Stall_3
-StaticObject	Market_Stall	352	592	Id=Stall_4
-StaticObject	Market_Stall	416	592	Id=Stall_5
-StaticObject	Market_Stall	480	592	Id=Stall_6
+StaticObject	Market_Stall_Open	128	592
+NPC	Villager	128	596	Attitude=Good Stand=1 Id=Market_Vendor_1
+StaticObject	Market_Stall_Open	192	592
+NPC	Shepherd	192	596	Attitude=Good Stand=1 Id=Market_Vendor_2
+StaticObject	Market_Stall_Open	256	592
+NPC	Woman	256	596	Attitude=Good Stand=1 Id=Market_Vendor_3
+StaticObject	Market_Stall_Open	352	592
+NPC	Merchant	352	596	Attitude=Good Stand=1 Id=Market_Vendor_4
+StaticObject	Market_Stall_Open	416	592
+NPC	Man	416	596	Attitude=Good Stand=1 Id=Market_Vendor_5
+StaticObject	Market_Stall_Open	480	592
 Id	Ashford_Market	12	19
 
 StaticObject	Sign_Bakery	128	336
 StaticObject	Sign_General	544	336
 StaticObject	Sign_Smithy	576	560
 StaticObject	Sign_Builder	416	368
+
+StaticObject	Market_Board	64	560
+
+NPC	Man	384	120	Attitude=Good Stand=1 Id=Innkeeper
+StaticObject	Dice_Table	192	128	Id=Dice_Table_1
+StaticObject	Dice_Table	288	128	Id=Dice_Table_2
+StaticObject	Dice_Table	480	128	Id=Dice_Table_3
+StaticObject	Sign_Tavern	256	112
+Id	The_Green_Dragon	13	6

@@ -1,24 +1,25 @@
-"""Market stalls: players sell to each other (the stalls are StaticObjects Market_Stall with Id=Stall_<n>, placed by
-Dev\\migrate\\build_market.py in Ashford).
+"""The marketplace: one market for the whole world. At any market board (Market_Board, placed by
+Dev\\migrate\\build_town_life.py: Ashford's market and by every waystone) a player sees everything everyone has up for
+sale, and puts their own things up at their own price.
 
-  * Browse an empty stall to claim it (one each). Its owner puts things from their pack on it at a price each
-    (right-click an item in the pack: Sell here), changes prices, takes things back, and collects the takings.
-  * Anyone else browses it like a shop: Buy 1 / Buy 5 at the owner's price. The gold waits in the stall for the
-    owner, who needn't be playing: a stall sells while its owner is away.
-  * Giving the stall up hands back what's on it (and the takings) and frees it for someone else.
+  * Selling: with the board open, right-click something in your pack: Sell on the market, then the price each and how
+    many. It's listed at once, for everyone, at every board. Your listings: take things back, or change the price.
+  * Buying: Buy 1 / Buy 5 at the seller's price. The gold goes into the seller's market purse, which waits for them
+    (they needn't be playing); they collect it at any board.
+  * What can't be dropped (quest things, the Access Crystal) can't be sold. A player has at most LISTINGS listings.
 
-World.market (Market) keeps the stalls (saved with the world); MarketMixin is the player's side (Session)."""
+World.market (Market) keeps the listings and the purses (saved with the world); MarketMixin is the player's side."""
 import logging
 
 from dragonsword.lb import val, lbstr
 
-from .entity import Entity, ACTIONBOXITEM, INVENTORYITEM
+from .entity import ACTIONBOXITEM, INVENTORYITEM
 
 log = logging.getLogger("dragonsword.market")
 
-SLOTS = 18                          # things a stall can have out at once
+LISTINGS = 18                       # listings a player can have up at once
 MAX_PRICE = 1000000
-STALL, STALL_OPEN = "Market_Stall", "Market_Stall_Open"
+BOARD = "Market_Board"
 
 
 def pretty(name):
@@ -28,160 +29,140 @@ def pretty(name):
 class Market:
     def __init__(self, world):
         self.w = world
-        self.stalls = {}            # stall id -> {"owner": name or None, "items": [[name, qty, price, wear]], "till": gold}
+        self.listings = []          # {"id", "seller", "item", "qty", "price", "wear"}
+        self.purses = {}            # seller -> gold waiting for them
+        self.next_id = 1
 
-    def stall(self, sid):
-        return self.stalls.setdefault(sid, {"owner": None, "items": [], "till": 0})
+    def listing(self, lid):
+        return next((it for it in self.listings if it["id"] == lid), None)
 
-    def stall_of(self, owner):
-        return next((sid for sid, st in self.stalls.items() if st["owner"] == owner), None)
+    def of(self, seller):
+        return [it for it in self.listings if it["seller"] == seller]
 
-    def entity(self, sid):
-        return self.w.placed_entity(sid.upper())
+    def add(self, seller, item, qty, price, wear=0):
+        it = {"id": self.next_id, "seller": seller, "item": item, "qty": qty, "price": price, "wear": wear}
+        self.next_id += 1
+        self.listings.append(it)
+        return it
 
-    def show(self, sid):
-        """The stall's picture: goods out on it, or bare."""
-        e = self.entity(sid)
-        st = self.stalls.get(sid)
-        if e is None:
-            return
-        want = STALL_OPEN if st and st["items"] else STALL
-        if e.name != want:
-            self.w.replace_sprite(e, want)
-            e.use_words = self.w.data.entity_ini(want, "Use.Words", "")
+    def remove(self, it):
+        if it in self.listings:
+            self.listings.remove(it)
 
-    def changed(self, sid, by=None):
-        """Everyone with this stall open sees it as it is now."""
-        self.show(sid)
+    def changed(self, by=None):
+        """Everyone with a market board open sees the market as it is now."""
         for s in self.w.sessions.values():
-            if s is not by and s.ab_mode == "Stall" and s.stall_open == sid:
-                s.show_stall()
+            if s is not by and s.ab_mode == "Market":
+                s.show_market()
 
     # ----- saving
     def state(self):
-        return {sid: {"owner": st["owner"], "items": [list(i) for i in st["items"]], "till": st["till"]}
-                for sid, st in self.stalls.items() if st["owner"] or st["items"] or st["till"]}
+        return {"listings": [dict(it) for it in self.listings], "purses": {k: v for k, v in self.purses.items() if v},
+                "next": self.next_id}
 
-    def load(self, saved):
-        for sid, st in (saved or {}).items():
+    def load(self, saved, old_stalls=None):
+        saved = saved or {}
+        for it in saved.get("listings", []):
             try:
-                items = [[str(n), max(1, int(q)), max(1, min(MAX_PRICE, int(p))), int(wr)]
-                         for n, q, p, wr in st.get("items", [])][:SLOTS]
-                self.stalls[str(sid)] = {"owner": st.get("owner") or None, "items": items,
-                                         "till": max(0, int(st.get("till", 0)))}
-            except (TypeError, ValueError):
-                log.error("A broken market stall %s was left out", sid)
+                self.listings.append({"id": int(it["id"]), "seller": str(it["seller"]), "item": str(it["item"]),
+                                      "qty": max(1, int(it["qty"])), "price": max(1, min(MAX_PRICE, int(it["price"]))),
+                                      "wear": int(it.get("wear", 0))})
+            except (KeyError, TypeError, ValueError):
+                log.error("A broken market listing was left out")
+        self.purses = {str(k): max(0, int(v)) for k, v in saved.get("purses", {}).items()}
+        self.next_id = max([int(saved.get("next", 1))] + [it["id"] + 1 for it in self.listings])
+        for st in (old_stalls or {}).values():          # (the stalls of before: their things listed, their takings kept)
+            owner = st.get("owner")
+            if not owner:
                 continue
-            self.show(str(sid))
+            for n, q, p, wr in st.get("items", []):
+                self.add(owner, str(n), max(1, int(q)), max(1, int(p)), int(wr))
+            if st.get("till"):
+                self.purses[owner] = self.purses.get(owner, 0) + int(st["till"])
 
 
 class MarketMixin:
-    """The player's side of the market (on Session)."""
+    """The player's side of the marketplace (on Session)."""
 
     def init_market(self):
-        self.stall_open = None          # the stall id this player has open (ab_mode "Stall")
-        self.stall_owner = False        # ...and whether it's theirs
+        self.market_mine = False        # the board shows only this player's listings
+        self.market_ids = []            # the listing ids in the box, in order (a box item's index is into this)
 
     @property
     def market(self):
         return self.w.market
 
-    @staticmethod
-    def is_stall(e):
-        return e is not None and e.name in (STALL, STALL_OPEN)
-
-    def stall_id(self, e):
-        return e.npc_id or "Stall_%d" % e.uid
-
-    # ----- at the stall
-    def stall_action(self, verb, e):
-        """Browse / Examine on a stall: True if it was one."""
-        if not self.is_stall(e) or verb not in ("Browse", "Use", "Examine"):
+    def board_action(self, verb, e):
+        """Trade / Examine on a market board: True if it was one."""
+        if e is None or e.name != BOARD or verb not in ("Trade", "Use", "Examine"):
             return False
-        sid = self.stall_id(e)
-        st = self.market.stall(sid)
         if verb == "Examine":
-            if st["owner"] is None:
-                self.display_message("An empty market stall: browse it to claim it, and sell your things from it.",
-                                     "EXAMINE")
-            else:
-                n = sum(i[1] for i in st["items"])
-                self.display_message("%s's stall: %s." % (st["owner"], "%d thing%s for sale" % (n, "" if n == 1 else "s")
-                                                          if n else "nothing for sale just now"), "EXAMINE")
+            n = len(self.market.listings)
+            self.display_message("The market board: %d listing%s from everyone. Put your own things up for sale here."
+                                 % (n, "" if n == 1 else "s"), "EXAMINE")
             return True
         if self.player_distance_to(e) > 56:
             self.display_message("You are too far away!", "FAIL")
             return True
-        if st["owner"] is None:
-            mine = self.market.stall_of(self.player_name)
-            if mine is not None:
-                self.display_message("You have a stall already. Give that one up first.", "FAIL")
-                return True
-            self.show_menu("Market stall", STALL, "An empty stall, free to whoever wants it. Claim it, put things "
-                           "from your pack on it at your own prices, and other players can buy them - even while "
-                           "you're away. The gold waits here for you.",
-                           [("Claim this stall.", lambda: self.claim_stall(sid)), ("Never mind.", None)])
-            return True
-        self.open_stall(sid)
+        self.market_mine = False
+        self.rack_page = 1
+        self.show_market(full=True)
         return True
 
-    def claim_stall(self, sid):
-        st = self.market.stall(sid)
-        if st["owner"] is not None or self.market.stall_of(self.player_name) is not None:
-            self.display_message("Someone got there first.", "FAIL")
-            return
-        st["owner"] = self.player_name
-        self.display_message("The stall is yours. Right-click things in your pack: Sell here, and set a price.",
-                             "SUCCESS")
-        self.market.changed(sid)
-        self.open_stall(sid)
+    def market_view(self):
+        """The listings the box shows: everyone's (by item, cheapest first) or just this player's."""
+        lst = self.market.of(self.player_name) if self.market_mine else self.market.listings
+        return sorted(lst, key=lambda it: (it["item"].lower(), it["price"], it["id"]))
 
-    def open_stall(self, sid):
-        self.stall_open = sid
-        self.stall_owner = self.market.stall(sid)["owner"] == self.player_name
-        self.rack_page = 1
-        self.show_stall(full=True)
-
-    def show_stall(self, full=False):
-        """The stall in the ActionBox: its things (each with its price) and, for its owner, the takings."""
-        sid = self.stall_open
-        st = self.market.stall(sid)
-        if st["owner"] is None or (self.stall_owner and st["owner"] != self.player_name):
-            self.close_action_box(-1)
-            return
-        self.rack_type = "Stall"
-        self.rack = [{"item": n, "quantity": q, "price": p} for n, q, p, wr in st["items"]]
-        self.rack_name = sid
-        self.ab_item_defs = [(n, lbstr(q), i) for i, (n, q, p, wr) in enumerate(st["items"])]
-        self.rack_pages = 1
+    def show_market(self, full=False):
+        d = self.data
+        view = self.market_view()
+        page_size = max(1, d.ab_columns * d.ab_rows)
+        self.rack_pages = max(1, (len(view) + page_size - 1) // page_size)
+        self.rack_page = min(max(1, self.rack_page), self.rack_pages)
+        shown = view[(self.rack_page - 1) * page_size:self.rack_page * page_size]
+        self.market_ids = [it["id"] for it in shown]
+        self.rack_type = "Market"
+        self.rack = [{"item": it["item"], "quantity": it["qty"]} for it in shown]
+        self.ab_item_defs = [(it["item"], lbstr(it["qty"]), i) for i, it in enumerate(shown)]
         self.responses, self.response_actions = [], []
-        if self.stall_owner:
-            if st["till"]:
-                self.responses.append("Collect %d gold" % st["till"])
-                self.response_actions.append("STALL_COLLECT")
-            self.responses.append("Give up the stall")
-            self.response_actions.append("STALL_GIVE_UP")
+        purse = self.market.purses.get(self.player_name, 0)
+        if purse:
+            self.responses.append("Collect %d gold" % purse)
+            self.response_actions.append("MARKET_COLLECT")
+        self.responses.append("Show everyone's" if self.market_mine else "Show only mine")
+        self.response_actions.append("MARKET_TOGGLE")
+        if self.rack_page < self.rack_pages:
+            self.responses.append("Next page")
+            self.response_actions.append("NEXT")
+        if self.rack_page > 1:
+            self.responses.append("Previous page")
+            self.response_actions.append("PREV")
         self.responses.append("Close")
         self.response_actions.append("CLOSE")
-        self.ab_image = STALL_OPEN
-        self.ab_title = "Your stall" if self.stall_owner else "%s's stall" % st["owner"]
+        self.ab_image = BOARD
+        mine = len(self.market.of(self.player_name))
+        self.ab_title = "Your listings (%d of %d)" % (mine, LISTINGS) if self.market_mine else "The market"
         self.ab_text = ""
-        if full or self.ab_mode != "Stall":
-            self.show_action_box("Stall")
+        if full or self.ab_mode != "Market":
+            self.show_action_box("Market")
         else:
             self.emit(self.box_state())
 
-    def stall_box_extra(self):
-        """What box_state adds for a stall: each thing's price, and whether it's this player's."""
-        st = self.market.stall(self.stall_open)
-        return {"prices": [p for n, q, p, wr in st["items"]], "owner": self.stall_owner,
-                "till": st["till"] if self.stall_owner else 0}
+    def market_box_extra(self):
+        shown = [self.market.listing(i) for i in self.market_ids]
+        return {"prices": [it["price"] if it else 0 for it in shown],
+                "sellers": [it["seller"] if it else "" for it in shown],
+                "mine": [bool(it and it["seller"] == self.player_name) for it in shown],
+                "purse": self.market.purses.get(self.player_name, 0), "only_mine": self.market_mine}
 
-    def stall_response(self, action):
-        sid = self.stall_open
-        st = self.market.stall(sid)
-        if action == "STALL_COLLECT" and self.stall_owner:
-            gold = st["till"]
+    def market_response(self, action):
+        if action == "MARKET_TOGGLE":
+            self.market_mine = not self.market_mine
+            self.rack_page = 1
+            self.show_market()
+        elif action == "MARKET_COLLECT":
+            gold = self.market.purses.get(self.player_name, 0)
             room = self.inventory_slots_available("Gold_Coin(s)")
             if gold <= 0:
                 return
@@ -189,94 +170,81 @@ class MarketMixin:
                 self.display_message("You don't have room for the gold!", "FAIL")
                 return
             take = min(gold, room)
-            st["till"] -= take
+            self.market.purses[self.player_name] = gold - take
             self.add_inventory_item("Gold_Coin(s)", take, quiet=True)
             self.play_sound("Coins")
-            self.display_message("You collect %d gold from your stall." % take, "SUCCESS")
-            self.show_stall()
-        elif action == "STALL_GIVE_UP" and self.stall_owner:
-            for n, q, p, wr in list(st["items"]):
-                if self.inventory_slots_available(n) < q:
-                    self.display_message("You don't have room in your pack for what's on the stall.", "FAIL")
-                    return
-            for n, q, p, wr in st["items"]:
-                self.add_inventory_item(n, q, wr, quiet=True)
-            if st["till"]:
-                self.add_inventory_item("Gold_Coin(s)", st["till"], quiet=True)
-            self.market.stalls[sid] = {"owner": None, "items": [], "till": 0}
-            self.close_action_box(-1)
-            self.display_message("You give the stall up and pack your things away.", "INFO")
-            self.market.changed(sid)
+            self.display_message("You collect %d gold from your sales." % take, "SUCCESS")
+            self.show_market()
 
-    # ----- the verbs in the stall's box (and on the pack while it's open)
-    def stall_verbs(self, e):
+    # ----- verbs in the box (and on the pack while it's open)
+    def box_listing(self, e):
+        i = val(e.misc)
+        if not isinstance(i, int) or not 0 <= i < len(self.market_ids):
+            return None
+        return self.market.listing(self.market_ids[i])
+
+    def market_verbs(self, e):
         if e.type == ACTIONBOXITEM:
-            if self.stall_owner:
+            it = self.box_listing(e)
+            if it is None:
+                return "Examine"
+            if it["seller"] == self.player_name:
                 return "Take back 1,Take back all,Set price,Examine"
             return "Buy 1,Buy 5,Value,Examine"
         if e.type == INVENTORYITEM:
-            return "Sell here,Examine" if self.stall_owner and self.can_stock(e.name) else "Examine"
+            return "Sell on the market,Examine" if self.can_list(e.name) else "Examine"
         return ""
 
-    def can_stock(self, name):
+    def can_list(self, name):
         return name != "Gold_Coin(s)" and val(self.entity_ini(name, "Droppable", "1")) != 0
 
-    def stall_item(self, e):
-        i = val(e.misc)
-        st = self.market.stall(self.stall_open)
-        return (i, st["items"][i]) if isinstance(i, int) and 0 <= i < len(st["items"]) else (None, None)
-
-    def stall_do(self, verb, e, price=0, qty=0):
-        """True if it was a stall verb."""
-        if self.ab_mode != "Stall" or self.stall_open is None:
+    def market_do(self, verb, e, price=0, qty=0):
+        """True if it was a market verb."""
+        if self.ab_mode != "Market":
             return False
-        sid = self.stall_open
-        st = self.market.stall(sid)
-        if verb == "Sell here" and e.type == INVENTORYITEM:
-            self.stall_stock(e, price, qty)
-        elif verb in ("Take back 1", "Take back all") and e.type == ACTIONBOXITEM and self.stall_owner:
-            i, it = self.stall_item(e)
-            if it is None:
-                return True
-            n = 1 if verb == "Take back 1" else it[1]
-            n = min(n, self.inventory_slots_available(it[0]))
+        if verb == "Sell on the market" and e.type == INVENTORYITEM:
+            self.market_list(e, price, qty)
+            return True
+        if e.type != ACTIONBOXITEM or verb not in ("Take back 1", "Take back all", "Set price", "Buy 1", "Buy 5",
+                                                   "Value"):
+            return False
+        it = self.box_listing(e)
+        if it is None:
+            self.display_message("That's gone: someone else was quicker.", "FAIL")
+            self.show_market()
+            return True
+        mine = it["seller"] == self.player_name
+        if verb == "Value":
+            self.display_message("%s: %d gold each, %d for sale (%s)." %
+                                 (pretty(it["item"]), it["price"], it["qty"], "yours" if mine else it["seller"]),
+                                 "INFO")
+        elif verb in ("Take back 1", "Take back all") and mine:
+            n = 1 if verb == "Take back 1" else it["qty"]
+            n = min(n, self.inventory_slots_available(it["item"]))
             if n <= 0:
                 self.display_message("You don't have room in your pack!", "FAIL")
                 return True
-            self.add_inventory_item(it[0], n, it[3], quiet=True)
-            it[1] -= n
-            if it[1] <= 0:
-                st["items"].pop(i)
-            self.market.changed(sid)
-            self.show_stall()
-        elif verb == "Set price" and e.type == ACTIONBOXITEM and self.stall_owner:
-            i, it = self.stall_item(e)
-            if it is None:
-                return True
+            self.add_inventory_item(it["item"], n, it["wear"], quiet=True)
+            it["qty"] -= n
+            if it["qty"] <= 0:
+                self.market.remove(it)
+            self.market.changed()
+        elif verb == "Set price" and mine:
             price = int(val(price))
             if not 1 <= price <= MAX_PRICE:
                 self.display_message("A price is 1 gold or more.", "FAIL")
                 return True
-            it[2] = price
-            self.display_message("%s: now %d gold each." % (pretty(it[0]), price), "INFO")
-            self.market.changed(sid)
-            self.show_stall()
-        elif verb in ("Buy 1", "Buy 5") and e.type == ACTIONBOXITEM and not self.stall_owner:
-            self.stall_buy(e, 1 if verb == "Buy 1" else 5)
-        elif verb == "Value" and e.type == ACTIONBOXITEM:
-            i, it = self.stall_item(e)
-            if it is not None:
-                self.display_message("%s: %d gold each (%d for sale)." % (pretty(it[0]), it[2], it[1]), "INFO")
-        else:
-            return False
+            it["price"] = price
+            self.display_message("%s: now %d gold each." % (pretty(it["item"]), price), "INFO")
+            self.market.changed()
+        elif verb in ("Buy 1", "Buy 5") and not mine:
+            self.market_buy(it, 1 if verb == "Buy 1" else 5)
         return True
 
-    def stall_stock(self, e, price, qty):
-        sid = self.stall_open
-        st = self.market.stall(sid)
+    def market_list(self, e, price, qty):
         name = e.name
-        if not self.stall_owner or not self.can_stock(name):
-            self.display_message("You can't sell that here.", "FAIL")
+        if not self.can_list(name):
+            self.display_message("You can't sell that.", "FAIL")
             return
         price = int(val(price))
         if not 1 <= price <= MAX_PRICE:
@@ -286,38 +254,35 @@ class MarketMixin:
         qty = held if int(val(qty)) <= 0 else min(held, int(val(qty)))
         if qty <= 0:
             return
+        mine = self.market.of(self.player_name)
         worn = self.data.item_max_dur(name) > 0
-        same = next((it for it in st["items"] if it[0] == name and it[2] == price and not worn), None)
-        if same is None and len(st["items"]) >= SLOTS:
-            self.display_message("Your stall is full (%d things at most)." % SLOTS, "FAIL")
+        same = None if worn else next((it for it in mine if it["item"] == name and it["price"] == price), None)
+        if same is None and len(mine) >= LISTINGS:
+            self.display_message("You have %d things up for sale already: take something back first." % LISTINGS,
+                                 "FAIL")
             return
         if worn:                                    # (worn things one at a time: each keeps its own wear)
+            n = 0
             for _ in range(qty):
-                if len(st["items"]) >= SLOTS:
-                    break
                 ent = next((x for x in self.inv if x.name == name), None)
-                if ent is None:
+                if ent is None or len(self.market.of(self.player_name)) >= LISTINGS:
                     break
-                wear = self.take_inventory_entity(ent)
-                st["items"].append([name, 1, price, wear])
+                self.market.add(self.player_name, name, 1, price, self.take_inventory_entity(ent))
+                n += 1
+            qty = n
         else:
             self.remove_inventory_item(name, qty)
             if same is not None:
-                same[1] += qty
+                same["qty"] += qty
             else:
-                st["items"].append([name, qty, price, 0])
-        self.display_message("You put %s out at %d gold each." % (pretty(name), price), "SUCCESS")
-        self.market.changed(sid)
-        self.show_stall()
+                self.market.add(self.player_name, name, qty, price)
+        self.display_message("You put %d %s up for sale at %d gold each. Everyone can see it at any market board." %
+                             (qty, pretty(name), price), "SUCCESS")
+        self.market.changed()
 
-    def stall_buy(self, e, qty):
-        sid = self.stall_open
-        st = self.market.stall(sid)
-        i, it = self.stall_item(e)
-        if it is None:
-            return
-        name, have, price, wear = it
-        qty = min(qty, have, int(self.items_held("Gold_Coin(s)") // price))
+    def market_buy(self, it, qty):
+        name, price = it["item"], it["price"]
+        qty = min(qty, it["qty"], int(self.items_held("Gold_Coin(s)") // price))
         if qty <= 0:
             self.display_message("You don't have enough gold!", "FAIL")
             return
@@ -326,17 +291,18 @@ class MarketMixin:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             return
         self.remove_inventory_item("Gold_Coin(s)", price * qty)
-        self.add_inventory_item(name, qty, wear, quiet=True)
-        it[1] -= qty
-        if it[1] <= 0:
-            st["items"].pop(i)
-        st["till"] += price * qty
+        self.add_inventory_item(name, qty, it["wear"], quiet=True)
+        it["qty"] -= qty
+        if it["qty"] <= 0:
+            self.market.remove(it)
+        seller = it["seller"]
+        self.market.purses[seller] = self.market.purses.get(seller, 0) + price * qty
         self.play_sound("Coins")
-        self.display_message("You buy (%d) %s for %d gold." % (qty, pretty(name), price * qty), "SUCCESS")
-        owner = self.w.sessions.get(st["owner"])
-        if owner is not None and owner.in_world():
-            owner.display_message("%s bought %d %s from your stall for %d gold." %
-                                  (self.player_name, qty, pretty(name), price * qty), "ACHIEVEMENT")
-            owner.play_sound("Coins")
-        self.market.changed(sid, by=self)
-        self.show_stall()
+        self.display_message("You buy (%d) %s from %s for %d gold." % (qty, pretty(name), seller, price * qty),
+                             "SUCCESS")
+        s = self.w.sessions.get(seller)
+        if s is not None and s.in_world():
+            s.display_message("%s bought %d %s from you on the market for %d gold (collect it at any market board)."
+                              % (self.player_name, qty, pretty(name), price * qty), "ACHIEVEMENT")
+            s.play_sound("Coins")
+        self.market.changed()

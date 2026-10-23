@@ -21,6 +21,8 @@ from .pvp import PvPMixin
 from .homes import HomeMixin
 from .farming import FarmMixin
 from .market import MarketMixin
+from .digging import DigMixin
+from .tavern import TavernMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -40,7 +42,7 @@ def clean_look(look):
     return out or None
 
 
-class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin):
+class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -149,7 +151,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.view_known = {}                # uid -> what the browser last had of it
         self.init_home()
         self.init_market()
-        self.verb_price = self.verb_qty = 0   # (a stall's Sell here / Set price: what the player typed)
+        self.init_digging()
+        self.verb_price = self.verb_qty = 0   # (the market's Sell / Set price: what the player typed)
         self.init_scripts()
 
     def clear_boosts_values(self):
@@ -450,6 +453,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.sleep_state:
             return
         self.update_script_move()
+        self.dig_tick()
         if not self.ab_mode:
             self.update_player_combat()
         self.update_player_health()
@@ -597,6 +601,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.cells_dirty = True
         self.weather_dirty = True
         self.emit({"t": "map", "name": m.name, "x": m.mx, "y": m.my, "z": m.mz})
+        self.w.waves.state_for(self)
         if self.script_exists(m.name):
             self.start_script(m.name, False, entry=True)
 
@@ -896,7 +901,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 it["short"] = self.rack_level_short(e)
                 it["missing"] = self.rack_missing(e)
             items.append(it)
-        extra = self.stall_box_extra() if self.ab_mode == "Stall" else {}
+        extra = self.market_box_extra() if self.ab_mode == "Market" else {}
         return {"t": "box", "mode": self.ab_mode, "image": self.ab_image, "title": self.ab_title, **extra,
                 "text": self.ab_text, "items": items, "responses": self.responses, "page": self.rack_page,
                 "pages": self.rack_pages, "rack": self.rack_name, "buy_rate": self.rack_buy_rate,

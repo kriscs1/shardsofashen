@@ -322,6 +322,7 @@ class CombatMixin:
         self.display_message("You have killed the %s!" % self.display_name(e), "ACHIEVEMENT")
         self.play_sound("Kill_" + (self.entity_ini(name, "Kill.Sound", "") or "Beast"), (e.cx, e.cy))
         self.add_npc_drops(e)
+        w.waves.killed(e, self)
         m = w.maps.get(e.map)
         if e.source == "MAP" and e.owner is None and m is not None:
             respawn = e.respawn_delay if e.respawn_delay > 0 else self.data.npc_respawn_delay

@@ -218,6 +218,7 @@ $("admin-save").onclick = () => {
   }
   send({ t: "admin", do: "skills", on, levels });
 };
+$("admin-wave-go").onclick = () => send({ t: "admin", do: "wave", name: $("admin-wave").value.trim() });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value.trim() });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
@@ -235,7 +236,7 @@ function showMessage(title, text, then) {
   $("message-ok").onclick = () => { $("message").hidden = true; if (then) then(); else canvas.focus(); };
 }
 
-// ----- a market stall's price (Sell here, Set price)
+// ----- a price on the market (Sell on the market, Set price)
 let priceDone = null;
 function askPrice(e, withQty, done) {
   releaseKeys();
@@ -394,6 +395,7 @@ N.onMessage = (m) => {
     case "sleep": S.sleep = { start: now, fade: m.fade, hold: m.hold, text: m.text }; break;
     case "journal": S.journal = m; break;
     case "buildables": onBuildables(m); break;
+    case "wave": S.wave = m.name ? { ...m, at: now } : null; break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;

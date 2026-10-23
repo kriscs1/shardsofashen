@@ -74,11 +74,11 @@ export function getVerbs(e) {
     if (val(e.misc) === 1 || e.uw || examineText(e)) addVerb(v, "Examine");
   } else if (t === T.MAPITEM) {
     v = ["Pickup", "Examine"];
-  } else if (t === T.INVITEM && mode === "Stall") {
-    const sellable = S.box.owner && e.n !== "Gold_Coin(s)" && entityIni(e.n, "Droppable", "1").trim() !== "0";
-    v = sellable ? ["Sell here", "Examine"] : ["Examine"];
-  } else if (t === T.RACKITEM && mode === "Stall") {
-    v = S.box.owner ? ["Take back 1", "Take back all", "Set price", "Examine"] : ["Buy 1", "Buy 5", "Value", "Examine"];
+  } else if (t === T.INVITEM && mode === "Market") {
+    const sellable = e.n !== "Gold_Coin(s)" && entityIni(e.n, "Droppable", "1").trim() !== "0";
+    v = sellable ? ["Sell on the market", "Examine"] : ["Examine"];
+  } else if (t === T.RACKITEM && mode === "Market") {
+    v = e.mine ? ["Take back 1", "Take back all", "Set price", "Examine"] : ["Buy 1", "Buy 5", "Value", "Examine"];
   } else if (t === T.INVITEM) {
     if (mode === "Shop") v = canSellHere(e.n) ? ["Sell 1", "Sell All", "Value", "Examine"] : ["Examine"];
     else if (mode === "Bank") v = ["Deposit 1", "Deposit All", "Examine"];
@@ -129,9 +129,9 @@ export function verbLabel(verb, e) {
   const name = displayName(e);
   if (verb === "Use with") return `Use ${pretty(itemInUseName())} with ${name}`;
   if (verb === "Attack") return `Attack ${name} (${lbstr(e.hp)}/${lbstr(e.mh)})`;
-  if ((verb === "Buy 1" || verb === "Buy 5") && S.box.mode === "Stall") return `${verb} ${name} (${e.price} gold each)`;
+  if ((verb === "Buy 1" || verb === "Buy 5") && S.box.mode === "Market") return `${verb} ${name} (${e.price} gold each, from ${e.seller})`;
   if (verb === "Buy 1" || verb === "Buy 5") return `${verb} ${name} (${itemPrice(e.n, S.box.buy_rate || 1.2)} gold)`;
-  if (verb === "Sell here") return `Sell ${name} on your stall...`;
+  if (verb === "Sell on the market") return `Sell ${name} on the market...`;
   if (verb === "Set price") return `Set the price of ${name} (now ${e.price} gold)...`;
   if (verb === "Sell 1" || verb === "Sell All") {
     const n = verb === "Sell 1" ? 1 : Math.max(1, held(e.n));

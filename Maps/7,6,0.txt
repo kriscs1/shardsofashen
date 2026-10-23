@@ -39,3 +39,5 @@ Id	Waystone_Thornwick	11	15
 StaticObject	Homestone	224	480
 
 StaticObject	Sign_General	480	208
+
+StaticObject	Market_Board	256	400

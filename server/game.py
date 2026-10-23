@@ -63,7 +63,7 @@ class GameServer:
             return
         w.homes.load(st.get("homes"))
         w.farms.load(st.get("farms"))
-        w.market.load(st.get("stalls"))
+        w.market.load(st.get("market"), old_stalls=st.get("stalls"))
         w.action_queue = [e for e in st.get("queue", []) if isinstance(e, str)]
         w.apply_saved_queue()
         if "day" in st:
@@ -79,7 +79,7 @@ class GameServer:
         if w.weather:
             wt = {"kind": w.weather["kind"], "level": w.weather["level"], "fading": w.weather["fading"],
                   "left": max(0, w.weather["next"] - w.now)}
-        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "stalls": w.market.state()}
+        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state()}
 
     def save_all(self):
         try:

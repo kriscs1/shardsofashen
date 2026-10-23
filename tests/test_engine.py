@@ -428,44 +428,157 @@ def test_each_home_keeps_its_own_land(world):
     leave(world, a)
 
 
-def test_market_stall_sells_while_its_owner_is_away(world):
-    stall = world.placed_entity("STALL_1")
-    assert stall is not None and stall.name == "Market_Stall"
-    m = world.maps[stall.map]
-    seller = join(world, "Seller", m.name, int(stall.x - m.ox), int(stall.y - m.oy + 40))
-    buyer = join(world, "Buyer", m.name, int(stall.x - m.ox), int(stall.y - m.oy + 40))
+def test_the_market_is_one_for_everyone(world):
+    boards = [e for e in world.ents if e.name == "Market_Board"]
+    assert len(boards) >= 5                                       # (Ashford's market and every waystone town)
+    ash, far = boards[0], boards[-1]
+    ma, mf = world.maps[ash.map], world.maps[far.map]
+    seller = join(world, "Seller", ma.name, int(ash.x - ma.ox), int(ash.y - ma.oy + 40))
+    buyer = join(world, "Buyer", mf.name, int(far.x - mf.ox), int(far.y - mf.oy + 40))
     stock(seller, Bread=5, Access_Crystal=1)
     stock(buyer, **{"Gold_Coin(s)": 100})
-    seller.do_action("Browse", stall)
-    seller.action_box_response_chosen(1)                          # Claim this stall.
-    assert world.market.stall("Stall_1")["owner"] == "Seller" and seller.ab_mode == "Stall"
+    seller.do_action("Trade", ash)
+    assert seller.ab_mode == "Market"
     bread = next(e for e in seller.inv if e.name == "Bread")
-    assert "Sell here" in seller.get_verbs(bread)
     crystal = next(e for e in seller.inv if e.name == "Access_Crystal")
-    assert "Sell here" not in seller.get_verbs(crystal)            # (what can't be dropped can't be sold here)
+    assert "Sell on the market" in seller.get_verbs(bread)
+    assert "Sell on the market" not in seller.get_verbs(crystal)  # (what can't be dropped can't be sold)
     seller.verb_price, seller.verb_qty = 7, 4
-    seller.do_action("Sell here", bread)
-    assert seller.items_held("Bread") == 1 and world.market.stall("Stall_1")["items"] == [["Bread", 4, 7, 0]]
-    assert stall.name == "Market_Stall_Open"                      # (goods out on it)
+    seller.do_action("Sell on the market", bread)
+    assert seller.items_held("Bread") == 1
+    assert [(l["item"], l["qty"], l["price"]) for l in world.market.listings] == [("Bread", 4, 7)]
     seller.close_action_box(-1)
-    saved = world.market.state()
-    leave(world, seller)                                          # the owner goes; the stall stays open
-    buyer.do_action("Browse", stall)
-    assert buyer.ab_mode == "Stall" and buyer.box_state()["prices"] == [7]
+    leave(world, seller)                                          # the seller goes; their listing stays up
+    buyer.do_action("Trade", far)                                 # (another town's board: the same market)
+    box = buyer.box_state()
+    assert box["prices"] == [7] and box["sellers"] == ["Seller"] and box["mine"] == [False]
+    assert "Buy 5" in buyer.get_verbs(buyer.rack_pseudo(0))
     buyer.do_action("Buy 5", buyer.rack_pseudo(0))
     assert buyer.items_held("Bread") == 4 and buyer.items_held("Gold_Coin(s)") == 100 - 28
-    st = world.market.stall("Stall_1")
-    assert st["items"] == [] and st["till"] == 28 and stall.name == "Market_Stall"
+    assert world.market.listings == [] and world.market.purses["Seller"] == 28
     w2 = World(ROOT)
     w2.market.load(world.market.state())
-    assert w2.market.stall("Stall_1")["till"] == 28 and w2.market.stall_of("Seller") == "Stall_1"
-    seller = join(world, "Seller", m.name, int(stall.x - m.ox), int(stall.y - m.oy + 40))
-    seller.do_action("Browse", stall)
+    assert w2.market.purses["Seller"] == 28
+    seller = join(world, "Seller", ma.name, int(ash.x - ma.ox), int(ash.y - ma.oy + 40))
+    seller.do_action("Trade", ash)
     assert seller.responses[0] == "Collect 28 gold"
     gold = seller.items_held("Gold_Coin(s)")
     seller.action_box_response_chosen(1)
-    assert seller.items_held("Gold_Coin(s)") == gold + 28 and world.market.stall("Stall_1")["till"] == 0
-    seller.action_box_response_chosen(1)                          # Give up the stall
-    assert world.market.stall("Stall_1")["owner"] is None
+    assert seller.items_held("Gold_Coin(s)") == gold + 28 and world.market.purses["Seller"] == 0
     leave(world, seller)
     leave(world, buyer)
+
+
+def test_old_stalls_become_listings():
+    w = World(ROOT)
+    w.market.load(None, old_stalls={"Stall_1": {"owner": "Old", "items": [["Bread", 3, 5, 0]], "till": 12}})
+    assert [(l["seller"], l["item"], l["qty"]) for l in w.market.listings] == [("Old", "Bread", 3)]
+    assert w.market.purses["Old"] == 12
+
+
+def find_open_ground(world, m):
+    for ty in range(3, 19):
+        for tx in range(3, 23):
+            c = m.cell(tx, ty)
+            if m.tile[c].startswith("Grass") and not m.decor[c] and not m.roof[c] and "0" not in m.walk[c]:
+                return tx, ty
+    raise AssertionError("no open grass")
+
+
+def test_digging_finds_things_now_and_then(world, monkeypatch):
+    m = world.maps["1,1,0"]
+    tx, ty = find_open_ground(world, m)
+    s = join(world, "Digger", m.name, (tx - 1) * 32 + 8, (ty - 1) * 32)
+    stock(s, Spade=1)
+    spade = next(e for e in s.inv if e.name == "Spade")
+    assert "Dig" in s.get_verbs(spade)
+    import random as rnd
+    monkeypatch.setattr(rnd, "uniform", lambda a, b: a)          # (the luckiest dig there is: something turns up)
+    gold = s.items_held("Gold_Coin(s)")
+    s.do_action("Dig", spade)
+    assert s.dig_pending is not None
+    world.tick(0.05, now=world.now + 3000)
+    pm, px, py = world.tile_at(s.player.z, s.player.fx, s.player.fy)
+    assert pm.decor[pm.cell(px, py)] == "Dug_Hole001"            # (a hole, that grasses over later)
+    assert any("CHANGE.TILE" in q and "Dug_Hole001" in q for q in world.action_queue)
+    assert s.items_held("Gold_Coin(s)") > gold                    # (gold: the first find in Digging.ini)
+    s.do_action("Dig", spade)
+    assert s.dig_pending is None                                  # (dug already)
+    leave(world, s)
+
+
+def test_a_wave_attack_comes_in_waves_and_rewards_the_defenders(world):
+    waves = world.waves
+    assert "Ashford_Raid" in waves.defs and "Farm_Raid" in waves.defs
+    d = waves.defs["Ashford_Raid"]
+    m = world.maps[d["map"]]
+    s = join(world, "Defender", m.name, 384, 300)
+    s.god_mode = 1
+    gold = s.items_held("Gold_Coin(s)")
+    assert waves.start("Ashford_Raid") and not waves.start("Ashford_Raid")
+    for n in range(len(d["waves"])):
+        world.tick(0.05, now=world.now + 1000)
+        r = waves.running["Ashford_Raid"]
+        assert r["wave"] == n and r["uids"]
+        assert any(e.get("t") == "wave" and e.get("wave") == n + 1 for e in s.out)
+        for u in list(r["uids"]):                                 # the defender kills this wave
+            e = world.by_uid[u]
+            s.kill_npc(e)
+            if e.alive:
+                world.remove_entity(e)
+        world.tick(0.05, now=world.now + 600)
+        world.tick(0.05, now=world.now + 60000)                   # (the gap before the next wave)
+    assert "Ashford_Raid" not in waves.running
+    assert s.items_held("Gold_Coin(s)") > gold + int(d["reward.gold"])   # (the reward, and gold for each kill)
+    leave(world, s)
+
+
+def test_a_script_starts_a_wave_and_a_lost_one_ends(world):
+    d = world.waves.defs["Farm_Raid"]
+    m = world.maps[d["map"]]
+    s = join(world, "Farmhand", m.name, 384, 300)
+    s.start_script("Talk to Farmer", True)
+    for _ in range(5):
+        world.tick(0.05)
+    s.action_box_response_chosen(2)                               # "Seen any goblins?"
+    for _ in range(5):
+        world.tick(0.05)
+    s.action_box_response_chosen(2)                               # "They're here now? I'll fight them off!"
+    for _ in range(10):
+        world.tick(0.05)
+    assert "Farm_Raid" in world.waves.running
+    world.tick(0.05, now=world.now + 10 * 60000)                  # (out of time: they get away)
+    assert "Farm_Raid" not in world.waves.running
+    assert not any(e.alive and e.source == "WAVE" for e in world.ents)
+    leave(world, s)
+
+
+def test_tavern_games(world, monkeypatch):
+    keeper = world.placed_entity("INNKEEPER")
+    table = world.placed_entity("DICE_TABLE_1")
+    assert keeper is not None and table is not None
+    m = world.maps[keeper.map]
+    a = join(world, "Gambler", m.name, int(keeper.x - m.ox), int(keeper.y - m.oy + 34))
+    b = join(world, "Punter", m.name, int(keeper.x - m.ox), int(keeper.y - m.oy + 34))
+    stock(a, **{"Gold_Coin(s)": 200})
+    stock(b, **{"Gold_Coin(s)": 200})
+    import random as rnd
+    monkeypatch.setattr(rnd, "randint", lambda lo, hi: 2)        # (the coin under the middle cup; every die a 2)
+    a.do_action("Talk to", keeper)
+    assert a.responses[0] == "Three Cups."
+    a.action_box_response_chosen(1)                               # Three Cups
+    a.action_box_response_chosen(2)                               # 20 gold
+    a.action_box_response_chosen(2)                               # the middle cup
+    assert a.items_held("Gold_Coin(s)") == 200 - 20 + 50
+    a.player.x, a.player.y = table.x, table.y + 30
+    b.player.x, b.player.y = table.x + 10, table.y + 30
+    a.do_action("Play", table)
+    a.action_box_response_chosen(3)                               # a round at 50 gold
+    b.do_action("Play", table)
+    b.action_box_response_chosen(1)                               # join in
+    assert world.tavern.rounds["Dice_Table_1"]["players"] == ["Gambler", "Punter"]
+    world.tick(0.05, now=world.now + 21000)
+    assert "Dice_Table_1" not in world.tavern.rounds
+    assert a.items_held("Gold_Coin(s)") == 230 and b.items_held("Gold_Coin(s)") == 200   # (a tie: they share)
+    leave(world, a)
+    leave(world, b)

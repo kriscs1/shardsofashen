@@ -2,10 +2,9 @@
 
   python -I "Dev\\migrate\\build_market.py"
 
-  * Market stalls (the server's dsengine/market.py): a row of them by the south road in Ashford (Id=Stall_1...). A
-    player claims one, stocks it from their pack at their own prices, and other players buy from it, even while the
-    owner is away; the takings wait in the stall for its owner. Sprites\\Entities\\Market_Stall (empty) and
-    Market_Stall_Open (with goods out), and a Market sign.
+  * Market stalls: a row of them by the south road in Ashford, and a Market sign. (build_town_life.py puts a vendor
+    behind each; the players' own selling is at the market boards, dsengine/market.py.) Sprites\\Entities\\
+    Market_Stall (empty) and Market_Stall_Open (with goods out).
   * Shop signs: every shop gets a signboard on a post outside its door, with a picture of what it sells (the bread
     for the bakery, the anvil for the smithy...). Sprites\\Entities\\Sign_<Kind>.
 """

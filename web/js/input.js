@@ -178,9 +178,9 @@ export function chooseVerb(verb, e, wx, wy) {
     return;
   }
   if (verb === "Whisper" && e && e.k === T.PLAYER) { window.dsUI.openChat("/w " + e.n + " "); return; }
-  if (verb === "Sell here" || verb === "Set price") {        // (a market stall: ask the price first)
+  if (verb === "Sell on the market" || verb === "Set price") {        // (the market: ask the price first)
     const target = targetOf(e);
-    window.dsUI.askPrice(e, verb === "Sell here", (price, qty) => send({ t: "verb", verb, target, x: wx, y: wy, price, qty }));
+    window.dsUI.askPrice(e, verb === "Sell on the market", (price, qty) => send({ t: "verb", verb, target, x: wx, y: wy, price, qty }));
     return;
   }
   const msg = { t: "verb", verb, target: targetOf(e), x: wx, y: wy };

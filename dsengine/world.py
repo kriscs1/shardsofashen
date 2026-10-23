@@ -19,6 +19,8 @@ from .maps import MapData
 from .homes import Homes
 from .farming import Farms
 from .market import Market
+from .waves import Waves
+from .tavern import Tavern
 from .npcs import NPCMixin
 
 log = logging.getLogger("dragonsword.world")
@@ -57,7 +59,9 @@ class World(NPCMixin):
         self.load_maps()
         self.homes = Homes(self)        # players' homesteads (their maps join self.maps as they're made)
         self.farms = Farms(self)        # what's growing in tilled soil
-        self.market = Market(self)      # the players' market stalls
+        self.market = Market(self)      # the marketplace: everyone's listings
+        self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
+        self.tavern = Tavern(self)      # the tavern's dice rounds
 
     # =================================================================================================================
     # Maps
@@ -1305,4 +1309,6 @@ class World(NPCMixin):
             self.run_action_queue()
         self.update_doors()
         self.farms.tick()
+        self.waves.tick()
+        self.tavern.tick()
         self.weather_tick()

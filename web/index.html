@@ -46,7 +46,7 @@
 
 <div id="price" class="overlay" hidden>
   <form id="price-form" class="panel">
-    <h2 id="price-title">Sell on your stall</h2>
+    <h2 id="price-title">Sell on the market</h2>
     <label>Price each (gold) <input id="price-each" type="number" min="1" max="1000000" step="1" required></label>
     <label id="price-qty-row">How many <input id="price-qty" type="number" min="1" step="1"></label>
     <p id="price-hint" class="dim small"></p>
@@ -103,6 +103,9 @@
     <div class="row"><span>Go to a place:</span>
       <input id="admin-place" placeholder="e.g. Ashford_Market" maxlength="40">
       <button type="button" id="admin-goto">Go</button></div>
+    <div class="row"><span>Start a monster attack:</span>
+      <input id="admin-wave" value="Ashford_Raid" maxlength="40">
+      <button type="button" id="admin-wave-go">Start</button></div>
     <div class="row"><label><input type="checkbox" id="admin-god"> God mode (nothing can hurt you)</label></div>
     <div class="buttons"><button type="button" id="admin-save">Save skills</button>
       <button type="button" id="admin-close">Close</button></div>

@@ -67,8 +67,8 @@ class ActionsMixin:
         t = e.type
         uw = e.use_words
         verbs = ""
-        if self.ab_mode == "Stall" and t in (INVENTORYITEM, ACTIONBOXITEM):
-            return self.stall_verbs(e)
+        if self.ab_mode == "Market" and t in (INVENTORYITEM, ACTIONBOXITEM):
+            return self.market_verbs(e)
         if t in (TILE, INFRONTTILE):
             verbs = self.add_verbs(verbs, uw)
             if self.tile_lock_of(e) is not None:
@@ -210,7 +210,7 @@ class ActionsMixin:
             return self.infront_entity_at(self.script_cursor_x, self.script_cursor_y)
         if k == "inv":
             return self.inv_item(t.get("uid"))
-        if k == "rack" and self.ab_mode in ("Shop", "Bank", "Craft", "Stall"):
+        if k == "rack" and self.ab_mode in ("Shop", "Bank", "Craft", "Market"):
             i = t.get("i")
             if not isinstance(i, int):
                 return None
@@ -273,7 +273,8 @@ class ActionsMixin:
         if verb == "Use with":
             self.use_item_with(e)
             return
-        if self.stall_do(verb, e, self.verb_price, self.verb_qty) or self.stall_action(verb, e):
+        if (self.market_do(verb, e, self.verb_price, self.verb_qty) or self.board_action(verb, e) or
+                self.tavern_action(verb, e)):
             return
         if verb == "Open" and t == TILE:
             lk = self.tile_lock_of(e)
@@ -281,6 +282,9 @@ class ActionsMixin:
                 self.display_message(lk.message, "FAIL")
                 return
         if t == TILE and self.crop_action(verb, e):
+            return
+        if verb == "Dig" and t == INVENTORYITEM:
+            self.dig()
             return
         if name == "Homestone" and verb in ("Touch", "Travel", "Use"):
             self.homestone_touched(e)
@@ -327,6 +331,8 @@ class ActionsMixin:
             self.grave_search()
         elif verb == "Drink" and t == INVENTORYITEM and self.entity_ini(name, "Cures", ""):
             self.drink_cure(e)
+        elif verb == "Drink" and t == INVENTORYITEM and val(self.entity_ini(name, "Food.Value", "0")) > 0:
+            self.eat_inventory_item(e)
         elif verb in ("Cast", "Drink"):
             if t == INVENTORYITEM and self.entity_ini(name, "Spell", ""):
                 self.cast_scroll(e, None)
@@ -577,9 +583,9 @@ class ActionsMixin:
             if self.ab_mode:
                 self.close_action_box(-1)
         elif t == "page":
-            if self.ab_mode in ("Shop", "Bank", "Craft"):
+            if self.ab_mode in ("Shop", "Bank", "Craft", "Market"):
                 self.rack_page = int(msg.get("page", 1))
-                self.show_rack_page(False)
+                self.show_market() if self.ab_mode == "Market" else self.show_rack_page(False)
         elif t == "hotbar":
             self.hotbar_use(int(msg.get("k", -1)))
         elif t == "hotbar_remove":
@@ -677,13 +683,22 @@ class ActionsMixin:
             self.save_requested = True
             self.emit({"t": "admin_status", "text": "Saved." if not off else "Saved. Off: " + ",".join(off)})
         elif what == "goto":
-            # (a named place: an Id tile or a thing's Id=, e.g. Ashford_Market, Waystone_Highwatch, Stall_1)
+            # (a named place: an Id tile or a thing's Id=, e.g. Ashford_Market, Waystone_Highwatch, The_Green_Dragon)
             pl = d.place(str(msg.get("place", "")).strip())
             if pl is None or self.w.map_named(pl.map) is None:
                 self.emit({"t": "admin_status", "text": "No place called that (an Id on a map: e.g. Ashford_Market)."})
                 return
             self.teleport(pl.map, (pl.tx - 1) * self.tw, pl.ty * self.th - 8)
             self.emit({"t": "admin_status", "text": "Off to %s (%s)." % (pl.name, pl.map)})
+        elif what == "wave":
+            name = str(msg.get("name", "")).strip()
+            if name not in self.w.waves.defs:
+                self.emit({"t": "admin_status", "text": "No such attack. Data\\Waves.ini has: %s." %
+                           ", ".join(sorted(self.w.waves.defs))})
+            elif self.w.waves.start(name, by=self):
+                self.emit({"t": "admin_status", "text": "%s has begun." % name})
+            else:
+                self.emit({"t": "admin_status", "text": "%s is on already." % name})
         elif what == "god":
             self.god_mode = 1 if msg.get("on") else 0
             ini.write("Admin", "GodMode", lbstr(self.god_mode), d.config_path)

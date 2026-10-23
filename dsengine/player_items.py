@@ -343,14 +343,14 @@ class ItemsMixin:
             self.close_action_box(n)
             return
         action = self.response_actions[n - 1] if 0 <= n - 1 < len(self.response_actions) else ""
-        if action.startswith("STALL_"):
-            self.stall_response(action)
+        if action.startswith("MARKET_"):
+            self.market_response(action)
         elif action == "NEXT":
             self.rack_page += 1
-            self.show_rack_page(False)
+            self.show_market() if self.ab_mode == "Market" else self.show_rack_page(False)
         elif action == "PREV":
             self.rack_page -= 1
-            self.show_rack_page(False)
+            self.show_market() if self.ab_mode == "Market" else self.show_rack_page(False)
         else:
             self.close_action_box(-1)
 

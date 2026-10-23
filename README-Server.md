@@ -121,21 +121,41 @@ view) goes full screen. Press **Enter** to chat with the other players.
 - **Changing it.** `Data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
   each crop. `Dev/migrate/build_farming.py` makes it all, like the other builders.
 
-## The market and the shops
+## The market, the shops, the tavern, digging and raids
 
-- **Market stalls.** A row of stalls along the south road in Ashford (the Admin panel's *Go to a place*:
-  `Ashford_Market`).
-  - **Claiming:** browse an empty stall to claim it, one per player.
-  - **Selling:** with your stall open, right-click something in your pack, choose *Sell here*, and set the price
-    each and how many.
-  - **Buying:** other players browse it like a shop and buy at your prices, even while you're logged out.
-  - **Takings:** the gold waits in the stall; *Collect* it when you're back.
-  - **Giving it up:** gives back what's on it and frees it for someone else.
-  - Things that can't be dropped (quest items, the Access Crystal) can't be sold. Stalls are saved with the world.
-- **Shop signs.** Every shop has a signboard by its door with a picture of what it sells (bread, an anvil, a potion,
-  coins for a general store...). `Dev/migrate/build_market.py` makes the stalls and signs.
+- **The market.** One market for the whole world, at any **market board**: Ashford's market, and beside every
+  town's waystone.
+  - **Browsing:** see everything everyone has for sale, cheapest first, with who's selling it.
+  - **Selling:** right-click something in your pack, choose *Sell on the market*, and set the price each and how
+    many. It's up at once, at every board.
+  - **Your listings:** *Show only mine* to take things back or change a price. Up to 18 listings each.
+  - **Takings:** buyers pay into your purse even while you're logged out; *Collect* it at any board.
+  - Things that can't be dropped (quest items, the Access Crystal) can't be sold.
+- **Ashford's stalls** are for traders now: a greengrocer, a fishmonger, a weaver, a tinker (spades, buckets...)
+  and a butcher, each behind a stall with a shop of their own.
+- **Shop signs.** Every shop has a signboard by its door with a picture of what it sells.
+- **The Green Dragon** (behind Ashford's houses, north):
+  - The innkeeper plays **Three Cups** (find the coin: 2.5 times your stake back) and **High or Low** (guess the next
+    roll: 1.4 times back), and sells ale and food.
+  - At a **dice table**, *Play* to start a round of **Dragon Dice**. Everyone nearby has 20 seconds to match the
+    stake, then all roll three dice and the highest takes the pot (ties share). Alone? The innkeeper plays you.
+- **Digging.** Right-click a spade: *Dig*, anywhere on open ground. About 1 dig in 14 turns something up: gold
+  usually, sometimes stone, bones, ore, seeds, very rarely a gem. It leaves a hole that grasses over in 10 minutes.
+  `Data/Digging.ini` sets the chance, the ground and the finds. (On sand you get sand too.)
+- **Monster raids.** `Data/Waves.ini`: monsters attacking a place in waves.
+  - **Surprise raids:** about every two hours, when 2 or more are playing, goblins raid Ashford.
+  - **Defending:** a horn sounds and a banner shows the wave, how many are left and the time.
+  - **Rewards:** whoever kills a raider gets gold, and everyone who held out shares the reward.
+  - **Losing:** if time runs out, or everyone leaves, the raiders go.
+  - **Any attack, any time:** a script's `Start.Wave <name>` starts one, so a quest can have a battle. Its
+    `On.Win.Script` runs for each defender afterwards. Example: the farmer's *They're here now? I'll fight them off!*
+    starts `Farm_Raid`.
+  - Admins can start one from the Admin panel.
 - **Chat.** A chime plays when another player says something (a softer one for a whisper); Options can turn it off.
-- **Admins** can jump to any named place (Admin > *Go to a place*), e.g. `Ashford_Market`, `Waystone_Highwatch`.
+- **Admins** can jump to any named place (Admin > *Go to a place*): `Ashford_Market`, `The_Green_Dragon`,
+  `Waystone_Highwatch`...
+- `Dev/migrate/build_market.py` (signs) and `Dev/migrate/build_town_life.py` (boards, vendors, tavern, digging,
+  raids) make all of this.
 
 ## Bringing over old desktop characters
 

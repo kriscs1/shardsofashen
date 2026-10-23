@@ -112,6 +112,7 @@ export function drawUI(ctx, now) {
   drawBanner(ctx, now);
   drawOnline(ctx, now);
   drawArena(ctx, now);
+  drawWave(ctx, now);
   drawSleep(ctx, now);
   ctx.restore();
   drawMinimap(ctx);
@@ -656,7 +657,7 @@ function drawBox(ctx) {
     titleX = 22; titleY = 21;
   }
   const tw = drawText(ctx, b.title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
-  const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Stall: "Market stall" }[b.mode];
+  const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Market: "everyone's goods" }[b.mode];
   if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + 5, 9, false, [212, 191, 126]);
   if (b.mode === "Conversation") {
     const maxW = w - titleX - 28;
@@ -679,7 +680,7 @@ function drawBox(ctx) {
   const gap = G.tw + 5;
   b.items.forEach((it, n) => {
     const x = x0 + 66 + gap * (n % cols), y = y0 + 45 + gap * Math.floor(n / cols);
-    const price = b.mode === "Stall" ? (b.prices || [])[it.i] : 0;      // (a stall: each thing's price on it)
+    const price = b.mode === "Market" ? (b.prices || [])[it.i] : 0;     // (the market: each thing's price on it)
     slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : price ? price + "g" : "",
       cross: !!(it.short || it.missing), badgeInk: price ? [255, 222, 90] : null });
   });
@@ -698,7 +699,7 @@ export function boxItemAt(x, y) {
     if (x >= ix && x < ix + G.tw && y >= iy && y < iy + G.th) {
       const it = b.items[n];
       return { k: T.RACKITEM, n: it.name, q: it.qty, i: it.i, short: it.short, missing: it.missing,
-        price: (b.prices || [])[it.i] };
+        price: (b.prices || [])[it.i], seller: (b.sellers || [])[it.i], mine: !!(b.mine || [])[it.i] };
     }
   }
   return null;
@@ -998,6 +999,23 @@ function drawArena(ctx, now) {
   const pulse = 0.75 + 0.25 * Math.sin(now / 300);
   roundBox(ctx, x, y, w, 24, `rgba(70,10,8,${0.82 * pulse})`, [214, 90, 60], 2, 10);
   drawTextMid(ctx, text, x + 14, y, 24, 10, true, [255, 220, 170]);
+}
+
+function drawWave(ctx, now) {
+  // Monsters attacking in waves (the server's waves.py): which wave, how many are left, the time
+  const v = S.wave;
+  if (!v || !v.name) return;
+  const secs = Math.max(0, v.secs - Math.floor((now - v.at) / 1000));
+  const clock = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+  const next = v.next ? Math.max(0, v.next - Math.floor((now - v.at) / 1000)) : 0;
+  const line2 = next ? `Wave ${v.wave} beaten! Wave ${v.wave + 1} of ${v.waves} in ${next}s`
+    : `Wave ${v.wave} of ${v.waves}  -  ${v.left} left  -  ${clock} to hold them off`;
+  const w = Math.max(textWidth(ctx, v.name.toUpperCase(), 11, true), textWidth(ctx, line2, 9, true)) + 32;
+  const x = Math.floor((L.VW - w) / 2), y = S.me.arena ? 38 : 8;
+  const pulse = 0.8 + 0.2 * Math.sin(now / 220);
+  roundBox(ctx, x, y, w, 40, `rgba(60,12,6,${0.85 * pulse})`, [230, 120, 40], 2, 10);
+  centreText(ctx, x + w / 2, y + 4, v.name.toUpperCase(), 11, true, [255, 200, 120]);
+  centreText(ctx, x + w / 2, y + 21, line2, 9, true, [255, 235, 200]);
 }
 
 function drawSleep(ctx, now) {

@@ -34,3 +34,5 @@ Id	Waystone_Dunerest	12	8
 StaticObject	Homestone	256	256
 
 StaticObject	Sign_General	160	464
+
+StaticObject	Market_Board	288	176

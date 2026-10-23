@@ -843,6 +843,8 @@ def check_script_reachability(references, triggers):
             ok = True    # map-entry script
         if s.endswith(" Skill"):
             ok = True    # run when that skill is clicked in the stat box
+        if s in WAVE_SCRIPTS:
+            ok = True    # a monster attack's On.Win.Script / On.Lose.Script (Data\Waves.ini)
         if s in triggers or ("name", s) in references or any(k == "re" and re.fullmatch(v, s) for k, v in references):
             ok = True
         if not ok:
@@ -1563,9 +1565,25 @@ def check_quests():
             err(where, "no script sets %s to Done=%s, so the quest can never be completed" % (attr, done))
 
 
+ENGINE_RACKS = {"SHOP-Tavern"}      # opened by the server itself (the innkeeper: dsengine/tavern.py)
+
+
+def wave_scripts():
+    """The scripts Data\Waves.ini's attacks run at the end (On.Win.Script, On.Lose.Script)."""
+    out = set()
+    for ln in read_lines(p("Data", "Waves.ini")):
+        k, _, v = ln.partition("=")
+        if k.strip().lower() in ("on.win.script", "on.lose.script") and v.strip():
+            out.add(v.strip())
+    return out
+
+
+WAVE_SCRIPTS = set()
+
+
 def check_rack_use(racks):
     """Every shop and craft list should be opened by some script (an NPC, a station or a skill click)."""
-    opened = set()
+    opened = set(ENGINE_RACKS)
     for s in SCRIPTS:
         for cmd, args in script_lines(s):
             if cmd == "Display.Item.Rack" and len(args) >= 3:
@@ -1831,8 +1849,9 @@ def main():
     tiles_ini = check_tiles()
     entities_ini = check_entities()
     skills = check_config(tiles_ini)
-    global ENTITIES_INI
+    global ENTITIES_INI, WAVE_SCRIPTS
     ENTITIES_INI = entities_ini
+    WAVE_SCRIPTS = wave_scripts()
     check_equipment(entities_ini, skills)
     racks = check_itemracks(entities_ini, skills)
     triggers = set()

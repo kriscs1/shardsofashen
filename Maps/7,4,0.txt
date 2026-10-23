@@ -38,3 +38,5 @@ Id	Waystone_Emberwatch	12	12
 StaticObject	Homestone	256	384
 
 StaticObject	Sign_General	64	496
+
+StaticObject	Market_Board	288	304

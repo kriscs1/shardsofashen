@@ -477,6 +477,9 @@ class ScriptMixin:
         elif c == "Wait":
             self.script_wait_until = self.now + val(arg[1]) * 1000
             self.script_state = "WAIT"
+        elif c == "Start.Wave":
+            # Start.Wave <name>: a Data\Waves.ini attack starts (a quest's battle; for everyone there)
+            self.w.waves.start(trim(arg[1]), by=self)
         elif c == "Teleport":
             target = arg[2] if arg[2] not in ("", "-") else self.screen_name
             x, y = p.x - self.map_ox(), p.y - self.map_oy()
