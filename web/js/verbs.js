@@ -200,9 +200,8 @@ export function spellStatus(name) {
   const skill = spellIni(spell, "Skill", "Magic");
   const have = skillLevel(skill);
   if (have < level) return `Needs ${skill} ${lbstr(level)}`;
-  const chance = Math.min(98, Math.max(20, 60 + (have - level) * 7));
   const cost = val(spellIni(spell, "Cost", "0"));
-  let s = `${lbstr(cost)} mana, ${chance}% to work`;
+  let s = `${lbstr(cost)} mana`;
   const cd = (S.me.cooldowns || {})[spell];
   s += cd > 0 ? `|Ready in ${Math.ceil(cd / 1000)} s` : "|Ready";
   if (S.me.mana < cost) s += " (not enough mana)";

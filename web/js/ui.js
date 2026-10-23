@@ -31,7 +31,7 @@ export function layout(W) {
   const [, rbh] = size("ResponseBox");
   L.abX = Math.floor((L.VW - abw) / 2);
   L.abY = Math.floor((L.VH - (abh + rbh)) / 2);
-  L.rbX = Math.floor((L.VW - size("ResponseBox")[0]) / 2);
+  L.rbX = L.abX;                                    // (the answers line up with the box above them)
   L.rbY = L.abY + abh;
   L.helpX = L.VW + 18;
   L.helpY = 18;
@@ -120,10 +120,11 @@ export function drawUI(ctx, now) {
   const mm = sprite("MinimapMarker");
   if (mm) ctx.drawImage(mm, L.mmX - 4, L.mmY - 4);
   drawClock(ctx, now);
-  sidebarButton(ctx, L.helpX, L.helpY, "? Help", U.hover === "help", [[126, 77, 63], [160, 104, 80]],
+  sidebarButton(ctx, L.helpX, L.helpY, "Journal", U.hover === "help", [[126, 77, 63], [160, 104, 80]],
     [[243, 232, 136], [255, 255, 255]], [77, 43, 33]);
   if (S.admin) sidebarButton(ctx, L.helpX, L.helpY + 26, "Admin", U.hover === "admin", [[48, 76, 104], [70, 110, 150]],
     [[210, 230, 250], [255, 255, 255]], [30, 40, 60]);
+  drawLevelBadge(ctx, L.helpX, L.helpY + (S.admin ? 56 : 30));
   const border = sprite("SideBarBorder");
   if (border) ctx.drawImage(border, 0, 0, border.width, VH + 96, VW, 0, border.width, VH + 96);
   drawStats(ctx);
@@ -266,6 +267,19 @@ function drawMinimap(ctx) {
       if (px < vx + 5 || px > vx + L.mmSize - 6 || py < vy + 5 || py > vy + L.mmSize - 6) continue;
       cross(ctx, [0, 0, 0], px, py, 5, 2);
       cross(ctx, [255, 220, 40], px, py, 4, 1);
+    }
+  }
+  const gr = S.me.grave;                          // your grave: a gravestone on the minimap (at its edge, if far off)
+  if (gr && gr.map) {
+    const [mx, my, mz] = String(gr.map).split(",").map(Number);
+    if (mz === S.mapZ) {
+      let px = L.mmX - u + ((mx - g.ox) * G.xt + (gr.x + 16) / G.tw) * k;
+      let py = L.mmY - v + ((my - g.oy) * G.yt + (gr.y + 28) / G.th) * k;
+      const dx = px - L.mmX, dy = py - L.mmY, far = Math.hypot(dx, dy), edge = L.mmSize / 2 - 10;
+      if (far > edge) { px = L.mmX + dx / far * edge; py = L.mmY + dy / far * edge; }
+      const stone = sprite("Gravestone");
+      if (stone) ctx.drawImage(stone, Math.round(px - 7), Math.round(py - 9), 14, 18);
+      else cross(ctx, [230, 230, 230], Math.round(px), Math.round(py), 4, 1);
     }
   }
   ctx.restore();
@@ -670,14 +684,22 @@ function drawBox(ctx) {
   if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + 5, 9, false, [212, 191, 126]);
   if (b.mode === "Conversation") {
     const maxW = w - titleX - 28;
+    let parts = String(b.text).split("|").filter(Boolean);
+    // (a notice's first line in capitals - THE OLD BRICK HOUSE - is its heading: gold, and a gap after it)
+    let heading = "";
+    if (parts.length > 1 && /[A-Z]/.test(parts[0]) && parts[0] === parts[0].toUpperCase()) heading = parts.shift();
     let sz = 9, lineH = 14, lines = [];
     for (sz of [11, 10, 9]) {
       lineH = Math.max(14, fontPx(sz) + 3);
       lines = [];
-      for (const part of String(b.text).split("|")) if (part) lines.push(...wrapLines(ctx, part, maxW, sz, true));
-      if (lines.length * lineH <= h - 58) break;
+      for (const part of parts) lines.push(...wrapLines(ctx, part, maxW, sz, true));
+      if (lines.length * lineH + (heading ? lineH + 8 : 0) <= h - 58) break;
     }
     let y = 48;
+    if (heading) {
+      drawText(ctx, heading, x0 + titleX, y0 + y, 11, true, [255, 214, 110]);
+      y += lineH + 8;
+    }
     for (const ln of lines) {
       if (y + lineH > h - 10) break;
       drawText(ctx, ln, x0 + titleX, y0 + y, sz, true, [250, 240, 210]);
@@ -752,46 +774,42 @@ export function boxCloseAt(x, y) {
   return S.box.mode && x >= L.abX + 430 && x <= L.abX + 450 && y >= L.abY + 10 && y <= L.abY + 25;
 }
 
+// ----- the answers under the box: a row each, attached to the box, numbered (press the number, or click it)
+const RB_TOP = 6, RB_ROW = 24;
+
 function responseBoxH() {
-  const [, bh] = size("ResponseBox");
-  return Math.max(bh, 8 + S.box.responses.length * 16 + 22);
+  return Math.max(54, RB_TOP + S.box.responses.length * RB_ROW + 8);
 }
 
 function drawResponses(ctx) {
   const b = S.box;
-  const [w, ih] = size("ResponseBox");
+  const [w] = size(boxBackground());
   const h = responseBoxH();
-  const im = sprite("ResponseBox");
-  const x0 = L.rbX - 1, y0 = L.rbY;
-  if (im) {
-    if (h <= ih) ctx.drawImage(im, x0, y0);
-    else {
-      const top = 30, bottom = 20;
-      ctx.drawImage(im, 0, 0, w, top, x0, y0, w, top);
-      ctx.drawImage(im, 0, top, w, ih - top - bottom, x0, y0 + top, w, h - top - bottom);
-      ctx.drawImage(im, 0, ih - bottom, w, bottom, x0, y0 + h - bottom, w, bottom);
-    }
-  } else roundBox(ctx, x0, y0, w, h, [212, 191, 126], [77, 43, 33], 2, 10);
+  const x0 = L.rbX, y0 = L.rbY;
+  roundBox(ctx, x0 + 8, y0 - 6, w - 16, h + 6, [40, 27, 20], [150, 104, 62], 2, 12);
   b.responses.forEach((r, i) => {
-    drawTextMid(ctx, `${i + 1}. ${r}`, x0 + 41, y0 + 7 + i * 16, 16, 10, true, U.rbHover === i + 1 ? [200, 30, 20] : [0, 0, 0]);
+    const y = y0 + RB_TOP + i * RB_ROW;
+    const hot = U.rbHover === i + 1;
+    roundBox(ctx, x0 + 18, y, w - 36, RB_ROW - 3, hot ? [96, 64, 42] : [60, 41, 31], hot ? [236, 196, 92] : [98, 70, 52], 1, 8);
+    ctx.fillStyle = hot ? "rgb(236,196,92)" : "rgb(160,112,66)";
+    ctx.beginPath(); ctx.arc(x0 + 33, y + (RB_ROW - 3) / 2, 8, 0, 6.283); ctx.fill();
+    centreText(ctx, x0 + 33, y + 3, String(i + 1), 8, true, [40, 26, 18]);
+    drawTextMid(ctx, r, x0 + 48, y, RB_ROW - 3, 10, true, hot ? [255, 242, 196] : [238, 224, 190]);
   });
 }
 
 export function responseAt(x, y) {
   if (!S.box.mode) return 0;
-  const [w] = size("ResponseBox");
-  const h = responseBoxH();
-  if (x < L.rbX + 20 || x > L.rbX + w - 20 || y < L.rbY || y > L.rbY + h) return 0;
-  if (y > L.rbY + 7 && y < L.rbY + (S.box.responses.length + 1) * 16) {
-    const n = Math.floor((y - L.rbY - 7) / 16) + 1;
-    return n <= S.box.responses.length ? n : 0;
-  }
-  return 0;
+  const [w] = size(boxBackground());
+  if (x < L.rbX + 18 || x > L.rbX + w - 18) return 0;
+  const n = Math.floor((y - L.rbY - RB_TOP) / RB_ROW) + 1;
+  const inRow = (y - L.rbY - RB_TOP) % RB_ROW < RB_ROW - 3;
+  return y >= L.rbY + RB_TOP && inRow && n >= 1 && n <= S.box.responses.length ? n : 0;
 }
 
 export function responseBoxRect() {
   if (!S.box.mode) return null;
-  return [L.rbX, L.rbY, size("ResponseBox")[0], responseBoxH()];
+  return [L.rbX, L.rbY - 6, size(boxBackground())[0], responseBoxH() + 6];
 }
 
 // ----- the chat bar and the hover box
@@ -1086,6 +1104,14 @@ export function drawBoosts(ctx, now, mx, my) {
     roundBox(ctx, tip[0], tip[1], w, 20, [20, 14, 10, 0.92], [212, 191, 126], 1, 5);
     drawText(ctx, tip[2], tip[0] + 7, tip[1] + 4, 9, true, [250, 240, 210]);
   }
+}
+
+function drawLevelBadge(ctx, x, y) {
+  // Your character's level (the best of your fighting skills: Config [Gameplay] Level.Skills)
+  const lv = S.me.level || S.level || 1;
+  roundBox(ctx, x, y, 52, 38, [40, 27, 20], [214, 170, 70], 2, 10);
+  centreText(ctx, x + 26, y + 3, "LEVEL", 7, true, [212, 191, 126]);
+  centreText(ctx, x + 26, y + 15, String(lv), 13, true, [255, 230, 140]);
 }
 
 function drawSleep(ctx, now) {

@@ -555,6 +555,11 @@ class ActionsMixin:
         t = msg.get("t")
         if not self.in_world():
             return
+        if self.dead_wait:                  # (dead: nothing but waking up again, and looking at things)
+            if t == "respawn":
+                self.respawn()
+            if t not in ("journal", "explored", "look", "close"):
+                return
         if t == "move":
             d = int(msg.get("dir", 0)) & 15
             if d & 5 == 5:

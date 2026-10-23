@@ -267,6 +267,8 @@ class GameServer:
             s.dirty_me = s.dirty_quests = s.cells_dirty = s.weather_dirty = True
             if not s.ready:
                 s.enter_world()
+            if s.dead_wait:                 # (they died and went: back to life, where they'd have woken)
+                s.respawn()
         else:
             s = Session(w, name, admin=bool(admin) or name.lower() in self.admins)
             saved = self.store.load_character(name)

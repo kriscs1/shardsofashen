@@ -807,8 +807,8 @@ class ItemsMixin:
         m = self.cur_map
         self.grave = {"map": m.name, "x": int(p.fx - m.ox) - 16, "y": int(p.fy - m.oy) - 28, "items": items,
                       "left": self.grave_minutes() * 60000}
-        self.display_message("Everything you carried lies in a grave where you fell (map %s). Get back to it within "
-                             "%s minutes!" % (m.name, lbstr(self.grave_minutes())), "DAMAGE")
+        self.display_message("Everything else you carried lies in a grave where you fell: it's marked on your "
+                             "minimap. Get back to it within %s minutes!" % lbstr(self.grave_minutes()), "DAMAGE")
 
     def death_sort(self):
         """Dying: what you can't drop stays with you, and so do your most valuable things (Config [Gameplay]
@@ -859,8 +859,12 @@ class ItemsMixin:
                 kept_names.append(self.equipped[i])
         self.recalc_equipment()
         if kept_names:
+            counts = {}
+            for n in kept_names:
+                counts[n] = counts.get(n, 0) + 1
             self.display_message("You keep your most valuable things: %s." %
-                                 ", ".join(pretty(n) for n in kept_names), "INFO")
+                                 ", ".join(("%d %s" % (q, pretty(n)) if q > 1 else pretty(n)) for n, q in counts.items()),
+                                 "INFO")
         return grave
 
     def kept_on_death(self, name):

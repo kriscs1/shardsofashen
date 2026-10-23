@@ -89,6 +89,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.cooldowns = {}
         self.clear_boosts_values()
         self.boost_from = {}                # kind -> the potion or scroll it came from (attack, defence, magic, sight)
+        self.dead_wait = None               # (map, x, y, at their bed): dead, until they choose to respawn
         self.player_sprite_base = "Player"
         self.player_max_hp = int(d.hp_base + 2 * d.hp_per_level)
         self.player_mana = -1
@@ -383,6 +384,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "home_return": list(self.home_return) if self.home_return else None,
             "chests": self.chests_state(),
         }
+        if self.dead_wait:                  # (dead and gone: they come back where they'd have woken)
+            st["map"], st["x"], st["y"] = self.dead_wait[0], int(self.dead_wait[1]), int(self.dead_wait[2])
+            st["hp"] = self.player_max_hp
         return st
 
     ITEM_RENAMES = {"Key": "Beggars_House_Key"}
@@ -895,7 +899,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "boost_left": {k: max(0, getattr(self, "spell_%s_until" % k) - self.now)
                            for k in ("attack", "defence", "magic", "sight") if getattr(self, "spell_%s_until" % k)},
             "boost_from": dict(self.boost_from),
-            "grave": ({"map": self.grave["map"], "left": int(self.grave["left"])} if self.grave else None),
+            "grave": ({"map": self.grave["map"], "left": int(self.grave["left"]), "x": int(self.grave["x"]),
+                       "y": int(self.grave["y"])} if self.grave else None),
+            "dead": bool(self.dead_wait),
         }
 
     def quests_state(self):

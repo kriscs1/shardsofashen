@@ -103,7 +103,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 });
 
 function overlayOpen() {
-  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
+  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password", "death"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -226,6 +226,7 @@ $("admin-pw-go").onclick = () => {
   send({ t: "admin_password", name: $("admin-pw-name").value.trim(), new: $("admin-pw-new").value });
   $("admin-pw-new").value = "";
 };
+$("death-respawn").onclick = () => send({ t: "respawn" });
 // ----- changing your own password (Options)
 $("opt-password").onclick = () => {
   for (const id of ["pw-old", "pw-new", "pw-again"]) $(id).value = "";
@@ -428,6 +429,20 @@ N.onMessage = (m) => {
     case "sleep": S.sleep = { start: now, fade: m.fade, hold: m.hold, text: m.text }; break;
     case "journal": S.journal = m; break;
     case "buildables": onBuildables(m); break;
+    case "died": {
+      // (dead: the view goes dark and red; they wake when they choose to)
+      const bits = [];
+      if (m.lost) bits.push(`You lost ${m.lost} gold.`);
+      bits.push("You kept your most valuable things, and anything you can't drop.");
+      if (m.grave) bits.push(`Everything else is in your grave, marked on the minimap: get back to it within ${m.minutes} minutes.`);
+      bits.push(m.bed ? "You'll wake in your bed at home." : "You'll wake at the start.");
+      $("death-text").textContent = bits.join(" ");
+      releaseKeys();
+      $("death").hidden = false;
+      setTimeout(() => $("death-respawn").focus(), 50);
+      break;
+    }
+    case "respawned": $("death").hidden = true; canvas.focus(); break;
     case "password_result":
       $("pw-status").textContent = m.text;
       $("pw-status").className = m.ok ? "ok small" : "error small";
@@ -483,6 +498,7 @@ function frame(now) {
   } else {
     drawWorld(ctx, L.VW, L.VH, now, dt, smoothing);
     drawBuild(ctx, I.mx, I.my, smoothing);
+    if (S.me.dead) { ctx.fillStyle = "rgba(70,0,0,0.55)"; ctx.fillRect(0, 0, L.VW, L.VH); }    // (dead)
     ctx.imageSmoothingEnabled = smoothing;
     drawUI(ctx, now);
     drawBoosts(ctx, now, I.mx, I.my);

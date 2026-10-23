@@ -304,7 +304,11 @@ def test_home_bed_is_where_you_wake(world):
     world.tick(0.05)
     assert a.build(10, 10, "Bed001")
     world.homes.home_of("Sleeper")["bed"] = [10, 10]
+    a.leave_home()                                                 # (they die somewhere else)
+    world.tick(0.05)
+    assert not a.on_own_home()
     a.player_dies()
+    a.handle({"t": "respawn"})
     world.tick(0.05)
     assert a.on_own_home()
     leave(world, a)
@@ -623,3 +627,21 @@ def test_not_skilled_enough_plays_a_sound(world):
     s.cast_scroll(scroll, None)
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in s.out)
     leave(world, s)
+
+
+def test_dying_waits_for_the_player_to_respawn(world):
+    a = join(world, "Mortal", "2,3,0", 384, 300)
+    where = (a.player.x, a.player.y, a.cur_map.name)
+    a.player_dies()
+    assert any(e.get("t") == "died" for e in a.out) and any(e.get("name") == "Death" for e in a.out)
+    world.tick(0.05)
+    assert (a.player.x, a.player.y, a.cur_map.name) == where and not a.player_visible      # (still where they fell)
+    a.handle({"t": "move", "dir": 2})
+    for _ in range(5):
+        world.tick(0.05)
+    assert (a.player.x, a.player.y) == where[:2]                   # (no walking while dead)
+    assert a.save_state()["map"] == world.data.start_map           # (logging off now: they'd wake at the start)
+    a.handle({"t": "respawn"})
+    world.tick(0.05)
+    assert a.cur_map.name == world.data.start_map and a.player_visible and not a.dead_wait
+    leave(world, a)

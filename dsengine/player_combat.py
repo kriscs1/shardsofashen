@@ -465,6 +465,7 @@ class CombatMixin:
         d = self.data
         self.display_message("Oh dear, you are dead!", "ERROR")
         self.play_sound("Death", (self.player.cx, self.player.cy))
+        self.play_sound("Death")                            # (to them, whatever the distance)
         gold = self.items_held("Gold_Coin(s)")
         lost = int(gold * d.death_gold_loss / 100)
         if lost > 0:
@@ -480,12 +481,29 @@ class CombatMixin:
         for e in self.w.ents:
             if e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
+        # Dead: they stay where they fell (unseen, nothing can touch them) until they choose to wake (Respawn)
         bed = self.home_respawn()
         if bed is not None:
-            self.teleport(*bed)
-            self.display_message("You wake in your own bed.", "INFO")
-        elif d.map_exists(d.start_map):
-            self.teleport(d.start_map, d.start_x, d.start_y)
+            self.dead_wait = (bed[0], bed[1], bed[2], True)
+        else:
+            self.dead_wait = (d.start_map, d.start_x, d.start_y, False)
+        self.player_visible = False
+        self.emit({"t": "died", "lost": lost, "grave": bool(self.grave), "minutes": self.grave_minutes(),
+                   "bed": bed is not None})
+        self.dirty_me = True
+
+    def respawn(self):
+        """The player chose to wake up again (after dying): at their bed at home, or the start."""
+        if not self.dead_wait:
+            return
+        m, x, y, bed = self.dead_wait
+        self.dead_wait = None
+        self.player_visible = val(self.data.config_read("Gameplay", "Player.Visible", "1")) == 1
+        self.player.hp = self.player_max_hp
+        if self.w.map_named(m) is not None:
+            self.teleport(m, x, y)
+        self.display_message("You wake in your own bed." if bed else "You wake up, alive again.", "INFO")
+        self.emit({"t": "respawned"})
         self.dirty_me = True
 
     # =================================================================================================================
