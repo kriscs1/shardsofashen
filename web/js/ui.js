@@ -394,8 +394,10 @@ function drawSkillsTab(ctx) {
     if (!skillShown(i + 1)) return;
     k++;
     const lv = levelOfXp(me.xp[i]);
-    skillTile(ctx, k, configRead("Skills", "Icon." + name, "").trim(), String(lv),
-      lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT, levelProgress(me.xp[i]));
+    // (a potion or spell boosting it: its level shows "+N", green, while it lasts)
+    const boost = (me.boosts || {})[{ Strength: "attack", Defence: "defence", Magic: "magic" }[name]] || 0;
+    skillTile(ctx, k, configRead("Skills", "Icon." + name, "").trim(), boost ? `${lv}+${boost}` : String(lv),
+      boost ? [120, 235, 120] : lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT, levelProgress(me.xp[i]));
   });
 }
 
@@ -1016,6 +1018,47 @@ function drawWave(ctx, now) {
   roundBox(ctx, x, y, w, 40, `rgba(60,12,6,${0.85 * pulse})`, [230, 120, 40], 2, 10);
   centreText(ctx, x + w / 2, y + 4, v.name.toUpperCase(), 11, true, [255, 200, 120]);
   centreText(ctx, x + w / 2, y + 21, line2, 9, true, [255, 235, 200]);
+}
+
+// ----- what potions and spells are doing for you now: an icon each, the time left, and what it does (hover)
+const BOOST_WORDS = { attack: (n) => `+${n} Attack`, defence: (n) => `+${n} Defence`,
+  magic: (n) => `+${n} spell damage`, sight: () => "far sight" };
+
+export function drawBoosts(ctx, now, mx, my) {
+  const me = S.me;
+  if (!me || !me.boost_left || !S.boostAt) return;
+  const groups = new Map();                       // the potion (or scroll) -> [kinds, ms left]
+  for (const [kind, ms] of Object.entries(me.boost_left)) {
+    const left = ms - (now - S.boostAt);
+    if (left <= 0 || !(me.boosts || {})[kind]) continue;
+    const from = (me.boost_from || {})[kind] || "Magic_Burst";
+    const g = groups.get(from) || { kinds: [], left: 0 };
+    g.kinds.push(kind);
+    g.left = Math.max(g.left, left);
+    groups.set(from, g);
+  }
+  let x = 8;
+  const y = L.VH - 58;                            // (the bottom-left corner of the view, clear of the hotbar)
+  let tip = null;
+  for (const [from, g] of groups) {
+    const blink = g.left < 10000 && Math.floor(now / 300) % 2 === 0;
+    roundBox(ctx, x, y, 40, 50, [34, 22, 16, 0.88], blink ? [230, 90, 60] : [120, 230, 120], 2, 7);
+    const im = sprite(from) || sprite("Magic_Burst");
+    if (im) ctx.drawImage(im, x + 4, y + 3, 32, 32);
+    const s = Math.ceil(g.left / 1000);
+    centreText(ctx, x + 20, y + 36, `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`, 8, true,
+      blink ? [255, 140, 110] : [235, 245, 220]);
+    if (mx >= x && mx < x + 40 && my >= y && my < y + 50) {
+      tip = [x, y - 24, `${pretty(from)}: ${g.kinds.map((k) => BOOST_WORDS[k](me.boosts[k])).join(", ")}` +
+        ` (${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} left)`];
+    }
+    x += 46;
+  }
+  if (tip) {
+    const w = textWidth(ctx, tip[2], 9, true) + 14;
+    roundBox(ctx, tip[0], tip[1], w, 20, [20, 14, 10, 0.92], [212, 191, 126], 1, 5);
+    drawText(ctx, tip[2], tip[0] + 7, tip[1] + 4, 9, true, [250, 240, 210]);
+  }
 }
 
 function drawSleep(ctx, now) {

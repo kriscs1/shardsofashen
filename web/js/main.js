@@ -5,7 +5,7 @@ import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, my
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, setZoom, changeZoom } from "./render.js";
 import { invalidateMap, invalidateCell } from "./ground.js";
-import { L, U, layout, drawUI, preloadInterface, showBanner, levelOfXp } from "./ui.js";
+import { L, U, layout, drawUI, drawBoosts, preloadInterface, showBanner, levelOfXp } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal } from "./input.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
@@ -385,6 +385,7 @@ N.onMessage = (m) => {
     }
     case "me":
       S.me = m;
+      S.boostAt = now;                                        // (boost_left counts down from here)
       S.view = m.view;
       updateBuild();
       if (S.itemInUse && !m.inv.some((i) => i[0] === S.itemInUse)) S.itemInUse = 0;
@@ -484,6 +485,7 @@ function frame(now) {
     drawBuild(ctx, I.mx, I.my, smoothing);
     ctx.imageSmoothingEnabled = smoothing;
     drawUI(ctx, now);
+    drawBoosts(ctx, now, I.mx, I.my);
   }
   if (I.mx >= 0 && !overlayOpen()) mouseMove(I.mx, I.my);
   updateCursor(canvas, now);

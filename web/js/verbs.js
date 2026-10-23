@@ -124,9 +124,33 @@ export function itemInUseName() {
   return it ? it[1] : "";
 }
 
+// What a potion or spell scroll does, from Data/Spells.ini: "+5 spell damage, 2 min" (shown on Drink / Cast)
+export function spellSummary(spell) {
+  const eff = spellIni(spell, "Effect", "").toUpperCase();
+  const n = (k) => val(spellIni(spell, k, "0"));
+  const parts = [];
+  if (eff === "BOOST" || eff === "SHIELD") {
+    if (n("Attack")) parts.push(`+${n("Attack")} Attack`);
+    if (n("Defence")) parts.push(`+${n("Defence")} Defence`);
+    if (n("Magic")) parts.push(`+${n("Magic")} spell damage`);
+    if (n("Sight")) parts.push("far sight");
+    const s = n("Duration") || 60;
+    parts.push(s % 60 === 0 ? `${s / 60} min` : `${s} s`);
+  } else if (eff === "HEAL") parts.push(`heals ${spellIni(spell, "Heal", "")}`);
+  else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellIni(spell, "Damage", "")} damage`);
+  else if (eff === "TELEPORT" || eff === "HOME") parts.push("teleports you");
+  if (n("Mana")) parts.push(`+${n("Mana")} mana`);
+  return parts.join(", ");
+}
+
 export function verbLabel(verb, e) {
   if (!e || verb === "Walk here" || verb === "Cancel") return verb;
   const name = displayName(e);
+  if ((verb === "Drink" || verb === "Cast") && e.k === T.INVITEM) {
+    const spell = entityIni(e.n, "Spell", "").trim();
+    const what = spell ? spellSummary(spell) : "";
+    if (what) return `${verb} ${name} (${what})`;
+  }
   if (verb === "Use with") return `Use ${pretty(itemInUseName())} with ${name}`;
   if (verb === "Attack") return `Attack ${name} (${lbstr(e.hp)}/${lbstr(e.mh)})`;
   if ((verb === "Buy 1" || verb === "Buy 5") && S.box.mode === "Market") return `${verb} ${name} (${e.price} gold each, from ${e.seller})`;

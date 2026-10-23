@@ -5,6 +5,7 @@
   * web/img/icon.png (256 x 256): the Docker container's icon (Unraid: the template's Icon), and for phones' home
     screens (apple-touch-icon).
   * web/img/favicon.png (64 x 64): the browser tab's icon.
+  * Sprites/Entities/Magic_Burst.png (32 x 32): the Magic skill's icon (Config [Skills] Icon.Magic), a magical blast.
 The server serves them at /img/icon.png and /img/favicon.png. Run it again to redraw them (it overwrites them)."""
 import math
 import os
@@ -53,13 +54,42 @@ def icon():
     return s
 
 
+def star(c, r_out, r_in, points, turn=0.0, wobble=None):
+    pts = []
+    for i in range(points * 2):
+        a = turn + i * math.pi / points
+        r = r_out if i % 2 == 0 else r_in
+        if wobble:
+            r *= wobble[i % len(wobble)]
+        pts.append((c + r * math.cos(a), c + r * math.sin(a)))
+    return pts
+
+
+def magic_burst():
+    """A magical blast, drawn 4 times bigger and smoothed down to 32 x 32."""
+    k = 4
+    n = 32 * k
+    s = pygame.Surface((n, n), pygame.SRCALPHA)
+    c = n / 2
+    wob = [1.0, 0.82, 1.08, 0.9, 0.95, 0.78, 1.04, 0.88]
+    pygame.draw.polygon(s, (60, 20, 90), star(c, 15.5 * k, 7.5 * k, 10, 0.1, wob))         # the dark edge
+    pygame.draw.polygon(s, (150, 60, 220), star(c, 14 * k, 6.5 * k, 10, 0.1, wob))         # violet flame
+    pygame.draw.polygon(s, (236, 120, 255), star(c, 10.5 * k, 5 * k, 8, 0.45, wob[::-1]))  # magenta
+    pygame.draw.polygon(s, (255, 214, 110), star(c, 7.5 * k, 3.6 * k, 8, 0.1))             # gold
+    pygame.draw.circle(s, (255, 250, 230), (int(c), int(c)), int(3.2 * k))                  # the white-hot core
+    for x, y, r in ((5, 6, 1.3), (26, 5, 1.1), (28, 24, 1.4), (4, 25, 1.0), (16, 2, 0.9)):  # sparks
+        pygame.draw.circle(s, (255, 240, 180), (x * k, y * k), int(r * k))
+    return pygame.transform.smoothscale(s, (32, 32))
+
+
 def main():
     pygame.init()
+    pygame.image.save(magic_burst(), os.path.join(ROOT, "Sprites", "Entities", "Magic_Burst.png"))
     img = icon()
     os.makedirs(OUT, exist_ok=True)
     pygame.image.save(img, os.path.join(OUT, "icon.png"))
     pygame.image.save(pygame.transform.smoothscale(img, (64, 64)), os.path.join(OUT, "favicon.png"))
-    print("Made web/img/icon.png and web/img/favicon.png")
+    print("Made web/img/icon.png, web/img/favicon.png and Sprites/Entities/Magic_Burst.png")
 
 
 if __name__ == "__main__":

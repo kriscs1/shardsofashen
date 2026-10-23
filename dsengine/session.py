@@ -87,6 +87,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.status = {}
         self.cooldowns = {}
         self.clear_boosts_values()
+        self.boost_from = {}                # kind -> the potion or scroll it came from (attack, defence, magic, sight)
         self.player_sprite_base = "Player"
         self.player_max_hp = int(d.hp_base + 2 * d.hp_per_level)
         self.player_mana = -1
@@ -882,6 +883,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "level": self.player_level(), "arena": self.on_arena_ground(), "home": self.home_state(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
             "boosts": {"attack": self.spell_attack_bonus, "defence": self.spell_defence_bonus,
                        "magic": self.spell_magic_bonus, "sight": self.spell_sight_bonus},
+            "boost_left": {k: max(0, getattr(self, "spell_%s_until" % k) - self.now)
+                           for k in ("attack", "defence", "magic", "sight") if getattr(self, "spell_%s_until" % k)},
+            "boost_from": dict(self.boost_from),
             "grave": ({"map": self.grave["map"], "left": int(self.grave["left"])} if self.grave else None),
         }
 

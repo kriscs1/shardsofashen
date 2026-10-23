@@ -113,15 +113,26 @@ class CombatMixin:
     # =================================================================================================================
     # Hitpoints coming back, boosts wearing off, mana
     # =================================================================================================================
+    BOOST_WORDS = {   # kind: (what it does, +N, said when it wears off)
+        "attack": ("+%s Attack (you hit harder)", "you hit as hard as before"),
+        "defence": ("+%s Defence (harder to hurt)", "your Defence is back to normal"),
+        "magic": ("+%s spell damage", "your spells are back to normal"),
+        "sight": ("you see much further in the dark and fog", "your eyesight is back to normal"),
+    }
+
     def update_player_health(self):
         now = self.now
-        for kind, msg in (("defence", "Your extra Defence wears off."), ("attack", "Your extra Attack wears off."),
-                          ("magic", "Your extra Magic wears off."), ("sight", "Your eyesight is back to normal.")):
+        for kind in ("defence", "attack", "magic", "sight"):
             until = getattr(self, "spell_%s_until" % kind)
             if until > 0 and (now >= until or now < until - 600000):
                 setattr(self, "spell_%s_bonus" % kind, 0)
                 setattr(self, "spell_%s_until" % kind, 0)
-                self.display_message(msg, "INFO")
+                source = self.boost_from.pop(kind, "")
+                what = self.BOOST_WORDS[kind][1]
+                self.display_message("Your %s has worn off: %s." % (pretty(source), what) if source else
+                                     "Your boost has worn off: %s." % what, "ERROR")
+                self.play_sound("Miss")
+                self.recalc_equipment()
                 self.dirty_me = True
         if now < self.hp_regen_last:
             self.hp_regen_last = now
@@ -153,7 +164,27 @@ class CombatMixin:
 
     def clear_boosts(self):
         self.clear_boosts_values()
+        self.boost_from = {}
         self.dirty_me = True
+
+    @staticmethod
+    def how_long(seconds):
+        seconds = int(seconds)
+        if seconds >= 60 and seconds % 60 == 0:
+            m = seconds // 60
+            return "%d minute%s" % (m, "" if m == 1 else "s")
+        return "%d seconds" % seconds
+
+    def boost_words(self, spell):
+        """What a Boost/Shield spell or potion does, in words: ["+5 spell damage", ...] (the potion's tooltip too)."""
+        out = []
+        for key in ("Attack", "Defence", "Magic"):
+            n = val(self.spell_ini(spell, key, "0"))
+            if n > 0:
+                out.append(self.BOOST_WORDS[key.lower()][0] % lbstr(n))
+        if val(self.spell_ini(spell, "Sight", "0")) > 0:
+            out.append(self.BOOST_WORDS["sight"][0])
+        return out
 
     # =================================================================================================================
     # Fighting
@@ -537,7 +568,11 @@ class CombatMixin:
         if leaves:
             self.add_inventory_item(leaves, 1)
         if self.spell_is_potion(spell):
-            self.display_message("You drink the %s." % pretty(scroll), "SUCCESS")
+            effect = self.spell_ini(spell, "Effect", "").upper()
+            if effect not in ("BOOST", "SHIELD"):                   # (a boost says what it does itself)
+                self.display_message("You drink the %s." % pretty(scroll), "SUCCESS")
+            if mana_back > 0:
+                self.display_message("Your mana comes flooding back (+%s)." % lbstr(mana_back), "SUCCESS")
         else:
             self.player_last_cast = self.now
             self.play_sound("SpellCast", (p.cx, p.cy))
@@ -639,24 +674,17 @@ class CombatMixin:
                 return
             self.spell_glow(spell)
             seconds = max(1, val(self.spell_ini(spell, "Duration", "60")))
-            gains = ""
-            for key, label in (("Attack", "Attack"), ("Defence", "Defence"), ("Magic", "Magic")):
+            for key in ("Attack", "Defence", "Magic", "Sight"):
                 amount = val(self.spell_ini(spell, key, "0"))
                 if amount > 0:
                     setattr(self, "spell_%s_bonus" % key.lower(), amount)
                     setattr(self, "spell_%s_until" % key.lower(), now + seconds * 1000)
-                    gains += ", +%s %s" % (lbstr(amount), label)
-            if val(self.spell_ini(spell, "Sight", "0")) > 0:
-                self.spell_sight_bonus = val(self.spell_ini(spell, "Sight", "0"))
-                self.spell_sight_until = now + seconds * 1000
-                if gains == "":
-                    self.display_message("Your eyes sharpen: you can see much further for %s seconds." %
-                                         lbstr(seconds), "ACHIEVEMENT")
-                    self.dirty_me = True
-                    return
-                gains += ", sharper eyes"
-            self.display_message("You feel stronger%s for %s seconds." % (gains, lbstr(seconds)), "ACHIEVEMENT")
+                    self.boost_from[key.lower()] = scroll
+            what = ", ".join(self.boost_words(spell)) or "you feel stronger"
+            done = "You drink the %s" % pretty(scroll) if potion else "You cast %s" % pretty(spell)
+            self.display_message("%s: %s for %s." % (done, what, self.how_long(seconds)), "ACHIEVEMENT")
             self.recalc_equipment()
+            self.dirty_me = True
         elif effect == "TELEPORT":
             m = self.spell_ini(spell, "Map", "").replace(" ", "")
             x = val(self.spell_ini(spell, "X", "0"))
