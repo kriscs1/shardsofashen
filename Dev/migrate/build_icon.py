@@ -5,7 +5,7 @@
   * web/img/icon.png (256 x 256): the Docker container's icon (Unraid: the template's Icon), and for phones' home
     screens (apple-touch-icon).
   * web/img/favicon.png (64 x 64): the browser tab's icon.
-  * Sprites/Entities/Magic_Burst.png (32 x 32): the Magic skill's icon (Config [Skills] Icon.Magic), a magical blast.
+  * Sprites/Interface/Magic_Burst.png (32 x 32): the Magic skill's icon (Config [Skills] Icon.Magic), a magical blast.
 The server serves them at /img/icon.png and /img/favicon.png. Run it again to redraw them (it overwrites them)."""
 import math
 import os
@@ -84,12 +84,12 @@ def magic_burst():
 
 def main():
     pygame.init()
-    pygame.image.save(magic_burst(), os.path.join(ROOT, "Sprites", "Entities", "Magic_Burst.png"))
+    pygame.image.save(magic_burst(), os.path.join(ROOT, "Sprites", "Interface", "Magic_Burst.png"))
     img = icon()
     os.makedirs(OUT, exist_ok=True)
     pygame.image.save(img, os.path.join(OUT, "icon.png"))
     pygame.image.save(pygame.transform.smoothscale(img, (64, 64)), os.path.join(OUT, "favicon.png"))
-    print("Made web/img/icon.png, web/img/favicon.png and Sprites/Entities/Magic_Burst.png")
+    print("Made web/img/icon.png, web/img/favicon.png and Sprites/Interface/Magic_Burst.png")
 
 
 if __name__ == "__main__":
