@@ -111,7 +111,8 @@ export function getVerbs(e) {
     addVerb(v, "Talk to");
     addVerb(v, "Examine");
   } else if (t === T.PLAYER) {
-    v = e.pvp ? ["Attack", "Whisper", "Examine"] : ["Whisper", "Examine"];   // (the server says when you may fight: the arena)
+    // (a click on someone walks you there; Whisper is in the right-click menu. In the arena, a click attacks.)
+    v = e.pvp ? ["Attack", "Whisper", "Examine"] : ["Walk here", "Whisper", "Examine"];
   }
   if (S.itemInUse && !(e.k === T.INVITEM && e.u === S.itemInUse) && !mode) v = ["Use with", ...v];
   return v;

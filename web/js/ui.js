@@ -889,6 +889,8 @@ const QUICK_STYLES = {
   "": { size: 9, bold: false, col: [62, 42, 30] },
 };
 
+const QUICK_MAX = 4;
+
 function drawQuick(ctx, y0) {
   const raw = U.qm.split("|").map((part) => trim(part)).filter(Boolean);
   if (!raw.length) return;
@@ -898,16 +900,32 @@ function drawQuick(ctx, y0) {
   });
   if (U.qmKind === "ERROR" || U.qmKind === "WARNING") styled[0][0] = QUICK_STYLES["!"];
   const width = 158, room = 76;
+  // At most QUICK_MAX lines (wrapped lines count): the name always, then what matters most - a need not met or a
+  // wait ("!"), then what it is, then the click hint ("~") - each kept only while it all still fits
+  const rank = (i) => (i === 0 ? 0 : { "!": 1, "~": 3 }[raw[i][0]] || 2);
+  const wrapped = styled.map(([st, text]) => wrapLines(ctx, text, width, st.size, st.bold));
+  const keep = new Set();
+  let used = 0;
+  for (const i of styled.map((_, i) => i).sort((a, b) => rank(a) - rank(b) || a - b)) {
+    const n = wrapped[i].length;
+    if (used + n <= QUICK_MAX || keep.size === 0) { keep.add(i); used += n; }
+  }
+  const chosen = styled.filter((_, i) => keep.has(i));
   let scale = 1, lines = [];
   for (;;) {                                      // (smaller, until it fits)
     lines = [];
-    for (const [st, text] of styled) {
+    for (const [st, text] of chosen) {
       const size = Math.max(6, Math.round(st.size * scale));
       for (const ln of wrapLines(ctx, text, width, size, st.bold)) lines.push([st, size, ln]);
     }
     const h = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0);
     if (h <= room || scale < 0.7) break;
     scale -= 0.1;
+  }
+  if (lines.length > QUICK_MAX) {                 // (one very long line on its own: cut short)
+    lines = lines.slice(0, QUICK_MAX);
+    const last = lines[QUICK_MAX - 1];
+    last[2] = last[2].replace(/\s*\S*$/, "") + "...";
   }
   const total = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0);
   let y = y0 + Math.max(6, Math.floor((88 - total) / 2));

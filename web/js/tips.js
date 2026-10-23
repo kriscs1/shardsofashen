@@ -31,11 +31,12 @@ export function itemLines(name) {
     if (eff === "HOME") what = "Takes you to your homestead";
     if (what) out.push(capital(what));
     if (spellIni(spell, "Kind", "Scroll").toUpperCase() !== "POTION") {
+      // (one line: what it needs and what it costs)
       const level = val(spellIni(spell, "Level", "1"));
       const skill = spellIni(spell, "Skill", "Magic");
-      out.push((skillLevel(skill) >= level ? "+" : "!") + `Requirement: ${skill} ${lbstr(level)}`);
       const cost = val(spellIni(spell, "Cost", "0"));
-      if (cost) out.push(`Uses ${lbstr(cost)} mana`);
+      out.push((skillLevel(skill) >= level ? "+" : "!") + `Needs ${skill} ${lbstr(level)}` +
+        (cost ? ` · ${lbstr(cost)} mana` : ""));
     }
   } else if (slot) {
     const bonus = ["Attack", "Defence", "Magic"].map((k) => [k, val(entityIni(name, k, "0"))])
