@@ -87,7 +87,9 @@ class Chunk {
 export function chunkOf(m) {
   let c = chunks.get(m.name);
   if (!c || c.m !== m) {
+    const old = c;
     c = new Chunk(m);
+    if (old) c.hidden = old.hidden;   // (the map sent again: the roof you're under stays hidden - no flash of it)
     chunks.set(m.name, c);
   }
   return c;

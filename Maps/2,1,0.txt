@@ -25,5 +25,4 @@ NPC	Rabbit	160	224	Attitude=Bad
 NPC	Rabbit	512	256	Attitude=Bad
 NPC	Butterfly	288	288	Attitude=Good
 NPC	Butterfly	160	576	Attitude=Good
-StaticObject	Notice	673	322	Id=The_Grotto
 Id	Isle_Pond	13	12

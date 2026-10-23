@@ -2,7 +2,7 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water008:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water006:Water001:Water001:Water001:Water001:Water009:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Timber_Thin_Plank008+Roof(Thatch_Roof001.01):Timber_Thin_Plank001+Roof(Thatch_Roof002.01):Timber_Thin_Plank001+Roof(Thatch_Roof002.01):Timber_Thin_Plank001+Roof(Thatch_Roof002.01):Timber_Thin_Plank005+Roof(Thatch_Roof003.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water007:Water001:Water009:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof007.01):Plank001+Decor(Bed001)+Roof(Thatch_Roof008.01):Plank001+Roof(Thatch_Roof008.01):Plank001+Decor(Table001)+Roof(Thatch_Roof008.01):Timber_Thin_Plank002+Roof(Thatch_Roof009.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Timber_Thin_Plank008+Roof(Thatch_Roof001.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank005+Roof(Thatch_Roof003.02):Grass001:Grass001:Grass001
-Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof013.01):Plank001+Roof(Thatch_Roof014.01):Plank001+Roof(Thatch_Roof014.01):Plank001+Decor(Barrel001)+Roof(Thatch_Roof014.01):Timber_Thin_Plank002+Roof(Thatch_Roof015.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof007.02):Plank001+Decor(Haystack001)+Roof(Thatch_Roof008.02):Plank001+Decor(Haystack001)+Roof(Thatch_Roof008.02):Plank001+Roof(Thatch_Roof008.02):Plank001+Roof(Thatch_Roof008.02):Plank001+Decor(Sacks001)+Roof(Thatch_Roof008.02):Timber_Thin_Plank002+Roof(Thatch_Roof009.02):Grass001+Infront(Pine_Tree002):Grass001:Grass001
+Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof013.01):Plank001+Decor(Bed002)+Roof(Thatch_Roof014.01):Plank001+Roof(Thatch_Roof014.01):Plank001+Decor(Barrel001)+Roof(Thatch_Roof014.01):Timber_Thin_Plank002+Roof(Thatch_Roof015.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof007.02):Plank001+Decor(Haystack001)+Roof(Thatch_Roof008.02):Plank001+Decor(Haystack001)+Roof(Thatch_Roof008.02):Plank001+Roof(Thatch_Roof008.02):Plank001+Roof(Thatch_Roof008.02):Plank001+Decor(Sacks001)+Roof(Thatch_Roof008.02):Timber_Thin_Plank002+Roof(Thatch_Roof009.02):Grass001+Infront(Pine_Tree002):Grass001:Grass001
 Grass001:Timber001:Timber001+Decor(Timber_Window001):Door001:Timber001+Decor(Timber_Window001):Timber001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof010.02):Plank001+Roof(Thatch_Roof011.02):Plank001+Roof(Thatch_Roof011.02):Plank001+Roof(Thatch_Roof011.02):Plank001+Roof(Thatch_Roof011.02):Plank001+Roof(Thatch_Roof011.02):Timber_Thin_Plank002+Roof(Thatch_Roof012.02):Stone001+Decor(Pine_Tree001):Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof013.02):Plank001+Decor(Crate001)+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Decor(Barrel001)+Roof(Thatch_Roof014.02):Timber_Thin_Plank002+Roof(Thatch_Roof015.02):Grass001:Grass001:Grass001
 Grass001+Decor(Pebbles001):Grass001+Decor(Wood_Fence003):Grass001+Decor(Wood_Fence001):Grass001+Decor(Wood_Fence001):Grass001+Decor(Wood_Fence001):Grass001+Decor(Wood_Fence001):Grass001+Decor(Wood_Fence001):Grass001+Decor(Wood_Fence004):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Door001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Grass001:Grass001:Grass001
@@ -21,7 +21,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 MapItem	Tinderbox	273	266	1
 StaticObject	Workbench	608	128
-StaticObject	Range	64	128
+StaticObject	Range	96	96
 NPC	Milkmaid	256	256	Attitude=Good Zone=7,8,12,11 Pause=3-8
 NPC	Cow	160	256	Attitude=Bad Zone=3,9,7,13
 NPC	Cow	192	320	Attitude=Bad Zone=3,9,7,13
@@ -63,6 +63,6 @@ StaticObject	Ripe_Wheat001	475	600
 StaticObject	Ripe_Wheat002	485	609
 StaticObject	Ripe_Wheat001	506	598
 StaticObject	Ripe_Wheat003	521	609
-NPC	Chicken	640	384	Attitude=Bad Zone=21,12,23,13
-NPC	Chicken	704	384	Attitude=Bad Zone=21,12,23,13
-NPC	Chicken	672	352	Attitude=Bad Zone=21,12,23,13
+NPC	Chicken	640	384	Attitude=Bad Zone=20,12,24,17
+NPC	Chicken	704	384	Attitude=Bad Zone=20,12,24,17
+NPC	Chicken	672	352	Attitude=Bad Zone=20,12,24,17

@@ -162,14 +162,17 @@ def thin_walls(m, x1, y1, x2, y2, wall="Timber001", thin="Timber_Thin_Plank"):
 
 
 COOP_HENS = ((21, 13), (23, 13), (22, 12))                      # (in the hen coop, by their nests)
-COOP_ZONE = "21,12,23,13"
-INDOORS = {"Range": (3, 5), "Workbench": (20, 5)}               # (in the dairymaid's hut; in the barn)
+COOP_ZONE = "20,12,24,17"                                       # (the coop, and a bit of yard)
+INDOORS = {"Range": (4, 4), "Workbench": (20, 5)}               # (in the dairymaid's hut; in the barn)
 
 
 def dairy_indoors():
     """The dairy's hens live in their coop; the range is in the dairymaid's hut and the workbench in the barn."""
     m = Map("2,0,0")
     ents, n = [], 0
+    if m.decor(3, 4) == "Bed001" and m.decor(3, 5) != "Bed002":   # (the bed's foot, under its head)
+        m.set(3, 5, decor="Bed002")
+        n += 1
     for ln in m.ents:
         p = ln.split("\t")
         if len(p) >= 4 and p[0] == "NPC" and p[1] == "Chicken":
@@ -191,6 +194,17 @@ def dairy_indoors():
         m.ents = ents
         m.save()
         print("The dairy: hens in their coop, the range in the hut, the workbench in the barn")
+
+
+def no_grotto_notice():
+    grotto = os.path.join(DATA, "Scripts", "Read The_Grotto.txt")
+    if os.path.exists(grotto):
+        os.remove(grotto)
+    g = Map("2,1,0")
+    if g.has_line("Id=The_Grotto"):
+        g.ents = [ln for ln in g.ents if "Id=The_Grotto" not in ln]
+        g.save()
+        print("The grotto's notice is gone")
 
 
 def thin_isle_walls():
@@ -310,6 +324,7 @@ def dairy():
         return
     house(m, 2, 3, 6, 6, door=4, windows=(3, 5))                 # the dairymaid's hut
     m.set(3, 4, decor="Bed001")
+    m.set(3, 5, decor="Bed002")
     m.set(5, 4, decor="Table001")
     m.set(5, 5, decor="Barrel001")
     house(m, 16, 4, 22, 8, door=19, windows=(17, 21))            # the barn
@@ -440,14 +455,6 @@ def chapel():
         "03\tTeleport\t%d,%d\t3,1,-1" % (13 * TW, 9 * TW - 8),
         "04\tEnd",
     ])
-    grotto = os.path.join(DATA, "Scripts", "Read The_Grotto.txt")
-    text = ini.read_text(grotto)
-    if "chapel" not in text:
-        text = text.replace("A ladder goes down into the caves under the Isle.",
-                            "The way down into the caves is through the chapel, east past the graveyard: the hole in "
-                            "its cellar floor.")
-        with open(grotto, "w", encoding="cp1252", newline="") as f:
-            f.write(text)
 
 
 # ---------------------------------------------------------------- the land: paths, a pond, woods, rocks, flowers
@@ -567,6 +574,7 @@ def main():
     aggro()
     thin_isle_walls()
     dairy_indoors()
+    no_grotto_notice()
 
 
 if __name__ == "__main__":
