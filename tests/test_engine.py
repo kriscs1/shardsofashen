@@ -721,3 +721,14 @@ def test_fences_join_up_at_their_corners(world):
     assert a.items_held("Plank") >= planks                         # (half back, rounded down)
     assert world.homes.home_of("Fencer")["cells"]["4,14"]["decor"] == "Wood_Fence002"
     leave(world, a)
+
+
+def test_the_effects_bar_knows_what_hurts_and_for_how_long(world):
+    s = join(world, "Sufferer")
+    s.status_start("Poison")
+    st = s.me_state()
+    assert 0 < st["status_left"]["Poison"] <= 14000
+    assert st["status_info"]["Poison"] == "1 damage every 2 s"
+    assert s.status_words("Burn") == "1-2 damage every second"
+    assert s.status_words("Chill").startswith("Slowed")
+    leave(world, s)

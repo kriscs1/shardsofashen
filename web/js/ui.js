@@ -1144,12 +1144,62 @@ function drawWave(ctx, now) {
 const BOOST_WORDS = { attack: (n) => `+${n} Attack`, defence: (n) => `+${n} Defence`,
   magic: (n) => `+${n} spell damage`, sight: () => "far sight" };
 
+// ----- the effects on you (top right of the view): buffs from potions and scrolls, and what's hurting you
+const DEBUFFS = {
+  Poison: { title: "Poisoned", col: [90, 200, 60] },
+  Burn: { title: "Burning", col: [255, 128, 30] },
+  Bleed: { title: "Bleeding", col: [210, 30, 30] },
+  Chill: { title: "Chilled", col: [120, 196, 255] },
+};
+const EFFECT_BOX = 40, EFFECT_GAP = 6;
+
+function clockText(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function debuffIcon(ctx, name, cx, cy) {
+  // (drawn, not a sprite: a drop of poison, a flame, a drop of blood, a snowflake)
+  const col = DEBUFFS[name].col, c = `rgb(${col})`;
+  ctx.save();
+  ctx.fillStyle = c; ctx.strokeStyle = c; ctx.lineWidth = 2;
+  if (name === "Chill") {
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI / 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - 10 * Math.cos(a), cy - 10 * Math.sin(a));
+      ctx.lineTo(cx + 10 * Math.cos(a), cy + 10 * Math.sin(a));
+      ctx.stroke();
+    }
+  } else if (name === "Burn") {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 12);
+    ctx.quadraticCurveTo(cx + 11, cy, cx + 6, cy + 9);
+    ctx.quadraticCurveTo(cx, cy + 12, cx - 6, cy + 9);
+    ctx.quadraticCurveTo(cx - 11, cy, cx, cy - 12);
+    ctx.fill();
+    ctx.fillStyle = "rgb(255,220,90)";
+    ctx.beginPath(); ctx.arc(cx, cy + 4, 4, 0, 6.283); ctx.fill();
+  } else {                                        // (a drop: poison green, blood red)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 12);
+    ctx.quadraticCurveTo(cx + 10, cy + 2, cx, cy + 10);
+    ctx.quadraticCurveTo(cx - 10, cy + 2, cx, cy - 12);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.beginPath(); ctx.arc(cx - 3, cy + 1, 2, 0, 6.283); ctx.fill();
+  }
+  ctx.restore();
+}
+
 export function drawBoosts(ctx, now, mx, my) {
   const me = S.me;
-  if (!me || !me.boost_left || !S.boostAt) return;
+  if (!me || !S.boostAt) return;
+  const since = now - S.boostAt;
+  const shown = [];                               // [kind "buff"/"debuff", key, ms left, lines for the hover]
   const groups = new Map();                       // the potion (or scroll) -> [kinds, ms left]
-  for (const [kind, ms] of Object.entries(me.boost_left)) {
-    const left = ms - (now - S.boostAt);
+  for (const [kind, ms] of Object.entries(me.boost_left || {})) {
+    const left = ms - since;
     if (left <= 0 || !(me.boosts || {})[kind]) continue;
     const from = (me.boost_from || {})[kind] || "Magic_Burst";
     const g = groups.get(from) || { kinds: [], left: 0 };
@@ -1157,27 +1207,49 @@ export function drawBoosts(ctx, now, mx, my) {
     g.left = Math.max(g.left, left);
     groups.set(from, g);
   }
-  let x = 8;
-  const y = L.VH - 58;                            // (the bottom-left corner of the view, clear of the hotbar)
-  let tip = null;
   for (const [from, g] of groups) {
-    const blink = g.left < 10000 && Math.floor(now / 300) % 2 === 0;
-    roundBox(ctx, x, y, 40, 50, [34, 22, 16, 0.88], blink ? [230, 90, 60] : [120, 230, 120], 2, 7);
-    const im = sprite(from) || sprite("Magic_Burst");
-    if (im) ctx.drawImage(im, x + 4, y + 3, 32, 32);
-    const s = Math.ceil(g.left / 1000);
-    centreText(ctx, x + 20, y + 36, `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`, 8, true,
-      blink ? [255, 140, 110] : [235, 245, 220]);
-    if (mx >= x && mx < x + 40 && my >= y && my < y + 50) {
-      tip = [x, y - 24, `${pretty(from)}: ${g.kinds.map((k) => BOOST_WORDS[k](me.boosts[k])).join(", ")}` +
-        ` (${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} left)`];
-    }
-    x += 46;
+    shown.push(["buff", from, g.left, [`#${pretty(from)}`, "+" + g.kinds.map((k) => BOOST_WORDS[k](me.boosts[k])).join(", ")]]);
   }
-  if (tip) {
-    const w = textWidth(ctx, tip[2], 9, true) + 14;
-    roundBox(ctx, tip[0], tip[1], w, 20, [20, 14, 10, 0.92], [212, 191, 126], 1, 5);
-    drawText(ctx, tip[2], tip[0] + 7, tip[1] + 4, 9, true, [250, 240, 210]);
+  for (const [name, ms] of Object.entries(me.status_left || {})) {
+    const left = ms - since;
+    if (left <= 0 || !DEBUFFS[name]) continue;
+    shown.push(["debuff", name, left, [`#${DEBUFFS[name].title}`, "!" + ((me.status_info || {})[name] || "")]]);
+  }
+  if (!shown.length) return;
+  // right to left from the top right corner of the view: what hurts you first (nearest the corner), then the buffs
+  shown.sort((p, q) => (p[0] === q[0] ? 0 : p[0] === "debuff" ? -1 : 1));
+  let x = L.VW - 8 - EFFECT_BOX;
+  const y = 8;
+  let tip = null;
+  for (const [kind, key, left, lines] of shown) {
+    const bad = kind === "debuff";
+    const blink = left < 10000 && Math.floor(now / 300) % 2 === 0;
+    const edge = blink ? [255, 220, 120] : bad ? [220, 70, 60] : [120, 230, 120];
+    roundBox(ctx, x, y, EFFECT_BOX, EFFECT_BOX + 10, [34, 22, 16, 0.88], edge, 2, 7);
+    if (bad) debuffIcon(ctx, key, x + EFFECT_BOX / 2, y + 19);
+    else {
+      const im = sprite(key) || sprite("Magic_Burst");
+      if (im) ctx.drawImage(im, x + 4, y + 3, 32, 32);
+    }
+    centreText(ctx, x + EFFECT_BOX / 2, y + 36, clockText(left), 8, true, blink ? [255, 200, 120] : [235, 245, 220]);
+    if (mx >= x && mx < x + EFFECT_BOX && my >= y && my < y + EFFECT_BOX + 10) {
+      tip = [x + EFFECT_BOX, y + EFFECT_BOX + 14, [...lines, `~${clockText(left)} left`]];
+    }
+    x -= EFFECT_BOX + EFFECT_GAP;
+  }
+  if (tip) {                                      // the hover: its name, what it does, the time left
+    const style = (ln) => (ln[0] === "#" ? [11, true, [255, 230, 140]] : ln[0] === "!" ? [9, true, [255, 150, 130]]
+      : ln[0] === "+" ? [9, true, [160, 240, 150]] : [8, false, [212, 191, 126]]);
+    const rows = tip[2].filter((ln) => ln.length > 1).map((ln) => [ln.slice(1), ...style(ln)]);
+    const w = Math.max(...rows.map(([t, size, bold]) => textWidth(ctx, t, size, bold))) + 16;
+    const h = rows.reduce((sum, [, size]) => sum + size + 6, 0) + 8;
+    const bx = Math.max(4, tip[0] - w), by = tip[1];
+    roundBox(ctx, bx, by, w, h, [20, 14, 10, 0.94], [212, 191, 126], 1, 6);
+    let ty = by + 5;
+    for (const [t, size, bold, col] of rows) {
+      drawText(ctx, t, bx + 8, ty, size, bold, col);
+      ty += size + 6;
+    }
   }
 }
 

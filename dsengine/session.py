@@ -902,6 +902,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "boost_left": {k: max(0, getattr(self, "spell_%s_until" % k) - self.now)
                            for k in ("attack", "defence", "magic", "sight") if getattr(self, "spell_%s_until" % k)},
             "boost_from": dict(self.boost_from),
+            "status_left": {k: max(0, v["until"] - self.now) for k, v in self.status.items()},
+            "status_info": {k: self.status_words(k) for k in self.status},
             "grave": ({"map": self.grave["map"], "left": int(self.grave["left"]), "x": int(self.grave["x"]),
                        "y": int(self.grave["y"])} if self.grave else None),
             "dead": bool(self.dead_wait),

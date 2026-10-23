@@ -800,6 +800,19 @@ class CombatMixin:
         self.status[name] = {"until": self.now + fx["ms"], "next": self.now + fx["every"]}
         self.dirty_me = True
 
+    @staticmethod
+    def status_words(name):
+        """What a status effect does, in a few words (the effects bar's hover)."""
+        fx = EFFECTS.get(name)
+        if fx is None:
+            return ""
+        if name == "Chill":
+            return "Slowed: you move and strike slower"
+        lo, hi = fx["dmg"]
+        every = fx["every"] / 1000.0
+        return "%s damage every %s" % (lo if lo == hi else "%d-%d" % (lo, hi),
+                                       "second" if every == 1 else "%g s" % every)
+
     def status_end(self, name, quiet=False):
         if name not in self.status:
             return
