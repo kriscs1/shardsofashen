@@ -664,3 +664,19 @@ def test_nothing_carries_on_while_dead(world):
         world.tick(0.05)
     assert (a.player.x, a.player.y) == start and not a.status   # (no walking off, no bleeding on)
     leave(world, a)
+
+
+def test_a_bolt_waits_for_you_to_choose_its_target(world):
+    wolf = next(e for e in world.ents if e.name == "Wolf" and e.alive)
+    m = world.maps[wolf.map]
+    a = join(world, "Caster", m.name, int(wolf.x - m.ox), int(wolf.y - m.oy + 40))
+    stock(a, Fire_Bolt_Scroll=2)
+    a.player_mana = 50
+    scroll = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll")
+    a.do_action("Cast", scroll)
+    assert a.item_in_use is scroll and a.items_held("Fire_Bolt_Scroll") == 2     # (held ready, not cast)
+    assert any(e.get("t") == "use" and e.get("uid") == scroll.uid for e in a.out)
+    a.script_cursor_x, a.script_cursor_y = wolf.cx, wolf.cy
+    a.use_item_with(wolf)                                         # (then clicked on the wolf)
+    assert a.items_held("Fire_Bolt_Scroll") == 1
+    leave(world, a)

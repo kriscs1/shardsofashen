@@ -646,7 +646,12 @@ class CombatMixin:
         if effect == "BOLT":
             rng = val(self.spell_ini(spell, "Range", "256"))
             if target is None:
-                target = self.spell_auto_target(rng)
+                # (no target yet: the scroll is held ready - the next thing clicked is what it's cast at)
+                self.item_in_use = item
+                self.emit({"t": "use", "uid": item.uid})
+                self.display_message("Choose who to cast %s at: click them. (Right-click or Esc: put it away.)" % name,
+                                     "INFO")
+                return
             if not self.spell_target_ok(target):
                 self.display_message("There's nothing to cast %s at. Use the scroll on a monster, or get closer." %
                                      name, "FAIL")

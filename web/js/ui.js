@@ -9,7 +9,7 @@ import { dayFraction, isNight, timeText, fogEnabled } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice } from "./verbs.js";
 import { lookImage } from "./look.js";
-import { entityTip } from "./tips.js";
+import { entityTip, itemLines } from "./tips.js";
 
 export const TAB_TEXT = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -503,14 +503,16 @@ function drawGear(ctx) {
 }
 
 export function equipSlotInfo(s) {
+  // (the hover box's lines for a Gear slot: what's worn there, its bonuses and its condition)
   const item = S.me.equipped[s - 1];
-  if (!item) return SLOT_NAMES[s] + " (empty)";
-  let info = `${pretty(item)} (${SLOT_NAMES[s]}): Attack +${lbstr(val(entityIni(item, "Attack", "0")))}, Defence +${lbstr(val(entityIni(item, "Defence", "0")))}`;
-  const m = val(entityIni(item, "Magic", "0"));
-  if (m) info += ", Magic +" + lbstr(m);
+  if (!item) return `#${SLOT_NAMES[s]}|~Nothing worn here`;
+  const lines = ["#" + pretty(item), SLOT_NAMES[s]];
+  const bonus = ["Attack", "Defence", "Magic"].map((k) => [k, val(entityIni(item, k, "0"))]).filter(([, v]) => v)
+    .map(([k, v]) => `+${lbstr(v)} ${k}`);
+  if (bonus.length) lines.push(bonus.join(", "));
   const d = durText(item, S.me.wear[s - 1]);
-  if (d) info += ". Condition: " + d;
-  return info + ". Click to take it off.";
+  if (d) lines.push((d === "broken!" ? "!" : "") + "Condition: " + d);
+  return lines.join("|");
 }
 
 export const QUESTS_PER_PAGE = 7, QUEST_ROW_TOP = 58, QUEST_ROW_H = 16;
@@ -1006,8 +1008,8 @@ function drawHotbar(ctx) {
 
 export function hotbarLabel(k) {
   const name = (S.me.hotbar || [])[k];
-  if (!name) return `Hotbar slot ${k + 1}|right-click an item in your inventory to put it here`;
-  return `${pretty(name)} (${held(name)})|${k + 1} or click: use it · right-click: take it off`;
+  if (!name) return `#Hotbar slot ${k + 1}|~Right-click an item in your pack: Hotbar`;
+  return [`#${pretty(name)}  (${held(name)})`, ...itemLines(name), `~Press ${k + 1} or click to use it`].join("|");
 }
 
 // ----- the hurt flash, the level-up banner, who's online, sleeping
@@ -1260,6 +1262,11 @@ export function hoverText(e) {
   if (S.itemInUse) {
     const it = (S.me.inv || []).find((i) => i[0] === S.itemInUse);
     const name = it ? pretty(it[1]) : "";
+    const spell = it ? entityIni(it[1], "Spell", "").trim() : "";
+    if (spell && entityIni(it[1], "Use.Words", "").includes("Cast")) {          // (a spell held ready: who it's for)
+      return e.k === T.INVITEM && e.u === S.itemInUse ? `#Cast ${pretty(spell)}|~Click who to cast it at`
+        : `#Cast ${pretty(spell)} at ${displayName(e)}|~Click to cast`;
+    }
     return e.k === T.INVITEM && e.u === S.itemInUse ? `Use ${name} with ...` : `Use ${name} with ${displayName(e)}`;
   }
   return entityTip(e);

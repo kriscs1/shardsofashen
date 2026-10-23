@@ -70,6 +70,51 @@ def draw(fur, dark, light, belly, eye, frame):
     return out if edge else s
 
 
+DOG = ((150, 96, 52), (108, 66, 34), (186, 132, 82), (236, 214, 176), (40, 26, 18))     # fur, shadow, light, chest, eye
+DOG_LEGS = [(11, (0, 2, -2), True), (13, (0, -2, 2), False), (19, (0, -2, 2), True), (21, (0, 2, -2), False)]
+
+
+def draw_dog(fur, dark, light, chest, eye, frame):
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)
+    bob = (0, -1, -1)[frame]
+
+    def leg(x, dx, far):
+        top, foot = 21 + bob, 27
+        pygame.draw.line(s, dark if far else fur, (x, top), (x + dx // 2, top + 3), 2)
+        pygame.draw.line(s, dark if far else fur, (x + dx // 2, top + 3), (x + dx, foot), 2)
+        pygame.draw.line(s, OUTLINE, (x + dx - 1, foot + 1), (x + dx + 1, foot + 1))
+    for x, offs, far in DOG_LEGS:
+        if far:
+            leg(x, offs[frame], True)
+    # the tail, up and curling
+    pygame.draw.line(s, fur, (10, 17 + bob), (7, 13 + bob), 2)
+    pygame.draw.line(s, fur, (7, 13 + bob), (8, 10 + bob), 2)
+    pygame.draw.line(s, light, (8, 10 + bob), (9, 9 + bob))
+    # the body: short and sturdy, a pale chest
+    pygame.draw.ellipse(s, fur, (9, 15 + bob, 15, 8))
+    pygame.draw.polygon(s, chest, [(18, 21 + bob), (23, 20 + bob), (24, 17 + bob), (20, 19 + bob)])
+    pygame.draw.line(s, dark, (11, 15 + bob), (19, 15 + bob))
+    pygame.draw.line(s, light, (12, 16 + bob), (18, 16 + bob))
+    # the head: round, a short muzzle, a floppy ear
+    pygame.draw.polygon(s, fur, [(20, 16 + bob), (22, 12 + bob), (25, 13 + bob), (24, 18 + bob)])
+    pygame.draw.ellipse(s, fur, (21, 9 + bob, 7, 7))
+    pygame.draw.polygon(s, chest, [(26, 12 + bob), (30, 13 + bob), (30, 15 + bob), (26, 15 + bob)])   # the muzzle
+    pygame.draw.polygon(s, dark, [(22, 10 + bob), (25, 9 + bob), (24, 15 + bob), (22, 14 + bob)])   # the ear, hanging
+    s.set_at((30, 13 + bob), OUTLINE)                                                                 # the nose
+    s.set_at((26, 11 + bob), eye)                                                                     # the eye
+    s.set_at((28, 16 + bob), (220, 110, 120))                                                         # the tongue
+    for x, offs, far in DOG_LEGS:
+        if not far:
+            leg(x, offs[frame], False)
+    shape = pygame.mask.from_surface(s)
+    out = pygame.Surface((32, 32), pygame.SRCALPHA)
+    sil = shape.to_surface(setcolor=OUTLINE + (255,), unsetcolor=(0, 0, 0, 0))
+    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        out.blit(sil, (dx, dy))
+    out.blit(s, (0, 0))
+    return out
+
+
 def main():
     pygame.init()
     for name, pal in PALETTES.items():
@@ -78,6 +123,11 @@ def main():
             pygame.image.save(img, os.path.join(WALK, "%s2%s.png" % (name, f)))
             pygame.image.save(pygame.transform.flip(img, True, False), os.path.join(WALK, "%s8%s.png" % (name, f)))
         print("Drew Sprites\\Walk\\%s2a-c and 8a-c" % name)
+    for i, f in enumerate("abc"):
+        img = draw_dog(*DOG, frame=i)
+        pygame.image.save(img, os.path.join(WALK, "Dog2%s.png" % f))
+        pygame.image.save(pygame.transform.flip(img, True, False), os.path.join(WALK, "Dog8%s.png" % f))
+    print("Drew Sprites\\Walk\\Dog2a-c and 8a-c")
 
 
 if __name__ == "__main__":
