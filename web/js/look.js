@@ -29,17 +29,24 @@ function hex(c) {
 
 const lum = (c) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] + 1;
 
+// The sprite's other colours, kept as they are: the boots, the eyes, the mouth
+const KEEP = [[128, 128, 128], [88, 88, 88], [40, 20, 30], [190, 90, 120]];
+const NEAR = 30 * 30;           // how far (squared, in RGB) a pixel may be from one of the sprite's colours
+
 function swaps(look) {
-  // "r,g,b" of each of the sprite's colours -> its new colour
-  const out = new Map();
+  // [[the sprite's colour, what it becomes]] for every colour the sprite is drawn in
+  const out = KEEP.map((c) => [c, c]);
   for (const [part, [main, shades]] of Object.entries(PARTS)) {
     const want = look && look[part];
-    if (!want) continue;
+    if (!want) {
+      out.push([main, main], ...shades.map((s) => [s, s]));
+      continue;
+    }
     const w = hex(want);
-    out.set(main.join(","), w);
+    out.push([main, w]);
     for (const s of shades) {
       const k = Math.min(1.8, lum(s) / lum(main));
-      out.set(s.join(","), w.map((v) => Math.max(0, Math.min(255, Math.round(k >= 1 ? v + (255 - v) * (k - 1) * 0.6 : v * k)))));
+      out.push([s, w.map((v) => Math.max(0, Math.min(255, Math.round(k >= 1 ? v + (255 - v) * (k - 1) * 0.6 : v * k))))]);
     }
   }
   return out;
@@ -52,7 +59,10 @@ export function lookKey(look) {
 }
 
 export function lookImage(name, look) {
-  // The sprite name (a Player frame) in these colours: a canvas, or the plain sprite while it loads
+  // The sprite name (a Player frame) in these colours: a canvas, or the plain sprite while it loads.
+  // Each pixel is matched to the nearest of the sprite's own colours, not exactly: some browsers (Brave, Firefox's
+  // and Safari's fingerprinting protection) add a little noise to pictures read back from a canvas, and an exact
+  // match would leave those pixels in their old colours, as dots. The pixel is then written in its clean new colour.
   const base = sprite(name);
   if (!base || !look || !/^Player/.test(name)) return base;
   const key = name + "|" + lookKey(look);
@@ -65,10 +75,16 @@ export function lookImage(name, look) {
   x.drawImage(base, 0, 0);
   const d = x.getImageData(0, 0, c.width, c.height);
   const map = swaps(look);
-  for (let i = 0; i < d.data.length; i += 4) {
-    if (!d.data[i + 3]) continue;
-    const to = map.get(d.data[i] + "," + d.data[i + 1] + "," + d.data[i + 2]);
-    if (to) { d.data[i] = to[0]; d.data[i + 1] = to[1]; d.data[i + 2] = to[2]; }
+  const px = d.data;
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] < 128) { px[i + 3] = 0; continue; }        // (see-through stays see-through, noise or not)
+    let best = null, bd = NEAR + 1;
+    for (const [from, to] of map) {
+      const dr = px[i] - from[0], dg = px[i + 1] - from[1], db = px[i + 2] - from[2];
+      const dd = dr * dr + dg * dg + db * db;
+      if (dd < bd) { bd = dd; best = to; }
+    }
+    if (best) { px[i] = best[0]; px[i + 1] = best[1]; px[i + 2] = best[2]; px[i + 3] = 255; }
   }
   x.putImageData(d, 0, 0);
   if (cache.size > 2000) cache.clear();
