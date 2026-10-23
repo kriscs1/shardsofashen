@@ -6,7 +6,7 @@
 #
 # Settings: put them in a file called .env beside this one (one per line, e.g. DS_PORT=8090), or change the defaults
 # after ":-" below. Then "docker compose up -d" again.
-#   DS_PORT           the port players connect to: http://<server>:<port> (8080)
+#   DS_PORT           the port players connect to: http://<server>:<port> (8484)
 #   DS_DATA           where the game's data is kept: accounts, characters, the world, homes, daily backups. A folder
 #                     on the server (e.g. /srv/dragonsword) or a Docker volume's name (gamedata, the default)
 #   DS_ADMINS         characters who get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
@@ -23,7 +23,7 @@ services:
     image: ${DS_IMAGE:-ghcr.io/kriscs1/dragonsword:latest}
     restart: unless-stopped
     ports:
-      - "${DS_PORT:-8080}:8080"
+      - "${DS_PORT:-8484}:8484"
     environment:
       DS_MAX_PLAYERS: ${DS_MAX_PLAYERS:-5}
       DS_REGISTRATION: ${DS_REGISTRATION:-open}

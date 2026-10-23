@@ -1,5 +1,5 @@
 @echo off
-rem One click: builds the server from these files in Docker and (re)starts it here, at http://localhost:8080,
+rem One click: builds the server from these files in Docker and (re)starts it here, at http://localhost:8484,
 rem to try changes before publishing them. The test server keeps its own characters, apart from the real one.
 title Dragon Sword: test locally
 cd /d "%~dp0"
@@ -22,8 +22,8 @@ for /f %%v in ('git log -1 --format^=%%cs 2^>nul') do set DS_BUILD_DATE=%%v
 echo Building version %DS_BASE%.%DS_BUILD% (the first time takes a few minutes; after that only what changed)...
 docker compose -f deploy\docker-compose.local.yml up -d --build || goto :failed
 echo.
-echo The test server is running: http://localhost:8080
-start "" http://localhost:8080
+echo The test server is running: http://localhost:8484
+start "" http://localhost:8484
 goto :end
 :failed
 echo.

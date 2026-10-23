@@ -1,5 +1,5 @@
 # Trying changes on this PC before publishing them: builds the server from these files ("Test Locally.bat").
-# http://localhost:8080. Its characters and world are its own (the testdata volume), not the real server's.
+# http://localhost:8484. Its characters and world are its own (the testdata volume), not the real server's.
 name: dragonsword-test
 
 services:
@@ -14,7 +14,7 @@ services:
     image: dragonsword:local
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8484:8484"
     volumes:
       - testdata:/data
     stop_grace_period: 30s

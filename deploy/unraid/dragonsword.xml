@@ -8,10 +8,10 @@
   <Privileged>false</Privileged>
   <Overview>Dragon Sword: a tile-based adventure for up to five players at once, in the browser. Open the WebUI to play.</Overview>
   <Category>GameServers:</Category>
-  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <WebUI>http://[IP]:[PORT:8484]/</WebUI>
   <Icon>https://raw.githubusercontent.com/kriscs1/dragonsword/main/web/img/icon.png</Icon>
   <ExtraParams>--stop-timeout 30</ExtraParams>
-  <Config Name="Web port" Target="8080" Default="8080" Mode="tcp" Description="Players open http://[your server]:this port" Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Web port" Target="8484" Default="8484" Mode="tcp" Description="Players open http://[your server]:this port" Type="Port" Display="always" Required="true" Mask="false">8484</Config>
   <Config Name="Game data" Target="/data" Default="/mnt/user/appdata/dragonsword" Mode="rw" Description="Accounts, characters, the world and daily backups" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/dragonsword</Config>
   <Config Name="Max players" Target="DS_MAX_PLAYERS" Default="5" Mode="" Description="How many can play at once" Type="Variable" Display="always" Required="false" Mask="false">5</Config>
   <Config Name="New characters" Target="DS_REGISTRATION" Default="open|closed" Mode="" Description="open: anyone who can reach the server can make a character. closed: only accounts made with tools/admin.py" Type="Variable" Display="always" Required="false" Mask="false">open</Config>

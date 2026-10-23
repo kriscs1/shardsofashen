@@ -1,7 +1,7 @@
 """Plays the game in a headless browser (Playwright + Chromium) and saves screenshots: a check that the page loads, logs
 in, draws the world and reacts to the keyboard and mouse without script errors.
 
-  python tools/browser_check.py --url http://localhost:8080 --out <folder> [--name Tester] [--size 1600x900]"""
+  python tools/browser_check.py --url http://localhost:8484 --out <folder> [--name Tester] [--size 1600x900]"""
 import argparse
 import asyncio
 import os
@@ -11,7 +11,7 @@ import sys
 async def main():
     from playwright.async_api import async_playwright
     p = argparse.ArgumentParser()
-    p.add_argument("--url", default="http://localhost:8080")
+    p.add_argument("--url", default="http://localhost:8484")
     p.add_argument("--out", default=".")
     p.add_argument("--name", default="Tester")
     p.add_argument("--password", default="testpass")

@@ -645,3 +645,22 @@ def test_dying_waits_for_the_player_to_respawn(world):
     world.tick(0.05)
     assert a.cur_map.name == world.data.start_map and a.player_visible and not a.dead_wait
     leave(world, a)
+
+
+def test_nothing_carries_on_while_dead(world):
+    a = join(world, "Bleeder", "2,3,0", 384, 300)
+    a.status_start("Bleed")
+    a.keyboard_direction = 2                                       # (an arrow key held down as they fell)
+    a.player_dies()
+    hp = a.player.hp
+    where = (a.player.x, a.player.y)
+    for _ in range(40):
+        world.tick(0.05, now=world.now + 500)                      # (twenty seconds dead)
+    assert a.player.hp == hp and (a.player.x, a.player.y) == where
+    a.handle({"t": "respawn"})
+    world.tick(0.05)
+    start = (a.player.x, a.player.y)
+    for _ in range(10):
+        world.tick(0.05)
+    assert (a.player.x, a.player.y) == start and not a.status   # (no walking off, no bleeding on)
+    leave(world, a)

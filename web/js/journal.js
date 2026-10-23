@@ -23,7 +23,7 @@ const CONTROLS = [
   ["M", "Stats / Gear / Quests", "The tabs at the top of the Stats box: your skills, your 8 equipment slots, your quests."],
   ["M", "Wield, Wear", "Left-click a weapon, shield or armour in your inventory to put it on. Click it in the Gear tab to take it off."],
   ["M", "Hotbar", "The five slots at the bottom of the view. Right-click an item: Put it on the hotbar. Click a slot (or press 1-5) to use it; right-click a slot to take it off."],
-  ["M", "Dying", "You wake at the start, a quarter of your gold gone. You keep your 5 most valuable things (worn or carried) and anything you can't drop; the rest is in a grave where you fell: Search it within 10 minutes."],
+  ["M", "Dying", "You lose a quarter of your gold, and press Respawn to wake at the start (or in your bed at home). You keep your 5 most valuable things (worn or carried) and anything you can't drop; the rest is in a grave where you fell, marked on the minimap: Search it within 2 minutes."],
   ["M", "Sun and moon", "Above the minimap: point at it for the time of day. Everyone shares the same sky."],
   ["M", "Sleep", "Click a bed: you wake healed. The night only passes when everyone playing is asleep."],
   ["M", "Wear and repair", "Weapons and armour wear as you fight; worn out they break. Right-click a blacksmith: Repair, or use the item on an anvil with a bar of its metal."],

@@ -1,7 +1,7 @@
 """Test players: they log in (making their characters the first time), walk about, click things and chat, and report
 what they saw. For trying the server out, and for the load test:
 
-  python tools/bot.py --count 5 --seconds 60 [--url ws://localhost:8080/ws]"""
+  python tools/bot.py --count 5 --seconds 60 [--url ws://localhost:8484/ws]"""
 import argparse
 import asyncio
 import json
@@ -90,7 +90,7 @@ class Bot:
 
 async def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--url", default="ws://localhost:8080/ws")
+    p.add_argument("--url", default="ws://localhost:8484/ws")
     p.add_argument("--count", type=int, default=2)
     p.add_argument("--seconds", type=float, default=20)
     p.add_argument("--prefix", default="Bot")

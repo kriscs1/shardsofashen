@@ -212,7 +212,7 @@ function minimapImage(g) {
   x.clearRect(0, 0, c.width, c.height);
   x.drawImage(im, 0, 0);
   if (val(configRead("Minimap", "Blackout", "1")) === 1 && fogEnabled()) {
-    x.fillStyle = "rgb(18,18,28)";
+    x.fillStyle = "#000";                         // (the same black as where there's no map at all)
     const ps = g.ps, n = fogCell(), fxt = Math.ceil(G.sw / n);
     for (const name of A.m.maps) {
       const [mx, my, mz] = name.split(",").map(Number);

@@ -68,7 +68,7 @@ def main():
     p.add_argument("--root", default=os.environ.get("DS_ROOT", root_default), help="the game folder (Data, Maps...)")
     p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(root_default, "server-data", "dragonsword.db")))
     p.add_argument("--host", default=os.environ.get("DS_HOST", "0.0.0.0"))
-    p.add_argument("--port", type=int, default=int(os.environ.get("DS_PORT", "8080")))
+    p.add_argument("--port", type=int, default=int(os.environ.get("DS_PORT", "8484")))
     p.add_argument("--max-players", type=int, default=int(os.environ.get("DS_MAX_PLAYERS", "5")))
     p.add_argument("--registration", default=os.environ.get("DS_REGISTRATION", "open"), choices=("open", "closed"))
     p.add_argument("--invite", default=os.environ.get("DS_INVITE_CODE", ""))

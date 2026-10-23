@@ -18,10 +18,10 @@ accounts, characters and the shared world (SQLite).
 ```
 pip install -r requirements.txt
 python tools/export_web_assets.py          # once, and again after changing sprites, sounds or data
-python -m server                           # http://localhost:8080
+python -m server                           # http://localhost:8484
 ```
 
-Open http://localhost:8080 and make a character (name and password). **F11** (or the button at the top left of the
+Open http://localhost:8484 and make a character (name and password). **F11** (or the button at the top left of the
 view) goes full screen. Press **Enter** to chat with the other players.
 
 ## What's shared and what's yours
@@ -169,7 +169,7 @@ python tools/admin.py admin Kris on       # the Admin button (give items, set sk
 
 | On your PC (where you edit) | |
 |---|---|
-| **Test Locally.bat** | Builds the server from these files in Docker and starts it at http://localhost:8080, to try changes first. It has its own test characters. |
+| **Test Locally.bat** | Builds the server from these files in Docker and starts it at http://localhost:8484, to try changes first. It has its own test characters. |
 | **Publish Update.bat** | Saves your changes and sends them to your GitHub repository. GitHub builds the server image, and the server PC updates itself within minutes. |
 | **Link GitHub.bat** | Once, at the start: links this folder to the GitHub repository. |
 
@@ -196,7 +196,7 @@ public.)
 
 2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
    **Apply**. It's filled in already:
-   - **Web port** (8080): the port players connect to. Change it if 8080 is taken.
+   - **Web port** (8484): the port players connect to. Change it if 8484 is taken.
    - **Game data** (`/mnt/user/appdata/dragonsword`): where accounts, characters, the world and the daily backups
      are kept. Point it at another share if you like.
    - **Admins**: characters who get the Admin button, comma-separated (e.g. `Kris,Ann`).
@@ -209,7 +209,7 @@ public.)
 
    (Without this, the Docker tab's **Check for Updates** does it by hand.)
 
-Players open `http://<your Unraid server>:8080`; the WebUI entry of the container's menu opens it too. It starts with
+Players open `http://<your Unraid server>:8484`; the WebUI entry of the container's menu opens it too. It starts with
 the array and keeps everyone's progress in appdata (your appdata backups cover it).
 
 Accounts (Unraid's Terminal):
@@ -236,7 +236,7 @@ That's all:
 
 - **Starting:** Docker starts with Linux (no one needs to sign in), and the game and its updater start with Docker.
 - **Updates:** they arrive by themselves, a few minutes after each **Publish Update**.
-- **Connecting:** players use `http://<the server's address>:8080`.
+- **Connecting:** players use `http://<the server's address>:8484`.
 - **Day to day,** in `~/dragonsword`:
   - `docker compose logs -f` shows what it's doing.
   - `docker compose pull game && docker compose up -d` updates at once.
@@ -246,7 +246,7 @@ That's all:
 `docker compose up -d` again:
 
 ```
-DS_PORT=8090                 # the port players connect to (8080)
+DS_PORT=8090                 # the port players connect to (8484)
 DS_DATA=/srv/dragonsword     # where the game's data is kept: a folder, or a Docker volume's name (gamedata)
 DS_ADMINS=Kris,Ann           # characters who get the Admin button
 DS_INVITE_CODE=letmein       # making a character needs this code
@@ -295,7 +295,7 @@ Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HT
 
 | Variable | Default | |
 |---|---|---|
-| `DS_PORT` | 8080 | |
+| `DS_PORT` | 8484 | |
 | `DS_HOST` | 0.0.0.0 | |
 | `DS_DB` | `server-data/dragonsword.db` | (not `data/`: on Windows that is the game's own `Data` folder) |
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |

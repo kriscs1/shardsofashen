@@ -41,10 +41,10 @@ COPY --from=assets /game/web/assets web/assets
 COPY deploy/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh && mkdir -p /data && chown -R dragon:dragon /data /game/Data
 # It starts as root only to hand /data to PUID:PGID (entrypoint.sh), then runs as them (default 1000, the dragon user)
-ENV DS_DB=/data/dragonsword.db DS_PORT=8080 DS_MAX_PLAYERS=5 PUID=1000 PGID=1000
-EXPOSE 8080
+ENV DS_DB=/data/dragonsword.db DS_PORT=8484 DS_MAX_PLAYERS=5 PUID=1000 PGID=1000
+EXPOSE 8484
 VOLUME ["/data"]
-HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8484/health')"
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "-m", "server"]

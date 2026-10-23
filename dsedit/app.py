@@ -303,7 +303,7 @@ class App:
                 self.status("Saved %s." % (self.page.current() or self.page.title), "ok")
         self.refresh_chrome()
 
-    PLAY_PORT = 8080
+    PLAY_PORT = 8484
     play_news = queue.Queue()
 
     def play(self):

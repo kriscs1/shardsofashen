@@ -62,6 +62,8 @@ class CombatMixin:
         """amount = +Q, -Q or =Q. "Hitpoints" changes the player's current hitpoints."""
         d = self.data
         if trim(skill).upper() in ("HITPOINTS", "HITS", "HP"):
+            if self.dead_wait:              # (dead: nothing hurts or heals until they respawn)
+                return
             old = self.player.hp
             new = int(min(self.player_max_hp, apply_change(old, amount)))
             if self.god_mode and new < old:
@@ -456,6 +458,8 @@ class CombatMixin:
             self.display_message("You are badly hurt! Eat something, drink a potion or run!", "ERROR")
 
     def player_dies(self):
+        if self.dead_wait:                  # (dead already)
+            return
         if self.god_mode:
             self.player.hp = self.player_max_hp
             return
@@ -481,7 +485,11 @@ class CombatMixin:
         for e in self.w.ents:
             if e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
-        # Dead: they stay where they fell (unseen, nothing can touch them) until they choose to wake (Respawn)
+        # Dead: they stay where they fell (unseen, nothing can touch them) until they choose to wake (Respawn).
+        # Nothing carries on: no walking (a key held down when they fell), no fighting, no bleeding
+        self.keyboard_direction = 0
+        self.pending_verb, self.pending_ent = "", None
+        self.item_in_use = None
         bed = self.home_respawn()
         if bed is not None:
             self.dead_wait = (bed[0], bed[1], bed[2], True)
@@ -498,6 +506,9 @@ class CombatMixin:
             return
         m, x, y, bed = self.dead_wait
         self.dead_wait = None
+        self.keyboard_direction = 0
+        self.stop_player_walk()
+        self.status_reset()
         self.player_visible = val(self.data.config_read("Gameplay", "Player.Visible", "1")) == 1
         self.player.hp = self.player_max_hp
         if self.w.map_named(m) is not None:

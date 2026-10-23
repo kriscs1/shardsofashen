@@ -446,6 +446,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if not self.in_world():
             return
         now = self.now
+        if self.dead_wait:                  # (dead, waiting to respawn: only the grave's time goes on)
+            self.grave_tick(self.w.dt * 1000)
+            return
         self.status_tick()
         self.grave_tick(self.w.dt * 1000)
         if self.sleep_state:
@@ -462,7 +465,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.check_player_tile()
 
     def tick_after_npcs(self):
-        if not self.in_world():
+        if not self.in_world() or self.dead_wait:
             return
         if self.sleep_state:
             return
