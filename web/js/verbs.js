@@ -198,14 +198,13 @@ export function spellStatus(name) {
   if (spellIni(spell, "Kind", "Scroll").toUpperCase() === "POTION") return "";
   const level = val(spellIni(spell, "Level", "1"));
   const skill = spellIni(spell, "Skill", "Magic");
-  const have = skillLevel(skill);
-  if (have < level) return `Needs ${skill} ${lbstr(level)}`;
+  // (only what stops it being cast now: the hover's own lines say its need and its mana - tips.js)
+  if (skillLevel(skill) < level) return "";
   const cost = val(spellIni(spell, "Cost", "0"));
-  let s = `${lbstr(cost)} mana`;
   const cd = (S.me.cooldowns || {})[spell];
-  s += cd > 0 ? `|Ready in ${Math.ceil(cd / 1000)} s` : "|Ready";
-  if (S.me.mana < cost) s += " (not enough mana)";
-  return s;
+  if (cd > 0) return `!Ready in ${Math.ceil(cd / 1000)} s`;
+  if (S.me.mana < cost) return "!Not enough mana";
+  return "";
 }
 
 export function skillLevel(skill) {

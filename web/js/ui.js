@@ -9,6 +9,7 @@ import { dayFraction, isNight, timeText, fogEnabled } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice } from "./verbs.js";
 import { lookImage } from "./look.js";
+import { entityTip } from "./tips.js";
 
 export const TAB_TEXT = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -656,8 +657,18 @@ function drawBox(ctx) {
   const bg = sprite(bgName);
   const [w, h] = size(bgName);
   const x0 = L.abX, y0 = L.abY;
-  if (bg) ctx.drawImage(bg, x0, y0);
-  else roundBox(ctx, x0, y0, w, h, [51, 34, 27], [126, 77, 63], 2, 10);
+  // (the frame goes on down round the answers: one panel. Its middle - plain planks - is drawn again for the extra)
+  const full = h + responseBoxH() - FRAME_LAP;
+  if (bg) {
+    const foot = 26, band = [64, 140];
+    ctx.drawImage(bg, 0, 0, w, h - foot, x0, y0, w, h - foot);
+    for (let y = y0 + h - foot; y < y0 + full - foot;) {
+      const n = Math.min(band[1] - band[0], y0 + full - foot - y);
+      ctx.drawImage(bg, 0, band[0], w, n, x0, y, w, n);
+      y += n;
+    }
+    ctx.drawImage(bg, 0, h - foot, w, foot, x0, y0 + full - foot, w, foot);
+  } else roundBox(ctx, x0, y0, w, full, [51, 34, 27], [126, 77, 63], 2, 10);
   const portrait = /^Player/.test(b.image || "") && S.me.look ? lookImage(b.image, S.me.look) : sprite(b.image);
   const [pw, ph] = size(b.image);
   let titleX, titleY;
@@ -680,8 +691,9 @@ function drawBox(ctx) {
     titleX = 22; titleY = 18;
   }
   const tw = drawText(ctx, b.title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
+  const lift = Math.round((fontPx(12) - fontPx(9)) * 0.8);           // (the kind sits on the title's baseline)
   const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Market: "everyone's goods", Chest: "take what you want" }[b.mode];
-  if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + 5, 9, false, [212, 191, 126]);
+  if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + lift, 9, false, [212, 191, 126]);
   if (b.mode === "Conversation") {
     const maxW = w - titleX - 28;
     let parts = String(b.text).split("|").filter(Boolean);
@@ -774,42 +786,49 @@ export function boxCloseAt(x, y) {
   return S.box.mode && x >= L.abX + 430 && x <= L.abX + 450 && y >= L.abY + 10 && y <= L.abY + 25;
 }
 
-// ----- the answers under the box: a row each, attached to the box, numbered (press the number, or click it)
-const RB_TOP = 6, RB_ROW = 24;
+// ----- the answers, inside the box's frame below what it shows: a row each, numbered (press the number, or click)
+const RB_TOP = 2, RB_ROW = 24, FRAME_LAP = 0;
 
 function responseBoxH() {
-  return Math.max(54, RB_TOP + S.box.responses.length * RB_ROW + 8);
+  return Math.max(40, RB_TOP + S.box.responses.length * RB_ROW + 18);
+}
+
+function numberBadge(ctx, cx, cy, text, hot) {
+  ctx.fillStyle = hot ? "rgb(236,196,92)" : "rgb(176,124,72)";
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = "rgb(60,38,24)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, 6.283); ctx.stroke();
+  const tw = textWidth(ctx, text, 8, true);
+  drawTextMid(ctx, text, Math.round(cx - tw / 2), cy - 8, 16, 8, true, [40, 24, 14]);
 }
 
 function drawResponses(ctx) {
   const b = S.box;
   const [w] = size(boxBackground());
-  const h = responseBoxH();
-  const x0 = L.rbX, y0 = L.rbY;
-  roundBox(ctx, x0 + 8, y0 - 6, w - 16, h + 6, [40, 27, 20], [150, 104, 62], 2, 12);
+  const x0 = L.rbX, y0 = L.rbY - FRAME_LAP;
+  const left = x0 + 13, right = x0 + 425;         // (lined up with the portrait and the page buttons above)
   b.responses.forEach((r, i) => {
     const y = y0 + RB_TOP + i * RB_ROW;
     const hot = U.rbHover === i + 1;
-    roundBox(ctx, x0 + 18, y, w - 36, RB_ROW - 3, hot ? [96, 64, 42] : [60, 41, 31], hot ? [236, 196, 92] : [98, 70, 52], 1, 8);
-    ctx.fillStyle = hot ? "rgb(236,196,92)" : "rgb(160,112,66)";
-    ctx.beginPath(); ctx.arc(x0 + 33, y + (RB_ROW - 3) / 2, 8, 0, 6.283); ctx.fill();
-    centreText(ctx, x0 + 33, y + 3, String(i + 1), 8, true, [40, 26, 18]);
-    drawTextMid(ctx, r, x0 + 48, y, RB_ROW - 3, 10, true, hot ? [255, 242, 196] : [238, 224, 190]);
+    roundBox(ctx, left, y, right - left, RB_ROW - 4, hot ? [76, 52, 36] : [38, 25, 18], hot ? [236, 196, 92] : [110, 78, 52], 1, 8);
+    numberBadge(ctx, left + 14, y + (RB_ROW - 4) / 2, String(i + 1), hot);
+    drawTextMid(ctx, r, left + 30, y, RB_ROW - 4, 10, true, hot ? [255, 242, 196] : [238, 224, 190]);
   });
 }
 
 export function responseAt(x, y) {
   if (!S.box.mode) return 0;
   const [w] = size(boxBackground());
-  if (x < L.rbX + 18 || x > L.rbX + w - 18) return 0;
-  const n = Math.floor((y - L.rbY - RB_TOP) / RB_ROW) + 1;
-  const inRow = (y - L.rbY - RB_TOP) % RB_ROW < RB_ROW - 3;
-  return y >= L.rbY + RB_TOP && inRow && n >= 1 && n <= S.box.responses.length ? n : 0;
+  if (x < L.rbX + 13 || x > L.rbX + 425) return 0;
+  const top = L.rbY - FRAME_LAP + RB_TOP;
+  const n = Math.floor((y - top) / RB_ROW) + 1;
+  const inRow = (y - top) % RB_ROW < RB_ROW - 4;
+  return y >= top && inRow && n >= 1 && n <= S.box.responses.length ? n : 0;
 }
 
 export function responseBoxRect() {
   if (!S.box.mode) return null;
-  return [L.rbX, L.rbY - 6, size(boxBackground())[0], responseBoxH() + 6];
+  return [L.rbX, L.rbY - FRAME_LAP, size(boxBackground())[0], responseBoxH()];
 }
 
 // ----- the chat bar and the hover box
@@ -856,20 +875,45 @@ export function scrollChat(n) {
   else U.chatLine = clamp(U.chatLine + n, 1, Math.max(1, S.messages.length - 4));
 }
 
+// The hover box (the parchment at the bottom right): a heading, then lines in their own sizes and colours. A line's
+// first character says how it looks (tips.js): # the name, ~ a hint, ! a need not met, + a need met, $ a price.
+// Plain text (the interface's own hover messages) has its first line as the heading.
+const QUICK_STYLES = {
+  "#": { size: 11, bold: true, col: [110, 34, 18] },
+  "~": { size: 8, bold: false, col: [120, 96, 64] },
+  "!": { size: 9, bold: true, col: [176, 34, 24] },
+  "+": { size: 9, bold: true, col: [34, 112, 44] },
+  "$": { size: 9, bold: true, col: [140, 96, 10] },
+  "": { size: 9, bold: false, col: [62, 42, 30] },
+};
+
 function drawQuick(ctx, y0) {
-  const kindCol = { ERROR: "150 20 20", WARNING: "150 20 20", INFORMATION: "120 70 0", ENTITY: "60 30 20",
-    INTERFACE: "30 50 120" }[U.qmKind] || "70 50 40";
-  const parts = U.qm.split("|");
-  let sz = 10, lines = [], lineH = 0;
-  for (;;) {
-    sz--;
+  const raw = U.qm.split("|").map((part) => trim(part)).filter(Boolean);
+  if (!raw.length) return;
+  const styled = raw.map((part, i) => {
+    const mark = "#~!+$".includes(part[0]) ? part[0] : "";
+    return [QUICK_STYLES[mark || (i === 0 ? "#" : "")], mark ? trim(part.slice(1)) : part];
+  });
+  if (U.qmKind === "ERROR" || U.qmKind === "WARNING") styled[0][0] = QUICK_STYLES["!"];
+  const width = 158, room = 76;
+  let scale = 1, lines = [];
+  for (;;) {                                      // (smaller, until it fits)
     lines = [];
-    for (const part of parts) for (const ln of wrapLines(ctx, trim(part), 150, sz)) if (lines.length < 10) lines.push(ln);
-    lineH = Math.floor(sz * 1.35) + 1;
-    if (lines.length * lineH <= 70 || sz <= 6) break;
+    for (const [st, text] of styled) {
+      const size = Math.max(6, Math.round(st.size * scale));
+      for (const ln of wrapLines(ctx, text, width, size, st.bold)) lines.push([st, size, ln]);
+    }
+    const h = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0);
+    if (h <= room || scale < 0.7) break;
+    scale -= 0.1;
   }
-  let y = y0 + Math.max(lineH - 2, Math.floor(31 - lines.length * lineH / 2 + lineH * 0.8)) - fontPx(sz) + 2;
-  lines.forEach((ln, i) => { drawText(ctx, ln, L.VW + 35, y, sz, i === 0, colour(kindCol)); y += lineH; });
+  const total = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0);
+  let y = y0 + Math.max(6, Math.floor((88 - total) / 2));
+  for (const [st, size, ln] of lines) {
+    drawText(ctx, ln, L.VW + 32, y, size, st.bold, st.col);
+    y += fontPx(size) + 3;
+    if (y > y0 + 90) break;
+  }
 }
 
 // ----- the right-click menu
@@ -1218,12 +1262,7 @@ export function hoverText(e) {
     const name = it ? pretty(it[1]) : "";
     return e.k === T.INVITEM && e.u === S.itemInUse ? `Use ${name} with ...` : `Use ${name} with ${displayName(e)}`;
   }
-  const verbs = getVerbs(e);
-  const first = verbs[0] || "";
-  if (first === "Walk here") return val(e.misc) === 1 ? displayName(e) : "";
-  let msg = first ? verbLabel(first, e) : "";
-  if (e.k === T.INVITEM && S.box.mode === "Shop" && !canSellHere(e.n)) msg = displayName(e) + "|Can't be sold here";
-  return msg;
+  return entityTip(e);
 }
 
 export function skillInfo(i, long) {
