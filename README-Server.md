@@ -170,7 +170,7 @@ python tools/admin.py admin Kris on       # the Admin button (give items, set sk
 | On your PC (where you edit) | |
 |---|---|
 | **Test Locally.bat** | Builds the server from these files in Docker and starts it at http://localhost:8080, to try changes first. It has its own test characters. |
-| **Publish Update.bat** | Saves your changes and sends them to your private GitHub repository. GitHub builds the server image, and the server PC updates itself within minutes. |
+| **Publish Update.bat** | Saves your changes and sends them to your GitHub repository. GitHub builds the server image, and the server PC updates itself within minutes. |
 | **Link GitHub.bat** | Once, at the start: links this folder to the GitHub repository. |
 
 ## The server: Unraid (or any Linux)
@@ -179,22 +179,20 @@ Each **Publish Update** sends your changes to https://github.com/kriscs1/dragons
 the server image, `ghcr.io/kriscs1/dragonsword`; you can watch it in the repository's **Actions** tab. The server
 downloads the new image and restarts the game with it. Everyone's progress is kept through every update.
 
-Once, before the first install: when the first build is green, make the image public, so the server can download it
-without signing in. Go to https://github.com/users/kriscs1/packages/container/dragonsword/settings > **Change
-visibility** > **Public**. Your code stays private.
+Once, before the first install: when the first build is green, check that the image is public, so the server can
+download it without signing in. Go to https://github.com/users/kriscs1/packages/container/dragonsword/settings: if
+it says Private, **Change visibility** > **Public**. (New images can start out private even when the repository is
+public.)
 
 ### Unraid
 
-1. **Add the template and the icon.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
+1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
 
    ```
    docker run --rm ghcr.io/kriscs1/dragonsword cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-DragonSword.xml
-   mkdir -p /boot/config/plugins/dockerMan/images
-   docker run --rm ghcr.io/kriscs1/dragonsword cat web/img/icon.png > /boot/config/plugins/dockerMan/images/DragonSword-icon.png
    ```
 
-   (The icon also comes from the game itself, `http://localhost:8080/img/icon.png`, the template's Icon URL: change
-   the port there too if you change the Web port.)
+   (Its icon comes from GitHub: https://raw.githubusercontent.com/kriscs1/dragonsword/main/web/img/icon.png.)
 
 2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
    **Apply**. It's filled in already:

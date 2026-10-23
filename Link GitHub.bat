@@ -1,7 +1,7 @@
 @echo off
-rem Once: links this folder to your private GitHub repository and sends everything there.
+rem Once: links this folder to your GitHub repository and sends everything there.
 rem First make the repository on github.com: + (top right) > New repository > name it (e.g. dragonsword) >
-rem Private > Create (no README). Then run this and paste its address.
+rem Public or Private > Create (no README). Then run this and paste its address.
 title Dragon Sword: link to GitHub
 cd /d "%~dp0"
 git remote get-url origin >nul 2>&1 && (
