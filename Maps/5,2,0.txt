@@ -1,6 +1,6 @@
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Sand001:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Water001:Water001:Water001:Water001
@@ -26,5 +26,3 @@ NPC	Rabbit	608	96	Attitude=Bad
 NPC	Butterfly	352	160	Attitude=Good
 StaticObject	Dragonforge	64	480
 NPC	Wyrmsmith	96	480	Attitude=Good Stand=1
-
-

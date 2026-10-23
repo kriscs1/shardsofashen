@@ -2,8 +2,8 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Sand001+Decor(Barrel001):Sand001+Decor(Barrel001):Sand001+Decor(Bench001):Sand001:Sand001+Decor(Bench001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001
-Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001
+Water001:Water001:Water001:Sand001+Decor(Barrel001):Sand001+Decor(Barrel001):Sand001+Decor(Bench001):Sand001:Sand001+Decor(Bench001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001
+Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001
 Sand001:Sand001:Brick_Thin_Tile008+Roof(Shingle_Roof001.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Fireplace003+Roof(Shingle_Roof002.01):Brick_Thin_Tile005+Roof(Shingle_Roof003.01):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Thin_Plank008+Roof(Slate_Roof001.02):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Decor(Potted_Plant003)+Roof(Slate_Roof002.02):Brick_Thin_Plank005+Roof(Slate_Roof003.02):Sand001:Sand001:Sand001
 Sand001:Grass001:Brick_Thin_Tile004+Roof(Shingle_Roof007.01):Tile001+Roof(Shingle_Roof008.01):Tile001+Roof(Shingle_Roof008.01):Tile001+Decor(Table001)+Roof(Shingle_Roof008.01):Tile001+Decor(Chair004)+Roof(Shingle_Roof008.01):Tile001+Roof(Shingle_Roof023.01):Brick_Thin_Tile002+Decor(Bookshelf001)+Roof(Shingle_Roof009.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof007.02):Plank001+Roof(Slate_Roof008.02):Plank001+Decor(Rug001)+Roof(Slate_Roof008.02):Plank001+Decor(Rug002)+Roof(Slate_Roof008.02):Plank001+Decor(Rug003)+Roof(Slate_Roof008.02):Plank001+Roof(Slate_Roof023.02):Brick_Thin_Plank002+Roof(Slate_Roof009.02):Grass001:Grass001:Sand001
 Grass001:Grass001:Brick_Thin_Tile004+Roof(Shingle_Roof013.01):Tile001+Decor(Rug001)+Roof(Shingle_Roof014.01):Tile001+Decor(Rug002)+Roof(Shingle_Roof014.01):Tile001+Decor(Rug002)+Roof(Shingle_Roof014.01):Tile001+Decor(Rug003)+Roof(Shingle_Roof014.01):Tile001+Roof(Shingle_Roof014.01):Brick_Thin_Tile002+Roof(Shingle_Roof015.01):Grass001:Grass001+Decor(Well001):Grass001:Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof013.02):Plank001+Decor(Table001)+Roof(Slate_Roof014.02):Plank001+Decor(Rug004)+Roof(Slate_Roof014.02):Plank001+Decor(Rug005)+Roof(Slate_Roof014.02):Plank001+Decor(Rug006)+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Brick_Thin_Plank002+Roof(Slate_Roof015.02):Grass001:Grass001:Grass001
@@ -40,12 +40,10 @@ NPC	Butterfly	736	320	Attitude=Good
 NPC	Butterfly	352	448	Attitude=Good
 Id	Waystone_Ashford	10	12
 NPC	Guard	384	216	Attitude=Good Stand=1 Id=Arena_Master
-
 StaticObject	Homestone	416	416
 NPC	Settler	448	376	Attitude=Good Stand=1 Id=Homestead_Settler
 StaticObject	Carpenters_Bench	480	416
 Id	Homestead_Yard	15	13
-
 StaticObject	Sign_Market	64	592
 StaticObject	Market_Stall_Open	128	592
 NPC	Villager	128	596	Attitude=Good Stand=1 Id=Market_Vendor_1
@@ -59,14 +57,11 @@ StaticObject	Market_Stall_Open	416	592
 NPC	Man	416	596	Attitude=Good Stand=1 Id=Market_Vendor_5
 StaticObject	Market_Stall_Open	480	592
 Id	Ashford_Market	12	19
-
 StaticObject	Sign_Bakery	128	336
 StaticObject	Sign_General	544	336
 StaticObject	Sign_Smithy	576	560
 StaticObject	Sign_Builder	416	368
-
 StaticObject	Market_Board	64	560
-
 NPC	Man	384	120	Attitude=Good Stand=1 Id=Innkeeper
 StaticObject	Dice_Table	192	128	Id=Dice_Table_1
 StaticObject	Dice_Table	288	128	Id=Dice_Table_2

@@ -18,7 +18,7 @@ Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tree002):Grass001
 Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Crate001):Stone_Wall001:Door002:Stone_Wall001+Decor(Stone_Wall_Window004):Stone_Wall001:Stone_Wall001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001
 Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
 Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001:Forest001:Grass001+Decor(Pebbles002):Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001
-Marsh001+Decor(Reeds001):Sand001:Grass001:Grass001+Decor(Tree002):Forest001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001
+Marsh001+Decor(Reeds001):Grass001:Grass001:Grass001+Decor(Tree002):Forest001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001
 NPC	Shepherd	416	192	Attitude=Good
 NPC	Trader	736	64	Attitude=Good
 NPC	Settler	576	320	Attitude=Good Zone=13,7,20,11
@@ -31,5 +31,4 @@ NPC	Rabbit	704	352	Attitude=Bad
 NPC	Rabbit	512	96	Attitude=Bad
 NPC	Butterfly	160	416	Attitude=Good
 Id	Moorcross_Square	14	7
-
 StaticObject	Sign_General	672	176
