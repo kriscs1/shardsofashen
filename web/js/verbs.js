@@ -26,7 +26,7 @@ function addVerbs(lst, verbs) {
 export function displayName(e) {
   if (!e) return "";
   if (e.k === T.PLAYER) return e.n;
-  return pretty(e.n);
+  return e.dn || pretty(e.n);           // (its own name, if the map gives it one)
 }
 
 export function examineText(e) {

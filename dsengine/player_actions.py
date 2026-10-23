@@ -21,7 +21,16 @@ class ActionsMixin:
             return ""
         if e is self.player:
             return self.player_name
+        if getattr(e, "display", ""):
+            return e.display
         return strip_digits(e.name).replace("_", " ")
+
+    def npc_title(self, npc):
+        """A conversation's or shop's title: the one you clicked by its own name, if it has one (Name= on the map)."""
+        e = self.clicked_ent
+        if e is not None and e.alive and getattr(e, "display", "") and strip_digits(e.name) == strip_digits(npc):
+            return e.display
+        return pretty(npc)
 
     @staticmethod
     def add_verb(lst, verb):

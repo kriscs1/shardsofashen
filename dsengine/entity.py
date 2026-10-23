@@ -23,6 +23,7 @@ class Entity(_Entity):
         self.edits_done = set()     # (script, line): a quest's one-off edits already made to it
         self.private_to = None      # a Session: just dropped by them, only they see it until public_at (ms)
         self.public_at = 0
+        self.display = ""           # a name of its own (the map's Name=Marta), shown instead of the sprite's
 
 
 class InvItem:
@@ -43,6 +44,10 @@ class InvItem:
 
     @property
     def npc_id(self):
+        return ""
+
+    @property
+    def display(self):
         return ""
 
     @property

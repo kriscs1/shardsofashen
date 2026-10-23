@@ -24,6 +24,8 @@ def entity_state(w, e, viewer):
         st["uw"] = e.use_words
     if e.npc_id:
         st["id"] = e.npc_id
+    if e.display:
+        st["dn"] = e.display
     return st
 
 

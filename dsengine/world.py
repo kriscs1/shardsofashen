@@ -255,6 +255,7 @@ class World(NPCMixin):
         if e is None:
             return None
         e.npc_id = self.option_value(options, "Id")
+        e.display = self.option_value(options, "Name").replace("_", " ")
         e.hostile = self.npc_attitude(name, options, attitude)
         self.load_npc_stats(e)
         self.init_npc_ai(e, options)
@@ -331,6 +332,7 @@ class World(NPCMixin):
             e = self.add_static_object(name, z, x, y, owner, home)
             if e is not None:
                 e.npc_id = self.option_value(misc, "Id")
+                e.display = self.option_value(misc, "Name").replace("_", " ")
             return e
         if t == "NPC":
             if misc == "":

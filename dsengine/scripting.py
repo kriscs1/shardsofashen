@@ -480,6 +480,9 @@ class ScriptMixin:
         elif c == "Wait":
             self.script_wait_until = self.now + val(arg[1]) * 1000
             self.script_state = "WAIT"
+        elif c == "Display.Refusal":
+            # Display.Refusal <message>: a no (an empty chest, a locked door): in red, with the Denied sound
+            self.refuse(arg[1])
         elif c == "Start.Wave":
             # Start.Wave <name>: a Data\Waves.ini attack starts (a quest's battle; for everyone there)
             self.w.waves.start(trim(arg[1]), by=self)
@@ -654,7 +657,7 @@ class ScriptMixin:
             self.script_response_line = {1: 0}
         npc = arg[1]
         self.ab_image = self.npc_image(npc)
-        self.ab_title = pretty(npc)
+        self.ab_title = self.npc_title(npc)
         if npc in ("You", "Player"):
             self.ab_title = self.player_name
         self.ab_text = arg[2].replace("\\", "|")

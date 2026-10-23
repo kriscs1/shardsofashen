@@ -693,9 +693,42 @@ def test_the_way_down_is_through_the_chapel(world):
         return s.cur_map.name
 
     s = join(world, "Pilgrim", "3,1,0", 17 * 32, 8 * 32)
+    s.connected = True
+    verger = next(e for e in world.ents if e.npc_id == "Chapel_Verger")
+    assert verger.display == "Brother Aldous" and s.display_name(verger) == "Brother Aldous"
     assert climb(s, "Climb Down", 18, 8) == "3,1,-1"               # the chapel's steps, down to the cellar
-    assert climb(s, "Climb Down", 14, 9) == "3,1,-2"               # the hole in its floor, straight down to the caves
+    s.out = []
+    assert climb(s, "Climb Down", 14, 9) == "3,1,-1"               # the trapdoor: locked, without its key
+    assert any(ev.get("t") == "sound" and ev.get("name") == "Denied" for ev in s.out)
+    s.teleport("3,1,0", 15 * 32, 8 * 32)                           # ask Brother Aldous for it
+    for _ in range(5):
+        world.tick(0.05)
+    s.do_action("Talk to", verger)
+    for _ in range(40):
+        world.tick(0.05)
+    assert s.ab_mode == "Conversation" and s.ab_title == "Brother Aldous"
+    s.action_box_response_chosen(1)                                # "Could I have the cellar key?"
+    for _ in range(20):
+        world.tick(0.05)
+    assert s.items_held("Chapel_Cellar_Key") == 1
+    s.close_action_box(-1)
+    s.teleport("3,1,-1", 13 * 32, 9 * 32 - 8)                      # (in the cellar, by the trapdoor)
+    for _ in range(5):
+        world.tick(0.05)
+    assert climb(s, "Climb Down", 14, 9) == "3,1,-2"               # it opens: straight down to the caves
     assert climb(s, "Climb Up", 14, 9) == "3,1,-1"                 # and the ladder under it back up
+    leave(world, s)
+
+
+def test_dying_ends_buffs_and_debuffs(world):
+    s = join(world, "Mortal")
+    s.spell_attack_bonus, s.spell_attack_until = 5, world.now + 60000
+    s.boost_from = {"attack": "Strength_Potion"}
+    s.status_start("Poison")
+    s.player_dies()
+    st = s.me_state()
+    assert not st["boost_left"] and not st["status_left"] and st["boosts"]["attack"] == 0
+    s.respawn()
     leave(world, s)
 
 

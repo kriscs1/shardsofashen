@@ -230,7 +230,7 @@ class ItemsMixin:
             if self.rack_type == "Shop":
                 self.apply_shop_queue()
         self.ab_image = self.npc_image(npc)
-        self.ab_title = pretty(npc) or self.rack_type
+        self.ab_title = (self.npc_title(npc) if npc else "") or self.rack_type
         if npc in ("You", "Player"):
             self.ab_title = self.player_name
         self.show_rack_page(True)

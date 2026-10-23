@@ -15,7 +15,7 @@
 15	Goto.Script	Ferry to Southport
 16	End
 17	>Conditional	$Variable.1=0	23
-18	Display.Conversation	Woman	Ahoy there! I sail across the strait to Southport, on the southern mainland.\First crossing is by ticket only. My sister the milkmaid keeps the ticket book, on the farm up north.	I'll get a ticket.	19	Not today.	37
+18	Display.Conversation	Woman	Ahoy there! I sail across the strait to Southport, on the southern mainland.\First crossing is by ticket only. My sister Bess, the milkmaid, keeps the ticket book, on the farm up north.	I'll get a ticket.	19	Not today.	37
 19	Update.Attribute	FerryQuest	=1
 20	Quest.Note	FerryQuest	The milkmaid keeps the ferry's ticket book: her farm is in the north of the Isle.
 21	Display.Message	Yellow	Quest started: Passage to the Mainland.

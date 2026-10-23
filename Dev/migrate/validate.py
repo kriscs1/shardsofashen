@@ -272,7 +272,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 
 
 # ------------------------------------------------------------------ NPC movement Options on map lines
-OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id"}
+OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name"}   # (Name=Marta: its own name)
 _npc_ids = None
 
 

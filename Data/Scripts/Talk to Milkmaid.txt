@@ -1,9 +1,9 @@
-01	Display.Conversation	Milkmaid	Morning! Mind the cows, they're friendly but they tread on toes.\Use a bucket on a cow for milk, shears on a sheep for wool. The hens lay in the nests about.	What do you sell?	02	What's wool for?	27	About a ferry ticket...	04	Goodbye.	28
+01	Display.Conversation	Milkmaid	Morning! Mind the cows, they're friendly but they tread on toes.\Use a bucket on a cow for milk, shears on a sheep for wool. The hens lay in their coop, by the barn.	What do you sell?	02	What's wool for?	27	About a ferry ticket...	04	Goodbye.	28
 02	Display.Item.Rack	SPECIFIC	Milkmaid	SHOP-Dairy	28
 03	End
 04	Get.Value	ATTRIBUTE	FerryQuest	Variable.1$
 05	>Conditional	$Variable.1=0	08
-06	Display.Conversation	Milkmaid	A ferry ticket? My sister sails the ferry, down at the pier in the south. Ask her first.	I will.	28
+06	Display.Conversation	Milkmaid	A ferry ticket? My sister Maren sails the ferry, down at the pier in the south. Ask her first.	I will.	28
 07	End
 08	>Conditional	$Variable.1=1	14
 09	Update.Attribute	FerryQuest	=2

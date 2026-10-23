@@ -67,6 +67,7 @@ COMMANDS = [
     ('Quest.Note.Done', ['QUEST NAME', 'NOTE']),
     ('Set.NPC.Attitude', ['NPC ID', 'ATTITUDE']),
     ('Start.Wave', ['WAVE ATTACK']),
+    ('Display.Refusal', ['MESSAGE']),
 ]
 
 # command or argument type -> its help ("|" starts a new line)
@@ -125,6 +126,7 @@ HELP = {
     'Goto.Line': 'COMMAND: Continues the script on a specified line',
     'GOTO LINE': 'The line number to continue at',
     'Goto.Script': 'COMMAND: Runs a new script',
+    'Display.Refusal': "COMMAND: Says no: the message in red, with the sound of something that can't be done|(a locked door, an empty chest)",
     'Start.Wave': 'COMMAND: Starts a monster attack: wave after wave, for everyone there to fight off',
     'WAVE ATTACK': 'The attack: a section of Data\\Waves.ini (e.g. Farm_Raid). Its On.Win.Script runs for each|defender afterwards',
     'GOTO SCRIPT NAME': "The name of the script to run:|(Located in the 'Data\\Scripts\\' folder)",

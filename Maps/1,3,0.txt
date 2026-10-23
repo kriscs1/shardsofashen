@@ -19,7 +19,7 @@ Water001:Water009:Grass001+Decor(Willow_Tree001):Grass001+Decor(Flowers002):Gras
 Water001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Herb_Patch001):Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Water001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Berry_Bush001):Grass001:Grass001:Grass001
 Water001:Water003:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Woman	448	96	Attitude=Good Stand=1
+NPC	Woman	448	96	Attitude=Good Stand=1 Name=Maren
 StaticObject	Notice	417	258	Id=Southport
 MapItem	Fishing_Rod	544	224	1
 MapItem	Bait	576	224	5
