@@ -26,6 +26,20 @@ let lastSlow = 0;
 let lastExplored = 0;
 let loginMode = "login";
 
+// ----- "remember me": this browser keeps your name and a token from the server (not your password) and logs you in
+const LOGIN_KEY = "ds.login";
+function savedLogin() {
+  try { return JSON.parse(localStorage.getItem(LOGIN_KEY) || "{}") || {}; } catch (e) { return {}; }
+}
+function saveLogin(v) {
+  try { localStorage.setItem(LOGIN_KEY, JSON.stringify(v)); } catch (e) { /* (private window: not kept) */ }
+}
+function noAutoLogin(on) {
+  try { if (on) sessionStorage.setItem("ds.noauto", "1"); else return sessionStorage.getItem("ds.noauto") === "1"; }
+  catch (e) { /* */ }
+  return false;
+}
+
 S.addLocal = (text, col) => addMessage(text, col);
 
 // ================================================================================================================
@@ -109,7 +123,18 @@ function overlayOpen() {
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
 $("quit-no").onclick = () => { $("quit").hidden = true; canvas.focus(); };
 $("quit-options").onclick = () => { $("quit").hidden = true; openOptions(); };
+$("quit-logout").onclick = () => {
+  const v = savedLogin();
+  saveLogin({ name: v.name, remember: v.remember });
+  send({ t: "quit", forget: v.token || undefined });
+  running = false;
+  if (N.ws) N.ws.close();
+  stopMusic();
+  $("quit").hidden = true;
+  showMessage("Dragon Sword", "Your game is saved, and you're logged out on this browser.", () => location.reload());
+};
 $("quit-yes").onclick = () => {
+  noAutoLogin(true);                    // (left on purpose: the login screen, not straight back in)
   send({ t: "quit" });
   running = false;
   if (N.ws) N.ws.close();
@@ -244,7 +269,7 @@ $("password-form").addEventListener("submit", (ev) => {
   if (bad) { $("pw-status").textContent = bad; $("pw-status").className = "error small"; return; }
   $("pw-status").textContent = "Changing it...";
   $("pw-status").className = "dim small";
-  send({ t: "password", old, new: nw });
+  send({ t: "password", old, new: nw, remember: !!savedLogin().token });
 });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value.trim() });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
@@ -297,6 +322,33 @@ window.dsDebug = { S, V };     // (for tools/browser_check.py)
 // ================================================================================================================
 function setLoginError(text) { $("login-error").textContent = text || ""; }
 
+function showRemembered(on) {
+  // (remembered: no password to type, just Log in - or it logs in by itself)
+  $("pw-row").hidden = on;
+  $("login-password").required = !on;
+  $("remembered").hidden = !on;
+}
+function forgetLogin(name = savedLogin().name) {
+  saveLogin({ name: name || "", remember: $("login-remember").checked });
+  showRemembered(false);
+}
+{
+  const v = savedLogin();
+  if (v.name) $("login-name").value = v.name;
+  $("login-remember").checked = v.remember !== false;
+  showRemembered(!!(v.token && v.name));
+  (v.name ? (v.token ? $("login-button") : $("login-password")) : $("login-name")).focus();
+}
+$("not-you").onclick = (ev) => {
+  ev.preventDefault();
+  forgetLogin("");
+  $("login-name").value = "";
+  $("login-name").focus();
+};
+$("login-name").addEventListener("input", () => {
+  if (!$("remembered").hidden && $("login-name").value !== savedLogin().name) showRemembered(false);
+});
+
 $("login-form").addEventListener("submit", (ev) => {
   ev.preventDefault();
   unlock();
@@ -311,6 +363,7 @@ $("register-button").onclick = () => {
     pickLook = buildPicker($("look-picker"), DEFAULT_LOOK);
     $("register-button").textContent = "Create character";
     $("login-password").setAttribute("autocomplete", "new-password");
+    showRemembered(false);
     return;
   }
   login("register");
@@ -320,8 +373,10 @@ function login(mode) {
   loginMode = mode;
   setLoginError("");
   if (!N.open) { setLoginError("Not connected to the server yet..."); return; }
-  send({ t: mode, name: $("login-name").value, password: $("login-password").value, invite: $("login-invite").value,
-    look: mode === "register" && pickLook ? pickLook() : undefined });
+  const byToken = mode === "login" && !$("remembered").hidden;
+  send({ t: mode, name: $("login-name").value, password: byToken ? "" : $("login-password").value,
+    token: byToken ? savedLogin().token : undefined, remember: $("login-remember").checked,
+    invite: $("login-invite").value, look: mode === "register" && pickLook ? pickLook() : undefined });
   $("login-button").disabled = $("register-button").disabled = true;
 }
 
@@ -356,13 +411,16 @@ N.onMessage = (m) => {
       }
       $("invite-row").hidden = !m.invite;
       $("register-button").hidden = m.registration !== "open";
+      if (!running && !$("remembered").hidden && !noAutoLogin() && $("login-button").disabled === false) login("login");
       break;
     case "login_fail":
+      if (m.forget) forgetLogin();
       setLoginError(m.reason);
       $("login-button").disabled = $("register-button").disabled = false;
       break;
     case "welcome": startGame(m); break;
     case "kicked":
+      noAutoLogin(true);                // (or the two tabs would take it in turns)
       running = false;
       releaseKeys();
       stopMusic();
@@ -446,7 +504,10 @@ N.onMessage = (m) => {
     case "password_result":
       $("pw-status").textContent = m.text;
       $("pw-status").className = m.ok ? "ok small" : "error small";
-      if (m.ok) setTimeout(() => { $("password").hidden = true; canvas.focus(); }, 1500);
+      if (m.ok) {
+        if (m.token) saveLogin({ ...savedLogin(), token: m.token });     // (the old one's forgotten everywhere)
+        setTimeout(() => { $("password").hidden = true; canvas.focus(); }, 1500);
+      }
       break;
     case "wave": S.wave = m.name ? { ...m, at: now } : null; break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
@@ -456,6 +517,9 @@ N.onMessage = (m) => {
 };
 
 async function startGame(m) {
+  const remember = $("login-remember").checked;
+  saveLogin({ name: m.name, remember, token: remember ? m.token || savedLogin().token : undefined });
+  try { sessionStorage.removeItem("ds.noauto"); } catch (e) { /* */ }
   S.name = m.name;
   S.uid = m.uid;
   S.admin = m.admin;

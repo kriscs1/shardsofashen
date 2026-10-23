@@ -31,9 +31,9 @@ async def start(db, max_players=5, admins=""):
     return runner, app, "ws://127.0.0.1:%d/ws" % port
 
 
-async def login(http, url, name, password, mode="register"):
+async def login(http, url, name, password, mode="register", **more):
     ws = await http.ws_connect(url)
-    await ws.send_json({"t": mode, "name": name, "password": password})
+    await ws.send_json({"t": mode, "name": name, "password": password, **more})
     while True:
         msg = await asyncio.wait_for(ws.receive(), 10)
         data = json.loads(msg.data)
@@ -244,5 +244,41 @@ def test_changing_and_resetting_passwords(tmp_path):
             await nobody.close()
             _, m = await login(http, url, "Player", "hacked", mode="login")
             assert m["t"] == "login_fail"
+        await runner.cleanup()
+    asyncio.run(run())
+
+
+def test_a_browser_can_remember_you(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "r.db"))
+        async with aiohttp.ClientSession() as http:
+            ws, m = await login(http, url, "Keeper", "pass1", remember=True)
+            token = m["token"]
+            assert token and len(token) > 30
+            await ws.close()
+            ws, m = await login(http, url, "Keeper", "", mode="login", token=token, remember=True)
+            assert m["t"] == "welcome" and m["token"] == token             # (no password: the token will do)
+            await ws.close()
+            _, m = await login(http, url, "Other", "", mode="login", token=token)
+            assert m["t"] == "login_fail"                                  # (it's Keeper's, no one else's)
+            _, m = await login(http, url, "Keeper", "", mode="login", token="made-up")
+            assert m["t"] == "login_fail" and m.get("forget")
+            ws, m = await login(http, url, "Keeper", "", mode="login", token=token, remember=True)
+            await ws.send_json({"t": "quit", "forget": token})            # Log out: this browser forgets them
+            await asyncio.sleep(0.3)
+            await ws.close()
+            _, m = await login(http, url, "Keeper", "", mode="login", token=token)
+            assert m["t"] == "login_fail"
+            ws, m = await login(http, url, "Keeper", "pass1", mode="login", remember=True)
+            token = m["token"]
+            await ws.send_json({"t": "password", "old": "pass1", "new": "pass2", "remember": True})
+            r = await wait_for(ws, "password_result")
+            assert r["ok"] and r["token"] and r["token"] != token      # (a new password: other browsers forget them)
+            await ws.close()
+            _, m = await login(http, url, "Keeper", "", mode="login", token=token)
+            assert m["t"] == "login_fail"
+            ws, m = await login(http, url, "Keeper", "", mode="login", token=r["token"])
+            assert m["t"] == "welcome" and not m["token"]                   # (not asked to remember: none given)
+            await ws.close()
         await runner.cleanup()
     asyncio.run(run())

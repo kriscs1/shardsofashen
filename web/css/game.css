@@ -89,6 +89,10 @@ html, body {
   font-size: 15px;
 }
 
+.panel label.check { flex-direction: row; align-items: center; gap: 8px; margin: 4px 0; font-size: 14px; }
+#remembered { margin: 10px 0; }
+#remembered a { color: var(--ink); }
+
 .panel input:not([type=checkbox]):not([type=range]), .panel select {
   font: inherit;
   font-size: 16px;
