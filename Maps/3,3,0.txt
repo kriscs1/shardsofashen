@@ -69,3 +69,6 @@ NPC	Butterfly	416	608	Attitude=Good
 NPC	Butterfly	32	448	Attitude=Good
 NPC	Duck	480	320	Attitude=Bad
 NPC	Duck	704	256	Attitude=Bad
+
+StaticObject	Sign_Farm	352	400
+StaticObject	Sign_Herbalist	704	528

@@ -11,8 +11,9 @@ services:
       DS_MAX_PLAYERS: ${DS_MAX_PLAYERS:-5}
       DS_REGISTRATION: ${DS_REGISTRATION:-open}
       DS_INVITE_CODE: ${DS_INVITE_CODE:-}
+      DS_ADMINS: ${DS_ADMINS:-}
     volumes:
-      - gamedata:/data
+      - ${DS_DATA:-gamedata}:/data
     stop_grace_period: 20s
 
   caddy:

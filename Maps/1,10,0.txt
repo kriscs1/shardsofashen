@@ -32,3 +32,5 @@ Id	Dunerest_Square	10	4
 Id	Waystone_Dunerest	12	8
 
 StaticObject	Homestone	256	256
+
+StaticObject	Sign_General	160	464

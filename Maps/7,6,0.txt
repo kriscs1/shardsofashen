@@ -37,3 +37,5 @@ Id	Thornwick_Square	9	11
 Id	Waystone_Thornwick	11	15
 
 StaticObject	Homestone	224	480
+
+StaticObject	Sign_General	480	208

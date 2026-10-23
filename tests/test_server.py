@@ -21,8 +21,8 @@ def free_port():
         return s.getsockname()[1]
 
 
-async def start(db, max_players=5):
-    app = make_app(ROOT, db, max_players)
+async def start(db, max_players=5, admins=""):
+    app = make_app(ROOT, db, max_players, admins=admins)
     runner = web.AppRunner(app)
     await runner.setup()
     port = free_port()
@@ -155,5 +155,19 @@ def test_chat_and_whispers(tmp_path):
             assert any(m.get("text") == "hello" for m in await chats(a))
             await c.send_json({"t": "chat", "text": "hello all"})
             assert any(m.get("text") == "hello all" and not m.get("whisper") for m in await chats(b))
+        await runner.cleanup()
+    asyncio.run(run())
+
+
+def test_admins_from_the_server_settings(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "a.db"), admins="Kris, ann")
+        async with aiohttp.ClientSession() as http:
+            _, m = await login(http, url, "Kris", "pw12")
+            assert m["t"] == "welcome" and m["admin"] is True
+            _, m = await login(http, url, "Ann", "pw12")                # (names in any case)
+            assert m["admin"] is True
+            _, m = await login(http, url, "Bob", "pw12")
+            assert m["admin"] is False
         await runner.cleanup()
     asyncio.run(run())

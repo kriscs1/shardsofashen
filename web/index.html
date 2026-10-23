@@ -44,6 +44,19 @@
     <button type="button" id="build-done">Done (Esc)</button></div>
 </div>
 
+<div id="price" class="overlay" hidden>
+  <form id="price-form" class="panel">
+    <h2 id="price-title">Sell on your stall</h2>
+    <label>Price each (gold) <input id="price-each" type="number" min="1" max="1000000" step="1" required></label>
+    <label id="price-qty-row">How many <input id="price-qty" type="number" min="1" step="1"></label>
+    <p id="price-hint" class="dim small"></p>
+    <div class="buttons">
+      <button type="submit">OK</button>
+      <button type="button" id="price-cancel">Cancel</button>
+    </div>
+  </form>
+</div>
+
 <div id="chat-entry" hidden><input id="chat-input" maxlength="200" placeholder="Say something to everyone. /w name words: whisper. /r words: answer a whisper. (Enter sends, Esc cancels)"></div>
 
 <div id="options" class="overlay" hidden>
@@ -51,6 +64,7 @@
     <h2>Options</h2>
     <div class="row"><span>Sound effects</span><input type="checkbox" id="opt-sound"></div>
     <div class="row"><span>Volume</span><input type="range" id="opt-volume" min="0" max="100" step="5"></div>
+    <div class="row"><span>A chime when another player talks to you</span><input type="checkbox" id="opt-chat-sound"></div>
     <div class="row"><span>Music</span><input type="checkbox" id="opt-music"></div>
     <div class="row"><span>Music volume</span><input type="range" id="opt-music-volume" min="0" max="100" step="5"></div>
     <div class="row"><span>Background sounds</span><input type="checkbox" id="opt-ambient"></div>
@@ -86,6 +100,9 @@
     <select id="admin-items" size="8"></select>
     <p class="dim small">Skills: untick to switch one off (for everyone); type a level to set yours.</p>
     <div id="admin-skills"></div>
+    <div class="row"><span>Go to a place:</span>
+      <input id="admin-place" placeholder="e.g. Ashford_Market" maxlength="40">
+      <button type="button" id="admin-goto">Go</button></div>
     <div class="row"><label><input type="checkbox" id="admin-god"> God mode (nothing can hurt you)</label></div>
     <div class="buttons"><button type="button" id="admin-save">Save skills</button>
       <button type="button" id="admin-close">Close</button></div>

@@ -4,8 +4,18 @@
 #
 #   docker run --rm ghcr.io/kriscs1/dragonsword cat docker-compose.yml > docker-compose.yml && docker compose up -d
 #
-# Optional settings in a .env file beside it: DS_PORT, DS_MAX_PLAYERS, DS_REGISTRATION, DS_INVITE_CODE,
-# DS_UPDATE_SECONDS, and GHCR_USER / GHCR_TOKEN if the image is private.
+# Settings: put them in a file called .env beside this one (one per line, e.g. DS_PORT=8090), or change the defaults
+# after ":-" below. Then "docker compose up -d" again.
+#   DS_PORT           the port players connect to: http://<server>:<port> (8080)
+#   DS_DATA           where the game's data is kept: accounts, characters, the world, homes, daily backups. A folder
+#                     on the server (e.g. /srv/dragonsword) or a Docker volume's name (gamedata, the default)
+#   DS_ADMINS         characters who get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
+#                     (make those characters before you tell anyone the address, or someone else could take the name)
+#   DS_INVITE_CODE    if set, making a character needs this code
+#   DS_REGISTRATION   open (anyone can make a character) or closed (only accounts made with tools/admin.py)
+#   DS_MAX_PLAYERS    how many can play at once (5)
+#   DS_UPDATE_SECONDS how often to look for a new version (300)
+#   GHCR_USER / GHCR_TOKEN   only if the image is private
 name: dragonsword
 
 services:
@@ -18,8 +28,11 @@ services:
       DS_MAX_PLAYERS: ${DS_MAX_PLAYERS:-5}
       DS_REGISTRATION: ${DS_REGISTRATION:-open}
       DS_INVITE_CODE: ${DS_INVITE_CODE:-}
+      DS_ADMINS: ${DS_ADMINS:-}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
     volumes:
-      - gamedata:/data
+      - ${DS_DATA:-gamedata}:/data
     stop_grace_period: 30s
 
   # Docker's own command line (the official image), checking GitHub's registry for a new version of the game.

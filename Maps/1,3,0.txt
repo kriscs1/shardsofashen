@@ -37,3 +37,5 @@ NPC	Duck	96	544	Attitude=Bad
 NPC	Banker	160	416	Attitude=Good Stand=1
 Id	Southport_Landing	12	11
 Id	Southport_Pier	12	5
+
+StaticObject	Sign_Fishing	128	496

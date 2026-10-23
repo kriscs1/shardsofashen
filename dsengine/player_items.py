@@ -343,7 +343,9 @@ class ItemsMixin:
             self.close_action_box(n)
             return
         action = self.response_actions[n - 1] if 0 <= n - 1 < len(self.response_actions) else ""
-        if action == "NEXT":
+        if action.startswith("STALL_"):
+            self.stall_response(action)
+        elif action == "NEXT":
             self.rack_page += 1
             self.show_rack_page(False)
         elif action == "PREV":

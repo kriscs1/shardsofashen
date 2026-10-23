@@ -6,7 +6,7 @@ import { val, trim, clamp } from "./util.js";
 import { weatherAmbient } from "./sky.js";
 
 export const O = {               // the options (kept in the browser)
-  sound: true, volume: 100, music: true, musicVolume: 80, ambient: true, ambientVolume: 70,
+  sound: true, volume: 100, music: true, musicVolume: 80, ambient: true, ambientVolume: 70, chatSound: true,
 };
 
 const AU = { ctx: null, buffers: new Map(), master: null, music: null, musicGain: null, musicTheme: null,

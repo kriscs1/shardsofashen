@@ -45,3 +45,17 @@ StaticObject	Homestone	416	416
 NPC	Settler	448	376	Attitude=Good Stand=1 Id=Homestead_Settler
 StaticObject	Carpenters_Bench	480	416
 Id	Homestead_Yard	15	13
+
+StaticObject	Sign_Market	64	592
+StaticObject	Market_Stall	128	592	Id=Stall_1
+StaticObject	Market_Stall	192	592	Id=Stall_2
+StaticObject	Market_Stall	256	592	Id=Stall_3
+StaticObject	Market_Stall	352	592	Id=Stall_4
+StaticObject	Market_Stall	416	592	Id=Stall_5
+StaticObject	Market_Stall	480	592	Id=Stall_6
+Id	Ashford_Market	12	19
+
+StaticObject	Sign_Bakery	128	336
+StaticObject	Sign_General	544	336
+StaticObject	Sign_Smithy	576	560
+StaticObject	Sign_Builder	416	368

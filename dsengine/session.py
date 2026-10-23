@@ -20,6 +20,7 @@ from .quests import QuestMixin
 from .pvp import PvPMixin
 from .homes import HomeMixin
 from .farming import FarmMixin
+from .market import MarketMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -39,7 +40,7 @@ def clean_look(look):
     return out or None
 
 
-class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin):
+class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -147,6 +148,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.sent_maps = {}                 # map -> version the browser has
         self.view_known = {}                # uid -> what the browser last had of it
         self.init_home()
+        self.init_market()
+        self.verb_price = self.verb_qty = 0   # (a stall's Sell here / Set price: what the player typed)
         self.init_scripts()
 
     def clear_boosts_values(self):
@@ -893,7 +896,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 it["short"] = self.rack_level_short(e)
                 it["missing"] = self.rack_missing(e)
             items.append(it)
-        return {"t": "box", "mode": self.ab_mode, "image": self.ab_image, "title": self.ab_title,
+        extra = self.stall_box_extra() if self.ab_mode == "Stall" else {}
+        return {"t": "box", "mode": self.ab_mode, "image": self.ab_image, "title": self.ab_title, **extra,
                 "text": self.ab_text, "items": items, "responses": self.responses, "page": self.rack_page,
                 "pages": self.rack_pages, "rack": self.rack_name, "buy_rate": self.rack_buy_rate,
                 "sell_rate": self.rack_sell_rate * self.data.sell_price_factor, "specific": self.rack_specific,

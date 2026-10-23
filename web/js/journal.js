@@ -32,6 +32,8 @@ const CONTROLS = [
   ["M", "Other players", "Up to five of you share this world: what you do (chopping, mining, fighting, picking things up) is seen by everyone; your quests are your own."],
   ["M", "The arena", "Talk to the Arena Master in Ashford. On the arena's sand you can fight other players (right-click: Attack); the paving round it is safe. Beaten, you lose nothing."],
   ["M", "Farming", "Buy seeds from the farmer by Ashford and use them on tilled soil: his furrows are free for anyone, or lay soil on your homestead. Crops grow by themselves (even while you're away); only whoever sowed them can harvest."],
+  ["M", "Market stalls", "In Ashford by the south road. Browse an empty stall to claim it; with it open, right-click things in your pack: Sell here, at your own price. Others buy even while you're away; collect the gold at your stall."],
+  ["M", "Shop signs", "Every shop has a sign by its door with a picture of what it sells."],
   ["M", "Dropping things", "Something you drop is yours alone to see for 10 seconds; then everyone can see it and pick it up."],
   ["M", "Your homestead", "The settler by Ashford's homestone gives you an Access Crystal for a little building work. Touch a homestone (by every waystone) to go home, or to visit a friend's. At home its homestone says who may visit: only you, friends, or anyone."],
   ["M", "Building", "At home, press B (or the Build button): pick a piece, then click or drag on your land. Take down gives back half. Sleep in your own bed and you wake there if you fall; a chest there is your bank."],

@@ -28,3 +28,5 @@ NPC	Guard	384	256	Attitude=Good Zone=12,9,18,9 Pause=3-8
 NPC	Rabbit	736	512	Attitude=Bad
 NPC	Rabbit	32	96	Attitude=Bad
 NPC	Banker	416	448	Attitude=Good Stand=1
+
+StaticObject	Sign_Armoury	288	336

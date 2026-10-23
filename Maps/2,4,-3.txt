@@ -40,3 +40,5 @@ StaticObject	Chest	96	96
 StaticObject	Eel_Spot	320	512
 Id	Deep_Seam_Troll	21	16
 Lock	6	5	$Attr.DwarfQuest>=2	Brokk's vault. The door is barred, and Brokk only opens it for a friend of the deep.
+
+StaticObject	Sign_Dwarf	352	80

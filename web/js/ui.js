@@ -576,7 +576,8 @@ function qtyText(q) {
   return String(q);
 }
 
-function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = false, wear = 0, inv = false } = {}) {
+function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = false, wear = 0, inv = false,
+  badgeInk = null } = {}) {
   const broken = inv && durText(name, wear) === "broken!";
   const im = dim || broken ? greyed(name) : sprite(name) || sprite("Placeholder");
   if (im) ctx.drawImage(im, x, y);
@@ -593,7 +594,7 @@ function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = f
     const w = textWidth(ctx, badge, 7, true) + 4;
     ctx.fillStyle = "rgb(60,18,14)";
     ctx.fillRect(x + G.tw - w, y + G.th - 10, w, 10);
-    drawText(ctx, badge, x + G.tw - w + 2, y + G.th - 10, 7, true, [255, 150, 120]);
+    drawText(ctx, badge, x + G.tw - w + 2, y + G.th - 10, 7, true, badgeInk || [255, 150, 120]);
   }
   const q = qtyText(String(qty));
   if (q !== "1" && q !== "") digits(ctx, q, x, y);
@@ -655,7 +656,7 @@ function drawBox(ctx) {
     titleX = 22; titleY = 21;
   }
   const tw = drawText(ctx, b.title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
-  const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting" }[b.mode];
+  const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Stall: "Market stall" }[b.mode];
   if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + 5, 9, false, [212, 191, 126]);
   if (b.mode === "Conversation") {
     const maxW = w - titleX - 28;
@@ -678,8 +679,9 @@ function drawBox(ctx) {
   const gap = G.tw + 5;
   b.items.forEach((it, n) => {
     const x = x0 + 66 + gap * (n % cols), y = y0 + 45 + gap * Math.floor(n / cols);
-    slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : "",
-      cross: !!(it.short || it.missing) });
+    const price = b.mode === "Stall" ? (b.prices || [])[it.i] : 0;      // (a stall: each thing's price on it)
+    slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : price ? price + "g" : "",
+      cross: !!(it.short || it.missing), badgeInk: price ? [255, 222, 90] : null });
   });
   if (b.pages > 1) {
     centreText(ctx, x0 + 415, y0 + 100, `${b.page}/${b.pages}`, 7, true, [212, 191, 126]);
@@ -695,7 +697,8 @@ export function boxItemAt(x, y) {
     const ix = L.abX + 66 + gap * (n % cols), iy = L.abY + 45 + gap * Math.floor(n / cols);
     if (x >= ix && x < ix + G.tw && y >= iy && y < iy + G.th) {
       const it = b.items[n];
-      return { k: T.RACKITEM, n: it.name, q: it.qty, i: it.i, short: it.short, missing: it.missing };
+      return { k: T.RACKITEM, n: it.name, q: it.qty, i: it.i, short: it.short, missing: it.missing,
+        price: (b.prices || [])[it.i] };
     }
   }
   return null;

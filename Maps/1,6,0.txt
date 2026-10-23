@@ -36,3 +36,5 @@ Lock	20	9	$Attr.HobsDoorOpen>=1	Boarded up since old Hob went missing. The door 
 Id	Hobs_Window_Inside	19	8
 Id	Hobs_Window_Outside	19	10
 Id	Oakhollow_Square	8	10
+
+StaticObject	Sign_General	160	432

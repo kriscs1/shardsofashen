@@ -67,6 +67,8 @@ class ActionsMixin:
         t = e.type
         uw = e.use_words
         verbs = ""
+        if self.ab_mode == "Stall" and t in (INVENTORYITEM, ACTIONBOXITEM):
+            return self.stall_verbs(e)
         if t in (TILE, INFRONTTILE):
             verbs = self.add_verbs(verbs, uw)
             if self.tile_lock_of(e) is not None:
@@ -208,7 +210,7 @@ class ActionsMixin:
             return self.infront_entity_at(self.script_cursor_x, self.script_cursor_y)
         if k == "inv":
             return self.inv_item(t.get("uid"))
-        if k == "rack" and self.ab_mode in ("Shop", "Bank", "Craft"):
+        if k == "rack" and self.ab_mode in ("Shop", "Bank", "Craft", "Stall"):
             i = t.get("i")
             if not isinstance(i, int):
                 return None
@@ -270,6 +272,8 @@ class ActionsMixin:
         self.clicked_ent = e
         if verb == "Use with":
             self.use_item_with(e)
+            return
+        if self.stall_do(verb, e, self.verb_price, self.verb_qty) or self.stall_action(verb, e):
             return
         if verb == "Open" and t == TILE:
             lk = self.tile_lock_of(e)
@@ -553,6 +557,7 @@ class ActionsMixin:
                 return
             self.script_cursor_x, self.script_cursor_y = vx, vy
             verb = str(msg.get("verb", ""))
+            self.verb_price, self.verb_qty = msg.get("price", 0), msg.get("qty", 0)
             if verb == "Use with":
                 item = self.inv_item(msg.get("item"))
                 if item is None:
@@ -671,6 +676,14 @@ class ActionsMixin:
             self.check_locks(True)
             self.save_requested = True
             self.emit({"t": "admin_status", "text": "Saved." if not off else "Saved. Off: " + ",".join(off)})
+        elif what == "goto":
+            # (a named place: an Id tile or a thing's Id=, e.g. Ashford_Market, Waystone_Highwatch, Stall_1)
+            pl = d.place(str(msg.get("place", "")).strip())
+            if pl is None or self.w.map_named(pl.map) is None:
+                self.emit({"t": "admin_status", "text": "No place called that (an Id on a map: e.g. Ashford_Market)."})
+                return
+            self.teleport(pl.map, (pl.tx - 1) * self.tw, pl.ty * self.th - 8)
+            self.emit({"t": "admin_status", "text": "Off to %s (%s)." % (pl.name, pl.map)})
         elif what == "god":
             self.god_mode = 1 if msg.get("on") else 0
             ini.write("Admin", "GodMode", lbstr(self.god_mode), d.config_path)

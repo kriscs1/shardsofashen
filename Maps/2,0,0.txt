@@ -36,3 +36,5 @@ NPC	Butterfly	128	160	Attitude=Good
 NPC	Butterfly	736	160	Attitude=Good
 Id	Hen_Nests	12	11
 Id	Milkmaid_Farm	9	9
+
+StaticObject	Sign_Dairy	256	208

@@ -121,6 +121,22 @@ view) goes full screen. Press **Enter** to chat with the other players.
 - **Changing it.** `Data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
   each crop. `Dev/migrate/build_farming.py` makes it all, like the other builders.
 
+## The market and the shops
+
+- **Market stalls.** A row of stalls along the south road in Ashford (the Admin panel's *Go to a place*:
+  `Ashford_Market`).
+  - **Claiming:** browse an empty stall to claim it, one per player.
+  - **Selling:** with your stall open, right-click something in your pack, choose *Sell here*, and set the price
+    each and how many.
+  - **Buying:** other players browse it like a shop and buy at your prices, even while you're logged out.
+  - **Takings:** the gold waits in the stall; *Collect* it when you're back.
+  - **Giving it up:** gives back what's on it and frees it for someone else.
+  - Things that can't be dropped (quest items, the Access Crystal) can't be sold. Stalls are saved with the world.
+- **Shop signs.** Every shop has a signboard by its door with a picture of what it sells (bread, an anvil, a potion,
+  coins for a general store...). `Dev/migrate/build_market.py` makes the stalls and signs.
+- **Chat.** A chime plays when another player says something (a softer one for a whisper); Options can turn it off.
+- **Admins** can jump to any named place (Admin > *Go to a place*), e.g. `Ashford_Market`, `Waystone_Highwatch`.
+
 ## Bringing over old desktop characters
 
 ```
@@ -157,10 +173,12 @@ visibility** > **Public**. Your code stays private.
 
 2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
    **Apply**. It's filled in already:
-   - Port 8080.
-   - Game data in `/mnt/user/appdata/dragonsword`.
+   - **Web port** (8080): the port players connect to. Change it if 8080 is taken.
+   - **Game data** (`/mnt/user/appdata/dragonsword`): where accounts, characters, the world and the daily backups
+     are kept. Point it at another share if you like.
+   - **Admins**: characters who get the Admin button, comma-separated (e.g. `Kris,Ann`).
+   - **Invite code**: if set, making a character needs it.
    - It runs as nobody:users.
-   - Set an invite code here if you like.
 3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
    **Settings > Auto Update Applications > Docker Auto Update Settings**:
    - Update Check Frequency: **Hourly** (or Custom, e.g. `*/15 * * * *` for every 15 minutes).
@@ -197,6 +215,23 @@ That's all:
   - `docker compose logs -f` shows what it's doing.
   - `docker compose pull game && docker compose up -d` updates at once.
   - `docker compose stop` stops it.
+
+**Settings.** Make a file called `.env` in `~/dragonsword` (beside `docker-compose.yml`) with any of these, then
+`docker compose up -d` again:
+
+```
+DS_PORT=8090                 # the port players connect to (8080)
+DS_DATA=/srv/dragonsword     # where the game's data is kept: a folder, or a Docker volume's name (gamedata)
+DS_ADMINS=Kris,Ann           # characters who get the Admin button
+DS_INVITE_CODE=letmein       # making a character needs this code
+DS_MAX_PLAYERS=5
+DS_REGISTRATION=open         # closed: only accounts made with tools/admin.py
+PUID=1000                    # the user and group the game runs as (they own the data folder)
+PGID=1000
+```
+
+Make the admins' characters yourself before you share the address: whoever makes a character with an admin's name
+gets the Admin button. If you move the data to a folder, copy the old data over first, or the world starts new.
 
 
 
@@ -240,6 +275,7 @@ Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HT
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
+| `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`) |
 
 ## Checking it works
 

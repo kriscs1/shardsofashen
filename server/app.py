@@ -14,8 +14,8 @@ GAME = web.AppKey("game", GameServer)
 TICK = web.AppKey("tick", asyncio.Task)
 
 
-def make_app(root, db_path, max_players=5, registration="open", invite_code=""):
-    game = GameServer(root, db_path, max_players, registration, invite_code)
+def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins=""):
+    game = GameServer(root, db_path, max_players, registration, invite_code, admins=admins)
     web_dir = os.path.join(root, "web")
     assets = os.path.join(web_dir, "assets")
     app = web.Application()
@@ -71,8 +71,10 @@ def main():
     p.add_argument("--max-players", type=int, default=int(os.environ.get("DS_MAX_PLAYERS", "5")))
     p.add_argument("--registration", default=os.environ.get("DS_REGISTRATION", "open"), choices=("open", "closed"))
     p.add_argument("--invite", default=os.environ.get("DS_INVITE_CODE", ""))
+    p.add_argument("--admins", default=os.environ.get("DS_ADMINS", ""),
+                   help="characters who get the Admin button, comma-separated (as well as tools/admin.py's)")
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    app = make_app(args.root, args.db, args.max_players, args.registration, args.invite)
+    app = make_app(args.root, args.db, args.max_players, args.registration, args.invite, args.admins)
     log.info("Dragon Sword on http://%s:%d (up to %d players)", args.host, args.port, args.max_players)
     web.run_app(app, host=args.host, port=args.port, print=None, handle_signals=True)

@@ -26,3 +26,5 @@ NPC	Rabbit	64	384	Attitude=Bad
 NPC	Butterfly	352	448	Attitude=Good
 Lock	3	9	$Attr.DragonQuest>=4	The gates of Wardhaven are barred. "Not while the dragon lives!" a guard shouts down from the wall.
 Lock	3	10	$Attr.DragonQuest>=4	The gates of Wardhaven are barred. "Not while the dragon lives!" a guard shouts down from the wall.
+
+StaticObject	Sign_General	192	176

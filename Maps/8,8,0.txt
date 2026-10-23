@@ -31,3 +31,5 @@ NPC	Skeleton	704	608	Attitude=Bad
 NPC	Bat	128	576	Attitude=Bad
 NPC	Skeleton_Archer	64	288	Attitude=Bad
 Id	Ravensgate_Square	14	5
+
+StaticObject	Sign_General	576	464

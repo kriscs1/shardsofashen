@@ -30,3 +30,5 @@ NPC	Snow_Wolf	64	192	Attitude=Bad
 NPC	Snow_Wolf	64	576	Attitude=Bad
 NPC	Frost_Witch	32	384	Attitude=Bad
 Id	Frosthold_Square	14	7
+
+StaticObject	Sign_General	672	144

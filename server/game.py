@@ -33,8 +33,10 @@ class Client:
 
 
 class GameServer:
-    def __init__(self, root, db_path, max_players=5, registration="open", invite_code="", backup_dir=None):
+    def __init__(self, root, db_path, max_players=5, registration="open", invite_code="", backup_dir=None, admins=""):
         self.root = root
+        # (DS_ADMINS: names the server's owner gives the Admin button, besides the accounts tools/admin.py made admin)
+        self.admins = {a.strip().lower() for a in str(admins or "").split(",") if a.strip()}
         self.store = Store(db_path)
         self.max_players = max_players
         self.registration = registration
@@ -61,6 +63,7 @@ class GameServer:
             return
         w.homes.load(st.get("homes"))
         w.farms.load(st.get("farms"))
+        w.market.load(st.get("stalls"))
         w.action_queue = [e for e in st.get("queue", []) if isinstance(e, str)]
         w.apply_saved_queue()
         if "day" in st:
@@ -76,7 +79,7 @@ class GameServer:
         if w.weather:
             wt = {"kind": w.weather["kind"], "level": w.weather["level"], "fading": w.weather["fading"],
                   "left": max(0, w.weather["next"] - w.now)}
-        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state()}
+        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "stalls": w.market.state()}
 
     def save_all(self):
         try:
@@ -263,7 +266,7 @@ class GameServer:
             if not s.ready:
                 s.enter_world()
         else:
-            s = Session(w, name, admin=bool(admin))
+            s = Session(w, name, admin=bool(admin) or name.lower() in self.admins)
             saved = self.store.load_character(name)
             s.load_state(saved)
             if saved is None and t == "register":

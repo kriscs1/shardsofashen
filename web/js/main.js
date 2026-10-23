@@ -12,7 +12,7 @@ import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock,
 import { setWeather, fogInit, revealCell } from "./sky.js";
 import { messageColour, clamp, val, pretty } from "./util.js";
 import { buildPicker, DEFAULT_LOOK } from "./look.js";
-import { preload } from "./assets.js";
+import { preload, entityIni } from "./assets.js";
 import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, buildMouseDown, buildMouseMove, drawBuild } from "./build.js";
 
 const $ = (id) => document.getElementById(id);
@@ -103,7 +103,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 });
 
 function overlayOpen() {
-  return ["options", "quit", "admin", "message", "login", "loading", "appearance"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
+  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -120,14 +120,14 @@ $("quit-yes").onclick = () => {
 
 function openOptions() {
   releaseKeys();
-  $("opt-sound").checked = O.sound; $("opt-volume").value = O.volume;
+  $("opt-sound").checked = O.sound; $("opt-volume").value = O.volume; $("opt-chat-sound").checked = O.chatSound;
   $("opt-music").checked = O.music; $("opt-music-volume").value = O.musicVolume;
   $("opt-ambient").checked = O.ambient; $("opt-ambient-volume").value = O.ambientVolume;
   $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing;
   $("opt-camera").value = V.smooth;
   $("options").hidden = false;
 }
-for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"],
+for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"], ["opt-chat-sound", "chatSound"],
   ["opt-music-volume", "musicVolume", 1], ["opt-ambient", "ambient"], ["opt-ambient-volume", "ambientVolume", 1]]) {
   $(id).addEventListener("input", (ev) => { O[key] = num ? +ev.target.value : ev.target.checked; saveOptions(); });
 }
@@ -218,6 +218,7 @@ $("admin-save").onclick = () => {
   }
   send({ t: "admin", do: "skills", on, levels });
 };
+$("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value.trim() });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
 for (const id of ["admin", "options", "quit", "message", "appearance"]) {
@@ -234,7 +235,33 @@ function showMessage(title, text, then) {
   $("message-ok").onclick = () => { $("message").hidden = true; if (then) then(); else canvas.focus(); };
 }
 
-window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen };
+// ----- a market stall's price (Sell here, Set price)
+let priceDone = null;
+function askPrice(e, withQty, done) {
+  releaseKeys();
+  const have = withQty ? (S.me.inv || []).filter((i) => i[1] === e.n).reduce((a, i) => a + i[2], 0) : 0;
+  const worth = Math.max(1, Math.floor(val(entityIni(e.n, "Value", "1")) || 1));
+  $("price-title").textContent = (withQty ? "Sell " : "Price of ") + pretty(e.n);
+  $("price-each").value = e.price || worth;
+  $("price-qty-row").hidden = !withQty;
+  $("price-qty").value = have; $("price-qty").max = have;
+  $("price-hint").textContent = `A shop would pay about ${Math.max(1, Math.floor(worth * 0.6))} gold each; ` +
+    `it sells them for about ${Math.max(1, Math.round(worth * 1.2))}.` + (withQty ? ` You have ${have}.` : "");
+  priceDone = done;
+  $("price").hidden = false;
+  $("price-each").focus(); $("price-each").select();
+}
+$("price-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const price = Math.floor(+$("price-each").value), qty = Math.floor(+$("price-qty").value || 0);
+  $("price").hidden = true;
+  canvas.focus();
+  if (priceDone && price >= 1) priceDone(price, qty);
+  priceDone = null;
+});
+$("price-cancel").addEventListener("click", () => { $("price").hidden = true; priceDone = null; canvas.focus(); });
+
+window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice };
 window.dsDebug = { S, V };     // (for tools/browser_check.py)
 
 // ================================================================================================================
@@ -341,7 +368,8 @@ N.onMessage = (m) => {
       if (m.whisper === "from") addMessage(`${m.from} whispers: ${m.text}`, "140 40 140");
       else if (m.whisper === "to") addMessage(`You whisper to ${m.to}: ${m.text}`, "140 40 140");
       else addMessage(m.from ? `${m.from}: ${m.text}` : m.text, m.from ? "30 60 140" : "darkgray");
-      if (m.from && m.from !== S.name && m.whisper !== "to") playSound("Pickup");
+      if (m.from && m.from !== S.name && m.whisper !== "to" && O.chatSound)    // (another player said something)
+        playSound(m.whisper === "from" ? "Whisper" : "Chat");
       break;
     case "players": S.players = m.list; S.max = m.max; break;
     case "sound": playSound(m.name, "x" in m ? [m.x, m.y] : null); break;

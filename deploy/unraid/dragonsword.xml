@@ -15,6 +15,7 @@
   <Config Name="Max players" Target="DS_MAX_PLAYERS" Default="5" Mode="" Description="How many can play at once" Type="Variable" Display="always" Required="false" Mask="false">5</Config>
   <Config Name="New characters" Target="DS_REGISTRATION" Default="open|closed" Mode="" Description="open: anyone who can reach the server can make a character. closed: only accounts made with tools/admin.py" Type="Variable" Display="always" Required="false" Mask="false">open</Config>
   <Config Name="Invite code" Target="DS_INVITE_CODE" Default="" Mode="" Description="If set, making a character needs this code" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Admins" Target="DS_ADMINS" Default="" Mode="" Description="Characters who get the Admin button, comma-separated (e.g. Kris,Ann). Make those characters before anyone else can take the names." Type="Variable" Display="always" Required="false" Mask="false"></Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="The user the game runs as (Unraid: 99, nobody)" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="The group the game runs as (Unraid: 100, users)" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
 </Container>

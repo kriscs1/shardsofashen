@@ -18,6 +18,7 @@ from .entity import (Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MI
 from .maps import MapData
 from .homes import Homes
 from .farming import Farms
+from .market import Market
 from .npcs import NPCMixin
 
 log = logging.getLogger("dragonsword.world")
@@ -56,6 +57,7 @@ class World(NPCMixin):
         self.load_maps()
         self.homes = Homes(self)        # players' homesteads (their maps join self.maps as they're made)
         self.farms = Farms(self)        # what's growing in tilled soil
+        self.market = Market(self)      # the players' market stalls
 
     # =================================================================================================================
     # Maps

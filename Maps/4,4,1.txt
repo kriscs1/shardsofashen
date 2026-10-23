@@ -26,3 +26,5 @@ MapItem	Empty_Vial	608	256	2
 MapItem	Full_Vial	672	256	1
 Id	Court_Wizard	20	8
 Id	Wizard_Tower_Portal	21	9
+
+StaticObject	Sign_Magic	608	176

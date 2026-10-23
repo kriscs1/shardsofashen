@@ -426,3 +426,46 @@ def test_each_home_keeps_its_own_land(world):
     assert w2.homes.map_of("Newcomer").tile[w2.homes.map_of("Newcomer").cell(5, 5)] == "Sand001"
     assert new["land"] == changed
     leave(world, a)
+
+
+def test_market_stall_sells_while_its_owner_is_away(world):
+    stall = world.placed_entity("STALL_1")
+    assert stall is not None and stall.name == "Market_Stall"
+    m = world.maps[stall.map]
+    seller = join(world, "Seller", m.name, int(stall.x - m.ox), int(stall.y - m.oy + 40))
+    buyer = join(world, "Buyer", m.name, int(stall.x - m.ox), int(stall.y - m.oy + 40))
+    stock(seller, Bread=5, Access_Crystal=1)
+    stock(buyer, **{"Gold_Coin(s)": 100})
+    seller.do_action("Browse", stall)
+    seller.action_box_response_chosen(1)                          # Claim this stall.
+    assert world.market.stall("Stall_1")["owner"] == "Seller" and seller.ab_mode == "Stall"
+    bread = next(e for e in seller.inv if e.name == "Bread")
+    assert "Sell here" in seller.get_verbs(bread)
+    crystal = next(e for e in seller.inv if e.name == "Access_Crystal")
+    assert "Sell here" not in seller.get_verbs(crystal)            # (what can't be dropped can't be sold here)
+    seller.verb_price, seller.verb_qty = 7, 4
+    seller.do_action("Sell here", bread)
+    assert seller.items_held("Bread") == 1 and world.market.stall("Stall_1")["items"] == [["Bread", 4, 7, 0]]
+    assert stall.name == "Market_Stall_Open"                      # (goods out on it)
+    seller.close_action_box(-1)
+    saved = world.market.state()
+    leave(world, seller)                                          # the owner goes; the stall stays open
+    buyer.do_action("Browse", stall)
+    assert buyer.ab_mode == "Stall" and buyer.box_state()["prices"] == [7]
+    buyer.do_action("Buy 5", buyer.rack_pseudo(0))
+    assert buyer.items_held("Bread") == 4 and buyer.items_held("Gold_Coin(s)") == 100 - 28
+    st = world.market.stall("Stall_1")
+    assert st["items"] == [] and st["till"] == 28 and stall.name == "Market_Stall"
+    w2 = World(ROOT)
+    w2.market.load(world.market.state())
+    assert w2.market.stall("Stall_1")["till"] == 28 and w2.market.stall_of("Seller") == "Stall_1"
+    seller = join(world, "Seller", m.name, int(stall.x - m.ox), int(stall.y - m.oy + 40))
+    seller.do_action("Browse", stall)
+    assert seller.responses[0] == "Collect 28 gold"
+    gold = seller.items_held("Gold_Coin(s)")
+    seller.action_box_response_chosen(1)
+    assert seller.items_held("Gold_Coin(s)") == gold + 28 and world.market.stall("Stall_1")["till"] == 0
+    seller.action_box_response_chosen(1)                          # Give up the stall
+    assert world.market.stall("Stall_1")["owner"] is None
+    leave(world, seller)
+    leave(world, buyer)
