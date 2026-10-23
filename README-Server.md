@@ -220,6 +220,9 @@ docker exec -it -u 99:100 DragonSword python tools/admin.py password <Name>    #
 docker exec -u 99:100 DragonSword python tools/admin.py admin <Name> on
 ```
 
+Players can change their own password in the game (Options > Your password), and admins can set anyone's
+(Admin > Reset a player's password) for a player who has forgotten theirs.
+
 ### A plain Linux server
 
 1. Install Docker (once): `curl -fsSL https://get.docker.com | sudo sh`
