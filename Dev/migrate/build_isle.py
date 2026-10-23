@@ -423,7 +423,7 @@ def chapel():
     if g.decor(20, 10).startswith("Ladder"):
         g.set(20, 10, decor="")
         g.save()
-    u = Map("2,1,-1")
+    u = Map("2,1,-1") if os.path.exists(os.path.join(ROOT, "Maps", "2,1,-1.txt")) else Map("2,1,-2")   # (deepen_grotto.py)
     if u.decor(20, 10) == "Ladder001":
         u.set(20, 10, decor="Cave_Ladder001")
         u.save()

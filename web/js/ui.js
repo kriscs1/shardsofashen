@@ -857,9 +857,14 @@ function drawChat(ctx) {
       ctx.drawImage(bar, 10, 0, 760, 96, 10, y0, 760 + dx, 96);
       ctx.drawImage(bar, 770, 0, 254, 96, 770 + dx, y0, 254, 96);
     }
-    const x1 = 827 + dx, x2 = 997 + dx;
-    ctx.fillStyle = "rgb(49,28,18)"; ctx.fillRect(x1 - 1, y0, x2 - x1 + 3, 1);
-    ctx.fillStyle = "rgb(243,210,129)"; ctx.fillRect(x1, y0 + 1, x2 - x1, 1);
+    // the hover box: the picture's own panel (cut off at the top, its shadow over the words) under wood, and a
+    // panel of its own on that, rounded all round
+    const x1 = 824 + dx, x2 = 1000 + dx;
+    for (let x = x1; x < x2; x += 46) ctx.drawImage(bar, 772, 0, Math.min(46, x2 - x), 96, x, y0, Math.min(46, x2 - x), 96);
+    roundBox(ctx, x1 + 3, y0 + 5, x2 - x1 - 6, 84, [228, 210, 156], [92, 58, 34], 2, 8);
+    ctx.strokeStyle = "rgba(243,210,129,0.9)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x1 + 5.5, y0 + 7.5, x2 - x1 - 11, 79, 6) : ctx.rect(x1 + 5.5, y0 + 7.5, x2 - x1 - 11, 79);
+    ctx.stroke();
   }
   const lineH = 15;
   let y = y0 + 8;
@@ -939,7 +944,7 @@ function drawQuick(ctx, y0) {
     last[2] = last[2].replace(/\s*\S*$/, "") + "...";
   }
   const total = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0);
-  let y = y0 + Math.max(6, Math.floor((88 - total) / 2));
+  let y = y0 + 12 + Math.max(0, Math.floor((72 - total) / 4));   // (near the top: a little lower for a short one)
   for (const [st, size, ln] of lines) {
     drawText(ctx, ln, L.VW + 32, y, size, st.bold, st.col);
     y += fontPx(size) + 3;

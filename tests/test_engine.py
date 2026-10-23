@@ -694,8 +694,8 @@ def test_the_way_down_is_through_the_chapel(world):
 
     s = join(world, "Pilgrim", "3,1,0", 17 * 32, 8 * 32)
     assert climb(s, "Climb Down", 18, 8) == "3,1,-1"               # the chapel's steps, down to the cellar
-    assert climb(s, "Climb Down", 14, 9) == "2,1,-1"               # the hole in its floor, down to the grotto
-    assert climb(s, "Climb Up", 20, 10) == "3,1,-1"                # and the grotto's ladder back up
+    assert climb(s, "Climb Down", 14, 9) == "3,1,-2"               # the hole in its floor, straight down to the caves
+    assert climb(s, "Climb Up", 14, 9) == "3,1,-1"                 # and the ladder under it back up
     leave(world, s)
 
 
