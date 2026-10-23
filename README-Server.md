@@ -216,7 +216,7 @@ Accounts (Unraid's Terminal):
 
 ```
 docker exec -u 99:100 DragonSword python tools/admin.py list
-docker exec -u 99:100 DragonSword python tools/admin.py password <Name>
+docker exec -it -u 99:100 DragonSword python tools/admin.py password <Name>    # set or reset a password
 docker exec -u 99:100 DragonSword python tools/admin.py admin <Name> on
 ```
 
