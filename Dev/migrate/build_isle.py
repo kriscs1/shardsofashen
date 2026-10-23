@@ -138,6 +138,54 @@ def house(m, x1, y1, x2, y2, door, windows=(), wall="Timber001", floor="Plank001
     for wx in windows:
         m.set(wx, y2, decor="Timber_Window001")
     roof_over(m, x1, y1, x2, y2 - 1, roof)
+    thin_walls(m, x1, y1, x2, y2)
+
+
+# the thin walls round a plank floor, as the brick houses have them (TileSets.ini [Timber_Thin_Plank]): the corners,
+# then the north, east and west walls
+THIN = {"nw": "008", "n": "001", "ne": "005", "w": "004", "e": "002"}
+
+
+def thin_walls(m, x1, y1, x2, y2, wall="Timber001", thin="Timber_Thin_Plank"):
+    """Under the roof, a house's walls are thin ones on the edge of the floor (as you'd see them from inside); the
+    front row (the door's) stays a solid wall, the house's face."""
+    n = 0
+    for y in range(y1, y2):
+        for x in range(x1, x2 + 1):
+            if m.tile(x, y) != wall:
+                continue
+            side = ("n" if y == y1 else "") + ("w" if x == x1 else "e" if x == x2 else "")
+            if side in THIN:
+                m.set(x, y, tile=thin + THIN[side])
+                n += 1
+    return n
+
+
+def thin_isle_walls():
+    """The Isle's timber buildings (built before they had thin walls): each block of timber wall, a house."""
+    n = 0
+    for name in ("1,1,0", "2,0,0", "3,1,0"):
+        m = Map(name)
+        seen = set()
+        for y in range(1, YT + 1):
+            for x in range(1, XT + 1):
+                if (x, y) in seen or m.tile(x, y) != "Timber001":
+                    continue
+                todo, block = [(x, y)], set()                  # (the wall, and its door: one building)
+                while todo:
+                    cx, cy = todo.pop()
+                    if (cx, cy) in block or not (1 <= cx <= XT and 1 <= cy <= YT):
+                        continue
+                    if m.tile(cx, cy) != "Timber001" and not m.tile(cx, cy).startswith(("Door", "Timber_Thin")):
+                        continue
+                    block.add((cx, cy))
+                    todo += [(cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)]
+                seen |= block
+                xs, ys = [b[0] for b in block], [b[1] for b in block]
+                if max(xs) - min(xs) >= 2 and max(ys) - min(ys) >= 2:
+                    n += thin_walls(m, min(xs), min(ys), max(xs), max(ys))
+        m.save()
+    print("The Isle's timber houses: thin walls inside (%d pieces)" % n if n else "The Isle's houses have thin walls")
 
 
 def fence(m, x1, y1, x2, y2, gates=()):
@@ -416,7 +464,7 @@ def scatter(m, rng, box, names, count, gap=1):
 
 def land():
     cache, get = maps_cache()
-    if get(2, 1) and get(2, 1).tile(10, 17) == "Pond001":
+    if get(2, 1) and (get(2, 1).has_line("Id	Isle_Pond") or get(2, 1).tile(10, 17) == "Pond001"):
         print("The land is done already")
         return
     rng = random.Random(1801)
@@ -476,6 +524,7 @@ def main():
     chapel()
     land()
     aggro()
+    thin_isle_walls()
 
 
 if __name__ == "__main__":
