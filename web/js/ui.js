@@ -270,6 +270,17 @@ function drawMinimap(ctx) {
       cross(ctx, [255, 220, 40], px, py, 4, 1);
     }
   }
+  for (const p of S.where || []) {                // the other players: a blue dot each (at the edge, if far off)
+    if (p.name === S.name || p.z !== S.mapZ) continue;
+    let px = L.mmX - u + (p.x / G.tw - g.ox * G.xt) * k;
+    let py = L.mmY - v + (p.y / G.th - g.oy * G.yt) * k;
+    const dx = px - L.mmX, dy = py - L.mmY, far = Math.hypot(dx, dy), edge = L.mmSize / 2 - 8;
+    if (far > edge) { px = L.mmX + dx / far * edge; py = L.mmY + dy / far * edge; }
+    ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.arc(Math.round(px), Math.round(py), 4.5, 0, 6.283); ctx.fill();
+    ctx.fillStyle = far > edge ? "rgb(120,170,220)" : "rgb(90,190,255)";
+    ctx.beginPath(); ctx.arc(Math.round(px), Math.round(py), 3.2, 0, 6.283); ctx.fill();
+  }
   const gr = S.me.grave;                          // your grave: a gravestone on the minimap (at its edge, if far off)
   if (gr && gr.map) {
     const [mx, my, mz] = String(gr.map).split(",").map(Number);

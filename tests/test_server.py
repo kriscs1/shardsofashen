@@ -282,3 +282,22 @@ def test_a_browser_can_remember_you(tmp_path):
             await ws.close()
         await runner.cleanup()
     asyncio.run(run())
+
+
+def test_everyone_sees_where_the_others_are(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "w.db"))
+        async with aiohttp.ClientSession() as http:
+            one, _ = await login(http, url, "Finder", "pass1")
+            two, _ = await login(http, url, "Found", "pass2")
+            seen = None
+            for _ in range(3):
+                m = await wait_for(one, "where", seconds=3)
+                if m and any(p["name"] == "Found" for p in m["list"]):
+                    seen = next(p for p in m["list"] if p["name"] == "Found")
+                    break
+            assert seen and {"x", "y", "z"} <= set(seen)
+            await one.close()
+            await two.close()
+        await runner.cleanup()
+    asyncio.run(run())

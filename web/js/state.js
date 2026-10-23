@@ -7,6 +7,7 @@ export const S = {
   name: "", uid: 0, admin: false,
   me: null,                   // the "me" message: hp, inventory, skills...
   quests: [], marks: [], level: 1,
+  where: [],                  // [{name, x, y, z}]: everyone's place (global pixels), for the minimap's dots
   maps: new Map(),            // name -> map data (mapdata messages), with mx, my, mz, ox, oy
   byPos: new Map(),           // "mx,my,mz" -> map
   cells: new Map(),           // "map,x,y" -> [tile, decor]: this player's own tiles

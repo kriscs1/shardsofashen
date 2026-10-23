@@ -250,6 +250,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   drawFog(ctx, cam, V.ww, V.wh, pc);
   // ----- effects, health bars, names
   for (const f of V.fx) {
+    if (f.t !== "skillpop" && fogCovers(f.x + 16, f.y + 16, pc)) continue;   // (a fight in the fog stays unseen)
     if (f.t === "splat") {
       const t = (now - f.start) / 900;
       const im = sprite(f.image);

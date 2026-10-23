@@ -161,6 +161,38 @@ def thin_walls(m, x1, y1, x2, y2, wall="Timber001", thin="Timber_Thin_Plank"):
     return n
 
 
+COOP_HENS = ((21, 13), (23, 13), (22, 12))                      # (in the hen coop, by their nests)
+COOP_ZONE = "21,12,23,13"
+INDOORS = {"Range": (3, 5), "Workbench": (20, 5)}               # (in the dairymaid's hut; in the barn)
+
+
+def dairy_indoors():
+    """The dairy's hens live in their coop; the range is in the dairymaid's hut and the workbench in the barn."""
+    m = Map("2,0,0")
+    ents, n = [], 0
+    for ln in m.ents:
+        p = ln.split("\t")
+        if len(p) >= 4 and p[0] == "NPC" and p[1] == "Chicken":
+            if ("Zone=" + COOP_ZONE) in ln:
+                ents.append(ln)
+            else:
+                n += 1
+            continue
+        if len(p) >= 4 and p[0] == "StaticObject" and p[1] in INDOORS:
+            x, y = INDOORS[p[1]]
+            want = obj_line("StaticObject", p[1], x, y)
+            n += ln != want
+            ln = want
+        ents.append(ln)
+    if n:
+        ents = [ln for ln in ents if not (ln.startswith("NPC\tChicken") and ("Zone=" + COOP_ZONE) in ln)]
+        for x, y in COOP_HENS:
+            ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Bad Zone=" + COOP_ZONE))
+        m.ents = ents
+        m.save()
+        print("The dairy: hens in their coop, the range in the hut, the workbench in the barn")
+
+
 def thin_isle_walls():
     """The Isle's timber buildings (built before they had thin walls): each block of timber wall, a house."""
     n = 0
@@ -309,8 +341,8 @@ def dairy():
         elif p[:2] == ["Id", "Hen_Nests"]:
             ln = "Id\tHen_Nests\t22\t13"
         ents.append(ln)
-    for x, y in ((19, 15), (21, 16), (23, 15)):
-        ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Bad Zone=18,15,24,18"))
+    for x, y in COOP_HENS:
+        ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Bad Zone=" + COOP_ZONE))
     ents.append(obj_line("NPC", "Shepherd", 13, 15, "Attitude=Good Zone=10,11,17,17 Pause=4-10 Id=Isle_Shepherd", -8))
     ents += ["Id\tDairy_Barn\t19\t9", "Id\tHen_Coop\t22\t15"]
     from fix_fences_wheat import wheat_plants
@@ -534,6 +566,7 @@ def main():
     land()
     aggro()
     thin_isle_walls()
+    dairy_indoors()
 
 
 if __name__ == "__main__":

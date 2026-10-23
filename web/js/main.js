@@ -465,6 +465,7 @@ N.onMessage = (m) => {
         playSound(m.whisper === "from" ? "Whisper" : "Chat");
       break;
     case "players": S.players = m.list; S.max = m.max; break;
+    case "where": S.where = m.list || []; break;
     case "sound": playSound(m.name, "x" in m ? [m.x, m.y] : null); break;
     case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": addFx(m, now); break;
     case "hurt": S.hurtUntil = now + 240; break;

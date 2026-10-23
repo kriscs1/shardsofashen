@@ -18,6 +18,7 @@ log = logging.getLogger("dragonsword.server")
 
 TICK = 0.05
 SAVE_EVERY = 60
+WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other players)
 CHAT_MAX = 200
 
 
@@ -52,6 +53,7 @@ class GameServer:
         self.clients = {}                   # Session -> Client
         self.running = False
         self.last_save = time.time()
+        self.last_where = 0.0
         self.last_backup_day = None
         self.tick_ms = 0.0
 
@@ -130,6 +132,9 @@ class GameServer:
                     if s.save_requested:
                         s.save_requested = False
                         self.save_session(s)
+            if time.time() - self.last_where >= WHERE_EVERY:
+                self.last_where = time.time()
+                self.broadcast(self.where_message())
             if time.time() - self.last_save >= SAVE_EVERY:
                 self.save_all()
                 self.nightly_backup()
@@ -163,6 +168,15 @@ class GameServer:
         for s in self.world.sessions.values():
             if s is not exclude and s.ready:
                 s.emit(msg)
+
+    def where_message(self):
+        """Where everyone is (for the dots on each other's minimaps): the dead and the hidden aren't anywhere."""
+        out = []
+        for s in self.world.sessions.values():
+            p = s.player
+            if s.in_world() and p is not None and s.player_visible and not s.dead_wait:
+                out.append({"name": s.player_name, "x": round(p.cx), "y": round(p.cy), "z": p.z})
+        return {"t": "where", "list": out}
 
     def players_message(self):
         return {"t": "players", "list": [{"name": s.player_name, "map": s.screen_name, "level": s.player_level()}
