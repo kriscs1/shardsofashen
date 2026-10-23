@@ -25,7 +25,8 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
         return web.FileResponse(os.path.join(web_dir, "index.html"), headers={"Cache-Control": "no-cache"})
 
     async def health(request):
-        return web.json_response({"ok": True, "online": len(game.world.sessions), "tick_ms": round(game.tick_ms, 2)})
+        return web.json_response({"ok": True, "online": len(game.world.sessions), "tick_ms": round(game.tick_ms, 2),
+                                  **game.version})
 
     @web.middleware
     async def caching(request, handler):
@@ -76,5 +77,6 @@ def main():
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     app = make_app(args.root, args.db, args.max_players, args.registration, args.invite, args.admins)
-    log.info("Dragon Sword on http://%s:%d (up to %d players)", args.host, args.port, args.max_players)
+    log.info("Dragon Sword %s on http://%s:%d (up to %d players)", app[GAME].version["version"], args.host, args.port,
+             args.max_players)
     web.run_app(app, host=args.host, port=args.port, print=None, handle_signals=True)

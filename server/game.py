@@ -37,6 +37,8 @@ class GameServer:
         self.root = root
         # (DS_ADMINS: names the server's owner gives the Admin button, besides the accounts tools/admin.py made admin)
         self.admins = {a.strip().lower() for a in str(admins or "").split(",") if a.strip()}
+        from .version import version_info
+        self.version = version_info(root)
         self.store = Store(db_path)
         self.max_players = max_players
         self.registration = registration
@@ -175,7 +177,7 @@ class GameServer:
         await ws.prepare(request)
         c = Client(ws, request.remote)
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
-                            "registration": self.registration, "invite": bool(self.invite_code)})
+                            "registration": self.registration, "invite": bool(self.invite_code), **self.version})
         try:
             async for msg in ws:
                 if msg.type != WSMsgType.TEXT:

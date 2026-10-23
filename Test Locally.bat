@@ -14,7 +14,12 @@ docker info >nul 2>&1 || (
     goto :end
 )
 :ready
-echo Building (the first time takes a few minutes; after that only what changed)...
+rem (the version on the login screen: the commit count, commit and date, from git)
+set /p DS_BASE=<VERSION
+for /f %%v in ('git rev-list --count HEAD 2^>nul') do set DS_BUILD=%%v
+for /f %%v in ('git rev-parse --short HEAD 2^>nul') do set DS_COMMIT=%%v
+for /f %%v in ('git log -1 --format^=%%cs 2^>nul') do set DS_BUILD_DATE=%%v
+echo Building version %DS_BASE%.%DS_BUILD% (the first time takes a few minutes; after that only what changed)...
 docker compose -f deploy\docker-compose.local.yml up -d --build || goto :failed
 echo.
 echo The test server is running: http://localhost:8080

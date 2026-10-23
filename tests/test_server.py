@@ -171,3 +171,26 @@ def test_admins_from_the_server_settings(tmp_path):
             assert m["admin"] is False
         await runner.cleanup()
     asyncio.run(run())
+
+
+def test_the_version_is_on_the_login_screen(tmp_path, monkeypatch):
+    from server.version import version_info
+    monkeypatch.setenv("DS_BUILD", "57")
+    monkeypatch.setenv("DS_COMMIT", "abcdef123")
+    monkeypatch.setenv("DS_BUILD_DATE", "2026-10-23")
+    base = open(os.path.join(ROOT, "VERSION")).read().strip()
+    assert version_info(ROOT) == {"version": base + ".57", "commit": "abcdef1", "date": "2026-10-23"}
+
+    async def run():
+        runner, app, url = await start(str(tmp_path / "v.db"))
+        async with aiohttp.ClientSession() as http:
+            ws = await http.ws_connect(url)
+            msg = await asyncio.wait_for(ws.receive(), 10)
+            data = json.loads(msg.data)
+            hello = next(m for m in (data if isinstance(data, list) else [data]) if m["t"] == "hello")
+            assert hello["version"] == base + ".57" and hello["date"] == "2026-10-23"
+            async with http.get(url.replace("ws://", "http://").replace("/ws", "/health")) as r:
+                assert (await r.json())["version"] == base + ".57"
+            await ws.close()
+        await runner.cleanup()
+    asyncio.run(run())

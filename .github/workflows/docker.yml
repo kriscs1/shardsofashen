@@ -1,5 +1,5 @@
 # Every push to main builds the server's Docker image (with its pictures, animations and music) and puts it in
-# GitHub's registry as ghcr.io/<you>/dragonsword:latest. The server PC's Watchtower pulls it and restarts the game.
+# GitHub's registry as ghcr.io/<you>/dragonsword:latest. The servers' updaters pull it and restart the game.
 name: Build the server image
 
 on:
@@ -20,6 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                    # (all the history: the build number is the commit count)
+
+      - id: version
+        name: The version (the build number, commit and date for the login screen)
+        run: |
+          echo "build=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "date=$(git log -1 --format=%cs)" >> "$GITHUB_OUTPUT"
 
       - name: The tests first (nothing broken gets published)
         run: |
@@ -50,5 +59,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            DS_BUILD=${{ steps.version.outputs.build }}
+            DS_COMMIT=${{ steps.version.outputs.commit }}
+            DS_BUILD_DATE=${{ steps.version.outputs.date }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

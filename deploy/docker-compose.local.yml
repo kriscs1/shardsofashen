@@ -7,6 +7,10 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
+      args:                                 # (the version: Test Locally.bat reads them from git)
+        DS_BUILD: ${DS_BUILD:-}
+        DS_COMMIT: ${DS_COMMIT:-}
+        DS_BUILD_DATE: ${DS_BUILD_DATE:-}
     image: dragonsword:local
     restart: unless-stopped
     ports:

@@ -321,6 +321,12 @@ N.onMessage = (m) => {
   switch (m.t) {
     case "hello":
       $("login-online").textContent = `${m.online} of ${m.max} adventurers online.`;
+      if (m.version) {
+        const day = m.date ? new Date(m.date + "T12:00:00").toLocaleDateString(undefined,
+          { day: "numeric", month: "short", year: "numeric" }) : "";
+        $("login-version").textContent = "Version " + m.version + (day ? "  ·  " + day : "");
+        $("login-version").title = m.commit ? "Build " + m.commit : "";
+      }
       $("invite-row").hidden = !m.invite;
       $("register-button").hidden = m.registration !== "open";
       break;
