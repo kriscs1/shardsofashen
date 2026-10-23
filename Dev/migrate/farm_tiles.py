@@ -405,8 +405,6 @@ def write_entities():
 
 TILES = {
     "Field001": field,
-    "Wheat001": wheat,
-    "Wheat002": lambda: wheat(True),
     "Haystack001": haystack,
     "Door002": lambda: door("Stone_Wall001", (176, 172, 164), (112, 108, 102)),
     "Door003": lambda: door("Cave_Wall002", (104, 76, 46), (66, 46, 28)),

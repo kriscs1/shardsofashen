@@ -697,3 +697,27 @@ def test_the_way_down_is_through_the_chapel(world):
     assert climb(s, "Climb Down", 14, 9) == "2,1,-1"               # the hole in its floor, down to the grotto
     assert climb(s, "Climb Up", 20, 10) == "3,1,-1"                # and the grotto's ladder back up
     leave(world, s)
+
+
+def test_fences_join_up_at_their_corners(world):
+    a = join(world, "Fencer")
+    stock(a, Access_Crystal=1, Plank=20, Nails=40)
+    a.update_skill("Construction", "=10")
+    a.go_home()
+    world.tick(0.05)
+    m = a.cur_map
+    spots = [(4, 14), (5, 14), (6, 14), (4, 15), (4, 16)]
+    for x, y in spots:
+        while m.decor[m.cell(x, y)]:                               # (the land's own bushes and stones, cleared)
+            a.unbuild(x, y)
+        assert a.build(x, y, "Wood_Fence001")
+    piece = lambda x, y: m.decor[m.cell(x, y)]
+    assert piece(4, 14) == "Wood_Fence003"                         # the corner: east and south
+    assert piece(5, 14) == "Wood_Fence001" and piece(6, 14) == "Wood_Fence001"
+    assert piece(4, 15) == "Wood_Fence002" and piece(4, 16) == "Wood_Fence002"
+    planks = a.items_held("Plank")
+    assert a.unbuild(5, 14)                                        # a gap: the pieces either side change
+    assert piece(4, 14) == "Wood_Fence002" and piece(6, 14) == "Wood_Fence012"
+    assert a.items_held("Plank") >= planks                         # (half back, rounded down)
+    assert world.homes.home_of("Fencer")["cells"]["4,14"]["decor"] == "Wood_Fence002"
+    leave(world, a)

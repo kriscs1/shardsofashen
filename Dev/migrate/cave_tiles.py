@@ -987,8 +987,6 @@ TILES = {
     "Berry_Bush002": lambda: berry_bush(False),
     "Herb_Patch001": herb_patch,
     "Herb_Patch002": lambda: herb_patch(True),
-    "Wheat001": wheat,
-    "Wheat002": lambda: wheat(True),
     "Nest001": nest,
     "Nest002": lambda: nest(False),
 }
@@ -1018,4 +1016,4 @@ TILES.update(PROP_TILES)
 
 # Tiles that repeat next to themselves (checked for seams in the 4x4 preview)
 SEAMLESS = ["Cave_Floor001", "Cave_Floor002", "Cave_Floor003", "Cave_Wall001", "Cave_Wall002", "Cave_Pool001",
-            "Mine_Track001", "Mine_Track002", "Wheat001", "Wheat002"]
+            "Mine_Track001", "Mine_Track002"]

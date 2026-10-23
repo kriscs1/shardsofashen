@@ -189,10 +189,15 @@ def thin_isle_walls():
 
 
 def fence(m, x1, y1, x2, y2, gates=()):
-    for y in range(y1, y2 + 1):
-        for x in range(x1, x2 + 1):
-            if (x in (x1, x2) or y in (y1, y2)) and (x, y) not in gates:
-                m.set(x, y, decor="Fence001" if y in (y1, y2) else "Fence002")
+    """A fenced pen, joined up at its corners and either side of its gates (dsengine/fences.py)."""
+    from dsengine.fences import is_fence, fence_piece
+    ring = [(x, y) for y in range(y1, y2 + 1) for x in range(x1, x2 + 1)
+            if (x in (x1, x2) or y in (y1, y2)) and (x, y) not in gates]
+    for x, y in ring:
+        m.set(x, y, decor="Wood_Fence001")
+    fence_at = lambda x, y: 1 <= x <= XT and 1 <= y <= YT and is_fence(m.decor(x, y))
+    for x, y in ring:
+        m.set(x, y, decor=fence_piece(fence_at, x, y))
 
 
 def obj_line(kind, name, x, y, extra="", dy=0):
@@ -286,10 +291,12 @@ def dairy():
     for x, y in ((10, 7), (14, 8), (12, 11)):                    # (the old nests out in the field)
         if m.decor(x, y).startswith("Nest"):
             m.set(x, y, decor="")
-    for y in range(18, 21):                                      # a wheat field, and its scarecrow
+    field = []                                                   # a wheat field, and its scarecrow
+    for y in range(18, 21):
         for x in range(13, 18):
             if m.open_ground(x, y):
-                m.set(x, y, tile="Wheat001", decor="")
+                m.set(x, y, tile="Field001", decor="")
+                field.append((x, y))
     m.set(18, 19, decor="Scarecrow001")
     ents = []
     for ln in m.ents:
@@ -306,6 +313,8 @@ def dairy():
         ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Bad Zone=18,15,24,18"))
     ents.append(obj_line("NPC", "Shepherd", 13, 15, "Attitude=Good Zone=10,11,17,17 Pause=4-10 Id=Isle_Shepherd", -8))
     ents += ["Id\tDairy_Barn\t19\t9", "Id\tHen_Coop\t22\t15"]
+    from fix_fences_wheat import wheat_plants
+    ents += wheat_plants(field, random.Random(4242))
     m.ents = ents
     m.save()
     print("The dairy: a hut, a barn, a fenced pasture, a hen coop, a wheat field and a shepherd")

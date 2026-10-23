@@ -21,6 +21,7 @@ from dragonsword import ini
 from dragonsword.lb import val, trim, lbstr, strip_digits
 
 from .entity import STATICOBJECT
+from .fences import is_fence, fence_piece, join_around
 from .maps import MapData
 
 log = logging.getLogger("dragonsword.homes")
@@ -164,6 +165,16 @@ class Homes:
                 m.tile[c] = cell["tile"]
             if cell.get("decor"):
                 m.decor[c] = cell["decor"]
+        fence_at = lambda x, y: m.inside(x, y) and is_fence(m.decor[m.cell(x, y)])
+        for key, cell in h["cells"].items():
+            x, y = (int(v) for v in key.split(","))
+            if not m.inside(x, y):
+                continue
+            c = m.cell(x, y)
+            if cell.get("tile") in ("Wheat001", "Wheat002"):
+                cell["tile"] = m.tile[c] = "Field001"
+            if is_fence(cell.get("decor")):
+                cell["decor"] = m.decor[c] = fence_piece(fence_at, x, y)
         for c in range(1, len(m.tile)):
             m.refresh_cell(c)
         m.set_roofs(self.roof_cells(h, m))
@@ -698,6 +709,8 @@ class HomeMixin:
             h["cells"][key] = cell
             self.forget_regrowth(m, x, y)
             w.change_tile(m, x, y, piece_id)
+            if is_fence(piece_id):
+                self.join_fences(m, h, x, y)
         elif kind == "Roof":
             if cell.get("roof"):
                 self.refund(cell["roof"])
@@ -713,6 +726,8 @@ class HomeMixin:
         return True
 
     def refund(self, piece_id):
+        if is_fence(piece_id):
+            piece_id = "Wood_Fence001"                  # (any piece of fence: it was built as a fence)
         p = self.homes.catalog.get(piece_id)
         if p is None:
             return
@@ -724,6 +739,16 @@ class HomeMixin:
                 back.append("%d %s" % (q, pretty_item(item)))
         if back:
             self.display_message("You get back %s." % ", ".join(back), "INFO")
+
+    def join_fences(self, m, h, x, y):
+        """A fence built or taken down at x,y: it and the fences beside it show the pieces that meet now."""
+        fence_at = lambda fx, fy: m.inside(fx, fy) and is_fence(m.decor[m.cell(fx, fy)])
+        for fx, fy, piece in join_around(fence_at, x, y):
+            if m.decor[m.cell(fx, fy)] != piece:
+                self.w.change_tile(m, fx, fy, piece)
+            cell = h["cells"].get("%d,%d" % (fx, fy))
+            if cell and is_fence(cell.get("decor")):
+                cell["decor"] = piece
 
     def forget_regrowth(self, m, x, y):
         """Something growing back here (a picked bush, a chopped tree) would undo the building: forget it."""
@@ -766,6 +791,7 @@ class HomeMixin:
                 self.display_message("You clear the %s away." % pretty_tile(m.decor[c]), "INFO")
             self.forget_regrowth(m, x, y)
             w.change_tile(m, x, y, "%s+Decor()" % m.tile[c])
+            self.join_fences(m, h, x, y)
         elif cell.get("tile"):
             self.refund(cell.pop("tile"))
             self.forget_regrowth(m, x, y)

@@ -948,8 +948,6 @@ def scripts():
                                        "You reach into the bush...", "...and pick a handful of berries.")
     S["Pick Herb_Patch"] = pick_script("herbs", "Herb", "Herb_Patch002", 50, "Herblore", 1, "0.1", 60,
                                        "You search the patch for good leaves...", "...and pick a fragrant herb.")
-    S["Harvest Wheat"] = pick_script("wheat", "Wheat", "Wheat002", 60, "", 0, "0", 100,
-                                     "You cut an armful of wheat...", "...and tie it into a sheaf.")
     for k in (1, 2, 3):
         S["Harvest Ripe_Wheat%03d" % k] = wheat_script("Ripe_Wheat%03d" % k)
     S["Collect Nest"] = pick_script("eggs", "Egg", "Nest002", 45, "", 0, "0", 100,
@@ -1646,9 +1644,7 @@ TILES = {
     "Herb_Patch001": ("1" * 49, "1", "Pick", "A patch of fragrant herbs.", "1", None),
     "Herb_Patch002": ("1" * 49, "1", "", "The herbs have been picked. They'll grow back.", "1", None),
     # "Walk here" first, so a left click still walks across the field; Harvest is in the right-click menu
-    "Wheat001": ("1" * 49, "1", "Walk here,Harvest", "Ripe golden wheat.", "1", None),
     "Field001": ("1" * 49, "1", "", "Ploughed earth.", "1", None),
-    "Wheat002": ("1" * 49, "1", "", "Stubble. The wheat will grow again.", "1", None),
     "Nest001": ("1" * 49, "1", "Collect", "A hen's nest with fresh eggs in it.", "1", None),
     "Nest002": ("1" * 49, "1", "", "An empty nest. The hens will lay again soon.", "1", None),
 }
@@ -2348,7 +2344,7 @@ GATHERING = [
                         Where="Loose herbs lying about in the Southlands (they grow back after a while)")),
     ("Berries", dict(Gives="Berries", Source="Berry_Bush001", Verb="Pick", Tool="", Skill="Herblore", Level="1",
                      XP="0.05", Where="Berry bushes on the Isle, around Southport and in the Whispering Woods")),
-    ("Wheat", dict(Gives="Wheat", Source="Ripe_Wheat001 Ripe_Wheat002 Ripe_Wheat003 Wheat001", Verb="Harvest", Tool="", Skill="", Level="0", XP="0",
+    ("Wheat", dict(Gives="Wheat", Source="Ripe_Wheat001 Ripe_Wheat002 Ripe_Wheat003", Verb="Harvest", Tool="", Skill="", Level="0", XP="0",
                    Where="The wheat field on the Ashford farmlands")),
     ("Cabbages", dict(Gives="Cabbage", Source="Cabbage", Verb="Pickup", Tool="", Skill="", Level="0", XP="0",
                       Where="The cabbage rows on the Ashford farmlands")),
@@ -2404,7 +2400,7 @@ def avg_colour(tile):
 WALK_SPEED = {
     "Dirt001": "1.2", "Stone001": "1.15", "Stone002": "1.15", "Plank001": "1.1", "Tile001": "1.1",
     "Mine_Track001": "1.1", "Mine_Track002": "1.1",
-    "Sand001": "0.8", "Tall_Grass001": "0.8", "Weed001": "0.85", "Wheat001": "0.7", "Wheat002": "0.7", "Field001": "0.85",
+    "Sand001": "0.8", "Tall_Grass001": "0.8", "Weed001": "0.85", "Field001": "0.85",
     "Forest001": "0.75", "Flowers001": "0.95", "Flowers002": "0.95", "Flowers003": "0.95",
     "Cave_Rubble001": "0.7", "Cave_Puddle001": "0.8", "Mushroom_Patch001": "0.85", "Mushroom_Patch002": "0.85",
     "Mushroom_Ring001": "0.85", "Herb_Patch001": "0.85", "Herb_Patch002": "0.85", "Berry_Bush001": "0.8",
