@@ -194,3 +194,55 @@ def test_the_version_is_on_the_login_screen(tmp_path, monkeypatch):
             await ws.close()
         await runner.cleanup()
     asyncio.run(run())
+
+
+async def wait_for(ws, kind, seconds=5.0):
+    end = asyncio.get_event_loop().time() + seconds
+    while True:
+        left = end - asyncio.get_event_loop().time()
+        if left <= 0:
+            return None
+        try:
+            msg = await asyncio.wait_for(ws.receive(), left)
+        except asyncio.TimeoutError:
+            return None
+        if msg.type != aiohttp.WSMsgType.TEXT:
+            return None
+        data = json.loads(msg.data)
+        for m in data if isinstance(data, list) else [data]:
+            if m.get("t") == kind:
+                return m
+
+
+def test_changing_and_resetting_passwords(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "p.db"), admins="Boss")
+        async with aiohttp.ClientSession() as http:
+            ws, _ = await login(http, url, "Player", "oldpass")
+            await ws.send_json({"t": "password", "old": "wrong", "new": "newpass"})
+            m = await wait_for(ws, "password_result")
+            assert m and not m["ok"]                                   # (not without the current one)
+            await ws.send_json({"t": "password", "old": "oldpass", "new": "newpass"})
+            m = await wait_for(ws, "password_result")
+            assert m and m["ok"]
+            await ws.close()
+            _, m = await login(http, url, "Player", "oldpass", mode="login")
+            assert m["t"] == "login_fail"
+            ws, m = await login(http, url, "Player", "newpass", mode="login")
+            assert m["t"] == "welcome"
+            await ws.close()
+            boss, _ = await login(http, url, "Boss", "bosspass")
+            await boss.send_json({"t": "admin_password", "name": "Player", "new": "fresh1"})
+            m = await wait_for(boss, "admin_status")
+            assert m and "Player's password is set" in m["text"]
+            await boss.close()
+            _, m = await login(http, url, "Player", "fresh1", mode="login")
+            assert m["t"] == "welcome"
+            nobody, _ = await login(http, url, "Nobody", "pass1")       # (not an admin: ignored)
+            await nobody.send_json({"t": "admin_password", "name": "Player", "new": "hacked"})
+            await asyncio.sleep(0.5)
+            await nobody.close()
+            _, m = await login(http, url, "Player", "hacked", mode="login")
+            assert m["t"] == "login_fail"
+        await runner.cleanup()
+    asyncio.run(run())

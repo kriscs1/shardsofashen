@@ -414,9 +414,16 @@ export function updateCursor(canvas, now) {
     kind = I.clickKind in hot ? I.clickKind : kind;
     step = 1 + Math.min(6, Math.floor(t * 7));
   }
-  const key = kind + "_" + step;
+  // (its size: Options > Mouse pointer size, in screen points; a picture twice that for sharp high-DPI screens)
+  const sizes = A.m.cursors?.sizes || [22];
+  const px = sizes.includes(U.cursorSize) ? U.cursorSize : (sizes.includes(22) ? 22 : sizes[0]);
+  const key = kind + "_" + step + "@" + px;
   if (key === shownCursor) return;
   shownCursor = key;
-  const [hx, hy] = hot[kind] || [2, 2];
-  canvas.style.cursor = `url("/assets/cursors/${kind}_${step}.png") ${hx} ${hy}, auto`;
+  const unit = A.m.cursors?.unit || 32;
+  const [hx, hy] = (hot[kind] || [2, 2]).map((v) => Math.round(v * px / unit));
+  const one = `url("/assets/cursors/${kind}_${step}@${px}.png")`, two = `url("/assets/cursors/${kind}_${step}@${px * 2}.png")`;
+  canvas.style.cursor = `${one} ${hx} ${hy}, auto`;                        // (every browser)
+  canvas.style.cursor = `-webkit-image-set(${one} 1x, ${two} 2x) ${hx} ${hy}, auto`;   // (sharper, where it's known)
+  canvas.style.cursor = `image-set(${one} 1x, ${two} 2x) ${hx} ${hy}, auto`;
 }

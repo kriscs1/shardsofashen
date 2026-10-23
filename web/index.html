@@ -61,6 +61,20 @@
   </form>
 </div>
 
+<div id="password" class="overlay" hidden>
+  <form id="password-form" class="panel" autocomplete="off">
+    <h2>Change your password</h2>
+    <label>Current password <input id="pw-old" type="password" maxlength="200" autocomplete="current-password" required></label>
+    <label>New password <input id="pw-new" type="password" maxlength="200" autocomplete="new-password" required></label>
+    <label>New password again <input id="pw-again" type="password" maxlength="200" autocomplete="new-password" required></label>
+    <p id="pw-status" class="dim small"></p>
+    <div class="buttons">
+      <button type="submit">Change it</button>
+      <button type="button" id="pw-cancel">Cancel</button>
+    </div>
+  </form>
+</div>
+
 <div id="chat-entry" hidden><input id="chat-input" maxlength="200" placeholder="Say something to everyone. /w name words: whisper. /r words: answer a whisper. (Enter sends, Esc cancels)"></div>
 
 <div id="options" class="overlay" hidden>
@@ -77,6 +91,10 @@
     <div class="row"><span>Smooth scaling (easier text; off = sharp pixels)</span><input type="checkbox" id="opt-smooth"></div>
     <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
     <div class="row"><span>Your appearance</span><button type="button" id="opt-look">Change</button></div>
+    <div class="row"><span>Your password</span><button type="button" id="opt-password">Change</button></div>
+    <div class="row"><span>Mouse pointer size</span><select id="opt-cursor">
+      <option value="18">Small</option><option value="22">Medium</option><option value="28">Large</option>
+      <option value="32">Largest</option></select></div>
     <div class="row"><span>Full screen</span><button type="button" id="opt-fullscreen">Toggle</button></div>
     <div class="buttons"><button type="button" id="options-done">Done</button></div>
   </div>
@@ -104,6 +122,10 @@
     <select id="admin-items" size="8"></select>
     <p class="dim small">Skills: untick to switch one off (for everyone); type a level to set yours.</p>
     <div id="admin-skills"></div>
+    <div class="row"><span>Reset a player's password:</span>
+      <input id="admin-pw-name" placeholder="their name" maxlength="20">
+      <input id="admin-pw-new" placeholder="new password" maxlength="200">
+      <button type="button" id="admin-pw-go">Set</button></div>
     <div class="row"><span>Go to a place:</span>
       <input id="admin-place" placeholder="e.g. Ashford_Market" maxlength="40">
       <button type="button" id="admin-goto">Go</button></div>

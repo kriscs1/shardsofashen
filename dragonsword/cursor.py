@@ -242,8 +242,8 @@ def picture(kind):
     return under
 
 
-def frame(big, hot, scale, angle):
-    """The picture scaled and turned round its hotspot, at cursor size."""
+def frame(big, hot, scale, angle, size=SIZE):
+    """The picture scaled and turned round its hotspot, at cursor size (size: pixels square, SIZE unless asked)."""
     n = big.get_width()
     hx, hy = hot[0] * K, hot[1] * K
     if scale != 1 or angle:
@@ -257,7 +257,7 @@ def frame(big, hot, scale, angle):
         canvas = pygame.Surface((n, n), pygame.SRCALPHA)
         canvas.blit(img, (round(hx - tx), round(hy - ty)))
         big = canvas
-    return pygame.transform.smoothscale(big, (SIZE, SIZE))
+    return pygame.transform.smoothscale(big, (size, size))
 
 
 def click_pose(kind, t):
@@ -280,8 +280,8 @@ class Cursors:
         self.click_kind = None
         self.ok = True
 
-    def _frame(self, kind, step):
-        key = (kind, step)
+    def _frame(self, kind, step, size=SIZE):
+        key = (kind, step, size)
         if key not in self.cache:
             if kind not in self.big:
                 self.big[kind] = picture(kind)
@@ -289,7 +289,7 @@ class Cursors:
                 scale, angle = 1, 0
             else:
                 scale, angle = click_pose(kind, step / 6.0)
-            self.cache[key] = frame(self.big[kind], KINDS[kind][1], scale, angle)
+            self.cache[key] = frame(self.big[kind], KINDS[kind][1], scale, angle, size)
         return self.cache[key]
 
     def click(self, now):

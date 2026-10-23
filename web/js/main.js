@@ -103,7 +103,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 });
 
 function overlayOpen() {
-  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
+  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -125,6 +125,7 @@ function openOptions() {
   $("opt-ambient").checked = O.ambient; $("opt-ambient-volume").value = O.ambientVolume;
   $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing;
   $("opt-camera").value = V.smooth;
+  $("opt-cursor").value = String(U.cursorSize || 22);
   $("options").hidden = false;
 }
 for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"], ["opt-chat-sound", "chatSound"],
@@ -134,6 +135,7 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
+$("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
 $("opt-fullscreen").onclick = toggleFullscreen;
 let appearancePick = null;
 $("opt-look").onclick = () => {
@@ -150,7 +152,7 @@ $("appearance-cancel").onclick = () => { $("appearance").hidden = true; canvas.f
 $("options-done").onclick = () => { $("options").hidden = true; canvas.focus(); playSound("Coins"); };
 
 function saveView() {
-  try { localStorage.setItem("ds.view", JSON.stringify({ markers: U.markers, smooth: smoothing, camera: V.smooth })); } catch (e) { /* */ }
+  try { localStorage.setItem("ds.view", JSON.stringify({ markers: U.markers, smooth: smoothing, camera: V.smooth, cursor: U.cursorSize })); } catch (e) { /* */ }
 }
 
 function loadView() {
@@ -159,6 +161,7 @@ function loadView() {
     if ("markers" in v) U.markers = v.markers;
     if ("smooth" in v) smoothing = v.smooth;
     if ("camera" in v) V.smooth = v.camera;
+    if ("cursor" in v) U.cursorSize = +v.cursor;
     else V.smooth = val(configRead("Interface", "Camera.Smooth", "8"));
     if (!("smooth" in v)) smoothing = val(configRead("Interface", "Smooth.Scaling", "1")) === 1;
     const z = parseFloat(localStorage.getItem("ds.zoom") || configRead("Interface", "Zoom", "1"));
@@ -219,6 +222,29 @@ $("admin-save").onclick = () => {
   send({ t: "admin", do: "skills", on, levels });
 };
 $("admin-wave-go").onclick = () => send({ t: "admin", do: "wave", name: $("admin-wave").value.trim() });
+$("admin-pw-go").onclick = () => {
+  send({ t: "admin_password", name: $("admin-pw-name").value.trim(), new: $("admin-pw-new").value });
+  $("admin-pw-new").value = "";
+};
+// ----- changing your own password (Options)
+$("opt-password").onclick = () => {
+  for (const id of ["pw-old", "pw-new", "pw-again"]) $(id).value = "";
+  $("pw-status").textContent = "";
+  $("options").hidden = true;
+  $("password").hidden = false;
+  $("pw-old").focus();
+};
+$("pw-cancel").onclick = () => { $("password").hidden = true; canvas.focus(); };
+$("password-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const old = $("pw-old").value, nw = $("pw-new").value;
+  const bad = nw.length < 4 ? "Use a new password of at least 4 characters."
+    : nw !== $("pw-again").value ? "The two new passwords aren't the same." : "";
+  if (bad) { $("pw-status").textContent = bad; $("pw-status").className = "error small"; return; }
+  $("pw-status").textContent = "Changing it...";
+  $("pw-status").className = "dim small";
+  send({ t: "password", old, new: nw });
+});
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value.trim() });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
@@ -401,6 +427,11 @@ N.onMessage = (m) => {
     case "sleep": S.sleep = { start: now, fade: m.fade, hold: m.hold, text: m.text }; break;
     case "journal": S.journal = m; break;
     case "buildables": onBuildables(m); break;
+    case "password_result":
+      $("pw-status").textContent = m.text;
+      $("pw-status").className = m.ok ? "ok small" : "error small";
+      if (m.ok) setTimeout(() => { $("password").hidden = true; canvas.focus(); }, 1500);
+      break;
     case "wave": S.wave = m.name ? { ...m, at: now } : null; break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
     case "admin_status": $("admin-status").textContent = m.text; break;

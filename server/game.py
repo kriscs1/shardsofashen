@@ -326,6 +326,44 @@ class GameServer:
         o.emit({"t": "chat", "from": s.player_name, "text": words, "whisper": "from"})
         s.emit({"t": "chat", "from": s.player_name, "to": to, "text": words, "whisper": "to"})
 
+    # (passwords: scrypt is slow on purpose, so it's worked out off the game's tick)
+    async def hashed(self, password):
+        return await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
+
+    async def change_password(self, s, data):
+        """A player changes their own password (Options): their current one first."""
+        old, new = str(data.get("old", ""))[:200], str(data.get("new", ""))[:200]
+        reply = lambda ok, text: s.emit({"t": "password_result", "ok": ok, "text": text})
+        acct = self.store.account(s.player_name)
+        if acct is None:
+            return reply(False, "Your account wasn't found.")
+        right = await asyncio.get_running_loop().run_in_executor(None, auth.check_password, old, acct[1] or "")
+        if not right:
+            await asyncio.sleep(1)                      # (no quick guessing)
+            return reply(False, "That isn't your current password.")
+        if len(new) < 4:
+            return reply(False, "Use a new password of at least 4 characters.")
+        self.store.set_password(s.player_name, await self.hashed(new))
+        log.info("%s changed their password", s.player_name)
+        reply(True, "Your password is changed. Use the new one next time you log in.")
+
+    async def admin_password(self, s, data):
+        """An admin sets another player's password (Admin panel): for someone who's forgotten theirs."""
+        name = auth.clean_name(data.get("name", ""))
+        new = str(data.get("new", ""))[:200]
+        say = lambda text: s.emit({"t": "admin_status", "text": text})
+        acct = self.store.account(name) if name else None
+        if acct is None:
+            return say("There's no character called %s." % (name or "that"))
+        if len(new) < 4:
+            return say("Use a password of at least 4 characters.")
+        self.store.set_password(acct[0], await self.hashed(new))
+        log.info("%s (admin) set %s's password", s.player_name, acct[0])
+        other = self.world.sessions.get(acct[0])
+        if other is not None and other is not s:
+            other.display_message("An admin has given you a new password: use it next time you log in.", "INFO")
+        say("%s's password is set. Tell them the new one." % acct[0])
+
     def handle_game(self, c, data):
         s = c.session
         t = data.get("t")
@@ -338,6 +376,13 @@ class GameServer:
             return
         if t == "quit":
             self.save_session(s)
+            return
+        if t == "password":
+            asyncio.ensure_future(self.change_password(s, data))
+            return
+        if t == "admin_password":
+            if s.admin_enabled:
+                asyncio.ensure_future(self.admin_password(s, data))
             return
         if t == "ping":
             s.emit({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)})

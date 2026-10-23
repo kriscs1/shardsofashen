@@ -6,7 +6,8 @@
   web/assets/masks/<name>.png       the edge-blend masks (Blend_*) as transparency
   web/assets/anim/<name>~s<k>.png   plants swaying (ground tiles), ~d<k> (decor), flames ~f<k> (ground), ~F<k> (decor)
   web/assets/textures/<name>.png    big textures (Tiles.ini Texture=)
-  web/assets/cursors/<kind>_<n>.png the mouse cursors (and their click animation)
+  web/assets/cursors/<kind>_<n>@<px>.png the mouse cursors (and their click animation), at each pointer size the
+                                    Options offer (18 22 28 32), and twice that for sharp high-DPI screens
   web/assets/sounds/<name>.wav      the sound effects; the music as .ogg (or .wav without ffmpeg)
   web/assets/manifest.json          sprite sizes, the data files the browser reads, what was made
 
@@ -195,14 +196,16 @@ def export_cursors(manifest):
     os.makedirs(out, exist_ok=True)
     c = cursors.Cursors()
     info = {}
+    sizes = (18, 22, 28, 32)
     for kind, (_, hot) in cursors.KINDS.items():
         for step in range(-1, 7):
-            dst = os.path.join(out, "%s_%d.png" % (kind, step + 1))
-            if not os.path.exists(dst):
-                pygame.image.save(c._frame(kind, step), dst)
+            for px in sorted({s for s in sizes} | {2 * s for s in sizes}):
+                dst = os.path.join(out, "%s_%d@%d.png" % (kind, step + 1, px))
+                if not os.path.exists(dst):
+                    pygame.image.save(c._frame(kind, step, px), dst)
         info[kind] = list(hot)
     manifest["cursors"] = {"hot": info, "verbs": cursors.VERBS, "swings": sorted(cursors.SWINGS),
-                           "click_ms": cursors.CLICK_MS, "frames": 8}
+                           "click_ms": cursors.CLICK_MS, "frames": 8, "sizes": list(sizes), "unit": cursors.SIZE}
 
 
 def export_sounds(manifest):

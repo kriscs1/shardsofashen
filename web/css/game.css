@@ -235,3 +235,5 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 /* the game's version, under the login panel */
 #login-form .version { margin: 6px 0 0; text-align: right; font-size: 11px; color: var(--dim); opacity: 0.8; }
+.panel .ok { color: #6fdc8c; min-height: 1.2em; margin: 8px 0 0; text-align: center; }
+#opt-cursor { font: 14px var(--font); background: #2a1b15; color: var(--parchment); border: 1px solid var(--edge); border-radius: 4px; }

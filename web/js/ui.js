@@ -39,7 +39,7 @@ export function layout(W) {
 
 export const U = {
   statsView: 0, questsPage: 1, questHover: 0, equipHover: 0, skillHover: 0, statRows: 1, statRowTop: 41,
-  statRowH: 33, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
+  statRowH: 33, cursorSize: 22, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
   hover: null, onlineShownUntil: 0, banner: null, markers: true,
 };
 
