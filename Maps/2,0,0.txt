@@ -63,6 +63,6 @@ StaticObject	Ripe_Wheat001	475	600
 StaticObject	Ripe_Wheat002	485	609
 StaticObject	Ripe_Wheat001	506	598
 StaticObject	Ripe_Wheat003	521	609
-NPC	Chicken	640	384	Attitude=Bad Zone=20,12,24,17
-NPC	Chicken	704	384	Attitude=Bad Zone=20,12,24,17
-NPC	Chicken	672	352	Attitude=Bad Zone=20,12,24,17
+NPC	Chicken	608	480	Attitude=Bad Zone=19,15,25,18
+NPC	Chicken	672	512	Attitude=Bad Zone=19,15,25,18
+NPC	Chicken	736	480	Attitude=Bad Zone=19,15,25,18

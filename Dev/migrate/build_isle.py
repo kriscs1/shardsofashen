@@ -161,8 +161,8 @@ def thin_walls(m, x1, y1, x2, y2, wall="Timber001", thin="Timber_Thin_Plank"):
     return n
 
 
-COOP_HENS = ((21, 13), (23, 13), (22, 12))                      # (in the hen coop, by their nests)
-COOP_ZONE = "20,12,24,17"                                       # (the coop, and a bit of yard)
+COOP_HENS = ((20, 16), (22, 17), (24, 16))                      # (in the yard by their coop: they roost in it at night)
+COOP_ZONE = "19,15,25,18"                                       # (the yard in front of the coop, in sight)
 INDOORS = {"Range": (4, 4), "Workbench": (20, 5)}               # (in the dairymaid's hut; in the barn)
 
 
