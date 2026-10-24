@@ -685,10 +685,11 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
 def test_the_way_down_is_through_the_chapel(world):
     def climb(s, verb, tx, ty):
         m = s.cur_map
-        e = s.tile_entity_at(m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16)
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        e = s.tile_entity_at(gx, gy)
         assert verb in s.get_verbs(e)
-        s.do_action(verb, e)
-        for _ in range(40):
+        s.choose_verb(verb, e, gx, gy)                             # (as a click does: where, too)
+        for _ in range(60):
             world.tick(0.05)
         return s.cur_map.name
 
@@ -700,18 +701,29 @@ def test_the_way_down_is_through_the_chapel(world):
     s.out = []
     assert climb(s, "Climb Down", 14, 9) == "3,1,-1"               # the trapdoor: locked, without its key
     assert any(ev.get("t") == "sound" and ev.get("name") == "Denied" for ev in s.out)
-    s.teleport("3,1,0", 15 * 32, 8 * 32)                           # ask Brother Aldous for it
+    s.teleport("3,1,0", 15 * 32, 8 * 32)                           # ask Brother Aldous about it
     for _ in range(5):
         world.tick(0.05)
     s.do_action("Talk to", verger)
     for _ in range(40):
         world.tick(0.05)
     assert s.ab_mode == "Conversation" and s.ab_title == "Brother Aldous"
-    s.action_box_response_chosen(1)                                # "Could I have the cellar key?"
+    assert "cellar" not in s.ab_text.lower()                       # (he doesn't bring it up himself)
+    s.action_box_response_chosen(1)                                # "What's down in the cellar?"
     for _ in range(20):
         world.tick(0.05)
-    assert s.items_held("Chapel_Cellar_Key") == 1
+    assert "lost the key" in s.ab_text and s.items_held("Chapel_Cellar_Key") == 0
     s.close_action_box(-1)
+    s.teleport("3,1,-1", 16 * 32, 11 * 32 - 8)                     # search the cellar's crates
+    for _ in range(5):
+        world.tick(0.05)
+    for x in (19, 17):                                             # (the wrong crate, then the right one)
+        climb(s, "Search", x, 12)
+        for _ in range(3):
+            world.tick(0.05, now=world.now + 1500)                 # (the rummaging takes a moment)
+    assert s.items_held("Chapel_Cellar_Key") == 1
+    cell = (s.cur_map.name, 14, 9)
+    assert s.lock_cells.get(cell) == "Trapdoor002"                 # (it stands open for them now)
     s.teleport("3,1,-1", 13 * 32, 9 * 32 - 8)                      # (in the cellar, by the trapdoor)
     for _ in range(5):
         world.tick(0.05)

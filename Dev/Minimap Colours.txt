@@ -749,3 +749,5 @@ Steeple_Spire002	84 92 106
 Steeple_Spire003	84 92 106
 Bench002	150 90 30
 Bench003	150 90 30
+Cellar_Barrel001	87 95 35
+Cellar_Crate001	100 102 38

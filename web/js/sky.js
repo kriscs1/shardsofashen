@@ -307,16 +307,17 @@ export function revealCell(map, cell) {
   F.lastX = -1e9;
 }
 
-function inView(cx, cy, pcx, pcy) {
-  return Math.hypot(cx - pcx, cy - pcy) < S.view;
+function inView(cx, cy, pcx, pcy, margin = 0) {
+  return Math.hypot(cx - pcx, cy - pcy) < S.view + margin;
 }
 
-export function fogCovers(x, y, pc) {
-  // Is global point x,y under the fog for this player (not in view now)?
+export function fogCovers(x, y, pc, margin = 0) {
+  // Is global point x,y under the fog for this player (not in view now)? margin: a little more view (for something
+  // already in sight: it doesn't blink out and in at the edge as you, or it, shuffle a pixel or two)
   if (!fogEnabled() || !pc) return false;
   const n = fogCell();
   const cx = (Math.floor(x / n) + 0.5) * n, cy = (Math.floor(y / n) + 0.5) * n;
-  if (inView(cx, cy, pc[0], pc[1])) return false;
+  if (inView(cx, cy, pc[0], pc[1], margin)) return false;
   const m = mapAt(S.mapZ, x, y);
   if (!m) return true;
   const fxt = Math.ceil(G.sw / n);

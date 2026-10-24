@@ -140,11 +140,33 @@ CAP, POST_L, POST, POST_D, PICKET, RAIL, SHADOW = ((200, 200, 200), (160, 80, 40
                                                     (160, 120, 80), (160, 120, 40), (0, 0, 0, 90))
 
 
-def post(s, x, top=6, bottom=21):
-    pygame.draw.rect(s, CAP, (x, top, 4, 2))
-    pygame.draw.rect(s, POST_L, (x, top + 2, 1, bottom - top - 1))
-    pygame.draw.rect(s, POST, (x + 1, top + 2, 2, bottom - top - 1))
-    pygame.draw.rect(s, POST_D, (x + 3, top + 2, 1, bottom - top - 1))
+BOARD, BOARD_L, BOARD_D, IRON = (132, 86, 46), (166, 114, 64), (84, 52, 26), (40, 40, 44)
+
+
+def post(s, x, top=3, bottom=21):
+    """A gate post: taller than the fence's, a round knob on top (so the gate stands out from the pickets)."""
+    pygame.draw.rect(s, POST_L, (x, top + 3, 1, bottom - top - 2))
+    pygame.draw.rect(s, POST, (x + 1, top + 3, 2, bottom - top - 2))
+    pygame.draw.rect(s, POST_D, (x + 3, top + 3, 1, bottom - top - 2))
+    pygame.draw.circle(s, CAP, (x + 2, top + 2), 2)
+    s.set_at((x + 1, top + 1), (250, 250, 250))
+
+
+def boards(s, rect, upright=True):
+    """A gate's leaf: solid boards (not pickets), a dark Z-brace, iron hinges."""
+    x, y, w, h = rect
+    pygame.draw.rect(s, BOARD, rect)
+    if upright:
+        for bx in range(x + 3, x + w, 4):
+            pygame.draw.line(s, BOARD_D, (bx, y), (bx, y + h - 1))
+    else:
+        for by in range(y + 3, y + h, 4):
+            pygame.draw.line(s, BOARD_D, (x, by), (x + w - 1, by))
+    pygame.draw.line(s, BOARD_L, (x, y), (x + w - 1, y))
+    pygame.draw.rect(s, BOARD_D, (x, y + 1, w, 2))                          # the top rail
+    pygame.draw.rect(s, BOARD_D, (x, y + h - 3, w, 2))                      # the bottom rail
+    pygame.draw.line(s, BOARD_D, (x + 1, y + h - 3), (x + w - 2, y + 2), 2) # the brace
+    pygame.draw.rect(s, (0, 0, 0), rect, 1)
 
 
 def gate_across(open_):
@@ -152,50 +174,49 @@ def gate_across(open_):
     sh = pygame.Surface((32, 32), pygame.SRCALPHA)
     pygame.draw.rect(sh, SHADOW, (0, 22, 32, 3))
     if open_:
-        pygame.draw.rect(sh, SHADOW, (4, 9, 4, 20))
+        pygame.draw.rect(sh, SHADOW, (6, 10, 4, 20))
     s.blit(sh, (0, 0))
+    if open_:                                     # swung in, against the left post: seen edge-on, going down
+        boards(s, pygame.Rect(4, 9, 5, 19), upright=False)
+        for y in (11, 24):
+            pygame.draw.rect(s, IRON, (3, y, 3, 2))
+    else:
+        boards(s, pygame.Rect(4, 9, 24, 13))
+        for y in (11, 18):                       # hinges, on the left post
+            pygame.draw.rect(s, IRON, (3, y, 5, 2))
+        pygame.draw.rect(s, IRON, (25, 13, 3, 4))                            # the latch
+        pygame.draw.circle(s, IRON, (24, 15), 1)
     post(s, 0)
     post(s, 28)
-    if open_:                                     # swung in, against the left post: seen edge-on, going down
-        pygame.draw.rect(s, PICKET, (4, 9, 2, 18))
-        pygame.draw.rect(s, RAIL, (4, 12, 3, 2))
-        pygame.draw.rect(s, RAIL, (4, 22, 3, 2))
-        pygame.draw.rect(s, CAP, (4, 8, 2, 1))
-    else:
-        for x in range(6, 28, 4):                 # the pickets, lower than the fence's, a brace across them
-            pygame.draw.rect(s, PICKET, (x, 10, 2, 12))
-            s.set_at((x, 9), CAP)
-        for y in (12, 18):
-            pygame.draw.rect(s, RAIL, (4, y, 24, 2))
-        pygame.draw.line(s, RAIL, (5, 19), (26, 12), 2)                      # (the brace)
-        pygame.draw.rect(s, (60, 60, 64), (25, 14, 2, 3))                    # the latch
     return s
 
 
 def gate_upright(open_):
     s = tile("Grass001").copy()
     sh = pygame.Surface((32, 32), pygame.SRCALPHA)
-    pygame.draw.rect(sh, SHADOW, (18, 0, 3, 32))
+    pygame.draw.rect(sh, SHADOW, (19, 2, 3, 30))
+    if open_:
+        pygame.draw.rect(sh, SHADOW, (18, 13, 12, 3))
     s.blit(sh, (0, 0))
-
-    def stub(y0, y1):                             # (the fence's rail, edge-on, as Wood_Fence002 draws it)
-        pygame.draw.rect(s, POST_L, (14, y0, 1, y1 - y0))
-        pygame.draw.rect(s, POST, (15, y0, 2, y1 - y0))
-        pygame.draw.rect(s, POST_D, (17, y0, 1, y1 - y0))
-    for y in (0, 25):                             # a post at each end
-        pygame.draw.rect(s, CAP, (14, y, 4, 2))
-        stub(y + 2, y + 7)
-    if open_:                                     # swung back against the top post, side-on: a little panel
-        pygame.draw.rect(s, PICKET, (18, 5, 10, 8))
-        for x in range(19, 28, 3):
-            pygame.draw.line(s, POST_D, (x, 5), (x, 12))
-        pygame.draw.rect(s, RAIL, (18, 6, 10, 1))
-        pygame.draw.rect(s, RAIL, (18, 11, 10, 1))
-    else:
-        pygame.draw.rect(s, RAIL, (14, 7, 4, 18))
-        for y in range(9, 24, 3):
-            pygame.draw.line(s, POST_D, (14, y), (17, y))
-        pygame.draw.rect(s, (60, 60, 64), (14, 22, 4, 2))                    # the latch
+    for y in (0, 27):                            # a post at each end, with its knob
+        pygame.draw.circle(s, CAP, (16, y + 2), 2)
+        pygame.draw.rect(s, POST_L, (14, y + 3, 1, 3))
+        pygame.draw.rect(s, POST, (15, y + 3, 2, 3))
+        pygame.draw.rect(s, POST_D, (17, y + 3, 1, 3))
+    if open_:                                     # swung back against the top post: its face, toward you
+        boards(s, pygame.Rect(18, 5, 12, 9))
+        pygame.draw.rect(s, IRON, (17, 6, 3, 2))
+        pygame.draw.rect(s, IRON, (17, 11, 3, 2))
+    else:                                         # along the fence line, edge-on: thick, dark, ironed
+        pygame.draw.rect(s, BOARD, (13, 6, 6, 21))
+        pygame.draw.rect(s, BOARD_L, (13, 6, 1, 21))
+        pygame.draw.rect(s, BOARD_D, (18, 6, 1, 21))
+        for y in range(9, 26, 4):
+            pygame.draw.line(s, BOARD_D, (14, y), (17, y))
+        for y in (8, 22):                        # hinge straps
+            pygame.draw.rect(s, IRON, (12, y, 8, 2))
+        pygame.draw.rect(s, IRON, (12, 15, 2, 3))                            # the latch
+        pygame.draw.rect(s, (0, 0, 0), (13, 6, 6, 21), 1)
     return s
 
 

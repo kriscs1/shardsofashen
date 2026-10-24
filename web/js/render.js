@@ -15,6 +15,7 @@ export const V = {
   ww: 800, wh: 672,           // the world canvas (the playfield divided by the zoom)
   pick: [],                   // [x, y, w, h, entity] in world pixels, front last
   underRoof: 0,
+  seen: new Set(),              // (what was drawn last frame)
   playerC: null,
   fx: [],
 };
@@ -224,9 +225,10 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     if (!e.a) continue;
     const cx = e.dx + e.w / 2, cy = e.dy + e.h / 2;
     if (e.dx - cam.x > V.ww + 64 || e.dy - cam.y > V.wh + 64 || e.dx + e.w - cam.x < -64 || e.dy + e.h - cam.y < -64) continue;
-    if (roofCovers(cx, cy) || fogCovers(cx, cy, pc)) continue;
+    if (roofCovers(cx, cy) || fogCovers(cx, cy, pc, V.seen.has(e.u) ? FOG_KEEP : 0)) continue;
     shown.push(e);
   }
+  V.seen = new Set(shown.map((e) => e.u));
   const draw = (e) => {
     const im = e.k === T.PLAYER && e.look ? lookImage(e.i, e.look) : entityImage(e, now);
     const [nx, ny] = nudgeOf(e.u, now);
@@ -331,6 +333,7 @@ function drawInfront(ctx, cam, pick, pc) {
 }
 
 const MAPITEM_SCALE = 0.75;
+const FOG_KEEP = 24;            // (in sight already: it stays until this far past the edge of what you can see)
 const STATUS_COLOURS = { Poison: [90, 200, 60], Burn: [255, 128, 30], Bleed: [200, 24, 24], Chill: [120, 196, 255] };
 
 function drawStatusIcons(ctx, me, cam) {
