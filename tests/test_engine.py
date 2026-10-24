@@ -983,3 +983,16 @@ def test_the_smugglers_run(world, monkeypatch):
     talk("Smuggler_Sergeant", 1)
     assert attr() == 4 and s.items_held("Gold_Coin(s)") == gold + 60
     leave(world, s)
+
+
+def test_a_new_character_wakes_in_the_cottage(world):
+    s = Session(world, "Newborn")
+    s.load_state(None)                                              # (a new character: Saves\TEMPLATE.ini)
+    world.sessions["Newborn"] = s
+    s.enter_world()
+    world.tick(0.05)
+    assert s.cur_map.name == "4,0,0" and "Bronze_Sword" not in s.equipped
+    m, tx, ty = world.tile_at(s.player.z, s.player.fx, s.player.fy)
+    assert m.name == "4,0,0" and m.roof[m.cell(tx, ty)]             # (indoors, under the cottage's roof)
+    assert "0" not in m.walk[m.cell(tx, ty)]                        # (on open floor)
+    leave(world, s)
