@@ -75,11 +75,19 @@ def draw_pointer(s):
 
 
 def draw_walk(s):
-    for ox, oy, flip in ((5, 13, 1), (15, 3, -1)):          # two footprints, one ahead of the other
-        ellipse(s, CREAM, ox, oy + 4, 8, 12)
-        ellipse(s, CREAM, ox + 1, oy + 15, 6, 6)
-        for i, (tx, ty) in enumerate(((0.5, 1.5), (2.5, 0), (4.8, 0), (6.8, 1.5))):
-            circle(s, CREAM, (ox + tx + 0.6, oy + ty + 1), 1.3 if i in (1, 2) else 1.1)
+    """A pair of little walking boots, mid-stride: one behind, one stepping ahead and up."""
+    cuff, lace = (232, 204, 156), GOLD
+    for ox, oy in ((2, 14), (14, 3)):
+        rect(s, WOOD, ox + 1, oy + 2, 8, 10, 1.5)                      # the shaft
+        rect(s, WOOD, ox + 1, oy + 9, 14, 6, 3)                        # the foot, its toe rounded
+        ellipse(s, (176, 118, 66), ox + 10, oy + 9.5, 5, 3)            # (light on the toe)
+        rect(s, WOOD_DK, ox, oy + 14, 16, 2.2, 1)                      # the sole
+        rect(s, WOOD_DK, ox + 1, oy + 14.5, 3, 2.4, 0.5)               # the heel
+        rect(s, cuff, ox, oy, 10, 3.4, 1.5)                            # the cuff, turned down
+        for i in range(3):                                             # laces, crossed
+            y = oy + 4.8 + i * 2.3
+            line(s, lace, (ox + 6, y), (ox + 9, y + 1.6), 0.7)
+            line(s, lace, (ox + 9, y), (ox + 6, y + 1.6), 0.7)
 
 
 def draw_hand(s):
