@@ -24,7 +24,7 @@ NPC	Scout	480	224	Attitude=Good Stand=1
 NPC	Banker	96	96	Attitude=Good
 NPC	Trader	64	384	Attitude=Good
 StaticObject	Furnace	672	96
-StaticObject	Anvil	736	96
+StaticObject	Anvil	736	64
 NPC	Settler	448	352	Attitude=Good Zone=9,8,16,12
 StaticObject	Notice	417	226	Id=Emberwatch
 NPC	Ember_Hound	640	32	Attitude=Bad
@@ -34,9 +34,6 @@ StaticObject	Waystone	288	352
 Id	Emberwatch_Scout	16	8
 Id	Emberwatch_Square	10	8
 Id	Waystone_Emberwatch	12	12
-
 StaticObject	Homestone	256	384
-
 StaticObject	Sign_General	64	496
-
 StaticObject	Market_Board	288	304

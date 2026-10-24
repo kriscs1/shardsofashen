@@ -1103,3 +1103,19 @@ def test_sheep_run_from_you_and_never_fight_back(world):
     assert s.player.hp == hp                                         # (it never struck back)
     assert distance(s.player.cx, s.player.cy, sheep.cx, sheep.cy) > start   # (it ran)
     leave(world, s)
+
+
+def test_the_milkmaid_is_asked_about_tickets_only_once_its_time(world):
+    bess = next(e for e in world.ents if e.name == "Milkmaid")
+    m = world.maps[bess.map]
+    s = join(world, "Asker", bess.map, int(bess.x - m.ox) - 28, int(bess.y - m.oy))
+    s.connected = True
+    for passage, asked in ((0, False), (1, True), (11, False)):
+        s.update_attribute("Passage", "=%d" % passage)
+        s.choose_verb("Talk to", bess, int(bess.cx), int(bess.cy))
+        for _ in range(20):
+            world.tick(0.05)
+        assert any(r.startswith("About a ferry ticket") for r in s.responses) == asked, passage
+        s.close_action_box(-1)
+        world.tick(0.05)
+    leave(world, s)

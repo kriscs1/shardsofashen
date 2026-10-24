@@ -56,7 +56,7 @@ StaticObject	Ripe_Wheat001	264	607
 StaticObject	Ripe_Wheat003	296	607
 StaticObject	Ripe_Wheat002	316	596
 StaticObject	Ripe_Wheat003	327	610
-StaticObject	Workbench	96	256
+StaticObject	Workbench	96	224
 StaticObject	Alchemy_Table	640	448
 NPC	Cow	416	448	Attitude=Bad Zone=13,14,15,18
 NPC	Cow	416	544	Attitude=Bad Zone=13,14,15,18

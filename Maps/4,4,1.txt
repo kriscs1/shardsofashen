@@ -20,11 +20,10 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 NPC	Wizard	608	224	Attitude=Good Zone=20,8,22,9 Pause=5-12
-StaticObject	Alchemy_Table	672	160
+StaticObject	Alchemy_Table	672	128
 MapItem	Basic_Potion	608	160	1
 MapItem	Empty_Vial	608	256	2
 MapItem	Full_Vial	672	256	1
 Id	Court_Wizard	20	8
 Id	Wizard_Tower_Portal	21	9
-
 StaticObject	Sign_Magic	608	176

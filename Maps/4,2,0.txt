@@ -20,6 +20,6 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Grass001+
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Grass001+Decor(Tree001):Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:City_Wall005:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Dirt001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water003:Grass001+Decor(Pebbles001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:City_Wall002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 StaticObject	Anvil	544	416
-StaticObject	Furnace	640	416
+StaticObject	Furnace	640	384
 NPC	Rabbit	480	96	Attitude=Bad
 NPC	Butterfly	384	96	Attitude=Good

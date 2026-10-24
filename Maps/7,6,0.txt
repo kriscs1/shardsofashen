@@ -24,7 +24,7 @@ NPC	Trader	512	96	Attitude=Good
 NPC	Settler	416	448	Attitude=Good Zone=8,11,15,15
 NPC	Banker	96	512	Attitude=Good
 StaticObject	Notice	385	322	Id=Thornwick
-StaticObject	Workbench	64	96
+StaticObject	Workbench	64	64
 StaticObject	Alchemy_Table	160	96
 NPC	Wolf	672	608	Attitude=Bad
 NPC	Bear	704	352	Attitude=Bad

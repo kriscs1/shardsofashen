@@ -294,7 +294,7 @@ def scripts():
     write("Talk to Milkmaid", [
         say("Milkmaid", "Morning! Mind the cows, they're friendly but they tread on toes.\\Use a bucket on a cow for milk, "
             "shears on a sheep for wool. The hens lay in their coop, by the barn.", ("What do you sell?", "@shop"),
-            ("What's wool for?", "@wool"), ("About a ferry ticket...", "@ticket"), ("Goodbye.", "@end")),
+            ("What's wool for?", "@wool"), ("About a ferry ticket... [if $Attr.Passage>=1 and $Attr.Passage<=10]", "@ticket"), ("Goodbye.", "@end")),
         ("@shop",), ("Display.Item.Rack", "SPECIFIC", "Milkmaid", "SHOP-Dairy", "@end"),
         ("End",),
         ("@wool",), say("Milkmaid", "Spin it into balls of wool on a workbench, there's one in the barn. Cowhide can be "

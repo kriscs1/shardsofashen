@@ -25,11 +25,10 @@ NPC	Settler	576	256	Attitude=Good Zone=13,5,20,9
 NPC	Banker	704	32	Attitude=Good
 StaticObject	Notice	545	130	Id=Ravensgate
 StaticObject	Furnace	256	416
-StaticObject	Anvil	352	416
+StaticObject	Anvil	352	384
 NPC	Skeleton	448	480	Attitude=Bad
 NPC	Skeleton	704	608	Attitude=Bad
 NPC	Bat	128	576	Attitude=Bad
 NPC	Skeleton_Archer	64	288	Attitude=Bad
 Id	Ravensgate_Square	14	5
-
 StaticObject	Sign_General	576	464
