@@ -230,7 +230,6 @@ class GameServer:
             return
         name = auth.clean_name(data.get("name", ""))
         password = str(data.get("password", ""))[:200]
-        token = str(data.get("token", "") or "")[:100] if t == "login" and not password else ""
         if not name:
             await self.send(c, {"t": "login_fail", "reason": "Pick a name: letters, numbers, spaces, _ and -."})
             return
@@ -254,12 +253,7 @@ class GameServer:
             if acct is None:
                 await self.send(c, {"t": "login_fail", "reason": "No character called %s. Make one?" % name})
                 return
-            if token:                               # (a browser that remembers them)
-                if not self.store.check_token(acct[0], token):
-                    await self.send(c, {"t": "login_fail", "forget": True,
-                                        "reason": "Please log in again with your password."})
-                    return
-            elif not acct[1]:
+            if not acct[1]:                         # (a password every time: no browser logs in by itself)
                 await self.send(c, {"t": "login_fail",
                                     "reason": "%s has no password yet: ask the server's admin to set one." % name})
                 return
@@ -303,11 +297,8 @@ class GameServer:
         c.session = s
         self.clients[s] = c
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
-        if data.get("remember") and not token:
-            token = self.store.new_token(name)
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
-                            "explored": s.explored_for_client(), "time": w.clock_event(), "labels": w.map_labels(),
-                            "token": token if data.get("remember") else ""})
+                            "explored": s.explored_for_client(), "time": w.clock_event(), "labels": w.map_labels()})
         self.broadcast(self.players_message())
 
     WHISPER = ("/w ", "/whisper ", "/tell ", "/msg ")
@@ -371,7 +362,7 @@ class GameServer:
         self.store.set_password(s.player_name, await self.hashed(new))     # (other browsers forget them)
         log.info("%s changed their password", s.player_name)
         s.emit({"t": "password_result", "ok": True, "text": "Your password is changed. Use the new one next time you "
-                "log in.", "token": self.store.new_token(s.player_name) if data.get("remember") else ""})
+                "log in."})
 
     async def admin_password(self, s, data):
         """An admin sets another player's password (Admin panel): for someone who's forgotten theirs."""
@@ -402,8 +393,6 @@ class GameServer:
             return
         if t == "quit":
             self.save_session(s)
-            if data.get("forget"):                  # (Log out: this browser forgets them)
-                self.store.forget_token(str(data.get("forget"))[:100])
             return
         if t == "password":
             asyncio.ensure_future(self.change_password(s, data))

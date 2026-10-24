@@ -95,8 +95,12 @@ html, body {
 .menu-rule { border: 0; border-top: 1px solid var(--edge); margin: 16px 0 6px; opacity: 0.8; }
 
 .panel label.check { flex-direction: row; align-items: center; gap: 8px; margin: 4px 0; font-size: 14px; }
-#remembered { margin: 10px 0; }
-#remembered a { color: var(--ink); }
+.names { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 4px; }
+.names .name { display: inline-flex; align-items: center; gap: 2px; padding: 3px 4px 3px 10px; font-size: 13px;
+  border-radius: 14px; border: 1px solid var(--edge); background: #3a2418; color: var(--ink); cursor: pointer; }
+.names .name:hover { background: #5a3624; }
+.names .forget { border: 0; background: none; padding: 0 5px; font-size: 13px; color: #c9a87a; cursor: pointer; }
+.names .forget:hover { color: #fff; }
 
 .panel input:not([type=checkbox]):not([type=range]), .panel select {
   font: inherit;

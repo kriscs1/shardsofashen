@@ -17,10 +17,9 @@
     <h1>Dragon Sword</h1>
     <p id="login-online" class="dim">Connecting...</p>
     <label>Name <input id="login-name" name="username" maxlength="20" autocomplete="username" required></label>
+    <div id="login-names" class="names" hidden></div>
     <label id="pw-row">Password <input id="login-password" name="password" type="password" maxlength="200"
                            autocomplete="current-password" required></label>
-    <p id="remembered" class="dim small" hidden>Remembered on this browser. <a href="#" id="not-you">Not you?</a></p>
-    <label class="check"><input type="checkbox" id="login-remember" checked> Remember me on this browser</label>
     <div id="look-section" hidden>
       <p class="look-title">How your adventurer looks</p>
       <div id="look-picker" class="look"></div>
@@ -120,8 +119,7 @@
     <hr class="menu-rule">
     <p class="dim small">Leaving? Your game is saved on the server.</p>
     <div class="buttons">
-      <button type="button" id="quit-yes">Save and leave</button>
-      <button type="button" id="quit-logout" title="Leave, and this browser forgets you: your name and password next time">Log out</button>
+      <button type="button" id="quit-logout" title="Leave the game: it's saved. Your character's name stays on the login screen">Log out</button>
     </div>
   </div>
 </div>
