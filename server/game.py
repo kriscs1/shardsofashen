@@ -65,6 +65,8 @@ class GameServer:
         w = self.world
         if not st:
             return
+        from dsengine.renames import renamed
+        st = renamed(st)                                # (items renamed since it was saved: their new names)
         w.homes.load(st.get("homes"))
         w.farms.load(st.get("farms"))
         w.market.load(st.get("market"), old_stalls=st.get("stalls"))

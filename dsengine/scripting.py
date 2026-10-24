@@ -481,8 +481,8 @@ class ScriptMixin:
             self.script_wait_until = self.now + val(arg[1]) * 1000
             self.script_state = "WAIT"
         elif c == "Display.Refusal":
-            # Display.Refusal <message>: a no (an empty chest, a locked door): in red, with the Denied sound
-            self.refuse(arg[1])
+            # Display.Refusal <message> [sound]: a no (a locked door; an empty chest's "duh-derr"): in red, with a sound
+            self.refuse(arg[1], trim(arg[2]) if len(arg) > 2 and trim(arg[2]) else "Denied")
         elif c == "Start.Wave":
             # Start.Wave <name>: a Data\Waves.ini attack starts (a quest's battle; for everyone there)
             self.w.waves.start(trim(arg[1]), by=self)

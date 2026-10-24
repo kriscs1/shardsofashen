@@ -232,10 +232,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.play_sound("Quest")
         self.emit({"t": "msg", "text": message, "kind": str(mtype)})
 
-    def refuse(self, message):
+    def refuse(self, message, sound="Denied"):
         """Something the player isn't skilled enough for (wearing, casting, making...): said, with a sound."""
         self.display_message(message, "FAIL")
-        self.play_sound("Denied")
+        self.play_sound(sound or "Denied")
 
     def play_sound(self, sound, at=None):
         """A sound: at = the global point it is made at (everyone near hears it), None = only this player."""
@@ -276,7 +276,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         """st: a saved character (a dict), or None for a new one (Saves\\TEMPLATE.ini's start)."""
         d = self.data
         p = self.player
-        st = st or {}
+        from .renames import renamed
+        st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
         m = self.w.map_named(st.get("map", d.start_map)) or self.w.map_named(d.start_map)
         if m is None:
             m = next(iter(self.w.maps.values()))

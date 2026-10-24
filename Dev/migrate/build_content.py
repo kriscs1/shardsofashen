@@ -1067,7 +1067,7 @@ def scripts():
                                         ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Fish", 35, "0.6")):
         S["Use %s With Fire" % raw] = cook_script(raw, cooked, burnt, lvl, xp, "Fire")
     for raw, cooked, burnt, lvl, xp in (("Raw_Meat", "Cooked_Meat", "Burnt_Meat", 1, "0.05"),
-                                        ("Raw_Chicken", "Cooked_Chicken", "Burnt_Chicken", 1, "0.05"),
+                                        ("Raw_Poultry", "Cooked_Poultry", "Burnt_Poultry", 1, "0.05"),
                                         ("Raw_Fish", "Cooked_Fish", "Burnt_Fish", 1, "0.05"),
                                         ("Raw_Trout", "Cooked_Trout", "Burnt_Fish", 10, "0.15"),
                                         ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Fish", 15, "0.25"),
@@ -1896,7 +1896,7 @@ ENTITY_KEYS = {
     "Egg": [("Value", "3"), ("Stackable", "12")],               # a dozen to a slot
     "Raw_Meat": [("Stackable", "10")],
     "Bones": [("Stackable", "20")],
-    "Raw_Chicken": [("Examine.Info", "Raw chicken. Cook it on a fire or a range.")],
+    "Raw_Poultry": [("Examine.Info", "Raw poultry. Cook it on a fire or a range.")],
     "Herb": [("Examine.Info", "A fragrant green herb. Used in potions.")],
     "Miner": [("Examine.Info", "Old Tom, the last miner in the iron mine.")],
 }

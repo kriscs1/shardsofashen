@@ -400,14 +400,11 @@ def scripts():
     ])
     write("Climb Down Trapdoor", [
         (">Got.Item", "Chapel_Cellar_Key", "1", "@locked"),
-        (">Conditional", "$Equipped.Weapon<>none and $Equipped.Shield<>none", "@unarmed"),
         ("Play.Sound", "Ladder"),
         ("Display.Message", "Cyan", "You climb down the ladder, into the caves under the Isle."),
         ("Teleport", "%d,%d" % (13 * TW, 9 * TW - 8), "3,1,-2"),
         ("End",),
         ("@locked",), ("Display.Refusal", "The trapdoor is locked."),
-        ("End",),
-        ("@unarmed",), ("Display.Refusal", "You'd be a fool to go down there without a sword and a shield."),
         ("End",),
     ])
     for kind, nothing in (("Cellar_Barrel", "Only old candle ends and dust."),
@@ -419,7 +416,8 @@ def scripts():
             ("Display.Message", "Cyan", "You rummage through the %s..." % kind.split("_")[1].lower()),
             ("Play.Sound", "Pickup"),
             ("Wait", "1"),
-            (">Conditional", "$Variable.5=17 and $Variable.6=12 and $Attr.Passage>=6", "@nothing"),
+            (">Conditional", "$Variable.5=17 and $Variable.6=12 and $Attr.Passage>=6 and "    # (the armed find it)
+             "$Equipped.Weapon<>none and $Equipped.Shield<>none", "@nothing"),
             (">Got.Item", "Chapel_Cellar_Key", "1", "@found"),
             ("@nothing",), ("Display.Message", "Cyan", nothing),
             ("End",),

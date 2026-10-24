@@ -5,7 +5,7 @@
 04	Display.Message	Cyan	You rummage through the crate...
 05	Play.Sound	Pickup
 06	Wait	1
-07	>Conditional	$Variable.5=17 and $Variable.6=12 and $Attr.Passage>=6	09
+07	>Conditional	$Variable.5=17 and $Variable.6=12 and $Attr.Passage>=6 and $Equipped.Weapon<>none and $Equipped.Shield<>none	09
 08	>Got.Item	Chapel_Cellar_Key	1	11
 09	Display.Message	Cyan	Mouldy hymn books. No key.
 10	End

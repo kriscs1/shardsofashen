@@ -73,7 +73,7 @@
 71	End
 72	Goto.Script	Open Chest 2
 73	End
-74	Display.Refusal	The chest is empty.
+74	Display.Refusal	The chest is empty.	Empty
 75	End
 76	Display.Message	DarkRed	You are too far away!
 77	End

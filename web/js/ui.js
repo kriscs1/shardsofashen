@@ -347,9 +347,7 @@ export function drawWorldMap(ctx, now) {
   const levelName = S.mapZ === 0 ? "The world" : S.mapZ < 0 ? "Underground" : "Above ground";
   drawText(ctx, "World map", 24, 12, 16, true, [255, 230, 140]);
   drawText(ctx, levelName, 24, 34, 9, false, [212, 191, 126]);
-  const t = trackedQuest();
-  const hint = (t ? `Following: ${t}` : "Not following a quest") + "   -   click a quest in the Quests tab to follow it   -   M or Esc: close";
-  centreText(ctx, W / 2, H - 24, fitText(ctx, hint, W - 40, 8, false), 8, false, [212, 191, 126]);
+  centreText(ctx, W / 2, H - 24, "M or Esc: close", 8, false, [212, 191, 126]);
   const g = minimapGeometry();
   const im = g && !g.live ? minimapImage(g, true) : null;
   if (!im) { centreText(ctx, W / 2, H / 2, "No map of this place.", 12, true, [212, 191, 126]); return; }
@@ -358,6 +356,8 @@ export function drawWorldMap(ctx, now) {
   const iw = im.width * k, ih = im.height * k;
   const ox = Math.round((W - iw) / 2), oy = Math.round(top + (H - top - bottom - ih) / 2);
   roundBox(ctx, ox - 6, oy - 6, iw + 12, ih + 12, [30, 20, 14], [150, 104, 62], 2, 8);
+  ctx.fillStyle = hatchPattern(ctx);              // (where there's no map at all looks just as unexplored land does)
+  ctx.fillRect(ox - 4, oy - 4, iw + 8, ih + 8);
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(im, ox, oy, iw, ih);

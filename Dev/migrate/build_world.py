@@ -892,7 +892,7 @@ ENTITY_KEYS = {
 
 ITEM_RACKS = {
     "SHOP-Baker": [("Type", "Shop"), ("Buy.Rate", "1.2"), ("Sell.Rate", "0.6"), ("Specific", "1"),
-                   ("Item1", "Bread,10"), ("Item2", "Meat_Sandwich,4"), ("Item3", "Cooked_Chicken,4"), ("Item4", "Egg,6")],
+                   ("Item1", "Bread,10"), ("Item2", "Meat_Sandwich,4"), ("Item3", "Cooked_Poultry,4"), ("Item4", "Egg,6")],
     "SHOP-Ashford": [("Type", "Shop"), ("Buy.Rate", "1.25"), ("Sell.Rate", "0.75"),
                      ("Item1", "Tinderbox,5"), ("Item2", "Bucket,5"), ("Item3", "Axe,2"), ("Item4", "Fishing_Rod,3"),
                      ("Item5", "Bait,50"), ("Item6", "Empty_Vial,10")],
@@ -901,7 +901,7 @@ ITEM_RACKS = {
     "SHOP-Herbalist": [("Type", "Shop"), ("Buy.Rate", "1.2"), ("Sell.Rate", "0.8"), ("Specific", "1"),
                        ("Item1", "Basic_Potion,5"), ("Item2", "Empty_Vial,10"), ("Item3", "Herb,0")],
     "SHOP-Farm": [("Type", "Shop"), ("Buy.Rate", "1.2"), ("Sell.Rate", "0.6"), ("Specific", "1"),
-                  ("Item1", "Cabbage,20"), ("Item2", "Egg,10"), ("Item3", "Raw_Chicken,5")],
+                  ("Item1", "Cabbage,20"), ("Item2", "Egg,10"), ("Item3", "Raw_Poultry,5")],
 }
 # CRAFT-Smithing exists (empty); fill it: Product,ingredients,xp[,level]
 SMITHING = [("Type", "Craft"), ("Skill", "Smithing"),

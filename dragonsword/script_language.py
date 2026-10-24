@@ -67,7 +67,7 @@ COMMANDS = [
     ('Quest.Note.Done', ['QUEST NAME', 'NOTE']),
     ('Set.NPC.Attitude', ['NPC ID', 'ATTITUDE']),
     ('Start.Wave', ['WAVE ATTACK']),
-    ('Display.Refusal', ['MESSAGE']),
+    ('Display.Refusal', ['MESSAGE', 'SOUND']),
 ]
 
 # command or argument type -> its help ("|" starts a new line)

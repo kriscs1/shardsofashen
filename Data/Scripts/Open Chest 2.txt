@@ -69,5 +69,5 @@
 68	End
 69	Goto.Script	Open Chest 3
 70	End
-71	Display.Refusal	The chest is empty.
+71	Display.Refusal	The chest is empty.	Empty
 72	End

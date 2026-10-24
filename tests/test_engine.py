@@ -704,8 +704,7 @@ def test_the_way_down_is_through_the_chapel(world):
         world.tick(0.05)
     assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the trapdoor: locked, without its key
     stock(s, Chapel_Cellar_Key=1)
-    s.check_locks(False)
-    assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the key, but no sword and shield: no
+    assert climb(s, "Climb Down", 14, 9) == ("3,1,-2", False)      # the key: down you go (the trapdoor stays shut)
     leave(world, s)
 
 def test_dying_ends_buffs_and_debuffs(world):

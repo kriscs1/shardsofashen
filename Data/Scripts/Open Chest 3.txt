@@ -39,5 +39,5 @@
 38	Give.Item	Gold_Coin(s)	160
 39	Display.Message	Yellow	A cultist's cache in a cooled lava tube: two rubies, two fire storm scrolls and 160 gold!
 40	End
-41	Display.Refusal	The chest is empty.
+41	Display.Refusal	The chest is empty.	Empty
 42	End

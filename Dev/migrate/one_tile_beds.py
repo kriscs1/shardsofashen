@@ -2,8 +2,8 @@
 
   python -I "Dev\\migrate\\one_tile_beds.py"
 
-  * Bed001: the whole bed in one tile - its headboard, a pillow, the quilt and its footboard (cut from the old two
-    pictures, kept in Dev\Archive\Sprites, so it looks as it did), half the length and narrower: a single bed.
+  * Bed001: a single bed in one tile, drawn here: a wooden frame with corner posts, headboard and footboard, a
+    pillow, a red patchwork quilt turned back at the top. (The old two-tile pictures are kept in Dev\Archive\Sprites.)
   * The double bed (Bed002) and the old pieces (Bed102, Bed201) are gone: their pictures, Tiles.ini, Buildables.ini.
   * Every map: a Bed002 under a Bed001 (the old foot) is taken away; any other old piece is a Bed001.
 """
@@ -33,17 +33,7 @@ def pictures():
         shutil.copy(os.path.join(TILES, "Bed002.png"), foot_src)
     pygame.init()
     pygame.display.set_mode((1, 1))
-    head, foot = pygame.image.load(head_src).convert_alpha(), pygame.image.load(foot_src).convert_alpha()
-    bed = pygame.Surface((32, 32), pygame.SRCALPHA)
-    bed.blit(head, (0, 0), (0, 0, 32, 8))               # the headboard
-    bed.blit(head, (0, 8), (0, 8, 32, 6))               # the pillow, slimmer
-    bed.blit(head, (0, 14), (0, 18, 32, 2))
-    bed.blit(head, (0, 16), (0, 20, 32, 8))             # the quilt
-    bed.blit(foot, (0, 24), (0, 24, 32, 8))             # the footboard
-    body = bed.subsurface((3, 0, 29, 32)).copy()        # narrower: a single bed, not as wide as the tile
-    narrow = pygame.Surface((32, 32), pygame.SRCALPHA)
-    narrow.blit(pygame.transform.scale(body, (20, 32)), (6, 0))
-    pygame.image.save(narrow, os.path.join(TILES, "Bed001.png"))
+    pygame.image.save(single_bed(), os.path.join(TILES, "Bed001.png"))
     from dragonsword import ini
     tiles_ini = os.path.join(ROOT, "Data", "Tiles.ini")
     for old in ("Bed002", "Bed102", "Bed201"):         # (the double bed, and the old pieces: gone)
@@ -57,6 +47,39 @@ def pictures():
     text = re.sub(r"(?m)^(Bed002|Bed102|Bed201)\t[^\r\n]*\r?\n", "", text)
     open(colours, "wb").write(text.encode("cp1252"))
     print("Bed001: a single bed in one tile; the double bed and the old pieces gone")
+
+
+def single_bed():
+    """A single bed seen from above, in one tile: a wooden frame with corner posts, the headboard and footboard, a
+    pillow on a cream sheet, a red patchwork quilt with its top turned back."""
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)
+    wood, wood_lt, wood_dk = (138, 88, 48), (176, 122, 72), (84, 52, 26)
+    sh = pygame.Surface((32, 32), pygame.SRCALPHA)
+    pygame.draw.rect(sh, (0, 0, 0, 80), (8, 5, 20, 26), border_radius=2)          # (its shadow)
+    s.blit(sh, (0, 0))
+    pygame.draw.rect(s, wood_dk, (6, 3, 20, 27), border_radius=2)                  # the frame
+    pygame.draw.rect(s, wood, (7, 4, 18, 25))
+    pygame.draw.rect(s, (236, 228, 208), (8, 8, 16, 18))                          # the sheet
+    pygame.draw.rect(s, (252, 250, 244), (9, 8, 14, 5), border_radius=2)          # the pillow
+    pygame.draw.line(s, (214, 206, 190), (10, 12), (21, 12))
+    pygame.draw.line(s, (255, 255, 255), (10, 9), (16, 9))
+    quilt = ((196, 52, 48), (150, 34, 36))                                          # the quilt, patchwork
+    for qy in range(16, 26, 3):
+        for qx in range(8, 24, 3):
+            col = quilt[((qx - 8) // 3 + (qy - 16) // 3) % 2]
+            pygame.draw.rect(s, col, (qx, qy, 3, 3))
+    pygame.draw.rect(s, (232, 210, 170), (8, 14, 16, 2))                          # its top, turned back
+    pygame.draw.line(s, (120, 28, 30), (8, 25), (23, 25))
+    pygame.draw.rect(s, wood_dk, (6, 1, 20, 7), border_radius=1)                   # the headboard
+    pygame.draw.rect(s, wood, (7, 2, 18, 5))
+    pygame.draw.line(s, wood_lt, (7, 2), (24, 2))
+    pygame.draw.rect(s, wood_dk, (6, 26, 20, 5), border_radius=1)                  # the footboard
+    pygame.draw.rect(s, wood, (7, 27, 18, 3))
+    pygame.draw.line(s, wood_lt, (7, 27), (24, 27))
+    for px, py in ((5, 0), (25, 0), (5, 26), (25, 26)):                            # corner posts, capped
+        pygame.draw.rect(s, wood_dk, (px, py, 3, 6))
+        pygame.draw.rect(s, wood_lt, (px, py, 3, 2))
+    return s
 
 
 def drop_sections(path, names):

@@ -145,7 +145,7 @@ ENTITIES = {
     "Rabbit": dict(kind="bad", examine="A brown rabbit, twitching its nose.", hp=3, aspeed=1, strength=0, defence=1,
                    aggro=0, move=2.5, aggressive=0, respawn=40, drops="Raw_Meat,1-1,100", solid="0", layer="Under"),
     "Duck": dict(kind="bad", examine="A mallard duck. Quack.", hp=3, aspeed=1, strength=0, defence=1, aggro=0,
-                 move=1.2, aggressive=0, respawn=40, drops="Raw_Chicken,1-1,100", solid="0", layer="Under"),
+                 move=1.2, aggressive=0, respawn=40, drops="Raw_Poultry,1-1,100", solid="0", layer="Under"),
     "Butterfly": dict(kind="good", examine="A butterfly with bright orange wings.", use="Examine", speed="1.5",
                       solid="0", layer="Over"),
     "Hermit": dict(kind="good", examine="A wild-haired hermit. He smells of woodsmoke and moss.", use="Talk to"),

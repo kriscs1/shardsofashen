@@ -58,7 +58,7 @@ def register_tiles():
     tile_entry("Hatch001", Walkable_Data=ladder, Show_Name="1", Use_Words="Climb Down",
                Examine_Info="A square hatch in the floor, a ladder going down.", Layer="Decor", Piece="a hatch, a ladder down")
     tile_entry("Trapdoor001", Walkable_Data=WALK_ALL, Show_Name="1", Use_Words="Climb Down",
-               Examine_Info="A stout trapdoor, banded with iron. Locked.", Line_of_Sight="1", Unlocked_Tile="Trapdoor002")
+               Examine_Info="A stout trapdoor, banded with iron.", Line_of_Sight="1")
     tile_entry("Trapdoor002", Walkable_Data=ladder, Show_Name="1", Use_Words="Climb Down",
                Examine_Info="The trapdoor stands open: a ladder goes down into the dark.", Line_of_Sight="1")
     for n, way in (("Bench002", "east"), ("Bench003", "west")):
@@ -167,9 +167,7 @@ def cellar_trapdoor():
     if c.tile(x, y) == "Trapdoor001":
         return
     c.set(x, y, tile="Trapdoor001", decor="")
-    c.ents = [ln for ln in c.ents if not ln.startswith("Lock\t%d\t%d\t" % (x, y))]
-    c.ents.append("Lock\t%d\t%d\t%s\tThe trapdoor is locked. Brother Aldous, in the chapel above, keeps the key."
-                  % (x, y, KEY_CONDITION))
+    c.ents = [ln for ln in c.ents if not ln.startswith("Lock\t%d\t%d\t" % (x, y))]   # (it stays shut: its script lets you by)
     c.save()
     hx, hy = TRAPDOOR
 
@@ -319,11 +317,10 @@ def lost_key():
         "03	Display.Message	Cyan	You climb down the ladder, into the caves under the Isle.",
         "04	Teleport	%d,%d	3,1,-2" % ((TRAPDOOR[0] - 1) * TW, TRAPDOOR[1] * TW - 8),
         "05	End",
-        "06	Display.Refusal	The trapdoor is locked. Brother Aldous, in the chapel above, might know where the key is.",
+        "06	Display.Refusal	The trapdoor is locked.",
         "07	End"])
-    c = Map("3,1,-1")                            # (the lock: the key, nothing else, opens it)
-    c.ents = [("Lock\t%d\t%d\t$Item.Chapel_Cellar_Key>=1\tThe trapdoor is locked." % TRAPDOOR)
-              if ln.startswith("Lock\t%d\t%d\t" % TRAPDOOR) else ln for ln in c.ents]
+    c = Map("3,1,-1")                            # (no lock: the trapdoor stays shut; its script lets the key's holder by)
+    c.ents = [ln for ln in c.ents if not ln.startswith("Lock\t%d\t%d\t" % TRAPDOOR)]
     c.save()
     print("The cellar key: lost, in a crate in the cellar; the trapdoor opens for whoever has it")
 
