@@ -167,7 +167,20 @@ function minimapGeometry() {
   return { name, ps, ox, oy, zoom: U.minimapZoom };
 }
 
-const mmCache = { key: "", canvas: null, at: 0 };
+const mmCacheMini = { key: "", canvas: null, at: 0 };
+const wmCache = { key: "", canvas: null, at: 0 };     // (the world map's copy: the unexplored hatched, not black)
+
+function hatchPattern(ctx) {
+  // (the world map's "not yet seen": dark brown, hatched like an old map's unknown parts - no land is ever this)
+  const t = document.createElement("canvas");
+  t.width = t.height = 6;
+  const c = t.getContext("2d");
+  c.fillStyle = "rgb(46,34,24)";
+  c.fillRect(0, 0, 6, 6);
+  c.fillStyle = "rgb(72,56,38)";
+  for (let i = 0; i < 6; i++) c.fillRect(i, 5 - i, 1, 1);
+  return ctx.createPattern(t, "repeat");
+}
 const liveCache = { key: "", canvas: null, at: 0 };
 function liveMinimap(g) {
   // A map's tiles, decor and roofs drawn small (a homestead's minimap); again when it changes, or while pictures load
@@ -196,12 +209,13 @@ function liveMinimap(g) {
   return c;
 }
 
-function minimapImage(g) {
+function minimapImage(g, hatched = false) {
   // The minimap with what you haven't seen blacked out, tile by tile: a tile shows once any of its fog-of-war cells
   // has been uncovered (the same cells that take the black off the world)
   if (g.live) return liveMinimap(g);
   const im = sprite(g.name);
   if (!im) return null;
+  const mmCache = hatched ? wmCache : mmCacheMini;
   const key = g.name + "|" + S.explored.size + "|" + (S.exploredVersion || 0) + "|" + fogEnabled();
   if (mmCache.key === key) return mmCache.canvas;
   const now = performance.now();
@@ -213,7 +227,7 @@ function minimapImage(g) {
   x.clearRect(0, 0, c.width, c.height);
   x.drawImage(im, 0, 0);
   if (val(configRead("Minimap", "Blackout", "1")) === 1 && fogEnabled()) {
-    x.fillStyle = "#000";                         // (the same black as where there's no map at all)
+    x.fillStyle = hatched ? hatchPattern(x) : "#000";   // (the minimap: the same black as where there's no map)
     const ps = g.ps, n = fogCell(), fxt = Math.ceil(G.sw / n);
     for (const name of A.m.maps) {
       const [mx, my, mz] = name.split(",").map(Number);
@@ -337,7 +351,7 @@ export function drawWorldMap(ctx, now) {
   const hint = (t ? `Following: ${t}` : "Not following a quest") + "   -   click a quest in the Quests tab to follow it   -   M or Esc: close";
   centreText(ctx, W / 2, H - 24, fitText(ctx, hint, W - 40, 8, false), 8, false, [212, 191, 126]);
   const g = minimapGeometry();
-  const im = g && !g.live ? minimapImage(g) : null;
+  const im = g && !g.live ? minimapImage(g, true) : null;
   if (!im) { centreText(ctx, W / 2, H / 2, "No map of this place.", 12, true, [212, 191, 126]); return; }
   const top = 56, bottom = 40, side = 30;
   const k = Math.min((W - 2 * side) / im.width, (H - top - bottom) / im.height);

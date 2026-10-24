@@ -14,6 +14,7 @@ enough (again: it sees what's done).
   * The tiles' entries (Tiles.ini), the editor's sets (TileSets.ini) and the minimap's colours for all of them.
 """
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -187,7 +188,7 @@ def cellar_trapdoor():
         "09\tDisplay.Message\tCyan\tYou climb down the ladder, into the caves under the Isle.",
         "10\tTeleport\t%d,%d\t3,1,-2" % ((hx - 1) * TW, hy * TW - 8),
         "11\tEnd",
-        "12\tDisplay.Refusal\tThe trapdoor is locked. Brother Aldous, in the chapel above, keeps the key.",
+        "12\tDisplay.Refusal\tThe trapdoor is locked.",
         "13\tEnd"])
     script("Climb Down Hatch", [
         "// The same X,Y one level down (as Climb Down Ladder002)",
@@ -211,8 +212,7 @@ def cellar_trapdoor():
         "floor. Bring a lantern, and a sword.\tThank you.\t03"])
     p = os.path.join(DATA, "Scripts", "Read Isle_Chapel.txt")
     text = open(p, "rb").read().decode("cp1252")
-    text = text.replace("Mind the hole in its floor: it drops into the grotto, the caves under the Isle.",
-                        "Its trapdoor goes down to the grotto, the caves under the Isle: Brother Aldous keeps the key.")
+    text = re.sub(r"(THE ISLE CHAPEL\\\\Rest in peace, all who sleep in the yard\.)[^\t]*", r"\1", text)   # (no hints)
     open(p, "wb").write(text.encode("cp1252"))
     print("The cellar: a locked trapdoor (Brother Aldous has the key)")
 

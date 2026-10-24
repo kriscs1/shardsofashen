@@ -154,6 +154,8 @@ class NPCMixin:
                     a.cone = max(0, val(value))
                 elif key == "GROUP":
                     a.group = value.upper()
+                elif key == "SCHEDULE":                # (this one's hours, not its kind's: Always = never goes home)
+                    a.schedule = value
                 elif key == "FRIENDLY.IF":
                     a.friendly_if = value
             k += 1
@@ -529,6 +531,9 @@ class NPCMixin:
     # =================================================================================================================
     def schedule_npc(self, e, near):
         sched = self.data.npc_schedule(e.name)
+        own = getattr(e.ai, "schedule", None) if e.ai is not None else None
+        if own is not None:
+            sched = "" if own.upper() in ("ALWAYS", "NONE", "") else own.capitalize()
         if not sched or not self.data.day_night_enabled or e.z != 0 or e.in_combat:
             if e.sched_away and not sched:
                 e.sched_away = False

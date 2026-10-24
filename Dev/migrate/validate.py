@@ -278,7 +278,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 
 # ------------------------------------------------------------------ NPC movement Options on map lines
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
-               "Face", "Cone", "Group", "Friendly.If"}   # (Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
+               "Face", "Cone", "Group", "Friendly.If", "Schedule"}   # (Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
 _npc_ids = None
 
 

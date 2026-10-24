@@ -170,9 +170,6 @@ def dairy_indoors():
     """The dairy's hens live in their coop; the range is in the dairymaid's hut and the workbench in the barn."""
     m = Map("2,0,0")
     ents, n = [], 0
-    if m.decor(3, 4) == "Bed001" and m.decor(3, 5) != "Bed002":   # (the bed's foot, under its head)
-        m.set(3, 5, decor="Bed002")
-        n += 1
     for ln in m.ents:
         p = ln.split("\t")
         if len(p) >= 4 and p[0] == "NPC" and p[1] == "Chicken":
@@ -324,7 +321,6 @@ def dairy():
         return
     house(m, 2, 3, 6, 6, door=4, windows=(3, 5))                 # the dairymaid's hut
     m.set(3, 4, decor="Bed001")
-    m.set(3, 5, decor="Bed002")
     m.set(5, 4, decor="Table001")
     m.set(5, 5, decor="Barrel001")
     house(m, 16, 4, 22, 8, door=19, windows=(17, 21))            # the barn
@@ -395,9 +391,7 @@ def chapel():
     print("The chapel by the graveyard")
     write_script("Read Isle_Chapel", [
         "01\t>Distance.From.Clicked.Entity\t64\t04",
-        "02\tDisplay.Conversation\tNotice\tTHE ISLE CHAPEL\\Rest in peace, all who sleep in the yard.\\The steps "
-        "behind the altar go down to the cellar. Mind the hole in its floor: it drops into the grotto, the caves under "
-        "the Isle.\tOkay\t03",
+        "02\tDisplay.Conversation\tNotice\tTHE ISLE CHAPEL\\Rest in peace, all who sleep in the yard.\tOkay\t03",
         "03\tEnd",
         "04\tDisplay.Message\tDarkRed\tYou can't read that from here!",
         "05\tEnd",

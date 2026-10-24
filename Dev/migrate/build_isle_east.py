@@ -7,8 +7,7 @@ character wakes - a bed, a range to cook on, a table. Run it once (again: it see
     and the sea still runs between the Isle and the walled town to the south-east. Its coast is rounded off
     afterwards (smooth_coasts.py).
   * The cottage (4,0,0): timber and thatch, thin walls inside, a bed (where you wake: Config Start.*, and
-    Saves\\TEMPLATE.ini for new characters), a range (Cook), a table, a rug; a notice by its door pointing the way
-    to Maren and the ferry; a path to the chapel; trees, flowers, rocks, rabbits.
+    Saves\\TEMPLATE.ini for new characters), a range (Cook), a table, a rug; a name board by its door; a path to the chapel; trees, flowers, rocks, rabbits.
 """
 import math
 import os
@@ -102,7 +101,6 @@ def cottage():
     house(m, x1, y1, x2, y2, door=DOOR_X, windows=(x1 + 1, x2 - 1))
     bx, by = BED
     m.set(bx, by, decor="Bed001")
-    m.set(bx, by + 1, decor="Bed002")
     m.set(x2 - 2, by + 1, decor="Table001")
     m.set(x2 - 3, by + 1, decor="Chair002")
     m.set(DOOR_X, y2 - 1, decor="")
@@ -119,9 +117,7 @@ def cottage():
     m.save()
     write_script("Read Cottage_Notice", [
         "01\t>Distance.From.Clicked.Entity\t64\t04",
-        "02\tDisplay.Conversation\tNotice\tWELCOME TO THE ISLE\\This cottage is yours: sleep in its bed, cook on its "
-        "range.\\The Isle's village is west, past the chapel. The way to the mainland is the ferry: Maren works the "
-        "pier on the south coast.\tOkay\t03",
+        "02\tDisplay.Conversation\tNotice\tROSE COTTAGE\\Built by old Tam the thatcher, the year the great storm took the pier.\tOkay\t03",
         "03\tEnd",
         "04\tDisplay.Message\tDarkRed\tYou can't read that from here!",
         "05\tEnd",

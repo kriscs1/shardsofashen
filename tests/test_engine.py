@@ -698,13 +698,14 @@ def test_the_way_down_is_through_the_chapel(world):
     s.connected = True
     verger = next(e for e in world.ents if e.npc_id == "Chapel_Verger")
     assert verger.display == "Brother Aldous" and s.display_name(verger) == "Brother Aldous"
-    assert climb(s, "Climb Down", 18, 8) == ("3,1,0", True)        # a newcomer: the cellar's not for visitors
-    s.update_attribute("Passage", "=5")
-    assert climb(s, "Climb Down", 18, 8) == ("3,1,0", True)        # not without a sword and a shield
+    assert climb(s, "Climb Down", 18, 8) == ("3,1,-1", False)      # anyone may go down to the cellar
     s.teleport("3,1,-1", 13 * 32, 9 * 32 - 8)
     for _ in range(5):
         world.tick(0.05)
     assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the trapdoor: locked, without its key
+    stock(s, Chapel_Cellar_Key=1)
+    s.check_locks(False)
+    assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the key, but no sword and shield: no
     leave(world, s)
 
 def test_dying_ends_buffs_and_debuffs(world):
@@ -1018,4 +1019,16 @@ def test_up_to_the_chapel_loft_and_its_bell(world):
     assert any(ev.get("t") == "sound" and ev.get("name") == "Bell" for ev in s.out)
     use("Climb Down", 14, 8)
     assert s.cur_map.name == "3,1,0"
+    leave(world, s)
+
+
+def test_the_ferry_runs_at_night(world):
+    s = join(world, "NightOwl", "1,2,0", 20 * 32, 12 * 32)
+    day = world.day_fraction()
+    world.set_day_fraction(0.95)                                    # (deep in the night: townsfolk go home)
+    for _ in range(100):
+        world.tick(0.05, now=world.now + 100)
+    maren = [e for e in world.ents if e.name == "Woman" and e.map == "1,2,0"]
+    assert maren and all(e.active and not e.sched_away for e in maren)   # (Schedule=Always: she stays at her pier)
+    world.set_day_fraction(day)
     leave(world, s)

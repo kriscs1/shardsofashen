@@ -391,17 +391,23 @@ def scripts():
         ("@after",), say("Gravekeeper", "Peace be with you, friend of the chapel.", ("Goodbye.", "@end")),
         ("@end",), ("End",),
     ])
-    write("Climb Down Chapel_Stairs", [
-        (">Conditional", "$Attr.Passage>=5 or $Attr.FerryQuest>=4", "@private"),
-        (">Conditional", "$Equipped.Weapon<>none and $Equipped.Shield<>none", "@unarmed"),
+    write("Climb Down Chapel_Stairs", [                     # (anyone may go down to the cellar)
         ("Get.Value", "CALCULATION", "$Map.Z-1", "Variable.9$"),
         ("Teleport", "$Player.X,$Player.Y", "$Map.X,$Map.Y,$Variable.9"),
         ("Play.Sound", "Ladder"),
         ("Display.Message", "Cyan", "You go down the steps, into the cellar."),
         ("End",),
-        ("@private",), ("Display.Refusal", "Brother Aldous stops you: \"The cellar's not for visitors, friend.\""),
+    ])
+    write("Climb Down Trapdoor", [
+        (">Got.Item", "Chapel_Cellar_Key", "1", "@locked"),
+        (">Conditional", "$Equipped.Weapon<>none and $Equipped.Shield<>none", "@unarmed"),
+        ("Play.Sound", "Ladder"),
+        ("Display.Message", "Cyan", "You climb down the ladder, into the caves under the Isle."),
+        ("Teleport", "%d,%d" % (13 * TW, 9 * TW - 8), "3,1,-2"),
         ("End",),
-        ("@unarmed",), ("Display.Refusal", "Brother Aldous stops you: \"Not down there without a sword and a shield!\""),
+        ("@locked",), ("Display.Refusal", "The trapdoor is locked."),
+        ("End",),
+        ("@unarmed",), ("Display.Refusal", "You'd be a fool to go down there without a sword and a shield."),
         ("End",),
     ])
     for kind, nothing in (("Cellar_Barrel", "Only old candle ends and dust."),

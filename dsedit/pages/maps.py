@@ -1,5 +1,5 @@
 """Maps: Maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
-and tree tops; place items, objects, NPCs, triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
+and the Over layer (tree tops); place items, objects, NPCs, triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
 The maps round this one show (dimmed) round its edges."""
 import re
 import tkinter as tk
@@ -14,20 +14,21 @@ from ..render import render, walk_overlay, tile_image
 from ..widgets import (PaletteGrid, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
 
-LAYERS = [("Ground", "map"), ("Decor", "decor"), ("Roofs", "roof"), ("Tree tops", "infront"), ("Things", "things")]
+LAYERS = [("Ground", "map"), ("Decor", "decor"), ("Roofs", "roof"), ("Over", "infront"), ("Things", "things")]
 # each layer's colour (the banner over the map and its frame) and what the banner says
 LAYER_LOOK = {"map": ("#3d7a3a", "GROUND", "the floor of the map: grass, paths, walls, water"),
               "decor": ("#6a4c93", "DECOR", "see-through tiles over the ground (chairs, trees, flowers); the ground is "
                                             "greyed"),
               "roof": ("#9a3d2c", "ROOFS", "the ground and things are greyed; roofs hide when the player walks under"),
-              "infront": ("#2d6a73", "TREE TOPS", "the ground and things are greyed; tree tops are drawn over the player"),
+              "infront": ("#2d6a73", "OVER", "the ground and things are greyed; the Over layer (tree tops, arches) is "
+                                       "drawn over the player"),
               "things": ("#a8692c", "THINGS", "items, objects, NPCs, triggers and locks; the ground is greyed")}
 LAYER_HINTS = {"map": "Paint the ground tiles (1)",
                "decor": "Decor: a chair, a tree, a pot of flowers over any ground tile (2)",
                "roof": "Roof tiles: hidden while the player is under them (3)",
-               "infront": "Tree tops and the like: drawn over the player (4)",
+               "infront": "Over: tree tops, arches and the like, drawn over the player (4)",
                "things": "Items, objects, NPCs, triggers and locks (5)"}
-LAYER_NOUN = {"map": "tile", "decor": "decor", "roof": "roof", "infront": "tree top"}
+LAYER_NOUN = {"map": "tile", "decor": "decor", "roof": "roof", "infront": "over tile"}
 TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the same tile (or Shift+click)",
               "Rectangle": "Drag a rectangle to fill", "Erase": "Click or drag to remove", "Pick": "Click to pick "
               "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it",
@@ -1114,7 +1115,7 @@ class MapPage(Page):
         if cell.roof:
             m.add_command(label="Edit the roof %s in Tiles" % cell.roof, command=lambda: self.app.goto("tile", cell.roof))
         if cell.infront:
-            m.add_command(label="Edit the tree top %s in Tiles" % cell.infront,
+            m.add_command(label="Edit the over tile %s in Tiles" % cell.infront,
                           command=lambda: self.app.goto("tile", cell.infront))
         ent = self.ent_at(px, py)
         if ent is not None:
@@ -1499,7 +1500,7 @@ class MapPage(Page):
         cell = self.doc.cells[y][x]
         self.head(f, "Tile %d,%d" % (x + 1, y + 1))
         for label, name in (("Ground", cell.tile), ("Rug", cell.under), ("Decor", cell.decor), ("Roof", cell.roof),
-                            ("Tree top", cell.infront)):
+                            ("Over", cell.infront)):
             row = ttk.Frame(f, style="Panel.TFrame")
             row.pack(fill="x", pady=3)
             img = self.project.sprite("Tiles", name) if name else None

@@ -102,7 +102,7 @@ def upstairs():
         m.set(x, y2, tile="Steeple001" if x == BELL[0] else piece)
     sx, sy = STAIRS
     m.set(sx, sy, tile="Stairs002")                           # (down: the same spot as the stairs up)
-    for x, y, d in ((18, 8, "Bed001"), (18, 9, "Bed002"), (15, 8, "Bookshelf001"), (16, 8, "Bookshelf001"),
+    for x, y, d in ((18, 8, "Bed001"), (15, 8, "Bookshelf001"), (16, 8, "Bookshelf001"),
                     (17, 10, "Table001"), (18, 10, "Candles001"), (17, 11, "Chair002"),
                     (BELL[0], BELL[1], "Chapel_Bell001"), (14, 11, "Barrel001")):
         m.set(x, y, decor=d)

@@ -175,6 +175,8 @@ class Homes:
             c = m.cell(x, y)
             if cell.get("tile") in ("Wheat001", "Wheat002"):
                 cell["tile"] = m.tile[c] = "Field001"
+            if cell.get("decor") in ("Bed002", "Bed102", "Bed201"):       # (the double bed's gone: a bed)
+                cell["decor"] = m.decor[c] = "Bed001"
             if is_fence(cell.get("decor")):
                 cell["decor"] = m.decor[c] = fence_piece(fence_at, x, y)
         for c in range(1, len(m.tile)):
