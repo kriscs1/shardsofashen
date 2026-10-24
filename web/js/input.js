@@ -434,7 +434,9 @@ export function updateCursor(canvas, now) {
   shownCursor = key;
   const unit = A.m.cursors?.unit || 32;
   const [hx, hy] = (hot[kind] || [2, 2]).map((v) => Math.round(v * px / unit));
-  const one = `url("/assets/cursors/${kind}_${step}@${px}.png")`, two = `url("/assets/cursors/${kind}_${step}@${px * 2}.png")`;
+  const v = A.m.cursors?.drawn ? `?v=${A.m.cursors.drawn}` : "";   // (redrawn cursors: fetched anew, not from a cache)
+  const one = `url("/assets/cursors/${kind}_${step}@${px}.png${v}")`,
+    two = `url("/assets/cursors/${kind}_${step}@${px * 2}.png${v}")`;
   canvas.style.cursor = `${one} ${hx} ${hy}, auto`;                        // (every browser)
   canvas.style.cursor = `-webkit-image-set(${one} 1x, ${two} 2x) ${hx} ${hy}, auto`;   // (sharper, where it's known)
   canvas.style.cursor = `image-set(${one} 1x, ${two} 2x) ${hx} ${hy}, auto`;

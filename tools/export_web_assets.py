@@ -197,15 +197,24 @@ def export_cursors(manifest):
     c = cursors.Cursors()
     info = {}
     sizes = (18, 22, 28, 32)
+    # (drawn again whenever the cursors' code changes: its fingerprint is in the manifest, so browsers fetch them anew)
+    import hashlib
+    src = open(cursors.__file__, "rb").read()
+    stamp = hashlib.sha1(src).hexdigest()[:10]
+    stamp_file = os.path.join(out, ".drawn")
+    fresh = not os.path.exists(stamp_file) or open(stamp_file).read().strip() != stamp
     for kind, (_, hot) in cursors.KINDS.items():
         for step in range(-1, 7):
             for px in sorted({s for s in sizes} | {2 * s for s in sizes}):
                 dst = os.path.join(out, "%s_%d@%d.png" % (kind, step + 1, px))
-                if not os.path.exists(dst):
+                if fresh or not os.path.exists(dst):
                     pygame.image.save(c._frame(kind, step, px), dst)
         info[kind] = list(hot)
+    with open(stamp_file, "w") as f:
+        f.write(stamp)
     manifest["cursors"] = {"hot": info, "verbs": cursors.VERBS, "swings": sorted(cursors.SWINGS),
-                           "click_ms": cursors.CLICK_MS, "frames": 8, "sizes": list(sizes), "unit": cursors.SIZE}
+                           "click_ms": cursors.CLICK_MS, "frames": 8, "sizes": list(sizes), "unit": cursors.SIZE,
+                           "drawn": stamp}
 
 
 def export_sounds(manifest):
