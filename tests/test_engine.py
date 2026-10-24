@@ -1031,3 +1031,21 @@ def test_the_ferry_runs_at_night(world):
     assert maren and all(e.active and not e.sched_away for e in maren)   # (Schedule=Always: she stays at her pier)
     world.set_day_fraction(day)
     leave(world, s)
+
+
+def test_hens_do_not_keep_you_awake(world):
+    m = world.maps["2,0,0"]
+    s = join(world, "Sleeper", "2,0,0", 21 * 32, 16 * 32)           # (in the hens' yard)
+    hens = [e for e in world.ents if e.name == "Chicken" and e.map == "2,0,0" and e.alive]
+    assert hens and any(world.hostile_for(e, s) for e in hens)       # (you may chase them...)
+    s.player_last_combat = 0
+    wild = [e for e in world.ents if e.name == "Wolf" and e.alive]   # (the Isle's own wolves, out of it for this)
+    for e in wild:
+        e.alive = False
+    assert "enemies" not in s.sleep_refusal()                        # (...but they're no reason not to sleep)
+    for e in wild:
+        e.alive = True
+    wolf = world.add_npc("Wolf", 0, m.ox + 20 * 32, m.oy + 17 * 32, "Attitude=Bad")
+    assert "enemies" in s.sleep_refusal()                            # (a wolf is)
+    world.remove_entity(wolf)
+    leave(world, s)

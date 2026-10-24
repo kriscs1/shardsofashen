@@ -827,8 +827,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             return w.dn("Sleep", "Fighting", "You're too wound up to sleep after that fight.")
         reach = val(w.dn("Sleep", "Foe.Range", "320"))
         for e in w.ents:
+            # (only what would come for you: wolves and goblins, not the hens, the rabbits, the townsfolk)
             if (e.type == NPC and e.alive and e.z == p.z and w.hostile_for(e, self) and w.visible_to(e, self) and
-                    distance(e.cx, e.cy, p.cx, p.cy) < reach):
+                    w.stat_for(e, self, "aggressive") == 1 and distance(e.cx, e.cy, p.cx, p.cy) < reach):
                 return w.dn("Sleep", "Foes", "You can't sleep with enemies nearby!")
         return ""
 
