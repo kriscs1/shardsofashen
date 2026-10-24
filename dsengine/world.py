@@ -1158,6 +1158,32 @@ class World(NPCMixin):
     # =================================================================================================================
     # The weather (Data\\Weather.ini): one sky for everyone; what it does where you are depends on the place's climate
     # =================================================================================================================
+    def map_labels(self):
+        """The world map's labels (Data\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
+        z, m: its map}], worked out once."""
+        if getattr(self, "_labels", None) is None:
+            from dragonsword import ini
+            path = self.data.data_file("WorldMap.ini")
+            out = []
+            for kind in ("Towns", "Regions", "Places"):
+                for name, where in ini.section(kind, path) if ini.section(kind, path) else []:
+                    where = trim(where)
+                    if " " in where:
+                        bits = where.split()
+                        mname, tx, ty = bits[0], val(bits[1]), val(bits[2]) if len(bits) > 2 else 1
+                    else:
+                        pl = self.data.place(where)
+                        if pl is None:
+                            continue
+                        mname, tx, ty = pl.map, pl.tx, pl.ty
+                    m = self.maps.get(mname)
+                    if m is None:
+                        continue
+                    out.append({"n": name, "k": kind[0].lower(), "x": int(m.ox + (tx - 0.5) * self.tw),
+                                "y": int(m.oy + (ty - 0.5) * self.th), "z": m.mz, "m": mname})
+            self._labels = out
+        return self._labels
+
     def weather_path(self):
         return self.data.data_file("Weather.ini")
 

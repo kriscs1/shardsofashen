@@ -7,7 +7,7 @@ import { V, screenToWorld, entityUnder, changeZoom, roofCovers } from "./render.
 import { fogBlack } from "./sky.js";
 import { L, U, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
-  QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack } from "./ui.js";
+  QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit } from "./ui.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName, spellStatus } from "./verbs.js";
 import { J, hit as journalHit, pages as journalPages } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
@@ -79,6 +79,7 @@ export function mouseMove(x, y) {
   if (!msg && S.clock.on && x >= cx && x < cx + cw && y >= cy && y < cy + ch) msg = timeText(dayFraction(performance.now()));
   const fr = U.fullscreenRect;
   if (fr && x >= fr[0] && x < fr[0] + fr[2] && y >= fr[1] && y < fr[1] + fr[3]) { msg = "Full screen (F11)"; U.hover = "fullscreen"; }
+  if (!msg && minimapHit(x, y)) msg = "#World map|~Click (or M): the whole map, its places named";
   if (x >= 780 + dx && x <= 794 + dx && y >= 676 && y <= 690) msg = U.chatLine + 4 < S.messages.length ? "Scroll Up" : "<No More>";
   if (x >= 780 + dx && x <= 794 + dx && y >= 750 && y <= 764) msg = U.chatLine === 1 ? "<No More>" : "Scroll Down";
   // the Stats box
@@ -92,7 +93,10 @@ export function mouseMove(x, y) {
   }
   if (!msg && U.statsView === 2 && smx >= 30 && smx <= 194 && smy >= QUEST_ROW_TOP && smy < QUEST_ROW_TOP + QUESTS_PER_PAGE * QUEST_ROW_H) {
     const row = Math.floor((smy - QUEST_ROW_TOP) / QUEST_ROW_H) + 1;
-    if ((U.questsPage - 1) * QUESTS_PER_PAGE + row <= S.quests.length) { questHover = row; msg = "Click to see it in the journal"; }
+    if ((U.questsPage - 1) * QUESTS_PER_PAGE + row <= S.quests.length) {
+      questHover = row;
+      msg = "#Follow this quest|~Click: mark it on the maps (click again: stop)|~Right-click: open it in the journal";
+    }
   }
   U.questArrow = 0;
   if (U.statsView === 2 && questPages() > 1 && smy >= 41 && smy <= 55) {
@@ -207,12 +211,16 @@ export function mouseDown(button, x, y) {
     return;
   }
   const dx = L.DX;
+  if (U.worldMap) {                                // (the world map's open: a click puts it away)
+    if (x < L.VW && y < L.VH) { U.worldMap = false; return; }
+  }
   if (left && !U.rcm && scrollBarClick(x, y)) return;
   if (left) {
     if (x >= 1000 + dx && x <= 1020 + dx && y >= 5 && y <= 25) { window.dsUI.openQuit(); return; }
     if (x >= 872 + dx && x <= 888 + dx && y >= 147 && y <= 162) { changeMinimapZoom(0.5); return; }
     if (x >= 988 + dx && x <= 1000 + dx && y >= 147 && y <= 162) { changeMinimapZoom(2); return; }
     if (U.hover === "help") { openJournal(); return; }
+    if (minimapHit(x, y)) { U.worldMap = !U.worldMap; return; }
     if (U.hover === "admin") { window.dsUI.openAdmin(); return; }
     if (U.hover === "fullscreen") { window.dsUI.toggleFullscreen(); return; }
     if (x >= 780 + dx && x <= 794 + dx && y >= 676 && y <= 690) { scrollChat(1); return; }
@@ -257,12 +265,13 @@ export function mouseDown(button, x, y) {
   if (U.questHover > 0) {
     const q = S.quests[(U.questsPage - 1) * QUESTS_PER_PAGE + U.questHover - 1];
     if (!q) return;
-    if (left) {
+    if (left) toggleTracked(q.title);              // (follow it: its place marked on the maps)
+    else {
       J.tab = 3;
       openJournal();
       J.focus = q.title;
       J.page = Math.floor(((U.questsPage - 1) * QUESTS_PER_PAGE + U.questHover - 1) / 7) + 1;
-    } else S.addLocal(`${q.title}: ${q.text}`, "black");
+    }
     return;
   }
   if (U.equipHover > 0) {
@@ -369,8 +378,10 @@ export function keyDown(ev) {
     ev.preventDefault();
     return;
   }
+  if (code === "KeyM") { ev.preventDefault(); U.worldMap = !U.worldMap; return; }
   if (code === "Escape") {
     ev.preventDefault();
+    if (U.worldMap) { U.worldMap = false; return; }
     if (U.rcm) { U.rcm = null; return; }
     if (S.itemInUse) { S.itemInUse = 0; send({ t: "use_cancel" }); return; }
     if (S.box.mode) { send({ t: "close" }); return; }

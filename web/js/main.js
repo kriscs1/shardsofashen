@@ -5,7 +5,7 @@ import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, my
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, setZoom, changeZoom } from "./render.js";
 import { invalidateMap, invalidateCell } from "./ground.js";
-import { L, U, layout, drawUI, drawBoosts, preloadInterface, showBanner, levelOfXp } from "./ui.js";
+import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal } from "./input.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
@@ -537,6 +537,7 @@ N.onMessage = (m) => {
 };
 
 async function startGame(m) {
+  S.labels = m.labels || [];
   const remember = $("login-remember").checked;
   saveLogin({ name: m.name, remember, token: remember ? m.token || savedLogin().token : undefined });
   try { sessionStorage.removeItem("ds.noauto"); } catch (e) { /* */ }
@@ -602,6 +603,7 @@ function frame(now) {
     if (S.me.dead) { ctx.fillStyle = "rgba(70,0,0,0.55)"; ctx.fillRect(0, 0, L.VW, L.VH); }    // (dead)
     ctx.imageSmoothingEnabled = smoothing;
     drawUI(ctx, now);
+    if (U.worldMap) drawWorldMap(ctx, now);
     drawBoosts(ctx, now, I.mx, I.my);
   }
   if (I.mx >= 0 && !overlayOpen()) mouseMove(I.mx, I.my);

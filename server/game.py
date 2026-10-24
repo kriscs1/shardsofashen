@@ -306,7 +306,7 @@ class GameServer:
         if data.get("remember") and not token:
             token = self.store.new_token(name)
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
-                            "explored": s.explored_for_client(), "time": w.clock_event(),
+                            "explored": s.explored_for_client(), "time": w.clock_event(), "labels": w.map_labels(),
                             "token": token if data.get("remember") else ""})
         self.broadcast(self.players_message())
 

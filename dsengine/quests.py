@@ -181,7 +181,7 @@ class QuestMixin:
                         pl = self.data.place(part)
                         mark = (pl.map, pl.tx, pl.ty) if pl else None
                     if mark and len(marks) < 40:
-                        marks.append(list(mark))
+                        marks.append(list(mark) + [name])          # (whose it is: one quest is tracked at a time)
         return marks
 
     # ----- the journal's other tabs

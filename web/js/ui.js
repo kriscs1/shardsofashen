@@ -240,6 +240,34 @@ function minimapImage(g) {
   return c;
 }
 
+// ----- the quest you're following: its marker on the minimap and the world map (one at a time)
+function savedTrack() {
+  try { return localStorage.getItem("ds.track") || ""; } catch (e) { return ""; }
+}
+
+export function trackedQuest() {
+  // (one you picked, while it's in hand; else your main quest in hand, else the first in hand; "-": none)
+  if (U.tracked === undefined) U.tracked = savedTrack();
+  if (U.tracked === "-") return "";
+  const active = (S.quests || []).filter((q) => q.status === 0);
+  if (U.tracked && active.some((q) => q.title === U.tracked)) return U.tracked;
+  const q = active.find((x) => x.main) || active[0];
+  return q ? q.title : "";
+}
+
+export function toggleTracked(title) {
+  const now = trackedQuest() === title ? "-" : title;
+  U.tracked = now;
+  try { localStorage.setItem("ds.track", now); } catch (e) { /* */ }
+  S.addLocal(now === "-" ? "Not following a quest: no marker on the map." : `Following: ${title} (its place is marked on the map).`,
+    "black");
+}
+
+function trackedMarks() {
+  const t = trackedQuest();
+  return t ? (S.marks || []).filter((mk) => mk[3] === t) : [];
+}
+
 function drawMinimap(ctx) {
   const g = minimapGeometry();
   const half = L.mmSize / 2;
@@ -260,7 +288,7 @@ function drawMinimap(ctx) {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(im, Math.round(L.mmX - u), Math.round(L.mmY - v), im.width * g.zoom, im.height * g.zoom);
   if (U.markers) {
-    for (const [m, qx, qy] of S.marks) {
+    for (const [m, qx, qy] of trackedMarks()) {
       const [mx, my, mz] = String(m).split(",").map(Number);
       if (mz !== S.mapZ) continue;
       const px = Math.round(L.mmX - u + ((mx - g.ox) * G.xt + qx - 0.5) * k);
@@ -295,6 +323,90 @@ function drawMinimap(ctx) {
     }
   }
   ctx.restore();
+}
+
+// ----- the world map (M): the level you're on as far as you've seen it, its places named, where your quest is
+export function drawWorldMap(ctx, now) {
+  const W = L.VW, H = L.VH;
+  ctx.fillStyle = "rgba(12,8,6,0.94)";
+  ctx.fillRect(0, 0, W, H);
+  const levelName = S.mapZ === 0 ? "The world" : S.mapZ < 0 ? "Underground" : "Above ground";
+  drawText(ctx, "World map", 24, 12, 16, true, [255, 230, 140]);
+  drawText(ctx, levelName, 24, 34, 9, false, [212, 191, 126]);
+  const t = trackedQuest();
+  const hint = (t ? `Following: ${t}` : "Not following a quest") + "   -   click a quest in the Quests tab to follow it   -   M or Esc: close";
+  centreText(ctx, W / 2, H - 24, fitText(ctx, hint, W - 40, 8, false), 8, false, [212, 191, 126]);
+  const g = minimapGeometry();
+  const im = g && !g.live ? minimapImage(g) : null;
+  if (!im) { centreText(ctx, W / 2, H / 2, "No map of this place.", 12, true, [212, 191, 126]); return; }
+  const top = 56, bottom = 40, side = 30;
+  const k = Math.min((W - 2 * side) / im.width, (H - top - bottom) / im.height);
+  const iw = im.width * k, ih = im.height * k;
+  const ox = Math.round((W - iw) / 2), oy = Math.round(top + (H - top - bottom - ih) / 2);
+  roundBox(ctx, ox - 6, oy - 6, iw + 12, ih + 12, [30, 20, 14], [150, 104, 62], 2, 8);
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(im, ox, oy, iw, ih);
+  ctx.restore();
+  const per = g.ps * k;                            // (screen pixels a map tile)
+  const toScreen = (gx, gy) => [ox + (gx / G.tw - g.ox * G.xt) * per, oy + (gy / G.th - g.oy * G.yt) * per];
+  const seen = (name) => !fogEnabled() || S.explored.has(name);
+  // the names of the places you've been
+  const style = { t: [11, true, [255, 238, 176]], r: [10, true, [214, 180, 110]], p: [8, true, [226, 216, 196]] };
+  for (const l of S.labels || []) {
+    if (l.z !== S.mapZ || !seen(l.m)) continue;
+    const [sx, sy] = toScreen(l.x, l.y);
+    if (sx < ox || sx > ox + iw || sy < oy || sy > oy + ih) continue;
+    const [size, bold, col] = style[l.k] || style.p;
+    const text = l.k === "r" ? l.n.toUpperCase() : l.n;
+    if (l.k !== "r") {
+      ctx.fillStyle = "rgb(30,20,12)";
+      ctx.beginPath(); ctx.arc(sx, sy, 3, 0, 6.283); ctx.fill();
+      ctx.fillStyle = rgb(col);
+      ctx.beginPath(); ctx.arc(sx, sy, 2, 0, 6.283); ctx.fill();
+    }
+    const ty = l.k === "r" ? sy - size / 2 : sy - size - 6;
+    centreText(ctx, sx + 1, ty + 1, text, size, bold, [10, 6, 4]);
+    centreText(ctx, sx, ty, text, size, bold, col);
+  }
+  // the quest you're following: where it wants you next
+  const pulse = 0.5 + 0.5 * Math.sin(now / 250);
+  let named = false;
+  for (const [m, qx, qy, title] of trackedMarks()) {
+    const [mx, my, mz] = String(m).split(",").map(Number);
+    if (mz !== S.mapZ) continue;
+    const [sx, sy] = toScreen((mx * G.xt + qx - 0.5) * G.tw, (my * G.yt + qy - 0.5) * G.th);
+    ctx.fillStyle = `rgba(255,214,90,${0.25 + 0.3 * pulse})`;
+    ctx.beginPath(); ctx.arc(sx, sy, 9 + 3 * pulse, 0, 6.283); ctx.fill();
+    cross(ctx, [0, 0, 0], Math.round(sx), Math.round(sy), 6, 2);
+    cross(ctx, [255, 220, 40], Math.round(sx), Math.round(sy), 5, 1);
+    if (!named) {
+      centreText(ctx, sx + 1, sy + 13, title, 8, true, [10, 6, 4]);
+      centreText(ctx, sx, sy + 12, title, 8, true, [255, 220, 90]);
+      named = true;
+    }
+  }
+  // the others, and you
+  for (const p of S.where || []) {
+    if (p.name === S.name || p.z !== S.mapZ) continue;
+    const [sx, sy] = toScreen(p.x, p.y);
+    ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(sx, sy, 5, 0, 6.283); ctx.fill();
+    ctx.fillStyle = "rgb(90,190,255)"; ctx.beginPath(); ctx.arc(sx, sy, 3.5, 0, 6.283); ctx.fill();
+    centreText(ctx, sx, sy + 6, p.name, 7, true, [170, 220, 255]);
+  }
+  if (S.pos) {
+    const pw = size(S.pos.i);
+    const [sx, sy] = toScreen(S.pos.dx + pw[0] / 2, S.pos.dy + pw[1] / 2);
+    ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 6.283); ctx.fill();
+    ctx.fillStyle = `rgb(255,${Math.round(90 + 120 * pulse)},90)`; ctx.beginPath(); ctx.arc(sx, sy, 4.5, 0, 6.283); ctx.fill();
+    centreText(ctx, sx + 1, sy + 9, "You", 8, true, [10, 6, 4]);
+    centreText(ctx, sx, sy + 8, "You", 8, true, [255, 240, 220]);
+  }
+}
+
+export function minimapHit(x, y) {
+  // (on the minimap's face, not its + and - buttons: it opens the world map)
+  return Math.hypot(x - L.mmX, y - L.mmY) < L.mmSize / 2 - 8;
 }
 
 function cross(ctx, col, px, py, arm, half) {
@@ -567,7 +679,14 @@ function drawQuestsTab(ctx) {
       ctx.beginPath(); ctx.moveTo(39, y + 3); ctx.lineTo(44, y + 8); ctx.lineTo(39, y + 13); ctx.lineTo(34, y + 8);
       ctx.closePath(); ctx.fill();
     } else { ctx.beginPath(); ctx.arc(39, y + 8, 4, 0, 6.283); ctx.fill(); }
-    const title = fitText(ctx, q.title, 142, 8, true);
+    const followed = q.title === trackedQuest();
+    if (followed) {                                // (the quest followed: a gold target at the row's end)
+      ctx.strokeStyle = "rgb(255,214,90)"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(188, y + 8, 5, 0, 6.283); ctx.stroke();
+      ctx.fillStyle = "rgb(255,214,90)";
+      ctx.beginPath(); ctx.arc(188, y + 8, 2, 0, 6.283); ctx.fill();
+    }
+    const title = fitText(ctx, q.title, followed ? 130 : 142, 8, true);
     const tw = drawText(ctx, title, 49, y + 1, 8, true, c);
     if (q.status === 2) {
       ctx.strokeStyle = "rgb(100,150,90)"; ctx.lineWidth = 1;
