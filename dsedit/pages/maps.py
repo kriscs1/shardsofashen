@@ -413,7 +413,9 @@ class MapPage(Page):
                 if k not in ("All", fam) or (q and q not in t.lower()):
                     continue
                 # a see-through decor tile can't be a cell's ground (it would show black): it's for the Decor layer
-                if (self.layer == "map" and P.is_decor(t)) or (self.layer == "decor" and not P.is_decor(t)):
+                flat = P.is_under(t)                     # (a rug: painted with the Decor layer, under it)
+                if (self.layer == "map" and (P.is_decor(t) or flat)) or \
+                        (self.layer == "decor" and not (P.is_decor(t) or flat)):
                     continue
                 items.append((t, P.sprite("Tiles", t), t))
         self.palette.set_items(items)
@@ -1043,6 +1045,8 @@ class MapPage(Page):
             return
         cell = self.doc.cells[ty][tx]
         parts = ["tile %d,%d" % (tx + 1, ty + 1), "x %d y %d" % (px, py), cell.tile]
+        if cell.under:
+            parts.append("rug %s" % cell.under)
         if cell.decor:
             parts.append("decor %s" % cell.decor)
         if cell.roof:
@@ -1202,10 +1206,22 @@ class MapPage(Page):
                 return False
             cell.tile = self.brush
         elif self.layer == "decor":
-            name = None if erase else self.brush
-            if (cell.decor or None) == name:
-                return False
-            cell.set_decor(name)
+            # (a rug goes under the decor, so a chair can stand on it; erasing takes the top one off first)
+            if erase:
+                if cell.decor:
+                    cell.set_decor(None)
+                elif cell.under:
+                    cell.set_under(None)
+                else:
+                    return False
+            elif self.project.is_under(self.brush):
+                if cell.under == self.brush:
+                    return False
+                cell.set_under(self.brush)
+            else:
+                if cell.decor == self.brush:
+                    return False
+                cell.set_decor(self.brush)
         elif self.layer == "roof":
             name = None if erase else self.brush
             grp = "%02d" % int(float(self.group.get() or 1))
@@ -1482,7 +1498,8 @@ class MapPage(Page):
         x, y = self.sel_cell
         cell = self.doc.cells[y][x]
         self.head(f, "Tile %d,%d" % (x + 1, y + 1))
-        for label, name in (("Ground", cell.tile), ("Decor", cell.decor), ("Roof", cell.roof), ("Tree top", cell.infront)):
+        for label, name in (("Ground", cell.tile), ("Rug", cell.under), ("Decor", cell.decor), ("Roof", cell.roof),
+                            ("Tree top", cell.infront)):
             row = ttk.Frame(f, style="Panel.TFrame")
             row.pack(fill="x", pady=3)
             img = self.project.sprite("Tiles", name) if name else None

@@ -237,6 +237,27 @@ class GameData:
             cache[name] = bool(name) and self.tile_ini(name, "Layer", "").strip().lower() == "decor"
         return cache[name]
 
+    def is_under_tile(self, name):
+        """Tiles.ini Layer=Under: something flat on the floor (a rug), under the decor: a chair can stand on it."""
+        cache = self.cache("under_tile")
+        if name not in cache:
+            cache[name] = bool(name) and self.tile_ini(name, "Layer", "").strip().lower() == "under"
+        return cache[name]
+
+    def cell_under(self, spec):
+        """What a cell spec puts on the floor under its decor: +Under(Name), or a Layer=Under tile on its own
+        (None: leave it as it is)."""
+        from dragonsword.lb import word
+        spec = trim(spec)
+        k = 2
+        while word(spec, k, "+") != "":
+            overlay = word(spec, k, "+")
+            if trim(word(overlay, 1, "(")) == "Under":
+                return trim(word(word(overlay, 2, "("), 1, ")"))
+            k += 1
+        first = trim(word(spec, 1, "+"))
+        return first if self.is_under_tile(first) else None
+
     def is_decor_object(self, name):
         cache = self.cache("decor_object")
         if name not in cache:
@@ -312,6 +333,8 @@ class GameData:
             k += 1
         if decor is None and self.is_decor_tile(tile):
             return "", tile
+        if self.is_under_tile(tile):                # (a rug: it goes under the decor, not in place of the floor)
+            return "", decor
         return tile, decor
 
     def spec_blocks(self, spec):

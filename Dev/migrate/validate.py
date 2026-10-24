@@ -166,6 +166,11 @@ def check_map(path, entities_ini, tiles_ini, report):
                 elif kind == "Infront":
                     if arg not in TILES:
                         report(r, "row %d col %d: infront tile %r has no sprite" % (y + 1, x, arg))
+                elif kind == "Under":
+                    if arg not in TILES:
+                        report(r, "row %d col %d: rug tile %r has no sprite" % (y + 1, x, arg))
+                    elif (tiles_ini.get(arg, "Layer", "") or "").lower() != "under":
+                        warn(r, "row %d col %d: +Under(%s) has no Layer=Under in Tiles.ini" % (y + 1, x, arg))
                 elif kind == "Decor":
                     if arg not in TILES:
                         report(r, "row %d col %d: decor tile %r has no sprite" % (y + 1, x, arg))

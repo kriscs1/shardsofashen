@@ -266,6 +266,17 @@ class Cell:
             self._set("Decor", name or None)
 
     @property
+    def under(self):
+        return self._get("Under") or ""
+
+    def set_under(self, name):
+        """Something flat on the floor (a rug, Layer=Under), under the decor: written before it."""
+        if name and self._get("Under") is None:
+            self.parts.insert(0, ("Under", name))
+        else:
+            self._set("Under", name or None)
+
+    @property
     def roof(self):
         a = self._get("Roof")
         return a.rsplit(".", 1)[0] if a else ""
@@ -590,26 +601,34 @@ class Project:
                 return True
         return False
 
+    def is_under(self, name):
+        """Tiles.ini Layer=Under: a rug, flat on the floor; decor can stand on it (painted with the Decor layer)."""
+        return bool(name) and name.lower() in self.layer_tiles("under")
+
     def is_decor(self, name):
         """Tiles.ini Layer=Decor: a see-through tile for the Decor layer (over any ground tile), not a ground tile."""
         return name.lower() in self.decor_tiles()
 
     def decor_tiles(self):
         """The (lower-case) names of every Layer=Decor tile, read in one pass (again whenever Tiles.ini changes)."""
+        return self.layer_tiles("decor")
+
+    def layer_tiles(self, layer):
+        """The (lower-case) names of every tile with Layer=<layer> (decor, under), read again when Tiles.ini changes."""
         lines = self.tiles_ini.lines
         key = hash(tuple(lines))
-        if getattr(self, "_decor_key", None) != key:
-            out, sec = set(), None
+        if getattr(self, "_layers_key", None) != key:
+            out, sec = {}, None
             for l in lines:
                 s = l.strip()
                 if s.startswith("[") and "]" in s:
                     sec = s[1:s.index("]")].strip().lower()
                 elif sec and "=" in s and not s.startswith(";"):
                     k, v = s.split("=", 1)
-                    if k.strip().lower() == "layer" and v.strip().lower() == "decor":
-                        out.add(sec)
-            self._decor_key, self._decor_set = key, out
-        return self._decor_set
+                    if k.strip().lower() == "layer":
+                        out.setdefault(v.strip().lower(), set()).add(sec)
+            self._layers_key, self._layers = key, out
+        return self._layers.get(layer, set())
 
     def tile_sets(self):
         """Data\TileSets.ini: [(set, title, columns, [tile names row by row, "" = a gap])], read again when it

@@ -34,6 +34,7 @@ class MapData:
         n = xt * yt + 1
         self.tile = [""] * n
         self.decor = [""] * n
+        self.under = [""] * n           # (flat things on the floor, under the decor: rugs)
         self.roof = [""] * n
         self.roof_group = [0] * n
         self.infront = [""] * n
@@ -71,6 +72,8 @@ class MapData:
                     kind = word(overlay, 1, "(")
                     if kind == "Decor":
                         self.decor[c] = arg
+                    elif kind == "Under":
+                        self.under[c] = arg
                     elif kind == "Infront":
                         self.infront[c] = arg
                     elif kind == "Roof":
@@ -128,24 +131,28 @@ class MapData:
 
     def cell_text(self, x, y):
         c = self.cell(x, y)
-        return self.tile[c] + ("+Decor(%s)" % self.decor[c] if self.decor[c] else "")
+        return (self.tile[c] + ("+Under(%s)" % self.under[c] if self.under[c] else "") +
+                ("+Decor(%s)" % self.decor[c] if self.decor[c] else ""))
 
     def change_cell(self, x, y, spec, keep_decor=True):
         """Tile x,y becomes spec (a cell spec: a ground tile, a decor tile, or Tile+Decor(Name)). True if it changed."""
         if not self.inside(x, y):
             return False
         tile, decor = self.data.cell_spec(spec)
-        if not tile and decor is None:
+        under = self.data.cell_under(spec)
+        if not tile and decor is None and under is None:
             return False
         if tile and decor is None and not keep_decor:
             decor = ""
         c = self.cell(x, y)
-        before = (self.tile[c], self.decor[c])
+        before = (self.tile[c], self.decor[c], self.under[c])
+        if under is not None:
+            self.under[c] = under
         if decor is not None:
             self.decor[c] = decor
         if tile:
             self.tile[c] = tile
-        if (self.tile[c], self.decor[c]) == before:
+        if (self.tile[c], self.decor[c], self.under[c]) == before:
             return False
         self.refresh_cell(c)
         self.grid_dirty()
@@ -260,5 +267,5 @@ class MapData:
     # ----- for the browsers
     def to_client(self):
         """The map as the browser draws it (tiles as the world has them; each player's own changes are sent apart)."""
-        return {"name": self.name, "v": self.version, "tile": self.tile[1:], "decor": self.decor[1:],
+        return {"name": self.name, "v": self.version, "tile": self.tile[1:], "decor": self.decor[1:], "under": self.under[1:],
                 "roof": self.roof[1:], "group": self.roof_group[1:], "infront": self.infront[1:]}

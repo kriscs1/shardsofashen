@@ -801,3 +801,27 @@ def test_crafting_lists_go_by_the_level_they_need(world):
     levels = [r["level"] for r in s.rack]
     assert levels == sorted(levels) and len(levels) > 3
     leave(world, s)
+
+
+def test_a_chair_can_stand_on_a_rug(world):
+    a = join(world, "Decorator")
+    stock(a, Access_Crystal=1, Plank=20, Nails=40, Wool=20, Logs=20, Herb=20)
+    a.update_skill("Construction", "=30")
+    a.go_home()
+    world.tick(0.05)
+    m = a.cur_map
+    x, y = 5, 15
+    while m.decor[m.cell(x, y)]:
+        a.unbuild(x, y)
+    rug = next(k for k, p in world.homes.catalog.items() if k.startswith("Rug"))
+    chair = next(k for k, p in world.homes.catalog.items() if k.startswith("Chair"))
+    for k in (rug, chair):
+        for item, qty in world.homes.catalog[k]["needs"]:
+            stock(a, **{item: qty * 2})
+    assert a.build(x, y, rug) and m.under[m.cell(x, y)] == rug and not m.decor[m.cell(x, y)]
+    assert a.build(x, y, chair)                                    # (on the rug)
+    assert m.under[m.cell(x, y)] == rug and m.decor[m.cell(x, y)] == chair
+    assert "+Under(%s)+Decor(%s)" % (rug, chair) in m.cell_text(x, y)
+    assert a.unbuild(x, y) and m.decor[m.cell(x, y)] == "" and m.under[m.cell(x, y)] == rug    # the chair first
+    assert a.unbuild(x, y) and m.under[m.cell(x, y)] == ""                                     # then the rug
+    leave(world, a)

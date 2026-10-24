@@ -59,7 +59,8 @@ export function mapByPos(mx, my, mz) { return S.byPos.get(mx + "," + my + "," + 
 export function cellOf(m, x, y) {
   const c = (y - 1) * G.xt + (x - 1);
   const o = S.cells.get(m.name + "," + x + "," + y);
-  return o ? [o[0], o[1], m.roof[c], m.group[c], m.infront[c]] : [m.tile[c], m.decor[c], m.roof[c], m.group[c], m.infront[c]];
+  const under = m.under ? m.under[c] : "";        // (a rug: under the decor)
+  return o ? [o[0], o[1], m.roof[c], m.group[c], m.infront[c], under] : [m.tile[c], m.decor[c], m.roof[c], m.group[c], m.infront[c], under];
 }
 
 // The cell at global tile gx,gy (0-based) on level z, or null

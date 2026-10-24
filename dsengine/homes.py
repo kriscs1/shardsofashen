@@ -165,6 +165,8 @@ class Homes:
                 m.tile[c] = cell["tile"]
             if cell.get("decor"):
                 m.decor[c] = cell["decor"]
+            if cell.get("under"):
+                m.under[c] = cell["under"]
         fence_at = lambda x, y: m.inside(x, y) and is_fence(m.decor[m.cell(x, y)])
         for key, cell in h["cells"].items():
             x, y = (int(v) for v in key.split(","))
@@ -665,6 +667,11 @@ class HomeMixin:
                 return self.build_fail("Clear the %s away first." % pretty_tile(decor))
             if self.is_wall(piece_id) and self.someone_on(m, x, y):
                 return self.build_fail("Someone is standing there.")
+        elif kind == "Decor" and d.is_under_tile(piece_id):        # (a rug: under whatever stands there)
+            if m.under[c]:
+                return self.build_fail("Take the %s away first." % pretty_tile(m.under[c]))
+            if self.is_wall(tile):
+                return self.build_fail("You can't put that on a wall.")
         elif kind == "Decor":
             on = p["on"]
             if decor:
@@ -704,6 +711,10 @@ class HomeMixin:
             h["cells"][key] = cell
             self.forget_regrowth(m, x, y)
             w.change_tile(m, x, y, piece_id, keep_decor=True)
+        elif kind == "Decor" and d.is_under_tile(piece_id):
+            cell["under"] = piece_id
+            h["cells"][key] = cell
+            w.change_tile(m, x, y, piece_id)
         elif kind == "Decor":
             cell["decor"] = piece_id
             h["cells"][key] = cell
@@ -792,6 +803,10 @@ class HomeMixin:
             self.forget_regrowth(m, x, y)
             w.change_tile(m, x, y, "%s+Decor()" % m.tile[c])
             self.join_fences(m, h, x, y)
+        elif m.under[c]:                                   # (then the rug under it)
+            if cell.get("under"):
+                self.refund(cell.pop("under"))
+            w.change_tile(m, x, y, "%s+Under()" % m.tile[c])
         elif cell.get("tile"):
             self.refund(cell.pop("tile"))
             self.forget_regrowth(m, x, y)

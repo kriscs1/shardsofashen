@@ -149,7 +149,7 @@ def top_tile(cell):
     """The tile whose colour a cell shows: its roof, tree top, decor (only one with its own colour: a tree, not the
     flowers on the grass) or ground tile."""
     parts = cell.split("+")
-    base, roof, infront, decor = parts[0].strip(), "", "", ""
+    base, roof, infront, decor, under = parts[0].strip(), "", "", "", ""
     for o in parts[1:]:
         inner = o[o.find("(") + 1:] if "(" in o else o
         if inner.endswith(")"):
@@ -160,7 +160,9 @@ def top_tile(cell):
             infront = inner
         if o.lower().startswith("decor(") and inner in EXPLICIT:
             decor = inner
-    return roof or infront or decor or base
+        if o.lower().startswith("under(") and inner in EXPLICIT:
+            under = inner
+    return roof or infront or decor or under or base
 
 
 def write_minimap(path, cells, wide, high, ps):

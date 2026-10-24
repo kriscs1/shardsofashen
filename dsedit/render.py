@@ -35,6 +35,10 @@ def render(project, doc, roofs=True, infront=True, entities=True, dim_roofs=Fals
     if decor:
         for y, row in enumerate(doc.cells):
             for x, cell in enumerate(row):
+                if cell.under:                     # (a rug first: the decor stands on it)
+                    spr = project.sprite("Tiles", cell.under)
+                    if spr is not None:
+                        im.alpha_composite(spr.convert("RGBA"), (x * tw, y * th))
                 if cell.decor:
                     spr = project.sprite("Tiles", cell.decor)
                     if spr is not None:

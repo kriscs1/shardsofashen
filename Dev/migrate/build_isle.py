@@ -56,7 +56,7 @@ class Map:
 
     def put(self, x, y, tile, over):
         s = tile
-        for kind in ("Decor", "Roof", "Infront", "Trigger"):
+        for kind in ("Under", "Decor", "Roof", "Infront", "Trigger"):
             if over.get(kind):
                 s += "+%s(%s)" % (kind, over[kind])
         self.rows[y - 1][x - 1] = s

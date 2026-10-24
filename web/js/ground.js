@@ -304,7 +304,7 @@ function paintCell(ch, ci, now) {
   const dx = (x - 1) * G.tw, dy = (y - 1) * G.th;
   const gx = m.mx * G.xt + x - 1, gy = m.my * G.yt + y - 1;
   const gx1 = gx + 1, gy1 = gy + 1;
-  const [tile, decor, roof, group, infront] = cellOf(m, x, y);
+  const [tile, decor, roof, group, infront, under] = cellOf(m, x, y);
   ctx.clearRect(dx, dy, G.tw, G.th);
   if (!tile) {
     ctx.fillStyle = "#000";
@@ -349,6 +349,7 @@ function paintCell(ch, ci, now) {
     const fr = animFrame(tile, "f", flameFrame(now) % ti.anim.f);
     if (fr) ctx.drawImage(fr, dx, dy);
   }
+  if (under) paintDecor(ctx, under, gx1, now, dx, dy, ch);      // (a rug, then what stands on it)
   if (decor && !sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);
   if (roofShown) {
     const r = img(roof, ch);
