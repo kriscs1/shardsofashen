@@ -758,3 +758,4 @@ Campfire001	240 120 30
 Suspicious_Barrel001	120 80 40
 Tunnel_Ladder001	255 0 0
 Tunnel_Ladder002	255 0 0
+Chapel_Bell001	200 150 60

@@ -996,3 +996,26 @@ def test_a_new_character_wakes_in_the_cottage(world):
     assert m.name == "4,0,0" and m.roof[m.cell(tx, ty)]             # (indoors, under the cottage's roof)
     assert "0" not in m.walk[m.cell(tx, ty)]                        # (on open floor)
     leave(world, s)
+
+
+def test_up_to_the_chapel_loft_and_its_bell(world):
+    s = join(world, "Ringer", "3,1,0", 13 * 32, 8 * 32)            # (by the stairs up, left of the altar)
+    s.connected = True
+
+    def use(verb, tx, ty):
+        m = s.cur_map
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        e = s.tile_entity_at(gx, gy)
+        assert verb in s.get_verbs(e), (verb, e.name if e else None)
+        s.out = []
+        s.choose_verb(verb, e, gx, gy)
+        for _ in range(120):                                       # (time to walk there first)
+            world.tick(0.05)
+
+    use("Climb Up", 14, 8)
+    assert s.cur_map.name == "3,1,1"
+    use("Ring", 16, 11)
+    assert any(ev.get("t") == "sound" and ev.get("name") == "Bell" for ev in s.out)
+    use("Climb Down", 14, 8)
+    assert s.cur_map.name == "3,1,0"
+    leave(world, s)
