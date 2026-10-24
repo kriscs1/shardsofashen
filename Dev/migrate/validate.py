@@ -664,6 +664,9 @@ def check_scripts(skills, racks):
                 elif len(args) > want:
                     warn(where, "Display.Conversation has %d answers: the Python game shows them all, the Script Editor "
                                 "only the first 4" % ((len(args) - 2) // 2))
+            elif cmd == "Display.Refusal":
+                if len(args) not in (1, 2):                    # (MESSAGE, and a sound if not the usual Denied)
+                    err(where, "Display.Refusal takes a message and maybe a sound; has %d args" % len(args))
             elif len(args) != want:
                 err(where, "%s takes %d args, has %d" % (cmd, want, len(args)))
             t = types.get(cmd, {})
