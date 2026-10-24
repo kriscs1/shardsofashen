@@ -302,6 +302,9 @@ def test_home_bed_is_where_you_wake(world):
     a.update_skill("Construction", "=10")
     a.go_home()
     world.tick(0.05)
+    m = a.cur_map
+    assert a.build(10, 10, "Bed001") and m.decor[m.cell(10, 11)] == "Bed002"     # (its foot, in the tile below)
+    assert a.unbuild(10, 11) and not m.decor[m.cell(10, 10)] and not m.decor[m.cell(10, 11)]   # (down whole)
     assert a.build(10, 10, "Bed001")
     world.homes.home_of("Sleeper")["bed"] = [10, 10]
     a.leave_home()                                                 # (they die somewhere else)

@@ -30,6 +30,7 @@ HOME_LEVEL = 1000               # home n is the map 0,0,<HOME_LEVEL + n>
 VISIT = ("closed", "friends", "open")
 VISIT_WORDS = {"closed": "only you", "friends": "you and your friends", "open": "anyone"}
 REFUND = 0.5
+BED_FEET = {"Bed001": "Bed002"}                 # (a bed's head: its foot, in the tile below)
 MENU_MAX = 10
 
 
@@ -175,8 +176,11 @@ class Homes:
             c = m.cell(x, y)
             if cell.get("tile") in ("Wheat001", "Wheat002"):
                 cell["tile"] = m.tile[c] = "Field001"
-            if cell.get("decor") in ("Bed002", "Bed102", "Bed201"):       # (the double bed's gone: a bed)
+            if cell.get("decor") in ("Bed102", "Bed201"):                 # (the double bed's gone: a bed)
                 cell["decor"] = m.decor[c] = "Bed001"
+            foot = BED_FEET.get(cell.get("decor"))
+            if foot and m.inside(x, y + 1) and not m.decor[m.cell(x, y + 1)]:    # (a bed built before it had a foot)
+                h["cells"].setdefault("%d,%d" % (x, y + 1), {})["decor"] = m.decor[m.cell(x, y + 1)] = foot
             if is_fence(cell.get("decor")):
                 cell["decor"] = m.decor[c] = fence_piece(fence_at, x, y)
         for c in range(1, len(m.tile)):
@@ -690,6 +694,8 @@ class HomeMixin:
                 return self.build_fail("There's no room there.")
             if self.someone_on(m, x, y) and d.spec_blocks(piece_id):
                 return self.build_fail("Someone is standing there.")
+            if piece_id in BED_FEET and not self.room_for_foot(m, h, x, y + 1):
+                return self.build_fail("There's no room for its foot.")
         elif kind == "Object":
             if decor:
                 return self.build_fail("Clear the %s away first." % pretty_tile(decor))
@@ -722,6 +728,10 @@ class HomeMixin:
             h["cells"][key] = cell
             self.forget_regrowth(m, x, y)
             w.change_tile(m, x, y, piece_id)
+            if piece_id in BED_FEET:
+                h["cells"].setdefault("%d,%d" % (x, y + 1), {})["decor"] = BED_FEET[piece_id]
+                self.forget_regrowth(m, x, y + 1)
+                w.change_tile(m, x, y + 1, BED_FEET[piece_id])
             if is_fence(piece_id):
                 self.join_fences(m, h, x, y)
         elif kind == "Roof":
@@ -737,6 +747,14 @@ class HomeMixin:
             self.update_skill("Construction", "+" + lbstr(p["xp"]))
         self.play_sound("Build" if d.loaded("Build") else "Pickup")
         return True
+
+    def room_for_foot(self, m, h, x, y):
+        """Can a bed's foot go on tile x,y (the tile below its head)?"""
+        if not (2 <= x <= self.xt - 1 and 2 <= y <= self.yt - 1) or (x, y) in self.homes.protected_of(self.player_name):
+            return False
+        c = m.cell(x, y)
+        return (not m.decor[c] and not self.is_wall(m.tile[c]) and "1" in m.walk[c]
+                and self.homes.object_at(m, x, y) is None and not self.someone_on(m, x, y))
 
     def refund(self, piece_id):
         if is_fence(piece_id):
@@ -797,6 +815,18 @@ class HomeMixin:
             w.farms.clear(m, x, y)
             self.display_message("You pull up the crop.", "INFO")
         elif m.decor[c]:
+            head = [k for k, v in BED_FEET.items() if v == m.decor[c]]
+            if head and y > 1 and m.decor[m.cell(x, y - 1)] == head[0]:   # (a bed's foot: the bed comes down)
+                return self.unbuild(x, y - 1)
+            foot = BED_FEET.get(m.decor[c])
+            if foot and m.inside(x, y + 1) and m.decor[m.cell(x, y + 1)] == foot:
+                key2 = "%d,%d" % (x, y + 1)
+                below = h["cells"].get(key2, {})
+                if below.pop("decor", None) is None and key2 not in h["cleared"]:   # (the map's own bed's foot)
+                    h["cleared"].append(key2)
+                if not below:
+                    h["cells"].pop(key2, None)
+                w.change_tile(m, x, y + 1, "%s+Decor()" % m.tile[m.cell(x, y + 1)])
             if cell.get("decor"):
                 self.refund(cell.pop("decor"))
             elif key not in h["cleared"]:

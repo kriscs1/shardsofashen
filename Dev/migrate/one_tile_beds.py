@@ -1,4 +1,6 @@
-"""Beds in one tile: a bed was two (Bed001 its head, Bed002 its foot under it). Run it once (again: nothing to do).
+"""(Done, and since undone in part: Dev\migrate\long_beds.py gives beds a foot again (Bed002). Don't run this again.)
+
+Beds in one tile: a bed was two (Bed001 its head, Bed002 its foot under it). Run it once (again: nothing to do).
 
   python -I "Dev\\migrate\\one_tile_beds.py"
 
@@ -122,5 +124,6 @@ def maps():
 
 
 if __name__ == "__main__":
+    sys.exit("Superseded by long_beds.py: running this would take the beds' feet away.")
     pictures()
     maps()

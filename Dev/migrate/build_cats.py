@@ -35,44 +35,56 @@ CATS = {
     "Ginger_Cat": ((232, 166, 110), (198, 120, 72), (250, 208, 164), (252, 236, 214), (112, 172, 90), True,
                    "A ginger cat - more strawberry-blond, really."),
 }
-LEGS = [(11, (0, 2, -2), True), (13, (0, -2, 2), False), (19, (0, -2, 2), True), (21, (0, 2, -2), False)]
+LEGS = [(12, (0, 1, -1), True), (14, (0, -1, 1), False), (18, (0, -1, 1), True), (20, (0, 1, -1), False)]
 RATE = 22050
 
 
 # ---------------------------------------------------------------- the pictures
 def draw_cat(fur, dark, light, chest, eye, stripes, frame):
+    """A small cat, drawn to be sweet: a big round head turned to you, big shining eyes, a little body, stubby legs."""
     s = pygame.Surface((32, 32), pygame.SRCALPHA)
     bob = (0, -1, 0)[frame]
 
     def leg(x, dx, far):
-        col = dark if far else fur
-        pygame.draw.line(s, col, (x, 21 + bob), (x + dx, 27), 2)
-        pygame.draw.line(s, chest if not far else dark, (x + dx - 1, 27), (x + dx + 1, 27))     # (a paw)
+        pygame.draw.line(s, dark if far else fur, (x, 23 + bob), (x + dx, 26), 2)
+        pygame.draw.line(s, dark if far else chest, (x + dx, 27), (x + dx + 1, 27))       # (a paw)
     for x, offs, far in LEGS:
         if far:
             leg(x, offs[frame], True)
     sway = (0, 1, -1)[frame]                                                  # the tail: up, curling at its tip
-    pts = [(9, 18 + bob), (6, 14 + bob), (5 + sway, 9 + bob), (7 + sway, 6 + bob)]
-    pygame.draw.lines(s, fur, False, pts, 3)
-    pygame.draw.line(s, dark if stripes else light, (5 + sway, 10 + bob), (6 + sway, 8 + bob))
-    pygame.draw.ellipse(s, fur, (8, 16 + bob, 15, 7))                         # the body: long and low
-    pygame.draw.circle(s, fur, (11, 19 + bob), 3)                            # its haunch
-    pygame.draw.ellipse(s, chest, (17, 19 + bob, 6, 3))                       # (the chest)
-    pygame.draw.line(s, light, (11, 16 + bob), (19, 16 + bob))                # (light along its back)
+    pts = [(11, 22 + bob), (8, 19 + bob), (8 + sway, 15 + bob), (10 + sway, 13 + bob)]
+    pygame.draw.lines(s, fur, False, pts, 2)
+    s.set_at((10 + sway, 13 + bob), dark if stripes else light)
+    pygame.draw.ellipse(s, fur, (10, 19 + bob, 12, 7))                        # the body: small and round
+    pygame.draw.ellipse(s, chest, (16, 21 + bob, 5, 4))                       # (the chest)
+    pygame.draw.line(s, light, (12, 19 + bob), (17, 19 + bob))                # (light along its back)
     if stripes:
-        for x in (12, 15, 18):
-            pygame.draw.line(s, dark, (x, 16 + bob), (x - 1, 19 + bob))
-    hx, hy = 24, 14 + bob                                                     # the head: round, ears up
-    pygame.draw.circle(s, fur, (hx, hy), 4)
-    pygame.draw.polygon(s, fur, [(21, hy - 2), (21, hy - 7), (24, hy - 3)])
-    pygame.draw.polygon(s, fur, [(25, hy - 3), (27, hy - 7), (28, hy - 1)])
-    pygame.draw.line(s, (232, 160, 170), (22, hy - 5), (22, hy - 3))          # (pink inside the ear)
-    pygame.draw.polygon(s, chest, [(25, hy + 1), (29, hy + 1), (27, hy + 3)])  # the muzzle
-    s.set_at((29, hy), (226, 140, 150))                                       # the nose
-    s.set_at((26, hy - 1), eye)                                               # the eye
-    s.set_at((27, hy - 1), (20, 20, 20))
+        for x in (13, 16):
+            pygame.draw.line(s, dark, (x, 20 + bob), (x, 21 + bob))
+    hx, hy = 21, 16 + bob                                                     # the head: big and round, ears up
+    pygame.draw.polygon(s, fur, [(16, hy - 1), (17, hy - 7), (21, hy - 4)])
+    pygame.draw.polygon(s, fur, [(21, hy - 4), (25, hy - 7), (26, hy - 1)])
+    pygame.draw.line(s, (240, 168, 178), (18, hy - 5), (18, hy - 3))          # (pink inside the ears)
+    pygame.draw.line(s, (240, 168, 178), (24, hy - 5), (24, hy - 3))
+    pygame.draw.circle(s, fur, (hx, hy), 5)
+    pygame.draw.ellipse(s, chest, (18, hy + 1, 7, 4))                         # the muzzle
     if stripes:
-        pygame.draw.line(s, dark, (23, hy - 3), (24, hy - 1))
+        pygame.draw.line(s, dark, (21, hy - 4), (21, hy - 3))
+        s.set_at((19, hy - 4), dark)
+        s.set_at((23, hy - 4), dark)
+    for ex in (18, 22):                                                       # big eyes, a shine in each
+        if sum(fur) < 200:                                                    # (a dark cat: its eyes all gold)
+            pygame.draw.rect(s, eye, (ex, hy - 2, 2, 3))
+            s.set_at((ex + 1, hy - 1), (24, 20, 24))
+        else:
+            pygame.draw.rect(s, (24, 20, 24), (ex, hy - 2, 2, 3))
+            s.set_at((ex + 1, hy), eye)
+        s.set_at((ex, hy - 2), (255, 255, 255))
+    s.set_at((21, hy + 1), (236, 128, 146))                                   # the nose
+    s.set_at((20, hy + 2), (120, 80, 80))                                     # (a little smile)
+    s.set_at((22, hy + 2), (120, 80, 80))
+    s.set_at((17, hy + 1), (246, 150, 160))                                   # (rosy cheeks)
+    s.set_at((25, hy + 1), (246, 150, 160))
     for x, offs, far in LEGS:
         if not far:
             leg(x, offs[frame], False)
@@ -82,9 +94,9 @@ def draw_cat(fur, dark, light, chest, eye, stripes, frame):
     for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
         out.blit(sil, (dx, dy))
     out.blit(s, (0, 0))
-    for wx, wy in ((30, hy), (30, hy + 2)):                                    # whiskers (over the outline)
-        out.set_at((wx, wy), (230, 230, 230))
-        out.set_at((wx + 1, wy), (200, 200, 200))
+    for wy in (hy + 1, hy + 2):                                                # whiskers (over the outline)
+        out.set_at((27, wy), (236, 236, 236))
+        out.set_at((15, wy), (236, 236, 236))
     return out
 
 
