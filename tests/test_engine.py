@@ -397,7 +397,7 @@ def test_the_settlers_quest_gives_the_crystal(world):
 
     talk(1)
     assert s.get_attribute("HomeQuest") in ("", "0")                 # not before the ferry
-    s.attributes.append(["FerryQuest", "4"])
+    s.attributes.append(["Passage", "12"])                          # (the first quest done)
     assert talk(1)[0] == "I'll do it!"
     assert s.get_attribute("HomeQuest") == "1"
     stock(s, Plank=10, Stone_Block=4)
@@ -688,49 +688,24 @@ def test_the_way_down_is_through_the_chapel(world):
         gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
         e = s.tile_entity_at(gx, gy)
         assert verb in s.get_verbs(e)
+        s.out = []
         s.choose_verb(verb, e, gx, gy)                             # (as a click does: where, too)
         for _ in range(60):
             world.tick(0.05)
-        return s.cur_map.name
+        return s.cur_map.name, any(ev.get("t") == "sound" and ev.get("name") == "Denied" for ev in s.out)
 
     s = join(world, "Pilgrim", "3,1,0", 17 * 32, 8 * 32)
     s.connected = True
     verger = next(e for e in world.ents if e.npc_id == "Chapel_Verger")
     assert verger.display == "Brother Aldous" and s.display_name(verger) == "Brother Aldous"
-    assert climb(s, "Climb Down", 18, 8) == "3,1,-1"               # the chapel's steps, down to the cellar
-    s.out = []
-    assert climb(s, "Climb Down", 14, 9) == "3,1,-1"               # the trapdoor: locked, without its key
-    assert any(ev.get("t") == "sound" and ev.get("name") == "Denied" for ev in s.out)
-    s.teleport("3,1,0", 15 * 32, 8 * 32)                           # ask Brother Aldous about it
+    assert climb(s, "Climb Down", 18, 8) == ("3,1,0", True)        # a newcomer: the cellar's not for visitors
+    s.update_attribute("Passage", "=5")
+    assert climb(s, "Climb Down", 18, 8) == ("3,1,0", True)        # not without a sword and a shield
+    s.teleport("3,1,-1", 13 * 32, 9 * 32 - 8)
     for _ in range(5):
         world.tick(0.05)
-    s.do_action("Talk to", verger)
-    for _ in range(40):
-        world.tick(0.05)
-    assert s.ab_mode == "Conversation" and s.ab_title == "Brother Aldous"
-    assert "cellar" not in s.ab_text.lower()                       # (he doesn't bring it up himself)
-    s.action_box_response_chosen(1)                                # "What's down in the cellar?"
-    for _ in range(20):
-        world.tick(0.05)
-    assert "lost the key" in s.ab_text and s.items_held("Chapel_Cellar_Key") == 0
-    s.close_action_box(-1)
-    s.teleport("3,1,-1", 16 * 32, 11 * 32 - 8)                     # search the cellar's crates
-    for _ in range(5):
-        world.tick(0.05)
-    for x in (19, 17):                                             # (the wrong crate, then the right one)
-        climb(s, "Search", x, 12)
-        for _ in range(3):
-            world.tick(0.05, now=world.now + 1500)                 # (the rummaging takes a moment)
-    assert s.items_held("Chapel_Cellar_Key") == 1
-    cell = (s.cur_map.name, 14, 9)
-    assert s.lock_cells.get(cell) == "Trapdoor002"                 # (it stands open for them now)
-    s.teleport("3,1,-1", 13 * 32, 9 * 32 - 8)                      # (in the cellar, by the trapdoor)
-    for _ in range(5):
-        world.tick(0.05)
-    assert climb(s, "Climb Down", 14, 9) == "3,1,-2"               # it opens: straight down to the caves
-    assert climb(s, "Climb Up", 14, 9) == "3,1,-1"                 # and the ladder under it back up
+    assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the trapdoor: locked, without its key
     leave(world, s)
-
 
 def test_dying_ends_buffs_and_debuffs(world):
     s = join(world, "Mortal")
@@ -825,3 +800,108 @@ def test_a_chair_can_stand_on_a_rug(world):
     assert a.unbuild(x, y) and m.decor[m.cell(x, y)] == "" and m.under[m.cell(x, y)] == rug    # the chair first
     assert a.unbuild(x, y) and m.under[m.cell(x, y)] == ""                                     # then the rug
     leave(world, a)
+
+
+def test_passage_to_the_mainland_from_start_to_finish(world, monkeypatch):
+    import dsengine.player_combat as pc
+    monkeypatch.setattr(pc, "rnd", lambda: 0.0)                     # (spells don't fizzle in a test)
+    s = join(world, "Newcomer", "1,2,0", 20 * 32, 12 * 32)
+    s.connected = True
+    attr = lambda: int(float(s.get_attribute("Passage") or 0))
+
+    def run(ticks=30, ms=0):
+        for _ in range(ticks):
+            world.tick(0.05, now=world.now + ms if ms else None)
+
+    def npc(name, map_name, npc_id=""):
+        return next(e for e in world.ents if e.name == name and e.map == map_name and e.alive and
+                    (not npc_id or e.npc_id == npc_id) and world.visible_to(e, s))
+
+    def talk(e, *answers):
+        m = world.maps[e.map]
+        s.teleport(e.map, int(e.x - m.ox) + 26, int(e.y - m.oy))
+        run(5)
+        s.do_action("Talk to", e)
+        run(30)
+        for n in answers:
+            assert s.ab_mode == "Conversation", (e.name, n, attr())
+            assert e.display in ("", s.ab_title) or s.ab_title == s.display_name(e), (s.ab_title, e.name)
+            s.action_box_response_chosen(n)
+            run(30)
+        if s.ab_mode:
+            s.close_action_box(-1)
+            run(5)
+
+    def at(map_name, tx, ty, verb):
+        s.teleport(map_name, (tx - 1) * 32, ty * 32)
+        run(5)
+        m = s.cur_map
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 2) * 32 + 16
+        e = s.tile_entity_at(gx, gy)
+        s.choose_verb(verb, e, gx, gy)
+        run(60)
+        run(3, ms=1500)
+
+    assert "Bronze_Sword" not in s.equipped                         # (no sword to start with)
+    maren = npc("Woman", "1,2,0")
+    assert maren.display == "Maren"
+    talk(maren, 1)
+    assert attr() == 1
+    bess = npc("Milkmaid", "2,0,0")
+    talk(bess, 3, 1)                                                # the ticket book's stolen: here's an axe
+    assert attr() == 2 and s.items_held("Bronze_Axe") == 1
+    stock(s, Logs=3)
+    talk(bess, 3)                                                   # three logs for the range
+    assert attr() == 3 and s.items_held("Logs") == 0
+    stock(s, Egg=1)                                                 # an egg, fried on the range
+    rng = next(e for e in world.ents if e.name == "Range" and e.map == "2,0,0")
+    s.teleport("2,0,0", int(rng.x - world.maps["2,0,0"].ox), int(rng.y - world.maps["2,0,0"].oy) + 30)
+    run(5)
+    s.item_in_use = next(e for e in s.inv if e.name == "Egg")
+    s.use_item_with(rng)
+    run(30)
+    run(3, ms=1500)
+    assert s.items_held("Fried_Egg") == 1
+    talk(bess, 3)
+    assert attr() == 4
+    s.open_item_rack("CRAFT", "Workbench", "CRAFT-Crafting")       # (a wooden sword and shield, at Crafting 1)
+    assert {r["item"] for r in s.rack if r["level"] <= 1} >= {"Wooden_Sword", "Wooden_Shield"}
+    s.close_action_box(-1)
+    talk(bess, 3)                                                   # not yet: unarmed
+    assert attr() == 4
+    stock(s, Wooden_Sword=1, Wooden_Shield=1)
+    for name in ("Wooden_Sword", "Wooden_Shield"):
+        s.do_action("Wield", next(e for e in s.inv if e.name == name))
+    talk(bess, 3)
+    assert attr() == 5
+    aldous = npc("Gravekeeper", "3,1,0", "Chapel_Verger")
+    talk(aldous, 1)                                                 # "What's down in the cellar?" - the key's lost
+    assert attr() == 6
+    at("3,1,0", 18, 9, "Climb Down")                                # the chapel's steps, armed
+    assert s.cur_map.name == "3,1,-1"
+    at("3,1,-1", 17, 13, "Search")                                  # the crate with the key in it
+    assert s.items_held("Chapel_Cellar_Key") == 1 and attr() == 7
+    at("3,1,-1", 14, 10, "Climb Down")                              # the trapdoor opens for the key
+    assert s.cur_map.name == "3,1,-2"
+    cage = next(e for e in world.ents if e.name == "Goblin_Cage")
+    m = world.maps["1,1,-2"]
+    s.teleport("1,1,-2", int(cage.x - m.ox) + 40, int(cage.y - m.oy))
+    run(5)
+    s.do_action("Open", cage)
+    run(30)
+    assert attr() == 8
+    talk(aldous, 1)                                                 # a scroll of Grasp
+    assert attr() == 9 and s.items_held("Grasp_Scroll") == 1
+    s.teleport("1,1,-2", int(cage.x - m.ox) + 96, int(cage.y - m.oy))
+    run(5, ms=2000)
+    s.player_mana = s.player_max_mana
+    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), cage)
+    run(30)
+    assert s.items_held("Ticket_Book") == 1 and attr() == 10
+    assert s.items_held("Grasp_Scroll") == 1                        # (it keeps)
+    talk(bess, 3)
+    assert attr() == 11 and s.items_held("Ferry_Ticket") == 1
+    talk(npc("Woman", "1,2,0"), 1)                                  # across to Southport
+    run(3, ms=1500)
+    assert attr() == 12
+    leave(world, s)

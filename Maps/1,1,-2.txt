@@ -26,3 +26,6 @@ NPC	Bat	384	480	Attitude=Bad Zone=9,14,18,17
 MapItem	Bones	353	450	1
 MapItem	Bones	609	386	1
 MapItem	Empty_Vial	544	256	1
+StaticObject	Goblin_Cage	128	352
+Id	Thief_Cage	6	12
+NPC	Goblin	224	376	Attitude=Bad Zone=6,11,10,15 Chase=4,10,12,17 Name=Goblin_Thief

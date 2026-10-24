@@ -142,6 +142,7 @@ export function spellSummary(spell) {
   } else if (eff === "HEAL") parts.push(`heals ${spellIni(spell, "Heal", "")}`);
   else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellIni(spell, "Damage", "")} damage`);
   else if (eff === "TELEPORT" || eff === "HOME") parts.push("teleports you");
+  else if (eff === "GRASP") parts.push("pulls a thing to you, from afar");
   if (n("Mana")) parts.push(`+${n("Mana")} mana`);
   return parts.join(", ");
 }

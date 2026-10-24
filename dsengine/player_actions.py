@@ -156,7 +156,7 @@ class ActionsMixin:
                 spell = self.entity_ini(self.item_in_use.name, "Spell", "")
                 if spell:
                     r = 0
-                    if self.spell_ini(spell, "Effect", "Bolt").upper() == "BOLT":
+                    if self.spell_ini(spell, "Effect", "Bolt").upper() in ("BOLT", "GRASP"):
                         r = max(36, val(self.spell_ini(spell, "Range", "256")) - 16)
             return r
         return 26 if e.type in (TILE, INFRONTTILE) else 36
@@ -450,11 +450,11 @@ class ActionsMixin:
             text += " (Condition: %s)" % self.dur_text(e.name, e.wear)
         self.display_message(text, "EXAMINE")
 
-    def pickup_map_item(self, e):
+    def pickup_map_item(self, e, reach=40):
         """Picks up an item off the map (it's gone for everyone till it respawns; a one-time item is only gone for
-        whoever took it: everyone gets their own)."""
+        whoever took it: everyone gets their own). reach: how far off it can be (further with a Grasp spell)."""
         w = self.w
-        if self.player_distance_to(e) > 40:
+        if self.player_distance_to(e) > reach:
             self.display_message("You are too far away to reach that!", "FAIL")
             return
         name = e.name

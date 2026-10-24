@@ -306,6 +306,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.bank_qty[i] = max(1, int(qty))
             self.bank_wear[i] = [int(w) for w in wears]
         self.attributes = [[k, v] for k, v in st.get("attributes", [])][:500]
+        # (the first quest was FerryQuest, done at 4; it's Passage now, done at 12: whoever finished it, still has)
+        if val(self.get_attribute("FerryQuest")) >= 4 and val(self.get_attribute("Passage")) < 12:
+            self.update_attribute("Passage", "=12")
         self.quest_notes = [[q, int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
         self.taken_once = set(st.get("taken_once", []))

@@ -2,7 +2,7 @@
 its hitpoints go down for everyone, and it fights whoever hit it), spells and status effects (extras.py)."""
 from dragonsword.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
 
-from .entity import NPC, PLAYER, TYPE_NAMES
+from .entity import NPC, PLAYER, MAPITEM, TYPE_NAMES
 
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
@@ -576,24 +576,28 @@ class CombatMixin:
     def spell_begin(self, scroll, spell):
         self.spell_fizzled = False
         attack = self.spell_ini(spell, "Effect", "Bolt").upper() in ("BOLT", "AREA")
+        keep = val(self.spell_ini(spell, "Keep", "0")) == 1
         p = self.player
         if not self.spell_is_potion(spell):
             self.player_mana = max(0, self.player_mana - self.spell_cost(spell))
             self.spell_start_cooldown(spell)
             chance = self.spell_chance(spell)
             if rnd() * 100 >= chance:
-                self.remove_inventory_item(scroll, 1)
+                if not keep:
+                    self.remove_inventory_item(scroll, 1)
                 self.player_last_cast = self.now
                 self.play_sound("Miss", (p.cx, p.cy))
                 self.fx_anim("Puff", p.cx, p.cy, 400)
-                self.display_message("The spell fizzles and the scroll crumbles to dust! (%d%% chance: it works more "
-                                     "surely as your Magic grows.)" % chance, "FAIL")
+                self.display_message(("The spell slips from your grasp. (%d%% chance: it works more surely as your "
+                                      "Magic grows.)" if keep else "The spell fizzles and the scroll crumbles to dust! "
+                                      "(%d%% chance: it works more surely as your Magic grows.)") % chance, "FAIL")
                 xp = val(self.spell_ini(spell, "XP", "0")) / 2
                 if xp > 0:
                     self.update_skill(self.spell_ini(spell, "Skill", "Magic"), "+" + lbstr(xp), pop=not attack)
                 self.spell_fizzled = True
                 return
-        self.remove_inventory_item(scroll, 1)
+        if not keep:
+            self.remove_inventory_item(scroll, 1)
         mana_back = val(self.spell_ini(spell, "Mana", "0"))
         if mana_back > 0:
             self.player_mana = min(self.player_max_mana, self.player_mana + mana_back)
@@ -677,6 +681,40 @@ class CombatMixin:
                 self.spell_hit(spell, target)
             else:
                 w.fx_shot(p, missile, target, spell, self)
+        elif effect == "GRASP":
+            rng = val(self.spell_ini(spell, "Range", "192"))
+            if target is None:
+                self.item_in_use = item
+                self.emit({"t": "use", "uid": item.uid})
+                self.display_message("Choose what to cast %s at: click it. (Right-click or Esc: put it away.)" % name,
+                                     "INFO")
+                return
+            script = ""
+            if target.type != MAPITEM:
+                script = self.find_action_script("Grasp", target.name, target.type, getattr(target, "npc_id", ""))
+                if not script:
+                    self.display_message("%s finds nothing there to take hold of." % name, "FAIL")
+                    return
+            elif not w.visible_to(target, self):
+                return
+            if self.player_distance_to(target) > rng + 8:
+                self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
+                return
+            if not w.in_line_of_sight(p.z, pcx, pcy, target.cx, target.cy):
+                self.display_message("You can't see the %s from here." % self.display_name(target), "FAIL")
+                return
+            self.spell_begin(scroll, spell)
+            if self.spell_fizzled:
+                return
+            w.npc_face(p, pcx, pcy, target.cx, target.cy)
+            self.spell_glow(spell)
+            self.fx_anim(self.spell_ini(spell, "Impact", "Puff") or "Puff", target.cx, target.cy, 500)
+            if script:
+                self.clicked_ent = target
+                self.start_script(script, True)
+            else:
+                self.display_message("An unseen hand takes hold of the %s..." % self.display_name(target), "COMBAT")
+                self.pickup_map_item(target, reach=rng + 40)
         elif effect == "AREA":
             radius = val(self.spell_ini(spell, "Radius", "128"))
             targets = [e for e in w.ents if e.type == NPC and e.z == p.z and w.hostile_for(e, self) and

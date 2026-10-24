@@ -816,7 +816,7 @@ def check_script_reachability(references, triggers):
                 if k == "Use.Words":
                     verbs.update(w.strip() for w in v.split(",") if w.strip())
     verbs |= {"Pickup", "Drop", "Drop 1", "Examine", "Eat", "Talk to", "Attack", "Walk here", "Use", "Kill",
-              "Count", "Climb Up", "Climb Down", "Bank"}
+              "Count", "Climb Up", "Climb Down", "Bank", "Grasp"}      # (Grasp: the spell, cast at a thing)
     names = TILES | ENTITIES | {re.sub(r"\d{3}$", "", t) for t in TILES}
     with_id = set()                      # every Id= on a map line or added by a script ("Verb Id": e.g. Read Ashford)
     for f in os.listdir(p("Maps")):
@@ -1430,8 +1430,8 @@ def check_spells(entities_ini, skills):
         where = "%s [%s]" % (rel(path), sec)
         spells.add(sec)
         effect = (ini.get(sec, "Effect") or "Bolt").strip().upper()
-        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME"):
-            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport or Home" % effect)
+        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME", "GRASP"):
+            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport, Home or Grasp" % effect)
         scroll = (ini.get(sec, "Scroll") or "").strip()
         if not scroll:
             err(where, "Scroll missing")
