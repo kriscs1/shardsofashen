@@ -277,7 +277,8 @@ def check_map(path, entities_ini, tiles_ini, report):
 
 
 # ------------------------------------------------------------------ NPC movement Options on map lines
-OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name"}   # (Name=Marta: its own name)
+OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
+               "Face", "Cone", "Group", "Friendly.If"}   # (Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
 _npc_ids = None
 
 
@@ -1006,7 +1007,7 @@ def footprint_fits(name, data):
 
 
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
-               "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Weapon.Range",
+               "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
                "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)

@@ -905,3 +905,81 @@ def test_passage_to_the_mainland_from_start_to_finish(world, monkeypatch):
     run(3, ms=1500)
     assert attr() == 12
     leave(world, s)
+
+
+def test_sneaking_past_the_smugglers(world):
+    m = world.maps["4,5,0"]
+    at = lambda tx, ty: (m.ox + (tx - 1) * 32, m.oy + (ty - 1) * 32)
+    opts = "Attitude=Bad Stand=1 Face=S Group=TESTCAMP Friendly.If=$Attr.SmugglerQuest>=3"
+    sentry = world.add_npc("Smuggler", 0, *at(22, 15), opts)        # (in the open, east of the camp: looking south)
+    mate = world.add_npc("Smuggler", 0, *at(24, 13), opts.replace("Face=S", "Face=N"))
+    for e in (sentry, mate):
+        e.ai.turn_at = world.now + 10 ** 9                          # (no glancing about, for the test)
+    s = join(world, "Sneak", "4,5,0", 21 * 32, 11 * 32)             # behind the sentry (north of him), 4 tiles off
+    for _ in range(40):
+        world.tick(0.05)
+    assert not sentry.in_combat and not mate.in_combat               # (he looks the other way)
+    s.teleport("4,5,0", 21 * 32, 18 * 32)                           # in front of him
+    for _ in range(40):
+        world.tick(0.05)
+    assert sentry.in_combat and sentry.target is s
+    assert mate.in_combat and mate.target is s                       # he raised the alarm
+    for e in (sentry, mate):
+        world.npc_give_up(e, e.ai)
+    s.update_attribute("SmugglerQuest", "=3")                       # Red Meg's deal: friends now
+    assert not world.hostile_for(sentry, s)
+    other = join(world, "Stranger", "4,5,0", 21 * 32, 22 * 32)
+    assert world.hostile_for(sentry, other)                         # (to them alone)
+    for e in (sentry, mate):
+        world.remove_entity(e)
+    leave(world, s)
+    leave(world, other)
+
+
+def test_the_smugglers_run(world, monkeypatch):
+    monkeypatch.setattr(world, "npc_sees", lambda e, a, s, d: False)   # (a perfect sneak, for the test)
+    s = join(world, "Spy", "4,4,0", 10 * 32, 17 * 32)
+    s.connected = True
+    attr = lambda: int(float(s.get_attribute("SmugglerQuest") or 0))
+
+    def run(ticks=30, ms=0):
+        for _ in range(ticks):
+            world.tick(0.05, now=world.now + ms if ms else None)
+
+    def talk(npc_id, *answers):
+        e = next(x for x in world.ents if x.npc_id == npc_id)
+        m = world.maps[e.map]
+        s.teleport(e.map, int(e.x - m.ox) + 26, int(e.y - m.oy))
+        run(5)
+        s.do_action("Talk to", e)
+        run(30)
+        for n in answers:
+            s.action_box_response_chosen(n)
+            run(30)
+        if s.ab_mode:
+            s.close_action_box(-1)
+            run(5)
+
+    def use(map_name, tx, ty, verb, from_xy):
+        s.teleport(map_name, *from_xy)
+        run(5)
+        m = s.cur_map
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        s.choose_verb(verb, s.tile_entity_at(gx, gy), gx, gy)
+        run(60)
+        run(3, ms=1500)
+
+    talk("Smuggler_Sergeant", 1)
+    assert attr() == 1
+    use("3,5,0", 12, 14, "Search", (11 * 32, 14 * 32))               # the hollow barrel
+    assert attr() == 2 and s.cur_map.name == "3,5,-1"
+    use("4,5,-1", 16, 11, "Climb Up", (15 * 32, 11 * 32))            # up into the camp
+    assert s.cur_map.name == "4,5,0"
+    use("4,5,0", 16, 11, "Climb Down", (15 * 32, 11 * 32))           # (and back down the hatch: it's a way out)
+    assert s.cur_map.name == "4,5,-1"
+    talk("Red_Meg", 1)
+    assert attr() == 3
+    gold = s.items_held("Gold_Coin(s)")
+    talk("Smuggler_Sergeant", 1)
+    assert attr() == 4 and s.items_held("Gold_Coin(s)") == gold + 60
+    leave(world, s)

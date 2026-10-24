@@ -301,6 +301,9 @@ class World(NPCMixin):
             o = s.attitude_of(e)
             if o is not None:
                 return o
+            cond = getattr(e.ai, "friendly_if", "") if e.ai is not None else ""
+            if cond and e.hostile and s.condition_met(cond):     # (Friendly.If=: a quest made them friends, for you)
+                return False
         return e.hostile
 
     def stat_for(self, e, s, field_name):

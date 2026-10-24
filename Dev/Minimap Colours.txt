@@ -752,3 +752,9 @@ Bench003	150 90 30
 Cellar_Barrel001	87 95 35
 Cellar_Crate001	100 102 38
 Chapel_Stairs001	255 0 0
+Palisade001	110 76 40
+Cargo_Stack001	150 106 60
+Campfire001	240 120 30
+Suspicious_Barrel001	120 80 40
+Tunnel_Ladder001	255 0 0
+Tunnel_Ladder002	255 0 0

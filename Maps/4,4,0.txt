@@ -32,3 +32,5 @@ StaticObject	Notice	673	450	Id=Royal_Treasury
 StaticObject	Chest	640	384
 Lock	21	14	$Attr.HobgoblinQuest>=2	The royal treasury is locked. Only a hero of King Tyron may enter.
 NPC	Banker	608	160	Attitude=Good Stand=1
+NPC	Guard	320	536	Attitude=Good Stand=1 Face=S Id=Smuggler_Sergeant Name=Sergeant_Holt
+Id	Sergeant_Post	11	19

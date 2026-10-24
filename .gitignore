@@ -11,3 +11,7 @@ Dev/Redo List.txt
 
 # settings with secrets in them (the GitHub token)
 .env
+
+# a database made by running the server with its data in Data\ (never the game's own data)
+/Data/*.db*
+/Data/backups/

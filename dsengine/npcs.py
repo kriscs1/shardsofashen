@@ -39,6 +39,47 @@ class NPCMixin:
                 self.dt = was
             self.update_npc_healthbar(e)
 
+    SEEN_CLOSE = 44         # (right beside it: it knows you're there, whichever way it looks)
+
+    def npc_sees(self, e, a, s, d):
+        """Does NPC e see player s, d away? Walls, tents and stacked cargo hide you (line of sight); one with a
+        Sight.Cone (or Cone=) sees only that wide a wedge in front of it, so you can creep up behind."""
+        p = s.player
+        if not self.in_line_of_sight(e.z, e.cx, e.cy, p.cx, p.cy):
+            return False
+        cone = getattr(a, "cone", 0)
+        if cone <= 0 or cone >= 360 or d < self.SEEN_CLOSE:
+            return True
+        dr = e.direction or 4
+        fx = (1 if dr & 2 else 0) - (1 if dr & 8 else 0)
+        fy = (1 if dr & 4 else 0) - (1 if dr & 1 else 0)
+        if fx == 0 and fy == 0:
+            return True
+        ang = math.degrees(math.atan2(p.cy - e.cy, p.cx - e.cx) - math.atan2(fy, fx))
+        ang = (ang + 180) % 360 - 180
+        return abs(ang) <= cone / 2
+
+    def npc_alarm(self, e, a, s):
+        """e has seen s: its Group= (the camp it belongs to) all come for them."""
+        group = getattr(a, "group", "")
+        if not group:
+            return
+        said = False
+        for o in self.ents:
+            oa = o.ai
+            if (o is e or o.type != NPC or not o.alive or oa is None or getattr(oa, "group", "") != group or
+                    o.in_combat or o.z != e.z or not self.hostile_for(o, s)):
+                continue
+            od = distance(o.cx, o.cy, s.player.cx, s.player.cy)
+            if od > 480:
+                continue
+            o.target = s
+            self.npc_start_fight(o, oa, s, od)
+            said = True
+        if said:
+            s.display_message("The %s shouts: \"Intruder!\" The whole camp is after you!" % s.display_name(e), "DAMAGE")
+            self.sound("Alarm" if self.data.loaded("Alarm") else "Denied", e.z, e.cx, e.cy)
+
     def nearest_player(self, e, players, want=None):
         """(session, distance) of the nearest player on e's level who sees it (want(session) must be true too)."""
         best = None
@@ -81,6 +122,9 @@ class NPCMixin:
         pause = d.entity_ini(n, "Pause", "1-4")
         zone = chase_r = patrol = ""
         stand = ping = 0
+        # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
+        a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
+        a.group = a.friendly_if = ""
         k = 1
         while word(options, k) != "":
             pair = word(options, k)
@@ -103,6 +147,15 @@ class NPCMixin:
                 elif key == "STAND":
                     if val(value) != 0:
                         stand = 1
+                elif key == "FACE":                  # (N, E, S, W - or 1, 2, 4, 8 - the way it looks, standing)
+                    face = {"N": 1, "E": 2, "S": 4, "W": 8}.get(value.upper()[:1], int(val(value)) or 4)
+                    e.direction = a.face = face
+                elif key == "CONE":
+                    a.cone = max(0, val(value))
+                elif key == "GROUP":
+                    a.group = value.upper()
+                elif key == "FRIENDLY.IF":
+                    a.friendly_if = value
             k += 1
         home = self.maps.get(e.map)
         a.home_ox = home.ox if home else math.floor(e.x / self.sw) * self.sw
@@ -231,11 +284,12 @@ class NPCMixin:
                     s, d = cand
                     if self.stat_for(e, s, "aggressive") == 1 and d <= self.stat_for(e, s, "aggro_range"):
                         if self.in_chase_area(a, s.player.fx, s.player.fy):
-                            if self.in_line_of_sight(e.z, cx, cy, s.player.cx, s.player.cy):
+                            if self.npc_sees(e, a, s, d):
                                 e.target = s
                                 self.npc_start_fight(e, a, s, d)
                                 state = a.state
                                 foe = s
+                                self.npc_alarm(e, a, s)
         if state == AI_CHASE:
             s = foe
             p = s.player if s is not None else None
@@ -321,12 +375,14 @@ class NPCMixin:
         else:
             faced = False
             if near is not None and near[0].player_visible and near[1] < self.tw * 2.5 and (
-                    not self.hostile_for(e, near[0]) or a.stand == 1):
+                    not self.hostile_for(e, near[0]) or (a.stand == 1 and not getattr(a, "cone", 0))):
                 p = near[0].player
                 self.npc_face(e, cx, cy, p.cx, p.cy)
                 faced = True
             if not faced and now >= a.turn_at:
                 e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
+                if getattr(a, "face", 0) and rnd() < 0.75:   # (a lookout: mostly the way it's set to look)
+                    e.direction = a.face
                 self.animate_entity(e, False)
                 a.turn_at = now + random_number(2000, 5000)
             if now >= a.timer or now < a.timer - 600000:
