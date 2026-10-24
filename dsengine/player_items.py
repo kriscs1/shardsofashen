@@ -229,6 +229,8 @@ class ItemsMixin:
                 self.rack.append(r)
             if self.rack_type == "Shop":
                 self.apply_shop_queue()
+            elif self.rack_type == "Craft":
+                self.rack.sort(key=lambda r: r["level"])          # (by the level it needs: easiest first)
         self.ab_image = self.npc_image(npc)
         self.ab_title = (self.npc_title(npc) if npc else "") or self.rack_type
         if npc in ("You", "Player"):

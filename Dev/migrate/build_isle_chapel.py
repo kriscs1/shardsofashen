@@ -60,11 +60,15 @@ def register_tiles():
                Examine_Info="A stout trapdoor, banded with iron. Locked.", Line_of_Sight="1", Unlocked_Tile="Trapdoor002")
     tile_entry("Trapdoor002", Walkable_Data=ladder, Show_Name="1", Use_Words="Climb Down",
                Examine_Info="The trapdoor stands open: a ladder goes down into the dark.", Line_of_Sight="1")
+    for n, way in (("Bench002", "east"), ("Bench003", "west")):
+        tile_entry(n, Walkable_Data="1100011" * 7, Show_Name="1", Use_Words="",
+                   Examine_Info="A wooden bench, facing %s." % way, Line_of_Sight="1", Layer="Decor")
     sets = os.path.join(DATA, "TileSets.ini")
     for sec, title, cols, tiles in (
             ("Wood_Gate", "wood fence gates (shut, open)", 2, "Wood_Gate001,Wood_Gate002,Wood_Gate003,Wood_Gate004"),
             ("Chapel", "chapel stone: wall, upper storey, stained glass, bell tower", 3,
              "Chapel_Stone001,Chapel_Stone_Upper001,Chapel_Stone_Upper002,Stained_Glass001,Steeple001,Steeple002"),
+            ("Bench", "benches: facing you, facing east, facing west", 3, "Bench001,Bench002,Bench003"),
             ("Hatch", "ways down with a square base: a hatch, a trapdoor (shut, open)", 3,
              "Hatch001,Trapdoor001,Trapdoor002")):
         if not ini.section(sec, sets):
@@ -77,12 +81,17 @@ def register_tiles():
           [("Chapel_Stone001", "204 198 186"), ("Chapel_Stone_Upper001", "204 198 186"),
            ("Chapel_Stone_Upper002", "204 198 186"), ("Stained_Glass001", "120 80 160"), ("Steeple001", "204 198 186"),
            ("Steeple002", "204 198 186"), ("Hatch001", "255 0 0"), ("Trapdoor001", "255 0 0"),
-           ("Trapdoor002", "255 0 0")] + [("Steeple_Spire00%d" % i, "84 92 106") for i in (1, 2, 3)]
+           ("Trapdoor002", "255 0 0"), ("Bench002", "150 90 30"), ("Bench003", "150 90 30")] + [("Steeple_Spire00%d" % i, "84 92 106") for i in (1, 2, 3)]
     with open(colours, "a", encoding="cp1252", newline="\r\n") as f:
         for name, col in add:
             if "\n" + name + "\t" not in "\n" + have:
                 f.write("%s\t%s\n" % (name, col))
     builds = os.path.join(DATA, "Buildables.ini")
+    for bid, name in (("Bench002", "Bench (facing east)"), ("Bench003", "Bench (facing west)")):
+        if not ini.section(bid, builds):
+            for k, v in (("Kind", "Decor"), ("Category", "Furniture"), ("Name", name), ("Needs", "Plank 2 Nails 2"),
+                         ("Level", ini.read("Bench001", "Level", "2", builds)), ("XP", "0.06")):
+                ini.write(bid, k, v, builds)
     for gid, name in (("Wood_Gate001", "Gate (east-west)"), ("Wood_Gate003", "Gate (north-south)")):
         if not ini.section(gid, builds):
             for k, v in (("Kind", "Tile"), ("Category", "Walls"), ("Name", name), ("Needs", "Plank 2 Nails 4"),
@@ -224,11 +233,25 @@ def gates_and_doors():
     print("The pasture's gate, the coop's open door, the beggar's hatch")
 
 
+def chapel_bench():
+    """A bench by the chapel's west wall, facing it."""
+    m = Map("3,1,0")
+    if any(m.decor(x, y) == "Bench002" for y in range(1, 22) for x in range(1, 26)):
+        return
+    for x, y in ((11, 9), (11, 10), (11, 11), (11, 8)):
+        if m.open_ground(x, y) and not m.ent_near(x, y):
+            m.set(x, y, decor="Bench002")
+            m.save()
+            print("A bench by the chapel, at 3,1,0 %d,%d" % (x, y))
+            return
+
+
 def main():
     register_tiles()
     chapel()
     cellar_trapdoor()
     gates_and_doors()
+    chapel_bench()
 
 
 if __name__ == "__main__":

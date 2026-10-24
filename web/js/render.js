@@ -231,7 +231,10 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     const im = e.k === T.PLAYER && e.look ? lookImage(e.i, e.look) : entityImage(e, now);
     const [nx, ny] = nudgeOf(e.u, now);
     const x = Math.round(e.dx - cam.x + nx), y = Math.round(e.dy - cam.y + ny);
-    if (im) ctx.drawImage(im, x, y);
+    if (im && e.k === T.MAPITEM) {                // (things on the ground: smaller than in your hand)
+      const w = Math.round(e.w * MAPITEM_SCALE), h = Math.round(e.h * MAPITEM_SCALE);
+      ctx.drawImage(im, x + Math.round((e.w - w) / 2), y + (e.h - h), w, h);
+    } else if (im) ctx.drawImage(im, x, y);
     if (e.k === T.PLAYER) drawWorn(ctx, e, x, y);
     pick.push([e.dx, e.dy, e.w, e.h, e]);
   };
@@ -327,6 +330,7 @@ function drawInfront(ctx, cam, pick, pc) {
   }
 }
 
+const MAPITEM_SCALE = 0.75;
 const STATUS_COLOURS = { Poison: [90, 200, 60], Burn: [255, 128, 30], Bleed: [200, 24, 24], Chill: [120, 196, 255] };
 
 function drawStatusIcons(ctx, me, cam) {

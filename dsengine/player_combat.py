@@ -372,6 +372,7 @@ class CombatMixin:
         w = self.w
         drops = self.entity_ini(e.name, "Drops", "")
         drop_x, drop_y = e.cx, e.fy
+        loot_secs = val(self.data.config_read("Gameplay", "Loot.Private.Seconds", "10"))
         i = 1
         while word(drops, i) != "":
             dd = word(drops, i)
@@ -389,6 +390,9 @@ class CombatMixin:
                         item = w.add_map_item(name, e.z, x, y, each, e.owner)
                         if item is not None:
                             item.source = "DROPPED"
+                            if item.owner is None and loot_secs > 0:          # (the killer's to pick up first)
+                                item.private_to = self
+                                item.public_at = self.now + loot_secs * 1000
                             m = w.maps.get(item.map)
                             if m is not None and item.owner is None:
                                 w.add_action_to_queue("REMOVE", name, "MapItem", lbstr(each), m.name,

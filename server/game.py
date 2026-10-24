@@ -187,7 +187,7 @@ class GameServer:
     # Connections
     # =================================================================================================================
     async def handle_ws(self, request):
-        ws = web.WebSocketResponse(heartbeat=20, max_msg_size=65536)
+        ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
         await ws.prepare(request)
         c = Client(ws, request.remote)
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,

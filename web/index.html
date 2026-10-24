@@ -111,14 +111,17 @@
 </div>
 
 <div id="quit" class="overlay" hidden>
-  <div class="panel">
-    <h2>Leave Dragon Sword?</h2>
-    <p class="dim">Your game is saved on the server.</p>
+  <div class="panel menu-panel">
+    <h2>Menu</h2>
+    <div class="buttons menu-stack">
+      <button type="button" id="quit-no">Keep playing</button>
+      <button type="button" id="quit-options">Options</button>
+    </div>
+    <hr class="menu-rule">
+    <p class="dim small">Leaving? Your game is saved on the server.</p>
     <div class="buttons">
       <button type="button" id="quit-yes">Save and leave</button>
       <button type="button" id="quit-logout" title="Leave, and this browser forgets you: your name and password next time">Log out</button>
-      <button type="button" id="quit-options">Options</button>
-      <button type="button" id="quit-no">Keep playing</button>
     </div>
   </div>
 </div>

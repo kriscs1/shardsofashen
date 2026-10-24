@@ -681,6 +681,19 @@ function drawBox(ctx) {
       y += n;
     }
     ctx.drawImage(bg, 0, h - foot, w, foot, x0, y0 + full - foot, w, foot);
+    // (the picture's bottom edge is a thin line: its top border, upside down, makes the bottom match the rest)
+    // (its right end from the top-left corner, mirrored: the top-right has the close button in it)
+    const corner = 60;
+    ctx.save();
+    ctx.translate(0, y0 + full);
+    ctx.scale(1, -1);
+    ctx.drawImage(bg, 0, 0, w - corner, BOX_BORDER, x0, 0, w - corner, BOX_BORDER);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(x0 + w, y0 + full);
+    ctx.scale(-1, -1);
+    ctx.drawImage(bg, 0, 0, corner, BOX_BORDER, 0, 0, corner, BOX_BORDER);
+    ctx.restore();
   } else roundBox(ctx, x0, y0, w, full, [51, 34, 27], [126, 77, 63], 2, 10);
   const portrait = /^Player/.test(b.image || "") && S.me.look ? lookImage(b.image, S.me.look) : sprite(b.image);
   const [pw, ph] = size(b.image);
@@ -691,7 +704,7 @@ function drawBox(ctx) {
       ctx.drawImage(portrait, x0 + 24, y0 + 20, pw * 2, ph * 2);
       ctx.restore();
     }
-    titleX = 24 + Math.max(32, pw) * 2 + 16; titleY = 18;
+    titleX = 24 + Math.max(32, pw) * 2 + 16; titleY = 25;
   } else {
     // the trader (or the chest, the board) in a frame on the left
     roundBox(ctx, x0 + 13, y0 + 44, 46, 52, [30, 19, 14], [150, 104, 62], 2, 8);
@@ -701,7 +714,7 @@ function drawBox(ctx) {
       ctx.drawImage(portrait, x0 + 36 - Math.floor(pw * k / 2), y0 + 70 - Math.floor(ph * k / 2), pw * k, ph * k);
       ctx.restore();
     }
-    titleX = 22; titleY = 18;
+    titleX = 22; titleY = 23;
   }
   const tw = drawText(ctx, b.title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
   const lift = Math.round((fontPx(12) - fontPx(9)) * 0.8);           // (the kind sits on the title's baseline)
@@ -718,9 +731,9 @@ function drawBox(ctx) {
       lineH = Math.max(14, fontPx(sz) + 3);
       lines = [];
       for (const part of parts) lines.push(...wrapLines(ctx, part, maxW, sz, true));
-      if (lines.length * lineH + (heading ? lineH + 8 : 0) <= h - 58) break;
+      if (lines.length * lineH + (heading ? lineH + 8 : 0) <= h - 64) break;
     }
-    let y = 48;
+    let y = 54;
     if (heading) {
       drawText(ctx, heading, x0 + titleX, y0 + y, 11, true, [255, 214, 110]);
       y += lineH + 8;
@@ -800,10 +813,11 @@ export function boxCloseAt(x, y) {
 }
 
 // ----- the answers, inside the box's frame below what it shows: a row each, numbered (press the number, or click)
-const RB_TOP = 2, RB_ROW = 24, FRAME_LAP = 0;
+const RB_TOP = 6, RB_ROW = 24, FRAME_LAP = 0, BOX_BORDER = 17, RB_SIDE = 24;
 
 function responseBoxH() {
-  return Math.max(40, RB_TOP + S.box.responses.length * RB_ROW + 18);
+  // (the rows, then as much room under the last as over the first, then the frame's bottom border)
+  return Math.max(40, RB_TOP + S.box.responses.length * RB_ROW - 4 + RB_TOP + BOX_BORDER);
 }
 
 function numberBadge(ctx, cx, cy, text, hot) {
@@ -819,7 +833,7 @@ function drawResponses(ctx) {
   const b = S.box;
   const [w] = size(boxBackground());
   const x0 = L.rbX, y0 = L.rbY - FRAME_LAP;
-  const left = x0 + 13, right = x0 + 425;         // (lined up with the portrait and the page buttons above)
+  const left = x0 + RB_SIDE, right = x0 + w - RB_SIDE;   // (as far in from the frame on the right as on the left)
   b.responses.forEach((r, i) => {
     const y = y0 + RB_TOP + i * RB_ROW;
     const hot = U.rbHover === i + 1;
@@ -832,7 +846,7 @@ function drawResponses(ctx) {
 export function responseAt(x, y) {
   if (!S.box.mode) return 0;
   const [w] = size(boxBackground());
-  if (x < L.rbX + 13 || x > L.rbX + 425) return 0;
+  if (x < L.rbX + RB_SIDE || x > L.rbX + w - RB_SIDE) return 0;
   const top = L.rbY - FRAME_LAP + RB_TOP;
   const n = Math.floor((y - top) / RB_ROW) + 1;
   const inRow = (y - top) % RB_ROW < RB_ROW - 4;

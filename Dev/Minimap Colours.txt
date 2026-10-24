@@ -747,3 +747,5 @@ Trapdoor002	255 0 0
 Steeple_Spire001	84 92 106
 Steeple_Spire002	84 92 106
 Steeple_Spire003	84 92 106
+Bench002	150 90 30
+Bench003	150 90 30

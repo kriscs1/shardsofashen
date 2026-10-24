@@ -351,6 +351,29 @@ def hatch(open_=True, floor="Tile001"):
     return s
 
 
+# ---------------------------------------------------------------- a bench seen from the side (Bench001 faces you)
+def side_bench():
+    """Facing east: the seat a strip running up the tile, its back along the west side, raised a little."""
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)
+    lit, wood, dark = (180, 120, 60), (150, 90, 30), (90, 60, 30)
+    sh = pygame.Surface((32, 32), pygame.SRCALPHA)
+    pygame.draw.rect(sh, (0, 0, 0, 110), (12, 26, 10, 3))                   # (its shadow, on the ground)
+    pygame.draw.rect(sh, (0, 0, 0, 110), (20, 9, 3, 19))
+    s.blit(sh, (0, 0))
+    for x, y0, y1 in ((10, 21, 27), (14, 24, 28), (18, 24, 28)):           # legs
+        pygame.draw.line(s, dark, (x, y0), (x, y1), 2)
+    pygame.draw.rect(s, wood, (13, 8, 7, 17))                               # the seat: two boards
+    pygame.draw.line(s, lit, (13, 8), (13, 24))
+    pygame.draw.line(s, dark, (16, 8), (16, 24))
+    pygame.draw.line(s, dark, (13, 24), (19, 24))
+    pygame.draw.rect(s, wood, (8, 3, 4, 19))                                # the back, standing up behind
+    pygame.draw.line(s, lit, (8, 3), (8, 21))
+    pygame.draw.line(s, lit, (8, 3), (11, 3))
+    for y in (7, 18):                                                       # its posts down to the seat
+        pygame.draw.rect(s, dark, (11, y, 3, 2))
+    return s
+
+
 def main():
     pygame.init()
     pygame.display.set_mode((1, 1))
@@ -361,6 +384,7 @@ def main():
                       ("Chapel_Stone001", ashlar(70)), ("Chapel_Stone_Upper001", chapel_upper(False)),
                       ("Chapel_Stone_Upper002", chapel_upper(True)), ("Stained_Glass001", stained_glass()),
                       ("Steeple001", steeple_face()), ("Steeple002", steeple_belfry()),
+                      ("Bench002", side_bench()), ("Bench003", pygame.transform.flip(side_bench(), True, False)),
                       ("Hatch001", hatch(True, None)), ("Trapdoor001", hatch(False)), ("Trapdoor002", hatch(True))):
         pygame.image.save(img, os.path.join(TILES, name + ".png"))
     print("Drew Tallulah, the cow, the gates, the chapel's stone, glass and tower, the hatch and the trapdoor")

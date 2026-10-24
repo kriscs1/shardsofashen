@@ -765,3 +765,27 @@ def test_the_effects_bar_knows_what_hurts_and_for_how_long(world):
     assert s.status_words("Burn") == "1-2 damage every second"
     assert s.status_words("Chill").startswith("Slowed")
     leave(world, s)
+
+
+def test_a_kills_loot_is_the_killers_for_ten_seconds(world):
+    a, b = join(world, "Slayer"), join(world, "Passerby")
+    goblin = next(e for e in world.ents if e.name == "Goblin")
+    before = {e.uid for e in world.ents}
+    a.add_npc_drops(goblin)                                        # (bones: always)
+    loot = [e for e in world.ents if e.uid not in before]
+    assert loot and all(e.private_to is a for e in loot)
+    assert all(world.visible_to(e, a) and not world.visible_to(e, b) for e in loot)
+    world.now += 11000
+    assert all(world.visible_to(e, b) for e in loot)
+    for e in loot:
+        world.remove_entity(e)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_crafting_lists_go_by_the_level_they_need(world):
+    s = join(world, "Crafter")
+    assert s.open_item_rack("CRAFT", "Workbench", "CRAFT-Smithing") is not False
+    levels = [r["level"] for r in s.rack]
+    assert levels == sorted(levels) and len(levels) > 3
+    leave(world, s)

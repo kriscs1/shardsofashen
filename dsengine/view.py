@@ -112,5 +112,6 @@ def snapshot(w, s):
     me = {"x": round(p.x, 1), "y": round(p.y, 1), "z": p.z, "i": p.image, "d": p.direction}
     if add or change or gone or me != getattr(s, "last_me_pos", None):
         s.last_me_pos = me
-        out.append({"t": "snap", "add": add, "chg": change, "del": gone, "me": me, "maps": sorted(names)})
+        out.append({"t": "snap", "add": add, "chg": change, "del": gone, "me": me, "maps": sorted(names),
+                    "st": int(w.now)})
     return out

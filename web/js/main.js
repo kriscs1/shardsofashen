@@ -92,7 +92,21 @@ function placeChat() {
   box.style.bottom = "auto";
 }
 
+function sendChat() {
+  const text = $("chat-input").value.trim();
+  if (text) send({ t: "chat", text });
+  $("chat-input").value = "";
+  $("chat-entry").hidden = true;
+  canvas.focus();
+}
+
 function openChat(start) {
+  // (open already, the keys elsewhere - a click in the world took them: Enter sends what's written, or goes back to it)
+  if (!$("chat-entry").hidden && typeof start !== "string") {
+    if ($("chat-input").value.trim()) sendChat();
+    else $("chat-input").focus();
+    return;
+  }
   if (typeof start === "string") $("chat-input").value = start;
   const box = $("chat-entry");
   box.hidden = false;
@@ -104,11 +118,7 @@ function openChat(start) {
 $("chat-input").addEventListener("keydown", (ev) => {
   ev.stopPropagation();
   if (ev.key === "Enter") {
-    const text = ev.target.value.trim();
-    if (text) send({ t: "chat", text });
-    ev.target.value = "";
-    $("chat-entry").hidden = true;
-    canvas.focus();
+    sendChat();
   } else if (ev.key === "Escape") {
     ev.target.value = "";
     $("chat-entry").hidden = true;
@@ -117,7 +127,8 @@ $("chat-input").addEventListener("keydown", (ev) => {
 });
 
 function overlayOpen() {
-  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password", "death"].some((id) => !$(id).hidden) || !$("chat-entry").hidden;
+  // (not the chat line: you can walk, click and fight with it open)
+  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password", "death"].some((id) => !$(id).hidden);
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -451,7 +462,15 @@ N.onMessage = (m) => {
       break;
     case "quests": S.quests = m.quests; S.marks = m.marks; S.level = m.level; break;
     case "weather": setWeather(m); break;
-    case "snap": applySnap(m, now); break;
+    case "snap":
+      if ("st" in m) {
+        const late = now - m.st;
+        if (S.catchUpUntil) {
+          if (late - S.lagBase < 300 || now > S.catchUpUntil) S.catchUpUntil = 0;     // (caught up)
+        } else S.lagBase = Math.min(S.lagBase ?? Infinity, late);
+      }
+      applySnap(m, now);
+      break;
     case "box":
       S.box = m;
       if (m.mode) { U.rcm = null; releaseKeys(); }
@@ -466,8 +485,8 @@ N.onMessage = (m) => {
       break;
     case "players": S.players = m.list; S.max = m.max; break;
     case "where": S.where = m.list || []; break;
-    case "sound": playSound(m.name, "x" in m ? [m.x, m.y] : null); break;
-    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": addFx(m, now); break;
+    case "sound": if (!behind()) playSound(m.name, "x" in m ? [m.x, m.y] : null); break;
+    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": if (!behind()) addFx(m, now); break;
     case "hurt": S.hurtUntil = now + 240; break;
     case "levelup": showBanner(m.skill, m.level, now); break;
     case "clock": S.clock = { day: m.day, secs: m.secs, on: m.on, at: now }; break;
@@ -542,8 +561,25 @@ async function startGame(m) {
 // ================================================================================================================
 // The frame
 // ================================================================================================================
+// (minimised, a browser can stop reading the server; back, it races through what it missed. That's not shown:
+// the last picture stays, quiet, until it has caught up - four seconds at most - then it's the world as it is now)
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) hiddenAt = performance.now();
+  else if (hiddenAt && performance.now() - hiddenAt > 1000) S.catchUpUntil = performance.now() + 4000;
+});
+function behind() { return document.hidden || !!S.catchUpUntil; }
+// (the page closed: say goodbye at once, rather than leave the character standing there until the server notices)
+window.addEventListener("pagehide", () => {
+  if (running) { send({ t: "quit" }); if (N.ws) N.ws.close(); }
+});
+
 function frame(now) {
   requestAnimationFrame(frame);
+  if (running && S.catchUpUntil) {
+    if (now > S.catchUpUntil) S.catchUpUntil = 0;
+    else return;
+  }
   const dt = Math.min(0.1, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
