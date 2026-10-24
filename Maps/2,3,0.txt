@@ -68,3 +68,4 @@ StaticObject	Dice_Table	288	128	Id=Dice_Table_2
 StaticObject	Dice_Table	480	128	Id=Dice_Table_3
 StaticObject	Sign_Tavern	256	112
 Id	The_Green_Dragon	13	6
+NPC	Cat	384	568	Attitude=Good Zone=10,16,16,20

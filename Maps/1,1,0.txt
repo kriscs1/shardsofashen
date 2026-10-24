@@ -36,3 +36,4 @@ NPC	Merchant	320	384	Attitude=Good Stand=1 Id=Isle_Storekeeper Name=Hilda
 Id	Isle_Landing	10	11
 StaticObject	Sign_General	352	496
 Id	Isle_Store	11	17
+NPC	Cat	256	312	Attitude=Good Zone=6,8,12,14

@@ -25,3 +25,4 @@ Id	Cottage	8	12
 Id	Cottage_Door	7	14
 NPC	Rabbit	448	512	Attitude=Bad Zone=12,14,19,19
 NPC	Rabbit	64	512	Attitude=Bad Zone=2,15,10,19
+NPC	Ginger_Cat	256	344	Attitude=Good Zone=6,10,9,12 Pause=6-15 Id=Jimmy Name=Jimmy

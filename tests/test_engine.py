@@ -1049,3 +1049,20 @@ def test_hens_do_not_keep_you_awake(world):
     assert "enemies" in s.sleep_refusal()                            # (a wolf is)
     world.remove_entity(wolf)
     leave(world, s)
+
+
+def test_jimmy_is_at_home_in_the_cottage(world):
+    s = join(world, "CatLover", "4,0,0", 7 * 32, 11 * 32)           # (where a new character wakes)
+    s.connected = True
+    jimmy = [e for e in world.ents if getattr(e, "id", None) == "Jimmy" or getattr(e, "display", "") == "Jimmy"]
+    assert len(jimmy) == 1 and jimmy[0].name == "Ginger_Cat" and jimmy[0].map == "4,0,0"
+    e = jimmy[0]
+    assert not world.hostile_for(e, s) and "Stroke" in s.get_verbs(e) and "Attack" not in s.get_verbs(e)
+    s.out = []
+    s.choose_verb("Stroke", e, int(e.fx), int(e.fy))
+    for _ in range(120):
+        world.tick(0.05)
+    assert any(ev.get("t") == "sound" and ev.get("name") == "Purr" for ev in s.out)
+    assert any("Jimmy" in str(ev.get("text", "")) for ev in s.out)
+    assert len({e.name for e in world.ents if e.name in ("Cat", "Black_Cat", "Ginger_Cat")}) == 3   # (and in the towns)
+    leave(world, s)

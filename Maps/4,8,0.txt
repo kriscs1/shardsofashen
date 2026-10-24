@@ -35,3 +35,4 @@ Id	Waystone_Highwatch	11	12
 StaticObject	Homestone	288	384
 StaticObject	Sign_General	64	176
 StaticObject	Market_Board	256	304
+NPC	Ginger_Cat	256	152	Attitude=Good Zone=6,3,12,9

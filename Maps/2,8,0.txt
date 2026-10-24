@@ -29,3 +29,4 @@ NPC	Bog_Troll	608	96	Attitude=Bad
 NPC	Rat	448	608	Attitude=Bad
 Id	Fenwick_Square	5	7
 StaticObject	Sign_General	384	144
+NPC	Cat	96	216	Attitude=Good Zone=2,5,7,11

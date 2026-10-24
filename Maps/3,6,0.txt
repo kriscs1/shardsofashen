@@ -32,3 +32,4 @@ NPC	Rabbit	512	96	Attitude=Bad
 NPC	Butterfly	160	416	Attitude=Good
 Id	Moorcross_Square	14	7
 StaticObject	Sign_General	672	176
+NPC	Black_Cat	384	152	Attitude=Good Zone=10,3,16,9
