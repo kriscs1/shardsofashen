@@ -953,7 +953,7 @@ def check_tiles():
                 err(r, "[%s] Unlocked.Tile %r has no sprite in Sprites\\Tiles" % (sec, v))
             elif k not in ("Walkable.Data", "Show.Name", "Use.Words", "Examine.Info", "Line.of.Sight", "Walk.Speed",
                            "Blend", "Blend.Texture", "Texture", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
-                           "Layer", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
+                           "Layer", "Foam", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
                            "Door", "Glow.Colour", "Glow.Match", "Piece"):
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
@@ -1012,7 +1012,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death"}                                          # a seed's crop (Crops.ini); kept on death

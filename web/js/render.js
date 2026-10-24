@@ -174,7 +174,19 @@ function entityImage(e, now) {
       }
     }
   }
-  return sprite(image) || sprite(A.m && has("Placeholder") ? "Placeholder" : "");
+  warmWalk(image);
+  return sprite(image);
+}
+
+// ----- a creature's walking frames are fetched together, the first time one is wanted: a frame still on its way
+// would leave a gap mid-stride (it keeps the picture it had meanwhile; see draw)
+const warmed = new Set();
+const lastImage = new Map();                      // uid -> the picture it was drawn with last
+function warmWalk(image) {
+  const w = /^(.+)[1248][abc]$/.exec(image || "");
+  if (!w || warmed.has(w[1])) return;
+  warmed.add(w[1]);
+  for (const d of "1248") for (const f of "abc") sprite(w[1] + d + f);
 }
 
 function healthImage(hp, max) {
@@ -229,8 +241,11 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     shown.push(e);
   }
   V.seen = new Set(shown.map((e) => e.u));
+  if (lastImage.size > 600) lastImage.clear();
   const draw = (e) => {
-    const im = e.k === T.PLAYER && e.look ? lookImage(e.i, e.look) : entityImage(e, now);
+    let im = e.k === T.PLAYER && e.look ? (warmWalk(e.i), lookImage(e.i, e.look)) : entityImage(e, now);
+    if (im) lastImage.set(e.u, im);               // (a frame not loaded yet: the one before it, not a "?")
+    else im = lastImage.get(e.u) || sprite(has("Placeholder") ? "Placeholder" : "");
     const [nx, ny] = nudgeOf(e.u, now);
     const x = Math.round(e.dx - cam.x + nx), y = Math.round(e.dy - cam.y + ny);
     if (im && e.k === T.MAPITEM) {                // (things on the ground: smaller than in your hand)
@@ -297,6 +312,7 @@ function drawWorn(ctx, e, x, y) {
   let suffix = (e.i || "").slice(-2);
   if (!/^[1248][abc]$/.test(suffix)) suffix = "4a";
   for (const item of worn) {
+    warmWalk("Worn_" + item + suffix);
     const g = sprite("Worn_" + item + suffix);
     if (g) ctx.drawImage(g, x, y);
   }

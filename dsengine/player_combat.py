@@ -586,7 +586,7 @@ class CombatMixin:
                 if not keep:
                     self.remove_inventory_item(scroll, 1)
                 self.player_last_cast = self.now
-                self.play_sound("Miss", (p.cx, p.cy))
+                self.play_sound("Fizzle", (p.cx, p.cy))
                 self.fx_anim("Puff", p.cx, p.cy, 400)
                 self.display_message(("The spell slips from your grasp. (%d%% chance: it works more surely as your "
                                       "Magic grows.)" if keep else "The spell fizzles and the scroll crumbles to dust! "

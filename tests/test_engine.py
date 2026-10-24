@@ -4,7 +4,8 @@ import os
 import pytest
 
 from dsengine import World, Session
-from dsengine.entity import MAPITEM, NPC
+from dsengine.entity import MAPITEM, NPC, AI_FLEE
+from dragonsword.lb import distance
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -1068,4 +1069,37 @@ def test_jimmy_is_at_home_in_the_cottage(world):
     assert any(ev.get("t") == "sound" and ev.get("name") == "Purr" for ev in s.out)
     assert any("Jimmy" in str(ev.get("text", "")) for ev in s.out)
     assert len({e.name for e in world.ents if e.name in ("Cat", "Black_Cat", "Ginger_Cat")}) == 3   # (and in the towns)
+    leave(world, s)
+
+
+def test_every_player_finds_a_chests_loot(world):
+    a = join(world, "FirstFinder", "0,0,0", 15 * 32, 11 * 32)        # (beside the stone circle's chest)
+    b = join(world, "SecondFinder", "0,0,0", 15 * 32, 12 * 32)
+    chest = next(e for e in world.ents if e.name == "Chest" and e.map == "0,0,0")
+    for s in (a, b, a):
+        s.connected = True
+        s.out = []
+        s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
+        for _ in range(60):
+            world.tick(0.05)
+        s.handle({"t": "respond", "n": 1})                           # (Take everything)
+        world.tick(0.05)
+    assert a.items_held("Magic_Potion") == 1 and b.items_held("Magic_Potion") == 1   # (each their own; once each)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_sheep_run_from_you_and_never_fight_back(world):
+    sheep = next(e for e in world.ents if e.name == "Sheep" and e.alive)
+    m = world.maps[sheep.map]
+    s = join(world, "Shepherd", sheep.map, int(sheep.x - m.ox) - 24, int(sheep.y - m.oy))
+    s.connected = True
+    hp = s.player.hp
+    start = distance(s.player.cx, s.player.cy, sheep.cx, sheep.cy)
+    s.provoke(sheep)
+    assert sheep.ai.state == AI_FLEE
+    for _ in range(40):
+        world.tick(0.05, now=world.now + 50)
+    assert s.player.hp == hp                                         # (it never struck back)
+    assert distance(s.player.cx, s.player.cy, sheep.cx, sheep.cy) > start   # (it ran)
     leave(world, s)

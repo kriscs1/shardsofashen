@@ -41,6 +41,7 @@ function info(name) {
     tex: tileIni(name, "Blend.Texture", name) || name,
     texture: tileIni(name, "Texture", ""),
     water: flag("Water"),
+    wade: decor && tileIni(name, "Foam", "1").trim() === "0",   // (Foam=0: reeds, lily pads - in the water, not land)
   };
   cache.info.set(name, i);
   return i;
@@ -326,14 +327,14 @@ function paintCell(ch, ci, now) {
   }
   if (ti.blend > 0) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch);
   const roofShown = !!roof && !(ch.hidden && group === ch.hidden);
-  const sea = decor && ti.kind === "water";
+  const sea = decor && ti.kind === "water" && !info(decor).wade;   // (a rock: the foam goes round it)
   if (sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);
   if (ti.kind === "water") {
     let f = ch.foam.get(ci);
     if (f === undefined) {
       const sides = foamSides(m.mz, gx, gy);
       f = null;
-      if (sides || hasLand(tile) || decor) {
+      if (sides || hasLand(tile) || sea) {
         const dist = foamDistance(ctx, dx, dy, sides);
         f = dist ? { dist, frames: new Map() } : null;
       }

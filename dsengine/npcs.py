@@ -106,6 +106,7 @@ class NPCMixin:
         d = self.data
         n = e.name
         a.solid = 0 if d.entity_ini(n, "Solid", "1") == "0" else 1
+        a.flees = trim(d.entity_ini(n, "Flees", "0")) == "1"         # (prey: runs from whoever hits it, never fights)
         layer = trim(d.entity_ini(n, "Layer", "")).upper()
         a.under = 1 if layer == "UNDER" else 0
         a.flying = 1 if layer == "OVER" else 0
@@ -413,7 +414,7 @@ class NPCMixin:
         e.in_combat = True
         e.target = foe
         e.last_combat = now
-        if not self.hostile_for(e, foe):
+        if not self.hostile_for(e, foe) or getattr(a, "flees", False):
             a.state = AI_FLEE
             a.timer = now + random_number(2500, 3500)
         else:
