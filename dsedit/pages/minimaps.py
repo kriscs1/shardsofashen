@@ -181,10 +181,18 @@ class MinimapPage(Page):
         self.log.insert("end", "Building...\n")
         self.app.status("Building the minimaps...")
 
+        done = []                                           # (the build's result, when it's finished)
+
         def work():
-            r = subprocess.run(args, cwd=self.project.root, capture_output=True, text=True)
-            self.after(0, lambda: self.built(r))
+            done.append(subprocess.run(args, cwd=self.project.root, capture_output=True, text=True))
+
+        def check():                                        # (on the editor's own thread: Tk is only safe there)
+            if done:
+                self.built(done[0])
+            else:
+                self.after(250, check)
         threading.Thread(target=work, daemon=True).start()
+        self.after(250, check)
 
     def built(self, r):
         self.log.delete("1.0", "end")

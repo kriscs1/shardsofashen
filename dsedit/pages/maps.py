@@ -334,7 +334,51 @@ class MapPage(Page):
         self.map_box.configure(values=self.project.maps())
         self.app.status("Saved map %s." % self.doc.name, "ok")
         self.app.refresh_chrome()
+        if self.doc.name != HOMESTEAD_MAP:
+            self.rebuild_minimap(parse_map_name(self.doc.name)[2])
         return True
+
+    # ----- the minimap of a saved map's level, built again (the game's minimap and world map, and the editor's
+    # world view, show it): in the background, so saving isn't held up; saves while it builds go into one more build
+    def rebuild_minimap(self, z):
+        import subprocess
+        import sys
+        import threading
+        self._mini_want = getattr(self, "_mini_want", set()) | {z}
+        if getattr(self, "_mini_busy", False):
+            return
+        levels, self._mini_want, self._mini_busy = sorted(self._mini_want), set(), True
+        args = [sys.executable, "-I", self.project.p("Dev", "migrate", "build_minimaps.py"),
+                "--levels", ",".join(str(v) for v in levels)]
+
+        done = []                                           # (the build's result, when it's finished)
+
+        def work():
+            done.append(subprocess.run(args, cwd=self.project.root, capture_output=True, text=True))
+
+        def check():                                        # (on the editor's own thread: Tk is only safe there)
+            if done:
+                self.minimap_built(done[0])
+            else:
+                self.after(250, check)
+        threading.Thread(target=work, daemon=True).start()
+        self.after(250, check)
+
+    def minimap_built(self, r):
+        self._mini_busy = False
+        if r.returncode != 0:
+            self.app.status("The minimap couldn't be built again: %s" % ((r.stderr or r.stdout).strip()[-200:]),
+                            "error")
+        else:
+            self.project.config.load()                      # (its Origin.<Z> may have moved: a map at a new edge)
+            for k in list(self.project._sprites):
+                if k[0] == "Interface" and k[1].startswith("Minimap"):
+                    del self.project._sprites[k]
+            mini = self.app.page_of("minimap")
+            if mini is not None and getattr(mini, "level", None) is not None:
+                mini.draw()
+        if self._mini_want:                                 # (saved again while it built: once more)
+            self.rebuild_minimap(next(iter(self._mini_want)))
 
     def discard(self):
         if self.doc and self.loaded is not None:
@@ -1612,6 +1656,7 @@ class MapPage(Page):
         there = MapDoc(self.project, name)
         there.entities.append(moved)
         there.save()
+        self.rebuild_minimap(parse_map_name(name)[2])
         self.doc.entities.remove(ent)
         self.sel_ent = None
         self.save()
@@ -1718,6 +1763,7 @@ class MapPage(Page):
         R.clear(source, rect, R.ground_round(source, rect))
         if not here:
             source.save()
+            self.rebuild_minimap(parse_map_name(src)[2])
         self.remember()
         already = len(standing(self.doc, (tx, ty, tx + w - 1, ty + h - 1)))
         R.put(self.doc, fresh, tx, ty, shift)
