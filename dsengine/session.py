@@ -479,7 +479,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def tick_before_npcs(self):
         if not self.in_world():
             return
-        now = self.now
         if self.dead_wait:                  # (dead, waiting to respawn: only the grave's time goes on)
             self.grave_tick(self.w.dt * 1000)
             return
@@ -815,6 +814,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         v = self.ent_attitudes.get(e.uid)
         if v is not None:
             return v
+        if not self.npc_attitudes:                  # (most never change one: no key to work out, ~1000 times a tick)
+            return None
         a = self.npc_attitudes.get(self.w.npc_key(e)) if e.type == NPC else None
         return None if a is None else a == "Bad"
 

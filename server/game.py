@@ -22,8 +22,13 @@ WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other 
 CHAT_MAX = 200
 
 
+BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
+FAILS, FAIL_WINDOW, FAIL_WAIT = 5, 60.0, 30.0     # wrong passwords (a name or an address) before a wait, and how long
+
+
 class Client:
-    """One browser connection."""
+    """One browser connection. What's sent to it waits in its own queue, written out in order by its own task, so a
+    slow connection holds up only itself - never the world's tick."""
 
     def __init__(self, ws, addr):
         self.ws = ws
@@ -31,6 +36,29 @@ class Client:
         self.session = None
         self.msg_times = []
         self.closed = False
+        self.queue = asyncio.Queue()
+        self.writer = None
+
+    async def write(self):
+        try:
+            while True:
+                msg = await self.queue.get()
+                try:
+                    if not self.closed:
+                        await self.ws.send_str(json.dumps(msg, separators=(",", ":")))
+                except (ConnectionResetError, RuntimeError):
+                    self.closed = True
+                finally:
+                    self.queue.task_done()
+        except asyncio.CancelledError:
+            pass
+
+    async def flush(self, seconds=1.0):
+        """Wait (a moment at most) for what's queued to go: before closing it, say why."""
+        try:
+            await asyncio.wait_for(self.queue.join(), seconds)
+        except asyncio.TimeoutError:
+            pass
 
 
 class GameServer:
@@ -51,6 +79,7 @@ class GameServer:
         log.info("World ready: %d maps, %d things (%.1fs)", len(self.world.maps), len(self.world.ents),
                  time.time() - t0)
         self.clients = {}                   # Session -> Client
+        self.login_fails = {}               # ("name" or "addr", which) -> when its passwords were wrong (monotonic)
         self.running = False
         self.last_save = time.time()
         self.last_where = 0.0
@@ -158,12 +187,16 @@ class GameServer:
             await asyncio.gather(*sends, return_exceptions=True)
 
     async def send(self, c, msg):
+        """msg queued for c (its writer sends it, in order). A connection too far behind is closed (its player's
+        game is saved as they go): it would only fall further behind."""
         if c.closed:
             return
-        try:
-            await c.ws.send_str(json.dumps(msg, separators=(",", ":")))
-        except (ConnectionResetError, RuntimeError):
+        if c.queue.qsize() >= BACKLOG:
+            log.warning("%s is too far behind: closing the connection", c.session.player_name if c.session else c.addr)
             c.closed = True
+            await c.ws.close()
+            return
+        c.queue.put_nowait(msg)
 
     def broadcast(self, msg, exclude=None):
         for s in self.world.sessions.values():
@@ -191,6 +224,7 @@ class GameServer:
         ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
         await ws.prepare(request)
         c = Client(ws, request.remote)
+        c.writer = asyncio.ensure_future(c.write())
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
                             "registration": self.registration, "invite": bool(self.invite_code), **self.version})
         try:
@@ -213,8 +247,26 @@ class GameServer:
                     self.handle_game(c, data)
         finally:
             c.closed = True
+            if c.writer is not None:
+                c.writer.cancel()
             self.disconnect(c)
         return ws
+
+    def login_wait(self, name, addr):
+        """Seconds a name or an address must wait after too many wrong passwords (0: none)."""
+        now = time.monotonic()
+        waits = []
+        for key in (("name", name.lower()), ("addr", addr)):
+            times = [t for t in self.login_fails.get(key, []) if now - t < FAIL_WINDOW]
+            self.login_fails[key] = times
+            if len(times) >= FAILS:
+                waits.append(int(FAIL_WAIT - (now - times[-1])) + 1)
+        return max([w for w in waits if w > 0], default=0)
+
+    def login_failed(self, name, addr):
+        now = time.monotonic()
+        for key in (("name", name.lower()), ("addr", addr)):
+            self.login_fails.setdefault(key, []).append(now)
 
     @staticmethod
     def rate_ok(c):
@@ -231,6 +283,11 @@ class GameServer:
             return
         name = auth.clean_name(data.get("name", ""))
         password = str(data.get("password", ""))[:200]
+        wait = self.login_wait(name, c.addr)
+        if wait:
+            await self.send(c, {"t": "login_fail", "reason": "Too many wrong passwords: try again in %d seconds."
+                                % wait})
+            return
         if not name:
             await self.send(c, {"t": "login_fail", "reason": "Pick a name: letters, numbers, spaces, _ and -."})
             return
@@ -248,7 +305,8 @@ class GameServer:
             if len(password) < 4:
                 await self.send(c, {"t": "login_fail", "reason": "Use a password of at least 4 characters."})
                 return
-            self.store.create_account(name, auth.hash_password(password), False)
+            hashed = await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
+            self.store.create_account(name, hashed, False)
             acct = self.store.account(name)
         else:
             if acct is None:
@@ -258,7 +316,8 @@ class GameServer:
                 await self.send(c, {"t": "login_fail",
                                     "reason": "%s has no password yet: ask the server's admin to set one." % name})
                 return
-            elif not auth.check_password(password, acct[1]):
+            elif not await asyncio.get_running_loop().run_in_executor(None, auth.check_password, password, acct[1]):
+                self.login_failed(name, c.addr)
                 await self.send(c, {"t": "login_fail", "reason": "Wrong password."})
                 return
         name, _, admin = acct
@@ -273,6 +332,7 @@ class GameServer:
             if oc is not None:
                 oc.session = None
                 await self.send(oc, {"t": "kicked", "reason": "You logged in somewhere else."})
+                await oc.flush()
                 await oc.ws.close()
             s = old
             s.connected = True
@@ -430,6 +490,7 @@ class GameServer:
             await self.send(c, {"t": "kicked", "reason": "The server is stopping (your game is saved)."})
         self.save_all()
         for c in list(self.clients.values()):
+            await c.flush()
             try:
                 await c.ws.close()
             except Exception:

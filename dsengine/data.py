@@ -97,7 +97,7 @@ class GameData:
         if not self.map_exists(self.start_map):
             self.start_map = self.first_map()
         self.day_night_enabled = val(c("Gameplay", "DayNight", "1"))
-        self.day_seconds = 60 * val(c("Gameplay", "Day.Minutes", "24"))
+        self.day_seconds = 60 * max(0.1, val(c("Gameplay", "Day.Minutes", "24")))   # (0 would stop the clock dead)
         self.pathfinding_enabled = val(c("Gameplay", "Pathfinding", "1")) == 1
         skills = c("Skills", "List", "Strength,Defence,Hitpoints,Cooking,Smithing,Fishing,Mining,Woodcutting")
         names = [trim(s) for s in skills.split(",") if s != ""][:30]

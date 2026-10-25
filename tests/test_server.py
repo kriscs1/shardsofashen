@@ -280,3 +280,26 @@ def test_everyone_sees_where_the_others_are(tmp_path):
             await two.close()
         await runner.cleanup()
     asyncio.run(run())
+
+
+def test_too_many_wrong_passwords_wait(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        try:
+            async with aiohttp.ClientSession() as http:
+                w, m = await login(http, url, "Guarded", "right-one")
+                assert m["t"] == "welcome"
+                await w.close()
+                reasons = []
+                for _ in range(6):
+                    w, m = await login(http, url, "Guarded", "wrong", mode="login")
+                    reasons.append(m.get("reason", ""))
+                    await w.close()
+                assert reasons[:5] == ["Wrong password."] * 5
+                assert "Too many wrong passwords" in reasons[5]
+                w, m = await login(http, url, "Guarded", "right-one", mode="login")
+                assert m["t"] == "login_fail" and "Too many" in m["reason"]     # (even the right one, for a while)
+                await w.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(run())
