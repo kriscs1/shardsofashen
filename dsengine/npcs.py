@@ -597,7 +597,8 @@ class NPCMixin:
             doors = []
             for y in range(1, self.yt + 1):
                 for x in range(1, self.xt + 1):
-                    if self.data.door_kind(m.tile[m.cell(x, y)]) == "1":
+                    c = m.cell(x, y)
+                    if "1" in (self.data.door_kind(m.tile[c]), self.data.door_kind(m.decor[c])):   # (a gate too)
                         doors.append((m.ox + (x - 0.5) * self.tw, m.oy + (y - 0.5) * self.th))
             cache[key] = doors
         if not doors:

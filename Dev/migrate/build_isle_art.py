@@ -170,7 +170,7 @@ def boards(s, rect, upright=True):
 
 
 def gate_across(open_):
-    s = tile("Grass001").copy()
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)          # (see-through: decor, over whatever ground it's on)
     sh = pygame.Surface((32, 32), pygame.SRCALPHA)
     pygame.draw.rect(sh, SHADOW, (0, 22, 32, 3))
     if open_:
@@ -192,7 +192,7 @@ def gate_across(open_):
 
 
 def gate_upright(open_):
-    s = tile("Grass001").copy()
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)          # (see-through: decor, over whatever ground it's on)
     sh = pygame.Surface((32, 32), pygame.SRCALPHA)
     pygame.draw.rect(sh, SHADOW, (19, 2, 3, 30))
     if open_:

@@ -30,7 +30,8 @@ HOME_LEVEL = 1000               # home n is the map 0,0,<HOME_LEVEL + n>
 VISIT = ("closed", "friends", "open")
 VISIT_WORDS = {"closed": "only you", "friends": "you and your friends", "open": "anyone"}
 REFUND = 0.5
-BED_FEET = {"Bed001": "Bed002"}                 # (a bed's head: its foot, in the tile below)
+BED_FEET = {"Bed001": "Bed002"}
+GATES = ("Wood_Gate001", "Wood_Gate002", "Wood_Gate003", "Wood_Gate004")   # (decor now, over the ground: once tiles)                 # (a bed's head: its foot, in the tile below)
 MENU_MAX = 10
 
 
@@ -162,6 +163,8 @@ class Homes:
             if not m.inside(x, y):
                 continue
             c = m.cell(x, y)
+            if cell.get("tile") in GATES and not cell.get("decor"):      # (a gate built when gates were ground)
+                cell["decor"] = cell.pop("tile")
             if cell.get("tile"):
                 m.tile[c] = cell["tile"]
             if cell.get("decor"):

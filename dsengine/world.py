@@ -897,7 +897,8 @@ class World(NPCMixin):
                 continue
             m = self.maps[key[0]]
             x, y = key[1], key[2]
-            name = m.tile[m.cell(x, y)]
+            c = m.cell(x, y)
+            name = m.decor[c] if self.data.door_open_tile(m.decor[c]) else m.tile[c]   # (a gate: a door in the decor)
             o = self.data.door_open_tile(name)
             if not o:
                 continue
@@ -911,7 +912,8 @@ class World(NPCMixin):
             if key not in near and not 0 <= now - t < DOOR_SHUT_MS:
                 del self.doors_open[key]
                 m = self.maps[key[0]]
-                if m.tile[m.cell(key[1], key[2])] == self.data.door_open_tile(closed):
+                c = m.cell(key[1], key[2])
+                if self.data.door_open_tile(closed) in (m.tile[c], m.decor[c]):
                     self.change_tile(m, key[1], key[2], closed)
 
     # =================================================================================================================

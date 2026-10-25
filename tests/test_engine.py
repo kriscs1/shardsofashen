@@ -1245,14 +1245,29 @@ def test_each_grave_says_who_lies_there(world):
     s.connected = True
     m = s.cur_map
     said = []
-    for tx, ty in ((3, 3), (9, 3)):                                  # (two Grave001s: once both Old Tom)
+    for pid in ("Grave_Tom_Barrow", "Grave_Ned_Pike"):               # (two Grave001s: once both Old Tom)
         s.out = []
-        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        pl = world.data.place(pid)                                   # (found by its name, wherever it's moved to)
+        gx, gy = m.ox + (pl.tx - 1) * 32 + 16, m.oy + (pl.ty - 1) * 32 + 16
         e = s.tile_entity_at(gx, gy)
-        assert e.name == "Grave001" and e.npc_id
+        assert e.name.startswith("Grave") and e.npc_id == pid
         s.choose_verb("Examine", e, gx, gy)
         for _ in range(5):
             world.tick(0.05)
         said += [ev["text"] for ev in s.out if ev["t"] == "msg"]
     assert any("Tom Barrow" in t for t in said) and any("Ned Pike" in t for t in said)
     leave(world, s)
+
+
+def test_a_gate_is_decor_and_opens_as_a_door(world):
+    m = world.maps["2,0,0"]
+    c = m.cell(8, 11)
+    assert m.decor[c] == "Wood_Gate003" and m.tile[c] != "Wood_Gate003"    # (in the decor, over its ground)
+    s = join(world, "Drover", "2,0,0", 7 * 32, 10 * 32 - 8)          # (standing at the gate)
+    for _ in range(10):
+        world.tick(0.05, now=world.now + 50)
+    assert m.decor[c] == "Wood_Gate004"                              # (open, as someone comes through)
+    leave(world, s)
+    for _ in range(60):
+        world.tick(0.05, now=world.now + 100)
+    assert m.decor[c] == "Wood_Gate003"                              # (and shut again behind them)
