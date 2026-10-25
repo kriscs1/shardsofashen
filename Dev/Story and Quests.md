@@ -45,7 +45,7 @@ going underground, and casting a spell.
 | 12 | Show the ticket to Maren and **sail to Southport**. | The pier |
 
 **Reward:** passage to the mainland (after the first crossing the ferry costs 1 gold).
-**Unlocks:** chapter 2, *A Place of Your Own*, *The Herbalist's Remedy*.
+**Unlocks:** chapter 2 and every side quest given on the mainland.
 
 ### Chapter 2: King's Hobgoblin Hunt
 
@@ -126,12 +126,12 @@ Construction experience.
 The Herbalist in her cottage on the Ashford farmlands wants 3 cave mushrooms (the old iron mine) and 2 spider silk
 (giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Herblore experience.
 
-**The Beggar's Lost Key**: *level 3*
+**The Beggar's Lost Key**: *level 3, after chapter 1*
 Give the beggar in Ashford a coin and he tells you how the hobgoblins chased him out of the mine and took his key
 down to their warren. Find it and unlock his old brick house on the Isle: it's yours. (He warns of giant rats in
 its cellar.) Reward: the house.
 
-**The Smugglers' Run**
+**The Smugglers' Run**: *after chapter 1*
 Sergeant Holt at the castle's south gate wants to know how smuggled goods reach the market. The fishermen mention
 an old barrel on the lake path that nobody moves. **Search it**: it hides a tunnel to a smugglers' camp on the
 cove. **Sneak to their leader, Red Meg, unseen.** The smugglers only see ahead of them, never through cargo,
@@ -160,15 +160,15 @@ emptied):
 
 ### Greymoor, the Saltmarsh and the Redrock road
 
-**Wolves of the Moor**: *level 6*
+**Wolves of the Moor**: *level 6, after chapter 1*
 The shepherd in Moorcross: slay 6 moor wolves, then find the wolf den on the eastern moor and kill the Alpha Wolf.
 Reward: 150 gold, a steel shield, Defence experience.
 
-**Bog Lights**: *level 6, Herblore 5*
+**Bog Lights**: *level 6, Herblore 5, after chapter 1*
 Old Morwen the witch in Fenwick wants 4 bog myrtle. She brews something for Elder Pike; take it to him, then tell
 her he drank it. Reward: 80 gold, 2 mega potions, Herblore experience. (Morwen returns in *Old Hob* and chapter 4.)
 
-**Bandits on the Road**: *level 9*
+**Bandits on the Road**: *level 9, after chapter 1*
 Captain Hale in Highwatch: slay 5 bandits, then find their camp in the eastern hills and take the stolen goods
 from their strongbox. Reward: 200 gold, a steel platebody, Strength experience.
 
@@ -178,7 +178,7 @@ from their strongbox. Reward: 200 gold, a steel platebody, Strength experience.
 Qadir the merchant in Dunerest: find his caravan wreck in the desert west of town, slay the scorpions there and
 bring back its ledger. Reward: 180 gold, 2 rubies, Crafting experience.
 
-**The Frozen Forge**: *level 13*
+**The Frozen Forge**: *level 13, after chapter 1*
 Brann the forgemaster in Frosthold: bring 5 coal to light his forge, slay the Frost Troll that smashed his
 waterwheel (on the frozen lake, where chapter 4's frost lily grows), then bring 2 mithril bars. Reward: 250 gold, a
 mithril sword, Smithing experience.
@@ -193,7 +193,7 @@ The Gravekeeper in Ravensgate: find the old king's barrow on the downs and lay t
 
 ### The Cinderlands
 
-**The Lost Patrol**: *level 14*
+**The Lost Patrol**: *level 14, after chapter 1*
 The Scout in Emberwatch: her patrol never came back from the Ashwold. Recover 3 Scout's Tags from the ember hounds.
 Reward: 200 gold, a yew bow and 100 arrows.
 
@@ -202,7 +202,7 @@ Reward: 200 gold, a yew bow and 100 arrows.
 ## How the quests lead into one another
 
 ```
-Passage to the Mainland (1)
+Passage to the Mainland (1): every quest below except The Hermit's Fire needs it
 ├── King's Hobgoblin Hunt (2)
 │   ├── The Ashen Hand (3) ── The Ashen Omens (4) ── The Dragon of Ashpeak (5) ── Wardhaven opens
 │   ├── The Dwarf's Grudge
@@ -214,7 +214,8 @@ Wolves of the Moor ── The Withering Wood ── The Barrow King
 Bandits on the Road ── The Lost Caravan
 Bog Lights ── Old Hob
 
-Free-standing: The Beggar's Lost Key, The Hermit's Fire, The Frozen Forge, The Lost Patrol, The Smugglers' Run
+After the ferry only: The Beggar's Lost Key, The Frozen Forge, The Lost Patrol, The Smugglers' Run
+On the Isle, any time: The Hermit's Fire
 ```
 
 Recurring characters worth keeping consistent: **Morwen** the witch (Bog Lights, Old Hob, chapter 4), **the court
