@@ -1,4 +1,4 @@
-"""Scripts (Data\\Scripts\\*.txt), as the desktop game's script.py runs them, one per player at a time: each player has
+"""Scripts (data\\Scripts\\*.txt), as the desktop game's script.py runs them, one per player at a time: each player has
 their own script running, its variables, its waits and conversations.
 
 What a script changes in the world is shared, except quest business: once a script has looked at the player's quest
@@ -49,7 +49,7 @@ class ScriptMixin:
     # Starting, stopping
     # =================================================================================================================
     def script_path(self, name):
-        return os.path.join(self.data.root, "Data", "Scripts", name + ".txt")
+        return os.path.join(self.data.root, "data", "Scripts", name + ".txt")
 
     def script_exists(self, name):
         if not name:
@@ -511,7 +511,7 @@ class ScriptMixin:
             # Display.Refusal <message> [sound]: a no (a locked door; an empty chest's "duh-derr"): in red, with a sound
             self.refuse(arg[1], trim(arg[2]) if len(arg) > 2 and trim(arg[2]) else "Denied")
         elif c == "Start.Wave":
-            # Start.Wave <name>: a Data\Waves.ini attack starts (a quest's battle; for everyone there)
+            # Start.Wave <name>: a data\Waves.ini attack starts (a quest's battle; for everyone there)
             self.w.waves.start(trim(arg[1]), by=self)
         elif c == "Teleport":
             target = arg[2] if arg[2] not in ("", "-") else self.screen_name

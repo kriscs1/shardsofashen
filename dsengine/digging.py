@@ -1,4 +1,4 @@
-"""Digging: a spade (its Use.Words Dig) digs where you stand, on open ground (Data\\Digging.ini Ground). Now and then
+"""Digging: a spade (its Use.Words Dig) digs where you stand, on open ground (data\\Digging.ini Ground). Now and then
 (Chance in 100) something turns up: a weighted pick from [Finds], or from the [Finds.<Place>] that covers the map
 (its Maps=), added to them or instead (Replace=1). It leaves a hole (Dug_Hole001) that grasses over after Regrow
 seconds; until then nobody can dig there again. On sand you always get a sack of sand as well."""

@@ -1,4 +1,4 @@
-"""Entities: Data\\Entities.ini, one section per sprite in Sprites\\Entities: items, objects and NPCs."""
+"""Entities: data\\Entities.ini, one section per sprite in sprites\\Entities: items, objects and NPCs."""
 import tkinter as tk
 from tkinter import ttk
 
@@ -158,14 +158,14 @@ class EntityPage(IniFormPage):
                  "Every one placed on a map is picked up once and never comes back.", col=2)
         self.row(g, 3, "Seed of crop", ttk.Combobox(g, textvariable=self.var("Crop"),
                                                     values=[""] + self.project.crops_ini.sections(), width=18),
-                 "A seed: the Data\Crops.ini crop it grows into when used on tilled soil (see the Crops section).")
+                 "A seed: the data\Crops.ini crop it grows into when used on tilled soil (see the Crops section).")
         self.row(g, 4, "Kept when you die", ttk.Combobox(g, textvariable=self.var("Keep.On.Death"),
                                                          values=["", "1", "0"], width=6),
                  "1: always kept when the player dies. 0: never (it can go in the grave). Blank: kept if it can't be "
                  "dropped. (Besides this, players keep their 5 most valuable things.)")
         self.row(g, 2, "Casts spell", ttk.Combobox(g, textvariable=self.var("Spell"),
                                                    values=[""] + self.project.spells_ini.sections(), width=18),
-                 "A scroll or potion: the Data\\Spells.ini section it casts (give it Use.Words=Cast or Drink).")
+                 "A scroll or potion: the data\\Spells.ini section it casts (give it Use.Words=Cast or Drink).")
         self.row(g, 2, "Respawn (s)", ttk.Spinbox(g, textvariable=self.var("Respawn"), from_=0, to=100000, width=8),
                  "Items: seconds before one picked up off a map comes back (blank = by its value). NPCs: seconds "
                  "before it respawns.", col=2)
@@ -209,7 +209,7 @@ class EntityPage(IniFormPage):
         ttk.Button(drops, text="Edit…", style="Small.TButton", command=self.pick_drops).pack(side="left", padx=3)
         self.row(g, 5, "Drops", drops, "Item,min-max,percent ...", span=3)
         effects = lambda: [(n, n, "") for n in self.effect_names()]
-        self.row(g, 6, "Shoots", picker_field(g, self.var("Missile"), "Missile", effects), "A Sprites\\Effects missile.")
+        self.row(g, 6, "Shoots", picker_field(g, self.var("Missile"), "Missile", effects), "A sprites\\Effects missile.")
         self.row(g, 6, "Impact", picker_field(g, self.var("Missile.Impact"), "Impact", effects), col=2)
         sounds = [""] + [s for s in self.project.sounds()]
         self.row(g, 7, "Shot sound", ttk.Combobox(g, textvariable=self.var("Missile.Sound"), values=sounds, width=18))
@@ -275,7 +275,7 @@ class EntityPage(IniFormPage):
 
     def effect_names(self):
         import os
-        d = self.project.p("Sprites", "Effects")
+        d = self.project.p("sprites", "Effects")
         return sorted({f[:-4] for f in os.listdir(d) if f.lower().endswith((".png", ".bmp"))}) if os.path.isdir(d) else []
 
     # --- after loading / on change: which groups apply, the preview, where it's used

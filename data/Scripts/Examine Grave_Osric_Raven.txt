@@ -1,0 +1,3 @@
+// The grave Grave_Osric_Raven on 8,8,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	'Osric Raven, first gravekeeper of Ravensgate. He dug his own, and dug it well.'
+02	End

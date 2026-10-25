@@ -1,6 +1,6 @@
 """The game's data, as the editor sees it: paths, ini files edited in place, maps, scripts, sprites, and an index of
-where everything is used. Files are read and written the way Dev\\migrate does (ANSI cp1252, CRLF on every line), so
-the builders' "keep your edits" check (Dev\\migrate\\common.py GEN) sees exactly what you changed."""
+where everything is used. Files are read and written the way dev\\migrate does (ANSI cp1252, CRLF on every line), so
+the builders' "keep your edits" check (dev\\migrate\\common.py GEN) sees exactly what you changed."""
 import os
 import re
 
@@ -524,23 +524,23 @@ class ScriptDoc:
 # =================================================================================================================
 # The project
 # =================================================================================================================
-HOMESTEAD_MAP = "Homestead"    # the land a new homestead starts as (Data\Homestead.txt), on a level of its own
+HOMESTEAD_MAP = "Homestead"    # the land a new homestead starts as (data\Homestead.txt), on a level of its own
 
 
 class Project:
     def __init__(self, root):
         self.root = root
-        self.config = IniDoc(self.p("Data", "Config.ini"))
+        self.config = IniDoc(self.p("data", "Config.ini"))
         self.map_w = int(self.config.get("Interface", "Map.X.Tiles", "25") or 25)
         self.map_h = int(self.config.get("Interface", "Map.Y.Tiles", "21") or 21)
         self.tile_w = self.tile_h = 32
-        self.tiles_ini = IniDoc(self.p("Data", "Tiles.ini"))
-        self.entities_ini = IniDoc(self.p("Data", "Entities.ini"))
-        self.racks_ini = IniDoc(self.p("Data", "ItemRacks.ini"))
-        self.spells_ini = IniDoc(self.p("Data", "Spells.ini"))
-        self.quests_ini = IniDoc(self.p("Data", "Quests.ini"))
-        self.buildables_ini = IniDoc(self.p("Data", "Buildables.ini"))
-        self.crops_ini = IniDoc(self.p("Data", "Crops.ini"))
+        self.tiles_ini = IniDoc(self.p("data", "Tiles.ini"))
+        self.entities_ini = IniDoc(self.p("data", "Entities.ini"))
+        self.racks_ini = IniDoc(self.p("data", "ItemRacks.ini"))
+        self.spells_ini = IniDoc(self.p("data", "Spells.ini"))
+        self.quests_ini = IniDoc(self.p("data", "Quests.ini"))
+        self.buildables_ini = IniDoc(self.p("data", "Buildables.ini"))
+        self.crops_ini = IniDoc(self.p("data", "Crops.ini"))
         self._sprites = {}
         self._lists = {}
         self._index = None
@@ -554,11 +554,11 @@ class Project:
 
     def map_path(self, name):
         if name == HOMESTEAD_MAP:
-            return self.p("Data", self.config.get("Homestead", "Template", "Homestead.txt") or "Homestead.txt")
-        return self.p("Maps", name + ".txt")
+            return self.p("data", self.config.get("Homestead", "Template", "Homestead.txt") or "Homestead.txt")
+        return self.p("maps", name + ".txt")
 
     def script_path(self, name):
-        return self.p("Data", "Scripts", name + ".txt")
+        return self.p("data", "Scripts", name + ".txt")
 
     @property
     def skills(self):
@@ -586,7 +586,7 @@ class Project:
     def tiles(self):
         """Every tile (not the extra pictures of a tile drawn from several: <Name>1..N for Tiles.ini Anim.Frames)."""
         if "tiles_shown" not in self._lists:
-            names = self._files("tiles", ("Sprites", "Tiles"), (".png", ".bmp"))
+            names = self._files("tiles", ("sprites", "Tiles"), (".png", ".bmp"))
             self._lists["tiles_shown"] = [t for t in names if not self.is_tile_frame(t)]
         return self._lists["tiles_shown"]
 
@@ -631,10 +631,10 @@ class Project:
         return self._layers.get(layer, set())
 
     def tile_sets(self):
-        """Data\TileSets.ini: [(set, title, columns, [tile names row by row, "" = a gap])], read again when it
+        """data\TileSets.ini: [(set, title, columns, [tile names row by row, "" = a gap])], read again when it
         changes. A set is tiles that go together (a roof, a rug, a fence); each tile's Tiles.ini Piece= says which
         piece it is."""
-        path = self.p("Data", "TileSets.ini")
+        path = self.p("data", "TileSets.ini")
         stamp = mtime(path)
         if getattr(self, "_sets_stamp", None) != stamp:
             doc = IniDoc(path) if os.path.exists(path) else None
@@ -659,18 +659,18 @@ class Project:
         return None
 
     def entities(self):
-        return self._files("entities", ("Sprites", "Entities"), (".png", ".bmp"))
+        return self._files("entities", ("sprites", "Entities"), (".png", ".bmp"))
 
     def scripts(self):
-        return self._files("scripts", ("Data", "Scripts"), ".txt")
+        return self._files("scripts", ("data", "Scripts"), ".txt")
 
     def sounds(self):
-        return sorted(set(self._files("sounds", ("Sounds",), ".wav")) |
-                      {s + ".mid" for s in self._files("midis", ("Sounds",), ".mid")}, key=str.lower)
+        return sorted(set(self._files("sounds", ("sounds",), ".wav")) |
+                      {s + ".mid" for s in self._files("midis", ("sounds",), ".mid")}, key=str.lower)
 
     def maps(self):
         if "maps" not in self._lists:
-            d = self.p("Maps")
+            d = self.p("maps")
             names = [f[:-4] for f in os.listdir(d) if f.endswith(".txt") and parse_map_name(f[:-4])]
             if os.path.exists(self.map_path(HOMESTEAD_MAP)) and HOMESTEAD_MAP not in names:
                 names.append(HOMESTEAD_MAP)
@@ -829,7 +829,7 @@ class Project:
                     for w in ini.get(sec, "Use.Words", "").split(","):
                         if w.strip():
                             vs.add(w.strip())
-            g = IniDoc(self.p("Data", "Gathering.ini"))
+            g = IniDoc(self.p("data", "Gathering.ini"))
             for sec in g.sections():
                 if g.get(sec, "Verb"):
                     vs.add(g.get(sec, "Verb"))
@@ -842,7 +842,7 @@ class Project:
         if key not in self._sprites and kind == "Entities" and self.is_decor_object(name):
             self._sprites[key] = self.sprite("Tiles", name)        # (a decor tile placed as an object)
         if key not in self._sprites:
-            folder = ("Dev", "Sprites") if kind == "Dev" else ("Sprites", kind)
+            folder = ("dev", "Sprites") if kind == "Dev" else ("sprites", kind)
             path = self.p(*folder, name + ".png")       # a PNG (with its transparency), or an old two-half BMP
             if not os.path.exists(path):
                 path = self.p(*folder, name + ".bmp")
@@ -871,9 +871,9 @@ class Project:
     def forget_sprite(self, kind, name):
         self._sprites.pop((kind, name), None)
 
-    # --- minimap colours (Dev\Minimap Colours.txt: Tile<TAB>R G B or a colour name)
+    # --- minimap colours (dev\Minimap Colours.txt: Tile<TAB>R G B or a colour name)
     def load_minimap_colours(self):
-        path = self.p("Dev", "Minimap Colours.txt")
+        path = self.p("dev", "Minimap Colours.txt")
         out = {}
         if os.path.exists(path):
             for l in read_text_lines(path):
@@ -883,7 +883,7 @@ class Project:
         return out
 
     def save_minimap_colours(self):
-        path = self.p("Dev", "Minimap Colours.txt")
+        path = self.p("dev", "Minimap Colours.txt")
         lines = ["%s\t%s" % (k, v) for k, v in sorted(self.minimap_colours.items(), key=lambda kv: kv[0].lower())]
         return write_text_lines(path, lines)
 

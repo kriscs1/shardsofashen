@@ -1,3 +1,0 @@
-// The grave Grave_Mossed_Over on 6,7,0 (Dev\migrate\name_graves.py)
-01	Display.Message	Black	So mossed over you can't read it. A wren has nested on top.
-02	End

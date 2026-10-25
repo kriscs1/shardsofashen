@@ -1,11 +1,11 @@
 .git
-Dev
+dev
 server-data
 web/assets
 **/__pycache__
 **/*.pyc
 .pytest_cache
-Saves/*.png
+saves/*.png
 deploy/*.env
 deploy/**/.env
 .env

@@ -797,7 +797,7 @@ class ActionsMixin:
         elif what == "wave":
             name = str(msg.get("name", "")).strip()
             if name not in self.w.waves.defs:
-                self.emit({"t": "admin_status", "text": "No such attack. Data\\Waves.ini has: %s." %
+                self.emit({"t": "admin_status", "text": "No such attack. data\\Waves.ini has: %s." %
                            ", ".join(sorted(self.w.waves.defs))})
             elif self.w.waves.start(name, by=self):
                 self.emit({"t": "admin_status", "text": "%s has begun." % name})

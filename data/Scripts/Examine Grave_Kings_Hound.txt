@@ -1,0 +1,3 @@
+// The grave Grave_Kings_Hound on 9,7,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	A small stone, carved with a hound. The old kings buried their dogs with honour.
+02	End

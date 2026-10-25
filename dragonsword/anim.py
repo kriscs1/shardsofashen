@@ -1,12 +1,12 @@
-"""Tiles that move, all set in Data\\Tiles.ini (nothing here knows a tile by its name):
+"""Tiles that move, all set in data\\Tiles.ini (nothing here knows a tile by its name):
   * Sway=<pixels>   a plant in the wind (grass, flowers, reeds, bushes): its top sways that far. A decor plant's
                     pixels are its see-through sprite's; a ground tile's are the ones that aren't its ground
                     (Sway.Ground=<tile>, else its Blend.Texture).
   * Flame=1         the bright fire-coloured pixels flicker (torches, fireplaces, lanterns, lamp posts).
   * Water=1         water: foam laps along wherever land meets it (land next to it, a rock in it, sand blended over it).
-  * Anim.Frames=N   drawn from its own pictures <Name>1..<Name>N in Sprites\\Tiles in turn, Anim.Speed ms each
+  * Anim.Frames=N   drawn from its own pictures <Name>1..<Name>N in sprites\\Tiles in turn, Anim.Speed ms each
                     (default 200), each cell a little out of step with the next (a mill wheel, a bubbling pot).
-How many frames sway, flicker and the foam have, how fast, and the foam's colour: Data\\Config.ini [Animation].
+How many frames sway, flicker and the foam have, how fast, and the foam's colour: data\\Config.ini [Animation].
 Drawn here as the ground is painted (world.paint_window_cell); anim_tick repaints the animated cells in view when their
 frame changes. Decor (a see-through tile over the ground: Layer=Decor) moves the same way over whatever it is on."""
 import math

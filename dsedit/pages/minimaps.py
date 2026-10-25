@@ -1,5 +1,5 @@
-"""Minimaps: Sprites\\Interface\\Minimap<Z>.png, one per level, built from the maps and the tiles' minimap colours
-(Dev\\migrate\\build_minimaps.py does the building). The preview is also a world map: click a square to open it,
+"""Minimaps: sprites\\Interface\\Minimap<Z>.png, one per level, built from the maps and the tiles' minimap colours
+(dev\\migrate\\build_minimaps.py does the building). The preview is also a world map: click a square to open it,
 or an empty one (round the maps, or between them) to make a new map there."""
 import os
 import subprocess
@@ -174,7 +174,7 @@ class MinimapPage(Page):
             ps = 1
         if str(ps) != self.project.config.get("Minimap", "Pixel.Size", "1"):
             levels = []                     # a new pixel size: every level
-        args = [sys.executable, "-I", self.project.p("Dev", "migrate", "build_minimaps.py"), "--pixel-size", str(ps)]
+        args = [sys.executable, "-I", self.project.p("dev", "migrate", "build_minimaps.py"), "--pixel-size", str(ps)]
         if levels:
             args += ["--levels", ",".join(levels)]
         self.log.delete("1.0", "end")

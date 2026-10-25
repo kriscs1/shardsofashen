@@ -1,4 +1,4 @@
-"""The tavern's games (the Green Dragon in Ashford: Dev\\migrate\\build_town_life.py).
+"""The tavern's games (the Green Dragon in Ashford: dev\\migrate\\build_town_life.py).
 
   * The innkeeper (Id=Innkeeper) plays two games against you, for a stake you choose:
       - Three Cups: a coin under one of three cups; find it and get 2.5 times your stake back.

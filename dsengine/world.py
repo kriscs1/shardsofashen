@@ -1177,10 +1177,10 @@ class World(NPCMixin):
                 "on": bool(self.data.day_night_enabled)}
 
     # =================================================================================================================
-    # The weather (Data\\Weather.ini): one sky for everyone; what it does where you are depends on the place's climate
+    # The weather (data\\Weather.ini): one sky for everyone; what it does where you are depends on the place's climate
     # =================================================================================================================
     def map_labels(self):
-        """The world map's labels (Data\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
+        """The world map's labels (data\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
         z, m: its map}], worked out once."""
         if getattr(self, "_labels", None) is None:
             from dragonsword import ini

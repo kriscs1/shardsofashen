@@ -4,10 +4,10 @@ FROM python:3.11-slim AS assets
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir pygame numpy
 WORKDIR /game
-COPY Data Data
-COPY Maps Maps
-COPY Sprites Sprites
-COPY Sounds Sounds
+COPY data data
+COPY maps maps
+COPY sprites sprites
+COPY sounds sounds
 COPY dragonsword dragonsword
 COPY dsengine dsengine
 COPY tools tools
@@ -23,10 +23,10 @@ ARG DS_COMMIT=
 ARG DS_BUILD_DATE=
 ENV DS_BUILD=$DS_BUILD DS_COMMIT=$DS_COMMIT DS_BUILD_DATE=$DS_BUILD_DATE
 COPY VERSION VERSION
-COPY Data Data
-COPY Maps Maps
-COPY Sprites Sprites
-COPY Saves/TEMPLATE.ini Saves/TEMPLATE.ini
+COPY data data
+COPY maps maps
+COPY sprites sprites
+COPY saves/TEMPLATE.ini saves/TEMPLATE.ini
 COPY dragonsword dragonsword
 COPY dsengine dsengine
 COPY server server
@@ -39,7 +39,7 @@ COPY deploy/docker-compose.server.yml docker-compose.yml
 COPY deploy/unraid/dragonsword.xml unraid.xml
 COPY --from=assets /game/web/assets web/assets
 COPY deploy/entrypoint.sh /entrypoint.sh
-RUN chmod 755 /entrypoint.sh && mkdir -p /data && chown -R dragon:dragon /data /game/Data
+RUN chmod 755 /entrypoint.sh && mkdir -p /data && chown -R dragon:dragon /data /game/data
 # It starts as root only to hand /data to PUID:PGID (entrypoint.sh), then runs as them (default 1000, the dragon user)
 ENV DS_DB=/data/dragonsword.db DS_PORT=8484 DS_MAX_PLAYERS=5 PUID=1000 PGID=1000
 EXPOSE 8484

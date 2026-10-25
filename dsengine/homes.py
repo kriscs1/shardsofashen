@@ -1,13 +1,13 @@
 """Homesteads: a home of your own, on a map of its own, to build on; other players may visit if you let them.
 
   * Each home is a map "0,0,<1000+n>" (a level of its own, so nothing joins it). When it's made it gets its own copy
-    of Data\\Homestead.txt (the land a home starts as: changing that file later only changes new homes); what its owner
+    of data\\Homestead.txt (the land a home starts as: changing that file later only changes new homes); what its owner
     builds is kept on top of that copy. It's part of the shared world: visitors see it as it is.
-  * Homestones (Entities.ini [Homestone], placed by Dev\\migrate\\build_homestead.py) take you home, if you carry an
+  * Homestones (Entities.ini [Homestone], placed by dev\\migrate\\build_homestead.py) take you home, if you carry an
     Access Crystal (the quest "A Place of Your Own"), or to a home someone has let you visit. On your own home, the
     homestone also sets who may visit: only you (the start), your friends, or anyone. Closing it sends visitors back.
   * The Homestead Scroll (Spells.ini Effect=Home) takes you home from anywhere.
-  * Building (the browser's Build mode): Data\\Buildables.ini says what can be built, of what, and at which level of
+  * Building (the browser's Build mode): data\\Buildables.ini says what can be built, of what, and at which level of
     the Construction skill. Floors, walls and doors are the ground (Kind=Tile); furniture, windows, lights and the
     garden go on it (Decor); roofs go over it (Roof: the pieces follow the roof's shape); workshops are objects
     (Object). Taking something down gives back half of what it took.
@@ -81,7 +81,7 @@ class Homes:
     def available(self):
         return self.template is not None
 
-    # ----- what can be built (Data\Buildables.ini)
+    # ----- what can be built (data\Buildables.ini)
     def read_catalog(self):
         path = self.d.data_file("Buildables.ini")
         out = {}

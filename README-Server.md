@@ -67,7 +67,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - `Ground`: the tiles you must both stand on.
   - `Respawn.Map`, `Respawn.X`, `Respawn.Y`: where the beaten wake.
   - Anywhere else, players can't fight each other.
-- **Rebuilding.** `Dev/migrate/build_arena.py` makes the arena: `Maps/0,0,5.txt`, a level of its own, plus its
+- **Rebuilding.** `dev/migrate/build_arena.py` makes the arena: `maps/0,0,5.txt`, a level of its own, plus its
   scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
   missing.
 
@@ -100,11 +100,11 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - The bench, range, anvil, furnace and alchemy table work like the towns' ones.
 - **Shared.** Homes are part of the shared world and are saved with it. There's no fog of war on them.
 - **Changing it.**
-  - `Data/Buildables.ini`: what can be built, of what, at which level. Kinds: `Tile`, `Decor`, `Roof`, `Object`.
-  - `Data/Homestead.txt`: the land a new home starts as (in the editor: the map **Homestead**). Each home gets its
+  - `data/Buildables.ini`: what can be built, of what, at which level. Kinds: `Tile`, `Decor`, `Roof`, `Object`.
+  - `data/Homestead.txt`: the land a new home starts as (in the editor: the map **Homestead**). Each home gets its
     own copy when it's made, so changing it only changes homes made after that.
   - Config `[Homestead]`: where you arrive, and the town a homestone sends you back to by default.
-  - `Dev/migrate/build_homestead.py` makes all of it: run it again after rebuilding the world; it only adds what's
+  - `dev/migrate/build_homestead.py` makes all of it: run it again after rebuilding the world; it only adds what's
     missing.
 
 ## Farming
@@ -118,8 +118,8 @@ view) goes full screen. Press **Enter** to chat with the other players.
   experience, and sometimes a seed back. On the farmer's furrows a ripe crop withers if it waits an hour.
 - **Crops.** Potato (Farming 1), onion, cabbage, wheat, carrot, herbs, and pumpkin (Farming 25). The range cooks baked
   potatoes, vegetable stew and pumpkin pie.
-- **Changing it.** `Data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
-  each crop. `Dev/migrate/build_farming.py` makes it all, like the other builders.
+- **Changing it.** `data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
+  each crop. `dev/migrate/build_farming.py` makes it all, like the other builders.
 
 ## The market, the shops, the tavern, digging and raids
 
@@ -141,8 +141,8 @@ view) goes full screen. Press **Enter** to chat with the other players.
     stake, then all roll three dice and the highest takes the pot (ties share). Alone? The innkeeper plays you.
 - **Digging.** Right-click a spade: *Dig*, anywhere on open ground. About 1 dig in 14 turns something up: gold
   usually, sometimes stone, bones, ore, seeds, very rarely a gem. It leaves a hole that grasses over in 10 minutes.
-  `Data/Digging.ini` sets the chance, the ground and the finds. (On sand you get sand too.)
-- **Monster raids.** `Data/Waves.ini`: monsters attacking a place in waves.
+  `data/Digging.ini` sets the chance, the ground and the finds. (On sand you get sand too.)
+- **Monster raids.** `data/Waves.ini`: monsters attacking a place in waves.
   - **Surprise raids:** about every two hours, when 2 or more are playing, goblins raid Ashford.
   - **Defending:** a horn sounds and a banner shows the wave, how many are left and the time.
   - **Rewards:** whoever kills a raider gets gold, and everyone who held out shares the reward.
@@ -154,13 +154,13 @@ view) goes full screen. Press **Enter** to chat with the other players.
 - **Chat.** A chime plays when another player says something (a softer one for a whisper); Options can turn it off.
 - **Admins** can jump to any named place (Admin > *Go to a place*): `Ashford_Market`, `The_Green_Dragon`,
   `Waystone_Highwatch`...
-- `Dev/migrate/build_market.py` (signs) and `Dev/migrate/build_town_life.py` (boards, vendors, tavern, digging,
+- `dev/migrate/build_market.py` (signs) and `dev/migrate/build_town_life.py` (boards, vendors, tavern, digging,
   raids) make all of this.
 
 ## Bringing over old desktop characters
 
 ```
-python tools/import_saves.py              # every Saves\*.ini (their waiting respawns join the shared world)
+python tools/import_saves.py              # every saves\*.ini (their waiting respawns join the shared world)
 python tools/admin.py password Kris       # imported characters need a password before they can log in
 python tools/admin.py admin Kris on       # the Admin button (give items, set skills, god mode)
 ```
@@ -287,7 +287,7 @@ docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admi
   someone leaves, and when the server stops.
 - **Backups.** A copy goes to `/data/backups` once a day; the last 14 are kept.
 - **Data files the game edits.** The admin panel's switched-off skills and god mode, and anything scripts write with
-  `Add.Line.To.File`, live in the container's `Data/` folder. They reset when the image is rebuilt.
+  `Add.Line.To.File`, live in the container's `data/` folder. They reset when the image is rebuilt.
 
 Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HTTPS reverse proxy.
 

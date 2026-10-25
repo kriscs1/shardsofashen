@@ -8,7 +8,7 @@ its colour, the same k for red, green and blue) is shadow: black, 1-k of it; the
 two inside the thing that happen to match the floor (the table top and the planks) are filled. Put back over its floor
 the decor is the tile again: that's checked.
 
-apply() keeps a copy of everything it changes in Dev\\Archive\\Decor split <date time>\\ (Tiles.ini, the maps, the
+apply() keeps a copy of everything it changes in dev\\Archive\\Decor split <date time>\\ (Tiles.ini, the maps, the
 sprites), so it can be put back by copying them back.
 
 Run it on its own (python -m dsedit.decor) for a report of what it would split, or with --contact <file.png> for a
@@ -225,7 +225,7 @@ def references(project):
             add("\n".join(read_text_lines(project.script_path(s))), "script " + s)
         except OSError:
             pass
-    for folder, label in ((("Data",), "Data"), (("Saves",), "save")):
+    for folder, label in ((("data",), "Data"), (("saves",), "save")):
         d = project.p(*folder)
         for f in sorted(os.listdir(d)) if os.path.isdir(d) else []:
             if f.lower().endswith(".ini") and f.lower() != "tiles.ini":
@@ -426,7 +426,7 @@ def apply(project, splits, chosen):
     if not mapping:
         return None, ["Nothing to split."]
     stamp = time.strftime("%Y-%m-%d %H%M%S")
-    backup = P.p("Dev", "Archive", "Decor split " + stamp)
+    backup = P.p("dev", "Archive", "Decor split " + stamp)
     os.makedirs(backup, exist_ok=True)
 
     def keep(*rel):
@@ -436,18 +436,18 @@ def apply(project, splits, chosen):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy2(src, dst)
     report = []
-    keep("Data", "Tiles.ini")
+    keep("data", "Tiles.ini")
     # the maps
     H, W = P.map_h, P.map_w
     cells_done, skipped = 0, 0
-    files = []                                          # (every map, and the old ones in Maps\Test and the like)
-    for folder, _, names in os.walk(P.p("Maps")):
+    files = []                                          # (every map, and the old ones in maps\Test and the like)
+    for folder, _, names in os.walk(P.p("maps")):
         for f in sorted(names):
             if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", f):
-                files.append(os.path.relpath(os.path.join(folder, f), P.p("Maps")))
+                files.append(os.path.relpath(os.path.join(folder, f), P.p("maps")))
     for rel in files:
         m = rel[:-4]
-        path = P.p("Maps", rel)
+        path = P.p("maps", rel)
         lines = read_text_lines(path)
         changed = False
         for y in range(min(H, len(lines))):
@@ -468,13 +468,13 @@ def apply(project, splits, chosen):
                 lines[y] = ":".join(c.text() for c in cells)
                 changed = True
         if changed:
-            keep("Maps", rel)
+            keep("maps", rel)
             write_text_lines(path, lines)
     # the sprites and Tiles.ini
     ini = P.tiles_ini
     for s in todo:
-        keep("Sprites", "Tiles", s.name + ".png")
-        Image.fromarray(s.rgba, "RGBA").save(P.p("Sprites", "Tiles", s.name + ".png"))
+        keep("sprites", "Tiles", s.name + ".png")
+        Image.fromarray(s.rgba, "RGBA").save(P.p("sprites", "Tiles", s.name + ".png"))
         if s.walk:
             ini.set(s.name, "Walkable.Data", s.walk)
         ini.set(s.name, "Layer", "Decor")
@@ -482,9 +482,9 @@ def apply(project, splits, chosen):
             ini.remove(s.name, key)
         P.forget_sprite("Tiles", s.name)
         for m in s.merged:
-            src = P.p("Sprites", "Tiles", m + ".png")
+            src = P.p("sprites", "Tiles", m + ".png")
             if os.path.exists(src):
-                dst = os.path.join(backup, "Sprites", "Tiles", m + ".png")
+                dst = os.path.join(backup, "sprites", "Tiles", m + ".png")
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 shutil.move(src, dst)
             ini.remove_section(m)
@@ -492,7 +492,7 @@ def apply(project, splits, chosen):
     record_for_builders(P, mapping)
     gone = [m for s in todo for m in s.merged if m in P.minimap_colours]
     if gone:                                            # (their minimap colours: the one they became has its own)
-        keep("Dev", "Minimap Colours.txt")
+        keep("dev", "Minimap Colours.txt")
         for m in gone:
             del P.minimap_colours[m]
         P.save_minimap_colours()
@@ -511,10 +511,10 @@ def apply(project, splits, chosen):
 
 
 def record_for_builders(project, mapping):
-    """Dev\\migrate\\decor_map.json: what each split tile became ({tile: [floor, decor]}), so the builders keep drawing
+    """dev\\migrate\\decor_map.json: what each split tile became ({tile: [floor, decor]}), so the builders keep drawing
     with the old pictures (kept in the archive), leave the decor sprites alone and put Floor+Decor(Name) on new maps."""
     import json
-    path = project.p("Dev", "migrate", "decor_map.json")
+    path = project.p("dev", "migrate", "decor_map.json")
     if not os.path.isdir(os.path.dirname(path)):
         return
     old = {}

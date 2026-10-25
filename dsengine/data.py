@@ -1,4 +1,4 @@
-"""The game's data as the server reads it: Data\\Config.ini and the other INI files, the sprites' sizes (for the
+"""The game's data as the server reads it: data\\Config.ini and the other INI files, the sprites' sizes (for the
 footprints and positions of things; the pictures themselves are the browser's), named places and the quests.
 Everything that doesn't change while the game runs; the INI files are read again when they change on disk."""
 import os
@@ -18,7 +18,7 @@ EXTS = (".png", ".bmp")
 class GameData:
     def __init__(self, root):
         self.root = root
-        self.config_path = os.path.join(root, "Data", "Config.ini")
+        self.config_path = os.path.join(root, "data", "Config.ini")
         self.sprites = {}           # name -> (folder, path); sizes read when first wanted
         self._sizes = {}
         self._caches = {}
@@ -32,7 +32,7 @@ class GameData:
         return os.path.join(self.root, *parts)
 
     def data_file(self, name):
-        return os.path.join(self.root, "Data", name)
+        return os.path.join(self.root, "data", name)
 
     def config_read(self, section, key, default):
         return ini.read(section, key, default, self.config_path)
@@ -139,17 +139,17 @@ class GameData:
     # Maps
     # =================================================================================================================
     def map_path(self, name):
-        return os.path.join(self.root, "Maps", name + ".txt")
+        return os.path.join(self.root, "maps", name + ".txt")
 
     def map_exists(self, name):
         return bool(name) and os.path.exists(self.map_path(name))
 
     def map_names(self):
         try:
-            files = sorted(f for f in os.listdir(os.path.join(self.root, "Maps")) if f.lower().endswith(".txt"))
+            files = sorted(f for f in os.listdir(os.path.join(self.root, "maps")) if f.lower().endswith(".txt"))
         except OSError:
             return []
-        return [f[:-4] for f in files if os.path.isfile(os.path.join(self.root, "Maps", f))]
+        return [f[:-4] for f in files if os.path.isfile(os.path.join(self.root, "maps", f))]
 
     def first_map(self):
         names = self.map_names()
@@ -161,7 +161,7 @@ class GameData:
     def index_sprites(self):
         self.sprites = {}
         for folder in SPRITE_FOLDERS:
-            base = os.path.join(self.root, "Sprites", folder)
+            base = os.path.join(self.root, "sprites", folder)
             try:
                 files = sorted(os.listdir(base), key=str.lower)
             except OSError:
@@ -392,7 +392,7 @@ class GameData:
     # Places and quests
     # =================================================================================================================
     def places(self):
-        folder = os.path.join(self.root, "Maps")
+        folder = os.path.join(self.root, "maps")
         try:
             stamp = max((e.stat().st_mtime for e in os.scandir(folder) if e.name.lower().endswith(".txt")), default=0)
         except OSError:

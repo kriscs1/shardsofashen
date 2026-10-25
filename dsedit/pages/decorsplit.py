@@ -32,7 +32,7 @@ class DecorSplitDialog(Dialog):
         ttk.Label(b, text="Furniture, plants, rocks and trees drawn on a floor become see-through decor, so the same "
                           "chair goes on any floor and the copies drawn on other floors (Chair101, Chair201…) aren't "
                           "needed. The maps keep looking exactly as they do: each cell becomes its floor with the "
-                          "decor over it. A copy of everything changed goes in Dev\\Archive first.",
+                          "decor over it. A copy of everything changed goes in dev\\Archive first.",
                   style="Panel.TLabel", wraplength=T.px(760)).pack(anchor="w")
         ttk.Label(b, text="Each row: the tile now  ·  its floor  ·  the decor (on a check)  ·  the decor on another "
                           "floor.", style="PanelMuted.TLabel").pack(anchor="w", pady=(6, 6))
@@ -182,7 +182,7 @@ class DecorSplitDialog(Dialog):
         if not messagebox.askyesno(
                 "Split props", "Split %d tiles into decor%s?\n\nTheir sprites become see-through, Tiles.ini marks them "
                 "Layer=Decor, and every map cell with one becomes its floor with the decor over it. A copy of "
-                "everything changed goes in Dev\\Archive\\Decor split <date>." % (
+                "everything changed goes in dev\\Archive\\Decor split <date>." % (
                     len(chosen), (" (and merge %d copies drawn on other floors into them)" % merged) if merged else ""),
                 parent=self):
             return False

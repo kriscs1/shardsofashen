@@ -1,4 +1,4 @@
-"""Farming: seeds sown in tilled soil grow, by the clock, into crops to harvest (Data\\Crops.ini, the Farming skill).
+"""Farming: seeds sown in tilled soil grow, by the clock, into crops to harvest (data\\Crops.ini, the Farming skill).
 
   * Use a seed (Entities.ini Crop=<crop>) on tilled soil (a tile whose name starts with "Soil") to sow it. On a
     homestead only its owner may sow; anywhere else (the farmer's furrows by Ashford) anyone may, on an empty plot.

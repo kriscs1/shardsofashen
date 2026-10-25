@@ -277,9 +277,9 @@ def check(project, doc):
             if nt == "GOTO SCRIPT NAME" and v not in names:
                 out.append((i, "warn", "There's no script called %s." % v))
             if nt in ITEM_TYPES | ENTITY_TYPES and v not in project.entities():
-                out.append((i, "warn", "%s has no sprite in Sprites\\Entities." % v))
+                out.append((i, "warn", "%s has no sprite in sprites\\Entities." % v))
             if nt in TILE_TYPES and v not in project.tiles():
-                out.append((i, "warn", "%s has no sprite in Sprites\\Tiles." % v))
+                out.append((i, "warn", "%s has no sprite in sprites\\Tiles." % v))
             if nt == "RACK ID" and v != "-" and not project.racks_ini.has_section(v):
                 out.append((i, "warn", "There's no rack %s in ItemRacks.ini." % v))
     if n and cmds[-1].command not in ("End", "Goto.Script", "Goto.Line"):

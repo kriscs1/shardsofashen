@@ -1,4 +1,4 @@
-"""Items that were renamed (Dev\\migrate\\rename_items.py renames them in the data): what a character or the world was
+"""Items that were renamed (dev\\migrate\\rename_items.py renames them in the data): what a character or the world was
 saved with is put right as it loads - inventories, banks, hotbars, gear, market listings, the action queue."""
 import json
 

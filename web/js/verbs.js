@@ -127,7 +127,7 @@ export function itemInUseName() {
   return it ? it[1] : "";
 }
 
-// What a potion or spell scroll does, from Data/Spells.ini: "+5 spell damage, 2 min" (shown on Drink / Cast)
+// What a potion or spell scroll does, from data/Spells.ini: "+5 spell damage, 2 min" (shown on Drink / Cast)
 export function spellSummary(spell) {
   const eff = spellIni(spell, "Effect", "").toUpperCase();
   const n = (k) => val(spellIni(spell, k, "0"));

@@ -1,0 +1,3 @@
+// The grave Grave_Fresh_Flowers on 9,8,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	No name, no date. Fresh flowers lie in front of it, though no one lives near.
+02	End

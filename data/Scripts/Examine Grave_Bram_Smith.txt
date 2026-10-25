@@ -1,0 +1,3 @@
+// The grave Grave_Bram_Smith on 9,8,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	'Bram, smith. His hammer lies with him, so he may mend things on the other side.'
+02	End

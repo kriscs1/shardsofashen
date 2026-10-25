@@ -516,7 +516,7 @@ class CombatMixin:
         self.dirty_me = True
 
     # =================================================================================================================
-    # Spells (Data\\Spells.ini): reading a scroll casts its spell and uses it up
+    # Spells (data\\Spells.ini): reading a scroll casts its spell and uses it up
     # =================================================================================================================
     def spell_ini(self, spell, key, default):
         return self.data.spell_ini(spell, key, default)

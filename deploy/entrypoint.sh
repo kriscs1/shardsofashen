@@ -6,7 +6,7 @@ PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
 if [ "$(id -u)" = "0" ]; then
     mkdir -p /data
-    chown -R "$PUID:$PGID" /data /game/Data
+    chown -R "$PUID:$PGID" /data /game/data
     exec setpriv --reuid="$PUID" --regid="$PGID" --clear-groups "$@"
 fi
 exec "$@"

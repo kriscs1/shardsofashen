@@ -1,4 +1,4 @@
-"""Quests: Data\\Quests.ini. A quest's Attribute goes 0, 1, 2 ... Done; StageN is what the journal says while it is N,
+"""Quests: data\\Quests.ini. A quest's Attribute goes 0, 1, 2 ... Done; StageN is what the journal says while it is N,
 and MarkerN where the minimap's crosses are then: a place's ID (an Id on a map tile, or a thing's Id=), or the old
 map tile-x tile-y; several joined with ;."""
 import tkinter as tk

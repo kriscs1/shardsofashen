@@ -69,9 +69,9 @@ class Sprite:
 
 
 def sprite_file(root, folder, name):
-    """Sprites\\<folder>\\<name>.png (or .bmp): the path, or None if there is neither."""
+    """sprites\\<folder>\\<name>.png (or .bmp): the path, or None if there is neither."""
     for ext in EXTS:
-        path = os.path.join(root, "Sprites", folder, name + ext)
+        path = os.path.join(root, "sprites", folder, name + ext)
         if os.path.exists(path):
             return path
     return None
@@ -91,7 +91,7 @@ class Assets:
         return bool(name) and name in self.sprites
 
     def load_file(self, folder, name):
-        """Load.Sprite.File: Sprites\\<folder>\\<name>.png (logs it once if it is missing). True if loaded."""
+        """Load.Sprite.File: sprites\\<folder>\\<name>.png (logs it once if it is missing). True if loaded."""
         if not name or name == "Thumb":
             return False
         if name in self.sprites:
@@ -115,7 +115,7 @@ class Assets:
         return True
 
     def load_if_exists(self, folder, name):
-        """Loads Sprites\\<folder>\\<name>.png if it is there (no log). True if it is loaded."""
+        """Loads sprites\\<folder>\\<name>.png if it is there (no log). True if it is loaded."""
         if name in self.sprites:
             return True
         path = sprite_file(self.root, folder, name)
@@ -124,7 +124,7 @@ class Assets:
         return self.load_path(name, path)
 
     def folder_names(self, folder):
-        path = os.path.join(self.root, "Sprites", folder)
+        path = os.path.join(self.root, "sprites", folder)
         try:
             files = sorted(os.listdir(path), key=str.lower)
         except OSError:

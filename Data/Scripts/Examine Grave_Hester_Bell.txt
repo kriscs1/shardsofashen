@@ -1,3 +1,0 @@
-// The grave Grave_Hester_Bell on 3,1,0 (Dev\migrate\name_graves.py)
-01	Display.Message	Black	'Hester Bell, midwife. Half the Isle came into the world through her hands.'
-02	End

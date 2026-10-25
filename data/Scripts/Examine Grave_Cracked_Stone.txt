@@ -1,0 +1,3 @@
+// The grave Grave_Cracked_Stone on 6,7,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	The stone has cracked clean in two. Someone has tied the halves together with rope.
+02	End

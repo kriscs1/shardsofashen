@@ -1,3 +1,0 @@
-// The grave Grave_Old_Bowman on 6,7,0 (Dev\migrate\name_graves.py)
-01	Display.Message	Black	A bow is carved on it, and one word in the old tongue: 'Steady.'
-02	End

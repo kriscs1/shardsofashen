@@ -95,7 +95,7 @@ export async function playSound(name, at = null) {
   src.start();
 }
 
-// ----- the music: the place's theme (Data\Music.ini), Hearth indoors; a tune carries on where it left off
+// ----- the music: the place's theme (data\Music.ini), Hearth indoors; a tune carries on where it left off
 const FADE_OUT = 1100, FADE_IN = 1600;
 
 function musicLevel() { return O.volume / 100 * O.musicVolume / 100; }
@@ -194,7 +194,7 @@ export function musicTick(underRoof, override) {
   } else AU.want = null;
 }
 
-// ----- the background sound for the place (Data\Ambient.ini), indoors the hearth, outside the rain
+// ----- the background sound for the place (data\Ambient.ini), indoors the hearth, outside the rain
 export async function ambientTick(underRoof) {
   if (!AU.ctx) return;
   let want = "";

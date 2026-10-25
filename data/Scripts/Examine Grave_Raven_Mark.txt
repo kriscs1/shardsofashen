@@ -1,0 +1,3 @@
+// The grave Grave_Raven_Mark on 8,7,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	A raven is carved where a name should be: Ravensgate's mark, very old.
+02	End

@@ -1,4 +1,4 @@
-"""Scripts: Data\\Scripts\\*.txt. Each line is a command and its arguments; the editor knows every command's arguments
+"""Scripts: data\\Scripts\\*.txt. Each line is a command and its arguments; the editor knows every command's arguments
 (dragonsword/script_language.py) and gives each the right choices and builders. Goto lines renumber themselves."""
 import os
 import time

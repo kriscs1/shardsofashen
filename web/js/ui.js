@@ -143,7 +143,7 @@ function sidebarButton(ctx, x, y, label, hot, fills, inks, edge) {
   drawTextMid(ctx, label, x + Math.floor((52 - w) / 2), y, 22, 9, true, inks[hot ? 1 : 0]);
 }
 
-// ----- the minimap (Sprites\Interface\Minimap<Z>, Config [Minimap])
+// ----- the minimap (sprites\Interface\Minimap<Z>, Config [Minimap])
 function minimapGeometry() {
   const z = S.mapZ;
   const name = "Minimap" + z;

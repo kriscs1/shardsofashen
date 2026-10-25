@@ -1,5 +1,5 @@
-"""Tiles: Data\\Tiles.ini, one section per sprite in Sprites\\Tiles, and each tile's minimap colour
-(Dev\\Minimap Colours.txt)."""
+"""Tiles: data\\Tiles.ini, one section per sprite in sprites\\Tiles, and each tile's minimap colour
+(dev\\Minimap Colours.txt)."""
 import math
 import tkinter as tk
 from tkinter import ttk, colorchooser, messagebox
@@ -155,7 +155,7 @@ class TilePage(IniFormPage):
         self.set_label.pack(side="left", padx=8)
         self.row(f, r, "Piece", pc,
                  "Which piece of a set it is (\"corner: top left\", \"runner: middle\"): the Maps palette says it "
-                 "when you point at the tile, with its set (Data\TileSets.ini) laid out and this piece marked.")
+                 "when you point at the tile, with its set (data\TileSets.ini) laid out and this piece marked.")
         r += 1
         tiles = lambda: [(t, t, tile_family(t)) for t in self.project.tiles()]
         icon = lambda k: photo(self.project.sprite("Tiles", k), (32, 32), key=("tile", k))
@@ -181,7 +181,7 @@ class TilePage(IniFormPage):
         ttk.Spinbox(fr, textvariable=self.var("Anim.Frames"), from_=0, to=16, width=6).pack(side="left")
         ttk.Label(fr, text="pictures, ms each", style="Panel.TLabel").pack(side="left", padx=6)
         ttk.Spinbox(fr, textvariable=self.var("Anim.Speed"), from_=30, to=5000, increment=10, width=7).pack(side="left")
-        self.row(f, r, "Frames", fr, "Drawn from its own pictures <Name>1..N in Sprites\\Tiles in turn (a mill wheel, "
+        self.row(f, r, "Frames", fr, "Drawn from its own pictures <Name>1..N in sprites\\Tiles in turn (a mill wheel, "
                                      "a bubbling pot), each cell a little out of step. 0 or blank = one picture.")
         r += 1
         self.row(f, r, "Light at night", ttk.Spinbox(f, textvariable=self.var("Light"), from_=0, to=400, increment=2,
@@ -189,7 +189,7 @@ class TilePage(IniFormPage):
                  "How far (pixels) it lights the dark round it (a torch 72, a lamp post 96, a window 34). Works on "
                  "ground, decor and roof tiles. Blank = it doesn't.")
         r += 1
-        ttk.Label(f, text="How fast sway, flames and foam go: Data\\Config.ini [Animation].",
+        ttk.Label(f, text="How fast sway, flames and foam go: data\\Config.ini [Animation].",
                   style="PanelMuted.TLabel").grid(row=r, column=1, sticky="w")
         r += 1
         gl = ttk.Frame(f, style="Panel.TFrame")
@@ -227,7 +227,7 @@ class TilePage(IniFormPage):
         ttk.Button(mm, text="Choose…", style="Small.TButton", command=self.choose_colour).pack(side="left")
         ttk.Button(mm, text="Sprite's average", style="Small.TButton", command=self.average_colour).pack(side="left",
                                                                                                          padx=4)
-        self.row(f, r, "Colour", mm, "Dev\\Minimap Colours.txt: R G B (0-255) or a colour name. Rebuild the minimaps "
+        self.row(f, r, "Colour", mm, "dev\\Minimap Colours.txt: R G B (0-255) or a colour name. Rebuild the minimaps "
                                      "(Minimaps section) to see it.")
         self.mm_loaded = ""
 
@@ -329,7 +329,7 @@ class TilePage(IniFormPage):
                                                         "in Tiles.ini" if self.ini.has_section(self.key) else
                                                         "no data yet: saving adds it"))
         st = self.project.tile_set_of(self.key)
-        self.set_label.configure(text=("of the set \"%s\" (Data\\TileSets.ini)" % st[1]) if st else "in no set")
+        self.set_label.configure(text=("of the set \"%s\" (data\\TileSets.ini)" % st[1]) if st else "in no set")
         self.draw()
         used = self.project.index()["tile"].get(self.key, {})
         self.fill_links(self.used_box, [(m, lambda m=m, xy=xy: self.app.goto("map", m, tile=xy))

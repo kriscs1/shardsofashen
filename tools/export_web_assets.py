@@ -65,13 +65,13 @@ class Baker(AnimMixin):
 
     def __init__(self, root):
         self.root = root
-        self.config_path = os.path.join(root, "Data", "Config.ini")
+        self.config_path = os.path.join(root, "data", "Config.ini")
         self.assets = Assets(root, lambda *a: None)
         self.loop_start = 0
         self.w_origin_tx = self.w_origin_ty = 0
 
     def tile_ini(self, section, key, default):
-        return ini.read(section, key, default, os.path.join(self.root, "Data", "Tiles.ini"))
+        return ini.read(section, key, default, os.path.join(self.root, "data", "Tiles.ini"))
 
     def is_decor_tile(self, name):
         return bool(name) and self.tile_ini(name, "Layer", "").strip().lower() == "decor"
@@ -134,7 +134,7 @@ def export_masks(d):
 
 
 def export_textures(d, manifest):
-    src = os.path.join(ROOT, "Sprites", "Textures")
+    src = os.path.join(ROOT, "sprites", "Textures")
     out = os.path.join(OUT, "textures")
     os.makedirs(out, exist_ok=True)
     names = []
@@ -219,7 +219,7 @@ def export_cursors(manifest):
 
 def export_sounds(manifest):
     from tools import midisynth
-    src = os.path.join(ROOT, "Sounds")
+    src = os.path.join(ROOT, "sounds")
     out = os.path.join(OUT, "sounds")
     os.makedirs(out, exist_ok=True)
     ffmpeg = shutil.which("ffmpeg")

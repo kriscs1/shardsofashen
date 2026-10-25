@@ -1,5 +1,5 @@
 """Monster waves: monsters attacking a place at once, wave after wave, for everyone there to fight off together
-(Data\\Waves.ini). Anything can start one: a surprise raid now and then (Random.Every, when enough players are on),
+(data\\Waves.ini). Anything can start one: a surprise raid now and then (Random.Every, when enough players are on),
 or a script, Start.Wave <name> (a quest's battle: its On.Win.Script runs for each defender afterwards).
 
   * Each wave's monsters come in from round the edge and make for the Centre; they go for any player near them.
@@ -70,7 +70,7 @@ class Waves:
         w = self.w
         if d is None:
             if by is not None:
-                by.log("ERROR - Start.Wave: no [%s] in Data\\Waves.ini" % name)
+                by.log("ERROR - Start.Wave: no [%s] in data\\Waves.ini" % name)
             return False
         if name in self.running:
             return False

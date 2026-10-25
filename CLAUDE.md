@@ -13,15 +13,15 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `dsengine/` | The game's rules (authoritative, headless, many players) |
 | `server/` | aiohttp: the page, assets, the game over a WebSocket at 20 ticks/s, SQLite (`DS_DB`) |
 | `web/js/` | The browser client: canvas, ES modules, no build step. `web/assets/` is generated, never edited |
-| `Data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `Data/Scripts/*.txt` |
-| `Maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs |
-| `Dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
+| `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
+| `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs |
+| `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
 | `dsedit/` | The map/data editor |
 | `dragonsword/` | Shared helpers (`ini`, `lb`); the old desktop game is retired |
 | `tests/` | `test_engine.py`, `test_server.py` (pytest) |
 
-References: `README-Server.md` (running, deploying, shared vs personal), `Dev/Data Formats.md`,
-`Dev/Script Commands.txt`.
+References: `README-Server.md` (running, deploying, shared vs personal), `dev/Data Formats.md`,
+`dev/Script Commands.txt`.
 
 ## The story
 
@@ -32,8 +32,8 @@ to save you and to break the curse. The city has been sealed since your birth; K
 in it. You grew up poor on the Isle, in the **cottage on its east** (map 4,0,0), with **Jimmy**, a strawberry-blond
 ginger cat. New characters start with no sword.
 
-The main quest line (`Type=Main` in `Data/Quests.ini`, in chapters; the Isle's are built by
-`Dev/migrate/build_heir_isle.py`):
+The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's are built by
+`dev/migrate/build_heir_isle.py`):
 
 1. **The Last Will** (`LastWill`). A new character stands at Mary's fresh grave in the chapel's graveyard (3,1,0's
    entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
@@ -79,7 +79,7 @@ On the mainland (`build_heir_mainland.py`; Galaith and its pass, maps 10-14 by 5
    **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens.
 
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
-The Beggar's Lost Key are gone; their places stay, quiet. `Dev/Story and Quests.md` has every quest, step by step.
+The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.md` has every quest, step by step.
 
 Side quests hang off these by `Requires.Quests` and `Requires.Level`. A new quest must fit this world: its places
 named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.ini` with `Marker<N>` place Ids.
@@ -124,7 +124,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 **Doing things**
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays
   its work with `Play.Animation <Anim> <Times> <Sound>` (chips, sparks, splashes; a lunge each beat).
-  `Dev/migrate/work_animations.py` adds them to new Chop/Mine/Fish/Pick scripts.
+  `dev/migrate/work_animations.py` adds them to new Chop/Mine/Fish/Pick scripts.
 - **All tools wear** (`Durability`, no `Slot`): a use each go, and a broken one doesn't count until it's mended.
 
 **Places and furniture**
@@ -134,7 +134,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
 - On the world map, places with no map look the same as unexplored ones.
-- Settlements have a size, and what each size has (`Dev/migrate/build_towns.py`, grown by `towns.py` into the free
+- Settlements have a size, and what each size has (`dev/migrate/build_towns.py`, grown by `towns.py` into the free
   ground round them): Galaith a huge city; Southport a large city (its City Hall is the Parliament for now); King
   Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate medium cities; Ashford a small city; Highwatch and
   Frosthold towns; Oakhollow, Thornwick and Emberwatch villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
@@ -149,7 +149,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - Tiles and sprites are 32x32 pixel art. Creatures and objects have a 1 px dark outline (the mask-silhouette method
   in `build_wolf.py` and `build_cats.py`), and walk in frames `<Name>2a-c` (right) and `<Name>8a-c` (mirrored).
-- Art and sounds are made in code by `Dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
+- Art and sounds are made in code by `dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
   Change the builder and run it again; don't hand-edit its output.
 - Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
@@ -160,6 +160,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - Match the surrounding code: its naming, its comment density, and its comment voice (short plain-English
   asides in parentheses, e.g. `# (a rug: under whatever stands there)`).
+- The folders in the main folder are **lowercase** (`data`, `dev`, `maps`, `saves`, `sounds`, `sprites`), and paths
+  to them are written lowercase: the server runs on Linux, where `Data` isn't `data`. (Folders inside them keep
+  their names: `data/Scripts`, `sprites/Tiles`.)
 - Data files and maps are **cp1252 with CRLF**. Preserve both when editing; write them in binary mode from Python.
 - Map cells: `Tile+Under(Rug)+Decor(Name)+Roof(Piece.Group)+Infront(...)`. Entity lines are tab-separated:
   `NPC|StaticObject|MapItem Name x y options`. In builders, use `build_isle.Map` and `obj_line` (1-based tiles).
@@ -170,20 +173,20 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Open and Search on a StaticObject make it a chest (its script's Give.Items fill a loot box): a quest object that
   gives something uses its own verb (Reach In, Pick Lock).
 - `build_walk.py` deletes walking frames it didn't make (the cats', Brother Aldous's...): after running it, put the
-  deleted ones back with `git checkout -- Sprites/Walk`.
-- Builders and migrations in `Dev/migrate/` are safe to run again (a second run does nothing, or redraws the
+  deleted ones back with `git checkout -- sprites/Walk`.
+- Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run.
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
-  `Dev/migrate/validate.py`.
+  `dev/migrate/validate.py`.
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.
 
 ## Before every commit
 
-1. `python -I Dev/migrate/validate.py`: **0 errors**. (A few known warnings are fine; don't add new ones.)
+1. `python -I dev/migrate/validate.py`: **0 errors**. (A few known warnings are fine; don't add new ones.)
 2. `python -m pytest -q tests`: all pass. New behaviour gets a test in `tests/test_engine.py` (helpers `join`,
    `leave`, `stock`; click with `s.choose_verb(verb, e, gx, gy)`).
 3. After changing sprites, sounds or data: `python -I tools/export_web_assets.py`.
-4. After changing maps: `python -I Dev/migrate/build_minimaps.py`, and commit the changed `Minimap*.png`.
+4. After changing maps: `python -I dev/migrate/build_minimaps.py`, and commit the changed `Minimap*.png`.
 5. Client changes (`web/js`): load the game in a browser (Playwright, with `DS_DB=<scratch>/t.db
    DS_PORT=85xx python -m server`) and check there are no console errors and that it looks right.
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,

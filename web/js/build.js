@@ -1,5 +1,5 @@
 // Building on your homestead (the server's dsengine/homes.py): the Build button and B, a panel of what you can build
-// (Data/Buildables.ini, sent as "buildables"), a ghost of it on the tile under the mouse, click or drag to build,
+// (data/Buildables.ini, sent as "buildables"), a ghost of it on the tile under the mouse, click or drag to build,
 // and a tool that takes things down again (the top thing first: the roof, an object, what's on the ground, the ground).
 import { G, S, tileAt } from "./state.js";
 import { A, sprite } from "./assets.js";

@@ -1,3 +1,0 @@
-// The grave Grave_Brother_Edric on 3,1,0 (Dev\migrate\name_graves.py)
-01	Display.Message	Black	'Brother Edric, who kept this chapel fifty years and rang its bell every dawn.'
-02	End

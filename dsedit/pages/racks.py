@@ -1,4 +1,4 @@
-"""Item Racks: Data\\ItemRacks.ini, the shops ([SHOP-...]) and crafting lists ([CRAFT-...])."""
+"""Item Racks: data\\ItemRacks.ini, the shops ([SHOP-...]) and crafting lists ([CRAFT-...])."""
 import tkinter as tk
 from tkinter import ttk
 

@@ -1,0 +1,3 @@
+// The grave Grave_Mary_Croft on 3,1,0 (dev\migrate\name_graves.py)
+01	Display.Message	Black	'Mary Croft, beloved mother. She baked the best pies on the Isle.'
+02	End

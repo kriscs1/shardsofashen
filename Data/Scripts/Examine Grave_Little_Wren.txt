@@ -1,3 +1,0 @@
-// The grave Grave_Little_Wren on 3,1,0 (Dev\migrate\name_graves.py)
-01	Display.Message	Black	'Little Wren, aged six. Gone to chase the butterflies.'
-02	End

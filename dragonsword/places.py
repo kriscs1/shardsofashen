@@ -82,7 +82,7 @@ class PlacesMixin:
     def places(self):
         """Every named place, read from the maps (again when a map file has changed since: the editor's IDs show up
         without restarting)."""
-        folder = os.path.join(self.root, "Maps")
+        folder = os.path.join(self.root, "maps")
         try:
             stamp = max((e.stat().st_mtime for e in os.scandir(folder) if e.name.lower().endswith(".txt")), default=0)
         except OSError:

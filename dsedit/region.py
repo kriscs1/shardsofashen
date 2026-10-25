@@ -164,9 +164,9 @@ def update_refs(project, src, rect, dst, dtx, dty, own_scripts):
         if hit:
             open(path, "wb").write(nl.join(lines).encode("cp1252"))
 
-    fix_markers(project.p("Data", "Quests.ini"), "Quests.ini")
-    fix_markers(project.p("Data", "WorldMap.ini"), "WorldMap.ini")
-    folder = project.p("Data", "Scripts")
+    fix_markers(project.p("data", "Quests.ini"), "Quests.ini")
+    fix_markers(project.p("data", "WorldMap.ini"), "WorldMap.ini")
+    folder = project.p("data", "Scripts")
     for fname in sorted(os.listdir(folder)):
         if not fname.lower().endswith(".txt"):
             continue

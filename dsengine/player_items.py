@@ -207,7 +207,7 @@ class ItemsMixin:
         return ", ".join(short)
 
     def open_item_rack(self, type_name, npc, rack):
-        """Display.Item.Rack: BANK, or a Data\\ItemRacks.ini section (Type=Shop/Craft). True if shown."""
+        """Display.Item.Rack: BANK, or a data\\ItemRacks.ini section (Type=Shop/Craft). True if shown."""
         f = self.data.data_file("ItemRacks.ini")
         kind = trim(type_name).upper()
         rack = trim(rack)

@@ -67,7 +67,7 @@ def test_tile_changes_are_shared(world):
 
 
 def test_quest_lock_is_per_player(world):
-    # Maps/1,1,0.txt: Lock 20,7  $Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1 (Tobias's house)
+    # maps/1,1,0.txt: Lock 20,7  $Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1 (Tobias's house)
     a, b = join(world, "Ann"), join(world, "Ben")
     m = world.maps["1,1,0"]
     lk = m.lock_at[(20, 7)]
@@ -1085,7 +1085,7 @@ def test_the_smithy_smokes_by_day(world):
 
 
 def test_the_towns_are_the_size_they_were_asked_to_be(world):
-    """build_towns.py: each city its taverns, its halls, its law and its doctors (Dev/migrate/build_towns.py)."""
+    """build_towns.py: each city its taverns, its halls, its law and its doctors (dev/migrate/build_towns.py)."""
     import re
     ids = [e.npc_id for e in world.ents if e.npc_id]
     count = lambda town, who: len([i for i in ids if re.fullmatch(r"%s_%s_\d+" % (town, who), i)])
@@ -1207,7 +1207,7 @@ def test_the_smugglers_run(world, monkeypatch):
 
 def test_a_new_character_starts_at_their_mothers_funeral(world):
     s = Session(world, "Newborn")
-    s.load_state(None)                                              # (a new character: Saves\\TEMPLATE.ini)
+    s.load_state(None)                                              # (a new character: saves\\TEMPLATE.ini)
     world.sessions["Newborn"] = s
     s.connected = True
     s.enter_world()
@@ -1630,7 +1630,7 @@ def test_quests_wait_for_the_mainland_and_mark_their_giver(world):
     """A quest given off the Isle needs the ferry first; one not begun is marked where its own giver stands."""
     import re
     s = join(world, "Planner")
-    text = open(os.path.join(ROOT, "Data", "Quests.ini"), encoding="cp1252").read()
+    text = open(os.path.join(ROOT, "data", "Quests.ini"), encoding="cp1252").read()
     on_isle = lambda mp: int(mp.split(",")[0]) <= 4 and int(mp.split(",")[1]) <= 2      # (the Isle's maps)
     for m in re.finditer(r"(?ms)^\[([^\]]+)\]\s*\n(.*?)(?=^\[|\Z)", text):
         name, body = m.group(1), m.group(2)

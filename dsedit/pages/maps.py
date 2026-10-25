@@ -1,4 +1,4 @@
-"""Maps: Maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
+"""Maps: maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
 and the Over layer (tree tops); place the entities (items, objects, NPCs), triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
 The maps round this one show (dimmed) round its edges."""
 import copy
@@ -286,7 +286,7 @@ class MapPage(Page):
         self.redraw(full=True, center=True)
         self.show_inspector()
         if name == HOMESTEAD_MAP:
-            self.app.status("Homestead: the land a new home starts as (Data\Homestead.txt). Each home gets its own "
+            self.app.status("Homestead: the land a new home starts as (data\Homestead.txt). Each home gets its own "
                             "copy when it's made, so changes here are for new homes only. Keep the Homestone and "
                             "Home_Arrival.", "warn")
         for d, b in self.arrow_btns.items():
@@ -348,7 +348,7 @@ class MapPage(Page):
         if getattr(self, "_mini_busy", False):
             return
         levels, self._mini_want, self._mini_busy = sorted(self._mini_want), set(), True
-        args = [sys.executable, "-I", self.project.p("Dev", "migrate", "build_minimaps.py"),
+        args = [sys.executable, "-I", self.project.p("dev", "migrate", "build_minimaps.py"),
                 "--levels", ",".join(str(v) for v in levels)]
 
         done = []                                           # (the build's result, when it's finished)
@@ -557,7 +557,7 @@ class MapPage(Page):
         return out, "%s\n%s" % (key.replace("_", " "), caption)
 
     def piece_set(self, key):
-        """For a tile that's one piece of a set (Data\TileSets.ini): (the set's tiles in order, columns, None, what
+        """For a tile that's one piece of a set (data\TileSets.ini): (the set's tiles in order, columns, None, what
         it is: the set's title and the tile's Tiles.ini Piece=)."""
         st = self.project.tile_set_of(key)
         if not st:

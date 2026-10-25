@@ -1,4 +1,4 @@
-"""Crops: Data\\Crops.ini, what grows on tilled soil (the server's dsengine/farming.py). A crop grows through its
+"""Crops: data\\Crops.ini, what grows on tilled soil (the server's dsengine/farming.py). A crop grows through its
 tiles <Crop>_Crop001 (sprouting), 002 (growing) and 003 (ripe: harvested); its seed is an item with Crop=<crop>."""
 import tkinter as tk
 from tkinter import ttk
@@ -92,7 +92,7 @@ class CropPage(IniFormPage):
             if v:
                 links.append(("%s: %s" % (k.lower(), v), lambda v=v: self.app.goto("entity", v)))
         self.fill_links(self.uses, links, empty="")
-        self.warn.configure(text=("Missing pictures: Sprites\\Tiles\\%s.png. Saving makes their Tiles.ini sections." %
+        self.warn.configure(text=("Missing pictures: sprites\\Tiles\\%s.png. Saving makes their Tiles.ini sections." %
                                   ", ".join(missing)) if missing else
                             "Players sow by using the seed on tilled soil (Soil001): the farmer's furrows, or soil laid "
                             "on a homestead. Only whoever sowed it can harvest it.")

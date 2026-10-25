@@ -1,4 +1,4 @@
-"""Brings the desktop game's characters (Saves\\<Name>.ini) into the server's database.
+"""Brings the desktop game's characters (saves\\<Name>.ini) into the server's database.
 
   python tools/import_saves.py                 every save (not TEMPLATE)
   python tools/import_saves.py Kris            just that one
@@ -102,7 +102,7 @@ def main():
     args = p.parse_args()
     d = GameData(ROOT)
     store = Store(args.db)
-    folder = os.path.join(ROOT, "Saves")
+    folder = os.path.join(ROOT, "saves")
     names = args.names or [f[:-4] for f in sorted(os.listdir(folder))
                            if f.lower().endswith(".ini") and f[:-4].upper() != "TEMPLATE"]
     world = store.load_world() or {}

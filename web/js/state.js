@@ -7,7 +7,7 @@ export const S = {
   name: "", uid: 0, admin: false,
   me: null,                   // the "me" message: hp, inventory, skills...
   quests: [], marks: [], level: 1,
-  labels: [],                 // [{n, k, x, y, z, m}]: the world map's names (Data\WorldMap.ini)
+  labels: [],                 // [{n, k, x, y, z, m}]: the world map's names (data\WorldMap.ini)
   where: [],                  // [{name, x, y, z}]: everyone's place (global pixels), for the minimap's dots
   maps: new Map(),            // name -> map data (mapdata messages), with mx, my, mz, ox, oy
   byPos: new Map(),           // "mx,my,mz" -> map

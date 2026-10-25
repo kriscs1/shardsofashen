@@ -1,4 +1,4 @@
-"""Buildables: Data\\Buildables.ini, what players can build on their homesteads (the server's dsengine/homes.py).
+"""Buildables: data\\Buildables.ini, what players can build on their homesteads (the server's dsengine/homes.py).
 A section is a piece, named after its tile (Tile, Decor), roof material (Roof) or object (Object)."""
 import tkinter as tk
 from tkinter import ttk

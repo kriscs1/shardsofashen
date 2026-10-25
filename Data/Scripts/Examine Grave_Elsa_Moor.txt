@@ -1,3 +1,0 @@
-// The grave Grave_Elsa_Moor on 8,8,0 (Dev\migrate\name_graves.py)
-01	Display.Message	Black	'Elsa Moor. She walked the downs at night with a lantern, so the dead had light.'
-02	End

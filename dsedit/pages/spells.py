@@ -1,4 +1,4 @@
-"""Spells: Data\\Spells.ini, one section a spell (a scroll or potion item casts it)."""
+"""Spells: data\\Spells.ini, one section a spell (a scroll or potion item casts it)."""
 import tkinter as tk
 from tkinter import ttk
 
@@ -89,9 +89,9 @@ class SpellPage(IniFormPage):
         self.section_label(f, r, "Looks and sounds")
         r += 1
         self.add(f, r, 0, "Missile", ttk.Entry(f, textvariable=self.var("Missile"), width=20),
-                 "Bolt: a Sprites\\Effects sprite that flies to the target.")
+                 "Bolt: a sprites\\Effects sprite that flies to the target.")
         self.add(f, r, 2, "Impact", ttk.Entry(f, textvariable=self.var("Impact"), width=16),
-                 "Sprites\\Effects\\<Impact>1..4 played on the target.")
+                 "sprites\\Effects\\<Impact>1..4 played on the target.")
         r += 1
         self.add(f, r, 0, "Sound", ttk.Combobox(f, textvariable=self.var("Sound"),
                                                 values=[""] + [s for s in self.project.sounds() if not s.endswith(".mid")],
