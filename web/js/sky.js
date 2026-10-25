@@ -150,9 +150,21 @@ function skyLights(cam, ww, wh, underRoof) {
       const [, , roof, group] = cellOf(m, tx - m.mx * G.xt + 1, ty - m.my * G.yt + 1);
       if (roof && !(underRoof && m.name === S.mapName && group === underRoof)) continue;
     }
-    out.push([cx, cy, rr, true]);
+    out.push([cx, cy, flickers(e.n) ? rr * flicker(e.u) : rr, true]);
   }
   return out;
+}
+
+// ----- a flame's light isn't steady (Light.Flicker=1): it breathes and gutters, each fire in its own time
+const flickerCache = new Map();
+function flickers(name) {
+  if (!flickerCache.has(name)) flickerCache.set(name, entityIni(name, "Light.Flicker", "0").trim() === "1");
+  return flickerCache.get(name);
+}
+
+export function flicker(seed) {
+  const t = performance.now(), u = (+seed || 0) * 1.7;
+  return 0.9 + 0.05 * Math.sin(t / 130 + u) + 0.035 * Math.sin(t / 53 + u * 2.3) + 0.015 * Math.sin(t / 23 + u);
 }
 
 // ================================================================================================================

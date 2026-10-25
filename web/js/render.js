@@ -3,7 +3,7 @@
 import { G, S, mapAt, mapByPos, cellOf, myPlayer, tileAt } from "./state.js";
 import { A, sprite, size, has, entityIni, tileIni, frames, animFrame, isDecorTile, configRead } from "./assets.js";
 import { chunkOf, updateChunk, endFrame, setHiddenRoof, clearHiddenRoofs, forgetChunks, tileInfo } from "./ground.js";
-import { drawSky, drawWeather, drawFog, fogUpdate, fogCovers, drawFlash, weatherTick } from "./sky.js";
+import { drawSky, drawWeather, drawFog, fogUpdate, fogCovers, drawFlash, weatherTick, flicker } from "./sky.js";
 import { val, clamp, drawText, textWidth, setFont } from "./util.js";
 import { T } from "./verbs.js";
 import { lookImage } from "./look.js";
@@ -268,6 +268,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   if (me && me.a) standing.push(me);
   standing.sort((a, b) => (a.dy + a.h) - (b.dy + b.h));
   for (const e of standing) draw(e);
+  drawGlows(ctx, shown, cam);
   for (const e of shown) if (e.k === T.MISSILE || e.k === T.TEMPORARY) draw(e);
   // tree tops over everyone
   drawInfront(ctx, cam, pick, pc);
@@ -312,6 +313,28 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   drawFlash(ctx, V.ww, V.wh, now);
   ctx.restore();
   V.pick = pick;
+}
+
+// ----- a warm halo round what burns (Glow=<radius>: a fire), flickering - by day as well as by night
+const glows = new Map();
+function drawGlows(ctx, shown, cam) {
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (const e of shown) {
+    if (e.k !== T.STATICOBJECT) continue;
+    if (!glows.has(e.n)) glows.set(e.n, Math.max(0, +entityIni(e.n, "Glow", "0") || 0));
+    const r = glows.get(e.n);
+    if (!r) continue;
+    const f = flicker(e.u);
+    const x = e.dx + e.w / 2 - cam.x, y = e.dy + e.h * 0.62 - cam.y, rr = r * f;
+    const gr = ctx.createRadialGradient(x, y, 0, x, y, rr);
+    gr.addColorStop(0, `rgba(255,150,50,${(0.42 * f).toFixed(3)})`);
+    gr.addColorStop(0.45, `rgba(240,100,30,${(0.16 * f).toFixed(3)})`);
+    gr.addColorStop(1, "rgba(200,60,20,0)");
+    ctx.fillStyle = gr;
+    ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2);
+  }
+  ctx.restore();
 }
 
 function drawWorn(ctx, e, x, y) {
