@@ -1,0 +1,3 @@
+// The grave Grave_Cobb_Digger on 8,8,0 (Dev\migrate\name_graves.py)
+01	Display.Message	Black	'Cobb, digger of graves. He'd want you to know the soil here is good and soft.'
+02	End

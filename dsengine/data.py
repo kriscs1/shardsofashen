@@ -403,6 +403,16 @@ class GameData:
             cache = self._caches["places_cache"] = (stamp, found)
         return cache[1]
 
+    def tile_place(self, map_name, tx, ty):
+        """The place ID on tile tx,ty of a map (an Id line, put on a tile in the editor), or "": a tile's own name,
+        so a script can be its own - Examine Grave_Tom_Barrow, not every grave's."""
+        found = self.places()
+        cache = self._caches.get("tile_places")
+        if cache is None or cache[0] is not found:
+            cache = self._caches["tile_places"] = (found, {(p.map, p.tx, p.ty): p.name for p in found.values()
+                                                           if p.kind == "TILE"})
+        return cache[1].get((map_name, tx, ty), "")
+
     def place(self, name):
         name = trim(name)
         if not name or "," in name or " " in name or name[:1] in "$-+=0123456789":

@@ -182,6 +182,7 @@ class ActionsMixin:
         e.misc = self.data.tile_ini(name, "Show.Name", "0")
         e.use_words = self.data.tile_ini(name, "Use.Words", "")
         e.map = m.name
+        e.npc_id = self.data.tile_place(m.name, tx, ty)     # (a tile named in the editor: its own scripts first)
         return e
 
     def infront_entity_at(self, gx, gy):

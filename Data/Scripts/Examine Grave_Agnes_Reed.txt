@@ -1,0 +1,3 @@
+// The grave Grave_Agnes_Reed on 3,1,0 (Dev\migrate\name_graves.py)
+01	Display.Message	Black	'Agnes Reed. She mended every net on the Isle and swore at every gull.'
+02	End

@@ -32,3 +32,11 @@ NPC	Bat	128	576	Attitude=Bad
 NPC	Skeleton_Archer	64	288	Attitude=Bad
 Id	Ravensgate_Square	14	5
 StaticObject	Sign_General	576	464
+Id	Grave_Osric_Raven	25	16
+Id	Grave_Elsa_Moor	23	17
+Id	Grave_Gideon_Sexton	17	18
+Id	Grave_Rowan_Twins	19	18
+Id	Grave_Martha_Lark	21	18
+Id	Grave_Snow_Traveller	23	18
+Id	Grave_Cobb_Digger	25	18
+Id	Grave_Isolde_Ashby	19	19

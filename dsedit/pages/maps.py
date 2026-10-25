@@ -1788,15 +1788,34 @@ class MapPage(Page):
         oid = e.opt("Id")
         if not oid:
             return
-        verb = self.default_verb(e)
-        mine = sorted(s for s in self.project.scripts() if s.endswith(" " + oid))
+        self.script_links(f, oid, self.verbs_of(e))
+
+    def verbs_of(self, e):
+        """What can be done to this thing (its left-click verb first, then its Use.Words, then Examine)."""
+        words = [w.strip() for w in self.project.entities_ini.get(e.name, "Use.Words", "").split(",") if w.strip()]
+        if e.kind == "NPC":
+            words = ["Talk to", "Attack", "Kill"] + words
+        elif e.kind == "MapItem":
+            words = ["Pickup"] + words
+        out = []
+        for w in [self.default_verb(e)] + words + ["Examine"]:
+            if w not in out:
+                out.append(w)
+        return out
+
+    def script_links(self, f, oid, verbs):
+        """Its own scripts, one click away: "Edit <Verb> <Id>" for each it has, "＋ <Verb> <Id>" to make the rest."""
+        ttk.Label(f, text="Its own scripts", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(8, 0))
+        have = self.project.scripts()
+        mine = sorted(s for s in have if s.endswith(" " + oid))
         for s in mine:
             self.link(f, "Edit " + s, lambda s=s: self.app.goto("script", s))
-        script = "%s %s" % (verb, oid)
-        if script not in mine:
-            self.link(f, "＋ Make " + script, lambda: (self.app.show(self.app.page_of("script")),
-                                                      self.app.page_of("script").new_script(
-                                                          preset={"kind": "A trigger (any name)", "name": script})))
+        for verb in verbs:
+            script = "%s %s" % (verb, oid)
+            if script not in have:
+                self.link(f, "＋ " + script, lambda s=script: (self.app.show(self.app.page_of("script")),
+                                                              self.app.page_of("script").new_script(
+                                                                  preset={"kind": "A trigger (any name)", "name": s})))
 
     def insp_npc(self, f, e):
         self.insp_common(f, e, "NPC")
@@ -1967,6 +1986,12 @@ class MapPage(Page):
         ttk.Label(f, text="Teleport  %s  -\nChange.Tile  %s  Well002  0  60\n"
                           "Add.Entity  %s  Rabbit  NPC  -\nQuest marker:  Marker1=%s" % ((e.name,) * 4),
                   style="PanelMuted.TLabel", font=T.MONO, justify="left").pack(anchor="w")
+        cell = self.doc.cells[e.y - 1][e.x - 1] if 1 <= e.y <= len(self.doc.cells) else None
+        on = (cell.decor or cell.tile) if cell is not None else ""       # (what's on the tile: its own verbs)
+        words = [w.strip() for w in self.project.tiles_ini.get(on, "Use.Words", "").split(",") if w.strip()] if on else []
+        ttk.Label(f, text="A click on this tile runs its own script first (\"<Verb> %s\"), before the %s's." % (
+            e.name, on or "tile"), style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w", pady=(6, 0))
+        self.script_links(f, e.name, words + ["Examine"])
         uses = self.project.place_uses(e.name)
         ttk.Label(f, text="Used by", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(10, 0))
         if not uses:

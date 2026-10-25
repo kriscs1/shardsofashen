@@ -23,3 +23,5 @@ NPC	Skeleton	672	384	Attitude=Bad
 NPC	Skeleton	416	256	Attitude=Bad
 NPC	Bat	704	224	Attitude=Bad
 NPC	Skeleton_Archer	160	192	Attitude=Bad
+Id	Grave_Old_Wat	8	2
+Id	Grave_Raven_Mark	4	13

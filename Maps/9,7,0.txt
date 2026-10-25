@@ -31,3 +31,7 @@ NPC	Skeleton_Archer	288	256	Attitude=Bad
 StaticObject	Swordfish_Spot	544	160
 Id	Barrow	9	14
 Trigger	Barrow Door	9	17
+Id	Grave_Kings_Shieldman	8	13
+Id	Grave_Kings_Spearman	10	13
+Id	Grave_Kings_Steward	7	15
+Id	Grave_Kings_Hound	11	15

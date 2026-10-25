@@ -832,6 +832,8 @@ def check_script_reachability(references, triggers):
         if f.endswith(".txt"):
             for l in read_lines(p("Maps", f))[MAP_H:]:
                 fl = l.split("	")
+                if fl[0] == "Id" and len(fl) > 1:      # (a tile's place ID: its own scripts - Examine Grave_Tom_Barrow)
+                    with_id.add(fl[1].strip())
                 for w in " ".join(fl[4:]).split():
                     if w.startswith("Id="):
                         with_id.add(w[3:])

@@ -24,3 +24,5 @@ NPC	Skeleton	320	160	Attitude=Bad
 NPC	Bat	256	448	Attitude=Bad
 NPC	Skeleton_Archer	64	544	Attitude=Bad
 StaticObject	Swordfish_Spot	320	416
+Id	Grave_Bram_Smith	7	9
+Id	Grave_Fresh_Flowers	1	18

@@ -24,3 +24,12 @@ NPC	Skeleton	576	96	Attitude=Bad
 NPC	Bat	736	128	Attitude=Bad
 NPC	Skeleton_Archer	576	512	Attitude=Bad
 StaticObject	Swordfish_Spot	448	64
+Id	Grave_Mossed_Over	18	5
+Id	Grave_Aldwin_Shepherd	20	7
+Id	Grave_Three_Sisters	24	7
+Id	Grave_Old_Bowman	20	8
+Id	Grave_Cracked_Stone	21	9
+Id	Grave_Road_Walker	18	10
+Id	Grave_Godric_Miller	20	10
+Id	Grave_Wooden_Horse	21	10
+Id	Grave_Ford_Holder	18	13

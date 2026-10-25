@@ -1,0 +1,3 @@
+// The grave Grave_Kings_Spearman on 9,7,0 (Dev\migrate\name_graves.py)
+01	Display.Message	Black	A spear is carved on it. Beneath, in the old letters: 'He did not run.'
+02	End

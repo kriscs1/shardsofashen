@@ -25,3 +25,5 @@ NPC	Skeleton	416	544	Attitude=Bad
 NPC	Bat	224	384	Attitude=Bad
 NPC	Skeleton_Archer	64	288	Attitude=Bad
 StaticObject	Salmon_Spot	192	480
+Id	Grave_Hill_Poet	9	18
+Id	Grave_Hal_And_Bryony	10	18

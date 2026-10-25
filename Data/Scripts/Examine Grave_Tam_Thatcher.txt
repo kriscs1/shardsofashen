@@ -1,0 +1,3 @@
+// The grave Grave_Tam_Thatcher on 3,1,0 (Dev\migrate\name_graves.py)
+01	Display.Message	Black	'Old Tam, thatcher. He built Rose Cottage the year the great storm took the pier.'
+02	End

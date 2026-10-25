@@ -1238,3 +1238,21 @@ def test_an_outcome_finishes_its_own_line_by_id(world):
     s.display_message("..a stray one, with no line open", "Cyan", sound="")
     assert "of" not in [ev for ev in s.take_out() if ev["t"] == "msg"][0]
     leave(world, s)
+
+
+def test_each_grave_says_who_lies_there(world):
+    s = join(world, "Mourner", "3,1,0", 8 * 32, 3 * 32)
+    s.connected = True
+    m = s.cur_map
+    said = []
+    for tx, ty in ((3, 3), (9, 3)):                                  # (two Grave001s: once both Old Tom)
+        s.out = []
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        e = s.tile_entity_at(gx, gy)
+        assert e.name == "Grave001" and e.npc_id
+        s.choose_verb("Examine", e, gx, gy)
+        for _ in range(5):
+            world.tick(0.05)
+        said += [ev["text"] for ev in s.out if ev["t"] == "msg"]
+    assert any("Tom Barrow" in t for t in said) and any("Ned Pike" in t for t in said)
+    leave(world, s)
