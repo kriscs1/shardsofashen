@@ -56,13 +56,24 @@ def _select(d, c):
     d.polygon([(14, 6), (14, 50), (25, 40), (33, 58), (41, 54), (33, 37), (48, 37)], fill=c)
 
 
+def _area(d, c):
+    for x0, y0, x1, y1 in ((10, 10, 54, 10), (10, 54, 54, 54), (10, 10, 10, 54), (54, 10, 54, 54)):
+        n = 8                                                         # (a marching-ants frame...)
+        for k in range(0, n, 2):
+            a, b = k / n, (k + 1) / n
+            d.line([(x0 + (x1 - x0) * a, y0 + (y1 - y0) * a), (x0 + (x1 - x0) * b, y0 + (y1 - y0) * b)],
+                   fill=c, width=4)
+    for x, y in ((10, 10), (54, 10), (10, 54), (54, 54)):            # (...with a handle at each corner)
+        d.rectangle([x - 6, y - 6, x + 6, y + 6], fill=c)
+
+
 def _place(d, c):
     d.line([(32, 10), (32, 54)], fill=c, width=8)
     d.line([(10, 32), (54, 32)], fill=c, width=8)
 
 
 DRAW = {"Paint": _pencil, "Fill": _fill, "Rectangle": _rect, "Move": _move, "Erase": _erase, "Pick": _pick,
-        "Select": _select, "Place": _place}
+        "Select": _select, "Place": _place, "Area": _area}
 
 
 def icon(name, colour):

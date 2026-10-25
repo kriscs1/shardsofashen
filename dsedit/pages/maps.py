@@ -34,13 +34,17 @@ TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the s
               "Rectangle": "Drag a rectangle to fill", "Erase": "Click or drag to remove", "Pick": "Click to pick "
               "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it",
               "Place": "Click to put the palette's pick down",
+              "Area": "Drag over part of the map, then Ctrl+X (move it) or Ctrl+C (copy it), and Ctrl+V where "
+                      "its top-left goes - here or on another map: every layer and everything on it",
               "Move": "Drag a tile of this layer to another spot (whatever is there swaps places with it; a bed brings "
                       "its foot); on Entities, drag an item, object or NPC"}
 CURSORS = {"Paint": "pencil", "Fill": "spraycan", "Rectangle": "tcross", "Erase": "X_cursor", "Pick": "dotbox",
-           "Move": "fleur"}
-TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Pick"], "decor": ["Paint", "Rectangle", "Move", "Erase", "Pick"],
-         "roof": ["Paint", "Rectangle", "Move", "Erase", "Pick"], "infront": ["Paint", "Rectangle", "Move", "Erase", "Pick"],
-         "things": ["Select", "Move", "Place"]}
+           "Move": "fleur", "Area": "crosshair"}
+TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Area", "Pick"],
+         "decor": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
+         "roof": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
+         "infront": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
+         "things": ["Select", "Move", "Area", "Place"]}
 LAYER_PARTS = {"decor": ("Decor", "Under"), "roof": ("Roof",), "infront": ("Infront",)}   # (what Move carries)
 # a bed's head: (its foot, where it lies from the head) - below, or beside it for one lying sideways; they move together
 BED_FEET = {"Bed001": ("Bed002", 0, 1), "Bed003": ("Bed004", 1, 0), "Bed006": ("Bed005", -1, 0)}
@@ -274,6 +278,7 @@ class MapPage(Page):
             self.doc.fill(fill)
         self.loaded = None if fill else self.doc.snapshot()
         self.sel_cell, self.sel_ent, self.mode = None, None, None
+        self.area = None                                   # (a marked area is this map's: not the next one's)
         self.clear_history()
         self.map_var.set(name)
         self.neighbours = {}
@@ -523,7 +528,7 @@ class MapPage(Page):
         if key and not keep_tool:
             if self.layer == "things":
                 self.tool = "Place"
-            elif self.tool in ("Pick", "Erase", "Select", "Move"):
+            elif self.tool in ("Pick", "Erase", "Select", "Move", "Area"):
                 self.tool = "Paint"
             self.tool_var.set(self.tool)
         if not key:
@@ -684,6 +689,16 @@ class MapPage(Page):
             x0, y0, x1, y1 = self.ent_rect(self.sel_ent)
             c.create_rectangle(ox + x0 * z - 2, oy + y0 * z - 2, ox + x1 * z + 2, oy + y1 * z + 2, outline="#ffe066",
                                width=2, dash=(5, 2))
+        clip = getattr(self.app, "clip_region", None)
+        if clip is not None and clip.cut and clip.map == self.doc.name:   # (cut, waiting to move: orange)
+            x0, y0, x1, y1 = clip.rect
+            c.create_rectangle(ox + x0 * tw * z, oy + y0 * th * z, ox + (x1 + 1) * tw * z, oy + (y1 + 1) * th * z,
+                               outline="#ff9a3c", width=3, dash=(8, 4))
+        if getattr(self, "area", None):                         # (marked: white and blue)
+            x0, y0, x1, y1 = self.area
+            for col, d in (("#ffffff", (6, 3)), ("#2a7fff", (3, 6))):
+                c.create_rectangle(ox + x0 * tw * z, oy + y0 * th * z, ox + (x1 + 1) * tw * z,
+                                   oy + (y1 + 1) * th * z, outline=col, width=2, dash=d)
         if self.drag and self.drag.get("rect"):
             (x0, y0), (x1, y1) = self.drag["rect"]
             c.create_rectangle(ox + min(x0, x1) * tw * z, oy + min(y0, y1) * th * z, ox + (max(x0, x1) + 1) * tw * z,
@@ -747,6 +762,12 @@ class MapPage(Page):
             cursor = "target"
             c.create_oval(x0 + tw * z / 2 - 7, y0 + th * z / 2 - 7, x0 + tw * z / 2 + 7, y0 + th * z / 2 + 7,
                           outline="#ffd23c", width=2, tags="ghost")
+        elif self.tool == "Area" and getattr(self.app, "clip_region", None) is not None and not self.drag:
+            cursor = "crosshair"                            # (where Ctrl+V would put the area down)
+            w, h = self.app.clip_region.size
+            fits = self.inside(tx + w - 1, ty + h - 1)
+            c.create_rectangle(x0, y0, x0 + w * tw * z, y0 + h * th * z, outline="#ff9a3c" if fits else "#ff4040",
+                               width=2, dash=(4, 3), tags="ghost")
         elif self.drag and self.drag.get("tilemove"):
             cursor = "fleur"                                # (Move: from where, to where)
             (fx, fy), (gx, gy) = self.drag["tilemove"], self.drag["to"]
@@ -971,6 +992,10 @@ class MapPage(Page):
         if ctrl:
             self.pick_under(px, py, tx, ty)
             return
+        if self.tool == "Area":                            # (marking an area: the same on every layer)
+            self.drag = {"rect": ((tx, ty), (tx, ty)), "sel_area": True}
+            self.redraw()
+            return
         if self.layer == "things":
             self.press_things(px, py, tx, ty, shift)
             return
@@ -1070,6 +1095,12 @@ class MapPage(Page):
         if "rect" in d:
             (x0, y0), (x1, y1) = d["rect"]
             xa, xb, ya, yb = min(x0, x1), max(x0, x1), min(y0, y1), max(y0, y1)
+            if d.get("sel_area"):
+                self.area = (xa, ya, xb, yb)
+                self.app.status("Marked a %dx%d area: Ctrl+X to move it, Ctrl+C to copy it (Esc: unmark)." % (
+                    xb - xa + 1, yb - ya + 1))
+                self.redraw()
+                return
             if d.get("area"):
                 self.remember()
                 key = "Zone" if d["area"] == "zone" else "Chase"
@@ -1222,9 +1253,14 @@ class MapPage(Page):
         k = e.keysym
         if not self.doc:
             return
-        if e.state & 0x4 and k.lower() in ("x", "c", "v"):  # Ctrl: cut, copy, paste an entity (to any map)
+        if e.state & 0x4 and k.lower() in ("x", "c", "v"):  # Ctrl: cut, copy, paste (an area, or an entity)
             if k.lower() == "v":
-                self.paste_ent()
+                if getattr(self.app, "clip_last", "") == "region":
+                    self.paste_area()
+                else:
+                    self.paste_ent()
+            elif getattr(self, "area", None):
+                self.clip_area(cut=k.lower() == "x")
             else:
                 self.clip_ent(cut=k.lower() == "x")
             return "break"
@@ -1249,6 +1285,9 @@ class MapPage(Page):
             self.palette.pick(None)
             if self.layer == "things":
                 self.set_tool("Select")
+        elif k == "Escape" and getattr(self, "area", None):   # (unmark the area first)
+            self.area = None
+            self.redraw()
         elif k == "Escape":
             self.mode, self.sel_ent, self.sel_cell = None, None, None
             self.redraw()
@@ -1592,6 +1631,7 @@ class MapPage(Page):
         if not self.doc or e is None or e not in self.doc.entities:
             return
         self.app.clip_entity = (copy.deepcopy(e), self.ent_tile(e))
+        self.app.clip_last = "entity"
         if cut:
             self.remember()
             self.doc.entities.remove(e)
@@ -1622,6 +1662,85 @@ class MapPage(Page):
         self.show_inspector()
         self.app.status("Pasted the %s on tile %d,%d (Save to keep it)." % (ent.name.replace("_", " ") or ent.kind,
                                                                            tx, ty), "ok")
+
+    # ----- an area: every layer and everything on it, cut or copied, pasted here or on another map (dsedit/region.py)
+    def clip_area(self, cut):
+        """Ctrl+X / Ctrl+C with an area marked: it's kept to paste. Cut marks it to move: it goes when it's pasted
+        (taken from here and put down there at once, both maps saved), so nothing is lost if it never is."""
+        from .. import region as R
+        self.app.clip_region = R.grab(self.doc, self.area, self.ent_tile, cut)
+        self.app.clip_last = "region"
+        w, h = self.app.clip_region.size
+        self.redraw()
+        self.app.status("%s a %dx%d area of %s: open any map (or stay), put the mouse where its top-left corner goes "
+                        "and press Ctrl+V." % ("Cut" if cut else "Copied", w, h, self.doc.name), "ok")
+
+    def paste_area(self):
+        from .. import region as R
+        clip = getattr(self.app, "clip_region", None)
+        if not self.doc or clip is None:
+            return
+        if self._hover is None:
+            self.app.status("Put the mouse where the area's top-left corner goes, then Ctrl+V.", "warn")
+            return
+        tx, ty = self.tile_of(self._hover[0], self._hover[1])
+        w, h = clip.size
+        if not (self.inside(tx, ty) and self.inside(tx + w - 1, ty + h - 1)):
+            self.app.status("It doesn't fit there: a %dx%d area needs its top-left at least %d tiles from the right "
+                            "edge and %d from the bottom." % (w, h, w, h), "warn")
+            return
+        shift = lambda e, dx, dy: self.shift_ent(e, dx, dy, self.project.tile_w, self.project.tile_h)
+        if not clip.cut:                                       # a copy: an ordinary edit (Save to keep it)
+            self.remember()
+            copy_ = R.Region(clip.map, clip.rect, clip.cells, R.strip_names(copy.deepcopy(clip.entities)), False)
+            R.put(self.doc, copy_, tx, ty, shift)
+            self.area = (tx, ty, tx + w - 1, ty + h - 1)
+            self.redraw(full=True)
+            self.show_inspector()
+            self.app.status("Pasted a copy (its Ids and place names left off: they must be unique). Save to keep "
+                            "it.", "ok")
+            return
+        src, rect = clip.map, clip.rect
+        if (tx, ty) == rect[:2] and src == self.doc.name:
+            return
+        if self.is_dirty() and not messagebox.askyesno(
+                "Move an area", "Moving it saves the map%s: this one has changes not saved yet, and they're saved "
+                "too. Go on?" % ("" if src == self.doc.name else "s"), parent=self):
+            return
+        standing = lambda doc, r: [e for e in doc.placed() if R.inside(r, self.ent_tile(e)[0] - 1,
+                                                                       self.ent_tile(e)[1] - 1)]
+        here = src == self.doc.name
+        source = self.doc if here else MapDoc(self.project, src)
+        own = R.own_scripts(self.project, source)
+        fresh = R.grab(source, rect, self.ent_tile, True)       # (as it is now, not as it was when cut)
+        gone = standing(source, rect)
+        source.entities = [e for e in source.entities if e not in gone]
+        R.clear(source, rect, R.ground_round(source, rect))
+        if not here:
+            source.save()
+        self.remember()
+        already = len(standing(self.doc, (tx, ty, tx + w - 1, ty + h - 1)))
+        R.put(self.doc, fresh, tx, ty, shift)
+        self.save()
+        changed, check = R.update_refs(self.project, src, rect, self.doc.name, tx - rect[0], ty - rect[1], own)
+        self.project.refresh("scripts")
+        self.app.clip_region = None
+        self.area = (tx, ty, tx + w - 1, ty + h - 1)
+        self.redraw(full=True)
+        self.show_inspector()
+        note = "Moved the area%s (%d entities; %s saved)." % ("" if here else " from %s" % src, len(gone),
+                                                            "the map" if here else "both maps")
+        if changed:
+            note += " Updated %d place%s that pointed at it." % (len(changed), "" if len(changed) == 1 else "s")
+        if already:
+            note += " %d entit%s already stood where it landed: left as they were." % (
+                already, "y" if already == 1 else "ies")
+        self.app.status(note, "ok")
+        if changed or check:
+            messagebox.showinfo("Moved", ("Updated to point at its new place:\n  " + "\n  ".join(changed[:25]) + "\n\n"
+                                          if changed else "") +
+                                ("Look at these - coordinates in the area that couldn't be followed safely:\n  " +
+                                 "\n  ".join(check[:25]) if check else ""), parent=self)
 
     def delete_ent(self, ent):
         if ent not in self.doc.entities:
