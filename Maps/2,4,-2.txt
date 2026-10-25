@@ -25,7 +25,6 @@ NPC	Hobgoblin	256	416	Attitude=Bad Zone=5,12,12,16
 NPC	Hobgoblin	448	384	Attitude=Bad Zone=12,11,19,15
 NPC	Hobgoblin	608	320	Attitude=Bad Zone=17,9,23,13
 NPC	Skeleton	160	256	Attitude=Bad Zone=4,8,9,12
-MapItem	Beggars_House_Key	128	416	1
 MapItem	Ruby	256	480	1
 MapItem	Gold_Coin(s)	354	163	25
 MapItem	Basic_Potion	672	352	1

@@ -849,8 +849,8 @@ def check_script_reachability(references, triggers):
             continue
         ok = False
         m = re.fullmatch(r"Use (.+) With (.+)", s)
-        if m and m.group(1) in names and m.group(2) in names:
-            ok = True
+        if m and m.group(1) in names and (m.group(2) in names or m.group(2) in with_id):
+            ok = True    # (an item used on one thing with an Id: Use Egg With Marens_Range, tried first)
         for v in verbs:
             if s.startswith(v + " ") and (s[len(v) + 1:] in names or re.fullmatch(r"\[[A-Za-z]+\]", s[len(v) + 1:])
                                           or s[len(v) + 1:] in with_id):

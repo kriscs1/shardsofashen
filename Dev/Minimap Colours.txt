@@ -761,3 +761,15 @@ Suspicious_Barrel001	120 80 40
 Tunnel_Ladder001	255 0 0
 Tunnel_Ladder002	255 0 0
 Chapel_Bell001	200 150 60
+Fresh_Grave001	110 76 46
+Loose_Floorboard001	176 124 76
+Double_Bed001	200 50 50
+Double_Bed002	200 50 50
+Double_Bed003	200 50 50
+Double_Bed004	200 50 50
+Desk001	120 76 40
+Dining_Table001	128 82 42
+Dining_Table002	128 82 42
+Hidden_Ladder001	255 0 0
+Hob_Tent001	150 120 80
+Lair_Barrel001	120 80 40

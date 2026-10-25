@@ -544,14 +544,15 @@ class NPCMixin:
             sched = "" if own.upper() in ("ALWAYS", "NONE", "") else own.capitalize()
         if getattr(e.ai, "roost", None) and sched == "Day" and self.data.day_night_enabled and not e.in_combat:
             return self.npc_roost(e, e.ai)
-        if not sched or not self.data.day_night_enabled or e.z != 0 or e.in_combat:
+        indoors_own = own is not None and e.z > 0           # (its own hours upstairs: at home only at night)
+        if not sched or not self.data.day_night_enabled or (e.z != 0 and not indoors_own) or e.in_combat:
             if e.sched_away and not sched:
                 e.sched_away = False
                 e.active = True
             return e.sched_away and bool(sched)
         night = self.is_night()
         away_now = (sched == "Day" and night) or (sched == "Night" and not night)
-        far = near is None or near[1] > 380
+        far = near is None or near[1] > 380 or indoors_own   # (upstairs at home: gone at once, downstairs the while)
         if away_now and not e.sched_away:
             if sched == "Day" and not far:
                 door = self.nearest_door(e)

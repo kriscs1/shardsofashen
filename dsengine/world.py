@@ -869,6 +869,21 @@ class World(NPCMixin):
         return (m.name, regions[gy * m.gw + gx])
 
     # =================================================================================================================
+    # Things with hours (Entities.ini Schedule=Day / Night on a StaticObject): a smithy's smoke only while it works
+    # =================================================================================================================
+    def update_object_hours(self):
+        now = self.now
+        if 0 <= now - getattr(self, "hours_check_at", -10 ** 9) < 2000:
+            return
+        self.hours_check_at = now
+        night = self.is_night() if self.data.day_night_enabled else False
+        for e in self.ents:
+            if e.type == STATICOBJECT and e.alive:
+                sched = self.data.npc_schedule(e.name)
+                if sched in ("Day", "Night"):
+                    e.active = (sched == "Day") != night
+
+    # =================================================================================================================
     # Doors (Tiles.ini Open.Tile): a door opens as someone comes to it and shuts behind them
     # =================================================================================================================
     def update_doors(self):
@@ -1341,6 +1356,7 @@ class World(NPCMixin):
             self.last_queue_check = self.now
             self.run_action_queue()
         self.update_doors()
+        self.update_object_hours()
         self.farms.tick()
         self.waves.tick()
         self.tavern.tick()

@@ -122,6 +122,8 @@ class ScriptMixin:
         self.script_running = False
         self.script_state = ""
         self.script_line_no = 0
+        self.script_personal = False                # (no script running: nothing done now is a quest's own)
+        self.script_forced = None
         if self.script_move_ent is not None:
             self.script_move_ent.script_moving = False
             self.script_move_ent = None

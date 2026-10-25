@@ -33,10 +33,6 @@ STAGES = {
             "+Slay the cave troll in the Deep Hollow.",
             "+Then go back to Brokk."],
     },
-    "BeggarQuest": {
-        1: ["+The hobgoblins took the beggar's key down to their warren, below the old iron mine.",
-            "+His house is on the Isle: unlock its door with the key and it's yours."],
-    },
     "RangerQuest": {
         1: ["+Watch stone by the north road, between Tyron's Keep and Oakhollow.",
             "+Watch stone in the western woods.",

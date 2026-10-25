@@ -59,12 +59,12 @@ def test_tile_changes_are_shared(world):
 
 
 def test_quest_lock_is_per_player(world):
-    # Maps/1,1,0.txt: Lock 20,7  $Attr.Door1Open>=1 or $Item.Beggars_House_Key>=1
+    # Maps/1,1,0.txt: Lock 20,7  $Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1 (Tobias's house)
     a, b = join(world, "Ann"), join(world, "Ben")
     m = world.maps["1,1,0"]
     lk = m.lock_at[(20, 7)]
     assert a.lock_closed(m, lk) and b.lock_closed(m, lk)
-    a.update_attribute("Door1Open", "=1")
+    a.add_inventory_item("Fathers_House_Key", 1)                  # (as a script gives it: the locks look again)
     assert not a.lock_closed(m, lk)
     assert b.lock_closed(m, lk)
     cx, cy = m.ox + 19 * 32 + 16, m.oy + 6 * 32 + 16
@@ -401,7 +401,7 @@ def test_the_settlers_quest_gives_the_crystal(world):
 
     talk(1)
     assert s.get_attribute("HomeQuest") in ("", "0")                 # not before the ferry
-    s.attributes.append(["Passage", "12"])                          # (the first quest done)
+    s.update_attribute("Passage", "=12")                           # (the Isle's quests done)
     assert talk(1)[0] == "I'll do it!"
     assert s.get_attribute("HomeQuest") == "1"
     stock(s, Plank=10, Stone_Block=4)
@@ -734,7 +734,9 @@ def test_the_way_down_is_through_the_chapel(world):
         world.tick(0.05)
     assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the trapdoor: locked, without its key
     stock(s, Chapel_Cellar_Key=1)
-    assert climb(s, "Climb Down", 14, 9) == ("3,1,-2", False)      # the key: down you go (the trapdoor stays shut)
+    assert climb(s, "Climb Down", 14, 9) == ("3,1,-1", True)       # the key, but Brother Aldous hasn't said you're ready
+    s.update_attribute("AmuletQuest", "=4")
+    assert climb(s, "Climb Down", 14, 9) == ("3,1,-2", False)      # now down you go (the trapdoor stays shut)
     leave(world, s)
 
 def test_dying_ends_buffs_and_debuffs(world):
@@ -832,16 +834,11 @@ def test_a_chair_can_stand_on_a_rug(world):
     leave(world, a)
 
 
-def test_passage_to_the_mainland_from_start_to_finish(world, monkeypatch):
-    import dsengine.player_combat as pc
-    monkeypatch.setattr(pc, "rnd", lambda: 0.0)                     # (spells don't fizzle in a test)
-    s = join(world, "Newcomer", "1,2,0", 20 * 32, 12 * 32)
-    s.connected = True
-    attr = lambda: int(float(s.get_attribute("Passage") or 0))
-
-    def run(ticks=30, ms=0):
+def isle_helpers(world, s):
+    """run, npc, talk and use for a test that plays through the Isle's quests (time jumps on as it runs)."""
+    def run(ticks=30, ms=50):
         for _ in range(ticks):
-            world.tick(0.05, now=world.now + ms if ms else None)
+            world.tick(0.05, now=world.now + ms)
 
     def npc(name, map_name, npc_id=""):
         return next(e for e in world.ents if e.name == name and e.map == map_name and e.alive and
@@ -849,92 +846,207 @@ def test_passage_to_the_mainland_from_start_to_finish(world, monkeypatch):
 
     def talk(e, *answers):
         m = world.maps[e.map]
-        s.teleport(e.map, int(e.x - m.ox) + 26, int(e.y - m.oy))
+        s.teleport(e.map, int(e.x - m.ox), int(e.y - m.oy) + 30)
         run(5)
         s.do_action("Talk to", e)
         run(30)
         for n in answers:
-            assert s.ab_mode == "Conversation", (e.name, n, attr())
-            assert e.display in ("", s.ab_title) or s.ab_title == s.display_name(e), (s.ab_title, e.name)
+            assert s.ab_mode == "Conversation", (e.name, n)
             s.action_box_response_chosen(n)
             run(30)
         if s.ab_mode:
             s.close_action_box(-1)
             run(5)
 
-    def at(map_name, tx, ty, verb):
-        s.teleport(map_name, (tx - 1) * 32, ty * 32)
+    def use(map_name, tx, ty, verb, below=True):
+        """verb on tile tx,ty of map_name, standing on the tile below it (or on it)."""
+        s.teleport(map_name, (tx - 1) * 32, (ty - (0 if below else 1)) * 32 - 8)
         run(5)
         m = s.cur_map
-        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 2) * 32 + 16
-        e = s.tile_entity_at(gx, gy)
-        s.choose_verb(verb, e, gx, gy)
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        s.choose_verb(verb, s.tile_entity_at(gx, gy), gx, gy)
         run(60)
-        run(3, ms=1500)
 
+    return run, npc, talk, use
+
+
+def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
+    """Dinner at the Bank, The Amulet of Succession and Passage to the Mainland, played through."""
+    import dsengine.player_combat as pc
+    import dsengine.scripting as sc
+    monkeypatch.setattr(pc, "rnd", lambda: 0.0)                     # (spells don't fizzle in a test)
+    monkeypatch.setattr(sc, "rnd", lambda: 0.0)                     # (and the cage's lock gives at the first try)
+    day = world.day_fraction()
+    world.set_day_fraction(0.5)                                     # (by day: Maren at her counter)
+    s = join(world, "Heir", "2,1,0", 16 * 32, 8 * 32)
+    s.connected = True
+    attr = lambda name: int(float(s.get_attribute(name) or 0))
+    run, npc, talk, use = isle_helpers(world, s)
+    assert attr("LastWill") == 2                                    # (a saved character: past the funeral)
     assert "Bronze_Sword" not in s.equipped                         # (no sword to start with)
-    maren = npc("Woman", "1,2,0")
-    assert maren.display == "Maren"
-    talk(maren, 1)
-    assert attr() == 1
-    bess = npc("Milkmaid", "2,0,0")
-    talk(bess, 3, 1)                                                # the ticket book's stolen: here's an axe
-    assert attr() == 2 and s.items_held("Bronze_Axe") == 1
+    # Dinner at the Bank
+    maren = npc("Maren", "2,1,0", "Maren_At_Counter")
+    talk(maren, 1)                                                  # dinner? logs for the range first: an axe
+    assert attr("DinnerQuest") == 1 and s.items_held("Bronze_Axe") == 1
     stock(s, Logs=3)
-    talk(bess, 3)                                                   # three logs for the range
-    assert attr() == 3 and s.items_held("Logs") == 0
-    stock(s, Egg=1)                                                 # an egg, fried on the range
-    rng = next(e for e in world.ents if e.name == "Range" and e.map == "2,0,0")
-    s.teleport("2,0,0", int(rng.x - world.maps["2,0,0"].ox), int(rng.y - world.maps["2,0,0"].oy) + 30)
+    talk(maren, 1)
+    assert attr("DinnerQuest") == 2 and s.items_held("Logs") == 0
+    rng = next(e for e in world.ents if e.npc_id == "Marens_Range")
+    up = world.maps["2,1,1"]
+    s.teleport("2,1,1", int(rng.x - up.ox), int(rng.y - up.oy) + 30)
     run(5)
+    stock(s, Egg=1)
     s.item_in_use = next(e for e in s.inv if e.name == "Egg")
-    s.use_item_with(rng)
-    run(30)
-    run(3, ms=1500)
-    assert s.items_held("Fried_Egg") == 1
-    talk(bess, 3)
-    assert attr() == 4
-    s.open_item_rack("CRAFT", "Workbench", "CRAFT-Crafting")       # (a wooden sword and shield, at Crafting 1)
+    s.use_item_with(rng)                                            # fried on Maren's range, upstairs
+    run(60)
+    assert s.items_held("Fried_Egg") == 1 and attr("DinnerQuest") == 3
+    talk(npc("Edwin", "2,1,0", "Edwin_At_Desk"), 1, 1)              # the egg to Edwin; Maren gives the key
+    assert attr("DinnerQuest") == 4 and s.items_held("Chapel_Cellar_Key") == 1
+    # The Amulet of Succession, and Bess's compass begun
+    bess = npc("Milkmaid", "2,0,0")
+    talk(bess, 3, 1, 1)                                             # the mainland? Father's compass first; and Frank
+    assert attr("Passage") == 1 and attr("AmuletQuest") == 1
+    frank = npc("Frank", "2,0,0", "Frank_At_Forge")
+    talk(frank, 1)                                                  # his wood, his workbench
+    assert attr("AmuletQuest") == 2 and s.items_held("Logs") >= 5
+    s.open_item_rack("CRAFT", "Workbench", "CRAFT-Crafting")
     assert {r["item"] for r in s.rack if r["level"] <= 1} >= {"Wooden_Sword", "Wooden_Shield"}
     s.close_action_box(-1)
-    talk(bess, 3)                                                   # not yet: unarmed
-    assert attr() == 4
     stock(s, Wooden_Sword=1, Wooden_Shield=1)
+    talk(frank, 1)
+    assert attr("AmuletQuest") == 3
+    aldous = npc("Gravekeeper", "3,1,0", "Chapel_Verger")
+    talk(aldous, 1)                                                 # not unarmed
+    assert attr("AmuletQuest") == 3
     for name in ("Wooden_Sword", "Wooden_Shield"):
         s.do_action("Wield", next(e for e in s.inv if e.name == name))
-    talk(bess, 3)
-    assert attr() == 5
-    aldous = npc("Gravekeeper", "3,1,0", "Chapel_Verger")
-    talk(aldous, 1)                                                 # "What's down in the cellar?" - the key's lost
-    assert attr() == 6
-    at("3,1,0", 18, 9, "Climb Down")                                # the chapel's steps, armed
-    assert s.cur_map.name == "3,1,-1"
-    at("3,1,-1", 17, 13, "Search")                                  # the crate with the key in it
-    assert s.items_held("Chapel_Cellar_Key") == 1 and attr() == 7
-    at("3,1,-1", 14, 10, "Climb Down")                              # the trapdoor opens for the key
+    s.update_skill("Strength", "=2")
+    s.update_skill("Defence", "=2")
+    talk(aldous, 1)                                                 # armed and trained: the way down
+    assert attr("AmuletQuest") == 4
+    use("3,1,-1", 14, 9, "Climb Down")                              # the trapdoor, with Maren's key
     assert s.cur_map.name == "3,1,-2"
-    cage = next(e for e in world.ents if e.name == "Goblin_Cage")
-    m = world.maps["1,1,-2"]
-    s.teleport("1,1,-2", int(cage.x - m.ox) + 40, int(cage.y - m.oy))
-    run(5)
-    s.do_action("Open", cage)
+    s.teleport("1,1,-2", 5 * 32, 11 * 32 - 8)                       # (beside the niche at the back of the caves)
+    run(10)
+    niche = next(e for e in world.ents if e.name == "Barred_Niche" and e.owner is s)
+    s.do_action("Reach In", niche)                                  # too close for a hand: Aldous, and a scroll
+    run(60)
+    s.action_box_response_chosen(1)
     run(30)
-    assert attr() == 8
-    talk(aldous, 1)                                                 # a scroll of Grasp
-    assert attr() == 9 and s.items_held("Grasp_Scroll") == 1
-    s.teleport("1,1,-2", int(cage.x - m.ox) + 96, int(cage.y - m.oy))
-    run(5, ms=2000)
+    assert attr("AmuletQuest") == 5 and s.items_held("Grasp_Scroll") == 1
     s.player_mana = s.player_max_mana
-    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), cage)
+    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), niche)
     run(30)
-    assert s.items_held("Ticket_Book") == 1 and attr() == 10
-    assert s.items_held("Grasp_Scroll") == 1                        # (it keeps)
-    talk(bess, 3)
-    assert attr() == 11 and s.items_held("Ferry_Ticket") == 1
-    talk(npc("Woman", "1,2,0"), 1)                                  # across to Southport
-    run(3, ms=1500)
-    assert attr() == 12
+    s.action_box_response_chosen(1)
+    run(30)
+    assert s.items_held("Amulet_of_Succession") == 1 and s.items_held("Lair_Key") == 1 and attr("AmuletQuest") == 6
+    assert not any(e.name == "Gravekeeper" and e.owner is s for e in world.ents)   # (he's gone back up)
+    # Passage to the Mainland: the lair, Tobias, the house key, the floorboard, the compass
+    door = world.maps["2,1,-2"]
+    lk = door.lock_at[(14, 19)]
+    assert not s.lock_closed(door, lk)                              # (the lair's door, with Aldous's key)
+    s.teleport("2,2,-2", 18 * 32, 11 * 32 - 8)                      # (beside Tobias's cage)
+    run(10)
+    for e in [e for e in world.ents if e.name == "Hobgoblin" and e.map == "2,2,-2"]:
+        world.remove_entity(e)                                      # (no fighting in this test)
+    cage = next(e for e in world.ents if e.name == "Caged_Tobias" and e.owner is s)
+    s.do_action("Talk to", cage)
+    run(30)
+    assert attr("Passage") == 2
+    s.action_box_response_chosen(1)                                 # "I'll try": the lock
+    run(80)
+    assert s.ab_mode == "Conversation"
+    s.action_box_response_chosen(1)
+    run(30)
+    assert attr("FatherFreed") == 1 and attr("Passage") == 3
+    assert any(e.name == "Hob_Cage_Open" and e.owner is s for e in world.ents)
+    use("2,2,-2", 5, 15, "Search")                                  # the corner barrel
+    assert s.items_held("Fathers_House_Key") == 1
+    use("2,2,-2", 17, 10, "Climb Up")                               # the hidden ladder, up into the camp
+    assert s.cur_map.name == "2,2,0" and attr("LairLadder") == 1
+    house = world.maps["1,1,0"]
+    assert not s.lock_closed(house, house.lock_at[(20, 7)])
+    m = world.maps["1,1,0"]
+    assert s.tile_entity_at(m.ox + 20 * 32 + 16, m.oy + 5 * 32 + 16).name == "Plank001"   # (a board like the rest)
+    use("1,1,0", 21, 6, "Walk here", below=False)                   # (standing on it: it squeaks)
+    run(10)
+    assert attr("Squeaked") == 1
+    use("1,1,0", 21, 6, "Search")
+    assert s.items_held("Fathers_Compass") == 1 and attr("Passage") == 4
+    talk(bess, 3, 1)                                                # the compass to Bess: she sails you over
+    run(60, ms=200)
+    assert attr("Passage") == 5 and s.cur_map.name == "1,3,0"
+    world.set_day_fraction(day)
     leave(world, s)
+
+
+def test_the_lairs_hobgoblins_come_back_when_someone_comes_in(world):
+    s = join(world, "Raider", "2,2,-2", 13 * 32, 10 * 32)
+    s.god_mode = 1                                                  # (four hobgoblins: they'd win)
+    for _ in range(5):
+        world.tick(0.05)
+    hobs = [e for e in world.ents if e.name == "Hobgoblin" and e.map == "2,2,-2" and e.alive]
+    assert len(hobs) == 4
+    world.remove_entity(hobs[0])                                    # (one killed: no respawn while you're there)
+    for _ in range(40):
+        world.tick(0.05, now=world.now + 5000)
+    assert len([e for e in world.ents if e.name == "Hobgoblin" and e.map == "2,2,-2" and e.alive]) <= 3
+    s.teleport("2,1,-2", 14 * 32, 16 * 32)                          # out through the door, and back in
+    for _ in range(5):
+        world.tick(0.05)
+    s.teleport("2,2,-2", 13 * 32, 10 * 32)
+    for _ in range(5):
+        world.tick(0.05)
+    assert len([e for e in world.ents if e.name == "Hobgoblin" and e.map == "2,2,-2" and e.alive]) == 4
+    leave(world, s)
+
+
+def test_the_bank_keeps_its_hours_upstairs_and_down(world):
+    """Maren tends the counter by day; at night she's upstairs at home (her own Schedule=, on an upper floor too)."""
+    s = join(world, "Lodger", "2,1,0", 16 * 32, 9 * 32)
+    day = world.day_fraction()
+    counter = next(e for e in world.ents if e.npc_id == "Maren_At_Counter")
+    home = next(e for e in world.ents if e.npc_id == "Maren_At_Home")
+    world.set_day_fraction(0.95)                                    # (night: she shuts the bank and goes up)
+    for _ in range(900):
+        world.tick(0.05, now=world.now + 50)
+    assert counter.sched_away and not counter.active
+    s.teleport("2,1,1", 19 * 32, 2 * 32)                            # (upstairs: there she is)
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    assert home.active and not home.sched_away
+    world.set_day_fraction(0.5)                                     # (morning: off downstairs, not in front of you)
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    assert home.sched_away and not home.active
+    s.teleport("2,1,0", 16 * 32, 9 * 32)
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    assert counter.active and not counter.sched_away
+    world.set_day_fraction(day)
+    leave(world, s)
+
+
+def test_the_smithy_smokes_by_day(world):
+    smoke = next(e for e in world.ents if e.name == "Chimney_Smoke")
+    day = world.day_fraction()
+    world.set_day_fraction(0.95)
+    world.tick(0.05, now=world.now + 3000)
+    assert not smoke.active                                         # (Frank's gone home: the forge is out)
+    world.set_day_fraction(0.5)
+    world.tick(0.05, now=world.now + 3000)
+    assert smoke.active
+    world.set_day_fraction(day)
+
+
+def test_a_character_from_before_the_heirs_story(world):
+    done = Session(world, "Veteran")
+    done.load_state({"map": "1,3,0", "x": 300, "y": 300, "attributes": [["Passage", "12"]]})
+    assert [done.quest_done(q) for q in ("LastWill", "DinnerQuest", "AmuletQuest", "Passage")] == [True] * 4
+    half = Session(world, "Halfway")
+    half.load_state({"map": "2,0,0", "x": 300, "y": 300, "attributes": [["Passage", "7"]]})
+    assert half.get_attribute("Passage") == "0" and half.quest_done("LastWill")      # (the Isle again, after the letter)
+    assert not half.quest_done("Passage")
 
 
 def test_sneaking_past_the_smugglers(world):
@@ -1016,17 +1128,41 @@ def test_the_smugglers_run(world, monkeypatch):
     leave(world, s)
 
 
-def test_a_new_character_wakes_in_the_cottage(world):
+def test_a_new_character_starts_at_their_mothers_funeral(world):
     s = Session(world, "Newborn")
-    s.load_state(None)                                              # (a new character: Saves\TEMPLATE.ini)
+    s.load_state(None)                                              # (a new character: Saves\\TEMPLATE.ini)
     world.sessions["Newborn"] = s
+    s.connected = True
     s.enter_world()
-    world.tick(0.05)
-    assert s.cur_map.name == "4,0,0" and "Bronze_Sword" not in s.equipped
-    m, tx, ty = world.tile_at(s.player.z, s.player.fx, s.player.fy)
-    assert m.name == "4,0,0" and m.roof[m.cell(tx, ty)]             # (indoors, under the cottage's roof)
-    assert "0" not in m.walk[m.cell(tx, ty)]                        # (on open floor)
+    for _ in range(10):
+        world.tick(0.05, now=world.now + 50)
+    assert s.cur_map.name == "3,1,0" and "Bronze_Sword" not in s.equipped
+    assert not s.user_input_enabled                                 # (the funeral: you watch)
+    for _ in range(40):                                             # (each answer as it comes, up to the cottage)
+        for _ in range(60):
+            world.tick(0.05, now=world.now + 100)
+        if s.ab_mode == "Conversation":
+            s.action_box_response_chosen(1)
+        if s.get_attribute("LastWill") == "1" and s.user_input_enabled:
+            break
+    assert s.cur_map.name == "4,0,0" and s.get_attribute("LastWill") == "1"
+    m = world.maps["4,0,0"]
+    door = m.lock_at[(8, 13)]
+    assert s.lock_closed(m, door)                                   # (not out until the letter's read)
+    assert not any(e.name == "Edwin" and e.owner is s for e in world.ents)       # (he's gone)
+    letter = next(e for e in world.ents if e.name == "Last_Will" and e.owner is s)
+    s.do_action("Pickup", letter)
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    for _ in range(4):                                              # "Read it", then the letter's three pages
+        assert s.ab_mode == "Conversation"
+        s.action_box_response_chosen(1)
+        for _ in range(20):
+            world.tick(0.05, now=world.now + 50)
+    assert s.get_attribute("LastWill") == "2" and s.items_held("Last_Will") == 1
+    assert not s.lock_closed(m, door)
     leave(world, s)
+    world.sessions.pop("Newborn", None)
 
 
 def test_up_to_the_chapel_loft_and_its_bell(world):
@@ -1058,8 +1194,8 @@ def test_the_ferry_runs_at_night(world):
     world.set_day_fraction(0.95)                                    # (deep in the night: townsfolk go home)
     for _ in range(100):
         world.tick(0.05, now=world.now + 100)
-    maren = [e for e in world.ents if e.name == "Woman" and e.map == "1,2,0"]
-    assert maren and all(e.active and not e.sched_away for e in maren)   # (Schedule=Always: she stays at her pier)
+    wim = [e for e in world.ents if e.name == "Ferryman" and e.map == "1,2,0"]
+    assert wim and all(e.active and not e.sched_away for e in wim)  # (Schedule=Always: he stays at his pier)
     world.set_day_fraction(day)
     leave(world, s)
 
@@ -1132,17 +1268,18 @@ def test_sheep_run_from_you_and_never_fight_back(world):
     leave(world, s)
 
 
-def test_the_milkmaid_is_asked_about_tickets_only_once_its_time(world):
+def test_the_milkmaid_is_asked_about_the_mainland_only_once_its_time(world):
     bess = next(e for e in world.ents if e.name == "Milkmaid")
     m = world.maps[bess.map]
     s = join(world, "Asker", bess.map, int(bess.x - m.ox) - 28, int(bess.y - m.oy))
     s.connected = True
-    for passage, asked in ((0, False), (1, True), (11, False)):
+    for will, passage, asked in ((1, 0, False), (2, 0, True), (2, 3, True), (2, 5, False)):
+        s.update_attribute("LastWill", "=%d" % will)
         s.update_attribute("Passage", "=%d" % passage)
         s.choose_verb("Talk to", bess, int(bess.cx), int(bess.cy))
         for _ in range(20):
             world.tick(0.05)
-        assert any(r.startswith("About a ferry ticket") for r in s.responses) == asked, passage
+        assert any(r.startswith("Will you take me to the mainland") for r in s.responses) == asked, passage
         s.close_action_box(-1)
         world.tick(0.05)
     leave(world, s)

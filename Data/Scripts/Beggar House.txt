@@ -1,7 +1,0 @@
-// Trigger just inside the beggar's house door (1,1,0 tile 20,6): walking in with the key unlocks it for good
-// and completes the quest (coming up from the cellar without the key does nothing).
-01	>Got.Item	Beggars_House_Key	1	05
-02	Get.Value	ATTRIBUTE	Door1Open	Variable.2$
-03	>Conditional	$Variable.2=0	05
-04	Goto.Script	Unlock Door001
-05	End

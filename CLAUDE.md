@@ -25,19 +25,50 @@ References: `README-Server.md` (running, deploying, shared vs personal), `Dev/Da
 
 ## The story
 
-The player wakes in a small **cottage on the east of the Isle** (map 4,0,0) with no sword, and **Jimmy**, a
-strawberry-blond ginger cat, at home there. The main quest line (`Type=Main` in `Data/Quests.ini`, in chapters):
+**You are the true heir of Estforlan.** Every generation the dragon takes the king's firstborn heir, or it keeps
+Galaith, the capital, shut behind a magical barrier: the city that holds the only land route across the world, with
+the gold and mana mines in the mountains behind it. Your mother, **Queen Mary**, ran from Galaith with you as a baby
+to save you and to break the curse. The city has been sealed since your birth; King **Rupert**, your father, is shut
+in it. You grew up poor on the Isle, in the **cottage on its east** (map 4,0,0), with **Jimmy**, a strawberry-blond
+ginger cat. New characters start with no sword.
 
-1. **Passage to the Mainland** (the Isle, the tutorial). Maren the ferrywoman (south pier) needs a ticket. Her
-   sister Bess the milkmaid (north farm) lost her ticket book to a goblin from the chapel cellar. Bess teaches,
-   in this order: chop logs, collect and fry an egg, make and wield a wooden sword and shield. Then Brother
-   Aldous (the chapel) has lost the cellar key; it's in the cellar's barrels and crates and is only found by the
-   armed. The trapdoor lets you down with the key (it stays shut and needs no sword). The book is in a goblin's
-   cage; Aldous gives a Grasp scroll to pull it out. Bess stamps a ticket and Maren sails to Southport.
-2. **King's Hobgoblin Hunt**: King Tyron, south of Ashford; hobgoblins in the old iron mine.
-3. **The Ashen Hand**: a cult in the Cinderlands.
-4. **The Ashen Omens**: the cult means to wake a dragon; tell the court wizard.
-5. **The Dragon of Ashpeak**: the finale.
+The main quest line (`Type=Main` in `Data/Quests.ini`, in chapters; the Isle's are built by
+`Dev/migrate/build_heir_isle.py`):
+
+1. **The Last Will** (`LastWill`). A new character stands at Mary's fresh grave in the chapel's graveyard (3,1,0's
+   entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
+   table. The cottage door stays locked (a Lock) until you've read it: the letter (`Last_Will`, Read) tells you who
+   you are, in the owner's own words.
+2. **Dinner at the Bank** (`DinnerQuest`). The bank (2,1,0, two storeys, brick) is Edwin and **Maren**'s: she keeps
+   the counter by day, and they live upstairs (2,1,1), going up at night. Three logs for her range (with the axe she
+   lends you), an egg from Bess's coop fried on her range, the egg to Edwin. Maren gives the chapel trapdoor's key
+   and makes you promise not to go down without a sword and shield.
+3. **The Amulet of Succession** (`AmuletQuest`). **Bess** the milkmaid won't sail without her father's compass; her
+   husband **Frank** the blacksmith (his smithy by the dairy, smoke from its chimney by day) helps you make a wooden
+   sword and shield. **Brother Aldous** opens the trapdoor to you once you wield both and Strength and Defence are
+   level 2. The amulet lies behind bars at the back of the caves (1,1,-2); Aldous follows you down with a scroll of
+   Grasp, and gives you the key of the hobgoblins' lair door.
+4. **Passage to the Mainland** (`Passage`, done at 5). Bess's father **Tobias** is missing; his house (the old brick
+   house, 1,1,0, "Maren & Bess's Father's Home") is locked. The hobgoblins' lair (2,2,-2) is behind an iron door in the
+   caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
+   Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
+   a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
+   squeaks: stand on it, then Search it, for the compass. Bess sails you to Southport; **Wim** the ferryman crosses
+   for a coin after that.
+
+On the mainland (to Galaith):
+5. Southport is the temporary capital: its City Hall doubles as Parliament. The barrier can only be broken by
+   **Bert**, the great wizard of the **Wizards' Court** (the old King's Castle, the Royal Isle). Three quests take you
+   there through the cities on the way: Southport, Ashford and **King Rupert's Keep** (the old Tyron's Keep).
+6. Bert needs three things to break the barrier: a **staff** (King Rupert's Keep), a **spell book** (outside Dunerest)
+   and a **ring** (the Ashen Priest's, Emberwatch). A quest for each.
+7. Bert only wanted the ring (it goes with his new robe, and he can't stand the Ashen Priest). He teaches the spell,
+   gives you the staff, and warns that only the **Sword of Valour**, driven into its heart, kills the dragon: three
+   quests, by boat to **Dragon Island**.
+8. **Galaith** (the far east of the mainland, in a gap in the mountains behind the barrier): kill the dragon (a boss
+   fight, with words between you); persuade the Royal Guard to let you see your father, exploring the city; show King
+   Rupert the amulet and tell him the will. He makes you king. The world is open play from then; Jimmy is found in
+   any of your houses, and sleeps on the throne in the palace.
 
 Side quests hang off these by `Requires.Quests` and `Requires.Level`. A new quest must fit this world: its places
 named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.ini` with `Marker<N>` place Ids.
@@ -118,6 +149,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `NPC|StaticObject|MapItem Name x y options`. In builders, use `build_isle.Map` and `obj_line` (1-based tiles).
 - Scripts: `NN<TAB>Command<TAB>args`. `>Conditional COND LINE` goes on when COND is true and jumps to LINE when
   it's false. Generated scripts say which builder made them in their first line; edit the builder too.
+- What a quest puts down for one player (Add.Entity after `$Attr` / `Get.Value ATTRIBUTE`) goes when they leave the
+  game: a map's entry script puts back what must still be there (the letter on the table, Tobias in his cage).
+- Open and Search on a StaticObject make it a chest (its script's Give.Items fill a loot box): a quest object that
+  gives something uses its own verb (Reach In, Pick Lock).
+- `build_walk.py` deletes walking frames it didn't make (the cats', Brother Aldous's...): after running it, put the
+  deleted ones back with `git checkout -- Sprites/Walk`.
 - Builders and migrations in `Dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run.
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to

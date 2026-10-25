@@ -340,6 +340,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         # (the first quest was FerryQuest, done at 4; it's Passage now, done at 12: whoever finished it, still has)
         if val(self.get_attribute("FerryQuest")) >= 4 and val(self.get_attribute("Passage")) < 12:
             self.update_attribute("Passage", "=12")
+        if st and val(self.get_attribute("Story")) < 2:
+            self.heir_story_from_old_save()
         self.quest_notes = [[q, int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
         self.taken_once = set(st.get("taken_once", []))
@@ -361,6 +363,20 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.new_player_start()
         self.cur_map = m
         self.player_tile = None
+
+    # (the Isle's quests since the heir's story: their attributes and the values that finish them)
+    ISLE_DONE = (("LastWill", 2), ("DinnerQuest", 4), ("AmuletQuest", 6), ("Passage", 12))
+
+    def heir_story_from_old_save(self):
+        """A character from before the heir's story (Story=2): one who had crossed to the mainland has done the Isle's
+        quests; one still on the Isle starts them again after the funeral (their mother's letter read)."""
+        if val(self.get_attribute("Passage")) >= 12:
+            for attr, done in self.ISLE_DONE:
+                self.update_attribute(attr, "=%d" % done)
+        else:
+            self.update_attribute("Passage", "=0")
+            self.update_attribute("LastWill", "=2")
+        self.update_attribute("Story", "=2")
 
     def new_player_start(self):
         """A new character: Saves\\TEMPLATE.ini's skills, inventory, equipment and bank."""
@@ -391,6 +407,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             if slot:
                 self.bank_item[i] = trim(word(slot, 1, ","))
                 self.bank_qty[i] = max(1, val(word(slot, 2, ",")))
+        self.update_attribute("Story", "=2")                # (the heir's story from its beginning: the funeral)
         self.recalc_equipment()
 
     def save_state(self):

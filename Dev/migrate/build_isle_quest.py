@@ -472,10 +472,8 @@ def scripts():
 
 
 def main():
-    draw_pictures()
-    data()
-    maps()
-    scripts()
+    sys.exit("Superseded: build_heir_isle.py (the heir's story) made the Isle's quests again. This one would put the "
+             "ticket book and the goblin's cage back.")
 
 
 if __name__ == "__main__":

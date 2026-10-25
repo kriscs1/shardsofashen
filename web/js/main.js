@@ -373,7 +373,7 @@ $("price-form").addEventListener("submit", (ev) => {
 $("price-cancel").addEventListener("click", () => { $("price").hidden = true; priceDone = null; canvas.focus(); });
 
 window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice };
-window.dsDebug = { S, V };     // (for tools/browser_check.py)
+window.dsDebug = { S, V, send };     // (for tools/browser_check.py, and scripted play-throughs)
 
 // ================================================================================================================
 // Logging in
