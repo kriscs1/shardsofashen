@@ -558,6 +558,8 @@ class ScriptMixin:
             self.script_condition(self.quest_can_start(arg[1]), arg[2])
         elif c == "Set.NPC.Attitude":
             self.set_npc_attitude(arg[1], arg[2])
+        elif c == "Follow.Player":
+            self.set_follower(arg[1], arg[2])
         elif c == "Quest.Note":
             self.quest_note(arg[1], arg[2], False)
         elif c == "Quest.Note.Done":
@@ -622,6 +624,10 @@ class ScriptMixin:
             self.script_condition(self.direction_matches(arg[1]), arg[2])
         elif c == ">Not.In.Direction":
             self.script_condition(not self.direction_matches(arg[1]), arg[2])
+        elif c == ">Follower.Near":
+            e = self.npc_by_id(arg[1])
+            self.script_condition(e is not None and e.z == p.z and distance(p.cx, p.cy, e.cx, e.cy) <= val(arg[2]),
+                                  arg[3])
         elif c == ">Got.Item":
             tool = self.is_tool(arg[1])
             ok = (self.tools_held(arg[1]) if tool else self.items_held(arg[1])) >= max(1, val(arg[2]))
@@ -677,6 +683,32 @@ class ScriptMixin:
         name = next((n for n in self.data.skill_name[1:] if n.upper() == want), "")
         if name:
             self.fx_skill_pop(name)
+
+    def npc_by_id(self, npc_id):
+        """The NPC with that Id this player sees (their own copy first), or CLICKED: the one they clicked."""
+        if trim(npc_id).upper() == "CLICKED":
+            e = self.clicked_ent
+            return e if e is not None and e.alive else None
+        return self.w.placed_entity(trim(npc_id), self)
+
+    def set_follower(self, npc_id, on):
+        """Follow.Player: the NPC with that Id (the one this player sees: their own, a quest's) walks after them (ON),
+        or stops where it is and stays there (OFF)."""
+        e = self.npc_by_id(npc_id)
+        if e is None or e.type != NPC or e.ai is None:
+            self.log("ERROR - Script %s: Follow.Player: no NPC with Id %s here" % (self.script_name, npc_id))
+            return
+        a = e.ai
+        if self.on_off(on):
+            e.follow = self
+            a.solid = 0                             # (it doesn't block the doorway behind you)
+            e.pose = ""
+        else:
+            e.follow = None
+            a.solid = 0 if self.data.entity_ini(e.name, "Solid", "1") == "0" else 1
+            a.back_x, a.back_y = e.cx, e.cy
+            a.stand = 1
+            self.w.npc_set_idle(e, a, True)
 
     def play_work(self, anim, times, sound, at=None):
         """Play.Animation: TIMES beats of work at what was clicked (or at) - the animation there, the player's lunge

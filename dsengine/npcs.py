@@ -278,6 +278,9 @@ class NPCMixin:
 
     def update_npc(self, e, players, near):
         a = e.ai
+        if e.follow is not None:
+            self.npc_follow(e, a)
+            return
         if self.schedule_npc(e, near):
             return
         now = self.now
@@ -413,6 +416,23 @@ class NPCMixin:
                 a.turn_at = now + random_number(2000, 5000)
             if now >= a.timer or now < a.timer - 600000:
                 self.npc_next_move(e, a)
+
+    def npc_follow(self, e, a):
+        """Follow.Player: it walks after the player leading it, a step or two behind; if they're gone up a ladder,
+        through a door or far off, it waits where it is till they come back for it."""
+        s = e.follow
+        if not s.in_world():
+            e.follow = None
+            return
+        p = s.player
+        d = distance(e.cx, e.cy, p.cx, p.cy)
+        if p.z != e.z or d > self.sw:
+            self.animate_entity(e, False)
+        elif d > 48:
+            self.npc_walk_to(e, p.cx, p.cy, max(a.walk_speed, e.move_speed), 40, True)
+        else:
+            self.forget_path(e)
+            self.npc_face(e, e.cx, e.cy, p.cx, p.cy)
 
     @staticmethod
     def reach_extra(e):

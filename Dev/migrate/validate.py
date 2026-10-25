@@ -296,6 +296,14 @@ def npc_ids():
                         for tok in fl[4].split():
                             if tok.startswith("Id="):
                                 _npc_ids.setdefault(tok[3:], []).append(f[:-4])
+        for f in sorted(os.listdir(SCRIPT_DIR)):          # (and one a script puts down: Add.Entity ... NPC Id=)
+            if f.lower().endswith(".txt"):
+                for line in read_lines(os.path.join(SCRIPT_DIR, f)):
+                    fl = line.split("\t")
+                    if len(fl) > 5 and fl[1].strip() == "Add.Entity" and fl[4].strip() == "NPC":
+                        for tok in fl[5].split():
+                            if tok.startswith("Id="):
+                                _npc_ids.setdefault(tok[3:], []).append(f[:-4])
     return _npc_ids
 PATROL_MODES = {"PingPong", "Loop"}
 PAUSE_RE = re.compile(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$")
@@ -1175,6 +1183,39 @@ def check_entities():
     return ini
 
 
+def check_digging():
+    """Data\\Digging.ini: its finds are items, their how many,weight right; a place's Maps= are maps there are."""
+    path = p("Data", "Digging.ini")
+    if not os.path.exists(path):
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    sys.path.insert(0, p())
+    from dsengine.digging import parse_maps
+    ini = Ini(path)
+    r = rel(path)
+    maps = {tuple(int(n) for n in f[:-4].split(",")) for f in os.listdir(p("Maps")) if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", f)}
+    for sec, items in ini.sections:
+        if sec == "Digging":
+            continue
+        if sec != "Finds" and not sec.startswith("Finds."):
+            warn(r, "[%s] isn't [Digging], [Finds] or [Finds.<Place>]" % sec)
+            continue
+        for k, v in items:
+            if k is None or (sec != "Finds" and k in ("Maps", "Replace", "Chance")):
+                continue
+            if k not in ENTITIES:
+                err(r, "[%s] %s: no such item" % (sec, k))
+            if not re.fullmatch(r"\d+(-\d+)?,\d+(\.\d+)?", v.strip()):
+                err(r, "[%s] %s=%r should be how many (1 or 1-3),weight" % (sec, k, v))
+        if sec.startswith("Finds."):
+            covered = parse_maps(ini.get(sec, "Maps") or "")
+            if not covered:
+                err(r, "[%s] Maps= says no maps (x,y,z or x1-x2,y1-y2,z, space-separated)" % sec)
+            elif not covered & maps:
+                err(r, "[%s] Maps= covers no map there is" % sec)
+
+
 def check_itemracks(entities_ini, skills):
     path = p("Data", "ItemRacks.ini")
     if not os.path.exists(path):
@@ -1912,6 +1953,7 @@ def main():
     check_gathering(entities_ini, tiles_ini, skills)
     check_quests()
     check_spells(entities_ini, skills)
+    check_digging()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)
     if not quiet:

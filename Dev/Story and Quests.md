@@ -96,6 +96,12 @@ The settler by Ashford's homestone wants 10 planks and 4 stone blocks, made at h
 logs, blocks from stone mined with a pickaxe). Reward: the **Access Crystal**, your own homestead to build on, and
 Construction experience.
 
+**Granny Wren's Walk**: *after chapter 4*
+An old woman off the ferry at Southport's landing, Granny Wren, can't see well enough to find her way to her
+daughter Percy's in Ashford. **Lead her there**: she follows you, a step or two behind and slower than you walk
+(Follow.Player), and waits if you go far ahead. At Percy's door talk to either of them. Lose her (log out) and she's
+back at the landing, waiting. Reward: 30 gold and a berry pie; she lives at Percy's after.
+
 **The Herbalist's Remedy**: *level 3, after chapter 4*
 The Herbalist in her cottage on the Ashford farmlands wants 3 cave mushrooms (the old iron mine) and 2 spider silk
 (giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Herblore experience.
@@ -179,7 +185,8 @@ Passage to the Mainland: every mainland quest needs it
 │   │       └── The Dragon of Galaith (15) ── The Royal Guard (16) ── The True Heir (17)
 │   ├── The Dwarf's Grudge
 │   └── The Wildwood Watch
-├── A Place of Your Own, The Herbalist's Remedy, The Smugglers' Run, The Frozen Forge, The Lost Patrol
+├── A Place of Your Own, The Herbalist's Remedy, The Smugglers' Run, The Frozen Forge, The Lost Patrol,
+│   Granny Wren's Walk
 ├── Wolves of the Moor ── The Withering Wood ── The Barrow King
 ├── Bandits on the Road ── The Lost Caravan
 └── Bog Lights ── Old Hob
@@ -223,6 +230,7 @@ by the scripts in `Data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Hermit's Fire | HermitQuest | Talk to Hermit |
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
 | The Herbalist's Remedy | RemedyQuest | Talk to Herbalist |
+| Granny Wren's Walk | EscortQuest | Talk to Granny_Wren, Granny Wren Home, Talk to Ashford_Resident_34, 1,3,0, 2,3,0 |
 | The Smugglers' Run | SmugglerQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg |
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |
 | The Wildwood Watch | RangerQuest | Talk to Ranger, Watch Stone 1-3, Kill Giant_Spider |

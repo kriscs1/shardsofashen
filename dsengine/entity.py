@@ -26,6 +26,7 @@ class Entity(_Entity):
         self.display = ""           # a name of its own (the map's Name=Marta), shown instead of the sprite's
         self.pose = ""              # how it rests when it stops (Sit: <Name>_Sit<dir>), "" = standing
         self.npc_foe = None         # an NPC it hunts, or runs from, or fights back (Hunts=)
+        self.follow = None          # the Session it walks after (Follow.Player)
 
 
 class InvItem:

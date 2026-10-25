@@ -524,6 +524,19 @@ def test_digging_finds_things_now_and_then(world, monkeypatch):
     leave(world, s)
 
 
+def test_what_you_dig_up_depends_on_where(world):
+    s = join(world, "Prospector")
+    chance, finds = s.dig_finds(world.maps["0,9,0"])                 # (the desert: its own finds, nothing else)
+    names = {f[0] for f in finds}
+    assert chance == 9 and "Glass" in names and "Potato_Seed" not in names
+    chance, finds = s.dig_finds(world.maps["1,1,0"])                 # (the Isle: worms as well as the usual)
+    names = {f[0] for f in finds}
+    assert chance == 12 and {"Bait", "Gold_Coin(s)", "Potato_Seed"} <= names
+    chance, finds = s.dig_finds(world.maps["2,3,0"])                 # (Ashford: the usual)
+    assert chance == 7 and "Bait" not in {f[0] for f in finds}
+    leave(world, s)
+
+
 def test_tools_wear_out_and_a_broken_one_wont_do(world):
     s = join(world, "Woodsman")
     stock(s, Bronze_Axe=1)
@@ -1454,6 +1467,52 @@ def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
     for _ in range(5):
         world.tick(0.05)
     assert s.get_attribute("AdminTest") == "7"
+    leave(world, s)
+
+
+def test_walking_granny_wren_to_her_daughter(world):
+    s = join(world, "Guide", "1,3,0", 13 * 32, 9 * 32)              # (Southport's landing)
+    s.connected = True
+    s.update_attribute("Passage", "=5")                              # (over from the Isle: it can start)
+    for _ in range(10):
+        world.tick(0.05)
+    granny = world.placed_entity("Granny_Wren", s)
+    assert granny is not None and granny.owner is s                  # (each player's own)
+    attr = lambda: s.get_attribute("EscortQuest")
+    s.choose_verb("Talk to", granny, int(granny.cx), int(granny.cy))
+    for _ in range(5):
+        world.tick(0.05)
+    s.action_box_response_chosen(1)                                  # "Of course. Follow me."
+    for _ in range(5):
+        world.tick(0.05)
+    assert attr() == "1" and granny.follow is s
+    m = world.maps["2,3,0"]
+    door = (m.ox + 13 * 32 + 16, m.oy + 18 * 32 + 16)                # (in front of Percy's door)
+    for _ in range(3000):
+        if not s.player_walk_active:
+            s.walk_player_to(door[0], door[1] - 14, 0, 4)
+        world.tick(0.05, now=world.now + 50)
+        if s.cur_map is m and distance(s.player.cx, s.player.cy, *door) < 40 and \
+                distance(granny.cx, granny.cy, s.player.cx, s.player.cy) < 80:
+            break
+    assert s.cur_map is m and distance(granny.cx, granny.cy, s.player.cx, s.player.cy) < 80   # (she kept up)
+    gold = s.items_held("Gold_Coin(s)")
+    s.choose_verb("Talk to", granny, int(granny.cx), int(granny.cy))
+    for _ in range(5):
+        world.tick(0.05)
+    s.action_box_response_chosen(1)                                  # "Glad I could help."
+    for _ in range(5):
+        world.tick(0.05)
+    assert attr() == "2" and granny.follow is None and s.items_held("Gold_Coin(s)") == gold + 30
+    leave(world, s)
+    assert not granny.alive                                          # (gone with them; she lives at Percy's now)
+    s = join(world, "Guide", "2,3,0", 13 * 32, 19 * 32)
+    s.load_state({"map": "2,3,0", "x": 13 * 32, "y": 19 * 32, "attributes": [["EscortQuest", "2"]]})
+    s.enter_world()
+    for _ in range(10):
+        world.tick(0.05)
+    granny = world.placed_entity("Granny_Wren", s)
+    assert granny is not None and granny.map == "2,3,0" and distance(granny.cx, granny.cy, *door) < 64
     leave(world, s)
 
 

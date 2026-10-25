@@ -70,6 +70,8 @@ COMMANDS = [
     ('Display.Refusal', ['MESSAGE', 'SOUND']),
     ('Show.Skill', ['SKILL NAME']),
     ('Play.Animation', ['ANIMATION', 'TIMES', 'SOUND']),
+    ('Follow.Player', ['NPC ID', 'ON/OFF']),
+    ('>Follower.Near', ['NPC ID', 'REQUIRED DISTANCE', 'GOTO LINE IF NOT MET']),
 ]
 
 # command or argument type -> its help ("|" starts a new line)
@@ -140,7 +142,7 @@ HELP = {
     'Update.Attribute': 'COMMAND: Updates the value of a player attribute',
     'ATTRIBUTE NAME': 'The name of the attribute to update:|(Attribute names are assigned by you and stored in the save file)',
     'Edit.Entity': "COMMAND: Edits an entity's parameters",
-    'VALUE TO CHANGE': "The value to change: X, Y, POSITION (x,y), TYPE, NAME (sprite), MISC (an item's quantity),|QUANTITY, HP, MAXHP, SPEED, STRENGTH, DEFENCE, AGGRESSIVE, ATTITUDE (an NPC: Good or Bad), AGGRO.RANGE, ORIGINAL.X, ORIGINAL.Y",
+    'VALUE TO CHANGE': "The value to change: X, Y, POSITION (x,y), TYPE, NAME (sprite), MISC (an item's quantity),|QUANTITY, HP, MAXHP, SPEED, STRENGTH, DEFENCE, AGGRESSIVE, ATTITUDE (an NPC: Good or Bad), AGGRO.RANGE, ORIGINAL.X, ORIGINAL.Y,|STATE (an NPC: how it rests when it stops, '=Sit' shows <Name>_Sit<2/8>; '=' to stand)",
     'CHANGE TO': "Numbers: '=N' (set), '+N' or '-N' (change). POSITION: '=X,Y' or '+X,Y'.|TYPE: MapItem, StaticObject or NPC. ATTITUDE: Good or Bad (this NPC, until its map is loaded again).|NAME: a sprite name",
     'Get.Value': 'COMMAND: Retrieves a specified value and stores it in a variable',
     'VALUE TYPE': "INVENTORY or BANK (how many of an item), ATTRIBUTE (a saved value), SKILL (a skill's level),|XP (a skill's XP), HITPOINTS (current HP), EQUIPPED (the item in a slot, or none),|or CALCULATION (a sum, or a comparison giving 1 or 0)",
@@ -223,6 +225,8 @@ HELP = {
     'Play.Animation': 'COMMAND: The work of the hands: an animation on what the player clicked, a lunge towards it|and a sound, TIMES over (a beat every 0.8 seconds), e.g. Wood_Chips 3 WoodChop for three swings of the axe',
     'ANIMATION': 'An animation from Sprites\Effects (<Name>1..4): Wood_Chips, Rock_Chips, Splash, Dirt_Clods,|Wool_Tufts, Slash, Puff, Fire_Burst...',
     'TIMES': 'How many beats (1-8): one each 0.8 seconds',
+    'Follow.Player': 'COMMAND: An NPC walks after the player, a step or two behind (ON), across maps, and waits if|they go up a ladder, through a door or far off; OFF: it stops and stays where it is (lead someone somewhere)',
+    '>Follower.Near': 'CONDITION: Requires that the NPC (with that Id: the player\'s own, a quest\'s) is within|the distance of the player (in pixels): it came all the way with them',
 }
 
 # the $ variables a script can use, and what they are

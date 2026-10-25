@@ -1,12 +1,41 @@
 """Digging: a spade (its Use.Words Dig) digs where you stand, on open ground (Data\\Digging.ini Ground). Now and then
-(Chance in 100) something turns up: a weighted pick from [Finds]. It leaves a hole (Dug_Hole001) that grasses over
-after Regrow seconds; until then nobody can dig there again. On sand you always get a sack of sand as well."""
+(Chance in 100) something turns up: a weighted pick from [Finds], or from the [Finds.<Place>] that covers the map
+(its Maps=), added to them or instead (Replace=1). It leaves a hole (Dug_Hole001) that grasses over after Regrow
+seconds; until then nobody can dig there again. On sand you always get a sack of sand as well."""
 import random
 
 from dragonsword import ini
 from dragonsword.lb import val, word, strip_digits, lbstr
 
 HOLE = "Dug_Hole001"
+
+
+def parse_finds(items):
+    """[(item, how many, weight)] from item=how many,weight lines."""
+    out = []
+    for k, v in items:
+        q, w = word(v, 1, ","), val(word(v, 2, ","))
+        if w > 0:
+            out.append((k.strip(), q.strip() or "1", w))
+    return out
+
+
+def parse_maps(text):
+    """{(x, y, z)} from "x,y,z x1-x2,y1-y2,z ...": maps, and blocks of them (a negative one alone: -1)."""
+    out = set()
+    for part in text.split():
+        bits = part.split(",")
+        if len(bits) != 3:
+            continue
+        spans = []
+        for b in bits:
+            b = b.strip()
+            lo, _, hi = b[1:].partition("-") if b.startswith("-") else b.partition("-")
+            lo = -int(val(lo)) if b.startswith("-") else int(val(lo))
+            hi = int(val(hi)) if hi else lo
+            spans.append(range(min(lo, hi), max(lo, hi) + 1))
+        out |= {(x, y, z) for x in spans[0] for y in spans[1] for z in spans[2]}
+    return out
 
 
 class DigMixin:
@@ -19,16 +48,30 @@ class DigMixin:
         if "rules" not in cache:
             path = d.data_file("Digging.ini")
             r = lambda k, default: ini.read("Digging", k, default, path)
-            finds = []
-            for k, v in ini.section("Finds", path):
-                q, w = word(v, 1, ","), val(word(v, 2, ","))
-                if w > 0:
-                    finds.append((k.strip(), q.strip() or "1", w))
-            cache["rules"] = {"chance": float(val(r("Chance", "7"))), "regrow": max(10, int(val(r("Regrow", "600")))),
+            chance = float(val(r("Chance", "7")))
+            places = []
+            for sec, items in ini.sections(path):
+                if not sec.lower().startswith("finds."):
+                    continue
+                keys = {k.strip().lower(): v for k, v in items}
+                places.append({"name": sec[6:], "maps": parse_maps(keys.get("maps", "")),
+                               "replace": val(keys.get("replace", "0")) == 1,
+                               "chance": float(val(keys["chance"])) if "chance" in keys else chance,
+                               "finds": parse_finds([(k, v) for k, v in items
+                                                     if k.strip().lower() not in ("maps", "replace", "chance")])})
+            cache["rules"] = {"chance": chance, "regrow": max(10, int(val(r("Regrow", "600")))),
                               "seconds": max(0.0, float(val(r("Seconds", "2")))),
                               "ground": [g.strip().lower() for g in r("Ground", "Grass,Dirt,Sand").split(",") if g.strip()],
-                              "finds": finds}
+                              "finds": parse_finds(ini.section("Finds", path) or []), "places": places}
         return cache["rules"]
+
+    def dig_finds(self, m):
+        """(chance in 100, [(item, how many, weight)]) for digging on map m: its place's, or the general ones."""
+        rules = self.dig_rules()
+        for pl in rules["places"]:
+            if (m.mx, m.my, m.mz) in pl["maps"]:
+                return pl["chance"], pl["finds"] if pl["replace"] else rules["finds"] + pl["finds"]
+        return rules["chance"], rules["finds"]
 
     def diggable(self, tile):
         base = strip_digits(tile or "").rstrip("_").lower()
@@ -89,10 +132,11 @@ class DigMixin:
         else:
             extra = ""
         self.update_skill("Mining", "+0.01", pop=False)
-        if rules["finds"] and random.uniform(0, 100) < rules["chance"]:
-            total = sum(f[2] for f in rules["finds"])
+        chance, finds = self.dig_finds(m)
+        if finds and random.uniform(0, 100) < chance:
+            total = sum(f[2] for f in finds)
             pick = random.uniform(0, total)
-            for name, q, weight in rules["finds"]:
+            for name, q, weight in finds:
                 pick -= weight
                 if pick <= 0:
                     break

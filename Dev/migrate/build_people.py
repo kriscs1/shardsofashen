@@ -156,6 +156,8 @@ PEOPLE = {
                     cape=(200, 160, 50), held="book"),
     "Archivist": P(hair=((190, 190, 196), (150, 150, 156)), hair_style="long", shirt=((120, 90, 60),),
                    dress=(120, 90, 60), held="book"),
+    "Old_Woman": P(hair=((214, 214, 218), (172, 172, 178)), hair_style="long", shirt=((132, 104, 150),),
+                   dress=(132, 104, 150), cape=(150, 120, 86), held="staff"),      # (Granny Wren: a shawl, a stick)
     "Tomb_Guardian": P(skin=((214, 204, 174), (176, 166, 136)), hair_style="bald", eyes=(250, 200, 60),
                        mouth=(120, 100, 80), shirt=((222, 212, 184),), trousers=((210, 200, 172),),
                        shoes=((196, 186, 158),), patches=True, held="rusty_sword"),
