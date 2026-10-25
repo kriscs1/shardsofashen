@@ -99,6 +99,11 @@ export function roofCovers(x, y) {
 }
 
 // ----- effects (the server says what happened; they're drawn here)
+export function stopWorkFx(nowMs) {
+  // The beats of work not begun yet (the chips of the next swings, the lunges): gone, the work stopped
+  V.fx = V.fx.filter((f) => !(f.delay > 0 && f.start > nowMs && (f.t === "anim" || f.t === "nudge")));
+}
+
 export function addFx(ev, nowMs) {
   nowMs += Math.max(0, +ev.delay || 0);          // (a later beat of the same work: the next swing of the axe)
   const f = { ...ev, start: nowMs };
@@ -358,6 +363,12 @@ function drawNameTag(ctx, e, cam) {
   drawText(ctx, e.n, Math.round(x - w / 2 + 4), Math.round(y + 1), 7, true, e.zz ? [160, 160, 200] : [255, 236, 170]);
 }
 
+const overhead = new Map();      // tile -> drawn over people too (Overhead=1: a gatehouse's arch)
+function isOverhead(name) {
+  if (!overhead.has(name)) overhead.set(name, tileIni(name, "Overhead", "0").trim() === "1");
+  return overhead.get(name);
+}
+
 function drawInfront(ctx, cam, pick, pc) {
   const tx0 = Math.floor(cam.x / G.tw), ty0 = Math.floor(cam.y / G.th);
   const tx1 = Math.floor((cam.x + V.ww - 1) / G.tw), ty1 = Math.floor((cam.y + V.wh - 1) / G.th);
@@ -367,6 +378,10 @@ function drawInfront(ctx, cam, pick, pc) {
       if (!m) continue;
       const lx = tx - m.mx * G.xt + 1, ly = ty - m.my * G.yt + 1;
       const c = cellOf(m, lx, ly);
+      if (c[0] && isOverhead(c[0])) {                // (you walk under it: drawn again over you)
+        const t = sprite(c[0]);
+        if (t) ctx.drawImage(t, Math.round(tx * G.tw - cam.x), Math.round(ty * G.th - cam.y));
+      }
       if (!c[4]) continue;
       const im = sprite(c[4]);
       if (!im) continue;

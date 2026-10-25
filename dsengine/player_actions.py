@@ -706,12 +706,47 @@ class ActionsMixin:
                 items.append(section)
         return sorted(items, key=str.lower)
 
+    def admin_places(self):
+        """[[group, label, where]] for Go to: the world map's names, then every named tile, person and thing (Id=).
+        where is a place ID or "map tx ty"."""
+        from dragonsword import ini
+        d = self.data
+        out = []
+        for sec, items in ini.sections(d.data_file("WorldMap.ini")):
+            if sec in ("Towns", "Regions", "Places"):
+                out += [["On the world map", k, trim(v)] for k, v in items if k]
+        groups = {"TILE": "Places", "NPC": "People"}
+        for pl in sorted(d.places().values(), key=lambda pl: (groups.get(pl.kind, "Things"), pl.name.lower())):
+            out.append([groups.get(pl.kind, "Things"), "%s (%s)" % (pl.name, pl.map), pl.name])
+        return out
+
     def admin_command(self, msg):
         from dragonsword import ini
         what = msg.get("do")
         d = self.data
         if what == "items":
             self.emit({"t": "admin_items", "items": self.admin_items()})
+        elif what == "places":
+            self.emit({"t": "admin_places", "places": self.admin_places()})
+        elif what == "commands":
+            from dragonsword import script_language as L
+            self.emit({"t": "admin_commands", "commands": [[n, a, L.help_for(n).replace("|", " "),
+                                                             [L.help_for(t).replace("|", " ") for t in a]]
+                                                            for n, a in L.commands().items()]})
+        elif what == "script":
+            # (any script command, run now as a script of one line: the same as a script file's)
+            from dragonsword import script_language as L
+            cmd = str(msg.get("command", ""))
+            kinds = L.commands().get(cmd)
+            if kinds is None:
+                self.emit({"t": "admin_status", "text": "Pick a command first."})
+                return
+            args = [str(a).replace("\t", " ").strip() or " " for a in list(msg.get("args", []))[:len(kinds)]]
+            line = "\t".join(["01", cmd] + args).rstrip()
+            if not self.run_script_lines("(admin) " + cmd, [line, "02\tEnd"]):
+                self.emit({"t": "admin_status", "text": "A script is running: try again when it's done."})
+                return
+            self.emit({"t": "admin_status", "text": "Ran %s." % " | ".join([cmd] + [a.strip() for a in args])})
         elif what == "give":
             item = str(msg.get("item", ""))
             if item not in self.admin_items():
@@ -746,13 +781,19 @@ class ActionsMixin:
             self.save_requested = True
             self.emit({"t": "admin_status", "text": "Saved." if not off else "Saved. Off: " + ",".join(off)})
         elif what == "goto":
-            # (a named place: an Id tile or a thing's Id=, e.g. Ashford_Market, Waystone_Highwatch, The_Green_Dragon)
-            pl = d.place(str(msg.get("place", "")).strip())
-            if pl is None or self.w.map_named(pl.map) is None:
+            # (a named place: an Id tile or a thing's Id=, e.g. Ashford_Market, Waystone_Highwatch, The_Green_Dragon;
+            # or "map tx ty", as the world map's labels have: 1,1,0 13 15)
+            where = str(msg.get("place", "")).strip()
+            pl = d.place(where)
+            spot = (pl.map, pl.tx, pl.ty, pl.name) if pl is not None else None
+            if spot is None and len(where.split()) == 3:
+                mp, tx, ty = where.split()
+                spot = (mp, int(val(tx)), int(val(ty)), mp)
+            if spot is None or self.w.map_named(spot[0]) is None:
                 self.emit({"t": "admin_status", "text": "No place called that (an Id on a map: e.g. Ashford_Market)."})
                 return
-            self.teleport(pl.map, (pl.tx - 1) * self.tw, pl.ty * self.th - 8)
-            self.emit({"t": "admin_status", "text": "Off to %s (%s)." % (pl.name, pl.map)})
+            self.teleport(spot[0], (spot[1] - 1) * self.tw, spot[2] * self.th - 8)
+            self.emit({"t": "admin_status", "text": "Off to %s (%s)." % (spot[3], spot[0])})
         elif what == "wave":
             name = str(msg.get("name", "")).strip()
             if name not in self.w.waves.defs:

@@ -43,6 +43,7 @@ class ScriptMixin:
         self.script_entry = False           # the map's entry script
         self.script_personal = False        # what it changes now is this player's own
         self.script_forced = None           # Personal / Shared said so
+        self.work_from = None               # (x, y) the player stood at when its Play.Animation began (they stay put)
 
     # =================================================================================================================
     # Starting, stopping
@@ -82,13 +83,27 @@ class ScriptMixin:
                 self.script_queue.append((name, entry))
             return
         if self.load_script(name):
-            self.script_running = True
-            self.script_state = ""
-            self.script_result = 0
-            self.script_entry = entry
-            self.script_personal = False
-            self.script_forced = None
-            self.script_line_no = self.first_script_line(1)
+            self.begin_script(entry)
+
+    def begin_script(self, entry=False):
+        self.script_running = True
+        self.script_state = ""
+        self.script_result = 0
+        self.script_entry = entry
+        self.script_personal = False
+        self.script_forced = None
+        self.script_line_no = self.first_script_line(1)
+
+    def run_script_lines(self, title, lines):
+        """Runs these lines (NN<TAB>Command<TAB>args) now, as a script called title (the admin panel's): False if
+        another script is running."""
+        if self.script_running:
+            return False
+        self.script_lines = [""] + list(lines) + [""]
+        self.script_name = title
+        self.script_tools_used = set()
+        self.begin_script()
+        return True
 
     def load_script(self, name):
         path = self.script_path(name)
@@ -124,6 +139,7 @@ class ScriptMixin:
         self.script_line_no = 0
         self.script_personal = False                # (no script running: nothing done now is a quest's own)
         self.script_forced = None
+        self.work_from = None
         if self.script_move_ent is not None:
             self.script_move_ent.script_moving = False
             self.script_move_ent = None
@@ -152,6 +168,10 @@ class ScriptMixin:
                 return
         st = self.script_state
         if st == "WAIT":
+            if self.work_from is not None and distance(self.player.x, self.player.y, *self.work_from) > 8:
+                self.end_script()                   # (walked off from a tree, a rock, the water: no logs for that)
+                self.emit({"t": "work_stop"})
+                return
             if self.now < self.script_wait_until:
                 return
         elif st == "CONVERSATION":
@@ -662,6 +682,7 @@ class ScriptMixin:
         """Play.Animation: TIMES beats of work at what was clicked (or at) - the animation there, the player's lunge
         towards it, the sound - everyone near sees and hears it."""
         p, w = self.player, self.w
+        self.work_from = (p.x, p.y)
         x, y = at if at is not None else (self.script_cursor_x, self.script_cursor_y)
         if not x and not y:
             x, y = p.cx, p.cy

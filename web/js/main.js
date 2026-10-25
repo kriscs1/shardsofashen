@@ -3,7 +3,7 @@
 import { A, loadManifest, configRead, onLoaded } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer } from "./state.js";
 import { N, connect, send } from "./net.js";
-import { V, drawWorld, addFx, setZoom, changeZoom } from "./render.js";
+import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom } from "./render.js";
 import { invalidateMap, invalidateCell } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal } from "./input.js";
@@ -253,11 +253,13 @@ function loadView() {
 }
 
 // ----- the admin panel
-let adminItems = [];
+let adminItems = [], adminPlaces = [], adminCommands = [];
 function openAdmin() {
   releaseKeys();
   $("admin").hidden = false;
   send({ t: "admin", do: "items" });
+  if (!adminPlaces.length) send({ t: "admin", do: "places" });
+  if (!adminCommands.length) send({ t: "admin", do: "commands" });
   const box = $("admin-skills");
   box.innerHTML = "";
   A.m.skills.forEach((name, i) => {
@@ -290,6 +292,61 @@ function fillAdminItems() {
   }
 }
 $("admin-filter").addEventListener("input", fillAdminItems);
+
+function fillAdminPlaces() {
+  // Go to: the world map's names, then the places, people and things with an Id (the filter narrows them)
+  const f = $("admin-place-filter").value.toLowerCase().replace(/_/g, " ");
+  const sel = $("admin-place");
+  sel.innerHTML = "";
+  const groups = new Map();
+  for (const [group, label, where] of adminPlaces) {
+    if (f && !label.toLowerCase().replace(/_/g, " ").includes(f)) continue;
+    let g = groups.get(group);
+    if (!g) {
+      g = document.createElement("optgroup");
+      g.label = group;
+      groups.set(group, g);
+      sel.append(g);
+    }
+    const o = document.createElement("option");
+    o.value = where;
+    o.textContent = label.replace(/_/g, " ");
+    g.append(o);
+  }
+}
+$("admin-place-filter").addEventListener("input", fillAdminPlaces);
+
+function fillAdminCommands() {
+  const sel = $("admin-cmd");
+  sel.innerHTML = "";
+  for (const [name, , help] of adminCommands) {
+    const o = document.createElement("option");
+    o.value = name;
+    o.textContent = name;
+    o.title = help;
+    sel.append(o);
+  }
+  showCommandArgs();
+}
+
+function showCommandArgs() {
+  // A box for each of the command's arguments, named as the script reference names them (its help on hover)
+  const c = adminCommands.find((x) => x[0] === $("admin-cmd").value);
+  const box = $("admin-cmd-args");
+  box.innerHTML = "";
+  $("admin-cmd").title = c ? c[2] : "";
+  if (!c) return;
+  c[1].forEach((kind, i) => {
+    const inp = document.createElement("input");
+    inp.placeholder = kind.trim().toLowerCase();
+    inp.title = c[3][i] || kind;
+    inp.maxLength = 200;
+    box.append(inp);
+  });
+}
+$("admin-cmd").addEventListener("change", showCommandArgs);
+$("admin-cmd-go").onclick = () => send({ t: "admin", do: "script", command: $("admin-cmd").value,
+  args: [...$("admin-cmd-args").querySelectorAll("input")].map((i) => i.value) });
 $("admin-give").onclick = () => {
   const sel = $("admin-items");
   let item = sel.value;
@@ -329,7 +386,7 @@ $("password-form").addEventListener("submit", (ev) => {
   $("pw-status").className = "dim small";
   send({ t: "password", old, new: nw });
 });
-$("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value.trim() });
+$("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
 for (const id of ["admin", "options", "quit", "message", "appearance"]) {
@@ -460,6 +517,7 @@ N.onClose = () => {
 // ================================================================================================================
 // The server's messages
 // ================================================================================================================
+const workBeats = new Set();         // (the sounds of the swings still to come: cancelled if the work stops)
 N.onMessage = (m) => {
   const now = performance.now();
   switch (m.t) {
@@ -536,8 +594,16 @@ N.onMessage = (m) => {
     case "sound":
       if (!behind()) {
         const play = () => playSound(m.name, "x" in m ? [m.x, m.y] : null);
-        if (m.delay > 0) setTimeout(play, m.delay); else play();   // (the later beats of a piece of work)
+        if (m.delay > 0) {                                           // (the later beats of a piece of work)
+          const id = setTimeout(() => { workBeats.delete(id); play(); }, m.delay);
+          workBeats.add(id);
+        } else play();
       }
+      break;
+    case "work_stop":                                                // (they walked off: no more swings)
+      for (const id of workBeats) clearTimeout(id);
+      workBeats.clear();
+      stopWorkFx(now);
       break;
     case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": if (!behind()) addFx(m, now); break;
     case "hurt": S.hurtUntil = now + 240; break;
@@ -583,6 +649,8 @@ N.onMessage = (m) => {
       break;
     case "wave": S.wave = m.name ? { ...m, at: now } : null; break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
+    case "admin_places": adminPlaces = m.places; fillAdminPlaces(); break;
+    case "admin_commands": adminCommands = m.commands; fillAdminCommands(); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;
   }

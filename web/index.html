@@ -158,8 +158,14 @@
           <input id="admin-pw-new" placeholder="new password" maxlength="200">
           <button type="button" id="admin-pw-go">Set</button></div>
         <span>Go to a place</span>
-        <div class="row"><input id="admin-place" placeholder="e.g. Ashford_Market" maxlength="40">
+        <div class="row"><input id="admin-place-filter" class="admin-filter" placeholder="search..." maxlength="40">
+          <select id="admin-place"></select>
           <button type="button" id="admin-goto">Go</button></div>
+        <span>Run a script command</span>
+        <div class="row"><select id="admin-cmd"></select>
+          <button type="button" id="admin-cmd-go">Run</button></div>
+        <span></span>
+        <div class="row" id="admin-cmd-args"></div>
         <span>Start a monster attack</span>
         <div class="row"><input id="admin-wave" value="Ashford_Raid" maxlength="40">
           <button type="button" id="admin-wave-go">Start</button></div>

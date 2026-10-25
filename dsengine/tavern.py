@@ -11,6 +11,9 @@
 
 World.tavern (Tavern) keeps the dice rounds; TavernMixin is the player's side (Session)."""
 import random
+import time
+
+from dragonsword.lb import val
 
 ROUND_SECONDS = 20
 MAX_PLAYERS = 6
@@ -104,12 +107,28 @@ class TavernMixin:
         return False
 
     def pay_stake(self, stake):
+        wait = self.gamble_wait()
+        if wait:
+            self.display_message("That's enough gambling for now. You can play again in %s." % (
+                "a minute" if wait <= 60 else "%d minutes" % ((wait + 59) // 60)), "FAIL")
+            return False
         if self.items_held("Gold_Coin(s)") < stake:
             self.display_message("You haven't got %s to stake." % gold_word(stake), "FAIL")
             return False
         self.remove_inventory_item("Gold_Coin(s)", stake)
+        self.bets.append(time.time())
         self.play_sound("Coins")
         return True
+
+    def gamble_wait(self):
+        """Seconds till they may bet again (Config [Gameplay] Gamble.Max.Bets in Gamble.Window.Minutes), 0 = now."""
+        most = int(val(self.data.config_read("Gameplay", "Gamble.Max.Bets", "10")))
+        window = val(self.data.config_read("Gameplay", "Gamble.Window.Minutes", "60")) * 60
+        now = time.time()
+        self.bets = [t for t in self.bets if abs(now - t) < window]
+        if most <= 0 or window <= 0 or len(self.bets) < most:
+            return 0
+        return max(1, int(min(self.bets) + window - now))
 
     def win(self, amount):
         if self.inventory_slots_available("Gold_Coin(s)") > 0:

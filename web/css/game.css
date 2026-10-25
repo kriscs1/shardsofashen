@@ -221,6 +221,10 @@ button:disabled { opacity: 0.5; cursor: default; }
 .admin .admin-tools { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; align-items: center; }
 .admin .admin-tools .row, .admin section .row { display: flex; gap: 6px; margin: 0; align-items: center; }
 .admin .admin-tools input:not([type=checkbox]) { flex: 1; min-width: 0; }
+.admin .admin-tools select { flex: 1; min-width: 0; width: auto; margin: 0; }
+.admin .admin-tools input.admin-filter { flex: 0 1 9em; }
+.admin #admin-cmd-args { flex-wrap: wrap; }
+.admin #admin-cmd-args input { flex: 1 1 10em; }
 .admin label.inline { flex-direction: row; align-items: center; gap: 6px; margin: 0; }
 .admin #admin-status { margin: 6px 0 0; min-height: 1.2em; }
 @media (max-width: 720px) { .admin .admin-cols, .admin .admin-tools { grid-template-columns: 1fr; } }

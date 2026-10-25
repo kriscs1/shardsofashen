@@ -1,12 +1,11 @@
 """Character for the houses and the villages round them: each house front gets its own mix of a painted door, window
-boxes, ivy, a lantern by the door and (a shop) a hanging sign for its trade, and the ground in front flower beds,
-a bench, a lamp post or a barrel. Seeded by the map and the house, so the same build always gives the same village.
+boxes, ivy and a lantern by the door (a shop's sign stands on a post outside: build_market.py), and the ground in
+front flower beds, a bench, a lamp post or a barrel. Seeded by the map and the house, so the same build always gives the same village.
 
 Tiles (drawn here; Tiles.ini entries in TILE_DATA, put in by build_content):
   * <Base>_Ivy001-003: the wall with ivy climbing it (from the left, all over, from the right)
   * <Base>_Window004 / 005: the window with a box of flowers under it / with ivy round it
   * <Base>_Lamp001: the wall with an iron lantern on a bracket, lit
-  * <Base>_Sign001-008: the wall with a hanging sign: SIGNS (bread, coin, anvil, sack, potion, fish, hammer, crown)
   * Flower_Bed001-003, Bench001, Lamp_Post001: on grass in front of the houses
   * Painted doors (Door025-042: house_tiles.PAINTED) go in place of the plain ones.
 dress_villages() runs in build_content.extend, on every map's rows once the houses are built and furnished.
@@ -23,11 +22,6 @@ import house_tiles as H  # noqa: E402
 
 YS, XS = np.mgrid[0:S, 0:S]
 LEAVES = [(34, 84, 38), (46, 108, 44), (66, 134, 56), (90, 154, 70)]
-SIGNS = ["Bread", "Coin", "Anvil", "Sack", "Potion", "Fish", "Hammer", "Crown"]
-SIGN_OF_NPC = {"Baker": "Bread", "Banker": "Coin", "Blacksmith": "Anvil", "Trader": "Sack", "Shopkeeper": "Sack",
-               "Herbalist": "Potion", "Fisherman": "Fish"}
-SIGN_OF_OBJECT = {"Anvil": "Anvil", "Furnace": "Anvil", "Workbench": "Hammer", "Range": "Bread",
-                  "Alchemy_Table": "Potion"}
 
 
 def C(c):
@@ -109,75 +103,6 @@ def lamp_wall(wall):
     return to_rows(np.clip(img, 0, 255))
 
 
-# ------------------------------------------------------------------------------------------------- shop signs
-def sign_icon(img, kind, cx, cy):
-    def disc(x0, y0, r):
-        return (XS - x0) ** 2 + (YS - y0) ** 2 <= r * r
-    if kind == "Bread":
-        m = ((XS - cx) / 6.5) ** 2 + ((YS - cy) / 3.6) ** 2 <= 1
-        img[m] = C((200, 140, 70))
-        img[m & (YS < cy - 1)] = C((222, 168, 92))
-        for k in (-3, 0, 3):
-            img[cy - 2:cy + 1, cx + k] = C((150, 96, 44))
-    elif kind == "Coin":
-        img[disc(cx, cy, 5)] = C((168, 128, 30))
-        img[disc(cx, cy, 4)] = C((230, 190, 60))
-        img[disc(cx - 1, cy - 1, 2)] = C((255, 230, 140))
-    elif kind == "Anvil":
-        img[cy - 3:cy - 1, cx - 6:cx + 5] = C((70, 70, 76))
-        img[cy - 3, cx - 7:cx - 5] = C((70, 70, 76))
-        img[cy - 1:cy + 2, cx - 2:cx + 2] = C((60, 60, 66))
-        img[cy + 2:cy + 4, cx - 4:cx + 4] = C((70, 70, 76))
-        img[cy - 3, cx - 6:cx + 5] = C((120, 120, 128))
-    elif kind == "Sack":
-        m = ((XS - cx) / 5.0) ** 2 + ((YS - cy - 1) / 4.2) ** 2 <= 1
-        img[m] = C((196, 166, 112))
-        img[m & (XS > cx + 1)] = C((168, 138, 90))
-        img[cy - 5:cy - 3, cx - 1:cx + 2] = C((196, 166, 112))
-        img[cy - 3, cx - 2:cx + 3] = C((110, 76, 40))
-    elif kind == "Potion":
-        img[disc(cx, cy + 1, 4)] = C((70, 160, 80))
-        img[disc(cx - 1, cy, 1)] = C((170, 230, 170))
-        img[cy - 5:cy - 2, cx - 1:cx + 2] = C((180, 200, 210))
-        img[cy - 6, cx - 1:cx + 2] = C((120, 80, 40))
-    elif kind == "Fish":
-        m = ((XS - cx + 1) / 5.0) ** 2 + ((YS - cy) / 2.6) ** 2 <= 1
-        img[m] = C((120, 150, 176))
-        img[m & (YS > cy)] = C((90, 116, 140))
-        for k in range(4):
-            img[cy - k:cy + k + 1, cx + 4 + k] = C((100, 130, 156))
-        img[cy - 1, cx - 3] = C((20, 20, 24))
-    elif kind == "Hammer":
-        img[cy - 4:cy - 1, cx - 5:cx + 3] = C((90, 90, 96))
-        img[cy - 4, cx - 5:cx + 3] = C((140, 140, 148))
-        img[cy - 1:cy + 5, cx - 1:cx + 1] = C((150, 104, 56))
-    elif kind == "Crown":
-        img[cy:cy + 3, cx - 5:cx + 6] = C((226, 182, 56))
-        for k in (-5, 0, 5):
-            img[cy - 3:cy, cx + k] = C((226, 182, 56))
-            img[cy - 4, cx + k] = C((200, 40, 40))
-        img[cy + 2, cx - 5:cx + 6] = C((168, 128, 30))
-
-
-def sign_wall(wall, kind):
-    img = H.wall_image(wall).copy()
-    iron = C((40, 38, 40))
-    img[4:6, 2:28] = iron                                               # the bracket out from the wall
-    img[4, 2:28] = C((84, 82, 84))
-    img[6:9, 2:4] = iron
-    for x in (8, 23):                                                   # its chains
-        img[6:10:2, x] = C((120, 118, 120))
-        img[7:10:2, x] = iron
-    board = (XS >= 5) & (XS <= 26) & (YS >= 10) & (YS <= 25)
-    img[board] = C((150, 104, 62))
-    img[board & ((YS - 10) % 5 == 4)] *= 0.86                           # the boards
-    img[board & ((XS == 5) | (YS == 10))] = C((186, 136, 84))
-    img[board & ((XS == 26) | (YS == 25))] = C((92, 60, 34))
-    img[(YS == 26) & (XS >= 6) & (XS <= 27)] *= 0.6                     # its shadow on the wall
-    sign_icon(img, kind, 16, 18)
-    return to_rows(np.clip(img, 0, 255))
-
-
 # ------------------------------------------------------------------------------------------------- the ground
 def on_grass():
     return np.array(H.tile_image("Grass001"), dtype=np.float32).copy()
@@ -250,11 +175,6 @@ for _w, _b in H.WALL_BASES.items():
     TILE_DATA["%s_Window005" % _b] = ("0" * 49, "1", "", "A window half hidden by ivy.", "1", None)
     TILES["%s_Lamp001" % _b] = (lambda w=_w: lamp_wall(w))
     TILE_DATA["%s_Lamp001" % _b] = ("0" * 49, "1", "", "A lantern by the door, burning day and night.", "0", None)
-    for _i, _s in enumerate(SIGNS, 1):
-        TILES["%s_Sign%03d" % (_b, _i)] = (lambda w=_w, s=_s: sign_wall(w, s))
-        TILE_DATA["%s_Sign%03d" % (_b, _i)] = ("0" * 49, "1", "", "A sign hangs over the door: %s." % {
-            "Bread": "a loaf of bread", "Coin": "a gold coin", "Anvil": "an anvil", "Sack": "a sack of goods",
-            "Potion": "a green potion", "Fish": "a fish", "Hammer": "a hammer", "Crown": "a crown"}[_s], "0", None)
 for _n in (1, 2, 3):
     TILES["Flower_Bed%03d" % _n] = (lambda n=_n: flower_bed(n))
     TILE_DATA["Flower_Bed%03d" % _n] = ("1" * 49, "1", "", "A flower bed, somebody's pride and joy.", "1", None)
@@ -301,11 +221,6 @@ def dress_villages(W, R, C):
             b = base_name(wall)
             rng = random.Random("%s:%d:%d" % (name, x1, y1))
             count += 1
-            # the house's trade, from who (or what) is inside it
-            trade = None
-            for tx, ty, n, npc in inside:
-                if x1 <= tx <= x2 and y1 <= ty <= y2:
-                    trade = (SIGN_OF_NPC.get(n) if npc else SIGN_OF_OBJECT.get(n)) or trade
             plain = [x for x, y in front if tile(x, y) == wall and x not in (x1, x2)]
             # (the windows sit either side of the door, so: the plain wall nearest it, on each side)
             beside = [min(side, key=lambda x: abs(x - door)) for side in
@@ -315,12 +230,7 @@ def dress_villages(W, R, C):
             if rng.random() < 0.75:
                 paint = rng.choice(list(H.PAINTS))
                 changes[(door, fy)] = H.PAINTED[(tile(door, fy), paint)]
-            # a sign for a shop, a lantern for some of the rest (beside the door)
-            if trade and beside:
-                x = rng.choice(beside)
-                changes[(x, fy)] = "%s_Sign%03d" % (b, SIGNS.index(trade) + 1)
-                beside.remove(x)
-                plain.remove(x)
+            # a lantern for some (beside the door)
             if beside and rng.random() < 0.45:
                 x = rng.choice(beside)
                 changes[(x, fy)] = "%s_Lamp001" % b

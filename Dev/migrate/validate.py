@@ -962,11 +962,12 @@ def check_tiles():
             elif k not in ("Walkable.Data", "Show.Name", "Use.Words", "Examine.Info", "Line.of.Sight", "Walk.Speed",
                            "Blend", "Blend.Texture", "Texture", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
                            "Layer", "Foam", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
-                           "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat"):   # (Seat=S: sit on it, facing south)
+                           "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat",    # (Seat=S: sit on it, facing south)
+                           "Overhead"):                                             # (drawn over people too: an arch)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
-            elif k in ("Flame", "Water") and v not in ("0", "1"):
+            elif k in ("Flame", "Water", "Overhead") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
             elif k == "Seat" and v not in ("N", "E", "S", "W"):
                 err(r, "[%s] Seat must be N, E, S or W (the way you face, sitting on it)" % sec)

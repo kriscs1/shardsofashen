@@ -147,38 +147,6 @@
   "Brick001",
   "Ivy003"
  ],
- "Brick_Sign001": [
-  "Brick001",
-  "Sign001"
- ],
- "Brick_Sign002": [
-  "Brick001",
-  "Sign002"
- ],
- "Brick_Sign003": [
-  "Brick001",
-  "Sign003"
- ],
- "Brick_Sign004": [
-  "Brick001",
-  "Sign004"
- ],
- "Brick_Sign005": [
-  "Brick001",
-  "Sign005"
- ],
- "Brick_Sign006": [
-  "Brick001",
-  "Sign006"
- ],
- "Brick_Sign007": [
-  "Brick001",
-  "Sign007"
- ],
- "Brick_Sign008": [
-  "Brick001",
-  "Sign008"
- ],
  "Brick_Window001": [
   "Brick001",
   "Brick_Window001"
@@ -491,38 +459,6 @@
   "Plaster001",
   "Ivy003"
  ],
- "Plaster_Sign001": [
-  "Plaster001",
-  "Sign001"
- ],
- "Plaster_Sign002": [
-  "Plaster001",
-  "Sign002"
- ],
- "Plaster_Sign003": [
-  "Plaster001",
-  "Sign003"
- ],
- "Plaster_Sign004": [
-  "Plaster001",
-  "Sign004"
- ],
- "Plaster_Sign005": [
-  "Plaster001",
-  "Sign005"
- ],
- "Plaster_Sign006": [
-  "Plaster001",
-  "Sign006"
- ],
- "Plaster_Sign007": [
-  "Plaster001",
-  "Sign007"
- ],
- "Plaster_Sign008": [
-  "Plaster001",
-  "Sign008"
- ],
  "Plaster_Window001": [
   "Plaster001",
   "Plaster_Window001"
@@ -779,38 +715,6 @@
   "Sandstone001",
   "Ivy003"
  ],
- "Sandstone_Sign001": [
-  "Sandstone001",
-  "Sign001"
- ],
- "Sandstone_Sign002": [
-  "Sandstone001",
-  "Sign002"
- ],
- "Sandstone_Sign003": [
-  "Sandstone001",
-  "Sign003"
- ],
- "Sandstone_Sign004": [
-  "Sandstone001",
-  "Sign004"
- ],
- "Sandstone_Sign005": [
-  "Sandstone001",
-  "Sign005"
- ],
- "Sandstone_Sign006": [
-  "Sandstone001",
-  "Sign006"
- ],
- "Sandstone_Sign007": [
-  "Sandstone001",
-  "Sign007"
- ],
- "Sandstone_Sign008": [
-  "Sandstone001",
-  "Sign008"
- ],
  "Sandstone_Window001": [
   "Sandstone001",
   "Sandstone_Window001"
@@ -875,38 +779,6 @@
   "Stone_Wall001",
   "Ivy003"
  ],
- "Stone_Wall_Sign001": [
-  "Stone_Wall001",
-  "Sign001"
- ],
- "Stone_Wall_Sign002": [
-  "Stone_Wall001",
-  "Sign002"
- ],
- "Stone_Wall_Sign003": [
-  "Stone_Wall001",
-  "Sign003"
- ],
- "Stone_Wall_Sign004": [
-  "Stone_Wall001",
-  "Sign004"
- ],
- "Stone_Wall_Sign005": [
-  "Stone_Wall001",
-  "Sign005"
- ],
- "Stone_Wall_Sign006": [
-  "Stone_Wall001",
-  "Sign006"
- ],
- "Stone_Wall_Sign007": [
-  "Stone_Wall001",
-  "Sign007"
- ],
- "Stone_Wall_Sign008": [
-  "Stone_Wall001",
-  "Sign008"
- ],
  "Stone_Wall_Window001": [
   "Stone_Wall001",
   "Stone_Wall_Window001"
@@ -962,38 +834,6 @@
  "Timber_Ivy003": [
   "Timber001",
   "Ivy003"
- ],
- "Timber_Sign001": [
-  "Timber001",
-  "Sign001"
- ],
- "Timber_Sign002": [
-  "Timber001",
-  "Sign002"
- ],
- "Timber_Sign003": [
-  "Timber001",
-  "Sign003"
- ],
- "Timber_Sign004": [
-  "Timber001",
-  "Sign004"
- ],
- "Timber_Sign005": [
-  "Timber001",
-  "Sign005"
- ],
- "Timber_Sign006": [
-  "Timber001",
-  "Sign006"
- ],
- "Timber_Sign007": [
-  "Timber001",
-  "Sign007"
- ],
- "Timber_Sign008": [
-  "Timber001",
-  "Sign008"
  ],
  "Timber_Window001": [
   "Timber001",

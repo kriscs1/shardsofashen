@@ -127,6 +127,7 @@ Glow.Colour=255 160 70 ; for the editor's "Split props off their floors": drawn 
 Glow.Match=4           ; it, kept as see-through light (Match: how near, a few if exact)
 Light=72               ; how far (pixels) it lights the dark at night: on a ground tile, a decor or a roof
                        ; (torches 72, lamp posts 96, lit windows 34, upper windows in roofs 30)
+Overhead=1             ; drawn over people as well as under them: a gatehouse's arch you walk through
 Seat=S                 ; a bench or chair: Sit on it (give it Use.Words=Sit), facing N, E, S or W, till you move
 Piece=corner: top left ; which piece of a set it is (a roof's "ridge, west end", a fence's "a T: east, south and
                        ; west"): the editor's Maps palette says it, with the set from Data\TileSets.ini
@@ -154,7 +155,8 @@ Potted plants are five different plants, `Potted_Plant001-005` (leafy, fern, flo
 the builders put one of them wherever they furnish a room with a pot (common.decor_variant). Drawn by
 Dev\migrate\decor_sets.py; Dev\migrate\migrate_rugs_pots.py moved the maps over (once).
 On walls, decor too (Dev\migrate\migrate_wall_decor.py, once): windows `<Base>_Window001-005` (each wall's own style
-of frame and shutters, but any of them goes on any wall), hanging signs `Sign001-008`, ivy `Ivy001-003`; and
+of frame and shutters, but any of them goes on any wall), ivy `Ivy001-003` (its hanging signs are gone: shops have
+signboards on posts, remove_wall_signs.py); and
 `Bookshelf001` (on any floor or against any thin wall: the Bookshelf101/201 and Bookshelf_<Wall>_Thin_... copies are
 gone, like the beds against walls), ladders `Ladder001` (up), `002` (a hatch down), `003`, `006` (a hole in the
 ground), `008` (up to the loft), `009` (a trapdoor). A bank's column or plaque over a window or sign replaces it

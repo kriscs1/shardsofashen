@@ -151,8 +151,8 @@ def sheet(P, work, path):
 def main():
     P = Project(NEW)
     D.read_lights(P)
-    if "--dry" not in sys.argv and P.tiles_ini.get("Sign001", "Layer", "") == "Decor":
-        print("Already done: Sign001 is decor.")
+    if "--dry" not in sys.argv and P.tiles_ini.get("Ivy001", "Layer", "") == "Decor":
+        print("Already done: Ivy001 is decor.")              # (the signs it made are gone: remove_wall_signs.py)
         return
     work = work_out(P)
     for decor, rgba, olds, how, note in work:

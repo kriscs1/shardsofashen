@@ -626,6 +626,26 @@ def test_tavern_games(world, monkeypatch):
     leave(world, b)
 
 
+def test_only_so_many_bets_an_hour(world):
+    s = join(world, "HighRoller")
+    stock(s, **{"Gold_Coin(s)": 500})
+    most = int(world.data.config_read("Gameplay", "Gamble.Max.Bets", "10"))
+    for _ in range(most - 2):
+        assert s.pay_stake(5)
+    st = s.save_state()
+    leave(world, s)
+    s = join(world, "HighRoller")                                    # (logging out doesn't start the count again)
+    s.load_state(st)
+    assert s.pay_stake(5) and s.pay_stake(5)
+    s.out = []
+    gold = s.items_held("Gold_Coin(s)")
+    assert not s.pay_stake(5) and s.items_held("Gold_Coin(s)") == gold
+    assert any("enough gambling" in str(ev.get("text", "")) for ev in s.out)
+    s.bets = [t - 3601 for t in s.bets]                              # (an hour on)
+    assert s.pay_stake(5)
+    leave(world, s)
+
+
 def test_a_chest_shows_what_is_in_it_before_it_is_yours(world):
     m = world.maps["2,2,0"]
     chest = next(e for e in world.ents if e.name == "Chest" and e.map == m.name)
@@ -1370,6 +1390,70 @@ def test_a_wolf_hunts_a_sheep_and_a_rat_bites_back(world):
     assert dog.hp < hp or not rat.alive                              # (a rat doesn't run: it bites back)
     for e in (wolf, rat, dog):
         world.remove_entity(e)
+    leave(world, s)
+
+
+def test_walking_off_stops_the_work(world):
+    s = join(world, "Woodcutter", "0,1,0", 7 * 32, 4 * 32)           # (just under the tree at 8,4)
+    s.connected = True
+    stock(s, Bronze_Axe=1)
+    m = s.cur_map
+    gx, gy = m.ox + 7 * 32 + 16, m.oy + 3 * 32 + 16
+    tree = s.tile_entity_at(gx, gy)
+    assert tree.name == "Tree001"
+    logs = s.items_held("Logs")
+    s.out = []
+    s.choose_verb("Chop", tree, gx, gy)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.script_running and s.work_from is not None             # (swinging)
+    s.keyboard_direction = 4                                         # and off they go
+    for _ in range(10):
+        world.tick(0.05)
+    s.keyboard_direction = 0
+    for _ in range(100):
+        world.tick(0.05, now=world.now + 50)
+    assert not s.script_running and s.items_held("Logs") == logs
+    assert any(ev.get("t") == "work_stop" for ev in s.out)
+    assert not any("logs" in str(ev.get("text", "")) for ev in s.out)
+    s.out = []
+    s.choose_verb("Chop", tree, gx, gy)                              # (staying put: the work's done, logs or none)
+    for _ in range(150):
+        world.tick(0.05, now=world.now + 50)
+    assert not s.script_running and any("logs!" in str(ev.get("text", "")) for ev in s.out)
+    leave(world, s)
+
+
+def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
+    s = join(world, "Overseer")
+    s.admin_enabled = True
+    s.out = []
+    s.admin_command({"do": "places"})
+    places = next(ev["places"] for ev in s.out if ev["t"] == "admin_places")
+    groups = {g for g, _, _ in places}
+    assert {"On the world map", "Places", "People", "Things"} <= groups
+    village = next(where for g, label, where in places if label == "Isle Village")
+    assert village == "1,1,0 13 15"                                  # (a map and a tile, as the world map has it)
+    s.admin_command({"do": "goto", "place": village})
+    world.tick(0.05)
+    assert s.cur_map.name == "1,1,0"
+    s.admin_command({"do": "goto", "place": "Waystone_Ashford"})
+    for _ in range(5):
+        world.tick(0.05)                                             # (Ashford's own script, as you arrive)
+    assert s.cur_map.name == "2,3,0" and not s.script_running
+    s.out = []
+    s.admin_command({"do": "commands"})
+    cmds = {c[0]: c[1] for c in next(ev["commands"] for ev in s.out if ev["t"] == "admin_commands")}
+    assert cmds["Give.Item"] == ["ITEM NAME", "QUANTITY TO ADD"]
+    s.admin_command({"do": "script", "command": "Give.Item", "args": ["Logs", "3"]})
+    s.admin_command({"do": "script", "command": "Update.Attribute", "args": ["AdminTest", "=7"]})   # (one at a time)
+    for _ in range(5):
+        world.tick(0.05)
+    assert s.items_held("Logs") == 3
+    s.admin_command({"do": "script", "command": "Update.Attribute", "args": ["AdminTest", "=7"]})
+    for _ in range(5):
+        world.tick(0.05)
+    assert s.get_attribute("AdminTest") == "7"
     leave(world, s)
 
 

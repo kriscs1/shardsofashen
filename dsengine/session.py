@@ -87,6 +87,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.grave_ent = None
         self.status = {}
         self.cooldowns = {}
+        self.bets = []                      # when they last staked at the tavern (time.time(): the limit's window)
         self.clear_boosts_values()
         self.boost_from = {}                # kind -> the potion or scroll it came from (attack, defence, magic, sight)
         self.dead_wait = None               # (map, x, y, at their bed): dead, until they choose to respawn
@@ -346,6 +347,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.quest_notes = [[q, int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
         self.taken_once = set(st.get("taken_once", []))
+        self.bets = [val(t) for t in st.get("bets", [])][-100:]
         self.hotbar = (list(st.get("hotbar", [])) + [""] * HOTBAR_SLOTS)[:HOTBAR_SLOTS]
         self.hotbar = [self.renamed(h) for h in self.hotbar]
         self.explored = {k: ("all" if v == "all" else set(v)) for k, v in st.get("explored", {}).items()}
@@ -430,6 +432,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "npc_attitudes": dict(self.npc_attitudes),
             "taken_once": sorted(self.taken_once),
             "hotbar": list(self.hotbar),
+            "bets": [int(t) for t in self.bets],
             "explored": {k: ("all" if v == "all" else sorted(v)) for k, v in self.explored.items()},
             "grave": self.grave,
             "look": self.look,

@@ -273,8 +273,8 @@ PLANTS = [  # name, picture, examine text
 POT_WALK = "1111111" "1111111" "1100011" "1100011" "1100011" "1111111" "1111111"
 
 
-# ------------------------------------------------------------------ on a wall: ivy (signs and windows are the
-# split's pictures: migrate_wall_decor.py)
+# ------------------------------------------------------------------ on a wall: ivy (windows are the split's
+# pictures: migrate_wall_decor.py)
 IVY = {1: ([1, 4, 8], 30, 0.55, "from the left"), 2: ([2, 7, 12, 17, 22, 27, 30], 32, 0.7, "all over"),
        3: ([S - 2, S - 5, S - 9], 30, 0.55, "from the right")}
 
@@ -293,8 +293,6 @@ def ivy(kind):
     return c.image()
 
 
-SIGNS = ["bread (a baker)", "a gold coin (a bank)", "an anvil (a smithy)", "a sack (a trader)",
-         "a potion (an apothecary)", "a fish (a fishmonger)", "a hammer (a workshop)", "a crown (an inn)"]
 WINDOW_KINDS = ["a window", "a window with a loose shutter, open (a way in)",
                 "a window upside down (a front wall facing north)", "a window with a box of flowers",
                 "a window half hidden by ivy"]
@@ -319,8 +317,6 @@ for _n, _fn, _exa in PLANTS:
 for _k, (_s, _h, _d, _what) in IVY.items():
     TILE_ART["Ivy%03d" % _k] = (lambda k=_k: ivy(k))
     TILE_KEYS["Ivy%03d" % _k] = [("Piece", "ivy " + _what)]
-for _i, _what in enumerate(SIGNS):
-    TILE_KEYS["Sign%03d" % (_i + 1)] = [("Piece", "a hanging sign: " + _what)]
 for _base in ("Brick", "Stone_Wall", "Timber", "Plaster", "Sandstone"):
     for _i, _what in enumerate(WINDOW_KINDS):
         TILE_KEYS["%s_Window%03d" % (_base, _i + 1)] = [("Piece", _what)]
@@ -380,7 +376,6 @@ def sets():
                     [F.name(kind, n) for row in [[3, 7, 1, 4], [9, 11, 1, 10], [2, 2, 12, 2], [5, 8, 1, 6]]
                      for n in row]))
     out.append(("Fence", "old wooden fence", 2, ["Fence001", "Fence002"]))
-    out.append(("Sign", "hanging signs", 4, ["Sign%03d" % i for i in range(1, 9)]))
     out.append(("Ivy", "ivy", 3, ["Ivy%03d" % k for k in IVY]))
     for base in ("Brick", "Stone_Wall", "Timber", "Plaster", "Sandstone"):
         out.append(("%s_Window" % base, "%s windows" % base.replace("_", " ").lower(), 5,
