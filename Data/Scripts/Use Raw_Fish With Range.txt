@@ -11,7 +11,7 @@
 10	Update.Skill	Cooking	+0.05
 11	Give.Item	Cooked_Fish	1
 12	End
-13	Display.Message	DarkRed	..but accidentally burn it!	Denied
+13	Display.Message	DarkRed	..but accidentally burn it!	Fail
 14	Give.Item	Burnt_Fish	1
 15	End
 16	Display.Message	DarkRed	You don't have any Raw Fish.	Denied

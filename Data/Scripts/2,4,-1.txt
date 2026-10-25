@@ -1,2 +1,2 @@
-01	Display.Message	DarkRed	Something growls in the dark tunnels ahead.	Denied
+01	Display.Message	DarkRed	Something growls in the dark tunnels ahead.	-
 02	End

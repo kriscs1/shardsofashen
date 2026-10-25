@@ -11,7 +11,7 @@
 10	Add.Entity	$Player.X,$Player.Y	Fire	StaticObject	-
 11	Add.Action.To.Queue	REMOVE	Fire	StaticObject	-	$Map.Name	$Player.X,$Player.Y	60
 12	End
-13	Display.Message	DarkRed	..but the willow logs won't catch.	Denied
+13	Display.Message	DarkRed	..but the willow logs won't catch.	Fail
 14	End
 15	Display.Message	DarkRed	You need to be holding the logs!	Denied
 16	End

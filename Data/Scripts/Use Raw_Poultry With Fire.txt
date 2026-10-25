@@ -9,7 +9,7 @@
 09	Update.Skill	Cooking	+0.05
 10	Give.Item	Cooked_Poultry	1
 11	End
-12	Display.Message	DarkRed	..but accidentally burn it!	Denied
+12	Display.Message	DarkRed	..but accidentally burn it!	Fail
 13	Give.Item	Burnt_Poultry	1
 14	End
 15	Display.Message	DarkRed	You are too far away!	Denied

@@ -29,7 +29,7 @@
 28	Update.Skill	Mining	+0.3
 29	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	60
 30	End
-31	Display.Message	DarkRed	...but only chip the rock.	Denied
+31	Display.Message	DarkRed	...but only chip the rock.	Fail
 32	End
 33	Display.Message	DarkRed	You need level 15 Mining to mine this gold rock.	Denied
 34	End

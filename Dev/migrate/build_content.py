@@ -2683,7 +2683,7 @@ LOCK_NOTICES = {
     ("1,1,0", HOUSE_NOTICE[0], HOUSE_NOTICE[1]):
         "THE OLD BRICK HOUSE\\Locked up since the owner went to the mainland.\\They say he begs in Ashford now, and lost his key\\to the hobgoblins.",
     ("2,4,0", 14, 13): "ROYAL TREASURY\\By order of King Tyron this door stays locked,\\save for the hero who drives the hobgoblins\\from the mine.",
-    ("2,4,-1", 6, 9): "THE DEEP SEAM\\Ashford Mining Guild: members only.\\Miners of level 10 and above (Mining 10) may enter.\\Coal, iron and gold within.",
+    ("2,4,-1", 6, 9): "THE DEEP SEAM\\Ashford Mining Guild: members only.\\Coal, iron and gold within.",
 }
 # Scripts an earlier version used that are gone now (deleted from Data\Scripts if still there)
 OBSOLETE_SCRIPTS = ["Door1 1,1,0",     # the old door hack on the Isle: replaced by the Lock line and Beggar House

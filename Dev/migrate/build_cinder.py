@@ -37,7 +37,7 @@ BRIDGE_X = 8 * GW + BRIDGE_COL - 1
 TOWN = "Emberwatch"
 TOWNS = {TOWN: (7, 4, "Warden", "SHOP-Emberwatch",
                 "EMBERWATCH\\The last fort before the Cinderlands.\\South: the bridge to the Heartwood and the Elderwood."
-                "\\North: the Cinder Peaks. The cult's fort is up there.")}
+                "\\North: the Cinder Peaks.")}
 TOWN_TILE = {TOWN: (12, 10)}
 SITES = {
     "Shrine1": (6 * GW + 8, 4 * GH + 9),        # the western Ashwold

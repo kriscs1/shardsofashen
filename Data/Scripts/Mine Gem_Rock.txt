@@ -37,7 +37,7 @@
 36	Update.Skill	Mining	+0.5
 37	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	90
 38	End
-39	Display.Message	DarkRed	...but only chip the rock.	Denied
+39	Display.Message	DarkRed	...but only chip the rock.	Fail
 40	End
 41	Display.Message	DarkRed	You need level 20 Mining to mine this crystal rock.	Denied
 42	End

@@ -24,7 +24,7 @@
 23	Update.Attribute	HobAngry	=1
 24	Set.NPC.Attitude	OldHob	Bad
 25	Quest.Note	HobQuest	You kept Hob's savings, and the madness took him again. He's wild for good now.
-26	Display.Message	Red	Hob's eyes go wild again. He goes for your throat!	Denied
+26	Display.Message	Red	Hob's eyes go wild again. He goes for your throat!	-
 27	Display.Message	Yellow	Quest complete: Old Hob... though not the way anyone hoped.
 28	End
 29	Update.Attribute	HobQuest	=4
@@ -36,5 +36,5 @@
 35	End
 36	Display.Conversation	Hob	Mind how you go out there. And mind the spiders.	I will.	39
 37	End
-38	Display.Message	DarkRed	He only snarls at you.	Denied
+38	Display.Message	DarkRed	He only snarls at you.	Fail
 39	End

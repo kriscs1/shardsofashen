@@ -410,7 +410,7 @@ NEW_MAPS = list(MAPS)
 
 # ------------------------------------------------------------------------------------------- notices
 NOTICES = {
-    ("1,2,0", 23, 10): "FERRY TO SOUTHPORT\\Ask the ferrywoman at the end of the pier.\\Sailings every day. First crossing: ticket holders only.\\(The milkmaid sells tickets.) After that, 1 gold coin.",
+    ("1,2,0", 23, 10): "FERRY TO SOUTHPORT\\Sailings every day from the end of the pier.",
     ("1,3,0", 14, 9): "SOUTHPORT\\North: the ferry to the Isle\\East: Ashford village\\South: Whispering Woods and the old iron mine",
     ("2,3,0", 14, 10): "ASHFORD\\West: Southport docks\\East: the farmlands\\South: Tyron's Keep",
     ("3,3,0", 14, 13): "WEST: Ashford\\SOUTH: GOBLIN CAMP\\Travellers beware!",

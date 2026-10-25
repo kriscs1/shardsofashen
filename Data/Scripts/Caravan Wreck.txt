@@ -5,5 +5,5 @@
 04	Quest.Note.Done	CaravanQuest	Qadir's caravan was lost in the Sunscar Desert, west of Dunerest.
 05	Quest.Note	CaravanQuest	Slay the scorpions at the wreck.
 06	Quest.Note	CaravanQuest	Find the caravan's ledger and bring it to Qadir.
-07	Display.Message	Red	The caravan! Bones in the sand... and scorpions. Find Qadir's ledger.	Denied
+07	Display.Message	Red	The caravan! Bones in the sand... and scorpions. Find Qadir's ledger.	-
 08	End

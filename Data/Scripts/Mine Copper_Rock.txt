@@ -29,7 +29,7 @@
 28	Update.Skill	Mining	+0.08
 29	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	20
 30	End
-31	Display.Message	DarkRed	...but only chip the rock.	Denied
+31	Display.Message	DarkRed	...but only chip the rock.	Fail
 32	End
 33	Display.Message	DarkRed	You need level 1 Mining to mine this copper rock.	Denied
 34	End

@@ -29,7 +29,7 @@
 28	Update.Skill	Woodcutting	+0.4
 29	>Random	50	33
 30	End
-31	Display.Message	DarkRed	..but fail to get any logs!	Denied
+31	Display.Message	DarkRed	..but fail to get any logs!	Fail
 32	End
 33	Change.Tile	$Variable.5,$Variable.6	Tree_Stump001	0	45
 34	End

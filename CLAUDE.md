@@ -53,7 +53,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - The world keeps running while everyone is logged out.
 
 **Writing**
-- **Notices and signs never give hints.** They name or describe a place, nothing about quests, keys or secrets.
+- **Notices and signs never give hints or instructions.** They name or describe a place (and a signpost says which
+  way places lie), nothing about quests, keys, secrets, who sells what or what you need to get in.
 - **No hint text on the world map.**
 - **Conversation answers that belong to a quest stage show only at that stage**: append `[if CONDITION]` to the
   answer, e.g. `About a ferry ticket... [if $Attr.Passage>=1 and $Attr.Passage<=10]`.
@@ -62,8 +63,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The chat log isn't spammed**: no line per blow in a fight (the numbers over heads show hits and misses).
   Log what matters: kills, loot, level-ups, warnings, quest news.
 - **Bad news is heard as well as read.** In scripts it's written there: `Display.Message COLOUR MESSAGE [SOUND]`
-  (or a `Play.Sound` beside it). Every red script message (DarkRed, Red) says its sound, usually `Denied`; give a
-  failure its own sound where one fits. Script messages are otherwise silent. The engine's own messages (not from a
+  (or a `Play.Sound` beside it). Every red script message (DarkRed, Red) says its sound: **`Denied`** (a computer's
+  no) when you can't (too far, no axe, level too low); **`Fail`** (a lute's "oh well") when an attempt comes to nothing
+  in the world ("..but fail to get any logs!"); **`-`** for none on purpose (arriving somewhere, a story's moment).
+  Script messages are otherwise silent. The engine's own messages (not from a
   script) that say no get the Denied tell from `Session.take_out`.
 
 **Creatures**

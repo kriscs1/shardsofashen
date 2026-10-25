@@ -13,7 +13,7 @@
 12	Give.Item	Raw_Fish	1
 13	Update.Skill	Fishing	+0.1
 14	End
-15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.	Denied
+15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.	Fail
 16	End
 17	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.	Denied
 18	End

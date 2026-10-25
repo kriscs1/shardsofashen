@@ -13,7 +13,7 @@
 12	Update.Skill	Cooking	+0.25
 13	Give.Item	Cooked_Cave_Eel	1
 14	End
-15	Display.Message	DarkRed	..but accidentally burn it!	Denied
+15	Display.Message	DarkRed	..but accidentally burn it!	Fail
 16	Give.Item	Burnt_Fish	1
 17	End
 18	Display.Message	DarkRed	You don't have any Raw Cave Eel.	Denied
