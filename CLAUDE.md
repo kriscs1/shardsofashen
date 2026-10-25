@@ -60,6 +60,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   answer, e.g. `About a ferry ticket... [if $Attr.Passage>=1 and $Attr.Passage<=10]`.
 - Refusals are plain: "The chest is empty." (with the `Empty` sound), not hints.
 - NPCs can have their own names through the map option `Name=` (underscores become spaces).
+- **One of a kind gets its own script**: a thing's `Id=`, or a tile's place ID (an `Id` line; in the editor,
+  right-click a tile, "Name this tile"), makes `<Verb> <Id>` run before `<Verb> <Kind>` (every grave has its own
+  `Examine Grave_...`). Don't give many tiles one text when each could say its own.
 - **The chat log isn't spammed**: no line per blow in a fight (the numbers over heads show hits and misses).
   Log what matters: kills, loot, level-ups, warnings, quest news.
 - **Bad news is heard as well as read.** In scripts it's written there: `Display.Message COLOUR MESSAGE [SOUND]`
