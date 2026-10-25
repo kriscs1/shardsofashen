@@ -1,49 +1,50 @@
-Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Water005:Water001:Water001
-Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Water001:Water001:Water001
+Paving001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Paving001:Water005:Water001:Water001
+Paving001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Paving001:Water001:Water001:Water001
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Paving001:Paving001:Paving001
-Grass001:Grass001:Cliff001:Grass001:Grass001+Decor(Pebbles001):Grass001+Decor(Marigold_Patch001):Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Water001:Water001:Water001
-Grass001:Grass001:Cliff002:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Water007:Water001:Water001
-Grass001+Decor(Tall_Grass001):Grass001:Cliff003:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Dirt001:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff005:Water001:Water001
-Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Water001:Water001
-Grass001+Decor(Tall_Grass001):Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Water006:Water001
-Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Marigold_Patch001):Grass001:Water001
-Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Water001
-Forest001:Grass001:Grass001+Decor(Flowers002):Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Flowers001):Grass001:Water001
-Forest001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Water001
-Forest001:Grass001+Decor(Tree002):Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Flowers001):Grass001:Grass001:Water001
-Forest001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Water005:Water001
-Forest001:Grass001+Decor(Yew_Tree001):Grass001+Decor(Tree002):Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Water005:Water001:Water001
-Forest001:Forest001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Water005:Water001:Water001:Water001
-Forest001:Forest001:Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Pond001:Pond001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Water005:Water001:Water001:Water001:Water001
-Forest001:Forest001:Forest001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Pond001:Pond001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers003):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Pebbles002):Grass001:Water005:Water001:Water001:Water001:Water001:Water001
-Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001+Decor(Tree002):Grass001+Decor(Flowers002):Grass001:Grass001+Decor(Marigold_Patch001):Water004:Water001:Water001:Water001:Water001:Water001:Water001
-Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Grass001+Decor(Tree001):Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Paving001:Grass001:Cliff001:Grass001:Grass001+Decor(Pebbles001):Grass001+Decor(Marigold_Patch001):Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Paving001:Water001:Water001:Water001
+Paving001:Grass001:Cliff002:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Paving001:Water007:Water001:Water001
+Paving001:Grass001:Cliff003:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Dirt001:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff004:Cliff005:Water001:Water001
+Paving001:Paving001+Decor(Lamp_Post001):Paving001:Paving001:Paving001:Paving001:Paving001:Paving001+Decor(Lamp_Post001):Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Paving001:Paving001:Water001:Water001
+Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Paving001:Water006:Water001
+Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Marigold_Patch001):Paving001:Water001
+Paving001:Paving001:Paving001:Paving001:Paving001+Decor(Fountain001):Paving001:Paving001:Paving001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Paving001:Water001
+Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Flowers001):Paving001:Water001
+Paving001:Paving001+Decor(Lamp_Post001):Paving001:Paving001:Paving001:Paving001:Paving001:Paving001+Decor(Lamp_Post001):Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Paving001:Water001
+Paving001:Paving001:Paving001:Paving001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Timber_Thin_Plank008+Roof(Shingle_Roof001.01):Timber_Thin_Plank001+Decor(Iron_Fence002)+Roof(Shingle_Roof002.01):Timber_Thin_Plank001+Decor(Bed001)+Roof(Shingle_Roof002.01):Timber_Thin_Plank001+Decor(Bed001)+Roof(Shingle_Roof002.01):Timber_Thin_Plank005+Roof(Shingle_Roof003.01):Dirt001:Dirt001:Grass001+Decor(Flowers001):Grass001:Paving001:Water001
+Paving001:Paving001:Paving001:Paving001:Paving001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Timber_Thin_Plank004+Roof(Shingle_Roof007.01):Plank001+Decor(Iron_Fence002)+Roof(Shingle_Roof008.01):Plank001+Decor(Desk001)+Roof(Shingle_Roof008.01):Plank001+Decor(Bed002)+Roof(Shingle_Roof008.01):Timber_Thin_Plank002+Roof(Shingle_Roof009.01):Dirt001:Paving001:Paving001:Paving001:Water005:Water001
+Paving001:Grass001+Decor(Yew_Tree001):Grass001+Decor(Tree002):Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Timber_Thin_Plank004+Roof(Shingle_Roof010.01):Plank001+Roof(Shingle_Roof011.01):Plank001+Roof(Shingle_Roof011.01):Plank001+Roof(Shingle_Roof011.01):Timber_Thin_Plank002+Roof(Shingle_Roof012.01):Grass001+Decor(Tall_Grass001):Grass001:Paving001:Water005:Water001:Water001
+Paving001:Brick_Thin_Plank008+Roof(Shingle_Roof001.02):Brick_Thin_Plank001+Decor(Bed001)+Roof(Shingle_Roof002.02):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Shingle_Roof002.02):Brick_Thin_Plank005+Roof(Shingle_Roof003.02):Grass001:Brick_Thin_Plank008+Roof(Slate_Roof001.03):Brick_Thin_Plank001+Decor(Bed001)+Roof(Slate_Roof002.03):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Slate_Roof002.03):Brick_Thin_Plank005+Roof(Slate_Roof003.03):Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Shingle_Roof013.01):Plank001+Decor(Iron_Fence002)+Roof(Shingle_Roof014.01):Plank001+Roof(Shingle_Roof014.01):Plank001+Roof(Shingle_Roof014.01):Timber_Thin_Plank002+Roof(Shingle_Roof015.01):Grass001+Decor(Pebbles001):Paving001:Water005:Water001:Water001:Water001
+Paving001:Brick_Thin_Plank004+Roof(Shingle_Roof007.02):Plank001+Decor(Bed002)+Roof(Shingle_Roof008.02):Plank001+Roof(Shingle_Roof023.02):Brick_Thin_Plank002+Roof(Shingle_Roof009.02):Grass001:Brick_Thin_Plank004+Roof(Slate_Roof007.03):Plank001+Decor(Bed002)+Roof(Slate_Roof023.03):Plank001+Roof(Slate_Roof008.03):Brick_Thin_Plank002+Roof(Slate_Roof009.03):Pond001:Pond001:Grass001:Grass001:Timber001:Timber001:Door004:Timber001:Timber001:Paving001:Water005:Water001:Water001:Water001:Water001
+Paving001:Brick_Thin_Plank004+Roof(Shingle_Roof010.02):Plank001+Roof(Shingle_Roof011.02):Plank001+Decor(Table001)+Roof(Shingle_Roof011.02):Brick_Thin_Plank002+Roof(Shingle_Roof012.02):Grass001:Brick_Thin_Plank004+Roof(Slate_Roof010.03):Plank001+Roof(Slate_Roof011.03):Plank001+Decor(Table001)+Roof(Slate_Roof011.03):Brick_Thin_Plank002+Roof(Slate_Roof012.03):Pond001:Pond001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers003):Grass001:Grass001+Decor(Tall_Grass001):Paving001:Grass001+Decor(Pebbles002):Paving001:Water005:Water001:Water001:Water001:Water001:Water001
+Paving001:Brick_Thin_Plank004+Roof(Shingle_Roof013.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Brick_Thin_Plank002+Roof(Shingle_Roof015.02):Grass001+Decor(Tree001):Brick_Thin_Plank004+Roof(Slate_Roof013.03):Plank001+Roof(Slate_Roof014.03):Plank001+Roof(Slate_Roof014.03):Brick_Thin_Plank002+Roof(Slate_Roof015.03):Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001+Decor(Tree002):Grass001+Decor(Flowers002):Paving001:Grass001+Decor(Marigold_Patch001):Water004:Water001:Water001:Water001:Water001:Water001:Water001
+Paving001:Brick001:Brick001:Door001:Brick001:Forest001:Brick001:Brick001:Door001:Brick001:Grass001:Grass001:Grass001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Paving001:Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 StaticObject	Notice	417	98	Id=Goblin_Camp_Sign
-NPC	Goblin	160	256	Attitude=Bad Zone=4,7,11,12 Chase=2,7,23,17
-NPC	Goblin	256	352	Attitude=Bad Zone=5,10,13,14 Chase=2,7,23,17
-NPC	Goblin	512	224	Attitude=Bad Zone=14,7,21,10 Chase=2,7,23,17
-NPC	Hobgoblin	352	288	Attitude=Bad Zone=9,8,15,12 Chase=2,7,23,17
-NPC	Hobgoblin	576	320	Attitude=Bad Zone=16,9,22,13 Chase=2,7,23,17
-NPC	Hobgoblin	416	416	Attitude=Bad Zone=10,12,19,15 Chase=2,7,23,17
 StaticObject	Fire	289	258
 StaticObject	Fire	481	354
 MapItem	Bones	129	226	1
 MapItem	Bones	449	290	1
-MapItem	Bones	609	386	1
 MapItem	Bones	225	418	1
 MapItem	Raw_Meat	320	256	1
 MapItem	Gold_Coin(s)	386	355	5
-NPC	Goblin	576	224	Attitude=Bad Zone=15,7,22,11 Chase=2,7,23,17
-NPC	Wolf	160	512	Attitude=Bad Zone=4,15,12,19 Chase=3,14,14,20
 NPC	Goblin_Archer	224	224	Attitude=Bad Zone=6,7,11,10 Chase=2,7,23,17
 NPC	Goblin_Archer	480	352	Attitude=Bad Zone=14,11,19,13 Chase=2,7,23,17
 NPC	Goblin_Shaman	384	224	Attitude=Bad Zone=11,7,15,10 Chase=2,7,23,17
 StaticObject	Trout_Spot	704	96
 NPC	Duck	736	320	Attitude=Bad
-NPC	Duck	576	512	Attitude=Bad
-NPC	Duck	256	544	Attitude=Bad
 NPC	Rabbit	64	192	Attitude=Bad
 NPC	Rabbit	480	96	Attitude=Bad
 NPC	Butterfly	672	192	Attitude=Good
 NPC	Blue_Butterfly	640	480	Attitude=Good
+NPC	Greengrocer	64	184	Attitude=Good Stand=1 Face=S Id=Ashford_Stall_1
+NPC	Fishmonger	192	184	Attitude=Good Stand=1 Face=S Id=Ashford_Stall_2
+NPC	Butcher	64	280	Attitude=Good Stand=1 Face=S Id=Ashford_Stall_3
+NPC	Sheriff	512	440	Attitude=Good Stand=1 Face=S Id=Ashford_Sheriff_24 Name=Mabel
+NPC	Farmer	64	568	Attitude=Good Zone=3,17,4,19 Pause=5-15 Id=Ashford_Resident_30 Name=Jasper
+NPC	Villager	224	568	Attitude=Good Zone=8,17,9,19 Pause=5-15 Id=Ashford_Resident_32 Name=Agnes
+StaticObject	Market_Stall_Open	64	224
+StaticObject	Market_Stall_Open	192	224
+StaticObject	Market_Stall_Open	64	320
+StaticObject	Notice	32	642	Id=Ashford_Notice_5
+StaticObject	Notice	576	546	Id=Ashford_Notice_25
+Id	Ashford_Market_Square	5	13

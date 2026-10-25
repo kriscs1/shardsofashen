@@ -123,6 +123,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
 - On the world map, places with no map look the same as unexplored ones.
+- Settlements have a size, and what each size has (`Dev/migrate/build_towns.py`, grown by `towns.py` into the free
+  ground round them): Galaith a huge city; Southport a large city (its City Hall is the Parliament for now); King
+  Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate medium cities; Ashford a small city; Highwatch and
+  Frosthold towns; Oakhollow, Thornwick and Emberwatch villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
+  New buildings in a town go on free ground only, joined to its roads; nothing there already moves.
 
 **Items**
 - Chicken meat is Poultry (`Raw_Poultry`, `Cooked_Poultry`, `Burnt_Poultry`). For any rename, add the old name to

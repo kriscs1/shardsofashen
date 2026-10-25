@@ -556,15 +556,18 @@ class NPCMixin:
         if away_now and not e.sched_away:
             if sched == "Day" and not far:
                 door = self.nearest_door(e)
-                if door is not None and distance(e.cx, e.cy, door[0], door[1]) > 14:
-                    if self.npc_walk_to(e, door[0], door[1], e.ai.walk_speed if e.ai else e.move_speed, 6, False):
+                d = distance(e.cx, e.cy, door[0], door[1]) if door is not None else 0
+                if door is not None and d > 14:
+                    moved = self.npc_walk_to(e, door[0], door[1], e.ai.walk_speed if e.ai else e.move_speed, 6, False)
+                    if moved and d < getattr(e, "sched_best", 1e9) - 0.5:     # (getting nearer: on its way)
+                        e.sched_best, e.sched_stuck = d, 0
                         return False
-                    e.sched_stuck += 1
+                    e.sched_stuck += 1                                   # (no nearer: stuck, or walking on the spot)
                     if e.sched_stuck < 240:
                         return False
             elif sched == "Night" and not far:
                 return False
-            e.sched_away, e.sched_stuck = True, 0
+            e.sched_away, e.sched_stuck, e.sched_best = True, 0, 1e9
             e.active = False
             return True
         if not away_now and e.sched_away:

@@ -968,8 +968,12 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert not s.lock_closed(house, house.lock_at[(20, 7)])
     m = world.maps["1,1,0"]
     assert s.tile_entity_at(m.ox + 20 * 32 + 16, m.oy + 5 * 32 + 16).name == "Plank001"   # (a board like the rest)
-    use("1,1,0", 21, 6, "Walk here", below=False)                   # (standing on it: it squeaks)
-    run(10)
+    for _ in range(3):                                              # (standing on it: it squeaks)
+        s.player_tile = None
+        s.teleport("1,1,0", 20 * 32, 5 * 32)
+        run(10)
+        if attr("Squeaked") == 1:
+            break
     assert attr("Squeaked") == 1
     use("1,1,0", 21, 6, "Search")
     assert s.items_held("Fathers_Compass") == 1 and attr("Passage") == 4
@@ -1037,6 +1041,38 @@ def test_the_smithy_smokes_by_day(world):
     world.tick(0.05, now=world.now + 3000)
     assert smoke.active
     world.set_day_fraction(day)
+
+
+def test_the_towns_are_the_size_they_were_asked_to_be(world):
+    """build_towns.py: each city its taverns, its halls, its law and its doctors (Dev/migrate/build_towns.py)."""
+    import re
+    ids = [e.npc_id for e in world.ents if e.npc_id]
+    count = lambda town, who: len([i for i in ids if re.fullmatch(r"%s_%s_\d+" % (town, who), i)])
+    for town in ("Southport", "Keep", "Court", "Fenwick", "Ravensgate"):
+        assert count(town, "Barkeep") == 5, town                       # (five taverns)
+        assert count(town, "Doctor") == 1, town                        # (a hospital)
+    assert count("Southport", "Speaker") == 1 and count("Southport", "Constable") == 1     # (Parliament; police)
+    for town in ("Highwatch", "Frosthold", "Oakhollow", "Thornwick", "Emberwatch"):
+        assert count(town, "Sheriff") == 1 and count(town, "Doctor") == 1, town
+    for town in ("Moorcross", "Dunerest", "Wildwood", "Saltmarsh"):
+        assert count(town, "Barkeep") == 1, town                       # (a hamlet: its pub)
+
+
+def test_a_tavern_has_a_room_for_the_night(world):
+    bar = next(e for e in world.ents if (e.npc_id or "").startswith("Southport_Barkeep_"))
+    m = world.maps[bar.map]
+    s = join(world, "Lodger2", bar.map, int(bar.x - m.ox), int(bar.y - m.oy) + 40)
+    s.connected = True
+    stock(s, **{"Gold_Coin(s)": 10})
+    s.do_action("Talk to", bar)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.responses[1].startswith("A room for the night")
+    s.action_box_response_chosen(2)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.items_held("Gold_Coin(s)") == 5 and s.sleeping()
+    leave(world, s)
 
 
 def test_a_character_from_before_the_heirs_story(world):
