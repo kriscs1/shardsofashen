@@ -133,6 +133,15 @@ function sizeOfImage(name) {
 
 export function addMessage(text, colour) {
   if (S.messages.length && S.messages[0][0] === text && performance.now() - S.messages[0][2] < 500) return;
+  // (a message that starts ".." finishes the line before it, if that one ended ".." - "You place the poultry on
+  // the range.." then "..and cook it perfectly!" - on one line, in the colour of how it turned out)
+  const last = S.messages[0];
+  if (last && /^\.\./.test(text) && /\.\.$/.test(last[0]) && performance.now() - last[2] < 30000) {
+    last[0] = last[0].replace(/\.+$/, "") + "... " + text.replace(/^\.+\s*/, "");
+    last[1] = colour;
+    last[2] = performance.now();
+    return;
+  }
   S.messages.unshift([text, colour, performance.now()]);
   S.messages.length = Math.min(S.messages.length, 100);
 }

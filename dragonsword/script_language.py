@@ -86,7 +86,7 @@ HELP = {
     'Display.Message': 'COMMAND: Displays a message in the chat box, and plays a sound with it if you give one|(no sound given: silent - a script says what is heard; Denied is the usual sound for a no)',
     'SOUND': "A sound from the '\\Sounds\\' folder to play with it, e.g. Denied (a no), Empty, Quest|(Display.Refusal: Denied if none is given; Display.Message, Play.Animation: none)",
     'COLOUR': 'The colour of the text. On the chat bar Cyan shows as dark blue and Yellow as dark green;|White, LightGray and Pink are hard to read there',
-    'MESSAGE': 'The message that is displayed in the chat box',
+    'MESSAGE': 'The message that is displayed in the chat box. One that starts .. finishes the line before it|(if that ended ..): "You swing your axe.." then "..and get some logs!" make one line, in the colour of the second',
     'Give.Item': "COMMAND: Adds an item to the player's inventory",
     'ITEM NAME': 'The name of the item (from Sprites\\Entities, e.g. Gold_Coin(s))',
     'QUANTITY TO ADD': 'The quantity of the item to add',
