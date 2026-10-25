@@ -41,7 +41,8 @@ TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Pick"], "decor": ["Paint
          "roof": ["Paint", "Rectangle", "Move", "Erase", "Pick"], "infront": ["Paint", "Rectangle", "Move", "Erase", "Pick"],
          "things": ["Select", "Move", "Place"]}
 LAYER_PARTS = {"decor": ("Decor", "Under"), "roof": ("Roof",), "infront": ("Infront",)}   # (what Move carries)
-BED_FEET = {"Bed001": "Bed002"}          # (a bed's head: its foot, in the tile below - they move together)
+# a bed's head: (its foot, where it lies from the head) - below, or beside it for one lying sideways; they move together
+BED_FEET = {"Bed001": ("Bed002", 0, 1), "Bed003": ("Bed004", 1, 0), "Bed006": ("Bed005", -1, 0)}
 MARGIN = 3              # tiles of the neighbouring maps shown round the edges
 SPECIAL = ["(Trigger)", "(Lock)", "(Place ID)"]
 SPECIAL_KIND = {"(Trigger)": "Trigger", "(Lock)": "Lock", "(Place ID)": "Id"}
@@ -1309,11 +1310,14 @@ class MapPage(Page):
         block = [(sx, sy)]
         if self.layer == "decor":
             cells = self.doc.cells
-            head = {v: k for k, v in BED_FEET.items()}
-            top = sy - 1 if cells[sy][sx].decor in head and sy > 0 and cells[sy - 1][sx].decor == head[cells[sy][sx].decor]                 else sy                                     # (the foot was dragged: the bed is moved by it all the same)
-            foot = BED_FEET.get(cells[top][sx].decor)
-            if foot and top + 1 < len(cells) and cells[top + 1][sx].decor == foot:
-                block = [(sx, top), (sx, top + 1)]
+            hx, hy = sx, sy
+            for head, (foot, fx, fy) in BED_FEET.items():     # (the foot was dragged: the bed moves by it all the same)
+                if cells[sy][sx].decor == foot and self.inside(sx - fx, sy - fy) and \
+                        cells[sy - fy][sx - fx].decor == head:
+                    hx, hy = sx - fx, sy - fy
+            bed = BED_FEET.get(cells[hy][hx].decor)
+            if bed and self.inside(hx + bed[1], hy + bed[2]) and cells[hy + bed[2]][hx + bed[1]].decor == bed[0]:
+                block = [(hx, hy), (hx + bed[1], hy + bed[2])]
         ox, oy = dx - sx, dy - sy
         to = [(x + ox, y + oy) for x, y in block]
         if not all(self.inside(x, y) for x, y in to):

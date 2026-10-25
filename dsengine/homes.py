@@ -30,7 +30,22 @@ HOME_LEVEL = 1000               # home n is the map 0,0,<HOME_LEVEL + n>
 VISIT = ("closed", "friends", "open")
 VISIT_WORDS = {"closed": "only you", "friends": "you and your friends", "open": "anyone"}
 REFUND = 0.5
-BED_FEET = {"Bed001": "Bed002"}
+# a bed's head: (its foot, and where it lies from the head): below, or beside it for a bed lying sideways
+BED_FEET = {"Bed001": ("Bed002", 0, 1), "Bed003": ("Bed004", 1, 0), "Bed006": ("Bed005", -1, 0)}
+
+
+def bed_foot_of(head_x, head_y, name):
+    """(foot tile, x, y) of the bed whose head is name at head_x, head_y; None if name isn't a bed's head."""
+    f = BED_FEET.get(name)
+    return (f[0], head_x + f[1], head_y + f[2]) if f else None
+
+
+def bed_head_of(foot_x, foot_y, name):
+    """(head tile, x, y) of the bed whose foot is name at foot_x, foot_y; None if name isn't a bed's foot."""
+    for head, (foot, dx, dy) in BED_FEET.items():
+        if foot == name:
+            return head, foot_x - dx, foot_y - dy
+    return None
 GATES = ("Wood_Gate001", "Wood_Gate002", "Wood_Gate003", "Wood_Gate004")   # (decor now, over the ground: once tiles)                 # (a bed's head: its foot, in the tile below)
 MENU_MAX = 10
 
@@ -181,9 +196,9 @@ class Homes:
                 cell["tile"] = m.tile[c] = "Field001"
             if cell.get("decor") in ("Bed102", "Bed201"):                 # (the double bed's gone: a bed)
                 cell["decor"] = m.decor[c] = "Bed001"
-            foot = BED_FEET.get(cell.get("decor"))
-            if foot and m.inside(x, y + 1) and not m.decor[m.cell(x, y + 1)]:    # (a bed built before it had a foot)
-                h["cells"].setdefault("%d,%d" % (x, y + 1), {})["decor"] = m.decor[m.cell(x, y + 1)] = foot
+            foot = bed_foot_of(x, y, cell.get("decor"))
+            if foot and m.inside(foot[1], foot[2]) and not m.decor[m.cell(foot[1], foot[2])]:   # (built before feet)
+                h["cells"].setdefault("%d,%d" % foot[1:], {})["decor"] = m.decor[m.cell(foot[1], foot[2])] = foot[0]
             if is_fence(cell.get("decor")):
                 cell["decor"] = m.decor[c] = fence_piece(fence_at, x, y)
         for c in range(1, len(m.tile)):
@@ -697,7 +712,7 @@ class HomeMixin:
                 return self.build_fail("There's no room there.")
             if self.someone_on(m, x, y) and d.spec_blocks(piece_id):
                 return self.build_fail("Someone is standing there.")
-            if piece_id in BED_FEET and not self.room_for_foot(m, h, x, y + 1):
+            if piece_id in BED_FEET and not self.room_for_foot(m, h, *bed_foot_of(x, y, piece_id)[1:]):
                 return self.build_fail("There's no room for its foot.")
         elif kind == "Object":
             if decor:
@@ -732,9 +747,10 @@ class HomeMixin:
             self.forget_regrowth(m, x, y)
             w.change_tile(m, x, y, piece_id)
             if piece_id in BED_FEET:
-                h["cells"].setdefault("%d,%d" % (x, y + 1), {})["decor"] = BED_FEET[piece_id]
-                self.forget_regrowth(m, x, y + 1)
-                w.change_tile(m, x, y + 1, BED_FEET[piece_id])
+                foot, fx, fy = bed_foot_of(x, y, piece_id)
+                h["cells"].setdefault("%d,%d" % (fx, fy), {})["decor"] = foot
+                self.forget_regrowth(m, fx, fy)
+                w.change_tile(m, fx, fy, foot)
             if is_fence(piece_id):
                 self.join_fences(m, h, x, y)
         elif kind == "Roof":
@@ -752,7 +768,7 @@ class HomeMixin:
         return True
 
     def room_for_foot(self, m, h, x, y):
-        """Can a bed's foot go on tile x,y (the tile below its head)?"""
+        """Can a bed's foot go on tile x,y (below its head, or beside it)?"""
         if not (2 <= x <= self.xt - 1 and 2 <= y <= self.yt - 1) or (x, y) in self.homes.protected_of(self.player_name):
             return False
         c = m.cell(x, y)
@@ -818,18 +834,18 @@ class HomeMixin:
             w.farms.clear(m, x, y)
             self.display_message("You pull up the crop.", "INFO")
         elif m.decor[c]:
-            head = [k for k, v in BED_FEET.items() if v == m.decor[c]]
-            if head and y > 1 and m.decor[m.cell(x, y - 1)] == head[0]:   # (a bed's foot: the bed comes down)
-                return self.unbuild(x, y - 1)
-            foot = BED_FEET.get(m.decor[c])
-            if foot and m.inside(x, y + 1) and m.decor[m.cell(x, y + 1)] == foot:
-                key2 = "%d,%d" % (x, y + 1)
-                below = h["cells"].get(key2, {})
-                if below.pop("decor", None) is None and key2 not in h["cleared"]:   # (the map's own bed's foot)
+            head = bed_head_of(x, y, m.decor[c])
+            if head and m.inside(head[1], head[2]) and m.decor[m.cell(head[1], head[2])] == head[0]:
+                return self.unbuild(head[1], head[2])                       # (a bed's foot: the bed comes down)
+            foot = bed_foot_of(x, y, m.decor[c])
+            if foot and m.inside(foot[1], foot[2]) and m.decor[m.cell(foot[1], foot[2])] == foot[0]:
+                key2 = "%d,%d" % foot[1:]
+                there = h["cells"].get(key2, {})
+                if there.pop("decor", None) is None and key2 not in h["cleared"]:   # (the map's own bed's foot)
                     h["cleared"].append(key2)
-                if not below:
+                if not there:
                     h["cells"].pop(key2, None)
-                w.change_tile(m, x, y + 1, "%s+Decor()" % m.tile[m.cell(x, y + 1)])
+                w.change_tile(m, foot[1], foot[2], "%s+Decor()" % m.tile[m.cell(foot[1], foot[2])])
             if cell.get("decor"):
                 self.refund(cell.pop("decor"))
             elif key not in h["cleared"]:

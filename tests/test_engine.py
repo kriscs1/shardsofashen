@@ -1271,3 +1271,17 @@ def test_a_gate_is_decor_and_opens_as_a_door(world):
     for _ in range(60):
         world.tick(0.05, now=world.now + 100)
     assert m.decor[c] == "Wood_Gate003"                              # (and shut again behind them)
+
+
+def test_a_bed_can_lie_sideways(world):
+    a = join(world, "Napper")
+    stock(a, Access_Crystal=1, Plank=20, Nails=40, Wool=20)
+    a.update_skill("Construction", "=10")
+    a.go_home()
+    world.tick(0.05)
+    m = a.cur_map
+    assert a.build(10, 10, "Bed003") and m.decor[m.cell(11, 10)] == "Bed004"    # (its foot to the right)
+    assert a.build(10, 13, "Bed006") and m.decor[m.cell(9, 13)] == "Bed005"     # (or to the left)
+    assert a.unbuild(11, 10) and not m.decor[m.cell(10, 10)] and not m.decor[m.cell(11, 10)]   # (down whole)
+    assert "Sleep" in world.data.tile_ini("Bed005", "Use.Words", "")
+    leave(world, a)
