@@ -1,16 +1,18 @@
 // Shearing: shears on a sheep.
-01	>Distance.From.Clicked.Entity	45	14
-02	>Got.Item	Shears	1	12
+01	>Distance.From.Clicked.Entity	45	16
+02	>Got.Item	Shears	1	14
 03	Display.Message	Cyan	You grab the sheep and start to shear...
-04	Wait	2
-05	>Random	70	10
-06	Give.Item	Wool	1
-07	Display.Message	Yellow	...and get a fluffy clump of wool.
-08	Update.Skill	Crafting	+0.05
-09	End
-10	Display.Message	DarkRed	...but the sheep wriggles free!
+04	Show.Skill	Crafting
+05	Play.Animation	Wool_Tufts	2	
+06	Wait	2
+07	>Random	70	12
+08	Give.Item	Wool	1
+09	Display.Message	Yellow	...and get a fluffy clump of wool.
+10	Update.Skill	Crafting	+0.05
 11	End
-12	Display.Message	DarkRed	You need shears!
+12	Display.Message	DarkRed	...but the sheep wriggles free!
 13	End
-14	Display.Message	DarkRed	You are too far away!
+14	Display.Message	DarkRed	You need shears!
 15	End
+16	Display.Message	DarkRed	You are too far away!
+17	End

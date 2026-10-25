@@ -7,7 +7,8 @@ The game loads these the first time each one is needed (fx_load in dragonsword\\
   Hit<N>, Crit<N>, Heal<N>  N = 1..99: a red splat, a yellow star (critical hit), a green drop (healing), with N on it
   Miss                     a blue splat with 0 on it (a miss, or a blow the armour turned)
   <Anim>1..4               four-frame animations, 32 x 32: Puff (smoke when something dies), Slash (a sword stroke),
-                           Fire_Burst, Ice_Burst, Spark (lightning), Heal_Glow, Stone_Glow, Teleport_Glow
+                           Fire_Burst, Ice_Burst, Spark (lightning), Heal_Glow, Stone_Glow, Teleport_Glow; and
+                           for work: Wood_Chips, Rock_Chips, Splash, Dirt_Clods, Wool_Tufts
   <Spell>_Missile          16 x 16 projectiles: Fire_Bolt_Missile, Ice_Bolt_Missile, Lightning_Missile
   Hurt_Top, Hurt_Side      the red flash round the edge of the map when the player is hurt (screen width x 8, 8 x height)
 """
@@ -218,8 +219,37 @@ def slash(i, n):
     return K.outline_img(img, (60, 70, 100)) if i < 2 else img
 
 
+# (the work of the hands: what flies off what you're working at - a script's Play.Animation)
+def wood_chips(i, n):
+    return particles(i, n, 31, 9, [(236, 206, 150), (196, 150, 90), (150, 100, 52)], 13, rise=7, size=(1.2, 2.4))
+
+
+def rock_chips(i, n):
+    img = particles(i, n, 41, 9, [(210, 210, 214), (160, 160, 168), (110, 110, 118)], 12, rise=5, size=(1.2, 2.2))
+    if i < 2:                                     # (a spark where the pick strikes)
+        for x, y in ((15, 16), (17, 15), (16, 18), (18, 17)):
+            K.put(img, x, y, (255, 240, 150))
+    return img
+
+
+def splash(i, n):
+    return particles(i, n, 51, 10, [(240, 250, 255), (170, 210, 250), (90, 150, 220)], 10, rise=8, size=(1.2, 2.4),
+                     centre=(16, 20))
+
+
+def dirt_clods(i, n):
+    return particles(i, n, 61, 8, [(150, 110, 70), (118, 82, 48), (86, 58, 32)], 12, rise=6, size=(1.4, 2.8),
+                     centre=(16, 22))
+
+
+def wool_tufts(i, n):
+    return particles(i, n, 71, 7, [(255, 255, 250), (236, 232, 222), (210, 204, 192)], 10, rise=5, size=(2, 3.2))
+
+
 ANIMS = {"Puff": puff, "Slash": slash, "Fire_Burst": fire_burst, "Ice_Burst": ice_burst, "Spark": spark,
-         "Heal_Glow": heal_glow, "Stone_Glow": stone_glow, "Teleport_Glow": teleport_glow}
+         "Heal_Glow": heal_glow, "Stone_Glow": stone_glow, "Teleport_Glow": teleport_glow,
+         "Wood_Chips": wood_chips, "Rock_Chips": rock_chips, "Splash": splash, "Dirt_Clods": dirt_clods,
+         "Wool_Tufts": wool_tufts}
 
 
 # ------------------------------------------------------------------ missiles (16 x 16)

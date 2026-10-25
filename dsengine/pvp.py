@@ -52,12 +52,9 @@ class PvPMixin:
             self.player_attack_target = None
             self.dirty_me = True
             return
-        what = "Your arrow" if ranged else "You"
         if not self.combat_hits(self.player_attack_value(), v.player_defence_value() * 2, 3):
             self.play_sound("Miss", (t.cx, t.cy))
             self.fx_splat("Miss", 0, t)
-            self.display_message("%s miss%s %s." % (what, "es" if ranged else "", v.player_name), "COMBAT")
-            v.display_message("%s misses you." % self.player_name, "COMBAT")
             v.pvp_fight_back(self)
             return
         max_hit = self.player_max_hit()
@@ -70,14 +67,10 @@ class PvPMixin:
         if damage <= 0:
             self.fx_splat("Miss", 0, t)
             self.play_sound("Block", (t.cx, t.cy))
-            self.display_message("%s's armour takes your blow." % v.player_name, "COMBAT")
-            v.display_message("Your armour takes %s's blow." % self.player_name, "COMBAT")
             v.update_skill("Defence", "+0.03", pop=False)
             v.pvp_fight_back(self)
             return
         self.play_sound("Crit" if crit else "Fight%d" % random_number(1, 3), (t.cx, t.cy))
-        self.display_message("%s%s hit %s for %d damage!" % ("A critical hit! " if crit else "", what, v.player_name,
-                                                              damage), "COMBAT")
         self.fx_anim("Slash", t.cx, t.cy, 240)
         self.update_skill("Strength", "+" + lbstr(damage * 0.005), pop=False)
         v.pvp_take_hit(self, damage, "Crit" if crit else "Hit")
@@ -90,8 +83,6 @@ class PvPMixin:
         if impact:
             self.fx_anim(impact, t.cx, t.cy, 450)
         self.play_sound(self.spell_ini(spell, "Sound", ""), (t.cx, t.cy))
-        self.display_message("Your %s hits %s for %s damage!" % (spell.replace("_", " "), v.player_name, lbstr(damage)),
-                             "COMBAT")
         v.pvp_take_hit(self, damage, "Hit")
 
     def pvp_take_hit(self, attacker, damage, kind):
@@ -101,7 +92,6 @@ class PvPMixin:
         self.pvp_fight_back(attacker)
         if self.god_mode:
             self.fx_splat("Miss", 0, p)
-            self.display_message("Your god-like skin shrugs off %s's blow." % attacker.player_name, "COMBAT")
             return
         self.wear_armour()
         self.play_sound("Hurt", (p.cx, p.cy))
@@ -109,7 +99,6 @@ class PvPMixin:
         w = self.w
         w.fx_nudge(p, w.fx_away(attacker.player, p), w.fx_away_y(attacker.player, p), 130)
         self.fx_hurt_flash()
-        self.display_message("%s hits you for %d damage!" % (attacker.player_name, damage), "DAMAGE")
         self.update_skill("Defence", "+" + lbstr(damage * 0.005), pop=False)
         self.update_skill("Hitpoints", "-%d" % damage)
 

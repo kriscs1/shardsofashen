@@ -481,7 +481,12 @@ N.onMessage = (m) => {
       break;
     case "players": S.players = m.list; S.max = m.max; break;
     case "where": S.where = m.list || []; break;
-    case "sound": if (!behind()) playSound(m.name, "x" in m ? [m.x, m.y] : null); break;
+    case "sound":
+      if (!behind()) {
+        const play = () => playSound(m.name, "x" in m ? [m.x, m.y] : null);
+        if (m.delay > 0) setTimeout(play, m.delay); else play();   // (the later beats of a piece of work)
+      }
+      break;
     case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": if (!behind()) addFx(m, now); break;
     case "hurt": S.hurtUntil = now + 240; break;
     case "levelup": showBanner(m.skill, m.level, now); break;

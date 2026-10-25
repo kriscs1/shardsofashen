@@ -1,25 +1,26 @@
 // Fishing at a salmon spot (build_fishing.py): a rod, Fishing 20 and one bait a catch (a miss keeps it).
-01	>Distance.From.Clicked.Entity	64	23
-02	>Got.Item	Fishing_Rod	1	19
+01	>Distance.From.Clicked.Entity	64	24
+02	>Got.Item	Fishing_Rod	1	20
 03	Get.Value	SKILL	Fishing	Variable.1$
-04	>Conditional	$Variable.1>=20	21
-05	>Got.Item	Bait	1	17
+04	>Conditional	$Variable.1>=20	22
+05	>Got.Item	Bait	1	18
 06	Display.Message	Cyan	You bait the hook and cast into the run of leaping salmon...
-07	Play.Sound	Splash
-08	Wait	4
-09	>Conditional	($Variable.1-20+40)>$Random.Percent	15
-10	Take.Item	Bait	1
-11	Display.Message	Yellow	...and land a salmon!
-12	Give.Item	Raw_Salmon	1
-13	Update.Skill	Fishing	+0.35
-14	End
-15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
-16	End
-17	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
-18	End
-19	Display.Message	DarkRed	You need a fishing rod.
-20	End
-21	Display.Message	DarkRed	You need level 20 Fishing to catch the salmon here.
-22	End
-23	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
-24	End
+07	Show.Skill	Fishing
+08	Play.Animation	Splash	1	Splash
+09	Wait	4
+10	>Conditional	($Variable.1-20+40)>$Random.Percent	16
+11	Take.Item	Bait	1
+12	Display.Message	Yellow	...and land a salmon!
+13	Give.Item	Raw_Salmon	1
+14	Update.Skill	Fishing	+0.35
+15	End
+16	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
+17	End
+18	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
+19	End
+20	Display.Message	DarkRed	You need a fishing rod.
+21	End
+22	Display.Message	DarkRed	You need level 20 Fishing to catch the salmon here.
+23	End
+24	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
+25	End

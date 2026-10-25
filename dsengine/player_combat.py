@@ -298,12 +298,9 @@ class CombatMixin:
             self.pvp_strike(t, ranged)
             return
         w = self.w
-        what = "Your arrow" if ranged else "You"
         if not self.combat_hits(self.player_attack_value(), 3 * w.stat_for(t, self, "defence"), 3):
             self.play_sound("Miss", (t.cx, t.cy))
-            self.fx_splat("Miss", 0, t)
-            self.display_message(("Your arrow misses the %s." if ranged else "You miss the %s.") % self.display_name(t),
-                                 "COMBAT")
+            self.fx_splat("Miss", 0, t)                 # (each blow shows over who it lands on, not in the chat)
             return
         max_hit = self.player_max_hit()
         damage = random_number(1, max_hit)
@@ -311,15 +308,9 @@ class CombatMixin:
             damage = max_hit + random_number(0, int(max_hit / 2))
             self.play_sound("Crit", (t.cx, t.cy))
             self.fx_splat("Crit", damage, t)
-            self.display_message("A critical hit! %s hit the %s for %d damage!" % (what, self.display_name(t), damage),
-                                 "COMBAT")
         else:
             self.play_sound("Fight%d" % random_number(1, 3), (t.cx, t.cy))
             self.fx_splat("Hit", damage, t)
-            if ranged:
-                self.display_message("Your arrow hits the %s for %d damage!" % (self.display_name(t), damage), "COMBAT")
-            else:
-                self.display_message("You hit the %s for %d damage!" % (self.display_name(t), damage), "COMBAT")
         self.wear_weapon()
         self.fx_anim("Slash", t.cx, t.cy, 240)
         self.fx_nudge(t, w.fx_away(self.player, t), w.fx_away_y(self.player, t), 130)
@@ -428,15 +419,11 @@ class CombatMixin:
             self.dirty_me = True
         if self.god_mode:
             self.fx_splat("Miss", 0, p)
-            self.display_message("Your god-like skin shrugs off the %s's blow." % self.display_name(e), "COMBAT")
             return
         if not self.combat_hits(w.stat_for(e, self, "strength") * 3 + 2, self.player_defence_value(), 3):
             self.fx_splat("Miss", 0, p)
             if self.equip_defence_total + self.spell_defence_bonus > 0:
                 self.play_sound("Block", (p.cx, p.cy))
-                self.display_message("Your armour turns the %s's blow." % self.display_name(e), "COMBAT")
-            else:
-                self.display_message("The %s misses you." % self.display_name(e), "COMBAT")
             self.update_skill("Defence", "+0.03", pop=False)
             return
         self.wear_armour()
@@ -444,14 +431,12 @@ class CombatMixin:
         if damage <= 0:
             self.fx_splat("Miss", 0, p)
             self.play_sound("Block", (p.cx, p.cy))
-            self.display_message("Your armour takes the %s's blow." % self.display_name(e), "COMBAT")
             self.update_skill("Defence", "+0.03", pop=False)
             return
         self.play_sound("Hurt", (p.cx, p.cy))
         self.fx_splat("Hit", damage, p)
         w.fx_nudge(p, w.fx_away(e, p), w.fx_away_y(e, p), 130)
         self.fx_hurt_flash()
-        self.display_message("The %s hits you for %d damage!" % (self.display_name(e), damage), "DAMAGE")
         self.update_skill("Defence", "+" + lbstr(damage * 0.01), pop=False)
         self.update_skill("Hitpoints", "-%d" % damage)
         if p.hp > 0:
@@ -811,8 +796,6 @@ class CombatMixin:
         self.play_sound(self.spell_ini(spell, "Sound", ""), (e.cx, e.cy))
         self.fx_splat("Hit", damage, e)
         self.fx_nudge(e, w.fx_away(self.player, e), w.fx_away_y(self.player, e), 130)
-        self.display_message("Your %s hits the %s for %s damage!" % (pretty(spell), self.display_name(e),
-                                                                     lbstr(damage)), "COMBAT")
         self.provoke(e)
         slow = self.spell_ini(spell, "Slow", "")
         if slow and damage < e.hp:

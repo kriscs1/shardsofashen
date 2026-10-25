@@ -151,8 +151,7 @@ class GameServer:
                 continue
             msgs = snapshot(self.world, s)
             if s.out:
-                msgs += s.out
-                s.out = []
+                msgs += s.take_out()
             if msgs:
                 sends.append(self.send(c, msgs))
         if sends:

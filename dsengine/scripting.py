@@ -438,6 +438,10 @@ class ScriptMixin:
             self.script_forced = False
         elif c == "Play.Sound":
             self.play_sound(arg[1], (p.cx, p.cy) if arg[2].lower() == "near" else None)
+        elif c == "Show.Skill":
+            self.show_skill(arg[1])
+        elif c == "Play.Animation":
+            self.play_work(arg[1], arg[2], arg[3])
         elif c == "Display.Message":
             self.display_message(arg[2], arg[1])
         elif c == "Give.Item":
@@ -642,6 +646,34 @@ class ScriptMixin:
     @staticmethod
     def on_off(value):
         return trim(value).upper() in ("ON", "1", "TRUE", "YES")
+
+    WORK_BEAT = 800                                 # (ms between the beats of Play.Animation: swings of the axe)
+
+    def show_skill(self, skill):
+        """The skill's picture over the player's head (its name as Config.ini [Skills] has it)."""
+        want = skill.replace("_", " ").strip().upper()
+        name = next((n for n in self.data.skill_name[1:] if n.upper() == want), "")
+        if name:
+            self.fx_skill_pop(name)
+
+    def play_work(self, anim, times, sound, at=None):
+        """Play.Animation: TIMES beats of work at what was clicked (or at) - the animation there, the player's lunge
+        towards it, the sound - everyone near sees and hears it."""
+        p, w = self.player, self.w
+        x, y = at if at is not None else (self.script_cursor_x, self.script_cursor_y)
+        if not x and not y:
+            x, y = p.cx, p.cy
+        d = max(1.0, distance(p.cx, p.cy, x, y))
+        dx, dy = round((x - p.cx) / d * 3), round((y - p.cy) / d * 3)
+        for k in range(max(1, min(8, int(val(times) or 1)))):
+            delay = k * self.WORK_BEAT
+            if anim:
+                w.fx({"t": "anim", "base": anim, "x": int(x), "y": int(y), "ms": 450, "delay": delay}, p.z, x, y)
+            if dx or dy:
+                w.fx({"t": "nudge", "uid": p.uid, "dx": dx, "dy": dy, "ms": 140, "delay": delay}, p.z, p.cx, p.cy)
+            if trim(sound):
+                for s in w.hearers(p.z, x, y):
+                    s.emit({"t": "sound", "name": sound, "x": int(x), "y": int(y), "delay": delay})
 
     def script_conversation(self):
         arg = self.script_args

@@ -60,7 +60,7 @@ class DigMixin:
         self.use_tool("Spade")
         self.stop_player_walk()
         self.display_message("You dig into the ground...", "INFO")
-        self.play_sound("DigHole")
+        self.play_work("Dirt_Clods", int(rules["seconds"] / 0.8) or 1, "DigHole", at=(p.cx, p.fy))
         self.dig_pending = (self.now + rules["seconds"] * 1000, m, tx, ty, (p.fx, p.fy))
 
     def dig_tick(self):

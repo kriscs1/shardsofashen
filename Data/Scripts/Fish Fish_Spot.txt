@@ -1,22 +1,23 @@
 // Fishing at a fish spot (build_fishing.py): a rod, Fishing 1 and one bait a catch (a miss keeps it).
-01	>Distance.From.Clicked.Entity	64	20
-02	>Got.Item	Fishing_Rod	1	18
+01	>Distance.From.Clicked.Entity	64	21
+02	>Got.Item	Fishing_Rod	1	19
 03	Get.Value	SKILL	Fishing	Variable.1$
-04	>Got.Item	Bait	1	16
+04	>Got.Item	Bait	1	17
 05	Display.Message	Cyan	You bait the hook and cast your line among the ripples...
-06	Play.Sound	Splash
-07	Wait	4
-08	>Conditional	($Variable.1-1+40)>$Random.Percent	14
-09	Take.Item	Bait	1
-10	Display.Message	Yellow	...and land a fish!
-11	Give.Item	Raw_Fish	1
-12	Update.Skill	Fishing	+0.1
-13	End
-14	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
-15	End
-16	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
-17	End
-18	Display.Message	DarkRed	You need a fishing rod.
-19	End
-20	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
-21	End
+06	Show.Skill	Fishing
+07	Play.Animation	Splash	1	Splash
+08	Wait	4
+09	>Conditional	($Variable.1-1+40)>$Random.Percent	15
+10	Take.Item	Bait	1
+11	Display.Message	Yellow	...and land a fish!
+12	Give.Item	Raw_Fish	1
+13	Update.Skill	Fishing	+0.1
+14	End
+15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
+16	End
+17	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
+18	End
+19	Display.Message	DarkRed	You need a fishing rod.
+20	End
+21	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
+22	End

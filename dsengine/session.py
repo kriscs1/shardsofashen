@@ -232,6 +232,16 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.play_sound("Quest")
         self.emit({"t": "msg", "text": message, "kind": str(mtype)})
 
+    NEGATIVE = ("FAIL", "DAMAGE", "ERROR", "DARKRED", "RED")
+
+    def take_out(self):
+        """The events waiting for the browser, taken. Bad news is heard as well as read: a message that says no (a
+        locked door, too far away...) with no sound of its own brings the Denied sound with it."""
+        out, self.out = self.out, []
+        if any(ev.get("t") == "msg" and str(ev.get("kind", "")).upper() in self.NEGATIVE for ev in out) and                 not any(ev.get("t") == "sound" for ev in out):
+            out.append({"t": "sound", "name": "Denied"})
+        return out
+
     def refuse(self, message, sound="Denied"):
         """Something the player isn't skilled enough for (wearing, casting, making...): said, with a sound."""
         self.display_message(message, "FAIL")

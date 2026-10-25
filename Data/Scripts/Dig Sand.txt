@@ -3,7 +3,7 @@
 01	>Distance.From.Clicked.Tile	40	09
 02	>Got.Item	Spade	1	11
 03	Display.Message	Cyan	You dig into the sand...
-04	Play.Sound	DigHole
+04	Play.Animation	Dirt_Clods	2	DigHole
 05	Wait	2
 06	Give.Item	Sand	1
 07	Display.Message	Yellow	...and fill a sack with sand.

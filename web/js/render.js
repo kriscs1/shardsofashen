@@ -100,6 +100,7 @@ export function roofCovers(x, y) {
 
 // ----- effects (the server says what happened; they're drawn here)
 export function addFx(ev, nowMs) {
+  nowMs += Math.max(0, +ev.delay || 0);          // (a later beat of the same work: the next swing of the axe)
   const f = { ...ev, start: nowMs };
   if (ev.t === "splat") {
     f.image = ev.kind === "Miss" ? "Miss" : ev.kind + Math.min(99, Math.max(1, ev.n));
@@ -134,7 +135,7 @@ function entityAt(uid) {
 }
 
 function nudgeOf(uid, now) {
-  for (const f of V.fx) if (f.t === "nudge" && f.uid === uid && now < f.end) return [f.dx, f.dy];
+  for (const f of V.fx) if (f.t === "nudge" && f.uid === uid && now >= f.start && now < f.end) return [f.dx, f.dy];
   return [0, 0];
 }
 
@@ -276,6 +277,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   drawFog(ctx, cam, V.ww, V.wh, pc);
   // ----- effects, health bars, names
   for (const f of V.fx) {
+    if (now < f.start) continue;                  // (not yet: its beat is still to come)
     if (f.t !== "skillpop" && fogCovers(f.x + 16, f.y + 16, pc)) continue;   // (a fight in the fog stays unseen)
     if (f.t === "splat") {
       const t = (now - f.start) / 900;

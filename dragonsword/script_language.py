@@ -68,6 +68,8 @@ COMMANDS = [
     ('Set.NPC.Attitude', ['NPC ID', 'ATTITUDE']),
     ('Start.Wave', ['WAVE ATTACK']),
     ('Display.Refusal', ['MESSAGE', 'SOUND']),
+    ('Show.Skill', ['SKILL NAME']),
+    ('Play.Animation', ['ANIMATION', 'TIMES', 'SOUND']),
 ]
 
 # command or argument type -> its help ("|" starts a new line)
@@ -216,6 +218,10 @@ HELP = {
     'Set.NPC.Attitude': 'COMMAND: Makes one NPC Good (friendly: Talk to) or Bad (a foe that attacks on sight)|Kept in the save: it stays that way when its map is loaded again or it respawns',
     'ATTITUDE': 'Good or Bad',
     'NPC ID': "Which NPC: the Id= in its map line's Options (Map Editor: Opts, e.g. Id=OldHob),|or CLICKED: the NPC the player clicked to start this script (talked to, attacked, used an item on)",
+    'Show.Skill': "COMMAND: Shows a skill's picture over the player's head: the skill they're using now|(e.g. as they swing the axe, before any XP comes of it)",
+    'Play.Animation': 'COMMAND: The work of the hands: an animation on what the player clicked, a lunge towards it|and a sound, TIMES over (a beat every 0.8 seconds), e.g. Wood_Chips 3 WoodChop for three swings of the axe',
+    'ANIMATION': 'An animation from Sprites\Effects (<Name>1..4): Wood_Chips, Rock_Chips, Splash, Dirt_Clods,|Wool_Tufts, Slash, Puff, Fire_Burst...',
+    'TIMES': 'How many beats (1-8): one each 0.8 seconds',
 }
 
 # the $ variables a script can use, and what they are

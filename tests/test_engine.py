@@ -1163,3 +1163,24 @@ def test_hens_roost_in_their_coop_at_night(world):
     assert not any(inside(e) for e in hens)
     world.set_day_fraction(day)
     leave(world, s)
+
+
+def test_bad_news_is_heard_and_work_is_seen(world):
+    s = join(world, "Listener")
+    s.connected = True
+    s.out = []
+    s.display_message("The door is locked.", "FAIL")
+    assert {"t": "sound", "name": "Denied"} in s.take_out()          # (no sound of its own: the Denied tell)
+    s.display_message("The spell fizzles!", "FAIL")
+    s.play_sound("Fizzle")
+    assert [ev["name"] for ev in s.take_out() if ev["t"] == "sound"] == ["Fizzle"]   # (its own sound: just that)
+    s.display_message("You pick some berries.", "SUCCESS")
+    assert not any(ev["t"] == "sound" for ev in s.take_out())
+    s.script_cursor_x, s.script_cursor_y = s.player.cx + 32, s.player.cy
+    s.show_skill("Woodcutting")
+    s.play_work("Wood_Chips", "3", "WoodChop")
+    out = s.take_out()
+    assert any(ev["t"] == "skillpop" and ev["skill"] == "Woodcutting" for ev in out)
+    assert [ev["delay"] for ev in out if ev["t"] == "anim"] == [0, 800, 1600]          # (three swings of the axe)
+    assert len([ev for ev in out if ev["t"] == "nudge"]) == 3
+    leave(world, s)

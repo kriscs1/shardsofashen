@@ -97,10 +97,23 @@ export function drawText(ctx, text, x, y, size, bold, col) {
   return ctx.measureText(text).width;
 }
 
-// Text whose capitals are centred between top and top+h
+// Text whose capitals are centred between top and top+h: the font's own capital height, measured (not guessed
+// from its size - fonts differ, and a guess sat the text too high)
+const capHeights = new Map();
 export function drawTextMid(ctx, text, x, top, h, size, bold, col) {
-  const px = fontPx(size);
-  return drawText(ctx, text, x, top + Math.round((h - px * 0.72) / 2) - Math.round(px * 0.12), size, bold, col);
+  if (!text) return 0;
+  setFont(ctx, size, bold);
+  ctx.textBaseline = "alphabetic";                // (measured from the baseline the text sits on)
+  let cap = capHeights.get(ctx.font);
+  if (cap === undefined) {
+    cap = ctx.measureText("H").actualBoundingBoxAscent || fontPx(size) * 0.7;
+    if (document.fonts && document.fonts.status === "loaded") capHeights.set(ctx.font, cap);   // (once it's real)
+  }
+  ctx.fillStyle = typeof col === "string" && !col.startsWith("rgb") && !col.startsWith("#") ? rgb(colour(col)) :
+    (Array.isArray(col) ? rgb(col) : col);
+  ctx.fillText(text, x, Math.round(top + (h + cap) / 2));
+  ctx.textBaseline = "top";
+  return ctx.measureText(text).width;
 }
 
 export function centreText(ctx, xm, y, text, size, bold, col) {

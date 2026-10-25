@@ -130,6 +130,7 @@ button {
 }
 
 button:hover, button:focus-visible { background: var(--ok); outline: none; }
+#quit-logout:hover, #quit-logout:focus-visible { background: #c0392b; border-color: #e06a55; }   /* (leaving: red) */
 button:disabled { opacity: 0.5; cursor: default; }
 
 .error { color: var(--bad); min-height: 1.2em; margin: 8px 0 0; text-align: center; }
