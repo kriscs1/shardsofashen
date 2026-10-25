@@ -1,5 +1,6 @@
 """Minimaps: Sprites\\Interface\\Minimap<Z>.png, one per level, built from the maps and the tiles' minimap colours
-(Dev\\migrate\\build_minimaps.py does the building). The preview is also a world map: click a square to open it."""
+(Dev\\migrate\\build_minimaps.py does the building). The preview is also a world map: click a square to open it,
+or an empty one (round the maps, or between them) to make a new map there."""
 import os
 import subprocess
 import sys
@@ -54,7 +55,8 @@ class MinimapPage(Page):
         pw.add(right, weight=1)
         self.title_label = ttk.Label(right, text="", style="Head.TLabel")
         self.title_label.pack(anchor="w")
-        ttk.Label(right, text="Click a map to open it in Maps.", style="PanelMuted.TLabel").pack(anchor="w")
+        ttk.Label(right, text="Click a map to open it in Maps; click an empty square (+) to make a new map there.",
+                  style="PanelMuted.TLabel").pack(anchor="w")
         holder = ttk.Frame(right, style="Panel.TFrame")
         holder.pack(fill="both", expand=True, pady=6)
         self.canvas = tk.Canvas(holder, bg="#1d1712", highlightthickness=0, cursor="hand2")
@@ -118,36 +120,47 @@ class MinimapPage(Page):
         mw, mh = self.project.map_w, self.project.map_h
         nx = max(x for x, _ in lv) - ox + 1
         ny = max(y for _, y in lv) - oy + 1
+        gx, gy = min([ox] + [x for x, _ in lv]) - 1, min([oy] + [y for _, y in lv]) - 1   # (a ring of empty
+        cols, rows = max(x for x, _ in lv) - gx + 2, max(y for _, y in lv) - gy + 2       # squares all round)
         cw, ch = max(50, c.winfo_width()), max(50, c.winfo_height())
-        s = min(cw / (nx * mw), ch / (ny * mh))
-        self.geom = (ox, oy, s, mw, mh)
+        s = min(cw / (cols * mw), ch / (rows * mh))
+        self.geom = (gx, gy, s, mw, mh)
         if img is not None:
             big = img.resize((max(1, int(img.size[0] * s * mw * nx / img.size[0])),
                               max(1, int(img.size[1] * s * mh * ny / img.size[1]))), Image.NEAREST)
             self._ph = photo(big)
-            c.create_image(0, 0, image=self._ph, anchor="nw")
+            c.create_image((ox - gx) * mw * s, (oy - gy) * mh * s, image=self._ph, anchor="nw")
+        for j in range(rows):                               # the empty squares - round the maps and between them,
+            for i in range(cols):                           # over the picture: a new map can go in one
+                if (gx + i, gy + j) in lv:
+                    continue
+                x0, y0 = i * mw * s, j * mh * s
+                c.create_rectangle(x0 + 2, y0 + 2, x0 + mw * s - 2, y0 + mh * s - 2, fill="#1d1712", outline="#4a3d30",
+                                   dash=(2, 4))
+                c.create_text(x0 + mw * s / 2, y0 + mh * s / 2, text="+", fill="#6b5a46",
+                              font=("Segoe UI", max(8, int(min(mw, mh) * s / 3))))
         for x, y in lv:
-            x0, y0 = (x - ox) * mw * s, (y - oy) * mh * s
+            x0, y0 = (x - gx) * mw * s, (y - gy) * mh * s
             c.create_rectangle(x0, y0, x0 + mw * s, y0 + mh * s, outline="#f2c46d", dash=(2, 3))
             if mw * s > 40:
                 c.create_text(x0 + 4, y0 + 3, text="%d,%d" % (x, y), anchor="nw", fill="#fff4dc", font=T.FONT_SMALL)
 
     def map_at(self, e):
-        if not hasattr(self, "geom") or self.level is None:
+        """The map name of the square under the mouse (one there or not), or None off the grid."""
+        if not hasattr(self, "geom") or self.level is None or e.x < 0 or e.y < 0:
             return None
-        ox, oy, s, mw, mh = self.geom
-        x, y = int(e.x // (mw * s)) + ox, int(e.y // (mh * s)) + oy
-        name = "%d,%d,%d" % (x, y, self.level)
-        return name if name in self.project.maps() else None
+        gx, gy, s, mw, mh = self.geom
+        x, y = int(e.x // (mw * s)) + gx, int(e.y // (mh * s)) + gy
+        return "%d,%d,%d" % (x, y, self.level)
 
     def click(self, e):
         m = self.map_at(e)
         if m:
-            self.app.goto("map", m)
+            self.app.goto("map", m)                         # (no map there yet: Maps asks to make it)
 
     def hover(self, e):
         m = self.map_at(e)
-        self.app.info(m or "")
+        self.app.info("" if not m else m if m in self.project.maps() else "%s: no map yet - click to make it" % m)
 
     # --- building
     def build(self, every):
