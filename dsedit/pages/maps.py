@@ -367,10 +367,17 @@ class MapPage(Page):
                 for m in self.project.maps()]
 
     def selected_spot(self):
-        """(map, tile x, tile y) of the selected tile (Quests' markers), or None."""
-        if self.doc and self.sel_cell:
+        """(map, tile x, tile y) of the selected tile, or on Entities the selected entity's (Quests' markers)."""
+        if self.doc and self.layer == "things" and self.sel_ent is not None and self.sel_ent in self.doc.entities:
+            return (self.doc.name,) + tuple(self.ent_tile(self.sel_ent))
+        if self.doc and self.tile_selected():
             return self.doc.name, self.sel_cell[0] + 1, self.sel_cell[1] + 1
         return None
+
+    def tile_selected(self):
+        """The selected tile (x, y, from 0), or None: on the Entities layer there's no selected tile, only entities
+        (a tile is chosen on the layer that paints it)."""
+        return self.sel_cell if self.layer != "things" else None
 
     # --- moving between maps
     def step(self, dx, dy, dz):
@@ -667,7 +674,7 @@ class MapPage(Page):
             if e.kind == "NPC" and (self.show["zones"].get() or e is self.sel_ent):
                 self.draw_npc_areas(e, ox, oy, z, faint=e is not self.sel_ent)
         # the selection
-        if self.sel_cell:
+        if self.tile_selected():
             x, y = self.sel_cell
             c.create_rectangle(ox + x * tw * z, oy + y * th * z, ox + (x + 1) * tw * z, oy + (y + 1) * th * z,
                                outline="#ffffff", width=2)
@@ -1169,8 +1176,8 @@ class MapPage(Page):
             self.palette.pick(None)
             self.set_tool("Select" if self.layer == "things" else "Paint")
             if self.inside(tx, ty):
-                self.sel_cell = (tx, ty)
                 self.sel_ent = self.ent_at(px, py) if self.layer == "things" else None
+                self.sel_cell = (tx, ty) if self.layer != "things" or self.sel_ent is not None else None
             self.app.status("Select mode: click to select (right-click again for the menu).")
             self.redraw()
             self.show_inspector()
@@ -1179,8 +1186,9 @@ class MapPage(Page):
             return
         cell = self.doc.cells[ty][tx]
         m = tk.Menu(self, tearoff=0)
-        m.add_command(label="Select this tile", command=lambda: self.select_cell(tx, ty))
-        m.add_separator()
+        if self.layer != "things":                           # (on Entities, entities are what's selected)
+            m.add_command(label="Select this tile", command=lambda: self.select_cell(tx, ty))
+            m.add_separator()
         m.add_command(label="Edit the tile %s in Tiles" % cell.tile, command=lambda: self.app.goto("tile", cell.tile))
         if cell.decor:
             m.add_command(label="Edit the decor %s in Tiles" % cell.decor,
@@ -1253,7 +1261,7 @@ class MapPage(Page):
             dy = {"Up": -1, "Down": 1}.get(k, 0)
             if e.state & 0x4:
                 self.step(dx, dy, 0)
-            elif self.sel_ent is None and not self.sel_cell:     # nothing selected: the arrows move the view
+            elif self.sel_ent is None and not self.tile_selected():   # nothing selected: the arrows move the view
                 self.canvas.xview_scroll(dx * 4, "units")
                 self.canvas.yview_scroll(dy * 4, "units")
             elif self.sel_ent is not None:
@@ -1267,7 +1275,7 @@ class MapPage(Page):
                     self.sel_ent.y += dy * step
                 self.redraw()
                 self.show_inspector(light=True)
-            elif self.sel_cell:
+            elif self.tile_selected():
                 x, y = self.sel_cell
                 if self.inside(x + dx, y + dy):
                     self.select_cell(x + dx, y + dy)
@@ -1412,9 +1420,12 @@ class MapPage(Page):
         return {"map": cell.tile, "decor": cell.decor, "roof": cell.roof, "infront": cell.infront}.get(self.layer, "")
 
     def select_cell(self, x, y):
-        self.sel_cell = (x, y)
-        if self.layer == "things":
-            self.sel_ent = None
+        if self.layer == "things":                          # (Entities: what stands on that tile, if anything)
+            here = [e for e in self.doc.placed() if tuple(self.ent_tile(e)) == (x + 1, y + 1)]
+            self.sel_ent = next((e for e in here if e.kind not in TILE_KINDS), here[0] if here else None)
+            self.sel_cell = (x, y) if self.sel_ent is not None else None
+        else:
+            self.sel_cell = (x, y)
         self.redraw()
         self.show_inspector()
 
@@ -1449,8 +1460,8 @@ class MapPage(Page):
             self.redraw()
             self.show_inspector()
             return
-        self.sel_cell = (tx, ty)
-        self.sel_ent = ent
+        self.sel_ent = ent                                  # (nothing there: nothing selected - not the tile)
+        self.sel_cell = (tx, ty) if ent is not None else None
         if ent is not None:
             self.drag = {"move": ent, "start": (px, py), "orig": (ent.x, ent.y)}
         self.redraw()
@@ -1674,7 +1685,7 @@ class MapPage(Page):
                        command=lambda: self.move_to_map(e)).pack(side="left")
             ttk.Button(mv, text="Cut (Ctrl+X)", style="Small.TButton",
                        command=lambda: self.clip_ent(True)).pack(side="left", padx=4)
-        elif self.sel_cell:
+        elif self.tile_selected():
             self.insp_cell(f)
         else:
             self.insp_map(f)
