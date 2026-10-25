@@ -778,7 +778,7 @@ class Project:
         return False
 
     def placeable(self):
-        """What can go on the Things layer: the entities, and the decor tiles (placed as objects: anywhere, drawn in
+        """What can go on the Entities layer: the entities, and the decor tiles (placed as objects: anywhere, drawn in
         front of or behind the player, with an Id for scripts)."""
         return sorted([e for e in self.entities() if not self.is_frame(e)] +
                       [t for t in self.tiles() if self.is_decor_object(t)], key=str.lower)

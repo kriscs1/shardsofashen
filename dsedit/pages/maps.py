@@ -1,5 +1,5 @@
 """Maps: Maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
-and the Over layer (tree tops); place items, objects, NPCs, triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
+and the Over layer (tree tops); place the entities (items, objects, NPCs), triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
 The maps round this one show (dimmed) round its edges."""
 import re
 import tkinter as tk
@@ -14,27 +14,27 @@ from ..render import render, walk_overlay, tile_image
 from ..widgets import (PaletteGrid, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
 
-LAYERS = [("Ground", "map"), ("Decor", "decor"), ("Roofs", "roof"), ("Over", "infront"), ("Things", "things")]
+LAYERS = [("Ground", "map"), ("Decor", "decor"), ("Roofs", "roof"), ("Over", "infront"), ("Entities", "things")]
 # each layer's colour (the banner over the map and its frame) and what the banner says
 LAYER_LOOK = {"map": ("#3d7a3a", "GROUND", "the floor of the map: grass, paths, walls, water"),
               "decor": ("#6a4c93", "DECOR", "see-through tiles over the ground (chairs, trees, flowers); the ground is "
                                             "greyed"),
-              "roof": ("#9a3d2c", "ROOFS", "the ground and things are greyed; roofs hide when the player walks under"),
-              "infront": ("#2d6a73", "OVER", "the ground and things are greyed; the Over layer (tree tops, arches) is "
+              "roof": ("#9a3d2c", "ROOFS", "the ground and entities are greyed; roofs hide when the player walks under"),
+              "infront": ("#2d6a73", "OVER", "the ground and entities are greyed; the Over layer (tree tops, arches) is "
                                        "drawn over the player"),
-              "things": ("#a8692c", "THINGS", "items, objects, NPCs, triggers and locks; the ground is greyed")}
+              "things": ("#a8692c", "ENTITIES", "items, objects, NPCs, triggers and locks; the ground is greyed")}
 LAYER_HINTS = {"map": "Paint the ground tiles (1)",
                "decor": "Decor: a chair, a tree, a pot of flowers over any ground tile (2)",
                "roof": "Roof tiles: hidden while the player is under them (3)",
                "infront": "Over: tree tops, arches and the like, drawn over the player (4)",
-               "things": "Items, objects, NPCs, triggers and locks (5)"}
+               "things": "Entities - items, objects, NPCs - and triggers and locks (5)"}
 LAYER_NOUN = {"map": "tile", "decor": "decor", "roof": "roof", "infront": "over tile"}
 TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the same tile (or Shift+click)",
               "Rectangle": "Drag a rectangle to fill", "Erase": "Click or drag to remove", "Pick": "Click to pick "
               "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it",
               "Place": "Click to put the palette's pick down",
               "Move": "Drag a tile of this layer to another spot (whatever is there swaps places with it; a bed brings "
-                      "its foot); on Things, drag an item, object or NPC"}
+                      "its foot); on Entities, drag an item, object or NPC"}
 CURSORS = {"Paint": "pencil", "Fill": "spraycan", "Rectangle": "tcross", "Erase": "X_cursor", "Pick": "dotbox",
            "Move": "fleur"}
 TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Pick"], "decor": ["Paint", "Rectangle", "Move", "Erase", "Pick"],
@@ -373,8 +373,8 @@ class MapPage(Page):
         if self.tool not in tools:
             self.tool = tools[0]
         self.tool_var.set(self.tool)
-        Segmented(self.tool_frame, self.tool_var, [(t, t, TOOL_HINTS[t]) for t in tools],
-                  command=lambda: self.set_tool(self.tool_var.get())).pack(anchor="w")
+        Segmented(self.tool_frame, self.tool_var, [(t, t, TOOL_HINTS[t], t) for t in tools],
+                  command=lambda: self.set_tool(self.tool_var.get()), columns=3).pack(fill="x")   # (rows of 3: all show)
         col, name, note = LAYER_LOOK[layer]
         self.banner.configure(text="Editing:  " + name, bg=col)
         self.banner_note.configure(text=note)
@@ -1379,7 +1379,7 @@ class MapPage(Page):
         self.show_inspector()
 
     # =============================================================================================================
-    # Things
+    # Entities (the "things" layer)
     # =============================================================================================================
     def press_things(self, px, py, tx, ty, shift):
         ent = self.ent_at(px, py, prefer_tile_kind=None)
@@ -1582,7 +1582,7 @@ class MapPage(Page):
                 self.app.show(self.app.page_of("script")),
                 self.app.page_of("script").new_script(preset={"kind": "When a map is entered", "map": d.name})))
         ttk.Label(f, text="Keys", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(14, 0))
-        ttk.Label(f, text="1-5 layers · Shift+click fill · right-click a tile picks it · on Things, right-click selects (again: a menu) · "
+        ttk.Label(f, text="1-5 layers · Shift+click fill · right-click a tile picks it · on Entities, right-click selects (again: a menu) · "
                           "Shift+right-click menu · Delete removes · "
                           "arrows move (Shift ×8) · Ctrl+arrows next map · PgUp/PgDn levels · P W Z G views · "
                           "Ctrl+wheel zoom (where the mouse is) · middle-drag or Space+drag moves the view (so do "

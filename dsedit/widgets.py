@@ -297,7 +297,8 @@ class PaletteGrid(tk.Frame):
 
 class Segmented(tk.Frame):
     """A row of buttons where one is chosen (like tabs): the chosen one is amber with white text, the rest tan with
-    a border. options: [(value, text)] or [(value, text, tooltip)]. var: a StringVar; command() after a click."""
+    a border. options: [(value, text)] or [(value, text, tooltip)] or [(value, text, tooltip, icon)] (icon: a tool's
+    name in icons.py, drawn left of the text in the text's colour). var: a StringVar; command() after a click."""
 
     def __init__(self, parent, var, options, command=None, columns=0, bg=None):
         super().__init__(parent, bg=bg or T.PANEL)
@@ -308,6 +309,7 @@ class Segmented(tk.Frame):
             b = tk.Label(edge, text=text, font=T.FONT, padx=T.px(9), pady=T.px(3), cursor="hand2", bd=0)
             b.pack(fill="both", expand=True, padx=1, pady=1)
             b.edge = edge
+            b.icon = opt[3] if len(opt) > 3 else None
             if columns:
                 edge.grid(row=i // columns, column=i % columns, sticky="ew", padx=(0, 3), pady=(0, 3))
             else:
@@ -347,6 +349,9 @@ class Segmented(tk.Frame):
             else:
                 b.configure(bg=T.SELECT if v == hot else T.BUTTON, fg=T.TEXT, font=T.FONT)
                 b.edge.configure(bg=T.ACCENT if v == hot else T.BUTTON_EDGE)
+            if b.icon:
+                from .icons import icon
+                b.configure(image=icon(b.icon, "#ffffff" if v == cur else T.TEXT), compound="left")
 
 
 def labelled(parent, row, label, widget, hint=None, col=0, span=1):
