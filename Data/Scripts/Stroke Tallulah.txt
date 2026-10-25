@@ -3,5 +3,5 @@
 03	Get.Value	CALCULATION	2*$Object.under.Cursor.Y-$Player.Y	Variable.2$
 04	Move.Entity	$Object.under.Cursor.X,$Object.under.Cursor.Y	Tallulah	$Variable.1,$Variable.2	2
 05	End
-06	Display.Message	DarkRed	You are too far away!
+06	Display.Message	DarkRed	You are too far away!	Denied
 07	End

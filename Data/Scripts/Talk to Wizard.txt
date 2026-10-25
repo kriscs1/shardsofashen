@@ -28,7 +28,7 @@
 26	Play.Sound	Teleporter
 27	Display.Message	Yellow	The wizard traces a ring of fire in the air... and you step through.
 28	Teleport	Lair_Arrival	-
-29	Display.Message	Red	Heat, smoke, and the smell of sulphur. Something enormous breathes in the dark.
+29	Display.Message	Red	Heat, smoke, and the smell of sulphur. Something enormous breathes in the dark.	Denied
 30	End
 31	>Conditional	$Variable.2=3	93
 32	Get.Value	ATTRIBUTE	AshenSworn	Variable.3$

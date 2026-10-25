@@ -7,7 +7,7 @@
 07	Update.Skill	Cooking	+0.05
 08	Give.Item	Meat_Sandwich	1
 09	End
-10	Display.Message	DarkRed	You need (1) Cooked Meat!
+10	Display.Message	DarkRed	You need (1) Cooked Meat!	Denied
 11	End
-12	Display.Message	DarkRed	You need (1) Bread!
+12	Display.Message	DarkRed	You need (1) Bread!	Denied
 13	End

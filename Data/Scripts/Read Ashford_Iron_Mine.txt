@@ -2,5 +2,5 @@
 01	>Distance.From.Clicked.Entity	64	04
 02	Display.Conversation	Notice	ASHFORD IRON MINE\Closed by order of King Tyron. Hobgoblins below!\The guard lets no one through the gate without body armour, unless they are on the King's business.	Okay	03
 03	End
-04	Display.Message	DarkRed	You can't read that from here!
+04	Display.Message	DarkRed	You can't read that from here!	Denied
 05	End

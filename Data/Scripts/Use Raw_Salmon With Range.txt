@@ -13,12 +13,12 @@
 12	Update.Skill	Cooking	+0.35
 13	Give.Item	Cooked_Salmon	1
 14	End
-15	Display.Message	DarkRed	..but accidentally burn it!
+15	Display.Message	DarkRed	..but accidentally burn it!	Denied
 16	Give.Item	Burnt_Fish	1
 17	End
-18	Display.Message	DarkRed	You don't have any Raw Salmon.
+18	Display.Message	DarkRed	You don't have any Raw Salmon.	Denied
 19	End
-20	Display.Message	DarkRed	You need level 20 Cooking to cook Raw Salmon.
+20	Display.Message	DarkRed	You need level 20 Cooking to cook Raw Salmon.	Denied
 21	End
-22	Display.Message	DarkRed	You are too far away!
+22	Display.Message	DarkRed	You are too far away!	Denied
 23	End

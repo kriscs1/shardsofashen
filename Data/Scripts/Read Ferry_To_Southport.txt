@@ -2,5 +2,5 @@
 01	>Distance.From.Clicked.Entity	64	04
 02	Display.Conversation	Notice	FERRY TO SOUTHPORT\Ask the ferrywoman at the end of the pier.\Sailings every day. First crossing: ticket holders only.\(The milkmaid sells tickets.) After that, 1 gold coin.	Okay	03
 03	End
-04	Display.Message	DarkRed	You can't read that from here!
+04	Display.Message	DarkRed	You can't read that from here!	Denied
 05	End

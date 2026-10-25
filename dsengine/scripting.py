@@ -443,7 +443,7 @@ class ScriptMixin:
         elif c == "Play.Animation":
             self.play_work(arg[1], arg[2], arg[3])
         elif c == "Display.Message":
-            self.display_message(arg[2], arg[1])
+            self.display_message(arg[2], arg[1], sound=trim(arg[3]))   # (the script says what's heard: maybe nothing)
         elif c == "Give.Item":
             if not self.loot_give(arg[1], parse_quantity(arg[2] or "1")):      # (a chest's script fills the chest)
                 self.add_inventory_item(arg[1], parse_quantity(arg[2] or "1"))

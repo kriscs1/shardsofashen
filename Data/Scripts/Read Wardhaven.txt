@@ -2,5 +2,5 @@
 01	>Distance.From.Clicked.Entity	64	04
 02	Display.Conversation	Notice	WARDHAVEN\Safe behind its walls since the dragon came.\The bridge west goes to Ashford's farms.	Okay	03
 03	End
-04	Display.Message	DarkRed	You can't read that from here!
+04	Display.Message	DarkRed	You can't read that from here!	Denied
 05	End

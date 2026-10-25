@@ -30,13 +30,13 @@
 29	Update.Skill	Mining	+0.7
 30	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	120
 31	End
-32	Display.Message	DarkRed	...but only chip the rock.
+32	Display.Message	DarkRed	...but only chip the rock.	Denied
 33	End
-34	Display.Message	DarkRed	You need level 25 Mining to mine this mithril rock.
+34	Display.Message	DarkRed	You need level 25 Mining to mine this mithril rock.	Denied
 35	End
-36	Display.Message	DarkRed	Your pickaxe just bounces off! You need a steel pickaxe or better.
+36	Display.Message	DarkRed	Your pickaxe just bounces off! You need a steel pickaxe or better.	Denied
 37	End
-38	Display.Message	DarkRed	You need a pickaxe!
+38	Display.Message	DarkRed	You need a pickaxe!	Denied
 39	End
-40	Display.Message	DarkRed	You are too far away!
+40	Display.Message	DarkRed	You are too far away!	Denied
 41	End

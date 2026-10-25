@@ -6,5 +6,5 @@
 06	Remove.Entity	$Object.under.Cursor.X,$Object.under.Cursor.Y	Fire
 07	Remove.Action.From.Queue	REMOVE[TAB]Fire[TAB]StaticObject[TAB]-[TAB]$Map.Name[TAB]$Object.under.Cursor.X,$Object.under.Cursor.Y*
 08	End
-09	Display.Message	DarkRed	You are too far away!
+09	Display.Message	DarkRed	You are too far away!	Denied
 10	End

@@ -75,5 +75,5 @@
 73	End
 74	Display.Refusal	The chest is empty.	Empty
 75	End
-76	Display.Message	DarkRed	You are too far away!
+76	Display.Message	DarkRed	You are too far away!	Denied
 77	End

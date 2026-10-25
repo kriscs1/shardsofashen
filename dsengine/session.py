@@ -224,22 +224,31 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.connected:
             self.out.append(ev)
 
-    def display_message(self, message, mtype):
+    def display_message(self, message, mtype, sound=None):
+        """A line in the chat. sound: what's heard with it. A script's Display.Message says ("": nothing); the
+        engine's own messages leave it None, and a no among them brings the Denied tell (take_out)."""
         last, at = self.message_log_last
         if message == last and 0 <= self.now - at < 500:
             return
         self.message_log_last = (message, self.now)
         if message[:14].upper() == "QUEST COMPLETE":
             self.play_sound("Quest")
-        self.emit({"t": "msg", "text": message, "kind": str(mtype)})
+        ev = {"t": "msg", "text": message, "kind": str(mtype)}
+        if sound is None and str(mtype).upper() in self.NEGATIVE:
+            ev["tell"] = 1
+        self.emit(ev)
+        if sound and sound != "-":
+            self.play_sound(sound)
 
     NEGATIVE = ("FAIL", "DAMAGE", "ERROR", "DARKRED", "RED")
 
     def take_out(self):
-        """The events waiting for the browser, taken. Bad news is heard as well as read: a message that says no (a
-        locked door, too far away...) with no sound of its own brings the Denied sound with it."""
+        """The events waiting for the browser, taken. The engine's own bad news is heard as well as read: a no it
+        says (you can't attack that...) with no sound of its own brings the Denied sound. A script's messages sound
+        as the script says (Display.Message's SOUND)."""
         out, self.out = self.out, []
-        if any(ev.get("t") == "msg" and str(ev.get("kind", "")).upper() in self.NEGATIVE for ev in out) and                 not any(ev.get("t") == "sound" for ev in out):
+        if any(ev.get("t") == "msg" and ev.get("tell") for ev in out) and \
+                not any(ev.get("t") == "sound" for ev in out):
             out.append({"t": "sound", "name": "Denied"})
         return out
 

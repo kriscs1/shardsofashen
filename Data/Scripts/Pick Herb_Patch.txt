@@ -12,5 +12,5 @@
 11	>Random	60	13
 12	Change.Tile	$Variable.5,$Variable.6	Herb_Patch002	0	50
 13	End
-14	Display.Message	DarkRed	You are too far away!
+14	Display.Message	DarkRed	You are too far away!	Denied
 15	End

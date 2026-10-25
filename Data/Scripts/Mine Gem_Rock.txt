@@ -37,11 +37,11 @@
 36	Update.Skill	Mining	+0.5
 37	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	90
 38	End
-39	Display.Message	DarkRed	...but only chip the rock.
+39	Display.Message	DarkRed	...but only chip the rock.	Denied
 40	End
-41	Display.Message	DarkRed	You need level 20 Mining to mine this crystal rock.
+41	Display.Message	DarkRed	You need level 20 Mining to mine this crystal rock.	Denied
 42	End
-43	Display.Message	DarkRed	You need a pickaxe!
+43	Display.Message	DarkRed	You need a pickaxe!	Denied
 44	End
-45	Display.Message	DarkRed	You are too far away!
+45	Display.Message	DarkRed	You are too far away!	Denied
 46	End

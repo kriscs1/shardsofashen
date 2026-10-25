@@ -8,7 +8,7 @@
 07	Give.Item	Bucket_of_Milk	1
 08	Display.Message	Yellow	...and fill the bucket with warm milk.
 09	End
-10	Display.Message	DarkRed	You need an empty bucket!
+10	Display.Message	DarkRed	You need an empty bucket!	Denied
 11	End
-12	Display.Message	DarkRed	You are too far away!
+12	Display.Message	DarkRed	You are too far away!	Denied
 13	End

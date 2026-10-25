@@ -9,8 +9,8 @@
 09	Update.Skill	Cooking	+0.05
 10	Give.Item	Cooked_Fish	1
 11	End
-12	Display.Message	DarkRed	..but accidentally burn it!
+12	Display.Message	DarkRed	..but accidentally burn it!	Denied
 13	Give.Item	Burnt_Fish	1
 14	End
-15	Display.Message	DarkRed	You are too far away!
+15	Display.Message	DarkRed	You are too far away!	Denied
 16	End

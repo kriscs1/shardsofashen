@@ -28,11 +28,11 @@
 27	Update.Skill	Woodcutting	+0.05
 28	>Random	100	32
 29	End
-30	Display.Message	DarkRed	..but fail to get any logs!
+30	Display.Message	DarkRed	..but fail to get any logs!	Denied
 31	End
 32	Change.Tile	$Variable.5,$Variable.6	Grass001	0	240
 33	End
-34	Display.Message	DarkRed	You need an axe!
+34	Display.Message	DarkRed	You need an axe!	Denied
 35	End
-36	Display.Message	DarkRed	You are too far away!
+36	Display.Message	DarkRed	You are too far away!	Denied
 37	End

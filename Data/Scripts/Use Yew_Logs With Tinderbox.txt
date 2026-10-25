@@ -11,9 +11,9 @@
 10	Add.Entity	$Player.X,$Player.Y	Fire	StaticObject	-
 11	Add.Action.To.Queue	REMOVE	Fire	StaticObject	-	$Map.Name	$Player.X,$Player.Y	90
 12	End
-13	Display.Message	DarkRed	..but the yew logs won't catch.
+13	Display.Message	DarkRed	..but the yew logs won't catch.	Denied
 14	End
-15	Display.Message	DarkRed	You need to be holding the logs!
+15	Display.Message	DarkRed	You need to be holding the logs!	Denied
 16	End
-17	Display.Message	DarkRed	You need to be holding a tinderbox!
+17	Display.Message	DarkRed	You need to be holding a tinderbox!	Denied
 18	End

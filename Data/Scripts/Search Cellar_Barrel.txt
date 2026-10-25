@@ -14,5 +14,5 @@
 13	>Conditional	$Attr.Passage=6	15
 14	Update.Attribute	Passage	=7
 15	End
-16	Display.Message	DarkRed	You are too far away!
+16	Display.Message	DarkRed	You are too far away!	Denied
 17	End

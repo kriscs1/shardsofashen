@@ -13,5 +13,5 @@
 12	Teleport	Hobs_Window_Outside	-
 13	Display.Message	Cyan	You climb back out through the window.
 14	End
-15	Display.Message	DarkRed	You are too far away!
+15	Display.Message	DarkRed	You are too far away!	Denied
 16	End

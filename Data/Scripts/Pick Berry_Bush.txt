@@ -12,5 +12,5 @@
 11	>Random	40	13
 12	Change.Tile	$Variable.5,$Variable.6	Berry_Bush002	0	45
 13	End
-14	Display.Message	DarkRed	You are too far away!
+14	Display.Message	DarkRed	You are too far away!	Denied
 15	End

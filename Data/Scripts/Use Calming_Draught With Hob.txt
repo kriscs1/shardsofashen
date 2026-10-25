@@ -12,5 +12,5 @@
 11	End
 12	Display.Message	Cyan	He doesn't need it now.
 13	End
-14	Display.Message	DarkRed	You are too far away!
+14	Display.Message	DarkRed	You are too far away!	Denied
 15	End

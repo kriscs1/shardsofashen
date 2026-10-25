@@ -10,9 +10,9 @@
 09	Display.Message	Yellow	...and get a fluffy clump of wool.
 10	Update.Skill	Crafting	+0.05
 11	End
-12	Display.Message	DarkRed	...but the sheep wriggles free!
+12	Display.Message	DarkRed	...but the sheep wriggles free!	Denied
 13	End
-14	Display.Message	DarkRed	You need shears!
+14	Display.Message	DarkRed	You need shears!	Denied
 15	End
-16	Display.Message	DarkRed	You are too far away!
+16	Display.Message	DarkRed	You are too far away!	Denied
 17	End

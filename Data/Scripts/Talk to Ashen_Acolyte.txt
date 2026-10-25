@@ -5,7 +5,7 @@
 04	End
 05	Display.Conversation	Ashen_Acolyte	Threats? From a worm who'll be ash by midsummer? Then burn!	So be it.	06
 06	Set.NPC.Attitude	AshenAcolyte	Bad
-07	Display.Message	Red	The acolyte's hands burst into flame!
+07	Display.Message	Red	The acolyte's hands burst into flame!	Denied
 08	End
 09	>Got.Item	Gold_Coin(s)	200	19
 10	Display.Conversation	Ashen_Acolyte	Gold? Even the Hand must eat. Two hundred, and I'll tell you one thing.	Here's 200 gold.	12	Too much.	36

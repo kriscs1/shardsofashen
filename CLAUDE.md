@@ -61,8 +61,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - NPCs can have their own names through the map option `Name=` (underscores become spaces).
 - **The chat log isn't spammed**: no line per blow in a fight (the numbers over heads show hits and misses).
   Log what matters: kills, loot, level-ups, warnings, quest news.
-- **Bad news is heard as well as read**: a negative message (FAIL, DAMAGE, ERROR, DarkRed) with no sound of its
-  own gets the Denied sound (`Session.take_out`). Give a failure its own sound where one fits.
+- **Bad news is heard as well as read.** In scripts it's written there: `Display.Message COLOUR MESSAGE [SOUND]`
+  (or a `Play.Sound` beside it). Every red script message (DarkRed, Red) says its sound, usually `Denied`; give a
+  failure its own sound where one fits. Script messages are otherwise silent. The engine's own messages (not from a
+  script) that say no get the Denied tell from `Session.take_out`.
 
 **Creatures**
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.

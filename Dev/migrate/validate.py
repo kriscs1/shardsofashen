@@ -667,6 +667,11 @@ def check_scripts(skills, racks):
             elif cmd == "Display.Refusal":
                 if len(args) not in (1, 2):                    # (MESSAGE, and a sound if not the usual Denied)
                     err(where, "Display.Refusal takes a message and maybe a sound; has %d args" % len(args))
+            elif cmd == "Display.Message":
+                if len(args) not in (2, 3):                    # (COLOUR, MESSAGE, and a sound to go with it if any)
+                    err(where, "Display.Message takes a colour, a message and maybe a sound; has %d args" % len(args))
+                elif len(args) == 3 and args[2] and not os.path.exists(os.path.join(p("Sounds"), args[2] + ".wav")):
+                    err(where, "Display.Message's sound %r is not in Sounds" % args[2])
             elif len(args) != want:
                 err(where, "%s takes %d args, has %d" % (cmd, want, len(args)))
             t = types.get(cmd, {})

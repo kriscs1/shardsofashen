@@ -36,5 +36,5 @@
 34	Play.Sound	SpellCast
 35	Goto.Script	Waystone Menu
 36	End
-37	Display.Message	DarkRed	You are too far away!
+37	Display.Message	DarkRed	You are too far away!	Denied
 38	End

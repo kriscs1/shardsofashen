@@ -14,13 +14,13 @@
 13	Give.Item	Raw_Swordfish	1
 14	Update.Skill	Fishing	+0.6
 15	End
-16	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
+16	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.	Denied
 17	End
-18	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
+18	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.	Denied
 19	End
-20	Display.Message	DarkRed	You need a fishing rod.
+20	Display.Message	DarkRed	You need a fishing rod.	Denied
 21	End
-22	Display.Message	DarkRed	You need level 35 Fishing to catch the swordfish here.
+22	Display.Message	DarkRed	You need level 35 Fishing to catch the swordfish here.	Denied
 23	End
-24	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
+24	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!	Denied
 25	End

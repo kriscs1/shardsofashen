@@ -1176,6 +1176,12 @@ def test_bad_news_is_heard_and_work_is_seen(world):
     assert [ev["name"] for ev in s.take_out() if ev["t"] == "sound"] == ["Fizzle"]   # (its own sound: just that)
     s.display_message("You pick some berries.", "SUCCESS")
     assert not any(ev["t"] == "sound" for ev in s.take_out())
+    s.display_message("You need an axe!", "DarkRed", sound="")        # (a script's message: silent unless it says)
+    assert not any(ev["t"] == "sound" for ev in s.take_out())
+    s.script_lines = ["", "01	Display.Message	DarkRed	You need an axe!	Denied", "02	End", ""]
+    s.script_line_no = 1
+    s.execute_script_line()                                          # (Display.Message's SOUND: heard with it)
+    assert [ev["name"] for ev in s.take_out() if ev["t"] == "sound"] == ["Denied"]
     s.script_cursor_x, s.script_cursor_y = s.player.cx + 32, s.player.cy
     s.show_skill("Woodcutting")
     s.play_work("Wood_Chips", "3", "WoodChop")

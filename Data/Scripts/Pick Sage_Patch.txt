@@ -14,7 +14,7 @@
 13	>Random	60	15
 14	Change.Tile	$Variable.5,$Variable.6	Sage_Patch002	0	55
 15	End
-16	Display.Message	DarkRed	You need level 5 Herblore for that.
+16	Display.Message	DarkRed	You need level 5 Herblore for that.	Denied
 17	End
-18	Display.Message	DarkRed	You are too far away!
+18	Display.Message	DarkRed	You are too far away!	Denied
 19	End

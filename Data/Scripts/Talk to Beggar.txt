@@ -13,7 +13,7 @@
 13	Quest.Note	BeggarQuest	His house is on the Isle: unlock its door with the key and it's yours.
 14	Display.Message	Yellow	Quest started: The Beggar's Lost Key.
 15	End
-16	Display.Message	DarkRed	You don't have any gold!
+16	Display.Message	DarkRed	You don't have any gold!	Denied
 17	End
 18	Display.Conversation	Beggar	Spare a coin? ...I lost something, out where it's not safe. You'd not last a night there, the state of you. Toughen up, then ask me again.	I'll be back.	19
 19	End

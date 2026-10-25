@@ -29,13 +29,13 @@
 28	Update.Skill	Woodcutting	+0.9
 29	>Random	50	33
 30	End
-31	Display.Message	DarkRed	..but fail to get any logs!
+31	Display.Message	DarkRed	..but fail to get any logs!	Denied
 32	End
 33	Change.Tile	$Variable.5,$Variable.6	Tree_Stump001	0	90
 34	End
-35	Display.Message	DarkRed	You need level 35 Woodcutting to chop this yew.
+35	Display.Message	DarkRed	You need level 35 Woodcutting to chop this yew.	Denied
 36	End
-37	Display.Message	DarkRed	You need an axe!
+37	Display.Message	DarkRed	You need an axe!	Denied
 38	End
-39	Display.Message	DarkRed	You are too far away!
+39	Display.Message	DarkRed	You are too far away!	Denied
 40	End

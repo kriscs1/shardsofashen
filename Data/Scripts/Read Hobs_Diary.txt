@@ -8,6 +8,6 @@
 07	Quest.Note	HobQuest	Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow.
 08	Display.Message	Yellow	Quest started: Old Hob.
 09	End
-10	Display.Message	DarkRed	You are too far away!
+10	Display.Message	DarkRed	You are too far away!	Denied
 11	End
 12	End

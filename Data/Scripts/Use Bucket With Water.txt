@@ -5,5 +5,5 @@
 05	Take.Item	Bucket	1
 06	Give.Item	Bucket_of_Water	1
 07	End
-08	Display.Message	DarkRed	You are too far away!
+08	Display.Message	DarkRed	You are too far away!	Denied
 09	End

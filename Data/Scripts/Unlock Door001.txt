@@ -14,7 +14,7 @@
 13	End
 14	Display.Message	Cyan	The door is already unlocked.
 15	Goto.Line	08
-16	Display.Message	DarkRed	It's locked, and you don't have the key.
+16	Display.Message	DarkRed	It's locked, and you don't have the key.	Denied
 17	End
-18	Display.Message	DarkRed	You don't have a key for this door.
+18	Display.Message	DarkRed	You don't have a key for this door.	Denied
 19	End

@@ -21,7 +21,7 @@
 19	Update.Skill	Construction	+0.02
 20	Change.Tile	$Variable.5,$Variable.6	Rock001	0	90
 21	End
-22	Display.Message	DarkRed	You are too far away!
+22	Display.Message	DarkRed	You are too far away!	Denied
 23	End
-24	Display.Message	DarkRed	You need a pickaxe to mine stone!
+24	Display.Message	DarkRed	You need a pickaxe to mine stone!	Denied
 25	End

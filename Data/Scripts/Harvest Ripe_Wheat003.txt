@@ -12,5 +12,5 @@
 11	Add.Action.To.Queue	REMOVE	Stubble	StaticObject	-	$Map.Name	$Variable.5,$Variable.6	60
 12	Add.Action.To.Queue	ADD	Ripe_Wheat003	StaticObject	-	$Map.Name	$Variable.5,$Variable.6	60
 13	End
-14	Display.Message	DarkRed	You are too far away!
+14	Display.Message	DarkRed	You are too far away!	Denied
 15	End

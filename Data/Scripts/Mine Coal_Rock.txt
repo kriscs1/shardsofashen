@@ -29,11 +29,11 @@
 28	Update.Skill	Mining	+0.15
 29	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	40
 30	End
-31	Display.Message	DarkRed	...but only chip the rock.
+31	Display.Message	DarkRed	...but only chip the rock.	Denied
 32	End
-33	Display.Message	DarkRed	You need level 5 Mining to mine this coal rock.
+33	Display.Message	DarkRed	You need level 5 Mining to mine this coal rock.	Denied
 34	End
-35	Display.Message	DarkRed	You need a pickaxe!
+35	Display.Message	DarkRed	You need a pickaxe!	Denied
 36	End
-37	Display.Message	DarkRed	You are too far away!
+37	Display.Message	DarkRed	You are too far away!	Denied
 38	End

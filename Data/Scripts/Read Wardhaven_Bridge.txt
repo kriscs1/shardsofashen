@@ -2,5 +2,5 @@
 01	>Distance.From.Clicked.Entity	64	04
 02	Display.Conversation	Notice	EAST: the bridge to Wardhaven\(The town's gates are barred while the dragon lives.)	Okay	03
 03	End
-04	Display.Message	DarkRed	You can't read that from here!
+04	Display.Message	DarkRed	You can't read that from here!	Denied
 05	End

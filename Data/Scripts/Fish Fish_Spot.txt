@@ -13,11 +13,11 @@
 12	Give.Item	Raw_Fish	1
 13	Update.Skill	Fishing	+0.1
 14	End
-15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.
+15	Display.Message	DarkRed	...but it slips the hook. Your bait's still on.	Denied
 16	End
-17	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.
+17	Display.Message	DarkRed	You need bait on the hook. Fishing shops sell worms.	Denied
 18	End
-19	Display.Message	DarkRed	You need a fishing rod.
+19	Display.Message	DarkRed	You need a fishing rod.	Denied
 20	End
-21	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!
+21	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!	Denied
 22	End

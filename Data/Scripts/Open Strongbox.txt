@@ -10,5 +10,5 @@
 09	End
 10	Display.Refusal	The strongbox is empty.	Empty
 11	End
-12	Display.Message	DarkRed	You are too far away!
+12	Display.Message	DarkRed	You are too far away!	Denied
 13	End
