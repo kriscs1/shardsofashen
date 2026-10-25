@@ -32,11 +32,16 @@ LAYER_NOUN = {"map": "tile", "decor": "decor", "roof": "roof", "infront": "over 
 TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the same tile (or Shift+click)",
               "Rectangle": "Drag a rectangle to fill", "Erase": "Click or drag to remove", "Pick": "Click to pick "
               "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it",
-              "Place": "Click to put the palette's pick down"}
-CURSORS = {"Paint": "pencil", "Fill": "spraycan", "Rectangle": "tcross", "Erase": "X_cursor", "Pick": "dotbox"}
-TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Pick"], "decor": ["Paint", "Rectangle", "Erase", "Pick"],
-         "roof": ["Paint", "Rectangle", "Erase", "Pick"], "infront": ["Paint", "Rectangle", "Erase", "Pick"],
-         "things": ["Select", "Place"]}
+              "Place": "Click to put the palette's pick down",
+              "Move": "Drag a tile of this layer to another spot (whatever is there swaps places with it; a bed brings "
+                      "its foot); on Things, drag an item, object or NPC"}
+CURSORS = {"Paint": "pencil", "Fill": "spraycan", "Rectangle": "tcross", "Erase": "X_cursor", "Pick": "dotbox",
+           "Move": "fleur"}
+TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Pick"], "decor": ["Paint", "Rectangle", "Move", "Erase", "Pick"],
+         "roof": ["Paint", "Rectangle", "Move", "Erase", "Pick"], "infront": ["Paint", "Rectangle", "Move", "Erase", "Pick"],
+         "things": ["Select", "Move", "Place"]}
+LAYER_PARTS = {"decor": ("Decor", "Under"), "roof": ("Roof",), "infront": ("Infront",)}   # (what Move carries)
+BED_FEET = {"Bed001": "Bed002"}          # (a bed's head: its foot, in the tile below - they move together)
 MARGIN = 3              # tiles of the neighbouring maps shown round the edges
 SPECIAL = ["(Trigger)", "(Lock)", "(Place ID)"]
 SPECIAL_KIND = {"(Trigger)": "Trigger", "(Lock)": "Lock", "(Place ID)": "Id"}
@@ -480,7 +485,7 @@ class MapPage(Page):
         if key and not keep_tool:
             if self.layer == "things":
                 self.tool = "Place"
-            elif self.tool in ("Pick", "Erase", "Select"):
+            elif self.tool in ("Pick", "Erase", "Select", "Move"):
                 self.tool = "Paint"
             self.tool_var.set(self.tool)
         if not key:
@@ -704,6 +709,19 @@ class MapPage(Page):
             cursor = "target"
             c.create_oval(x0 + tw * z / 2 - 7, y0 + th * z / 2 - 7, x0 + tw * z / 2 + 7, y0 + th * z / 2 + 7,
                           outline="#ffd23c", width=2, tags="ghost")
+        elif self.drag and self.drag.get("tilemove"):
+            cursor = "fleur"                                # (Move: from where, to where)
+            (fx, fy), (gx, gy) = self.drag["tilemove"], self.drag["to"]
+            fb = (ox + fx * tw * z, oy + fy * th * z, ox + (fx + 1) * tw * z, oy + (fy + 1) * th * z)
+            gb = (ox + gx * tw * z, oy + gy * th * z, ox + (gx + 1) * tw * z, oy + (gy + 1) * th * z)
+            cell = self.doc.cells[fy][fx]
+            name = cell.tile if self.layer == "map" else next(
+                (cell._get(k) for k in LAYER_PARTS[self.layer] if cell._get(k)), "")
+            ph = self.ghost_photo(name.rsplit(".", 1)[0] if self.layer == "roof" else name, self.layer)
+            if ph is not None and (gx, gy) != (fx, fy):
+                c.create_image(gb[0], gb[1], image=ph, anchor="nw", tags="ghost")
+            c.create_rectangle(*fb, outline="#ffffff", dash=(3, 3), tags="ghost")
+            c.create_rectangle(*gb, outline=LAYER_LOOK[self.layer][0], width=2, tags="ghost")
         elif ctrl:
             cursor = CURSORS["Pick"]
             c.create_rectangle(*box, outline="#ffffff", dash=(2, 2), tags="ghost")
@@ -920,6 +938,14 @@ class MapPage(Page):
             return
         self.sel_cell = (tx, ty)
         tool = "Fill" if shift else self.tool
+        if tool == "Move":
+            if not self.layer_has(self.doc.cells[ty][tx]):
+                self.app.status("Nothing on the %s layer at %d,%d to move." % (LAYER_LOOK[self.layer][1].lower(),
+                                                                             tx + 1, ty + 1), "warn")
+                return
+            self.drag = {"tilemove": (tx, ty), "to": (tx, ty)}
+            self.update_ghost()
+            return
         if tool == "Pick":
             self.pick_under(px, py, tx, ty)
             return
@@ -950,6 +976,11 @@ class MapPage(Page):
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
         self._hover = (px, py, bool(e.state & 0x1), bool(e.state & 0x4))
+        if "tilemove" in self.drag:
+            if self.inside(tx, ty):
+                self.drag["to"] = (tx, ty)
+            self.update_ghost()
+            return
         if "rect" in self.drag:
             self.drag["rect"] = (self.drag["rect"][0], (tx, ty) if self.drag.get("area") else
                                  (max(0, min(self.project.map_w - 1, tx)), max(0, min(self.project.map_h - 1, ty))))
@@ -986,6 +1017,17 @@ class MapPage(Page):
     def release(self, e):
         d, self.drag = self.drag, None
         if not d or d.get("pan"):
+            return
+        if "tilemove" in d:
+            if d["to"] != d["tilemove"]:
+                self.remember()
+                if self.move_cell(d["tilemove"], d["to"]):
+                    self.sel_cell = d["to"]
+                    self.app.status("Moved the %s from %d,%d to %d,%d." % (
+                        LAYER_NOUN[self.layer], d["tilemove"][0] + 1, d["tilemove"][1] + 1, d["to"][0] + 1,
+                        d["to"][1] + 1), "ok")
+                self.show_inspector()
+            self.redraw()
             return
         if "rect" in d:
             (x0, y0), (x1, y1) = d["rect"]
@@ -1234,6 +1276,58 @@ class MapPage(Page):
             if (cell.infront or None) == name:
                 return False
             cell.set_infront(name)
+        return True
+
+    # ----- Move: a tile of this layer to another spot (whatever was there goes where it came from)
+    def layer_has(self, cell):
+        if self.layer == "map":
+            return True
+        return any(cell._get(k) for k in LAYER_PARTS[self.layer])
+
+    def cell_part(self, x, y):
+        """The layer's part of cell x, y: the ground tile, or the overlays this layer holds."""
+        cell = self.doc.cells[y][x]
+        return cell.tile if self.layer == "map" else tuple(cell._get(k) for k in LAYER_PARTS[self.layer])
+
+    def set_cell_part(self, x, y, part):
+        cell = self.doc.cells[y][x]
+        if self.layer == "map":
+            cell.tile = part
+            return
+        for kind, v in zip(LAYER_PARTS[self.layer], part):
+            if kind == "Decor":
+                cell.set_decor(v)
+            elif kind == "Under":
+                cell.set_under(v)
+            else:
+                cell._set(kind, v)
+
+    def move_cell(self, src, dst):
+        """Moves the layer's tile at src to dst - a bed's head and foot together - and whatever was where it lands
+        goes where it came from. False if it doesn't fit."""
+        (sx, sy), (dx, dy) = src, dst
+        block = [(sx, sy)]
+        if self.layer == "decor":
+            cells = self.doc.cells
+            head = {v: k for k, v in BED_FEET.items()}
+            top = sy - 1 if cells[sy][sx].decor in head and sy > 0 and cells[sy - 1][sx].decor == head[cells[sy][sx].decor]                 else sy                                     # (the foot was dragged: the bed is moved by it all the same)
+            foot = BED_FEET.get(cells[top][sx].decor)
+            if foot and top + 1 < len(cells) and cells[top + 1][sx].decor == foot:
+                block = [(sx, top), (sx, top + 1)]
+        ox, oy = dx - sx, dy - sy
+        to = [(x + ox, y + oy) for x, y in block]
+        if not all(self.inside(x, y) for x, y in to):
+            self.app.status("It doesn't fit there.", "warn")
+            return False
+        was = {c: self.cell_part(*c) for c in set(block) | set(to)}
+        now = dict(was)
+        for s, d in zip(block, to):
+            now[d] = was[s]
+        for left, landed in zip([c for c in block if c not in to], [c for c in to if c not in block]):
+            now[left] = was[landed]                         # (what was in the way, into the space it left)
+        for c, part in now.items():
+            if part != was[c]:
+                self.set_cell_part(c[0], c[1], part)
         return True
 
     def flood(self, x, y):
