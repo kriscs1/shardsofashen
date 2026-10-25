@@ -233,6 +233,7 @@ class ItemsMixin:
         self.rack_name = rack
         self.rack = []
         self.rack_page = 1
+        self.rack_filter, self.rack_ready = "", False
         self.rack_buy_rate = val(ini.read(rack, "Buy.Rate", "1.2", f))
         self.rack_sell_rate = val(ini.read(rack, "Sell.Rate", "0.8", f))
         self.rack_specific = val(ini.read(rack, "Specific", "0", f))
@@ -306,12 +307,31 @@ class ItemsMixin:
         if change > 0 and len(self.rack) < 200:
             self.rack.append({"item": item, "quantity": change, "info": "", "xp": 0, "level": 0})
 
+    def rack_shows(self, i):
+        """Is rack (or bank) slot i shown: its name has what was searched for in it; with "Can make" (crafting), you
+        have the level and everything it needs."""
+        e = self.rack_pseudo(i)
+        q = self.rack_filter.strip().lower()
+        if q and q not in pretty(e.name).lower() and q not in e.name.lower():
+            return False
+        if self.rack_ready and self.rack_type == "Craft":
+            return not self.rack_level_short(e) and not self.rack_missing(e)
+        return True
+
+    def set_rack_filter(self, q, ready):
+        if self.ab_mode not in ("Shop", "Bank", "Craft"):
+            return
+        self.rack_filter, self.rack_ready = str(q or "")[:30], bool(ready)
+        self.rack_page = 1
+        self.show_rack_page(False)
+
     def show_rack_page(self, full_redraw):
         d = self.data
         if self.rack_type == "Bank":
             visible = [i for i in range(1, d.bank_slots + 1) if self.bank_item[i]]
         else:
             visible = [i for i, r in enumerate(self.rack) if r["quantity"] != 0]
+        visible = [i for i in visible if self.rack_shows(i)]
         page_size = max(1, d.ab_columns * d.ab_rows)
         total_pages = max(1, int((len(visible) + page_size - 1) / page_size))
         self.rack_pages = total_pages

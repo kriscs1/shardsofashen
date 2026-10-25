@@ -603,6 +603,8 @@ class ActionsMixin:
         elif t == "close":
             if self.ab_mode:
                 self.close_action_box(-1)
+        elif t == "rack_filter":
+            self.set_rack_filter(msg.get("q", ""), msg.get("ready", False))
         elif t == "page":
             if self.ab_mode in ("Shop", "Bank", "Craft", "Market"):
                 self.rack_page = int(msg.get("page", 1))

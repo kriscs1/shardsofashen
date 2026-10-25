@@ -98,6 +98,49 @@ function placeChat() {
   box.style.bottom = "auto";
 }
 
+// ----- the item rack's search (shops, crafting, the bank): it filters the whole rack, on the server
+let rackSearchFor = "";                          // (the rack it was last shown for: a new one starts with it empty)
+let rackSearchTimer = 0;
+function placeRackSearch() {
+  const box = $("rack-search");
+  const mode = S.box && S.box.mode;
+  const show = running && !J.open && ["Shop", "Craft", "Bank"].includes(mode);
+  if (!show) {
+    if (!box.hidden) { box.hidden = true; if (document.activeElement === $("rack-search-input")) canvas.focus(); }
+    rackSearchFor = "";
+    return;
+  }
+  const key = mode + "|" + (S.box.rack || "") + "|" + (S.box.title || "");
+  if (key !== rackSearchFor) {                   // (a rack just opened: no search yet)
+    rackSearchFor = key;
+    $("rack-search-input").value = S.box.filter || "";
+    $("rack-ready").checked = !!S.box.ready;
+  }
+  $("rack-ready-row").hidden = mode !== "Craft";
+  const k = screen.k / screen.dpr;
+  const left = screen.ox / screen.dpr + (L.abX + 236) * k, top = screen.oy / screen.dpr + (L.abY + 14) * k;
+  const st = `${left}px|${top}px|${184 * k}px|${22 * k}px`;
+  if (box.dataset.at !== st) {
+    box.dataset.at = st;
+    Object.assign(box.style, { left: left + "px", top: top + "px", width: 184 * k + "px", height: 22 * k + "px" });
+  }
+  box.hidden = false;
+}
+
+function sendRackSearch() {
+  clearTimeout(rackSearchTimer);
+  rackSearchTimer = setTimeout(() => send({ t: "rack_filter", q: $("rack-search-input").value,
+    ready: $("rack-ready").checked }), 150);
+}
+$("rack-search-input").addEventListener("input", sendRackSearch);
+$("rack-ready").addEventListener("change", () => { sendRackSearch(); canvas.focus(); });
+$("rack-search-input").addEventListener("keydown", (ev) => {
+  ev.stopPropagation();                          // (letters search; they don't walk you or answer the box)
+  if (ev.key === "Escape") {
+    if (ev.target.value) { ev.target.value = ""; sendRackSearch(); } else canvas.focus();
+  } else if (ev.key === "Enter") canvas.focus();
+});
+
 function sendChat() {
   const text = $("chat-input").value.trim();
   if (text) send({ t: "chat", text });
@@ -585,6 +628,7 @@ function frame(now) {
   ctx.fillStyle = "#180e0a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!running && A.m) musicTick(false, "Title");      // (the login screen: the title music, once a click lets it)
+  placeRackSearch();
   if (!running || !A.m || !S.me) return;
   ctx.setTransform(screen.k, 0, 0, screen.k, screen.ox, screen.oy);
   ctx.imageSmoothingEnabled = smoothing;

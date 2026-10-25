@@ -1184,3 +1184,18 @@ def test_bad_news_is_heard_and_work_is_seen(world):
     assert [ev["delay"] for ev in out if ev["t"] == "anim"] == [0, 800, 1600]          # (three swings of the axe)
     assert len([ev for ev in out if ev["t"] == "nudge"]) == 3
     leave(world, s)
+
+
+def test_a_racks_search_finds_across_its_pages(world):
+    s = join(world, "Shopper")
+    s.connected = True
+    assert s.open_item_rack("SPECIFIC", "Milkmaid", "SHOP-Dairy")
+    every = [n for n, _, _ in s.ab_item_defs]
+    s.set_rack_filter("MILK", False)                                 # (any case; part of the name)
+    found = [n for n, _, _ in s.ab_item_defs]
+    assert found and all("milk" in n.lower() for n in found) and len(found) < len(every)
+    s.set_rack_filter("no such thing", False)
+    assert s.ab_item_defs == [] and s.box_state()["filter"] == "no such thing"
+    s.set_rack_filter("", False)
+    assert [n for n, _, _ in s.ab_item_defs] == every
+    leave(world, s)

@@ -851,10 +851,12 @@ function drawBox(ctx) {
     }
     titleX = 22; titleY = 23;
   }
-  const tw = drawText(ctx, b.title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
+  const searchable = ["Shop", "Craft", "Bank"].includes(b.mode);     // (its search box sits at the right of the title)
+  const title = searchable ? fitText(ctx, b.title, 120, 12, true) : b.title;
+  const tw = drawText(ctx, title, x0 + titleX, y0 + titleY, 12, true, TAB_TEXT);
   const lift = Math.round((fontPx(12) - fontPx(9)) * 0.8);           // (the kind sits on the title's baseline)
   const kind = { Shop: "Shop", Bank: "Bank", Craft: "Crafting", Market: "everyone's goods", Chest: "take what you want" }[b.mode];
-  if (kind) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + lift, 9, false, [212, 191, 126]);
+  if (kind && !(searchable && tw > 100)) drawText(ctx, "- " + kind, x0 + titleX + tw + 10, y0 + titleY + lift, 9, false, [212, 191, 126]);
   if (b.mode === "Conversation") {
     const maxW = w - titleX - 28;
     let parts = String(b.text).split("|").filter(Boolean);
@@ -890,6 +892,10 @@ function drawBox(ctx) {
     const x = x0 + 64 + gap * (n % cols), y = y0 + 43 + gap * Math.floor(n / cols);
     const hot = hover && b.items[n] && hover.i === b.items[n].i;
     roundBox(ctx, x, y, G.tw + 4, G.th + 4, hot ? [70, 48, 34] : [44, 30, 22], hot ? [236, 196, 92] : [74, 52, 38], 1, 6);
+  }
+  if (!b.items.length && (b.filter || b.ready)) {
+    centreText(ctx, x0 + 64 + gap * cols / 2, y0 + 40 + gap * rows / 2 - 6,
+      b.filter ? `Nothing here matches "${b.filter}".` : "Nothing you can make yet.", 10, true, [212, 191, 126]);
   }
   b.items.forEach((it, n) => {
     const x = x0 + 66 + gap * (n % cols), y = y0 + 45 + gap * Math.floor(n / cols);

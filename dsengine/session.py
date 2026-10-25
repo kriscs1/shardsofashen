@@ -139,6 +139,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.response_actions = []
         self.rack_type = self.rack_name = ""
         self.rack = []
+        self.rack_filter, self.rack_ready = "", False    # (the rack's search, and Crafting's "only what I can make")
         self.rack_page = 1
         self.rack_pages = 1
         self.rack_buy_rate, self.rack_sell_rate = 1.2, 0.8
@@ -945,4 +946,5 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 "text": self.ab_text, "items": items, "responses": self.responses, "page": self.rack_page,
                 "pages": self.rack_pages, "rack": self.rack_name, "buy_rate": self.rack_buy_rate,
                 "sell_rate": self.rack_sell_rate * self.data.sell_price_factor, "specific": self.rack_specific,
-                "stock": [r["item"] for r in self.rack], "skill": self.rack_skill}
+                "stock": [r["item"] for r in self.rack], "skill": self.rack_skill, "filter": self.rack_filter,
+                "ready": self.rack_ready}

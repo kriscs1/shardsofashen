@@ -156,6 +156,32 @@ button:disabled { opacity: 0.5; cursor: default; }
 .bar { height: 10px; background: #241510; border-radius: 6px; overflow: hidden; margin-top: 12px; }
 #loading-bar { height: 100%; width: 0; background: #e2b04a; transition: width 0.2s; }
 
+/* the item rack's search, over its title bar (placed by main.js placeRackSearch) */
+#rack-search {
+  position: fixed;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+#rack-search[hidden] { display: none; }
+#rack-search input[type=text], #rack-search-input {
+  flex: 0 1 140px;
+  min-width: 60px;
+  font: inherit;
+  font-size: 13px;
+  padding: 2px 8px;
+  border: 1px solid #96683e;
+  border-radius: 6px;
+  background: rgba(26, 16, 12, 0.95);
+  color: #fff3cf;
+  outline: none;
+}
+#rack-search-input:focus { border-color: #ecc45c; }
+#rack-ready-row { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #d4bf7e; white-space: nowrap; cursor: pointer; }
+#rack-ready-row input { width: 14px; height: 14px; margin: 0; accent-color: var(--ok); }
+
 #chat-entry {
   position: fixed;
   z-index: 5;
