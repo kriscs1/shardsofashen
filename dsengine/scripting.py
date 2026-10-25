@@ -778,6 +778,13 @@ class ScriptMixin:
                 change2 = sign + change2
             w.set_entity_position(e, apply_change(x - self.map_ox(), word(change, 1, ",")) + self.map_ox(),
                                   apply_change(y - self.map_oy(), change2) + self.map_oy())
+        elif v in ("STATE", "POSE"):                       # (=Sit: it rests sitting from now on; = or =- to stand)
+            pose = trim(change.lstrip("="))
+            pose = "" if pose in ("", "-") else pose
+            e.pose = pose
+            if e.ai is not None:
+                e.ai.fixed_pose = pose
+            w.animate_entity(e, False)
         elif v in ("MISC", "QUANTITY"):
             if e.type == MAPITEM or v == "QUANTITY":
                 q = apply_change(e.quantity, change)

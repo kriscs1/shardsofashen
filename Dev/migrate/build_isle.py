@@ -5,7 +5,8 @@
   * The village (1,1,0): its houses are timber with thatched roofs; the old bank is the Isle's general store now (a
     storekeeper, Id=Isle_Storekeeper: starter tools and food). There's no bank on the Isle.
   * The dairy (2,0,0): the dairymaid's hut, a barn with hay, a fenced pasture for the cows, a hen coop with the nests
-    in it (Id=Hen_Nests), a wheat field with a scarecrow, and a shepherd with the sheep (Id=Isle_Shepherd).
+    in it (Id=Hen_Nests), a wheat field with a scarecrow, and a shepherd with the sheep (Id=Isle_Shepherd: since
+    moved to the meadow west of the village by move_isle_flock.py).
   * The chapel (3,1,0) by the graveyard: pews, an altar, and stairs down to its cellar (3,1,-1), where a hole in the
     floor goes down into the grotto (the caves under the Isle). The grotto's old hole on 2,1,0 is gone; its ladder
     now climbs up into the chapel cellar.
@@ -316,7 +317,7 @@ def village():
 # ---------------------------------------------------------------- the dairy: a hut, a barn, a fence, a coop, wheat
 def dairy():
     m = Map("2,0,0")
-    if m.has_line("Id=Isle_Shepherd"):
+    if m.has_line("Id=Isle_Shepherd") or m.has_line("Id\tHen_Nests"):     # (the flock's in the village's meadow now)
         print("The dairy is done already")
         return
     house(m, 2, 3, 6, 6, door=4, windows=(3, 5))                 # the dairymaid's hut

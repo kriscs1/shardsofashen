@@ -1,5 +1,6 @@
 """The shared world's rules: what one player does, the others see; what a quest changes is the player's own."""
 import os
+import random
 
 import pytest
 
@@ -12,7 +13,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @pytest.fixture(scope="module")
 def world():
+    random.seed(1)
     return World(ROOT)
+
+
+@pytest.fixture(autouse=True)
+def same_luck(request):
+    """Each test rolls the same dice every run (the world is shared: a sheep wandering through a gate shouldn't fail one)."""
+    random.seed(request.node.name)
 
 
 def join(w, name, map_name="1,1,0", x=300, y=300):
@@ -1271,6 +1279,100 @@ def test_jimmy_is_at_home_in_the_cottage(world):
     leave(world, s)
 
 
+def test_a_cat_sits_stretches_and_eats_a_fish(world):
+    s = join(world, "CatFeeder", "4,0,0", 7 * 32, 11 * 32)
+    s.connected = True
+    e = next(e for e in world.ents if getattr(e, "display", "") == "Jimmy")
+    a = e.ai
+    world.set_entity_position(e, s.player.x + 24, s.player.y)
+    a.pause_min = a.pause_max = 8                                    # (a long rest: it sits, sooner or later)
+    for _ in range(40):
+        world.npc_set_idle(e, a, False)
+        if e.pose == "Sit":
+            break
+    assert e.pose == "Sit" and e.image.startswith("Strawberry_Cat_Sit")
+    a.fidget_at = world.now                                          # (now and then: a stretch, or its back to you)
+    world.tick(0.05)
+    assert e.image[len("Strawberry_Cat_"):-1] in ("Stretch", "Butt")
+    for _ in range(4):
+        world.tick(0.05, now=world.now + 1000)
+    assert not e.image[len("Strawberry_Cat_"):-1] in ("Stretch", "Butt") and a.fidget_until == 0
+    assert "Feed" in s.get_verbs(e)
+    s.out = []
+    s.choose_verb("Feed", e, int(e.fx), int(e.fy))                   # nothing a cat would eat
+    for _ in range(10):
+        world.tick(0.05)
+    assert any(ev.get("t") == "sound" and ev.get("name") == "Denied" for ev in s.out)
+    stock(s, Raw_Meat=1, Raw_Trout=2)
+    s.out = []
+    s.choose_verb("Feed", e, int(e.fx), int(e.fy))
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.items_held("Raw_Trout") == 1 and s.items_held("Raw_Meat") == 1   # (a cat: the fish, not the meat)
+    assert any("Jimmy eats the raw trout" in str(ev.get("text", "")) for ev in s.out)
+    leave(world, s)
+
+
+def test_sitting_on_a_bench_till_you_move(world):
+    a = join(world, "Sitter", "0,0,5", 5 * 32, 3 * 32)              # (the arena's benches, along its top wall)
+    b = join(world, "Stander", "0,0,5", 7 * 32, 3 * 32)
+    m = a.cur_map
+    gx, gy = m.ox + 4 * 32 + 16, m.oy + 1 * 32 + 16                  # (the bench at 5,2)
+    bench = a.tile_entity_at(gx, gy)
+    assert bench.name == "Bench001" and a.get_verbs(bench).split(",")[0] == "Sit"
+    a.choose_verb("Sit", bench, gx, gy)
+    for _ in range(40):
+        world.tick(0.05)
+    assert a.player.image == "Player_Sit4" and a.seat is not None   # (facing south, off the bench's back)
+    stood = a.seat[0]                                                # (where they walked up to it)
+    assert a.save_state()["y"] < bench.y - m.oy + 32 + 8            # (saved where they stood, not on the bench)
+    b.choose_verb("Sit", b.tile_entity_at(gx, gy), gx, gy)           # one to a seat
+    for _ in range(40):
+        world.tick(0.05)
+    assert b.seat is None and any("already sitting" in str(ev.get("text", "")) for ev in b.out)
+    a.keyboard_direction = 4                                         # moving gets them up
+    world.tick(0.05)
+    a.keyboard_direction = 0
+    world.tick(0.05)
+    assert a.seat is None and not a.player.image.startswith("Player_Sit")
+    assert abs(a.player.x - stood[0]) < 8 and abs(a.player.y - stood[1]) < 8   # (up where they stood, then a step)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_a_wolf_hunts_a_sheep_and_a_rat_bites_back(world):
+    s = join(world, "Watcher", "0,0,5", 12 * 32, 4 * 32)             # (the arena: open sand, nothing else about)
+    m = s.cur_map
+    s.god_mode = True                                                # (the wolf would rather have them)
+    wolf = world.add_npc("Wolf", m.mz, m.ox + 6 * 32, m.oy + 12 * 32, "Zone=3,8,22,18")
+    sheep = world.add_npc("Sheep", m.mz, m.ox + 9 * 32, m.oy + 12 * 32, "Zone=3,8,22,18")
+    s.player_visible = False                                         # (out of its sight: the sheep, not them)
+    world.tick(0.05)
+    wolf.ai.hunt_at = world.now
+    for _ in range(30):
+        world.tick(0.05, now=world.now + 50)
+    assert wolf.npc_foe is sheep and sheep.npc_foe is wolf           # the wolf goes for it, and it runs
+    for _ in range(1200):
+        world.tick(0.05, now=world.now + 50)
+        if not sheep.alive:
+            break
+    assert not sheep.alive and not any(e.type == MAPITEM and distance(e.cx, e.cy, sheep.cx, sheep.cy) < 48
+                                       for e in world.ents)         # (eaten: nothing left behind)
+    rat = world.add_npc("Rat", m.mz, wolf.cx + 40, wolf.cy, "Zone=3,8,22,18")
+    dog = world.add_npc("Dog", m.mz, wolf.cx - 200, wolf.cy - 100, "Zone=3,8,22,18")
+    world.npc_set_foe(dog, rat)
+    world.npc_set_foe(rat, dog)
+    hp = dog.hp
+    for _ in range(400):
+        world.tick(0.05, now=world.now + 50)
+        if dog.hp < hp or not rat.alive:
+            break
+    assert dog.hp < hp or not rat.alive                              # (a rat doesn't run: it bites back)
+    for e in (wolf, rat, dog):
+        world.remove_entity(e)
+    leave(world, s)
+
+
 def test_every_player_finds_a_chests_loot(world):
     a = join(world, "FirstFinder", "0,0,0", 15 * 32, 11 * 32)        # (beside the stone circle's chest)
     b = join(world, "SecondFinder", "0,0,0", 15 * 32, 12 * 32)
@@ -1435,6 +1537,12 @@ def test_each_grave_says_who_lies_there(world):
 def test_a_gate_is_decor_and_opens_as_a_door(world):
     m = world.maps["2,0,0"]
     c = m.cell(8, 11)
+    held = [e for e in world.ents if e.type == NPC and e.active and e.z == m.mz and
+            distance(e.fx, e.fy, m.ox + 7.5 * 32, m.oy + 10.5 * 32) < 160]
+    for e in held:
+        world.ents.remove(e)                                         # (no sheep through the gate while we watch)
+    for _ in range(30):
+        world.tick(0.05, now=world.now + 100)
     assert m.decor[c] == "Wood_Gate003" and m.tile[c] != "Wood_Gate003"    # (in the decor, over its ground)
     s = join(world, "Drover", "2,0,0", 7 * 32, 10 * 32 - 8)          # (standing at the gate)
     for _ in range(10):
@@ -1444,6 +1552,7 @@ def test_a_gate_is_decor_and_opens_as_a_door(world):
     for _ in range(60):
         world.tick(0.05, now=world.now + 100)
     assert m.decor[c] == "Wood_Gate003"                              # (and shut again behind them)
+    world.ents.extend(held)
 
 
 def test_a_bed_can_lie_sideways(world):

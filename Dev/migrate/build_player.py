@@ -1,7 +1,8 @@
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bmp import *
 from common import write_sprite
-# Draws the player's walking frames: Player<Dir><Frame>.png, Dir 1=N 2=E 4=S 8=W, Frame a=stand b/c=steps.
+# Draws the player's walking frames: Player<Dir><Frame>.png, Dir 1=N 2=E 4=S 8=W, Frame a=stand b/c=steps;
+# and sitting, Player_Sit<Dir>.png.
 # Usage: python -I build_player.py "<Sprites\Entities folder>"
 C = {
  'H':(102,55,10), 'h':(72,38,6), 'S':(244,184,221), 's':(214,150,190), 'E':(40,20,30), 'M':(190,90,120),
@@ -94,7 +95,42 @@ def head_side(g, face):
 
 def mirror(g): return [row[::-1] for row in g]
 
+SIT = 3   # how far the body drops, sitting (Player_Sit<Dir>: on a bench or a chair)
+
+def shifted(g, dy): return [[None]*W for _ in range(dy)] + [list(r) for r in g[:H-dy]]
+
+def legs_sit(g, direction):
+    # sitting: facing you the knees come toward you and the shins hang down; side on (east, mirrored by the caller for
+    # west) the thigh runs forward along the seat and the shin hangs from the knee; from behind the seat hides them
+    if direction=='4':
+        for side,(x0,x1) in enumerate([(CX-4,CX-2),(CX+1,CX+3)]):
+            rect(g,x0,24,x1,27,'P'); rect(g,x0,24,x0,27,'p'); rect(g,x0,24,x1,24,'p')
+            rect(g,x0-(1 if side==0 else 0),28,x1+(1 if side==1 else 0),29,'B')
+            rect(g,x0-(1 if side==0 else 0),29,x1+(1 if side==1 else 0),29,'b')
+    elif direction in ('2','8'):
+        rect(g,CX-3,23,CX+6,25,'P'); rect(g,CX-3,25,CX+6,25,'p')          # the thigh, a lap along the seat
+        rect(g,CX+4,26,CX+6,27,'P'); rect(g,CX+4,26,CX+4,27,'p')          # the shin
+        rect(g,CX+4,28,CX+8,29,'B'); rect(g,CX+4,29,CX+8,29,'b')          # the foot
+
+def over(g, top):
+    for y,row in enumerate(top):
+        for x,c in enumerate(row):
+            if c: g[y][x]=c
+
+def draw_sit(direction):
+    up=blank(); arm=blank(); g=blank()
+    if direction in ('1','4'):
+        torso_front(up, direction=='1'); arms_front(up,'a')
+        if direction=='4': head_front(up)
+        else: head_back(up)
+        legs_sit(g,direction); over(g,shifted(up,SIT))
+    else:                                              # (side on: the lap over the body, the hand resting on it)
+        torso_side(up,1); head_side(up,1); arm_side(arm,'a',1)
+        over(g,shifted(up,SIT)); legs_sit(g,direction); over(g,shifted(arm,SIT))
+    return mirror(g) if direction=='8' else g
+
 def draw(direction, frame):
+    if frame=='s': return draw_sit(direction)
     g=blank()
     if direction in ('1','4'):
         legs_front(g,frame); torso_front(g, direction=='1'); arms_front(g,frame)
@@ -121,6 +157,9 @@ if __name__=='__main__':
             px=to_sprite(draw(d,f)); frames.append((d+f,px))
             if out: write_sprite(out+'/Player%s%s.png'%(d,f),px)
     if out: write_sprite(out+'/Player.png',to_sprite(draw('4','a')))
+    for d in '1248':                                   # sitting (on a bench or a chair: Seat= in Tiles.ini)
+        px=to_sprite(draw(d,'s')); frames.append((d+'s',px))
+        if out: write_sprite(out+'/Player_Sit%s.png'%d,px)
     # preview: image halves on a grey background
     SW=len(frames)*(W+4)
     canvas=[[(60,60,60)]*SW for _ in range(H)]

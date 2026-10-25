@@ -25,15 +25,11 @@ StaticObject	Range	96	64
 NPC	Milkmaid	256	256	Attitude=Good Zone=7,8,12,11 Pause=3-8 Name=Bess
 NPC	Cow	160	256	Attitude=Bad Zone=3,9,7,13
 NPC	Cow	192	320	Attitude=Bad Zone=3,9,7,13
-NPC	Sheep	384	416	Attitude=Bad Zone=10,11,17,17
-NPC	Sheep	480	352	Attitude=Bad Zone=10,11,17,17
-NPC	Sheep	320	480	Attitude=Bad Zone=10,11,17,17
 NPC	Butterfly	128	160	Attitude=Good
 NPC	Blue_Butterfly	736	160	Attitude=Good
 Id	Hen_Nests	22	13
 Id	Milkmaid_Farm	9	9
 StaticObject	Sign_Dairy	192	208
-NPC	Shepherd	384	440	Attitude=Good Zone=10,11,17,17 Pause=4-10 Id=Isle_Shepherd Name=Old_Tom
 Id	Dairy_Barn	19	9
 Id	Hen_Coop	22	15
 StaticObject	Ripe_Wheat001	378	533

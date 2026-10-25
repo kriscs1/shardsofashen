@@ -30,3 +30,4 @@ NPC	Edwin	544	24	Attitude=Good Stand=1 Face=S Schedule=Day Id=Edwin_At_Desk
 StaticObject	Notice	448	226	Id=Isle_Bank_Notice
 Id	Isle_Bank	16	8
 Id	Isle_Pond	13	12
+NPC	Fat_Grey_Cat	416	216	Attitude=Good Zone=11,5,17,11 Pause=5-14 Id=Noops Name=Noops

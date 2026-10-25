@@ -340,8 +340,9 @@ function drawGlows(ctx, shown, cam) {
 function drawWorn(ctx, e, x, y) {
   const worn = e.worn || [];
   if (!worn.length) return;
-  let suffix = (e.i || "").slice(-2);
-  if (!/^[1248][abc]$/.test(suffix)) suffix = "4a";
+  const sit = /_Sit[1248]$/.test(e.i || "");                // (sitting: Worn_<Item>_Sit<Dir>)
+  let suffix = sit ? (e.i || "").slice(-5) : (e.i || "").slice(-2);
+  if (!sit && !/^[1248][abc]$/.test(suffix)) suffix = "4a";
   for (const item of worn) {
     warmWalk("Worn_" + item + suffix);
     const g = sprite("Worn_" + item + suffix);

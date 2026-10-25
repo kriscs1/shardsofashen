@@ -8,6 +8,7 @@ from dragonsword.lb import val, word, trim, lbstr, distance, strip_digits, prett
 from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE, ROOF,
                      ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES)
 
+SEAT_FACES = {"N": 1, "E": 2, "S": 4, "W": 8}    # (Seat= in Tiles.ini: the way you face, sitting on it)
 WALK_FIRST_WORDS = ("Wall", "Forest", "Hedge", "Pond", "Pool", "_Window", "Water", "Timber0", "Plaster0", "Sandstone0",
                     "Brick0")
 
@@ -365,6 +366,8 @@ class ActionsMixin:
             self.display_message("They don't seem interested in talking.", "FAIL")
         elif verb == "Attack":
             self.start_attack(e)
+        elif verb == "Sit" and t == TILE:
+            self.sit_on(e)
         elif verb == "Sleep":
             if self.start_sleep("Next"):
                 self.slept_at_home(e)
@@ -398,6 +401,42 @@ class ActionsMixin:
             self.craft_inspect(e)
         else:
             self.display_message("Nothing interesting happens.", "FAIL")
+
+    # =================================================================================================================
+    # Sitting: on a bench or a chair, till you move again
+    # =================================================================================================================
+    def sit_on(self, e):
+        face = SEAT_FACES.get(trim(self.data.tile_ini(e.name, "Seat", "")).upper()[:1])
+        if face is None:
+            self.display_message("Nothing interesting happens.", "FAIL")
+            return
+        p = self.player
+        x, y = e.x + {2: 2, 8: -2}.get(face, 0), e.y - 8              # (the seat under them, their feet on the floor)
+        for s in self.w.sessions.values():
+            if s is not self and s.in_world() and s.seat is not None and s.seat[1] == (x, y) and s.player.z == p.z:
+                self.display_message("Someone is already sitting there.", "FAIL")
+                return
+        stood = self.seat[0] if self.seat is not None else (p.x, p.y)
+        self.w.set_entity_position(p, x, y)
+        self.seat = (stood, (x, y))
+        p.direction = face
+        p.pose = "Sit"
+        self.w.animate_entity(p, False)
+
+    def stand_up(self):
+        if self.seat is None:
+            return
+        (x, y), _ = self.seat
+        self.seat = None
+        self.player.pose = ""
+        self.w.set_entity_position(self.player, x, y)                 # (back where they stood: off the bench)
+        self.w.animate_entity(self.player, False)
+
+    def stand_x(self):
+        return self.seat[0][0] if self.seat is not None else self.player.x
+
+    def stand_y(self):
+        return self.seat[0][1] if self.seat is not None else self.player.y
 
     def use_item_with(self, target):
         item = self.item_in_use

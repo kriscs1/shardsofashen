@@ -48,3 +48,4 @@ StaticObject	Market_Stall_Open	64	320
 StaticObject	Notice	32	642	Id=Ashford_Notice_5
 StaticObject	Notice	576	546	Id=Ashford_Notice_25
 Id	Ashford_Market_Square	5	13
+NPC	Tuxedo_Cat	192	376	Attitude=Good Zone=4,10,10,16 Pause=5-14 Id=Mo Name=Mo

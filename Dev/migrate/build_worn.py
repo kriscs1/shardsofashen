@@ -5,7 +5,8 @@ Deterministic and re-runnable: only files that change are written. --preview wri
 (the player in each direction, bare and then in a few outfits).
 
 For every item in Data\\Entities.ini with a Slot (except rings) it writes Worn_<Item><Dir><Frame>.png, the same 12
-frames as the player (Dir 1 = north, 2 = east, 4 = south, 8 = west; Frame a, b, c), made from the player's own body
+frames as the player (Dir 1 = north, 2 = east, 4 = south, 8 = west; Frame a, b, c), and Worn_<Item>_Sit<Dir> (sitting),
+made from the player's own body
 parts in build_player.py, so they fit exactly: body armour recolours the torso and sleeves, leg armour the legs, boots
 the feet, gloves the hands; helmets, hats, weapons and shields are drawn on. The look comes from the item's name:
 its material (Leather, Bronze, Iron, Steel, Mithril, Copper, Silver, Wooden, Oak, Willow, Yew) and kind (Sword,
@@ -69,6 +70,12 @@ def kind(name, slot):
 # ------------------------------------------------------------------ the player's body parts, frame by frame
 def part(direction, frame, which):
     """A code grid with only one part of the player drawn ('legs', 'torso', 'arms', 'head')."""
+    if frame == "s":                          # (sitting: the body drops, the legs bend, as build_player.draw_sit)
+        if which != "legs":
+            return BP.shifted(part(direction, "a", which), BP.SIT)
+        g = BP.blank()
+        BP.legs_sit(g, direction)
+        return BP.mirror(g) if direction == "8" else g
     g = BP.blank()
     side = direction in ("2", "8")
     if which == "legs":
@@ -300,7 +307,7 @@ def worn_frames(name, slot):
     mat = MATERIALS.get(m, MATERIALS["Iron"])
     frames = {}
     for d in "1248":
-        for f in "abc":
+        for f in "abcs":                      # (s: sitting, Worn_<Item>_Sit<Dir>)
             if slot == "Body":
                 im = body(d, f, mat, k == "Platebody")
             elif slot == "Legs":
@@ -317,7 +324,7 @@ def worn_frames(name, slot):
                 im = shield(d, f, name)
             else:
                 return None
-            frames[d + f] = im
+            frames[d + f if f != "s" else "_Sit" + d] = im
     return frames
 
 

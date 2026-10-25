@@ -278,7 +278,8 @@ def check_map(path, entities_ini, tiles_ini, report):
 
 # ------------------------------------------------------------------ NPC movement Options on map lines
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
-               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost"}   # (Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
+               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost",
+               "State"}   # (State=Sit: how it rests; Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
 _npc_ids = None
 
 
@@ -961,12 +962,14 @@ def check_tiles():
             elif k not in ("Walkable.Data", "Show.Name", "Use.Words", "Examine.Info", "Line.of.Sight", "Walk.Speed",
                            "Blend", "Blend.Texture", "Texture", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
                            "Layer", "Foam", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
-                           "Door", "Glow.Colour", "Glow.Match", "Piece"):
+                           "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat"):   # (Seat=S: sit on it, facing south)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
             elif k in ("Flame", "Water") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
+            elif k == "Seat" and v not in ("N", "E", "S", "W"):
+                err(r, "[%s] Seat must be N, E, S or W (the way you face, sitting on it)" % sec)
             elif k == "Door" and v not in ("0", "1", "Gate"):
                 err(r, "[%s] Door must be 1 (a door) or Gate" % sec)
             elif k == "Sway.Ground" and v not in TILES:
@@ -1023,9 +1026,11 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
-               "Slain.By"}                                                       # only that weapon gives its death blow
+               "Slain.By",                                                       # only that weapon gives its death blow
+               "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
+               "Hunts"}                                                          # the NPCs it goes for (Rabbit,Sheep)
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
-                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By"}
+                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1107,6 +1112,14 @@ def check_entities():
             for k in range(1, int(n) + 1):
                 if "%s%d" % (e, k) not in ENTITIES:
                     err(r, "[%s] Anim.Frames=%s but there's no sprite %s%d" % (e, n, e, k))
+    for e in ENTITIES:                  # <Name>_<State>2 / 8: how an NPC with States= rests (Sit: Cat_Sit2, Cat_Sit8),
+        for key in ("States", "Fidgets"):   # (and Fidgets=: a moment's pose now and then)
+            states = ini.get(e, key) if ini.section(e) is not None else None
+            for st in [x.strip() for x in (states or "").split(",") if x.strip()]:
+                for d in "28":
+                    frames.add("%s_%s%s" % (e, st, d))
+                    if "%s_%s%s" % (e, st, d) not in ENTITIES:
+                        err(r, "[%s] %s=%s but there's no sprite %s_%s%s" % (e, key, states, e, st, d))
     for e in sorted(ENTITIES - NON_PLACEABLE - frames):
         if ini.section(e) is None:
             err(r, "no [%s] section for entity sprite" % e)
@@ -1114,6 +1127,9 @@ def check_entities():
         if sec not in ENTITIES:
             warn(r, "[%s] has no sprite in Sprites\\Entities" % sec)
         typ = ini.get(sec, "Type")
+        for prey in [x.strip() for x in (ini.get(sec, "Hunts") or "").split(",") if x.strip()]:
+            if (ini.get(prey, "Type") or "") != "NPC":
+                err(r, "[%s] Hunts=%s: there's no NPC called %s" % (sec, ini.get(sec, "Hunts"), prey))
         if typ not in ("MapItem", "StaticObject", "NPC"):
             if typ in ("GoodNPC", "BadNPC"):
                 warn(r, "[%s] Type=%s is the old type: Type=NPC with Attitude=%s" % (sec, typ, typ[:-3]))

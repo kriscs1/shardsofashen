@@ -84,7 +84,7 @@ export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
   x.clearRect(0, 0, L.width, L.height);
   x.fillStyle = `rgba(${r},${g},${b},${a / 255})`;
   x.fillRect(0, 0, L.width, L.height);
-  const lights = dark > 0 ? skyLights(cam, ww, wh, underRoof) : [];
+  const lights = dark > 0 ? skyLights(cam, ww, wh, underRoof, playerC) : [];
   x.globalCompositeOperation = "destination-out";
   const hole = (sx, sy, rad, inner) => {
     const gr = x.createRadialGradient(sx, sy, 0, sx, sy, rad);
@@ -121,7 +121,8 @@ export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
   }
 }
 
-function skyLights(cam, ww, wh, underRoof) {
+function skyLights(cam, ww, wh, underRoof, pc) {
+  // The lights in view (a fire, a lamp, a lit window), not one under the fog of war: you don't see its glow there
   const out = [];
   const z = S.mapZ;
   const tx0 = Math.floor(cam.x / G.tw) - 2, ty0 = Math.floor(cam.y / G.th) - 2;
@@ -135,6 +136,7 @@ function skyLights(cam, ww, wh, underRoof) {
       const cx = (tx + 0.5) * G.tw, cy = (ty + 0.5) * G.th;
       const roofShown = roof && !(underRoof && m.name === S.mapName && group === underRoof);
       const rr = Math.max(lightOf(t, true), lightOf(d, true));
+      if ((rr || (roof && lightOf(roof, true))) && fogCovers(cx, cy, pc)) continue;
       if (rr && (!roof || !roofShown)) out.push([cx, cy, rr, true]);
       if (roof && roofShown && lightOf(roof, true)) out.push([cx, cy, lightOf(roof, true), true]);
     }
@@ -150,6 +152,7 @@ function skyLights(cam, ww, wh, underRoof) {
       const [, , roof, group] = cellOf(m, tx - m.mx * G.xt + 1, ty - m.my * G.yt + 1);
       if (roof && !(underRoof && m.name === S.mapName && group === underRoof)) continue;
     }
+    if (fogCovers(cx, cy, pc)) continue;
     out.push([cx, cy, flickers(e.n) ? rr * flicker(e.u) : rr, true]);
   }
   return out;

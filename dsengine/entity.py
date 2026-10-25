@@ -24,6 +24,8 @@ class Entity(_Entity):
         self.private_to = None      # a Session: just dropped by them, only they see it until public_at (ms)
         self.public_at = 0
         self.display = ""           # a name of its own (the map's Name=Marta), shown instead of the sprite's
+        self.pose = ""              # how it rests when it stops (Sit: <Name>_Sit<dir>), "" = standing
+        self.npc_foe = None         # an NPC it hunts, or runs from, or fights back (Hunts=)
 
 
 class InvItem:

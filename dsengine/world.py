@@ -434,6 +434,10 @@ class World(NPCMixin):
                 d = "2"
             if direction & 8:
                 d = "8"
+        if not moving and e.pose and self.data.loaded("%s_%s%s" % (base, e.pose, d)):
+            e.frame, e.anim_dist = 0, 0.0                    # (resting: sitting, lying, whatever it can)
+            e.image = "%s_%s%s" % (base, e.pose, d)
+            return
         frame = e.frame
         if moving:
             if e.anim_dist >= self.WALK_STEP:

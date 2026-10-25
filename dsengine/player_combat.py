@@ -212,6 +212,7 @@ class CombatMixin:
         return 1 + max(0, int(self.w.stat_for(e, self, "strength") * self.data.monster_damage))
 
     def start_attack(self, e):
+        self.stand_up()                       # (no fighting from a bench)
         if e.type == PLAYER and self.pvp_ok(self.session_of(e)):
             self.player_attack_target = e
             self.player_walk_stuck = 0

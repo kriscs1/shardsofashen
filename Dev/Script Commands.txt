@@ -336,7 +336,8 @@ Edit.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME | VALUE TO CHANGE | CHANG
          In PIXELS, except for Change.Tile and >Tile.In.Line.Of.Sight, which take TILE coordinates (1-25,1-21)
     2. ENTITY NAME: The name of the entity (from Sprites\Entities)
     3. VALUE TO CHANGE: The value to change: X, Y, POSITION (x,y), TYPE, NAME (sprite), MISC (an item's quantity),
-         QUANTITY, HP, MAXHP, SPEED, STRENGTH, DEFENCE, AGGRESSIVE, ATTITUDE (an NPC: Good or Bad), AGGRO.RANGE, ORIGINAL.X, ORIGINAL.Y
+         QUANTITY, HP, MAXHP, SPEED, STRENGTH, DEFENCE, AGGRESSIVE, ATTITUDE (an NPC: Good or Bad), AGGRO.RANGE, ORIGINAL.X, ORIGINAL.Y,
+         STATE (an NPC: how it rests when it stops, '=Sit' shows <Name>_Sit<2/8>; '=' to stand)
     4. CHANGE TO: Numbers: '=N' (set), '+N' or '-N' (change). POSITION: '=X,Y' or '+X,Y'.
          TYPE: MapItem, StaticObject or NPC. ATTITUDE: Good or Bad (this NPC, until its map is loaded again).
          NAME: a sprite name

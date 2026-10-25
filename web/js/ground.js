@@ -128,7 +128,7 @@ export function invalidateMap(name) {
   for (const [dx, dy] of DIRS) {
     const n = mapByPos(m.mx + dx, m.my + dy, m.mz);
     const nc = n && chunks.get(n.name);
-    if (nc) nc.full = true;
+    if (nc) { nc.full = true; nc.foam.clear(); }                  // (its shore may meet this map's land)
   }
 }
 
@@ -338,7 +338,7 @@ function paintCell(ch, ci, now) {
         const dist = foamDistance(ctx, dx, dy, sides);
         f = dist ? { dist, frames: new Map() } : null;
       }
-      ch.foam.set(ci, f);
+      if (!ch.missing) ch.foam.set(ci, f);                        // (not on a picture still loading: it'd all be land)
     }
     if (f) {
       const k = waterFrame(now);
@@ -408,7 +408,7 @@ function kindList(kinds) {
 export function updateChunk(ch, now) {
   const m = ch.m;
   if (ch.version !== m.v) { ch.version = m.v; ch.full = true; ch.foam.clear(); }
-  if (anyLoaded && ch.missing) ch.full = true;
+  if (anyLoaded && ch.missing) { ch.full = true; ch.foam.clear(); }   // (foam measured on a missing picture was wrong)
   const n = G.xt * G.yt;
   if (ch.full) {
     ch.full = false;

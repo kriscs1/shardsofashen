@@ -108,6 +108,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.pending_ent = None
         self.pending_map = None             # (map, x, y): a teleport waiting for the end of the tick
         self.player_moved = False
+        self.seat = None                    # sitting: (where they stood, where they sit), till they move again
         self.player_prev_x = self.player_prev_y = 0
         self.player_entry_x = self.player_entry_y = 0
         self.player_tile = None
@@ -416,7 +417,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         m = self.cur_map or self.w.map_at(p.z, p.fx, p.fy)
         st = {
             "map": m.name if m else d.start_map,
-            "x": int(p.x - m.ox) if m else d.start_x, "y": int(p.y - m.oy) if m else d.start_y,
+            "x": int(self.stand_x() - m.ox) if m else d.start_x, "y": int(self.stand_y() - m.oy) if m else d.start_y,
             "hp": p.hp, "mana": int(self.player_mana), "direction": max(1, int(p.direction)),
             "sprite": self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
@@ -539,6 +540,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     # =================================================================================================================
     def move_player(self):
         p = self.player
+        if self.seat is not None and (p.x, p.y) != self.seat[1]:
+            self.seat, p.pose = None, ""    # (something moved them, a teleport: they're up, wherever they are)
+        elif self.seat is not None and self.keyboard_direction != 0 and self.user_input_enabled:
+            self.stand_up()
         self.player_prev_x, self.player_prev_y = p.x, p.y
         if self.keyboard_direction != 0 and self.user_input_enabled:
             self.stop_player_walk()
@@ -570,6 +575,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         return self.w.try_move_entity(e, x, y, self)
 
     def walk_player_to(self, x, y, speed, rng):
+        self.stand_up()
         p = self.player
         self.player_walk_active = True
         self.player_walk_x, self.player_walk_y = x, y

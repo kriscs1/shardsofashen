@@ -38,3 +38,7 @@ NPC	Cat	256	312	Attitude=Good Zone=6,8,12,14
 Id	Fathers_House	20	8
 Trigger	Squeaky Floorboard	21	6
 Lock	20	7	$Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1	The door is locked.
+NPC	Sheep	64	88	Attitude=Bad Zone=2,2,7,10
+NPC	Sheep	128	184	Attitude=Bad Zone=2,2,7,10
+NPC	Sheep	160	56	Attitude=Bad Zone=2,2,7,10
+NPC	Shepherd	96	216	Attitude=Good Zone=2,2,7,10 Pause=4-10 Id=Isle_Shepherd Name=Old_Tom

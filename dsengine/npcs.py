@@ -3,9 +3,10 @@ of each player (their own Set.NPC.Attitude), picks a fight with the nearest play
 player it's fighting), faces whoever is near. Only NPCs on maps near a player think."""
 import math
 
-from dragonsword.lb import val, word, trim, distance, random_number, rnd, is_number
+from dragonsword.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits
 
-from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN
+from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, TYPE_NAMES
+from .player_combat import CombatMixin
 
 PF_NPC_BUDGET = 400
 
@@ -125,7 +126,13 @@ class NPCMixin:
         stand = ping = 0
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
-        a.group = a.friendly_if = ""
+        a.group = a.friendly_if = a.fixed_pose = ""
+        a.poses = [trim(p) for p in d.entity_ini(n, "States", "").split(",") if trim(p)]   # (Sit,Lie: when it stops)
+        a.fidgets = [trim(p) for p in d.entity_ini(n, "Fidgets", "").split(",") if trim(p)]   # (Stretch: now and then)
+        a.fidget_until, a.fidget_at, a.pose_back = 0, self.now + random_number(5000, 30000), ""
+        a.hunts = {trim(h).upper() for h in d.entity_ini(n, "Hunts", "").split(",") if trim(h)}   # (Hunts=Rabbit,Sheep)
+        a.hunt_at = self.now + random_number(2000, 8000)
+        e.npc_foe = None
         k = 1
         while word(options, k) != "":
             pair = word(options, k)
@@ -161,6 +168,8 @@ class NPCMixin:
                     a.friendly_if = value
                 elif key == "ROOST":                   # (where it spends the night, not gone home: hens in their coop)
                     roost = value
+                elif key == "STATE":                   # (how it always rests: State=Sit)
+                    a.fixed_pose = value
             k += 1
         home = self.maps.get(e.map)
         a.home_ox = home.ox if home else math.floor(e.x / self.sw) * self.sw
@@ -217,6 +226,7 @@ class NPCMixin:
         a.state = AI_IDLE
         a.timer = self.now + int(rnd() * (p_max * 1000 + 1500))
         a.turn_at = a.timer + 1
+        e.pose = a.fixed_pose
 
     @staticmethod
     def npc_rect_valid(rect):
@@ -300,6 +310,10 @@ class NPCMixin:
                                 state = a.state
                                 foe = s
                                 self.npc_alarm(e, a, s)
+        if state not in (AI_CHASE, AI_FLEE) and not e.in_combat and (e.npc_foe is not None or a.hunts):
+            if self.npc_versus_npc(e, a):
+                return
+            state = a.state
         if state == AI_CHASE:
             s = foe
             p = s.player if s is not None else None
@@ -389,6 +403,8 @@ class NPCMixin:
                 p = near[0].player
                 self.npc_face(e, cx, cy, p.cx, p.cy)
                 faced = True
+            if a.fidgets:
+                self.npc_fidget(e, a, now)
             if not faced and now >= a.turn_at:
                 e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
                 if getattr(a, "face", 0) and rnd() < 0.75:   # (a lookout: mostly the way it's set to look)
@@ -418,6 +434,8 @@ class NPCMixin:
             if a.state == AI_IDLE and self.in_zone(a, e.fx, e.fy):
                 a.back_x, a.back_y = e.cx, e.cy
         self.forget_path(e)
+        e.pose, a.fidget_until = "", 0                        # (on its feet to fight, or to run)
+        e.npc_foe = None                                      # (a player first: whatever it was hunting can wait)
         e.in_combat = True
         e.target = foe
         e.last_combat = now
@@ -428,6 +446,124 @@ class NPCMixin:
             a.state = AI_CHASE
             a.progress_time = now
             a.best_d = d
+
+    # =================================================================================================================
+    # NPCs against NPCs: a wolf after the sheep (Hunts=), the sheep running, a rat biting back
+    # =================================================================================================================
+    def npc_versus_npc(self, e, a):
+        """e hunts (Hunts=Rabbit,Sheep: the nearest of those it sees, within its chase area), or is hunted: prey that
+        flees (Flees=1) runs, the rest fight back. True while that's what it's doing (not roaming)."""
+        now = self.now
+        foe = e.npc_foe
+        if foe is None:
+            if now < a.hunt_at and now >= a.hunt_at - 600000:
+                return False
+            a.hunt_at = now + 1000
+            foe = self.npc_prey(e, a)
+            if foe is None:
+                return False
+            self.npc_set_foe(e, foe)
+            self.npc_set_foe(foe, e)                          # (it knows: it runs, or turns to fight)
+        cx, cy = e.cx, e.cy
+        d = distance(cx, cy, foe.cx, foe.cy)
+        if (not foe.alive or foe.z != e.z or d > 480 or now - a.progress_time > 6000 or now < a.progress_time or
+                (a.flees and (now >= a.timer or now < a.timer - 10000))):
+            self.npc_end_versus(e, a)
+            return True
+        if a.flees:
+            old_x, old_y = e.x, e.y
+            was_inside = self.in_chase_area(a, e.fx, e.fy)
+            dd = max(1, d)
+            self.move_entity_toward(e, cx + (cx - foe.cx) / dd * 64, cy + (cy - foe.cy) / dd * 64, e.move_speed)
+            if was_inside and not self.in_chase_area(a, e.fx, e.fy):
+                self.set_entity_position(e, old_x, old_y)
+                self.animate_entity(e, False)
+            a.progress_time = now
+            return True
+        if d <= 36 + self.reach_extra(e) + e.weapon_range:
+            self.npc_face(e, cx, cy, foe.cx, foe.cy)
+            a.progress_time = now
+            a.best_d = d
+            if now - e.last_attack >= e.attack_speed * 1000 or now < e.last_attack:
+                e.last_attack = now
+                self.npc_strikes_npc(e, foe)
+            return True
+        if d < a.best_d - 4:
+            a.best_d = d
+            a.progress_time = now
+        old_x, old_y = e.x, e.y
+        was_inside = self.in_chase_area(a, e.fx, e.fy)
+        self.npc_walk_to(e, foe.cx, foe.cy, e.move_speed, 32 + e.weapon_range, False)
+        if was_inside and not self.in_chase_area(a, e.fx, e.fy):
+            self.set_entity_position(e, old_x, old_y)
+            self.npc_end_versus(e, a)
+        return True
+
+    def npc_prey(self, e, a):
+        """The nearest NPC of a kind e hunts that it can see, in its chase area (not someone's own, not in a fight)."""
+        rng = e.aggro_range if e.aggro_range > 0 else 128
+        best = None
+        for o in self.ents:
+            if (o is e or o.type != NPC or not o.alive or not o.active or o.z != e.z or o.owner is not None or
+                    o.ai is None or o.in_combat or getattr(o, "npc_foe", None) is not None or
+                    strip_digits(o.name).upper() not in a.hunts):
+                continue
+            d = distance(e.cx, e.cy, o.cx, o.cy)
+            if d > rng or (best is not None and d >= best[1]) or not self.in_chase_area(a, o.fx, o.fy):
+                continue
+            if self.in_line_of_sight(e.z, e.cx, e.cy, o.cx, o.cy):
+                best = (o, d)
+        return best[0] if best is not None else None
+
+    def npc_set_foe(self, e, foe):
+        a = e.ai
+        if a is None or e.in_combat:                          # (busy with a player)
+            return
+        now = self.now
+        if e.npc_foe is None and a.stand == 0 and self.in_zone(a, e.fx, e.fy):
+            a.back_x, a.back_y = e.cx, e.cy
+        e.npc_foe = foe
+        e.pose, a.fidget_until = "", 0
+        a.state = AI_IDLE
+        a.progress_time, a.best_d = now, 9999
+        if a.flees:
+            a.timer = now + random_number(2500, 3500)
+        self.forget_path(e)
+
+    def npc_end_versus(self, e, a):
+        e.npc_foe = None
+        a.hunt_at = self.now + random_number(8000, 20000)     # (a rest before it hunts again)
+        self.npc_give_up(e, a)
+
+    def npc_strikes_npc(self, e, foe):
+        """e bites (or hits) NPC foe: a miss, or the damage over its head; at 0 it's dead, with nothing left behind."""
+        self.fx_nudge(e, -self.fx_away(foe, e), -self.fx_away_y(foe, e), 110)
+        if foe.npc_foe is None:
+            self.npc_set_foe(foe, e)
+        if not CombatMixin.combat_hits(e.strength * 3 + 2, foe.defence * 3, 3):
+            self.fx_splat("Miss", 0, foe)
+            return
+        damage = random_number(1, 1 + max(0, int(e.strength * self.data.monster_damage)))
+        self.sound("Fight%d" % random_number(1, 3), foe.z, foe.cx, foe.cy)
+        self.fx_splat("Hit", damage, foe)
+        self.fx_nudge(foe, self.fx_away(e, foe), self.fx_away_y(e, foe), 130)
+        foe.hp = max(0, foe.hp - damage)
+        if foe.hp <= 0 and self.data.entity_ini(foe.name, "Slain.By", ""):
+            foe.hp = 1                                        # (only its own bane kills it)
+        if foe.hp <= 0:
+            self.npc_killed_by_npc(foe)
+
+    def npc_killed_by_npc(self, e):
+        """An NPC killed by another: gone (it comes back later, as one a player kills), no loot - it was eaten."""
+        self.sound("Kill_" + (self.data.entity_ini(e.name, "Kill.Sound", "") or "Beast"), e.z, e.cx, e.cy)
+        m = self.maps.get(e.map)
+        if e.source == "MAP" and e.owner is None and m is not None:
+            respawn = e.respawn_delay if e.respawn_delay > 0 else self.data.npc_respawn_delay
+            options = e.ai.options if e.ai is not None and e.ai.options else "-"
+            self.add_action_to_queue("ADD", e.name, TYPE_NAMES[e.type], options, m.name,
+                                     self.local_coords(m, e.orig_x, e.orig_y), respawn)
+        self.fx_anim("Puff", e.z, e.cx, e.cy, 500)
+        self.remove_entity(e)
 
     def npc_give_up(self, e, a):
         now = self.now
@@ -446,8 +582,22 @@ class NPCMixin:
         seconds = distance(e.cx, e.cy, a.goal_x, a.goal_y) / max(1, a.walk_speed)
         a.goal_until = self.now + int(seconds * 2500) + 3000
 
+    def npc_fidget(self, e, a, now):
+        """Now and then, at rest, a moment of its kind's own: a cat stretches, or turns its back on you (Fidgets=)."""
+        if a.fidget_until:
+            if now >= a.fidget_until or now < a.fidget_until - 60000:
+                e.pose, a.fidget_until = a.pose_back, 0
+                self.animate_entity(e, False)
+        elif now >= a.fidget_at or now < a.fidget_at - 600000:
+            a.pose_back = e.pose
+            e.pose = a.fidgets[random_number(1, len(a.fidgets)) - 1]
+            a.fidget_until = now + random_number(1500, 2500)
+            a.fidget_at = now + random_number(20000, 60000)
+            self.animate_entity(e, False)
+
     def npc_set_idle(self, e, a, quick):
         now = self.now
+        a.fidget_until = 0
         a.state = AI_IDLE
         secs = a.pause_min + rnd() * (a.pause_max - a.pause_min)
         if quick:
@@ -457,6 +607,11 @@ class NPCMixin:
             a.turn_at = now + int(secs * 1000 * (0.3 + rnd() * 0.4))
         else:
             a.turn_at = a.timer + 1
+        if getattr(a, "fixed_pose", ""):
+            e.pose = a.fixed_pose
+        else:                                                 # (a long rest: it may sit down, or lie, as its kind does)
+            poses = getattr(a, "poses", [])
+            e.pose = poses[int(rnd() * len(poses)) % len(poses)] if poses and secs > 2 and rnd() < 0.6 else ""
         self.animate_entity(e, False)
 
     def npc_next_move(self, e, a):

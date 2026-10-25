@@ -127,6 +127,7 @@ Glow.Colour=255 160 70 ; for the editor's "Split props off their floors": drawn 
 Glow.Match=4           ; it, kept as see-through light (Match: how near, a few if exact)
 Light=72               ; how far (pixels) it lights the dark at night: on a ground tile, a decor or a roof
                        ; (torches 72, lamp posts 96, lit windows 34, upper windows in roofs 30)
+Seat=S                 ; a bench or chair: Sit on it (give it Use.Words=Sit), facing N, E, S or W, till you move
 Piece=corner: top left ; which piece of a set it is (a roof's "ridge, west end", a fence's "a T: east, south and
                        ; west"): the editor's Maps palette says it, with the set from Data\TileSets.ini
 ```
@@ -199,6 +200,11 @@ Chase.Radius=4             ; tiles beyond its Zone it will follow the player
 Walk.Speed=0.5             ; speed when roaming/patrolling/returning, as a fraction of Movement.Speed (chasing = full speed)
 Pause=1-4                  ; seconds it stands still between moves when roaming
 Solid=0                    ; optional: nothing bumps into it and it bumps into nothing (default 1)
+States=Sit                 ; optional: how it may rest when it stops a while (sprites <Name>_Sit2 / _Sit8); a map
+                           ; line's State=Sit makes it always rest so
+Fidgets=Stretch,Butt       ; optional: now and then, at rest, one of these for a moment (<Name>_Stretch2 / 8...)
+Hunts=Rabbit,Sheep         ; optional: NPCs it goes for when it sees one (within its Aggro.Range, or 128, and its
+                           ; chase area). They run if they Flee (Flees=1), else fight back; a kill leaves no loot
 ; StaticObject only:
 Walkable.Data=111...000    ; optional: its footprint, 0 = can't be walked through, over its sprite at 7 cells to 32
                            ; pixels each way (a 32 x 32 object: 49 cells, like a tile's; 64 x 32: 14 x 7). Blank =

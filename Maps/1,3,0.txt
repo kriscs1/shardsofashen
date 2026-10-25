@@ -38,7 +38,7 @@ NPC	Banker	160	416	Attitude=Good Stand=1
 Id	Southport_Landing	12	8
 Id	Southport_Pier	13	4
 StaticObject	Sign_Fishing	128	496
-NPC	Black_Cat	288	376	Attitude=Good
+NPC	Black_Cat	288	376	Attitude=Good Id=Vincent Name=Vincent
 StaticObject	Market_Stall_Open	488	299
 StaticObject	Market_Stall_Open	555	295
 StaticObject	Market_Stall_Open	560	387
