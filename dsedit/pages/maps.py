@@ -1,6 +1,7 @@
 """Maps: Maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
 and the Over layer (tree tops); place the entities (items, objects, NPCs), triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
 The maps round this one show (dimmed) round its edges."""
+import copy
 import re
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -71,6 +72,35 @@ class NewMapDialog(Dialog):
         except ValueError:
             return False
         return name, self.fill.get().strip() or "Grass001"
+
+
+class MoveToMapDialog(Dialog):
+    """Where to send an entity: a map, and a tile on it."""
+    def __init__(self, parent, project, here, tile):
+        super().__init__(parent, "Move to another map", ok="Move it")
+        self.project = project
+        self.map = tk.StringVar(value=here)
+        self.tx, self.ty = tk.StringVar(value=str(tile[0])), tk.StringVar(value=str(tile[1]))
+        b = self.body
+        ttk.Label(b, text="Map", style="Panel.TLabel").grid(row=0, column=0, sticky="w", pady=2)
+        ttk.Combobox(b, textvariable=self.map, values=project.maps(), width=14).grid(row=0, column=1, sticky="w")
+        for i, (lab, v) in enumerate((("Tile X (1-%d)" % project.map_w, self.tx),
+                                      ("Tile Y (1-%d)" % project.map_h, self.ty))):
+            ttk.Label(b, text=lab, style="Panel.TLabel").grid(row=i + 1, column=0, sticky="w", pady=2)
+            ttk.Spinbox(b, textvariable=v, from_=1, to=99, width=6).grid(row=i + 1, column=1, sticky="w")
+        ttk.Label(b, text="It keeps everything it has (its Id, name, options; an NPC's zone, chase area and patrol "
+                          "move with it). Both maps are saved.", style="PanelMuted.TLabel",
+                  wraplength=T.px(320)).grid(row=3, column=0, columnspan=2, sticky="w", pady=(8, 0))
+
+    def ok(self):
+        name = self.map.get().strip()
+        try:
+            tx, ty = int(self.tx.get()), int(self.ty.get())
+        except ValueError:
+            return False
+        if name not in self.project.maps() or not (1 <= tx <= self.project.map_w and 1 <= ty <= self.project.map_h):
+            return False
+        return name, tx, ty
 
 
 class MapPage(Page):
@@ -1184,6 +1214,12 @@ class MapPage(Page):
         k = e.keysym
         if not self.doc:
             return
+        if e.state & 0x4 and k.lower() in ("x", "c", "v"):  # Ctrl: cut, copy, paste an entity (to any map)
+            if k.lower() == "v":
+                self.paste_ent()
+            else:
+                self.clip_ent(cut=k.lower() == "x")
+            return "break"
         if k in ("1", "2", "3", "4", "5"):
             self.set_layer(LAYERS[int(k) - 1][1])
         elif k.lower() == "p":
@@ -1467,6 +1503,115 @@ class MapPage(Page):
             return name.strip()
         return r
 
+    # ----- moving an entity to another map: a dialog, or cut and paste (Ctrl+X / Ctrl+C, then Ctrl+V on any map)
+    def ent_tile(self, ent):
+        """The 1-based tile an entity stands on (its feet), or a tile thing's own tile."""
+        if ent.kind in TILE_KINDS:
+            return ent.x, ent.y
+        w, h = self.ent_size(ent)
+        tx, ty = self.tile_of(ent.x + w / 2, ent.y + h - 1)
+        return tx + 1, ty + 1
+
+    @staticmethod
+    def shift_ent(ent, dtx, dty, tw, th):
+        """ent moved by (dtx, dty) tiles - its spot in its tile kept - and an NPC's zone, chase area and patrol too."""
+        if ent.kind in TILE_KINDS:
+            ent.x, ent.y = ent.x + dtx, ent.y + dty
+            return
+        ent.x, ent.y = ent.x + dtx * tw, ent.y + dty * th
+        for key in ("Zone", "Chase"):
+            v = ent.opt(key)
+            if v and len(v.split(",")) == 4:
+                try:
+                    a = [int(float(n)) for n in v.split(",")]
+                except ValueError:
+                    continue
+                ent.set_opt(key, "%d,%d,%d,%d" % (a[0] + dtx, a[1] + dty, a[2] + dtx, a[3] + dty))
+        pat = ent.opt("Patrol")
+        if pat:
+            pts = []
+            for p in pat.split("/"):
+                try:
+                    x, y = (int(float(n)) for n in p.split(","))
+                    pts.append("%d,%d" % (x + dtx, y + dty))
+                except ValueError:
+                    pts.append(p)
+            ent.set_opt("Patrol", "/".join(pts))
+
+    def move_to_map(self, ent):
+        if ent not in self.doc.entities:
+            return
+        r = MoveToMapDialog(self, self.project, self.doc.name, self.ent_tile(ent)).run()
+        if not r:
+            return
+        name, tx, ty = r
+        ox, oy = self.ent_tile(ent)
+        if name == self.doc.name:                       # (the same map: just to that tile)
+            self.remember()
+            self.shift_ent(ent, tx - ox, ty - oy, self.project.tile_w, self.project.tile_h)
+            self.redraw()
+            self.show_inspector()
+            return
+        what = ent.name.replace("_", " ") or ent.kind
+        if self.is_dirty() and not messagebox.askyesno(
+                "Move to %s" % name, "This map has changes not saved yet: they're saved now too (with the %s gone). "
+                "Go on?" % what, parent=self):
+            return
+        moved = copy.deepcopy(ent)
+        self.shift_ent(moved, tx - ox, ty - oy, self.project.tile_w, self.project.tile_h)
+        there = MapDoc(self.project, name)
+        there.entities.append(moved)
+        there.save()
+        self.doc.entities.remove(ent)
+        self.sel_ent = None
+        self.save()
+        self.app.status("Moved the %s to map %s, tile %d,%d (both maps saved)." % (what, name, tx, ty), "ok")
+        if messagebox.askyesno("Moved", "Open map %s to see it there?" % name, parent=self):
+            self.load(name)
+            self.sel_ent = next((x for x in self.doc.entities if x.line() == moved.line()), None)
+            if self.layer != "things":
+                self.set_layer("things")
+            self.scroll_to(tx - 1, ty - 1)
+        self.redraw()
+        self.show_inspector()
+
+    def clip_ent(self, cut):
+        """Ctrl+C / Ctrl+X: the selected entity, kept to paste (on this map or another); cut takes it off this one."""
+        e = self.sel_ent
+        if not self.doc or e is None or e not in self.doc.entities:
+            return
+        self.app.clip_entity = (copy.deepcopy(e), self.ent_tile(e))
+        if cut:
+            self.remember()
+            self.doc.entities.remove(e)
+            self.sel_ent = None
+            self.redraw()
+            self.show_inspector()
+        self.app.status("%s the %s: open any map, put the mouse where it goes and press Ctrl+V." % (
+            "Cut" if cut else "Copied", e.name.replace("_", " ") or e.kind), "ok")
+
+    def paste_ent(self):
+        """Ctrl+V: the cut or copied entity, put down on the tile under the mouse (or where it was)."""
+        clip = getattr(self.app, "clip_entity", None)
+        if not self.doc or not clip:
+            return
+        ent, (ox, oy) = copy.deepcopy(clip[0]), clip[1]
+        tx, ty = ox, oy
+        if self._hover is not None:
+            hx, hy = self.tile_of(self._hover[0], self._hover[1])
+            if self.inside(hx, hy):
+                tx, ty = hx + 1, hy + 1
+        self.remember()
+        self.shift_ent(ent, tx - ox, ty - oy, self.project.tile_w, self.project.tile_h)
+        self.doc.entities.append(ent)
+        if self.layer != "things":
+            self.set_layer("things")
+        self.sel_ent = ent
+        self.redraw()
+        self.show_inspector()
+        self.app.status("Pasted the %s on tile %d,%d (Save to keep it)." % (ent.name.replace("_", " ") or ent.kind,
+                                                                           tx, ty), "ok")
+
     def delete_ent(self, ent):
         if ent not in self.doc.entities:
             return
@@ -1523,6 +1668,12 @@ class MapPage(Page):
         if e is not None and e in self.doc.entities:
             {"Trigger": self.insp_trigger, "Lock": self.insp_lock, "NPC": self.insp_npc,
              "Id": self.insp_place}.get(e.kind, self.insp_thing)(f, e)
+            mv = ttk.Frame(f, style="Panel.TFrame")             # (to another map: here, or cut and paste)
+            mv.pack(anchor="w", pady=(10, 0))
+            ttk.Button(mv, text="Move to another map…", style="Small.TButton",
+                       command=lambda: self.move_to_map(e)).pack(side="left")
+            ttk.Button(mv, text="Cut (Ctrl+X)", style="Small.TButton",
+                       command=lambda: self.clip_ent(True)).pack(side="left", padx=4)
         elif self.sel_cell:
             self.insp_cell(f)
         else:
