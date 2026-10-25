@@ -139,10 +139,18 @@ function skyLights(cam, ww, wh, underRoof) {
       if (roof && roofShown && lightOf(roof, true)) out.push([cx, cy, lightOf(roof, true), true]);
     }
   }
-  for (const e of S.ents.values()) {
+  for (const e of S.ents.values()) {             // (a stove's or a lamp's glow: not through a roof you're not under)
     if (!e.a) continue;
     const rr = lightOf(e.n, false);
-    if (rr) out.push([e.dx + e.w / 2, e.dy + e.h / 2, rr, true]);
+    if (!rr) continue;
+    const cx = e.dx + e.w / 2, cy = e.dy + e.h / 2;
+    const tx = Math.floor(cx / G.tw), ty = Math.floor(cy / G.th);
+    const m = mapByPos(Math.floor(tx / G.xt), Math.floor(ty / G.yt), z);
+    if (m) {
+      const [, , roof, group] = cellOf(m, tx - m.mx * G.xt + 1, ty - m.my * G.yt + 1);
+      if (roof && !(underRoof && m.name === S.mapName && group === underRoof)) continue;
+    }
+    out.push([cx, cy, rr, true]);
   }
   return out;
 }

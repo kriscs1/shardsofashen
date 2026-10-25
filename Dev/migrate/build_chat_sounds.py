@@ -54,7 +54,7 @@ def write(name, notes, seconds, breath=0.0):
 def main():
     write("Chat", [(988, 0.0, 0.5, 1.0), (1319, 0.09, 0.6, 0.9)], 0.7)          # B5, E6: "ding-ding"
     write("Whisper", [(659, 0.0, 0.5, 0.8), (523, 0.12, 0.6, 0.6)], 0.75, 0.25)   # E5, C5, falling, with breath
-    write("Denied", [(220, 0.0, 0.16, 1.0), (165, 0.15, 0.28, 1.0)], 0.45)        # A3, E3: "uh-uh"
+    # (Denied: build_denied_sound.py)
 
 
 if __name__ == "__main__":
