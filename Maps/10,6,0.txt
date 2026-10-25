@@ -1,0 +1,32 @@
+Mountain001:Mountain003:Mountain002:Mountain001:Mountain004:Mountain003:Mountain003:Mountain003:Mountain002:Mountain002:Mountain002:Mountain001:Mountain004:Mountain003:Mountain003:Mountain001:Mountain001:Mountain001:Mountain004:Mountain002:Mountain003:Mountain004:Mountain001:Mountain002:Mountain002
+Mountain003:Mountain003:Mountain004:Mountain003:Mountain001:Mountain003:Mountain002:Mountain003:Mountain002:Mountain003:Mountain004:Mountain002:Mountain004:Mountain003:Mountain002:Mountain002:Mountain001:Mountain002:Mountain002:Mountain004:Mountain004:Mountain002:Mountain003:Mountain002:Mountain004
+Mountain001:Mountain001:Mountain003:Mountain003:Mountain001:Mountain002:Mountain003:Mountain003:Mountain004:Mountain002:Mountain004:Mountain002:Mountain003:Mountain004:Mountain001:Mountain001:Mountain001:Mountain003:Mountain002:Mountain004:Mountain004:Mountain004:Mountain002:Mountain002:Mountain002
+Mountain004:Mountain001:Mountain003:Mountain004:Mountain001:Mountain002:Mountain004:Mountain001:Mountain004:Mountain004:Mountain003:Mountain003:Mountain001:Mountain003:Mountain004:Mountain003:Mountain004:Mountain004:Mountain003:Mountain003:Mountain003:Mountain001:Mountain003:Mountain003:Mountain001
+Mountain003:Mountain004:Mountain001:Mountain004:Mountain001:Mountain002:Mountain004:Mountain004:Mountain002:Mountain002:Mountain002:Mountain004:Mountain002:Mountain004:Mountain004:Mountain003:Mountain003:Mountain002:Mountain003:Mountain002:Mountain003:Mountain002:Mountain001:Mountain003:Mountain004
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain001:Mountain003:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001+Decor(Dead_Tree001):Cinder001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain002:Mountain004:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain003:Mountain002:Ash001:Cinder001:Ash001:Cinder001:Cinder001:Cinder001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001+Decor(Dead_Tree001):Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain003:Mountain004:Cinder001:Ash001:Ash001:Cinder001:Cinder001:Ash001:Ash001+Decor(Dragon_Skull001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Barrier001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001+Decor(Dragon_Skull001):Ash001:Ash001:Ash001:Ash001:Cinder001
+Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Barrier001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001
+Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Barrier001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain001:Mountain001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Cinder001:Cinder001:Ash001+Decor(Dragon_Skull001):Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain001:Mountain003:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001+Decor(Dead_Tree002):Cinder001:Cinder001:Cinder001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain003:Mountain001:Cinder001:Ash001:Cinder001:Ash001:Cinder001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Mountain004:Mountain002:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001
+Mountain001:Mountain001:Mountain002:Mountain002:Mountain003:Mountain004:Mountain004:Mountain003:Mountain001:Mountain001:Mountain004:Mountain004:Mountain004:Mountain002:Mountain002:Mountain002:Mountain001:Mountain003:Mountain002:Mountain003:Mountain004:Mountain003:Mountain002:Mountain001:Mountain001
+Mountain002:Mountain002:Mountain004:Mountain003:Mountain002:Mountain002:Mountain002:Mountain002:Mountain004:Mountain003:Mountain001:Mountain002:Mountain002:Mountain001:Mountain003:Mountain004:Mountain001:Mountain001:Mountain003:Mountain001:Mountain003:Mountain001:Mountain002:Mountain004:Mountain004
+Mountain002:Mountain002:Mountain001:Mountain001:Mountain004:Mountain004:Mountain003:Mountain003:Mountain002:Mountain002:Mountain001:Mountain003:Mountain003:Mountain002:Mountain004:Mountain001:Mountain003:Mountain001:Mountain002:Mountain004:Mountain002:Mountain004:Mountain004:Mountain001:Mountain001
+Mountain001:Mountain004:Mountain004:Mountain002:Mountain003:Mountain002:Mountain003:Mountain004:Mountain004:Mountain003:Mountain001:Mountain001:Mountain002:Mountain001:Mountain004:Mountain001:Mountain002:Mountain002:Mountain001:Mountain002:Mountain003:Mountain003:Mountain001:Mountain001:Mountain001
+Mountain003:Mountain001:Mountain004:Mountain004:Mountain003:Mountain004:Mountain004:Mountain003:Mountain003:Mountain001:Mountain001:Mountain001:Mountain004:Mountain003:Mountain002:Mountain003:Mountain002:Mountain001:Mountain003:Mountain002:Mountain004:Mountain003:Mountain004:Mountain001:Mountain003
+Lock	7	10	$Attr.GalaithQuest>=1	The barrier holds: violet light, hard as glass.
+Lock	7	11	$Attr.GalaithQuest>=1	The barrier holds: violet light, hard as glass.
+Lock	7	12	$Attr.GalaithQuest>=1	The barrier holds: violet light, hard as glass.
+Trigger	The Dragon Speaks	8	10
+Trigger	The Dragon Speaks	8	11
+Trigger	The Dragon Speaks	8	12
+NPC	Galaith_Dragon	480	288	Attitude=Bad Zone=11,7,22,16 Chase=8,6,24,16 Id=Galaith_Dragon_Boss
+MapItem	Bones	352	256	1
+MapItem	Bones	608	448	1
+Id	Galaith_Barrier	6	11
+Id	Dragons_Field	16	11

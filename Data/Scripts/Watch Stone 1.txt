@@ -4,7 +4,7 @@
 03	Get.Value	ATTRIBUTE	Watch1	Variable.2$
 04	>Conditional	$Variable.2=0	14
 05	Update.Attribute	Watch1	=1
-06	Quest.Note.Done	RangerQuest	Watch stone by the north road, between Tyron's Keep and Oakhollow.
+06	Quest.Note.Done	RangerQuest	Watch stone by the north road, between King Rupert's Keep and Oakhollow.
 07	Update.Attribute	WatchStones	+1
 08	Get.Value	ATTRIBUTE	WatchStones	Variable.3$
 09	>Conditional	$Variable.3>=3	13

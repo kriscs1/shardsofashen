@@ -278,7 +278,7 @@ def building(m, x1, y1, x2, y2, door, wall="Brick001", roof="Slate", windows=Non
     the door). chimney: the roof column with a chimney (None: none). upper: a Map for the level above (its floor
     under the same walls, the upper storey's front under the eaves, windows). Returns the roof group."""
     base = V.WALL_BASES[wall]
-    thin = "%s_Thin_Plank" % base
+    thin = "%s_Thin_%s" % (base, "Marble" if floor.startswith("Marble") else "Plank")   # (a palace: marble floors)
     for y in range(y1, y2 + 1):
         for x in range(x1, x2 + 1):
             if y == y2:

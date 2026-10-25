@@ -216,7 +216,7 @@ def weapon(d, f, mat, k, name):
     img = blank()
     hx0, hx1, ht, hb = weapon_hand(d, f)
     if k == "Staff":
-        wood = MATERIALS[material(name)]
+        wood = MATERIALS.get(material(name), MATERIALS["Oak"])     # (a named staff, no wood in its name: oak)
         x = hx0 if d != "1" else hx1
         if d in ("2", "8"):
             x = hx1 + 1 if d == "2" else hx0 - 1
@@ -231,7 +231,7 @@ def weapon(d, f, mat, k, name):
             put(img, x - 1, top + 1, wood[2]); put(img, x + 1, top + 1, wood[2]); put(img, x, top, wood[0])
         return img
     if k == "Bow":                            # an arc held upright, the string straight
-        wood = MATERIALS[material(name)]
+        wood = MATERIALS.get(material(name), MATERIALS["Oak"])
         x = hx0 - 1 if d in ("4", "8") else hx1 + 1
         bulge = -1 if d in ("4", "8") else 1
         top, bottom = max(0, ht - 9), min(31, hb + 6)

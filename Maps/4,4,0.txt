@@ -19,7 +19,7 @@ Water001:Water001:Sand001:Paving001:Grass001:Hedge001:Hedge001:Grass001+Decor(St
 Water001:Water001:Sand001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Bush001):Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Flowers002):Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Oak_Tree001):Sand_Water005
 Water001:Water001:Sand_Water003:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water005:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-NPC	King_Tyron	352	192	Attitude=Good Stand=1
+NPC	Wizard	352	192	Attitude=Good Stand=1 Id=Court_Magister Name=Magister_Quill
 NPC	Guard	256	224	Attitude=Good Stand=1
 NPC	Guard	448	224	Attitude=Good Stand=1
 NPC	Guard	320	448	Attitude=Good Stand=1
@@ -30,7 +30,7 @@ NPC	Villager	480	384	Attitude=Good Zone=14,11,18,15 Pause=2-6
 StaticObject	Notice	129	98	Id=The_Royal_Isle
 StaticObject	Notice	673	450	Id=Royal_Treasury
 StaticObject	Chest	640	384
-Lock	21	14	$Attr.HobgoblinQuest>=2	The royal treasury is locked. Only a hero of King Tyron may enter.
+Lock	21	14	$Attr.HobgoblinQuest>=2	The royal treasury is locked. Only the Steward's friends may enter.
 NPC	Banker	608	160	Attitude=Good Stand=1
 NPC	Guard	320	536	Attitude=Good Stand=1 Face=S Id=Smuggler_Sergeant Name=Sergeant_Holt
 Id	Sergeant_Post	11	19

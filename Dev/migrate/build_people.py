@@ -156,6 +156,9 @@ PEOPLE = {
                     cape=(200, 160, 50), held="book"),
     "Archivist": P(hair=((190, 190, 196), (150, 150, 156)), hair_style="long", shirt=((120, 90, 60),),
                    dress=(120, 90, 60), held="book"),
+    "Tomb_Guardian": P(skin=((214, 204, 174), (176, 166, 136)), hair_style="bald", eyes=(250, 200, 60),
+                       mouth=(120, 100, 80), shirt=((222, 212, 184),), trousers=((210, 200, 172),),
+                       shoes=((196, 186, 158),), patches=True, held="rusty_sword"),
     # the towns' and cities' people (build_towns.py)
     "Barkeep": P(hair=((60, 40, 26), (40, 26, 16)), beard="moustache", shirt=((150, 100, 60),), apron=WHITE,
                  trousers=((60, 50, 40),)),

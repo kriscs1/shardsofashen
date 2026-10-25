@@ -1458,3 +1458,78 @@ def test_a_bed_can_lie_sideways(world):
     assert a.unbuild(11, 10) and not m.decor[m.cell(10, 10)] and not m.decor[m.cell(11, 10)]   # (down whole)
     assert "Sleep" in world.data.tile_ini("Bed005", "Use.Words", "")
     leave(world, a)
+
+
+def story_done_before(s, chapter):
+    """Every main quest before chapter done, and the level for the last of them."""
+    for name, d in s.help_read_ini("Quests.ini"):
+        if d.get("TYPE", "") == "Main" and int(d.get("CHAPTER", "0") or 0) < chapter:
+            s.update_attribute(d["ATTRIBUTE"], "=" + d["DONE"])
+    s.player_level = lambda: 30
+
+
+def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
+    s = join(world, "Slayer", "10,6,0", 10 * 32, 11 * 32)
+    s.god_mode = 1
+    dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
+    s.damage_npc(dragon, dragon.hp + 100)
+    assert dragon.alive and dragon.hp == 1                          # (any other blade can't reach its heart)
+    stock(s, Sword_of_Valour=1)
+    s.equipped[s.equip_slot_index("Weapon")] = "Sword_of_Valour"
+    s.damage_npc(dragon, 100)
+    assert not dragon.alive
+    leave(world, s)
+
+
+def test_berts_spell_and_the_staff_break_the_barrier(world):
+    s = join(world, "Breaker", "10,6,0", 5 * 32, 10 * 32 - 8)
+    run, npc, talk, use = isle_helpers(world, s)
+    run(5)
+    lights = lambda: [e for e in world.ents if e.name == "Barrier_Light" and e.alive and world.visible_to(e, s)]
+    assert len(lights()) == 3
+    story_done_before(s, 15)
+    stock(s, Staff_of_Estforlan=1)
+    m = s.cur_map
+    gx, gy = m.ox + 6 * 32 + 16, m.oy + 10 * 32 + 16                 # (the barrier at 7,11, from beside it)
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
+    s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
+    run(60)
+    assert int(float(s.get_attribute("GalaithQuest") or 0)) == 0                 # (the staff alone: no words for it)
+    s.update_attribute("BarrierSpell", "=1")
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
+    s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
+    run(80)
+    assert int(float(s.get_attribute("GalaithQuest") or 0)) == 1 and not lights()
+    leave(world, s)
+
+
+def test_the_royal_guard_and_the_king(world):
+    s = join(world, "Heir", "12,5,0", 13 * 32, 17 * 32)
+    run, npc, talk, use = isle_helpers(world, s)
+    attr = lambda a: int(float(s.get_attribute(a) or 0))
+    palace = world.maps["12,5,0"]
+    door = palace.lock_at[(13, 13)]
+    story_done_before(s, 16)
+    find = lambda prefix: next(e for e in world.ents if e.alive and e.npc_id.startswith(prefix))
+    captain, king = find("Palace_Captain"), find("Rupert_On_Throne")
+    talk(captain, 1)
+    assert attr("GuardQuest") == 1
+    talk(find("Galaith_Speaker"), 1, 1)
+    assert attr("GuardQuest") == 2
+    talk(find("Galaith_Clerk"), 1)                                   # (no amulet, no word from her)
+    assert attr("GuardQuest") == 2
+    stock(s, Amulet_of_Succession=1)
+    talk(find("Galaith_Clerk"), 1, 1)
+    assert attr("GuardQuest") == 3 and s.items_held("Archivists_Attestation") == 1
+    talk(find("Galaith_Speaker"), 1)
+    assert attr("GuardQuest") == 4 and s.items_held("Chancellors_Warrant") == 1
+    s.check_locks(False)
+    assert s.lock_closed(palace, door)                               # (the warrant shown to the captain first)
+    talk(captain, 1)
+    s.check_locks(False)
+    assert attr("GuardQuest") == 5 and not s.lock_closed(palace, door)
+    talk(king, 1, 1, 1, 1, 1)
+    assert attr("KingQuest") == 1
+    run(5)
+    assert any(e.name == "Throne_Jimmy" and world.visible_to(e, s) for e in world.ents)
+    leave(world, s)

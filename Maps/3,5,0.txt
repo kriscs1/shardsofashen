@@ -22,7 +22,7 @@ Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:
 StaticObject	Fish_Spot	480	320
 Id	Hollow_Barrel	12	15
 NPC	Clerk	192	504	Attitude=Good Stand=1 Face=S Id=Ashford_Clerk_10
-NPC	Clerk	512	504	Attitude=Good Stand=1 Face=S Id=Ashford_Clerk_13
+NPC	Mayor	512	504	Attitude=Good Stand=1 Face=S Id=Ashford_Clerk_13 Name=Mayor_Hollis
 NPC	Barkeep	320	56	Attitude=Good Stand=1 Face=S Id=Ashford_Barkeep_20 Name=Harold
 NPC	Barmaid	352	120	Attitude=Good Zone=10,5,13,5 Pause=3-9 Id=Ashford_Barmaid_21 Name=Ida
 NPC	Doctor	256	312	Attitude=Good Stand=1 Face=S Id=Ashford_Doctor_27 Name=Ulric
@@ -32,3 +32,4 @@ StaticObject	Notice	608	642	Id=Ashford_Notice_14
 StaticObject	Sign_Pub	384	176
 StaticObject	Notice	288	194	Id=Ashford_Notice_22
 StaticObject	Notice	320	418	Id=Ashford_Notice_28
+Id	Ashford_Town_Hall	20	21

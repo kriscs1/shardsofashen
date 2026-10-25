@@ -1,5 +1,5 @@
 """Every settlement the size the owner asked for (towns.py grows them). Run it once on the world as it was: it marks
-each settlement it has grown (an Id <Key>_Grown on its first map) and leaves it alone after.
+each settlement it has grown (an Id <Key>_Grown on its centre's map) and leaves it alone after.
 
   python -I "Dev\\migrate\\build_towns.py"       (then smooth_coasts.py, validate.py, build_minimaps.py)
 
@@ -267,8 +267,7 @@ def main():
     renames()
     for key, title, own, grown, (cm, cx, cy), plan, style, city in SETTLEMENTS:
         names = own + grown
-        first = Map(names[0])
-        if K.has_id(first, key + "_Grown"):
+        if K.has_id(Map(cm), key + "_Grown"):           # (the mark is on its centre's map)
             continue
         g = T.Ground(names)
         mx, my = g.mxy(cm)
@@ -287,7 +286,26 @@ def main():
         print("%-11s %s; %d streets%s" % (title[:11], ", ".join("%d %s" % (n, k) for k, n in sorted(kinds.items())),
                                           town.streets, ("; no room for: " + ", ".join(town.missed)) if town.missed
                                           else ""))
+    southport_carts()
     ini.forget()
+
+
+def southport_carts():
+    """Southport's carts and horses between its quarters (the city grew before the carts did: added to it as it is)."""
+    names = ["1,3,0", "0,3,0", "0,4,0", "0,2,0", "1,4,0"]
+    if K.has_id(Map(names[0]), "Southport_Cart_Stop_1"):
+        return
+    g = T.Ground(names)
+    def cell(name, x, y):
+        mx, my = g.mxy(name)
+        return mx * XT + x - 1, my * YT + y - 1
+    town = T.Town("Southport", "Southport", g, cell("1,3,0", 16, 13), STYLES["brick"], True, seed=77)
+    stops = T.cart_stops(town, [("the market", cell("1,3,0", 16, 13)), ("the west quarter", cell("0,4,0", 13, 8)),
+                                ("the north quarter", cell("0,2,0", 13, 14))])
+    town.write()
+    g.save()
+    print("Southport: %d cart stops%s" % (len(stops), ("; no room for: " + ", ".join(town.missed)) if town.missed
+                                          else ""))
 
 
 if __name__ == "__main__":

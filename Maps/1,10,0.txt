@@ -41,3 +41,4 @@ StaticObject	Notice	160	194	Id=Dunerest_Notice_2
 StaticObject	Sign_Pub	384	432
 StaticObject	Notice	288	450	Id=Dunerest_Notice_6
 Id	Dunerest_Grown	13	11
+NPC	Scholar	352	88	Attitude=Good Stand=1 Face=S Id=Dunerest_Scholar Name=Yusra

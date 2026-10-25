@@ -18,11 +18,6 @@ STAGES = {
             "+Collect 3 eggs from the hens' nests round the milkmaid's farm (Collect on a nest)."],
         3: ["-Collect 3 eggs from the hens' nests round the milkmaid's farm (Collect on a nest)."],
     },
-    "HobgoblinQuest": {
-        1: ["+Hobgoblins: in the old iron mine, the mine depths, the warren and the goblin camp.",
-            "+The mine's guard only lets you in wearing body armour (the quartermaster at the Keep sells it).",
-            "+Slay five hobgoblins."],
-    },
     "RemedyQuest": {
         1: ["+Pick 3 Cave Mushrooms in the old iron mine.",
             "+Get 2 Spider Silk from the giant spiders in the mine depths.",
@@ -34,7 +29,7 @@ STAGES = {
             "+Then go back to Brokk."],
     },
     "RangerQuest": {
-        1: ["+Watch stone by the north road, between Tyron's Keep and Oakhollow.",
+        1: ["+Watch stone by the north road, between King Rupert's Keep and Oakhollow.",
             "+Watch stone in the western woods.",
             "+Watch stone east of the river."],
         3: ["+The spider nest is in the deep woods west of Oakhollow.",
@@ -76,13 +71,6 @@ STAGES = {
     "HermitQuest": {
         1: ["+His camp is in the Isle's western woods. Oak trees grow all over the Isle."],
     },
-    "DragonQuest": {
-        1: ["+Get ready: your best armour and weapon, plenty of food and potions.",
-            "+When you're ready, ask the court wizard to open the portal."],
-        2: ["-When you're ready, ask the court wizard to open the portal.",
-            "+The portal at the bottom of the lair takes you back to the wizard, to flee or to heal."],
-        4: ["+The gates of Wardhaven, over the bridge east of Ashford's farms, are open to you now."],
-    },
     "DruidQuest": {
         1: ["+The Heartwood is north-east of Thornwick, where the yews are oldest.",
             "+Touch the heart stone, then tell the Druid what you feel."],
@@ -107,11 +95,9 @@ STAGES = {
 }
 
 EVENTS = [   # (script, the step the notes follow, quest attribute, notes)
-    ("Kill Hobgoblin", "enough:", "HobgoblinQuest",
-     ["-Slay five hobgoblins.", "+Return to King Tyron in his keep for your reward."]),
     ("Kill Cave_Troll", ("Update.Attribute", "TrollSlain", "=1"), "DwarfQuest", ["-Slay the cave troll in the Deep Hollow."]),
     ("Watch Stone 1", ("Update.Attribute", "Watch1", "=1"), "RangerQuest",
-     ["-Watch stone by the north road, between Tyron's Keep and Oakhollow."]),
+     ["-Watch stone by the north road, between King Rupert's Keep and Oakhollow."]),
     ("Watch Stone 2", ("Update.Attribute", "Watch2", "=1"), "RangerQuest", ["-Watch stone in the western woods."]),
     ("Watch Stone 3", ("Update.Attribute", "Watch3", "=1"), "RangerQuest", ["-Watch stone east of the river."]),
     ("Kill Giant_Spider", "enough:", "RangerQuest",

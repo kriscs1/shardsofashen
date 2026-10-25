@@ -6,7 +6,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Water007:Water009:Grass001:Sand001:
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Dirt001:Dirt001:Grass001+Decor(Sage_Patch001):Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Sea_Rock002:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001+Decor(Grave002):Grass001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001+Decor(Grave002):Grass001:Sand001:Sand001:Sand001:Sand001:Plank001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Brick_Thin_Plank008+Roof(Clay_Roof001.01):Fireplace003+Roof(Clay_Roof017.01):Brick_Thin_Plank001+Roof(Clay_Roof002.01):Brick_Thin_Plank005+Roof(Clay_Roof003.01):Grass001:Dirt001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Brick_Thin_Plank004+Roof(Clay_Roof013.01):Plank001+Decor(Table001)+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Brick_Thin_Plank002+Roof(Clay_Roof015.01):Grass001:Dirt001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Brick_Thin_Plank004+Roof(Brick_Upper002.01):Plank001+Decor(Chair002)+Roof(Brick_Upper001.01):Plank001+Under(Rug017)+Roof(Brick_Upper002.01):Brick_Thin_Plank002+Roof(Brick_Upper002.01):Grass001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
@@ -26,3 +26,6 @@ NPC	Skeleton_Archer	64	544	Attitude=Bad
 StaticObject	Swordfish_Spot	320	416
 Id	Grave_Bram_Smith	7	9
 Id	Grave_Fresh_Flowers	1	18
+StaticObject	Boat001	480	240
+NPC	Sea_Captain	352	248	Attitude=Good Stand=1 Face=E Id=Captain_Rook Name=Captain_Rook
+Id	Rooks_Pier	12	10

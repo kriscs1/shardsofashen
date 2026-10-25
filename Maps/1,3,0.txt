@@ -57,3 +57,9 @@ NPC	Constable	352	472	Attitude=Good Stand=1 Face=S Id=Southport_Constable_26 Nam
 StaticObject	Notice	224	386	Id=Southport_Notice_16
 StaticObject	Notice	448	578	Id=Southport_Notice_27
 Id	Southport_Grown	16	13
+NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Southport_Port_Guard Name=Sergeant_Brand
+Id	Southport_Port	15	8
+NPC	Horse	576	320	Attitude=Good Stand=1 Face=W Id=Southport_Horse_1
+NPC	Carter	544	344	Attitude=Good Stand=1 Face=S Id=Southport_Carter_1 Name=Greta
+StaticObject	Cart	544	320
+Id	Southport_Cart_Stop_1	19	12

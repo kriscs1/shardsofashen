@@ -7,7 +7,7 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Cave_Floor001+Decor(Gold_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Sand001:Sand001
 Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Sand_Mound001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Cave_Floor001+Decor(Gold_Rock001):Sand001:Sand001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001)
@@ -24,3 +24,4 @@ NPC	Scorpion	608	416	Attitude=Bad
 NPC	Scorpion	192	448	Attitude=Bad
 NPC	Skeleton	608	96	Attitude=Bad
 NPC	Skeleton_Archer	256	224	Attitude=Bad
+Id	Buried_Library	13	10

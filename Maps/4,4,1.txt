@@ -19,7 +19,7 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
-NPC	Wizard	608	224	Attitude=Good Zone=20,8,22,9 Pause=5-12
+NPC	Bert	608	224	Attitude=Good Zone=20,8,22,9 Pause=5-12 Name=Bert
 StaticObject	Alchemy_Table	672	128
 MapItem	Basic_Potion	608	160	1
 MapItem	Empty_Vial	608	256	2

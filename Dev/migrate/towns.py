@@ -369,7 +369,7 @@ class Town:
         return True
 
     # ---------------------------------------------------------------- squares, parks, avenues
-    def square(self, w=9, h=7, near=None, stalls=4, kind="market"):
+    def square(self, w=9, h=7, near=None, stalls=4, kind="market", name="Market_Square", goods=0):
         """A paved square (a market's stalls and their traders, or a garden's), joined to the roads."""
         near = near or self.centre
         for _, x1, y1, x2, y2, _ in self.candidates(w, h, near):
@@ -392,7 +392,7 @@ class Town:
                 spots = [(x1 + 1, y1 + 1), (x2 - 1, y1 + 1), (x1 + 1, y2 - 1), (x2 - 1, y2 - 1), (cx, y1 + 1),
                          (cx, y2 - 1)][:stalls]
                 for i, (sx, sy) in enumerate(spots):
-                    self.stall(sx, sy, i)
+                    self.stall(sx, sy, i + goods)
                 for x, y in ((x1, y1), (x2, y1), (x1, y2), (x2, y2)):
                     self.g.set(x, y, decor="Lamp_Post001")
             else:
@@ -411,7 +411,7 @@ class Town:
             self.join((x1 + w // 2, y2 + 1))
             for x in range(x1, x2 + 1):
                 self.lay((x, y2 + 1))
-            pid = "%s_%s" % (self.key, "Market_Square" if kind == "market" else "Gardens_%d" % self.n)
+            pid = "%s_%s" % (self.key, name if kind == "market" else "Gardens_%d" % self.n)
             self.n += 1
             m, lx, ly = self.g.at(cx, y2 + 1)
             self.ids.append((m.name, pid, lx, ly))
@@ -549,7 +549,11 @@ def walls(town, lot):
         wall = town.style["grand"]
     roof = town.rng.choice(V.ROOFS[wall])[0] if wall in V.ROOFS else "Slate"
     chimney = x1 + 1 + town.rng.randrange(max(1, x2 - x1 - 1)) if lot.kind in ("house", "tavern", "inn", "shop") else None
-    K.building(m, x1, y1, x2, y2, door, wall=wall, roof=roof, chimney=chimney)
+    grand = lot.kind in ("palace", "parliament", "hotel") and "grand" in town.style
+    if lot.kind == "palace":
+        roof = "Slate"
+    K.building(m, x1, y1, x2, y2, door, wall=wall, roof=roof, chimney=chimney,
+               floor="Marble001" if grand else "Plank001")
     return m, x1, y1, x2, y2, door, wall
 
 
@@ -695,11 +699,33 @@ def furnish(town, lot):
             put(x, y, "Bed001")
             put(x, y + 1, "Bed002")
         for x in range(x1 + 1, x2, 3):
-            put(x, y2 - 1, "Shelf_Goods001")
+            if abs(x - door) > 1:                                   # (the doorway kept clear)
+                put(x, y2 - 1, "Shelf_Goods001")
         for i in range(2):
             town.person(m.name, "Royal_Guard" if town.city else "Guard", x1 + 2 + i * 3, y2 - 2, town.uid("Soldier"),
                         "Zone=%d,%d,%d,%d Pause=4-12" % (x1 + 1, y1 + 2, x2 - 1, y2 - 1))
         town.notice(lot.door + 2, lot.y2 + 1, "Barracks", "The city guard's quarters.")
+    elif k == "palace":
+        mid = (x1 + x2) // 2
+        m.set(mid, y1 + 1, tile="Throne001")                         # the throne, on its dais, before the back wall
+        for x in range(mid - 1, mid + 2):
+            if x != mid:
+                put(x, y1 + 1, "Banner001")
+        for y in range(y1 + 2, y2):                                 # the royal carpet, door to throne
+            m.set(mid, y, tile="Carpet001" if y > y1 + 2 else "Carpet002")
+        for x in (x1 + 2, x2 - 2, mid - 3, mid + 3):
+            for y in range(y1 + 2, y2 - 1, 2):
+                if x1 < x < x2:
+                    put(x, y, "Pillar001")
+        for x, y in back:
+            if (x - x1) % 4 == 2 and abs(x - mid) > 2:
+                put(x, y, "Banner001")
+        for x in (x1 + 1, x2 - 1):
+            put(x, y2 - 1, "Potted_Plant%03d" % rng.randint(1, 5))
+        mx, my = town.g.mxy(m.name)
+        for x in (x1, x2, mid - 4, mid + 4):                         # its spires, high over the city
+            town.statics.append((m.name, "StaticObject\tPalace_Spire\t%d\t%d" % ((x - 1) * TW, (y1 - 3) * TW)))
+        lot.throne = (m.name, mid, y1 + 1)
     elif k == "armoury":
         for x, y in back:
             put(x, y, "Shelf_Goods001")
@@ -792,8 +818,61 @@ def doctor_script(cost):
     ]
 
 
+# ================================================================== carts and horses between a city's quarters
+def cart_stops(town, targets):
+    """A cart stop near each target (label, world cell): a cart and its horse on free ground beside a road, the carter
+    on the road; each carter drives you to any of the other stops for 2 coins."""
+    g = town.g
+    stops = []
+    for label, (tx, ty) in targets:
+        best = None
+        for y in range(ty - 14, ty + 15):
+            for x in range(tx - 16, tx + 17):
+                ok = lambda c: g.free(*c) or g.road(*c) and g.road(c[0], c[1] - 1)    # (on a wide road, too)
+                if not (ok((x, y)) and ok((x + 1, y)) and g.road(x, y + 1) and g.road(x + 1, y + 1)):
+                    continue
+                m1, _, _ = g.at(x, y)
+                m2, _, _ = g.at(x + 1, y + 1)
+                if m1 is None or m1 is not m2 or (x, y + 1) not in town.reached():
+                    continue
+                d = abs(x - tx) + abs(y - ty)
+                if best is None or d < best[0]:
+                    best = (d, x, y)
+        if best is None:
+            town.missed.append("cart stop " + label)
+            continue
+        _, x, y = best
+        g.taken.update({(x, y), (x + 1, y)})
+        m, lx, ly = g.at(x, y)
+        town.statics.append((m.name, K.obj_line("StaticObject", "Cart", lx, ly)))
+        town.npcs.append((m.name, "NPC\tHorse\t%d\t%d\tAttitude=Good Stand=1 Face=W Id=%s_Horse_%d" % (
+            lx * TW, (ly - 1) * TW, town.key, len(stops) + 1)))
+        pid = "%s_Cart_Stop_%d" % (town.key, len(stops) + 1)
+        carter = "%s_Carter_%d" % (town.key, len(stops) + 1)
+        town.npcs.append((m.name, "NPC\tCarter\t%d\t%d\tAttitude=Good Stand=1 Face=S Id=%s Name=%s" % (
+            (lx - 1) * TW, ly * TW - 8, carter, town.rng.choice(NAMES["person"]))))
+        town.ids.append((m.name, pid, lx + 1, ly + 1))
+        stops.append((label, pid, carter))
+    for label, pid, carter in stops:
+        rows = [say("Carter", "A ride across %s? Two coins, anywhere the carts go." % town.title,
+                    *([("To %s." % other, "@to%d" % i) for i, (other, opid, _) in enumerate(stops) if opid != pid][:3]
+                      + [("Not today.", "@end")]))]
+        for i, (other, opid, _) in enumerate(stops):
+            if opid == pid:
+                continue
+            rows += [("@to%d" % i,), (">Got.Item", "Gold_Coin(s)", "2", "@poor"),
+                     ("Take.Item", "Gold_Coin(s)", "2"),
+                     ("Display.Message", "Cyan", "The cart rattles off through the streets of %s.." % town.title, "-"),
+                     ("Play.Sound", "Boat"), ("Toggle.User.Input", "OFF"), ("Wait", "2"), ("Toggle.User.Input", "ON"),
+                     ("Teleport", opid, "-"),
+                     ("Display.Message", "Cyan", "..and pulls up %s." % other, "-"), ("End",)]
+        rows += [("@poor",), ("Display.Refusal", "You need 2 gold coins for the cart."), ("@end",), ("End",)]
+        town.scripts["Talk to " + carter] = rows
+    return stops
+
+
 # ================================================================== a settlement, all of it
-def grow(town, plan):
+def grow(town, plan, carts=None):
     """plan: what the settlement gets, in order: ("square",), ("lanes", [kinds], per lane), ("building", kind, name),
     ("streets", n), ("park", n). Each is placed nearest the centre that's still free; then any building a later one
     has cut off from the town is joined to it again (or goes), and only then furnished."""
@@ -803,11 +882,17 @@ def grow(town, plan):
     for item in plan:
         what = item[0]
         if what == "square":
-            w, h, stalls = (item[1:] + (9, 7, 4)[len(item) - 1:]) if len(item) > 1 else (9, 7, 4)
-            sq = town.square(w, h, stalls=stalls)
+            w, h, stalls = (item[1:4] + (9, 7, 4)[len(item[1:4]):]) if len(item) > 1 else (9, 7, 4)
+            if len(item) > 4:                        # (a second square, a posh one: fine clothes and shoes)
+                sq = town.square(w, h, stalls=stalls, name=item[4].capitalize() + "_Square", goods=4)
+            else:
+                sq = town.square(w, h, stalls=stalls)
         elif what == "lanes":
             kinds, per = item[1], item[2]
             near = ((sq[0] + sq[2]) // 2, sq[3] + 1) if sq else town.centre
+            by = [lt for lt in town.lots if len(item) > 3 and lt.kind == item[3]]
+            if by:                                       # (a lane by a building: arms and armour by the armoury)
+                near = (by[0].door, by[0].y2 + 1)
             for kind in kinds:
                 lots = town.place_row("shop", per, near)
                 for i, lot in enumerate(lots):
@@ -848,6 +933,8 @@ def grow(town, plan):
             if lots[0].kind == "house":
                 town.streets += 1
             town.notice(x, y, title, words)
+    if carts:                                    # (carts and horses between its quarters)
+        cart_stops(town, carts(town))
     for lot in list(town.lots):
         if lot.kind in ("tavern", "inn") and not lot.name:
             names = [n for n in NAMES["tavern"] if n not in USED_TAVERNS]

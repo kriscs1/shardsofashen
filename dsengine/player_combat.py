@@ -335,6 +335,14 @@ class CombatMixin:
 
     def damage_npc(self, e, damage):
         hp = e.hp - damage
+        slayer = self.entity_ini(e.name, "Slain.By", "")         # (only one weapon gives it its death blow)
+        if hp <= 0 and slayer:
+            s = self.equip_slot_index("Weapon")
+            if not (s > 0 and self.equipped[s] == slayer):
+                hp = 1
+                if self.now - getattr(self, "slayer_warned", -10 ** 9) > 6000:
+                    self.slayer_warned = self.now
+                    self.display_message("Your blows can't reach its heart. Only the %s can." % pretty(slayer), "FAIL")
         e.hp = max(0, hp)
         if hp <= 0:
             self.kill_npc(e)

@@ -25,8 +25,8 @@ NPC	Rabbit	160	224	Attitude=Bad
 NPC	Rabbit	512	256	Attitude=Bad
 NPC	Butterfly	288	288	Attitude=Good
 NPC	Blue_Butterfly	160	576	Attitude=Good
-Id	Isle_Pond	13	12
 NPC	Maren	416	56	Attitude=Good Stand=1 Face=S Schedule=Day Id=Maren_At_Counter
 NPC	Edwin	544	24	Attitude=Good Stand=1 Face=S Schedule=Day Id=Edwin_At_Desk
 StaticObject	Notice	448	226	Id=Isle_Bank_Notice
 Id	Isle_Bank	16	8
+Id	Isle_Pond	13	12

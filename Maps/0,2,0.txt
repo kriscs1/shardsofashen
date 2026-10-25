@@ -29,3 +29,7 @@ StaticObject	Notice	64	642	Id=Southport_Notice_12
 StaticObject	Notice	96	418	Id=Southport_Notice_18
 StaticObject	Sign_Pub	512	624
 StaticObject	Notice	416	642	Id=Southport_Notice_51
+NPC	Horse	416	160	Attitude=Good Stand=1 Face=W Id=Southport_Horse_3
+NPC	Carter	384	184	Attitude=Good Stand=1 Face=S Id=Southport_Carter_3 Name=Ernest
+StaticObject	Cart	384	160
+Id	Southport_Cart_Stop_3	14	7

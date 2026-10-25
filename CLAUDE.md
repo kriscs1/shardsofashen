@@ -56,19 +56,30 @@ The main quest line (`Type=Main` in `Data/Quests.ini`, in chapters; the Isle's a
    squeaks: stand on it, then Search it, for the compass. Bess sails you to Southport; **Wim** the ferryman crosses
    for a coin after that.
 
-On the mainland (to Galaith):
-5. Southport is the temporary capital: its City Hall doubles as Parliament. The barrier can only be broken by
-   **Bert**, the great wizard of the **Wizards' Court** (the old King's Castle, the Royal Isle). Three quests take you
-   there through the cities on the way: Southport, Ashford and **King Rupert's Keep** (the old Tyron's Keep).
-6. Bert needs three things to break the barrier: a **staff** (King Rupert's Keep), a **spell book** (outside Dunerest)
-   and a **ring** (the Ashen Priest's, Emberwatch). A quest for each.
-7. Bert only wanted the ring (it goes with his new robe, and he can't stand the Ashen Priest). He teaches the spell,
-   gives you the staff, and warns that only the **Sword of Valour**, driven into its heart, kills the dragon: three
-   quests, by boat to **Dragon Island**.
-8. **Galaith** (the far east of the mainland, in a gap in the mountains behind the barrier): kill the dragon (a boss
-   fight, with words between you); persuade the Royal Guard to let you see your father, exploring the city; show King
-   Rupert the amulet and tell him the will. He makes you king. The world is open play from then; Jimmy is found in
-   any of your houses, and sleeps on the throne in the palace.
+On the mainland (`build_heir_mainland.py`; Galaith and its pass, maps 10-14 by 5-7, by `build_galaith.py`):
+5. **The Temporary Capital** (`ParliamentQuest`): the guard at Southport's port; the **Speaker** in Southport's City
+   Hall, which is Estforlan's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
+   Court** (the old King's Castle, 4,4,0; Bert at the top of its tower, 4,4,1), can break the barrier.
+6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
+7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
+   King Tyron is gone from the game), five hobgoblins in the old iron mine.
+8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Estforlan** (the King's solar, 2,4,1, up a locked
+   stair in the keep); 10. **The Sunken Grimoire** (the scholar in Dunerest; a buried library under a mound in the
+   desert, 1,9,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
+   the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
+12. **A Ship for Dragon Island** (Captain Rook, on the shore east of Ravensgate, 9,8,0), 13. **The Island of
+   Dragons** (8,10,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
+15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (10,6,0) breaks it; the dragon speaks;
+   it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's west gate and
+   Wardhaven.
+16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (12,5,0), the Lord Chancellor (Galaith's
+   Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
+   captain.
+17. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
+   **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens.
+
+The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
+The Beggar's Lost Key are gone; their places stay, quiet. `Dev/Story and Quests.md` has every quest, step by step.
 
 Side quests hang off these by `Requires.Quests` and `Requires.Level`. A new quest must fit this world: its places
 named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.ini` with `Marker<N>` place Ids.

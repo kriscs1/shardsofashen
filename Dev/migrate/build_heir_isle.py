@@ -1320,11 +1320,13 @@ def fathers_house_scripts():
         ("Change.Tile", "%d,%d" % (sx, sy), "Loose_Floorboard001", "0", "0"),
         ("@end",), ("End",),
     ])
-    w("1,1,0", [                                                  # (a loose board they've stood on stays loose)
-        ("Get.Value", "ATTRIBUTE", "Squeaked", V1),
-        ("Get.Value", "ATTRIBUTE", "CompassFound", V2),
-        (">Conditional", "$Variable.1>=1 and $Variable.2=0", "@end"),
+    w("1,1,0", [                                                  # (a loose board they've stood on stays loose;
+        ("Get.Value", "ATTRIBUTE", "Squeaked", V1),                 # and Jimmy, in this house of yours too, once
+        ("Get.Value", "ATTRIBUTE", "CompassFound", V2),             # you're king: build_heir_mainland.py)
+        (">Conditional", "$Variable.1>=1 and $Variable.2=0", "@jimmy"),
         ("Change.Tile", "%d,%d" % (sx, sy), "Loose_Floorboard001", "0", "0"),
+        ("@jimmy",), (">Conditional", "$Attr.KingQuest>=1", "@end"),
+        ("Add.Entity", at(20, 5, -8), "Strawberry_Cat", "NPC", "Attitude=Good Zone=19,4,21,6 Pause=6-15 Name=Jimmy"),
         ("@end",), ("End",),
     ])
     w("Search Loose_Floorboard", [

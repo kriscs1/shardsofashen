@@ -1,2 +1,2 @@
-01	Display.Message	Cyan	The Royal Isle: King Tyron's palace.
+01	Display.Message	Cyan	The Royal Isle: the Wizards' Court.
 02	End

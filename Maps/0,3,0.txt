@@ -37,3 +37,8 @@ StaticObject	Notice	544	194	Id=Southport_Notice_31
 Id	Southport_Market_Square	19	14
 Id	Southport_Gardens_5	8	21
 Id	Southport_Gardens_6	7	7
+NPC	Horse	352	608	Attitude=Good Stand=1 Face=W Id=Southport_Horse_2
+NPC	Carter	320	632	Attitude=Good Stand=1 Face=S Id=Southport_Carter_2 Name=Ida
+StaticObject	Cart	320	608
+Id	Southport_Cart_Stop_2	12	21
+Id	Southport_City_Hall	17	16

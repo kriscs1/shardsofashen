@@ -1,2 +1,2 @@
-01	Display.Message	Cyan	Tyron's Keep, the King's garrison.
+01	Display.Message	Cyan	King Rupert's Keep, held by his Steward.
 02	End

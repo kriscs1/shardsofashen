@@ -13,74 +13,40 @@
 12	Display.Conversation	Witch	Lost it already? Here's another. Down his throat, mind, not on the ground.	Thanks.	13
 13	Give.Item	Calming_Draught	1
 14	End
-15	Get.Value	ATTRIBUTE	OmenQuest	Variable.5$
-16	>Conditional	$Variable.5=1	21
-17	Display.Conversation	Witch	Red ash in your hair... it smells of sulphur. That's no forest fire, dearie.\Something under Ashpeak is breathing in its sleep, and it's waking.\If you mean to face it, bring me a frost lily, from the frozen lake east of Frosthold.	I'll find one.	18	A dragon?!	18
-18	Update.Attribute	OmenQuest	=2
-19	Display.Message	Yellow	The Ashen Omens: bring Morwen a frost lily from the frozen lake east of Frosthold.
-20	End
-21	>Conditional	$Variable.5=2	42
-22	>Got.Item	Frost_Lily	1	40
-23	Display.Conversation	Witch	A frost lily, and not a petal bruised! Now listen, because I can brew it only one way, and only once.\DRAGONSBANE: a poison for the beast's blood. Uncork it in the lair and the dragon will meet you sick and weak.\Or a FIRE WARD: a charm to wear. Its fire won't catch on you, and its blows will burn a third less.\Which will it be?	Brew the Dragonsbane.	25	Make the Fire Ward.	31	Let me think.	41
+15	Get.Value	ATTRIBUTE	BogQuest	Variable.1$
+16	>Conditional	$Variable.1=0	25
+17	>Quest.Can.Start	BogQuest	50
+18	Display.Conversation	Witch	Heh. A stranger in the bog. Elder Pike is sick with marsh fever, and only my brew will cure him.\Fetch me four sprigs of bog myrtle from the marsh. You'll need a little Herblore to pick it.	I'll gather some.	20	Not now.	49
+19	End
+20	Update.Attribute	BogQuest	=1
+21	Quest.Note	BogQuest	Bog myrtle grows in the Saltmarsh round Fenwick (Herblore 5 to pick it).
+22	Quest.Note	BogQuest	Bring Morwen 4 bog myrtle.
+23	Display.Message	Yellow	Quest started: Bog Lights.
 24	End
-25	Take.Item	Frost_Lily	1
-26	Give.Item	Dragonsbane	1
-27	Update.Attribute	OmenBane	=1
-28	Play.Sound	Brew
-29	Quest.Note	OmenQuest	Morwen brewed Dragonsbane: Ignaroth will be sick and weak when you meet it.
-30	Goto.Line	36
-31	Take.Item	Frost_Lily	1
-32	Give.Item	Fire_Ward_Charm	1
-33	Update.Attribute	OmenBane	=0
-34	Play.Sound	Brew
-35	Quest.Note	OmenQuest	Morwen made a Fire Ward charm: wear it, and the dragon's fire won't catch on you.
-36	Update.Attribute	OmenQuest	=3
-37	Display.Conversation	Witch	There. Now, one more thing: dragons don't wake on their own. There's a cult, the Ashen Hand, who worship the beast and sing to it in its sleep.\One of their acolytes is camped in the hills west of Frosthold. Find him. They know things about that dragon nobody else does.	I'll find him.	38
-38	Display.Message	Yellow	The Ashen Omens: find the Ashen Hand acolyte in the hills west of Frosthold.
-39	End
-40	Display.Conversation	Witch	A frost lily, dearie. They grow only on the frozen lake east of Frosthold. Mind the troll.	I'll find one.	41
-41	End
-42	Get.Value	ATTRIBUTE	AshenSworn	Variable.5$
-43	>Conditional	$Variable.5=1	49
-44	Get.Value	ATTRIBUTE	OmenWitchTold	Variable.5$
-45	>Conditional	$Variable.5=0	49
-46	Update.Attribute	OmenWitchTold	=1
-47	Display.Conversation	Witch	You swore to the Ashen Hand. Don't look at me like that: the bog hears everything.\Pretend or not, an oath is an oath. I hope you know what you're doing.	It was a trick.	41	...	41
-48	End
-49	Get.Value	ATTRIBUTE	BogQuest	Variable.1$
-50	>Conditional	$Variable.1=0	59
-51	>Quest.Can.Start	BogQuest	84
-52	Display.Conversation	Witch	Heh. A stranger in the bog. Elder Pike is sick with marsh fever, and only my brew will cure him.\Fetch me four sprigs of bog myrtle from the marsh. You'll need a little Herblore to pick it.	I'll gather some.	54	Not now.	83
-53	End
-54	Update.Attribute	BogQuest	=1
-55	Quest.Note	BogQuest	Bog myrtle grows in the Saltmarsh round Fenwick (Herblore 5 to pick it).
-56	Quest.Note	BogQuest	Bring Morwen 4 bog myrtle.
-57	Display.Message	Yellow	Quest started: Bog Lights.
-58	End
-59	>Conditional	$Variable.1=1	70
-60	>Got.Item	Bog_Myrtle	4	68
-61	Take.Item	Bog_Myrtle	4
-62	Give.Item	Witch_Brew	1
-63	Update.Attribute	BogQuest	=2
-64	Quest.Note.Done	BogQuest	Bring Morwen 4 bog myrtle.
-65	Play.Sound	Brew
-66	Display.Conversation	Witch	Good, good. Into the pot... there. Take this to Elder Pike, and don't you dare sip it.	I won't.	83
-67	End
-68	Display.Conversation	Witch	Four sprigs of bog myrtle, dearie. It grows among the reeds.	I'll keep looking.	83
-69	End
-70	>Conditional	$Variable.1=2	73
-71	Display.Conversation	Witch	Off you go! The Elder's house is in the south-west of the village.	On my way.	83
-72	End
-73	>Conditional	$Variable.1=3	82
-74	Update.Attribute	BogQuest	=4
-75	Quest.Note.Done	BogQuest	*
-76	Give.Item	Mega_Potion	2
-77	Give.Item	Gold_Coin(s)	80
-78	Update.Skill	Herblore	+2
-79	Display.Conversation	Witch	He drank it? Then he'll live, the old goat. Here: two of my best potions, and some coin.	Thank you!	80
-80	Display.Message	Yellow	Quest complete: Bog Lights! You receive 2 mega potions, 80 gold and Herblore experience.
-81	End
-82	Display.Conversation	Witch	Mind the bog lights, dearie. They lead the foolish astray.	Goodbye.	83
-83	End
-84	Display.Conversation	Witch	Hee hee. The bog lights want someone who knows their herbs and can hold their own. You're neither yet, dearie. Off you go.	Charming.	85
-85	End
+25	>Conditional	$Variable.1=1	36
+26	>Got.Item	Bog_Myrtle	4	34
+27	Take.Item	Bog_Myrtle	4
+28	Give.Item	Witch_Brew	1
+29	Update.Attribute	BogQuest	=2
+30	Quest.Note.Done	BogQuest	Bring Morwen 4 bog myrtle.
+31	Play.Sound	Brew
+32	Display.Conversation	Witch	Good, good. Into the pot... there. Take this to Elder Pike, and don't you dare sip it.	I won't.	49
+33	End
+34	Display.Conversation	Witch	Four sprigs of bog myrtle, dearie. It grows among the reeds.	I'll keep looking.	49
+35	End
+36	>Conditional	$Variable.1=2	39
+37	Display.Conversation	Witch	Off you go! The Elder's house is in the south-west of the village.	On my way.	49
+38	End
+39	>Conditional	$Variable.1=3	48
+40	Update.Attribute	BogQuest	=4
+41	Quest.Note.Done	BogQuest	*
+42	Give.Item	Mega_Potion	2
+43	Give.Item	Gold_Coin(s)	80
+44	Update.Skill	Herblore	+2
+45	Display.Conversation	Witch	He drank it? Then he'll live, the old goat. Here: two of my best potions, and some coin.	Thank you!	46
+46	Display.Message	Yellow	Quest complete: Bog Lights! You receive 2 mega potions, 80 gold and Herblore experience.
+47	End
+48	Display.Conversation	Witch	Mind the bog lights, dearie. They lead the foolish astray.	Goodbye.	49
+49	End
+50	Display.Conversation	Witch	Hee hee. The bog lights want someone who knows their herbs and can hold their own. You're neither yet, dearie. Off you go.	Charming.	51
+51	End
