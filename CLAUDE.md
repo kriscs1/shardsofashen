@@ -59,12 +59,23 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   answer, e.g. `About a ferry ticket... [if $Attr.Passage>=1 and $Attr.Passage<=10]`.
 - Refusals are plain: "The chest is empty." (with the `Empty` sound), not hints.
 - NPCs can have their own names through the map option `Name=` (underscores become spaces).
+- **The chat log isn't spammed**: no line per blow in a fight (the numbers over heads show hits and misses).
+  Log what matters: kills, loot, level-ups, warnings, quest news.
+- **Bad news is heard as well as read**: a negative message (FAIL, DAMAGE, ERROR, DarkRed) with no sound of its
+  own gets the Denied sound (`Session.take_out`). Give a failure its own sound where one fits.
 
 **Creatures**
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.
 - Prey (hens, cows, sheep, rabbits, ducks) has `Flees=1`: it runs from whoever hits it and never fights back.
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
 - Buffs and debuffs end on death.
+- Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
+
+**Doing things**
+- Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays
+  its work with `Play.Animation <Anim> <Times> <Sound>` (chips, sparks, splashes; a lunge each beat).
+  `Dev/migrate/work_animations.py` adds them to new Chop/Mine/Fish/Pick scripts.
+- **All tools wear** (`Durability`, no `Slot`): a use each go, and a broken one doesn't count until it's mended.
 
 **Places and furniture**
 - Inside walls are `*_Thin_Plank*` floor tiles with the wall drawn along their edge. Beds, bookshelves, chests,
@@ -88,6 +99,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
 - Hover text is at most 4 lines.
+- Text centred in a row uses `drawTextMid` (it measures the font's capital height): never guess offsets.
 
 ## Code and data conventions
 
