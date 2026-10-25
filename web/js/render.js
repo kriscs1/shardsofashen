@@ -156,8 +156,14 @@ function updateFx(now, dt) {
 }
 
 // ----- objects that animate where they stand, decor tiles placed as objects
+const flaps = new Map();                           // kind -> does it flap (Flap=1: a butterfly's wings)
 function entityImage(e, now) {
   let image = e.i || e.n;
+  if (e.k === T.NPC) {                            // (its wings beat all the time, hovering or not)
+    if (!flaps.has(e.n)) flaps.set(e.n, entityIni(e.n, "Flap", "0").trim() === "1");
+    const w = flaps.get(e.n) && /^(.+[1248])[abc]$/.exec(image);
+    if (w) image = w[1] + "abcb"[(Math.floor(now / 70) + e.u) % 4];
+  }
   if (e.k === T.STATICOBJECT) {
     const fr = frames(e.n, "e");
     if (fr) image = e.n + ((Math.floor(now / fr[1]) + e.u * 3) % fr[0] + 1);

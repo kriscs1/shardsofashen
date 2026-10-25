@@ -21,4 +21,4 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 NPC	Rabbit	480	320	Attitude=Bad
 NPC	Rabbit	576	192	Attitude=Bad
-NPC	Butterfly	160	160	Attitude=Good
+NPC	Blue_Butterfly	160	160	Attitude=Good

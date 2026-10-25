@@ -32,5 +32,5 @@ NPC	Bear	416	576	Attitude=Bad
 StaticObject	Fish_Spot	416	128
 NPC	Rabbit	576	320	Attitude=Bad
 NPC	Rabbit	672	480	Attitude=Bad
-NPC	Butterfly	512	256	Attitude=Good
+NPC	Blue_Butterfly	512	256	Attitude=Good
 Id	Spider_Nest	20	14

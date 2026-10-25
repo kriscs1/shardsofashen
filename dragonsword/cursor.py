@@ -178,11 +178,14 @@ def draw_coin(s):
 
 
 def draw_eat(s):
-    circle(s, RED, (12, 18), 9)
-    circle(s, RED, (20, 18), 9)
-    circle(s, (240, 120, 104), (11, 15), 2.6)
-    line(s, WOOD_DK, (16, 10), (17, 4), 1.4)
-    ellipse(s, (96, 168, 72), 17, 3, 9, 5)
+    """A roast drumstick: the meat up and to the left, its bone out to the lower right."""
+    line(s, CREAM, (16, 16), (25, 25), 3.2)                             # the bone, knobbed at its end
+    circle(s, CREAM, (27.5, 24.5), 3)
+    circle(s, CREAM, (24.5, 27.5), 3)
+    circle(s, (150, 78, 34), (12.5, 12.5), 10)                          # the meat, roasted brown
+    circle(s, (150, 78, 34), (17, 17), 6)
+    circle(s, (196, 112, 52), (11, 11), 7.5)
+    circle(s, (236, 168, 96), (8.5, 8.5), 2.6)                          # (the shine on its skin)
 
 
 def draw_drink(s):

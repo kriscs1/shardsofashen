@@ -121,7 +121,7 @@ class NPCMixin:
             walk = 0.5
         a.walk_speed = max(4, min(1, walk) * e.move_speed)
         pause = d.entity_ini(n, "Pause", "1-4")
-        zone = chase_r = patrol = ""
+        zone = chase_r = patrol = roost = ""
         stand = ping = 0
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
@@ -159,6 +159,8 @@ class NPCMixin:
                     a.schedule = value
                 elif key == "FRIENDLY.IF":
                     a.friendly_if = value
+                elif key == "ROOST":                   # (where it spends the night, not gone home: hens in their coop)
+                    roost = value
             k += 1
         home = self.maps.get(e.map)
         a.home_ox = home.ox if home else math.floor(e.x / self.sw) * self.sw
@@ -195,6 +197,11 @@ class NPCMixin:
             self.npc_set_rect(a, 1, *(val(word(chase_r, i, ",")) for i in range(1, 5)))
         else:
             self.npc_set_rect(a, 1, min(x1, x2) - chase, min(y1, y2) - chase, max(x1, x2) + chase, max(y1, y2) + chase)
+        a.roost = None
+        if self.npc_rect_valid(roost):
+            a.day_zone, a.day_chase = a.zone, a.chase
+            self.npc_set_rect(a, 0, *(val(word(roost, i, ",")) for i in range(1, 5)))
+            a.roost, a.zone = a.zone, a.day_zone
         p_min = val(word(pause, 1, "-"))
         p_max = p_min
         if "-" in pause:
@@ -535,6 +542,8 @@ class NPCMixin:
         own = getattr(e.ai, "schedule", None) if e.ai is not None else None
         if own is not None:
             sched = "" if own.upper() in ("ALWAYS", "NONE", "") else own.capitalize()
+        if getattr(e.ai, "roost", None) and sched == "Day" and self.data.day_night_enabled and not e.in_combat:
+            return self.npc_roost(e, e.ai)
         if not sched or not self.data.day_night_enabled or e.z != 0 or e.in_combat:
             if e.sched_away and not sched:
                 e.sched_away = False
@@ -562,6 +571,20 @@ class NPCMixin:
             e.active = True
             return False
         return e.sched_away
+
+    def npc_roost(self, e, a):
+        """A creature with a Roost: by night it goes there and stays (roaming only inside it); by day, back out."""
+        if e.sched_away:
+            e.sched_away, e.active = False, True
+        night = self.is_night()
+        zone, chase = (a.roost, a.roost) if night else (a.day_zone, a.day_chase)
+        if a.zone is not zone:
+            a.zone, a.chase = zone, chase
+            if not self.in_zone(a, e.fx, e.fy):
+                self.forget_path(e)
+                a.goal_x, a.goal_y = (zone[0] + zone[2]) / 2, (zone[1] + zone[3]) / 2
+                self.npc_walk_started(e, a, AI_RETURN)
+        return False
 
     def nearest_door(self, e):
         m = self.maps.get(e.map) or self.map_at(e.z, e.x, e.y)

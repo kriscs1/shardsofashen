@@ -170,8 +170,11 @@ class QuestMixin:
             attribute = help_clean(d.get("ATTRIBUTE", ""))
             done = val(help_clean(d.get("DONE", "")))
             value = val(self.get_attribute(attribute)) if attribute else 0
-            if value > 0 and (done == 0 or value < done):
-                for part in help_text(d.get("MARKER" + lbstr(int(value)), "")).split(";"):
+            if done == 0 or value < done:
+                where = help_text(d.get("MARKER" + lbstr(int(max(0, value))), ""))
+                if value <= 0 and not where:                       # (not begun: where its giver is)
+                    where = self.quest_giver_at(help_clean(d.get("GIVER", "")))
+                for part in where.split(";"):
                     part = trim(part)
                     if not part:
                         continue
@@ -180,9 +183,20 @@ class QuestMixin:
                     else:
                         pl = self.data.place(part)
                         mark = (pl.map, pl.tx, pl.ty) if pl else None
-                    if mark and len(marks) < 40:
+                    if mark and len(marks) < 80:
                         marks.append(list(mark) + [name])          # (whose it is: one quest is tracked at a time)
         return marks
+
+    def quest_giver_at(self, giver):
+        """ "map tx ty" of the NPC that gives a quest (by its Id, else its name), or "" if there's none."""
+        if not giver:
+            return ""
+        e = self.w.placed_entity(giver) or next(
+            (e for e in self.w.ents if e.name.upper() == giver.upper() and e.alive and e.map), None)
+        m = self.w.maps.get(e.map) if e is not None else None
+        if m is None:
+            return ""
+        return "%s %d %d" % (m.name, int((e.cx - m.ox) // self.tw) + 1, int((e.cy - m.oy) // self.th) + 1)
 
     # ----- the journal's other tabs
     def help_level_short(self, skill, level):

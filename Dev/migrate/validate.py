@@ -278,7 +278,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 
 # ------------------------------------------------------------------ NPC movement Options on map lines
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
-               "Face", "Cone", "Group", "Friendly.If", "Schedule"}   # (Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
+               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost"}   # (Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
 _npc_ids = None
 
 
@@ -1012,7 +1012,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death"}                                          # a seed's crop (Crops.ini); kept on death

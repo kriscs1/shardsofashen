@@ -512,6 +512,32 @@ def test_digging_finds_things_now_and_then(world, monkeypatch):
     assert s.items_held("Gold_Coin(s)") > gold                    # (gold: the first find in Digging.ini)
     s.do_action("Dig", spade)
     assert s.dig_pending is None                                  # (dug already)
+    assert spade.wear == 1                                        # (the spade wears with each dig)
+    leave(world, s)
+
+
+def test_tools_wear_out_and_a_broken_one_wont_do(world):
+    s = join(world, "Woodsman")
+    stock(s, Bronze_Axe=1)
+    axe = next(e for e in s.inv if e.name == "Bronze_Axe")
+    assert s.is_tool("Bronze_Axe") and not s.is_tool("Logs")
+
+
+    def swing(script):                                             # (a script's check for the axe, as Chop Tree has)
+        s.script_name, s.script_tools_used = script, set()
+        s.script_lines = ["", "01	>Got.Item	Bronze_Axe	1	03", "02	>Got.Item	Bronze_Axe	1	03", "03	End", ""]
+        s.script_line_no = 1
+        s.execute_script_line()
+        after = s.script_line_no                                   # (2: it's there; 3: it isn't)
+        s.execute_script_line()
+        return after
+    assert swing("Chop Tree") == 2 and axe.wear == 1                # (found, and worn once a go)
+    swing("Talk to Miner")
+    assert axe.wear == 1                                           # (asked about, not used: no wear)
+    axe.wear = world.data.item_max_dur("Bronze_Axe")               # (worn right out)
+    assert s.tools_held("Bronze_Axe") == 0 and s.items_held("Bronze_Axe") == 1
+    assert not s.use_tool("Bronze_Axe")
+    assert swing("Chop Tree") == 3                                  # (a broken axe: "You need an axe!")
     leave(world, s)
 
 
@@ -1059,7 +1085,7 @@ def test_jimmy_is_at_home_in_the_cottage(world):
     s = join(world, "CatLover", "4,0,0", 7 * 32, 11 * 32)           # (where a new character wakes)
     s.connected = True
     jimmy = [e for e in world.ents if getattr(e, "id", None) == "Jimmy" or getattr(e, "display", "") == "Jimmy"]
-    assert len(jimmy) == 1 and jimmy[0].name == "Ginger_Cat" and jimmy[0].map == "4,0,0"
+    assert len(jimmy) == 1 and jimmy[0].name == "Strawberry_Cat" and jimmy[0].map == "4,0,0"
     e = jimmy[0]
     assert not world.hostile_for(e, s) and "Stroke" in s.get_verbs(e) and "Attack" not in s.get_verbs(e)
     s.out = []
@@ -1118,4 +1144,22 @@ def test_the_milkmaid_is_asked_about_tickets_only_once_its_time(world):
         assert any(r.startswith("About a ferry ticket") for r in s.responses) == asked, passage
         s.close_action_box(-1)
         world.tick(0.05)
+    leave(world, s)
+
+
+def test_hens_roost_in_their_coop_at_night(world):
+    s = join(world, "Nightwatch", "2,0,0", 18 * 32, 16 * 32)         # (by the hens' yard: they walk, not vanish)
+    m = world.maps["2,0,0"]
+    day = world.day_fraction()
+    world.set_day_fraction(0.95)
+    for _ in range(900):
+        world.tick(0.05, now=world.now + 50)
+    hens = [e for e in world.ents if e.name == "Chicken" and e.map == "2,0,0"]
+    inside = lambda e: 21 <= int((e.fx - m.ox) // 32) + 1 <= 23 and 12 <= int((e.fy - m.oy) // 32) + 1 <= 13   # (its feet)
+    assert hens and all(e.active and inside(e) for e in hens), [(e.cx - m.ox, e.cy - m.oy) for e in hens]
+    world.set_day_fraction(0.5)                                      # (morning: out into the yard again)
+    for _ in range(900):
+        world.tick(0.05, now=world.now + 50)
+    assert not any(inside(e) for e in hens)
+    world.set_day_fraction(day)
     leave(world, s)

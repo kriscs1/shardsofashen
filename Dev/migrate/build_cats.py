@@ -1,5 +1,5 @@
 """Cats: a grey tabby (Cat), a black cat (Black_Cat) and a ginger (Ginger_Cat) - drawn, given a meow and a purr,
-put about the towns - and Jimmy, a strawberry-blond ginger, at home in the cottage where new characters wake.
+put about the towns - and Jimmy, a strawberry-blond ginger (Strawberry_Cat: no white on him), at home in the cottage where new characters wake.
 Run it again to draw and make the sounds again; the cats are only placed once.
 
   python -I "Dev\\migrate\\build_cats.py"
@@ -34,6 +34,8 @@ CATS = {
                   "A sleek black cat. Lucky, probably."),
     "Ginger_Cat": ((232, 166, 110), (198, 120, 72), (250, 208, 164), (252, 236, 214), (112, 172, 90), True,
                    "A ginger cat - more strawberry-blond, really."),
+    "Strawberry_Cat": ((240, 182, 132), (210, 136, 92), (252, 214, 176), (246, 198, 154), (112, 172, 90), True,
+                       "A strawberry-blond cat, ginger from nose to tail."),     # (Jimmy: no white on him anywhere)
 }
 LEGS = [(12, (0, 1, -1), True), (14, (0, -1, 1), False), (18, (0, -1, 1), True), (20, (0, 1, -1), False)]
 RATE = 22050
@@ -212,7 +214,7 @@ def place():
         n += 1
     c = Map("4,0,0")                                         # Jimmy, at home in the cottage
     if not c.has_line("Id=Jimmy"):
-        c.ents.append(obj_line("NPC", "Ginger_Cat", 9, 12, "Attitude=Good Zone=6,10,9,12 Pause=6-15 Id=Jimmy Name=Jimmy",
+        c.ents.append(obj_line("NPC", "Strawberry_Cat", 9, 12, "Attitude=Good Zone=6,10,9,12 Pause=6-15 Id=Jimmy Name=Jimmy",
                                -8))
         c.save()
         n += 1

@@ -107,6 +107,7 @@ class ScriptMixin:
         for n, text in lines.items():
             self.script_lines[n] = text
         self.script_name = name
+        self.script_tools_used = set()             # (a tool wears once a go: a swing of the axe, a cast of the line)
         return True
 
     def first_script_line(self, n):
@@ -596,7 +597,14 @@ class ScriptMixin:
         elif c == ">Not.In.Direction":
             self.script_condition(not self.direction_matches(arg[1]), arg[2])
         elif c == ">Got.Item":
-            self.script_condition(self.items_held(arg[1]) >= max(1, val(arg[2])), arg[3])
+            tool = self.is_tool(arg[1])
+            ok = (self.tools_held(arg[1]) if tool else self.items_held(arg[1])) >= max(1, val(arg[2]))
+            if ok and tool and not self.script_name.upper().startswith("TALK TO"):     # (it's being used: it wears)
+                used = getattr(self, "script_tools_used", set())
+                if arg[1].upper() not in used:
+                    used.add(arg[1].upper())
+                    self.use_tool(arg[1])
+            self.script_condition(ok, arg[3])
         elif c == ">Not.Got.Item":
             self.script_condition(self.items_held(arg[1]) < max(1, val(arg[2])), arg[3])
         elif c == ">Line.In.File":

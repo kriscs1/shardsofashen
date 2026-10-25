@@ -24,5 +24,5 @@ NPC	Wolf	192	448	Attitude=Bad
 StaticObject	Fish_Spot	480	320
 NPC	Rabbit	608	544	Attitude=Bad
 NPC	Rabbit	96	352	Attitude=Bad
-NPC	Butterfly	320	288	Attitude=Good
+NPC	Blue_Butterfly	320	288	Attitude=Good
 Id	Hollow_Barrel	12	15

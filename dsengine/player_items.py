@@ -128,6 +128,33 @@ class ItemsMixin:
             self.check_locks(True)
         return wear
 
+    # ----- tools (Durability, and no Slot: they work from your pack) wear with each use, and a broken one won't do
+    def is_tool(self, name):
+        return self.data.item_max_dur(name) > 0 and self.item_equip_slot(name) == 0
+
+    def tools_held(self, name):
+        """How many of this tool you have that still work."""
+        m = self.data.item_max_dur(name)
+        return sum(e.quantity for e in self.inv if e.name == name and (m <= 0 or e.wear < m))
+
+    def use_tool(self, name):
+        """A use of the tool: the most worn one that still works wears (one is worn out at a time)."""
+        m = self.data.item_max_dur(name)
+        working = [e for e in self.inv if e.name == name and e.wear < m]
+        if m <= 0 or not working:
+            return False
+        e = max(working, key=lambda x: x.wear)
+        before = e.wear
+        e.wear = min(m, before + 1)
+        if e.wear >= m:
+            self.display_message("Your %s has broken! It's no use until it's mended (a blacksmith, or an anvil)."
+                                 % pretty(name), "DAMAGE")
+            self.play_sound("Locked")
+        elif before < m * 0.8 <= e.wear:
+            self.display_message("Your %s is badly worn: get it mended soon." % pretty(name), "DAMAGE")
+        self.dirty_me = True
+        return True
+
     def wears_of(self, name, quantity):
         return [x.wear for x in reversed(self.inv) if x.name == name][:quantity]
 

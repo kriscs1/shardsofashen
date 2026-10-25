@@ -32,7 +32,7 @@ StaticObject	Chest	288	480
 NPC	Rabbit	416	224	Attitude=Bad
 NPC	Rabbit	288	384	Attitude=Bad
 NPC	Rabbit	192	64	Attitude=Bad
-NPC	Butterfly	640	224	Attitude=Good
+NPC	Blue_Butterfly	640	224	Attitude=Good
 Trigger	Mine Gate	6	9
 Trigger	Mine Gate	7	9
 Trigger	Mine Gate	8	9

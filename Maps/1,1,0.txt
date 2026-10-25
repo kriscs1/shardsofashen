@@ -25,7 +25,7 @@ Trigger	Beggar House	20	6
 NPC	Villager	320	288	Attitude=Good Zone=8,8,15,13
 NPC	Dog	416	352	Attitude=Good Zone=10,9,18,15
 NPC	Butterfly	352	32	Attitude=Good
-NPC	Butterfly	608	448	Attitude=Good
+NPC	Blue_Butterfly	608	448	Attitude=Good
 NPC	Rabbit	224	288	Attitude=Bad
 NPC	Duck	32	416	Attitude=Bad
 NPC	Duck	160	608	Attitude=Bad

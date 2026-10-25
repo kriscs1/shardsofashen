@@ -1,4 +1,6 @@
-"""Butterflies, smaller: their pictures (Sprites\\Walk\\Butterfly2a-8c, Sprites\\Entities\\Butterfly) shrunk to SCALE,
+"""(Superseded: Dev\migrate\build_butterflies.py draws them afresh, small and flapping. Don't run this again.)
+
+Butterflies, smaller: their pictures (Sprites\\Walk\\Butterfly2a-8c, Sprites\\Entities\\Butterfly) shrunk to SCALE,
 kept centred where they were. The originals are kept in Dev\\Archive\\Sprites and shrunk from there, so running it
 again gives the same (not smaller still).
 
@@ -7,6 +9,7 @@ again gives the same (not smaller still).
 import glob
 import os
 import shutil
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -41,4 +44,5 @@ def main():
 
 
 if __name__ == "__main__":
+    sys.exit("Superseded by build_butterflies.py: this would put the old butterflies back.")
     main()

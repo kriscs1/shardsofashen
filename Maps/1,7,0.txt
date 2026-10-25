@@ -25,4 +25,4 @@ StaticObject	Trout_Spot	192	512
 StaticObject	Trout_Spot	640	384
 NPC	Duck	32	384	Attitude=Bad
 NPC	Duck	704	576	Attitude=Bad
-NPC	Butterfly	160	32	Attitude=Good
+NPC	Blue_Butterfly	160	32	Attitude=Good

@@ -227,7 +227,9 @@ function minimapImage(g, hatched = false) {
   x.clearRect(0, 0, c.width, c.height);
   x.drawImage(im, 0, 0);
   if (val(configRead("Minimap", "Blackout", "1")) === 1 && fogEnabled()) {
-    x.fillStyle = hatched ? hatchPattern(x) : "#000";   // (the minimap: the same black as where there's no map)
+    x.fillStyle = "#000";                                // (the minimap: the same black as where there's no map)
+    // (the world map: see-through, so the one hatching behind it shows - the same as where there's no map at all)
+    const hide = hatched ? (a, b, w, h) => x.clearRect(a, b, w, h) : (a, b, w, h) => x.fillRect(a, b, w, h);
     const ps = g.ps, n = fogCell(), fxt = Math.ceil(G.sw / n);
     for (const name of A.m.maps) {
       const [mx, my, mz] = name.split(",").map(Number);
@@ -235,7 +237,7 @@ function minimapImage(g, hatched = false) {
       const bx = (mx - g.ox) * G.xt * ps, by = (my - g.oy) * G.yt * ps;
       const seen = S.explored.get(name);
       if (seen === "all") continue;
-      if (!seen || !seen.size) { x.fillRect(bx, by, G.xt * ps, G.yt * ps); continue; }
+      if (!seen || !seen.size) { hide(bx, by, G.xt * ps, G.yt * ps); continue; }
       for (let ty = 0; ty < G.yt; ty++) {
         const cy0 = Math.floor(ty * G.th / n), cy1 = Math.floor(((ty + 1) * G.th - 1) / n);
         for (let tx = 0; tx < G.xt; tx++) {
@@ -243,7 +245,7 @@ function minimapImage(g, hatched = false) {
           let shown = false;
           for (let cy = cy0; cy <= cy1 && !shown; cy++)
             for (let cx = cx0; cx <= cx1 && !shown; cx++) if (seen.has(cy * fxt + cx + 1)) shown = true;
-          if (!shown) x.fillRect(bx + tx * ps, by + ty * ps, ps, ps);
+          if (!shown) hide(bx + tx * ps, by + ty * ps, ps, ps);
         }
       }
     }
@@ -260,11 +262,11 @@ function savedTrack() {
 }
 
 export function trackedQuest() {
-  // (one you picked, while it's in hand; else your main quest in hand, else the first in hand; "-": none)
+  // (one you picked, begun or not, till it is done; else your main quest in hand, else the first in hand; "-": none)
   if (U.tracked === undefined) U.tracked = savedTrack();
   if (U.tracked === "-") return "";
   const active = (S.quests || []).filter((q) => q.status === 0);
-  if (U.tracked && active.some((q) => q.title === U.tracked)) return U.tracked;
+  if (U.tracked && (S.quests || []).some((q) => q.title === U.tracked && q.status !== 2)) return U.tracked;   // (begun or not)
   const q = active.find((x) => x.main) || active[0];
   return q ? q.title : "";
 }

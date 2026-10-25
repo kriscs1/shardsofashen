@@ -53,7 +53,11 @@ class DigMixin:
         if owner is not None and owner != self.player_name:
             self.display_message("Not in someone else's garden!", "FAIL")
             return
+        if not self.tools_held("Spade"):
+            self.display_message("Your spade is broken: get it mended (a blacksmith, or an anvil).", "FAIL")
+            return
         rules = self.dig_rules()
+        self.use_tool("Spade")
         self.stop_player_walk()
         self.display_message("You dig into the ground...", "INFO")
         self.play_sound("DigHole")

@@ -24,4 +24,4 @@ NPC	Bear	64	288	Attitude=Bad
 NPC	Giant_Spider	672	480	Attitude=Bad
 NPC	Rabbit	160	352	Attitude=Bad
 NPC	Rabbit	544	96	Attitude=Bad
-NPC	Butterfly	608	480	Attitude=Good
+NPC	Blue_Butterfly	608	480	Attitude=Good

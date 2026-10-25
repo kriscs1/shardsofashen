@@ -24,4 +24,4 @@ NPC	Bear	128	288	Attitude=Bad
 StaticObject	Trout_Spot	608	512
 NPC	Rabbit	128	512	Attitude=Bad
 NPC	Rabbit	64	416	Attitude=Bad
-NPC	Butterfly	704	480	Attitude=Good
+NPC	Blue_Butterfly	704	480	Attitude=Good

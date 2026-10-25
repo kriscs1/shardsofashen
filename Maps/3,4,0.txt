@@ -46,4 +46,4 @@ NPC	Duck	256	544	Attitude=Bad
 NPC	Rabbit	64	192	Attitude=Bad
 NPC	Rabbit	480	96	Attitude=Bad
 NPC	Butterfly	672	192	Attitude=Good
-NPC	Butterfly	640	480	Attitude=Good
+NPC	Blue_Butterfly	640	480	Attitude=Good

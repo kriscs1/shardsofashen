@@ -28,6 +28,6 @@ NPC	Wolf	480	416	Attitude=Bad
 StaticObject	Trout_Spot	704	96
 NPC	Rabbit	128	544	Attitude=Bad
 NPC	Rabbit	320	96	Attitude=Bad
-NPC	Butterfly	704	480	Attitude=Good
+NPC	Blue_Butterfly	704	480	Attitude=Good
 Id	Wolf_Den	13	9
 Trigger	Wolf Den	13	12
