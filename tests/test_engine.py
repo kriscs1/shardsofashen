@@ -970,6 +970,7 @@ def test_the_smugglers_run(world, monkeypatch):
     monkeypatch.setattr(world, "npc_sees", lambda e, a, s, d: False)   # (a perfect sneak, for the test)
     s = join(world, "Spy", "4,4,0", 10 * 32, 17 * 32)
     s.connected = True
+    s.update_attribute("Passage", "=12")                           # (off the Isle: the ferry's been taken)
     attr = lambda: int(float(s.get_attribute("SmugglerQuest") or 0))
 
     def run(ticks=30, ms=0):
@@ -1204,4 +1205,22 @@ def test_a_racks_search_finds_across_its_pages(world):
     assert s.ab_item_defs == [] and s.box_state()["filter"] == "no such thing"
     s.set_rack_filter("", False)
     assert [n for n, _, _ in s.ab_item_defs] == every
+    leave(world, s)
+
+
+def test_quests_wait_for_the_mainland_and_mark_their_giver(world):
+    """A quest given off the Isle needs the ferry first; one not begun is marked where its own giver stands."""
+    import re
+    s = join(world, "Planner")
+    text = open(os.path.join(ROOT, "Data", "Quests.ini"), encoding="cp1252").read()
+    on_isle = lambda mp: int(mp.split(",")[0]) <= 4 and int(mp.split(",")[1]) <= 2      # (the Isle's maps)
+    for m in re.finditer(r"(?ms)^\[([^\]]+)\]\s*\n(.*?)(?=^\[|\Z)", text):
+        name, body = m.group(1), m.group(2)
+        get = lambda k: (re.search(r"(?m)^%s=(.*)$" % re.escape(k), body) or [None, ""])[1].strip()
+        giver = get("Giver")
+        givers = [e for e in world.ents if e.name.upper() == giver.upper() or (e.npc_id or "").upper() == giver.upper()]
+        if not get("Marker0"):
+            assert len(givers) == 1, "%s: %d NPCs called %s - give it a Marker0" % (name, len(givers), giver)
+        if name != "Passage to the Mainland" and not get("Requires.Quests"):
+            assert givers and all(on_isle(e.map) for e in givers), "%s is given off the Isle" % name
     leave(world, s)
