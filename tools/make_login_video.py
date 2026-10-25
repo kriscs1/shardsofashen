@@ -25,7 +25,7 @@ from server import auth  # noqa: E402
 from server.store import Store  # noqa: E402
 
 FADE = 2.0          # seconds of the end that fade into the start (the loop's seam)
-FPS = 30
+FPS = 60            # (the browser draws about this often at --size 1280x720: few frames doubled, so no judder)
 
 
 async def film(url, frames_dir, zoom, w, h, seconds):
@@ -80,7 +80,9 @@ async def film(url, frames_dir, zoom, w, h, seconds):
         listing.append("file '%s'\nduration %.4f" % (name, max(0.001, nxt - t)))
     with open(os.path.join(frames_dir, "frames.txt"), "w") as f:
         f.write("\n".join(listing) + "\nfile '%s'\n" % ("f%05d.png" % (len(shots) - 1)))
-    print("%d frames over %.1f s" % (len(shots), shots[-1][0] - t0))
+    gaps = sorted(1000 * (b[0] - a[0]) for a, b in zip(shots, shots[1:]))
+    print("%d frames over %.1f s; gaps between them (ms): median %.0f, 95%% under %.0f, longest %.0f"
+          % (len(shots), shots[-1][0] - t0, gaps[len(gaps) // 2], gaps[int(len(gaps) * 0.95)], gaps[-1]))
     return box
 
 
@@ -105,7 +107,7 @@ def main():
     p.add_argument("--x", type=int, default=400)
     p.add_argument("--y", type=int, default=330)
     p.add_argument("--zoom", default="0.75")
-    p.add_argument("--size", default="1600x900")      # (larger films fewer frames a second: it judders)
+    p.add_argument("--size", default="1280x720")      # (larger: fewer frames a second, unevenly - it judders)
     p.add_argument("--seconds", type=float, default=12)
     p.add_argument("--out", default=os.path.join(ROOT, "web", "img", "login-bg.mp4"))
     p.add_argument("--still", default=os.path.join(ROOT, "web", "img", "login-bg.jpg"))
