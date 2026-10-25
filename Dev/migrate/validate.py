@@ -1118,6 +1118,8 @@ def check_entities():
                 err(r, "[%s] Type=%r is not MapItem/StaticObject/NPC" % (sec, typ))
         if typ == "NPC" and (ini.get(sec, "Attitude") or "") not in ("Good", "Bad"):
             err(r, "[%s] is an NPC: Attitude should be Good or Bad" % sec)
+        if typ == "NPC" and not (ini.get(sec, "Respawn") or "").strip():
+            err(r, "[%s] is an NPC with no Respawn= (seconds before it comes back: Dev\\migrate\\respawn_times.py)" % sec)
         for k, v in items:
             if k is None:
                 continue
