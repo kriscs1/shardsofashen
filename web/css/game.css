@@ -56,60 +56,17 @@ html, body {
   image-rendering: pixelated;
 }
 
-/* the login screen: the same view of Southport, alive - it drifts, the sea glints, cloud shadows pass over, gulls
-   fly by. (Still for anyone whose system asks for less motion.) */
+/* the login screen: Southport as it really moves - the game itself, filmed (tools/make_login_video.py), drifting
+   very slowly. (The still picture, for anyone whose system asks for less motion: main.js) */
 #login { background: #180e0a; overflow: hidden; }
 #login-form { position: relative; z-index: 1; }
 .login-scene { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.scene-pan { position: absolute; inset: -4%; animation: scene-drift 90s ease-in-out infinite alternate; }
-.scene-img { position: absolute; inset: 0; background: url("/img/login-bg.jpg") center / cover no-repeat;
-  image-rendering: pixelated; }
-.scene-glint {                     /* light on the water: the sea is the top of the view */
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(170deg, rgba(255, 255, 255, 0) 0 22px, rgba(220, 236, 255, 0.16) 22px 25px,
-    rgba(255, 255, 255, 0) 25px 61px);
-  background-size: 400px 400px;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 33%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 33%);
-  animation: scene-glint 14s linear infinite, scene-glint-fade 5s ease-in-out infinite alternate;
-}
-.scene-cloud {                     /* a cloud's shadow on the land, drifting by */
-  position: absolute; width: 46vw; height: 30vw; left: 0; border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(10, 16, 24, 0.42) 0%, rgba(10, 16, 24, 0.24) 45%, rgba(10, 16, 24, 0) 70%);
-  animation: scene-cloud 110s linear infinite;
-}
-.scene-cloud.c1 { top: 8%; animation-delay: -20s; }
-.scene-cloud.c2 { top: 48%; width: 60vw; height: 34vw; animation-duration: 140s; animation-delay: -95s; }
-.scene-cloud.c3 { top: 70%; width: 38vw; height: 24vw; animation-duration: 95s; animation-delay: -60s; }
-.scene-gull {                      /* a gull over the sea */
-  position: absolute; left: 0; width: 32px; height: 13px;
-  animation: scene-gull 34s linear infinite;
-}
-.scene-gull i {
-  position: absolute; inset: 0;
-  background:
-    linear-gradient(20deg, transparent 44%, #f6f2ea 45% 58%, transparent 59%) left / 50% 100% no-repeat,
-    linear-gradient(-20deg, transparent 44%, #f6f2ea 45% 58%, transparent 59%) right / 50% 100% no-repeat;
-  filter: drop-shadow(0 6px 1px rgba(0, 0, 0, 0.25));
-  animation: scene-flap 0.5s ease-in-out infinite alternate;
-}
-.scene-gull.g1 { top: 12%; animation-delay: -8s; }
-.scene-gull.g2 { top: 20%; width: 26px; height: 11px; animation-duration: 46s; animation-delay: -30s; }
-.scene-gull.g2 i { animation-duration: 0.42s; }
+.scene-pan { position: absolute; inset: -3%; width: 106%; height: 106%; object-fit: cover; image-rendering: pixelated;
+  animation: scene-drift 120s ease-in-out infinite alternate; }
 .scene-vignette { position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, rgba(24, 14, 10, 0.25) 0%, rgba(24, 14, 10, 0.55) 55%, rgba(24, 14, 10, 0.92) 100%); }
-
-@keyframes scene-drift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.06) translate(-2%, 1.5%); } }
-@keyframes scene-glint { from { background-position: 0 0; } to { background-position: 400px 70px; } }
-@keyframes scene-glint-fade { from { opacity: 0.55; } to { opacity: 1; } }
-@keyframes scene-cloud { from { transform: translateX(-65vw); } to { transform: translateX(110vw); } }
-@keyframes scene-gull { from { transform: translate(-40px, 0); } 50% { transform: translate(50vw, 3vh); }
-  to { transform: translate(105vw, -2vh); } }
-@keyframes scene-flap { from { transform: scaleY(1); } to { transform: scaleY(-0.35); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .login-scene *, .login-scene *::before { animation: none !important; }
-  .scene-gull { display: none; }
+  background: radial-gradient(ellipse at center, rgba(24, 14, 10, 0.20) 0%, rgba(24, 14, 10, 0.50) 55%, rgba(24, 14, 10, 0.90) 100%); }
+@keyframes scene-drift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.05) translate(-1.5%, 1%); } }
+@media (prefers-reduced-motion: reduce) { .scene-pan { animation: none; } }
 }
 #login .panel, #loading .panel { background: rgba(51, 34, 27, 0.94); backdrop-filter: blur(2px); }
 

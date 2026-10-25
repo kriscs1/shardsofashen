@@ -98,6 +98,15 @@ function placeChat() {
   box.style.bottom = "auto";
 }
 
+// ----- the login screen's film of Southport: playing while it's there; the still picture for less motion
+const loginVideo = $("login-video");
+const stillPlease = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+function loginFilm() {
+  const want = !running && !$("login").hidden && !stillPlease.matches;
+  if (want && loginVideo.paused) loginVideo.play().catch(() => {});      // (muted: a browser lets it start itself)
+  else if (!want && !loginVideo.paused) loginVideo.pause();
+}
+
 // ----- the item rack's search (shops, crafting, the bank): it filters the whole rack, on the server
 let rackSearchFor = "";                          // (the rack it was last shown for: a new one starts with it empty)
 let rackSearchTimer = 0;
@@ -629,6 +638,7 @@ function frame(now) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!running && A.m) musicTick(false, "Title");      // (the login screen: the title music, once a click lets it)
   placeRackSearch();
+  loginFilm();
   if (!running || !A.m || !S.me) return;
   ctx.setTransform(screen.k, 0, 0, screen.k, screen.ox, screen.oy);
   ctx.imageSmoothingEnabled = smoothing;
