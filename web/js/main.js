@@ -523,7 +523,7 @@ N.onMessage = (m) => {
       S.box = m;
       if (m.mode) { U.rcm = null; releaseKeys(); }
       break;
-    case "msg": addMessage(m.text, messageColour(m.kind)); break;
+    case "msg": addMessage(m.text, messageColour(m.kind), m.id || 0, m.of || 0); break;
     case "chat":
       if (m.whisper === "from") addMessage(`${m.from} whispers: ${m.text}`, "140 40 140");
       else if (m.whisper === "to") addMessage(`You whisper to ${m.to}: ${m.text}`, "140 40 140");

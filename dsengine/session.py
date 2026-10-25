@@ -146,6 +146,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.rack_specific = 0
         self.rack_skill = ""
         self.message_log_last = ("", 0)
+        self.msg_seq = 0                    # (each message's id: a line that ends .. stays open for its outcome)
+        self.msg_open = None                # (id, when) of the last line that ended ..
         self.last_auto_save = clock_ms()
         self.dirty_me = True                # inventory, skills... changed: the browser is sent them again
         self.dirty_quests = True
@@ -233,7 +235,15 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.message_log_last = (message, self.now)
         if message[:14].upper() == "QUEST COMPLETE":
             self.play_sound("Quest")
-        ev = {"t": "msg", "text": message, "kind": str(mtype)}
+        self.msg_seq += 1
+        ev = {"t": "msg", "text": message, "kind": str(mtype), "id": self.msg_seq}
+        # (one that starts .. finishes this player's last line that ended .. - "You place the poultry on the
+        # range.." then "..and cook it perfectly!" - by its id, whatever came between; never anyone's chat)
+        if message.startswith("..") and self.msg_open and 0 <= self.now - self.msg_open[1] < 30000:
+            ev["of"] = self.msg_open[0]
+            self.msg_open = None
+        if message.rstrip().endswith(".."):
+            self.msg_open = (self.msg_seq, self.now)
         if sound is None and str(mtype).upper() in self.NEGATIVE:
             ev["tell"] = 1
         self.emit(ev)

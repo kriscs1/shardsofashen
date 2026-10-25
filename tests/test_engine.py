@@ -1224,3 +1224,17 @@ def test_quests_wait_for_the_mainland_and_mark_their_giver(world):
         if name != "Passage to the Mainland" and not get("Requires.Quests"):
             assert givers and all(on_isle(e.map) for e in givers), "%s is given off the Isle" % name
     leave(world, s)
+
+
+def test_an_outcome_finishes_its_own_line_by_id(world):
+    s = join(world, "Cook2")
+    s.connected = True
+    s.out = []
+    s.display_message("You place the Raw Poultry on the range..", "Cyan", sound="")
+    s.display_message("Your axe is badly worn: get it mended soon.", "DAMAGE", sound="")    # (something between)
+    s.display_message("..and cook it perfectly!", "Yellow", sound="")
+    msgs = [ev for ev in s.take_out() if ev["t"] == "msg"]
+    assert msgs[2]["of"] == msgs[0]["id"] and "of" not in msgs[1]       # (it finishes its own line, not the last)
+    s.display_message("..a stray one, with no line open", "Cyan", sound="")
+    assert "of" not in [ev for ev in s.take_out() if ev["t"] == "msg"][0]
+    leave(world, s)
