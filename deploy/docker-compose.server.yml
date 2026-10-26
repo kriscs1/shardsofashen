@@ -12,7 +12,7 @@
 #   DS_ADMINS         characters who get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
 #                     (make those characters before you tell anyone the address, or someone else could take the name)
 #   DS_INVITE_CODE    if set, making a character needs this code
-#   DS_ANDROID_CERTS  the Android app's SHA-256 key fingerprints, comma-separated (android/README.md)
+#   DS_NAME           the game's name in the Android app's list of games on the network
 #   DS_REGISTRATION   open (anyone can make a character) or closed (only accounts made with tools/admin.py)
 #   DS_MAX_PLAYERS    how many can play at once (5)
 #   DS_UPDATE_SECONDS how often to look for a new version (300)
@@ -30,7 +30,7 @@ services:
       DS_REGISTRATION: ${DS_REGISTRATION:-open}
       DS_INVITE_CODE: ${DS_INVITE_CODE:-}
       DS_ADMINS: ${DS_ADMINS:-}
-      DS_ANDROID_CERTS: ${DS_ANDROID_CERTS:-}
+      DS_NAME: ${DS_NAME:-}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:

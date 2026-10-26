@@ -1,7 +1,8 @@
 """The Android app's pictures (android/), all from the game's own icon (web/img/icon.png):
 
   * android\\app\\src\\main\\res\\mipmap-*\\ic_launcher.png: the launcher icon at each screen density (48 to 192).
-  * android\\app\\src\\main\\res\\drawable\\splash.png: shown while the game's page loads (on the game's dark brown).
+  * android\\app\\src\\main\\res\\drawable-xxhdpi\\ic_stat_host.png: the "hosting a game" notification's icon (its shape,
+    white: Android colours it).
   * android\\store\\icon-512.png: the Play Store listing's icon; web\\img\\icon-512.png: the web page's (its manifest).
 Run it again to make them again (the same).
 
@@ -37,15 +38,15 @@ def main():
     icon = pygame.image.load(os.path.join(ROOT, "web", "img", "icon.png")).convert_alpha()
     for name, n in DENSITIES.items():
         save(scaled(icon, n), RES, "mipmap-" + name, "ic_launcher.png")
-    splash = pygame.Surface((384, 384), pygame.SRCALPHA)
-    splash.blit(scaled(icon, 384), (0, 0))
-    save(splash, RES, "drawable", "splash.png")
+    shape = pygame.mask.from_surface(scaled(icon, 72), 128)
+    save(shape.to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0)), RES, "drawable-xxhdpi",
+         "ic_stat_host.png")
     store = pygame.Surface((512, 512))
     store.fill(BG)                                                   # (the store wants it square and solid)
     store.blit(scaled(icon, 512), (0, 0))
     save(store, ROOT, "android", "store", "icon-512.png")
     save(scaled(icon, 512), ROOT, "web", "img", "icon-512.png")
-    print("Made the Android app's icons and splash")
+    print("Made the Android app's icons")
 
 
 if __name__ == "__main__":

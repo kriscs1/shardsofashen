@@ -1,10 +1,12 @@
-// The app: no game in it, only the way to the game's page (so an update to the server is an update to the app too)
+// The app: the game's server (server/, dsengine/ and their data, the same as on any server) and its web page, in a
+// WebView. A phone can host the game for its network, or join one on the network or anywhere else.
 plugins {
     id "com.android.application"
+    id "com.chaquo.python"
 }
 
-def host = project.property("dsHost")
 def env = System.getenv()
+def game = file(project.findProperty("dsGame") ?: "../..")   // (the game's folder: everything the server needs comes from it)
 
 android {
     namespace "io.github.kriscs1.dragonsword"
@@ -12,17 +14,14 @@ android {
 
     defaultConfig {
         applicationId project.property("dsPackage")
-        minSdk 23
+        minSdk 24
         targetSdk 36
         // (every build a higher number, as the Play Store wants: the commit count, from the workflow)
         versionCode((env.DS_VERSION_CODE ?: "1") as int)
         versionName env.DS_VERSION_NAME ?: "1.0"
-
-        manifestPlaceholders = [hostName: host, launchUrl: "https://" + host + "/?app=android"]
-        resValue "string", "launch_url", "https://" + host + "/?app=android"
-        // (the site this app stands for: the server's /.well-known/assetlinks.json says the same of the app)
-        resValue "string", "asset_statements",
-            '[{"relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "web", "site": "https://' + host + '"}}]'
+        ndk {
+            abiFilters "arm64-v8a", "x86_64"
+        }
     }
 
     signingConfigs {
@@ -45,15 +44,52 @@ android {
     }
 
     buildFeatures {
-        resValues true
+        buildConfig true
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    sourceSets {
+        main.assets.srcDirs += "$buildDir/generated/game"
+    }
+
+    androidResources {
+        noCompress "zip"                      // (game.zip is squeezed already)
+    }
 }
 
-dependencies {
-    implementation "com.google.androidbrowserhelper:androidbrowserhelper:2.5.0"
+chaquopy {
+    defaultConfig {
+        version "3.11"
+        def py = project.property("dsBuildPython").trim()
+        if (py) buildPython(*py.split(" "))
+        pip {
+            install "aiohttp"
+        }
+    }
 }
+
+// ----- the game, packed: unpacked on the phone the first time it hosts (and again after an update)
+def gameDir = "$buildDir/generated/game"
+tasks.register("packGame", Zip) {
+    destinationDirectory = file(gameDir)
+    archiveFileName = "game.zip"
+    from(game) {
+        include "VERSION", "saves/TEMPLATE.ini"
+        include "data/**", "maps/**", "sprites/**", "web/**"
+        include "dragonsword/**", "dsengine/**", "server/**"
+        exclude "**/__pycache__/**", "**/*.pyc", "**/*.db", "**/*.db-*", "data/backups/**"
+    }
+    doFirst {
+        if (!new File(game, "web/assets/manifest.json").exists())
+            throw new GradleException("web/assets is missing: run python -I tools/export_web_assets.py first")
+    }
+    doLast {
+        // (what the phone compares to know it's a new game: when it was packed)
+        new File(gameDir, "game.stamp").text = String.valueOf(System.currentTimeMillis())
+    }
+}
+tasks.named("preBuild") { dependsOn "packGame" }

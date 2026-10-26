@@ -1,4 +1,4 @@
-// Dragon Sword for Android: a Trusted Web Activity, the game's own web page full screen (see android/README.md)
+// Dragon Sword for Android: the game's own server and page, on the phone (see android/README.md)
 pluginManagement {
     repositories {
         google()

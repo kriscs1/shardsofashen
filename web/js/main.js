@@ -224,6 +224,18 @@ $("quit-logout").onclick = () => {
   showMessage("Dragon Sword", "Your game is saved. See you soon!", () => location.reload());
 };
 
+// (in the Android app: out of the game, to the app's start screen: host, the games on the network, an address)
+if (window.DSApp) {
+  $("quit-app").hidden = false;
+  $("quit-app").onclick = () => {
+    if (running) send({ t: "quit" });
+    running = false;
+    if (N.ws) N.ws.close();
+    stopMusic();
+    window.DSApp.goHome();
+  };
+}
+
 function openOptions() {
   releaseKeys();
   $("opt-sound").checked = O.sound; $("opt-volume").value = O.volume; $("opt-chat-sound").checked = O.chatSound;

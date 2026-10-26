@@ -10,7 +10,7 @@ accounts, characters and the shared world (SQLite).
 | `web/` | The browser game (HTML5 canvas, no build step). `web/assets` is made by `tools/export_web_assets.py` |
 | `tools/` | `export_web_assets.py`, `admin.py` (passwords, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
 | `deploy/` | Docker, docker-compose with Caddy (HTTPS), a systemd unit |
-| `android/` | The Android app: the game's page full screen, so the server's updates are the app's too (`android/README.md`) |
+| `android/` | The Android app: hosts a game on the phone for the network, or joins one (`android/README.md`) |
 | `dsedit/` | The editor (`Dragon Sword Editor.py`): F5 plays your changes in the browser, on a local server |
 | `dragonsword/` | Helpers shared by the server, the editor and the tools (the desktop game itself is retired) |
 
@@ -303,8 +303,8 @@ Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HT
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
 | `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`) |
-| `DS_ANDROID_CERTS` | (none) | the Android app's key fingerprints (SHA-256, comma-separated), for `/.well-known/assetlinks.json` |
-| `DS_ANDROID_PACKAGE` | `io.github.kriscs1.dragonsword` | the app's id (`dsPackage` in `android/gradle.properties`) |
+| `DS_NAME` | `Dragon Sword on <computer>` | the game's name in the Android app's "Games on this network" |
+| `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 
 ## Checking it works
 

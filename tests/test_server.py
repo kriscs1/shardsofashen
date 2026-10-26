@@ -305,18 +305,19 @@ def test_too_many_wrong_passwords_wait(tmp_path):
     asyncio.run(run())
 
 
-def test_the_android_app_is_linked_to_the_site(tmp_path, monkeypatch):
+def test_a_game_on_the_network_answers_who_is_there(tmp_path, monkeypatch):
+    from server import lan
+    lan_port = free_port()
+    monkeypatch.setenv("DS_LAN_PORT", str(lan_port))
+
     async def run():
         runner, app, url = await start(str(tmp_path / "a.db"))
         base = url.replace("ws://", "http://").replace("/ws", "")
+        found = await asyncio.get_running_loop().run_in_executor(None, lambda: lan.find(1.0, lan_port, ("127.0.0.1",)))
+        assert len(found) == 1
+        address, answer = found[0]
+        assert address == "127.0.0.1" and answer["game"] == "dragonsword" and answer["max"] == 5
         async with aiohttp.ClientSession() as http:
-            async with http.get(base + "/.well-known/assetlinks.json") as r:
-                assert r.status == 200 and await r.json() == []          # (no keys yet: nothing claimed)
-            monkeypatch.setenv("DS_ANDROID_CERTS", "aa:bb, CC:DD")
-            async with http.get(base + "/.well-known/assetlinks.json") as r:
-                links = await r.json()
-            assert links[0]["target"]["package_name"] == "io.github.kriscs1.dragonsword"
-            assert links[0]["target"]["sha256_cert_fingerprints"] == ["AA:BB", "CC:DD"]
             async with http.get(base + "/manifest.webmanifest") as r:
                 assert r.status == 200 and json.loads(await r.text())["display"] == "fullscreen"
         await runner.cleanup()

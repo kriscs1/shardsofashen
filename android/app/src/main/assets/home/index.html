@@ -1,0 +1,190 @@
+<!doctype html>
+<!-- The app's start screen (MainActivity shows it first; window.DSApp is the app): host a game on this phone for
+     the network, join one of the games on the network, or join a game by its address. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Dragon Sword</title>
+<style>
+:root {
+  --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #d4bf7e;
+  --dim: rgb(190, 160, 110); --ok: #15ab4b; --bad: #e06a55;
+  --font: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--parchment); font-family: var(--font); }
+body { padding: 12px 16px 20px; }
+h1 { margin: 0 0 2px; color: var(--ink); font-size: 30px; text-shadow: 2px 2px 0 #000; }
+.top { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
+.dim { color: var(--dim); }
+.small { font-size: 13px; }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px; min-height: 100%; }
+h2 { margin: 0; color: var(--ink); font-size: 19px; }
+p { margin: 0; line-height: 1.35; }
+input { font: inherit; font-size: 16px; width: 100%; padding: 8px 10px; border-radius: 9px; border: 2px solid var(--edge);
+  background: #22160f; color: var(--ink); }
+button { font: inherit; font-size: 16px; font-weight: bold; padding: 9px 14px; border-radius: 10px; color: var(--ink);
+  background: #7e4d3f; border: 2px solid #b07a60; }
+button.go { background: #1f7a3e; border-color: #4fbf74; }
+button:disabled { opacity: 0.5; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.game { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: #24170f; }
+.game .what { flex: 1; min-width: 0; }
+.game .name { color: var(--ink); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.address { color: var(--ink); font-weight: bold; user-select: all; }
+.error { color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="top"><h1>Dragon Sword</h1><span id="version" class="dim small"></span></div>
+<p id="error" class="error" hidden></p>
+<div class="cols">
+  <section class="card">
+    <h2>Host a game here</h2>
+    <div id="host-off">
+      <p class="dim small">This phone runs the game: anyone on the same Wi-Fi (or this phone's hotspot) can join.
+        Your world stays on this phone.</p>
+      <p style="margin-top:8px"><input id="host-name" maxlength="40" placeholder="The game's name"></p>
+      <div class="row" style="margin-top:8px"><button id="host" class="go">Host</button></div>
+    </div>
+    <div id="host-busy" hidden><p id="host-busy-text">Starting...</p></div>
+    <div id="host-on" hidden>
+      <p><span id="host-title" class="address"></span> is running.</p>
+      <p class="dim small">Others join it from "Games on this network" in their app, or in any browser at:</p>
+      <p id="host-addresses"></p>
+      <div class="row"><button id="host-play" class="go">Play</button><button id="host-stop">Stop hosting</button></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Games on this network</h2>
+    <div id="games"><p class="dim small">Looking...</p></div>
+    <div class="row"><button id="find">Look again</button></div>
+  </section>
+  <section class="card">
+    <h2>Join by address</h2>
+    <p class="dim small">A game on another network or on the internet: its address, like 192.168.1.20 or
+      play.example.com.</p>
+    <input id="address" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Address">
+    <div class="row"><button id="join" class="go">Join</button></div>
+  </section>
+</div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const app = window.DSApp || {           // (in a browser, to look at: nothing behind it)
+  state: () => JSON.stringify({ status: "off", addresses: ["192.168.1.23"], port: 8484, device: "Phone", version: "-" }),
+  host() {}, stopHosting() {}, find() { setTimeout(() => window.onGames([]), 300); }, play(u) { location.href = u; },
+  get: () => "", set() {},
+};
+
+function gameUrl(address) {
+  // An address as typed: http unless it says https; the game's port (8484) unless it gives one; ?app=android
+  let a = address.trim();
+  if (!a) return "";
+  if (!/^https?:\/\//i.test(a)) a = "http://" + a;
+  const u = new URL(a);
+  if (u.protocol === "http:" && !u.port) u.port = "8484";
+  u.search = "?app=android";
+  return u.toString();
+}
+
+function say(text) { $("error").textContent = text; $("error").hidden = !text; }
+
+let last = "";
+function refresh() {
+  let st = {};
+  try { st = JSON.parse(app.state()); } catch (e) { /* (not ready yet) */ }
+  $("version").textContent = st.version ? "Version " + st.version : "";
+  const on = st.status === "on", busy = ["unpacking", "starting", "stopping"].includes(st.status);
+  $("host-off").hidden = on || busy;
+  $("host-busy").hidden = !busy;
+  $("host-on").hidden = !on;
+  $("host-busy-text").textContent = { unpacking: "Unpacking the game (the first time takes a little while)...",
+    starting: "Starting the game...", stopping: "Saving the world..." }[st.status] || "";
+  if (on) {
+    $("host-title").textContent = st.name;
+    const list = (st.addresses || []).map((ip) => `http://${ip}:${st.port}`);
+    $("host-addresses").innerHTML = list.length ? list.map((u) => `<span class="address">${u}</span>`).join("<br>")
+      : '<span class="dim">(This phone isn\'t on a network: join Wi-Fi, or turn on its hotspot.)</span>';
+  }
+  if (st.status === "error" && last !== "error") say("The game couldn't start: " + (st.error || "unknown"));
+  if (on && last !== "on") find();                // (it's on: it shows in the list too)
+  last = st.status;
+  if (!$("host-name").value && st.device && !$("host-name").dataset.set) {
+    $("host-name").value = app.get("hostName") || "Dragon Sword on " + st.device;
+    $("host-name").dataset.set = "1";
+  }
+}
+
+function find() {
+  $("find").disabled = true;
+  app.find();
+}
+
+window.onGames = (games) => {
+  $("find").disabled = false;
+  const box = $("games");
+  box.innerHTML = "";
+  if (!games.length) {
+    box.innerHTML = '<p class="dim small">None found. A game shows here when a phone hosts one on this Wi-Fi.</p>';
+    return;
+  }
+  games.sort((a, b) => (b.here ? 1 : 0) - (a.here ? 1 : 0) || String(a.name).localeCompare(b.name));
+  for (const g of games) {
+    const row = document.createElement("div");
+    row.className = "game";
+    const what = document.createElement("div");
+    what.className = "what";
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = g.name + (g.here ? " (this phone)" : "");
+    const more = document.createElement("div");
+    more.className = "dim small";
+    more.textContent = `${g.online} of ${g.max} playing` + (g.here ? "" : ` - ${g.address}`);
+    what.append(name, more);
+    const b = document.createElement("button");
+    b.className = "go";
+    b.textContent = "Join";
+    b.disabled = g.online >= g.max;
+    b.onclick = () => app.play(gameUrl(`${g.address}:${g.port}`));
+    row.append(what, b);
+    box.append(row);
+  }
+};
+
+$("host").onclick = () => {
+  say("");
+  app.set("hostName", $("host-name").value.trim());
+  app.host($("host-name").value.trim());
+  refresh();
+};
+$("host-stop").onclick = () => { app.stopHosting(); refresh(); };
+$("host-play").onclick = () => {
+  let st = {};
+  try { st = JSON.parse(app.state()); } catch (e) { /* */ }
+  app.play(gameUrl("127.0.0.1:" + (st.port || 8484)));
+};
+$("find").onclick = find;
+$("join").onclick = () => {
+  let url = "";
+  try { url = gameUrl($("address").value); } catch (e) { /* */ }
+  if (!url) { say("That isn't an address."); return; }
+  app.set("address", $("address").value.trim());
+  app.play(url);
+};
+$("address").value = app.get("address");
+$("address").addEventListener("keydown", (ev) => { if (ev.key === "Enter") $("join").click(); });
+
+const err = /#error=(.*)$/.exec(location.hash);
+if (err) say(decodeURIComponent(err[1]));
+refresh();
+setInterval(refresh, 1000);
+find();
+</script>
+</body>
+</html>

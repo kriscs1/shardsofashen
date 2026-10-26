@@ -13,7 +13,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `dsengine/` | The game's rules (authoritative, headless, many players) |
 | `server/` | aiohttp: the page, assets, the game over a WebSocket at 20 ticks/s, SQLite (`DS_DB`) |
 | `web/js/` | The browser client: canvas, ES modules, no build step. `web/assets/` is generated, never edited |
-| `android/` | The Android app: a Trusted Web Activity that opens the server's page (`?app=android`); no game inside it |
+| `android/` | The Android app: carries the server and page; a phone hosts a game for its network, or joins one |
 | `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
 | `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
@@ -161,6 +161,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   map), the Bag, Chat, Journal and Menu buttons, a stick, tap and hold. No Talk or Map buttons. Anything new on screen
   must work in both, with finger-sized targets on the phone; nothing for the app goes in `android/` that the page
   could do.
+- **The phone can be the server.** The Android app runs `server/` itself (Python 3.11 through Chaquopy, with its
+  aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. So
+  `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - Text centred in a row uses `drawTextMid` (it measures the font's capital height): never guess offsets.
 
 ## Code and data conventions
