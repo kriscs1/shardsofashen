@@ -1137,7 +1137,7 @@ def check_entities():
             warn(r, "[%s] has no sprite in sprites\\Entities" % sec)
         typ = ini.get(sec, "Type")
         for prey in [x.strip() for x in (ini.get(sec, "Hunts") or "").split(",") if x.strip()]:
-            if (ini.get(prey, "Type") or "") != "NPC":
+            if prey != "Foes" and (ini.get(prey, "Type") or "") != "NPC":     # (Foes: any monster that attacks)
                 err(r, "[%s] Hunts=%s: there's no NPC called %s" % (sec, ini.get(sec, "Hunts"), prey))
         if typ not in ("MapItem", "StaticObject", "NPC"):
             if typ in ("GoodNPC", "BadNPC"):

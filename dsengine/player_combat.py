@@ -335,6 +335,7 @@ class CombatMixin:
         return rng
 
     def damage_npc(self, e, damage):
+        self.w.waves.hit(e, self)
         hp = e.hp - damage
         slayer = self.entity_ini(e.name, "Slain.By", "")         # (only one weapon gives it its death blow)
         if hp <= 0 and slayer:

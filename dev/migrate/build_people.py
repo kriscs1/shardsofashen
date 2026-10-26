@@ -156,6 +156,8 @@ PEOPLE = {
                     cape=(200, 160, 50), held="book"),
     "Archivist": P(hair=((190, 190, 196), (150, 150, 156)), hair_style="long", shirt=((120, 90, 60),),
                    dress=(120, 90, 60), held="book"),
+    "Painter": P(hair=((180, 70, 40), (130, 46, 24)), hair_style="long", shirt=((236, 228, 210),),
+                 dress=(236, 228, 210), apron=(90, 120, 170), hat="cap:150 30 50", held="brush"),   # (Ottilie)
     "Old_Woman": P(hair=((214, 214, 218), (172, 172, 178)), hair_style="long", shirt=((132, 104, 150),),
                    dress=(132, 104, 150), cape=(150, 120, 86), held="staff"),      # (Granny Wren: a shawl, a stick)
     "Tomb_Guardian": P(skin=((214, 204, 174), (176, 166, 136)), hair_style="bald", eyes=(250, 200, 60),
@@ -495,6 +497,10 @@ def draw_held(img, held, d, f):
     elif held == "book":
         rect(img, x - 1, ht - 2, x + 2, hb, (120, 30, 30))
         rect(img, x - 1, ht - 2, x - 1, hb, (240, 230, 200))
+    elif held == "brush":                         # a paintbrush, its tip wet with blue
+        for y in range(ht - 6, hb + 1):
+            put(img, x, y, WOOD[0])
+        put(img, x, ht - 7, (60, 90, 200)); put(img, x, ht - 8, (60, 90, 200))
     elif held == "bow":                           # a bow held upright: a curved stave and its string
         top, bot = ht - 9, hb + 5
         mid = (top + bot) // 2

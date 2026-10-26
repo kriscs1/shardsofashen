@@ -102,6 +102,12 @@ daughter Percy's in Ashford. **Lead her there**: she follows you, a step or two 
 (Follow.Player), and waits if you go far ahead. At Percy's door talk to either of them. Lose her (log out) and she's
 back at the landing, waiting. Reward: 30 gold and a berry pie; she lives at Percy's after.
 
+**A Portrait of Mo**: *after chapter 4*
+Ottilie paints at her easel in Ashford's market square, and the painting wants a cat: Mo, who never keeps still.
+**Stroke Mo while Mo is sitting** and Mo settles for her; at any other moment it comes to nothing, each its own way
+(mid-stretch; showing you its back end, to Ottilie's delight; or trotting off). Tell Ottilie: she paints. Reward: the
+painting (Portrait of Mo) and 25 gold. (The scripts check what Mo is doing: >Entity.State, Set.NPC.State.)
+
 **The Herbalist's Remedy**: *level 3, after chapter 4*
 The Herbalist in her cottage on the Ashford farmlands wants 3 cave mushrooms (the old iron mine) and 2 spider silk
 (giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Herblore experience.
@@ -186,7 +192,7 @@ Passage to the Mainland: every mainland quest needs it
 │   ├── The Dwarf's Grudge
 │   └── The Wildwood Watch
 ├── A Place of Your Own, The Herbalist's Remedy, The Smugglers' Run, The Frozen Forge, The Lost Patrol,
-│   Granny Wren's Walk
+│   Granny Wren's Walk, A Portrait of Mo
 ├── Wolves of the Moor ── The Withering Wood ── The Barrow King
 ├── Bandits on the Road ── The Lost Caravan
 └── Bog Lights ── Old Hob
@@ -230,6 +236,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Hermit's Fire | HermitQuest | Talk to Hermit |
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
 | The Herbalist's Remedy | RemedyQuest | Talk to Herbalist |
+| A Portrait of Mo | PortraitQuest | Talk to Ashford_Painter, Stroke Mo |
 | Granny Wren's Walk | EscortQuest | Talk to Granny_Wren, Granny Wren Home, Talk to Ashford_Resident_34, 1,3,0, 2,3,0 |
 | The Smugglers' Run | SmugglerQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg |
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |

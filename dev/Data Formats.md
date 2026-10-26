@@ -206,7 +206,8 @@ States=Sit                 ; optional: how it may rest when it stops a while (sp
                            ; line's State=Sit makes it always rest so
 Fidgets=Stretch,Butt       ; optional: now and then, at rest, one of these for a moment (<Name>_Stretch2 / 8...)
 Hunts=Rabbit,Sheep         ; optional: NPCs it goes for when it sees one (within its Aggro.Range, or 128, and its
-                           ; chase area). They run if they Flee (Flees=1), else fight back; a kill leaves no loot
+                           ; chase area). They run if they Flee (Flees=1), else fight back; a kill leaves no loot.
+                           ; Hunts=Foes (guards): any monster that attacks on sight, even one fighting you
 ; StaticObject only:
 Walkable.Data=111...000    ; optional: its footprint, 0 = can't be walked through, over its sprite at 7 cells to 32
                            ; pixels each way (a 32 x 32 object: 49 cells, like a tile's; 64 x 32: 14 x 7). Blank =

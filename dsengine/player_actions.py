@@ -687,6 +687,8 @@ class ActionsMixin:
                 self.build(x, y, str(msg.get("piece", "")))
             else:
                 self.unbuild(x, y)
+        elif t == "game":
+            self.game_input(msg)
         elif t == "admin" and self.admin_enabled:
             self.admin_command(msg)
 

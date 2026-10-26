@@ -406,7 +406,7 @@ class NPCMixin:
                 p = near[0].player
                 self.npc_face(e, cx, cy, p.cx, p.cy)
                 faced = True
-            if a.fidgets:
+            if a.fidgets and not a.fixed_pose:
                 self.npc_fidget(e, a, now)
             if not faced and now >= a.turn_at:
                 e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
@@ -416,6 +416,29 @@ class NPCMixin:
                 a.turn_at = now + random_number(2000, 5000)
             if now >= a.timer or now < a.timer - 600000:
                 self.npc_next_move(e, a)
+
+    def npc_state(self, e):
+        """What NPC e is doing now, for scripts (>Entity.State): Fighting, Following, Walking, its pose (Sit,
+        Stretch, Butt: a cat's) or Standing."""
+        a = e.ai
+        if a is None:
+            return "Standing"
+        if e.in_combat or e.npc_foe is not None or a.state in (AI_CHASE, AI_FLEE):
+            return "Fighting"
+        if e.follow is not None:
+            return "Following"
+        if a.state in (AI_ROAM, AI_PATROL, AI_RETURN):
+            return "Walking"
+        return e.pose or "Standing"
+
+    def set_npc_pose(self, e, pose):
+        """It rests this way from now on (Sit: <Name>_Sit<dir>); "" or "-": it stands, and may sit as its kind does."""
+        pose = "" if trim(pose) in ("", "-") else trim(pose)
+        e.pose = pose
+        if e.ai is not None:
+            e.ai.fixed_pose = pose
+            e.ai.fidget_until = 0
+        self.animate_entity(e, False)
 
     def npc_follow(self, e, a):
         """Follow.Player: it walks after the player leading it, a step or two behind; if they're gone up a ladder,
@@ -520,13 +543,19 @@ class NPCMixin:
         return True
 
     def npc_prey(self, e, a):
-        """The nearest NPC of a kind e hunts that it can see, in its chase area (not someone's own, not in a fight)."""
+        """The nearest NPC of a kind e hunts that it can see, in its chase area (not someone's own, not in a fight).
+        Hunts=Foes (the guards): any monster that attacks on sight, even one fighting a player (they come to help);
+        not one with an Id (a quest's) nor one only its bane can kill."""
         rng = e.aggro_range if e.aggro_range > 0 else 128
+        foes = "FOES" in a.hunts
         best = None
         for o in self.ents:
-            if (o is e or o.type != NPC or not o.alive or not o.active or o.z != e.z or o.owner is not None or
-                    o.ai is None or o.in_combat or getattr(o, "npc_foe", None) is not None or
-                    strip_digits(o.name).upper() not in a.hunts):
+            if o is e or o.type != NPC or not o.alive or not o.active or o.z != e.z or o.owner is not None or o.ai is None:
+                continue
+            if foes and o.hostile and o.aggressive and not o.ai.flees and not o.npc_id and \
+                    not self.data.entity_ini(o.name, "Slain.By", ""):
+                pass
+            elif o.in_combat or o.npc_foe is not None or strip_digits(o.name).upper() not in a.hunts:
                 continue
             d = distance(e.cx, e.cy, o.cx, o.cy)
             if d > rng or (best is not None and d >= best[1]) or not self.in_chase_area(a, o.fx, o.fy):
@@ -583,6 +612,7 @@ class NPCMixin:
             self.add_action_to_queue("ADD", e.name, TYPE_NAMES[e.type], options, m.name,
                                      self.local_coords(m, e.orig_x, e.orig_y), respawn)
         self.fx_anim("Puff", e.z, e.cx, e.cy, 500)
+        self.waves.gone(e)                                    # (a raider the guards cut down)
         self.remove_entity(e)
 
     def npc_give_up(self, e, a):
@@ -635,6 +665,9 @@ class NPCMixin:
         self.animate_entity(e, False)
 
     def npc_next_move(self, e, a):
+        if a.fixed_pose:                                      # (held in its pose, State= / Set.NPC.State: it stays)
+            self.npc_set_idle(e, a, False)
+            return
         if a.stand == 1:
             if distance(e.cx, e.cy, a.back_x, a.back_y) > 4:
                 a.goal_x, a.goal_y = a.back_x, a.back_y

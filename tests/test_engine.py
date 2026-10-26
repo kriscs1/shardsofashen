@@ -621,20 +621,41 @@ def test_tavern_games(world, monkeypatch):
     monkeypatch.setattr(rnd, "randint", lambda lo, hi: 2)        # (the coin under the middle cup; every die a 2)
     a.do_action("Talk to", keeper)
     assert a.responses[0] == "Three Cups."
-    a.action_box_response_chosen(1)                               # Three Cups
-    a.action_box_response_chosen(2)                               # 20 gold
-    a.action_box_response_chosen(2)                               # the middle cup
+    a.out = []
+    a.action_box_response_chosen(1)                               # Three Cups: its table
+    shown = lambda s: [ev for ev in s.out if ev["t"] == "game"][-1]
+    assert shown(a)["game"] == "cups" and shown(a)["phase"] == "stake" and shown(a)["stakes"] == [5, 20, 50, 100]
+    a.game_input({"do": "stake", "stake": 20})
+    assert shown(a)["phase"] == "pick" and "coin" not in shown(a)  # (where the coin is stays the server's)
+    a.game_input({"do": "pick", "n": 2})                          # the middle cup
+    assert shown(a)["coin"] == 2 and shown(a)["won"] == 50
     assert a.items_held("Gold_Coin(s)") == 200 - 20 + 50
+    a.game_input({"do": "leave"})
+    assert a.game is None and shown(a)["game"] == ""
+    a.do_action("Talk to", keeper)
+    a.action_box_response_chosen(2)                               # High or Low: 2, and every die after a 2
+    a.game_input({"do": "stake", "stake": 5})
+    assert shown(a)["first"] == 2
+    a.game_input({"do": "guess", "higher": True})
+    assert shown(a)["second"] == 2 and shown(a)["won"] == 0        # (the same again: the house wins)
+    a.game_input({"do": "leave"})
     a.player.x, a.player.y = table.x, table.y + 30
     b.player.x, b.player.y = table.x + 10, table.y + 30
     a.do_action("Play", table)
-    a.action_box_response_chosen(3)                               # a round at 50 gold
+    a.game_input({"do": "stake", "stake": 50})                    # a round at 50 gold
+    b.out = []
     b.do_action("Play", table)
-    b.action_box_response_chosen(1)                               # join in
+    assert shown(b)["round"]["players"] == ["Gambler"]
+    b.game_input({"do": "join"})
     assert world.tavern.rounds["Dice_Table_1"]["players"] == ["Gambler", "Punter"]
+    assert shown(a)["round"]["players"] == ["Gambler", "Punter"]  # (everyone at the table sees who's in)
     world.tick(0.05, now=world.now + 21000)
     assert "Dice_Table_1" not in world.tavern.rounds
-    assert a.items_held("Gold_Coin(s)") == 230 and b.items_held("Gold_Coin(s)") == 200   # (a tie: they share)
+    assert shown(b)["rolled"]["Gambler"] == [2, 2, 2] and set(shown(b)["winners"]) == {"Gambler", "Punter"}
+    assert a.items_held("Gold_Coin(s)") == 225 and b.items_held("Gold_Coin(s)") == 200   # (a tie: they share)
+    a.player.x += 400                                             # (walked off: the table's screen goes)
+    world.tick(0.05)
+    assert a.game is None
     leave(world, a)
     leave(world, b)
 
@@ -967,6 +988,8 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("AmuletQuest") == 4
     use("3,1,-1", 14, 9, "Climb Down")                              # the trapdoor, with Maren's key
     assert s.cur_map.name == "3,1,-2"
+    for e in [e for e in world.ents if e.type == NPC and e.map == "1,1,-2" and e.hostile]:
+        world.remove_entity(e)                                      # (no fighting in this test)
     s.teleport("1,1,-2", 5 * 32, 11 * 32 - 8)                       # (beside the niche at the back of the caves)
     run(10)
     niche = next(e for e in world.ents if e.name == "Barred_Niche" and e.owner is s)
@@ -1009,10 +1032,10 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert not s.lock_closed(house, house.lock_at[(20, 7)])
     m = world.maps["1,1,0"]
     assert s.tile_entity_at(m.ox + 20 * 32 + 16, m.oy + 5 * 32 + 16).name == "Plank001"   # (a board like the rest)
-    for _ in range(3):                                              # (standing on it: it squeaks)
+    for _ in range(10):                                             # (standing on it: it squeaks)
         s.player_tile = None
         s.teleport("1,1,0", 20 * 32, 5 * 32)
-        run(10)
+        run(20)
         if attr("Squeaked") == 1:
             break
     assert attr("Squeaked") == 1
@@ -1377,6 +1400,9 @@ def test_a_wolf_hunts_a_sheep_and_a_rat_bites_back(world):
     s = join(world, "Watcher", "0,0,5", 12 * 32, 4 * 32)             # (the arena: open sand, nothing else about)
     m = s.cur_map
     s.god_mode = True                                                # (the wolf would rather have them)
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and "FOES" in getattr(e.ai, "hunts", ())]
+    for e in held:
+        world.ents.remove(e)                                         # (the arena's guard would go for the wolf)
     wolf = world.add_npc("Wolf", m.mz, m.ox + 6 * 32, m.oy + 12 * 32, "Zone=3,8,22,18")
     sheep = world.add_npc("Sheep", m.mz, m.ox + 9 * 32, m.oy + 12 * 32, "Zone=3,8,22,18")
     s.player_visible = False                                         # (out of its sight: the sheep, not them)
@@ -1403,6 +1429,7 @@ def test_a_wolf_hunts_a_sheep_and_a_rat_bites_back(world):
     assert dog.hp < hp or not rat.alive                              # (a rat doesn't run: it bites back)
     for e in (wolf, rat, dog):
         world.remove_entity(e)
+    world.ents.extend(held)
     leave(world, s)
 
 
@@ -1513,6 +1540,92 @@ def test_walking_granny_wren_to_her_daughter(world):
         world.tick(0.05)
     granny = world.placed_entity("Granny_Wren", s)
     assert granny is not None and granny.map == "2,3,0" and distance(granny.cx, granny.cy, *door) < 64
+    leave(world, s)
+
+
+def test_a_guard_comes_to_help_against_a_goblin(world):
+    s = join(world, "Helped", "0,0,5", 12 * 32, 12 * 32)             # (the arena's sand)
+    m = s.cur_map
+    s.god_mode = True
+    guard = world.add_npc("Guard", m.mz, m.ox + 8 * 32, m.oy + 12 * 32, "Attitude=Good Zone=6,10,18,14")
+    goblin = world.add_npc("Goblin", m.mz, m.ox + 14 * 32, m.oy + 12 * 32, "Attitude=Bad Zone=6,10,18,14")
+    for _ in range(40):
+        world.tick(0.05, now=world.now + 50)
+    assert goblin.in_combat and goblin.target is s                    # (it's after the player)
+    for _ in range(800):
+        world.tick(0.05, now=world.now + 50)
+        if not goblin.alive:
+            break
+    assert not goblin.alive and guard.alive                          # (the guard cut it down)
+    world.remove_entity(guard)
+    leave(world, s)
+
+
+def test_the_guards_kills_count_and_whoever_fought_is_rewarded(world):
+    waves = world.waves
+    s = join(world, "Fighter", "2,3,0", 10 * 32, 12 * 32)
+    s.god_mode = True
+    assert waves.start("Ashford_Raid")
+    r = waves.running["Ashford_Raid"]
+    gold = s.items_held("Gold_Coin(s)")
+    for _ in range(20):
+        for u in list(r["uids"]):
+            e = world.by_uid[u]
+            s.damage_npc(e, 1)                                       # (a blow from the player...)
+            world.npc_killed_by_npc(e)                               # (...and the guards finish it)
+        world.tick(0.05, now=world.now + 13000)
+        if "Ashford_Raid" not in waves.running:
+            break
+    assert "Ashford_Raid" not in waves.running and r["kills"] == {}  # (won, though the guards made every kill)
+    assert s.items_held("Gold_Coin(s)") >= gold + 60                 # (and the player who fought is paid)
+    leave(world, s)
+
+
+def test_mo_sits_for_a_portrait_only_when_sitting(world):
+    from dsengine.entity import AI_IDLE, AI_ROAM
+    s = join(world, "Patron", "3,4,0", 3 * 32, 12 * 32)              # (by Ottilie's easel)
+    s.connected = True
+    held = [e for e in world.ents if e.type == NPC and e.map == "3,4,0" and e.hostile]
+    for e in held:
+        world.ents.remove(e)                                         # (the goblins in the square: no fighting here)
+    s.update_attribute("Passage", "=5")
+    for _ in range(5):
+        world.tick(0.05)
+    painter = world.placed_entity("Ashford_Painter", s)
+    mo = world.placed_entity("Mo", s)
+    attr = lambda: s.get_attribute("PortraitQuest")
+
+    def talk(e):
+        s.choose_verb("Talk to", e, int(e.cx), int(e.cy))
+        for _ in range(40):
+            world.tick(0.05)
+        s.action_box_response_chosen(1)
+        for _ in range(5):
+            world.tick(0.05)
+
+    def stroke(state, pose=""):
+        world.set_entity_position(mo, s.player.x + 26, s.player.y)
+        mo.ai.state, mo.pose, mo.ai.timer = state, pose, world.now + 60000
+        s.out = []
+        s.choose_verb("Stroke", mo, int(mo.cx), int(mo.cy))
+        for _ in range(5):
+            world.tick(0.05)
+        return " ".join(str(ev.get("text", "")) for ev in s.out)
+
+    talk(painter)
+    assert attr() == "1"
+    assert "trots off" in stroke(AI_ROAM) and attr() == "1"          # (on the move: off it goes)
+    assert "back end" in stroke(AI_IDLE, "Butt") and attr() == "1"   # (the wrong end)
+    assert "mid-stretch" in stroke(AI_IDLE, "Stretch") and attr() == "1"
+    assert "stays put" in stroke(AI_IDLE, "Sit") and attr() == "2"   # sitting: it settles
+    assert mo.ai.fixed_pose == "Sit"
+    x = mo.x
+    for _ in range(400):
+        world.tick(0.05, now=world.now + 50)
+    assert mo.x == x and world.npc_state(mo) == "Sit"                # (and stays sitting)
+    talk(painter)
+    assert attr() == "3" and s.items_held("Portrait_of_Mo") == 1 and mo.ai.fixed_pose == ""   # (painted; Mo's free)
+    world.ents.extend(held)
     leave(world, s)
 
 

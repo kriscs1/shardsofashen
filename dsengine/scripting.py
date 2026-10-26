@@ -560,6 +560,12 @@ class ScriptMixin:
             self.set_npc_attitude(arg[1], arg[2])
         elif c == "Follow.Player":
             self.set_follower(arg[1], arg[2])
+        elif c == "Set.NPC.State":
+            e = self.npc_by_id(arg[1])
+            if e is not None and e.type == NPC:
+                self.w.set_npc_pose(e, arg[2])
+            else:
+                self.log("ERROR - Script %s: Set.NPC.State: no NPC with Id %s here" % (self.script_name, arg[1]))
         elif c == "Quest.Note":
             self.quest_note(arg[1], arg[2], False)
         elif c == "Quest.Note.Done":
@@ -624,6 +630,10 @@ class ScriptMixin:
             self.script_condition(self.direction_matches(arg[1]), arg[2])
         elif c == ">Not.In.Direction":
             self.script_condition(not self.direction_matches(arg[1]), arg[2])
+        elif c == ">Entity.State":
+            e = self.npc_by_id(arg[1])
+            want = {trim(x).upper() for x in arg[2].split(",") if trim(x)}
+            self.script_condition(e is not None and self.w.npc_state(e).upper() in want, arg[3])
         elif c == ">Follower.Near":
             e = self.npc_by_id(arg[1])
             self.script_condition(e is not None and e.z == p.z and distance(p.cx, p.cy, e.cx, e.cy) <= val(arg[2]),
@@ -832,12 +842,7 @@ class ScriptMixin:
             w.set_entity_position(e, apply_change(x - self.map_ox(), word(change, 1, ",")) + self.map_ox(),
                                   apply_change(y - self.map_oy(), change2) + self.map_oy())
         elif v in ("STATE", "POSE"):                       # (=Sit: it rests sitting from now on; = or =- to stand)
-            pose = trim(change.lstrip("="))
-            pose = "" if pose in ("", "-") else pose
-            e.pose = pose
-            if e.ai is not None:
-                e.ai.fixed_pose = pose
-            w.animate_entity(e, False)
+            w.set_npc_pose(e, change.lstrip("="))
         elif v in ("MISC", "QUANTITY"):
             if e.type == MAPITEM or v == "QUANTITY":
                 q = apply_change(e.quantity, change)

@@ -13,6 +13,7 @@ import { setWeather, fogInit, revealCell } from "./sky.js";
 import { messageColour, clamp, val, pretty } from "./util.js";
 import { buildPicker, DEFAULT_LOOK } from "./look.js";
 import { preload, entityIni } from "./assets.js";
+import { onGame } from "./games.js";
 import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, buildMouseDown, buildMouseMove, drawBuild } from "./build.js";
 
 const $ = (id) => document.getElementById(id);
@@ -186,7 +187,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 
 function overlayOpen() {
   // (not the chat line: you can walk, click and fight with it open)
-  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password", "death"].some((id) => !$(id).hidden);
+  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password", "death", "tavern-game"].some((id) => !$(id).hidden);
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -648,6 +649,7 @@ N.onMessage = (m) => {
       }
       break;
     case "wave": S.wave = m.name ? { ...m, at: now } : null; break;
+    case "game": releaseKeys(); onGame(m, now); break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
     case "admin_places": adminPlaces = m.places; fillAdminPlaces(); break;
     case "admin_commands": adminCommands = m.commands; fillAdminCommands(); break;

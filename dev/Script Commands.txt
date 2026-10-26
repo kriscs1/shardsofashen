@@ -72,7 +72,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (64)
+COMMANDS (66)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -128,6 +128,16 @@ Format:  Command  ARG 1 | ARG 2 | ...
     1. X COORDINATE,Y COORDINATE: The X and Y coordinates, separated by a comma (e.g. 300,250 or $Player.X,$Player.Y).
          In PIXELS, except for Change.Tile and >Tile.In.Line.Of.Sight, which take TILE coordinates (1-25,1-21)
     2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
+         (If it is met, the script continues on the next line)
+
+>Entity.State    NPC ID | STATE(S) | GOTO LINE IF NOT MET
+    CONDITION: Requires that the NPC is doing one of these right now: what you see it doing
+    (a cat sitting, mid-stretch...)
+    1. NPC ID: Which NPC: the Id= in its map line's Options (Map Editor: Opts, e.g. Id=OldHob),
+         or CLICKED: the NPC the player clicked to start this script (talked to, attacked, used an item on)
+    2. STATE(S): What it may be doing, commas between: Walking, Standing, Fighting, Following, or a pose
+         of its kind (Entities.ini States= and Fidgets=: a cat's Sit, Stretch, Butt), e.g. Sit or Stretch,Butt
+    3. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
          (If it is met, the script continues on the next line)
 
 >Follower.Near    NPC ID | REQUIRED DISTANCE | GOTO LINE IF NOT MET
@@ -479,6 +489,13 @@ Set.NPC.Attitude    NPC ID | ATTITUDE
     1. NPC ID: Which NPC: the Id= in its map line's Options (Map Editor: Opts, e.g. Id=OldHob),
          or CLICKED: the NPC the player clicked to start this script (talked to, attacked, used an item on)
     2. ATTITUDE: Good or Bad
+
+Set.NPC.State    NPC ID | STATE
+    COMMAND: The NPC rests in a pose of its kind from now on (and stays put while it's sitting);
+    - or nothing: it stands, and rests as its kind does again (for everyone: it's the world's NPC)
+    1. NPC ID: Which NPC: the Id= in its map line's Options (Map Editor: Opts, e.g. Id=OldHob),
+         or CLICKED: the NPC the player clicked to start this script (talked to, attacked, used an item on)
+    2. STATE: A pose of its kind (Entities.ini States= or Fidgets=, e.g. Sit), or - to let it be
 
 Show.Skill    SKILL NAME
     COMMAND: Shows a skill's picture over the player's head: the skill they're using now

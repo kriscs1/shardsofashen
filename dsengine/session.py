@@ -88,6 +88,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.status = {}
         self.cooldowns = {}
         self.bets = []                      # when they last staked at the tavern (time.time(): the limit's window)
+        self.game = None                    # the tavern game they're at: {game, at (the innkeeper or table), phase...}
         self.clear_boosts_values()
         self.boost_from = {}                # kind -> the potion or scroll it came from (attack, defence, magic, sight)
         self.dead_wait = None               # (map, x, y, at their bed): dead, until they choose to respawn
@@ -525,6 +526,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             return
         self.update_script_move()
         self.dig_tick()
+        self.game_tick()
         if not self.ab_mode:
             self.update_player_combat()
         self.update_player_health()

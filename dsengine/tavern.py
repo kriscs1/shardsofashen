@@ -9,6 +9,9 @@
     anyone at the tavern can join by putting the same stake in. Then everyone rolls three dice; the highest takes the
     whole pot (a tie shares it). Alone at the table? The innkeeper plays you for the house.
 
+Each game is played at a table of its own in the browser (web/js/games.js: the cups, the coin, the dice): the server
+sends {"t": "game"} with what's on the table, the browser sends back the stake, the cup picked, the guess. The coin
+and the dice are the server's: the browser only ever sees them once they're down.
 World.tavern (Tavern) keeps the dice rounds; TavernMixin is the player's side (Session)."""
 import random
 import time
@@ -19,6 +22,8 @@ ROUND_SECONDS = 20
 MAX_PLAYERS = 6
 STAKES = (5, 20, 50, 100)
 HOUSE = "the innkeeper"
+GAMES = {"cups": "Three Cups", "highlow": "High or Low", "dice": "Dragon Dice"}
+REACH = 96                              # (how far from the innkeeper or the table you can play)
 
 
 def gold_word(n):
@@ -53,29 +58,47 @@ class Tavern:
             if sound:
                 s.play_sound(sound)
 
+    def round_view(self, tid):
+        """The round at a table, for its screen: {stake, players, secs}, or None."""
+        r = self.rounds.get(tid)
+        if r is None:
+            return None
+        return {"stake": r["stake"], "players": list(r["players"]), "secs": max(0, int((r["ends"] - self.w.now) / 1000))}
+
+    def watchers(self, tid):
+        """Who has this table's screen open."""
+        return [s for s in self.w.sessions.values()
+                if s.in_world() and s.game is not None and s.game["game"] == "dice" and s.table_id(s.game["at"]) == tid]
+
+    def show_table(self, tid, **kw):
+        for s in self.watchers(tid):
+            s.game_show(**kw)
+
     def roll(self, r):
         players = list(r["players"])
         stake = r["stake"]
         if len(players) == 1:
             players.append(HOUSE)
-            self.say(r, "Nobody else joined: %s puts %s in for the house." % (HOUSE, gold_word(stake)))
         pot = stake * len(players)
-        rolls = {}
-        for who in players:
-            dice = [random.randint(1, 6) for _ in range(3)]
-            rolls[who] = sum(dice)
-            self.say(r, "%s rolls %s = %d." % (who, " + ".join(str(d) for d in dice), sum(dice)), sound="Drop")
-        best = max(rolls.values())
-        winners = [who for who in players if rolls[who] == best]
+        rolls = {who: [random.randint(1, 6) for _ in range(3)] for who in players}
+        best = max(sum(d) for d in rolls.values())
+        winners = [who for who in players if sum(rolls[who]) == best]
         share, spare = divmod(pot, len(winners))
+        paid = {}
         for i, who in enumerate(winners):
             s = self.w.sessions.get(who)
             won = share + (spare if i == 0 else 0)
+            paid[who] = won
             if s is not None and who != HOUSE:
                 if s.inventory_slots_available("Gold_Coin(s)") > 0:
                     s.add_inventory_item("Gold_Coin(s)", won, quiet=True)
                 else:
                     s.drop_on_floor("Gold_Coin(s)", won)
+        for s in self.watchers(r["table"]):
+            s.game["phase"] = "done"
+            s.play_sound("Dice_Roll")
+            s.game_show(rolled=rolls, winners=winners, pot=pot, won=paid.get(s.player_name, 0))
+            if paid.get(s.player_name):
                 s.play_sound("Coins")
         if len(winners) == 1:
             self.say(r, "Dragon Dice: %s wins the pot of %s!" % (winners[0], gold_word(pot)), "ACHIEVEMENT")
@@ -102,23 +125,28 @@ class TavernMixin:
             if self.player_distance_to(e) > 64:
                 self.display_message("You are too far away!", "FAIL")
                 return True
-            self.dice_menu(e)
+            self.game_open("dice", e)
             return True
         return False
 
     def pay_stake(self, stake):
         wait = self.gamble_wait()
         if wait:
-            self.display_message("That's enough gambling for now. You can play again in %s." % (
-                "a minute" if wait <= 60 else "%d minutes" % ((wait + 59) // 60)), "FAIL")
-            return False
-        if self.items_held("Gold_Coin(s)") < stake:
-            self.display_message("You haven't got %s to stake." % gold_word(stake), "FAIL")
-            return False
-        self.remove_inventory_item("Gold_Coin(s)", stake)
-        self.bets.append(time.time())
-        self.play_sound("Coins")
-        return True
+            no = "That's enough gambling for now. You can play again in %s." % (
+                "a minute" if wait <= 60 else "%d minutes" % ((wait + 59) // 60))
+        elif self.items_held("Gold_Coin(s)") < stake:
+            no = "You haven't got %s to stake." % gold_word(stake)
+        else:
+            self.remove_inventory_item("Gold_Coin(s)", stake)
+            self.bets.append(time.time())
+            self.play_sound("Coins")
+            return True
+        if self.game is not None:                   # (said at the table, not in the chat)
+            self.play_sound("Denied")
+            self.game_show(note=no)
+        else:
+            self.display_message(no, "FAIL")
+        return False
 
     def gamble_wait(self):
         """Seconds till they may bet again (Config [Gameplay] Gamble.Max.Bets in Gamble.Window.Minutes), 0 = now."""
@@ -130,20 +158,21 @@ class TavernMixin:
             return 0
         return max(1, int(min(self.bets) + window - now))
 
-    def win(self, amount):
+    def win(self, amount, game):
         if self.inventory_slots_available("Gold_Coin(s)") > 0:
             self.add_inventory_item("Gold_Coin(s)", amount, quiet=True)
         else:
             self.drop_on_floor("Gold_Coin(s)", amount)
         self.play_sound("Coins")
+        self.display_message("You win %s at %s!" % (gold_word(amount), game), "ACHIEVEMENT")
 
     # ----- the innkeeper
     def innkeeper_menu(self, e):
         self.innkeeper = e
         self.show_menu("Innkeeper", "Man", "Welcome to the Green Dragon! Something to drink? Or do you fancy your "
                        "luck at a game?",
-                       [("Three Cups.", lambda: self.stake_menu("Three Cups", self.three_cups)),
-                        ("High or Low.", lambda: self.stake_menu("High or Low", self.high_low)),
+                       [("Three Cups.", lambda: self.game_open("cups", e)),
+                        ("High or Low.", lambda: self.game_open("highlow", e)),
                         ("Something to eat or drink.", self.tavern_shop),
                         ("How does Dragon Dice work?", self.dice_rules),
                         ("Goodbye.", None)])
@@ -157,81 +186,90 @@ class TavernMixin:
                        "dice, and the highest takes the lot! Nobody to play? I'll match you myself." % ROUND_SECONDS,
                        [("Thanks.", None)])
 
-    def stake_menu(self, game, then):
-        opts = [("%d gold." % s, (lambda s=s: then(s))) for s in STAKES]
-        opts.append(("Never mind.", None))
-        self.show_menu(game, "Man", "How much will you stake?", opts)
+    # ----- the game table (the browser draws it; here the coin is hidden, the dice rolled and the stakes paid)
+    def game_open(self, game, at):
+        self.game = {"game": game, "at": at, "phase": "stake"}
+        self.game_show()
 
-    def three_cups(self, stake):
-        if not self.pay_stake(stake):
+    def game_show(self, **kw):
+        g = self.game
+        if g is None:
             return
-        coin = random.randint(1, 3)
-        pick = lambda n: (lambda: self.three_cups_reveal(stake, coin, n))
-        self.show_menu("Three Cups", "Man", "The innkeeper hides a coin under one of three cups and shuffles them "
-                       "round and round... Which one?",
-                       [("The left one.", pick(1)), ("The middle one.", pick(2)), ("The right one.", pick(3))])
+        ev = {"t": "game", "game": g["game"], "title": GAMES[g["game"]], "phase": g["phase"], "stakes": list(STAKES),
+              "gold": self.items_held("Gold_Coin(s)"), "me": self.player_name}
+        if g["game"] == "dice":
+            ev["round"] = self.tavern.round_view(self.table_id(g["at"]))
+        ev.update(kw)
+        self.emit(ev)
 
-    def three_cups_reveal(self, stake, coin, n):
-        where = ("left", "middle", "right")
-        if n == coin:
-            won = int(stake * 2.5)
-            self.win(won)
-            text = "The %s cup - and there's the coin! You win %s." % (where[n - 1], gold_word(won))
-            self.display_message(text, "ACHIEVEMENT")
-        else:
-            text = "Empty! The coin was under the %s cup. The innkeeper pockets your %s." % (where[coin - 1],
-                                                                                            gold_word(stake))
-            self.display_message(text, "FAIL")
-        self.show_menu("Three Cups", "Man", text, [("Again!", lambda: self.stake_menu("Three Cups", self.three_cups)),
-                                                   ("That's enough.", None)])
+    def game_close(self):
+        if self.game is not None:
+            self.game = None
+            self.emit({"t": "game", "game": ""})
 
-    def high_low(self, stake):
-        if not self.pay_stake(stake):
+    def game_tick(self):
+        """Walked off from the table: its screen goes."""
+        g = self.game
+        if g is not None and (not g["at"].alive or g["at"].z != self.player.z or
+                              self.player_distance_to(g["at"]) > REACH):
+            self.game_close()
+
+    def game_input(self, msg):
+        """The browser: {do: stake (stake), pick (n: 1-3), guess (higher), join, leave}."""
+        g = self.game
+        if g is None:
             return
-        first = random.randint(1, 6)
-        guess = lambda higher: (lambda: self.high_low_reveal(stake, first, higher))
-        self.show_menu("High or Low", "Man", "The innkeeper rolls... a %d. Will the next roll be higher, or lower? "
-                       "(The same again, and the house wins.)" % first,
-                       [("Higher!", guess(True)), ("Lower!", guess(False))])
-
-    def high_low_reveal(self, stake, first, higher):
-        second = random.randint(1, 6)
-        right = second > first if higher else second < first
-        if right:
-            won = int(stake * 1.4)
-            self.win(won)
-            text = "A %d! You called it, and win %s." % (second, gold_word(won))
-            self.display_message(text, "ACHIEVEMENT")
-        else:
-            text = "A %d... %s. Better luck next time." % (second, "the same again: the house wins" if second == first
-                                                            else "not this time")
-            self.display_message(text, "FAIL")
-        self.show_menu("High or Low", "Man", text, [("Again!", lambda: self.stake_menu("High or Low", self.high_low)),
-                                                    ("That's enough.", None)])
+        do = str(msg.get("do", ""))
+        if do == "leave":
+            self.game_close()
+            return
+        self.game_tick()
+        if self.game is None:
+            return
+        game, phase = g["game"], g["phase"]
+        if do == "stake" and phase in ("stake", "done"):
+            stake = int(val(msg.get("stake", 0)))
+            if stake not in STAKES:
+                return
+            if game == "dice":
+                self.dice_start(g["at"], stake)
+            elif self.pay_stake(stake):
+                g["stake"] = stake
+                if game == "cups":
+                    g["coin"], g["phase"] = random.randint(1, 3), "pick"
+                    self.play_sound("Cup_Shuffle")
+                    self.game_show(stake=stake)
+                else:
+                    g["first"], g["phase"] = random.randint(1, 6), "guess"
+                    self.play_sound("Dice_Roll")
+                    self.game_show(stake=stake, first=g["first"])
+        elif do == "pick" and game == "cups" and phase == "pick":
+            n = int(val(msg.get("n", 0)))
+            if n not in (1, 2, 3):
+                return
+            won = int(g["stake"] * 2.5) if n == g["coin"] else 0
+            g["phase"] = "done"
+            if won:
+                self.win(won, GAMES[game])
+            else:
+                self.play_sound("Fail")
+            self.game_show(stake=g["stake"], coin=g["coin"], pick=n, won=won)
+        elif do == "guess" and game == "highlow" and phase == "guess":
+            higher = bool(msg.get("higher"))
+            second = random.randint(1, 6)
+            right = second > g["first"] if higher else second < g["first"]
+            won = int(g["stake"] * 1.4) if right else 0
+            g["phase"] = "done"
+            self.play_sound("Dice_Roll")
+            if won:
+                self.win(won, GAMES[game])
+            self.game_show(stake=g["stake"], first=g["first"], second=second, higher=higher, won=won)
+        elif do == "join" and game == "dice":
+            self.dice_join(self.table_id(g["at"]))
 
     # ----- Dragon Dice
     def table_id(self, e):
         return e.npc_id or "Dice_Table_%d" % e.uid
-
-    def dice_menu(self, e):
-        tid = self.table_id(e)
-        r = self.tavern.rounds.get(tid)
-        if r is None:
-            opts = [("Start a round at %d gold." % s, (lambda s=s: self.dice_start(e, s))) for s in STAKES]
-            opts.append(("Never mind.", None))
-            self.show_menu("Dragon Dice", "Dice_Table", "Put a stake down and start a round: everyone at the tavern "
-                           "has %d seconds to join. Highest roll of three dice takes the pot." % ROUND_SECONDS, opts)
-            return
-        left = max(0, int((r["ends"] - self.now) / 1000))
-        if self.player_name in r["players"]:
-            self.display_message("You're in this round: the dice roll in %d seconds." % left, "INFO")
-            return
-        if len(r["players"]) >= MAX_PLAYERS:
-            self.display_message("The table is full this round.", "FAIL")
-            return
-        self.show_menu("Dragon Dice", "Dice_Table", "%s %s playing for %s each; the dice roll in %d seconds." %
-                       (", ".join(r["players"]), "is" if len(r["players"]) == 1 else "are", gold_word(r["stake"]), left),
-                       [("Join in (%s)." % gold_word(r["stake"]), lambda: self.dice_join(tid)), ("Never mind.", None)])
 
     def dice_start(self, e, stake):
         tid = self.table_id(e)
@@ -242,18 +280,25 @@ class TavernMixin:
         r = {"stake": stake, "players": [self.player_name], "ends": self.now + ROUND_SECONDS * 1000, "map": e.map,
              "table": tid}
         self.tavern.rounds[tid] = r
+        if self.game is not None:
+            self.game["phase"] = "round"
         self.tavern.say(r, "%s starts a round of Dragon Dice at %s! Join at the dice table within %d seconds." %
                         (self.player_name, gold_word(stake), ROUND_SECONDS), "ACHIEVEMENT", sound="Drop")
+        self.tavern.show_table(tid)
 
     def dice_join(self, tid):
         r = self.tavern.rounds.get(tid)
         if r is None:
-            self.display_message("That round has been rolled already.", "FAIL")
+            self.game_show(note="That round has been rolled already.")
             return
-        if self.player_name in r["players"] or len(r["players"]) >= MAX_PLAYERS:
+        if self.player_name in r["players"]:
+            return
+        if len(r["players"]) >= MAX_PLAYERS:
+            self.game_show(note="The table is full this round.")
             return
         if not self.pay_stake(r["stake"]):
             return
         r["players"].append(self.player_name)
-        self.tavern.say(r, "%s joins the Dragon Dice: the pot is %s." % (self.player_name,
-                                                                         gold_word(r["stake"] * len(r["players"]))))
+        if self.game is not None:
+            self.game["phase"] = "round"
+        self.tavern.show_table(tid)

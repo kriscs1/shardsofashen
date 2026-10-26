@@ -72,6 +72,8 @@ COMMANDS = [
     ('Play.Animation', ['ANIMATION', 'TIMES', 'SOUND']),
     ('Follow.Player', ['NPC ID', 'ON/OFF']),
     ('>Follower.Near', ['NPC ID', 'REQUIRED DISTANCE', 'GOTO LINE IF NOT MET']),
+    ('>Entity.State', ['NPC ID', 'STATE(S)', 'GOTO LINE IF NOT MET']),
+    ('Set.NPC.State', ['NPC ID', 'STATE']),
 ]
 
 # command or argument type -> its help ("|" starts a new line)
@@ -226,6 +228,10 @@ HELP = {
     'ANIMATION': 'An animation from sprites\Effects (<Name>1..4): Wood_Chips, Rock_Chips, Splash, Dirt_Clods,|Wool_Tufts, Slash, Puff, Fire_Burst...',
     'TIMES': 'How many beats (1-8): one each 0.8 seconds',
     'Follow.Player': 'COMMAND: An NPC walks after the player, a step or two behind (ON), across maps, and waits if|they go up a ladder, through a door or far off; OFF: it stops and stays where it is (lead someone somewhere)',
+    '>Entity.State': 'CONDITION: Requires that the NPC is doing one of these right now: what you see it doing|(a cat sitting, mid-stretch...)',
+    'STATE(S)': 'What it may be doing, commas between: Walking, Standing, Fighting, Following, or a pose|of its kind (Entities.ini States= and Fidgets=: a cat\'s Sit, Stretch, Butt), e.g. Sit or Stretch,Butt',
+    'Set.NPC.State': 'COMMAND: The NPC rests in a pose of its kind from now on (and stays put while it\'s sitting);|- or nothing: it stands, and rests as its kind does again (for everyone: it\'s the world\'s NPC)',
+    'STATE': "A pose of its kind (Entities.ini States= or Fidgets=, e.g. Sit), or - to let it be",
     '>Follower.Near': 'CONDITION: Requires that the NPC (with that Id: the player\'s own, a quest\'s) is within|the distance of the player (in pixels): it came all the way with them',
 }
 

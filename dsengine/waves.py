@@ -209,6 +209,21 @@ class Waves:
                 return True
         return False
 
+    def gone(self, e):
+        """NPC e is dead, not by a player's hand (the guards got it): one raider fewer, nobody's kill."""
+        for name, r in self.running.items():
+            if e.uid in r["uids"]:
+                r["uids"].discard(e.uid)
+                self.status(name, r)
+                return
+
+    def hit(self, e, s):
+        """Player s hit NPC e: if it's a raider, they're one of the defenders (whoever gets the last blow)."""
+        for r in self.running.values():
+            if e.uid in r["uids"]:
+                r["defenders"].add(s.player_name)
+                return
+
     def finish(self, name, r, won):
         w = self.w
         d = r["def"]
