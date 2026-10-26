@@ -2027,6 +2027,58 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
     leave(world, s)
 
 
+def test_clearing_the_wardhaven_bridge_opens_its_gates(world):
+    s = join(world, "Bridger", "9,4,0", 13 * 32, 10 * 32)
+    s.connected = True
+    s.god_mode = 1
+    run, npc, talk, use = isle_helpers(world, s)
+    story_done_before(s, 7)                                          # (The Ashford Road done)
+    attr = lambda: int(float(s.get_attribute("WardhavenQuest") or 0))
+    mayor = next(e for e in world.ents if e.npc_id == "Ashford_Clerk_13")
+    talk(mayor, 1)                                                   # "I'll clear the bridge."
+    assert attr() == 1
+    gate = world.data.place("Wardhaven_Gate")
+    m = world.maps[gate.map]
+    lock = next(lk for lk in m.locks if "WardhavenQuest" in lk.condition)
+    assert s.lock_closed(m, lock)                                    # (barred till it's done)
+    near = lambda name: [e for e in world.ents if e.name in name and e.map == gate.map and e.alive and
+                         world.visible_to(e, s)]
+    s.teleport(gate.map, (gate.tx - 1) * 32, (gate.ty + 1) * 32)
+    run(10)
+    goblins = near(("Goblin", "Goblin_Archer"))
+    assert len(goblins) == 4 and not near(("Guard",))               # (on the bridge for this player; no guards)
+    for g in goblins:
+        s.damage_npc(g, g.hp + 100)
+        run(5)
+    assert attr() == 2
+    gold = s.items_held("Gold_Coin(s)")
+    talk(mayor, 1)
+    assert attr() == 3 and s.items_held("Gold_Coin(s)") == gold + 80
+    s.check_locks(False)
+    assert not s.lock_closed(m, lock)                                # the gates open
+    s.teleport(gate.map, (gate.tx - 1) * 32, (gate.ty + 1) * 32)     # (back again: the guards are at their posts)
+    run(10)
+    assert len(near(("Guard",))) == 2 and not near(("Goblin", "Goblin_Archer"))
+    leave(world, s)
+
+
+def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
+    s = join(world, "Scaler", "9,4,0", 13 * 32, 10 * 32)
+    s.connected = True
+    run, npc, talk, use = isle_helpers(world, s)
+    wyrmsmith = next(e for e in world.ents if e.name == "Wyrmsmith")
+    attr = lambda: int(float(s.get_attribute("DragonforgeQuest") or 0))
+    talk(wyrmsmith)
+    assert attr() == 0                                               # (the dragon lives: no quest yet)
+    story_done_before(s, 16)                                         # (the dragon of Galaith slain)
+    talk(wyrmsmith, 1)
+    assert attr() == 1
+    stock(s, Dragon_Scale=3)
+    talk(wyrmsmith, 1)
+    assert attr() == 2 and s.items_held("Dragonscale_Helm") == 1 and s.items_held("Dragon_Scale") == 0
+    leave(world, s)
+
+
 def test_the_royal_guard_and_the_king(world):
     s = join(world, "Heir", "2,12,0", 13 * 32, 17 * 32)
     run, npc, talk, use = isle_helpers(world, s)

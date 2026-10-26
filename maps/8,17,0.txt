@@ -19,14 +19,14 @@ Marsh001:Timber_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof0
 Marsh001:Timber001:Door004:Timber001:Timber001+Decor(Timber_Window001):Timber001:Marsh001:Timber001:Timber001:Door004:Timber001:Timber001:Marsh001:Marsh001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001
 Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
-NPC	Clerk	160	184	Attitude=Good Stand=1 Face=S Id=Fenwick_Clerk_308
-NPC	Clerk	512	184	Attitude=Good Stand=1 Face=S Id=Fenwick_Clerk_312
-NPC	Greengrocer	96	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Greengrocer_326 Name=Walter
-NPC	Greengrocer	288	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Greengrocer_328 Name=Amos
-NPC	Barkeep	544	408	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_344 Name=Hattie
-NPC	Barmaid	608	504	Attitude=Good Zone=15,16,21,17 Pause=3-9 Id=Fenwick_Barmaid_345 Name=Florence
+NPC	Clerk	160	184	Attitude=Good Stand=1 Face=S Id=Fenwick_Clerk_311
+NPC	Clerk	512	184	Attitude=Good Stand=1 Face=S Id=Fenwick_Clerk_315
+NPC	Greengrocer	96	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Greengrocer_329 Name=Walter
+NPC	Greengrocer	288	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Greengrocer_331 Name=Amos
+NPC	Barkeep	544	408	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_347 Name=Hattie
+NPC	Barmaid	608	504	Attitude=Good Zone=15,16,21,17 Pause=3-9 Id=Fenwick_Barmaid_348 Name=Florence
 StaticObject	Sign_Pub	544	560
-StaticObject	Notice	448	578	Id=Fenwick_Notice_346
-StaticObject	Notice	0	578	Id=Fenwick_Notice_366
+StaticObject	Notice	448	578	Id=Fenwick_Notice_349
+StaticObject	Notice	0	578	Id=Fenwick_Notice_373
 Id	Fenwick_City_Hall	3	12
 Id	Fenwick_Town_Hall	14	12

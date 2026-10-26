@@ -18,10 +18,10 @@ Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof007.01):Plank001+Roof(Slate_Roo
 Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof010.01):Plank001+Decor(Bank_Counter001)+Roof(Slate_Roof011.01):Plank001+Decor(Bank_Counter001)+Roof(Slate_Roof011.01):Plank001+Decor(Bank_Counter001)+Roof(Slate_Roof011.01):Plank001+Decor(Bank_Counter001)+Roof(Slate_Roof011.01):Plank001+Decor(Bank_Counter001)+Roof(Slate_Roof011.01):Plank001+Roof(Slate_Roof011.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof012.01):Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.02):Grass001:Plaster001:Plaster001:Door005:Plaster001:Grass001:Grass001:Grass001
 Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.01):Grass001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001
 Grass001:Stone_Wall001:Door002:Stone_Wall001+Decor(Bank_Plaque001):Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Banker	128	504	Attitude=Good Stand=1 Face=S Id=Keep_Banker_335
-NPC	Barkeep	416	440	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_358 Name=Harold
-NPC	Barmaid	448	536	Attitude=Good Zone=12,17,16,18 Pause=3-9 Id=Keep_Barmaid_359 Name=Ned
-NPC	Man	352	248	Attitude=Good Zone=11,7,14,9 Pause=5-15 Id=Keep_Resident_367 Name=Lionel
+Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001:Gravel001
+NPC	Banker	128	504	Attitude=Good Stand=1 Face=S Id=Keep_Banker_337
+NPC	Barkeep	416	440	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_360 Name=Harold
+NPC	Barmaid	448	536	Attitude=Good Zone=12,17,16,18 Pause=3-9 Id=Keep_Barmaid_361 Name=Ned
+NPC	Man	352	248	Attitude=Good Zone=11,7,14,9 Pause=5-15 Id=Keep_Resident_369 Name=Lionel
 StaticObject	Sign_Pub	384	592
-StaticObject	Notice	288	578	Id=Keep_Notice_360
+StaticObject	Notice	288	578	Id=Keep_Notice_362

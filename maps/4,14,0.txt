@@ -19,7 +19,7 @@ Grass001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass0
 Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001
 Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004
 Peak004:Peak001:Peak002:Peak004:Peak006:Peak001:Peak001:Peak006:Peak006:Peak001:Peak004:Peak005:Peak003:Peak001:Peak001:Peak001:Peak002:Peak003:Peak003:Peak003:Peak004:Peak003:Peak002:Peak004:Peak002
-NPC	Barkeep	224	56	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_400 Name=Sid
-NPC	Barmaid	288	152	Attitude=Good Zone=5,5,11,6 Pause=3-9 Id=Galaith_Barmaid_401 Name=Winnie
-NPC	Farmer	512	184	Attitude=Good Zone=16,5,18,7 Pause=5-15 Id=Galaith_Resident_426 Name=Ivor
+NPC	Barkeep	224	56	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_405 Name=Sid
+NPC	Barmaid	288	152	Attitude=Good Zone=5,5,11,6 Pause=3-9 Id=Galaith_Barmaid_406 Name=Winnie
+NPC	Farmer	512	184	Attitude=Good Zone=16,5,18,7 Pause=5-15 Id=Galaith_Resident_434 Name=Ivor
 StaticObject	Sign_Pub	160	208

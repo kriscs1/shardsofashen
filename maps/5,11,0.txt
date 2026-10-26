@@ -19,9 +19,9 @@ Grass001:Gravel001:Marble_Paving001+Decor(Statue001):Gravel001:Gravel001:Gravel0
 Grass001:Grass001+Decor(Flower_Bed002):Gravel001:Grass001+Decor(Bench001):Grass001+Decor(Flower_Bed001):Grass001:Grass001:Grass001+Decor(Flower_Bed001):Grass001+Decor(Tree001):Grass001:Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.04):Grass001:Plaster001:Door005:Plaster001:Plaster001:Grass001+Decor(Flower_Bed003):Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Gravel001:Grass001+Decor(Flower_Bed001):Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Flower_Bed003):Grass001:Grass001:Grass001+Decor(Flower_Bed001):Grass001:Stone_Wall001:Stone_Wall001:Door002:Stone_Wall001:Grass001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001
 Marble_Paving001:Marble_Paving001:Marble_Paving001:Cobble001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Cobbler	288	184	Attitude=Good Stand=1 Face=S Id=Galaith_Cobbler_413 Name=Rosie
-NPC	Tailor	480	184	Attitude=Good Stand=1 Face=S Id=Galaith_Tailor_415 Name=Ned
-NPC	Cobbler	672	184	Attitude=Good Stand=1 Face=S Id=Galaith_Cobbler_417 Name=Greta
-NPC	Farmer	384	568	Attitude=Good Zone=13,17,14,19 Pause=5-15 Id=Galaith_Resident_427 Name=Peggy
-NPC	Farmer	544	536	Attitude=Good Zone=18,15,19,18 Pause=5-15 Id=Galaith_Resident_429 Name=Jasper
-Id	Galaith_Gardens_418	3	21
+NPC	Cobbler	288	184	Attitude=Good Stand=1 Face=S Id=Galaith_Cobbler_419 Name=Rosie
+NPC	Tailor	480	184	Attitude=Good Stand=1 Face=S Id=Galaith_Tailor_421 Name=Ned
+NPC	Cobbler	672	184	Attitude=Good Stand=1 Face=S Id=Galaith_Cobbler_423 Name=Greta
+NPC	Farmer	384	568	Attitude=Good Zone=13,17,14,19 Pause=5-15 Id=Galaith_Resident_435 Name=Peggy
+NPC	Farmer	544	536	Attitude=Good Zone=18,15,19,18 Pause=5-15 Id=Galaith_Resident_438 Name=Jasper
+Id	Galaith_Gardens_424	3	21

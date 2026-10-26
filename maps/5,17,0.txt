@@ -19,6 +19,6 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Timber_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Timber_Thin_Plank002+Roof(Thatch_Roof015.03):Marsh001:Timber_Thin_Plank004+Roof(Thatch_Roof013.01):Plank001+Roof(Thatch_Roof014.01):Plank001+Roof(Thatch_Roof014.01):Timber_Thin_Plank002+Roof(Thatch_Roof015.01):Marsh001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Timber001:Door004:Timber001:Timber001:Marsh001+Decor(Barrel001):Timber001:Timber001:Door004:Timber001:Marsh001+Decor(Flower_Bed002)
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001
-NPC	Villager	672	568	Attitude=Good Zone=22,16,23,19 Pause=5-15 Id=Fenwick_Resident_360 Name=Sid
-NPC	Woman	672	248	Attitude=Good Zone=21,7,23,9 Pause=5-15 Id=Fenwick_Resident_361 Name=Gilbert
+NPC	Villager	672	568	Attitude=Good Zone=22,16,23,19 Pause=5-15 Id=Fenwick_Resident_363 Name=Sid
+NPC	Woman	672	248	Attitude=Good Zone=21,7,23,9 Pause=5-15 Id=Fenwick_Resident_364 Name=Gilbert
 NPC	Scorpion	160	376	Attitude=Bad Zone=2,9,11,17

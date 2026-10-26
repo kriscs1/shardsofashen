@@ -19,8 +19,8 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Plaster_Th
 Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Plaster_Thin_Plank004+Roof(Clay_Roof013.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Plaster_Thin_Plank002+Roof(Clay_Roof015.01):Grass001:Plaster_Thin_Plank004+Roof(Thatch_Roof013.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plaster_Thin_Plank002+Roof(Thatch_Roof015.02):Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Stone_Wall_Thin_Plank002+Roof(Thatch_Roof015.03):Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001+Decor(Plaster_Window001):Plaster001:Grass001+Decor(Flower_Bed002):Plaster001:Plaster001:Door005:Plaster001:Grass001+Decor(Potted_Plant002):Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001:Dirt001
 Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
-NPC	Man	512	568	Attitude=Good Zone=17,16,18,19 Pause=5-15 Id=Keep_Resident_372 Name=Harold
-NPC	Farmer	672	568	Attitude=Good Zone=22,18,23,19 Pause=5-15 Id=Keep_Resident_374 Name=Sybil
+NPC	Man	512	568	Attitude=Good Zone=17,16,18,19 Pause=5-15 Id=Keep_Resident_374 Name=Harold
+NPC	Farmer	672	568	Attitude=Good Zone=22,18,23,19 Pause=5-15 Id=Keep_Resident_376 Name=Sybil
 NPC	Rabbit	448	280	Attitude=Bad Zone=10,6,20,14
 NPC	Rabbit	512	376	Attitude=Bad Zone=12,9,22,17
 NPC	Rabbit	576	376	Attitude=Bad Zone=14,9,24,17

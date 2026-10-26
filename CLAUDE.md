@@ -72,7 +72,7 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    Dragons** (22,20,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
 15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 9,12,0) breaks it; the dragon speaks;
    it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
-   onto the field; its Id is still `Galaith_West_Gate`) and Wardhaven's.
+   onto the field; its Id is still `Galaith_West_Gate`).
 16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (2,12,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.

@@ -25,17 +25,17 @@ NPC	Butcher	320	504	Attitude=Good Stand=1 Face=S Id=Fenwick_Stall_303 Name=Alice
 NPC	Baker	576	504	Attitude=Good Stand=1 Face=S Id=Fenwick_Stall_304 Name=Polly
 NPC	Black_Cat	224	376	Attitude=Good Zone=3,9,13,17 Pause=4-12
 NPC	Dog	672	568	Attitude=Good Zone=17,15,24,20 Pause=4-12
-NPC	Baker	352	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Baker_314 Name=Kit
-NPC	Baker	544	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Baker_316 Name=Quentin
-NPC	Butcher	160	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Butcher_318 Name=Kit
-NPC	Fishmonger	160	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Fishmonger_322 Name=Ernest
+NPC	Baker	352	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Baker_317 Name=Kit
+NPC	Baker	544	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Baker_319 Name=Quentin
+NPC	Butcher	160	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Butcher_321 Name=Kit
+NPC	Fishmonger	160	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Fishmonger_325 Name=Ernest
 StaticObject	Market_Stall_Open	320	416
 StaticObject	Market_Stall_Open	576	416
 StaticObject	Market_Stall_Open	320	544
 StaticObject	Market_Stall_Open	576	544
 StaticObject	Market_Board	448	384
-StaticObject	Notice	64	578	Id=Fenwick_Notice_306
-StaticObject	Notice	256	322	Id=Fenwick_Notice_363
+StaticObject	Notice	64	578	Id=Fenwick_Notice_309
+StaticObject	Notice	256	322	Id=Fenwick_Notice_370
 Id	Fenwick_Market_Square	15	17
 Id	Fenwick_Square	15	17
 NPC	Elder	448	440	Attitude=Good Zone=12,13,18,17 Pause=4-12

@@ -64,7 +64,7 @@ def assemble(log=print):
     clear = G.walls(atlas)
     G.field(atlas)
     G.pass_(atlas)
-    keep_w, gate_map, foot = G.wardhaven(atlas)
+    keep_w, gate_map, foot, bridge = G.wardhaven(atlas)
     L.POIS["Wardhaven_Bridge"] = ((foot[0] // XT, foot[1] // YT), (foot[0] % XT + 1, foot[1] % YT + 1), "road")
     plans = {}
     for key in ORDER:
@@ -115,4 +115,4 @@ def assemble(log=print):
     parts_maps = {p["new"] for p in L.parts()["parts"].values()}
     log("creatures: %d, by the water: %d" % (life.populate(atlas, plans, parts_maps), life.waters(atlas, plans)))
     log("out of reach, gone: %d" % life.prune(atlas, plans["Southport"].centre))
-    return atlas, plans, homes, rehoused, gate_map, scripts
+    return atlas, plans, homes, rehoused, gate_map, scripts, bridge

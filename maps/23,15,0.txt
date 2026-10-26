@@ -19,12 +19,12 @@ Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof010.03):Plank001+Decor(Counter
 Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Stone_Wall_Thin_Plank002+Roof(Thatch_Roof015.03):Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof013.04):Plank001+Roof(Thatch_Roof014.04):Plank001+Roof(Thatch_Roof014.04):Plank001+Roof(Thatch_Roof014.04):Stone_Wall_Thin_Plank002+Roof(Thatch_Roof015.04):Slate_Flag001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001:Grass001:Grass001
 Grass001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Grass001:Stone_Wall001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001:Slate_Flag001:Grass001:Grass001:Grass001:Slate_Flag001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001
 Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Grass001:Grass001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001
-NPC	Clerk	160	216	Attitude=Good Stand=1 Face=S Id=Ravensgate_Clerk_309
-NPC	Villager	416	152	Attitude=Good Stand=1 Face=S Id=Ravensgate_Priest_310 Name=Florence
-NPC	Butcher	96	504	Attitude=Good Stand=1 Face=S Id=Ravensgate_Butcher_318 Name=Ernest
-NPC	Butcher	288	504	Attitude=Good Stand=1 Face=S Id=Ravensgate_Butcher_320 Name=Mabel
-NPC	Doctor	544	504	Attitude=Good Stand=1 Face=S Id=Ravensgate_Doctor_334 Name=Amos
-NPC	Nurse	480	536	Attitude=Good Zone=15,16,22,18 Pause=4-10 Id=Ravensgate_Nurse_335 Name=Nell
-StaticObject	Notice	0	610	Id=Ravensgate_Notice_357
+NPC	Clerk	160	216	Attitude=Good Stand=1 Face=S Id=Ravensgate_Clerk_312
+NPC	Villager	416	152	Attitude=Good Stand=1 Face=S Id=Ravensgate_Priest_313 Name=Florence
+NPC	Butcher	96	504	Attitude=Good Stand=1 Face=S Id=Ravensgate_Butcher_321 Name=Ernest
+NPC	Butcher	288	504	Attitude=Good Stand=1 Face=S Id=Ravensgate_Butcher_323 Name=Mabel
+NPC	Doctor	544	504	Attitude=Good Stand=1 Face=S Id=Ravensgate_Doctor_337 Name=Amos
+NPC	Nurse	480	536	Attitude=Good Zone=15,16,22,18 Pause=4-10 Id=Ravensgate_Nurse_338 Name=Nell
+StaticObject	Notice	0	610	Id=Ravensgate_Notice_365
 Id	Ravensgate_City_Hall	3	13
 Id	Ravensgate_Cathedral	14	13

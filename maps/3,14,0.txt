@@ -19,9 +19,9 @@ Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass00
 Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001
 Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004:Galaith_Wall004
 Peak006:Peak003:Peak006:Peak003:Peak006:Peak001:Peak003:Peak003:Peak001:Peak006:Peak002:Peak003:Peak003:Peak006:Peak006:Peak001:Peak002:Peak005:Peak002:Peak003:Peak005:Peak001:Peak006:Peak003:Peak004
-NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_403 Name=Walter
-NPC	Barmaid	672	152	Attitude=Good Zone=17,5,23,6 Pause=3-9 Id=Galaith_Barmaid_404 Name=Kit
-NPC	Farmer	672	376	Attitude=Good Zone=22,12,23,13 Pause=5-15 Id=Galaith_Resident_424 Name=Edith
-NPC	Woman	64	440	Attitude=Good Zone=3,12,4,15 Pause=5-15 Id=Galaith_Resident_432 Name=Ida
-StaticObject	Notice	0	450	Id=Galaith_Notice_314
+NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_408 Name=Walter
+NPC	Barmaid	672	152	Attitude=Good Zone=17,5,23,6 Pause=3-9 Id=Galaith_Barmaid_409 Name=Kit
+NPC	Farmer	672	376	Attitude=Good Zone=22,12,23,13 Pause=5-15 Id=Galaith_Resident_431 Name=Edith
+NPC	Woman	64	440	Attitude=Good Zone=3,12,4,15 Pause=5-15 Id=Galaith_Resident_444 Name=Ida
+StaticObject	Notice	0	450	Id=Galaith_Notice_319
 StaticObject	Sign_Pub	736	208

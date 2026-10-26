@@ -19,10 +19,10 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Barkeep	160	56	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_389 Name=Alice
-NPC	Barmaid	224	152	Attitude=Good Zone=3,5,9,6 Pause=3-9 Id=Galaith_Barmaid_390 Name=Dora
-NPC	Farmer	512	120	Attitude=Good Zone=15,3,19,5 Pause=5-15 Id=Galaith_Resident_423 Name=Tilly
-StaticObject	Notice	704	450	Id=Galaith_Notice_312
+NPC	Barkeep	160	56	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_394 Name=Alice
+NPC	Barmaid	224	152	Attitude=Good Zone=3,5,9,6 Pause=3-9 Id=Galaith_Barmaid_395 Name=Dora
+NPC	Farmer	512	120	Attitude=Good Zone=15,3,19,5 Pause=5-15 Id=Galaith_Resident_430 Name=Tilly
+StaticObject	Notice	704	450	Id=Galaith_Notice_317
 StaticObject	Sign_Pub	96	208
-StaticObject	Notice	0	194	Id=Galaith_Notice_391
-Id	Galaith_Gardens_420	3	16
+StaticObject	Notice	0	194	Id=Galaith_Notice_396
+Id	Galaith_Gardens_426	3	16

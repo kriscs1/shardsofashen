@@ -22,6 +22,7 @@ import places as P  # noqa: E402
 import story  # noqa: E402
 import world  # noqa: E402
 import life  # noqa: E402
+import quests  # noqa: E402
 
 MAKER = "build_estforlan.py"
 MAPS = os.path.join(K.ROOT, "maps")
@@ -37,7 +38,7 @@ def old_world():
 
 def main():
     first = old_world()
-    atlas, plans, homes, rehoused, gate_map, scripts = world.assemble()
+    atlas, plans, homes, rehoused, gate_map, scripts, bridge = world.assemble()
     for name, rows in scripts.items():
         K.write_script(name, rows, MAKER)
     keep = set(atlas.maps) | set(L.ISLE)
@@ -57,7 +58,10 @@ def main():
         print("Moved %d scripts' map names over" % story.remap_scripts(table, story.chest_maps()))
         story.quests(table, rehoused)
         story.config()
-    story.entry_scripts(plans, first)
+    extra = quests.bridge(atlas, bridge)
+    quests.dragonforge()
+    quests.leftovers()
+    story.entry_scripts(plans, first, extra)
     story.pass_scripts()
     story.wardhaven_guard()
     print("Waystones: %s" % ", ".join(story.waystones(atlas, plans)))

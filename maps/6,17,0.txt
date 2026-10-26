@@ -19,16 +19,16 @@ Marsh001:Timber_Thin_Plank004+Roof(Shingle_Roof013.05):Plank001+Roof(Shingle_Roo
 Marsh001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Timber001+Decor(Timber_Window001):Timber001:Door004:Timber001:Marsh001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Marsh001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001
 Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
-NPC	Villager	704	120	Attitude=Good Stand=1 Face=S Id=Fenwick_Priest_309 Name=Jasper
-NPC	Butcher	224	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Butcher_320 Name=Clara
-NPC	Fishmonger	672	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Fishmonger_324 Name=Amos
-NPC	Barkeep	416	440	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_337 Name=Sybil
-NPC	Barmaid	480	536	Attitude=Good Zone=11,17,17,18 Pause=3-9 Id=Fenwick_Barmaid_338 Name=Fred
-NPC	Barkeep	128	440	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_351 Name=Cedric
-NPC	Barmaid	160	536	Attitude=Good Zone=3,17,7,18 Pause=3-9 Id=Fenwick_Barmaid_352 Name=Elsie
-StaticObject	Notice	768	322	Id=Fenwick_Notice_310
+NPC	Villager	704	120	Attitude=Good Stand=1 Face=S Id=Fenwick_Priest_312 Name=Jasper
+NPC	Butcher	224	216	Attitude=Good Stand=1 Face=S Id=Fenwick_Butcher_323 Name=Clara
+NPC	Fishmonger	672	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Fishmonger_327 Name=Amos
+NPC	Barkeep	416	440	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_340 Name=Sybil
+NPC	Barmaid	480	536	Attitude=Good Zone=11,17,17,18 Pause=3-9 Id=Fenwick_Barmaid_341 Name=Fred
+NPC	Barkeep	128	440	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_354 Name=Cedric
+NPC	Barmaid	160	536	Attitude=Good Zone=3,17,7,18 Pause=3-9 Id=Fenwick_Barmaid_355 Name=Elsie
+StaticObject	Notice	768	322	Id=Fenwick_Notice_313
 StaticObject	Sign_Pub	544	592
 StaticObject	Sign_Pub	224	592
-StaticObject	Notice	128	322	Id=Fenwick_Notice_364
-StaticObject	Notice	576	578	Id=Fenwick_Notice_365
+StaticObject	Notice	128	322	Id=Fenwick_Notice_371
+StaticObject	Notice	576	578	Id=Fenwick_Notice_372
 Id	Fenwick_Cathedral	23	12

@@ -19,11 +19,11 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reed
 Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh_Water004:Marsh_Water003:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Timber001:Timber001:Door004:Timber001:Timber001:Marsh001:Marsh001:Dirt001
 Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh_Water007:Marsh_Water009:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Dirt001:Dirt001:Marsh001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Marsh001
-NPC	Barkeep	160	56	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_340 Name=Jane
-NPC	Barmaid	224	152	Attitude=Good Zone=3,5,9,6 Pause=3-9 Id=Fenwick_Barmaid_341 Name=Harold
+NPC	Barkeep	160	56	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_343 Name=Jane
+NPC	Barmaid	224	152	Attitude=Good Zone=3,5,9,6 Pause=3-9 Id=Fenwick_Barmaid_344 Name=Harold
 StaticObject	Sign_Pub	96	208
-StaticObject	Notice	0	194	Id=Fenwick_Notice_342
-Id	Fenwick_Gardens_354	13	9
+StaticObject	Notice	0	194	Id=Fenwick_Notice_345
+Id	Fenwick_Gardens_357	13	9
 NPC	Frog	192	280	Attitude=Bad Zone=2,6,12,14
 NPC	Frog	480	408	Attitude=Bad Zone=11,10,21,18
 NPC	Duck	288	568	Attitude=Bad Zone=5,15,15,20

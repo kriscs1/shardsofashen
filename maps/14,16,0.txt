@@ -19,8 +19,8 @@ Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof
 Snow001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-NPC	Barkeep	160	440	Attitude=Good Stand=1 Face=S Id=Frosthold_Barkeep_327 Name=Toby
-NPC	Barmaid	224	536	Attitude=Good Zone=3,17,9,18 Pause=3-9 Id=Frosthold_Barmaid_328 Name=Martha
+NPC	Barkeep	160	440	Attitude=Good Stand=1 Face=S Id=Frosthold_Barkeep_328 Name=Toby
+NPC	Barmaid	224	536	Attitude=Good Zone=3,17,9,18 Pause=3-9 Id=Frosthold_Barmaid_329 Name=Martha
 StaticObject	Sign_Pub	96	592
-StaticObject	Notice	0	578	Id=Frosthold_Notice_329
+StaticObject	Notice	0	578	Id=Frosthold_Notice_330
 NPC	Snow_Wolf	480	56	Attitude=Bad Zone=11,2,21,7

@@ -25,10 +25,10 @@ NPC	Ginger_Cat	256	344	Attitude=Good Zone=4,8,14,16 Pause=4-12
 NPC	Black_Cat	480	600	Attitude=Good Zone=11,16,21,20 Pause=4-12
 NPC	Horse	64	512	Attitude=Good Stand=1 Face=W Id=Galaith_Horse_1
 NPC	Carter	32	536	Attitude=Good Stand=1 Face=S Id=Galaith_Carter_1 Name=Martha
-NPC	Villager	352	152	Attitude=Good Stand=1 Face=S Id=Galaith_Priest_319 Name=Ida
-NPC	Baker	160	248	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_325 Name=Bertha
-NPC	Fishmonger	384	504	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_335 Name=Sybil
-NPC	Fishmonger	576	504	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_337 Name=Clara
+NPC	Villager	352	152	Attitude=Good Stand=1 Face=S Id=Galaith_Priest_324 Name=Ida
+NPC	Baker	160	248	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_330 Name=Bertha
+NPC	Fishmonger	384	504	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_340 Name=Sybil
+NPC	Fishmonger	576	504	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_342 Name=Clara
 StaticObject	Market_Stall_Open	224	448
 StaticObject	Market_Stall_Open	224	576
 StaticObject	Market_Board	32	416

@@ -23,12 +23,12 @@ NPC	Tailor	576	184	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_306 Name=Sybil
 NPC	Cobbler	768	184	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_307 Name=Peggy
 NPC	Horse	448	320	Attitude=Good Stand=1 Face=W Id=Galaith_Horse_4
 NPC	Carter	416	344	Attitude=Good Stand=1 Face=S Id=Galaith_Carter_4 Name=Amos
-NPC	Tailor	384	184	Attitude=Good Stand=1 Face=S Id=Galaith_Tailor_411 Name=Kit
-NPC	Man	96	568	Attitude=Good Zone=3,16,6,19 Pause=5-15 Id=Galaith_Resident_431 Name=Rosie
+NPC	Tailor	384	184	Attitude=Good Stand=1 Face=S Id=Galaith_Tailor_417 Name=Kit
+NPC	Man	96	568	Attitude=Good Zone=3,16,6,19 Pause=5-15 Id=Galaith_Resident_443 Name=Rosie
 StaticObject	Market_Stall_Open	576	224
 StaticObject	Market_Stall_Open	768	224
 StaticObject	Cart	416	320
-StaticObject	Notice	288	290	Id=Galaith_Notice_437
+StaticObject	Notice	288	290	Id=Galaith_Notice_453
 Id	Galaith_Posh_Square	22	10
 Id	Galaith_Cart_Stop_4	15	12
-Id	Galaith_Gardens_419	23	21
+Id	Galaith_Gardens_425	23	21

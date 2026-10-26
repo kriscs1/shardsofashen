@@ -12,7 +12,7 @@
 11	Update.Attribute	Waystone.Ashford	=1
 12	Display.Message	Yellow	The rune flares blue: you are attuned to the Ashford waystone.
 13	Goto.Line	57
-14	>On.Map	13,3,0	20
+14	>On.Map	13,2,0	20
 15	Get.Value	CALCULATION	Wardhaven	Variable.9$
 16	>Conditional	$Attr.Waystone.Wardhaven=0	58
 17	Update.Attribute	Waystone.Wardhaven	=1

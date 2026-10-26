@@ -19,10 +19,10 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_337 Name=Rosie
-NPC	Barmaid	672	152	Attitude=Good Zone=17,5,23,6 Pause=3-9 Id=Ravensgate_Barmaid_338 Name=Harold
-NPC	Barkeep	288	56	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_351 Name=Fred
-NPC	Barmaid	352	152	Attitude=Good Zone=7,5,13,6 Pause=3-9 Id=Ravensgate_Barmaid_352 Name=Rufus
+NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_340 Name=Rosie
+NPC	Barmaid	672	152	Attitude=Good Zone=17,5,23,6 Pause=3-9 Id=Ravensgate_Barmaid_341 Name=Harold
+NPC	Barkeep	288	56	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_354 Name=Fred
+NPC	Barmaid	352	152	Attitude=Good Zone=7,5,13,6 Pause=3-9 Id=Ravensgate_Barmaid_355 Name=Rufus
 StaticObject	Sign_Pub	736	208
 StaticObject	Sign_Pub	416	208
-StaticObject	Notice	320	226	Id=Ravensgate_Notice_353
+StaticObject	Notice	320	226	Id=Ravensgate_Notice_356

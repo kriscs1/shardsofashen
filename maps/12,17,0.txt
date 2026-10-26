@@ -19,7 +19,7 @@ Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow
 Snow001:Snow001+Decor(Mithril_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Mithril_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Timber_Thin_Plank004+Roof(Shingle_Roof013.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Timber_Thin_Plank002+Roof(Shingle_Roof015.02):Dirt001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001+Decor(Flower_Bed002):Timber001:Timber001+Decor(Timber_Window001):Timber001:Timber001+Decor(Timber_Window001):Timber001+Decor(Timber_Window001):Door004:Timber001:Dirt001
 Snow001:Snow001:Snow001:Snow001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
-NPC	Butcher	672	216	Attitude=Good Stand=1 Face=S Id=Frosthold_Butcher_319 Name=Edith
-NPC	Farmer	640	568	Attitude=Good Zone=19,17,23,19 Pause=5-15 Id=Frosthold_Resident_333 Name=Peggy
-StaticObject	Notice	576	322	Id=Frosthold_Notice_336
+NPC	Butcher	672	216	Attitude=Good Stand=1 Face=S Id=Frosthold_Butcher_320 Name=Edith
+NPC	Farmer	640	568	Attitude=Good Zone=19,17,23,19 Pause=5-15 Id=Frosthold_Resident_334 Name=Peggy
+StaticObject	Notice	576	322	Id=Frosthold_Notice_340
 NPC	Snow_Wolf	96	344	Attitude=Bad Zone=2,8,9,16

@@ -137,7 +137,7 @@ def barrier_rows():
 
 
 # ------------------------------------------------------------------ Wardhaven
-BRIDGE_X = 12 * XT + 23                         # (the bridge's west column: 12,y tile 24; two wide)
+BRIDGE_X = 13 * XT + 12                         # (the bridge's west column: 13,y tile 13, the middle; two wide)
 
 
 def is_land(c):
@@ -147,8 +147,9 @@ def is_land(c):
 
 def wardhaven(atlas):
     """Before the town's grown: the bridge from the mainland to the island's south shore, a wall across the island's
-    south end with the gatehouse (barred while the dragon lives; the sea round the rest), the guard outside it.
-    Returns (which cells the town may use, the gate's map, the bridge's mainland end)."""
+    south end with the gatehouse (barred till the goblins on the bridge are gone: quests.py, The Wardhaven Bridge; the
+    sea round the rest). Returns (which cells the town may use, the gate's map, the bridge's mainland end, the bridge:
+    {"gate": (x, y) outside the gate, "bridge": its planks, "shore": the way from it to the gate})."""
     x1, y1, x2, y2 = L.SETTLEMENTS["Wardhaven"]["maps"]
     cy = (y1 + y2 + 1) * YT // 2
     xs = (BRIDGE_X, BRIDGE_X + 1)
@@ -157,8 +158,10 @@ def wardhaven(atlas):
         y += 1
     shore = y                                                            # (the island's last row going south)
     yb = shore + 1
+    planks = []
     while not all(is_land((x, yb)) for x in xs) and yb < shore + 40:
         for x in xs:
+            planks.append((x, yb))
             put(atlas, x, yb, "Plank001")
             atlas.roads.add((x, yb))
             atlas.taken.add((x, yb))
@@ -180,10 +183,12 @@ def wardhaven(atlas):
             atlas.roads.add((x, gy))
             atlas.taken.add((x, gy))
         m, lx, ly = atlas.at(x, wall + 1)
-        m.ents.append("Lock\t%d\t%d\t$Attr.GalaithQuest>=2\tThe gates of Wardhaven are barred. \"Not while the "
-                      "dragon lives!\" a guard shouts down from the wall." % (lx, ly))
-    gm, lx, ly = atlas.at(xs[0] - 1, wall + 3)
-    gm.ents.append("NPC\tGuard\t%d\t%d\tAttitude=Good Stand=1 Face=S" % ((lx - 1) * TW, (ly - 1) * TW - 8))
-    atlas.taken.add((xs[0] - 1, wall + 3))
+        m.ents.append("Lock\t%d\t%d\t$Attr.WardhavenQuest>=3\tThe gates of Wardhaven are barred. Nobody answers "
+                      "from the wall." % (lx, ly))
+    gm = atlas.at(xs[0], wall + 2)[0]
     atlas.place_id(xs[0], wall + 2, "Wardhaven_Gate")
-    return (lambda c: c[1] < wall), gm.name, (xs[0], yb)
+    if planks:
+        atlas.place_id(*planks[len(planks) // 2], "Wardhaven_Bridge_Span")
+    shore_cells = [(x, gy) for x in xs for gy in range(wall + 2, shore + 1)]
+    return (lambda c: c[1] < wall), gm.name, (xs[0], yb), {"gate": (xs[0], wall + 2), "bridge": planks,
+                                                           "shore": shore_cells}

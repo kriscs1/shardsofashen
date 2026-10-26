@@ -29,12 +29,12 @@ Id	Grave_Martha_Lark	21	18
 Id	Grave_Snow_Traveller	23	18
 Id	Grave_Cobb_Digger	25	18
 Id	Grave_Isolde_Ashby	19	19
-NPC	Fishmonger	384	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_322 Name=Sid
-NPC	Fishmonger	576	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_324 Name=Martha
-NPC	Banker	128	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Banker_330
+NPC	Fishmonger	384	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_325 Name=Sid
+NPC	Fishmonger	576	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_327 Name=Martha
+NPC	Banker	128	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Banker_333
 StaticObject	Waystone	448	256
 StaticObject	Homestone	512	256
-StaticObject	Notice	288	194	Id=Ravensgate_Notice_358
+StaticObject	Notice	288	194	Id=Ravensgate_Notice_366
 Id	Waystone_Ravensgate	15	10
 NPC	Gravekeeper	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
 Id	Ravensgate_Gravekeeper	13	11

@@ -30,6 +30,6 @@ Trigger	Mine Gate	8	9
 Lock	7	10	$Equipped.Body<>none or $Attr.HobgoblinQuest>=1 or $Attr.MineGatePassed>=1	The guard blocks the gate: no one goes down the mine without body armour, unless the King sent them.
 Id	Iron_Mine_Entrance	7	9
 StaticObject	Notice	352	194	Id=Southport_Notice_35
-NPC	Man	672	568	Attitude=Good Zone=21,17,23,19 Pause=5-15 Id=Keep_Resident_364 Name=Agnes
-NPC	Woman	672	248	Attitude=Good Zone=22,6,23,9 Pause=5-15 Id=Keep_Resident_370 Name=Hugh
+NPC	Man	672	568	Attitude=Good Zone=21,17,23,19 Pause=5-15 Id=Keep_Resident_366 Name=Agnes
+NPC	Woman	672	248	Attitude=Good Zone=22,6,23,9 Pause=5-15 Id=Keep_Resident_372 Name=Hugh
 StaticObject	Notice	608	354	Id=Keep_Notice_307

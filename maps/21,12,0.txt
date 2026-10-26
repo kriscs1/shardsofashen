@@ -19,22 +19,21 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
-NPC	Fishmonger	544	88	Attitude=Good Stand=1 Face=S Id=Keep_Fishmonger_327 Name=Clara
-NPC	Fishmonger	352	88	Attitude=Good Stand=1 Face=S Id=Keep_Fishmonger_329 Name=Oswald
-NPC	Doctor	416	344	Attitude=Good Stand=1 Face=S Id=Keep_Doctor_340 Name=Ned
-NPC	Nurse	352	376	Attitude=Good Zone=11,11,18,13 Pause=4-10 Id=Keep_Nurse_341 Name=Dora
-NPC	Barkeep	128	56	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_344 Name=Greta
-NPC	Barmaid	160	152	Attitude=Good Zone=3,5,7,6 Pause=3-9 Id=Keep_Barmaid_345 Name=Jane
-NPC	Blacksmith	128	312	Attitude=Good Stand=1 Face=S Id=Keep_Smith_361 Name=Colin
+NPC	Fishmonger	544	88	Attitude=Good Stand=1 Face=S Id=Keep_Fishmonger_329 Name=Clara
+NPC	Fishmonger	352	88	Attitude=Good Stand=1 Face=S Id=Keep_Fishmonger_331 Name=Oswald
+NPC	Doctor	416	344	Attitude=Good Stand=1 Face=S Id=Keep_Doctor_342 Name=Ned
+NPC	Nurse	352	376	Attitude=Good Zone=11,11,18,13 Pause=4-10 Id=Keep_Nurse_343 Name=Dora
+NPC	Barkeep	128	56	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_346 Name=Greta
+NPC	Barmaid	160	152	Attitude=Good Zone=3,5,7,6 Pause=3-9 Id=Keep_Barmaid_347 Name=Jane
+NPC	Blacksmith	128	312	Attitude=Good Stand=1 Face=S Id=Keep_Smith_363 Name=Colin
 StaticObject	Waystone	672	32
 StaticObject	Homestone	672	64
-StaticObject	Notice	672	98	Id=Keep_Notice_308
-StaticObject	Notice	512	450	Id=Keep_Notice_342
+StaticObject	Notice	672	98	Id=Keep_Notice_310
+StaticObject	Notice	512	450	Id=Keep_Notice_344
 StaticObject	Sign_Pub	224	208
-StaticObject	Notice	768	450	Id=Keep_Notice_352
+StaticObject	Notice	768	450	Id=Keep_Notice_354
 StaticObject	Furnace	64	288
 StaticObject	Anvil	192	288
-StaticObject	Notice	256	386	Id=Keep_Notice_362
-StaticObject	Notice	256	194	Id=Keep_Notice_377
-StaticObject	Notice	768	194	Id=Keep_Notice_378
+StaticObject	Notice	256	386	Id=Keep_Notice_364
+StaticObject	Notice	256	194	Id=Keep_Notice_382
 Id	Waystone_Keep	22	3

@@ -19,7 +19,7 @@ Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Marsh00
 Sand001:Sand001:Marsh001:Marsh001:Marsh001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Water001:Water001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh_Water007:Marsh_Water009:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001+Decor(Marigold_Patch001)
-NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_348 Name=Agnes
-NPC	Barmaid	672	152	Attitude=Good Zone=18,5,23,6 Pause=3-9 Id=Fenwick_Barmaid_349 Name=Ulric
-NPC	Villager	352	120	Attitude=Good Zone=11,3,14,5 Pause=5-15 Id=Fenwick_Resident_357 Name=Albert
+NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_351 Name=Agnes
+NPC	Barmaid	672	152	Attitude=Good Zone=18,5,23,6 Pause=3-9 Id=Fenwick_Barmaid_352 Name=Ulric
+NPC	Villager	352	120	Attitude=Good Zone=11,3,14,5 Pause=5-15 Id=Fenwick_Resident_360 Name=Albert
 StaticObject	Sign_Pub	736	208

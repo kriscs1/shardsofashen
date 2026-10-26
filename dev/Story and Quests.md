@@ -73,12 +73,11 @@ driven into its heart, kills the dragon.
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 15 | **The Dragon of Galaith** | (level 16) East over the causeway to the pass. **Use the staff on the barrier** (with Bert's spell learnt) and it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour, wielded**, gives it its death blow. The city's west gate opens. |
+| 15 | **The Dragon of Galaith** | (level 16) West to the pass in the West Range. **Use the staff on the barrier** (with Bert's spell learnt) and it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour, wielded**, gives it its death blow. The city's gate onto the field opens. |
 | 16 | **The Royal Guard** | Explore the city to win the guard over: the **captain** at the palace door sends you to the **Lord Chancellor** (the Parliament), who sends you to the **Royal Archivist** (the City Hall) with your mother's amulet; her word to the Chancellor; his warrant to the captain. |
 | 17 | **The True Heir** | **King Rupert**, on his throne: show him the amulet, tell him the will. He holds you and weeps, and gives you the crown. From then the world is open play; **Jimmy** curls up on the throne, and in your house on the Isle. |
 
-**Unlocks:** the gates of **Wardhaven**, over the bridge east of Ashford's farms (once the dragon is dead), and the
-mine behind Galaith (once you're king).
+**Unlocks:** the mine behind Galaith (once you're king); the Wyrmsmith's Dragonforge in Wardhaven (The Dragonforge).
 
 ---
 
@@ -118,6 +117,18 @@ an old barrel on the lake path that nobody moves. **Search it**: it hides a tunn
 cove. **Sneak to their leader, Red Meg, unseen.** The smugglers only see ahead of them, never through cargo,
 tents or walls. Meg offers a deal (her trade stays off Holt's streets if his men stay off her cove). Tell Holt.
 Reward: 60 gold; the smugglers become friendly, and Meg's shop is open to you.
+
+**The Wardhaven Bridge**: *after chapter 6*
+Mayor Hollis in Ashford's Town Hall: goblins have taken the bridge to Wardhaven, the walled town on its island north
+of the farms, and the bridge guards fled. **Clear the four goblins off the bridge** (they're there for you while the
+quest is on, as many as you've left), and tell the Mayor. Reward: 80 gold; Wardhaven's gates open to you, and the
+guards are back at the bridge whenever you come by again. (`WardhavenQuest`, `BridgeGoblins`; the gate map's entry
+script puts the goblins and the guards there.)
+
+**The Dragonforge**: *after chapter 15*
+The Wyrmsmith of Wardhaven keeps the only forge hot enough for dragon scale. Once Galaith's dragon is dead, bring her
+**three of its scales**: she makes you a **dragonscale helm** and teaches you the forge (dragonscale armour from scales
+and mithril bars, with Smithing). (`DragonforgeQuest`.)
 
 **The Dwarf's Grudge**: *level 8, after chapter 7*
 Brokk the dwarf, in the Deep Hollow (through the hatch in the hobgoblin warren), wants 4 skeletons smashed and the
@@ -237,6 +248,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
 | The Herbalist's Remedy | RemedyQuest | Talk to Herbalist |
 | A Portrait of Mo | PortraitQuest | Talk to Ashford_Painter, Stroke Mo |
+| The Wardhaven Bridge, The Dragonforge | WardhavenQuest, DragonforgeQuest | Talk to Ashford_Clerk_13, Kill Goblin, the gate's map's entry script, Talk to Wyrmsmith, Forge Wyrmsmith (all `build_estforlan.py`: estforlan/quests.py) |
 | Granny Wren's Walk | EscortQuest | Talk to Granny_Wren, Granny Wren Home, Talk to Ashford_Resident_34, 4,4,0, 9,4,0 |
 | The Smugglers' Run | SmugglerQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg |
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |

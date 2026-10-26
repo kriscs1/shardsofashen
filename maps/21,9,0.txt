@@ -21,4 +21,4 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Dirt001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001
 NPC	Ashen_Cultist	32	416	Attitude=Bad
 StaticObject	Chest	96	416
-NPC	Woman	544	568	Attitude=Good Zone=18,16,19,19 Pause=5-15 Id=Keep_Resident_368 Name=Albert
+NPC	Woman	544	568	Attitude=Good Zone=18,16,19,19 Pause=5-15 Id=Keep_Resident_370 Name=Albert

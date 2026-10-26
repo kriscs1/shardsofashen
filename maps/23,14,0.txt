@@ -19,10 +19,10 @@ Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof013.01):Plank001+Roof(Thatch_R
 Grass001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001
 Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001
 Slate_Flag001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001
-NPC	Barkeep	160	440	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_343 Name=Toby
-NPC	Barmaid	224	536	Attitude=Good Zone=3,17,9,18 Pause=3-9 Id=Ravensgate_Barmaid_344 Name=Amos
+NPC	Barkeep	160	440	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_346 Name=Toby
+NPC	Barmaid	224	536	Attitude=Good Zone=3,17,9,18 Pause=3-9 Id=Ravensgate_Barmaid_347 Name=Amos
 StaticObject	Sign_Pub	96	592
-StaticObject	Notice	0	578	Id=Ravensgate_Notice_345
+StaticObject	Notice	0	578	Id=Ravensgate_Notice_348
 NPC	Rabbit	128	280	Attitude=Bad Zone=2,6,10,14
 NPC	Rabbit	352	344	Attitude=Bad Zone=7,8,17,16
 NPC	Rabbit	160	120	Attitude=Bad Zone=2,2,11,9

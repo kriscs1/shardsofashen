@@ -21,5 +21,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 StaticObject	Moored_Boat	384	512
 StaticObject	Fish_Spot	512	576
-NPC	Fisherman	352	536	Attitude=Good Stand=1 Face=S Id=Ravensgate_Harbour_Master_307 Name=Agnes
+NPC	Fisherman	352	536	Attitude=Good Stand=1 Face=S Id=Ravensgate_Harbour_Master_310 Name=Agnes
 Id	Ravensgate_Port	11	19

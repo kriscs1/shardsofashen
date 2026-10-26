@@ -18,8 +18,7 @@ Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.04):Plank001+Ro
 Grass001:Grass001:Grass001+Decor(Barrel001):Brick001:Brick001+Decor(Brick_Window001):Door001:Brick001:Grass001+Decor(Potted_Plant002):Grass001:Plaster001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001
 Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Gravel001:Grass001:Grass001:Grass001:Gravel001
 Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Gravel001:Gravel001:Gravel001:Gravel001+Decor(Lamp_Post001)
-Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Dog	704	568	Attitude=Good Zone=18,15,24,20 Pause=4-12
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Clerk	608	248	Attitude=Good Stand=1 Face=S Id=Oakhollow_Clerk_307
 NPC	Doctor	352	472	Attitude=Good Stand=1 Face=S Id=Oakhollow_Doctor_313 Name=Ned
 NPC	Blacksmith	352	248	Attitude=Good Stand=1 Face=S Id=Oakhollow_Smith_319 Name=Clara

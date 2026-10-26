@@ -81,7 +81,7 @@ ENTRY_WORDS = {"Ashford village. You smell fresh bread.": "Ashford. You smell fr
                "The Royal Isle: the Wizards' Court.": "The Wizards' Court."}
 
 
-def entry_scripts(plans, first):
+def entry_scripts(plans, first, extra=None):
     """The entry scripts of moved maps under their new names (the first run: all read before any is written, as some
     new names are old ones); the rest of the old mainland's go."""
     keep = set()
@@ -99,13 +99,18 @@ def entry_scripts(plans, first):
                 write(os.path.join(K.SCRIPTS, ENTRY[old] + ".txt"), lines)
     for f in os.listdir(K.SCRIPTS):                        # (old mainland maps' entry scripts left over)
         name = f[:-4]
-        if MAP.fullmatch(name) and name not in keep and name.split(",")[0:2] != ["0", "0"] and not isle(name) and \
+        if MAP.fullmatch(name) and name not in keep and name not in (extra or {}) and name.split(",")[0:2] != ["0", "0"] and not isle(name) and \
                 name not in (G.PASS,) and name not in ISLE_LEVELS and name not in ENTRY.values():
             os.remove(os.path.join(K.SCRIPTS, f))
+    arrive = {}
     for key, plan in plans.items():                        # a word on arriving in each settlement
         name = plan.home_map()
-        if not os.path.exists(os.path.join(K.SCRIPTS, name + ".txt")):
-            K.write_script(name, [("Display.Message", "Cyan", ARRIVE.get(key, "%s." % plan.title), "-")], MAKER)
+        if not os.path.exists(os.path.join(K.SCRIPTS, name + ".txt")) or name in (extra or {}):
+            arrive[name] = [("Display.Message", "Cyan", ARRIVE.get(key, "%s." % plan.title), "-")]
+    for name, rows in (extra or {}).items():               # (a quest's lines on a map: after its arrival words)
+        K.write_script(name, arrive.pop(name, []) + rows, MAKER)
+    for name, rows in arrive.items():
+        K.write_script(name, rows, MAKER)
 
 
 ARRIVE = {"Galaith": "Galaith, the royal city. Its white towers shine over the rooftops.",

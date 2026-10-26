@@ -18,18 +18,18 @@ Snow001:Snow001:Snow001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.05):
 Snow001:Snow001:Snow001:Snow001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.04):Snow001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Stone_Wall_Thin_Plank002+Roof(Thatch_Roof015.03):Flagstone001:Flagstone001
 Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Dirt001:Dirt001:Dirt001:Snow001:Snow001:Snow001:Stone_Wall001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001:Snow001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Flagstone001:Flagstone001
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Snow001:Snow001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001+Decor(Lamp_Post001):Flagstone001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-NPC	Clerk	544	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Clerk_308
-NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Priest_310 Name=Winnie
-NPC	Baker	640	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Baker_313 Name=Mabel
-NPC	Fishmonger	448	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Fishmonger_315 Name=Toby
-NPC	Blacksmith	224	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Smith_330 Name=Harold
-StaticObject	Notice	544	578	Id=Frosthold_Notice_306
-StaticObject	Notice	736	322	Id=Frosthold_Notice_309
-StaticObject	Notice	384	322	Id=Frosthold_Notice_311
+Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+NPC	Clerk	544	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Clerk_309
+NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Priest_311 Name=Winnie
+NPC	Baker	640	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Baker_314 Name=Mabel
+NPC	Fishmonger	448	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Fishmonger_316 Name=Toby
+NPC	Blacksmith	224	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Smith_331 Name=Harold
+StaticObject	Notice	544	578	Id=Frosthold_Notice_307
+StaticObject	Notice	736	322	Id=Frosthold_Notice_310
+StaticObject	Notice	384	322	Id=Frosthold_Notice_312
 StaticObject	Furnace	160	448
 StaticObject	Anvil	288	448
-StaticObject	Notice	352	546	Id=Frosthold_Notice_331
-StaticObject	Notice	352	578	Id=Frosthold_Notice_335
+StaticObject	Notice	352	546	Id=Frosthold_Notice_332
+StaticObject	Notice	352	578	Id=Frosthold_Notice_339
 Id	Frosthold_Town_Hall	22	12
 Id	Frosthold_Church	11	12

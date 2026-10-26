@@ -19,7 +19,7 @@ Grass001+Decor(Flowers003):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass
 Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001
 Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Sand001:Sand001
-NPC	Blacksmith	576	120	Attitude=Good Stand=1 Face=S Id=Ravensgate_Smith_354 Name=Winnie
+NPC	Blacksmith	576	120	Attitude=Good Stand=1 Face=S Id=Ravensgate_Smith_357 Name=Winnie
 StaticObject	Furnace	512	96
 StaticObject	Anvil	640	96
-Id	Ravensgate_Gardens_355	11	7
+Id	Ravensgate_Gardens_358	11	7

@@ -428,6 +428,39 @@ class Plan(OLD.Town):
         for kind, name in rest:
             self.place(kind, name)
 
+    def extra_rows(self, most=4):
+        """Where the rows left room unused (a small island, a narrow valley): more short streets, nearest the middle
+        first, each with room for buildings along it, joined to the rest."""
+        made = 0
+        ys = sorted({c[1] for c in self.cells}, key=lambda y: abs(y - self.centre[1]))
+        for y in ys:
+            if made >= most:
+                break
+            if y % YT < 6:
+                continue                                   # (its buildings would cross into the map above)
+            run = []
+            best = []
+            for x in sorted(c[0] for c in self.cells if c[1] == y):
+                room = all(self.usable((x, y - k)) for k in range(0, 6)) and                     not any((x, y + k) in self.street for k in range(-7, 6) if k)    # (clear of the other streets)
+                if room and (not run or x == run[-1] + 1):
+                    run.append(x)
+                else:
+                    best = max(best, run, key=len)
+                    run = [x] if room else []
+            best = max(best, run, key=len)
+            if len(best) < 12:
+                continue
+            cells = [(x, y) for x in best]
+            for c in cells:
+                self.lay(c)
+            if not self.connect(cells[len(cells) // 2]):
+                for c in cells:
+                    self.unlay(c)
+                continue
+            self.rows.append((y, "W" if best[0] < self.avenue_x else "E", cells))
+            made += 1
+        return made
+
     def lanes(self):
         """The shops: a lane's shops side by side along the street nearest the square that has room."""
         for kinds, per in self.size["lanes"]:
@@ -464,7 +497,7 @@ class Plan(OLD.Town):
     def houses(self):
         """Houses along the streets, nearest the middle first, each its own width and height and a gap of 1 to 3
         between; so many streets of them, so many to a street."""
-        groups = {}
+        groups = self.house_groups                       # (more on a second go: after extra_rows)
         want, per = self.size["streets"], self.size["per"]
         row_of = {}
         for y, side, cells in self.rows:
@@ -941,7 +974,18 @@ def settle(atlas, key, reserved, hint=None, keep=None, carts=None, staff=(), hoo
                 for kinds, per in posh["lanes"]:
                     plan.lane(kinds, per, ((sq[0] + sq[2]) // 2, sq[3]))
     plan.gardens(size["gardens"])
+    left = [m for m in plan.missing if m.split()[0] in SIZE]
+    if left and plan.extra_rows():                     # (no room for some: more streets, and try again)
+        plan.missing = [m for m in plan.missing if m not in left]
+        for m in left:
+            kind, _, name = m.partition(" ")
+            if kind == "shop":
+                plan.lane(name, 1, plan.centre)
+            else:
+                plan.place(kind, name)
     plan.houses()
+    if len(plan.house_groups) < size["streets"] and plan.extra_rows():
+        plan.houses()                                  # (streets of houses short: more streets, more houses)
     plan.trim()
     plan.lanes_between()
     plan.name_streets()

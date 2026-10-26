@@ -19,14 +19,14 @@ Grass001:Marble_Paving001:Marble_Paving001:Grass001:Grass001:Grass001:Grass001:G
 Grass001:Marble_Paving001:Marble_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Marble_Paving001:Marble_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Marble_Paving001:Marble_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Greengrocer	160	88	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_341 Name=Jane
-NPC	Greengrocer	352	88	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_343 Name=Elsie
-NPC	Greengrocer	544	88	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_345 Name=Edgar
-NPC	Banker	192	344	Attitude=Good Stand=1 Face=S Id=Galaith_Banker_359
-NPC	Barkeep	512	312	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_385 Name=Percy
-NPC	Barmaid	576	408	Attitude=Good Zone=14,13,20,14 Pause=3-9 Id=Galaith_Barmaid_386 Name=Tilly
+NPC	Greengrocer	160	88	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_346 Name=Jane
+NPC	Greengrocer	352	88	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_348 Name=Elsie
+NPC	Greengrocer	544	88	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_350 Name=Edgar
+NPC	Banker	192	344	Attitude=Good Stand=1 Face=S Id=Galaith_Banker_364
+NPC	Barkeep	512	312	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_390 Name=Percy
+NPC	Barmaid	576	408	Attitude=Good Zone=14,13,20,14 Pause=3-9 Id=Galaith_Barmaid_391 Name=Tilly
 StaticObject	Waystone	96	256
 StaticObject	Homestone	256	192
 StaticObject	Sign_Pub	448	464
-StaticObject	Notice	352	450	Id=Galaith_Notice_387
+StaticObject	Notice	352	450	Id=Galaith_Notice_392
 Id	Waystone_Galaith	4	10

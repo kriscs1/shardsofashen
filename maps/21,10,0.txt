@@ -19,13 +19,13 @@ Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof010.03):Plank001+Roof(Thatch_R
 Grass001:Stone_Wall_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Stone_Wall_Thin_Plank002+Roof(Thatch_Roof015.03):Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.02):Cobble001:Grass001:Grass001:Grass001:Grass001
 Grass001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Grass001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Cobble001:Grass001:Grass001:Grass001:Grass001
 Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Cobble001:Gravel001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001
-NPC	Villager	512	120	Attitude=Good Stand=1 Face=S Id=Keep_Priest_313 Name=Lionel
-NPC	Clerk	448	472	Attitude=Good Stand=1 Face=S Id=Keep_Clerk_316
-NPC	Barkeep	128	472	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_347 Name=Nell
-NPC	Barmaid	192	568	Attitude=Good Zone=3,18,8,19 Pause=3-9 Id=Keep_Barmaid_348 Name=Ned
-NPC	Farmer	128	248	Attitude=Good Zone=5,7,6,9 Pause=5-15 Id=Keep_Resident_366 Name=Edith
-StaticObject	Notice	576	354	Id=Keep_Notice_314
-StaticObject	Notice	672	610	Id=Keep_Notice_317
+NPC	Villager	512	120	Attitude=Good Stand=1 Face=S Id=Keep_Priest_315 Name=Lionel
+NPC	Clerk	448	472	Attitude=Good Stand=1 Face=S Id=Keep_Clerk_318
+NPC	Barkeep	128	472	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_349 Name=Nell
+NPC	Barmaid	192	568	Attitude=Good Zone=3,18,8,19 Pause=3-9 Id=Keep_Barmaid_350 Name=Ned
+NPC	Farmer	128	248	Attitude=Good Zone=5,7,6,9 Pause=5-15 Id=Keep_Resident_368 Name=Edith
+StaticObject	Notice	576	354	Id=Keep_Notice_316
+StaticObject	Notice	672	610	Id=Keep_Notice_319
 StaticObject	Sign_Pub	256	624
 Id	Keep_Cathedral	17	12
 Id	Keep_Town_Hall	19	21

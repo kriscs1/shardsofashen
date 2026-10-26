@@ -56,7 +56,7 @@ e the Elderwood · a the Ashwold · u the downs · v Wardhaven's island · D Dra
 | Ashford | small city | 9-10, 4-5 | red brick | north: a port |
 | Highwatch | town | 12-13, 13-14 | red sandstone | |
 | Frosthold | town | 13-14, 17-18 | grey flagstones | |
-| Wardhaven | town on its island, its gatehouse over the bridge | 12-13, 2-3 | grey cobbles | north: a dock; the bridge |
+| Wardhaven | town on its island, its gatehouse over a long bridge (closed till The Wardhaven Bridge) | 12-14, 1-3 | grey cobbles | north: a dock; the bridge |
 | Oakhollow | village | 7-8, 8-9 | gravel | |
 | Thornwick | village | 17-18, 10-11 | gravel | |
 | Emberwatch | village | 22-23, 5-6 | black basalt | east: a dock |
