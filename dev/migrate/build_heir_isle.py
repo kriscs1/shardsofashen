@@ -1264,9 +1264,7 @@ def lair_scripts():
     w("Pick Lock Caged_Tobias", [
         (">Distance.From.Clicked.Entity", "48", "@far"),
         ("Display.Message", "Cyan", "You work at the cage's lock with a bent nail..", "-"),
-        ("Play.Animation", " ", "3", "Lockpick"),
-        ("Wait", "2"),
-        (">Random", "35", "@fail"),
+        ("Play.Minigame", "LOCK", "1", "@fail"),                # (set the pins: minigames.py)
         ("Get.Value", "ATTRIBUTE", "Passage", V1),
         ("Play.Sound", "Cage_Open"),
         ("Remove.Entity", "$Object.under.Cursor.X,$Object.under.Cursor.Y", "Caged_Tobias"),

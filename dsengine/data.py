@@ -313,6 +313,13 @@ class GameData:
             cache[name] = self.tile_ini(name, "Open.Tile", "") if name else ""
         return cache[name]
 
+    def tile_water(self, name):
+        """Is tile name water (Tiles.ini Water=1)?"""
+        cache = self.cache("tile_water")
+        if name not in cache:
+            cache[name] = trim(self.tile_ini(name, "Water", "0")) == "1"
+        return cache[name]
+
     def unlocked_tile(self, name):
         cache = self.cache("unlocked_tile")
         if name not in cache:

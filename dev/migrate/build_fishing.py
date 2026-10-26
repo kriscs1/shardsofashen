@@ -192,7 +192,8 @@ NO_SPOT = [("Display.Message", "DarkRed", "Nothing's biting here. Look for a fis
 def scripts():
     S = W.S
     for spot in SPOTS:
-        S["Fish " + spot] = spot_script(spot)
+        if spot not in ("Salmon_Spot", "Swordfish_Spot"):        # (those two take seal blubber too: build_water_animals)
+            S["Fish " + spot] = spot_script(spot)
         S["Use Fishing_Rod With " + spot] = [("Goto.Script", "Fish " + spot), ("End",)]
     for water in ("Water", "Pond", "Sand_Water", "Snow_Water", "Cave_Pool"):
         S["Use Fishing_Rod With " + water] = list(NO_SPOT)

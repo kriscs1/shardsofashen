@@ -21,6 +21,7 @@ from .farming import Farms
 from .market import Market
 from .waves import Waves
 from .tavern import Tavern
+from .minigames import Arms
 from .npcs import NPCMixin
 
 log = logging.getLogger("dragonsword.world")
@@ -62,6 +63,7 @@ class World(NPCMixin):
         self.market = Market(self)      # the marketplace: everyone's listings
         self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
         self.tavern = Tavern(self)      # the tavern's dice rounds
+        self.arms = Arms(self)          # the arm-wrestling bouts (minigames.py)
 
     # =================================================================================================================
     # Maps
@@ -434,6 +436,10 @@ class World(NPCMixin):
                 d = "2"
             if direction & 8:
                 d = "8"
+        if e.ai is not None and e.ai.swims and self.in_water(e) and self.data.loaded("%s_Swim%s" % (base, d)):
+            e.frame, e.anim_dist = 0, 0.0                    # (in the water: just its head and back above it)
+            e.image = "%s_Swim%s" % (base, d)
+            return
         if not moving and e.pose and self.data.loaded("%s_%s%s" % (base, e.pose, d)):
             e.frame, e.anim_dist = 0, 0.0                    # (resting: sitting, lying, whatever it can)
             e.image = "%s_%s%s" % (base, e.pose, d)
@@ -448,6 +454,10 @@ class World(NPCMixin):
             e.anim_dist = 0.0
         e.frame = frame
         e.image = base + d + "abac"[frame]
+
+    def in_water(self, e):
+        m, tx, ty = self.tile_at(e.z, e.fx, e.fy)
+        return m is not None and m.tile_is_water(tx, ty)
 
     def replace_sprite(self, e, name):
         image, animated = self.data.first_image(e.type, name)
@@ -512,8 +522,9 @@ class World(NPCMixin):
             return True
         return mover.lock_closed(m, lk)
 
-    def pixel_walkable(self, z, x, y, mover=None):
-        """Can the feet of mover (a Session, or None for an NPC) stand at global pixel x,y on level z?"""
+    def pixel_walkable(self, z, x, y, mover=None, swim=False):
+        """Can the feet of mover (a Session, or None for an NPC) stand at global pixel x,y on level z? swim: a
+        swimmer's feet (Swims=1), at home in the water too."""
         m = self.map_at(z, x, y)
         if m is None:
             return False
@@ -530,6 +541,8 @@ class World(NPCMixin):
                 override = o[2]
         elif (tx, ty) in m.lock_at:
             return False
+        if swim:
+            return m.local_swimmable(lx, ly)
         return m.local_walkable(lx, ly, override)
 
     def ground_speed(self, e):
@@ -557,8 +570,9 @@ class World(NPCMixin):
     def entity_can_stand(self, e, x, y, old_x, old_y, mover=None):
         """mover: the Session whose player e is (None for NPCs)."""
         z = e.z
-        if not self.pixel_walkable(z, x, y, mover):
-            if self.pixel_walkable(z, old_x, old_y, mover):
+        swim = e.type == NPC and e.ai is not None and e.ai.swims
+        if not self.pixel_walkable(z, x, y, mover, swim):
+            if self.pixel_walkable(z, old_x, old_y, mover, swim):
                 return False                        # (stuck entities, e.g. after a tile change, may walk out)
         if mover is not None:
             for n in self.ents:
@@ -653,7 +667,7 @@ class World(NPCMixin):
     # =================================================================================================================
     # Pathfinding: A* over the maps' walk grids (half-tile cells), global cell coordinates on the level
     # =================================================================================================================
-    def grid_walkable(self, z, gx, gy, mover=None):
+    def grid_walkable(self, z, gx, gy, mover=None, swim=False):
         cell = self.data.grid_cell
         gw, gh = int(self.sw / cell), int(self.sh / cell)
         m = self.by_pos.get((math.floor(gx / gw), math.floor(gy / gh), z))
@@ -667,9 +681,9 @@ class World(NPCMixin):
         if mover is not None and (m.name, tx, ty) in mover.cell_override:
             px, py = m.ox + lx * cell + cell / 2, m.oy + ly * cell + cell / 2
             return 1 if self.pixel_walkable(z, px, py, mover) else 0
-        return m.get_grid()[ly * gw + lx]
+        return (m.get_swim_grid() if swim else m.get_grid())[ly * gw + lx]
 
-    def grid_line_walkable(self, z, x1, y1, x2, y2, mover=None):
+    def grid_line_walkable(self, z, x1, y1, x2, y2, mover=None, swim=False):
         d = distance(x1, y1, x2, y2)
         steps = int(d / 6) + 1
         cell = self.data.grid_cell
@@ -680,10 +694,10 @@ class World(NPCMixin):
             cx = math.floor((x1 + (x2 - x1) * i / steps) / cell)
             cy = math.floor((y1 + (y2 - y1) * i / steps) / cell)
             if cx != last_x or cy != last_y:
-                if gwk(z, cx, cy, mover) == 0:
+                if gwk(z, cx, cy, mover, swim) == 0:
                     return False
                 if cx != last_x and cy != last_y:
-                    if gwk(z, cx, last_y, mover) == 0 or gwk(z, last_x, cy, mover) == 0:
+                    if gwk(z, cx, last_y, mover, swim) == 0 or gwk(z, last_x, cy, mover, swim) == 0:
                         return False
                 last_x, last_y = cx, cy
         return True
@@ -709,10 +723,11 @@ class World(NPCMixin):
         if d <= rng:
             return True
         reach = (d - max(0, rng - 2)) / d
-        if self.grid_line_walkable(z, sx, sy, sx + (tx - sx) * reach, sy + (ty - sy) * reach, mover):
+        swim = e.type == NPC and e.ai is not None and e.ai.swims
+        if self.grid_line_walkable(z, sx, sy, sx + (tx - sx) * reach, sy + (ty - sy) * reach, mover, swim):
             return True
         cell = self.data.grid_cell
-        gwk = self.grid_walkable
+        gwk = (lambda z_, x_, y_, m_: self.grid_walkable(z_, x_, y_, m_, True)) if swim else self.grid_walkable
         radius = max(rng - 2, int(cell * 0.75))
         r2 = radius * radius
         range_cost = int(radius / cell * 10)
@@ -815,7 +830,7 @@ class World(NPCMixin):
         while j < len(corners):
             k = j
             while k < len(corners) - 1:
-                if not self.grid_line_walkable(z, ax, ay, corners[k + 1][0], corners[k + 1][1], mover):
+                if not self.grid_line_walkable(z, ax, ay, corners[k + 1][0], corners[k + 1][1], mover, swim):
                     break
                 k += 1
             path.append((corners[k][0], corners[k][1] - feet_offset))
@@ -1364,4 +1379,5 @@ class World(NPCMixin):
         self.farms.tick()
         self.waves.tick()
         self.tavern.tick()
+        self.arms.tick()
         self.weather_tick()

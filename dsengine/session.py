@@ -22,6 +22,7 @@ from .homes import HomeMixin
 from .farming import FarmMixin
 from .market import MarketMixin
 from .digging import DigMixin
+from .minigames import MinigameMixin
 from .tavern import TavernMixin
 from .containers import ChestMixin
 
@@ -43,7 +44,8 @@ def clean_look(look):
     return out or None
 
 
-class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin):
+class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
+              MinigameMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data

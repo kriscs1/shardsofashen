@@ -493,7 +493,8 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
         for px, py in points:
             if not rect_has(chase, px, py):
                 report(where, "Chase=%s doesn't contain patrol waypoint %d,%d" % (opts["Chase"], px, py))
-    if zone and "Patrol" not in opts and not stand:
+    swims = entities_ini is not None and (entities_ini.get(name, "Swims") or "").strip() == "1"
+    if zone and "Patrol" not in opts and not stand and not swims:    # (a swimmer has the water too: it can't be stuck)
         reach = reach or flood([(spawn[0] - 1, spawn[1] - 1)])
         room = [t for t in reach if rect_has(zone, t[0] + 1, t[1] + 1)]
         if len(room) < 2:
@@ -1037,9 +1038,10 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
                "Slain.By",                                                       # only that weapon gives its death blow
                "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
-               "Hunts"}                                                          # the NPCs it goes for (Rabbit,Sheep)
+               "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
+               "Swims", "Calls"}                                                 # at home in the water too (an otter); its call
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
-                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts"}
+                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1122,8 +1124,10 @@ def check_entities():
                 if "%s%d" % (e, k) not in ENTITIES:
                     err(r, "[%s] Anim.Frames=%s but there's no sprite %s%d" % (e, n, e, k))
     for e in ENTITIES:                  # <Name>_<State>2 / 8: how an NPC with States= rests (Sit: Cat_Sit2, Cat_Sit8),
-        for key in ("States", "Fidgets"):   # (and Fidgets=: a moment's pose now and then)
+        for key in ("States", "Fidgets", "Swims"):   # (and Fidgets=: a moment's pose now and then; Swims: _Swim)
             states = ini.get(e, key) if ini.section(e) is not None else None
+            if key == "Swims":
+                states = "Swim" if (states or "").strip() == "1" else ""
             for st in [x.strip() for x in (states or "").split(",") if x.strip()]:
                 for d in "28":
                     frames.add("%s_%s%s" % (e, st, d))
@@ -1136,6 +1140,9 @@ def check_entities():
         if sec not in ENTITIES:
             warn(r, "[%s] has no sprite in sprites\\Entities" % sec)
         typ = ini.get(sec, "Type")
+        call = (ini.get(sec, "Calls") or "").strip()
+        if call and call not in SOUNDS:
+            err(r, "[%s] Calls=%s: there's no sounds\\%s.wav" % (sec, call, call))
         for prey in [x.strip() for x in (ini.get(sec, "Hunts") or "").split(",") if x.strip()]:
             if prey != "Foes" and (ini.get(prey, "Type") or "") != "NPC":     # (Foes: any monster that attacks)
                 err(r, "[%s] Hunts=%s: there's no NPC called %s" % (sec, ini.get(sec, "Hunts"), prey))
@@ -1869,9 +1876,10 @@ def check_world(tiles_ini, entities_ini, skills):
         for e in ents:
             if e[0] in ("MapItem", "StaticObject") + NPC_TYPES and len(e) >= 4 and is_num(e[2]) and is_num(e[3]):
                 placements.setdefault(e[1], []).append((m, entity_tile(e[1], float(e[2]), float(e[3]))))
+    swimmers = {n for n in placements if ENTITIES_INI is not None and (ENTITIES_INI.get(n, "Swims") or "") == "1"}
     for name, where in sorted(placements.items()):
         for m, t in where:
-            if not reachable_entity(open_reach, m, t):
+            if name not in swimmers and not reachable_entity(open_reach, m, t):   # (a swimmer comes ashore)
                 warn("maps\\%s.txt" % m, "%s at tile %d,%d can't be reached from the start (even with every lock open)"
                      % (name, t[0] + 1, t[1] + 1))
     for m, x, y, cond, msg, where in LOCKS:

@@ -108,6 +108,7 @@ class NPCMixin:
         n = e.name
         a.solid = 0 if d.entity_ini(n, "Solid", "1") == "0" else 1
         a.flees = trim(d.entity_ini(n, "Flees", "0")) == "1"         # (prey: runs from whoever hits it, never fights)
+        a.swims = trim(d.entity_ini(n, "Swims", "0")) == "1"         # (an otter, a seal: at home in the water too)
         layer = trim(d.entity_ini(n, "Layer", "")).upper()
         a.under = 1 if layer == "UNDER" else 0
         a.flying = 1 if layer == "OVER" else 0
@@ -132,6 +133,8 @@ class NPCMixin:
         a.fidget_until, a.fidget_at, a.pose_back = 0, self.now + random_number(5000, 30000), ""
         a.hunts = {trim(h).upper() for h in d.entity_ini(n, "Hunts", "").split(",") if trim(h)}   # (Hunts=Rabbit,Sheep)
         a.hunt_at = self.now + random_number(2000, 8000)
+        a.call = trim(d.entity_ini(n, "Calls", ""))                   # (a frog's croak, a seal's bark, now and then)
+        a.call_at = self.now + random_number(5000, 40000)
         e.npc_foe = None
         k = 1
         while word(options, k) != "":
@@ -291,6 +294,9 @@ class NPCMixin:
 
     def update_npc(self, e, players, near):
         a = e.ai
+        if a.call and not e.in_combat and (self.now >= a.call_at or self.now < a.call_at - 600000):
+            a.call_at = self.now + random_number(15000, 60000)
+            self.sound(a.call, e.z, e.cx, e.cy)               # (a croak from the reeds, a bark off the rocks)
         if e.follow is not None:
             self.npc_follow(e, a)
             return
@@ -760,6 +766,8 @@ class NPCMixin:
 
     def npc_pick_roam_goal(self, e, a):
         """A random point of its Zone that it can walk to (same walk-grid area) and that is worth the walk."""
+        if a.swims:
+            return self.npc_pick_swim_goal(e, a)
         fx, fy = e.fx, e.fy
         feet_offset = fy - e.cy
         own = self.grid_region_at(e.z, fx, fy)
@@ -785,6 +793,24 @@ class NPCMixin:
                 a.goal_y = gy - feet_offset
                 self.npc_walk_started(e, a, AI_ROAM)
                 return True
+        return False
+
+    def npc_pick_swim_goal(self, e, a):
+        """A swimmer's next spot in its Zone: mostly the water; now and then out onto the land (or a rock) by it, to
+        sit a while before it slips back in."""
+        want_water = rnd() < (0.7 if self.in_water(e) else 0.9)
+        feet_offset = e.fy - e.cy
+        for _ in range(16):
+            gx = a.zone[0] + rnd() * (a.zone[2] - a.zone[0])
+            gy = a.zone[1] + rnd() * (a.zone[3] - a.zone[1])
+            if not self.pixel_walkable(e.z, gx, gy, None, True) or distance(e.fx, e.fy, gx, gy) < self.tw:
+                continue
+            m, tx, ty = self.tile_at(e.z, gx, gy)
+            if m is None or m.tile_is_water(tx, ty) != want_water:
+                continue
+            a.goal_x, a.goal_y = gx, gy - feet_offset
+            self.npc_walk_started(e, a, AI_ROAM)
+            return True
         return False
 
     def npc_script_move_done(self, e):

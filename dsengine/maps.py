@@ -48,6 +48,7 @@ class MapData:
         self.entity_lines = []          # (type, name, x, y, misc) in map pixels
         self.object_blocks = {}         # (x, y) -> walk cells (0..walk_res^2-1) blocked by objects' footprints
         self.grid = None                # walk grid (grid_cell cells, locks open): bytearray gw x gh, or None = stale
+        self.swim_grid = None           # (the same, and every cell of a water tile too: for Swims=1 NPCs)
         self.regions = None
         self.version = 0                # goes up whenever a tile changes (the browsers ask for it again)
         self.load(lines)
@@ -173,6 +174,7 @@ class MapData:
 
     def grid_dirty(self):
         self.grid = None
+        self.swim_grid = None
         self.regions = None
 
     # ----- walking
@@ -195,6 +197,34 @@ class MapData:
             return False
         blocked = self.object_blocks.get((tx, ty))
         return not (blocked and p in blocked)
+
+    def tile_is_water(self, tx, ty):
+        if not self.inside(tx, ty):
+            return False
+        name = self.tile[(ty - 1) * self.data.xt + tx]
+        return bool(name) and self.data.tile_water(name)
+
+    def local_swimmable(self, lx, ly):
+        """For a swimmer (Swims=1: an otter, a seal, a frog): the land it can walk, and any water (a sea rock too)."""
+        tx, ty = int(lx / self.data.tw) + 1, int(ly / self.data.th) + 1
+        return self.tile_is_water(tx, ty) or self.local_walkable(lx, ly)
+
+    def get_swim_grid(self):
+        if self.swim_grid is None:
+            d = self.data
+            grid = bytearray(self.get_grid())
+            cell = d.grid_cell
+            per_x, per_y = max(1, d.tw // cell), max(1, d.th // cell)
+            for ty in range(1, d.yt + 1):
+                for tx in range(1, d.xt + 1):
+                    if self.tile_is_water(tx, ty):
+                        for j in range(per_y):
+                            for i in range(per_x):
+                                cx, cy = (tx - 1) * per_x + i, (ty - 1) * per_y + j
+                                if cx < self.gw and cy < self.gh:
+                                    grid[cy * self.gw + cx] = 1
+            self.swim_grid = grid
+        return self.swim_grid
 
     def build_grid(self):
         """The walk grid: a cell is walkable if the feet can stand at its centre and at 7 of the 8 points around it."""

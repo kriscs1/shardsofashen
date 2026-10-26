@@ -660,6 +660,69 @@ def test_tavern_games(world, monkeypatch):
     leave(world, b)
 
 
+def test_picking_a_lock_is_a_minigame(world):
+    s = join(world, "Picker")
+    lines = ["01\tPlay.Minigame\tLOCK\t1\t03", "02\tUpdate.Attribute\tPicked\t=1", "03\tEnd"]
+    s.out = []
+    assert s.run_script_lines("Lock Test", lines)
+    s.run_scripts()
+    shown = lambda: [ev for ev in s.out if ev["t"] == "game"][-1]
+    assert shown()["game"] == "lock" and len(shown()["pins"]) == 3 and s.script_state == "MINIGAME"
+    pin = s.game["pins"][0]
+    s.game_input({"do": "set", "t": ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"]})   # (at the bottom)
+    assert shown()["slipped"] and s.game["slips"] == 1 and s.game["pin"] == 0
+    pick_the_lock(s)
+    assert shown()["game"] == "" and s.game is None
+    s.run_scripts()
+    assert s.get_attribute("Picked") == "1"                        # (won: on to the next line)
+    s.update_attribute("Picked", "0")
+    assert s.run_script_lines("Lock Test", lines)
+    s.run_scripts()
+    for _ in range(3):                                              # (three slips and the nail's out of the lock)
+        pin = s.game["pins"][0]
+        s.game_input({"do": "set", "t": ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"]})
+    assert s.game is None
+    s.run_scripts()
+    s.run_scripts()
+    assert s.get_attribute("Picked") == "0" and not s.script_running
+    leave(world, s)
+
+
+def test_arm_wrestling(world, monkeypatch):
+    table = world.placed_entity("ARM_TABLE_1")
+    assert table is not None
+    m = world.maps[table.map]
+    a = join(world, "Brawn", m.name, int(table.x - m.ox), int(table.y - m.oy + 30))
+    b = join(world, "Sinew", m.name, int(table.x - m.ox + 10), int(table.y - m.oy + 30))
+    stock(a, **{"Gold_Coin(s)": 100})
+    stock(b, **{"Gold_Coin(s)": 100})
+    shown = lambda s: [ev for ev in s.out if ev["t"] == "game"][-1]
+    a.do_action("Play", table)
+    assert shown(a)["game"] == "arm" and shown(a)["stakes"] == [5, 20, 50]
+    a.game_input({"do": "house", "stake": 20})                     # the innkeeper, for 20
+    assert a.items_held("Gold_Coin(s)") == 80 and shown(a)["bout"]["players"] == ["Brawn", "the innkeeper"]
+    t = world.now
+    while a.game["phase"] == "bout" and world.now < t + 30000:
+        a.game_input({"do": "push"})
+        world.tick(0.05, now=world.now + 80)
+    assert shown(a)["winner"] == "Brawn" and a.items_held("Gold_Coin(s)") == 120   # (pushed hard: the pot)
+    a.game_input({"do": "sit", "stake": 5})                       # then wait for a challenger
+    assert a.items_held("Gold_Coin(s)") == 115
+    b.do_action("Play", table)
+    assert shown(b)["waiting"] == {"who": "Brawn", "stake": 5}
+    b.game_input({"do": "take"})
+    assert b.items_held("Gold_Coin(s)") == 95 and shown(a)["bout"]["players"] == ["Brawn", "Sinew"]
+    while b.game["phase"] == "bout":
+        b.game_input({"do": "push"})
+        world.tick(0.05, now=world.now + 80)
+    assert shown(a)["winner"] == "Sinew" and b.items_held("Gold_Coin(s)") == 105
+    a.game_input({"do": "sit", "stake": 50})
+    a.game_input({"do": "leave"})                                  # (up from the table: the stake back)
+    assert a.items_held("Gold_Coin(s)") == 115 and not world.arms.waiting
+    leave(world, a)
+    leave(world, b)
+
+
 def test_only_so_many_bets_an_hour(world):
     s = join(world, "HighRoller")
     stock(s, **{"Gold_Coin(s)": 500})
@@ -896,6 +959,13 @@ def test_a_chair_can_stand_on_a_rug(world):
     leave(world, a)
 
 
+def pick_the_lock(s):
+    """Sets every pin of the lock on s's game screen, each just as it crosses its line."""
+    while s.game is not None and s.game["game"] == "lock":
+        pin = s.game["pins"][s.game["pin"]]
+        s.game_input({"do": "set", "t": ((pin["band"] / 2 - pin["phase"]) % 1) * pin["period"]})
+
+
 def isle_helpers(world, s):
     """run, npc, talk and use for a test that plays through the Isle's quests (time jumps on as it runs)."""
     def run(ticks=30, ms=50):
@@ -1018,6 +1088,9 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     run(30)
     assert attr("Passage") == 2
     s.action_box_response_chosen(1)                                 # "I'll try": the lock
+    run(10)
+    assert s.game["game"] == "lock"
+    pick_the_lock(s)
     run(80)
     assert s.ab_mode == "Conversation"
     s.action_box_response_chosen(1)
@@ -1626,6 +1699,55 @@ def test_mo_sits_for_a_portrait_only_when_sitting(world):
     talk(painter)
     assert attr() == "3" and s.items_held("Portrait_of_Mo") == 1 and mo.ai.fixed_pose == ""   # (painted; Mo's free)
     world.ents.extend(held)
+    leave(world, s)
+
+
+def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
+    from dsengine.entity import AI_ROAM
+    s = join(world, "Beachcomber", "1,3,0", 19 * 32, 8 * 32)
+    s.connected = True
+    s.god_mode = True
+    m = s.cur_map
+    seal = next(e for e in world.ents if e.name == "Seal" and e.map == "1,3,0" and e.alive)
+    for _ in range(5):
+        world.tick(0.05)
+    world.animate_entity(seal, False)
+    assert world.in_water(seal) and seal.image.startswith("Seal_Swim")          # (in the sea: just its head)
+    beach = next((x, y) for y in range(2, 9) for x in range(14, 25)
+                 if not m.tile_is_water(x, y) and m.local_walkable((x - 0.5) * 32, (y - 0.5) * 32))
+    a = seal.ai
+    a.goal_x, a.goal_y = m.ox + (beach[0] - 0.5) * 32, m.oy + (beach[1] - 0.5) * 32 - (seal.fy - seal.cy)
+    world.npc_walk_started(seal, a, AI_ROAM)
+    for _ in range(600):
+        world.tick(0.05, now=world.now + 50)
+        if not world.in_water(seal):
+            break
+    assert not world.in_water(seal) and not seal.image.startswith("Seal_Swim")   # (out on the beach)
+    a.call_at = world.now
+    s.out = []
+    world.tick(0.05, now=world.now + 50)
+    assert any(ev.get("t") == "sound" and ev.get("name") == "Seal_Bark" for ev in s.out)   # (and it barks)
+    x, y = seal.cx, seal.cy
+    s.damage_npc(seal, 999)
+    left = {e.name for e in world.ents if e.type == MAPITEM and distance(e.cx, e.cy, x, y) < 48}
+    assert {"Seal_Pelt", "Seal_Blubber"} <= left
+    leave(world, s)
+
+
+def test_seal_blubber_is_bait_for_the_big_fish(world):
+    spot = next(e for e in world.ents if e.name == "Swordfish_Spot" and e.alive)
+    m = world.maps[spot.map]
+    s = join(world, "Angler", spot.map, int(spot.x - m.ox), int(spot.y - m.oy) + 34)
+    stock(s, Fishing_Rod=1, Seal_Blubber=2, Bait=5)
+    s.update_skill("Fishing", "=50")
+    for _ in range(10):                                              # (cast till one bites: a miss keeps the bait)
+        s.choose_verb("Fish", spot, int(spot.cx), int(spot.cy))
+        for _ in range(120):
+            world.tick(0.05, now=world.now + 50)
+        if s.items_held("Raw_Swordfish"):
+            break
+    assert s.items_held("Raw_Swordfish") == 1
+    assert s.items_held("Seal_Blubber") == 1 and s.items_held("Bait") == 5   # (the blubber went on the hook, not a worm)
     leave(world, s)
 
 

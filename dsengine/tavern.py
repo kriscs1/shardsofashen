@@ -22,7 +22,8 @@ ROUND_SECONDS = 20
 MAX_PLAYERS = 6
 STAKES = (5, 20, 50, 100)
 HOUSE = "the innkeeper"
-GAMES = {"cups": "Three Cups", "highlow": "High or Low", "dice": "Dragon Dice"}
+GAMES = {"cups": "Three Cups", "highlow": "High or Low", "dice": "Dragon Dice", "lock": "Picking the Lock",
+         "arm": "Arm Wrestling"}                 # (the last two: minigames.py)
 REACH = 96                              # (how far from the innkeeper or the table you can play)
 
 
@@ -121,6 +122,12 @@ class TavernMixin:
         if verb == "Talk to" and getattr(e, "npc_id", "") == "Innkeeper":
             self.innkeeper_menu(e)
             return True
+        if e.name == "Arm_Table" and verb in ("Play", "Use"):
+            if self.player_distance_to(e) > 64:
+                self.display_message("You are too far away!", "FAIL")
+                return True
+            self.arm_table(e)
+            return True
         if e.name == "Dice_Table" and verb in ("Play", "Use"):
             if self.player_distance_to(e) > 64:
                 self.display_message("You are too far away!", "FAIL")
@@ -199,12 +206,19 @@ class TavernMixin:
               "gold": self.items_held("Gold_Coin(s)"), "me": self.player_name}
         if g["game"] == "dice":
             ev["round"] = self.tavern.round_view(self.table_id(g["at"]))
+        elif g["game"] == "arm":
+            ev.update(self.arm_view())
         ev.update(kw)
         self.emit(ev)
 
     def game_close(self):
-        if self.game is not None:
+        g = self.game
+        if g is not None:
+            if g["game"] == "arm":
+                self.arm_leave()
             self.game = None
+            if g.get("script"):                     # (a script's minigame: on if it was won, else to its lost line)
+                self.script_result = 1 if g.get("won") else -1
             self.emit({"t": "game", "game": ""})
 
     def game_tick(self):
@@ -227,6 +241,12 @@ class TavernMixin:
         if self.game is None:
             return
         game, phase = g["game"], g["phase"]
+        if game == "lock":
+            self.lock_input(do, msg)
+            return
+        if game == "arm":
+            self.arm_input(do, msg)
+            return
         if do == "stake" and phase in ("stake", "done"):
             stake = int(val(msg.get("stake", 0)))
             if stake not in STAKES:

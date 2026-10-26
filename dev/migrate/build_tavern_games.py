@@ -3,6 +3,9 @@
   * sprites\\Interface\\Game_Table.png: the green baize with its wooden rim, 200 x 100 (shown twice as big);
     Game_Cup.png (a wooden cup, upside down), Game_Coin.png, Game_Die1-6.png (ivory dice, 16 x 16).
   * sounds\\Dice_Roll.wav (dice clattering to a stop), Cup_Shuffle.wav (three cups slid over the baize).
+  * Arm wrestling (dsengine/minigames.py): the table it's done at (sprites\\Entities\\Arm_Table.png, in the Green
+    Dragon's beer garden), and a forearm for its screen (Game_Arm.png; the other arm is it, mirrored).
+  * Picking a lock: Game_Lock.png, the lock's brass face.
 Run it again to draw and make them again (the same).
 
   python -I "dev\\migrate\\build_tavern_games.py"
@@ -11,6 +14,7 @@ import math
 import os
 import random
 import struct
+import sys
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -83,6 +87,45 @@ def die(n):
     return outlined(s)
 
 
+def arm_table():
+    """A heavy little table, two leather elbow pads on it and a peg either side to grip."""
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)
+    pygame.draw.rect(s, (92, 58, 30), (5, 24, 3, 7))                         # (the legs)
+    pygame.draw.rect(s, (92, 58, 30), (24, 24, 3, 7))
+    pygame.draw.rect(s, (150, 104, 60), (3, 14, 26, 11))                     # the top
+    pygame.draw.line(s, (184, 136, 84), (3, 14), (28, 14))
+    pygame.draw.line(s, (110, 74, 40), (3, 24), (28, 24))
+    for x in (7, 21):                                                        # the elbow pads
+        pygame.draw.ellipse(s, (128, 40, 36), (x, 17, 5, 4))
+    for x in (4, 26):                                                        # (the pegs)
+        pygame.draw.rect(s, (220, 200, 140), (x, 11, 2, 4))
+    return outlined(s)
+
+
+def forearm():
+    """A forearm standing on its elbow, its fist at the top: 14 x 44."""
+    s = pygame.Surface((14, 44), pygame.SRCALPHA)
+    skin, shade = (232, 176, 140), (196, 140, 108)
+    pygame.draw.rect(s, (60, 70, 150), (2, 30, 10, 14))                      # (a rolled-up sleeve)
+    pygame.draw.polygon(s, skin, [(3, 32), (11, 32), (10, 10), (4, 10)])     # the forearm
+    pygame.draw.line(s, shade, (10, 31), (9, 11))
+    pygame.draw.rect(s, skin, (2, 2, 10, 10), border_radius=3)               # the fist
+    for y in (4, 7):
+        pygame.draw.line(s, shade, (3, y), (11, y))                          # (the knuckles)
+    return outlined(s)
+
+
+def lock_face():
+    """A brass lock, its keyhole, ready for the pins to be drawn over it: 60 x 70."""
+    s = pygame.Surface((60, 70), pygame.SRCALPHA)
+    pygame.draw.rect(s, (150, 110, 40), (4, 14, 52, 54), border_radius=6)
+    pygame.draw.rect(s, (196, 156, 70), (6, 16, 48, 50), border_radius=5)
+    pygame.draw.arc(s, (120, 120, 128), (14, 0, 32, 34), 0, math.pi, 5)     # (the shackle)
+    pygame.draw.circle(s, (40, 30, 20), (30, 50), 5)                         # the keyhole
+    pygame.draw.polygon(s, (40, 30, 20), [(27, 52), (33, 52), (34, 62), (26, 62)])
+    return outlined(s)
+
+
 def pictures():
     pygame.init()
     pygame.display.set_mode((1, 1))
@@ -91,6 +134,9 @@ def pictures():
     pygame.image.save(coin(), os.path.join(OUT, "Game_Coin.png"))
     for n in range(1, 7):
         pygame.image.save(die(n), os.path.join(OUT, "Game_Die%d.png" % n))
+    pygame.image.save(forearm(), os.path.join(OUT, "Game_Arm.png"))
+    pygame.image.save(lock_face(), os.path.join(OUT, "Game_Lock.png"))
+    pygame.image.save(arm_table(), os.path.join(ROOT, "sprites", "Entities", "Arm_Table.png"))
     print("Drew the table, the cup, the coin and the dice")
 
 
@@ -154,9 +200,28 @@ def sounds():
     print("Made sounds\\Dice_Roll.wav and Cup_Shuffle.wav")
 
 
+def place():
+    """The arm-wrestling table: its data, and the Green Dragon's beer garden (2,3,0), by the third dice table."""
+    sys.path.insert(0, ROOT)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from dragonsword import ini
+    from build_isle import Map, DATA, obj_line
+    ents = os.path.join(DATA, "Entities.ini")
+    if not ini.section("Arm_Table", ents):                                   # (no footprint: like the dice tables)
+        for k, v in (("Type", "StaticObject"), ("Use.Words", "Play,Examine"),
+                     ("Examine.Info", "A heavy table, scarred where elbows have dug in: arm wrestling, for a stake.")):
+            ini.write("Arm_Table", k, v, ents)
+    m = Map("2,3,0")
+    if not m.has_line("Id=Arm_Table_1"):
+        m.ents.append(obj_line("StaticObject", "Arm_Table", 19, 5, "Id=Arm_Table_1"))
+        m.save()
+    print("The arm-wrestling table, in the Green Dragon's beer garden")
+
+
 def main():
     pictures()
     sounds()
+    place()
 
 
 if __name__ == "__main__":

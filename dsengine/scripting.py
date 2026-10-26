@@ -204,6 +204,14 @@ class ScriptMixin:
         elif st == "SLEEP":
             if self.sleep_state is not None:
                 return
+        elif st == "MINIGAME":                      # (Play.Minigame: won, on; lost or walked off, to its line)
+            if self.script_result == 0:
+                return
+            if self.script_result < 0:
+                self.script_state = ""
+                self.script_result = 0
+                self.script_jump(lbstr(self.script_cancel_line))
+                return
         self.script_state = ""
         self.script_result = 0
         for _ in range(50):
@@ -560,6 +568,8 @@ class ScriptMixin:
             self.set_npc_attitude(arg[1], arg[2])
         elif c == "Follow.Player":
             self.set_follower(arg[1], arg[2])
+        elif c == "Play.Minigame":
+            self.minigame_start(arg[1], arg[2], arg[3])
         elif c == "Set.NPC.State":
             e = self.npc_by_id(arg[1])
             if e is not None and e.type == NPC:

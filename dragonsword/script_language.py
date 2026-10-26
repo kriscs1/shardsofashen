@@ -74,6 +74,7 @@ COMMANDS = [
     ('>Follower.Near', ['NPC ID', 'REQUIRED DISTANCE', 'GOTO LINE IF NOT MET']),
     ('>Entity.State', ['NPC ID', 'STATE(S)', 'GOTO LINE IF NOT MET']),
     ('Set.NPC.State', ['NPC ID', 'STATE']),
+    ('Play.Minigame', ['MINIGAME', 'LEVEL', 'GOTO LINE IF LOST']),
 ]
 
 # command or argument type -> its help ("|" starts a new line)
@@ -230,6 +231,10 @@ HELP = {
     'Follow.Player': 'COMMAND: An NPC walks after the player, a step or two behind (ON), across maps, and waits if|they go up a ladder, through a door or far off; OFF: it stops and stays where it is (lead someone somewhere)',
     '>Entity.State': 'CONDITION: Requires that the NPC is doing one of these right now: what you see it doing|(a cat sitting, mid-stretch...)',
     'STATE(S)': 'What it may be doing, commas between: Walking, Standing, Fighting, Following, or a pose|of its kind (Entities.ini States= and Fidgets=: a cat\'s Sit, Stretch, Butt), e.g. Sit or Stretch,Butt',
+    'Play.Minigame': 'COMMAND: A minigame on the game screen; the script waits for it. Won: on to the next line;|lost (or walked away from): on at the line given',
+    'MINIGAME': 'Which: LOCK (picking a lock: set each pin as it crosses the line; three slips and it\'s lost)',
+    'LEVEL': 'How hard, 1 to 5 (a lock: 1 is three pins, wide; each level a pin more, and narrower)',
+    'GOTO LINE IF LOST': 'The line that the script continues at if the minigame is lost or left',
     'Set.NPC.State': 'COMMAND: The NPC rests in a pose of its kind from now on (and stays put while it\'s sitting);|- or nothing: it stands, and rests as its kind does again (for everyone: it\'s the world\'s NPC)',
     'STATE': "A pose of its kind (Entities.ini States= or Fidgets=, e.g. Sit), or - to let it be",
     '>Follower.Near': 'CONDITION: Requires that the NPC (with that Id: the player\'s own, a quest\'s) is within|the distance of the player (in pixels): it came all the way with them',

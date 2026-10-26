@@ -63,3 +63,5 @@ NPC	Horse	576	320	Attitude=Good Stand=1 Face=W Id=Southport_Horse_1
 NPC	Carter	544	344	Attitude=Good Stand=1 Face=S Id=Southport_Carter_1 Name=Greta
 StaticObject	Cart	544	320
 Id	Southport_Cart_Stop_1	19	12
+NPC	Seal	544	24	Attitude=Bad Zone=14,2,24,8
+NPC	Seal	416	120	Attitude=Bad Zone=14,2,24,8

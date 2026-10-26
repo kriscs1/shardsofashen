@@ -61,3 +61,4 @@ StaticObject	Shed_Post002	768	480
 StaticObject	Carpenters_Bench	768	384
 Id	Ashford_Carpenters_Shed	24	14
 Id	Percys_House	14	18
+StaticObject	Arm_Table	576	128	Id=Arm_Table_1

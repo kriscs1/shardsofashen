@@ -72,7 +72,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (66)
+COMMANDS (67)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -435,6 +435,13 @@ Play.Animation    ANIMATION | TIMES | SOUND
     2. TIMES: How many beats (1-8): one each 0.8 seconds
     3. SOUND: A sound from the '\sounds\' folder to play with it, e.g. Denied (a no), Empty, Quest
          (Display.Refusal: Denied if none is given; Display.Message, Play.Animation: none)
+
+Play.Minigame    MINIGAME | LEVEL | GOTO LINE IF LOST
+    COMMAND: A minigame on the game screen; the script waits for it. Won: on to the next line;
+    lost (or walked away from): on at the line given
+    1. MINIGAME: Which: LOCK (picking a lock: set each pin as it crosses the line; three slips and it's lost)
+    2. LEVEL: How hard, 1 to 5 (a lock: 1 is three pins, wide; each level a pin more, and narrower)
+    3. GOTO LINE IF LOST: The line that the script continues at if the minigame is lost or left
 
 Play.Sound    SOUND FILE
     COMMAND: Plays a sound file stored in the '\sounds\' folder

@@ -33,3 +33,6 @@ StaticObject	Notice	576	194	Id=Oakhollow_Notice_8
 StaticObject	Notice	192	290	Id=Oakhollow_Notice_11
 StaticObject	Sign_Pub	480	624
 StaticObject	Notice	384	642	Id=Oakhollow_Notice_18
+NPC	Otter	288	248	Attitude=Bad Zone=6,4,18,12
+NPC	Frog	256	248	Attitude=Bad Zone=6,4,18,12
+NPC	Frog	352	312	Attitude=Bad Zone=6,4,18,12
