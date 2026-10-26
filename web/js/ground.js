@@ -119,6 +119,20 @@ export function invalidateCell(name, x, y) {
   }
 }
 
+export function mapCells(d) {
+  // A few of a map's tiles changed (a door opened, a tree was chopped): those, and only those, painted again
+  const m = S.maps.get(d.name);
+  if (!m) return;
+  for (const [c, tile, decor, under] of d.cells) {
+    m.tile[c - 1] = tile; m.decor[c - 1] = decor;
+    if (m.under) m.under[c - 1] = under;
+    invalidateCell(d.name, (c - 1) % G.xt + 1, Math.floor((c - 1) / G.xt) + 1);
+  }
+  const ch = chunks.get(d.name);
+  if (ch && ch.version === m.v) ch.version = d.v;   // (up to date: no need to paint it all again)
+  m.v = d.v;
+}
+
 export function invalidateMap(name) {
   const c = chunks.get(name);
   if (c) { c.full = true; c.foam.clear(); }

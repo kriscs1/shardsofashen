@@ -5,14 +5,14 @@ import { A, loadManifest, configRead, onLoaded } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer } from "./state.js";
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom } from "./render.js";
-import { invalidateMap, invalidateCell } from "./ground.js";
+import { invalidateMap, invalidateCell, mapCells } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
   JOY } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
 import { M } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
-import { setWeather, fogInit, revealCell } from "./sky.js";
+import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
 import { messageColour, clamp, val, pretty } from "./util.js";
 import { buildPicker, DEFAULT_LOOK } from "./look.js";
 import { preload, entityIni } from "./assets.js";
@@ -55,21 +55,26 @@ S.addLocal = (text, col) => addMessage(text, col);
 // ================================================================================================================
 // The screen
 // ================================================================================================================
+const PHONE_SHARPNESS = 2;                      // (a phone's canvas: at most this many pixels to a game pixel)
+
 function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  const cw = Math.max(1, Math.round(window.innerWidth * dpr));
-  const ch = Math.max(1, Math.round(window.innerHeight * dpr));
-  canvas.width = cw;
-  canvas.height = ch;
+  let dpr = window.devicePixelRatio || 1;
   let W, H = 768;
   if (M.on) {
     // (a phone: about a game pixel to a screen point, so its words are big enough; the height it had before the
-    // keyboard came up, so the game doesn't shrink under it)
+    // keyboard came up, so the game doesn't shrink under it. Drawn at no more than twice that, not the screen's
+    // own 2.5 or 3 times: as sharp to the eye, and half the pixels to paint every frame)
     const tall = Math.max(window.innerHeight, screen.tall[window.innerWidth] || 0);
     screen.tall[window.innerWidth] = tall;
     H = clamp(Math.round(tall / 1.08 / 2) * 2, 320, 768);
     W = Math.max(560, Math.round(H * window.innerWidth / tall / 2) * 2);
-  } else W = clamp(Math.round(768 * cw / ch / 2) * 2, 1024, 1792);
+    dpr = Math.min(dpr, PHONE_SHARPNESS * H / tall);
+  }
+  const cw = Math.max(1, Math.round(window.innerWidth * dpr));
+  const ch = Math.max(1, Math.round(window.innerHeight * dpr));
+  canvas.width = cw;
+  canvas.height = ch;
+  if (!M.on) W = clamp(Math.round(768 * cw / ch / 2) * 2, 1024, 1792);
   const k = Math.min(cw / W, ch / H);
   screen.k = k; screen.dpr = dpr; screen.W = W; screen.H = H;
   screen.ox = Math.round((cw - W * k) / 2);
@@ -312,6 +317,8 @@ function openAdmin() {
     box.append(row);
   });
   $("admin-god").checked = !!S.me.god;
+  $("admin-noblack").checked = fogAdmin().noBlack;
+  $("admin-nofog").checked = fogAdmin().noFog;
 }
 
 function fillAdminItems() {
@@ -423,6 +430,9 @@ $("password-form").addEventListener("submit", (ev) => {
 });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
+for (const id of ["admin-noblack", "admin-nofog"]) {
+  $(id).addEventListener("input", () => setFogAdmin($("admin-noblack").checked, $("admin-nofog").checked));
+}
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
 for (const id of ["admin", "options", "quit", "message", "appearance"]) {
   $(id).addEventListener("keydown", (ev) => {
@@ -579,6 +589,7 @@ N.onMessage = (m) => {
       showMessage("Dragon Sword", m.reason, () => location.reload());
       break;
     case "mapdata": addMap(m); invalidateMap(m.name); break;
+    case "mapcells": mapCells(m); break;
     case "cells": {
       const old = new Map(S.cells);
       S.cells.clear();
@@ -729,8 +740,11 @@ window.addEventListener("pagehide", () => {
   if (running) { send({ t: "quit" }); if (N.ws) N.ws.close(); }
 });
 
+const FRAME_MS = 13;                           // (about 60 a second at most: a 120 Hz phone draws every other one)
+
 function frame(now) {
   requestAnimationFrame(frame);
+  if (now - lastFrame < FRAME_MS && now >= lastFrame) return;
   if (running && S.catchUpUntil) {
     if (now > S.catchUpUntil) S.catchUpUntil = 0;
     else return;

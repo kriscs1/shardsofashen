@@ -5,7 +5,7 @@ import random
 import pytest
 
 from dsengine import World, Session
-from dsengine.entity import MAPITEM, NPC, AI_FLEE
+from dsengine.entity import MAPITEM, NPC, AI_FLEE, AI_IDLE
 from dragonsword.lb import distance
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -721,6 +721,26 @@ def test_arm_wrestling(world, monkeypatch):
     assert a.items_held("Gold_Coin(s)") == 115 and not world.arms.waiting
     leave(world, a)
     leave(world, b)
+
+
+def test_a_door_opening_sends_that_tile_not_the_whole_map(world):
+    from dsengine.view import snapshot
+    s = join(world, "Watcher", "3,1,0", 300, 300)
+    m = world.maps["3,1,0"]
+    first = snapshot(world, s)
+    assert any(ev["t"] == "mapdata" and ev["name"] == "3,1,0" for ev in first)
+    before, beside = m.cell_text(5, 5), m.cell_text(6, 5)
+    world.change_tile(m, 5, 5, "Dirt001")
+    world.change_tile(m, 6, 5, "Dirt001")
+    sent = [ev for ev in snapshot(world, s) if ev.get("name") == "3,1,0"]
+    assert [ev["t"] for ev in sent] == ["mapcells"]                # (just the two tiles)
+    assert [c[0] for c in sent[0]["cells"]] == [m.cell(5, 5), m.cell(6, 5)] and sent[0]["v"] == m.version
+    for k in range(60):                                            # (a great many at once: the whole map again)
+        world.change_tile(m, 5, 5, "Grass001" if k % 2 else "Dirt001")
+    assert [ev["t"] for ev in snapshot(world, s) if ev.get("name") == "3,1,0"] == ["mapdata"]
+    world.change_tile(m, 5, 5, before)
+    world.change_tile(m, 6, 5, beside)
+    leave(world, s)
 
 
 def test_only_so_many_bets_an_hour(world):
@@ -1707,8 +1727,14 @@ def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
     s = join(world, "Beachcomber", "1,3,0", 19 * 32, 8 * 32)
     s.connected = True
     s.god_mode = True
-    m = s.cur_map
+    m = world.maps["1,3,0"]
     seal = next(e for e in world.ents if e.name == "Seal" and e.map == "1,3,0" and e.alive)
+    if not world.in_water(seal):                       # (the world's been going a while: it may be ashore already)
+        wx, wy = next((x, y) for y in range(2, 20) for x in range(2, 24) if m.tile_is_water(x, y) and
+                      m.tile_is_water(x + 1, y) and m.tile_is_water(x, y + 1))
+        world.set_entity_position(seal, m.ox + (wx - 0.5) * 32 - seal.w / 2, m.oy + (wy - 0.5) * 32 - seal.h + 1)
+        seal.ai.state = AI_IDLE
+    assert world.in_water(seal)
     for _ in range(5):
         world.tick(0.05)
     world.animate_entity(seal, False)
@@ -1723,10 +1749,16 @@ def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
         if not world.in_water(seal):
             break
     assert not world.in_water(seal) and not seal.image.startswith("Seal_Swim")   # (out on the beach)
+    s.player.x, s.player.y = seal.x + 320, seal.y              # (out of earshot: an animal's call carries 8 tiles)
     a.call_at = world.now
     s.out = []
     world.tick(0.05, now=world.now + 50)
-    assert any(ev.get("t") == "sound" and ev.get("name") == "Seal_Bark" for ev in s.out)   # (and it barks)
+    assert not any(ev.get("t") == "sound" and ev.get("name") == "Seal_Bark" for ev in s.out)
+    s.player.x, s.player.y = seal.x + 64, seal.y
+    a.call_at = world.now
+    s.out = []
+    world.tick(0.05, now=world.now + 50)
+    assert any(ev.get("t") == "sound" and ev.get("name") == "Seal_Bark" for ev in s.out)   # (near: it barks)
     x, y = seal.cx, seal.cy
     s.damage_npc(seal, 999)
     left = {e.name for e in world.ents if e.type == MAPITEM and distance(e.cx, e.cy, x, y) < 48}

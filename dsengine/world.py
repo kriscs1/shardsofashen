@@ -30,6 +30,7 @@ PF_DIRS = ((0, -1, 10), (1, 0, 10), (0, 1, 10), (-1, 0, 10), (1, -1, 14), (1, 1,
 DOOR_REACH = 34
 DOOR_SHUT_MS = 1500
 HEAR_NEAR, HEAR_FAR = 96.0, 600.0
+HEAR_DOOR, HEAR_CALL = 192.0, 256.0             # (a door, an animal's call: only heard from close by)
 
 
 class World(NPCMixin):
@@ -56,6 +57,8 @@ class World(NPCMixin):
         self.lightning_next = 0
         self.last_queue_check = 0
         self.active = set()             # (mx, my, mz) of maps someone is near: their NPCs think
+        self.door_cache = {}            # map name -> (its version, the tiles that are doors)
+        self.npcs_by_map = {}           # (mx, my, mz) -> its live NPCs, this tick (update_npcs)
         self.tile_listeners = []        # callables (map, x, y) when a tile changes
         self.load_maps()
         self.homes = Homes(self)        # players' homesteads (their maps join self.maps as they're made)
@@ -905,6 +908,20 @@ class World(NPCMixin):
     # =================================================================================================================
     # Doors (Tiles.ini Open.Tile): a door opens as someone comes to it and shuts behind them
     # =================================================================================================================
+    def door_cells(self, m):
+        """The tiles of map m that are doors (shut; their tile or a gate in the decor), made again when it changes."""
+        cached = self.door_cache.get(m.name)
+        if cached is not None and cached[0] == m.version:
+            return cached[1]
+        cells = set()
+        for ty in range(1, self.yt + 1):
+            for tx in range(1, self.xt + 1):
+                c = m.cell(tx, ty)
+                if self.data.door_open_tile(m.tile[c]) or self.data.door_open_tile(m.decor[c]):
+                    cells.add((tx, ty))
+        self.door_cache[m.name] = (m.version, cells)
+        return cells
+
     def update_doors(self):
         now = self.now
         if 0 <= now - self.door_check_at < 100:
@@ -912,15 +929,24 @@ class World(NPCMixin):
         self.door_check_at = now
         near = {}                                       # (map, x, y) -> who's there (a Session, or None for an NPC)
         movers = [(s.player, s) for s in self.sessions.values() if s.in_world()]
-        movers += [(e, None) for e in self.ents if e.type == NPC and e.alive and e.active and
-                   (math.floor(e.x / self.sw), math.floor(e.y / self.sh), e.z) in self.active]
+        for key in self.active:                         # (the NPCs on the maps someone's near)
+            movers += [(e, None) for e in getattr(self, "npcs_by_map", {}).get(key, ()) if e.alive and e.active]
         for e, s in movers:
             fx, fy = e.fx, e.fy
+            home, hx, hy = self.tile_at(e.z, fx, fy)
+            inner = home is not None and 1 < hx < self.xt and 1 < hy < self.yt
+            if inner and not self.door_cells(home) and not any(k[0] == home.name for k in self.doors_open):
+                continue                                # (no door on its map, and it isn't at the map's edge)
             for ddy in (-self.th, 0, self.th):
                 for ddx in (-self.tw, 0, self.tw):
-                    m, tx, ty = self.tile_at(e.z, fx + ddx, fy + ddy)
+                    if inner:
+                        m, tx, ty = home, hx + (ddx > 0) - (ddx < 0), hy + (ddy > 0) - (ddy < 0)
+                    else:
+                        m, tx, ty = self.tile_at(e.z, fx + ddx, fy + ddy)
                     if m is None or not m.inside(tx, ty):
                         continue
+                    if (tx, ty) not in self.door_cells(m) and (m.name, tx, ty) not in self.doors_open:
+                        continue                        # (not a door: most tiles aren't)
                     if distance(fx, fy, m.ox + (tx - 0.5) * self.tw, m.oy + (ty - 0.5) * self.th) <= DOOR_REACH:
                         key = (m.name, tx, ty)
                         if key not in near or s is not None:
@@ -941,7 +967,7 @@ class World(NPCMixin):
                 continue                    # (locked for whoever's there, or a gate its lock draws open and shut)
             self.doors_open[key] = [name, now]
             self.change_tile(m, x, y, o)
-            self.sound("Door", m.mz, m.ox + (x - 0.5) * self.tw, m.oy + (y - 0.5) * self.th)
+            self.sound("Door", m.mz, m.ox + (x - 0.5) * self.tw, m.oy + (y - 0.5) * self.th, radius=HEAR_DOOR)
         for key, (closed, t) in list(self.doors_open.items()):
             if key not in near and not 0 <= now - t < DOOR_SHUT_MS:
                 del self.doors_open[key]
@@ -959,11 +985,11 @@ class World(NPCMixin):
             if s.in_world() and p.z == z and distance(p.cx, p.cy, x, y) <= radius:
                 yield s
 
-    def sound(self, name, z, x, y, only=None):
-        """A sound made at global x,y: everyone near enough hears it (quieter further off), or only that player."""
+    def sound(self, name, z, x, y, only=None, radius=HEAR_FAR):
+        """A sound made at global x,y: everyone within radius hears it (quieter further off), or only that player."""
         if not trim(name):
             return
-        for s in ([only] if only is not None else self.hearers(z, x, y)):
+        for s in ([only] if only is not None else self.hearers(z, x, y, radius)):
             s.emit({"t": "sound", "name": name, "x": int(x), "y": int(y)})
 
     def fx(self, ev, z, x, y, owner=None):

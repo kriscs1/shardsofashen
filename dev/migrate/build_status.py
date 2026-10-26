@@ -16,7 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sprite_kit as K  # noqa: E402
-from common import p, read_bmp  # noqa: E402
+from common import p  # noqa: E402
 
 ON_HIT = {"Giant_Spider": "Poison 35", "Scorpion": "Poison 45", "Bog_Troll": "Poison 20",
           "Dragon": "Burn 50", "Goblin_Shaman": "Burn 60",
@@ -57,23 +57,8 @@ def before_regions(R, E):
 
 
 def make_sprites():
-    """The Antidote (the basic potion, yellow-green) and the Gravestone, in sprites\\Entities."""
-    w, h, rows = read_bmp(p("sprites", "Entities", "Basic_Potion.png"))
-    mask, img = rows[:h // 2], rows[h // 2:]
-    out = []
-    for y in range(h // 2):
-        row = []
-        for x in range(w):
-            if sum(mask[y][x]) > 384:
-                row.append(None)
-                continue
-            r, g, b = img[y][x]
-            if r > g + 30 and r > b + 30:                       # the red potion: now a sharp yellow-green
-                k = (r + g + b) / 3.0 / 140.0
-                row.append((min(255, int(150 * k)), min(255, int(210 * k)), min(255, int(60 * k))))
-            else:
-                row.append((r, g, b))
-        out.append(row)
+    """The Antidote (the basic potion, yellow: no other potion's colour) and the Gravestone, in sprites\\Entities."""
+    out = K.hue_shift(K.load("Entities", "Basic_Potion"), target_hue=0.16, pred=lambda c: max(c) - min(c) > 40)
     changed = K.save("Entities", "Antidote", out)
     grave = [[None] * 32 for _ in range(32)]
 

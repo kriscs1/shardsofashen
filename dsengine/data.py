@@ -17,6 +17,7 @@ EXTS = (".png", ".bmp")
 
 class GameData:
     def __init__(self, root):
+        self._data_files = {}
         self.root = root
         self.config_path = os.path.join(root, "data", "Config.ini")
         self.sprites = {}           # name -> (folder, path); sizes read when first wanted
@@ -32,7 +33,11 @@ class GameData:
         return os.path.join(self.root, *parts)
 
     def data_file(self, name):
-        return os.path.join(self.root, "data", name)
+        # (asked for thousands of times a tick: the path made once)
+        f = self._data_files.get(name)
+        if f is None:
+            f = self._data_files[name] = os.path.join(self.root, "data", name)
+        return f
 
     def config_read(self, section, key, default):
         return ini.read(section, key, default, self.config_path)

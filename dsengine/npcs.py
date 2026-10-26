@@ -16,6 +16,11 @@ class NPCMixin:
         sw, sh = self.sw, self.sh
         self.pf_searches = 0
         players = [s for s in self.sessions.values() if s.in_world()]
+        by_map = {}                                     # (mx, my, z) -> its live NPCs, for hunting (npc_prey)
+        for e in self.ents:
+            if e.type == NPC and e.alive and e.ai is not None:
+                by_map.setdefault((math.floor(e.x / sw), math.floor(e.y / sh), e.z), []).append(e)
+        self.npcs_by_map = by_map
         for e in list(self.ents):
             if e.type != NPC or not e.alive or e.ai is None:
                 continue
@@ -84,15 +89,19 @@ class NPCMixin:
     def nearest_player(self, e, players, want=None):
         """(session, distance) of the nearest player on e's level who sees it (want(session) must be true too)."""
         best = None
+        ex, ey = e.cx, e.cy
         for s in players:
             p = s.player
-            if p.z != e.z or p.hp <= 0 or not self.visible_to(e, s) or s.sleeping():
+            if p.z != e.z:
+                continue
+            d = math.hypot(ex - p.cx, ey - p.cy)        # (the cheap test first: the rest only for a nearer one)
+            if best is not None and d >= best[1]:
+                continue
+            if p.hp <= 0 or not self.visible_to(e, s) or s.sleeping():
                 continue
             if want is not None and not want(s):
                 continue
-            d = distance(e.cx, e.cy, p.cx, p.cy)
-            if best is None or d < best[1]:
-                best = (s, d)
+            best = (s, d)
         return best
 
     def update_npc_healthbar(self, e):
@@ -296,7 +305,7 @@ class NPCMixin:
         a = e.ai
         if a.call and not e.in_combat and (self.now >= a.call_at or self.now < a.call_at - 600000):
             a.call_at = self.now + random_number(15000, 60000)
-            self.sound(a.call, e.z, e.cx, e.cy)               # (a croak from the reeds, a bark off the rocks)
+            self.sound(a.call, e.z, e.cx, e.cy, radius=256.0)   # (a croak from the reeds, a bark off the rocks)
         if e.follow is not None:
             self.npc_follow(e, a)
             return
@@ -573,16 +582,23 @@ class NPCMixin:
         rng = e.aggro_range if e.aggro_range > 0 else 128
         foes = "FOES" in a.hunts
         best = None
-        for o in self.ents:
-            if o is e or o.type != NPC or not o.alive or not o.active or o.z != e.z or o.owner is not None or o.ai is None:
+        mx, my = math.floor(e.x / self.sw), math.floor(e.y / self.sh)
+        near = []                                       # (the NPCs on its map and the maps round it: no further)
+        for j in (-1, 0, 1):
+            for i in (-1, 0, 1):
+                near += self.npcs_by_map.get((mx + i, my + j, e.z), ())
+        for o in near:
+            if o is e or not o.alive or not o.active or o.owner is not None:
+                continue
+            d = distance(e.cx, e.cy, o.cx, o.cy)
+            if d > rng or (best is not None and d >= best[1]):
                 continue
             if foes and o.hostile and o.aggressive and not o.ai.flees and not o.npc_id and \
                     not self.data.entity_ini(o.name, "Slain.By", ""):
                 pass
             elif o.in_combat or o.npc_foe is not None or strip_digits(o.name).upper() not in a.hunts:
                 continue
-            d = distance(e.cx, e.cy, o.cx, o.cy)
-            if d > rng or (best is not None and d >= best[1]) or not self.in_chase_area(a, o.fx, o.fy):
+            if not self.in_chase_area(a, o.fx, o.fy):
                 continue
             if self.in_line_of_sight(e.z, e.cx, e.cy, o.cx, o.cy):
                 best = (o, d)

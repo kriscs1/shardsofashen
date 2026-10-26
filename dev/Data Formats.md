@@ -210,7 +210,8 @@ Hunts=Rabbit,Sheep         ; optional: NPCs it goes for when it sees one (within
                            ; Hunts=Foes (guards): any monster that attacks on sight, even one fighting you
 Swims=1                    ; optional: it swims (otters, seals, frogs): water is ground to it, it roams in and out
                            ; of it, and in water it's drawn as <Name>_Swim2 / _Swim8
-Calls=Seal_Bark            ; optional: a sound it makes now and then (every 15-60 s) when not fighting
+Calls=Seal_Bark            ; optional: a sound it makes now and then (every 15-60 s) when not fighting, heard
+                           ; within 8 tiles
 ; StaticObject only:
 Walkable.Data=111...000    ; optional: its footprint, 0 = can't be walked through, over its sprite at 7 cells to 32
                            ; pixels each way (a 32 x 32 object: 49 cells, like a tile's; 64 x 32: 14 x 7). Blank =

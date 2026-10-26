@@ -7,7 +7,7 @@ import { G, S, cellOf, isHomeMap } from "./state.js";
 import { A, sprite, size, has, entityIni, configRead, preload } from "./assets.js";
 import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextMid, centreText, textWidth, fitText,
   wrapLines, roundBox, fontPx, setFont } from "./util.js";
-import { dayFraction, isNight, timeText, fogEnabled } from "./sky.js";
+import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice } from "./verbs.js";
 import { lookImage } from "./look.js";
@@ -259,7 +259,7 @@ function minimapImage(g, hatched = false) {
   const im = sprite(g.name);
   if (!im) return null;
   const mmCache = hatched ? wmCache : mmCacheMini;
-  const key = g.name + "|" + S.explored.size + "|" + (S.exploredVersion || 0) + "|" + fogEnabled();
+  const key = g.name + "|" + S.explored.size + "|" + (S.exploredVersion || 0) + "|" + fogEnabled() + "|" + fogSeeAll();
   if (mmCache.key === key) return mmCache.canvas;
   const now = performance.now();
   if (mmCache.canvas && mmCache.key.split("|")[0] === g.name && now - mmCache.at < 400) return mmCache.canvas;
@@ -269,7 +269,7 @@ function minimapImage(g, hatched = false) {
   const x = c.getContext("2d");
   x.clearRect(0, 0, c.width, c.height);
   x.drawImage(im, 0, 0);
-  if (val(configRead("Minimap", "Blackout", "1")) === 1 && fogEnabled()) {
+  if (val(configRead("Minimap", "Blackout", "1")) === 1 && fogEnabled() && !fogSeeAll()) {
     x.fillStyle = "#000";                                // (the minimap: the same black as where there's no map)
     // (the world map: see-through, so the one hatching behind it shows - the same as where there's no map at all)
     const hide = hatched ? (a, b, w, h) => x.clearRect(a, b, w, h) : (a, b, w, h) => x.fillRect(a, b, w, h);
@@ -411,7 +411,7 @@ export function drawWorldMap(ctx, now) {
   ctx.restore();
   const per = g.ps * k;                            // (screen pixels a map tile)
   const toScreen = (gx, gy) => [ox + (gx / G.tw - g.ox * G.xt) * per, oy + (gy / G.th - g.oy * G.yt) * per];
-  const seen = (name) => !fogEnabled() || S.explored.has(name);
+  const seen = (name) => !fogEnabled() || fogSeeAll() || S.explored.has(name);
   // the names of the places you've been
   const style = { t: [11, true, [255, 238, 176]], r: [10, true, [214, 180, 110]], p: [8, true, [226, 216, 196]] };
   for (const l of S.labels || []) {

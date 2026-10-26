@@ -63,9 +63,14 @@ def snapshot(w, s):
     maps = view_maps(w, s)
     names = {m.name for m in maps}
     for m in maps:
-        if s.sent_maps.get(m.name) != m.version:
+        sent = s.sent_maps.get(m.name)
+        if sent != m.version:
             s.sent_maps[m.name] = m.version
-            out.append(dict(m.to_client(), t="mapdata"))
+            cells = m.changes_since(sent)
+            if cells:                                   # (a door opened, a tree chopped: only those tiles)
+                out.append(dict(m.cells_to_client(cells), t="mapcells"))
+            else:
+                out.append(dict(m.to_client(), t="mapdata"))
     if s.cells_dirty:
         s.cells_dirty = False
         out.append({"t": "cells", "cells": s.cells_for_view(), "locks": s.locks_for_view()})

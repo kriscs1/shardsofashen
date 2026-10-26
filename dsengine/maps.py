@@ -51,6 +51,7 @@ class MapData:
         self.swim_grid = None           # (the same, and every cell of a water tile too: for Swims=1 NPCs)
         self.regions = None
         self.version = 0                # goes up whenever a tile changes (the browsers ask for it again)
+        self.changes = []               # (version, cell) of the latest changes: a door opening sends that one tile
         self.load(lines)
 
     # ----- reading the file
@@ -158,6 +159,7 @@ class MapData:
         self.refresh_cell(c)
         self.grid_dirty()
         self.version += 1
+        self.logged(c)
         return True
 
     def set_roofs(self, roofs):
@@ -170,7 +172,28 @@ class MapData:
                 changed = True
         if changed:
             self.version += 1
+            self.logged(None)               # (roofs: the whole map again)
         return changed
+
+    CHANGES_KEPT = 48
+
+    def logged(self, c):
+        self.changes.append((self.version, c))
+        if len(self.changes) > self.CHANGES_KEPT:
+            del self.changes[0]
+
+    def changes_since(self, v):
+        """The cells changed after version v, if each change since is one tile (else None: send the whole map)."""
+        if v is None or v > self.version or self.version - v > self.CHANGES_KEPT:
+            return None
+        log = dict(self.changes)
+        cells = set()
+        for ver in range(v + 1, self.version + 1):
+            c = log.get(ver)
+            if c is None:
+                return None
+            cells.add(c)
+        return sorted(cells)
 
     def grid_dirty(self):
         self.grid = None
@@ -295,6 +318,11 @@ class MapData:
         return region
 
     # ----- for the browsers
+    def cells_to_client(self, cells):
+        """Just those cells, as the browser keeps them: [cell, tile, decor, under] (cells numbered from 1)."""
+        return {"name": self.name, "v": self.version,
+                "cells": [[c, self.tile[c], self.decor[c], self.under[c]] for c in cells]}
+
     def to_client(self):
         """The map as the browser draws it (tiles as the world has them; each player's own changes are sent apart)."""
         return {"name": self.name, "v": self.version, "tile": self.tile[1:], "decor": self.decor[1:], "under": self.under[1:],

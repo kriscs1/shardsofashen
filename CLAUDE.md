@@ -154,6 +154,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Change the builder and run it again; don't hand-edit its output.
 - Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
+- A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
+  close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
+- A tile changing (a door, a chopped tree) sends just that tile (`mapcells`), not the whole map again: keep it so.
+  The phone and many NPCs make full-map repaints the thing that lags.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and mana are top
   left of the view, not in the sidebar.
 - **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch

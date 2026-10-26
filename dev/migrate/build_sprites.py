@@ -900,9 +900,16 @@ def alchemy_table():
         " DD                  DD ",
     ]
     K.paste(img, art(rows, {"W": (176, 126, 76), "w": (140, 96, 54), "D": (90, 58, 30)}, oy=20))
-    K.paste(img, K.load("Entities", "Basic_Potion"), -9, -11)
-    K.paste(img, super_potion(), -2, -13)
-    K.paste(img, strength_potion(), 6, -11)
+    for cx, liquid in ((7, ((70, 120, 22), (118, 178, 36), (166, 218, 66))),          # (three little flasks, in
+                       (14, ((30, 70, 150), (52, 110, 200), (110, 160, 230))),         # the potions' own colours)
+                       (21, ((120, 18, 18), (186, 34, 30), (226, 90, 80)))):
+        K.shaded_ellipse(img, cx, 16.5, 3.6, 3.6, liquid[1], liquid[2], liquid[0], outline=(176, 192, 202))
+        for y in range(9, 13):
+            K.put(img, cx - 1, y, (176, 192, 202))
+            K.put(img, cx, y, (206, 220, 228))
+        K.put(img, cx - 1, 8, (148, 134, 118))
+        K.put(img, cx, 8, (148, 134, 118))
+        K.put(img, cx - 2, 15, (244, 248, 252))
     K.shaded_ellipse(img, 25, 18.5, 3, 2, (180, 180, 186), (220, 220, 226), (120, 120, 126))
     K.put(img, 26, 15, (150, 110, 70))
     K.put(img, 27, 14, (150, 110, 70))

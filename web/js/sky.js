@@ -312,6 +312,22 @@ export function fogInit() {
 
 export function fogEnabled() { return F.enabled && S.view > 0; }
 
+// The admin panel's: no black (the places you've never been shown as if you had) and no fog (everything round you
+// shown, not only what's in sight). Only for admins; this browser remembers them.
+const FOG_ADMIN = { noBlack: false, noFog: false };
+try { Object.assign(FOG_ADMIN, JSON.parse(localStorage.getItem("ds.fogAdmin") || "{}")); } catch (e) { /* (private window) */ }
+
+export function fogAdmin() { return { ...FOG_ADMIN }; }
+
+export function setFogAdmin(noBlack, noFog) {
+  FOG_ADMIN.noBlack = !!noBlack; FOG_ADMIN.noFog = !!noFog;
+  try { localStorage.setItem("ds.fogAdmin", JSON.stringify(FOG_ADMIN)); } catch (e) { /* (private window) */ }
+  F.key = "";
+}
+
+export const fogSeeAll = () => !!S.admin && FOG_ADMIN.noBlack;
+const fogOff = () => !!S.admin && FOG_ADMIN.noFog;
+
 export function revealCell(map, cell) {
   const n = fogCell(), fxt = Math.ceil(G.sw / n);
   let x, y;
@@ -338,6 +354,7 @@ export function fogCovers(x, y, pc, margin = 0) {
   // Is global point x,y under the fog for this player (not in view now)? margin: a little more view (for something
   // already in sight: it doesn't blink out and in at the edge as you, or it, shuffle a pixel or two)
   if (!fogEnabled() || !pc) return false;
+  if (fogOff()) return fogSeeAll() ? false : fogBlack(x, y);
   const n = fogCell();
   const cx = (Math.floor(x / n) + 0.5) * n, cy = (Math.floor(y / n) + 0.5) * n;
   if (inView(cx, cy, pc[0], pc[1], margin)) return false;
@@ -351,7 +368,7 @@ export function fogCovers(x, y, pc, margin = 0) {
 
 export function fogBlack(x, y) {
   // Never seen (black): the tiles there can't be named or clicked
-  if (!fogEnabled()) return false;
+  if (!fogEnabled() || fogSeeAll()) return false;
   const m = mapAt(S.mapZ, x, y);
   if (!m) return true;
   const n = fogCell(), fxt = Math.ceil(G.sw / n);
@@ -381,11 +398,12 @@ export function fogUpdate(pc) {
 }
 
 export function drawFog(ctx, cam, ww, wh, pc) {
-  if (!fogEnabled() || !pc) return;
+  if (!fogEnabled() || !pc || (fogOff() && fogSeeAll())) return;
   const n = fogCell(), fxt = Math.ceil(G.sw / n);
   const gx0 = Math.floor(cam.x / n) - 1, gy0 = Math.floor(cam.y / n) - 1;
   const cols = Math.ceil(ww / n) + 3, rows = Math.ceil(wh / n) + 3;
-  const key = [gx0, gy0, cols, rows, Math.round(pc[0] / 4), Math.round(pc[1] / 4), S.view, S.mapName].join(",");
+  const key = [gx0, gy0, cols, rows, Math.round(pc[0] / 4), Math.round(pc[1] / 4), S.view, S.mapName, fogOff(),
+    fogSeeAll()].join(",");
   const L = layer("fog", cols, rows);
   if (key !== F.key) {
     F.key = key;
@@ -401,8 +419,9 @@ export function drawFog(ctx, cam, ww, wh, pc) {
           const lx = gx - Math.floor(m.ox / n), ly = gy - Math.floor(m.oy / n);
           const id = ly * fxt + lx + 1;
           const r = F.revealed.get(m.name);
+          const known = fogSeeAll() || isExplored(m.name, id);
           if (inView(cx, cy, pc[0], pc[1]) || (r && r.has(id))) a = 0;
-          else if (isExplored(m.name, id)) a = F.seen;
+          else if (known) a = fogOff() ? 0 : F.seen;
         }
         im.data.set([9, 6, 5, a], (j * cols + i) * 4);
       }

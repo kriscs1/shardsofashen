@@ -1654,7 +1654,8 @@ PALACE_TILES = {"Paving001", "Marble001", "Carpet001", "Carpet002", "Throne001",
                 "Wall_Torch001", "Statue001", "Statue002", "Fountain001", "Hedge001"}      # (they keep their edges)
 
 # Tiles.ini keys besides the six in TILES: {tile: [(key, value)]}
-TILE_EXTRA = {"City_Gate001": [("Unlocked.Tile", "City_Gate002")], "City_Gate003": [("Unlocked.Tile", "City_Gate004")]}
+TILE_EXTRA = {"City_Gate001": [("Unlocked.Tile", "City_Gate002")], "City_Gate003": [("Unlocked.Tile", "City_Gate004")],
+              "Paving001": [("Blend", "2")]}       # (the brick road blends as the dirt path does)
 
 
 def item(value, examine, stack=1, food=0, use="", droppable=None):
