@@ -19,17 +19,6 @@ Paving001:Brick_Thin_Plank004+Roof(Shingle_Roof010.02):Plank001+Roof(Shingle_Roo
 Paving001:Brick_Thin_Plank004+Roof(Shingle_Roof013.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Brick_Thin_Plank002+Roof(Shingle_Roof015.02):Grass001+Decor(Tree001):Brick_Thin_Plank004+Roof(Slate_Roof013.03):Plank001+Roof(Slate_Roof014.03):Plank001+Roof(Slate_Roof014.03):Brick_Thin_Plank002+Roof(Slate_Roof015.03):Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001+Decor(Tree002):Grass001+Decor(Flowers002):Paving001:Grass001+Decor(Marigold_Patch001):Water004:Water001:Water001:Water001:Water001:Water001:Water001
 Paving001:Brick001:Brick001:Door001:Brick001:Forest001:Brick001:Brick001:Door001:Brick001:Grass001:Grass001:Grass001:Grass001+Decor(Willow_Tree001):Grass001+Decor(Willow_Tree001):Paving001:Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-StaticObject	Notice	417	98	Id=Goblin_Camp_Sign
-StaticObject	Fire	289	258
-StaticObject	Fire	481	354
-MapItem	Bones	129	226	1
-MapItem	Bones	449	290	1
-MapItem	Bones	225	418	1
-MapItem	Raw_Meat	320	256	1
-MapItem	Gold_Coin(s)	386	355	5
-NPC	Goblin_Archer	224	224	Attitude=Bad Zone=6,7,11,10 Chase=2,7,23,17
-NPC	Goblin_Archer	480	352	Attitude=Bad Zone=14,11,19,13 Chase=2,7,23,17
-NPC	Goblin_Shaman	384	224	Attitude=Bad Zone=11,7,15,10 Chase=2,7,23,17
 StaticObject	Trout_Spot	704	96
 NPC	Duck	736	320	Attitude=Bad
 NPC	Rabbit	64	192	Attitude=Bad

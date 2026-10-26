@@ -1,2 +1,2 @@
-01	Display.Message	DarkRed	Smoke and the stink of goblins... this is their camp!	-
+01	Display.Message	Cyan	Ashford's market square. Stallholders cry their wares.	-
 02	End

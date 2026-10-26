@@ -362,13 +362,13 @@ def main():
 # ------------------------------------------------------------------------------------------- where each plays
 W = R = None
 PALACE_MAPS = {"4,4,0", "4,4,1", "2,4,0"}
-TOWN_MAPS = {"1,3,0", "2,3,0", "1,1,0"}
+TOWN_MAPS = {"1,3,0", "2,3,0", "1,1,0", "3,4,0"}   # (3,4,0: Ashford's market square, once the goblin camp)
 
 
 BOSSES = {"Bog_Troll", "Cave_Troll", "Frost_Troll", "Alpha_Wolf", "Hob", "Barrow_King"}
 DREADFUL = {"Skeleton", "Barrow_King", "Giant_Spider"}
 DANGER_HP = 100             # the hitpoints of the aggressive monsters on a map that make it dangerous
-DANGER_MAPS = {"3,4,0", "2,4,-2"}   # and always: the goblin camp, the hobgoblin warren
+DANGER_MAPS = {"2,4,-2"}   # and always: the hobgoblin warren
 
 
 def danger_of(name):
