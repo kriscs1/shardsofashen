@@ -24,6 +24,7 @@ for _cat in CATS:
     EATERS[_cat] = (CAT_FOOD, "The cat eats the {food} in neat little bites, then washes its whiskers.", "a cat")
 for _who, (_kind, _, _, _) in NAMED.items():
     EATERS[_who] = (CAT_FOOD, _who + " eats the {food} in three bites, then looks up at you for more.", "a cat")
+EATERS["Throne_Jimmy"] = EATERS["Jimmy"]            # (Jimmy in the throne room, once you're king)
 
 
 def write(name, lines):

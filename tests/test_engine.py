@@ -1896,5 +1896,25 @@ def test_the_royal_guard_and_the_king(world):
     talk(king, 1, 1, 1, 1, 1)
     assert attr("KingQuest") == 1
     run(5)
-    assert any(e.name == "Throne_Jimmy" and world.visible_to(e, s) for e in world.ents)
+    jimmy = world.placed_entity("Throne_Jimmy", s)                   # (the cat himself, curled up on the throne)
+    assert jimmy is not None and jimmy.name == "Strawberry_Cat" and world.npc_state(jimmy) == "Curl"
+    assert jimmy.image.startswith("Strawberry_Cat_Curl")             # (and drawn curled up)
+    m = world.maps["12,5,0"]
+    gx, gy = m.ox + 12 * 32 + 16, m.oy + 6 * 32 + 16
+    throne = s.tile_entity_at(gx, gy)
+    assert throne.name == "Throne001" and s.get_verbs(throne).split(",")[0] == "Sit"
+    s.teleport("12,5,0", 12 * 32, 8 * 32 - 8)                       # (in front of it)
+    run(10)
+    s.choose_verb("Sit", throne, gx, gy)
+    run(20)
+    assert s.seat is not None and not jimmy.ai.napping               # (you sit on the throne: down he hops)
+    assert distance(jimmy.cx, jimmy.cy, gx, gy) > 20
+    s.keyboard_direction = 4
+    run(2)
+    s.keyboard_direction = 0
+    for _ in range(4000):                                            # (and in a while he's back up, curled)
+        world.tick(0.05, now=world.now + 100)
+        if jimmy.ai.napping:
+            break
+    assert jimmy.ai.napping and world.npc_state(jimmy) == "Curl" and distance(jimmy.cx, jimmy.cy, gx, gy) < 20
     leave(world, s)

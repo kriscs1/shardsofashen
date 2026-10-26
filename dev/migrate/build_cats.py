@@ -7,7 +7,7 @@ Run it again to draw and make the sounds again; the cats are only placed once.
   python -I "dev\\migrate\\build_cats.py"
 
   * sprites\\Walk\\<Cat>2a-c / 8a-c (trotting, right and left), sprites\\Entities\\<Cat>.png, and <Cat>_Sit2 / _Sit8
-    (sitting: States=Sit, its pose when it stops a while), _Stretch2 / 8 and _Butt2 / 8 (Fidgets=: for a moment,
+    (sitting: States=Sit, its pose when it stops a while), _Curl2 / 8 (curled up asleep, also on its Nap= spot), _Stretch2 / 8 and _Butt2 / 8 (Fidgets=: for a moment,
     now and then, a stretch or its back to you).
   * sounds\\Meow.wav (a "mrrow?": its pitch up, then down) and Purr.wav (a rumble, in and out).
   * Entities.ini: friendly (Attitude=Good), not solid (they don't block a doorway), Talk to (a meow), Stroke (a purr).
@@ -152,6 +152,34 @@ def draw_sitting(fur, dark, light, chest, eye, stripes, face=None, legs=None, pa
     return outlined(s, hx, hy)
 
 
+def draw_curl(fur, dark, light, chest, eye, stripes, face=None, legs=None, paws=None, fat=False):
+    """Curled up asleep, round as a bun: its head tucked on its paws at the front, its tail wrapped round, eyes shut."""
+    s = pygame.Surface((32, 32), pygame.SRCALPHA)
+    w = 20 if fat else 17
+    x0 = 16 - w // 2
+    pygame.draw.ellipse(s, fur, (x0, 17, w, 11))                              # the body, curled round
+    pygame.draw.line(s, light, (x0 + 3, 18), (x0 + w - 6, 18))                 # (light along its back)
+    if stripes:
+        for x in (x0 + 5, x0 + 9):
+            pygame.draw.line(s, dark, (x, 18), (x - 1, 21))
+    pygame.draw.lines(s, fur, False, [(x0 + 1, 24), (x0 + 4, 28), (x0 + w - 4, 28), (x0 + w, 25)], 2)   # the tail
+    s.set_at((x0 + w, 25), dark if stripes else light)
+    for x in (x0 + w - 9, x0 + w - 6):                                         # (its front paws, tucked)
+        s.set_at((x, 27), paws or legs or chest)
+        s.set_at((x + 1, 27), paws or legs or chest)
+    hx, hy = x0 + w - 7, 21                                                   # the head, low on its paws
+    pygame.draw.polygon(s, fur, [(hx - 4, hy - 1), (hx - 3, hy - 5), (hx - 1, hy - 3)])
+    pygame.draw.polygon(s, fur, [(hx + 1, hy - 3), (hx + 3, hy - 5), (hx + 4, hy - 1)])
+    s.set_at((hx - 3, hy - 3), (240, 168, 178))
+    s.set_at((hx + 3, hy - 3), (240, 168, 178))
+    pygame.draw.circle(s, face or fur, (hx, hy), 4)
+    pygame.draw.ellipse(s, face or chest, (hx - 2, hy + 1, 5, 3))             # the muzzle
+    for ex in (hx - 3, hx + 1):                                               # (eyes shut: two little lines)
+        pygame.draw.line(s, (40, 30, 34), (ex, hy - 1), (ex + 1, hy - 1))
+    s.set_at((hx, hy + 1), (236, 128, 146))
+    return outlined(s, hx, hy, whiskers=False)
+
+
 def draw_stretch(fur, dark, light, chest, eye, stripes, face=None, legs=None, paws=None, fat=False):
     """A long stretch, side on: front legs out along the ground, chest down, its rump and tail up in the air."""
     s = pygame.Surface((32, 32), pygame.SRCALPHA)
@@ -214,8 +242,11 @@ def pictures():
             pygame.image.save(img, os.path.join(walk, "%s2%s.png" % (name, f)))
             pygame.image.save(pygame.transform.flip(img, True, False), os.path.join(walk, "%s8%s.png" % (name, f)))
         pygame.image.save(frames[0], os.path.join(ents, name + ".png"))
-        sit = draw_sitting(*pal[:6], **looks)                                 # (at rest: States=Sit)
+        sit = draw_sitting(*pal[:6], **looks)                                 # (at rest: States=Sit,Curl)
         pygame.image.save(sit, os.path.join(ents, name + "_Sit2.png"))
+        curl = draw_curl(*pal[:6], **looks)
+        pygame.image.save(curl, os.path.join(ents, name + "_Curl2.png"))
+        pygame.image.save(pygame.transform.flip(curl, True, False), os.path.join(ents, name + "_Curl8.png"))
         pygame.image.save(pygame.transform.flip(sit, True, False), os.path.join(ents, name + "_Sit8.png"))
         for fid, draw in FIDGETS.items():                                     # (a moment's stretch, or its back to you)
             img = draw(*pal[:6], **looks)
@@ -296,8 +327,8 @@ def data():
                                             "02\tDisplay.Message\tCyan\tThe cat arches its back and purrs.", "03\tEnd"])
         if not ini.read(name, "Respawn", "", ents):
             ini.write(name, "Respawn", "300", ents)                    # (back five minutes after it's gone)
-        if ini.read(name, "States", "", ents) != "Sit":
-            ini.write(name, "States", "Sit", ents)                     # (it sits down when it stops a while)
+        if ini.read(name, "States", "", ents) != "Sit,Curl":
+            ini.write(name, "States", "Sit,Curl", ents)                # (it sits, or curls up asleep, when it stops)
         if ini.read(name, "Fidgets", "", ents) != ",".join(FIDGETS):
             ini.write(name, "Fidgets", ",".join(FIDGETS), ents)        # (now and then a stretch, or its back to you)
     for who, (kind, _, meow, purr) in NAMED.items():

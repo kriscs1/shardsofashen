@@ -122,7 +122,7 @@ class NPCMixin:
             walk = 0.5
         a.walk_speed = max(4, min(1, walk) * e.move_speed)
         pause = d.entity_ini(n, "Pause", "1-4")
-        zone = chase_r = patrol = roost = ""
+        zone = chase_r = patrol = roost = nap = ""
         stand = ping = 0
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
@@ -170,6 +170,8 @@ class NPCMixin:
                     roost = value
                 elif key == "STATE":                   # (how it always rests: State=Sit)
                     a.fixed_pose = value
+                elif key == "NAP":                     # (a spot it hops up onto to curl up: Nap=13,7, the throne)
+                    nap = value
             k += 1
         home = self.maps.get(e.map)
         a.home_ox = home.ox if home else math.floor(e.x / self.sw) * self.sw
@@ -223,10 +225,21 @@ class NPCMixin:
         a.back_x, a.back_y = e.cx, e.cy
         a.calm_until = 0
         a.goal_x, a.goal_y = a.back_x, a.back_y
+        a.nap = a.nap_from = None
+        a.napping = a.nap_walk = False
+        if word(nap, 2, ",") and is_number(word(nap, 1, ",")) and is_number(word(nap, 2, ",")):
+            a.nap = (a.home_ox + (val(word(nap, 1, ",")) - 0.5) * self.tw, a.home_oy + (val(word(nap, 2, ",")) - 0.5) * self.th)
+            if distance(e.cx, e.cy, *a.nap) < 20:            # (put down on it: asleep there already)
+                a.napping, a.nap_from = True, (e.x, e.y + self.th)
         a.state = AI_IDLE
         a.timer = self.now + int(rnd() * (p_max * 1000 + 1500))
         a.turn_at = a.timer + 1
-        e.pose = a.fixed_pose
+        e.pose = "Curl" if a.napping else a.fixed_pose
+        if a.napping:
+            a.timer = self.now + random_number(40000, 120000)
+            a.turn_at = a.timer + 1
+        if e.pose:
+            self.animate_entity(e, False)                     # (drawn as it rests from the start: curled, sitting)
 
     @staticmethod
     def npc_rect_valid(rect):
@@ -375,7 +388,7 @@ class NPCMixin:
                     self.animate_entity(e, False)
         elif state in (AI_ROAM, AI_PATROL, AI_RETURN):
             arrived = failed = False
-            if distance(cx, cy, a.goal_x, a.goal_y) <= 3:
+            if distance(cx, cy, a.goal_x, a.goal_y) <= 3 or (a.nap_walk and distance(cx, cy, *a.nap) <= 44):
                 arrived = True
             else:
                 self.npc_walk_to(e, a.goal_x, a.goal_y, a.walk_speed, 2, False)
@@ -406,7 +419,11 @@ class NPCMixin:
                 p = near[0].player
                 self.npc_face(e, cx, cy, p.cx, p.cy)
                 faced = True
-            if a.fidgets and not a.fixed_pose:
+            if a.napping and not self.nap_free(e, a):
+                self.npc_wake(e, a)                       # (someone's sat down on it: off it hops)
+                self.npc_next_move(e, a)
+                return
+            if a.fidgets and not a.fixed_pose and not a.napping:
                 self.npc_fidget(e, a, now)
             if not faced and now >= a.turn_at:
                 e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
@@ -418,8 +435,8 @@ class NPCMixin:
                 self.npc_next_move(e, a)
 
     def npc_state(self, e):
-        """What NPC e is doing now, for scripts (>Entity.State): Fighting, Following, Walking, its pose (Sit,
-        Stretch, Butt: a cat's) or Standing."""
+        """What NPC e is doing now, for scripts (>Entity.State): Fighting, Following, Walking, its pose (Sit, Curl,
+        Stretch, Butt: a cat's; Curl too when it's asleep on its Nap= spot) or Standing."""
         a = e.ai
         if a is None:
             return "Standing"
@@ -477,6 +494,7 @@ class NPCMixin:
             if a.state == AI_IDLE and self.in_zone(a, e.fx, e.fy):
                 a.back_x, a.back_y = e.cx, e.cy
         self.forget_path(e)
+        self.npc_wake(e, a)
         e.pose, a.fidget_until = "", 0                        # (on its feet to fight, or to run)
         e.npc_foe = None                                      # (a player first: whatever it was hunting can wait)
         e.in_combat = True
@@ -499,7 +517,7 @@ class NPCMixin:
         now = self.now
         foe = e.npc_foe
         if foe is None:
-            if now < a.hunt_at and now >= a.hunt_at - 600000:
+            if a.napping or (now < a.hunt_at and now >= a.hunt_at - 600000):
                 return False
             a.hunt_at = now + 1000
             foe = self.npc_prey(e, a)
@@ -645,9 +663,37 @@ class NPCMixin:
             a.fidget_at = now + random_number(20000, 60000)
             self.animate_entity(e, False)
 
+    def nap_free(self, e, a):
+        """Nobody's sitting on its nap spot (a player on the throne: Seat=)."""
+        for s in self.sessions.values():
+            if s.in_world() and s.seat is not None and s.player.z == e.z:
+                x, y = s.seat[1]
+                if distance(x + s.player.w / 2, y + s.player.h / 2 + 8, *a.nap) < 20:
+                    return False
+        return True
+
+    def npc_wake(self, e, a):
+        """Off its nap spot, back down where it hopped up from."""
+        if getattr(a, "napping", False):
+            a.napping = False
+            e.pose = ""
+            if a.nap_from is not None:
+                self.set_entity_position(e, *a.nap_from)
+
     def npc_set_idle(self, e, a, quick):
         now = self.now
         a.fidget_until = 0
+        if getattr(a, "nap_walk", False):
+            a.nap_walk = False
+            if not quick and self.nap_free(e, a):
+                a.napping, a.nap_from = True, (e.x, e.y)
+                self.set_entity_position(e, a.nap[0] - e.w / 2, a.nap[1] - e.h / 2 - 2)   # (on its cushion)
+                e.pose = "Curl"                               # (up it hops, and curls up)
+                a.state = AI_IDLE
+                a.timer = now + random_number(40000, 120000)
+                a.turn_at = a.timer + 1
+                self.animate_entity(e, False)
+                return
         a.state = AI_IDLE
         secs = a.pause_min + rnd() * (a.pause_max - a.pause_min)
         if quick:
@@ -667,6 +713,13 @@ class NPCMixin:
     def npc_next_move(self, e, a):
         if a.fixed_pose:                                      # (held in its pose, State= / Set.NPC.State: it stays)
             self.npc_set_idle(e, a, False)
+            return
+        if getattr(a, "napping", False):
+            self.npc_wake(e, a)
+        elif getattr(a, "nap", None) and rnd() < 0.35 and self.nap_free(e, a):
+            a.nap_walk = True                                 # (off for a nap on its spot)
+            a.goal_x, a.goal_y = a.nap[0], a.nap[1] + self.th
+            self.npc_walk_started(e, a, AI_ROAM)
             return
         if a.stand == 1:
             if distance(e.cx, e.cy, a.back_x, a.back_y) > 4:

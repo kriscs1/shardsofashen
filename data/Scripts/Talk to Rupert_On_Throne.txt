@@ -12,7 +12,7 @@
 11	Update.Attribute	KingQuest	=1
 12	Play.Sound	LevelUp
 13	Display.Message	Yellow	Quest complete: The True Heir! You are the King of Estforlan. The world is yours to explore.	Quest
-14	Add.Entity	384,178	Throne_Jimmy	StaticObject	-
+14	Add.Entity	384,190	Strawberry_Cat	NPC	Attitude=Good Zone=6,8,20,12 Nap=13,7 Pause=4-12 Id=Throne_Jimmy Name=Jimmy
 15	Display.Message	Cyan	A ginger cat you'd know anywhere has curled up on the throne. Jimmy, how did you get here?	-
 16	End
 17	Display.Conversation	King_Rupert	My son, the King. Your mother would be proud.	Goodbye, Father.	18

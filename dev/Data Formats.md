@@ -294,6 +294,8 @@ The bank is not a rack: it's stored in the save file.
       roaming. `PatrolMode=PingPong` walks the route forwards then backwards instead.
     * `Pause=min-max`: seconds it stands still at each roam point or waypoint (default: Entities.ini `Pause`).
     * `Stand=1`: it stays where it is (shopkeepers, guards on a post); it still turns to face a nearby player.
+    * `Nap=x,y`: a tile it now and then hops up onto and curls up on (its Curl pose), when no player is sitting there
+      (Jimmy on the throne). Put down on it, it starts asleep there.
     Anything that isn't `Key=Value` (old stray fields) is ignored. Tools must keep the field when re-saving.
     Zone, Chase and Patrol tiles may reach past the map's edges onto the maps around it, up to one map's width or height
     (x from -24 to 50, y from -20 to 42 on a 25 x 21 map): 26,5 is tile 1,5 of the map to the east, 0,5 tile 25,5 of the

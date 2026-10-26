@@ -215,7 +215,7 @@ def draw_pictures():
                                                                 min(255, int(b * 0.7 + 10))))),
             ("Grimoire_Lectern", lectern(True)), ("Empty_Lectern", lectern(False)),
             ("Sword_In_Stone", sword_in_stone(True)), ("Empty_Stone", sword_in_stone(False)),
-            ("Drake", drake(K.load("Entities", "Dragon"))), ("Throne_Jimmy", K.load("Entities", "Sleeping_Jimmy"))):
+            ("Drake", drake(K.load("Entities", "Dragon")))):
         K.save("Entities", name, img)
     for d in "28":
         for f in "abc":
@@ -270,11 +270,9 @@ def data():
         ("Empty_Lectern", "Examine", "A stone lectern, bare."),
         ("Sword_In_Stone", "Draw,Examine", "A sword, sunk to the hilt in a stone. Its edge hums."),
         ("Empty_Stone", "Examine", "The stone, a sword's slot in it, empty."),
-        ("Throne_Jimmy", "Stroke,Examine", "Jimmy, asleep on the throne of Estforlan, as if it were made for him."),
     ]
     for name, words, info in objects:
         K.section(E, name, [("Type", "StaticObject"), ("Use.Words", words), ("Examine.Info", info), ("Solid", "1")])
-    K.section(E, "Throne_Jimmy", [("Solid", "0")])
     K.section(E, "Drake", [("Type", "NPC"), ("Attitude", "Bad"), ("Use.Words", "Attack,Examine"),
                            ("Examine.Info", "A drake of Dragon Island: green scales, a hot temper."),
                            ("Hitpoints", "70"), ("Attack.Speed", "1.3"), ("Strength", "7"), ("Defence", "8"),
@@ -1362,7 +1360,7 @@ def galaith():
         ("Play.Sound", "LevelUp"),
         ("Display.Message", "Yellow", "Quest complete: The True Heir! You are the King of Estforlan. The world is yours "
                                       "to explore.", "Quest"),
-        ("Add.Entity", at(13, 7, -14), "Throne_Jimmy", "StaticObject", "-"),
+        ("Add.Entity", at(13, 7, -2), "Strawberry_Cat", "NPC", JIMMY),
         ("Display.Message", "Cyan", "A ginger cat you'd know anywhere has curled up on the throne. Jimmy, how did you "
                                     "get here?", "-"),
         ("End",),
@@ -1370,19 +1368,17 @@ def galaith():
         say("King_Rupert", "My son, the King. Your mother would be proud.", ("Goodbye, Father.", "@end")),
         ("@end",), ("End",),
     ])
-    w("12,5,0", [                                                 # (Jimmy, asleep on the throne, once you're king)
+    w("12,5,0", [                                 # (Jimmy, asleep on the throne once you're king: throne_jimmy.py)
         ("Get.Value", "ATTRIBUTE", "KingQuest", V1),
         (">Conditional", "$Variable.1>=1", "@end"),
-        ("Add.Entity", at(13, 7, -14), "Throne_Jimmy", "StaticObject", "-"),
+        ("Add.Entity", at(13, 7, -2), "Strawberry_Cat", "NPC", JIMMY),
         ("@end",), ("End",),
     ])
-    w("Stroke Throne_Jimmy", [
-        ("Play.Sound", "Purr"),
-        ("Display.Message", "Cyan", "Jimmy purrs, stretches across the throne, and goes back to sleep. He's the king of "
-                                    "this, really."),
-        ("End",),
-    ])
+    # (Stroke / Talk to Throne_Jimmy: throne_jimmy.py, as he's curled up on the throne or not)
 
+
+# Jimmy in the throne room: the cat himself, curling up on the throne when it's free (throne_jimmy.py)
+JIMMY = "Attitude=Good Zone=6,8,20,12 Nap=13,7 Pause=4-12 Id=Throne_Jimmy Name=Jimmy"
 
 def retired():
     """The old main quest line's scripts with nothing left to do (their places stay, quiet)."""

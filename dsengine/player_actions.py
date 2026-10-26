@@ -147,6 +147,8 @@ class ActionsMixin:
             return 0
         if verb == "Pickup":
             return 28
+        if verb == "Sit":
+            return 40                                         # (a seat you can't stand on: a throne)
         if verb == "Talk to":
             return 48
         if verb == "Attack":
