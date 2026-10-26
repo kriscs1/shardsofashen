@@ -1,8 +1,10 @@
 """The web server: the game page and its files (web/), the pictures, sounds and data the browser needs (web/assets,
-made by tools/export_web_assets.py), and the game's WebSocket (/ws)."""
+made by tools/export_web_assets.py), and the game's WebSocket (/ws). The Android app (android/) is this same page:
+/.well-known/assetlinks.json tells the phone the app may show it full screen."""
 import asyncio
 import logging
 import os
+import json
 import signal
 
 from aiohttp import web
@@ -24,6 +26,13 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     async def index(request):
         return web.FileResponse(os.path.join(web_dir, "index.html"), headers={"Cache-Control": "no-cache"})
 
+    async def manifest(request):
+        return web.FileResponse(os.path.join(web_dir, "manifest.webmanifest"),
+                                headers={"Content-Type": "application/manifest+json", "Cache-Control": "no-cache"})
+
+    async def assetlinks(request):
+        return web.json_response(asset_links(), headers={"Cache-Control": "public, max-age=3600"})
+
     async def health(request):
         return web.json_response({"ok": True, "online": len(game.world.sessions), "tick_ms": round(game.tick_ms, 2),
                                   **game.version})
@@ -40,6 +49,8 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     app.middlewares.append(caching)
     app.router.add_get("/", index)
     app.router.add_get("/health", health)
+    app.router.add_get("/manifest.webmanifest", manifest)
+    app.router.add_get("/.well-known/assetlinks.json", assetlinks)
     app.router.add_get("/ws", game.handle_ws)
     if os.path.isdir(assets):
         app.router.add_static("/assets/", assets)
@@ -59,6 +70,18 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     app.on_startup.append(start_tick)
     app.on_shutdown.append(stop_tick)
     return app
+
+
+def asset_links():
+    """The Android app's link to this site (Digital Asset Links): its package, and the SHA-256 fingerprints of the
+    keys it's signed with (DS_ANDROID_CERTS, comma-separated: the Play Console's app signing key, and the upload key).
+    Without them the app still opens the game, with a browser bar along its top."""
+    package = os.environ.get("DS_ANDROID_PACKAGE", "io.github.kriscs1.dragonsword").strip()
+    certs = [c.strip().upper() for c in os.environ.get("DS_ANDROID_CERTS", "").split(",") if c.strip()]
+    if not certs:
+        return []
+    return [{"relation": ["delegate_permission/common.handle_all_urls"],
+             "target": {"namespace": "android_app", "package_name": package, "sha256_cert_fingerprints": certs}}]
 
 
 def main():

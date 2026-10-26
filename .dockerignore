@@ -10,3 +10,4 @@ deploy/*.env
 deploy/**/.env
 .env
 .github
+android

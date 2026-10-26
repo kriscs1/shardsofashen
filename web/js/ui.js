@@ -1,6 +1,8 @@
 // The interface round the world (the desktop game's ui.py, the rest of render): the sidebar (minimap, clock, buttons,
-// Stats / Gear / Quests, the inventory), the chat bar and the hover box, the ActionBox and its responses, the right-click
-// menu, the hotbar, the level-up banner. Laid out at 768 high, as wide as the screen's shape wants (1024 to 1792).
+// Stats / Gear / Quests, the inventory), the chat bar, your level, health and mana (top left) and what's under the
+// mouse (top middle), the ActionBox and its responses, the right-click menu, the hotbar, the level-up banner. Laid
+// out at 768 high, as wide as the screen's shape wants (1024 to 1792); on a phone (mobile.js) the world fills the
+// screen and the rest sits over it.
 import { G, S, cellOf, isHomeMap } from "./state.js";
 import { A, sprite, size, has, entityIni, configRead, preload } from "./assets.js";
 import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextMid, centreText, textWidth, fitText,
@@ -10,6 +12,7 @@ import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
+import { M } from "./mobile.js";
 
 export const TAB_TEXT = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -17,20 +20,53 @@ const INK = [243, 232, 136];
 
 export const L = {};
 
-export function layout(W) {
+export function layout(W, H = 768) {
   L.W = W;
-  L.VW = W - 224;
-  L.VH = 672;
+  L.H = H;
   L.DX = W - 1024;
-  L.statY = 175;
-  L.invX = L.VW + 34;
-  L.invY = 413;
-  L.mmX = L.VW + 140;
-  L.mmY = 84;
-  L.mmSize = 160;
   const [abw, abh] = size("AB_Conversation");
   const [, rbh] = size("ResponseBox");
-  L.abX = Math.floor((L.VW - abw) / 2);
+  if (M.on) {
+    // (a phone: the world all over the screen; the minimap top right, the buttons under it; the bag, when it's
+    // open, the Stats box beside the pack, left of the buttons)
+    L.VW = W;
+    L.VH = H;
+    L.mmSize = 92;
+    L.mmX = W - 8 - L.mmSize / 2;
+    L.mmY = 26 + L.mmSize / 2;
+    L.btnX = W - 30;
+    L.btnY = L.mmY + L.mmSize / 2 + 30;
+    L.packW = 190;
+    L.packH = 14 + 32 * 7 + 12;
+    L.bagW = 224 + L.packW;
+    L.bagX = Math.min(W - 64, L.mmX - L.mmSize / 2 - 8) - L.bagW;   // (clear of the minimap)
+    L.bagY = Math.max(6, Math.floor((H - L.packH) / 2));
+    L.statX = L.bagX;
+    L.statY = L.bagY;
+    L.packX = L.bagX + 224;
+    L.invX = L.packX + 15;
+    L.invY = L.bagY + 14;
+    L.chatY = H - 96;
+    L.chatW = W - 64;                                // (clear of the buttons)
+    L.chatR = L.chatW - 44;
+    L.boostR = L.mmX - L.mmSize / 2 - 10;
+    L.abX = Math.max(4, Math.min(Math.floor((L.VW - abw) / 2), L.packX - abw - 6));
+  } else {
+    L.VW = W - 224;
+    L.VH = 672;
+    L.statX = L.VW;
+    L.statY = 175;
+    L.invX = L.VW + 34;
+    L.invY = 413;
+    L.mmX = L.VW + 140;
+    L.mmY = 84;
+    L.mmSize = 160;
+    L.chatY = L.VH;
+    L.chatW = W;
+    L.chatR = W - 44;
+    L.boostR = L.VW - 8;
+    L.abX = Math.floor((L.VW - abw) / 2);
+  }
   L.abY = Math.floor((L.VH - (abh + rbh)) / 2);
   L.rbX = L.abX;                                    // (the answers line up with the box above them)
   L.rbY = L.abY + abh;
@@ -38,10 +74,15 @@ export function layout(W) {
   L.helpY = 18;
 }
 
+// (on a phone the pack shows while the bag's open, or beside a shop, the bank or crafting; the Stats box only in
+// the bag)
+export function packShown() { return !M.on || M.bag || (!!S.box.mode && S.box.mode !== "Conversation"); }
+export function statsShown() { return !M.on || (M.bag && !S.box.mode); }
+
 export const U = {
   statsView: 0, questsPage: 1, questHover: 0, equipHover: 0, skillHover: 0, statRows: 1, statRowTop: 41,
   statRowH: 33, cursorSize: 22, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
-  hover: null, onlineShownUntil: 0, banner: null, markers: true,
+  hover: null, onlineShownUntil: 0, banner: null, markers: true, topY: 8,
 };
 
 const SLOT_OUTLINES = { Weapon: "Iron_Sword", Shield: "Iron_Shield", Head: "Iron_Helm", Body: "Iron_Platebody",
@@ -103,6 +144,7 @@ function greyed(name) {
 // ================================================================================================================
 export function drawUI(ctx, now) {
   if (!S.me) return;
+  if (M.on) { drawTouchUI(ctx, now); return; }
   const { VW, VH } = L;
   ctx.save();
   ctx.beginPath();
@@ -111,7 +153,9 @@ export function drawUI(ctx, now) {
   drawHurt(ctx, now);
   drawHotbar(ctx);
   drawBanner(ctx, now);
+  drawVitals(ctx);
   drawOnline(ctx, now);
+  drawHoverTop(ctx);
   drawArena(ctx, now);
   drawWave(ctx, now);
   drawSleep(ctx, now);
@@ -125,7 +169,6 @@ export function drawUI(ctx, now) {
     [[243, 232, 136], [255, 255, 255]], [77, 43, 33]);
   if (S.admin) sidebarButton(ctx, L.helpX, L.helpY + 26, "Admin", U.hover === "admin", [[48, 76, 104], [70, 110, 150]],
     [[210, 230, 250], [255, 255, 255]], [30, 40, 60]);
-  drawLevelBadge(ctx, L.helpX, L.helpY + (S.admin ? 56 : 30));
   const border = sprite("SideBarBorder");
   if (border) ctx.drawImage(border, 0, 0, border.width, VH + 96, VW, 0, border.width, VH + 96);
   drawStats(ctx);
@@ -289,7 +332,8 @@ function drawMinimap(ctx) {
   const half = L.mmSize / 2;
   const vx = L.mmX - half, vy = L.mmY - half;
   ctx.fillStyle = "#000";
-  ctx.fillRect(vx, vy, L.mmSize, L.mmSize);
+  if (M.on) { ctx.beginPath(); ctx.arc(L.mmX, L.mmY, half, 0, 6.283); ctx.fill(); }
+  else ctx.fillRect(vx, vy, L.mmSize, L.mmSize);
   if (!g || !S.pos) return;
   const im = minimapImage(g);
   if (!im) return;
@@ -299,7 +343,8 @@ function drawMinimap(ctx) {
   const v = ((S.pos.dy + pw[1] / 2) / G.th - g.oy * G.yt) * k;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(vx, vy, L.mmSize, L.mmSize);
+  if (M.on) ctx.arc(L.mmX, L.mmY, half, 0, 6.283);
+  else ctx.rect(vx, vy, L.mmSize, L.mmSize);
   ctx.clip();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(im, Math.round(L.mmX - u), Math.round(L.mmY - v), im.width * g.zoom, im.height * g.zoom);
@@ -349,7 +394,7 @@ export function drawWorldMap(ctx, now) {
   const levelName = S.mapZ === 0 ? "The world" : S.mapZ < 0 ? "Underground" : "Above ground";
   drawText(ctx, "World map", 24, 12, 16, true, [255, 230, 140]);
   drawText(ctx, levelName, 24, 34, 9, false, [212, 191, 126]);
-  centreText(ctx, W / 2, H - 24, "M or Esc: close", 8, false, [212, 191, 126]);
+  centreText(ctx, W / 2, H - 24, M.on ? "Tap to close" : "M or Esc: close", 8, false, [212, 191, 126]);
   const g = minimapGeometry();
   const im = g && !g.live ? minimapImage(g, true) : null;
   if (!im) { centreText(ctx, W / 2, H / 2, "No map of this place.", 12, true, [212, 191, 126]); return; }
@@ -472,7 +517,7 @@ function drawClock(ctx, now) {
 
 // ----- the Stats box: Stats, Gear, Quests
 function drawStats(ctx) {
-  const x0 = L.VW, y0 = L.statY;
+  const x0 = L.statX, y0 = L.statY;
   ctx.save();
   ctx.translate(x0, y0);
   const bg = sprite("StatBox");
@@ -509,14 +554,14 @@ export function skillOfRow(row) {
 }
 
 export function statTileRect(k) {
-  if (k < 2) return [29 + k * 84, U.statRowTop, 82];
+  // (tile 2 on: the skills, three to a row; your health and mana are top left of the view)
   const j = k - 2;
-  return [29 + (j % 3) * 56, U.statRowTop + (1 + Math.floor(j / 3)) * U.statRowH, 54];
+  return [29 + (j % 3) * 56, U.statRowTop + Math.floor(j / 3) * U.statRowH, 54];
 }
 
 export function statTileAt(px, py) {
   if (U.statRowH <= 0) return -1;
-  for (let k = 0; k < 2 + 3 * Math.max(0, U.statRows - 1); k++) {
+  for (let k = 2; k < 2 + 3 * U.statRows; k++) {
     const [x, y, w] = statTileRect(k);
     if (px >= x && px < x + w && py >= y && py < y + U.statRowH) return k;
   }
@@ -536,13 +581,9 @@ export function levelProgress(xp) {
 function drawSkillsTab(ctx) {
   const me = S.me, skills = A.m.skills;
   const shown = skills.filter((_, i) => skillShown(i + 1)).length;
-  U.statRows = 1 + Math.floor((shown + 2) / 3);
+  U.statRows = Math.max(1, Math.floor((shown + 2) / 3));
   U.statRowTop = 41;
-  U.statRowH = Math.min(33, Math.floor(130 / U.statRows));
-  const hp = me.hp, mhp = me.max_hp;
-  const hpc = hp < mhp * 0.33 ? [230, 60, 40] : hp < mhp * 0.66 ? [230, 150, 40] : [21, 171, 75];
-  skillTile(ctx, 0, configRead("Skills", "Icon.Hitpoints", "Heart") || "Heart", `${hp}/${mhp}`, hpc, 100 * hp / Math.max(1, mhp));
-  skillTile(ctx, 1, "Mana", `${Math.floor(me.mana)}/${me.max_mana}`, [140, 180, 255], 100 * me.mana / Math.max(1, me.max_mana));
+  U.statRowH = Math.min(33, Math.floor(150 / U.statRows));
   let k = 1;
   skills.forEach((name, i) => {
     if (!skillShown(i + 1)) return;
@@ -767,6 +808,7 @@ function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = f
 }
 
 function drawInventory(ctx) {
+  if (!packShown()) return;
   const shop = S.box.mode === "Shop";
   S.me.inv.forEach(([uid, name, qty, wear], i) => {
     const [x, y] = invSlotPos(i);
@@ -779,6 +821,7 @@ function drawInventory(ctx) {
 }
 
 export function invItemAt(x, y) {
+  if (!packShown()) return null;
   const inv = S.me?.inv || [];
   for (let i = 0; i < inv.length; i++) {
     const [ix, iy] = invSlotPos(i);
@@ -1001,38 +1044,36 @@ export function responseBoxRect() {
 
 // ----- the chat bar and the hover box
 function drawChat(ctx) {
-  const y0 = L.VH, dx = Math.max(0, L.DX);
+  // (the bar's picture: its left end, its parchment stretched as wide as the screen, then its scroll arrows and the
+  // wood at its right end)
+  const y0 = L.chatY, W = L.chatW;
   const bar = sprite("ChatBar");
   ctx.fillStyle = "rgb(212,191,126)";
-  ctx.fillRect(0, y0, L.W, 96);
+  ctx.fillRect(0, y0, W, 96);
   if (bar) {
-    if (dx === 0) ctx.drawImage(bar, 0, y0);
-    else {
-      ctx.drawImage(bar, 0, 0, 10, 96, 0, y0, 10, 96);
-      ctx.drawImage(bar, 10, 0, 760, 96, 10, y0, 760 + dx, 96);
-      ctx.drawImage(bar, 770, 0, 254, 96, 770 + dx, y0, 254, 96);
-    }
-    // the hover box: the picture's own panel (cut off at the top, its shadow over the words) under wood, and a
-    // panel of its own on that, rounded all round
-    const x1 = 824 + dx, x2 = 1000 + dx;
-    for (let x = x1; x < x2; x += 46) ctx.drawImage(bar, 772, 0, Math.min(46, x2 - x), 96, x, y0, Math.min(46, x2 - x), 96);
-    roundBox(ctx, x1 + 3, y0 + 5, x2 - x1 - 6, 84, [228, 210, 156], [92, 58, 34], 2, 8);
-    ctx.strokeStyle = "rgba(243,210,129,0.9)"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x1 + 5.5, y0 + 7.5, x2 - x1 - 11, 79, 6) : ctx.rect(x1 + 5.5, y0 + 7.5, x2 - x1 - 11, 79);
-    ctx.stroke();
+    ctx.drawImage(bar, 0, 0, 10, 96, 0, y0, 10, 96);
+    ctx.drawImage(bar, 10, 0, 760, 96, 10, y0, W - 64, 96);
+    ctx.drawImage(bar, 770, 0, 30, 96, W - 54, y0, 30, 96);
+    ctx.drawImage(bar, 1000, 0, 24, 96, W - 24, y0, 24, 96);
   }
   const lineH = 15;
   let y = y0 + 8;
   for (let i = U.chatLine + 4; i >= U.chatLine; i--) {
     const m = S.messages[i - 1];
-    if (m) drawText(ctx, fitText(ctx, m[0], 760 + dx, 9, false), 10, y, 9, false, colour(m[1]));
+    if (m) drawText(ctx, fitText(ctx, m[0], W - 74, 9, false), 10, y, 9, false, colour(m[1]));
     y += lineH;
   }
   drawThumb(ctx);
-  if (U.qm) drawQuick(ctx, y0);
 }
 
-export function chatTrack() { return [780 + L.DX, L.VH + 19, 15, 60]; }
+export function chatTrack() { return [L.chatR, L.chatY + 19, 15, 60]; }
+export function chatArrow(x, y) {
+  // (the chat's scroll arrows: 1 up, -1 down)
+  if (x < L.chatR || x > L.chatR + 14) return 0;
+  if (y >= L.chatY + 4 && y <= L.chatY + 18) return 1;
+  if (y >= L.chatY + 78 && y <= L.chatY + 92) return -1;
+  return 0;
+}
 
 function drawThumb(ctx) {
   const [tx, ty, tw, th] = chatTrack();
@@ -1048,21 +1089,23 @@ export function scrollChat(n) {
   else U.chatLine = clamp(U.chatLine + n, 1, Math.max(1, S.messages.length - 4));
 }
 
-// The hover box (the parchment at the bottom right): a heading, then lines in their own sizes and colours. A line's
-// first character says how it looks (tips.js): # the name, ~ a hint, ! a need not met, + a need met, $ a price.
-// Plain text (the interface's own hover messages) has its first line as the heading.
+// What's under the mouse (or the finger), at the top of the view where the eye already is: a heading, then lines in
+// their own sizes and colours. A line's first character says how it looks (tips.js): # the name, ~ a hint, ! a need
+// not met, + a need met, $ a price. Plain text (the interface's own hover messages) has its first line as the heading.
 const QUICK_STYLES = {
-  "#": { size: 11, bold: true, col: [110, 34, 18] },
-  "~": { size: 8, bold: false, col: [120, 96, 64] },
-  "!": { size: 9, bold: true, col: [176, 34, 24] },
-  "+": { size: 9, bold: true, col: [34, 112, 44] },
-  "$": { size: 9, bold: true, col: [140, 96, 10] },
-  "": { size: 9, bold: false, col: [62, 42, 30] },
+  "#": { size: 11, bold: true, col: [255, 230, 140] },
+  "~": { size: 8, bold: false, col: [212, 191, 126] },
+  "!": { size: 9, bold: true, col: [255, 128, 100] },
+  "+": { size: 9, bold: true, col: [140, 226, 120] },
+  "$": { size: 9, bold: true, col: [255, 208, 90] },
+  "": { size: 9, bold: false, col: [236, 226, 206] },
 };
 
 const QUICK_MAX = 4;
 
-function drawQuick(ctx, y0) {
+function drawHoverTop(ctx) {
+  U.topY = 8;
+  if (!U.qm || U.rcm) return;
   const raw = U.qm.split("|").map((part) => trim(part)).filter(Boolean);
   if (!raw.length) return;
   const styled = raw.map((part, i) => {
@@ -1070,7 +1113,9 @@ function drawQuick(ctx, y0) {
     return [QUICK_STYLES[mark || (i === 0 ? "#" : "")], mark ? trim(part.slice(1)) : part];
   });
   if (U.qmKind === "ERROR" || U.qmKind === "WARNING") styled[0][0] = QUICK_STYLES["!"];
-  const width = 158, room = 76;
+  // (between your health top left and the effects or minimap top right)
+  const left = 190, right = M.on ? L.mmX - L.mmSize / 2 - 8 : L.VW - 8;
+  const width = Math.max(140, Math.min(300, right - left - 24)), room = 76;
   // At most QUICK_MAX lines (wrapped lines count): the name always, then what matters most - a need not met or a
   // wait ("!"), then what it is, then the click hint ("~") - each kept only while it all still fits
   const rank = (i) => (i === 0 ? 0 : { "!": 1, "~": 3 }[raw[i][0]] || 2);
@@ -1098,13 +1143,56 @@ function drawQuick(ctx, y0) {
     const last = lines[QUICK_MAX - 1];
     last[2] = last[2].replace(/\s*\S*$/, "") + "...";
   }
-  const total = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0);
-  let y = y0 + 12 + Math.max(0, Math.floor((72 - total) / 4));   // (near the top: a little lower for a short one)
+  const total = lines.reduce((sum, [, size]) => sum + fontPx(size) + 3, 0) - 3;
+  const w = Math.ceil(Math.max(...lines.map(([st, size, ln]) => textWidth(ctx, ln, size, st.bold)))) + 24;
+  const cx = Math.round((left + right) / 2), x0 = Math.round(cx - w / 2), y0 = 6;
+  roundBox(ctx, x0, y0, w, total + 12, "rgba(24,14,8,0.82)", [126, 77, 63], 1, 10);
+  let y = y0 + 6;
   for (const [st, size, ln] of lines) {
-    drawText(ctx, ln, L.VW + 32, y, size, st.bold, st.col);
+    centreText(ctx, cx, y, ln, size, st.bold, st.col);
     y += fontPx(size) + 3;
-    if (y > y0 + 90) break;
   }
+  U.topY = y0 + total + 18;                       // (the arena's and a wave's banners go under it)
+}
+
+// ----- your level, health and mana: top left of the view
+export const VITALS = { x: 8, y: 8, r: 19, barX: 52, barW: 124, barH: 13 };
+
+function vitalBar(ctx, y, frac, fill, icon_, text) {
+  const { barX, barW, barH } = VITALS;
+  roundBox(ctx, barX, y, barW, barH, "rgba(24,14,8,0.85)", [126, 77, 63], 1, 6);
+  const w = Math.floor((barW - 4) * clamp(frac, 0, 1));
+  if (w > 0) { ctx.fillStyle = fill; ctx.fillRect(barX + 2, y + 2, w, barH - 4); }
+  icon(ctx, icon_, barX - 7, y - 2, 16);
+  const tw = textWidth(ctx, text, 8, true);
+  drawTextMid(ctx, text, barX + barW - 6 - tw, y, barH, 8, true, [255, 246, 222]);
+}
+
+function drawVitals(ctx) {
+  const me = S.me, { x, y, r } = VITALS;
+  const lv = me.level || S.level || 1;
+  ctx.fillStyle = "rgba(40,27,20,0.92)";
+  ctx.beginPath(); ctx.arc(x + r, y + r, r, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = "rgb(214,170,70)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x + r, y + r, r - 1, 0, 6.283); ctx.stroke();
+  centreText(ctx, x + r, y + 7, "LEVEL", 6, true, [212, 191, 126]);
+  centreText(ctx, x + r, y + 15, String(lv), 13, true, [255, 230, 140]);
+  const hp = me.hp, mhp = Math.max(1, me.max_hp);
+  const hpFill = hp < mhp * 0.33 ? "rgb(210,50,36)" : hp < mhp * 0.66 ? "rgb(214,130,36)" : "rgb(196,40,40)";
+  vitalBar(ctx, y + 4, hp / mhp, hpFill, configRead("Skills", "Icon.Hitpoints", "Heart") || "Heart", `${hp}/${me.max_hp}`);
+  vitalBar(ctx, y + 21, me.mana / Math.max(1, me.max_mana), "rgb(60,110,220)", "Mana",
+    `${Math.floor(me.mana)}/${me.max_mana}`);
+}
+
+export function vitalsAt(x, y) {
+  // (what's under the mouse in them: "level", "hp", "mana" or "")
+  const v = VITALS;
+  if (Math.hypot(x - v.x - v.r, y - v.y - v.r) <= v.r) return "level";
+  if (x >= v.barX - 8 && x < v.barX + v.barW) {
+    if (y >= v.y + 2 && y < v.y + 19) return "hp";
+    if (y >= v.y + 19 && y < v.y + 36) return "mana";
+  }
+  return "";
 }
 
 // ----- the right-click menu
@@ -1119,10 +1207,11 @@ export function openMenu(target, sx, sy, worldXY) {
   verbs.push("Cancel");
   labels.push("Cancel");
   const ctx = document.createElement("canvas").getContext("2d");
-  const longest = Math.max(...labels.map((l) => textWidth(ctx, l, 9, true)));
-  const w = Math.max(110, Math.ceil(longest) + 28), rowH = 18, rowTop = 6;
+  const font = M.on ? 11 : 9;
+  const longest = Math.max(...labels.map((l) => textWidth(ctx, l, font, true)));
+  const w = Math.max(M.on ? 150 : 110, Math.ceil(longest) + 28), rowH = M.on ? 28 : 18, rowTop = 6;
   const h = rowTop * 2 + verbs.length * rowH;
-  U.rcm = { verbs, labels, target, worldXY, w, h, rowH, rowTop, hi: 0,
+  U.rcm = { verbs, labels, target, worldXY, w, h, rowH, rowTop, hi: 0, font,
     x: clamp(sx - 10, 0, L.W - w), y: clamp(sy - 8, 0, L.VH - h) };
 }
 
@@ -1148,7 +1237,7 @@ function drawMenu(ctx) {
       roundBox(ctx, r.x + 5, ry + 1, r.w - 10, r.rowH - 1, [126, 77, 63], [160, 104, 80], 1, 8);
       c = [255, 255, 255];
     }
-    drawTextMid(ctx, r.labels[i], r.x + 14, ry + 1, r.rowH - 1, 9, true, c);
+    drawTextMid(ctx, r.labels[i], r.x + 14, ry + 1, r.rowH - 1, r.font || 9, true, c);
   });
 }
 
@@ -1156,11 +1245,11 @@ function drawMenu(ctx) {
 export function hotbarRect(k) {
   const total = 5 * HOTBAR_SIZE + 4 * 4;
   const x0 = Math.floor((L.VW - total) / 2);
-  return [x0 + k * (HOTBAR_SIZE + 4), L.VH - HOTBAR_SIZE - 8, HOTBAR_SIZE, HOTBAR_SIZE];
+  return [x0 + k * (HOTBAR_SIZE + 4), L.VH - HOTBAR_SIZE - 8, HOTBAR_SIZE, HOTBAR_SIZE];   // (along the bottom)
 }
 
 export function hotbarAt(x, y) {
-  if (S.box.mode) return -1;
+  if (S.box.mode || (M.on && (M.chat || M.bag))) return -1;
   for (let k = 0; k < 5; k++) {
     const [hx, hy, w, h] = hotbarRect(k);
     if (x >= hx && x < hx + w && y >= hy && y < hy + h) return k;
@@ -1173,7 +1262,7 @@ function held(name) {
 }
 
 function drawHotbar(ctx) {
-  if (S.box.mode) return;
+  if (S.box.mode || (M.on && (M.chat || M.bag))) return;
   for (let k = 0; k < 5; k++) {
     const [x, y, w, h] = hotbarRect(k);
     ctx.fillStyle = "rgba(24,14,8,0.67)";
@@ -1257,19 +1346,21 @@ function drawOnline(ctx, now) {
   const names = S.players.map((p) => p.name);
   const text = `Online ${names.length}/${S.max}: ${names.join(", ")}`;
   const w = textWidth(ctx, text, 8, true) + 12;
+  const oy = 52;                                  // (under your health and mana)
   ctx.fillStyle = "rgba(24,14,8,0.55)";
-  ctx.fillRect(4, 4, w, 16);
-  drawText(ctx, text, 10, 6, 8, true, [243, 232, 136]);
+  ctx.fillRect(4, oy, w, 16);
+  drawText(ctx, text, 10, oy + 2, 8, true, [243, 232, 136]);
+  if (M.app) { U.fullscreenRect = null; return; }  // (the app's already full screen)
   // the full-screen button beside it
   const fx = 4 + w + 6;
   ctx.fillStyle = U.hover === "fullscreen" ? "rgba(126,77,63,0.95)" : "rgba(24,14,8,0.55)";
-  ctx.fillRect(fx, 4, 16, 16);
+  ctx.fillRect(fx, oy, 16, 16);
   ctx.strokeStyle = "rgb(243,232,136)"; ctx.lineWidth = 1.5;
   ctx.beginPath();
   for (const [a, b, c, d] of [[3, 7, 3, 3], [3, 3, 7, 3], [13, 9, 13, 13], [13, 13, 9, 13], [9, 3, 13, 3], [13, 3, 13, 7],
-    [3, 9, 3, 13], [3, 13, 7, 13]]) { ctx.moveTo(fx + a, 4 + b); ctx.lineTo(fx + c, 4 + d); }
+    [3, 9, 3, 13], [3, 13, 7, 13]]) { ctx.moveTo(fx + a, oy + b); ctx.lineTo(fx + c, oy + d); }
   ctx.stroke();
-  U.fullscreenRect = [fx, 4, 16, 16];
+  U.fullscreenRect = [fx, oy, 16, 16];
 }
 
 function drawArena(ctx, now) {
@@ -1277,7 +1368,7 @@ function drawArena(ctx, now) {
   if (!S.me.arena) return;
   const text = "ARENA  -  other players can fight you here";
   const w = textWidth(ctx, text, 10, true) + 28;
-  const x = Math.floor((L.VW - w) / 2), y = 8;
+  const x = Math.floor((L.VW - w) / 2), y = U.topY;
   const pulse = 0.75 + 0.25 * Math.sin(now / 300);
   roundBox(ctx, x, y, w, 24, `rgba(70,10,8,${0.82 * pulse})`, [214, 90, 60], 2, 10);
   drawTextMid(ctx, text, x + 14, y, 24, 10, true, [255, 220, 170]);
@@ -1293,7 +1384,7 @@ function drawWave(ctx, now) {
   const line2 = next ? `Wave ${v.wave} beaten! Wave ${v.wave + 1} of ${v.waves} in ${next}s`
     : `Wave ${v.wave} of ${v.waves}  -  ${v.left} left  -  ${clock} to hold them off`;
   const w = Math.max(textWidth(ctx, v.name.toUpperCase(), 11, true), textWidth(ctx, line2, 9, true)) + 32;
-  const x = Math.floor((L.VW - w) / 2), y = S.me.arena ? 38 : 8;
+  const x = Math.floor((L.VW - w) / 2), y = U.topY + (S.me.arena ? 30 : 0);
   const pulse = 0.8 + 0.2 * Math.sin(now / 220);
   roundBox(ctx, x, y, w, 40, `rgba(60,12,6,${0.85 * pulse})`, [230, 120, 40], 2, 10);
   centreText(ctx, x + w / 2, y + 4, v.name.toUpperCase(), 11, true, [255, 200, 120]);
@@ -1378,7 +1469,7 @@ export function drawBoosts(ctx, now, mx, my) {
   if (!shown.length) return;
   // right to left from the top right corner of the view: what hurts you first (nearest the corner), then the buffs
   shown.sort((p, q) => (p[0] === q[0] ? 0 : p[0] === "debuff" ? -1 : 1));
-  let x = L.VW - 8 - EFFECT_BOX;
+  let x = L.boostR - EFFECT_BOX;
   const y = 8;
   let tip = null;
   for (const [kind, key, left, lines] of shown) {
@@ -1413,14 +1504,6 @@ export function drawBoosts(ctx, now, mx, my) {
   }
 }
 
-function drawLevelBadge(ctx, x, y) {
-  // Your character's level (the best of your fighting skills: Config [Gameplay] Level.Skills)
-  const lv = S.me.level || S.level || 1;
-  roundBox(ctx, x, y, 52, 38, [40, 27, 20], [214, 170, 70], 2, 10);
-  centreText(ctx, x + 26, y + 3, "LEVEL", 7, true, [212, 191, 126]);
-  centreText(ctx, x + 26, y + 15, String(lv), 13, true, [255, 230, 140]);
-}
-
 function drawSleep(ctx, now) {
   const s = S.sleep;
   if (!s) return;
@@ -1450,7 +1533,7 @@ function drawQuestPopup(ctx) {
   const h = 16 + rows.reduce((a, r) => a + ROW_H[r[0]], 0);
   const rowY = L.statY + QUEST_ROW_TOP + (U.questHover - 1) * QUEST_ROW_H;
   const y = clamp(rowY - 12, 6, L.VH - h - 6);
-  drawChecklist(ctx, q, rows, L.VW - w - 6, y, w, h);
+  drawChecklist(ctx, q, rows, M.on ? Math.max(4, L.statX - w - 6) : L.VW - w - 6, y, w, h);
 }
 
 export const ROW_H = { title: 22, giver: 16, heading: 20, item: 15, "item+": 15, footer: 18 };
@@ -1544,4 +1627,136 @@ export function skillInfo(i, long) {
   }
   const prog = level >= maxLevel() ? "the highest level" : `${pts(xp)} xp / ${pts(level + 1)} xp`;
   return `${name}: level ${level} / ${maxLevel()}|${prog}`;
+}
+
+// ================================================================================================================
+// A phone's interface (mobile.js): over the world, which fills the screen
+// ================================================================================================================
+export const TOUCH_BUTTONS = [["bag", "Bag"], ["chat", "Chat"], ["journal", "Journal"], ["menu", "Menu"]];
+export const JOY = { r: 46, knob: 20 };
+export const joyCentre = () => [16 + JOY.r, L.VH - 16 - JOY.r];
+
+export function touchButtonRect(i) { return [L.btnX, L.btnY + i * 50, 20]; }
+
+export function touchButtonAt(x, y) {
+  const list = touchButtons();
+  for (let i = 0; i < list.length; i++) {
+    const [cx, cy, r] = touchButtonRect(i);
+    if (Math.hypot(x - cx, y - cy) <= r + 6) return list[i][0];
+  }
+  return "";
+}
+
+function touchButtons() { return S.admin ? [...TOUCH_BUTTONS, ["admin", "Admin"]] : TOUCH_BUTTONS; }
+
+export function journalOrigin() {
+  // (where the journal's 1024 x 768 page is drawn: in the middle; on a phone, dragged about under the finger)
+  return M.on ? [-M.panX, -M.panY] : [Math.floor((L.W - 1024) / 2), 0];
+}
+
+export function bagRect() { return [L.bagX - 6, L.bagY - 6, L.bagW + 12, Math.max(200, L.packH) + 12]; }
+
+function drawTouchButton(ctx, cx, cy, r, key, label, on) {
+  ctx.fillStyle = on ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.88)";
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = "rgb(214,170,70)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, 6.283); ctx.stroke();
+  ctx.strokeStyle = "rgb(243,232,136)"; ctx.fillStyle = "rgb(243,232,136)"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (key === "bag") {                             // (a satchel)
+    ctx.roundRect ? ctx.roundRect(cx - 8, cy - 4, 16, 12, 3) : ctx.rect(cx - 8, cy - 4, 16, 12);
+    ctx.moveTo(cx - 4, cy - 4); ctx.arc(cx, cy - 4, 4, Math.PI, 0);
+    ctx.moveTo(cx - 8, cy + 1); ctx.lineTo(cx + 8, cy + 1);
+  } else if (key === "chat") {                     // (a speech bubble)
+    ctx.ellipse(cx, cy - 1, 9, 6.5, 0, 0, 6.283);
+    ctx.moveTo(cx - 4, cy + 5); ctx.lineTo(cx - 7, cy + 9); ctx.lineTo(cx, cy + 5.5);
+  } else if (key === "journal") {                  // (a book)
+    ctx.rect(cx - 8, cy - 7, 16, 14);
+    ctx.moveTo(cx, cy - 7); ctx.lineTo(cx, cy + 7);
+  } else if (key === "menu") {                     // (three bars)
+    for (const dy of [-5, 0, 5]) { ctx.moveTo(cx - 8, cy + dy); ctx.lineTo(cx + 8, cy + dy); }
+  } else {                                         // (admin: a key)
+    ctx.arc(cx - 4, cy, 4, 0, 6.283);
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + 9, cy); ctx.moveTo(cx + 6, cy); ctx.lineTo(cx + 6, cy + 4);
+  }
+  ctx.stroke();
+  centreText(ctx, cx + 1, cy + r + 2, label, 7, true, [10, 6, 4]);
+  centreText(ctx, cx, cy + r + 1, label, 7, true, [243, 232, 136]);
+}
+
+function drawJoystick(ctx) {
+  if (S.box.mode || M.chat || M.bag) return;
+  const [cx, cy] = joyCentre();
+  ctx.fillStyle = "rgba(24,14,8,0.28)";
+  ctx.beginPath(); ctx.arc(cx, cy, JOY.r, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = "rgba(243,232,136,0.45)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, JOY.r - 1, 0, 6.283); ctx.stroke();
+  const j = M.joy;
+  const kx = cx + (j ? j.dx : 0), ky = cy + (j ? j.dy : 0);
+  ctx.fillStyle = j ? "rgba(243,232,136,0.75)" : "rgba(243,232,136,0.4)";
+  ctx.beginPath(); ctx.arc(kx, ky, JOY.knob, 0, 6.283); ctx.fill();
+}
+
+function drawToasts(ctx, now) {
+  // (the newest lines of the chat, for a few seconds, over the hotbar: the log itself is under Chat)
+  if (M.chat) return;
+  const fresh = S.messages.slice(0, 3).filter((m) => now - m[2] < 7000);
+  let y = L.VH - HOTBAR_SIZE - 26;
+  for (const m of fresh) {
+    const a = Math.min(1, (7000 - (now - m[2])) / 800);
+    const text = fitText(ctx, m[0], Math.min(520, L.VW - 260), 9, true);
+    ctx.save();
+    ctx.globalAlpha = a;
+    centreText(ctx, L.VW / 2 + 1, y + 1, text, 9, true, [10, 6, 4]);
+    centreText(ctx, L.VW / 2, y, text, 9, true, brighter(m[1]));
+    ctx.restore();
+    y -= 14;
+  }
+}
+
+function brighter(name) {
+  // (a chat colour made light enough to read over the world)
+  const c = colour(name);
+  if (c[0] + c[1] + c[2] < 30) return [243, 232, 136];       // (black, the usual: parchment yellow)
+  const l = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
+  if (l >= 140) return c;
+  const k = (140 - l) / (255 - l);
+  return c.map((v) => Math.round(v + (255 - v) * k));
+}
+
+function drawTouchUI(ctx, now) {
+  drawHurt(ctx, now);
+  drawHotbar(ctx);
+  drawJoystick(ctx);
+  drawToasts(ctx, now);
+  drawBanner(ctx, now);
+  drawVitals(ctx);
+  drawOnline(ctx, now);
+  drawHoverTop(ctx);
+  drawArena(ctx, now);
+  drawWave(ctx, now);
+  drawSleep(ctx, now);
+  drawMinimap(ctx);
+  ctx.strokeStyle = "rgb(214,170,70)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(L.mmX, L.mmY, L.mmSize / 2, 0, 6.283); ctx.stroke();
+  const mm = sprite("MinimapMarker");
+  if (mm) ctx.drawImage(mm, L.mmX - 4, L.mmY - 4);
+  drawClock(ctx, now);
+  touchButtons().forEach(([key, label], i) => {
+    const [cx, cy, r] = touchButtonRect(i);
+    drawTouchButton(ctx, cx, cy, r, key, label, (key === "bag" && M.bag) || (key === "chat" && M.chat));
+  });
+  if (M.bag || (S.box.mode && S.box.mode !== "Conversation")) {
+    const [bx, by, bw, bh] = M.bag && !S.box.mode ? bagRect() : [L.packX - 6, L.bagY - 6, L.packW + 12, L.packH + 12];
+    roundBox(ctx, bx, by, bw, bh, "rgba(51,34,27,0.96)", [126, 77, 63], 2, 12);
+    if (statsShown()) drawStats(ctx);
+    ctx.strokeStyle = "rgb(92,60,46)"; ctx.lineWidth = 1;
+    ctx.strokeRect(L.invX - 2.5, L.invY - 2.5, 32 * 5 + 5, 32 * 7 + 5);
+  }
+  drawBox(ctx);
+  drawInventory(ctx);
+  if (S.box.mode) drawResponses(ctx);
+  if (M.chat) drawChat(ctx);
+  drawQuestPopup(ctx);
+  if (U.rcm) drawMenu(ctx);
 }

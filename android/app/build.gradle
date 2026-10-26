@@ -1,0 +1,59 @@
+// The app: no game in it, only the way to the game's page (so an update to the server is an update to the app too)
+plugins {
+    id "com.android.application"
+}
+
+def host = project.property("dsHost")
+def env = System.getenv()
+
+android {
+    namespace "io.github.kriscs1.dragonsword"
+    compileSdk 36
+
+    defaultConfig {
+        applicationId project.property("dsPackage")
+        minSdk 23
+        targetSdk 36
+        // (every build a higher number, as the Play Store wants: the commit count, from the workflow)
+        versionCode((env.DS_VERSION_CODE ?: "1") as int)
+        versionName env.DS_VERSION_NAME ?: "1.0"
+
+        manifestPlaceholders = [hostName: host, launchUrl: "https://" + host + "/?app=android"]
+        resValue "string", "launch_url", "https://" + host + "/?app=android"
+        // (the site this app stands for: the server's /.well-known/assetlinks.json says the same of the app)
+        resValue "string", "asset_statements",
+            '[{"relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "web", "site": "https://' + host + '"}}]'
+    }
+
+    signingConfigs {
+        release {
+            // (the upload key, from the workflow's secrets; without one the release build is left unsigned)
+            if (env.DS_KEYSTORE) {
+                storeFile file(env.DS_KEYSTORE)
+                storePassword env.DS_KEYSTORE_PASSWORD
+                keyAlias env.DS_KEY_ALIAS
+                keyPassword env.DS_KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (env.DS_KEYSTORE) signingConfig signingConfigs.release
+        }
+    }
+
+    buildFeatures {
+        resValues true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "com.google.androidbrowserhelper:androidbrowserhelper:2.5.0"
+}

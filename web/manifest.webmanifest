@@ -1,0 +1,15 @@
+{
+  "name": "Dragon Sword",
+  "short_name": "Dragon Sword",
+  "description": "A pixel-art RPG for up to five players sharing one world.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#180e0a",
+  "theme_color": "#180e0a",
+  "icons": [
+    { "src": "/img/icon.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

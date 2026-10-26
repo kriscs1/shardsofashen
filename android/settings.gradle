@@ -1,0 +1,17 @@
+// Dragon Sword for Android: a Trusted Web Activity, the game's own web page full screen (see android/README.md)
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "DragonSword"
+include ":app"

@@ -13,6 +13,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `dsengine/` | The game's rules (authoritative, headless, many players) |
 | `server/` | aiohttp: the page, assets, the game over a WebSocket at 20 ticks/s, SQLite (`DS_DB`) |
 | `web/js/` | The browser client: canvas, ES modules, no build step. `web/assets/` is generated, never edited |
+| `android/` | The Android app: a Trusted Web Activity that opens the server's page (`?app=android`); no game inside it |
 | `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
 | `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
@@ -153,7 +154,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Change the builder and run it again; don't hand-edit its output.
 - Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
-- Hover text is at most 4 lines.
+- Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and mana are top
+  left of the view, not in the sidebar.
+- **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch
+  screens and in the Android app). The phone's has no sidebar or chat bar: a round minimap top right (tap: the world
+  map), the Bag, Chat, Journal and Menu buttons, a stick, tap and hold. No Talk or Map buttons. Anything new on screen
+  must work in both, with finger-sized targets on the phone; nothing for the app goes in `android/` that the page
+  could do.
 - Text centred in a row uses `drawTextMid` (it measures the font's capital height): never guess offsets.
 
 ## Code and data conventions
@@ -188,7 +195,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 3. After changing sprites, sounds or data: `python -I tools/export_web_assets.py`.
 4. After changing maps: `python -I dev/migrate/build_minimaps.py`, and commit the changed `Minimap*.png`.
 5. Client changes (`web/js`): load the game in a browser (Playwright, with `DS_DB=<scratch>/t.db
-   DS_PORT=85xx python -m server`) and check there are no console errors and that it looks right.
+   DS_PORT=85xx python -m server`) and check there are no console errors and that it looks right, on a desktop and
+   on a phone (a 915 x 412 touch viewport with `?app=android`).
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
    `ghcr.io/kriscs1/dragonsword`) builds from GitHub.
 7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`.

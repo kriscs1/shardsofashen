@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- (the game's own dark brown, the page's background) -->
+    <color name="background">#180E0A</color>
+</resources>

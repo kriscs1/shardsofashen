@@ -1,12 +1,15 @@
 // Dragon Sword in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
-// out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp) and the frame loop.
+// out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp; a phone's is laid out
+// lower, so everything's bigger: mobile.js) and the frame loop.
 import { A, loadManifest, configRead, onLoaded } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer } from "./state.js";
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom } from "./render.js";
 import { invalidateMap, invalidateCell } from "./ground.js";
-import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp } from "./ui.js";
-import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal } from "./input.js";
+import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
+  JOY } from "./ui.js";
+import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
+import { M } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell } from "./sky.js";
@@ -19,7 +22,7 @@ import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, build
 const $ = (id) => document.getElementById(id);
 const canvas = $("game");
 const ctx = canvas.getContext("2d", { alpha: false });
-const screen = { k: 1, ox: 0, oy: 0, dpr: 1, W: 1024 };
+const screen = { k: 1, ox: 0, oy: 0, dpr: 1, W: 1024, H: 768, tall: {} };
 let smoothing = true;
 let running = false;
 let lastFrame = performance.now();
@@ -58,12 +61,20 @@ function resize() {
   const ch = Math.max(1, Math.round(window.innerHeight * dpr));
   canvas.width = cw;
   canvas.height = ch;
-  const W = clamp(Math.round(768 * cw / ch / 2) * 2, 1024, 1792);
-  const k = Math.min(cw / W, ch / 768);
-  screen.k = k; screen.dpr = dpr; screen.W = W;
+  let W, H = 768;
+  if (M.on) {
+    // (a phone: about a game pixel to a screen point, so its words are big enough; the height it had before the
+    // keyboard came up, so the game doesn't shrink under it)
+    const tall = Math.max(window.innerHeight, screen.tall[window.innerWidth] || 0);
+    screen.tall[window.innerWidth] = tall;
+    H = clamp(Math.round(tall / 1.08 / 2) * 2, 320, 768);
+    W = Math.max(560, Math.round(H * window.innerWidth / tall / 2) * 2);
+  } else W = clamp(Math.round(768 * cw / ch / 2) * 2, 1024, 1792);
+  const k = Math.min(cw / W, ch / H);
+  screen.k = k; screen.dpr = dpr; screen.W = W; screen.H = H;
   screen.ox = Math.round((cw - W * k) / 2);
-  screen.oy = Math.round((ch - 768 * k) / 2);
-  if (A.m) layout(W);
+  screen.oy = M.on ? 0 : Math.round((ch - H * k) / 2);
+  if (A.m) layout(W, H);
   placeChat();
 }
 
@@ -93,9 +104,15 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 function placeChat() {
   const box = $("chat-entry");
   const k = screen.k / screen.dpr;
-  box.style.left = (screen.ox / screen.dpr + 8 * k) + "px";
-  box.style.width = ((L.VW || 800) - 16) * k + "px";
-  box.style.top = (screen.oy / screen.dpr + (672 + 70) * k) + "px";
+  if (M.on) {                                    // (a phone: at the top, clear of the keyboard)
+    box.style.left = (screen.ox / screen.dpr + 190 * k) + "px";
+    box.style.width = Math.max(200, (L.VW || 800) - 190 - 120) * k + "px";
+    box.style.top = (screen.oy / screen.dpr + 8 * k) + "px";
+  } else {
+    box.style.left = (screen.ox / screen.dpr + 8 * k) + "px";
+    box.style.width = ((L.VW || 800) - 16) * k + "px";
+    box.style.top = (screen.oy / screen.dpr + (L.chatY + 70) * k) + "px";
+  }
   box.style.bottom = "auto";
 }
 
@@ -169,11 +186,16 @@ function openChat(start) {
   if (typeof start === "string") $("chat-input").value = start;
   const box = $("chat-entry");
   box.hidden = false;
+  if (M.on) { M.chat = true; M.bag = false; }
   placeChat();
   releaseKeys();
   $("chat-input").focus();
 }
 
+$("chat-input").addEventListener("blur", () => {
+  // (a phone's keyboard put away with nothing written: the line goes too)
+  if (M.on && !$("chat-input").value.trim()) $("chat-entry").hidden = true;
+});
 $("chat-input").addEventListener("keydown", (ev) => {
   ev.stopPropagation();
   if (ev.key === "Enter") {
@@ -431,7 +453,7 @@ $("price-form").addEventListener("submit", (ev) => {
 $("price-cancel").addEventListener("click", () => { $("price").hidden = true; priceDone = null; canvas.focus(); });
 
 window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice };
-window.dsDebug = { S, V, send };     // (for tools/browser_check.py, and scripted play-throughs)
+window.dsDebug = { S, V, send, layout: () => ({ ...L, k: screen.k / screen.dpr }) };   // (for tools/browser_check.py, and scripted play-throughs)
 
 // ================================================================================================================
 // Logging in
@@ -716,7 +738,8 @@ function frame(now) {
   glide(now);
   if (J.open) {
     ctx.save();
-    ctx.translate(Math.floor((L.W - 1024) / 2), 0);
+    const [jx, jy] = journalOrigin();
+    ctx.translate(jx, jy);
     drawJournal(ctx);
     ctx.restore();
   } else {
@@ -727,6 +750,9 @@ function frame(now) {
     drawUI(ctx, now);
     if (U.worldMap) drawWorldMap(ctx, now);
     drawBoosts(ctx, now, I.mx, I.my);
+  }
+  if (M.on && M.hoverUntil && now > M.hoverUntil && !U.rcm) {   // (a tap's name at the top: gone again)
+    M.hoverUntil = 0; I.mx = I.my = -1; U.qm = "";
   }
   if (I.mx >= 0 && !overlayOpen()) mouseMove(I.mx, I.my);
   updateCursor(canvas, now);
@@ -757,6 +783,84 @@ canvas.addEventListener("mousedown", (ev) => {
   mouseDown(ev.button, x, y);
 });
 canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
+
+// ----- a phone's fingers: a tap is a click, a hold (half a second) a right-click; the stick walks; a finger drags the
+// journal's page about and scrolls the chat log
+const HOLD_MS = 450, SLOP = 12;
+const touches = new Map();                       // pointer id -> {x, y, sx, sy, kind: "tap" | "stick" | "pan", ...}
+canvas.addEventListener("pointerdown", (ev) => {
+  if (ev.pointerType === "mouse") return;
+  ev.preventDefault();                           // (no pretend mouse clicks after it)
+  if (!running || overlayOpen()) return;
+  unlock();
+  canvas.focus();
+  canvas.setPointerCapture?.(ev.pointerId);
+  const [x, y] = toLogical(ev);
+  const [jx, jy] = joyCentre();
+  if (!J.open && !U.worldMap && !S.box.mode && !M.chat && !M.bag && Math.hypot(x - jx, y - jy) <= JOY.r + 8) {
+    M.joy = { id: ev.pointerId, dx: 0, dy: 0 };
+    touches.set(ev.pointerId, { kind: "stick" });
+    moveStick(x, y);
+    return;
+  }
+  const t = { kind: J.open ? "pan" : "tap", x, y, sx: x, sy: y, moved: false, held: false, panX: M.panX, panY: M.panY,
+    chatLine: U.chatLine };
+  touches.set(ev.pointerId, t);
+  I.mx = x; I.my = y;
+  M.hoverUntil = performance.now() + 60000;      // (named while the finger's down)
+  if (t.kind === "tap") {
+    t.timer = setTimeout(() => {                 // (held: everything you can do with it)
+      if (t.moved || !touches.has(ev.pointerId)) return;
+      t.held = true;
+      mouseDown(2, t.x, t.y);
+      M.hoverUntil = performance.now() + 2500;
+    }, HOLD_MS);
+  }
+});
+canvas.addEventListener("pointermove", (ev) => {
+  const t = touches.get(ev.pointerId);
+  if (!t) return;
+  ev.preventDefault();
+  const [x, y] = toLogical(ev);
+  if (t.kind === "stick") { moveStick(x, y); return; }
+  t.x = x; t.y = y;
+  if (Math.hypot(x - t.sx, y - t.sy) > SLOP) t.moved = true;
+  if (t.kind === "pan") {
+    M.panX = clamp(t.panX - (x - t.sx), 0, Math.max(0, 1024 - L.W));
+    M.panY = clamp(t.panY - (y - t.sy), 0, Math.max(0, 768 - L.H));
+    return;
+  }
+  if (M.chat && t.sy >= L.chatY && t.moved) {     // (the log dragged: older lines, or newer)
+    U.chatLine = clamp(t.chatLine + Math.round((y - t.sy) / 15), 1, Math.max(1, S.messages.length - 4));
+    return;
+  }
+  I.mx = x; I.my = y;
+});
+function touchEnd(ev, cancelled) {
+  const t = touches.get(ev.pointerId);
+  if (!t) return;
+  touches.delete(ev.pointerId);
+  clearTimeout(t.timer);
+  if (t.kind === "stick") { M.joy = null; stick(0, 0); return; }
+  M.hoverUntil = performance.now() + 2500;
+  if (cancelled || t.held || (t.moved && t.kind === "pan")) return;
+  if (t.moved && (M.chat && t.sy >= L.chatY)) return;
+  if (!running || overlayOpen()) return;
+  const x = t.moved ? t.x : t.sx, y = t.moved ? t.y : t.sy;
+  if (buildMouseDown(0, x, y)) return;
+  mouseDown(0, x, y);
+}
+canvas.addEventListener("pointerup", (ev) => touchEnd(ev, false));
+canvas.addEventListener("pointercancel", (ev) => touchEnd(ev, true));
+
+function moveStick(x, y) {
+  const [jx, jy] = joyCentre();
+  let dx = x - jx, dy = y - jy;
+  const far = Math.hypot(dx, dy), most = JOY.r - JOY.knob / 2;
+  if (far > most) { dx *= most / far; dy *= most / far; }
+  M.joy = { ...(M.joy || {}), dx, dy };
+  stick(dx, dy);
+}
 canvas.addEventListener("wheel", (ev) => {
   ev.preventDefault();
   if (!running || overlayOpen()) return;
@@ -802,7 +906,7 @@ async function boot() {
   }
   setGeometry();
   preload(["Player1a", "Player2a", "Player4a", "Player8a"]);
-  layout(screen.W);
+  layout(screen.W, screen.H);
   resize();
   fogInit();
   loadOptions();

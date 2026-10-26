@@ -15,3 +15,11 @@ dev/Redo List.txt
 # a database made by running the server with its data in data\ (never the game's own data)
 /data/*.db*
 /data/backups/
+
+# the Android app's build (android/), and its signing keys (never committed)
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+*.jks
+*.keystore

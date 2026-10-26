@@ -320,3 +320,18 @@ button:disabled { opacity: 0.5; cursor: default; }
 .panel.death h2 { color: #f0a080; font-size: 26px; }
 .panel.death p { line-height: 1.45; }
 #death-respawn { font-size: 18px; padding: 8px 28px; }
+
+/* a phone (mobile.js): no browser gestures over the game, the panels scroll if the screen is short */
+.touch #game { touch-action: none; }
+.touch body { overscroll-behavior: none; }
+.touch .overlay { overflow-y: auto; align-items: flex-start; padding: 8px 0; }
+.touch .overlay > .panel, .touch .overlay > form.panel { margin: auto; }
+.touch .desk-only { display: none; }
+/* (the game table's screen on a phone: the table on the left, the words and buttons beside it) */
+.touch .panel.game { width: min(900px, 100%); padding: 10px 16px; display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.touch .panel.game > h2 { grid-column: 1 / -1; margin: 0 0 6px; }
+.touch .panel.game > #game-table { grid-column: 1; grid-row: 2 / span 4; }
+.touch .panel.game > :not(h2):not(#game-table) { grid-column: 2; }
+.touch .game .game-say { margin-top: 0; }
+.touch .game .buttons button { padding: 6px 10px; font-size: 14px; }

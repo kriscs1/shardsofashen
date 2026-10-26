@@ -1,5 +1,6 @@
 // The mouse and the keyboard (the desktop game's interact.py, its first half): what's under the mouse and what a click
-// on it does; walking with the keys. Commands go to the server, which does them.
+// on it does; walking with the keys (or a phone's stick). Commands go to the server, which does them. A phone's taps
+// come here as left clicks and its long presses as right clicks (main.js).
 import { G, S, tileAt, cellOf } from "./state.js";
 import { A, tileIni, entityIni, size } from "./assets.js";
 import { send } from "./net.js";
@@ -7,7 +8,9 @@ import { V, screenToWorld, entityUnder, changeZoom, roofCovers } from "./render.
 import { fogBlack } from "./sky.js";
 import { L, U, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
-  QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit } from "./ui.js";
+  QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
+  chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY } from "./ui.js";
+import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName, spellStatus } from "./verbs.js";
 import { J, hit as journalHit, pages as journalPages } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
@@ -15,7 +18,7 @@ import { unlock, playSound } from "./audio.js";
 import { pretty, val } from "./util.js";
 
 export const I = { mx: -1, my: -1, keys: new Set(), dir: 0, cursor: "pointer", clickAt: 0, clickKind: "", ui: null,
-  hoverEnt: null };
+  hoverEnt: null, joyDir: 0 };
 
 // ----- what's under the mouse
 function tileEntity(wx, wy, worldOnly) {
@@ -33,7 +36,20 @@ function tileEntity(wx, wy, worldOnly) {
   return e;
 }
 
-function inPlayfield(x, y) { return x >= 0 && y >= 0 && x < L.VW && y < L.VH; }
+function inPlayfield(x, y) { return x >= 0 && y >= 0 && x < L.VW && y < L.VH && !overTouchUI(x, y); }
+
+function inRect(x, y, r) { return !!r && x >= r[0] && x < r[0] + r[2] && y >= r[1] && y < r[1] + r[3]; }
+
+export function overTouchUI(x, y) {
+  // (a phone's interface over the world: the bag, the chat log, the minimap, the buttons, the stick)
+  if (!M.on) return false;
+  if (M.bag && inRect(x, y, bagRect())) return true;
+  if (M.chat && y >= L.chatY && x < L.chatW) return true;
+  if (Math.hypot(x - L.mmX, y - L.mmY) <= L.mmSize / 2 + 4) return true;
+  if (touchButtonAt(x, y)) return true;
+  const [jx, jy] = joyCentre();
+  return !S.box.mode && !M.chat && !M.bag && Math.hypot(x - jx, y - jy) <= JOY.r + 8;
+}
 
 function under(x, y) {
   // The front-most thing under the mouse: the interface first, then the world
@@ -47,7 +63,7 @@ function under(x, y) {
   const br = boxRect(), rr = responseBoxRect();
   if (br && x >= br[0] && x < br[0] + br[2] && y >= br[1] && y < br[1] + br[3]) return null;
   if (rr && x >= rr[0] && x < rr[0] + rr[2] && y >= rr[1] && y < rr[1] + rr[3]) return null;
-  if (x >= L.VW || S.box.mode) return null;
+  if (x >= L.VW || S.box.mode || overTouchUI(x, y)) return null;
   const [wx, wy] = screenToWorld(x, y);
   const e = entityUnder(wx, wy);
   if (e) {
@@ -61,7 +77,8 @@ export function mouseMove(x, y) {
   I.mx = x; I.my = y;
   U.mx = x; U.my = y;                     // (the item boxes light up the slot under the mouse)
   if (J.open) {
-    const h = journalHit(x - (L.W - 1024) / 2, y);
+    const [jx, jy] = journalOrigin();
+    const h = journalHit(x - jx, y - jy);
     if (h !== J.hover) J.hover = h;
     I.cursor = "pointer";
     return;
@@ -69,21 +86,32 @@ export function mouseMove(x, y) {
   let msg = "", kind = "INTERFACE";
   I.cursor = "pointer";
   U.hover = null;
-  const dx = L.DX;
-  if (x >= 1000 + dx && x <= 1020 + dx && y >= 5 && y <= 25) msg = "Leave the game";
-  if (x >= 872 + dx && x <= 888 + dx && y >= 147 && y <= 162) msg = "Zoom Out";
-  if (x >= 988 + dx && x <= 1000 + dx && y >= 147 && y <= 162) msg = "Zoom In";
-  if (x >= L.helpX && x <= L.helpX + 52 && y >= L.helpY && y <= L.helpY + 22) { msg = "Journal and help (H)"; U.hover = "help"; }
-  if (S.admin && x >= L.helpX && x <= L.helpX + 52 && y >= L.helpY + 26 && y <= L.helpY + 48) { msg = "Admin panel|give items, set skills"; U.hover = "admin"; }
+  const dx = L.DX, desk = !M.on;
+  if (desk && x >= 1000 + dx && x <= 1020 + dx && y >= 5 && y <= 25) msg = "Leave the game";
+  if (desk && x >= 872 + dx && x <= 888 + dx && y >= 147 && y <= 162) msg = "Zoom Out";
+  if (desk && x >= 988 + dx && x <= 1000 + dx && y >= 147 && y <= 162) msg = "Zoom In";
+  if (desk && x >= L.helpX && x <= L.helpX + 52 && y >= L.helpY && y <= L.helpY + 22) { msg = "Journal and help (H)"; U.hover = "help"; }
+  if (desk && S.admin && x >= L.helpX && x <= L.helpX + 52 && y >= L.helpY + 26 && y <= L.helpY + 48) { msg = "Admin panel|give items, set skills"; U.hover = "admin"; }
+  const tb = M.on ? touchButtonAt(x, y) : "";
+  if (tb) {
+    U.hover = "touch:" + tb;
+    msg = { bag: "Bag|your stats, gear, quests and pack", chat: "Chat|the messages, and a line to say something",
+      journal: "Journal and help", menu: "Menu|options, and leaving the game", admin: "Admin panel" }[tb];
+  }
+  const vit = !msg ? vitalsAt(x, y) : "";
+  if (vit === "level") msg = "Your level|the best of your fighting skills";
+  if (vit === "hp") msg = `${S.me.hp} / ${S.me.max_hp} hitpoints`;
+  if (vit === "mana") msg = `${Math.floor(S.me.mana)} / ${S.me.max_mana} mana`;
   const [cx, cy, cw, ch] = clockRect();
   if (!msg && S.clock.on && x >= cx && x < cx + cw && y >= cy && y < cy + ch) msg = timeText(dayFraction(performance.now()));
   const fr = U.fullscreenRect;
   if (fr && x >= fr[0] && x < fr[0] + fr[2] && y >= fr[1] && y < fr[1] + fr[3]) { msg = "Full screen (F11)"; U.hover = "fullscreen"; }
-  if (!msg && minimapHit(x, y)) msg = "#World map|~Click (or M): the whole map, its places named";
-  if (x >= 780 + dx && x <= 794 + dx && y >= 676 && y <= 690) msg = U.chatLine + 4 < S.messages.length ? "Scroll Up" : "<No More>";
-  if (x >= 780 + dx && x <= 794 + dx && y >= 750 && y <= 764) msg = U.chatLine === 1 ? "<No More>" : "Scroll Down";
+  if (!msg && minimapHit(x, y)) msg = M.on ? "#World map|~Tap: the whole map, its places named" : "#World map|~Click (or M): the whole map, its places named";
+  const arrow = desk || M.chat ? chatArrow(x, y) : 0;
+  if (arrow === 1) msg = U.chatLine + 4 < S.messages.length ? "Scroll Up" : "<No More>";
+  if (arrow === -1) msg = U.chatLine === 1 ? "<No More>" : "Scroll Down";
   // the Stats box
-  const smx = x - L.VW, smy = y - L.statY;
+  const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
   U.equipHover = 0; U.skillHover = 0;
   let questHover = 0;
   if (!msg && smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
@@ -113,8 +141,6 @@ export function mouseMove(x, y) {
     }
   }
   const k = !msg && U.statsView === 0 ? statTileAt(smx, smy) : -1;
-  if (k === 0) msg = `${S.me.hp} / ${S.me.max_hp} hitpoints`;
-  if (k === 1) msg = `${Math.floor(S.me.mana)} / ${S.me.max_mana} mana`;
   if (k >= 2) { U.skillHover = skillOfRow(k - 1); if (U.skillHover) msg = skillInfo(U.skillHover, false); }
   // the ActionBox
   U.rbHover = 0;
@@ -210,22 +236,32 @@ export function mouseDown(button, x, y) {
     if (h === 12) J.page = Math.min(journalPages(), J.page + 1);
     return;
   }
-  const dx = L.DX;
+  const dx = L.DX, desk = !M.on;
   if (U.worldMap) {                                // (the world map's open: a click puts it away)
     if (x < L.VW && y < L.VH) { U.worldMap = false; return; }
   }
-  if (left && !U.rcm && scrollBarClick(x, y)) return;
+  if (left && !U.rcm && (desk || M.chat) && scrollBarClick(x, y)) return;
+  if (left && M.on && !U.rcm) {
+    const tb = touchButtonAt(x, y);
+    if (tb === "bag") { M.bag = !M.bag; M.chat = false; if (M.bag && S.box.mode === "Conversation") send({ t: "close" }); return; }
+    if (tb === "chat") { M.chat = !M.chat; M.bag = false; return; }
+    if (tb === "journal") { openJournal(); return; }
+    if (tb === "menu") { window.dsUI.openQuit(); return; }
+    if (tb === "admin") { window.dsUI.openAdmin(); return; }
+    if (M.chat && y >= L.chatY && x < L.chatW && !chatArrow(x, y)) { window.dsUI.openChat(); return; }   // (the log: say something)
+    if (M.bag && !inRect(x, y, bagRect()) && !minimapHit(x, y)) { M.bag = false; return; }   // (off the bag: it shuts)
+  }
   if (left) {
-    if (x >= 1000 + dx && x <= 1020 + dx && y >= 5 && y <= 25) { window.dsUI.openQuit(); return; }
-    if (x >= 872 + dx && x <= 888 + dx && y >= 147 && y <= 162) { changeMinimapZoom(0.5); return; }
-    if (x >= 988 + dx && x <= 1000 + dx && y >= 147 && y <= 162) { changeMinimapZoom(2); return; }
+    if (desk && x >= 1000 + dx && x <= 1020 + dx && y >= 5 && y <= 25) { window.dsUI.openQuit(); return; }
+    if (desk && x >= 872 + dx && x <= 888 + dx && y >= 147 && y <= 162) { changeMinimapZoom(0.5); return; }
+    if (desk && x >= 988 + dx && x <= 1000 + dx && y >= 147 && y <= 162) { changeMinimapZoom(2); return; }
     if (U.hover === "help") { openJournal(); return; }
     if (minimapHit(x, y)) { U.worldMap = !U.worldMap; return; }
     if (U.hover === "admin") { window.dsUI.openAdmin(); return; }
     if (U.hover === "fullscreen") { window.dsUI.toggleFullscreen(); return; }
-    if (x >= 780 + dx && x <= 794 + dx && y >= 676 && y <= 690) { scrollChat(1); return; }
-    if (x >= 780 + dx && x <= 794 + dx && y >= 750 && y <= 764) { scrollChat(-1); return; }
-    const smx = x - L.VW, smy = y - L.statY;
+    const arrow = desk || M.chat ? chatArrow(x, y) : 0;
+    if (arrow) { scrollChat(arrow); return; }
+    const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
     if (smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
       U.statsView = smx <= 81 ? 0 : smx <= 135 ? 1 : 2;
       U.equipHover = U.questHover = 0;
@@ -327,7 +363,7 @@ export function wheel(dy, x, y) {
     J.page = Math.min(journalPages(), Math.max(1, J.page + (dy > 0 ? 1 : -1)));
     return;
   }
-  if (y >= L.VH && x < L.VW + 4) { scrollChat(dy < 0 ? 1 : -1); return; }
+  if ((M.on ? M.chat : true) && y >= L.chatY && x < L.chatR + 20) { scrollChat(dy < 0 ? 1 : -1); return; }
   const br = boxRect();
   if (br && S.box.mode !== "Conversation" && x >= br[0] && x < br[0] + br[2] && y >= br[1] && y < br[1] + br[3]) {
     const page = Math.min(S.box.pages, Math.max(1, S.box.page + (dy < 0 ? -1 : 1)));
@@ -341,7 +377,7 @@ export function wheel(dy, x, y) {
 const DIRS = { ArrowUp: 1, KeyW: 1, ArrowRight: 2, KeyD: 2, ArrowDown: 4, KeyS: 4, ArrowLeft: 8, KeyA: 8 };
 
 function sendDir() {
-  let d = 0;
+  let d = I.joyDir;
   for (const k of I.keys) d |= DIRS[k] || 0;
   if ((d & 5) === 5) d -= 5;
   if ((d & 10) === 10) d -= 10;
@@ -354,6 +390,7 @@ function sendDir() {
 export function openJournal() {
   J.open = true;
   J.page = 1;
+  M.panX = M.panY = 0;
   J.hover = 0;
   J.focus = "";
   U.rcm = null;
@@ -411,7 +448,19 @@ export function keyUp(ev) {
 
 export function releaseKeys() {
   I.keys.clear();
+  I.joyDir = 0;
   sendDir();
+}
+
+export function stick(dx, dy) {
+  // A phone's stick pushed (dx, dy) from its middle: the way to walk, of eight (none near the middle)
+  let d = 0;
+  if (Math.hypot(dx, dy) > JOY.r * 0.3) {
+    const a = Math.atan2(dy, dx), oct = Math.round(a / (Math.PI / 4));     // (-4..4: 0 is right, 2 down)
+    d = { 0: 2, 1: 6, 2: 4, 3: 12, 4: 8, "-4": 8, "-3": 9, "-2": 1, "-1": 3 }[oct];
+  }
+  if (d && (!S.me || !S.me.input || S.box.mode)) d = 0;
+  if (d !== I.joyDir) { I.joyDir = d; sendDir(); }
 }
 
 // ----- the mouse cursor (pictures made by the asset export: cursor.py's)
