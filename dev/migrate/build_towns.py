@@ -260,6 +260,8 @@ def renames():
 
 
 def main():
+    if K.new_mainland():
+        sys.exit("Superseded: build_estforlan.py rebuilt the mainland. This one would put back the old towns.")
     pictures()
     data()
     land_west_of_southport()

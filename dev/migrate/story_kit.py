@@ -246,6 +246,12 @@ def people_sections():
 
 
 # ---------------------------------------------------------------- maps
+def new_mainland():
+    """Has build_estforlan.py built the new mainland (so the old mainland's builders mustn't touch it)?"""
+    path = os.path.join(ROOT, "maps", "9,12,0.txt")
+    return os.path.exists(path) and "Galaith_Barrier" in open(path, encoding="cp1252").read()
+
+
 def map_exists(name):
     return os.path.exists(os.path.join(ROOT, "maps", name + ".txt"))
 

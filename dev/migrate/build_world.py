@@ -1279,6 +1279,10 @@ def check_teleports(problems, report):
 
 
 def main():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import story_kit as K
+    if K.new_mainland():
+        sys.exit("Superseded: build_estforlan.py rebuilt the mainland. This one would put back the old mainland's maps.")
     GEN.enable()            # what you've changed in the editors since the last build is kept (common.Generated)
     changed = []
     import build_places as PL                   # the named places' Id lines: in the maps the build writes whole...

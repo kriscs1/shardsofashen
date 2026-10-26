@@ -1,15 +1,15 @@
-01	>On.Map	4,4,0	04
+01	>On.Map	18,5,0	04
 02	Display.Conversation	Guard	Welcome to the Royal Isle. The wizards hold court in the great hall.\Mind your manners, and keep your blade sheathed.	Goodbye.	21
 03	End
-04	>On.Map	5,3,0	07
+04	>On.Map	12,3,0	07
 05	Goto.Script	Wardhaven Guard
 06	End
-07	>On.Map	1,4,0	12
+07	>On.Map	20,10,0	12
 08	Display.Conversation	Guard	Halt! The mine is closed by order of the King's Steward.\No one goes through this gate without body armour on. The hobgoblins down there would gut you.\Unless the Steward sent you, of course.	Where can I get armour?	10	Goodbye.	21
 09	End
 10	Display.Conversation	Guard	The quartermaster at the keep sells leather and iron. Or tan some cowhide and make your own on a workbench.\And wear it! In your pack it won't stop a hobgoblin's axe.	Thanks.	21
 11	End
-12	>On.Map	2,3,0	15
+12	>On.Map	9,4,0	15
 13	Display.Conversation	Guard	Keep the peace in Ashford, citizen.\If you're looking for work, the King's Steward pays well for hobgoblin ears.\The Steward keeps the King's keep, south of here.	Any other news?	17	Goodbye.	21
 14	End
 15	Display.Conversation	Guard	Halt! ...ah, you look honest enough. Go on in.\The Steward holds the hall while the King is away.\The quartermaster in the courtyard sells arms.	Any other news?	17	Goodbye.	21

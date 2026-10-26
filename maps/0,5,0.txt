@@ -1,36 +1,21 @@
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water009:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Sand_Water008
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Water001:Water001:Water001:Water001:Water001:Sea_Rock002:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Water001:Water001:Sea_Rock002:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Sand001:Sand001:Sand001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tall_Grass001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Sand001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Tree002)
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Flowers002):Grass001:Grass001+Decor(Tree001)
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water009:Sand001:Sand001:Sand001:Grass001+Decor(Nightshade_Patch001):Grass001:Grass001+Decor(Flowers001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Flowers002):Grass001+Decor(Flowers003):Grass001:Grass001:Forest001:Forest001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Forest001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Forest001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Forest001
-Water001:Water001:Sea_Rock002:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Yew_Tree001):Forest001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water003:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001+Decor(Nightshade_Patch001):Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001+Decor(Pebbles002)
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water003:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Dirt001:Dirt001:Dirt001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water009:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Sand001:Sand001:Dirt001
-NPC	Giant_Spider	544	384	Attitude=Bad
-NPC	Giant_Spider	672	384	Attitude=Bad
-NPC	Giant_Spider	608	480	Attitude=Bad
-NPC	Giant_Spider	576	448	Attitude=Bad
-MapItem	Bones	609	418	1
-MapItem	Bones	641	354	1
-MapItem	Bones	545	482	1
-StaticObject	Chest	480	608
-NPC	Wolf	352	256	Attitude=Bad
-NPC	Bear	416	576	Attitude=Bad
-StaticObject	Fish_Spot	416	128
-NPC	Rabbit	576	320	Attitude=Bad
-NPC	Rabbit	672	480	Attitude=Bad
-NPC	Blue_Butterfly	512	256	Attitude=Good
-Id	Spider_Nest	20	14
+Peak001:Peak002:Peak004:Peak003:Peak002:Peak003:Peak004:Peak001:Peak004:Peak006:Peak006:Peak005:Peak001:Peak001:Peak003:Peak003:Peak002:Peak003:Peak005:Peak003:Peak006:Peak003:Peak005:Peak003:Peak004
+Peak002:Peak003:Peak005:Peak005:Peak001:Peak004:Peak005:Peak006:Peak002:Peak006:Peak005:Peak005:Peak003:Peak002:Peak005:Peak002:Peak_Big001:Peak006:Peak004:Peak005:Peak001:Peak005:Peak005:Peak002:Peak005
+Peak001:Peak005:Peak002:Peak003:Peak002:Peak002:Peak004:Peak004:Peak005:Peak004:Peak006:Peak003:Peak005:Peak003:Peak002:Peak002:Peak004:Peak003:Peak006:Peak001:Peak002:Peak001:Peak001:Peak001:Peak006
+Peak001:Peak004:Peak005:Peak002:Peak003:Peak006:Peak002:Peak001:Peak004:Peak005:Peak001:Peak006:Peak001:Peak003:Peak005:Peak004:Peak002:Peak002:Peak003:Peak002:Peak002:Peak003:Peak004:Peak003:Peak002
+Peak001:Peak004:Peak005:Peak004:Peak004:Peak001:Peak003:Peak006:Peak003:Peak006:Peak001:Peak005:Peak001:Peak001:Peak005:Peak004:Peak005:Peak001:Peak003:Peak006:Peak004:Peak006:Peak003:Peak001:Peak006
+Peak001:Peak005:Peak001:Peak003:Peak005:Peak004:Peak006:Peak006:Peak005:Peak005:Peak_Big001:Peak005:Peak_Big001:Peak005:Peak005:Peak005:Peak006:Peak006:Peak003:Peak004:Peak002:Peak006:Peak006:Peak002:Peak002
+Peak003:Peak002:Peak006:Peak006:Peak003:Peak001:Peak001:Peak004:Peak003:Peak001:Peak005:Peak006:Peak003:Peak004:Peak006:Peak001:Peak003:Peak001:Peak003:Peak006:Peak003:Peak006:Peak006:Peak003:Peak003
+Peak004:Peak004:Peak001:Peak001:Peak005:Peak006:Peak006:Peak005:Peak_Big001:Peak003:Peak001:Peak006:Peak_Big001:Peak003:Peak001:Peak004:Peak005:Peak006:Peak004:Peak004:Peak004:Peak005:Peak002:Peak005:Peak001
+Peak003:Peak004:Peak005:Peak004:Peak004:Peak004:Peak004:Peak004:Peak001:Peak002:Peak002:Peak005:Peak001:Peak002:Peak005:Peak004:Peak005:Peak006:Peak005:Peak004:Peak006:Peak001:Peak002:Peak001:Peak002
+Peak003:Peak005:Peak006:Peak005:Peak_Big001:Peak002:Peak_Big001:Peak006:Peak_Big001:Peak001:Peak005:Peak003:Peak_Big001:Peak005:Peak004:Peak003:Peak002:Peak006:Peak001:Peak002:Peak005:Peak003:Peak002:Peak002:Peak001
+Peak006:Peak002:Peak005:Peak006:Peak004:Peak006:Peak005:Peak004:Peak002:Peak002:Peak003:Peak001:Peak002:Peak006:Peak003:Peak001:Peak002:Peak002:Peak003:Peak003:Peak001:Peak006:Peak004:Peak002:Peak005
+Peak005:Peak001:Peak006:Peak006:Peak003:Peak003:Peak003:Peak005:Peak001:Peak004:Peak001:Peak006:Peak001:Peak006:Peak002:Peak002:Peak004:Peak001:Peak004:Peak001:Peak002:Peak006:Peak003:Peak002:Peak003
+Peak005:Peak005:Peak005:Peak002:Peak006:Peak002:Peak006:Peak006:Peak001:Peak006:Peak003:Peak003:Peak002:Peak004:Peak004:Peak003:Peak003:Peak002:Peak005:Peak005:Peak006:Peak006:Peak004:Peak001:Peak002
+Peak005:Peak002:Peak001:Peak003:Peak_Big001:Peak006:Peak005:Peak001:Peak004:Peak001:Peak_Big001:Peak001:Peak004:Peak002:Peak003:Peak003:Peak004:Peak002:Peak003:Peak005:Peak005:Peak003:Peak_Big001:Peak001:Peak004
+Peak004:Peak005:Peak002:Peak004:Peak003:Peak006:Peak006:Peak001:Peak005:Peak002:Peak004:Peak004:Peak004:Peak001:Peak001:Peak005:Peak003:Peak001:Peak003:Peak004:Peak001:Peak001:Peak005:Peak002:Peak003
+Peak005:Peak005:Peak006:Peak006:Peak003:Peak004:Peak005:Peak003:Peak002:Peak004:Peak005:Peak004:Peak006:Peak001:Peak005:Peak004:Peak005:Peak001:Peak003:Peak002:Peak001:Peak004:Peak003:Peak002:Peak002
+Peak005:Peak005:Peak002:Peak006:Peak004:Peak004:Peak004:Peak004:Peak002:Peak003:Peak001:Peak006:Peak001:Peak003:Peak002:Peak001:Peak006:Peak001:Peak004:Peak004:Peak004:Peak005:Peak002:Peak006:Peak004
+Peak_Big001:Peak003:Peak006:Peak002:Peak006:Peak005:Peak005:Peak006:Peak004:Peak003:Peak003:Peak006:Peak002:Peak001:Peak004:Peak003:Peak005:Peak004:Peak_Big001:Peak004:Peak003:Peak002:Peak003:Peak004:Peak001
+Peak002:Peak002:Peak005:Peak005:Peak004:Peak001:Peak004:Peak006:Peak002:Peak001:Peak002:Peak001:Peak004:Peak004:Peak004:Peak001:Peak002:Peak001:Peak006:Peak001:Peak005:Peak002:Peak002:Peak005:Peak006
+Peak005:Peak005:Peak005:Peak003:Peak004:Peak001:Peak004:Peak003:Peak001:Peak001:Peak003:Peak004:Peak002:Peak003:Peak001:Peak004:Peak005:Peak004:Peak005:Peak005:Peak006:Peak006:Peak005:Peak001:Peak006
+Peak006:Peak003:Peak003:Peak002:Peak003:Peak003:Peak002:Peak006:Peak003:Peak005:Peak006:Peak003:Peak005:Peak005:Peak002:Peak002:Peak005:Peak001:Peak002:Peak006:Peak004:Peak002:Peak004:Peak004:Peak003

@@ -57,23 +57,23 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    squeaks: stand on it, then Search it, for the compass. Bess sails you to Southport; **Wim** the ferryman crosses
    for a coin after that.
 
-On the mainland (`build_heir_mainland.py`; Galaith and its pass, maps 10-14 by 5-7, by `build_galaith.py`):
+On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
 5. **The Temporary Capital** (`ParliamentQuest`): the guard at Southport's port; the **Speaker** in Southport's City
    Hall, which is Estforlan's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
-   Court** (the old King's Castle, 4,4,0; Bert at the top of its tower, 4,4,1), can break the barrier.
+   Court** (the old King's Castle, 18,5,0; Bert at the top of its tower, 18,5,1), can break the barrier.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.
-8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Estforlan** (the King's solar, 2,4,1, up a locked
+8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Estforlan** (the King's solar, 22,11,1, up a locked
    stair in the keep); 10. **The Sunken Grimoire** (the scholar in Dunerest; a buried library under a mound in the
-   desert, 1,9,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
+   desert, 3,16,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
-12. **A Ship for Dragon Island** (Captain Rook, on the shore east of Ravensgate, 9,8,0), 13. **The Island of
-   Dragons** (8,10,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
-15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (10,6,0) breaks it; the dragon speaks;
-   it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's west gate and
-   Wardhaven.
-16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (12,5,0), the Lord Chancellor (Galaith's
+12. **A Ship for Dragon Island** (Captain Rook, on the shore south of Ravensgate, 23,17,0), 13. **The Island of
+   Dragons** (22,20,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
+15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 9,12,0) breaks it; the dragon speaks;
+   it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
+   onto the field; its Id is still `Galaith_West_Gate`) and Wardhaven's.
+16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (2,12,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
 17. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
@@ -135,11 +135,21 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
 - On the world map, places with no map look the same as unexplored ones.
-- Settlements have a size, and what each size has (`dev/migrate/build_towns.py`, grown by `towns.py` into the free
-  ground round them): Galaith a huge city; Southport a large city (its City Hall is the Parliament for now); King
-  Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate medium cities; Ashford a small city; Highwatch and
-  Frosthold towns; Oakhollow, Thornwick and Emberwatch villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
-  New buildings in a town go on free ground only, joined to its roads; nothing there already moves.
+- **The mainland** (`dev/World Plan.md`) is built by `dev/migrate/build_estforlan.py` (its parts in
+  `dev/migrate/estforlan`): change the plan there and run it again, never the maps by hand. The Isle is left alone.
+  Galaith is a huge walled city in a valley of the West Range, which runs down the whole west coast; the dragon guards
+  its scorched field, and the barrier fills the pass. The quest places are lifted from the old maps
+  (`world_parts`) and set down at their old tiles, so scripts' coordinates stay right.
+- Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Southport a
+  large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate
+  medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
+  villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
+- Settlements stand far apart, wild country between. The market square is near the middle, paved roads off it; the
+  waystone and homestone stand by it. Every house is different, with space between; buildings never cover a road.
+  Streets are straight and paved in the place's own stone near the middle (sandstone in the desert, boardwalks in the
+  marsh...), and wander and turn to gravel and dirt further out.
+- Roads join every settlement and place of interest on the same land; rivers are crossed by bridges. A city on a coast
+  has a port; anything smaller a jetty; places of interest none. A quest place out of town stays out of town.
 
 **Items**
 - Chicken meat is Poultry (`Raw_Poultry`, `Cooked_Poultry`, `Burnt_Poultry`). For any rename, add the old name to

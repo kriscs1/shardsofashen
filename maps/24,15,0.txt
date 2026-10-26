@@ -1,0 +1,25 @@
+Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sea_Rock002:Water001:Water001:Water001
+Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Sea_Rock002:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Gravel001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Plank001:Plank001:Plank001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001:Gravel001:Plank001:Plank001:Plank001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Plank001:Plank001+Decor(Crate001):Plank001+Decor(Barrel001):Plank001:Plank001+Decor(Crate002):Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+StaticObject	Moored_Boat	384	512
+StaticObject	Fish_Spot	512	576
+NPC	Fisherman	352	536	Attitude=Good Stand=1 Face=S Id=Ravensgate_Harbour_Master_307 Name=Agnes
+Id	Ravensgate_Port	11	19

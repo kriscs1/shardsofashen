@@ -440,6 +440,8 @@ def city():
 
 
 def main():
+    if K.new_mainland():
+        sys.exit("Superseded: build_estforlan.py rebuilt the mainland. This one would put back the old Galaith in the east.")
     draw_pictures()
     data()
     mountains_and_pass()

@@ -1,3 +1,3 @@
-// The grave Grave_Kings_Shieldman on 9,7,0 (dev\migrate\name_graves.py)
+// The grave Grave_Kings_Shieldman on 18,17,0 (dev\migrate\name_graves.py)
 01	Display.Message	Black	Runes, worn almost smooth: '...the king's shieldman, who stood at the door.'
 02	End

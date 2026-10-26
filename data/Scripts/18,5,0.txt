@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The Wizards' Court.
+02	End

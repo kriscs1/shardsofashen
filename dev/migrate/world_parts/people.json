@@ -1,0 +1,159 @@
+{
+ "0,3,0": [
+  "NPC\tSpeaker\t512\t472\tAttitude=Good Stand=1 Face=S Id=Southport_Speaker_20"
+ ],
+ "1,10,0": [
+  "NPC\tMerchant\t288\t96\tAttitude=Good",
+  "NPC\tTrader\t160\t384\tAttitude=Good",
+  "NPC\tSettler\t448\t224\tAttitude=Good Zone=9,4,16,8",
+  "StaticObject\tNotice\t417\t98\tId=Dunerest",
+  "NPC\tScholar\t352\t88\tAttitude=Good Stand=1 Face=S Id=Dunerest_Scholar Name=Yusra"
+ ],
+ "1,3,0": [
+  "NPC\tFisherman\t128\t416\tAttitude=Good Zone=4,14,6,15 Pause=4-10",
+  "NPC\tVillager\t490\t505\tAttitude=Good Zone=14,14,17,20",
+  "NPC\tBanker\t160\t416\tAttitude=Good Stand=1",
+  "NPC\tBlack_Cat\t288\t376\tAttitude=Good Id=Vincent Name=Vincent",
+  "NPC\tVillager\t463\t318\tAttitude=Good Stand=1 Id=Market_Vendor_1",
+  "NPC\tShepherd\t530\t318\tAttitude=Good Stand=1 Id=Market_Vendor_2",
+  "NPC\tWoman\t454\t389\tAttitude=Good Stand=1 Id=Market_Vendor_3",
+  "NPC\tMerchant\t534\t390\tAttitude=Good Stand=1 Id=Market_Vendor_4",
+  "NPC\tMan\t603\t390\tAttitude=Good Stand=1 Id=Market_Vendor_5",
+  "NPC\tConstable\t352\t472\tAttitude=Good Stand=1 Face=S Id=Southport_Constable_26 Name=Winnie"
+ ],
+ "1,6,0": [
+  "NPC\tRanger\t224\t288\tAttitude=Good",
+  "NPC\tTrader\t160\t512\tAttitude=Good",
+  "NPC\tSettler\t384\t416\tAttitude=Good Zone=7,10,14,14",
+  "StaticObject\tNotice\t353\t290\tId=Oakhollow",
+  "NPC\tBanker\t448\t160\tAttitude=Good"
+ ],
+ "1,7,0": [
+  "NPC\tSheriff\t96\t184\tAttitude=Good Stand=1 Face=S Id=Oakhollow_Sheriff_10 Name=Amos"
+ ],
+ "1,8,0": [
+  "NPC\tElder\t672\t32\tAttitude=Good"
+ ],
+ "1,9,0": [
+  "NPC\tBanker\t224\t544\tAttitude=Good"
+ ],
+ "10,6,0": [
+  "NPC\tGalaith_Dragon\t480\t288\tAttitude=Bad Zone=11,7,22,16 Chase=8,6,24,16 Id=Galaith_Dragon_Boss"
+ ],
+ "13,6,0": [
+  "NPC\tChancellor\t160\t472\tAttitude=Good Stand=1 Face=S Id=Galaith_Speaker_70 Name=Lord_Chancellor_Vane",
+  "NPC\tConstable\t384\t88\tAttitude=Good Stand=1 Face=S Id=Galaith_Constable_86 Name=Amos"
+ ],
+ "2,4,0": [
+  "NPC\tGuard\t224\t288\tAttitude=Good Patrol=8,10/8,4/22,4/22,18/8,18 Pause=2-4",
+  "NPC\tSheriff\t96\t216\tAttitude=Good Stand=1 Face=S Id=Keep_Sheriff_24 Name=Toby"
+ ],
+ "2,5,0": [
+  "StaticObject\tNotice\t449\t130\tId=The_Wildlands"
+ ],
+ "2,8,0": [
+  "NPC\tWitch\t128\t192\tAttitude=Good",
+  "NPC\tTrader\t448\t32\tAttitude=Good",
+  "NPC\tSettler\t288\t320\tAttitude=Good Zone=4,7,11,11",
+  "StaticObject\tNotice\t257\t194\tId=Fenwick",
+  "NPC\tBanker\t320\t416\tAttitude=Good",
+  "NPC\tSheriff\t128\t472\tAttitude=Good Stand=1 Face=S Id=Fenwick_Sheriff_27 Name=Harold"
+ ],
+ "3,3,0": [
+  "StaticObject\tNotice\t705\t322\tId=Wardhaven_Bridge"
+ ],
+ "3,4,0": [
+  "NPC\tSheriff\t512\t440\tAttitude=Good Stand=1 Face=S Id=Ashford_Sheriff_24 Name=Mabel",
+  "NPC\tTuxedo_Cat\t192\t376\tAttitude=Good Zone=4,10,10,16 Pause=5-14 Id=Mo Name=Mo",
+  "NPC\tPainter\t64\t408\tAttitude=Good Stand=1 Face=E Id=Ashford_Painter Name=Ottilie"
+ ],
+ "3,6,0": [
+  "NPC\tShepherd\t416\t192\tAttitude=Good",
+  "NPC\tTrader\t736\t64\tAttitude=Good",
+  "NPC\tSettler\t576\t320\tAttitude=Good Zone=13,7,20,11",
+  "StaticObject\tNotice\t545\t194\tId=Moorcross",
+  "NPC\tBanker\t320\t64\tAttitude=Good"
+ ],
+ "3,9,0": [
+  "NPC\tAshen_Acolyte\t672\t512\tAttitude=Good Id=AshenAcolyte Zone=20,15,24,19"
+ ],
+ "4,10,0": [
+  "NPC\tForgemaster\t416\t192\tAttitude=Good",
+  "NPC\tTrader\t704\t32\tAttitude=Good",
+  "NPC\tSettler\t576\t320\tAttitude=Good Zone=13,7,20,11",
+  "StaticObject\tNotice\t545\t194\tId=Frosthold",
+  "NPC\tBanker\t256\t32\tAttitude=Good",
+  "StaticObject\tAnvil\t640\t416",
+  "StaticObject\tFurnace\t736\t384"
+ ],
+ "4,2,0": [
+  "StaticObject\tAnvil\t544\t416",
+  "StaticObject\tFurnace\t640\t384"
+ ],
+ "4,3,0": [
+  "StaticObject\tNotice\t257\t290\tId=Wardhaven_Road"
+ ],
+ "4,8,0": [
+  "NPC\tCaptain\t256\t224\tAttitude=Good",
+  "NPC\tTrader\t128\t32\tAttitude=Good",
+  "NPC\tSettler\t416\t352\tAttitude=Good Zone=8,8,15,12",
+  "StaticObject\tNotice\t385\t226\tId=Highwatch",
+  "NPC\tBanker\t160\t448\tAttitude=Good",
+  "NPC\tGuard\t288\t512\tAttitude=Good Zone=9,15,11,19",
+  "NPC\tSheriff\t544\t248\tAttitude=Good Stand=1 Face=S Id=Highwatch_Sheriff_16 Name=Colin"
+ ],
+ "4,9,0": [
+  "NPC\tSheriff\t96\t536\tAttitude=Good Stand=1 Face=S Id=Frosthold_Sheriff_16 Name=Albert"
+ ],
+ "5,2,0": [
+  "NPC\tBanker\t256\t384\tAttitude=Good",
+  "NPC\tSettler\t160\t640\tAttitude=Good Zone=3,17,7,21",
+  "StaticObject\tNotice\t129\t514\tId=Wardhaven",
+  "StaticObject\tDragonforge\t64\t480",
+  "NPC\tWyrmsmith\t96\t480\tAttitude=Good Stand=1"
+ ],
+ "5,3,0": [
+  "NPC\tTrader\t224\t64\tAttitude=Good",
+  "NPC\tGuard\t128\t352\tAttitude=Good Stand=1"
+ ],
+ "5,4,0": [
+  "NPC\tSheriff\t544\t312\tAttitude=Good Stand=1 Face=S Id=Court_Sheriff_20 Name=Harold"
+ ],
+ "6,6,0": [
+  "StaticObject\tNotice\t321\t290\tId=The_Eastreach"
+ ],
+ "7,4,0": [
+  "NPC\tWarden\t288\t224\tAttitude=Good Stand=1",
+  "NPC\tScout\t480\t224\tAttitude=Good Stand=1",
+  "NPC\tBanker\t96\t96\tAttitude=Good",
+  "NPC\tTrader\t64\t384\tAttitude=Good",
+  "StaticObject\tFurnace\t672\t96",
+  "StaticObject\tAnvil\t736\t64",
+  "NPC\tSettler\t448\t352\tAttitude=Good Zone=9,8,16,12",
+  "StaticObject\tNotice\t417\t226\tId=Emberwatch"
+ ],
+ "7,6,0": [
+  "NPC\tDruid\t256\t320\tAttitude=Good",
+  "NPC\tTrader\t512\t96\tAttitude=Good",
+  "NPC\tSettler\t416\t448\tAttitude=Good Zone=8,11,15,15",
+  "NPC\tBanker\t96\t512\tAttitude=Good",
+  "StaticObject\tNotice\t385\t322\tId=Thornwick",
+  "NPC\tSheriff\t320\t536\tAttitude=Good Stand=1 Face=S Id=Thornwick_Sheriff_13 Name=Lionel"
+ ],
+ "8,4,0": [
+  "StaticObject\tNotice\t481\t578\tId=The_Cinderlands",
+  "NPC\tSheriff\t96\t312\tAttitude=Good Stand=1 Face=S Id=Emberwatch_Sheriff_13 Name=Percy"
+ ],
+ "8,7,0": [
+  "NPC\tSheriff\t640\t536\tAttitude=Good Stand=1 Face=S Id=Ravensgate_Sheriff_24 Name=Rosie"
+ ],
+ "8,8,0": [
+  "NPC\tGravekeeper\t416\t128\tAttitude=Good",
+  "NPC\tTrader\t640\t384\tAttitude=Good",
+  "NPC\tSettler\t576\t256\tAttitude=Good Zone=13,5,20,9",
+  "NPC\tBanker\t704\t32\tAttitude=Good",
+  "StaticObject\tNotice\t545\t130\tId=Ravensgate",
+  "StaticObject\tFurnace\t256\t416",
+  "StaticObject\tAnvil\t352\t384"
+ ]
+}

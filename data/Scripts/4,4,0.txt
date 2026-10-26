@@ -1,2 +1,7 @@
-01	Display.Message	Cyan	The Royal Isle: the Wizards' Court.
-02	End
+01	Display.Message	Cyan	Southport. Gulls wheel over the harbour.
+02	Get.Value	ATTRIBUTE	EscortQuest	Variable.8$
+03	>Conditional	$Variable.8<2	07
+04	>Follower.Near	Granny_Wren	3000	06
+05	End
+06	Add.Entity	432,272	Old_Woman	NPC	Attitude=Good Stand=1 Face=S Id=Granny_Wren Name=Granny_Wren
+07	End

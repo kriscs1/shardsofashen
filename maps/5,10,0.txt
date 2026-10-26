@@ -1,25 +1,21 @@
-Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001+Decor(Snow_Pine001):Snow001+Decor(Snow_Pine001):Snow001:Snow_Water005:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001+Decor(Snow_Rock001):Snow001+Decor(Snow_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001+Decor(Snow_Rock001):Snow001+Decor(Snow_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001+Decor(Snow_Rock001):Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001+Decor(Sea_Rock001):Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Snow001+Decor(Snow_Pine001):Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Dirt001:Dirt001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001+Decor(Sea_Rock001):Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Water005:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-NPC	Snow_Wolf	96	608	Attitude=Bad
-NPC	Snow_Wolf	256	544	Attitude=Bad
-NPC	Frost_Witch	160	160	Attitude=Bad
-StaticObject	Swordfish_Spot	384	352
+Peak001:Peak004:Peak004:Peak003:Peak003:Forest001:Forest001:Forest001:Peak001:Peak002:Peak004:Peak002:Peak001:Peak002:Peak003:Peak003:Peak005:Peak003:Peak002:Peak005:Peak001:Peak006:Peak003:Peak005:Peak001
+Peak001:Peak005:Peak003:Peak002:Peak004:Peak003:Peak005:Forest001:Forest001:Forest001:Forest001:Forest001:Peak001:Peak002:Peak005:Peak006:Peak001:Peak003:Peak006:Peak003:Peak005:Peak003:Peak002:Peak003:Peak003
+Peak002:Peak001:Peak002:Peak005:Peak004:Peak002:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Peak004:Peak001:Peak005:Peak005:Peak002:Peak002:Peak003:Peak004:Peak005:Peak001:Peak002:Peak005:Peak004
+Peak005:Peak003:Peak004:Peak006:Peak006:Peak004:Peak002:Peak006:Forest001:Forest001:Forest001:Forest001:Peak005:Peak002:Peak006:Peak004:Peak005:Peak002:Peak003:Peak006:Peak003:Peak002:Peak003:Peak006:Peak004
+Peak003:Peak005:Peak003:Peak001:Peak002:Peak006:Peak004:Peak004:Forest001:Forest001:Forest001:Forest001:Peak005:Peak002:Peak004:Peak002:Peak002:Peak004:Peak003:Peak001:Peak004:Peak003:Peak003:Peak006:Peak006
+Peak001:Peak001:Peak001:Peak004:Forest001:Forest001:Forest001:Peak005:Forest001:Forest001:Forest001:Forest001:Peak006:Peak003:Peak005:Peak005:Peak001:Peak002:Peak002:Peak001:Peak001:Peak001:Peak006:Peak003:Peak005
+Peak002:Peak001:Peak004:Peak_Big001:Peak002:Peak_Big001:Peak002:Peak001:Peak002:Peak001:Peak006:Peak005:Peak003:Peak002:Peak004:Peak003:Peak002:Peak003:Peak001:Peak003:Peak001:Peak002:Peak002:Peak001:Peak002
+Peak003:Peak004:Peak003:Peak005:Peak004:Peak002:Peak001:Peak002:Peak006:Peak004:Peak001:Peak004:Peak005:Peak004:Peak004:Peak001:Peak005:Peak003:Peak003:Peak004:Peak004:Peak004:Peak003:Peak001:Forest001
+Peak002:Peak004:Peak001:Peak005:Peak001:Peak001:Peak004:Peak_Big001:Peak004:Peak002:Peak006:Peak_Big001:Peak004:Peak006:Peak003:Peak001:Peak001:Peak004:Peak006:Peak001:Peak005:Peak001:Peak006:Peak_Big001:Peak004
+Peak002:Peak003:Peak001:Peak004:Peak006:Peak004:Peak002:Peak005:Peak003:Peak001:Peak004:Peak004:Peak004:Peak001:Peak002:Peak006:Peak003:Peak003:Peak003:Peak004:Peak004:Peak002:Peak005:Peak001:Peak005
+Peak005:Peak002:Peak004:Peak_Big001:Peak001:Peak002:Peak006:Peak005:Peak006:Peak001:Peak006:Peak003:Peak006:Peak001:Peak003:Peak001:Peak006:Peak004:Peak001:Peak003:Peak003:Peak002:Peak001:Peak002:Peak002
+Peak001:Peak005:Peak006:Peak005:Peak005:Peak002:Peak001:Peak005:Peak002:Peak003:Peak001:Peak004:Peak005:Peak006:Peak005:Peak005:Peak005:Peak004:Peak003:Peak003:Peak002:Peak003:Peak006:Peak002:Peak005
+Peak_Big002:Peak002:Peak002:Peak004:Peak004:Peak001:Peak005:Peak004:Peak002:Peak001:Peak002:Peak006:Peak004:Peak002:Peak003:Peak001:Peak002:Peak002:Peak001:Peak001:Peak004:Peak_Big001:Peak006:Peak003:Peak004
+Peak001:Peak003:Peak002:Peak005:Peak006:Peak006:Peak001:Peak001:Peak005:Peak002:Peak006:Peak004:Peak002:Peak005:Peak006:Peak004:Peak001:Peak005:Peak004:Peak005:Peak006:Peak005:Peak004:Peak001:Peak002
+Peak001:Peak002:Peak002:Peak005:Peak004:Peak002:Peak002:Peak002:Peak005:Peak001:Peak003:Peak006:Peak001:Peak004:Peak004:Peak004:Peak006:Peak_Big001:Peak004:Peak001:Peak002:Peak_Big001:Peak005:Peak001:Peak006
+Peak002:Peak001:Peak003:Peak006:Peak004:Peak004:Peak006:Peak005:Peak006:Peak006:Peak006:Peak006:Peak003:Peak006:Peak003:Peak005:Peak006:Peak001:Peak003:Peak002:Peak004:Peak001:Peak001:Peak004:Peak004
+Peak005:Peak005:Peak006:Peak001:Peak006:Peak005:Peak006:Peak_Big001:Peak006:Peak001:Peak003:Peak_Big001:Peak002:Peak001:Peak001:Peak001:Peak002:Peak004:Peak004:Peak001:Peak006:Peak002:Peak006:Peak004:Peak001
+Peak001:Peak003:Peak005:Peak001:Peak004:Peak006:Peak002:Peak002:Peak002:Peak002:Peak003:Peak005:Peak001:Peak006:Peak004:Peak003:Peak002:Peak004:Peak002:Peak006:Peak001:Peak006:Peak001:Peak001:Peak006
+Peak002:Peak006:Peak001:Peak004:Peak003:Peak005:Peak005:Peak003:Peak005:Peak005:Peak002:Peak005:Peak006:Peak003:Peak003:Peak003:Peak004:Peak_Big001:Peak001:Peak002:Peak002:Peak003:Peak006:Peak002:Peak006
+Peak003:Peak004:Peak001:Peak005:Peak001:Peak003:Peak006:Peak002:Peak003:Peak001:Peak001:Peak002:Peak004:Peak006:Peak004:Peak003:Peak003:Peak002:Peak005:Peak002:Peak004:Peak006:Peak002:Peak004:Peak003
+Peak003:Peak001:Peak002:Peak001:Peak001:Peak005:Peak006:Peak003:Peak006:Peak003:Peak001:Peak001:Peak005:Peak006:Peak001:Peak003:Peak006:Peak006:Peak006:Peak001:Peak001:Peak003:Peak001:Peak002:Peak003

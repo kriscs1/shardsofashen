@@ -1503,6 +1503,8 @@ def scripts():
 
 
 def main():
+    if K.new_mainland():
+        sys.exit("Superseded: build_estforlan.py rebuilt the mainland. This one would put back the old mainland's quest places and scripts (their maps' names have moved).")
     draw_pictures()
     data()
     places()

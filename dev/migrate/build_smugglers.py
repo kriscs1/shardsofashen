@@ -381,6 +381,10 @@ def scripts():
 
 
 def main():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import story_kit as K
+    if K.new_mainland():
+        sys.exit("Superseded: build_estforlan.py rebuilt the mainland. This one would put back the old smugglers' cove and tunnels.")
     draw_pictures()
     data()
     tunnels()

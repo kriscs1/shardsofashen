@@ -502,7 +502,10 @@ def main():
     sounds()
     data()
     scripts()
-    place()
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import story_kit as K
+    if not K.new_mainland():                 # (build_estforlan.py places these in the new mainland)
+        place()
 
 
 if __name__ == "__main__":

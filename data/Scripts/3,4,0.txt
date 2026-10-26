@@ -1,2 +1,0 @@
-01	Display.Message	Cyan	Ashford's market square. Stallholders cry their wares.	-
-02	End

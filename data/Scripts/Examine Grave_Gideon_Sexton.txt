@@ -1,3 +1,3 @@
-// The grave Grave_Gideon_Sexton on 8,8,0 (dev\migrate\name_graves.py)
+// The grave Grave_Gideon_Sexton on 22,16,0 (dev\migrate\name_graves.py)
 01	Display.Message	Black	'Gideon Sexton, bell-ringer. Deaf by forty; ringing still at eighty.'
 02	End

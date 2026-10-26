@@ -72,6 +72,10 @@ GRAVES = {
 
 
 def main():
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import story_kit as K
+    if K.new_mainland():
+        sys.exit("Superseded: build_estforlan.py rebuilt the mainland. This one would put back the old graveyards' names (the graves kept their Ids when they moved).")
     named = written = 0
     for map_name, names in GRAVES.items():
         m = Map(map_name)

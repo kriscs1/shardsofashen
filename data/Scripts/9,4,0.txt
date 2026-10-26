@@ -1,0 +1,7 @@
+01	Display.Message	Cyan	Ashford. You smell fresh bread.
+02	Get.Value	ATTRIBUTE	EscortQuest	Variable.8$
+03	>Conditional	$Variable.8>=2	07
+04	>Follower.Near	Granny_Wren	3000	06
+05	End
+06	Add.Entity	464,592	Old_Woman	NPC	Attitude=Good Stand=1 Face=W Id=Granny_Wren Name=Granny_Wren
+07	End
