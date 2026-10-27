@@ -120,4 +120,5 @@ def assemble(log=print):
     parts_maps = {p["new"] for p in L.parts()["parts"].values()}
     log("creatures: %d, by the water: %d" % (life.populate(atlas, plans, parts_maps), life.waters(atlas, plans)))
     log("out of reach, gone: %d" % life.prune(atlas, plans["Southport"].centre))
+    log("wanderers with nowhere to go, given room: %d" % life.fix_zones(atlas))
     return atlas, plans, homes, rehoused, gate_map, scripts, bridge

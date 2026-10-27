@@ -7,8 +7,8 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof004.01):Plank001+Decor(Potted_Plant004)+Roof(Slate_Roof005.01):Plank001+Roof(Slate_Roof005.01):Plank001+Roof(Slate_Roof005.01):Plank001+Roof(Slate_Roof005.01):Plank001+Roof(Slate_Roof005.01):Plank001+Roof(Slate_Roof005.01):Plank001+Roof(Slate_Roof005.01):Plank001+Decor(Potted_Plant005)+Roof(Slate_Roof005.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof006.01):Snow001:Flagstone001:Snow001:Snow001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof007.01):Plank001+Roof(Slate_Roof008.01):Plank001+Roof(Slate_Roof008.01):Plank001+Roof(Slate_Roof008.01):Plank001+Decor(Desk001)+Roof(Slate_Roof008.01):Plank001+Roof(Slate_Roof008.01):Plank001+Roof(Slate_Roof008.01):Plank001+Roof(Slate_Roof008.01):Plank001+Roof(Slate_Roof008.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof009.01):Snow001:Flagstone001:Snow001:Snow001
 Snow001:Snow001:Snow001+Decor(Pebbles003):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof010.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Plank001+Roof(Slate_Roof011.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Plank001+Decor(Bench001)+Roof(Slate_Roof011.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof012.01):Snow001:Flagstone001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.01):Snow001:Flagstone001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Snow001:Flagstone001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.01):Snow001:Flagstone001:Snow001:Grass001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Snow001:Flagstone001:Grass001:Grass001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001+Decor(Lamp_Post001):Flagstone001:Flagstone001:Flagstone001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Flagstone001:Flagstone001:Flagstone001:Flagstone001
 Snow001:Snow001:Snow001:Timber_Thin_Plank008+Roof(Thatch_Roof001.04):Timber_Thin_Plank001+Decor(Bed001)+Roof(Thatch_Roof002.04):Timber_Thin_Plank001+Roof(Thatch_Roof002.04):Timber_Thin_Plank001+Decor(Bed001)+Roof(Thatch_Roof002.04):Timber_Thin_Plank001+Roof(Thatch_Roof002.04):Timber_Thin_Plank005+Roof(Thatch_Roof003.04):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Flagstone001:Flagstone001:Flagstone001:Flagstone001
@@ -21,14 +21,15 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Dirt001:Dirt001:
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 NPC	Greengrocer	736	376	Attitude=Good Stand=1 Face=S Id=Frosthold_Stall_301 Name=Ned
 NPC	Butcher	736	504	Attitude=Good Stand=1 Face=S Id=Frosthold_Stall_303 Name=Edgar
-NPC	Clerk	480	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Clerk_310
-NPC	Baker	576	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Baker_314 Name=Mabel
-NPC	Fishmonger	384	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Fishmonger_316 Name=Toby
-NPC	Doctor	160	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Doctor_327 Name=Jane
+NPC	Black_Cat	736	312	Attitude=Good Zone=19,7,24,15 Pause=4-12
+NPC	Clerk	480	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Clerk_312
+NPC	Baker	576	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Baker_316 Name=Mabel
+NPC	Fishmonger	384	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Fishmonger_318 Name=Toby
+NPC	Doctor	160	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Doctor_329 Name=Jane
 StaticObject	Market_Stall_Open	736	416
 StaticObject	Market_Stall_Open	736	544
-StaticObject	Notice	640	386	Id=Frosthold_Notice_308
-StaticObject	Notice	672	322	Id=Frosthold_Notice_311
-StaticObject	Notice	288	546	Id=Frosthold_Notice_328
-StaticObject	Notice	288	578	Id=Frosthold_Notice_339
+StaticObject	Notice	640	386	Id=Frosthold_Notice_310
+StaticObject	Notice	672	322	Id=Frosthold_Notice_313
+StaticObject	Notice	288	546	Id=Frosthold_Notice_330
+StaticObject	Notice	288	578	Id=Frosthold_Notice_342
 Id	Frosthold_Town_Hall	20	12

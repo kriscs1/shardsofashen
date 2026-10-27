@@ -187,6 +187,41 @@ def prune(atlas, start):
     return gone
 
 
+def fix_zones(atlas):
+    """Someone whose Zone= (where they wander) has nowhere to walk now the land round them changed: a smaller one
+    round where they stand, or, if even that's shut in, they stand."""
+    import re
+    import towns as OLD
+    fixed = 0
+    for name, m in atlas.maps.items():
+        def walk(x, y):
+            if not (1 <= x <= XT and 1 <= y <= YT):
+                return False
+            cell = m.rows[y - 1][x - 1].split("+")
+            names = [cell[0]] + [p[6:-1] for p in cell[1:] if p.startswith("Decor(")]
+            return all(OLD.walk_middle(n) for n in names)
+        out = []
+        for ln in m.ents:
+            f = ln.split("\t")
+            z = re.search(r"Zone=(\d+),(\d+),(\d+),(\d+)", ln) if f[0] == "NPC" else None
+            if z:
+                x1, y1, x2, y2 = (int(v) for v in z.groups())
+                if sum(1 for y in range(y1, y2 + 1) for x in range(x1, x2 + 1) if walk(x, y)) < 3:
+                    sx, sy = int(float(f[2])) // TW + 1, (int(float(f[3])) + 24) // TW + 1
+                    box = (max(1, sx - 2), max(1, sy - 2), min(XT, sx + 2), min(YT, sy + 2))
+                    room = sum(1 for y in range(box[1], box[3] + 1) for x in range(box[0], box[2] + 1) if walk(x, y))
+                    new = "Zone=%d,%d,%d,%d" % box if room >= 3 else "Stand=1"
+                    if new == "Stand=1" and "Stand=1" in ln:
+                        new = ""
+                    opts = " ".join(o for o in " ".join(f[4:]).split() if not o.startswith("Zone=")) + \
+                        (" " + new if new else "")
+                    ln = "\t".join(f[:4] + ([opts.strip()] if opts.strip() else []))
+                    fixed += 1
+            out.append(ln)
+        m.ents = out
+    return fixed
+
+
 def sounds(atlas):
     """{map: its background sound}: its land's, the waves where it's mostly sea."""
     out = {}

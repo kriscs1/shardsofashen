@@ -1,24 +1,26 @@
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Cinder001:Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree001):Ash001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Dirt001:Dirt001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Dirt001:Dirt001:Dirt001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001+Decor(Dead_Tree001):Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Lava001:Lava001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Lava001:Lava001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001+Decor(Dead_Tree001):Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Lava001:Lava001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Lava001:Ash001:Ash001:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Lava001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001+Decor(Ember_Vent001):Ash001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
-StaticObject	Signpost	192	416	Id=Signpost_656_223
-NPC	Ember_Hound	448	376	Attitude=Bad Zone=10,9,20,17
-StaticObject	Fish_Spot	544	288
+Dirt001:Dirt001:Ash001:Grass001:Grass001:Ash001:Ash001:Cinder001:Ash001:Ash001+Decor(Dead_Tree001):Ash001+Decor(Dead_Tree001):Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Grass001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Grass001:Ash001:Ash001:Grass001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Grass001:Grass001+Decor(Tall_Grass001):Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Grass001+Decor(Pebbles001):Grass001+Decor(Tall_Grass001):Grass001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand_Water006:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Ash001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Pebbles002):Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tree001):Ash001:Ash001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Ash001:Ash001:Lava001:Lava001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Grass001:Ash001:Ash001:Lava001:Lava001:Ash001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Grass001:Ash001:Ash001:Lava001:Lava001:Ash001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001+Decor(Flowers003):Ash001:Ash001:Ash001:Ash001:Ash001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001+Decor(Tall_Grass001):Grass001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
+StaticObject	Signpost	64	0	Id=Signpost_652_210
+NPC	Rabbit	160	56	Attitude=Bad Zone=2,2,11,7
+NPC	Rabbit	512	568	Attitude=Bad Zone=12,15,22,20
+NPC	Rabbit	576	536	Attitude=Bad Zone=14,14,24,20
+StaticObject	Fish_Spot	576	288

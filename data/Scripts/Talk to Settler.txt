@@ -29,7 +29,7 @@
 28	>On.Map	16,2,0	31
 29	Display.Conversation	Settler	Goblins on the bridge and the guards run off: we thought we'd starve out here. They say it was you who cleared them. Drinks are on the house at every table in Wardhaven!	Thanks.	35
 30	End
-31	>On.Map	26,5,0	34
+31	>On.Map	27,5,0	34
 32	Display.Conversation	Settler	The Warden says the cult burnt the shrines first. Then the farms. Now there's a fire in the Cinder Fort every night. Ask her if you want work.	Thanks.	35
 33	End
 34	Display.Conversation	Settler	Safe travels.	Thanks.	35

@@ -11,7 +11,7 @@
 10	Update.Attribute	Waystone.Court	=1
 11	Display.Message	Yellow	The rune flares blue: you are attuned to the Wizards' Court waystone.
 12	Goto.Line	51
-13	>On.Map	26,6,0	19
+13	>On.Map	26,5,0	19
 14	Get.Value	CALCULATION	Emberwatch	Variable.9$
 15	>Conditional	$Attr.Waystone.Emberwatch=0	52
 16	Update.Attribute	Waystone.Emberwatch	=1

@@ -36,9 +36,16 @@ def mapped(gx, gy):
 
 def warped(gx, gy, amp, scale, seed):
     """gx,gy moved by big slow noise (bays, headlands, the lands' borders wandering) and a little quick noise (ragged)."""
-    wx = gx + amp * (fbm(gx, gy, scale, seed) - 0.5) + amp * 0.45 * (fbm(gx, gy, 9, seed + 3) - 0.5)
-    wy = gy + amp * (fbm(gx, gy, scale, seed + 7) - 0.5) + amp * 0.45 * (fbm(gx, gy, 9, seed + 5) - 0.5)
+    wx = gx + amp * (fbm(gx, gy, scale, seed) - 0.5) + amp * 0.5 * (fbm(gx, gy, 18, seed + 9) - 0.5) + \
+        amp * 0.45 * (fbm(gx, gy, 9, seed + 3) - 0.5)
+    wy = gy + amp * (fbm(gx, gy, scale, seed + 7) - 0.5) + amp * 0.5 * (fbm(gx, gy, 18, seed + 11) - 0.5) + \
+        amp * 0.45 * (fbm(gx, gy, 9, seed + 5) - 0.5)
     return int(math.floor(wx)), int(math.floor(wy))
+
+
+def spine(gx, gy):
+    """How far into map column 0 the West Range reaches at gx, gy (its east edge wandering)."""
+    return 10 + 9 * fbm(gx, gy, 7, 81) + 3 * fbm(gx, gy, 3, 80)
 
 
 def range_solid(gx, gy):
@@ -46,7 +53,7 @@ def range_solid(gx, gy):
     Galaith's valley (the half of each wall nearest the valley), so the valley stays shut but for the pass."""
     mx, my = gx // XT, gy // YT
     lx, ly = gx - mx * XT, gy - my * YT
-    if mx == 0 and lx <= 12 + 6 * fbm(gx, gy, 12, 81):
+    if mx == 0 and lx <= spine(gx, gy):
         return True
     if mx < 0 and my == L.ty(10) and ly >= 9 - 5 * fbm(gx, gy, 10, 82):
         return True
@@ -75,8 +82,8 @@ def land_here(gx, gy):
         return m != "~"                               # (Galaith's mountains: right to the world's edge)
     if m == "I":
         return False
-    if m == "v":
-        return island(gx, gy, L.SETTLEMENTS["Wardhaven"]["maps"], 34, 20, up=6)  # (over two maps' rows; a bridge to the coast)
+    if m == "v" and island(gx, gy, L.SETTLEMENTS["Wardhaven"]["maps"], 34, 20, up=6):
+        return True  # (over two maps' rows; a bridge to the coast)
     if m == "D":
         return False                                  # (Dragon Island is lifted whole)
     if m == "M" and range_solid(gx, gy):              # (the West Range runs right to the world's edge, and ends where
@@ -89,23 +96,35 @@ def land_here(gx, gy):
         c = "~"
     if m in L.HARD:                                   # (Galaith's valley is as planned)
         return True
-    return is_land_char(c) and not (gx >= GW - XT // 2 or gy >= GH - YT // 2)
+    return is_land_char(c) and not (gx >= GW - 4 - 12 * fbm(gx, gy, 8, 96) or gy >= GH - 4 - 10 * fbm(gx, gy, 8, 97))
+
+
+def nearest_land(mx, my):
+    """The land of the nearest map that has one (the coast reaching into a sea map: the land beside it)."""
+    for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (1, -1), (-1, 1), (1, 1), (0, -2), (0, 2), (-2, 0),
+                   (2, 0)):
+        c = L.macro(mx + dx, my + dy)
+        if is_land_char(c) and c not in L.HARD and c not in ("v", "D"):
+            return c
+    return "g"
 
 
 def land_of(gx, gy):
     m = mapped(gx, gy)
     if gx < 0:
         return L.LAND[m] if m in L.LAND else "mount"
-    if m == "P" and gx % XT > 12 + 6 * fbm(gx, gy, 12, 81):      # (east of the range: the land beyond it)
+    if m == "P" and gx % XT > spine(gx, gy):                 # (east of the range: the land beyond it)
         return L.LAND.get(L.macro(gx // XT + 1, gy // YT), "wood")
     if m in L.HARD:
         return L.LAND[m]
     if m == "M" and range_solid(gx, gy):
         return "mount"                                # (the range's spine and the valley's walls stay mountain)
-    wx, wy = warped(gx, gy, 90, 46, 11)
+    wx, wy = warped(gx, gy, 130, 38, 11)                # (the lands' borders: well off the plan's lines)
     c = mapped(min(GW - 1, max(0, wx)), min(GH - 1, max(0, wy)))
+    if c == "P":
+        c = L.macro(1, min(GH - 1, max(0, wy)) // YT)  # (the pass's column: the land beyond it, so no seam)
     if c in L.HARD or not is_land_char(c) or c in ("v", "D"):
-        c = m if is_land_char(m) and m not in ("v", "D") else "g"
+        c = m if is_land_char(m) and m not in ("v", "D") else nearest_land(gx // XT, gy // YT)
     if c in L.HARD:
         c = "M"
     return L.LAND[c]
@@ -204,7 +223,8 @@ def scenery(land, gx, gy, r):
     if land == "hills":
         if n2 > 0.72 and r < 0.55:
             return "Grass001", "Rock001"
-        ground = "Dirt001" if n3 > 0.68 else "Grass001"
+        ground = "Dirt001" if n3 > 0.7 + 0.16 * (h01("dirt", gx, gy) - 0.5) + 0.12 * (fbm(gx, gy, 4, 95) - 0.5) \
+            else "Grass001"                            # (bare patches with ragged edges, grass growing into them)
         return ground, ("Copper_Rock001" if r < 0.006 else "Tin_Rock001" if r < 0.012 else "Ore_Rock001" if r < 0.017
                         else "Coal_Rock001" if r < 0.021 else "Silver_Rock001" if r < 0.0225 else
                         "Tree001" if r < 0.04 else "Tall_Grass001" if r < 0.08 else "Nightshade_Patch001" if r < 0.083

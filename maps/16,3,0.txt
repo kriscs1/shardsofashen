@@ -9,18 +9,17 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water009:Sand001:Sand001:Sand001:Sand001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Grass001:Sand001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Sand_Water009:Sand001:Sand001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Dirt001:Dirt001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001
+Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water006:Water001
+Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Sand001:Sand001:Sand001:Sand001:Sand001:Water001
+Water001:Water001:Sand_Water009:Sand001:Sand001:Sand001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand_Water007
+Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001
+Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001
 Lock	13	3	$Attr.WardhavenQuest>=3	The gates of Wardhaven are barred. Nobody answers from the wall.
 Lock	14	3	$Attr.WardhavenQuest>=3	The gates of Wardhaven are barred. Nobody answers from the wall.
 Id	Wardhaven_Gate	13	4
-Id	Wardhaven_Bridge_Span	13	14
-StaticObject	Fish_Spot	448	544
+Id	Wardhaven_Bridge_Span	14	9

@@ -4,6 +4,7 @@ new ones."""
 import re
 
 import story_kit as K
+from atlas import fbm
 
 from atlas import XT, YT, TW, map_xy
 import layout as L
@@ -73,6 +74,15 @@ OPEN_GROUND = ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001", "Cinder00
 ROADLIKE = ("Dirt001", "Paving001", "Plank001", "Cobble001", "Brick_Paving001", "Gravel001")
 
 
+def local_ground(c, r=9):
+    """The open ground most common round c (a clearing in the desert is sand)."""
+    from collections import Counter
+    seen = Counter(g for g in (LAND.GROUND.get((c[0] + dx, c[1] + dy), "") for dx in range(-r, r + 1, 2)
+                               for dy in range(-r, r + 1, 2))
+                   if g in ("Grass001", "Sand001", "Snow001", "Ash001", "Marsh001", "Dirt001"))
+    return seen.most_common(1)[0][0] if seen else "Grass001"
+
+
 def clearings(atlas):
     """Room round each lifted place: mountains within a few tiles of it (an edge that wanders) give way to the
     land's own ground, so it stands in the open and a path can come to it."""
@@ -80,15 +90,15 @@ def clearings(atlas):
     for name, part in L.parts()["parts"].items():
         if len(part["cells"]) == XT * YT and name not in TRIM:
             continue
-        for c in set(rect_cells(part, 6, name)):
+        boxes = [(world(part, x1, y1), world(part, x2, y2)) for x1, y1, x2, y2 in rects(name, part)]
+        for c in set(rect_cells(part, 8, name)):
             g = LAND.GROUND.get(c, "")
             if "Peak" not in g:
                 continue
-            inner = set(rect_cells(part, 2 + int(4 * fbm(c[0], c[1], 6, 79)), name))
-            if c in inner:
-                land = LAND.BIOME.get(c, "meadow")
-                ground = {"cinder_mount": "Ash001", "snow_mount": "Snow001"}.get(land, "Sand001" if any(
-                    LAND.BIOME.get((c[0] + d, c[1])) == "desert" for d in (-8, 8)) else "Grass001")
+            d = min(((max(a[0] - c[0], 0, c[0] - b[0])) ** 2 + (max(a[1] - c[1], 0, c[1] - b[1])) ** 2) ** 0.5
+                    for a, b in boxes)
+            if d <= 2 + 6 * fbm(c[0], c[1], 6, 79):              # (round, its edge wandering)
+                ground = local_ground(c)
                 atlas.set(c[0], c[1], tile=ground, decor="")
                 m, x, y = atlas.at(*c)
                 m.rows[y - 1][x - 1] = ground
@@ -114,13 +124,18 @@ def stamp(atlas):
                     cell = part["cells"].get("%d,%d" % (x, y))
                     if trimmed and "+" not in cell and cell.startswith(SHORE):
                         continue                           # (the new coast's own sand and sea)
+                    if not whole and cell in ("Grass001", "Sand001") and \
+                            min(x - x1, x2 - x, y - y1, y2 - y) <= int(3 * fbm(c[0], c[1], 5, 98)):
+                        continue                           # (its plain edge: the land round it, so no ruled line)
                     if cell is None:
                         if whole:
                             continue
                         alone = sum(1 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
                                     if "%d,%d" % (x + dx, y + dy) not in part["cells"]) < 2
-                        if alone:
-                            continue                       # (a lone tile: the new land's, not a puddle)
+                        edge = min(x - x1, x2 - x, y - y1, y2 - y)
+                        dry = not LAND.GROUND.get(c, "").startswith("Water")
+                        if alone or dry and edge <= 1 + int(4 * fbm(c[0], c[1], 5, 95)):
+                            continue                       # (a lone tile, or its edge by dry land: the new land's)
                         cell = "Water001"
                         if c not in LAND.BIOME:
                             LAND.BIOME[c] = "meadow"

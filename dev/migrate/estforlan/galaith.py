@@ -50,7 +50,7 @@ def walls(atlas):
                     continue
                 d = max(NORTH - gy, gy - SOUTH - 1, WEST - gx, 0)
                 taper = max(0.0, min(1.0, (EAST - 6 - gx) / 14.0))    # (none by the gate: no way round it)
-                margin = int(taper * (2 + 8 * fbm(gx, gy, 16, 77) + 3 * fbm(gx, gy, 5, 76)))
+                margin = int(taper * (2 + 6 * fbm(gx, gy, 12, 77) + 5 * fbm(gx, gy, 4, 76)))
                 if d <= margin and gx > L.XMIN * XT + 2:
                     r = h01("foot", gx, gy)
                     put(atlas, gx, gy, "Grass001", "Rock001" if r < 0.05 else "Pebbles%03d" % (1 + int(r * 60) % 3)
@@ -63,7 +63,7 @@ def walls(atlas):
                 bite = 1 + int(16 * fbm(gx, gy, 14, 78) + 4 * fbm(gx, gy, 5, 75) + funnel)
                 if LAND.GROUND.get(c, "").startswith(("Water", "Sand_Water")) and e < 0:
                     continue                                           # (the sea beyond the mountains)
-                if e < 0 or e < bite and abs(gy - GATE) > 2:
+                if e < 0 or e < bite and abs(gy - GATE) > 2 + int(3 * fbm(gx, gy, 6, 99)):
                     put(atlas, gx, gy, peak(gx, gy))
                 elif not LAND.GROUND.get(c, "").startswith("Scorched"):
                     put(atlas, gx, gy, "Scorched%03d" % (1 + int(h01("sc", gx, gy) * 3)))
@@ -130,7 +130,7 @@ def pass_(atlas):
             for gx in range(PASS_X * XT, PASS_X * XT + XT):
                 lx = gx - PASS_X * XT + 1
                 half = 1 if abs(lx - BARRIER_X) <= 2 else 2 + int(h01("pw", gx) * 2)
-                spine = lx <= 13 + 6 * fbm(gx, gy, 12, 81)               # (the range; east of it, the land beyond)
+                spine = lx <= LAND.spine(gx, gy) + 1                    # (the range; east of it, the land beyond)
                 if not spine and not (my == L.ty(12) and abs(gy - GATE) <= 1):
                     continue
                 if my == L.ty(12) and abs(gy - GATE - 0) <= half and gy - GATE >= -half and gy - GATE <= half:

@@ -49,7 +49,7 @@
 48	End
 49	Display.Item.Rack	SPECIFIC	Trader	SHOP-Wardhaven	57
 50	End
-51	>On.Map	26,5,0	56
+51	>On.Map	27,5,0	56
 52	Display.Conversation	Trader	Welcome to Emberwatch! Have a look at my wares.	Show me.	54	Goodbye.	57
 53	End
 54	Display.Item.Rack	SPECIFIC	Trader	SHOP-Emberwatch	57

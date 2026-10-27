@@ -109,7 +109,7 @@ SETTLEMENTS = {
     "Moorcross": dict(title="Moorcross", size="hamlet", maps=(12, 8, 12, 8), street="Dirt001", outer="Dirt001",
                       walls=[("Stone_Wall001", 4), ("Plaster001", 3), ("Brick001", 3)], grand="Stone_Wall001",
                       coast=None, land="moor"),
-    "Wildwood": dict(title="Wildwood", size="hamlet", maps=(2, 8, 2, 8), street="Dirt001", outer="Dirt001",
+    "Wildwood": dict(title="Wildwood", size="hamlet", forest=True, maps=(2, 8, 2, 8), street="Dirt001", outer="Dirt001",
                      walls=[("Timber001", 5), ("Plaster001", 3)], grand="Timber001", coast=None, land="wood"),
     "Dunerest": dict(title="Dunerest", size="hamlet", maps=(3, 18, 3, 18), street="Sandstone_Paving001",
                      outer="Sand001", walls=[("Sandstone001", 6), ("Plaster001", 4)], grand="Sandstone001", coast=None,

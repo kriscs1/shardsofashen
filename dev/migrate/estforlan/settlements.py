@@ -710,11 +710,15 @@ class Plan(OLD.Town):
                 if n in self.cells and n not in dist:
                     dist[n] = dist[(x, y)] + 1
                     q.append(n)
+        forest = self.spec.get("forest")
         for c, (cell, ground, decor) in self.wild.items():
             if c in used or c in self.atlas.roads:
                 continue
             d = dist.get(c, 99)
             edge = 2 + 7 * fbm(c[0], c[1], 11, 91)
+            if forest:                                         # (a forest town: the trees close round it, in it)
+                self.forest_cell(c, d)
+                continue
             if d <= edge:
                 continue                                       # (cleared, round the town)
             if d > edge + 3 + 4 * fbm(c[0], c[1], 7, 92):     # (the wild, as it was)
@@ -730,6 +734,38 @@ class Plan(OLD.Town):
             if d2:
                 self.atlas.set(c[0], c[1], decor=d2)
                 LAND.DECOR[c] = d2
+
+    TREES = ("Tree001", "Tree002", "Oak_Tree001", "Yew_Tree001", "Tree001", "Oak_Tree001", "Bush001")
+
+    def forest_cell(self, c, d):
+        """A forest town's ground at c, d tiles from its streets and buildings: a tree or two among the houses, thick
+        trees a few tiles out, then the deep forest."""
+        from atlas import fbm
+        r = h01("forest", c)
+        if d <= 1:
+            return
+        if d >= 3 + 2 * fbm(c[0], c[1], 6, 94) and r < 0.75:
+            tile, tree = "Forest001", ""
+        else:
+            tile = "Grass001"
+            tree = self.TREES[int(r * 70) % len(self.TREES)] if r < (0.4 if d < 3 else 0.9) else ""
+        self.atlas.set(c[0], c[1], tile=tile, decor=tree)
+        LAND.GROUND[c], LAND.DECOR[c] = tile, tree
+
+    def deep_woods(self, reach=30):
+        """Round a forest town, beyond the ground it cleared: the woods thick for reach tiles."""
+        cx, cy = self.centre
+        for gy in range(cy - reach, cy + reach + 1):
+            for gx in range(cx - reach, cx + reach + 1):
+                c = (gx, gy)
+                if c in self.cells or c in self.atlas.taken or c in self.atlas.roads or c in LAND.RIVER:
+                    continue
+                if LAND.GROUND.get(c) != "Grass001" or (LAND.DECOR.get(c) or "").startswith(("Rock", "Standing")):
+                    continue
+                far = ((gx - cx) ** 2 + (gy - cy) ** 2) ** 0.5
+                if far > reach * (0.7 + 0.3 * h01("rim", gx // 4, gy // 4)):
+                    continue
+                self.forest_cell(c, 12)
 
     def maps_of(self):
         x1, y1, x2, y2 = self.spec["maps"]
@@ -1051,5 +1087,7 @@ def settle(atlas, key, reserved, hint=None, keep=None, carts=None, staff=(), hoo
     plan.adopt(staff)
     plan.name_places()
     plan.rewild()
+    if spec.get("forest"):
+        plan.deep_woods()
     plan.write()
     return plan

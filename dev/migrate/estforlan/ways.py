@@ -45,7 +45,7 @@ class Ways:
         d = LAND.DECOR.get(c, "")
         if d and not d.startswith(SMALL):
             base += 2.5                                # (a tree or a rock, cleared)
-        return base * (0.5 + 1.2 * fbm(c[0], c[1], 7, 91))      # (so a road wanders, as country roads do)
+        return base * (0.3 + 1.4 * fbm(c[0], c[1], 7, 91) + 0.8 * fbm(c[0], c[1], 19, 93))   # (roads wander)
 
     def anchors(self, name):
         """The cells a road may start or end at for a place: a settlement's streets, else the place's way in."""

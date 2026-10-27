@@ -24,18 +24,18 @@ NPC	Fishmonger	768	376	Attitude=Good Stand=1 Face=S Id=Keep_Stall_302 Name=Vera
 NPC	Butcher	512	504	Attitude=Good Stand=1 Face=S Id=Keep_Stall_303 Name=Ulric
 NPC	Baker	768	504	Attitude=Good Stand=1 Face=S Id=Keep_Stall_304 Name=Ida
 NPC	Dog	256	568	Attitude=Good Zone=4,15,14,20 Pause=4-12
-NPC	Clerk	256	184	Attitude=Good Stand=1 Face=S Id=Keep_Clerk_311
-NPC	Baker	544	216	Attitude=Good Stand=1 Face=S Id=Keep_Baker_319 Name=Greta
-NPC	Butcher	352	472	Attitude=Good Stand=1 Face=S Id=Keep_Butcher_321 Name=Mabel
-NPC	Butcher	160	472	Attitude=Good Stand=1 Face=S Id=Keep_Butcher_323 Name=Ulric
+NPC	Clerk	256	184	Attitude=Good Stand=1 Face=S Id=Keep_Clerk_313
+NPC	Baker	544	216	Attitude=Good Stand=1 Face=S Id=Keep_Baker_321 Name=Greta
+NPC	Butcher	352	472	Attitude=Good Stand=1 Face=S Id=Keep_Butcher_323 Name=Mabel
+NPC	Butcher	160	472	Attitude=Good Stand=1 Face=S Id=Keep_Butcher_325 Name=Ulric
 StaticObject	Market_Stall_Open	512	416
 StaticObject	Market_Stall_Open	768	416
 StaticObject	Market_Stall_Open	512	544
 StaticObject	Market_Stall_Open	768	544
 StaticObject	Market_Board	640	384
-StaticObject	Notice	448	322	Id=Keep_Notice_312
-StaticObject	Notice	0	578	Id=Keep_Notice_339
-StaticObject	Notice	64	578	Id=Keep_Notice_365
+StaticObject	Notice	448	322	Id=Keep_Notice_314
+StaticObject	Notice	0	578	Id=Keep_Notice_341
+StaticObject	Notice	64	578	Id=Keep_Notice_370
 Id	Keep_Market_Square	21	17
 Id	Keep_Square	21	17
 Id	Keep_City_Hall	13	12
