@@ -48,6 +48,11 @@ read it back as $Variable.n.
   $Map.Z                     The Z Coordinate of the Map.
   $Map.Name                  The name of Map (X,Y,Z).
   $Time                      The current Time (in seconds).
+  $Clock                     Seconds on the real clock, always counting up (now minus a time saved in an attribute: how long ago).
+  $Player.Son                son, or daughter for a woman (the player's body).
+  $Player.Boy                boy, or girl for a woman.
+  $Player.Lord               lord, or lady for a woman.
+  $Player.King               King, or Queen for a woman.
   $Object.under.Cursor.X     The X Coordinate of the Object that the user clicked on.
   $Object.under.Cursor.Y     The Y Coordinate of the Object that the user clicked on.
   $Tile.under.Cursor.X       The X Coordinate of the Tile that the user clicked on.

@@ -2637,3 +2637,38 @@ def test_a_journey_by_shardstone_costs_a_few_shards(world):
     ticks(world, 40)
     assert a.shards() == 8 and a.cur_map.name == "11,4,0"          # (2 Shards, and there)
     leave(world, a)
+
+def test_the_kings_shard_seam_gives_shards_once_a_day(world):
+    seam = next(e for e in world.ents if e.name == "Shard_Seam" and e.map == "-11,14,-1")
+    m = world.maps[seam.map]
+    s = join(world, "Monarch", seam.map, int(seam.x - m.ox) + 36, int(seam.y - m.oy) + 8)
+    s.connected = True
+    stock(s, Pickaxe=1)
+
+    def mine():
+        s.out = []
+        s.choose_verb("Mine", seam, int(seam.cx), int(seam.cy))
+        for _ in range(100):
+            world.tick(0.05, now=world.now + 50)
+        return " ".join(str(e.get("text", "")) for e in s.out if e.get("t") == "msg")
+
+    before = s.shards()
+    assert "the Crown's" in mine() and s.shards() == before              # (not king: not yours)
+    s.update_attribute("KingQuest", "=1")
+    before = s.shards()                                                  # (after The True Heir's own reward)
+    assert "prise loose 12 Shards" in mine() and s.shards() == before + 12
+    assert "haven't grown back" in mine() and s.shards() == before + 12  # (once a day)
+    s.update_attribute("ShardSeamAt", "=%d" % (int(s.get_attribute("ShardSeamAt")) - 21 * 3600))
+    mine()
+    assert s.shards() == before + 24
+    assert next(e for e in s.inv if e.name == "Pickaxe").wear >= 2        # (the pickaxe wears, as on any rock)
+    leave(world, s)
+
+
+def test_a_woman_is_a_daughter_a_lady_and_a_queen(world):
+    s = join(world, "Isolde")
+    words = "My $Player.Son, the $Player.King. Mary's $Player.Boy, my $Player.Lord."
+    assert s.parse_script_variables(words) == "My son, the King. Mary's boy, my lord."
+    s.handle({"t": "look", "look": {"body": "f"}})
+    assert s.parse_script_variables(words) == "My daughter, the Queen. Mary's girl, my lady."
+    leave(world, s)

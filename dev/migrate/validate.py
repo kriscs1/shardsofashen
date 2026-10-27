@@ -1192,7 +1192,7 @@ def check_entities():
 
 SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
-               "Scrolls.Rarer"},
+               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours"},
     "Dismantle": {"Weapon", "Armour", "Scroll"},
     "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",

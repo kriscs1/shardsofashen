@@ -6,6 +6,7 @@ attributes ($Attr, Get.Value ATTRIBUTE, >Quest.Can.Start), what it changes after
 alone see changed, an NPC that is a friend or weaker to them alone, a thing that's gone for them alone). The commands
 Personal and Shared set that by hand. A map's entry script never adds a second copy of something already there."""
 import os
+import time
 
 from dragonsword import ini
 from dragonsword.lb import (val, word, field, trim, lbstr, distance, strip_digits, random_number, rnd, parse_quantity,
@@ -23,6 +24,10 @@ MAP_ARGS = {"Teleport": 2, "Add.Action.To.Queue": 5}
 ENTITY_COMMANDS = ("Remove.Entity", "Edit.Entity", "Move.Entity")
 PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "aggressive",
                    "AGGRO.RANGE": "aggro_range"}
+
+
+PLAYER_WORDS = [("$Player.Son", "son", "daughter"), ("$Player.Boy", "boy", "girl"), ("$Player.Lord", "lord", "lady"),
+                ("$Player.King", "King", "Queen")]
 
 
 class ScriptMixin:
@@ -313,7 +318,12 @@ class ScriptMixin:
             ("$Cursor.X", lbstr(int(self.script_cursor_x - ox))),
             ("$Cursor.Y", lbstr(int(self.script_cursor_y - oy))),
             ("$Time", lbstr(seconds_today())),
+            ("$Clock", lbstr(int(time.time()))),
         ]
+        if "$Player." in text:                      # (a woman's words for her: daughter, girl, lady, Queen)
+            f = (self.look or {}).get("body") == "f"
+            for a, man, woman in PLAYER_WORDS:
+                text = text.replace(a, woman if f else man)
         for a, b in reps:
             text = text.replace(a, b)
         for i in range(1, 10):

@@ -1280,7 +1280,7 @@ def galaith():
         ("@s4",), (">Conditional", "$Variable.1=4 and $Item.Chancellors_Warrant>=1", "@chat"),
         ("Take.Item", "Chancellors_Warrant", "1"),
         ("Update.Attribute", "GuardQuest", "=5"),
-        say("Guard_Captain", "The Chancellor's warrant. Then you may pass, and... my lord.\\The King is in the throne "
+        say("Guard_Captain", "The Chancellor's warrant. Then you may pass, and... my $Player.Lord.\\The King is in the throne "
                              "room.", ("Thank you, Captain.", "@done")),
         ("@done",), ("Display.Message", "Yellow", "Quest complete: The Royal Guard!", "Quest"),
         ("End",),
@@ -1292,7 +1292,7 @@ def galaith():
         ("Get.Value", "ATTRIBUTE", "GuardQuest", V1),
         (">Conditional", "$Variable.1=1", "@s3"),
         say("Chancellor", "You wish to see the King? You, and every merchant, beggar and poet in Galaith, now the gates "
-                          "are open.\\What makes you more than they are?", ("I am his son.", "@son")),
+                          "are open.\\What makes you more than they are?", ("I am his $Player.Son.", "@son")),
         ("@son",),
         say("Chancellor", "Bold. The Queen's child would be eighteen now, and would carry the Amulet of Succession. "
                           "Show it to the Royal Archivist, at the City Hall: she knows every true seal in Estforlan. If "
@@ -1303,7 +1303,7 @@ def galaith():
         ("Take.Item", "Archivists_Attestation", "1"),
         ("Give.Item", "Chancellors_Warrant", "1"),
         ("Update.Attribute", "GuardQuest", "=4"),
-        say("Chancellor", "The Archivist's seal, in green. Then it is true.\\My lord. Forgive an old man his doubts. Here "
+        say("Chancellor", "The Archivist's seal, in green. Then it is true.\\My $Player.Lord. Forgive an old man his doubts. Here "
                           "is my warrant: show it to the captain of the guard.", ("Thank you, Chancellor.", "@end")),
         ("End",),
         ("@chat",),
@@ -1322,7 +1322,7 @@ def galaith():
         ("@mother",),
         ("Give.Item", "Archivists_Attestation", "1"),
         ("Update.Attribute", "GuardQuest", "=3"),
-        say("Archivist", "Then welcome home, my lord. Take my word to the Chancellor, under my own seal.",
+        say("Archivist", "Then welcome home, my $Player.Lord. Take my word to the Chancellor, under my own seal.",
             ("Thank you.", "@end")),
         ("End",),
         ("@noamulet",),
@@ -1350,22 +1350,22 @@ def galaith():
         ("Play.Sound", "Quest"),
         ("Display.Message", "Cyan", "The King comes down from his throne, and holds you, and weeps.", "-"),
         say("King_Rupert", "Mary. My Mary. She took you away so the dragon couldn't have you, and I let them call it a "
-                           "betrayal. Eighteen years.\\My son. My son.", ("Father.", "@crown")),
+                           "betrayal. Eighteen years.\\My $Player.Son. My $Player.Son.", ("Father.", "@crown")),
         ("@crown",),
         say("King_Rupert", "I have held this throne for a city in chains. You broke the chains. It's yours.\\He lifts the "
-                           "crown from his head and sets it on yours.\\Long live the King of Estforlan!",
+                           "crown from his head and sets it on yours.\\Long live the $Player.King of Estforlan!",
             ("Long live Estforlan.", "@king")),
         ("@king",),
         ("Update.Attribute", "KingQuest", "=1"),
         ("Play.Sound", "LevelUp"),
-        ("Display.Message", "Yellow", "Quest complete: The True Heir! You are the King of Estforlan. The world is yours "
+        ("Display.Message", "Yellow", "Quest complete: The True Heir! You are the $Player.King of Estforlan. The world is yours "
                                       "to explore.", "Quest"),
         ("Add.Entity", at(13, 7, -2), "Strawberry_Cat", "NPC", JIMMY),
         ("Display.Message", "Cyan", "A ginger cat you'd know anywhere has curled up on the throne. Jimmy, how did you "
                                     "get here?", "-"),
         ("End",),
         ("@after",),
-        say("King_Rupert", "My son, the King. Your mother would be proud.", ("Goodbye, Father.", "@end")),
+        say("King_Rupert", "My $Player.Son, the $Player.King. Your mother would be proud.", ("Goodbye, Father.", "@end")),
         ("@end",), ("End",),
     ])
     w("12,5,0", [                                 # (Jimmy, asleep on the throne once you're king: throne_jimmy.py)

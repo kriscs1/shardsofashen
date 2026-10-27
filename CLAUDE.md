@@ -77,7 +77,8 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
 17. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
-   **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens.
+   **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens: at its far wall
+   the **King's Shard Seam** gives the Crown Shards once a (real) day (`dev/migrate/build_kings_seam.py`).
 
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
 The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.md` has every quest, step by step.
@@ -136,6 +137,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   No mana, anywhere: a quest or text that would need it uses Shards.
 - **Every Shard number is in `data/Shards.ini`** (the balance, shardstones, chests, `[Dismantle]` rates by kind,
   `[Upgrade.<Spell>]` ranks, `[Remnants]`): the builders only add what's missing there, so edit them in the ini.
+- A woman is a woman in the story too: scripts say `$Player.Son`, `$Player.Boy`, `$Player.Lord`, `$Player.King`
+  (daughter, girl, lady, Queen for her), never a fixed "son" or "King" for the player.
 - The fast-travel stones are **Shardstones** (`Shardstone`, `Travel Shardstone`). The attunements in saves keep their
   old names (attribute `Waystone.<Key>`, place Id `Waystone_<Key>`): don't rename those.
 - A spell's scroll teaches it for good (if your Magic is high enough; else it's kept); a known spell's scroll isn't

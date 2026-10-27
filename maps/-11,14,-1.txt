@@ -20,3 +20,4 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wal
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Id	Galaith_Mine_Floor	13	11
+StaticObject	Shard_Seam	64	312	Id=Kings_Shard_Seam

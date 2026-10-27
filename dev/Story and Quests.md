@@ -227,7 +227,9 @@ shrines stand quiet in the Ashwold).
 ## Loose threads and hooks
 
 - **Wardhaven** opens once the dragon is dead, but nothing happens there yet.
-- **The mine behind Galaith** opens to the King: the gold and Shard mines the bargain was made for.
+- **The mine behind Galaith** opens to the King: the gold and Shard mines the bargain was made for. At its far
+  wall the **King's Shard Seam** gives the Crown 12 Shards once every 20 hours (Shards.ini `Galaith.Seam`), with a
+  pickaxe and some Mining.
 - A villager in the Isle village says her granny warned never to dig in the **stone circle** on the north-west
   headland. Nothing is buried there yet (its hidden chest is opened, not dug up).
 - The **Ashen Hand's** shrines and acolytes are still in the Cinderlands with nothing to do since the old chapters

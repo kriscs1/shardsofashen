@@ -871,7 +871,7 @@ def opening():
     ] + FAR)
     w("Read Last_Will", [
         ("Play.Sound", "Paper"),
-        say("Last_Will", "THE LAST WILL AND TESTAMENT OF MARY\\My beloved son,\\We have lived in poverty on this island "
+        say("Last_Will", "THE LAST WILL AND TESTAMENT OF MARY\\My beloved $Player.Son,\\We have lived in poverty on this island "
                          "since you were six months old; this is not what your life should have been like. You are the "
                          "true heir of Estforlan, and its riches, lands and people are yours to protect.",
             ("Read on.", "@p2")),
@@ -1095,7 +1095,7 @@ def chapel_and_caves():
         (">Conditional", "$Skill.Strength>=2 and $Skill.Defence>=2", "@untrained"),
         (">Conditional", "$Item.Chapel_Cellar_Key>=1", "@nokey"),
         ("Update.Attribute", "AmuletQuest", "=4"),
-        say("Gravekeeper", "Mary's boy. So the time has come.\\She came to me years ago with something to hide: an amulet. "
+        say("Gravekeeper", "Mary's $Player.Boy. So the time has come.\\She came to me years ago with something to hide: an amulet. "
                            "We put it at the back of the caves under this chapel, behind bars no hand could reach "
                            "through.\\You have the trapdoor's key from Maren, and a sword and a shield, and you look as "
                            "if you can use them now. Go down. I'll not be far behind you.",
