@@ -358,7 +358,7 @@ class GameServer:
         self.clients[s] = c
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
-                            "explored": s.explored_for_client(), "time": w.clock_event(), "labels": w.map_labels()})
+                            "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())
 
     WHISPER = ("/w ", "/whisper ", "/tell ", "/msg ")

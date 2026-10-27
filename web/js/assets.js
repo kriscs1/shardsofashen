@@ -3,7 +3,9 @@
 import { val, trim } from "./util.js";
 
 export const A = { m: null, imgs: new Map(), pending: 0, listeners: [] };
-const lower = { tiles: null, entities: null, config: null, spells: null };
+const lower = { tiles: null, entities: null, config: null, spells: null, shards: null };
+// (the spell you wrote at the Spellwright's Lectern: its values come from the server, not Spells.ini - main.js sets it)
+export const OWN = { spell: "Own_Spell", v: null };
 
 export async function loadManifest() {
   const r = await fetch("/assets/manifest.json", { cache: "no-cache" });
@@ -32,7 +34,14 @@ function iniRead(table, section, key, dflt) {
 
 export const tileIni = (name, key, dflt = "") => iniRead("tiles", name, key, dflt);
 export const configRead = (section, key, dflt = "") => iniRead("config", section, key, dflt);
-export const spellIni = (spell, key, dflt = "") => iniRead("spells", spell, key, dflt);
+export const spellIni = (spell, key, dflt = "") => {
+  if (spell === OWN.spell && OWN.v) {
+    const k = Object.keys(OWN.v).find((x) => x.toUpperCase() === String(key).toUpperCase());
+    return k === undefined ? String(dflt).trim() : String(OWN.v[k]);
+  }
+  return iniRead("spells", spell, key, dflt);
+};
+export const shardsIni = (section, key, dflt = "") => iniRead("shards", section, key, dflt);
 
 export function isDecorTile(name) {
   return !!name && tileIni(name, "Layer", "").trim().toLowerCase() === "decor";

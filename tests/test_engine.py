@@ -1084,6 +1084,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     world.set_day_fraction(0.5)                                     # (by day: Maren at her counter)
     s = join(world, "Heir", "2,1,0", 16 * 32, 8 * 32)
     s.connected = True
+    s.god_mode = True                                               # (the caves' beasts: no dying in a test)
     attr = lambda name: int(float(s.get_attribute(name) or 0))
     run, npc, talk, use = isle_helpers(world, s)
     assert attr("LastWill") == 2                                    # (a saved character: past the funeral)
@@ -1104,7 +1105,8 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     s.use_item_with(rng)                                            # fried on Maren's range, upstairs
     run(60)
     assert s.items_held("Fried_Egg") == 1 and attr("DinnerQuest") == 3
-    talk(npc("Edwin", "2,1,0", "Edwin_At_Desk"), 1, 1)              # the egg to Edwin; Maren gives the key
+    talk(npc("Edwin", "2,1,0", "Edwin_At_Desk"), 1, 1, 1)           # the egg to Edwin; Maren gives the key
+    assert s.items_held("Healing_Draught") >= 2                     # (and draughts: herbs mend you, not Shards)
     assert attr("DinnerQuest") == 4 and s.items_held("Chapel_Cellar_Key") == 1
     # The Amulet of Succession, and Bess's compass begun
     bess = npc("Milkmaid", "2,0,0")
@@ -1117,7 +1119,8 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert {r["item"] for r in s.rack if r["level"] <= 1} >= {"Wooden_Sword", "Wooden_Shield"}
     s.close_action_box(-1)
     stock(s, Wooden_Sword=1, Wooden_Shield=1)
-    talk(frank, 1)
+    talk(frank, 1, 1)
+    assert s.dismantle_worth("Copper_Dagger") >= 1 and s.items_held("Copper_Dagger") == 1   # (his old dagger)
     assert attr("AmuletQuest") == 3
     aldous = npc("Gravekeeper", "3,1,0", "Chapel_Verger")
     talk(aldous, 1)                                                 # not unarmed
@@ -1135,8 +1138,27 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     s.teleport("1,1,-2", 5 * 32, 11 * 32 - 8)                       # (beside the niche at the back of the caves)
     run(10)
     niche = next(e for e in world.ents if e.name == "Barred_Niche" and e.owner is s)
+    for e in [e for e in world.ents if e.type == NPC and e.map == "1,1,-2" and e.hostile]:
+        world.remove_entity(e)                                      # (any that came back meanwhile)
+    s.player_attack_target = None
+    for _ in range(100):                                            # (a kill's script still running: wait for it)
+        if not s.script_running and not s.script_queue:
+            break
+        run(1)
+    s.teleport("1,1,-2", 5 * 32, 11 * 32 - 8)                       # (back beside the niche: a fight may have moved them)
+    run(3)
+    s.out = []
     s.do_action("Reach In", niche)                                  # too close for a hand: Aldous, and a scroll
-    run(60)
+    for _ in range(200):
+        run(1)
+        if s.ab_mode == "Conversation":
+            break
+    s.action_box_response_chosen(1)                                 # (the remnants first: Absorb them)
+    for _ in range(200):
+        run(1)
+        if s.ab_mode == "Conversation":
+            break
+    assert s.items_held("Shard_Remnant") == 3, [m.get("text") for m in s.out if m.get("t") == "msg"]
     s.action_box_response_chosen(1)
     run(30)
     assert attr("AmuletQuest") == 5 and s.items_held("Grasp_Scroll") == 1
@@ -1823,15 +1845,18 @@ def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
     world.animate_entity(seal, False)
     assert world.in_water(seal) and seal.image.startswith("Seal_Swim")          # (in the sea: just its head)
     sx, sy = (seal.cx - m.ox) / 32 + 0.5, (seal.cy - m.oy) / 32 + 0.5
-    beach = min(((x, y) for y in range(2, 21) for x in range(2, 25)      # (the nearest sand by the water)
-                 if not m.tile_is_water(x, y) and m.local_walkable((x - 0.5) * 32, (y - 0.5) * 32) and
-                 any(m.tile_is_water(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))),
-                key=lambda t: (t[0] - sx) ** 2 + (t[1] - sy) ** 2)
+    beaches = sorted(((x, y) for y in range(2, 21) for x in range(2, 25)    # (the nearest sand by the water first)
+                      if not m.tile_is_water(x, y) and m.local_walkable((x - 0.5) * 32, (y - 0.5) * 32) and
+                      any(m.tile_is_water(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))),
+                     key=lambda t: (t[0] - sx) ** 2 + (t[1] - sy) ** 2)
     a = seal.ai
-    a.goal_x, a.goal_y = m.ox + (beach[0] - 0.5) * 32, m.oy + (beach[1] - 0.5) * 32 - (seal.fy - seal.cy)
-    world.npc_walk_started(seal, a, AI_ROAM)
-    for _ in range(600):
-        world.tick(0.05, now=world.now + 50)
+    for beach in beaches[:6]:                                   # (one it can't reach from where it is: the next)
+        a.goal_x, a.goal_y = m.ox + (beach[0] - 0.5) * 32, m.oy + (beach[1] - 0.5) * 32 - (seal.fy - seal.cy)
+        world.npc_walk_started(seal, a, AI_ROAM)
+        for _ in range(300):
+            world.tick(0.05, now=world.now + 50)
+            if not world.in_water(seal):
+                break
         if not world.in_water(seal):
             break
     assert not world.in_water(seal) and not seal.image.startswith("Seal_Swim")   # (out on the beach)
@@ -2092,7 +2117,7 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
     run(5)
     lights = lambda: [e for e in world.ents if e.name == "Barrier_Light" and e.alive and world.visible_to(e, s)]
     assert len(lights()) == 3
-    story_done_before(s, 15)
+    story_done_before(s, 15)                                        # (up to The Sword of Valour)
     stock(s, Staff_of_Estforlan=1)
     m = s.cur_map
     gx, gy = m.ox + 7 * 32 + 16, m.oy + 10 * 32 + 16                 # (the barrier at 8,11, from beside it)
@@ -2101,6 +2126,11 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
     run(60)
     assert int(float(s.get_attribute("GalaithQuest") or 0)) == 0                 # (the staff alone: no words for it)
     s.update_attribute("BarrierSpell", "=1")
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
+    s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
+    run(80)
+    assert s.get_attribute("ShardgateQuest") == "1" and len(lights()) == 3   # (it holds: its anchor's in the realm)
+    s.update_attribute("ShardgateQuest", "=5")                      # (The Shardgate: the anchor broken)
     s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
     s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
     run(80)
@@ -2151,7 +2181,7 @@ def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
     attr = lambda: int(float(s.get_attribute("DragonforgeQuest") or 0))
     talk(wyrmsmith)
     assert attr() == 0                                               # (the dragon lives: no quest yet)
-    story_done_before(s, 16)                                         # (the dragon of Galaith slain)
+    story_done_before(s, 17)                                         # (the dragon of Galaith slain)
     talk(wyrmsmith, 1)
     assert attr() == 1
     stock(s, Dragon_Scale=3)
@@ -2166,7 +2196,7 @@ def test_the_royal_guard_and_the_king(world):
     attr = lambda a: int(float(s.get_attribute(a) or 0))
     palace = world.maps["-9,14,0"]
     door = palace.lock_at[(13, 13)]
-    story_done_before(s, 16)
+    story_done_before(s, 17)
     find = lambda pid: next(e for e in world.ents if e.alive and e.npc_id == pid)
     captain, king = find("Palace_Captain"), find("Rupert_On_Throne")
     talk(captain, 1)
@@ -2235,19 +2265,28 @@ def test_a_new_character_has_shards_and_an_old_one_gets_them_once(world):
 def test_a_learnt_spell_stays_through_death_and_logging_off(world):
     a = join(world, "Learner", "11,4,0", 384, 300)
     a.skill_level = lambda skill: 10
-    stock(a, Healing_Scroll=1)
-    a.do_action("Learn", next(e for e in a.inv if e.name == "Healing_Scroll"))
-    assert "Healing" in a.spells_known and a.items_held("Healing_Scroll") == 0
+    stock(a, Shard_Ward_Scroll=1)
+    a.do_action("Learn", next(e for e in a.inv if e.name == "Shard_Ward_Scroll"))
+    assert "Shard_Ward" in a.spells_known and a.items_held("Shard_Ward_Scroll") == 0
     a.player_dies()
     a.handle({"t": "respawn"})
     world.tick(0.05)
-    assert "Healing" in a.spells_known
-    a.spell_start_cooldown("Healing")
+    assert "Shard_Ward" in a.spells_known
+    a.spell_start_cooldown("Shard_Ward")
     saved = a.save_state()
     leave(world, a)
     b = Session(world, "Learner")
     b.load_state(saved)
-    assert "Healing" in b.spells_known and b.spell_cooldown_left("Healing") > 0    # (logging off doesn't reset it)
+    assert "Shard_Ward" in b.spells_known and b.spell_cooldown_left("Shard_Ward") > 0    # (logging off doesn't reset it)
+
+
+def test_healing_and_farsight_are_potions_now_and_stone_skin_a_ward(world):
+    s = Session(world, "Oldtimer")
+    s.load_state({"spells": {"Healing": 2, "Farsight": 1, "Stone_Skin": 1, "Fire_Bolt": 1},
+                  "inventory": [["Healing_Scroll", 2, 0], ["Stone_Skin_Scroll", 1, 0]]})
+    assert set(s.spells_known) == {"Shard_Ward", "Fire_Bolt"}
+    assert s.items_held("Healing_Draught") == 5 and s.items_held("Owl_Potion") == 2      # (3 for the spell, 2 scrolls)
+    assert s.items_held("Shard_Ward_Scroll") == 1 and s.data.spell_ini("Healing", "Effect", "") == ""
 
 
 def test_a_scroll_too_hard_to_learn_is_kept(world):
@@ -2264,27 +2303,24 @@ def test_a_scroll_too_hard_to_learn_is_kept(world):
 def test_casting_spends_shards_only_when_it_takes(world):
     a = join(world, "Spender", "11,4,0", 384, 300)
     a.skill_level = lambda skill: 10
-    a.spells_known["Healing"] = 1
-    a.player.hp = 5
+    a.spells_known["Shard_Ward"] = 1
     a.remove_inventory_item("Shard", a.shards())
-    stock(a, Shard=5)                                              # (Healing takes 6)
+    stock(a, Shard=9)                                              # (the Shard Ward takes 10)
     a.out = []
-    a.cast_spell("Healing", None)
-    assert a.shards() == 5 and a.player.hp == 5                    # (too few: nothing taken, nothing cast)
+    a.cast_spell("Shard_Ward", None)
+    assert a.shards() == 9 and a.spell_defence_bonus == 0          # (too few: nothing taken, nothing cast)
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
     stock(a, Shard=10)
     a.spell_chance = lambda spell: 0                               # (it fizzles: no Shards spent)
-    a.cast_spell("Healing", None)
-    assert a.shards() == 15 and a.spell_cooldown_left("Healing") > 0
+    a.cast_spell("Shard_Ward", None)
+    assert a.shards() == 19 and a.spell_cooldown_left("Shard_Ward") > 0
     a.cooldowns.clear()
     a.player_last_cast = 0
     a.spell_chance = lambda spell: 100
-    a.cast_spell("Healing", None)
-    assert a.shards() == 9 and a.player.hp > 5                     # (cast: 6 Shards, exactly once)
-    a.player.hp = 5
-    a.cast_spell("Healing", None)                                  # (again at once: its cooldown)
-    a.cast_spell("Healing", None)
-    assert a.shards() == 9 and a.player.hp == 5
+    a.cast_spell("Shard_Ward", None)
+    assert a.shards() == 9 and a.spell_defence_bonus > 0           # (cast: 10 Shards, exactly once)
+    a.cast_spell("Shard_Ward", None)                               # (again at once: its cooldown)
+    assert a.shards() == 9
     assert not a.spend_shards(100, "That") and a.shards() == 9     # (never below nothing)
     leave(world, a)
 
@@ -2292,14 +2328,13 @@ def test_casting_spends_shards_only_when_it_takes(world):
 def test_the_hotbar_casts_a_known_spell_without_its_scroll(world):
     a = join(world, "Quick", "11,4,0", 384, 300)
     a.skill_level = lambda skill: 10
-    a.spells_known["Healing"] = 1
+    a.spells_known["Shard_Ward"] = 1
     a.spell_chance = lambda spell: 100
-    a.player.hp = 3
-    a.hotbar[0] = "Healing_Scroll"
-    assert a.items_held("Healing_Scroll") == 0
+    a.hotbar[0] = "Shard_Ward_Scroll"
+    assert a.items_held("Shard_Ward_Scroll") == 0
     shards = a.shards()
     a.hotbar_use(0)
-    assert a.player.hp > 3 and a.shards() == shards - 6
+    assert a.spell_defence_bonus > 0 and a.shards() == shards - 10
     a.handle({"t": "hotbar_spell", "spell": "Fire_Bolt"})          # (not known: not put there)
     assert "Fire_Bolt_Scroll" not in a.hotbar
     leave(world, a)
@@ -2672,3 +2707,157 @@ def test_a_woman_is_a_daughter_a_lady_and_a_queen(world):
     s.handle({"t": "look", "look": {"body": "f"}})
     assert s.parse_script_variables(words) == "My daughter, the Queen. Mary's girl, my lady."
     leave(world, s)
+
+
+def near(world, s, e, dx=36, dy=8):
+    """s stands by e (on its map), the world ticks a moment."""
+    m = world.maps[e.map]
+    s.teleport(e.map, int(e.x - m.ox) + dx, int(e.y - m.oy) + dy)
+    s.do_pending_map_change()
+    for _ in range(5):
+        world.tick(0.05, now=world.now + 50)
+
+
+def run_for(world, n=60):
+    for _ in range(n):
+        world.tick(0.05, now=world.now + 50)
+
+
+def talk_to(world, s, e, most=200):
+    """Talk to e, and wait (it may have to walk to them) till their conversation's open."""
+    s.choose_verb("Talk to", e, int(e.cx), int(e.cy))
+    for _ in range(most):
+        world.tick(0.05, now=world.now + 50)
+        if s.ab_mode == "Conversation":
+            return True
+    return False
+
+
+def test_writing_a_spell_of_your_own_at_the_lectern(world):
+    lectern = next(e for e in world.ents if e.name == "Spellwright_Lectern")
+    s = join(world, "Wright", lectern.map, 300, 300)
+    s.connected = True
+    near(world, s, lectern, 0, 40)
+    s.out = []
+    s.choose_verb("Write", lectern, int(lectern.cx), int(lectern.cy))
+    run_for(world, 5)
+    assert s.ab_mode != "Conversation"                              # (not taught yet: the pages are blank)
+    s.update_attribute("SpellwrightQuest", "=3")
+    s.skill_level = lambda skill: 25
+    s.choose_verb("Write", lectern, int(lectern.cx), int(lectern.cy))
+    run_for(world, 5)
+    assert s.ab_mode == "Conversation" and s.responses[0].startswith("Bolt")
+    s.action_box_response_chosen(1)                                 # (a bolt)
+    assert all(r.startswith("Power") for r in s.responses[:-1])
+    s.action_box_response_chosen(len(s.responses) - 1)              # (the strongest: power 5)
+    s.action_box_response_chosen(2)                                 # (far)
+    assert "Wright's Bolt, power 5" in s.ab_text
+    s.action_box_response_chosen(1)                                 # (write it: the first time is free)
+    assert s.spell_rank("Own_Spell") == 1 and s.spell_title("Own_Spell") == "Wright's Bolt"
+    assert s.spell_ini("Own_Spell", "Damage", "") == "10-21" and s.spell_ini("Own_Spell", "Range", "") == "320"
+    near_cost = int(s.spell_ini("Own_Spell", "Cost", "0"))
+    assert near_cost == round(3 * 5 ** 1.1 * 1.4)                   # (Shards.ini [Spellwright]: dearer for far)
+    assert any(r["spell"] == "Own_Spell" for r in s.spellbook()) and s.me_state()["own"]["title"] == "Wright's Bolt"
+    saved = s.save_state()
+    leave(world, s)
+    t = Session(world, "Wright")
+    t.load_state(saved)
+    assert t.spell_title("Own_Spell") == "Wright's Bolt" and t.spell_ini("Own_Spell", "Cost", "") == str(near_cost)
+
+
+def test_the_spellwright_quest_from_core_to_lectern(world):
+    quill = next(e for e in world.ents if e.npc_id == "Court_Magister")
+    s = join(world, "Apprentice", quill.map, 300, 300)
+    s.connected = True
+    for q in ("Passage", "ShardQuest"):
+        s.update_attribute(q, "=12" if q == "Passage" else "=2")
+    near(world, s, quill, 0, 36)
+
+    def talk(*answers):
+        s.choose_verb("Talk to", quill, int(quill.cx), int(quill.cy))
+        run_for(world, 10)
+        for n in answers:
+            assert s.ab_mode == "Conversation", n
+            s.action_box_response_chosen(n)
+            run_for(world, 10)
+        if s.ab_mode:
+            s.close_action_box(-1)
+
+    talk(2, 1)                                                      # (about spellcraft; I'll bring you one)
+    assert s.get_attribute("SpellwrightQuest") == "1"
+    stock(s, Remnant_Core=1)
+    talk(2, 1)
+    assert s.get_attribute("SpellwrightQuest") == "2" and s.items_held("Remnant_Core") == 0
+    stock(s, Shard_Remnant=20)
+    s.do_action("Absorb", next(e for e in s.inv if e.name == "Shard_Remnant"))
+    talk(2, 1)
+    assert s.get_attribute("SpellwrightQuest") == "3"
+    leave(world, s)
+
+
+def test_the_shardgate_from_bert_to_the_broken_anchor(world):
+    bert = next(e for e in world.ents if e.name == "Bert" and e.alive)
+    s = join(world, "Gatewright", bert.map, 300, 300)
+    s.connected = True
+    s.god_mode = True                                               # (the realm's remnants: no dying in a test)
+    for q, v in (("Passage", 12), ("ParliamentQuest", 9), ("AshfordQuest", 9), ("HobgoblinQuest", 2), ("BertQuest", 2),
+                 ("ShipQuest", 2), ("DragonIsleQuest", 2), ("ValourQuest", 3), ("WizardGift", 1)):
+        s.update_attribute(q, "=%d" % v)
+    assert s.quest_can_start("ShardgateQuest")
+    assert any("Shardgate" in n for n in s.quest_needs("GalaithQuest"))              # (the gate first)
+    s.update_attribute("ShardgateQuest", "=1")                     # (the barrier held: its script)
+    near(world, s, bert, 0, 36)
+    assert talk_to(world, s, bert)
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("ShardgateQuest") == "2" and s.items_held("Shardgate_Plans") == 1
+    assert not any(l["n"] == "The Shardgate" for l in s.my_labels())
+    ring = next(e for e in world.ents if e.name == "Shardgate_Ring")
+    near(world, s, ring, 16, 72)
+    s.choose_verb("Build", ring, int(ring.cx), int(ring.cy))
+    run_for(world, 10)
+    assert s.get_attribute("ShardgateQuest") == "2"                 # (nothing to build it with)
+    stock(s, Silver_Bar=4, Sapphire=2, Remnant_Core=1, Shard=40)
+    shards = s.shards()
+    s.out = []
+    s.choose_verb("Build", ring, int(ring.cx), int(ring.cy))
+    run_for(world, 100)
+    assert s.get_attribute("ShardgateQuest") == "3" and s.shards() == shards - 30 and s.items_held("Silver_Bar") == 0
+    gate = next(e for e in world.ents if e.name == "Shardgate" and e.owner is s)
+    assert any(l["n"] == "The Shardgate" for l in s.my_labels())     # (on the world map now: yours)
+    assert any(e.get("t") == "labels" for e in s.out)
+    s.choose_verb("Step Through", gate, int(gate.cx), int(gate.cy))
+    run_for(world, 20)
+    assert s.cur_map.name == "21,4,-7"
+    anchor = next(e for e in world.ents if e.name == "Barrier_Anchor" and e.owner is s)
+    warden = next(e for e in world.ents if e.name == "Shard_Warden" and e.alive)
+    near(world, s, anchor, -40, 16)
+    stock(s, Staff_of_Estforlan=1)
+    s.choose_verb("Shatter", anchor, int(anchor.cx), int(anchor.cy))
+    run_for(world, 10)
+    assert s.get_attribute("ShardgateQuest") == "3"                 # (the Warden stands over it)
+    s.kill_npc(warden)
+    s.choose_verb("Shatter", anchor, int(anchor.cx), int(anchor.cy))
+    run_for(world, 80)
+    assert s.get_attribute("ShardgateQuest") == "4"
+    assert any(e.name == "Barrier_Anchor_Broken" and e.owner is s for e in world.ents)
+    s.teleport(bert.map, 300, 300)
+    s.do_pending_map_change()
+    near(world, s, bert, 0, 36)
+    assert talk_to(world, s, bert)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("ShardgateQuest") == "5"
+    assert not any("Shardgate" in n for n in s.quest_needs("GalaithQuest"))          # (the barrier can break now)
+    leave(world, s)
+
+
+def test_the_shardrealms_remnants_are_as_strong_as_their_level_and_stay(world):
+    rems = [e for e in world.ents if e.name == "Living_Remnant" and e.map == "21,4,-7"]
+    assert rems and all(e.max_hp == 5 + 5 * e.remnant_level for e in rems)
+    from dsengine.remnants import fade_remnants
+    world.now += 10 ** 7
+    fade_remnants(world)
+    assert all(e.alive for e in rems)                               # (a map's remnants don't fade)

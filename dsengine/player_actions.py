@@ -363,6 +363,8 @@ class ActionsMixin:
             self.dismantle(e)
         elif verb == "Absorb" and t == INVENTORYITEM:
             self.absorb_remnants(e)
+        elif verb == "Write" and name == "Spellwright_Lectern":
+            self.lectern_write(e)
         elif verb in ("Cast", "Drink", "Learn"):
             if t == INVENTORYITEM and self.entity_ini(name, "Spell", ""):
                 self.cast_scroll(e, None)

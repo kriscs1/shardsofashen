@@ -431,7 +431,7 @@ def data():
     C.NEW_SHOPS.update({
         "SHOP-Thornwick": ("1.2", "0.7", ["Herb,10", "Empty_Vial,8", "Basic_Potion,4", "Bread,8", "Arrows,200",
                                           "Spade,2", "Oak_Logs,0", "Yew_Logs,0", "Super_Potion,0"]),
-        "SHOP-Ravensgate": ("1.2", "0.7", ["Healing_Scroll,4", "Blank_Scroll,10", "Basic_Potion,4", "Meat_Pie,4",
+        "SHOP-Ravensgate": ("1.2", "0.7", ["Healing_Draught,4", "Blank_Scroll,10", "Basic_Potion,4", "Meat_Pie,4",
                                            "Coal,10", "Iron_Ore,6", "Steel_Helm,0"]),
     })
     C.QUESTS.extend(QUESTS)

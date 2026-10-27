@@ -610,7 +610,12 @@ egion_tiles.py, with the same Walkable.Data).
   * `[Shards]`: `Start` (a new character's), `Old.Save.Grant` (once, to a character from before Shards), `Cast.Gap`,
     `Shardstone` (waking a shardstone the first time; `Shardstone.<Key>` for one that costs more),
     `Shardstone.Travel` (each journey), `Chest.Chance` and `Chest` (lo-hi: Shards added to a chest's treasure, the
-    once it gives it), `Scrolls.Rarer=1` (build_shards.py has made scrolls rarer, once).
+    once it gives it), `Scrolls.Rarer=1` (build_shards.py has made scrolls rarer, once), `Galaith.Seam` and
+    `Galaith.Seam.Hours` (the King's seam), `Shardgate` (Shards to build one), `Realm.Cluster` and
+    `Realm.Cluster.Hours` (the Shardrealm's clusters).
+  * `[Spellwright]` (dsengine/ownspell.py): a written spell's Shards a cast are its effect's `Bolt.Cost`,
+    `Burst.Cost`, `Frost.Cost` or `Ward.Cost`, times its power to `Power.Exponent`, times `Far` for the far reach;
+    `Write`: Shards to write it again over your old one.
   * `[Dismantle]`: Dismantle (on gear, or a scroll whose spell you know) gives a Shard for every `Weapon` (anything
     wielded), `Armour` (anything worn) or `Scroll` gold of its value, at least one.
   * `[Upgrade.<Spell>]`: a spell's ranks. `Scroll.2` names the scroll (Entities.ini `Spell=`, `Rank=2`) that raises
@@ -621,7 +626,8 @@ egion_tiles.py, with the same Walkable.Data).
     (Absorb, in the pack: `Absorb` Shards each and `Absorb.Magic.XP`); `Mob.Chance` in 100 (from `Mob.Min.Level`)
     its magic rises as a Living_Remnant ("Shard Remnant"): `Mob.Hitpoints`/`Mob.Strength`/`Mob.Defence` and as much
     again `.Per.Level`, going for the killer, fading after `Mob.Lasts` seconds if nobody fights it; killed, it
-    leaves `Mob.Count` remnants and never rises again.
+    leaves `Mob.Count` remnants and never rises again. A map's Living_Remnant takes the option `Level=` (as strong
+    as that) and stays.
   Spells.ini `Cost` (Shards a cast) and `Cooldown` (seconds; saved, so logging off doesn't cut it short); a potion's
   `Shards=` gives that many. Digging.ini `[Digging]` `Shards.Chance`/`Shards`,
   `Shards.Underground.Chance`/`Shards.Underground`, `Cache.Chance`/`Cache`; a `[Finds.X]` may say its own

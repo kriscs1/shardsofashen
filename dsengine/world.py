@@ -18,7 +18,7 @@ from .entity import (Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MI
 from .maps import MapData
 from .homes import Homes
 from .farming import Farms
-from .remnants import fade_remnants
+from .remnants import fade_remnants, make_remnant, LIVING
 from .market import Market
 from .waves import Waves
 from .tavern import Tavern
@@ -264,6 +264,9 @@ class World(NPCMixin):
         e.display = self.option_value(options, "Name").replace("_", " ")
         e.hostile = self.npc_attitude(name, options, attitude)
         self.load_npc_stats(e)
+        level = val(self.option_value(options, "Level"))
+        if level > 0 and name == LIVING:                      # (a map's Shard Remnant, as strong as its Level=)
+            make_remnant(self.data, e, int(level))
         self.init_npc_ai(e, options)
         return e
 
@@ -1223,14 +1226,17 @@ class World(NPCMixin):
     # =================================================================================================================
     def map_labels(self):
         """The world map's labels (data\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
-        z, m: its map}], worked out once."""
+        z, m: its map, c: a condition (Name=Place [if $Attr.X>=3]: shown to those it's true for)}], worked out once."""
         if getattr(self, "_labels", None) is None:
             from dragonsword import ini
             path = self.data.data_file("WorldMap.ini")
             out = []
             for kind in ("Towns", "Regions", "Places"):
                 for name, where in ini.section(kind, path) if ini.section(kind, path) else []:
-                    where = trim(where)
+                    where, cond = trim(where), ""
+                    if "[if " in where.lower() and where.endswith("]"):
+                        at = where.lower().index("[if ")
+                        where, cond = trim(where[:at]), trim(where[at + 4:-1])
                     if " " in where:
                         bits = where.split()
                         mname, tx, ty = bits[0], val(bits[1]), val(bits[2]) if len(bits) > 2 else 1
@@ -1243,7 +1249,7 @@ class World(NPCMixin):
                     if m is None:
                         continue
                     out.append({"n": name, "k": kind[0].lower(), "x": int(m.ox + (tx - 0.5) * self.tw),
-                                "y": int(m.oy + (ty - 0.5) * self.th), "z": m.mz, "m": mname})
+                                "y": int(m.oy + (ty - 0.5) * self.th), "z": m.mz, "m": mname, "c": cond})
             self._labels = out
         return self._labels
 

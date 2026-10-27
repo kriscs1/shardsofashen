@@ -22,6 +22,11 @@ save you from the dragon that takes the firstborn heir of every generation. You 
      ladder up to their camp (2,2,0), in a tent: only a tent until you've climbed it from below. In the house, a
      floorboard squeaks: stand on it, search it, the compass. Bess sails you to Southport.
 Characters made before this story keep what they had done (session.heir_story_from_old_save).
+
+The Isle teaches the world as you go, in what people say and give you: Edwin hands over Mary's jar of Shards (the
+world's magic: the count under your health); Maren gives healing draughts (herbs mend a body, Shards can't); Frank
+gives his old dagger to break down for its Shard (Dismantle); Brother Aldous, in the caves, shows you a dead beast's
+Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Bess, at Southport, the shardstone.
 """
 import os
 import random
@@ -834,8 +839,14 @@ def opening():
         ("@leave",),
         ("Move.Entity", at(10, 11, -8), "Edwin", at(COTTAGE_DOOR, 12, -8), "2"),
         say("Edwin", "Of course. If you need anything, you can find my wife, Maren, and me at the bank, by the chapel. "
-                     "Come for dinner.", ("Thank you, Edwin.", "@out")),
+                     "Come for dinner.", ("Thank you, Edwin.", "@jar")),
+        ("@jar",),
+        say("Edwin", "Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\Shards "
+                     "are splinters of the world's old magic. Spells drink them, and so do the old standing stones on "
+                     "the mainland. Don't spend them all at once.", ("I won't.", "@out")),
         ("@out",),
+        ("Play.Sound", "Absorb"),
+        ("Display.Message", "Cyan", "Mary's Shards are yours: their count is under your health.", "-"),
         ("Remove.Entity", at(10, 11, -8), "Edwin"),
         ("Play.Sound", "Door"),
         ("Display.Message", "Cyan", "He lets himself out, and the door shuts behind him.", "-"),
@@ -948,8 +959,13 @@ def bank_scripts():
                      "there without a sword and a shield.", ("I promise.", "@give")),
         ("@give",),
         ("Give.Item", "Chapel_Cellar_Key", "1"),
+        say("Maren", "And take these with you: two healing draughts, brewed from Bess's herbs. Drink one when you're "
+                     "hurt.\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a "
+                     "brewer's herbs can.", ("Thank you, Maren.", "@draughts")),
+        ("@draughts",),
+        ("Give.Item", "Healing_Draught", "2"),
         ("Display.Message", "Yellow", "Quest complete: Dinner at the Bank! Maren gave you the key to the chapel's "
-                                      "trapdoor.", "Quest"),
+                                      "trapdoor, and two healing draughts.", "Quest"),
         ("End",),
         ("@chat",), (">Conditional", "$Attr.LastWill>=2", "@letter"),
         say("Edwin", "If you need anything drawn up, a will or a deed, I'm your man.",
@@ -1054,7 +1070,12 @@ def bess_and_frank():
         ("Wait", "3"),
         ("Toggle.User.Input", "ON"),
         ("Teleport", "Southport_Pier", "-"),
-        ("Display.Message", "Yellow", "..and the fog lifts over Southport harbour. Bess waves you off from the boat.", "-"),
+        ("Display.Message", "Yellow", "..and the fog lifts over Southport harbour.", "-"),
+        say("Milkmaid", "There's Southport. Its shardstone stands by the market: feed it a few Shards and it wakes, and "
+                        "after that it'll carry you to any other shardstone you've woken. Mind your Shards, love, and "
+                        "come home sometimes.", ("Goodbye, Bess.", "@off")),
+        ("@off",),
+        ("Display.Message", "Cyan", "Bess waves you off from the boat.", "-"),
         ("End",),
     ])
     w("Talk to Frank", [
@@ -1074,7 +1095,13 @@ def bess_and_frank():
         say("Frank", "Not bad at all! Now wield them: sword in your hand, shield on your arm, and get used to the weight. "
                      "Practise on the rats and wolves till your arm's strong (Strength 2) and you can take a knock "
                      "(Defence 2).\\Then go and see Brother Aldous at the chapel. He keeps the way down.",
-            ("I will.", "@end")),
+            ("I will.", "@dagger")),
+        ("@dagger",),
+        say("Frank", "And here: my first dagger. It's past mending, but don't throw it away. Everything that's forged "
+                     "keeps a little of the world's magic in it: break it down (Dismantle, in your pack) and you'll "
+                     "have a Shard out of it. Do the same with any gear you've outgrown.", ("I'll try it.", "@give")),
+        ("@give",),
+        ("Give.Item", "Copper_Dagger", "1"),
         ("End",),
         ("@notyet",),
         say("Frank", "A wooden sword and a wooden shield, at my workbench (Craft). Bring them to show me when they're "
@@ -1174,14 +1201,22 @@ def chapel_and_caves():
         ("Wait", "1"),
         ("Display.Message", "Cyan", "Footsteps echo behind you: Brother Aldous, a lantern in his hand.", "-"),
         ("Add.Entity", aldous, "Gravekeeper", "NPC", "Attitude=Good Stand=1 Face=W Name=Brother_Aldous"),
-        say("Gravekeeper", "I said I'd not be far behind. Your mother put it there, and the bars after it, so that no "
-                           "thief could ever take it. But a hand that isn't a hand can.\\Here: a scroll of Grasp. Cast "
-                           "it at the bars, and an unseen hand will bring the amulet to you. Its words are woven into "
-                           "the vellum: it won't crumble.", ("Thank you, Brother.", "@give")),
+        say("Gravekeeper", "I said I'd not be far behind. Look here first.\He stoops, and picks dull grey splinters "
+                           "from the floor.\Something died here, a rat or a bat, and left its magic behind: Shard "
+                           "Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. "
+                           "Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie "
+                           "still.", ("I'll remember.", "@remnants")),
+        ("@remnants",),
+        ("Give.Item", "Shard_Remnant", "3"),
+        say("Gravekeeper", "Now, the amulet. Your mother put it there, and the bars after it, so that no "
+                           "thief could ever take it. But a hand that isn't a hand can.\\Here: a scroll of Grasp. Read it, "
+                           "and the spell is yours for good; each casting drinks a couple of Shards. Cast it at the "
+                           "bars, and an unseen hand will bring the amulet to you.", ("Thank you, Brother.", "@give")),
         ("@give",),
         ("Give.Item", "Grasp_Scroll", "1"),
         ("Update.Attribute", "AmuletQuest", "=5"),
-        ("Display.Message", "Yellow", "You can cast Grasp: Cast the scroll, then click what you want brought to you.", "-"),
+        ("Display.Message", "Yellow", "Read the scroll to learn Grasp (2 Shards a cast), then cast it at what you "
+                                      "want brought to you.", "-"),
         ("End",),
         ("@not4",), (">Conditional", "$Variable.1=5", "@end"),
         ("Display.Refusal", "The bars are too close for your hand. Cast Grasp at them."),

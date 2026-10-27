@@ -2,22 +2,25 @@
 01	Get.Value	ATTRIBUTE	ShardQuest	Variable.1$
 02	>Conditional	$Variable.1=0	08
 03	>Quest.Can.Start	ShardQuest	17
-04	Display.Conversation	Wizard	Shards! You've some in your pack: I can feel them humming from here.\I'm Quill, Magister of this Court, and I've spent forty years on what those splinters are. Bring me fifteen of them for the Court's study and I'll pay you in something better than gold.	I'll bring you fifteen.	05	What are Shards?	18	Not now.	22
+04	Display.Conversation	Wizard	Shards! You've some in your pack: I can feel them humming from here.\I'm Quill, Magister of this Court, and I've spent forty years on what those splinters are. Bring me fifteen of them for the Court's study and I'll pay you in something better than gold.	I'll bring you fifteen.	05	What are Shards?	20	Not now.	25
 05	Update.Attribute	ShardQuest	=1
 06	Display.Message	Yellow	Quest started: The Shard Scholar.	Quest
 07	End
 08	>Conditional	$Variable.1=1	17
-09	Display.Conversation	Wizard	Fifteen Shards for the study: have you brought them? You carry $Item.Shard.	Here: take fifteen.	10	What are Shards?	18	Not yet.	22
-10	>Pay.Shards	15	The_Magister's_study	22
+09	Display.Conversation	Wizard	Fifteen Shards for the study: have you brought them? You carry $Item.Shard.	Here: take fifteen.	10	What are Shards?	20	Not yet.	25
+10	>Pay.Shards	15	The_Magister's_study	25
 11	Update.Attribute	ShardQuest	=2
 12	Play.Sound	SpellCast
 13	Give.Item	Frost_Nova_Scroll	1
 14	Display.Conversation	Wizard	Fifteen! Feel how they hum together... Here's my payment, as I promised: a scroll of Frost Nova, written in my own hand. It drinks Shards like a shardstone does, and holds every foe round you in ice. Read it and it's yours for good.	Thank you, Magister.	15
 15	Display.Message	Yellow	Quest complete: The Shard Scholar! You receive a scroll of Frost Nova.	Quest
 16	End
-17	Display.Conversation	Wizard	Ask, ask: a Magister who won't answer questions is just an old man in a hat.	What are Shards?	18	Why do the shardstones need them?	19	Why do beasts carry them?	20	Goodbye.	22
-18	Display.Conversation	Wizard	When the world was young, the Old Ones raised the shardstones and bound the land's magic into them. When the dragon came to Galaith's mountain it drank that magic down, and what it couldn't hold it shattered: Shards. They're everywhere now: in the earth, in the old places, in the beasts that swallow them.	And Galaith's mountain?	21	Tell me more.	17	Thank you.	22
-19	Display.Conversation	Wizard	A shardstone is an Old One's door, and its rune sleeps until it's fed. A few Shards wake it, and once it knows you it remembers you: that's why you pay only the once. The far ones are hungrier.	Tell me more.	17	Thank you.	22
-20	Display.Conversation	Wizard	Magic draws them, the way a fire draws moths. A wolf that's swallowed a Shard runs faster and bites harder, and when it dies the Shard breaks: dull remnants you can draw the magic back out of. The worse the beast, the more it's eaten. And sometimes the magic won't die with it: it rises, all splinters and spite, and goes for whoever killed it.	Tell me more.	17	Thank you.	22
-21	Display.Conversation	Wizard	And Galaith's mountain was the deepest seam of all. Your forefathers dug its gold, and its Shards, until the dragon came for them. It sits on them still.	Tell me more.	17	Thank you.	22
-22	End
+17	Display.Conversation	Wizard	Ask, ask: a Magister who won't answer questions is just an old man in a hat.	Tell me about Shards.	19	About spellcraft... [if $Attr.ShardQuest>=2]	18	Goodbye.	25
+18	Goto.Script	Quill the Spellwright
+19	Display.Conversation	Wizard	What would you know?	What are Shards?	20	Why do the shardstones need them?	21	Why do beasts carry them?	22	Spells or potions?	24
+20	Display.Conversation	Wizard	When the world was young, the Old Ones raised the shardstones and bound the land's magic into them. When the dragon came to Galaith's mountain it drank that magic down, and what it couldn't hold it shattered: Shards. They're everywhere now: in the earth, in the old places, in the beasts that swallow them.	And Galaith's mountain?	23	Tell me more.	19	Thank you.	25
+21	Display.Conversation	Wizard	A shardstone is an Old One's door, and its rune sleeps until it's fed. A few Shards wake it, and once it knows you it remembers you: that's why you pay only the once. The far ones are hungrier.	Tell me more.	19	Thank you.	25
+22	Display.Conversation	Wizard	Magic draws them, the way a fire draws moths. A wolf that's swallowed a Shard runs faster and bites harder, and when it dies the Shard breaks: dull remnants you can draw the magic back out of. The worse the beast, the more it's eaten. And sometimes the magic won't die with it: it rises, all splinters and spite, and goes for whoever killed it.	Tell me more.	19	Thank you.	25
+23	Display.Conversation	Wizard	And Galaith's mountain was the deepest seam of all. Your forefathers dug its gold, and its Shards, until the dragon came for them. It sits on them still.	Tell me more.	19	Thank you.	25
+24	Display.Conversation	Wizard	Shards reach out of you: they strike, freeze, carry things, carry you, or bind round you as a ward. What they can't do is get inside a living body. They'll never mend a wound or sharpen an eye.\That's the brewer's art: herbs work from within, on whoever drinks them, and on nothing else. And no herb ever made a Shard.	Tell me more.	19	Thank you.	25
+25	End

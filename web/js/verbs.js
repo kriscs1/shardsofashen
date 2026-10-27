@@ -1,7 +1,7 @@
 // The verbs on things, as the desktop game's interact.py has them: the right-click menu (the first verb is the
 // left-click), the label shown, how close you walk first. The server works them out again before it does one.
 import { S } from "./state.js";
-import { tileIni, entityIni, A, spellIni, configRead } from "./assets.js";
+import { tileIni, entityIni, A, spellIni, configRead, shardsIni, OWN } from "./assets.js";
 import { val, word, trim, pretty, stripDigits, lbstr } from "./util.js";
 
 export const T = { PLAYER: 1, TILE: 2, MAPITEM: 3, STATICOBJECT: 4, NPC: 5, MISSILE: 7, TEMPORARY: 8, INFRONT: 10,
@@ -195,13 +195,15 @@ export function knowsSpell(spell) { return spellRank(spell) > 0; }
 export function scrollRank(name) { return Math.max(1, val(entityIni(name, "Rank", "1"))); }
 
 export function spellTitle(spell, rank) {
+  if (spell === OWN.spell && S.me?.own) return S.me.own.title;      // (the spell you wrote: ownspell.py)
   return pretty(spell) + ({ 2: " II", 3: " III", 4: " IV" }[rank || spellRank(spell)] || "");
 }
 
-// A Spells.ini value at a rank (yours, if none's given): Key.<rank>, the nearest lower rank's, else Key
+// A spell's value at a rank (yours, if none's given): Shards.ini [Upgrade.<Spell>] Key.<rank>, the nearest lower
+// rank's, else its Spells.ini Key
 export function spellAt(spell, key, dflt = "", rank = 0) {
   for (let r = rank || Math.max(1, spellRank(spell)); r > 1; r--) {
-    const v = spellIni(spell, `${key}.${r}`, "");
+    const v = shardsIni(`Upgrade.${spell}`, `${key}.${r}`, "");     // (Shards.ini: a rank's values)
     if (v !== "") return v;
   }
   return spellIni(spell, key, dflt);
@@ -215,8 +217,8 @@ export function dismantleWorth(name) {
   let per;
   if (sp) {
     if (spellRank(sp) < scrollRank(name)) return 0;
-    per = val(configRead("Shards", "Dismantle.Scroll.Per", "10"));
-  } else if (equipVerb(name)) per = val(configRead("Shards", "Dismantle.Per", "25"));
+    per = val(shardsIni("Dismantle", "Scroll", "10"));
+  } else if (equipVerb(name)) per = val(shardsIni("Dismantle", equipVerb(name) === "Wield" ? "Weapon" : "Armour", "25"));
   else return 0;
   return Math.max(1, Math.floor(value / Math.max(1, per)));
 }

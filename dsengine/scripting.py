@@ -371,6 +371,11 @@ class ScriptMixin:
             return a <= b
         return a >= b
 
+    def my_labels(self):
+        """The world map's labels this player sees (a label with a condition only if it's true for them)."""
+        return [{k: v for k, v in lb.items() if k != "c"} for lb in self.w.map_labels()
+                if not lb["c"] or self.condition_met(lb["c"])]
+
     def condition_met(self, condition):
         """A condition written in data (Lock lines): $Attr. $Item. $Skill. $Equipped. (never taints a script)."""
         was = self.script_personal
@@ -1059,6 +1064,8 @@ class ScriptMixin:
             self.attributes[idx][1] = lbstr(apply_change(val(self.attributes[idx][1]), change))
         if not name.upper().startswith(("SHARDSPAID.", "SHARDSGIVEN")):
             self.quest_reward(name, val(self.attributes[idx][1]))           # (a quest done: its rewards, once)
+        if any(("$attr." + name).lower() in lb["c"].lower() for lb in self.w.map_labels() if lb["c"]):
+            self.emit({"t": "labels", "labels": self.my_labels()})       # (a label it shows or hides: the Shardgate)
         self.dirty_me = True
         self.dirty_quests = True
         self.check_locks(True)

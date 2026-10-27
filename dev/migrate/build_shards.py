@@ -60,10 +60,8 @@ SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ide
     "Fire_Bolt": ("3", "0.8"),                 # (Magic Bolt)
     "Ice_Bolt": ("6", "3"),
     "Lightning": ("10", "4"),                  # (Fireball)
-    "Healing": ("6", "6"),
     "Grasp": ("2", "2"),
-    "Farsight": ("6", "30"),
-    "Stone_Skin": ("10", "60"),
+    "Shard_Ward": ("10", "60"),
     "Teleport_Home": ("12", "60"),             # (Blink: the one that moves you)
     "Frost_Nova": ("15", "8"),                 # (Frost Nova)
     "Thunderclap": ("18", "10"),
@@ -73,7 +71,6 @@ SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ide
 RANKS = {   # spell: {rank: (its scroll, value, {its Spells.ini values at that rank})}
     "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "4", "Damage": "4-9", "Cost": "4"}),
                   3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "7-13", "Cost": "5"})},
-    "Healing": {2: ("Healing_Scroll_II", 80, {"Level": "6", "Heal": "16-26", "Cost": "8"})},
     "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "9", "Damage": "4-10", "Slow": "35,10", "Cost": "8"})},
     "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "14", "Damage": "10-22", "Cost": "14"})},
     "Frost_Nova": {2: ("Frost_Nova_Scroll_II", 180, {"Level": "11", "Damage": "3-8", "Radius": "128", "Freeze": "7",
@@ -82,7 +79,7 @@ RANKS = {   # spell: {rank: (its scroll, value, {its Spells.ini values at that r
 }
 ROMAN = {2: "II", 3: "III"}
 QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder quests
-    "The Herbalist's Remedy": "Healing_Scroll_II 1", "The Steward's Hunt": "Fire_Bolt_Scroll_II 1",
+    "The Herbalist's Remedy": "Mega_Potion 3", "The Steward's Hunt": "Fire_Bolt_Scroll_II 1",
     "The Sunken Grimoire": "Ice_Bolt_Scroll_II 1", "The Ember Ring": "Lightning_Scroll_II 1",
     "Bert's Three Treasures": "Frost_Nova_Scroll_II 1", "The Barrow King": "Fire_Bolt_Scroll_III 1",
     "The Dragon of Galaith": "Fire_Storm_Scroll_II 1",
@@ -138,6 +135,10 @@ LORE = {
               "splinters and spite, and goes for whoever killed it.",
     "mountain": "And Galaith's mountain was the deepest seam of all. Your forefathers dug its gold, and its Shards, "
                 "until the dragon came for them. It sits on them still.",
+    "potions": "Shards reach out of you: they strike, freeze, carry things, carry you, or bind round you as a ward. "
+               "What they can't do is get inside a living body. They'll never mend a wound or sharpen an eye.\That's "
+               "the brewer's art: herbs work from within, on whoever drinks them, and on nothing else. And no herb "
+               "ever made a Shard.",
 }
 
 
@@ -216,8 +217,8 @@ def entities():
         ents.set("Shard", k, v)
     ents.set("Fire_Storm_Scroll", "Examine.Info", "A scroll of Fire Storm: fire rains on every foe within five tiles "
                                                   "of you (9-18 damage). Magic 15. " + SCROLL_NEW)
-    ents.set("Magic_Potion", "Examine.Info", "A violet potion: your spells do 5 more damage for two minutes, and its "
-                                             "magic settles into 10 Shards in your pack.")
+    ents.set("Magic_Potion", "Examine.Info", "A violet potion: it clears your head, and your spells do 5 more damage "
+                                             "for two minutes.")    # (herbs can't make Shards: potions_and_spells.py)
     for sec, items in ents.sections:
         info = ents.get(sec, "Examine.Info") or ""
         if (ents.get(sec, "Spell") or "") and SCROLL_TAIL in info:
@@ -243,7 +244,6 @@ def spells():
         for k, v in (row[2] if len(row) > 2 else {}).items():
             ini.set(spell, k, v)
     ini.remove("Magic_Potion", "Mana")
-    ini.set("Magic_Potion", "Shards", "10")
     ini.header = ["; Spells, learnt for good by reading their scroll (an item with Spell=<section> and Use.Words=Cast),",
                   "; then cast for Cost Shards (dsengine/shards.py), each with its own Cooldown (seconds). Potions are",
                   "; drunk (Kind=Potion; Shards= puts that many in your pack). See dev\\Data Formats.md. Costs and",
@@ -307,7 +307,7 @@ def quests():
         markers={0: "Court_Magister", 1: "Court_Magister"}, kind="Side", requires="Passage to the Mainland")
     SK.section(p("data", "Quests.ini"), "The Shard Scholar", [("Reward.XP", QUEST_XP["The Shard Scholar"])])
     lore = [("What are Shards?", "@what"), ("Why do the shardstones need them?", "@ways"),
-            ("Why do beasts carry them?", "@beasts")]          # (and Galaith's mountain: after what they are)
+            ("Why do beasts carry them?", "@beasts"), ("Spells or potions?", "@potions")]   # (the mountain: after what)
     rows = [
         ("Get.Value", "ATTRIBUTE", "ShardQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@asked"),
@@ -333,11 +333,15 @@ def quests():
                      "Quest"),
         ("End",),
         ("@chat",), SK.say(WIZARD, "Ask, ask: a Magister who won't answer questions is just an old man in a hat.",
-                           *(lore + [("Goodbye.", "@end")])),
+                           ("Tell me about Shards.", "@lore"),
+                           ("About spellcraft... [if $Attr.ShardQuest>=2]", "@spellcraft"), ("Goodbye.", "@end")),
+        ("@spellcraft",), ("Goto.Script", "Quill the Spellwright"),          # (build_spellwright.py)
+        ("@lore",), SK.say(WIZARD, "What would you know?", *lore),
     ]
-    for key, label in (("what", "@what"), ("ways", "@ways"), ("beasts", "@beasts"), ("mountain", "@mountain")):
+    for key, label in (("what", "@what"), ("ways", "@ways"), ("beasts", "@beasts"), ("mountain", "@mountain"),
+                       ("potions", "@potions")):
         more = [("And Galaith's mountain?", "@mountain")] if key == "what" else []
-        rows += [(label,), SK.say(WIZARD, LORE[key], *(more + [("Tell me more.", "@chat"), ("Thank you.", "@end")]))]
+        rows += [(label,), SK.say(WIZARD, LORE[key], *(more + [("Tell me more.", "@lore"), ("Thank you.", "@end")]))]
     rows += [("@end",), ("End",)]
     SK.write_script("Talk to Court_Magister", rows, MAKER)
 

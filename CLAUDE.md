@@ -57,6 +57,12 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    squeaks: stand on it, then Search it, for the compass. Bess sails you to Southport; **Wim** the ferryman crosses
    for a coin after that.
 
+**The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
+jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
+old dagger to break down for a Shard (Dismantle), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and
+the Grasp scroll (learnt for good, cast for Shards), and Bess points out Southport's shardstone. Anything new a player
+must learn early is taught the same way, on the Isle.
+
 On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
 5. **The Temporary Capital** (`ParliamentQuest`): the guard at Southport's port; the **Speaker** in Southport's City
    Hall, which is Estforlan's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
@@ -70,13 +76,19 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
 12. **A Ship for Dragon Island** (Captain Rook, on the shore south of Ravensgate, 27,19,0), 13. **The Island of
    Dragons** (26,23,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
-15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;
+15. **The Shardgate** (`ShardgateQuest`, `dev/migrate/build_shardgate.py`): with the sword, the staff at the barrier
+   fails, because the dragon anchored it in the **Shardrealm**, where all broken magic goes. Bert gives the plans; you
+   build a Shardgate in the old ring of stones on the hill north of the Wizards' Court (21,4,0: silver, sapphires, a
+   Remnant's core, Shards). It's on the world map once you've built yours. Through it, the realm (21,4,-7): past its
+   Warden, the staff shatters the anchor. The gate stays, and you can go back (remnants roam the realm; its clusters
+   give Shards).
+16. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;
    it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
    onto the field; its Id is still `Galaith_West_Gate`).
-16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-9,14,0), the Lord Chancellor (Galaith's
+17. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-9,14,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
-17. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
+18. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
    **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens: at its far wall
    the **King's Shard Seam** gives the Crown Shards once a (real) day (`dev/migrate/build_kings_seam.py`).
 
@@ -129,6 +141,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `[Remnants]`).
 
 **Magic and Shards**
+- **What a potion is and what a spell is.** A potion is herbs: it works only inside whoever drinks it (mends,
+  strengthens, sharpens the senses, cures), needs no Shards and is used up. A spell is Shard magic: it reaches out of
+  you into the world (strikes, freezes, carries things, carries you) or binds Shards round you as a ward. Shards can't
+  mend a body or sharpen an eye, and herbs can't make Shards. A new thing is one or the other by that rule
+  (`dev/migrate/potions_and_spells.py` put Healing and Farsight among the potions and made Stone Skin the Shard Ward).
+- **A spell of your own**: Magister Quill's The Spellwright teaches it; at the Spellwright's Lectern (the Court's great
+  hall) you choose its effect, power and reach, and its Shards and rest are worked out to balance
+  (`dsengine/ownspell.py`, Shards.ini `[Spellwright]`). It's `Own_Spell`, known like any other.
 - Magic runs on **Shards**, a balance each player has, shown on the bar under their health: **never an item in the
   pack** (`dsengine/shards.py`; a script's `Give.Item Shard` or an old save's Shards go on the balance). They never
   come back by themselves. Shard Remnants, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells

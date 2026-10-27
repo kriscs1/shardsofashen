@@ -7,6 +7,11 @@ RENAMED_ITEMS = {
     "Raw_Chicken": "Raw_Poultry",
     "Cooked_Chicken": "Cooked_Poultry",
     "Burnt_Chicken": "Burnt_Poultry",
+    "Healing_Scroll_II": "Mega_Potion",              # (potions_and_spells.py: healing is the brewer's art)
+    "Healing_Scroll": "Healing_Draught",
+    "Farsight_Scroll": "Owl_Potion",
+    "Stone_Skin_Scroll": "Shard_Ward_Scroll",
+    "Stone_Skin": "Shard_Ward",                      # (the spell, as it was learnt)
 }
 RENAMED_SKILLS = {
     "Herblore": "Potion_Making",

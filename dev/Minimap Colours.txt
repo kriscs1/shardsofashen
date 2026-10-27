@@ -871,3 +871,7 @@ Cinder_Peak_Huge006	92 72 64
 Cinder_Peak_Huge007	103 79 68
 Cinder_Peak_Huge008	112 86 73
 Cinder_Peak_Huge009	101 77 67
+Realm_Void001	14 6 28
+Realm_Ground001	58 44 88
+Realm_Ground002	58 44 88
+Realm_Ground003	58 44 88

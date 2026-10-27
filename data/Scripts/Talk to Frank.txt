@@ -5,12 +5,14 @@
 04	Give.Item	Logs	5
 05	Update.Attribute	AmuletQuest	=2
 06	End
-07	>Conditional	$Variable.1=2	14
-08	>Conditional	$Item.Wooden_Sword>=1 and $Item.Wooden_Shield>=1	12
+07	>Conditional	$Variable.1=2	16
+08	>Conditional	$Item.Wooden_Sword>=1 and $Item.Wooden_Shield>=1	14
 09	Update.Attribute	AmuletQuest	=3
-10	Display.Conversation	Frank	Not bad at all! Now wield them: sword in your hand, shield on your arm, and get used to the weight. Practise on the rats and wolves till your arm's strong (Strength 2) and you can take a knock (Defence 2).\Then go and see Brother Aldous at the chapel. He keeps the way down.	I will.	15
-11	End
-12	Display.Conversation	Frank	A wooden sword and a wooden shield, at my workbench (Craft). Bring them to show me when they're made.	Right.	15
+10	Display.Conversation	Frank	Not bad at all! Now wield them: sword in your hand, shield on your arm, and get used to the weight. Practise on the rats and wolves till your arm's strong (Strength 2) and you can take a knock (Defence 2).\Then go and see Brother Aldous at the chapel. He keeps the way down.	I will.	11
+11	Display.Conversation	Frank	And here: my first dagger. It's past mending, but don't throw it away. Everything that's forged keeps a little of the world's magic in it: break it down (Dismantle, in your pack) and you'll have a Shard out of it. Do the same with any gear you've outgrown.	I'll try it.	12
+12	Give.Item	Copper_Dagger	1
 13	End
-14	Display.Conversation	Frank	Hot work, smithing. If your gear's knocked about, I'll mend it for a fair price (Repair).	Goodbye.	15
+14	Display.Conversation	Frank	A wooden sword and a wooden shield, at my workbench (Craft). Bring them to show me when they're made.	Right.	17
 15	End
+16	Display.Conversation	Frank	Hot work, smithing. If your gear's knocked about, I'll mend it for a fair price (Repair).	Goodbye.	17
+17	End

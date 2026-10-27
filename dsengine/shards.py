@@ -14,6 +14,7 @@ that rank up.
 
 The server runs one player's commands at a time, so a check and its payment can't be split by another click."""
 from dragonsword.lb import val, lbstr, trim, pretty
+from .ownspell import OWN
 
 SHARD = "Shard"
 ROMAN = {1: "", 2: " II", 3: " III", 4: " IV", 5: " V"}
@@ -152,11 +153,17 @@ class ShardMixin:
         return max(1, int(val(self.entity_ini(name, "Rank", "1"))))
 
     def spell_title(self, spell, rank=None):
+        if spell == OWN:
+            return self.own_spell_title()
         return pretty(spell) + ROMAN.get(rank or max(1, self.spell_rank(spell)), "")
 
     def spell_ini_at(self, spell, key, default, rank):
         """A spell's value at a rank: Shards.ini [Upgrade.<Spell>] Key.<rank> (or the nearest lower rank's), else its
-        Spells.ini Key."""
+        Spells.ini Key. (Your own spell: what you wrote at the lectern, ownspell.py.)"""
+        if spell == OWN:
+            v = self.own_spell_values()
+            if v is not None:
+                return v.get(key, default)
         for r in range(int(rank), 1, -1):
             v = self.data.shards_ini("Upgrade." + spell, "%s.%d" % (key, r), "")
             if v != "":
@@ -172,7 +179,7 @@ class ShardMixin:
         out = []
         for name, d in self.help_read_ini("Spells.ini"):
             scroll = trim(d.get("SCROLL", ""))
-            if not scroll or trim(d.get("KIND", "")).upper() == "POTION":
+            if not scroll or trim(d.get("KIND", "")).upper() == "POTION" or (name == OWN and OWN not in self.spells_known):
                 continue
             rank = max(1, self.spell_rank(name))
             at = lambda k, dflt="0", r=rank: self.spell_ini_at(name, k, dflt, r)

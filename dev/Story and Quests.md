@@ -73,9 +73,10 @@ driven into its heart, kills the dragon.
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 15 | **The Dragon of Galaith** | (level 16) West to the pass in the West Range. **Use the staff on the barrier** (with Bert's spell learnt) and it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour, wielded**, gives it its death blow. The city's gate onto the field opens. |
-| 16 | **The Royal Guard** | Explore the city to win the guard over: the **captain** at the palace door sends you to the **Lord Chancellor** (the Parliament), who sends you to the **Royal Archivist** (the City Hall) with your mother's amulet; her word to the Chancellor; his warrant to the captain. |
-| 17 | **The True Heir** | **King Rupert**, on his throne: show him the amulet, tell him the will. He holds you and weeps, and gives you the crown. From then the world is open play; **Jimmy** curls up on the throne, and in your house on the Isle. |
+| 15 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards). It shows on your world map once it's built. Through it, the realm: get past its **Warden** and shatter the barrier's **anchor** with the staff, then tell Bert. Reward: 30 Shards, Magic and Crafting experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
+| 16 | **The Dragon of Galaith** | (level 16) West to the pass in the West Range. **Use the staff on the barrier** (with Bert's spell learnt) and it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour, wielded**, gives it its death blow. The city's gate onto the field opens. |
+| 17 | **The Royal Guard** | Explore the city to win the guard over: the **captain** at the palace door sends you to the **Lord Chancellor** (the Parliament), who sends you to the **Royal Archivist** (the City Hall) with your mother's amulet; her word to the Chancellor; his warrant to the captain. |
+| 18 | **The True Heir** | **King Rupert**, on his throne: show him the amulet, tell him the will. He holds you and weeps, and gives you the crown. From then the world is open play; **Jimmy** curls up on the throne, and in your house on the Isle. |
 
 **Unlocks:** the mine behind Galaith (once you're king); the Wyrmsmith's Dragonforge in Wardhaven (The Dragonforge).
 
@@ -196,7 +197,15 @@ Magister Quill, in the great hall of the Wizards' Court, has spent forty years o
 hand them over only when you say so). He tells you what they are: the Old Ones bound the land's magic into the
 shardstones; the dragon drank Galaith's mountain's down and shattered what it couldn't hold. That's why shardstones
 must be fed, why beasts that swallow Shards carry them, and why the mountain behind Galaith was the richest seam of
-all. Reward: a scroll of Frost Nova and Magic experience. His answers about the Shards are there to ask any time.
+all. Reward: a scroll of Frost Nova and Magic experience. His answers about the Shards are there to ask any time,
+and why a potion isn't a spell: Shards reach out of you, herbs work within; Shards can't mend a body.
+
+**The Spellwright**: *after The Shard Scholar*
+How does a Shard know what shape a spell is? Bring Quill the core of a risen Shard Remnant, then absorb twenty more
+remnants and tell him how it felt. He teaches you to write a spell of your own at the **Spellwright's Lectern** by the
+throne in the great hall: choose its effect (a bolt, a burst round you, a frost that holds foes, a ward), its power
+(as far as your Magic goes) and its reach; its Shards and rest are worked out to balance. Write it again whenever you
+like, for a few Shards. Reward: 20 Shards, Magic experience.
 
 ---
 
@@ -246,6 +255,8 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 |---|---|---|
 | The Last Will | LastWill | The Funeral, 4,0,0, Read Last_Will |
 | The Shard Scholar | ShardQuest | Talk to Court_Magister |
+| The Spellwright | SpellwrightQuest | Quill the Spellwright (the lectern: dsengine/ownspell.py) |
+| The Shardgate | ShardgateQuest | Use Staff_of_Estforlan With Barrier, Bert and the Shardgate, Build Shardgate_Ring, Step Through Shardgate, Shatter Barrier_Anchor |
 | Dinner at the Bank | DinnerQuest | Talk to Edwin / Maren, Use Fried_Egg With Edwin, Marens_Range |
 | The Amulet of Succession | AmuletQuest | Talk to Milkmaid, Talk to Frank, Talk to Chapel_Verger, Reach In / Grasp Barred_Niche |
 | Passage to the Mainland | Passage | Pick Lock Caged_Tobias, Squeaky Floorboard, Talk to Milkmaid, Talk to Ferryman |

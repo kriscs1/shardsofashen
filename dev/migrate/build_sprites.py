@@ -1662,10 +1662,8 @@ SCROLLS = {   # name: (seal colour, (rune colour, rune shade))
     "Ice_Bolt_Scroll": ((40, 90, 200), ((140, 210, 255), (40, 110, 200))),
     "Lightning_Scroll": ((150, 120, 20), ((255, 240, 100), (190, 150, 20))),
     "Fire_Storm_Scroll": ((120, 20, 20), ((255, 90, 30), (150, 20, 10))),
-    "Healing_Scroll": ((30, 140, 60), ((120, 240, 130), (30, 130, 60))),
-    "Stone_Skin_Scroll": ((110, 90, 60), ((200, 180, 140), (110, 90, 60))),
+    "Shard_Ward_Scroll": ((110, 90, 60), ((200, 180, 140), (110, 90, 60))),
     "Teleport_Scroll": ((110, 50, 170), ((210, 150, 255), (110, 50, 170))),
-    "Farsight_Scroll": ((30, 120, 130), ((150, 235, 240), (30, 120, 140))),
     "Frost_Nova_Scroll": ((90, 160, 220), ((225, 246, 255), (90, 160, 220))),
     "Thunderclap_Scroll": ((70, 80, 110), ((245, 240, 150), (90, 100, 140))),
     "Blizzard_Scroll": ((190, 214, 240), ((255, 255, 255), (110, 150, 200))),
@@ -1686,7 +1684,7 @@ def upgrade_scroll(seal, rune, rank):
     return K.outline_img(img, (70, 52, 30))
 
 
-for _name, _rank in (("Fire_Bolt", 2), ("Fire_Bolt", 3), ("Healing", 2), ("Ice_Bolt", 2), ("Lightning", 2),
+for _name, _rank in (("Fire_Bolt", 2), ("Fire_Bolt", 3), ("Ice_Bolt", 2), ("Lightning", 2),
                      ("Frost_Nova", 2), ("Fire_Storm", 2)):
     _seal, _rune = SCROLLS[_name + "_Scroll"]
     SPRITES["%s_Scroll_%s" % (_name, "I" * _rank)] = (lambda seal=_seal, rune=_rune, r=_rank: upgrade_scroll(seal, rune, r))

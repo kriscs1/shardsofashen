@@ -864,13 +864,18 @@ def bert():
     w("Talk to Bert", [
         ("Get.Value", "ATTRIBUTE", "WizardGift", V1),
         (">Conditional", "$Variable.1=0", "@quest"),
-        say("Bert", "A new face! Every adventurer should know a little magic. Take these.\\Right-click a scroll and "
-                    "choose Cast, or use it on a monster. Reading it uses it up.", ("Thank you!", "@gift")),
+        say("Bert", "A new face! Every adventurer should know a little magic. Take these.\\Read a scroll and its spell "
+                    "is yours for good; casting it spends Shards. And a draught or two: magic won't mend you.",
+            ("Thank you!", "@gift")),
         ("@gift",),
-        ("Give.Item", "Fire_Bolt_Scroll", "3"),
-        ("Give.Item", "Healing_Scroll", "2"),
+        ("Give.Item", "Fire_Bolt_Scroll", "1"),
+        ("Give.Item", "Healing_Draught", "2"),
         ("Update.Attribute", "WizardGift", "=1"),
-        ("@quest",),
+        ("@quest",),                                              # (the barrier held, the anchor's broken, or the
+        (">Conditional", "$Attr.ShardgateQuest=1 or $Attr.ShardgateQuest=4 or $Attr.GalaithQuest>=1 and "
+                         "$Attr.ShardgateQuest=0", "@bert"),         #  barrier's gone already: build_shardgate.py)
+        ("Goto.Script", "Bert and the Shardgate"),
+        ("@bert",),
         ("Get.Value", "ATTRIBUTE", "BertQuest", V1),
         (">Conditional", "$Variable.1=0 and $Attr.HobgoblinQuest>=2", "@s1"),
         (">Quest.Can.Start", "BertQuest", "@menu"),
@@ -945,10 +950,7 @@ def bert():
          "Quest"),
         ("End",),
     ])
-    w("Talk to Court_Magister", [
-        say("Wizard", "The Wizards' Court is in session. Mostly we argue about hats.", ("Goodbye.", "@end")),
-        ("@end",), ("End",),
-    ])
+    # (Talk to Court_Magister: Magister Quill's, build_shards.py)
     w("Talk to Wizard", [
         say("Wizard", "Magic is a matter of patience, and of not setting your beard on fire.", ("Goodbye.", "@end")),
         ("@end",), ("End",),

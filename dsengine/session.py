@@ -9,7 +9,7 @@ import json
 import logging
 import math
 
-from dragonsword.lb import val, word, trim, lbstr, distance, clock_ms
+from dragonsword.lb import val, word, trim, lbstr, distance, clock_ms, pretty
 
 from .entity import Entity, InvItem, PLAYER, TILE, NPC, MAPITEM
 from .player_items import ItemsMixin
@@ -27,6 +27,7 @@ from .tavern import TavernMixin
 from .containers import ChestMixin
 from .shards import ShardMixin
 from .remnants import RemnantMixin
+from .ownspell import OwnSpellMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -54,7 +55,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin, ShardMixin, RemnantMixin):
+              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -99,6 +100,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.status = {}
         self.cooldowns = {}                 # spell -> when it's ready again (ms)
         self.spells_known = {}              # spell -> the rank they've learnt it to (scrolls), for good
+        self.own_spell = None               # the spell they wrote at the Spellwright's Lectern (ownspell.py)
         self.shard_balance = 0              # their Shards (shards.py): a balance, not an item
         self.reward = None                  # a finished quest's rewards, gathering for its screen
         self.bets = []                      # when they last staked at the tavern (time.time(): the limit's window)
@@ -350,6 +352,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         sp = st.get("spells", {})
         self.spells_known = ({str(k): max(1, int(val(v))) for k, v in sp.items()} if isinstance(sp, dict) else
                              {str(n): 1 for n in sp if str(n).strip()})     # (a list: before spells had ranks)
+        self.spells_now_potions()
+        own = st.get("own_spell")
+        self.own_spell = ({"effect": str(own.get("effect", "Bolt")), "power": int(val(own.get("power", 1))),
+                           "far": bool(own.get("far"))} if isinstance(own, dict) else None)
         self.shard_balance = max(0, int(val(st.get("shards", 0))))
         for spell, left in dict(st.get("cooldowns", {})).items():   # (logging off doesn't cut a cooldown short)
             if 0 < val(left) < 3600000:
@@ -418,6 +424,17 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 self.w.animate_entity(self.player, False)
         self.dirty_me = True
 
+    NOW_POTIONS = {"Healing": ("Healing_Draught", 3), "Farsight": ("Owl_Potion", 2)}
+
+    def spells_now_potions(self):
+        """Spells that are a brewer's art now (potions_and_spells.py): whoever knew one has its potions instead."""
+        for spell, (potion, n) in self.NOW_POTIONS.items():
+            if self.spells_known.pop(spell, None) is not None:
+                self.add_inventory_item(potion, n, quiet=True)
+                self.display_message("%s is a brewer's art now, not a spell: Shards can't mend a body or sharpen "
+                                     "an eye. You have %d %ss instead." % (pretty(spell), n, pretty(potion)),
+                                     "INFORMATION")
+
     def body_sprite(self):
         return "PlayerF" if (self.look or {}).get("body") == "f" else "Player"
 
@@ -461,7 +478,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "map": m.name if m else d.start_map,
             "x": int(self.stand_x() - m.ox) if m else d.start_x, "y": int(self.stand_y() - m.oy) if m else d.start_y,
             "hp": p.hp, "direction": max(1, int(p.direction)),
-            "spells": dict(self.spells_known), "shards": self.shard_balance,
+            "spells": dict(self.spells_known), "shards": self.shard_balance, "own_spell": self.own_spell,
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
             "sprite": self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
@@ -991,7 +1008,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p = self.player
         return {
             "t": "me", "name": self.player_name, "uid": p.uid, "admin": self.admin_enabled, "god": self.god_mode,
-            "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": dict(self.spells_known),
+            "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": dict(self.spells_known), "own": self.own_spell_state(),
             "xp": self.skill_xp[1:], "skill_off": self.skill_off[1:],
             "inv": [[e.uid, e.name, e.quantity, e.wear] for e in self.inv],
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],

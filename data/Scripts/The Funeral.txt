@@ -30,10 +30,13 @@
 29	Display.Conversation	Player	Thank you. If you don't mind, I would like to be left alone to read the letter.	Continue	30
 30	Move.Entity	288,312	Edwin	224,344	2
 31	Display.Conversation	Edwin	Of course. If you need anything, you can find my wife, Maren, and me at the bank, by the chapel. Come for dinner.	Thank you, Edwin.	32
-32	Remove.Entity	288,312	Edwin
-33	Play.Sound	Door
-34	Display.Message	Cyan	He lets himself out, and the door shuts behind him.	-
-35	Update.Attribute	LastWill	=1
-36	Display.Message	Yellow	Quest started: The Last Will. (H: your journal)	Quest
-37	Toggle.User.Input	ON
-38	End
+32	Display.Conversation	Edwin	Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\Shards are splinters of the world's old magic. Spells drink them, and so do the old standing stones on the mainland. Don't spend them all at once.	I won't.	33
+33	Play.Sound	Absorb
+34	Display.Message	Cyan	Mary's Shards are yours: their count is under your health.	-
+35	Remove.Entity	288,312	Edwin
+36	Play.Sound	Door
+37	Display.Message	Cyan	He lets himself out, and the door shuts behind him.	-
+38	Update.Attribute	LastWill	=1
+39	Display.Message	Yellow	Quest started: The Last Will. (H: your journal)	Quest
+40	Toggle.User.Input	ON
+41	End

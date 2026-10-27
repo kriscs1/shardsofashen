@@ -5,5 +5,7 @@
 04	Wait	3
 05	Toggle.User.Input	ON
 06	Teleport	Southport_Pier	-
-07	Display.Message	Yellow	..and the fog lifts over Southport harbour. Bess waves you off from the boat.	-
-08	End
+07	Display.Message	Yellow	..and the fog lifts over Southport harbour.	-
+08	Display.Conversation	Milkmaid	There's Southport. Its shardstone stands by the market: feed it a few Shards and it wakes, and after that it'll carry you to any other shardstone you've woken. Mind your Shards, love, and come home sometimes.	Goodbye, Bess.	09
+09	Display.Message	Cyan	Bess waves you off from the boat.	-
+10	End

@@ -260,6 +260,7 @@ def export_data(d, manifest):
     manifest["ambient"] = ini_dict(df("Ambient.ini"))
     manifest["music"] = ini_dict(df("Music.ini"))
     manifest["spells"] = ini_dict(df("Spells.ini"))
+    manifest["shards"] = ini_dict(df("Shards.ini"))
     manifest["maps"] = d.map_names()
     manifest["skills"] = d.skill_name[1:]
     manifest["geometry"] = {"tw": d.tw, "th": d.th, "xt": d.xt, "yt": d.yt, "walk_res": d.walk_res}

@@ -179,7 +179,8 @@ def pass_scripts():
         ("Get.Value", "ATTRIBUTE", "GalaithQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@broken"),
         (">Conditional", "$Attr.BarrierSpell>=1", "@words"),
-        (">Quest.Can.Start", "GalaithQuest", "@end"),
+        (">Conditional", "$Attr.ShardgateQuest>=5", "@anchored"),      # (its anchor in the Shardrealm cut first:
+        (">Quest.Can.Start", "GalaithQuest", "@end"),                   #  The Shardgate, build_shardgate.py)
         ("Display.Message", "Cyan", "You hold the Staff of Estforlan to the barrier and speak Bert's words of "
                                     "Unbinding..", "-"),
         ("Play.Sound", "SpellCast"),
@@ -190,6 +191,18 @@ def pass_scripts():
                                       "Galaith's black walls, something huge lifts its head.", "-"),
         ("End",),
         ("@words",), ("Display.Refusal", "The staff hums against the barrier, but you don't know the words."),
+        ("End",),
+        ("@anchored",),
+        ("Display.Message", "Cyan", "You hold the Staff of Estforlan to the barrier and speak Bert's words of "
+                                    "Unbinding..", "-"),
+        ("Play.Sound", "SpellCast"),
+        ("Wait", "2"),
+        ("Display.Message", "DarkRed", "..and the barrier flares, shudders, and holds. Something beyond the world is "
+                                       "feeding it.", "Fail"),
+        (">Conditional", "$Attr.ShardgateQuest=0", "@end"),
+        (">Quest.Can.Start", "ShardgateQuest", "@end"),
+        ("Update.Attribute", "ShardgateQuest", "=1"),
+        ("Display.Message", "Yellow", "Quest started: The Shardgate.", "Quest"),
         ("End",),
         ("@broken",), ("Display.Message", "Cyan", "The barrier is broken.", "-"),
         ("@end",), ("End",),

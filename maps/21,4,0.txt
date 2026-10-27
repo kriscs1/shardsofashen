@@ -27,3 +27,5 @@ StaticObject	Sign_Pub	128	592
 StaticObject	Notice	0	578	Id=Court_Notice_342
 StaticObject	Sign_Pub	96	368
 StaticObject	Notice	0	354	Id=Court_Notice_352
+StaticObject	Shardgate_Ring	576	192	Id=Old_Ring_Stones
+Id	Shardgate_Site	20	9

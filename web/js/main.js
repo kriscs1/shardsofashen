@@ -1,7 +1,7 @@
 // Shards of Estforlan in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
 // out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp; a phone's is laid out
 // lower, so everything's bigger: mobile.js) and the frame loop.
-import { A, loadManifest, configRead, onLoaded } from "./assets.js";
+import { A, loadManifest, configRead, onLoaded, OWN } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer } from "./state.js";
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom } from "./render.js";
@@ -651,8 +651,12 @@ N.onMessage = (m) => {
       for (const [map, x, y, msg] of m.locks || []) S.locks.set(map + "," + x + "," + y, msg);
       break;
     }
+    case "labels":                                 // (the world map's names, when one shows or hides: the Shardgate)
+      S.labels = m.labels || [];
+      break;
     case "me":
       S.me = m;
+      OWN.v = m.own ? m.own.v : null;
       S.boostAt = now;                                        // (boost_left counts down from here)
       S.view = m.view;
       updateBuild();

@@ -279,7 +279,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 # ------------------------------------------------------------------ NPC movement Options on map lines
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
                "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost",
-               "State", "Nap"}   # (State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
+               "State", "Nap", "Level"}   # (Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
 _npc_ids = None
 
 
@@ -1192,7 +1192,9 @@ def check_entities():
 
 SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
-               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours"},
+               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Shardgate", "Realm.Cluster",
+               "Realm.Cluster.Hours"},
+    "Spellwright": {"Bolt.Cost", "Burst.Cost", "Frost.Cost", "Ward.Cost", "Power.Exponent", "Far", "Write"},
     "Dismantle": {"Weapon", "Armour", "Scroll"},
     "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
@@ -1239,7 +1241,7 @@ def check_shards(entities_ini):
             continue
         known = SHARDS_KEYS.get(sec)
         if known is None:
-            err(where, "unknown section (Shards, Dismantle, Remnants, Upgrade.<Spell>)")
+            err(where, "unknown section (Shards, Dismantle, Remnants, Spellwright, Upgrade.<Spell>)")
             continue
         for k, v in items:
             if k is None:

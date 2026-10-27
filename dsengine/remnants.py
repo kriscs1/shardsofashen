@@ -10,6 +10,16 @@ REMNANT = "Shard_Remnant"           # (the item on the ground)
 LIVING = "Living_Remnant"           # (the monster: "Shard Remnant" over its head)
 
 
+def make_remnant(data, e, level):
+    """A Shard Remnant as strong as level: Shards.ini [Remnants] Mob.Hitpoints... (risen, or a map's: Level=)."""
+    num = lambda k, d: val(trim(data.shards_ini("Remnants", k, "")) or str(d))
+    e.remnant_level = level
+    e.display = "Shard Remnant"
+    e.hp = e.max_hp = max(1, int(num("Mob.Hitpoints", 5) + level * num("Mob.Hitpoints.Per.Level", 5)))
+    e.strength = max(1, round(num("Mob.Strength", 1) + level * num("Mob.Strength.Per.Level", 0.5)))
+    e.defence = max(1, round(num("Mob.Defence", 1) + level * num("Mob.Defence.Per.Level", 0.5)))
+
+
 class RemnantMixin:
     def remnant_setting(self, key, default):
         return trim(self.data.shards_ini("Remnants", key, "")) or str(default)
@@ -46,13 +56,8 @@ class RemnantMixin:
         e = w.add_npc(LIVING, dead.z, dead.x, dead.y, "-", "Bad")
         if e is None:
             return
-        e.remnant_level = level
-        e.display = "Shard Remnant"
-        num = self.remnant_num
-        e.hp = e.max_hp = max(1, int(num("Mob.Hitpoints", 5) + level * num("Mob.Hitpoints.Per.Level", 5)))
-        e.strength = max(1, round(num("Mob.Strength", 1) + level * num("Mob.Strength.Per.Level", 0.5)))
-        e.defence = max(1, round(num("Mob.Defence", 1) + level * num("Mob.Defence.Per.Level", 0.5)))
-        e.fades_at = w.now + int(num("Mob.Lasts", 120) * 1000)
+        make_remnant(self.data, e, level)
+        e.fades_at = w.now + int(self.remnant_num("Mob.Lasts", 120) * 1000)
         w.sound("Remnant_Rise", e.z, e.cx, e.cy)
         self.fx_anim("Teleport_Glow", e.cx, e.cy, 600)
         self.display_message("The %s's magic rises from it: a Shard Remnant!" % self.display_name(dead), "DAMAGE", "-")
@@ -71,14 +76,15 @@ class RemnantMixin:
         self.play_sound("Absorb")
         self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 500)
         self.give_shards(shards, "You absorb %d Shard Remnant%s" % (n, "" if n == 1 else "s"))
+        self.update_attribute("RemnantsAbsorbed", "+%d" % n)          # (counted: The Spellwright)
         xp = self.remnant_num("Absorb.Magic.XP", 0.05) * n
         if xp > 0:
             self.update_skill("Magic", "+%s" % round(xp, 3), pop=False)
 
 
 def fade_remnants(w):
-    """Shard Remnants nobody is fighting fade away once their time is up (the world's tick)."""
-    for e in [e for e in w.ents if e.alive and e.name == LIVING]:
-        if w.now >= getattr(e, "fades_at", 0) and not e.in_combat:
+    """Risen Shard Remnants nobody is fighting fade away once their time is up (the world's tick; a map's stay)."""
+    for e in [e for e in w.ents if e.alive and e.name == LIVING and getattr(e, "fades_at", None) is not None]:
+        if w.now >= e.fades_at and not e.in_combat:
             w.fx_anim("Puff", e.z, e.cx, e.cy, 500)
             w.remove_entity(e)
