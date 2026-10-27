@@ -119,6 +119,10 @@ def assemble(log=print):
     log("signposts: %d; people moved: %d" % (posts, sum(len(v) for v in rehoused.values())))
     parts_maps = {p["new"] for p in L.parts()["parts"].values()}
     log("creatures: %d, by the water: %d" % (life.populate(atlas, plans, parts_maps), life.waters(atlas, plans)))
-    log("out of reach, gone: %d" % life.prune(atlas, plans["Southport"].centre))
+    seen = life.reach(atlas, plans["Southport"].centre)
+    log("out of reach, gone: %d" % life.prune(atlas, None, seen))
+    cut = life.cut_off(atlas, seen)
+    if cut:
+        log("WARNING lifted places you can't walk to: " + ", ".join(cut))
     log("wanderers with nowhere to go, given room: %d" % life.fix_zones(atlas))
     return atlas, plans, homes, rehoused, gate_map, scripts, bridge

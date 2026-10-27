@@ -9,6 +9,9 @@ from atlas import fbm
 from atlas import XT, YT, TW, map_xy
 import layout as L
 import land as LAND
+import towns as OLD
+
+OPEN_GROUND = ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001", "Cinder001", "Dirt001")
 
 # The old towns' maps: which settlement each was (their people go to it)
 OLD_TOWN = {"0,3,0": "Southport", "1,3,0": "Southport", "0,6,0": "Wildwood", "0,8,0": "Saltmarsh", "1,8,0": "Fenwick",
@@ -125,7 +128,11 @@ def stamp(atlas):
                     if trimmed and "+" not in cell and cell.startswith(SHORE):
                         continue                           # (the new coast's own sand and sea)
                     if not whole and cell in ("Grass001", "Sand001") and \
-                            min(x - x1, x2 - x, y - y1, y2 - y) <= int(3 * fbm(c[0], c[1], 5, 98)):
+                            min(x - x1, x2 - x, y - y1, y2 - y) <= int(3 * fbm(c[0], c[1], 5, 98)) and \
+                            LAND.GROUND.get(c) in OPEN_GROUND:
+                        if LAND.DECOR.get(c) and not OLD.walk_middle(LAND.DECOR[c]):
+                            LAND.DECOR[c] = ""                 # (no tree or rock in its way out)
+                            m.rows[y - 1][x - 1] = LAND.GROUND[c]
                         continue                           # (its plain edge: the land round it, so no ruled line)
                     if cell is None:
                         if whole:

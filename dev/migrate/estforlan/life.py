@@ -165,9 +165,9 @@ WILD = {k for v in CREATURES.values() for k, _, _ in v} | {"Seal", "Otter"}
 SPOTS = ("Fish_Spot", "Swordfish_Spot", "Trout_Spot", "Salmon_Spot", "Moored_Boat")
 
 
-def prune(atlas, start):
+def prune(atlas, start, seen=None):
     """Fishing spots, boats and wild creatures nobody can get to (out at sea, on an islet) go."""
-    seen = reach(atlas, start)
+    seen = seen or reach(atlas, start)
     gone = 0
     for name, m in atlas.maps.items():
         mx, my = (int(v) for v in name.split(",")[:2])
@@ -185,6 +185,22 @@ def prune(atlas, start):
             keep.append(ln)
         m.ents = keep
     return gone
+
+
+def cut_off(atlas, seen):
+    """The lifted places (their Id tiles) you can't walk to from the mainland (Dragon Island's are by boat)."""
+    out = []
+    for part in L.parts()["parts"].values():
+        mx, my = (int(v) for v in part["new"].split(",")[:2])
+        if L.macro(mx, my) == "D":
+            continue
+        for ln in part["lines"]:
+            f = ln.split("	")
+            if f[0] == "Id":
+                c = (mx * XT + int(f[2]) - 1, my * YT + int(f[3]) - 1)
+                if not any((c[0] + dx, c[1] + dy) in seen for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
+                    out.append(f[1])
+    return out
 
 
 def fix_zones(atlas):
