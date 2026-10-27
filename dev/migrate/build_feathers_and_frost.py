@@ -1,10 +1,10 @@
-"""Feathers, frost spells and the waystones' sparkle.
+"""Feathers, frost spells and the shardstones' sparkle.
 
   * Feather: hens and ducks drop them (the dairy and the farm sell them too), and arrows are fletched with three.
   * Three spells that strike every foe round you and hold them still (Spells.ini Freeze=seconds; Freeze.Word: frozen
     or stunned; Entities.ini Freeze.Immune=1 for the bosses): Frost Nova, Thunderclap and Blizzard, their scrolls
     written at the scroll desk and sold by the wizards.
-  * The waystones twinkle: a star at the tip (Waystone1..4, drawn by build_sprites.py).
+  * The shardstones twinkle: a star at the tip (Shardstone1..4, drawn by build_sprites.py).
   * Their sounds, synthesised: Freeze (ice forming, a crack) and Thunderclap (a crack, a boom).
 
 Safe to run again: it sets what it adds and leaves the rest alone.
@@ -20,23 +20,23 @@ import build_sounds as SND                     # noqa: E402
 import build_sprites as BS                     # noqa: E402
 import sprite_kit as K                         # noqa: E402
 
-ART = ["Feather", "Frost_Nova_Scroll", "Thunderclap_Scroll", "Blizzard_Scroll"] + ["Waystone%d" % i for i in range(1, 5)]
+ART = ["Feather", "Frost_Nova_Scroll", "Thunderclap_Scroll", "Blizzard_Scroll"] + ["Shardstone%d" % i for i in range(1, 5)]
 
 SPELLS = [   # (name, scroll value, what it does for the scroll's text, its Spells.ini keys)
     ("Frost_Nova", 45, "a ring of frost bursts out from you, freezing every foe within three tiles for 5 seconds",
-     dict(Cost="10", Cooldown="15", Scroll="Frost_Nova_Scroll", Effect="Area", Level="12", Damage="2-5", Radius="96",
+     dict(Cost="10", Cooldown="15", Scroll="Frost_Nova_Scroll", Effect="Area", Level="6", Damage="2-5", Radius="96",
           Freeze="5", **{"Freeze.Word": "frozen"}, Impact="Ice_Burst", Sound="Freeze", XP="0.6")),
     ("Thunderclap", 70, "a clap of thunder stuns every foe within four tiles for 2 seconds",
-     dict(Cost="14", Cooldown="20", Scroll="Thunderclap_Scroll", Effect="Area", Level="18", Damage="4-9", Radius="128",
+     dict(Cost="14", Cooldown="20", Scroll="Thunderclap_Scroll", Effect="Area", Level="9", Damage="4-9", Radius="128",
           Freeze="2", **{"Freeze.Word": "stunned"}, Impact="Spark", Sound="Thunderclap", XP="0.8")),
     ("Blizzard", 150, "a howling blizzard freezes every foe within five tiles for 4 seconds",
-     dict(Cost="22", Cooldown="40", Scroll="Blizzard_Scroll", Effect="Area", Level="26", Damage="6-12", Radius="160",
+     dict(Cost="22", Cooldown="40", Scroll="Blizzard_Scroll", Effect="Area", Level="13", Damage="6-12", Radius="160",
           Freeze="4", **{"Freeze.Word": "frozen"}, Impact="Ice_Burst", Sound="Freeze", XP="1.1")),
 ]
 RECIPES = {   # CRAFT-Scrolls: scroll -> ingredients, XP, level
-    "Frost_Nova_Scroll": "Blank_Scroll 1 Bucket_of_Water 2 Sapphire 1,0.6,12",
-    "Thunderclap_Scroll": "Blank_Scroll 1 Silver_Bar 1 Coal 2,0.8,18",
-    "Blizzard_Scroll": "Blank_Scroll 1 Sapphire 2 Bucket_of_Water 2,1.1,26",
+    "Frost_Nova_Scroll": "Blank_Scroll 1 Bucket_of_Water 2 Sapphire 1,0.6,6",
+    "Thunderclap_Scroll": "Blank_Scroll 1 Silver_Bar 1 Coal 2,0.8,9",
+    "Blizzard_Scroll": "Blank_Scroll 1 Sapphire 2 Bucket_of_Water 2,1.1,13",
 }
 STOCK = {     # shop -> [(item, stock)] added when missing
     "SHOP-Wizard": [("Frost_Nova_Scroll", "3"), ("Thunderclap_Scroll", "2")],
@@ -95,10 +95,10 @@ def main():
     for key, value in (("Type", "MapItem"), ("Examine.Info", "A grey goose feather. Arrows are fletched with them."),
                        ("Stackable", "999"), ("Value", "1")):
         ents.set("Feather", key, value)
-    for spell, value, info, d in SPELLS:
+    for spell, value, info, d in SPELLS:          # (only what's missing: build_shards.py sets their price and words)
         for key, v in (("Type", "MapItem"), ("Use.Words", "Cast"), ("Examine.Info", scroll_text(spell, info, d)),
                        ("Stackable", "10"), ("Value", str(value)), ("Spell", spell)):
-            ents.set(d["Scroll"], key, v)
+            ents.set(d["Scroll"], key, v, overwrite=False)
     for npc, drop in DROPS.items():
         drops = ents.get(npc, "Drops") or ""
         if "Feather," not in drops:
@@ -106,13 +106,14 @@ def main():
     for npc in IMMUNE:
         if ents.section(npc) is not None:
             ents.set(npc, "Freeze.Immune", "1")
-    ents.set("Waystone", "Anim.Frames", "4")
-    ents.set("Waystone", "Anim.Speed", "180")
+    ents.set("Shardstone", "Anim.Frames", "4")
+    ents.set("Shardstone", "Anim.Speed", "180")
     ents.save(p("data", "Entities.ini"))
 
     spells = Ini(p("data", "Spells.ini"))
-    for spell, value, info, d in SPELLS:
-        spells.replace_section(spell, list(d.items()))
+    for spell, value, info, d in SPELLS:          # (likewise: their Shards and cooldowns are build_shards.py's)
+        for key, v in d.items():
+            spells.set(spell, key, v, overwrite=False)
     spells.save(p("data", "Spells.ini"))
 
     racks = Ini(p("data", "ItemRacks.ini"))
@@ -122,7 +123,7 @@ def main():
     for shop, items in STOCK.items():
         add_items(racks, shop, items)
     racks.save(p("data", "ItemRacks.ini"))
-    print("Feathers, %d spells and the waystones' sparkle: done" % len(SPELLS))
+    print("Feathers, %d spells and the shardstones' sparkle: done" % len(SPELLS))
 
 
 if __name__ == "__main__":

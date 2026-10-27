@@ -34,15 +34,15 @@ const CONTROLS = [
   ["M", "Other players", "Up to five of you share this world: what you do (chopping, mining, fighting, picking things up) is seen by everyone; your quests are your own."],
   ["M", "The arena", "Talk to the Arena Master in Ashford. On the arena's sand you can fight other players (right-click: Attack); the paving round it is safe. Beaten, you lose nothing."],
   ["M", "Farming", "Buy seeds from the farmer by Ashford and use them on tilled soil: his furrows are free for anyone, or lay soil on your homestead. Crops grow by themselves (even while you're away); only whoever sowed them can harvest."],
-  ["M", "The market", "At a market board (Ashford's market, and by every waystone) you see everything everyone has for sale. With it open, right-click things in your pack: Sell on the market, at your own price. They sell while you're away; collect the gold at any board."],
+  ["M", "The market", "At a market board (Ashford's market, and by every shardstone) you see everything everyone has for sale. With it open, right-click things in your pack: Sell on the market, at your own price. They sell while you're away; collect the gold at any board."],
   ["M", "Digging", "Use a spade anywhere on open ground: now and then you turn up gold or something useful, and sometimes Shards."],
-  ["M", "Spells and Shards", "Read a spell's scroll to learn it for good. Casting it spends Shards (top left: how many you have); each spell has its own cooldown. Cast from the journal's Spells, or put the scroll on the hotbar. Shards don't come back by themselves: beasts, chests, digging and quests give them."],
-  ["M", "Waystones", "Wake a waystone the first time with a few Shards; after that you can travel to it from any waystone you've woken."],
+  ["M", "Spells and Shards", "Read a spell's scroll to learn it for good. Casting it spends Shards (top left: how many you have); each spell has its own cooldown. Cast from the journal's Spells, or put the scroll on the hotbar. Shards don't come back by themselves: absorb the Shard Remnants beasts leave behind (Absorb, in your pack), and chests, digging and quests give them."],
+  ["M", "Shardstones", "Wake a shardstone the first time with a few Shards; after that you can travel to it from any shardstone you've woken."],
   ["M", "The Green Dragon", "Ashford's beer garden, behind the houses. The innkeeper plays Three Cups and High or Low; at a dice table everyone puts in a stake and the highest roll takes the pot."],
   ["M", "Raids", "Now and then monsters attack a town in waves. Fight them off together: gold for each one you kill, and a reward for everyone who holds out."],
   ["M", "Shop signs", "Every shop has a sign by its door with a picture of what it sells."],
   ["M", "Dropping things", "Something you drop is yours alone to see for 10 seconds; then everyone can see it and pick it up."],
-  ["M", "Your homestead", "The settler by Ashford's homestone gives you an Access Crystal for a little building work. Touch a homestone (by every waystone) to go home, or to visit a friend's. At home its homestone says who may visit: only you, friends, or anyone."],
+  ["M", "Your homestead", "The settler by Ashford's homestone gives you an Access Crystal for a little building work. Touch a homestone (by every shardstone) to go home, or to visit a friend's. At home its homestone says who may visit: only you, friends, or anyone."],
   ["M", "Building", "At home, press B (or the Build button): pick a piece, then click or drag on your land. Take down gives back half. Sleep in your own bed and you wake there if you fall; a chest there is your bank."],
   ["K", "Arrows or W A S D", "Walk (two at once walks diagonally)."],
   ["K", "Enter", "Talk to the other players (the chat)."],
@@ -243,7 +243,8 @@ function questCard(ctx, q, x, y, w) {
   if (y + 74 - ty >= 15) wrap(ctx, x + 16, ty, w - 32, text, tc, 15, Math.floor((y + 74 - ty) / 15));
   const todo = (q.notes || []).filter((n) => !n[1]).length;
   if (todo && q.status !== 2) bw += 8 + badge(ctx, x + w - 18 - bw, y + 8, `${todo} to do`, [255, 214, 90]);
-  if (q.shards && q.status !== 2) badge(ctx, x + w - 18 - bw, y + 8, `+${q.shards} Shards`, [190, 180, 255]);   // (its reward)
+  if (q.shards && q.status !== 2) bw += 8 + badge(ctx, x + w - 18 - bw, y + 8, `+${q.shards} Shards`, [190, 180, 255]);   // (its reward)
+  if ((q.xp || []).length && q.status !== 2) badge(ctx, x + w - 18 - bw, y + 8, `+${q.xp.length > 2 ? "skills" : q.xp.map(pretty).join(", ")} xp`, [150, 225, 150]);
 }
 
 // ----- spells: every one a scroll teaches; the ones you know you can cast here (or put on the hotbar)

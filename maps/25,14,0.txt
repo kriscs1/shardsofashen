@@ -25,7 +25,7 @@ NPC	Barkeep	480	312	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_343 Name=Rufus
 NPC	Barmaid	544	408	Attitude=Good Zone=13,13,19,14 Pause=3-9 Id=Keep_Barmaid_344 Name=Greta
 NPC	Barkeep	128	56	Attitude=Good Stand=1 Face=S Id=Keep_Barkeep_346 Name=Ned
 NPC	Barmaid	160	152	Attitude=Good Zone=3,5,7,6 Pause=3-9 Id=Keep_Barmaid_347 Name=Ernest
-StaticObject	Waystone	672	32
+StaticObject	Shardstone	672	32
 StaticObject	Homestone	672	64
 StaticObject	Notice	672	98	Id=Keep_Notice_310
 StaticObject	Sign_Pub	608	464

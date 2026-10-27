@@ -55,7 +55,7 @@ class QuestPage(IniFormPage):
                  "The player's level (the average of their best two of Strength, Defence and Magic: Config.ini "
                  "Level.Skills, Level.Best) before the giver will offer it. Blank or 0: any.")
         self.row(f, r, "Needs skills", ttk.Entry(f, textvariable=self.var("Requires.Skills"), width=26),
-                 "Skill levels, e.g. Woodcutting 10, Herblore 5.", col=2)
+                 "Skill levels, e.g. Woodcutting 10, Potion Making 5.", col=2)
         r += 1
         qf = ttk.Frame(f, style="Panel.TFrame")
         self.requires_quests = self.var("Requires.Quests")

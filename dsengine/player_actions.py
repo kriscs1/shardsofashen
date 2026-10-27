@@ -361,6 +361,8 @@ class ActionsMixin:
             self.eat_inventory_item(e)
         elif verb == "Dismantle" and t == INVENTORYITEM:
             self.dismantle(e)
+        elif verb == "Absorb" and t == INVENTORYITEM:
+            self.absorb_remnants(e)
         elif verb in ("Cast", "Drink", "Learn"):
             if t == INVENTORYITEM and self.entity_ini(name, "Spell", ""):
                 self.cast_scroll(e, None)
@@ -690,9 +692,7 @@ class ActionsMixin:
             self.player_attack_target = None
             self.dirty_me = True
         elif t == "look":
-            from .session import clean_look
-            self.look = clean_look(msg.get("look"))
-            self.dirty_me = True
+            self.set_look(msg.get("look"))
             self.save_requested = True
         elif t in ("build", "unbuild"):
             if self.sleep_state:

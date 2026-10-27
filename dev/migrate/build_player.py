@@ -2,13 +2,15 @@ import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bmp import *
 from common import write_sprite
 # Draws the player's walking frames: Player<Dir><Frame>.png, Dir 1=N 2=E 4=S 8=W, Frame a=stand b/c=steps;
-# and sitting, Player_Sit<Dir>.png.
+# and sitting, Player_Sit<Dir>.png. Then a woman's, PlayerF...: long hair and a skirt (the same colours, so a look
+# recolours them the same way).
 # Usage: python -I build_player.py "<sprites\Entities folder>"
 C = {
  'H':(102,55,10), 'h':(72,38,6), 'S':(244,184,221), 's':(214,150,190), 'E':(40,20,30), 'M':(190,90,120),
  'T':(0,0,128), 't':(20,30,175), 'k':(0,0,90), 'P':(64,0,255), 'p':(44,0,185), 'B':(128,128,128), 'b':(88,88,88),
 }
 W=H=32; CX=16
+FEM=False   # (drawing a woman's frames)
 def blank(): return [[None]*W for _ in range(H)]
 def put(g,x,y,c):
     if 0<=x<W and 0<=y<H: g[y][x]=c
@@ -16,7 +18,18 @@ def rect(g,x0,y0,x1,y1,c):
     for y in range(y0,y1+1):
         for x in range(x0,x1+1): put(g,x,y,c)
 
+def skirt_front(g):
+    rect(g,CX-5,21,CX+4,23,'P'); rect(g,CX-6,24,CX+5,25,'P'); rect(g,CX-6,25,CX+5,25,'p'); rect(g,CX-5,21,CX-5,23,'p')
+
 def legs_front(g, frame):
+    if FEM:   # (stockinged legs under the skirt)
+        for side,(x0,x1) in enumerate([(CX-3,CX-2),(CX+1,CX+2)]):
+            lift = 2 if (frame=='b' and side==0) or (frame=='c' and side==1) else 0
+            rect(g,x0,26,x1,27-lift,'p')
+            rect(g,x0-(1 if side==0 else 0),28-lift,x1+(1 if side==1 else 0),29-lift,'B')
+            rect(g,x0-(1 if side==0 else 0),29-lift,x1+(1 if side==1 else 0),29-lift,'b')
+        skirt_front(g)
+        return
     # left leg x CX-4..CX-2, right leg CX+1..CX+3 ; frame b lifts left, c lifts right
     for side,(x0,x1) in enumerate([(CX-4,CX-2),(CX+1,CX+3)]):
         lift = 2 if (frame=='b' and side==0) or (frame=='c' and side==1) else 0
@@ -25,6 +38,12 @@ def legs_front(g, frame):
         rect(g,x0-(1 if side==0 else 0),29-lift,x1+(1 if side==1 else 0),29-lift,'b')
 
 def legs_side(g, frame, face):  # face = +1 east
+    if FEM:
+        for d in ((0,) if frame=='a' else (-1,1) if frame=='b' else (1,-1)):
+            fx = CX-1 + d*face*2
+            rect(g,fx,26,fx+1,27,'p'); rect(g,fx-1,28,fx+1,29,'B'); put(g,fx+2*face,29,'B'); rect(g,fx-1,29,fx+1,29,'b')
+        rect(g,CX-3,21,CX+2,23,'P'); rect(g,CX-4,24,CX+3,25,'P'); rect(g,CX-4,25,CX+3,25,'p')
+        return
     if frame=='a':
         rect(g,CX-2,21,CX+1,27,'P'); rect(g,CX-2,21,CX-2,27,'p')
         rect(g,CX-2,28,CX+2,29,'B'); rect(g,CX-2,29,CX+2,29,'b')
@@ -76,12 +95,16 @@ def head_front(g):
     put(g,CX-3,7,'E'); put(g,CX+2,7,'E')
     rect(g,CX-1,9,CX,9,'M')
     rect(g,CX-4,11,CX+3,11,'s')
+    if FEM:   # (long hair, down past the shoulders either side)
+        rect(g,CX-6,4,CX-5,14,'H'); rect(g,CX+4,4,CX+5,14,'H'); put(g,CX-6,14,'h'); put(g,CX+5,14,'h')
 
 def head_back(g):
     rect(g,CX-4,3,CX+3,11,'H'); rect(g,CX-5,4,CX+4,9,'H')
     rect(g,CX-4,2,CX+3,2,'h'); rect(g,CX-5,9,CX+4,9,'h')
     rect(g,CX-3,10,CX+2,11,'S'); rect(g,CX-3,11,CX+2,11,'s')
     put(g,CX-5,7,'S'); put(g,CX+4,7,'S')   # ears
+    if FEM:
+        rect(g,CX-5,4,CX+4,15,'H'); rect(g,CX-4,15,CX+3,15,'h'); rect(g,CX-6,6,CX-6,13,'H'); rect(g,CX+5,6,CX+5,13,'H')
 
 def head_side(g, face):
     # east-facing then mirrored by caller for west
@@ -92,6 +115,8 @@ def head_side(g, face):
     put(g,CX+2,7,'E')
     put(g,CX+3,10,'M')
     rect(g,CX-3,11,CX+2,11,'s')
+    if FEM:
+        rect(g,CX-6,5,CX-3,14,'H'); rect(g,CX-6,14,CX-3,14,'h')
 
 def mirror(g): return [row[::-1] for row in g]
 
@@ -102,7 +127,11 @@ def shifted(g, dy): return [[None]*W for _ in range(dy)] + [list(r) for r in g[:
 def legs_sit(g, direction):
     # sitting: facing you the knees come toward you and the shins hang down; side on (east, mirrored by the caller for
     # west) the thigh runs forward along the seat and the shin hangs from the knee; from behind the seat hides them
-    if direction=='4':
+    if direction=='4' and FEM:
+        rect(g,CX-5,23,CX+4,25,'P'); rect(g,CX-5,25,CX+4,25,'p')
+        for side,(x0,x1) in enumerate([(CX-3,CX-2),(CX+1,CX+2)]):
+            rect(g,x0,26,x1,27,'p'); rect(g,x0-(1 if side==0 else 0),28,x1+(1 if side==1 else 0),29,'B')
+    elif direction=='4':
         for side,(x0,x1) in enumerate([(CX-4,CX-2),(CX+1,CX+3)]):
             rect(g,x0,24,x1,27,'P'); rect(g,x0,24,x0,27,'p'); rect(g,x0,24,x1,24,'p')
             rect(g,x0-(1 if side==0 else 0),28,x1+(1 if side==1 else 0),29,'B')
@@ -152,14 +181,15 @@ def to_sprite(g):
 if __name__=='__main__':
     out = sys.argv[1] if len(sys.argv)>1 else None
     sheet=[]; frames=[]
-    for d in '1248':
-        for f in 'abc':
-            px=to_sprite(draw(d,f)); frames.append((d+f,px))
-            if out: write_sprite(out+'/Player%s%s.png'%(d,f),px)
-    if out: write_sprite(out+'/Player.png',to_sprite(draw('4','a')))
-    for d in '1248':                                   # sitting (on a bench or a chair: Seat= in Tiles.ini)
-        px=to_sprite(draw(d,'s')); frames.append((d+'s',px))
-        if out: write_sprite(out+'/Player_Sit%s.png'%d,px)
+    for FEM,base in ((False,'Player'),(True,'PlayerF')):
+        for d in '1248':
+            for f in 'abc':
+                px=to_sprite(draw(d,f)); frames.append((d+f,px))
+                if out: write_sprite(out+'/%s%s%s.png'%(base,d,f),px)
+        if out: write_sprite(out+'/%s.png'%base,to_sprite(draw('4','a')))
+        for d in '1248':                               # sitting (on a bench or a chair: Seat= in Tiles.ini)
+            px=to_sprite(draw(d,'s')); frames.append((d+'s',px))
+            if out: write_sprite(out+'/%s_Sit%s.png'%(base,d),px)
     # preview: image halves on a grey background
     SW=len(frames)*(W+4)
     canvas=[[(60,60,60)]*SW for _ in range(H)]

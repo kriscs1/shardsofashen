@@ -1,5 +1,5 @@
 """The marketplace: one market for the whole world. At any market board (Market_Board, placed by
-dev\\migrate\\build_town_life.py: Ashford's market and by every waystone) a player sees everything everyone has up for
+dev\\migrate\\build_town_life.py: Ashford's market and by every shardstone) a player sees everything everyone has up for
 sale, and puts their own things up at their own price.
 
   * Selling: with the board open, right-click something in your pack: Sell on the market, then the price each and how

@@ -10,9 +10,9 @@ from dragonsword.lb import val, word, trim, lbstr, pretty, random_number
 from .entity import InvItem, Entity, ACTIONBOXITEM, MAPITEM, STATICOBJECT
 from .shards import SHARD
 
-MATERIALS = [("Copper", "Copper_Bar", 1), ("Bronze", "Bronze_Bar", 1), ("Iron", "Iron_Bar", 5),
-             ("Steel", "Steel_Bar", 15), ("Mithril", "Mithril_Bar", 25), ("Leather", "Leather", 1),
-             ("Oak", "Oak_Logs", 1), ("Wooden", "Logs", 1), ("Willow", "Willow_Logs", 5), ("Yew", "Yew_Logs", 10)]
+MATERIALS = [("Copper", "Copper_Bar", 1), ("Bronze", "Bronze_Bar", 1), ("Iron", "Iron_Bar", 3),
+             ("Steel", "Steel_Bar", 8), ("Mithril", "Mithril_Bar", 13), ("Leather", "Leather", 1),
+             ("Oak", "Oak_Logs", 1), ("Wooden", "Logs", 1), ("Willow", "Willow_Logs", 3), ("Yew", "Yew_Logs", 5)]
 ARMOUR_SLOTS = (2, 3, 4, 5, 6, 7)
 
 
@@ -557,7 +557,7 @@ class ItemsMixin:
             return
         r = self.rack[i]
         if r["level"] > 0 and self.rack_skill and self.skill_level(self.rack_skill) < r["level"]:
-            self.refuse("You need level %s %s to make that!" % (lbstr(r["level"]), self.rack_skill))
+            self.refuse("You need level %s %s to make that!" % (lbstr(r["level"]), pretty(self.rack_skill)))
             return
         ingredients = r["info"]
         j = 1
@@ -582,7 +582,7 @@ class ItemsMixin:
         s = self.rack_skill.upper()
         if s == "SMITHING":
             return "Smelt" if "SMELT" in self.rack_name.upper() else "Anvil"
-        return {"HERBLORE": "Brew", "COOKING": "CookingFood", "MAGIC": "SpellCast"}.get(s, "Craft")
+        return {"POTION_MAKING": "Brew", "COOKING": "CookingFood", "MAGIC": "SpellCast"}.get(s, "Craft")
 
     def craft_inspect(self, e):
         i = val(e.misc)
@@ -651,7 +651,7 @@ class ItemsMixin:
             skill = word(req, k)
             level = val(word(req, k + 1))
             if level > 0 and self.skill_level(skill) < level:
-                return "level %s %s" % (lbstr(level), skill)
+                return "level %s %s" % (lbstr(level), pretty(skill))
             k += 2
         return ""
 
@@ -712,8 +712,8 @@ class ItemsMixin:
 
     def worn_items(self):
         """What is drawn over the player, lowest first."""
-        if self.player_sprite_base != "Player":
-            return []
+        if self.player_sprite_base not in ("Player", "PlayerF"):
+            return []                                   # (a shape a script made them: no armour drawn on it)
         d = self.data
         items = []
         for s in range(1, d.equip_slots + 1):

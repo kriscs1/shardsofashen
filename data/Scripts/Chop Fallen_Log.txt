@@ -22,7 +22,7 @@
 21	Play.Animation	Wood_Chips	4	WoodChop
 22	Display.Message	Cyan	You swing your axe at the fallen log..
 23	Wait	3.5
-24	>Conditional	($Variable.1+$Variable.2+64)>$Random.Percent	30
+24	>Conditional	($Variable.1*2+$Variable.2+64)>$Random.Percent	30
 25	Display.Message	Yellow	..and manage to get some logs!
 26	Give.Item	Logs	1
 27	Update.Skill	Woodcutting	+0.05

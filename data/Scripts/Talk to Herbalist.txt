@@ -30,13 +30,13 @@
 30	>Got.Item	Spider_Silk	2	41
 31	Take.Item	Cave_Mushroom	3
 32	Take.Item	Spider_Silk	2
-33	Display.Conversation	Herbalist	You found them all! The guards will be on their feet in no time.\Take these potions, and let me show you a thing or two about herblore. My alchemy table is yours to use.	Thank you!	34
+33	Display.Conversation	Herbalist	You found them all! The guards will be on their feet in no time.\Take these potions, and let me show you a thing or two about potion making. My alchemy table is yours to use.	Thank you!	34
 34	Give.Item	Super_Potion	2
 35	Give.Item	Gold_Coin(s)	60
-36	Update.Skill	Herblore	+2
+36	Update.Skill	Potion_Making	+2
 37	Update.Attribute	RemedyQuest	=2
 38	Quest.Note.Done	RemedyQuest	*
-39	Display.Message	Yellow	Quest complete! You receive 2 super potions, 60 gold and Herblore experience.
+39	Display.Message	Yellow	Quest complete! You receive 2 super potions, 60 gold and Potion Making experience.
 40	End
 41	Display.Conversation	Herbalist	I still need 3 cave mushrooms and 2 spider silk, dear.\Pick the mushrooms in the old iron mine; the giant spiders live in the mine depths beyond it.	I'll keep looking.	44
 42	End

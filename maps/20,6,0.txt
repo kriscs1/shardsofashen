@@ -23,7 +23,7 @@ NPC	Clerk	224	56	Attitude=Good Stand=1 Face=S Id=Court_Clerk_315
 NPC	Fishmonger	512	88	Attitude=Good Stand=1 Face=S Id=Court_Fishmonger_323 Name=Tilly
 NPC	Banker	256	344	Attitude=Good Stand=1 Face=S Id=Court_Banker_329
 NPC	Sheriff	512	376	Attitude=Good Stand=1 Face=S Id=Court_Sheriff_331 Name=Walter
-StaticObject	Waystone	608	32
+StaticObject	Shardstone	608	32
 StaticObject	Homestone	608	64
 Id	Waystone_Court	20	3
 Id	Court_Town_Hall	12	8

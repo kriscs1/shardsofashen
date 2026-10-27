@@ -16,10 +16,10 @@
 15	Get.Value	ATTRIBUTE	BogQuest	Variable.1$
 16	>Conditional	$Variable.1=0	25
 17	>Quest.Can.Start	BogQuest	50
-18	Display.Conversation	Witch	Heh. A stranger in the bog. Elder Pike is sick with marsh fever, and only my brew will cure him.\Fetch me four sprigs of bog myrtle from the marsh. You'll need a little Herblore to pick it.	I'll gather some.	20	Not now.	49
+18	Display.Conversation	Witch	Heh. A stranger in the bog. Elder Pike is sick with marsh fever, and only my brew will cure him.\Fetch me four sprigs of bog myrtle from the marsh. You'll need a little Potion Making to pick it.	I'll gather some.	20	Not now.	49
 19	End
 20	Update.Attribute	BogQuest	=1
-21	Quest.Note	BogQuest	Bog myrtle grows in the Saltmarsh round Fenwick (Herblore 5 to pick it).
+21	Quest.Note	BogQuest	Bog myrtle grows in the Saltmarsh round Fenwick (Potion Making 3 to pick it).
 22	Quest.Note	BogQuest	Bring Morwen 4 bog myrtle.
 23	Display.Message	Yellow	Quest started: Bog Lights.
 24	End
@@ -42,9 +42,9 @@
 41	Quest.Note.Done	BogQuest	*
 42	Give.Item	Mega_Potion	2
 43	Give.Item	Gold_Coin(s)	80
-44	Update.Skill	Herblore	+2
+44	Update.Skill	Potion_Making	+2
 45	Display.Conversation	Witch	He drank it? Then he'll live, the old goat. Here: two of my best potions, and some coin.	Thank you!	46
-46	Display.Message	Yellow	Quest complete: Bog Lights! You receive 2 mega potions, 80 gold and Herblore experience.
+46	Display.Message	Yellow	Quest complete: Bog Lights! You receive 2 mega potions, 80 gold and Potion Making experience.
 47	End
 48	Display.Conversation	Witch	Mind the bog lights, dearie. They lead the foolish astray.	Goodbye.	49
 49	End

@@ -18,6 +18,7 @@ from .entity import (Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MI
 from .maps import MapData
 from .homes import Homes
 from .farming import Farms
+from .remnants import fade_remnants
 from .market import Market
 from .waves import Waves
 from .tavern import Tavern
@@ -1400,6 +1401,7 @@ class World(NPCMixin):
         if self.now - self.last_queue_check >= 250 or self.now < self.last_queue_check:
             self.last_queue_check = self.now
             self.run_action_queue()
+            fade_remnants(self)
         self.update_doors()
         self.update_object_hours()
         self.farms.tick()

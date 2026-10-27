@@ -24,7 +24,7 @@ NPC	Villager	544	184	Attitude=Good Stand=1 Face=S Id=Wildwood_Priest_303 Name=Al
 NPC	Barkeep	352	184	Attitude=Good Stand=1 Face=S Id=Wildwood_Barkeep_305 Name=Albert
 NPC	Barmaid	384	248	Attitude=Good Zone=10,9,14,9 Pause=3-9 Id=Wildwood_Barmaid_306 Name=Clara
 NPC	Woman	320	536	Attitude=Good Zone=10,15,13,18 Pause=5-15 Id=Wildwood_Resident_308 Name=Alice
-StaticObject	Waystone	512	352
+StaticObject	Shardstone	512	352
 StaticObject	Homestone	416	352
 StaticObject	Notice	512	66	Id=Wildwood_Notice_302
 StaticObject	Sign_Pub	448	304

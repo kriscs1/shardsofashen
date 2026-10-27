@@ -18,12 +18,12 @@
 17	Get.Value	CALCULATION	0	Variable.2$
 18	Get.Value	CALCULATION	1	Variable.3$
 19	Get.Value	SKILL	Mining	Variable.1$
-20	>Conditional	$Variable.1>=15	33
+20	>Conditional	$Variable.1>=8	33
 21	Display.Message	Cyan	You swing your pickaxe at the gold rock...
 22	Show.Skill	Mining
 23	Play.Animation	Rock_Chips	4	Mine
 24	Wait	3
-25	>Conditional	($Variable.1+$Variable.2+19)>$Random.Percent	31
+25	>Conditional	($Variable.1*2+$Variable.2+19)>$Random.Percent	31
 26	Display.Message	Yellow	...and mine some gold ore!
 27	Give.Item	Gold_Ore	1
 28	Update.Skill	Mining	+0.3
@@ -31,7 +31,7 @@
 30	End
 31	Display.Message	DarkRed	...but only chip the rock.	Fail
 32	End
-33	Display.Message	DarkRed	You need level 15 Mining to mine this gold rock.	Denied
+33	Display.Message	DarkRed	You need level 8 Mining to mine this gold rock.	Denied
 34	End
 35	Display.Message	DarkRed	You need a pickaxe!	Denied
 36	End

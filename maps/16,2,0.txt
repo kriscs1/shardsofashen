@@ -24,7 +24,7 @@ NPC	Clerk	544	56	Attitude=Good Stand=1 Face=S Id=Wardhaven_Clerk_308
 NPC	Banker	192	56	Attitude=Good Stand=1 Face=S Id=Wardhaven_Banker_318
 NPC	Sheriff	480	344	Attitude=Good Stand=1 Face=S Id=Wardhaven_Sheriff_320 Name=Mabel
 NPC	Doctor	256	376	Attitude=Good Stand=1 Face=S Id=Wardhaven_Doctor_323 Name=Walter
-StaticObject	Waystone	352	32
+StaticObject	Shardstone	352	32
 StaticObject	Homestone	352	64
 StaticObject	Notice	352	98	Id=Wardhaven_Notice_306
 StaticObject	Notice	512	450	Id=Wardhaven_Notice_321

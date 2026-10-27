@@ -2041,8 +2041,8 @@ def arrows():
     return K.outline_img(img, (40, 30, 20))
 
 
-@sprite("Waystone")
-def waystone():
+@sprite("Shardstone")
+def shardstone():
     """Fast travel (build_travel.py): a tall grey standing stone with a glowing blue rune."""
     img = K.new()
     for y in range(3, 31):
@@ -2066,10 +2066,10 @@ def waystone():
     return K.outline_img(img, (40, 40, 48))
 
 
-def waystone_sparkle(frame):
-    """The waystone with a star twinkling at its tip (Waystone1..4, Anim.Frames): it swells and fades, a mote or two
+def shardstone_sparkle(frame):
+    """The shardstone with a star twinkling at its tip (Shardstone1..4, Anim.Frames): it swells and fades, a mote or two
     drifting up beside it."""
-    img = waystone()
+    img = shardstone()
     arm = (2, 3, 4, 3)[frame]
     core = ((200, 235, 255), (235, 250, 255), (255, 255, 255), (225, 245, 255))[frame]
     cx, cy = 16, 4
@@ -2087,7 +2087,7 @@ def waystone_sparkle(frame):
 
 
 for _f in range(4):
-    SPRITES["Waystone%d" % (_f + 1)] = (lambda f=_f: waystone_sparkle(f))
+    SPRITES["Shardstone%d" % (_f + 1)] = (lambda f=_f: shardstone_sparkle(f))
 
 
 @sprite("Shard")

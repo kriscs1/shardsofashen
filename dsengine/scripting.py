@@ -655,7 +655,7 @@ class ScriptMixin:
             self.script_condition(e is not None and e.z == p.z and distance(p.cx, p.cy, e.cx, e.cy) <= val(arg[2]),
                                   arg[3])
         elif c == ">Pay.Shards":                     # (the same checked payment as spells: shards.py)
-            n = int(val(arg[1])) if is_number(arg[1]) else self.shard_setting(arg[1])
+            n = int(val(arg[1])) if is_number(arg[1]) else int(self.shard_setting(arg[1]))
             self.script_condition(self.spend_shards(n, (arg[2] or "That").replace("_", " ")), arg[3])
         elif c == ">Got.Item":
             tool = self.is_tool(arg[1])
@@ -953,6 +953,8 @@ class ScriptMixin:
 
     def change_player_sprite(self, name):
         d = self.data
+        if name == "Player":
+            name = self.body_sprite()                   # (back to themselves: a woman's is PlayerF)
         if not d.loaded(name) and not d.animation_available(name):
             return
         self.player_sprite_base = name

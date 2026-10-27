@@ -1032,7 +1032,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Rank",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Rank", "Level",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
@@ -1188,6 +1188,70 @@ def check_entities():
         if re.search(r"[a-z][A-Z]", e) and not e.startswith("Player"):
             warn("sprites\\Entities", "%r looks like an un-renamed CamelCase name (expected underscores)" % e)
     return ini
+
+
+SHARDS_KEYS = {
+    "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
+               "Scrolls.Rarer"},
+    "Dismantle": {"Weapon", "Armour", "Scroll"},
+    "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
+                 "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
+                 "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.Magic.XP"},
+}
+UPGRADE_RANGES = {"Damage", "Heal"}             # (min-max; Slow is percent,seconds; Scroll an item; the rest numbers)
+
+
+def check_shards(entities_ini):
+    """data\\Shards.ini: every Shard number. Its keys are known ones and numbers (lo-hi where a range is meant); a
+    spell's [Upgrade.<Spell>] is a spell there is, its Scroll.<rank> an item with Spell= and Rank= saying so."""
+    path = p("data", "Shards.ini")
+    if not os.path.exists(path):
+        err(rel(path), "missing (dev\\migrate\\build_shards.py writes it)")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    spells = Ini(p("data", "Spells.ini"))
+    rng = lambda v: all(is_num(x) for x in v.split("-")) and 1 <= len(v.split("-")) <= 2
+    for sec, items in ini.sections:
+        where = "%s [%s]" % (rel(path), sec)
+        if sec.startswith("Upgrade."):
+            spell = sec[len("Upgrade."):]
+            if spells.section(spell) is None:
+                err(where, "no spell [%s] in Spells.ini" % spell)
+            for k, v in items:
+                if k is None:
+                    continue
+                key, _, rank = k.rpartition(".")
+                if not rank.isdigit() or int(rank) < 2:
+                    err(where, "%s should be Key.<rank> (2 and up)" % k)
+                elif key == "Scroll":
+                    if v not in ENTITIES:
+                        err(where, "%s %r has no sprite in sprites\\Entities" % (k, v))
+                    elif (entities_ini.get(v, "Spell") or "").strip() != spell or (entities_ini.get(v, "Rank") or "") != rank:
+                        err(where, "[%s] in Entities.ini needs Spell=%s and Rank=%s" % (v, spell, rank))
+                elif key in UPGRADE_RANGES and not rng(v):
+                    err(where, "%s=%r is not min-max" % (k, v))
+                elif key == "Slow" and not (len(v.split(",")) == 2 and all(is_num(x) for x in v.split(","))):
+                    err(where, "%s=%r is not percent,seconds" % (k, v))
+                elif key not in UPGRADE_RANGES and key not in ("Slow", "Freeze.Word") and not is_num(v):
+                    err(where, "%s=%r is not a number" % (k, v))
+            continue
+        known = SHARDS_KEYS.get(sec)
+        if known is None:
+            err(where, "unknown section (Shards, Dismantle, Remnants, Upgrade.<Spell>)")
+            continue
+        for k, v in items:
+            if k is None:
+                continue
+            if k not in known and not (sec == "Shards" and k.startswith("Shardstone.")):
+                err(where, "unknown key %s" % k)
+            elif not (is_num(v) or (k in ("Chest", "Count", "Mob.Count") and rng(v))):
+                err(where, "%s=%r is not a number" % (k, v))
+    for sec, items in entities_ini.sections:
+        lv = entities_ini.get(sec, "Level")
+        if lv is not None and not (is_num(lv) and 1 <= float(lv) <= 25):
+            err("data\\Entities.ini [%s]" % sec, "Level=%r should be 1-25" % lv)
 
 
 def check_digging():
@@ -1539,12 +1603,9 @@ def check_spells(entities_ini, skills):
             err(where, "a %s spell needs Damage=min-max" % effect.title())
         if effect == "HEAL" and ini.get(sec, "Heal") is None:
             err(where, "a Heal spell needs Heal=min-max")
-        for k, v in items:                       # (a rank's scroll: Scroll.2=... raises the spell to 2)
-            if k and k.startswith("Scroll.") and k[7:].isdigit():
-                if v not in ENTITIES:
-                    err(where, "%s %r has no sprite in sprites\Entities" % (k, v))
-                elif (entities_ini.get(v, "Spell") or "").strip() != sec or (entities_ini.get(v, "Rank") or "") != k[7:]:
-                    err(where, "[%s] in Entities.ini needs Spell=%s and Rank=%s" % (v, sec, k[7:]))
+        for k, v in items:                       # (a rank's values live in Shards.ini [Upgrade.<Spell>])
+            if k and "." in k and k.rsplit(".", 1)[1].isdigit():
+                err(where, "%s: a rank's value belongs in Shards.ini [Upgrade.%s]" % (k, sec))
         fw = ini.get(sec, "Freeze.Word")
         if fw is not None and fw.strip() not in ("frozen", "stunned"):
             err(where, "Freeze.Word=%r is not frozen or stunned" % fw)
@@ -1579,6 +1640,11 @@ def check_spells(entities_ini, skills):
     for name in ("Hit1", "Crit1", "Heal1", "Miss", "Puff1", "Slash1", "Hurt_Top", "Hurt_Left"):
         if name not in effects:
             warn("sprites\\Effects", "%s.png is missing: run dev\\migrate\\build_effects.py" % name)
+
+
+def QUEST_SKILLS():
+    """The skills there are (Config.ini [Skills] List)."""
+    return [s.strip() for s in (Ini(p("data", "Config.ini")).get("Skills", "List", "") or "").split(",") if s.strip()]
 
 
 def check_quests():
@@ -1656,10 +1722,17 @@ def check_quests():
             elif k == "Requires.Skills":
                 words = v.replace(",", " ").split()
                 if len(words) % 2 or not all(w.isdigit() for w in words[1::2]):
-                    err(where, "Requires.Skills should be pairs of skill and level, e.g. Woodcutting 10, Herblore 5")
+                    err(where, "Requires.Skills should be pairs of skill and level, e.g. Woodcutting 10, Potion Making 5")
             elif k == "Reward.Shards":
                 if not v.strip().isdigit():
                     err(where, "Reward.Shards=%r should be a whole number of Shards" % v)
+            elif k == "Reward.XP":                       # (skill xp pairs, given once when it's done)
+                w = v.replace(",", " ").split()
+                if not w or len(w) % 2 or not all(is_num(x) for x in w[1::2]):
+                    err(where, "Reward.XP=%r should be pairs of skill and xp, e.g. Strength 3 Defence 3" % v)
+                for sk in w[::2]:
+                    if sk.lower() not in {s.lower() for s in QUEST_SKILLS()}:
+                        err(where, "Reward.XP: no skill %r in Config.ini [Skills] List" % sk)
             elif k == "Reward.Items":                    # (item how-many pairs, given once when it's done)
                 bits = v.split()
                 if len(bits) % 2 or not all(b.isdigit() for b in bits[1::2]):
@@ -1985,6 +2058,7 @@ def main():
     check_gathering(entities_ini, tiles_ini, skills)
     check_quests()
     check_spells(entities_ini, skills)
+    check_shards(entities_ini)
     check_digging()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)

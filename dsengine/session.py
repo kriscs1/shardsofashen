@@ -26,6 +26,7 @@ from .minigames import MinigameMixin
 from .tavern import TavernMixin
 from .containers import ChestMixin
 from .shards import ShardMixin
+from .remnants import RemnantMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -34,7 +35,8 @@ LOOK_PARTS = ("skin", "hair", "shirt", "legs")
 
 
 def clean_look(look):
-    """A character's colours ({"skin": "#rrggbb", ...}): only the four parts, only colours; None if there are none."""
+    """A character's look ({"skin": "#rrggbb", ..., "body": "f"}): only the four parts' colours, and the body (m or f:
+    a woman's is the PlayerF sprites); None if there's nothing."""
     if not isinstance(look, dict):
         return None
     out = {}
@@ -42,11 +44,17 @@ def clean_look(look):
         v = str(look.get(k, "")).strip().lower()
         if len(v) == 7 and v[0] == "#" and all(c in "0123456789abcdef" for c in v[1:]):
             out[k] = v
+    if str(look.get("body", "")).lower() == "f":
+        out["body"] = "f"
     return out or None
 
 
+SKILLS_BEFORE = 50                  # (what skills were out of in a save that doesn't say)
+BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man's, a woman's)
+
+
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin, ShardMixin):
+              MinigameMixin, ShardMixin, RemnantMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -300,7 +308,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.emit({"t": "hurt"})
 
     def level_up_show(self, skill, level):
-        self.emit({"t": "levelup", "skill": skill, "level": level})
+        self.emit({"t": "levelup", "skill": skill.replace("_", " "), "level": level})
         self.w.fx({"t": "burst", "uid": self.player.uid}, self.player.z, self.player.cx, self.player.cy)
 
     def draw_skills(self):
@@ -327,8 +335,14 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p.name = self.player_sprite_base
         self.w.init_entity(p, m.mz, m.ox + x, m.oy + y, m.name)
         p.direction = max(1, int(val(st.get("direction", 4))))
+        # (saved before skills went to 25 - "skills_of" is what they were out of then, 50 if it doesn't say: each
+        #  scaled down to the same place out of 25, as it loads)
+        scale = d.skill_max_level / max(1.0, val(st.get("skills_of", SKILLS_BEFORE))) if st.get("skills") else 1
         for i in range(1, d.total_skills + 1):
-            self.skill_xp[i] = min(d.skill_max_level, max(0, val(st.get("skills", {}).get(d.skill_name[i], 0))))
+            x = val(st.get("skills", {}).get(d.skill_name[i], 0))
+            if scale < 1 and d.skill_name[i].upper() != "HITPOINTS":
+                x = max(1.0, x * scale) if x >= 1 else x
+            self.skill_xp[i] = min(d.skill_max_level, max(0, x))
         self.default_hitpoints_level()
         self.update_max_hp()
         hp = val(st.get("hp", 0))
@@ -364,7 +378,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.hotbar = [self.renamed(h) for h in self.hotbar]
         self.explored = {k: ("all" if v == "all" else set(v)) for k, v in st.get("explored", {}).items()}
         g = st.get("grave")
-        self.look = clean_look(st.get("look"))
+        self.set_look(st.get("look"))
         self.load_chests(st.get("chests"))
         r = st.get("home_return")
         if isinstance(r, list) and len(r) == 3:
@@ -393,6 +407,19 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.update_attribute("Passage", "=0")
             self.update_attribute("LastWill", "=2")
         self.update_attribute("Story", "=2")
+
+    def set_look(self, look):
+        """Their look, and the body it gives them (unless a script has made them something else)."""
+        self.look = clean_look(look)
+        if self.player_sprite_base in BODIES:
+            self.player_sprite_base = self.body_sprite()
+            if self.player.name != self.player_sprite_base:
+                self.w.replace_sprite(self.player, self.player_sprite_base)
+                self.w.animate_entity(self.player, False)
+        self.dirty_me = True
+
+    def body_sprite(self):
+        return "PlayerF" if (self.look or {}).get("body") == "f" else "Player"
 
     def new_player_start(self):
         """A new character: saves\\TEMPLATE.ini's skills, inventory, equipment and bank."""
@@ -438,6 +465,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
             "sprite": self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
+            "skills_of": d.skill_max_level,
             "inventory": [[e.name, e.quantity, e.wear] for e in self.inv],
             "equipped": [[self.equipped[i], self.equip_wear[i]] for i in range(1, d.equip_slots + 1)],
             "bank": [[self.bank_item[i], self.bank_qty[i], self.bank_wear[i][:self.bank_qty[i]]]
@@ -481,7 +509,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.check_map()
         self.emit({"t": "buildables", "pieces": self.homes.catalog_for_client()})
         self.check_home_entry()
-        self.display_message("Welcome to Dragon Sword, %s!" % self.player_name, "INFORMATION")
+        self.display_message("Welcome to Shards of Estforlan, %s!" % self.player_name, "INFORMATION")
         self.display_message("Press H (or F1) for your journal: what you can make and gather, quests and controls.",
                              "INFO")
 

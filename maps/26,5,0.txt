@@ -24,7 +24,7 @@ NPC	Butcher	768	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_303 Name=Be
 NPC	Clerk	512	280	Attitude=Good Stand=1 Face=S Id=Emberwatch_Clerk_308
 StaticObject	Market_Stall_Open	768	512
 StaticObject	Market_Stall_Open	768	576
-StaticObject	Waystone	672	608
+StaticObject	Shardstone	672	608
 StaticObject	Notice	672	546	Id=Emberwatch_Notice_306
 StaticObject	Notice	704	418	Id=Emberwatch_Notice_309
 Id	Waystone_Emberwatch	22	21

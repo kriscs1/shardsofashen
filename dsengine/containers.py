@@ -61,7 +61,7 @@ class ChestMixin:
             return
         if random.uniform(0, 100) < self.shard_setting("Chest.Chance", 40):    # (Shards among the treasure, now and
             from .digging import roll                                         #  then: only when it gave something,
-            got.append(["Shard", roll(self.data.config_read("Shards", "Chest", "3-15"))])   # once)
+            got.append(["Shard", roll(self.data.shards_ini("Shards", "Chest", "3-15"))])   # once)
         have = self.chests.setdefault(key, [])
         for item, qty in got:
             same = next((it for it in have if it[0] == item), None)

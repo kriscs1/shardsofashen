@@ -30,7 +30,7 @@ NPC	Barmaid	640	568	Attitude=Good Zone=16,18,22,19 Pause=3-9 Id=Highwatch_Barmai
 StaticObject	Market_Stall_Open	64	448
 StaticObject	Market_Stall_Open	64	576
 StaticObject	Market_Board	0	416
-StaticObject	Waystone	32	352
+StaticObject	Shardstone	32	352
 StaticObject	Sign_Pub	512	624
 StaticObject	Notice	416	610	Id=Highwatch_Notice_332
 Id	Highwatch_Market_Square	1	18

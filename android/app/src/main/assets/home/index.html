@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Dragon Sword</title>
+<title>Shards of Estforlan</title>
 <style>
 :root {
   --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #d4bf7e;
@@ -41,7 +41,7 @@ button:disabled { opacity: 0.5; }
 </style>
 </head>
 <body>
-<div class="top"><h1>Dragon Sword</h1><span id="version" class="dim small"></span></div>
+<div class="top"><h1>Shards of Estforlan</h1><span id="version" class="dim small"></span></div>
 <p id="error" class="error" hidden></p>
 <div class="cols">
   <section class="card">
@@ -116,7 +116,7 @@ function refresh() {
   if (on && last !== "on") find();                // (it's on: it shows in the list too)
   last = st.status;
   if (!$("host-name").value && st.device && !$("host-name").dataset.set) {
-    $("host-name").value = app.get("hostName") || "Dragon Sword on " + st.device;
+    $("host-name").value = app.get("hostName") || "Shards of Estforlan on " + st.device;
     $("host-name").dataset.set = "1";
   }
 }

@@ -143,7 +143,7 @@ class MinigameMixin:
             g["pushed"] = self.now
             side = -1 if bout["players"][0] == self.player_name else 1
             strength = self.skill_level("Strength")
-            bout["at"] += side * (2.2 + strength * 0.08)
+            bout["at"] += side * (2.2 + strength * 0.16)
             return
         if bout is not None or g["phase"] not in ("stake", "done", "wait"):
             return
@@ -177,7 +177,7 @@ class MinigameMixin:
             strength = self.skill_level("Strength")
         arms.bouts[tid] = {"players": players, "stake": stake, "at": 0.0, "ends": self.w.now + ARM_SECONDS * 1000,
                            "house": HOUSE in players, "house_at": self.w.now + 900,
-                           "house_push": 2.4 + strength * 0.06, "shown": 0}
+                           "house_push": 2.4 + strength * 0.12, "shown": 0}
         for who in players:
             s = self.w.sessions.get(who)
             if s is not None and s.game is not None and s.game["game"] == "arm":

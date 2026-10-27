@@ -14,7 +14,7 @@
 14	>Got.Item	Bronze_Pickaxe	1	19
 15	Get.Value	CALCULATION	0	Variable.2$
 16	Get.Value	CALCULATION	1	Variable.3$
-17	Display.Conversation	Miner	Click a rock with ore in it and swing. Better pickaxes strike more often.\Smelt the ore at a furnace.\At Mining 10 the guild's deep seam opens: coal, silver and gold!	Thanks!	22
+17	Display.Conversation	Miner	Click a rock with ore in it and swing. Better pickaxes strike more often.\Smelt the ore at a furnace.\At Mining 5 the guild's deep seam opens: coal, silver and gold!	Thanks!	22
 18	End
 19	Display.Conversation	Miner	You'll need a pickaxe. I dropped my spare by the ladder when I ran.\The Ashford blacksmith sells them too.	Thanks!	22
 20	End

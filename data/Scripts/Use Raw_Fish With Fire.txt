@@ -4,7 +4,7 @@
 04	Play.Sound	CookingFood
 05	Wait	3
 06	Get.Value	SKILL	Cooking	Variable.1$
-07	>Conditional	($Variable.1+40)>$Random.Percent	12
+07	>Conditional	($Variable.1*2+40)>$Random.Percent	12
 08	Display.Message	Yellow	..and cook it perfectly!
 09	Update.Skill	Cooking	+0.05
 10	Give.Item	Cooked_Fish	1

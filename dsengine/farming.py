@@ -238,7 +238,7 @@ class FarmMixin:
             return True
         c = farms.crops[crop]
         lo, hi = (int(val(v)) for v in (word(c["yield"], 1, "-"), word(c["yield"], 2, "-") or word(c["yield"], 1, "-")))
-        n = random.randint(max(1, lo), max(lo, hi)) + self.skill_level("Farming") // 10
+        n = random.randint(max(1, lo), max(lo, hi)) + self.skill_level("Farming") // 5
         room = self.inventory_slots_available(c["gives"])
         if room <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")

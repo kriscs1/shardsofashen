@@ -101,7 +101,7 @@ export function mouseMove(x, y) {
   const vit = !msg ? vitalsAt(x, y) : "";
   if (vit === "level") msg = "Your level|the best of your fighting skills";
   if (vit === "hp") msg = `${S.me.hp} / ${S.me.max_hp} hitpoints`;
-  if (vit === "shards") msg = `#${S.me.shards} Shards|Spent to cast spells and wake waystones|~Found on beasts, in chests and the earth, and given for quests`;
+  if (vit === "shards") msg = `#${S.me.shards} Shards|Spent to cast spells and wake shardstones|~Absorbed from the Shard Remnants beasts leave, found in chests and the earth, and given for quests`;
   const [cx, cy, cw, ch] = clockRect();
   if (!msg && S.clock.on && x >= cx && x < cx + cw && y >= cy && y < cy + ch) msg = timeText(dayFraction(performance.now()));
   const fr = U.fullscreenRect;

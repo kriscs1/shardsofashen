@@ -1,4 +1,4 @@
-// Dragon Sword in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
+// Shards of Estforlan in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
 // out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp; a phone's is laid out
 // lower, so everything's bigger: mobile.js) and the frame loop.
 import { A, loadManifest, configRead, onLoaded } from "./assets.js";
@@ -226,7 +226,7 @@ $("quit-logout").onclick = () => {
   if (N.ws) N.ws.close();
   stopMusic();
   $("quit").hidden = true;
-  showMessage("Dragon Sword", "Your game is saved. See you soon!", () => location.reload());
+  showMessage("Shards of Estforlan", "Your game is saved. See you soon!", () => location.reload());
 };
 
 // (in the Android app: out of the game, to the app's start screen: host, the games on the network, an address)
@@ -313,7 +313,7 @@ function openAdmin() {
     lv.type = "text";
     lv.value = levelOfXp(S.me.xp[i]);
     lv.dataset.i = i;
-    row.append(tick, " " + name + " ", lv);
+    row.append(tick, " " + pretty(name) + " ", lv);
     box.append(row);
   });
   $("admin-god").checked = !!S.me.god;
@@ -462,7 +462,7 @@ function showReward(m) {
   };
   if (m.shards) row("Shard", `${m.shards} Shards`, "shards");
   for (const [item, n] of m.items || []) row(item, `${n > 1 ? n + " x " : ""}${pretty(item)}`);
-  for (const [skill, xp] of m.xp || []) row(configRead("Skills", "Icon." + skill, ""), `${xp} ${skill} experience`);
+  for (const [skill, xp] of m.xp || []) row(configRead("Skills", "Icon." + skill, ""), `${xp} ${pretty(skill)} experience`);
   if (!list.children.length) row("", "The thanks of those you helped");
   $("reward-quest").textContent = m.quest;
   releaseKeys();
@@ -632,7 +632,7 @@ N.onMessage = (m) => {
       running = false;
       releaseKeys();
       stopMusic();
-      showMessage("Dragon Sword", m.reason, () => location.reload());
+      showMessage("Shards of Estforlan", m.reason, () => location.reload());
       break;
     case "mapdata": addMap(m); invalidateMap(m.name); break;
     case "mapcells": mapCells(m); break;
@@ -978,7 +978,7 @@ async function boot() {
     return;
   }
   setGeometry();
-  preload(["Player1a", "Player2a", "Player4a", "Player8a"]);
+  preload(["Player1a", "Player2a", "Player4a", "Player8a", "PlayerF1a", "PlayerF2a", "PlayerF4a", "PlayerF8a"]);
   layout(screen.W, screen.H);
   resize();
   fogInit();

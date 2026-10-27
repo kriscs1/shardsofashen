@@ -590,7 +590,7 @@ export function statTileAt(px, py) {
   return -1;
 }
 
-const maxLevel = () => Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "50"))));
+const maxLevel = () => Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "25"))));
 export const levelOfXp = (xp) => Math.min(maxLevel(), Math.max(1, Math.floor(xp)));
 
 export function levelProgress(xp) {
@@ -1378,7 +1378,7 @@ function drawBanner(ctx, now) {
   const tw = textWidth(ctx, title, 30, true);
   for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [2, 2]]) drawText(ctx, title, x0 + (w - tw) / 2 + dx, y0 + 10 + dy, 30, true, [40, 22, 8]);
   drawText(ctx, title, x0 + (w - tw) / 2, y0 + 10, 30, true, [255, 214, 92]);
-  const ic = configRead("Skills", "Icon." + b.skills[b.skills.length - 1][0], "").trim();
+  const ic = configRead("Skills", "Icon." + b.skills[b.skills.length - 1][0].replace(/ /g, "_"), "").trim();
   if (ic) { icon(ctx, ic, x0 + 16, y0 + (h - 40) / 2, 40); icon(ctx, ic, x0 + w - 56, y0 + (h - 40) / 2, 40); }
   const stw = textWidth(ctx, sub, 16, true);
   drawText(ctx, sub, x0 + (w - stw) / 2 + 1, y0 + 59, 16, true, [20, 10, 4]);
@@ -1667,8 +1667,8 @@ export function skillInfo(i, long) {
   const level = levelOfXp(xp);
   const pts = (x) => Math.floor(x * 100 + 1e-6).toLocaleString("en");
   if (long) {
-    if (level >= maxLevel()) return `You have the highest ${name} level possible (${maxLevel()})!`;
-    return `${name}: ${pts(xp)} xp / ${pts(level + 1)} xp to level ${level + 1}.`;
+    if (level >= maxLevel()) return `You have the highest ${pretty(name)} level possible (${maxLevel()})!`;
+    return `${pretty(name)}: ${pts(xp)} xp / ${pts(level + 1)} xp to level ${level + 1}.`;
   }
   const prog = level >= maxLevel() ? "the highest level" : `${pts(xp)} xp / ${pts(level + 1)} xp`;
   return `${name}: level ${level} / ${maxLevel()}|${prog}`;

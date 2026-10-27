@@ -2,13 +2,13 @@
 01	>Distance.From.Clicked.Entity	64	24
 02	>Got.Item	Fishing_Rod	1	20
 03	Get.Value	SKILL	Fishing	Variable.1$
-04	>Conditional	$Variable.1>=10	22
+04	>Conditional	$Variable.1>=5	22
 05	>Got.Item	Bait	1	18
 06	Display.Message	Cyan	You bait the hook and flick your line over the rising trout...
 07	Show.Skill	Fishing
 08	Play.Animation	Splash	1	Splash
 09	Wait	4
-10	>Conditional	($Variable.1-10+40)>$Random.Percent	16
+10	>Conditional	($Variable.1*2-10+40)>$Random.Percent	16
 11	Take.Item	Bait	1
 12	Display.Message	Yellow	...and land a trout!
 13	Give.Item	Raw_Trout	1
@@ -20,7 +20,7 @@
 19	End
 20	Display.Message	DarkRed	You need a fishing rod.	Denied
 21	End
-22	Display.Message	DarkRed	You need level 10 Fishing to catch the trout here.	Denied
+22	Display.Message	DarkRed	You need level 5 Fishing to catch the trout here.	Denied
 23	End
 24	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!	Denied
 25	End

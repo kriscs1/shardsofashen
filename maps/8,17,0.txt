@@ -26,7 +26,7 @@ NPC	Barkeep	224	312	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_348 Name=Hat
 NPC	Barmaid	288	408	Attitude=Good Zone=5,13,11,14 Pause=3-9 Id=Fenwick_Barmaid_349 Name=Florence
 NPC	Barkeep	512	312	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_351 Name=Agnes
 NPC	Barmaid	576	408	Attitude=Good Zone=15,13,20,14 Pause=3-9 Id=Fenwick_Barmaid_352 Name=Ulric
-StaticObject	Waystone	640	192
+StaticObject	Shardstone	640	192
 StaticObject	Homestone	96	192
 StaticObject	Sign_Pub	352	464
 StaticObject	Sign_Pub	480	464

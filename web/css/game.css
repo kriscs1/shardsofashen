@@ -266,6 +266,11 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 .swatch:hover, .swatch:focus-visible { border-color: var(--parchment); background-image: none; }
 .swatch.on { border-color: var(--ink); box-shadow: 0 0 0 1px #000; }
+.body-choice {
+  min-height: 26px; padding: 2px 10px; border-radius: 6px; font-size: 14px;
+  border: 2px solid #241510; background: #3a2618; color: var(--parchment); cursor: pointer;
+}
+.body-choice.on { border-color: var(--ink); background: #6b4426; }
 .look-row input[type=color] {
   width: 26px; height: 22px; padding: 0; border: 2px solid var(--edge); border-radius: 5px;
   background: #241510; cursor: pointer;

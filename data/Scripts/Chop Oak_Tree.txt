@@ -18,12 +18,12 @@
 17	Get.Value	CALCULATION	0	Variable.2$
 18	Get.Value	CALCULATION	1	Variable.3$
 19	Get.Value	SKILL	Woodcutting	Variable.1$
-20	>Conditional	$Variable.1>=10	35
+20	>Conditional	$Variable.1>=5	35
 21	Show.Skill	Woodcutting
 22	Play.Animation	Wood_Chips	4	WoodChop
 23	Display.Message	Cyan	You swing your axe at the oak..
 24	Wait	3.5
-25	>Conditional	($Variable.1+$Variable.2+34)>$Random.Percent	31
+25	>Conditional	($Variable.1*2+$Variable.2+34)>$Random.Percent	31
 26	Display.Message	Yellow	..and manage to get some oak logs!
 27	Give.Item	Oak_Logs	1
 28	Update.Skill	Woodcutting	+0.25
@@ -33,7 +33,7 @@
 32	End
 33	Change.Tile	$Variable.5,$Variable.6	Tree_Stump001	0	30
 34	End
-35	Display.Message	DarkRed	You need level 10 Woodcutting to chop this oak.	Denied
+35	Display.Message	DarkRed	You need level 5 Woodcutting to chop this oak.	Denied
 36	End
 37	Display.Message	DarkRed	You need an axe!	Denied
 38	End

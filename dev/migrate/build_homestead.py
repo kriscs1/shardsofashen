@@ -4,7 +4,7 @@ missing and leaves the rest as it is.
 
   python -I "dev\\migrate\\build_homestead.py"
 
-  * Homestones: obelisks like the waystones, one beside each town's waystone and one on every home. Touch one to go
+  * Homestones: obelisks like the shardstones, one beside each town's shardstone and one on every home. Touch one to go
     home (with an Access Crystal), to visit other players' homes they've opened, or (at home) to say who may visit.
   * The quest "A Place of Your Own": the settler by Ashford's homestone (Id=Homestead_Settler) wants planks and stone
     blocks, and gives you the Access Crystal. After it she sells Homestead Scrolls (Magic 12: home from anywhere) and
@@ -40,7 +40,7 @@ MAGIC_LEVEL = 12                # Homestead Scrolls need this much Magic
 
 ITEMS = {
     "Homestone": {"Type": "StaticObject", "Use.Words": "Touch,Examine", "Light": "40",
-                  "Examine.Info": "A homestone: an obelisk like the waystones, with a hearth rune that glows warm. "
+                  "Examine.Info": "A homestone: an obelisk like the shardstones, with a hearth rune that glows warm. "
                                   "Touch it to go home, or to visit a friend's home."},
     "Access_Crystal": {"Type": "MapItem", "Droppable": "0", "Value": "0",
                        "Examine.Info": "Your homestead's Access Crystal. Touch a homestone with it to go home."},
@@ -161,7 +161,7 @@ b("Carpenters_Bench", "Object", "Workshops", "Carpenter's bench (Construction)",
 b("Home_Chest", "Object", "Workshops", "Chest (your bank)", "Plank 6 Nails 10 Iron_Bar 2", 5, 0.8)
 b("Workbench", "Object", "Workshops", "Workbench (Crafting)", "Plank 6 Nails 10", 8, 0.8)
 b("Range", "Object", "Workshops", "Range (Cooking)", "Stone_Block 6 Iron_Bar 2", 14, 1.0)
-b("Alchemy_Table", "Object", "Workshops", "Alchemy table (Herblore)", "Plank 6 Glass 4 Nails 6", 20, 1.2)
+b("Alchemy_Table", "Object", "Workshops", "Alchemy table (Potion Making)", "Plank 6 Glass 4 Nails 6", 20, 1.2)
 b("Anvil", "Object", "Workshops", "Anvil (Smithing)", "Iron_Bar 10", 25, 1.4)
 b("Furnace", "Object", "Workshops", "Furnace (smelting)", "Stone_Block 12 Coal 6 Iron_Bar 2", 30, 1.6)
 
@@ -255,7 +255,7 @@ def stone_block():
 
 def make_sprites():
     pygame.init()
-    save(recolour(load("Waystone"), 0.09, 1.3, 1.05), "Homestone")            # (the blue rune glows amber)
+    save(recolour(load("Shardstone"), 0.09, 1.3, 1.05), "Homestone")            # (the blue rune glows amber)
     save(recolour(load("Sapphire"), 0.36, 1.1, 1.1), "Access_Crystal")        # (an emerald-green crystal)
     save(recolour(load("Teleport_Scroll"), 0.09, 1.2), "Homestead_Scroll")
     save(recolour(load("Chest"), 0.0, 0.9, 0.85, only_coloured=False), "Home_Chest")
@@ -463,7 +463,7 @@ def write_scripts():
         "09\tQuest.Note\tHomeQuest\tMine stone from rocks with a pickaxe and cut it into blocks at the bench.",
         "10\tDisplay.Message\tYellow\tQuest started: A Place of Your Own.",
         "11\tEnd",
-        "12\t%s\tLike the waystones, but they're bound to a hearth. Touch one with an Access Crystal and it takes you "
+        "12\t%s\tLike the shardstones, but they're bound to a hearth. Touch one with an Access Crystal and it takes you "
         "home; your friends can visit if you let them.\tI see.\t44" % say,
         "13\tEnd",
         "14\t>Conditional\t$Variable.1=1\t30",
@@ -628,9 +628,9 @@ def place_homestones():
         if any(ln.split("\t")[:2] == ["StaticObject", "Homestone"] for ln in lines):
             print("%s has its homestone already" % town)
             continue
-        way = next((ln.split("\t") for ln in lines if ln.split("\t")[:2] == ["StaticObject", "Waystone"]), None)
+        way = next((ln.split("\t") for ln in lines if ln.split("\t")[:2] == ["StaticObject", "Shardstone"]), None)
         if way is None:
-            print("WARNING - no waystone in %s" % town)
+            print("WARNING - no shardstone in %s" % town)
             continue
         spot = clear_spot_near(lines, float(way[2]), float(way[3]), [])
         if spot is None:

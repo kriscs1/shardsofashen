@@ -6,10 +6,10 @@ so `python -I "dev\\migrate\\build_world.py"` builds it.
   * THE HERB and BOG MYRTLE: drawn again as sprigs with an outline and a light side, like the berries and mushrooms
     (they were flat smudges). Frost_Lily (build_omens) is the herb recoloured, so it follows.
   * FOUR NEW HERBS (HERBS), each growing in its own lands, in patches (decor: <Herb>_Patch001, picked: ...002, grows
-    back): Sage on the moors, hills and downs (Herblore 5), Marigold in the Southlands' meadows (10), Nightshade in the
+    back): Sage on the moors, hills and downs (Potion Making 5), Marigold in the Southlands' meadows (10), Nightshade in the
     deep woods (20), Emberroot in the Ashwold's ash (30). Picked like herb patches (Pick <Herb>_Patch), listed in the
     journal's Gathering tab, bought by the herbalist.
-  * BREWING (CRAFT-Herblore): the Owl, Defence, Combat and Mega potions now need the new herbs, and two new potions
+  * BREWING (CRAFT-Potion_Making): the Owl, Defence, Combat and Mega potions now need the new herbs, and two new potions
     use them: the Healing Draught (Sage, Marigold: heals 28-36) and the Ember Tonic (Emberroot, Nightshade: +5 Attack).
   * WHERE: a couple of patches of each on the generated surface maps of its lands, on open ground away from people and
     doors (the cell and the choice are a hash of the map and cell, so every build puts them in the same places).
@@ -23,7 +23,7 @@ W = C = None        # build_world, build_content
 
 OPEN = "1" * 49
 
-# name: (patch examine, lands, ground tiles it grows on, Herblore level, XP, seconds to grow back, item value,
+# name: (patch examine, lands, ground tiles it grows on, Potion Making level, XP, seconds to grow back, item value,
 #        item examine, picking messages, the herbalist's Where)
 HERBS = {
     "Sage": ("A clump of sage, soft and grey-green. It smells clean and sharp.", ("moor", "hills", "downs"),
@@ -55,7 +55,7 @@ POTIONS = {     # name: (hue of the Basic_Potion recoloured, value, examine, Spe
                     dict(Effect="Boost", Attack="5", Duration="150", Impact="Stone_Glow", Sound="SpellShield",
                          Info="+5 Attack for two and a half minutes")),
 }
-RECIPES = {     # CRAFT-Herblore: the recipes the new herbs go into (a potion's line replaced, or added)
+RECIPES = {     # CRAFT-Potion Making: the recipes the new herbs go into (a potion's line replaced, or added)
     "Owl_Potion": "Owl_Potion,Sage 2 Egg 1 Empty_Vial 1,0.7,8",
     "Healing_Draught": "Healing_Draught,Sage 1 Marigold 2 Empty_Vial 1,0.8,12",
     "Defence_Potion": "Defence_Potion,Marigold 2 Iron_Ore 1 Empty_Vial 1,0.9,15",
@@ -381,23 +381,23 @@ def extend(world, content):
     W, C = world, content
     for hb, (pexa, _, _, level, xp, regrow, value, iexa, (msg_try, msg_ok), where) in HERBS.items():
         p1, p2 = "%s_Patch001" % hb, "%s_Patch002" % hb
-        C.TILES[p1] = (OPEN, "1", "Pick", "%s (Herblore %d)" % (pexa, level), "1", None)
+        C.TILES[p1] = (OPEN, "1", "Pick", "%s (Potion Making %d)" % (pexa, level), "1", None)
         C.TILES[p2] = (OPEN, "1", "", "The %s has been picked. It will grow back." % hb.lower(), "1", None)
         for t in (p1, p2):
             C.TILE_EXTRA[t] = [("Layer", "Decor"), ("Sway", "1.2")]
             C.WALK_SPEED[t] = "0.85"
         C.ENTITIES[hb] = C.item(value, iexa, 50)
         if not any(g[0] == hb for g in C.GATHERING):
-            C.GATHERING.append((hb, dict(Gives=hb, Source=p1, Verb="Pick", Tool="", Skill="Herblore", Level=str(level),
+            C.GATHERING.append((hb, dict(Gives=hb, Source=p1, Verb="Pick", Tool="", Skill="Potion_Making", Level=str(level),
                                          XP=xp, Where=where)))
-        W.S["Pick %s_Patch" % hb] = C.pick_script(hb.lower(), hb, p2, regrow, "Herblore", level, xp, 60, msg_try,
+        W.S["Pick %s_Patch" % hb] = C.pick_script(hb.lower(), hb, p2, regrow, "Potion_Making", level, xp, 60, msg_try,
                                                   msg_ok)
     for name, (_, value, exa, keys) in POTIONS.items():
         C.ENTITIES[name] = C.item(value, exa, 1, use="Drink") + [("Spell", name)]
         if not any(s[0] == name for s in C.SPELLS):
-            C.SPELLS.append((name, dict(dict(Scroll=name, Kind="Potion", Skill="Herblore", Level="1",
+            C.SPELLS.append((name, dict(dict(Scroll=name, Kind="Potion", Skill="Potion_Making", Level="1",
                                              Leaves="Empty_Vial", XP="0"), **keys)))
-    rack = C.CRAFT["CRAFT-Herblore"][1]
+    rack = C.CRAFT["CRAFT-Potion_Making"][1]
     for potion, line in RECIPES.items():
         i = next((k for k, r in enumerate(rack) if r.startswith(potion + ",")), None)
         if i is None:

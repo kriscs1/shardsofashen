@@ -4,7 +4,7 @@ Run it again after rebuilding the world: it makes what's missing and leaves the 
   python -I "dev\\migrate\\build_town_life.py"
 
   * Market boards (Market_Board, dsengine/market.py): the global marketplace. Anyone lists things from their pack at
-    their own price, and everyone sees everyone's listings at any board: in Ashford's market and by every waystone.
+    their own price, and everyone sees everyone's listings at any board: in Ashford's market and by every shardstone.
   * The stalls by Ashford's south road are the vendors' now (decoration): a trader behind each, with a shop.
   * The Green Dragon, Ashford's beer garden (behind the houses, north): the innkeeper (Id=Innkeeper: Three Cups, High
     or Low, ale) and dice tables (Dice_Table: a round of Dragon Dice for everyone at the table). dsengine/tavern.py.
@@ -370,7 +370,7 @@ def place_boards():
         lines = map_lines(name)
         if any(ln.split("\t")[:2] == ["StaticObject", "Market_Board"] for ln in lines[YT:]):
             continue
-        anchor = next((ln.split("\t") for ln in lines[YT:] if ln.split("\t")[:2] == ["StaticObject", "Waystone"]), None)
+        anchor = next((ln.split("\t") for ln in lines[YT:] if ln.split("\t")[:2] == ["StaticObject", "Shardstone"]), None)
         if name == ASHFORD:                                     # (Ashford's: at the market, by its sign)
             anchor = next((ln.split("\t") for ln in lines[YT:] if ln.split("\t")[:2] == ["StaticObject", "Sign_Market"]),
                           anchor)

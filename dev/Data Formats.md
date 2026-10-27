@@ -61,7 +61,7 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 [Gameplay]    Player.Movement.Speed, Player.Attack.Speed, Player.Visible,
               Hitpoints.Base, Hitpoints.Per.Level (max HP = base + per level x (Strength + Defence levels)),
               HP.Regen.Delay (seconds out of combat before HP comes back, default 6), HP.Regen.Every (seconds per HP, 3),
-              Skill.Max.Level (the highest level of every skill, default 50: XP stops there),
+              Skill.Max.Level (the highest level of every skill, default 25: XP stops there),
               NPC.Respawn.Delay, Item.Respawn.Delay (map items respawn after pickup),
               Item.Despawn.Delay (dropped items vanish, default 180), Maximum.Bank.Slots,
               FogOfWar.Enabled, FogOfWar.Viewable.Distance,
@@ -73,7 +73,7 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
               Zoom=1 (0.75/1/1.5/2/3, set by the mouse wheel and + / -), Camera.Smooth=8 (0 = no easing), Smooth.Scaling=1 (0 = sharp pixels)
               [Gameplay] Night.Light.Radius=130 (Python game: light round the player at night, 0 = none)
               InventoryItems.Columns=5  InventoryItems.Rows=7  ActionBox.Columns=11  ActionBox.Rows=3
-[Skills]      List=Strength,Defence,Hitpoints,Cooking,Smithing,Fishing,Mining,Woodcutting,Firemaking,Herblore,Crafting,Magic
+[Skills]      List=Strength,Defence,Hitpoints,Cooking,Smithing,Fishing,Mining,Woodcutting,Firemaking,Potion_Making,Crafting,Magic
               Icon.<Skill>=<sprite> ; the picture on the skill's tile in the Stats tab, e.g. Icon.Mining=Pickaxe
                                     ; (also shown over the player's head for a moment when the skill gains XP)
               Disabled=Name,Name  ; skills switched off: no Stats tile, no XP (Hitpoints can't be). Set by the Admin panel
@@ -381,7 +381,7 @@ One section per spell; a scroll item (Entities.ini `Spell=<section>`, `Use.Words
 scroll (Learn) needs the Magic level and teaches the spell for good (saved with the character; the scroll goes, unless
 `Keep=1`); used on something, it's learnt and cast at it at once. A known spell is cast from its scroll (not used up),
 the journal's Spells or the hotbar (no target chosen: what you're fighting or the nearest), for `Cost` Shards
-(dsengine/shards.py), only when it takes hold; each has its own `Cooldown`; Config [Shards] `Cast.Gap` seconds
+(dsengine/shards.py), only when it takes hold; each has its own `Cooldown`; Shards.ini [Shards] `Cast.Gap` seconds
 between any two casts.
 
 ```
@@ -391,7 +391,7 @@ Effect=Bolt                ; Bolt (one foe) | Area (every foe within Radius) | H
 Kind=Scroll                ; Scroll (learnt, then cast for Shards) | Potion (drunk, used up: Use.Words=Drink)
 Cost=3                     ; Shards a cast (a scroll's spell); Cooldown=0.8: seconds before that spell again
 Shards=10                  ; a potion: puts that many Shards in your pack
-Skill=Magic                ; the skill for Level and XP (potions: Herblore, with XP=0 - they train Herblore when brewed)
+Skill=Magic                ; the skill for Level and XP (potions: Potion Making, with XP=0 - they train Potion Making when brewed)
 Leaves=Empty_Vial          ; optional: an item you get back (the vial)
 Level=1                    ; Magic level needed
 Damage=2-5                 ; Bolt, Area: min-max, + Magic level / 4 + the staff's Magic + a Magic Potion
@@ -427,7 +427,7 @@ Type=Main                   ; part of the main story: first in the journal (a go
 Chapter=2                   ; the Quests tab), in Chapter order. Blank or Side: a side quest
 Requires.Level=12           ; before it can be started: the player's level (Config [Gameplay] Level.Skills, Level.Best:
 Requires.Quests=Passage to the Mainland; Bog Lights    ; the average of their best two of Strength, Defence, Magic),
-Requires.Skills=Woodcutting 10, Herblore 5             ; quests finished, skill levels
+Requires.Skills=Woodcutting 10, Potion Making 5             ; quests finished, skill levels
 ```
 A quest that can't be started yet shows in the journal as Locked, with what it needs. Its giver's script asks
 `>Quest.Can.Start <quest or attribute> <goto>` before offering it (the chat says what's missing); a script that sets a
@@ -482,7 +482,7 @@ sets these for every quest and puts the check in every giver's script.
   Down (Z-1), Ladder003 = both. A ladder's other end is at the same tile X,Y on the level above/below, on walkable
   floor. (Scripts: `Climb Up Stairs` / `Climb Down Stairs` for both stairs, `Climb Up Ladder008`, `Climb Down Ladder009`.)
 * Crafting stations are StaticObjects whose Use script opens a CRAFT- rack: Range (CRAFT-Cooking), Furnace
-  (CRAFT-Smelting: ore to bars), Anvil (CRAFT-Smithing: bars to tools and armour), Alchemy_Table (CRAFT-Herblore),
+  (CRAFT-Smelting: ore to bars), Anvil (CRAFT-Smithing: bars to tools and armour), Alchemy_Table (CRAFT-Potion_Making),
   Workbench (CRAFT-Crafting). Smelting and smithing both train Smithing. Mining and woodcutting scripts use the best
   pickaxe/axe carried (bronze, iron, steel, mithril): a better tool raises the chance, and mithril rock needs steel or better.
 * People and goblins are drawn on the player's body by dev\migrate\build_people.py (the hand-drawn originals are in
@@ -521,7 +521,7 @@ egion_tiles.py, with the same Walkable.Data).
     A hearth cooks like a fire: `Use <Raw_...> With Fireplace` goes to `... With Fire` (build_content.hearths).
 * King Tyron's palace (dev\migrate\build_palace.py, tiles palace_tiles.py): the Royal Isle, 4,4,0, over a causeway
   at the east end of the goblin camp's north road (3,4,0 row 3). Throne hall, wizard's tower (study 4,4,1), the
-  royal treasury (Lock: HobgoblinQuest>=2), a waystone. Tyron's Keep (2,4,0) is now the King's garrison.
+  royal treasury (Lock: HobgoblinQuest>=2), a shardstone. Tyron's Keep (2,4,0) is now the King's garrison.
 * Fishing only at fishing spots (build_fishing.py): animated StaticObjects on the water by a shore you can walk to.
   Fish_Spot (Raw_Fish, Fishing 1: the sea round the Isle and the Southlands), Trout_Spot (10: Southlands rivers and
   ponds, some in the Wildlands), Salmon_Spot (20: Wildlands and far rivers and lakes), Swordfish_Spot (35: the sea off
@@ -536,7 +536,7 @@ egion_tiles.py, with the same Walkable.Data).
   least 2 x 2, + 10-12 a runner one tile high, + 13-15 one tile wide, + 16 a mat (villages.lay_rug). Every house has
   a table (and chairs), a rug, a shelf and a plant: villages.lay_house, and build_content.furnish_old_houses for the
   hand-drawn ones.
-* Waystones: only four (build_travel.WAYSTONES): Ashford, Highwatch, Dunerest, Thornwick. None on the Isle.
+* Shardstones: only four (build_travel.SHARDSTONES): Ashford, Highwatch, Dunerest, Thornwick. None on the Isle.
 * Music: outside, Config [Sounds] Music (TownTheme.ogg: cynicmusic, CC0) plays everywhere, without a break between maps. Inside a
   building (under a roof) it fades over to Hearth, and back out again it fades back in where it had got to (the
   game plays a copy of the MIDI that starts there: dragonsword\midi.py). Every change fades out (1.1 s) and in
@@ -584,39 +584,52 @@ egion_tiles.py, with the same Walkable.Data).
   City_Wall001 over City_Wall004; City_Wall002 north-south; towers City_Wall003 over City_Wall005; the gateway
   City_Gate003 over City_Gate001). Both gate cells have a Lock `$Attr.DragonQuest>=4`, so the town stays shut until
   the Dragon of Ashpeak is done; Tiles.ini Unlocked.Tile draws them open (City_Gate004 over City_Gate002). Inside: bank,
-  Trader (SHOP-Wardhaven), smithy, Settler, waystone; outside the gate a Guard (Talk to Guard goes to the Wardhaven
+  Trader (SHOP-Wardhaven), smithy, Settler, shardstone; outside the gate a Guard (Talk to Guard goes to the Wardhaven
   Guard script on 5,3,0). It isn't a quest, so the dragon quest (offered when every other quest is done) doesn't wait
   for it.
 * The wheat field: Field001 (ploughed earth) with StaticObjects Ripe_Wheat001-003 on it (verb Harvest, walk-through).
   Harvesting gives Wheat and leaves a Stubble for 60 seconds (Add.Action.To.Queue), then the plant is back. Entity and
   tile names show without their 3-digit number (Ripe_Wheat002 -> "Ripe Wheat").
-* Waystones (StaticObject Waystone, verb Travel): one in each town. Touching one sets attribute Waystone.<Key>=1; the
-  travel menu (scripts Travel Waystone and Waystone Menu) only goes to waystones with that set. Made by build_travel.py.
+* Shardstones (StaticObject Shardstone, verb Travel): one in each town. Touching one sets attribute Shardstone.<Key>=1; the
+  travel menu (scripts Travel Shardstone and Shardstone Menu) only goes to shardstones with that set. Made by build_travel.py.
 * Entities.ini, bows: Range=<pixels> (shoots from that far when the target can be seen) and Ammo=<item> (one used up
   a shot; with none left the bow is a club). Monsters that shoot: Missile=<sprites\Effects picture>, Missile.Impact=<an
   effect animation where it hits>, Missile.Sound; they shoot from 36 + Weapon.Range pixels and bite close up.
 * Entities.ini Kill.Sound=<kind>: the sound a monster makes as it dies, sounds\Kill_<kind>.wav (Beast, Small, Bird,
   Livestock, Humanoid, Troll, Undead, Bug, Dragon; made by build_sounds.py). Set for every Bad NPC by build_content.py
   from its name; Beast when missing.
-* Spells.ini Level: the Magic (or Skill=) level needed to read the scroll. A scroll works 60% of the time at that level,
-  7% more for each level above it (at most 98%); when it fizzles no Shards are spent, for half the experience.
+* Spells.ini Level: the Magic (or Skill=) level needed to read the scroll (skills go to 25). A scroll works 60% of
+  the time at that level, 14% more for each level above it (at most 98%); when it fizzles no Shards are spent, for
+  half the experience.
+* Skills: Config.ini [Gameplay] `Skill.Max.Level` (25), `XP.Slowdown` (at level L a skill learns
+  XP.Slowdown/(XP.Slowdown+L) as fast) and `XP.Scale` (every gain is that times what a script or the game gives). A
+  save says what its skills were out of (`skills_of`; one that doesn't was out of 50, and is scaled as it loads).
 * **Shards** (dsengine/shards.py): a balance each player has (saved as `shards`), magic's only resource; never an
-  item in the pack (`Give.Item Shard`, a chest's or a beast's Shards go on it; `>Got.Item Shard`, `$Item.Shard` read
-  it); they don't come back by themselves. Spell ranks: a scroll with `Rank=2` raises a known spell to rank 2; any
-  Spells.ini key can have a rank's value, `Damage.2`, `Cost.2`, `Level.2`..., and `Scroll.2` names that rank's scroll.
-  Saved as `spells` {spell: rank}. Dismantling (Dismantle, on gear or a scroll you know): a Shard for every Config
-  [Shards] `Dismantle.Per` gold of its value (`Dismantle.Scroll.Per` for scrolls). `Scrolls.Rarer=1`: build_shards.py
-  has made scrolls rarer (once). Quests.ini `Reward.Items=<item> <n> ...`: given once at Done with Reward.Shards,
-  and the reward screen lists all a finished quest gave.
+  item in the pack (`Give.Item Shard` or a chest's Shards go on it; `>Got.Item Shard`, `$Item.Shard` read it); they
+  don't come back by themselves. **Every Shard number is in data/Shards.ini** (the builders only add what's missing):
+  * `[Shards]`: `Start` (a new character's), `Old.Save.Grant` (once, to a character from before Shards), `Cast.Gap`,
+    `Shardstone` (waking a shardstone the first time; `Shardstone.<Key>` for one that costs more),
+    `Shardstone.Travel` (each journey), `Chest.Chance` and `Chest` (lo-hi: Shards added to a chest's treasure, the
+    once it gives it), `Scrolls.Rarer=1` (build_shards.py has made scrolls rarer, once).
+  * `[Dismantle]`: Dismantle (on gear, or a scroll whose spell you know) gives a Shard for every `Weapon` (anything
+    wielded), `Armour` (anything worn) or `Scroll` gold of its value, at least one.
+  * `[Upgrade.<Spell>]`: a spell's ranks. `Scroll.2` names the scroll (Entities.ini `Spell=`, `Rank=2`) that raises
+    a known spell to rank 2; `Damage.2`, `Cost.2`, `Level.2`... are its Spells.ini keys from that rank on. Saved as
+    `spells` {spell: rank}.
+  * `[Remnants]` (dsengine/remnants.py): a monster with a `Level=` (Entities.ini, 1-25) gives no Shards when it
+    dies. `Chance` in 100 it leaves `Count` (lo-hi, and `Count.Per.Level` more a level) Shard_Remnant on the ground
+    (Absorb, in the pack: `Absorb` Shards each and `Absorb.Magic.XP`); `Mob.Chance` in 100 (from `Mob.Min.Level`)
+    its magic rises as a Living_Remnant ("Shard Remnant"): `Mob.Hitpoints`/`Mob.Strength`/`Mob.Defence` and as much
+    again `.Per.Level`, going for the killer, fading after `Mob.Lasts` seconds if nobody fights it; killed, it
+    leaves `Mob.Count` remnants and never rises again.
   Spells.ini `Cost` (Shards a cast) and `Cooldown` (seconds; saved, so logging off doesn't cut it short); a potion's
-  `Shards=` gives that many. Config.ini `[Shards]`: `Start` (a new character's), `Old.Save.Grant` (once, to a
-  character from before Shards), `Cast.Gap`, `Waystone.<Key>` (waking that waystone the first time; else `Waystone`),
-  `Waystone.Travel` (each journey), `Chest.Chance` and `Chest` (lo-hi: Shards added to a chest's treasure, the once it
-  gives it). Entities.ini `Drops` (the hostile creatures', by toughness: build_shards.py). Digging.ini `[Digging]`
-  `Shards.Chance`/`Shards`, `Shards.Underground.Chance`/`Shards.Underground`, `Cache.Chance`/`Cache`; a `[Finds.X]`
-  may say its own `Shards.Chance`/`Shards`. Quests.ini `Reward.Shards=<n>`: paid once when the quest reaches Done
-  (attribute `ShardsPaid.<attribute>`). Scripts: `>Pay.Shards <n or a [Shards] key> <what for> <line>` (the same
-  payment as spells: nothing taken when short) and `$Shards.<key>` in text. Saved: `spells` (learnt), `cooldowns`.
+  `Shards=` gives that many. Digging.ini `[Digging]` `Shards.Chance`/`Shards`,
+  `Shards.Underground.Chance`/`Shards.Underground`, `Cache.Chance`/`Cache`; a `[Finds.X]` may say its own
+  `Shards.Chance`/`Shards`. Quests.ini `Reward.Shards=<n>`, `Reward.Items=<item> <n> ...` and
+  `Reward.XP=<skill> <xp> ...` (given as a script's `Update.Skill <skill> +<xp>`): paid once when the quest reaches
+  Done (attribute `ShardsPaid.<attribute>`), and the reward screen lists all a finished quest gave. Scripts:
+  `>Pay.Shards <n or a [Shards] key> <what for> <line>` (the same payment as spells: nothing taken when short) and
+  `$Shards.<key>` in text. Saved: `spells` (learnt), `cooldowns`.
 * Config.ini [Interface] Font: the font for all the game's text (spaces allowed; Options cycles Palatino Linotype,
   Georgia, Book Antiqua, Constantia, Segoe UI and Lucida Sans Unicode).
 * Python game: Display.Conversation takes up to 11 response/goto pairs (the editor shows 4), and a response

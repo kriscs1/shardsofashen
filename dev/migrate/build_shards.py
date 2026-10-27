@@ -4,17 +4,20 @@
 What this sets, so the numbers live in one place each:
   * the Shard (its picture, for the balance and the journal: drawn by build_sprites.py, saved here; "Shard" given as
     an item goes on the balance);
-  * Config.ini [Shards]: a new character's, the grant for one from before Shards, the gap between casts, waystones'
-    costs (Waystone.<Key>, else Waystone; a journey after: Waystone.Travel), chests' chance of a few;
+  * data/Shards.ini, every Shard number in one place (only what's missing is added: edit them there):
+    [Shards] a new character's, the grant for one from before Shards, the gap between casts, shardstones' costs
+    (Shardstone.<Key>, else Shardstone; a journey after: Shardstone.Travel), chests' chance of a few;
+    [Dismantle] the gold of value a Shard, by kind; [Upgrade.<Spell>] each rank's scroll and values;
+    ([Remnants]: build_remnants.py);
   * Spells.ini: each spell's Cost (Shards) and Cooldown, and the violet potion's Shards (it gave mana);
   * the spell scrolls' words (read one to learn its spell for good);
-  * Entities.ini Drops: the hostile creatures' Shards, by how tough they are (prey and townsfolk none);
+  * monsters give no Shards themselves (their remnants do: build_remnants.py);
   * Digging.ini: Shards in a dug hole (more under the ground and in old places), and a rare cache;
-  * Quests.ini Reward.Shards and Reward.Items: what finishing a quest gives (once: shards.py, its reward screen);
-  * spells' ranks: upgrade scrolls (Fire_Bolt_Scroll_II...) and each rank's values in Spells.ini (Damage.2...),
+  * Quests.ini Reward.Shards, Reward.Items and Reward.XP: what finishing a quest gives (once: shards.py, its reward
+    screen);
+  * spells' ranks: upgrade scrolls (Fire_Bolt_Scroll_II...) and each rank's values in Shards.ini (Damage.2...),
     some given by quests;
   * scrolls made rarer (once): fewer dropped by beasts, fewer in the shops, and dearer;
-  * dismantling: Config [Shards] Dismantle.Per (gold of value a Shard) and Dismantle.Scroll.Per;
   * The Shard Scholar: Magister Quill of the Wizards' Court asks for fifteen Shards, and says what they are;
   * the dragon's words: the mountain's gold and its Shards (not its mana).
 
@@ -34,19 +37,24 @@ import story_kit as SK                         # noqa: E402
 
 MAKER = "build_shards.py"
 
-CONFIG = [   # Config.ini [Shards]
+SHARDS = [   # Shards.ini [Shards]
     ("Start", "12"), ("Old.Save.Grant", "20"), ("Cast.Gap", "0.8"),
-    ("Waystone", "5"), ("Waystone.Wardhaven", "10"), ("Waystone.Emberwatch", "10"), ("Waystone.Frosthold", "10"),
-    ("Waystone.Dunerest", "10"), ("Waystone.Saltmarsh", "10"), ("Waystone.Galaith", "20"), ("Waystone.Travel", "2"),
-    ("Chest.Chance", "40"), ("Chest", "3-15"), ("Dismantle.Per", "25"), ("Dismantle.Scroll.Per", "10"),
+    ("Shardstone", "5"), ("Shardstone.Wardhaven", "10"), ("Shardstone.Emberwatch", "10"), ("Shardstone.Frosthold", "10"),
+    ("Shardstone.Dunerest", "10"), ("Shardstone.Saltmarsh", "10"), ("Shardstone.Galaith", "20"), ("Shardstone.Travel", "2"),
+    ("Chest.Chance", "40"), ("Chest", "3-15"),
 ]
-CONFIG_NOTE = ["; Shards (dsengine/shards.py), the world's magic: a balance each player has. Start: a new character's.",
-               "; Old.Save.Grant: given once to a character from before Shards. Cast.Gap: seconds between any two casts.",
-               "; Waystone.<Key>: waking that waystone the first time (else Waystone); Waystone.Travel: each journey.",
-               "; Chest.Chance in 100 that a chest's treasure has Chest=lo-hi Shards too. Dismantling gives a Shard",
-               "; for every Dismantle.Per gold an item's worth (Dismantle.Scroll.Per for a scroll you know already).",
-               "; Spells cost Spells.ini Cost=; monsters drop them (Entities.ini Drops); digging: Digging.ini;",
-               "; quests give Quests.ini Reward.Shards. Written by dev\\migrate\\build_shards.py."]
+SHARDS_NOTE = ["; Start: a new character's Shards. Old.Save.Grant: given once to a character from before Shards.",
+               "; Cast.Gap: seconds between any two casts.",
+               "; Shardstone: waking a shardstone the first time (Shardstone.<Place>: one that costs more);",
+               "; Shardstone.Travel: each journey after.",
+               "; Chest.Chance in 100 that a chest's treasure has Chest=lo-hi Shards too.",
+               "; Scrolls.Rarer: the builder's mark that scrolls were made rarer, once (leave it)."]
+DISMANTLE = [("Weapon", "25"), ("Armour", "25"), ("Scroll", "10")]
+DISMANTLE_NOTE = ["; Breaking things down (Dismantle, in the pack): a Shard for every <n> gold an item's worth, at least",
+                  "; one. Weapon: anything wielded; Armour: anything worn; Scroll: a scroll whose spell you know already."]
+HEADER = ["; Shards of Estforlan: every Shard number in one place (dsengine/shards.py and remnants.py read it as the",
+          "; game runs). Spells' own costs are Spells.ini Cost=; digging's Shards Digging.ini; quests' Quests.ini",
+          "; Reward.Shards. dev\\migrate\\build_shards.py and build_remnants.py only add what's missing: edit them here."]
 
 SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ideas of the brief, mapped onto these
     "Fire_Bolt": ("3", "0.8"),                 # (Magic Bolt)
@@ -63,14 +71,14 @@ SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ide
     "Fire_Storm": ("30", "18", {"Damage": "9-18", "Radius": "160"}),   # (Meteor: the most damage, no ice)
 }
 RANKS = {   # spell: {rank: (its scroll, value, {its Spells.ini values at that rank})}
-    "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "8", "Damage": "4-9", "Cost": "4"}),
-                  3: ("Fire_Bolt_Scroll_III", 140, {"Level": "16", "Damage": "7-13", "Cost": "5"})},
-    "Healing": {2: ("Healing_Scroll_II", 80, {"Level": "12", "Heal": "16-26", "Cost": "8"})},
-    "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "18", "Damage": "4-10", "Slow": "35,10", "Cost": "8"})},
-    "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "28", "Damage": "10-22", "Cost": "14"})},
-    "Frost_Nova": {2: ("Frost_Nova_Scroll_II", 180, {"Level": "22", "Damage": "3-8", "Radius": "128", "Freeze": "7",
+    "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "4", "Damage": "4-9", "Cost": "4"}),
+                  3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "7-13", "Cost": "5"})},
+    "Healing": {2: ("Healing_Scroll_II", 80, {"Level": "6", "Heal": "16-26", "Cost": "8"})},
+    "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "9", "Damage": "4-10", "Slow": "35,10", "Cost": "8"})},
+    "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "14", "Damage": "10-22", "Cost": "14"})},
+    "Frost_Nova": {2: ("Frost_Nova_Scroll_II", 180, {"Level": "11", "Damage": "3-8", "Radius": "128", "Freeze": "7",
                                                      "Cost": "18"})},
-    "Fire_Storm": {2: ("Fire_Storm_Scroll_II", 400, {"Level": "40", "Damage": "14-28", "Cost": "36"})},
+    "Fire_Storm": {2: ("Fire_Storm_Scroll_II", 400, {"Level": "20", "Damage": "14-28", "Cost": "36"})},
 }
 ROMAN = {2: "II", 3: "III"}
 QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder quests
@@ -79,11 +87,22 @@ QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder ques
     "Bert's Three Treasures": "Frost_Nova_Scroll_II 1", "The Barrow King": "Fire_Bolt_Scroll_III 1",
     "The Dragon of Galaith": "Fire_Storm_Scroll_II 1",
 }
-RARER = "Scrolls.Rarer"          # (Config [Shards]: set once they've been made rarer, so a second run doesn't again)
+QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Update.Skill +n), for the quests whose
+    # scripts give none of their own
+    "Dinner at the Bank": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Strength 2 Defence 2 Crafting 1",
+    "Passage to the Mainland": "Strength 2 Defence 2", "The Temporary Capital": "Magic 1",
+    "The Ashford Road": "Strength 3 Defence 3", "The Staff of Estforlan": "Magic 3",
+    "The Sunken Grimoire": "Magic 4", "The Ember Ring": "Magic 4 Defence 3", "Bert's Three Treasures": "Magic 6",
+    "A Ship for Dragon Island": "Woodcutting 2 Crafting 2", "The Island of Dragons": "Strength 5 Defence 5",
+    "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Magic 4",
+    "The Royal Guard": "Defence 4", "The True Heir": "Strength 5 Defence 5 Magic 5",
+    "Wolves of the Moor": "Strength 3", "Bandits on the Road": "Strength 3 Defence 2",
+    "The Lost Caravan": "Defence 3", "The Wardhaven Bridge": "Construction 3", "Granny Wren's Walk": "Defence 1",
+    "The Shard Scholar": "Magic 2",
+}
+RARER = "Scrolls.Rarer"          # (Shards.ini [Shards]: set once they've been made rarer, so a second run doesn't again)
 SCROLL_TAIL = "Right-click it and Cast, or use it on a monster."
 SCROLL_NEW = "Read it to learn the spell for good; casting it then costs Shards (the journal's Spells)."
-
-WEAK, STRONG, ELITE, BOSS = "Shard,1-3,30", "Shard,4-10,35", "Shard,10-25,60", "Shard,10-25,100"
 
 DIG = [("Shards.Chance", "5"), ("Shards", "1-3"), ("Shards.Underground.Chance", "15"), ("Shards.Underground", "1-5"),
        ("Cache.Chance", "0.5"), ("Cache", "6-12")]
@@ -108,13 +127,15 @@ REWARDS = {  # Quests.ini Reward.Shards
 QUILL = "Magister_Quill"
 WIZARD = "Wizard"           # (who speaks: his sprite; the box names him)
 LORE = {
-    "what": "When the world was young, the Old Ones raised the waystones and bound the land's magic into them. When "
+    "what": "When the world was young, the Old Ones raised the shardstones and bound the land's magic into them. When "
             "the dragon came to Galaith's mountain it drank that magic down, and what it couldn't hold it shattered: "
             "Shards. They're everywhere now: in the earth, in the old places, in the beasts that swallow them.",
-    "ways": "A waystone is an Old One's door, and its rune sleeps until it's fed. A few Shards wake it, and once it "
+    "ways": "A shardstone is an Old One's door, and its rune sleeps until it's fed. A few Shards wake it, and once it "
             "knows you it remembers you: that's why you pay only the once. The far ones are hungrier.",
     "beasts": "Magic draws them, the way a fire draws moths. A wolf that's swallowed a Shard runs faster and bites "
-              "harder, and when it dies, the Shard's still in it. The worse the beast, the more it's eaten.",
+              "harder, and when it dies the Shard breaks: dull remnants you can draw the magic back out of. The "
+              "worse the beast, the more it's eaten. And sometimes the magic won't die with it: it rises, all "
+              "splinters and spite, and goes for whoever killed it.",
     "mountain": "And Galaith's mountain was the deepest seam of all. Your forefathers dug its gold, and its Shards, "
                 "until the dragon came for them. It sits on them still.",
 }
@@ -135,25 +156,34 @@ def rank_words(spell, keys):
     return ", ".join(bits)
 
 
-def ranks(ents, spells_ini):
-    """The upgrade scrolls (Entities.ini: Spell=, Rank=) and each rank's values (Spells.ini Key.<rank>, Scroll.<rank>)."""
+def ranks(ents, spells_ini, shards):
+    """The upgrade scrolls (Entities.ini: Spell=, Rank=) and each rank's values (Shards.ini [Upgrade.<Spell>]
+    Key.<rank>, Scroll.<rank>: moved there from Spells.ini, where they were first)."""
     for spell, by_rank in RANKS.items():
+        sec = "Upgrade." + spell
+        if shards.section(sec) is None:
+            shards.section(sec, create=True)[1].append(
+                (None, "; %s's ranks: Scroll.<rank> raises it to that rank; Key.<rank> is its Spells.ini Key from that "
+                       "rank on." % spell.replace("_", " ")))
         for rank, (scroll, value, keys) in by_rank.items():
             name = spell.replace("_", " ") + " " + ROMAN[rank]
+            for k, v in [("Scroll", scroll)] + list(keys.items()):
+                key = "%s.%d" % (k, rank)
+                old = spells_ini.get(spell, key)
+                shards.set(sec, key, old if old is not None else v, overwrite=False)
+                spells_ini.remove(spell, key)
+            keys = {k: shards.get(sec, "%s.%d" % (k, rank)) for k in keys}            # (as they are now)
             for k, v in (("Type", "MapItem"), ("Use.Words", "Cast"),
                          ("Examine.Info", "A scroll of %s: it raises %s, once you know it, to rank %d (%s). Magic %s. "
                                           "Read it to learn it for good." % (name, spell.replace("_", " "), rank,
                                                                               rank_words(spell, keys), keys["Level"])),
                          ("Stackable", "10"), ("Value", str(value)), ("Spell", spell), ("Rank", str(rank))):
                 ents.set(scroll, k, v)
-            spells_ini.set(spell, "Scroll.%d" % rank, scroll)
-            for k, v in keys.items():
-                spells_ini.set(spell, "%s.%d" % (k, rank), v)
 
 
-def rarer(ents, racks, config):
+def rarer(ents, racks, shards):
     """Once: scrolls a third as likely from beasts, a quarter as many in shops, and twice the price."""
-    if config.get("Shards", RARER) == "1":
+    if shards.get("Shards", RARER) == "1":
         return
     for sec, items in ents.sections:
         drops = ents.get(sec, "Drops") or ""
@@ -175,38 +205,32 @@ def rarer(ents, racks, config):
                 name, stock = v.split(",")[:2]
                 n = int(float(stock))
                 items[i] = (k, "%s,%d" % (name, max(1, n // 4) if n > 0 else 0))
-    SK.section(SK.CONFIG, "Shards", [(RARER, "1")])
+    shards.set("Shards", RARER, "1")
 
 
 def entities():
     ents = Ini(p("data", "Entities.ini"))
     for k, v in (("Type", "MapItem"), ("Examine.Info", "A Shard: a splinter of the world's old magic, humming faintly. "
-                                                       "Spells, waystones and old things drink them."),
+                                                       "Spells, shardstones and old things drink them."),
                  ("Stackable", "99999"), ("Value", "2"), ("Light", "24")):
         ents.set("Shard", k, v)
     ents.set("Fire_Storm_Scroll", "Examine.Info", "A scroll of Fire Storm: fire rains on every foe within five tiles "
-                                                  "of you (9-18 damage). Magic 30. " + SCROLL_NEW)
+                                                  "of you (9-18 damage). Magic 15. " + SCROLL_NEW)
     ents.set("Magic_Potion", "Examine.Info", "A violet potion: your spells do 5 more damage for two minutes, and its "
                                              "magic settles into 10 Shards in your pack.")
     for sec, items in ents.sections:
         info = ents.get(sec, "Examine.Info") or ""
         if (ents.get(sec, "Spell") or "") and SCROLL_TAIL in info:
             ents.set(sec, "Examine.Info", info.replace(SCROLL_TAIL, SCROLL_NEW))
-        if (ents.get(sec, "Type") or "") != "NPC" or (ents.get(sec, "Attitude") or "") != "Bad" or \
-                (ents.get(sec, "Flees") or "") == "1":
-            continue
-        hp = float(ents.get(sec, "Hitpoints") or 0)
-        respawn = float(ents.get(sec, "Respawn") or 0)
-        drop = WEAK if hp <= 15 else STRONG if hp < 60 else BOSS if respawn >= 900 else ELITE
-        drops = re.sub(r"\s*Shard,\S+", "", ents.get(sec, "Drops") or "").strip()
-        ents.set(sec, "Drops", (drops + " " + drop).strip())
+    shards = Ini(SHARDS_INI)
     spells_ini = Ini(p("data", "Spells.ini"))
-    ranks(ents, spells_ini)
+    ranks(ents, spells_ini, shards)
     spells_ini.save(p("data", "Spells.ini"))
     racks = Ini(p("data", "ItemRacks.ini"))
-    rarer(ents, racks, Ini(p("data", "Config.ini")))
+    rarer(ents, racks, shards)
     racks.save(p("data", "ItemRacks.ini"))
     ents.save(p("data", "Entities.ini"))
+    shards.save(SHARDS_INI)
 
 
 def spells():
@@ -227,9 +251,30 @@ def spells():
     ini.save(p("data", "Spells.ini"))
 
 
-def config():
-    done = Ini(p("data", "Config.ini")).get("Shards", RARER) == "1"            # (kept: the scrolls are rarer already)
-    SK.set_section(SK.CONFIG, "Shards", CONFIG_NOTE + ["%s=%s" % kv for kv in CONFIG] + (["%s=1" % RARER] if done else []))
+SHARDS_INI = p("data", "Shards.ini")
+
+
+def shards_ini():
+    """Shards.ini's [Shards] and [Dismantle]: what's missing added; Config.ini's old [Shards] (where they were first)
+    moved in, its values kept, and taken out of Config.ini."""
+    ini = Ini(SHARDS_INI)
+    ini.header = HEADER
+    old = Ini(p("data", "Config.ini")).section("Shards")
+    old = {k: v for k, v in old[1] if k is not None} if old else {}
+    moved = {"Dismantle.Per": ("Dismantle", "Weapon"), "Dismantle.Scroll.Per": ("Dismantle", "Scroll")}
+    for sec, rows, note in (("Shards", SHARDS + [(RARER, None)], SHARDS_NOTE), ("Dismantle", DISMANTLE, DISMANTLE_NOTE)):
+        if ini.section(sec) is None:
+            ini.section(sec, create=True)[1].extend((None, ln) for ln in note)
+        for k, v in rows:
+            was = old.get(k) or next((old[o] for o, (s2, k2) in moved.items() if (s2, k2) == (sec, k) and o in old),
+                                     None)
+            if was is not None or v is not None:
+                ini.set(sec, k, was if was is not None else v, overwrite=False)
+    if "Dismantle.Per" in old and ini.get("Dismantle", "Armour") == "25":
+        ini.set("Dismantle", "Armour", old["Dismantle.Per"])
+    ini.save(SHARDS_INI)
+    if old:                                    # (out of Config.ini: Shards.ini is where they live now)
+        SK.remove_section(SK.CONFIG, "Shards")
 
 
 def digging():
@@ -252,12 +297,16 @@ def quests():
     for name, items in QUEST_ITEMS.items():
         if ini.section(name) is not None:
             ini.set(name, "Reward.Items", items)
+    for name, xp in QUEST_XP.items():
+        if ini.section(name) is not None:
+            ini.set(name, "Reward.XP", xp, overwrite=False)
     ini.save(p("data", "Quests.ini"))
     SK.quest("The Shard Scholar", WIZARD, "ShardQuest", {
         0: "Magister Quill, in the Wizards' Court's great hall, studies the Shards.",
         1: "Bring Magister Quill fifteen Shards for the Court's study (talk to him to give them)."}, 2,
         markers={0: "Court_Magister", 1: "Court_Magister"}, kind="Side", requires="Passage to the Mainland")
-    lore = [("What are Shards?", "@what"), ("Why do the waystones need them?", "@ways"),
+    SK.section(p("data", "Quests.ini"), "The Shard Scholar", [("Reward.XP", QUEST_XP["The Shard Scholar"])])
+    lore = [("What are Shards?", "@what"), ("Why do the shardstones need them?", "@ways"),
             ("Why do beasts carry them?", "@beasts")]          # (and Galaith's mountain: after what they are)
     rows = [
         ("Get.Value", "ATTRIBUTE", "ShardQuest", "Variable.1$"),
@@ -277,9 +326,8 @@ def quests():
         ("Update.Attribute", "ShardQuest", "=2"),
         ("Play.Sound", "SpellCast"),
         ("Give.Item", "Frost_Nova_Scroll", "1"),
-        ("Update.Skill", "Magic", "+1"),
         SK.say(WIZARD, "Fifteen! Feel how they hum together... Here's my payment, as I promised: a scroll of Frost Nova, "
-                      "written in my own hand. It drinks Shards like a waystone does, and holds every foe round you in "
+                      "written in my own hand. It drinks Shards like a shardstone does, and holds every foe round you in "
                       "ice. Read it and it's yours for good.", ("Thank you, Magister.", "@paid")),
         ("@paid",), ("Display.Message", "Yellow", "Quest complete: The Shard Scholar! You receive a scroll of Frost Nova.",
                      "Quest"),
@@ -306,7 +354,7 @@ def dragon():
 def main():
     for name in ["Shard"] + [sc for r in RANKS.values() for sc, _, _ in r.values()]:
         print(("wrote " if K.save("Entities", name, BS.SPRITES[name]()) else "unchanged ") + name)
-    config()                                   # (first: the rarity's once-only mark is kept in it)
+    shards_ini()                               # (first: the rarity's once-only mark is kept in it)
     entities()
     spells()
     digging()

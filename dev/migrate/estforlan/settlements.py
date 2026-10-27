@@ -9,7 +9,7 @@
     (bread, meat, fish, greens...) are the streets nearest it; the rest of the civic buildings take the plots nearest
     the middle, the houses the rest: every house its own size, walls, roof and furniture, a gap between.
   * Inside each building what its kind needs, and its people (dev\\migrate\\towns.py furnishes the civic ones), a
-    notice at each street's end, a waystone and a homestone by the square.
+    notice at each street's end, a shardstone and a homestone by the square.
 """
 import random
 
@@ -109,7 +109,7 @@ class Plan(OLD.Town):
         self.lane_signs = []
         self.house_groups = {}
         self.wild = {}                     # cell -> (its cell, ground, decor) before it was cleared
-        self.waystone = None
+        self.shardstone = None
         self.n = 300                       # (its people's Ids: clear of the old towns' numbers, which quests use)
 
     # ------------------------------------------------------------------ the ground it has
@@ -631,15 +631,15 @@ class Plan(OLD.Town):
                     break
 
     def stones(self):
-        """A waystone and a homestone by the square (or the middle), unless the place has its own already."""
+        """A shardstone and a homestone by the square (or the middle), unless the place has its own already."""
         near = ((self.sq[0] + self.sq[2]) // 2, self.sq[3] + 2) if self.sq else self.centre
         have = set()
         for m in self.maps_of():
             for ln in m.ents:
                 f = ln.split("\t")
-                if f[0] == "StaticObject" and f[1] in ("Waystone", "Homestone"):
+                if f[0] == "StaticObject" and f[1] in ("Shardstone", "Homestone"):
                     have.add(f[1])
-        for kind in ("Waystone", "Homestone"):
+        for kind in ("Shardstone", "Homestone"):
             if kind in have:
                 continue
             spot = self.free_spot(near)
@@ -649,9 +649,9 @@ class Plan(OLD.Town):
             m, x, y = self.atlas.at(*spot)
             self.statics.append((m.name, "StaticObject\t%s\t%d\t%d" % (kind, (x - 1) * TW, (y - 1) * TW)))
             self.atlas.taken.add(spot)
-            if kind == "Waystone":
+            if kind == "Shardstone":
                 self.ids.append((m.name, "Waystone_%s" % self.key, x, min(YT, y + 1)))
-                self.waystone = (m.name, x, y)
+                self.shardstone = (m.name, x, y)
 
     def free_spot(self, near, r=12):
         """The nearest open cell to near with street beside it (a stone, a sign: by the road, not on it)."""

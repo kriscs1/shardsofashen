@@ -43,7 +43,7 @@ STAGES = {
         3: ["-Slay the Alpha Wolf, the great black brute leading the pack."],
     },
     "BogQuest": {
-        1: ["+Bog myrtle grows in the Saltmarsh round Fenwick (Herblore 5 to pick it).",
+        1: ["+Bog myrtle grows in the Saltmarsh round Fenwick (Potion Making 5 to pick it).",
             "+Bring Morwen 4 bog myrtle."],
         2: ["-Bring Morwen 4 bog myrtle."],
     },

@@ -10,7 +10,7 @@ again: it draws the same, and leaves the maps it has made alone.
     a coal, its death blow only the Sword of Valour's (Entities.ini Slain.By). The city's west wall, white stone
     blackened by its fire, the gate in it shut (a Lock: GalaithQuest>=2, the dragon dead).
   * The city (11,5,0 to 14,7,0, a huge city: towns.py): walls round it, the mountains meeting again behind it, the
-    mouth of the gold and mana mine in them (14,6,-1, shut until you are king). The palace, the tallest building in
+    mouth of the gold and Shards mine in them (14,6,-1, shut until you are king). The palace, the tallest building in
     the land, its spires over the city's north; Parliament, a City Hall and a Town Hall, a fancy hotel, two banks,
     ten taverns, the main market square with its lanes of bakers, butchers, fishmongers and greengrocers, a posh
     square with lanes of clothes and shoes, an armoury with its lane of arms and armour, barracks, a police station,
@@ -226,7 +226,7 @@ def data():
     K.copy_tile("Barrier_Open001", "Paving001", Walkable_Data="1" * 49, Examine_Info="Where the barrier stood: a "
                 "shimmer, and nothing more.")
     K.copy_tile("Mine_Mouth001", "Cliff001", Walkable_Data="1" * 49, Line_of_Sight="0", Use_Words="Enter,Examine",
-                Examine_Info="The mouth of Galaith's mine: gold and mana, deep in the mountain.")
+                Examine_Info="The mouth of Galaith's mine: gold and Shards, deep in the mountain.")
     for t, rgb in [("Galaith_Wall%03d" % n, (60, 60, 64)) for n in range(1, 6)] + \
                   [("Galaith_Gate%03d" % n, (60, 60, 64)) for n in range(1, 7)] + \
                   [("Mountain%03d" % n, (120, 116, 110)) for n in range(1, 5)] + \

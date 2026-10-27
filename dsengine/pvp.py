@@ -59,7 +59,7 @@ class PvPMixin:
             return
         max_hit = self.player_max_hit()
         damage = random_number(1, max_hit)
-        crit = rnd() * 100 < 5 + self.skill_level("Strength") / 15
+        crit = rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15
         if crit:
             damage = max_hit + random_number(0, int(max_hit / 2))
         damage -= v.armour_soak()

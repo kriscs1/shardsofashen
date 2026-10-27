@@ -3,12 +3,12 @@
 02	Get.Value	CALCULATION	$Tile.under.Cursor.X	Variable.5$
 03	Get.Value	CALCULATION	$Tile.under.Cursor.Y	Variable.6$
 04	Display.Message	Cyan	You search the patch for good leaves...
-05	Show.Skill	Herblore
+05	Show.Skill	Potion_Making
 06	Play.Sound	Pickup
 07	Wait	1.5
 08	Display.Message	Yellow	...and pick a fragrant herb.
 09	Give.Item	Herb	1
-10	Update.Skill	Herblore	+0.1
+10	Update.Skill	Potion_Making	+0.1
 11	>Random	60	13
 12	Change.Tile	$Variable.5,$Variable.6	Herb_Patch002	0	50
 13	End

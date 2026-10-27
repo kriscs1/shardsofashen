@@ -6,7 +6,7 @@
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Overview>Dragon Sword: a tile-based adventure for up to five players at once, in the browser. Open the WebUI to play.</Overview>
+  <Overview>Shards of Estforlan: a tile-based adventure for up to five players at once, in the browser. Open the WebUI to play.</Overview>
   <Category>GameServers:</Category>
   <WebUI>http://[IP]:[PORT:8484]/</WebUI>
   <Icon>https://raw.githubusercontent.com/kriscs1/dragonsword/main/web/img/icon.png</Icon>

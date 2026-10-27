@@ -4,7 +4,7 @@ The owner's brief (rebuild every overworld map but the Isle): cities, towns, vil
 country between them; each settlement the size it's given, with what that size has; houses all different, spaced
 out; the market square near the centre with paved roads off it, roads less regular further out; local materials
 for each place's streets; roads joining everything on a landmass; a port for a city on a coast, a dock for anything
-smaller; waystones and homestones by every centre. Galaith is a huge city in a gap in a mountain range down the
+smaller; shardstones and homestones by every centre. Galaith is a huge city in a gap in a mountain range down the
 whole west coast, the dragon before its walls behind the barrier, the walls white but burnt black, a mine behind it.
 
 Built by `dev/migrate/build_estforlan.py` (re-runnable: the same world every time). The quest places it carries

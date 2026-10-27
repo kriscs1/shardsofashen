@@ -18,12 +18,12 @@
 17	Get.Value	CALCULATION	0	Variable.2$
 18	Get.Value	CALCULATION	1	Variable.3$
 19	Get.Value	SKILL	Mining	Variable.1$
-20	>Conditional	$Variable.1>=20	41
+20	>Conditional	$Variable.1>=10	41
 21	Display.Message	Cyan	You swing your pickaxe at the crystal rock...
 22	Show.Skill	Mining
 23	Play.Animation	Rock_Chips	4	Mine
 24	Wait	3
-25	>Conditional	($Variable.1+$Variable.2+9)>$Random.Percent	39
+25	>Conditional	($Variable.1*2+$Variable.2+9)>$Random.Percent	39
 26	>Random	50	30
 27	Display.Message	Yellow	...and prise out a sapphire!
 28	Give.Item	Sapphire	1
@@ -39,7 +39,7 @@
 38	End
 39	Display.Message	DarkRed	...but only chip the rock.	Fail
 40	End
-41	Display.Message	DarkRed	You need level 20 Mining to mine this crystal rock.	Denied
+41	Display.Message	DarkRed	You need level 10 Mining to mine this crystal rock.	Denied
 42	End
 43	Display.Message	DarkRed	You need a pickaxe!	Denied
 44	End

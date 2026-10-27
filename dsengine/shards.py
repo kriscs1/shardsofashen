@@ -1,14 +1,16 @@
 """Shards: the world's magic, a balance each player has (shown under their health: never an item in the pack).
-Spells, waystones and anything else magical spend them; monsters, digging, quests, chests, dismantling and potions
+Spells, shardstones and anything else magical spend them; monsters, digging, quests, chests, dismantling and potions
 give them. Everything that counts, pays or gives them comes through here, so the rules are the same everywhere:
 never below nothing, nothing taken unless the thing goes ahead, one clear word (and the Denied sound) when you're
-short. Costs are data: Spells.ini Cost=, Config.ini [Shards], Quests.ini Reward.Shards=.
+short. Costs are data: data/Shards.ini (every Shard number in one place), Spells.ini Cost=, Quests.ini
+Reward.Shards=.
 
 The item Shard is only a name for them: given (a script's Give.Item, a chest, a drop, an old save's pack) it goes on
 the balance; asked for (>Got.Item, Take.Item, $Item.Shard) it's the balance.
 
-Spells have ranks: a scroll with Rank=2 (Fire_Bolt_Scroll_II) raises a spell you know to rank 2, and every Spells.ini
-key may have a value for a rank (Damage.2, Cost.2, Level.2...), used from that rank up.
+Spells have ranks: a scroll with Rank=2 (Fire_Bolt_Scroll_II) raises a spell you know to rank 2, and Shards.ini
+[Upgrade.<Spell>] says its scroll (Scroll.2) and what changes at that rank (Damage.2, Cost.2, Level.2...), used from
+that rank up.
 
 The server runs one player's commands at a time, so a check and its payment can't be split by another click."""
 from dragonsword.lb import val, lbstr, trim, pretty
@@ -21,17 +23,23 @@ def shard_words(n):
     return "%s Shard%s" % (lbstr(n), "" if n == 1 else "s")
 
 
+def quest_xp(d):
+    """A quest's Reward.XP ("Strength 3 Defence 3"): [(skill, xp)]."""
+    w = trim(d.get("REWARD.XP", "")).replace(",", " ").split()
+    return [(w[k], val(w[k + 1])) for k in range(0, len(w) - 1, 2) if val(w[k + 1]) > 0]
+
+
 class ShardMixin:
     # ----- the balance
     def shards(self):
         return self.shard_balance
 
-    def shard_setting(self, key, default=0):
-        """A number from Config.ini [Shards]: key itself, else (Waystone.Galaith) its first part (Waystone)."""
-        v = trim(self.data.config_read("Shards", key, ""))
+    def shard_setting(self, key, default=0, section="Shards"):
+        """A number from Shards.ini [Shards]: key itself, else (Shardstone.Galaith) its first part (Shardstone)."""
+        v = trim(self.data.shards_ini(section, key, ""))
         if v == "" and "." in key:
-            v = trim(self.data.config_read("Shards", key.split(".")[0], ""))
-        return int(val(v)) if v != "" else int(default)
+            v = trim(self.data.shards_ini(section, key.split(".")[0], ""))
+        return val(v) if v != "" else default
 
     def short_of_shards(self, n, what):
         self.refuse("%s needs %s and you have %d." % (what, shard_words(n), self.shards()))
@@ -74,12 +82,12 @@ class ShardMixin:
                 self.bank_item[i], self.bank_qty[i], self.bank_wear[i] = "", 0, []
 
     def shard_start(self, new_character):
-        """A new character's Shards (Config [Shards] Start), or, once, those for a character from before Shards."""
+        """A new character's Shards (Shards.ini [Shards] Start), or, once, those for a character from before Shards."""
         flag = "ShardsGiven"
         if val(self.get_attribute(flag)) >= 1:
             return
         self.update_attribute(flag, "=1")
-        n = self.shard_setting("Start" if new_character else "Old.Save.Grant", 12 if new_character else 20)
+        n = int(self.shard_setting("Start" if new_character else "Old.Save.Grant", 12 if new_character else 20))
         self.add_shards(n)
         if n > 0 and not new_character:
             self.display_message("Magic in Estforlan now runs on Shards, and you have %s to begin with. Read a "
@@ -88,8 +96,9 @@ class ShardMixin:
 
     # ----- quests' rewards, and the screen that shows them
     def quest_reward(self, attribute, value):
-        """A quest just reached Done: its Quests.ini Reward.Shards and Reward.Items, once (a flag says they've been
-        given); the reward screen opens, listing them and whatever the quest's script gives as it finishes."""
+        """A quest just reached Done: its Quests.ini Reward.Shards, Reward.Items and Reward.XP (skill and xp pairs,
+        given as a script's Update.Skill +n is), once (a flag says they've been given); the reward screen opens,
+        listing them and whatever the quest's script gives as it finishes."""
         for name, d in self.help_read_ini("Quests.ini"):
             if trim(d.get("ATTRIBUTE", "")).upper() != attribute.upper():
                 continue
@@ -105,6 +114,8 @@ class ShardMixin:
             items = trim(d.get("REWARD.ITEMS", "")).split()
             for k in range(0, len(items) - 1, 2):
                 self.add_inventory_item(items[k], max(1, int(val(items[k + 1]))))
+            for skill, xp in quest_xp(d):
+                self.update_skill(skill, "+" + lbstr(xp), pop=False)
             return
 
     def reward_begin(self, quest):
@@ -144,12 +155,16 @@ class ShardMixin:
         return pretty(spell) + ROMAN.get(rank or max(1, self.spell_rank(spell)), "")
 
     def spell_ini_at(self, spell, key, default, rank):
-        """A Spells.ini value at a rank: Key.<rank> (or the nearest lower rank's), else Key."""
+        """A spell's value at a rank: Shards.ini [Upgrade.<Spell>] Key.<rank> (or the nearest lower rank's), else its
+        Spells.ini Key."""
         for r in range(int(rank), 1, -1):
-            v = self.data.spell_ini(spell, "%s.%d" % (key, r), "")
+            v = self.data.shards_ini("Upgrade." + spell, "%s.%d" % (key, r), "")
             if v != "":
                 return v
         return self.data.spell_ini(spell, key, default)
+
+    def upgrade_scroll(self, spell, rank):
+        return trim(self.data.shards_ini("Upgrade." + spell, "Scroll.%d" % rank, ""))
 
     def spellbook(self):
         """The journal's Spells: every spell a scroll teaches (not potions), easiest first, at the rank you have (or
@@ -165,7 +180,7 @@ class ShardMixin:
                    "level": int(val(at("Level", "1"))), "skill": trim(d.get("SKILL", "")) or "Magic",
                    "cost": int(val(at("Cost"))), "cooldown": val(at("Cooldown")),
                    "what": self.spell_what(name, rank)}
-            up = trim(self.data.spell_ini(name, "Scroll.%d" % (rank + 1), ""))
+            up = self.upgrade_scroll(name, rank + 1)
             if up:
                 row["next"] = {"title": self.spell_title(name, rank + 1), "scroll": up,
                                "level": int(val(self.spell_ini_at(name, "Level", "1", rank + 1))),
@@ -196,9 +211,9 @@ class ShardMixin:
 
     # ----- dismantling: gear, or a scroll whose spell you know already, broken down into its Shards
     def dismantle_worth(self, name):
-        """How many Shards dismantling it gives (0: it can't be): one for every Config [Shards] Dismantle.Per gold
-        of its value (at least one) for weapons, armour, staves and rings; Dismantle.Scroll.Per for a scroll whose
-        spell (at its rank) you know. Not quest things (Droppable=0)."""
+        """How many Shards dismantling it gives (0: it can't be): one for every Shards.ini [Dismantle] Weapon (or
+        Armour: anything worn) gold of its value, at least one; Scroll for a scroll whose spell (at its rank) you
+        know. Not quest things (Droppable=0)."""
         if name == SHARD or self.entity_ini(name, "Droppable", "1").strip() == "0":
             return 0
         value = val(self.entity_ini(name, "Value", "0"))
@@ -206,9 +221,9 @@ class ShardMixin:
         if spell:
             if self.spell_rank(spell) < self.scroll_rank(name):
                 return 0                                # (not learnt yet: read it)
-            per = self.shard_setting("Dismantle.Scroll.Per", 10)
+            per = self.shard_setting("Scroll", 10, "Dismantle")
         elif self.equip_verb(name):
-            per = self.shard_setting("Dismantle.Per", 25)
+            per = self.shard_setting("Weapon" if self.equip_verb(name) == "Wield" else "Armour", 25, "Dismantle")
         else:
             return 0
         return max(1, int(value // max(1, per)))

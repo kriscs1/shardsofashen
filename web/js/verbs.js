@@ -272,5 +272,5 @@ export function skillLevel(skill) {
 }
 
 function configMax() {
-  return Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "50"))));
+  return Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "25"))));
 }

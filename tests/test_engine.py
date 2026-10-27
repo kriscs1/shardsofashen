@@ -446,7 +446,7 @@ def test_each_home_keeps_its_own_land(world):
 
 def test_the_market_is_one_for_everyone(world):
     boards = [e for e in world.ents if e.name == "Market_Board"]
-    assert len(boards) >= 5                                       # (Ashford's market and every waystone town)
+    assert len(boards) >= 5                                       # (Ashford's market and every shardstone town)
     ash, far = boards[0], boards[-1]
     ma, mf = world.maps[ash.map], world.maps[far.map]
     seller = join(world, "Seller", ma.name, int(ash.x - ma.ox), int(ash.y - ma.oy + 40))
@@ -979,11 +979,15 @@ def test_the_effects_bar_knows_what_hurts_and_for_how_long(world):
     leave(world, s)
 
 
-def test_a_kills_loot_is_the_killers_for_ten_seconds(world):
+def test_a_kills_loot_is_the_killers_for_ten_seconds(world, monkeypatch):
+    import dsengine.player_combat as PC
+    import dsengine.remnants as RM
+    monkeypatch.setattr(PC, "rnd", lambda: 0.0)                    # (every drop drops)
+    monkeypatch.setattr(RM, "rnd", lambda: 0.0)                    # (and its remnants: a goblin's too weak to rise)
     a, b = join(world, "Slayer"), join(world, "Passerby")
     goblin = next(e for e in world.ents if e.name == "Goblin")
     before = {e.uid for e in world.ents}
-    a.add_npc_drops(goblin)                                        # (bones: always)
+    a.add_npc_drops(goblin)
     loot = [e for e in world.ents if e.uid not in before]
     assert loot and all(e.private_to is a for e in loot)
     assert all(world.visible_to(e, a) and not world.visible_to(e, b) for e in loot)
@@ -1818,8 +1822,11 @@ def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
         world.tick(0.05)
     world.animate_entity(seal, False)
     assert world.in_water(seal) and seal.image.startswith("Seal_Swim")          # (in the sea: just its head)
-    beach = next((x, y) for y in range(2, 21) for x in range(2, 25)
-                 if not m.tile_is_water(x, y) and m.local_walkable((x - 0.5) * 32, (y - 0.5) * 32))
+    sx, sy = (seal.cx - m.ox) / 32 + 0.5, (seal.cy - m.oy) / 32 + 0.5
+    beach = min(((x, y) for y in range(2, 21) for x in range(2, 25)      # (the nearest sand by the water)
+                 if not m.tile_is_water(x, y) and m.local_walkable((x - 0.5) * 32, (y - 0.5) * 32) and
+                 any(m.tile_is_water(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))),
+                key=lambda t: (t[0] - sx) ** 2 + (t[1] - sy) ** 2)
     a = seal.ai
     a.goal_x, a.goal_y = m.ox + (beach[0] - 0.5) * 32, m.oy + (beach[1] - 0.5) * 32 - (seal.fy - seal.cy)
     world.npc_walk_started(seal, a, AI_ROAM)
@@ -2250,7 +2257,7 @@ def test_a_scroll_too_hard_to_learn_is_kept(world):
     a.do_action("Learn", next(e for e in a.inv if e.name == "Blizzard_Scroll"))
     assert "Blizzard" not in a.spells_known and a.items_held("Blizzard_Scroll") == 1
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
-    assert any("Magic 26" in str(e.get("text", "")) or "level 26 Magic" in str(e.get("text", "")) for e in a.out)
+    assert any("Magic 13" in str(e.get("text", "")) or "level 13 Magic" in str(e.get("text", "")) for e in a.out)
     leave(world, a)
 
 
@@ -2327,9 +2334,9 @@ def test_a_quests_shards_are_paid_once(world):
     leave(world, s)
 
 
-def test_waking_a_waystone_costs_shards_once(world):
+def test_waking_a_shardstone_costs_shards_once(world):
     m = world.maps["4,6,0"]
-    ws = next(e for e in world.ents if e.name == "Waystone" and e.map == m.name)
+    ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
     a = join(world, "Wanderer", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
     other = join(world, "Bystander", m.name, int(ws.x - m.ox) + 60, int(ws.y - m.oy) + 8)
     a.connected = other.connected = True
@@ -2427,18 +2434,126 @@ def test_shards_are_a_balance_not_an_item(world):
     assert "Shard" not in old.bank_item
 
 
-def test_a_beasts_shards_go_straight_to_the_killer(world, monkeypatch):
+def test_a_beast_leaves_shard_remnants_not_shards(world, monkeypatch):
+    import dsengine.remnants as RM
     a = join(world, "Hunter", "11,4,0", 384, 300)
     m = a.cur_map
     wolf = world.add_npc("Wolf", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Bad")
-    import dsengine.player_combat as PC
-    monkeypatch.setattr(PC, "rnd", lambda: 0.0)                    # (every drop drops)
-    before = a.shards()
+    monkeypatch.setattr(RM, "rnd", lambda: 0.3)                    # (30 in 100: remnants, but nothing rises)
+    before, uids = a.shards(), {e.uid for e in world.ents}
     a.add_npc_drops(wolf)
-    assert 1 <= a.shards() - before <= 3                           # (a wolf: weak, 1-3)
-    assert not any(e.name == "Shard" and e.type == MAPITEM for e in world.ents)
+    assert a.shards() == before                                    # (no Shards for the kill itself)
+    left = [e for e in world.ents if e.uid not in uids]
+    remnants = [e for e in left if e.name == "Shard_Remnant" and e.type == MAPITEM]
+    assert remnants and all(e.private_to is a for e in remnants)
+    assert not any(e.name in ("Bones", "Shard", "Living_Remnant") for e in left)
+    for e in left:
+        world.remove_entity(e)
+    stock(a, Shard_Remnant=5)
+    a.do_action("Absorb", next(e for e in a.inv if e.name == "Shard_Remnant"))
+    assert a.items_held("Shard_Remnant") == 0 and a.shards() == before + 5
     world.remove_entity(wolf)
     leave(world, a)
+
+
+def test_a_shard_remnant_rises_as_strong_as_the_beast_and_leaves_more(world, monkeypatch):
+    import dsengine.remnants as RM
+    a = join(world, "Riser", "11,4,0", 384, 300)
+    m = a.cur_map
+    bear = world.add_npc("Bear", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Bad")
+    level = a.monster_level(bear)
+    assert 2 <= level <= 25
+    monkeypatch.setattr(RM, "rnd", lambda: 0.0)                    # (it rises)
+    uids = {e.uid for e in world.ents}
+    a.add_npc_drops(bear)
+    world.remove_entity(bear)
+    risen = [e for e in world.ents if e.uid not in uids and e.name == "Living_Remnant"]
+    assert len(risen) == 1 and not any(e.uid not in uids and e.name == "Shard_Remnant" for e in world.ents)
+    rem = risen[0]
+    assert rem.max_hp == 5 + 5 * level and rem.target is a and world.hostile_for(rem, a)
+    assert a.display_name(rem) == "Shard Remnant" and a.monster_level(rem) == level
+    uids = {e.uid for e in world.ents}
+    a.kill_npc(rem)                                                # (killed: more remnants, and it never rises again)
+    left = [e for e in world.ents if e.uid not in uids]
+    assert sum(e.quantity for e in left if e.name == "Shard_Remnant") >= 3
+    assert not any(e.name == "Living_Remnant" for e in left)
+    for e in left:
+        world.remove_entity(e)
+    leave(world, a)
+
+
+def test_a_shard_remnant_nobody_fights_fades(world):
+    a = join(world, "Watcher", "11,4,0", 384, 300)
+    m = a.cur_map
+    wolf = world.add_npc("Wolf", 0, m.ox + 14 * 32, m.oy + 12 * 32, "Attitude=Bad")
+    a.remnant_rise(wolf, 3)
+    world.remove_entity(wolf)
+    rem = next(e for e in world.ents if e.name == "Living_Remnant" and e.alive)
+    rem.in_combat = False
+    rem.fades_at = world.now
+    world.last_queue_check = world.now - 1000
+    world.tick(0.05, now=world.now + 300)
+    assert not rem.alive
+    leave(world, a)
+
+
+def test_shard_numbers_come_from_shards_ini(world):
+    a = join(world, "Counter", "11,4,0", 384, 300)
+    assert a.shard_setting("Shardstone.Galaith") == 20 and a.shard_setting("Shardstone.Highwatch") == 5
+    assert a.shard_setting("Weapon", 0, "Dismantle") == 25 and a.shard_setting("Scroll", 0, "Dismantle") == 10
+    assert a.upgrade_scroll("Fire_Bolt", 2) == "Fire_Bolt_Scroll_II"
+    assert a.spell_ini_at("Fire_Bolt", "Damage", "", 3) == "7-13" and a.spell_ini_at("Fire_Bolt", "Range", "", 3) == "256"
+    leave(world, a)
+
+
+def test_a_woman_has_her_own_body_and_keeps_it(world):
+    from dsengine.view import player_state
+    a, b = join(world, "Ada"), join(world, "Ben")
+    a.handle({"t": "look", "look": {"hair": "#A83A1A", "body": "f"}})
+    assert a.look == {"hair": "#a83a1a", "body": "f"} and a.player_sprite_base == "PlayerF"
+    assert player_state(a, b)["i"].startswith("PlayerF") and a.player.name == "PlayerF"
+    a.change_player_sprite("Wolf")                                 # (a script's disguise, and back to herself)
+    a.change_player_sprite("Player")
+    assert a.player_sprite_base == "PlayerF"
+    saved = a.save_state()
+    a.handle({"t": "look", "look": {"hair": "#a83a1a"}})          # (a man again)
+    assert a.player_sprite_base == "Player"
+    leave(world, a)
+    c = Session(world, "Ada2")
+    c.load_state(saved)
+    assert c.player_sprite_base == "PlayerF" and c.look["body"] == "f"
+    leave(world, b)
+
+
+def test_an_old_save_has_its_skills_out_of_25(world):
+    s = Session(world, "Elder")
+    s.load_state({"skills": {"Strength": 40, "Herblore": 10.5, "Magic": 1.4, "Hitpoints": 20}})
+    assert s.skill_xp_of("Strength") == 20 and s.skill_xp_of("Potion_Making") == 5.25
+    assert s.skill_level("Magic") == 1 and s.skill_xp_of("Hitpoints") == 20
+    saved = s.save_state()
+    assert saved["skills_of"] == 25
+    t = Session(world, "Elder2")
+    t.load_state(saved)                                            # (saved out of 25: as it was)
+    assert t.skill_xp_of("Strength") == 20
+
+
+def test_a_quest_gives_its_skill_xp_once(world):
+    s = join(world, "Learner")
+    name, d = next((n, d) for n, d in s.help_read_ini("Quests.ini") if n == "The Ashford Road")
+    attr, done = d["ATTRIBUTE"], int(d["DONE"])
+    skill = d["REWARD.XP"].split()[0]
+    before = s.skill_xp_of(skill)
+    s.out = []
+    s.update_attribute(attr, "=%d" % done)
+    gained = s.skill_xp_of(skill) - before
+    assert gained > 0
+    s.update_attribute(attr, "=%d" % (done + 1))                   # (paid once)
+    assert s.skill_xp_of(skill) - before == gained
+    world.tick(0.05, now=world.now + 21000)
+    ev = next(e for e in s.out if e.get("t") == "reward")
+    assert any(k == skill for k, _ in ev["xp"])
+    assert any(q["title"] == name and skill in q["xp"] for q in s.quest_list())
+    leave(world, s)
 
 
 def test_upgrade_scrolls_raise_a_known_spell_a_rank(world):
@@ -2506,9 +2621,9 @@ def test_a_finished_quest_shows_what_it_gave(world):
     leave(world, s)
 
 
-def test_a_journey_by_waystone_costs_a_few_shards(world):
+def test_a_journey_by_shardstone_costs_a_few_shards(world):
     m = world.maps["4,6,0"]
-    ws = next(e for e in world.ents if e.name == "Waystone" and e.map == m.name)
+    ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
     a = join(world, "Traveller", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
     a.connected = True
     a.update_attribute("Waystone.Southport", "=1")

@@ -6,7 +6,7 @@
     and among the Wildlands' and the Eastreach's monsters.
   * On.Hit=<Effect> <chance %> on the monsters that poison (spiders, scorpions), burn (the dragon, the shaman), make you
     bleed (wolves, bears, bandits, trolls) or chill (the frost creatures).
-  * The Antidote (Cures= every effect): brewed at the alchemy table (Herblore 3), dropped by spiders, scorpions and the
+  * The Antidote (Cures= every effect): brewed at the alchemy table (Potion Making 3), dropped by spiders, scorpions and the
     frost witch, and sold by the herbalists.
   * The Gravestone: the StaticObject the game puts where you died, holding what you carried (Search it).
 before_regions() runs before the Wildlands and the Eastreach are generated (their monster lists); extend() after.
@@ -127,7 +127,7 @@ def extend(W, C):
                               ("Cures", "Poison Burn Bleed Chill")]
     C.ENTITIES["Gravestone"] = [("Type", "StaticObject"), ("Use.Words", "Search"), ("Solid", "0"),
                                 ("Examine.Info", "Your grave. What you were carrying when you died is buried here.")]
-    rack = C.CRAFT["CRAFT-Herblore"][1]                         # (brewed at the alchemy table, Herblore 3)
+    rack = C.CRAFT["CRAFT-Potion_Making"][1]                         # (brewed at the alchemy table, Potion Making 3)
     if not any(r.startswith("Antidote,") for r in rack):
         rack.insert(1, "Antidote,Herb 2 Spider_Silk 1 Empty_Vial 1,0.4,3")
     for name in ("Giant_Spider", "Scorpion"):                   # (their poison's cure, sometimes)

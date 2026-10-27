@@ -87,8 +87,10 @@ class CombatMixin:
             self.fx_skill_pop(d.skill_name[i])
         old = self.level_of_xp(self.skill_xp[i])
         amount = trim(str(amount))
-        if amount[:1] == "+" and d.xp_slowdown > 0:
-            gain = val(amount[1:]) * d.xp_slowdown / (d.xp_slowdown + old)
+        if amount[:1] == "+":                    # (Config XP.Scale: every gain, and slower as you go)
+            gain = val(amount[1:]) * d.xp_scale
+            if d.xp_slowdown > 0:
+                gain *= d.xp_slowdown / (d.xp_slowdown + old)
             amount = "+" + lbstr(round(gain, 5))
         self.skill_xp[i] = min(d.skill_max_level, max(0, apply_change(self.skill_xp[i], amount)))
         if amount[:1] == "+":
@@ -96,11 +98,11 @@ class CombatMixin:
         new = self.level_of_xp(self.skill_xp[i])
         self.dirty_me = True
         if new > old:
-            self.display_message("LEVEL UP! Your %s level is now %d." % (d.skill_name[i], new), "LEVELUP")
+            self.display_message("LEVEL UP! Your %s level is now %d." % (pretty(d.skill_name[i]), new), "LEVELUP")
             self.play_sound("LevelUp")
             self.level_up_show(d.skill_name[i], new)
         if new < old:
-            self.display_message("Your %s level has dropped to %d." % (d.skill_name[i], new), "FAIL")
+            self.display_message("Your %s level has dropped to %d." % (pretty(d.skill_name[i]), new), "FAIL")
         if new != old and d.skill_name[i].upper() in ("STRENGTH", "DEFENCE"):
             self.max_hp_changed(self.player_max_hp)
         if new != old:
@@ -188,16 +190,16 @@ class CombatMixin:
         return rnd() * 100 < chance
 
     def player_attack_value(self):
-        return self.skill_level("Strength") / 3 + 3 * (self.equip_attack_total + self.spell_attack_bonus)
+        return self.skill_level("Strength") * 2 / 3 + 3 * (self.equip_attack_total + self.spell_attack_bonus)
 
     def player_defence_value(self):
-        return self.skill_level("Defence") / 4 + 1.5 * (self.equip_defence_total + self.spell_defence_bonus)
+        return self.skill_level("Defence") / 2 + 1.5 * (self.equip_defence_total + self.spell_defence_bonus)
 
     def armour_soak(self):
         return max(0, int((self.equip_defence_total + self.spell_defence_bonus) / 6))
 
     def player_max_hit(self):
-        return 1 + int(self.skill_level("Strength") / 8) + 2 * (max(0, self.equip_attack_total) + self.spell_attack_bonus)
+        return 1 + int(self.skill_level("Strength") / 4) + 2 * (max(0, self.equip_attack_total) + self.spell_attack_bonus)
 
     def npc_max_hit(self, e):
         return 1 + max(0, int(self.w.stat_for(e, self, "strength") * self.data.monster_damage))
@@ -296,7 +298,7 @@ class CombatMixin:
             return
         max_hit = self.player_max_hit()
         damage = random_number(1, max_hit)
-        if rnd() * 100 < 5 + self.skill_level("Strength") / 15:
+        if rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15:
             damage = max_hit + random_number(0, int(max_hit / 2))
             self.play_sound("Crit", (t.cx, t.cy))
             self.fx_splat("Crit", damage, t)
@@ -361,10 +363,29 @@ class CombatMixin:
             self.start_script(script, False)
 
     def add_npc_drops(self, e):
+        """Its Drops on the ground (the killer's to pick up first), and its Shard Remnants, if it leaves any
+        (remnants.py: a kill gives no Shards of itself)."""
         w = self.w
         drops = self.entity_ini(e.name, "Drops", "")
         drop_x, drop_y = e.cx, e.fy
         loot_secs = val(self.data.config_read("Gameplay", "Loot.Private.Seconds", "10"))
+
+        def drop(name, amount):
+            copies, each = (1, amount) if self.stackable_quantity(name) > 1 else (min(amount, 10), 1)
+            iw, ih = self.data.sprite_size_of(3, name)
+            for _ in range(int(copies)):
+                x = int(drop_x - iw / 2 + random_number(-8, 8))
+                y = int(drop_y - ih + random_number(-4, 6))
+                item = w.add_map_item(name, e.z, x, y, each, e.owner)
+                if item is not None:
+                    item.source = "DROPPED"
+                    if item.owner is None and loot_secs > 0:          # (the killer's to pick up first)
+                        item.private_to = self
+                        item.public_at = self.now + loot_secs * 1000
+                    m = w.maps.get(item.map)
+                    if m is not None and item.owner is None:
+                        w.add_action_to_queue("REMOVE", name, "MapItem", lbstr(each), m.name,
+                                              w.local_coords(m, x, y), self.data.item_despawn_delay)
         i = 1
         while word(drops, i) != "":
             dd = word(drops, i)
@@ -373,25 +394,10 @@ class CombatMixin:
             percent = word(dd, 3, ",") or "100"
             if rnd() * 100 < val(percent):
                 amount = parse_quantity(amount_s) if "-" in amount_s else val(amount_s)
-                if amount > 0 and name == SHARD:            # (Shards: straight to the killer's balance)
-                    self.give_shards(int(amount), "The %s's Shards" % self.display_name(e))
-                elif amount > 0:
-                    copies, each = (1, amount) if self.stackable_quantity(name) > 1 else (min(amount, 10), 1)
-                    iw, ih = self.data.sprite_size_of(3, name)
-                    for _ in range(int(copies)):
-                        x = int(drop_x - iw / 2 + random_number(-8, 8))
-                        y = int(drop_y - ih + random_number(-4, 6))
-                        item = w.add_map_item(name, e.z, x, y, each, e.owner)
-                        if item is not None:
-                            item.source = "DROPPED"
-                            if item.owner is None and loot_secs > 0:          # (the killer's to pick up first)
-                                item.private_to = self
-                                item.public_at = self.now + loot_secs * 1000
-                            m = w.maps.get(item.map)
-                            if m is not None and item.owner is None:
-                                w.add_action_to_queue("REMOVE", name, "MapItem", lbstr(each), m.name,
-                                                      w.local_coords(m, x, y), self.data.item_despawn_delay)
+                if amount > 0:
+                    drop(name, amount)
             i += 1
+        self.remnants_on_death(e, drop)
 
     # ----- NPCs hitting this player (the world's NPC AI calls these)
     def npc_shoot(self, e, missile):
@@ -546,7 +552,7 @@ class CombatMixin:
 
     def spell_chance(self, spell):
         level = val(self.spell_ini(spell, "Level", "1"))
-        return min(98, max(20, 60 + (self.skill_level(self.spell_ini(spell, "Skill", "Magic")) - level) * 7))
+        return min(98, max(20, 60 + (self.skill_level(self.spell_ini(spell, "Skill", "Magic")) - level) * 14))
 
     def spell_cost(self, spell):
         return val(self.spell_ini(spell, "Cost", "0"))
@@ -622,7 +628,7 @@ class CombatMixin:
         skill = self.spell_ini(spell, "Skill", "Magic")
         if self.skill_level(skill) < level:
             self.refuse("You need level %s %s to learn %s (you have %d). Keep the scroll till you're ready." %
-                        (lbstr(level), skill, title, self.skill_level(skill)))
+                        (lbstr(level), pretty(skill), title, self.skill_level(skill)))
             return
         self.spells_known[spell] = rank
         if val(self.spell_ini(spell, "Keep", "0")) != 1:
@@ -669,7 +675,7 @@ class CombatMixin:
         potion = self.spell_is_potion(spell)
         if not potion and self.skill_level(skill) < level:
             self.refuse("You need level %s %s to cast %s (you have %d)." %
-                        (lbstr(level), skill, name, self.skill_level(skill)))
+                        (lbstr(level), pretty(skill), name, self.skill_level(skill)))
             return
         if not potion:
             wait = self.spell_cooldown_left(spell)
@@ -681,7 +687,7 @@ class CombatMixin:
                 self.short_of_shards(cost, name)
                 return
         now = self.now
-        gap = val(self.data.config_read("Shards", "Cast.Gap", "0.8")) * 1000
+        gap = self.shard_setting("Cast.Gap", 0.8) * 1000
         if not potion and now - self.player_last_cast < gap and now >= self.player_last_cast:
             self.display_message("You're still gathering your wits after the last spell.", "FAIL")
             return
@@ -794,7 +800,7 @@ class CombatMixin:
             if self.spell_fizzled:
                 return
             self.spell_glow(spell)
-            bonus = 0 if potion else int(self.skill_level("Magic") / 3) + self.equip_magic_total
+            bonus = 0 if potion else int(self.skill_level("Magic") * 2 / 3) + self.equip_magic_total
             self.update_skill("Hitpoints", "+%d" % (self.spell_roll(self.spell_ini(spell, "Heal", "5-10")) + bonus))
         elif effect in ("SHIELD", "BOOST"):
             self.spell_begin(scroll, spell)
@@ -852,7 +858,7 @@ class CombatMixin:
         if not self.spell_target_ok(e):
             return
         w = self.w
-        damage = (self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Magic") / 4) +
+        damage = (self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Magic") / 2) +
                   self.equip_magic_total + self.spell_magic_bonus)
         if e.type == PLAYER:
             self.pvp_spell_hit(spell, e, damage)

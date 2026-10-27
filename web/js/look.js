@@ -11,7 +11,7 @@ const PARTS = {
   legs: [[64, 0, 255], [[44, 0, 185]]],
 };
 
-export const PART_NAMES = { skin: "Skin", hair: "Hair", shirt: "Shirt", legs: "Trousers" };
+export const PART_NAMES = { skin: "Skin", hair: "Hair", shirt: "Shirt", legs: "Trousers or skirt" };
 
 export const PRESETS = {
   skin: ["#f4b8dd", "#ffdcc0", "#f1c27d", "#e0ac69", "#c68642", "#8d5524", "#5c3a1e"],
@@ -55,7 +55,12 @@ function swaps(look) {
 const cache = new Map();
 
 export function lookKey(look) {
-  return look ? ["skin", "hair", "shirt", "legs"].map((k) => look[k] || "").join("") : "";
+  return look ? ["skin", "hair", "shirt", "legs", "body"].map((k) => look[k] || "").join("") : "";
+}
+
+// A Player frame for this look's body: a woman's is PlayerF ("Player4a" -> "PlayerF4a")
+export function bodyFrame(name, look) {
+  return look && look.body === "f" && /^Player(?!F)/.test(name) ? name.replace(/^Player/, "PlayerF") : name;
 }
 
 export function lookImage(name, look) {
@@ -102,6 +107,27 @@ export function buildPicker(root, look, onChange) {
   preview.className = "look-preview";
   const rows = document.createElement("div");
   rows.className = "look-rows";
+  const bodyRow = document.createElement("div");           // (a man or a woman)
+  bodyRow.className = "look-row";
+  const bodyLabel = document.createElement("span");
+  bodyLabel.textContent = "Body";
+  bodyRow.append(bodyLabel);
+  const bodies = [["m", "Man"], ["f", "Woman"]].map(([b, words]) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "body-choice";
+    btn.textContent = words;
+    btn.onclick = () => {
+      cur.body = b;
+      for (const [x, bb] of bodies) x.classList.toggle("on", bb === b);
+      draw();
+      if (onChange) onChange({ ...cur });
+    };
+    bodyRow.append(btn);
+    return [btn, b];
+  });
+  for (const [x, bb] of bodies) x.classList.toggle("on", bb === (cur.body || "m"));
+  rows.append(bodyRow);
   for (const part of ["skin", "hair", "shirt", "legs"]) {
     const row = document.createElement("div");
     row.className = "look-row";
@@ -144,7 +170,7 @@ export function buildPicker(root, look, onChange) {
     const x = preview.getContext("2d");
     x.clearRect(0, 0, 96, 96);
     x.imageSmoothingEnabled = false;
-    const im = lookImage(frames[turn % 4], cur);
+    const im = lookImage(bodyFrame(frames[turn % 4], cur), cur);
     if (im) x.drawImage(im, 0, 0, 96, 96);
   }
   const timer = setInterval(() => {

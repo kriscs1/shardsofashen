@@ -7,7 +7,7 @@ game's files.
 ## The world in brief
 
 - **Estforlan** is the kingdom. Its capital, **Galaith**, in a gap in the mountains at the far east of the mainland,
-  holds the only land route across the world and the gold and mana mines behind it. A dragon has kept it shut behind
+  holds the only land route across the world and the gold and Shard mines behind it. A dragon has kept it shut behind
   a magical barrier for eighteen years: every generation it was owed the king's firstborn heir, and Queen **Mary** ran
   from Galaith with her baby, you, to break the bargain. King **Rupert**, your father, is shut in the city.
 - **The Isle**: a small island off the south coast, where you grew up poor and where every new character begins, at
@@ -85,7 +85,7 @@ driven into its heart, kills the dragon.
 
 ### On the Isle
 
-**The Hermit's Fire**: *Woodcutting 10*
+**The Hermit's Fire**: *Woodcutting 5*
 The hermit in the Isle's western woods wants 5 oak logs. Reward: 25 gold, an oak staff, Woodcutting experience.
 
 ### Ashford and King Rupert's Keep
@@ -107,9 +107,9 @@ Ottilie paints at her easel in Ashford's market square, and the painting wants a
 (mid-stretch; showing you its back end, to Ottilie's delight; or trotting off). Tell Ottilie: she paints. Reward: the
 painting (Portrait of Mo) and 25 gold. (The scripts check what Mo is doing: >Entity.State, Set.NPC.State.)
 
-**The Herbalist's Remedy**: *level 3, after chapter 4*
+**The Herbalist's Remedy**: *level 2, after chapter 4*
 The Herbalist in her cottage on the Ashford farmlands wants 3 cave mushrooms (the old iron mine) and 2 spider silk
-(giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Herblore experience.
+(giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Potion Making experience.
 
 **The Smugglers' Run**: *after chapter 4*
 Sergeant Holt at the castle's south gate wants to know how smuggled goods reach the market. The fishermen mention
@@ -130,13 +130,13 @@ The Wyrmsmith of Wardhaven keeps the only forge hot enough for dragon scale. Onc
 **three of its scales**: she makes you a **dragonscale helm** and teaches you the forge (dragonscale armour from scales
 and mithril bars, with Smithing). (`DragonforgeQuest`.)
 
-**The Dwarf's Grudge**: *level 8, after chapter 7*
+**The Dwarf's Grudge**: *level 4, after chapter 7*
 Brokk the dwarf, in the Deep Hollow (through the hatch in the hobgoblin warren), wants 4 skeletons smashed and the
 cave troll slain. Reward: 150 gold, 2 sapphires, a steel sword, Mining experience.
 
 ### The Wildwood and Oakhollow
 
-**The Wildwood Watch**: *level 5, after chapter 7*
+**The Wildwood Watch**: *level 3, after chapter 7*
 Ranger Ash in Oakhollow sends you to visit the three old watch stones (the north road, the western woods, the
 river), then to clear the spider nest west of Oakhollow (5 giant spiders). Reward: 120 gold, a yew staff,
 Strength and Woodcutting experience.
@@ -152,40 +152,40 @@ emptied):
 
 ### Greymoor, the Saltmarsh and the Redrock road
 
-**Wolves of the Moor**: *level 6, after chapter 4*
+**Wolves of the Moor**: *level 3, after chapter 4*
 The shepherd in Moorcross: slay 6 moor wolves, then find the wolf den on the eastern moor and kill the Alpha Wolf.
 Reward: 150 gold, a steel shield, Defence experience.
 
-**Bog Lights**: *level 6, Herblore 5, after chapter 4*
+**Bog Lights**: *level 3, Potion Making 3, after chapter 4*
 Old Morwen the witch in Fenwick wants 4 bog myrtle. She brews something for Elder Pike; take it to him, then tell
-her he drank it. Reward: 80 gold, 2 mega potions, Herblore experience. (Morwen returns in *Old Hob*.)
+her he drank it. Reward: 80 gold, 2 mega potions, Potion Making experience. (Morwen returns in *Old Hob*.)
 
-**Bandits on the Road**: *level 9, after chapter 4*
+**Bandits on the Road**: *level 5, after chapter 4*
 Captain Hale in Highwatch: slay 5 bandits, then find their camp in the eastern hills and take the stolen goods
 from their strongbox. Reward: 200 gold, a steel platebody, Strength experience.
 
 ### The desert, the north and the downs
 
-**The Lost Caravan**: *level 11, after Bandits on the Road*
+**The Lost Caravan**: *level 6, after Bandits on the Road*
 Qadir the merchant in Dunerest: find his caravan wreck in the desert west of town, slay the scorpions there and
 bring back its ledger. Reward: 180 gold, 2 rubies, Crafting experience.
 
-**The Frozen Forge**: *level 13, after chapter 4*
+**The Frozen Forge**: *level 7, after chapter 4*
 Brann the forgemaster in Frosthold: bring 5 coal to light his forge, slay the Frost Troll that smashed his
 waterwheel (on the frozen lake), then bring 2 mithril bars. Reward: 250 gold, a
 mithril sword, Smithing experience.
 
-**The Withering Wood**: *level 12, after Wolves of the Moor*
+**The Withering Wood**: *level 6, after Wolves of the Moor*
 The Druid in Thornwick: touch the Heartwood, the Elderwood's old heart stone, then slay 4 blight-maddened bears.
-Reward: 150 gold, an emerald ring, Herblore and Woodcutting experience.
+Reward: 150 gold, an emerald ring, Potion Making and Woodcutting experience.
 
-**The Barrow King**: *level 15, after The Withering Wood*
+**The Barrow King**: *level 8, after The Withering Wood*
 The Gravekeeper in Ravensgate: find the old king's barrow on the downs and lay the Barrow King to rest. Reward:
 250 gold, a mithril helm, Defence experience.
 
 ### The Cinderlands
 
-**The Lost Patrol**: *level 14, after chapter 4*
+**The Lost Patrol**: *level 7, after chapter 4*
 The Scout in Emberwatch: her patrol never came back from the Ashwold. Recover 3 Scout's Tags from the ember hounds.
 Reward: 200 gold, a yew bow and 100 arrows.
 
@@ -194,7 +194,7 @@ Reward: 200 gold, a yew bow and 100 arrows.
 **The Shard Scholar**: *after chapter 4*
 Magister Quill, in the great hall of the Wizards' Court, has spent forty years on the Shards. Bring him fifteen (you
 hand them over only when you say so). He tells you what they are: the Old Ones bound the land's magic into the
-waystones; the dragon drank Galaith's mountain's down and shattered what it couldn't hold. That's why waystones
+shardstones; the dragon drank Galaith's mountain's down and shattered what it couldn't hold. That's why shardstones
 must be fed, why beasts that swallow Shards carry them, and why the mountain behind Galaith was the richest seam of
 all. Reward: a scroll of Frost Nova and Magic experience. His answers about the Shards are there to ask any time.
 
@@ -227,7 +227,7 @@ shrines stand quiet in the Ashwold).
 ## Loose threads and hooks
 
 - **Wardhaven** opens once the dragon is dead, but nothing happens there yet.
-- **The mine behind Galaith** opens to the King: the gold and mana mines the bargain was made for.
+- **The mine behind Galaith** opens to the King: the gold and Shard mines the bargain was made for.
 - A villager in the Isle village says her granny warned never to dig in the **stone circle** on the north-west
   headland. Nothing is buried there yet (its hidden chest is opened, not dug up).
 - The **Ashen Hand's** shrines and acolytes are still in the Cinderlands with nothing to do since the old chapters

@@ -7,7 +7,7 @@
 06	Show.Skill	Fishing
 07	Play.Animation	Splash	1	Splash
 08	Wait	4
-09	>Conditional	($Variable.1-1+40)>$Random.Percent	15
+09	>Conditional	($Variable.1*2-1+40)>$Random.Percent	15
 10	Take.Item	Bait	1
 11	Display.Message	Yellow	...and land a fish!
 12	Give.Item	Raw_Fish	1

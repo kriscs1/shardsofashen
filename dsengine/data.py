@@ -48,6 +48,10 @@ class GameData:
     def spell_ini(self, spell, key, default):
         return ini.read(spell, key, default, self.data_file("Spells.ini"))
 
+    def shards_ini(self, section, key, default):
+        """Shards.ini: every Shard number (costs, dismantling, spells' upgrades, remnants)."""
+        return ini.read(section, key, default, self.data_file("Shards.ini"))
+
     def entity_ini(self, section, key, default):
         """Entities.ini [section] key. A decor tile placed as an object (no Entities.ini section of its own) reads its
         Tiles.ini section instead."""
@@ -113,8 +117,9 @@ class GameData:
         self.hp_per_level = max(0.0, val(c("Gameplay", "Hitpoints.Per.Level", "0.5")))
         self.hp_regen_delay = max(0, val(c("Gameplay", "HP.Regen.Delay", "6")))
         self.hp_regen_every = max(0.2, val(c("Gameplay", "HP.Regen.Every", "3")))
-        self.skill_max_level = max(2, int(val(c("Gameplay", "Skill.Max.Level", "50"))))
+        self.skill_max_level = max(2, int(val(c("Gameplay", "Skill.Max.Level", "25"))))
         self.xp_slowdown = max(0.0, val(c("Gameplay", "XP.Slowdown", "10")))
+        self.xp_scale = max(0.0, val(c("Gameplay", "XP.Scale", "1") or "1"))
         self.monster_damage = max(0.1, val(c("Gameplay", "Monster.Damage", "2")))
         self.death_gold_loss = min(100, max(0, val(c("Gameplay", "Death.Gold.Loss", "25"))))
         self.player_attack_speed = max(0.1, val(c("Gameplay", "Player.Attack.Speed", "0.8")))

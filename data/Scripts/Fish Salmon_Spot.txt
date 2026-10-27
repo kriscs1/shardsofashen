@@ -2,7 +2,7 @@
 01	>Distance.From.Clicked.Entity	64	33
 02	>Got.Item	Fishing_Rod	1	29
 03	Get.Value	SKILL	Fishing	Variable.1$
-04	>Conditional	$Variable.1>=20	31
+04	>Conditional	$Variable.1>=10	31
 05	>Got.Item	Seal_Blubber	1	09
 06	Get.Value	CALCULATION	15	Variable.2$
 07	Display.Message	Cyan	You bait the hook with seal blubber and cast your line across the current...
@@ -14,7 +14,7 @@
 13	Show.Skill	Fishing
 14	Play.Animation	Splash	1	Splash
 15	Wait	4
-16	>Conditional	($Variable.1-20+40+$Variable.2)>$Random.Percent	25
+16	>Conditional	($Variable.1*2-20+40+$Variable.2)>$Random.Percent	25
 17	>Conditional	$Variable.2>0	20
 18	Take.Item	Seal_Blubber	1
 19	Goto.Line	21
@@ -29,7 +29,7 @@
 28	End
 29	Display.Message	DarkRed	You need a fishing rod.	Denied
 30	End
-31	Display.Message	DarkRed	You need level 20 Fishing to catch the salmon here.	Denied
+31	Display.Message	DarkRed	You need level 10 Fishing to catch the salmon here.	Denied
 32	End
 33	Display.Message	DarkRed	You need to stand at the water's edge, by the spot!	Denied
 34	End

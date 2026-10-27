@@ -1,4 +1,4 @@
-# Dragon Sword: rules for every change
+# Shards of Estforlan: rules for every change
 
 Read this before changing anything. It holds what must stay consistent: the story, the game's rules, the look and
 sound, and how code and data are written and checked. When the owner gives a rule that should last ("always",
@@ -121,18 +121,35 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
 - Buffs and debuffs end on death.
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
+- Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
+  Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less
+  often, its magic rises as a **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for
+  the killer and leaves more remnants when it's killed (`dsengine/remnants.py`; the numbers: Shards.ini
+  `[Remnants]`).
 
 **Magic and Shards**
 - Magic runs on **Shards**, a balance each player has, shown on the bar under their health: **never an item in the
   pack** (`dsengine/shards.py`; a script's `Give.Item Shard` or an old save's Shards go on the balance). They never
-  come back by themselves. Beasts, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells and
-  waystones (a price to wake one, then a few Shards a journey) spend them, through `spend_shards` or `>Pay.Shards`:
-  never below nothing, nothing taken unless the thing goes ahead, and a Denied word when you're short. No mana.
+  come back by themselves. Shard Remnants, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells
+  and shardstones (a price to wake one, then a few Shards a journey) spend them, through `spend_shards` or
+  `>Pay.Shards`: never below nothing, nothing taken unless the thing goes ahead, and a Denied word when you're short.
+  No mana, anywhere: a quest or text that would need it uses Shards.
+- **Every Shard number is in `data/Shards.ini`** (the balance, shardstones, chests, `[Dismantle]` rates by kind,
+  `[Upgrade.<Spell>]` ranks, `[Remnants]`): the builders only add what's missing there, so edit them in the ini.
+- The fast-travel stones are **Shardstones** (`Shardstone`, `Travel Shardstone`). The attunements in saves keep their
+  old names (attribute `Waystone.<Key>`, place Id `Waystone_<Key>`): don't rename those.
 - A spell's scroll teaches it for good (if your Magic is high enough; else it's kept); a known spell's scroll isn't
   used up (dismantle it for Shards). Scrolls are rare. Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
-  spell a rank; each rank's values are `Key.<rank>` in `Spells.ini`. Quests give items with `Reward.Items`, and a
-  finished quest shows its reward screen. The numbers live in data (Config.ini `[Shards]`, Digging.ini, Quests.ini),
-  set by `dev/migrate/build_shards.py`.
+  spell a rank; each rank's values are `Key.<rank>` in Shards.ini `[Upgrade.<Spell>]`. Quests give items with
+  `Reward.Items` and skill xp with `Reward.XP` (`Strength 3 Defence 3`), and a finished quest shows its reward
+  screen. Set by `dev/migrate/build_shards.py`.
+
+**Skills**
+- Skills go to **25** (Config `Skill.Max.Level`). A level asked for anywhere is on that scale; a script's success
+  roll counts the skill twice (`($Variable.1*2+34)>$Random.Percent`). Gains are `XP.Scale` times what's given.
+  Old saves are scaled as they load (`skills_of` in a save). `dev/migrate/scale_skills.py` did it, once.
+- Herbs and potions are **Potion Making** (the skill `Potion_Making`; it was Herblore). A skill's name is one word
+  in data (`Potion_Making`), and shown with spaces.
 
 **Doing things**
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays
@@ -158,7 +175,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
   villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
 - Settlements stand far apart, wild country between. The market square is near the middle, paved roads off it; the
-  waystone and homestone stand by it. Every house is different, with space between; buildings never cover a road.
+  shardstone and homestone stand by it. Every house is different, with space between; buildings never cover a road.
   Streets are straight and paved in the place's own stone near the middle (sandstone in the desert, boardwalks in the
   marsh...), and wander and turn to gravel and dirt further out.
 - Roads join every settlement and place of interest on the same land; rivers are crossed by bridges. A city on a coast
@@ -171,6 +188,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 ## Look and sound
 
+- The game is **Shards of Estforlan** (the page, the app, the docs). The Android package and the Docker image keep
+  their `dragonsword` names.
+- A character is a man or a woman (`look.body`: `f` is a woman, the `PlayerF` sprites, long hair and a skirt, drawn by
+  `build_player.py`); the look's colours recolour either. Anything drawn on a player works on both.
+
 - Tiles and sprites are 32x32 pixel art. Creatures and objects have a 1 px dark outline (the mask-silhouette method
   in `build_wolf.py` and `build_cats.py`), and walk in frames `<Name>2a-c` (right) and `<Name>8a-c` (mirrored).
 - Art and sounds are made in code by `dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
@@ -182,7 +204,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
 - A tile changing (a door, a chopped tree) sends just that tile (`mapcells`), not the whole map again: keep it so.
   The phone and many NPCs make full-map repaints the thing that lags.
-- Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and mana are top
+- Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top
   left of the view, not in the sidebar.
 - **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch
   screens and in the Android app). The phone's has no sidebar or chat bar: a round minimap top right (tap: the world

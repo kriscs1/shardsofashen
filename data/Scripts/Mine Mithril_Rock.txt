@@ -18,13 +18,13 @@
 17	Get.Value	CALCULATION	0	Variable.2$
 18	Get.Value	CALCULATION	1	Variable.3$
 19	Get.Value	SKILL	Mining	Variable.1$
-20	>Conditional	$Variable.1>=25	34
+20	>Conditional	$Variable.1>=13	34
 21	>Conditional	$Variable.3>=3	36
 22	Display.Message	Cyan	You swing your pickaxe at the mithril rock...
 23	Show.Skill	Mining
 24	Play.Animation	Rock_Chips	4	Mine
 25	Wait	3
-26	>Conditional	($Variable.1+$Variable.2+6)>$Random.Percent	32
+26	>Conditional	($Variable.1*2+$Variable.2+6)>$Random.Percent	32
 27	Display.Message	Yellow	...and mine some mithril ore!
 28	Give.Item	Mithril_Ore	1
 29	Update.Skill	Mining	+0.7
@@ -32,7 +32,7 @@
 31	End
 32	Display.Message	DarkRed	...but only chip the rock.	Fail
 33	End
-34	Display.Message	DarkRed	You need level 25 Mining to mine this mithril rock.	Denied
+34	Display.Message	DarkRed	You need level 13 Mining to mine this mithril rock.	Denied
 35	End
 36	Display.Message	DarkRed	Your pickaxe just bounces off! You need a steel pickaxe or better.	Fail
 37	End

@@ -1,4 +1,4 @@
-# Dragon Sword in the browser
+# Shards of Estforlan in the browser
 
 Up to five players share one world from any modern browser. The game runs on the server, which keeps everything:
 accounts, characters and the shared world (SQLite).
@@ -11,7 +11,7 @@ accounts, characters and the shared world (SQLite).
 | `tools/` | `export_web_assets.py`, `admin.py` (passwords, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
 | `deploy/` | Docker, docker-compose with Caddy (HTTPS), a systemd unit |
 | `android/` | The Android app: hosts a game on the phone for the network, or joins one (`android/README.md`) |
-| `dsedit/` | The editor (`Dragon Sword Editor.py`): F5 plays your changes in the browser, on a local server |
+| `dsedit/` | The editor (`Shards of Estforlan Editor.py`): F5 plays your changes in the browser, on a local server |
 | `dragonsword/` | Helpers shared by the server, the editor and the tools (the desktop game itself is retired) |
 
 ## Playing locally
@@ -78,7 +78,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - Bring her 10 planks and 4 stone blocks. Make them at her carpenter's bench: planks from logs, blocks from stone.
     Rocks can be mined for stone with a pickaxe.
   - She gives you the **Access Crystal**.
-- **Going home.** Touch a **homestone**, the amber obelisk beside every town's waystone, and choose *Take me home*.
+- **Going home.** Touch a **homestone**, the amber obelisk beside every town's shardstone, and choose *Take me home*.
   You need the crystal in your pack.
   - After the quest she also sells **Homestead Scrolls**. They take you home from anywhere and need Magic 12.
   - Your homestone at home takes you back to where you came from.
@@ -125,7 +125,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
 ## The market, the shops, the tavern, digging and raids
 
 - **The market.** One market for the whole world, at any **market board**: Ashford's market, and beside every
-  town's waystone.
+  town's shardstone.
   - **Browsing:** see everything everyone has for sale, cheapest first, with who's selling it.
   - **Selling:** right-click something in your pack, choose *Sell on the market*, and set the price each and how
     many. It's up at once, at every board.
@@ -303,7 +303,7 @@ Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HT
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
 | `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`) |
-| `DS_NAME` | `Dragon Sword on <computer>` | the game's name in the Android app's "Games on this network" |
+| `DS_NAME` | `Shards of Estforlan on <computer>` | the game's name in the Android app's "Games on this network" |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 
 ## Checking it works

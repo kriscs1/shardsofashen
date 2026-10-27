@@ -2,6 +2,7 @@
 make and gather (as the desktop game's quests.py and screens.py worked them out) and the quest markers on the minimap."""
 from dragonsword import ini
 from dragonsword.lb import val, word, trim, lbstr, pretty
+from .shards import quest_xp
 
 
 def help_clean(value):
@@ -159,6 +160,7 @@ class QuestMixin:
                                "main": help_clean(d.get("TYPE", "")).lower() == "main",
                                "chapter": val(help_clean(d.get("CHAPTER", "0"))),
                                "shards": int(val(help_clean(d.get("REWARD.SHARDS", "0")))),
+                               "xp": [s for s, _ in quest_xp(d)],
                                "needs": self.quest_needs(name) if status == 1 else []})
 
         def order(q):

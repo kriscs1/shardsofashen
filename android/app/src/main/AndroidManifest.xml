@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dragon Sword: its start screen (assets/home), and the game's page in a WebView, full screen and sideways. The phone
+<!-- Shards of Estforlan: its start screen (assets/home), and the game's page in a WebView, full screen and sideways. The phone
      can host the game itself (HostService runs the server, in Python), for anyone on the same network to join. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 

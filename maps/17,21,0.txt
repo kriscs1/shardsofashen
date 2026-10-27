@@ -24,5 +24,5 @@ NPC	Man	96	408	Attitude=Good Zone=3,11,6,14 Pause=5-15 Id=Frosthold_Resident_336
 NPC	Woman	288	472	Attitude=Good Zone=10,13,11,16 Pause=5-15 Id=Frosthold_Resident_339 Name=Jasper
 NPC	Villager	672	152	Attitude=Good Zone=22,5,23,6 Pause=5-15 Id=Frosthold_Resident_340 Name=Mabel
 StaticObject	Notice	608	450	Id=Frosthold_Notice_308
-StaticObject	Waystone	96	224
+StaticObject	Shardstone	96	224
 Id	Waystone_Frosthold	4	9

@@ -20,7 +20,7 @@
 19	Quest.Note.Done	DruidQuest	*
 20	Give.Item	Gold_Coin(s)	150
 21	Give.Item	Emerald_Ring	1
-22	Update.Skill	Herblore	+2
+22	Update.Skill	Potion_Making	+2
 23	Update.Skill	Woodcutting	+2
 24	Display.Conversation	Druid	I can feel it: the Heartwood is warm again. Take this ring; the emerald is from the old roots. And my thanks.	Thank you!	25
 25	Display.Message	Yellow	Quest complete: The Withering Wood! You receive 150 gold, an emerald ring and experience.

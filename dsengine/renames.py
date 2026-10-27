@@ -1,11 +1,15 @@
-"""Items that were renamed (dev\\migrate\\rename_items.py renames them in the data): what a character or the world was
-saved with is put right as it loads - inventories, banks, hotbars, gear, market listings, the action queue."""
+"""Items and skills that were renamed (dev\\migrate\\rename_items.py, rename_potion_making.py rename them in the data):
+what a character or the world was saved with is put right as it loads - inventories, banks, hotbars, gear, market
+listings, the action queue, skills."""
 import json
 
 RENAMED_ITEMS = {
     "Raw_Chicken": "Raw_Poultry",
     "Cooked_Chicken": "Cooked_Poultry",
     "Burnt_Chicken": "Burnt_Poultry",
+}
+RENAMED_SKILLS = {
+    "Herblore": "Potion_Making",
 }
 
 
@@ -14,8 +18,9 @@ def renamed(state):
     if not state:
         return state
     text = json.dumps(state)
-    if not any(old in text for old in RENAMED_ITEMS):
+    renames = dict(RENAMED_ITEMS, **RENAMED_SKILLS)
+    if not any(old in text for old in renames):
         return state
-    for old, new in RENAMED_ITEMS.items():
+    for old, new in renames.items():
         text = text.replace(old, new)
     return json.loads(text)

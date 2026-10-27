@@ -45,7 +45,7 @@ public class HostService extends Service {
         }
         if (!status.equals("off") && !status.equals("error")) return START_NOT_STICKY;
         String wanted = intent != null ? intent.getStringExtra("name") : null;
-        name = wanted == null || wanted.trim().isEmpty() ? "Dragon Sword on " + Build.MODEL : wanted.trim();
+        name = wanted == null || wanted.trim().isEmpty() ? "Shards of Estforlan on " + Build.MODEL : wanted.trim();
         error = "";
         status = "unpacking";
         foreground("Starting " + name + "...");
@@ -133,7 +133,7 @@ public class HostService extends Service {
         PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), im);
         PendingIntent stop = PendingIntent.getService(this, 1, new Intent(this, HostService.class).setAction(STOP), im);
         Notification n = b.setSmallIcon(R.drawable.ic_stat_host)
-            .setContentTitle("Hosting Dragon Sword")
+            .setContentTitle("Hosting Shards of Estforlan")
             .setContentText(text)
             .setContentIntent(open)
             .setOngoing(true)

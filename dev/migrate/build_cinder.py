@@ -381,7 +381,7 @@ REQUIREMENTS = {
     "The Hermit's Fire": dict(Skills="Woodcutting 10"),
     "The Wildwood Watch": dict(Quests="King's Hobgoblin Hunt", Level="5"),
     "Wolves of the Moor": dict(Level="6"),
-    "Bog Lights": dict(Level="6", Skills="Herblore 5"),
+    "Bog Lights": dict(Level="6", Skills="Potion_Making 5"),
     "The Dwarf's Grudge": dict(Quests="King's Hobgoblin Hunt", Level="8"),
     "Old Hob": dict(Quests="Bog Lights"),
     "Bandits on the Road": dict(Level="9"),

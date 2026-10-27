@@ -3,6 +3,6 @@
 02	>Conditional	$Variable.1=2	07
 03	Update.Attribute	ForgeQuest	=3
 04	Quest.Note.Done	ForgeQuest	The Frost Troll is on the frozen lake east of Frosthold.
-05	Quest.Note	ForgeQuest	Mithril ore needs Mining 25 and a steel pickaxe or better; smelt it at a furnace.
+05	Quest.Note	ForgeQuest	Mithril ore needs Mining 13 and a steel pickaxe or better; smelt it at a furnace.
 06	Display.Message	Yellow	The Frost Troll is slain! Bring Brann 2 mithril bars.
 07	End
