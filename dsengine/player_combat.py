@@ -725,10 +725,17 @@ class CombatMixin:
             if self.spell_fizzled:
                 return
             self.player_last_combat = now
+            held = []
             for e in targets:
                 if e.alive:
                     self.provoke(e)
-                    self.spell_hit(spell, e)
+                    if self.spell_hit(spell, e) and e.alive:
+                        held.append(e)
+            if held:                                    # (one line for the lot, not one a foe)
+                how = self.spell_ini(spell, "Freeze.Word", "frozen") or "frozen"
+                who = "The %s is" % self.display_name(held[0]) if len(held) == 1 else "%d foes are" % len(held)
+                self.display_message("%s %s for %s seconds!" % (who, how, lbstr(val(self.spell_ini(spell, "Freeze", "0")))),
+                                     "COMBAT")
         elif effect == "HEAL":
             if p.hp >= self.player_max_hp:
                 self.display_message("You already have full health!", "FAIL")
@@ -814,7 +821,14 @@ class CombatMixin:
             e.move_speed = e.normal_speed * max(5, val(word(slow, 1, ","))) / 100
             e.slow_until = self.now + max(1, val(word(slow, 2, ","))) * 1000
             self.display_message("The %s slows down." % self.display_name(e), "COMBAT")
+        held = False
+        freeze = val(self.spell_ini(spell, "Freeze", "0"))
+        if freeze > 0 and damage < e.hp and val(self.entity_ini(e.name, "Freeze.Immune", "0")) != 1:
+            e.frozen_until = self.now + freeze * 1000
+            e.frozen_word = self.spell_ini(spell, "Freeze.Word", "frozen") or "frozen"
+            held = True
         self.damage_npc(e, damage)
+        return held
 
     # =================================================================================================================
     # Status effects

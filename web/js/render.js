@@ -194,6 +194,25 @@ function entityImage(e, now) {
 // would leave a gap mid-stride (it keeps the picture it had meanwhile; see draw)
 const warmed = new Set();
 const lastImage = new Map();                      // uid -> the picture it was drawn with last
+const heldLook = [null, new WeakMap(), new WeakMap()];
+
+// A creature a spell holds still: iced over a cold blue (fz 1), or dazed a pale gold (fz 2). Made once a picture.
+function held(im, fz) {
+  const cache = heldLook[fz] || heldLook[1];
+  let c = cache.get(im);
+  if (!c) {
+    c = document.createElement("canvas");
+    c.width = im.width;
+    c.height = im.height;
+    const g = c.getContext("2d");
+    g.drawImage(im, 0, 0);
+    g.globalCompositeOperation = "source-atop";
+    g.fillStyle = fz === 2 ? "rgba(255,232,130,0.45)" : "rgba(140,210,255,0.6)";
+    g.fillRect(0, 0, c.width, c.height);
+    cache.set(im, c);
+  }
+  return c;
+}
 function warmWalk(image) {
   const w = /^(.+)[1248][abc]$/.exec(image || "");
   if (!w || warmed.has(w[1])) return;
@@ -263,7 +282,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     if (im && e.k === T.MAPITEM) {                // (things on the ground: smaller than in your hand)
       const w = Math.round(e.w * MAPITEM_SCALE), h = Math.round(e.h * MAPITEM_SCALE);
       ctx.drawImage(im, x + Math.round((e.w - w) / 2), y + (e.h - h), w, h);
-    } else if (im) ctx.drawImage(im, x, y);
+    } else if (im) ctx.drawImage(e.fz ? held(im, e.fz) : im, x, y);
     if (e.k === T.PLAYER) drawWorn(ctx, e, x, y);
     pick.push([e.dx, e.dy, e.w, e.h, e]);
   };

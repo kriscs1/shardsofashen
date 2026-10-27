@@ -393,6 +393,9 @@ Damage=2-5                 ; Bolt, Area: min-max, + Magic level / 4 + the staff'
 Range=256                  ; Bolt: pixels
 Radius=128                 ; Area: pixels around the player
 Slow=50,8                  ; Bolt (optional): the target moves at 50% speed for 8 seconds
+Freeze=5                   ; (optional) each foe hit is held still (no moving, no blows) for 5 seconds, unless its
+                           ;   Entities.ini section says Freeze.Immune=1 (the bosses)
+Freeze.Word=frozen         ; frozen (iced over, blue) or stunned (dazed, gold): what the message says and how it looks
 Heal=8-14                  ; Heal: min-max hitpoints, + Magic level / 3 + the staff's Magic (not for potions)
 Attack=3  Defence=5  Magic=5 ; Boost: + Attack (to hit and max hit), Defence, Magic (spell damage) ...
 Sight=150                  ; Boost: ... and/or + pixels you see through the fog of war (Owl Potion, Farsight) ...

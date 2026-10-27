@@ -18,6 +18,8 @@ def entity_state(w, e, viewer):
         if e.ai is not None:
             st["un"] = e.ai.under
             st["fly"] = e.ai.flying
+        held = e.frozen_until is not None and e.frozen_until > w.now
+        st["fz"] = (2 if e.frozen_word == "stunned" else 1) if held else 0      # (iced over, or dazed)
     elif e.type == MAPITEM:
         st["q"] = e.quantity
     else:

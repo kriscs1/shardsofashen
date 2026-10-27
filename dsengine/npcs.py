@@ -319,6 +319,10 @@ class NPCMixin:
                 e.move_speed = e.normal_speed
                 e.slow_until = None
                 e.normal_speed = None
+        if e.frozen_until is not None:
+            if e.frozen_until - 60000 <= now < e.frozen_until:
+                return                                  # (frozen, or stunned: it does nothing till it thaws)
+            e.frozen_until = None
         # Its foe: the player it's fighting; else the nearest it's a foe of (to pick a fight with)
         foe = e.target if (e.in_combat and e.target is not None and e.target.in_world() and
                            e.target.player.z == e.z and e.target.player.hp > 0) else None

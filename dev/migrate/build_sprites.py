@@ -1666,6 +1666,9 @@ SCROLLS = {   # name: (seal colour, (rune colour, rune shade))
     "Stone_Skin_Scroll": ((110, 90, 60), ((200, 180, 140), (110, 90, 60))),
     "Teleport_Scroll": ((110, 50, 170), ((210, 150, 255), (110, 50, 170))),
     "Farsight_Scroll": ((30, 120, 130), ((150, 235, 240), (30, 120, 140))),
+    "Frost_Nova_Scroll": ((90, 160, 220), ((225, 246, 255), (90, 160, 220))),
+    "Thunderclap_Scroll": ((70, 80, 110), ((245, 240, 150), (90, 100, 140))),
+    "Blizzard_Scroll": ((190, 214, 240), ((255, 255, 255), (110, 150, 200))),
 }
 SPRITES["Blank_Scroll"] = lambda: scroll()
 for _name, (_seal, _rune) in SCROLLS.items():
@@ -2044,6 +2047,47 @@ def waystone():
     for x, y in rune:
         img[y][x] = (200, 240, 255)
     return K.outline_img(img, (40, 40, 48))
+
+
+def waystone_sparkle(frame):
+    """The waystone with a star twinkling at its tip (Waystone1..4, Anim.Frames): it swells and fades, a mote or two
+    drifting up beside it."""
+    img = waystone()
+    arm = (2, 3, 4, 3)[frame]
+    core = ((200, 235, 255), (235, 250, 255), (255, 255, 255), (225, 245, 255))[frame]
+    cx, cy = 16, 4
+    for d in range(1, arm + 1):                           # the star's four arms, fading out to their tips
+        c = K.mix(core, (110, 190, 255), d / (arm + 1.0))
+        for dx, dy in ((d, 0), (-d, 0), (0, d), (0, -d)):
+            K.put(img, cx + dx, cy + dy, c)
+    if arm >= 2:
+        for dx, dy in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
+            K.put(img, cx + dx, cy + dy, K.mix(core, (110, 190, 255), 0.6))
+    K.put(img, cx, cy, core)
+    for mx, my in (((11, 7), (21, 9)), ((12, 5), (20, 7)), ((11, 3), (21, 5)), ((12, 1), (20, 3)))[frame]:
+        K.put(img, mx, my, (170, 220, 255))               # (motes rising)
+    return img
+
+
+for _f in range(4):
+    SPRITES["Waystone%d" % (_f + 1)] = (lambda f=_f: waystone_sparkle(f))
+
+
+@sprite("Feather")
+def feather():
+    """A grey goose feather (arrows are fletched with them): a pale quill, the vane shaded, a white tip."""
+    img = K.new()
+    for i in range(20):                                   # the shaft, from the quill (bottom left) up and right
+        x, y = 8 + i * 16 // 20, 26 - i
+        K.put(img, x, y, (236, 230, 214) if i < 5 else (214, 208, 196))
+        if i >= 5:
+            w = 3 if 7 < i < 17 else 2
+            for k in range(1, w + 1):
+                K.put(img, x - k, y - k // 2, (150, 152, 160) if k < w else (118, 120, 130))   # the vane, each side
+                K.put(img, x + k, y + k // 2, (176, 178, 186) if k < w else (140, 142, 150))
+    for dx, dy in ((0, 0), (1, 0), (0, 1), (-1, 1)):
+        K.put(img, 24 + dx, 6 + dy, (246, 246, 250))      # (a white tip)
+    return K.outline_img(img, (50, 50, 58))
 
 
 SPRITES["Dragon_Sword"] = lambda: gm("Mithril_Sword", [(0.0, (60, 8, 6)), (0.35, (150, 24, 18)), (0.65, (226, 70, 40)), (0.85, (255, 190, 90)), (1.0, (255, 240, 200))])

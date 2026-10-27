@@ -27,6 +27,8 @@ class Entity(_Entity):
         self.pose = ""              # how it rests when it stops (Sit: <Name>_Sit<dir>), "" = standing
         self.npc_foe = None         # an NPC it hunts, or runs from, or fights back (Hunts=)
         self.follow = None          # the Session it walks after (Follow.Player)
+        self.frozen_until = None    # a spell's ice (or stun) holds it still till then (clock ms)
+        self.frozen_word = ""       # "frozen" or "stunned": how it's held, and how it looks
 
 
 class InvItem:

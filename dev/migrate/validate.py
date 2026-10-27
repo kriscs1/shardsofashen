@@ -1032,7 +1032,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
@@ -1522,7 +1522,8 @@ def check_spells(entities_ini, skills):
             verb = "drink" if (ini.get(sec, "Kind") or "").strip().lower() == "potion" else "cast"
             if verb not in [w.strip().lower() for w in (entities_ini.get(scroll, "Use.Words") or "").split(",")]:
                 warn(where, "[%s] has no %s in its Use.Words" % (scroll, verb.title()))
-        for k in ("Level", "XP", "Range", "Radius", "Attack", "Defence", "Magic", "Sight", "Duration", "Cost", "Cooldown", "Mana"):
+        for k in ("Level", "XP", "Range", "Radius", "Attack", "Defence", "Magic", "Sight", "Duration", "Cost", "Cooldown", "Mana",
+                  "Freeze"):
             v = ini.get(sec, k)
             if v is not None and not is_num(v):
                 err(where, "%s=%r is not a number" % (k, v))
@@ -1534,6 +1535,9 @@ def check_spells(entities_ini, skills):
             err(where, "a %s spell needs Damage=min-max" % effect.title())
         if effect == "HEAL" and ini.get(sec, "Heal") is None:
             err(where, "a Heal spell needs Heal=min-max")
+        fw = ini.get(sec, "Freeze.Word")
+        if fw is not None and fw.strip() not in ("frozen", "stunned"):
+            err(where, "Freeze.Word=%r is not frozen or stunned" % fw)
         slow = ini.get(sec, "Slow")
         if slow is not None and not (len(slow.split(",")) == 2 and all(is_num(x) for x in slow.split(","))):
             err(where, "Slow=%r is not percent,seconds" % slow)

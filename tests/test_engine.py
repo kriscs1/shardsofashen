@@ -857,6 +857,46 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
     leave(world, a)
 
 
+def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
+    a = join(world, "Frosty", "11,4,0", 384, 300)
+    m = a.cur_map
+    a.skill_level = lambda skill: 60                               # (a mage who never fizzles)
+    a.spell_chance = lambda spell: 100
+    a.player_mana = 100
+    wolves = [world.add_npc("Wolf", 0, m.ox + x * 32, m.oy + 9 * 32, "Attitude=Bad") for x in (10, 13)]
+    boss = world.add_npc("Valour_Guardian", 0, m.ox + 12 * 32, m.oy + 11 * 32, "Attitude=Bad")
+    far = world.add_npc("Wolf", 0, m.ox + 22 * 32, m.oy + 18 * 32, "Attitude=Bad")
+    for e in wolves + [boss, far]:
+        e.hp = e.max_hp = 500                                      # (alive after the blast)
+    stock(a, Frost_Nova_Scroll=1)
+    a.out = []
+    a.cast_scroll(next(e for e in a.inv if e.name == "Frost_Nova_Scroll"), None)
+    assert a.items_held("Frost_Nova_Scroll") == 0
+    assert all(w.hp < 500 and w.frozen_until for w in wolves)       # (hurt, and held in the ice)
+    assert boss.hp < 500 and boss.frozen_until is None              # (hurt, but no ice holds it)
+    assert far.hp == 500 and far.frozen_until is None               # (too far off)
+    assert any("2 foes are frozen" in str(e.get("text", "")) for e in a.out)
+    w = wolves[0]
+    where = (w.x, w.y)
+    for _ in range(40):                                             # (two seconds: it neither moves nor fights)
+        world.tick(0.05, now=world.now + 50)
+    assert (w.x, w.y) == where and a.player.hp == a.player_max_hp
+    from dsengine.view import entity_state
+    assert entity_state(world, w, a)["fz"] == 1
+    for _ in range(80):                                             # (five seconds on, it thaws)
+        world.tick(0.05, now=world.now + 50)
+    assert w.frozen_until is None and entity_state(world, w, a)["fz"] == 0
+    for e in wolves + [boss, far]:
+        world.remove_entity(e)
+    leave(world, a)
+
+
+def test_arrows_need_feathers_and_hens_drop_them(world):
+    racks = open(os.path.join(ROOT, "data", "ItemRacks.ini"), encoding="cp1252").read()
+    assert "Item4=Arrows,Logs 1 Bronze_Bar 1 Feather 3," in racks
+    assert "Feather," in world.data.entity_ini("Chicken", "Drops", "")
+
+
 def test_the_way_down_is_through_the_chapel(world):
     def climb(s, verb, tx, ty):
         m = s.cur_map
