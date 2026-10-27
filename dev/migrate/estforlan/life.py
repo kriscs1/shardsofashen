@@ -177,7 +177,7 @@ def prune(atlas, start):
             if len(f) > 3 and (f[1] in SPOTS or f[0] == "NPC" and f[1] in WILD and "Id=" not in ln):
                 x = mx * XT + int(float(f[2])) // TW
                 y = my * YT + (int(float(f[3])) + 24) // TW
-                inside = 0 <= x - mx * XT < XT and 0 <= y - my * YT < YT
+                inside = 0 < x - mx * XT < XT - 1 and 0 < y - my * YT < YT - 1     # (not on its edge)
                 near = [(x, y), (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
                 if not inside or not any(c in seen for c in near):
                     gone += 1

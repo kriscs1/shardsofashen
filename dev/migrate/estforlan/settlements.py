@@ -108,6 +108,7 @@ class Plan(OLD.Town):
         self.missing = []
         self.lane_signs = []
         self.house_groups = {}
+        self.wild = {}                     # cell -> (its cell, ground, decor) before it was cleared
         self.waystone = None
         self.n = 300                       # (its people's Ids: clear of the old towns' numbers, which quests use)
 
@@ -138,6 +139,7 @@ class Plan(OLD.Town):
                 if g == "Sand001" and self.ground != "Sand001" and self.spec.get("coast"):
                     continue                                # (the beach stays the beach)
                 self.cells.add(c)
+                self.wild[c] = (self.atlas.cell(gx, gy), g, LAND.DECOR.get(c, ""))    # (what grew there: rewild)
                 own = LAND.plain(LAND.BIOME.get(c, "")) if c in LAND.BIOME else self.ground
                 own = own if own in ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001") else self.ground
                 self.atlas.set(gx, gy, tile=own, decor="")         # (its own land's ground: no edge where it ends)
@@ -518,7 +520,7 @@ class Plan(OLD.Town):
             for c in cells:
                 row_of[c] = (y, side == "W" if self.sq else h01("end", self.key, y) < 0.5)
         for c in self.frontage():
-            if (c[0], c[1] - 1) in self.atlas.taken:
+            if (c[0], c[1] - 1) in self.atlas.taken or LAND.DECOR.get(c):
                 continue
             g = row_of.get(c)
             if g is None:
@@ -691,6 +693,44 @@ class Plan(OLD.Town):
                     q.append(n)
         return False
 
+    def rewild(self):
+        """The wild comes back round the town: its ground cleared near its streets and buildings, then a fringe of the
+        land's own open ground (meadow flowers and long grass on green land; bare snow, ash or sand), then what grew
+        there before (woods, rocks, ponds), the edges wandering."""
+        from collections import deque
+        from atlas import fbm
+        used = {c for c in self.cells if c in self.street or c in self.atlas.taken}
+        dist = {c: 0 for c in used}
+        q = deque(used)
+        while q:
+            x, y = q.popleft()
+            if dist[(x, y)] >= 14:
+                continue
+            for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if n in self.cells and n not in dist:
+                    dist[n] = dist[(x, y)] + 1
+                    q.append(n)
+        for c, (cell, ground, decor) in self.wild.items():
+            if c in used or c in self.atlas.roads:
+                continue
+            d = dist.get(c, 99)
+            edge = 2 + 7 * fbm(c[0], c[1], 11, 91)
+            if d <= edge:
+                continue                                       # (cleared, round the town)
+            if d > edge + 3 + 4 * fbm(c[0], c[1], 7, 92):     # (the wild, as it was)
+                m, x, y = self.atlas.at(*c)
+                m.rows[y - 1][x - 1] = cell
+                LAND.GROUND[c], LAND.DECOR[c] = ground, decor
+                continue
+            r = h01("meadow", c)                               # (the fringe: open, a little growing on it)
+            green = self.atlas.tile(*c) == "Grass001"
+            d2 = ("Flowers%03d" % (1 + int(r * 300) % 3) if r < 0.08 else "Tall_Grass001" if r < 0.2 else
+                  "Bush001" if r < 0.23 else "") if green else ("Pebbles%03d" % (1 + int(r * 900) % 3) if r < 0.05
+                                                                else "")
+            if d2:
+                self.atlas.set(c[0], c[1], decor=d2)
+                LAND.DECOR[c] = d2
+
     def maps_of(self):
         x1, y1, x2, y2 = self.spec["maps"]
         return [m for n, m in self.atlas.maps.items() if x1 <= int(n.split(",")[0]) <= x2 and
@@ -749,7 +789,7 @@ class Plan(OLD.Town):
         for c in self.cells:
             if c[0] // XT != mx or c[1] // YT != my or c in self.atlas.taken or not self.edge_ok(*c):
                 continue
-            if (c[0], c[1] - 1) in self.atlas.taken:
+            if (c[0], c[1] - 1) in self.atlas.taken or LAND.DECOR.get(c):
                 continue
             d = abs(c[0] - near[0]) + abs(c[1] - near[1]) + (3 if c in self.street else 0)
             if d <= r and (best is None or d < best[0]):
@@ -1010,5 +1050,6 @@ def settle(atlas, key, reserved, hint=None, keep=None, carts=None, staff=(), hoo
     plan.furnish_all()
     plan.adopt(staff)
     plan.name_places()
+    plan.rewild()
     plan.write()
     return plan

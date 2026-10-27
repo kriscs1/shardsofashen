@@ -53,6 +53,24 @@ def write(path, lines):
             f.write(data)
 
 
+def squares():
+    """{settlement: the map its middle (<key>_Square) is on now}, from the maps as they are."""
+    out = {}
+    maps = os.path.join(K.ROOT, "maps")
+    for f in os.listdir(maps):
+        if f.endswith(",0.txt"):
+            for ln in read(os.path.join(maps, f)):
+                p = ln.split("\t")
+                if p[0] == "Id" and len(p) > 1 and p[1].endswith("_Square") and p[1].count("_") == 1:
+                    out[p[1][:-len("_Square")]] = f[:-4]
+    return out
+
+
+def moved_towns(before, plans):
+    """{a settlement's middle's map before this build: after} for those that moved (their people's branches)."""
+    return {before[k]: p.home_map() for k, p in plans.items() if k in before and before[k] != p.home_map()}
+
+
 def people_branches(strays):
     """Talk to Settler / Trader / Guard: a branch for a map its people were on and aren't now (strays: {that map:
     theirs}) asks for theirs."""

@@ -35,7 +35,7 @@
 34	Update.Attribute	Waystone.Ravensgate	=1
 35	Display.Message	Yellow	The rune flares blue: you are attuned to the Ravensgate waystone.
 36	Goto.Line	51
-37	>On.Map	16,16,0	43
+37	>On.Map	16,15,0	43
 38	Get.Value	CALCULATION	Highwatch	Variable.9$
 39	>Conditional	$Attr.Waystone.Highwatch=0	52
 40	Update.Attribute	Waystone.Highwatch	=1

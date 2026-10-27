@@ -42,7 +42,7 @@
 41	Update.Attribute	Waystone.Galaith	=1
 42	Display.Message	Yellow	The rune flares blue: you are attuned to the Galaith waystone.
 43	Goto.Line	57
-44	>On.Map	8,19,0	50
+44	>On.Map	8,17,0	50
 45	Get.Value	CALCULATION	Fenwick	Variable.9$
 46	>Conditional	$Attr.Waystone.Fenwick=0	58
 47	Update.Attribute	Waystone.Fenwick	=1

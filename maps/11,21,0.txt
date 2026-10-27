@@ -19,5 +19,6 @@ Marsh001:Dirt001:Dirt001:Marsh001+Decor(Reeds001):Marsh001:Marsh_Water007:Water0
 Marsh001:Dirt001:Dirt001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001+Decor(Bog_Myrtle001):Dirt001:Dirt001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Bog_Myrtle001):Marsh001
 Marsh001:Dirt001:Dirt001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Marsh001
+StaticObject	Signpost	96	0	Id=Signpost_278_441
 NPC	Frog	544	568	Attitude=Bad Zone=13,15,23,20
 NPC	Frog	544	504	Attitude=Bad Zone=13,13,23,20

@@ -36,8 +36,8 @@ def mapped(gx, gy):
 
 def warped(gx, gy, amp, scale, seed):
     """gx,gy moved by big slow noise (bays, headlands, the lands' borders wandering) and a little quick noise (ragged)."""
-    wx = gx + amp * (fbm(gx, gy, scale, seed) - 0.5) + amp * 0.3 * (fbm(gx, gy, 9, seed + 3) - 0.5)
-    wy = gy + amp * (fbm(gx, gy, scale, seed + 7) - 0.5) + amp * 0.3 * (fbm(gx, gy, 9, seed + 5) - 0.5)
+    wx = gx + amp * (fbm(gx, gy, scale, seed) - 0.5) + amp * 0.45 * (fbm(gx, gy, 9, seed + 3) - 0.5)
+    wy = gy + amp * (fbm(gx, gy, scale, seed + 7) - 0.5) + amp * 0.45 * (fbm(gx, gy, 9, seed + 5) - 0.5)
     return int(math.floor(wx)), int(math.floor(wy))
 
 
@@ -72,25 +72,17 @@ def land_here(gx, gy):
     if gx < 0:                                        # Galaith's lands: the mountains' outer edge ragged on the sea
         mx, my = gx // XT, gy // YT
         lx, ly = gx - mx * XT, gy - my * YT
-        if m == "~":
-            return False
-        if m == "M" and my == min(L.WEST_GRID) and ly < 2 + 12 * fbm(gx, gy, 9, 84):
-            return False
-        if m == "M" and my == max(L.WEST_GRID) and ly > 18 - 12 * fbm(gx, gy, 9, 85):
-            return False
-        if mx == L.XMIN and lx < 2 + 9 * fbm(gx, gy, 9, 86):
-            return False
-        return True
+        return m != "~"                               # (Galaith's mountains: right to the world's edge)
     if m == "I":
         return False
     if m == "v":
         return island(gx, gy, L.SETTLEMENTS["Wardhaven"]["maps"], 34, 20, up=6)  # (over two maps' rows; a bridge to the coast)
     if m == "D":
         return False                                  # (Dragon Island is lifted whole)
-    if m == "M" and gx // XT == 0 and gy // YT not in L.WEST_GRID and gx % XT < 1 + 8 * fbm(gx, gy, 8, 87):
-        return False                                  # (the West Range's sea cliffs, ragged)
-    if m == "M" and range_solid(gx, gy):              # (the West Range runs right to the world's edge)
-        return True
+    if m == "M" and range_solid(gx, gy):              # (the West Range runs right to the world's edge, and ends where
+        if gx // XT != 0 or gy // YT in L.WEST_GRID:  #  the coast beside it does)
+            return True
+        return land_here(XT + 1 + int(10 * fbm(gx, gy, 9, 88)), gy + int(18 * (fbm(gx, gy, 6, 89) - 0.5)))
     wx, wy = warped(gx, gy, 52, 34, 3)
     c = mapped(min(GW - 1, max(0, wx)), min(GH - 1, max(0, wy)))
     if c == "v" or c == "D":
@@ -355,6 +347,20 @@ def near_land(c, r=3):
         return False
     return all(GROUND.get((x + dx, y + dy)) not in (SEA, None) or (x + dx, y + dy) in BIOME
                for dx in range(-r, r + 1, r) for dy in range(-r, r + 1, r))
+
+
+def repeak(atlas, x1, y1, x2, y2):
+    """The grey peaks in world tiles x1..x2, y1..y2 (Galaith's mountains, drawn one by one) as whole mountains: a
+    3 x 3 summit or a 2 x 2 peak wherever a whole block of them allows."""
+    cells = [(x, y) for y in range(y1, y2 + 1) for x in range(x1, x2 + 1)
+             if GROUND.get((x, y), "").startswith("Peak0")]
+    solid = set(cells)
+    for c in cells:
+        BIOME[c] = "mount"
+    for c in cells:
+        t = peak_at("mount", c[0], c[1], lambda n: n in solid)
+        GROUND[c] = t
+        atlas.set(c[0], c[1], tile=t, decor="")
 
 
 def open_at(c):

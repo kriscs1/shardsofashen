@@ -38,6 +38,7 @@ def old_world():
 
 def main():
     first = old_world()
+    before = story.squares()                      # (where each town's middle was: if it moves, its people's scripts)
     if not first:
         print("Map names moved on in %d scripts and data files" % story.stretch_names())
         print("Galaith's maps renamed in %d scripts and data files" % story.galaith_west_names())
@@ -70,6 +71,7 @@ def main():
     quests.leftovers()
     story.entry_scripts(plans, first, extra)
     story.people_branches(P.strays(plans))
+    story.people_branches(story.moved_towns(before, plans))
     story.pass_scripts()
     story.wardhaven_guard()
     print("Waystones: %s" % ", ".join(story.waystones(atlas, plans)))

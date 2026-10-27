@@ -31,8 +31,8 @@ def map_names():
     for mx, my in land:
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
-                if L.XMIN <= mx + dx < L.W and 0 <= my + dy < L.H:
-                    out.add(map_name(mx + dx, my + dy))
+                if 0 <= mx + dx < L.W and 0 <= my + dy < L.H or (mx + dx, my + dy) in land:
+                    out.add(map_name(mx + dx, my + dy))     # (west of the range: only Galaith's own, no sea)
     return sorted(n for n in out if n not in L.ISLE)
 
 
@@ -108,6 +108,7 @@ def assemble(log=print):
                         plan.lay(n)
                         plan.connect(n)
                         break
+    LAND.repeak(atlas, L.XMIN * XT, L.ty(10) * YT, G.PASS_X * XT + XT - 1, L.ty(17) * YT)   # (Galaith's peaks, whole)
     ways = W.Ways(atlas, plans)
     missed = ways.build()
     log("roads: %d tiles%s (%.0fs)" % (len(ways.road), ("; no way for: " + ", ".join(missed)) if missed else "",

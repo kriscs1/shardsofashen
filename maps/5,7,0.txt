@@ -19,8 +19,8 @@ Grass001:Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush
 Grass001:Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Yew_Tree001):Forest001:Forest001:Dirt001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Forest001:Forest001:Forest001
 Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001+Decor(Tree002):Forest001:Forest001:Dirt001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Forest001:Forest001:Forest001
 Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001:Dirt001:Grass001:Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Forest001:Forest001:Forest001
-NPC	Man	64	152	Attitude=Good Zone=3,5,4,6 Pause=5-15 Id=Southport_Resident_383 Name=Cedric
-NPC	Farmer	608	120	Attitude=Good Zone=18,4,22,5 Pause=5-15 Id=Southport_Resident_386 Name=Jasper
+NPC	Man	64	152	Attitude=Good Zone=3,5,4,6 Pause=5-15 Id=Southport_Resident_381 Name=Cedric
+NPC	Farmer	608	120	Attitude=Good Zone=18,4,22,5 Pause=5-15 Id=Southport_Resident_384 Name=Jasper
 NPC	Rabbit	224	88	Attitude=Bad Zone=3,2,13,8
 NPC	Rabbit	128	56	Attitude=Bad Zone=2,2,10,7
 NPC	Butterfly	128	440	Attitude=Good Zone=2,11,10,19

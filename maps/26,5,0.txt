@@ -1,6 +1,6 @@
-Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
-Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
-Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Pebbles003):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Pebbles002):Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Pebbles002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001+Decor(Pebbles003):Ash001:Ash001+Decor(Pebbles002):Ash001:Ash001+Decor(Pebbles002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
@@ -23,20 +23,20 @@ NPC	Greengrocer	704	472	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_301 Nam
 NPC	Fishmonger	768	472	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_302 Name=Fred
 NPC	Butcher	704	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_303 Name=Bertha
 NPC	Baker	768	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_304 Name=Oswald
-NPC	Villager	480	280	Attitude=Good Stand=1 Face=S Id=Emberwatch_Priest_311 Name=Nell
-NPC	Sheriff	480	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Sheriff_314 Name=Agnes
-NPC	Blacksmith	256	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Smith_320 Name=Polly
+NPC	Villager	480	280	Attitude=Good Stand=1 Face=S Id=Emberwatch_Priest_312 Name=Nell
+NPC	Sheriff	480	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Sheriff_315 Name=Agnes
+NPC	Blacksmith	256	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Smith_321 Name=Polly
 StaticObject	Market_Stall_Open	704	512
 StaticObject	Market_Stall_Open	768	512
 StaticObject	Market_Stall_Open	704	576
 StaticObject	Market_Stall_Open	768	576
 StaticObject	Market_Board	736	480
 StaticObject	Homestone	608	608
-StaticObject	Notice	608	546	Id=Emberwatch_Notice_308
-StaticObject	Notice	544	418	Id=Emberwatch_Notice_312
+StaticObject	Notice	608	546	Id=Emberwatch_Notice_309
+StaticObject	Notice	544	418	Id=Emberwatch_Notice_313
 StaticObject	Furnace	192	512
 StaticObject	Anvil	320	512
-StaticObject	Notice	384	610	Id=Emberwatch_Notice_321
+StaticObject	Notice	384	610	Id=Emberwatch_Notice_322
 Id	Emberwatch_Market_Square	24	19
 Id	Emberwatch_Square	24	19
 Id	Emberwatch_Chapel	16	14

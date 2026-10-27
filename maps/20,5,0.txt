@@ -23,18 +23,18 @@ NPC	Greengrocer	96	376	Attitude=Good Stand=1 Face=S Id=Court_Stall_301 Name=Elsi
 NPC	Fishmonger	352	376	Attitude=Good Stand=1 Face=S Id=Court_Stall_302 Name=Cedric
 NPC	Butcher	96	504	Attitude=Good Stand=1 Face=S Id=Court_Stall_303 Name=Harold
 NPC	Baker	352	504	Attitude=Good Stand=1 Face=S Id=Court_Stall_304 Name=Agnes
-NPC	Dog	448	376	Attitude=Good Zone=10,9,20,17 Pause=4-12
-NPC	Clerk	576	184	Attitude=Good Stand=1 Face=S Id=Court_Clerk_312
-NPC	Baker	128	216	Attitude=Good Stand=1 Face=S Id=Court_Baker_319 Name=Alice
-NPC	Baker	320	216	Attitude=Good Stand=1 Face=S Id=Court_Baker_321 Name=Sybil
-NPC	Butcher	512	472	Attitude=Good Stand=1 Face=S Id=Court_Butcher_323 Name=Martha
-NPC	Man	672	536	Attitude=Good Zone=22,17,23,18 Pause=5-15 Id=Court_Resident_360 Name=Rufus
+NPC	Black_Cat	448	376	Attitude=Good Zone=10,9,20,17 Pause=4-12
+NPC	Clerk	576	184	Attitude=Good Stand=1 Face=S Id=Court_Clerk_313
+NPC	Baker	128	216	Attitude=Good Stand=1 Face=S Id=Court_Baker_320 Name=Alice
+NPC	Baker	320	216	Attitude=Good Stand=1 Face=S Id=Court_Baker_322 Name=Sybil
+NPC	Butcher	512	472	Attitude=Good Stand=1 Face=S Id=Court_Butcher_324 Name=Martha
+NPC	Man	672	536	Attitude=Good Zone=22,17,23,18 Pause=5-15 Id=Court_Resident_361 Name=Rufus
 StaticObject	Market_Stall_Open	96	416
 StaticObject	Market_Stall_Open	352	416
 StaticObject	Market_Stall_Open	96	544
 StaticObject	Market_Stall_Open	352	544
 StaticObject	Market_Board	224	384
-StaticObject	Notice	32	322	Id=Court_Notice_373
+StaticObject	Notice	32	322	Id=Court_Notice_374
 Id	Court_Market_Square	8	17
 Id	Court_Square	8	17
 Id	Court_City_Hall	16	12
