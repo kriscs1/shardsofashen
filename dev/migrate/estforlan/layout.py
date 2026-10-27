@@ -24,12 +24,12 @@ GRID = [
     "MMwwwwwwwgoooooggggCCaaa~",
     "MMwwwwwwwoooooooeeeCCaa~~",
     "MMwwwwwwwooooooeeeeehhuu~",
-    "MMMMMMMMMMoooooeeeeehggg~",
-    "MGGGGGGFFPooooeeeeeehggg~",
-    "MGGGGGGFFPhhooeeeeeehggg~",
-    "MGGGGGGFFPhhhhheeeeuuggg~",
-    "MGGGGGGFFPhhhhhhuuuuuuuu~",
-    "MMMMMMMMMMhhhhhhuuuuuuuu~",
+    "Mwwwwwwwwwoooooeeeeehggg~",
+    "Pwwwwwwhhhooooeeeeeehggg~",
+    "Pwwwwwhhhhhhooeeeeeehggg~",
+    "Pwwhhhhhhhhhhhheeeeuuggg~",
+    "Phhhhhhhhhhhhhhhuuuuuuuu~",
+    "Mhhhhhhhhhhhhhhhuuuuuuuu~",
     "Mdddddsssshnnnnnuuuuuuuu~",
     "Mdddddsssssnnnnnuuuuuuuu~",
     "Mdddddsssssnnnnnuuuuuuu~~",
@@ -38,10 +38,20 @@ GRID = [
     "~~~~~~~~~~~~~~~~~~~~~~~~~",
 ]
 W, H = 25, 22                       # the grid's maps (x 0-24, y 0-21)
+# Galaith's lands, west of the West Range (the coast's maps have columns below 0 there): the city in its valley,
+# mountains behind it (the mine) and either side, the dragon's field before its gate, the pass through the range
+# (column 0) into the rest of the world
+XMIN = -12
+WEST_GRID = {9: "MMMMMMMMMMMM", 10: "MMMMMMMMMMMM", 11: "MMGGGGGGGFFF", 12: "MMGGGGGGGFFF", 13: "MMGGGGGGGFFF",
+             14: "MMGGGGGGGFFF", 15: "MMMMMMMMMMMM", 16: "MMMMMMMMMMMM"}
 
 
 def macro(mx, my):
-    """What map mx,my is ('~' off the grid)."""
+    """What map mx,my is ('~' off the grid; west of it, Galaith's lands)."""
+    if mx < 0:
+        row = WEST_GRID.get(my, "")
+        i = mx - XMIN
+        return row[i] if 0 <= i < len(row) else "~"
     if 0 <= my < H and 0 <= mx < W:
         row = GRID[my]
         c = row[mx] if mx < len(row) else "~"
@@ -58,7 +68,7 @@ HARD = {"G", "F", "P"}             # (drawn as planned: the borders of the rest 
 # ------------------------------------------------------------------ the settlements
 # key: title, size, maps (x1, y1, x2, y2), its streets near the middle / further out, its walls, coast side, extras
 SETTLEMENTS = {
-    "Galaith": dict(title="Galaith", size="huge", maps=(1, 11, 6, 14), street="Marble_Paving001", outer="Cobble001",
+    "Galaith": dict(title="Galaith", size="huge", maps=(-10, 11, -4, 14), street="Marble_Paving001", outer="Cobble001",
                     walls=[("Plaster001", 4), ("Stone_Wall001", 4), ("Brick001", 2)], grand="Stone_Wall001", coast=None,
                     land="meadow"),
     "Southport": dict(title="Southport", size="large", maps=(2, 4, 5, 6), street="Brick_Paving001", outer="Cobble001",
@@ -114,7 +124,11 @@ _parts = None
 
 
 # (parts set down somewhere other than where lift_world_parts.py first meant them)
-MOVED = {"hobs_house": "7,9,0", "old_hob": "3,9,0", "troll_lair": "11,18,0", "shrine_2": "22,8,0"}
+MOVED = {"palace": "-9,12,0", "hobs_house": "7,9,0", "old_hob": "3,9,0", "troll_lair": "11,18,0", "shrine_2": "22,8,0"}
+
+
+LEVEL_MOVED = {"0,12,-1": "-11,12,-1"}          # (the mine behind Galaith: under its new mouth)
+SAVED = {v: k for k, v in LEVEL_MOVED.items()}   # (its file kept its first name)
 
 
 def parts():
@@ -126,7 +140,8 @@ def parts():
             _parts["parts"][name]["new"] = new
         for part in _parts["parts"].values():
             part["new"] = tname(part["new"])
-        _parts["level_files"] = {tname(new): new for new in _parts["levels"].values()}    # (saved as first named)
+        _parts["levels"] = {old: LEVEL_MOVED.get(new, new) for old, new in _parts["levels"].items()}
+        _parts["level_files"] = {tname(new): SAVED.get(new, new) for new in _parts["levels"].values()}    # (saved as first named)
         _parts["levels"] = {old: tname(new) for old, new in _parts["levels"].items()}
     return _parts
 
@@ -162,7 +177,7 @@ POIS = {
     "Watch_Stone_1": ((5, 7), (7, 10), "path"),
     "Watch_Stone_2": ((2, 9), (19, 9), "path"),
     "Watch_Stone_3": ((8, 6), (15, 19), "path"),
-    "Galaith_Pass": ((9, 12), (24, 11), "road"),
+    "Galaith_Pass": ((0, 12), (24, 11), "road"),
     "Wardhaven_Bridge": ((12, 4), (13, 8), "road"),
 }
 
@@ -221,7 +236,7 @@ def tpoint(gx, gy):
 
 
 def _stretch():
-    global GRID, W, H
+    global GRID, W, H, WEST_GRID
     rows = []
     for my, row in enumerate(GRID):
         if my in INSERT_ROWS:
@@ -236,6 +251,7 @@ def _stretch():
             out += c
         grid.append(out)
     GRID, W, H = grid, len(grid[0]), len(grid)
+    WEST_GRID = {ty(r): row for r, row in WEST_GRID.items()}
     for spec in SETTLEMENTS.values():
         x1, y1, x2, y2 = spec["maps"]
         spec["maps"] = (tx(x1), ty(y1), tx(x2), ty(y2))

@@ -70,10 +70,10 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
 12. **A Ship for Dragon Island** (Captain Rook, on the shore south of Ravensgate, 27,19,0), 13. **The Island of
    Dragons** (26,23,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
-15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 11,14,0) breaks it; the dragon speaks;
+15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;
    it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
    onto the field; its Id is still `Galaith_West_Gate`).
-16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (2,14,0), the Lord Chancellor (Galaith's
+16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-9,14,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
 17. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
@@ -137,8 +137,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - On the world map, places with no map look the same as unexplored ones.
 - **The mainland** (`dev/World Plan.md`) is built by `dev/migrate/build_estforlan.py` (its parts in
   `dev/migrate/estforlan`): change the plan there and run it again, never the maps by hand. The Isle is left alone.
-  Galaith is a huge walled city in a valley of the West Range, which runs down the whole west coast; the dragon guards
-  its scorched field, and the barrier fills the pass. The quest places are lifted from the old maps
+  Galaith is a huge walled city in its own mountains west of the West Range (which runs down the whole west coast),
+  on maps with columns below 0; the dragon guards its scorched field before the gate, and the barrier fills the pass
+  through the range. Land looks natural: no straight edges to coasts, mountains or deserts. The quest places are lifted from the old maps
   (`world_parts`) and set down at their old tiles, so scripts' coordinates stay right.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Southport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate

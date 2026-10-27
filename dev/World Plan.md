@@ -102,4 +102,7 @@ from this plan (`estforlan/layout.py`); run it again to build the same world aga
 
 The map numbers above are the plan as first drawn. Since then the world has been stretched for more room between places
 (`layout.INSERT_COLS` and `INSERT_ROWS`: a column of maps before 6, 9, 12 and 20, a row before 7, 9 and 18), so a
-map now is `layout.tname(` the one above `)`: Galaith 1-7 by 13-16, the pass 11,14,0, Saltmarsh 11,23,0...
+map now is `layout.tname(` the one above `)`: Saltmarsh 11,23,0...
+Galaith has since moved west of the West Range (`layout.WEST_GRID`: maps with columns below 0, only round it): the
+city -10 to -4 by 13-16 in its own mountains, its field -3 to -1, the pass through the range at 0,14,0; its old
+valley is wood and hills.

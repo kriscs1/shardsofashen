@@ -243,7 +243,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Sunken Grimoire, The Ember Ring | GrimoireQuest, RingQuest | Talk to Dunerest_Scholar, 3,16,0, 3,16,-1, Talk to Warden, Kill Ashen_Priest |
 | A Ship for Dragon Island, The Island of Dragons, The Sword of Valour | ShipQuest, DragonIsleQuest, ValourQuest | Talk to Captain_Rook*, 22,20,0, Temple Door, Talk to Valour_Guardian_Knight |
 | The Dragon of Galaith | GalaithQuest | 9,12,0, Use Staff_of_Estforlan With Barrier, The Dragon Speaks, Kill Galaith_Dragon |
-| The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, 2,14,0 |
+| The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, -9,14,0 |
 | The Hermit's Fire | HermitQuest | Talk to Hermit |
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
 | The Herbalist's Remedy | RemedyQuest | Talk to Herbalist |

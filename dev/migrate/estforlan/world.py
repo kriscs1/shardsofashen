@@ -22,7 +22,7 @@ def map_names():
     Isle's."""
     land = set()
     for my in range(L.H):
-        for mx in range(L.W):
+        for mx in range(L.XMIN, L.W):
             if any(LAND.land_here(mx * XT + x, my * YT + y) for x in range(1, XT, 3) for y in range(1, YT, 3)):
                 land.add((mx, my))
     for name in L.parts()["parts"].values():
@@ -31,7 +31,7 @@ def map_names():
     for mx, my in land:
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
-                if 0 <= mx + dx < L.W and 0 <= my + dy < L.H:
+                if L.XMIN <= mx + dx < L.W and 0 <= my + dy < L.H:
                     out.add(map_name(mx + dx, my + dy))
     return sorted(n for n in out if n not in L.ISLE)
 
@@ -40,7 +40,7 @@ def cart_targets(atlas, key):
     def targets(plan):
         out = [("the market", plan.centre)]
         if key == "Galaith":
-            out += [("the palace", (L.tx(2) * XT + 12, L.ty(12) * YT + 14)), ("the east gate", (G.EAST - 4, G.GATE))]
+            out += [("the palace", (-9 * XT + 12, L.ty(12) * YT + 14)), ("the east gate", (G.EAST - 4, G.GATE))]
         posh = [lt for lt in plan.lots if lt.kind == "shop" and lt.name in ("clothes", "shoes")]
         if posh:
             out.append(("the posh end", (posh[0].door, posh[0].y2 + 1)))

@@ -1243,18 +1243,18 @@ def test_a_character_from_before_the_heirs_story(world):
 
 
 def test_sneaking_past_the_smugglers(world):
-    m = world.maps["9,15,0"]
+    m = world.maps["-2,15,0"]
     at = lambda tx, ty: (m.ox + (tx - 1) * 32, m.oy + (ty - 1) * 32)
     opts = "Attitude=Bad Stand=1 Face=S Group=TESTCAMP Friendly.If=$Attr.SmugglerQuest>=3"
     sentry = world.add_npc("Smuggler", 0, *at(22, 15), opts)        # (in the open, east of the camp: looking south)
     mate = world.add_npc("Smuggler", 0, *at(24, 13), opts.replace("Face=S", "Face=N"))
     for e in (sentry, mate):
         e.ai.turn_at = world.now + 10 ** 9                          # (no glancing about, for the test)
-    s = join(world, "Sneak", "9,15,0", 21 * 32, 11 * 32)             # behind the sentry (north of him), 4 tiles off
+    s = join(world, "Sneak", "-2,15,0", 21 * 32, 11 * 32)             # behind the sentry (north of him), 4 tiles off
     for _ in range(40):
         world.tick(0.05)
     assert not sentry.in_combat and not mate.in_combat               # (he looks the other way)
-    s.teleport("9,15,0", 21 * 32, 18 * 32)                           # in front of him
+    s.teleport("-2,15,0", 21 * 32, 18 * 32)                           # in front of him
     for _ in range(40):
         world.tick(0.05)
     assert sentry.in_combat and sentry.target is s
@@ -1263,7 +1263,7 @@ def test_sneaking_past_the_smugglers(world):
         world.npc_give_up(e, e.ai)
     s.update_attribute("SmugglerQuest", "=3")                       # Red Meg's deal: friends now
     assert not world.hostile_for(sentry, s)
-    other = join(world, "Stranger", "9,15,0", 21 * 32, 20 * 32)
+    other = join(world, "Stranger", "-2,15,0", 21 * 32, 20 * 32)
     assert world.hostile_for(sentry, other)                         # (to them alone)
     for e in (sentry, mate):
         world.remove_entity(e)
@@ -2003,7 +2003,7 @@ def story_done_before(s, chapter):
 
 
 def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
-    s = join(world, "Slayer", "8,14,0", 10 * 32, 11 * 32)
+    s = join(world, "Slayer", "-3,14,0", 10 * 32, 11 * 32)
     s.god_mode = 1
     dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
     s.damage_npc(dragon, dragon.hp + 100)
@@ -2016,7 +2016,7 @@ def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
 
 
 def test_berts_spell_and_the_staff_break_the_barrier(world):
-    s = join(world, "Breaker", "11,14,0", 20 * 32, 10 * 32 - 8)
+    s = join(world, "Breaker", "0,14,0", 9 * 32, 10 * 32 - 8)
     run, npc, talk, use = isle_helpers(world, s)
     run(5)
     lights = lambda: [e for e in world.ents if e.name == "Barrier_Light" and e.alive and world.visible_to(e, s)]
@@ -2024,7 +2024,7 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
     story_done_before(s, 15)
     stock(s, Staff_of_Estforlan=1)
     m = s.cur_map
-    gx, gy = m.ox + 18 * 32 + 16, m.oy + 10 * 32 + 16                # (the barrier at 19,11, from beside it)
+    gx, gy = m.ox + 7 * 32 + 16, m.oy + 10 * 32 + 16                 # (the barrier at 8,11, from beside it)
     s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
     s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
     run(60)
@@ -2090,10 +2090,10 @@ def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
 
 
 def test_the_royal_guard_and_the_king(world):
-    s = join(world, "Heir", "2,14,0", 13 * 32, 17 * 32)
+    s = join(world, "Heir", "-9,14,0", 13 * 32, 17 * 32)
     run, npc, talk, use = isle_helpers(world, s)
     attr = lambda a: int(float(s.get_attribute(a) or 0))
-    palace = world.maps["2,14,0"]
+    palace = world.maps["-9,14,0"]
     door = palace.lock_at[(13, 13)]
     story_done_before(s, 16)
     find = lambda pid: next(e for e in world.ents if e.alive and e.npc_id == pid)
@@ -2120,11 +2120,11 @@ def test_the_royal_guard_and_the_king(world):
     jimmy = world.placed_entity("Throne_Jimmy", s)                   # (the cat himself, curled up on the throne)
     assert jimmy is not None and jimmy.name == "Strawberry_Cat" and world.npc_state(jimmy) == "Curl"
     assert jimmy.image.startswith("Strawberry_Cat_Curl")             # (and drawn curled up)
-    m = world.maps["2,14,0"]
+    m = world.maps["-9,14,0"]
     gx, gy = m.ox + 12 * 32 + 16, m.oy + 6 * 32 + 16
     throne = s.tile_entity_at(gx, gy)
     assert throne.name == "Throne001" and s.get_verbs(throne).split(",")[0] == "Sit"
-    s.teleport("2,14,0", 12 * 32, 8 * 32 - 8)                       # (in front of it)
+    s.teleport("-9,14,0", 12 * 32, 8 * 32 - 8)                       # (in front of it)
     run(10)
     s.choose_verb("Sit", throne, gx, gy)
     run(20)

@@ -91,7 +91,7 @@ ENTRY = {   # old entry script -> its new name (None: it goes), and lines change
     "1,3,0": "4,4,0", "1,4,-1": "20,10,-1", "1,4,0": None, "1,9,-1": "3,16,-1", "1,9,0": "3,16,0",
     "2,3,0": "9,4,0", "2,4,-1": "21,10,-1", "2,4,-2": "21,10,-2", "2,4,-3": "21,10,-3", "2,4,0": "22,11,0",
     "2,4,1": "22,11,1", "3,3,0": "11,4,0", "3,4,0": None, "4,4,0": "18,5,0", "4,4,1": "18,5,1", "8,10,0": "22,20,0",
-    "8,2,0": "23,4,0", "12,5,0": "2,12,0", "10,6,0": None, "7,4,0": None,
+    "8,2,0": "23,4,0", "12,5,0": "-9,12,0", "10,6,0": None, "7,4,0": None,
 }
 ENTRY_WORDS = {"Ashford village. You smell fresh bread.": "Ashford. You smell fresh bread.",
                "The Royal Isle: the Wizards' Court.": "The Wizards' Court."}
@@ -292,6 +292,42 @@ def stretch_names():
     return changed
 
 
+# ------------------------------------------------------------------ Galaith moved west of the West Range
+GALAITH_MOVED = os.path.join(L.PARTS, "galaith_west.txt")
+GALAITH_NAMES = {"2,14,0": "-9,14,0", "0,14,0": "-11,14,0", "0,14,-1": "-11,14,-1", "11,14,0": "0,14,0",
+                 "8,14,0": "-3,14,0", "9,15,0": "-2,15,0"}    # (the palace, the mine, its level, the pass, the field)
+
+
+def galaith_west_names():
+    """Once: the scripts, data and tests that name Galaith's maps from before it moved west name its maps now (all
+    read before any is written: the pass now has the old mine's name)."""
+    if os.path.exists(GALAITH_MOVED):
+        return 0
+    swap = lambda mm: GALAITH_NAMES.get(mm.group(1), mm.group(1))      # noqa: E731
+    files = {os.path.join(K.SCRIPTS, f): f for f in os.listdir(K.SCRIPTS)}
+    files.update({os.path.join(K.DATA, f): f for f in STRETCH_FILES})
+    read_all = {p: read(p) for p in files}
+    for p in files:
+        if files[p][:-4] in GALAITH_NAMES:
+            os.remove(p)
+    changed = 0
+    for p, lines in read_all.items():
+        new = [MAP.sub(swap, ln) for ln in lines]
+        name = files[p][:-4]
+        if name in GALAITH_NAMES:
+            p = os.path.join(K.SCRIPTS, GALAITH_NAMES[name] + ".txt")
+        if new != lines or not os.path.exists(p):
+            write(p, new)
+            changed += 1
+    tests = os.path.join(K.ROOT, "tests", "test_engine.py")
+    text = open(tests, encoding="utf-8").read()
+    text = re.sub(r'"(-?\d+,-?\d+,-?\d+)"', lambda mm: '"%s"' % swap(mm), text)
+    open(tests, "w", encoding="utf-8").write(text)
+    with open(GALAITH_MOVED, "w") as fh:
+        fh.write("moved\n")
+    return changed
+
+
 # ------------------------------------------------------------------ the data files
 def quests(table, rehoused):
     """Quests.ini markers: a map and tile on a map that moved -> its new map (a lifted place: the same tile), or the
@@ -329,7 +365,7 @@ def world_map(plans):
              "Wizards' Court": "Court", "King Rupert's Keep": "Keep", "Wildwood": "Wildwood",
              "Saltmarsh": "Saltmarsh", "Galaith": "Galaith", "Wardhaven": "Wardhaven"}
     regions = {"Sunscar Desert": "1,17,0 12 10", "Saltmarsh Fens": "6,18,0 12 10", "Cinder Peaks": "20,6,0 12 10",
-               "Frostpeak": "13,19,0 12 6", "The Pass of Galaith": "9,12,0 12 4", "The Wildwood": "3,7,0 12 10",
+               "Frostpeak": "13,19,0 12 6", "The Pass of Galaith": "0,12,0 12 4", "The Wildwood": "3,7,0 12 10",
                "Greymoor": "12,9,0 12 10", "The Redrock Hills": "11,14,0 12 10", "The Elderwood": "17,8,0 12 10",
                "The Ashwold": "22,4,0 6 10", "The Downs": "19,15,0 12 10", "The West Range": "0,9,0 12 10"}
     regions = {k: "%s %s" % (L.tname(v.split()[0]), " ".join(v.split()[1:])) for k, v in regions.items()}

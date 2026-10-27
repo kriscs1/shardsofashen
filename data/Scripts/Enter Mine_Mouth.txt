@@ -2,7 +2,7 @@
 01	>Distance.From.Clicked.Tile	48	06
 02	Play.Sound	Ladder
 03	Display.Message	Cyan	You go down into the mine: gold glitters in the walls.	-
-04	Teleport	672,344	0,14,-1
+04	Teleport	672,344	-11,14,-1
 05	End
 06	Display.Message	DarkRed	You are too far away!	Denied
 07	End

@@ -48,9 +48,9 @@ def range_solid(gx, gy):
     lx, ly = gx - mx * XT, gy - my * YT
     if mx == 0 and lx <= 12 + 6 * fbm(gx, gy, 12, 81):
         return True
-    if mx < L.tx(10) and my == L.ty(10) and ly >= 9 - 5 * fbm(gx, gy, 10, 82):
+    if mx < 0 and my == L.ty(10) and ly >= 9 - 5 * fbm(gx, gy, 10, 82):
         return True
-    if mx < L.tx(10) and my == L.ty(15) and ly <= 11 + 5 * fbm(gx, gy, 10, 83):
+    if mx < 0 and my == L.ty(15) and ly <= 11 + 5 * fbm(gx, gy, 10, 83):
         return True
     return False
 
@@ -69,12 +69,26 @@ def island(gx, gy, maps, rx, ry, up=0):
 
 def land_here(gx, gy):
     m = mapped(gx, gy)
+    if gx < 0:                                        # Galaith's lands: the mountains' outer edge ragged on the sea
+        mx, my = gx // XT, gy // YT
+        lx, ly = gx - mx * XT, gy - my * YT
+        if m == "~":
+            return False
+        if m == "M" and my == min(L.WEST_GRID) and ly < 2 + 12 * fbm(gx, gy, 9, 84):
+            return False
+        if m == "M" and my == max(L.WEST_GRID) and ly > 18 - 12 * fbm(gx, gy, 9, 85):
+            return False
+        if mx == L.XMIN and lx < 2 + 9 * fbm(gx, gy, 9, 86):
+            return False
+        return True
     if m == "I":
         return False
     if m == "v":
         return island(gx, gy, L.SETTLEMENTS["Wardhaven"]["maps"], 34, 20, up=6)  # (over two maps' rows; a bridge to the coast)
     if m == "D":
         return False                                  # (Dragon Island is lifted whole)
+    if m == "M" and gx // XT == 0 and gy // YT not in L.WEST_GRID and gx % XT < 1 + 8 * fbm(gx, gy, 8, 87):
+        return False                                  # (the West Range's sea cliffs, ragged)
     if m == "M" and range_solid(gx, gy):              # (the West Range runs right to the world's edge)
         return True
     wx, wy = warped(gx, gy, 52, 34, 3)
@@ -88,6 +102,10 @@ def land_here(gx, gy):
 
 def land_of(gx, gy):
     m = mapped(gx, gy)
+    if gx < 0:
+        return L.LAND[m] if m in L.LAND else "mount"
+    if m == "P" and gx % XT > 12 + 6 * fbm(gx, gy, 12, 81):      # (east of the range: the land beyond it)
+        return L.LAND.get(L.macro(gx // XT + 1, gy // YT), "wood")
     if m in L.HARD:
         return L.LAND[m]
     if m == "M" and range_solid(gx, gy):

@@ -16,9 +16,9 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Plaster_Thin_Plank004+Roof
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Plaster_Thin_Plank004+Roof(Slate_Roof013.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Decor(Potted_Plant002)+Roof(Slate_Roof014.02):Plaster_Thin_Plank002+Roof(Slate_Roof015.02):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Plaster001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001
 Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Gravel001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001
-Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001
-Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001+Decor(Lamp_Post001):Gravel001
-Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001+Decor(Lamp_Post001):Gravel001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Dog	704	504	Attitude=Good Zone=18,13,24,20 Pause=4-12
 NPC	Clerk	544	248	Attitude=Good Stand=1 Face=S Id=Oakhollow_Clerk_310
 NPC	Doctor	256	440	Attitude=Good Stand=1 Face=S Id=Oakhollow_Doctor_316 Name=Ned

@@ -8,13 +8,14 @@ import layout as L
 
 # the walls, in world tiles: Galaith's valley is maps 1-6 by 11-14
 # (map numbers as the plan first drew them, through layout's stretch: L.tx, L.ty)
-WEST, EAST = L.tx(1) * XT + 1, L.tx(6) * XT + 22    # (the west wall: its first map's tile 2; the east: its last's 23)
+WEST, EAST = -10 * XT + 1, -4 * XT + 22         # (the west wall: its first map's tile 2; the east: its last's 23)
 NORTH, SOUTH = L.ty(11) * YT + 1, L.ty(14) * YT + 18    # (the north wall's top row: tile 2; the south's: tile 19)
 GATE = L.ty(12) * YT + 10                       # (the gates' first row: tile 11, the pass's road)
-MINE = (0 * XT + 22, GATE)                      # the mine's mouth: tile 23,11 of map 0 (you climb out at 24,11)
-PASS = "%d,%d,0" % (L.tx(9), L.ty(12))
-BARRIER_X = 19                                  # (the pass's tile column the barrier stands in)
-FIELD = "%d,%d,0" % (L.tx(7), L.ty(12))                               # (the dragon's map: before the gate)
+MINE = (-11 * XT + 22, GATE)                    # the mine's mouth: tile 23,11 of the map behind the city
+PASS_X = 0                                      # (the pass: through the West Range, east of the field)
+PASS = "%d,%d,0" % (PASS_X, L.ty(12))
+BARRIER_X = 8                                  # (the pass's tile column the barrier stands in)
+FIELD = "%d,%d,0" % (-3, L.ty(12))                               # (the dragon's map: before the gate)
 
 
 def peak(gx, gy):
@@ -39,7 +40,7 @@ def walls(atlas):
     field narrowing and widening between the peaks, the gates; returns the cells kept clear inside."""
     top, bottom = L.ty(11) * YT, L.ty(14) * YT + YT - 1                # (the field's rows)
     for gy in range(L.ty(10) * YT, L.ty(16) * YT):
-        for gx in range(0, L.tx(9) * XT):
+        for gx in range(L.XMIN * XT, PASS_X * XT):
             c = (gx, gy)
             if WEST <= gx <= EAST and NORTH <= gy <= SOUTH + 1:
                 continue                                               # (the city and its walls)
@@ -49,17 +50,19 @@ def walls(atlas):
                     continue
                 d = max(NORTH - gy, gy - SOUTH - 1, WEST - gx, 0)
                 taper = max(0.0, min(1.0, (EAST - 6 - gx) / 14.0))    # (none by the gate: no way round it)
-                margin = int(taper * (2 + 15 * fbm(gx, gy, 16, 77) + 3 * fbm(gx, gy, 5, 76)))
-                if d <= margin and gx > 2:
+                margin = int(taper * (2 + 8 * fbm(gx, gy, 16, 77) + 3 * fbm(gx, gy, 5, 76)))
+                if d <= margin and gx > L.XMIN * XT + 2:
                     r = h01("foot", gx, gy)
                     put(atlas, gx, gy, "Grass001", "Rock001" if r < 0.05 else "Pebbles%03d" % (1 + int(r * 60) % 3)
                         if r < 0.12 else "Tree002" if r < 0.15 else "")
-                elif LAND.GROUND.get(c, "").startswith(("Grass", "Dirt", "Sand", "Water", "Scorched")):
+                elif LAND.GROUND.get(c, "").startswith(("Grass", "Dirt", "Sand", "Scorched")):
                     put(atlas, gx, gy, peak(gx, gy))
             else:                                                      # the field, the peaks biting into it
                 e = min(gy - top, bottom - gy)
-                funnel = max(0.0, gx - (L.tx(9) * XT - 34)) * 1.3    # (narrowing into the pass)
+                funnel = max(0.0, gx - (PASS_X * XT - 34)) * 1.3     # (narrowing into the pass)
                 bite = 1 + int(16 * fbm(gx, gy, 14, 78) + 4 * fbm(gx, gy, 5, 75) + funnel)
+                if LAND.GROUND.get(c, "").startswith(("Water", "Sand_Water")) and e < 0:
+                    continue                                           # (the sea beyond the mountains)
                 if e < 0 or e < bite and abs(gy - GATE) > 2:
                     put(atlas, gx, gy, peak(gx, gy))
                 elif not LAND.GROUND.get(c, "").startswith("Scorched"):
@@ -109,7 +112,7 @@ def walls(atlas):
 
 def field(atlas):
     """The dragon's field (scorched, bones, dead trees: land.py drew it) and the dragon, before the gate."""
-    gx0, gy0 = L.tx(7) * XT, L.ty(12) * YT
+    gx0, gy0 = -3 * XT, L.ty(12) * YT
     m = atlas.maps[FIELD]
     m.ents.append("NPC\tGalaith_Dragon\t%d\t%d\tAttitude=Bad Zone=6,4,22,18 Chase=1,2,25,20 Id=Galaith_Dragon_Boss"
                   % (12 * TW, 9 * TW))
@@ -124,9 +127,12 @@ def pass_(atlas):
     the dragon speaks."""
     for my in range(L.ty(11), L.ty(14) + 1):
         for gy in range(my * YT, my * YT + YT):
-            for gx in range(L.tx(9) * XT, L.tx(9) * XT + XT):
-                lx = gx - L.tx(9) * XT + 1
+            for gx in range(PASS_X * XT, PASS_X * XT + XT):
+                lx = gx - PASS_X * XT + 1
                 half = 1 if abs(lx - BARRIER_X) <= 2 else 2 + int(h01("pw", gx) * 2)
+                spine = lx <= 13 + 6 * fbm(gx, gy, 12, 81)               # (the range; east of it, the land beyond)
+                if not spine and not (my == L.ty(12) and abs(gy - GATE) <= 1):
+                    continue
                 if my == L.ty(12) and abs(gy - GATE - 0) <= half and gy - GATE >= -half and gy - GATE <= half:
                     if gy == GATE:
                         put(atlas, gx, gy, "Dirt001")
@@ -136,15 +142,15 @@ def pass_(atlas):
                 else:
                     put(atlas, gx, gy, peak(gx, gy))
     for k in (-1, 0, 1):                                               # (the barrier's tiles, under its light)
-        put(atlas, L.tx(9) * XT + BARRIER_X - 1, GATE + k, "Barrier001")
+        put(atlas, PASS_X * XT + BARRIER_X - 1, GATE + k, "Barrier001")
     m = atlas.maps[PASS]
     for k in (-1, 0, 1):
         m.ents.append("Lock\t%d\t%d\t$Attr.GalaithQuest>=1\tThe barrier holds: violet light, hard as glass."
                       % (BARRIER_X, GATE % YT + 1 + k))
         m.ents.append("Trigger\tThe Dragon Speaks\t%d\t%d" % (BARRIER_X - 1, GATE % YT + 1 + k))
-    atlas.place_id(L.tx(9) * XT + BARRIER_X, GATE, "Galaith_Barrier")
+    atlas.place_id(PASS_X * XT + BARRIER_X, GATE, "Galaith_Barrier")
     for gy in range(GATE - 1, GATE + 2):                               # (the field's side: the road on to the gate)
-        for gx in range(L.tx(7) * XT, L.tx(9) * XT):
+        for gx in range(-3 * XT, PASS_X * XT):
             if gy == GATE:
                 put(atlas, gx, gy, "Scorched001")
 

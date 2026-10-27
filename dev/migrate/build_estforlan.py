@@ -40,6 +40,7 @@ def main():
     first = old_world()
     if not first:
         print("Map names moved on in %d scripts and data files" % story.stretch_names())
+        print("Galaith's maps renamed in %d scripts and data files" % story.galaith_west_names())
     atlas, plans, homes, rehoused, gate_map, scripts, bridge = world.assemble()
     for name, rows in scripts.items():
         K.write_script(name, rows, MAKER)

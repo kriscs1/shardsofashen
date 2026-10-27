@@ -7,9 +7,9 @@
 06	Display.Message	Cyan	You hold the Staff of Estforlan to the barrier and speak Bert's words of Unbinding..	-
 07	Play.Sound	SpellCast
 08	Wait	2
-09	Remove.Entity	576,288	Barrier_Light
-10	Remove.Entity	576,320	Barrier_Light
-11	Remove.Entity	576,352	Barrier_Light
+09	Remove.Entity	224,288	Barrier_Light
+10	Remove.Entity	224,320	Barrier_Light
+11	Remove.Entity	224,352	Barrier_Light
 12	Play.Sound	Thunder
 13	Update.Attribute	GalaithQuest	=1
 14	Display.Message	Yellow	..and the barrier shatters like glass. Beyond it, on the scorched ground before Galaith's black walls, something huge lifts its head.	-
