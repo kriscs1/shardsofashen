@@ -553,7 +553,7 @@ def migrate_config():
     add(sec("Skills"), "List", SKILLS_LIST)
     snd = sec("Sounds")
     add(snd, "Enabled", "1")
-    add(snd, "Music", "FinalFantasy.mid")
+    add(snd, "Music", "TownTheme.ogg")
 
     out = []
     for name, body in secs:

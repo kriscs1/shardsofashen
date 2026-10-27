@@ -162,7 +162,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Tiles and sprites are 32x32 pixel art. Creatures and objects have a 1 px dark outline (the mask-silhouette method
   in `build_wolf.py` and `build_cats.py`), and walk in frames `<Name>2a-c` (right) and `<Name>8a-c` (mirrored).
 - Art and sounds are made in code by `dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
-  Change the builder and run it again; don't hand-edit its output.
+  Change the builder and run it again; don't hand-edit its output. Nothing from another game or a commercial
+  library: anything not made here is CC0 (or as free) and listed in `CREDITS.md`.
 - Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from

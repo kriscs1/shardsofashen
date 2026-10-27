@@ -8,7 +8,7 @@
   web/assets/textures/<name>.png    big textures (Tiles.ini Texture=)
   web/assets/cursors/<kind>_<n>@<px>.png the mouse cursors (and their click animation), at each pointer size the
                                     Options offer (18 22 28 32), and twice that for sharp high-DPI screens
-  web/assets/sounds/<name>.wav      the sound effects; the music as .ogg (or .wav without ffmpeg)
+  web/assets/sounds/<name>.wav      the sound effects; the music as .ogg (or .wav without ffmpeg); an .ogg as it is
   web/assets/manifest.json          sprite sizes, the data files the browser reads, what was made
 
 Run it again whenever sprites, sounds or data change (the editor). Only what changed is made again."""
@@ -227,7 +227,7 @@ def export_sounds(manifest):
     for f in sorted(os.listdir(src)):
         n, ext = os.path.splitext(f)
         path = os.path.join(src, f)
-        if ext.lower() == ".wav":
+        if ext.lower() in (".wav", ".ogg"):                  # (an .ogg: music from elsewhere, ready to play)
             if newer(path, os.path.join(out, f)):
                 shutil.copyfile(path, os.path.join(out, f))
             sounds[f] = f

@@ -82,7 +82,7 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 [Admin]       Players=Admin       ; the characters (comma list, any case) with an Admin button on the sidebar: give
                                   ; yourself items, set skill levels, switch skills off. Everyone else: no button
               GodMode=0           ; 1 = nothing can hurt those characters (the panel's God mode tick box sets it)
-[Sounds]      Enabled=1  Music=FinalFantasy.mid (the music everywhere outside)  Music.By.Place=0 (1: each map's
+[Sounds]      Enabled=1  Music=TownTheme.ogg (the music everywhere outside)  Music.By.Place=0 (1: each map's
               theme from data\Music.ini instead)
               Volume=100  Music.Volume=80  Ambient.Volume=70 (the Options sliders; background sounds play at a quarter
               of Volume x Ambient.Volume)  Music.On=1  Ambient=1
@@ -529,7 +529,7 @@ egion_tiles.py, with the same Walkable.Data).
   a table (and chairs), a rug, a shelf and a plant: villages.lay_house, and build_content.furnish_old_houses for the
   hand-drawn ones.
 * Waystones: only four (build_travel.WAYSTONES): Ashford, Highwatch, Dunerest, Thornwick. None on the Isle.
-* Music: outside, Config [Sounds] Music (FinalFantasy.mid) plays everywhere, without a break between maps. Inside a
+* Music: outside, Config [Sounds] Music (TownTheme.ogg: cynicmusic, CC0) plays everywhere, without a break between maps. Inside a
   building (under a roof) it fades over to Hearth, and back out again it fades back in where it had got to (the
   game plays a copy of the MIDI that starts there: dragonsword\midi.py). Every change fades out (1.1 s) and in
   (1.6 s). data\Music.ini (build_music.py): [Themes] <Theme>=its tracks (sounds\Music_<Theme><n>.mid, original

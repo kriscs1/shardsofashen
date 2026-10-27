@@ -412,23 +412,44 @@ export function drawWorldMap(ctx, now) {
   const per = g.ps * k;                            // (screen pixels a map tile)
   const toScreen = (gx, gy) => [ox + (gx / G.tw - g.ox * G.xt) * per, oy + (gy / G.th - g.oy * G.yt) * per];
   const seen = (name) => !fogEnabled() || fogSeeAll() || S.explored.has(name);
-  // the names of the places you've been
+  // the names of the places you've been: towns first, then the lands, then the rest, each where it doesn't cover
+  // another (above its dot, below, right, left); a place with no room left keeps its dot, its name for a bigger map
   const style = { t: [11, true, [255, 238, 176]], r: [10, true, [214, 180, 110]], p: [8, true, [226, 216, 196]] };
-  for (const l of S.labels || []) {
-    if (l.z !== S.mapZ || !seen(l.m)) continue;
+  const shown = (S.labels || []).filter((l) => l.z === S.mapZ && seen(l.m)).map((l) => {
     const [sx, sy] = toScreen(l.x, l.y);
-    if (sx < ox || sx > ox + iw || sy < oy || sy > oy + ih) continue;
+    return { l, sx, sy };
+  }).filter((d) => d.sx >= ox && d.sx <= ox + iw && d.sy >= oy && d.sy <= oy + ih);
+  const taken = shown.filter((d) => d.l.k !== "r").map((d) => [d.sx - 3, d.sy - 3, d.sx + 3, d.sy + 3]);
+  if (S.pos) {                                     // (you, and your name: drawn over the map last)
+    const pw = size(S.pos.i);
+    const [px, py] = toScreen(S.pos.dx + pw[0] / 2, S.pos.dy + pw[1] / 2);
+    taken.push([px - 12, py - 6, px + 12, py + 19]);
+  }
+  const free = (b) => taken.every((t) => b[2] <= t[0] || b[0] >= t[2] || b[3] <= t[1] || b[1] >= t[3]);
+  const clear = (b) => b[0] >= ox - 4 && b[2] <= ox + iw + 4 && b[1] >= oy - 4 && b[3] <= oy + ih + 4 && free(b);
+  const order = { t: 0, r: 1, p: 2 };
+  for (const { l, sx, sy } of [...shown].sort((a, b) => (order[a.l.k] ?? 2) - (order[b.l.k] ?? 2))) {
     const [size, bold, col] = style[l.k] || style.p;
     const text = l.k === "r" ? l.n.toUpperCase() : l.n;
+    const w = textWidth(ctx, text, size, bold), h = size + 3;
+    const spots = l.k === "r"
+      ? [[sx, sy - h / 2], [sx, sy - h * 1.5], [sx, sy + h / 2], [sx - w / 3, sy - h / 2], [sx + w / 3, sy - h / 2]]
+      : [[sx, sy - h - 4], [sx, sy + 5], [sx + w / 2 + 6, sy - h / 2], [sx - w / 2 - 6, sy - h / 2],
+        [sx + w / 2 + 4, sy - h - 2], [sx - w / 2 - 4, sy - h - 2], [sx + w / 2 + 4, sy + 3], [sx - w / 2 - 4, sy + 3]];
+    const box = ([cx, ty]) => [cx - w / 2 - 1, ty, cx + w / 2 + 1, ty + h];
+    const spot = spots.find((s) => clear(box(s))) ||   // (a town is always named: past the frame, if need be)
+      (l.k === "t" ? spots.find((s) => free(box(s))) || spots[0] : null);
     if (l.k !== "r") {
       ctx.fillStyle = "rgb(30,20,12)";
       ctx.beginPath(); ctx.arc(sx, sy, 3, 0, 6.283); ctx.fill();
       ctx.fillStyle = rgb(col);
       ctx.beginPath(); ctx.arc(sx, sy, 2, 0, 6.283); ctx.fill();
     }
-    const ty = l.k === "r" ? sy - size / 2 : sy - size - 6;
-    centreText(ctx, sx + 1, ty + 1, text, size, bold, [10, 6, 4]);
-    centreText(ctx, sx, ty, text, size, bold, col);
+    if (!spot) continue;
+    const [cx, ty] = spot;
+    taken.push([cx - w / 2 - 1, ty, cx + w / 2 + 1, ty + h]);
+    centreText(ctx, cx + 1, ty + 1, text, size, bold, [10, 6, 4]);
+    centreText(ctx, cx, ty, text, size, bold, col);
   }
   // the quest you're following: where it wants you next
   const pulse = 0.5 + 0.5 * Math.sin(now / 250);
