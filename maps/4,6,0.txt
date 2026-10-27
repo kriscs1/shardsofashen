@@ -14,19 +14,19 @@ Grass001:Grass001:Brick_Paving001:Brick_Paving001:Brick_Thin_Plank004+Roof(Clay_
 Grass001:Grass001:Brick_Paving001:Brick_Paving001:Brick_Thin_Plank004+Roof(Clay_Roof013.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Brick_Thin_Plank002+Roof(Clay_Roof015.04):Grass001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.05):Plank001+Roof(Clay_Roof014.05):Plank001+Roof(Clay_Roof014.05):Plank001+Roof(Clay_Roof014.05):Brick_Thin_Plank002+Roof(Clay_Roof015.05):Grass001:Grass001:Cobble001:Cobble001:Cobble001
 Grass001:Grass001:Brick_Paving001:Brick_Paving001:Brick001:Door001:Brick001:Brick001+Decor(Brick_Window001):Brick001:Brick001+Decor(Brick_Window001):Brick001:Brick001+Decor(Brick_Window001):Brick001:Grass001:Grass001:Brick001:Brick001:Door001:Brick001:Brick001:Cobble001:Cobble001:Cobble001:Grass001:Grass001
 Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Cobble001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001
-Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
-Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
-Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
-Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
-Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001
+Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Cat	32	120	Attitude=Good Zone=2,2,7,9 Pause=4-12
-NPC	Greengrocer	192	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_337 Name=Oswald
-NPC	Greengrocer	384	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_339 Name=Gilbert
-NPC	Greengrocer	576	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_341 Name=Fred
-NPC	Barkeep	256	312	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_351 Name=Agnes
-NPC	Barmaid	320	408	Attitude=Good Zone=6,13,12,14 Pause=3-9 Id=Southport_Barmaid_352 Name=Greta
+NPC	Greengrocer	192	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_336 Name=Oswald
+NPC	Greengrocer	384	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_338 Name=Gilbert
+NPC	Greengrocer	576	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_340 Name=Fred
+NPC	Barkeep	256	312	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_350 Name=Agnes
+NPC	Barmaid	320	408	Attitude=Good Zone=6,13,12,14 Pause=3-9 Id=Southport_Barmaid_351 Name=Greta
 StaticObject	Waystone	32	32
 StaticObject	Homestone	32	64
-StaticObject	Notice	32	98	Id=Southport_Notice_311
+StaticObject	Notice	32	98	Id=Southport_Notice_310
 StaticObject	Sign_Pub	192	464
 Id	Waystone_Southport	2	3

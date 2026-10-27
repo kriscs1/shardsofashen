@@ -236,7 +236,8 @@ def harbour(atlas, plan, big):
                                                        (ly - 1) * TW))
     m, lx, ly = atlas.at(*end)
     if m is not None:
-        m.ents.append("StaticObject\tFish_Spot\t%d\t%d" % ((lx - 1) * TW, (ly - 1) * TW))
+        m.ents.append("StaticObject\t%s\t%d\t%d" % ("Swordfish_Spot" if big else "Fish_Spot", (lx - 1) * TW,
+                                                    (ly - 1) * TW))         # (a port's deep water: the big fish)
     if big:
         for k, t in ((2, "Crate001"), (3, "Barrel001"), (5, "Crate002")):
             c = (foot[0] + d[0] * k + across[0] * (width // 2), foot[1] + d[1] * k + across[1] * (width // 2))

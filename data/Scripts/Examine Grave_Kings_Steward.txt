@@ -1,3 +1,3 @@
-// The grave Grave_Kings_Steward on 18,17,0 (dev\migrate\name_graves.py)
+// The grave Grave_Kings_Steward on 21,19,0 (dev\migrate\name_graves.py)
 01	Display.Message	Black	'Here waits the king's steward, until his king has need of him.' The stone is cold to the touch.
 02	End

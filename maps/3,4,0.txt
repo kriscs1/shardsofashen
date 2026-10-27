@@ -19,10 +19,10 @@ Grass001:Grass001:Grass001:Grass001:Plaster_Thin_Plank004+Roof(Thatch_Roof010.02
 Grass001:Grass001:Grass001:Grass001:Plaster_Thin_Plank004+Roof(Thatch_Roof013.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plaster_Thin_Plank002+Roof(Thatch_Roof015.02):Grass001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Decor(Potted_Plant002)+Roof(Slate_Roof014.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.01):Grass001
 Grass001:Grass001:Grass001:Grass001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Grass001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Grass001
 Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Brick_Paving001:Cobble001:Cobble001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001
-NPC	Doctor	576	536	Attitude=Good Stand=1 Face=S Id=Southport_Doctor_347 Name=Jane
-NPC	Nurse	512	568	Attitude=Good Zone=16,17,23,19 Pause=4-10 Id=Southport_Nurse_348 Name=Tilly
-NPC	Barkeep	256	472	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_364 Name=Fred
-NPC	Barmaid	320	568	Attitude=Good Zone=6,18,12,19 Pause=3-9 Id=Southport_Barmaid_365 Name=Clara
-StaticObject	Notice	768	610	Id=Southport_Notice_349
+NPC	Doctor	576	536	Attitude=Good Stand=1 Face=S Id=Southport_Doctor_346 Name=Jane
+NPC	Nurse	512	568	Attitude=Good Zone=16,17,23,19 Pause=4-10 Id=Southport_Nurse_347 Name=Tilly
+NPC	Barkeep	256	472	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_363 Name=Fred
+NPC	Barmaid	320	568	Attitude=Good Zone=6,18,12,19 Pause=3-9 Id=Southport_Barmaid_364 Name=Clara
+StaticObject	Notice	768	610	Id=Southport_Notice_348
 StaticObject	Sign_Pub	384	624
-Id	Southport_Gardens_368	20	13
+Id	Southport_Gardens_367	20	13

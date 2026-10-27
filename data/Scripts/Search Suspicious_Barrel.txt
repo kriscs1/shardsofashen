@@ -8,7 +8,7 @@
 07	>Conditional	$Attr.SmugglerQuest=1	09
 08	Update.Attribute	SmugglerQuest	=2
 09	Play.Sound	Ladder
-10	Teleport	352,472	13,4,-1
+10	Teleport	352,472	16,4,-1
 11	End
 12	Display.Message	Cyan	...nothing but fish. Odd, though: it sounds hollow.
 13	End

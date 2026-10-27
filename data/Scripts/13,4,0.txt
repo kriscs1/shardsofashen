@@ -1,0 +1,2 @@
+01	Display.Message	Cyan	The farmlands of Ashford.
+02	End

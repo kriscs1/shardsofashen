@@ -99,3 +99,7 @@ keep their Ids and are put in the matching new building. Scripts that named an o
 
 The settlements are grown, not drawn: `dev/migrate/build_estforlan.py` (its parts in `dev/migrate/estforlan`) builds it all
 from this plan (`estforlan/layout.py`); run it again to build the same world again.
+
+The map numbers above are the plan as first drawn. Since then the world has been stretched for more room between places
+(`layout.INSERT_COLS` and `INSERT_ROWS`: a column of maps before 6, 9, 12 and 20, a row before 7, 9 and 18), so a
+map now is `layout.tname(` the one above `)`: Galaith 1-7 by 13-16, the pass 11,14,0, Saltmarsh 11,23,0...

@@ -40,7 +40,7 @@ def cart_targets(atlas, key):
     def targets(plan):
         out = [("the market", plan.centre)]
         if key == "Galaith":
-            out += [("the palace", (2 * XT + 12, 12 * YT + 14)), ("the east gate", (G.EAST - 4, G.GATE))]
+            out += [("the palace", (L.tx(2) * XT + 12, L.ty(12) * YT + 14)), ("the east gate", (G.EAST - 4, G.GATE))]
         posh = [lt for lt in plan.lots if lt.kind == "shop" and lt.name in ("clothes", "shoes")]
         if posh:
             out.append(("the posh end", (posh[0].door, posh[0].y2 + 1)))
@@ -60,7 +60,11 @@ def assemble(log=print):
     LAND.generate(atlas)
     log("land: %.0fs" % (time.time() - t0))
     reserved = P.reserved()
+    P.clearings(atlas)
     P.stamp(atlas)
+    pier = P.rook_pier(atlas)
+    if pier:
+        L.POIS["Rooks_Pier"] = ((pier[0] // XT, pier[1] // YT), (pier[0] % XT + 1, pier[1] % YT + 1), "road")
     clear = G.walls(atlas)
     G.field(atlas)
     G.pass_(atlas)

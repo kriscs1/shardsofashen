@@ -1,7 +1,7 @@
 """The new mainland's own tiles (dev\\World Plan.md), drawn in code (sprites\\Tiles), with their Tiles.ini sections and
 minimap colours:
 
-  * Mountains you can't cross, pointy: Peak001-006 and the 2 x 2 Peak_Big001-004 (the grey West Range), the same
+  * Mountains you can't cross, pointy: Peak001-006 and the 2 x 2 Peak_Big001-004 and the 3 x 3 Peak_Huge001-009 (the blue-grey West Range), the same
     snow-capped and white (Snow_Peak..., the Frostpeak range) and black with lava in the cracks (Cinder_Peak...).
   * The dragon's work at Galaith: Scorched001-003 (black earth, ash and embers), and Galaith's white walls and gates
     burnt black on the side that faces the dragon (Burnt_Wall001-005, Burnt_Gate001-006: Galaith_Wall/Gate, sooted).
@@ -68,84 +68,115 @@ def noise(rng, s, colours, n):
 
 
 # ================================================================== mountains
-KINDS = {   # prefix: (ground, ground speckles, lit face, shadow face, outline, cap, crack)
-    "": ((96, 90, 84), [(84, 78, 72), (108, 102, 96)], (178, 172, 162), (112, 106, 100), (44, 40, 38),
-         (238, 242, 248), None),
-    "Snow_": ((214, 222, 232), [(196, 206, 220), (232, 238, 246)], (244, 248, 252), (168, 184, 204), (70, 80, 96),
-              (255, 255, 255), None),
-    "Cinder_": ((46, 40, 40), [(36, 30, 30), (60, 52, 50)], (92, 82, 80), (46, 40, 40), (16, 12, 12), None,
-                (232, 108, 40)),
+# Flat-shaded, like a painted range: each mountain a lit face west of a wandering ridge line and a shaded face east of
+# it, rock ribs down both, a jagged snow cap; behind them a paler, hazy range; the rock fills each tile, so the
+# tiles side by side are one mass.
+KINDS = {   # prefix: the rock (body), the far range (haze), the lit face, the shaded face, the deep folds, cap, cracks
+    "": dict(body=(116, 128, 152), haze=(150, 162, 184), lit=(170, 182, 204), shade=(104, 115, 141),
+             dark=(78, 87, 112), cap=(238, 243, 250), crack=None),
+    "Snow_": dict(body=(178, 194, 214), haze=(206, 218, 232), lit=(240, 245, 251), shade=(160, 178, 204),
+                  dark=(126, 146, 178), cap=(255, 255, 255), crack=None),
+    "Cinder_": dict(body=(84, 66, 60), haze=(110, 90, 82), lit=(138, 106, 88), shade=(74, 58, 54),
+                    dark=(48, 38, 36), cap=None, crack=(236, 112, 40)),
 }
 
 
-def peak(s, apex, left, right, base_y, kind, rng, cap=True):
-    """One pointy peak: a lit face west of the ridge line, a shaded face east of it, an outline, a snow cap."""
-    ground, specks, lit, shade, edge, cap_col, crack = KINDS[kind]
+def slope(a, b, rng, n, wob):
+    """Points from a to b, a little uneven (a mountain's shoulders)."""
+    (x1, y1), (x2, y2) = a, b
+    return [(x1 + (x2 - x1) * i / n + rng.uniform(-wob, wob), y1 + (y2 - y1) * i / n + rng.uniform(-wob, wob))
+            for i in range(1, n)]
+
+
+def peak(s, apex, left, right, base_y, kind, rng, cap=True, far=False):
+    """One mountain: its outline with shoulders, the shaded face, the lit face west of the ridge line, ribs, a cap."""
+    k = KINDS[kind]
     ax, ay = apex
-    pygame.draw.polygon(s, lit, [(left, base_y), (ax, ay), (ax, base_y)])
-    pygame.draw.polygon(s, shade, [(ax, ay), (right, base_y), (ax, base_y)])
-    for k in range(3):                                            # (strata on the faces)
-        y = ay + (base_y - ay) * (0.35 + 0.2 * k)
-        w = (y - ay) / max(1, base_y - ay)
-        pygame.draw.line(s, tuple(max(0, c - 18) for c in lit), (ax - w * (ax - left) * 0.8, y), (ax - 2, y + 2))
-        pygame.draw.line(s, tuple(max(0, c - 18) for c in shade), (ax + 2, y + 1), (ax + w * (right - ax) * 0.7, y))
-    if cap and cap_col:
-        h = (base_y - ay) * 0.28
-        pygame.draw.polygon(s, cap_col, [(ax - h * (ax - left) / (base_y - ay) * 1.0, ay + h), (ax, ay),
-                                         (ax + h * (right - ax) / (base_y - ay), ay + h), (ax + 1, ay + h - 2),
-                                         (ax - 2, ay + h + 1)])
-    if crack:
-        x, y = ax, ay + 4
-        for _ in range(int((base_y - ay) / 3)):
+    h = base_y - ay
+    lside = slope((left, base_y), (ax, ay), rng, 3, h * 0.06)
+    rside = slope((ax, ay), (right, base_y), rng, 3, h * 0.06)
+    outline = [(left, base_y)] + lside + [(ax, ay)] + rside + [(right, base_y)]
+    if far:                                                     # (the range behind: one hazy shape)
+        pygame.draw.polygon(s, k["haze"], outline)
+        return
+    pygame.draw.polygon(s, k["shade"], outline)
+    ridge = [(ax, ay)] + [(ax + rng.uniform(-2, 3) + (right - ax) * 0.12 * t, ay + h * t) for t in (0.3, 0.55, 0.8)]
+    ridge.append((ax + (right - ax) * 0.18, base_y))
+    pygame.draw.polygon(s, k["lit"], [(left, base_y)] + lside + ridge)
+    for t in (0.35, 0.6, 0.85):                                 # rock ribs: dark down the shade, pale down the lit
+        y0 = ay + h * t * 0.7
+        x0 = ax + (right - ax) * 0.12 * t + 1
+        pygame.draw.line(s, k["dark"], (x0, y0), (x0 + (right - ax) * 0.35, y0 + h * 0.3))
+        x1 = ax - (ax - left) * t * 0.6
+        pygame.draw.line(s, k["body"], (x1, ay + h * t), (x1 + (ax - left) * 0.15, ay + h * (t + 0.22)))
+    if cap and k["cap"]:                                        # a jagged snow cap, dripping down the gullies
+        ch = h * rng.uniform(0.22, 0.32)
+        lx = ax - (ax - left) * ch / h
+        rx = ax + (right - ax) * ch / h * 0.85
+        teeth = [(lx, ay + ch)]
+        for i in range(1, 4):
+            teeth.append((lx + (rx - lx) * i / 4, ay + ch * (0.55 if i % 2 else 1.25)))
+        teeth.append((rx, ay + ch * 0.85))
+        pygame.draw.polygon(s, k["cap"], [(ax, ay)] + teeth[::-1])
+        pygame.draw.line(s, k["shade"], (ax + 1, ay + 2), (ax + 2, ay + ch * 0.8))    # (the cap's shaded side)
+    if k["crack"]:                                              # (lava glowing in a crack)
+        x, y = ax + 1, ay + h * 0.3
+        for _ in range(int(h * 0.25)):
             x += rng.choice((-1, 0, 1))
             y += 2
-            s.set_at((int(x), int(y)), crack)
-    pygame.draw.lines(s, edge, False, [(left, base_y), (ax, ay), (right, base_y)], 1)
+            s.set_at((int(x), int(y)), k["crack"])
+    pygame.draw.lines(s, k["dark"], False, outline, 1)
 
 
-def mountain_tile(kind, v):
-    rng = random.Random("%s%d" % (kind, v))
-    ground, specks = KINDS[kind][0], KINDS[kind][1]
-    s = surface()
-    s.fill(ground)
-    noise(rng, s, specks, 90)
-    shapes = {
-        1: [((16, 1), 0, 31, 31)],
-        2: [((10, 6), 0, 20, 31), ((23, 3), 12, 32, 31)],
-        3: [((11, 2), 0, 25, 31), ((26, 14), 18, 32, 31)],
-        4: [((21, 2), 6, 32, 31), ((6, 13), 0, 14, 31)],
-        5: [((8, 12), 0, 16, 31), ((17, 9), 8, 26, 31), ((26, 14), 19, 32, 31)],
-        6: [((16, 4), 2, 30, 31), ((5, 18), 0, 11, 31), ((28, 19), 22, 32, 31)],
-    }[v]
-    for apex, left, right, base in shapes:
-        peak(s, apex, left, right, base, kind, rng, cap=v != 5)
+def range_surface(kind, w, h, seed, peaks, far):
+    rng = random.Random(seed)
+    s = pygame.Surface((w, h), pygame.SRCALPHA)
+    s.fill(KINDS[kind]["body"])
+    for apex, left, right in far:
+        peak(s, apex, left, right, h - 1, kind, rng, far=True)
+    for apex, left, right in peaks:
+        peak(s, apex, left, right, h - 1, kind, rng)
     return s
 
 
-def big_mountain(kind):
-    """A 2 x 2 peak (64 x 64), cut into four tiles."""
-    rng = random.Random(kind + "big")
-    ground, specks = KINDS[kind][0], KINDS[kind][1]
-    s = pygame.Surface((64, 64), pygame.SRCALPHA)
-    s.fill(ground)
-    for _ in range(300):
-        s.set_at((rng.randrange(64), rng.randrange(64)), rng.choice(specks))
-    old = globals()["S"]
-    peak(s, (30, 1), 0, 64, 63, kind, rng)
-    peak(s, (52, 26), 38, 64, 63, kind, rng)
-    peak(s, (9, 30), 0, 22, 63, kind, rng)
+def cut(s, n):
     out = []
-    for oy in (0, 32):
-        for ox in (0, 32):
+    for oy in range(0, n * S, S):
+        for ox in range(0, n * S, S):
             t = surface()
-            t.blit(s, (0, 0), (ox, oy, 32, 32))
+            t.blit(s, (0, 0), (ox, oy, S, S))
             out.append(t)
     return out
 
 
+def mountain_tile(kind, v):
+    near, far = {   # (the near peaks: apex, left, right), (the far ones)
+        1: ([((16, 2), 0, 32)], [((6, 10), -8, 18), ((27, 8), 14, 40)]),
+        2: ([((10, 7), -2, 21), ((23, 3), 11, 34)], [((17, 4), 4, 30)]),
+        3: ([((11, 3), -2, 26), ((27, 15), 18, 34)], [((24, 6), 12, 36)]),
+        4: ([((21, 3), 6, 34), ((6, 13), -4, 15)], [((10, 5), -6, 24)]),
+        5: ([((8, 12), -2, 17), ((18, 8), 8, 27), ((27, 14), 19, 34)], [((14, 3), 0, 30)]),
+        6: ([((16, 5), 2, 31), ((4, 18), -4, 11), ((29, 19), 22, 36)], [((8, 6), -6, 20), ((26, 7), 12, 40)]),
+    }[v]
+    return range_surface(kind, S, S, "%s%d" % (kind, v), near, far)
+
+
+def big_mountain(kind):
+    """A 2 x 2 mountain (64 x 64), cut into four tiles."""
+    return cut(range_surface(kind, 64, 64, kind + "big", [((30, 2), -2, 66), ((54, 28), 40, 68), ((9, 32), -4, 24)],
+                             [((14, 14), -10, 38), ((48, 10), 26, 70)]), 2)
+
+
+def huge_mountain(kind):
+    """A 3 x 3 summit (96 x 96), its shoulders and a lesser peak, cut into nine tiles."""
+    return cut(range_surface(kind, 96, 96, kind + "huge", [((46, 3), -4, 100), ((78, 34), 58, 100),
+                                                           ((14, 40), -6, 38)],
+                             [((24, 18), -10, 56), ((70, 14), 40, 104)]), 3)
+
+
 def mountains():
     made = []
-    for kind, examine in (("", "Mountains: sheer, pointed and grey. There's no way over."),
+    for kind, examine in (("", "Mountains: sheer, pointed and blue-grey. There's no way over."),
                           ("Snow_", "Snow-capped peaks, sheer ice and rock. There's no way over."),
                           ("Cinder_", "Black volcanic peaks, lava glowing in the cracks. There's no way over.")):
         for v in range(1, 7):
@@ -155,12 +186,13 @@ def mountains():
             tile_data(name, SOLID, "0", examine=examine)
             K.minimap_colour(name, average(s))
             made.append(name)
-        for i, t in enumerate(big_mountain(kind)):
-            name = "%sPeak_Big%03d" % (kind, i + 1)
-            save(name, t)
-            tile_data(name, SOLID, "0", examine=examine)
-            K.minimap_colour(name, average(t))
-            made.append(name)
+        for size, tiles in (("Big", big_mountain(kind)), ("Huge", huge_mountain(kind))):
+            for i, t in enumerate(tiles):
+                name = "%sPeak_%s%03d" % (kind, size, i + 1)
+                save(name, t)
+                tile_data(name, SOLID, "0", examine=examine)
+                K.minimap_colour(name, average(t))
+                made.append(name)
     return made
 
 

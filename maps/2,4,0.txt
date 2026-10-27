@@ -19,5 +19,5 @@ Grass001:Grass001:Grass001:Grass001:Plaster_Thin_Plank004+Roof(Slate_Roof013.04)
 Dirt001:Dirt001:Grass001:Grass001+Decor(Flower_Bed001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Grass001+Decor(Flower_Bed003):Plaster001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Grass001+Decor(Flower_Bed001):Timber001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Door004:Timber001:Grass001+Decor(Potted_Plant002)
 Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Cobble001:Dirt001:Cobble001:Cobble001:Dirt001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Dirt001:Grass001:Cobble001:Cobble001:Grass001:Grass001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Cobble001:Cobble001:Cobble001
-NPC	Woman	640	536	Attitude=Good Zone=20,15,23,18 Pause=5-15 Id=Southport_Resident_377 Name=Oswald
-NPC	Woman	192	536	Attitude=Good Zone=6,15,9,18 Pause=5-15 Id=Southport_Resident_384 Name=Peggy
+NPC	Woman	640	536	Attitude=Good Zone=20,15,23,18 Pause=5-15 Id=Southport_Resident_376 Name=Oswald
+NPC	Woman	192	536	Attitude=Good Zone=6,15,9,18 Pause=5-15 Id=Southport_Resident_382 Name=Peggy

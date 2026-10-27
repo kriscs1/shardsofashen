@@ -243,13 +243,13 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Sunken Grimoire, The Ember Ring | GrimoireQuest, RingQuest | Talk to Dunerest_Scholar, 3,16,0, 3,16,-1, Talk to Warden, Kill Ashen_Priest |
 | A Ship for Dragon Island, The Island of Dragons, The Sword of Valour | ShipQuest, DragonIsleQuest, ValourQuest | Talk to Captain_Rook*, 22,20,0, Temple Door, Talk to Valour_Guardian_Knight |
 | The Dragon of Galaith | GalaithQuest | 9,12,0, Use Staff_of_Estforlan With Barrier, The Dragon Speaks, Kill Galaith_Dragon |
-| The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, 2,12,0 |
+| The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, 2,14,0 |
 | The Hermit's Fire | HermitQuest | Talk to Hermit |
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
 | The Herbalist's Remedy | RemedyQuest | Talk to Herbalist |
 | A Portrait of Mo | PortraitQuest | Talk to Ashford_Painter, Stroke Mo |
 | The Wardhaven Bridge, The Dragonforge | WardhavenQuest, DragonforgeQuest | Talk to Ashford_Clerk_13, Kill Goblin, the gate's map's entry script, Talk to Wyrmsmith, Forge Wyrmsmith (all `build_estforlan.py`: estforlan/quests.py) |
-| Granny Wren's Walk | EscortQuest | Talk to Granny_Wren, Granny Wren Home, Talk to Ashford_Resident_34, 4,4,0, 9,4,0 |
+| Granny Wren's Walk | EscortQuest | Talk to Granny_Wren, Granny Wren Home, Talk to Ashford_Resident_34, 4,4,0, 11,4,0 |
 | The Smugglers' Run | SmugglerQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg |
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |
 | The Wildwood Watch | RangerQuest | Talk to Ranger, Watch Stone 1-3, Kill Giant_Spider |

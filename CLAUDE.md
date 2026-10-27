@@ -60,20 +60,20 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
 On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
 5. **The Temporary Capital** (`ParliamentQuest`): the guard at Southport's port; the **Speaker** in Southport's City
    Hall, which is Estforlan's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
-   Court** (the old King's Castle, 18,5,0; Bert at the top of its tower, 18,5,1), can break the barrier.
+   Court** (the old King's Castle, 21,5,0; Bert at the top of its tower, 21,5,1), can break the barrier.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.
 8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Estforlan** (the King's solar, 22,11,1, up a locked
    stair in the keep); 10. **The Sunken Grimoire** (the scholar in Dunerest; a buried library under a mound in the
-   desert, 3,16,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
+   desert, 3,18,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
-12. **A Ship for Dragon Island** (Captain Rook, on the shore south of Ravensgate, 23,17,0), 13. **The Island of
-   Dragons** (22,20,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
-15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 9,12,0) breaks it; the dragon speaks;
+12. **A Ship for Dragon Island** (Captain Rook, on the shore south of Ravensgate, 27,19,0), 13. **The Island of
+   Dragons** (26,23,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
+15. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 11,14,0) breaks it; the dragon speaks;
    it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
    onto the field; its Id is still `Galaith_West_Gate`).
-16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (2,12,0), the Lord Chancellor (Galaith's
+16. **The Royal Guard** (`GuardQuest`): the captain at the palace door (2,14,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
 17. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;

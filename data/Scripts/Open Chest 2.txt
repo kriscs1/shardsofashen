@@ -9,7 +9,7 @@
 08	Give.Item	Gold_Coin(s)	30
 09	Display.Message	Yellow	The goblins' loot: three fire bolt scrolls, a bronze sword and 30 gold!
 10	End
-11	>On.Map	7,18,0	21
+11	>On.Map	8,21,0	21
 12	Get.Value	ATTRIBUTE	BogChest	Variable.1$
 13	>Conditional	$Variable.1=0	71
 14	Update.Attribute	BogChest	=1
@@ -39,7 +39,7 @@
 38	Give.Item	Gold_Coin(s)	50
 39	Display.Message	Yellow	Grave goods: two teleport scrolls, a silver ring and 50 gold. Sorry, Old Tom.
 40	End
-41	>On.Map	11,8,0	50
+41	>On.Map	13,9,0	50
 42	Get.Value	ATTRIBUTE	MoorChest	Variable.1$
 43	>Conditional	$Variable.1=0	71
 44	Update.Attribute	MoorChest	=1
@@ -48,7 +48,7 @@
 47	Give.Item	Gold_Coin(s)	70
 48	Display.Message	Yellow	A shepherd's lost strongbox: a steel helm and 70 gold!
 49	End
-50	>On.Map	12,16,-1	60
+50	>On.Map	15,18,-1	60
 51	Get.Value	ATTRIBUTE	CavernChest	Variable.1$
 52	>Conditional	$Variable.1=0	71
 53	Update.Attribute	CavernChest	=1
@@ -58,7 +58,7 @@
 57	Give.Item	Gold_Coin(s)	150
 58	Display.Message	Yellow	Frozen into the ice: a mithril helm, three ice bolt scrolls and 150 gold!
 59	End
-60	>On.Map	13,12,0	69
+60	>On.Map	16,14,0	69
 61	Get.Value	ATTRIBUTE	HillsChest	Variable.1$
 62	>Conditional	$Variable.1=0	71
 63	Update.Attribute	HillsChest	=1

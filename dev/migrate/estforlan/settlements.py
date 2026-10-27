@@ -29,7 +29,7 @@ SIZES = {
         ("hall", "Town Hall", 1), ("hotel", "", 1), ("bank", "", 2), ("police", "", 1), ("hospital", "", 1),
         ("armoury", "", 1), ("barracks", "", 1), ("tavern", "", 10), ("smithy", "", 1)],
         lanes=[("bakery", 3), ("butcher", 3), ("fish", 3), ("greens", 3)],
-        posh=dict(square=(11, 7), lanes=[("clothes+shoes", 4)]), arms=[("armour+weapons", 4)]),
+        posh=dict(square=(11, 5), lanes=[("clothes+shoes", 4)]), arms=[("armour+weapons", 4)]),
     "large": dict(square=(15, 9), paved=36, streets=10, per=7, gardens=3, carts=True, civic=[
         ("parliament", "City Hall", 1), ("cathedral", "Cathedral", 1), ("hall", "Town Hall", 1), ("bank", "", 1),
         ("police", "", 1), ("hospital", "", 1), ("tavern", "", 5), ("smithy", "", 1)],
@@ -138,8 +138,10 @@ class Plan(OLD.Town):
                 if g == "Sand001" and self.ground != "Sand001" and self.spec.get("coast"):
                     continue                                # (the beach stays the beach)
                 self.cells.add(c)
-                self.atlas.set(gx, gy, tile=self.ground, decor="")
-                LAND.GROUND[c], LAND.DECOR[c] = self.ground, ""
+                own = LAND.plain(LAND.BIOME.get(c, "")) if c in LAND.BIOME else self.ground
+                own = own if own in ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001") else self.ground
+                self.atlas.set(gx, gy, tile=own, decor="")         # (its own land's ground: no edge where it ends)
+                LAND.GROUND[c], LAND.DECOR[c] = own, ""
 
     def edge_ok(self, gx, gy):
         """Not on a map's outer row or column (the walk across the seam stays open, and a roof is whole)."""
@@ -257,10 +259,22 @@ class Plan(OLD.Town):
                         best = (d, x1, y1)
         return None if best is None else (best[1], best[2], best[1] + w - 1, best[2] + h - 1)
 
-    def lay_square(self, size, name="Market_Square", stalls=4, goods=0, near=None):
+    def on_a_street(self, size, near):
+        """Room for a square whose foot is a street's row (joined to it), nearest near."""
+        w, h = size
+        for y, side, cells in sorted(self.rows, key=lambda r: abs(r[0] - near[1])):
+            for x in sorted({c[0] for c in cells}, key=lambda v: abs(v - near[0])):
+                x1 = x - w // 2
+                above = [(cx, cy) for cy in range(y - h, y) for cx in range(x1 - 1, x1 + w + 1)]
+                foot = [(cx, y) for cx in range(x1, x1 + w)]
+                if all(self.usable(c) for c in above) and all(c in self.street or self.usable(c) for c in foot)                         and self.edge_ok(x1, y - h + 1) and self.edge_ok(x1 + w - 1, y):
+                    return (x1, y - h + 1, x1 + w - 1, y)
+        return None
+
+    def lay_square(self, size, name="Market_Square", stalls=4, goods=0, near=None, rect=None):
         """A paved square: a fountain in its middle, lamps at its corners, stalls and their traders."""
         w, h = size
-        rect = self.find_rect(w, h, near or self.centre, margin=2, low=name == "Market_Square")
+        rect = rect or self.find_rect(w, h, near or self.centre, margin=2, low=name == "Market_Square")
         if rect is None:
             self.missing.append(name)
             return None
@@ -959,20 +973,17 @@ def settle(atlas, key, reserved, hint=None, keep=None, carts=None, staff=(), hoo
             plan.centre = ((plan.sq[0] + plan.sq[2]) // 2, (plan.sq[1] + plan.sq[3]) // 2)
     rows = (size["streets"] + 1) // 2 + 3 + (2 if size["lanes"] else 0) + len(size["civic"]) // 4
     plan.lay_streets(rows)
-    plan.civic()
-    if "posh" in size:
+    if "posh" in size:                                 # (the posh end: its own square on a street, its lane)
         posh = size["posh"]
         east = plan.centre[0] < (plan.box[0] + plan.box[2]) // 2
-        prect = plan.find_rect(posh["square"][0], posh["square"][1],
-                               (plan.centre[0] + (30 if east else -30), plan.centre[1] - 12), reach=20, margin=2)
-        if prect:
-            sq = plan.lay_square(posh["square"], name="Posh_Square", stalls=2, goods=5,
-                                 near=((prect[0] + prect[2]) // 2, (prect[1] + prect[3]) // 2))
-            if sq:
-                plan.run((sq[0] - 1, sq[3]), (-1, 0))
-                plan.run((sq[2] + 1, sq[3]), (1, 0))
-                for kinds, per in posh["lanes"]:
-                    plan.lane(kinds, per, ((sq[0] + sq[2]) // 2, sq[3]))
+        rect = plan.on_a_street(posh["square"], (plan.centre[0] + (30 if east else -30), plan.centre[1] - 12))
+        sq = plan.lay_square(posh["square"], name="Posh_Square", stalls=2, goods=5, rect=rect) if rect else None
+        if sq:
+            for kinds, per in posh["lanes"]:
+                plan.lane(kinds, per, ((sq[0] + sq[2]) // 2, sq[3]))
+        else:
+            plan.missing.append("posh square")
+    plan.civic()
     plan.gardens(size["gardens"])
     left = [m for m in plan.missing if m.split()[0] in SIZE]
     if left and plan.extra_rows():                     # (no room for some: more streets, and try again)

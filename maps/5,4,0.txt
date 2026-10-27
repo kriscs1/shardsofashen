@@ -19,8 +19,8 @@ Grass001:Brick_Thin_Plank004+Roof(Clay_Roof010.01):Plank001+Roof(Clay_Roof011.01
 Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Brick_Thin_Plank002+Roof(Clay_Roof015.01):Grass001:Plaster_Thin_Plank004+Roof(Clay_Roof013.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plaster_Thin_Plank002+Roof(Clay_Roof015.02):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001+Decor(Flower_Bed002):Brick001:Brick001:Door001:Brick001:Brick001:Grass001+Decor(Flower_Bed003):Plaster001:Plaster001:Door005:Plaster001+Decor(Plaster_Window001):Plaster001+Decor(Plaster_Window001):Plaster001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Farmer	96	568	Attitude=Good Zone=3,17,5,19 Pause=5-15 Id=Southport_Resident_373 Name=Polly
-NPC	Man	288	568	Attitude=Good Zone=9,18,12,19 Pause=5-15 Id=Southport_Resident_378 Name=Elsie
-NPC	Woman	384	376	Attitude=Good Zone=12,10,14,13 Pause=5-15 Id=Southport_Resident_382 Name=Sid
-NPC	Man	608	344	Attitude=Good Zone=20,11,21,12 Pause=5-15 Id=Southport_Resident_385 Name=Edith
+NPC	Farmer	96	568	Attitude=Good Zone=3,17,5,19 Pause=5-15 Id=Southport_Resident_372 Name=Polly
+NPC	Man	288	568	Attitude=Good Zone=9,18,12,19 Pause=5-15 Id=Southport_Resident_377 Name=Elsie
+NPC	Woman	384	376	Attitude=Good Zone=12,10,14,13 Pause=5-15 Id=Southport_Resident_380 Name=Sid
+NPC	Man	608	344	Attitude=Good Zone=20,11,21,12 Pause=5-15 Id=Southport_Resident_384 Name=Edith
 StaticObject	Notice	704	354	Id=Southport_Notice_306

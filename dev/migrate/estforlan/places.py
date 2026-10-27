@@ -3,6 +3,8 @@
 new ones."""
 import re
 
+import story_kit as K
+
 from atlas import XT, YT, TW, map_xy
 import layout as L
 import land as LAND
@@ -35,13 +37,24 @@ STAFF = {
 LEFT = re.compile(r"^(NPC\t(Carter|Horse)\t|StaticObject\tCart\t)")
 
 
+# parts lifted as a whole map whose coast faced another way: only their land is set down (its sand and sea left to
+# the new coast), and what stood at the water (moved: rook_pier) is built again where the new shore is
+TRIM = {"rooks_pier": [(1, 1, 11, 20)]}
+MOVED_LINES = {"rooks_pier": re.compile(r"^(NPC\tSea_Captain\t|StaticObject\t(Boat001|Swordfish_Spot)\t|Id\tRooks_Pier\t)")}
+SHORE = ("Sand", "Water", "Sand_Water", "Snow_Water", "Marsh_Water")
+
+
+def rects(name, part):
+    return TRIM.get(name, part["rects"])
+
+
 def world(part, x, y):
     mx, my = map_xy(part["new"])
     return mx * XT + x - 1, my * YT + y - 1
 
 
-def rect_cells(part, grow=0):
-    for x1, y1, x2, y2 in part["rects"]:
+def rect_cells(part, grow=0, name=None):
+    for x1, y1, x2, y2 in rects(name, part):
         for y in range(y1 - grow, y2 + grow + 1):
             for x in range(x1 - grow, x2 + grow + 1):
                 yield world(part, x, y)
@@ -50,14 +63,36 @@ def rect_cells(part, grow=0):
 def reserved():
     """Every world cell of the lifted places and two tiles round them (kept clear: their ways in and round them)."""
     out = set()
-    for part in L.parts()["parts"].values():
-        out.update(rect_cells(part, 2))
+    for name, part in L.parts()["parts"].items():
+        out.update(rect_cells(part, 2, name))
     return out
 
 
 ROOF = re.compile(r"Roof\(([A-Za-z_0-9]+)\.(\d+)\)")
 OPEN_GROUND = ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001", "Cinder001", "Scorched001")
 ROADLIKE = ("Dirt001", "Paving001", "Plank001", "Cobble001", "Brick_Paving001", "Gravel001")
+
+
+def clearings(atlas):
+    """Room round each lifted place: mountains within a few tiles of it (an edge that wanders) give way to the
+    land's own ground, so it stands in the open and a path can come to it."""
+    from atlas import fbm
+    for name, part in L.parts()["parts"].items():
+        if len(part["cells"]) == XT * YT and name not in TRIM:
+            continue
+        for c in set(rect_cells(part, 6, name)):
+            g = LAND.GROUND.get(c, "")
+            if "Peak" not in g:
+                continue
+            inner = set(rect_cells(part, 2 + int(4 * fbm(c[0], c[1], 6, 79)), name))
+            if c in inner:
+                land = LAND.BIOME.get(c, "meadow")
+                ground = {"cinder_mount": "Ash001", "snow_mount": "Snow001"}.get(land, "Sand001" if any(
+                    LAND.BIOME.get((c[0] + d, c[1])) == "desert" for d in (-8, 8)) else "Grass001")
+                atlas.set(c[0], c[1], tile=ground, decor="")
+                m, x, y = atlas.at(*c)
+                m.rows[y - 1][x - 1] = ground
+                LAND.GROUND[c], LAND.DECOR[c] = ground, ""
 
 
 def stamp(atlas):
@@ -71,14 +106,21 @@ def stamp(atlas):
         regroup = (lambda c: ROOF.sub(lambda mm: "Roof(%s.%02d)" % (mm.group(1), int(mm.group(2)) + shift), c)) \
             if shift else (lambda c: c)
         whole = len(part["cells"]) == XT * YT
-        for x1, y1, x2, y2 in part["rects"]:
+        trimmed = name in TRIM
+        for x1, y1, x2, y2 in rects(name, part):
             for y in range(y1, y2 + 1):
                 for x in range(x1, x2 + 1):
                     c = world(part, x, y)
                     cell = part["cells"].get("%d,%d" % (x, y))
+                    if trimmed and "+" not in cell and cell.startswith(SHORE):
+                        continue                           # (the new coast's own sand and sea)
                     if cell is None:
                         if whole:
                             continue
+                        alone = sum(1 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                                    if "%d,%d" % (x + dx, y + dy) not in part["cells"]) < 2
+                        if alone:
+                            continue                       # (a lone tile: the new land's, not a puddle)
                         cell = "Water001"
                         if c not in LAND.BIOME:
                             LAND.BIOME[c] = "meadow"
@@ -91,16 +133,58 @@ def stamp(atlas):
                     elif "+" in cell or t not in OPEN_GROUND:
                         atlas.taken.add(c)                 # (what stands there; its open ground stays passable)
         for ln in part["lines"]:
-            if not LEFT.match(ln):
+            if not LEFT.match(ln) and not (name in MOVED_LINES and MOVED_LINES[name].match(ln)):
                 m.ents.append(ln)
 
+
+def rook_pier(atlas, home=(L.tname("23,17,0"), 5, 11)):
+    """Captain Rook's pier, out from the new shore nearest his house (home: its map and tile): planks four long into
+    the sea, Rook at its foot looking out, his boat by it, the swordfish beyond; returns its foot (where the road
+    comes)."""
+    hx, hy = map_xy(home[0])
+    hx, hy = hx * XT + home[1] - 1, hy * YT + home[2] - 1
+    best = None
+    for name in (home[0],) + tuple("%d,%d,0" % (map_xy(home[0])[0] + dx, map_xy(home[0])[1] + dy)
+                                   for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy):
+        m = atlas.maps.get(name)
+        if m is None:
+            continue
+        mx, my = map_xy(name)
+        wet = lambda x, y: m.rows[y - 1][x - 1].split("+")[0] == "Water001"      # noqa: E731
+        for y in range(3, YT - 2):
+            for x in range(2, XT - 6):
+                if wet(x, y) or (mx * XT + x - 1, my * YT + y - 1) in atlas.taken:
+                    continue
+                if all(wet(x + k, y) for k in range(1, 6)) and all(wet(x + k, y + d) for k in range(2, 6)
+                                                                     for d in (-1, 1)):
+                    d = abs(mx * XT + x - 1 - hx) + abs(my * YT + y - 1 - hy)
+                    if best is None or d < best[0]:
+                        best = (d, name, x, y)
+    if best is None:
+        return None
+    _, name, x, y = best
+    m = atlas.maps[name]
+    mx, my = map_xy(name)
+    for k in range(1, 5):
+        m.rows[y - 1][x + k - 1] = "Plank001"
+        LAND.GROUND[(mx * XT + x + k - 1, my * YT + y - 1)] = "Plank001"
+    m.ents += ["NPC\tSea_Captain\t%d\t%d\tAttitude=Good Stand=1 Face=E Id=Captain_Rook Name=Captain_Rook"
+               % ((x - 1) * TW, (y - 1) * TW - 8),
+               "StaticObject\tBoat001\t%d\t%d" % ((x + 2) * TW, (y - 2) * TW + 16),
+               "StaticObject\tSwordfish_Spot\t%d\t%d" % ((x + 4) * TW, (y - 1) * TW)]     # (off its end)
+    K.place_id(m, "Rooks_Pier", x, y)
+    gx, gy = mx * XT + x - 1, my * YT + y - 1
+    for k in range(0, 5):
+        atlas.taken.add((gx + k, gy))
+    atlas.roads.add((gx, gy))
+    return gx, gy
 
 def levels():
     """The levels under and over the places that moved: {new map name: its file}."""
     import os
     out = {}
-    for new in L.parts()["levels"].values():
-        out[new] = os.path.join(L.PARTS, "levels", new + ".txt")
+    for new, saved in L.parts()["level_files"].items():
+        out[new] = os.path.join(L.PARTS, "levels", saved + ".txt")
     return out
 
 
@@ -112,8 +196,24 @@ def home_of_old(plans):
     for part in L.parts()["parts"].values():
         out.setdefault(part["old"], part["new"])
     for old, key in OLD_TOWN.items():
-        if old not in out and key in plans:
+        if key in plans and (old not in out or not in_town(plans[key], out[old])):
             out[old] = plans[key].home_map()
+    return out
+
+
+def in_town(plan, map_name):
+    mx, my = map_xy(map_name)
+    return plan.box_has((mx * XT + XT // 2, my * YT + YT // 2), 10)
+
+
+def strays(plans):
+    """{a lifted part's map: its town's middle} for the old towns' maps whose part now lies out of town (its people
+    are in the town instead, so the scripts that ask which map they're on must ask for that one)."""
+    out = {}
+    for part in L.parts()["parts"].values():
+        key = OLD_TOWN.get(part["old"])
+        if key in plans and not in_town(plans[key], part["new"]):
+            out[part["new"]] = plans[key].home_map()
     return out
 
 

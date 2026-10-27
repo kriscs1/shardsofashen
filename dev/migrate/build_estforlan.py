@@ -38,6 +38,8 @@ def old_world():
 
 def main():
     first = old_world()
+    if not first:
+        print("Map names moved on in %d scripts and data files" % story.stretch_names())
     atlas, plans, homes, rehoused, gate_map, scripts, bridge = world.assemble()
     for name, rows in scripts.items():
         K.write_script(name, rows, MAKER)
@@ -53,6 +55,10 @@ def main():
     for new, src in levels.items():
         shutil.copyfile(src, os.path.join(MAPS, new + ".txt"))
     print("Saved %d maps and %d levels under them" % (len(atlas.maps), len(levels)))
+    for f in os.listdir(MAPS):                                     # (levels under places that have moved on)
+        name = f[:-4]
+        if f.endswith(".txt") and not name.endswith(",0") and not story.isle(name) and                 name not in story.ISLE_LEVELS and name not in levels:
+            os.remove(os.path.join(MAPS, f))
     table = story.renames(homes, gate_map)
     if first:
         print("Moved %d scripts' map names over" % story.remap_scripts(table, story.chest_maps()))
@@ -62,6 +68,7 @@ def main():
     quests.dragonforge()
     quests.leftovers()
     story.entry_scripts(plans, first, extra)
+    story.people_branches(P.strays(plans))
     story.pass_scripts()
     story.wardhaven_guard()
     print("Waystones: %s" % ", ".join(story.waystones(atlas, plans)))

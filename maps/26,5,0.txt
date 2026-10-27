@@ -1,0 +1,50 @@
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Tile008+Roof(Slate_Roof001.01):Stone_Wall_Thin_Tile001+Decor(Banner001)+Roof(Slate_Roof002.01):Stone_Wall_Thin_Tile001+Roof(Slate_Roof002.01):Stone_Wall_Thin_Tile001+Roof(Steeple_Spire001.01):Stone_Wall_Thin_Tile001+Roof(Slate_Roof002.01):Stone_Wall_Thin_Tile001+Roof(Slate_Roof002.01):Stone_Wall_Thin_Tile005+Roof(Slate_Roof003.01):Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank008+Roof(Slate_Roof001.04):Stone_Wall_Thin_Plank001+Roof(Slate_Roof002.04):Stone_Wall_Thin_Plank001+Roof(Slate_Roof002.04):Stone_Wall_Thin_Plank001+Roof(Slate_Roof002.04):Stone_Wall_Thin_Plank001+Roof(Slate_Roof002.04):Stone_Wall_Thin_Plank001+Decor(Crate001)+Roof(Slate_Roof002.04):Stone_Wall_Thin_Plank005+Roof(Slate_Roof003.04):Ash001:Stone_Wall_Thin_Tile004+Roof(Slate_Roof007.01):Tile001+Roof(Slate_Roof008.01):Tile001+Decor(Candles001)+Roof(Slate_Roof008.01):Tile001+Decor(Table001)+Roof(Steeple_Spire002.01):Tile001+Decor(Candles001)+Roof(Slate_Roof008.01):Tile001+Roof(Slate_Roof008.01):Stone_Wall_Thin_Tile002+Roof(Slate_Roof009.01):Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof007.04):Plank001+Roof(Slate_Roof008.04):Plank001+Roof(Slate_Roof008.04):Plank001+Roof(Slate_Roof008.04):Plank001+Roof(Slate_Roof008.04):Plank001+Roof(Slate_Roof008.04):Stone_Wall_Thin_Plank002+Roof(Slate_Roof009.04):Ash001:Stone_Wall_Thin_Tile004+Roof(Slate_Roof010.01):Tile001+Roof(Slate_Roof011.01):Tile001+Roof(Slate_Roof011.01):Tile001+Roof(Steeple_Spire003.01):Tile001+Roof(Slate_Roof011.01):Tile001+Roof(Slate_Roof011.01):Stone_Wall_Thin_Tile002+Roof(Slate_Roof012.01):Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001
+Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Plank001+Roof(Slate_Roof014.04):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.04):Ash001:Stone_Wall_Thin_Tile004+Roof(Slate_Roof013.01):Tile001+Decor(Bench001)+Roof(Slate_Roof014.01):Tile001+Decor(Bench001)+Roof(Slate_Roof014.01):Tile001+Roof(Steeple002.01):Tile001+Decor(Bench001)+Roof(Slate_Roof014.01):Tile001+Decor(Bench001)+Roof(Slate_Roof014.01):Stone_Wall_Thin_Tile002+Roof(Slate_Roof015.01):Ash001:Ash001:Ash001:Ash001:Basalt_Paving001:Ash001
+Ash001:Ash001:Ash001:Ash001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Ash001:Stone_Wall_Thin_Tile004+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper002.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Steeple001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper002.01):Stone_Wall_Thin_Tile002+Roof(Chapel_Stone_Upper001.01):Ash001:Ash001:Ash001:Ash001:Basalt_Paving001:Ash001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Door002:Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Ash001:Ash001:Ash001:Ash001:Basalt_Paving001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Basalt_Paving001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001+Decor(Lamp_Post001):Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001
+Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank008+Roof(Slate_Roof001.03):Stone_Wall_Thin_Plank001+Roof(Slate_Roof002.03):Stone_Wall_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Slate_Roof002.03):Stone_Wall_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Slate_Roof002.03):Stone_Wall_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Slate_Roof002.03):Stone_Wall_Thin_Plank001+Roof(Slate_Roof002.03):Stone_Wall_Thin_Plank005+Roof(Slate_Roof003.03):Ash001:Plaster_Thin_Plank008+Roof(Clay_Roof001.02):Plaster_Thin_Plank001+Roof(Clay_Roof002.02):Plaster_Thin_Plank001+Decor(Iron_Fence002)+Roof(Clay_Roof002.02):Plaster_Thin_Plank001+Decor(Bed001)+Roof(Clay_Roof002.02):Plaster_Thin_Plank001+Decor(Bed001)+Roof(Clay_Roof002.02):Plaster_Thin_Plank005+Roof(Clay_Roof003.02):Ash001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001
+Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof007.03):Plank001+Roof(Slate_Roof023.03):Plank001+Roof(Slate_Roof008.03):Plank001+Roof(Slate_Roof008.03):Plank001+Roof(Slate_Roof008.03):Plank001+Roof(Slate_Roof008.03):Stone_Wall_Thin_Plank002+Roof(Slate_Roof009.03):Ash001:Plaster_Thin_Plank004+Roof(Clay_Roof007.02):Plank001+Roof(Clay_Roof008.02):Plank001+Decor(Desk001)+Roof(Clay_Roof008.02):Plank001+Decor(Bed002)+Roof(Clay_Roof008.02):Plank001+Decor(Bed002)+Roof(Clay_Roof008.02):Plaster_Thin_Plank002+Roof(Clay_Roof009.02):Ash001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001
+Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof010.03):Plank001+Roof(Slate_Roof011.03):Plank001+Roof(Slate_Roof011.03):Plank001+Roof(Slate_Roof011.03):Plank001+Roof(Slate_Roof011.03):Plank001+Roof(Slate_Roof011.03):Stone_Wall_Thin_Plank002+Roof(Slate_Roof012.03):Ash001:Plaster_Thin_Plank004+Roof(Clay_Roof010.02):Plank001+Roof(Clay_Roof011.02):Plank001+Roof(Clay_Roof011.02):Plank001+Roof(Clay_Roof011.02):Plank001+Roof(Clay_Roof011.02):Plaster_Thin_Plank002+Roof(Clay_Roof012.02):Ash001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001+Decor(Fountain001):Basalt_Paving001
+Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.03):Plank001+Roof(Slate_Roof014.03):Plank001+Roof(Slate_Roof014.03):Plank001+Roof(Slate_Roof014.03):Plank001+Roof(Slate_Roof014.03):Plank001+Roof(Slate_Roof014.03):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.03):Ash001:Plaster_Thin_Plank004+Roof(Clay_Roof013.02):Plank001+Roof(Clay_Roof014.02):Plank001+Decor(Iron_Fence002)+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plaster_Thin_Plank002+Roof(Clay_Roof015.02):Ash001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001
+Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Door002:Stone_Wall001:Ash001:Plaster001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Ash001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001+Decor(Lamp_Post001):Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001
+NPC	Greengrocer	704	472	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_301 Name=Sybil
+NPC	Fishmonger	768	472	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_302 Name=Fred
+NPC	Butcher	704	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_303 Name=Bertha
+NPC	Baker	768	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_304 Name=Oswald
+NPC	Villager	480	280	Attitude=Good Stand=1 Face=S Id=Emberwatch_Priest_311 Name=Nell
+NPC	Sheriff	480	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Sheriff_314 Name=Agnes
+NPC	Blacksmith	256	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Smith_320 Name=Polly
+StaticObject	Market_Stall_Open	704	512
+StaticObject	Market_Stall_Open	768	512
+StaticObject	Market_Stall_Open	704	576
+StaticObject	Market_Stall_Open	768	576
+StaticObject	Market_Board	736	480
+StaticObject	Homestone	608	608
+StaticObject	Notice	608	546	Id=Emberwatch_Notice_308
+StaticObject	Notice	544	418	Id=Emberwatch_Notice_312
+StaticObject	Furnace	192	512
+StaticObject	Anvil	320	512
+StaticObject	Notice	384	610	Id=Emberwatch_Notice_321
+Id	Emberwatch_Market_Square	24	19
+Id	Emberwatch_Square	24	19
+Id	Emberwatch_Chapel	16	14
+NPC	Warden	672	536	Attitude=Good Stand=1
+Id	Emberwatch_Warden	22	18
+NPC	Scout	736	600	Attitude=Good Stand=1
+Id	Emberwatch_Scout	24	20
+NPC	Trader	608	504	Attitude=Good Zone=17,15,23,19 Pause=4-12
+Id	Emberwatch_Trader	20	17
+NPC	Settler	704	408	Attitude=Good Zone=20,12,24,16 Pause=4-12
+Id	Emberwatch_Settler	23	14

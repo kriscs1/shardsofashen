@@ -1,0 +1,46 @@
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Cobble001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001
+Sand_Water009:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Cobble001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Cobble001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001
+Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Cobble001+Decor(Lamp_Post001):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001+Decor(Lamp_Post001):Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Brick_Thin_Plank008+Roof(Clay_Roof001.01):Brick_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Clay_Roof002.01):Brick_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Clay_Roof002.01):Brick_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Clay_Roof002.01):Brick_Thin_Plank005+Roof(Clay_Roof003.01):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Stone_Wall_Thin_Plank008+Roof(Slate_Roof001.02):Stone_Wall_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Slate_Roof002.02):Stone_Wall_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Slate_Roof002.02):Stone_Wall_Thin_Plank001+Decor(Shelf_Goods001)+Roof(Slate_Roof002.02):Stone_Wall_Thin_Plank005+Roof(Slate_Roof003.02):Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof007.01):Plank001+Roof(Clay_Roof023.01):Plank001+Roof(Clay_Roof008.01):Plank001+Roof(Clay_Roof008.01):Brick_Thin_Plank002+Roof(Clay_Roof009.01):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001+Decor(Fountain001):Cobble001:Cobble001:Cobble001:Cobble001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof007.02):Plank001+Roof(Slate_Roof008.02):Plank001+Roof(Slate_Roof008.02):Plank001+Roof(Slate_Roof023.02):Stone_Wall_Thin_Plank002+Roof(Slate_Roof009.02):Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof010.01):Plank001+Decor(Counter001)+Roof(Clay_Roof011.01):Plank001+Decor(Counter001)+Roof(Clay_Roof011.01):Plank001+Roof(Clay_Roof011.01):Brick_Thin_Plank002+Roof(Clay_Roof012.01):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof010.02):Plank001+Decor(Counter001)+Roof(Slate_Roof011.02):Plank001+Decor(Counter001)+Roof(Slate_Roof011.02):Plank001+Roof(Slate_Roof011.02):Stone_Wall_Thin_Plank002+Roof(Slate_Roof012.02):Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Plank001+Roof(Clay_Roof014.01):Brick_Thin_Plank002+Roof(Clay_Roof015.01):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.02):Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Brick001:Brick001+Decor(Brick_Window001):Brick001:Door001:Brick001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Stone_Wall001:Door002:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Stone_Wall001:Grass001:Grass001:Grass001
+Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001+Decor(Lamp_Post001):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001+Decor(Lamp_Post001):Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001
+StaticObject	Fish_Spot	384	32
+NPC	Greengrocer	320	408	Attitude=Good Stand=1 Face=S Id=Wardhaven_Stall_301 Name=Rosie
+NPC	Fishmonger	448	408	Attitude=Good Stand=1 Face=S Id=Wardhaven_Stall_302 Name=Florence
+NPC	Butcher	320	536	Attitude=Good Stand=1 Face=S Id=Wardhaven_Stall_303 Name=Clara
+NPC	Baker	448	536	Attitude=Good Stand=1 Face=S Id=Wardhaven_Stall_304 Name=Quentin
+NPC	Baker	160	504	Attitude=Good Stand=1 Face=S Id=Wardhaven_Baker_312 Name=Cedric
+NPC	Greengrocer	608	504	Attitude=Good Stand=1 Face=S Id=Wardhaven_Greengrocer_316 Name=Quentin
+StaticObject	Market_Stall_Open	320	448
+StaticObject	Market_Stall_Open	448	448
+StaticObject	Market_Stall_Open	320	576
+StaticObject	Market_Stall_Open	448	576
+StaticObject	Market_Board	384	416
+Id	Wardhaven_Market_Square	13	18
+Id	Wardhaven_Dock	13	6
+Id	Wardhaven_Square	13	18
+NPC	Settler	416	504	Attitude=Good Zone=11,15,17,19 Pause=4-12
+Id	Wardhaven_Settler	14	17
+StaticObject	Dragonforge	352	512
+NPC	Wyrmsmith	384	472	Attitude=Good Stand=1
+Id	Wardhaven_Wyrmsmith	13	16
+NPC	Trader	384	568	Attitude=Good Zone=10,17,16,20 Pause=4-12
+Id	Wardhaven_Trader	13	19
+NPC	Guard	352	472	Attitude=Good Stand=1
+Id	Wardhaven_Guard	12	16
+StaticObject	Fish_Spot	256	160

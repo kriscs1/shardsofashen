@@ -1,3 +1,3 @@
-// The grave Grave_Old_Wat on 22,15,0 (dev\migrate\name_graves.py)
+// The grave Grave_Old_Wat on 26,17,0 (dev\migrate\name_graves.py)
 01	Display.Message	Black	'Old Wat, who lived alone and liked it. Leave him be.'
 02	End

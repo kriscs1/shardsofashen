@@ -53,6 +53,22 @@ def write(path, lines):
             f.write(data)
 
 
+def people_branches(strays):
+    """Talk to Settler / Trader / Guard: a branch for a map its people were on and aren't now (strays: {that map:
+    theirs}) asks for theirs."""
+    for name in ("Talk to Settler", "Talk to Trader", "Talk to Guard"):
+        path = os.path.join(K.SCRIPTS, name + ".txt")
+        lines = read(path)
+        new = []
+        for ln in lines:
+            f = ln.split("\t")
+            if len(f) > 2 and f[1] == ">On.Map" and f[2] in strays:
+                f[2] = strays[f[2]]
+            new.append("\t".join(f))
+        if new != lines:
+            write(path, new)
+
+
 def remap_scripts(table, chests):
     """Every script naming a map that moved: its new name (chests: where that chest went)."""
     changed = 0
@@ -96,11 +112,11 @@ def entry_scripts(plans, first, extra=None):
             if ENTRY[old]:
                 for a, b in ENTRY_WORDS.items():
                     lines = [ln.replace(a, b) for ln in lines]
-                write(os.path.join(K.SCRIPTS, ENTRY[old] + ".txt"), lines)
+                write(os.path.join(K.SCRIPTS, L.tname(ENTRY[old]) + ".txt"), lines)
     for f in os.listdir(K.SCRIPTS):                        # (old mainland maps' entry scripts left over)
         name = f[:-4]
         if MAP.fullmatch(name) and name not in keep and name not in (extra or {}) and name.split(",")[0:2] != ["0", "0"] and not isle(name) and \
-                name not in (G.PASS,) and name not in ISLE_LEVELS and name not in ENTRY.values():
+                name not in (G.PASS,) and name not in ISLE_LEVELS and name not in {L.tname(v) for v in ENTRY.values() if v}:
             os.remove(os.path.join(K.SCRIPTS, f))
     arrive = {}
     for key, plan in plans.items():                        # a word on arriving in each settlement
@@ -235,6 +251,47 @@ def short(title):
     return title.replace("the ", "").replace("The ", "")
 
 
+# ------------------------------------------------------------------ the world stretched (layout.INSERT_COLS, _ROWS)
+STRETCHED = os.path.join(L.PARTS, "stretched.txt")
+STRETCH_FILES = ("Quests.ini", "WorldMap.ini", "Waves.ini", "Config.ini", "Ambient.ini")
+
+
+def stretch_names():
+    """Once, when layout's stretch is new: every map name in the scripts, the data and the tests -> its name now (a
+    script named after a map renamed too). All read before any is written: some new names are old ones."""
+    spec = "cols %s rows %s" % (L.INSERT_COLS, L.INSERT_ROWS)
+    if os.path.exists(STRETCHED) and open(STRETCHED).read().strip() == spec:
+        return 0
+
+    def name(mm):
+        x, y, z = (int(v) for v in mm.group(1).split(","))
+        if not (-3 <= z <= 1 and x < 25 and y < 22) or isle(mm.group(1)):
+            return mm.group(1)
+        return L.tname(mm.group(1))
+    files = {os.path.join(K.SCRIPTS, f): f for f in os.listdir(K.SCRIPTS)}
+    files.update({os.path.join(K.DATA, f): f for f in STRETCH_FILES})
+    tests = os.path.join(K.ROOT, "tests", "test_engine.py")
+    read_all = {p: read(p) for p in files}
+    for p in files:
+        if MAP.fullmatch(files[p][:-4]):
+            os.remove(p)                                   # (a map's own script: written again under its new name)
+    changed = 0
+    for p, lines in read_all.items():
+        new = [MAP.sub(name, ln) for ln in lines]
+        f = files[p]
+        if MAP.fullmatch(f[:-4]):
+            p = os.path.join(K.SCRIPTS, MAP.sub(name, f[:-4]) + ".txt")
+        if new != lines or not os.path.exists(p):
+            write(p, new)
+            changed += 1
+    text = open(tests, encoding="utf-8").read()
+    text = re.sub(r'"(-?\d+,-?\d+,-?\d+)"', lambda mm: '"%s"' % name(mm), text)
+    open(tests, "w", encoding="utf-8").write(text)
+    with open(STRETCHED, "w") as fh:
+        fh.write(spec + "\n")
+    return changed
+
+
 # ------------------------------------------------------------------ the data files
 def quests(table, rehoused):
     """Quests.ini markers: a map and tile on a map that moved -> its new map (a lifted place: the same tile), or the
@@ -275,6 +332,7 @@ def world_map(plans):
                "Frostpeak": "13,19,0 12 6", "The Pass of Galaith": "9,12,0 12 4", "The Wildwood": "3,7,0 12 10",
                "Greymoor": "12,9,0 12 10", "The Redrock Hills": "11,14,0 12 10", "The Elderwood": "17,8,0 12 10",
                "The Ashwold": "22,4,0 6 10", "The Downs": "19,15,0 12 10", "The West Range": "0,9,0 12 10"}
+    regions = {k: "%s %s" % (L.tname(v.split()[0]), " ".join(v.split()[1:])) for k, v in regions.items()}
     out, section = [], None
     for ln in lines:
         m = re.match(r"^\[(\w+)\]$", ln)
@@ -291,7 +349,7 @@ def world_map(plans):
         if section in ("Towns", "Regions") and "=" in ln and not ln.startswith(";"):
             continue
         if section == "Places" and ln.startswith("Smugglers' Tunnel="):
-            ln = "Smugglers' Tunnel=13,4,-1 18 15"
+            ln = "Smugglers' Tunnel=%s 18 15" % L.tname("13,4,-1")
         out.append(ln)
     write(K.WORLDMAP, out)
 
@@ -308,13 +366,21 @@ def waves(plans):
         elif section == "Ashford_Raid" and ln.startswith("Centre="):
             ln = "Centre=Ashford_Square"
         elif section == "Farm_Raid" and ln.startswith("Map="):
-            ln = "Map=11,4,0"
+            ln = "Map=" + L.tname("11,4,0")
         out.append(ln)
     write(os.path.join(K.DATA, "Waves.ini"), out)
 
 
-DIGGING = {"Saltmarsh": "6-10,16-19,0", "Sunscar_Desert": "1-5,16-19,0", "Cinder_Peaks": "19-23,4-8,0",
+DIGGING = {"Saltmarsh": "6-10,16-20,0", "Sunscar_Desert": "1-5,16-19,0", "Cinder_Peaks": "19-23,4-8,0",
            "Frostpeak": "11-15,16-19,0", "Dragon_Island": "22,20,0"}
+
+
+def block(spec):
+    """A Digging.ini block (x1-x2,y1-y2,z) of the plan as first drawn -> now."""
+    xs, ys, z = spec.split(",")
+    x = [L.tx(int(v)) for v in xs.split("-")]
+    y = [L.ty(int(v)) for v in ys.split("-")]
+    return "%s,%s,%s" % ("-".join(map(str, x)), "-".join(map(str, y)), z)
 
 
 def digging():
@@ -328,7 +394,7 @@ def digging():
         elif ln.startswith("[") or not ln.strip():
             section = section if not ln.startswith("[") else None
         if ln.startswith("Maps=") and section in DIGGING:
-            ln = "Maps=" + DIGGING[section]
+            ln = "Maps=" + block(DIGGING[section])
         out.append(ln)
     write(path, out)
 

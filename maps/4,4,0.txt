@@ -27,17 +27,17 @@ Id	Southport_Landing	12	8
 Id	Southport_Pier	13	4
 NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Southport_Port_Guard Name=Sergeant_Brand
 NPC	Seal	416	120	Attitude=Bad Zone=14,2,24,8
-StaticObject	Fish_Spot	64	0
-NPC	Fisherman	32	152	Attitude=Good Stand=1 Face=S Id=Southport_Harbour_Master_312 Name=Ivor
+StaticObject	Swordfish_Spot	64	0
+NPC	Fisherman	32	152	Attitude=Good Stand=1 Face=S Id=Southport_Harbour_Master_311 Name=Ivor
 NPC	Horse	480	352	Attitude=Good Stand=1 Face=W Id=Southport_Horse_2
 NPC	Carter	448	376	Attitude=Good Stand=1 Face=S Id=Southport_Carter_2 Name=Jane
-NPC	Constable	192	536	Attitude=Good Stand=1 Face=S Id=Southport_Constable_345 Name=Hugh
-NPC	Barkeep	512	472	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_357 Name=Ned
-NPC	Barmaid	576	568	Attitude=Good Zone=14,18,20,19 Pause=3-9 Id=Southport_Barmaid_358 Name=Agnes
-NPC	Villager	672	344	Attitude=Good Zone=22,9,23,12 Pause=5-15 Id=Southport_Resident_376 Name=Ivor
+NPC	Constable	192	536	Attitude=Good Stand=1 Face=S Id=Southport_Constable_344 Name=Hugh
+NPC	Barkeep	512	472	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_356 Name=Ned
+NPC	Barmaid	576	568	Attitude=Good Zone=14,18,20,19 Pause=3-9 Id=Southport_Barmaid_357 Name=Agnes
+NPC	Villager	672	344	Attitude=Good Zone=22,9,23,12 Pause=5-15 Id=Southport_Resident_375 Name=Ivor
 StaticObject	Cart	448	352
 StaticObject	Sign_Pub	448	624
-StaticObject	Notice	352	610	Id=Southport_Notice_359
+StaticObject	Notice	352	610	Id=Southport_Notice_358
 Id	Southport_Port	3	7
 Id	Southport_Cart_Stop_2	16	13
 NPC	Fisherman	384	344	Attitude=Good Zone=10,10,16,14 Pause=4-12

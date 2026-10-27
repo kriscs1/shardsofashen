@@ -1,73 +1,64 @@
-Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Sand001:Sand001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Sand001:Sand001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001
-Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001
-Water001:Water001:Brick_Thin_Plank008+Roof(Slate_Roof001.01):Brick_Thin_Plank001+Roof(Slate_Roof002.01):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Slate_Roof002.01):Brick_Thin_Plank001+Roof(Slate_Roof002.01):Brick_Thin_Plank001+Roof(Slate_Roof017.01):Brick_Thin_Plank005+Roof(Slate_Roof003.01):Grass001:Grass001:Grass001:Grass001+Decor(Nest001):Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001+Decor(Marigold_Patch001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Berry_Bush001):Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Plank001+Decor(Table001)+Roof(Slate_Roof014.01):Brick_Thin_Plank002+Roof(Slate_Roof015.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Nest001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.01):Plank001+Roof(Brick_Upper001.01):Plank001+Under(Rug017)+Roof(Brick_Upper002.01):Plank001+Roof(Brick_Upper001.01):Plank001+Decor(Chair002)+Roof(Brick_Upper002.01):Brick_Thin_Plank002+Roof(Brick_Upper002.01):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001
-Grass001+Decor(Pebbles003):Grass001+Decor(Bench001):Brick001+Decor(Ivy001):Brick001+Decor(Brick_Window005):Door001:Brick001+Decor(Brick_Window005):Brick001:Brick001+Decor(Ivy003):Grass001+Decor(Barrel001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Dirt001
-Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Timber_Thin_Plank008+Roof(Thatch_Roof001.03):Timber_Thin_Plank001+Decor(Barrel001)+Roof(Thatch_Roof002.03):Timber_Thin_Plank001+Decor(Barrel002)+Roof(Thatch_Roof002.03):Timber_Thin_Plank001+Roof(Thatch_Roof002.03):Fireplace001+Roof(Thatch_Roof002.03):Timber_Thin_Plank005+Roof(Thatch_Roof003.03):Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
-Grass001:Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof007.03):Plank001+Roof(Thatch_Roof008.03):Plank001+Roof(Thatch_Roof008.03):Plank001+Roof(Thatch_Roof023.03):Plank001+Roof(Thatch_Roof008.03):Timber_Thin_Plank002+Roof(Thatch_Roof009.03):Grass001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Marigold_Patch001):Dirt001:Water001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Herb_Patch001):Dirt001:Water001
-Grass001:Grass001:Soil001:Soil001:Soil001:Timber_Thin_Plank004+Roof(Thatch_Roof010.03):Plank001+Decor(Counter001)+Roof(Thatch_Roof011.03):Plank001+Decor(Counter001)+Roof(Thatch_Roof011.03):Plank001+Decor(Counter001)+Roof(Thatch_Roof011.03):Plank001+Roof(Thatch_Roof011.03):Timber_Thin_Plank002+Roof(Thatch_Roof012.03):Grass001:Dirt001:Dirt001:Grass001:Grass001+Decor(Pebbles003):Grass001:Water001:Grass001:Brick_Thin_Plank008+Roof(Clay_Roof001.02):Brick_Thin_Plank001+Decor(Herb_Rack_Brick_Thin_Plank001)+Roof(Clay_Roof002.02):Brick_Thin_Plank001+Roof(Clay_Roof002.02):Potion_Shelf_Brick_Thin_Plank001+Roof(Clay_Roof017.02):Brick_Thin_Plank005+Roof(Clay_Roof003.02):Water001
-Grass001:Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Timber_Thin_Plank002+Roof(Thatch_Roof015.03):Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Water001:Grass001+Decor(Tall_Grass001):Brick_Thin_Plank004+Roof(Clay_Roof013.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Plank001+Roof(Clay_Roof014.02):Brick_Thin_Plank002+Roof(Clay_Roof015.02):Water001
-Grass001:Grass001:Soil001:Soil001:Soil001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Door004:Timber001:Timber001:Grass001+Decor(Flowers001):Dirt001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Water001:Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Plank001+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Brick_Thin_Plank002+Roof(Brick_Upper002.02):Water001
-Grass001:Grass001+Decor(Haystack001):Grass001:Grass001:Grass001:Grass001:Paving001:Grass001:Paving001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Water001:Grass001:Brick001:Brick001+Decor(Brick_Window004):Door037:Brick001+Decor(Brick_Window004):Brick001:Water001
-Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Water001:Grass001:Water001:Water001:Grass001:Grass001+Decor(Marigold_Patch001):Dirt001:Grass001:Water001:Water001
-Grass001+Decor(Flowers003):Grass001+Decor(Tree001):Dirt001:Field001:Field001:Field001:Field001:Field001:Field001:Field001:Field001:Dirt001:Dirt001:Grass001:Water001:Water001:Grass001:Water001:Water001:Water001:Dirt001:Dirt001:Grass001:Water001:Water001
-Dirt001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Scarecrow001):Grass001:Grass001+Decor(Tree002):Field001:Field001:Field001:Field001:Field001:Grass001:Dirt001:Grass001:Water001:Water001:Grass001:Water001:Water001:Water001:Grass001+Decor(Herb_Patch001):Dirt001:Grass001:Water001:Water001
-Grass001:Grass001:Grass001+Decor(Haystack001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Berry_Bush001):Water001:Water001
-NPC	Farmer	352	448	Attitude=Good Zone=12,14,13,16 Pause=3-8
-NPC	Herbalist	672	480	Attitude=Good Zone=22,15,23,16 Pause=4-10
-NPC	Chicken	288	256	Attitude=Bad Zone=9,8,15,10
-NPC	Chicken	384	256	Attitude=Bad Zone=9,8,15,10
-NPC	Chicken	320	288	Attitude=Bad Zone=9,8,15,10
-StaticObject	Notice	417	386	Id=Farmlands_Crossroads
-MapItem	Cabbage	65	546	1
-MapItem	Cabbage	161	546	1
-MapItem	Cabbage	321	546	1
-MapItem	Egg	416	288	1
-MapItem	Bucket	161	258	1
-MapItem	Herb	704	576	1
-StaticObject	Ripe_Wheat003	92	568
-StaticObject	Ripe_Wheat002	105	577
-StaticObject	Ripe_Wheat001	119	567
-StaticObject	Ripe_Wheat002	133	575
-StaticObject	Ripe_Wheat001	156	568
-StaticObject	Ripe_Wheat002	164	576
-StaticObject	Ripe_Wheat003	186	564
-StaticObject	Ripe_Wheat002	195	574
-StaticObject	Ripe_Wheat003	217	566
-StaticObject	Ripe_Wheat003	230	574
-StaticObject	Ripe_Wheat002	253	566
-StaticObject	Ripe_Wheat002	262	574
-StaticObject	Ripe_Wheat003	279	564
-StaticObject	Ripe_Wheat001	313	564
-StaticObject	Ripe_Wheat003	323	574
-StaticObject	Ripe_Wheat003	188	597
-StaticObject	Ripe_Wheat003	195	610
-StaticObject	Ripe_Wheat002	218	598
-StaticObject	Ripe_Wheat001	227	608
-StaticObject	Ripe_Wheat003	250	600
-StaticObject	Ripe_Wheat001	264	607
-StaticObject	Ripe_Wheat003	296	607
-StaticObject	Ripe_Wheat002	316	596
-StaticObject	Ripe_Wheat003	327	610
-StaticObject	Workbench	96	224
-StaticObject	Alchemy_Table	640	448
-NPC	Cow	416	448	Attitude=Bad Zone=13,14,15,18
-NPC	Cow	416	544	Attitude=Bad Zone=13,14,15,18
-NPC	Villager	608	352	Attitude=Good Zone=19,7,23,12
-StaticObject	Trout_Spot	544	448
-NPC	Butterfly	416	608	Attitude=Good
-NPC	Blue_Butterfly	32	448	Attitude=Good
-NPC	Duck	480	320	Attitude=Bad
-StaticObject	Sign_Farm	352	400
-StaticObject	Sign_Herbalist	704	528
-NPC	Barkeep	224	376	Attitude=Good Stand=1 Face=S Id=Ashford_Barkeep_16 Name=Albert
-NPC	Barmaid	256	440	Attitude=Good Zone=7,15,10,15 Pause=3-9 Id=Ashford_Barmaid_17 Name=Sybil
-StaticObject	Sign_Pub	288	496
-StaticObject	Notice	192	514	Id=Ashford_Notice_18
-NPC	Otter	544	568	Attitude=Bad Zone=14,11,21,19
+Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Sand001+Decor(Barrel001):Sand001+Decor(Barrel001):Sand001+Decor(Bench001):Sand001:Sand001+Decor(Bench001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001
+Sand001:Sand001:Brick_Thin_Tile008+Roof(Shingle_Roof001.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Brick_Thin_Tile001+Roof(Shingle_Roof002.01):Fireplace003+Roof(Shingle_Roof002.01):Brick_Thin_Tile005+Roof(Shingle_Roof003.01):Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Brick_Thin_Plank008+Roof(Slate_Roof001.02):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Roof(Slate_Roof002.02):Brick_Thin_Plank001+Decor(Potted_Plant003)+Roof(Slate_Roof002.02):Brick_Thin_Plank005+Roof(Slate_Roof003.02):Sand001:Sand001:Sand001
+Sand001:Grass001:Brick_Thin_Tile004+Roof(Shingle_Roof007.01):Tile001+Roof(Shingle_Roof008.01):Tile001+Roof(Shingle_Roof008.01):Tile001+Decor(Table001)+Roof(Shingle_Roof008.01):Tile001+Decor(Chair004)+Roof(Shingle_Roof008.01):Tile001+Roof(Shingle_Roof023.01):Brick_Thin_Tile002+Decor(Bookshelf001)+Roof(Shingle_Roof009.01):Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof007.02):Plank001+Roof(Slate_Roof008.02):Plank001+Under(Rug001)+Roof(Slate_Roof008.02):Plank001+Under(Rug002)+Roof(Slate_Roof008.02):Plank001+Under(Rug003)+Roof(Slate_Roof008.02):Plank001+Roof(Slate_Roof023.02):Brick_Thin_Plank002+Roof(Slate_Roof009.02):Grass001:Grass001:Sand001
+Grass001:Grass001:Brick_Thin_Tile004+Roof(Shingle_Roof013.01):Tile001+Under(Rug001)+Roof(Shingle_Roof014.01):Tile001+Under(Rug002)+Roof(Shingle_Roof014.01):Tile001+Under(Rug002)+Roof(Shingle_Roof014.01):Tile001+Under(Rug003)+Roof(Shingle_Roof014.01):Tile001+Roof(Shingle_Roof014.01):Brick_Thin_Tile002+Roof(Shingle_Roof015.01):Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof013.02):Plank001+Decor(Table001)+Roof(Slate_Roof014.02):Plank001+Under(Rug004)+Roof(Slate_Roof014.02):Plank001+Under(Rug005)+Roof(Slate_Roof014.02):Plank001+Under(Rug006)+Roof(Slate_Roof014.02):Plank001+Roof(Slate_Roof014.02):Brick_Thin_Plank002+Roof(Slate_Roof015.02):Grass001:Grass001:Grass001
+Grass001:Grass001:Brick_Thin_Tile004+Roof(Brick_Upper002.01):Tile001+Under(Rug007)+Roof(Brick_Upper001.01):Tile001+Under(Rug008)+Roof(Brick_Upper002.01):Tile001+Under(Rug008)+Roof(Brick_Upper001.01):Tile001+Under(Rug009)+Roof(Brick_Upper002.01):Tile001+Roof(Brick_Upper001.01):Brick_Thin_Tile002+Decor(Potted_Plant005)+Roof(Brick_Upper002.01):Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001+Decor(Flowers002):Brick_Thin_Plank004+Roof(Brick_Upper002.02):Plank001+Decor(Chair002)+Roof(Brick_Upper001.02):Plank001+Under(Rug007)+Roof(Brick_Upper002.02):Plank001+Under(Rug008)+Roof(Brick_Upper001.02):Plank001+Under(Rug009)+Roof(Brick_Upper002.02):Plank001+Roof(Brick_Upper001.02):Brick_Thin_Plank002+Roof(Brick_Upper002.02):Grass001:Grass001:Grass001
+Grass001:Grass001+Decor(Lamp_Post001):Brick001:Brick_Lamp001:Brick001+Decor(Brick_Window001):Door001:Brick001+Decor(Brick_Window001):Brick001:Brick001+Decor(Ivy003):Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001+Decor(Crate001):Brick001:Brick001:Brick001+Decor(Brick_Window001):Door001:Brick001+Decor(Brick_Window001):Brick_Lamp001:Brick001:Grass001+Decor(Lamp_Post001):Grass001:Grass001
+Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Well001):Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001+Roof(Shingle_Roof001.06):Dirt001+Roof(Shingle_Roof003.06)
+Grass001:Grass001:Brick_Thin_Tile008+Roof(Copper_Roof001.03):Brick_Thin_Tile001+Roof(Copper_Roof002.03):Brick_Thin_Tile001+Roof(Copper_Roof002.03):Brick_Thin_Tile001+Roof(Copper_Roof002.03):Brick_Thin_Tile001+Roof(Copper_Roof002.03):Brick_Thin_Tile001+Decor(Bookshelf001)+Roof(Copper_Roof002.03):Brick_Thin_Tile005+Roof(Copper_Roof003.03):Grass001:Grass001:Brick_Thin_Plank008+Roof(Slate_Roof001.05):Brick_Thin_Plank001+Decor(Bookshelf001)+Roof(Slate_Roof002.05):Brick_Thin_Plank001+Decor(Bed001)+Roof(Slate_Roof002.05):Brick_Thin_Plank005+Roof(Slate_Roof003.05):Grass001:Brick_Thin_Plank008+Roof(Clay_Roof001.04):Brick_Thin_Plank001+Roof(Clay_Roof002.04):Brick_Thin_Plank001+Roof(Clay_Roof002.04):Brick_Thin_Plank001+Roof(Clay_Roof002.04):Fireplace003+Roof(Clay_Roof002.04):Brick_Thin_Plank001+Decor(Potted_Plant004)+Roof(Clay_Roof002.04):Brick_Thin_Plank005+Roof(Clay_Roof003.04):Dirt001+Roof(Shingle_Roof007.06):Dirt001+Roof(Shingle_Roof009.06)
+Grass001:Grass001+Decor(Flowers001):Brick_Thin_Tile004+Roof(Copper_Roof007.03):Tile001+Decor(Chair103)+Roof(Copper_Roof008.03):Tile001+Decor(Table001)+Roof(Copper_Roof008.03):Tile001+Roof(Copper_Roof008.03):Tile001+Roof(Copper_Roof008.03):Tile001+Roof(Copper_Roof023.03):Brick_Thin_Tile002+Roof(Copper_Roof009.03):Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof007.05):Plank001+Roof(Slate_Roof008.05):Plank001+Decor(Bed002)+Roof(Slate_Roof023.05):Brick_Thin_Plank002+Roof(Slate_Roof009.05):Grass001:Brick_Thin_Plank004+Roof(Clay_Roof007.04):Plank001+Under(Rug001)+Roof(Clay_Roof008.04):Plank001+Under(Rug003)+Roof(Clay_Roof008.04):Plank001+Roof(Clay_Roof008.04):Plank001+Decor(Bookshelf001)+Roof(Clay_Roof008.04):Plank001+Roof(Clay_Roof023.04):Brick_Thin_Plank002+Roof(Clay_Roof009.04):Dirt001+Roof(Shingle_Roof013.06):Dirt001+Roof(Shingle_Roof015.06)
+Grass001:Grass001:Brick_Thin_Tile004+Roof(Copper_Roof013.03):Tile001+Roof(Copper_Roof014.03):Tile001+Under(Rug001)+Roof(Copper_Roof014.03):Tile001+Under(Rug002)+Roof(Copper_Roof014.03):Tile001+Under(Rug002)+Roof(Copper_Roof014.03):Tile001+Under(Rug003)+Roof(Copper_Roof014.03):Brick_Thin_Tile002+Roof(Copper_Roof015.03):Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof010.05):Plank001+Decor(Table001)+Roof(Slate_Roof011.05):Plank001+Roof(Slate_Roof011.05):Brick_Thin_Plank002+Roof(Slate_Roof012.05):Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.04):Plank001+Under(Rug004)+Roof(Clay_Roof014.04):Plank001+Under(Rug006)+Roof(Clay_Roof014.04):Plank001+Decor(Table001)+Roof(Clay_Roof014.04):Plank001+Decor(Chair004)+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Brick_Thin_Plank002+Roof(Clay_Roof015.04):Dirt001:Dirt001
+Grass001:Grass001:Brick_Thin_Tile004+Decor(Potted_Plant002)+Roof(Brick_Upper002.03):Tile001+Roof(Brick_Upper001.03):Tile001+Under(Rug007)+Roof(Brick_Upper002.03):Tile001+Under(Rug008)+Roof(Brick_Upper001.03):Tile001+Under(Rug008)+Roof(Brick_Upper002.03):Tile001+Under(Rug009)+Roof(Brick_Upper001.03):Brick_Thin_Tile002+Roof(Brick_Upper002.03):Grass001:Grass001:Brick_Thin_Plank004+Roof(Slate_Roof013.05):Plank001+Roof(Slate_Roof014.05):Plank001+Roof(Slate_Roof014.05):Brick_Thin_Plank002+Roof(Slate_Roof015.05):Grass001:Brick_Thin_Plank004+Roof(Brick_Upper002.04):Plank001+Under(Rug007)+Roof(Brick_Upper001.04):Plank001+Under(Rug009)+Roof(Brick_Upper002.04):Plank001+Roof(Brick_Upper001.04):Plank001+Roof(Brick_Upper002.04):Plank001+Roof(Brick_Upper001.04):Brick_Thin_Plank002+Roof(Brick_Upper002.04):Grass001+Decor(Flowers002):Grass001
+Grass001:Grass001:Brick001+Decor(Bank_Column001):Brick_Lamp001:Brick001+Decor(Bank_Column001):Door001:Brick001+Decor(Bank_Column001):Brick001+Decor(Bank_Plaque001):Brick001+Decor(Bank_Column001):Grass001+Decor(Lamp_Post001):Grass001:Brick001:Brick001:Door001:Brick001:Grass001+Decor(Bench001):Brick001+Decor(Ivy001):Brick001:Brick001+Decor(Brick_Window005):Door037:Brick001+Decor(Brick_Window005):Brick_Lamp001:Brick001+Decor(Ivy003):Grass001+Decor(Flowers001):Grass001
+Grass001:Grass001+Decor(Berry_Bush001):Grass001:Grass001+Decor(Barrel001):Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001+Decor(Flower_Bed001):Grass001+Decor(Oak_Tree001):Grass001
+Grass001:Grass001:Grass001:Grass001:Weed001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Herb_Patch001):Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Weed001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+NPC	Baker	128	256	Attitude=Good Zone=5,9,7,10 Pause=4-10
+NPC	Shopkeeper	576	256	Attitude=Good Stand=1
+NPC	Banker	160	480	Attitude=Good Stand=1
+NPC	Blacksmith	544	480	Attitude=Good Zone=18,15,20,16 Pause=3-8
+NPC	Beggar	704	255	Attitude=Good Stand=1
+StaticObject	Notice	417	320	Id=Ashford
+MapItem	Herb	32	608	1
+MapItem	Egg	736	384	1
+StaticObject	Range	77	206
+StaticObject	Anvil	690	511
+StaticObject	Furnace	560	419
+NPC	Guard	384	352	Attitude=Good Patrol=4,12/22,12/13,12/13,20 PatrolMode=PingPong Pause=2-5
+NPC	Villager	192	384	Attitude=Good Zone=2,12,12,13 Pause=2-6
+NPC	Villager	640	608	Attitude=Good Zone=14,19,24,21 Pause=2-6
+NPC	Dog	512	384	Attitude=Good Zone=10,12,24,13 Pause=1-3
+StaticObject	Waystone	351	316
+StaticObject	Trout_Spot	480	96
+NPC	Butterfly	736	320	Attitude=Good
+Id	Waystone_Ashford	10	12
+NPC	Guard	384	216	Attitude=Good Stand=1 Id=Arena_Master
+StaticObject	Homestone	349	541
+NPC	Settler	334	510	Attitude=Good Stand=1 Id=Homestead_Settler Zone=11,16,12,18
+Id	Homestead_Yard	15	13
+StaticObject	Sign_Bakery	128	336
+StaticObject	Sign_General	544	336
+StaticObject	Sign_Smithy	576	560
+StaticObject	Sign_Builder	416	368
+NPC	Man	384	120	Attitude=Good Stand=1 Id=Innkeeper
+StaticObject	Dice_Table	192	128	Id=Dice_Table_1
+StaticObject	Dice_Table	288	128	Id=Dice_Table_2
+StaticObject	Dice_Table	480	128	Id=Dice_Table_3
+StaticObject	Sign_Tavern	256	112
+Id	The_Green_Dragon	13	6
+NPC	Cat	416	568	Attitude=Good
+NPC	Woman	384	504	Attitude=Good Zone=13,15,14,17 Pause=5-15 Id=Ashford_Resident_34 Name=Percy
+StaticObject	Notice	352	578	Id=Ashford_Notice_6
+Id	Ashford_Grown	13	11
+StaticObject	Shed_Post001	736	480
+StaticObject	Shed_Post002	768	480
+StaticObject	Carpenters_Bench	768	384
+Id	Ashford_Carpenters_Shed	24	14
+Id	Percys_House	14	18
+StaticObject	Arm_Table	576	128	Id=Arm_Table_1

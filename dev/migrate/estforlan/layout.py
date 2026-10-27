@@ -34,7 +34,7 @@ GRID = [
     "Mdddddsssssnnnnnuuuuuuuu~",
     "Mdddddsssssnnnnnuuuuuuu~~",
     "MdddddssssNNNNNNuuuuu~~~~",
-    "~~~~~~~~~~~~~~~~~~~~~~D~~",
+    "~~~~~~sssss~~~~~~~~~~~D~~",
     "~~~~~~~~~~~~~~~~~~~~~~~~~",
 ]
 W, H = 25, 22                       # the grid's maps (x 0-24, y 0-21)
@@ -104,7 +104,7 @@ SETTLEMENTS = {
     "Dunerest": dict(title="Dunerest", size="hamlet", maps=(3, 18, 3, 18), street="Sandstone_Paving001",
                      outer="Sand001", walls=[("Sandstone001", 6), ("Plaster001", 4)], grand="Sandstone001", coast=None,
                      land="desert"),
-    "Saltmarsh": dict(title="Saltmarsh", size="hamlet", maps=(9, 19, 9, 19), street="Boardwalk001",
+    "Saltmarsh": dict(title="Saltmarsh", size="hamlet", maps=(9, 20, 9, 20), street="Boardwalk001",
                       outer="Boardwalk001", walls=[("Timber001", 5), ("Plaster001", 4)], grand="Timber001", coast="S",
                       land="marsh"),
 }
@@ -124,6 +124,10 @@ def parts():
             _parts = json.load(f)
         for name, new in MOVED.items():
             _parts["parts"][name]["new"] = new
+        for part in _parts["parts"].values():
+            part["new"] = tname(part["new"])
+        _parts["level_files"] = {tname(new): new for new in _parts["levels"].values()}    # (saved as first named)
+        _parts["levels"] = {old: tname(new) for old, new in _parts["levels"].items()}
     return _parts
 
 
@@ -184,6 +188,60 @@ ROADS = [
 RIVERS = [
     [(3 * XT + 10, 9 * YT + 15), (5 * XT + 4, 8 * YT + 10), (7 * XT + 6, 7 * YT + 2), (7 * XT + 20, 5 * YT + 10),
      (8 * XT + 4, 4 * YT + 2)],                                         # the Wildwood's river, out by Southport
-    [(13 * XT + 3, 15 * YT + 8), (11 * XT + 6, 16 * YT + 8), (9 * XT + 12, 17 * YT + 14), (8 * XT + 20, 19 * YT + 16)],
+    [(13 * XT + 3, 15 * YT + 8), (11 * XT + 6, 16 * YT + 8), (9 * XT + 12, 17 * YT + 14), (8 * XT + 20, 19 * YT + 16),
+     (7 * XT + 12, 20 * YT + 18)],                                     # (on through the new fens to the sea)
     [(19 * XT + 2, 9 * YT + 10), (20 * XT + 6, 12 * YT + 19), (21 * XT + 10, 13 * YT + 12), (24 * XT + 2, 14 * YT + 3)],
 ]
+
+
+# ------------------------------------------------------------------ the world stretched: more room between the places
+# Everything above is the plan as first drawn; a new column (row) of maps goes in before each of these, like the one
+# west of (above) it, so the wild country between the settlements is wider. Map names east and south of each move on.
+INSERT_COLS = (6, 9, 12, 20)
+INSERT_ROWS = (7, 9, 18)
+
+
+def tx(mx):
+    """Map column mx of the plan as first drawn -> its column now."""
+    return mx + sum(1 for c in INSERT_COLS if c <= mx)
+
+
+def ty(my):
+    return my + sum(1 for r in INSERT_ROWS if r <= my)
+
+
+def tname(name):
+    x, y, z = name.split(",")
+    return "%d,%d,%s" % (tx(int(x)), ty(int(y)), z)
+
+
+def tpoint(gx, gy):
+    """A world tile of the plan as first drawn -> where it is now."""
+    return tx(gx // XT) * XT + gx % XT, ty(gy // YT) * YT + gy % YT
+
+
+def _stretch():
+    global GRID, W, H
+    rows = []
+    for my, row in enumerate(GRID):
+        if my in INSERT_ROWS:
+            rows.append(rows[-1])
+        rows.append(row)
+    grid = []
+    for row in rows:
+        out = ""
+        for mx, c in enumerate(row):
+            if mx in INSERT_COLS:
+                out += out[-1]
+            out += c
+        grid.append(out)
+    GRID, W, H = grid, len(grid[0]), len(grid)
+    for spec in SETTLEMENTS.values():
+        x1, y1, x2, y2 = spec["maps"]
+        spec["maps"] = (tx(x1), ty(y1), tx(x2), ty(y2))
+    for name, ((mx, my), tile, kind) in list(POIS.items()):
+        POIS[name] = ((tx(mx), ty(my)), tile, kind)
+    RIVERS[:] = [[tpoint(*p) for p in pts] for pts in RIVERS]
+
+
+_stretch()

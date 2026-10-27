@@ -48,9 +48,9 @@ def range_solid(gx, gy):
     lx, ly = gx - mx * XT, gy - my * YT
     if mx == 0 and lx <= 12 + 6 * fbm(gx, gy, 12, 81):
         return True
-    if mx < 10 and my == 10 and ly >= 9 - 5 * fbm(gx, gy, 10, 82):
+    if mx < L.tx(10) and my == L.ty(10) and ly >= 9 - 5 * fbm(gx, gy, 10, 82):
         return True
-    if mx < 10 and my == 15 and ly <= 11 + 5 * fbm(gx, gy, 10, 83):
+    if mx < L.tx(10) and my == L.ty(15) and ly <= 11 + 5 * fbm(gx, gy, 10, 83):
         return True
     return False
 
@@ -243,12 +243,19 @@ def scenery(land, gx, gy, r):
     return plain(land), ""
 
 
-def peak_at(land, gx, gy):
-    """The mountain tile at gx,gy: a 2 x 2 big peak where one fits (on even tiles), else one of six."""
+def peak_at(land, gx, gy, is_peak):
+    """The mountain tile at gx,gy: a piece of a 3 x 3 summit or a 2 x 2 big peak where a whole one fits (on tiles
+    that are multiples of 3 or 2, so their pieces agree), else one of six."""
     kind = PEAKS[land]
+    whole = lambda bx, by, n: all(is_peak((bx + i, by + j)) and BIOME.get((bx + i, by + j)) == land  # noqa: E731
+                                  for i in range(n) for j in range(n))
+    bx, by = gx - gx % 3, gy - gy % 3
+    if h01("huge", bx, by) < 0.22 and whole(bx, by, 3):
+        return "%s_Huge%03d" % (kind, 1 + (gx - bx) + 3 * (gy - by))
     bx, by = gx - gx % 2, gy - gy % 2
-    if h01("big", bx, by) < 0.16 and all(BIOME.get((bx + i, by + j)) == land and GROUND.get((bx + i, by + j)) is None
-                                          for i in (0, 1) for j in (0, 1)):
+    if h01("big", bx, by) < 0.3 and whole(bx, by, 2) and not any(
+            h01("huge", x - x % 3, y - y % 3) < 0.22 and whole(x - x % 3, y - y % 3, 3)
+            for x in (bx, bx + 1) for y in (by, by + 1)):
         return "%s_Big%03d" % (kind, 1 + (gx - bx) + 2 * (gy - by))
     return "%s%03d" % (kind, 1 + int(h01("pk", gx, gy) * 6))
 
@@ -292,7 +299,7 @@ def generate(atlas):
             grid[c] = "OPEN"
     for c in cells:                                    # (mountains first, so the big peaks can see their neighbours)
         if grid[c] == "PEAK":
-            GROUND[c] = peak_at(BIOME[c], *c)
+            GROUND[c] = peak_at(BIOME[c], c[0], c[1], lambda n: grid.get(n) == "PEAK")
             DECOR[c] = ""
     for c in cells:
         t = grid[c]

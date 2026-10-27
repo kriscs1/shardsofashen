@@ -26,15 +26,15 @@ NPC	Dog	736	312	Attitude=Good Zone=19,7,24,15 Pause=4-12
 NPC	Horse	672	320	Attitude=Good Stand=1 Face=W Id=Southport_Horse_3
 NPC	Carter	640	344	Attitude=Good Stand=1 Face=S Id=Southport_Carter_3 Name=Clara
 NPC	Speaker	416	152	Attitude=Good Stand=1 Face=S Id=Southport_Speaker_20
-NPC	Baker	96	216	Attitude=Good Stand=1 Face=S Id=Southport_Baker_321 Name=Sid
-NPC	Butcher	544	472	Attitude=Good Stand=1 Face=S Id=Southport_Butcher_325 Name=Kit
-NPC	Butcher	352	472	Attitude=Good Stand=1 Face=S Id=Southport_Butcher_327 Name=Edgar
-NPC	Butcher	160	472	Attitude=Good Stand=1 Face=S Id=Southport_Butcher_329 Name=Jane
+NPC	Baker	96	216	Attitude=Good Stand=1 Face=S Id=Southport_Baker_320 Name=Sid
+NPC	Butcher	544	472	Attitude=Good Stand=1 Face=S Id=Southport_Butcher_324 Name=Kit
+NPC	Butcher	352	472	Attitude=Good Stand=1 Face=S Id=Southport_Butcher_326 Name=Edgar
+NPC	Butcher	160	472	Attitude=Good Stand=1 Face=S Id=Southport_Butcher_328 Name=Jane
 StaticObject	Market_Stall_Open	704	416
 StaticObject	Market_Stall_Open	704	544
 StaticObject	Market_Stall_Open	768	480
 StaticObject	Cart	640	320
-StaticObject	Notice	0	578	Id=Southport_Notice_367
-StaticObject	Notice	64	578	Id=Southport_Notice_387
+StaticObject	Notice	0	578	Id=Southport_Notice_366
+StaticObject	Notice	64	578	Id=Southport_Notice_389
 Id	Southport_Cart_Stop_3	22	12
 Id	Southport_City_Hall	19	12

@@ -361,7 +361,7 @@ def test_dropped_things_are_yours_alone_for_ten_seconds(world):
 def test_farming_grows_and_only_the_sower_harvests(world):
     a, b = join(world, "Farmer Jo"), join(world, "Thief")
     farms = world.farms
-    m = world.maps["11,4,0"]
+    m = world.maps["13,4,0"]
     x, y = 4, 14
     assert m.tile[m.cell(x, y)] == "Soil001"
     for s in (a, b):
@@ -526,13 +526,13 @@ def test_digging_finds_things_now_and_then(world, monkeypatch):
 
 def test_what_you_dig_up_depends_on_where(world):
     s = join(world, "Prospector")
-    chance, finds = s.dig_finds(world.maps["2,17,0"])                 # (the desert: its own finds, nothing else)
+    chance, finds = s.dig_finds(world.maps["2,19,0"])                 # (the desert: its own finds, nothing else)
     names = {f[0] for f in finds}
     assert chance == 9 and "Glass" in names and "Potato_Seed" not in names
     chance, finds = s.dig_finds(world.maps["1,1,0"])                 # (the Isle: worms as well as the usual)
     names = {f[0] for f in finds}
     assert chance == 12 and {"Bait", "Gold_Coin(s)", "Potato_Seed"} <= names
-    chance, finds = s.dig_finds(world.maps["9,4,0"])                 # (Ashford: the usual)
+    chance, finds = s.dig_finds(world.maps["11,4,0"])                 # (Ashford: the usual)
     assert chance == 7 and "Bait" not in {f[0] for f in finds}
     leave(world, s)
 
@@ -805,7 +805,7 @@ def test_not_skilled_enough_plays_a_sound(world):
 
 
 def test_dying_waits_for_the_player_to_respawn(world):
-    a = join(world, "Mortal", "9,4,0", 384, 300)
+    a = join(world, "Mortal", "11,4,0", 384, 300)
     where = (a.player.x, a.player.y, a.cur_map.name)
     a.player_dies()
     assert any(e.get("t") == "died" for e in a.out) and any(e.get("name") == "Death" for e in a.out)
@@ -823,7 +823,7 @@ def test_dying_waits_for_the_player_to_respawn(world):
 
 
 def test_nothing_carries_on_while_dead(world):
-    a = join(world, "Bleeder", "9,4,0", 384, 300)
+    a = join(world, "Bleeder", "11,4,0", 384, 300)
     a.status_start("Bleed")
     a.keyboard_direction = 2                                       # (an arrow key held down as they fell)
     a.player_dies()
@@ -1243,18 +1243,18 @@ def test_a_character_from_before_the_heirs_story(world):
 
 
 def test_sneaking_past_the_smugglers(world):
-    m = world.maps["8,13,0"]
+    m = world.maps["9,15,0"]
     at = lambda tx, ty: (m.ox + (tx - 1) * 32, m.oy + (ty - 1) * 32)
     opts = "Attitude=Bad Stand=1 Face=S Group=TESTCAMP Friendly.If=$Attr.SmugglerQuest>=3"
     sentry = world.add_npc("Smuggler", 0, *at(22, 15), opts)        # (in the open, east of the camp: looking south)
     mate = world.add_npc("Smuggler", 0, *at(24, 13), opts.replace("Face=S", "Face=N"))
     for e in (sentry, mate):
         e.ai.turn_at = world.now + 10 ** 9                          # (no glancing about, for the test)
-    s = join(world, "Sneak", "8,13,0", 21 * 32, 11 * 32)             # behind the sentry (north of him), 4 tiles off
+    s = join(world, "Sneak", "9,15,0", 21 * 32, 11 * 32)             # behind the sentry (north of him), 4 tiles off
     for _ in range(40):
         world.tick(0.05)
     assert not sentry.in_combat and not mate.in_combat               # (he looks the other way)
-    s.teleport("8,13,0", 21 * 32, 18 * 32)                           # in front of him
+    s.teleport("9,15,0", 21 * 32, 18 * 32)                           # in front of him
     for _ in range(40):
         world.tick(0.05)
     assert sentry.in_combat and sentry.target is s
@@ -1263,7 +1263,7 @@ def test_sneaking_past_the_smugglers(world):
         world.npc_give_up(e, e.ai)
     s.update_attribute("SmugglerQuest", "=3")                       # Red Meg's deal: friends now
     assert not world.hostile_for(sentry, s)
-    other = join(world, "Stranger", "8,13,0", 21 * 32, 20 * 32)
+    other = join(world, "Stranger", "9,15,0", 21 * 32, 20 * 32)
     assert world.hostile_for(sentry, other)                         # (to them alone)
     for e in (sentry, mate):
         world.remove_entity(e)
@@ -1273,7 +1273,7 @@ def test_sneaking_past_the_smugglers(world):
 
 def test_the_smugglers_run(world, monkeypatch):
     monkeypatch.setattr(world, "npc_sees", lambda e, a, s, d: False)   # (a perfect sneak, for the test)
-    s = join(world, "Spy", "18,5,0", 10 * 32, 17 * 32)
+    s = join(world, "Spy", "21,5,0", 10 * 32, 17 * 32)
     s.connected = True
     s.update_attribute("Passage", "=12")                           # (off the Isle: the ferry's been taken)
     attr = lambda: int(float(s.get_attribute("SmugglerQuest") or 0))
@@ -1307,12 +1307,12 @@ def test_the_smugglers_run(world, monkeypatch):
 
     talk("Smuggler_Sergeant", 1)
     assert attr() == 1
-    use("13,4,0", 12, 14, "Search", (11 * 32, 14 * 32))               # the hollow barrel
-    assert attr() == 2 and s.cur_map.name == "13,4,-1"
-    use("14,4,-1", 16, 11, "Climb Up", (15 * 32, 11 * 32))            # up into the camp
-    assert s.cur_map.name == "14,4,0"
-    use("14,4,0", 16, 11, "Climb Down", (15 * 32, 11 * 32))           # (and back down the hatch: it's a way out)
-    assert s.cur_map.name == "14,4,-1"
+    use("16,4,0", 12, 14, "Search", (11 * 32, 14 * 32))               # the hollow barrel
+    assert attr() == 2 and s.cur_map.name == "16,4,-1"
+    use("17,4,-1", 16, 11, "Climb Up", (15 * 32, 11 * 32))            # up into the camp
+    assert s.cur_map.name == "17,4,0"
+    use("17,4,0", 16, 11, "Climb Down", (15 * 32, 11 * 32))           # (and back down the hatch: it's a way out)
+    assert s.cur_map.name == "17,4,-1"
     talk("Red_Meg", 1)
     assert attr() == 3
     gold = s.items_held("Gold_Coin(s)")
@@ -1573,7 +1573,7 @@ def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
     s.admin_command({"do": "goto", "place": "Waystone_Ashford"})
     for _ in range(5):
         world.tick(0.05)                                             # (Ashford's own script, as you arrive)
-    assert s.cur_map.name == "9,4,0" and not s.script_running
+    assert s.cur_map.name == "11,4,0" and not s.script_running
     s.out = []
     s.admin_command({"do": "commands"})
     cmds = {c[0]: c[1] for c in next(ev["commands"] for ev in s.out if ev["t"] == "admin_commands")}
@@ -1606,14 +1606,24 @@ def test_walking_granny_wren_to_her_daughter(world):
     for _ in range(5):
         world.tick(0.05)
     assert attr() == "1" and granny.follow is s
-    m = world.maps["9,4,0"]
+    m = world.maps["11,4,0"]
     door = (m.ox + 13 * 32 + 16, m.oy + 18 * 32 + 16)                # (in front of Percy's door)
+    bridges = [(bm.ox + (x - 1) * 32 + 16, bm.oy + (y - 1) * 32 + 16) for bm in world.maps.values()
+               if bm.name.endswith(",0") and 4 <= int(bm.name.split(",")[1]) <= 6 and
+               int(bm.name.split(",")[0]) in range(5, 11)
+               for y in range(2, 21) for x in range(2, 25) if bm.tile[bm.cell(x, y)] == "Plank001" and
+               not bm.roof[bm.cell(x, y)] and any(bm.tile_is_water(x + dx, y + dy)
+                                                  for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))]   # (a bridge)
+    bridge = min(bridges, key=lambda b: abs(b[0] - (s.player.cx + door[0]) / 2) + abs(b[1] - door[1]))
+    legs = [bridge, door]                                            # (along the road: over the river's bridge)
     for _ in range(12000):                                           # (a long road: the guide waits for her)
         behind = distance(granny.cx, granny.cy, s.player.cx, s.player.cy)
+        if legs[0] is not door and distance(s.player.cx, s.player.cy, *legs[0]) < 40:
+            legs.pop(0)
         if s.player_walk_active and behind > 160:
             s.stop_player_walk()
         elif not s.player_walk_active and behind < 64:
-            s.walk_player_to(door[0], door[1] - 14, 0, 4)
+            s.walk_player_to(legs[0][0], legs[0][1] - 14, 0, 4)
         world.tick(0.05, now=world.now + 50)
         if s.cur_map is m and distance(s.player.cx, s.player.cy, *door) < 40 and \
                 distance(granny.cx, granny.cy, s.player.cx, s.player.cy) < 80:
@@ -1629,13 +1639,13 @@ def test_walking_granny_wren_to_her_daughter(world):
     assert attr() == "2" and granny.follow is None and s.items_held("Gold_Coin(s)") == gold + 30
     leave(world, s)
     assert not granny.alive                                          # (gone with them; she lives at Percy's now)
-    s = join(world, "Guide", "9,4,0", 13 * 32, 19 * 32)
-    s.load_state({"map": "9,4,0", "x": 13 * 32, "y": 19 * 32, "attributes": [["EscortQuest", "2"]]})
+    s = join(world, "Guide", "11,4,0", 13 * 32, 19 * 32)
+    s.load_state({"map": "11,4,0", "x": 13 * 32, "y": 19 * 32, "attributes": [["EscortQuest", "2"]]})
     s.enter_world()
     for _ in range(10):
         world.tick(0.05)
     granny = world.placed_entity("Granny_Wren", s)
-    assert granny is not None and granny.map == "9,4,0" and distance(granny.cx, granny.cy, *door) < 64
+    assert granny is not None and granny.map == "11,4,0" and distance(granny.cx, granny.cy, *door) < 64
     leave(world, s)
 
 
@@ -1659,7 +1669,7 @@ def test_a_guard_comes_to_help_against_a_goblin(world):
 
 def test_the_guards_kills_count_and_whoever_fought_is_rewarded(world):
     waves = world.waves
-    s = join(world, "Fighter", "9,4,0", 10 * 32, 12 * 32)
+    s = join(world, "Fighter", "11,4,0", 10 * 32, 12 * 32)
     s.god_mode = True
     assert waves.start("Ashford_Raid")
     r = waves.running["Ashford_Raid"]
@@ -1993,7 +2003,7 @@ def story_done_before(s, chapter):
 
 
 def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
-    s = join(world, "Slayer", "7,12,0", 10 * 32, 11 * 32)
+    s = join(world, "Slayer", "8,14,0", 10 * 32, 11 * 32)
     s.god_mode = 1
     dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
     s.damage_npc(dragon, dragon.hp + 100)
@@ -2006,7 +2016,7 @@ def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
 
 
 def test_berts_spell_and_the_staff_break_the_barrier(world):
-    s = join(world, "Breaker", "9,12,0", 20 * 32, 10 * 32 - 8)
+    s = join(world, "Breaker", "11,14,0", 20 * 32, 10 * 32 - 8)
     run, npc, talk, use = isle_helpers(world, s)
     run(5)
     lights = lambda: [e for e in world.ents if e.name == "Barrier_Light" and e.alive and world.visible_to(e, s)]
@@ -2028,7 +2038,7 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
 
 
 def test_clearing_the_wardhaven_bridge_opens_its_gates(world):
-    s = join(world, "Bridger", "9,4,0", 13 * 32, 10 * 32)
+    s = join(world, "Bridger", "11,4,0", 13 * 32, 10 * 32)
     s.connected = True
     s.god_mode = 1
     run, npc, talk, use = isle_helpers(world, s)
@@ -2063,7 +2073,7 @@ def test_clearing_the_wardhaven_bridge_opens_its_gates(world):
 
 
 def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
-    s = join(world, "Scaler", "9,4,0", 13 * 32, 10 * 32)
+    s = join(world, "Scaler", "11,4,0", 13 * 32, 10 * 32)
     s.connected = True
     run, npc, talk, use = isle_helpers(world, s)
     wyrmsmith = next(e for e in world.ents if e.name == "Wyrmsmith")
@@ -2080,24 +2090,24 @@ def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
 
 
 def test_the_royal_guard_and_the_king(world):
-    s = join(world, "Heir", "2,12,0", 13 * 32, 17 * 32)
+    s = join(world, "Heir", "2,14,0", 13 * 32, 17 * 32)
     run, npc, talk, use = isle_helpers(world, s)
     attr = lambda a: int(float(s.get_attribute(a) or 0))
-    palace = world.maps["2,12,0"]
+    palace = world.maps["2,14,0"]
     door = palace.lock_at[(13, 13)]
     story_done_before(s, 16)
-    find = lambda prefix: next(e for e in world.ents if e.alive and e.npc_id.startswith(prefix))
+    find = lambda pid: next(e for e in world.ents if e.alive and e.npc_id == pid)
     captain, king = find("Palace_Captain"), find("Rupert_On_Throne")
     talk(captain, 1)
     assert attr("GuardQuest") == 1
-    talk(find("Galaith_Speaker"), 1, 1)
+    talk(find("Galaith_Speaker_70"), 1, 1)
     assert attr("GuardQuest") == 2
-    talk(find("Galaith_Clerk"), 1)                                   # (no amulet, no word from her)
+    talk(find("Galaith_Clerk_73"), 1)                                   # (no amulet, no word from her)
     assert attr("GuardQuest") == 2
     stock(s, Amulet_of_Succession=1)
-    talk(find("Galaith_Clerk"), 1, 1)
+    talk(find("Galaith_Clerk_73"), 1, 1)
     assert attr("GuardQuest") == 3 and s.items_held("Archivists_Attestation") == 1
-    talk(find("Galaith_Speaker"), 1)
+    talk(find("Galaith_Speaker_70"), 1)
     assert attr("GuardQuest") == 4 and s.items_held("Chancellors_Warrant") == 1
     s.check_locks(False)
     assert s.lock_closed(palace, door)                               # (the warrant shown to the captain first)
@@ -2110,11 +2120,11 @@ def test_the_royal_guard_and_the_king(world):
     jimmy = world.placed_entity("Throne_Jimmy", s)                   # (the cat himself, curled up on the throne)
     assert jimmy is not None and jimmy.name == "Strawberry_Cat" and world.npc_state(jimmy) == "Curl"
     assert jimmy.image.startswith("Strawberry_Cat_Curl")             # (and drawn curled up)
-    m = world.maps["2,12,0"]
+    m = world.maps["2,14,0"]
     gx, gy = m.ox + 12 * 32 + 16, m.oy + 6 * 32 + 16
     throne = s.tile_entity_at(gx, gy)
     assert throne.name == "Throne001" and s.get_verbs(throne).split(",")[0] == "Sit"
-    s.teleport("2,12,0", 12 * 32, 8 * 32 - 8)                       # (in front of it)
+    s.teleport("2,14,0", 12 * 32, 8 * 32 - 8)                       # (in front of it)
     run(10)
     s.choose_verb("Sit", throne, gx, gy)
     run(20)
