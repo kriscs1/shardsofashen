@@ -1321,6 +1321,23 @@ def test_the_smugglers_run(world, monkeypatch):
     leave(world, s)
 
 
+def test_closing_a_cutscenes_conversation_doesnt_leave_you_stuck(world):
+    s = Session(world, "Impatient")
+    s.load_state(None)
+    world.sessions["Impatient"] = s
+    s.connected = True
+    s.enter_world()
+    for _ in range(400):                                            # (Esc at every word of the funeral)
+        world.tick(0.05, now=world.now + 50)
+        if s.ab_mode == "Conversation":
+            s.handle({"t": "close"})
+        if s.user_input_enabled and s.get_attribute("LastWill") == "1":
+            break
+    assert s.user_input_enabled and s.cur_map.name == "4,0,0" and s.get_attribute("LastWill") == "1"
+    leave(world, s)
+    world.sessions.pop("Impatient", None)
+
+
 def test_a_new_character_starts_at_their_mothers_funeral(world):
     s = Session(world, "Newborn")
     s.load_state(None)                                              # (a new character: saves\\TEMPLATE.ini)

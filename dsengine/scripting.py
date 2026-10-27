@@ -187,6 +187,8 @@ class ScriptMixin:
             else:
                 if self.script_cancel_line > 0:
                     self.script_jump(lbstr(self.script_cancel_line))
+                elif not self.user_input_enabled and self.script_response_line.get(1, 0) > 0:
+                    self.script_jump(lbstr(self.script_response_line[1]))   # (a cutscene closed: it goes on)
                 else:
                     self.end_script()
                     return

@@ -936,7 +936,7 @@ def bank_scripts():
     ])
     w("Talk to Edwin", [
         ("Get.Value", "ATTRIBUTE", "DinnerQuest", V1),
-        (">Conditional", "$Variable.1=3", "@chat"),
+        (">Conditional", "$Variable.1>=2 and $Variable.1<=3", "@chat"),   # (an egg fried on any range will do)
         (">Got.Item", "Fried_Egg", "1", "@chat"),
         ("Take.Item", "Fried_Egg", "1"),
         ("Update.Attribute", "DinnerQuest", "=4"),

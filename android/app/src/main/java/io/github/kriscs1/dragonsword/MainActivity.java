@@ -71,9 +71,15 @@ public class MainActivity extends Activity {
     }
 
     private void back() {
-        // (in a game: back to the start screen; on it: out of the app, a hosted game going on)
-        if (shown.startsWith(HOME)) finish();
-        else web.loadUrl(HOME);
+        // (in a game: what's open there shuts first, then back to the start screen; on it: out of the app, a hosted
+        // game going on)
+        if (shown.startsWith(HOME)) {
+            finish();
+            return;
+        }
+        web.evaluateJavascript("!!(window.dsBack && window.dsBack())", (shut) -> {
+            if (!"true".equals(shut)) web.loadUrl(HOME);
+        });
     }
 
     @Override

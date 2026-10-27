@@ -475,6 +475,22 @@ $("price-form").addEventListener("submit", (ev) => {
 $("price-cancel").addEventListener("click", () => { $("price").hidden = true; priceDone = null; canvas.focus(); });
 
 window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice };
+
+// The phone's Back button (the app asks the page first): shuts what's open, the topmost first; false when nothing was
+// (then the app goes back to its start screen)
+window.dsBack = () => {
+  const shut = { options: "options-done", quit: "quit-no", admin: "admin-close", price: "price-cancel",
+                 password: "pw-cancel", appearance: "appearance-cancel", message: "message-ok" };
+  for (const [id, button] of Object.entries(shut)) if (!$(id).hidden) { $(button).click(); return true; }
+  if (!$("chat-entry").hidden) { $("chat-input").value = ""; $("chat-entry").hidden = true; return true; }
+  if (J.open) { closeJournal(); return true; }
+  if (U.worldMap) { U.worldMap = false; return true; }
+  if (U.rcm) { U.rcm = null; return true; }
+  if (S.itemInUse) { S.itemInUse = 0; send({ t: "use_cancel" }); return true; }
+  if (S.box.mode) { send({ t: "close" }); return true; }
+  if (M.bag || M.chat) { M.bag = M.chat = false; return true; }
+  return false;
+};
 window.dsDebug = { S, V, send, layout: () => ({ ...L, k: screen.k / screen.dpr }) };   // (for tools/browser_check.py, and scripted play-throughs)
 
 // ================================================================================================================
