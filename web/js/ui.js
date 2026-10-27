@@ -10,7 +10,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
-  cooldownLeft } from "./verbs.js";
+  cooldownLeft, spellAt, spellTitle } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
@@ -1308,13 +1308,13 @@ function drawHotbar(ctx) {
       const im = n || known ? sprite(name) : greyed(name);
       if (im) ctx.drawImage(im, x + Math.floor((w - im.width) / 2), y + Math.floor((h - im.height) / 2));
       if (known) {                                // (a spell you know: its cooldown, or that you're short of Shards)
-        const left = cooldownLeft(sp), total = val(spellIni(sp, "Cooldown", "0")) * 1000;
+        const left = cooldownLeft(sp), total = val(spellAt(sp, "Cooldown", "0")) * 1000;
         if (left > 0 && total > 0) {
           ctx.fillStyle = "rgba(10,6,4,0.62)";
           const ch = Math.ceil(h * Math.min(1, left / total));
           ctx.fillRect(x + 1, y + h - ch - 1, w - 2, ch);
           centreText(ctx, x + w / 2, y + h / 2 - 5, String(Math.ceil(left / 1000)), 10, true, [255, 240, 200]);
-        } else if ((S.me.shards || 0) < val(spellIni(sp, "Cost", "0"))) {
+        } else if ((S.me.shards || 0) < val(spellAt(sp, "Cost", "0"))) {
           ctx.fillStyle = "rgba(150,30,20,0.45)";
           ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
         }
@@ -1331,7 +1331,7 @@ export function hotbarLabel(k) {
   const name = (S.me.hotbar || [])[k];
   if (!name) return `#Hotbar slot ${k + 1}|~Right-click an item in your pack: Hotbar`;
   const sp = spellTaught(name);
-  if (sp && knowsSpell(sp)) return [`#${pretty(sp)}  (a spell you know)`, ...itemLines(name), `~Press ${k + 1} or click to cast it`].join("|");
+  if (sp && knowsSpell(sp)) return [`#${spellTitle(sp)}  (a spell you know)`, ...itemLines(name), `~Press ${k + 1} or click to cast it`].join("|");
   return [`#${pretty(name)}  (${held(name)})`, ...itemLines(name), `~Press ${k + 1} or click to use it`].join("|");
 }
 

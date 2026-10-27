@@ -270,14 +270,19 @@ function spellCard(ctx, sp, slot) {
   iconWell(ctx, x, y, sp.scroll);
   const label = known ? "Known" : short ? `Needs ${sp.skill} ${sp.level}` : "Not learnt";
   const bw = badge(ctx, x + SPELL_W - 10, y + 8, label, known ? [150, 140, 255] : short ? [235, 105, 85] : [190, 160, 110]);
-  drawText(ctx, fitText(ctx, pretty(sp.spell), SPELL_W - 80 - bw, 11, true), x + 56, y + 8, 11, true, known ? INK : PARCHMENT);
+  drawText(ctx, fitText(ctx, sp.title || pretty(sp.spell), SPELL_W - 80 - bw, 11, true), x + 56, y + 8, 11, true, known ? INK : PARCHMENT);
   const r = new Run(ctx, x + 56, x + SPELL_W - 12);
   r.text(`${sp.skill} ${sp.level}`, short ? [235, 105, 85] : [120, 210, 110], y + 28, 9, true);
   r.text("   ·   ", DIM, y + 28);
   r.icon("Shard", y + 25, 14);
   r.text(`${sp.cost} Shards a cast`, (S.me.shards || 0) < sp.cost && known ? [235, 105, 85] : [214, 200, 255], y + 28, 9, true);
   if (sp.cooldown > 0) r.text(`   ·   ready again after ${lbstr(sp.cooldown)} s`, PARCHMENT, y + 28);
-  wrap(ctx, x + 16, y + 52, SPELL_W - 32, sp.what.charAt(0).toUpperCase() + sp.what.slice(1) + ".", [250, 240, 210], 15, 2);
+  wrap(ctx, x + 16, y + 50, SPELL_W - 32, sp.what.charAt(0).toUpperCase() + sp.what.slice(1) + ".", [250, 240, 210], 15, sp.next ? 1 : 2);
+  if (sp.next) {                                  // (its next rank: what it'll be, and what it needs)
+    const n = sp.next;
+    wrap(ctx, x + 16, y + 68, SPELL_W - 32, `Upgrade: ${n.title} (${sp.skill} ${n.level}, ${n.cost} Shards): ${n.what}. Its scroll is rare: quests and treasure.`,
+      skillLevel(sp.skill) >= n.level ? [190, 180, 255] : DIM, 15, 2);
+  }
   if (known) {
     const left = cooldownLeft(sp.spell), poor = (S.me.shards || 0) < sp.cost;
     if (left > 0) drawText(ctx, `Ready in ${Math.ceil(left / 1000)} s`, x + 16, y + SPELL_H - 32, 9, true, [255, 214, 90]);

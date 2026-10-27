@@ -123,13 +123,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
 
 **Magic and Shards**
-- Magic runs on **Shards**, an item in your pack (`dsengine/shards.py`); they never come back by themselves. Beasts,
-  chests, digging and quests (`Reward.Shards`) give them; spells, waystones (waking one the first time) and anything
-  else magical spend them, through `spend_shards` or the script command `>Pay.Shards`: never below nothing, nothing
-  taken unless the thing goes ahead, and a Denied word when you're short. No mana.
+- Magic runs on **Shards**, a balance each player has, shown on the bar under their health: **never an item in the
+  pack** (`dsengine/shards.py`; a script's `Give.Item Shard` or an old save's Shards go on the balance). They never
+  come back by themselves. Beasts, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells and
+  waystones (a price to wake one, then a few Shards a journey) spend them, through `spend_shards` or `>Pay.Shards`:
+  never below nothing, nothing taken unless the thing goes ahead, and a Denied word when you're short. No mana.
 - A spell's scroll teaches it for good (if your Magic is high enough; else it's kept); a known spell's scroll isn't
-  used up. Each spell has its own Shard cost and cooldown in `Spells.ini`; the numbers live in data (Config.ini
-  `[Shards]`, Digging.ini, Quests.ini), set by `dev/migrate/build_shards.py`.
+  used up (dismantle it for Shards). Scrolls are rare. Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
+  spell a rank; each rank's values are `Key.<rank>` in `Spells.ini`. Quests give items with `Reward.Items`, and a
+  finished quest shows its reward screen. The numbers live in data (Config.ini `[Shards]`, Digging.ini, Quests.ini),
+  set by `dev/migrate/build_shards.py`.
 
 **Doing things**
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays

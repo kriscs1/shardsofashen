@@ -46,6 +46,13 @@ html, body {
 }
 
 .overlay[hidden] { display: none; }
+/* a finished quest's rewards: a row each, its picture and what */
+#reward .panel { min-width: 300px; max-width: 460px; text-align: center; }
+#reward-quest { font-weight: bold; color: #ffe68c; margin: 4px 0 10px; }
+#reward-list { list-style: none; margin: 0; padding: 0; text-align: left; }
+#reward-list li { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-bottom: 1px solid rgba(126, 77, 63, 0.6); }
+#reward-list canvas { width: 32px; height: 32px; image-rendering: pixelated; flex: none; }
+#reward-list .shards { color: #d6c8ff; font-weight: bold; }
 #tavern-game:focus { outline: none; }
 
 #loading {

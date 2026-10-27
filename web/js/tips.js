@@ -5,7 +5,7 @@ import { S } from "./state.js";
 import { entityIni, spellIni } from "./assets.js";
 import { val, trim, lbstr } from "./util.js";
 import { T, getVerbs, displayName, examineText, equipSlot, spellSummary, skillLevel, itemPrice,
-  canSellHere, knowsSpell } from "./verbs.js";
+  canSellHere, knowsSpell, spellRank, scrollRank, spellAt, spellTitle } from "./verbs.js";
 
 function firstSentence(text, most = 64) {
   const t = String(text || "").trim();
@@ -26,19 +26,22 @@ export function itemLines(name) {
   const slot = equipSlot(name);
   if (spell) {
     const eff = spellIni(spell, "Effect", "").toUpperCase();
-    let what = spellSummary(spell);
+    let what = spellSummary(spell, scrollRank(name));
     if (eff === "TELEPORT") what = spellIni(spell, "Map", "").trim() ? "Teleports you away" : "Teleports you home";
     if (eff === "HOME") what = "Takes you to your homestead";
     if (what) out.push(capital(what));
     if (spellIni(spell, "Kind", "Scroll").toUpperCase() !== "POTION") {
       // (one line: what it needs and what it costs)
-      const level = val(spellIni(spell, "Level", "1"));
+      const rank = scrollRank(name), have = spellRank(spell);
+      const level = val(spellAt(spell, "Level", "1", rank));
       const skill = spellIni(spell, "Skill", "Magic");
-      const cost = val(spellIni(spell, "Cost", "0"));
-      const cd = val(spellIni(spell, "Cooldown", "0"));
+      const cost = val(spellAt(spell, "Cost", "0", rank));
+      const cd = val(spellAt(spell, "Cooldown", "0", rank));
       out.push((skillLevel(skill) >= level ? "+" : "!") + `Needs ${skill} ${lbstr(level)}` +
         (cost ? ` · ${lbstr(cost)} Shards a cast` : "") + (cd ? ` · ${lbstr(cd)} s` : ""));
-      out.push(knowsSpell(spell) ? "+You know this spell: the scroll isn't used up" : "~Read it to learn the spell for good");
+      if (have >= rank) out.push(`+You know ${spellTitle(spell, have)}: the scroll isn't used up`);
+      else if (have < rank - 1) out.push(`!Raises ${spellTitle(spell, rank - 1)} to ${spellTitle(spell, rank)}: learn that first`);
+      else out.push(rank > 1 ? `~Read it: your ${spellTitle(spell, have)} becomes ${spellTitle(spell, rank)}` : "~Read it to learn the spell for good");
     }
   } else if (slot) {
     const bonus = ["Attack", "Defence", "Magic"].map((k) => [k, val(entityIni(name, k, "0"))])

@@ -3,7 +3,7 @@ its hitpoints go down for everyone, and it fights whoever hit it), spells and st
 from dragonsword.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
 
 from .entity import NPC, PLAYER, MAPITEM, TYPE_NAMES
-from .shards import shard_words
+from .shards import shard_words, SHARD
 
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
@@ -91,6 +91,8 @@ class CombatMixin:
             gain = val(amount[1:]) * d.xp_slowdown / (d.xp_slowdown + old)
             amount = "+" + lbstr(round(gain, 5))
         self.skill_xp[i] = min(d.skill_max_level, max(0, apply_change(self.skill_xp[i], amount)))
+        if amount[:1] == "+":
+            self.reward_xp(d.skill_name[i], val(amount[1:]))     # (a quest's reward screen lists it)
         new = self.level_of_xp(self.skill_xp[i])
         self.dirty_me = True
         if new > old:
@@ -371,7 +373,9 @@ class CombatMixin:
             percent = word(dd, 3, ",") or "100"
             if rnd() * 100 < val(percent):
                 amount = parse_quantity(amount_s) if "-" in amount_s else val(amount_s)
-                if amount > 0:
+                if amount > 0 and name == SHARD:            # (Shards: straight to the killer's balance)
+                    self.give_shards(int(amount), "The %s's Shards" % self.display_name(e))
+                elif amount > 0:
                     copies, each = (1, amount) if self.stackable_quantity(name) > 1 else (min(amount, 10), 1)
                     iw, ih = self.data.sprite_size_of(3, name)
                     for _ in range(int(copies)):
@@ -509,7 +513,8 @@ class CombatMixin:
     # Spells (data\\Spells.ini): reading a scroll teaches its spell for good; casting it spends Shards (shards.py)
     # =================================================================================================================
     def spell_ini(self, spell, key, default):
-        return self.data.spell_ini(spell, key, default)
+        """Spells.ini, at the rank they know the spell to (Damage.2 from rank 2 on: shards.py)."""
+        return self.spell_ini_at(spell, key, default, max(1, self.spells_known.get(spell, 1)))
 
     @staticmethod
     def spell_roll(range_text):
@@ -605,21 +610,31 @@ class CombatMixin:
                                 (", ready again after %s s" % lbstr(cd)) if cd > 0 else "")
 
     def learn_spell(self, item, spell):
-        """A spell's scroll read: the spell is theirs for good (the scroll goes, unless it's one that Keep=1)."""
-        name = pretty(spell)
-        level = val(self.spell_ini(spell, "Level", "1"))
+        """A spell's scroll read: the spell is theirs for good, or (an upgrade's scroll, Rank=2...) raised to its rank.
+        The scroll goes, unless it's one that Keep=1."""
+        rank = self.scroll_rank(item.name)
+        title = self.spell_title(spell, rank)
+        if self.spell_rank(spell) < rank - 1:
+            self.refuse("This scroll raises %s to %s: learn %s first." %
+                        (pretty(spell), title, self.spell_title(spell, rank - 1)))
+            return
+        level = val(self.spell_ini_at(spell, "Level", "1", rank))
         skill = self.spell_ini(spell, "Skill", "Magic")
         if self.skill_level(skill) < level:
             self.refuse("You need level %s %s to learn %s (you have %d). Keep the scroll till you're ready." %
-                        (lbstr(level), skill, name, self.skill_level(skill)))
+                        (lbstr(level), skill, title, self.skill_level(skill)))
             return
-        self.spells_known.add(spell)
+        self.spells_known[spell] = rank
         if val(self.spell_ini(spell, "Keep", "0")) != 1:
             self.remove_inventory_item(item.name, 1)
         self.play_sound("SpellCast")
         self.fx_anim(self.spell_ini(spell, "Impact", "") or "Teleport_Glow", self.player.cx, self.player.cy, 500)
-        self.display_message("You learn %s! It's yours for good: %s. Cast it from the journal's Spells (H) or put "
-                             "its scroll on your hotbar." % (name, self.spell_terms(spell)), "ACHIEVEMENT")
+        if rank > 1:
+            self.display_message("Your %s grows stronger: it's %s now (%s)." %
+                                 (pretty(spell), title, self.spell_terms(spell)), "ACHIEVEMENT")
+        else:
+            self.display_message("You learn %s! It's yours for good: %s. Cast it from the journal's Spells (H) or "
+                                 "put its scroll on your hotbar." % (title, self.spell_terms(spell)), "ACHIEVEMENT")
         self.dirty_me = True
         self.dirty_quests = True
 
@@ -634,9 +649,9 @@ class CombatMixin:
         if spell == "":
             self.display_message("Nothing interesting happens.", "FAIL")
             return
-        if self.spell_learnable(item.name) and spell not in self.spells_known:
+        if self.spell_learnable(item.name) and self.spell_rank(spell) < self.scroll_rank(item.name):
             self.learn_spell(item, spell)
-            if spell not in self.spells_known or target is None:
+            if self.spell_rank(spell) < self.scroll_rank(item.name) or target is None:
                 return                                  # (used on something: learnt, and cast at it, at once)
         self.cast_spell(spell, target, item)
 
@@ -648,7 +663,7 @@ class CombatMixin:
             self.refuse("You don't know %s yet: read its scroll to learn it." % pretty(spell))
             return
         w = self.w
-        name = pretty(spell)
+        name = self.spell_title(spell) if not self.spell_is_potion(spell) else pretty(spell)
         level = val(self.spell_ini(spell, "Level", "1"))
         skill = self.spell_ini(spell, "Skill", "Magic")
         potion = self.spell_is_potion(spell)

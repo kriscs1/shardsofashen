@@ -1675,6 +1675,23 @@ for _name, (_seal, _rune) in SCROLLS.items():
     SPRITES[_name] = (lambda seal=_seal, rune=_rune: scroll(seal, rune))
 
 
+def upgrade_scroll(seal, rune, rank):
+    """An upgrade's scroll (build_shards.py: Rank=2...): the spell's scroll with its rank in gold strokes, II or III,
+    down its left side, and a gold seal."""
+    img = scroll((214, 170, 60), rune)
+    for k in range(rank):
+        for y in range(11, 21):
+            K.put(img, 4 + k * 3, y, (240, 200, 80) if y % 9 else (255, 236, 150))
+            K.put(img, 5 + k * 3, y, (150, 110, 30))
+    return K.outline_img(img, (70, 52, 30))
+
+
+for _name, _rank in (("Fire_Bolt", 2), ("Fire_Bolt", 3), ("Healing", 2), ("Ice_Bolt", 2), ("Lightning", 2),
+                     ("Frost_Nova", 2), ("Fire_Storm", 2)):
+    _seal, _rune = SCROLLS[_name + "_Scroll"]
+    SPRITES["%s_Scroll_%s" % (_name, "I" * _rank)] = (lambda seal=_seal, rune=_rune, r=_rank: upgrade_scroll(seal, rune, r))
+
+
 # ================================================================== skill tiers: logs, fish, food, potions, wooden gear
 @sprite("Oak_Logs")
 def oak_logs():

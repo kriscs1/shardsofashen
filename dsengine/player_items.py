@@ -8,6 +8,7 @@ from dragonsword import ini
 from dragonsword.lb import val, word, trim, lbstr, pretty, random_number
 
 from .entity import InvItem, Entity, ACTIONBOXITEM, MAPITEM, STATICOBJECT
+from .shards import SHARD
 
 MATERIALS = [("Copper", "Copper_Bar", 1), ("Bronze", "Bronze_Bar", 1), ("Iron", "Iron_Bar", 5),
              ("Steel", "Steel_Bar", 15), ("Mithril", "Mithril_Bar", 25), ("Leather", "Leather", 1),
@@ -40,6 +41,8 @@ class ItemsMixin:
         return max(0, self.inventory_capacity() - len(self.inv))
 
     def items_held(self, name):
+        if name == SHARD:
+            return self.shard_balance                   # (Shards are a balance: shards.py)
         return sum(e.quantity for e in self.inv if e.name == name)
 
     def inv_item(self, uid):
@@ -49,6 +52,10 @@ class ItemsMixin:
         if name == "" or quantity <= 0:
             return
         quantity = int(quantity)
+        if name == SHARD:
+            self.add_shards(quantity)                   # (onto the balance, never into the pack)
+            return
+        self.reward_note(name, quantity)
         room = self.inventory_slots_available(name)
         if room - quantity < 0:
             dropped = quantity - room
@@ -76,6 +83,9 @@ class ItemsMixin:
             self.check_locks(True)
 
     def remove_inventory_item(self, name, quantity):
+        if name == SHARD:
+            self.take_shards(quantity)
+            return
         quantity = min(int(quantity), self.items_held(name))
         if quantity <= 0:
             return

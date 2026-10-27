@@ -1046,7 +1046,7 @@ class ScriptMixin:
         else:
             self.attributes[idx][1] = lbstr(apply_change(val(self.attributes[idx][1]), change))
         if not name.upper().startswith(("SHARDSPAID.", "SHARDSGIVEN")):
-            self.shard_quest_reward(name, val(self.attributes[idx][1]))     # (a quest done: its Shards, once)
+            self.quest_reward(name, val(self.attributes[idx][1]))           # (a quest done: its rewards, once)
         self.dirty_me = True
         self.dirty_quests = True
         self.check_locks(True)

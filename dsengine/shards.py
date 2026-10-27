@@ -1,12 +1,20 @@
-"""Shards: the world's magic, in your pack (the item Shard). Spells and waystones spend them; monsters, digging,
-quests, chests and potions give them. Everything that counts, pays or gives them comes through here, so the rules
-are the same everywhere: never below nothing, nothing taken unless the thing goes ahead, one clear word (and the
-Denied sound) when you're short. Costs are data: Spells.ini Cost=, Config.ini [Shards], Quests.ini Reward.Shards=.
+"""Shards: the world's magic, a balance each player has (shown under their health: never an item in the pack).
+Spells, waystones and anything else magical spend them; monsters, digging, quests, chests, dismantling and potions
+give them. Everything that counts, pays or gives them comes through here, so the rules are the same everywhere:
+never below nothing, nothing taken unless the thing goes ahead, one clear word (and the Denied sound) when you're
+short. Costs are data: Spells.ini Cost=, Config.ini [Shards], Quests.ini Reward.Shards=.
+
+The item Shard is only a name for them: given (a script's Give.Item, a chest, a drop, an old save's pack) it goes on
+the balance; asked for (>Got.Item, Take.Item, $Item.Shard) it's the balance.
+
+Spells have ranks: a scroll with Rank=2 (Fire_Bolt_Scroll_II) raises a spell you know to rank 2, and every Spells.ini
+key may have a value for a rank (Damage.2, Cost.2, Level.2...), used from that rank up.
 
 The server runs one player's commands at a time, so a check and its payment can't be split by another click."""
-from dragonsword.lb import val, lbstr, trim
+from dragonsword.lb import val, lbstr, trim, pretty
 
 SHARD = "Shard"
+ROMAN = {1: "", 2: " II", 3: " III", 4: " IV", 5: " V"}
 
 
 def shard_words(n):
@@ -14,9 +22,9 @@ def shard_words(n):
 
 
 class ShardMixin:
+    # ----- the balance
     def shards(self):
-        """How many Shards the player carries (the bank's don't count: magic is spent from your pack)."""
-        return self.items_held(SHARD)
+        return self.shard_balance
 
     def shard_setting(self, key, default=0):
         """A number from Config.ini [Shards]: key itself, else (Waystone.Galaith) its first part (Waystone)."""
@@ -33,32 +41,37 @@ class ShardMixin:
         n = int(n)
         if n <= 0:
             return True
-        if self.shards() < n:
+        if self.shard_balance < n:
             self.short_of_shards(n, what)
             return False
-        self.remove_inventory_item(SHARD, n)
+        self.shard_balance -= n
         self.dirty_me = True
         return True
 
+    def take_shards(self, n):
+        """As many as there are, up to n (a script's Take.Item Shard): never below nothing."""
+        self.shard_balance = max(0, self.shard_balance - max(0, int(n)))
+        self.dirty_me = True
+
+    def add_shards(self, n):
+        self.shard_balance += max(0, int(n))
+        self.dirty_me = True
+        self.reward_note(SHARD, n)
+
     def give_shards(self, n, why=""):
-        """n Shards into the pack (what won't fit falls at their feet), and a line saying so."""
+        """n Shards on the balance, and a line saying so."""
         n = int(n)
         if n <= 0:
             return
-        self.add_inventory_item(SHARD, n, quiet=True)
-        self.display_message(("%s: %s." % (why, shard_words(n))) if why else "You gain %s." % shard_words(n), "SUCCESS")
+        self.add_shards(n)
+        self.display_message(("%s: +%s." % (why, shard_words(n))) if why else "+%s." % shard_words(n), "SUCCESS")
 
-    def shard_quest_reward(self, attribute, value):
-        """A quest just reached Done: its Quests.ini Reward.Shards, once (a flag says it's been paid)."""
-        for name, d in self.help_read_ini("Quests.ini"):
-            if trim(d.get("ATTRIBUTE", "")).upper() != attribute.upper():
-                continue
-            done, reward = val(d.get("DONE", "0")), int(val(d.get("REWARD.SHARDS", "0")))
-            flag = "ShardsPaid." + attribute
-            if reward > 0 and done > 0 and value >= done and val(self.get_attribute(flag)) < 1:
-                self.update_attribute(flag, "=1")
-                self.give_shards(reward, "%s: your reward" % name)
-            return
+    def shards_from_bank(self):
+        """Shards an old save banked (when they were an item): onto the balance."""
+        for i in range(1, self.data.bank_slots + 1):
+            if self.bank_item[i] == SHARD:
+                self.add_shards(self.bank_qty[i])
+                self.bank_item[i], self.bank_qty[i], self.bank_wear[i] = "", 0, []
 
     def shard_start(self, new_character):
         """A new character's Shards (Config [Shards] Start), or, once, those for a character from before Shards."""
@@ -67,26 +80,156 @@ class ShardMixin:
             return
         self.update_attribute(flag, "=1")
         n = self.shard_setting("Start" if new_character else "Old.Save.Grant", 12 if new_character else 20)
-        if n > 0:
-            self.add_inventory_item(SHARD, n, quiet=True)
-            if not new_character:
-                self.display_message("Magic in Estforlan now runs on Shards, and you have %s to begin with. Read a "
-                                     "spell's scroll to learn it for good (H: the journal's Spells)." % shard_words(n),
-                                     "ACHIEVEMENT")
+        self.add_shards(n)
+        if n > 0 and not new_character:
+            self.display_message("Magic in Estforlan now runs on Shards, and you have %s to begin with. Read a "
+                                 "spell's scroll to learn it for good (H: the journal's Spells)." % shard_words(n),
+                                 "ACHIEVEMENT")
+
+    # ----- quests' rewards, and the screen that shows them
+    def quest_reward(self, attribute, value):
+        """A quest just reached Done: its Quests.ini Reward.Shards and Reward.Items, once (a flag says they've been
+        given); the reward screen opens, listing them and whatever the quest's script gives as it finishes."""
+        for name, d in self.help_read_ini("Quests.ini"):
+            if trim(d.get("ATTRIBUTE", "")).upper() != attribute.upper():
+                continue
+            done = val(d.get("DONE", "0"))
+            flag = "ShardsPaid." + attribute
+            if done <= 0 or value < done or val(self.get_attribute(flag)) >= 1:
+                return
+            self.update_attribute(flag, "=1")
+            self.reward_begin(name)
+            n = int(val(d.get("REWARD.SHARDS", "0")))
+            if n > 0:
+                self.give_shards(n, "%s: your reward" % name)
+            items = trim(d.get("REWARD.ITEMS", "")).split()
+            for k in range(0, len(items) - 1, 2):
+                self.add_inventory_item(items[k], max(1, int(val(items[k + 1]))))
+            return
+
+    def reward_begin(self, quest):
+        self.reward = {"quest": quest, "got": {}, "xp": {}, "at": self.now}
+
+    def reward_note(self, item, n):
+        """Something given while a quest's reward screen is gathering (its script still running): listed on it."""
+        r = getattr(self, "reward", None)
+        if r is not None and n > 0:
+            r["got"][item] = r["got"].get(item, 0) + int(n)
+
+    def reward_xp(self, skill, n):
+        r = getattr(self, "reward", None)
+        if r is not None and n > 0:
+            r["xp"][skill] = r["xp"].get(skill, 0) + n
+
+    def reward_tick(self):
+        """The quest's script has finished (or a moment has passed, if it ran in none): the screen is shown."""
+        r = getattr(self, "reward", None)
+        if r is None or (self.script_running and self.now - r["at"] < 20000):
+            return
+        self.reward = None
+        if not r["got"] and not r["xp"]:
+            return                                      # (it gave nothing: no screen to say so)
+        got = sorted(r["got"].items(), key=lambda kv: (kv[0] != SHARD, kv[0]))
+        self.emit({"t": "reward", "quest": r["quest"], "items": [[k, n] for k, n in got if k != SHARD],
+                   "shards": r["got"].get(SHARD, 0), "xp": [[k, round(v, 2)] for k, v in sorted(r["xp"].items())]})
+
+    # ----- spells' ranks
+    def spell_rank(self, spell):
+        return int(self.spells_known.get(spell, 0))
+
+    def scroll_rank(self, name):
+        return max(1, int(val(self.entity_ini(name, "Rank", "1"))))
+
+    def spell_title(self, spell, rank=None):
+        return pretty(spell) + ROMAN.get(rank or max(1, self.spell_rank(spell)), "")
+
+    def spell_ini_at(self, spell, key, default, rank):
+        """A Spells.ini value at a rank: Key.<rank> (or the nearest lower rank's), else Key."""
+        for r in range(int(rank), 1, -1):
+            v = self.data.spell_ini(spell, "%s.%d" % (key, r), "")
+            if v != "":
+                return v
+        return self.data.spell_ini(spell, key, default)
 
     def spellbook(self):
-        """The journal's Spells: every spell a scroll teaches (not potions), easiest first: its scroll, level, Shards,
-        cooldown and what it does. Whether it's known, and its cooldown now, the page reads from "me"."""
+        """The journal's Spells: every spell a scroll teaches (not potions), easiest first, at the rank you have (or
+        its first): scroll, level, Shards, cooldown, what it does; and its next rank, if there's one."""
         out = []
         for name, d in self.help_read_ini("Spells.ini"):
             scroll = trim(d.get("SCROLL", ""))
             if not scroll or trim(d.get("KIND", "")).upper() == "POTION":
                 continue
-            info = self.entity_ini(scroll, "Examine.Info", "")
-            what = info.split(": ", 1)[1] if ": " in info else info
-            what = what.split(" Magic %s." % trim(d.get("LEVEL", "1")), 1)[0].rstrip(". ")
-            out.append({"spell": name, "scroll": scroll, "level": int(val(d.get("LEVEL", "1"))),
-                        "skill": trim(d.get("SKILL", "")) or "Magic", "cost": int(val(d.get("COST", "0"))),
-                        "cooldown": val(d.get("COOLDOWN", "0")), "effect": trim(d.get("EFFECT", "Bolt")).title(),
-                        "what": what})
+            rank = max(1, self.spell_rank(name))
+            at = lambda k, dflt="0", r=rank: self.spell_ini_at(name, k, dflt, r)
+            row = {"spell": name, "title": self.spell_title(name, rank), "scroll": scroll, "rank": self.spell_rank(name),
+                   "level": int(val(at("Level", "1"))), "skill": trim(d.get("SKILL", "")) or "Magic",
+                   "cost": int(val(at("Cost"))), "cooldown": val(at("Cooldown")),
+                   "what": self.spell_what(name, rank)}
+            up = trim(self.data.spell_ini(name, "Scroll.%d" % (rank + 1), ""))
+            if up:
+                row["next"] = {"title": self.spell_title(name, rank + 1), "scroll": up,
+                               "level": int(val(self.spell_ini_at(name, "Level", "1", rank + 1))),
+                               "cost": int(val(self.spell_ini_at(name, "Cost", "0", rank + 1))),
+                               "what": self.spell_what(name, rank + 1)}
+            out.append(row)
         return sorted(out, key=lambda r: (r["level"], r["spell"]))
+
+    def spell_what(self, spell, rank):
+        """What a spell does, at a rank, in a few words."""
+        at = lambda k, dflt="": self.spell_ini_at(spell, k, dflt, rank)
+        eff = trim(at("Effect", "Bolt")).upper()
+        if eff in ("BOLT", "AREA"):
+            words = "%s damage" % at("Damage")
+            if eff == "AREA":
+                words += " to every foe within %s tiles" % lbstr(round(val(at("Radius", "128")) / 32))
+            if val(at("Freeze", "0")) > 0:
+                words += ", %s for %s s" % (at("Freeze.Word", "frozen") or "frozen", at("Freeze"))
+            slow = at("Slow")
+            if slow:
+                words += ", slowed to %s%% for %s s" % tuple(slow.split(",")[:2])
+            return words
+        if eff == "HEAL":
+            return "heals %s hitpoints" % at("Heal")
+        info = self.entity_ini(trim(self.data.spell_ini(spell, "Scroll", "")), "Examine.Info", "")
+        what = info.split(": ", 1)[1] if ": " in info else info
+        return what.split(" Magic ", 1)[0].rstrip(". ")
+
+    # ----- dismantling: gear, or a scroll whose spell you know already, broken down into its Shards
+    def dismantle_worth(self, name):
+        """How many Shards dismantling it gives (0: it can't be): one for every Config [Shards] Dismantle.Per gold
+        of its value (at least one) for weapons, armour, staves and rings; Dismantle.Scroll.Per for a scroll whose
+        spell (at its rank) you know. Not quest things (Droppable=0)."""
+        if name == SHARD or self.entity_ini(name, "Droppable", "1").strip() == "0":
+            return 0
+        value = val(self.entity_ini(name, "Value", "0"))
+        spell = self.spell_learnable(name)
+        if spell:
+            if self.spell_rank(spell) < self.scroll_rank(name):
+                return 0                                # (not learnt yet: read it)
+            per = self.shard_setting("Dismantle.Scroll.Per", 10)
+        elif self.equip_verb(name):
+            per = self.shard_setting("Dismantle.Per", 25)
+        else:
+            return 0
+        return max(1, int(value // max(1, per)))
+
+    def dismantle(self, item):
+        """Asks first (it's gone for good), then breaks it down."""
+        n = self.dismantle_worth(item.name)
+        if n <= 0:
+            self.refuse("There's no magic in the %s to break down." % pretty(item.name))
+            return
+        uid = item.uid
+        self.show_menu("Dismantle", item.name, "Break down the %s? It's gone for good, and its magic gives you %s." %
+                       (pretty(item.name), shard_words(n)),
+                       [("Dismantle it (+%s)" % shard_words(n), lambda: self.dismantle_now(uid, n)), ("Keep it", None)])
+
+    def dismantle_now(self, uid, n):
+        item = self.inv_item(uid)
+        if item is None or self.dismantle_worth(item.name) != n:
+            return                                      # (gone, or changed, while they were asked)
+        name = item.name
+        self.remove_inventory_item(name, 1)
+        self.play_sound("Craft")
+        self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 500)
+        self.give_shards(n, "You break down the %s" % pretty(name))

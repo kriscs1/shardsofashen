@@ -217,7 +217,7 @@ EAST = ["Court", "Emberwatch", "Thornwick", "Keep", "Ravensgate", "Highwatch", "
 def waystones(atlas, plans):
     """Travel Waystone (which waystone is this? wake it, the first time, with Shards - Config.ini [Shards]
     Waystone.<Key>, else Waystone - and so attune to it) and its menu, two pages (the west and the east). A journey
-    costs Waystone.Travel (none, as it is)."""
+    costs Waystone.Travel (a few Shards)."""
     where = {}
     for name, m in atlas.maps.items():
         for ln in m.ents:
@@ -264,7 +264,8 @@ def waystones(atlas, plans):
         answers += [other, "@other", "Stay here", "@stay"]
         rows = [("Display.Conversation", "Waystone",
                  "This is the $Variable.9 waystone. Its rune glows softly under your hand.\\Where would you like to go? "
-                 "(Only the waystones you have touched are listed.)") + tuple(answers),
+                 "Each journey costs $Shards.Waystone.Travel Shards, and you carry $Item.Shard. (Only the waystones "
+                 "you have woken are listed.)") + tuple(answers),
                 ("@stay",), ("End",), ("@other",), ("Goto.Script", other_script), ("End",)]
         for k in page:
             rows += [("@go_" + k,), (">Pay.Shards", "Waystone.Travel", "Travelling", "@stay"),

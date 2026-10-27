@@ -868,7 +868,7 @@ def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
     m = a.cur_map
     a.skill_level = lambda skill: 60                               # (a mage who never fizzles)
     a.spell_chance = lambda spell: 100
-    a.spells_known.add("Frost_Nova")
+    a.spells_known["Frost_Nova"] = 1
     stock(a, Shard=40)
     wolves = [world.add_npc("Wolf", 0, m.ox + x * 32, m.oy + 9 * 32, "Attitude=Bad") for x in (10, 13)]
     boss = world.add_npc("Valour_Guardian", 0, m.ox + 12 * 32, m.oy + 11 * 32, "Attitude=Bad")
@@ -2257,7 +2257,7 @@ def test_a_scroll_too_hard_to_learn_is_kept(world):
 def test_casting_spends_shards_only_when_it_takes(world):
     a = join(world, "Spender", "11,4,0", 384, 300)
     a.skill_level = lambda skill: 10
-    a.spells_known.add("Healing")
+    a.spells_known["Healing"] = 1
     a.player.hp = 5
     a.remove_inventory_item("Shard", a.shards())
     stock(a, Shard=5)                                              # (Healing takes 6)
@@ -2285,7 +2285,7 @@ def test_casting_spends_shards_only_when_it_takes(world):
 def test_the_hotbar_casts_a_known_spell_without_its_scroll(world):
     a = join(world, "Quick", "11,4,0", 384, 300)
     a.skill_level = lambda skill: 10
-    a.spells_known.add("Healing")
+    a.spells_known["Healing"] = 1
     a.spell_chance = lambda spell: 100
     a.player.hp = 3
     a.hotbar[0] = "Healing_Scroll"
@@ -2407,3 +2407,118 @@ def test_a_chest_sometimes_holds_shards(world, monkeypatch):
     assert "y|1|1|Chest" not in s.chests
     s.close_action_box(-1)
     leave(world, s)
+
+
+def test_shards_are_a_balance_not_an_item(world):
+    a = join(world, "Purse")
+    before = a.shards()
+    a.add_inventory_item("Shard", 7)                               # (a script's Give.Item, a chest's, a drop's)
+    assert a.shards() == before + 7 and not any(e.name == "Shard" for e in a.inv)
+    assert a.items_held("Shard") == before + 7                     # (>Got.Item and $Item.Shard read the balance)
+    a.remove_inventory_item("Shard", 1000)                         # (Take.Item: never below nothing)
+    assert a.shards() == 0
+    saved = a.save_state()
+    assert saved["shards"] == 0 and not any(i[0] == "Shard" for i in saved["inventory"])
+    leave(world, a)
+    old = Session(world, "Hoarder")                                # (a save from when Shards were an item)
+    old.load_state({"map": "11,4,0", "x": 384, "y": 300, "inventory": [["Shard", 9, 0]],
+                    "bank": [["Shard", 4, []]], "attributes": [["ShardsGiven", "1"]]})
+    assert old.shards() == 13 and not any(e.name == "Shard" for e in old.inv)
+    assert "Shard" not in old.bank_item
+
+
+def test_a_beasts_shards_go_straight_to_the_killer(world, monkeypatch):
+    a = join(world, "Hunter", "11,4,0", 384, 300)
+    m = a.cur_map
+    wolf = world.add_npc("Wolf", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Bad")
+    import dsengine.player_combat as PC
+    monkeypatch.setattr(PC, "rnd", lambda: 0.0)                    # (every drop drops)
+    before = a.shards()
+    a.add_npc_drops(wolf)
+    assert 1 <= a.shards() - before <= 3                           # (a wolf: weak, 1-3)
+    assert not any(e.name == "Shard" and e.type == MAPITEM for e in world.ents)
+    world.remove_entity(wolf)
+    leave(world, a)
+
+
+def test_upgrade_scrolls_raise_a_known_spell_a_rank(world):
+    a = join(world, "Ranker", "11,4,0", 384, 300)
+    a.skill_level = lambda skill: 20
+    a.spell_chance = lambda spell: 100
+    stock(a, Fire_Bolt_Scroll_II=1)
+    two = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll_II")
+    a.out = []
+    a.do_action("Learn", two)                                      # (rank 2 before rank 1: no)
+    assert a.spell_rank("Fire_Bolt") == 0 and a.items_held("Fire_Bolt_Scroll_II") == 1
+    a.spells_known["Fire_Bolt"] = 1
+    assert a.spell_cost("Fire_Bolt") == 3 and a.spell_ini("Fire_Bolt", "Damage", "") == "2-5"
+    assert "Learn" in a.get_verbs(two)
+    a.do_action("Learn", two)
+    assert a.spell_rank("Fire_Bolt") == 2 and a.items_held("Fire_Bolt_Scroll_II") == 0
+    assert a.spell_cost("Fire_Bolt") == 4 and a.spell_ini("Fire_Bolt", "Damage", "") == "4-9"
+    assert a.spell_ini("Fire_Bolt", "Range", "") == "256"          # (what a rank doesn't change, stays)
+    saved = a.save_state()
+    assert saved["spells"]["Fire_Bolt"] == 2
+    book = {r["spell"]: r for r in a.spellbook()}
+    assert book["Fire_Bolt"]["title"] == "Fire Bolt II" and book["Fire_Bolt"]["next"]["title"] == "Fire Bolt III"
+    leave(world, a)
+
+
+def test_dismantling_breaks_gear_into_shards_after_asking(world):
+    a = join(world, "Breaker", "11,4,0", 384, 300)
+    stock(a, Iron_Sword=1, Logs=3, Fire_Bolt_Scroll=1)
+    sword = next(e for e in a.inv if e.name == "Iron_Sword")
+    logs = next(e for e in a.inv if e.name == "Logs")
+    scroll = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll")
+    assert "Dismantle" in a.get_verbs(sword) and "Dismantle" not in a.get_verbs(logs)
+    assert "Dismantle" not in a.get_verbs(scroll)                  # (not learnt yet: read it instead)
+    worth = a.dismantle_worth("Iron_Sword")
+    assert worth >= 1
+    before = a.shards()
+    a.do_action("Dismantle", sword)
+    assert a.ab_mode == "Conversation" and a.items_held("Iron_Sword") == 1      # (asked first)
+    a.action_box_response_chosen(2)                                # ("Keep it")
+    assert a.items_held("Iron_Sword") == 1 and a.shards() == before
+    a.do_action("Dismantle", sword)
+    a.action_box_response_chosen(1)
+    assert a.items_held("Iron_Sword") == 0 and a.shards() == before + worth
+    a.spells_known["Fire_Bolt"] = 1
+    assert "Dismantle" in a.get_verbs(scroll)                      # (known: a spare scroll is worth Shards)
+    leave(world, a)
+
+
+def test_a_finished_quest_shows_what_it_gave(world):
+    s = join(world, "Victor")
+    s.update_attribute("ShardsPaid.HobgoblinQuest", "=0")
+    s.update_attribute("HobgoblinQuest", "=1")
+    shards = s.shards()
+    s.out = []
+    done = next(int(d["DONE"]) for n, d in s.help_read_ini("Quests.ini") if d.get("ATTRIBUTE") == "HobgoblinQuest")
+    s.update_attribute("HobgoblinQuest", "=%d" % done)            # (The Steward's Hunt: 20 Shards, Fire Bolt II)
+    s.add_inventory_item("Gold_Coin(s)", 100)                      # (what its script gives as it ends)
+    world.tick(0.05, now=world.now + 21000)
+    ev = next(e for e in s.out if e.get("t") == "reward")
+    assert ev["quest"] == "The Steward's Hunt" and ev["shards"] == 20
+    assert ["Fire_Bolt_Scroll_II", 1] in ev["items"] and ["Gold_Coin(s)", 100] in ev["items"]
+    assert s.shards() == shards + 20 and s.items_held("Fire_Bolt_Scroll_II") == 1
+    s.update_attribute("HobgoblinQuest", "=%d" % done)            # (once)
+    assert s.shards() == shards + 20 and s.items_held("Fire_Bolt_Scroll_II") == 1
+    leave(world, s)
+
+
+def test_a_journey_by_waystone_costs_a_few_shards(world):
+    m = world.maps["4,6,0"]
+    ws = next(e for e in world.ents if e.name == "Waystone" and e.map == m.name)
+    a = join(world, "Traveller", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
+    a.connected = True
+    a.update_attribute("Waystone.Southport", "=1")
+    a.update_attribute("Waystone.Ashford", "=1")
+    a.remove_inventory_item("Shard", a.shards())
+    stock(a, Shard=10)
+    a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
+    ticks(world, 40)
+    assert a.ab_mode == "Conversation" and any("Ashford" in r for r in a.responses)
+    a.action_box_response_chosen(next(i for i, r in enumerate(a.responses, 1) if "Ashford" in r))
+    ticks(world, 40)
+    assert a.shards() == 8 and a.cur_map.name == "11,4,0"          # (2 Shards, and there)
+    leave(world, a)

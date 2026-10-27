@@ -600,7 +600,14 @@ egion_tiles.py, with the same Walkable.Data).
   from its name; Beast when missing.
 * Spells.ini Level: the Magic (or Skill=) level needed to read the scroll. A scroll works 60% of the time at that level,
   7% more for each level above it (at most 98%); when it fizzles no Shards are spent, for half the experience.
-* **Shards** (dsengine/shards.py): the item Shard, magic's only resource; they don't come back by themselves.
+* **Shards** (dsengine/shards.py): a balance each player has (saved as `shards`), magic's only resource; never an
+  item in the pack (`Give.Item Shard`, a chest's or a beast's Shards go on it; `>Got.Item Shard`, `$Item.Shard` read
+  it); they don't come back by themselves. Spell ranks: a scroll with `Rank=2` raises a known spell to rank 2; any
+  Spells.ini key can have a rank's value, `Damage.2`, `Cost.2`, `Level.2`..., and `Scroll.2` names that rank's scroll.
+  Saved as `spells` {spell: rank}. Dismantling (Dismantle, on gear or a scroll you know): a Shard for every Config
+  [Shards] `Dismantle.Per` gold of its value (`Dismantle.Scroll.Per` for scrolls). `Scrolls.Rarer=1`: build_shards.py
+  has made scrolls rarer (once). Quests.ini `Reward.Items=<item> <n> ...`: given once at Done with Reward.Shards,
+  and the reward screen lists all a finished quest gave.
   Spells.ini `Cost` (Shards a cast) and `Cooldown` (seconds; saved, so logging off doesn't cut it short); a potion's
   `Shards=` gives that many. Config.ini `[Shards]`: `Start` (a new character's), `Old.Save.Grant` (once, to a
   character from before Shards), `Cast.Gap`, `Waystone.<Key>` (waking that waystone the first time; else `Waystone`),

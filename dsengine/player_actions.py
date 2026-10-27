@@ -101,11 +101,13 @@ class ActionsMixin:
             else:
                 words = self.entity_ini(e.name, "Use.Words", "")
                 spell = self.spell_learnable(e.name)
-                if spell and spell not in self.spells_known:
+                if spell and self.spell_rank(spell) < self.scroll_rank(e.name):
                     words = ",".join("Learn" if w.strip() == "Cast" else w for w in words.split(","))   # (not known yet)
                 verbs = self.add_verbs(verbs, words)
                 verbs = self.add_verb(verbs, self.equip_verb(e.name))
                 verbs = self.add_verb(verbs, "Use")
+                if self.dismantle_worth(e.name):
+                    verbs = self.add_verb(verbs, "Dismantle")       # (its magic, for Shards: shards.py)
                 if e.quantity > 1:
                     verbs = self.add_verb(verbs, "Drop All")
                     verbs = self.add_verb(verbs, "Drop 1")
@@ -357,6 +359,8 @@ class ActionsMixin:
             self.drink_cure(e)
         elif verb == "Drink" and t == INVENTORYITEM and val(self.entity_ini(name, "Food.Value", "0")) > 0:
             self.eat_inventory_item(e)
+        elif verb == "Dismantle" and t == INVENTORYITEM:
+            self.dismantle(e)
         elif verb in ("Cast", "Drink", "Learn"):
             if t == INVENTORYITEM and self.entity_ini(name, "Spell", ""):
                 self.cast_scroll(e, None)

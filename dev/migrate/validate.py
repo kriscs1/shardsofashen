@@ -1032,7 +1032,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Rank",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
@@ -1539,6 +1539,12 @@ def check_spells(entities_ini, skills):
             err(where, "a %s spell needs Damage=min-max" % effect.title())
         if effect == "HEAL" and ini.get(sec, "Heal") is None:
             err(where, "a Heal spell needs Heal=min-max")
+        for k, v in items:                       # (a rank's scroll: Scroll.2=... raises the spell to 2)
+            if k and k.startswith("Scroll.") and k[7:].isdigit():
+                if v not in ENTITIES:
+                    err(where, "%s %r has no sprite in sprites\Entities" % (k, v))
+                elif (entities_ini.get(v, "Spell") or "").strip() != sec or (entities_ini.get(v, "Rank") or "") != k[7:]:
+                    err(where, "[%s] in Entities.ini needs Spell=%s and Rank=%s" % (v, sec, k[7:]))
         fw = ini.get(sec, "Freeze.Word")
         if fw is not None and fw.strip() not in ("frozen", "stunned"):
             err(where, "Freeze.Word=%r is not frozen or stunned" % fw)
@@ -1654,6 +1660,13 @@ def check_quests():
             elif k == "Reward.Shards":
                 if not v.strip().isdigit():
                     err(where, "Reward.Shards=%r should be a whole number of Shards" % v)
+            elif k == "Reward.Items":                    # (item how-many pairs, given once when it's done)
+                bits = v.split()
+                if len(bits) % 2 or not all(b.isdigit() for b in bits[1::2]):
+                    err(where, "Reward.Items=%r should be pairs of item and how many" % v)
+                for item in bits[0::2]:
+                    if item not in ENTITIES:
+                        err(where, "Reward.Items: no such item %r" % item)
             elif k not in ("Giver", "Attribute", "Done"):
                 warn(where, "unknown key %s" % k)
         if attr in writes and done not in writes[attr] and "*" not in writes[attr]:

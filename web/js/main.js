@@ -15,7 +15,7 @@ import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock,
 import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
 import { messageColour, clamp, val, pretty } from "./util.js";
 import { buildPicker, DEFAULT_LOOK } from "./look.js";
-import { preload, entityIni } from "./assets.js";
+import { preload, entityIni, sprite } from "./assets.js";
 import { onGame } from "./games.js";
 import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, buildMouseDown, buildMouseMove, drawBuild } from "./build.js";
 
@@ -214,7 +214,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 
 function overlayOpen() {
   // (not the chat line: you can walk, click and fight with it open)
-  return ["options", "quit", "admin", "message", "login", "loading", "appearance", "price", "password", "death", "tavern-game"].some((id) => !$(id).hidden);
+  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "password", "death", "tavern-game"].some((id) => !$(id).hidden);
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -441,6 +441,36 @@ for (const id of ["admin", "options", "quit", "message", "appearance"]) {
   });
 }
 
+// ----- a finished quest's rewards (shards.py reward_tick): what you got, a row each
+function showReward(m) {
+  const list = $("reward-list");
+  list.textContent = "";
+  const row = (icon, text, cls) => {
+    const li = document.createElement("li");
+    const c = document.createElement("canvas");
+    c.width = c.height = 32;
+    if (icon) preload([icon]).then(() => {           // (a picture not seen yet: drawn once it's arrived)
+      const im = sprite(icon);
+      if (im) c.getContext("2d").drawImage(im, 0, 0, 32, 32);
+    });
+    li.append(c);
+    const span = document.createElement("span");
+    span.textContent = text;
+    if (cls) span.className = cls;
+    li.append(span);
+    list.append(li);
+  };
+  if (m.shards) row("Shard", `${m.shards} Shards`, "shards");
+  for (const [item, n] of m.items || []) row(item, `${n > 1 ? n + " x " : ""}${pretty(item)}`);
+  for (const [skill, xp] of m.xp || []) row(configRead("Skills", "Icon." + skill, ""), `${xp} ${skill} experience`);
+  if (!list.children.length) row("", "The thanks of those you helped");
+  $("reward-quest").textContent = m.quest;
+  releaseKeys();
+  $("reward").hidden = false;
+  $("reward-ok").focus();
+}
+$("reward-ok").onclick = () => { $("reward").hidden = true; canvas.focus(); };
+
 function showMessage(title, text, then) {
   $("message-title").textContent = title;
   $("message-text").textContent = text;
@@ -480,7 +510,7 @@ window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, as
 // (then the app goes back to its start screen)
 window.dsBack = () => {
   const shut = { options: "options-done", quit: "quit-no", admin: "admin-close", price: "price-cancel",
-                 password: "pw-cancel", appearance: "appearance-cancel", message: "message-ok" };
+                 password: "pw-cancel", appearance: "appearance-cancel", message: "message-ok", reward: "reward-ok" };
   for (const [id, button] of Object.entries(shut)) if (!$(id).hidden) { $(button).click(); return true; }
   if (!$("chat-entry").hidden) { $("chat-input").value = ""; $("chat-entry").hidden = true; return true; }
   if (J.open) { closeJournal(); return true; }
@@ -644,6 +674,7 @@ N.onMessage = (m) => {
       if (m.mode) { U.rcm = null; releaseKeys(); }
       break;
     case "msg": addMessage(m.text, messageColour(m.kind), m.id || 0, m.of || 0); break;
+    case "reward": showReward(m); playSound("Quest"); break;
     case "chat":
       if (m.whisper === "from") addMessage(`${m.from} whispers: ${m.text}`, "140 40 140");
       else if (m.whisper === "to") addMessage(`You whisper to ${m.to}: ${m.text}`, "140 40 140");

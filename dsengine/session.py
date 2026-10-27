@@ -90,7 +90,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.grave_ent = None
         self.status = {}
         self.cooldowns = {}                 # spell -> when it's ready again (ms)
-        self.spells_known = set()           # the spells they've learnt from scrolls, for good
+        self.spells_known = {}              # spell -> the rank they've learnt it to (scrolls), for good
+        self.shard_balance = 0              # their Shards (shards.py): a balance, not an item
+        self.reward = None                  # a finished quest's rewards, gathering for its screen
         self.bets = []                      # when they last staked at the tavern (time.time(): the limit's window)
         self.game = None                    # the tavern game they're at: {game, at (the innkeeper or table), phase...}
         self.clear_boosts_values()
@@ -331,7 +333,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.update_max_hp()
         hp = val(st.get("hp", 0))
         p.hp = hp if 0 < hp <= self.player_max_hp else self.player_max_hp
-        self.spells_known = {str(n) for n in st.get("spells", []) if str(n).strip()}
+        sp = st.get("spells", {})
+        self.spells_known = ({str(k): max(1, int(val(v))) for k, v in sp.items()} if isinstance(sp, dict) else
+                             {str(n): 1 for n in sp if str(n).strip()})     # (a list: before spells had ranks)
+        self.shard_balance = max(0, int(val(st.get("shards", 0))))
         for spell, left in dict(st.get("cooldowns", {})).items():   # (logging off doesn't cut a cooldown short)
             if 0 < val(left) < 3600000:
                 self.cooldowns[str(spell)] = self.w.now + val(left)
@@ -344,6 +349,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.bank_item[i] = self.renamed(name)
             self.bank_qty[i] = max(1, int(qty))
             self.bank_wear[i] = [int(w) for w in wears]
+        self.shards_from_bank()                         # (banked when Shards were an item)
         self.attributes = [[k, v] for k, v in st.get("attributes", [])][:500]
         # (the first quest was FerryQuest, done at 4; it's Passage now, done at 12: whoever finished it, still has)
         if val(self.get_attribute("FerryQuest")) >= 4 and val(self.get_attribute("Passage")) < 12:
@@ -428,7 +434,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "map": m.name if m else d.start_map,
             "x": int(self.stand_x() - m.ox) if m else d.start_x, "y": int(self.stand_y() - m.oy) if m else d.start_y,
             "hp": p.hp, "direction": max(1, int(p.direction)),
-            "spells": sorted(self.spells_known),
+            "spells": dict(self.spells_known), "shards": self.shard_balance,
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
             "sprite": self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
@@ -540,6 +546,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.update_player_health()
         self.w.animate_entity(self.player, self.player_moved)
         self.run_scripts()
+        self.reward_tick()
         self.run_personal_timers()
         if self.pending_map is not None:
             self.do_pending_map_change()
@@ -956,7 +963,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p = self.player
         return {
             "t": "me", "name": self.player_name, "uid": p.uid, "admin": self.admin_enabled, "god": self.god_mode,
-            "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": sorted(self.spells_known),
+            "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": dict(self.spells_known),
             "xp": self.skill_xp[1:], "skill_off": self.skill_off[1:],
             "inv": [[e.uid, e.name, e.quantity, e.wear] for e in self.inv],
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],

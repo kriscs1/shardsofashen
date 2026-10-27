@@ -86,10 +86,11 @@ export function getVerbs(e) {
     else if (mode === "Bank") v = ["Deposit 1", "Deposit All", "Examine"];
     else {
       const words = entityIni(e.n, "Use.Words", "");
-      const sp = spellTaught(e.n);                // (a spell's scroll not read yet: Learn, not Cast)
-      addVerbs(v, sp && !knowsSpell(sp) ? words.split(",").map((w) => (w.trim() === "Cast" ? "Learn" : w)).join(",") : words);
+      const sp = spellTaught(e.n);                // (a scroll that would teach you something: Learn, not Cast)
+      addVerbs(v, sp && spellRank(sp) < scrollRank(e.n) ? words.split(",").map((w) => (w.trim() === "Cast" ? "Learn" : w)).join(",") : words);
       addVerb(v, equipVerb(e.n));
       addVerb(v, "Use");
+      if (dismantleWorth(e.n)) addVerb(v, "Dismantle");
       if (entityIni(e.n, "Droppable", "1").trim() === "0") { /* (kept: quest things, the Access Crystal) */ }
       else if (e.q > 1) { addVerb(v, "Drop All"); addVerb(v, "Drop 1"); } else addVerb(v, "Drop");
       addVerb(v, "Examine");
@@ -130,7 +131,7 @@ export function itemInUseName() {
 }
 
 // What a potion or spell scroll does, from data/Spells.ini: "+5 spell damage, 2 min" (shown on Drink / Cast)
-export function spellSummary(spell) {
+export function spellSummary(spell, rank = 0) {
   const eff = spellIni(spell, "Effect", "").toUpperCase();
   const n = (k) => val(spellIni(spell, k, "0"));
   const parts = [];
@@ -141,8 +142,8 @@ export function spellSummary(spell) {
     if (n("Sight")) parts.push("far sight");
     const s = n("Duration") || 60;
     parts.push(s % 60 === 0 ? `${s / 60} min` : `${s} s`);
-  } else if (eff === "HEAL") parts.push(`heals ${spellIni(spell, "Heal", "")}`);
-  else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellIni(spell, "Damage", "")} damage`);
+  } else if (eff === "HEAL") parts.push(`heals ${spellAt(spell, "Heal", "", rank)}`);
+  else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellAt(spell, "Damage", "", rank)} damage`);
   else if (eff === "TELEPORT" || eff === "HOME") parts.push("teleports you");
   else if (eff === "GRASP") parts.push("pulls a thing to you, from afar");
   if (n("Shards")) parts.push(`+${n("Shards")} Shards`);
@@ -153,9 +154,10 @@ export function verbLabel(verb, e) {
   if (!e || verb === "Walk here" || verb === "Cancel") return verb;
   const name = displayName(e);
   if (verb === "Learn" && e.k === T.INVITEM) {
-    const spell = spellTaught(e.n);
-    return `Learn ${pretty(spell)} (for good: ${spellIni(spell, "Skill", "Magic")} ${lbstr(val(spellIni(spell, "Level", "1")))})`;
+    const spell = spellTaught(e.n), rank = scrollRank(e.n);
+    return `Learn ${spellTitle(spell, rank)} (for good: ${spellIni(spell, "Skill", "Magic")} ${lbstr(val(spellAt(spell, "Level", "1", rank)))})`;
   }
+  if (verb === "Dismantle") return `Dismantle ${name} (+${dismantleWorth(e.n)} Shards)`;
   if ((verb === "Drink" || verb === "Cast") && e.k === T.INVITEM) {
     const spell = entityIni(e.n, "Spell", "").trim();
     const what = spell ? spellSummary(spell) : "";
@@ -186,7 +188,38 @@ export function spellTaught(name) {
   return spell && spellIni(spell, "Kind", "Scroll").toUpperCase() !== "POTION" ? spell : "";
 }
 
-export function knowsSpell(spell) { return (S.me?.spells || []).includes(spell); }
+export function spellRank(spell) { return (S.me?.spells || {})[spell] || 0; }
+
+export function knowsSpell(spell) { return spellRank(spell) > 0; }
+
+export function scrollRank(name) { return Math.max(1, val(entityIni(name, "Rank", "1"))); }
+
+export function spellTitle(spell, rank) {
+  return pretty(spell) + ({ 2: " II", 3: " III", 4: " IV" }[rank || spellRank(spell)] || "");
+}
+
+// A Spells.ini value at a rank (yours, if none's given): Key.<rank>, the nearest lower rank's, else Key
+export function spellAt(spell, key, dflt = "", rank = 0) {
+  for (let r = rank || Math.max(1, spellRank(spell)); r > 1; r--) {
+    const v = spellIni(spell, `${key}.${r}`, "");
+    if (v !== "") return v;
+  }
+  return spellIni(spell, key, dflt);
+}
+
+// What dismantling it gives (shards.py dismantle_worth): gear, or a scroll you know already; 0: it can't be
+export function dismantleWorth(name) {
+  if (name === "Shard" || entityIni(name, "Droppable", "1").trim() === "0") return 0;
+  const value = val(entityIni(name, "Value", "0"));
+  const sp = spellTaught(name);
+  let per;
+  if (sp) {
+    if (spellRank(sp) < scrollRank(name)) return 0;
+    per = val(configRead("Shards", "Dismantle.Scroll.Per", "10"));
+  } else if (equipVerb(name)) per = val(configRead("Shards", "Dismantle.Per", "25"));
+  else return 0;
+  return Math.max(1, Math.floor(value / Math.max(1, per)));
+}
 
 export function cooldownLeft(spell) {
   // (ms till it's ready: as the server last said, less the time since - "me" isn't sent while it counts down)
@@ -218,11 +251,11 @@ export function spellStatus(name) {
   const spell = entityIni(name, "Spell", "");
   if (!spell) return "";
   if (spellIni(spell, "Kind", "Scroll").toUpperCase() === "POTION") return "";
-  const level = val(spellIni(spell, "Level", "1"));
+  const level = val(spellAt(spell, "Level", "1"));
   const skill = spellIni(spell, "Skill", "Magic");
   // (only what stops it being cast now: the hover's own lines say its need and its Shards - tips.js)
   if (skillLevel(skill) < level) return "";
-  const cost = val(spellIni(spell, "Cost", "0"));
+  const cost = val(spellAt(spell, "Cost", "0"));
   if (!knowsSpell(spell)) return "";
   const cd = cooldownLeft(spell);
   if (cd > 0) return `!Ready in ${Math.ceil(cd / 1000)} s`;
