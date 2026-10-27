@@ -1,8 +1,9 @@
-"""A player's skills, hitpoints and mana, their fights (as the desktop game's combat.py; the NPC they fight is shared:
+"""A player's skills, hitpoints and spells, their fights (as the desktop game's combat.py; the NPC they fight is shared:
 its hitpoints go down for everyone, and it fights whoever hit it), spells and status effects (extras.py)."""
 from dragonsword.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
 
 from .entity import NPC, PLAYER, MAPITEM, TYPE_NAMES
+from .shards import shard_words
 
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
@@ -113,7 +114,7 @@ class CombatMixin:
         return max(1, int(sum(top) / len(top))) if top else 1
 
     # =================================================================================================================
-    # Hitpoints coming back, boosts wearing off, mana
+    # Hitpoints coming back, boosts wearing off
     # =================================================================================================================
     BOOST_WORDS = {   # kind: (what it does, +N, said when it wears off)
         "attack": ("+%s Attack (you hit harder)", "you hit as hard as before"),
@@ -151,18 +152,6 @@ class CombatMixin:
         self.hp_regen_last = now
         self.player.hp = hp + 1
         self.dirty_me = True
-
-    def update_mana(self):
-        self.player_max_mana = 10 + 3 * self.skill_level("Magic")
-        if self.player_mana < 0:
-            self.player_mana = self.player_max_mana
-        before = int(self.player_mana)
-        if self.player_mana < self.player_max_mana:
-            self.player_mana = min(self.player_max_mana, self.player_mana + self.player_max_mana / 60 * self.w.dt)
-        if self.player_mana > self.player_max_mana:
-            self.player_mana = self.player_max_mana
-        if int(self.player_mana) != before:
-            self.dirty_me = True
 
     def clear_boosts(self):
         self.clear_boosts_values()
@@ -517,7 +506,7 @@ class CombatMixin:
         self.dirty_me = True
 
     # =================================================================================================================
-    # Spells (data\\Spells.ini): reading a scroll casts its spell and uses it up
+    # Spells (data\\Spells.ini): reading a scroll teaches its spell for good; casting it spends Shards (shards.py)
     # =================================================================================================================
     def spell_ini(self, spell, key, default):
         return self.data.spell_ini(spell, key, default)
@@ -569,56 +558,94 @@ class CombatMixin:
             self.cooldowns[spell] = self.now + seconds * 1000
 
     def spell_begin(self, scroll, spell):
+        """The cast going ahead: its cooldown starts, then it takes hold (its Shards spent) or it fizzles (nothing
+        spent). A potion is drunk; a scroll isn't used up by casting (it taught the spell already)."""
         self.spell_fizzled = False
         attack = self.spell_ini(spell, "Effect", "Bolt").upper() in ("BOLT", "AREA")
-        keep = val(self.spell_ini(spell, "Keep", "0")) == 1
         p = self.player
-        if not self.spell_is_potion(spell):
-            self.player_mana = max(0, self.player_mana - self.spell_cost(spell))
+        potion = self.spell_is_potion(spell)
+        if not potion:
             self.spell_start_cooldown(spell)
+            self.player_last_cast = self.now
             chance = self.spell_chance(spell)
             if rnd() * 100 >= chance:
-                if not keep:
-                    self.remove_inventory_item(scroll, 1)
-                self.player_last_cast = self.now
                 self.play_sound("Fizzle", (p.cx, p.cy))
                 self.fx_anim("Puff", p.cx, p.cy, 400)
-                self.display_message(("The spell slips from your grasp. (%d%% chance: it works more surely as your "
-                                      "Magic grows.)" if keep else "The spell fizzles and the scroll crumbles to dust! "
-                                      "(%d%% chance: it works more surely as your Magic grows.)") % chance, "FAIL")
+                self.display_message("The spell slips from your grasp: no Shards spent. (%d%% chance: it works more "
+                                     "surely as your Magic grows.)" % chance, "FAIL")
                 xp = val(self.spell_ini(spell, "XP", "0")) / 2
                 if xp > 0:
                     self.update_skill(self.spell_ini(spell, "Skill", "Magic"), "+" + lbstr(xp), pop=not attack)
                 self.spell_fizzled = True
                 return
-        if not keep:
+            if not self.spend_shards(self.spell_cost(spell), pretty(spell)):
+                self.spell_fizzled = True
+                return
+        else:
             self.remove_inventory_item(scroll, 1)
-        mana_back = val(self.spell_ini(spell, "Mana", "0"))
-        if mana_back > 0:
-            self.player_mana = min(self.player_max_mana, self.player_mana + mana_back)
         leaves = self.spell_ini(spell, "Leaves", "")
         if leaves:
             self.add_inventory_item(leaves, 1)
-        if self.spell_is_potion(spell):
+        if potion:
             effect = self.spell_ini(spell, "Effect", "").upper()
             if effect not in ("BOOST", "SHIELD"):                   # (a boost says what it does itself)
                 self.display_message("You drink the %s." % pretty(scroll), "SUCCESS")
-            if mana_back > 0:
-                self.display_message("Your mana comes flooding back (+%s)." % lbstr(mana_back), "SUCCESS")
+            self.give_shards(int(val(self.spell_ini(spell, "Shards", "0"))), "Its magic settles into Shards")
         else:
-            self.player_last_cast = self.now
             self.play_sound("SpellCast", (p.cx, p.cy))
-            self.display_message("You read the scroll of %s..." % pretty(spell), "COMBAT")
         xp = val(self.spell_ini(spell, "XP", "0"))
         if xp > 0:
             self.update_skill(self.spell_ini(spell, "Skill", "Magic"), "+" + lbstr(xp), pop=not attack)
         self.dirty_me = True
 
+    def spell_terms(self, spell):
+        """What a cast takes: "3 Shards a cast, ready again after 0.8 s"."""
+        cd = val(self.spell_ini(spell, "Cooldown", "0"))
+        return "%s a cast%s" % (shard_words(int(self.spell_cost(spell))),
+                                (", ready again after %s s" % lbstr(cd)) if cd > 0 else "")
+
+    def learn_spell(self, item, spell):
+        """A spell's scroll read: the spell is theirs for good (the scroll goes, unless it's one that Keep=1)."""
+        name = pretty(spell)
+        level = val(self.spell_ini(spell, "Level", "1"))
+        skill = self.spell_ini(spell, "Skill", "Magic")
+        if self.skill_level(skill) < level:
+            self.refuse("You need level %s %s to learn %s (you have %d). Keep the scroll till you're ready." %
+                        (lbstr(level), skill, name, self.skill_level(skill)))
+            return
+        self.spells_known.add(spell)
+        if val(self.spell_ini(spell, "Keep", "0")) != 1:
+            self.remove_inventory_item(item.name, 1)
+        self.play_sound("SpellCast")
+        self.fx_anim(self.spell_ini(spell, "Impact", "") or "Teleport_Glow", self.player.cx, self.player.cy, 500)
+        self.display_message("You learn %s! It's yours for good: %s. Cast it from the journal's Spells (H) or put "
+                             "its scroll on your hotbar." % (name, self.spell_terms(spell)), "ACHIEVEMENT")
+        self.dirty_me = True
+        self.dirty_quests = True
+
+    def spell_learnable(self, name):
+        """The spell an item teaches, if it's a spell's scroll (not a potion), else ""."""
+        spell = self.entity_ini(name, "Spell", "")
+        return spell if spell and not self.spell_is_potion(spell) else ""
+
     def cast_scroll(self, item, target):
-        scroll = item.name
-        spell = self.entity_ini(scroll, "Spell", "")
+        """A scroll or potion used: a potion is drunk; a scroll teaches its spell, and once it's known, casts it."""
+        spell = self.entity_ini(item.name, "Spell", "")
         if spell == "":
             self.display_message("Nothing interesting happens.", "FAIL")
+            return
+        if self.spell_learnable(item.name) and spell not in self.spells_known:
+            self.learn_spell(item, spell)
+            if spell not in self.spells_known or target is None:
+                return                                  # (used on something: learnt, and cast at it, at once)
+        self.cast_spell(spell, target, item)
+
+    def cast_spell(self, spell, target, item=None):
+        """Casts a known spell (or drinks a potion, item): at target, or (a bolt, none chosen) the foe you're
+        fighting or the nearest. item: the scroll it was cast with, if any (held ready to choose who it's at)."""
+        scroll = item.name if item is not None else ""
+        if not self.spell_is_potion(spell) and spell not in self.spells_known:
+            self.refuse("You don't know %s yet: read its scroll to learn it." % pretty(spell))
             return
         w = self.w
         name = pretty(spell)
@@ -635,12 +662,12 @@ class CombatMixin:
                 self.display_message("%s isn't ready yet: %d more second(s)." % (name, wait), "FAIL")
                 return
             cost = self.spell_cost(spell)
-            if self.player_mana < cost:
-                self.display_message("%s needs %s mana and you have %d. It comes back over time." %
-                                     (name, lbstr(cost), int(self.player_mana)), "FAIL")
+            if self.shards() < cost:
+                self.short_of_shards(cost, name)
                 return
         now = self.now
-        if not potion and now - self.player_last_cast < 1500 and now >= self.player_last_cast:
+        gap = val(self.data.config_read("Shards", "Cast.Gap", "0.8")) * 1000
+        if not potion and now - self.player_last_cast < gap and now >= self.player_last_cast:
             self.display_message("You're still gathering your wits after the last spell.", "FAIL")
             return
         p = self.player
@@ -648,6 +675,11 @@ class CombatMixin:
         effect = self.spell_ini(spell, "Effect", "Bolt").upper()
         if effect == "BOLT":
             rng = val(self.spell_ini(spell, "Range", "256"))
+            if target is None and item is None:
+                target = self.spell_auto_target(rng)    # (from the spellbook or the hotbar: your foe, or the nearest)
+                if target is None:
+                    self.display_message("There's nothing in reach to cast %s at." % name, "FAIL")
+                    return
             if target is None:
                 # (no target yet: the scroll is held ready - the next thing clicked is what it's cast at)
                 self.item_in_use = item
@@ -678,6 +710,9 @@ class CombatMixin:
                 w.fx_shot(p, missile, target, spell, self)
         elif effect == "GRASP":
             rng = val(self.spell_ini(spell, "Range", "192"))
+            if target is None and item is None:
+                self.display_message("%s needs something to take hold of: use its scroll on it." % name, "FAIL")
+                return
             if target is None:
                 self.item_in_use = item
                 self.emit({"t": "use", "uid": item.uid})

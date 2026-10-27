@@ -12,7 +12,7 @@ import { L, U, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt,
   chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY } from "./ui.js";
 import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName, spellStatus } from "./verbs.js";
-import { J, hit as journalHit, pages as journalPages } from "./journal.js";
+import { J, hit as journalHit, pages as journalPages, spellClick } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
 import { unlock, playSound } from "./audio.js";
 import { pretty, val } from "./util.js";
@@ -101,7 +101,7 @@ export function mouseMove(x, y) {
   const vit = !msg ? vitalsAt(x, y) : "";
   if (vit === "level") msg = "Your level|the best of your fighting skills";
   if (vit === "hp") msg = `${S.me.hp} / ${S.me.max_hp} hitpoints`;
-  if (vit === "mana") msg = `${Math.floor(S.me.mana)} / ${S.me.max_mana} mana`;
+  if (vit === "shards") msg = `#${S.me.shards} Shards|Spent to cast spells and wake waystones|~Found on beasts, in chests and the earth, and given for quests`;
   const [cx, cy, cw, ch] = clockRect();
   if (!msg && S.clock.on && x >= cx && x < cx + cw && y >= cy && y < cy + ch) msg = timeText(dayFraction(performance.now()));
   const fr = U.fullscreenRect;
@@ -231,7 +231,8 @@ export function mouseDown(button, x, y) {
     if (!left) return;
     const h = J.hover;
     if (h === 10) { closeJournal(); return; }
-    if (h >= 1 && h <= 4) { J.tab = h; J.page = 1; J.focus = ""; }
+    if (h >= 1 && h <= 5) { J.tab = h; J.page = 1; J.focus = ""; }
+    if (spellClick(h)) return;
     if (h === 11) J.page = Math.max(1, J.page - 1);
     if (h === 12) J.page = Math.min(journalPages(), J.page + 1);
     return;
@@ -406,10 +407,11 @@ export function keyDown(ev) {
   if (code === "F11") { ev.preventDefault(); window.dsUI.toggleFullscreen(); return; }
   if (J.open) {
     if (code === "Escape" || code === "KeyH" || code === "F1") { ev.preventDefault(); closeJournal(); return; }
-    const n = { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Numpad1: 1, Numpad2: 2, Numpad3: 3, Numpad4: 4 }[code];
+    const n = { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Numpad1: 1, Numpad2: 2, Numpad3: 3, Numpad4: 4,
+      Numpad5: 5 }[code];
     if (n) { J.tab = n; J.page = 1; J.focus = ""; }
-    if (code === "ArrowLeft") { J.tab = J.tab === 1 ? 4 : J.tab - 1; J.page = 1; }
-    if (code === "ArrowRight") { J.tab = J.tab === 4 ? 1 : J.tab + 1; J.page = 1; }
+    if (code === "ArrowLeft") { J.tab = J.tab === 1 ? 5 : J.tab - 1; J.page = 1; }
+    if (code === "ArrowRight") { J.tab = J.tab === 5 ? 1 : J.tab + 1; J.page = 1; }
     if (code === "ArrowUp" || code === "PageUp") J.page = Math.max(1, J.page - 1);
     if (code === "ArrowDown" || code === "PageDown") J.page = Math.min(journalPages(), J.page + 1);
     ev.preventDefault();

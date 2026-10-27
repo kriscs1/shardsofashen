@@ -377,15 +377,20 @@ Where=Forests all over the island      ; a hint about where to find it
 
 ## data\Spells.ini
 
-One section per spell; a scroll item (Entities.ini `Spell=<section>`, `Use.Words=Cast`) casts it. Left-click (Cast) a
-scroll in the inventory to cast it at what you're fighting or the nearest monster in range; or Use it on a monster.
-Reading a scroll uses it up, needs the Magic level and trains Magic. 1.5 seconds between spells.
+One section per spell; a scroll item (Entities.ini `Spell=<section>`, `Use.Words=Cast`) teaches it. Reading the
+scroll (Learn) needs the Magic level and teaches the spell for good (saved with the character; the scroll goes, unless
+`Keep=1`); used on something, it's learnt and cast at it at once. A known spell is cast from its scroll (not used up),
+the journal's Spells or the hotbar (no target chosen: what you're fighting or the nearest), for `Cost` Shards
+(dsengine/shards.py), only when it takes hold; each has its own `Cooldown`; Config [Shards] `Cast.Gap` seconds
+between any two casts.
 
 ```
 [Fire_Bolt]
 Scroll=Fire_Bolt_Scroll    ; the item that casts it
 Effect=Bolt                ; Bolt (one foe) | Area (every foe within Radius) | Heal | Boost | Teleport (Shield = Boost)
-Kind=Scroll                ; Scroll (read: needs the Skill level, 1.5s between them) | Potion (drunk: Use.Words=Drink)
+Kind=Scroll                ; Scroll (learnt, then cast for Shards) | Potion (drunk, used up: Use.Words=Drink)
+Cost=3                     ; Shards a cast (a scroll's spell); Cooldown=0.8: seconds before that spell again
+Shards=10                  ; a potion: puts that many Shards in your pack
 Skill=Magic                ; the skill for Level and XP (potions: Herblore, with XP=0 - they train Herblore when brewed)
 Leaves=Empty_Vial          ; optional: an item you get back (the vial)
 Level=1                    ; Magic level needed
@@ -594,9 +599,17 @@ egion_tiles.py, with the same Walkable.Data).
   Livestock, Humanoid, Troll, Undead, Bug, Dragon; made by build_sounds.py). Set for every Bad NPC by build_content.py
   from its name; Beast when missing.
 * Spells.ini Level: the Magic (or Skill=) level needed to read the scroll. A scroll works 60% of the time at that level,
-  7% more for each level above it (at most 98%); when it fizzles the scroll is used up for half the experience.
-* Spells.ini Cost=<mana> and Cooldown=<seconds> (scrolls); Mana=<amount> on a potion gives mana back. The player's
-  mana is 10 + 3 per Magic level and refills in a minute (saved as [Player] Mana in the save).
+  7% more for each level above it (at most 98%); when it fizzles no Shards are spent, for half the experience.
+* **Shards** (dsengine/shards.py): the item Shard, magic's only resource; they don't come back by themselves.
+  Spells.ini `Cost` (Shards a cast) and `Cooldown` (seconds; saved, so logging off doesn't cut it short); a potion's
+  `Shards=` gives that many. Config.ini `[Shards]`: `Start` (a new character's), `Old.Save.Grant` (once, to a
+  character from before Shards), `Cast.Gap`, `Waystone.<Key>` (waking that waystone the first time; else `Waystone`),
+  `Waystone.Travel` (each journey), `Chest.Chance` and `Chest` (lo-hi: Shards added to a chest's treasure, the once it
+  gives it). Entities.ini `Drops` (the hostile creatures', by toughness: build_shards.py). Digging.ini `[Digging]`
+  `Shards.Chance`/`Shards`, `Shards.Underground.Chance`/`Shards.Underground`, `Cache.Chance`/`Cache`; a `[Finds.X]`
+  may say its own `Shards.Chance`/`Shards`. Quests.ini `Reward.Shards=<n>`: paid once when the quest reaches Done
+  (attribute `ShardsPaid.<attribute>`). Scripts: `>Pay.Shards <n or a [Shards] key> <what for> <line>` (the same
+  payment as spells: nothing taken when short) and `$Shards.<key>` in text. Saved: `spells` (learnt), `cooldowns`.
 * Config.ini [Interface] Font: the font for all the game's text (spaces allowed; Options cycles Palatino Linotype,
   Georgia, Book Antiqua, Constantia, Segoe UI and Lucida Sans Unicode).
 * Python game: Display.Conversation takes up to 11 response/goto pairs (the editor shows 4), and a response
@@ -687,7 +700,7 @@ Entities, a quest marker comes from the tile picked in Maps.
 * **Sleeping**: the `Sleep` verb (Use.Words on beds, any tile or thing) or the script command `Sleep <until>`
   (Morning, Evening, a time 0-1, or blank: the morning if it's night, else the evening). The screen goes dark, the
   time moves on and the player wakes there, healed. DayNight.ini `[Sleep]`: `Morning`, `Evening`, `Heal` (1 = full
-  hitpoints and mana), `Foe.Range` (no sleep with a foe this close), `Fight.Seconds` (nor this soon after a fight),
+  hitpoints), `Foe.Range` (no sleep with a foe this close), `Fight.Seconds` (nor this soon after a fight),
   `Fade`, `Hold` (ms), and what's shown and said (`Text`, `Wake.Morning`, `Wake.Evening`, `Foes`, `Fighting`,
   `No.Day`). The game saves when you wake.
 * **data\Weather.ini** (Config [Gameplay] `Weather=1`): `[Weather]` `First`, `Lasts=min-max` (seconds), `Fade.Out`,

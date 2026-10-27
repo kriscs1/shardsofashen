@@ -1,7 +1,11 @@
 """Digging: a spade (its Use.Words Dig) digs where you stand, on open ground (data\\Digging.ini Ground). Now and then
 (Chance in 100) something turns up: a weighted pick from [Finds], or from the [Finds.<Place>] that covers the map
 (its Maps=), added to them or instead (Replace=1). It leaves a hole (Dug_Hole001) that grasses over after Regrow
-seconds; until then nobody can dig there again. On sand you always get a sack of sand as well."""
+seconds; until then nobody can dig there again. On sand you always get a sack of sand as well.
+
+Shards, besides (only when a hole is dug): Shards.Chance in 100 of Shards=lo-hi, more under the ground
+(Shards.Underground.Chance, Shards.Underground) or where a [Finds.<Place>] says its own Shards.Chance and Shards; and
+now and then (Cache.Chance in 100) a cache of them, Cache=lo-hi."""
 import random
 
 from dragonsword import ini
@@ -38,6 +42,13 @@ def parse_maps(text):
     return out
 
 
+def roll(lo_hi):
+    """A whole number from "lo-hi" (or "n")."""
+    lo = int(val(word(lo_hi, 1, "-"))) or 1
+    hi = int(val(word(lo_hi, 2, "-"))) or lo
+    return random.randint(min(lo, hi), max(lo, hi))
+
+
 class DigMixin:
     def init_digging(self):
         self.dig_pending = None             # (due ms, map, tile x, tile y, where the player stood)
@@ -57,12 +68,18 @@ class DigMixin:
                 places.append({"name": sec[6:], "maps": parse_maps(keys.get("maps", "")),
                                "replace": val(keys.get("replace", "0")) == 1,
                                "chance": float(val(keys["chance"])) if "chance" in keys else chance,
+                               "shards": (float(val(keys["shards.chance"])), keys.get("shards", "1-3"))
+                               if "shards.chance" in keys else None,
                                "finds": parse_finds([(k, v) for k, v in items
-                                                     if k.strip().lower() not in ("maps", "replace", "chance")])})
+                                                     if k.strip().lower() not in ("maps", "replace", "chance", "shards.chance", "shards")])})
             cache["rules"] = {"chance": chance, "regrow": max(10, int(val(r("Regrow", "600")))),
                               "seconds": max(0.0, float(val(r("Seconds", "2")))),
                               "ground": [g.strip().lower() for g in r("Ground", "Grass,Dirt,Sand").split(",") if g.strip()],
-                              "finds": parse_finds(ini.section("Finds", path) or []), "places": places}
+                              "finds": parse_finds(ini.section("Finds", path) or []), "places": places,
+                              "shards": (float(val(r("Shards.Chance", "5"))), r("Shards", "1-3")),
+                              "shards_below": (float(val(r("Shards.Underground.Chance", "15"))),
+                                               r("Shards.Underground", "1-5")),
+                              "cache": (float(val(r("Cache.Chance", "0.5"))), r("Cache", "6-12"))}
         return cache["rules"]
 
     def dig_finds(self, m):
@@ -72,6 +89,29 @@ class DigMixin:
             if (m.mx, m.my, m.mz) in pl["maps"]:
                 return pl["chance"], pl["finds"] if pl["replace"] else rules["finds"] + pl["finds"]
         return rules["chance"], rules["finds"]
+
+    def dig_shard_odds(self, m):
+        """(chance in 100, lo-hi) of Shards in a hole dug on map m: its place's, under the ground, or the rest."""
+        rules = self.dig_rules()
+        for pl in rules["places"]:
+            if (m.mx, m.my, m.mz) in pl["maps"] and pl["shards"]:
+                return pl["shards"]
+        return rules["shards_below"] if m.mz < 0 else rules["shards"]
+
+    def dig_shards(self, m):
+        """A hole dug: Shards in it, now and then (and, rarely, a whole cache of them). How many it gave."""
+        rules = self.dig_rules()
+        n = 0
+        cache, cache_range = rules["cache"]
+        chance, rng = self.dig_shard_odds(m)
+        if random.uniform(0, 100) < cache:
+            n, what = roll(cache_range), "a cache of Shards, glittering in the earth"
+        elif random.uniform(0, 100) < chance:
+            n, what = roll(rng), "a glint in the soil"
+        if n > 0:
+            self.play_sound("Pickup")
+            self.give_shards(n, "You find " + what)
+        return n
 
     def diggable(self, tile):
         base = strip_digits(tile or "").rstrip("_").lower()
@@ -157,3 +197,4 @@ class DigMixin:
                                  "ACHIEVEMENT" if val(what) >= 30 else "SUCCESS")
         else:
             self.display_message("...but find nothing but earth%s." % extra, "INFO")
+        self.dig_shards(m)

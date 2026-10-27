@@ -1,15 +1,16 @@
 // The interface round the world (the desktop game's ui.py, the rest of render): the sidebar (minimap, clock, buttons,
-// Stats / Gear / Quests, the inventory), the chat bar, your level, health and mana (top left) and what's under the
+// Stats / Gear / Quests, the inventory), the chat bar, your level, health and Shards (top left) and what's under the
 // mouse (top middle), the ActionBox and its responses, the right-click menu, the hotbar, the level-up banner. Laid
 // out at 768 high, as wide as the screen's shape wants (1024 to 1792); on a phone (mobile.js) the world fills the
 // screen and the rest sits over it.
 import { G, S, cellOf, isHomeMap } from "./state.js";
-import { A, sprite, size, has, entityIni, configRead, preload } from "./assets.js";
+import { A, sprite, size, has, entityIni, spellIni, configRead, preload } from "./assets.js";
 import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextMid, centreText, textWidth, fitText,
   wrapLines, roundBox, fontPx, setFont } from "./util.js";
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
-import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice } from "./verbs.js";
+import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
+  cooldownLeft } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
@@ -575,7 +576,7 @@ export function skillOfRow(row) {
 }
 
 export function statTileRect(k) {
-  // (tile 2 on: the skills, three to a row; your health and mana are top left of the view)
+  // (tile 2 on: the skills, three to a row; your health and Shards are top left of the view)
   const j = k - 2;
   return [29 + (j % 3) * 56, U.statRowTop + Math.floor(j / 3) * U.statRowH, 54];
 }
@@ -1176,7 +1177,7 @@ function drawHoverTop(ctx) {
   U.topY = y0 + total + 18;                       // (the arena's and a wave's banners go under it)
 }
 
-// ----- your level, health and mana: top left of the view
+// ----- your level, health and Shards: top left of the view
 export const VITALS = { x: 8, y: 8, r: 19, barX: 52, barW: 124, barH: 13 };
 
 function vitalBar(ctx, y, frac, fill, icon_, text) {
@@ -1187,6 +1188,16 @@ function vitalBar(ctx, y, frac, fill, icon_, text) {
   icon(ctx, icon_, barX - 7, y - 2, 16);
   const tw = textWidth(ctx, text, 8, true);
   drawTextMid(ctx, text, barX + barW - 6 - tw, y, barH, 8, true, [255, 246, 222]);
+}
+
+function shardRow(ctx, y, n) {
+  // (your Shards: what magic is spent from - a count, not a bar: they don't come back by themselves)
+  const { barX, barW, barH } = VITALS;
+  roundBox(ctx, barX, y, barW, barH, "rgba(24,14,8,0.85)", [126, 77, 63], 1, 6);
+  const im = sprite("Shard");
+  if (im) ctx.drawImage(im, barX - 10, y - 4, 20, 20);
+  const text = `${n} Shard${n === 1 ? "" : "s"}`;
+  drawTextMid(ctx, text, barX + barW - 6 - textWidth(ctx, text, 8, true), y, barH, 8, true, [214, 200, 255]);
 }
 
 function drawVitals(ctx) {
@@ -1201,17 +1212,16 @@ function drawVitals(ctx) {
   const hp = me.hp, mhp = Math.max(1, me.max_hp);
   const hpFill = hp < mhp * 0.33 ? "rgb(210,50,36)" : hp < mhp * 0.66 ? "rgb(214,130,36)" : "rgb(196,40,40)";
   vitalBar(ctx, y + 4, hp / mhp, hpFill, configRead("Skills", "Icon.Hitpoints", "Heart") || "Heart", `${hp}/${me.max_hp}`);
-  vitalBar(ctx, y + 21, me.mana / Math.max(1, me.max_mana), "rgb(60,110,220)", "Mana",
-    `${Math.floor(me.mana)}/${me.max_mana}`);
+  shardRow(ctx, y + 21, me.shards || 0);
 }
 
 export function vitalsAt(x, y) {
-  // (what's under the mouse in them: "level", "hp", "mana" or "")
+  // (what's under the mouse in them: "level", "hp", "shards" or "")
   const v = VITALS;
   if (Math.hypot(x - v.x - v.r, y - v.y - v.r) <= v.r) return "level";
   if (x >= v.barX - 8 && x < v.barX + v.barW) {
     if (y >= v.y + 2 && y < v.y + 19) return "hp";
-    if (y >= v.y + 19 && y < v.y + 36) return "mana";
+    if (y >= v.y + 19 && y < v.y + 36) return "shards";
   }
   return "";
 }
@@ -1294,9 +1304,21 @@ function drawHotbar(ctx) {
     const name = (S.me.hotbar || [])[k];
     if (name) {
       const n = held(name);
-      const im = n ? sprite(name) : greyed(name);
+      const sp = spellTaught(name), known = sp && knowsSpell(sp);
+      const im = n || known ? sprite(name) : greyed(name);
       if (im) ctx.drawImage(im, x + Math.floor((w - im.width) / 2), y + Math.floor((h - im.height) / 2));
-      if (n !== 1) {
+      if (known) {                                // (a spell you know: its cooldown, or that you're short of Shards)
+        const left = cooldownLeft(sp), total = val(spellIni(sp, "Cooldown", "0")) * 1000;
+        if (left > 0 && total > 0) {
+          ctx.fillStyle = "rgba(10,6,4,0.62)";
+          const ch = Math.ceil(h * Math.min(1, left / total));
+          ctx.fillRect(x + 1, y + h - ch - 1, w - 2, ch);
+          centreText(ctx, x + w / 2, y + h / 2 - 5, String(Math.ceil(left / 1000)), 10, true, [255, 240, 200]);
+        } else if ((S.me.shards || 0) < val(spellIni(sp, "Cost", "0"))) {
+          ctx.fillStyle = "rgba(150,30,20,0.45)";
+          ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+        }
+      } else if (n !== 1) {
         const t = String(n);
         drawText(ctx, t, x + w - 3 - textWidth(ctx, t, 8, true), y + h - 12, 8, true, n ? [255, 240, 200] : [200, 90, 80]);
       }
@@ -1308,6 +1330,8 @@ function drawHotbar(ctx) {
 export function hotbarLabel(k) {
   const name = (S.me.hotbar || [])[k];
   if (!name) return `#Hotbar slot ${k + 1}|~Right-click an item in your pack: Hotbar`;
+  const sp = spellTaught(name);
+  if (sp && knowsSpell(sp)) return [`#${pretty(sp)}  (a spell you know)`, ...itemLines(name), `~Press ${k + 1} or click to cast it`].join("|");
   return [`#${pretty(name)}  (${held(name)})`, ...itemLines(name), `~Press ${k + 1} or click to use it`].join("|");
 }
 
@@ -1367,7 +1391,7 @@ function drawOnline(ctx, now) {
   const names = S.players.map((p) => p.name);
   const text = `Online ${names.length}/${S.max}: ${names.join(", ")}`;
   const w = textWidth(ctx, text, 8, true) + 12;
-  const oy = 52;                                  // (under your health and mana)
+  const oy = 52;                                  // (under your health and Shards)
   ctx.fillStyle = "rgba(24,14,8,0.55)";
   ctx.fillRect(4, oy, w, 16);
   drawText(ctx, text, 10, oy + 2, 8, true, [243, 232, 136]);

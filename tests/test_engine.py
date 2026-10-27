@@ -846,14 +846,20 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
     m = world.maps[wolf.map]
     a = join(world, "Caster", m.name, int(wolf.x - m.ox), int(wolf.y - m.oy + 40))
     stock(a, Fire_Bolt_Scroll=2)
-    a.player_mana = 50
+    a.spell_chance = lambda spell: 100                            # (no fizzling, for this)
     scroll = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll")
+    assert "Learn" in a.get_verbs(scroll)
+    a.do_action("Learn", scroll)                                  # (read: the spell is theirs, the scroll goes)
+    assert "Fire_Bolt" in a.spells_known and a.items_held("Fire_Bolt_Scroll") == 1
+    scroll = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll")
+    assert "Cast" in a.get_verbs(scroll) and "Learn" not in a.get_verbs(scroll)
     a.do_action("Cast", scroll)
-    assert a.item_in_use is scroll and a.items_held("Fire_Bolt_Scroll") == 2     # (held ready, not cast)
+    assert a.item_in_use is scroll                                # (held ready, not cast)
     assert any(e.get("t") == "use" and e.get("uid") == scroll.uid for e in a.out)
+    shards = a.shards()
     a.script_cursor_x, a.script_cursor_y = wolf.cx, wolf.cy
     a.use_item_with(wolf)                                         # (then clicked on the wolf)
-    assert a.items_held("Fire_Bolt_Scroll") == 1
+    assert a.items_held("Fire_Bolt_Scroll") == 1 and a.shards() == shards - 3     # (the scroll stays; 3 Shards go)
     leave(world, a)
 
 
@@ -862,7 +868,8 @@ def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
     m = a.cur_map
     a.skill_level = lambda skill: 60                               # (a mage who never fizzles)
     a.spell_chance = lambda spell: 100
-    a.player_mana = 100
+    a.spells_known.add("Frost_Nova")
+    stock(a, Shard=40)
     wolves = [world.add_npc("Wolf", 0, m.ox + x * 32, m.oy + 9 * 32, "Attitude=Bad") for x in (10, 13)]
     boss = world.add_npc("Valour_Guardian", 0, m.ox + 12 * 32, m.oy + 11 * 32, "Attitude=Bad")
     far = world.add_npc("Wolf", 0, m.ox + 22 * 32, m.oy + 18 * 32, "Attitude=Bad")
@@ -870,8 +877,9 @@ def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
         e.hp = e.max_hp = 500                                      # (alive after the blast)
     stock(a, Frost_Nova_Scroll=1)
     a.out = []
+    shards = a.shards()
     a.cast_scroll(next(e for e in a.inv if e.name == "Frost_Nova_Scroll"), None)
-    assert a.items_held("Frost_Nova_Scroll") == 0
+    assert a.items_held("Frost_Nova_Scroll") == 1 and a.shards() == shards - 15      # (known: the scroll stays)
     assert all(w.hp < 500 and w.frozen_until for w in wolves)       # (hurt, and held in the ice)
     assert boss.hp < 500 and boss.frozen_until is None              # (hurt, but no ice holds it)
     assert far.hp == 500 and far.frozen_until is None               # (too far off)
@@ -1128,8 +1136,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     s.action_box_response_chosen(1)
     run(30)
     assert attr("AmuletQuest") == 5 and s.items_held("Grasp_Scroll") == 1
-    s.player_mana = s.player_max_mana
-    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), niche)
+    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), niche)      # (read at it: learnt, and cast)
     run(30)
     s.action_box_response_chosen(1)
     run(30)
@@ -2195,4 +2202,208 @@ def test_the_royal_guard_and_the_king(world):
         if jimmy.ai.napping:
             break
     assert jimmy.ai.napping and world.npc_state(jimmy) == "Curl" and distance(jimmy.cx, jimmy.cy, gx, gy) < 20
+    leave(world, s)
+
+
+# ----- Shards (dsengine/shards.py): magic spends them; spells are learnt from scrolls for good
+def ticks(world, n, ms=50):
+    for _ in range(n):
+        world.tick(0.05, now=world.now + ms)
+
+
+def test_a_new_character_has_shards_and_an_old_one_gets_them_once(world):
+    s = Session(world, "Fresh")
+    s.load_state(None)
+    assert s.shards() == 12 and not s.spells_known and "mana" not in s.me_state()
+    old = join(world, "Veteran")                                   # (a save from before Shards)
+    got = old.shards()
+    assert got == 20
+    saved = old.save_state()
+    leave(world, old)
+    again = Session(world, "Veteran")
+    again.load_state(saved)
+    assert again.shards() == got                                   # (no second grant)
+
+
+def test_a_learnt_spell_stays_through_death_and_logging_off(world):
+    a = join(world, "Learner", "11,4,0", 384, 300)
+    a.skill_level = lambda skill: 10
+    stock(a, Healing_Scroll=1)
+    a.do_action("Learn", next(e for e in a.inv if e.name == "Healing_Scroll"))
+    assert "Healing" in a.spells_known and a.items_held("Healing_Scroll") == 0
+    a.player_dies()
+    a.handle({"t": "respawn"})
+    world.tick(0.05)
+    assert "Healing" in a.spells_known
+    a.spell_start_cooldown("Healing")
+    saved = a.save_state()
+    leave(world, a)
+    b = Session(world, "Learner")
+    b.load_state(saved)
+    assert "Healing" in b.spells_known and b.spell_cooldown_left("Healing") > 0    # (logging off doesn't reset it)
+
+
+def test_a_scroll_too_hard_to_learn_is_kept(world):
+    a = join(world, "Novice2")
+    stock(a, Blizzard_Scroll=1)
+    a.out = []
+    a.do_action("Learn", next(e for e in a.inv if e.name == "Blizzard_Scroll"))
+    assert "Blizzard" not in a.spells_known and a.items_held("Blizzard_Scroll") == 1
+    assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
+    assert any("Magic 26" in str(e.get("text", "")) or "level 26 Magic" in str(e.get("text", "")) for e in a.out)
+    leave(world, a)
+
+
+def test_casting_spends_shards_only_when_it_takes(world):
+    a = join(world, "Spender", "11,4,0", 384, 300)
+    a.skill_level = lambda skill: 10
+    a.spells_known.add("Healing")
+    a.player.hp = 5
+    a.remove_inventory_item("Shard", a.shards())
+    stock(a, Shard=5)                                              # (Healing takes 6)
+    a.out = []
+    a.cast_spell("Healing", None)
+    assert a.shards() == 5 and a.player.hp == 5                    # (too few: nothing taken, nothing cast)
+    assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
+    stock(a, Shard=10)
+    a.spell_chance = lambda spell: 0                               # (it fizzles: no Shards spent)
+    a.cast_spell("Healing", None)
+    assert a.shards() == 15 and a.spell_cooldown_left("Healing") > 0
+    a.cooldowns.clear()
+    a.player_last_cast = 0
+    a.spell_chance = lambda spell: 100
+    a.cast_spell("Healing", None)
+    assert a.shards() == 9 and a.player.hp > 5                     # (cast: 6 Shards, exactly once)
+    a.player.hp = 5
+    a.cast_spell("Healing", None)                                  # (again at once: its cooldown)
+    a.cast_spell("Healing", None)
+    assert a.shards() == 9 and a.player.hp == 5
+    assert not a.spend_shards(100, "That") and a.shards() == 9     # (never below nothing)
+    leave(world, a)
+
+
+def test_the_hotbar_casts_a_known_spell_without_its_scroll(world):
+    a = join(world, "Quick", "11,4,0", 384, 300)
+    a.skill_level = lambda skill: 10
+    a.spells_known.add("Healing")
+    a.spell_chance = lambda spell: 100
+    a.player.hp = 3
+    a.hotbar[0] = "Healing_Scroll"
+    assert a.items_held("Healing_Scroll") == 0
+    shards = a.shards()
+    a.hotbar_use(0)
+    assert a.player.hp > 3 and a.shards() == shards - 6
+    a.handle({"t": "hotbar_spell", "spell": "Fire_Bolt"})          # (not known: not put there)
+    assert "Fire_Bolt_Scroll" not in a.hotbar
+    leave(world, a)
+
+
+def test_digging_turns_up_shards_now_and_then(world, monkeypatch):
+    s = join(world, "Delver")
+    import random as rnd
+    assert s.dig_shard_odds(world.maps["11,4,0"]) == (5.0, "1-3")
+    cave = next(m for m in world.maps.values() if m.mz < 0)
+    assert s.dig_shard_odds(cave) == (15.0, "1-5")                 # (under the ground: likelier)
+    assert s.dig_shard_odds(world.maps["2,19,0"])[0] == 15.0        # (the desert's old places)
+    monkeypatch.setattr(rnd, "uniform", lambda a, b: b)            # (the unluckiest: nothing)
+    before = s.shards()
+    assert s.dig_shards(world.maps["11,4,0"]) == 0 and s.shards() == before
+    monkeypatch.setattr(rnd, "uniform", lambda a, b: 3.0)          # (under 5 in 100: Shards; not a cache)
+    assert s.dig_shards(world.maps["11,4,0"]) >= 1 and s.shards() > before
+    leave(world, s)
+
+
+def test_a_quests_shards_are_paid_once(world):
+    s = join(world, "Rewarded")
+    s.update_attribute("ShardsPaid.DinnerQuest", "=0")
+    s.update_attribute("DinnerQuest", "=3")
+    before = s.shards()
+    s.update_attribute("DinnerQuest", "=4")                        # (done: Reward.Shards=5)
+    assert s.shards() == before + 5
+    s.update_attribute("DinnerQuest", "=4")
+    s.update_attribute("DinnerQuest", "+1")
+    assert s.shards() == before + 5
+    assert next(q for q in s.quest_list() if q["title"] == "Dinner at the Bank")["shards"] == 5
+    leave(world, s)
+
+
+def test_waking_a_waystone_costs_shards_once(world):
+    m = world.maps["4,6,0"]
+    ws = next(e for e in world.ents if e.name == "Waystone" and e.map == m.name)
+    a = join(world, "Wanderer", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
+    other = join(world, "Bystander", m.name, int(ws.x - m.ox) + 60, int(ws.y - m.oy) + 8)
+    a.connected = other.connected = True
+    theirs = other.shards()
+
+    def touch(answer):
+        a.out = []
+        a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
+        ticks(world, 40)
+        assert a.ab_mode == "Conversation"
+        a.action_box_response_chosen(answer)
+        ticks(world, 40)
+
+    a.remove_inventory_item("Shard", a.shards())
+    stock(a, Shard=3)
+    touch(1)                                                       # ("Wake it": but 5 are needed)
+    assert a.get_attribute("Waystone.Southport") in ("", "0") and a.shards() == 3
+    assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
+    a.close_action_box(-1)
+    ticks(world, 5)
+    stock(a, Shard=7)
+    touch(2)                                                       # ("Not now": nothing spent)
+    assert a.get_attribute("Waystone.Southport") in ("", "0") and a.shards() == 10
+    touch(1)
+    assert a.get_attribute("Waystone.Southport") == "1" and a.shards() == 5
+    a.close_action_box(-1)
+    ticks(world, 5)
+    touch(len(a.responses))                                        # (awake: straight to its menu, "Stay here")
+    assert a.shards() == 5 and other.shards() == theirs            # (charged once, and only them)
+    leave(world, a)
+    leave(world, other)
+
+
+def test_the_magister_takes_fifteen_shards_only_when_you_hand_them_over(world):
+    q = next(e for e in world.ents if e.npc_id == "Court_Magister")
+    m = world.maps[q.map]
+    s = join(world, "Scholar", m.name, int(q.x - m.ox), int(q.y - m.oy) + 40)
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+
+    def talk(*answers):
+        s.choose_verb("Talk to", q, int(q.cx), int(q.cy))
+        ticks(world, 40)
+        for n in answers:
+            assert s.ab_mode == "Conversation"
+            s.action_box_response_chosen(n)
+            ticks(world, 20)
+
+    talk(1)                                                        # ("I'll bring you fifteen")
+    assert s.get_attribute("ShardQuest") == "1"
+    before = s.shards()
+    talk(3)                                                        # ("Not yet": nothing taken)
+    assert s.shards() == before
+    s.remove_inventory_item("Shard", before)
+    stock(s, Shard=10)
+    talk(1)                                                        # (too few: nothing taken)
+    assert s.shards() == 10 and s.get_attribute("ShardQuest") == "1"
+    s.close_action_box(-1)
+    ticks(world, 5)
+    stock(s, Shard=10)
+    talk(1, 1)
+    assert s.shards() == 5 and s.get_attribute("ShardQuest") == "2" and s.items_held("Frost_Nova_Scroll") == 1
+    leave(world, s)
+
+
+def test_a_chest_sometimes_holds_shards(world, monkeypatch):
+    s = join(world, "Looter")
+    import random as rnd
+    monkeypatch.setattr(rnd, "uniform", lambda a, b: a)            # (the luckiest chest)
+    s.loot_key, s.loot_collect = "x|1|1|Chest", [["Gold_Coin(s)", 5]]
+    s.loot_finish()
+    assert any(it[0] == "Shard" and 3 <= it[1] <= 15 for it in s.chests["x|1|1|Chest"])
+    s.loot_key, s.loot_collect = "y|1|1|Chest", []                 # (an empty one: nothing added)
+    s.loot_finish()
+    assert "y|1|1|Chest" not in s.chests
+    s.close_action_box(-1)
     leave(world, s)

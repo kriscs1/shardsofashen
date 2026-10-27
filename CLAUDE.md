@@ -28,7 +28,7 @@ References: `README-Server.md` (running, deploying, shared vs personal), `dev/Da
 
 **You are the true heir of Estforlan.** Every generation the dragon takes the king's firstborn heir, or it keeps
 Galaith, the capital, shut behind a magical barrier: the city that holds the only land route across the world, with
-the gold and mana mines in the mountains behind it. Your mother, **Queen Mary**, ran from Galaith with you as a baby
+the gold and Shard mines in the mountains behind it. Your mother, **Queen Mary**, ran from Galaith with you as a baby
 to save you and to break the curse. The city has been sealed since your birth; King **Rupert**, your father, is shut
 in it. You grew up poor on the Isle, in the **cottage on its east** (map 4,0,0), with **Jimmy**, a strawberry-blond
 ginger cat. New characters start with no sword.
@@ -121,6 +121,15 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
 - Buffs and debuffs end on death.
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
+
+**Magic and Shards**
+- Magic runs on **Shards**, an item in your pack (`dsengine/shards.py`); they never come back by themselves. Beasts,
+  chests, digging and quests (`Reward.Shards`) give them; spells, waystones (waking one the first time) and anything
+  else magical spend them, through `spend_shards` or the script command `>Pay.Shards`: never below nothing, nothing
+  taken unless the thing goes ahead, and a Denied word when you're short. No mana.
+- A spell's scroll teaches it for good (if your Magic is high enough; else it's kept); a known spell's scroll isn't
+  used up. Each spell has its own Shard cost and cooldown in `Spells.ini`; the numbers live in data (Config.ini
+  `[Shards]`, Digging.ini, Quests.ini), set by `dev/migrate/build_shards.py`.
 
 **Doing things**
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays

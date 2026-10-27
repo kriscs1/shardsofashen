@@ -25,6 +25,7 @@ from .digging import DigMixin
 from .minigames import MinigameMixin
 from .tavern import TavernMixin
 from .containers import ChestMixin
+from .shards import ShardMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -45,7 +46,7 @@ def clean_look(look):
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin):
+              MinigameMixin, ShardMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -88,7 +89,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.look = None                    # their colours (skin, hair, shirt, legs), or None
         self.grave_ent = None
         self.status = {}
-        self.cooldowns = {}
+        self.cooldowns = {}                 # spell -> when it's ready again (ms)
+        self.spells_known = set()           # the spells they've learnt from scrolls, for good
         self.bets = []                      # when they last staked at the tavern (time.time(): the limit's window)
         self.game = None                    # the tavern game they're at: {game, at (the innkeeper or table), phase...}
         self.clear_boosts_values()
@@ -96,8 +98,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.dead_wait = None               # (map, x, y, at their bed): dead, until they choose to respawn
         self.player_sprite_base = "Player"
         self.player_max_hp = int(d.hp_base + 2 * d.hp_per_level)
-        self.player_mana = -1
-        self.player_max_mana = 10
         self.hp_regen_last = 0
         self.low_hp_warned = 0
         self.ammo_warned = 0
@@ -331,7 +331,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.update_max_hp()
         hp = val(st.get("hp", 0))
         p.hp = hp if 0 < hp <= self.player_max_hp else self.player_max_hp
-        self.player_mana = val(st.get("mana", -1))
+        self.spells_known = {str(n) for n in st.get("spells", []) if str(n).strip()}
+        for spell, left in dict(st.get("cooldowns", {})).items():   # (logging off doesn't cut a cooldown short)
+            if 0 < val(left) < 3600000:
+                self.cooldowns[str(spell)] = self.w.now + val(left)
         for name, qty, wear in st.get("inventory", []):
             self.add_inventory_item(self.renamed(name), max(1, int(qty)), int(wear), quiet=True)
         for i, (name, wear) in enumerate(st.get("equipped", [])[:d.equip_slots], 1):
@@ -367,6 +370,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.recalc_equipment()
         if not st:
             self.new_player_start()
+        self.shard_start(not st)
         self.cur_map = m
         self.player_tile = None
 
@@ -423,7 +427,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         st = {
             "map": m.name if m else d.start_map,
             "x": int(self.stand_x() - m.ox) if m else d.start_x, "y": int(self.stand_y() - m.oy) if m else d.start_y,
-            "hp": p.hp, "mana": int(self.player_mana), "direction": max(1, int(p.direction)),
+            "hp": p.hp, "direction": max(1, int(p.direction)),
+            "spells": sorted(self.spells_known),
+            "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
             "sprite": self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
             "inventory": [[e.name, e.quantity, e.wear] for e in self.inv],
@@ -532,7 +538,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if not self.ab_mode:
             self.update_player_combat()
         self.update_player_health()
-        self.update_mana()
         self.w.animate_entity(self.player, self.player_moved)
         self.run_scripts()
         self.run_personal_timers()
@@ -932,8 +937,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 self.display_message("You doze for a while; the others are still up and about.", "INFO")
             if val(w.dn("Sleep", "Heal", "1")) == 1:
                 self.player.hp = self.player_max_hp
-                if self.player_max_mana > 0:
-                    self.player_mana = self.player_max_mana
                 self.dirty_me = True
         if t >= 2 * st["fade"] + st["hold"]:
             self.sleep_state = None
@@ -953,7 +956,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p = self.player
         return {
             "t": "me", "name": self.player_name, "uid": p.uid, "admin": self.admin_enabled, "god": self.god_mode,
-            "hp": p.hp, "max_hp": self.player_max_hp, "mana": int(self.player_mana), "max_mana": self.player_max_mana,
+            "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": sorted(self.spells_known),
             "xp": self.skill_xp[1:], "skill_off": self.skill_off[1:],
             "inv": [[e.uid, e.name, e.quantity, e.wear] for e in self.inv],
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],

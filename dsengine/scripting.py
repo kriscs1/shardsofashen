@@ -244,7 +244,7 @@ class ScriptMixin:
                 break
             out.append(text[p:q])
             kind = ""
-            for prefix in ("$attr.", "$item.", "$skill.", "$equipped."):
+            for prefix in ("$attr.", "$item.", "$skill.", "$equipped.", "$shards."):
                 if text[q:q + len(prefix)].lower() == prefix:
                     kind = prefix
                     break
@@ -256,7 +256,11 @@ class ScriptMixin:
             while e < n and text[e] in name_chars:
                 e += 1
             name = text[q + len(kind):e]
-            if kind == "$attr.":
+            while name.endswith("."):
+                name, e = name[:-1], e - 1          # (a full stop after it is the sentence's: "you carry $Item.Shard.")
+            if kind == "$shards.":
+                value = lbstr(self.shard_setting(name))
+            elif kind == "$attr.":
                 value = self.get_attribute(name) or "0"
                 if self.script_running:
                     self.script_personal = True
@@ -277,7 +281,7 @@ class ScriptMixin:
         if "$" not in text and "[TAB]" not in text:
             return text
         low = text.lower()
-        if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low:
+        if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low or "$shards." in low:
             text = self.expand_data_variables(text)
         if "$" not in text:
             return text.replace("[TAB]", "\t")
@@ -650,6 +654,9 @@ class ScriptMixin:
             e = self.npc_by_id(arg[1])
             self.script_condition(e is not None and e.z == p.z and distance(p.cx, p.cy, e.cx, e.cy) <= val(arg[2]),
                                   arg[3])
+        elif c == ">Pay.Shards":                     # (the same checked payment as spells: shards.py)
+            n = int(val(arg[1])) if is_number(arg[1]) else self.shard_setting(arg[1])
+            self.script_condition(self.spend_shards(n, (arg[2] or "That").replace("_", " ")), arg[3])
         elif c == ">Got.Item":
             tool = self.is_tool(arg[1])
             ok = (self.tools_held(arg[1]) if tool else self.items_held(arg[1])) >= max(1, val(arg[2]))
@@ -1038,6 +1045,8 @@ class ScriptMixin:
             self.attributes[idx][1] = change[1:]
         else:
             self.attributes[idx][1] = lbstr(apply_change(val(self.attributes[idx][1]), change))
+        if not name.upper().startswith(("SHARDSPAID.", "SHARDSGIVEN")):
+            self.shard_quest_reward(name, val(self.attributes[idx][1]))     # (a quest done: its Shards, once)
         self.dirty_me = True
         self.dirty_quests = True
         self.check_locks(True)

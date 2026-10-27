@@ -690,8 +690,8 @@ def check_scripts(skills, racks):
                 if cmd == "Display.Conversation" and k >= 3:
                     at = "GOTO LINE" if k % 2 == 0 else "RESPONSE"
                 for v in re.findall(r"\$[A-Za-z][A-Za-z0-9.]*[A-Za-z0-9]", a):
-                    # $Attr. $Item. $Skill. $Equipped. are filled in in any script argument, as in conditions
-                    if v not in variables and not re.match(r"\$(Attr|Item|Skill|Equipped)\.", v, re.I):
+                    # $Attr. $Item. $Skill. $Equipped. $Shards. are filled in in any script argument, as in conditions
+                    if v not in variables and not re.match(r"\$(Attr|Item|Skill|Equipped|Shards)\.", v, re.I):
                         err(where, "unknown variable %s" % v)
                 if "$" in a and at not in ("GOTO SCRIPT NAME",):
                     continue
@@ -1202,14 +1202,18 @@ def check_digging():
     ini = Ini(path)
     r = rel(path)
     maps = {tuple(int(n) for n in f[:-4].split(",")) for f in os.listdir(p("maps")) if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", f)}
+    shard_keys = ("Shards.Chance", "Shards", "Shards.Underground.Chance", "Shards.Underground", "Cache.Chance", "Cache")
     for sec, items in ini.sections:
+        for k, v in items:                       # (Shards in a dug hole: chances in 100, how many lo-hi)
+            if k in shard_keys and not re.fullmatch(r"\d+(\.\d+)?" if k.endswith("Chance") else r"\d+(-\d+)?", v.strip()):
+                err(r, "[%s] %s=%r should be %s" % (sec, k, v, "a chance in 100" if k.endswith("Chance") else "lo-hi"))
         if sec == "Digging":
             continue
         if sec != "Finds" and not sec.startswith("Finds."):
             warn(r, "[%s] isn't [Digging], [Finds] or [Finds.<Place>]" % sec)
             continue
         for k, v in items:
-            if k is None or (sec != "Finds" and k in ("Maps", "Replace", "Chance")):
+            if k is None or (sec != "Finds" and k in ("Maps", "Replace", "Chance")) or k in shard_keys:
                 continue
             if k not in ENTITIES:
                 err(r, "[%s] %s: no such item" % (sec, k))
@@ -1522,7 +1526,7 @@ def check_spells(entities_ini, skills):
             verb = "drink" if (ini.get(sec, "Kind") or "").strip().lower() == "potion" else "cast"
             if verb not in [w.strip().lower() for w in (entities_ini.get(scroll, "Use.Words") or "").split(",")]:
                 warn(where, "[%s] has no %s in its Use.Words" % (scroll, verb.title()))
-        for k in ("Level", "XP", "Range", "Radius", "Attack", "Defence", "Magic", "Sight", "Duration", "Cost", "Cooldown", "Mana",
+        for k in ("Level", "XP", "Range", "Radius", "Attack", "Defence", "Magic", "Sight", "Duration", "Cost", "Cooldown", "Shards",
                   "Freeze"):
             v = ini.get(sec, k)
             if v is not None and not is_num(v):
@@ -1647,6 +1651,9 @@ def check_quests():
                 words = v.replace(",", " ").split()
                 if len(words) % 2 or not all(w.isdigit() for w in words[1::2]):
                     err(where, "Requires.Skills should be pairs of skill and level, e.g. Woodcutting 10, Herblore 5")
+            elif k == "Reward.Shards":
+                if not v.strip().isdigit():
+                    err(where, "Reward.Shards=%r should be a whole number of Shards" % v)
             elif k not in ("Giver", "Attribute", "Done"):
                 warn(where, "unknown key %s" % k)
         if attr in writes and done not in writes[attr] and "*" not in writes[attr]:

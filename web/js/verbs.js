@@ -85,7 +85,9 @@ export function getVerbs(e) {
     if (mode === "Shop") v = canSellHere(e.n) ? ["Sell 1", "Sell All", "Value", "Examine"] : ["Examine"];
     else if (mode === "Bank") v = ["Deposit 1", "Deposit All", "Examine"];
     else {
-      addVerbs(v, entityIni(e.n, "Use.Words", ""));
+      const words = entityIni(e.n, "Use.Words", "");
+      const sp = spellTaught(e.n);                // (a spell's scroll not read yet: Learn, not Cast)
+      addVerbs(v, sp && !knowsSpell(sp) ? words.split(",").map((w) => (w.trim() === "Cast" ? "Learn" : w)).join(",") : words);
       addVerb(v, equipVerb(e.n));
       addVerb(v, "Use");
       if (entityIni(e.n, "Droppable", "1").trim() === "0") { /* (kept: quest things, the Access Crystal) */ }
@@ -143,13 +145,17 @@ export function spellSummary(spell) {
   else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellIni(spell, "Damage", "")} damage`);
   else if (eff === "TELEPORT" || eff === "HOME") parts.push("teleports you");
   else if (eff === "GRASP") parts.push("pulls a thing to you, from afar");
-  if (n("Mana")) parts.push(`+${n("Mana")} mana`);
+  if (n("Shards")) parts.push(`+${n("Shards")} Shards`);
   return parts.join(", ");
 }
 
 export function verbLabel(verb, e) {
   if (!e || verb === "Walk here" || verb === "Cancel") return verb;
   const name = displayName(e);
+  if (verb === "Learn" && e.k === T.INVITEM) {
+    const spell = spellTaught(e.n);
+    return `Learn ${pretty(spell)} (for good: ${spellIni(spell, "Skill", "Magic")} ${lbstr(val(spellIni(spell, "Level", "1")))})`;
+  }
   if ((verb === "Drink" || verb === "Cast") && e.k === T.INVITEM) {
     const spell = entityIni(e.n, "Spell", "").trim();
     const what = spell ? spellSummary(spell) : "";
@@ -172,6 +178,20 @@ export function verbLabel(verb, e) {
   if (verb === "Off hotbar") return `Take ${name} off the hotbar`;
   if (verb === "Use") return e.k === T.INVITEM ? `Use ${name}...` : "Use " + name;
   return verb + " " + name;
+}
+
+// ----- spells, learnt from their scrolls (S.me.spells), cast for Shards
+export function spellTaught(name) {
+  const spell = entityIni(name, "Spell", "").trim();
+  return spell && spellIni(spell, "Kind", "Scroll").toUpperCase() !== "POTION" ? spell : "";
+}
+
+export function knowsSpell(spell) { return (S.me?.spells || []).includes(spell); }
+
+export function cooldownLeft(spell) {
+  // (ms till it's ready: as the server last said, less the time since - "me" isn't sent while it counts down)
+  const cd = (S.me?.cooldowns || {})[spell] || 0;
+  return Math.max(0, cd - (performance.now() - (S.boostAt || 0)));
 }
 
 export function held(name) {
@@ -200,12 +220,13 @@ export function spellStatus(name) {
   if (spellIni(spell, "Kind", "Scroll").toUpperCase() === "POTION") return "";
   const level = val(spellIni(spell, "Level", "1"));
   const skill = spellIni(spell, "Skill", "Magic");
-  // (only what stops it being cast now: the hover's own lines say its need and its mana - tips.js)
+  // (only what stops it being cast now: the hover's own lines say its need and its Shards - tips.js)
   if (skillLevel(skill) < level) return "";
   const cost = val(spellIni(spell, "Cost", "0"));
-  const cd = (S.me.cooldowns || {})[spell];
+  if (!knowsSpell(spell)) return "";
+  const cd = cooldownLeft(spell);
   if (cd > 0) return `!Ready in ${Math.ceil(cd / 1000)} s`;
-  if (S.me.mana < cost) return "!Not enough mana";
+  if ((S.me.shards || 0) < cost) return `!Needs ${lbstr(cost)} Shards (you have ${S.me.shards || 0})`;
   return "";
 }
 

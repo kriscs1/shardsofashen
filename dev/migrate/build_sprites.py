@@ -2073,6 +2073,29 @@ for _f in range(4):
     SPRITES["Waystone%d" % (_f + 1)] = (lambda f=_f: waystone_sparkle(f))
 
 
+@sprite("Shard")
+def shard():
+    """A Shard of the world's magic: a tall splinter of glowing crystal, violet at its edges and pale blue at its
+    heart, leaning, with a chip beside it and a glint (nothing like the round gems)."""
+    img = K.new()
+    edge, mid, heart, glint = (110, 60, 190), (130, 150, 245), (190, 235, 255), (255, 255, 255)
+    for y in range(4, 28):                                # the splinter: widest a third of the way down
+        t = (y - 4) / 23.0
+        half = 1 + int(5 * (1 - abs(t - 0.38) / 0.62))
+        cx = 18 - (y - 4) * 5 // 23                       # (leaning to the right at its tip)
+        for x in range(cx - half, cx + half + 1):
+            d = abs(x - cx) / max(1, half)
+            img[y][x] = heart if d < 0.3 else mid if d < 0.75 else edge
+            if x == cx - half:
+                img[y][x] = K.mul(edge, 0.75)             # (the shaded face)
+    for y in range(20, 27):                               # a small chip beside it
+        for x in range(21, 21 + (27 - y) // 2):
+            img[y][x] = mid if x < 22 else edge
+    for dx, dy in ((0, 0), (1, 1), (0, 1), (-1, 1)):
+        K.put(img, 16 + dx, 9 + dy, glint)
+    return K.outline_img(img, (40, 24, 70))
+
+
 @sprite("Feather")
 def feather():
     """A grey goose feather (arrows are fletched with them): a pale quill, the vane shaded, a white tip."""

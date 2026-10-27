@@ -189,6 +189,15 @@ The Gravekeeper in Ravensgate: find the old king's barrow on the downs and lay t
 The Scout in Emberwatch: her patrol never came back from the Ashwold. Recover 3 Scout's Tags from the ember hounds.
 Reward: 200 gold, a yew bow and 100 arrows.
 
+### The Wizards' Court
+
+**The Shard Scholar**: *after chapter 4*
+Magister Quill, in the great hall of the Wizards' Court, has spent forty years on the Shards. Bring him fifteen (you
+hand them over only when you say so). He tells you what they are: the Old Ones bound the land's magic into the
+waystones; the dragon drank Galaith's mountain's down and shattered what it couldn't hold. That's why waystones
+must be fed, why beasts that swallow Shards carry them, and why the mountain behind Galaith was the richest seam of
+all. Reward: a scroll of Frost Nova and Magic experience. His answers about the Shards are there to ask any time.
+
 ---
 
 ## How the quests lead into one another
@@ -227,13 +236,14 @@ shrines stand quiet in the Ashwold).
 ## For editors: where each quest lives
 
 Every quest is a section of `data/Quests.ini`: its giver, its stages (the journal text for each), its markers on the
-map, its type and chapter, and what it requires. Its progress is a number kept per player (the `Attribute`), set
+map, its type and chapter, what it requires, and the Shards it gives (`Reward.Shards`, paid once when it's done). Its progress is a number kept per player (the `Attribute`), set
 by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`, `Kill Hobgoblin.txt`,
 `Search Cellar_Crate.txt`...).
 
 | Quest | Attribute | Main scripts |
 |---|---|---|
 | The Last Will | LastWill | The Funeral, 4,0,0, Read Last_Will |
+| The Shard Scholar | ShardQuest | Talk to Court_Magister |
 | Dinner at the Bank | DinnerQuest | Talk to Edwin / Maren, Use Fried_Egg With Edwin, Marens_Range |
 | The Amulet of Succession | AmuletQuest | Talk to Milkmaid, Talk to Frank, Talk to Chapel_Verger, Reach In / Grasp Barred_Niche |
 | Passage to the Mainland | Passage | Pick Lock Caged_Tobias, Squeaky Floorboard, Talk to Milkmaid, Talk to Ferryman |

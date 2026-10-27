@@ -99,7 +99,11 @@ class ActionsMixin:
             elif self.ab_mode == "Bank":
                 verbs = "Deposit 1,Deposit All,Examine"
             else:
-                verbs = self.add_verbs(verbs, self.entity_ini(e.name, "Use.Words", ""))
+                words = self.entity_ini(e.name, "Use.Words", "")
+                spell = self.spell_learnable(e.name)
+                if spell and spell not in self.spells_known:
+                    words = ",".join("Learn" if w.strip() == "Cast" else w for w in words.split(","))   # (not known yet)
+                verbs = self.add_verbs(verbs, words)
                 verbs = self.add_verb(verbs, self.equip_verb(e.name))
                 verbs = self.add_verb(verbs, "Use")
                 if e.quantity > 1:
@@ -353,7 +357,7 @@ class ActionsMixin:
             self.drink_cure(e)
         elif verb == "Drink" and t == INVENTORYITEM and val(self.entity_ini(name, "Food.Value", "0")) > 0:
             self.eat_inventory_item(e)
-        elif verb in ("Cast", "Drink"):
+        elif verb in ("Cast", "Drink", "Learn"):
             if t == INVENTORYITEM and self.entity_ini(name, "Spell", ""):
                 self.cast_scroll(e, None)
             else:
@@ -651,6 +655,14 @@ class ActionsMixin:
             if self.ab_mode in ("Shop", "Bank", "Craft", "Market"):
                 self.rack_page = int(msg.get("page", 1))
                 self.show_market() if self.ab_mode == "Market" else self.show_rack_page(False)
+        elif t in ("cast", "hotbar_spell"):           # (the journal's Spells: a known spell, cast or put on the hotbar)
+            spell = str(msg.get("spell", ""))
+            if spell not in self.spells_known or self.sleep_state:
+                return
+            if t == "hotbar_spell":
+                self.hotbar_add(self.spell_ini(spell, "Scroll", ""))
+            elif self.user_input_enabled and not self.ab_mode:
+                self.cast_spell(spell, None)
         elif t == "hotbar":
             self.hotbar_use(int(msg.get("k", -1)))
         elif t == "hotbar_remove":

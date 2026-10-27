@@ -1,4 +1,4 @@
-// Phones and tablets: the touch layout. The world fills the screen, drawn bigger; the level, health and mana sit top
+// Phones and tablets: the touch layout. The world fills the screen, drawn bigger; the level, health and Shards sit top
 // left, the minimap top right (tap it: the world map), round buttons down the right (the bag, chat, the journal, the
 // menu), a stick bottom left and the hotbar along the bottom. Tap: the first thing to do (walk, talk, attack); hold:
 // everything you can do with it. The Android app (android/) opens this same page with ?app=android, so whatever the

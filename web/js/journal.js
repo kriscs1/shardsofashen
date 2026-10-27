@@ -1,10 +1,12 @@
-// The journal (H, F1 or the ? Help button): what you can make, what you can gather, your quests, the controls.
+// The journal (H, F1 or the ? Help button): what you can make, what you can gather, your quests, your spells (learnt
+// from scrolls, cast from here or the hotbar for Shards), the controls.
 // The server sends the lists when it opens; drawn as the desktop game's screens.py drew it, on a 1024 x 768 page.
 import { S } from "./state.js";
 import { sprite } from "./assets.js";
 import { val, word, lbstr, pretty, drawText, drawTextMid, centreText, textWidth, fitText, wrapLines, roundBox } from "./util.js";
 import { questLook, questRows, drawChecklist, badge, padlock, ROW_H } from "./ui.js";
-import { skillLevel, held } from "./verbs.js";
+import { skillLevel, held, knowsSpell, cooldownLeft } from "./verbs.js";
+import { send } from "./net.js";
 
 const INK = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -33,7 +35,9 @@ const CONTROLS = [
   ["M", "The arena", "Talk to the Arena Master in Ashford. On the arena's sand you can fight other players (right-click: Attack); the paving round it is safe. Beaten, you lose nothing."],
   ["M", "Farming", "Buy seeds from the farmer by Ashford and use them on tilled soil: his furrows are free for anyone, or lay soil on your homestead. Crops grow by themselves (even while you're away); only whoever sowed them can harvest."],
   ["M", "The market", "At a market board (Ashford's market, and by every waystone) you see everything everyone has for sale. With it open, right-click things in your pack: Sell on the market, at your own price. They sell while you're away; collect the gold at any board."],
-  ["M", "Digging", "Use a spade anywhere on open ground: now and then you turn up gold or something useful."],
+  ["M", "Digging", "Use a spade anywhere on open ground: now and then you turn up gold or something useful, and sometimes Shards."],
+  ["M", "Spells and Shards", "Read a spell's scroll to learn it for good. Casting it spends Shards (top left: how many you have); each spell has its own cooldown. Cast from the journal's Spells, or put the scroll on the hotbar. Shards don't come back by themselves: beasts, chests, digging and quests give them."],
+  ["M", "Waystones", "Wake a waystone the first time with a few Shards; after that you can travel to it from any waystone you've woken."],
   ["M", "The Green Dragon", "Ashford's beer garden, behind the houses. The innkeeper plays Three Cups and High or Low; at a dice table everyone puts in a stake and the highest roll takes the pot."],
   ["M", "Raids", "Now and then monsters attack a town in waves. Fight them off together: gold for each one you kill, and a reward for everyone who holds out."],
   ["M", "Shop signs", "Every shop has a sign by its door with a picture of what it sells."],
@@ -46,30 +50,38 @@ const CONTROLS = [
   ["K", "B", "Build mode, on your own homestead (Esc or right-click to stop)."],
   ["K", "Esc", "Close a menu, box or this journal, or stop using an item. With nothing open: leave the game."],
   ["K", "1 - 5", "Use what's in that hotbar slot."],
-  ["K", "1 - 4", "Journal: pick a tab (Left and Right also work)."],
+  ["K", "1 - 5", "Journal: pick a tab (Left and Right also work)."],
   ["K", "Up / Down", "Journal: previous or next page (PgUp and PgDn too)."],
   ["K", "F11", "Full screen (or the button at the top left of the view)."],
   ["K", "+ / -", "Zoom the map in and out."],
   ["K", "Saving", "Automatic: the server keeps your game."],
 ];
 
-export function pageSize() { return { 1: 14, 2: 7, 3: 7 }[J.tab] || 1; }
+export function pageSize() { return { 1: 14, 2: 7, 3: 7, 4: 8 }[J.tab] || 1; }
 
 function count() {
-  const d = S.journal || { crafts: [], gathers: [], quests: [] };
-  return { 1: d.crafts.length, 2: d.gathers.length, 3: d.quests.length }[J.tab] || 1;
+  const d = S.journal || { crafts: [], gathers: [], quests: [], spells: [] };
+  return { 1: d.crafts.length, 2: d.gathers.length, 3: d.quests.length, 4: (d.spells || []).length }[J.tab] || 1;
 }
 
 export function pages() { return Math.max(1, Math.ceil(count() / pageSize())); }
 
 export function hit(x, y) {
-  for (let t = 1; t <= 4; t++) {
+  for (let t = 1; t <= 5; t++) {
     const tx = 40 + (t - 1) * 160;
     if (x >= tx && x <= tx + 152 && y >= 60 && y <= 92) return t;
   }
   if (x >= 942 && x <= 982 && y >= 20 && y <= 48) return 10;
   if (x >= 40 && x <= 160 && y >= 696 && y <= 724) return 11;
   if (x >= 864 && x <= 984 && y >= 696 && y <= 724) return 12;
+  if (J.tab === 4) {                              // (a known spell's Cast and Hotbar buttons: 200 + slot x 2 (+1))
+    for (let slot = 0; slot < 8; slot++) {
+      const [cx, cy] = spellCardAt(slot);
+      for (const [n, bx] of [[0, cx + SPELL_W - 196], [1, cx + SPELL_W - 100]]) {
+        if (x >= bx && x <= bx + 88 && y >= cy + SPELL_H - 38 && y <= cy + SPELL_H - 10) return 200 + slot * 2 + n;
+      }
+    }
+  }
   if (J.tab === 3 && x >= 48 && x <= 976) {
     const n = Math.floor((y - 108) / 82);
     if (n >= 0 && n < 7 && y - 108 - n * 82 <= 76 && (J.page - 1) * 7 + n < (S.journal?.quests.length || 0)) return 100 + n;
@@ -230,7 +242,53 @@ function questCard(ctx, q, x, y, w) {
   else if (q.status === 1) text = "You can start this now. " + text;
   if (y + 74 - ty >= 15) wrap(ctx, x + 16, ty, w - 32, text, tc, 15, Math.floor((y + 74 - ty) / 15));
   const todo = (q.notes || []).filter((n) => !n[1]).length;
-  if (todo && q.status !== 2) badge(ctx, x + w - 18 - bw, y + 8, `${todo} to do`, [255, 214, 90]);
+  if (todo && q.status !== 2) bw += 8 + badge(ctx, x + w - 18 - bw, y + 8, `${todo} to do`, [255, 214, 90]);
+  if (q.shards && q.status !== 2) badge(ctx, x + w - 18 - bw, y + 8, `+${q.shards} Shards`, [190, 180, 255]);   // (its reward)
+}
+
+// ----- spells: every one a scroll teaches; the ones you know you can cast here (or put on the hotbar)
+const SPELL_W = 462, SPELL_H = 136;
+
+function spellCardAt(slot) { return [48 + (slot % 2) * 466, 108 + Math.floor(slot / 2) * 144]; }
+
+export function spellClick(h) {
+  // (a button on a spell card: its number from hit(); true if it was one)
+  if (J.tab !== 4 || h < 200) return false;
+  const d = S.journal?.spells || [];
+  const sp = d[(J.page - 1) * 8 + Math.floor((h - 200) / 2)];
+  if (!sp || !knowsSpell(sp.spell)) return true;
+  if ((h - 200) % 2 === 0) send({ t: "cast", spell: sp.spell });
+  else send({ t: "hotbar_spell", spell: sp.spell });
+  return true;
+}
+
+function spellCard(ctx, sp, slot) {
+  const [x, y] = spellCardAt(slot);
+  const known = knowsSpell(sp.spell);
+  const short = skillLevel(sp.skill) < sp.level;
+  card(ctx, x, y, SPELL_W, SPELL_H, known ? [120, 110, 220] : null);
+  iconWell(ctx, x, y, sp.scroll);
+  const label = known ? "Known" : short ? `Needs ${sp.skill} ${sp.level}` : "Not learnt";
+  const bw = badge(ctx, x + SPELL_W - 10, y + 8, label, known ? [150, 140, 255] : short ? [235, 105, 85] : [190, 160, 110]);
+  drawText(ctx, fitText(ctx, pretty(sp.spell), SPELL_W - 80 - bw, 11, true), x + 56, y + 8, 11, true, known ? INK : PARCHMENT);
+  const r = new Run(ctx, x + 56, x + SPELL_W - 12);
+  r.text(`${sp.skill} ${sp.level}`, short ? [235, 105, 85] : [120, 210, 110], y + 28, 9, true);
+  r.text("   ·   ", DIM, y + 28);
+  r.icon("Shard", y + 25, 14);
+  r.text(`${sp.cost} Shards a cast`, (S.me.shards || 0) < sp.cost && known ? [235, 105, 85] : [214, 200, 255], y + 28, 9, true);
+  if (sp.cooldown > 0) r.text(`   ·   ready again after ${lbstr(sp.cooldown)} s`, PARCHMENT, y + 28);
+  wrap(ctx, x + 16, y + 52, SPELL_W - 32, sp.what.charAt(0).toUpperCase() + sp.what.slice(1) + ".", [250, 240, 210], 15, 2);
+  if (known) {
+    const left = cooldownLeft(sp.spell), poor = (S.me.shards || 0) < sp.cost;
+    if (left > 0) drawText(ctx, `Ready in ${Math.ceil(left / 1000)} s`, x + 16, y + SPELL_H - 32, 9, true, [255, 214, 90]);
+    else if (poor) drawText(ctx, "Not enough Shards", x + 16, y + SPELL_H - 32, 9, true, [235, 105, 85]);
+    const h = J.hover - 200 - slot * 2;
+    button(ctx, x + SPELL_W - 196, y + SPELL_H - 38, 88, 28, "Cast", left > 0 || poor ? 0 : h === 0 ? 2 : 1);
+    const on = (S.me.hotbar || []).includes(sp.scroll);
+    button(ctx, x + SPELL_W - 100, y + SPELL_H - 38, 88, 28, on ? "On hotbar" : "Hotbar", on ? 0 : h === 1 ? 2 : 1);
+  } else {
+    wrap(ctx, x + 16, y + SPELL_H - 30, SPELL_W - 32, "Read its scroll to learn it for good: scrolls turn up in chests, in shops and on foes.", DIM, 15, 1);
+  }
 }
 
 function controls(ctx) {
@@ -258,7 +316,8 @@ function controls(ctx) {
 }
 
 export function drawJournal(ctx) {
-  const d = S.journal || { crafts: [], gathers: [], quests: [], level: 1 };
+  const d = S.journal || { crafts: [], gathers: [], quests: [], spells: [], level: 1 };
+  const spells = d.spells || [];
   J.page = Math.min(Math.max(1, J.page), pages());
   ctx.fillStyle = "rgb(24,14,10)";
   ctx.fillRect(-2000, 0, 6000, 768);
@@ -267,12 +326,13 @@ export function drawJournal(ctx) {
   const tw = textWidth(ctx, "Journal", 16, true);
   drawText(ctx, fitText(ctx, S.name + "  -  what you can make, gather and do", 860 - tw, 9), 58 + tw, 30, 9, false, PARCHMENT);
   button(ctx, 942, 20, 40, 28, "X", J.hover === 10 ? 2 : 1);
-  for (let t = 1; t <= 4; t++) {
-    const label = { 1: `Crafting (${d.crafts.length})`, 2: `Gathering (${d.gathers.length})`, 3: `Quests (${d.quests.length})` }[t] || "Controls";
+  for (let t = 1; t <= 5; t++) {
+    const label = { 1: `Crafting (${d.crafts.length})`, 2: `Gathering (${d.gathers.length})`, 3: `Quests (${d.quests.length})`,
+      4: `Spells (${spells.filter((s) => knowsSpell(s.spell)).length}/${spells.length})` }[t] || "Controls";
     button(ctx, 40 + (t - 1) * 160, 60, 152, 32, label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
   }
   roundBox(ctx, 36, 98, 952, 590, [40, 26, 20], [126, 77, 63], 2, 12);
-  if (!S.journal && J.tab !== 4) centreText(ctx, 512, 330, "Opening the journal...", 14, true, INK);
+  if (!S.journal && J.tab !== 5) centreText(ctx, 512, 330, "Opening the journal...", 14, true, INK);
   else if (J.tab === 1) {
     if (!d.crafts.length) centreText(ctx, 512, 330, "Nothing to make yet.", 14, true, INK);
     const first = (J.page - 1) * 14;
@@ -294,6 +354,10 @@ export function drawJournal(ctx) {
       const y = top + 70 + h <= 740 ? top + 70 : Math.max(20, top + 6 - h);
       drawChecklist(ctx, q, rows, 976 - 380 - 16, y, 380, h);
     }
+  } else if (J.tab === 4) {
+    if (!spells.length) centreText(ctx, 512, 330, "No spells.", 14, true, INK);
+    const first = (J.page - 1) * 8;
+    spells.slice(first, first + 8).forEach((sp, slot) => spellCard(ctx, sp, slot));
   } else controls(ctx);
   button(ctx, 40, 696, 120, 28, "< Previous", J.page > 1 ? (J.hover === 11 ? 2 : 1) : 0);
   button(ctx, 864, 696, 120, 28, "Next >", J.page < pages() ? (J.hover === 12 ? 2 : 1) : 0);
@@ -301,8 +365,9 @@ export function drawJournal(ctx) {
   if (J.tab === 1) info = `${d.crafts.filter((c) => c.status === 0).length} of ${d.crafts.length} recipes ready to make`;
   else if (J.tab === 2) info = `${d.gathers.filter((g) => g.status === 0).length} of ${d.gathers.length} you can gather now`;
   else if (J.tab === 3) info = `${d.quests.filter((q) => q.status === 2).length}/${d.quests.length} complete`;
+  else if (J.tab === 4) info = `You carry ${S.me.shards || 0} Shards`;
   else info = "The world carries on while the journal is open";
   if (pages() > 1) info = `Page ${J.page} of ${pages()}     ${info}`;
   centreText(ctx, 512, 700, info, 10, true, INK);
-  centreText(ctx, 512, 730, "H, F1 or Esc: close      1-4 or Left/Right: tabs      Up/Down or PgUp/PgDn: pages", 9, false, DIM);
+  centreText(ctx, 512, 730, "H, F1 or Esc: close      1-5 or Left/Right: tabs      Up/Down or PgUp/PgDn: pages", 9, false, DIM);
 }

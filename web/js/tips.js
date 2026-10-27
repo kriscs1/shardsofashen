@@ -5,7 +5,7 @@ import { S } from "./state.js";
 import { entityIni, spellIni } from "./assets.js";
 import { val, trim, lbstr } from "./util.js";
 import { T, getVerbs, displayName, examineText, equipSlot, spellSummary, skillLevel, itemPrice,
-  canSellHere } from "./verbs.js";
+  canSellHere, knowsSpell } from "./verbs.js";
 
 function firstSentence(text, most = 64) {
   const t = String(text || "").trim();
@@ -35,8 +35,10 @@ export function itemLines(name) {
       const level = val(spellIni(spell, "Level", "1"));
       const skill = spellIni(spell, "Skill", "Magic");
       const cost = val(spellIni(spell, "Cost", "0"));
+      const cd = val(spellIni(spell, "Cooldown", "0"));
       out.push((skillLevel(skill) >= level ? "+" : "!") + `Needs ${skill} ${lbstr(level)}` +
-        (cost ? ` · ${lbstr(cost)} mana` : ""));
+        (cost ? ` · ${lbstr(cost)} Shards a cast` : "") + (cd ? ` · ${lbstr(cd)} s` : ""));
+      out.push(knowsSpell(spell) ? "+You know this spell: the scroll isn't used up" : "~Read it to learn the spell for good");
     }
   } else if (slot) {
     const bonus = ["Attack", "Defence", "Magic"].map((k) => [k, val(entityIni(name, k, "0"))])

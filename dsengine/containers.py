@@ -4,6 +4,8 @@ Take 1, Take all, or Take everything. What's left stays in that chest for that p
 come back for it when they've room. It works for every chest's script as it is: nothing in the scripts changes.
 
 Each player's chests are their own: the chest scripts already give each player their reward once."""
+import random
+
 from dragonsword.lb import lbstr, pretty
 
 from .entity import ACTIONBOXITEM, INVENTORYITEM, STATICOBJECT
@@ -57,6 +59,9 @@ class ChestMixin:
         self.loot_key = self.loot_collect = None
         if not key or not got:
             return
+        if random.uniform(0, 100) < self.shard_setting("Chest.Chance", 40):    # (Shards among the treasure, now and
+            from .digging import roll                                         #  then: only when it gave something,
+            got.append(["Shard", roll(self.data.config_read("Shards", "Chest", "3-15"))])   # once)
         have = self.chests.setdefault(key, [])
         for item, qty in got:
             same = next((it for it in have if it[0] == item), None)

@@ -5,7 +5,7 @@
 04	Toggle.User.Input	OFF
 05	Play.Sound	Kill_Dragon
 06	Display.Conversation	Galaith_Dragon	So. The heir of Estforlan comes to me at last, and on his own feet.\Eighteen winters I have waited at these walls. Eighteen winters the city has starved for want of the road, and all for one small debt.	What debt?	07
-07	Display.Conversation	Galaith_Dragon	A bargain, child, not a curse. Your forefathers wanted the mountain's gold and its mana, and I let them have it, for the firstborn heir of every generation. They signed in blood. Your mother broke it, and ran.	She saved me.	08
+07	Display.Conversation	Galaith_Dragon	A bargain, child, not a curse. Your forefathers wanted the mountain's gold and its Shards, and I let them have them, for the firstborn heir of every generation. They signed in blood. Your mother broke it, and ran.	She saved me.	08
 08	Display.Conversation	Player	My mother saved my life. The bargain ends today.	...	09
 09	Display.Conversation	Galaith_Dragon	Ends? It ends when I have you.\...What is that at your side? That blade. Valour. So the old knights left a sting in the tale after all.\Come, then, heir. Let us see whose debt is paid.	Fight!	10
 10	Toggle.User.Input	ON

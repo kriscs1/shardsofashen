@@ -158,6 +158,7 @@ class QuestMixin:
                                "notes": [[self.help_attributes(t), x] for t, x in notes],
                                "main": help_clean(d.get("TYPE", "")).lower() == "main",
                                "chapter": val(help_clean(d.get("CHAPTER", "0"))),
+                               "shards": int(val(help_clean(d.get("REWARD.SHARDS", "0")))),
                                "needs": self.quest_needs(name) if status == 1 else []})
 
         def order(q):
@@ -265,4 +266,5 @@ class QuestMixin:
                                 "skill_xp": self.skill_xp_of(skill) if skill else 0})
         gathers = [g for s in (0, 1, 2) for g in gathers if g["status"] == s]
         return {"t": "journal", "crafts": crafts, "gathers": gathers, "quests": self.quest_list(),
+                "spells": self.spellbook(),
                 "level": self.player_level()}

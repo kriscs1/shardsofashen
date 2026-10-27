@@ -64,6 +64,7 @@ read it back as $Variable.n.
   $Variable.8                A value stored by the 'Get.Value' command (SAVE AS Variable.8$).
   $Variable.9                A value stored by the 'Get.Value' command (SAVE AS Variable.9$).
   $Random.Percent            A random number between 1 and 100.
+  $Shards.                   A Config.ini [Shards] number, e.g. $Shards.Waystone.Galaith: what it costs, as >Pay.Shards charges it.
   $Inventory.Slots           The number of slots left in the player's inventory.
   $Entity.under.Cursor.ID    The ID of the entity that the user clicked on.
   $Attr.Name                 The saved attribute called Name (0 if it has never been set), e.g. $Attr.BeggarQuest>=2.
@@ -72,7 +73,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (67)
+COMMANDS (68)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -239,6 +240,13 @@ Format:  Command  ARG 1 | ARG 2 | ...
     1. REQUIRED TILE NAME: The name of the tile that the player must be on
          (Stored in the '\sprites\Tiles\' folder)
     2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
+         (If it is met, the script continues on the next line)
+
+>Pay.Shards    SHARDS | WHAT FOR | GOTO LINE IF NOT MET
+    CONDITION: Spends Shards from the player's pack: a number, or a Config.ini [Shards] key (Waystone.Galaith; one like Waystone.X falls back to Waystone). With too few, nothing is taken, they're told what it needed (WHAT FOR, e.g. Waking_the_waystone) and the script goes to the line
+    1. SHARDS: How many Shards: a number, or a Config.ini [Shards] key (Waystone.Galaith)
+    2. WHAT FOR: What they pay for, said if they have too few (underscores for spaces: Waking_the_waystone)
+    3. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
          (If it is met, the script continues on the next line)
 
 >Quest.Can.Start    QUEST | GOTO LINE IF NOT MET

@@ -215,7 +215,9 @@ EAST = ["Court", "Emberwatch", "Thornwick", "Keep", "Ravensgate", "Highwatch", "
 
 
 def waystones(atlas, plans):
-    """Travel Waystone (which waystone is this? attune to it) and its menu, two pages (the west and the east)."""
+    """Travel Waystone (which waystone is this? wake it, the first time, with Shards - Config.ini [Shards]
+    Waystone.<Key>, else Waystone - and so attune to it) and its menu, two pages (the west and the east). A journey
+    costs Waystone.Travel (none, as it is)."""
     where = {}
     for name, m in atlas.maps.items():
         for ln in m.ents:
@@ -231,19 +233,27 @@ def waystones(atlas, plans):
             rows += [(">On.Map", where[k], "@next%d" % i),
                      ("Get.Value", "CALCULATION", label.replace(" ", "_"), "Variable.9$"),
                      (">Conditional", "$Attr.Waystone.%s=0" % k, "@menu"),
+                     K.say("Waystone", "The %s waystone's rune is dark. Waking it takes $Shards.Waystone.%s Shards, "
+                                       "and you carry $Item.Shard.\\Once it's awake it knows you: you can travel to it "
+                                       "from any waystone you've woken." % (label, k),
+                           ("Wake it ($Shards.Waystone.%s Shards)" % k, "@wake%d" % i), ("Not now", "@leave")),
+                     ("@wake%d" % i,),
+                     (">Pay.Shards", "Waystone." + k, "Waking_the_waystone", "@leave"),
                      ("Update.Attribute", "Waystone." + k, "=1"),
-                     ("Display.Message", "Yellow", "The rune flares blue: you are attuned to the %s waystone." % label),
+                     ("Display.Message", "Yellow", "The rune drinks the Shards and flares blue: you are attuned to "
+                                                   "the %s waystone." % label),
                      ("Goto.Line", "@attuned"),
                      ("@next%d" % i,)]
         if n == 0:
             rows += [("Goto.Script", "Travel Waystone 2"), ("@attuned",), ("Play.Sound", "SpellCast"),
-                     ("@menu",), ("Goto.Script", "Waystone Menu"), ("End",),
+                     ("Play.Animation", "Teleport_Glow", "1", "-"),
+                     ("@menu",), ("Goto.Script", "Waystone Menu"), ("End",), ("@leave",), ("End",),
                      ("@far",), ("Display.Message", "DarkRed", "You are too far away!", "Denied"), ("End",)]
             K.write_script("Travel Waystone", rows, MAKER)
         else:
             rows += [("Get.Value", "CALCULATION", "old", "Variable.9$"), ("Goto.Line", "@menu"),
-                     ("@attuned",), ("Play.Sound", "SpellCast"), ("@menu",), ("Goto.Script", "Waystone Menu"),
-                     ("End",)]
+                     ("@attuned",), ("Play.Sound", "SpellCast"), ("Play.Animation", "Teleport_Glow", "1", "-"),
+                     ("@menu",), ("Goto.Script", "Waystone Menu"), ("End",), ("@leave",), ("End",)]
             K.write_script("Travel Waystone 2", rows, MAKER)
     pages = [("Waystone Menu", [k for k in WEST if k in where], "The east...", "Waystone Menu 2"),
              ("Waystone Menu 2", [k for k in EAST if k in where], "The west...", "Waystone Menu")]
@@ -257,7 +267,8 @@ def waystones(atlas, plans):
                  "(Only the waystones you have touched are listed.)") + tuple(answers),
                 ("@stay",), ("End",), ("@other",), ("Goto.Script", other_script), ("End",)]
         for k in page:
-            rows += [("@go_" + k,), ("Play.Sound", "Teleporter"),
+            rows += [("@go_" + k,), (">Pay.Shards", "Waystone.Travel", "Travelling", "@stay"),
+                     ("Play.Sound", "Teleporter"),
                      ("Display.Message", "Yellow", "The world blurs... and you step out by the %s waystone."
                       % short(plans[k].title)),
                      ("Teleport", "Waystone_" + k, "-"), ("End",)]
