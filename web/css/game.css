@@ -97,6 +97,13 @@ html, body {
   text-shadow: 2px 2px 0 #000;
 }
 
+/* (the title on the login screen: index.html's own drawing, so it's sharp at any size and needs no font from the web) */
+.panel h1.logo { margin: 18px auto 4px; width: min(320px, 82%); line-height: 0; text-shadow: none; }   /* (clear of the music button) */
+.logo svg { width: 100%; height: auto; overflow: visible; }
+.logo text { font-family: var(--font); text-anchor: middle; paint-order: stroke; stroke: #2a160c; stroke-linejoin: round; }
+.logo .logo-big { font-size: 56px; font-weight: bold; letter-spacing: 7px; stroke-width: 5px; }
+.logo .logo-of { font-size: 20px; font-style: italic; fill: #f3e888; stroke-width: 3px; }
+
 .panel h2 { margin: 0 0 12px; color: var(--ink); font-size: 22px; }
 
 .panel label {
