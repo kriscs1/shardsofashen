@@ -83,6 +83,11 @@ export function mouseMove(x, y) {
     I.cursor = "pointer";
     return;
   }
+  if (U.worldMap && x < L.VW && y < L.VH) {        // (the world map over the view: nothing under it to walk to)
+    I.cursor = "pointer";
+    I.hoverEnt = null;
+    return;
+  }
   let msg = "", kind = "INTERFACE";
   I.cursor = "pointer";
   U.hover = null;
@@ -469,7 +474,7 @@ export function stick(dx, dy) {
 let shownCursor = "";
 export function updateCursor(canvas, now) {
   const hot = A.m.cursors?.hot || {};
-  let kind = I.cursor in hot ? I.cursor : "pointer";
+  let kind = I.cursor in hot && !U.worldMap ? I.cursor : "pointer";   // (the world map open: just the pointer)
   let step = 0;
   const cm = A.m.cursors?.click_ms || 220;
   const t = (now - I.clickAt) / cm;
