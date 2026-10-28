@@ -39,3 +39,4 @@ StaticObject	Notice	224	322	Id=Court_Notice_365
 StaticObject	Notice	0	578	Id=Court_Notice_366
 Id	Court_Market_Square	14	17
 Id	Court_Square	14	17
+StaticObject	Old_Statue	352	576	Id=Secret_Court

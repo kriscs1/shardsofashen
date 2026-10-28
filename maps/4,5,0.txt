@@ -38,3 +38,4 @@ Id	Southport_Market_Square	4	17
 Id	Southport_Cart_Stop_1	5	17
 Id	Southport_Square	4	17
 Id	Southport_Cathedral	13	12
+StaticObject	Odd_Barrel	160	544	Id=Secret_Southport

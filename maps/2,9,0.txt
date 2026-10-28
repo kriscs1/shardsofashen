@@ -31,3 +31,4 @@ StaticObject	Sign_Pub	448	304
 Id	Waystone_Wildwood	17	13
 Id	Wildwood_Square	16	12
 Id	Wildwood_Chapel	18	11
+StaticObject	Hollow_Stump	352	352	Id=Secret_Wildwood

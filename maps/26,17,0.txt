@@ -38,3 +38,4 @@ StaticObject	Notice	256	610	Id=Ravensgate_Notice_310
 StaticObject	Notice	288	354	Id=Ravensgate_Notice_370
 Id	Ravensgate_Market_Square	16	18
 Id	Ravensgate_Square	16	18
+StaticObject	Wishing_Well	512	448	Id=Secret_Ravensgate

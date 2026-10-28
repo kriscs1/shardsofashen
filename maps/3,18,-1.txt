@@ -21,3 +21,6 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Id	Library_Steps	13	16
 Id	Library_Lectern	14	5
+Trigger	Trap_Darts	15	11
+Trigger	Trap_Weakness	8	14
+Trigger	Trap_Bucket	9	8

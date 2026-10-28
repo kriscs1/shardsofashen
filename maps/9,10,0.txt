@@ -38,3 +38,5 @@ StaticObject	Notice	576	578	Id=Oakhollow_Notice_322
 Id	Oakhollow_Market_Square	2	18
 Id	Oakhollow_Square	2	18
 Id	Oakhollow_Chapel	7	14
+StaticObject	Hollow_Stump	96	352	Id=Secret_Oakhollow
+StaticObject	Talking_Scarecrow	96	288	Id=Philosopher_Scarecrow

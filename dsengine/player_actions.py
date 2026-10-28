@@ -298,6 +298,8 @@ class ActionsMixin:
             return
         if self.deep_do(verb, e):                      # (the Shifting Deep's things: deep.py)
             return
+        if verb == "Talk to" and self.swap and t == NPC and self.animal_chat(e):
+            return                                      # (in an animal's body, the animals talk: tricks.py)
         if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or
                 self.board_action(verb, e) or
                 self.tavern_action(verb, e)):

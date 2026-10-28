@@ -45,3 +45,4 @@ NPC	Settler	64	504	Attitude=Good Zone=2,15,6,19 Pause=4-12
 Id	Highwatch_Settler	3	17
 NPC	Guard	32	440	Attitude=Good Zone=2,13,5,17 Pause=4-12
 Id	Highwatch_Guard	2	15
+StaticObject	Old_Statue	64	224	Id=Secret_Highwatch

@@ -769,6 +769,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         trig = m.trigger[m.cell(tx, ty)]
         if trig.startswith("Deep_Trap_"):                  # (the Shifting Deep's traps: deep.py)
             self.deep_trap(trig[len("Deep_Trap_"):], m, tx, ty)
+        elif trig.startswith("Trap_"):                     # (a trap in an old dungeon: the same, resting a while)
+            self.world_trap(trig[len("Trap_"):], m, tx, ty)
         elif trig:
             self.start_script(trig, False)
 

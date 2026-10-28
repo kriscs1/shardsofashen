@@ -44,3 +44,4 @@ Id	Wardhaven_Trader	13	19
 NPC	Guard	352	472	Attitude=Good Stand=1
 Id	Wardhaven_Guard	12	16
 StaticObject	Fish_Spot	256	160
+StaticObject	Loose_Cobble	448	320	Id=Secret_Wardhaven

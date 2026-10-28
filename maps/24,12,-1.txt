@@ -29,3 +29,6 @@ NPC	Rat	256	448	Attitude=Bad Zone=4,14,12,17
 NPC	Rat	480	512	Attitude=Bad Zone=12,15,19,18
 NPC	Bat	128	384	Attitude=Bad Zone=4,11,8,16
 MapItem	Bones	481	450	1
+Trigger	Trap_Pit	19	7
+Trigger	Trap_Pie	7	11
+Trigger	Trap_Gas	13	6

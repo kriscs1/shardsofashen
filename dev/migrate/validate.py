@@ -247,7 +247,10 @@ def check_map(path, entities_ini, tiles_ini, report):
         if typ == "Trigger":
             if not (1 <= x <= MAP_W and 1 <= y <= MAP_H and x == int(x) and y == int(y)):
                 report(r, "line %d: trigger tile %s,%s outside 1..%d,1..%d" % (n, xs, ys, MAP_W, MAP_H))
-            if not script_nonempty(name):
+            if name.startswith("Trap_"):            # (a trap, not a script: deep.py world_trap)
+                if name[5:] not in TRAP_KINDS:
+                    report(r, "line %d: no trap kind %s (%s)" % (n, name[5:], ", ".join(TRAP_KINDS)))
+            elif not script_nonempty(name):
                 report(r, "line %d: trigger script data\\Scripts\\%s.txt missing or empty" % (n, name))
             if "," in name:
                 warn(r, "line %d: trigger name %r contains commas; the game must read map lines with "
@@ -277,6 +280,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 
 
 # ------------------------------------------------------------------ NPC movement Options on map lines
+TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
                "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost",
                "State", "Nap", "Level"}   # (Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth)

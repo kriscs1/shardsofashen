@@ -45,3 +45,4 @@ StaticObject	Notice	0	354	Id=Galaith_Notice_459
 Id	Galaith_Market_Square	15	18
 Id	Galaith_Cart_Stop_1	16	18
 Id	Galaith_Square	15	18
+StaticObject	Old_Statue	384	576	Id=Secret_Galaith

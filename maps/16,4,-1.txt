@@ -20,3 +20,4 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 NPC	Rat	544	480	Attitude=Bad Zone=15,15,22,16
+Trigger	Trap_Gas	16	15

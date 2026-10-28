@@ -360,6 +360,19 @@ class DeepMixin:
     def deep_floor_tile():
         return "Flagstone001"
 
+    def world_trap(self, kind, m, x, y):
+        """A trap in an old dungeon (a map's Trigger line Trap_<Kind>): it springs, then rests ten minutes for
+        whoever sprang it (it isn't spent, as the Deep's are)."""
+        if self.god_mode:
+            return
+        rest = self.__dict__.setdefault("trap_rest", {})
+        key = (m.name, x, y)
+        if rest.get(key, 0) > self.now:
+            return
+        rest[key] = self.now + 600000
+        self.play_sound("Click")
+        self.spring_trap(kind, m, pit_down=False)
+
     def deep_trap(self, kind, m, x, y):
         """A trap underfoot, sprung (it's spent, for this shift: the plate shows)."""
         if self.god_mode:
@@ -367,6 +380,9 @@ class DeepMixin:
         m.trigger[m.cell(x, y)] = ""
         self.w.change_tile(m, x, y, "Trap_Sprung001")
         self.play_sound("Click")
+        self.spring_trap(kind, m, pit_down=True)
+
+    def spring_trap(self, kind, m, pit_down):
         if kind == "Darts":
             self.play_sound("Darts")
             dmg = random.randint(2, 4 + self.deep.floor_of(m.name) * 2)
@@ -384,7 +400,8 @@ class DeepMixin:
         elif kind == "Alarm":
             self.display_message("A bell clangs somewhere in the dark. Something's coming.", "DAMAGE", "Denied")
             from .remnants import make_remnant
-            lv = int(self.deep.num("Level.Base", 4) + self.deep.num("Level.Per.Floor", 3) * (self.deep.floor_of(m.name) - 1))
+            f = self.deep.floor_of(m.name)
+            lv = int(self.deep.num("Level.Base", 4) + self.deep.num("Level.Per.Floor", 3) * max(0, f - 1)) if f else 6
             for dx in (-48, 48):
                 r = self.w.add_npc("Living_Remnant", self.player.z, self.player.x + dx, self.player.y, "-", "Bad")
                 if r is not None:
@@ -392,6 +409,21 @@ class DeepMixin:
                     r.fades_at = self.w.now + 90000
                     if r.ai is not None:
                         self.w.npc_start_fight(r, r.ai, self, 48)
+        elif kind == "Bucket":
+            self.play_sound("Splosh")
+            self.display_message("Click. A bucket of icy water tips over your head. Somewhere, someone giggles.",
+                                 "DAMAGE", "-")
+            self.status_start("Chill")
+        elif kind == "Pie":
+            self.play_sound("Splosh")
+            self.display_message("Click. A custard pie flies out of the wall and hits you square in the face. Whoever "
+                                 "built this dungeon had a sense of humour, and not a nice one.", "DAMAGE", "-")
+            self.boost_skill("Magic", -1, 20)
+        elif kind == "Pit" and not pit_down:
+            self.display_message("The floor gives way into a shallow pit! You climb out, bruised and muddy.",
+                                 "DAMAGE", "-")
+            self.update_skill("Hitpoints", "-%d" % random.randint(2, 5))
+            self.status_start("Frailty")
         elif kind == "Pit":
             f = self.deep.floor_of(m.name)
             floors = self.deep.floors

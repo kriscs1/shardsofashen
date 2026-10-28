@@ -225,6 +225,31 @@ Shards. Every hour, once nobody's down there, it shifts, and it's all new.
 **Bert's tower's secrets**: a cat flap low in the wall (only a cat fits: Bert's biscuit tin, 25 Shards and his pie)
 and a big red button that shouldn't be pressed (a chicken, a bucket of water, confetti, or a goose).
 
+**Secrets in every settlement** (`dev/migrate/build_whimsy.py`): by each town's square stands something to Search (a
+hollow stump, a loose cobble, an odd barrel, an old statue, a well), each with its own find and its own line: Shards,
+gold, potions, a rubber duck, a lucky sock, a key that winks. Once each; five, ten and all seventeen found are noticed
+(the attribute SecretsFound) with more Shards.
+
+**Traps in the old dungeons**: the barrow, the desert library, the iron mine and the bandits' caves have plates
+underfoot (Trigger `Trap_<Kind>`): darts, gas, a weakness rune, a shallow pit, an alarm that wakes a remnant, a bucket
+of icy water, a custard pie. Each rests ten minutes after it springs.
+
+**The Scarecrow's Hat**: *after chapter 4*
+A scarecrow in the fields outside Oakhollow has been thinking for twenty years, out loud, and his head's cold. Bring
+him a hat, any hat (a chef's hat makes him want to cook). Reward: 8 Shards, Farming experience, and a thought.
+
+**Duchess Has Opinions**: *after chapter 4*
+A cow outside Ashford can talk, and nobody's noticed. The grass is terrible: bring her three bunches of herbs. Reward:
+a bucket of milk, 8 Shards, Farming experience.
+
+**The Mayor's Missing Trousers**: *after The Ashford Road*
+Constable Dobbs, in Ashford's square, needs it kept quiet: the Mayor's trousers went off the washing line. Search the
+square for three clues (webbed footprints, a snapped line, a big white feather) and tell him who did it. It was a
+goose. Reward: 50 gold, 10 Shards, Defence experience.
+
+In an animal's body (Swap, or the red button), animals talk to you: cows, sheep, hens, ducks, geese, rabbits, cats,
+dogs, frogs and seals each have something to say. Ordinary townsfolk have more to say, too.
+
 **The Spellwright**: *after The Shard Scholar*
 How does a Shard know what shape a spell is? Bring Quill the core of a risen Shard Remnant, then absorb twenty more
 remnants and tell him how it felt. He teaches you to write a spell of your own at the **Spellwright's Lectern** by the

@@ -11,6 +11,34 @@
 from dragonsword.lb import val, pretty
 from .entity import NPC
 
+ANIMAL_TALK = {   # (in an animal's body, the animals talk to you)
+    "Cow": ["Moo. ...Oh, you're new. The grass by the fence is better. Don't tell the others.",
+            "Have you ever really looked at a cloud? I have. All day. Every day.",
+            "The farmer calls me Daisy. My name is Lady Cornelia Buttercup the Third."],
+    "Sheep": ["Baa. That's not a word, by the way. We just like saying it.",
+              "They took my coat. Every spring. I'm not saying I'm bitter, I'm saying I remember.",
+              "If a wolf asks, you haven't seen me. If a wolf asks you anything at all, run."],
+    "Chicken": ["Bok. Bok bok. That egg? Not mine. Never seen it before.",
+                "The fox thinks I don't know about the fox. I know about the fox.",
+                "Don't look at the farmer like that. He means well. He also means soup."],
+    "Duck": ["Quack. The pond is ours. The geese think the pond is theirs. There will be a reckoning.",
+             "Bread. Do you have bread. Is that bread. That's a stone. Why would you show me a stone."],
+    "Goose": ["HONK. ...Sorry. Force of habit. HONK.",
+              "The hat? Finders keepers. It's the oldest law there is. Older than kings.",
+              "We are not reasonable geese. We have never claimed to be reasonable geese."],
+    "Rabbit": ["Have you seen the size of the wolves? Have you SEEN them?",
+               "I have forty-three brothers and sisters and I know all their names. That's a lie. I know six.",
+               "Carrots are overrated. Don't tell anyone a rabbit said that."],
+    "Cat": ["Mrrp. You're one of us now. Rule one: everything is yours. Rule two: see rule one.",
+            "The humans think they own this house. Adorable."],
+    "Strawberry_Cat": ["Mrrp. You smell like my human. My human owes me a fish. Three fish.",
+                       "I sleep on the throne because it's warm, not because I'm royalty. I am also royalty."],
+    "Dog": ["Friend? FRIEND! Are you a friend? You're a friend! Ball? Do you have a ball?",
+            "I barked at a leaf today. It was very threatening. You're welcome."],
+    "Frog": ["Ribbit. I'm a prince, actually. Long story. Don't kiss me, it doesn't work, I've checked."],
+    "Seal": ["Arf. The fish here are fine. The fish up north are better. I don't make the rules."],
+}
+
 SWAP_VERBS = {"Walk here", "Examine", "Pickup", "Talk to", "Climb Up", "Climb Down", "Enter", "Step Through", "Search",
               "Squeeze Through", "Peck", "Cancel", ""}
 
@@ -113,6 +141,18 @@ class TrickMixin:
         self.display_message(why, "INFO")
         self.check_locks(True)
         self.dirty_me = True
+
+    def animal_chat(self, e):
+        """In an animal's body, an animal talks to you (ANIMAL_TALK): a line, now and then a different one."""
+        import random
+        lines = ANIMAL_TALK.get(e.name)
+        if not lines:
+            return False
+        line = random.choice(lines)
+        if self.swap and self.swap["form"] == e.name:
+            line += " (It's very nice to meet another %s.)" % pretty(e.name).lower()
+        self.show_menu(pretty(e.name), e.name, line, [("...", None)])
+        return True
 
     def swap_allows(self, verb):
         """Paws, hooves and wings: only the verbs that don't need hands."""

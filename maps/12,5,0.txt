@@ -39,3 +39,9 @@ Id	Ashford_City_Hall	14	12
 NPC	Tuxedo_Cat	160	472	Attitude=Good Id=Mo Name=Mo Zone=3,14,9,18 Pause=4-12
 NPC	Painter	192	440	Attitude=Good Stand=1 Face=E Id=Ashford_Painter Name=Ottilie
 StaticObject	Easel	224	448
+StaticObject	Hollow_Stump	256	288	Id=Secret_Ashford
+NPC	Duchess	256	224	Stand=1 Id=Duchess_The_Cow
+StaticObject	Torn_Washing	320	288	Id=Clue_Washing
+StaticObject	Goose_Feather_Clue	288	288	Id=Clue_Feather
+NPC	Guard	320	256	Attitude=Good Stand=1 Id=Constable_Dobbs Name=Constable_Dobbs
+StaticObject	Muddy_Footprints	256	192	Id=Clue_Footprints

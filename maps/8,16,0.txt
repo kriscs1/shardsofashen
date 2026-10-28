@@ -49,3 +49,4 @@ Id	Fenwick_Trader	13	16
 NPC	Settler	320	504	Attitude=Good Zone=8,15,14,19 Pause=4-12
 Id	Fenwick_Settler	11	17
 NPC	Old_Woman	160	544	Attitude=Good Stand=1 Face=E Id=Granny_Bramble Name=Granny_Bramble
+StaticObject	Wishing_Well	320	576	Id=Secret_Fenwick

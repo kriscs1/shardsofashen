@@ -39,3 +39,4 @@ StaticObject	Notice	64	578	Id=Keep_Notice_370
 Id	Keep_Market_Square	21	17
 Id	Keep_Square	21	17
 Id	Keep_City_Hall	13	12
+StaticObject	Odd_Barrel	704	288	Id=Secret_Keep

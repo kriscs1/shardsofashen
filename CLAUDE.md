@@ -145,8 +145,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   a mimic), hidden traps, a secret room behind a cracked wall, and the Deep's Heart at the bottom. Its things are the
   engine's (`deep_do`), not scripts.
 - **The world has a sense of humour, secrets and traps**: odd quests (Pip the invisible apprentice, Lady Pettigrew's
-  hat and the geese, Granny Bramble's practice hex), Bert's cat flap and big red button. Keep adding them, in what
-  things and people say and do; a sign still never hints.
+  hat and the geese, Granny Bramble's practice hex, the philosophical scarecrow, Duchess the talking cow, the Mayor's
+  trousers), Bert's cat flap and big red button, a secret to Search by every settlement's square, traps in the old
+  dungeons (a map `Trigger Trap_<Kind>`: `deep.py` world_trap), animals that talk to you in an animal's body
+  (`tricks.py` ANIMAL_TALK); `dev/migrate/build_whimsy.py` places them. Keep adding them, in what things and people
+  say and do; a sign still never hints.
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less

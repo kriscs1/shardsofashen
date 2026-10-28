@@ -3075,3 +3075,116 @@ def test_the_deeps_chests_traps_heart_and_shifting(world, monkeypatch):
     s2.update_attribute("DeepLoot", "=%d:x" % seed)
     assert s2.deep_had() == set()                                   # (a new shift: everything to find again)
     leave(world, s2)
+
+
+def test_a_secret_by_the_square_is_found_once_and_counted(world):
+    stump = next(e for e in world.ents if e.npc_id == "Secret_Ashford")
+    s = join(world, "Snoop", stump.map, 300, 300)
+    s.connected = True
+    near(world, s, stump, 32, 0)
+    s.choose_verb("Search", stump, int(stump.cx), int(stump.cy))
+    run_for(world, 20)
+    s.chest_response("CHEST_ALL")
+    assert s.items_held("Rubber_Duck") == 1 and s.get_attribute("SecretsFound") == "1"
+    s.choose_verb("Search", stump, int(stump.cx), int(stump.cy))
+    run_for(world, 20)
+    assert s.items_held("Rubber_Duck") == 1 and s.get_attribute("SecretsFound") == "1"     # (once each)
+    leave(world, s)
+
+
+def test_an_old_dungeons_trap_springs_then_rests(world):
+    m = world.maps["24,12,-1"]
+    assert any(t.startswith("Trap_") for t in m.trigger if t)
+    s = join(world, "Trapped", "24,12,-1", 300, 300)
+    s.connected = True
+    s.god_mode = False
+    s.update_skill("Hitpoints", "=40")
+    hp = s.player.hp
+    s.world_trap("Darts", m, 5, 5)
+    assert s.player.hp < hp
+    hp = s.player.hp
+    s.world_trap("Darts", m, 5, 5)
+    assert s.player.hp == hp                                        # (resting)
+    world.tick(0.05, now=world.now + 601000)
+    s.world_trap("Pie", m, 5, 5)
+    assert s.skill_level("Magic") == max(0, s.base_skill_level("Magic") - 1) or s.skill_boosts
+    leave(world, s)
+
+
+def test_in_an_animals_body_the_animals_talk(world):
+    s = join(world, "Moo", "11,4,0", 384, 300)
+    s.connected = True
+    cow = world.add_npc("Cow", 0, s.player.x + 50, s.player.y, "Attitude=Good")
+    s.turn_into("Cow", 30, "")
+    s.out = []
+    s.choose_verb("Talk to", cow, int(cow.cx), int(cow.cy))
+    run_for(world, 20)
+    from dsengine.tricks import ANIMAL_TALK
+    said = " ".join(str(e) for e in s.out)
+    assert any(line.split(".")[0] in said for line in ANIMAL_TALK["Cow"])
+    world.remove_entity(cow)
+    leave(world, s)
+
+
+def test_duchess_the_cow_wants_three_herbs(world):
+    cow = next(e for e in world.ents if e.npc_id == "Duchess_The_Cow")
+    s = join(world, "Herby", cow.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    s.update_attribute("Passage", "=12")
+    near(world, s, cow, 36, 0)
+    assert talk_to(world, s, cow)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("CowQuest") == "1"
+    stock(s, Herb=3)
+    assert talk_to(world, s, cow)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("CowQuest") == "2" and s.items_held("Herb") == 0
+    leave(world, s)
+
+
+def test_the_mayors_trousers_were_taken_by_a_goose(world):
+    dobbs = next(e for e in world.ents if e.npc_id == "Constable_Dobbs")
+    s = join(world, "Sleuth", dobbs.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    for q, v in (("Passage", 12), ("AshfordQuest", 99)):
+        s.update_attribute(q, "=%d" % v)
+    near(world, s, dobbs, 36, 0)
+    assert talk_to(world, s, dobbs)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("TrousersQuest") == "1"
+    for pid in ("Clue_Footprints", "Clue_Washing", "Clue_Feather"):
+        clue = next(e for e in world.ents if e.npc_id == pid)
+        near(world, s, clue, 32, 0)
+        s.choose_verb("Search", clue, int(clue.cx), int(clue.cy))
+        run_for(world, 20)
+    assert s.get_attribute("TrouserClues") == "3" and s.get_attribute("TrousersQuest") == "2"
+    near(world, s, dobbs, 36, 0)
+    assert talk_to(world, s, dobbs)
+    s.action_box_response_chosen(3)                                 # (a goose)
+    run_for(world, 10)
+    assert s.get_attribute("TrousersQuest") == "3"
+    leave(world, s)
+
+
+def test_the_scarecrow_gets_a_hat_and_shares_a_thought(world):
+    crow = next(e for e in world.ents if e.npc_id == "Philosopher_Scarecrow")
+    s = join(world, "Hatless", crow.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    s.update_attribute("Passage", "=12")
+    near(world, s, crow, 36, 0)
+    assert talk_to(world, s, crow)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("ScarecrowQuest") == "1"
+    stock(s, Fur_Cap=1)
+    assert talk_to(world, s, crow)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("ScarecrowQuest") == "2" and s.items_held("Fur_Cap") == 0
+    leave(world, s)

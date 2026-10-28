@@ -306,7 +306,8 @@ The bank is not a rack: it's stored in the save file.
     map to the west. The NPC still belongs to this map: it loads and unloads with it (the game keeps the 9 maps round the
     player live), and respawns here.
   * `Trigger<TAB>ScriptName<TAB>TileX<TAB>TileY`: TileX/TileY are 1-based **tile** coordinates. The
-    script runs when the player walks onto that tile.
+    script runs when the player walks onto that tile. A name `Trap_<Kind>` is a trap instead (Darts, Gas, Weakness,
+    Pit, Alarm, Bucket, Pie: `dsengine/deep.py` world_trap): it springs, then rests ten minutes for whoever sprang it.
   * `Lock<TAB>TileX<TAB>TileY<TAB>Condition<TAB>Message`: the tile (1-based tile coords, usually a door) can't be
     walked onto, by the player or NPCs, and isn't used by pathfinding, until Condition is true. Message is shown when
     the player bumps into it or clicks it (default "It's locked."). An empty Condition means it is always locked.

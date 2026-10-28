@@ -32,3 +32,6 @@ MapItem	Bones	513	450	1
 MapItem	Spider_Silk	192	512	1
 StaticObject	Notice	161	258	Id=The_Deep_Seam
 Lock	7	8	$Skill.Mining>=10	You need to be able to mine at level 10 to enter the deep seam.
+Trigger	Trap_Alarm	15	13
+Trigger	Trap_Darts	20	7
+Trigger	Trap_Weakness	7	6
