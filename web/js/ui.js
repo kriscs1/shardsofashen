@@ -831,7 +831,7 @@ function qtyText(q) {
 function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = false, wear = 0, inv = false,
   badgeInk = null } = {}) {
   const broken = inv && durText(name, wear) === "broken!";
-  const im = dim || broken ? greyed(name) : sprite(name) || sprite("Placeholder");
+  const im = dim || broken ? greyed(name) : sprite(name);   // (not loaded yet: nothing, till it is)
   if (im) ctx.drawImage(im, x, y);
   if (inv) wearBar(ctx, name, wear, x, y, G.tw);
   if (x2) {

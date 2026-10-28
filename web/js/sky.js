@@ -427,11 +427,22 @@ export function drawFog(ctx, cam, ww, wh, pc) {
       }
     }
     x.putImageData(im, 0, 0);
+    // (softened once, when it changes, on a picture a quarter the size: a blur over the whole view every frame
+    // was most of the work of drawing the game)
+    if (F.smooth) {
+      const q = 4, S2 = layer("fogSoft", Math.ceil(cols * n / q), Math.ceil(rows * n / q));
+      const s2 = S2.getContext("2d");
+      s2.clearRect(0, 0, S2.width, S2.height);
+      s2.imageSmoothingEnabled = true;
+      s2.imageSmoothingQuality = "high";
+      if ("filter" in s2) s2.filter = `blur(${Math.max(1, Math.round(n * 0.45 / q))}px)`;
+      s2.drawImage(L, 0, 0, cols * n / q, rows * n / q);
+      s2.filter = "none";
+    }
   }
   ctx.save();
   ctx.imageSmoothingEnabled = F.smooth;
-  ctx.imageSmoothingQuality = "high";
-  if (F.smooth && "filter" in ctx) ctx.filter = `blur(${Math.round(n * 0.45)}px)`;
-  ctx.drawImage(L, gx0 * n - cam.x, gy0 * n - cam.y, cols * n, rows * n);
+  ctx.imageSmoothingQuality = "low";                    // (it is soft already: "high" costs a lot, every frame)
+  ctx.drawImage(F.smooth && layers.fogSoft ? layers.fogSoft : L, gx0 * n - cam.x, gy0 * n - cam.y, cols * n, rows * n);
   ctx.restore();
 }

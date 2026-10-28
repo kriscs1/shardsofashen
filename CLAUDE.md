@@ -239,6 +239,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Change the builder and run it again; don't hand-edit its output. Nothing from another game or a commercial
   library: anything not made here is CC0 (or as free) and listed in `CREDITS.md`.
 - Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
+- **Nothing looks like a grid.** Ground that covers wide areas (mountains, streets, the forest canopy) is painted from a
+  big seamless texture (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
+  picture repeated every tile; a range is peaks of all sizes overlapping. Trees, bushes, rocks, grass and flowers
+  are sized and nudged per tile (`ground.js` paintDecor), always inside their own cell.
+- Nothing shows as a placeholder ("?") while its picture loads: draw nothing till it has.
+- **Drawing stays cheap**: no canvas `filter` (blur...) or high-quality scaling of the whole view every frame. Work it
+  out once when it changes (the fog is blurred on a small picture, then stretched).
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.

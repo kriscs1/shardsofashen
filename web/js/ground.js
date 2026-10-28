@@ -222,14 +222,52 @@ function img(name, ch) {
   return i;
 }
 
-function paintDecor(ctx, name, gx1, now, dx, dy, ch) {
+// Trees, bushes, rocks, grass and flowers aren't all stood in the middle of their tile in rows: each its own size
+// (trees and bushes) and nudged its own way, always inside its cell (a neighbour painting again would cut it)
+const GROWN = /^(Tree|Oak_Tree|Snow_Pine|Willow_Tree|Dead_Tree|Yew_Tree|Pine|Birch|Bush|Berry_Bush|Cactus|Bog_Myrtle)\d/;
+const LYING = /^(Tall_Grass|Flowers|Pebbles|Rock|Desert_Rock|Reeds|Snow_Rock|Fern|Mushrooms?)\d/;
+const SIZES = [1, 1, 0.875, 0.75];
+
+function margins(name, pic) {
+  // How far it can move each way inside its 32 x 32 (its see-through rows and columns), worked out once
+  let m = cache.margins?.get(name);
+  if (m) return m;
+  if (!cache.margins) cache.margins = new Map();
+  const c = document.createElement("canvas");
+  c.width = G.tw; c.height = G.th;
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.drawImage(pic, 0, 0);
+  const d = x.getImageData(0, 0, G.tw, G.th).data;
+  let l = G.tw, r = -1, t = G.th, b = -1;
+  for (let yy = 0; yy < G.th; yy++) for (let xx = 0; xx < G.tw; xx++) {
+    if (d[(yy * G.tw + xx) * 4 + 3] > 20) { l = Math.min(l, xx); r = Math.max(r, xx); t = Math.min(t, yy); b = Math.max(b, yy); }
+  }
+  m = r < 0 ? [0, 0, 0, 0] : [l, G.tw - 1 - r, t, G.th - 1 - b];
+  cache.margins.set(name, m);
+  return m;
+}
+
+function paintDecor(ctx, name, gx1, now, dx, dy, ch, gy1 = 0, vary = false) {
   const i = info(name);
   let pic = null;
   if (i.dkind === "frames") pic = img(framesName(name, i.frames, gx1, 0, now), ch);
   else if (i.dkind === "sway") pic = animFrame(name, "d", swayFrame(gx1, now) % i.anim.d);
   else if (i.dkind === "flame") pic = animFrame(name, "F", flameFrame(now) % i.anim.F);
   if (!pic) pic = img(name, ch);
-  if (pic) ctx.drawImage(pic, dx, dy);
+  if (!pic) return;
+  const grown = vary && GROWN.test(name), lying = vary && !grown && LYING.test(name);
+  if (!grown && !lying) { ctx.drawImage(pic, dx, dy); return; }
+  const h = ((gx1 * 73856093) ^ (gy1 * 19349663)) >>> 0;        // (the same each time this cell is painted)
+  const k = grown ? SIZES[h % SIZES.length] : 1;
+  const w = Math.round(G.tw * k), ht = Math.round(G.th * k);
+  const [l, r, t, b] = margins(name, img(name, ch) || pic).map((v) => Math.floor(v * k));
+  const roomX = G.tw - w, roomY = G.th - ht;
+  const lo = -l, hi = roomX + r, up = -t, down = roomY + b;      // (how far left/right, up/down it may go)
+  const ox = lo + ((h >>> 3) % (hi - lo + 1)), oy = Math.max(up, Math.min(down, roomY - ((h >>> 9) % 4)));
+  const smooth = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(pic, dx + ox, dy + oy, w, ht);
+  ctx.imageSmoothingEnabled = smooth;
 }
 
 function foamSides(z, gx, gy) {
@@ -365,7 +403,7 @@ function paintCell(ch, ci, now) {
     if (fr) ctx.drawImage(fr, dx, dy);
   }
   if (under) paintDecor(ctx, under, gx1, now, dx, dy, ch);      // (a rug, then what stands on it)
-  if (decor && !sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);
+  if (decor && !sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch, gy1, !roofShown);
   if (roofShown) {
     const r = img(roof, ch);
     if (r) ctx.drawImage(r, dx, dy);

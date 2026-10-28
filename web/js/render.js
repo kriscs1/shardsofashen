@@ -1,7 +1,7 @@
 // Drawing the world (the desktop game's ui.render, its first half): the ground, the things and people in the order
 // their feet are down the screen, tree tops over them, the weather, the night, the fog of war and the effects.
 import { G, S, mapAt, mapByPos, cellOf, myPlayer, tileAt } from "./state.js";
-import { A, sprite, size, has, entityIni, tileIni, frames, animFrame, isDecorTile, configRead } from "./assets.js";
+import { A, sprite, size, entityIni, tileIni, frames, animFrame, isDecorTile, configRead } from "./assets.js";
 import { chunkOf, updateChunk, endFrame, setHiddenRoof, clearHiddenRoofs, forgetChunks, tileInfo } from "./ground.js";
 import { drawSky, drawWeather, drawFog, fogUpdate, fogCovers, drawFlash, weatherTick, flicker } from "./sky.js";
 import { val, clamp, drawText, textWidth, setFont } from "./util.js";
@@ -229,6 +229,17 @@ function healthImage(hp, max) {
 // ================================================================================================================
 // A frame of the world: ctx is already scaled to the logical screen; the playfield is 0,0 .. viewW, viewH
 // ================================================================================================================
+// Ground pieces laid edge to edge (a map's picture, a tile drawn over you): their edges put on whole screen pixels,
+// so when the screen's scale isn't a whole number, no faint line shows where two meet
+function snapDraw(ctx, im, x, y) {
+  const t = ctx.getTransform();
+  const x0 = Math.round(t.a * x + t.e), y0 = Math.round(t.d * y + t.f);
+  const x1 = Math.round(t.a * (x + im.width) + t.e), y1 = Math.round(t.d * (y + im.height) + t.f);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(im, x0, y0, x1 - x0, y1 - y0);
+  ctx.setTransform(t);
+}
+
 export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, viewW, viewH);
@@ -257,7 +268,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     const ch = chunkOf(m);
     updateChunk(ch, now);
     const x = m.ox - cam.x, y = m.oy - cam.y;
-    if (x < V.ww && y < V.wh && x + G.sw > 0 && y + G.sh > 0) ctx.drawImage(ch.canvas, Math.round(x), Math.round(y));
+    if (x < V.ww && y < V.wh && x + G.sw > 0 && y + G.sh > 0) snapDraw(ctx, ch.canvas, Math.round(x), Math.round(y));
   }
   forgetChunks(keep);
   endFrame();
@@ -275,8 +286,8 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   if (lastImage.size > 600) lastImage.clear();
   const draw = (e) => {
     let im = e.k === T.PLAYER && e.look ? (warmWalk(e.i), lookImage(e.i, e.look)) : entityImage(e, now);
-    if (im) lastImage.set(e.u, im);               // (a frame not loaded yet: the one before it, not a "?")
-    else im = lastImage.get(e.u) || sprite(has("Placeholder") ? "Placeholder" : "");
+    if (im) lastImage.set(e.u, im);               // (a frame not loaded yet: the one before it, or nothing till it has)
+    else im = lastImage.get(e.u) || null;
     const [nx, ny] = nudgeOf(e.u, now);
     const x = Math.round(e.dx - cam.x + nx), y = Math.round(e.dy - cam.y + ny);
     if (im && e.k === T.MAPITEM) {                // (things on the ground: smaller than in your hand)
@@ -286,7 +297,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
       if (e.gh) ctx.globalAlpha = e === me ? 0.35 : 0.08;     // (invisible: a shimmer to you, all but nothing to others)
       ctx.drawImage(e.fz ? held(im, e.fz) : im, x, y);
     }
-    if (e.k === T.PLAYER) drawWorn(ctx, e, x, y);
+    if (e.k === T.PLAYER && im) drawWorn(ctx, e, x, y);
     ctx.globalAlpha = 1;
     pick.push([e.dx, e.dy, e.w, e.h, e]);
   };
@@ -403,13 +414,13 @@ function drawInfront(ctx, cam, pick, pc) {
       const c = cellOf(m, lx, ly);
       if (c[0] && isOverhead(c[0])) {                // (you walk under it: drawn again over you)
         const t = sprite(c[0]);
-        if (t) ctx.drawImage(t, Math.round(tx * G.tw - cam.x), Math.round(ty * G.th - cam.y));
+        if (t) snapDraw(ctx, t, Math.round(tx * G.tw - cam.x), Math.round(ty * G.th - cam.y));
       }
       if (!c[4]) continue;
       const im = sprite(c[4]);
       if (!im) continue;
       const x = tx * G.tw, y = ty * G.th;
-      ctx.drawImage(im, Math.round(x - cam.x), Math.round(y - cam.y));
+      snapDraw(ctx, im, Math.round(x - cam.x), Math.round(y - cam.y));
       if (m.name === S.mapName && !fogCovers(x + G.tw / 2, y + G.th / 2, pc)) {
         pick.push([x, y, G.tw, G.th, { k: T.INFRONT, n: c[4], x, y, w: G.tw, h: G.th, map: m.name, tx: lx, ty: ly,
           misc: tileIni(c[4], "Show.Name", "0"), uw: tileIni(c[4], "Use.Words", ""), dx: x, dy: y }]);
