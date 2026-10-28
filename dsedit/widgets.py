@@ -251,7 +251,26 @@ class PaletteGrid(tk.Frame):
         self._preview(None)
         self.selected = key
         self.draw()
+        if key is not None:
+            self.see(key)
         self.on_pick(key)
+
+    def see(self, key):
+        """Scrolls so key's cell is in the middle of the palette (picked from the map, it may be far down)."""
+        keys = [k for k, _, _ in self.items]
+        if key not in keys:
+            return
+        self.canvas.update_idletasks()
+        cols, s = self.cols(), self.cell
+        rows = (len(self.items) + cols - 1) // cols
+        total, view = rows * s + 4, max(1, self.canvas.winfo_height())
+        if total <= view:
+            return
+        y = 2 + (keys.index(key) // cols) * s
+        top, bottom = (f * total for f in self.canvas.yview())
+        if top <= y and y + s <= bottom:                              # (in sight already: clicked, it stays put)
+            return
+        self.canvas.yview_moveto(max(0.0, min(1.0, (y + s / 2 - view / 2) / total)))
 
     def _motion(self, e):
         k = self._at(e)
