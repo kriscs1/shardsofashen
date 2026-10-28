@@ -17,6 +17,10 @@ RENAMED_ITEMS = {
 RENAMED_SKILLS = {
     "Herblore": "Potion_Making",
 }
+RENAMED_MAPS = {                                     # (move_levels.py: levels of their own, moved further off)
+    "0,0,5": "0,0,10",
+    "21,4,-7": "21,4,-10",
+}
 
 
 def renamed(state):
@@ -30,3 +34,7 @@ def renamed(state):
     for old, new in renames.items():
         text = text.replace(old, new)
     return json.loads(text)
+
+
+def renamed_map(name):
+    return RENAMED_MAPS.get(name, name)

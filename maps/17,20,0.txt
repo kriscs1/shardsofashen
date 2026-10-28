@@ -32,9 +32,6 @@ Id	Frosthold_Market_Square	1	17
 Id	Frosthold_Square	1	17
 Id	Frosthold_Church	7	12
 NPC	Forgemaster	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
-Id	Frosthold_Forgemaster	2	16
 NPC	Trader	32	440	Attitude=Good Zone=2,13,5,17 Pause=4-12
-Id	Frosthold_Trader	2	15
 NPC	Settler	64	472	Attitude=Good Zone=2,14,6,18 Pause=4-12
-Id	Frosthold_Settler	3	16
 StaticObject	Odd_Barrel	64	320	Id=Secret_Frosthold

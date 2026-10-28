@@ -35,9 +35,6 @@ Id	Thornwick_Market_Square	1	19
 Id	Thornwick_Square	1	19
 Id	Thornwick_Village_Hall	6	15
 NPC	Druid	64	536	Attitude=Good Zone=2,16,6,20 Pause=4-12
-Id	Thornwick_Druid	3	18
 NPC	Trader	64	408	Attitude=Good Zone=2,12,6,16 Pause=4-12
-Id	Thornwick_Trader	3	14
 NPC	Settler	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
-Id	Thornwick_Settler	2	16
 StaticObject	Hollow_Stump	64	352	Id=Secret_Thornwick

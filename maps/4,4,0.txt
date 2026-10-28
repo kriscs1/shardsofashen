@@ -40,7 +40,5 @@ StaticObject	Notice	384	610	Id=Southport_Notice_358
 Id	Southport_Port	3	9
 Id	Southport_Cart_Stop_2	3	13
 NPC	Fisherman	384	440	Attitude=Good Zone=10,13,16,17 Pause=4-12
-Id	Southport_Fisherman	13	15
 NPC	Villager	352	440	Attitude=Good Zone=9,13,15,17 Pause=4-12
-Id	Southport_Villager	12	15
 NPC	Black_Cat	384	504	Attitude=Good Id=Vincent Name=Vincent Zone=10,15,16,19 Pause=4-12

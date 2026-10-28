@@ -68,7 +68,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - `Ground`: the tiles you must both stand on.
   - `Respawn.Map`, `Respawn.X`, `Respawn.Y`: where the beaten wake.
   - Anywhere else, players can't fight each other.
-- **Rebuilding.** `dev/migrate/build_arena.py` makes the arena: `maps/0,0,5.txt`, a level of its own, plus its
+- **Rebuilding.** `dev/migrate/build_arena.py` makes the arena: `maps/0,0,10.txt`, a level of its own, plus its
   scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
   missing.
 

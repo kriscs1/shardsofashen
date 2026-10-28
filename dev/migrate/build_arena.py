@@ -3,14 +3,14 @@
 
   python -I "dev\\migrate\\build_arena.py"
 
-  * maps\\0,0,5.txt  the arena, on a level of its own (nothing joins it at its edges): stone walls, a paved walk round
+  * maps\\0,0,10.txt  the arena, on a level of its own (nothing joins it at its edges): stone walls, a paved walk round
     the edge for the crowd, and a sand pit in the middle. Players can only fight on the sand (Config [PvP]), so
     whoever stands on the paving is safe.
   * The Arena Master (a guard, Id=Arena_Master) in Ashford takes you there; the Arena Keeper (Id=Arena_Keeper) by the
-    arena's gate brings you back. data\\Scripts\\Talk to Arena_Master.txt, Talk to Arena_Keeper.txt, and 0,0,5.txt (the
+    arena's gate brings you back. data\\Scripts\\Talk to Arena_Master.txt, Talk to Arena_Keeper.txt, and 0,0,10.txt (the
     arena's rules, said as you arrive).
   * Config [PvP]: Maps, Ground, and where you wake when you're beaten (nothing is lost: no gold, no grave).
-  * data\\Music.ini [Maps] 0,0,5=Danger.
+  * data\\Music.ini [Maps] 0,0,10=Danger.
 """
 import math
 import os
@@ -21,7 +21,7 @@ sys.path.insert(0, ROOT)
 
 from dragonsword import ini  # noqa: E402
 
-ARENA = "0,0,5"
+ARENA = "0,0,10"
 TOWN = "2,3,0"
 XT, YT = 25, 21
 SPAWN = (12, 18)                       # tile (1-based) the beaten wake on, and arrivals land on: by the gate

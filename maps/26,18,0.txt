@@ -40,6 +40,4 @@ Id	Waystone_Ravensgate	15	10
 NPC	Gravekeeper	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
 Id	Ravensgate_Gravekeeper	13	11
 NPC	Trader	416	312	Attitude=Good Zone=11,9,17,13 Pause=4-12
-Id	Ravensgate_Trader	14	11
 NPC	Settler	384	280	Attitude=Good Zone=10,8,16,12 Pause=4-12
-Id	Ravensgate_Settler	13	10

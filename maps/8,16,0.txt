@@ -43,10 +43,7 @@ Id	Fenwick_Square	13	18
 NPC	Elder	416	504	Attitude=Good Zone=11,15,17,19 Pause=4-12
 Id	Fenwick_Elder	14	17
 NPC	Witch	352	504	Attitude=Good Zone=9,15,15,19 Pause=4-12
-Id	Fenwick_Witch	12	17
 NPC	Trader	384	472	Attitude=Good Zone=10,14,16,18 Pause=4-12
-Id	Fenwick_Trader	13	16
 NPC	Settler	320	504	Attitude=Good Zone=8,15,14,19 Pause=4-12
-Id	Fenwick_Settler	11	17
 NPC	Old_Woman	160	544	Attitude=Good Stand=1 Face=E Id=Granny_Bramble Name=Granny_Bramble
 StaticObject	Wishing_Well	320	576	Id=Secret_Fenwick

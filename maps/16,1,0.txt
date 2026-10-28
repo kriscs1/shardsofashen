@@ -35,13 +35,10 @@ Id	Wardhaven_Market_Square	13	18
 Id	Wardhaven_Dock	13	6
 Id	Wardhaven_Square	13	18
 NPC	Settler	416	504	Attitude=Good Zone=11,15,17,19 Pause=4-12
-Id	Wardhaven_Settler	14	17
 StaticObject	Dragonforge	352	512
 NPC	Wyrmsmith	384	472	Attitude=Good Stand=1
 Id	Wardhaven_Wyrmsmith	13	16
 NPC	Trader	384	568	Attitude=Good Zone=10,17,16,20 Pause=4-12
-Id	Wardhaven_Trader	13	19
 NPC	Guard	352	472	Attitude=Good Stand=1
-Id	Wardhaven_Guard	12	16
 StaticObject	Fish_Spot	256	160
 StaticObject	Loose_Cobble	448	320	Id=Secret_Wardhaven

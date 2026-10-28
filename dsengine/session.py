@@ -328,9 +328,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         """st: a saved character (a dict), or None for a new one (saves\\TEMPLATE.ini's start)."""
         d = self.data
         p = self.player
-        from .renames import renamed
+        from .renames import renamed, renamed_map
         st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
-        m = self.w.map_named(st.get("map", d.start_map)) or self.w.map_named(d.start_map)
+        m = self.w.map_named(renamed_map(st.get("map", d.start_map))) or self.w.map_named(d.start_map)
         if m is None:
             m = next(iter(self.w.maps.values()))
             x, y = d.start_x, d.start_y
@@ -393,9 +393,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.load_chests(st.get("chests"))
         r = st.get("home_return")
         if isinstance(r, list) and len(r) == 3:
-            self.home_return = (str(r[0]), val(r[1]), val(r[2]))
+            self.home_return = (renamed_map(str(r[0])), val(r[1]), val(r[2]))
         if g and g.get("items"):
-            self.grave = {"map": g["map"], "x": val(g["x"]), "y": val(g["y"]), "left": val(g["left"]),
+            self.grave = {"map": renamed_map(g["map"]), "x": val(g["x"]), "y": val(g["y"]), "left": val(g["left"]),
                           "items": [tuple(i) for i in g["items"]]}
         self.check_saved_equipment()
         self.recalc_equipment()

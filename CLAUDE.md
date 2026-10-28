@@ -15,7 +15,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `web/js/` | The browser client: canvas, ES modules, no build step. `web/assets/` is generated, never edited |
 | `android/` | The Android app: carries the server and page; a phone hosts a game for its network, or joins one |
 | `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
-| `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs |
+| `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory) |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
 | `dsedit/` | The map/data editor |
 | `dragonsword/` | Shared helpers (`ini`, `lb`); the old desktop game is retired |
@@ -79,7 +79,7 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 15. **The Shardgate** (`ShardgateQuest`, `dev/migrate/build_shardgate.py`): with the sword, the staff at the barrier
    fails, because the dragon anchored it in the **Shardrealm**, where all broken magic goes. Bert gives the plans; you
    build a Shardgate in the old ring of stones on the hill north of the Wizards' Court (21,4,0: silver, sapphires, a
-   Remnant's core, Shards). It's on the world map once you've built yours. Through it, the realm (21,4,-7): past its
+   Remnant's core, Shards). It's on the world map once you've built yours. Through it, the realm (21,4,-10): past its
    Warden, the staff shatters the anchor. The gate stays, and you can go back (remnants roam the realm; its clusters
    give Shards).
 16. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;

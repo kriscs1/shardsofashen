@@ -36,7 +36,5 @@ Id	Moorcross_Chapel	11	11
 NPC	Shepherd	352	344	Attitude=Good Zone=9,10,15,14 Pause=4-12
 Id	Moorcross_Shepherd	12	12
 NPC	Trader	320	344	Attitude=Good Zone=8,10,14,14 Pause=4-12
-Id	Moorcross_Trader	11	12
 NPC	Settler	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
-Id	Moorcross_Settler	13	11
 StaticObject	Loose_Cobble	512	384	Id=Secret_Moorcross

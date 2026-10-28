@@ -1,6 +1,7 @@
 """The quest places lifted from the old maps (world_parts\\parts.json), set down at the same tiles of their new maps
 (so every script's coordinates stay right), and the people of the old towns (world_parts\\people.json) put in their
 new ones."""
+import os
 import re
 
 import story_kit as K
@@ -239,6 +240,24 @@ def strays(plans):
     return out
 
 
+_NAMED = []
+
+
+def wanted(pid):
+    """Whether a quest's marker, the world map or a script names this place (an NPC's place nobody names isn't
+    marked: it would only clutter the editor)."""
+    if not _NAMED:
+        text = ""
+        for f in ("Quests.ini", "WorldMap.ini"):
+            with open(os.path.join(K.DATA, f), "rb") as fh:
+                text += fh.read().decode("cp1252") + "\n"
+        for f in os.listdir(K.SCRIPTS):
+            with open(os.path.join(K.SCRIPTS, f), "rb") as fh:
+                text += f + "\n" + fh.read().decode("cp1252", "replace") + "\n"
+        _NAMED.append(set(re.findall(r"[A-Za-z0-9_']+", text)))
+    return pid in _NAMED[0]
+
+
 def rehouse(atlas, plans):
     """The old towns' people, near the middle of their new town (on its map), Zone= round where they stand now."""
     homes = home_of_old(plans)
@@ -277,7 +296,8 @@ def rehouse(atlas, plans):
             pid = "%s_%s" % (key, f[1])                            # (a place by them: quest markers point at it)
             if "Id=" in ln:
                 pid = ln.split("Id=")[1].split()[0]                # (they have a name already)
-            elif f[0] == "NPC" and not any(e.split("\t")[:2] == ["Id", pid] for e in atlas.maps[m.name].ents):
-                atlas.place_id(spot[0], spot[1], pid)
+            elif f[0] == "NPC" and wanted(pid) and not any(e.split("\t")[:2] == ["Id", pid]
+                                                           for e in atlas.maps[m.name].ents):
+                atlas.place_id(spot[0], spot[1], pid)      # (only if a quest or a script points at it)
             placed.setdefault(old, []).append((int(float(f[2])) // TW + 1, (int(float(f[3])) + 24) // TW + 1, pid))
     return homes, placed

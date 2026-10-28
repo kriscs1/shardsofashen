@@ -36,11 +36,8 @@ Id	Emberwatch_Market_Square	1	19
 Id	Emberwatch_Square	1	19
 Id	Emberwatch_Chapel	6	15
 NPC	Warden	64	536	Attitude=Good Stand=1
-Id	Emberwatch_Warden	3	18
 NPC	Scout	128	504	Attitude=Good Stand=1
 Id	Emberwatch_Scout	5	17
 NPC	Trader	32	408	Attitude=Good Zone=2,12,5,16 Pause=4-12
-Id	Emberwatch_Trader	2	14
 NPC	Settler	64	408	Attitude=Good Zone=2,12,6,16 Pause=4-12
-Id	Emberwatch_Settler	3	14
 StaticObject	Old_Statue	64	352	Id=Secret_Emberwatch

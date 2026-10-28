@@ -181,13 +181,13 @@ def test_pvp_only_on_the_arena_sand(world):
     assert not a.pvp_ok(b)
     # the arena: on the paving, still safe; on the sand, fair game
     for s, x in ((a, 300), (b, 330)):
-        s.teleport("0,0,5", x, 530)                               # (the paving by the gate)
+        s.teleport("0,0,10", x, 530)                               # (the paving by the gate)
         s.do_pending_map_change()
     world.tick(0.05)
     assert a.in_arena() and not a.on_arena_ground()
     assert "Attack" not in a.get_verbs(b.player)
     for s, x in ((a, 384), (b, 416)):
-        s.teleport("0,0,5", x, 300)                               # (the middle of the sand)
+        s.teleport("0,0,10", x, 300)                               # (the middle of the sand)
         s.do_pending_map_change()
     world.tick(0.05)
     assert a.on_arena_ground() and b.on_arena_ground()
@@ -199,7 +199,7 @@ def test_pvp_only_on_the_arena_sand(world):
 def test_pvp_fight_to_the_end_costs_nothing(world):
     a, b = join(world, "Pip"), join(world, "Quin")
     for s, x in ((a, 384), (b, 410)):
-        s.teleport("0,0,5", x, 300)
+        s.teleport("0,0,10", x, 300)
         s.do_pending_map_change()
     world.tick(0.05)
     a.equipped[1] = "Bronze_Sword"
@@ -218,7 +218,7 @@ def test_pvp_fight_to_the_end_costs_nothing(world):
     assert a.get_attribute("ArenaWins") == "1"
     assert b.player.hp == b.player_max_hp
     assert b.items_held("Gold_Coin(s)") == gold and len(b.inv) == items and b.grave is None
-    assert b.screen_name == "0,0,5" and not b.on_arena_ground()   # (by the gate, on the paving)
+    assert b.screen_name == "0,0,10" and not b.on_arena_ground()   # (by the gate, on the paving)
     assert a.player_attack_target is None
     leave(world, a)
     leave(world, b)
@@ -1553,8 +1553,8 @@ def test_a_cat_sits_stretches_and_eats_a_fish(world):
 
 
 def test_sitting_on_a_bench_till_you_move(world):
-    a = join(world, "Sitter", "0,0,5", 5 * 32, 3 * 32)              # (the arena's benches, along its top wall)
-    b = join(world, "Stander", "0,0,5", 7 * 32, 3 * 32)
+    a = join(world, "Sitter", "0,0,10", 5 * 32, 3 * 32)              # (the arena's benches, along its top wall)
+    b = join(world, "Stander", "0,0,10", 7 * 32, 3 * 32)
     m = a.cur_map
     gx, gy = m.ox + 4 * 32 + 16, m.oy + 1 * 32 + 16                  # (the bench at 5,2)
     bench = a.tile_entity_at(gx, gy)
@@ -1580,7 +1580,7 @@ def test_sitting_on_a_bench_till_you_move(world):
 
 
 def test_a_wolf_hunts_a_sheep_and_a_rat_bites_back(world):
-    s = join(world, "Watcher", "0,0,5", 12 * 32, 4 * 32)             # (the arena: open sand, nothing else about)
+    s = join(world, "Watcher", "0,0,10", 12 * 32, 4 * 32)             # (the arena: open sand, nothing else about)
     m = s.cur_map
     s.god_mode = True                                                # (the wolf would rather have them)
     held = [e for e in world.ents if e.type == NPC and e.map == m.name and "FOES" in getattr(e.ai, "hunts", ())]
@@ -1740,7 +1740,7 @@ def test_walking_granny_wren_to_her_daughter(world):
 
 
 def test_a_guard_comes_to_help_against_a_goblin(world):
-    s = join(world, "Helped", "0,0,5", 12 * 32, 12 * 32)             # (the arena's sand)
+    s = join(world, "Helped", "0,0,10", 12 * 32, 12 * 32)             # (the arena's sand)
     m = s.cur_map
     s.god_mode = True
     guard = world.add_npc("Guard", m.mz, m.ox + 8 * 32, m.oy + 12 * 32, "Attitude=Good Zone=6,10,18,14")
@@ -2830,7 +2830,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     assert any(e.get("t") == "labels" for e in s.out)
     s.choose_verb("Step Through", gate, int(gate.cx), int(gate.cy))
     run_for(world, 20)
-    assert s.cur_map.name == "21,4,-7"
+    assert s.cur_map.name == "21,4,-10"
     anchor = next(e for e in world.ents if e.name == "Barrier_Anchor" and e.owner is s)
     warden = next(e for e in world.ents if e.name == "Shard_Warden" and e.alive)
     near(world, s, anchor, -40, 16)
@@ -2855,7 +2855,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
 
 
 def test_the_shardrealms_remnants_are_as_strong_as_their_level_and_stay(world):
-    rems = [e for e in world.ents if e.name == "Living_Remnant" and e.map == "21,4,-7"]
+    rems = [e for e in world.ents if e.name == "Living_Remnant" and e.map == "21,4,-10"]
     assert rems and all(e.max_hp == 5 + 5 * e.remnant_level for e in rems)
     from dsengine.remnants import fade_remnants
     world.now += 10 ** 7

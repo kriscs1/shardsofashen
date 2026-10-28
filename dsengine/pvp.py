@@ -12,7 +12,7 @@ class PvPMixin:
     # ----- where you may fight
     def pvp_rules(self):
         c = self.data.config_read
-        maps = set(c("PvP", "Maps", "").replace(";", " ").split())          # 0,0,5;3,3,5 (or spaces between)
+        maps = set(c("PvP", "Maps", "").replace(";", " ").split())          # 0,0,10;3,3,5 (or spaces between)
         ground = {trim(g) for g in c("PvP", "Ground", "").replace(";", ",").split(",") if trim(g)}
         return maps, ground
 

@@ -11,7 +11,7 @@ import layout as L
 import galaith as G
 
 MAKER = "build_estforlan.py"
-ISLE_LEVELS = {"0,0,5"}
+ISLE_LEVELS = {"0,0,10"}
 MAP = re.compile(r"(?<![\d,.\-])(-?\d+,-?\d+,-?\d+)(?![\d,])")
 SUPERSEDED = ("build_towns.py", "build_regions.py", "build_eastreach.py", "build_content.py", "build_galaith.py",
               "build_heir_mainland.py", "build_cinder.py", "build_palace.py", "build_walled.py", "build_smugglers.py",

@@ -5,7 +5,7 @@ The story: with the Sword of Valour in hand you raise the Staff of Ashen at the 
 beyond the world feeds it (the barrier's script, estforlan/story.py). Bert knows what: the dragon anchored it in the
 Shardrealm, where all broken magic goes. He gives you a Shardgate's plans; you build it in the old ring of standing
 stones on the hill north of the Wizards' Court (21,4,0) from 4 silver bars, 2 sapphires, a Remnant's core and
-Shards.ini Shardgate Shards. Through it, the Shardrealm (21,4,-7): its Warden guards the anchor; with the Warden down,
+Shards.ini Shardgate Shards. Through it, the Shardrealm (21,4,-10): its Warden guards the anchor; with the Warden down,
 the staff shatters it. Bert: now the barrier will break. The gate stays, and you can go back: Shard Remnants roam the
 realm (map NPCs with Level=), and its Shard clusters give Shards every Realm.Cluster.Hours hours.
 
@@ -37,7 +37,7 @@ from story_kit import Map, obj_line            # noqa: E402
 MAKER = "build_shardgate.py"
 HILL, RING = "21,4,0", (19, 7)                   # (the ring: 2 x 2 tiles from here; its site, the tile below it)
 SITE = (20, 9)
-REALM = "21,4,-7"
+REALM = "21,4,-10"
 GATE_IN, ANCHOR = (3, 10), (21, 10)              # (the realm's way back, and the anchor: 2 x 2 tiles each)
 REALM_GATE, ANCHOR_SITE = (5, 11), (20, 12)
 SHARDS = [("Shardgate", "30", "Shardgate: the Shards that bind a Shardgate as you build it."),
