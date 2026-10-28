@@ -252,6 +252,8 @@ class ActionsMixin:
         self.clicked_tile_y = self.tile_of_y(vy)
         if verb in ("Cancel", ""):
             return
+        if not self.swap_allows(verb):                  # (in another body: no hands - tricks.py)
+            return
         if verb == "Walk here":
             if not self.user_input_enabled or self.ab_mode:
                 return
@@ -293,6 +295,8 @@ class ActionsMixin:
         self.clicked_ent = e
         if verb == "Use with":
             self.use_item_with(e)
+            return
+        if self.deep_do(verb, e):                      # (the Shifting Deep's things: deep.py)
             return
         if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or
                 self.board_action(verb, e) or

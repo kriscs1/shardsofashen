@@ -35,3 +35,4 @@ NPC	Banker	608	160	Attitude=Good Stand=1
 NPC	Guard	320	536	Attitude=Good Stand=1 Face=S Id=Smuggler_Sergeant Name=Sergeant_Holt
 Id	Sergeant_Post	11	19
 StaticObject	Spellwright_Lectern	448	128	Id=Quill_Lectern
+NPC	Pip	320	256	Attitude=Good Stand=1 Id=Pip_The_Apprentice Name=Pip

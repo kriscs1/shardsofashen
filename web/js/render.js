@@ -282,8 +282,12 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     if (im && e.k === T.MAPITEM) {                // (things on the ground: smaller than in your hand)
       const w = Math.round(e.w * MAPITEM_SCALE), h = Math.round(e.h * MAPITEM_SCALE);
       ctx.drawImage(im, x + Math.round((e.w - w) / 2), y + (e.h - h), w, h);
-    } else if (im) ctx.drawImage(e.fz ? held(im, e.fz) : im, x, y);
+    } else if (im) {
+      if (e.gh) ctx.globalAlpha = e === me ? 0.35 : 0.08;     // (invisible: a shimmer to you, all but nothing to others)
+      ctx.drawImage(e.fz ? held(im, e.fz) : im, x, y);
+    }
     if (e.k === T.PLAYER) drawWorn(ctx, e, x, y);
+    ctx.globalAlpha = 1;
     pick.push([e.dx, e.dy, e.w, e.h, e]);
   };
   for (const e of shown) if (e.k === T.NPC && e.un) draw(e);

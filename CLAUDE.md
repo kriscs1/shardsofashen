@@ -133,6 +133,20 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Prey (hens, cows, sheep, rabbits, ducks) has `Flees=1`: it runs from whoever hits it and never fights back.
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
 - Buffs and debuffs end on death.
+- A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
+  `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab shows it out of its usual level (18/20,
+  red; 23/20, green), and hitpoints and your level go by the usual one.
+- **Tricks** (`dsengine/tricks.py`): invisibility (no monster sees you; strike or cast and it's over) and body swaps
+  (`Swap=1` creatures and townsfolk, for a strict time: no hands, monsters pay you no mind, `$Player.Form` says what
+  you are, e.g. a cat flap's `$Player.Form=Cat`). A script can `Turn.Into` a creature for a while.
+- **The Shifting Deep** (`dsengine/deep.py`, `data/Deep.ini`, `dev/migrate/build_deep.py`): an old Shard mine south
+  of Moorcross whose floors (40,40,-11 and down) are made in memory, never files, and made again every
+  `Shift.Minutes` once nobody's inside: rooms and tunnels, monsters by depth, chests (once each a shift; now and then
+  a mimic), hidden traps, a secret room behind a cracked wall, and the Deep's Heart at the bottom. Its things are the
+  engine's (`deep_do`), not scripts.
+- **The world has a sense of humour, secrets and traps**: odd quests (Pip the invisible apprentice, Lady Pettigrew's
+  hat and the geese, Granny Bramble's practice hex), Bert's cat flap and big red button. Keep adding them, in what
+  things and people say and do; a sign still never hints.
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less

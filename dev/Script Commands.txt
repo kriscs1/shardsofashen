@@ -48,6 +48,7 @@ read it back as $Variable.n.
   $Map.Z                     The Z Coordinate of the Map.
   $Map.Name                  The name of Map (X,Y,Z).
   $Time                      The current Time (in seconds).
+  $Player.Form               The shape the player is in just now (a body swap, Turn.Into): Cat, Duck..., or - for their own.
   $Clock                     Seconds on the real clock, always counting up (now minus a time saved in an attribute: how long ago).
   $Player.Son                son, or daughter for a woman (the player's body).
   $Player.Boy                boy, or girl for a woman.
@@ -78,7 +79,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (68)
+COMMANDS (70)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -306,6 +307,14 @@ Add.Line.To.File    FILE | LINE TO ADD
 
 Block.Player    (no arguments)
     COMMAND: Returns the player to their previous location
+
+Boost.Skill    SKILL NAME | LEVELS (+ or -) | SECONDS
+    COMMAND: A skill up or down by some levels for a while (a drink, a curse): the Stats tab shows it, 18/20
+    (the last for a skill replaces the one before; it ends on death)
+    1. SKILL NAME: The name of the skill to update
+         (From data\Config.ini [Skills] List)
+    2. LEVELS (+ or -): How many levels up (+2) or down (-3)
+    3. SECONDS: For how many seconds
 
 Change.All.Tiles    CHANGE FROM TILE | CHANGE TO TILE
     COMMAND: Changes all similar tiles to another tile type
@@ -551,6 +560,14 @@ Toggle.Player.Visibility    ON/OFF
 Toggle.User.Input    ON/OFF
     COMMAND: Toggles User input ON or OFF
     1. ON/OFF: ON or OFF
+
+Turn.Into    FORM | SECONDS | MESSAGE
+    COMMAND: The player becomes a creature for a while (its walking frames: Chicken, Cat...), then snaps back
+    (no hands meanwhile; monsters pay them no mind; $Player.Form is what they are)
+    1. FORM: What they become: a creature with walking frames (Chicken, Cat, Duck...)
+    2. SECONDS: For how many seconds
+    3. MESSAGE: The message that is displayed in the chat box. One that starts .. finishes the line before it
+         (if that ended ..): "You swing your axe.." then "..and get some logs!" make one line, in the colour of the second
 
 Update.Attribute    ATTRIBUTE NAME | QUANTITY (+, - or =) 
     COMMAND: Updates the value of a player attribute

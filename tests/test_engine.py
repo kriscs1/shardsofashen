@@ -2861,3 +2861,217 @@ def test_the_shardrealms_remnants_are_as_strong_as_their_level_and_stay(world):
     world.now += 10 ** 7
     fade_remnants(world)
     assert all(e.alive for e in rems)                               # (a map's remnants don't fade)
+
+
+def test_drains_and_boosts_show_a_skill_as_it_is_now(world):
+    s = join(world, "Sapped", "11,4,0", 384, 300)
+    s.update_skill("Strength", "=10")
+    hp = s.player_max_hp
+    s.status_start("Weaken")
+    assert s.skill_level("Strength") == 7 and s.base_skill_level("Strength") == 10 and s.player_max_hp == hp
+    st = s.me_state()
+    i = [n.upper() for n in s.data.skill_name[1:]].index("STRENGTH")
+    assert st["skill_now"][i] == 7 and "Weaken" in st["status_left"]
+    s.run_script_lines("test", ["01	Boost.Skill	Magic	+2	5", "02	End"])
+    world.tick(0.05, now=world.now + 50)
+    assert s.skill_level("Magic") == s.base_skill_level("Magic") + 2 and s.me_state()["skill_boosts"]["Magic"]["n"] == 2
+    world.tick(0.05, now=world.now + 6000)
+    assert s.skill_level("Magic") == s.base_skill_level("Magic")         # (a while, and back)
+    s.boost_skill("Defence", -4, 60)
+    s.player_dies()
+    assert s.skill_level("Strength") == 10 and s.skill_change("Defence") == 0   # (death ends them, as it ends buffs)
+    leave(world, s)
+
+
+def test_an_invisibility_potion_hides_you_till_you_strike(world):
+    s = join(world, "Ghost", "11,4,0", 384, 300)
+    s.connected = True
+    m = s.cur_map
+    wolf = world.add_npc("Wolf", 0, s.player.x + 40, s.player.y, "Attitude=Bad")
+    stock(s, Invisibility_Potion=1)
+    s.do_action("Drink", next(e for e in s.inv if e.name == "Invisibility_Potion"))
+    assert s.invisible() and not s.player_visible and s.items_held("Invisibility_Potion") == 0
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    assert wolf.target is not s                                    # (it can't see you)
+    s.damage_npc(wolf, 1)
+    assert not s.invisible() and s.player_visible                  # (a blow struck: seen)
+    world.remove_entity(wolf)
+    leave(world, s)
+
+
+def test_a_body_swap_is_a_strict_while_and_needs_no_hands(world):
+    s = join(world, "Swapper", "11,4,0", 384, 300)
+    s.connected = True
+    duck = world.add_npc("Duck", 0, s.player.x + 60, s.player.y, "Attitude=Good")
+    s.skill_level = lambda skill: 10
+    s.spells_known["Swap"] = 1
+    bx, by = s.player.x, s.player.y
+    s.cast_spell("Swap", duck)
+    assert s.player_form() == "Duck" and s.player.name == "Duck" and duck.name == "Player"
+    assert (duck.x, duck.y) == (bx, by) and s.parse_script_variables("$Player.Form") == "Duck"
+    stock(s, Fire_Bolt_Scroll=1)
+    s.out = []
+    s.choose_verb("Cast", next(e for e in s.inv if e.name == "Fire_Bolt_Scroll"), int(s.player.cx), int(s.player.cy))
+    assert any("as a duck" in str(e.get("text", "")) for e in s.out)  # (no hands)
+    saved = s.save_state()
+    assert saved["sprite"] in ("Player", "PlayerF") and abs(saved["x"] - (bx - s.cur_map.ox)) < 40
+    world.tick(0.05, now=world.now + 31000)
+    assert s.player_form() == "" and s.player.name in ("Player", "PlayerF") and duck.name == "Duck"
+    world.remove_entity(duck)
+    leave(world, s)
+
+
+def test_berts_cat_flap_lets_only_a_cat_through(world):
+    flap = next(e for e in world.ents if e.npc_id == "Berts_Cat_Flap" or (e.name == "Cat_Flap"))
+    s = join(world, "Moggy", flap.map, 300, 300)
+    s.connected = True
+    near(world, s, flap, 32, 0)
+    shards = s.shards()
+    s.choose_verb("Squeeze Through", flap, int(flap.cx), int(flap.cy))
+    run_for(world, 10)
+    assert s.shards() == shards                                     # (far too small for you)
+    s.turn_into("Cat", 30, "")
+    s.choose_verb("Squeeze Through", flap, int(flap.cx), int(flap.cy))
+    run_for(world, 10)
+    assert s.shards() == shards + 25 and s.get_attribute("BertsTin") == "1"
+    leave(world, s)
+
+
+def test_granny_brambles_hex_leaves_you_weak_for_her_rats(world):
+    granny = next(e for e in world.ents if e.npc_id == "Granny_Bramble")
+    s = join(world, "Hexed", granny.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    for q, v in (("Passage", 12), ("PipQuest", 2)):
+        s.update_attribute(q, "=%d" % v)
+    s.update_skill("Strength", "=20")
+    near(world, s, granny, 36, 0)
+    assert talk_to(world, s, granny)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    s.action_box_response_chosen(1)
+    run_for(world, 20)
+    assert s.get_attribute("HexQuest") == "1" and s.skill_level("Strength") == 1    # (weak as a kitten)
+    rats = [e for e in world.ents if e.npc_id == "Hex_Rat" and e.owner is s]
+    assert len(rats) == 4
+    for r in rats:
+        s.kill_npc(r)
+    run_for(world, 20)
+    assert s.get_attribute("HexRats") == "4"
+    assert talk_to(world, s, granny)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("HexQuest") == "2" and s.skill_level("Strength") == 20
+    leave(world, s)
+
+
+def test_pip_is_cured_and_lady_pettigrew_gets_her_hat(world):
+    pip = next(e for e in world.ents if e.npc_id == "Pip_The_Apprentice")
+    s = join(world, "Hatter", pip.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    s.update_attribute("Passage", "=12")
+    near(world, s, pip, 36, 0)
+    assert talk_to(world, s, pip)
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("PipQuest") == "1"
+    stock(s, Egg=1, Feather=1, Cave_Mushroom=2)
+    assert talk_to(world, s, pip)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("PipQuest") == "2" and s.items_held("Swap_Scroll") == 1
+    assert s.items_held("Invisibility_Potion") == 2
+    lady = next(e for e in world.ents if e.npc_id == "Lady_Pettigrew")
+    near(world, s, lady, 36, 0)
+    assert talk_to(world, s, lady)
+    s.action_box_response_chosen(1)
+    run_for(world, 20)
+    assert s.get_attribute("HatQuest") == "1"
+    hat = next(e for e in world.ents if e.name == "Fancy_Hat" and e.owner is s)       # (on the nest: yours)
+    s.do_action("Drink", next(e for e in s.inv if e.name == "Invisibility_Potion"))
+    near(world, s, hat, 0, 0)
+    s.choose_verb("Pickup", hat, int(hat.cx), int(hat.cy))
+    run_for(world, 40)
+    assert s.items_held("Fancy_Hat") == 1
+    near(world, s, lady, 36, 0)
+    assert talk_to(world, s, lady)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("HatQuest") == "2" and s.items_held("Fancy_Hat") == 0
+    leave(world, s)
+
+
+def deep_floor_walk(m, start):
+    """The floor cells reachable from start (tile x, y), not through walls."""
+    seen, todo = {start}, [start]
+    while todo:
+        x, y = todo.pop()
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if (nx, ny) not in seen and m.inside(nx, ny) and m.tile[m.cell(nx, ny)] in (
+                    "Flagstone001", "Cave_Floor001", "Cave_Floor002"):
+                seen.add((nx, ny))
+                todo.append((nx, ny))
+    return seen
+
+
+def test_the_shifting_deep_is_made_anew_and_every_way_down_can_be_reached(world):
+    from dsengine.deep import Deep
+    for seed in (1, 2, 3, 42, 777):
+        world.deep.make(seed)
+        for fl in world.deep.floors:
+            m = world.maps[fl["map"]]
+            up = (fl["up"][0] // 32 + 1, (fl["up"][1] + 8) // 32 + 1)
+            reach = deep_floor_walk(m, up)
+            goal = next(e for e in world.ents if e.map == m.name and e.name in ("Deep_Stairs_Down", "Deep_Heart"))
+            gx, gy = int((goal.x - m.ox) // 32) + 1, int((goal.y - m.oy) // 32) + 1
+            assert any(abs(gx - x) + abs(gy - y) <= 1 for x, y in reach), (seed, m.name)
+    a = world.deep.seed
+    world.deep.make(99)
+    assert world.deep.seed != a and len(world.deep.floors) == 3
+
+
+def test_the_deeps_chests_traps_heart_and_shifting(world, monkeypatch):
+    import dsengine.deep as D
+    world.deep.make(4242)
+    mouth = next(e for e in world.ents if e.name == "Deep_Entrance")
+    s = join(world, "Delver2", mouth.map, 300, 300)
+    s.connected = True
+    s.god_mode = False
+    near(world, s, mouth, 0, 36)
+    s.choose_verb("Enter", mouth, int(mouth.cx), int(mouth.cy))
+    run_for(world, 10)
+    f1 = world.deep.floors[0]["map"]
+    assert s.cur_map.name == f1
+    monkeypatch.setattr(D.random, "uniform", lambda a, b: 99.0)     # (no mimics; every loot roll fails but gold's)
+    chest = next(e for e in world.ents if e.map == f1 and e.name == "Deep_Chest")
+    near(world, s, chest, 0, 30)
+    gold = s.items_held("Gold_Coin(s)")
+    s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
+    run_for(world, 5)
+    assert s.items_held("Gold_Coin(s)") > gold                      # (gold always: 100 in 100)
+    got = s.items_held("Gold_Coin(s)")
+    s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
+    run_for(world, 5)
+    assert s.items_held("Gold_Coin(s)") == got                      # (once a shift)
+    m = s.cur_map
+    hp = s.player.hp
+    s.deep_trap("Darts", m, 5, 5)
+    assert s.player.hp < hp and m.tile[m.cell(5, 5)] == "Trap_Sprung001"
+    s.deep_trap("Pit", m, 6, 5)
+    run_for(world, 5)
+    assert s.cur_map.name == world.deep.floors[1]["map"]          # (fell a floor)
+    world.deep.next_shift = world.now - 1
+    seed = world.deep.seed
+    world.deep.tick()
+    assert world.deep.seed == seed                                  # (someone's inside: it waits)
+    leave(world, s)
+    world.deep.tick()
+    assert world.deep.seed != seed                                  # (empty: it shifts)
+    s2 = join(world, "Delver3", mouth.map, 300, 300)
+    s2.update_attribute("DeepLoot", "=%d:x" % seed)
+    assert s2.deep_had() == set()                                   # (a new shift: everything to find again)
+    leave(world, s2)

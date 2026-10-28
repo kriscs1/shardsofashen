@@ -628,6 +628,12 @@ egion_tiles.py, with the same Walkable.Data).
     again `.Per.Level`, going for the killer, fading after `Mob.Lasts` seconds if nobody fights it; killed, it
     leaves `Mob.Count` remnants and never rises again. A map's Living_Remnant takes the option `Level=` (as strong
     as that) and stays.
+* data/Deep.ini [Deep] (the Shifting Deep, dsengine/deep.py): `Floors`, `Shift.Minutes`; each floor's `Rooms`,
+  `Chests`, `Secrets`, `Traps`, `Monsters` (lo-hi); `Level.Base` and `Level.Per.Floor` (its remnants' level);
+  `Mimic.Chance` (in 100); `Loot`, `Secret.Loot`, `Heart.Loot` (item,lo-hi,chance in 100 each) and `Heart.Shards`.
+* Tricks (dsengine/tricks.py): Spells.ini `Effect=Invisible` (a potion: `Duration` seconds no monster sees you) and
+  `Effect=Swap` (a spell cast at a creature or a person whose Entities.ini has `Swap=1`: you trade bodies for
+  `Duration` seconds). Status effects that drain a skill: `On.Hit=Weaken`, `Daze`, `Frailty` (<chance %>).
   Spells.ini `Cost` (Shards a cast) and `Cooldown` (seconds; saved, so logging off doesn't cut it short); a potion's
   `Shards=` gives that many. Digging.ini `[Digging]` `Shards.Chance`/`Shards`,
   `Shards.Underground.Chance`/`Shards.Underground`, `Cache.Chance`/`Cache`; a `[Finds.X]` may say its own

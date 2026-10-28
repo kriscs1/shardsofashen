@@ -611,10 +611,13 @@ function drawSkillsTab(ctx) {
     if (!skillShown(i + 1)) return;
     k++;
     const lv = levelOfXp(me.xp[i]);
-    // (a potion or spell boosting it: its level shows "+N", green, while it lasts)
+    const now = (me.skill_now || [])[i] ?? lv;
+    // (drained or boosted for a while: as it is now out of its usual level, 18/20 red or 23/20 green; a potion
+    //  or spell boosting your blows: "+N", green)
     const boost = (me.boosts || {})[{ Strength: "attack", Defence: "defence", Magic: "magic" }[name]] || 0;
-    skillTile(ctx, k, configRead("Skills", "Icon." + name, "").trim(), boost ? `${lv}+${boost}` : String(lv),
-      boost ? [120, 235, 120] : lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT, levelProgress(me.xp[i]));
+    const text = now !== lv ? `${now}/${lv}` : boost ? `${lv}+${boost}` : String(lv);
+    const colour = now < lv ? [240, 110, 100] : now > lv || boost ? [120, 235, 120] : lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT;
+    skillTile(ctx, k, configRead("Skills", "Icon." + name, "").trim(), text, colour, levelProgress(me.xp[i]));
   });
 }
 
@@ -1446,6 +1449,11 @@ const DEBUFFS = {
   Burn: { title: "Burning", col: [255, 128, 30] },
   Bleed: { title: "Bleeding", col: [210, 30, 30] },
   Chill: { title: "Chilled", col: [120, 196, 255] },
+  Weaken: { title: "Weakened", col: [200, 150, 90] },               // (drains: a skill lower for a while)
+  Daze: { title: "Dazed", col: [180, 130, 255] },
+  Frailty: { title: "Frail", col: [170, 170, 180] },
+  Drained: { title: "Drained", col: [240, 110, 100] },              // (a script's Boost.Skill down)
+  Boosted: { title: "Boosted", col: [120, 235, 120] },              // (... and up)
 };
 const EFFECT_BOX = 40, EFFECT_GAP = 6;
 
@@ -1459,7 +1467,14 @@ function debuffIcon(ctx, name, cx, cy) {
   const col = DEBUFFS[name].col, c = `rgb(${col})`;
   ctx.save();
   ctx.fillStyle = c; ctx.strokeStyle = c; ctx.lineWidth = 2;
-  if (name === "Chill") {
+  if (DEBUFFS[name].title.match(/Weakened|Dazed|Frail|Drained|Boosted/)) {   // (an arrow: down, or up)
+    const up = name === "Boosted" ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, cy - 10 * up); ctx.lineTo(cx + 4, cy - 10 * up); ctx.lineTo(cx + 4, cy + 1 * up);
+    ctx.lineTo(cx + 9, cy + 1 * up); ctx.lineTo(cx, cy + 11 * up); ctx.lineTo(cx - 9, cy + 1 * up);
+    ctx.lineTo(cx - 4, cy + 1 * up); ctx.closePath();
+    ctx.fill();
+  } else if (name === "Chill") {
     for (let i = 0; i < 3; i++) {
       const a = i * Math.PI / 3;
       ctx.beginPath();
@@ -1510,6 +1525,19 @@ export function drawBoosts(ctx, now, mx, my) {
     const left = ms - since;
     if (left <= 0 || !DEBUFFS[name]) continue;
     shown.push(["debuff", name, left, [`#${DEBUFFS[name].title}`, "!" + ((me.status_info || {})[name] || "")]]);
+  }
+  if (me.invisible_left && me.invisible_left - since > 0) {           // (tricks.py: unseen, and in another body)
+    shown.push(["buff", "Invisibility_Potion", me.invisible_left - since, ["#Invisible", "+No monster sees you (strike or cast and it's over)"]]);
+  }
+  if (me.swap && me.swap.left - since > 0) {
+    shown.push(["buff", me.swap.form + "2a", me.swap.left - since, [`#A ${pretty(me.swap.form).toLowerCase()} for now`, "+You snap back into your own body when it runs out"]]);
+  }
+  for (const [skill, b] of Object.entries(me.skill_boosts || {})) {   // (a script's Boost.Skill: up or down)
+    const left = b.ms - since;
+    if (left <= 0) continue;
+    const key = b.n < 0 ? "Drained" : "Magic_Burst";
+    shown.push([b.n < 0 ? "debuff" : "buff", key, left, [`#${pretty(skill)} ${b.n > 0 ? "+" : ""}${b.n}`,
+      (b.n < 0 ? "!" : "+") + `${pretty(skill)} ${b.n > 0 ? "up" : "down"} for a while`]]);
   }
   if (!shown.length) return;
   // right to left from the top right corner of the view: what hurts you first (nearest the corner), then the buffs
@@ -1666,6 +1694,10 @@ export function skillInfo(i, long) {
   const xp = S.me.xp[i - 1];
   const level = levelOfXp(xp);
   const pts = (x) => Math.floor(x * 100 + 1e-6).toLocaleString("en");
+  const now = (S.me.skill_now || [])[i - 1] ?? level;
+  if (long && now !== level) {
+    return `${pretty(name)}: ${now} just now (usually ${level}): ${now < level ? "drained" : "boosted"} for a while.`;
+  }
   if (long) {
     if (level >= maxLevel()) return `You have the highest ${pretty(name)} level possible (${maxLevel()})!`;
     return `${pretty(name)}: ${pts(xp)} xp / ${pts(level + 1)} xp to level ${level + 1}.`;

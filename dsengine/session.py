@@ -28,6 +28,8 @@ from .containers import ChestMixin
 from .shards import ShardMixin
 from .remnants import RemnantMixin
 from .ownspell import OwnSpellMixin
+from .tricks import TrickMixin
+from .deep import DeepMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -55,7 +57,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin):
+              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -98,6 +100,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.look = None                    # their colours (skin, hair, shirt, legs), or None
         self.grave_ent = None
         self.status = {}
+        self.skill_boosts = {}                  # SKILL: {n, until, skill}: a script's Boost.Skill, for a while
+        self.swap = None                        # in another body for a while (tricks.py)
+        self.invisible_until = 0                # unseen till then (tricks.py)
         self.cooldowns = {}                 # spell -> when it's ready again (ms)
         self.spells_known = {}              # spell -> the rank they've learnt it to (scrolls), for good
         self.own_spell = None               # the spell they wrote at the Spellwright's Lectern (ownspell.py)
@@ -473,14 +478,17 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def save_state(self):
         d = self.data
         p = self.player
-        m = self.cur_map or self.w.map_at(p.z, p.fx, p.fy)
+        if self.swap and self.swap["npc"] is not None and self.swap["npc"].alive:
+            p = self.swap["npc"]                        # (in another body: saved where your own one is)
+        m = (self.cur_map if p is self.player else None) or self.w.map_at(p.z, p.fx, p.fy)
         st = {
             "map": m.name if m else d.start_map,
-            "x": int(self.stand_x() - m.ox) if m else d.start_x, "y": int(self.stand_y() - m.oy) if m else d.start_y,
+            "x": int((self.stand_x() if p is self.player else p.x) - m.ox) if m else d.start_x,
+            "y": int((self.stand_y() if p is self.player else p.y) - m.oy) if m else d.start_y,
             "hp": p.hp, "direction": max(1, int(p.direction)),
             "spells": dict(self.spells_known), "shards": self.shard_balance, "own_spell": self.own_spell,
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
-            "sprite": self.player_sprite_base,
+            "sprite": self.swap["body"] if self.swap else self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
             "skills_of": d.skill_max_level,
             "inventory": [[e.name, e.quantity, e.wear] for e in self.inv],
@@ -532,6 +540,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
 
     def leave_world(self):
         """Gone: their own things go with them, NPCs fighting them give up."""
+        if self.swap:
+            self.end_swap("")                           # (the creature gets its own body back)
         self.ready = False
         for e in list(self.w.ents):
             if e.owner is self:
@@ -757,7 +767,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.player_entry_x, self.player_entry_y = p.x, p.y
         self.player_tile = (m.name, tx, ty)
         trig = m.trigger[m.cell(tx, ty)]
-        if trig:
+        if trig.startswith("Deep_Trap_"):                  # (the Shifting Deep's traps: deep.py)
+            self.deep_trap(trig[len("Deep_Trap_"):], m, tx, ty)
+        elif trig:
             self.start_script(trig, False)
 
     def teleport(self, map_name, x, y):
@@ -1024,6 +1036,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                            for k in ("attack", "defence", "magic", "sight") if getattr(self, "spell_%s_until" % k)},
             "boost_from": dict(self.boost_from),
             "status_left": {k: max(0, v["until"] - self.now) for k, v in self.status.items()},
+            "skill_now": self.skills_now(), **self.tricks_state(),
+            "skill_boosts": {b["skill"]: {"n": b["n"], "ms": max(0, b["until"] - self.now)}
+                             for b in self.skill_boosts.values()},
             "status_info": {k: self.status_words(k) for k in self.status},
             "grave": ({"map": self.grave["map"], "left": int(self.grave["left"]), "x": int(self.grave["x"]),
                        "y": int(self.grave["y"])} if self.grave else None),

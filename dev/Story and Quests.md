@@ -200,6 +200,31 @@ must be fed, why beasts that swallow Shards carry them, and why the mountain beh
 all. Reward: a scroll of Frost Nova and Magic experience. His answers about the Shards are there to ask any time,
 and why a potion isn't a spell: Shards reach out of you, herbs work within; Shards can't mend a body.
 
+**The Invisible Apprentice**: *after chapter 4*
+Pip, apprentice to the Wizards' Court, drank his own invisibility potion three days ago and keeps getting sat on.
+Bring him an egg, a feather and two cave mushrooms for the cure. It cures everything but his spectacles. Reward: two
+Invisibility Potions (and the recipe, at the alchemy table), a scroll of **Swap** ("I spent last Tuesday as a cat"),
+10 Shards.
+
+**Lady Pettigrew's Hat**: *after The Invisible Apprentice*
+On Goose Green, east of Southport, the geese have Lady Pettigrew's hat on their nest, and they are not reasonable
+geese. Go unseen (an Invisibility Potion), or swap bodies with her goose Gerald and walk in as one of them. Reward: 60
+gold, 12 Shards. Gerald does not apologise.
+
+**Granny Bramble's Practice Hex**: *after The Invisible Apprentice*
+A hedge witch at Fenwick's market practises a hex on you: your Strength drains to nothing for ten minutes. Then she
+wants the four market rats seen to. Your sword arm's no use: a spell, a potion, or someone else's body. Reward:
+Antidotes, 15 Shards, Magic experience.
+
+**The Shifting Deep**: an old Shard mine by the road south of Moorcross, its tunnels never where they were. Three
+floors of rooms and tunnels, monsters stronger the deeper you go, chests (once each, a shift; sometimes one bites),
+traps hidden underfoot (darts, gas, a weakness rune, a bell that brings remnants, a pit that drops you a floor), a
+secret room behind a cracked wall on each floor (Search it), and at the bottom, past its Warden, the Deep's Heart:
+Shards. Every hour, once nobody's down there, it shifts, and it's all new.
+
+**Bert's tower's secrets**: a cat flap low in the wall (only a cat fits: Bert's biscuit tin, 25 Shards and his pie)
+and a big red button that shouldn't be pressed (a chicken, a bucket of water, confetti, or a goose).
+
 **The Spellwright**: *after The Shard Scholar*
 How does a Shard know what shape a spell is? Bring Quill the core of a risen Shard Remnant, then absorb twenty more
 remnants and tell him how it felt. He teaches you to write a spell of your own at the **Spellwright's Lectern** by the

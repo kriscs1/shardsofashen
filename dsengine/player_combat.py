@@ -10,6 +10,13 @@ EFFECTS = {
     "Burn": dict(ms=5000, every=1000, dmg=(1, 2), start="You're on fire!", end="The flames go out."),
     "Bleed": dict(ms=7000, every=1500, dmg=(1, 1), start="You're bleeding!", end="The bleeding stops."),
     "Chill": dict(ms=7000, every=0, dmg=(0, 0), start="You're chilled to the bone: slowed!", end="You warm up again."),
+    # (drains: a skill lower for a while - the Stats tab shows it, 18/20)
+    "Weaken": dict(ms=30000, every=0, dmg=(0, 0), skill=("Strength", -3), start="You feel weak: your Strength drains!",
+                   end="Your strength comes back."),
+    "Daze": dict(ms=25000, every=0, dmg=(0, 0), skill=("Magic", -3), start="Your head spins: your Magic drains!",
+                 end="Your head clears."),
+    "Frailty": dict(ms=30000, every=0, dmg=(0, 0), skill=("Defence", -3), start="Your guard falters: your Defence "
+                                                                             "drains!", end="Your guard steadies."),
 }
 CHILL_MOVE, CHILL_ATTACK = 0.6, 1.4
 
@@ -30,10 +37,48 @@ class CombatMixin:
         return min(self.data.skill_max_level, max(1, int(xp)))
 
     def skill_level(self, skill):
+        """A skill as it is now: its usual level, and whatever drains or boosts it for a while (what anything asking
+        for a level goes by)."""
         if skill.upper() in ("HITPOINTS", "HITS", "HP"):
             return self.player.hp
         i = self.skill_index(skill)
+        if not i:
+            return 0
+        return max(1, self.level_of_xp(self.skill_xp[i]) + self.skill_change(self.data.skill_name[i]))
+
+    def base_skill_level(self, skill):
+        """A skill's usual level, drains and boosts aside (hitpoints and your level go by it)."""
+        i = self.skill_index(skill)
         return self.level_of_xp(self.skill_xp[i]) if i else 0
+
+    def skill_change(self, skill):
+        """How far drains (status effects) and boosts (a script's Boost.Skill) move a skill just now."""
+        k = skill.upper()
+        n = sum(EFFECTS[s]["skill"][1] for s in self.status if "skill" in EFFECTS[s] and
+                EFFECTS[s]["skill"][0].upper() == k)
+        b = self.skill_boosts.get(k)
+        return n + (b["n"] if b and b["until"] > self.now else 0)
+
+    def boost_skill(self, skill, n, seconds):
+        """A skill up (or down) by n for a while (Boost.Skill): the last one for a skill replaces the one before."""
+        i = self.skill_index(skill)
+        if not i:
+            return
+        name = self.data.skill_name[i]
+        self.skill_boosts[name.upper()] = {"n": int(n), "until": self.now + int(seconds * 1000), "skill": name}
+        self.dirty_me = True
+
+    def skill_boosts_tick(self):
+        for k, b in list(self.skill_boosts.items()):
+            if self.now >= b["until"]:
+                del self.skill_boosts[k]
+                self.display_message("Your %s is back to normal." % pretty(b["skill"]), "INFO")
+                self.dirty_me = True
+
+    def skills_now(self):
+        """Every skill as it is now (the Stats tab shows it beside its usual level, when they differ)."""
+        return [self.skill_level(self.data.skill_name[i]) if self.data.skill_name[i].upper() != "HITPOINTS"
+                else self.level_of_xp(self.skill_xp[i]) for i in range(1, self.data.total_skills + 1)]
 
     def skill_xp_of(self, skill):
         i = self.skill_index(skill)
@@ -46,7 +91,7 @@ class CombatMixin:
 
     def update_max_hp(self):
         d = self.data
-        levels = self.skill_level("Strength") + self.skill_level("Defence")
+        levels = self.base_skill_level("Strength") + self.base_skill_level("Defence")
         self.player_max_hp = max(1, int(d.hp_base + levels * d.hp_per_level))
         self.player.max_hp = self.player_max_hp
 
@@ -112,7 +157,7 @@ class CombatMixin:
     def player_level(self):
         names = [s.strip() for s in self.data.config_read("Gameplay", "Level.Skills", "Strength,Defence,Magic").split(",")
                  if s.strip()]
-        levels = sorted((self.skill_level(s) for s in names if self.skill_index(s) > 0), reverse=True)
+        levels = sorted((self.base_skill_level(s) for s in names if self.skill_index(s) > 0), reverse=True)
         best = max(1, int(val(self.data.config_read("Gameplay", "Level.Best", "2")) or 2))
         top = levels[:best]
         return max(1, int(sum(top) / len(top))) if top else 1
@@ -328,6 +373,7 @@ class CombatMixin:
         return rng
 
     def damage_npc(self, e, damage):
+        self.break_invisibility()                           # (a blow struck: seen)
         self.w.waves.hit(e, self)
         hp = e.hp - damage
         slayer = self.entity_ini(e.name, "Slain.By", "")         # (only one weapon gives it its death blow)
@@ -575,6 +621,8 @@ class CombatMixin:
         attack = self.spell_ini(spell, "Effect", "Bolt").upper() in ("BOLT", "AREA")
         p = self.player
         potion = self.spell_is_potion(spell)
+        if not potion:
+            self.break_invisibility()                       # (a spell cast: seen)
         if not potion:
             self.spell_start_cooldown(spell)
             self.player_last_cast = self.now
@@ -835,6 +883,38 @@ class CombatMixin:
             self.display_message("The world spins around you...", "SUCCESS")
             self.player_attack_target = None
             self.teleport(m, x, y)
+        elif effect == "INVISIBLE":                          # (tricks.py)
+            self.spell_begin(scroll, spell)
+            if self.spell_fizzled:
+                return
+            self.go_invisible(max(1, val(self.spell_ini(spell, "Duration", "45"))),
+                              "You drink the %s" % pretty(scroll) if potion else "You cast %s" % pretty(spell))
+        elif effect == "SWAP":
+            if target is None and item is None:             # (from the spellbook or the hotbar: the nearest one)
+                rng = val(self.spell_ini(spell, "Range", "160"))
+                near = [e for e in w.ents if e.z == p.z and self.swap_ok(e) and not e.hostile and
+                        w.visible_to(e, self) and self.player_distance_to(e) <= rng]
+                target = min(near, key=self.player_distance_to) if near else None
+                if target is None:
+                    self.display_message("There's no creature in reach to swap bodies with.", "FAIL")
+                    return
+            if target is None:
+                self.item_in_use = item
+                self.emit({"t": "use", "uid": item.uid})
+                self.display_message("Choose who to swap bodies with: click them. (Right-click or Esc: put it "
+                                     "away.)", "INFO")
+                return
+            if self.swap or not self.swap_ok(target):
+                self.display_message("You can't swap bodies with %s." % ("anyone just now" if self.swap else
+                                                                        "that"), "FAIL")
+                return
+            if self.player_distance_to(target) > val(self.spell_ini(spell, "Range", "160")) + 8:
+                self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
+                return
+            self.spell_begin(scroll, spell)
+            if self.spell_fizzled:
+                return
+            self.swap_with(target, max(1, val(self.spell_ini(spell, "Duration", "30"))), "You cast %s" % name)
         elif effect == "HOME":
             if not self.home_spell_ok():
                 return
@@ -893,6 +973,7 @@ class CombatMixin:
         for name in list(self.status):
             self.status_end(name, quiet=True)
         self.status = {}
+        self.skill_boosts = {}                  # (boosts and drains end on death, as buffs do)
 
     def status_start(self, name):
         fx = EFFECTS.get(name)
@@ -913,6 +994,8 @@ class CombatMixin:
             return ""
         if name == "Chill":
             return "Slowed: you move and strike slower"
+        if "skill" in fx:
+            return "%s %d" % (fx["skill"][0], fx["skill"][1])
         lo, hi = fx["dmg"]
         every = fx["every"] / 1000.0
         return "%s damage every %s" % (lo if lo == hi else "%d-%d" % (lo, hi),
@@ -929,6 +1012,9 @@ class CombatMixin:
         self.dirty_me = True
 
     def status_tick(self):
+        self.tricks_tick()
+        if self.skill_boosts:
+            self.skill_boosts_tick()
         if not self.status:
             return
         now = self.now

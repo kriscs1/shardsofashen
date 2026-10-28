@@ -27,3 +27,5 @@ MapItem	Full_Vial	672	256	1
 Id	Court_Wizard	20	8
 Id	Wizard_Tower_Portal	21	9
 StaticObject	Sign_Magic	608	176
+StaticObject	Big_Red_Button	576	160	Id=Berts_Button
+StaticObject	Cat_Flap	544	224	Id=Berts_Cat_Flap

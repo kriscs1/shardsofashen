@@ -1032,7 +1032,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Rank", "Level",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Rank", "Level", "Swap",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
@@ -1201,6 +1201,36 @@ SHARDS_KEYS = {
                  "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.Magic.XP"},
 }
 UPGRADE_RANGES = {"Damage", "Heal"}             # (min-max; Slow is percent,seconds; Scroll an item; the rest numbers)
+
+
+DEEP_KEYS = {"Floors", "Shift.Minutes", "Rooms", "Chests", "Secrets", "Traps", "Monsters", "Level.Base",
+             "Level.Per.Floor", "Mimic.Chance", "Loot", "Secret.Loot", "Heart.Shards", "Heart.Loot"}
+
+
+def check_deep():
+    """data\Deep.ini (the Shifting Deep: dsengine/deep.py): known keys, numbers or lo-hi, loot of real items."""
+    path = p("data", "Deep.ini")
+    if not os.path.exists(path):
+        err(rel(path), "missing (dev\migrate\build_deep.py writes it)")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    where = rel(path) + " [Deep]"
+    for k, v in (ini.section("Deep") or [None, []])[1]:
+        if k is None:
+            continue
+        if k not in DEEP_KEYS:
+            err(where, "unknown key %s" % k)
+        elif k.endswith("Loot"):
+            for entry in v.split():
+                bits = entry.split(",")
+                if len(bits) != 3 or not is_num(bits[2]) or not all(is_num(x) for x in bits[1].split("-")):
+                    err(where, "%s: %r should be item,lo-hi,chance" % (k, entry))
+                elif bits[0] not in ENTITIES:
+                    err(where, "%s: no item %r" % (k, bits[0]))
+        elif not all(is_num(x) for x in v.split("-")):
+            err(where, "%s=%r is not a number (or lo-hi)" % (k, v))
 
 
 def check_shards(entities_ini):
@@ -1579,8 +1609,8 @@ def check_spells(entities_ini, skills):
         where = "%s [%s]" % (rel(path), sec)
         spells.add(sec)
         effect = (ini.get(sec, "Effect") or "Bolt").strip().upper()
-        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME", "GRASP"):
-            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport, Home or Grasp" % effect)
+        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME", "GRASP", "INVISIBLE", "SWAP"):
+            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport, Home, Grasp, Invisible or Swap" % effect)
         scroll = (ini.get(sec, "Scroll") or "").strip()
         if not scroll:
             err(where, "Scroll missing")
@@ -2061,6 +2091,7 @@ def main():
     check_quests()
     check_spells(entities_ini, skills)
     check_shards(entities_ini)
+    check_deep()
     check_digging()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)

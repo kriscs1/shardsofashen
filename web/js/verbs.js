@@ -270,7 +270,8 @@ export function skillLevel(skill) {
   const i = names.findIndex((n) => n.toUpperCase() === String(skill).toUpperCase());
   if (String(skill).toUpperCase() === "HITPOINTS") return S.me.hp;
   if (i < 0) return 0;
-  return Math.min(+configMax(), Math.max(1, Math.floor(S.me.xp[i])));
+  const now = (S.me.skill_now || [])[i];                  // (drained or boosted for a while: as it is now)
+  return now ?? Math.min(+configMax(), Math.max(1, Math.floor(S.me.xp[i])));
 }
 
 function configMax() {

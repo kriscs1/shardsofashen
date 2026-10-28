@@ -319,6 +319,7 @@ class ScriptMixin:
             ("$Cursor.Y", lbstr(int(self.script_cursor_y - oy))),
             ("$Time", lbstr(seconds_today())),
             ("$Clock", lbstr(int(time.time()))),
+            ("$Player.Form", self.player_form() or "-"),
         ]
         if "$Player." in text:                      # (a woman's words for her: daughter, girl, lady, Queen)
             f = (self.look or {}).get("body") == "f"
@@ -575,6 +576,10 @@ class ScriptMixin:
             self.block_player()
         elif c == "Update.Skill":
             self.update_skill(arg[1], arg[2])
+        elif c == "Turn.Into":                       # (a form for a while, no one to swap with: tricks.py)
+            self.turn_into(trim(arg[1]), val(arg[2]) or 15, arg[3] if len(arg) > 3 else "")
+        elif c == "Boost.Skill":                     # (for a while: player_combat.boost_skill)
+            self.boost_skill(arg[1], int(val(arg[2])), val(arg[3]))
         elif c == "Update.Attribute":
             cur = self.get_attribute(arg[1])
             new = arg[2][1:] if arg[2][:1] == "=" else lbstr(apply_change(val(cur), arg[2]))

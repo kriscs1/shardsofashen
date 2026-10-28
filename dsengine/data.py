@@ -48,6 +48,10 @@ class GameData:
     def spell_ini(self, spell, key, default):
         return ini.read(spell, key, default, self.data_file("Spells.ini"))
 
+    def deep_ini(self, key, default):
+        """Deep.ini [Deep]: the Shifting Deep's numbers (deep.py)."""
+        return ini.read("Deep", key, default, self.data_file("Deep.ini"))
+
     def shards_ini(self, section, key, default):
         """Shards.ini: every Shard number (costs, dismantling, spells' upgrades, remnants)."""
         return ini.read(section, key, default, self.data_file("Shards.ini"))

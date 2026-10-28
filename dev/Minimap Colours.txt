@@ -875,3 +875,5 @@ Realm_Void001	14 6 28
 Realm_Ground001	58 44 88
 Realm_Ground002	58 44 88
 Realm_Ground003	58 44 88
+Cave_Wall_Cracked001	70 64 60
+Trap_Sprung001	120 110 100

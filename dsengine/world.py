@@ -19,6 +19,7 @@ from .maps import MapData
 from .homes import Homes
 from .farming import Farms
 from .remnants import fade_remnants, make_remnant, LIVING
+from .deep import Deep
 from .market import Market
 from .waves import Waves
 from .tavern import Tavern
@@ -62,6 +63,7 @@ class World(NPCMixin):
         self.npcs_by_map = {}           # (mx, my, mz) -> its live NPCs, this tick (update_npcs)
         self.tile_listeners = []        # callables (map, x, y) when a tile changes
         self.load_maps()
+        self.deep = Deep(self)                  # (the Shifting Deep: its floors made in memory, deep.py)
         self.homes = Homes(self)        # players' homesteads (their maps join self.maps as they're made)
         self.farms = Farms(self)        # what's growing in tilled soil
         self.market = Market(self)      # the marketplace: everyone's listings
@@ -1408,6 +1410,7 @@ class World(NPCMixin):
             self.last_queue_check = self.now
             self.run_action_queue()
             fade_remnants(self)
+            self.deep.tick()
         self.update_doors()
         self.update_object_hours()
         self.farms.tick()

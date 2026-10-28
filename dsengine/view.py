@@ -34,7 +34,7 @@ def entity_state(w, e, viewer):
 def player_state(s, viewer):
     p = s.player
     st = {"k": PLAYER, "n": s.player_name, "i": p.image, "x": int(p.x), "y": int(p.y), "w": p.w, "h": p.h,
-          "a": 1 if s.player_visible else 0, "hp": p.hp, "mh": s.player_max_hp,
+          "a": 1 if (s.player_visible or s.swap or s.invisible()) else 0, "hp": p.hp, "mh": s.player_max_hp,
           "b": 1 if (p.hp < s.player_max_hp or 0 <= s.now - s.player_last_combat < 5000) else 0,
           "worn": s.worn_items()}
     if s.look:
@@ -43,6 +43,8 @@ def player_state(s, viewer):
         st["pvp"] = 1
     if s.sleeping():
         st["zz"] = 1
+    if s.invisible():
+        st["gh"] = 1                                    # (a shimmer: faint to you, all but nothing to others)
     return st
 
 
