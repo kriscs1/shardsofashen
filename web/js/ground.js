@@ -203,6 +203,7 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
     if (level > b && k >= 4) {
       if (blendLevelAt(z, gx + ddx, gy)[0] >= level || blendLevelAt(z, gx, gy + ddy)[0] >= level) level = 0;
     }
+    if (level > b && tex && slantedToward(z, gx + ddx, gy + ddy, side)) level = 0;   // (its corner's cut away)
     if (level > b && tex) {
       const variant = 1 + (Math.abs((gx + 1) * 7 + (gy + 1) * 13) % 2);
       found.push([level, found.length, tex, "Blend_" + side + variant]);
@@ -214,6 +215,97 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
     if (s) ctx.drawImage(s, dx, dy);
     else ch.missing = true;
   }
+}
+
+// ----- mountains' corners cut on the slant: no right angles where a range turns
+const CORNERS = [["N", "E", 0, -1, 1, 0], ["E", "S", 1, 0, 0, 1], ["S", "W", 0, 1, -1, 0], ["W", "N", -1, 0, 0, -1]];
+
+function isRange(name) {
+  // A mountain: painted from a range's texture (build_terrain.py), or the cave mouth set in one
+  if (!name) return false;
+  const i = info(name);
+  return (i.texture || "").startsWith("Range_") || name.startsWith("Cave_Mouth");
+}
+
+function cornerPath(ctx, k, dx, dy, gx, gy) {
+  // The triangle at corner k (0 NE, 1 SE, 2 SW, 3 NW) of a cell, its long side a little rough
+  const w = G.tw, h = G.th;
+  const c = [[w, 0], [w, h], [0, h], [0, 0]][k];          // (the corner itself)
+  const a = [[0, 0], [w, 0], [w, h], [0, h]][k], b = [[w, h], [0, h], [0, 0], [w, 0]][k];
+  ctx.beginPath();
+  ctx.moveTo(dx + c[0], dy + c[1]);
+  ctx.lineTo(dx + a[0], dy + a[1]);
+  for (let i = 1; i < 6; i++) {
+    const t = i / 6, hsh = ((gx * 31 + gy * 17 + k * 7 + i * 13) % 5) - 2;     // (the same each time it's painted)
+    const ox = (k === 0 || k === 2 ? 1 : -1) * hsh * 0.7, oy = hsh * 0.7;
+    ctx.lineTo(dx + a[0] + (b[0] - a[0]) * t + ox, dy + a[1] + (b[1] - a[1]) * t + oy);
+  }
+  ctx.lineTo(dx + b[0], dy + b[1]);
+  ctx.closePath();
+}
+
+function paintGroundIn(ctx, name, gx, gy, dx, dy, ch) {
+  // name's ground drawn where the path is (a texture: its part for this cell, so it carries on unbroken)
+  const i = info(name);
+  ctx.save();
+  ctx.clip();
+  if (i.texture) {
+    const t = texture(i.texture);
+    if (t) drawTextureCell(ctx, t, ((gx * G.tw) % t.width + t.width) % t.width, ((gy * G.th) % t.height + t.height) % t.height, dx, dy);
+    else ch.missing = true;
+  } else {
+    const p = img(name, ch);
+    if (p) ctx.drawImage(p, dx, dy);
+  }
+  ctx.restore();
+}
+
+function cutsOf(z, gx, gy, at) {
+  // A mountain's corners cut on the slant: where it has open ground on two touching sides and between them
+  const out = [];
+  CORNERS.forEach(([, , ax, ay, bx, by], k) => {
+    const a = at(gx + ax, gy + ay), b = at(gx + bx, gy + by), d = at(gx + ax + bx, gy + ay + by);
+    if (a && b && !isRange(a) && !isRange(b) && !isRange(d)) out.push([k, a, b]);
+  });
+  return out;
+}
+
+// (a mountain beside a cell, on its side: the corners of the mountain that touch the cell)
+const TOUCHING = { N: [1, 2], E: [2, 3], S: [0, 3], W: [0, 1], NE: [2], SE: [3], SW: [0], NW: [1] };
+
+function slantedToward(z, nx, ny, side) {
+  // Is the mountain at nx, ny cut away where it meets the cell on its side? (then it doesn't spill its edge there)
+  const at = (x, y) => { const c = cellAtTile(z, x, y); return c ? c[0] : ""; };
+  const tile = at(nx, ny);
+  if (!isRange(tile) || tile.startsWith("Cave_Mouth")) return false;
+  const near = TOUCHING[side];
+  return cutsOf(z, nx, ny, at).some(([k]) => near.includes(k));
+}
+
+function paintSlants(ctx, z, gx, gy, tile, dx, dy, ch) {
+  // Outer corners of a range cut away (a staircase edge becomes a slope); a bay's inner corner, where the
+  // mountains either side stay whole, filled with rock (so it isn't a right angle either)
+  if (tile.startsWith("Cave_Mouth")) return;                 // (its own picture: left whole)
+  const at = (x, y) => { const c = cellAtTile(z, x, y); return c ? c[0] : ""; };
+  if (isRange(tile)) {
+    for (const [k, a, b] of cutsOf(z, gx, gy, at)) {
+      const ground = info(a).kind || isDecorTile(a) ? b : a;
+      if (info(ground).kind || isDecorTile(ground)) continue; // (not water, or anything that moves)
+      cornerPath(ctx, k, dx, dy, gx, gy);
+      paintGroundIn(ctx, ground, gx, gy, dx, dy, ch);
+    }
+    return;
+  }
+  if (info(tile).kind || !(info(tile).blend > 0)) return;     // (open ground only: not water, floors or walls)
+  CORNERS.forEach(([, , ax, ay, bx, by], k) => {
+    const a = at(gx + ax, gy + ay), b = at(gx + bx, gy + by), d = at(gx + ax + bx, gy + ay + by);
+    if (!(isRange(a) && isRange(b) && isRange(d))) return;
+    if (cutsOf(z, gx + ax, gy + ay, at).length || cutsOf(z, gx + bx, gy + by, at).length) return;
+    const rock = [a, b, d].find((n) => !n.startsWith("Cave_Mouth"));
+    if (!rock) return;
+    cornerPath(ctx, k, dx, dy, gx, gy);
+    paintGroundIn(ctx, rock, gx, gy, dx, dy, ch);
+  });
 }
 
 function img(name, ch) {
@@ -378,6 +470,7 @@ function paintCell(ch, ci, now) {
     else { ctx.fillStyle = "#000"; ctx.fillRect(dx, dy, G.tw, G.th); }
   }
   if (ti.blend > 0) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch);
+  paintSlants(ctx, m.mz, gx, gy, tile, dx, dy, ch);
   const roofShown = !!roof && !(ch.hidden && group === ch.hidden);
   const sea = decor && ti.kind === "water" && !info(decor).wade;   // (a rock: the foam goes round it)
   if (sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);

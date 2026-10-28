@@ -246,6 +246,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   big seamless texture (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
   picture repeated every tile; a range is peaks of all sizes overlapping. Trees, bushes, rocks, grass and flowers
   are sized and nudged per tile (`ground.js` paintDecor), always inside their own cell.
+  A range's edge has no right angles: its corners are cut on the slant as the ground's painted (`ground.js`
+  paintSlants), and a bay's inner corner filled with rock.
 - Nothing shows as a placeholder ("?") while its picture loads: draw nothing till it has.
 - **Drawing stays cheap**: no canvas `filter` (blur...) or high-quality scaling of the whole view every frame. Work it
   out once when it changes (the fog is blurred on a small picture, then stretched).
