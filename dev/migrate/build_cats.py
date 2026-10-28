@@ -1,7 +1,7 @@
 """Cats: a grey tabby (Cat), a black cat (Black_Cat) and a ginger (Ginger_Cat) - drawn, given a meow and a purr,
 put about the towns - and Jimmy, a strawberry-blond ginger (Strawberry_Cat: no white on him), at home in the cottage where
 new characters wake; Noops (Fat_Grey_Cat: very round, dark grey, his face and legs paler) by the Isle's bank, Vincent
-(Southport's black cat) and Mo (Tuxedo_Cat: black, a white bib and white socks) by Ashford's market.
+(Northgate's black cat) and Mo (Tuxedo_Cat: black, a white bib and white socks) by Ashford's market.
 Run it again to draw and make the sounds again; the cats are only placed once.
 
   python -I "dev\\migrate\\build_cats.py"
@@ -375,7 +375,7 @@ def place():
                                -8))
         c.save()
         n += 1
-    vincent = d.place("Southport_Landing")                   # (the black cat by Southport's landing is Vincent)
+    vincent = d.place("Southport_Landing")                   # (the black cat by Northgate's landing is Vincent)
     if vincent is not None:
         m = Map(vincent.map)
         for i, ln in enumerate(m.ents):

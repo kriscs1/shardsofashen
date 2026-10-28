@@ -5,7 +5,7 @@ each settlement it has grown (an Id <Key>_Grown on its centre's map) and leaves 
 
   Large city    5 taverns, a bank, a main market square with four lanes off it (bread and pastries; butchers and
                 pies; fish; vegetables), a police station, a hospital, 10 streets of houses, gardens and parks, a
-                City Hall, a Town Hall, carts and horses between its parts. (Southport; its City Hall is Estforlan's
+                City Hall, a Town Hall, carts and horses between its parts. (Northgate; its City Hall is Ashen's
                 Parliament until Galaith opens again.)
   Medium city   5 taverns, a bank, a market square with four small lanes, a sheriff's office and jail, a hospital,
                 10 streets of houses, a City Hall, a Town Hall. (King Rupert's Keep, with its keep and bailey;
@@ -18,7 +18,7 @@ each settlement it has grown (an Id <Key>_Grown on its centre's map) and leaves 
   Village       a pub, a market square, a sheriff's office, a doctor's office in a house, 5 streets, a village
                 hall. (Oakhollow, Thornwick, Emberwatch.)
   Hamlet        a pub, 2 streets. (Wildwood and Saltmarsh, new; Moorcross on Greymoor; Dunerest.)
-A bank a town has already isn't built twice. New land: Southport's west (0,3,0 and 0,4,0) and an island east of the
+A bank a town has already isn't built twice. New land: Northgate's west (0,3,0 and 0,4,0) and an island east of the
 Royal Isle for the Wizards' Court (5,4,0 and 5,5,0, over a bridge from the palace's south lawn).
 """
 import os
@@ -168,7 +168,7 @@ def data():
 
 # ================================================================== new land
 def land_west_of_southport():
-    """0,3,0 and 0,4,0: Southport's west, on the coast (water along the west and the north, as the maps round)."""
+    """0,3,0 and 0,4,0: Northgate's west, on the coast (water along the west and the north, as the maps round)."""
     for name in ("0,3,0", "0,4,0"):
         if K.map_exists(name):
             continue
@@ -188,7 +188,7 @@ def land_west_of_southport():
                     t = "Grass001"
                 m.put(x, y, t, {})
         m.save()
-        print("Made maps\\%s.txt: Southport's west" % name)
+        print("Made maps\\%s.txt: Northgate's west" % name)
     if Map("0,2,0").tile(12, 15) == "Water001":                # (and the sea north of them, land now too)
         m = Map("0,2,0")
         for y in range(1, YT + 1):
@@ -203,7 +203,7 @@ def land_west_of_southport():
         n3.save()
     sp = Map("1,3,0")
     changed = False
-    for y in range(9, YT + 1):                               # (Southport's west shore meets the new land)
+    for y in range(9, YT + 1):                               # (Northgate's west shore meets the new land)
         for x in range(1, 5):
             t, over = sp.parts(x, y)
             if (t.startswith(("Water", "Sand_Water")) or t == "Sand001") and not over:
@@ -293,7 +293,7 @@ def main():
 
 
 def southport_carts():
-    """Southport's carts and horses between its quarters (the city grew before the carts did: added to it as it is)."""
+    """Northgate's carts and horses between its quarters (the city grew before the carts did: added to it as it is)."""
     names = ["1,3,0", "0,3,0", "0,4,0", "0,2,0", "1,4,0"]
     if K.has_id(Map(names[0]), "Southport_Cart_Stop_1"):
         return
@@ -306,7 +306,7 @@ def southport_carts():
                                 ("the north quarter", cell("0,2,0", 13, 14))])
     town.write()
     g.save()
-    print("Southport: %d cart stops%s" % (len(stops), ("; no room for: " + ", ".join(town.missed)) if town.missed
+    print("Northgate: %d cart stops%s" % (len(stops), ("; no room for: " + ", ".join(town.missed)) if town.missed
                                           else ""))
 
 

@@ -138,7 +138,7 @@ def dragonforge():
         (">Conditional", "$Variable.1=0", "@d1"),
         (">Quest.Can.Start", "DragonforgeQuest", "@wait"),
         K.say("Wyrmsmith", "You're the one who slew the dragon of Galaith? Then you'll have its scales.\\This is the "
-                           "Dragonforge: the only fire in Estforlan hot enough to work dragon scale. Bring me three, and "
+                           "Dragonforge: the only fire in Ashen hot enough to work dragon scale. Bring me three, and "
                            "I'll make you a helm of them myself, and teach you the forge.",
               ("I'll bring you three scales.", "@d0"), ("Not now.", "@end")),
         ("@d0",), ("Update.Attribute", "DragonforgeQuest", "=1"),
@@ -164,7 +164,7 @@ def dragonforge():
         ("@rack",), ("Display.Item.Rack", "GENERAL", "Wyrmsmith", "CRAFT-Dragonforge", "@end"),
         ("End",),
         ("@wait",), K.say("Wyrmsmith", "This is the Dragonforge. It's been cold a long time: there's only one dragon "
-                                       "left in Estforlan, and it sits before the walls of Galaith.", ("Goodbye.", "@end")),
+                                       "left in Ashen, and it sits before the walls of Galaith.", ("Goodbye.", "@end")),
         ("@end",), ("End",)], MAKER)
     K.write_script("Forge Wyrmsmith", [
         (">Conditional", "$Attr.DragonforgeQuest>=2", "@no"),

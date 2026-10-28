@@ -2,7 +2,7 @@
 01	>On.Map	1,2,0	10
 02	Get.Value	ATTRIBUTE	Passage	Variable.1$
 03	>Conditional	$Variable.1>=5	08
-04	Display.Conversation	Ferryman	Southport, is it? A gold coin a crossing.	Yes, take me (1 gold).	05	Not today.	16
+04	Display.Conversation	Ferryman	Northgate, is it? A gold coin a crossing.	Yes, take me (1 gold).	05	Not today.	16
 05	>Got.Item	Gold_Coin(s)	1	15
 06	Take.Item	Gold_Coin(s)	1
 07	Goto.Script	Ferry to Southport

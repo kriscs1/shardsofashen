@@ -1,4 +1,4 @@
-01	Display.Message	Cyan	Southport. Gulls wheel over the harbour.
+01	Display.Message	Cyan	Northgate. Gulls wheel over the harbour.
 02	Get.Value	ATTRIBUTE	EscortQuest	Variable.8$
 03	>Conditional	$Variable.8<2	07
 04	>Follower.Near	Granny_Wren	3000	06

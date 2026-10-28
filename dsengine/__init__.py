@@ -1,4 +1,4 @@
-"""Shards of Estforlan's game rules without the window: the shared world (world.py) and the players in it (session.py), for
+"""Shards of Ashen's game rules without the window: the shared world (world.py) and the players in it (session.py), for
 the multiplayer server (server/). The desktop game (dragonsword/) is the original these were taken from."""
 from .world import World
 from .session import Session

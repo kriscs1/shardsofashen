@@ -1,4 +1,4 @@
-"""Builds the new mainland of Estforlan (dev\\World Plan.md; dev\\migrate\\estforlan does the work): the land, Galaith
+"""Builds the new mainland of Ashen (dev\\World Plan.md; dev\\migrate\\estforlan does the work): the land, Galaith
 in its valley in the West Range, every settlement the size it's given, the quest places lifted from the old maps
 (dev\\migrate\\world_parts, made once by lift_world_parts.py) at their old tiles, the roads, the creatures; then the
 scripts and data that name its places. The Isle is left alone.

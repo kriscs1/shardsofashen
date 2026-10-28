@@ -8,10 +8,10 @@
 07	Play.Sound	Quest
 08	Display.Message	Cyan	The King comes down from his throne, and holds you, and weeps.	-
 09	Display.Conversation	King_Rupert	Mary. My Mary. She took you away so the dragon couldn't have you, and I let them call it a betrayal. Eighteen years.\My $Player.Son. My $Player.Son.	Father.	10
-10	Display.Conversation	King_Rupert	I have held this throne for a city in chains. You broke the chains. It's yours.\He lifts the crown from his head and sets it on yours.\Long live the $Player.King of Estforlan!	Long live Estforlan.	11
+10	Display.Conversation	King_Rupert	I have held this throne for a city in chains. You broke the chains. It's yours.\He lifts the crown from his head and sets it on yours.\Long live the $Player.King of Ashen!	Long live Ashen.	11
 11	Update.Attribute	KingQuest	=1
 12	Play.Sound	LevelUp
-13	Display.Message	Yellow	Quest complete: The True Heir! You are the $Player.King of Estforlan. The world is yours to explore.	Quest
+13	Display.Message	Yellow	Quest complete: The True Heir! You are the $Player.King of Ashen. The world is yours to explore.	Quest
 14	Add.Entity	384,190	Strawberry_Cat	NPC	Attitude=Good Zone=6,8,20,12 Nap=13,7 Pause=4-12 Id=Throne_Jimmy Name=Jimmy
 15	Display.Message	Cyan	A ginger cat you'd know anywhere has curled up on the throne. Jimmy, how did you get here?	-
 16	End

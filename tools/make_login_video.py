@@ -1,5 +1,5 @@
 """Films the game world for the login screen's background (web/img/login-bg.mp4): the same view as
-make_login_background.py (Southport at midday, the fog of war off, the interface left out, the camera's own
+make_login_background.py (Northgate at midday, the fog of war off, the interface left out, the camera's own
 character hidden), but moving - the sea and its foam, plants in the wind, townsfolk about their day. The film's end
 fades into its start, so it loops without a seam; its first frame is the still (login-bg.jpg, shown while it loads, and to anyone who asks
 for less motion). Run it again after changing the maps. Needs playwright and ffmpeg.

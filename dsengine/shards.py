@@ -91,7 +91,7 @@ class ShardMixin:
         n = int(self.shard_setting("Start" if new_character else "Old.Save.Grant", 12 if new_character else 20))
         self.add_shards(n)
         if n > 0 and not new_character:
-            self.display_message("Magic in Estforlan now runs on Shards, and you have %s to begin with. Read a "
+            self.display_message("Magic in Ashen now runs on Shards, and you have %s to begin with. Read a "
                                  "spell's scroll to learn it for good (H: the journal's Spells)." % shard_words(n),
                                  "ACHIEVEMENT")
 

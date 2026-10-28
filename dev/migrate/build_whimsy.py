@@ -252,7 +252,7 @@ def secrets():
                   "Quest"),
                  ("Give.Item", "Shard", "20"),
                  ("@all",), (">Conditional", "$Attr.SecretsFound=%d" % len(SECRETS), "@end"),
-                 ("Display.Message", "Yellow", "Every secret in Estforlan, found. Somewhere, a squirrel weeps.", "Quest"),
+                 ("Display.Message", "Yellow", "Every secret in Ashen, found. Somewhere, a squirrel weeps.", "Quest"),
                  ("Give.Item", "Shard", "50"),
                  ("End",),
                  ("@empty",), ("Display.Message", "Cyan", "You've found what was here already.", "-"),
@@ -324,13 +324,13 @@ EXAMINES = {
 for kind, (_, _, words) in SECRET_KINDS.items():
     EXAMINES[kind] = words
 
-MAN = ["Southport's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.",
+MAN = ["Northgate's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.",
        "Heading inland? Ashford's east of here. Mind the woods to the south: wolves, and worse past the old mine.",
        "My uncle went down the Shifting Deep once. Came back up through a different hole. Different county, too.",
        "Don't trust geese. That's all I'll say. Don't trust them.",
        "I once saw a cow look at the moon for a whole night. Changed me, that did.",
        "If you see a hat floating about the Wizards' Court, say hello. That's Pip. He's shy.",
-       "They say the old king hid treasure all over Estforlan. My grandad said that. My grandad also said he was a "
+       "They say the old king hid treasure all over Ashen. My grandad said that. My grandad also said he was a "
        "duck, so."]
 WOMAN = ["Have you seen my husband? About so tall, about so wide, owes everybody money?",
          "The bakery's lovely this time of year. The bakery's lovely every time of year. It's a bakery.",

@@ -11,12 +11,12 @@
 10	>Conditional	$Variable.1=0 and $Attr.HobgoblinQuest>=2	17
 11	>Quest.Can.Start	BertQuest	22
 12	Display.Conversation	Bert	The Steward's friend! Come in, come in, mind the cat. Not a real cat. Well.\You want the barrier down. Everyone wants the barrier down. I can do it: Bert, greatest wizard of the age, at your service. But even I need the proper things.	What things?	13
-13	Display.Conversation	Bert	Three. The Staff of Estforlan: the King's own, in his solar at the top of his keep. The Grimoire of Unbinding: buried with the sun priests' library, in the desert outside Dunerest. And the Ember Ring, which the Ashen Priest wears in his fort above Emberwatch.\Bring me all three, and we'll see about that barrier.	I'll bring them.	14
+13	Display.Conversation	Bert	Three. The Staff of Ashen: the King's own, in his solar at the top of his keep. The Grimoire of Unbinding: buried with the sun priests' library, in the desert outside Dunerest. And the Ember Ring, which the Ashen Priest wears in his fort above Emberwatch.\Bring me all three, and we'll see about that barrier.	I'll bring them.	14
 14	Update.Attribute	BertQuest	=1
 15	Display.Message	Yellow	Quest started: Bert's Three Treasures.	Quest
 16	End
 17	>Conditional	$Variable.1=1	22
-18	>Conditional	$Item.Staff_of_Estforlan>=1 and $Item.Grimoire_of_Unbinding>=1 and $Item.Ember_Ring>=1	20
+18	>Conditional	$Item.Staff_of_Ashen>=1 and $Item.Grimoire_of_Unbinding>=1 and $Item.Ember_Ring>=1	20
 19	Goto.Script	Bert's Confession
 20	Display.Conversation	Bert	The staff from the King's keep, the grimoire from under the desert, the ring from the Ashen Priest. All three, mind.	Something else.	22	On my way.	36
 21	End
@@ -25,7 +25,7 @@
 24	End
 25	Display.Item.Rack	GENERAL	Bert	CRAFT-Scrolls	36
 26	End
-27	Display.Conversation	Bert	Where to?	To the Isle.	28	To Southport.	32	Nowhere, thanks.	36
+27	Display.Conversation	Bert	Where to?	To the Isle.	28	To Northgate.	32	Nowhere, thanks.	36
 28	Play.Sound	Teleporter
 29	Display.Message	Yellow	Bert waves his hands, and the world spins...
 30	Teleport	Isle_Landing	-

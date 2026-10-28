@@ -11,7 +11,8 @@ RENAMED_ITEMS = {
     "Healing_Scroll": "Healing_Draught",
     "Farsight_Scroll": "Owl_Potion",
     "Stone_Skin_Scroll": "Shard_Ward_Scroll",
-    "Stone_Skin": "Shard_Ward",                      # (the spell, as it was learnt)
+    "Stone_Skin": "Shard_Ward",
+    "Staff_of_Estforlan": "Staff_of_Ashen",          # (rename_ashen.py: the kingdom is Ashen)                      # (the spell, as it was learnt)
 }
 RENAMED_SKILLS = {
     "Herblore": "Potion_Making",

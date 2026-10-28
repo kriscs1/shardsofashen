@@ -534,7 +534,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.check_map()
         self.emit({"t": "buildables", "pieces": self.homes.catalog_for_client()})
         self.check_home_entry()
-        self.display_message("Welcome to Shards of Estforlan, %s!" % self.player_name, "INFORMATION")
+        self.display_message("Welcome to Shards of Ashen, %s!" % self.player_name, "INFORMATION")
         self.display_message("Press H (or F1) for your journal: what you can make and gather, quests and controls.",
                              "INFO")
 

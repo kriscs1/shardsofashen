@@ -52,7 +52,7 @@ SHARDS_NOTE = ["; Start: a new character's Shards. Old.Save.Grant: given once to
 DISMANTLE = [("Weapon", "25"), ("Armour", "25"), ("Scroll", "10")]
 DISMANTLE_NOTE = ["; Breaking things down (Dismantle, in the pack): a Shard for every <n> gold an item's worth, at least",
                   "; one. Weapon: anything wielded; Armour: anything worn; Scroll: a scroll whose spell you know already."]
-HEADER = ["; Shards of Estforlan: every Shard number in one place (dsengine/shards.py and remnants.py read it as the",
+HEADER = ["; Shards of Ashen: every Shard number in one place (dsengine/shards.py and remnants.py read it as the",
           "; game runs). Spells' own costs are Spells.ini Cost=; digging's Shards Digging.ini; quests' Quests.ini",
           "; Reward.Shards. dev\\migrate\\build_shards.py and build_remnants.py only add what's missing: edit them here."]
 
@@ -88,7 +88,7 @@ QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Upd
     # scripts give none of their own
     "Dinner at the Bank": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Strength 2 Defence 2 Crafting 1",
     "Passage to the Mainland": "Strength 2 Defence 2", "The Temporary Capital": "Magic 1",
-    "The Ashford Road": "Strength 3 Defence 3", "The Staff of Estforlan": "Magic 3",
+    "The Ashford Road": "Strength 3 Defence 3", "The Staff of Ashen": "Magic 3",
     "The Sunken Grimoire": "Magic 4", "The Ember Ring": "Magic 4 Defence 3", "Bert's Three Treasures": "Magic 6",
     "A Ship for Dragon Island": "Woodcutting 2 Crafting 2", "The Island of Dragons": "Strength 5 Defence 5",
     "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Magic 4",
@@ -111,7 +111,7 @@ DIG_NOTE = ["; Shards, besides, in a hole dug: Shards.Chance in 100 of Shards=lo
 REWARDS = {  # Quests.ini Reward.Shards
     "Dinner at the Bank": 5, "The Amulet of Succession": 10, "Passage to the Mainland": 15,
     "The Temporary Capital": 10, "The Ashford Road": 15, "The Steward's Hunt": 20, "Bert's Three Treasures": 40,
-    "The Staff of Estforlan": 15, "The Sunken Grimoire": 20, "The Ember Ring": 25, "A Ship for Dragon Island": 15,
+    "The Staff of Ashen": 15, "The Sunken Grimoire": 20, "The Ember Ring": 25, "A Ship for Dragon Island": 15,
     "The Island of Dragons": 25, "The Sword of Valour": 30, "The Dragon of Galaith": 40, "The Royal Guard": 15,
     "The True Heir": 40,
     "The Herbalist's Remedy": 8, "The Dwarf's Grudge": 12, "The Wildwood Watch": 10, "Wolves of the Moor": 10,

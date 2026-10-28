@@ -22,7 +22,7 @@
 21	Take.Item	Fathers_Compass	1
 22	Update.Attribute	Passage	=5
 23	Display.Message	Yellow	Quest complete: Passage to the Mainland!	Quest
-24	Display.Conversation	Milkmaid	Father's compass! And Father home safe, all thanks to you. Oh, come here, love.\I'll take you across to Southport myself, right now. After that Wim can ferry you back and forth: he'll steer by Father's compass now.	Take me to Southport.	25	Not yet.	26
+24	Display.Conversation	Milkmaid	Father's compass! And Father home safe, all thanks to you. Oh, come here, love.\I'll take you across to Northgate myself, right now. After that Wim can ferry you back and forth: he'll steer by Father's compass now.	Take me to Northgate.	25	Not yet.	26
 25	Goto.Script	Bess Sails to Southport
 26	Display.Conversation	Milkmaid	Whenever you're ready, Wim's on the pier.	Thank you, Bess.	31
 27	End

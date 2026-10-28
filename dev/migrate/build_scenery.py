@@ -5,7 +5,7 @@ extend() here), so `python -I "dev\\migrate\\build_world.py"` builds it.
     fallen logs (only where all 8 neighbours are open grass, so no way through is ever blocked). The choice for each
     cell is a hash of the map and cell, so it's the same every build.
   * Landmarks (LANDMARKS): a stone circle, a ruined watchtower, a graveyard, a hermit's camp, a goblin camp, wells, a
-    lily pond, a farmyard with a scarecrow, crates and barrels at Southport, a fairy ring in the Whispering Woods.
+    lily pond, a farmyard with a scarecrow, crates and barrels at Northgate, a fairy ring in the Whispering Woods.
   * Secrets: a chest at most landmarks, each opened once (CHESTS, the Open Chest script), and villagers who drop hints.
   * Wildlife (WILDLIFE): rabbits and butterflies in the meadows, ducks by the water. They roam (Entities.ini Roam.Radius).
   * The Hermit's Fire: a small quest from the hermit in the Isle's western woods.
@@ -53,7 +53,7 @@ SCENERY_TILES = {
     "Scarecrow001": (SMALL, "1", "", "A scarecrow in a ragged coat. The crows don't seem very scared.", "1"),
     "Tent001": (BIG, "1", "", "A patched canvas tent.", "0"),
     "Tent002": (BIG, "1", "", "A grubby hide tent. It smells of goblin.", "0"),
-    "Crate001": (SMALL, "1", "", "A wooden crate, stencilled 'SOUTHPORT'.", "1"),
+    "Crate001": (SMALL, "1", "", "A wooden crate, stencilled 'NORTHGATE'.", "1"),
     "Barrel001": (SMALL, "1", "", "A barrel of salted fish. Phew.", "1"),
     "Sea_Rock001": (SOLID, "1", "", "A rock in the sea, white with gull droppings.", "1"),
     "Sea_Rock002": (SOLID, "1", "", "Two rocks poking out of the waves.", "1"),
@@ -100,7 +100,7 @@ LANDMARKS = {
     # the Southlands (generated maps)
     "2,3,0": dict(tiles=[(11, 9, "Well001")], entities=[]),           # Ashford's well
     "1,3,0": dict(tiles=[(20, 10, "Barrel001"), (21, 10, "Barrel001"), (22, 10, "Crate001"), (21, 11, "Crate001")],
-                  entities=[]),                                         # Southport's quay
+                  entities=[]),                                         # Northgate's quay
     "3,3,0": dict(tiles=[(4, 20, "Scarecrow001"), (2, 17, "Haystack001"), (3, 21, "Haystack001")], entities=[]),
     "1,4,0": dict(tiles=[(6, 14, "Mushroom_Ring001")], entities=[("obj", "Chest", 10, 16)]),   # the yew grove
     "3,4,0": dict(tiles=[(11, 17, "Pond001"), (12, 17, "Pond001"), (11, 18, "Pond001"), (12, 18, "Pond001")],

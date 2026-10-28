@@ -27,7 +27,7 @@
 26	Display.Conversation	Steward	Bert wants the King's staff? It hangs in his solar, at the top of the keep, where he left it the night he rode for Galaith.\Nobody's been up since. The stair door is locked, and the old guard, they say, never left their post, even dead. Here's the key. Go carefully.	I'll fetch it.	27
 27	Give.Item	Solar_Key	1
 28	Update.Attribute	StaffQuest	=1
-29	Display.Message	Yellow	Quest started: The Staff of Estforlan.	Quest
+29	Display.Message	Yellow	Quest started: The Staff of Ashen.	Quest
 30	End
 31	Display.Conversation	Steward	The keep stands, and the King's roads are open. Long may they stay so.	Goodbye.	32
 32	End

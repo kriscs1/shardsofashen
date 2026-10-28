@@ -4,7 +4,7 @@ writes the same again. Run build_towns.py and build_galaith.py first (their buil
 
   python -I "dev\\migrate\\build_heir_mainland.py"
 
-  5  The Temporary Capital (ParliamentQuest 0-2). Southport's port guard: Galaith is shut, Southport is the capital for
+  5  The Temporary Capital (ParliamentQuest 0-2). Northgate's port guard: Galaith is shut, Northgate is the capital for
      now, and its City Hall is the Parliament. The Speaker: only Bert, the great wizard at the Wizards' Court, can break
      the barrier; take the Parliament's letter east, to the Mayor of Ashford, who keeps the road.
   6  The Ashford Road (AshfordQuest 0-3). The Mayor, in Ashford's Town Hall: goblins raid the farms; drive them off (the
@@ -15,7 +15,7 @@ writes the same again. Run build_towns.py and build_galaith.py first (their buil
      and the ring (9, 10, 11). Brought, he owns up: he only wanted the ring (it goes with his new robe, and he can't
      stand the Ashen Priest). He teaches you the spell, gives you the staff, and warns: only the Sword of Valour, driven
      into its heart, kills the dragon.
-  9  The Staff of Estforlan (StaffQuest 0-2): the Steward's key to the King's solar at the top of the keep (2,4,1),
+  9  The Staff of Ashen (StaffQuest 0-2): the Steward's key to the King's solar at the top of the keep (2,4,1),
      its old guard risen; the staff on its rack.
  10  The Sunken Grimoire (GrimoireQuest 0-3): the scholar in Dunerest; a sand-buried library in the desert north of
      it (dig it out: a spade), its guardians; the Grimoire of Unbinding on its lectern (1,9,-1).
@@ -209,7 +209,7 @@ def draw_pictures():
             ("Grimoire_of_Unbinding", book((80, 36, 110), (230, 200, 90))),
             ("Ember_Ring", ring((240, 90, 30))), ("Valour_Seal", seal()),
             ("Solar_Key", K.outlined(K.load("Entities", "Lair_Key"))),
-            ("Staff_of_Estforlan", recolour(staff, lambda r, g, b: (min(255, int(r * 1.1 + 40)), min(255, int(g * 1.0 + 30)),
+            ("Staff_of_Ashen", recolour(staff, lambda r, g, b: (min(255, int(r * 1.1 + 40)), min(255, int(g * 1.0 + 30)),
                                                                    min(255, int(b * 0.6 + 90))))),
             ("Sword_of_Valour", recolour(sword, lambda r, g, b: (min(255, int(r * 1.05 + 25)), min(255, int(g * 1.0 + 20)),
                                                                 min(255, int(b * 0.7 + 10))))),
@@ -230,7 +230,7 @@ def draw_pictures():
     frames, _ = BWK.build()["Tomb_Guardian"]
     for key, im in frames.items():
         SK.save("Walk", "Tomb_Guardian" + key, im)
-    for item, slot in (("Sword_of_Valour", "Weapon"), ("Staff_of_Estforlan", "Weapon")):
+    for item, slot in (("Sword_of_Valour", "Weapon"), ("Staff_of_Ashen", "Weapon")):
         fr = BW.worn_frames(item, slot)
         for key, im in (fr or {}).items():
             SK.save("Worn", "Worn_%s%s" % (item, key), im)
@@ -258,7 +258,7 @@ def data():
     K.section(E, "Ember_Ring", [("Type", "MapItem"), ("Examine.Info", "The Ember Ring: a ruby that glows like a "
                                                                       "coal. Warm to the touch."),
                                 ("Slot", "Ring"), ("Magic", "2"), ("Defence", "1"), ("Droppable", "0"), ("Value", "0")])
-    K.section(E, "Staff_of_Estforlan", [("Type", "MapItem"), ("Examine.Info", "The Staff of Estforlan, the kings' staff: "
+    K.section(E, "Staff_of_Ashen", [("Type", "MapItem"), ("Examine.Info", "The Staff of Ashen, the kings' staff: "
                                         "gold and blue, warm with magic."), ("Slot", "Weapon"), ("Attack", "4"),
                                         ("Magic", "8"), ("Droppable", "0"), ("Value", "0"), ("Durability", "600")])
     K.section(E, "Sword_of_Valour", [("Type", "MapItem"), ("Examine.Info", "The Sword of Valour. Its edge hums. Only it "
@@ -479,7 +479,7 @@ def southport_guard():
 
 
 def southport_hall():
-    """Southport's City Hall, where the Speaker sits, is Estforlan's Parliament while Galaith is lost."""
+    """Northgate's City Hall, where the Speaker sits, is Ashen's Parliament while Galaith is lost."""
     name, _, f = find_npc("Southport_Speaker", "Speaker")
     x, y = npc_tile(f)
     m = Map(name)
@@ -491,7 +491,7 @@ def southport_hall():
             path = os.path.join(K.SCRIPTS, f)
             text = open(path, "rb").read()
             new = text.replace(b"CITY HALL\\The seat of the city's council.",
-                               b"CITY HALL\\The seat of Estforlan's Parliament while Galaith is lost.")
+                               b"CITY HALL\\The seat of Ashen's Parliament while Galaith is lost.")
             if new != text:
                 open(path, "wb").write(new)
 
@@ -602,8 +602,8 @@ def quests():
     open(Q, "wb").write(text.encode("cp1252"))
     ini.forget(Q)
     K.quest("The Temporary Capital", "Port_Guard", "ParliamentQuest", {
-        0: "Speak to the city guard at Southport's port.",
-        1: "Go to Southport's City Hall, where Estforlan's Parliament sits until Galaith opens again.",
+        0: "Speak to the city guard at Northgate's port.",
+        1: "Go to Northgate's City Hall, where Ashen's Parliament sits until Galaith opens again.",
     }, 2, markers={0: "Southport_Port", 1: "Southport_City_Hall"}, chapter=5, requires="Passage to the Mainland",
         marker0="Southport_Port")
     K.quest("The Ashford Road", "Mayor", "AshfordQuest", {
@@ -620,13 +620,13 @@ def quests():
         marker0="Keep_Steward_Post")
     K.quest("Bert's Three Treasures", "Bert", "BertQuest", {
         0: "Find Bert, the great wizard, at the top of the Wizards' Court's tower, on the Royal Isle.",
-        1: "Bring Bert the Staff of Estforlan, the Grimoire of Unbinding and the Ember Ring.",
+        1: "Bring Bert the Staff of Ashen, the Grimoire of Unbinding and the Ember Ring.",
     }, 2, markers={0: "Court_Wizard", 1: "Court_Wizard"}, chapter=8, requires="The Steward's Hunt",
         marker0="Court_Wizard")
-    K.quest("The Staff of Estforlan", "Steward", "StaffQuest", {
+    K.quest("The Staff of Ashen", "Steward", "StaffQuest", {
         0: "Ask the Steward at King Rupert's Keep about the King's staff.",
         1: "Climb to the King's solar at the top of the keep (the stair in the keep's hall: the Steward's key) and take "
-           "the Staff of Estforlan.",
+           "the Staff of Ashen.",
     }, 2, markers={0: "Keep_Steward_Post", 1: "Kings_Solar"}, chapter=9,
         requires="The Steward's Hunt", marker0="Keep_Steward_Post")
     K.quest("The Sunken Grimoire", "Scholar", "GrimoireQuest", {
@@ -660,7 +660,7 @@ def quests():
         requires="The Island of Dragons", marker0="Temple_of_Valour")
     K.quest("The Dragon of Galaith", "Bert", "GalaithQuest", {
         0: "Go east, over the causeway from the Elderwood, to the pass of Galaith. Break the barrier with Bert's spell "
-           "(use the Staff of Estforlan on it).",
+           "(use the Staff of Ashen on it).",
         1: "Kill the dragon before Galaith's walls. Only the Sword of Valour, wielded, can reach its heart.",
     }, 2, markers={0: "Galaith_Barrier", 1: "Dragons_Field"}, chapter=15, requires="The Sword of Valour",
         marker0="Galaith_Barrier", level=16)
@@ -690,7 +690,7 @@ def southport_and_ashford():
         ("Get.Value", "ATTRIBUTE", "ParliamentQuest", V1),
         (">Conditional", "$Variable.1=0", "@chat"),
         (">Quest.Can.Start", "ParliamentQuest", "@end"),
-        say("Port_Guard", "Welcome to Southport, the capital of Estforlan. For now, anyway.\\Galaith's been shut these "
+        say("Port_Guard", "Welcome to Northgate, the capital of Ashen. For now, anyway.\\Galaith's been shut these "
                           "eighteen years: a wall of light across the pass, and a dragon behind it. So the city hall "
                           "here is the Parliament, till the barrier falls.\\Business in Galaith, you say? Then the City "
                           "Hall's where you ask. They say it was sealed the very year the Queen vanished.",
@@ -700,7 +700,7 @@ def southport_and_ashford():
         ("Display.Message", "Yellow", "Quest started: The Temporary Capital.", "Quest"),
         ("End",),
         ("@chat",),
-        say("Port_Guard", "Keep your purse close in the market, and your sword in its scabbard. Southport's a good "
+        say("Port_Guard", "Keep your purse close in the market, and your sword in its scabbard. Northgate's a good "
                           "city, mostly.", ("Goodbye.", "@end")),
         ("@end",), ("End",),
     ])
@@ -815,7 +815,7 @@ def keep():
         ("@key",),
         ("Give.Item", "Solar_Key", "1"),
         ("Update.Attribute", "StaffQuest", "=1"),
-        ("Display.Message", "Yellow", "Quest started: The Staff of Estforlan.", "Quest"),
+        ("Display.Message", "Yellow", "Quest started: The Staff of Ashen.", "Quest"),
         ("End",),
         ("@staff2",),
         say("Steward", "The keep stands, and the King's roads are open. Long may they stay so.", ("Goodbye.", "@end")),
@@ -842,20 +842,20 @@ def keep():
         ("Add.Entity", at(20, 7, -8), "Skeleton", "NPC", "Attitude=Bad Zone=15,4,21,8"),
         ("Add.Entity", at(17, 8, -8), "Skeleton", "NPC", "Attitude=Bad Zone=15,4,21,8"),
         ("Get.Value", "ATTRIBUTE", "StaffQuest", V1),
-        (">Conditional", "$Variable.1<2 and $Item.Staff_of_Estforlan<1", "@end"),
-        ("Add.Entity", at(21, 5, -6), "Staff_of_Estforlan", "MapItem", "1"),
+        (">Conditional", "$Variable.1<2 and $Item.Staff_of_Ashen<1", "@end"),
+        ("Add.Entity", at(21, 5, -6), "Staff_of_Ashen", "MapItem", "1"),
         ("@end",), ("End",),
     ])
-    w("Pickup Staff_of_Estforlan", [
+    w("Pickup Staff_of_Ashen", [
         (">Distance.From.Clicked.Entity", "48", "@far"),
-        ("Remove.Entity", "$Object.under.Cursor.X,$Object.under.Cursor.Y", "Staff_of_Estforlan"),
-        ("Give.Item", "Staff_of_Estforlan", "1"),
+        ("Remove.Entity", "$Object.under.Cursor.X,$Object.under.Cursor.Y", "Staff_of_Ashen"),
+        ("Give.Item", "Staff_of_Ashen", "1"),
         ("Play.Sound", "Quest"),
-        ("Display.Message", "Yellow", "The Staff of Estforlan: gold and blue, and warm in your hand.", "-"),
+        ("Display.Message", "Yellow", "The Staff of Ashen: gold and blue, and warm in your hand.", "-"),
         ("Get.Value", "ATTRIBUTE", "StaffQuest", V1),
         (">Conditional", "$Variable.1<2", "@end"),
         ("Update.Attribute", "StaffQuest", "=2"),
-        ("Display.Message", "Yellow", "Quest complete: The Staff of Estforlan! Take it to Bert.", "Quest"),
+        ("Display.Message", "Yellow", "Quest complete: The Staff of Ashen! Take it to Bert.", "Quest"),
         ("@end",), ("End",),
     ] + FAR)
 
@@ -884,7 +884,7 @@ def bert():
                     "service. But even I need the proper things.",
             ("What things?", "@things")),
         ("@things",),
-        say("Bert", "Three. The Staff of Estforlan: the King's own, in his solar at the top of his keep. The Grimoire of "
+        say("Bert", "Three. The Staff of Ashen: the King's own, in his solar at the top of his keep. The Grimoire of "
                     "Unbinding: buried with the sun priests' library, in the desert outside Dunerest. And the Ember "
                     "Ring, which the Ashen Priest wears in his fort above Emberwatch.\\Bring me all three, and we'll "
                     "see about that barrier.", ("I'll bring them.", "@start")),
@@ -893,7 +893,7 @@ def bert():
         ("Display.Message", "Yellow", "Quest started: Bert's Three Treasures.", "Quest"),
         ("End",),
         ("@s1",), (">Conditional", "$Variable.1=1", "@menu"),
-        (">Conditional", "$Item.Staff_of_Estforlan>=1 and $Item.Grimoire_of_Unbinding>=1 and $Item.Ember_Ring>=1",
+        (">Conditional", "$Item.Staff_of_Ashen>=1 and $Item.Grimoire_of_Unbinding>=1 and $Item.Ember_Ring>=1",
          "@missing"),
         ("Goto.Script", "Bert's Confession"),
         ("@missing",),
@@ -910,7 +910,7 @@ def bert():
         ("@craft",), ("Display.Item.Rack", "GENERAL", "Bert", "CRAFT-Scrolls", "@end"),
         ("End",),
         ("@away",),
-        say("Bert", "Where to?", ("To the Isle.", "@isle"), ("To Southport.", "@southport"), ("Nowhere, thanks.", "@end")),
+        say("Bert", "Where to?", ("To the Isle.", "@isle"), ("To Northgate.", "@southport"), ("Nowhere, thanks.", "@end")),
         ("@isle",), ("Play.Sound", "Teleporter"), ("Display.Message", "Yellow", "Bert waves his hands, and the world "
                                                                                "spins..."),
         ("Teleport", "Isle_Landing", "-"),
@@ -924,7 +924,7 @@ def bert():
     w("Bert's Confession", [
         ("Take.Item", "Grimoire_of_Unbinding", "1"),
         ("Take.Item", "Ember_Ring", "1"),
-        ("Take.Item", "Staff_of_Estforlan", "1"),
+        ("Take.Item", "Staff_of_Ashen", "1"),
         say("Bert", "The staff! The grimoire! And the ring... oh, look at it. Look at that glow.\\He slips the Ember Ring "
                     "on his finger and holds it up against his sleeve.\\Purple and ember. I knew it. It goes with the "
                     "robe perfectly.", ("And the spell?", "@spell")),
@@ -938,7 +938,7 @@ def bert():
         ("Display.Message", "Cyan", "Bert reads from the grimoire. The words slide into your memory and stay there, "
                                     "humming.", "-"),
         ("Update.Attribute", "BarrierSpell", "=1"),
-        ("Give.Item", "Staff_of_Estforlan", "1"),
+        ("Give.Item", "Staff_of_Ashen", "1"),
         say("Bert", "Take the staff back: it's the King's, and the spell needs a king's staff. Hold it to the barrier and "
                     "say the words, and it will fall.\\But hear me. Behind the barrier waits the dragon, and no blade "
                     "made by men will kill it. Only the Sword of Valour, driven into its heart. It lies on Dragon "
@@ -1166,7 +1166,7 @@ def sword():
         (">Quest.Can.Start", "ValourQuest", "@end"),
         say("Valour_Guardian", "Who comes for the Sword of Valour?\\The sword was forged for one deed: to end the dragon "
                                "of Galaith, and the bargain your forefathers made with it. It goes only to the heir of "
-                               "Estforlan, and only if the heir is worthy.", ("I am the heir.", "@heir")),
+                               "Ashen, and only if the heir is worthy.", ("I am the heir.", "@heir")),
         ("@heir",),
         say("Valour_Guardian", "Words. Show me valour.", ("Then I will.", "@fight")),
         ("@fight",),
@@ -1209,13 +1209,13 @@ def galaith():
     rows += [("Add.Entity", at(7, y), "Barrier_Light", "StaticObject", "-") for y in (10, 11, 12)]
     rows += [("@end",), ("End",)]
     w("10,6,0", rows)
-    w("Use Staff_of_Estforlan With Barrier", [
+    w("Use Staff_of_Ashen With Barrier", [
         (">Distance.From.Clicked.Tile", "64", "@far"),
         ("Get.Value", "ATTRIBUTE", "GalaithQuest", V1),
         (">Conditional", "$Variable.1=0", "@open"),
         (">Conditional", "$Attr.BarrierSpell>=1", "@nospell"),
         (">Quest.Can.Start", "GalaithQuest", "@end"),
-        ("Display.Message", "Cyan", "You hold the Staff of Estforlan to the barrier and speak Bert's words of "
+        ("Display.Message", "Cyan", "You hold the Staff of Ashen to the barrier and speak Bert's words of "
                                     "Unbinding..", "-"),
         ("Play.Sound", "SpellCast"),
         ("Wait", "2"),
@@ -1238,7 +1238,7 @@ def galaith():
         ("Update.Attribute", "DragonSpoke", "=1"),
         ("Toggle.User.Input", "OFF"),
         ("Play.Sound", "Kill_Dragon"),
-        say("Galaith_Dragon", "So. The heir of Estforlan comes to me at last, and on his own feet.\\Eighteen winters I "
+        say("Galaith_Dragon", "So. The heir of Ashen comes to me at last, and on his own feet.\\Eighteen winters I "
                               "have waited at these walls. Eighteen winters the city has starved for want of the road, "
                               "and all for one small debt.", ("What debt?", "@debt")),
         ("@debt",),
@@ -1297,7 +1297,7 @@ def galaith():
                           "are open.\\What makes you more than they are?", ("I am his $Player.Son.", "@son")),
         ("@son",),
         say("Chancellor", "Bold. The Queen's child would be eighteen now, and would carry the Amulet of Succession. "
-                          "Show it to the Royal Archivist, at the City Hall: she knows every true seal in Estforlan. If "
+                          "Show it to the Royal Archivist, at the City Hall: she knows every true seal in Ashen. If "
                           "she vouches for it, so shall I.", ("I'll go to the Archivist.", "@go")),
         ("@go",), ("Update.Attribute", "GuardQuest", "=2"),
         ("End",),
@@ -1309,7 +1309,7 @@ def galaith():
                           "is my warrant: show it to the captain of the guard.", ("Thank you, Chancellor.", "@end")),
         ("End",),
         ("@chat",),
-        say("Chancellor", "The Parliament of Estforlan will return from Southport, now the road is open. There is much "
+        say("Chancellor", "The Parliament of Ashen will return from Northgate, now the road is open. There is much "
                           "to do.", ("Goodbye.", "@end")),
         ("@end",), ("End",),
     ])
@@ -1319,7 +1319,7 @@ def galaith():
         (">Got.Item", "Amulet_of_Succession", "1", "@noamulet"),
         say("Archivist", "The Chancellor sent you? Let me see it.\\She turns the amulet in the lamplight, and her hands "
                          "begin to shake.\\The crown, the sapphire, the mark of the old smiths under the clasp. This is "
-                         "the Amulet of Estforlan Succession. Queen Mary wore it the night she vanished.",
+                         "the Amulet of Ashen Succession. Queen Mary wore it the night she vanished.",
             ("She was my mother.", "@mother")),
         ("@mother",),
         ("Give.Item", "Archivists_Attestation", "1"),
@@ -1355,12 +1355,12 @@ def galaith():
                            "betrayal. Eighteen years.\\My $Player.Son. My $Player.Son.", ("Father.", "@crown")),
         ("@crown",),
         say("King_Rupert", "I have held this throne for a city in chains. You broke the chains. It's yours.\\He lifts the "
-                           "crown from his head and sets it on yours.\\Long live the $Player.King of Estforlan!",
-            ("Long live Estforlan.", "@king")),
+                           "crown from his head and sets it on yours.\\Long live the $Player.King of Ashen!",
+            ("Long live Ashen.", "@king")),
         ("@king",),
         ("Update.Attribute", "KingQuest", "=1"),
         ("Play.Sound", "LevelUp"),
-        ("Display.Message", "Yellow", "Quest complete: The True Heir! You are the $Player.King of Estforlan. The world is yours "
+        ("Display.Message", "Yellow", "Quest complete: The True Heir! You are the $Player.King of Ashen. The world is yours "
                                       "to explore.", "Quest"),
         ("Add.Entity", at(13, 7, -2), "Strawberry_Cat", "NPC", JIMMY),
         ("Display.Message", "Cyan", "A ginger cat you'd know anywhere has curled up on the throne. Jimmy, how did you "
@@ -1501,7 +1501,7 @@ def scripts():
     sword()
     galaith()
     retired()
-    print("Scripts: Southport, Ashford, the Keep, Bert, the grimoire, the ring, Dragon Island, Galaith, the throne")
+    print("Scripts: Northgate, Ashford, the Keep, Bert, the grimoire, the ring, Dragon Island, Galaith, the throne")
 
 
 def main():

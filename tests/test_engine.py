@@ -1681,7 +1681,7 @@ def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
 
 
 def test_walking_granny_wren_to_her_daughter(world):
-    s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Southport's landing)
+    s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northgate's landing)
     s.connected = True
     s.update_attribute("Passage", "=5")                              # (over from the Isle: it can start)
     for _ in range(10):
@@ -2118,20 +2118,20 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
     lights = lambda: [e for e in world.ents if e.name == "Barrier_Light" and e.alive and world.visible_to(e, s)]
     assert len(lights()) == 3
     story_done_before(s, 15)                                        # (up to The Sword of Valour)
-    stock(s, Staff_of_Estforlan=1)
+    stock(s, Staff_of_Ashen=1)
     m = s.cur_map
     gx, gy = m.ox + 7 * 32 + 16, m.oy + 10 * 32 + 16                 # (the barrier at 8,11, from beside it)
-    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Ashen")
     s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
     run(60)
     assert int(float(s.get_attribute("GalaithQuest") or 0)) == 0                 # (the staff alone: no words for it)
     s.update_attribute("BarrierSpell", "=1")
-    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Ashen")
     s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
     run(80)
     assert s.get_attribute("ShardgateQuest") == "1" and len(lights()) == 3   # (it holds: its anchor's in the realm)
     s.update_attribute("ShardgateQuest", "=5")                      # (The Shardgate: the anchor broken)
-    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Estforlan")
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Ashen")
     s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
     run(80)
     assert int(float(s.get_attribute("GalaithQuest") or 0)) == 1 and not lights()
@@ -2834,7 +2834,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     anchor = next(e for e in world.ents if e.name == "Barrier_Anchor" and e.owner is s)
     warden = next(e for e in world.ents if e.name == "Shard_Warden" and e.alive)
     near(world, s, anchor, -40, 16)
-    stock(s, Staff_of_Estforlan=1)
+    stock(s, Staff_of_Ashen=1)
     s.choose_verb("Shatter", anchor, int(anchor.cx), int(anchor.cy))
     run_for(world, 10)
     assert s.get_attribute("ShardgateQuest") == "3"                 # (the Warden stands over it)

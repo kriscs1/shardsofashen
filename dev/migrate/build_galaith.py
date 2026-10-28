@@ -1,4 +1,4 @@
-"""Galaith, Estforlan's capital, on the far east of the mainland (maps 10,5,0 to 14,7,0), and the way to it. Run it
+"""Galaith, Ashen's capital, on the far east of the mainland (maps 10,5,0 to 14,7,0), and the way to it. Run it
 again: it draws the same, and leaves the maps it has made alone.
 
   python -I "dev\\migrate\\build_galaith.py"     (then smooth_coasts.py, validate.py, build_minimaps.py)

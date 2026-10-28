@@ -2,7 +2,7 @@
 01	Get.Value	ATTRIBUTE	DragonforgeQuest	Variable.1$
 02	>Conditional	$Variable.1=0	08
 03	>Quest.Can.Start	DragonforgeQuest	23
-04	Display.Conversation	Wyrmsmith	You're the one who slew the dragon of Galaith? Then you'll have its scales.\This is the Dragonforge: the only fire in Estforlan hot enough to work dragon scale. Bring me three, and I'll make you a helm of them myself, and teach you the forge.	I'll bring you three scales.	05	Not now.	24
+04	Display.Conversation	Wyrmsmith	You're the one who slew the dragon of Galaith? Then you'll have its scales.\This is the Dragonforge: the only fire in Ashen hot enough to work dragon scale. Bring me three, and I'll make you a helm of them myself, and teach you the forge.	I'll bring you three scales.	05	Not now.	24
 05	Update.Attribute	DragonforgeQuest	=1
 06	Display.Message	Yellow	Quest started: The Dragonforge.	Quest
 07	End
@@ -21,5 +21,5 @@
 20	Display.Conversation	Wyrmsmith	Back for the forge? Scale and mithril, and I'll show you how.	Show me the Dragonforge.	21	Goodbye.	24
 21	Display.Item.Rack	GENERAL	Wyrmsmith	CRAFT-Dragonforge	24
 22	End
-23	Display.Conversation	Wyrmsmith	This is the Dragonforge. It's been cold a long time: there's only one dragon left in Estforlan, and it sits before the walls of Galaith.	Goodbye.	24
+23	Display.Conversation	Wyrmsmith	This is the Dragonforge. It's been cold a long time: there's only one dragon left in Ashen, and it sits before the walls of Galaith.	Goodbye.	24
 24	End

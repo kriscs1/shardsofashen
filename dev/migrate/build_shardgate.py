@@ -1,7 +1,7 @@
 """The Shardgate (chapter 15 of the main quest: ShardgateQuest 0-5, between The Sword of Valour and The Dragon of
 Galaith), and the Shardrealm beyond it.
 
-The story: with the Sword of Valour in hand you raise the Staff of Estforlan at the barrier, and it holds: something
+The story: with the Sword of Valour in hand you raise the Staff of Ashen at the barrier, and it holds: something
 beyond the world feeds it (the barrier's script, estforlan/story.py). Bert knows what: the dragon anchored it in the
 Shardrealm, where all broken magic goes. He gives you a Shardgate's plans; you build it in the old ring of standing
 stones on the hill north of the Wizards' Court (21,4,0) from 4 silver bars, 2 sapphires, a Remnant's core and
@@ -386,9 +386,9 @@ def scripts():
         (">Entity.State", "Anchor_Warden", "Walking,Standing,Fighting,Following", "@down"),
         ("Display.Message", "DarkRed", "The Warden stands over the anchor: it won't let you near.", "Denied"),
         ("End",),
-        ("@down",), (">Got.Item", "Staff_of_Estforlan", "1", "@nostaff"),
+        ("@down",), (">Got.Item", "Staff_of_Ashen", "1", "@nostaff"),
         ("Toggle.User.Input", "OFF"),
-        ("Display.Message", "Cyan", "You raise the Staff of Estforlan and speak Bert's words of Unbinding at the "
+        ("Display.Message", "Cyan", "You raise the Staff of Ashen and speak Bert's words of Unbinding at the "
                                     "anchor..", "-"),
         ("Play.Sound", "SpellCast"),
         ("Wait", "2"),
@@ -401,7 +401,7 @@ def scripts():
                                       "Bert.", "-"),
         ("End",),
         ("@nostaff",), ("Display.Message", "DarkRed", "Your bare hands won't break it: it needs the Staff of "
-                                                      "Estforlan.", "Denied"),
+                                                      "Ashen.", "Denied"),
         ("@end",), ("End",)] + FAR, MAKER)
     rows = [(">Distance.From.Clicked.Entity", "48", "@far")]
     for i, tool in enumerate(("Mithril_Pickaxe", "Steel_Pickaxe", "Pickaxe", "Bronze_Pickaxe")):
@@ -469,13 +469,13 @@ def scripts():
 # ================================================================== the quest, the chapters after it, the map's label
 def quest():
     SK.quest("The Shardgate", "Bert", "ShardgateQuest", {
-        0: "The barrier still stands in the pass of Galaith. Raise the Staff of Estforlan against it.",
+        0: "The barrier still stands in the pass of Galaith. Raise the Staff of Ashen against it.",
         1: "The barrier held: something beyond the world feeds it. Ask Bert, at the top of the Wizards' Court's "
            "tower.",
         2: "Build a Shardgate in the old ring of standing stones on the hill north of the Wizards' Court: 4 silver "
            "bars, 2 sapphires, a Remnant's core and Shards (Bert's plans).",
         3: "Step through the Shardgate into the Shardrealm. Get past its Warden, and shatter the barrier's anchor "
-           "with the Staff of Estforlan.",
+           "with the Staff of Ashen.",
         4: "The anchor is shattered. Tell Bert."}, 5,
         markers={0: "Galaith_Barrier", 1: "Court_Wizard", 2: "Shardgate_Site", 3: "Shardgate_Site", 4: "Court_Wizard"},
         chapter=15, requires="The Sword of Valour", after="The Sword of Valour")

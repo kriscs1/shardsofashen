@@ -35,7 +35,7 @@ def all_spots():
     """Key -> (label, map, shardstone tile, arrival tile) for every place that could have a shardstone."""
     out = {
         "Isle": ("The Isle", "1,1,0", (13, 11), (13, 12)),
-        "Southport": ("Southport", "1,3,0", (16, 11), (13, 11)),
+        "Southport": ("Northgate", "1,3,0", (16, 11), (13, 11)),
         "Ashford": ("Ashford", "2,3,0", (10, 13), (10, 12)),
         "Keep": ("Tyron's Keep", "2,4,0", (11, 19), (13, 20)),
     }

@@ -148,7 +148,7 @@ def entry_scripts(plans, first, extra=None):
 
 
 ARRIVE = {"Galaith": "Galaith, the royal city. Its white towers shine over the rooftops.",
-          "Southport": "Southport. Gulls wheel over the harbour.",
+          "Southport": "Northgate. Gulls wheel over the harbour.",
           "Keep": "King Rupert's Keep. The sea booms against the rocks below the walls.",
           "Court": "The Wizards' Court. The air tingles with magic.",
           "Fenwick": "Fenwick, on its boardwalks over the marsh.",
@@ -174,14 +174,14 @@ def pass_scripts():
     rows += [("Add.Entity", "%d,%d" % (px, y), "Barrier_Light", "StaticObject", "-") for y in ys]
     rows += [("@end",), ("End",)]
     K.write_script(G.PASS, rows, MAKER)
-    K.write_script("Use Staff_of_Estforlan With Barrier", [
+    K.write_script("Use Staff_of_Ashen With Barrier", [
         (">Distance.From.Clicked.Tile", "64", "@far"),
         ("Get.Value", "ATTRIBUTE", "GalaithQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@broken"),
         (">Conditional", "$Attr.BarrierSpell>=1", "@words"),
         (">Conditional", "$Attr.ShardgateQuest>=5", "@anchored"),      # (its anchor in the Shardrealm cut first:
         (">Quest.Can.Start", "GalaithQuest", "@end"),                   #  The Shardgate, build_shardgate.py)
-        ("Display.Message", "Cyan", "You hold the Staff of Estforlan to the barrier and speak Bert's words of "
+        ("Display.Message", "Cyan", "You hold the Staff of Ashen to the barrier and speak Bert's words of "
                                     "Unbinding..", "-"),
         ("Play.Sound", "SpellCast"),
         ("Wait", "2")] + [("Remove.Entity", "%d,%d" % (px, y), "Barrier_Light") for y in ys] + [
@@ -193,7 +193,7 @@ def pass_scripts():
         ("@words",), ("Display.Refusal", "The staff hums against the barrier, but you don't know the words."),
         ("End",),
         ("@anchored",),
-        ("Display.Message", "Cyan", "You hold the Staff of Estforlan to the barrier and speak Bert's words of "
+        ("Display.Message", "Cyan", "You hold the Staff of Ashen to the barrier and speak Bert's words of "
                                     "Unbinding..", "-"),
         ("Play.Sound", "SpellCast"),
         ("Wait", "2"),
@@ -402,7 +402,7 @@ def quests(table, rehoused):
 
 def world_map(plans):
     lines = read(K.WORLDMAP)
-    towns = {"Southport": "Southport", "Ashford": "Ashford", "Oakhollow": "Oakhollow", "Fenwick": "Fenwick",
+    towns = {"Northgate": "Southport", "Ashford": "Ashford", "Oakhollow": "Oakhollow", "Fenwick": "Fenwick",
              "Moorcross": "Moorcross", "Highwatch": "Highwatch", "Frosthold": "Frosthold", "Dunerest": "Dunerest",
              "Emberwatch": "Emberwatch", "Thornwick": "Thornwick", "Ravensgate": "Ravensgate",
              "Wizards' Court": "Court", "King Rupert's Keep": "Keep", "Wildwood": "Wildwood",

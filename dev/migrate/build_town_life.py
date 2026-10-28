@@ -259,7 +259,7 @@ def write_scripts():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import story_kit as K
     if K.new_mainland():
-        return                                         # (Southport's old vendors: the new markets have their own)
+        return                                         # (Northgate's old vendors: the new markets have their own)
     for n, (sprite, rack, name, words, stock) in enumerate(VENDORS, 1):
         write_script("Talk to Market_Vendor_%d" % n, [
             "01\tDisplay.Conversation\t%s\t%s\\Want to sell your own things? Use the market board: everyone's goods, "

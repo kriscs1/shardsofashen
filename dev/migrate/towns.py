@@ -757,13 +757,13 @@ HALL_LINES = {
     "City Hall": "Welcome to TOWN's City Hall. The council meets here: rates, roads and rubbish, mostly.",
     "Town Hall": "This is TOWN's Town Hall. Births, weddings and deeds are written here.",
     "Village Hall": "The village hall. Dances on a Saturday, meetings on a Monday.",
-    "Parliament": "This is the Parliament of Estforlan.",
+    "Parliament": "This is the Parliament of Ashen.",
 }
 HALL_SIGNS = {
     "City Hall": "The seat of the city's council.",
     "Town Hall": "Births, marriages and deeds recorded.",
     "Village Hall": "Meetings, dances and harvest suppers.",
-    "Parliament": "The Parliament of Estforlan.",
+    "Parliament": "The Parliament of Ashen.",
 }
 LAW_LINES = {
     "police": "TOWN's watch keeps the peace. Keep your sword in its scabbard and we'll get along.",

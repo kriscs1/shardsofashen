@@ -3,7 +3,7 @@ Passage to the Mainland, the ticket book and the goblin's cage). Run it again: i
 
   python -I "dev\\migrate\\build_heir_isle.py"
 
-The story: your mother Mary, the Queen of Estforlan in hiding, ran from the capital, Galaith, with you as a baby, to
+The story: your mother Mary, the Queen of Ashen in hiding, ran from the capital, Galaith, with you as a baby, to
 save you from the dragon that takes the firstborn heir of every generation. You were raised on the Isle in poverty.
   1  The Last Will (LastWill 0-2). A new character stands at her grave in the chapel's graveyard (3,1,0's entry
      script runs The Funeral): the mourners go, Edwin the lawyer walks you home and leaves her letter on the table.
@@ -20,13 +20,13 @@ save you from the dragon that takes the firstborn heir of every generation. You 
      (2,2,-2), behind a locked door in the caves (2,1,-2): four hobgoblins (the entry script puts back the ones
      killed, when someone comes in again), the key in the corner barrel, Tobias in a cage you pick the lock of. A
      ladder up to their camp (2,2,0), in a tent: only a tent until you've climbed it from below. In the house, a
-     floorboard squeaks: stand on it, search it, the compass. Bess sails you to Southport.
+     floorboard squeaks: stand on it, search it, the compass. Bess sails you to Northgate.
 Characters made before this story keep what they had done (session.heir_story_from_old_save).
 
 The Isle teaches the world as you go, in what people say and give you: Edwin hands over Mary's jar of Shards (the
 world's magic: the count under your health); Maren gives healing draughts (herbs mend a body, Shards can't); Frank
 gives his old dagger to break down for its Shard (Dismantle); Brother Aldous, in the caves, shows you a dead beast's
-Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Bess, at Southport, the shardstone.
+Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Bess, at Northgate, the shardstone.
 """
 import os
 import random
@@ -376,7 +376,7 @@ def data():
     E, T = K.ENTS, K.TILES
     items = [
         ("Last_Will", "Your mother's last will and testament, sealed with her wax.", "Read,Examine"),
-        ("Amulet_of_Succession", "The Amulet of Estforlan Succession: gold, a sapphire, the royal crown. Your mother "
+        ("Amulet_of_Succession", "The Amulet of Ashen Succession: gold, a sapphire, the royal crown. Your mother "
          "hid it for you.", "Examine"),
         ("Lair_Key", "A heavy iron key: it opens the door the hobgoblins hold in the caves.", "Examine"),
         ("Fathers_House_Key", "Tobias's house key, brass and well worn.", "Examine"),
@@ -443,7 +443,7 @@ def data():
         2: "Make a wooden sword and a wooden shield at Frank's workbench, then show them to him.",
         3: "Wield your sword and shield, and train until your Strength and Defence are level 2. Then ask Brother "
            "Aldous, at the chapel, to let you through the cellar's trapdoor.",
-        4: "Go down through the chapel cellar's trapdoor and find the Amulet of Estforlan Succession, at the back of "
+        4: "Go down through the chapel cellar's trapdoor and find the Amulet of Ashen Succession, at the back of "
            "the caves.",
         5: "The amulet lies behind iron bars. Cast Grasp at it (Cast the scroll, then click the bars).",
     }, 6, markers={0: "Milkmaid_Farm", 1: "Franks_Smithy", 2: "Franks_Smithy", 3: "Chapel_Door",
@@ -747,7 +747,7 @@ def niche_and_pier():
         s.ents = [ln.replace("NPC\tWoman\t", "NPC\tFerryman\t").replace("Name=Maren", "Name=Wim")
                   if ln.startswith("NPC\tWoman\t") and "Name=Maren" in ln else ln for ln in s.ents]
         s.save()
-        print("1,3,0: Wim the ferryman on Southport's pier")
+        print("1,3,0: Wim the ferryman on Northgate's pier")
     k = Map("2,4,-2")
     if K.ents_without(k, lambda f: f[:2] == ["MapItem", "Beggars_House_Key"]):
         k.save()
@@ -884,16 +884,16 @@ def opening():
         ("Play.Sound", "Paper"),
         say("Last_Will", "THE LAST WILL AND TESTAMENT OF MARY\\My beloved $Player.Son,\\We have lived in poverty on this island "
                          "since you were six months old; this is not what your life should have been like. You are the "
-                         "true heir of Estforlan, and its riches, lands and people are yours to protect.",
+                         "true heir of Ashen, and its riches, lands and people are yours to protect.",
             ("Read on.", "@p2")),
         ("@p2",),
         say("Last_Will", "I need you to return to your father, the king, and tell him of my death. You will need to take "
-                         "the Amulet of Estforlan Succession; I hid it under the Church in the Caves. Then you will need "
+                         "the Amulet of Ashen Succession; I hid it under the Church in the Caves. Then you will need "
                          "to convince the milkmaid (Bess) to open the ferry and take you back to the mainland.",
             ("Read on.", "@p3")),
         ("@p3",),
         say("Last_Will", "You'll need to gain entry to the City of Galaith, which has been closed since your birth, "
-                         "because the Dragon who guards the city wants his payment: the true heir of Estforlan, you!!!"
+                         "because the Dragon who guards the city wants his payment: the true heir of Ashen, you!!!"
                          "\\Be careful, and tell your father I never stopped loving him.\\Mary",
             ("Fold the letter.", "@done")),
         ("@done",),
@@ -1048,8 +1048,8 @@ def bess_and_frank():
         ("Update.Attribute", "Passage", "=5"),
         ("Display.Message", "Yellow", "Quest complete: Passage to the Mainland!", "Quest"),
         say("Milkmaid", "Father's compass! And Father home safe, all thanks to you. Oh, come here, love.\\I'll take you "
-                        "across to Southport myself, right now. After that Wim can ferry you back and forth: he'll steer "
-                        "by Father's compass now.", ("Take me to Southport.", "@sail"), ("Not yet.", "@later")),
+                        "across to Northgate myself, right now. After that Wim can ferry you back and forth: he'll steer "
+                        "by Father's compass now.", ("Take me to Northgate.", "@sail"), ("Not yet.", "@later")),
         ("@sail",), ("Goto.Script", "Bess Sails to Southport"),
         ("@later",), say("Milkmaid", "Whenever you're ready, Wim's on the pier.", ("Thank you, Bess.", "@end")),
         ("End",),
@@ -1070,8 +1070,8 @@ def bess_and_frank():
         ("Wait", "3"),
         ("Toggle.User.Input", "ON"),
         ("Teleport", "Southport_Pier", "-"),
-        ("Display.Message", "Yellow", "..and the fog lifts over Southport harbour.", "-"),
-        say("Milkmaid", "There's Southport. Its shardstone stands by the market: feed it a few Shards and it wakes, and "
+        ("Display.Message", "Yellow", "..and the fog lifts over Northgate harbour.", "-"),
+        say("Milkmaid", "There's Northgate. Its shardstone stands by the market: feed it a few Shards and it wakes, and "
                         "after that it'll carry you to any other shardstone you've woken. Mind your Shards, love, and "
                         "come home sometimes.", ("Goodbye, Bess.", "@off")),
         ("@off",),
@@ -1231,7 +1231,7 @@ def chapel_and_caves():
         ("Display.Message", "Yellow", "An unseen hand closes on the amulet and draws it out between the bars, into your "
                                       "palm.", "-"),
         ("Update.Attribute", "AmuletQuest", "=6"),
-        say("Gravekeeper", "The Amulet of Estforlan Succession. So it's true, then. Keep it close, and show it to no one "
+        say("Gravekeeper", "The Amulet of Ashen Succession. So it's true, then. Keep it close, and show it to no one "
                            "but your father.\\And take this. The hobgoblins have made a lair beyond an old iron door in "
                            "these caves, south of the great cavern. I keep the caves' old keys: this is that door's. "
                            "Bess's father went missing when they came. If you go after them, go carefully.",
@@ -1405,7 +1405,7 @@ def ferry_scripts():
         (">On.Map", "1,2,0", "@southport"),
         ("Get.Value", "ATTRIBUTE", "Passage", V1),
         (">Conditional", "$Variable.1>=5", "@fog"),
-        say("Ferryman", "Southport, is it? A gold coin a crossing.", ("Yes, take me (1 gold).", "@pay"),
+        say("Ferryman", "Northgate, is it? A gold coin a crossing.", ("Yes, take me (1 gold).", "@pay"),
             ("Not today.", "@end")),
         ("@pay",), (">Got.Item", "Gold_Coin(s)", "1", "@nogold"),
         ("Take.Item", "Gold_Coin(s)", "1"),

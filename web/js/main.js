@@ -1,4 +1,4 @@
-// Shards of Estforlan in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
+// Shards of Ashen in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
 // out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp; a phone's is laid out
 // lower, so everything's bigger: mobile.js) and the frame loop.
 import { A, loadManifest, configRead, onLoaded, OWN } from "./assets.js";
@@ -128,7 +128,7 @@ function placeChat() {
   box.style.bottom = "auto";
 }
 
-// ----- the login screen's film of Southport: playing while it's there; the still picture for less motion
+// ----- the login screen's film of Northgate: playing while it's there; the still picture for less motion
 const loginVideo = $("login-video");
 const stillPlease = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
 function loginFilm() {
@@ -233,7 +233,7 @@ $("quit-logout").onclick = () => {
   if (N.ws) N.ws.close();
   stopMusic();
   $("quit").hidden = true;
-  showMessage("Shards of Estforlan", "Your game is saved. See you soon!", () => location.reload());
+  showMessage("Shards of Ashen", "Your game is saved. See you soon!", () => location.reload());
 };
 
 // (in the Android app: out of the game, to the app's start screen: host, the games on the network, an address)
@@ -642,7 +642,7 @@ N.onMessage = (m) => {
       running = false;
       releaseKeys();
       stopMusic();
-      showMessage("Shards of Estforlan", m.reason, () => location.reload());
+      showMessage("Shards of Ashen", m.reason, () => location.reload());
       break;
     case "mapdata": addMap(m); invalidateMap(m.name); break;
     case "mapcells": mapCells(m); break;

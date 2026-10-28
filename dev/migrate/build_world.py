@@ -11,7 +11,7 @@ New tile sprites come from build_tiles.py (run it first).
 
 How the Southlands connect to the original island (whose edges are all sea, so nothing can be walked to):
   * A ferry. "1,2,0.txt" (the entry script of the island's pier map) puts the ferrywoman (Woman) at the
-    end of the pier and a notice by it; talking to her sails to the Southport pier (1,3,0) and back.
+    end of the pier and a notice by it; talking to her sails to the Northgate pier (1,3,0) and back.
   * The Wizard in the palace tower on the Royal Isle (4,4,1) can also send you back to the island.
 Ladders: Ladder001/Ladder004 = Climb Up (Z+1), Ladder002/005/006/007 = Climb Down (Z-1), always to the
 same X,Y. (The house on the Isle, 1,1,0, used to have a ladder UP to 1,1,-1; build_content.py turned it into a
@@ -150,7 +150,7 @@ def notice_script_name(map_name, tx, ty):
 # ------------------------------------------------------------------------------------------- maps
 MAPS = {}
 
-# 1,3,0  Southport: the ferry pier, a beach and a fisher's hut. Road east to Ashford, south to the woods.
+# 1,3,0  Northgate: the ferry pier, a beach and a fisher's hut. Road east to Ashford, south to the woods.
 MAPS["1,3,0"] = dict(
     rows=[
         "~~~~~~~~~~~~~~~~~~~~~~~~~",
@@ -410,9 +410,9 @@ NEW_MAPS = list(MAPS)
 
 # ------------------------------------------------------------------------------------------- notices
 NOTICES = {
-    ("1,2,0", 23, 10): "FERRY TO SOUTHPORT\\Sailings every day from the end of the pier.",
-    ("1,3,0", 14, 9): "SOUTHPORT\\North: the ferry to the Isle\\East: Ashford village\\South: Whispering Woods and the old iron mine",
-    ("2,3,0", 14, 10): "ASHFORD\\West: Southport docks\\East: the farmlands\\South: Tyron's Keep",
+    ("1,2,0", 23, 10): "FERRY TO NORTHGATE\\Sailings every day from the end of the pier.",
+    ("1,3,0", 14, 9): "NORTHGATE\\North: the ferry to the Isle\\East: Ashford village\\South: Whispering Woods and the old iron mine",
+    ("2,3,0", 14, 10): "ASHFORD\\West: Northgate docks\\East: the farmlands\\South: Tyron's Keep",
     ("3,3,0", 14, 13): "WEST: Ashford\\SOUTH: GOBLIN CAMP\\Travellers beware!",
     ("1,4,0", 11, 10): "ASHFORD IRON MINE\\Closed by order of King Tyron. Hobgoblins below!\\The guard lets no one through the gate without\\body armour, unless they are on the King's business.",
     ("2,4,0", 7, 12): "TYRON'S KEEP\\The gate is open to all honest folk.\\East: the goblin camp road",
@@ -480,8 +480,8 @@ S["Talk to Woman"] = [
     ("Get.Value", "ATTRIBUTE", "FerryQuest", "Variable.1$"),
     (">On.Map", "1,2,0", "@south"),
     (">Conditional", "$Variable.1>=4", "@first"),
-    ("Display.Conversation", "Woman", "Ahoy again! Southport, is it? The fare is 1 gold coin.",
-     "Yes, take me to Southport (1 gold).", "@go", "Not today.", "@bye"),
+    ("Display.Conversation", "Woman", "Ahoy again! Northgate, is it? The fare is 1 gold coin.",
+     "Yes, take me to Northgate (1 gold).", "@go", "Not today.", "@bye"),
     "go:",
     (">Got.Item", "Gold_Coin(s)", "1", "@broke"),
     ("Take.Item", "Gold_Coin(s)", "1"),
@@ -490,7 +490,7 @@ S["Talk to Woman"] = [
     "first:",
     (">Got.Item", "Ferry_Ticket", "1", "@noticket"),
     ("Display.Conversation", "Woman", "A ticket, stamped by my sister! Hop aboard. After this it's a gold coin a crossing.",
-     "Take me to Southport.", "@sail", "Not yet.", "@bye"),
+     "Take me to Northgate.", "@sail", "Not yet.", "@bye"),
     "sail:",
     ("Take.Item", "Ferry_Ticket", "1"),
     ("Update.Attribute", "FerryQuest", "=4"),
@@ -499,7 +499,7 @@ S["Talk to Woman"] = [
     ("End",),
     "noticket:",
     (">Conditional", "$Variable.1=0", "@remind"),
-    ("Display.Conversation", "Woman", "Ahoy there! I sail across the strait to Southport, on the southern mainland.\\First crossing is by ticket only. My sister the milkmaid keeps the ticket book, on the farm up north.",
+    ("Display.Conversation", "Woman", "Ahoy there! I sail across the strait to Northgate, on the southern mainland.\\First crossing is by ticket only. My sister the milkmaid keeps the ticket book, on the farm up north.",
      "I'll get a ticket.", "@start", "Not today.", "@bye"),
     "start:",
     ("Update.Attribute", "FerryQuest", "=1"),
@@ -537,7 +537,7 @@ S["Ferry to Southport"] = [
     ("Wait", "2"),
     ("Toggle.User.Input", "ON"),
     ("Teleport", PL.tile("Southport_Pier", "1,3,0", 12, 5), "-"),
-    ("Display.Message", "Yellow", "...and tie up at the Southport pier."),
+    ("Display.Message", "Yellow", "...and tie up at the Northgate pier."),
     ("End",),
 ]
 
@@ -553,7 +553,7 @@ S["Ferry to the Isle"] = [
 ]
 
 # --- map entry flavour
-S["1,3,0"] = [("Display.Message", "Cyan", "Southport. Gulls wheel over the harbour."), ("End",)]
+S["1,3,0"] = [("Display.Message", "Cyan", "Northgate. Gulls wheel over the harbour."), ("End",)]
 S["2,3,0"] = [("Display.Message", "Cyan", "Ashford village. You smell fresh bread."), ("End",)]
 S["3,3,0"] = [("Display.Message", "Cyan", "The farmlands of Ashford."), ("End",)]
 S["1,4,0"] = [("Display.Message", "Cyan", "The Whispering Woods. The trees creak in the wind."), ("End",)]
@@ -602,7 +602,7 @@ S["Talk to Blacksmith"] = [
     ("Display.Item.Rack", "SPECIFIC", "Blacksmith", "SHOP-Smith", "@bye"),
     ("End",),
     "mine:",
-    ("Display.Conversation", "Blacksmith", "In the Whispering Woods, south-west of Southport. There's a hatch in the rocks.\\You'll want a pickaxe, and some armour: the King's guard won't let you through the gate without it.",
+    ("Display.Conversation", "Blacksmith", "In the Whispering Woods, south-west of Northgate. There's a hatch in the rocks.\\You'll want a pickaxe, and some armour: the King's guard won't let you through the gate without it.",
      "Thanks.", "@bye"),
     "bye:",
     ("End",),
@@ -678,7 +678,7 @@ S["Talk to Beggar"] = [
 
 S["Talk to Wizard"] = [
     ("Display.Conversation", "Wizard", "Hmm? Ah, a visitor. I study the arcane arts up here, far from the noise of the court.\\I can send you anywhere I have been. Where to?",
-     "To the Isle.", "@isle", "To Southport.", "@port", "Nowhere, thanks.", "@bye"),
+     "To the Isle.", "@isle", "To Northgate.", "@port", "Nowhere, thanks.", "@bye"),
     "isle:",
     ("Play.Sound", "Teleporter"),
     ("Display.Message", "Yellow", "The wizard waves his hands and the world spins..."),

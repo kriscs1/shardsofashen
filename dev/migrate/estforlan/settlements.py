@@ -776,9 +776,9 @@ class Plan(OLD.Town):
         """A notice with the place's name by its middle."""
         spot = self.free_spot(((self.sq[0] + self.sq[2]) // 2 - 3, self.sq[3] + 1) if self.sq else self.centre)
         if spot:
-            self.street_sign(spot, self.title, {"huge": "The royal city.", "large": "A city of the south coast.",
-                                                "medium": "A city of Estforlan.", "small": "A small city.",
-                                                "town": "A town of Estforlan.", "village": "A village.",
+            self.street_sign(spot, self.title, {"huge": "The royal city.", "large": "A port city.",
+                                                "medium": "A city of Ashen.", "small": "A small city.",
+                                                "town": "A town of Ashen.", "village": "A village.",
                                                 "hamlet": "A hamlet."}[self.spec["size"]])
 
     # ------------------------------------------------------------------ its people

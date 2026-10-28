@@ -1,4 +1,4 @@
-# Shards of Estforlan: rules for every change
+# Shards of Ashen: rules for every change
 
 Read this before changing anything. It holds what must stay consistent: the story, the game's rules, the look and
 sound, and how code and data are written and checked. When the owner gives a rule that should last ("always",
@@ -26,7 +26,7 @@ References: `README-Server.md` (running, deploying, shared vs personal), `dev/Da
 
 ## The story
 
-**You are the true heir of Estforlan.** Every generation the dragon takes the king's firstborn heir, or it keeps
+**You are the true heir of Ashen.** Every generation the dragon takes the king's firstborn heir, or it keeps
 Galaith, the capital, shut behind a magical barrier: the city that holds the only land route across the world, with
 the gold and Shard mines in the mountains behind it. Your mother, **Queen Mary**, ran from Galaith with you as a baby
 to save you and to break the curse. The city has been sealed since your birth; King **Rupert**, your father, is shut
@@ -54,23 +54,23 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
    Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
    a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
-   squeaks: stand on it, then Search it, for the compass. Bess sails you to Southport; **Wim** the ferryman crosses
+   squeaks: stand on it, then Search it, for the compass. Bess sails you to Northgate; **Wim** the ferryman crosses
    for a coin after that.
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
 old dagger to break down for a Shard (Dismantle), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and
-the Grasp scroll (learnt for good, cast for Shards), and Bess points out Southport's shardstone. Anything new a player
+the Grasp scroll (learnt for good, cast for Shards), and Bess points out Northgate's shardstone. Anything new a player
 must learn early is taught the same way, on the Isle.
 
 On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
-5. **The Temporary Capital** (`ParliamentQuest`): the guard at Southport's port; the **Speaker** in Southport's City
-   Hall, which is Estforlan's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
+5. **The Temporary Capital** (`ParliamentQuest`): the guard at Northgate's port; the **Speaker** in Northgate's City
+   Hall, which is Ashen's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
    Court** (the old King's Castle, 21,5,0; Bert at the top of its tower, 21,5,1), can break the barrier.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.
-8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Estforlan** (the King's solar, 22,11,1, up a locked
+8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Ashen** (the King's solar, 22,11,1, up a locked
    stair in the keep); 10. **The Sunken Grimoire** (the scholar in Dunerest; a buried library under a mound in the
    desert, 3,18,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
@@ -210,7 +210,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   on maps with columns below 0; the dragon guards its scorched field before the gate, and the barrier fills the pass
   through the range. Land looks natural: no straight edges to coasts, mountains or deserts. The quest places are lifted from the old maps
   (`world_parts`) and set down at their old tiles, so scripts' coordinates stay right.
-- Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Southport a
+- Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northgate a
   large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate
   medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
   villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
@@ -228,8 +228,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 ## Look and sound
 
-- The game is **Shards of Estforlan** (the page, the app, the docs). The Android package and the Docker image keep
-  their `dragonsword` names.
+- The game is **Shards of Ashen** (the page, the app, the docs), the kingdom **Ashen** (it was Estforlan), and the
+  port city **Northgate** (it was Southport). The Android package and the Docker image keep their `dragonsword`
+  names; the builders keep `estforlan` in their file names, and Northgate's Ids keep Southport (`Southport_Square`,
+  `Waystone.Southport`, the builders' town key "Southport", whose `title` is what's shown): rename only what players
+  read (`dev/migrate/rename_ashen.py`).
 - A character is a man or a woman (`look.body`: `f` is a woman, the `PlayerF` sprites, long hair and a skirt, drawn by
   `build_player.py`); the look's colours recolour either. Anything drawn on a player works on both.
 
