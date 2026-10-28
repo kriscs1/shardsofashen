@@ -189,6 +189,8 @@ def test_the_version_is_on_the_login_screen(tmp_path, monkeypatch):
             data = json.loads(msg.data)
             hello = next(m for m in (data if isinstance(data, list) else [data]) if m["t"] == "hello")
             assert hello["version"] == base + ".57" and hello["date"] == "2026-10-23"
+            with open(os.path.join(ROOT, "web", "assets", "manifest.json"), encoding="utf-8") as f:
+                assert hello["assets"] == json.load(f)["version"]      # (a page from before an update loads again)
             async with http.get(url.replace("ws://", "http://").replace("/ws", "/health")) as r:
                 assert (await r.json())["version"] == base + ".57"
             await ws.close()

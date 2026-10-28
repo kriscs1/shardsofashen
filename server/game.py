@@ -68,6 +68,7 @@ class GameServer:
         self.admins = {a.strip().lower() for a in str(admins or "").split(",") if a.strip()}
         from .version import version_info
         self.version = version_info(root)
+        self.assets_seen = (None, "")                   # (web/assets' manifest: when it was written, its version)
         self.store = Store(db_path)
         self.max_players = max_players
         self.registration = registration
@@ -220,13 +221,27 @@ class GameServer:
     # =================================================================================================================
     # Connections
     # =================================================================================================================
+    def assets_version(self):
+        """web/assets' version (export_web_assets.py's): a page loaded before they changed loads again. Read again
+        only when the manifest is written again."""
+        path = os.path.join(self.root, "web", "assets", "manifest.json")
+        try:
+            mtime = os.path.getmtime(path)
+            if mtime != self.assets_seen[0]:
+                with open(path, encoding="utf-8") as f:
+                    self.assets_seen = (mtime, str(json.load(f).get("version", "")))
+        except (OSError, ValueError):
+            return ""
+        return self.assets_seen[1]
+
     async def handle_ws(self, request):
         ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
         await ws.prepare(request)
         c = Client(ws, request.remote)
         c.writer = asyncio.ensure_future(c.write())
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
-                            "registration": self.registration, "invite": bool(self.invite_code), **self.version})
+                            "registration": self.registration, "invite": bool(self.invite_code),
+                            "assets": self.assets_version(), **self.version})
         try:
             async for msg in ws:
                 if msg.type != WSMsgType.TEXT:

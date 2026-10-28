@@ -623,6 +623,11 @@ N.onMessage = (m) => {
   const now = performance.now();
   switch (m.t) {
     case "hello":
+      if (A.m && m.assets && A.m.version && m.assets !== A.m.version) {     // (the server's pictures changed under us)
+        if (running) showMessage("Shards of Ashen", "The game has been updated. It will load again.", () => location.reload());
+        else location.reload();
+        break;
+      }
       $("login-online").textContent = `${m.online} of ${m.max} adventurers online.`;
       if (m.version) {
         const day = m.date ? new Date(m.date + "T12:00:00").toLocaleDateString(undefined,
