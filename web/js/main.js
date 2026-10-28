@@ -56,6 +56,7 @@ S.addLocal = (text, col) => addMessage(text, col);
 // The screen
 // ================================================================================================================
 const PHONE_SHARPNESS = 2;                      // (a phone's canvas: at most this many pixels to a game pixel)
+const UPRIGHT_W = 480;                          // (a phone held upright: this many game pixels across, room for a box)
 
 function resize() {
   let dpr = window.devicePixelRatio || 1;
@@ -66,9 +67,15 @@ function resize() {
     // own 2.5 or 3 times: as sharp to the eye, and half the pixels to paint every frame)
     const tall = Math.max(window.innerHeight, screen.tall[window.innerWidth] || 0);
     screen.tall[window.innerWidth] = tall;
-    H = clamp(Math.round(tall / 1.08 / 2) * 2, 320, 768);
-    W = Math.max(560, Math.round(H * window.innerWidth / tall / 2) * 2);
-    dpr = Math.min(dpr, PHONE_SHARPNESS * H / tall);
+    if (tall > window.innerWidth) {              // (held upright: as wide as a conversation, as tall as the screen)
+      W = UPRIGHT_W;
+      H = Math.round(W * tall / window.innerWidth / 2) * 2;
+      dpr = Math.min(dpr, PHONE_SHARPNESS * W / window.innerWidth);
+    } else {
+      H = clamp(Math.round(tall / 1.08 / 2) * 2, 320, 768);
+      W = Math.max(560, Math.round(H * window.innerWidth / tall / 2) * 2);
+      dpr = Math.min(dpr, PHONE_SHARPNESS * H / tall);
+    }
   }
   const cw = Math.max(1, Math.round(window.innerWidth * dpr));
   const ch = Math.max(1, Math.round(window.innerHeight * dpr));

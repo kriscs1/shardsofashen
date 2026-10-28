@@ -248,8 +248,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   left of the view, not in the sidebar.
 - **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch
   screens and in the Android app). The phone's has no sidebar or chat bar: a round minimap top right (tap: the world
-  map), the Bag, Chat, Journal and Menu buttons, a stick, tap and hold. No Talk or Map buttons. Anything new on screen
-  must work in both, with finger-sized targets on the phone; nothing for the app goes in `android/` that the page
+  map), the Bag, Chat, Journal and Menu buttons, a stick, tap and hold. No Talk or Map buttons. The phone turns
+  either way (the app's `fullSensor`): held upright the game is 480 wide and as tall as the screen, a box sits under
+  the minimap with the pack below it, and the bag puts the Stats box over the pack (`L.upright` in `layout`).
+  Anything new on screen must work in both layouts, and on a phone both ways up, with finger-sized targets; nothing for the app goes in `android/` that the page
   could do.
 - **The phone can be the server.** The Android app runs `server/` itself (Python 3.11 through Chaquopy, with its
   aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. So

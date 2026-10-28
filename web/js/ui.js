@@ -52,6 +52,25 @@ export function layout(W, H = 768) {
     L.chatR = L.chatW - 44;
     L.boostR = L.mmX - L.mmSize / 2 - 10;
     L.abX = Math.max(4, Math.min(Math.floor((L.VW - abw) / 2), L.packX - abw - 6));
+    L.packY = L.bagY;
+    L.bagH = Math.max(200, L.packH);
+    L.upright = H > W;
+    if (L.upright) {
+      // (held upright: one column under the minimap - a box and its answers over the pack, or in the bag, the Stats
+      // box over the pack)
+      L.abX = Math.max(4, Math.floor((W - abw) / 2));
+      L.abY = L.mmY + L.mmSize / 2 + 12;
+      L.packY = L.abY + abh + rbh + 14;
+      L.bagW = 224;
+      L.bagX = Math.max(6, Math.floor((W - 64 - L.bagW) / 2));
+      L.bagY = Math.max(L.mmY + L.mmSize / 2 + 12, L.packY - 208);
+      L.bagH = L.packY + L.packH - L.bagY;
+      L.statX = L.bagX;
+      L.statY = L.bagY;
+      L.packX = L.bagX + Math.floor((L.bagW - L.packW) / 2);
+      L.invX = L.packX + 15;
+      L.invY = L.packY + 14;
+    }
   } else {
     L.VW = W - 224;
     L.VH = 672;
@@ -67,8 +86,9 @@ export function layout(W, H = 768) {
     L.chatR = W - 44;
     L.boostR = L.VW - 8;
     L.abX = Math.floor((L.VW - abw) / 2);
+    L.upright = false;
   }
-  L.abY = Math.floor((L.VH - (abh + rbh)) / 2);
+  if (!L.upright) L.abY = Math.floor((L.VH - (abh + rbh)) / 2);
   L.rbX = L.abX;                                    // (the answers line up with the box above them)
   L.rbY = L.abY + abh;
   L.helpX = L.VW + 18;
@@ -1716,6 +1736,7 @@ export const joyCentre = () => [16 + JOY.r, L.VH - 16 - JOY.r];
 export function touchButtonRect(i) { return [L.btnX, L.btnY + i * 50, 20]; }
 
 export function touchButtonAt(x, y) {
+  if (L.upright && S.box.mode) return "";          // (held upright, a box covers them)
   const list = touchButtons();
   for (let i = 0; i < list.length; i++) {
     const [cx, cy, r] = touchButtonRect(i);
@@ -1731,7 +1752,7 @@ export function journalOrigin() {
   return M.on ? [-M.panX, -M.panY] : [Math.floor((L.W - 1024) / 2), 0];
 }
 
-export function bagRect() { return [L.bagX - 6, L.bagY - 6, L.bagW + 12, Math.max(200, L.packH) + 12]; }
+export function bagRect() { return [L.bagX - 6, L.bagY - 6, L.bagW + 12, L.bagH + 12]; }
 
 function drawTouchButton(ctx, cx, cy, r, key, label, on) {
   ctx.fillStyle = on ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.88)";
@@ -1819,12 +1840,14 @@ function drawTouchUI(ctx, now) {
   const mm = sprite("MinimapMarker");
   if (mm) ctx.drawImage(mm, L.mmX - 4, L.mmY - 4);
   drawClock(ctx, now);
-  touchButtons().forEach(([key, label], i) => {
-    const [cx, cy, r] = touchButtonRect(i);
-    drawTouchButton(ctx, cx, cy, r, key, label, (key === "bag" && M.bag) || (key === "chat" && M.chat));
-  });
+  if (!(L.upright && S.box.mode)) {
+    touchButtons().forEach(([key, label], i) => {
+      const [cx, cy, r] = touchButtonRect(i);
+      drawTouchButton(ctx, cx, cy, r, key, label, (key === "bag" && M.bag) || (key === "chat" && M.chat));
+    });
+  }
   if (M.bag || (S.box.mode && S.box.mode !== "Conversation")) {
-    const [bx, by, bw, bh] = M.bag && !S.box.mode ? bagRect() : [L.packX - 6, L.bagY - 6, L.packW + 12, L.packH + 12];
+    const [bx, by, bw, bh] = M.bag && !S.box.mode ? bagRect() : [L.packX - 6, L.packY - 6, L.packW + 12, L.packH + 12];
     roundBox(ctx, bx, by, bw, bh, "rgba(51,34,27,0.96)", [126, 77, 63], 2, 12);
     if (statsShown()) drawStats(ctx);
     ctx.strokeStyle = "rgb(92,60,46)"; ctx.lineWidth = 1;
