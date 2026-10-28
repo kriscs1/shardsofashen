@@ -3188,3 +3188,38 @@ def test_the_scarecrow_gets_a_hat_and_shares_a_thought(world):
     run_for(world, 10)
     assert s.get_attribute("ScarecrowQuest") == "2" and s.items_held("Fur_Cap") == 0
     leave(world, s)
+
+
+def test_the_hollow_hill_cave_in_and_out_and_its_chest_once(world):
+    s = join(world, "Spelunker", "2,4,0", 288, 480)
+    s.connected = True
+    s.god_mode = True
+
+    def tile_verb(verb, map_name, tx, ty, stand):
+        s.teleport(map_name, (stand[0] - 1) * 32, (stand[1] - 1) * 32 - 8)
+        if s.pending_map:
+            s.do_pending_map_change()
+        run_for(world, 5)
+        m = s.cur_map
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        s.choose_verb(verb, s.tile_entity_at(gx, gy), gx, gy)
+        run_for(world, 40)
+        if s.pending_map:
+            s.do_pending_map_change()
+        run_for(world, 5)
+
+    tile_verb("Enter", "2,4,0", 8, 16, (9, 16))
+    assert s.cur_map.name == "2,4,-1"                               # (down into the cave)
+    chest = next(e for e in world.ents if e.npc_id == "Hollow_Hill_Chest")
+    near(world, s, chest, 0, 30)
+    s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
+    run_for(world, 20)
+    s.chest_response("CHEST_ALL")
+    assert s.items_held("Iron_Helm") == 1 and s.get_attribute("HollowHillChest") == "1"
+    s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
+    run_for(world, 20)
+    s.chest_response("CHEST_ALL")
+    assert s.items_held("Iron_Helm") == 1                           # (once each)
+    tile_verb("Climb Up", "2,4,-1", 8, 16, (9, 16))
+    assert s.cur_map.name == "2,4,0"
+    leave(world, s)

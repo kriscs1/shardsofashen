@@ -1,0 +1,33 @@
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Cave_Wall002:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall002:Cave_Wall002:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor002:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Wall001:Cave_Wall002:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor001+Decor(Copper_Rock001):Cave_Pool001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Wall001:Cave_Floor003:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor003+Decor(Copper_Rock001):Cave_Floor002:Cave_Wall002:Cave_Wall002:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Cave_Wall001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor001+Decor(Ore_Rock001):Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall002:Cave_Wall001:Cave_Wall001:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Wall001:Cave_Wall002:Cave_Wall002:Black001:Black001:Black001:Black001:Black001
+Cave_Wall002:Cave_Floor001:Cave_Floor001:Cave_Floor002+Decor(Coal_Rock001):Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Wall001:Black001:Cave_Wall001:Cave_Wall002:Cave_Wall002:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001
+Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001+Decor(Coal_Rock001):Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Wall001:Black001:Black001:Black001:Cave_Wall002:Cave_Wall002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor003:Cave_Floor003:Cave_Wall001:Black001:Black001:Black001:Black001
+Black001:Cave_Wall002:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Wall002:Cave_Wall002:Cave_Wall001:Black001:Black001:Black001:Black001:Cave_Wall002:Cave_Wall002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Wall001:Cave_Wall002:Black001:Black001:Black001
+Black001:Cave_Wall002:Cave_Wall002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Cave_Wall002:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall002:Cave_Floor002:Cave_Floor002:Cave_Floor003:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Wall001:Cave_Wall001:Black001:Black001
+Black001:Black001:Cave_Wall002:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Wall001:Cave_Wall001:Cave_Wall002:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor001:Cave_Floor001+Decor(Ore_Rock001):Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall001:Black001
+Black001:Black001:Cave_Wall001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor003:Cave_Wall001:Cave_Wall002:Black001:Black001:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Wall001:Black001
+Black001:Black001:Cave_Wall002:Cave_Wall001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Wall001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Floor003:Cave_Floor003:Cave_Floor002:Cave_Floor002:Cave_Floor002:Cave_Floor003:Cave_Floor002:Cave_Wall001:Cave_Wall002:Black001
+Black001:Black001:Black001:Cave_Wall002:Cave_Wall002:Cave_Floor002:Cave_Floor001:Cave_Steps001:Cave_Floor003:Cave_Floor001:Cave_Wall002:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Wall001:Black001:Black001
+Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall002:Cave_Wall001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Wall001:Black001:Black001:Black001:Black001:Cave_Wall002:Cave_Wall002:Cave_Wall001:Cave_Floor001:Cave_Floor003:Cave_Wall001:Cave_Wall002:Cave_Wall002:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall002:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall002:Cave_Wall001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+MapItem	Cave_Mushroom	96	224	1
+MapItem	Cave_Mushroom	224	128	1
+MapItem	Cave_Mushroom	576	416	1
+NPC	Bat	128	384	Attitude=Bad Zone=4,8,9,15
+NPC	Bat	416	192	Attitude=Bad Zone=9,4,16,9
+NPC	Rat	128	256	Attitude=Bad Zone=3,7,8,12
+NPC	Rat	448	224	Attitude=Bad Zone=11,5,17,10
+NPC	Giant_Spider	608	384	Attitude=Bad Zone=16,11,23,17
+NPC	Giant_Spider	576	448	Attitude=Bad Zone=16,11,23,17
+StaticObject	Chest	608	416	Id=Hollow_Hill_Chest
+Id	Hollow_Hill_Steps	8	16
+Id	Hollow_Hill_Floor	9	16

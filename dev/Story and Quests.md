@@ -225,6 +225,11 @@ Shards. Every hour, once nobody's down there, it shifts, and it's all new.
 **Bert's tower's secrets**: a cat flap low in the wall (only a cat fits: Bert's biscuit tin, 25 Shards and his pie)
 and a big red button that shouldn't be pressed (a chicken, a bucket of water, confetti, or a goose).
 
+**The Hollow Hill** (`dev/migrate/build_hollow_hill.py`): where Northgate's west road runs into the range (2,4,0),
+a cave mouth; Enter it. The cave below (2,4,-1) winds back under the mountain: bats and rats near the way in, coal,
+copper and ore to mine, a pool, cave mushrooms, and at the back a spiders' chamber with an old cache in a chest
+(each player's own, once). Steps lead back up to the daylight.
+
 **Secrets in every settlement** (`dev/migrate/build_whimsy.py`): by each town's square stands something to Search (a
 hollow stump, a loose cobble, an odd barrel, an old statue, a well), each with its own find and its own line: Shards,
 gold, potions, a rubber duck, a lucky sock, a key that winks. Once each; five, ten and all seventeen found are noticed
