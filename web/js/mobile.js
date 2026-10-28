@@ -17,7 +17,18 @@ function detect() {
     if (v === "1" || v === "0") return v === "1";
   } catch (e) { /* (private window) */ }
   const mq = (s) => window.matchMedia && window.matchMedia(s).matches;
-  return mq("(pointer: coarse)") && !mq("(pointer: fine)");
+  return mq("(pointer: coarse)") && !mq("(any-pointer: fine)");   // (fingers only: a touchscreen laptop has its mouse)
+}
+
+// Options' Layout: "" (as the screen suggests), "0" (desktop) or "1" (touch); the page loads again in it
+export function layoutChoice() {
+  try { return localStorage.getItem("ds.touch") || ""; } catch (e) { return ""; }
+}
+export function chooseLayout(v) {
+  try { if (v) localStorage.setItem("ds.touch", v); else localStorage.removeItem("ds.touch"); } catch (e) { /* (private window) */ }
+  const q = new URLSearchParams(location.search);
+  q.delete("touch");
+  location.search = q.toString();
 }
 
 export const M = {

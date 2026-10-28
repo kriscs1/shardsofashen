@@ -9,7 +9,7 @@ import { invalidateMap, invalidateCell, mapCells } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
   JOY } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
-import { M } from "./mobile.js";
+import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
@@ -267,6 +267,9 @@ $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checke
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
 $("opt-fullscreen").onclick = toggleFullscreen;
+$("opt-layout-row").hidden = M.app;                      // (the app is always the touch layout)
+$("opt-layout").value = layoutChoice();
+$("opt-layout").addEventListener("input", (ev) => chooseLayout(ev.target.value));
 let appearancePick = null;
 $("opt-look").onclick = () => {
   $("options").hidden = true;
