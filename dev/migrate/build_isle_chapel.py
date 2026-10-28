@@ -308,7 +308,7 @@ def lost_key():
         "03	Display.Conversation	Gravekeeper	You found my key! Bless you. Keep it: the trapdoor will open for you. "
         "Rats and bats down there, mind.	I will.	05",
         "04	Display.Conversation	Gravekeeper	Barrels, old candles... and a trapdoor, down to the caves under the "
-        "Isle. Locked, and I've lost the key.\I had it last down there, sorting through the barrels and crates. If "
+        "Isle. Locked, and I've lost the key.\\I had it last down there, sorting through the barrels and crates. If "
         "you find it, it's yours to keep.	I'll look for it.	05	Goodbye.	05",
         "05	End"])
     write_script("Climb Down Trapdoor", [

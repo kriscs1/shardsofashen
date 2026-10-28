@@ -155,7 +155,7 @@ class TilePage(IniFormPage):
         self.set_label.pack(side="left", padx=8)
         self.row(f, r, "Piece", pc,
                  "Which piece of a set it is (\"corner: top left\", \"runner: middle\"): the Maps palette says it "
-                 "when you point at the tile, with its set (data\TileSets.ini) laid out and this piece marked.")
+                 "when you point at the tile, with its set (data\\TileSets.ini) laid out and this piece marked.")
         r += 1
         tiles = lambda: [(t, t, tile_family(t)) for t in self.project.tiles()]
         icon = lambda k: photo(self.project.sprite("Tiles", k), (32, 32), key=("tile", k))

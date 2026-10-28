@@ -136,7 +136,7 @@ LORE = {
     "mountain": "And Galaith's mountain was the deepest seam of all. Your forefathers dug its gold, and its Shards, "
                 "until the dragon came for them. It sits on them still.",
     "potions": "Shards reach out of you: they strike, freeze, carry things, carry you, or bind round you as a ward. "
-               "What they can't do is get inside a living body. They'll never mend a wound or sharpen an eye.\That's "
+               "What they can't do is get inside a living body. They'll never mend a wound or sharpen an eye.\\That's "
                "the brewer's art: herbs work from within, on whoever drinks them, and on nothing else. And no herb "
                "ever made a Shard.",
 }

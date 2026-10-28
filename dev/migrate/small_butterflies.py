@@ -1,4 +1,4 @@
-"""(Superseded: dev\migrate\build_butterflies.py draws them afresh, small and flapping. Don't run this again.)
+"""(Superseded: dev\\migrate\build_butterflies.py draws them afresh, small and flapping. Don't run this again.)
 
 Butterflies, smaller: their pictures (sprites\\Walk\\Butterfly2a-8c, sprites\\Entities\\Butterfly) shrunk to SCALE,
 kept centred where they were. The originals are kept in dev\\Archive\\Sprites and shrunk from there, so running it

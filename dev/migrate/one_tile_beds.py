@@ -1,11 +1,11 @@
-"""(Done, and since undone in part: dev\migrate\long_beds.py gives beds a foot again (Bed002). Don't run this again.)
+"""(Done, and since undone in part: dev\\migrate\\long_beds.py gives beds a foot again (Bed002). Don't run this again.)
 
 Beds in one tile: a bed was two (Bed001 its head, Bed002 its foot under it). Run it once (again: nothing to do).
 
   python -I "dev\\migrate\\one_tile_beds.py"
 
   * Bed001: a single bed in one tile, drawn here: a wooden frame with corner posts, headboard and footboard, a
-    pillow, a red patchwork quilt turned back at the top. (The old two-tile pictures are kept in dev\Archive\Sprites.)
+    pillow, a red patchwork quilt turned back at the top. (The old two-tile pictures are kept in dev\\Archive\\Sprites.)
   * The double bed (Bed002) and the old pieces (Bed102, Bed201) are gone: their pictures, Tiles.ini, Buildables.ini.
   * Every map: a Bed002 under a Bed001 (the old foot) is taken away; any other old piece is a Bed001.
 """

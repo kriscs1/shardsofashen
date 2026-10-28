@@ -987,7 +987,7 @@ def check_tiles():
             elif k == "Door" and v not in ("0", "1", "Gate"):
                 err(r, "[%s] Door must be 1 (a door) or Gate" % sec)
             elif k == "Sway.Ground" and v not in TILES:
-                err(r, "[%s] Sway.Ground %r has no sprite in sprites\Tiles" % (sec, v))
+                err(r, "[%s] Sway.Ground %r has no sprite in sprites\\Tiles" % (sec, v))
             elif k == "Anim.Frames" and is_num(v) and int(float(v)) > 1:
                 for n in range(1, int(float(v)) + 1):
                     if "%s%d" % (sec, n) not in TILES:
@@ -1000,7 +1000,7 @@ def check_tiles():
 
 
 def check_tile_sets():
-    """data\TileSets.ini: sets of tiles that go together (Title, Columns, Tiles); every tile in one is there."""
+    """data\\TileSets.ini: sets of tiles that go together (Title, Columns, Tiles); every tile in one is there."""
     path = p("data", "TileSets.ini")
     if not os.path.exists(path):
         return
@@ -1020,7 +1020,7 @@ def check_tile_sets():
             err(r, "[%s] has no Tiles" % sec)
         for n in names:
             if n and n not in TILES:
-                err(r, "[%s] tile %r has no sprite in sprites\Tiles" % (sec, n))
+                err(r, "[%s] tile %r has no sprite in sprites\\Tiles" % (sec, n))
 
 
 def footprint_fits(name, data):
@@ -1212,10 +1212,10 @@ DEEP_KEYS = {"Floors", "Shift.Minutes", "Rooms", "Chests", "Secrets", "Traps", "
 
 
 def check_deep():
-    """data\Deep.ini (the Shifting Deep: dsengine/deep.py): known keys, numbers or lo-hi, loot of real items."""
+    """data\\Deep.ini (the Shifting Deep: dsengine/deep.py): known keys, numbers or lo-hi, loot of real items."""
     path = p("data", "Deep.ini")
     if not os.path.exists(path):
-        err(rel(path), "missing (dev\migrate\build_deep.py writes it)")
+        err(rel(path), "missing (dev\\migrate\build_deep.py writes it)")
         return
     check_raw(path)
     check_ini_syntax(path)
@@ -1786,7 +1786,7 @@ ENGINE_RACKS = {"SHOP-Tavern"}      # opened by the server itself (the innkeeper
 
 
 def wave_scripts():
-    """The scripts data\Waves.ini's attacks run at the end (On.Win.Script, On.Lose.Script)."""
+    """The scripts data\\Waves.ini's attacks run at the end (On.Win.Script, On.Lose.Script)."""
     out = set()
     for ln in read_lines(p("data", "Waves.ini")):
         k, _, v = ln.partition("=")

@@ -158,7 +158,7 @@ class EntityPage(IniFormPage):
                  "Every one placed on a map is picked up once and never comes back.", col=2)
         self.row(g, 3, "Seed of crop", ttk.Combobox(g, textvariable=self.var("Crop"),
                                                     values=[""] + self.project.crops_ini.sections(), width=18),
-                 "A seed: the data\Crops.ini crop it grows into when used on tilled soil (see the Crops section).")
+                 "A seed: the data\\Crops.ini crop it grows into when used on tilled soil (see the Crops section).")
         self.row(g, 4, "Kept when you die", ttk.Combobox(g, textvariable=self.var("Keep.On.Death"),
                                                          values=["", "1", "0"], width=6),
                  "1: always kept when the player dies. 0: never (it can go in the grave). Blank: kept if it can't be "

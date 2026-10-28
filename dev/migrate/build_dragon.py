@@ -97,12 +97,12 @@ def wizard_steps(quests):
         # the reward: the sword, or the hoard (less if you swore to the Ashen Hand: The Ashen Omens)
         ("Get.Value", "ATTRIBUTE", "AshenSworn", "Variable.3$"),
         (">Conditional", "$Variable.3=1", "@dqhero"),
-        conv("Ignaroth is dead... and with it, the oath you swore to its cult, I hope.\The king is grateful, but wary. "
+        conv("Ignaroth is dead... and with it, the oath you swore to its cult, I hope.\\The king is grateful, but wary. "
              "He offers you a choice: the Dragon Sword, forged in dragonfire long ago, or a share of the dragon's hoard: "
              "1500 gold.", ("The Dragon Sword.", "@dqsword"), ("The gold.", "@dqgold_s")),
         ("End",),
         "dqhero:",
-        conv("Ignaroth is dead? Then the Southlands are saved, and you are the greatest hero they have known.\The king "
+        conv("Ignaroth is dead? Then the Southlands are saved, and you are the greatest hero they have known.\\The king "
              "offers you a choice: the Dragon Sword, forged in dragonfire long ago and waiting for a hand worthy of it, "
              "or Ignaroth's hoard: 2500 gold.", ("The Dragon Sword.", "@dqsword"), ("The hoard.", "@dqgold")),
         ("End",),

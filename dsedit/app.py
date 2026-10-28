@@ -309,7 +309,7 @@ class App:
     def play(self):
         """F5: the game as it is in these files, in the browser. The pictures are made again (only what changed), the
         local server (in a window of its own) is started, or restarted to read the changes, and the game opens.
-        Its players and world are kept in server-data\ (not the real server's)."""
+        Its players and world are kept in server-data\\ (not the real server's)."""
         if getattr(self, "_playing", False):
             return
         for p in self.pages:

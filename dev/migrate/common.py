@@ -388,7 +388,7 @@ DECOR_MAP = load_decor_map()
 
 
 def tile_sprite_name(path):
-    """The tile's name if path is a sprite in sprites\Tiles, else None."""
+    """The tile's name if path is a sprite in sprites\\Tiles, else None."""
     folder, f = os.path.split(os.path.normpath(path))
     if os.path.normcase(folder) != os.path.normcase(os.path.join(NEW, "sprites", "Tiles")):
         return None

@@ -286,7 +286,7 @@ class MapPage(Page):
         self.redraw(full=True, center=True)
         self.show_inspector()
         if name == HOMESTEAD_MAP:
-            self.app.status("Homestead: the land a new home starts as (data\Homestead.txt). Each home gets its own "
+            self.app.status("Homestead: the land a new home starts as (data\\Homestead.txt). Each home gets its own "
                             "copy when it's made, so changes here are for new homes only. Keep the Homestone and "
                             "Home_Arrival.", "warn")
         for d, b in self.arrow_btns.items():
@@ -557,7 +557,7 @@ class MapPage(Page):
         return out, "%s\n%s" % (key.replace("_", " "), caption)
 
     def piece_set(self, key):
-        """For a tile that's one piece of a set (data\TileSets.ini): (the set's tiles in order, columns, None, what
+        """For a tile that's one piece of a set (data\\TileSets.ini): (the set's tiles in order, columns, None, what
         it is: the set's title and the tile's Tiles.ini Piece=)."""
         st = self.project.tile_set_of(key)
         if not st:

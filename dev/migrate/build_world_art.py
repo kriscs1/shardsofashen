@@ -9,7 +9,7 @@ minimap colours:
     Mage_Flag001 (blue-grey flags), Slate_Flag001 (dark slate), Red_Sandstone001, Flagstone001 (grey flags),
     Gravel001, Basalt_Paving001 (black basalt), Sandstone_Paving001, Boardwalk001 (planks over the marsh).
   * Signpost (where the roads meet: which way places lie) and Moored_Boat (the ports' boats: the ferry's boat's
-    frames), in sprites\Entities, with their Entities.ini sections.
+    frames), in sprites\\Entities, with their Entities.ini sections.
 
 Run it again to draw the same again.
 

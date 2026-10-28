@@ -1302,7 +1302,7 @@ def main():
     for f in os.listdir(p("data", "Scripts")):
         if f.startswith("Read ") and f[:-4] not in S and GEN.untouched(p("data", "Scripts", f)):
             os.remove(p("data", "Scripts", f))          # a notice's script the build no longer makes (an old name)
-            changed.append("removed data\Scripts\\" + f)
+            changed.append("removed data\\Scripts\\" + f)
             continue
         m = re.fullmatch(r"Read Notice(-?\d+,-?\d+,-?\d+)-\d+,\d+\.txt", f)
         if m and f[:-4] not in S and (m.group(1) in MAPS or m.group(1) == "1,2,0" or

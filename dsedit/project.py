@@ -631,7 +631,7 @@ class Project:
         return self._layers.get(layer, set())
 
     def tile_sets(self):
-        """data\TileSets.ini: [(set, title, columns, [tile names row by row, "" = a gap])], read again when it
+        """data\\TileSets.ini: [(set, title, columns, [tile names row by row, "" = a gap])], read again when it
         changes. A set is tiles that go together (a roof, a rug, a fence); each tile's Tiles.ini Piece= says which
         piece it is."""
         path = self.p("data", "TileSets.ini")

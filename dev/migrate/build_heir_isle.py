@@ -841,7 +841,7 @@ def opening():
         say("Edwin", "Of course. If you need anything, you can find my wife, Maren, and me at the bank, by the chapel. "
                      "Come for dinner.", ("Thank you, Edwin.", "@jar")),
         ("@jar",),
-        say("Edwin", "Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\Shards "
+        say("Edwin", "Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\\Shards "
                      "are splinters of the world's old magic. Spells drink them, and so do the old standing stones on "
                      "the mainland. Don't spend them all at once.", ("I won't.", "@out")),
         ("@out",),
@@ -960,7 +960,7 @@ def bank_scripts():
         ("@give",),
         ("Give.Item", "Chapel_Cellar_Key", "1"),
         say("Maren", "And take these with you: two healing draughts, brewed from Bess's herbs. Drink one when you're "
-                     "hurt.\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a "
+                     "hurt.\\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a "
                      "brewer's herbs can.", ("Thank you, Maren.", "@draughts")),
         ("@draughts",),
         ("Give.Item", "Healing_Draught", "2"),
@@ -1201,8 +1201,8 @@ def chapel_and_caves():
         ("Wait", "1"),
         ("Display.Message", "Cyan", "Footsteps echo behind you: Brother Aldous, a lantern in his hand.", "-"),
         ("Add.Entity", aldous, "Gravekeeper", "NPC", "Attitude=Good Stand=1 Face=W Name=Brother_Aldous"),
-        say("Gravekeeper", "I said I'd not be far behind. Look here first.\He stoops, and picks dull grey splinters "
-                           "from the floor.\Something died here, a rat or a bat, and left its magic behind: Shard "
+        say("Gravekeeper", "I said I'd not be far behind. Look here first.\\He stoops, and picks dull grey splinters "
+                           "from the floor.\\Something died here, a rat or a bat, and left its magic behind: Shard "
                            "Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. "
                            "Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie "
                            "still.", ("I'll remember.", "@remnants")),

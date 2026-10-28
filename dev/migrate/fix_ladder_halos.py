@@ -3,7 +3,7 @@ round their edges (a white border on the map). Ladder001 (Climb Up) becomes Ladd
 drawn clean; on the ladder holes (002, 003) the pale greys touching the see-through part go, edge inwards, until
 there are none left on the edge.
 
-  python -I "dev\migrate\fix_ladder_halos.py"
+  python -I "dev\\migrate\fix_ladder_halos.py"
 """
 import os
 

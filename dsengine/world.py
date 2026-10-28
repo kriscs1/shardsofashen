@@ -1227,7 +1227,7 @@ class World(NPCMixin):
     # The weather (data\\Weather.ini): one sky for everyone; what it does where you are depends on the place's climate
     # =================================================================================================================
     def map_labels(self):
-        """The world map's labels (data\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
+        """The world map's labels (data\\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
         z, m: its map, c: a condition (Name=Place [if $Attr.X>=3]: shown to those it's true for)}], worked out once."""
         if getattr(self, "_labels", None) is None:
             from dragonsword import ini
