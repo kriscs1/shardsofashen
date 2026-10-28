@@ -3223,3 +3223,26 @@ def test_the_hollow_hill_cave_in_and_out_and_its_chest_once(world):
     tile_verb("Climb Up", "2,4,-1", 8, 16, (9, 16))
     assert s.cur_map.name == "2,4,0"
     leave(world, s)
+
+
+def test_doctor_foster_heals_the_hurt_and_tells_the_well_to_keep_their_gold(world):
+    doc = next(e for e in world.ents if e.npc_id == "Southport_Doctor_349")
+    s = join(world, "Patient", doc.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    stock(s, **{"Gold_Coin(s)": 30})
+    near(world, s, doc, 0, 40)
+    s.player.hp = s.player_max_hp
+    assert talk_to(world, s, doc)
+    s.action_box_response_chosen(1)                                 # (heal me)
+    run_for(world, 10)
+    assert s.items_held("Gold_Coin(s)") == 30 and s.ab_mode == "Conversation"   # (fit as a fiddle: no charge)
+    assert "not a scratch" in s.ab_text
+    s.action_box_response_chosen(1)                                 # (thank you)
+    run_for(world, 10)
+    s.player.hp = 3
+    assert talk_to(world, s, doc)
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.items_held("Gold_Coin(s)") == 20 and s.player.hp == s.player_max_hp
+    leave(world, s)

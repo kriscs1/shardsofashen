@@ -465,6 +465,7 @@ class Town:
 
     # ---------------------------------------------------------------- people and scripts
     def person(self, map_name, sprite, x, y, pid, opts="", name=""):
+        name = NAMED.get(pid, name)
         line = "NPC\t%s\t%d\t%d\tAttitude=Good %s Id=%s" % (sprite, (x - 1) * TW, (y - 1) * TW - 8, opts, pid)
         if name:
             line += " Name=%s" % name.replace(" ", "_")
@@ -803,17 +804,26 @@ def room_script(name, who, price, posh=False):
     ]
 
 
+NAMED = {   # (people given their own name, not one drawn from NAMES: Id -> name)
+    "Southport_Doctor_349": "Doctor Foster",                  # (Northgate's doctor)
+}
+
+
 def doctor_script(cost):
     return [
         say("Doctor", "Hurt? Let me see. I'll patch you up for %d gold." % cost, ("Heal me (%d gold)." % cost, "@heal"),
             ("Goodbye.", "@end")),
-        ("@heal",), (">Got.Item", "Gold_Coin(s)", str(cost), "@poor"),
+        ("@heal",), (">Conditional", "$Player.Health<$Player.Health.Max", "@well"),
+        (">Got.Item", "Gold_Coin(s)", str(cost), "@poor"),
         ("Take.Item", "Gold_Coin(s)", str(cost)),
         ("Play.Sound", "SpellHeal"),
         ("Update.Skill", "Hitpoints", "+500"),
         ("Display.Message", "Yellow", "The doctor cleans and binds your wounds. You feel much better.", "-"),
         ("End",),
         ("@poor",), ("Display.Refusal", "You need %d gold coins." % cost),
+        ("End",),
+        ("@well",), say("Doctor", "Heal you? I've looked you over: not a scratch on you. You're as fit as a fiddle. "
+                                  "Keep your gold, and come back when something's actually bleeding.", ("Thank you.", "@end")),
         ("@end",), ("End",),
     ]
 
