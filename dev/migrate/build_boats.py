@@ -1,4 +1,4 @@
-"""The ferry's boats, tied up at the two piers (the Isle's, 1,2,0, and Northgate's, 1,3,0): a little sailing boat with
+"""The ferry's boats, tied up at the two piers (the Isle's, 3,2,0, and Northgate's, 1,3,0): a little sailing boat with
 a planked hull, two thwarts and a mast with its sail furled, bobbing on the water (Anim.Frames: <Name>1 and 2).
 
   * Boat001: lying east-west (64 x 48: the hull in the bottom 32, the mast above), along Northgate's pier.
@@ -18,7 +18,7 @@ INSIDE, SEAT, MAST, SAIL, SAIL_DK = (128, 86, 50), (176, 128, 78), (66, 44, 28),
 FOAM, ROPE = (226, 240, 250), (204, 182, 128)
 
 # where they go: map -> (sprite, pixel x, pixel y)
-PLACES = {"1,3,0": ("Boat001", 12 * 32, 2 * 32 - 16), "1,2,0": ("Boat002", 19 * 32, 11 * 32 - 16)}
+PLACES = {"1,3,0": ("Boat001", 12 * 32, 2 * 32 - 16), "3,2,0": ("Boat002", 13 * 32, 13 * 32 - 16)}
 EXAMINE = "The ferry's boat, tied up at the pier. Its sail is furled and it rocks gently on the swell."
 
 

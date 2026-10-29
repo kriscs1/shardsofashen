@@ -119,7 +119,7 @@ def quest_markers():
     mine = PL.marker("Iron_Mine_Entrance", "1,4,0 7 9")
     return {
         "Passage to the Mainland": {1: PL.marker("Milkmaid_Farm", "2,0,0 9 9"), 2: PL.marker("Hen_Nests", "2,0,0 12 11"),
-                                    3: PL.marker("Isle_Ferry_Pier", "1,2,0 21 13")},
+                                    3: PL.marker("Isle_Ferry_Pier", "3,2,0 15 15")},
         "King's Hobgoblin Hunt": {1: mine},
         "The Herbalist's Remedy": {1: mine},
         "The Dwarf's Grudge": {1: PL.marker("Deep_Seam_Troll", "2,4,-3 21 16")},

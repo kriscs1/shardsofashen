@@ -1408,13 +1408,13 @@ def fathers_house_scripts():
 
 
 def ferry_scripts():
-    w("1,2,0", [                                                  # (the pier map's own file is unchanged)
+    K.remove_script("1,2,0")                                      # (the pier was on 1,2,0: it's on 3,2,0 now)
+    w("3,2,0", [                                    # (the pier map's own file is unchanged: its notice is its own)
         ("Add.Entity", "Isle_Ferry_Pier", "Ferryman", "NPC", "Attitude=Good Stand=1 Name=Wim Schedule=Always"),
-        ("Add.Entity", "Isle_Ferry_Notice", "Notice", "StaticObject", "Id=Ferry_To_Southport"),
         ("End",),
     ])
     w("Talk to Ferryman", [
-        (">On.Map", "1,2,0", "@southport"),
+        (">On.Map", "3,2,0", "@southport"),
         ("Get.Value", "ATTRIBUTE", "Passage", V1),
         (">Conditional", "$Variable.1>=5", "@fog"),
         say("Ferryman", "Northgate, is it? A gold coin a crossing.", ("Yes, take me (1 gold).", "@pay"),

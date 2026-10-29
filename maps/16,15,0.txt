@@ -30,16 +30,16 @@ NPC	Barmaid	640	568	Attitude=Good Zone=16,18,22,19 Pause=3-9 Id=Highwatch_Barmai
 StaticObject	Market_Stall_Open	64	448
 StaticObject	Market_Stall_Open	64	576
 StaticObject	Market_Board	0	416
-StaticObject	Shardstone	32	352
+StaticObject	Shardstone	33	354
 StaticObject	Sign_Pub	512	624
 StaticObject	Notice	416	610	Id=Highwatch_Notice_332
 Id	Highwatch_Market_Square	1	18
-Id	Waystone_Highwatch	2	13
+Id	Waystone_Highwatch	2	12
 Id	Highwatch_Square	1	18
-Id	Highwatch_Town_Hall	7	13
+Id	Highwatch_Town_Hall	7	12
 NPC	Captain	32	504	Attitude=Good Zone=2,15,5,19 Pause=4-12
 Id	Highwatch_Captain	2	17
 NPC	Trader	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
 NPC	Settler	64	504	Attitude=Good Zone=2,15,6,19 Pause=4-12
-NPC	Guard	32	440	Attitude=Good Zone=2,13,5,17 Pause=4-12
+NPC	Guard	32	449	Attitude=Good Zone=2,13,5,17 Pause=4-12
 StaticObject	Old_Statue	64	224	Id=Secret_Highwatch

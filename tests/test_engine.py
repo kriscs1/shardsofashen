@@ -1489,12 +1489,12 @@ def test_up_to_the_chapel_loft_and_its_bell(world):
 
 
 def test_the_ferry_runs_at_night(world):
-    s = join(world, "NightOwl", "1,2,0", 20 * 32, 12 * 32)
+    s = join(world, "NightOwl", "3,2,0", 14 * 32, 13 * 32)          # (on the Isle's pier)
     day = world.day_fraction()
     world.set_day_fraction(0.95)                                    # (deep in the night: townsfolk go home)
     for _ in range(100):
         world.tick(0.05, now=world.now + 100)
-    wim = [e for e in world.ents if e.name == "Ferryman" and e.map == "1,2,0"]
+    wim = [e for e in world.ents if e.name == "Ferryman" and e.map == "3,2,0"]
     assert wim and all(e.active and not e.sched_away for e in wim)  # (Schedule=Always: he stays at his pier)
     world.set_day_fraction(day)
     leave(world, s)
@@ -3575,3 +3575,20 @@ def test_animals_stay_out_of_houses_but_cats_come_in():
     assert not sheep.ai.indoors and cat.ai.indoors
     assert not w.entity_can_stand(sheep, fx, fy - 8, fx, fy)
     assert w.entity_can_stand(cat, fx, fy - 8, fx, fy)
+
+
+def test_editor_knows_what_points_at_the_maps():
+    """The map editor's badges (dsedit/refs.py): places by name, tiles by coordinates, quest givers, whole maps."""
+    from dsedit.project import Project
+    from dsedit.refs import Refs, label
+    r = Refs(Project(ROOT))
+    assert r.fresh()
+    assert "Quest Dinner at Edwin's" in [label(u) for u in r.of_name("Isle_Bank")]       # (a quest's marker)
+    assert "WorldMap.ini Edwin & Maren's House" in [label(u) for u in r.of_name("isle_bank")]   # (a label)
+    assert ("script", "Read Isle_Bank_Notice") in r.of_name("Isle_Bank_Notice")         # (its own script)
+    assert ("script", "3,2,0") in r.of_name("Isle_Ferry_Pier")                          # (a script's place)
+    assert ("Shardstones.ini", "Southport") in r.of_name("Waystone_Southport")
+    assert ("quest", "Dinner at Edwin's") in r.of_kind("Maren")                          # (a quest's giver)
+    assert ("script", "3,2,0") in r.of_map("3,2,0")                                      # (its arrival script)
+    assert r.tiles and all(len(k) == 3 for k in r.tiles)                                 # (map, tile x, tile y)
+    assert not r.fresh()                                                                 # (nothing changed since)

@@ -332,6 +332,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   deleted ones back with `git checkout -- sprites/Walk`.
 - Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run.
+- The map editor's map: the mouse wheel zooms (Shift+wheel, middle-drag or Space+drag move the view); an area is
+  copied or cut with the inspector's buttons, then each click puts it down; after a change only the maps changed are
+  drawn again, and nothing goes black while new pictures are made. A thing dragged off a map lands on the next one.
 - The map editor shows a level as one map (`dsedit/world.py`): a set in `data/TileSets.ini` is laid out by dragging,
   by its layout and its pieces' `Piece=` (a 3-column grid stretches: corners, edges, middle; a rug's "runner"s; a
   fence's "corner: east and south"...). Give a new set the same layout and piece names. Diagonal shore pieces are
@@ -353,3 +356,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
    `ghcr.io/kriscs1/shardsofashen`) builds from GitHub.
 7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`.
+8. **The owner's uncommitted changes are kept.** Whatever is changed in the folder before you start (maps from the
+   editor, sprites, scripts, from this PC or another synced one) is the owner's work: never revert or overwrite it
+   unless asked to update it. Fix what it breaks and commit it along with your own work. A Google Drive
+   `-mediapc` conflict copy is compared with the original, and only the copy that's left over is set aside.

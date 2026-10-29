@@ -317,11 +317,12 @@ class PaletteGrid(tk.Frame):
 class Segmented(tk.Frame):
     """A row of buttons where one is chosen (like tabs): the chosen one is amber with white text, the rest tan with
     a border. options: [(value, text)] or [(value, text, tooltip)] or [(value, text, tooltip, icon)] (icon: a tool's
-    name in icons.py, drawn left of the text in the text's colour). var: a StringVar; command() after a click."""
+    name in icons.py, drawn left of the text in the text's colour). var: a StringVar; command() after a click.
+    colours: {value: colour} for buttons in a colour of their own (white text; chosen, bold with a dark edge)."""
 
-    def __init__(self, parent, var, options, command=None, columns=0, bg=None):
+    def __init__(self, parent, var, options, command=None, columns=0, bg=None, colours=None):
         super().__init__(parent, bg=bg or T.PANEL)
-        self.var, self.command, self.buttons = var, command, {}
+        self.var, self.command, self.buttons, self.colours = var, command, {}, colours or {}
         for i, opt in enumerate(options):
             value, text = opt[0], opt[1]
             edge = tk.Frame(self, bg=T.BUTTON_EDGE)              # (a 1px border round each button)
@@ -362,7 +363,11 @@ class Segmented(tk.Frame):
         for v, b in self.buttons.items():
             if not b.winfo_exists():
                 continue
-            if v == cur:
+            own = self.colours.get(v)
+            if own:
+                b.configure(bg=own, fg="white", font=T.FONT_BOLD if v == cur else T.FONT)
+                b.edge.configure(bg="#10131c" if v == cur else T.ACCENT if v == hot else own)
+            elif v == cur:
                 b.configure(bg=T.ACCENT, fg="white", font=T.FONT_BOLD)
                 b.edge.configure(bg=T.ACCENT_DARK)
             else:
