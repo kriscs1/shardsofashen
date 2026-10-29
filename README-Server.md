@@ -198,16 +198,10 @@ public.)
 
 ### Unraid
 
-**A server set up before the rename** (its container is DragonSword, its image `ghcr.io/kriscs1/dragonsword`) keeps
-working and updating: GitHub still publishes the old image name as well. To move it to the new name, once:
-
-1. Make the new image public (above), then on the **Docker** tab click the DragonSword icon > **Edit**.
-2. Change **Repository** to `ghcr.io/kriscs1/shardsofashen:latest` and the **Name** to `ShardsOfAshen`. Leave
-   **Game data** where it is (`/mnt/user/appdata/dragonsword`): that's your world. **Apply**.
-3. The first time it starts, the game renames `dragonsword.db` in that folder to `ashen.db` by itself.
-4. In Auto Update Applications, tick ShardsOfAshen.
-
-A new server:
+**A server from before the rename** (a DragonSword container, `ghcr.io/kriscs1/dragonsword`) gets no more updates.
+Make a new container from the template below, and to keep its world, point **Game data** at the old folder
+(`/mnt/user/appdata/dragonsword`), or copy that folder's files into the new one first. The first time the game starts
+it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old container (its data stays).
 
 1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
 

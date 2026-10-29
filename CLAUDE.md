@@ -259,7 +259,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - The game is **Shards of Ashen** (the page, the app, the docs), the kingdom **Ashen** (it was Estforlan), and the
   port city **Northgate** (it was Southport). Everything else is named for it too
   (`dev/migrate/rename_shards_of_ashen.py`): the GitHub repository `kriscs1/shardsofashen`, the Docker image
-  `ghcr.io/kriscs1/shardsofashen` (the old `dragonsword` image is pushed as well for now, for servers set up before),
+  `ghcr.io/kriscs1/shardsofashen`,
   the Python package `ashen/`, the database `ashen.db` (an old `dragonsword.db` beside it is moved over as the server
   starts), the Android app `io.github.kriscs1.shardsofashen`, and "Shards of Ashen Editor.py". Not the weapon (the
   Dragon Sword, `Dragon_Sword`) or `dsengine/`, `dsedit/` and the `DS_` settings. The builders keep `estforlan` in their
