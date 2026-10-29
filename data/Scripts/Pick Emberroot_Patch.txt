@@ -8,7 +8,7 @@
 07	Show.Skill	Alchemy
 08	Play.Sound	Pickup
 09	Wait	1.5
-10	Display.Message	Yellow	...and pull up a root, warm as a coal.
+10	Display.Message	Yellow	...and pull up a root, warm as a coal.	Harvest
 11	Give.Item	Emberroot	1
 12	Update.Skill	Alchemy	+0.45
 13	>Random	60	15

@@ -98,13 +98,7 @@ def living_remnant(frame, flip=False):
 
 
 SOUNDS = {
-    # a glassy shriek sliding down, over a low hum swelling
-    "Remnant_Rise": lambda: SND.mix((SND.shaped(SND.tone(1760, SND.n(0.6), glide=-0.5), 0.01, 4.0), 0.35),
-                                    (SND.arpeggio([2637, 2093, 1568, 1319], 0.05, 0.6, decay=5.0), 0.3),
-                                    (SND.shaped(SND.tone(82, SND.n(0.9), glide=0.2), 0.25, 3.0), 0.6)),
-    # a soft shimmer rising, into you
-    "Absorb": lambda: SND.mix((SND.arpeggio([784, 1047, 1319, 1568, 2093], 0.05, 0.6, decay=4.5), 0.45),
-                              (SND.shaped(SND.noise(41, SND.n(0.5), 0.3, high=0.5), 0.15, 5.0), 0.15)),
+    # (Remnant_Rise and Absorb: build_soundscape.py)
 }
 
 
@@ -124,7 +118,8 @@ def entities():
                                                    "crystal. It hates the living."),
                  ("Hitpoints", "10"), ("Attack.Speed", "1"), ("Strength", "1"), ("Defence", "1"), ("Aggro.Range", "160"),
                  ("Weapon.Range", "0"), ("Movement.Speed", "2"), ("Aggressive", "1"), ("Chase.Radius", "8"),
-                 ("Walk.Speed", "0.7"), ("Respawn", "60"), ("Kill.Sound", "Beast"), ("Attitude", "Bad"), ("Light", "40"), ("Level", "1")):
+                 ("Walk.Speed", "0.7"), ("Respawn", "60"), ("Kill.Sound", "Beast"), ("Attitude", "Bad"), ("Light", "40"), ("Level", "1"),
+                 ("Hunts", "All")):                               # (it hates every living thing, not only you)
         ents.set("Living_Remnant", k, v)
     n = 0
     for sec, items in ents.sections:

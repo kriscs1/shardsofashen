@@ -248,7 +248,7 @@ def data():
         ("Archivists_Attestation", "The Royal Archivist's word, in green wax: the amulet is the true seal of "
          "succession.", ""),
         ("Chancellors_Warrant", "The Lord Chancellor's warrant, in gold wax: let the bearer see the King.", ""),
-        ("Grimoire_of_Unbinding", "The Grimoire of Unbinding: the spell that undoes what magic has bound.", ""),
+        ("Grimoire_of_Unbinding", "The Grimoire of Unbinding: the spell that undoes what magic has bound. Its first pages tell of the Breaking: how the first king shattered the Heart of Ashen to bind a dragon, and its pieces scattered as Shards.", ""),
         ("Solar_Key", "The key to the King's solar, at the top of the keep.", ""),
         ("Valour_Seal", "A Valour Seal: gold, a sword's point in red. A drake carried it.", ""),
     ]
@@ -256,7 +256,9 @@ def data():
         K.section(E, name, [("Type", "MapItem"), ("Use.Words", "Examine"), ("Examine.Info", info),
                             ("Stackable", "3" if name == "Valour_Seal" else "1"), ("Droppable", "0"), ("Value", "0")])
     K.section(E, "Ember_Ring", [("Type", "MapItem"), ("Examine.Info", "The Ember Ring: a ruby that glows like a "
-                                                                      "coal. Warm to the touch."),
+                                                                      "coal. Warm to the touch. Inside the band, worn "
+                                                                      "thin: the seal of the Pact, a dragon coiled round "
+                                                                      "a broken heart."),
                                 ("Slot", "Ring"), ("Magic", "2"), ("Defence", "1"), ("Droppable", "0"), ("Value", "0")])
     K.section(E, "Staff_of_Ashen", [("Type", "MapItem"), ("Examine.Info", "The Staff of Ashen, the kings' staff: "
                                         "gold and blue, warm with magic."), ("Slot", "Weapon"), ("Attack", "4"),
@@ -1238,13 +1240,15 @@ def galaith():
         ("Update.Attribute", "DragonSpoke", "=1"),
         ("Toggle.User.Input", "OFF"),
         ("Play.Sound", "Kill_Dragon"),
-        say("Galaith_Dragon", "So. The heir of Ashen comes to me at last, and on his own feet.\\Eighteen winters I "
+        say("Galaith_Dragon", "So. The heir of Ashen comes to me at last, and on foot.\\Eighteen winters I "
                               "have waited at these walls. Eighteen winters the city has starved for want of the road, "
                               "and all for one small debt.", ("What debt?", "@debt")),
         ("@debt",),
-        say("Galaith_Dragon", "A bargain, child, not a curse. Your forefathers wanted the mountain's gold and its mana, "
-                              "and I let them have it, for the firstborn heir of every generation. They signed in "
-                              "blood. Your mother broke it, and ran.", ("She saved me.", "@saved")),
+        say("Galaith_Dragon", "A bargain, child, not a curse. Your first king broke the Heart of Ashen to bind me, and "
+                              "every splinter of it has ached to be whole again since. I let your line keep the pieces, "
+                              "the mountain's gold and its Shards, for the firstborn heir of every generation: royal "
+                              "blood holds the pieces apart. They signed in blood. Your mother broke it, and ran.",
+            ("She saved me.", "@saved")),
         ("@saved",),
         say("Player", "My mother saved my life. The bargain ends today.", ("...", "@answer")),
         ("@answer",),
@@ -1261,7 +1265,8 @@ def galaith():
         (">Conditional", "$Variable.1=1", "@end"),
         ("Update.Attribute", "GalaithQuest", "=2"),
         ("Display.Message", "Yellow", "The Sword of Valour finds the dragon's heart. With its last breath it hisses: "
-                                      "\"Paid... in full...\" and the black hulk crashes to the scorched earth.", "-"),
+                                      "\"The Heart... I carried its greatest piece... yours now, to keep apart... or "
+                                      "make whole...\" and the black hulk crashes to the scorched earth.", "-"),
         ("Play.Sound", "Quest"),
         ("Display.Message", "Yellow", "Quest complete: The Dragon of Galaith! The gates of Galaith swing open.", "-"),
         ("@end",), ("End",),

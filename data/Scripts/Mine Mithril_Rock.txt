@@ -25,7 +25,7 @@
 24	Play.Animation	Rock_Chips	4	Mine
 25	Wait	3
 26	>Conditional	($Variable.1*2+$Variable.2+6)>$Random.Percent	32
-27	Display.Message	Yellow	...and mine some mithril ore!
+27	Display.Message	Yellow	...and mine some mithril ore!	Gather_Ore
 28	Give.Item	Mithril_Ore	1
 29	Update.Skill	Mining	+0.7
 30	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	120

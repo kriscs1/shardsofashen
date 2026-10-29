@@ -260,7 +260,11 @@ function openOptions() {
 }
 for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"], ["opt-chat-sound", "chatSound"],
   ["opt-music-volume", "musicVolume", 1], ["opt-ambient", "ambient"], ["opt-ambient-volume", "ambientVolume", 1]]) {
-  $(id).addEventListener("input", (ev) => { O[key] = num ? +ev.target.value : ev.target.checked; saveOptions(); });
+  $(id).addEventListener("input", (ev) => {
+    O[key] = num ? +ev.target.value : ev.target.checked;
+    if (key === "musicVolume") O.musicChosen = true;
+    saveOptions();
+  });
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
@@ -725,7 +729,9 @@ N.onMessage = (m) => {
       workBeats.clear();
       stopWorkFx(now);
       break;
-    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": if (!behind()) addFx(m, now); break;
+    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": case "mark":
+      if (!behind()) addFx(m, now);
+      break;
     case "hurt": S.hurtUntil = now + 240; break;
     case "act": if (m.swing) markSwing(m.swing, now); else markOutcome(!!m.ok, now); break;   // (how a click went)
     case "levelup": showBanner(m.skill, m.level, now); break;

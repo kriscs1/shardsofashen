@@ -32,7 +32,7 @@ VERBS = {
     "DEPOSIT 1": "coin", "DEPOSIT ALL": "coin", "WITHDRAW 1": "coin", "WITHDRAW ALL": "coin",
     "EAT": "eat", "DRINK": "drink",
     "MAKE": "hammer", "SMITH": "hammer", "SMELT": "hammer", "COOK": "hammer", "BREW": "hammer", "CRAFT": "hammer",
-    "CAST": "magic", "USE WITH": "target",
+    "CAST": "magic", "USE WITH": "target", "SLEEP": "sleep", "SIT": "sleep",
 }
 SWINGS = {"attack", "axe", "pick", "hammer"}        # these swing when you click; the others press in
 
@@ -221,6 +221,18 @@ def draw_target(s):
     circle(s, RED, (16, 16), 1.6)
 
 
+def draw_sleep(s):
+    """A pillow, a crescent moon over it and a little z: a bed (or a bench) to rest on."""
+    ellipse(s, (226, 226, 240), 3, 18, 22, 11)                          # the pillow, plump
+    ellipse(s, (190, 192, 214), 5, 24, 18, 5)
+    line(s, (170, 172, 200), (8, 21), (12, 23), 0.8)                    # (a crease)
+    circle(s, (250, 220, 120), (21, 9), 7)                              # the moon: a disc bitten by the night
+    circle(s, (0, 0, 0, 0), (24.5, 6.5), 6)
+    line(s, CREAM, (6, 5), (12, 5), 1.4)                                # z
+    line(s, CREAM, (12, 5), (6, 11), 1.4)
+    line(s, CREAM, (6, 11), (12, 11), 1.4)
+
+
 # kind: (draw, hotspot (in SIZE pixels))
 KINDS = {
     "pointer": (draw_pointer, (2, 2)), "walk": (draw_walk, (16, 16)), "hand": (draw_hand, (14, 12)),
@@ -229,7 +241,7 @@ KINDS = {
     "climb_up": (lambda s: draw_ladder(s, True), (16, 16)), "climb_down": (lambda s: draw_ladder(s, False), (16, 16)),
     "key": (draw_key, (9, 9)), "door": (draw_door, (16, 16)), "coin": (draw_coin, (16, 16)),
     "eat": (draw_eat, (16, 16)), "drink": (draw_drink, (16, 16)), "hammer": (draw_hammer, (6, 6)),
-    "magic": (draw_magic, (16, 16)), "target": (draw_target, (16, 16)),
+    "magic": (draw_magic, (16, 16)), "target": (draw_target, (16, 16)), "sleep": (draw_sleep, (16, 16)),
 }
 
 

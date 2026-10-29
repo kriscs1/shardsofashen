@@ -976,13 +976,19 @@ def check_tiles():
                            "Blend", "Blend.Texture", "Texture", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
                            "Layer", "Foam", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
                            "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat",    # (Seat=S: sit on it, facing south)
-                           "Overhead", "Display.Name"):                             # (drawn over people too: an arch;
+                           "Overhead", "Display.Name",                              # (drawn over people too: an arch;
                                                                                     #  what it's called, shown)
+                           "Joins", "Below"):                                       # (the sides a set's piece joins;
+                                                                                    #  the tile under a tall one)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
             elif k in ("Flame", "Water", "Overhead") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
+            elif k == "Joins" and not (v in ("*", "-") or (v and set(v) <= set("NESW"))):
+                err(r, "[%s] Joins must be the sides it joins (N, E, S, W), * (any) or - (none)" % sec)
+            elif k == "Below" and v not in TILES:
+                err(r, "[%s] Below %r has no sprite in sprites\\Tiles" % (sec, v))
             elif k == "Seat" and v not in ("N", "E", "S", "W"):
                 err(r, "[%s] Seat must be N, E, S or W (the way you face, sitting on it)" % sec)
             elif k == "Door" and v not in ("0", "1", "Gate"):
@@ -1001,7 +1007,8 @@ def check_tiles():
 
 
 def check_tile_sets():
-    """data\\TileSets.ini: sets of tiles that go together (Title, Columns, Tiles); every tile in one is there."""
+    """data\\TileSets.ini: sets of tiles that go together (Title, Columns, Tiles, Kind; a coast's Land, Water, Corners,
+    Small); every tile in one is there."""
     path = p("data", "TileSets.ini")
     if not os.path.exists(path):
         return
@@ -1012,8 +1019,18 @@ def check_tile_sets():
     for sec, items in ini.sections:
         keys = {k: v for k, v in items if k}
         for k in keys:
-            if k not in ("Title", "Columns", "Tiles"):
+            if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small"):
                 warn(r, "[%s] unknown key %s" % (sec, k))
+        if keys.get("Kind", "Set") not in ("Set", "Stretch", "Rug", "Join", "Shore"):
+            err(r, "[%s] Kind must be Set, Stretch, Rug, Join or Shore" % sec)
+        for k in ("Land", "Water"):
+            if keys.get(k) and keys[k] not in TILES:
+                err(r, "[%s] %s %r has no sprite in sprites\\Tiles" % (sec, k, keys[k]))
+        for k in ("Corners", "Small"):
+            for part in [x for x in keys.get(k, "").split(",") if x.strip()]:
+                corner, _, tile = part.partition(":")
+                if corner.strip() not in ("NE", "NW", "SE", "SW") or tile.strip() not in TILES:
+                    err(r, "[%s] %s: %r should be NE, NW, SE or SW and a tile" % (sec, k, part))
         if not keys.get("Columns", "").isdigit() or int(keys["Columns"]) < 1:
             err(r, "[%s] Columns must be a whole number, 1 or more" % sec)
         names = [n.strip() for n in keys.get("Tiles", "").split(",")]
@@ -1049,11 +1066,13 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Indoors",                                                        # 0: an animal that won't walk into a house
                "Look.Parts", "Looks",                                            # its parts' colours; its other colourings
                "Display.Name",                                                   # what the player sees it called
+               "Sleeper.Of",                                                     # the NPC (its Id) a sleeping thing is
+               "Lock", "Key",                                                    # a chest's lock (locks.py) and its key
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}                # a cart (carts.py): where its rider stands
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
                                      "Base", "Enchanted", "Enchant",
-                                     "Look.Parts", "Looks", "Display.Name", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}
+                                     "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1156,7 +1175,8 @@ def check_entities():
         if call and call not in SOUNDS:
             err(r, "[%s] Calls=%s: there's no sounds\\%s.wav" % (sec, call, call))
         for prey in [x.strip() for x in (ini.get(sec, "Hunts") or "").split(",") if x.strip()]:
-            if prey != "Foes" and (ini.get(prey, "Type") or "") != "NPC":     # (Foes: any monster that attacks)
+            if prey not in ("Foes", "All") and (ini.get(prey, "Type") or "") != "NPC":   # (Foes: any monster that
+                #  attacks; All: any creature that can be fought, a Shard Remnant's)
                 err(r, "[%s] Hunts=%s: there's no NPC called %s" % (sec, ini.get(sec, "Hunts"), prey))
         if typ not in ("MapItem", "StaticObject", "NPC"):
             if typ in ("GoodNPC", "BadNPC"):

@@ -15,7 +15,7 @@
 13	Show.Skill	Mining
 14	Play.Animation	Rock_Chips	2	Mine
 15	Wait	2
-16	Display.Message	Yellow	...and break off a lump of stone.
+16	Display.Message	Yellow	...and break off a lump of stone.	Gather_Ore
 17	Give.Item	Stone	1
 18	Update.Skill	Mining	+0.05
 19	Update.Skill	Homesteading	+0.02

@@ -109,6 +109,7 @@ class MinigameMixin:
             self.play_sound("Lockpick")
             if g["pin"] >= len(g["pins"]):                  # (the last pin: the lock turns)
                 g["phase"], g["won"] = "done", True
+                self.play_sound("Unlock")
                 self.game_show(opened=True, **self.lock_view())
                 self.game_close()
                 return

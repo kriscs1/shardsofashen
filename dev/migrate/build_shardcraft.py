@@ -209,17 +209,7 @@ SOUNDS = {
     # a dull knock on cold stone, and nothing answering
     "Stone_Dormant": lambda: SND.mix((SND.shaped(SND.noise(61, SND.n(0.18), 0.2), 0.002, 14), 0.7),
                                      (SND.shaped(SND.tone(82, SND.n(0.4), glide=-0.2), 0.005, 8), 0.5)),
-    # the rune catching: a low hum swelling into a chime
-    "Stone_Wake": lambda: SND.mix((SND.shaped(SND.tone(98, SND.n(1.1), glide=0.5), 0.3, 2.5), 0.5),
-                                  (SND.arpeggio([440, 660, 880, 1320], 0.09, 1.0, decay=2.6), 0.45),
-                                  (SND.shaped(SND.noise(62, SND.n(0.9), 0.5, high=0.5), 0.4, 3.0), 0.2)),
-    # a shard melting into the gear: a hiss, and a ring as it sets
-    "Enchant": lambda: SND.mix((SND.shaped(SND.noise(63, SND.n(0.7), 0.6, high=0.6), 0.05, 4.0), 0.35),
-                               (SND.arpeggio([784, 988, 1175, 1568, 1976], 0.06, 0.9, decay=3.0), 0.5),
-                               (SND.shaped(SND.tone(1568, SND.n(0.9)), 0.3, 3.0, delay=0.35), 0.3)),
-    # something bright in the dust: a quick high twinkle
-    "Rare_Shard": lambda: SND.mix((SND.arpeggio([1319, 1760, 2093, 2637, 3136], 0.045, 0.7, decay=4.0), 0.6),
-                                  (SND.shaped(SND.tone(2637, SND.n(0.5)), 0.02, 6.0, delay=0.22), 0.25)),
+    # (Stone_Wake, Enchant and Rare_Shard: build_soundscape.py)
 }
 
 

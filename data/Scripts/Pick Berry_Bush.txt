@@ -6,7 +6,7 @@
 05	Show.Skill	Alchemy
 06	Play.Sound	Pickup
 07	Wait	1.5
-08	Display.Message	Yellow	...and pick a handful of berries.
+08	Display.Message	Yellow	...and pick a handful of berries.	Harvest
 09	Give.Item	Berries	1
 10	Update.Skill	Alchemy	+0.05
 11	>Random	40	13

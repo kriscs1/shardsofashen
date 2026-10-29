@@ -1292,6 +1292,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("Squeaked") == 1
     use("1,1,0", 21, 6, "Search")
     assert s.items_held("Fathers_Compass") == 1 and attr("Passage") == 4
+    s.absorb_remnants(next(e for e in s.inv if e.name == "Shard_Remnant"))   # (Aldous's lesson: Bess won't sail before)
     talk(bess, 3, 1)                                                # the compass to Bess: she sails you over
     run(60, ms=200)
     assert attr("Passage") == 5 and s.cur_map.name == "4,4,0"
@@ -1683,8 +1684,10 @@ def test_a_wolf_hunts_a_sheep_and_a_rat_bites_back(world):
         world.tick(0.05, now=world.now + 50)
         if not sheep.alive:
             break
-    assert not sheep.alive and not any(e.type == MAPITEM and distance(e.cx, e.cy, sheep.cx, sheep.cy) < 48
-                                       for e in world.ents)         # (eaten: nothing left behind)
+    left = [e for e in world.ents if e.type == MAPITEM and distance(e.cx, e.cy, sheep.cx, sheep.cy) < 48]
+    assert not sheep.alive and any(e.name == "Raw_Meat" for e in left)  # (its loot, anyone's to take)
+    for e in left:
+        world.remove_entity(e)
     rat = world.add_npc("Rat", m.mz, wolf.cx + 40, wolf.cy, "Zone=3,8,22,18")
     dog = world.add_npc("Dog", m.mz, wolf.cx - 200, wolf.cy - 100, "Zone=3,8,22,18")
     world.npc_set_foe(dog, rat)
@@ -2790,6 +2793,7 @@ def test_the_kings_shard_seam_gives_shards_once_a_day(world):
     before = s.shards()
     assert "the Crown's" in mine() and s.shards() == before              # (not king: not yours)
     s.update_attribute("KingQuest", "=1")
+    s.update_attribute("HeartChoice", "=1")                              # (the ending's choice made: its own test)
     before = s.shards()                                                  # (after The True Heir's own reward)
     assert "prise loose 12 Shards" in mine() and s.shards() == before + 12
     assert "haven't grown back" in mine() and s.shards() == before + 12  # (once a day)
@@ -3322,6 +3326,7 @@ def test_the_hollow_hill_cave_in_and_out_and_its_chest_once(world):
     tile_verb("Enter", "2,4,0", 8, 16, (9, 16))
     assert s.cur_map.name == "2,4,-1"                               # (down into the cave)
     chest = next(e for e in world.ents if e.npc_id == "Hollow_Hill_Chest")
+    s.unlocked_chests.add(s.chest_key(chest))                       # (its lock picked: locks.py has its own test)
     near(world, s, chest, 0, 30)
     s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
     run_for(world, 20)
@@ -3572,8 +3577,11 @@ def test_editor_lays_out_sets_and_smooths_coasts():
     roof = WD.shape(P, "Thatch_Roof005", 3, 5)
     assert [r[0] for r in roof] == ["Thatch_Roof%03d" % n for n in (1, 4, 7, 10, 13)]
     assert roof[2] == ["Thatch_Roof007", "Thatch_Roof008", "Thatch_Roof009"]      # (the ridge in the middle)
-    fence = WD.shape(P, "Wood_Fence001", 3, 3)
-    assert fence[1][1] is None and fence[0][0] == "Wood_Fence003"               # (round the edge only)
+    assert WD.shape(P, "Wood_Fence001", 3, 3) is None and WD.joins(P, "Wood_Fence001")   # (its pieces join instead)
+    fence = {}
+    put = lambda x, y, t: fence.__setitem__((x, y), t)
+    WD.lay_joins(P, "Wood_Fence001", WD.join_cells(3, 3), lambda x, y: fence.get((x, y)), put)
+    assert (1, 1) not in fence and fence[(0, 0)] == "Wood_Fence003"              # (round the edge only)
     assert WD.shape(P, "Rug005", 1, 3) == [["Rug014"], ["Rug015"], ["Rug016"]]    # (a runner)
     assert WD.shape(P, "Bench001", 3, 3) is None
     assert WD.stand_ins(P)["Peak003"] == WD.stand_ins(P)["Mountain002"]
@@ -3739,3 +3747,339 @@ def test_a_display_name_is_shown_but_the_name_stays(world):
     e = world.add_entity_of_type("MapItem", "Bread", m.mz, m.ox + 100, m.oy + 100, "1 Name=Old_Loaf")
     assert e.display == "Old Loaf" and e.name == "Bread"                      # (a name of its own, on its map line)
     world.remove_entity(e)
+
+
+# ----- Roadmap group 1: quick fixes
+def test_farm_animals_are_passive_and_leave_no_bones(world):
+    from dsengine.view import entity_state
+    for kind in ("Chicken", "Cow", "Sheep"):
+        assert "Bones" not in world.data.entity_ini(kind, "Drops", "")
+        assert world.data.entity_ini(kind, "Level", "0") == "1"           # (remnants, like any beast)
+        assert world.data.entity_ini(kind, "Attitude", "") == "Passive"
+    s = join(world, "Shepherd")
+    m = world.maps["1,1,0"]
+    rabbit = world.add_npc("Rabbit", m.mz, m.ox + 200, m.oy + 200, "-")
+    wolf = world.add_npc("Wolf", m.mz, m.ox + 260, m.oy + 200, "-")
+    try:
+        assert entity_state(world, rabbit, s)["f"] == 2                    # (can be attacked: won't come for you)
+        assert entity_state(world, wolf, s)["f"] == 1
+        assert "Attack" in s.get_verbs(rabbit)
+        assert rabbit.aggressive == 0
+    finally:
+        world.remove_entity(rabbit)
+        world.remove_entity(wolf)
+        leave(world, s)
+
+
+def test_no_quest_locked_message(world):
+    s = join(world, "Eager")
+    name = next(n for n, d in world.data.quest_table() if int(float(d.get("REQUIRES.LEVEL", "0") or 0)) > 5)
+    s.connected, s.out = True, []
+    assert not s.quest_can_start(name)
+    msgs = [e.get("text", "") for e in s.out if e.get("t") == "msg"]
+    assert not any("locked" in t.lower() for t in msgs)
+    leave(world, s)
+
+
+def test_a_frog_on_the_bank_of_a_shore_tile_walks(world):
+    found = None
+    for m in world.maps.values():
+        if m.mz != 0:
+            continue
+        for ty in range(1, world.yt + 1):
+            for tx in range(1, world.xt + 1):
+                if m.tile_is_water(tx, ty):
+                    for lx in range((tx - 1) * world.tw + 2, tx * world.tw - 2, 3):
+                        for ly in range((ty - 1) * world.th + 2, ty * world.th - 2, 3):
+                            if m.local_walkable(lx, ly):
+                                found = (m, lx, ly)
+                                break
+                        if found:
+                            break
+                if found:
+                    break
+            if found:
+                break
+        if found:
+            break
+    assert found, "a shore tile with land on it"
+    m, lx, ly = found
+    frog = world.add_npc("Frog", m.mz, m.ox + lx - 16, m.oy + ly - 28, "-")
+    try:
+        world.set_entity_position(frog, frog.x + (m.ox + lx - frog.fx), frog.y + (m.oy + ly - frog.fy))
+        assert not world.in_water(frog)                                     # (its feet on the bank: it hops)
+    finally:
+        world.remove_entity(frog)
+
+
+def test_jimmy_goes_to_bed_and_is_never_two(world):
+    day = world.day_fraction()
+    jimmy = next(e for e in world.ents if e.npc_id == "Jimmy" and e.map == "4,0,0")
+    abed = next(e for e in world.ents if e.name == "Sleeping_Jimmy")
+    s = join(world, "Catsitter")
+    try:
+        world.set_day_fraction(0.5)
+        near(world, s, jimmy, 40, 0)
+        run_for(world, 60)
+        assert jimmy.active and not abed.active
+        world.set_day_fraction(0.95)                                        # (night: to bed, not out of a door)
+        both = False
+        for _ in range(600):
+            world.tick(0.05, now=world.now + 50)
+            if jimmy.active and abed.active:
+                both = True
+            if not jimmy.active:
+                break
+        run_for(world, 50)
+        assert not both and not jimmy.active and abed.active
+    finally:
+        world.set_day_fraction(day)
+        run_for(world, 50)
+        leave(world, s)
+
+
+def test_an_npc_kill_leaves_loot_and_remnants_hunt_creatures(world):
+    m = world.maps["1,1,0"]
+    sheep = world.add_npc("Sheep", m.mz, m.ox + 300, m.oy + 300, "-")
+    wolf = world.add_npc("Wolf", m.mz, m.ox + 330, m.oy + 300, "-")
+    before = {id(e) for e in world.ents if e.type == MAPITEM}
+    world.npc_killed_by_npc(sheep, wolf)
+    dropped = [e for e in world.ents if e.type == MAPITEM and id(e) not in before]
+    assert any(e.name == "Raw_Meat" for e in dropped)                      # (the Drops, for anyone)
+    assert all(getattr(e, "private_to", None) is None for e in dropped)
+    for e in dropped:
+        world.remove_entity(e)
+    remnant = world.add_npc("Living_Remnant", m.mz, m.ox + 360, m.oy + 300, "-", "Bad")
+    try:
+        assert "ALL" in remnant.ai.hunts
+        world.tick(0.05, now=world.now + 50)                               # (the NPCs by map: made each tick)
+        prey = world.npc_prey(remnant, remnant.ai)                         # (any creature near it, not only you)
+        assert prey is not None and prey.hostile and prey.name != "Living_Remnant"
+    finally:
+        world.remove_entity(remnant)
+        world.remove_entity(wolf)
+
+
+def test_burnt_food_is_one_stack(world):
+    from dsengine.renames import renamed
+    assert renamed({"inv": [["Burnt_Meat", 1], ["Burnt_Chicken", 2], ["Burnt_Fish", 1]]}) == \
+        {"inv": [["Burnt_Food", 1], ["Burnt_Food", 2], ["Burnt_Food", 1]]}      # (old saves: one heap of charcoal)
+    assert world.data.stackable_quantity("Burnt_Food") > 1
+    for kind in ("Burnt_Meat", "Burnt_Poultry", "Burnt_Herring"):
+        assert not world.data.entity_ini(kind, "Type", "")
+
+
+def test_success_is_heard(world):
+    import glob
+    chop = open(os.path.join(ROOT, "data", "Scripts", "Chop Tree.txt"), "rb").read().decode("cp1252")
+    assert any(ln.split("\t")[1:2] == ["Display.Message"] and ln.endswith("\tGather_Wood") for ln in chop.split("\r\n"))
+    sounds = {os.path.basename(f)[:-4] for f in glob.glob(os.path.join(ROOT, "sounds", "*.wav"))}
+    for s in ("Gather_Wood", "Gather_Ore", "Gather_Fish", "Harvest", "Cooked", "Crafted", "Unlock", "Learn",
+              "Fail_2", "Fail_3", "Denied_2"):
+        assert s in sounds
+
+
+def test_sitting_is_a_step_not_a_jump(world):
+    a = join(world, "Percher", "0,0,10", 8 * 32, 4 * 32)              # (two tiles off the bench, and down)
+    m = a.cur_map
+    gx, gy = m.ox + 4 * 32 + 16, m.oy + 1 * 32 + 16                  # (the arena's bench at 5,2)
+    bench = a.tile_entity_at(gx, gy)
+    a.choose_verb("Sit", bench, gx, gy)
+    for _ in range(80):
+        world.tick(0.05)
+    assert a.seat is not None
+    (sx, sy), (bx, by) = a.seat
+    assert abs(sx - bx) + abs(sy - by) <= 30                         # (walked to its front, then one step onto it)
+    leave(world, a)
+
+
+def test_editor_joins_fences_and_walls_and_smooths_mixed_grass():
+    # The editor reads how tiles go together from the data (TileSets.ini Kind=, Tiles.ini Joins= and Below=): a
+    # palisade painted freehand joins up, corners and T's and all; erasing one rejoins what's left; a town wall is
+    # battlements over its face east-west, a tower at its corners; a coast of mixed grass gets its diagonals too
+    from dsedit.project import Project
+    from dsedit import world as WD
+    P = Project(ROOT)
+    grid = {}
+    get, put = (lambda x, y: grid.get((x, y))), (lambda x, y, t: grid.__setitem__((x, y), t))
+    for c in [(0, 0), (1, 0), (2, 0), (1, 1), (1, 2)]:                          # (a T, painted a cell at a time)
+        WD.lay_joins(P, "Palisade001", [c], get, put)
+    joins = lambda t: P.tiles_ini.get(t, "Joins", "")
+    assert joins(grid[(1, 0)]) == "ESW" and joins(grid[(1, 2)]) == "NS" and joins(grid[(0, 0)]) == "EW"
+    grid.pop((1, 1))                                                            # (the stem erased: the T an east-west)
+    WD.lay_joins(P, "Palisade001", [], get, put, erased=[(1, 1)])
+    assert joins(grid[(1, 0)]) == "EW"
+    wall = {}
+    WD.lay_joins(P, "City_Wall001", [(i, j) for i, j in WD.join_cells(5, 5)], lambda x, y: wall.get((x, y)),
+                 lambda x, y, t: wall.__setitem__((x, y), t))
+    assert wall[(0, 0)] == "City_Wall003" and wall[(0, 1)] == "City_Wall005"   # (a corner tower over its face)
+    assert wall[(2, 0)] == "City_Wall001" and wall[(2, 1)] == "City_Wall004"   # (battlements over the face)
+    assert wall[(0, 2)] == "City_Wall002"                                       # (north-south, under the tower)
+    coast = {(x, y): "Water001" for x in range(5) for y in range(5)}
+    coast.update({(2, 1): "Grass002", (3, 1): "Grass001", (3, 2): "Grass003"})  # (grass painted mixed)
+    WD.smooth_corners(P, lambda x, y: coast.get((x, y)), lambda x, y, t: coast.__setitem__((x, y), t), {(3, 2)})
+    assert coast[(2, 2)] == "Water002"
+
+
+def test_stances_take_a_moment_and_change_what_you_do(world):
+    s = join(world, "Stancer", "0,0,10", 12 * 32, 4 * 32)
+    base_attack, base_def = s.player_attack_value(), s.player_defence_value()
+    s.handle({"t": "stance", "stance": "Fighting"})
+    world.tick(0.05, now=world.now + 50)
+    assert s.stance == ""                                            # (it takes a moment)
+    run_for(world, 30)
+    assert s.stance == "Fighting" and s.player_attack_value() > base_attack and s.player_defence_value() > base_def
+    s.handle({"t": "stance", "stance": "Channelling"})
+    run_for(world, 30)
+    assert s.stance == "Channelling" and s.stance_walk() < 1 and s.player_defence_value() < base_def
+    s.handle({"t": "stance", "stance": "Sneaking"})
+    run_for(world, 30)
+    assert s.sneaking() and s.sight_factor() < 1 and s.stance_walk() < 1
+    s.skill_xp[s.skill_index("Stealth")] = 20                       # (more Stealth: harder still to see)
+    assert s.sight_factor() < 0.6 and s.cone_factor() < 1
+    s.handle({"t": "stance", "stance": "Sneaking"})                 # (the same again: back to none)
+    run_for(world, 30)
+    assert s.stance == ""
+    leave(world, s)
+
+
+def test_a_lookout_turns_to_what_it_hears_and_a_sneak_attack_hits_hard(world):
+    s = join(world, "Creeper", "0,0,10", 12 * 32, 4 * 32)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    guard = world.add_npc("Goblin", m.mz, p.x + 70, p.y, "Stand=1")
+    guard.ai.cone = 90
+    guard.direction = 2                                             # (looking east: away from them)
+    world.tick(0.05, now=world.now + 50)
+    assert not world.npc_sees(guard, guard.ai, s, 70)
+    s.player_moved = True                                          # (walking: heard)
+    world.npc_listen(guard, guard.ai, s, 70)
+    assert guard.direction == 8                                     # (it turns to look)
+    guard.direction = 2
+    s.handle({"t": "stance", "stance": "Sneaking"})
+    run_for(world, 25)
+    s.player_moved = True
+    if s.noise_radius() < 70:                                       # (sneaking: too soft to hear)
+        world.npc_listen(guard, guard.ai, s, 70)
+        assert guard.direction == 2
+    assert s.unseen_by(guard)
+    hp = guard.hp
+    s.player_strike(guard, False)
+    assert guard.hp < hp and s.stance == ""                         # (a blow it never saw coming; seen now)
+    world.remove_entity(guard)
+    world.ents.extend(held)
+    leave(world, s)
+
+
+def test_pickpocketing_and_getting_caught(world):
+    import dsengine.thieving as TH
+    s = join(world, "Lightfingers")
+    s.connected = True
+    mark = next(e for e in world.ents if e.type == NPC and e.alive and e.owner is None and not e.hostile and
+                "Talk to" in (e.use_words or "") and s.shop_rack_of(e))           # (a shopkeeper)
+    near(world, s, mark, 30, 0)
+    assert "Pickpocket" not in s.get_verbs(mark)                   # (only sneaking)
+    s.handle({"t": "stance", "stance": "Sneaking"})
+    run_for(world, 25)
+    assert "Pickpocket" in s.get_verbs(mark)
+    s.skill_xp[s.skill_index("Stealth")] = 25
+    gold = s.items_held("Gold_Coin(s)")
+    was = TH.rnd
+    try:
+        TH.rnd = lambda: 0.0                                       # (a sure hand)
+        s.pickpocket(mark)
+        assert s.items_held("Gold_Coin(s)") > gold and s.sneaking()
+        s.thief_until.clear()
+        TH.rnd = lambda: 0.999                                     # (caught)
+        s.pickpocket(mark)
+    finally:
+        TH.rnd = was
+    assert not s.sneaking() and s.guards_after and s.guards_after[0].owner is s
+    assert s.guards_after[0].hostile and s.guards_after[0].in_combat
+    s.clicked_ent = mark
+    assert not s.open_item_rack("SHOP", mark.name, s.shop_rack_of(mark))   # (they won't serve you now)
+    for g in s.guards_after:
+        world.remove_entity(g)
+    leave(world, s)
+
+
+def test_a_thief_spots_disarms_and_steps_over_traps(world):
+    import dsengine.senses as SN
+    m = world.maps["15,18,-1"]                                       # (the buried library: darts, a pit, a pie)
+    tx, ty = 16, 13
+    assert m.trigger[m.cell(tx, ty)] == "Trap_Darts"
+    s = join(world, "Sneak", m.name, (tx - 1) * 32, (ty - 3) * 32)
+    s.connected = True
+    was = SN.rnd
+    try:
+        SN.rnd = lambda: 0.0                                       # (a sharp eye)
+        s.sense_at, s.sense_tried = 0, set()                       # (a fresh look: one roll each time you come near)
+        s.sense_tick()
+        assert s.trap_known(m, tx, ty) and "Disarm" in s.get_verbs(s.tile_entity_at(m.ox + tx * 32 - 16, m.oy + ty * 32 - 16))
+        s.stance = "Sneaking"
+        assert s.trap_spared(m, tx, ty)                            # (seen, and stepped over softly)
+        s.stance = ""
+        hp = s.player.hp
+        s.disarm_trap(m, tx, ty)
+        assert (m.name, tx, ty) in s.traps_disarmed and s.trap_spared(m, tx, ty)
+        s.world_trap("Darts", m, tx, ty)
+        assert s.player.hp == hp                                   # (harmless now)
+    finally:
+        SN.rnd = was
+    leave(world, s)
+
+
+def test_chests_are_locked_and_never_out_of_reach(world):
+    import dsengine.locks as LK
+    s = join(world, "Locksmith")
+    s.connected = True
+    chest = next(e for e in world.ents if s.is_chest(e) and e.map == "13,9,0")
+    assert s.chest_locked(chest) and "Pick Lock" in s.get_verbs(chest) and "Break Open" in s.get_verbs(chest)
+    isle = next(e for e in world.ents if s.is_chest(e) and e.map == "3,1,0")
+    assert not s.chest_locked(isle)                                 # (the Isle teaches you first)
+    near(world, s, chest, 30, 0)
+    s.out = []
+    s.do_action("Open", chest)
+    assert any("locked" in str(ev.get("text", "")) for ev in s.out) and s.ab_mode != "Chest"
+    was = LK.rnd
+    try:
+        LK.rnd = lambda: 0.0
+        s.do_action("Break Open", chest)                            # (Strength: loud, but it gives)
+    finally:
+        LK.rnd = was
+    assert not s.chest_locked(chest) and s.chest_key(chest) in s.save_state()["unlocked_chests"]
+    leave(world, s)
+
+
+def test_no_leaving_the_isle_without_knowing_shard_remnants(world):
+    s = join(world, "Islander", "3,2,0", 10 * 32, 10 * 32)
+    s.start_script("Bess Sails to Northport", False)
+    run_for(world, 20)
+    assert s.cur_map.name == "3,2,0"                                # (Bess sends them to Brother Aldous first)
+    s.close_action_box(-1) if s.ab_mode else None
+    run_for(world, 5)
+    s.update_attribute("RemnantsAbsorbed", "=1")
+    s.start_script("Bess Sails to Northport", False)
+    run_for(world, 120)
+    if s.pending_map:
+        s.do_pending_map_change()
+    assert s.cur_map.name != "3,2,0"                                # (off across the strait)
+    leave(world, s)
+
+
+def test_the_kings_seam_asks_what_becomes_of_the_heart(world):
+    s = join(world, "Crowned")
+    stock(s, Pickaxe=1)
+    s.update_attribute("KingQuest", "=1")
+    seam = next(e for e in world.ents if e.npc_id == "Kings_Shard_Seam")
+    near(world, s, seam, 0, 30)
+    s.choose_verb("Mine", seam, int(seam.cx), int(seam.cy))
+    run_for(world, 30)
+    assert s.ab_mode == "Conversation"                               # (the first time: the choice)
+    s.action_box_response_chosen(2)                                 # (make it whole)
+    run_for(world, 20)
+    assert s.get_attribute("HeartChoice") == "2" and s.items_held("Heartstone_Ring") == 1
+    leave(world, s)

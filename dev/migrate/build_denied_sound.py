@@ -5,6 +5,7 @@ short room-like tail. Run it again to make it again.
   python -I "dev\\migrate\\build_denied_sound.py"
 """
 import math
+import sys
 import os
 import struct
 import wave
@@ -42,6 +43,10 @@ def room(dry):
 
 
 def main():
+    sys.exit("Superseded: %s is made by build_soundscape.py now (in the old world's voice)." % "Denied")
+
+
+def old_main():
     seconds = 0.62
     n = int(seconds * RATE)
     dry = [0.0] * n
@@ -62,5 +67,5 @@ def main():
     print("Made sounds\\Denied.wav")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # (superseded: see main)
     main()

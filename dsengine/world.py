@@ -368,6 +368,7 @@ class World(NPCMixin):
             e = self.add_static_object(name, z, x, y, owner, home)
             if e is not None:
                 e.npc_id = self.option_value(misc, "Id")
+                e.lock_level, e.lock_key = self.option_value(misc, "Lock"), self.option_value(misc, "Key")
                 e.display = self.option_value(misc, "Name").replace("_", " ")
             return e
         if t == "NPC":
@@ -487,8 +488,9 @@ class World(NPCMixin):
         e.image = base + d + "abac"[frame]
 
     def in_water(self, e):
+        """Its feet in the water: a water tile, and not on its land (a shore tile's grassy half is walked, not swum)."""
         m, tx, ty = self.tile_at(e.z, e.fx, e.fy)
-        return m is not None and m.tile_is_water(tx, ty)
+        return m is not None and m.tile_is_water(tx, ty) and not m.local_walkable(e.fx - m.ox, e.fy - m.oy)
 
     def replace_sprite(self, e, name):
         image, animated = self.data.first_image(e.type, name)
@@ -982,6 +984,28 @@ class World(NPCMixin):
                 sched = self.data.npc_schedule(e.name)
                 if sched in ("Day", "Night"):
                     e.active = (sched == "Day") != night
+                    who = self.sleeper_of(e)
+                    if who is not None and who.alive and not who.sched_away:
+                        e.active = False                # (still up and about: asleep only once it's in bed)
+
+    def sleeper_of(self, e):
+        """The NPC a sleeping thing is (Sleeper.Of=<its Id>: Sleeping_Jimmy is Jimmy, abed), on its level, or None."""
+        who_id = trim(self.data.entity_ini(e.name, "Sleeper.Of", ""))
+        if not who_id:
+            return None
+        near = [n for n in self.ents if n.type == NPC and n.npc_id == who_id and n.z == e.z and n.owner is None]
+        return min(near, key=lambda n: distance(n.cx, n.cy, e.cx, e.cy)) if near else None   # (the one nearest its bed)
+
+    def bed_of(self, npc):
+        """Where an NPC sleeps, if a thing on its level is it asleep (Sleeper.Of=): it goes there at night, not to a
+        door."""
+        if not npc.npc_id:
+            return None
+        for e in self.ents:
+            if (e.type == STATICOBJECT and e.alive and e.z == npc.z and
+                    trim(self.data.entity_ini(e.name, "Sleeper.Of", "")) == npc.npc_id):
+                return e.cx, e.y + e.h - 4
+        return None
 
     # =================================================================================================================
     # Doors (Tiles.ini Open.Tile): a door opens as someone comes to it and shuts behind them

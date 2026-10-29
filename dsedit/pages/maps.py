@@ -1679,7 +1679,7 @@ class MapPage(Page):
         """The palette's pick is a piece of a set that's laid out whole by dragging (and that's switched on)."""
         if not self.brush or self.layer in ("things", "all") or not self.opt["sets"].get():
             return False
-        return WD.shape(self.project, self.brush, 2, 2) is not None
+        return WD.drags(self.project, self.brush)
 
     def ent_size(self, e):
         spr = self.project.sprite("Entities", e.name) if e.kind not in TILE_KINDS else None
@@ -1872,10 +1872,15 @@ class MapPage(Page):
                 self.redraw()
                 return
             self.remember()
+            was = self.join_at(tx, ty)
             if tool == "Fill":
                 self.flood(tx, ty)
+            elif tool == "Paint" and WD.joins(self.project, self.brush) and self.opt["sets"].get():
+                self.rejoin(self.brush, [(tx, ty)])     # (the piece that joins what's round it, and they it)
             elif self.paint_cell(tx, ty, erase=(tool == "Erase")):
                 self.smooth([(tx, ty)])
+                if tool == "Erase" and was:
+                    self.rejoin(was, [], erased=[(tx, ty)])
             self.drag = {"paint": True, "erase": tool == "Erase"}
             self.redraw()
             self.show_inspector()
@@ -1917,8 +1922,15 @@ class MapPage(Page):
                 self.drag["rect"] = (self.drag["rect"][0], (tx, ty))
                 self.draw_drag()
         elif self.drag.get("paint"):                       # (on into the maps round it, as they join)
-            if self.at(tx, ty) is not None and self.paint_cell(tx, ty, erase=self.drag["erase"]):
+            was = self.join_at(tx, ty)
+            if (self.at(tx, ty) is not None and not self.drag["erase"] and WD.joins(self.project, self.brush) and
+                    self.opt["sets"].get()):
+                if self.rejoin(self.brush, [(tx, ty)]):         # (painted freehand: a path of joined pieces)
+                    self.redraw()
+            elif self.at(tx, ty) is not None and self.paint_cell(tx, ty, erase=self.drag["erase"]):
                 self.smooth([(tx, ty)])
+                if self.drag["erase"] and was:
+                    self.rejoin(was, [], erased=[(tx, ty)])
                 if self.inside(tx, ty):
                     self.sel_cell = (tx, ty)
                 self.redraw()
@@ -2009,6 +2021,11 @@ class MapPage(Page):
                 key = "Zone" if d["area"] == "zone" else "Chase"
                 self.sel_ent.set_opt(key, "%d,%d,%d,%d" % (xa + 1, ya + 1, xb + 1, yb + 1))
                 self.mode = None
+            elif d.get("shape") and WD.joins(self.project, self.brush):
+                self.remember()                         # (a fence, a palisade, a town wall: a line, or round the edge)
+                cells = [(xa + i, ya + j) for i, j in WD.join_cells(xb - xa + 1, yb - ya + 1) if self.at(xa + i, ya + j)]
+                self.rejoin(self.brush, cells)
+                self.app.status("Laid a %s over %d tiles." % (self.project.tile_set_of(self.brush)[1], len(cells)), "ok")
             elif d.get("shape"):
                 self.remember()
                 rows = WD.shape(self.project, self.brush, xb - xa + 1, yb - ya + 1)
@@ -2353,6 +2370,43 @@ class MapPage(Page):
         self.touch(doc)
         return self.paint_on(cell, brush, erase)
 
+    # ----- pieces that join (TileSets.ini Kind=Join: a fence, a palisade, a town wall)
+    def join_layer(self, piece):
+        return "decor" if self.project.is_decor(piece) else "map"
+
+    def join_at(self, x, y):
+        """A joining piece at tile x, y on the layer being edited (what's left round it is joined again after it's
+        erased), or None."""
+        a = self.at(x, y)
+        if a is None or self.layer not in ("map", "decor"):
+            return None
+        cell = a[0].cells[a[2]][a[1]]
+        t = cell.tile if self.layer == "map" else cell.decor
+        return t if t and WD.joins(self.project, t) else None
+
+    def rejoin(self, piece, cells, erased=()):
+        """piece's set laid on cells, each the piece that joins its neighbours, and those round them joined again."""
+        layer = self.join_layer(piece)
+
+        def get(x, y):
+            a = self.at(x, y)
+            if a is None:
+                return None
+            cell = a[0].cells[a[2]][a[1]]
+            return cell.tile if layer == "map" else cell.decor
+
+        def put(x, y, name):
+            a = self.at(x, y)
+            if a is None:
+                return
+            self.touch(a[0])
+            cell = a[0].cells[a[2]][a[1]]
+            if layer == "map":
+                cell.tile = name
+            else:
+                cell.set_decor(name)
+        return WD.lay_joins(self.project, piece, cells, get, put, erased)
+
     def paint_on(self, cell, brush, erase):
         if self.layer == "map":
             if not brush or cell.tile == brush:
@@ -2482,7 +2536,7 @@ class MapPage(Page):
         if self.layer != "map" or not cells or not self.opt["smooth"].get():
             return
         sets = WD.shore_sets(self.project)
-        if any(self.brush == pat % n for pat in sets.values() for n in range(2, 10)):
+        if any(self.brush in pieces for pieces in sets.values()):
             return
 
         def put(x, y, name):

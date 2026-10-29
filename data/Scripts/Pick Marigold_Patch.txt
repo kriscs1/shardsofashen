@@ -8,7 +8,7 @@
 07	Show.Skill	Alchemy
 08	Play.Sound	Pickup
 09	Wait	1.5
-10	Display.Message	Yellow	...bright orange, and sticky with sap.
+10	Display.Message	Yellow	...bright orange, and sticky with sap.	Harvest
 11	Give.Item	Marigold	1
 12	Update.Skill	Alchemy	+0.2
 13	>Random	60	15

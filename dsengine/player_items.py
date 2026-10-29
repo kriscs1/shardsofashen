@@ -9,7 +9,7 @@ import zlib
 from ashen import ini
 from ashen.lb import val, word, trim, lbstr, pretty, random_number
 
-from .entity import InvItem, Entity, ACTIONBOXITEM, MAPITEM, STATICOBJECT
+from .entity import InvItem, Entity, ACTIONBOXITEM, MAPITEM, STATICOBJECT, NPC
 from .shards import SHARD
 
 MATERIALS = [("Copper", "Copper_Bar", 1), ("Bronze", "Bronze_Bar", 1), ("Iron", "Iron_Bar", 3),
@@ -230,6 +230,9 @@ class ItemsMixin:
             it = ini.read(rack, "Type", "", f).upper()
             if it:
                 kind = it
+        if kind in ("SHOP", "GENERAL", "SPECIFIC") and self.clicked_ent is not None and \
+                self.clicked_ent.type == NPC and self.shop_refused(self.clicked_ent):
+            return False                                    # (they caught you stealing: thieving.py)
         if kind == "BANK":
             self.rack_type = "Bank"
         elif kind in ("SHOP", "GENERAL", "SPECIFIC"):

@@ -4,6 +4,24 @@ A summary of the quests in the game as it stands, for planning the story and mak
 comes first, step by step; then the side quests, by region. The last section says where each quest lives in the
 game's files.
 
+## The secret of the Shards (the Heart of Ashen)
+
+Being written into the chapters (`dev/Roadmap.md` group 8). The heir's story stays; under it is what Shards are.
+
+- **The Heart of Ashen**: once all the world's magic was one crystal. The first king broke it to bind the dragon (the
+  **Breaking**); its pieces are the Shards. Every piece wants to be whole again: a dead beast's remnants go for whoever
+  killed it, and broken magic sinks into the Shardrealm, the hollow where the Heart lay.
+- **The Pact**: the dragon took the bargain to stay bound. Its price is a royal firstborn each generation, whose blood
+  keeps the pieces apart. The dragon carries the largest piece itself. The King's Shard Seam is where the Heart broke.
+- **Mary** found the Pact's price while she studied at the Wizards' Court, and ran to learn how it was made. Her notes
+  are found as you go.
+- **Through the chapters**: Aldous's lesson on remnants (the pieces "want to go home"); the Sunken Grimoire (the
+  Breaking); the Ember Ring (the Pact's seal); the Shardrealm's core (the hollow); the dragon, dying (what it carried);
+  a stealthy part in The Royal Guard (Mary's notes in the Archive's sealed vault, past its watchmen at night); the
+  King's Seam (the choice: keep the pieces apart, the Binding, or bind the dragon's piece into the crown).
+- Before leaving the Isle you must know what Shard Remnants are: Bess, and Wim after her, won't sail till you've
+  absorbed some (`RemnantsAbsorbed`); they send you to Brother Aldous.
+
 ## The world in brief
 
 - **Ashen** is the kingdom. Its capital, **Galaith**, in a gap in the mountains at the far east of the mainland,

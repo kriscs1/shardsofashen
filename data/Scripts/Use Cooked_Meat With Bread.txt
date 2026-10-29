@@ -3,7 +3,7 @@
 03	Take.Item	Cooked_Meat	1
 04	Take.Item	Bread	1
 05	Wait	0.5
-06	Display.Message	Cyan	You make a Meat Sandwich!
+06	Display.Message	Cyan	You make a Meat Sandwich!	Crafted
 07	Update.Skill	Cooking	+0.05
 08	Give.Item	Meat_Sandwich	1
 09	End

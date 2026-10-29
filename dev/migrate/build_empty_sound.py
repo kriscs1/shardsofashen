@@ -4,6 +4,7 @@ down that sags at its end. Played by an empty chest (Display.Refusal's sound). R
   python -I "dev\\migrate\\build_empty_sound.py"
 """
 import math
+import sys
 import os
 import struct
 import wave
@@ -28,6 +29,10 @@ def note(freq, secs, sag=0.0, vibrato=0.0):
 
 
 def main():
+    sys.exit("Superseded: %s is made by build_soundscape.py now (in the old world's voice)." % "Empty")
+
+
+def old_main():
     gap = [0.0] * int(RATE * 0.05)
     samples = note(220.0, 0.22) + gap + note(165.0, 0.62, sag=0.12, vibrato=0.012)
     path = os.path.join(ROOT, "sounds", "Empty.wav")
@@ -39,5 +44,5 @@ def main():
     print("Made sounds\\Empty.wav")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # (superseded: see main)
     main()

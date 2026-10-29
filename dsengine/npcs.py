@@ -3,10 +3,11 @@ of each player (their own Set.NPC.Attitude), picks a fight with the nearest play
 player it's fighting), faces whoever is near. Only NPCs on maps near a player think."""
 import math
 
-from ashen.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits
+from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, is_number, strip_digits, parse_quantity
 
 from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, TYPE_NAMES
 from .player_combat import CombatMixin
+from .remnants import death_remnants, make_remnant, LIVING
 
 PF_NPC_BUDGET = 400
 
@@ -49,6 +50,18 @@ class NPCMixin:
 
     SEEN_CLOSE = 44         # (right beside it: it knows you're there, whichever way it looks)
 
+    def npc_listen(self, e, a, s, d):
+        """A lookout hears s (their noise reaches it, nothing solid between): it turns to look that way, and if they're
+        in its sight now, it's seen them next time it looks."""
+        p = s.player
+        if d > s.noise_radius() or not self.in_line_of_sight(e.z, e.cx, e.cy, p.cx, p.cy):
+            return
+        before = e.direction
+        self.npc_face(e, e.cx, e.cy, p.cx, p.cy)
+        if e.direction != before and self.now - getattr(a, "heard_at", -10 ** 9) > 4000:
+            a.heard_at = self.now
+            s.heard_by(e)
+
     def npc_sees(self, e, a, s, d):
         """Does NPC e see player s, d away? Walls, tents and stacked cargo hide you (line of sight); one with a
         Sight.Cone (or Cone=) sees only that wide a wedge in front of it, so you can creep up behind."""
@@ -58,6 +71,7 @@ class NPCMixin:
         cone = getattr(a, "cone", 0)
         if cone <= 0 or cone >= 360 or d < self.SEEN_CLOSE:
             return True
+        cone *= s.cone_factor()                                  # (Stealth: it sees less of you)
         dr = e.direction or 4
         fx = (1 if dr & 2 else 0) - (1 if dr & 8 else 0)
         fy = (1 if dr & 4 else 0) - (1 if dr & 1 else 0)
@@ -341,7 +355,7 @@ class NPCMixin:
                 cand = self.nearest_player(e, players, lambda s: s.player_visible and self.hostile_for(e, s))
                 if cand is not None:
                     s, d = cand
-                    if self.stat_for(e, s, "aggressive") == 1 and d <= self.stat_for(e, s, "aggro_range"):
+                    if self.stat_for(e, s, "aggressive") == 1 and d <= self.stat_for(e, s, "aggro_range") * s.sight_factor():
                         if self.in_chase_area(a, s.player.fx, s.player.fy):
                             if self.npc_sees(e, a, s, d):
                                 e.target = s
@@ -349,6 +363,9 @@ class NPCMixin:
                                 state = a.state
                                 foe = s
                                 self.npc_alarm(e, a, s)
+                                s.spotted_by(e)
+                    if foe is None and getattr(a, "cone", 0) > 0 and self.stat_for(e, s, "aggressive") == 1:
+                        self.npc_listen(e, a, s, d)
         if state not in (AI_CHASE, AI_FLEE) and not e.in_combat and (e.npc_foe is not None or a.hunts):
             if self.npc_versus_npc(e, a):
                 return
@@ -593,6 +610,7 @@ class NPCMixin:
         not one with an Id (a quest's) nor one only its bane can kill."""
         rng = e.aggro_range if e.aggro_range > 0 else 128
         foes = "FOES" in a.hunts
+        every = "ALL" in a.hunts                        # (a Shard Remnant: any creature that can be fought)
         best = None
         mx, my = math.floor(e.x / self.sw), math.floor(e.y / self.sh)
         near = []                                       # (the NPCs on its map and the maps round it: no further)
@@ -606,6 +624,9 @@ class NPCMixin:
             if d > rng or (best is not None and d >= best[1]):
                 continue
             if foes and o.hostile and o.aggressive and not o.ai.flees and not o.npc_id and \
+                    not self.data.entity_ini(o.name, "Slain.By", ""):
+                pass
+            elif every and o.hostile and o.name != e.name and not o.npc_id and o.ai is not None and \
                     not self.data.entity_ini(o.name, "Slain.By", ""):
                 pass
             elif o.in_combat or o.npc_foe is not None or strip_digits(o.name).upper() not in a.hunts:
@@ -652,11 +673,13 @@ class NPCMixin:
         if foe.hp <= 0 and self.data.entity_ini(foe.name, "Slain.By", ""):
             foe.hp = 1                                        # (only its own bane kills it)
         if foe.hp <= 0:
-            self.npc_killed_by_npc(foe)
+            self.npc_killed_by_npc(foe, e)
 
-    def npc_killed_by_npc(self, e):
-        """An NPC killed by another: gone (it comes back later, as one a player kills), no loot - it was eaten."""
+    def npc_killed_by_npc(self, e, killer=None):
+        """An NPC killed by another: gone (it comes back later, as one a player kills), its loot and remnants on the
+        ground for anyone, or its magic rising to go for its killer."""
         self.sound("Kill_" + (self.data.entity_ini(e.name, "Kill.Sound", "") or "Beast"), e.z, e.cx, e.cy)
+        self.npc_loot(e, killer)
         m = self.maps.get(e.map)
         if e.source == "MAP" and e.owner is None and m is not None:
             respawn = e.respawn_delay if e.respawn_delay > 0 else self.data.npc_respawn_delay
@@ -666,6 +689,50 @@ class NPCMixin:
         self.fx_anim("Puff", e.z, e.cx, e.cy, 500)
         self.waves.gone(e)                                    # (a raider the guards cut down)
         self.remove_entity(e)
+
+    def npc_loot(self, e, killer):
+        """What an NPC killed by another leaves: its Drops and its remnants, anyone's to pick up (a player's own kill
+        is theirs first: player_combat.add_npc_drops)."""
+        if e.owner is not None:
+            return                                            # (someone's own quest creature: nothing for the world)
+        drops = self.data.entity_ini(e.name, "Drops", "")
+        drop_x, drop_y = e.cx, e.fy
+
+        def drop(name, amount):
+            copies, each = (1, amount) if self.data.stackable_quantity(name) > 1 else (min(amount, 10), 1)
+            iw, ih = self.data.sprite_size_of(3, name)
+            for _ in range(int(copies)):
+                x = int(drop_x - iw / 2 + random_number(-8, 8))
+                y = int(drop_y - ih + random_number(-4, 6))
+                item = self.add_map_item(name, e.z, x, y, each)
+                if item is not None:
+                    item.source = "DROPPED"
+                    m = self.maps.get(item.map)
+                    if m is not None:
+                        self.add_action_to_queue("REMOVE", name, "MapItem", lbstr(each), m.name,
+                                                 self.local_coords(m, x, y), self.data.item_despawn_delay)
+        i = 1
+        while word(drops, i) != "":
+            dd = word(drops, i)
+            name, amount_s, percent = word(dd, 1, ","), word(dd, 2, ",") or "1", word(dd, 3, ",") or "100"
+            if rnd() * 100 < val(percent):
+                amount = parse_quantity(amount_s) if "-" in amount_s else val(amount_s)
+                if amount > 0:
+                    drop(name, amount)
+            i += 1
+        death_remnants(self.data, e, drop, lambda level: self.npc_remnant_rise(e, level, killer))
+
+    def npc_remnant_rise(self, dead, level, killer):
+        """Its magic rises as a Shard Remnant and goes for the NPC that killed it."""
+        e = self.add_npc(LIVING, dead.z, dead.x, dead.y, "-", "Bad")
+        if e is None:
+            return
+        make_remnant(self.data, e, level)
+        e.fades_at = self.now + int(val(trim(self.data.shards_ini("Remnants", "Mob.Lasts", "")) or "120") * 1000)
+        self.sound("Remnant_Rise", e.z, e.cx, e.cy)
+        self.fx_anim("Teleport_Glow", e.z, e.cx, e.cy, 600)
+        if killer is not None and killer.alive and e.ai is not None:
+            self.npc_set_foe(e, killer)
 
     def npc_give_up(self, e, a):
         now = self.now
@@ -890,7 +957,7 @@ class NPCMixin:
         far = near is None or near[1] > 380 or indoors_own   # (upstairs at home: gone at once, downstairs the while)
         if away_now and not e.sched_away:
             if sched == "Day" and not far:
-                door = self.nearest_door(e)
+                door = self.bed_of(e) or self.nearest_door(e)          # (a cat to its bed; townsfolk out of a door)
                 d = distance(e.cx, e.cy, door[0], door[1]) if door is not None else 0
                 if door is not None and d > 14:
                     moved = self.npc_walk_to(e, door[0], door[1], e.ai.walk_speed if e.ai else e.move_speed, 6, False)
@@ -904,10 +971,12 @@ class NPCMixin:
                 return False
             e.sched_away, e.sched_stuck, e.sched_best = True, 0, 1e9
             e.active = False
+            self.hours_check_at = -10 ** 9                         # (its sleeping self shows at once)
             return True
         if not away_now and e.sched_away:
             e.sched_away = False
             e.active = True
+            self.hours_check_at = -10 ** 9
             return False
         return e.sched_away
 

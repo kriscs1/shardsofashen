@@ -531,6 +531,12 @@ S["Talk to Woman"] = [
 ]
 
 S["Ferry to Northport"] = [
+    (">Conditional", "$Attr.RemnantsAbsorbed<1", "@sail"),       # (not till you know what Shard Remnants are)
+    ("Display.Conversation", "Ferryman", "Hold up, friend. Bess says you've never had a beast's leavings in your hands, and the mainland's thick with them. See Brother Aldous first. Here's your coin back.", "Fair enough.", "@back"),
+    "back:",
+    ("Give.Item", "Gold_Coin(s)", "1"),
+    ("End",),
+    "sail:",
     ("Display.Message", "Cyan", "You climb aboard the ferry and cast off..."),
     ("Play.Sound", "Boat"),
     ("Toggle.User.Input", "OFF"),
@@ -803,7 +809,7 @@ S["Use Raw_Herring With Fire"] = [
     ("End",),
     "burn:",
     ("Display.Message", "DarkRed", "..but accidentally burn it!"),
-    ("Give.Item", "Burnt_Herring", "1"),
+    ("Give.Item", "Burnt_Food", "1"),
     ("End",),
     "far:",
     ("Display.Message", "DarkRed", "You are too far away!"),
@@ -875,7 +881,7 @@ ENTITY_KEYS = {
     "Bait": [("Examine.Info", "Wriggly worms."), ("Stackable", "100"), ("Value", "1")],
     "Raw_Herring": [("Examine.Info", "A fresh herring, silver from the sea. Cook it on a fire."), ("Value", "3")],
     "Cooked_Herring": [("Use.Words", "Eat"), ("Examine.Info", "Nicely cooked herring."), ("Value", "6"), ("Food.Value", "3")],
-    "Burnt_Herring": [("Examine.Info", "Charcoal with fins.")],
+    "Burnt_Food": [("Examine.Info", "Charcoal. Whatever it was, it isn't now.")],
     "Herb": [("Examine.Info", "A fragrant green herb. The herbalist could use this."), ("Stackable", "50"), ("Value", "3")],
     "Basic_Potion": [("Use.Words", "Drink"), ("Examine.Info", "A healing potion. Drink it to restore 15 hitpoints."), ("Value", "15")],
     "Empty_Vial": [("Examine.Info", "An empty glass vial."), ("Value", "2")],

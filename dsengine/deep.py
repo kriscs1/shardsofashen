@@ -363,8 +363,8 @@ class DeepMixin:
     def world_trap(self, kind, m, x, y):
         """A trap in an old dungeon (a map's Trigger line Trap_<Kind>): it springs, then rests ten minutes for
         whoever sprang it (it isn't spent, as the Deep's are)."""
-        if self.god_mode:
-            return
+        if self.god_mode or self.trap_spared(m, x, y):
+            return                                          # (disarmed, or seen and stepped over: senses.py)
         rest = self.__dict__.setdefault("trap_rest", {})
         key = (m.name, x, y)
         if rest.get(key, 0) > self.now:
@@ -375,7 +375,7 @@ class DeepMixin:
 
     def deep_trap(self, kind, m, x, y):
         """A trap underfoot, sprung (it's spent, for this shift: the plate shows)."""
-        if self.god_mode:
+        if self.god_mode or self.trap_spared(m, x, y):
             return
         m.trigger[m.cell(x, y)] = ""
         self.w.change_tile(m, x, y, "Trap_Sprung001")

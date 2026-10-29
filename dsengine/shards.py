@@ -259,7 +259,7 @@ class ShardMixin:
             self.refuse("There's no magic in the %s to break down." % pretty(item.name))
             return
         uid = item.uid
-        self.show_menu("Dismantle", item.name, "Break down the %s? It's gone for good, and its magic gives you %s." %
+        self.show_menu("Dismantle", item.name, "Break down the %s? It's gone for good.|{Shards}+%s" %
                        (pretty(item.name), shard_words(n)),
                        [("Dismantle it (+%s)" % shard_words(n), lambda: self.dismantle_now(uid, n)), ("Keep it", None)])
 

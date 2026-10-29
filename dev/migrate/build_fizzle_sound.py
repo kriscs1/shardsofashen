@@ -4,6 +4,7 @@ magic sinking away under it. Played when a spell slips from your grasp. Run it a
   python -I "dev\\migrate\\build_fizzle_sound.py"
 """
 import math
+import sys
 import os
 import random
 import struct
@@ -14,6 +15,10 @@ RATE = 22050
 
 
 def main():
+    sys.exit("Superseded: %s is made by build_soundscape.py now (in the old world's voice)." % "Fizzle")
+
+
+def old_main():
     rng = random.Random(7)
     secs = 0.75
     out, low, phase, crackle = [], 0.0, 0.0, 0.0
@@ -40,5 +45,5 @@ def main():
     print("Made sounds\\Fizzle.wav")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # (superseded: see main)
     main()

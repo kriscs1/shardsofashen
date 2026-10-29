@@ -83,6 +83,12 @@ class ActionsMixin:
             return self.chest_verbs(e)
         if t in (TILE, INFRONTTILE):
             verbs = self.add_verbs(verbs, uw)
+            if self.can_steal(e):
+                verbs = self.add_verb(verbs, "Steal")       # (sneaking: a shop's shelves - thieving.py)
+            if t == TILE:
+                m, tx, ty = self.w.tile_at(e.z, e.cx, e.cy)
+                if m is not None and self.trap_known(m, tx, ty) and (m.name, tx, ty) not in self.traps_disarmed:
+                    verbs = self.add_verb(verbs, "Disarm")  # (a trap you've seen: senses.py)
             if self.tile_lock_of(e) is not None:
                 verbs = self.add_verb(verbs, "Open")
                 verbs = self.add_verb(verbs, "Unlock")
@@ -130,6 +136,7 @@ class ActionsMixin:
             verbs = self.add_verbs(verbs, uw)
             if verbs == "":
                 verbs = "Use"
+            verbs = self.lock_verbs(e, verbs)              # (a locked chest: locks.py)
             verbs = self.add_verb(verbs, "Examine")
         elif t == NPC and getattr(e, "cart", None) is not None:
             verbs = self.w.carts.verbs(self, e)             # (a horse and cart: carts.py)
@@ -145,6 +152,8 @@ class ActionsMixin:
                 if v.upper() != "ATTACK":
                     verbs = self.add_verb(verbs, v)
             verbs = self.add_verb(verbs, "Talk to")
+            if self.can_pickpocket(e):
+                verbs = self.add_verb(verbs, "Pickpocket")  # (sneaking: thieving.py)
             verbs = self.add_verb(verbs, "Examine")
         elif t == PLAYER:
             verbs = "Attack,Examine" if self.pvp_ok(self.session_of(e)) else "Examine"
@@ -157,6 +166,8 @@ class ActionsMixin:
             return 0
         if verb == "Pickup":
             return 28
+        if verb in ("Pickpocket", "Steal", "Disarm", "Pick Lock", "Break Open"):
+            return 34
         if verb == "Sit":
             return 40                                         # (a seat you can't stand on: a throne)
         if verb in ("Hail", "Get Out"):
@@ -289,6 +300,14 @@ class ActionsMixin:
         if self.ride is not None and getattr(e, "cart", None) is not self.ride and verb != "Examine" and                 e.type not in (INVENTORYITEM, ACTIONBOXITEM):
             self.display_message("Not from the cart!", "FAIL")
             return
+        if verb == "Sit" and e.type == TILE and not self.ab_mode:
+            front = self.seat_front(e)                  # (to the seat's front first: then sitting is a step, not a jump)
+            if front is not None and distance(self.player.cx, self.player.cy, front[0], front[1]) > 6:
+                self.script_cursor_x, self.script_cursor_y = front
+                self.walk_player_to(front[0], front[1], 0, 6)
+                self.pending_verb = verb
+                self.pending_ent = e
+                return
         rng = self.verb_range(verb, e)
         if rng > 0 and self.player_distance_to(e) > rng:
             if self.ab_mode:
@@ -319,6 +338,8 @@ class ActionsMixin:
             return
         if verb == "Talk to" and self.swap and t == NPC and self.animal_chat(e):
             return                                      # (in an animal's body, the animals talk: tricks.py)
+        if self.lock_do(verb, e):                       # (a locked chest: locks.py)
+            return
         if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or
                 self.board_action(verb, e) or
                 self.tavern_action(verb, e)):
@@ -353,6 +374,14 @@ class ActionsMixin:
                 return
         if verb == "Examine":
             self.examine_entity(e)
+        elif verb == "Pickpocket":
+            self.pickpocket(e)
+        elif verb == "Steal":
+            self.steal_from(e)
+        elif verb == "Disarm" and t == TILE:
+            m, tx, ty = self.w.tile_at(e.z, e.cx, e.cy)
+            if m is not None:
+                self.disarm_trap(m, tx, ty)
         elif verb == "Pickup":
             self.pickup_map_item(e)
         elif verb in ("Drop", "Drop All"):
@@ -447,13 +476,34 @@ class ActionsMixin:
     # =================================================================================================================
     # Sitting: on a bench or a chair, till you move again
     # =================================================================================================================
-    def sit_on(self, e):
+    def seat_spot(self, e):
+        """Where a player sits on seat tile e (its top-left), and the way they face, or None if it's no seat."""
         face = SEAT_FACES.get(trim(self.data.tile_ini(e.name, "Seat", "")).upper()[:1])
         if face is None:
+            return None
+        return e.x + {2: 2, 8: -2}.get(face, 0), e.y - 8, face          # (the seat under them, feet on the floor)
+
+    def seat_front(self, e):
+        """Where to stand before sitting on e: a step out from it the way you'll face (centre point), or None if
+        that's no floor (then you sit from where you are)."""
+        spot = self.seat_spot(e)
+        if spot is None:
+            return None
+        x, y, face = spot
+        p = self.player
+        vx, vy = {1: (0, -1), 2: (1, 0), 4: (0, 1), 8: (-1, 0)}[face]
+        cx, cy = x + p.w / 2 + vx * 22, y + p.h / 2 + vy * 22
+        if not self.w.pixel_walkable(p.z, cx + (p.fx - p.cx), cy + (p.fy - p.cy), self):
+            return None
+        return cx, cy
+
+    def sit_on(self, e):
+        spot = self.seat_spot(e)
+        if spot is None:
             self.display_message("Nothing interesting happens.", "FAIL")
             return
         p = self.player
-        x, y = e.x + {2: 2, 8: -2}.get(face, 0), e.y - 8              # (the seat under them, their feet on the floor)
+        x, y, face = spot
         for s in self.w.sessions.values():
             if s is not self and s.in_world() and s.seat is not None and s.seat[1] == (x, y) and s.player.z == p.z:
                 self.display_message("Someone is already sitting there.", "FAIL")
@@ -678,6 +728,8 @@ class ActionsMixin:
             self.choose_verb(verb, target, vx, vy)
         elif t == "use_cancel":
             self.item_in_use = None
+        elif t == "stance":
+            self.choose_stance(str(msg.get("stance", "")))
         elif t == "respond":
             n = int(msg.get("n", 0))
             if self.ab_mode and 1 <= n <= len(self.responses):

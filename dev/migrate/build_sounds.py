@@ -90,11 +90,10 @@ def clang(base, partials=(1.0, 2.76, 5.4, 8.9), decay=7.0, length=0.5):
 
 
 def arpeggio(freqs, step, length, decay=5.0):
-    parts = []
-    for k, f in enumerate(freqs):
-        parts.append((shaped(tone(f, n(length)), 0.004, decay, delay=k * step), 0.4))
-        parts.append((shaped(tone(f * 2, n(length)), 0.004, decay * 1.5, delay=k * step), 0.12))
-    return mix(*parts)
+    """Notes one after another, plucked on a harp (never a clean electronic tone; above C6 an octave down, so
+    nothing's shrill: build_soundscape.harp_run)."""
+    from build_soundscape import harp_run
+    return harp_run(freqs, step, length)
 
 
 def whoosh(seed, length, rise=True):
@@ -138,7 +137,7 @@ SOUNDS = {
                            [(shaped(noise(10, n(0.2), 0.95, high=0.7), 0.001, 25), 0.5)]),
     "SpellLightning": lambda: mix((shaped(noise(11, n(0.12), 0.98, high=0.2), 0.0005, 30), 1.0),
                                   (shaped(noise(12, n(0.9), 0.04), 0.03, 3), 1.0)),
-    "SpellHeal": lambda: arpeggio((523.25, 659.25, 783.99, 1046.5), 0.09, 0.6),
+    # (SpellHeal: build_soundscape.py)
     "SpellShield": lambda: mix((shaped(tone(98, n(0.8), glide=0.2, shape="tri"), 0.1, 2.5), 0.5),
                                (shaped(tone(147, n(0.8), glide=0.2), 0.1, 2.5), 0.4),
                                (whoosh(13, 0.8, False), 0.4)),
@@ -210,15 +209,12 @@ SOUNDS.update({
     "Brew": lambda: mix((bubbles(56, 1.0, 14), 0.9), (shaped(noise(57, n(1.0), 0.05), 0.1, 2), 0.25)),
     "Craft": lambda: mix((knock(58, 320, 0.1), 0.6), (delay(knock(59, 300, 0.1), 0.18), 0.5),
                          (delay(shaped(noise(60, n(0.35), 0.4, high=0.4), 0.05, 8), 0.3), 0.5)),
-    "LevelUp": lambda: mix((arpeggio((523.25, 659.25, 783.99, 1046.5, 1318.5), 0.08, 1.0, decay=3.5), 1.0),
-                           (shaped(tone(1046.5, n(1.0)), 0.3, 2.5, delay=0.35), 0.2)),
+    # (LevelUp and Quest: build_soundscape.py)
     "Coins": lambda: coins(61),
     "Door": lambda: mix((creak(62, 220, 0.55, glide=0.6), 0.45), (delay(knock(63, 120, 0.2), 0.5), 0.9)),
     "Locked": lambda: mix((clang(1300, decay=26, length=0.15), 0.5), (knock(64, 110, 0.2), 0.8)),   # (one clunk: it holds)
     "Chest": lambda: mix((creak(65, 180, 0.5, glide=0.5), 0.4), (delay(knock(66, 140, 0.22), 0.45), 0.9), (delay(coins(67, 3), 0.55), 0.35)),
     "Drop": lambda: knock(68, 150, 0.15),
-    "Quest": lambda: mix((arpeggio((392.0, 523.25, 659.25, 783.99), 0.12, 1.4, decay=2.5), 1.0),
-                         (shaped(mix((tone(523.25, n(1.2)), 0.3), (tone(659.25, n(1.2)), 0.3), (tone(783.99, n(1.2)), 0.3)), 0.05, 2.0, delay=0.5), 0.6)),
 })
 
 
@@ -269,8 +265,7 @@ def chitter(seed, length, rate=38.0):
 KILLS = {
     "Beast": lambda: mix((voice(520, 0.55, glide=-0.6, vibrato=0.03, rate=9, rough=0.04, seed=601), 0.7),           # a yelp
                          (shaped(lowpass(noise(602, n(0.6), 0.5), 0.15), 0.01, 5), 0.6)),
-    "Small": lambda: mix((voice(2100, 0.18, glide=-0.35, vibrato=0.05, rate=30, shape="sine"), 0.8),                 # a squeak
-                         (delay(voice(1700, 0.12, glide=-0.4, shape="sine"), 0.12), 0.4)),
+    # (Small, a rat's squeal: build_soundscape.py)
     "Bird": lambda: mix((voice(760, 0.16, glide=0.3, vibrato=0.12, rate=45, shape="square", seed=611), 0.6),         # squawk
                         (delay(voice(690, 0.3, glide=-0.5, vibrato=0.1, rate=40, shape="square", seed=612), 0.15), 0.7),
                         (shaped(noise(613, n(0.4), 0.6, high=0.3), 0.01, 7, delay=0.05), 0.25)),
@@ -344,9 +339,9 @@ def chirp(rng):
 
 
 def croak(rng):
-    f = rng.uniform(90, 140)
-    return mix((shaped(tone(f, n(0.35), shape="square"), 0.02, 9), 0.25),
-               (shaped(tone(f * 2.02, n(0.35)), 0.02, 12), 0.2))
+    """A frog in the marsh: the same pulsed ribbit as Croak.wav (build_soundscape.ribbit), each one its own."""
+    from build_soundscape import ribbit
+    return [v * 0.6 for v in ribbit(rng.randint(1, 10 ** 6))]
 
 
 def drip(rng):
@@ -407,7 +402,7 @@ def thunder():
     return mix((crack, 0.35), (roll, 1.0))
 
 
-SOUNDS["Thunder"] = thunder
+# (Thunder.wav itself is build_thunder.py's: not written here)
 
 
 def wav_bytes(sig):

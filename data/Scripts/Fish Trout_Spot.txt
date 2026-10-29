@@ -10,7 +10,7 @@
 09	Wait	4
 10	>Conditional	($Variable.1*2-10+40)>$Random.Percent	16
 11	Take.Item	Bait	1
-12	Display.Message	Yellow	...and land a trout!
+12	Display.Message	Yellow	...and land a trout!	Gather_Fish
 13	Give.Item	Raw_Trout	1
 14	Update.Skill	Fishing	+0.2
 15	End

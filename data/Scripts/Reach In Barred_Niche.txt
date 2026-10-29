@@ -6,7 +6,7 @@
 05	Wait	1
 06	Display.Message	Cyan	Footsteps echo behind you: Brother Aldous, a lantern in his hand.	-
 07	Add.Entity	224,376	Gravekeeper	NPC	Attitude=Good Stand=1 Face=W Name=Brother_Aldous
-08	Display.Conversation	Gravekeeper	I said I'd not be far behind. Look here first.\He stoops, and picks dull grey splinters from the floor.\Something died here, a rat or a bat, and left its magic behind: Shard Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie still.	I'll remember.	09
+08	Display.Conversation	Gravekeeper	I said I'd not be far behind. Look here first.\He stoops, and picks dull grey splinters from the floor.\Something died here, a rat or a bat, and left its magic behind: Shard Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie still. The old books say every Shard is a piece of something greater, broken long ago, and that the pieces want to go home.	I'll remember.	09
 09	Give.Item	Shard_Remnant	3
 10	Display.Conversation	Gravekeeper	Now, the amulet. Your mother put it there, and the bars after it, so that no thief could ever take it. But a hand that isn't a hand can.\Here: a scroll of Grasp. Read it, and the spell is yours for good; each casting drinks a couple of Shards. Cast it at the bars, and an unseen hand will bring the amulet to you.	Thank you, Brother.	11
 11	Give.Item	Grasp_Scroll	1

@@ -19,7 +19,7 @@
 18	Take.Item	Seal_Blubber	1
 19	Goto.Line	21
 20	Take.Item	Bait	1
-21	Display.Message	Yellow	...and land a salmon!
+21	Display.Message	Yellow	...and land a salmon!	Gather_Fish
 22	Give.Item	Raw_Salmon	1
 23	Update.Skill	Fishing	+0.4
 24	End

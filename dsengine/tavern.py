@@ -219,6 +219,8 @@ class TavernMixin:
             self.game = None
             if g.get("script"):                     # (a script's minigame: on if it was won, else to its lost line)
                 self.script_result = 1 if g.get("won") else -1
+            if g.get("then"):                       # (the engine's own: a chest's lock, locks.py)
+                g["then"](bool(g.get("won")))
             self.emit({"t": "game", "game": ""})
 
     def game_tick(self):

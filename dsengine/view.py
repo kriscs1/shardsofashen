@@ -1,6 +1,6 @@
 """What each player's browser is told every tick: the maps round them (once, and again when one changes), the things
 and people on them (in full when first seen, then only what changed), their own tiles, themselves, the weather."""
-from .entity import PLAYER, NPC, MAPITEM
+from .entity import PLAYER, NPC, MAPITEM, STATICOBJECT
 
 VIEW_MAPS = 1           # the maps this far round the player's are sent (1 = the 3 x 3 the desktop game kept)
 
@@ -8,6 +8,8 @@ VIEW_MAPS = 1           # the maps this far round the player's are sent (1 = the
 def entity_state(w, e, viewer):
     st = {"k": e.type, "n": e.name, "i": e.image, "x": int(e.x), "y": int(e.y), "w": e.w, "h": e.h,
           "a": 1 if e.active else 0}
+    if e.type == STATICOBJECT and viewer.is_chest(e):
+        st["lk"] = viewer.chest_lock(e)[0] if viewer.chest_locked(e) else 0     # (locked for you: its level)
     if e.type == NPC:
         st["hp"] = e.hp
         st["mh"] = e.max_hp
@@ -16,6 +18,12 @@ def entity_state(w, e, viewer):
         st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
         st["uw"] = e.use_words
         st["wr"] = e.weapon_range
+        if e.ai is not None and getattr(e.ai, "cone", 0) > 0:
+            # (sneaking: a lookout's sight shown, as it is for you - how wide, how far, the way it looks)
+            seen = st["f"] == 1 and viewer.sneaking()
+            st["cone"] = [round(e.ai.cone * viewer.cone_factor()),
+                          round(w.stat_for(e, viewer, "aggro_range") * viewer.sight_factor()), e.direction or 4] \
+                if seen else 0
         if e.ai is not None:
             st["un"] = e.ai.under
             st["fly"] = e.ai.flying

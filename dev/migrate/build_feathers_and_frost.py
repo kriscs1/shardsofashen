@@ -50,10 +50,7 @@ ARROWS_OLD = "Arrows,Logs 1 Bronze_Bar 1,"
 ARROWS_NEW = "Arrows,Logs 1 Bronze_Bar 1 Feather 3,"
 
 SOUNDS = {
-    # ice forming: a glassy shimmer climbing, and the crack of it setting
-    "Freeze": lambda: SND.mix((SND.arpeggio([1568, 2093, 2637, 3136, 4186], 0.06, 0.9, decay=4.0), 0.5),
-                              (SND.shaped(SND.noise(31, SND.n(0.9), 0.5, high=0.6), 0.2, 3.5), 0.25),
-                              (SND.shaped(SND.noise(32, SND.n(0.12), 0.9, high=0.8), 0.001, 30, delay=0.35), 0.7)),
+    # (Freeze: build_soundscape.py)
     # a sharp crack, then the boom rolling off
     "Thunderclap": lambda: SND.mix((SND.shaped(SND.noise(33, SND.n(0.15), 0.95, high=0.7), 0.001, 26), 0.9),
                                    (SND.shaped(SND.noise(34, SND.n(1.1), 0.04), 0.01, 3.0, delay=0.04), 0.9),

@@ -375,7 +375,7 @@ def data():
     ]
     for name, words, info in objects:
         K.section(E, name, [("Type", "StaticObject"), ("Use.Words", words), ("Examine.Info", info), ("Solid", "1")])
-    K.section(E, "Sleeping_Jimmy", [("Solid", "0"), ("Schedule", "Night")])
+    K.section(E, "Sleeping_Jimmy", [("Solid", "0"), ("Schedule", "Night"), ("Sleeper.Of", "Jimmy")])
     K.section(E, "Chimney_Smoke", [("Type", "StaticObject"), ("Use.Words", ""), ("Examine.Info", "Smoke from the forge."),
                                    ("Solid", "0"), ("Layer", "Over"), ("Anim.Frames", "4"), ("Anim.Speed", "260"),
                                    ("Schedule", "Day")])
@@ -1055,6 +1055,11 @@ def bess_and_frank():
         ("@end",), ("End",),
     ])
     w("Bess Sails to Northport", [
+        # (not till you know what a dead beast's Shard Remnants are: Brother Aldous shows you)
+        (">Conditional", "$Attr.RemnantsAbsorbed<1", "@sail"),
+        say("Milkmaid", "Wait, love, before we go. Out there the beasts run wild, and when one dies its magic doesn't: it leaves splinters behind, and sometimes worse. Has Brother Aldous shown you what to do with them? He showed me, once. Go and see him, then come back to me.", ("I'll go and see him.", "@stay")),
+        ("@stay",), ("End",),
+        ("@sail",),
         ("Display.Message", "Cyan", "Bess takes the tiller, her father's compass in her hand, and the Isle slips away "
                                     "into the fog..", "-"),
         ("Play.Sound", "Boat"),
@@ -1197,7 +1202,8 @@ def chapel_and_caves():
                            "from the floor.\\Something died here, a rat or a bat, and left its magic behind: Shard "
                            "Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. "
                            "Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie "
-                           "still.", ("I'll remember.", "@remnants")),
+                           "still. The old books say every Shard is a piece of something greater, broken long ago, "
+                           "and that the pieces want to go home.", ("I'll remember.", "@remnants")),
         ("@remnants",),
         ("Give.Item", "Shard_Remnant", "3"),
         say("Gravekeeper", "Now, the amulet. Your mother put it there, and the bars after it, so that no "

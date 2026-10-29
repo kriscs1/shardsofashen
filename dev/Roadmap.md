@@ -11,72 +11,87 @@ then the big systems (stealth, locks), then the world and the story (they use al
 
 ## 1. Quick fixes and wording
 
-- [ ] **Farm animals leave Shard Remnants, never bones.** Chicken, Cow and Sheep: no `Bones` in `Drops=`; they get
+- [x] **Farm animals leave Shard Remnants, never bones.** Chicken, Cow and Sheep: no `Bones` in `Drops=`; they get
   `Level=1` so `remnants_on_death` gives them the same chance as every beast. (A level 1 never rises: `Mob.Min.Level=2`.)
   All other animals checked the same way.
-- [ ] **Passive creatures.** A third attitude, `Attitude=Passive`: can be attacked, never attacks first (rabbits, deer,
+- [x] **Passive creatures.** A third attitude, `Attitude=Passive`: can be attacked, never attacks first (rabbits, deer,
   frogs, ducks, hens, cows, sheep...). `Flees=1` still makes prey run. Good stays unattackable; Bad stays hostile.
   `validate.py` knows it; the hover and the right-click menu treat it as attackable but not a threat; sleeping isn't
   stopped by it.
-- [ ] **No "Quest locked" messages.** `quests.py` quest_start_blocked stays silent: the NPC just talks as usual (the
+- [x] **No "Quest locked" messages.** `quests.py` quest_start_blocked stays silent: the NPC just talks as usual (the
   quest's answer isn't offered until you can take it).
-- [ ] **Signs named the right way round**: `Display.Name=Smithy Sign`, `Dairy Sign`... on every `Sign_*` (the Ids stay).
-- [ ] **The right-click menu says only the verb and the thing**: no "(+12 Shards)" on Dismantle, no potion effect
+- [x] **Signs named the right way round**: `Display.Name=Smithy Sign`, `Dairy Sign`... on every `Sign_*` (the Ids stay).
+- [x] **The right-click menu says only the verb and the thing**: no "(+12 Shards)" on Dismantle, no potion effect
   (the hotbar's hover says those).
-- [ ] **The dismantle confirmation** puts the Shards on their own line in their own colour: the confirm box learns
+- [x] **The dismantle confirmation** puts the Shards on their own line in their own colour: the confirm box learns
   coloured extra lines (`{text, colour}`), if it can't already.
-- [ ] **Music much quieter by default** (`audio.js` musicVolume 80 -> 30; saved settings left alone).
-- [ ] **The Isle forge's chimney smoke** comes out of its chimney, not inside the building.
-- [ ] **A sleep cursor for beds** (drawn in the cursor builder, `cursorOfVerb("Sleep")`).
-- [ ] **An NPC in the way of a pickup**: picking up a tinderbox with an NPC standing on or before it locked the player
+- [x] **Music much quieter by default** (`audio.js` musicVolume 80 -> 30; saved settings left alone).
+- [x] **The Isle forge's chimney smoke** comes out of its chimney, not inside the building. (Anything Layer=Over on
+  a roof now shows with the roof and goes when you're under it.)
+- [x] **A sleep cursor for beds** (drawn in the cursor builder, `cursorOfVerb("Sleep")`).
+- [x] **An NPC in the way of a pickup**: picking up a tinderbox with an NPC standing on or before it locked the player
   until the NPC moved. Reproduce in a test; reach it from beside it, or wait without freezing other actions.
-- [ ] **Frogs swim only in water**: a swimmer on a land cell by the edge walks (its swim pose only on a water cell).
-- [ ] **Two Jimmys**: a Jimmy and a sleeping Jimmy, then none. Find how a second one is added (entry script and
-  `Add.Entity` both, or a respawn) and fix the cause; a test.
-- [ ] **NPCs' kills count**: an NPC killed by another NPC (or a guard) still drops its loot and may leave remnants or
+  (Found: the server picks it up fine past someone; the page couldn't click it, the person in front taking every
+  click. The right-click menu now offers what's under them too.)
+- [x] **Frogs swim only in water**: a swimmer on a land cell by the edge walks (its swim pose only on a water cell).
+- [x] **Two Jimmys**: a Jimmy and a sleeping Jimmy, then none. Find how a second one is added (entry script and
+  `Add.Entity` both, or a respawn) and fix the cause; a test. (Found: at dusk his sleeping self lay down at once
+  while he walked out of the door to "go home". Now `Sleeper.Of=Jimmy`: he goes to his bed, and it shows only once
+  he's in it.)
+- [x] **NPCs' kills count**: an NPC killed by another NPC (or a guard) still drops its loot and may leave remnants or
   raise a Shard Remnant. A Shard Remnant goes for every creature in its range, not only the killer.
 
 ## 2. Art: bones and burnt food
 
-- [ ] **Bones** redrawn as a small pile of bones (a skull, ribs, long bones), not an X (`build_items.py`).
-- [ ] **Burnt food is one thing**: `Burnt_Food`, a stackable heap of charred black crumbs; every `Burnt_*` is
+- [x] **Bones** redrawn as a small pile of bones (a skull, ribs, long bones), not an X (`build_items.py`).
+- [x] **Burnt food is one thing**: `Burnt_Food`, a stackable heap of charred black crumbs; every `Burnt_*` is
   renamed to it in `renames.py` (old saves load), cooking scripts make it, and shops/recipes that took a burnt kind
   take it.
 
 ## 3. Sound
 
-- [ ] **Audit every sound**: list what plays where (scripts, engine, page) and mark the high-pitched or
+- [x] **Audit every sound**: list what plays where (scripts, engine, page) and mark the high-pitched or
   computer-like ones (Denied, Click, Chat, Squeak...), harsh or repeated ones. The list goes in this file.
-- [ ] **No computer sounds**: Denied becomes a soft wooden knock/thud (a closed shutter); Click, Chat and the menu
+  Measured (strongest frequency, how pure a tone): clean electronic tones in Denied, Chat, Empty, Swap, Appear, Hail
+  (2.1 kHz), Rare_Shard (2.6 kHz), Kill_Small (1.8 kHz), Cage_Open; sine "chiptune" runs in LevelUp, Quest, SpellHeal,
+  Absorb, Enchant, Stone_Wake, Bloom_Harvest, Portal, Gate_Built, Anchor_Shatter, Freeze (to 4.2 kHz), Vanish,
+  Remnant_Rise; harsh clicks in Click (6.6 kHz) and Darts. All but Cage_Open redone in build_soundscape.py (harps,
+  lutes, wood, low bells, breath); their strongest notes now 140-940 Hz.
+- [x] **No computer sounds**: Denied becomes a soft wooden knock/thud (a closed shutter); Click, Chat and the menu
   sounds become soft parchment/wood ticks. CLAUDE.md's rule ("Denied, a computer's no") is changed to match.
-- [ ] **Failure sounds fit the setting**: Fail (a lute's sigh) kept but softened and varied; Fizzle, Empty, Locked
+- [x] **Failure sounds fit the setting**: Fail (a lute's sigh) kept but softened and varied; Fizzle, Empty, Locked
   redone with the same voice; two or three variations of each so repeats don't grate.
-- [ ] **Success sounds**: new sounds for a harvest (a soft rustle-chime), crafting done (a satisfied anvil ring / a
+- [x] **Success sounds** (Gather_Wood/Ore/Fish, Harvest, Cooked, Crafted on 50 scripts' success lines: success_sounds.py;
+  Unlock for a key, a quest's lock or a picked one; Learn for a spell learnt): new sounds for a harvest (a soft rustle-chime), crafting done (a satisfied anvil ring / a
   stitch pull, by station), an unlock (a lock's turn and click), a shardstone woken (already `Stone_Wake`: checked), a
   quest step (soft), a gathering success different from a gathering failure. Only on the event; not every swing.
-- [ ] **Frogs sound like frogs**: Croak resynthesised as a real ribbit (a pulsed low resonant call, two notes).
-- [ ] **Footsteps** (with group 6): soft steps by ground (grass, stone, wood, sand, snow), heard by others nearby and
+- [x] **Frogs sound like frogs**: Croak resynthesised as a real ribbit (a pulsed low resonant call, two notes).
+- [x] **Footsteps** (with group 6): soft steps by ground (grass, stone, wood, sand, snow), heard by others nearby and
   by monsters (stealth); quieter at higher Stealth and when sneaking.
 
 ## 4. Sitting on benches
 
-- [ ] **The jump on sitting and standing**: reproduce (a test and in the page), find whether it's the position the
+- [x] **The jump on sitting and standing** (Found: you sat from up to 40 px away and the page glides every move in 70
+  ms, so you flew onto the bench and back. Now you walk to the seat's front first and the step on or off is eased over
+  a quarter of a second.): reproduce (a test and in the page), find whether it's the position the
   server sets (`sit_on` moves you onto the bench and back), the page's tweening, the pose, or what's sent; fix the
   cause so sitting down, waiting, standing up and walking on are smooth (the page eases to the seat and back).
 
 ## 5. The map editor
 
-- [ ] **Every tile relationship in files**: which pieces form a set, which piece goes next to which, wall/palisade
+- [x] **Every tile relationship in files** (TileSets.ini Kind=, Tiles.ini Joins=/Below=, Shore sets: tile_joins.py;
+  only the editor reads them; the mainland builder keeps its own coast table, as it makes the maps): which pieces form a set, which piece goes next to which, wall/palisade
   joins, shore diagonals... Find any still in code (`dsedit/world.py`, `tilesets`...) and move it into
   `data/TileSets.ini` (or a new file it names), so the editor reads them.
-- [ ] **City walls and the like drag**: a wall set drawn by dragging, choosing ends, corners and T's itself, like the
+- [x] **City walls and the like drag**: a wall set drawn by dragging, choosing ends, corners and T's itself, like the
   palisades.
-- [ ] **Diagonal shores placed right**: the piece chosen from all eight neighbours, and the cells around it updated
-  as well; tests for the cases that went wrong.
+- [x] **Diagonal shores placed right**: the piece chosen from all eight neighbours, and the cells around it updated
+  as well; tests for the cases that went wrong. (Found: grass painted mixed - Grass001, 002, 003 - never matched, so
+  no diagonal went in.)
 
 ## 6. Stances and Stealth
 
-- [ ] **Stances** (a button on both layouts and a key; shown top left by the health bar; a second to change, not in
+- [x] **Stances** (a button on both layouts and a key; shown top left by the health bar; a second to change, not in
   the middle of a blow):
   - **None** (travelling): as now.
   - **Fighting**: Strength and Defence up (Config numbers), more hurt by spells and their effects.
@@ -84,35 +99,36 @@ then the big systems (stealth, locks), then the world and the story (they use al
     slower walk, lower Defence. (Not potions: potions are herbs, Shards can't touch them.)
   - **Sneaking**: shows lookouts' sight cones and the traps you've found, offers Pickpocket/Steal/Pick Lock, quieter
     steps, slower walk. Striking or casting ends it.
-- [ ] **The Stealth skill** (after Homesteading in the skills' order; `renames.py`, saves, the Stats tab, its icon,
+- [x] **The Stealth skill** (after Homesteading in the skills' order; `renames.py`, saves, the Stats tab, its icon,
   `validate.py`).
-- [ ] **Hearing**: you make noise (walking, running, fighting, doors); a monster that hears you turns to look (it
+- [x] **Hearing**: you make noise (walking, running, fighting, doors); a monster that hears you turns to look (it
   still needs line of sight to come for you). Stealth shrinks how far you're heard and how wide lookouts see.
   Nothing hears or sees through walls.
-- [ ] **Sight cones** drawn (a soft wedge, 180 degrees by default, `Sight.Cone=`) for lookouts while you sneak;
+- [x] **Sight cones** drawn (a soft wedge, 180 degrees by default, `Sight.Cone=`) for lookouts while you sneak;
   cones narrow with Stealth.
-- [ ] **Sneak attacks**: a blow on a creature that hasn't seen you does more (Config multiplier); Stealth xp.
-- [ ] **Feedback**: a sound and a mark when you're seen ("!" over the creature), when you slip past a lookout, when
+- [x] **Sneak attacks**: a blow on a creature that hasn't seen you does more (Config multiplier); Stealth xp.
+- [x] **Feedback**: a sound and a mark when you're seen ("!" over the creature), when you slip past a lookout, when
   you find a secret.
-- [ ] **Lockpicking** on locked chests, doors and cages (the existing minigame, scaled by Stealth and the lock).
-- [ ] **Traps**: hidden traps in the old dungeons (and the Deep's), found by Stealth (a roll as you come near) or
+- [x] **Lockpicking** on locked chests, doors and cages (the existing minigame, scaled by Stealth and the lock).
+  (Chests: locks.py. Cages already had it by script; locked doors stay quest Locks, opened by their quests.)
+- [x] **Traps**: hidden traps in the old dungeons (and the Deep's), found by Stealth (a roll as you come near) or
   Search; a found trap shows, can be disarmed (Stealth, xp) or walked round.
-- [ ] **Secrets**: more to Search for (cracked walls, loose stones), found more easily with Stealth.
-- [ ] **Pickpocket and Steal**: from townsfolk (Pickpocket) and shop shelves/market stalls (Steal), each with a
+- [x] **Secrets**: more to Search for (cracked walls, loose stones), found more easily with Stealth.
+- [x] **Pickpocket and Steal**: from townsfolk (Pickpocket) and shop shelves/market stalls (Steal), each with a
   loot table like drops; success by Stealth; caught: the guards come (a guard put down nearby, a few levels above
   you), the shop won't trade for a while. Personal: what's stolen from a person comes back to them for others.
-- [ ] **Levels and xp**: every stealth action has a level and gives Stealth xp; detection, locks and traps scale with
+- [x] **Levels and xp**: every stealth action has a level and gives Stealth xp; detection, locks and traps scale with
   it.
 
 ## 7. Chests and locks
 
-- [ ] **Every chest has a lock**, of a difficulty (`Lock=` on its map line or kind; a default by place: the Isle's
+- [x] **Every chest has a lock** (by place, data\Locks.ini; 15 of 19 now), of a difficulty (`Lock=` on its map line or kind; a default by place: the Isle's
   none or easy, dungeons harder). Open: unlocked; locked: Pick Lock (Stealth level shown on hover), its key, or
   `Break Open` with a weapon (Strength; noisy, may break what's inside? no: just noisy).
-- [ ] Picked locks are personal (chests are per player).
-- [ ] Quest chests and anything quest-critical stay openable: either no lock or a key the quest gives; a test walks
+- [x] Picked locks are personal (chests are per player).
+- [x] Quest chests and anything quest-critical stay openable: either no lock or a key the quest gives; a test walks
   every chest script to be sure none needs what can't be had.
-- [ ] The hover says "Locked (Stealth 12)" or "Locked" if it needs a key.
+- [x] The hover says "Locked (Stealth 12)" or "Locked" if it needs a key.
 
 ## 8. The story: the secret of the Shards (A with C)
 
@@ -131,14 +147,14 @@ The heir stays. What changes is the mystery underneath it:
   the dragon, dying, says what it carried; the King's Seam is the ending: you choose to keep the pieces apart (the
   Binding: the Crown Shards) or bind the dragon's piece into the crown (a different reward and epilogue; the game
   plays the same after).
-- [ ] Write it up in `dev/Story and Quests.md` and CLAUDE.md's story section.
-- [ ] **Before leaving the Isle you must know what Shard Remnants are**: Bess won't sail until you've Absorbed some
+- [x] Write it up in `dev/Story and Quests.md` and CLAUDE.md's story section.
+- [x] **Before leaving the Isle you must know what Shard Remnants are**: Bess won't sail until you've Absorbed some
   (Aldous's lesson done: an attribute set when you first absorb).
-- [ ] Rewrite the stage texts and the people's lines along the way (`build_heir_isle.py`, `build_heir_mainland.py`,
+- [x] Rewrite the stage texts and the people's lines along the way (`build_heir_isle.py`, `build_heir_mainland.py`,
   `build_shardgate.py`...), still discovered, never laid out.
-- [ ] **A stealth part**: in The Royal Guard, Mary's notes are in the Archive's sealed vault: get in at night past the
+- [ ] **A stealth part** (after group 9: it needs Galaith's new City Hall, with a vault under it): in The Royal Guard, Mary's notes are in the Archive's sealed vault: get in at night past the
   archive's watchmen (lookouts) and pick its lock; a test.
-- [ ] The ending's choice at the King's Seam; both rewards; Jimmy as now.
+- [x] The ending's choice at the King's Seam; both rewards; Jimmy as now.
 
 ## 9. The world: coasts and Galaith
 
@@ -207,6 +223,21 @@ and the new land meets them at their edges.)
 ---
 
 ## Decisions made where the list was unclear
+
+- Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for
+  the NPC that killed it. A Shard Remnant goes for any creature that can be fought (`Hunts=All`), not townsfolk or a
+  quest's named ones.
+- Farm animals' remnants: they're level 1, so they leave Shard Remnants now and then but never rise as one.
+- A sound with takes (Fail, Fail_2, Fail_3) is picked at random by the page; Denied has two.
+- Stances change with the round button by your health (or Q), and take a second. Channelling never touches potions.
+- A guard who comes for a caught thief is that player's own (no one else sees them) and goes after two minutes or
+  when they're left behind; the town's other guards stay friendly.
+- Chest locks are by place (Locks.ini), not written into the maps (the mainland's maps are rebuilt), and Break Open
+  (Strength, loud) is always there besides Pick Lock (Stealth), so no chest is out of reach. Locked doors stay quest
+  Locks: picking them would skip the story.
+- Traps and secrets you've noticed, and chests you've unlocked, are your own; unlocked chests are saved, noticed
+  traps are forgotten when you leave (they're easy to notice again).
+- Signs keep their Ids (Sign_Smithy...): only their Display.Name changed, so no script or map needed touching.
 
 - "Passive" is a new `Attitude=Passive`, so `Good` (can't be attacked) and `Bad` (hostile) keep their meaning.
 - Stances replace "modes": one at a time, a short change time. Channelling makes spell buffs last longer, not potions

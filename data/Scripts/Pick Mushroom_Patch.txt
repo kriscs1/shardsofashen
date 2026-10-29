@@ -6,7 +6,7 @@
 05	Show.Skill	Alchemy
 06	Play.Sound	Pickup
 07	Wait	1.5
-08	Display.Message	Yellow	...it's still warm to the touch.
+08	Display.Message	Yellow	...it's still warm to the touch.	Harvest
 09	Give.Item	Cave_Mushroom	1
 10	Update.Skill	Alchemy	+0.1
 11	>Random	50	13

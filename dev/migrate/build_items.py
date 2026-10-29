@@ -1,5 +1,5 @@
-"""The everyday items, drawn again (sprites\\Entities): the tuna (Raw_Herring, Cooked_Herring, Burnt_Herring), Bread, Logs, the
-potion flask (Basic_Potion, Empty_Vial, Full_Vial), the Tinderbox, Bones, the poultry (Raw_, Cooked_, Burnt_Poultry)
+"""The everyday items, drawn again (sprites\\Entities): the tuna (Raw_Herring, Cooked_Herring), Burnt_Food, Bread, Logs, the
+potion flask (Basic_Potion, Empty_Vial, Full_Vial), the Tinderbox, Bones (a heap), the poultry (Raw_, Cooked_Poultry)
 and the buckets (Bucket, Bucket_of_Water). 32 x 32, lit from the top left, with the 1 px dark outline.
 
 The items made from these are made again from them, by their own builders: the other potions (build_sprites.py,
@@ -125,19 +125,29 @@ def cooked_tuna():
                 fin=(96, 54, 26), finlet=(196, 140, 60), eye=((236, 230, 210), (60, 34, 18)), marks=grill)
 
 
-@item("Burnt_Herring")
-def burnt_tuna():
-    def char(img):
-        rng = random.Random(5)
-        pts = [(x, y) for y in range(S) for x in range(S) if img[y][x] is not None]
-        for _ in range(24):
-            x, y = rng.choice(pts)
-            img[y][x] = (20, 14, 12)                               # (cracks in the char)
-        for _ in range(4):
-            x, y = rng.choice(pts)
-            img[y][x] = (196, 86, 30)                              # (a last ember)
-    return tuna(back=(32, 24, 20), side=(52, 40, 34), belly=(82, 64, 52), sheen=(104, 84, 70),
-                fin=(28, 20, 18), finlet=(70, 54, 40), eye=((120, 110, 96), (10, 8, 8)), marks=char)
+@item("Burnt_Food")
+def burnt_food():
+    """Whatever it was, it's charcoal now: a crumbling heap of black lumps, cracked, with crumbs, a smudge of grey ash
+    and the last orange spark of an ember (every burnt dish is this, and they stack)."""
+    img = K.new()
+    rng = random.Random(11)
+    char = ((40, 32, 28), (64, 52, 44), (18, 14, 12))
+    for cx, cy, rx, ry in ((12, 22, 5.5, 4.2), (19.5, 21, 5.2, 4.6), (16, 17.5, 4.4, 3.6), (23, 24.5, 3.6, 2.8),
+                           (9, 25.5, 3.2, 2.4)):
+        K.shaded_ellipse(img, cx, cy, rx, ry, char[0], char[1], char[2])
+    pts = [(x, y) for y in range(S) for x in range(S) if img[y][x] is not None]
+    for _ in range(26):                                            # (cracks through the char)
+        x, y = rng.choice(pts)
+        img[y][x] = (10, 8, 8)
+    for _ in range(10):                                            # (grey ash on the top)
+        x, y = rng.choice([q for q in pts if q[1] < 21])
+        img[y][x] = (120, 114, 108)
+    for x, y in ((5, 27), (27, 26), (26, 28), (7, 29), (14, 28), (20, 28)):    # (crumbs round it)
+        img[y][x] = char[2]
+    for x, y in ((17, 18), (21, 22), (11, 23)):                    # (an ember still glowing)
+        img[y][x] = (222, 104, 34)
+    img[18][18] = (255, 170, 70)
+    return done(img)
 
 
 # ---------------------------------------------------------------- bread
@@ -293,23 +303,42 @@ def tinderbox():
 
 
 # ---------------------------------------------------------------- bones
-def bone(img, x0, y0, x1, y1):
+IVORY = ((246, 240, 218), (222, 212, 184), (176, 164, 134))
+
+
+def bone(img, x0, y0, x1, y1, width=3.4, knob=2.3, ivory=IVORY):
     import build_sprites as B
-    ivory = ((246, 240, 218), (222, 212, 184), (176, 164, 134))
-    B.seg(img, x0, y0, x1, y1, 3.4, *ivory)
+    B.seg(img, x0, y0, x1, y1, width, *ivory)
     vx, vy = x1 - x0, y1 - y0
     ln = math.hypot(vx, vy)
-    nx, ny = -vy / ln * 1.7, vx / ln * 1.7
+    nx, ny = -vy / ln * width / 2, vx / ln * width / 2
     for ex, ey in ((x0, y0), (x1, y1)):                            # (the knuckled ends)
         for s in (-1, 1):
-            K.shaded_ellipse(img, ex + nx * s, ey + ny * s, 2.3, 2.3, *ivory)
+            K.shaded_ellipse(img, ex + nx * s, ey + ny * s, knob, knob, *ivory)
 
 
 @item("Bones")
 def bones():
+    """A little heap of bones: long bones lying every which way, a curl of ribs, and a skull on top."""
+    import build_sprites as B
     img = K.new()
-    bone(img, 8, 9, 24, 23)
-    bone(img, 24, 9, 8, 23)
+    old = (K.mul(IVORY[0], 0.9), K.mul(IVORY[1], 0.88), K.mul(IVORY[2], 0.85))     # (the ones underneath: duller)
+    bone(img, 5, 25, 19, 27, 2.6, 1.7, old)                        # the long bones at the bottom of the heap
+    bone(img, 13, 28, 27, 23, 2.6, 1.7, old)
+    bone(img, 7, 19, 15, 26, 2.4, 1.6, old)
+    for k in range(4):                                             # ribs: short curves, side by side
+        x = 6 + k * 2.6
+        B.seg(img, x, 15 + k * 0.6, x + 2.2, 19.5 + k * 0.4, 1.6, *IVORY)
+        B.seg(img, x + 2.2, 19.5 + k * 0.4, x + 1.2, 23 + k * 0.3, 1.6, *IVORY)
+    bone(img, 15, 22, 26, 17, 2.8, 1.9)                            # one across the top
+    # the skull: a round dome, a jaw under it, dark sockets and a nose
+    K.shaded_ellipse(img, 20.5, 12.5, 6.2, 5.6, IVORY[1], IVORY[0], IVORY[2])
+    K.shaded_ellipse(img, 21, 18, 3.8, 2.2, IVORY[1], IVORY[0], IVORY[2])
+    dark = (58, 44, 34)
+    for x, y in ((18, 13), (19, 13), (18, 14), (19, 14), (22, 13), (23, 13), (22, 14), (23, 14), (21, 16)):
+        img[y][x] = dark
+    for x in (19, 21, 23):                                         # (its teeth)
+        img[18][x] = IVORY[2]
     return done(img)
 
 
@@ -340,11 +369,6 @@ def raw_poultry():
 @item("Cooked_Poultry")
 def cooked_poultry():
     return poultry((194, 120, 50), (230, 164, 82), (146, 82, 30), (250, 206, 132))
-
-
-@item("Burnt_Poultry")
-def burnt_poultry():
-    return poultry((70, 46, 32), (102, 70, 48), (40, 26, 18), (132, 92, 62), speck=(22, 14, 10))
 
 
 # ---------------------------------------------------------------- buckets

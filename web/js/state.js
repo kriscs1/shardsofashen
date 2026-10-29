@@ -81,6 +81,8 @@ export function tileAt(z, x, y) {
 
 // ----- the things and people seen, moved smoothly between the server's ticks
 const GLIDE_MS = 70;
+const SIT_MS = 260;                    // (sitting down or getting up: a step onto the seat, eased, not a jump)
+const sitting = (i) => /_Sit[1248]$/.test(i || "");
 
 export function applySnap(msg, now) {
   for (const e of msg.add) {
@@ -92,6 +94,7 @@ export function applySnap(msg, now) {
     if (!e) continue;
     if ("x" in c || "y" in c) {
       e.fx = e.dx; e.fy = e.dy; e.t0 = now;
+      e.gms = "i" in c && sitting(c.i) !== sitting(e.i) ? SIT_MS : 0;
       const jump = Math.abs((c.x ?? e.x) - e.dx) > 96 || Math.abs((c.y ?? e.y) - e.dy) > 96;
       if (jump) { e.fx = c.x ?? e.x; e.fy = c.y ?? e.y; }
     }
@@ -103,6 +106,7 @@ export function applySnap(msg, now) {
     S.pos = { ...me, dx: me.x, dy: me.y, fx: me.x, fy: me.y, t0: now };
   } else {
     S.pos.fx = S.pos.dx; S.pos.fy = S.pos.dy; S.pos.t0 = now;
+    if (me.x !== S.pos.x || me.y !== S.pos.y) S.pos.gms = sitting(me.i) !== sitting(S.pos.i) ? SIT_MS : 0;
     Object.assign(S.pos, me);
   }
   S.viewMaps = msg.maps;
@@ -110,7 +114,8 @@ export function applySnap(msg, now) {
 
 export function glide(now) {
   const step = (e) => {
-    const k = Math.min(1, (now - e.t0) / GLIDE_MS);
+    let k = Math.min(1, (now - e.t0) / (e.gms || GLIDE_MS));
+    if (e.gms) k = k * k * (3 - 2 * k);                       // (onto a seat or off it: eased in and out)
     e.dx = e.fx + (e.x - e.fx) * k;
     e.dy = e.fy + (e.y - e.fy) * k;
   };

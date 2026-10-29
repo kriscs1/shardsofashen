@@ -5,12 +5,12 @@
 05	Wait	3
 06	Get.Value	SKILL	Cooking	Variable.1$
 07	>Conditional	($Variable.1*2+40)>$Random.Percent	12
-08	Display.Message	Yellow	..and cook it perfectly!
+08	Display.Message	Yellow	..and cook it perfectly!	Cooked
 09	Update.Skill	Cooking	+0.05
 10	Give.Item	Cooked_Meat	1
 11	End
 12	Display.Message	DarkRed	..but accidentally burn it!	Fail
-13	Give.Item	Burnt_Meat	1
+13	Give.Item	Burnt_Food	1
 14	End
 15	Display.Message	DarkRed	You are too far away!	Denied
 16	End

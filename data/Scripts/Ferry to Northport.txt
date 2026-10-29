@@ -1,8 +1,12 @@
-01	Display.Message	Cyan	You climb aboard the ferry and cast off...
-02	Play.Sound	Boat
-03	Toggle.User.Input	OFF
-04	Wait	2
-05	Toggle.User.Input	ON
-06	Teleport	Northport_Pier	-
-07	Display.Message	Yellow	...and tie up at the Northport pier.
-08	End
+01	>Conditional	$Attr.RemnantsAbsorbed<1	05
+02	Display.Conversation	Ferryman	Hold up, friend. Bess says you've never had a beast's leavings in your hands, and the mainland's thick with them. See Brother Aldous first. Here's your coin back.	Fair enough.	03
+03	Give.Item	Gold_Coin(s)	1
+04	End
+05	Display.Message	Cyan	You climb aboard the ferry and cast off...
+06	Play.Sound	Boat
+07	Toggle.User.Input	OFF
+08	Wait	2
+09	Toggle.User.Input	ON
+10	Teleport	Northport_Pier	-
+11	Display.Message	Yellow	...and tie up at the Northport pier.
+12	End

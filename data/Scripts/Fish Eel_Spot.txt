@@ -10,7 +10,7 @@
 09	Wait	4
 10	>Conditional	($Variable.1*2-15+40)>$Random.Percent	16
 11	Take.Item	Bait	1
-12	Display.Message	Yellow	...and land a cave eel!
+12	Display.Message	Yellow	...and land a cave eel!	Gather_Fish
 13	Give.Item	Raw_Cave_Eel	1
 14	Update.Skill	Fishing	+0.3
 15	End

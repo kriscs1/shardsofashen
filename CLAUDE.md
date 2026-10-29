@@ -99,6 +99,18 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens: at its far wall
    the **King's Shard Seam** gives the Crown Shards once a (real) day (`dev/migrate/build_kings_seam.py`).
 
+**The secret under it all: the Heart of Ashen** (being written into the chapters: `dev/Roadmap.md` group 8). Shards
+are the pieces of the Heart of Ashen, a crystal of all the world's magic that the first king broke to bind the dragon
+(the Breaking). Every piece wants to be whole again: that's why a dead beast's remnants go for its killer, and why
+broken magic sinks into the Shardrealm, the hollow where the Heart lay. The dragon took the Pact to stay bound; its
+price is a royal firstborn each generation, whose blood keeps the pieces apart, and the dragon carries the largest
+piece itself. The King's Shard Seam is where the Heart was broken. Mary found the Pact's price at the Wizards' Court
+and ran to learn how it was made; her notes are found as you go. Each chapter gives a piece (Aldous: the pieces "want
+to go home"; the Sunken Grimoire: the Breaking; the Ember Ring: the Pact's seal; the Shardrealm's core: the hollow;
+the dragon, dying: what it carried), still discovered, never laid out. At the Seam you choose: keep the pieces apart
+(the Binding) or bind the dragon's piece into the crown; the game plays the same after either. You don't leave the
+Isle till you know what Shard Remnants are (Bess and Wim won't sail till you've absorbed some).
+
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
 The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.md` has every quest, step by step.
 
@@ -130,11 +142,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The chat log isn't spammed**: no line per blow in a fight (the numbers over heads show hits and misses).
   Log what matters: kills, loot, level-ups, warnings, quest news.
 - **Bad news is heard as well as read.** In scripts it's written there: `Display.Message COLOUR MESSAGE [SOUND]`
-  (or a `Play.Sound` beside it). Every red script message (DarkRed, Red) says its sound: **`Denied`** (a computer's
-  no) when you can't (too far, no axe, level too low); **`Fail`** (a lute's "oh well") when an attempt comes to nothing
-  in the world ("..but fail to get any logs!"); **`-`** for none on purpose (arriving somewhere, a story's moment).
-  Script messages are otherwise silent. The engine's own messages (not from a
-  script) that say no get the Denied tell from `Session.take_out`.
+  (or a `Play.Sound` beside it). Every red script message (DarkRed, Red) says its sound: **`Denied`** (a low knock on a
+  shut shutter) when you can't (too far, no axe, level too low); **`Fail`** (a lute's "oh well") when an attempt comes
+  to nothing in the world ("..but fail to get any logs!"); **`-`** for none on purpose (arriving somewhere, a story's
+  moment). The engine's own messages (not from a script) that say no get the Denied tell from `Session.take_out`.
+- **Good news is heard too**: a gathering or cooking script's success line says its sound (`Gather_Wood`, `Gather_Ore`,
+  `Gather_Fish`, `Harvest`, `Cooked`, `Crafted`: `dev/migrate/success_sounds.py`); unlocking, learning, levelling and
+  quests have theirs. Only on the event, never on every swing. Other script messages are silent.
 
 **Creatures**
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.
@@ -144,6 +158,18 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
   `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab always shows it out of its usual level
   (20/20; drained 18/20, red; boosted 23/20, green, a potion's or spell's boost to your blows counted in), and hitpoints and your level go by the usual one.
+- **Stances** (`dsengine/stances.py`, `data/Stances.ini`; the round button by your health, or Q): none, Fighting
+  (blows and guard up, magic hurts more), Channelling (spells stronger, wards and spell boosts longer, drains shrugged
+  off; slower, a weaker guard; never potions: herbs), Sneaking (heard and seen less, more with Stealth; lookouts' sight
+  cones shown; Pickpocket, Steal; slower). A moment to change; a blow or a spell ends Sneaking. Monsters hear you
+  (`noise_radius`): a lookout turns to look, but nothing sees or hears through a wall. A blow on one that never saw you
+  is a sneak attack. Feedback: a ? over one that heard you, a ! and a sound when you're seen, a sound slipping past.
+- **Thieving** (`dsengine/thieving.py`, `data/Thieving.ini`): pockets by trade, shops' shelves; caught, a guard of your
+  own comes (levels above you) and that shopkeeper won't serve you a while. **Locks** (`dsengine/locks.py`,
+  `data/Locks.ini`): chests have a lock by place (none on the Isle, never on a chest a quest needs); key, Pick Lock
+  (Stealth) or Break Open (Strength), so none is out of reach; unlocked is yours, saved. **A thief's eye**
+  (`dsengine/senses.py`): hidden traps and secrets noticed as you come near; a seen trap is marked, can be disarmed,
+  and doesn't spring as you sneak over it. All of it each player's own.
 - **Tricks** (`dsengine/tricks.py`): invisibility (no monster sees you; strike or cast and it's over) and body swaps
   (`Swap=1` creatures and townsfolk, for a strict time: no hands, monsters pay you no mind, `$Player.Form` says what
   you are, e.g. a cat flap's `$Player.Form=Cat`). A script can `Turn.Into` a creature for a while.
@@ -213,8 +239,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   roll counts the skill twice (`($Variable.1*2+34)>$Random.Percent`). Gains are `XP.Scale` times what's given.
   Old saves are scaled as they load (`skills_of` in a save). `dev/migrate/scale_skills.py` did it, once.
 - The skills, in this order: Strength, Defence, **Channeling**, **Shardcraft**, Hitpoints, Cooking, Crafting, Fishing,
-  Mining, Woodcutting, **Alchemy**, **Homesteading** (`dev/migrate/rename_skills.py`; an old name in a save or a script
-  means the skill it's part of now: `renames.py SKILL_NAMES`).
+  Mining, Woodcutting, **Alchemy**, **Homesteading**, **Stealth** (`dev/migrate/rename_skills.py`; an old name in a
+  save or a script means the skill it's part of now: `renames.py SKILL_NAMES`).
+  - **Stealth** is going unseen and light-fingered: sneaking past, sneak attacks, pickpocketing and stealing, picking
+    locks, spotting and disarming traps, noticing secrets (`dev/migrate/build_stealth.py`).
   - **Channeling** (was Magic) is using magic: casting. Each level past the first takes Shards.ini `[Channeling]`
     percent off a spell's Shards, to a limit, never under a Shard (`channeled_cost`, and `castCost` in the page).
   - **Shardcraft** is making and working Shard magic: activating shardstones and the Shardgate, dismantling, absorbing
@@ -325,6 +353,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Drawing stays cheap**: no canvas `filter` (blur...) or high-quality scaling of the whole view every frame. Work it
   out once when it changes (the fog is blurred on a small picture, then stretched).
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
+- **Sounds belong to the old world**: plucked strings, wood, low bells, breath, voices, never a clean electronic
+  tone or anything shrill (a chime above C6 goes down an octave). The yes/no, magic and small creatures' sounds are
+  `dev/migrate/build_soundscape.py`'s (`build_sounds.arpeggio` plucks a harp); a sound with takes (`Fail`, `Fail_2`,
+  `Fail_3`) is played at random among them.
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
 - The camera stays on the player: past the last map there's only black (never held back at the edge of the maps).
@@ -381,10 +413,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Zoomed far out, a double-click zooms in on that tile at 100%. Every level under or over the world is laid out in the
   world's frame (`dsedit/world.py` own_level): the same corners, a map just over or under the one it's above or below,
   and going up or down keeps the same spot in view.
-- The map editor shows a level as one map (`dsedit/world.py`): a set in `data/TileSets.ini` is laid out by dragging,
-  by its layout and its pieces' `Piece=` (a 3-column grid stretches: corners, edges, middle; a rug's "runner"s; a
-  fence's "corner: east and south"...). Give a new set the same layout and piece names. Diagonal shore pieces are
-  `Water002-009` on grass and `<Land>_Water002-009` for `<Land>001`.
+- The map editor shows a level as one map (`dsedit/world.py`). **How tiles go together is in the data, never the
+  editor's code**: a set in `data/TileSets.ini` has a `Kind=` (Stretch: a 3-column grid of corners, edges and middle;
+  Rug: that and its "runner"s; Join: pieces that join their neighbours, each with `Joins=` in Tiles.ini, the sides it
+  joins, `*` a tower, `-` a post, and `Below=` for one two tiles tall; Shore: a coast's `Land`, `Water`, `Corners` and
+  `Small` pieces). A Join set (fences, palisades, the town wall) is dragged as a line or round a rectangle, or painted
+  freehand, and its pieces round it are joined again, painting or erasing. `dev/migrate/tile_joins.py` wrote them.
+  Give a new set its Kind, and its pieces their `Piece=` (and `Joins=`).
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
   `dev/migrate/validate.py`.
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.

@@ -24,7 +24,7 @@
 23	Play.Animation	Rock_Chips	4	Mine
 24	Wait	3
 25	>Conditional	($Variable.1*2+$Variable.2+49)>$Random.Percent	31
-26	Display.Message	Yellow	...and mine some tin ore!
+26	Display.Message	Yellow	...and mine some tin ore!	Gather_Ore
 27	Give.Item	Tin_Ore	1
 28	Update.Skill	Mining	+0.08
 29	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	20

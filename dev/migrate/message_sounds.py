@@ -1,7 +1,7 @@
 """Scripts say what's heard with their messages: Display.Message COLOUR MESSAGE [SOUND]. The engine used to add the
 Denied sound to any red message on its own; now a script's messages are silent unless the script gives a sound, so
 this writes one into every red one (DarkRed, Red): Fail (a lute's "oh well") for an attempt that came to nothing -
-the second half of a line, "..but fail to get any logs!" - and Denied (a computer's no) for anything else. Not one
+the second half of a line, "..but fail to get any logs!" - and Denied (a low knock on a shut shutter) for anything else. Not one
 with a sound already played right beside it (a Play.Sound or Play.Animation on the line before or after), nor one in
 a map's own script (what you find on arriving). "-" says a line has no sound on purpose (a story's moment). Run it
 again: nothing left to do.

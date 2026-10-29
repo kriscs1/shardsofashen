@@ -31,6 +31,10 @@ from .ownspell import OwnSpellMixin
 from .tricks import TrickMixin
 from .deep import DeepMixin
 from .shardcraft import ShardcraftMixin
+from .stances import StanceMixin
+from .thieving import ThiefMixin
+from .senses import SenseMixin
+from .locks import LockMixin
 
 log = logging.getLogger("ashen.session")
 
@@ -58,10 +62,17 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin):
+              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
+              ThiefMixin, SenseMixin, LockMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
+        self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
+        self.sneak_near = {}                                            # (monsters you're creeping past)
+        self.thief_until, self.banned_until, self.guards_after = {}, {}, []   # (thieving.py: robbed lately, caught)
+        self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
+        self.sense_tried, self.sense_at = set(), 0
+        self.unlocked_chests, self.break_at = set(), 0                  # (locks.py: the chests you've opened up)
         self.player_name = name
         self.admin_enabled = admin
         self.god_mode = 0
@@ -414,6 +425,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.quest_notes = [[RENAMED_QUESTS.get(q, q), int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
         self.taken_once = set(st.get("taken_once", []))
+        self.unlocked_chests = set(st.get("unlocked_chests", []))
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
         self.hotbar = (list(st.get("hotbar", [])) + [""] * HOTBAR_SLOTS)[:HOTBAR_SLOTS]
         self.hotbar = [self.renamed(h) for h in self.hotbar]
@@ -529,6 +541,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "quest_notes": [[q, dn, t] for q, dn, t in self.quest_notes],
             "npc_attitudes": dict(self.npc_attitudes),
             "taken_once": sorted(self.taken_once),
+            "unlocked_chests": sorted(self.unlocked_chests),
             "hotbar": list(self.hotbar),
             "bets": [int(t) for t in self.bets],
             "explored": {k: ("all" if v == "all" else sorted(v)) for k, v in self.explored.items()},
@@ -625,6 +638,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.sleep_state:
             return
         self.update_script_move()
+        self.stance_tick()
+        self.sneak_tick()
+        self.thief_tick()
+        self.sense_tick()
         self.dig_tick()
         self.game_tick()
         if not self.ab_mode:
@@ -666,7 +683,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def move_entity(self, e, direction):
         if direction == 0:
             return False
-        dist = e.move_speed * self.w.dt * self.w.ground_speed(e)
+        dist = e.move_speed * self.w.dt * self.w.ground_speed(e) * (self.stance_walk() if e is self.player else 1)
         if dist <= 0:
             return False
         x = y = 0.0
@@ -724,7 +741,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if d <= self.player_walk_range:
             self.finish_player_walk()
             return
-        speed = self.player_walk_speed if self.player_walk_speed > 0 else p.move_speed
+        speed = (self.player_walk_speed if self.player_walk_speed > 0 else p.move_speed) * self.stance_walk()
         if self.pending_ent is not None:
             goal = w.path_goal_key(self.player_walk_x, self.player_walk_y, self.player_walk_range)
             if goal != p.path_goal and (self.now >= p.path_time or p.path_time - self.now > 5000):
@@ -873,7 +890,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                     cx, cy = m.ox + (lk.x - 0.5) * self.tw, m.oy + (lk.y - 0.5) * self.th
                     if distance(p.cx, p.cy, cx, cy) < 160:
                         self.display_message("You hear a click.", "INFO")
-                        self.play_sound("Door")
+                        self.play_sound("Unlock")
         if changed:
             self.rebuild_cell_override()
 
@@ -1077,7 +1094,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                            for k in ("attack", "defence", "magic", "sight") if getattr(self, "spell_%s_until" % k)},
             "boost_from": dict(self.boost_from),
             "status_left": {k: max(0, v["until"] - self.now) for k, v in self.status.items()},
-            "skill_now": self.skills_now(), **self.tricks_state(),
+            "skill_now": self.skills_now(), **self.tricks_state(), **self.stance_state(), **self.traps_state(),
             "skill_boosts": {b["skill"]: {"n": b["n"], "ms": max(0, b["until"] - self.now)}
                              for b in self.skill_boosts.values()},
             "status_info": {k: self.status_words(k) for k in self.status},

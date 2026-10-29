@@ -6,7 +6,7 @@
 05	Show.Skill	Alchemy
 06	Play.Sound	Pickup
 07	Wait	1.5
-08	Display.Message	Yellow	...and pick a fragrant herb.
+08	Display.Message	Yellow	...and pick a fragrant herb.	Harvest
 09	Give.Item	Herb	1
 10	Update.Skill	Alchemy	+0.1
 11	>Random	60	13

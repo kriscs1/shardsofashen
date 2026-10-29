@@ -15,7 +15,7 @@
 14	Play.Sound	Anchor_Shatter
 15	Update.Attribute	ShardgateQuest	=4
 16	Toggle.User.Input	ON
-17	Display.Message	Yellow	..and it shatters. Far away, in the pass of Galaith, something gives. Tell Bert.	-
+17	Display.Message	Yellow	..and it shatters. Under it the realm's floor falls away into a hollow, vast and the shape of a heart, where something once lay: every splinter of magic here leans toward it. Far away, in the pass of Galaith, something gives. Tell Bert.	-
 18	End
 19	Display.Message	DarkRed	Your bare hands won't break it: it needs the Staff of Ashen.	Denied
 20	End

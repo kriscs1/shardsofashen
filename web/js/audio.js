@@ -6,7 +6,8 @@ import { val, trim, clamp } from "./util.js";
 import { weatherAmbient } from "./sky.js";
 
 export const O = {               // the options (kept in the browser)
-  sound: true, volume: 100, music: true, musicVolume: 80, ambient: true, ambientVolume: 70, chatSound: true,
+  sound: true, volume: 100, music: true, musicVolume: 30, ambient: true, ambientVolume: 70, chatSound: true,
+  musicChosen: false,            // (the player has moved the music slider: their level is kept)
 };
 
 export const AU = { ctx: null, buffers: new Map(), master: null, music: null, musicGain: null, musicTheme: null,
@@ -16,6 +17,7 @@ export const AU = { ctx: null, buffers: new Map(), master: null, music: null, mu
 export function loadOptions() {
   try {
     const o = JSON.parse(localStorage.getItem("ds.audio") || "{}");
+    if (!o.musicChosen) delete o.musicVolume;        // (the old default, 80, was too loud: the new one instead)
     Object.assign(O, o);
   } catch (e) { /* (private window) */ }
   if (localStorage.getItem("ds.audio") === null) {
@@ -47,6 +49,9 @@ function file(name) {
   name = trim(name);
   const s = A.m.sounds || {};
   if (name.includes(".")) return s[name] || null;
+  // (a sound with takes - Fail, Fail_2, Fail_3: build_soundscape.py - one at random, so a repeat doesn't grate)
+  const takes = [name, name + "_2", name + "_3"].filter((t) => s[t + ".wav"]);
+  if (takes.length > 1) return s[takes[Math.floor(Math.random() * takes.length)] + ".wav"];
   return s[name + ".wav"] || s[name + ".mid"] || null;
 }
 
@@ -67,9 +72,10 @@ function place(at) {
   return [f, clamp(dx / 400, -1, 1) * 0.7];
 }
 
-export async function playSound(name, at = null) {
+export async function playSound(name, at = null, loud = 1) {
   if (!O.sound || !AU.ctx || !trim(name)) return;
-  const [g, pan] = place(at);
+  let [g, pan] = place(at);
+  g *= loud;                                     // (how loud this one is: a footstep's softer)
   if (g < 0.03) return;
   const f = file(name);
   if (!f) return;

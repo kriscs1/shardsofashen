@@ -145,20 +145,12 @@ def art():
 
 
 SOUNDS = {
-    # a breath drawn in, and the light bending away
-    "Vanish": lambda: SND.mix((SND.arpeggio([1568, 1319, 1047, 784, 523], 0.05, 0.7, decay=4), 0.4),
-                              (SND.shaped(SND.noise(61, SND.n(0.6), 0.3, high=0.6), 0.2, 4), 0.2)),
-    "Appear": lambda: SND.mix((SND.arpeggio([523, 784, 1047, 1319, 1568], 0.04, 0.5, decay=5), 0.4),),
-    # two notes passing each other, wobbling
-    "Swap": lambda: SND.mix((SND.shaped(SND.tone(330, SND.n(0.6), glide=1.0), 0.02, 3), 0.35),
-                            (SND.shaped(SND.tone(660, SND.n(0.6), glide=-0.5), 0.02, 3), 0.35)),
+    # (Vanish, Appear, Swap and Click: build_soundscape.py)
     # HONK
     "Honk": lambda: SND.mix((SND.shaped(SND.tone(330, SND.n(0.25), glide=-0.15, shape="square"), 0.01, 6), 0.45),
                             (SND.shaped(SND.noise(62, SND.n(0.25), 0.5, high=0.3), 0.01, 6), 0.15)),
     # a bucket of water, all at once
     "Splosh": lambda: SND.mix((SND.shaped(SND.noise(63, SND.n(0.7), 0.6, high=0.5), 0.005, 4), 0.7),),
-    # a button going down
-    "Click": lambda: SND.mix((SND.shaped(SND.noise(64, SND.n(0.05), 0.9, high=0.8), 0.001, 40), 0.6),),
 }
 
 

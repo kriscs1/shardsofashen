@@ -310,9 +310,8 @@ def bark():
 
 
 def sounds():
-    write_wav("Croak", croak())
-    write_wav("Seal_Bark", bark())
-    print("Made sounds\\Croak.wav and Seal_Bark.wav")
+    write_wav("Seal_Bark", bark())                     # (Croak, a real ribbit: build_soundscape.py)
+    print("Made sounds\\Seal_Bark.wav")
 
 
 # ---------------------------------------------------------------- the data
@@ -392,7 +391,7 @@ def cook_script(where):
         "11\tGive.Item\tCooked_Frog_Legs\t1",
         "12\tEnd",
         "13\tDisplay.Message\tDarkRed\t..but burn them to a crisp!\tFail",
-        "14\tGive.Item\tBurnt_Meat\t1",
+        "14\tGive.Item\tBurnt_Food\t1",
         "15\tEnd",
         "16\tDisplay.Message\tDarkRed\tYou don't have any frog's legs.\tDenied",
         "17\tEnd",

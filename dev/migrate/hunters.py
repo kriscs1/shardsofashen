@@ -1,6 +1,6 @@
 """Some creatures go after others (Hunts= in Entities.ini): wolves and bears after the rabbits, sheep, hens and ducks,
 dogs after the rabbits and the rats, cats after the rats. What they go for runs (Flees=1) or fights back; what they
-kill leaves nothing behind and comes back as it would after a player killed it. The guards (and the town's law)
+kill leaves its loot and remnants (anyone's to take) and comes back as it would after a player killed it. The guards (and the town's law)
 hunt foes (Hunts=Foes: any monster that attacks on sight, even one that's fighting you), with the arms to do it.
 Safe to run again.
 

@@ -1061,18 +1061,18 @@ def scripts():
         ("End",)] + too_far()
 
     # ----- cooking on fires and ranges
-    for raw, cooked, burnt, lvl, xp in (("Raw_Trout", "Cooked_Trout", "Burnt_Herring", 10, "0.15"),
-                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Herring", 15, "0.25"),
-                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Herring", 20, "0.35"),
-                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Herring", 35, "0.6")):
+    for raw, cooked, burnt, lvl, xp in (("Raw_Trout", "Cooked_Trout", "Burnt_Food", 10, "0.15"),
+                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Food", 15, "0.25"),
+                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Food", 20, "0.35"),
+                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Food", 35, "0.6")):
         S["Use %s With Fire" % raw] = cook_script(raw, cooked, burnt, lvl, xp, "Fire")
-    for raw, cooked, burnt, lvl, xp in (("Raw_Meat", "Cooked_Meat", "Burnt_Meat", 1, "0.05"),
-                                        ("Raw_Poultry", "Cooked_Poultry", "Burnt_Poultry", 1, "0.05"),
-                                        ("Raw_Herring", "Cooked_Herring", "Burnt_Herring", 1, "0.05"),
-                                        ("Raw_Trout", "Cooked_Trout", "Burnt_Herring", 10, "0.15"),
-                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Herring", 15, "0.25"),
-                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Herring", 20, "0.35"),
-                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Herring", 35, "0.6")):
+    for raw, cooked, burnt, lvl, xp in (("Raw_Meat", "Cooked_Meat", "Burnt_Food", 1, "0.05"),
+                                        ("Raw_Poultry", "Cooked_Poultry", "Burnt_Food", 1, "0.05"),
+                                        ("Raw_Herring", "Cooked_Herring", "Burnt_Food", 1, "0.05"),
+                                        ("Raw_Trout", "Cooked_Trout", "Burnt_Food", 10, "0.15"),
+                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Food", 15, "0.25"),
+                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Food", 20, "0.35"),
+                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Food", 35, "0.6")):
         S["Use %s With Range" % raw] = cook_script(raw, cooked, burnt, lvl, xp, "Range", base=50)
 
     # ----- crafting stations

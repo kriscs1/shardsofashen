@@ -5,6 +5,7 @@ the old world's "oh well", not a computer's no (that's Denied). Run it again to 
   python -I "dev\\migrate\\build_fail_sound.py"
 """
 import math
+import sys
 import os
 import random
 import struct
@@ -46,6 +47,10 @@ def body(samples):
 
 
 def main():
+    sys.exit("Superseded: %s is made by build_soundscape.py now (in the old world's voice)." % "Fail")
+
+
+def old_main():
     rng = random.Random(11)
     seconds = 1.1
     n = int(seconds * RATE)
@@ -68,5 +73,5 @@ def main():
     print("Made sounds\\Fail.wav")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # (superseded: see main)
     main()

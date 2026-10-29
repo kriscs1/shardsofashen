@@ -63,6 +63,8 @@ def script():
                  ("Goto.Line", "@dig")]
     rows += [
         ("@dig",),
+        # (the ending: the first time, where the Heart of Ashen broke, you choose what becomes of its pieces)
+        (">Conditional", "$Attr.HeartChoice>=1", "@choose"),
         ("Get.Value", "ATTRIBUTE", "ShardSeamAt", "Variable.4$"),
         ("Get.Value", "CALCULATION", "$Clock-$Variable.4", "Variable.5$"),
         ("Get.Value", "CALCULATION", "$Shards.Galaith.Seam.Hours*3600", "Variable.6$"),
@@ -78,6 +80,28 @@ def script():
         ("Display.Message", "Yellow", "..and prise loose $Shards.Galaith.Seam Shards: the mountain's magic, the "
                                       "Crown's again."),
         ("End",),
+        ("@choose",),
+        ("Display.Conversation", "Player", "Your hand on the seam, you feel it: this is where the Heart of Ashen broke. "
+                                           "Every Shard in the world leans toward this place, and the dragon's last "
+                                           "words come back to you: keep them apart, or make it whole.",
+         "Keep the pieces apart: the Binding holds.", "@apart", "Make it whole, in the Crown.", "@whole",
+         "Not yet.", "@later"),
+        ("@apart",),
+        ("Update.Attribute", "HeartChoice", "=1"),
+        ("Give.Item", "Shard", "60"),
+        ("Play.Sound", "Quest"),
+        ("Display.Message", "Yellow", "You take your hand away. The pieces stay apart, and the Binding holds, as it "
+                                      "always has: the Crown's to keep now, and yours.", "-"),
+        ("End",),
+        ("@whole",),
+        ("Update.Attribute", "HeartChoice", "=2"),
+        ("Give.Item", "Heartstone_Ring", "1"),
+        ("Play.Sound", "Quest"),
+        ("Display.Message", "Yellow", "The seam flares, and something warm and whole settles into your palm: a "
+                                      "Heartstone, set in a ring. The Heart beats again, small, in the Crown's keeping.",
+         "-"),
+        ("End",),
+        ("@later",), ("End",),
         ("@dim",), ("Display.Message", "DarkRed", "The seam glows dimly: its Shards haven't grown back yet.", "Fail"),
         ("End",),
         ("@nopick",), ("Display.Message", "DarkRed", "You need a pickaxe!", "Denied"), ("End",),
@@ -100,6 +124,12 @@ def data():
     for k, v in SHARDS:
         shards.set("Shards", k, v, overwrite=False)
     shards.save(p("data", "Shards.ini"))
+    for k, v in (("Type", "MapItem"), ("Display.Name", "Heartstone Ring"), ("Slot", "Ring"), ("Magic", "4"),
+                 ("Defence", "1"), ("Stackable", "1"), ("Droppable", "0"), ("Value", "0"),
+                 ("Examine.Info", "The Heart of Ashen, made whole and small, in a ring of the Crown's gold. It "
+                                  "beats, faintly, against your finger.")):
+        ents.set("Heartstone_Ring", k, v)
+    ents.save(p("data", "Entities.ini"))
 
 
 def place():
@@ -113,6 +143,8 @@ def place():
 
 def main():
     print(("wrote " if K.save("Entities", "Shard_Seam", seam()) else "unchanged ") + "Shard_Seam")
+    import build_heir_mainland as HM                  # (the Heartstone Ring: drawn as the Ember Ring is)
+    SK.save("Entities", "Heartstone_Ring", HM.ring((176, 120, 255)))
     data()
     place()
     script()

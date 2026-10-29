@@ -114,9 +114,7 @@ def art():
 
 
 SOUNDS = {
-    # a crystal flower giving up its light: a soft chime, a shimmer
-    "Bloom_Harvest": lambda: SND.mix((SND.arpeggio([659, 880, 1109, 1319], 0.07, 0.8, decay=3.0), 0.5),
-                                     (SND.shaped(SND.noise(71, SND.n(0.6), 0.5, high=0.5), 0.1, 4.0), 0.2)),
+    # (Bloom_Harvest: build_soundscape.py)
     # the mist drawing still: a long breath out, glass settling
     "Terraform": lambda: SND.mix((SND.shaped(SND.noise(72, SND.n(0.7), 0.15), 0.2, 3.0), 0.5),
                                  (SND.shaped(SND.tone(330, SND.n(0.6), glide=-0.3), 0.05, 4.0), 0.3)),

@@ -908,6 +908,7 @@ export function equipSlotInfo(s) {
   return lines.join("|");
 }
 
+const TEXT_INK = [250, 240, 210], SHARD_INK = [196, 172, 255];    // (a box's words; Shards in them)
 const QUEST_COLOURS = { 0: [255, 214, 90], 1: [160, 140, 118], 2: [120, 205, 105] };
 
 export function questLook(q) {
@@ -1138,8 +1139,13 @@ function drawBox(ctx) {
     if (parts.length > 1 && /[A-Z]/.test(parts[0]) && parts[0] === parts[0].toUpperCase()) heading = parts.shift();
     // (always one size: what doesn't fit goes on the next page - "Read on..." - and the answers come on the last)
     const sz = 10, lineH = Math.max(14, fontPx(sz) + 3);
+    // (a part that starts {Shards} or {r g b} is drawn in that colour: the Shards a dismantle gives)
     const lines = [];
-    for (const part of parts) lines.push(...wrapLines(ctx, part, maxW, sz, true));
+    for (const part of parts) {
+      const m = /^\{([^}]*)\}/.exec(part);
+      const ink = !m ? TEXT_INK : m[1] === "Shards" ? SHARD_INK : colour(m[1], TEXT_INK);
+      for (const ln of wrapLines(ctx, m ? part.slice(m[0].length) : part, maxW, sz, true)) lines.push([ln, ink]);
+    }
     const room = Math.max(1, Math.floor((h - 64) / lineH));
     const first = Math.max(1, room - (heading ? 2 : 0));         // (the heading takes the first page's top)
     const pages = lines.length <= first ? 1 : 1 + Math.ceil((lines.length - first) / room);
@@ -1152,8 +1158,8 @@ function drawBox(ctx) {
       drawText(ctx, heading, x0 + titleX, y0 + y, 11, true, [255, 214, 110]);
       y += lineH + 8;
     }
-    for (const ln of shown) {
-      drawText(ctx, ln, x0 + titleX, y0 + y, sz, true, [250, 240, 210]);
+    for (const [ln, ink] of shown) {
+      drawText(ctx, ln, x0 + titleX, y0 + y, sz, true, ink);
       y += lineH;
     }
     if (pages > 1) {
@@ -1428,6 +1434,46 @@ function drawVitals(ctx) {
   const hpFill = hp < mhp * 0.33 ? "rgb(210,50,36)" : hp < mhp * 0.66 ? "rgb(214,130,36)" : "rgb(196,40,40)";
   vitalBar(ctx, y + 4, hp / mhp, hpFill, configRead("Skills", "Icon.Hitpoints", "Heart") || "Heart", `${hp}/${me.max_hp}`);
   shardRow(ctx, y + 21, me.shards || 0);
+  drawStance(ctx);
+}
+
+// ----- your stance (stances.py): a round button right of the bars; click or tap (or Q) for the next one
+export const STANCES = ["", "Fighting", "Channelling", "Sneaking"];
+export const STANCE_WORDS = { "": "Standing easy", Fighting: "Fighting|harder blows, a firmer guard|magic hurts more",
+  Channelling: "Channelling|stronger spells, longer wards|slower, a weaker guard",
+  Sneaking: "Sneaking|quiet, hard to see; lookouts' sight shown|slower; a blow or a spell ends it" };
+
+function stanceButton() {
+  const r = M.on ? 18 : 14;
+  return [VITALS.barX + VITALS.barW + 10 + r, VITALS.y + 18, r];
+}
+
+function drawStance(ctx) {
+  const me = S.me, [cx, cy, r] = stanceButton();
+  const hot = U.hover === "stance";
+  ctx.fillStyle = hot ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.92)";
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
+  const im = sprite("Stance_" + (me.stance || "None"));
+  if (im) {
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(im, cx - r + 2, cy - r + 2, 2 * r - 4, 2 * r - 4);
+    ctx.restore();
+  }
+  if (me.stance_next !== undefined && (me.stance_next || me.stance_ms)) {   // (changing: a ring filling round it)
+    const t = 1 - clamp((me.stance_ms || 0) / 1000, 0, 1);
+    ctx.strokeStyle = "rgb(255,214,110)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, r - 1, -1.571, -1.571 + 6.283 * t); ctx.stroke();
+  }
+}
+
+export function stanceAt(x, y) {
+  const [cx, cy, r] = stanceButton();
+  return Math.hypot(x - cx, y - cy) <= r + 2;
+}
+
+export function nextStance() {
+  const now = S.me.stance_next || S.me.stance || "";
+  return STANCES[(STANCES.indexOf(now) + 1) % STANCES.length];
 }
 
 export function vitalsAt(x, y) {
@@ -1442,7 +1488,7 @@ export function vitalsAt(x, y) {
 }
 
 // ----- the right-click menu
-export function openMenu(target, sx, sy, worldXY) {
+export function openMenu(target, sx, sy, worldXY, behind = []) {
   let verbs = getVerbs(target);
   if (!verbs.length) {
     if (sx < 0 || sy < 0 || sx >= L.VW || sy >= L.VH) return;
@@ -1450,14 +1496,23 @@ export function openMenu(target, sx, sy, worldXY) {
   }
   verbs = verbs.slice(0, 20);
   const labels = verbs.map((v) => verbLabel(v, target));
+  const targets = verbs.map(() => target);
+  const room = Math.max(4, Math.floor((L.VH - 12) / (M.on ? 28 : 18)) - 1);     // (rows that fit, Cancel aside)
+  for (const e of behind) {                         // (what's behind it, after its own: its verbs but Examine)
+    for (const v of getVerbs(e)) {
+      if (verbs.length >= room || v === "Examine" || v === "Walk here") continue;
+      verbs.push(v); labels.push(verbLabel(v, e)); targets.push(e);
+    }
+  }
   verbs.push("Cancel");
   labels.push("Cancel");
+  targets.push(null);
   const ctx = document.createElement("canvas").getContext("2d");
   const font = M.on ? 11 : 9;
   const longest = Math.max(...labels.map((l) => textWidth(ctx, l, font, true)));
   const w = Math.max(M.on ? 150 : 110, Math.ceil(longest) + 28), rowH = M.on ? 28 : 18, rowTop = 6;
   const h = rowTop * 2 + verbs.length * rowH;
-  U.rcm = { verbs, labels, target, worldXY, w, h, rowH, rowTop, hi: 0, font,
+  U.rcm = { verbs, labels, target, targets, worldXY, w, h, rowH, rowTop, hi: 0, font,
     x: clamp(sx - 10, 0, L.W - w), y: clamp(sy - 8, 0, L.VH - h) };
 }
 

@@ -107,9 +107,7 @@ def art():
 
 
 SOUNDS = {
-    "Darts": lambda: SND.mix((SND.shaped(SND.noise(71, SND.n(0.08), 0.9, high=0.9), 0.001, 30), 0.5),
-                             (SND.shaped(SND.noise(72, SND.n(0.08), 0.9, high=0.9), 0.001, 30, delay=0.07), 0.4),
-                             (SND.shaped(SND.noise(73, SND.n(0.08), 0.9, high=0.9), 0.001, 30, delay=0.15), 0.3)),
+    # (Darts: build_soundscape.py)
     "Rumble": lambda: SND.mix((SND.shaped(SND.noise(74, SND.n(1.8), 0.03), 0.4, 1.5), 0.9),
                               (SND.shaped(SND.tone(45, SND.n(1.8), glide=-0.2), 0.4, 1.5), 0.5)),
 }

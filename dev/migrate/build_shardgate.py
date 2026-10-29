@@ -195,18 +195,7 @@ def art():
 
 
 SOUNDS = {
-    # a rising shimmer, and the air folding shut behind you
-    "Portal": lambda: SND.mix((SND.arpeggio([523, 784, 1047, 1568, 2093, 3136], 0.05, 0.8, decay=3.0), 0.4),
-                              (SND.shaped(SND.noise(51, SND.n(0.8), 0.4, high=0.4), 0.3, 2.5), 0.3),
-                              (SND.shaped(SND.tone(110, SND.n(0.7), glide=0.6), 0.05, 4.0, delay=0.2), 0.4)),
-    # stone grinding into place, then a chime as the gate wakes
-    "Gate_Built": lambda: SND.mix((SND.shaped(SND.noise(52, SND.n(1.2), 0.15), 0.1, 2.5), 0.6),
-                                  (SND.arpeggio([392, 523, 659, 784], 0.12, 1.2, decay=2.5), 0.4)),
-    # a great crystal cracking, and shards ringing down
-    "Anchor_Shatter": lambda: SND.mix((SND.shaped(SND.noise(53, SND.n(0.2), 0.95, high=0.8), 0.001, 20), 0.8),
-                                      (SND.arpeggio([3136, 2637, 2349, 1976, 1568, 1319], 0.07, 0.9, decay=5),
-                                       0.4),
-                                      (SND.shaped(SND.tone(65, SND.n(1.0), glide=-0.4), 0.01, 3.0), 0.5)),
+    # (Portal, Gate_Built and Anchor_Shatter: build_soundscape.py)
 }
 
 
@@ -411,8 +400,10 @@ def scripts():
         ("Play.Sound", "Anchor_Shatter"),
         ("Update.Attribute", "ShardgateQuest", "=4"),
         ("Toggle.User.Input", "ON"),
-        ("Display.Message", "Yellow", "..and it shatters. Far away, in the pass of Galaith, something gives. Tell "
-                                      "Bert.", "-"),
+        ("Display.Message", "Yellow", "..and it shatters. Under it the realm's floor falls away into a hollow, "
+                                      "vast and the shape of a heart, where something once lay: every splinter of "
+                                      "magic here leans toward it. Far away, in the pass of Galaith, something gives. "
+                                      "Tell Bert.", "-"),
         ("End",),
         ("@nostaff",), ("Display.Message", "DarkRed", "Your bare hands won't break it: it needs the Staff of "
                                                       "Ashen.", "Denied"),

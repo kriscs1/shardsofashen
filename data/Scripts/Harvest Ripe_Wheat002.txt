@@ -5,7 +5,7 @@
 04	Display.Message	Cyan	You cut an armful of wheat...
 05	Play.Sound	Pickup
 06	Wait	1.5
-07	Display.Message	Yellow	...and tie it into a sheaf.
+07	Display.Message	Yellow	...and tie it into a sheaf.	Harvest
 08	Give.Item	Wheat	1
 09	Remove.Entity	$Variable.5,$Variable.6	Ripe_Wheat002
 10	Add.Entity	$Variable.5,$Variable.6	Stubble	StaticObject	-

@@ -238,16 +238,20 @@ class CombatMixin:
         return rnd() * 100 < chance
 
     def player_attack_value(self):
-        return self.skill_level("Strength") * 2 / 3 + 3 * (self.equip_attack_total + self.spell_attack_bonus)
+        return (self.skill_level("Strength") * 2 / 3 + 3 * (self.equip_attack_total + self.spell_attack_bonus)) * \
+            self.stance_num("Attack")
 
     def player_defence_value(self):
-        return self.skill_level("Defence") / 2 + 1.5 * (self.equip_defence_total + self.spell_defence_bonus)
+        return (self.skill_level("Defence") / 2 + 1.5 * (self.equip_defence_total + self.spell_defence_bonus)) * \
+            self.stance_num("Defence")
 
     def armour_soak(self):
         return max(0, int((self.equip_defence_total + self.spell_defence_bonus) / 6))
 
     def player_max_hit(self):
-        return 1 + int(self.skill_level("Strength") / 4) + 2 * (max(0, self.equip_attack_total) + self.spell_attack_bonus)
+        return max(1, int((1 + int(self.skill_level("Strength") / 4) + 2 * (max(0, self.equip_attack_total) +
+                                                                           self.spell_attack_bonus)) *
+                          self.stance_num("Damage")))
 
     def npc_max_hit(self, e):
         return 1 + max(0, int(self.w.stat_for(e, self, "strength") * self.data.monster_damage))
@@ -342,13 +346,20 @@ class CombatMixin:
             self.pvp_strike(t, ranged)
             return
         w = self.w
-        if not self.combat_hits(self.player_attack_value(), 3 * w.stat_for(t, self, "defence"), 3):
+        unseen = self.unseen_by(t)                      # (a blow it never saw coming: Stealth's)
+        self.end_sneaking()
+        if not unseen and not self.combat_hits(self.player_attack_value(), 3 * w.stat_for(t, self, "defence"), 3):
             self.play_sound("Miss", (t.cx, t.cy))
             self.fx_splat("Miss", 0, t)                 # (each blow shows over who it lands on, not in the chat)
             return
         max_hit = self.player_max_hit()
         damage = random_number(1, max_hit)
-        if rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15:
+        if unseen:
+            damage = max(damage, int(max_hit * self.stance_setting("Sneak.Attack", 2.0)))
+            self.play_sound("Crit", (t.cx, t.cy))
+            self.fx_splat("Crit", damage, t)
+            self.update_skill("Stealth", "+" + lbstr(self.stance_setting("Sneak.Attack.XP", 0.3)))
+        elif rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15:
             damage = max_hit + random_number(0, int(max_hit / 2))
             self.play_sound("Crit", (t.cx, t.cy))
             self.fx_splat("Crit", damage, t)
@@ -488,6 +499,8 @@ class CombatMixin:
             return
         self.wear_armour()
         damage = self.resist_damage(e, random_number(1, self.npc_max_hit(e))) - self.armour_soak()
+        if trim(self.entity_ini(e.name, "On.Hit", "")) or self.entity_ini(e.name, "Spell", ""):
+            damage = int(damage * self.stance_num("Spell.Hurt"))  # (magic in the blow: Fighting takes it worse)
         if damage <= 0:
             self.fx_splat("Miss", 0, p)
             self.play_sound("Block", (p.cx, p.cy))
@@ -629,6 +642,7 @@ class CombatMixin:
         potion = self.spell_is_potion(spell)
         if not potion:
             self.break_invisibility()                       # (a spell cast: seen)
+            self.end_sneaking()
         if not potion:
             self.spell_start_cooldown(spell)
             self.player_last_cast = self.now
@@ -687,7 +701,7 @@ class CombatMixin:
         self.spells_known[spell] = rank
         if val(self.spell_ini(spell, "Keep", "0")) != 1:
             self.remove_inventory_item(item.name, 1)
-        self.play_sound("SpellCast")
+        self.play_sound("Learn")
         self.fx_anim(self.spell_ini(spell, "Impact", "") or "Teleport_Glow", self.player.cx, self.player.cy, 500)
         if rank > 1:
             self.display_message("Your %s grows stronger: it's %s now (%s)." %
@@ -863,13 +877,17 @@ class CombatMixin:
                 return
             self.spell_glow(spell)
             bonus = 0 if potion else int(self.skill_level("Channeling") * 2 / 3) + self.equip_magic_total
-            self.update_skill("Hitpoints", "+%d" % (self.spell_roll(self.spell_ini(spell, "Heal", "5-10")) + bonus))
+            power = 1 if potion else self.stance_num("Spell.Power")     # (a potion's herbs: no stance touches them)
+            self.update_skill("Hitpoints", "+%d" % int((self.spell_roll(self.spell_ini(spell, "Heal", "5-10")) + bonus) *
+                                                       power))
         elif effect in ("SHIELD", "BOOST"):
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:
                 return
             self.spell_glow(spell)
             seconds = max(1, val(self.spell_ini(spell, "Duration", "60")))
+            if not potion:
+                seconds *= self.stance_num("Spell.Duration")   # (a ward or a boost held longer: Channelling)
             for key in ("Attack", "Defence", "Magic", "Sight"):
                 amount = val(self.spell_ini(spell, key, "0"))
                 if amount > 0:
@@ -952,8 +970,8 @@ class CombatMixin:
         if not self.spell_target_ok(e):
             return
         w = self.w
-        damage = (self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Channeling") / 2) +
-                  self.equip_magic_total + self.spell_magic_bonus)
+        damage = int((self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Channeling") / 2) +
+                      self.equip_magic_total + self.spell_magic_bonus) * self.stance_num("Spell.Power"))
         if e.type == PLAYER:
             self.pvp_spell_hit(spell, e, damage)
             return
@@ -993,11 +1011,14 @@ class CombatMixin:
         fx = EFFECTS.get(name)
         if fx is None or self.god_mode or self.resists(name):
             return
+        if rnd() * 100 < self.stance_num("Resist.Status", 0):
+            return                                          # (Channelling: shrugged off)
         if name not in self.status:
             self.display_message(fx["start"], "DAMAGE")
             if name == "Chill":
                 self.player.move_speed *= CHILL_MOVE
-        self.status[name] = {"until": self.now + fx["ms"], "next": self.now + fx["every"]}
+        self.status[name] = {"until": self.now + int(fx["ms"] * self.stance_num("Status.Hurt")),
+                             "next": self.now + fx["every"]}
         self.dirty_me = True
 
     @staticmethod

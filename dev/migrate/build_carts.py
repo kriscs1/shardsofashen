@@ -169,7 +169,7 @@ def whistle():
 
 def sounds():
     K.wav("Hooves", hooves(), 0.7)
-    K.wav("Hail", whistle(), 0.6)
+    # (Hail, a carter's "hoy!": build_soundscape.py)
 
 
 # ================================================================== data

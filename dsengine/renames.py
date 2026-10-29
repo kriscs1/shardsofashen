@@ -17,6 +17,9 @@ RENAMED_ITEMS = {
     "Raw_Fish": "Raw_Herring",                       # (rename_fish.py: the sea's fish is a herring)
     "Cooked_Fish": "Cooked_Herring",
     "Burnt_Fish": "Burnt_Herring",
+    "Burnt_Poultry": "Burnt_Food",                   # (burnt_food.py: every burnt dish is one heap of charcoal)
+    "Burnt_Herring": "Burnt_Food",
+    "Burnt_Meat": "Burnt_Food",
 }
 RENAMED_SKILLS = {
     "Herblore": "Alchemy",

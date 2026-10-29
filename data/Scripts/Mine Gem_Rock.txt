@@ -25,14 +25,14 @@
 24	Wait	3
 25	>Conditional	($Variable.1*2+$Variable.2+9)>$Random.Percent	39
 26	>Random	50	30
-27	Display.Message	Yellow	...and prise out a sapphire!
+27	Display.Message	Yellow	...and prise out a sapphire!	Gather_Ore
 28	Give.Item	Sapphire	1
 29	Goto.Line	36
 30	>Random	60	34
-31	Display.Message	Yellow	...and prise out an emerald!
+31	Display.Message	Yellow	...and prise out an emerald!	Gather_Ore
 32	Give.Item	Emerald	1
 33	Goto.Line	36
-34	Display.Message	Yellow	...and prise out a ruby!
+34	Display.Message	Yellow	...and prise out a ruby!	Gather_Ore
 35	Give.Item	Ruby	1
 36	Update.Skill	Mining	+0.5
 37	Change.Tile	$Variable.5,$Variable.6	Ore_Rock002	0	90

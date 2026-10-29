@@ -4,12 +4,12 @@
 import { G, S, tileAt, cellOf } from "./state.js";
 import { A, tileIni, entityIni, size } from "./assets.js";
 import { send } from "./net.js";
-import { V, screenToWorld, entityUnder, changeZoom, roofCovers, markClick } from "./render.js";
+import { V, screenToWorld, entityUnder, entitiesUnder, changeZoom, roofCovers, markClick } from "./render.js";
 import { fogBlack } from "./sky.js";
 import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
   spellTileAt, spellHoverText, knownSpells, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
-  chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
+  chatArrow, vitalsAt, stanceAt, nextStance, STANCE_WORDS, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
   wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
@@ -104,6 +104,10 @@ export function mouseMove(x, y) {
     U.hover = "touch:" + tb;
     msg = { bag: "Bag|your stats, gear, quests and pack", chat: "Chat|the messages, and a line to say something",
       journal: "Journal and help", menu: "Menu|options, and leaving the game", admin: "Admin panel" }[tb];
+  }
+  if (!msg && stanceAt(x, y)) {
+    U.hover = "stance";
+    msg = `#${STANCE_WORDS[S.me.stance || ""]}|~${M.on ? "Tap" : "Click (or Q)"}: ${nextStance() || "stand easy"}`;
   }
   const vit = !msg ? vitalsAt(x, y) : "";
   if (vit === "level") msg = "Your level|the best of your fighting skills";
@@ -253,6 +257,7 @@ export function mouseDown(button, x, y) {
     }
   }
   if (left && !U.rcm && (desk || M.chat) && scrollBarClick(x, y)) return;
+  if (left && !U.rcm && S.me && stanceAt(x, y)) { send({ t: "stance", stance: nextStance() }); return; }
   if (left && M.on && !U.rcm) {
     const tb = touchButtonAt(x, y);
     if (tb === "bag") { M.bag = !M.bag; M.chat = false; if (M.bag && S.box.mode === "Conversation") send({ t: "close" }); return; }
@@ -290,10 +295,11 @@ export function mouseDown(button, x, y) {
     U.rcm = null;
     if (left && r.hi > 0) {
       const verb = r.verbs[r.hi - 1];
-      if (verb === "Use with") chooseVerb("Use with", r.target, r.worldXY[0], r.worldXY[1]);
+      const target = r.targets[r.hi - 1] || r.target;
+      if (verb === "Use with") chooseVerb("Use with", target, r.worldXY[0], r.worldXY[1]);
       else if (verb !== "Cancel") {
         S.itemInUse = 0;
-        chooseVerb(verb, r.target, r.worldXY[0], r.worldXY[1]);
+        chooseVerb(verb, target, r.worldXY[0], r.worldXY[1]);
       }
     }
     return;
@@ -337,7 +343,9 @@ export function mouseDown(button, x, y) {
     if (S.spellReady) { S.spellReady = ""; return; }
     if (S.itemInUse) { S.itemInUse = 0; send({ t: "use_cancel" }); return; }
     if (S.box.mode && !clicked) return;
-    openMenu(clicked, x, y, [wx, wy]);
+    const behind = clicked && clicked.k !== T.INVITEM && clicked.k !== T.TILE ?
+      entitiesUnder(wx, wy).filter((e) => e !== clicked && e.k !== T.INFRONT && e.k !== T.TILE && e.k !== T.PLAYER) : [];
+    openMenu(clicked, x, y, [wx, wy], behind);
     return;
   }
   if (S.spellReady) {                              // (the spell held ready: cast at what's clicked, or let go)
@@ -457,6 +465,7 @@ export function keyDown(ev) {
   if (code === "Equal" || code === "NumpadAdd") { if (!S.box.mode) changeZoom(1); return; }
   if (code === "Minus" || code === "NumpadSubtract") { if (!S.box.mode) changeZoom(-1); return; }
   if (!S.me || !S.me.input || S.box.mode) return;
+  if (code === "KeyQ") { send({ t: "stance", stance: nextStance() }); return; }
   const hk = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3, Numpad5: 4 }[code];
   if (hk !== undefined) { send({ t: "hotbar", k: hk }); return; }
   if (code in DIRS) {

@@ -684,8 +684,9 @@ class Project:
         stamp = mtime(path)
         if getattr(self, "_sets_stamp", None) != stamp:
             doc = IniDoc(path) if os.path.exists(path) else None
-            out = []
+            out, info = [], {}
             for sec in (doc.sections() if doc else []):
+                info[sec] = {k: doc.get(sec, k, "") for k in ("Kind", "Land", "Water", "Corners", "Small")}
                 names = [n.strip() for n in doc.get(sec, "Tiles", "").split(",")]
                 try:
                     cols = max(1, int(doc.get(sec, "Columns", "") or 0) or len(names))
@@ -693,8 +694,13 @@ class Project:
                     cols = len(names)
                 if any(names):
                     out.append((sec, doc.get(sec, "Title", "") or sec.replace("_", " "), cols, names))
-            self._sets_stamp, self._sets = stamp, out
+            self._sets_stamp, self._sets, self._set_info = stamp, out, info
         return self._sets
+
+    def set_info(self, sec):
+        """A set's other keys in TileSets.ini (Kind, and a coast's Land, Water, Corners, Small): {} if none."""
+        self.tile_sets()
+        return self._set_info.get(sec, {})
 
     def tile_set_of(self, name):
         """(set, title, columns, names) of the first set name is in, or None."""

@@ -7,6 +7,7 @@ import { drawSky, drawWeather, drawFog, fogUpdate, fogCovers, drawFlash, weather
 import { val, clamp, drawText, textWidth, setFont } from "./util.js";
 import { T } from "./verbs.js";
 import { lookImage, npcImage } from "./look.js";
+import { playSound } from "./audio.js";
 
 export const V = {
   zoom: 1, zooms: [0.75, 1, 1.5, 2, 3],
@@ -83,6 +84,20 @@ function updateRoofs() {
   V.underRoof = group;
 }
 
+// (what's on a roof, Layer=Over: a chimney's smoke, a spire: drawn with the roof, and gone with it when you're under it)
+function roofHides(x, y) {
+  const t = tileAt(S.mapZ, x, y);
+  if (!V.underRoof || !t || t.m.name !== S.mapName || t.tx < 1 || t.ty < 1 || t.tx > G.xt || t.ty > G.yt) return false;
+  const c = cellOf(t.m, t.tx, t.ty);
+  return !!c[2] && c[3] === V.underRoof;
+}
+const onRoofKinds = new Map();
+function onRoof(e) {
+  if (e.k !== T.STATICOBJECT) return false;
+  if (!onRoofKinds.has(e.n)) onRoofKinds.set(e.n, entityIni(e.n, "Layer", "").trim().toLowerCase() === "over");
+  return onRoofKinds.get(e.n);
+}
+
 export function roofCovers(x, y) {
   const t = tileAt(S.mapZ, x, y);
   if (!t || t.tx < 1 || t.ty < 1 || t.tx > G.xt || t.ty > G.yt) return false;
@@ -123,6 +138,8 @@ export function addFx(ev, nowMs) {
     V.fx = V.fx.filter((o) => !(o.t === "skillpop" && o.uid === ev.uid));
   } else if (ev.t === "burst") {
     f.end = nowMs + 1400;
+  } else if (ev.t === "mark") {                   // (stealth: a ! over one that's seen you, a ? over one that heard)
+    f.end = nowMs + (ev.kind === "spotted" ? 1400 : 1700);
   } else return;
   if (V.fx.length < 60) V.fx.push(f);
 }
@@ -246,6 +263,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   const pc = me ? [me.dx + me.w / 2, me.dy + me.h / 2] : null;
   V.playerC = pc;
   fogUpdate(pc);
+  footsteps();
   weatherTick(dt);
   updateFx(now, dt);
   ctx.save();
@@ -274,7 +292,8 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     if (!e.a) continue;
     const cx = e.dx + e.w / 2, cy = e.dy + e.h / 2;
     if (e.dx - cam.x > V.ww + 64 || e.dy - cam.y > V.wh + 64 || e.dx + e.w - cam.x < -64 || e.dy + e.h - cam.y < -64) continue;
-    if (roofCovers(cx, cy) || fogCovers(cx, cy, pc, V.seen.has(e.u) ? FOG_KEEP : 0)) continue;
+    if ((onRoof(e) ? roofHides(cx, e.dy + e.h - 1) : roofCovers(cx, cy)) ||
+        fogCovers(cx, cy, pc, V.seen.has(e.u) ? FOG_KEEP : 0)) continue;
     shown.push(e);
   }
   V.seen = new Set(shown.map((e) => e.u));
@@ -296,6 +315,8 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     ctx.globalAlpha = 1;
     pick.push([e.dx, e.dy, e.w, e.h, e]);
   };
+  if (S.me && S.me.stance === "Sneaking") drawCones(ctx, shown, cam);
+  drawTraps(ctx, cam);
   for (const e of shown) if (e.k === T.NPC && e.un) draw(e);
   for (const e of shown) if (e.k === T.MAPITEM) draw(e);
   drawMarks(ctx, cam, now, false);
@@ -360,6 +381,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
       }
     } else if (f.t === "skillpop") drawSkillPop(ctx, f, now, cam);
     else if (f.t === "burst") drawBurst(ctx, f, now, cam);
+    else if (f.t === "mark") drawMark(ctx, f, now, cam);
   }
   drawStatusIcons(ctx, me, cam);
   for (const e of [...shown, ...(me && me.a ? [me] : [])]) {
@@ -372,6 +394,95 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   drawFlash(ctx, V.ww, V.wh, now);
   ctx.restore();
   V.pick = pick;
+}
+
+// ----- stealth: lookouts' sight while you sneak (as the server says it is for you: how wide, how far, which way),
+// and what they've noticed
+const DIR_V = { 1: [0, -1], 2: [1, 0], 4: [0, 1], 8: [-1, 0], 3: [0.71, -0.71], 6: [0.71, 0.71], 12: [-0.71, 0.71],
+  9: [-0.71, -0.71] };
+
+function drawCones(ctx, shown, cam) {
+  for (const e of shown) {
+    if (e.k !== T.NPC || !Array.isArray(e.cone)) continue;
+    const [deg, reach, dir] = e.cone;
+    const v = DIR_V[dir] || [0, 1];
+    const cx = e.dx + e.w / 2 - cam.x, cy = e.dy + e.h - 6 - cam.y;
+    const a = Math.atan2(v[1], v[0]), half = Math.min(Math.PI, deg * Math.PI / 360);
+    const g = ctx.createRadialGradient(cx, cy, 4, cx, cy, reach);
+    g.addColorStop(0, "rgba(255,120,80,0.30)");
+    g.addColorStop(1, "rgba(255,120,80,0.04)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, reach, a - half, a + half); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "rgba(255,150,110,0.45)"; ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+function drawTraps(ctx, cam) {
+  // (the traps you've spotted: a red-edged plate, a cross over it; green once you've made it safe)
+  for (const [mapName, tx, ty, safe] of (S.me && S.me.traps) || []) {
+    const m = S.maps.get(mapName);
+    if (!m) continue;
+    const x = m.ox + (tx - 1) * G.tw - cam.x + 6, y = m.oy + (ty - 1) * G.th - cam.y + 6, w = G.tw - 12;
+    ctx.strokeStyle = safe ? "rgba(110,210,110,0.8)" : "rgba(230,70,50,0.85)"; ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, w);
+    if (!safe) {
+      ctx.beginPath(); ctx.moveTo(x + 4, y + 4); ctx.lineTo(x + w - 4, y + w - 4);
+      ctx.moveTo(x + w - 4, y + 4); ctx.lineTo(x + 4, y + w - 4); ctx.stroke();
+    }
+  }
+}
+
+function drawMark(ctx, f, now, cam) {
+  const e = entityAt(f.u);
+  if (!e) return;
+  const t = (now - f.start) / (f.end - f.start);
+  const pop = Math.min(1, t * 6);
+  const x = e.dx + e.w / 2 - cam.x, y = e.dy - 10 - 6 * pop - cam.y;
+  ctx.globalAlpha = t > 0.75 ? (1 - t) * 4 : 1;
+  const spotted = f.kind === "spotted";
+  ctx.fillStyle = spotted ? "rgb(220,60,40)" : "rgb(240,200,80)";
+  ctx.beginPath(); ctx.arc(x, y, 7, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = "rgb(40,20,10)"; ctx.lineWidth = 1.5; ctx.stroke();
+  const w = textWidth(ctx, spotted ? "!" : "?", 9, true);
+  drawText(ctx, spotted ? "!" : "?", Math.round(x - w / 2), Math.round(y - 7), 9, true, [255, 250, 235]);
+  ctx.globalAlpha = 1;
+}
+
+// ----- footsteps: your own, by the ground underfoot (softer sneaking, none sitting)
+const step = { x: null, y: null, gone: 0, n: 0 };
+
+function groundKind(name) {
+  const n = String(name || "");
+  if (/Plank|Wood|Bridge|Board|Jetty|Pier|Deck/i.test(n)) return "Wood";
+  if (/Stone|Cobble|Flag|Pav|Marble|Tile|Brick|Cave|Road|Street|Castle/i.test(n)) return "Stone";
+  if (/Snow|Ice/i.test(n)) return "Snow";
+  if (/Sand|Desert|Dirt|Gravel|Ash|Scorch|Path|Mud/i.test(n)) return "Sand";
+  return "Grass";
+}
+
+export function footsteps() {
+  const p = S.pos;
+  if (!p || !S.me) return;
+  if (step.x === null || Math.abs(p.dx - step.x) > 64 || Math.abs(p.dy - step.y) > 64) {
+    step.x = p.dx; step.y = p.dy; step.gone = 0;
+    return;
+  }
+  step.gone += Math.hypot(p.dx - step.x, p.dy - step.y);
+  step.x = p.dx; step.y = p.dy;
+  if (step.gone < 22 || /_Sit[1248]$/.test(p.i || "")) {
+    if (step.gone >= 22) step.gone = 0;
+    return;
+  }
+  step.gone = 0;
+  const [w, h] = size(p.i);
+  const t = tileAt(p.z, p.dx + w / 2, p.dy + h - 2);
+  if (!t) return;
+  const [tile] = cellOf(t.m, t.tx, t.ty);
+  if (tileIni(tile, "Water", "0") === "1") return;
+  step.n++;
+  const sneaking = S.me.stance === "Sneaking";
+  playSound("Step_" + groundKind(tile), null, sneaking ? 0.3 : 0.6);
 }
 
 // ----- what was clicked, marked the moment it's clicked (registered: a gold ring closing in on it); the server says
@@ -586,6 +697,17 @@ function drawBurst(ctx, f, now, cam) {
 // ----- what's under the mouse in the world (world pixels)
 export function screenToWorld(sx, sy) {
   return [V.cam.x + sx / V.zoom, V.cam.y + sy / V.zoom];
+}
+
+// (everything under the mouse, front first: the right-click menu offers what's behind someone too - a tinderbox
+// under a villager's feet)
+export function entitiesUnder(wx, wy) {
+  const out = [];
+  for (let i = V.pick.length - 1; i >= 0; i--) {
+    const [x, y, w, h, e] = V.pick[i];
+    if (wx >= x && wx < x + w && wy >= y && wy < y + h && !out.includes(e)) out.push(e);
+  }
+  return out;
 }
 
 export function entityUnder(wx, wy) {

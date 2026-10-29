@@ -69,6 +69,8 @@ export function getVerbs(e) {
   if (t === T.TILE || t === T.INFRONT) {
     addVerbs(v, e.uw);
     if (e.lock !== undefined) { addVerb(v, "Open"); addVerb(v, "Unlock"); }
+    if (canSteal(e)) addVerb(v, "Steal");
+    if ((S.me.traps || []).some((k) => k[0] === e.map && k[1] === e.tx && k[2] === e.ty && !k[3])) addVerb(v, "Disarm");
     if (!v.length && examineFirst(e)) v = ["Examine"];
     addVerb(v, "Walk here");
     if (val(e.misc) === 1 || e.uw || examineText(e)) addVerb(v, "Examine");
@@ -104,6 +106,7 @@ export function getVerbs(e) {
   } else if (t === T.STATICOBJECT || t === T.TEMPORARY || t === T.MISSILE) {
     addVerbs(v, e.uw);
     if (!v.length) v = ["Use"];
+    if (e.lk) { addVerb(v, "Pick Lock"); addVerb(v, "Break Open"); }   // (a chest locked for you: locks.py)
     addVerb(v, "Examine");
   } else if (t === T.NPC && entityIni(e.n, "Vehicle", "0").trim() === "1") {
     // (a horse and cart, carts.py: hail it, get in; riding it, get out where it stops)
@@ -116,6 +119,7 @@ export function getVerbs(e) {
     addVerb(v, "Examine");
   } else if (t === T.NPC) {
     for (const w of String(e.uw || "").split(",")) if (trim(w) && trim(w).toUpperCase() !== "ATTACK") addVerb(v, w);
+    if (canPickpocket(e)) addVerb(v, "Pickpocket");             // (sneaking: thieving.py)
     addVerb(v, "Talk to");
     addVerb(v, "Examine");
   } else if (t === T.PLAYER) {
@@ -161,12 +165,6 @@ export function verbLabel(verb, e) {
   if (verb === "Learn" && e.k === T.INVITEM) {
     const spell = spellTaught(e.n), rank = scrollRank(e.n);
     return `Learn ${spellTitle(spell, rank)} (for good: ${pretty(spellIni(spell, "Skill", "Channeling"))} ${lbstr(val(spellAt(spell, "Level", "1", rank)))})`;
-  }
-  if (verb === "Dismantle") return `Dismantle ${name} (+${dismantleWorth(e.n)} Shards)`;
-  if ((verb === "Drink" || verb === "Cast") && e.k === T.INVITEM) {
-    const spell = entityIni(e.n, "Spell", "").trim();
-    const what = spell ? spellSummary(spell) : "";
-    if (what) return `${verb} ${name} (${what})`;
   }
   if (verb === "Use with") return `Use ${pretty(itemInUseName())} with ${name}`;
   if (verb === "Attack") return `Attack ${name} (${lbstr(e.hp)}/${lbstr(e.mh)})`;
@@ -258,6 +256,14 @@ export function verbRange(verb, e) {
 }
 
 // The mouse cursor for a verb (cursor.py)
+// (sneaking: a townsperson's pocket, a shop's shelves - as the server's thieving.py can_pickpocket, can_steal)
+function sneaking() { return S.me && S.me.stance === "Sneaking"; }
+function canPickpocket(e) {
+  return sneaking() && !e.f && String(e.uw || "").includes("Talk to") && !entityIni(e.n, "Calls", "").trim() &&
+    entityIni(e.n, "Vehicle", "0").trim() !== "1" && entityIni(e.n, "Flees", "0").trim() !== "1";
+}
+export function canSteal(e) { return sneaking() && e.k === T.TILE && /^Shelf_Goods/.test(e.n || ""); }
+
 export function cursorOfVerb(verb) {
   const verbs = A.m.cursors?.verbs || {};
   return verbs[String(verb).trim().toUpperCase()] || "hand";

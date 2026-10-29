@@ -8,7 +8,7 @@
 07	Show.Skill	Alchemy
 08	Play.Sound	Pickup
 09	Wait	1.5
-10	Display.Message	Yellow	...its leaves smell of resin.
+10	Display.Message	Yellow	...its leaves smell of resin.	Harvest
 11	Give.Item	Bog_Myrtle	1
 12	Update.Skill	Alchemy	+0.15
 13	>Random	60	15
