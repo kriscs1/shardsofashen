@@ -25,7 +25,6 @@ NPC	Barkeep	128	184	Attitude=Good Stand=1 Face=S Id=Saltmarsh_Barkeep_305 Name=I
 NPC	Barmaid	160	248	Attitude=Good Zone=4,9,7,9 Pause=3-9 Id=Saltmarsh_Barmaid_306 Name=Florence
 NPC	Woman	256	472	Attitude=Good Zone=8,15,11,16 Pause=5-15 Id=Saltmarsh_Resident_307 Name=Clara
 StaticObject	Shardstone	352	288
-StaticObject	Homestone	416	288
 StaticObject	Notice	352	354	Id=Saltmarsh_Notice_302
 StaticObject	Sign_Pub	224	304
 Id	Waystone_Saltmarsh	12	11

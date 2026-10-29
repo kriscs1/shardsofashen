@@ -22,7 +22,7 @@ def own_values(effect, power, far, cost_of):
     """Spells.ini keys for a written spell. cost_of(key, default): a Shards.ini [Spellwright] number."""
     p, f = max(1, min(5, int(power))), bool(far)
     scale = p ** cost_of("Power.Exponent", 1.1) * (cost_of("Far", 1.4) if f else 1.0)
-    v = {"Kind": "Scroll", "Scroll": PAGE, "Skill": "Magic", "XP": lbstr(round(0.2 + 0.1 * p, 2))}
+    v = {"Kind": "Scroll", "Scroll": PAGE, "Skill": "Channeling", "XP": lbstr(round(0.2 + 0.1 * p, 2))}
     if effect == "Bolt":
         v.update(Effect="Bolt", Damage="%d-%d" % (2 * p, 4 * p + 1), Range=str(320 if f else 192),
                  Cooldown=lbstr(round(0.6 + 0.8 * p, 1)), Level=str(max(1, 3 * p - 2)),
@@ -80,16 +80,16 @@ class OwnSpellMixin:
                        [("Leave the page.", None)])
 
     def choose_power(self, effect):
-        magic = self.skill_level("Magic")
+        craft = self.skill_level("Shardcraft")      # (writing a spell is Shardcraft; casting it, Channeling)
         rows = []
         for p in range(1, 6):
             need = int(val(own_values(effect, p, False, self.spellwright_num)["Level"]))
-            if need <= magic:
-                rows.append(("Power %d (Magic %d)" % (p, need), (lambda p=p: self.choose_reach(effect, p))))
+            if need <= craft:
+                rows.append(("Power %d (Shardcraft %d)" % (p, need), (lambda p=p: self.choose_reach(effect, p))))
         rows = rows[-4:] or [("Power 1", lambda: self.choose_reach(effect, 1))]   # (the strongest four you can)
         self.show_menu("Spellwright's Lectern", "Spellwright_Lectern",
-                       "How strong? The stronger, the more Shards it drinks, and the longer it rests. (Your Magic: %d)"
-                       % magic, rows + [("Back.", self.choose_effect)])
+                       "How strong? The stronger, the more Shards it drinks, and the longer it rests. (Your "
+                       "Shardcraft: %d)" % craft, rows + [("Back.", self.choose_effect)])
 
     def choose_reach(self, effect, power):
         near, far = EFFECTS[effect][1]
@@ -102,8 +102,9 @@ class OwnSpellMixin:
         v = own_values(effect, power, far, self.spellwright_num)
         fee = 0 if OWN not in self.spells_known else int(self.spellwright_num("Write", 10))
         what = self.spell_what_values(v)
-        text = ("%s's %s, power %d: %s.\\It drinks %s Shards a cast and rests %s s. It needs Magic %s.%s" %
-                (self.player_name.split()[0], effect, power, what, v["Cost"], v["Cooldown"], v["Level"],
+        text = ("%s's %s, power %d: %s.\\It drinks %s Shards a cast and rests %s s. It needs Channeling %s to "
+                "cast.%s" % (self.player_name.split()[0], effect, power, what, self.channeled(v["Cost"]),
+                             v["Cooldown"], v["Level"],
                  ("\\Writing it over your old one costs %d Shards." % fee) if fee else ""))
         self.show_menu("Spellwright's Lectern", "Spellwright_Lectern", text,
                        [("Write it.", lambda: self.write_spell(effect, power, far, fee)),
@@ -129,5 +130,6 @@ class OwnSpellMixin:
         self.dirty_me = True
         self.play_sound("SpellCast")
         self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 600)
+        self.update_skill("Shardcraft", "+" + lbstr(round(0.4 + 0.2 * int(power), 2)))
         self.display_message("The Shard-ink settles into the page: %s is yours. (H: the journal's Spells, or put it on "
                              "the hotbar.)" % self.own_spell_title(), "ACHIEVEMENT")

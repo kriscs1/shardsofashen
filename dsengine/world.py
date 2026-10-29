@@ -265,6 +265,9 @@ class World(NPCMixin):
         e.npc_id = self.option_value(options, "Id")
         e.display = self.option_value(options, "Name").replace("_", " ")
         e.hostile = self.npc_attitude(name, options, attitude)
+        if e.hostile and Homes.is_home_map(e.map):         # (a pocket of the rim is always safe: homes.py)
+            self.remove_entity(e)
+            return None
         self.load_npc_stats(e)
         level = val(self.option_value(options, "Level"))
         if level > 0 and name == LIVING:                      # (a map's Shard Remnant, as strong as its Level=)

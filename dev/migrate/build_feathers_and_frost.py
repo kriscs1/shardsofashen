@@ -62,7 +62,7 @@ SOUNDS = {
 
 
 def scroll_text(spell, info, d):
-    return ("A scroll of %s: %s (%s damage). Magic %s. Right-click it and Cast, or use it on a monster."
+    return ("A scroll of %s: %s (%s damage). Channeling %s. Right-click it and Cast, or use it on a monster."
             % (spell.replace("_", " "), info, d["Damage"], d["Level"]))
 
 

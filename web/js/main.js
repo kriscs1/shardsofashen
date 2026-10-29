@@ -666,6 +666,11 @@ N.onMessage = (m) => {
       for (const [map, x, y, msg] of m.locks || []) S.locks.set(map + "," + x + "," + y, msg);
       break;
     }
+    case "stones":                                 // (a shardstone's travel map: the world map, its stones on it)
+      U.stones = m;
+      U.stoneHover = "";
+      U.worldMap = "stones";
+      break;
     case "labels":                                 // (the world map's names, when one shows or hides: the Shardgate)
       S.labels = m.labels || [];
       break;

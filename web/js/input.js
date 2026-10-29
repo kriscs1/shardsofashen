@@ -6,7 +6,7 @@ import { A, tileIni, entityIni, size } from "./assets.js";
 import { send } from "./net.js";
 import { V, screenToWorld, entityUnder, changeZoom, roofCovers } from "./render.js";
 import { fogBlack } from "./sky.js";
-import { L, U, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
+import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
   QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
   chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY } from "./ui.js";
@@ -86,6 +86,7 @@ export function mouseMove(x, y) {
   if (U.worldMap && x < L.VW && y < L.VH) {        // (the world map over the view: nothing under it to walk to)
     I.cursor = "pointer";
     I.hoverEnt = null;
+    U.stoneHover = U.worldMap === "stones" ? stoneAt(x, y) : "";
     return;
   }
   let msg = "", kind = "INTERFACE";
@@ -244,7 +245,14 @@ export function mouseDown(button, x, y) {
   }
   const dx = L.DX, desk = !M.on;
   if (U.worldMap) {                                // (the world map's open: a click puts it away)
-    if (x < L.VW && y < L.VH) { U.worldMap = false; return; }
+    if (x < L.VW && y < L.VH) {
+      const k = U.worldMap === "stones" ? stoneAt(x, y) : "";   // (the travel map: a stone picked, or a way home)
+      if (k === "home") send({ t: "stone_home" });
+      else if (k === "visit") send({ t: "stone_visit" });
+      else if (k) send({ t: "stone_go", k });
+      U.worldMap = false;
+      return;
+    }
   }
   if (left && !U.rcm && (desk || M.chat) && scrollBarClick(x, y)) return;
   if (left && M.on && !U.rcm) {

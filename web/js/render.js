@@ -171,6 +171,7 @@ function entityImage(e, now) {
     if (w) image = w[1] + "abcb"[(Math.floor(now / 70) + e.u) % 4];
   }
   if (e.k === T.STATICOBJECT) {
+    if (e.n === "Shardstone" && !(S.me && (S.me.lit || []).includes(e.u))) return sprite("Shardstone_Dormant");
     const fr = frames(e.n, "e");
     if (fr) image = e.n + ((Math.floor(now / fr[1]) + e.u * 3) % fr[0] + 1);
     else if (isDecorTile(e.n)) {

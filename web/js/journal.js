@@ -36,8 +36,9 @@ const CONTROLS = [
   ["M", "Farming", "Buy seeds from the farmer by Ashford and use them on tilled soil: his furrows are free for anyone, or lay soil on your homestead. Crops grow by themselves (even while you're away); only whoever sowed them can harvest."],
   ["M", "The market", "At a market board (Ashford's market, and by every shardstone) you see everything everyone has for sale. With it open, right-click things in your pack: Sell on the market, at your own price. They sell while you're away; collect the gold at any board."],
   ["M", "Digging", "Use a spade anywhere on open ground: now and then you turn up gold or something useful, and sometimes Shards."],
-  ["M", "Spells and Shards", "Read a spell's scroll to learn it for good. Casting it spends Shards (top left: how many you have); each spell has its own cooldown. Cast from the journal's Spells, or put the scroll on the hotbar. Shards don't come back by themselves: absorb the Shard Remnants beasts leave behind (Absorb, in your pack), and chests, digging and quests give them. Spells reach out of you; to mend or strengthen yourself, drink a potion (herbs, not Shards). Magister Quill can teach you to write a spell of your own."],
-  ["M", "Shardstones", "Wake a shardstone the first time with a few Shards; after that you can travel to it from any shardstone you've woken."],
+  ["M", "Spells and Shards", "Read a spell's scroll to learn it for good. Casting it spends Shards (top left: how many you have); each spell has its own cooldown. Cast from the journal's Spells, or put the scroll on the hotbar. Shards don't come back by themselves: absorb the Shard Remnants beasts leave behind (Absorb, in your pack), and chests, digging and quests give them. Spells reach out of you; to mend or strengthen yourself, drink a potion (herbs, not Shards). Magister Quill can teach you to write a spell of your own. The better your Channeling, the fewer Shards each cast drinks."],
+  ["M", "Shardstones", "A shardstone stands dormant till you activate it, once, with a few Shards. Travel from an active one and the world map opens with every stone you've activated on it: pick one to go there."],
+  ["M", "Shardcraft", "The working of Shard magic: activating shardstones, dismantling gear (now and then a rare shard is left in the dust), writing scrolls and spells, and enchanting. Use a rare shard on a weapon or armour in your pack (Enchant) to bind it in for good."],
   ["M", "The Green Dragon", "Ashford's beer garden, behind the houses. The innkeeper plays Three Cups and High or Low; at a dice table everyone puts in a stake and the highest roll takes the pot."],
   ["M", "Raids", "Now and then monsters attack a town in waves. Fight them off together: gold for each one you kill, and a reward for everyone who holds out."],
   ["M", "Shop signs", "Every shop has a sign by its door with a picture of what it sells."],
@@ -137,8 +138,8 @@ function skillNeed(r, skill, level, xp, y) {
   r.text("Skill: ", DIM, y);
   if (!skill) r.text("none", PARCHMENT, y);
   else {
-    if (level > 0) r.text(`${skill} level ${lbstr(level)}`, skillLevel(skill) < level ? [235, 105, 85] : [120, 210, 110], y);
-    else r.text(skill + " (any level)", PARCHMENT, y);
+    if (level > 0) r.text(`${pretty(skill)} level ${lbstr(level)}`, skillLevel(skill) < level ? [235, 105, 85] : [120, 210, 110], y);
+    else r.text(pretty(skill) + " (any level)", PARCHMENT, y);
     r.text(`  (yours: ${skillLevel(skill)})`, DIM, y);
   }
   if (val(xp) !== 0) r.text(`     +${xp} XP`, PARCHMENT, y);
@@ -269,11 +270,11 @@ function spellCard(ctx, sp, slot) {
   const short = skillLevel(sp.skill) < sp.level;
   card(ctx, x, y, SPELL_W, SPELL_H, known ? [120, 110, 220] : null);
   iconWell(ctx, x, y, sp.scroll);
-  const label = known ? "Known" : short ? `Needs ${sp.skill} ${sp.level}` : "Not learnt";
+  const label = known ? "Known" : short ? `Needs ${pretty(sp.skill)} ${sp.level}` : "Not learnt";
   const bw = badge(ctx, x + SPELL_W - 10, y + 8, label, known ? [150, 140, 255] : short ? [235, 105, 85] : [190, 160, 110]);
   drawText(ctx, fitText(ctx, sp.title || pretty(sp.spell), SPELL_W - 80 - bw, 11, true), x + 56, y + 8, 11, true, known ? INK : PARCHMENT);
   const r = new Run(ctx, x + 56, x + SPELL_W - 12);
-  r.text(`${sp.skill} ${sp.level}`, short ? [235, 105, 85] : [120, 210, 110], y + 28, 9, true);
+  r.text(`${pretty(sp.skill)} ${sp.level}`, short ? [235, 105, 85] : [120, 210, 110], y + 28, 9, true);
   r.text("   ·   ", DIM, y + 28);
   r.icon("Shard", y + 25, 14);
   r.text(`${sp.cost} Shards a cast`, (S.me.shards || 0) < sp.cost && known ? [235, 105, 85] : [214, 200, 255], y + 28, 9, true);
@@ -281,7 +282,7 @@ function spellCard(ctx, sp, slot) {
   wrap(ctx, x + 16, y + 50, SPELL_W - 32, sp.what.charAt(0).toUpperCase() + sp.what.slice(1) + ".", [250, 240, 210], 15, sp.next ? 1 : 2);
   if (sp.next) {                                  // (its next rank: what it'll be, and what it needs)
     const n = sp.next;
-    wrap(ctx, x + 16, y + 68, SPELL_W - 32, `Upgrade: ${n.title} (${sp.skill} ${n.level}, ${n.cost} Shards): ${n.what}. Its scroll is rare: quests and treasure.`,
+    wrap(ctx, x + 16, y + 68, SPELL_W - 32, `Upgrade: ${n.title} (${pretty(sp.skill)} ${n.level}, ${n.cost} Shards): ${n.what}. Its scroll is rare: quests and treasure.`,
       skillLevel(sp.skill) >= n.level ? [190, 180, 255] : DIM, 15, 2);
   }
   if (known) {

@@ -1,4 +1,4 @@
-"""Items and skills that were renamed (dev\\migrate\\rename_items.py, rename_potion_making.py rename them in the data):
+"""Items and skills that were renamed (dev\\migrate\\rename_items.py, rename_skills.py rename them in the data):
 what a character or the world was saved with is put right as it loads - inventories, banks, hotbars, gear, market
 listings, the action queue, skills."""
 import json
@@ -12,10 +12,19 @@ RENAMED_ITEMS = {
     "Farsight_Scroll": "Owl_Potion",
     "Stone_Skin_Scroll": "Shard_Ward_Scroll",
     "Stone_Skin": "Shard_Ward",
+    "Access_Crystal": "Hearth_Anchor",                # (build_pocket.py: it holds your pocket of the realm's rim)
     "Staff_of_Estforlan": "Staff_of_Ashen",          # (rename_ashen.py: the kingdom is Ashen)                      # (the spell, as it was learnt)
 }
 RENAMED_SKILLS = {
-    "Herblore": "Potion_Making",
+    "Herblore": "Alchemy",
+}
+SKILL_NAMES = {                                      # (rename_skills.py: old name -> the skill it's part of now)
+    "Magic": "Channeling",
+    "Smithing": "Crafting",
+    "Construction": "Homesteading",
+    "Farming": "Homesteading",
+    "Potion_Making": "Alchemy",
+    "Herblore": "Alchemy",
 }
 RENAMED_MAPS = {                                     # (move_levels.py: levels of their own, moved further off)
     "0,0,5": "0,0,10",
@@ -38,3 +47,24 @@ def renamed(state):
 
 def renamed_map(name):
     return RENAMED_MAPS.get(name, name)
+
+
+def merged_skills(skills):
+    """A save's skills ({name: xp}) as they are now: an old name's xp under its new one, and two skills that are one
+    now (Smithing and Crafting) the better of the two. A save from before Shardcraft starts it at half its Magic."""
+    if not isinstance(skills, dict) or not skills:
+        return skills
+    out = dict(skills)
+    for old, new in SKILL_NAMES.items():
+        if old in out:
+            x = out.pop(old)
+            try:
+                out[new] = max(float(out.get(new, 0) or 0), float(x or 0))
+            except (TypeError, ValueError):
+                out.setdefault(new, x)
+    if "Shardcraft" not in out and "Magic" in skills:
+        try:
+            out["Shardcraft"] = max(1.0, round(float(skills["Magic"] or 0) * 0.5, 3))
+        except (TypeError, ValueError):
+            pass
+    return out

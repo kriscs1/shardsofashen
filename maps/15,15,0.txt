@@ -27,7 +27,6 @@ NPC	Greengrocer	576	504	Attitude=Good Stand=1 Face=S Id=Highwatch_Greengrocer_31
 NPC	Butcher	384	504	Attitude=Good Stand=1 Face=S Id=Highwatch_Butcher_321 Name=Sybil
 StaticObject	Market_Stall_Open	736	448
 StaticObject	Market_Stall_Open	736	576
-StaticObject	Homestone	736	352
 StaticObject	Notice	704	354	Id=Highwatch_Notice_309
 StaticObject	Notice	448	354	Id=Highwatch_Notice_313
 StaticObject	Notice	480	354	Id=Highwatch_Notice_342

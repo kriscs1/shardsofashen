@@ -26,7 +26,6 @@ NPC	Barmaid	576	248	Attitude=Good Zone=15,9,20,9 Pause=3-9 Id=Dunerest_Barmaid_3
 NPC	Farmer	288	504	Attitude=Good Zone=9,15,11,17 Pause=5-15 Id=Dunerest_Resident_307 Name=Quentin
 NPC	Woman	576	472	Attitude=Good Zone=17,14,21,16 Pause=5-15 Id=Dunerest_Resident_308 Name=Harold
 StaticObject	Shardstone	352	352
-StaticObject	Homestone	416	352
 StaticObject	Notice	416	386	Id=Dunerest_Notice_302
 StaticObject	Sign_Pub	480	304
 Id	Waystone_Dunerest	12	13

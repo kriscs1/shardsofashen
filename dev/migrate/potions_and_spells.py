@@ -23,7 +23,7 @@ from common import Ini, p                      # noqa: E402
 TOKENS = [("Healing_Scroll_II", "Mega_Potion"), ("Healing_Scroll", "Healing_Draught"), ("Farsight_Scroll", "Owl_Potion"),
           ("Stone_Skin_Scroll", "Shard_Ward_Scroll")]
 GONE_RECIPES = ("Healing_Scroll", "Farsight_Scroll")
-WARD_INFO = ("A scroll of Shard Ward: Shards bound round you as a shell of light, +5 Defence for a minute. Magic 7. "
+WARD_INFO = ("A scroll of Shard Ward: Shards bound round you as a shell of light, +5 Defence for a minute. Channeling 7. "
              "Read it to learn the spell for good; casting it then costs Shards (the journal's Spells).")
 MAGIC_INFO = "A violet potion: it clears your head, and your spells do 5 more damage for two minutes."
 

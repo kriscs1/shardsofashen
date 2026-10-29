@@ -3,12 +3,12 @@
 02	Get.Value	CALCULATION	$Tile.under.Cursor.X	Variable.5$
 03	Get.Value	CALCULATION	$Tile.under.Cursor.Y	Variable.6$
 04	Display.Message	Cyan	You reach into the bush...
-05	Show.Skill	Potion_Making
+05	Show.Skill	Alchemy
 06	Play.Sound	Pickup
 07	Wait	1.5
 08	Display.Message	Yellow	...and pick a handful of berries.
 09	Give.Item	Berries	1
-10	Update.Skill	Potion_Making	+0.05
+10	Update.Skill	Alchemy	+0.05
 11	>Random	40	13
 12	Change.Tile	$Variable.5,$Variable.6	Berry_Bush002	0	45
 13	End

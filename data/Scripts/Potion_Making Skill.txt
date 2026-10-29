@@ -1,2 +1,0 @@
-01	Display.Message	Cyan	Potion Making: pick herbs, berries and mushrooms, and brew potions at an alchemy table.
-02	End

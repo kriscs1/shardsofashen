@@ -31,7 +31,6 @@ StaticObject	Market_Stall_Open	64	480
 StaticObject	Market_Stall_Open	0	544
 StaticObject	Market_Stall_Open	64	544
 StaticObject	Market_Board	32	448
-StaticObject	Homestone	160	576
 StaticObject	Furnace	480	448
 StaticObject	Anvil	608	448
 StaticObject	Notice	576	578	Id=Oakhollow_Notice_322

@@ -39,7 +39,6 @@ StaticObject	Trout_Spot	480	96
 NPC	Butterfly	736	320	Attitude=Good
 Id	Waystone_Ashford	10	12
 NPC	Guard	384	216	Attitude=Good Stand=1 Id=Arena_Master
-StaticObject	Homestone	349	541
 NPC	Settler	334	510	Attitude=Good Stand=1 Id=Homestead_Settler Zone=11,16,12,18
 Id	Homestead_Yard	15	13
 StaticObject	Sign_Bakery	128	336

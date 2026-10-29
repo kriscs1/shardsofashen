@@ -27,7 +27,6 @@ NPC	Butcher	416	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Butcher_322 Name=E
 StaticObject	Market_Stall_Open	64	416
 StaticObject	Market_Stall_Open	64	544
 StaticObject	Market_Board	0	384
-StaticObject	Homestone	32	320
 Id	Frosthold_Market_Square	1	17
 Id	Frosthold_Square	1	17
 Id	Frosthold_Church	7	12

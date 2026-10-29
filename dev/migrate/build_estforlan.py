@@ -74,7 +74,7 @@ def main():
     story.people_branches(story.moved_towns(before, plans))
     story.pass_scripts()
     story.wardhaven_guard()
-    print("Waystones: %s" % ", ".join(story.waystones(atlas, plans)))
+    print("Waystones: %s" % ", ".join(story.shardstones(atlas, plans)))
     story.world_map(plans)
     story.waves(plans)
     story.digging()

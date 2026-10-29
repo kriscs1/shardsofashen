@@ -418,7 +418,7 @@ class DeepMixin:
             self.play_sound("Splosh")
             self.display_message("Click. A custard pie flies out of the wall and hits you square in the face. Whoever "
                                  "built this dungeon had a sense of humour, and not a nice one.", "DAMAGE", "-")
-            self.boost_skill("Magic", -1, 20)
+            self.boost_skill("Channeling", -1, 20)
         elif kind == "Pit" and not pit_down:
             self.display_message("The floor gives way into a shallow pit! You climb out, bruised and muddy.",
                                  "DAMAGE", "-")

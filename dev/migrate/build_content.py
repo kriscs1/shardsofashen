@@ -22,7 +22,7 @@ What it does to existing hand data (so re-running never clobbers it unexpectedly
   * Entities.ini / Tiles.ini: the keys listed here are set; other keys and sections are left alone.
   * ItemRacks.ini: new racks are written in full; for the existing racks (SHOP-General, SHOP-Smith...) items are
     only appended when missing (stock of existing rows is left alone).
-  * Config.ini: only [Skills] List is changed (Potion Making and Crafting appended if missing).
+  * Config.ini: only [Skills] List is changed (Alchemy and Crafting appended if missing).
   * Gathering.ini / Quests.ini are generated from GATHERING / QUESTS; sections there that aren't in those tables
     (hand-written ones) are kept.
 """
@@ -942,11 +942,11 @@ def scripts():
         for tree in TREES:
             S["Use %s With %s" % (tool, tree[0])] = [("Goto.Script", "Chop " + tree[0]), ("End",)]
 
-    S["Pick Mushroom_Patch"] = pick_script("cave mushrooms", "Cave_Mushroom", "Mushroom_Patch002", 60, "Potion_Making", 1, "0.1",
+    S["Pick Mushroom_Patch"] = pick_script("cave mushrooms", "Cave_Mushroom", "Mushroom_Patch002", 60, "Alchemy", 1, "0.1",
                                            50, "You pick a glowing mushroom...", "...it's still warm to the touch.")
-    S["Pick Berry_Bush"] = pick_script("berries", "Berries", "Berry_Bush002", 45, "Potion_Making", 1, "0.05", 40,
+    S["Pick Berry_Bush"] = pick_script("berries", "Berries", "Berry_Bush002", 45, "Alchemy", 1, "0.05", 40,
                                        "You reach into the bush...", "...and pick a handful of berries.")
-    S["Pick Herb_Patch"] = pick_script("herbs", "Herb", "Herb_Patch002", 50, "Potion_Making", 1, "0.1", 60,
+    S["Pick Herb_Patch"] = pick_script("herbs", "Herb", "Herb_Patch002", 50, "Alchemy", 1, "0.1", 60,
                                        "You search the patch for good leaves...", "...and pick a fragrant herb.")
     for k in (1, 2, 3):
         S["Harvest Ripe_Wheat%03d" % k] = wheat_script("Ripe_Wheat%03d" % k)
@@ -1163,12 +1163,16 @@ def scripts():
 
     # ----- clicking a skill in the stat box: where to train it (Cooking Skill opens the cooking list, as before)
     for skill, text in (
-            ("Smithing", "Smithing: smelt ore and forge tools at a furnace or anvil (the Ashford smithy, Brokk's hall)."),
+            ("Crafting", "Crafting: smelt ore and forge tools at a furnace or anvil (the Ashford smithy, Brokk's hall); "
+                         "shear sheep, then tan, spin and make jewellery at a workbench."),
             ("Mining", "Mining: use a pickaxe on rocks in the mines. Copper and iron at level 1, coal 5, gold 15, gems 20."),
             ("Fishing", "Fishing: use a rod on water, with bait in your pack (one per catch). Trout need level 10, cave eels level 15."),
             ("Woodcutting", "Woodcutting: chop trees with an axe."),
-            ("Potion_Making", "Potion Making: pick herbs, berries and mushrooms, and brew potions at an alchemy table."),
-            ("Crafting", "Crafting: shear sheep, then tan, spin and make jewellery at a workbench.")):
+            ("Alchemy", "Alchemy: pick herbs, berries and mushrooms, and brew potions at an alchemy table."),
+            ("Channeling", "Channeling: cast spells. The better you are, the fewer Shards each cast drinks."),
+            ("Shardcraft", "Shardcraft: work Shard magic. Wake shardstones, break gear down for its Shards, write "
+                           "scrolls, enchant gear with rare shards and shape your pocket of the Shardrealm."),
+            ("Homesteading", "Homesteading: build on your homestead, and sow and harvest crops.")):
         S["%s Skill" % skill] = [("Display.Message", "Cyan", text), ("End",)]
 
     # ----- locked rooms (see the Lock lines): their chests give a reward once
@@ -1377,9 +1381,9 @@ def quest_scripts():
         "reward:",
         ("Give.Item", "Super_Potion", "2"),
         ("Give.Item", "Gold_Coin(s)", "60"),
-        ("Update.Skill", "Potion_Making", "+2"),
+        ("Update.Skill", "Alchemy", "+2"),
         ("Update.Attribute", "RemedyQuest", "=2"),
-        ("Display.Message", "Yellow", "Quest complete! You receive 2 super potions, 60 gold and Potion Making experience."),
+        ("Display.Message", "Yellow", "Quest complete! You receive 2 super potions, 60 gold and Alchemy experience."),
         ("End",),
         "notyet:",
         ("Display.Conversation", "Herbalist", "I still need 3 cave mushrooms and 2 spider silk, dear.\\Pick the mushrooms in the old iron mine; the giant spiders live in the mine depths beyond it.",
@@ -2103,7 +2107,7 @@ def with_options(map_name, entities):
     return out
 
 
-SKILLS_ADD = ["Potion_Making", "Crafting", "Magic"]
+SKILLS_ADD = ["Alchemy", "Crafting", "Channeling"]
 
 # ----- item racks
 CRAFT = {
@@ -2117,7 +2121,7 @@ CRAFT = {
         "Stew,Cooked_Meat 1 Cabbage 1 Bucket_of_Water 1,0.45,15",
     ]),
     # Furnace: ore -> bars (Smithing). Listed by level.
-    "CRAFT-Smelting": ("Smithing", [
+    "CRAFT-Smelting": ("Crafting", [
         "Copper_Bar,Copper_Ore 1,0.1",
         "Bronze_Bar,Copper_Ore 1 Tin_Ore 1,0.15",
         "Iron_Bar,Iron_Ore 2,0.2",
@@ -2127,7 +2131,7 @@ CRAFT = {
         "Mithril_Bar,Mithril_Ore 1 Coal 4,0.9,22",
     ]),
     # Anvil: bars -> tools, weapons and armour (Smithing). Listed by level.
-    "CRAFT-Smithing": ("Smithing", [
+    "CRAFT-Smithing": ("Crafting", [
         "Copper_Dagger,Copper_Bar 1,0.15",
         "Bronze_Pickaxe,Bronze_Bar 1 Logs 1,0.15",
         "Bronze_Axe,Bronze_Bar 1 Logs 1,0.15",
@@ -2165,7 +2169,7 @@ CRAFT = {
         "Mithril_Platelegs,Mithril_Bar 3,2.6,28",
         "Mithril_Platebody,Mithril_Bar 5,3.5,30",
     ]),
-    "CRAFT-Potion_Making": ("Potion_Making", [
+    "CRAFT-Potion_Making": ("Alchemy", [
         "Basic_Potion,Herb 3 Empty_Vial 1,0.3",
         "Super_Potion,Herb 2 Cave_Mushroom 2 Empty_Vial 1,0.6,5",
         "Strength_Potion,Cave_Mushroom 3 Berries 2 Empty_Vial 1,0.8,10",
@@ -2223,19 +2227,19 @@ SPELLS = [
     ("Lightning", dict(Cost="12", Cooldown="10", Scroll="Lightning_Scroll", Effect="Bolt", Level="20", Damage="6-14", Range="320",
                        Missile="Lightning_Missile", Impact="Spark", Sound="SpellLightning", XP="0.8",
                        Info="a bolt of lightning at one foe")),
-    ("Defence_Potion", dict(Scroll="Defence_Potion", Kind="Potion", Effect="Boost", Skill="Potion_Making", Level="1",
+    ("Defence_Potion", dict(Scroll="Defence_Potion", Kind="Potion", Effect="Boost", Skill="Alchemy", Level="1",
                             Defence="4", Duration="120", Leaves="Empty_Vial", Impact="Stone_Glow", Sound="SpellShield",
                             XP="0", Info="+4 Defence for two minutes")),
-    ("Combat_Potion", dict(Scroll="Combat_Potion", Kind="Potion", Effect="Boost", Skill="Potion_Making", Level="1",
+    ("Combat_Potion", dict(Scroll="Combat_Potion", Kind="Potion", Effect="Boost", Skill="Alchemy", Level="1",
                            Attack="3", Defence="3", Duration="120", Leaves="Empty_Vial", Impact="Stone_Glow",
                            Sound="SpellShield", XP="0", Info="+3 Attack and +3 Defence for two minutes")),
-    ("Magic_Potion", dict(Scroll="Magic_Potion", Kind="Potion", Effect="Boost", Skill="Potion_Making", Level="1",
+    ("Magic_Potion", dict(Scroll="Magic_Potion", Kind="Potion", Effect="Boost", Skill="Alchemy", Level="1",
                           Magic="5", Mana="30", Duration="120", Leaves="Empty_Vial", Impact="Teleport_Glow", Sound="SpellShield",
                           XP="0", Info="30 mana back, and +5 spell damage for two minutes")),
-    ("Owl_Potion", dict(Scroll="Owl_Potion", Kind="Potion", Effect="Boost", Skill="Potion_Making", Level="1",
+    ("Owl_Potion", dict(Scroll="Owl_Potion", Kind="Potion", Effect="Boost", Skill="Alchemy", Level="1",
                         Sight="120", Duration="180", Leaves="Empty_Vial", Impact="Teleport_Glow", Sound="SpellShield",
                         XP="0", Info="see further through the fog for three minutes")),
-    ("Mega_Potion", dict(Scroll="Mega_Potion", Kind="Potion", Effect="Heal", Skill="Potion_Making", Level="1",
+    ("Mega_Potion", dict(Scroll="Mega_Potion", Kind="Potion", Effect="Heal", Skill="Alchemy", Level="1",
                          Heal="45-55", Leaves="Empty_Vial", Impact="Heal_Glow", Sound="SpellHeal", XP="0",
                          Info="heals 45-55 hitpoints")),
     ("Fire_Storm", dict(Cost="25", Cooldown="30", Scroll="Fire_Storm_Scroll", Effect="Area", Level="30", Damage="5-12", Radius="128",
@@ -2250,7 +2254,7 @@ for _spell, _d in SPELLS:
         continue                                  # potions are items of their own (above)
     _dmg = (" (%s damage)" % _d["Damage"]) if "Damage" in _d else (" (%s hitpoints)" % _d["Heal"]) if "Heal" in _d else ""
     ENTITIES[_d["Scroll"]] = item(SCROLL_VALUES[_d["Scroll"]],
-                                  "A scroll of %s: %s%s. Magic %s. Right-click it and Cast, or use it on a monster."
+                                  "A scroll of %s: %s%s. Channeling %s. Right-click it and Cast, or use it on a monster."
                                   % (_spell.replace("_", " "), _d["Info"], _dmg, _d["Level"]), 10, use="Cast") + \
         [("Spell", _spell)]
 CRAFT["CRAFT-Scrolls"] = ("Magic", [
@@ -2337,13 +2341,13 @@ GATHERING = [
     ("Mithril ore", dict(Gives="Mithril_Ore", Source="Mithril_Rock001", Verb="Mine", Tool="Steel_Pickaxe/Mithril_Pickaxe",
                          Skill="Mining", Level="25", XP="0.7",
                          Where="The cave troll's lair in the Deep Hollow and Brokk's vault. Only a steel or mithril pickaxe will break it")),
-    ("Cave mushrooms", dict(Gives="Cave_Mushroom", Source="Mushroom_Patch001", Verb="Pick", Tool="", Skill="Potion_Making",
+    ("Cave mushrooms", dict(Gives="Cave_Mushroom", Source="Mushroom_Patch001", Verb="Pick", Tool="", Skill="Alchemy",
                             Level="1", XP="0.1", Where="Damp corners of every cave and mine")),
-    ("Herbs", dict(Gives="Herb", Source="Herb_Patch001", Verb="Pick", Tool="", Skill="Potion_Making", Level="1", XP="0.1",
+    ("Herbs", dict(Gives="Herb", Source="Herb_Patch001", Verb="Pick", Tool="", Skill="Alchemy", Level="1", XP="0.1",
                    Where="Herb patches in the grass on the Isle and in the Southlands")),
     ("Wild herbs", dict(Gives="Herb", Source="Herb", Verb="Pickup", Tool="", Skill="", Level="0", XP="0",
                         Where="Loose herbs lying about in the Southlands (they grow back after a while)")),
-    ("Berries", dict(Gives="Berries", Source="Berry_Bush001", Verb="Pick", Tool="", Skill="Potion_Making", Level="1",
+    ("Berries", dict(Gives="Berries", Source="Berry_Bush001", Verb="Pick", Tool="", Skill="Alchemy", Level="1",
                      XP="0.05", Where="Berry bushes on the Isle, around Northgate and in the Whispering Woods")),
     ("Wheat", dict(Gives="Wheat", Source="Ripe_Wheat001 Ripe_Wheat002 Ripe_Wheat003", Verb="Harvest", Tool="", Skill="", Level="0", XP="0",
                    Where="The wheat field on the Ashford farmlands")),
@@ -3201,7 +3205,7 @@ def extend(world):
                 if r.split(",")[0] not in have:
                     n += 1
                     keys.append(("Item%d" % n, r))
-    W.SMITHING[:] = [("Type", "Craft"), ("Skill", "Smithing")] +         [("Item%d" % (i + 1), r) for i, r in enumerate(CRAFT["CRAFT-Smithing"][1])]
+    W.SMITHING[:] = [("Type", "Craft"), ("Skill", "Crafting")] +         [("Item%d" % (i + 1), r) for i, r in enumerate(CRAFT["CRAFT-Smithing"][1])]
     for name, keys in ENTITY_KEYS.items():
         if name in W.ENTITY_KEYS:
             mine = dict(keys)

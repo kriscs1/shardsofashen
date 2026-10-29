@@ -73,7 +73,7 @@ driven into its heart, kills the dragon.
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 15 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards). It shows on your world map once it's built. Through it, the realm: get past its **Warden** and shatter the barrier's **anchor** with the staff, then tell Bert. Reward: 30 Shards, Magic and Crafting experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
+| 15 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. Shardstones reach only the realm's calm **rim** (where your homestead's pocket is, he says); the anchor is in its **core**, a storm, and only a great anchor can pierce it. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards, Shardcraft 5, and at least **8 shardstones active** to steady it). It shows on your world map once it's built. Through it, the realm's core: get past its **Warden** and shatter the barrier's **anchor** with the staff, then tell Bert. Reward: 30 Shards, Channeling and Shardcraft experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
 | 16 | **The Dragon of Galaith** | (level 16) West to the pass in the West Range. **Use the staff on the barrier** (with Bert's spell learnt) and it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour, wielded**, gives it its death blow. The city's gate onto the field opens. |
 | 17 | **The Royal Guard** | Explore the city to win the guard over: the **captain** at the palace door sends you to the **Lord Chancellor** (the Parliament), who sends you to the **Royal Archivist** (the City Hall) with your mother's amulet; her word to the Chancellor; his warrant to the captain. |
 | 18 | **The True Heir** | **King Rupert**, on his throne: show him the amulet, tell him the will. He holds you and weeps, and gives you the crown. From then the world is open play; **Jimmy** curls up on the throne, and in your house on the Isle. |
@@ -92,9 +92,11 @@ The hermit in the Isle's western woods wants 5 oak logs. Reward: 25 gold, an oak
 ### Ashford and King Rupert's Keep
 
 **A Place of Your Own**: *after chapter 4*
-The settler by Ashford's homestone wants 10 planks and 4 stone blocks, made at her carpenter's bench (planks from
-logs, blocks from stone mined with a pickaxe). Reward: the **Access Crystal**, your own homestead to build on, and
-Construction experience.
+The settler by Ashford's shardstone wants 10 planks and 4 stone blocks, made at her carpenter's bench (planks from
+logs, blocks from stone mined with a pickaxe). Reward: the **Hearth Anchor**, which holds a pocket of the
+**Stillwater** for you (any shardstone you've activated takes you there), and Homesteading experience. The pocket
+starts as raw rim, glass in mist: you terraform it with Shards and Shardcraft, and grow Shard Blooms in it. In
+chapter 15 Bert says what the Stillwater is: the calm rim of the Shardrealm.
 
 **Granny Wren's Walk**: *after chapter 4*
 An old woman off the ferry at Northgate's landing, Granny Wren, can't see well enough to find her way to her

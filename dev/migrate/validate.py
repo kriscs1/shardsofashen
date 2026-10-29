@@ -1041,11 +1041,13 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
                "Slain.By",                                                       # only that weapon gives its death blow
+               "Base", "Enchanted", "Enchant",                                   # an enchanted kind's gear and word; a rare shard's word (shardcraft.py)
                "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
                "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
                "Swims", "Calls"}                                                 # at home in the water too (an otter); its call
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
-                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls"}
+                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
+                                     "Base", "Enchanted", "Enchant"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1197,12 +1199,17 @@ def check_entities():
 SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
                "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Shardgate", "Realm.Cluster",
-               "Realm.Cluster.Hours"},
+               "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
+    "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost"},
+    "Shardcraft": {"Dismantle.XP", "Dismantle.XP.Min", "Shardstone.XP", "Rare.Chance", "Rare.Chance.Per.Level",
+                   "Rare.Min.Value"},
+    "Enchant": {"Level", "Shards", "Shards.Per.Value", "XP"},
+    "Homestead": {"Bloom.Shards", "Bloom.Hours", "Bloom.Max", "Bloom.Per.Levels", "Bloom.Most"},
     "Spellwright": {"Bolt.Cost", "Burst.Cost", "Frost.Cost", "Ward.Cost", "Power.Exponent", "Far", "Write"},
     "Dismantle": {"Weapon", "Armour", "Scroll"},
     "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
-                 "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.Magic.XP"},
+                 "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.XP"},
 }
 UPGRADE_RANGES = {"Damage", "Heal"}             # (min-max; Slow is percent,seconds; Scroll an item; the rest numbers)
 
@@ -1273,9 +1280,17 @@ def check_shards(entities_ini):
                 elif key not in UPGRADE_RANGES and key not in ("Slow", "Freeze.Word") and not is_num(v):
                     err(where, "%s=%r is not a number" % (k, v))
             continue
+        if sec == "Terraform":                         # (a Buildables.ini piece each, and its Shards)
+            pieces = Ini(p("data", "Buildables.ini"))
+            for k, v in items:
+                if k is not None and pieces.section(k) is None:
+                    err(where, "%s: no such piece in Buildables.ini" % k)
+                elif k is not None and not is_num(v):
+                    err(where, "%s=%r is not a number" % (k, v))
+            continue
         known = SHARDS_KEYS.get(sec)
         if known is None:
-            err(where, "unknown section (Shards, Dismantle, Remnants, Spellwright, Upgrade.<Spell>)")
+            err(where, "unknown section (%s, Upgrade.<Spell>)" % ", ".join(SHARDS_KEYS))
             continue
         for k, v in items:
             if k is None:
@@ -1606,8 +1621,8 @@ def check_spells(entities_ini, skills):
     ini = Ini(path)
     effects_dir = p("sprites", "Effects")
     effects = {os.path.splitext(f)[0] for f in os.listdir(effects_dir)} if os.path.isdir(effects_dir) else set()
-    if "Magic" not in skills:
-        err(rel(path), "there is no Magic skill in Config.ini [Skills] List")
+    if "Channeling" not in skills:
+        err(rel(path), "there is no Channeling skill in Config.ini [Skills] List")
     spells = set()
     for sec, items in ini.sections:
         where = "%s [%s]" % (rel(path), sec)
@@ -1657,7 +1672,7 @@ def check_spells(entities_ini, skills):
         leaves = (ini.get(sec, "Leaves") or "").strip()
         if leaves and leaves not in ENTITIES:
             err(where, "Leaves %r has no sprite in sprites\\Entities" % leaves)
-        sk = (ini.get(sec, "Skill") or "Magic").strip()
+        sk = (ini.get(sec, "Skill") or "Channeling").strip()
         if sk not in skills:
             err(where, "Skill %r is not in Config.ini [Skills] List" % sk)
         sound = (ini.get(sec, "Sound") or "").strip()

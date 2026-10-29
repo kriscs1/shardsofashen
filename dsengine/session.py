@@ -30,6 +30,7 @@ from .remnants import RemnantMixin
 from .ownspell import OwnSpellMixin
 from .tricks import TrickMixin
 from .deep import DeepMixin
+from .shardcraft import ShardcraftMixin
 
 log = logging.getLogger("dragonsword.session")
 
@@ -57,7 +58,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin):
+              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -328,8 +329,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         """st: a saved character (a dict), or None for a new one (saves\\TEMPLATE.ini's start)."""
         d = self.data
         p = self.player
-        from .renames import renamed, renamed_map
+        from .renames import renamed, renamed_map, merged_skills
         st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
+        if st.get("skills"):
+            st = dict(st, skills=merged_skills(st["skills"]))    # (skills renamed or made one since: rename_skills)
         m = self.w.map_named(renamed_map(st.get("map", d.start_map))) or self.w.map_named(d.start_map)
         if m is None:
             m = next(iter(self.w.maps.values()))
@@ -1045,6 +1048,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "grave": ({"map": self.grave["map"], "left": int(self.grave["left"]), "x": int(self.grave["x"]),
                        "y": int(self.grave["y"])} if self.grave else None),
             "dead": bool(self.dead_wait),
+            "lit": self.stones_lit(),                   # (the shardstones you've activated: the rest look dormant)
         }
 
     def quests_state(self):

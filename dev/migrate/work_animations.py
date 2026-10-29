@@ -9,7 +9,7 @@ in, as a blow in a fight does. Run it again: a script that has them already is l
   Fish *            Fishing       Splash      (one cast)
   Dig Sand          (none)        Dirt_Clods
   Use Shears With Sheep  Crafting  Wool_Tufts
-  Pick *            Potion Making      (no animation: a skill shown)
+  Pick *            Alchemy      (no animation: a skill shown)
 Inserting a line moves the ones after it down: every jump to them (any argument that is a line number, as
 dragonsword/script_language.py names them) moves with them.
 """
@@ -31,7 +31,7 @@ WORK = [
     (r"Fish .*", "Fishing", "Splash", 1),
     (r"Dig Sand", "", "Dirt_Clods", None),
     (r"Use Shears With Sheep", "Crafting", "Wool_Tufts", None),
-    (r"Pick .*", "Potion_Making", "", None),
+    (r"Pick .*", "Alchemy", "", None),
 ]
 LINE_ARGS = {name: [i for i, t in enumerate(args) if "LINE" in t.upper() and "FILE" not in t.upper()
                     and t.upper() not in ("LINE", "LINE TO ADD", "LINE TO REMOVE")]

@@ -143,5 +143,5 @@ class SpellPage(IniFormPage):
     def init_new(self, name):
         self.ini.set(name, "Effect", "Bolt")
         self.ini.set(name, "Kind", "Scroll")
-        self.ini.set(name, "Skill", "Magic")
+        self.ini.set(name, "Skill", "Channeling")
         self.ini.set(name, "Level", "1")

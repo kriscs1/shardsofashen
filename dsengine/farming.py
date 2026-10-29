@@ -192,14 +192,14 @@ class FarmMixin:
         if owner is not None and owner != self.player_name:
             self.display_message("This is %s's homestead: only they can sow here." % owner, "FAIL")
             return True
-        level = self.skill_level("Farming")
+        level = self.skill_level("Homesteading")
         if level < c["level"]:
             self.refuse("You need level %d Farming to grow %s (you have %d)." % (c["level"], c["name"].lower(), level))
             return True
         self.remove_inventory_item(item.name, 1)
         farms.sow(m, x, y, c["name"], self.player_name)
         self.play_sound("Dig" if self.data.loaded("Dig") else "Pickup")
-        self.update_skill("Farming", "+" + lbstr(round(c["xp"] / 4, 3)))
+        self.update_skill("Homesteading", "+" + lbstr(round(c["xp"] / 4, 3)))
         mins = c["minutes"]
         self.display_message("You sow the %s. It'll be ripe in about %s minute%s." %
                              (item.name.replace("_", " ").lower(), lbstr(round(mins, 1)), "" if mins == 1 else "s"),
@@ -238,7 +238,7 @@ class FarmMixin:
             return True
         c = farms.crops[crop]
         lo, hi = (int(val(v)) for v in (word(c["yield"], 1, "-"), word(c["yield"], 2, "-") or word(c["yield"], 1, "-")))
-        n = random.randint(max(1, lo), max(lo, hi)) + self.skill_level("Farming") // 5
+        n = random.randint(max(1, lo), max(lo, hi)) + self.skill_level("Homesteading") // 5
         room = self.inventory_slots_available(c["gives"])
         if room <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
@@ -246,7 +246,7 @@ class FarmMixin:
         got = min(n, room)
         self.add_inventory_item(c["gives"], got, quiet=True)
         farms.clear(m, x, y)
-        self.update_skill("Farming", "+" + lbstr(c["xp"]))
+        self.update_skill("Homesteading", "+" + lbstr(c["xp"]))
         extra = ""
         if random.uniform(0, 100) < c["seed_back"] and self.inventory_slots_available(c["seed"]) > 0:
             self.add_inventory_item(c["seed"], 1, quiet=True)

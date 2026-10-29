@@ -9,7 +9,7 @@ missing and leaves the rest as it is.
   * The quest "A Place of Your Own": the settler by Ashford's homestone (Id=Homestead_Settler) wants planks and stone
     blocks, and gives you the Access Crystal. After it she sells Homestead Scrolls (Magic 12: home from anywhere) and
     her carpenter's bench (CRAFT-Construction) is free to use.
-  * The Construction skill (Config [Skills]), its materials (Plank, Nails, Stone, Stone_Block: rocks can be mined for
+  * The Homesteading skill (Config [Skills]), its materials (Plank, Nails, Stone, Stone_Block: rocks can be mined for
     stone now) and data\\Buildables.ini, what can be built: floors, walls, doors, windows, roofs, furniture, lights,
     the garden, and workshops (a chest that is your bank, a bench, a range, an anvil, a furnace, an alchemy table).
   * data\\Homestead.txt: the land a new home starts as (a meadow in a ring of forest, the homestone where you arrive).
@@ -66,7 +66,7 @@ SKILL_ICON = "Plank"
 
 # data\Buildables.ini: what can be built at home. Kind: Tile (the ground: floors, walls, doors), Decor (on top of the
 # ground), Roof (over it: the pieces are worked out from the roof's shape) or Object (a workshop: an object on the tile).
-# On: what has to be under it ("wall" = any wall, a tile name = that tile). Needs: materials. Level, XP: Construction.
+# On: what has to be under it ("wall" = any wall, a tile name = that tile). Needs: materials. Level, XP: Homesteading.
 B = []
 
 
@@ -161,7 +161,7 @@ b("Carpenters_Bench", "Object", "Workshops", "Carpenter's bench (Construction)",
 b("Home_Chest", "Object", "Workshops", "Chest (your bank)", "Plank 6 Nails 10 Iron_Bar 2", 5, 0.8)
 b("Workbench", "Object", "Workshops", "Workbench (Crafting)", "Plank 6 Nails 10", 8, 0.8)
 b("Range", "Object", "Workshops", "Range (Cooking)", "Stone_Block 6 Iron_Bar 2", 14, 1.0)
-b("Alchemy_Table", "Object", "Workshops", "Alchemy table (Potion Making)", "Plank 6 Glass 4 Nails 6", 20, 1.2)
+b("Alchemy_Table", "Object", "Workshops", "Alchemy table (Alchemy)", "Plank 6 Glass 4 Nails 6", 20, 1.2)
 b("Anvil", "Object", "Workshops", "Anvil (Smithing)", "Iron_Bar 10", 25, 1.4)
 b("Furnace", "Object", "Workshops", "Furnace (smelting)", "Stone_Block 12 Coal 6 Iron_Bar 2", 30, 1.6)
 
@@ -296,7 +296,7 @@ def write_tiles():
 
 def write_racks():
     path = os.path.join(DATA, "ItemRacks.ini")
-    craft = {"Type": "Craft", "Skill": "Construction"}
+    craft = {"Type": "Craft", "Skill": "Homesteading"}
     for i, line in enumerate(CRAFT, 1):
         craft["Item%d" % i] = line
     if write_section(path, "CRAFT-Construction", craft):
@@ -318,10 +318,10 @@ def write_spell():
 def write_skill():
     cfg = os.path.join(DATA, "Config.ini")
     skills = ini.read("Skills", "List", "", cfg)
-    if "Construction" not in [s.strip() for s in skills.split(",")]:
+    if "Homesteading" not in [s.strip() for s in skills.split(",")]:
         ini.write("Skills", "List", skills + ",Construction", cfg)
         ini.write("Skills", "Icon.Construction", SKILL_ICON, cfg)
-        print("Config [Skills]: Construction")
+        print("Config [Skills]: Homesteading")
     if not ini.read("Homestead", "Template", "", cfg):
         ini.write("Homestead", "Template", "Homestead.txt", cfg)
         ini.write("Homestead", "Arrival.X", str(ARRIVAL[0]), cfg)
@@ -339,7 +339,7 @@ def write_buildables():
              "build_homestead.py; edit it here.",
              "; Kind: Tile (the ground: floors, walls, doors), Decor (on the ground), Roof (a material: the pieces "
              "follow the roof's shape) or Object (an object, e.g. a workshop).",
-             "; Needs: materials (\"Plank 2 Nails 4\"; 0 = none). Level and XP: the Construction skill. On: what must be "
+             "; Needs: materials (\"Plank 2 Nails 4\"; 0 = none). Level and XP: the Homesteading skill. On: what must be "
              "under it (wall = any wall).", ""]
     for piece, v in B:
         lines.append("[%s]" % piece)
@@ -439,7 +439,7 @@ def write_scripts():
         "15	Display.Message	Yellow	...and break off a lump of stone.",
         "16	Give.Item	Stone	1",
         "17	Update.Skill	Mining	+0.05",
-        "18	Update.Skill	Construction	+0.02",
+        "18	Update.Skill	Homesteading	+0.02",
         "19	Change.Tile	$Variable.5,$Variable.6	Rock001	0	90",
         "20	End",
         "21	Display.Message	DarkRed	You are too far away!",
@@ -498,7 +498,7 @@ def write_scripts():
         "50\tUpdate.Skill\tConstruction\t+3",
         "51\tUpdate.Attribute\tHomeQuest\t=2",
         "52\tQuest.Note.Done\tHomeQuest\t*",
-        "53\tDisplay.Message\tYellow\tQuest complete! You receive the Access Crystal, 40 nails and Construction "
+        "53\tDisplay.Message\tYellow\tQuest complete! You receive the Access Crystal, 40 nails and Homesteading "
         "experience. Touch a homestone to go home.",
         "54\tEnd",
     ])
@@ -652,6 +652,11 @@ def place_homestones():
 
 
 def main():
+    sys.exit("build_homestead.py is superseded: homesteads are pockets of the Shardrealm's rim now, with no homestones "
+             "(dev\\migrate\\build_pocket.py). Edit data\\Buildables.ini and the rest by hand, or there.")
+
+
+def old_main():
     make_sprites()
     write_entities()
     write_tiles()

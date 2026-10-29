@@ -449,7 +449,7 @@ def scripts():
         (2, [conv("Druid", "Cold, you say? Then the blight is in the beasts. Four maddened bears must be put down before the wood can heal.", ("I'll hunt them.", "@bye"))]),
         (3, [("Update.Attribute", "DruidQuest", "=4"),
              ("Give.Item", "Gold_Coin(s)", "150"), ("Give.Item", "Emerald_Ring", "1"),
-             ("Update.Skill", "Potion_Making", "+2"), ("Update.Skill", "Woodcutting", "+2"),
+             ("Update.Skill", "Alchemy", "+2"), ("Update.Skill", "Woodcutting", "+2"),
              conv("Druid", "I can feel it: the Heartwood is warm again. Take this ring; the emerald is from the old roots. And my thanks.", ("Thank you!", "@d_done")),
              "d_done:", ("Display.Message", "Yellow", "Quest complete: The Withering Wood! You receive 150 gold, an emerald ring and experience.")]),
     ], "The Elderwood is breathing easy again. Walk softly under the old trees.")

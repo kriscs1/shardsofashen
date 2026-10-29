@@ -155,7 +155,7 @@ export function verbLabel(verb, e) {
   const name = displayName(e);
   if (verb === "Learn" && e.k === T.INVITEM) {
     const spell = spellTaught(e.n), rank = scrollRank(e.n);
-    return `Learn ${spellTitle(spell, rank)} (for good: ${spellIni(spell, "Skill", "Magic")} ${lbstr(val(spellAt(spell, "Level", "1", rank)))})`;
+    return `Learn ${spellTitle(spell, rank)} (for good: ${pretty(spellIni(spell, "Skill", "Channeling"))} ${lbstr(val(spellAt(spell, "Level", "1", rank)))})`;
   }
   if (verb === "Dismantle") return `Dismantle ${name} (+${dismantleWorth(e.n)} Shards)`;
   if ((verb === "Drink" || verb === "Cast") && e.k === T.INVITEM) {
@@ -173,7 +173,7 @@ export function verbLabel(verb, e) {
     const n = verb === "Sell 1" ? 1 : Math.max(1, held(e.n));
     return `${verb} ${name} (${itemPrice(e.n, S.box.sell_rate || 0.2) * n} gold)`;
   }
-  if (verb === "Make" && e.short) return `Make ${name} (needs ${S.box.skill} level ${e.short})`;
+  if (verb === "Make" && e.short) return `Make ${name} (needs ${pretty(S.box.skill)} level ${e.short})`;
   if (verb === "Make" && e.missing) return `Make ${name} (not enough ${e.missing})`;
   if (verb === "Pickup") return "Pick up " + name;
   if (verb === "Hotbar") return `Put ${name} on the hotbar`;
@@ -201,6 +201,15 @@ export function spellTitle(spell, rank) {
 
 // A spell's value at a rank (yours, if none's given): Shards.ini [Upgrade.<Spell>] Key.<rank>, the nearest lower
 // rank's, else its Spells.ini Key
+// A spell's Shards a cast as you are now: its Cost less what your Channeling saves (shards.py channeled_cost)
+export function castCost(spell, rank = 0) {
+  const cost = val(spellAt(spell, "Cost", "0", rank));
+  if (cost <= 0) return 0;
+  const num = (k, d) => { const v = shardsIni("Channeling", k, ""); return v.trim() !== "" ? val(v) : d; };
+  const saving = Math.min(num("Saving.Max", 30), Math.max(0, skillLevel("Channeling") - 1) * num("Saving.Per.Level", 1.5)) / 100;
+  return Math.max(Math.min(cost, num("Min.Cost", 1)), Math.round(cost * (1 - saving)));
+}
+
 export function spellAt(spell, key, dflt = "", rank = 0) {
   for (let r = rank || Math.max(1, spellRank(spell)); r > 1; r--) {
     const v = shardsIni(`Upgrade.${spell}`, `${key}.${r}`, "");     // (Shards.ini: a rank's values)
@@ -254,10 +263,10 @@ export function spellStatus(name) {
   if (!spell) return "";
   if (spellIni(spell, "Kind", "Scroll").toUpperCase() === "POTION") return "";
   const level = val(spellAt(spell, "Level", "1"));
-  const skill = spellIni(spell, "Skill", "Magic");
+  const skill = spellIni(spell, "Skill", "Channeling");
   // (only what stops it being cast now: the hover's own lines say its need and its Shards - tips.js)
   if (skillLevel(skill) < level) return "";
-  const cost = val(spellAt(spell, "Cost", "0"));
+  const cost = castCost(spell);
   if (!knowsSpell(spell)) return "";
   const cd = cooldownLeft(spell);
   if (cd > 0) return `!Ready in ${Math.ceil(cd / 1000)} s`;
@@ -265,9 +274,14 @@ export function spellStatus(name) {
   return "";
 }
 
+// Skills renamed or made one (dsengine/renames.py SKILL_NAMES): an old name means the skill it's part of now
+const SKILL_NAMES = { MAGIC: "Channeling", SMITHING: "Crafting", CONSTRUCTION: "Homesteading", FARMING: "Homesteading",
+  POTION_MAKING: "Alchemy", HERBLORE: "Alchemy" };
+
 export function skillLevel(skill) {
   const names = A.m.skills;
-  const i = names.findIndex((n) => n.toUpperCase() === String(skill).toUpperCase());
+  const s = SKILL_NAMES[String(skill).toUpperCase()] || String(skill);
+  const i = names.findIndex((n) => n.toUpperCase() === s.toUpperCase());
   if (String(skill).toUpperCase() === "HITPOINTS") return S.me.hp;
   if (i < 0) return 0;
   const now = (S.me.skill_now || [])[i];                  // (drained or boosted for a while: as it is now)

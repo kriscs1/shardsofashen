@@ -183,7 +183,7 @@ def data():
                                                       "over.")]),
             ("Swap_Scroll", [("Type", "MapItem"), ("Use.Words", "Cast"), ("Spell", "Swap"), ("Stackable", "10"),
                              ("Value", "90"), ("Examine.Info", "A scroll of Swap: you and a creature (or a person) "
-                                                               "trade bodies for 30 seconds. Magic 5. Read it to "
+                                                               "trade bodies for 30 seconds. Channeling 5. Read it to "
                                                                "learn the spell for good.")]),
             ("Pip", [("Type", "NPC"), ("Attitude", "Good"), ("Use.Words", "Talk to,Examine"), ("Respawn", "60"),
                      ("Examine.Info", "A hat and a pair of spectacles, hanging in the air, looking at you.")]),
@@ -212,7 +212,7 @@ def data():
     spells = Ini(p("data", "Spells.ini"))
     for name, keys in (
             ("Invisibility_Potion", [("Kind", "Potion"), ("Scroll", "Invisibility_Potion"), ("Effect", "Invisible"),
-                                     ("Skill", "Potion_Making"), ("Level", "1"), ("Duration", "45"),
+                                     ("Skill", "Alchemy"), ("Level", "1"), ("Duration", "45"),
                                      ("Leaves", "Empty_Vial")]),
             ("Swap", [("Cost", "8"), ("Cooldown", "90"), ("Scroll", "Swap_Scroll"), ("Effect", "Swap"), ("Level", "5"),
                       ("Duration", "30"), ("Range", "160"), ("Sound", "Swap"), ("XP", "0.5")])):
@@ -272,7 +272,7 @@ def pip():
         markers={0: "Pip_The_Apprentice", 1: "Pip_The_Apprentice"}, kind="Side", requires="Passage to the Mainland")
     SK.section(p("data", "Quests.ini"), "The Invisible Apprentice",
                [("Reward.Items", "Invisibility_Potion 2 Swap_Scroll 1"), ("Reward.Shards", "10"),
-                ("Reward.XP", "Potion_Making 2")])
+                ("Reward.XP", "Alchemy 2")])
     SK.write_script("Talk to Pip_The_Apprentice", [
         ("Get.Value", "ATTRIBUTE", "PipQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@s1"),

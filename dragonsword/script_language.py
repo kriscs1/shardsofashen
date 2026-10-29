@@ -264,6 +264,7 @@ VARIABLES = [
     ('$Map.Name', 'The name of Map (X,Y,Z).'),
     ('$Time', 'The current Time (in seconds).'),
     ('$Player.Form', 'The shape the player is in just now (a body swap, Turn.Into): Cat, Duck..., or - for their own.'),
+    ('$Shardstones.Active', 'How many shardstones the player has activated (the Shardgate needs Shards.ini Shardgate.Stones).'),
     ('$Player.Health', "The player's hitpoints just now."),
     ('$Player.Health.Max', "The player's hitpoints when they're fully well (a doctor: >Conditional $Player.Health<$Player.Health.Max)."),
     ('$Clock', 'Seconds on the real clock, always counting up (now minus a time saved in an attribute: how long ago).'),

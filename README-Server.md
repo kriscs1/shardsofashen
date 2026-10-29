@@ -48,7 +48,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
   `[Gameplay] Drop.Private.Seconds`).
 - **Dying.**
   - You keep your 5 most valuable single items, worn or carried (Config `[Gameplay] Death.Keep.Items`).
-  - You also keep whatever can't be dropped (`Droppable=0`: quest things, the Access Crystal; `Keep.On.Death`
+  - You also keep whatever can't be dropped (`Droppable=0`: quest things, the Hearth Anchor; `Keep.On.Death`
     overrides it per item).
   - The rest, and the gold you didn't lose, goes in your grave.
 - **Chat.** Enter talks to everyone. `/w <name> <words>` whispers to one player, and `/r <words>` answers the last
@@ -72,52 +72,63 @@ view) goes full screen. Press **Enter** to chat with the other players.
   scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
   missing.
 
-## Homesteads (a home of your own)
+## Homesteads (a pocket of your own)
 
-- **Getting one.** The settler by the homestone in Ashford has the quest *A Place of Your Own*:
+Your homestead is a pocket of the Shardrealm's calm rim, held by an anchor of your own. Settlers call these pockets
+the **Stillwater**. A pocket is always safe: nothing hostile can be in one.
+
+- **Getting one.** The settler by the shardstone in Ashford has the quest *A Place of Your Own*:
   - Bring her 10 planks and 4 stone blocks. Make them at her carpenter's bench: planks from logs, blocks from stone.
     Rocks can be mined for stone with a pickaxe.
-  - She gives you the **Access Crystal**.
-- **Going home.** Touch a **homestone**, the amber obelisk beside every town's shardstone, and choose *Take me home*.
-  You need the crystal in your pack.
-  - After the quest she also sells **Homestead Scrolls**. They take you home from anywhere and need Magic 12.
-  - Your homestone at home takes you back to where you came from.
-- **Visitors.** Visiting starts **closed** (only you). Your homestone at home changes it:
+  - She gives you the **Hearth Anchor** (it was the Access Crystal).
+- **Going home.** Travel from any shardstone you've activated: its map has a **Your homestead** button while you
+  carry the Hearth Anchor.
+  - After the quest she also sells **Homestead Scrolls**. They take you home from anywhere.
+  - The **Pocket Anchor** in your pocket takes you back to where you came from.
+- **Visitors.** Visiting starts **closed** (only you). Your Pocket Anchor changes it:
   - Only you, your friends, or anyone.
   - Add friends from the players who are on.
-  - Others visit from any homestone (*Visit someone's home...*).
+  - Others visit from any shardstone's map (*Visit a homestead...*).
   - Closing it sends visitors back.
+- **Terraforming.** A new pocket is raw rim: a little still glass in pale mist. The Build panel's **Terraform** tab
+  shapes it with Shards and the **Shardcraft** skill:
+  - still the mist into glass (only beside ground that's held already), glass to soil, soil to grass, water, rocks
+    and saplings;
+  - **Shard Blooms**: each gives you a few Shards every few real hours (harvest it yourself). One may grow at first,
+    and one more for every few Shardcraft levels. No other source gives as many Shards.
+  - Costs are in `data/Shards.ini` `[Terraform]` and `[Homestead]`.
 - **Building.** At home, press **B** (or the Build button):
   - Choose a piece, then click or drag on your land. Esc or a right-click stops.
   - The pieces: floors, walls, doors, windows (on a matching wall), roofs (the pieces follow the roof's shape),
     furniture, lights, the garden (herbs, bushes, trees and wheat you can pick, chop and harvest), and workshops.
-  - **Take down** removes the top thing on a tile and gives back half its materials. It also clears the land's own
-    trees, rocks and flowers.
-  - Each piece needs materials and a level of the new **Construction** skill, and building gives Construction
-    experience.
+  - **Take down** removes the top thing on a tile and gives back half its materials (never Shards). It also clears
+    the land's own trees, rocks and flowers.
+  - Each piece needs materials and a level of **Homesteading**, and building gives Homesteading experience.
 - **What works at home.**
   - A bed you've slept in is where you wake if you fall.
   - A chest opens onto your bank, and only for you.
   - The bench, range, anvil, furnace and alchemy table work like the towns' ones.
 - **Shared.** Homes are part of the shared world and are saved with it. There's no fog of war on them.
+- **Homes from before pockets** keep their land (a meadow: a pocket already shaped); their homestone is their
+  Pocket Anchor now.
 - **Changing it.**
   - `data/Buildables.ini`: what can be built, of what, at which level. Kinds: `Tile`, `Decor`, `Roof`, `Object`.
+    `Tile=` is what a piece lays (the Terraform pieces), `Skill=` the skill it goes by (Homesteading if not said).
   - `data/Homestead.txt`: the land a new home starts as (in the editor: the map **Homestead**). Each home gets its
     own copy when it's made, so changing it only changes homes made after that.
-  - Config `[Homestead]`: where you arrive, and the town a homestone sends you back to by default.
-  - `dev/migrate/build_homestead.py` makes all of it: run it again after rebuilding the world; it only adds what's
-    missing.
+  - Config `[Homestead]`: where you arrive, and the town a pocket sends you back to by default.
+  - `dev/migrate/build_pocket.py` makes it (it superseded `build_homestead.py`).
 
 ## Farming
 
 - **Sowing.** Buy seeds from the farmer on the farmlands east of Ashford, and use them on **tilled soil**.
   - His furrows by the cabbages are free for anyone to sow.
-  - On your homestead, lay tilled soil from the Build panel (Garden). Only you can sow there.
+  - On your homestead, lay tilled soil from the Build panel (Garden: on soil or grass). Only you can sow there.
 - **Growing.** Crops grow through three stages on the server's clock, even while you're logged out or the server is
   off. Everyone sees them grow. Examine one to see whose it is and when it'll be ripe.
-- **Harvesting.** Only whoever sowed a crop can harvest it. A harvest gives produce (more at higher Farming), Farming
+- **Harvesting.** Only whoever sowed a crop can harvest it. A harvest gives produce (more at higher Homesteading), Homesteading
   experience, and sometimes a seed back. On the farmer's furrows a ripe crop withers if it waits an hour.
-- **Crops.** Potato (Farming 1), onion, cabbage, wheat, carrot, herbs, and pumpkin (Farming 25). The range cooks baked
+- **Crops.** Potato (Homesteading 1), onion, cabbage, wheat, carrot, herbs, and pumpkin (Homesteading 25). The range cooks baked
   potatoes, vegetable stew and pumpkin pie.
 - **Changing it.** `data/Crops.ini`: the seed, level, minutes, yield, experience, seed-back chance and withering of
   each crop. `dev/migrate/build_farming.py` makes it all, like the other builders.
@@ -131,7 +142,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
     many. It's up at once, at every board.
   - **Your listings:** *Show only mine* to take things back or change a price. Up to 18 listings each.
   - **Takings:** buyers pay into your purse even while you're logged out; *Collect* it at any board.
-  - Things that can't be dropped (quest items, the Access Crystal) can't be sold.
+  - Things that can't be dropped (quest items, the Hearth Anchor) can't be sold.
 - **Ashford's stalls** are for traders now: a greengrocer, a fishmonger, a weaver, a tinker (spades, buckets...)
   and a butcher, each behind a stall with a shop of their own.
 - **Shop signs.** Every shop has a signboard by its door with a picture of what it sells.

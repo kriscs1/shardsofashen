@@ -879,3 +879,5 @@ Cave_Wall_Cracked001	70 64 60
 Trap_Sprung001	120 110 100
 Cave_Mouth001	24 20 22
 Cave_Steps001	150 140 120
+Rim_Mist001	112 98 150
+Rim_Glass001	202 198 226

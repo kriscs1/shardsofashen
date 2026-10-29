@@ -150,7 +150,7 @@ def dragonforge():
         ("Update.Attribute", "DragonforgeQuest", "=2"),
         ("Play.Sound", "Anvil"),
         ("Give.Item", "Dragonscale_Helm", "1"),
-        ("Update.Skill", "Smithing", "+2"),
+        ("Update.Skill", "Crafting", "+2"),
         K.say("Wyrmsmith", "Three of them, still warm! Watch now...\\There. A dragonscale helm, and nothing on this earth "
                            "will burn through it. The forge is yours to use whenever you've scales and mithril.",
               ("Thank you!", "@d2")),

@@ -1,2 +1,0 @@
-01	Display.Message	Cyan	Smithing: smelt ore and forge tools at a furnace or anvil (the Ashford smithy, Brokk's hall).
-02	End

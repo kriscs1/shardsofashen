@@ -904,7 +904,7 @@ ITEM_RACKS = {
                   ("Item1", "Cabbage,20"), ("Item2", "Egg,10"), ("Item3", "Raw_Poultry,5")],
 }
 # CRAFT-Smithing exists (empty); fill it: Product,ingredients,xp[,level]
-SMITHING = [("Type", "Craft"), ("Skill", "Smithing"),
+SMITHING = [("Type", "Craft"), ("Skill", "Crafting"),
             ("Item1", "Iron_Bar,Iron_Ore 2,0.2"),
             ("Item2", "Axe,Iron_Bar 1 Logs 1,0.25"),
             ("Item3", "Pickaxe,Iron_Bar 2 Logs 1,0.3")]

@@ -391,7 +391,7 @@ def scarecrow():
         0: "A scarecrow outside Oakhollow is deep in thought. Out loud.",
         1: "Find the philosophical scarecrow outside Oakhollow a hat. Any hat. He's not fussy. He says he's not fussy."},
         2, markers={0: "Oakhollow_Square", 1: "Oakhollow_Square"}, kind="Side", requires="Passage to the Mainland")
-    SK.section(p("data", "Quests.ini"), "The Scarecrow's Hat", [("Reward.Shards", "8"), ("Reward.XP", "Farming 2")])
+    SK.section(p("data", "Quests.ini"), "The Scarecrow's Hat", [("Reward.Shards", "8"), ("Reward.XP", "Homesteading 2")])
     hats = ["Chefs_Hat", "Fur_Cap", "Leather_Cap", "Bronze_Helm", "Iron_Helm"]
     rows = [("Get.Value", "ATTRIBUTE", "ScarecrowQuest", "Variable.1$"),
             (">Conditional", "$Variable.1=0", "@s1"),
@@ -436,7 +436,7 @@ def duchess():
         1: "Bring Duchess the cow three bunches of herbs: 'the good grass'. She has standards."}, 2,
         markers={0: "Duchess_The_Cow", 1: "Duchess_The_Cow"}, kind="Side", requires="Passage to the Mainland")
     SK.section(p("data", "Quests.ini"), "Duchess Has Opinions",
-               [("Reward.Items", "Bucket_of_Milk 1"), ("Reward.Shards", "8"), ("Reward.XP", "Farming 1")])
+               [("Reward.Items", "Bucket_of_Milk 1"), ("Reward.Shards", "8"), ("Reward.XP", "Homesteading 1")])
     SK.write_script("Talk to Duchess_The_Cow", [
         ("Get.Value", "ATTRIBUTE", "CowQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@s1"),

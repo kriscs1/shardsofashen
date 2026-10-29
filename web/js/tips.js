@@ -3,9 +3,9 @@
 // "$" a price (gold); anything else is the plain text.
 import { S } from "./state.js";
 import { entityIni, spellIni } from "./assets.js";
-import { val, trim, lbstr } from "./util.js";
+import { val, trim, lbstr, pretty } from "./util.js";
 import { T, getVerbs, displayName, examineText, equipSlot, spellSummary, skillLevel, itemPrice,
-  canSellHere, knowsSpell, spellRank, scrollRank, spellAt, spellTitle } from "./verbs.js";
+  canSellHere, knowsSpell, spellRank, scrollRank, spellAt, spellTitle, castCost } from "./verbs.js";
 
 function firstSentence(text, most = 64) {
   const t = String(text || "").trim();
@@ -34,10 +34,10 @@ export function itemLines(name) {
       // (one line: what it needs and what it costs)
       const rank = scrollRank(name), have = spellRank(spell);
       const level = val(spellAt(spell, "Level", "1", rank));
-      const skill = spellIni(spell, "Skill", "Magic");
-      const cost = val(spellAt(spell, "Cost", "0", rank));
+      const skill = spellIni(spell, "Skill", "Channeling");
+      const cost = castCost(spell, rank);
       const cd = val(spellAt(spell, "Cooldown", "0", rank));
-      out.push((skillLevel(skill) >= level ? "+" : "!") + `Needs ${skill} ${lbstr(level)}` +
+      out.push((skillLevel(skill) >= level ? "+" : "!") + `Needs ${pretty(skill)} ${lbstr(level)}` +
         (cost ? ` · ${lbstr(cost)} Shards a cast` : "") + (cd ? ` · ${lbstr(cd)} s` : ""));
       if (have >= rank) out.push(`+You know ${spellTitle(spell, have)}: the scroll isn't used up`);
       else if (have < rank - 1) out.push(`!Raises ${spellTitle(spell, rank - 1)} to ${spellTitle(spell, rank)}: learn that first`);

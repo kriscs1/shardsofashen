@@ -298,6 +298,8 @@ class ActionsMixin:
             return
         if self.deep_do(verb, e):                      # (the Shifting Deep's things: deep.py)
             return
+        if self.shardcraft_do(verb, e):                # (shardstones, enchanting: shardcraft.py)
+            return
         if verb == "Talk to" and self.swap and t == NPC and self.animal_chat(e):
             return                                      # (in an animal's body, the animals talk: tricks.py)
         if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or
@@ -314,8 +316,11 @@ class ActionsMixin:
         if verb == "Dig" and t == INVENTORYITEM:
             self.dig()
             return
-        if name == "Homestone" and verb in ("Touch", "Travel", "Use"):
+        if name in ("Homestone", "Pocket_Anchor") and verb in ("Touch", "Travel", "Use"):
             self.homestone_touched(e)
+            return
+        if name == "Shard_Bloom" and verb == "Harvest":
+            self.harvest_bloom(e)
             return
         if name == "Home_Chest" and verb == "Open":
             self.open_home_chest(e)
@@ -713,6 +718,12 @@ class ActionsMixin:
                 self.build(x, y, str(msg.get("piece", "")))
             else:
                 self.unbuild(x, y)
+        elif t == "stone_go":                         # (a shardstone picked on the travel map: shardcraft.py)
+            if self.user_input_enabled and not self.sleep_state:
+                self.stone_travel(str(msg.get("k", "")))
+        elif t in ("stone_home", "stone_visit"):
+            if self.user_input_enabled and not self.sleep_state:
+                self.stone_home(visit=t == "stone_visit")
         elif t == "game":
             self.game_input(msg)
         elif t == "admin" and self.admin_enabled:

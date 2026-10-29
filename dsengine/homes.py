@@ -1,14 +1,20 @@
-"""Homesteads: a home of your own, on a map of its own, to build on; other players may visit if you let them.
+"""Homesteads: a pocket of the Shardrealm's calm rim of your own, to shape and build on; others may visit if you let
+them (dev\\migrate\\build_pocket.py). A pocket is always safe: nothing hostile is ever in one.
 
   * Each home is a map "0,0,<1000+n>" (a level of its own, so nothing joins it). When it's made it gets its own copy
-    of data\\Homestead.txt (the land a home starts as: changing that file later only changes new homes); what its owner
-    builds is kept on top of that copy. It's part of the shared world: visitors see it as it is.
-  * Homestones (Entities.ini [Homestone], placed by dev\\migrate\\build_homestead.py) take you home, if you carry an
-    Access Crystal (the quest "A Place of Your Own"), or to a home someone has let you visit. On your own home, the
-    homestone also sets who may visit: only you (the start), your friends, or anyone. Closing it sends visitors back.
+    of data\\Homestead.txt (the land a home starts as: raw rim, a little still glass in the mist; changing that file
+    later only changes new homes); what its owner builds is kept on top of that copy. It's part of the shared world:
+    visitors see it as it is.
+  * A shardstone takes you home (its travel map: shardcraft.py), if you carry a Hearth Anchor (the quest "A Place of
+    Your Own"), or to a home someone has let you visit. In your pocket, its Pocket Anchor takes you back and sets who
+    may visit: only you (the start), your friends, or anyone. Closing it sends visitors back.
+  * Terraforming (Buildables.ini's Terraform pieces, Tile= what they lay): still the mist into glass (beside ground
+    that's held already), glass to soil, soil to grass, water, rocks, saplings, Shard Blooms. They cost Shards
+    (Shards.ini [Terraform]) and go by Shardcraft. A Shard Bloom gives Shards.ini [Homestead] Bloom.Shards every
+    Bloom.Hours real hours to its owner, who harvests it; one more may grow for every Bloom.Per.Levels Shardcraft.
   * The Homestead Scroll (Spells.ini Effect=Home) takes you home from anywhere.
   * Building (the browser's Build mode): data\\Buildables.ini says what can be built, of what, and at which level of
-    the Construction skill. Floors, walls and doors are the ground (Kind=Tile); furniture, windows, lights and the
+    the Homesteading skill. Floors, walls and doors are the ground (Kind=Tile); furniture, windows, lights and the
     garden go on it (Decor); roofs go over it (Roof: the pieces follow the roof's shape); workshops are objects
     (Object). Taking something down gives back half of what it took.
   * A bed you sleep in at home is where you wake if you fall (not in the arena). A Home_Chest opens onto its owner's
@@ -16,6 +22,7 @@
 
 World.homes (Homes) keeps every home; HomeMixin is the player's side (Session)."""
 import logging
+import time
 
 from dragonsword import ini
 from dragonsword.lb import val, trim, lbstr, strip_digits
@@ -27,6 +34,11 @@ from .maps import MapData
 log = logging.getLogger("dragonsword.homes")
 
 HOME_LEVEL = 1000               # home n is the map 0,0,<HOME_LEVEL + n>
+ANCHOR = "Hearth_Anchor"        # (what you carry: it was the Access Crystal)
+POCKET = "Pocket_Anchor"        # (what stands in your pocket: it was its homestone)
+MIST, GLASS = "Rim_Mist001", "Rim_Glass001"
+NATURAL = ("Grass001", "Dirt001", "Field001")   # (ground that won't lie on the realm's glass till it's soil)
+BLOOM = "Shard_Bloom"
 VISIT = ("closed", "friends", "open")
 VISIT_WORDS = {"closed": "only you", "friends": "you and your friends", "open": "anyone"}
 REFUND = 0.5
@@ -116,16 +128,24 @@ class Homes:
                     p["xp"] = float(val(v))
                 elif k == "on":
                     p["on"] = v
+                elif k == "tile":
+                    p["tile"] = v
+                elif k == "skill":
+                    p["skill"] = v
         for p in out.values():
+            p.setdefault("tile", p["id"])
+            p.setdefault("skill", "Homesteading")
+            p["shards"] = int(val(self.d.shards_ini("Terraform", p["id"], "0")))
             if p["kind"] == "Roof":
                 p["image"] = "%s_Roof005" % p["id"]
             else:
-                p["image"] = p["id"]
+                p["image"] = p["tile"]
         return out
 
     def catalog_for_client(self):
         return [{"id": p["id"], "kind": p["kind"], "cat": p["cat"], "name": p["name"], "needs": p["needs"],
-                 "level": p["level"], "xp": p["xp"], "on": p["on"], "image": p["image"]}
+                 "level": p["level"], "xp": p["xp"], "on": p["on"], "image": p["image"], "skill": p["skill"],
+                 "shards": p["shards"]}
                 for p in self.catalog.values()]
 
     # ----- the homes
@@ -155,7 +175,7 @@ class Homes:
         while n in used:
             n += 1
         h = {"n": n, "visit": "closed", "friends": [], "cells": {}, "cleared": [], "objects": {}, "bed": None,
-             "land": list(self.template_lines)}          # (its own copy of the land: later changes to it don't come)
+             "blooms": {}, "land": list(self.template_lines)}   # (its own copy of the land: later changes don't come)
         self.homes[owner] = h
         self.make_map(owner)
         return h
@@ -262,8 +282,12 @@ class Homes:
                        "cleared": [str(k) for k in h.get("cleared", [])],
                        "objects": {str(k): str(v) for k, v in h.get("objects", {}).items()},
                        "bed": list(h["bed"]) if h.get("bed") else None,
+                       "blooms": {str(k): float(v) for k, v in h.get("blooms", {}).items()},
                        # (a home saved before homes had their own land gets the land as it is now, once)
                        "land": [str(ln) for ln in h["land"]] if h.get("land") else list(self.template_lines)}
+                # (a home from before pockets: its homestone is its Pocket Anchor now - build_pocket.py)
+                rec["land"] = [ln.replace("StaticObject\tHomestone\t", "StaticObject\t%s\t" % POCKET)
+                               for ln in rec["land"]]
             except (KeyError, TypeError, ValueError):
                 log.error("A broken home for %s was left out", owner)
                 continue
@@ -372,7 +396,7 @@ class HomeMixin:
                 "protected": sorted(self.homes.protected_of(self.player_name)) if own else []}
 
     def has_home_access(self):
-        return self.items_held("Access_Crystal") > 0
+        return self.items_held(ANCHOR) > 0
 
     # ----- menus the engine shows itself (a conversation whose answers call back here)
     def show_menu(self, title, image, text, options):
@@ -399,21 +423,15 @@ class HomeMixin:
             return
         homes = self.homes
         if not homes.available:
-            self.display_message("The homestone is cold. (This world has no homesteads.)", "FAIL")
+            self.display_message("The anchor is cold. (This world has no homesteads.)", "FAIL")
             return
         self.play_sound("Teleporter")
         m = self.cur_map
         owner = homes.owner_of(m.name) if m is not None else None
         opts = []
         if owner is None:
-            if self.has_home_access():
-                opts.append(("Take me home.", self.go_home))
-                text = "The hearth rune glows warm under your hand. Your Access Crystal hums in answer."
-            else:
-                text = ("The hearth rune glows warm under your hand, but nothing happens: you need an Access Crystal "
-                        "to go home. (Ask the settler by Ashford's homestone.)")
-            if homes.visitable_by(self.player_name):
-                opts.append(("Visit someone's home...", self.visit_menu))
+            self.display_message("The stone is cold: it holds nothing here.", "FAIL")
+            return
         elif owner == self.player_name:
             h = homes.home_of(owner)
             text = ("Your homestead. Who may visit: %s.\\Press B (or the Build button) to build."
@@ -429,7 +447,7 @@ class HomeMixin:
             if self.has_home_access():
                 opts.append(("Take me to my own home.", self.go_home))
         opts.append(("Never mind.", None))
-        self.show_menu("Homestone", "Homestone", text, opts)
+        self.show_menu("Pocket Anchor", POCKET, text, opts)
 
     def visit_menu(self):
         names = self.homes.visitable_by(self.player_name)
@@ -439,7 +457,7 @@ class HomeMixin:
         opts = [("%s's home%s" % (o, " (here now)" if o in self.w.sessions else ""),
                  (lambda o=o: self.visit_home(o))) for o in names[:MENU_MAX]]
         opts.append(("Never mind.", None))
-        self.show_menu("Homestone", "Homestone", "Whose home? These are the ones you may visit.", opts)
+        self.show_menu("Shardstone", "Shardstone", "Whose home? These are the ones you may visit.", opts)
 
     def visit_setting_menu(self):
         h = self.homes.home_of(self.player_name)
@@ -447,7 +465,7 @@ class HomeMixin:
         for v, words in (("closed", "Only me."), ("friends", "Me and my friends."), ("open", "Anyone.")):
             opts.append((words + (" (now)" if h["visit"] == v else ""), (lambda v=v: self.set_visit(v))))
         opts.append(("Never mind.", None))
-        self.show_menu("Homestone", "Homestone", "Who may come to your homestead? Now: %s." % VISIT_WORDS[h["visit"]],
+        self.show_menu("Pocket Anchor", POCKET, "Who may come to your homestead? Now: %s." % VISIT_WORDS[h["visit"]],
                        opts)
 
     def friends_menu(self):
@@ -459,7 +477,7 @@ class HomeMixin:
         opts.append(("Never mind.", None))
         text = ("Your friends may visit when you let friends in. Friends: %s.\\You can add players who are here now."
                 % (", ".join(h["friends"]) or "none yet"))
-        self.show_menu("Homestone", "Homestone", text, opts)
+        self.show_menu("Pocket Anchor", POCKET, text, opts)
 
     def set_visit(self, v):
         h = self.homes.home_of(self.player_name)
@@ -496,8 +514,8 @@ class HomeMixin:
         for s in list(self.w.sessions.values()):
             if s is not self and s.in_world() and s.cur_map is m and not self.homes.may_visit(self.player_name,
                                                                                                s.player_name):
-                s.display_message("%s has closed their homestead: the homestone sends you back." % self.player_name,
-                                  "INFO")
+                s.display_message("%s has closed their homestead: the anchor lets you go, and you're back."
+                                  % self.player_name, "INFO")
                 s.leave_home()
 
     # ----- going and coming back
@@ -514,13 +532,14 @@ class HomeMixin:
 
     def go_home(self):
         if not self.has_home_access():
-            self.display_message("You need your Access Crystal to go home.", "FAIL")
+            self.refuse("You need your Hearth Anchor to go home.")
             return
         h = self.homes.create(self.player_name)
         self.remember_return()
         x, y = self.arrival_xy()
         self.player_attack_target = None
-        self.display_message("The homestone carries you home.", "SUCCESS")
+        self.display_message("The world goes pale and still... and you're home, in your pocket of the Stillwater.",
+                             "SUCCESS")
         self.teleport(self.homes.map_name(h["n"]), x, y)
 
     def visit_home(self, owner):
@@ -531,7 +550,7 @@ class HomeMixin:
         self.remember_return()
         x, y = self.arrival_xy()
         self.player_attack_target = None
-        self.display_message("The homestone carries you to %s's homestead." % owner, "SUCCESS")
+        self.display_message("The world goes pale and still... and you're in %s's homestead." % owner, "SUCCESS")
         self.teleport(self.homes.map_name(h["n"]), x, y)
         o = self.w.sessions.get(owner)
         if o is not None and o is not self:
@@ -544,7 +563,7 @@ class HomeMixin:
         town = self.w.map_named(self.homes.return_map)
         if town is not None:
             for e in self.w.ents:
-                if e.name == "Homestone" and e.alive and e.map == town.name:
+                if e.name == "Shardstone" and e.alive and e.map == town.name:
                     return town.name, int(e.x - town.ox), int(e.y - town.oy + 36)
         d = self.data
         return d.start_map, d.start_x, d.start_y
@@ -570,8 +589,7 @@ class HomeMixin:
             self.display_message("The spell fizzles: this world has no homesteads.", "FAIL")
             return False
         if not self.has_home_access():
-            self.display_message("The spell needs an Access Crystal to find your home. (The settler in Ashford.)",
-                                 "FAIL")
+            self.refuse("The spell needs a Hearth Anchor to find your home.", "Fizzle")
             return False
         return True
 
@@ -667,9 +685,10 @@ class HomeMixin:
         m = self.build_where(x, y)
         if m is None:
             return False
-        level = self.skill_level("Construction")
+        level = self.skill_level(p["skill"])
         if level < p["level"]:
-            self.refuse("You need level %d Construction to build that (you have %d)." % (p["level"], level))
+            self.refuse("You need level %d %s to do that (you have %d)." % (p["level"], pretty_item(p["skill"]),
+                                                                            level))
             return False
         h = homes.home_of(self.player_name)
         key = "%d,%d" % (x, y)
@@ -679,38 +698,51 @@ class HomeMixin:
         obj = homes.object_at(m, x, y)
         kind = p["kind"]
         d = self.data
+        lay = p["tile"]                                 # (what it puts down: a Terraform piece's Tile=)
+        on = [o.strip() for o in p["on"].split(",") if o.strip()]
+        if tile == MIST and not (lay == GLASS and kind == "Tile"):
+            return self.build_fail("There's nothing there to build on: still the mist first.")
+        if tile == MIST and not any(m.inside(nx, ny) and m.tile[m.cell(nx, ny)] != MIST
+                                    for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))):
+            return self.build_fail("The mist only stills beside ground that's held already.")
+        if tile == GLASS and lay in NATURAL and not p["shards"]:
+            return self.build_fail("The glass won't take that: turn it to soil first.")
+        if on and kind in ("Tile", "Object") and tile not in on:
+            return self.build_fail("That goes on %s." % " or ".join(pretty_tile(o) for o in on))
+        if lay == BLOOM and sum(1 for v in h["objects"].values() if v == BLOOM) >= self.blooms_allowed():
+            return self.build_fail("No more blooms will take here yet: your Shardcraft holds %d." %
+                                   self.blooms_allowed())
         if kind == "Roof":
             if cell.get("roof") == piece_id:
                 return False
         elif obj is not None:
             return self.build_fail("The %s is in the way." % self.display_name(obj))
         elif kind == "Tile":
-            if tile == piece_id or cell.get("tile") == piece_id:
+            if tile == lay or cell.get("tile") == lay:
                 return False
-            if decor and (self.is_wall(piece_id) or not cell.get("decor")):
+            if decor and (self.is_wall(lay) or not cell.get("decor")):
                 return self.build_fail("Clear the %s away first." % pretty_tile(decor))
-            if self.is_wall(piece_id) and self.someone_on(m, x, y):
+            if self.is_wall(lay) and self.someone_on(m, x, y):
                 return self.build_fail("Someone is standing there.")
-        elif kind == "Decor" and d.is_under_tile(piece_id):        # (a rug: under whatever stands there)
+        elif kind == "Decor" and d.is_under_tile(lay):              # (a rug: under whatever stands there)
             if m.under[c]:
                 return self.build_fail("Take the %s away first." % pretty_tile(m.under[c]))
             if self.is_wall(tile):
                 return self.build_fail("You can't put that on a wall.")
         elif kind == "Decor":
-            on = p["on"]
             if decor:
                 return self.build_fail("Take the %s away first." % pretty_tile(decor))
-            if on.lower() == "wall":
+            if on and on[0].lower() == "wall":
                 if not self.is_wall(tile):
                     return self.build_fail("That goes on a wall.")
             elif on:
-                if tile != on:
-                    return self.build_fail("That goes on a %s." % pretty_tile(on))
+                if tile not in on:
+                    return self.build_fail("That goes on %s." % " or ".join(pretty_tile(o) for o in on))
             elif self.is_wall(tile):
                 return self.build_fail("You can't put that on a wall.")
             elif "1" not in m.walk[c]:
                 return self.build_fail("There's no room there.")
-            if self.someone_on(m, x, y) and d.spec_blocks(piece_id):
+            if self.someone_on(m, x, y) and d.spec_blocks(lay):
                 return self.build_fail("Someone is standing there.")
             if piece_id in BED_FEET and not self.room_for_foot(m, h, *bed_foot_of(x, y, piece_id)[1:]):
                 return self.build_fail("There's no room for its foot.")
@@ -727,25 +759,27 @@ class HomeMixin:
             if self.items_held(item) < qty:
                 return self.build_fail("You need %s." % ", ".join(
                     "%d %s" % (q, pretty_item(i)) for i, q in p["needs"]))
+        if p["shards"] and not self.spend_shards(p["shards"], p["name"]):
+            return False                                # (short of Shards: said, nothing taken)
         for item, qty in p["needs"]:
             self.remove_inventory_item(item, qty)
         w = self.w
         if kind == "Tile":
             if cell.get("tile"):
                 self.refund(cell["tile"])
-            cell["tile"] = piece_id
+            cell["tile"] = lay
             h["cells"][key] = cell
             self.forget_regrowth(m, x, y)
-            w.change_tile(m, x, y, piece_id, keep_decor=True)
-        elif kind == "Decor" and d.is_under_tile(piece_id):
-            cell["under"] = piece_id
+            w.change_tile(m, x, y, lay, keep_decor=True)
+        elif kind == "Decor" and d.is_under_tile(lay):
+            cell["under"] = lay
             h["cells"][key] = cell
-            w.change_tile(m, x, y, piece_id)
+            w.change_tile(m, x, y, lay)
         elif kind == "Decor":
-            cell["decor"] = piece_id
+            cell["decor"] = lay
             h["cells"][key] = cell
             self.forget_regrowth(m, x, y)
-            w.change_tile(m, x, y, piece_id)
+            w.change_tile(m, x, y, lay)
             if piece_id in BED_FEET:
                 foot, fx, fy = bed_foot_of(x, y, piece_id)
                 h["cells"].setdefault("%d,%d" % (fx, fy), {})["decor"] = foot
@@ -760,12 +794,49 @@ class HomeMixin:
             h["cells"][key] = cell
             m.set_roofs(homes.roof_cells(h, m))
         else:
-            h["objects"][key] = piece_id
-            homes.spawn_object(m, piece_id, x, y)
+            h["objects"][key] = lay
+            homes.spawn_object(m, lay, x, y)
+            if lay == BLOOM:
+                h.setdefault("blooms", {})[key] = time.time()       # (it fills from now)
         if p["xp"] > 0:
-            self.update_skill("Construction", "+" + lbstr(p["xp"]))
-        self.play_sound("Build" if d.loaded("Build") else "Pickup")
+            self.update_skill(p["skill"], "+" + lbstr(p["xp"]))
+        self.play_sound("Terraform" if p["shards"] else "Build" if d.loaded("Build") else "Pickup")
         return True
+
+    # ----- Shard Blooms (Shards.ini [Homestead])
+    def bloom_num(self, key, default):
+        v = trim(self.data.shards_ini("Homestead", key, ""))
+        return val(v) if v != "" else default
+
+    def blooms_allowed(self):
+        per = max(1, int(self.bloom_num("Bloom.Per.Levels", 5)))
+        return int(min(self.bloom_num("Bloom.Most", 6),
+                       self.bloom_num("Bloom.Max", 1) + self.skill_level("Shardcraft") // per))
+
+    def harvest_bloom(self, e):
+        if self.player_distance_to(e) > 56:
+            self.refuse("You are too far away!")
+            return
+        m = self.cur_map
+        owner = self.homes.owner_of(m.name) if m is not None else None
+        if owner != self.player_name:
+            self.refuse("It's %s's bloom: its Shards are theirs." % owner if owner else "It won't open to you.")
+            return
+        h = self.homes.home_of(owner)
+        key = "%d,%d" % (int((e.x - m.ox) // self.tw) + 1, int((e.y - m.oy) // self.th) + 1)
+        every = self.bloom_num("Bloom.Hours", 6) * 3600
+        since = time.time() - h.setdefault("blooms", {}).get(key, 0)
+        if since < every:
+            left = every - since
+            self.display_message("Its petals are still filling: ready in about %s." % (
+                "%d hours" % round(left / 3600) if left >= 5400 else "%d minutes" % max(1, round(left / 60))), "INFO")
+            return
+        h["blooms"][key] = time.time()
+        self.play_sound("Bloom_Harvest", (e.cx, e.cy))
+        self.fx_anim("Teleport_Glow", e.cx, e.cy, 500)
+        self.give_shards(int(self.bloom_num("Bloom.Shards", 4)), "The bloom's petals empty into your hands")
+        self.update_skill("Homesteading", "+0.15")
+        self.update_skill("Shardcraft", "+0.05", pop=False)
 
     def room_for_foot(self, m, h, x, y):
         """Can a bed's foot go on tile x,y (below its head, or beside it)?"""
@@ -827,6 +898,7 @@ class HomeMixin:
             m.set_roofs(homes.roof_cells(h, m))
         elif key in h["objects"]:
             name = h["objects"].pop(key)
+            h.get("blooms", {}).pop(key, None)
             w.remove_entity(homes.object_at(m, x, y))
             w.objects_dirty.add(m.name)
             self.refund(name)

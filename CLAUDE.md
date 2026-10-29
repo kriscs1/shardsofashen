@@ -79,8 +79,10 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 15. **The Shardgate** (`ShardgateQuest`, `dev/migrate/build_shardgate.py`): with the sword, the staff at the barrier
    fails, because the dragon anchored it in the **Shardrealm**, where all broken magic goes. Bert gives the plans; you
    build a Shardgate in the old ring of stones on the hill north of the Wizards' Court (21,4,0: silver, sapphires, a
-   Remnant's core, Shards). It's on the world map once you've built yours. Through it, the realm (21,4,-10): past its
-   Warden, the staff shatters the anchor. The gate stays, and you can go back (remnants roam the realm; its clusters
+   Remnant's core, Shards, Shardcraft 5, and at least 8 shardstones active to steady it: Shards.ini `Shardgate.Stones`).
+   Shardstones reach only the realm's calm **rim**; the anchor is in its **core**, a storm where broken magic pools,
+   and only a great anchor like the ring can pierce it. It's on the world map once you've built yours. Through it, the
+   realm's core (21,4,-10): past its Warden, the staff shatters the anchor. The gate stays, and you can go back (remnants roam the realm; its clusters
    give Shards).
 16. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;
    it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
@@ -168,17 +170,25 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`dsengine/ownspell.py`, Shards.ini `[Spellwright]`). It's `Own_Spell`, known like any other.
 - Magic runs on **Shards**, a balance each player has, shown on the bar under their health: **never an item in the
   pack** (`dsengine/shards.py`; a script's `Give.Item Shard` or an old save's Shards go on the balance). They never
-  come back by themselves. Shard Remnants, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells
-  and shardstones (a price to wake one, then a few Shards a journey) spend them, through `spend_shards` or
+  come back by themselves. Shard Remnants, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells,
+  enchanting and shardstones (a price to activate one, then a few Shards a journey) spend them, through `spend_shards` or
   `>Pay.Shards`: never below nothing, nothing taken unless the thing goes ahead, and a Denied word when you're short.
   No mana, anywhere: a quest or text that would need it uses Shards.
 - **Every Shard number is in `data/Shards.ini`** (the balance, shardstones, chests, `[Dismantle]` rates by kind,
-  `[Upgrade.<Spell>]` ranks, `[Remnants]`): the builders only add what's missing there, so edit them in the ini.
+  `[Upgrade.<Spell>]` ranks, `[Remnants]`, `[Channeling]`, `[Shardcraft]`, `[Enchant]`): the builders only add what's
+  missing there, so edit them in the ini.
+- **Rare shards** (`Ember_Shard`, `Storm_Shard`, `Ward_Shard`) are items, not Shards: dismantling gear now and then
+  leaves one, and Enchant binds it into a weapon or armour in the pack, making it its enchanted kind
+  (`Emberbound_Iron_Sword`: `Base=` the gear, `Enchanted=` the word; drawn and mended as its base). All made by
+  `dev/migrate/build_shardcraft.py`; gear a script asks for by name, and quest gear, has none.
 - A woman is a woman in the story too: scripts say `$Player.Son`, `$Player.Boy`, `$Player.Lord`, `$Player.King`
   (daughter, girl, lady, Queen for her), never a fixed "son" or "King" for the player.
-- The fast-travel stones are **Shardstones** (`Shardstone`, `Travel Shardstone`). The attunements in saves keep their
-  old names (attribute `Waystone.<Key>`, place Id `Waystone_<Key>`): don't rename those.
-- A spell's scroll teaches it for good (if your Magic is high enough; else it's kept); a known spell's scroll isn't
+- The fast-travel stones are **Shardstones** (`dsengine/shardcraft.py`, `data/Shardstones.ini`). Each is **dormant**
+  (`Shardstone_Dormant`: still, no glow) to a player until they **Activate** it; active ones animate. Travelling
+  opens a copy of the world map with every stone you've activated: tap one to go. The menu never counts your Shards.
+  The attunements in saves keep their old names (attribute `Waystone.<Key>`, place Id `Waystone_<Key>`): don't
+  rename those.
+- A spell's scroll teaches it for good (if your Channeling is high enough; else it's kept); a known spell's scroll isn't
   used up (dismantle it for Shards). Scrolls are rare. Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
   spell a rank; each rank's values are `Key.<rank>` in Shards.ini `[Upgrade.<Spell>]`. Quests give items with
   `Reward.Items` and skill xp with `Reward.XP` (`Strength 3 Defence 3`), and a finished quest shows its reward
@@ -188,8 +198,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Skills go to **25** (Config `Skill.Max.Level`). A level asked for anywhere is on that scale; a script's success
   roll counts the skill twice (`($Variable.1*2+34)>$Random.Percent`). Gains are `XP.Scale` times what's given.
   Old saves are scaled as they load (`skills_of` in a save). `dev/migrate/scale_skills.py` did it, once.
-- Herbs and potions are **Potion Making** (the skill `Potion_Making`; it was Herblore). A skill's name is one word
-  in data (`Potion_Making`), and shown with spaces.
+- The skills, in this order: Strength, Defence, **Channeling**, **Shardcraft**, Hitpoints, Cooking, Crafting, Fishing,
+  Mining, Woodcutting, **Alchemy**, **Homesteading** (`dev/migrate/rename_skills.py`; an old name in a save or a script
+  means the skill it's part of now: `renames.py SKILL_NAMES`).
+  - **Channeling** (was Magic) is using magic: casting. Each level past the first takes Shards.ini `[Channeling]`
+    percent off a spell's Shards, to a limit, never under a Shard (`channeled_cost`, and `castCost` in the page).
+  - **Shardcraft** is making and working Shard magic: activating shardstones and the Shardgate, dismantling, absorbing
+    remnants, writing scrolls (CRAFT-Scrolls) and your own spell, enchanting, shaping your pocket of the realm.
+  - **Crafting** is Smithing and Crafting made one; **Homesteading** is Construction and Farming made one; **Alchemy**
+    is herbs and potions (was Potion Making, before that Herblore). A merged skill in an old save keeps the better.
+- A skill's name is one word in data (`Shardcraft`), and shown with spaces wherever a player reads it (`pretty`).
 
 **Doing things**
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays
@@ -215,11 +233,21 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
   villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
 - Settlements stand far apart, wild country between. The market square is near the middle, paved roads off it; the
-  shardstone and homestone stand by it. Every house is different, with space between; buildings never cover a road.
+  shardstone stands by it. Every house is different, with space between; buildings never cover a road.
   Streets are straight and paved in the place's own stone near the middle (sandstone in the desert, boardwalks in the
   marsh...), and wander and turn to gravel and dirt further out.
 - Roads join every settlement and place of interest on the same land; rivers are crossed by bridges. A city on a coast
   has a port; anything smaller a jetty; places of interest none. A quest place out of town stays out of town.
+
+**Homesteads** (`dsengine/homes.py`, `dev/migrate/build_pocket.py`)
+- A homestead is a **pocket of the Shardrealm's calm rim** (the settlers' Stillwater), held by your **Hearth Anchor**
+  (it was the Access Crystal). There are no homestones: any shardstone you've activated takes you home, and the
+  **Pocket Anchor** in the pocket takes you back and says who may visit. A pocket is **always safe**: nothing hostile
+  is ever added to one (`world.add_npc`).
+- A new pocket is raw rim (`Rim_Mist001` round a little `Rim_Glass001`); you **terraform** it with Shards (Shards.ini
+  `[Terraform]`) and Shardcraft: mist stills only beside held ground; grass and dirt won't lie on glass till it's soil.
+  **Shard Blooms** are the best single source of Shards (Shards.ini `[Homestead]`), limited by Shardcraft, harvested
+  by their owner in person. Building is Homesteading; terraforming is Shardcraft.
 
 **Items**
 - Chicken meat is Poultry (`Raw_Poultry`, `Cooked_Poultry`, `Burnt_Poultry`). For any rename, add the old name to

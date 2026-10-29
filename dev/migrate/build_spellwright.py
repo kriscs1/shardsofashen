@@ -33,7 +33,7 @@ SPELLWRIGHT = [   # Shards.ini [Spellwright] (key, value, note)
     ("Frost.Cost", "3.5", None), ("Ward.Cost", "3", None), ("Power.Exponent", "1.1", None), ("Far", "1.4", None),
     ("Write", "10", None),
 ]
-OWN_DEFAULTS = [("Kind", "Scroll"), ("Scroll", "Spellwrights_Page"), ("Skill", "Magic"), ("Effect", "Bolt"),
+OWN_DEFAULTS = [("Kind", "Scroll"), ("Scroll", "Spellwrights_Page"), ("Skill", "Channeling"), ("Effect", "Bolt"),
                 ("Damage", "2-5"), ("Range", "192"), ("Level", "1"), ("Cost", "3"), ("Cooldown", "1.4"),
                 ("Missile", "Ice_Bolt_Missile"), ("Impact", "Ice_Burst"), ("Sound", "SpellIce"), ("XP", "0.3")]
 

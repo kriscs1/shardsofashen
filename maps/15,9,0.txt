@@ -27,7 +27,6 @@ NPC	Farmer	256	504	Attitude=Good Zone=7,14,11,17 Pause=5-15 Id=Moorcross_Residen
 NPC	Farmer	544	504	Attitude=Good Zone=16,16,20,17 Pause=5-15 Id=Moorcross_Resident_308 Name=Jane
 StaticObject	Notice	128	546	Id=Moorcross_Notice_301
 StaticObject	Shardstone	448	352
-StaticObject	Homestone	448	384
 StaticObject	Notice	416	98	Id=Moorcross_Notice_302
 StaticObject	Sign_Pub	480	304
 Id	Waystone_Moorcross	15	13

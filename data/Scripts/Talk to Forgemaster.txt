@@ -28,10 +28,10 @@
 27	Quest.Note.Done	ForgeQuest	*
 28	Give.Item	Mithril_Sword	1
 29	Give.Item	Gold_Coin(s)	250
-30	Update.Skill	Smithing	+3
+30	Update.Skill	Crafting	+3
 31	Play.Sound	Anvil
 32	Display.Conversation	Forgemaster	With the troll gone and the wheel turning... *clang* *clang*... there. A mithril sword, for the one who saved my forge.	Thank you!	33
-33	Display.Message	Yellow	Quest complete: The Frozen Forge! You receive a mithril sword, 250 gold and Smithing experience.
+33	Display.Message	Yellow	Quest complete: The Frozen Forge! You receive a mithril sword, 250 gold and Crafting experience.
 34	End
 35	Display.Conversation	Forgemaster	Two mithril bars and I'll forge you something special.	I'll find them.	38
 36	End

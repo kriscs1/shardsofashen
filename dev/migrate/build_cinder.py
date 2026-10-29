@@ -381,7 +381,7 @@ REQUIREMENTS = {
     "The Hermit's Fire": dict(Skills="Woodcutting 10"),
     "The Wildwood Watch": dict(Quests="King's Hobgoblin Hunt", Level="5"),
     "Wolves of the Moor": dict(Level="6"),
-    "Bog Lights": dict(Level="6", Skills="Potion_Making 5"),
+    "Bog Lights": dict(Level="6", Skills="Alchemy 5"),
     "The Dwarf's Grudge": dict(Quests="King's Hobgoblin Hunt", Level="8"),
     "Old Hob": dict(Quests="Bog Lights"),
     "Bandits on the Road": dict(Level="9"),
@@ -435,7 +435,7 @@ def data():
     C.NEW_SHOPS["SHOP-Emberwatch"] = ("1.3", "0.8", ["Super_Potion,6", "Antidote,6", "Meat_Pie,8", "Arrows,300",
                                                      "Coal,10", "Fire_Bolt_Scroll,6", "Mithril_Ore,0", "Dragon_Scale,0",
                                                      "Scout_Tag,0"])
-    C.CRAFT["CRAFT-Dragonforge"] = ("Smithing", [
+    C.CRAFT["CRAFT-Dragonforge"] = ("Crafting", [
         "Dragonscale_Boots,Dragon_Scale 2 Mithril_Bar 1,3.0,30",
         "Dragonscale_Helm,Dragon_Scale 3 Mithril_Bar 1,3.5,32",
         "Dragonscale_Shield,Dragon_Scale 4 Mithril_Bar 2,4.5,34",

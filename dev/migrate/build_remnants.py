@@ -40,7 +40,7 @@ REMNANTS = [   # Shards.ini [Remnants] (key, value, what it means: written as th
     ("Mob.Count", "3-6", "The remnants it leaves when it's killed (and Count.Per.Level more for each level)"),
     ("Mob.Lasts", "120", "Seconds it lingers if nobody fights it"),
     ("Absorb", "1", "Shards from each remnant absorbed"),
-    ("Absorb.Magic.XP", "0.05", "Magic xp for each"),
+    ("Absorb.XP", "0.05", "Shardcraft xp for each"),
 ]
 
 VIOLET, PALE, DARK, DULL = (150, 90, 220), (210, 190, 255), (70, 40, 110), (120, 110, 140)

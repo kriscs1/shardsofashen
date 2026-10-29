@@ -30,7 +30,6 @@ NPC	Farmer	640	344	Attitude=Good Zone=21,11,22,12 Pause=5-15 Id=Emberwatch_Resid
 StaticObject	Market_Stall_Open	32	512
 StaticObject	Market_Stall_Open	32	576
 StaticObject	Market_Board	0	480
-StaticObject	Homestone	128	608
 StaticObject	Notice	512	642	Id=Emberwatch_Notice_315
 Id	Emberwatch_Market_Square	1	19
 Id	Emberwatch_Square	1	19

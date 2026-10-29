@@ -3,7 +3,8 @@ its hitpoints go down for everyone, and it fights whoever hit it), spells and st
 from dragonsword.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
 
 from .entity import NPC, PLAYER, MAPITEM, TYPE_NAMES
-from .shards import shard_words, SHARD
+from .renames import SKILL_NAMES
+from .shards import shard_words, SHARD, channeled_cost
 
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
@@ -13,7 +14,8 @@ EFFECTS = {
     # (drains: a skill lower for a while - the Stats tab shows it, 18/20)
     "Weaken": dict(ms=30000, every=0, dmg=(0, 0), skill=("Strength", -3), start="You feel weak: your Strength drains!",
                    end="Your strength comes back."),
-    "Daze": dict(ms=25000, every=0, dmg=(0, 0), skill=("Magic", -3), start="Your head spins: your Magic drains!",
+    "Daze": dict(ms=25000, every=0, dmg=(0, 0), skill=("Channeling", -3), start="Your head spins: your Channeling "
+                                                                                 "drains!",
                  end="Your head clears."),
     "Frailty": dict(ms=30000, every=0, dmg=(0, 0), skill=("Defence", -3), start="Your guard falters: your Defence "
                                                                              "drains!", end="Your guard steadies."),
@@ -31,7 +33,8 @@ class CombatMixin:
         for i in range(1, d.total_skills + 1):
             if d.skill_name[i].upper() == s:
                 return i
-        return 0
+        new = next((n for o, n in SKILL_NAMES.items() if o.upper() == s), None)   # (an old name: the skill now)
+        return self.skill_index(new) if new else 0
 
     def level_of_xp(self, xp):
         return min(self.data.skill_max_level, max(1, int(xp)))
@@ -155,7 +158,7 @@ class CombatMixin:
             self.check_locks(True)
 
     def player_level(self):
-        names = [s.strip() for s in self.data.config_read("Gameplay", "Level.Skills", "Strength,Defence,Magic").split(",")
+        names = [s.strip() for s in self.data.config_read("Gameplay", "Level.Skills", "Strength,Defence,Channeling").split(",")
                  if s.strip()]
         levels = sorted((self.base_skill_level(s) for s in names if self.skill_index(s) > 0), reverse=True)
         best = max(1, int(val(self.data.config_read("Gameplay", "Level.Best", "2")) or 2))
@@ -598,10 +601,11 @@ class CombatMixin:
 
     def spell_chance(self, spell):
         level = val(self.spell_ini(spell, "Level", "1"))
-        return min(98, max(20, 60 + (self.skill_level(self.spell_ini(spell, "Skill", "Magic")) - level) * 14))
+        return min(98, max(20, 60 + (self.skill_level(self.spell_ini(spell, "Skill", "Channeling")) - level) * 14))
 
     def spell_cost(self, spell):
-        return val(self.spell_ini(spell, "Cost", "0"))
+        """A spell's Shards a cast: its Cost, less the saving your Channeling gives (channeled_cost)."""
+        return channeled_cost(val(self.spell_ini(spell, "Cost", "0")), self.skill_level("Channeling"), self.data)
 
     def spell_cooldown_left(self, spell):
         until = self.cooldowns.get(spell)
@@ -634,7 +638,7 @@ class CombatMixin:
                                      "surely as your Magic grows.)" % chance, "FAIL")
                 xp = val(self.spell_ini(spell, "XP", "0")) / 2
                 if xp > 0:
-                    self.update_skill(self.spell_ini(spell, "Skill", "Magic"), "+" + lbstr(xp), pop=not attack)
+                    self.update_skill(self.spell_ini(spell, "Skill", "Channeling"), "+" + lbstr(xp), pop=not attack)
                 self.spell_fizzled = True
                 return
             if not self.spend_shards(self.spell_cost(spell), pretty(spell)):
@@ -654,7 +658,7 @@ class CombatMixin:
             self.play_sound("SpellCast", (p.cx, p.cy))
         xp = val(self.spell_ini(spell, "XP", "0"))
         if xp > 0:
-            self.update_skill(self.spell_ini(spell, "Skill", "Magic"), "+" + lbstr(xp), pop=not attack)
+            self.update_skill(self.spell_ini(spell, "Skill", "Channeling"), "+" + lbstr(xp), pop=not attack)
         self.dirty_me = True
 
     def spell_terms(self, spell):
@@ -673,7 +677,7 @@ class CombatMixin:
                         (pretty(spell), title, self.spell_title(spell, rank - 1)))
             return
         level = val(self.spell_ini_at(spell, "Level", "1", rank))
-        skill = self.spell_ini(spell, "Skill", "Magic")
+        skill = self.spell_ini(spell, "Skill", "Channeling")
         if self.skill_level(skill) < level:
             self.refuse("You need level %s %s to learn %s (you have %d). Keep the scroll till you're ready." %
                         (lbstr(level), pretty(skill), title, self.skill_level(skill)))
@@ -719,7 +723,7 @@ class CombatMixin:
         w = self.w
         name = self.spell_title(spell) if not self.spell_is_potion(spell) else pretty(spell)
         level = val(self.spell_ini(spell, "Level", "1"))
-        skill = self.spell_ini(spell, "Skill", "Magic")
+        skill = self.spell_ini(spell, "Skill", "Channeling")
         potion = self.spell_is_potion(spell)
         if not potion and self.skill_level(skill) < level:
             self.refuse("You need level %s %s to cast %s (you have %d)." %
@@ -848,7 +852,7 @@ class CombatMixin:
             if self.spell_fizzled:
                 return
             self.spell_glow(spell)
-            bonus = 0 if potion else int(self.skill_level("Magic") * 2 / 3) + self.equip_magic_total
+            bonus = 0 if potion else int(self.skill_level("Channeling") * 2 / 3) + self.equip_magic_total
             self.update_skill("Hitpoints", "+%d" % (self.spell_roll(self.spell_ini(spell, "Heal", "5-10")) + bonus))
         elif effect in ("SHIELD", "BOOST"):
             self.spell_begin(scroll, spell)
@@ -938,7 +942,7 @@ class CombatMixin:
         if not self.spell_target_ok(e):
             return
         w = self.w
-        damage = (self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Magic") / 2) +
+        damage = (self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Channeling") / 2) +
                   self.equip_magic_total + self.spell_magic_bonus)
         if e.type == PLAYER:
             self.pvp_spell_hit(spell, e, damage)

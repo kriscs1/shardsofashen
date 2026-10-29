@@ -10,7 +10,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
-  cooldownLeft, spellAt, spellTitle } from "./verbs.js";
+  cooldownLeft, spellAt, spellTitle, castCost } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
@@ -104,6 +104,7 @@ export const U = {
   statsView: 0, questsPage: 1, questHover: 0, equipHover: 0, skillHover: 0, statRows: 1, statRowTop: 41,
   statRowH: 33, cursorSize: 22, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
   hover: null, onlineShownUntil: 0, banner: null, markers: true, topY: 8,
+  stones: null, stoneHits: [], stoneHover: "",   // (the travel map: worldMap === "stones" - shardcraft.py stone_map)
 };
 
 const SLOT_OUTLINES = { Weapon: "Iron_Sword", Shield: "Iron_Shield", Head: "Iron_Helm", Body: "Iron_Platebody",
@@ -413,9 +414,14 @@ export function drawWorldMap(ctx, now) {
   ctx.fillStyle = "rgba(12,8,6,0.94)";
   ctx.fillRect(0, 0, W, H);
   const levelName = S.mapZ === 0 ? "The world" : S.mapZ < 0 ? "Underground" : "Above ground";
-  drawText(ctx, "World map", 24, 12, 16, true, [255, 230, 140]);
-  drawText(ctx, levelName, 24, 34, 9, false, [212, 191, 126]);
-  centreText(ctx, W / 2, H - 24, M.on ? "Tap to close" : "M or Esc: close", 8, false, [212, 191, 126]);
+  const travel = U.worldMap === "stones" && U.stones;
+  drawText(ctx, travel ? "Shardstones" : "World map", 24, 12, 16, true, [255, 230, 140]);
+  drawText(ctx, travel ? `From the ${U.stones.title} shardstone · ${U.stones.cost} Shards a journey` : levelName, 24, 34, 9,
+    false, [212, 191, 126]);
+  centreText(ctx, W / 2, H - 24, travel ? (M.on ? "Tap a shardstone to travel there · tap elsewhere to stay" :
+    "Click a shardstone to travel there · Esc to stay") : M.on ? "Tap to close" : "M or Esc: close", 8, false,
+    [212, 191, 126]);
+  U.stoneHits = [];
   const g = minimapGeometry();
   const im = g && !g.live ? minimapImage(g, true) : null;
   if (!im) { centreText(ctx, W / 2, H / 2, "No map of this place.", 12, true, [212, 191, 126]); return; }
@@ -436,7 +442,8 @@ export function drawWorldMap(ctx, now) {
   // the names of the places you've been: towns first, then the lands, then the rest, each where it doesn't cover
   // another (above its dot, below, right, left); a place with no room left keeps its dot, its name for a bigger map
   const style = { t: [11, true, [255, 238, 176]], r: [10, true, [214, 180, 110]], p: [8, true, [226, 216, 196]] };
-  const shown = (S.labels || []).filter((l) => l.z === S.mapZ && seen(l.m)).map((l) => {
+  const stoneNames = new Set(travel ? U.stones.stones.map((s) => s.t.toUpperCase()) : []);   // (named by their stone)
+  const shown = (S.labels || []).filter((l) => l.z === S.mapZ && seen(l.m) && !stoneNames.has(l.n.toUpperCase())).map((l) => {
     const [sx, sy] = toScreen(l.x, l.y);
     return { l, sx, sy };
   }).filter((d) => d.sx >= ox && d.sx <= ox + iw && d.sy >= oy && d.sy <= oy + ih);
@@ -472,8 +479,9 @@ export function drawWorldMap(ctx, now) {
     centreText(ctx, cx + 1, ty + 1, text, size, bold, [10, 6, 4]);
     centreText(ctx, cx, ty, text, size, bold, col);
   }
-  // the quest you're following: where it wants you next
   const pulse = 0.5 + 0.5 * Math.sin(now / 250);
+  if (travel) { drawStones(ctx, toScreen, pulse, ox, oy, iw, ih); return; }
+  // the quest you're following: where it wants you next
   let named = false;
   for (const [m, qx, qy, title] of trackedMarks()) {
     const [mx, my, mz] = String(m).split(",").map(Number);
@@ -505,6 +513,54 @@ export function drawWorldMap(ctx, now) {
     centreText(ctx, sx + 1, sy + 9, "You", 8, true, [10, 6, 4]);
     centreText(ctx, sx, sy + 8, "You", 8, true, [255, 240, 220]);
   }
+}
+
+// ----- the travel map's shardstones (the ones you've activated), and the ways home: what's clicked is in U.stoneHits
+function drawStones(ctx, toScreen, pulse, ox, oy, iw, ih) {
+  const r = M.on ? 16 : 11;                        // (a finger's reach on the phone)
+  for (const s of U.stones.stones) {
+    if (s.z !== S.mapZ) continue;
+    const [sx, sy] = toScreen(s.x, s.y);
+    const hot = U.stoneHover === s.k;
+    if (!s.here) U.stoneHits.push({ k: s.k, x: sx, y: sy, r, t: s.t });
+    const glow = s.here ? [255, 214, 90] : [120, 200, 255];
+    ctx.fillStyle = `rgba(${glow.join(",")},${(hot ? 0.45 : 0.22) + 0.2 * pulse})`;
+    ctx.beginPath(); ctx.arc(sx, sy, (hot ? 11 : 8) + 2 * pulse, 0, 6.283); ctx.fill();
+    const d = hot ? 7 : 5;                          // (a diamond: the rune)
+    ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.moveTo(sx, sy - d - 1); ctx.lineTo(sx + d + 1, sy); ctx.lineTo(sx, sy + d + 1); ctx.lineTo(sx - d - 1, sy); ctx.fill();
+    ctx.fillStyle = s.here ? "rgb(255,226,120)" : "rgb(200,240,255)";
+    ctx.beginPath(); ctx.moveTo(sx, sy - d); ctx.lineTo(sx + d, sy); ctx.lineTo(sx, sy + d); ctx.lineTo(sx - d, sy); ctx.fill();
+    const label = s.here ? `${s.t} (you're here)` : s.t;     // (every stone named: a phone has no hover)
+    centreText(ctx, sx + 1, sy + d + 5, label, hot ? 10 : 9, true, [10, 6, 4]);
+    centreText(ctx, sx, sy + d + 4, label, hot ? 10 : 9, true, s.here ? [255, 230, 140] : hot ? [255, 255, 255] : [220, 245, 255]);
+  }
+  // (your homestead, and the homesteads you may visit: a stone's journey to an anchored pocket - homes.py)
+  const ways = [];
+  if (U.stones.home) ways.push(["home", "Your homestead"]);
+  if (U.stones.visit) ways.push(["visit", "Visit a homestead..."]);
+  let bx = ox + 8;
+  const bh = M.on ? 34 : 24, by = oy + ih - bh - 8;
+  for (const [k, label] of ways) {
+    const bw = textWidth(ctx, label, 10, true) + 24;
+    const hot = U.stoneHover === k;
+    roundBox(ctx, bx, by, bw, bh, hot ? [70, 52, 110] : [40, 30, 64], [170, 150, 230], 2, 6);
+    drawTextMid(ctx, label, bx + 12, by, bh, 10, true, [236, 228, 255]);
+    U.stoneHits.push({ k, box: [bx, by, bw, bh], t: label });
+    bx += bw + 10;
+  }
+  if (!U.stones.stones.some((s) => !s.here) && !ways.length) {
+    centreText(ctx, ox + iw / 2, oy + ih - 22, "No other shardstone knows you yet.", 10, true, [212, 191, 126]);
+  }
+}
+
+export function stoneAt(x, y) {
+  // The travel map's stone (or way home) under x,y: its key, or ""
+  for (const h of U.stoneHits) {
+    if (h.box ? x >= h.box[0] && x <= h.box[0] + h.box[2] && y >= h.box[1] && y <= h.box[1] + h.box[3]
+      : Math.hypot(x - h.x, y - h.y) <= h.r) return h.k;
+  }
+  return "";
 }
 
 export function minimapHit(x, y) {
@@ -1337,7 +1393,7 @@ function drawHotbar(ctx) {
           const ch = Math.ceil(h * Math.min(1, left / total));
           ctx.fillRect(x + 1, y + h - ch - 1, w - 2, ch);
           centreText(ctx, x + w / 2, y + h / 2 - 5, String(Math.ceil(left / 1000)), 10, true, [255, 240, 200]);
-        } else if ((S.me.shards || 0) < val(spellAt(sp, "Cost", "0"))) {
+        } else if ((S.me.shards || 0) < castCost(sp)) {
           ctx.fillStyle = "rgba(150,30,20,0.45)";
           ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
         }

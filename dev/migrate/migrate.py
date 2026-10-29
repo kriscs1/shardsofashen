@@ -468,9 +468,9 @@ def migrate_itemracks():
             sec = "CRAFT-" + skill
             ini.set(sec, "Type", "Craft")
             ini.set(sec, "Skill", skill)
-            if skill == "Smithing":
+            if skill == "Crafting":
                 # The old CREATABLES-Smithing.txt is a verbatim copy of the Cooking list (a Meat Sandwich
-                # isn't smithed), so the Smithing rack is migrated empty.
+                # isn't smithed), so the Crafting rack is migrated empty.
                 ini.section(sec)[1].append((None, "; (no recipes yet: the old file was a copy of CREATABLES-Cooking)"))
                 continue
             for i, r in enumerate(rows, 1):

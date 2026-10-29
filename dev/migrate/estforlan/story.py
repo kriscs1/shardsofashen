@@ -228,9 +228,10 @@ EAST = ["Court", "Emberwatch", "Thornwick", "Keep", "Ravensgate", "Highwatch", "
 
 
 def shardstones(atlas, plans):
-    """Travel Shardstone (which shardstone is this? wake it, the first time, with Shards - Config.ini [Shards]
-    Shardstone.<Key>, else Shardstone - and so attune to it) and its menu, two pages (the west and the east). A journey
-    costs Shardstone.Travel (a few Shards)."""
+    """data\\Shardstones.ini: every shardstone's key (its place Id is Waystone_<Key>) and its town's name, west to
+    east. The engine does the rest (dsengine/shardcraft.py: activating one, with Shards - Shards.ini Shardstone.<Key>,
+    else Shardstone - and the travel map)."""
+    import build_shardcraft
     where = {}
     for name, m in atlas.maps.items():
         for ln in m.ents:
@@ -238,55 +239,9 @@ def shardstones(atlas, plans):
             if f[0] == "Id" and f[1].startswith("Waystone_"):
                 where[f[1][len("Waystone_"):]] = name
     keys = [k for k in WEST + EAST if k in where]
-    halves = [keys[:9], keys[9:]]
-    for n, half in enumerate(halves):
-        rows = [(">Distance.From.Clicked.Entity", "48", "@far")] if n == 0 else []
-        for i, k in enumerate(half):
-            label = short(plans[k].title)
-            rows += [(">On.Map", where[k], "@next%d" % i),
-                     ("Get.Value", "CALCULATION", label.replace(" ", "_"), "Variable.9$"),
-                     (">Conditional", "$Attr.Waystone.%s=0" % k, "@menu"),
-                     K.say("Shardstone", "The %s shardstone's rune is dark. Waking it takes $Shards.Shardstone.%s Shards, "
-                                       "and you carry $Item.Shard.\\Once it's awake it knows you: you can travel to it "
-                                       "from any shardstone you've woken." % (label, k),
-                           ("Wake it ($Shards.Shardstone.%s Shards)" % k, "@wake%d" % i), ("Not now", "@leave")),
-                     ("@wake%d" % i,),
-                     (">Pay.Shards", "Shardstone." + k, "Waking_the_shardstone", "@leave"),
-                     ("Update.Attribute", "Waystone." + k, "=1"),
-                     ("Display.Message", "Yellow", "The rune drinks the Shards and flares blue: you are attuned to "
-                                                   "the %s shardstone." % label),
-                     ("Goto.Line", "@attuned"),
-                     ("@next%d" % i,)]
-        if n == 0:
-            rows += [("Goto.Script", "Travel Shardstone 2"), ("@attuned",), ("Play.Sound", "SpellCast"),
-                     ("Play.Animation", "Teleport_Glow", "1", "-"),
-                     ("@menu",), ("Goto.Script", "Shardstone Menu"), ("End",), ("@leave",), ("End",),
-                     ("@far",), ("Display.Message", "DarkRed", "You are too far away!", "Denied"), ("End",)]
-            K.write_script("Travel Shardstone", rows, MAKER)
-        else:
-            rows += [("Get.Value", "CALCULATION", "old", "Variable.9$"), ("Goto.Line", "@menu"),
-                     ("@attuned",), ("Play.Sound", "SpellCast"), ("Play.Animation", "Teleport_Glow", "1", "-"),
-                     ("@menu",), ("Goto.Script", "Shardstone Menu"), ("End",), ("@leave",), ("End",)]
-            K.write_script("Travel Shardstone 2", rows, MAKER)
-    pages = [("Shardstone Menu", [k for k in WEST if k in where], "The east...", "Shardstone Menu 2"),
-             ("Shardstone Menu 2", [k for k in EAST if k in where], "The west...", "Shardstone Menu")]
-    for script, page, other, other_script in pages:
-        answers = []
-        for k in page:
-            answers += ["%s [if $Attr.Waystone.%s>=1 and $Map.Name<>%s]" % (plans[k].title, k, where[k]), "@go_" + k]
-        answers += [other, "@other", "Stay here", "@stay"]
-        rows = [("Display.Conversation", "Shardstone",
-                 "This is the $Variable.9 shardstone. Its rune glows softly under your hand.\\Where would you like to go? "
-                 "Each journey costs $Shards.Shardstone.Travel Shards, and you carry $Item.Shard. (Only the shardstones "
-                 "you have woken are listed.)") + tuple(answers),
-                ("@stay",), ("End",), ("@other",), ("Goto.Script", other_script), ("End",)]
-        for k in page:
-            rows += [("@go_" + k,), (">Pay.Shards", "Shardstone.Travel", "Travelling", "@stay"),
-                     ("Play.Sound", "Teleporter"),
-                     ("Display.Message", "Yellow", "The world blurs... and you step out by the %s shardstone."
-                      % short(plans[k].title)),
-                     ("Teleport", "Waystone_" + k, "-"), ("End",)]
-        K.write_script(script, rows, MAKER)
+    build_shardcraft.write_shardstones([(k, short(plans[k].title)) for k in keys])
+    for name in build_shardcraft.OLD_SCRIPTS[:4]:
+        K.remove_script(name)
     return keys
 
 

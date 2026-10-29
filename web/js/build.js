@@ -2,16 +2,17 @@
 // (data/Buildables.ini, sent as "buildables"), a ghost of it on the tile under the mouse, click or drag to build,
 // and a tool that takes things down again (the top thing first: the roof, an object, what's on the ground, the ground).
 import { G, S, tileAt } from "./state.js";
-import { A, sprite } from "./assets.js";
+import { sprite } from "./assets.js";
 import { send } from "./net.js";
 import { V, screenToWorld } from "./render.js";
 import { L } from "./ui.js";
 import { pretty } from "./util.js";
+import { skillLevel } from "./verbs.js";
 
 export const B = { on: false, pieces: [], byId: new Map(), cat: "", piece: "", remove: false,
   last: "", drag: false };
 const $ = (id) => document.getElementById(id);
-const CATS = ["Floors", "Walls", "Doors", "Windows", "Roofs", "Furniture", "Lights", "Garden", "Workshops"];
+const CATS = ["Terraform", "Floors", "Walls", "Doors", "Windows", "Roofs", "Furniture", "Lights", "Garden", "Workshops"];
 
 export function onBuildables(m) {
   B.pieces = m.pieces || [];
@@ -22,18 +23,16 @@ export function onBuildables(m) {
 
 const onOwnHome = () => !!(S.me && S.me.home && S.me.home.own);
 
-export function constructionLevel() {
-  const i = A.m ? A.m.skills.indexOf("Construction") : -1;
-  return i >= 0 && S.me ? Math.max(1, Math.floor(S.me.xp[i])) : 1;
-}
-
 function held(name) {
   let n = 0;
   for (const it of (S.me && S.me.inv) || []) if (it[1] === name) n += it[2];
   return n;
 }
 
-function canAfford(p) { return p.needs.every(([item, q]) => held(item) >= q); }
+function canAfford(p) { return p.needs.every(([item, q]) => held(item) >= q) && (S.me.shards || 0) >= (p.shards || 0); }
+
+// (the skill a piece goes by: Homesteading, or Shardcraft for terraforming)
+const levelFor = (p) => Math.max(1, skillLevel(p.skill || "Homesteading"));
 
 // ----- the button and the panel
 export function updateBuild() {
@@ -74,8 +73,8 @@ function fillTabs() {
 function fillGrid() {
   const grid = $("build-grid");
   grid.textContent = "";
-  const level = constructionLevel();
   for (const p of B.pieces.filter((q) => q.cat === B.cat)) {
+    const level = levelFor(p);
     const b = document.createElement("button");
     b.type = "button";
     b.title = p.name;
@@ -105,14 +104,17 @@ function fillInfo() {
   }
   const p = B.byId.get(B.piece);
   if (!p) { info.textContent = "Choose something to build, then click (or drag) on your land."; return; }
-  const level = constructionLevel();
-  const needs = p.needs.length ? p.needs.map(([item, q]) => {
+  const level = levelFor(p);
+  const parts = p.needs.map(([item, q]) => {
     const h = held(item);
     return `<span class="${h >= q ? "ok" : "bad"}">${q} ${pretty(item)} (${h})</span>`;
-  }).join(", ") : "nothing";
-  info.innerHTML = `<b>${esc(p.name)}</b><br>Needs: ${needs}<br>` +
-    `<span class="${level >= p.level ? "ok" : "bad"}">Construction ${p.level}</span> (you: ${level})` +
-    (p.on ? `<br>Goes on ${p.on.toLowerCase() === "wall" ? "a wall" : "a " + esc(pretty(p.on).replace(/\d+$/, "").toLowerCase())}` : "");
+  });
+  if (p.shards) parts.push(`<span class="${(S.me.shards || 0) >= p.shards ? "ok" : "bad"}">${p.shards} Shards</span>`);
+  const on = (p.on || "").split(",").map((o) => o.trim()).filter(Boolean);
+  info.innerHTML = `<b>${esc(p.name)}</b><br>Needs: ${parts.length ? parts.join(", ") : "nothing"}<br>` +
+    `<span class="${level >= p.level ? "ok" : "bad"}">${esc(pretty(p.skill || "Homesteading"))} ${p.level}</span> (you: ${level})` +
+    (on.length ? `<br>Goes on ${on[0].toLowerCase() === "wall" ? "a wall" :
+      on.map((o) => esc(pretty(o).replace(/\d+$/, "").trim().toLowerCase())).join(" or ")}` : "");
 }
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
@@ -188,7 +190,7 @@ export function drawBuild(ctx, mx, my, smoothing) {
   } else {
     const p = B.byId.get(B.piece);
     if (p) {
-      ok = ok && constructionLevel() >= p.level && canAfford(p);
+      ok = ok && levelFor(p) >= p.level && canAfford(p);
       const img = sprite(p.image);
       if (img) {
         ctx.globalAlpha = 0.7;

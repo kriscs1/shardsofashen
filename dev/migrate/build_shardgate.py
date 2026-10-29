@@ -332,6 +332,8 @@ def scripts():
         (">Distance.From.Clicked.Entity", "72", "@far"),
         ("Get.Value", "ATTRIBUTE", "ShardgateQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=2", "@stones"),
+        (">Conditional", "$Shardstones.Active>=$Shards.Shardgate.Stones", "@steady"),
+        (">Conditional", "$Skill.Shardcraft>=$Shards.Shardgate.Level", "@craft"),
         (">Got.Item", "Silver_Bar", "4", "@need"),
         (">Got.Item", "Sapphire", "2", "@need"),
         (">Got.Item", "Remnant_Core", "1", "@need"),
@@ -340,21 +342,30 @@ def scripts():
         ("Take.Item", "Sapphire", "2"),
         ("Take.Item", "Remnant_Core", "1"),
         ("Toggle.User.Input", "OFF"),
-        ("Show.Skill", "Crafting"),
+        ("Show.Skill", "Shardcraft"),
         ("Display.Message", "Cyan", "You bind the stones with silver, set the sapphires in their runes, and lay the "
-                                    "Remnant's core at the ring's heart..", "-"),
+                                    "Remnant's core at the ring's heart. Far off, the shardstones you woke answer, "
+                                    "and the ring takes hold of them..", "-"),
         ("Play.Sound", "Gate_Built"),
         ("Wait", "3"),
         ("Add.Entity", px(RING, 1), "Shardgate", "StaticObject", "-"),
         ("Play.Sound", "Portal"),
         ("Update.Attribute", "ShardgateQuest", "=3"),
-        ("Update.Skill", "Crafting", "+2"),
+        ("Update.Skill", "Shardcraft", "+2"),
         ("Toggle.User.Input", "ON"),
-        ("Display.Message", "Yellow", "..and the Shards drain out of you into the stones, and light opens between "
-                                      "them: a Shardgate.", "-"),
+        ("Display.Message", "Yellow", "..and the Shards drain out of you into the stones, and light drives down "
+                                      "between them, through the calm rim of the Shardrealm and into the storm at "
+                                      "its core: a Shardgate.", "-"),
         ("End",),
         ("@need",), ("Display.Message", "DarkRed", "A Shardgate needs 4 silver bars, 2 sapphires and a Remnant's "
                                                    "core, as Bert's plans say.", "Denied"),
+        ("End",),
+        ("@steady",), ("Display.Message", "DarkRed", "The ring won't hold against the Shardrealm's core: it needs "
+                                                     "$Shards.Shardgate.Stones shardstones active to steady it, and "
+                                                     "you have $Shardstones.Active.", "Denied"),
+        ("End",),
+        ("@craft",), ("Display.Message", "DarkRed", "You need level $Shards.Shardgate.Level Shardcraft to bind a "
+                                                    "Shardgate.", "Denied"),
         ("End",),
         ("@stones",), ("Display.Message", "Cyan", "Old standing stones, worn smooth. A faint rune on each.", "-"),
         ("@end",), ("End",)] + FAR, MAKER)
@@ -363,7 +374,10 @@ def scripts():
         SK.say("Shardgate_Plans", "A SHARDGATE, by Bert, greatest wizard of the age.\\In the old ring of standing "
                                   "stones on the hill north of the Court: bind the stones with four bars of silver, "
                                   "set two sapphires in the runes, and at the ring's heart lay a Remnant's core.\\Then "
-                                  "give it $Shards.Shardgate Shards of your own, and step through. Mind the Warden.",
+                                  "give it $Shards.Shardgate Shards of your own. Anything can slip onto the realm's "
+                                  "calm rim; to pierce its core the ring must be steadied, so wake "
+                                  "$Shards.Shardgate.Stones of Ashen's shardstones first, and know your Shardcraft "
+                                  "($Shards.Shardgate.Level at least).\\Then step through. Mind the Warden.",
                ("Fold the plans.", "@end")),
         ("@end",), ("End",)], MAKER)
     SK.write_script("Step Through Shardgate", [
@@ -445,20 +459,27 @@ def scripts():
                        "the pieces went somewhere: the Shardrealm, where all broken magic goes. The barrier draws on "
                        "it. It's anchored there, beyond the world.", ("How do I get there?", "@how")),
         ("@how",),
-        SK.say("Bert", "You build a door. A Shardgate: the old ring of standing stones on the hill north of this Court "
-                       "was one, once. Here are my plans. Silver, sapphires, a Remnant's core, and Shards: it drinks "
-                       "them.\\Through the gate, find the anchor and break it with the staff. Something will be "
-                       "guarding it. Something always is.", ("I'll build it.", "@plans")),
+        SK.say("Bert", "You build a door. Not a little one. Any old shardstone can reach the realm's rim, where it's "
+                       "calm and thin and small things hold. That homestead of yours, if you've one? The Stillwater, "
+                       "the settlers call it. It's a pocket of the rim, held by your anchor. Never wondered why it "
+                       "has no neighbours? But the barrier's anchor is at the core, a storm where all the "
+                       "broken magic pools, and you have to pierce that. Only a great anchor of your own will do it: a "
+                       "Shardgate. The old ring of standing stones on the hill north of this Court was one, once.\\"
+                       "Here are my plans. Silver, sapphires, a Remnant's core, and Shards: it drinks them. And it "
+                       "must be steadied: wake the shardstones of Ashen, eight at the least, so the ring has something "
+                       "to hold to while it drives through. Through the gate, find the anchor and break it with the "
+                       "staff. Something will be guarding it. Something always is.", ("I'll build it.", "@plans")),
         ("@plans",),
         ("Give.Item", "Shardgate_Plans", "1"),
         ("Update.Attribute", "ShardgateQuest", "=2"),
         ("Display.Message", "Yellow", "Bert gave you his plans for a Shardgate (Read them).", "-"),
         ("End",),
         ("@late",), (">Quest.Can.Start", "ShardgateQuest", "@end"),
-        SK.say("Bert", "The barrier's gone, yes, yes. But its anchor isn't: it still hums in the Shardrealm, beyond the "
-                       "world, where all broken magic goes. I can feel it from here.\\Build a Shardgate in the old ring "
-                       "of stones on the hill north of the Court: here are my plans. Go through, break the anchor with "
-                       "the staff, and the realm's yours to wander.", ("I'll build it.", "@lateplans")),
+        SK.say("Bert", "The barrier's gone, yes, yes. But its anchor isn't: it still hums in the core of the "
+                       "Shardrealm, where all broken magic pools. I can feel it from here.\\Build a Shardgate in the "
+                       "old ring of stones on the hill north of the Court: here are my plans. Wake eight of Ashen's "
+                       "shardstones to steady it, pierce the core, break the anchor with the staff, and the realm's "
+                       "yours to wander.", ("I'll build it.", "@lateplans")),
         ("@lateplans",),
         ("Give.Item", "Shardgate_Plans", "1"),
         ("Update.Attribute", "ShardgateQuest", "=2"),
@@ -473,14 +494,14 @@ def quest():
         1: "The barrier held: something beyond the world feeds it. Ask Bert, at the top of the Wizards' Court's "
            "tower.",
         2: "Build a Shardgate in the old ring of standing stones on the hill north of the Wizards' Court: 4 silver "
-           "bars, 2 sapphires, a Remnant's core and Shards (Bert's plans).",
-        3: "Step through the Shardgate into the Shardrealm. Get past its Warden, and shatter the barrier's anchor "
-           "with the Staff of Ashen.",
+           "bars, 2 sapphires, a Remnant's core and Shards, steadied by 8 active shardstones (Bert's plans).",
+        3: "Step through the Shardgate into the core of the Shardrealm. Get past its Warden, and shatter the "
+           "barrier's anchor with the Staff of Ashen.",
         4: "The anchor is shattered. Tell Bert."}, 5,
         markers={0: "Galaith_Barrier", 1: "Court_Wizard", 2: "Shardgate_Site", 3: "Shardgate_Site", 4: "Court_Wizard"},
         chapter=15, requires="The Sword of Valour", after="The Sword of Valour")
     q = p("data", "Quests.ini")
-    SK.section(q, "The Shardgate", [("Reward.Shards", "30"), ("Reward.XP", "Magic 4 Crafting 3")])
+    SK.section(q, "The Shardgate", [("Reward.Shards", "30"), ("Reward.XP", "Channeling 4 Shardcraft 3")])
     SK.section(q, "The Dragon of Galaith", [("Chapter", "16"), ("Requires.Quests", "The Shardgate")])
     SK.section(q, "The Royal Guard", [("Chapter", "17")])
     SK.section(q, "The True Heir", [("Chapter", "18")])

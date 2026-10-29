@@ -25,6 +25,5 @@ NPC	Armourer	160	88	Attitude=Good Stand=1 Face=S Id=Galaith_Armourer_358 Name=Pe
 NPC	Banker	288	344	Attitude=Good Stand=1 Face=S Id=Galaith_Banker_370
 NPC	Constable	576	376	Attitude=Good Stand=1 Face=S Id=Galaith_Constable_372 Name=Alice
 StaticObject	Shardstone	416	256
-StaticObject	Homestone	512	256
 StaticObject	Notice	256	194	Id=Galaith_Notice_322
 Id	Waystone_Galaith	14	10

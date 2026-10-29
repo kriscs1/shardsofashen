@@ -12,7 +12,7 @@
 11	Update.Attribute	DragonforgeQuest	=2
 12	Play.Sound	Anvil
 13	Give.Item	Dragonscale_Helm	1
-14	Update.Skill	Smithing	+2
+14	Update.Skill	Crafting	+2
 15	Display.Conversation	Wyrmsmith	Three of them, still warm! Watch now...\There. A dragonscale helm, and nothing on this earth will burn through it. The forge is yours to use whenever you've scales and mithril.	Thank you!	16
 16	Display.Message	Yellow	Quest complete: The Dragonforge! You receive a dragonscale helm.	Quest
 17	End

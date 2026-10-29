@@ -18,7 +18,7 @@
 16	Display.Message	Yellow	...and break off a lump of stone.
 17	Give.Item	Stone	1
 18	Update.Skill	Mining	+0.05
-19	Update.Skill	Construction	+0.02
+19	Update.Skill	Homesteading	+0.02
 20	Change.Tile	$Variable.5,$Variable.6	Rock001	0	90
 21	End
 22	Display.Message	DarkRed	You are too far away!	Denied

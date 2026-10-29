@@ -579,10 +579,13 @@ class ItemsMixin:
         self.emit(self.box_state())
 
     def craft_sound(self):
-        s = self.rack_skill.upper()
-        if s == "SMITHING":
-            return "Smelt" if "SMELT" in self.rack_name.upper() else "Anvil"
-        return {"POTION_MAKING": "Brew", "COOKING": "CookingFood", "MAGIC": "SpellCast"}.get(s, "Craft")
+        s, rack = self.rack_skill.upper(), self.rack_name.upper()
+        if "SMELT" in rack:
+            return "Smelt"
+        if s == "SMITHING" or "SMITH" in rack or "FORGE" in rack:           # (Crafting at an anvil: smithing)
+            return "Anvil"
+        return {"POTION_MAKING": "Brew", "ALCHEMY": "Brew", "COOKING": "CookingFood", "MAGIC": "SpellCast",
+                "CHANNELING": "SpellCast", "SHARDCRAFT": "SpellCast"}.get(s, "Craft")
 
     def craft_inspect(self, e):
         i = val(e.misc)
@@ -718,6 +721,7 @@ class ItemsMixin:
         items = []
         for s in range(1, d.equip_slots + 1):
             it = self.equipped[s]
+            it = trim(self.entity_ini(it, "Base", "")) or it if it else it     # (enchanted: drawn as it was)
             if it and d.gear_has_art(it):
                 items.append((d.gear_rank[s], it))
         items.sort()
@@ -796,13 +800,14 @@ class ItemsMixin:
         if wear <= 0:
             self.display_message("The %s doesn't need mending." % pretty(name), "INFO")
             return True
-        mat = next(((m, need, lvl) for m, need, lvl in MATERIALS if name.startswith(m)), None)
+        base = trim(self.entity_ini(name, "Base", "")) or name                # (enchanted: mended as it was)
+        mat = next(((m, need, lvl) for m, need, lvl in MATERIALS if base.startswith(m)), None)
         if mat is None:
             self.display_message("Only a master smith could mend the %s." % pretty(name), "FAIL")
             return True
         _, need, level = mat
-        if self.skill_level("Smithing") < level:
-            self.refuse("You need level %d Smithing to mend the %s." % (level, pretty(name)))
+        if self.skill_level("Crafting") < level:
+            self.refuse("You need level %d Crafting to mend the %s." % (level, pretty(name)))
             return True
         if self.items_held(need) < 1:
             self.display_message("You need %s to mend the %s." % (pretty(need), pretty(name)), "FAIL")
@@ -812,7 +817,7 @@ class ItemsMixin:
         self.dirty_me = True
         self.play_sound("Anvil", (self.player.cx, self.player.cy))
         self.display_message("You hammer the %s back into shape with %s." % (pretty(name), pretty(need)), "SUCCESS")
-        self.update_skill("Smithing", "+" + lbstr(0.15 + 0.02 * level))
+        self.update_skill("Crafting", "+" + lbstr(0.15 + 0.02 * level))
         return True
 
     # =================================================================================================================

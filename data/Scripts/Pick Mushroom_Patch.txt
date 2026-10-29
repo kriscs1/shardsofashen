@@ -3,12 +3,12 @@
 02	Get.Value	CALCULATION	$Tile.under.Cursor.X	Variable.5$
 03	Get.Value	CALCULATION	$Tile.under.Cursor.Y	Variable.6$
 04	Display.Message	Cyan	You pick a glowing mushroom...
-05	Show.Skill	Potion_Making
+05	Show.Skill	Alchemy
 06	Play.Sound	Pickup
 07	Wait	1.5
 08	Display.Message	Yellow	...it's still warm to the touch.
 09	Give.Item	Cave_Mushroom	1
-10	Update.Skill	Potion_Making	+0.1
+10	Update.Skill	Alchemy	+0.1
 11	>Random	50	13
 12	Change.Tile	$Variable.5,$Variable.6	Mushroom_Patch002	0	60
 13	End

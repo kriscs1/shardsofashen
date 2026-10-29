@@ -28,7 +28,6 @@ NPC	Barmaid	352	408	Attitude=Good Zone=7,13,13,14 Pause=3-9 Id=Southport_Barmaid
 NPC	Barkeep	608	312	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_366 Name=Fred
 NPC	Barmaid	672	408	Attitude=Good Zone=17,13,23,14 Pause=3-9 Id=Southport_Barmaid_367 Name=Clara
 StaticObject	Shardstone	64	32
-StaticObject	Homestone	64	64
 StaticObject	Notice	64	98	Id=Southport_Notice_313
 StaticObject	Sign_Pub	224	464
 StaticObject	Sign_Pub	544	464

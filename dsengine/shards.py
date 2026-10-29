@@ -24,6 +24,18 @@ def shard_words(n):
     return "%s Shard%s" % (lbstr(n), "" if n == 1 else "s")
 
 
+def channeled_cost(cost, channeling, data):
+    """A spell's Shards a cast at a Channeling level: Shards.ini [Channeling] Saving.Per.Level percent off for each
+    level past the first, never more than Saving.Max percent, and never under Min.Cost (a spell that costs nothing
+    still costs nothing)."""
+    cost = val(cost)
+    if cost <= 0:
+        return 0
+    num = lambda k, dflt: val(trim(data.shards_ini("Channeling", k, "")) or dflt)
+    saving = min(num("Saving.Max", 30), max(0, int(channeling) - 1) * num("Saving.Per.Level", 1.5)) / 100.0
+    return max(min(cost, num("Min.Cost", 1)), int(round(cost * (1 - saving))))
+
+
 def quest_xp(d):
     """A quest's Reward.XP ("Strength 3 Defence 3"): [(skill, xp)]."""
     w = trim(d.get("REWARD.XP", "")).replace(",", " ").split()
@@ -145,6 +157,9 @@ class ShardMixin:
         self.emit({"t": "reward", "quest": r["quest"], "items": [[k, n] for k, n in got if k != SHARD],
                    "shards": r["got"].get(SHARD, 0), "xp": [[k, round(v, 2)] for k, v in sorted(r["xp"].items())]})
 
+    def channeled(self, cost):
+        return channeled_cost(cost, self.skill_level("Channeling"), self.data)
+
     # ----- spells' ranks
     def spell_rank(self, spell):
         return int(self.spells_known.get(spell, 0))
@@ -184,14 +199,14 @@ class ShardMixin:
             rank = max(1, self.spell_rank(name))
             at = lambda k, dflt="0", r=rank: self.spell_ini_at(name, k, dflt, r)
             row = {"spell": name, "title": self.spell_title(name, rank), "scroll": scroll, "rank": self.spell_rank(name),
-                   "level": int(val(at("Level", "1"))), "skill": trim(d.get("SKILL", "")) or "Magic",
-                   "cost": int(val(at("Cost"))), "cooldown": val(at("Cooldown")),
+                   "level": int(val(at("Level", "1"))), "skill": trim(d.get("SKILL", "")) or "Channeling",
+                   "cost": int(self.channeled(at("Cost"))), "cooldown": val(at("Cooldown")),
                    "what": self.spell_what(name, rank)}
             up = self.upgrade_scroll(name, rank + 1)
             if up:
                 row["next"] = {"title": self.spell_title(name, rank + 1), "scroll": up,
                                "level": int(val(self.spell_ini_at(name, "Level", "1", rank + 1))),
-                               "cost": int(val(self.spell_ini_at(name, "Cost", "0", rank + 1))),
+                               "cost": int(self.channeled(self.spell_ini_at(name, "Cost", "0", rank + 1))),
                                "what": self.spell_what(name, rank + 1)}
             out.append(row)
         return sorted(out, key=lambda r: (r["level"], r["spell"]))
@@ -255,3 +270,4 @@ class ShardMixin:
         self.play_sound("Craft")
         self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 500)
         self.give_shards(n, "You break down the %s" % pretty(name))
+        self.dismantled(name, n)                        # (its Shardcraft, and maybe a rare shard: shardcraft.py)

@@ -66,7 +66,7 @@ class RemnantMixin:
 
     # ----- absorbing them, from the pack
     def absorb_remnants(self, item):
-        """All the remnants in the pack, into Shards (Shards.ini [Remnants] Absorb each), and a little Magic."""
+        """All the remnants in the pack, into Shards (Shards.ini [Remnants] Absorb each), and a little Shardcraft."""
         n = self.items_held(item.name)
         if n <= 0:
             return
@@ -77,9 +77,9 @@ class RemnantMixin:
         self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 500)
         self.give_shards(shards, "You absorb %d Shard Remnant%s" % (n, "" if n == 1 else "s"))
         self.update_attribute("RemnantsAbsorbed", "+%d" % n)          # (counted: The Spellwright)
-        xp = self.remnant_num("Absorb.Magic.XP", 0.05) * n
+        xp = self.remnant_num("Absorb.XP", self.remnant_num("Absorb.Magic.XP", 0.05)) * n
         if xp > 0:
-            self.update_skill("Magic", "+%s" % round(xp, 3), pop=False)
+            self.update_skill("Shardcraft", "+%s" % round(xp, 3), pop=False)
 
 
 def fade_remnants(w):

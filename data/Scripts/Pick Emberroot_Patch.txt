@@ -2,19 +2,19 @@
 01	>Distance.From.Clicked.Tile	40	18
 02	Get.Value	CALCULATION	$Tile.under.Cursor.X	Variable.5$
 03	Get.Value	CALCULATION	$Tile.under.Cursor.Y	Variable.6$
-04	Get.Value	SKILL	Potion_Making	Variable.1$
+04	Get.Value	SKILL	Alchemy	Variable.1$
 05	>Conditional	$Variable.1>=15	16
 06	Display.Message	Cyan	You dig at the emberroot with your fingers...
-07	Show.Skill	Potion_Making
+07	Show.Skill	Alchemy
 08	Play.Sound	Pickup
 09	Wait	1.5
 10	Display.Message	Yellow	...and pull up a root, warm as a coal.
 11	Give.Item	Emberroot	1
-12	Update.Skill	Potion_Making	+0.45
+12	Update.Skill	Alchemy	+0.45
 13	>Random	60	15
 14	Change.Tile	$Variable.5,$Variable.6	Emberroot_Patch002	0	90
 15	End
-16	Display.Message	DarkRed	You need level 15 Potion Making for that.	Denied
+16	Display.Message	DarkRed	You need level 15 Alchemy for that.	Denied
 17	End
 18	Display.Message	DarkRed	You are too far away!	Denied
 19	End

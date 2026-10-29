@@ -34,7 +34,6 @@ NPC	Fishmonger	576	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_329 
 NPC	Greengrocer	192	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Greengrocer_331 Name=Lettie
 NPC	Woman	96	408	Attitude=Good Zone=4,11,5,14 Pause=5-15 Id=Ravensgate_Resident_362 Name=Harold
 StaticObject	Shardstone	448	256
-StaticObject	Homestone	512	256
 StaticObject	Notice	288	194	Id=Ravensgate_Notice_372
 Id	Waystone_Ravensgate	15	10
 NPC	Gravekeeper	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12

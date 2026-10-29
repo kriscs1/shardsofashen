@@ -229,12 +229,24 @@ def stock(s, **items):
         s.add_inventory_item(name, q, quiet=True)
 
 
+def hold_pocket(world, s):
+    """The test's pocket all still glass (a new one is mostly mist: build_pocket.py), to build anywhere on."""
+    h, m = world.homes.home_of(s.player_name), world.homes.map_of(s.player_name)
+    h["land"] = [ln.replace("Rim_Mist001", "Rim_Glass001") for ln in h["land"]]
+    world.homes.bases.pop(s.player_name, None)
+    for c in range(1, len(m.tile)):
+        if m.tile[c] == "Rim_Mist001":
+            m.tile[c] = "Rim_Glass001"
+            m.refresh_cell(c)
+    return m
+
+
 def test_homestead_needs_the_crystal_and_starts_closed(world):
     a, b = join(world, "Homer"), join(world, "Guest")
     a.go_home()
     world.tick(0.05)
-    assert not world.homes.is_home_map(a.cur_map.name)          # no Access Crystal: nowhere to go
-    stock(a, Access_Crystal=1)
+    assert not world.homes.is_home_map(a.cur_map.name)          # no Hearth Anchor: nowhere to go
+    stock(a, Hearth_Anchor=1)
     a.go_home()
     world.tick(0.05)
     assert world.homes.owner_of(a.cur_map.name) == "Homer" and a.on_own_home()
@@ -256,18 +268,19 @@ def test_homestead_needs_the_crystal_and_starts_closed(world):
 
 def test_building_uses_materials_and_is_shared(world):
     a, b = join(world, "Builder"), join(world, "Friend")
-    stock(a, Access_Crystal=1)
+    stock(a, Hearth_Anchor=1)
     a.go_home()
     world.tick(0.05)
+    hold_pocket(world, a)
     m = a.cur_map
     assert not a.build(6, 6, "Plank001")                          # no planks
     stock(a, Plank=30, Nails=60)
     assert a.build(6, 6, "Plank001")
     assert a.items_held("Plank") == 29 and m.tile[m.cell(6, 6)] == "Plank001"
-    assert not a.build(6, 6, "Stone_Wall001")                     # Construction too low
+    assert not a.build(6, 6, "Stone_Wall001")                     # Homesteading too low
     assert not b.build(7, 6, "Plank001")                          # not their home
-    assert not a.build(*world.homes.arrival, "Plank001")          # where the homestone puts you down
-    a.update_skill("Construction", "=10")
+    assert not a.build(*world.homes.arrival, "Plank001")          # where the anchor puts you down
+    a.update_skill("Homesteading", "=10")
     for x in range(4, 8):
         for y in range(9, 12):
             assert a.build(x, y, "Shingle")
@@ -285,10 +298,11 @@ def test_building_uses_materials_and_is_shared(world):
 
 def test_homes_are_saved_and_come_back(world):
     a = join(world, "Keeper")
-    stock(a, Access_Crystal=1, Plank=10, Nails=40, Iron_Bar=4)
-    a.update_skill("Construction", "=10")
+    stock(a, Hearth_Anchor=1, Plank=10, Nails=40, Iron_Bar=4)
+    a.update_skill("Homesteading", "=10")
     a.go_home()
     world.tick(0.05)
+    hold_pocket(world, a)
     assert a.build(8, 8, "Home_Chest") and a.build(9, 8, "Timber001")
     saved = world.homes.state()
     leave(world, a)
@@ -307,10 +321,11 @@ def test_homes_are_saved_and_come_back(world):
 
 def test_home_bed_is_where_you_wake(world):
     a = join(world, "Sleeper")
-    stock(a, Access_Crystal=1, Plank=10, Nails=20, Wool=6)
-    a.update_skill("Construction", "=10")
+    stock(a, Hearth_Anchor=1, Plank=10, Nails=20, Wool=6)
+    a.update_skill("Homesteading", "=10")
     a.go_home()
     world.tick(0.05)
+    hold_pocket(world, a)
     m = a.cur_map
     assert a.build(10, 10, "Bed001") and m.decor[m.cell(10, 11)] == "Bed002"     # (its foot, in the tile below)
     assert a.unbuild(10, 11) and not m.decor[m.cell(10, 10)] and not m.decor[m.cell(10, 11)]   # (down whole)
@@ -329,15 +344,15 @@ def test_home_bed_is_where_you_wake(world):
 def test_dying_keeps_undroppables_and_the_five_most_valuable(world):
     a = join(world, "Faller")
     value = lambda n: int(float(world.data.entity_ini(n, "Value", "0") or 0))
-    stock(a, Access_Crystal=1, Logs=5, Sapphire=3, Iron_Bar=3, **{"Gold_Coin(s)": 100})
-    a.drop_inventory_item(a.inv_item(next(e.uid for e in a.inv if e.name == "Access_Crystal")), 1)
-    assert a.items_held("Access_Crystal") == 1                      # can't be dropped
+    stock(a, Hearth_Anchor=1, Logs=5, Sapphire=3, Iron_Bar=3, **{"Gold_Coin(s)": 100})
+    a.drop_inventory_item(a.inv_item(next(e.uid for e in a.inv if e.name == "Hearth_Anchor")), 1)
+    assert a.items_held("Hearth_Anchor") == 1                      # can't be dropped
     slot = 1
     a.equipped[slot] = "Iron_Sword" if value("Iron_Sword") else a.equipped[slot]
     a.player_dies()
-    assert a.items_held("Access_Crystal") == 1                      # nor lost when you die
+    assert a.items_held("Hearth_Anchor") == 1                      # nor lost when you die
     assert a.items_held("Gold_Coin(s)") == 0 and a.items_held("Logs") == 0
-    kept = sorted([e.name for e in a.inv for _ in range(e.quantity) if e.name != "Access_Crystal"] +
+    kept = sorted([e.name for e in a.inv for _ in range(e.quantity) if e.name != "Hearth_Anchor"] +
                   [n for n in a.equipped[1:] if n])
     pool = sorted(["Sapphire"] * 3 + ["Iron_Bar"] * 3 + ["Logs"] * 5 + ["Iron_Sword"], key=value, reverse=True)
     assert len(kept) == 5
@@ -414,7 +429,7 @@ def test_the_settlers_quest_gives_the_crystal(world):
     assert s.get_attribute("HomeQuest") == "1"
     stock(s, Plank=10, Stone_Block=4)
     talk(1, ticks=40)
-    assert s.get_attribute("HomeQuest") == "2" and s.items_held("Access_Crystal") == 1
+    assert s.get_attribute("HomeQuest") == "2" and s.items_held("Hearth_Anchor") == 1
     assert s.items_held("Plank") == 0
     assert talk(1)[0] == "Sell me something." and s.ab_mode == "Shop"
     leave(world, s)
@@ -422,7 +437,7 @@ def test_the_settlers_quest_gives_the_crystal(world):
 
 def test_each_home_keeps_its_own_land(world):
     a = join(world, "Landholder")
-    stock(a, Access_Crystal=1)
+    stock(a, Hearth_Anchor=1)
     a.go_home()
     world.tick(0.05)
     saved = world.homes.state()
@@ -435,7 +450,7 @@ def test_each_home_keeps_its_own_land(world):
     del old["land"]                                               # (a home saved before homes kept their land)
     w2.homes.load({"Landholder": saved["Landholder"], "Oldtimer": dict(old, n=old["n"] + 50)})
     m = w2.homes.map_of("Landholder")
-    assert m.tile[m.cell(5, 5)] == "Grass001"                     # the existing home is as it was
+    assert m.tile[m.cell(5, 5)] == "Rim_Mist001"                  # the existing home is as it was
     assert w2.homes.map_of("Oldtimer").tile[w2.homes.map_of("Oldtimer").cell(5, 5)] == "Sand001"
     assert w2.homes.state()["Oldtimer"]["land"][0].startswith("Sand001")   # (copied once, kept from now on)
     new = w2.homes.create("Newcomer")
@@ -451,12 +466,12 @@ def test_the_market_is_one_for_everyone(world):
     ma, mf = world.maps[ash.map], world.maps[far.map]
     seller = join(world, "Seller", ma.name, int(ash.x - ma.ox), int(ash.y - ma.oy + 40))
     buyer = join(world, "Buyer", mf.name, int(far.x - mf.ox), int(far.y - mf.oy + 40))
-    stock(seller, Bread=5, Access_Crystal=1)
+    stock(seller, Bread=5, Hearth_Anchor=1)
     stock(buyer, **{"Gold_Coin(s)": 100})
     seller.do_action("Trade", ash)
     assert seller.ab_mode == "Market"
     bread = next(e for e in seller.inv if e.name == "Bread")
-    crystal = next(e for e in seller.inv if e.name == "Access_Crystal")
+    crystal = next(e for e in seller.inv if e.name == "Hearth_Anchor")
     assert "Sell on the market" in seller.get_verbs(bread)
     assert "Sell on the market" not in seller.get_verbs(crystal)  # (what can't be dropped can't be sold)
     seller.verb_price, seller.verb_qty = 7, 4
@@ -879,7 +894,7 @@ def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
     a.out = []
     shards = a.shards()
     a.cast_scroll(next(e for e in a.inv if e.name == "Frost_Nova_Scroll"), None)
-    assert a.items_held("Frost_Nova_Scroll") == 1 and a.shards() == shards - 15      # (known: the scroll stays)
+    assert a.items_held("Frost_Nova_Scroll") == 1 and a.shards() == shards - a.spell_cost("Frost_Nova")  # (known: the scroll stays)
     assert all(w.hp < 500 and w.frozen_until for w in wolves)       # (hurt, and held in the ice)
     assert boss.hp < 500 and boss.frozen_until is None              # (hurt, but no ice holds it)
     assert far.hp == 500 and far.frozen_until is None               # (too far off)
@@ -946,10 +961,11 @@ def test_dying_ends_buffs_and_debuffs(world):
 
 def test_fences_join_up_at_their_corners(world):
     a = join(world, "Fencer")
-    stock(a, Access_Crystal=1, Plank=20, Nails=40)
-    a.update_skill("Construction", "=10")
+    stock(a, Hearth_Anchor=1, Plank=20, Nails=40)
+    a.update_skill("Homesteading", "=10")
     a.go_home()
     world.tick(0.05)
+    hold_pocket(world, a)
     m = a.cur_map
     spots = [(4, 14), (5, 14), (6, 14), (4, 15), (4, 16)]
     for x, y in spots:
@@ -1009,10 +1025,11 @@ def test_crafting_lists_go_by_the_level_they_need(world):
 
 def test_a_chair_can_stand_on_a_rug(world):
     a = join(world, "Decorator")
-    stock(a, Access_Crystal=1, Plank=20, Nails=40, Wool=20, Logs=20, Herb=20)
-    a.update_skill("Construction", "=30")
+    stock(a, Hearth_Anchor=1, Plank=20, Nails=40, Wool=20, Logs=20, Herb=20)
+    a.update_skill("Homesteading", "=30")
     a.go_home()
     world.tick(0.05)
+    hold_pocket(world, a)
     m = a.cur_map
     x, y = 5, 15
     while m.decor[m.cell(x, y)]:
@@ -2078,10 +2095,11 @@ def test_a_gate_is_decor_and_opens_as_a_door(world):
 
 def test_a_bed_can_lie_sideways(world):
     a = join(world, "Napper")
-    stock(a, Access_Crystal=1, Plank=20, Nails=40, Wool=20)
-    a.update_skill("Construction", "=10")
+    stock(a, Hearth_Anchor=1, Plank=20, Nails=40, Wool=20)
+    a.update_skill("Homesteading", "=10")
     a.go_home()
     world.tick(0.05)
+    hold_pocket(world, a)
     m = a.cur_map
     assert a.build(10, 10, "Bed003") and m.decor[m.cell(11, 10)] == "Bed004"    # (its foot to the right)
     assert a.build(10, 13, "Bed006") and m.decor[m.cell(9, 13)] == "Bed005"     # (or to the left)
@@ -2296,7 +2314,7 @@ def test_a_scroll_too_hard_to_learn_is_kept(world):
     a.do_action("Learn", next(e for e in a.inv if e.name == "Blizzard_Scroll"))
     assert "Blizzard" not in a.spells_known and a.items_held("Blizzard_Scroll") == 1
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
-    assert any("Magic 13" in str(e.get("text", "")) or "level 13 Magic" in str(e.get("text", "")) for e in a.out)
+    assert any("Channeling 13" in str(e.get("text", "")) or "level 13 Channeling" in str(e.get("text", "")) for e in a.out)
     leave(world, a)
 
 
@@ -2304,21 +2322,23 @@ def test_casting_spends_shards_only_when_it_takes(world):
     a = join(world, "Spender", "11,4,0", 384, 300)
     a.skill_level = lambda skill: 10
     a.spells_known["Shard_Ward"] = 1
+    c = a.spell_cost("Shard_Ward")                                 # (its 10, less what Channeling 10 saves)
+    assert 1 <= c < 10
     a.remove_inventory_item("Shard", a.shards())
-    stock(a, Shard=9)                                              # (the Shard Ward takes 10)
+    stock(a, Shard=c - 1)
     a.out = []
     a.cast_spell("Shard_Ward", None)
-    assert a.shards() == 9 and a.spell_defence_bonus == 0          # (too few: nothing taken, nothing cast)
+    assert a.shards() == c - 1 and a.spell_defence_bonus == 0      # (too few: nothing taken, nothing cast)
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
     stock(a, Shard=10)
     a.spell_chance = lambda spell: 0                               # (it fizzles: no Shards spent)
     a.cast_spell("Shard_Ward", None)
-    assert a.shards() == 19 and a.spell_cooldown_left("Shard_Ward") > 0
+    assert a.shards() == c + 9 and a.spell_cooldown_left("Shard_Ward") > 0
     a.cooldowns.clear()
     a.player_last_cast = 0
     a.spell_chance = lambda spell: 100
     a.cast_spell("Shard_Ward", None)
-    assert a.shards() == 9 and a.spell_defence_bonus > 0           # (cast: 10 Shards, exactly once)
+    assert a.shards() == 9 and a.spell_defence_bonus > 0           # (cast: its Shards, exactly once)
     a.cast_spell("Shard_Ward", None)                               # (again at once: its cooldown)
     assert a.shards() == 9
     assert not a.spend_shards(100, "That") and a.shards() == 9     # (never below nothing)
@@ -2334,7 +2354,7 @@ def test_the_hotbar_casts_a_known_spell_without_its_scroll(world):
     assert a.items_held("Shard_Ward_Scroll") == 0
     shards = a.shards()
     a.hotbar_use(0)
-    assert a.spell_defence_bonus > 0 and a.shards() == shards - 10
+    assert a.spell_defence_bonus > 0 and a.shards() == shards - a.spell_cost("Shard_Ward")
     a.handle({"t": "hotbar_spell", "spell": "Fire_Bolt"})          # (not known: not put there)
     assert "Fire_Bolt_Scroll" not in a.hotbar
     leave(world, a)
@@ -2369,38 +2389,42 @@ def test_a_quests_shards_are_paid_once(world):
     leave(world, s)
 
 
-def test_waking_a_shardstone_costs_shards_once(world):
+def test_activating_a_shardstone_costs_shards_once(world):
     m = world.maps["4,6,0"]
     ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
     a = join(world, "Wanderer", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
     other = join(world, "Bystander", m.name, int(ws.x - m.ox) + 60, int(ws.y - m.oy) + 8)
     a.connected = other.connected = True
     theirs = other.shards()
+    assert ws.uid not in a.me_state()["lit"]                       # (dormant to you: drawn so - render.js)
 
-    def touch(answer):
+    def touch(answer=None):
         a.out = []
         a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
         ticks(world, 40)
-        assert a.ab_mode == "Conversation"
-        a.action_box_response_chosen(answer)
-        ticks(world, 40)
+        if answer is not None:
+            assert a.ab_mode == "Conversation" and a.responses[0].startswith("Activate it")
+            assert "you have" not in a.ab_text and "carry" not in a.ab_text   # (it doesn't count your Shards)
+            a.action_box_response_chosen(answer)
+            ticks(world, 40)
 
     a.remove_inventory_item("Shard", a.shards())
     stock(a, Shard=3)
-    touch(1)                                                       # ("Wake it": but 5 are needed)
+    touch(1)                                                       # ("Activate it": but 5 are needed)
     assert a.get_attribute("Waystone.Southport") in ("", "0") and a.shards() == 3
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
-    a.close_action_box(-1)
-    ticks(world, 5)
     stock(a, Shard=7)
-    touch(2)                                                       # ("Not now": nothing spent)
+    touch(2)                                                       # ("Leave it": nothing spent)
     assert a.get_attribute("Waystone.Southport") in ("", "0") and a.shards() == 10
+    craft = a.skill_xp_of("Shardcraft")
     touch(1)
     assert a.get_attribute("Waystone.Southport") == "1" and a.shards() == 5
-    a.close_action_box(-1)
-    ticks(world, 5)
-    touch(len(a.responses))                                        # (awake: straight to its menu, "Stay here")
+    assert a.skill_xp_of("Shardcraft") > craft and ws.uid in a.me_state()["lit"]
+    assert any(e.get("t") == "stones" for e in a.out)               # (and its travel map opens)
+    touch()                                                        # (active: straight to the travel map)
+    assert not a.ab_mode and any(e.get("t") == "stones" and e["here"] == "Southport" for e in a.out)
     assert a.shards() == 5 and other.shards() == theirs            # (charged once, and only them)
+    assert ws.uid not in other.me_state()["lit"]
     leave(world, a)
     leave(world, other)
 
@@ -2601,11 +2625,11 @@ def test_upgrade_scrolls_raise_a_known_spell_a_rank(world):
     a.do_action("Learn", two)                                      # (rank 2 before rank 1: no)
     assert a.spell_rank("Fire_Bolt") == 0 and a.items_held("Fire_Bolt_Scroll_II") == 1
     a.spells_known["Fire_Bolt"] = 1
-    assert a.spell_cost("Fire_Bolt") == 3 and a.spell_ini("Fire_Bolt", "Damage", "") == "2-5"
+    assert a.spell_ini("Fire_Bolt", "Cost", "") == "3" and a.spell_ini("Fire_Bolt", "Damage", "") == "2-5"
     assert "Learn" in a.get_verbs(two)
     a.do_action("Learn", two)
     assert a.spell_rank("Fire_Bolt") == 2 and a.items_held("Fire_Bolt_Scroll_II") == 0
-    assert a.spell_cost("Fire_Bolt") == 4 and a.spell_ini("Fire_Bolt", "Damage", "") == "4-9"
+    assert a.spell_ini("Fire_Bolt", "Cost", "") == "4" and a.spell_ini("Fire_Bolt", "Damage", "") == "4-9"
     assert a.spell_ini("Fire_Bolt", "Range", "") == "256"          # (what a rank doesn't change, stays)
     saved = a.save_state()
     assert saved["spells"]["Fire_Bolt"] == 2
@@ -2665,12 +2689,20 @@ def test_a_journey_by_shardstone_costs_a_few_shards(world):
     a.update_attribute("Waystone.Ashford", "=1")
     a.remove_inventory_item("Shard", a.shards())
     stock(a, Shard=10)
+    a.out = []
     a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
     ticks(world, 40)
-    assert a.ab_mode == "Conversation" and any("Ashford" in r for r in a.responses)
-    a.action_box_response_chosen(next(i for i, r in enumerate(a.responses, 1) if "Ashford" in r))
-    ticks(world, 40)
+    st = next(e for e in a.out if e.get("t") == "stones")          # (the travel map: the stones you've activated)
+    assert {s["k"] for s in st["stones"]} == {"Southport", "Ashford"} and st["cost"] == 2
+    a.handle({"t": "stone_go", "k": "Wardhaven"})                  # (not activated: no journey)
+    ticks(world, 5)
+    assert a.shards() == 10 and a.cur_map.name == m.name
+    a.handle({"t": "stone_go", "k": "Ashford"})
+    ticks(world, 5)
     assert a.shards() == 8 and a.cur_map.name == "11,4,0"          # (2 Shards, and there)
+    a.handle({"t": "stone_go", "k": "Southport"})                  # (not by a stone you've opened the map at)
+    ticks(world, 5)
+    assert a.shards() == 8 and a.cur_map.name == "11,4,0"
     leave(world, a)
 
 def test_the_kings_shard_seam_gives_shards_once_a_day(world):
@@ -2816,10 +2848,20 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     assert not any(l["n"] == "The Shardgate" for l in s.my_labels())
     ring = next(e for e in world.ents if e.name == "Shardgate_Ring")
     near(world, s, ring, 16, 72)
+    s.out = []
     s.choose_verb("Build", ring, int(ring.cx), int(ring.cy))
     run_for(world, 10)
-    assert s.get_attribute("ShardgateQuest") == "2"                 # (nothing to build it with)
+    assert s.get_attribute("ShardgateQuest") == "2"                 # (no stones to steady it, nothing to build with)
+    assert any("shardstones active" in str(e.get("text", "")) for e in s.out)
     stock(s, Silver_Bar=4, Sapphire=2, Remnant_Core=1, Shard=40)
+    for k in ("Southport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Fenwick", "Court"):
+        s.update_attribute("Waystone." + k, "=1")
+    s.update_skill("Shardcraft", "=1")
+    s.out = []
+    s.choose_verb("Build", ring, int(ring.cx), int(ring.cy))
+    run_for(world, 40)
+    assert s.get_attribute("ShardgateQuest") == "2" and any("Shardcraft" in str(e.get("text", "")) for e in s.out)
+    s.update_skill("Shardcraft", "=5")
     shards = s.shards()
     s.out = []
     s.choose_verb("Build", ring, int(ring.cx), int(ring.cy))
@@ -2872,11 +2914,12 @@ def test_drains_and_boosts_show_a_skill_as_it_is_now(world):
     st = s.me_state()
     i = [n.upper() for n in s.data.skill_name[1:]].index("STRENGTH")
     assert st["skill_now"][i] == 7 and "Weaken" in st["status_left"]
-    s.run_script_lines("test", ["01	Boost.Skill	Magic	+2	5", "02	End"])
+    s.run_script_lines("test", ["01	Boost.Skill	Magic	+2	5", "02	End"])  # (its old name: Channeling now)
     world.tick(0.05, now=world.now + 50)
-    assert s.skill_level("Magic") == s.base_skill_level("Magic") + 2 and s.me_state()["skill_boosts"]["Magic"]["n"] == 2
+    assert s.skill_level("Channeling") == s.base_skill_level("Channeling") + 2
+    assert s.me_state()["skill_boosts"]["Channeling"]["n"] == 2
     world.tick(0.05, now=world.now + 6000)
-    assert s.skill_level("Magic") == s.base_skill_level("Magic")         # (a while, and back)
+    assert s.skill_level("Channeling") == s.base_skill_level("Channeling")     # (a while, and back)
     s.boost_skill("Defence", -4, 60)
     s.player_dies()
     assert s.skill_level("Strength") == 10 and s.skill_change("Defence") == 0   # (death ends them, as it ends buffs)
@@ -3246,3 +3289,207 @@ def test_doctor_foster_heals_the_hurt_and_tells_the_well_to_keep_their_gold(worl
     run_for(world, 10)
     assert s.items_held("Gold_Coin(s)") == 20 and s.player.hp == s.player_max_hp
     leave(world, s)
+
+
+def test_skills_renamed_or_made_one_come_back_as_they_are_now(world):
+    s = Session(world, "Oldtimer")
+    s.load_state({"skills": {"Strength": 12, "Magic": 9, "Smithing": 6, "Crafting": 8, "Construction": 3,
+                             "Farming": 5, "Potion_Making": 4, "Hitpoints": 20}, "skills_of": 25})
+    assert s.skill_level("Channeling") == 9 and s.skill_level("Crafting") == 8      # (made one: the better of two)
+    assert s.skill_level("Homesteading") == 5 and s.skill_level("Alchemy") == 4
+    assert s.skill_level("Shardcraft") == 4                       # (new: half their Magic, to begin with)
+    assert s.skill_level("Magic") == 9 and s.skill_level("Smithing") == 8           # (an old name: the skill now)
+    names = s.data.skill_name[1:]
+    assert names[:4] == ["Strength", "Defence", "Channeling", "Shardcraft"]
+    assert not {"Magic", "Smithing", "Construction", "Farming", "Potion_Making"} & set(names)
+    saved = s.save_state()["skills"]
+    assert "Magic" not in saved and saved["Channeling"] == 9
+    fresh = Session(world, "Newcomer")
+    fresh.load_state(None)
+    assert fresh.skill_level("Shardcraft") == 1
+
+
+def test_channeling_makes_spells_cheaper_but_never_free(world):
+    from dsengine.shards import channeled_cost
+    d = world.data
+    costs = [channeled_cost(10, lv, d) for lv in range(1, 26)]
+    assert costs[0] == 10 and costs == sorted(costs, reverse=True)  # (never dearer as you go)
+    assert costs[-1] == 7                                           # (30% at most, at level 21 and up)
+    assert costs[4] == 9 and costs[9] == 9 and costs[14] == 8       # (slowly: a Shard every few levels)
+    assert channeled_cost(1, 25, d) == 1 and channeled_cost(2, 25, d) == 1   # (never under a Shard)
+    assert channeled_cost(0, 25, d) == 0                            # (free stays free)
+    a = join(world, "Channeler", "11,4,0", 384, 300)
+    a.update_skill("Channeling", "=1")
+    full = a.spell_cost("Fire_Storm")
+    a.update_skill("Channeling", "=25")
+    assert a.spell_cost("Fire_Storm") == int(round(full * 0.7)) < full
+    assert next(r for r in a.spellbook() if r["spell"] == "Fire_Storm")["cost"] == a.spell_cost("Fire_Storm")
+    leave(world, a)
+
+
+def test_dismantling_trains_shardcraft_and_can_leave_a_rare_shard(world, monkeypatch):
+    a = join(world, "Breaker", "11,4,0", 384, 300)
+    import dsengine.shardcraft as SC
+    monkeypatch.setattr(SC, "random_number", lambda lo, hi: lo)    # (the luckiest roll)
+    stock(a, Iron_Sword=1, Oak_Staff=1, Iron_Shield=1, Copper_Dagger=1)
+    craft = a.skill_xp_of("Shardcraft")
+    for name, rare in (("Iron_Sword", "Ember_Shard"), ("Oak_Staff", "Storm_Shard"), ("Iron_Shield", "Ward_Shard")):
+        it = next(e for e in a.inv if e.name == name)
+        a.dismantle_now(it.uid, a.dismantle_worth(name))
+        assert a.items_held(rare) >= 1, name
+    assert a.skill_xp_of("Shardcraft") > craft
+    monkeypatch.setattr(SC, "random_number", lambda lo, hi: hi)    # (the unluckiest: nothing rare)
+    held = a.items_held("Ember_Shard")
+    stock(a, Iron_Sword=1)
+    it = next(e for e in a.inv if e.name == "Iron_Sword")
+    a.dismantle_now(it.uid, a.dismantle_worth("Iron_Sword"))
+    assert a.items_held("Ember_Shard") == held
+    assert a.rare_shard_for("Copper_Dagger") == ""                  # (worth too little to hold one)
+    leave(world, a)
+
+
+def test_enchanting_binds_a_rare_shard_into_gear(world):
+    a = join(world, "Enchanter", "11,4,0", 384, 300)
+    a.connected = True
+    stock(a, Iron_Sword=1, Ember_Shard=1, Ward_Shard=1, Shard=50)
+    sword = next(e for e in a.inv if e.name == "Iron_Sword")
+    sword.wear = 7
+    ember = next(e for e in a.inv if e.name == "Ember_Shard")
+    assert "Enchant" in a.get_verbs(ember)
+    a.update_skill("Shardcraft", "=1")
+    a.do_action("Enchant", ember)
+    assert a.ab_mode == "Conversation" and a.responses[0].startswith("Iron Sword")
+    a.out = []
+    a.action_box_response_chosen(1)
+    assert a.items_held("Iron_Sword") == 1 and any(e.get("name") == "Denied" for e in a.out)   # (Shardcraft 4)
+    a.update_skill("Shardcraft", "=4")
+    a.do_action("Enchant", next(e for e in a.inv if e.name == "Ward_Shard"))
+    assert not a.ab_mode or not any("Sword" in r for r in a.responses)   # (a ward shard won't take to a blade)
+    a.close_action_box(-1)
+    shards = a.shards()
+    a.do_action("Enchant", ember)
+    a.action_box_response_chosen(1)
+    assert a.items_held("Emberbound_Iron_Sword") == 1 and a.items_held("Iron_Sword") == 0
+    assert a.items_held("Ember_Shard") == 0 and a.shards() == shards - a.enchant_fee("Iron_Sword")
+    it = next(e for e in a.inv if e.name == "Emberbound_Iron_Sword")
+    assert it.wear == 7                                             # (the same sword, as worn as it was)
+    base = int(a.entity_ini("Iron_Sword", "Attack", "0"))
+    assert int(a.entity_ini(it.name, "Attack", "0")) == base + 2
+    a.equip_item(it)
+    assert a.worn_items() == [] or "Iron_Sword" in a.worn_items()   # (drawn as the sword it was)
+    assert a.dismantle_worth("Emberbound_Iron_Sword") > 0 and a.rare_shard_for("Emberbound_Iron_Sword") == ""
+    leave(world, a)
+
+
+def test_a_new_pocket_is_raw_rim_shaped_with_shards(world):
+    a = join(world, "Shaper")
+    stock(a, Hearth_Anchor=1)
+    a.go_home()
+    world.tick(0.05)
+    m = a.cur_map
+    ax, ay = world.homes.arrival
+    assert m.tile[m.cell(ax, ay - 1)] == "Rim_Glass001" and m.tile[m.cell(3, 3)] == "Rim_Mist001"
+    assert world.homes.object_at(m, ax - 1, ay).name == "Pocket_Anchor"
+    assert not any(e.name == "Homestone" for e in world.ents)       # (a shardstone takes you home now)
+    a.remove_inventory_item("Shard", a.shards())
+    stock(a, Shard=40, Plank=5, Nails=10)
+    assert not a.build(3, 3, "Plank001")                           # (mist: nothing to build on)
+    edge = next(x for x in range(1, 26) if m.tile[m.cell(x, 16)] == "Rim_Glass001") - 1
+    assert not a.build(edge - 1, 16, "Terra_Glass")                # (mist stills only beside held ground)
+    assert a.build(edge, 16, "Terra_Glass") and m.tile[m.cell(edge, 16)] == "Rim_Glass001"
+    assert a.shards() == 40 - a.homes.catalog["Terra_Glass"]["shards"]
+    assert not a.build(edge, 16, "Grass001")                       # (glass won't take grass: soil first)
+    shards = a.shards()
+    assert not a.build(edge, 16, "Terra_Grass") and a.shards() == shards   # (grass goes on soil)
+    assert a.build(edge, 16, "Terra_Soil") and m.tile[m.cell(edge, 16)] == "Dirt001"
+    a.update_skill("Shardcraft", "=2")
+    assert a.build(edge, 16, "Terra_Grass") and m.tile[m.cell(edge, 16)] == "Grass001"
+    a.remove_inventory_item("Shard", a.shards())
+    assert not a.build(edge + 1, 15, "Terra_Soil")                 # (no Shards: nothing done, nothing taken)
+    assert m.tile[m.cell(edge + 1, 15)] == "Rim_Glass001"
+    leave(world, a)
+
+
+def test_shard_blooms_give_shards_to_their_owner_now_and_then(world, monkeypatch):
+    import dsengine.homes as H
+    clock = [1_000_000.0]
+    monkeypatch.setattr(H.time, "time", lambda: clock[0])
+    a = join(world, "Gardener")
+    stock(a, Hearth_Anchor=1)
+    a.go_home()
+    world.tick(0.05)
+    m = hold_pocket(world, a)
+    a.update_skill("Shardcraft", "=3")
+    stock(a, Shard=100)
+    for x in (6, 8):
+        a.build(x, 6, "Terra_Soil")
+    assert a.build(6, 6, "Shard_Bloom")
+    assert a.blooms_allowed() == 1 and not a.build(8, 6, "Shard_Bloom")     # (Shardcraft 3: one)
+    bloom = world.homes.object_at(m, 6, 6)
+    a.teleport(m.name, 5 * 32, 6 * 32)
+    a.do_pending_map_change()
+    world.tick(0.05)
+    before = a.shards()
+    a.do_action("Harvest", bloom)
+    assert a.shards() == before                                    # (just planted: still filling)
+    clock[0] += 6 * 3600
+    a.do_action("Harvest", bloom)
+    assert a.shards() == before + 4
+    a.do_action("Harvest", bloom)
+    assert a.shards() == before + 4                                # (once, then it fills again)
+    a.update_skill("Shardcraft", "=5")
+    assert a.blooms_allowed() == 2 and a.build(8, 6, "Shard_Bloom")
+    saved = world.homes.state()
+    assert len(saved["Gardener"]["blooms"]) == 2
+    a.set_visit("open")
+    b = join(world, "Picker")
+    b.visit_home("Gardener")
+    world.tick(0.05)
+    b.teleport(m.name, 5 * 32, 6 * 32)
+    b.do_pending_map_change()
+    clock[0] += 7 * 3600
+    theirs = b.shards()
+    b.do_action("Harvest", bloom)
+    assert b.shards() == theirs                                    # (only its owner's)
+    assert world.add_npc("Wolf", m.mz, m.ox + 200, m.oy + 200, "Attitude=Bad") is None   # (a pocket is safe)
+    leave(world, b)
+    leave(world, a)
+
+
+def test_a_shardstone_takes_you_home_and_the_anchor_back(world):
+    m = world.maps["11,4,0"]
+    ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
+    a = join(world, "Homebody", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
+    a.connected = True
+    a.update_attribute("Waystone.Ashford", "=1")
+    a.out = []
+    a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
+    ticks(world, 20)
+    assert next(e for e in a.out if e.get("t") == "stones")["home"] is False      # (no anchor: no way home)
+    stock(a, Hearth_Anchor=1)
+    a.out = []
+    a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
+    ticks(world, 20)
+    assert next(e for e in a.out if e.get("t") == "stones")["home"] is True
+    a.handle({"t": "stone_home"})
+    ticks(world, 5)
+    assert a.on_own_home()
+    anchor = world.homes.object_at(a.cur_map, *(v - (1 if i == 0 else 0) for i, v in enumerate(world.homes.arrival)))
+    a.do_action("Touch", anchor)
+    assert a.ab_mode == "Conversation" and a.responses[0] == "Take me back."
+    a.action_box_response_chosen(1)
+    ticks(world, 5)
+    assert a.cur_map.name == m.name                                # (back by the shardstone you left from)
+    leave(world, a)
+
+
+def test_an_old_home_keeps_its_land_and_its_homestone_is_its_anchor(world):
+    old_land = [":".join(["Grass001"] * 25)] * 21 + ["StaticObject\tHomestone\t352\t544", "Id\tHome_Arrival\t13\t18"]
+    w2 = World(ROOT)
+    w2.homes.load({"Pioneer": {"n": 7, "visit": "closed", "friends": [], "cells": {}, "cleared": [], "objects": {},
+                               "land": old_land}})
+    m = w2.homes.map_of("Pioneer")
+    assert m.tile[m.cell(5, 5)] == "Grass001" and w2.homes.object_at(m, 12, 18).name == "Pocket_Anchor"
+    s = Session(w2, "Pioneer")
+    s.load_state({"inventory": [["Access_Crystal", 1, 0]]})
+    assert s.items_held("Hearth_Anchor") == 1                      # (the Access Crystal, as it's called now)

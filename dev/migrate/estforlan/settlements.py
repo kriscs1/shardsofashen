@@ -631,15 +631,16 @@ class Plan(OLD.Town):
                     break
 
     def stones(self):
-        """A shardstone and a homestone by the square (or the middle), unless the place has its own already."""
+        """A shardstone by the square (or the middle), unless the place has its own already. (No homestones: a
+        shardstone takes you home now - build_pocket.py.)"""
         near = ((self.sq[0] + self.sq[2]) // 2, self.sq[3] + 2) if self.sq else self.centre
         have = set()
         for m in self.maps_of():
             for ln in m.ents:
                 f = ln.split("\t")
-                if f[0] == "StaticObject" and f[1] in ("Shardstone", "Homestone"):
+                if f[0] == "StaticObject" and f[1] == "Shardstone":
                     have.add(f[1])
-        for kind in ("Shardstone", "Homestone"):
+        for kind in ("Shardstone",):
             if kind in have:
                 continue
             spot = self.free_spot(near)

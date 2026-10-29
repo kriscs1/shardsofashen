@@ -25,7 +25,6 @@ NPC	Villager	352	312	Attitude=Good Stand=1 Face=S Id=Thornwick_Priest_310 Name=C
 NPC	Sheriff	544	536	Attitude=Good Stand=1 Face=S Id=Thornwick_Sheriff_313 Name=Polly
 StaticObject	Market_Stall_Open	768	512
 StaticObject	Market_Stall_Open	768	576
-StaticObject	Homestone	672	608
 StaticObject	Notice	672	546	Id=Thornwick_Notice_307
 StaticObject	Notice	416	418	Id=Thornwick_Notice_311
 Id	Thornwick_Chapel	12	15

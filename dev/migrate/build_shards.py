@@ -94,7 +94,7 @@ QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Upd
     "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Magic 4",
     "The Royal Guard": "Defence 4", "The True Heir": "Strength 5 Defence 5 Magic 5",
     "Wolves of the Moor": "Strength 3", "Bandits on the Road": "Strength 3 Defence 2",
-    "The Lost Caravan": "Defence 3", "The Wardhaven Bridge": "Construction 3", "Granny Wren's Walk": "Defence 1",
+    "The Lost Caravan": "Defence 3", "The Wardhaven Bridge": "Homesteading 3", "Granny Wren's Walk": "Defence 1",
     "The Shard Scholar": "Magic 2",
 }
 RARER = "Scrolls.Rarer"          # (Shards.ini [Shards]: set once they've been made rarer, so a second run doesn't again)
@@ -175,7 +175,7 @@ def ranks(ents, spells_ini, shards):
                 spells_ini.remove(spell, key)
             keys = {k: shards.get(sec, "%s.%d" % (k, rank)) for k in keys}            # (as they are now)
             for k, v in (("Type", "MapItem"), ("Use.Words", "Cast"),
-                         ("Examine.Info", "A scroll of %s: it raises %s, once you know it, to rank %d (%s). Magic %s. "
+                         ("Examine.Info", "A scroll of %s: it raises %s, once you know it, to rank %d (%s). Channeling %s. "
                                           "Read it to learn it for good." % (name, spell.replace("_", " "), rank,
                                                                               rank_words(spell, keys), keys["Level"])),
                          ("Stackable", "10"), ("Value", str(value)), ("Spell", spell), ("Rank", str(rank))):
@@ -216,7 +216,7 @@ def entities():
                  ("Stackable", "99999"), ("Value", "2"), ("Light", "24")):
         ents.set("Shard", k, v)
     ents.set("Fire_Storm_Scroll", "Examine.Info", "A scroll of Fire Storm: fire rains on every foe within five tiles "
-                                                  "of you (9-18 damage). Magic 15. " + SCROLL_NEW)
+                                                  "of you (9-18 damage). Channeling 15. " + SCROLL_NEW)
     ents.set("Magic_Potion", "Examine.Info", "A violet potion: it clears your head, and your spells do 5 more damage "
                                              "for two minutes.")    # (herbs can't make Shards: potions_and_spells.py)
     for sec, items in ents.sections:
