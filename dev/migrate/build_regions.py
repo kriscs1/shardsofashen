@@ -695,7 +695,7 @@ def data():
     C.NEW_SHOPS.update({
         "SHOP-Oakhollow": ("1.2", "0.7", ["Oak_Bow,3", "Yew_Bow,1", "Arrows,500", "Bronze_Axe,3", "Axe,3", "Steel_Axe,1", "Tinderbox,3", "Fishing_Rod,2", "Bait,40",
                                           "Bucket,3", "Logs,10", "Oak_Logs,0", "Meat_Pie,4"]),
-        "SHOP-Moorcross": ("1.2", "0.7", ["Meat_Pie,5", "Stew,3", "Cooked_Fish,6", "Wool,10", "Leather,5", "Leather_Body,2",
+        "SHOP-Moorcross": ("1.2", "0.7", ["Meat_Pie,5", "Stew,3", "Cooked_Herring,6", "Wool,10", "Leather,5", "Leather_Body,2",
                                           "Leather_Boots,2", "Shears,2", "Raw_Meat,0"]),
         "SHOP-Fenwick": ("1.2", "0.7", ["Empty_Vial,10", "Herb,8", "Basic_Potion,5", "Antidote,3", "Owl_Potion,2", "Defence_Potion,1",
                                         "Bog_Myrtle,0", "Fishing_Rod,2", "Bait,40"]),

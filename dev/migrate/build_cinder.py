@@ -16,7 +16,7 @@ scenery and wildlife), and finish() at the very end (when every quest and script
     level, quests done first, skills. finish() puts a >Quest.Can.Start before every quest giver's offer.
   * SIDE QUEST: The Lost Patrol (the Scout): three Scout's Tags from the ember hounds.
   * BANKS: every bank (a house with a Banker in it) gets a copper roof (house_tiles Copper), white columns either side of
-    its door and a gilt plaque over its sign. The Isle, Northgate, Tyron's Keep and the Royal Isle get a Banker (behind
+    its door and a gilt plaque over its sign. The Isle, Northport, Tyron's Keep and the Royal Isle get a Banker (behind
     a marble counter where there's room) in a house there, which then becomes their bank (stalls_indoors).
     (patch_files(): the maps you've edited since the last build get them too.)
   * WARDHAVEN, once the dragon is dead: the DRAGONFORGE in its square, where the Wyrmsmith forges Dragonscale armour from

@@ -148,7 +148,7 @@ def entry_scripts(plans, first, extra=None):
 
 
 ARRIVE = {"Galaith": "Galaith, the royal city. Its white towers shine over the rooftops.",
-          "Southport": "Northgate. Gulls wheel over the harbour.",
+          "Northport": "Northport. Gulls wheel over the harbour.",
           "Keep": "King Rupert's Keep. The sea booms against the rocks below the walls.",
           "Court": "The Wizards' Court. The air tingles with magic.",
           "Fenwick": "Fenwick, on its boardwalks over the marsh.",
@@ -222,7 +222,7 @@ def wardhaven_guard():
 
 
 # ------------------------------------------------------------------ shardstones
-WEST = ["Southport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Galaith", "Fenwick", "Dunerest",
+WEST = ["Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Galaith", "Fenwick", "Dunerest",
         "Saltmarsh"]
 EAST = ["Court", "Emberwatch", "Thornwick", "Keep", "Ravensgate", "Highwatch", "Frosthold"]
 
@@ -357,7 +357,7 @@ def quests(table, rehoused):
 
 def world_map(plans):
     lines = read(K.WORLDMAP)
-    towns = {"Northgate": "Southport", "Ashford": "Ashford", "Oakhollow": "Oakhollow", "Fenwick": "Fenwick",
+    towns = {"Northport": "Northport", "Ashford": "Ashford", "Oakhollow": "Oakhollow", "Fenwick": "Fenwick",
              "Moorcross": "Moorcross", "Highwatch": "Highwatch", "Frosthold": "Frosthold", "Dunerest": "Dunerest",
              "Emberwatch": "Emberwatch", "Thornwick": "Thornwick", "Ravensgate": "Ravensgate",
              "Wizards' Court": "Court", "King Rupert's Keep": "Keep", "Wildwood": "Wildwood",
@@ -484,7 +484,7 @@ def orphans():
             continue
         if not (TOWN_IDS.match(name) or name.startswith("Read ") or re.match(r"^Talk to Market_Vendor_\d+$", name)):
             continue
-        if "_" not in target and target not in ("Ashford", "Southport", "Oakhollow", "Fenwick", "Moorcross",
+        if "_" not in target and target not in ("Ashford", "Northport", "Oakhollow", "Fenwick", "Moorcross",
                                                 "Highwatch", "Frosthold", "Dunerest", "Emberwatch", "Thornwick",
                                                 "Ravensgate", "Wardhaven"):
             continue

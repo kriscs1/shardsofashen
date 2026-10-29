@@ -3207,7 +3207,7 @@
     "Trigger\tMine Gate\t8\t9",
     "Lock\t7\t10\t$Equipped.Body<>none or $Attr.HobgoblinQuest>=1 or $Attr.MineGatePassed>=1\tThe guard blocks the gate: no one goes down the mine without body armour, unless the King sent them.",
     "Id\tIron_Mine_Entrance\t7\t9",
-    "StaticObject\tNotice\t352\t194\tId=Southport_Notice_35"
+    "StaticObject\tNotice\t352\t194\tId=Northport_Notice_35"
    ],
    "new": "20,10,0",
    "old": "1,4,0",
@@ -4760,13 +4760,13 @@
    },
    "lines": [
     "NPC\tFerryman\t448\t96\tAttitude=Good Stand=1 Name=Wim Schedule=Always",
-    "StaticObject\tNotice\t324\t194\tId=Southport",
+    "StaticObject\tNotice\t324\t194\tId=Northport",
     "NPC\tMan\t512\t256\tAttitude=Good Zone=14,7,24,9",
     "StaticObject\tBoat001\t384\t48",
-    "Id\tSouthport_Landing\t12\t8",
-    "Id\tSouthport_Pier\t13\t4",
-    "NPC\tPort_Guard\t448\t184\tAttitude=Good Stand=1 Face=W Id=Southport_Port_Guard Name=Sergeant_Brand",
-    "Id\tSouthport_Port\t15\t8",
+    "Id\tNorthport_Port\t12\t8",
+    "Id\tNorthport_Pier\t13\t4",
+    "NPC\tPort_Guard\t448\t184\tAttitude=Good Stand=1 Face=W Id=Northport_Port_Guard Name=Sergeant_Brand",
+    "Id\tNorthport_Port\t15\t8",
     "NPC\tSeal\t416\t120\tAttitude=Bad Zone=14,2,24,8"
    ],
    "new": "4,4,0",

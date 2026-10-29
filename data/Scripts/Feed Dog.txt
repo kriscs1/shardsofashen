@@ -16,13 +16,13 @@
 15	Take.Item	Cooked_Poultry	1
 16	Display.Message	Cyan	The dog gulps down the cooked poultry and wags its whole back end.	EatFood
 17	End
-18	>Got.Item	Raw_Fish	1	22
-19	Take.Item	Raw_Fish	1
-20	Display.Message	Cyan	The dog gulps down the raw fish and wags its whole back end.	EatFood
+18	>Got.Item	Raw_Herring	1	22
+19	Take.Item	Raw_Herring	1
+20	Display.Message	Cyan	The dog gulps down the raw herring and wags its whole back end.	EatFood
 21	End
-22	>Got.Item	Cooked_Fish	1	26
-23	Take.Item	Cooked_Fish	1
-24	Display.Message	Cyan	The dog gulps down the cooked fish and wags its whole back end.	EatFood
+22	>Got.Item	Cooked_Herring	1	26
+23	Take.Item	Cooked_Herring	1
+24	Display.Message	Cyan	The dog gulps down the cooked herring and wags its whole back end.	EatFood
 25	End
 26	Display.Message	DarkRed	You have nothing a dog would eat.	Denied
 27	End

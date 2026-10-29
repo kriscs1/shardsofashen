@@ -976,7 +976,8 @@ def check_tiles():
                            "Blend", "Blend.Texture", "Texture", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
                            "Layer", "Foam", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
                            "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat",    # (Seat=S: sit on it, facing south)
-                           "Overhead"):                                             # (drawn over people too: an arch)
+                           "Overhead", "Display.Name"):                             # (drawn over people too: an arch;
+                                                                                    #  what it's called, shown)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
@@ -1046,11 +1047,12 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
                "Swims", "Calls",                                                 # at home in the water too (an otter); its call
                "Indoors",                                                        # 0: an animal that won't walk into a house
-               "Look.Parts", "Looks"}                                            # its parts' colours; its other colourings
+               "Look.Parts", "Looks",                                            # its parts' colours; its other colourings
+               "Display.Name"}                                                   # what the player sees it called
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
                                      "Base", "Enchanted", "Enchant",
-                                     "Look.Parts", "Looks"}
+                                     "Look.Parts", "Looks", "Display.Name"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 

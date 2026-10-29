@@ -329,7 +329,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         """st: a saved character (a dict), or None for a new one (saves\\TEMPLATE.ini's start)."""
         d = self.data
         p = self.player
-        from .renames import renamed, renamed_map, merged_skills, RENAMED_QUESTS
+        from .renames import renamed, renamed_map, merged_skills, RENAMED_QUESTS, RENAMED_WORDS
         st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
         if st.get("skills"):
             st = dict(st, skills=merged_skills(st["skills"]))    # (skills renamed or made one since: rename_skills)
@@ -379,6 +379,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.bank_wear[i] = [int(w) for w in wears]
         self.shards_from_bank()                         # (banked when Shards were an item)
         self.attributes = [[k, v] for k, v in st.get("attributes", [])][:500]
+        for a in self.attributes:                       # (named for a place that's been renamed: its new name)
+            for old, new in RENAMED_WORDS.items():
+                a[0] = a[0].replace(old, new)
         # (the first quest was FerryQuest, done at 4; it's Passage now, done at 12: whoever finished it, still has)
         if val(self.get_attribute("FerryQuest")) >= 4 and val(self.get_attribute("Passage")) < 12:
             self.update_attribute("Passage", "=12")

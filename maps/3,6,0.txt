@@ -19,12 +19,12 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Banker	608	88	Attitude=Good Stand=1 Face=S Id=Southport_Banker_345
-NPC	Barkeep	320	56	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_360 Name=Ned
-NPC	Barmaid	384	152	Attitude=Good Zone=8,5,14,6 Pause=3-9 Id=Southport_Barmaid_361 Name=Agnes
-NPC	Barkeep	608	312	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_363 Name=Martha
-NPC	Barmaid	672	408	Attitude=Good Zone=17,13,23,14 Pause=3-9 Id=Southport_Barmaid_364 Name=Amos
-NPC	Man	64	152	Attitude=Good Zone=3,4,4,6 Pause=5-15 Id=Southport_Resident_373 Name=Kit
+NPC	Banker	608	88	Attitude=Good Stand=1 Face=S Id=Northport_Banker_345
+NPC	Barkeep	320	56	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_360 Name=Ned
+NPC	Barmaid	384	152	Attitude=Good Zone=8,5,14,6 Pause=3-9 Id=Northport_Barmaid_361 Name=Agnes
+NPC	Barkeep	608	312	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_363 Name=Martha
+NPC	Barmaid	672	408	Attitude=Good Zone=17,13,23,14 Pause=3-9 Id=Northport_Barmaid_364 Name=Amos
+NPC	Man	64	152	Attitude=Good Zone=3,4,4,6 Pause=5-15 Id=Northport_Resident_373 Name=Kit
 StaticObject	Sign_Pub	448	208
 StaticObject	Sign_Pub	736	464
-Id	Southport_Gardens_372	12	12
+Id	Northport_Gardens_372	12	12

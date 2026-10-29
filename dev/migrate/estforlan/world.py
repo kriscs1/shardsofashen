@@ -12,7 +12,7 @@ import settlements as S
 import ways as W
 import life
 
-ORDER = ["Galaith", "Southport", "Keep", "Court", "Ravensgate", "Fenwick", "Ashford", "Highwatch", "Frosthold",
+ORDER = ["Galaith", "Northport", "Keep", "Court", "Ravensgate", "Fenwick", "Ashford", "Highwatch", "Frosthold",
          "Wardhaven", "Oakhollow", "Thornwick", "Emberwatch", "Moorcross", "Wildwood", "Dunerest", "Saltmarsh"]
 CITY = ("huge", "large", "medium", "small")
 
@@ -45,7 +45,7 @@ def cart_targets(atlas, key):
         if posh:
             out.append(("the posh end", (posh[0].door, posh[0].y2 + 1)))
         hall = [lt for lt in plan.lots if lt.kind in ("parliament", "hall")]
-        if key == "Southport":
+        if key == "Northport":
             out.append(("the port", (4 * XT + 14, 4 * YT + 8)))
             if hall:
                 out.append(("the City Hall", (hall[0].door, hall[0].y2 + 1)))
@@ -119,7 +119,7 @@ def assemble(log=print):
     log("signposts: %d; people moved: %d" % (posts, sum(len(v) for v in rehoused.values())))
     parts_maps = {p["new"] for p in L.parts()["parts"].values()}
     log("creatures: %d, by the water: %d" % (life.populate(atlas, plans, parts_maps), life.waters(atlas, plans)))
-    seen = life.reach(atlas, plans["Southport"].centre)
+    seen = life.reach(atlas, plans["Northport"].centre)
     log("out of reach, gone: %d" % life.prune(atlas, None, seen))
     cut = life.cut_off(atlas, seen)
     if cut:

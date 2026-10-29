@@ -19,7 +19,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Forest001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001
-NPC	Blacksmith	128	120	Attitude=Good Stand=1 Face=S Id=Southport_Smith_369 Name=Tilly
-NPC	Farmer	608	152	Attitude=Good Zone=19,5,21,6 Pause=5-15 Id=Southport_Resident_379 Name=Mabel
+NPC	Blacksmith	128	120	Attitude=Good Stand=1 Face=S Id=Northport_Smith_369 Name=Tilly
+NPC	Farmer	608	152	Attitude=Good Zone=19,5,21,6 Pause=5-15 Id=Northport_Resident_379 Name=Mabel
 StaticObject	Furnace	64	96
 StaticObject	Anvil	192	96

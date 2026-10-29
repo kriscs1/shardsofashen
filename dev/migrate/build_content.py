@@ -424,7 +424,7 @@ def surface_changes():
     """New things on the Southlands maps that build_world.py already defines (tiles and entities)."""
     npc, item, obj = W.npc, W.item, W.obj
     M = W.MAPS
-    # Northgate: the fisherman in his hut, a villager, berry bushes and herb patches by the woods.
+    # Northport: the fisherman in his hut, a villager, berry bushes and herb patches by the woods.
     m = M["1,3,0"]
     m["rows"] = set_cells(m["rows"], [(19, 18, "B"), (22, 20, "B"), (10, 19, "E"), (3, 11, "B")])
     m["entities"] += [npc("GoodNPC", "Fisherman", 5, 14), npc("GoodNPC", "Villager", 16, 13), npc("GoodNPC", "Dog", 9, 12),
@@ -988,7 +988,7 @@ def scripts():
         "fish:",
         ("Take.Item", "Bait", "1"),
         ("Display.Message", "Yellow", "...and catch a fish!"),
-        ("Give.Item", "Raw_Fish", "1"),
+        ("Give.Item", "Raw_Herring", "1"),
         ("Update.Skill", "Fishing", "+0.1"),
         ("End",),
         "fail:",
@@ -1061,18 +1061,18 @@ def scripts():
         ("End",)] + too_far()
 
     # ----- cooking on fires and ranges
-    for raw, cooked, burnt, lvl, xp in (("Raw_Trout", "Cooked_Trout", "Burnt_Fish", 10, "0.15"),
-                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Fish", 15, "0.25"),
-                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Fish", 20, "0.35"),
-                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Fish", 35, "0.6")):
+    for raw, cooked, burnt, lvl, xp in (("Raw_Trout", "Cooked_Trout", "Burnt_Herring", 10, "0.15"),
+                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Herring", 15, "0.25"),
+                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Herring", 20, "0.35"),
+                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Herring", 35, "0.6")):
         S["Use %s With Fire" % raw] = cook_script(raw, cooked, burnt, lvl, xp, "Fire")
     for raw, cooked, burnt, lvl, xp in (("Raw_Meat", "Cooked_Meat", "Burnt_Meat", 1, "0.05"),
                                         ("Raw_Poultry", "Cooked_Poultry", "Burnt_Poultry", 1, "0.05"),
-                                        ("Raw_Fish", "Cooked_Fish", "Burnt_Fish", 1, "0.05"),
-                                        ("Raw_Trout", "Cooked_Trout", "Burnt_Fish", 10, "0.15"),
-                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Fish", 15, "0.25"),
-                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Fish", 20, "0.35"),
-                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Fish", 35, "0.6")):
+                                        ("Raw_Herring", "Cooked_Herring", "Burnt_Herring", 1, "0.05"),
+                                        ("Raw_Trout", "Cooked_Trout", "Burnt_Herring", 10, "0.15"),
+                                        ("Raw_Cave_Eel", "Cooked_Cave_Eel", "Burnt_Herring", 15, "0.25"),
+                                        ("Raw_Salmon", "Cooked_Salmon", "Burnt_Herring", 20, "0.35"),
+                                        ("Raw_Swordfish", "Cooked_Swordfish", "Burnt_Herring", 35, "0.6")):
         S["Use %s With Range" % raw] = cook_script(raw, cooked, burnt, lvl, xp, "Range", base=50)
 
     # ----- crafting stations
@@ -1124,7 +1124,7 @@ def scripts():
         ("Display.Item.Rack", "GENERAL", "Wizard", "CRAFT-Scrolls", "@bye"),
         ("End",),
         "tele:",
-        ("Display.Conversation", "Wizard", "Where to?", "To the Isle.", "@isle", "To Northgate.", "@south", "Nowhere, thanks.", "@bye"),
+        ("Display.Conversation", "Wizard", "Where to?", "To the Isle.", "@isle", "To Northport.", "@south", "Nowhere, thanks.", "@bye"),
         "isle:",
         ("Play.Sound", "Teleporter"),
         ("Display.Message", "Yellow", "The wizard waves his hands and the world spins..."),
@@ -1133,7 +1133,7 @@ def scripts():
         "south:",
         ("Play.Sound", "Teleporter"),
         ("Display.Message", "Yellow", "The wizard waves his hands and the world spins..."),
-        ("Teleport", PL.feet("Southport_Landing", "1,3,0", 352, 320), "-"),
+        ("Teleport", PL.feet("Northport_Port", "1,3,0", 352, 320), "-"),
         ("End",),
         "bye:",
         ("End",)]
@@ -1257,10 +1257,10 @@ def npc_scripts():
         ("Display.Item.Rack", "SPECIFIC", "Quartermaster", "SHOP-Keep", "@bye"),
         "bye:",
         ("End",)]
-    # The townsman in Northgate (the original game's "Talk to Man" opened a shop and the bank: it was for testing)
+    # The townsman in Northport (the original game's "Talk to Man" opened a shop and the bank: it was for testing)
     S["Talk to Man"] = [
         (">Random", "50", "@two"),
-        ("Display.Conversation", "Man", "Northgate's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.", "Thanks.", "@bye"),
+        ("Display.Conversation", "Man", "Northport's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.", "Thanks.", "@bye"),
         ("End",),
         "two:",
         ("Display.Conversation", "Man", "Heading inland? Ashford's east of here. Mind the woods to the south: wolves, and worse past the old mine.", "Thanks.", "@bye"),
@@ -1731,7 +1731,7 @@ ENTITIES = {
     "Defence_Potion": item(45, "An amber potion: +4 Defence for two minutes. Drink it before a fight.", 1, use="Drink") + [("Spell", "Defence_Potion")],
     "Combat_Potion": item(70, "A purple potion: +3 Attack and +3 Defence for two minutes.", 1, use="Drink") + [("Spell", "Combat_Potion")],
     "Magic_Potion": item(90, "A violet potion: your spells do 5 more damage for two minutes.", 1, use="Drink") + [("Spell", "Magic_Potion")],
-    "Ferry_Ticket": item(0, "A ticket for the Northgate ferry, stamped by the milkmaid. Good for one crossing.", 1, droppable=0),
+    "Ferry_Ticket": item(0, "A ticket for the Northport ferry, stamped by the milkmaid. Good for one crossing.", 1, droppable=0),
     "Owl_Potion": item(40, "A smoky blue potion that smells of the night: you see far further through the fog for three minutes.", 1, use="Drink") + [("Spell", "Owl_Potion")],
     "Mega_Potion": item(120, "A brilliant green potion that heals almost any wound (45-55 hitpoints).", 1, use="Drink") + [("Spell", "Mega_Potion")],
     "Bronze_Pickaxe": item(8, "A bronze pickaxe. It'll do, for soft rock.", 1),
@@ -2003,7 +2003,7 @@ NPC_OPTIONS = {
         ("Hobgoblin", 14, 14): "Zone=10,12,19,15 " + CAMP_CHASE,
         ("Wolf", 6, 17): "Zone=4,15,12,19 Chase=3,14,14,20",
     },
-    # Northgate
+    # Northport
     "1,3,0": {
         ("Woman", 15, 4): "Stand=1",
         ("Fisherman", 5, 14): "Zone=4,14,6,15 Pause=4-10",
@@ -2272,7 +2272,7 @@ NEW_SHOPS = {
                                    "Oak_Staff,1", "Magic_Potion,0", "Owl_Potion,0", "Willow_Staff,0", "Yew_Staff,0"]),
     "SHOP-Dairy": ("1.2", "0.7", ["Bucket_of_Milk,5", "Wool,10", "Egg,10", "Bucket,5", "Shears,3", "Cowhide,0",
                                   "Leather,4", "Leather_Gloves,2"]),
-    "SHOP-Fishing": ("1.2", "0.8", ["Fishing_Rod,5", "Bait,100", "Raw_Fish,10", "Raw_Trout,4", "Cooked_Fish,5",
+    "SHOP-Fishing": ("1.2", "0.8", ["Fishing_Rod,5", "Bait,100", "Raw_Herring,10", "Raw_Trout,4", "Cooked_Herring,5",
                                     "Raw_Cave_Eel,0", "Cooked_Trout,0", "Cooked_Cave_Eel,0", "Raw_Salmon,0",
                                     "Cooked_Salmon,2", "Raw_Swordfish,0", "Cooked_Swordfish,0"]),
     "SHOP-Keep": ("1.3", "0.7", ["Oak_Bow,2", "Arrows,300", "Iron_Sword,3", "Iron_Shield,3", "Steel_Sword,1", "Leather_Cap,3", "Leather_Body,3",
@@ -2302,12 +2302,12 @@ GATHERING = [
     ("Logs from trees", dict(Gives="Logs", Source="Tree001 Tree002", Verb="Chop", Tool="Bronze_Axe/Axe/Steel_Axe/Mithril_Axe", Skill="Woodcutting",
                              Level="1", XP="0.1", Where="Trees all over the Isle and the Southlands")),
     ("Oak logs", dict(Gives="Oak_Logs", Source="Oak_Tree001", Verb="Chop", Tool="Bronze_Axe/Axe/Steel_Axe/Mithril_Axe", Skill="Woodcutting",
-                      Level="10", XP="0.25", Where="Oaks in the Isle's woods, around Northgate and Ashford and in the Whispering Woods")),
+                      Level="10", XP="0.25", Where="Oaks in the Isle's woods, around Northport and Ashford and in the Whispering Woods")),
     ("Willow logs", dict(Gives="Willow_Logs", Source="Willow_Tree001", Verb="Chop", Tool="Bronze_Axe/Axe/Steel_Axe/Mithril_Axe", Skill="Woodcutting",
                          Level="20", XP="0.4", Where="Willows grow by the water: the Isle's woods, the shores of the Southlands")),
     ("Yew logs", dict(Gives="Yew_Logs", Source="Yew_Tree001", Verb="Chop", Tool="Bronze_Axe/Axe/Steel_Axe/Mithril_Axe", Skill="Woodcutting",
                       Level="35", XP="0.9", Where="A few ancient yews deep in the Whispering Woods and the eastern woods")),
-    ("Fish from the sea", dict(Gives="Raw_Fish", Source="Water001 Water002 Water003 Water004 Water005 Water006 Water007 Water008 Water009",
+    ("Fish from the sea", dict(Gives="Raw_Herring", Source="Water001 Water002 Water003 Water004 Water005 Water006 Water007 Water008 Water009",
                                Verb="Use", Tool="Fishing_Rod", Skill="Fishing", Level="1", XP="0.1",
                                Where="Any shore, with Bait in your pack: stand at the water's edge and use the rod on the water")),
     ("Trout", dict(Gives="Raw_Trout", Source="Water001 Water002 Water003 Water004 Water005 Water006 Water007 Water008 Water009",
@@ -2347,7 +2347,7 @@ GATHERING = [
     ("Wild herbs", dict(Gives="Herb", Source="Herb", Verb="Pickup", Tool="", Skill="", Level="0", XP="0",
                         Where="Loose herbs lying about in the Southlands (they grow back after a while)")),
     ("Berries", dict(Gives="Berries", Source="Berry_Bush001", Verb="Pick", Tool="", Skill="Alchemy", Level="1",
-                     XP="0.05", Where="Berry bushes on the Isle, around Northgate and in the Whispering Woods")),
+                     XP="0.05", Where="Berry bushes on the Isle, around Northport and in the Whispering Woods")),
     ("Wheat", dict(Gives="Wheat", Source="Ripe_Wheat001 Ripe_Wheat002 Ripe_Wheat003", Verb="Harvest", Tool="", Skill="", Level="0", XP="0",
                    Where="The wheat field on the Ashford farmlands")),
     ("Cabbages", dict(Gives="Cabbage", Source="Cabbage", Verb="Pickup", Tool="", Skill="", Level="0", XP="0",
@@ -2367,7 +2367,7 @@ QUESTS = [
         ("Stage0", "Speak to the ferrywoman at the end of the pier in the south of the Isle."),
         ("Stage1", "The first crossing needs a ticket. Ask the milkmaid, the ferrywoman's sister, on the farm in the north of the Isle."),
         ("Stage2", "Bring the milkmaid 3 eggs from the hens' nests on her farm."),
-        ("Stage3", "Show your ferry ticket to the ferrywoman on the pier and sail to Northgate."),
+        ("Stage3", "Show your ferry ticket to the ferrywoman on the pier and sail to Northport."),
         ("Done", "4")]),
     ("King's Hobgoblin Hunt", [
         ("Giver", "King_Tyron"), ("Attribute", "HobgoblinQuest"),
@@ -2787,7 +2787,7 @@ def hearths(regions):
 
 
 def furnish_old_houses(regions):
-    """The hand-drawn houses (Northgate, Ashford, the farm, the Keep) get what the villages' houses have: a table and
+    """The hand-drawn houses (Northport, Ashford, the farm, the Keep) get what the villages' houses have: a table and
     chairs, a bookshelf against a wall, a potted plant and a rug, kept clear of the doors, the people and the work
     stations, with every bit of floor still reachable. A room that already has furniture is left as it is."""
     import random
@@ -3046,7 +3046,7 @@ def thin_walls(cells):
 
 
 def restyle_old_houses(regions):
-    """The Southlands' hand-drawn brick houses (Northgate, Ashford, the farm) get the villages' look: a shingle roof with
+    """The Southlands' hand-drawn brick houses (Northport, Ashford, the farm) get the villages' look: a shingle roof with
     eaves, a ridge and a chimney, and where the front wall with the door is just below the roof, an upper storey under
     the eaves and windows either side of the door. Houses facing north (the roof below the wall) get the roof, and
     windows upside down (Brick_Window003, the sill at the top) either side of the door in the wall above it;

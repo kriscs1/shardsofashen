@@ -20,25 +20,24 @@ Grass001:Grass001:Brick_Paving001:Grass001:Grass001:Brick_Thin_Plank004+Roof(Sla
 Grass001:Grass001:Brick_Paving001:Grass001:Grass001:Brick001:Door001:Brick001:Brick001+Decor(Brick_Window001):Brick001:Brick001+Decor(Brick_Window001):Brick001:Brick_Paving001:Timber001:Door004:Timber001:Timber001+Decor(Timber_Window001):Timber001:Timber001+Decor(Timber_Window001):Timber001:Timber001+Decor(Timber_Window001):Timber001:Grass001:Grass001:Grass001
 Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001
 NPC	Ferryman	448	96	Attitude=Good Stand=1 Name=Wim Schedule=Always
-StaticObject	Notice	324	194	Id=Southport
+StaticObject	Notice	324	194	Id=Northport
 NPC	Man	512	256	Attitude=Good Zone=14,7,24,9
 StaticObject	Boat001	384	48
-Id	Southport_Landing	12	8
-Id	Southport_Pier	3	5
-NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Southport_Port_Guard Name=Sergeant_Brand
+Id	Northport_Pier	3	5
+NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Northport_Port_Guard Name=Sergeant_Brand
 NPC	Seal	416	120	Attitude=Bad Zone=14,2,24,8
 StaticObject	Swordfish_Spot	64	64
-NPC	Fisherman	32	216	Attitude=Good Stand=1 Face=S Id=Southport_Harbour_Master_314 Name=Ivor
-NPC	Horse	119	350	Attitude=Good Stand=1 Face=E Id=Southport_Horse_2
-NPC	Carter	94	353	Attitude=Good Stand=1 Face=S Id=Southport_Carter_2 Name=Jane
-NPC	Constable	224	536	Attitude=Good Stand=1 Face=S Id=Southport_Constable_347 Name=Hugh
-NPC	Barkeep	544	472	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_356 Name=Jasper
-NPC	Barmaid	608	568	Attitude=Good Zone=15,18,21,19 Pause=3-9 Id=Southport_Barmaid_357 Name=Clara
+NPC	Fisherman	32	216	Attitude=Good Stand=1 Face=S Id=Northport_Harbour_Master_314 Name=Ivor
+NPC	Horse	119	350	Attitude=Good Stand=1 Face=E Id=Northport_Horse_2
+NPC	Carter	94	353	Attitude=Good Stand=1 Face=S Id=Northport_Carter_2 Name=Jane
+NPC	Constable	224	536	Attitude=Good Stand=1 Face=S Id=Northport_Constable_347 Name=Hugh
+NPC	Barkeep	544	472	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_356 Name=Jasper
+NPC	Barmaid	608	568	Attitude=Good Zone=15,18,21,19 Pause=3-9 Id=Northport_Barmaid_357 Name=Clara
 StaticObject	Cart	158	354
 StaticObject	Sign_Pub	480	624
-StaticObject	Notice	384	610	Id=Southport_Notice_358
-Id	Southport_Port	13	4
-Id	Southport_Cart_Stop_2	4	12
+StaticObject	Notice	384	610	Id=Northport_Notice_358
+Id	Northport_Port	13	4
+Id	Northport_Cart_Stop_2	4	12
 NPC	Fisherman	384	440	Attitude=Good Zone=10,13,16,17 Pause=4-12
 NPC	Villager	353	324	Attitude=Good Zone=10,8,15,13 Pause=4-12
 NPC	Black_Cat	384	504	Attitude=Good Id=Vincent Name=Vincent Zone=10,15,16,19 Pause=4-12

@@ -181,7 +181,7 @@ def art():
 
 # ================================================================== secrets
 SECRETS = [   # (town, kind, what's found: [(item, n)], the line)
-    ("Southport", "Odd_Barrel", [("Shard", 8)], "Inside the barrel, under a layer of herring: a little pouch of Shards. "
+    ("Northport", "Odd_Barrel", [("Shard", 8)], "Inside the barrel, under a layer of herring: a little pouch of Shards. "
                                                 "The herring watches you take it."),
     ("Ashford", "Hollow_Stump", [("Rubber_Duck", 1)], "Something squeaks inside the stump. A rubber duck! It looks at "
                                                        "you as if you were the strange one."),
@@ -324,7 +324,7 @@ EXAMINES = {
 for kind, (_, _, words) in SECRET_KINDS.items():
     EXAMINES[kind] = words
 
-MAN = ["Northgate's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.",
+MAN = ["Northport's a quiet place, mostly. The ferry brings folk over from the Isle, and the fish come in at dawn.",
        "Heading inland? Ashford's east of here. Mind the woods to the south: wolves, and worse past the old mine.",
        "My uncle went down the Shifting Deep once. Came back up through a different hole. Different county, too.",
        "Don't trust geese. That's all I'll say. Don't trust them.",

@@ -1,6 +1,6 @@
 // The pictures and data the server's web/assets has (made by tools/export_web_assets.py). Pictures load the first time
 // they are wanted; whoever drew without them is told when they arrive (onLoaded) and draws again.
-import { val, trim } from "./util.js";
+import { val, trim, DISPLAY_NAMES } from "./util.js";
 
 export const A = { m: null, imgs: new Map(), pending: 0, listeners: [] };
 const lower = { tiles: null, entities: null, config: null, spells: null, shards: null };
@@ -12,6 +12,10 @@ export async function loadManifest() {
   if (!r.ok) throw new Error("The game's pictures aren't on this server yet (web/assets: run tools/export_web_assets.py).");
   A.m = await r.json();
   for (const k of Object.keys(lower)) lower[k] = indexIni(A.m[k] || {});
+  DISPLAY_NAMES.clear();
+  for (const k of ["tiles", "entities"]) {
+    for (const [sec, keys] of Object.entries(lower[k] || {})) if (keys["DISPLAY.NAME"]) DISPLAY_NAMES.set(sec, trim(keys["DISPLAY.NAME"]));
+  }
   return A.m;
 }
 

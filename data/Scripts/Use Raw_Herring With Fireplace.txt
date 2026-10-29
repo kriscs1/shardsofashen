@@ -1,0 +1,2 @@
+01	Goto.Script	Use Raw_Herring With Fire
+02	End

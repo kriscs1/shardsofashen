@@ -1,0 +1,8 @@
+01	Display.Message	Cyan	You climb aboard the ferry and cast off...
+02	Play.Sound	Boat
+03	Toggle.User.Input	OFF
+04	Wait	2
+05	Toggle.User.Input	ON
+06	Teleport	Northport_Pier	-
+07	Display.Message	Yellow	...and tie up at the Northport pier.
+08	End

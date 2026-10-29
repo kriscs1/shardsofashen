@@ -15,7 +15,7 @@ import towns as OLD
 OPEN_GROUND = ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001", "Cinder001", "Dirt001")
 
 # The old towns' maps: which settlement each was (their people go to it)
-OLD_TOWN = {"0,3,0": "Southport", "1,3,0": "Southport", "0,6,0": "Wildwood", "0,8,0": "Saltmarsh", "1,8,0": "Fenwick",
+OLD_TOWN = {"0,3,0": "Northport", "1,3,0": "Northport", "0,6,0": "Wildwood", "0,8,0": "Saltmarsh", "1,8,0": "Fenwick",
             "1,10,0": "Dunerest", "1,9,0": "Dunerest", "1,6,0": "Oakhollow", "1,7,0": "Oakhollow",
             "2,3,0": "Ashford", "3,4,0": "Ashford", "2,4,0": "Keep", "2,5,0": "Keep", "2,8,0": "Fenwick",
             "3,8,0": "Fenwick", "3,6,0": "Moorcross", "4,8,0": "Highwatch", "4,9,0": "Frosthold",
@@ -30,7 +30,7 @@ DROPPED_IDS = re.compile(r"Id=Market_Vendor_\d")
 # the quest people who work in a town's building (settlements.Plan.adopt puts them at its desk): settlement ->
 # [(the building's name, its kind, their map line)]
 STAFF = {
-    "Southport": [("City Hall", "parliament", "NPC\tSpeaker\t0\t0\tAttitude=Good Stand=1 Face=S Id=Southport_Speaker_20")],
+    "Northport": [("City Hall", "parliament", "NPC\tSpeaker\t0\t0\tAttitude=Good Stand=1 Face=S Id=Northport_Speaker_20")],
     "Galaith": [("Parliament", "parliament", "NPC\tChancellor\t0\t0\tAttitude=Good Stand=1 Face=S "
                                              "Id=Galaith_Speaker_70 Name=Lord_Chancellor_Vane"),
                 ("City Hall", "hall", "NPC\tArchivist\t0\t0\tAttitude=Good Stand=1 Face=S Id=Galaith_Clerk_73 "

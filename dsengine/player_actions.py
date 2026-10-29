@@ -23,8 +23,8 @@ class ActionsMixin:
         if e is self.player:
             return self.player_name
         if getattr(e, "display", ""):
-            return e.display
-        return strip_digits(e.name).replace("_", " ")
+            return e.display                            # (its own: the map's Name=)
+        return pretty(e.name)                           # (its kind's Display.Name=, or its name tidied)
 
     def npc_title(self, npc):
         """A conversation's or shop's title: the one you clicked by its own name, if it has one (Name= on the map)."""

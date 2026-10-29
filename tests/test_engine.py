@@ -1299,10 +1299,10 @@ def test_the_towns_are_the_size_they_were_asked_to_be(world):
     import re
     ids = [e.npc_id for e in world.ents if e.npc_id]
     count = lambda town, who: len([i for i in ids if re.fullmatch(r"%s_%s_\d+" % (town, who), i)])
-    for town in ("Southport", "Keep", "Court", "Fenwick", "Ravensgate"):
+    for town in ("Northport", "Keep", "Court", "Fenwick", "Ravensgate"):
         assert count(town, "Barkeep") == 5, town                       # (five taverns)
         assert count(town, "Doctor") == 1, town                        # (a hospital)
-    assert count("Southport", "Speaker") == 1 and count("Southport", "Constable") == 1     # (Parliament; police)
+    assert count("Northport", "Speaker") == 1 and count("Northport", "Constable") == 1     # (Parliament; police)
     for town in ("Highwatch", "Frosthold", "Oakhollow", "Thornwick", "Emberwatch"):
         assert count(town, "Sheriff") == 1 and count(town, "Doctor") == 1, town
     for town in ("Moorcross", "Dunerest", "Wildwood", "Saltmarsh"):
@@ -1310,7 +1310,7 @@ def test_the_towns_are_the_size_they_were_asked_to_be(world):
 
 
 def test_a_tavern_has_a_room_for_the_night(world):
-    bar = next(e for e in world.ents if (e.npc_id or "").startswith("Southport_Barkeep_"))
+    bar = next(e for e in world.ents if (e.npc_id or "").startswith("Northport_Barkeep_"))
     m = world.maps[bar.map]
     s = join(world, "Lodger2", bar.map, int(bar.x - m.ox), int(bar.y - m.oy) + 40)
     s.connected = True
@@ -1702,7 +1702,7 @@ def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
 
 
 def test_walking_granny_wren_to_her_daughter(world):
-    s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northgate's landing)
+    s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northport's landing)
     s.connected = True
     s.update_attribute("Passage", "=5")                              # (over from the Isle: it can start)
     for _ in range(10):
@@ -2415,18 +2415,18 @@ def test_activating_a_shardstone_costs_shards_once(world):
     a.remove_inventory_item("Shard", a.shards())
     stock(a, Shard=3)
     touch(1)                                                       # ("Activate it": but 5 are needed)
-    assert a.get_attribute("Waystone.Southport") in ("", "0") and a.shards() == 3
+    assert a.get_attribute("Waystone.Northport") in ("", "0") and a.shards() == 3
     assert any(e.get("t") == "sound" and e.get("name") == "Denied" for e in a.out)
     stock(a, Shard=7)
     touch(2)                                                       # ("Leave it": nothing spent)
-    assert a.get_attribute("Waystone.Southport") in ("", "0") and a.shards() == 10
+    assert a.get_attribute("Waystone.Northport") in ("", "0") and a.shards() == 10
     craft = a.skill_xp_of("Shardcraft")
     touch(1)
-    assert a.get_attribute("Waystone.Southport") == "1" and a.shards() == 5
+    assert a.get_attribute("Waystone.Northport") == "1" and a.shards() == 5
     assert a.skill_xp_of("Shardcraft") > craft and ws.uid in a.me_state()["lit"]
     assert any(e.get("t") == "stones" for e in a.out)               # (and its travel map opens)
     touch()                                                        # (active: straight to the travel map)
-    assert not a.ab_mode and any(e.get("t") == "stones" and e["here"] == "Southport" for e in a.out)
+    assert not a.ab_mode and any(e.get("t") == "stones" and e["here"] == "Northport" for e in a.out)
     assert a.shards() == 5 and other.shards() == theirs            # (charged once, and only them)
     assert ws.uid not in other.me_state()["lit"]
     leave(world, a)
@@ -2689,7 +2689,7 @@ def test_a_journey_by_shardstone_costs_a_few_shards(world):
     ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
     a = join(world, "Traveller", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
     a.connected = True
-    a.update_attribute("Waystone.Southport", "=1")
+    a.update_attribute("Waystone.Northport", "=1")
     a.update_attribute("Waystone.Ashford", "=1")
     a.remove_inventory_item("Shard", a.shards())
     stock(a, Shard=10)
@@ -2697,14 +2697,14 @@ def test_a_journey_by_shardstone_costs_a_few_shards(world):
     a.choose_verb("Travel", ws, int(ws.cx), int(ws.cy))
     ticks(world, 40)
     st = next(e for e in a.out if e.get("t") == "stones")          # (the travel map: the stones you've activated)
-    assert {s["k"] for s in st["stones"]} == {"Southport", "Ashford"} and st["cost"] == 2
+    assert {s["k"] for s in st["stones"]} == {"Northport", "Ashford"} and st["cost"] == 2
     a.handle({"t": "stone_go", "k": "Wardhaven"})                  # (not activated: no journey)
     ticks(world, 5)
     assert a.shards() == 10 and a.cur_map.name == m.name
     a.handle({"t": "stone_go", "k": "Ashford"})
     ticks(world, 5)
     assert a.shards() == 8 and a.cur_map.name == "11,4,0"          # (2 Shards, and there)
-    a.handle({"t": "stone_go", "k": "Southport"})                  # (not by a stone you've opened the map at)
+    a.handle({"t": "stone_go", "k": "Northport"})                  # (not by a stone you've opened the map at)
     ticks(world, 5)
     assert a.shards() == 8 and a.cur_map.name == "11,4,0"
     leave(world, a)
@@ -2858,7 +2858,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     assert s.get_attribute("ShardgateQuest") == "2"                 # (no stones to steady it, nothing to build with)
     assert any("shardstones active" in str(e.get("text", "")) for e in s.out)
     stock(s, Silver_Bar=4, Sapphire=2, Remnant_Core=1, Shard=40)
-    for k in ("Southport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Fenwick", "Court"):
+    for k in ("Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Fenwick", "Court"):
         s.update_attribute("Waystone." + k, "=1")
     s.update_skill("Shardcraft", "=1")
     s.out = []
@@ -3273,7 +3273,7 @@ def test_the_hollow_hill_cave_in_and_out_and_its_chest_once(world):
 
 
 def test_doctor_foster_heals_the_hurt_and_tells_the_well_to_keep_their_gold(world):
-    doc = next(e for e in world.ents if e.npc_id == "Southport_Doctor_349")
+    doc = next(e for e in world.ents if e.npc_id == "Northport_Doctor_349")
     s = join(world, "Patient", doc.map, 300, 300)
     s.connected = True
     s.god_mode = True
@@ -3591,7 +3591,7 @@ def test_editor_knows_what_points_at_the_maps():
     assert "WorldMap.ini Edwin & Maren's House" in [label(u) for u in r.of_name("isle_bank")]   # (a label)
     assert ("script", "Read Isle_Bank_Notice") in r.of_name("Isle_Bank_Notice")         # (its own script)
     assert ("script", "3,2,0") in r.of_name("Isle_Ferry_Pier")                          # (a script's place)
-    assert ("Shardstones.ini", "Southport") in r.of_name("Waystone_Southport")
+    assert ("Shardstones.ini", "Northport") in r.of_name("Waystone_Northport")
     assert ("quest", "Dinner at Edwin's") in r.of_kind("Maren")                          # (a quest's giver)
     assert ("script", "3,2,0") in r.of_map("3,2,0")                                      # (its arrival script)
     assert r.tiles and all(len(k) == 3 for k in r.tiles)                                 # (map, tile x, tile y)
@@ -3655,3 +3655,23 @@ def test_townsfolk_wear_their_trades_other_colours_but_stay_who_they_are(world):
     st = entity_state(world, next(x for x in keeps if x.look), s)
     assert st["lk"] >= 1 and st["n"] == "Barkeep"
     leave(world, s)
+
+
+def test_a_display_name_is_shown_but_the_name_stays(world):
+    from ashen import lb
+    from ashen.lb import pretty
+    assert pretty("Pine_Tree001") == "Pine Tree"                              # (none set: its name tidied)
+    lb.DISPLAY_NAMES["BREAD"] = "Crusty Loaf"
+    try:
+        s = join(world, "Namer")
+        stock(s, Bread=1)
+        bread = next(e for e in s.inv if e.name == "Bread")
+        assert s.display_name(bread) == "Crusty Loaf" and bread.name == "Bread"     # (shown so; still Bread)
+        assert s.items_held("Bread") == 1
+        leave(world, s)
+    finally:
+        del lb.DISPLAY_NAMES["BREAD"]
+    m = world.maps["1,1,0"]
+    e = world.add_entity_of_type("MapItem", "Bread", m.mz, m.ox + 100, m.oy + 100, "1 Name=Old_Loaf")
+    assert e.display == "Old Loaf" and e.name == "Bread"                      # (a name of its own, on its map line)
+    world.remove_entity(e)

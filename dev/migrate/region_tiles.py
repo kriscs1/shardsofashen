@@ -173,14 +173,14 @@ def desert_rock():
 
 # ---------------------------------------------------------------- shore corners on sand and snow
 SHORE_SIDE = {2: "NE", 3: "NE", 4: "NW", 5: "NW", 6: "SW", 7: "SW", 8: "SE", 9: "SE"}   # the land corner of each piece
-SHORE_REACH = 25.0     # the coast crosses the tile's sea-side edges this far from the land corner (see shore())
+SHORE_REACH = float(S)  # the coast runs exactly corner to corner (see shore(); the browser's edge blending meets it)
 
 
 def shore(n, land_tile):
     """The diagonal shore piece n (Water00n on grass, Sand_Water00n, Snow_Water00n): water with land_tile in one corner.
-    It is drawn to join the game's edge blending (build_tiles.py blend_mask): the water tiles next to it get the land
-    drawn about 6-7 px over their edge, and the corner blob on the tile beside fills the corner, so the coast here runs
-    REACH px from the land corner instead of on the tile's diagonal, with the same wavy, dithered edge as the bands.
+    The coast runs exactly from corner to corner of the tile (REACH), with the same wavy, dithered edge as the bands,
+    the wave dying away at the corners. The browser meets it there (ground.js paintBlendEdges): no corner blob in the
+    water beside it, and a straight band of land on the water next to it narrows to nothing at the corner it shares.
     The small pieces (3, 4, 7, 9) have the same line with another wave, so the coast doesn't repeat."""
     water, land = copy_tile("Water001"), copy_tile(land_tile)
     side, small = SHORE_SIDE[n], n in (3, 4, 7, 9)

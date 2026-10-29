@@ -358,6 +358,7 @@ class World(NPCMixin):
             if e is not None:
                 e.npc_id = self.option_value(misc, "Id")
                 e.once = self.is_once(name, misc)
+                e.display = self.option_value(misc, "Name").replace("_", " ")   # (a name of its own, here)
             return e
         if t == "StaticObject":
             e = self.add_static_object(name, z, x, y, owner, home)

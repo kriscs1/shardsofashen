@@ -1,8 +1,8 @@
 """Granny Wren's Walk (EscortQuest, a side quest once you're on the mainland): an old woman off the ferry at
-Northgate's landing (Old_Woman, Id=Granny_Wren) can't see well enough to find her way to her daughter Percy's in
+Northport's landing (Old_Woman, Id=Granny_Wren) can't see well enough to find her way to her daughter Percy's in
 Ashford (Ashford_Resident_34, her door at 2,3,0 14,18). You lead her there: she follows you (Follow.Player), a
 step or two behind, slower than you walk. At Percy's door, talk to either of them (>Follower.Near: she's with you).
-She's each player's own (Add.Entity in Northgate's entry script): lose her (log out) and she's back at the landing,
+She's each player's own (Add.Entity in Northport's entry script): lose her (log out) and she's back at the landing,
 waiting. After, she lives with Percy (Ashford's entry script).
 Safe to run again: the scripts are written again, the same; the data only once.
 
@@ -18,7 +18,7 @@ from ashen import ini  # noqa: E402
 from build_isle import Map, DATA, TW  # noqa: E402
 
 QUEST = "Granny Wren's Walk"
-LANDING = (14, 9)                   # where she waits, Northgate (1,3,0): on the sand by the landing path
+LANDING = (14, 9)                   # where she waits, Northport (1,3,0): on the sand by the landing path
 DOOR = (14, 19)                     # in front of Percy's door, Ashford (2,3,0)
 NEAR = 160                          # (how close she must be, in pixels: she came with you)
 HER = "Attitude=Good Stand=1 Face=S Id=Granny_Wren Name=Granny_Wren"
@@ -44,10 +44,10 @@ def data():
     quests = os.path.join(DATA, "Quests.ini")
     if not ini.section(QUEST, quests):
         for k, v in (("Giver", "Old_Woman"), ("Attribute", "EscortQuest"),
-                     ("Stage0", "An old woman at Northgate's landing looks lost."),
+                     ("Stage0", "An old woman at Northport's landing looks lost."),
                      ("Stage1", "Walk Granny Wren to her daughter Percy's door in Ashford, east along the road. Go "
                                 "slowly: she can't keep up with you. (Lose her, and she'll be back at the landing.)"),
-                     ("Done", "2"), ("Marker0", "Southport_Landing"), ("Marker1", "Percys_House"), ("Type", "Side"),
+                     ("Done", "2"), ("Marker0", "Northport_Port"), ("Marker1", "Percys_House"), ("Type", "Side"),
                      ("Requires.Quests", "Passage to the Mainland")):
             ini.write(QUEST, k, v, quests)
     m = Map("2,3,0")
@@ -107,7 +107,7 @@ def scripts():
 
 
 def entry_scripts():
-    """Northgate puts her at the landing (till she's home); Ashford, at Percy's, after. Each player their own."""
+    """Northport puts her at the landing (till she's home); Ashford, at Percy's, after. Each player their own."""
     put = "Add.Entity\t%s\tOld_Woman\tNPC\t%s" % (px(LANDING), HER)
     home = "Add.Entity\t%s\tOld_Woman\tNPC\t%s" % (px((DOOR[0] + 1, DOOR[1])), HER.replace("Face=S", "Face=W"))
     for name, cond, line in (("1,3,0", "$Variable.8<2", put), ("2,3,0", "$Variable.8>=2", home)):

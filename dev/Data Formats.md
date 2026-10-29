@@ -275,7 +275,7 @@ The bank is not a rack: it's stored in the save file.
   * **Ids**: any NPC, MapItem or StaticObject line may have `Id=<name>` in its Options: it names that one thing in
     the world (unique, and not a sprite's name: validate.py checks). Scripts named `<Verb> <Id>` are tried before
     `<Verb> <Name>` (e.g. `Pickup CellarKey.txt`, `Talk to OldHob.txt`, `Kill <Id>.txt`, `Use Key With <Id>.txt`). A
-    picked-up item respawns with its Id. Add.Entity's misc can give one too (`3 Id=CellarKey`, `Id=Ferry_To_Southport`).
+    picked-up item respawns with its Id. Add.Entity's misc can give one too (`3 Id=CellarKey`, `Id=Ferry_To_Northport`).
     Every notice has one, from its title (build_content.notice_ids): its text is `Read <Id>.txt` (e.g. `Read Ashford`).
   * `NPC<TAB>Name<TAB>X<TAB>Y<TAB>Options`: a person or a monster. Options are space-separated `Key=Value` pairs:
     * `Attitude=Good|Bad`: friendly or a foe (every NPC line has it; missing = its Entities.ini Attitude). The game
@@ -569,7 +569,7 @@ egion_tiles.py, with the same Walkable.Data).
     houses), the same walls up to the upper storey, its windows, beds. Reached by Stairs001 (up) / Stairs002 (down),
     or in some houses Ladder008 / Ladder009, at the same tile on both floors. build_world removes a level-1 map it made
     before and no longer makes (if you haven't edited it).
-  * The Southlands' hand-drawn brick houses (Northgate, Ashford, the farm) get the same roofs, upper storey and windows
+  * The Southlands' hand-drawn brick houses (Northport, Ashford, the farm) get the same roofs, upper storey and windows
     (build_content.restyle_old_houses); the Keep's stone halls keep Roof001.
 * Old Hob's house in Oakhollow (build_regions.locked_house): its door has a Lock (`$Attr.HobsDoorOpen>=1`); one front
   window is `<Base>_Window002` (a loose shutter, verb Climb Through: script `Climb Through <Base>_Window002`), which

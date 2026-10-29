@@ -13,7 +13,7 @@ game's files.
 - **The Isle**: a small island off the south coast, where you grew up poor and where every new character begins, at
   their mother's funeral. It has a village with a lawyer's and doctor's house, a farm and a smithy, a chapel with caves under it, a hermit
   and a ferry.
-- **The mainland**: **Northgate** (a large city, where the ferry lands; Ashen's Parliament sits in its City Hall
+- **The mainland**: **Northport** (a large city, where the ferry lands; Ashen's Parliament sits in its City Hall
   while Galaith is lost), **Ashford**, **King Rupert's Keep** (the old Tyron's Keep, held by the King's Steward), the
   **Wizards' Court** on the Royal Isle, Fenwick, Ravensgate, Highwatch, Frosthold, Oakhollow, Thornwick, Emberwatch,
   Moorcross, Dunerest, Wildwood and Saltmarsh, each the size the owner set (see `CLAUDE.md`).
@@ -38,13 +38,13 @@ Seventeen chapters, each unlocked by the one before it. Chapters 1 to 4 are the 
 | 1 | **The Last Will** | You stand at your mother's fresh grave by the chapel. The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the table. The cottage door stays locked until you've **read the letter** (three pages, in the owner's words): you are the heir of Ashen. Jimmy sleeps on her empty bed. |
 | 2 | **Dinner at Edwin's** | Edwin the lawyer asks you to dinner. **Maren**, his wife, is the Isle's doctor (their house is two storeys of brick by the chapel, her surgery and his desk downstairs; it was the bank. They live upstairs, and go up at night). **Chop 3 logs** for her range (she lends an axe), **take an egg** from Bess's coop and **fry it** on her range, give it to Edwin. Reward: the key to the chapel's trapdoor, and a promise not to go down without a sword and shield. |
 | 3 | **The Amulet of Succession** | **Bess** the milkmaid has the only boat, but won't sail without her father's compass. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Strength and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
-| 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: the compass is under it. Bess sails you to Northgate; after that **Wim** the ferryman crosses for a coin. |
+| 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: the compass is under it. Bess sails you to Northport; after that **Wim** the ferryman crosses for a coin. |
 
 ### The road to the Wizards' Court
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 5 | **The Temporary Capital** | The guard at Northgate's port says Northgate is the temporary capital. The **Speaker**, in the City Hall (the Parliament), says only **Bert**, the great wizard of the Wizards' Court, can break the barrier, and gives you a letter for the Mayor of Ashford. |
+| 5 | **The Temporary Capital** | The guard at Northport's port says Northport is the temporary capital. The **Speaker**, in the City Hall (the Parliament), says only **Bert**, the great wizard of the Wizards' Court, can break the barrier, and gives you a letter for the Mayor of Ashford. |
 | 6 | **The Ashford Road** | The **Mayor of Ashford** (the Town Hall) wants the goblins raiding the farms east of town driven off (a wave at the farm crossroads). Reward: the Mayor's pass. |
 | 7 | **The Steward's Hunt** | The **King's Steward** at King Rupert's Keep wants **five hobgoblins** slain in the old iron mine. Reward: 100 gold, a ruby, and the causeway to the Royal Isle. |
 
@@ -99,7 +99,7 @@ starts as raw rim, glass in mist: you terraform it with Shards and Shardcraft, a
 chapter 15 Bert says what the Stillwater is: the calm rim of the Shardrealm.
 
 **Granny Wren's Walk**: *after chapter 4*
-An old woman off the ferry at Northgate's landing, Granny Wren, can't see well enough to find her way to her
+An old woman off the ferry at Northport's landing, Granny Wren, can't see well enough to find her way to her
 daughter Percy's in Ashford. **Lead her there**: she follows you, a step or two behind and slower than you walk
 (Follow.Player), and waits if you go far ahead. At Percy's door talk to either of them. Lose her (log out) and she's
 back at the landing, waiting. Reward: 30 gold and a berry pie; she lives at Percy's after.
@@ -209,7 +209,7 @@ Invisibility Potions (and the recipe, at the alchemy table), a scroll of **Swap*
 10 Shards.
 
 **Lady Pettigrew's Hat**: *after The Invisible Apprentice*
-On Goose Green, east of Northgate, the geese have Lady Pettigrew's hat on their nest, and they are not reasonable
+On Goose Green, east of Northport, the geese have Lady Pettigrew's hat on their nest, and they are not reasonable
 geese. Go unseen (an Invisibility Potion), or swap bodies with her goose Gerald and walk in as one of them. Reward: 60
 gold, 12 Shards. Gerald does not apologise.
 
@@ -227,7 +227,7 @@ Shards. Every hour, once nobody's down there, it shifts, and it's all new.
 **Bert's tower's secrets**: a cat flap low in the wall (only a cat fits: Bert's biscuit tin, 25 Shards and his pie)
 and a big red button that shouldn't be pressed (a chicken, a bucket of water, confetti, or a goose).
 
-**The Hollow Hill** (`dev/migrate/build_hollow_hill.py`): where Northgate's west road runs into the range (2,4,0),
+**The Hollow Hill** (`dev/migrate/build_hollow_hill.py`): where Northport's west road runs into the range (2,4,0),
 a cave mouth; Enter it. The cave below (2,4,-1) winds back under the mountain: bats and rats near the way in, coal,
 copper and ore to mine, a pool, cave mushrooms, and at the back a spiders' chamber with an old cache in a chest
 (each player's own, once). Steps lead back up to the daylight.
@@ -317,7 +317,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | Dinner at Edwin's | DinnerQuest | Talk to Edwin / Maren, Use Fried_Egg With Edwin, Marens_Range |
 | The Amulet of Succession | AmuletQuest | Talk to Milkmaid, Talk to Frank, Talk to Chapel_Verger, Reach In / Grasp Barred_Niche |
 | Passage to the Mainland | Passage | Pick Lock Caged_Tobias, Squeaky Floorboard, Talk to Milkmaid, Talk to Ferryman |
-| The Temporary Capital, The Ashford Road | ParliamentQuest, AshfordQuest | Talk to Southport_Port_Guard, Talk to Southport_Speaker_*, Talk to the Mayor, Farm Raid Won |
+| The Temporary Capital, The Ashford Road | ParliamentQuest, AshfordQuest | Talk to Northport_Port_Guard, Talk to Northport_Speaker_*, Talk to the Mayor, Farm Raid Won |
 | The Steward's Hunt, The Staff of Ashen | HobgoblinQuest, StaffQuest | Talk to Keep_Steward, Kill Hobgoblin, 22,11,1, Pickup Staff_of_Ashen |
 | Bert's Three Treasures | BertQuest | Talk to Bert, Bert's Confession |
 | The Sunken Grimoire, The Ember Ring | GrimoireQuest, RingQuest | Talk to Dunerest_Scholar, 3,16,0, 3,16,-1, Talk to Warden, Kill Ashen_Priest |

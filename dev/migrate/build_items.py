@@ -1,4 +1,4 @@
-"""The everyday items, drawn again (sprites\\Entities): the tuna (Raw_Fish, Cooked_Fish, Burnt_Fish), Bread, Logs, the
+"""The everyday items, drawn again (sprites\\Entities): the tuna (Raw_Herring, Cooked_Herring, Burnt_Herring), Bread, Logs, the
 potion flask (Basic_Potion, Empty_Vial, Full_Vial), the Tinderbox, Bones, the poultry (Raw_, Cooked_, Burnt_Poultry)
 and the buckets (Bucket, Bucket_of_Water). 32 x 32, lit from the top left, with the 1 px dark outline.
 
@@ -107,13 +107,13 @@ def tuna(back, side, belly, sheen, fin, finlet, eye, marks=None, rng_seed=0):
     return done(img)
 
 
-@item("Raw_Fish")
+@item("Raw_Herring")
 def raw_tuna():
     return tuna(back=(30, 50, 98), side=(72, 100, 150), belly=(196, 204, 214), sheen=(232, 236, 242),
                 fin=(40, 58, 96), finlet=(236, 198, 52), eye=((232, 232, 220), (16, 16, 22)))
 
 
-@item("Cooked_Fish")
+@item("Cooked_Herring")
 def cooked_tuna():
     def grill(img):
         for k in range(5):                                        # (the bars of the grill)
@@ -125,7 +125,7 @@ def cooked_tuna():
                 fin=(96, 54, 26), finlet=(196, 140, 60), eye=((236, 230, 210), (60, 34, 18)), marks=grill)
 
 
-@item("Burnt_Fish")
+@item("Burnt_Herring")
 def burnt_tuna():
     def char(img):
         rng = random.Random(5)

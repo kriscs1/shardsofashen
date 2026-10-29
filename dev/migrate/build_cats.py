@@ -2,7 +2,7 @@
 put about the towns - and Jimmy, a deep orange ginger tabby with a creamy chin (Strawberry_Cat: no white on him), at
 home in the cottage where new characters wake; Noops (Fat_Grey_Cat: a big, round grey tabby, a pale chest and
 yellow-green eyes) by Edwin and Maren's house, Vincent
-(Northgate's black cat) and Mo (Tuxedo_Cat: black, a white bib and white socks) by Ashford's market.
+(Northport's black cat) and Mo (Tuxedo_Cat: black, a white bib and white socks) by Ashford's market.
 Run it again to draw and make the sounds again; the cats are only placed once.
 
   python -I "dev\\migrate\\build_cats.py"
@@ -326,7 +326,7 @@ NAMED = {   # a cat of its own: its kind, the place it lives by, a meow and a pu
               "Jimmy purrs like a little engine and headbutts your hand for more."),
     "Noops": ("Fat_Grey_Cat", "Isle_Bank", "Noops opens one eye, considers you, and closes it again.",
               "Noops rolls onto his back, a great grey belly to the sky, and rumbles."),
-    "Vincent": ("Black_Cat", "Southport_Landing", "Vincent gives you a long, cool look. \"Mrrp.\"",
+    "Vincent": ("Black_Cat", "Northport_Port", "Vincent gives you a long, cool look. \"Mrrp.\"",
                 "Vincent leans into your hand, then strolls off as if it never happened."),
     "Mo": ("Tuxedo_Cat", "Ashford_Market_Square", "Mo trots up, white socks twinkling, and mews at you.",
            "Mo kneads the air with a white paw and purrs."),
@@ -356,7 +356,7 @@ def data():
     print("Entities and scripts for the cats (they sit); %s their own" % ", ".join(NAMED))
 
 
-TOWN_CATS = [("Ashford_Market", "Cat"), ("Southport_Landing", "Black_Cat"), ("Oakhollow_Square", "Ginger_Cat"),
+TOWN_CATS = [("Ashford_Market", "Cat"), ("Northport_Port", "Black_Cat"), ("Oakhollow_Square", "Ginger_Cat"),
              ("Fenwick_Square", "Cat"), ("Moorcross_Square", "Black_Cat"), ("Highwatch_Square", "Ginger_Cat"),
              ("Isle_Landing", "Cat")]
 
@@ -394,7 +394,7 @@ def place():
                                -8))
         c.save()
         n += 1
-    vincent = d.place("Southport_Landing")                   # (the black cat by Northgate's landing is Vincent)
+    vincent = d.place("Northport_Port")                   # (the black cat by Northport's landing is Vincent)
     if vincent is not None:
         m = Map(vincent.map)
         for i, ln in enumerate(m.ents):

@@ -15,9 +15,9 @@ from ashen import ini  # noqa: E402
 from build_isle import DATA  # noqa: E402
 from build_cats import CATS, NAMED  # noqa: E402
 
-CAT_FOOD = ["Raw_Fish", "Raw_Trout", "Raw_Salmon", "Cooked_Fish", "Cooked_Trout", "Cooked_Salmon", "Raw_Poultry",
+CAT_FOOD = ["Raw_Herring", "Raw_Trout", "Raw_Salmon", "Cooked_Herring", "Cooked_Trout", "Cooked_Salmon", "Raw_Poultry",
             "Cooked_Poultry"]
-DOG_FOOD = ["Raw_Meat", "Cooked_Meat", "Raw_Poultry", "Cooked_Poultry", "Raw_Fish", "Cooked_Fish"]
+DOG_FOOD = ["Raw_Meat", "Cooked_Meat", "Raw_Poultry", "Cooked_Poultry", "Raw_Herring", "Cooked_Herring"]
 # who: (what it eats, how it eats it - {food} is the food, "a cat" / "a dog" for the refusal)
 EATERS = {"Dog": (DOG_FOOD, "The dog gulps down the {food} and wags its whole back end.", "a dog")}
 for _cat in CATS:

@@ -19,7 +19,7 @@ Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
-NPC	Man	96	472	Attitude=Good Zone=3,15,5,16 Pause=5-15 Id=Southport_Resident_376 Name=Gilbert
+NPC	Man	96	472	Attitude=Good Zone=3,15,5,16 Pause=5-15 Id=Northport_Resident_376 Name=Gilbert
 NPC	Rabbit	544	344	Attitude=Bad Zone=13,8,23,16
 NPC	Rabbit	384	472	Attitude=Bad Zone=8,12,18,20
 NPC	Butterfly	224	344	Attitude=Good Zone=3,8,13,16

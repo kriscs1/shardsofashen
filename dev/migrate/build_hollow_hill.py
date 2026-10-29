@@ -1,4 +1,4 @@
-"""The Hollow Hill: a cave in the West Range where Northgate's west road runs into the mountains (2,4,0, at the
+"""The Hollow Hill: a cave in the West Range where Northport's west road runs into the mountains (2,4,0, at the
 road's end), and the cave under it (2,4,-1).
 
   * Its mouth (Hollow_Hill_Mouth, the tile Cave_Mouth001): drawn on the very part of the range's texture that falls on

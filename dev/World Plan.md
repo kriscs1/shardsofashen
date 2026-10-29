@@ -48,7 +48,7 @@ e the Elderwood · a the Ashwold · u the downs · v Wardhaven's island · D Dra
 | Place | Size | Maps | Streets | Coast |
 |---|---|---|---|---|
 | Galaith | huge city | 1-6, 11-14 | white marble flags; cobbles out to the walls | (inland: the West Range) |
-| Northgate | large city | 2-5, 4-6 | red brick | north: a port |
+| Northport | large city | 2-5, 4-6 | red brick | north: a port |
 | King Rupert's Keep | medium city, the keep and bailey in its middle | 21-23, 10-12 | grey cobbles | east: a port |
 | Wizards' Court | medium city, the court and its tower on its edge by the Cinder Peaks | 16-18, 4-6 | blue-grey flags | north: a port |
 | Fenwick | medium city | 6-8, 16-17 | timber boardwalks | (the marsh) |
@@ -75,7 +75,7 @@ e the Elderwood · a the Ashwold · u the downs · v Wardhaven's island · D Dra
 | 3,5,0, 4,5,0 | 13,4,0, 14,4,0 | the hollow barrel by the lake, the smugglers' cove (the tunnel 3,5,-1 4,5,-1 → 13,4,-1 14,4,-1) |
 | 3,3,0 | 11,4,0 | Ashford's farm crossroads and the herbalist's cottage |
 | 2,3,0 | 9,4,0 | Ashford's Green Dragon, its beer garden and games, the arena master, the settler's yard |
-| 1,3,0 | 4,4,0 | Northgate's landing, pier and port guard |
+| 1,3,0 | 4,4,0 | Northport's landing, pier and port guard |
 | 1,6,0 | 7,9,0 | old Hob's boarded-up house in Oakhollow |
 | 0,5,0 | 4,9,0 | the spider nest |
 | 1,9,0 | 3,16,0 | the buried library's mound (1,9,-1 → 3,16,-1) |

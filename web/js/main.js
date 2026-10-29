@@ -128,7 +128,7 @@ function placeChat() {
   box.style.bottom = "auto";
 }
 
-// ----- the login screen's film of Northgate: playing while it's there; the still picture for less motion
+// ----- the login screen's film of Northport: playing while it's there; the still picture for less motion
 const loginVideo = $("login-video");
 const stillPlease = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
 function loginFilm() {
@@ -696,6 +696,8 @@ N.onMessage = (m) => {
       break;
     case "box":
       S.box = m;
+      m.answers = m.responses;                     // (a long speech's pages: the answers wait for its last - ui.js)
+      m.tpage = 0;
       if (m.mode) { U.rcm = null; releaseKeys(); }
       break;
     case "msg": addMessage(m.text, messageColour(m.kind), m.id || 0, m.of || 0); break;

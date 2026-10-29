@@ -881,3 +881,15 @@ Cave_Mouth001	24 20 22
 Cave_Steps001	150 140 120
 Rim_Mist001	112 98 150
 Rim_Glass001	202 198 226
+
+Palisade002	110 76 40
+Palisade003	110 76 40
+Palisade004	110 76 40
+Palisade005	110 76 40
+Palisade006	110 76 40
+Palisade007	110 76 40
+Palisade008	110 76 40
+Palisade009	110 76 40
+Palisade010	110 76 40
+Palisade011	110 76 40
+Palisade012	110 76 40

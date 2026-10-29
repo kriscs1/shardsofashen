@@ -198,6 +198,60 @@ def stones_voronoi(rng, size, step, palette, gap, jitter=0.42):
     return np.clip(col, 0, 255).astype(np.uint8)
 
 
+def laid_flags(rng, size, step, palette, gap, moss=None, jitter=0.34, stretch=1.25, pits=0.0, wear=14):
+    """Flags laid by hand: irregular slabs (a jittered grid, a little longer than wide), each its own shade and
+    surface, edges worn round, the joints between them uneven - dark and earthy, a little moss in some - lit from
+    the top left. Wraps round (a seamless texture)."""
+    nx, ny = int(size / (step * stretch)), size // step
+    sx, sy = size / nx, size / ny
+    pts = []
+    for j in range(ny):
+        off = rng.uniform(0, 0.5) if j % 2 else 0
+        for i in range(nx):
+            pts.append(((i + 0.5 + off + rng.uniform(-jitter, jitter)) * sx, (j + 0.5 + rng.uniform(-jitter, jitter)) * sy,
+                        np.array(rng.choice(palette), dtype=np.float64) + rng.uniform(-9, 9), rng.random()))
+    ys, xs = np.mgrid[0:size, 0:size].astype(np.float64)
+    d1 = np.full((size, size), 1e9)
+    d2 = np.full((size, size), 1e9)
+    own = np.zeros((size, size), dtype=int)
+    for k, (px, py, _, _) in enumerate(pts):
+        dx = (xs - px + size / 2) % size - size / 2
+        dy = ((ys - py + size / 2) % size - size / 2) * (stretch * 0.9)
+        d = np.sqrt(dx * dx + dy * dy)
+        closer = d < d1
+        d2 = np.where(closer, d1, np.minimum(d2, d))
+        own = np.where(closer, k, own)
+        d1 = np.where(closer, d, d1)
+    grain = fractal(rng, size, 4) - 0.5                       # (the stone's own surface: a fine mottle)
+    blotch = fractal(rng, size, 2, cells=3) - 0.5
+    col = np.zeros((size, size, 3))
+    edge = d2 - d1
+    for k, (px, py, c, v) in enumerate(pts):
+        sel = own == k
+        dx = (xs - px + size / 2) % size - size / 2
+        dy = (ys - py + size / 2) % size - size / 2
+        tilt = (rng.uniform(-1, 1), rng.uniform(-1, 1))           # (each slab sits a little off level)
+        lit = np.clip(-(dx * (0.7 + 0.3 * tilt[0]) + dy * (0.7 + 0.3 * tilt[1])) / (step * 1.2), -1, 1)
+        col[sel] = c + lit[sel][:, None] * 12 + grain[sel][:, None] * 26 + blotch[sel][:, None] * 18
+    rim = np.clip((4.0 - edge) / 4.0, 0, 1)                       # (worn round toward the joint: darker, then lit)
+    col = col * (1 - rim[..., None] * 0.22)
+    joint_w = 1.5 + (fractal(rng, size, 3) - 0.5) * 1.6        # (joints uneven, wider and narrower)
+    mortar = np.clip((joint_w - edge) / 1.0, 0, 1)
+    mcol = np.array(gap, dtype=np.float64)[None, None, :] + (grain[..., None] * 20)
+    if moss is not None:
+        m = np.clip((fractal(rng, size, 3, cells=5) - 0.55) * 4, 0, 1)
+        mcol = mcol * (1 - m[..., None]) + np.array(moss)[None, None, :] * m[..., None]
+    col = col * (1 - mortar[..., None]) + mcol * mortar[..., None]
+    if pits:                                                     # (weathering: little pits in soft stone)
+        for _ in range(int(size * size * pits)):
+            x, y = rng.randrange(size), rng.randrange(size)
+            if mortar[y, x] < 0.1:
+                col[y, x] *= 0.86
+                col[(y + 1) % size, x] = col[(y + 1) % size, x] * 0.94 + 10
+    col += np.array([[rng.uniform(-3, 3) for _ in range(size)] for _ in range(size)])[..., None]
+    return np.clip(col, 0, 255).astype(np.uint8)
+
+
 def rows_of_stones(rng, size, heights, widths, palette, gap, bevel=18, crack=0.0):
     """Setts, flags and bricks: rows of random heights, each cut into stones of random widths (wrapping round)."""
     col = np.zeros((size, size, 3))
@@ -274,12 +328,12 @@ STREETS = {   # tile: (texture, how it's drawn)
     "Slate_Flag001": ("Street_Slate", lambda r: rows_of_stones(
         r, STREET_SIZE, (10, 12, 14, 16), (12, 14, 18, 22), [(74, 76, 84), (66, 68, 76), (84, 86, 94)], (38, 40, 46),
         crack=0.2)),
-    "Flagstone001": ("Street_Flagstone", lambda r: rows_of_stones(
-        r, STREET_SIZE, (10, 12, 14, 16), (12, 14, 18, 22), [(140, 138, 132), (128, 126, 120), (152, 150, 144)],
-        (86, 84, 80), crack=0.2)),
-    "Sandstone_Paving001": ("Street_Sandstone", lambda r: rows_of_stones(
-        r, STREET_SIZE, (10, 12, 14, 16), (12, 16, 20, 24), [(216, 192, 142), (206, 182, 132), (226, 202, 152)],
-        (160, 138, 96), crack=0.15)),
+    "Flagstone001": ("Street_Flagstone", lambda r: laid_flags(                 # (grey flags, a little moss between)
+        r, STREET_SIZE, 15, [(146, 142, 134), (132, 129, 122), (156, 152, 144), (138, 136, 132), (124, 122, 118)],
+        (70, 66, 58), moss=(86, 102, 58))),
+    "Sandstone_Paving001": ("Street_Sandstone", lambda r: laid_flags(          # (warm slabs, weathered soft)
+        r, STREET_SIZE, 19, [(220, 194, 146), (208, 182, 134), (228, 204, 158), (214, 188, 138), (202, 172, 124)],
+        (150, 124, 84), pits=0.04, stretch=1.35)),
     "Gravel001": ("Street_Gravel", lambda r: gravel_texture(r, STREET_SIZE, (146, 132, 108),
                                                             [(120, 108, 88), (170, 160, 140), (132, 126, 116),
                                                              (100, 90, 74)])),

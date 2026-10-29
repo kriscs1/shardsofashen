@@ -21,7 +21,17 @@ export function stripDigits(name) {
   return name.length > 3 && /^\d{3}$/.test(name.slice(-3)) ? name.slice(0, -3) : name;
 }
 
-export function pretty(name) { return stripDigits(name || "").replace(/_/g, " "); }
+// (what the player sees a thing called: its Entities.ini / Tiles.ini Display.Name=, else its name tidied; assets.js
+// fills it. The name itself stays what scripts, saves and pictures go by)
+export const DISPLAY_NAMES = new Map();
+export function pretty(name) {
+  const n = String(name || "");
+  if (DISPLAY_NAMES.size) {
+    const shown = DISPLAY_NAMES.get(n.toUpperCase()) || DISPLAY_NAMES.get(stripDigits(n).toUpperCase());
+    if (shown) return shown;
+  }
+  return stripDigits(n).replace(/_/g, " ");
+}
 
 export function lbstr(x) {
   if (typeof x === "string") return x;

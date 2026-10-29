@@ -301,7 +301,12 @@ export function mouseDown(button, x, y) {
     if (boxCloseAt(x, y)) { send({ t: "close" }); return; }
     const arrow = boxArrow(x, y);
     if (arrow) { send({ t: "page", page: S.box.page + arrow }); return; }
-    if (U.rbHover) { send({ t: "respond", n: U.rbHover }); return; }
+    if (U.rbHover) {
+      const b = S.box;
+      if (b.mode === "Conversation" && (b.tpage || 0) < (b.tpages || 1) - 1) { b.tpage = (b.tpage || 0) + 1; return; }
+      send({ t: "respond", n: U.rbHover });
+      return;
+    }
   }
   if (U.skillHover > 0) {
     if (left) send({ t: "skill", i: U.skillHover });

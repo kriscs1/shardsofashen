@@ -17,7 +17,7 @@ The story (the attribute Passage, 0-12; FerryQuest>=4 is the old quest's ending,
    8  Brother Aldous gives you a scroll of Grasp (a spell that keeps: it pulls things to you from afar).       -> 9
    9  Grasp at the cage: the book is yours.                                                                    -> 10
   10  The book to Bess: a stamped ticket.                                                                       -> 11
-  11  The ticket to Maren: across to Northgate.                                                                -> 12 (done)
+  11  The ticket to Maren: across to Northport.                                                                -> 12 (done)
 
 Also: new characters start with no sword; the wooden sword (Crafting 1, 2 logs) and shield (Crafting 1, 3 logs) at a
 workbench; a fried egg (an egg on a range); the pictures for the new things.
@@ -192,7 +192,7 @@ def quest():
         ("The book is in a locked goblin's cage, out of reach. Ask Brother Aldous for help.", "Chapel_Door"),
         ("Cast Grasp at the goblin's cage to pull the ticket book out (Cast the scroll, then click the cage).", "Thief_Cage"),
         ("Take the ticket book back to Bess.", "Milkmaid_Farm"),
-        ("Show your stamped ticket to Maren on the pier and sail to Northgate.", "Isle_Ferry_Pier"),
+        ("Show your stamped ticket to Maren on the pier and sail to Northport.", "Isle_Ferry_Pier"),
     ]
     lines = ["[Passage to the Mainland]", "Giver=Woman", "Attribute=Passage"]
     lines += ["Stage%d=%s" % (i, s) for i, (s, _) in enumerate(stages)]
@@ -255,22 +255,22 @@ def scripts():
         ("Get.Value", "ATTRIBUTE", "FerryQuest", "Variable.2$"),
         (">On.Map", "1,2,0", "@back"),
         (">Conditional", "$Variable.1>=%d or $Variable.2>=4" % DONE, "@not_done"),
-        say("Woman", "Ahoy again! Northgate, is it? The fare is 1 gold coin.", ("Yes, take me to Northgate (1 gold).", "@pay"),
+        say("Woman", "Ahoy again! Northport, is it? The fare is 1 gold coin.", ("Yes, take me to Northport (1 gold).", "@pay"),
             ("Not today.", "@end")),
         ("@pay",), (">Got.Item", "Gold_Coin(s)", "1", "@no_gold"),
         ("Take.Item", "Gold_Coin(s)", "1"),
-        ("Goto.Script", "Ferry to Southport"),
+        ("Goto.Script", "Ferry to Northport"),
         ("End",),
         ("@not_done",), (">Got.Item", "Ferry_Ticket", "1", "@no_ticket"),
         say("Woman", "A ticket, stamped by my sister - and you got her book back from that goblin! Hop aboard. After this "
-            "it's a gold coin a crossing.", ("Take me to Northgate.", "@sail"), ("Not yet.", "@end")),
+            "it's a gold coin a crossing.", ("Take me to Northport.", "@sail"), ("Not yet.", "@end")),
         ("@sail",), ("Take.Item", "Ferry_Ticket", "1"),
         ("Update.Attribute", "Passage", "=%d" % DONE),
         ("Display.Message", "Yellow", "Quest complete: Passage to the Mainland! The ferry is yours for 1 gold a crossing."),
-        ("Goto.Script", "Ferry to Southport"),
+        ("Goto.Script", "Ferry to Northport"),
         ("End",),
         ("@no_ticket",), (">Conditional", "$Variable.1=0", "@waiting"),
-        say("Woman", "Ahoy there! I'm Maren: I sail across the strait to Northgate, on the southern mainland.\\First "
+        say("Woman", "Ahoy there! I'm Maren: I sail across the strait to Northport, on the southern mainland.\\First "
             "crossing is by ticket only. My sister Bess, the milkmaid, keeps the ticket book, on the farm up north.",
             ("I'll get a ticket.", "@started"), ("Not today.", "@end")),
         ("@started",), ("Update.Attribute", "Passage", "=1"),

@@ -2863,11 +2863,25 @@ class MapPage(Page):
         self.link(box, "Open in " + self.thing_page(e.name), lambda: self.open_thing(e.name))
         ttk.Separator(f).pack(fill="x", pady=8)
         self.field(f, "Name", e.name, self.changer(e, "name"), values=self.project.placeable())
+        kind_shown = self.project.entities_ini.get(e.name, "Display.Name", "") or e.name.replace("_", " ")
+        self.field(f, "Shown as", e.opt("Name").replace("_", " "), self.shown_as(e))
+        ttk.Label(f, text="What players see it called, here (blank: %s). Its name above stays what scripts use." %
+                  kind_shown, style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
         xv = self.field(f, "X (px)", str(e.x), self.changer(e, "x", int), width=8)
         yv = self.field(f, "Y (px)", str(e.y), self.changer(e, "y", int), width=8)
         self._xy_vars = (xv, yv)
         ttk.Label(f, text="Drag it on the map (Shift snaps to the tile), or arrows to nudge.",
                   style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
+
+    def shown_as(self, e):
+        """The Shown as field: its map line's Name= (spaces as underscores, as the map writes them)."""
+        def set_(value):
+            v = "_".join(value.split())
+            if v != e.opt("Name"):
+                self.remember()
+                e.set_opt("Name", v)
+                self.redraw()
+        return set_
 
     def insp_thing(self, f, e):
         self.insp_common(f, e, "Item on the ground" if e.kind == "MapItem" else "Object")

@@ -805,7 +805,7 @@ def room_script(name, who, price, posh=False):
 
 
 NAMED = {   # (people given their own name, not one drawn from NAMES: Id -> name)
-    "Southport_Doctor_349": "Doctor Foster",                  # (Northgate's doctor)
+    "Northport_Doctor_349": "Doctor Foster",                  # (Northport's doctor)
 }
 
 

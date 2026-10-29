@@ -4,7 +4,7 @@ writes the same again. Run build_towns.py and build_galaith.py first (their buil
 
   python -I "dev\\migrate\\build_heir_mainland.py"
 
-  5  The Temporary Capital (ParliamentQuest 0-2). Northgate's port guard: Galaith is shut, Northgate is the capital for
+  5  The Temporary Capital (ParliamentQuest 0-2). Northport's port guard: Galaith is shut, Northport is the capital for
      now, and its City Hall is the Parliament. The Speaker: only Bert, the great wizard at the Wizards' Court, can break
      the barrier; take the Parliament's letter east, to the Mayor of Ashford, who keeps the road.
   6  The Ashford Road (AshfordQuest 0-3). The Mayor, in Ashford's Town Hall: goblins raid the farms; drive them off (the
@@ -468,26 +468,26 @@ def court():
 
 def southport_guard():
     m = Map("1,3,0")
-    if K.has_id(m, "Southport_Port"):
+    if K.has_id(m, "Northport_Port"):
         return
-    pl = find_place("Southport_Pier")
+    pl = find_place("Northport_Pier")
     x, y = pl[1] + 2, pl[2] + 3
-    m.ents.append(obj_line("NPC", "Port_Guard", x, y, "Attitude=Good Stand=1 Face=W Id=Southport_Port_Guard "
+    m.ents.append(obj_line("NPC", "Port_Guard", x, y, "Attitude=Good Stand=1 Face=W Id=Northport_Port_Guard "
                                                       "Name=Sergeant_Brand", -8))
-    K.place_id(m, "Southport_Port", x, y + 1)
+    K.place_id(m, "Northport_Port", x, y + 1)
     m.save()
 
 
 def southport_hall():
-    """Northgate's City Hall, where the Speaker sits, is Ashen's Parliament while Galaith is lost."""
-    name, _, f = find_npc("Southport_Speaker", "Speaker")
+    """Northport's City Hall, where the Speaker sits, is Ashen's Parliament while Galaith is lost."""
+    name, _, f = find_npc("Northport_Speaker", "Speaker")
     x, y = npc_tile(f)
     m = Map(name)
-    if not K.has_id(m, "Southport_City_Hall"):
-        K.place_id(m, "Southport_City_Hall", x, y)
+    if not K.has_id(m, "Northport_City_Hall"):
+        K.place_id(m, "Northport_City_Hall", x, y)
         m.save()
     for f in os.listdir(K.SCRIPTS):
-        if f.startswith("Read Southport_Notice_"):
+        if f.startswith("Read Northport_Notice_"):
             path = os.path.join(K.SCRIPTS, f)
             text = open(path, "rb").read()
             new = text.replace(b"CITY HALL\\The seat of the city's council.",
@@ -602,10 +602,10 @@ def quests():
     open(Q, "wb").write(text.encode("cp1252"))
     ini.forget(Q)
     K.quest("The Temporary Capital", "Port_Guard", "ParliamentQuest", {
-        0: "Speak to the city guard at Northgate's port.",
-        1: "Go to Northgate's City Hall, where Ashen's Parliament sits until Galaith opens again.",
-    }, 2, markers={0: "Southport_Port", 1: "Southport_City_Hall"}, chapter=5, requires="Passage to the Mainland",
-        marker0="Southport_Port")
+        0: "Speak to the city guard at Northport's port.",
+        1: "Go to Northport's City Hall, where Ashen's Parliament sits until Galaith opens again.",
+    }, 2, markers={0: "Northport_Port", 1: "Northport_City_Hall"}, chapter=5, requires="Passage to the Mainland",
+        marker0="Northport_Port")
     K.quest("The Ashford Road", "Mayor", "AshfordQuest", {
         0: "Take the Parliament's letter to the Mayor of Ashford, in Ashford's Town Hall.",
         1: "Goblins raid the farms east of Ashford. Drive them off: wait for them at the farm's crossroads.",
@@ -686,11 +686,11 @@ def npc_id(prefix, sprite):
 
 
 def southport_and_ashford():
-    w("Talk to Southport_Port_Guard", [
+    w("Talk to Northport_Port_Guard", [
         ("Get.Value", "ATTRIBUTE", "ParliamentQuest", V1),
         (">Conditional", "$Variable.1=0", "@chat"),
         (">Quest.Can.Start", "ParliamentQuest", "@end"),
-        say("Port_Guard", "Welcome to Northgate, the capital of Ashen. For now, anyway.\\Galaith's been shut these "
+        say("Port_Guard", "Welcome to Northport, the capital of Ashen. For now, anyway.\\Galaith's been shut these "
                           "eighteen years: a wall of light across the pass, and a dragon behind it. So the city hall "
                           "here is the Parliament, till the barrier falls.\\Business in Galaith, you say? Then the City "
                           "Hall's where you ask. They say it was sealed the very year the Queen vanished.",
@@ -700,11 +700,11 @@ def southport_and_ashford():
         ("Display.Message", "Yellow", "Quest started: The Temporary Capital.", "Quest"),
         ("End",),
         ("@chat",),
-        say("Port_Guard", "Keep your purse close in the market, and your sword in its scabbard. Northgate's a good "
+        say("Port_Guard", "Keep your purse close in the market, and your sword in its scabbard. Northport's a good "
                           "city, mostly.", ("Goodbye.", "@end")),
         ("@end",), ("End",),
     ])
-    speaker = npc_id("Southport_Speaker", "Speaker")
+    speaker = npc_id("Northport_Speaker", "Speaker")
     w("Talk to " + speaker, [
         ("Get.Value", "ATTRIBUTE", "ParliamentQuest", V1),
         (">Conditional", "$Variable.1=1", "@chat"),
@@ -910,14 +910,14 @@ def bert():
         ("@craft",), ("Display.Item.Rack", "GENERAL", "Bert", "CRAFT-Scrolls", "@end"),
         ("End",),
         ("@away",),
-        say("Bert", "Where to?", ("To the Isle.", "@isle"), ("To Northgate.", "@southport"), ("Nowhere, thanks.", "@end")),
+        say("Bert", "Where to?", ("To the Isle.", "@isle"), ("To Northport.", "@southport"), ("Nowhere, thanks.", "@end")),
         ("@isle",), ("Play.Sound", "Teleporter"), ("Display.Message", "Yellow", "Bert waves his hands, and the world "
                                                                                "spins..."),
         ("Teleport", "Isle_Landing", "-"),
         ("End",),
         ("@southport",), ("Play.Sound", "Teleporter"), ("Display.Message", "Yellow", "Bert waves his hands, and the "
                                                                                     "world spins..."),
-        ("Teleport", "Southport_Landing", "-"),
+        ("Teleport", "Northport_Port", "-"),
         ("End",),
         ("@end",), ("End",),
     ])
@@ -1309,7 +1309,7 @@ def galaith():
                           "is my warrant: show it to the captain of the guard.", ("Thank you, Chancellor.", "@end")),
         ("End",),
         ("@chat",),
-        say("Chancellor", "The Parliament of Ashen will return from Northgate, now the road is open. There is much "
+        say("Chancellor", "The Parliament of Ashen will return from Northport, now the road is open. There is much "
                           "to do.", ("Goodbye.", "@end")),
         ("@end",), ("End",),
     ])
@@ -1501,7 +1501,7 @@ def scripts():
     sword()
     galaith()
     retired()
-    print("Scripts: Northgate, Ashford, the Keep, Bert, the grimoire, the ring, Dragon Island, Galaith, the throne")
+    print("Scripts: Northport, Ashford, the Keep, Bert, the grimoire, the ring, Dragon Island, Galaith, the throne")
 
 
 def main():

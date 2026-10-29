@@ -42,27 +42,6 @@ COVE = "Attitude=Bad Group=COVE Friendly.If=$Attr.SmugglerQuest>=3"
 
 
 # ---------------------------------------------------------------- pictures
-def palisade():
-    """Sharpened logs side by side (the camp's wall: you can't see through it)."""
-    s = pygame.Surface((32, 32), pygame.SRCALPHA)
-    sh = pygame.Surface((32, 32), pygame.SRCALPHA)
-    pygame.draw.rect(sh, (0, 0, 0, 90), (0, 27, 32, 4))
-    s.blit(sh, (0, 0))
-    rng = random.Random(5)
-    for i, x in enumerate(range(0, 32, 6)):
-        top = 3 + rng.randint(0, 2)
-        w = 6 if x < 30 else 2
-        col = (122 + rng.randint(-10, 10), 84 + rng.randint(-8, 8), 46)
-        pygame.draw.rect(s, col, (x, top + 3, w, 28 - top - 3))
-        pygame.draw.polygon(s, col, [(x, top + 3), (x + w / 2, top - 1), (x + w, top + 3)])
-        pygame.draw.line(s, tuple(min(255, c + 30) for c in col), (x, top + 3), (x, 27))      # (lit side)
-        pygame.draw.line(s, (60, 40, 22), (x + w - 1, top + 3), (x + w - 1, 27))               # (shadow side)
-        pygame.draw.circle(s, (200, 170, 120), (int(x + w / 2), top + 1), 1)                   # (cut point)
-    for y in (10, 21):                                                                          # lashings
-        pygame.draw.line(s, (70, 56, 40), (0, y), (31, y))
-    return s
-
-
 def cargo():
     """Crates and a sack piled high: nobody sees past them."""
     s = pygame.Surface((32, 32), pygame.SRCALPHA)
@@ -105,7 +84,7 @@ def draw_pictures():
     pygame.init()
     pygame.display.set_mode((1, 1))
     tiles = os.path.join(SPR, "Tiles")
-    for name, img in (("Palisade001", palisade()), ("Cargo_Stack001", cargo()), ("Campfire001", campfire())):
+    for name, img in (("Cargo_Stack001", cargo()), ("Campfire001", campfire())):   # (the palisade: build_palisades.py)
         pygame.image.save(img, os.path.join(tiles, name + ".png"))
     for new, old in (("Suspicious_Barrel001", "Barrel001"), ("Tunnel_Ladder001", "Ladder001"),
                      ("Tunnel_Ladder002", "Ladder001")):

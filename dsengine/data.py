@@ -25,6 +25,17 @@ class GameData:
         self._caches = {}
         self.index_sprites()
         self.read_config()
+        self.read_display_names()
+
+    def read_display_names(self):
+        """Display.Name= of every Entities.ini and Tiles.ini entry: what the player sees it called (lb.pretty)."""
+        from ashen import lb
+        lb.DISPLAY_NAMES.clear()
+        for f in ("Tiles.ini", "Entities.ini"):
+            for sec, items in ini.sections(self.data_file(f)):
+                shown = next((v.strip() for k, v in items if k.upper() == "DISPLAY.NAME" and v.strip()), "")
+                if shown:
+                    lb.DISPLAY_NAMES[sec.upper()] = shown
 
     # =================================================================================================================
     # Files

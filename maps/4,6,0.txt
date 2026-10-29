@@ -20,16 +20,16 @@ Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Gra
 Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Cat	64	120	Attitude=Good Zone=2,2,8,9 Pause=4-12
-NPC	Greengrocer	224	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_339 Name=Oswald
-NPC	Greengrocer	416	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_341 Name=Gilbert
-NPC	Greengrocer	608	88	Attitude=Good Stand=1 Face=S Id=Southport_Greengrocer_343 Name=Fred
-NPC	Barkeep	288	312	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_353 Name=Agnes
-NPC	Barmaid	352	408	Attitude=Good Zone=7,13,13,14 Pause=3-9 Id=Southport_Barmaid_354 Name=Greta
-NPC	Barkeep	608	312	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_366 Name=Fred
-NPC	Barmaid	672	408	Attitude=Good Zone=17,13,23,14 Pause=3-9 Id=Southport_Barmaid_367 Name=Clara
+NPC	Greengrocer	224	88	Attitude=Good Stand=1 Face=S Id=Northport_Greengrocer_339 Name=Oswald
+NPC	Greengrocer	416	88	Attitude=Good Stand=1 Face=S Id=Northport_Greengrocer_341 Name=Gilbert
+NPC	Greengrocer	608	88	Attitude=Good Stand=1 Face=S Id=Northport_Greengrocer_343 Name=Fred
+NPC	Barkeep	288	312	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_353 Name=Agnes
+NPC	Barmaid	352	408	Attitude=Good Zone=7,13,13,14 Pause=3-9 Id=Northport_Barmaid_354 Name=Greta
+NPC	Barkeep	608	312	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_366 Name=Fred
+NPC	Barmaid	672	408	Attitude=Good Zone=17,13,23,14 Pause=3-9 Id=Northport_Barmaid_367 Name=Clara
 StaticObject	Shardstone	64	32
-StaticObject	Notice	64	98	Id=Southport_Notice_313
+StaticObject	Notice	64	98	Id=Northport_Notice_313
 StaticObject	Sign_Pub	224	464
 StaticObject	Sign_Pub	544	464
-StaticObject	Notice	448	450	Id=Southport_Notice_368
-Id	Waystone_Southport	3	3
+StaticObject	Notice	448	450	Id=Northport_Notice_368
+Id	Waystone_Northport	3	3

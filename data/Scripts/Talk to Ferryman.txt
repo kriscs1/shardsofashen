@@ -2,10 +2,10 @@
 01	>On.Map	3,2,0	10
 02	Get.Value	ATTRIBUTE	Passage	Variable.1$
 03	>Conditional	$Variable.1>=5	08
-04	Display.Conversation	Ferryman	Northgate, is it? A gold coin a crossing.	Yes, take me (1 gold).	05	Not today.	16
+04	Display.Conversation	Ferryman	Northport, is it? A gold coin a crossing.	Yes, take me (1 gold).	05	Not today.	16
 05	>Got.Item	Gold_Coin(s)	1	15
 06	Take.Item	Gold_Coin(s)	1
-07	Goto.Script	Ferry to Southport
+07	Goto.Script	Ferry to Northport
 08	Display.Conversation	Ferryman	Cross the strait? Not in this fog, friend. Old Tobias was the only one who could find the way, with that compass of his, and nobody's seen him since the hobgoblins came. Bess would tell you the same: it's her boat.	I see.	16
 09	End
 10	>On.Map	4,4,0	16

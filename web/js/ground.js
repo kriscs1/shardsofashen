@@ -41,6 +41,9 @@ function info(name) {
     tex: tileIni(name, "Blend.Texture", name) || name,
     texture: tileIni(name, "Texture", ""),
     water: flag("Water"),
+    // (a diagonal shore piece, Water002-009 or <Land>_Water002-009: the corner its land is in - region_tiles.py)
+    shore: (/(?:^|_)Water00([2-9])$/.exec(name) || [])[1] ? { 2: "NE", 3: "NE", 4: "NW", 5: "NW", 6: "SW", 7: "SW",
+      8: "SE", 9: "SE" }[/(?:^|_)Water00([2-9])$/.exec(name)[1]] : "",
     wade: decor && tileIni(name, "Foam", "1").trim() === "0",   // (Foam=0: reeds, lily pads - in the water, not land)
   };
   cache.info.set(name, i);
@@ -147,9 +150,9 @@ export function invalidateMap(name) {
 }
 
 // ----- painting one cell
-function blendSurface(texName, maskName, gx, gy) {
+function blendSurface(texName, maskName, gx, gy, taper = "") {
   const big = info(texName).texture ? texture(info(texName).texture) : null;
-  let key = texName + "|" + maskName;
+  let key = texName + "|" + maskName + "|" + taper;
   let sx = 0, sy = 0;
   if (big) {
     sx = ((gx * G.tw) % big.width + big.width) % big.width;
@@ -169,8 +172,38 @@ function blendSurface(texName, maskName, gx, gy) {
   else x.drawImage(t, 0, 0);
   x.globalCompositeOperation = "destination-in";
   x.drawImage(mk, 0, 0);
+  if (taper) taperBand(x, maskName.replace(/^Blend_/, "").replace(/\d$/, ""), taper);
   cache.blend.set(key, c);
   return c;
+}
+
+// (a straight band of land narrowing to nothing at its end, at 45 degrees: the diagonal shore beside it starts at the
+// corner they share, so the coast runs on without a step. side: the band's side; ends: "E"/"W" or "N"/"S" along it)
+const BAND = 9;
+function taperBand(x, side, ends) {
+  const S = G.tw;
+  const at = (u, v, end) => {                    // (u along the band toward its tapered end, v into the tile)
+    const uu = end === "E" || end === "S" ? u : S - u;
+    if (side === "N") return [uu, v];
+    if (side === "S") return [uu, S - v];
+    if (side === "W") return [v, uu];
+    return [S - v, uu];
+  };
+  x.globalCompositeOperation = "destination-out";
+  for (const end of ends) {
+    const pts = [[S - BAND, S + 1], [S - BAND, BAND], [S + 1, -1], [S + 1, S + 1]].map(([u, v]) => at(u, v, end));
+    x.beginPath();
+    x.moveTo(...pts[0]);
+    for (const pt of pts.slice(1)) x.lineTo(...pt);
+    x.closePath();
+    x.fill();
+  }
+  x.globalCompositeOperation = "source-over";
+}
+
+function shoreAt(z, gx, gy) {
+  const c = cellAtTile(z, gx, gy);
+  return c && c[0] ? info(c[0]).shore : "";
 }
 
 function drawTextureCell(ctx, tex, sx, sy, dx, dy) {
@@ -204,14 +237,28 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
       if (blendLevelAt(z, gx + ddx, gy)[0] >= level || blendLevelAt(z, gx, gy + ddy)[0] >= level) level = 0;
     }
     if (level > b && tex && slantedToward(z, gx + ddx, gy + ddy, side)) level = 0;   // (its corner's cut away)
+    if (level > b && k >= 4 && (shoreAt(z, gx + ddx, gy) || shoreAt(z, gx, gy + ddy))) level = 0;   // (a diagonal
+    //  shore beside it already runs to that corner: no blob of land filling it)
+    let taper = "";
+    if (level > b && k < 4) {                    // (an end of the band where a diagonal shore's coast starts)
+      const along = ddy ? [[1, 0, "E", "W"], [-1, 0, "W", "E"]] : [[0, 1, "S", "N"], [0, -1, "N", "S"]];
+      for (const [ex, ey, end, back] of along) {
+        // (beside this tile, its land on the band's side and toward that end; or beside the land, its land on the
+        //  band's side and back toward it: either way its coast runs from this tile's corner there)
+        const by = shoreAt(z, gx + ex, gy + ey), past = shoreAt(z, gx + ex + ddx, gy + ey + ddy);
+        if ((by && by.includes(side) && by.includes(end)) || (past && past.includes(side) && past.includes(back))) {
+          taper += end;
+        }
+      }
+    }
     if (level > b && tex) {
       const variant = 1 + (Math.abs((gx + 1) * 7 + (gy + 1) * 13) % 2);
-      found.push([level, found.length, tex, "Blend_" + side + variant]);
+      found.push([level, found.length, tex, "Blend_" + side + variant, taper]);
     }
   });
   found.sort((a, b2) => a[0] - b2[0] || a[1] - b2[1]);
-  for (const [, , tex, maskName] of found) {
-    const s = blendSurface(tex, maskName, gx, gy);
+  for (const [, , tex, maskName, taper] of found) {
+    const s = blendSurface(tex, maskName, gx, gy, taper);
     if (s) ctx.drawImage(s, dx, dy);
     else ch.missing = true;
   }

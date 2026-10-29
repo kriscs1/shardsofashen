@@ -14,7 +14,7 @@
 13	Give.Item	Cooked_Salmon	1
 14	End
 15	Display.Message	DarkRed	..but accidentally burn it!	Fail
-16	Give.Item	Burnt_Fish	1
+16	Give.Item	Burnt_Herring	1
 17	End
 18	Display.Message	DarkRed	You don't have any Raw Salmon.	Denied
 19	End

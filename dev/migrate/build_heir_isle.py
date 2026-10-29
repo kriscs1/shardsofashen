@@ -22,13 +22,13 @@ save you from the dragon that takes the firstborn heir of every generation. You 
      (2,2,-2), behind a locked door in the caves (2,1,-2): four hobgoblins (the entry script puts back the ones
      killed, when someone comes in again), the key in the corner barrel, Tobias in a cage you pick the lock of. A
      ladder up to their camp (2,2,0), in a tent: only a tent until you've climbed it from below. In the house, a
-     floorboard squeaks: stand on it, search it, the compass. Bess sails you to Northgate.
+     floorboard squeaks: stand on it, search it, the compass. Bess sails you to Northport.
 Characters made before this story keep what they had done (session.heir_story_from_old_save).
 
 The Isle teaches the world as you go, in what people say and give you: Edwin hands over Mary's jar of Shards (the
 world's magic: the count under your health); Maren gives healing draughts (herbs mend a body, Shards can't); Frank
 gives his old dagger to break down for its Shard (Dismantle); Brother Aldous, in the caves, shows you a dead beast's
-Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Bess, at Northgate, the shardstone.
+Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Bess, at Northport, the shardstone.
 """
 import os
 import random
@@ -645,7 +645,7 @@ def camp():
     if K.has_id(m, "Hobgoblin_Camp"):
         return
     x1, y1, x2, y2 = CAMP
-    for y in range(y1, y2 + 1):                                  # (the palisade's logs stand alone: no joins)
+    for y in range(y1, y2 + 1):                                  # (Palisade001 all round: build_palisades.py joins it)
         for x in range(x1, x2 + 1):
             if (x in (x1, x2) or y in (y1, y2)) and (x, y) != GATE:
                 m.set(x, y, tile="Grass001", decor="Palisade001")
@@ -739,7 +739,7 @@ def niche_and_pier():
         s.ents = [ln.replace("NPC\tWoman\t", "NPC\tFerryman\t").replace("Name=Maren", "Name=Wim")
                   if ln.startswith("NPC\tWoman\t") and "Name=Maren" in ln else ln for ln in s.ents]
         s.save()
-        print("1,3,0: Wim the ferryman on Northgate's pier")
+        print("1,3,0: Wim the ferryman on Northport's pier")
     k = Map("2,4,-2")
     if K.ents_without(k, lambda f: f[:2] == ["MapItem", "Beggars_House_Key"]):
         k.save()
@@ -1040,9 +1040,9 @@ def bess_and_frank():
         ("Update.Attribute", "Passage", "=5"),
         ("Display.Message", "Yellow", "Quest complete: Passage to the Mainland!", "Quest"),
         say("Milkmaid", "Father's compass! And Father home safe, all thanks to you. Oh, come here, love.\\I'll take you "
-                        "across to Northgate myself, right now. After that Wim can ferry you back and forth: he'll steer "
-                        "by Father's compass now.", ("Take me to Northgate.", "@sail"), ("Not yet.", "@later")),
-        ("@sail",), ("Goto.Script", "Bess Sails to Southport"),
+                        "across to Northport myself, right now. After that Wim can ferry you back and forth: he'll steer "
+                        "by Father's compass now.", ("Take me to Northport.", "@sail"), ("Not yet.", "@later")),
+        ("@sail",), ("Goto.Script", "Bess Sails to Northport"),
         ("@later",), say("Milkmaid", "Whenever you're ready, Wim's on the pier.", ("Thank you, Bess.", "@end")),
         ("End",),
         ("@nofather",),
@@ -1054,16 +1054,16 @@ def bess_and_frank():
                         "hobgoblins have his keys, down in their lair under the chapel.", ("I'm on it.", "@end")),
         ("@end",), ("End",),
     ])
-    w("Bess Sails to Southport", [
+    w("Bess Sails to Northport", [
         ("Display.Message", "Cyan", "Bess takes the tiller, her father's compass in her hand, and the Isle slips away "
                                     "into the fog..", "-"),
         ("Play.Sound", "Boat"),
         ("Toggle.User.Input", "OFF"),
         ("Wait", "3"),
         ("Toggle.User.Input", "ON"),
-        ("Teleport", "Southport_Pier", "-"),
-        ("Display.Message", "Yellow", "..and the fog lifts over Northgate harbour.", "-"),
-        say("Milkmaid", "There's Northgate. Its shardstone stands by the market: feed it a few Shards and it wakes, and "
+        ("Teleport", "Northport_Pier", "-"),
+        ("Display.Message", "Yellow", "..and the fog lifts over Northport harbour.", "-"),
+        say("Milkmaid", "There's Northport. Its shardstone stands by the market: feed it a few Shards and it wakes, and "
                         "after that it'll carry you to any other shardstone you've woken. Mind your Shards, love, and "
                         "come home sometimes.", ("Goodbye, Bess.", "@off")),
         ("@off",),
@@ -1397,11 +1397,11 @@ def ferry_scripts():
         (">On.Map", "3,2,0", "@southport"),
         ("Get.Value", "ATTRIBUTE", "Passage", V1),
         (">Conditional", "$Variable.1>=5", "@fog"),
-        say("Ferryman", "Northgate, is it? A gold coin a crossing.", ("Yes, take me (1 gold).", "@pay"),
+        say("Ferryman", "Northport, is it? A gold coin a crossing.", ("Yes, take me (1 gold).", "@pay"),
             ("Not today.", "@end")),
         ("@pay",), (">Got.Item", "Gold_Coin(s)", "1", "@nogold"),
         ("Take.Item", "Gold_Coin(s)", "1"),
-        ("Goto.Script", "Ferry to Southport"),
+        ("Goto.Script", "Ferry to Northport"),
         ("@fog",),
         say("Ferryman", "Cross the strait? Not in this fog, friend. Old Tobias was the only one who could find the way, "
                         "with that compass of his, and nobody's seen him since the hobgoblins came. Bess would tell you "

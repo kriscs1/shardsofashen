@@ -206,7 +206,7 @@ PEOPLE = {   # sprite: (what Examine says, its verbs)
     "Tobias": ("Tobias, Bess and Maren's father. The hobgoblins kept him in a cage.", "Talk to,Examine"),
     "Ferryman": ("Wim the ferryman. He smells of salt and tar.", "Talk to,Examine"),
     "Mourner": ("A mourner in black.", "Examine"),
-    "Port_Guard": ("One of Northgate's city guard, in the city's blue.", "Talk to,Examine"),
+    "Port_Guard": ("One of Northport's city guard, in the city's blue.", "Talk to,Examine"),
     "Speaker": ("The Speaker of Ashen's Parliament, in its crimson robes.", "Talk to,Examine"),
     "Mayor": ("The mayor, in a velvet cloak and a chain of office.", "Talk to,Examine"),
     "Steward": ("The King's Steward, who keeps King Rupert's Keep while the King is away.", "Talk to,Examine"),

@@ -147,8 +147,15 @@ def wildcard_match(text, pattern):
     return text == pattern
 
 
+DISPLAY_NAMES = {}      # name (upper) -> what the player sees it called: Entities.ini / Tiles.ini Display.Name=
+
+
 def pretty(name):
-    """Pine_Tree001 -> Pine Tree"""
+    """Pine_Tree001 -> Pine Tree; or its Display.Name, if it has one (its own name stays what scripts and saves use)"""
+    if DISPLAY_NAMES:
+        shown = DISPLAY_NAMES.get(str(name).upper()) or DISPLAY_NAMES.get(strip_digits(name).upper())
+        if shown:
+            return shown
     return strip_digits(name).replace("_", " ")
 
 

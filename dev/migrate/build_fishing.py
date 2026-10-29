@@ -2,7 +2,7 @@
 water where the fish gather (Entities.ini Anim.Frames: the game cycles <Name>1-4). Each spot is one kind of fish,
 and the better fish are in harder places:
 
-  * Fish_Spot       ripples                  Raw_Fish       Fishing 1    the sea round the Isle and the Southlands
+  * Fish_Spot       ripples                  Raw_Herring       Fishing 1    the sea round the Isle and the Southlands
   * Trout_Spot      ripples and a flick      Raw_Trout      Fishing 10   the Southlands' rivers and ponds, some in the Wildlands
   * Salmon_Spot     a salmon leaping         Raw_Salmon     Fishing 20   rivers and lakes of the Wildlands and the far lands
   * Swordfish_Spot  a fin cutting the water  Raw_Swordfish  Fishing 35   the sea off the far south and the Eastreach
@@ -26,7 +26,7 @@ W = C = R = None
 
 # spot: (fish, level, xp, where (Examine), what you're doing)
 SPOTS = {
-    "Fish_Spot": ("Raw_Fish", 1, "0.1", "Ripples on the water: a shoal of fish feeding near the surface.",
+    "Fish_Spot": ("Raw_Herring", 1, "0.1", "Ripples on the water: a shoal of fish feeding near the surface.",
                   "cast your line among the ripples"),
     "Trout_Spot": ("Raw_Trout", 10, "0.2", "Trout rising to snap at flies. Fishing 10.", "flick your line over the rising trout"),
     "Salmon_Spot": ("Raw_Salmon", 20, "0.35", "A salmon run: silver fish leaping. Fishing 20.",
@@ -37,7 +37,7 @@ SPOTS = {
                  "lower your line into the bubbling pool"),
 }
 FRAMES = 4
-LEVELS = {"Raw_Fish": 1, "Raw_Trout": 10, "Raw_Salmon": 20, "Raw_Swordfish": 35, "Raw_Cave_Eel": 15}
+LEVELS = {"Raw_Herring": 1, "Raw_Trout": 10, "Raw_Salmon": 20, "Raw_Swordfish": 35, "Raw_Cave_Eel": 15}
 
 
 # ------------------------------------------------------------------------------------------- sprites
@@ -205,7 +205,7 @@ def data():
     for spot, (fish, level, _, examine, _) in SPOTS.items():
         C.ENTITIES[spot] = [("Type", "StaticObject"), ("Use.Words", "Fish"), ("Examine.Info", examine),
                             ("Solid", "0"), ("Anim.Frames", str(FRAMES)), ("Anim.Speed", "220")]
-    wheres = {"Raw_Fish": "Fish spots (ripples) in the sea round the Isle and the Southlands",
+    wheres = {"Raw_Herring": "Fish spots (ripples) in the sea round the Isle and the Southlands",
               "Raw_Trout": "Trout spots on the Southlands' rivers and ponds, and some in the Wildlands",
               "Raw_Salmon": "Salmon spots on the rivers and lakes of the Wildlands and the far lands",
               "Raw_Swordfish": "Swordfish spots in the sea off the far south and the Eastreach",

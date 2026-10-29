@@ -3,7 +3,7 @@ out onto the bank, a beach or a rock for a while, then slip back in.
 
   * Otter (the river by Ashford, the Saltmarsh): sits up on the bank. Drops Otter_Pelt (two make a Fur_Cap: Crafting),
     and now and then the trout it was eating.
-  * Seal (Northgate's harbour): hauls out to lie on the beach, and barks (Calls=Seal_Bark). Drops Seal_Pelt (two make
+  * Seal (Northport's harbour): hauls out to lie on the beach, and barks (Calls=Seal_Bark). Drops Seal_Pelt (two make
     Sealskin_Boots: Crafting) and Seal_Blubber: oily bait the salmon and the swordfish like better than worms.
   * Frog (Ashford's lily pond, the Isle's pond, the Saltmarsh): hops, croaks (Calls=Croak). Drops Frog_Legs: cook them
     on a fire, a fireplace or a range (Cooked_Frog_Legs).
@@ -455,7 +455,7 @@ def scripts():
 
 # ---------------------------------------------------------------- where they live
 PLACES = [   # map, the zone (tiles: water and the bank by it), how many of what
-    ("1,3,0", (14, 2, 24, 8), "Seal", 2),          # (Northgate's harbour and its beach)
+    ("1,3,0", (14, 2, 24, 8), "Seal", 2),          # (Northport's harbour and its beach)
     ("3,3,0", (14, 11, 21, 19), "Otter", 2),       # (the river past Ashford)
     ("3,4,0", (9, 15, 14, 20), "Frog", 2),         # (Ashford's lily pond)
     ("1,7,0", (6, 4, 18, 12), "Otter", 1),         # (the Saltmarsh)

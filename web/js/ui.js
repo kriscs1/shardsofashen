@@ -999,12 +999,10 @@ export function invSlotPos(i) {
 }
 
 function digits(ctx, text, x, y) {
-  let dx = x;
-  for (let ch of text) {
-    if (ch === "K" || ch === "M") ch = "+";
-    const d = sprite("InterfaceNumber" + ch);
-    if (d) { ctx.drawImage(d, dx, y + 2); dx += d.width + 1; }
-  }
+  // (how many: in the game's own lettering, big enough to read, pale gold with a dark edge so it shows on any item)
+  const size = 10;
+  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1]]) drawText(ctx, text, x + 1 + dx, y + dy, size, true, [24, 14, 8]);
+  drawText(ctx, text, x + 1, y, size, true, [255, 232, 150]);
 }
 
 function qtyText(q) {
@@ -1138,22 +1136,29 @@ function drawBox(ctx) {
     // (a notice's first line in capitals - THE OLD BRICK HOUSE - is its heading: gold, and a gap after it)
     let heading = "";
     if (parts.length > 1 && /[A-Z]/.test(parts[0]) && parts[0] === parts[0].toUpperCase()) heading = parts.shift();
-    let sz = 9, lineH = 14, lines = [];
-    for (sz of [11, 10, 9]) {
-      lineH = Math.max(14, fontPx(sz) + 3);
-      lines = [];
-      for (const part of parts) lines.push(...wrapLines(ctx, part, maxW, sz, true));
-      if (lines.length * lineH + (heading ? lineH + 8 : 0) <= h - 64) break;
-    }
+    // (always one size: what doesn't fit goes on the next page - "Read on..." - and the answers come on the last)
+    const sz = 10, lineH = Math.max(14, fontPx(sz) + 3);
+    const lines = [];
+    for (const part of parts) lines.push(...wrapLines(ctx, part, maxW, sz, true));
+    const room = Math.max(1, Math.floor((h - 64) / lineH));
+    const first = Math.max(1, room - (heading ? 2 : 0));         // (the heading takes the first page's top)
+    const pages = lines.length <= first ? 1 : 1 + Math.ceil((lines.length - first) / room);
+    b.tpages = pages;
+    b.tpage = Math.min(b.tpage || 0, pages - 1);
+    b.responses = b.tpage < pages - 1 ? ["Read on..."] : (b.answers || b.responses);
+    const shown = b.tpage === 0 ? lines.slice(0, first) : lines.slice(first + (b.tpage - 1) * room, first + b.tpage * room);
     let y = 54;
-    if (heading) {
+    if (heading && b.tpage === 0) {
       drawText(ctx, heading, x0 + titleX, y0 + y, 11, true, [255, 214, 110]);
       y += lineH + 8;
     }
-    for (const ln of lines) {
-      if (y + lineH > h - 10) break;
+    for (const ln of shown) {
       drawText(ctx, ln, x0 + titleX, y0 + y, sz, true, [250, 240, 210]);
       y += lineH;
+    }
+    if (pages > 1) {
+      const t = `${b.tpage + 1}/${pages}`;
+      drawText(ctx, t, x0 + w - 28 - textWidth(ctx, t, 8, true), y0 + h - 22, 8, true, [212, 191, 126]);
     }
     return;
   }

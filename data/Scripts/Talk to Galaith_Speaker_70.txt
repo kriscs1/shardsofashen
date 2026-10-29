@@ -11,5 +11,5 @@
 10	Update.Attribute	GuardQuest	=4
 11	Display.Conversation	Chancellor	The Archivist's seal, in green. Then it is true.\My $Player.Lord. Forgive an old man his doubts. Here is my warrant: show it to the captain of the guard.	Thank you, Chancellor.	14
 12	End
-13	Display.Conversation	Chancellor	The Parliament of Ashen will return from Northgate, now the road is open. There is much to do.	Goodbye.	14
+13	Display.Conversation	Chancellor	The Parliament of Ashen will return from Northport, now the road is open. There is much to do.	Goodbye.	14
 14	End

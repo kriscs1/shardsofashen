@@ -71,7 +71,7 @@ SETTLEMENTS = {
     "Galaith": dict(title="Galaith", size="huge", maps=(-10, 11, -4, 14), street="Marble_Paving001", outer="Cobble001",
                     walls=[("Plaster001", 4), ("Stone_Wall001", 4), ("Brick001", 2)], grand="Stone_Wall001", coast=None,
                     land="meadow"),
-    "Southport": dict(title="Northgate", size="large", maps=(2, 4, 5, 6), street="Brick_Paving001", outer="Cobble001",
+    "Northport": dict(title="Northport", size="large", maps=(2, 4, 5, 6), street="Brick_Paving001", outer="Cobble001",
                       walls=[("Brick001", 5), ("Plaster001", 3), ("Timber001", 2)], grand="Stone_Wall001", coast="N",
                       land="meadow"),
     "Keep": dict(title="King Rupert's Keep", size="medium", maps=(21, 10, 23, 12), street="Cobble001",
@@ -183,8 +183,8 @@ POIS = {
 
 # The roads: settlement to settlement or place, the main ones first (they're laid first; the rest join them)
 ROADS = [
-    ("Southport", "Ashford"), ("Ashford", "Farm"), ("Farm", "Wardhaven_Bridge"), ("Farm", "Hollow_Barrel"),
-    ("Hollow_Barrel", "Court"), ("Southport", "Oakhollow"), ("Oakhollow", "Wildwood"), ("Oakhollow", "Moorcross"),
+    ("Northport", "Ashford"), ("Ashford", "Farm"), ("Farm", "Wardhaven_Bridge"), ("Farm", "Hollow_Barrel"),
+    ("Hollow_Barrel", "Court"), ("Northport", "Oakhollow"), ("Oakhollow", "Wildwood"), ("Oakhollow", "Moorcross"),
     ("Ashford", "Moorcross"), ("Moorcross", "Galaith_Pass"), ("Moorcross", "Thornwick"), ("Thornwick", "Keep"),
     ("Keep", "Iron_Mine"), ("Court", "Emberwatch"), ("Emberwatch", "Cinder_Fort"), ("Thornwick", "Emberwatch"),
     ("Moorcross", "Highwatch"), ("Highwatch", "Frosthold"), ("Highwatch", "Fenwick"), ("Fenwick", "Saltmarsh"),
@@ -195,14 +195,14 @@ ROADS = [
     ("Frosthold", "Frost_Caverns"), ("Moorcross", "Wolf_Den"), ("Highwatch", "Bandit_Camp"),
     ("Frosthold", "Troll_Lair"), ("Emberwatch", "Shrine_1"), ("Emberwatch", "Shrine_3"), ("Emberwatch", "Shrine_2"),
     ("Thornwick", "Heartwood"), ("Ravensgate", "Barrow"), ("Ravensgate", "Downs_Graves"), ("Ravensgate", "Hill_Graves"),
-    ("Court", "Smugglers_Cove"), ("Farm", "Herbalist"), ("Southport", "Watch_Stone_1"), ("Wildwood", "Watch_Stone_2"),
+    ("Court", "Smugglers_Cove"), ("Farm", "Herbalist"), ("Northport", "Watch_Stone_1"), ("Wildwood", "Watch_Stone_2"),
     ("Oakhollow", "Watch_Stone_3"),
 ]
 
 # Rivers: world tiles (gx, gy) from the hills to the sea
 RIVERS = [
     [(3 * XT + 10, 9 * YT + 15), (5 * XT + 4, 8 * YT + 10), (7 * XT + 6, 7 * YT + 2), (7 * XT + 20, 5 * YT + 10),
-     (8 * XT + 4, 4 * YT + 2)],                                         # the Wildwood's river, out by Northgate
+     (8 * XT + 4, 4 * YT + 2)],                                         # the Wildwood's river, out by Northport
     [(13 * XT + 3, 15 * YT + 8), (11 * XT + 6, 16 * YT + 8), (9 * XT + 12, 17 * YT + 14), (8 * XT + 20, 19 * YT + 16),
      (7 * XT + 12, 20 * YT + 18)],                                     # (on through the new fens to the sea)
     [(19 * XT + 2, 9 * YT + 10), (20 * XT + 6, 12 * YT + 19), (21 * XT + 10, 13 * YT + 12), (24 * XT + 2, 14 * YT + 3)],

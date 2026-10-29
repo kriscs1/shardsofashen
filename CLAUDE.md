@@ -59,17 +59,17 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
    Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
    a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
-   squeaks: stand on it, then Search it, for the compass. Bess sails you to Northgate; **Wim** the ferryman crosses
+   squeaks: stand on it, then Search it, for the compass. Bess sails you to Northport; **Wim** the ferryman crosses
    for a coin after that.
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
 old dagger to break down for a Shard (Dismantle), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and
-the Grasp scroll (learnt for good, cast for Shards), and Bess points out Northgate's shardstone. Anything new a player
+the Grasp scroll (learnt for good, cast for Shards), and Bess points out Northport's shardstone. Anything new a player
 must learn early is taught the same way, on the Isle.
 
 On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
-5. **The Temporary Capital** (`ParliamentQuest`): the guard at Northgate's port; the **Speaker** in Northgate's City
+5. **The Temporary Capital** (`ParliamentQuest`): the guard at Northport's port; the **Speaker** in Northport's City
    Hall, which is Ashen's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
    Court** (the old King's Castle, 21,5,0; Bert at the top of its tower, 21,5,1), can break the barrier.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
@@ -244,7 +244,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   on maps with columns below 0; the dragon guards its scorched field before the gate, and the barrier fills the pass
   through the range. Land looks natural: no straight edges to coasts, mountains or deserts. The quest places are lifted from the old maps
   (`world_parts`) and set down at their old tiles, so scripts' coordinates stay right.
-- Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northgate a
+- Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate
   medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
   villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
@@ -275,15 +275,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 ## Look and sound
 
 - The game is **Shards of Ashen** (the page, the app, the docs), the kingdom **Ashen** (it was Estforlan), and the
-  port city **Northgate** (it was Southport). Everything else is named for it too
+  port city **Northport** (it was Southport, then Northport). Everything else is named for it too
   (`dev/migrate/rename_shards_of_ashen.py`): the GitHub repository `kriscs1/shardsofashen`, the Docker image
   `ghcr.io/kriscs1/shardsofashen`,
   the Python package `ashen/`, the database `ashen.db` (an old `dragonsword.db` beside it is moved over as the server
   starts), the Android app `io.github.kriscs1.shardsofashen`, and "Shards of Ashen Editor.py". Not the weapon (the
   Dragon Sword, `Dragon_Sword`) or `dsengine/`, `dsedit/` and the `DS_` settings. The builders keep `estforlan` in their
-  file names, and Northgate's Ids keep Southport (`Southport_Square`,
-  `Waystone.Southport`, the builders' town key "Southport", whose `title` is what's shown): rename only what players
-  read (`dev/migrate/rename_ashen.py`).
+  file names. Northport's Ids, scripts, shardstone and builders' town key are Northport too (`Northport_Square`,
+  `Waystone.Northport`: `dev/migrate/rename_northport.py`; a save's `Waystone.Southport` is read as Northport's,
+  `renames.py` RENAMED_WORDS). Its landing and its port are one place, `Northport_Port`; the ferry's pier is
+  `Northport_Pier`.
 - A character is a man or a woman (`look.body`: `f` is a woman, the `PlayerF` sprites, long hair and a skirt, drawn by
   `build_player.py`); the look's colours recolour either. Anything drawn on a player works on both.
 

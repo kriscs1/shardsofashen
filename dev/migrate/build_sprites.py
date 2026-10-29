@@ -7,7 +7,7 @@ Deterministic and re-runnable: only the sprites in SPRITES are (re)written, and 
 Format (as every LB sprite here): 24-bit BMP 32 x 64; top half = mask (black = drawn, white = see-through),
 bottom half = image (black where see-through). Items are small shaded objects; NPCs are little standing figures
 in the style of the existing ones (Miner, Farmer, Baker...). Some items are recolours of existing sprites
-(Iron_Ore, Iron_Bar, Ruby, Raw_Fish, Cooked_Fish, Basic_Potion, Bucket_of_Water) so they match exactly.
+(Iron_Ore, Iron_Bar, Ruby, Raw_Herring, Cooked_Herring, Basic_Potion, Bucket_of_Water) so they match exactly.
 """
 import math
 import os
@@ -133,7 +133,7 @@ def fish_map(src, stops):
 
 @sprite("Raw_Trout")
 def raw_trout():
-    img = fish_map("Raw_Fish", [(0.0, (30, 34, 20)), (0.35, (96, 110, 70)), (0.6, (170, 170, 130)),
+    img = fish_map("Raw_Herring", [(0.0, (30, 34, 20)), (0.35, (96, 110, 70)), (0.6, (170, 170, 130)),
                                 (0.8, (236, 196, 186)), (1.0, (255, 236, 230))])
     rng = random.Random(11)
     pts = [(x, y) for y, r in enumerate(img) for x, c in enumerate(r) if c is not None and K.lum(c) < 0.62]
@@ -145,7 +145,7 @@ def raw_trout():
 
 @sprite("Cooked_Trout")
 def cooked_trout():
-    return fish_map("Cooked_Fish", [(0.0, (40, 22, 10)), (0.35, (120, 70, 30)), (0.6, (190, 130, 70)),
+    return fish_map("Cooked_Herring", [(0.0, (40, 22, 10)), (0.35, (120, 70, 30)), (0.6, (190, 130, 70)),
                                     (0.85, (236, 190, 130)), (1.0, (255, 230, 190))])
 
 
@@ -1708,17 +1708,17 @@ def yew_logs():
 
 @sprite("Raw_Salmon")
 def raw_salmon():
-    return fish_map("Raw_Fish", [(0.0, (60, 30, 30)), (0.3, (150, 80, 76)), (0.6, (226, 130, 116)), (1.0, (255, 214, 200))])
+    return fish_map("Raw_Herring", [(0.0, (60, 30, 30)), (0.3, (150, 80, 76)), (0.6, (226, 130, 116)), (1.0, (255, 214, 200))])
 
 
 @sprite("Cooked_Salmon")
 def cooked_salmon():
-    return fish_map("Cooked_Fish", [(0.0, (60, 26, 14)), (0.3, (160, 80, 40)), (0.6, (226, 140, 84)), (1.0, (255, 220, 170))])
+    return fish_map("Cooked_Herring", [(0.0, (60, 26, 14)), (0.3, (160, 80, 40)), (0.6, (226, 140, 84)), (1.0, (255, 220, 170))])
 
 
 @sprite("Raw_Swordfish")
 def raw_swordfish():
-    img = fish_map("Raw_Fish", [(0.0, (14, 24, 50)), (0.3, (50, 80, 130)), (0.6, (110, 150, 200)), (1.0, (220, 236, 255))])
+    img = fish_map("Raw_Herring", [(0.0, (14, 24, 50)), (0.3, (50, 80, 130)), (0.6, (110, 150, 200)), (1.0, (220, 236, 255))])
     pts = [(x, y) for y, r in enumerate(img) for x, c in enumerate(r) if c is not None]
     if pts:                                               # the sword: a long bill out of the front of its head
         x0 = min(x for x, y in pts)
@@ -1731,7 +1731,7 @@ def raw_swordfish():
 
 @sprite("Cooked_Swordfish")
 def cooked_swordfish():
-    return fish_map("Cooked_Fish", [(0.0, (40, 30, 20)), (0.3, (120, 96, 70)), (0.6, (196, 168, 130)), (1.0, (250, 236, 210))])
+    return fish_map("Cooked_Herring", [(0.0, (40, 30, 20)), (0.3, (120, 96, 70)), (0.6, (196, 168, 130)), (1.0, (250, 236, 210))])
 
 
 @sprite("Meat_Pie")

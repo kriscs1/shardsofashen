@@ -13,7 +13,10 @@ RENAMED_ITEMS = {
     "Stone_Skin_Scroll": "Shard_Ward_Scroll",
     "Stone_Skin": "Shard_Ward",
     "Access_Crystal": "Hearth_Anchor",                # (build_pocket.py: it holds your pocket of the realm's rim)
-    "Staff_of_Estforlan": "Staff_of_Ashen",          # (rename_ashen.py: the kingdom is Ashen)                      # (the spell, as it was learnt)
+    "Staff_of_Estforlan": "Staff_of_Ashen",          # (rename_ashen.py: the kingdom is Ashen)
+    "Raw_Fish": "Raw_Herring",                       # (rename_fish.py: the sea's fish is a herring)
+    "Cooked_Fish": "Cooked_Herring",
+    "Burnt_Fish": "Burnt_Herring",
 }
 RENAMED_SKILLS = {
     "Herblore": "Alchemy",
@@ -28,6 +31,9 @@ SKILL_NAMES = {                                      # (rename_skills.py: old na
 }
 RENAMED_QUESTS = {                                   # (build_heir_isle.py: the Isle's bank is Edwin and Maren's house)
     "Dinner at the Bank": "Dinner at Edwin's",
+}
+RENAMED_WORDS = {                                    # (rename_northport.py: in an attribute's name, Waystone.Southport)
+    "Southport": "Northport",
 }
 RENAMED_MAPS = {                                     # (move_levels.py: levels of their own, moved further off)
     "0,0,5": "0,0,10",

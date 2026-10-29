@@ -23,13 +23,13 @@
 22	Display.Conversation	Bert	I study the arcane arts up here, far from the noise of the court.\I sell spell scrolls, though they don't come cheap. Or I can send you anywhere I've been.	Show me your scrolls.	23	Can you teleport me?	25	Goodbye.	34
 23	Display.Item.Rack	SPECIFIC	Bert	SHOP-Wizard	34
 24	End
-25	Display.Conversation	Bert	Where to?	To the Isle.	26	To Northgate.	30	Nowhere, thanks.	34
+25	Display.Conversation	Bert	Where to?	To the Isle.	26	To Northport.	30	Nowhere, thanks.	34
 26	Play.Sound	Teleporter
 27	Display.Message	Yellow	Bert waves his hands, and the world spins...
 28	Teleport	Isle_Landing	-
 29	End
 30	Play.Sound	Teleporter
 31	Display.Message	Yellow	Bert waves his hands, and the world spins...
-32	Teleport	Southport_Landing	-
+32	Teleport	Northport_Port	-
 33	End
 34	End
