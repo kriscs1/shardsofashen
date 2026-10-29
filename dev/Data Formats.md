@@ -241,7 +241,10 @@ Type=Shop
 Buy.Rate=1.2              ; player pays Value*Buy.Rate
 Sell.Rate=0.8             ; player receives Value*Sell.Rate
 Item1=Tinderbox,3         ; Name,stock (bought stock comes back after Config [Gameplay] Shop.Restock.Seconds,
-                          ; up to 4x longer for dear items; "+" = never runs out)
+                          ; up to 4x longer for dear items; "+" = never runs out). The stock is the most it
+                          ; has: each delivery (Shop.Stock.Hours) it has a third of it up, now and then none
+                          ; (Shop.Sold.Out percent), while Config Shop.Vary.Stock=1
+Vary.Stock=0              ; (optional) this shop always has its full stock (1: it varies, whatever Config says)
 Item2=Bucket,2
 [CRAFT-Cooking]
 Type=Craft

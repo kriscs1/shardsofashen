@@ -317,19 +317,19 @@ def sounds():
 
 # ---------------------------------------------------------------- the data
 ANIMALS = {
-    "Otter": [("Type", "NPC"), ("Attitude", "Bad"), ("Examine.Info", "An otter, sleek and wet, never still for long."),
+    "Otter": [("Type", "NPC"), ("Attitude", "Passive"), ("Examine.Info", "An otter, sleek and wet, never still for long."),
               ("Hitpoints", "8"), ("Attack.Speed", "1"), ("Strength", "1"), ("Defence", "2"), ("Aggro.Range", "0"),
               ("Aggressive", "0"), ("Movement.Speed", "2.4"), ("Walk.Speed", "0.5"), ("Roam.Radius", "4"),
               ("Chase.Radius", "0"), ("Pause", "2-7"), ("Respawn", "180"), ("Flees", "1"), ("Swims", "1"),
               ("States", "Sit"), ("Solid", "0"), ("Kill.Sound", "Small"),
               ("Drops", "Otter_Pelt,1-1,100 Raw_Trout,1-1,25")],
-    "Seal": [("Type", "NPC"), ("Attitude", "Bad"), ("Examine.Info", "A grey seal with big dark eyes, spotted like "
+    "Seal": [("Type", "NPC"), ("Attitude", "Passive"), ("Examine.Info", "A grey seal with big dark eyes, spotted like "
               "wet slate."), ("Hitpoints", "20"), ("Attack.Speed", "1.4"), ("Strength", "1"), ("Defence", "3"),
              ("Aggro.Range", "0"), ("Aggressive", "0"), ("Movement.Speed", "1.8"), ("Walk.Speed", "0.4"),
              ("Roam.Radius", "4"), ("Chase.Radius", "0"), ("Pause", "4-14"), ("Respawn", "300"), ("Flees", "1"),
              ("Swims", "1"), ("States", "Lie"), ("Calls", "Seal_Bark"), ("Kill.Sound", "Beast"),
              ("Drops", "Seal_Pelt,1-1,100 Seal_Blubber,1-2,100")],
-    "Frog": [("Type", "NPC"), ("Attitude", "Bad"), ("Examine.Info", "A fat green frog, all eyes and mouth."),
+    "Frog": [("Type", "NPC"), ("Attitude", "Passive"), ("Examine.Info", "A fat green frog, all eyes and mouth."),
              ("Hitpoints", "2"), ("Attack.Speed", "1"), ("Strength", "0"), ("Defence", "1"), ("Aggro.Range", "0"),
              ("Aggressive", "0"), ("Movement.Speed", "2"), ("Walk.Speed", "0.6"), ("Roam.Radius", "3"),
              ("Chase.Radius", "0"), ("Pause", "2-9"), ("Respawn", "90"), ("Flees", "1"), ("Swims", "1"),

@@ -22,8 +22,6 @@ Grass001:Grass001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Cobble001:Cobbl
 Lock	23	11	$Attr.GalaithQuest>=2	The gate is barred. Something huge breathes behind you.
 Lock	23	12	$Attr.GalaithQuest>=2	The gate is barred. Something huge breathes behind you.
 Id	Galaith_West_Gate	22	11
-NPC	Horse	666	190	Attitude=Good Stand=1 Face=E Id=Galaith_Horse_3
-NPC	Carter	640	216	Attitude=Good Stand=1 Face=S Id=Galaith_Carter_3 Name=Florence
 NPC	Farmer	96	344	Attitude=Good Zone=3,11,5,12 Pause=5-15 Id=Galaith_Resident_434 Name=Winnie
 NPC	Farmer	64	536	Attitude=Good Zone=3,16,4,18 Pause=5-15 Id=Galaith_Resident_436 Name=Lettie
 NPC	Man	288	344	Attitude=Good Zone=9,10,12,12 Pause=5-15 Id=Galaith_Resident_440 Name=Agnes
@@ -34,5 +32,4 @@ NPC	Farmer	512	152	Attitude=Good Zone=16,3,18,6 Pause=5-15 Id=Galaith_Resident_4
 StaticObject	Notice	608	194	Id=Galaith_Notice_311
 StaticObject	Notice	576	386	Id=Galaith_Notice_313
 StaticObject	Notice	480	610	Id=Galaith_Notice_315
-StaticObject	Cart	640	192
 Id	Galaith_Cart_Stop_3	22	8

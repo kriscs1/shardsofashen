@@ -4,7 +4,7 @@
 import { G, S, tileAt, cellOf } from "./state.js";
 import { A, tileIni, entityIni, size } from "./assets.js";
 import { send } from "./net.js";
-import { V, screenToWorld, entityUnder, changeZoom, roofCovers } from "./render.js";
+import { V, screenToWorld, entityUnder, changeZoom, roofCovers, markClick } from "./render.js";
 import { fogBlack } from "./sky.js";
 import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
@@ -196,6 +196,7 @@ function targetOf(e) {
 
 export function chooseVerb(verb, e, wx, wy) {
   if (verb === "Cancel" || !verb) return;
+  if (!e || (e.k !== T.INVITEM && e.k !== T.RACKITEM)) markClick(verb, e, wx, wy);   // (seen at once: render.js)
   if (verb === "Walk here") {
     if (e && e.lock !== undefined && e.k === T.TILE && !e.offMap) {
       send({ t: "verb", verb, x: wx, y: wy });

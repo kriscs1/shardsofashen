@@ -14,7 +14,7 @@ from ashen.lb import (val, word, field, trim, lbstr, distance, strip_digits, par
 
 from .data import GameData
 from .entity import (Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE,
-                     TYPE_NAMES, normalise_type, attitude_of_type, parse_attitude)
+                     TYPE_NAMES, normalise_type, attitude_of_type, parse_attitude, is_passive)
 from .maps import MapData
 from .homes import Homes
 from .farming import Farms
@@ -24,6 +24,7 @@ from .market import Market
 from .waves import Waves
 from .tavern import Tavern
 from .minigames import Arms
+from .carts import Carts
 from .npcs import NPCMixin
 
 log = logging.getLogger("ashen.world")
@@ -70,6 +71,7 @@ class World(NPCMixin):
         self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
         self.tavern = Tavern(self)      # the tavern's dice rounds
         self.arms = Arms(self)          # the arm-wrestling bouts (minigames.py)
+        self.carts = Carts(self)        # the horses and carts going round their routes (carts.py)
 
     # =================================================================================================================
     # Maps
@@ -310,6 +312,8 @@ class World(NPCMixin):
         e.weapon_range = val(d.entity_ini(n, "Weapon.Range", "0"))
         e.move_speed = d.speed_to_pixels(val(d.entity_ini(n, "Movement.Speed", "1")))
         e.aggressive = val(d.entity_ini(n, "Aggressive", "0"))
+        if is_passive(d.entity_ini(n, "Attitude", "")):
+            e.aggressive = 0                                    # (Passive: only ever fights back)
         e.respawn_delay = val(d.entity_ini(n, "Respawn", lbstr(d.npc_respawn_delay)))
         e.in_combat = False
         e.direction = 4
@@ -1468,6 +1472,7 @@ class World(NPCMixin):
         self.dt = max(0.0, min(0.1, dt))
         self.update_active()
         self.update_object_blocks()
+        self.carts.tick()                       # (before the players: its riders go with it)
         for s in list(self.sessions.values()):
             s.tick_before_npcs()
         self.update_npcs()

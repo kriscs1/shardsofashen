@@ -149,6 +149,70 @@ def test_shop_stock_is_shared(world):
     leave(world, b)
 
 
+def test_shop_stock_varies_below_the_rack(world, monkeypatch):
+    s = join(world, "Stocky")
+    d = world.data
+    counts = [s.shop_stock("SHOP-Test", "Item%d" % i, 9) for i in range(400)]
+    assert all(0 <= n <= 9 for n in counts)
+    assert 0 in counts and 9 in counts and any(0 < n < 9 for n in counts)      # (sold out, full, and between)
+    assert all(n >= 3 for n in counts if n)                                       # (a third of it, at the least)
+    assert s.shop_stock("SHOP-Test", "Item1", 9) == counts[1]                     # (the same all through a delivery)
+    assert {s.shop_stock("SHOP-Test", "Item%d" % i, 9, "0") for i in range(50)} == {9}   # (the rack's Vary.Stock=0)
+    monkeypatch.setattr(d, "shop_vary_stock", False)
+    assert {s.shop_stock("SHOP-Test", "Item%d" % i, 9) for i in range(50)} == {9}
+    assert s.shop_stock("SHOP-Test", "Item1", 9, "1") == counts[1]                # (Vary.Stock=1 wins over Config)
+    assert d.shop_restock_delay >= 3600
+    leave(world, s)
+
+
+def test_a_cart_goes_round_its_stops_and_takes_you_to_one(world):
+    carts = world.carts
+    c = next(c for c in carts.carts if c.key == "Northport")
+    e = c.e
+    assert e is not None and e.alive and len(c.stops) >= 3
+    m = world.map_at(c.z, e.cx, e.cy)
+    s = join(world, "Rider", m.name, int(e.cx - m.ox), int(e.y + e.h - m.oy) + 4)
+    s.connected = True
+    stock(s, **{"Gold_Coin(s)": 10})
+    c.wait_until = 0                                     # (off it goes)
+    x0 = e.x, e.y
+    for _ in range(20):
+        world.tick(0.05)
+    assert (e.x, e.y) != x0 and "Hail" in carts.verbs(s, e)
+    s.player.x, s.player.y = e.cx - s.player.w / 2, e.y + e.h - s.player.h + 6
+    s.choose_verb("Hail", e, e.cx, e.cy)
+    held = e.x, e.y
+    for _ in range(10):
+        world.tick(0.05)
+    assert (e.x, e.y) == held                            # (hailed: it waits)
+    s.choose_verb("Get In", e, e.cx, e.cy)
+    for _ in range(5):
+        world.tick(0.05)
+    assert s.ab_mode == "Conversation"
+    dest = carts.next_stop(c)
+    words = "To %s." % c.stops[dest]
+    s.action_box_response_chosen(s.responses.index(words) + 1)
+    assert s.ride is c and s.items_held("Gold_Coin(s)") == 10 - c.fare
+    s.keyboard_direction = 2                             # (no walking out of it)
+    for _ in range(int(60000 / 50)):
+        world.tick(0.05, now=world.now + 50)             # (the clock as fast as the ticks: its waits go by)
+        if s.ride is None:
+            break
+    s.keyboard_direction = 0
+    assert s.ride is None and c.i == dest                # (there: down they get, at the stop)
+    sx, sy = c.pts[dest]
+    assert abs(s.player.cx - sx) < 80 and abs(s.player.cy - sy) < 80
+    leave(world, s)
+
+
+def test_at_most_two_merchants_of_a_trade_in_a_place():
+    import sys
+    sys.path.insert(0, os.path.join(ROOT, "dev", "migrate"))
+    import cap_merchants
+    over = {k: [s[1] for s in v] for k, v in cap_merchants.merchants().items() if len(v) > cap_merchants.CAP}
+    assert not over
+
+
 def test_save_round_trip(world):
     a = join(world, "Kim")
     a.add_inventory_item("Logs", 3, quiet=True)
@@ -1318,8 +1382,8 @@ def test_a_tavern_has_a_room_for_the_night(world):
     s.do_action("Talk to", bar)
     for _ in range(10):
         world.tick(0.05)
-    assert s.responses[1].startswith("A room for the night")
-    s.action_box_response_chosen(2)
+    room = next(i for i, r in enumerate(s.responses, 1) if r.startswith("A room for the night"))   # (an inn's too)
+    s.action_box_response_chosen(room)
     for _ in range(10):
         world.tick(0.05)
     assert s.items_held("Gold_Coin(s)") == 5 and s.sleeping()

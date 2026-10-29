@@ -3,6 +3,8 @@
 durability.py and extras.py, for one player of many: shop stock is shared (the world's action queue), the rest is theirs."""
 import math
 import os
+import time
+import zlib
 
 from ashen import ini
 from ashen.lb import val, word, trim, lbstr, pretty, random_number
@@ -52,6 +54,7 @@ class ItemsMixin:
         if name == "" or quantity <= 0:
             return
         quantity = int(quantity)
+        self.act_done(True)                             # (what was clicked gave something: picked up, gathered)
         if name == SHARD:
             self.add_shards(quantity)                   # (onto the balance, never into the pack)
             return
@@ -258,7 +261,7 @@ class ItemsMixin:
                 r = {"item": trim(word(item, 1, ",")), "quantity": 0, "info": "", "xp": 0, "level": 0}
                 if self.rack_type == "Shop":
                     stock = trim(word(item, 2, ","))
-                    r["quantity"] = -1 if stock in ("+", "") or stock.lower() == "inf" else val(stock)
+                    r["quantity"] = -1 if stock in ("+", "") or stock.lower() == "inf" else                         self.shop_stock(rack, r["item"], val(stock), ini.read(rack, "Vary.Stock", "", f))
                 else:
                     r["info"] = trim(word(item, 2, ","))
                     r["xp"] = val(word(item, 3, ","))
@@ -285,6 +288,20 @@ class ItemsMixin:
         if d.loaded(npc):
             return npc
         return d.fallback_sprite()
+
+    def shop_stock(self, rack, item, most, vary=""):
+        """How many of item a shop has in this delivery: its rack's most, or (Shop.Vary.Stock, or the rack's own
+        Vary.Stock=1) anything from a third of it up, and now and then (Shop.Sold.Out percent) none at all. The same
+        for everyone, all through a delivery (Shop.Stock.Hours of real time); what's bought comes off it."""
+        d = self.data
+        if most <= 0 or not (trim(vary) != "0" if trim(vary) else d.shop_vary_stock):
+            return most
+        delivery = int(time.time() // (d.shop_stock_hours * 3600))
+        roll = zlib.crc32(("%s|%s|%d" % (rack, item, delivery)).encode()) / 0xFFFFFFFF
+        if roll * 100 < d.shop_sold_out:
+            return 0
+        k = (roll * 100 - d.shop_sold_out) / max(1e-9, 100 - d.shop_sold_out)     # (0..1, what's left of the roll)
+        return max(1, min(int(most), int(math.ceil(most * (1 / 3 + k * 2 / 3)))))
 
     def apply_shop_queue(self):
         """The shop's stock as everyone has left it: what's been bought and sold and not restocked yet."""
@@ -374,6 +391,7 @@ class ItemsMixin:
     def show_action_box(self, mode):
         """Shop Craft Bank Conversation: the box opens in this player's browser."""
         self.stop_player_walk()
+        self.act_done(True)
         self.ab_mode = mode
         if not self.ab_image:
             self.ab_image = "Placeholder"

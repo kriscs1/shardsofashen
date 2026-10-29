@@ -408,8 +408,8 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             continue
         if k in opts:
             report(where, "option %s given twice" % k)
-        if k == "Attitude" and v not in ("Good", "Bad"):
-            report(where, "Attitude=%r should be Good or Bad" % v)
+        if k == "Attitude" and v not in ("Good", "Bad", "Passive"):
+            report(where, "Attitude=%r should be Good, Bad or Passive" % v)
         if k == "Id" and len(npc_ids().get(v, [])) > 1:
             report(where, "Id=%s is on more than one NPC (%s): an Id names one NPC" % (v, ", ".join(npc_ids()[v])))
         opts[k] = v
@@ -1048,11 +1048,12 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Swims", "Calls",                                                 # at home in the water too (an otter); its call
                "Indoors",                                                        # 0: an animal that won't walk into a house
                "Look.Parts", "Looks",                                            # its parts' colours; its other colourings
-               "Display.Name"}                                                   # what the player sees it called
+               "Display.Name",                                                   # what the player sees it called
+               "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}                # a cart (carts.py): where its rider stands
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
                                      "Base", "Enchanted", "Enchant",
-                                     "Look.Parts", "Looks", "Display.Name"}
+                                     "Look.Parts", "Looks", "Display.Name", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1162,8 +1163,8 @@ def check_entities():
                 warn(r, "[%s] Type=%s is the old type: Type=NPC with Attitude=%s" % (sec, typ, typ[:-3]))
             else:
                 err(r, "[%s] Type=%r is not MapItem/StaticObject/NPC" % (sec, typ))
-        if typ == "NPC" and (ini.get(sec, "Attitude") or "") not in ("Good", "Bad"):
-            err(r, "[%s] is an NPC: Attitude should be Good or Bad" % sec)
+        if typ == "NPC" and (ini.get(sec, "Attitude") or "") not in ("Good", "Bad", "Passive"):
+            err(r, "[%s] is an NPC: Attitude should be Good, Bad or Passive" % sec)
         if typ == "NPC" and not (ini.get(sec, "Respawn") or "").strip():
             err(r, "[%s] is an NPC with no Respawn= (seconds before it comes back: dev\\migrate\\respawn_times.py)" % sec)
         for k, v in items:
@@ -1310,6 +1311,47 @@ def check_shards(entities_ini):
             err("data\\Entities.ini [%s]" % sec, "Level=%r should be 1-25" % lv)
 
 
+def check_carts():
+    """data\Carts.ini: each route's points on maps there are, inside them, on one level; two stops at least."""
+    path = p("data", "Carts.ini")
+    if not os.path.exists(path):
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    sys.path.insert(0, p())
+    from dsengine.carts import parse_point
+    ini = Ini(path)
+    r = rel(path)
+    for sec, items in ini.sections:
+        stops, levels = 0, set()
+        for k, v in items:
+            if k is None:
+                continue
+            if re.fullmatch(r"Point\d+", k):
+                pt = parse_point(v)
+                if pt is None:
+                    err(r, "[%s] %s=%r should be MAP,X,Y[,Stop name]" % (sec, k, v))
+                    continue
+                if not os.path.exists(p("maps", pt[0] + ".txt")):
+                    err(r, "[%s] %s: there's no map %s" % (sec, k, pt[0]))
+                if not (1 <= pt[1] <= MAP_W and 1 <= pt[2] <= MAP_H):
+                    err(r, "[%s] %s: tile %d,%d isn't on a map" % (sec, k, pt[1], pt[2]))
+                levels.add(pt[0].split(",")[2])
+                stops += 1 if pt[3] else 0
+            elif k in ("Fare", "Wait"):
+                if not is_num(v):
+                    err(r, "[%s] %s=%r should be a number" % (sec, k, v))
+            elif k == "Loop":
+                if v.strip() not in ("0", "1"):
+                    err(r, "[%s] Loop=%r should be 0 or 1" % (sec, v))
+            elif k != "Title":
+                warn(r, "[%s] %s: not a key of a cart's route" % (sec, k))
+        if stops < 2:
+            err(r, "[%s] has %d stops (a point with a name is one): it needs two" % (sec, stops))
+        if len(levels) > 1:
+            err(r, "[%s] goes over more than one level (%s)" % (sec, ", ".join(sorted(levels))))
+
+
 def check_digging():
     """data\\Digging.ini: its finds are items, their how many,weight right; a place's Maps= are maps there are."""
     path = p("data", "Digging.ini")
@@ -1360,6 +1402,8 @@ def check_itemracks(entities_ini, skills):
         typ = ini.get(sec, "Type")
         if typ not in ("Shop", "Craft"):
             err(r, "[%s] Type must be Shop or Craft" % sec)
+        if (ini.get(sec, "Vary.Stock") or "").strip() not in ("", "0", "1"):
+            err(r, "[%s] Vary.Stock must be 0 or 1" % sec)
         for k, v in items:
             if k is None or not re.fullmatch(r"Item\d+", k):
                 continue
@@ -2117,6 +2161,7 @@ def main():
     check_shards(entities_ini)
     check_deep()
     check_digging()
+    check_carts()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)
     if not quiet:

@@ -192,7 +192,7 @@ class EntityPage(IniFormPage):
 
         g = self.group(f, r, "NPC: fighting", "NPC")
         r += 1
-        self.row(g, 3, "Attitude", ttk.Combobox(g, textvariable=self.var("Attitude"), values=["", "Good", "Bad"],
+        self.row(g, 3, "Attitude", ttk.Combobox(g, textvariable=self.var("Attitude"), values=["", "Good", "Bad", "Passive"],
                                                 state="readonly", width=8),
                  "Good = friendly (Talk to), Bad = a foe (Attack). Each map line can say its own.", col=2)
         nums = (("Hitpoints", "Hitpoints"), ("Strength", "Strength"), ("Defence", None), ("Attack speed", "Attack.Speed"),

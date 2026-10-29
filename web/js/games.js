@@ -5,6 +5,7 @@
 // the moment a pin was set, each push.
 import { sprite } from "./assets.js";
 import { send } from "./net.js";
+import { coinHTML } from "./util.js";
 
 const $ = (id) => document.getElementById(id);
 const W = 200, H = 100;                 // (the table, drawn twice as big)
@@ -42,8 +43,8 @@ export function onGame(m, now) {
   if (m.game === "dice" && m.round) T.roundAt = now;
   $("tavern-game").hidden = false;
   $("game-title").textContent = m.title;
-  $("game-gold").textContent = `You have ${m.gold} gold.`;
-  $("game-note").textContent = m.note || "";
+  $("game-gold").innerHTML = coinHTML(`You have ${m.gold} gold.`);
+  $("game-note").innerHTML = coinHTML(m.note || "");
   buttons(m);
   if (!was) $("game-leave").focus();
   else if (!$("tavern-game").contains(document.activeElement)) $("tavern-game").focus();   // (its buttons made again: keys still come here)
@@ -110,7 +111,7 @@ function buttons(m) {
   for (const [text, act, main] of wanted) {
     const b = document.createElement("button");
     b.type = "button";
-    b.textContent = text;
+    b.innerHTML = coinHTML(text);
     if (main) b.className = "main";
     b.onclick = act;
     box.append(b);
@@ -211,7 +212,8 @@ function frame() {
   else if (m.game === "cups") drawCups(x, m, now);
   else if (m.game === "highlow") drawHighLow(x, m, now);
   else drawDragonDice(x, m, now);
-  $("game-say").textContent = say(m, now);
+  const said = coinHTML(say(m, now));
+  if (said !== T.said) { T.said = said; $("game-say").innerHTML = said; }   // (each frame: only when it's changed)
   T.raf = requestAnimationFrame(frame);
 }
 

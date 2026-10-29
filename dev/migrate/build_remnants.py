@@ -5,8 +5,9 @@
   * Living_Remnant ("Shard Remnant"): now and then a monster's magic rises as a monster of its own, a knot of jagged
     crystal round a violet light, as strong as the one that died, and goes for its killer; killed, it leaves more
     remnants. Its walking frames (Living_Remnant2a-c, 8a-c: it drifts), drawn here.
-  * Every hostile monster (not prey) gets a Level= (1-25, from its strength, defence and hitpoints): how many
-    remnants it leaves and how strong a remnant rising from it is. Its Drops lose their Bones and Shards.
+  * Every monster and animal that can be attacked (Bad or Passive: prey too) gets a Level= (1-25, from its strength,
+    defence and hitpoints): how many remnants it leaves and how strong a remnant rising from it is (a level 1 never
+    rises: Mob.Min.Level). Its Drops lose their Bones and Shards.
   * Shards.ini [Remnants]: the chances and numbers (only the keys missing are added: edit them there).
   * Their sounds, synthesised: Remnant_Rise (a glassy shriek, a hum) and Absorb (a rising shimmer).
 
@@ -127,8 +128,8 @@ def entities():
         ents.set("Living_Remnant", k, v)
     n = 0
     for sec, items in ents.sections:
-        if (ents.get(sec, "Type") or "") != "NPC" or (ents.get(sec, "Attitude") or "") != "Bad" or \
-                (ents.get(sec, "Flees") or "") == "1" or sec == "Living_Remnant":
+        if (ents.get(sec, "Type") or "") != "NPC" or (ents.get(sec, "Attitude") or "") not in ("Bad", "Passive") or \
+                sec == "Living_Remnant":
             continue
         ents.set(sec, "Level", str(level_of(ents, sec)), overwrite=False)
         drops = ents.get(sec, "Drops") or ""

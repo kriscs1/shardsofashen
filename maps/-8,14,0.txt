@@ -21,8 +21,6 @@ Grass001:Marble_Paving001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_
 Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001
 NPC	Tailor	192	280	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_306 Name=Sybil
 NPC	Cobbler	384	280	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_307 Name=Peggy
-NPC	Horse	314	286	Attitude=Good Stand=1 Face=E Id=Galaith_Horse_4
-NPC	Carter	288	312	Attitude=Good Stand=1 Face=S Id=Galaith_Carter_4 Name=Amos
 NPC	Tailor	288	120	Attitude=Good Stand=1 Face=S Id=Galaith_Tailor_324 Name=Bertha
 NPC	Archivist	608	216	Attitude=Good Stand=1 Face=S Id=Galaith_Clerk_73 Name=Archivist_Sefton
 NPC	Butcher	672	504	Attitude=Good Stand=1 Face=S Id=Galaith_Butcher_342 Name=Sybil
@@ -31,7 +29,6 @@ NPC	Doctor	192	536	Attitude=Good Stand=1 Face=S Id=Galaith_Doctor_374 Name=Dora
 NPC	Nurse	128	568	Attitude=Good Zone=4,17,11,19 Pause=4-10 Id=Galaith_Nurse_375 Name=Dora
 StaticObject	Market_Stall_Open	192	320
 StaticObject	Market_Stall_Open	384	320
-StaticObject	Cart	288	288
 StaticObject	Notice	768	354	Id=Galaith_Notice_330
 StaticObject	Notice	384	610	Id=Galaith_Notice_376
 StaticObject	Notice	192	226	Id=Galaith_Notice_458

@@ -62,10 +62,16 @@ def attitude_of_type(type_name):
     return {"GOODNPC": "Good", "BADNPC": "Bad"}.get(t, "")
 
 
+def is_passive(value):
+    """Attitude=Passive: can be attacked, but never attacks first (a rabbit, a hen)."""
+    return str(value).strip().upper() == "PASSIVE"
+
+
 def parse_attitude(value):
-    """Good / Bad (any case; also Friendly, Hostile, 0, 1) -> True for Bad, False for Good, None if it's neither."""
+    """Good / Bad / Passive (any case; also Friendly, Hostile, 0, 1) -> True for Bad and Passive (they can be attacked),
+    False for Good, None if it's neither."""
     v = str(value).strip().upper()
-    if v in ("BAD", "HOSTILE", "ENEMY", "1"):
+    if v in ("BAD", "HOSTILE", "ENEMY", "1", "PASSIVE"):
         return True
     if v in ("GOOD", "FRIENDLY", "FRIEND", "0"):
         return False

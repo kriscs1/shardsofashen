@@ -23,21 +23,23 @@ MAKER = "build_estforlan.py"
 
 # what each size has: its square (w, h), the civic buildings (kind, name, how many), its lanes of shops
 # (kinds, shops), its streets of houses, how many houses to a street, gardens, carts
+# (at most two merchants of a trade in a place, CLAUDE.md: a lane's shops and the square's stall together; its
+# taverns. dev\migrate\cap_merchants.py shut the ones past two in the towns as they were built before)
 SIZES = {
     "huge": dict(square=(17, 9), paved=48, streets=20, per=8, gardens=4, carts=True, civic=[
         ("parliament", "Parliament", 1), ("cathedral", "Cathedral", 1), ("hall", "City Hall", 1),
         ("hall", "Town Hall", 1), ("hotel", "", 1), ("bank", "", 2), ("police", "", 1), ("hospital", "", 1),
-        ("armoury", "", 1), ("barracks", "", 1), ("tavern", "", 10), ("smithy", "", 1)],
-        lanes=[("bakery", 3), ("butcher", 3), ("fish", 3), ("greens", 3)],
-        posh=dict(square=(11, 5), lanes=[("clothes+shoes", 4)]), arms=[("armour+weapons", 4)]),
+        ("armoury", "", 1), ("barracks", "", 1), ("tavern", "", 2), ("smithy", "", 1)],
+        lanes=[("bakery", 1), ("butcher", 1), ("fish", 1), ("greens", 1)],
+        posh=dict(square=(11, 5), lanes=[("clothes+shoes", 2)]), arms=[("armour+weapons", 2)]),
     "large": dict(square=(15, 9), paved=36, streets=10, per=7, gardens=3, carts=True, civic=[
         ("parliament", "City Hall", 1), ("cathedral", "Cathedral", 1), ("hall", "Town Hall", 1), ("bank", "", 1),
-        ("police", "", 1), ("hospital", "", 1), ("tavern", "", 5), ("smithy", "", 1)],
-        lanes=[("bakery", 3), ("butcher", 3), ("fish", 3), ("greens", 3)]),
+        ("police", "", 1), ("hospital", "", 1), ("tavern", "", 2), ("smithy", "", 1)],
+        lanes=[("bakery", 1), ("butcher", 1), ("fish", 1), ("greens", 1)]),
     "medium": dict(square=(13, 9), paved=30, streets=10, per=6, gardens=1, carts=False, civic=[
         ("hall", "City Hall", 1), ("cathedral", "Cathedral", 1), ("hall", "Town Hall", 1), ("bank", "", 1),
-        ("sheriff", "", 1), ("hospital", "", 1), ("tavern", "", 5), ("smithy", "", 1)],
-        lanes=[("bakery", 2), ("butcher", 2), ("fish", 2), ("greens", 2)]),
+        ("sheriff", "", 1), ("hospital", "", 1), ("tavern", "", 2), ("smithy", "", 1)],
+        lanes=[("bakery", 1), ("butcher", 1), ("fish", 1), ("greens", 1)]),
     "small": dict(square=(11, 9), paved=22, streets=5, per=4, gardens=1, carts=False, civic=[
         ("hall", "City Hall", 1), ("church", "Church", 1), ("hall", "Town Hall", 1), ("bank", "", 1),
         ("sheriff", "", 1), ("medical", "", 1), ("tavern", "", 2), ("smithy", "", 1)],

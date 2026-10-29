@@ -62,12 +62,9 @@ class QuestMixin:
                 out.append("\"%s\" done" % q)
         return out
 
-    def quest_can_start(self, name_or_attr, say=True):
-        needs = self.quest_needs(name_or_attr)
-        if needs and say:
-            name, _ = self.data.quest_named(name_or_attr)
-            self.display_message("Quest locked: %s needs %s." % (name or name_or_attr, ", ".join(needs)), "FAIL")
-        return not needs
+    def quest_can_start(self, name_or_attr):
+        """Never says so when it can't: the NPC just talks as usual (no "Quest locked")."""
+        return not self.quest_needs(name_or_attr)
 
     def quest_start_blocked(self, attr, new_value):
         name, d = self.data.quest_of_attribute(attr)

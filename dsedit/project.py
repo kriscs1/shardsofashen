@@ -68,7 +68,22 @@ def mtime(path):
 class IniDoc:
     def __init__(self, path):
         self.path = path
+        self.version = 0
         self.load()
+
+    @property
+    def lines(self):
+        return self._lines
+
+    @lines.setter
+    def lines(self, lines):
+        self._lines = lines
+        self.changed()
+
+    def changed(self):
+        """The lines changed (each change here says so): where the sections are is found again when next asked."""
+        self.version += 1
+        self._index = None
 
     def load(self):
         self.lines = read_text_lines(self.path) if os.path.exists(self.path) else []
@@ -80,18 +95,21 @@ class IniDoc:
     # --- where things are
     def _bounds(self, sec):
         """(header line, first body line, end) of the first section called sec, or None."""
-        want = sec.strip().lower()
-        start = None
-        for i, l in enumerate(self.lines):
-            s = l.strip()
-            if s.startswith("[") and "]" in s:
-                if start is not None:
-                    return start, start + 1, i
-                if s[1:s.index("]")].strip().lower() == want:
-                    start = i
-        if start is not None:
-            return start, start + 1, len(self.lines)
-        return None
+        if self._index is None:                         # (every section's, in one pass over the file)
+            index, last = {}, None
+            for i, l in enumerate(self._lines):
+                s = l.strip()
+                if s.startswith("[") and "]" in s:
+                    if last is not None and index[last][2] is None:
+                        index[last] = index[last][:2] + (i,)
+                    name = s[1:s.index("]")].strip().lower()
+                    last = name if name not in index else None
+                    if last is not None:
+                        index[name] = (i, i + 1, None)
+            if last is not None:
+                index[last] = index[last][:2] + (len(self._lines),)
+            self._index = index
+        return self._index.get(sec.strip().lower())
 
     @staticmethod
     def _key_of(line):
@@ -144,6 +162,7 @@ class IniDoc:
         if self.lines:
             self.lines.append("")
         self.lines.append("[%s]" % sec)
+        self.changed()
 
     def set(self, sec, key, value):
         """Sets key (its first line in the section), or adds it after the section's last key. "" removes it."""
@@ -155,6 +174,7 @@ class IniDoc:
         if not b:
             self.add_section(sec)
             self.lines.append("%s=%s" % (key, value))
+            self.changed()
             return
         last = b[0]
         for i in range(b[1], b[2]):
@@ -163,8 +183,10 @@ class IniDoc:
                 last = i
                 if k.lower() == key.lower():
                     self.lines[i] = "%s=%s" % (k, value)
+                    self.changed()
                     return
         self.lines.insert(last + 1, "%s=%s" % (key, value))
+        self.changed()
 
     def remove(self, sec, key):
         b = self._bounds(sec)
@@ -199,11 +221,13 @@ class IniDoc:
         self.lines = self.lines[:start] + ([""] if start > 0 and b[2] < len(self.lines) else []) + self.lines[b[2]:]
         while self.lines and self.lines[-1].strip() == "":
             self.lines.pop()
+        self.changed()
 
     def rename_section(self, old, new):
         b = self._bounds(old)
         if b:
             self.lines[b[0]] = "[%s]" % new
+            self.changed()
 
     def snapshot(self):
         return list(self.lines)
@@ -616,7 +640,7 @@ class Project:
     def layer_tiles(self, layer):
         """The (lower-case) names of every tile with Layer=<layer> (decor, under), read again when Tiles.ini changes."""
         lines = self.tiles_ini.lines
-        key = hash(tuple(lines))
+        key = id(self.tiles_ini), self.tiles_ini.version
         if getattr(self, "_layers_key", None) != key:
             out, sec = {}, None
             for l in lines:
@@ -634,7 +658,7 @@ class Project:
         """{lower-case tile name: its Tiles.ini <key>} for every tile that has one, read in one pass (again whenever
         Tiles.ini changes)."""
         lines = self.tiles_ini.lines
-        stamp = hash(tuple(lines))
+        stamp = id(self.tiles_ini), self.tiles_ini.version
         cache = getattr(self, "_values", None)
         if cache is None or cache[0] != stamp:
             cache = self._values = (stamp, {})

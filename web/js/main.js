@@ -4,7 +4,7 @@
 import { A, loadManifest, configRead, onLoaded, OWN } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer } from "./state.js";
 import { N, connect, send } from "./net.js";
-import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom } from "./render.js";
+import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom, markOutcome, markSwing } from "./render.js";
 import { invalidateMap, invalidateCell, mapCells } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
   JOY, wmPan, wmZoomAt, wmInBox } from "./ui.js";
@@ -13,7 +13,7 @@ import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
-import { messageColour, clamp, val, pretty } from "./util.js";
+import { messageColour, clamp, val, pretty, coinHTML } from "./util.js";
 import { buildPicker, DEFAULT_LOOK } from "./look.js";
 import { preload, entityIni, sprite } from "./assets.js";
 import { onGame } from "./games.js";
@@ -498,8 +498,8 @@ function askPrice(e, withQty, done) {
   $("price-each").value = e.price || worth;
   $("price-qty-row").hidden = !withQty;
   $("price-qty").value = have; $("price-qty").max = have;
-  $("price-hint").textContent = `A shop would pay about ${Math.max(1, Math.floor(worth * 0.6))} gold each; ` +
-    `it sells them for about ${Math.max(1, Math.round(worth * 1.2))}.` + (withQty ? ` You have ${have}.` : "");
+  $("price-hint").innerHTML = coinHTML(`A shop would pay about ${Math.max(1, Math.floor(worth * 0.6))} gold each; ` +
+    `it sells them for about ${Math.max(1, Math.round(worth * 1.2))}.` + (withQty ? ` You have ${have}.` : ""));
   priceDone = done;
   $("price").hidden = false;
   $("price-each").focus(); $("price-each").select();
@@ -727,6 +727,7 @@ N.onMessage = (m) => {
       break;
     case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": if (!behind()) addFx(m, now); break;
     case "hurt": S.hurtUntil = now + 240; break;
+    case "act": if (m.swing) markSwing(m.swing, now); else markOutcome(!!m.ok, now); break;   // (how a click went)
     case "levelup": showBanner(m.skill, m.level, now); break;
     case "clock": S.clock = { day: m.day, secs: m.secs, on: m.on, at: now }; break;
     case "map":
@@ -757,7 +758,7 @@ N.onMessage = (m) => {
       bits.push("You kept your most valuable things, and anything you can't drop.");
       if (m.grave) bits.push(`Everything else is in your grave, marked on the minimap: get back to it within ${m.minutes} minutes.`);
       bits.push(m.bed ? "You'll wake in your bed at home." : "You'll wake at the start.");
-      $("death-text").textContent = bits.join(" ");
+      $("death-text").innerHTML = coinHTML(bits.join(" "));
       releaseKeys();
       $("death").hidden = false;
       setTimeout(() => $("death-respawn").focus(), 50);

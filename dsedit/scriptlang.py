@@ -116,7 +116,7 @@ def options(project, t, line_args, all_lines, line_summary):
     if n == "CHANGE TO":
         vt = a(2)
         return {"POSITION": ["=X,Y", "+X,Y", "-X,Y", "=$Player.X,$Player.Y"], "TYPE": ["MapItem", "StaticObject", "NPC"],
-                "NAME": project.placeable(), "AGGRESSIVE": ["=1", "=0"], "ATTITUDE": ["Good", "Bad"]}.get(
+                "NAME": project.placeable(), "AGGRESSIVE": ["=1", "=0"], "ATTITUDE": ["Good", "Bad", "Passive"]}.get(
             vt, ["=N", "+N", "-N"] if vt else [])
     if n in TILE_TYPES:
         return project.tiles()

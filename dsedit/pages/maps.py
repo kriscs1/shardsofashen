@@ -19,6 +19,7 @@ from ..app import Page
 from ..project import MapDoc, Entity, parse_map_name, tile_family, TILE_FAMILIES, ENTITY_TYPES, HOMESTEAD_MAP
 from ..render import render, walk_overlay, tile_image
 from ..refs import Refs, label as use_label
+from ..carts import CartRoutes
 from ..widgets import (PaletteGrid, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
 
@@ -148,6 +149,8 @@ class MapPage(Page):
         self.brush = None                 # the palette's pick
         self.sel_cell, self.sel_ent = None, None
         self.mode = None                  # None, "zone", "chase", "patrol"
+        self.routes = CartRoutes(self.project)    # (the carts' routes, data\Carts.ini: drawn on Entities)
+        self.cart_sel = None              # (route, its point's index): the point selected
         self.zoom = round(T.SCALE * 2) / 2 or 1
         self.show = {k: tk.BooleanVar(value=v) for k, v in (("walk", False), ("zones", False), ("grid", False))}
         for v in self.show.values():
@@ -485,7 +488,7 @@ class MapPage(Page):
         super().remember()
 
     def is_dirty(self):
-        return any(self.dirty(n) for n in self.touched)
+        return any(self.dirty(n) for n in self.touched) or self.routes.dirty
 
     def current(self):
         changed = [n for n in self.touched if self.dirty(n)]
@@ -496,6 +499,7 @@ class MapPage(Page):
     def save(self):
         if not self.doc:
             return True
+        self.routes.save()
         names = sorted(n for n in self.touched if self.dirty(n))
         for n in names:
             self.save_doc(n, minimap=False)
@@ -563,6 +567,8 @@ class MapPage(Page):
             self.rebuild_minimap(next(iter(self._mini_want)))
 
     def discard(self):
+        self.routes.load()
+        self.cart_sel = None
         for n in list(self.touched):
             if self.loaded.get(n) is None:
                 self.docs.pop(n, None)
@@ -582,10 +588,13 @@ class MapPage(Page):
         if not self.doc:
             return None
         return ({n: self.docs[n].snapshot() for n in self.touched | {self.doc.name} if n in self.docs},
-                self.doc.name, self.sel_ent_index())
+                self.doc.name, self.sel_ent_index(), self.routes.snapshot())
 
     def restore(self, snap):
-        texts, active, sel = snap
+        texts, active, sel, routes = snap
+        if routes != self.routes.snapshot():
+            self.routes.load_text(routes)
+            self.cart_sel = None
         for n, text in texts.items():
             self.get_doc(n).restore(text)
             self._stale.add(n)
@@ -652,11 +661,21 @@ class MapPage(Page):
         return self._slots
 
     def bounds(self):
-        """(x0, y0, x1, y1): the level's maps, and a ring of empty squares round them (to make a new map in)."""
-        slots = self.level_slots() or {(0, 0): None}
+        """(x0, y0, x1, y1): the level's maps, and a ring of empty squares round them (to make a new map in). A level
+        under or over the world (not one of its own: WD.own_level) shares the world's frame, so every level's corners
+        are the same squares and a map lies just over or under the one it's above or below."""
+        mine, world = self.level_slots(), self.project.maps()
+        kept = getattr(self, "_bounds", None)               # (asked for over and over: kept till the maps change)
+        if kept and kept[0] == self.level and kept[1] is mine and kept[2] is world:
+            return kept[3]
+        slots = dict(mine or {(0, 0): None})
+        if not WD.own_level(self.level):
+            slots.update(WD.level_slots(self.project, 0))
         xs, ys = [p[0] for p in slots], [p[1] for p in slots]
         ring = 0 if self.level == 1000 else 1               # (the homestead's land has nothing round it)
-        return min(xs) - ring, min(ys) - ring, max(xs) + ring, max(ys) + ring
+        out = min(xs) - ring, min(ys) - ring, max(xs) + ring, max(ys) + ring
+        self._bounds = (self.level, mine, world, out)
+        return out
 
     def doc_xy(self, doc=None):
         """(x, y) of a map on its level."""
@@ -709,6 +728,15 @@ class MapPage(Page):
             return
         x, y, z = parse_map_name(self.doc.name)
         name = "%d,%d,%d" % (x + dx, y + dy, z + dz)
+        if dz and not WD.own_level(z) and not WD.own_level(z + dz) and (name in self.project.maps() or name in
+                                                                          self.docs):
+            c = self.canvas                             # (up or down: the same spot of the world stays in view)
+            mid = c.canvasx(c.winfo_width() / 2), c.canvasy(c.winfo_height() / 2)
+            self.show_level(z + dz)
+            self.activate(name)
+            self._zoom_anchor = (mid[0] / self.zoom, mid[1] / self.zoom, c.winfo_width() / 2, c.winfo_height() / 2)
+            self.redraw(full=True)
+            return
         if dz and name not in self.project.maps() and name not in self.docs:
             there = WD.level_slots(self.project, z + dz)    # (another level, nothing just there: its nearest map)
             if there:
@@ -940,6 +968,19 @@ class MapPage(Page):
         self.zoom = z
         self.zoom_var.set("%d%%" % round(z * 100))
         self._photos.clear()
+        self.redraw(full=True)
+
+    def zoom_in_on(self, e):
+        """Zoomed in to 100% on the spot under the mouse event e, the map there opened, the spot in the view's middle."""
+        c, old = self.canvas, self.zoom
+        mx, my = c.canvasx(e.x) / old, c.canvasy(e.y) / old
+        name, made = self.name_at(*self.tile_of(*self.map_px(e)))
+        if made and name != self.doc.name:
+            self.activate(name)
+        self.zoom = 1.0
+        self.zoom_var.set("100%")
+        self._photos.clear()
+        self._zoom_anchor = (mx, my, c.winfo_width() / 2, c.winfo_height() / 2)
         self.redraw(full=True)
 
     def space_down(self, e):
@@ -1197,9 +1238,9 @@ class MapPage(Page):
                     for dx, dy, fill in ((1, 1, "#000000"), (0, 0, col)):
                         c.create_text(x0 + tw * z / 2 + dx, y0 + th * z + 1 + dy, text=e.name, fill=fill,
                                       anchor="n", font=("Segoe UI", max(7, int(7 * z)), "bold"), tags=("thing", slot))
-        for e in doc.placed():
-            if e.kind == "NPC" and (self.show["zones"].get() or e is self.sel_ent):
-                self.draw_npc_areas(e, ox, oy, z, faint=e is not self.sel_ent, slot=slot)
+        for e in doc.placed():                      # (the selected one's drawn bold over it, with the marks)
+            if e.kind == "NPC" and self.show["zones"].get():
+                self.draw_npc_areas(e, ox, oy, z, faint=True, slot=slot)
 
     def draw_marks(self):
         """Over the maps: the open map's frame, the grid, what's selected, the area marked, the rectangle dragged (all
@@ -1228,12 +1269,17 @@ class MapPage(Page):
                 c.create_line(v0, y + 1, v2, y + 1, fill="#d8cbb4", dash=(1, 3))
                 y += th * z
         c.create_rectangle(ox - 2, oy - 2, ox + W + 1, oy + H + 1, outline=LAYER_LOOK[self.layer][0], width=3)
+        if self.layer in ("things", "all"):
+            self.draw_routes()
         if self.tile_selected():
             x, y = self.sel_cell
             c.create_rectangle(ox + x * tw * z, oy + y * th * z, ox + (x + 1) * tw * z, oy + (y + 1) * th * z,
                                outline="#ffffff", width=2)
             c.create_rectangle(ox + x * tw * z + 2, oy + y * th * z + 2, ox + (x + 1) * tw * z - 2,
                                oy + (y + 1) * th * z - 2, outline="#000000", width=1)
+        if self.sel_ent is not None and self.sel_ent.kind == "NPC" and self.layer in ("things", "all") and \
+                self.sel_ent in self.doc.entities:
+            self.draw_npc_areas(self.sel_ent, ox, oy, z)
         if self.sel_ent is not None:
             x0, y0, x1, y1 = self.ent_rect(self.sel_ent)
             c.create_rectangle(ox + x0 * z - 2, oy + y0 * z - 2, ox + x1 * z + 2, oy + y1 * z + 2, outline="#ffe066",
@@ -1254,6 +1300,161 @@ class MapPage(Page):
             c.create_rectangle(ox + min(x0, x1) * tw * z, oy + min(y0, y1) * th * z, ox + (max(x0, x1) + 1) * tw * z,
                                oy + (max(y0, y1) + 1) * th * z, outline="#66d9ff", width=2, dash=(6, 3),
                                tags="dragrect")
+
+    # ----- the carts' routes (data\Carts.ini, dsengine/carts.py): drawn over the level on Entities; a point
+    # clicked is selected (its route in the inspector) and dragged; right-click to add, name or delete points
+    def route_xy(self, pt):
+        """Canvas (x, y) of a route's point [map, x, y, name] (the middle of its tile), or None off this level."""
+        p = parse_map_name(pt[0])
+        if not p or p[2] != self.level:
+            return None
+        P, z = self.project, self.zoom
+        mx, my = self.doc_xy()
+        ox, oy = self.map_origin()
+        tx, ty = (p[0] - mx) * P.map_w + pt[1] - 1, (p[1] - my) * P.map_h + pt[2] - 1
+        return ox + (tx + 0.5) * P.tile_w * z, oy + (ty + 0.5) * P.tile_h * z
+
+    def level_tile(self, tx, ty):
+        """[map, x, y] (1-based) of tile tx, ty counted from the open map's top-left, or None where there's no map."""
+        name, made = self.name_at(tx, ty)
+        if not made:
+            return None
+        W, H = self.project.map_w, self.project.map_h
+        return [name, tx % W + 1, ty % H + 1]
+
+    def route_hit(self, e):
+        c = self.canvas
+        cx, cy = c.canvasx(e.x), c.canvasy(e.y)
+        best = None
+        for r in self.routes.routes:
+            for i, pt in enumerate(r.points):
+                xy = self.route_xy(pt)
+                if xy is not None:
+                    d = (xy[0] - cx) ** 2 + (xy[1] - cy) ** 2
+                    if d <= max(64, (8 * self.zoom) ** 2) and (best is None or d < best[0]):
+                        best = (d, r, i)
+        return (best[1], best[2]) if best else None
+
+    def draw_routes(self):
+        c, z = self.canvas, self.zoom
+        for r in self.routes.routes:
+            if r.level() != self.level:
+                continue
+            on = self.cart_sel is not None and self.cart_sel[0] is r
+            xys = [self.route_xy(pt) for pt in r.points]
+            line = [v for xy in xys if xy for v in xy]
+            if len(line) >= 4:
+                c.create_line(*line, fill="#000000", width=5)
+                c.create_line(*line, fill="#ffb347" if on else "#c9822f", width=3, dash=(8, 4))
+                if r.get("Loop", "0").strip() == "1":
+                    c.create_line(*line[-2:], *line[:2], fill="#c9822f", width=2, dash=(3, 5))
+            for i, (pt, xy) in enumerate(zip(r.points, xys)):
+                if xy is None:
+                    continue
+                x, y = xy
+                sel = on and self.cart_sel[1] == i
+                if pt[3]:                                       # (a stop: a big disc, its name by it)
+                    c.create_oval(x - 8, y - 8, x + 8, y + 8, fill="#ffffff" if sel else "#ffb347", outline="#3a2106",
+                                  width=2)
+                    for dx, dy, col in ((1, 1, "#000000"), (0, 0, "#ffe2b0")):
+                        c.create_text(x + 11 + dx, y + dy, text="%s: %s" % (r.key, pt[3]), anchor="w", fill=col,
+                                      font=("Segoe UI", max(7, int(7 * z)), "bold"))
+                else:
+                    c.create_rectangle(x - 4, y - 4, x + 4, y + 4, fill="#ffffff" if sel else "#c9822f",
+                                       outline="#3a2106")
+
+    def cart_menu(self, m, e, tx, ty):
+        """The right-click menu's cart entries: on a point, or for the route selected, or a new route."""
+        hit = self.route_hit(e)
+        here = self.level_tile(tx, ty)
+        m.add_separator()
+        if hit is not None:
+            r, i = hit
+            pt = r.points[i]
+            m.add_command(label=("Rename the stop %s…" % pt[3]) if pt[3] else "Make this point a stop…",
+                          command=lambda: self.name_stop(r, i))
+            if pt[3]:
+                m.add_command(label="Make it a plain point (not a stop)", command=lambda: self.change_route(
+                    r, lambda: pt.__setitem__(3, ""), (r, i)))
+            m.add_command(label="Delete this point of %s" % r.key, command=lambda: self.delete_point(r, i))
+            m.add_command(label="Delete the cart route %s…" % r.key, command=lambda: self.delete_route(r))
+        elif self.cart_sel is not None and here is not None:
+            r, i = self.cart_sel
+            m.add_command(label="Add a point to %s here (after the one selected)" % r.key,
+                          command=lambda: self.change_route(r, lambda: r.points.insert(i + 1, here + [""]),
+                                                            (r, i + 1)))
+        if here is not None and hit is None:
+            m.add_command(label="New cart route from here…", command=lambda: self.new_route(here))
+
+    def change_route(self, r, change, sel=None):
+        self.remember()
+        change()
+        self.routes.dirty = True
+        self.cart_sel = sel
+        self.app.refresh_chrome()
+        self.redraw()
+        self.show_inspector()
+
+    def name_stop(self, r, i):
+        name = ask_text(self, "Cart stop", "What the stop is called (as riders read it: \"the market\"):",
+                        r.points[i][3])
+        if name is not None:
+            self.change_route(r, lambda: r.points[i].__setitem__(3, name.strip().replace(",", " ")), (r, i))
+
+    def delete_point(self, r, i):
+        self.change_route(r, lambda: r.points.pop(i), (r, max(0, i - 1)) if len(r.points) > 1 else None)
+
+    def delete_route(self, r):
+        if messagebox.askyesno("Cart route", "Delete the cart route %s, all its points and stops?" % r.key,
+                               parent=self):
+            self.change_route(r, lambda: self.routes.routes.remove(r))
+
+    def new_route(self, here):
+        key = ask_text(self, "New cart route", "Its name (one word, e.g. Ravensgate):")
+        key = (key or "").strip().replace(" ", "_")
+        if not key:
+            return
+        if self.routes.named(key) is not None:
+            messagebox.showinfo("Cart route", "There's a route called %s already." % key, parent=self)
+            return
+        self.remember()
+        r = self.routes.new(key, here + ["the first stop"])
+        self.cart_sel = (r, 0)
+        self.app.status("New cart route %s: right-click further along the road to add its points; name two or more "
+                        "of them as stops." % key, "ok")
+        self.app.refresh_chrome()
+        self.redraw()
+        self.show_inspector()
+
+    def insp_cart(self, f):
+        r, i = self.cart_sel
+        pt = r.points[i]
+        self.head(f, "Cart route %s" % r.key, "point %d of %d: %s, tile %d,%d" % (i + 1, len(r.points), pt[0], pt[1],
+                                                                                 pt[2]))
+
+        def setter(key):
+            def on_set(v):
+                r.set(key, v)
+                self.routes.dirty = True
+                self.app.refresh_chrome()
+            return on_set
+        self.field(f, "Title", r.get("Title"), setter("Title"))
+        self.field(f, "Fare (gold)", r.get("Fare", "2"), setter("Fare"), width=8)
+        self.field(f, "Wait (s)", r.get("Wait", "6"), setter("Wait"), width=8)
+        self.field(f, "Loop", r.get("Loop", "0"), setter("Loop"), values=["0", "1"], width=6)
+
+        def stop_name(v):
+            pt[3] = v.strip().replace(",", " ")
+            self.routes.dirty = True
+            self.app.refresh_chrome()
+            self.canvas.delete("marks")
+            self.draw_marks()
+        self.field(f, "Stop", pt[3], stop_name)
+        stops = sum(1 for p in r.points if p[3])
+        ttk.Label(f, text="Drag a point to move it. Right-click: add a point after the one selected, name a stop, "
+                          "delete. Loop 1: round and round; 0: to the end and back. %d stop%s (it needs two)." % (
+                              stops, "" if stops == 1 else "s"), style="PanelMuted.TLabel", wraplength=260,
+                  justify="left").pack(anchor="w", pady=(8, 0))
 
     def ghost_photo(self, name, layer):
         """The see-through picture of name at this zoom (a tile, or an entity's sprite)."""
@@ -1491,34 +1692,39 @@ class MapPage(Page):
         w, h = self.ent_size(e)
         return e.x, e.y, e.x + w, e.y + h
 
-    def ents_at(self, px, py):
-        """Everything under the mouse, the one a click takes first, then the rest (the next one up, the next...)."""
-        hits = [e for e in self.doc.placed() if self.ent_rect(e)[0] <= px < self.ent_rect(e)[2] and
-                self.ent_rect(e)[1] <= py < self.ent_rect(e)[3]]
-        first = self.ent_at(px, py)
-        sprites = sorted((e for e in hits if e is not first and e.kind not in TILE_KINDS),
-                         key=lambda e: -self.ent_rect(e)[3])
-        return ([first] if first is not None else []) + sprites + [e for e in hits if e is not first and
-                                                                     e.kind in TILE_KINDS]
+    def solid_at(self, e, px, py):
+        """A sprite's own pixel (not its see-through box) is at map pixel px, py."""
+        spr = self.project.sprite("Entities", e.name)
+        if spr is None or spr.mode != "RGBA":
+            return True
+        try:
+            return spr.getpixel((int(px - e.x), int(py - e.y)))[3] > 40
+        except IndexError:
+            return False
 
-    def ent_at(self, px, py, prefer_tile_kind=None):
-        hits = [e for e in self.doc.placed() if self.ent_rect(e)[0] <= px < self.ent_rect(e)[2] and
-                self.ent_rect(e)[1] <= py < self.ent_rect(e)[3]]
-        if not hits:
-            return None
-        if prefer_tile_kind:
-            for e in hits:
-                if e.kind == prefer_tile_kind:
-                    return e
-        # the lock's padlock (the middle of its tile) wins over a trigger on the same tile
+    def ents_at(self, px, py, split=False):
+        """Everything under the mouse, the one a click takes first, then the rest (the next one up, the next...):
+        sprites drawn where the mouse is (the one on top first), the tile's trigger, lock and place, then sprites
+        only see-through there (a tree's box over a chest). split: (that list, how many come before the see-through)."""
+        hits = []
+        for e in self.doc.placed():
+            x0, y0, x1, y1 = self.ent_rect(e)
+            if x0 <= px < x1 and y0 <= py < y1:
+                hits.append(e)
+        top = lambda e: (e.kind != "MapItem", self.ent_rect(e)[3])       # (as render draws them, last on top)
         sprites = [e for e in hits if e.kind not in TILE_KINDS]
-        if sprites:
-            return max(sprites, key=lambda e: self.ent_rect(e)[3])
-        tw = self.project.tile_w
-        locks = [e for e in hits if e.kind == "Lock"]
-        if locks and abs(px % tw - tw / 2) < tw / 3 and abs(py % tw - tw / 2) < tw / 3:
-            return locks[0]
-        return hits[0]
+        solid = sorted((e for e in sprites if self.solid_at(e, px, py)), key=top, reverse=True)
+        clear = sorted((e for e in sprites if e not in solid), key=top, reverse=True)
+        tiles = [e for e in hits if e.kind in TILE_KINDS]
+        tw = self.project.tile_w                    # (the lock's padlock, the middle of its tile, over a trigger)
+        if abs(px % tw - tw / 2) < tw / 3 and abs(py % tw - tw / 2) < tw / 3:
+            tiles.sort(key=lambda e: e.kind != "Lock")
+        out = solid + tiles + clear
+        return (out, len(solid) + len(tiles)) if split else out
+
+    def ent_at(self, px, py):
+        here = self.ents_at(px, py)
+        return here[0] if here else None
 
     def scroll_to(self, tx, ty):
         z = self.zoom
@@ -1595,6 +1801,17 @@ class MapPage(Page):
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
         shift, ctrl = e.state & 0x1, e.state & 0x4
+        if self.layer in ("things", "all") and not self.mode and self.tool in ("Select", "Move"):
+            hit = self.route_hit(e)                     # (a cart route's point: selected, and dragged)
+            if hit is not None:
+                self.cart_sel, self.sel_ent, self.sel_cell = hit, None, None
+                self.drag = {"cartpt": hit, "moved": False}
+                self.redraw()
+                self.show_inspector()
+                return
+            if self.cart_sel is not None:
+                self.cart_sel = None
+                self.show_inspector()
         if self.mode in ("zone", "chase") and self.sel_ent is not None:
             self.drag = {"rect": ((tx, ty), (tx, ty)), "area": self.mode}
             self.redraw()
@@ -1671,6 +1888,18 @@ class MapPage(Page):
             return
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
+        if "cartpt" in self.drag:
+            r, i = self.drag["cartpt"]
+            here = self.level_tile(tx, ty)
+            if here is not None and here != r.points[i][:3]:
+                if not self.drag["moved"]:
+                    self.remember()
+                    self.drag["moved"] = True
+                r.points[i][:3] = here
+                self.routes.dirty = True
+                self.canvas.delete("marks")
+                self.draw_marks()
+            return
         self._hover = (px, py, bool(e.state & 0x1), bool(e.state & 0x4))
         if "tilemove" in self.drag:
             if self.inside(tx, ty):
@@ -1735,6 +1964,11 @@ class MapPage(Page):
         d, self.drag = self.drag, None
         if not d or d.get("pan"):
             return
+        if "cartpt" in d:
+            if d["moved"]:
+                self.app.refresh_chrome()
+                self.show_inspector()
+            return
         if "tilemove" in d:
             if d["to"] != d["tilemove"]:
                 self.remember()
@@ -1754,9 +1988,10 @@ class MapPage(Page):
             return
         if d.get("move") and d.get("moved"):
             self.settle_ent(d["move"])
-        if d.get("move") and not d.get("moved") and d.get("again"):
-            self.next_here()                            # (a click on what's selected: the next thing under it)
-            return
+        if d.get("move") and not d.get("moved"):
+            if d.get("again"):
+                self.next_here()                        # (a click on what's selected: the next thing under it)
+            return                                      # (just a click: nothing on the map changed)
         if "rect" in d:
             (x0, y0), (x1, y1) = d["rect"]
             xa, xb, ya, yb = min(x0, x1), max(x0, x1), min(y0, y1), max(y0, y1)
@@ -1804,6 +2039,9 @@ class MapPage(Page):
             return
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
+        if self.zoom < FAR:                             # (the world, far out: in on the tile, at 100%, in the middle)
+            self.zoom_in_on(e)
+            return
         if self.at(tx, ty) is None:                     # (an empty square: make a map there)
             if self.level != 1000:
                 self.open(self.name_at(tx, ty)[0])
@@ -1910,7 +2148,7 @@ class MapPage(Page):
                 self.sel_ent = self.ent_at(px, py)
                 self.sel_cell = (tx, ty) if self.sel_ent is not None else None
             self.app.status("Select mode: click to select (right-click again for the menu).")
-            self.redraw()
+            self.redraw_marks()
             self.show_inspector()
             return
         if not self.inside(tx, ty):
@@ -1950,6 +2188,8 @@ class MapPage(Page):
                 m.add_command(label="Open %s in %s" % (ent.name, self.thing_page(ent.name)),
                               command=lambda: self.open_thing(ent.name))
             m.add_command(label="Delete %s" % (ent.name or ent.kind), command=lambda: self.delete_ent(ent))
+        if self.layer in ("things", "all"):
+            self.cart_menu(m, e, tx, ty)
         m.add_separator()
         m.add_command(label="Add a trigger here…", command=lambda: self.add_tile_thing("Trigger", tx, ty))
         m.add_command(label="Add a lock here…", command=lambda: self.add_tile_thing("Lock", tx, ty))
@@ -1971,8 +2211,18 @@ class MapPage(Page):
             self.set_layer("things")
         self.sel_ent = e
         self.sel_cell = tuple(v - 1 for v in self.ent_tile(e))
-        self.redraw()
+        self.redraw_marks()
         self.show_inspector()
+
+    def redraw_marks(self):
+        """Only what's selected drawn again (a click that changes nothing on the map: its picture is kept)."""
+        if not self.doc:
+            return
+        if self._redraw_pending:                        # (the maps are being drawn again anyway)
+            return
+        self.canvas.delete("marks")
+        self.draw_marks()
+        self.update_ghost()
 
     def next_here(self):
         """The next of the things one over another where the selected one is (round to the first again)."""
@@ -1996,6 +2246,9 @@ class MapPage(Page):
         k = e.keysym
         if not self.doc:
             return
+        if k == "Delete" and self.cart_sel is not None:      # (a cart route's point selected: it goes)
+            self.delete_point(*self.cart_sel)
+            return "break"
         if e.state & 0x4 and k.lower() in ("x", "c", "v"):  # Ctrl: cut, copy, paste (an area, or an entity)
             if k.lower() == "v":
                 if self._hover is not None:                 # (it goes on the map under the mouse)
@@ -2048,7 +2301,7 @@ class MapPage(Page):
             self.show_inspector()
         elif k == "Escape":
             self.mode, self.sel_ent, self.sel_cell = None, None, None
-            self.redraw()
+            self.redraw_marks()
             self.show_inspector()
         elif k in ("Return",) and self.mode == "patrol":
             self.mode = None
@@ -2331,15 +2584,16 @@ class MapPage(Page):
             self.sel_cell = (x, y) if self.sel_ent is not None else None
         else:
             self.sel_cell = (x, y)
-        self.redraw()
+        self.redraw_marks()
         self.show_inspector()
 
     # =============================================================================================================
     # Entities (the "things" layer)
     # =============================================================================================================
     def press_things(self, px, py, tx, ty, shift):
-        ent = self.ent_at(px, py, prefer_tile_kind=None)
-        if self.tool == "Place" and self.brush:            # (placing goes down wherever the ghost shows, over anything)
+        here, seen = self.ents_at(px, py, split=True)
+        ent = here[0] if here else None
+        if self.tool == "Place" and self.brush:           # (placing goes down wherever the ghost shows, over anything)
             if self.brush in SPECIAL:                      # a trigger, lock or place: on any tile, one of each
                 kind = SPECIAL_KIND[self.brush]
                 there = next((x for x in self.doc.placed() if x.kind == kind and (x.x, x.y) == (tx + 1, ty + 1)), None)
@@ -2359,16 +2613,18 @@ class MapPage(Page):
             ent.x, ent.y = self.place_xy(name, px, py, tx, ty, shift)
             if kind == "NPC":
                 att = self.project.entities_ini.get(name, "Attitude", "")
-                ent.opts = "Attitude=%s" % (att if att in ("Good", "Bad") else "Good")
+                ent.opts = "Attitude=%s" % (att if att in ("Good", "Bad", "Passive") else "Good")
             self.doc.entities.append(ent)
             self.sel_ent, self.sel_cell = ent, (tx, ty)
             self.redraw()
             self.show_inspector()
             return
-        here = self.ents_at(px, py)
-        again = self.sel_ent is not None and self.sel_ent in here and len(here) > 1
-        if again:                                           # (what's selected is under the mouse: drag it, or
-            ent = self.sel_ent                              # a click without a drag takes the next one under it)
+        # (what's selected is drawn under the mouse: drag it, or a click without a drag takes the next one under it;
+        # only its see-through box there: the click is for what's seen through it)
+        again = self.sel_ent is not None and self.sel_ent in here[:seen] and len(here) > 1
+        if again:
+            ent = self.sel_ent
+        same = ent is self.sel_ent
         self.sel_ent = ent                                  # (nothing there: nothing selected - not the tile)
         self.sel_cell = (tx, ty) if ent is not None else None
         if ent is not None:
@@ -2376,8 +2632,9 @@ class MapPage(Page):
             if len(here) > 1 and not again:
                 self.app.status("%d things here: click again (or Tab) for the next, or right-click to choose." %
                                 len(here))
-        self.redraw()
-        self.show_inspector()
+        self.redraw_marks()
+        if not same:
+            self.show_inspector()
 
     def add_tile_thing(self, kind, tx, ty):
         there = next((x for x in self.doc.placed() if x.kind == kind and (x.x, x.y) == (tx + 1, ty + 1)), None)
@@ -2702,6 +2959,11 @@ class MapPage(Page):
         if not self.doc:
             ttk.Label(f, text="No map open.", style="PanelMuted.TLabel").pack(anchor="w")
             return
+        if self.cart_sel is not None and self.cart_sel[0] in self.routes.routes and \
+                self.cart_sel[1] < len(self.cart_sel[0].points):
+            self.insp_cart(f)
+            return
+        self.cart_sel = None
         e = self.sel_ent
         if e is not None and e in self.doc.entities:
             {"Trigger": self.insp_trigger, "Lock": self.insp_lock, "NPC": self.insp_npc,
@@ -3012,7 +3274,7 @@ class MapPage(Page):
         if e.kind == "MapItem":
             return "Pickup"
         if e.kind == "NPC":
-            return "Attack" if (e.opt("Attitude") or "Good") == "Bad" else "Talk to"
+            return "Attack" if (e.opt("Attitude") or "Good") in ("Bad", "Passive") else "Talk to"
         words = [w.strip() for w in self.project.entities_ini.get(e.name, "Use.Words", "").split(",") if w.strip()]
         return words[0] if words else "Use"
 

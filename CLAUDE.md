@@ -109,7 +109,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 **Shared vs personal**
 - Shared, seen by everyone: chopped trees, mined rocks, fires, dropped items, NPC deaths and kill loot (the
-  killer's for 10 s), shop stock, unlocked doors, the time and the weather.
+  killer's for 10 s), shop stock, unlocked doors, the time and the weather, the horses and carts going round.
 - Personal: quest attributes, quest doors and `Lock` lines, `Once=` items, NPC attitudes set by quests, fog of war.
 - **Chests are per player**: everyone finds a chest's loot, once each. A chest script tracks its loot with an
   attribute, never with shared state.
@@ -248,6 +248,18 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate
   medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
   villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
+- **At most two merchants of a trade in a settlement** (a trade is what's sold: a market stall's meat and a butcher's
+  shop are both the butcher's; taverns too). SIZES keeps to it; `dev/migrate/cap_merchants.py` shut the shops past two
+  that were built before (their keepers stay and say so; a tavern past two is an inn, rooms only), and a test holds it.
+- **Shops' stock varies** (`player_items.py` shop_stock): a rack's stock is the most it has; each delivery
+  (Config `Shop.Stock.Hours`) it has a third of it up, now and then none (`Shop.Sold.Out` percent), while Config
+  `Shop.Vary.Stock=1` (a rack's own `Vary.Stock=` wins). What's bought comes back after `Shop.Restock.Seconds` (an hour,
+  up to four for dear things).
+- **Horses and carts** (`dsengine/carts.py`, `data/Carts.ini`, `dev/migrate/build_carts.py`): a city's cart keeps to
+  its route's points (set in the map editor, on Entities, or in the file), stop to stop, waiting `Wait=` seconds at each,
+  to the end and back (`Loop=1`: round and round). Hail it as it passes and it pulls up; Get In, pick a stop, pay the
+  `Fare=`, and it takes you there, at a walk with nobody aboard and three times that with anyone in it. The rider stands
+  in its box (the page draws them over it above its `Seat.<dir>` panel line); Get Out where it stops.
 - Settlements stand far apart, wild country between. The market square is near the middle, paved roads off it; the
   shardstone stands by it. Every house is different, with space between; buildings never cover a road.
   Streets are straight and paved in the place's own stone near the middle (sandstone in the desert, boardwalks in the
@@ -335,6 +347,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The phone can be the server.** The Android app runs `server/` itself (Python 3.11 through Chaquopy, with its
   aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
+- **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
+  `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
+- **A click is answered at once**: what's clicked is marked the moment it's clicked (registered: a gold ring; a foe a
+  red one that tightens at each blow, hit or miss), then green when it's done or red, with a cross, when it's refused or
+  comes to nothing. The server says which (`act`: `Session.act_done`, from its messages, sounds, boxes, items and
+  work); something new a player does by clicking calls `act_done` when it succeeds or fails, if nothing else does.
 - Text centred in a row uses `drawTextMid` (it measures the font's capital height): never guess offsets.
 
 ## Code and data conventions
@@ -360,6 +378,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - The map editor's map: the mouse wheel zooms (Shift+wheel, middle-drag or Space+drag move the view); an area is
   copied or cut with the inspector's buttons, then each click puts it down; after a change only the maps changed are
   drawn again, and nothing goes black while new pictures are made. A thing dragged off a map lands on the next one.
+  Zoomed far out, a double-click zooms in on that tile at 100%. Every level under or over the world is laid out in the
+  world's frame (`dsedit/world.py` own_level): the same corners, a map just over or under the one it's above or below,
+  and going up or down keeps the same spot in view.
 - The map editor shows a level as one map (`dsedit/world.py`): a set in `data/TileSets.ini` is laid out by dragging,
   by its layout and its pieces' `Piece=` (a 3-column grid stretches: corners, edges, middle; a rug's "runner"s; a
   fence's "corner: east and south"...). Give a new set the same layout and piece names. Diagonal shore pieces are

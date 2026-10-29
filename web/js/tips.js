@@ -85,7 +85,8 @@ export function entityTip(e) {
     }
   } else if (e.k === T.NPC) {
     lines.push("#" + name);
-    if (e.f) lines.push(`!Hostile  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
+    if (e.f === 2) lines.push(`Passive  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
+    else if (e.f) lines.push(`!Hostile  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
   } else if (e.k === T.PLAYER) {
     lines.push("#" + name, e.pvp ? "!In the arena: you can fight" : "Another adventurer", "~Right-click: Whisper");
     return lines.join("|");

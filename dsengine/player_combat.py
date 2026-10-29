@@ -265,6 +265,7 @@ class CombatMixin:
         self.player_attack_target = e
         self.player_walk_stuck = 0
         self.dirty_me = True
+        self.act_done(True)
 
     def reach_extra(self, e):
         return max(0, int((e.w - 32) / 2))
@@ -323,6 +324,7 @@ class CombatMixin:
             return
         self.player_last_attack = now
         self.player_last_combat = now
+        self.emit({"t": "act", "ok": 1, "swing": t.uid})   # (each blow, hit or miss: the target's mark pulses)
         self.provoke(t)
         self.w.npc_face(p, p.cx, p.cy, t.cx, t.cy)
         if bow > 0 and self.player_distance_to(t) > 36 + self.reach_extra(t):

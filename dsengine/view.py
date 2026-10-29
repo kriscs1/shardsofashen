@@ -12,7 +12,8 @@ def entity_state(w, e, viewer):
         st["hp"] = e.hp
         st["mh"] = e.max_hp
         st["b"] = 1 if e.show_bar else 0
-        st["f"] = 1 if w.hostile_for(e, viewer) else 0
+        # (1: a foe; 2: can be attacked but won't come for you, a rabbit or a hen)
+        st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
         st["uw"] = e.use_words
         st["wr"] = e.weapon_range
         if e.ai is not None:
@@ -45,6 +46,8 @@ def player_state(s, viewer):
         st["pvp"] = 1
     if s.sleeping():
         st["zz"] = 1
+    if s.ride is not None and s.ride.e is not None:
+        st["rd"] = s.ride.e.uid                         # (in a cart: drawn standing in it, carts.py)
     if s.invisible():
         st["gh"] = 1                                    # (a shimmer: faint to you, all but nothing to others)
     return st

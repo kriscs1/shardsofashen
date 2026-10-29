@@ -90,10 +90,53 @@ export function setFont(ctx, size, bold = false) {
   ctx.font = `${bold ? "bold " : ""}${fontPx(size)}px ${FONT}`;
 }
 
+// ----- the game's coin, for every price: COIN in text drawn on a canvas is drawn as a little gold coin, the
+// font's size (12¤: twelve gold); "12 gold" and "12 gold coins" are written so too (coined)
+export const COIN = "¤";
+export const coined = (text) => String(text).replace(/(\d[\d,]*) gold( coins?)?/g, "$1" + COIN);
+const coinD = (size) => Math.max(5, Math.round(fontPx(size) * 0.78));
+const coins = new Map();
+function coinImage(d) {
+  let c = coins.get(d);
+  if (c) return c;
+  c = document.createElement("canvas");
+  c.width = c.height = d;
+  const g = c.getContext("2d"), r = d / 2;
+  g.fillStyle = "rgb(84,50,8)";                                  // (its dark edge, so it shows on anything)
+  g.beginPath(); g.arc(r, r, r, 0, 6.283); g.fill();
+  g.fillStyle = "rgb(232,176,40)";
+  g.beginPath(); g.arc(r, r, r - Math.max(1, d / 9), 0, 6.283); g.fill();
+  g.strokeStyle = "rgb(172,116,20)";                             // (the rim stamped round its face)
+  g.lineWidth = Math.max(1, d / 10);
+  g.beginPath(); g.arc(r, r, r * 0.55, 0, 6.283); g.stroke();
+  g.fillStyle = "rgb(255,236,150)";                              // (a glint, top left)
+  g.beginPath(); g.arc(r * 0.7, r * 0.68, Math.max(0.8, r * 0.22), 0, 6.283); g.fill();
+  coins.set(d, c);
+  return c;
+}
+
+function coinRuns(ctx, text, size) {
+  // (the text in pieces round its coins, each piece's width: [[piece or COIN, width]])
+  const d = coinD(size);
+  return text.split(new RegExp(`(${COIN})`)).filter(Boolean).map((t) => [t, t === COIN ? d + 2 : ctx.measureText(t).width]);
+}
+
+function fillCoined(ctx, text, x, y, size, coinTop) {
+  if (!text.includes(COIN)) { ctx.fillText(text, x, y); return ctx.measureText(text).width; }
+  let w = 0;
+  for (const [t, tw] of coinRuns(ctx, text, size)) {
+    if (t === COIN) ctx.drawImage(coinImage(coinD(size)), Math.round(x + w + 1), Math.round(coinTop));
+    else ctx.fillText(t, x + w, y);
+    w += tw;
+  }
+  return w;
+}
+
 export function textWidth(ctx, text, size, bold = false) {
   if (!text) return 0;
   setFont(ctx, size, bold);
-  return ctx.measureText(text).width;
+  const t = coined(text);
+  return t.includes(COIN) ? coinRuns(ctx, t, size).reduce((a, r) => a + r[1], 0) : ctx.measureText(t).width;
 }
 
 // Text with its top at y (the desktop game's draw_text)
@@ -103,8 +146,8 @@ export function drawText(ctx, text, x, y, size, bold, col) {
   ctx.textBaseline = "top";
   ctx.fillStyle = typeof col === "string" && !col.startsWith("rgb") && !col.startsWith("#") ? rgb(colour(col)) :
     (Array.isArray(col) ? rgb(col) : col);
-  ctx.fillText(text, x, y);
-  return ctx.measureText(text).width;
+  const px = fontPx(size);
+  return fillCoined(ctx, coined(text), x, y, size, y + (px * 1.05 - coinD(size)) / 2);
 }
 
 // Text whose capitals are centred between top and top+h: the font's own capital height, measured (not guessed
@@ -121,9 +164,16 @@ export function drawTextMid(ctx, text, x, top, h, size, bold, col) {
   }
   ctx.fillStyle = typeof col === "string" && !col.startsWith("rgb") && !col.startsWith("#") ? rgb(colour(col)) :
     (Array.isArray(col) ? rgb(col) : col);
-  ctx.fillText(text, x, Math.round(top + (h + cap) / 2));
+  const base = Math.round(top + (h + cap) / 2);
+  const w = fillCoined(ctx, coined(text), x, base, size, base - cap / 2 - coinD(size) / 2);
   ctx.textBaseline = "top";
-  return ctx.measureText(text).width;
+  return w;
+}
+
+// (text for the page, outside the canvas: its prices with the coin, .coin in the stylesheet)
+export function coinHTML(text) {
+  const esc = String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  return coined(esc).split(COIN).join('<span class="coin" aria-label="gold"></span>');
 }
 
 export function centreText(ctx, xm, y, text, size, bold, col) {
@@ -142,7 +192,7 @@ export function fitText(ctx, text, maxW, size, bold = false) {
 export function wrapLines(ctx, text, w, size, bold = false) {
   const lines = [];
   let line = "";
-  for (const wd of String(text).split(/\s+/).filter(Boolean)) {
+  for (const wd of coined(text).split(/\s+/).filter(Boolean)) {
     const attempt = line ? line + " " + wd : wd;
     if (textWidth(ctx, attempt, size, bold) > w && line) {
       lines.push(line);

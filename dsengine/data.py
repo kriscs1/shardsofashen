@@ -109,7 +109,10 @@ class GameData:
         self.sh = self.th * self.yt
         self.grid_cell = max(4, int(min(self.tw, self.th) / 2))
         self.npc_respawn_delay = val(c("Gameplay", "NPC.Respawn.Delay", c("Gameplay", "NPC.Repawn.Delay", "10")))
-        self.shop_restock_delay = val(c("Gameplay", "Shop.Restock.Seconds", "300"))
+        self.shop_restock_delay = val(c("Gameplay", "Shop.Restock.Seconds", "3600"))
+        self.shop_vary_stock = trim(c("Gameplay", "Shop.Vary.Stock", "1")) != "0"
+        self.shop_stock_hours = max(0.1, val(c("Gameplay", "Shop.Stock.Hours", "6")))
+        self.shop_sold_out = max(0, min(100, val(c("Gameplay", "Shop.Sold.Out", "10"))))
         self.item_respawn_delay = val(c("Gameplay", "Item.Respawn.Delay", "600"))
         self.sell_price_factor = val(c("Gameplay", "Sell.Price.Factor", "0.25"))
         self.item_despawn_delay = val(c("Gameplay", "Item.Despawn.Delay", "180"))

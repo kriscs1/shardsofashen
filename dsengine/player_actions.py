@@ -131,6 +131,8 @@ class ActionsMixin:
             if verbs == "":
                 verbs = "Use"
             verbs = self.add_verb(verbs, "Examine")
+        elif t == NPC and getattr(e, "cart", None) is not None:
+            verbs = self.w.carts.verbs(self, e)             # (a horse and cart: carts.py)
         elif t == NPC and self.w.hostile_for(e, self):
             verbs = self.add_verb(verbs, "Attack")
             verbs = self.add_verbs(verbs, uw)
@@ -157,6 +159,10 @@ class ActionsMixin:
             return 28
         if verb == "Sit":
             return 40                                         # (a seat you can't stand on: a throne)
+        if verb in ("Hail", "Get Out"):
+            return 0                                          # (a wave from where you stand; down from the cart)
+        if verb == "Get In":
+            return 56
         if verb == "Talk to":
             return 48
         if verb == "Attack":
@@ -254,10 +260,12 @@ class ActionsMixin:
         self.clicked_tile_y = self.tile_of_y(vy)
         if verb in ("Cancel", ""):
             return
+        if e is not None and e.type not in (INVENTORYITEM, ACTIONBOXITEM) and verb not in ("Examine", "Walk here"):
+            self.act_started()                          # (the browser has marked it: its outcome is told it)
         if not self.swap_allows(verb):                  # (in another body: no hands - tricks.py)
             return
         if verb == "Walk here":
-            if not self.user_input_enabled or self.ab_mode:
+            if not self.user_input_enabled or self.ab_mode or self.ride is not None:
                 return
             self.player_attack_target = None
             m, tx, ty = self.w.tile_at(self.player.z, vx, vy)
@@ -278,6 +286,9 @@ class ActionsMixin:
             return
         if verb != "Attack":
             self.player_attack_target = None
+        if self.ride is not None and getattr(e, "cart", None) is not self.ride and verb != "Examine" and                 e.type not in (INVENTORYITEM, ACTIONBOXITEM):
+            self.display_message("Not from the cart!", "FAIL")
+            return
         rng = self.verb_range(verb, e)
         if rng > 0 and self.player_distance_to(e) > rng:
             if self.ab_mode:
@@ -299,6 +310,10 @@ class ActionsMixin:
             self.use_item_with(e)
             return
         if self.deep_do(verb, e):                      # (the Shifting Deep's things: deep.py)
+            return
+        if getattr(e, "cart", None) is not None and verb in ("Hail", "Get In", "Get Out"):
+            {"Hail": self.w.carts.hail, "Get In": self.w.carts.get_in}.get(verb, lambda s, e: self.w.carts.get_out(s))(
+                self, e)
             return
         if self.shardcraft_do(verb, e):                # (shardstones, enchanting: shardcraft.py)
             return

@@ -298,11 +298,36 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   };
   for (const e of shown) if (e.k === T.NPC && e.un) draw(e);
   for (const e of shown) if (e.k === T.MAPITEM) draw(e);
-  const standing = shown.filter((e) => e.k === T.STATICOBJECT || e.k === T.PLAYER || (e.k === T.NPC && !e.un));
+  drawMarks(ctx, cam, now, false);
+  let standing = shown.filter((e) => e.k === T.STATICOBJECT || e.k === T.PLAYER || (e.k === T.NPC && !e.un));
   if (me && me.a) standing.push(me);
+  // (in a cart, carts.py: drawn with it, standing in its box - over it above its front panel, hidden below)
+  const riders = new Map();
+  const rideOf = (e) => (e === me ? S.me && S.me.ride : e.rd) || 0;
+  const cartUids = new Set(shown.filter((e) => e.k === T.NPC).map((e) => e.u));
+  standing = standing.filter((e) => {
+    const c = rideOf(e);
+    if (!c || !cartUids.has(c)) return true;
+    if (!riders.has(c)) riders.set(c, []);
+    riders.get(c).push(e);
+    return false;
+  });
   standing.sort((a, b) => (a.dy + a.h) - (b.dy + b.h));
-  for (const e of standing) draw(e);
+  for (const e of standing) {
+    draw(e);
+    for (const r of riders.get(e.u) || []) {
+      const seat = entityIni(e.n, "Seat." + (/([1248])[abc]$/.exec(e.i || "") || [0, "2"])[1], "").split(",");
+      const panel = Math.round(e.dy - cam.y + (val(seat[2]) || e.h));
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(-4096, -4096, 8192 + V.ww, 4096 + panel);
+      ctx.clip();
+      draw(r);
+      ctx.restore();
+    }
+  }
   drawGlows(ctx, shown, cam);
+  drawMarks(ctx, cam, now, true);
   for (const e of shown) if (e.k === T.MISSILE || e.k === T.TEMPORARY) draw(e);
   // tree tops over everyone
   drawInfront(ctx, cam, pick, pc);
@@ -347,6 +372,78 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   drawFlash(ctx, V.ww, V.wh, now);
   ctx.restore();
   V.pick = pick;
+}
+
+// ----- what was clicked, marked the moment it's clicked (registered: a gold ring closing in on it); the server says
+// how it went ("act"): done, a green ring opening out; refused or come to nothing, red, with a shake and a cross. The
+// foe you're fighting keeps a red ring at its feet, tightening at each blow, hit or miss.
+export function markClick(verb, e, wx, wy) {
+  V.mark = { verb, u: e && e.k !== T.TILE ? e.u : 0, x: wx, y: wy, at: performance.now(), ok: null, okAt: 0 };
+}
+
+export function markOutcome(ok, now) {
+  const m = V.mark;
+  if (m && m.ok === null && now - m.at < 15000) { m.ok = ok; m.okAt = now; }
+}
+
+export function markSwing(uid, now) { V.swing = { u: uid, at: now }; }
+
+function ring(ctx, x, y, rx, col, a, w = 2) {
+  if (a <= 0) return;
+  ctx.strokeStyle = `rgba(${col.join(",")},${Math.min(1, a)})`;
+  ctx.lineWidth = w;
+  ctx.beginPath();
+  ctx.ellipse(x, y, Math.max(2, rx), Math.max(1, rx * 0.45), 0, 0, 6.283);
+  ctx.stroke();
+}
+
+function feetOf(u, cam) {
+  const e = u ? (S.pos && S.me && S.me.uid === u ? myPlayer() : S.ents.get(u)) : null;
+  if (!e) return null;
+  return [e.dx + e.w / 2 - cam.x, e.dy + e.h - 3 - cam.y, Math.max(10, Math.min(30, e.w * 0.45)), e.dy - cam.y];
+}
+
+function drawMarks(ctx, cam, now, over) {
+  ctx.save();
+  const foe = S.me && S.me.target ? feetOf(S.me.target, cam) : null;
+  if (foe && !over) {                                   // (the foe: its ring, tightening at a blow)
+    const sw = V.swing && V.swing.u === S.me.target ? Math.max(0, 1 - (now - V.swing.at) / 260) : 0;
+    ring(ctx, foe[0], foe[1], foe[2] * (1.15 - 0.2 * sw), [235, 70, 40], 0.55 + 0.45 * sw, 2 + sw);
+  }
+  const m = V.mark;
+  if (m) {
+    const at = feetOf(m.u, cam);
+    const x = at ? at[0] : m.x - cam.x, y = at ? at[1] : m.y - cam.y, r = at ? at[2] : 9;
+    const age = now - m.at;
+    const attack = m.verb === "Attack";
+    if (m.ok === null) {
+      const life = m.verb === "Walk here" ? 650 : 3500;
+      if (age > life) V.mark = null;
+      else if (!over) {
+        const k = Math.min(1, age / 180);               // (it closes in, then holds, pulsing, till it's answered)
+        const fade = m.verb === "Walk here" ? 1 - age / life : 0.75 + 0.25 * Math.sin(age / 120);
+        ring(ctx, x, y, r * (1.7 - 0.7 * k), attack ? [255, 120, 60] : [255, 226, 130], fade, 2);
+        if (m.verb === "Walk here") ring(ctx, x, y, r * 0.35, [255, 226, 130], fade, 2);
+      }
+    } else {
+      const t = (now - m.okAt) / (m.ok ? 450 : 700);
+      if (t >= 1) V.mark = null;
+      else if (m.ok && !over) ring(ctx, x, y, r * (1 + 0.7 * t), [90, 230, 110], 1 - t, 3);
+      else if (!m.ok) {
+        const shake = Math.sin(t * 40) * 3 * (1 - t);
+        if (!over) ring(ctx, x + shake, y, r, [235, 50, 40], 1 - t, 3);
+        else {                                          // (a red cross over it: no)
+          const cy = at ? at[3] - 6 : y - 18, s = 5;
+          ctx.strokeStyle = `rgba(40,6,4,${1 - t})`; ctx.lineWidth = 5;
+          ctx.beginPath(); ctx.moveTo(x + shake - s, cy - s); ctx.lineTo(x + shake + s, cy + s);
+          ctx.moveTo(x + shake + s, cy - s); ctx.lineTo(x + shake - s, cy + s); ctx.stroke();
+          ctx.strokeStyle = `rgba(235,50,40,${1 - t})`; ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  ctx.restore();
 }
 
 // ----- a warm halo round what burns (Glow=<radius>: a fire), flickering - by day as well as by night

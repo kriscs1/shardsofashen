@@ -17,6 +17,12 @@ def level_slots(project, z, extra=()):
     return out
 
 
+def own_level(z):
+    """A level of its own (CLAUDE.md: the arena 10, the dragon's lair -9, the Shardrealm -10, the Shifting Deep -11
+    down, homesteads 1000+): nothing joins it to the world. The others lie under or over it, in its frame."""
+    return z >= 10 or z <= -9
+
+
 def slot_name(x, y, z):
     return HOMESTEAD_MAP if z == 1000 else "%d,%d,%d" % (x, y, z)
 

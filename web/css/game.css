@@ -384,3 +384,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .touch .panel.game > :not(h2):not(#game-table) { grid-column: 2; }
 .touch .game .game-say { margin-top: 0; }
 .touch .game .buttons button { padding: 6px 10px; font-size: 14px; }
+
+/* the game's coin, by every price on the page (util.js coinHTML; the canvas draws the same one) */
+.coin { display: inline-block; width: 0.78em; height: 0.78em; margin: 0 0.08em 0 0.1em; vertical-align: -0.06em;
+  border-radius: 50%; background: radial-gradient(circle at 35% 34%, #ffec96 0 14%, #e8b028 16% 52%, #ac7414 54% 62%,
+  #e8b028 64% 86%, #54320a 88%); }

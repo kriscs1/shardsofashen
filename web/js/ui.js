@@ -6,7 +6,7 @@
 import { G, S, cellOf, isHomeMap } from "./state.js";
 import { A, sprite, size, has, entityIni, spellIni, configRead, preload } from "./assets.js";
 import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextMid, centreText, textWidth, fitText,
-  wrapLines, roundBox, fontPx, setFont } from "./util.js";
+  wrapLines, roundBox, fontPx, setFont, COIN } from "./util.js";
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
@@ -1000,7 +1000,7 @@ export function invSlotPos(i) {
 
 function digits(ctx, text, x, y) {
   // (how many: in the game's own lettering, big enough to read, pale gold with a dark edge so it shows on any item)
-  const size = 10;
+  const size = 12;
   for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1]]) drawText(ctx, text, x + 1 + dx, y + dy, size, true, [24, 14, 8]);
   drawText(ctx, text, x + 1, y, size, true, [255, 232, 150]);
 }
@@ -1009,7 +1009,7 @@ function qtyText(q) {
   if (q === "+" || q === "") return q;
   const n = val(q);
   if (n >= 10000000) return Math.floor(n / 1000000) + "M";
-  if (n >= 100000) return Math.floor(n / 1000) + "K";
+  if (n >= 10000) return Math.floor(n / 1000) + "K";              // (five figures don't fit a slot, this big)
   return String(q);
 }
 
@@ -1028,10 +1028,10 @@ function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = f
     }
   }
   if (badge) {
-    const w = textWidth(ctx, badge, 7, true) + 4;
+    const w = Math.min(G.tw, textWidth(ctx, badge, 8, true) + 4);    // (a price: big enough to read, its coin too)
     ctx.fillStyle = "rgb(60,18,14)";
-    ctx.fillRect(x + G.tw - w, y + G.th - 10, w, 10);
-    drawText(ctx, badge, x + G.tw - w + 2, y + G.th - 10, 7, true, badgeInk || [255, 150, 120]);
+    ctx.fillRect(x + G.tw - w, y + G.th - 12, w, 12);
+    drawText(ctx, badge, x + G.tw - w + 2, y + G.th - 12, 8, true, badgeInk || [255, 150, 120]);
   }
   const q = qtyText(String(qty));
   if (q !== "1" && q !== "") digits(ctx, q, x, y);
@@ -1182,7 +1182,7 @@ function drawBox(ctx) {
     // each thing's price on it: the market's (the seller's), a shop's (what it costs here)
     const price = b.mode === "Market" ? (b.prices || [])[it.i] :
       b.mode === "Shop" ? itemPrice(it.name, b.buy_rate || 1.2) : 0;
-    slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : price ? price + "g" : "",
+    slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : price ? price + COIN : "",
       cross: !!(it.short || it.missing), badgeInk: price ? [255, 222, 90] : null });
   });
   // the pages: up and down buttons, and which page this is

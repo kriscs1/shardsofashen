@@ -105,6 +105,11 @@ export function getVerbs(e) {
     addVerbs(v, e.uw);
     if (!v.length) v = ["Use"];
     addVerb(v, "Examine");
+  } else if (t === T.NPC && entityIni(e.n, "Vehicle", "0").trim() === "1") {
+    // (a horse and cart, carts.py: hail it, get in; riding it, get out where it stops)
+    if (S.me && S.me.ride === e.u) v = String(e.uw || "").includes("Get In") && !String(e.uw).includes("Hail") ?
+      ["Get Out", "Examine"] : ["Examine"];
+    else addVerbs(v, e.uw || "Examine");
   } else if (t === T.NPC && e.f) {
     addVerb(v, "Attack");
     addVerbs(v, e.uw);

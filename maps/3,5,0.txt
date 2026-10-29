@@ -22,8 +22,6 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Brick_Paving001:Grass001:Grass001:G
 NPC	Greengrocer	736	376	Attitude=Good Stand=1 Face=S Id=Northport_Stall_301 Name=Ulric
 NPC	Butcher	736	504	Attitude=Good Stand=1 Face=S Id=Northport_Stall_303 Name=Sybil
 NPC	Dog	736	312	Attitude=Good Zone=19,7,24,15 Pause=4-12
-NPC	Horse	698	318	Attitude=Good Stand=1 Face=E Id=Northport_Horse_3
-NPC	Carter	672	344	Attitude=Good Stand=1 Face=S Id=Northport_Carter_3 Name=Clara
 NPC	Speaker	448	152	Attitude=Good Stand=1 Face=S Id=Northport_Speaker_20
 NPC	Baker	128	216	Attitude=Good Stand=1 Face=S Id=Northport_Baker_323 Name=Sid
 NPC	Butcher	576	472	Attitude=Good Stand=1 Face=S Id=Northport_Butcher_327 Name=Kit
@@ -31,7 +29,6 @@ NPC	Butcher	384	472	Attitude=Good Stand=1 Face=S Id=Northport_Butcher_329 Name=E
 NPC	Butcher	192	472	Attitude=Good Stand=1 Face=S Id=Northport_Butcher_331 Name=Jane
 StaticObject	Market_Stall_Open	736	416
 StaticObject	Market_Stall_Open	736	544
-StaticObject	Cart	672	320
 StaticObject	Notice	64	578	Id=Northport_Notice_386
 Id	Northport_Cart_Stop_3	23	12
 Id	Northport_City_Hall	20	12

@@ -28,8 +28,6 @@ NPC	Dog	160	408	Attitude=Good Zone=2,10,11,18 Pause=4-12
 NPC	Cat	256	344	Attitude=Good Zone=4,8,14,16 Pause=4-12
 NPC	Ginger_Cat	736	600	Attitude=Good Zone=19,16,24,20 Pause=4-12
 NPC	Black_Cat	736	536	Attitude=Good Zone=19,14,24,20 Pause=4-12
-NPC	Horse	474	510	Attitude=Good Stand=1 Face=E Id=Galaith_Horse_1
-NPC	Carter	448	536	Attitude=Good Stand=1 Face=S Id=Galaith_Carter_1 Name=Martha
 NPC	Baker	352	248	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_334 Name=Vera
 NPC	Baker	576	248	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_336 Name=Ulric
 NPC	Baker	96	248	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_338 Name=Fred
@@ -40,7 +38,6 @@ StaticObject	Market_Stall_Open	256	576
 StaticObject	Market_Stall_Open	640	576
 StaticObject	Market_Stall_Open	352	512
 StaticObject	Market_Board	448	416
-StaticObject	Cart	448	512
 StaticObject	Notice	0	354	Id=Galaith_Notice_459
 Id	Galaith_Market_Square	15	18
 Id	Galaith_Cart_Stop_1	16	18

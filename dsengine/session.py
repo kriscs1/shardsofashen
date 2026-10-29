@@ -140,6 +140,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.clicked_tile_x = self.clicked_tile_y = 1
         self.script_cursor_x = self.script_cursor_y = 0
         self.user_input_enabled = True
+        self.ride = None                    # (the cart they're riding in: carts.py)
+        self.act_at = None                  # (when they last clicked to do something, till its outcome's told)
         self.player_visible = val(d.config_read("Gameplay", "Player.Visible", "1")) == 1
         self.lock_bumped = None
         self.lock_bump_last = None
@@ -267,9 +269,14 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.msg_open = None
         if message.rstrip().endswith(".."):
             self.msg_open = (self.msg_seq, self.now)
-        if sound is None and str(mtype).upper() in self.NEGATIVE:
+        kind = str(mtype).upper()
+        if sound is None and kind in self.NEGATIVE:
             ev["tell"] = 1
         self.emit(ev)
+        if kind in self.NEGATIVE and kind != "DAMAGE" or sound in ("Denied", "Fail", "Empty", "Locked"):
+            self.act_done(False)
+        elif kind in ("SUCCESS", "ACHIEVEMENT", "LEVELUP"):
+            self.act_done(True)
         if sound and sound != "-":
             self.play_sound(sound)
 
@@ -285,6 +292,20 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             out.append({"t": "sound", "name": "Denied"})
         return out
 
+    ACT_WAIT = 15000        # (what was clicked: its outcome is told for this long after, walking there included)
+
+    def act_started(self):
+        """They've clicked to do something in the world: the browser has marked it (registered); what comes of it
+        (act_done) turns the mark green, done, or red, refused or come to nothing."""
+        self.act_at = self.now
+
+    def act_done(self, ok):
+        if self.act_at is None:
+            return
+        if 0 <= self.now - self.act_at <= self.ACT_WAIT:
+            self.emit({"t": "act", "ok": 1 if ok else 0})
+        self.act_at = None
+
     def refuse(self, message, sound="Denied"):
         """Something the player isn't skilled enough for (wearing, casting, making...): said, with a sound."""
         self.display_message(message, "FAIL")
@@ -294,6 +315,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         """A sound: at = the global point it is made at (everyone near hears it), None = only this player."""
         if not trim(sound):
             return
+        if sound in ("Denied", "Fail", "Empty", "Locked"):
+            self.act_done(False)
         if at is None:
             self.emit({"t": "sound", "name": sound})
         else:
@@ -309,6 +332,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.w.fx_nudge(e, dx, dy, ms, e.owner)
 
     def fx_skill_pop(self, skill):
+        self.act_done(True)                             # (the work's begun: a gathering script's Show.Skill)
         self.w.fx({"t": "skillpop", "uid": self.player.uid, "skill": skill}, self.player.z, self.player.cx,
                   self.player.cy)
 
@@ -555,6 +579,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             elif e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
         self.grave_ent = None
+        self.w.carts.leaving(self)
 
     def entity_gone(self, e):
         """A world entity has gone: forget it wherever this player was using it."""
@@ -620,6 +645,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     # =================================================================================================================
     def move_player(self):
         p = self.player
+        if self.ride is not None:               # (in a cart: it takes them, carts.py)
+            self.player_prev_x, self.player_prev_y = p.x, p.y
+            if self.player_walk_active:
+                self.stop_player_walk()
+            return
         if self.seat is not None and (p.x, p.y) != self.seat[1]:
             self.seat, p.pose = None, ""    # (something moved them, a teleport: they're up, wherever they are)
         elif self.seat is not None and self.keyboard_direction != 0 and self.user_input_enabled:
@@ -794,6 +824,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             return
         if self.ab_mode:
             self.close_action_box(-1)
+        self.w.carts.leaving(self)                  # (whisked off: out of any cart)
         p = self.player
         # (off somewhere else, not up a ladder or a stair: the view fades out and in again)
         far = abs(m.ox + x - p.x) + abs(m.oy + y - p.y) > 3 * self.tw
@@ -1054,6 +1085,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                        "y": int(self.grave["y"])} if self.grave else None),
             "dead": bool(self.dead_wait),
             "lit": self.stones_lit(),                   # (the shardstones you've activated: the rest look dormant)
+            "ride": self.ride.e.uid if self.ride is not None and self.ride.e is not None else 0,
         }
 
     def quests_state(self):

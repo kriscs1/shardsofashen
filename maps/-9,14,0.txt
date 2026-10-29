@@ -26,7 +26,4 @@ NPC	Guard_Captain	448	408	Attitude=Good Stand=1 Face=W Id=Palace_Captain Name=Ca
 Lock	13	13	$Attr.GuardQuest>=5 or $Attr.KingQuest>=1	The Royal Guard bar the palace door.
 Id	Palace_Gate	13	14
 Id	Throne_Room	13	8
-NPC	Horse	762	606	Attitude=Good Stand=1 Face=E Id=Galaith_Horse_2
-NPC	Carter	701	607	Attitude=Good Stand=1 Face=S Id=Galaith_Carter_2 Name=Albert
-StaticObject	Cart	736	608
 Id	Galaith_Cart_Stop_2	25	21

@@ -3,12 +3,12 @@ if it belongs to one player only (a quest's own NPC or item), and who an NPC is 
 from ashen.entity import (Entity as _Entity, NPCAI, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY,
                                 ROOF, INFRONTTILE, ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES, TYPE_BY_NAME, WORLD_TYPES,
                                 AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, normalise_type,
-                                attitude_of_type, parse_attitude)
+                                attitude_of_type, parse_attitude, is_passive)
 
 __all__ = ["Entity", "NPCAI", "InvItem", "PLAYER", "TILE", "MAPITEM", "STATICOBJECT", "NPC", "MISSILE", "TEMPORARY",
            "ROOF", "INFRONTTILE", "ACTIONBOXITEM", "INVENTORYITEM", "TYPE_NAMES", "TYPE_BY_NAME", "WORLD_TYPES",
            "AI_IDLE", "AI_ROAM", "AI_PATROL", "AI_CHASE", "AI_FLEE", "AI_RETURN", "normalise_type", "attitude_of_type",
-           "parse_attitude"]
+           "parse_attitude", "is_passive"]
 
 
 class Entity(_Entity):
