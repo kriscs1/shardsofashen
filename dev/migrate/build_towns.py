@@ -100,21 +100,43 @@ RACKS = {   # the lanes' shops, the pubs, the cobbler's stall
 
 
 # ================================================================== pictures: a horse and a cart, a pub's sign
-def horse(step):
-    """A brown horse, side-on facing west (sprites\\Walk: 8a-c and 2a-c, east the same turned)."""
+HORSE = (40, 34)        # (a horse a little taller than a person and half again as long: sprites bigger than a tile)
+
+
+def horse(step, coat=(146, 94, 52), shade=(108, 66, 34), light=(178, 124, 76), mane=(54, 34, 22),
+          hoof=(40, 30, 24)):
+    """A brown horse, side-on facing east (sprites\\Walk 2a-c; 8a-c, west, the same turned): its body, its neck up to
+    a head held nose-down, a dark mane and a flowing tail, four legs walking (b and c: the other pair forward)."""
     pg = K.pg()
-    s = K.surface()
-    coat, dark, mane = (140, 90, 50), (100, 62, 32), (60, 38, 22)
-    pg.draw.ellipse(s, coat, (8, 11, 18, 10))                                # the body
-    pg.draw.polygon(s, coat, [(9, 15), (5, 6), (8, 5), (12, 13)])            # the neck
-    pg.draw.ellipse(s, coat, (1, 4, 8, 6))                                   # the head
-    s.set_at((3, 6), (20, 14, 10))
-    pg.draw.line(s, mane, (7, 4), (12, 12), 2)                               # the mane
-    pg.draw.line(s, mane, (25, 13), (28, 22), 2)                             # the tail
-    legs = {"a": (0, 0, 0, 0), "b": (2, -2, -2, 2), "c": (-2, 2, 2, -2)}[step]
-    for (x, d) in zip((10, 13, 21, 24), legs):
-        pg.draw.line(s, dark, (x, 19), (x + d, 28), 2)
-        s.set_at((x + d, 29), (30, 24, 20))
+    s = K.surface(*HORSE)
+    swing = {"a": (0, 0, 0, 0), "b": (2, -2, -2, 2), "c": (-2, 2, 2, -2)}[step]
+    legs = [(13, swing[0], True), (28, swing[2], True), (11, swing[1], False), (26, swing[3], False)]
+
+    def leg(x, sw, far):
+        col = shade if far else coat
+        pg.draw.line(s, col, (x, 20), (x + sw // 2, 26), 3)                 # the upper leg
+        pg.draw.line(s, col, (x + sw // 2, 26), (x + sw, 31), 2)            # the lower leg
+        pg.draw.line(s, hoof, (x + sw - 1, 32), (x + sw + 1, 32))           # the hoof
+        s.set_at((x + sw, 31), hoof)
+    for x, sw, far in legs:
+        if far:
+            leg(x, sw, True)
+    tsw = {"a": 0, "b": 1, "c": -1}[step]                                    # the tail, swinging as it walks
+    pg.draw.lines(s, mane, False, [(9, 13), (6, 16), (5 + tsw, 21), (6 + tsw, 26)], 3)
+    pg.draw.ellipse(s, coat, (8, 11, 24, 12))                                # the body
+    pg.draw.ellipse(s, shade, (12, 18, 18, 5))                               # (the belly in shadow)
+    pg.draw.ellipse(s, coat, (11, 15, 19, 6))
+    pg.draw.line(s, light, (12, 12), (26, 12))                               # (light along the back)
+    pg.draw.polygon(s, coat, [(25, 13), (30, 4), (34, 5), (31, 17)])         # the neck
+    pg.draw.polygon(s, coat, [(30, 3), (34, 2), (38, 8), (38, 11), (35, 11), (32, 8)])   # the head, nose down
+    pg.draw.line(s, shade, (35, 11), (38, 11))                               # (the muzzle)
+    s.set_at((37, 10), (40, 26, 20))                                         # (a nostril)
+    s.set_at((33, 5), (22, 14, 10))                                          # (the eye)
+    pg.draw.polygon(s, coat, [(30, 3), (31, 0), (32, 3)])                    # the ear
+    pg.draw.lines(s, mane, False, [(31, 2), (29, 6), (27, 10), (25, 13)], 2)   # the mane
+    for x, sw, far in legs:
+        if not far:
+            leg(x, sw, False)
     return K.outlined(s)
 
 
@@ -131,14 +153,14 @@ def cart():
     pg.draw.line(s, dark, (10, 16), (10, 28))
     pg.draw.line(s, dark, (4, 22), (16, 22))
     pg.draw.line(s, dark, (0, 14), (4, 14), 2)                               # the shafts
-    return K.outlined(s)
+    return K.pg().transform.flip(K.outlined(s), True, False)                # (shafts east, to the horse that pulls it)
 
 
 def pictures():
     for f in "abc":
-        img = horse(f)
-        K.save("Walk", "Horse8" + f, img)
-        K.save("Walk", "Horse2" + f, K.pg().transform.flip(img, True, False))
+        img = horse(f)                                                       # (drawn facing east: 2 is east)
+        K.save("Walk", "Horse2" + f, img)
+        K.save("Walk", "Horse8" + f, K.pg().transform.flip(img, True, False))
     K.save("Entities", "Horse", horse("a"))
     K.save("Entities", "Cart", cart())
     K.copy_sprite("Entities", "Sign_Tavern", "Sign_Pub")

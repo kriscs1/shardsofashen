@@ -1,6 +1,7 @@
 """Cats: a grey tabby (Cat), a black cat (Black_Cat) and a ginger (Ginger_Cat) - drawn, given a meow and a purr,
-put about the towns - and Jimmy, a strawberry-blond ginger (Strawberry_Cat: no white on him), at home in the cottage where
-new characters wake; Noops (Fat_Grey_Cat: very round, dark grey, his face and legs paler) by the Isle's bank, Vincent
+put about the towns - and Jimmy, a deep orange ginger tabby with a creamy chin (Strawberry_Cat: no white on him), at
+home in the cottage where new characters wake; Noops (Fat_Grey_Cat: a big, round grey tabby, a pale chest and
+yellow-green eyes) by Edwin and Maren's house, Vincent
 (Northgate's black cat) and Mo (Tuxedo_Cat: black, a white bib and white socks) by Ashford's market.
 Run it again to draw and make the sounds again; the cats are only placed once.
 
@@ -38,18 +39,20 @@ CATS = {
                   "A sleek black cat. Lucky, probably."),
     "Ginger_Cat": ((232, 166, 110), (198, 120, 72), (250, 208, 164), (252, 236, 214), (112, 172, 90), True,
                    "A ginger cat - more strawberry-blond, really."),
-    "Strawberry_Cat": ((240, 182, 132), (210, 136, 92), (252, 214, 176), (246, 198, 154), (112, 172, 90), True,
-                       "A strawberry-blond cat, ginger from nose to tail."),     # (Jimmy: no white on him anywhere)
-    "Fat_Grey_Cat": ((92, 92, 100), (58, 58, 66), (122, 122, 130), (168, 168, 176), (214, 180, 70), False,
-                     "A very round dark grey cat, his face and legs a paler grey."),   # (Noops)
+    "Strawberry_Cat": ((222, 124, 56), (176, 82, 34), (244, 168, 96), (240, 190, 134), (176, 164, 78), True,
+                       "A ginger tabby, orange from nose to tail, with a creamy chin."),   # (Jimmy, from his photo)
+    "Fat_Grey_Cat": ((138, 138, 146), (88, 88, 98), (176, 176, 184), (214, 208, 204), (196, 194, 84), True,
+                     "A big grey tabby with a pale chest and yellow-green eyes that miss nothing."),   # (Noops, from his photo)
     "Tuxedo_Cat": ((44, 40, 46), (24, 22, 26), (80, 76, 86), (244, 244, 246), (150, 206, 96), False,
                    "A black cat with a white bib and four white socks."),      # (Mo)
 }
 LOOKS = {   # face, legs, paws (socks), fat?
-    "Fat_Grey_Cat": {"face": (150, 150, 158), "legs": (150, 150, 158), "fat": True},
+    "Fat_Grey_Cat": {"fat": True},
     "Tuxedo_Cat": {"paws": (244, 244, 246)},
 }
 LEGS = [(12, (0, 1, -1), True), (14, (0, -1, 1), False), (18, (0, -1, 1), True), (20, (0, 1, -1), False)]
+SCALE = 0.7         # (every pose drawn as below, then made this much smaller: a cat about a third of a person's height)
+GROUND = 28         # (the row under its paws, kept where it is as it shrinks: every pose stands on the same line)
 RATE = 22050
 
 
@@ -81,18 +84,34 @@ def draw_head(s, hx, hy, fur, dark, chest, eye, stripes, face):
     s.set_at((hx + 4, hy + 1), (246, 150, 160))
 
 
+def smaller(s):
+    """s made SCALE as big (box-averaged, every pixel then snapped to the nearest of its own colours, so it stays
+    crisp pixel art), in the middle, standing on the same ground line. Returns it and where a point (x, y) went."""
+    w = max(1, round(32 * SCALE))
+    small = pygame.transform.smoothscale(s, (w, w))
+    colours = list({tuple(s.get_at((x, y)))[:3] for y in range(32) for x in range(32) if s.get_at((x, y))[3]})
+    out = pygame.Surface((32, 32), pygame.SRCALPHA)
+    ox, oy = (32 - w) // 2, GROUND - round(GROUND * SCALE)
+    for y in range(w):
+        for x in range(w):
+            r, g, b, a = small.get_at((x, y))
+            if a < 110:
+                continue
+            c = min(colours, key=lambda p: (p[0] - r) ** 2 + (p[1] - g) ** 2 + (p[2] - b) ** 2)
+            out.set_at((x + ox, y + oy), c + (255,))
+    return out, lambda px, py: (ox + round(px * SCALE), oy + round(py * SCALE))
+
+
 def outlined(s, hx, hy, whiskers=True):
-    """The 1 px dark outline round it (the mask's silhouette, a pixel out each way), the whiskers over it."""
+    """Made smaller (SCALE), then the 1 px dark outline round it (the mask's silhouette, a pixel out each way)."""
+    s, _ = smaller(s)
     shape = pygame.mask.from_surface(s)
     out = pygame.Surface((32, 32), pygame.SRCALPHA)
     sil = shape.to_surface(setcolor=OUTLINE + (255,), unsetcolor=(0, 0, 0, 0))
     for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
         out.blit(sil, (dx, dy))
     out.blit(s, (0, 0))
-    for wy in (hy + 1, hy + 2) if whiskers else ():                                                # whiskers (over the outline)
-        out.set_at((hx + 6, wy), (236, 236, 236))
-        out.set_at((hx - 6, wy), (236, 236, 236))
-    return out
+    return out                                      # (no whiskers: this small they're only a speck)
 
 
 def draw_cat(fur, dark, light, chest, eye, stripes, frame, face=None, legs=None, paws=None, fat=False):

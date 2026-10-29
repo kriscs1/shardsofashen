@@ -193,29 +193,8 @@ def smoke(k):
 
 
 def sleeping_cat():
-    """Jimmy curled up asleep: a ginger ball, his tail round his nose (the cat's own colours)."""
-    pg = K.pg()
-    cat = K.load("Entities", "Strawberry_Cat")
-    cols = {}
-    for y in range(32):
-        for x in range(32):
-            c = cat.get_at((x, y))
-            if c[3] == 255 and sum(c[:3]) > 300:
-                cols[c[:3]] = cols.get(c[:3], 0) + 1
-    fur = sorted(cols, key=lambda c: -cols[c])[:3]
-    base, light, dark = fur[0], max(fur, key=sum), min(fur, key=sum)
-    s = K.surface()
-    pg.draw.ellipse(s, base, (7, 17, 19, 11))                                # the body, curled
-    pg.draw.ellipse(s, light, (9, 18, 12, 6))
-    for x in (11, 15, 19):                                                   # its stripes
-        pg.draw.line(s, dark, (x, 18), (x + 1, 21))
-    pg.draw.circle(s, base, (22, 20), 5)                                     # the head, tucked in
-    pg.draw.polygon(s, base, [(19, 16), (20, 13), (22, 16)])                 # the ears
-    pg.draw.polygon(s, base, [(23, 16), (25, 13), (26, 17)])
-    pg.draw.line(s, (60, 40, 30), (20, 21), (22, 21))                        # its eyes, shut
-    pg.draw.line(s, (60, 40, 30), (23, 21), (25, 21))
-    pg.draw.arc(s, dark, (8, 21, 18, 9), 3.3, 6.1, 3)                        # the tail round the front
-    return K.outlined(s)
+    """Jimmy curled up asleep on the spare bed: his own Curl pose (build_cats.py), so he's the same cat, the same size."""
+    return K.load("Entities", "Strawberry_Cat_Curl8")
 
 
 def fresh_grave():

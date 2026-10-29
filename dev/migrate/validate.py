@@ -283,7 +283,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
                "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost",
-               "State", "Nap", "Level"}   # (Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth)
+               "State", "Nap", "Level", "Look"}   # (Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
 _npc_ids = None
 
 
@@ -1045,10 +1045,12 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
                "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
                "Swims", "Calls",                                                 # at home in the water too (an otter); its call
-               "Indoors"}                                                        # 0: an animal that won't walk into a house
+               "Indoors",                                                        # 0: an animal that won't walk into a house
+               "Look.Parts", "Looks"}                                            # its parts' colours; its other colourings
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
-                                     "Base", "Enchanted", "Enchant"}
+                                     "Base", "Enchanted", "Enchant",
+                                     "Look.Parts", "Looks"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 

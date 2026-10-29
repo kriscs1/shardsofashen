@@ -24,6 +24,8 @@ def entity_state(w, e, viewer):
         st["q"] = e.quantity
     else:
         st["uw"] = e.use_words
+    if getattr(e, "look", 0) and e.name == e.look_of:            # (one of its kind's other colourings; not in a swap)
+        st["lk"] = e.look
     if e.npc_id:
         st["id"] = e.npc_id
     if e.display:

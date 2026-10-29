@@ -6,7 +6,7 @@ import { chunkOf, updateChunk, endFrame, setHiddenRoof, clearHiddenRoofs, forget
 import { drawSky, drawWeather, drawFog, fogUpdate, fogCovers, drawFlash, weatherTick, flicker } from "./sky.js";
 import { val, clamp, drawText, textWidth, setFont } from "./util.js";
 import { T } from "./verbs.js";
-import { lookImage } from "./look.js";
+import { lookImage, npcImage } from "./look.js";
 
 export const V = {
   zoom: 1, zooms: [0.75, 1, 1.5, 2, 3],
@@ -181,6 +181,7 @@ function entityImage(e, now) {
     }
   }
   warmWalk(image);
+  if (e.k === T.NPC && e.lk) return npcImage(image, e.n, e.lk);   // (one of its trade's other colourings)
   return sprite(image);
 }
 

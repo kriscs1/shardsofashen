@@ -527,13 +527,75 @@ def frames(name):
     return {d + f: draw_person(name, d, f) for d in "1248" for f in "abc"}
 
 
+# ================================================================== the same people in other colours (no more pictures)
+# The browser recolours a person's shirt, trousers, hair and skin on the fly, shade for shade (web/js/look.js npcImage),
+# so one picture serves a whole trade. Entities.ini Look.Parts: each part's exact colours in the picture, its main one
+# first; Looks: the other colourings, | between them. A placed one's is chosen by its Id (or its spot), or Look=N on its
+# map line (0: as drawn); dsengine/world.py add_npc. Only these trades vary: everyone else is one of a kind.
+VARIED = ("Villager", "Man", "Woman", "Farmer", "Barkeep", "Barmaid", "Greengrocer", "Fishmonger", "Butcher", "Baker",
+          "Clerk", "Blacksmith", "Doctor", "Nurse", "Banker", "Trader", "Settler", "Merchant", "Shepherd", "Tailor",
+          "Cobbler", "Hotelier", "Carter", "Bandit")
+LOOK_POOLS = {
+    "shirt": ((150, 30, 30), (40, 80, 150), (90, 60, 130), (180, 140, 40), (60, 120, 110), (120, 70, 40), (70, 110, 60),
+              (170, 90, 120)),
+    "legs": ((60, 60, 70), (90, 70, 50), (50, 70, 110), (70, 90, 60), (110, 100, 80), (40, 40, 46)),
+    "hair": ((30, 26, 24), (150, 100, 40), (200, 80, 40), (210, 190, 120), (130, 130, 136), (70, 36, 30), (90, 56, 30)),
+    "skin": (SKIN[0], (232, 176, 140), (198, 140, 100), (150, 100, 70), (112, 74, 50)),
+}
+
+
+def look_parts(sp):
+    """{part: [main colour, its shades...]}: the exact colours a person is drawn in, part by part (colour_body)."""
+    out = {"skin": [sp["skin"][0], sp["skin"][1]]}
+    shirt = sp["shirt"][0]
+    out["shirt"] = [shirt, shade(shirt, 0.62)] + ([] if sp["bare_arms"] else [shade(shirt, 1.18)])
+    if sp["dress"] == shirt:
+        out["shirt"].append(shade(shirt, 0.75))
+    if not sp["bare_legs"]:
+        out["legs"] = [sp["trousers"][0], shade(sp["trousers"][0], 0.7)]
+    if sp["hair"] and sp["hair_style"] != "bald":
+        out["hair"] = list(sp["hair"][:2])
+    return out
+
+
+def looks():
+    """Entities.ini Look.Parts for every person, and Looks (three colourings) for the trades that vary."""
+    import random
+    import zlib
+    from common import Ini
+    ini = Ini(p("data", "Entities.ini"))
+    hx = lambda c: "%02x%02x%02x" % tuple(c)
+    for name, sp in PEOPLE.items():
+        if sp["bones"] or not ini.section(name):
+            continue
+        parts = look_parts(sp)
+        ini.set(name, "Look.Parts", ";".join("%s:%s" % (k, " ".join(hx(c) for c in v)) for k, v in parts.items()))
+        if name not in VARIED:
+            ini.remove(name, "Looks")
+            continue
+        rng = random.Random(zlib.crc32(name.encode()))          # (the same colourings every run)
+        far = lambda c, k: sum((u - v) ** 2 for u, v in zip(c, parts[k][0])) > 45 ** 2   # (not near its own colour)
+        pools = {k: [c for c in LOOK_POOLS[k] if far(c, k)] for k in parts}
+        picks = {k: rng.sample(pool if len(pool) >= 3 else [c for c in LOOK_POOLS[k] if c != tuple(parts[k][0])], 3)
+                 for k, pool in pools.items()}
+        variants = [" ".join("%s=%s" % (k, hx(picks[k][i])) for k in ("shirt", "legs", "hair", "skin") if k in parts)
+                    for i in range(3)]                          # (each a shirt, trousers, hair and skin of its own)
+        ini.set(name, "Looks", "|".join(variants))
+    ini.save(p("data", "Entities.ini"))
+    print("Looks: %d trades in other colours" % sum(1 for n in VARIED if n in PEOPLE))
+
+
 def main():
+    if "--looks" in sys.argv:
+        looks()
+        return
     made = {}
     for name in PEOPLE:
         fr = frames(name)
         made[name] = fr
         changed = K.save("Entities", name, fr["4a"])
         print(("wrote " if changed else "unchanged ") + name)
+    looks()
     if "--preview" in sys.argv:
         sheet = []
         for name in PEOPLE:

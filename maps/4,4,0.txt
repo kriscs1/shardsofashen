@@ -29,7 +29,7 @@ NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Southport_Port_Guard Name
 NPC	Seal	416	120	Attitude=Bad Zone=14,2,24,8
 StaticObject	Swordfish_Spot	64	64
 NPC	Fisherman	32	216	Attitude=Good Stand=1 Face=S Id=Southport_Harbour_Master_314 Name=Ivor
-NPC	Horse	125	352	Attitude=Good Stand=1 Face=W Id=Southport_Horse_2
+NPC	Horse	119	350	Attitude=Good Stand=1 Face=E Id=Southport_Horse_2
 NPC	Carter	94	353	Attitude=Good Stand=1 Face=S Id=Southport_Carter_2 Name=Jane
 NPC	Constable	224	536	Attitude=Good Stand=1 Face=S Id=Southport_Constable_347 Name=Hugh
 NPC	Barkeep	544	472	Attitude=Good Stand=1 Face=S Id=Southport_Barkeep_356 Name=Jasper

@@ -1,7 +1,7 @@
 // How a character looks: the Player sprite's skin, hair, shirt and trousers in colours of their own. The sprite is drawn
 // in a few exact colours (a main one and its shades for each part), so each is swapped for the chosen colour at the
 // same brightness; the eyes, mouth and boots, and the armour worn over it, stay as they are.
-import { sprite } from "./assets.js";
+import { sprite, entityIni } from "./assets.js";
 
 // part -> [the sprite's main colour, its other shades]
 const PARTS = {
@@ -94,6 +94,65 @@ export function lookImage(name, look) {
   x.putImageData(d, 0, 0);
   if (cache.size > 2000) cache.clear();
   cache.set(key, c);
+  return c;
+}
+
+// ----- townsfolk in other colours: one picture of a trade, its shirt, trousers, hair and skin swapped shade for shade
+// (Entities.ini Look.Parts: each part's exact colours; Looks: the other colourings - dev/migrate/build_people.py looks).
+// Every other colour in the picture stays as it is; it's only how they look, not who they are.
+const npcCache = new Map();
+const rgbOf = (h) => [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+
+export function npcImage(name, kind, n) {
+  const base = sprite(name);
+  if (!base || !n) return base;
+  const key = name + "|" + n;
+  let c = npcCache.get(key);
+  if (c) return c;
+  const want = {};                                          // part -> its new main colour
+  for (const kv of (entityIni(kind, "Looks", "").split("|")[n - 1] || "").trim().split(/\s+/)) {
+    const [k, v] = kv.split("=");
+    if (k && v) want[k] = rgbOf(v);
+  }
+  const map = [];                                           // [[a colour in the picture, what it becomes]]
+  for (const part of entityIni(kind, "Look.Parts", "").split(";")) {
+    const [k, cols] = part.split(":");
+    if (!cols) continue;
+    const shades = cols.trim().split(/\s+/).map(rgbOf);
+    const w = want[k];
+    for (const s of shades) {
+      if (!w) { map.push([s, s]); continue; }
+      const f = Math.min(1.8, lum(s) / lum(shades[0]));     // (each shade as much lighter or darker than its main)
+      map.push([s, w.map((v) => Math.max(0, Math.min(255, Math.round(f >= 1 ? v + (255 - v) * (f - 1) * 0.6 : v * f))))]);
+    }
+  }
+  c = document.createElement("canvas");
+  c.width = base.width;
+  c.height = base.height;
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.drawImage(base, 0, 0);
+  if (!map.length) return base;
+  const d = x.getImageData(0, 0, c.width, c.height);
+  const px = d.data;
+  const own = new Map();                                    // (the picture's other colours: kept, never mistaken)
+  for (let i = 0; i < px.length; i += 4) if (px[i + 3] >= 128) own.set((px[i] << 16) | (px[i + 1] << 8) | px[i + 2], 1);
+  const keep = [...own.keys()].map((v) => [(v >> 16) & 255, (v >> 8) & 255, v & 255])
+    .filter((col) => !map.some(([f]) => f[0] === col[0] && f[1] === col[1] && f[2] === col[2]));
+  const all = map.concat(keep.filter((col) => !map.some(([f]) => (f[0] - col[0]) ** 2 + (f[1] - col[1]) ** 2 + (f[2] - col[2]) ** 2 < 9))
+    .map((col) => [col, col]));
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] < 128) continue;
+    let best = null, bd = NEAR + 1;
+    for (const [from, to] of all) {
+      const dr = px[i] - from[0], dg = px[i + 1] - from[1], db = px[i + 2] - from[2];
+      const dd = dr * dr + dg * dg + db * db;
+      if (dd < bd) { bd = dd; best = to; }
+    }
+    if (best) { px[i] = best[0]; px[i + 1] = best[1]; px[i + 2] = best[2]; }
+  }
+  x.putImageData(d, 0, 0);
+  if (npcCache.size > 3000) npcCache.clear();
+  npcCache.set(key, c);
   return c;
 }
 

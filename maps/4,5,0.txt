@@ -23,7 +23,7 @@ NPC	Fishmonger	256	376	Attitude=Good Stand=1 Face=S Id=Southport_Stall_302 Name=
 NPC	Baker	256	504	Attitude=Good Stand=1 Face=S Id=Southport_Stall_304 Name=Clara
 NPC	Merchant	0	440	Attitude=Good Stand=1 Face=S Id=Southport_Stall_305 Name=Edith
 NPC	Ginger_Cat	512	568	Attitude=Good Zone=12,15,22,20 Pause=4-12
-NPC	Horse	128	480	Attitude=Good Stand=1 Face=W Id=Southport_Horse_1
+NPC	Horse	122	478	Attitude=Good Stand=1 Face=E Id=Southport_Horse_1
 NPC	Carter	96	504	Attitude=Good Stand=1 Face=S Id=Southport_Carter_1 Name=Nell
 NPC	Villager	384	120	Attitude=Good Stand=1 Face=S Id=Southport_Priest_317 Name=Alice
 NPC	Baker	224	216	Attitude=Good Stand=1 Face=S Id=Southport_Baker_321 Name=Percy

@@ -3619,3 +3619,39 @@ def test_chests_say_nothing_and_draughts_come_in_three_strengths(world):
     heal = lambda n: world.data.spell_ini(n, "Heal", "")
     assert (heal("Minor_Healing_Draught"), heal("Healing_Draught"), heal("Major_Healing_Draught")) == \
         ("8-12", "15-20", "26-32")
+
+
+def test_a_cat_sits_before_it_lies_down_and_sits_up_before_it_walks(world):
+    m = world.maps["11,4,0"]
+    cat = world.add_npc("Cat", m.mz, m.ox + 12 * 32, m.oy + 10 * 32, "")
+    a = cat.ai
+    world.npc_ease_pose(cat, a, "Curl")
+    assert cat.pose == "Sit" and a.pose_next == "Curl"              # (down: it sits first)
+    world.npc_pose_step(cat, a)
+    assert cat.pose == "Curl"
+    world.animate_entity(cat, False)
+    assert cat.image == "Cat_Curl" + cat.image[-1]
+    d = cat.direction
+    a.state, a.timer, a.turn_at = 0, world.now + 60000, world.now - 1   # (idle, a turn due)
+    for _ in range(5):
+        world.tick(0.05, now=world.now + 50)
+    assert cat.direction == d and cat.pose == "Curl"                 # (asleep: it doesn't turn about)
+    world.npc_next_move(cat, a)
+    assert cat.pose == "Sit"                                         # (up: it sits up first)
+    world.remove_entity(cat)
+
+
+def test_townsfolk_wear_their_trades_other_colours_but_stay_who_they_are(world):
+    """build_people.py looks: a picture a trade, recoloured in the browser; which colouring goes by Id (or spot)."""
+    from dsengine.view import entity_state
+    keeps = [e for e in world.ents if e.name == "Barkeep"]
+    assert len({e.look for e in keeps}) > 2                                    # (not all alike)
+    assert all(world.npc_look(e, "Id=%s" % e.npc_id) == e.look for e in keeps if e.npc_id)   # (the same every time)
+    e = keeps[0]
+    assert world.npc_look(e, "Look=0") == 0 and world.npc_look(e, "Look=2") == 2   # (Look= on its map line)
+    edwin = next(x for x in world.ents if x.name == "Edwin")
+    assert edwin.look == 0 and not world.data.entity_ini("Edwin", "Looks", "")       # (one of a kind: as drawn)
+    s = join(world, "Onlooker", e.map, int(e.x - world.maps[e.map].ox), int(e.y - world.maps[e.map].oy))
+    st = entity_state(world, next(x for x in keeps if x.look), s)
+    assert st["lk"] >= 1 and st["n"] == "Barkeep"
+    leave(world, s)

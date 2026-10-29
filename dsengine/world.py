@@ -273,7 +273,21 @@ class World(NPCMixin):
         if level > 0 and name == LIVING:                      # (a map's Shard Remnant, as strong as its Level=)
             make_remnant(self.data, e, int(level))
         self.init_npc_ai(e, options)
+        e.look, e.look_of = self.npc_look(e, options), name
         return e
+
+    def npc_look(self, e, options):
+        """Which of its kind's colourings it wears (Entities.ini Looks: 1, 2...; 0 as drawn): Look=N on its map line,
+        else one chosen by its Id, or its spot, so it's the same every time. Only how it looks: who it is, what it
+        says and what quests it's in are as they were (build_people.py looks)."""
+        looks = [v for v in self.data.entity_ini(e.name, "Looks", "").split("|") if trim(v)]
+        if not looks:
+            return 0
+        given = trim(self.option_value(options, "Look"))
+        if given:
+            return max(0, min(len(looks), int(val(given))))
+        import zlib
+        return zlib.crc32(self.npc_key(e).encode()) % (len(looks) + 1)
 
     def npc_key(self, e):
         """Which NPC this is, for Set.NPC.Attitude and the saves: its Id=, else map@x,y of its map line."""

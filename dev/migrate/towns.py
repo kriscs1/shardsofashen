@@ -855,8 +855,8 @@ def cart_stops(town, targets):
         g.taken.update({(x, y), (x + 1, y)})
         m, lx, ly = g.at(x, y)
         town.statics.append((m.name, K.obj_line("StaticObject", "Cart", lx, ly)))
-        town.npcs.append((m.name, "NPC\tHorse\t%d\t%d\tAttitude=Good Stand=1 Face=W Id=%s_Horse_%d" % (
-            lx * TW, (ly - 1) * TW, town.key, len(stops) + 1)))
+        town.npcs.append((m.name, "NPC\tHorse\t%d\t%d\tAttitude=Good Stand=1 Face=E Id=%s_Horse_%d" % (
+            lx * TW - 6, (ly - 1) * TW - 2, town.key, len(stops) + 1)))   # (east of its cart, in its shafts; 40x34)
         pid = "%s_Cart_Stop_%d" % (town.key, len(stops) + 1)
         carter = "%s_Carter_%d" % (town.key, len(stops) + 1)
         town.npcs.append((m.name, "NPC\tCarter\t%d\t%d\tAttitude=Good Stand=1 Face=S Id=%s Name=%s" % (

@@ -30,8 +30,9 @@ References: `README-Server.md` (running, deploying, shared vs personal), `dev/Da
 Galaith, the capital, shut behind a magical barrier: the city that holds the only land route across the world, with
 the gold and Shard mines in the mountains behind it. Your mother, **Queen Mary**, ran from Galaith with you as a baby
 to save you and to break the curse. The city has been sealed since your birth; King **Rupert**, your father, is shut
-in it. You grew up poor on the Isle, in the **cottage on its east** (map 4,0,0), with **Jimmy**, a strawberry-blond
-ginger cat. New characters start with no sword.
+in it. You grew up poor on the Isle, in the **cottage on its east** (map 4,0,0), with **Jimmy**, a deep orange
+ginger tabby with a creamy chin (Noops, by Edwin and Maren's house, is a big grey tabby: both drawn from the
+owner's own cats' photos). New characters start with no sword.
 
 The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's are built by
 `dev/migrate/build_heir_isle.py`):
@@ -291,7 +292,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Art and sounds are made in code by `dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
   Change the builder and run it again; don't hand-edit its output. Nothing from another game or a commercial
   library: anything not made here is CC0 (or as free) and listed in `CREDITS.md`.
-- Keep things in proportion to a 32 px person: cats and butterflies small, beds 1.5 tiles.
+- Keep things in proportion to a 32 px person: cats and butterflies small (a cat about a third of a person's height:
+  `build_cats.py` draws every pose, then makes it `SCALE` as big on the same ground line), beds 1.5 tiles, a horse a
+  little taller and half again as long as a person (40 x 34, `build_towns.py`; drawn facing east, its cart behind it).
+- A creature's poses are one size and stand on one line; a cat sits before it lies down and sits up before it walks,
+  and lying asleep it neither turns about nor fidgets (`npcs.py` npc_ease_pose).
+- **Townsfolk in other colours, from one picture**: the trades in `build_people.py` VARIED have Entities.ini `Looks`
+  (three colourings: shirt, trousers, hair, skin) over `Look.Parts` (each part's exact shades); the browser swaps them
+  shade for shade (`look.js` npcImage). Which one a placed NPC wears goes by its Id (or its spot), or `Look=N` on its
+  map line (0: as drawn). Only how it looks: its name, words and quests are its own. One-of-a-kind people and guards'
+  uniforms aren't varied.
 - **Nothing looks like a grid.** Ground that covers wide areas (mountains, streets, the forest canopy) is painted from a
   big seamless texture (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
   picture repeated every tile; a range is peaks of all sizes overlapping. Trees, bushes, rocks, grass and flowers

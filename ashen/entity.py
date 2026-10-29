@@ -189,6 +189,7 @@ class NPCAI:
         self.under = 0
         self.flying = 0
         self.indoors = True
+        self.poses, self.pose_next, self.pose_next_at = [], "", 0
         self.roost = None
         self.home_ox = 0
         self.home_oy = 0

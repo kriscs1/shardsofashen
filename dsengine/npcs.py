@@ -11,6 +11,8 @@ from .player_combat import CombatMixin
 PF_NPC_BUDGET = 400
 
 
+LYING = ("Curl", "Lie")                                # (poses lying down: still, no turning about, sat up from)
+
 class NPCMixin:
     def update_npcs(self):
         sw, sh = self.sw, self.sh
@@ -141,6 +143,7 @@ class NPCMixin:
         a.poses = [trim(p) for p in d.entity_ini(n, "States", "").split(",") if trim(p)]   # (Sit,Lie: when it stops)
         a.fidgets = [trim(p) for p in d.entity_ini(n, "Fidgets", "").split(",") if trim(p)]   # (Stretch: now and then)
         a.fidget_until, a.fidget_at, a.pose_back = 0, self.now + random_number(5000, 30000), ""
+        a.pose_next, a.pose_next_at = "", 0           # (lying down: it sits first, then lies; npc_pose_step)
         a.hunts = {trim(h).upper() for h in d.entity_ini(n, "Hunts", "").split(",") if trim(h)}   # (Hunts=Rabbit,Sheep)
         a.hunt_at = self.now + random_number(2000, 8000)
         a.call = trim(d.entity_ini(n, "Calls", ""))                   # (a frog's croak, a seal's bark, now and then)
@@ -437,15 +440,19 @@ class NPCMixin:
             if near is not None and near[0].player_visible and near[1] < self.tw * 2.5 and (
                     not self.hostile_for(e, near[0]) or (a.stand == 1 and not getattr(a, "cone", 0))):
                 p = near[0].player
-                self.npc_face(e, cx, cy, p.cx, p.cy)
+                if e.pose not in LYING and not a.napping:   # (asleep, it doesn't turn to look)
+                    self.npc_face(e, cx, cy, p.cx, p.cy)
                 faced = True
             if a.napping and not self.nap_free(e, a):
                 self.npc_wake(e, a)                       # (someone's sat down on it: off it hops)
                 self.npc_next_move(e, a)
                 return
-            if a.fidgets and not a.fixed_pose and not a.napping:
+            lying = e.pose in LYING or a.napping
+            if a.pose_next and now >= a.pose_next_at:
+                self.npc_pose_step(e, a)
+            if a.fidgets and not a.fixed_pose and not lying and not a.pose_next:
                 self.npc_fidget(e, a, now)
-            if not faced and now >= a.turn_at:
+            if not faced and now >= a.turn_at and not lying:
                 e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
                 if getattr(a, "face", 0) and rnd() < 0.75:   # (a lookout: mostly the way it's set to look)
                     e.direction = a.face
@@ -515,7 +522,7 @@ class NPCMixin:
                 a.back_x, a.back_y = e.cx, e.cy
         self.forget_path(e)
         self.npc_wake(e, a)
-        e.pose, a.fidget_until = "", 0                        # (on its feet to fight, or to run)
+        e.pose, a.fidget_until, a.pose_next = "", 0, ""       # (on its feet to fight, or to run)
         e.npc_foe = None                                      # (a player first: whatever it was hunting can wait)
         e.in_combat = True
         e.target = foe
@@ -617,7 +624,7 @@ class NPCMixin:
         if e.npc_foe is None and a.stand == 0 and self.in_zone(a, e.fx, e.fy):
             a.back_x, a.back_y = e.cx, e.cy
         e.npc_foe = foe
-        e.pose, a.fidget_until = "", 0
+        e.pose, a.fidget_until, a.pose_next = "", 0, ""
         a.state = AI_IDLE
         a.progress_time, a.best_d = now, 9999
         if a.flees:
@@ -707,9 +714,22 @@ class NPCMixin:
             if a.nap_from is not None:
                 self.set_entity_position(e, *a.nap_from)
 
+    def npc_pose_step(self, e, a):
+        """The next pose in a change of pose: from sitting to lying down, or from sitting up to its feet."""
+        e.pose, a.pose_next, a.pose_next_at = ("" if a.pose_next == "-" else a.pose_next), "", 0
+        self.animate_entity(e, False)
+
+    def npc_ease_pose(self, e, a, pose):
+        """Into pose: a cat lying down sits first (Sit, if it has one), for a moment, then lies."""
+        now = self.now
+        if pose in LYING and e.pose != pose and "Sit" in a.poses and self.data.loaded("%s_Sit2" % e.name):
+            e.pose, a.pose_next, a.pose_next_at = "Sit", pose, now + random_number(700, 1100)
+        else:
+            e.pose, a.pose_next = pose, ""
+
     def npc_set_idle(self, e, a, quick):
         now = self.now
-        a.fidget_until = 0
+        a.fidget_until, a.pose_next = 0, ""
         if getattr(a, "nap_walk", False):
             a.nap_walk = False
             if not quick and self.nap_free(e, a):
@@ -734,12 +754,19 @@ class NPCMixin:
             e.pose = a.fixed_pose
         else:                                                 # (a long rest: it may sit down, or lie, as its kind does)
             poses = getattr(a, "poses", [])
-            e.pose = poses[int(rnd() * len(poses)) % len(poses)] if poses and secs > 2 and rnd() < 0.6 else ""
+            self.npc_ease_pose(e, a, poses[int(rnd() * len(poses)) % len(poses)] if poses and secs > 2 and
+                               rnd() < 0.6 else "")
         self.animate_entity(e, False)
 
     def npc_next_move(self, e, a):
         if a.fixed_pose:                                      # (held in its pose, State= / Set.NPC.State: it stays)
             self.npc_set_idle(e, a, False)
+            return
+        if e.pose in LYING and not getattr(a, "napping", False) and "Sit" in a.poses and \
+                self.data.loaded("%s_Sit2" % e.name):
+            e.pose, a.pose_next = "Sit", ""               # (up from lying: it sits up a moment first)
+            a.timer = self.now + random_number(500, 900)
+            self.animate_entity(e, False)
             return
         if getattr(a, "napping", False):
             self.npc_wake(e, a)
