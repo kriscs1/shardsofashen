@@ -105,6 +105,7 @@ export const U = {
   statRowH: 33, cursorSize: 22, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
   hover: null, onlineShownUntil: 0, banner: null, markers: true, topY: 8,
   stones: null, stoneHits: [], stoneHover: "",   // (the travel map: worldMap === "stones" - shardcraft.py stone_map)
+  wm: null, wmZoom: 1, wmCx: 0, wmCy: 0, wmShown: 0,   // (the world map's box, how far it's zoomed in and its middle)
 };
 
 const SLOT_OUTLINES = { Weapon: "Iron_Sword", Shield: "Iron_Shield", Head: "Iron_Helm", Body: "Iron_Platebody",
@@ -429,19 +430,105 @@ export function drawWorldMap(ctx, now) {
   // A level under or over the world is drawn in the world's frame, at the world's scale, so a cave lies just where
   // the land over it is (and stairs line up); a level of its own (worldFrame: the arena, the Shardrealm...) fills it
   const f = worldFrame(g, im);
-  const k = Math.min((W - 2 * side) / f.w, (H - top - bottom) / f.h);
-  const iw = f.w * k, ih = f.h * k;
+  const fit = Math.min((W - 2 * side) / f.w, (H - top - bottom) / f.h);
+  const iw = f.w * fit, ih = f.h * fit;
   const ox = Math.round((W - iw) / 2), oy = Math.round(top + (H - top - bottom - ih) / 2);
+  // (zoomed in: the box stays, the map under it is bigger, its middle where you were when it opened, then dragged)
+  const per0 = g.ps;
+  const fx0 = f.dx - g.ox * G.xt * per0, fy0 = f.dy - g.oy * G.yt * per0;   // (a world tile 0,0 in the frame)
+  if (now - U.wmShown > 300) {
+    U.wmZoom = 1;
+    const pw = S.pos ? size(S.pos.i) : [0, 0];
+    U.wmCx = S.pos ? fx0 + (S.pos.dx + pw[0] / 2) / G.tw * per0 : f.w / 2;
+    U.wmCy = S.pos ? fy0 + (S.pos.dy + pw[1] / 2) / G.th * per0 : f.h / 2;
+  }
+  U.wmShown = now;
+  U.wm = { ox, oy, iw, ih, fit, fw: f.w, fh: f.h };
+  wmClamp();
+  const k = fit * U.wmZoom;
+  const cx0 = ox + iw / 2 - U.wmCx * k, cy0 = oy + ih / 2 - U.wmCy * k;
   roundBox(ctx, ox - 6, oy - 6, iw + 12, ih + 12, [30, 20, 14], [150, 104, 62], 2, 8);
   ctx.fillStyle = hatchPattern(ctx);              // (where there's no map at all looks just as unexplored land does)
   ctx.fillRect(ox - 4, oy - 4, iw + 8, ih + 8);
   ctx.save();
+  ctx.beginPath(); ctx.rect(ox - 4, oy - 4, iw + 8, ih + 8); ctx.clip();
+  ctx.save();
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(im, ox + f.dx * k, oy + f.dy * k, im.width * k, im.height * k);
+  ctx.drawImage(im, cx0 + f.dx * k, cy0 + f.dy * k, im.width * k, im.height * k);
   ctx.restore();
+  drawWorldMapOver(ctx, now, g, f, k, cx0, cy0, ox, oy, iw, ih, travel);
+  ctx.restore();
+  drawZoomButtons(ctx);
+}
+
+// ----- the world map's zoom: the wheel or a pinch about a point, the + and - buttons about the middle, a drag
+const WM_MOST = 8;
+function wmClamp() {
+  const w = U.wm;
+  if (!w) return;
+  U.wmZoom = clamp(U.wmZoom, 1, WM_MOST);
+  const k = w.fit * U.wmZoom, hx = w.iw / 2 / k, hy = w.ih / 2 / k;
+  U.wmCx = clamp(U.wmCx, hx, Math.max(hx, w.fw - hx));
+  U.wmCy = clamp(U.wmCy, hy, Math.max(hy, w.fh - hy));
+}
+
+export function wmZoomAt(factor, x, y) {
+  const w = U.wm;
+  if (!w) return;
+  if (x === undefined) {                         // (the buttons: about you, if you're on it, else the middle)
+    const you = w.you && wmInBox(...w.you);
+    [x, y] = you ? w.you : [w.ox + w.iw / 2, w.oy + w.ih / 2];
+  }
+  const k = w.fit * U.wmZoom;
+  const px = U.wmCx + (x - w.ox - w.iw / 2) / k, py = U.wmCy + (y - w.oy - w.ih / 2) / k;
+  U.wmZoom = clamp(U.wmZoom * factor, 1, WM_MOST);
+  const k2 = w.fit * U.wmZoom;
+  U.wmCx = px - (x - w.ox - w.iw / 2) / k2;
+  U.wmCy = py - (y - w.oy - w.ih / 2) / k2;
+  wmClamp();
+}
+
+export function wmPan(dx, dy) {
+  const w = U.wm;
+  if (!w) return;
+  const k = w.fit * U.wmZoom;
+  U.wmCx -= dx / k;
+  U.wmCy -= dy / k;
+  wmClamp();
+}
+
+export function wmInBox(x, y) {
+  const w = U.wm;
+  return !!w && x >= w.ox && x <= w.ox + w.iw && y >= w.oy && y <= w.oy + w.ih;
+}
+
+function zoomButtons() {
+  const s = M.on ? 34 : 24, y = 12, x = L.VW - 12 - s;
+  return [["in", x - s - 6, y, s], ["out", x, y, s]];
+}
+
+export function wmButtonAt(x, y) {
+  // (the world map's + and - : "in", "out" or "")
+  const b = zoomButtons().find(([, bx, by, s]) => x >= bx && x <= bx + s && y >= by && y <= by + s);
+  return b ? b[0] : "";
+}
+
+function drawZoomButtons(ctx) {
+  for (const [what, bx, by, s] of zoomButtons()) {
+    const off = what === "in" ? U.wmZoom >= WM_MOST : U.wmZoom <= 1;
+    roundBox(ctx, bx, by, s, s, [40, 26, 20], [150, 104, 62], 2, 6);
+    const col = off ? "rgb(110,90,70)" : "rgb(255,230,140)";
+    const c = s / 2, arm = Math.round(s * 0.28);
+    ctx.fillStyle = col;
+    ctx.fillRect(bx + c - arm, by + c - 1.5, arm * 2, 3);
+    if (what === "in") ctx.fillRect(bx + c - 1.5, by + c - arm, 3, arm * 2);
+  }
+}
+
+function drawWorldMapOver(ctx, now, g, f, k, cx0, cy0, ox, oy, iw, ih, travel) {
   const per = g.ps * k;                            // (screen pixels a map tile)
-  const toScreen = (gx, gy) => [ox + f.dx * k + (gx / G.tw - g.ox * G.xt) * per,
-    oy + f.dy * k + (gy / G.th - g.oy * G.yt) * per];
+  const toScreen = (gx, gy) => [cx0 + f.dx * k + (gx / G.tw - g.ox * G.xt) * per,
+    cy0 + f.dy * k + (gy / G.th - g.oy * G.yt) * per];
   const seen = (name) => !fogEnabled() || fogSeeAll() || S.explored.has(name);
   // the names of the places you've been: towns first, then the lands, then the rest, each where it doesn't cover
   // another (above its dot, below, right, left); a place with no room left keeps its dot, its name for a bigger map
@@ -512,6 +599,7 @@ export function drawWorldMap(ctx, now) {
   if (S.pos) {
     const pw = size(S.pos.i);
     const [sx, sy] = toScreen(S.pos.dx + pw[0] / 2, S.pos.dy + pw[1] / 2);
+    if (U.wm) U.wm.you = [sx, sy];
     ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 6.283); ctx.fill();
     ctx.fillStyle = `rgb(255,${Math.round(90 + 120 * pulse)},90)`; ctx.beginPath(); ctx.arc(sx, sy, 4.5, 0, 6.283); ctx.fill();
     centreText(ctx, sx + 1, sy + 9, "You", 8, true, [10, 6, 4]);
@@ -543,6 +631,7 @@ function drawStones(ctx, toScreen, pulse, ox, oy, iw, ih) {
     if (s.z !== S.mapZ) continue;
     const [sx, sy] = toScreen(s.x, s.y);
     const hot = U.stoneHover === s.k;
+    if (sx < ox - r || sx > ox + iw + r || sy < oy - r || sy > oy + ih + r) continue;   // (zoomed in: off the box)
     if (!s.here) U.stoneHits.push({ k: s.k, x: sx, y: sy, r, t: s.t });
     const glow = s.here ? [255, 214, 90] : [120, 200, 255];
     ctx.fillStyle = `rgba(${glow.join(",")},${(hot ? 0.45 : 0.22) + 0.2 * pulse})`;
@@ -709,11 +798,12 @@ function drawSkillsTab(ctx) {
     k++;
     const lv = levelOfXp(me.xp[i]);
     const now = (me.skill_now || [])[i] ?? lv;
-    // (drained or boosted for a while: as it is now out of its usual level, 18/20 red or 23/20 green; a potion
-    //  or spell boosting your blows: "+N", green)
-    const boost = (me.boosts || {})[{ Strength: "attack", Defence: "defence", Magic: "magic" }[name]] || 0;
-    const text = now !== lv ? `${now}/${lv}` : boost ? `${lv}+${boost}` : String(lv);
-    const colour = now < lv ? [240, 110, 100] : now > lv || boost ? [120, 235, 120] : lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT;
+    // (always as it is now out of its usual level, 20/20: drained red, 18/20, or boosted green, 23/20, a potion
+    //  or spell boosting your blows counted in)
+    const boost = (me.boosts || {})[{ Strength: "attack", Defence: "defence", Channeling: "magic" }[name]] || 0;
+    const shown = now + boost;
+    const text = `${shown}/${lv}`;
+    const colour = shown < lv ? [240, 110, 100] : shown > lv ? [120, 235, 120] : lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT;
     skillTile(ctx, k, configRead("Skills", "Icon." + name, "").trim(), text, colour, levelProgress(me.xp[i]));
   });
 }

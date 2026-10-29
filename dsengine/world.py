@@ -557,6 +557,11 @@ class World(NPCMixin):
             return m.local_swimmable(lx, ly)
         return m.local_walkable(lx, ly, override)
 
+    def roofed(self, z, x, y):
+        """Is global pixel x,y on level z under a roof (in a house)?"""
+        m, tx, ty = self.tile_at(z, x, y)
+        return m is not None and m.inside(tx, ty) and bool(m.roof[m.cell(tx, ty)])
+
     def ground_speed(self, e):
         if e.ai is not None and e.ai.flying:
             return 1
@@ -586,6 +591,19 @@ class World(NPCMixin):
         if not self.pixel_walkable(z, x, y, mover, swim):
             if self.pixel_walkable(z, old_x, old_y, mover, swim):
                 return False                        # (stuck entities, e.g. after a tile change, may walk out)
+        else:
+            # (a step longer than a fence is thick: not over it)
+            steps = int(max(abs(x - old_x), abs(y - old_y)) / 3)
+            if steps and self.pixel_walkable(z, old_x, old_y, mover, swim):
+                for i in range(1, steps + 1):
+                    if not self.pixel_walkable(z, old_x + (x - old_x) * i / (steps + 1),
+                                               old_y + (y - old_y) * i / (steps + 1), mover, swim):
+                        return False
+        if (mover is None and e.type == NPC and e.ai is not None and not e.ai.indoors and
+                self.roofed(z, x, y) and not self.roofed(z, old_x, old_y)):
+            r = e.ai.roost                          # (no animal walks into a house: a hen to her own coop, though)
+            if not (r and r[0] <= x < r[2] + 1 and r[1] <= y < r[3] + 1):
+                return False
         if mover is not None:
             for n in self.ents:
                 if (n.type == NPC and n.z == z and n.active and self.npc_is_solid(n) and
@@ -695,22 +713,47 @@ class World(NPCMixin):
             return 1 if self.pixel_walkable(z, px, py, mover) else 0
         return (m.get_swim_grid() if swim else m.get_grid())[ly * gw + lx]
 
+    def grid_cross(self, z, ax, ay, bx, by, swim=False):
+        """Can feet go straight from grid cell a to b, the cell beside it (no fence thinner than a cell between)?"""
+        if swim:
+            return True
+        if bx < ax or by < ay:
+            ax, ay, bx, by = bx, by, ax, ay
+        cell = self.data.grid_cell
+        gw, gh = int(self.sw / cell), int(self.sh / cell)
+        m = self.by_pos.get((math.floor(ax / gw), math.floor(ay / gh), z))
+        if m is None:
+            return True
+        lx, ly = ax - m.mx * gw, ay - m.my * gh
+        if (bx > ax and lx == gw - 1) or (by > ay and ly == gh - 1):
+            return True                             # (from one map into the next)
+        m.get_grid()
+        return not (m.cross_r if bx > ax else m.cross_d)[ly * gw + lx]
+
+    def grid_step_clear(self, z, ax, ay, bx, by, mover=None, swim=False):
+        """From cell a to b, one of the 8 around it: b walkable, and nothing in the way (a diagonal by both sides)."""
+        gwk, cross = self.grid_walkable, self.grid_cross
+        if gwk(z, bx, by, mover, swim) == 0:
+            return False
+        if ax == bx or ay == by:
+            return cross(z, ax, ay, bx, by, swim)
+        return (gwk(z, bx, ay, mover, swim) == 1 and gwk(z, ax, by, mover, swim) == 1 and
+                cross(z, ax, ay, bx, ay, swim) and cross(z, bx, ay, bx, by, swim) and
+                cross(z, ax, ay, ax, by, swim) and cross(z, ax, by, bx, by, swim))
+
     def grid_line_walkable(self, z, x1, y1, x2, y2, mover=None, swim=False):
         d = distance(x1, y1, x2, y2)
         steps = int(d / 6) + 1
         cell = self.data.grid_cell
         last_x = math.floor(x1 / cell)
         last_y = math.floor(y1 / cell)
-        gwk = self.grid_walkable
+        step = self.grid_step_clear
         for i in range(1, steps + 1):
             cx = math.floor((x1 + (x2 - x1) * i / steps) / cell)
             cy = math.floor((y1 + (y2 - y1) * i / steps) / cell)
             if cx != last_x or cy != last_y:
-                if gwk(z, cx, cy, mover, swim) == 0:
+                if not step(z, last_x, last_y, cx, cy, mover, swim):
                     return False
-                if cx != last_x and cy != last_y:
-                    if gwk(z, cx, last_y, mover, swim) == 0 or gwk(z, last_x, cy, mover, swim) == 0:
-                        return False
                 last_x, last_y = cx, cy
         return True
 
@@ -784,6 +827,9 @@ class World(NPCMixin):
                 v = walk_cache[k] = gwk(z, x, y, mover)
             return v
 
+        def cross(ax, ay, bx, by):
+            return self.grid_cross(z, ax, ay, bx, by, swim)
+
         while heap:
             _, _, n = heapq.heappop(heap)
             if n in done:
@@ -807,7 +853,11 @@ class World(NPCMixin):
                 m = (mx, my)
                 if m in done or walkable(mx, my) != 1:
                     continue
-                if k >= 4 and (walkable(mx, ny) == 0 or walkable(nx, my) == 0):
+                if k < 4:
+                    if not cross(nx, ny, mx, my):
+                        continue
+                elif (walkable(mx, ny) == 0 or walkable(nx, my) == 0 or not cross(nx, ny, mx, ny) or
+                      not cross(mx, ny, mx, my) or not cross(nx, ny, nx, my) or not cross(nx, my, mx, my)):
                     continue
                 ng = g + cost
                 old = g_cost.get(m)

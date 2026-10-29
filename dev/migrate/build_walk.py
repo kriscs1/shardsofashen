@@ -29,7 +29,7 @@ import build_people as BPEOPLE
 from common import p
 
 FRONT = ["Cave_Troll", "Bog_Troll", "Frost_Troll"]          # the people and goblins come from build_people.py
-SIDE = ["Wolf", "Rat", "Cow", "Tallulah", "Sheep", "Chicken", "Dog", "Rabbit", "Duck", "Bear", "Snow_Wolf", "Alpha_Wolf"]          # all drawn facing west
+SIDE = ["Wolf", "Rat", "Cow", "Sheep", "Chicken", "Dog", "Rabbit", "Duck", "Bear", "Snow_Wolf", "Alpha_Wolf"]          # all drawn facing west
 FLAP = ["Bat", "Giant_Spider", "Butterfly", "Scorpion", "Dragon"]
 OUT = "Walk"
 BALD = {"Skeleton"}            # the back of the head is shaded skin (or bone), whatever frames the face

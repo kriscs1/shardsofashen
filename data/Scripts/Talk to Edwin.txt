@@ -7,9 +7,9 @@
 06	Display.Conversation	Edwin	A fried egg, crisp at the edges, just as I like it! You have your mother's kindness. Thank you.	Enjoy it.	07
 07	Display.Conversation	Maren	Thank you, dear. Now, Brother Aldous left this with us for safekeeping: the key to the trapdoor in the chapel cellar. Mary said that one day you would need it.\Only promise me you won't go down there without a sword and a shield.	I promise.	08
 08	Give.Item	Chapel_Cellar_Key	1
-09	Display.Conversation	Maren	And take these with you: two healing draughts, brewed from Bess's herbs. Drink one when you're hurt.\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a brewer's herbs can.	Thank you, Maren.	10
+09	Display.Conversation	Maren	And take these with you: two healing draughts, brewed from Bess's herbs. Drink one when you're hurt: doctor's orders.\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a brewer's herbs can.	Thank you, Maren.	10
 10	Give.Item	Healing_Draught	2
-11	Display.Message	Yellow	Quest complete: Dinner at the Bank! Maren gave you the key to the chapel's trapdoor, and two healing draughts.	Quest
+11	Display.Message	Yellow	Quest complete: Dinner at Edwin's! Maren gave you the key to the chapel's trapdoor, and two healing draughts.	Quest
 12	End
 13	>Conditional	$Attr.LastWill>=2	17
 14	Display.Conversation	Edwin	If you need anything drawn up, a will or a deed, I'm your man.	What was my mother like?	15	Goodbye.	18

@@ -35,22 +35,15 @@ export function changeZoom(step) {
   return true;
 }
 
-// ----- the camera: centred on the player, as far as there are maps
+// ----- the camera: centred on the player, always (past the last map there's only black)
 function updateCamera(viewW, viewH, dt) {
   V.ww = viewW / V.zoom;
   V.wh = viewH / V.zoom;
   const p = S.pos;
   const m = mapAt(p.z, p.dx + 16, p.dy + 28) || S.maps.get(S.mapName);
   if (!m) return;
-  const z = m.mz;
-  const left = mapByPos(m.mx - 1, m.my, z) ? m.ox - G.sw : m.ox;
-  const right = mapByPos(m.mx + 1, m.my, z) ? m.ox + 2 * G.sw : m.ox + G.sw;
-  const top = mapByPos(m.mx, m.my - 1, z) ? m.oy - G.sh : m.oy;
-  const bottom = mapByPos(m.mx, m.my + 1, z) ? m.oy + 2 * G.sh : m.oy + G.sh;
   const pw = size(p.i);
-  let wx = p.dx + pw[0] / 2 - V.ww / 2, wy = p.dy + pw[1] / 2 - V.wh / 2;
-  wx = right - left >= V.ww ? clamp(wx, left, right - V.ww) : (left + right - V.ww) / 2;
-  wy = bottom - top >= V.wh ? clamp(wy, top, bottom - V.wh) : (top + bottom - V.wh) / 2;
+  const wx = p.dx + pw[0] / 2 - V.ww / 2, wy = p.dy + pw[1] / 2 - V.wh / 2;
   const c = V.cam;
   if (c.snap || V.smooth <= 0) {
     c.fx = wx; c.fy = wy; c.snap = false;

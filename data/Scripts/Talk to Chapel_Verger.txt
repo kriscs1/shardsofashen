@@ -7,7 +7,7 @@
 06	Update.Attribute	AmuletQuest	=4
 07	Display.Conversation	Gravekeeper	Mary's $Player.Boy. So the time has come.\She came to me years ago with something to hide: an amulet. We put it at the back of the caves under this chapel, behind bars no hand could reach through.\You have the trapdoor's key from Maren, and a sword and a shield, and you look as if you can use them now. Go down. I'll not be far behind you.	Thank you, Brother.	26
 08	End
-09	Display.Conversation	Gravekeeper	You're ready, I'd say. But the trapdoor's locked, and I gave its key to Maren, at the bank, for safekeeping.	I'll ask her.	26
+09	Display.Conversation	Gravekeeper	You're ready, I'd say. But the trapdoor's locked, and I gave its key to Maren, the doctor, for safekeeping.	I'll ask her.	26
 10	End
 11	Display.Conversation	Gravekeeper	Wooden swords and good intentions. Practise first: a few rats and wolves, until your Strength and Defence are level 2. Then come back.	I will.	26
 12	End

@@ -8,9 +8,10 @@ save you from the dragon that takes the firstborn heir of every generation. You 
   1  The Last Will (LastWill 0-2). A new character stands at her grave in the chapel's graveyard (3,1,0's entry
      script runs The Funeral): the mourners go, Edwin the lawyer walks you home and leaves her letter on the table.
      The cottage door (a Lock) stays shut until it's read: the letter (Last_Will, Read) tells you who you are.
-  2  Dinner at the Bank (DinnerQuest 0-4). Maren, Edwin's wife, at the bank by the chapel (2,1,0; their home upstairs,
-     2,1,1): three logs for her range (with an axe she lends you), an egg from Bess's coop fried on her range, the
-     egg to Edwin. Maren gives you the key to the chapel's trapdoor (Chapel_Cellar_Key).
+  2  Dinner at Edwin's (DinnerQuest 0-4). Maren, Edwin's wife and the Isle's doctor, at their brick house by the
+     chapel (2,1,0: her surgery and his desk downstairs; their rooms upstairs, 2,1,1; it was the bank): three logs
+     for her range (with an axe she lends you), an egg from Bess's coop fried on her range, the egg to Edwin.
+     Maren gives you the key to the chapel's trapdoor (Chapel_Cellar_Key).
   3  The Amulet of Succession (AmuletQuest 0-6). Bess sends you to her husband Frank, the blacksmith (his hut by the
      dairy, 2,0,0): a wooden sword and shield at his workbench, then wield them. Brother Aldous opens the trapdoor
      to you when you're armed and Strength and Defence are level 2. The amulet is at the back of the caves (1,1,-2)
@@ -40,8 +41,8 @@ MAKER = "build_heir_isle.py"
 GRAVE = (15, 4)                                  # Mary's grave, 3,1,0 (you stand below it)
 COTTAGE = (5, 9, 12, 13)                         # the cottage, 4,0,0 (made wider: two beds)
 COTTAGE_DOOR = 8
-BANK = (12, 1, 21, 7)                            # the bank, 2,1,0, its home upstairs on 2,1,1
-BANK_DOOR = 16
+HOME = (12, 1, 21, 7)                            # Edwin and Maren's house, 2,1,0, their rooms upstairs on 2,1,1
+HOME_DOOR = 16
 SMITHY = (8, 3, 12, 7)                           # Frank's smithy, 2,0,0
 FATHERS = (18, 3, 22, 7)                         # Tobias's house, 1,1,0 (the old brick house)
 SQUEAK = (21, 6)                                 # its loose floorboard
@@ -429,12 +430,14 @@ def data():
         0: "",
         1: "Read the letter your mother left you, on the table in your cottage.",
     }, 2, markers={1: "Cottage"}, chapter=1, marker0="Cottage", after=None)
-    K.quest("Dinner at the Bank", "Maren", "DinnerQuest", {
-        0: "Edwin the lawyer asked you to dinner. He and his wife Maren keep the bank, by the chapel.",
+    K.remove_section(K.QUESTS, "Dinner at the Bank")              # (the house was the bank: renames.py QUEST_NAMES)
+    K.quest("Dinner at Edwin's", "Maren", "DinnerQuest", {
+        0: "Edwin the lawyer asked you to dinner. He and his wife Maren, the Isle's doctor, live in the brick house "
+           "by the chapel.",
         1: "Chop 3 logs for Maren's range with the axe she lent you (Chop a tree), and bring them to her.",
-        2: "Take an egg from the hen coop on Bess's farm, in the north, and fry it on Maren's range, upstairs at the bank "
-           "(use the egg on the range).",
-        3: "Give the fried egg to Edwin, at the bank.",
+        2: "Take an egg from the hen coop on Bess's farm, in the north, and fry it on Maren's range, upstairs in their "
+           "house (use the egg on the range).",
+        3: "Give the fried egg to Edwin, at his house.",
     }, 4, markers={0: "Isle_Bank", 1: "Isle_Bank", 2: "Hen_Coop", 3: "Isle_Bank"}, chapter=2,
         requires="The Last Will", marker0="Isle_Bank")
     K.quest("The Amulet of Succession", "Milkmaid", "AmuletQuest", {
@@ -463,7 +466,8 @@ def data():
     for k, v in (("Map", "3,1,0"), ("X", str((GRAVE[0] - 1) * TW)), ("Y", str(GRAVE[1] * TW - 4)), ("Direction", "1")):
         if ini.read("Player", k, "<unset>", tpl) != v:
             ini.write("Player", k, v, tpl)
-    K.place_label("Places", "The Isle Bank", "Isle_Bank")
+    K.drop_label("Places", "The Isle Bank")
+    K.place_label("Places", "Edwin & Maren's House", "Isle_Bank")
     K.place_label("Places", "Frank's Smithy", "Franks_Smithy")
     K.place_label("Places", "Maren & Bess's Father's Home", "Fathers_House")
     K.place_label("Places", "Hobgoblin Camp", "Hobgoblin_Camp")
@@ -544,29 +548,37 @@ def rug(m, x0, y0, w, h, kind):
             m.put(x0 + i, y0 + j, t, over)
 
 
-def bank():
-    m, up = Map("2,1,0"), K.black_map("2,1,1")
-    x1, y1, x2, y2 = BANK
-    if K.has_id(m, "Isle_Bank"):
-        return
-    K.building(m, x1, y1, x2, y2, BANK_DOOR, wall="Brick001", roof="Slate", chimney=19, upper=up)
-    m.set(18, y2, decor="Bank_Plaque001")                       # (the bank's plaque, its one show of grandeur)
-    # the bank: Maren's counter, Edwin's desk, ledgers on the shelves, the stairs up to their home
-    for (x, y), d in {(13, 1): "Bookshelf001", (15, 1): "Bookshelf001", (17, 1): "Potted_Plant002",
-                      (13, 4): "Bank_Counter001", (14, 4): "Bank_Counter001", (15, 4): "Bank_Counter001",
+def front_room(m):
+    """Downstairs: Maren's surgery (a bed for the sick, her bottles and drying herbs) and Edwin's desk and law books.
+    (It was the bank: a house built then has its counter and plaque taken away.)"""
+    for (x, y), d in {(13, 1): "Potion_Shelf001", (14, 1): "Bed001", (14, 2): "Bed002", (15, 1): "Bookshelf001",
+                      (16, 1): "Herb_Rack001", (17, 1): "Potted_Plant002", (13, 4): "", (14, 4): "", (15, 4): "",
                       (18, 3): "Desk001", (18, 2): "Chair001", (18, 4): "Chair002", (13, 6): "Potted_Plant001",
-                      (20, 6): "Potted_Plant003"}.items():
+                      (20, 6): "Potted_Plant003", (18, HOME[3]): ""}.items():
         m.set(x, y, decor=d)
+
+
+def home():
+    m, up = Map("2,1,0"), K.black_map("2,1,1")
+    x1, y1, x2, y2 = HOME
+    if K.has_id(m, "Isle_Bank"):
+        if m.parts(14, 1)[1].get("Decor") != "Bed001":
+            front_room(m)
+            m.save()
+            print("2,1,0: the bank is Edwin and Maren's house now")
+        return
+    K.building(m, x1, y1, x2, y2, HOME_DOOR, wall="Brick001", roof="Slate", chimney=19, upper=up)
+    front_room(m)
     m.set(20, 2, tile="Stairs001")
     rug(m, 15, 5, 4, 2, "Rug")
     for y in range(y2 + 1, y2 + 4):                             # a path down to the Isle's path
-        m.set(BANK_DOOR, y, tile="Dirt001", decor="")
+        m.set(HOME_DOOR, y, tile="Dirt001", decor="")
     m.ents += [
         obj_line("NPC", "Maren", 14, 3, "Attitude=Good Stand=1 Face=S Schedule=Day Id=Maren_At_Counter", -8),
         obj_line("NPC", "Edwin", 18, 2, "Attitude=Good Stand=1 Face=S Schedule=Day Id=Edwin_At_Desk", -8),
         "StaticObject\tNotice\t%d\t%d\tId=Isle_Bank_Notice" % px(15, 8, 2),
     ]
-    K.place_id(m, "Isle_Bank", BANK_DOOR, y2 + 1)
+    K.place_id(m, "Isle_Bank", HOME_DOOR, y2 + 1)
     m.save()
     # upstairs, their home: the bedroom (west) and the kitchen and dining room (east), a wall between with a doorway
     K.partition(up, 16, 2, 5, gaps=(4,))
@@ -584,7 +596,8 @@ def bank():
         obj_line("NPC", "Edwin", 15, 4, "Attitude=Good Stand=1 Face=S Schedule=Night Id=Edwin_At_Home", -8),
     ]
     up.save()
-    print("2,1,0 and 2,1,1: the bank, two storeys of brick; Maren and Edwin's home upstairs")
+    print("2,1,0 and 2,1,1: Edwin and Maren's house, two storeys of brick: her surgery and his desk, their rooms "
+          "upstairs")
 
 
 def smithy():
@@ -757,7 +770,7 @@ def niche_and_pier():
 def maps():
     grave()
     cottage()
-    bank()
+    home()
     smithy()
     fathers_house()
     camp()
@@ -838,7 +851,7 @@ def opening():
             ("Continue", "@leave")),
         ("@leave",),
         ("Move.Entity", at(10, 11, -8), "Edwin", at(COTTAGE_DOOR, 12, -8), "2"),
-        say("Edwin", "Of course. If you need anything, you can find my wife, Maren, and me at the bank, by the chapel. "
+        say("Edwin", "Of course. If you need anything, you can find my wife, Maren, and me at our house, by the chapel. "
                      "Come for dinner.", ("Thank you, Edwin.", "@jar")),
         ("@jar",),
         say("Edwin", "Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\\Shards "
@@ -911,7 +924,7 @@ def opening():
     ])
 
 
-def bank_scripts():
+def home_scripts():
     w("Talk to Maren", [
         ("Get.Value", "ATTRIBUTE", "DinnerQuest", V1),
         (">Conditional", "$Variable.1=0 and $Attr.LastWill>=2", "@s1"),
@@ -921,7 +934,7 @@ def bank_scripts():
         ("@axe",), (">Quest.Can.Start", "DinnerQuest", "@end"),
         ("Give.Item", "Bronze_Axe", "1"),
         ("Update.Attribute", "DinnerQuest", "=1"),
-        ("Display.Message", "Yellow", "Quest started: Dinner at the Bank. (H: your journal)", "Quest"),
+        ("Display.Message", "Yellow", "Quest started: Dinner at Edwin's. (H: your journal)", "Quest"),
         ("End",),
         ("@s1",), (">Conditional", "$Variable.1=1", "@s2"),
         (">Got.Item", "Logs", "3", "@nologs"),
@@ -936,11 +949,9 @@ def bank_scripts():
         say("Maren", "An egg from Bess's coop, fried on my range upstairs, and then it's for Edwin. He'll be so pleased.",
             ("I'll see to it.", "@menu")),
         ("@menu",),
-        say("Maren", "Welcome to the Isle Bank! I keep the counter, and Edwin keeps the books.",
-            ("I'd like to use the bank.", "@bank"), ("How is your father? [if $Attr.FatherFreed>=1]", "@father"),
-            ("Goodbye.", "@end")),
-        ("@bank",), ("Display.Item.Rack", "BANK", "Maren", "-", "@end"),
-        ("End",),
+        say("Maren", "Come in, dear. Anyone on the Isle who's poorly ends up on that bed, and I do what I can for "
+                     "them. Edwin has his desk by the window: wills and deeds and the like.",
+            ("How is your father? [if $Attr.FatherFreed>=1]", "@father"), ("Goodbye.", "@end")),
         ("@father",), say("Maren", "Home, and safe, and eating us out of house and home! I can't ever thank you enough.",
                           ("I'm glad.", "@end")),
         ("@end",), ("End",),
@@ -960,11 +971,11 @@ def bank_scripts():
         ("@give",),
         ("Give.Item", "Chapel_Cellar_Key", "1"),
         say("Maren", "And take these with you: two healing draughts, brewed from Bess's herbs. Drink one when you're "
-                     "hurt.\\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a "
+                     "hurt: doctor's orders.\\Herbs, mind, not magic. Shards can do a great deal, but they can't mend a body: only a "
                      "brewer's herbs can.", ("Thank you, Maren.", "@draughts")),
         ("@draughts",),
         ("Give.Item", "Healing_Draught", "2"),
-        ("Display.Message", "Yellow", "Quest complete: Dinner at the Bank! Maren gave you the key to the chapel's "
+        ("Display.Message", "Yellow", "Quest complete: Dinner at Edwin's! Maren gave you the key to the chapel's "
                                       "trapdoor, and two healing draughts.", "Quest"),
         ("End",),
         ("@chat",), (">Conditional", "$Attr.LastWill>=2", "@letter"),
@@ -996,7 +1007,7 @@ def bank_scripts():
         ("@none",), ("Display.Message", "DarkRed", "You don't have an egg.", "Denied"),
         ("End",),
     ] + FAR)
-    w("2,1,1", [                                                  # (upstairs at the bank: Tobias, once he's free)
+    w("2,1,1", [                                                  # (upstairs at Edwin's: Tobias, once he's free)
         ("Get.Value", "ATTRIBUTE", "FatherFreed", V1),
         (">Conditional", "$Variable.1>=1", "@end"),
         ("Add.Entity", at(19, 3, -8), "Tobias", "NPC", "Attitude=Good Stand=1 Face=S"),
@@ -1007,7 +1018,8 @@ def bank_scripts():
                       "I'll not go back, not with those brutes so near it. Keep it well.", ("I will.", "@end")),
         ("@end",), ("End",),
     ])
-    notice("Isle_Bank_Notice", "THE ISLE BANK", "Built of good red brick, the year the great storm took the pier.")
+    notice("Isle_Bank_Notice", "EDWIN, LAWYER. MAREN, DOCTOR.", "A brass plate by the door of a red brick house, "
+           "built the year the great storm took the pier.")
 
 
 def bess_and_frank():
@@ -1129,7 +1141,7 @@ def chapel_and_caves():
             ("Thank you, Brother.", "@end")),
         ("End",),
         ("@nokey",),
-        say("Gravekeeper", "You're ready, I'd say. But the trapdoor's locked, and I gave its key to Maren, at the bank, "
+        say("Gravekeeper", "You're ready, I'd say. But the trapdoor's locked, and I gave its key to Maren, the doctor, "
                            "for safekeeping.", ("I'll ask her.", "@end")),
         ("End",),
         ("@untrained",),
@@ -1308,7 +1320,7 @@ def lair_scripts():
         ("Update.Attribute", "FatherFreed", "=1"),
         ("Display.Message", "Yellow", "..and the lock springs open!", "-"),
         say("Tobias", "Free! Bless you, child.\\Listen: the house is yours. I'll not go back, not with those brutes so "
-                      "near it: I'll go and live with Maren at the bank. Find my key in that corner barrel and keep "
+                      "near it: I'll go and live with Maren and Edwin. Find my key in that corner barrel and keep "
                       "it.\\And Bess's compass? I hid it under the floor at home before they took me. You'll hear the "
                       "board.", ("Get home safe.", "@go")),
         ("@go",),
@@ -1435,14 +1447,14 @@ def old_scripts():
 
 def scripts():
     opening()
-    bank_scripts()
+    home_scripts()
     bess_and_frank()
     chapel_and_caves()
     lair_scripts()
     fathers_house_scripts()
     ferry_scripts()
     old_scripts()
-    print("Scripts: the funeral and the letter, the bank, Bess and Frank, Brother Aldous and the amulet, the lair, "
+    print("Scripts: the funeral and the letter, Edwin and Maren's house, Bess and Frank, Brother Aldous and the amulet, the lair, "
           "the floorboard, the ferry")
 
 

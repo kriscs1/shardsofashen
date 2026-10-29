@@ -1044,7 +1044,8 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Base", "Enchanted", "Enchant",                                   # an enchanted kind's gear and word; a rare shard's word (shardcraft.py)
                "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
                "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
-               "Swims", "Calls"}                                                 # at home in the water too (an otter); its call
+               "Swims", "Calls",                                                 # at home in the water too (an otter); its call
+               "Indoors"}                                                        # 0: an animal that won't walk into a house
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
                                      "Base", "Enchanted", "Enchant"}

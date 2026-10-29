@@ -9,7 +9,8 @@ import { fogBlack } from "./sky.js";
 import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
   QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
-  chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY } from "./ui.js";
+  chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
+  wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName, spellStatus } from "./verbs.js";
 import { J, hit as journalHit, pages as journalPages, spellClick } from "./journal.js";
@@ -245,6 +246,8 @@ export function mouseDown(button, x, y) {
   }
   const dx = L.DX, desk = !M.on;
   if (U.worldMap) {                                // (the world map's open: a click puts it away)
+    const zb = left ? wmButtonAt(x, y) : "";
+    if (zb) { wmZoomAt(zb === "in" ? 1.5 : 1 / 1.5); return; }
     if (x < L.VW && y < L.VH) {
       const k = U.worldMap === "stones" ? stoneAt(x, y) : "";   // (the travel map: a stone picked, or a way home)
       if (k === "home") send({ t: "stone_home" });
@@ -373,6 +376,10 @@ export function mouseDrag(y, held) {
 }
 
 export function wheel(dy, x, y) {
+  if (U.worldMap) {                                // (the world map: in or out, about the mouse)
+    if (wmInBox(x, y)) wmZoomAt(dy < 0 ? 1.25 : 0.8, x, y);
+    return;
+  }
   if (J.open) {
     J.page = Math.min(journalPages(), Math.max(1, J.page + (dy > 0 ? 1 : -1)));
     return;

@@ -200,8 +200,8 @@ def drop_label(group, label):
 
 # ---------------------------------------------------------------- the story's people (build_people.py draws them)
 PEOPLE = {   # sprite: (what Examine says, its verbs)
-    "Edwin": ("Edwin, the Isle's lawyer, who keeps the bank with his wife Maren.", "Talk to,Examine"),
-    "Maren": ("Maren, who tends the bank's counter. Her sister is Bess the milkmaid.", "Talk to,Bank,Examine"),
+    "Edwin": ("Edwin, the Isle's lawyer. His wife Maren is its doctor.", "Talk to,Examine"),
+    "Maren": ("Maren, the Isle's doctor, married to Edwin. Her sister is Bess the milkmaid.", "Talk to,Examine"),
     "Frank": ("Frank, the Isle's blacksmith: arms like hams, and soot to the elbows.", "Talk to,Repair,Examine"),
     "Tobias": ("Tobias, Bess and Maren's father. The hobgoblins kept him in a cage.", "Talk to,Examine"),
     "Ferryman": ("Wim the ferryman. He smells of salt and tar.", "Talk to,Examine"),

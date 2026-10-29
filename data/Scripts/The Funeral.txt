@@ -29,7 +29,7 @@
 28	Display.Message	Cyan	He lays a letter on the table, sealed with your mother's wax.	-
 29	Display.Conversation	Player	Thank you. If you don't mind, I would like to be left alone to read the letter.	Continue	30
 30	Move.Entity	288,312	Edwin	224,344	2
-31	Display.Conversation	Edwin	Of course. If you need anything, you can find my wife, Maren, and me at the bank, by the chapel. Come for dinner.	Thank you, Edwin.	32
+31	Display.Conversation	Edwin	Of course. If you need anything, you can find my wife, Maren, and me at our house, by the chapel. Come for dinner.	Thank you, Edwin.	32
 32	Display.Conversation	Edwin	Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\Shards are splinters of the world's old magic. Spells drink them, and so do the old standing stones on the mainland. Don't spend them all at once.	I won't.	33
 33	Play.Sound	Absorb
 34	Display.Message	Cyan	Mary's Shards are yours: their count is under your health.	-

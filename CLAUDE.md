@@ -40,8 +40,9 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
    table. The cottage door stays locked (a Lock) until you've read it: the letter (`Last_Will`, Read) tells you who
    you are, in the owner's own words.
-2. **Dinner at the Bank** (`DinnerQuest`). The bank (2,1,0, two storeys, brick) is Edwin and **Maren**'s: she keeps
-   the counter by day, and they live upstairs (2,1,1), going up at night. Three logs for her range (with the axe she
+2. **Dinner at Edwin's** (`DinnerQuest`). Edwin the lawyer and **Maren**, the Isle's doctor, live in the brick house
+   by the chapel (2,1,0, two storeys; it was the bank, and its place Id is still `Isle_Bank`): her surgery and his desk
+   downstairs by day, their rooms upstairs (2,1,1), going up at night. There's no bank on the Isle. Three logs for her range (with the axe she
    lends you), an egg from Bess's coop fried on her range, the egg to Edwin. Maren gives the chapel trapdoor's key
    and makes you promise not to go down without a sword and shield.
 3. **The Amulet of Succession** (`AmuletQuest`). **Bess** the milkmaid won't sail without her father's compass; her
@@ -136,8 +137,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
 - Buffs and debuffs end on death.
 - A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
-  `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab shows it out of its usual level (18/20,
-  red; 23/20, green), and hitpoints and your level go by the usual one.
+  `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab always shows it out of its usual level
+  (20/20; drained 18/20, red; boosted 23/20, green, a potion's or spell's boost to your blows counted in), and hitpoints and your level go by the usual one.
 - **Tricks** (`dsengine/tricks.py`): invisibility (no monster sees you; strike or cast and it's over) and body swaps
   (`Swap=1` creatures and townsfolk, for a strict time: no hands, monsters pay you no mind, `$Player.Form` says what
   you are, e.g. a cat flap's `$Player.Form=Cat`). A script can `Turn.Into` a creature for a while.
@@ -152,6 +153,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   dungeons (a map `Trigger Trap_<Kind>`: `deep.py` world_trap), animals that talk to you in an animal's body
   (`tricks.py` ANIMAL_TALK); `dev/migrate/build_whimsy.py` places them. Keep adding them, in what things and people
   say and do; a sign still never hints.
+- **Animals stay out of houses** (a roofed cell): `Indoors=0` in Entities.ini (`dev/migrate/animals_outdoors.py`), on
+  every animal but cats and dogs. One that starts under a roof may walk out; a hen goes into her own coop (`Roost=`).
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less
@@ -289,6 +292,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
+- The camera stays on the player: past the last map there's only black (never held back at the edge of the maps).
+- Going somewhere else at once (a shardstone, a script, dying; not a ladder or a stair) fades the view out and in.
+- Walking keeps to the walk masks: a fence thinner than a path cell stops the path (`maps.py` cross_r/cross_d) and
+  the feet (a step never skips over it).
 - A tile changing (a door, a chopped tree) sends just that tile (`mapcells`), not the whole map again: keep it so.
   The phone and many NPCs make full-map repaints the thing that lags.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top

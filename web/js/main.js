@@ -7,7 +7,7 @@ import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom } from "./render.js";
 import { invalidateMap, invalidateCell, mapCells } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
-  JOY } from "./ui.js";
+  JOY, wmPan, wmZoomAt, wmInBox } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
 import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
@@ -731,7 +731,10 @@ N.onMessage = (m) => {
       S.mapName = m.name;
       S.mapZ = m.z;
       break;
-    case "teleport": V.cam.snap = true; break;
+    case "teleport":
+      V.cam.snap = true;
+      if (m.fade) startTeleportFade(now);
+      break;
     case "use": S.itemInUse = m.uid; break;
     case "reveal": revealCell(m.map, m.cell); break;
     case "lightning":
@@ -813,6 +816,30 @@ window.addEventListener("pagehide", () => {
 
 const FRAME_MS = 13;                           // (about 60 a second at most: a 120 Hz phone draws every other one)
 
+// ----- off somewhere else (a shardstone, a script, dying): the last view fades to black, then the new one fades in
+const TP_OUT = 220, TP_IN = 380;
+let tpFade = null;
+function startTeleportFade(now) {
+  const w = Math.round(L.VW * screen.k), h = Math.round(L.VH * screen.k);
+  let shot = null;
+  if (w > 0 && h > 0 && running) {                     // (the canvas still holds the frame before the move)
+    shot = document.createElement("canvas");
+    shot.width = w; shot.height = h;
+    shot.getContext("2d").drawImage(canvas, screen.ox, screen.oy, w, h, 0, 0, w, h);
+  }
+  tpFade = { start: now, shot };
+}
+function drawTeleportFade(c, now) {
+  if (!tpFade) return;
+  const t = now - tpFade.start;
+  if (t >= TP_OUT + TP_IN) { tpFade = null; return; }
+  if (t < TP_OUT) {
+    if (tpFade.shot) c.drawImage(tpFade.shot, 0, 0, L.VW, L.VH);
+    c.fillStyle = `rgba(0,0,0,${t / TP_OUT})`;
+  } else c.fillStyle = `rgba(0,0,0,${1 - (t - TP_OUT) / TP_IN})`;
+  c.fillRect(0, 0, L.VW, L.VH);
+}
+
 function frame(now) {
   requestAnimationFrame(frame);
   if (now - lastFrame < FRAME_MS && now >= lastFrame) return;
@@ -842,6 +869,7 @@ function frame(now) {
   } else {
     drawWorld(ctx, L.VW, L.VH, now, dt, smoothing);
     drawBuild(ctx, I.mx, I.my, smoothing);
+    drawTeleportFade(ctx, now);
     if (S.me.dead) { ctx.fillStyle = "rgba(70,0,0,0.55)"; ctx.fillRect(0, 0, L.VW, L.VH); }    // (dead)
     ctx.imageSmoothingEnabled = smoothing;
     drawUI(ctx, now);
@@ -866,9 +894,19 @@ function frame(now) {
 }
 
 // ----- input
+// (the world map dragged about with the mouse: a press that doesn't move is still a click)
+let wmDrag = null;
 canvas.addEventListener("mousemove", (ev) => {
   const [x, y] = toLogical(ev);
   I.mx = x; I.my = y;
+  if (wmDrag) {
+    if (!(ev.buttons & 1) || !U.worldMap) wmDrag = null;
+    else {
+      if (Math.hypot(x - wmDrag.sx, y - wmDrag.sy) > 4) wmDrag.moved = true;
+      if (wmDrag.moved) { wmPan(x - wmDrag.x, y - wmDrag.y); wmDrag.x = x; wmDrag.y = y; }
+      return;
+    }
+  }
   mouseDrag(y, ev.buttons & 1);
   if (running && !overlayOpen()) buildMouseMove(x, y, ev.buttons & 1);
 });
@@ -876,8 +914,15 @@ canvas.addEventListener("mousedown", (ev) => {
   if (!running || overlayOpen()) return;
   canvas.focus();
   const [x, y] = toLogical(ev);
+  if (U.worldMap && ev.button === 0 && wmInBox(x, y)) { wmDrag = { sx: x, sy: y, x, y, moved: false }; return; }
   if (buildMouseDown(ev.button, x, y)) return;
   mouseDown(ev.button, x, y);
+});
+window.addEventListener("mouseup", (ev) => {
+  if (!wmDrag || ev.button !== 0) return;
+  const d = wmDrag;
+  wmDrag = null;
+  if (!d.moved && running && !overlayOpen()) mouseDown(0, d.sx, d.sy);
 });
 canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
@@ -900,6 +945,12 @@ canvas.addEventListener("pointerdown", (ev) => {
     moveStick(x, y);
     return;
   }
+  if (U.worldMap && !J.open) {                   // (the world map: dragged, pinched, or tapped)
+    const others = [...touches.values()].filter((o) => o.kind === "map");
+    others.forEach((o) => { o.pinched = true; });
+    touches.set(ev.pointerId, { kind: "map", x, y, sx: x, sy: y, moved: false, pinched: others.length > 0 });
+    return;
+  }
   const t = { kind: J.open ? "pan" : "tap", x, y, sx: x, sy: y, moved: false, held: false, panX: M.panX, panY: M.panY,
     chatLine: U.chatLine };
   touches.set(ev.pointerId, t);
@@ -920,6 +971,20 @@ canvas.addEventListener("pointermove", (ev) => {
   ev.preventDefault();
   const [x, y] = toLogical(ev);
   if (t.kind === "stick") { moveStick(x, y); return; }
+  if (t.kind === "map") {
+    const fingers = [...touches.values()].filter((o) => o.kind === "map");
+    if (fingers.length >= 2) {                   // (two fingers: apart is in, together out, about between them)
+      const o = fingers.find((f) => f !== t);
+      const before = Math.hypot(t.x - o.x, t.y - o.y), after = Math.hypot(x - o.x, y - o.y);
+      if (before > 4 && after > 4) wmZoomAt(after / before, (x + o.x) / 2, (y + o.y) / 2);
+      wmPan((x - t.x) / 2, (y - t.y) / 2);
+    } else {
+      if (Math.hypot(x - t.sx, y - t.sy) > SLOP) t.moved = true;
+      if (t.moved) wmPan(x - t.x, y - t.y);
+    }
+    t.x = x; t.y = y;
+    return;
+  }
   t.x = x; t.y = y;
   if (Math.hypot(x - t.sx, y - t.sy) > SLOP) t.moved = true;
   if (t.kind === "pan") {
@@ -939,6 +1004,10 @@ function touchEnd(ev, cancelled) {
   touches.delete(ev.pointerId);
   clearTimeout(t.timer);
   if (t.kind === "stick") { M.joy = null; stick(0, 0); return; }
+  if (t.kind === "map") {                          // (a tap, not a drag or a pinch: as a click)
+    if (!cancelled && !t.moved && !t.pinched && running && !overlayOpen() && U.worldMap) mouseDown(0, t.sx, t.sy);
+    return;
+  }
   M.hoverUntil = performance.now() + 2500;
   if (cancelled || t.held || (t.moved && t.kind === "pan")) return;
   if (t.moved && (M.chat && t.sy >= L.chatY)) return;

@@ -188,6 +188,8 @@ class NPCAI:
         self.solid = 1
         self.under = 0
         self.flying = 0
+        self.indoors = True
+        self.roost = None
         self.home_ox = 0
         self.home_oy = 0
         self.skip_delta = 0.0

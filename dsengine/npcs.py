@@ -118,6 +118,7 @@ class NPCMixin:
         a.solid = 0 if d.entity_ini(n, "Solid", "1") == "0" else 1
         a.flees = trim(d.entity_ini(n, "Flees", "0")) == "1"         # (prey: runs from whoever hits it, never fights)
         a.swims = trim(d.entity_ini(n, "Swims", "0")) == "1"         # (an otter, a seal: at home in the water too)
+        a.indoors = trim(d.entity_ini(n, "Indoors", "1")) != "0"     # (0: an animal kept out of houses; cats come in)
         layer = trim(d.entity_ini(n, "Layer", "")).upper()
         a.under = 1 if layer == "UNDER" else 0
         a.flying = 1 if layer == "OVER" else 0

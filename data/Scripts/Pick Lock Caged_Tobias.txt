@@ -9,7 +9,7 @@
 08	Add.Entity	544,344	Tobias	NPC	Attitude=Good Stand=1 Face=N
 09	Update.Attribute	FatherFreed	=1
 10	Display.Message	Yellow	..and the lock springs open!	-
-11	Display.Conversation	Tobias	Free! Bless you, child.\Listen: the house is yours. I'll not go back, not with those brutes so near it: I'll go and live with Maren at the bank. Find my key in that corner barrel and keep it.\And Bess's compass? I hid it under the floor at home before they took me. You'll hear the board.	Get home safe.	12
+11	Display.Conversation	Tobias	Free! Bless you, child.\Listen: the house is yours. I'll not go back, not with those brutes so near it: I'll go and live with Maren and Edwin. Find my key in that corner barrel and keep it.\And Bess's compass? I hid it under the floor at home before they took me. You'll hear the board.	Get home safe.	12
 12	Remove.Entity	544,344	Tobias
 13	Display.Message	Cyan	Tobias hobbles to the ladder and climbs up out of the lair, towards home.	-
 14	>Conditional	$Variable.1<3	16

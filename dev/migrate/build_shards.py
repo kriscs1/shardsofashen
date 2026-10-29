@@ -86,7 +86,7 @@ QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder ques
 }
 QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Update.Skill +n), for the quests whose
     # scripts give none of their own
-    "Dinner at the Bank": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Strength 2 Defence 2 Crafting 1",
+    "Dinner at Edwin's": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Strength 2 Defence 2 Crafting 1",
     "Passage to the Mainland": "Strength 2 Defence 2", "The Temporary Capital": "Magic 1",
     "The Ashford Road": "Strength 3 Defence 3", "The Staff of Ashen": "Magic 3",
     "The Sunken Grimoire": "Magic 4", "The Ember Ring": "Magic 4 Defence 3", "Bert's Three Treasures": "Magic 6",
@@ -109,7 +109,7 @@ DIG_NOTE = ["; Shards, besides, in a hole dug: Shards.Chance in 100 of Shards=lo
             "; Shards (old places: the desert's buried library, the ash). Cache.Chance in 100: a cache, Cache=lo-hi."]
 
 REWARDS = {  # Quests.ini Reward.Shards
-    "Dinner at the Bank": 5, "The Amulet of Succession": 10, "Passage to the Mainland": 15,
+    "Dinner at Edwin's": 5, "The Amulet of Succession": 10, "Passage to the Mainland": 15,
     "The Temporary Capital": 10, "The Ashford Road": 15, "The Steward's Hunt": 20, "Bert's Three Treasures": 40,
     "The Staff of Ashen": 15, "The Sunken Grimoire": 20, "The Ember Ring": 25, "A Ship for Dragon Island": 15,
     "The Island of Dragons": 25, "The Sword of Valour": 30, "The Dragon of Galaith": 40, "The Royal Guard": 15,

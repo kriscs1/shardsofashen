@@ -50,7 +50,9 @@ class MapData:
         self.grid = None                # walk grid (grid_cell cells, locks open): bytearray gw x gh, or None = stale
         self.swim_grid = None           # (the same, and every cell of a water tile too: for Swims=1 NPCs)
         self.regions = None
-        self.version = 0                # goes up whenever a tile changes (the browsers ask for it again)
+        self.cross_r = self.cross_d = None  # (with the grid: 1 where feet can't go straight from a cell to the one right
+                                            #  of it / below it, a fence thinner than a cell between them)
+        self.version = 0               # goes up whenever a tile changes (the browsers ask for it again)
         self.changes = []               # (version, cell) of the latest changes: a door opening sends that one tile
         self.load(lines)
 
@@ -285,6 +287,26 @@ class MapData:
                         count = (pw(x0 + q, y0 + q) + pw(x0 + m, y0 + q) + pw(x0 + f, y0 + q) + pw(x0 + q, y0 + m) +
                                  pw(x0 + f, y0 + m) + pw(x0 + q, y0 + f) + pw(x0 + m, y0 + f) + pw(x0 + f, y0 + f))
                         grid[cy * gw + cx] = 1 if count >= 7 else 0
+        # (a fence is thinner than a cell and may lie across the line between two: then the cells either side are
+        #  both walkable, but nobody can go straight from one to the other)
+        cross_r, cross_d = bytearray(gw * gh), bytearray(gw * gh)
+
+        def plain(cx, cy):
+            c = int(cy * cell / d.th) * d.xt + int(cx * cell / d.tw) + 1
+            return "0" not in self.walk[c] and (int(cx * cell / d.tw) + 1, int(cy * cell / d.th) + 1) not in \
+                self.object_blocks
+
+        for cy in range(gh):
+            for cx in range(gw):
+                i = cy * gw + cx
+                if not grid[i]:
+                    continue
+                x0, y0 = cx * cell + m, cy * cell + m
+                if cx + 1 < gw and grid[i + 1] and not (plain(cx, cy) and plain(cx + 1, cy)):
+                    cross_r[i] = not all(pw(x0 + k, y0) for k in range(2, cell, 2))
+                if cy + 1 < gh and grid[i + gw] and not (plain(cx, cy) and plain(cx, cy + 1)):
+                    cross_d[i] = not all(pw(x0, y0 + k) for k in range(2, cell, 2))
+        self.cross_r, self.cross_d = cross_r, cross_d
         self.grid = grid
         self.gw, self.gh = gw, gh
         return grid
@@ -298,6 +320,7 @@ class MapData:
             return self.regions
         grid = self.get_grid()
         w = self.gw
+        cr, cd = self.cross_r, self.cross_d
         total = len(grid)
         region = [0] * total
         n = 0
@@ -309,8 +332,9 @@ class MapData:
                 while stack:
                     c = stack.pop()
                     cx = c % w
-                    for nb in ((c - 1) if cx > 0 else -1, (c + 1) if cx < w - 1 else -1,
-                               (c - w) if c >= w else -1, (c + w) if c + w < total else -1):
+                    for nb in ((c - 1) if cx > 0 and not cr[c - 1] else -1, (c + 1) if cx < w - 1 and not cr[c] else -1,
+                               (c - w) if c >= w and not cd[c - w] else -1,
+                               (c + w) if c + w < total and not cd[c] else -1):
                         if nb >= 0 and grid[nb] == 1 and region[nb] == 0:
                             region[nb] = n
                             stack.append(nb)

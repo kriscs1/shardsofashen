@@ -1932,7 +1932,6 @@ MOVEMENT = {
     "Man": (3, 0, "0.5", "2-6"),
     "Guard": (2, 0, "0.6", "2-5"),
     "Dog": (4, 0, "0.6", "1-4"),
-    "Tallulah": (3, 0, "0.5", "2-6"),
     # farm animals: potter about, long pauses (they only chase if attacked, and not far)
     "Chicken": (3, 1, "0.6", "3-8"),
     "Cow": (2, 1, "0.4", "6-15"),

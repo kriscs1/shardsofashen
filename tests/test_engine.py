@@ -1092,7 +1092,7 @@ def isle_helpers(world, s):
 
 
 def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
-    """Dinner at the Bank, The Amulet of Succession and Passage to the Mainland, played through."""
+    """Dinner at Edwin's, The Amulet of Succession and Passage to the Mainland, played through."""
     import dsengine.player_combat as pc
     import dsengine.scripting as sc
     monkeypatch.setattr(pc, "rnd", lambda: 0.0)                     # (spells don't fizzle in a test)
@@ -1106,7 +1106,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     run, npc, talk, use = isle_helpers(world, s)
     assert attr("LastWill") == 2                                    # (a saved character: past the funeral)
     assert "Bronze_Sword" not in s.equipped                         # (no sword to start with)
-    # Dinner at the Bank
+    # Dinner at Edwin's
     maren = npc("Maren", "2,1,0", "Maren_At_Counter")
     talk(maren, 1)                                                  # dinner? logs for the range first: an axe
     assert attr("DinnerQuest") == 1 and s.items_held("Bronze_Axe") == 1
@@ -2385,7 +2385,7 @@ def test_a_quests_shards_are_paid_once(world):
     s.update_attribute("DinnerQuest", "=4")
     s.update_attribute("DinnerQuest", "+1")
     assert s.shards() == before + 5
-    assert next(q for q in s.quest_list() if q["title"] == "Dinner at the Bank")["shards"] == 5
+    assert next(q for q in s.quest_list() if q["title"] == "Dinner at Edwin's")["shards"] == 5
     leave(world, s)
 
 
@@ -3514,3 +3514,64 @@ def test_editor_lays_out_sets_and_smooths_coasts():
     grid.update({(2, 1): "Grass001", (3, 1): "Grass001", (3, 2): "Grass001"})
     WD.smooth_corners(P, lambda x, y: grid.get((x, y)), lambda x, y, t: grid.__setitem__((x, y), t), {(3, 2)})
     assert grid[(2, 2)] == "Water002"                                           # (land to its north and east)
+
+
+def test_a_fence_thinner_than_a_cell_is_walked_round_not_through():
+    w = World(ROOT)
+    spot = None
+    for m in (w.maps[n] for n in ("1,1,0", "2,4,0", "3,5,0", "4,6,0", "5,5,0", "11,4,0")):
+        for ty in range(4, 16):
+            for tx in range(4, 18):
+                if all(m.tile[m.cell(x, y)] and "0" not in m.walk[m.cell(x, y)] and not m.decor[m.cell(x, y)] and
+                       not w.data.tile_water(m.tile[m.cell(x, y)])
+                       for x in range(tx - 2, tx + 5) for y in range(ty - 2, ty + 3)):
+                    spot = (m, tx, ty)
+                    break
+            if spot:
+                break
+        if spot:
+            break
+    assert spot, "no open ground"
+    m, tx, ty = spot
+    for x in range(tx, tx + 3):                       # (three tiles of fence, east-west, across the middle)
+        assert m.change_cell(x, ty, "Fence001")
+    x = m.ox + tx * 32 + 16                           # (the middle of the fence, a tile above it and a tile below)
+    above, below = m.oy + (ty - 1) * 32 - 12, m.oy + ty * 32 + 12
+    assert not w.grid_line_walkable(m.mz, x, above, x, below)
+    s = join(w, "Fencer", m.name, x - 16 - m.ox, above - 30 - m.oy)
+    p = s.player
+    assert p.fy < m.oy + (ty - 1) * 32 + 14
+    for _ in range(30):                               # (straight at it, as fast as a step goes: it holds)
+        w.try_move_entity(p, 0, 6, s)
+    assert p.fy < m.oy + (ty - 1) * 32 + 14
+    assert w.plan_path(p, x, below - (p.fy - p.cy), 0, 4000, s) and p.path    # (a way round)
+    ax, ay = p.fx, p.fy
+    for wx, wy in p.path:
+        wy += p.fy - p.cy
+        assert w.grid_line_walkable(m.mz, ax, ay, wx, wy, s)
+        ax, ay = wx, wy
+    leave(w, s)
+
+
+def test_animals_stay_out_of_houses_but_cats_come_in():
+    w = World(ROOT)
+    m = w.maps["2,1,0"]
+    spot = None                                       # (open ground just south of a roofed, walkable cell)
+    for ty in range(2, 20):
+        for tx in range(2, 24):
+            c, b = m.cell(tx, ty), m.cell(tx, ty + 1)
+            if (m.roof[c] and not m.roof[b] and "0" not in m.walk[c] and "0" not in m.walk[b] and
+                    not m.lock_at.get((tx, ty))):
+                spot = (tx, ty)
+                break
+        if spot:
+            break
+    assert spot, "no doorway"
+    tx, ty = spot
+    fx, fy = m.ox + (tx - 0.5) * 32, m.oy + ty * 32 + 4  # (feet just outside, a step from the roof)
+    assert w.roofed(m.mz, fx, fy - 8) and not w.roofed(m.mz, fx, fy)
+    sheep = w.add_npc("Sheep", m.mz, fx, fy, "")
+    cat = w.add_npc("Cat", m.mz, fx, fy, "")
+    assert not sheep.ai.indoors and cat.ai.indoors
+    assert not w.entity_can_stand(sheep, fx, fy - 8, fx, fy)
+    assert w.entity_can_stand(cat, fx, fy - 8, fx, fy)

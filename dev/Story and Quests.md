@@ -11,7 +11,7 @@ game's files.
   a magical barrier for eighteen years: every generation it was owed the king's firstborn heir, and Queen **Mary** ran
   from Galaith with her baby, you, to break the bargain. King **Rupert**, your father, is shut in the city.
 - **The Isle**: a small island off the south coast, where you grew up poor and where every new character begins, at
-  their mother's funeral. It has a village with a bank, a farm and a smithy, a chapel with caves under it, a hermit
+  their mother's funeral. It has a village with a lawyer's and doctor's house, a farm and a smithy, a chapel with caves under it, a hermit
   and a ferry.
 - **The mainland**: **Northgate** (a large city, where the ferry lands; Ashen's Parliament sits in its City Hall
   while Galaith is lost), **Ashford**, **King Rupert's Keep** (the old Tyron's Keep, held by the King's Steward), the
@@ -36,7 +36,7 @@ Seventeen chapters, each unlocked by the one before it. Chapters 1 to 4 are the 
 | Ch. | Quest | What you do |
 |---|---|---|
 | 1 | **The Last Will** | You stand at your mother's fresh grave by the chapel. The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the table. The cottage door stays locked until you've **read the letter** (three pages, in the owner's words): you are the heir of Ashen. Jimmy sleeps on her empty bed. |
-| 2 | **Dinner at the Bank** | Edwin asks you to dinner. **Maren**, his wife, keeps the bank (two storeys of brick; they live upstairs, and go up at night). **Chop 3 logs** for her range (she lends an axe), **take an egg** from Bess's coop and **fry it** on her range, give it to Edwin. Reward: the key to the chapel's trapdoor, and a promise not to go down without a sword and shield. |
+| 2 | **Dinner at Edwin's** | Edwin the lawyer asks you to dinner. **Maren**, his wife, is the Isle's doctor (their house is two storeys of brick by the chapel, her surgery and his desk downstairs; it was the bank. They live upstairs, and go up at night). **Chop 3 logs** for her range (she lends an axe), **take an egg** from Bess's coop and **fry it** on her range, give it to Edwin. Reward: the key to the chapel's trapdoor, and a promise not to go down without a sword and shield. |
 | 3 | **The Amulet of Succession** | **Bess** the milkmaid has the only boat, but won't sail without her father's compass. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Strength and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
 | 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: the compass is under it. Bess sails you to Northgate; after that **Wim** the ferryman crosses for a coin. |
 
@@ -269,7 +269,7 @@ like, for a few Shards. Reward: 20 Shards, Magic experience.
 ## How the quests lead into one another
 
 ```
-The Last Will (1) ── Dinner at the Bank (2) ── The Amulet of Succession (3) ── Passage to the Mainland (4)
+The Last Will (1) ── Dinner at Edwin's (2) ── The Amulet of Succession (3) ── Passage to the Mainland (4)
 Passage to the Mainland: every mainland quest needs it
 ├── The Temporary Capital (5) ── The Ashford Road (6) ── The Steward's Hunt (7)
 │   ├── Bert's Three Treasures (8): The Staff of Ashen (9), The Sunken Grimoire (10), The Ember Ring (11)
@@ -286,7 +286,7 @@ On the Isle, any time: The Hermit's Fire
 ```
 
 Recurring characters worth keeping consistent: **Jimmy** the cat (the cottage, your house on the Isle, the throne),
-**Maren and Edwin** (the bank; Tobias lives with them after the lair), **Bert** (chapters 8 to 15), **the Steward**
+**Maren and Edwin** (their house by the chapel; Tobias lives with them after the lair), **Bert** (chapters 8 to 15), **the Steward**
 (chapters 7 and 9), **Morwen** the witch (Bog Lights, Old Hob), and **the Ashen Priest** (chapter 11; his cult's
 shrines stand quiet in the Ashwold).
 
@@ -314,7 +314,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Shard Scholar | ShardQuest | Talk to Court_Magister |
 | The Spellwright | SpellwrightQuest | Quill the Spellwright (the lectern: dsengine/ownspell.py) |
 | The Shardgate | ShardgateQuest | Use Staff_of_Ashen With Barrier, Bert and the Shardgate, Build Shardgate_Ring, Step Through Shardgate, Shatter Barrier_Anchor |
-| Dinner at the Bank | DinnerQuest | Talk to Edwin / Maren, Use Fried_Egg With Edwin, Marens_Range |
+| Dinner at Edwin's | DinnerQuest | Talk to Edwin / Maren, Use Fried_Egg With Edwin, Marens_Range |
 | The Amulet of Succession | AmuletQuest | Talk to Milkmaid, Talk to Frank, Talk to Chapel_Verger, Reach In / Grasp Barred_Niche |
 | Passage to the Mainland | Passage | Pick Lock Caged_Tobias, Squeaky Floorboard, Talk to Milkmaid, Talk to Ferryman |
 | The Temporary Capital, The Ashford Road | ParliamentQuest, AshfordQuest | Talk to Southport_Port_Guard, Talk to Southport_Speaker_*, Talk to the Mayor, Farm Raid Won |

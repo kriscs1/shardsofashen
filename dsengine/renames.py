@@ -1,4 +1,4 @@
-"""Items and skills that were renamed (dev\\migrate\\rename_items.py, rename_skills.py rename them in the data):
+"""Items, skills and quests that were renamed (dev\\migrate\\rename_items.py, rename_skills.py rename them in the data):
 what a character or the world was saved with is put right as it loads - inventories, banks, hotbars, gear, market
 listings, the action queue, skills."""
 import json
@@ -25,6 +25,9 @@ SKILL_NAMES = {                                      # (rename_skills.py: old na
     "Farming": "Homesteading",
     "Potion_Making": "Alchemy",
     "Herblore": "Alchemy",
+}
+RENAMED_QUESTS = {                                   # (build_heir_isle.py: the Isle's bank is Edwin and Maren's house)
+    "Dinner at the Bank": "Dinner at Edwin's",
 }
 RENAMED_MAPS = {                                     # (move_levels.py: levels of their own, moved further off)
     "0,0,5": "0,0,10",

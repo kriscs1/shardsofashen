@@ -2,7 +2,6 @@
 
   python -I "dev\\migrate\\build_isle_art.py"
 
-  * sprites\\Walk\\Tallulah2a-c / 8a-c: a small white rabbit with black patches, hopping.
   * sprites\\Walk\\Cow2a-c / 8a-c: a black-and-white cow, walking.
   * sprites\\Tiles\\Wood_Gate001-004: a gate in the white-capped picket fence (Wood_Fence), shut and open, across
     (east-west) and up-and-down (north-south). On grass: a gate is the ground (a door), not decor.
@@ -38,14 +37,6 @@ def outlined(s, col=OUTLINE):
     return out
 
 
-def small(img, k):
-    """img drawn smaller (nearest pixel: no blur), standing on the same ground line, in the middle."""
-    w = round(32 * k)
-    out = pygame.Surface((32, 32), pygame.SRCALPHA)
-    out.blit(pygame.transform.scale(img, (w, w)), ((32 - w) // 2, 29 - round(29 * k)))
-    return out
-
-
 def save_walk(name, frames):
     for f, img in zip("abc", frames):
         pygame.image.save(img, os.path.join(WALK, "%s2%s.png" % (name, f)))
@@ -54,43 +45,6 @@ def save_walk(name, frames):
 
 def tile(name):
     return pygame.image.load(os.path.join(TILES, name + ".png")).convert_alpha()
-
-
-# ---------------------------------------------------------------- Tallulah: a small, round, patchy rabbit
-def rabbit(frame):
-    s = pygame.Surface((32, 32), pygame.SRCALPHA)
-    white, shade, black, pink = (246, 244, 238), (214, 210, 204), (40, 36, 38), (236, 160, 170)
-    lift = (0, -3, -1)[frame]                    # (crouched, mid-hop, landing)
-    stretch = (0, 3, 1)[frame]
-    # the hind leg, long and folded (stretched out behind, mid-hop)
-    if frame == 1:
-        pygame.draw.ellipse(s, shade, (6, 22 + lift, 8, 4))
-    else:
-        pygame.draw.ellipse(s, shade, (9, 25 + lift, 8, 3))
-    # the body: a round rump, a smaller chest
-    pygame.draw.circle(s, white, (13, 22 + lift), 6)
-    pygame.draw.ellipse(s, white, (12, 18 + lift, 9 + stretch, 9))
-    pygame.draw.circle(s, white, (8, 20 + lift), 2)                         # the tail, a puff
-    pygame.draw.ellipse(s, black, (12, 18 + lift, 5, 4))                     # a patch on its back
-    pygame.draw.circle(s, black, (10, 24 + lift), 2)
-    # the front paws
-    fx = 20 + stretch
-    pygame.draw.line(s, shade, (fx, 25 + lift), (fx + (1 if frame == 1 else 0), 27 + lift + (0 if frame == 1 else 0)), 2)
-    # the head: round, with a pink nose and a dark eye
-    hx, hy = 21 + stretch, 18 + lift
-    pygame.draw.circle(s, white, (hx, hy), 4)
-    pygame.draw.circle(s, white, (hx + 2, hy + 1), 3)
-    pygame.draw.ellipse(s, black, (hx - 2, hy - 3, 4, 4))                    # a patch round the eye
-    s.set_at((hx, hy - 1), (250, 250, 250))
-    s.set_at((hx + 1, hy - 1), (20, 18, 20))
-    s.set_at((hx + 4, hy + 1), pink)
-    # the ears: long, laid back a little when it hops
-    tilt = (0, 2, 1)[frame]
-    for ex, h in ((hx - 2, 9), (hx, 8)):
-        pygame.draw.polygon(s, white, [(ex, hy - 2), (ex - 1 - tilt, hy - h), (ex + 1 - tilt, hy - h - 1), (ex + 2, hy - 2)])
-        pygame.draw.line(s, pink, (ex, hy - 3), (ex - tilt, hy - h + 1))
-    pygame.draw.line(s, black, (hx - 3 - tilt, hy - 10), (hx - 2 - tilt, hy - 9))   # (black tips)
-    return outlined(s, (60, 54, 56))
 
 
 # ---------------------------------------------------------------- the cow
@@ -398,7 +352,6 @@ def side_bench():
 def main():
     pygame.init()
     pygame.display.set_mode((1, 1))
-    save_walk("Tallulah", [small(rabbit(i), 0.8) for i in range(3)])
     save_walk("Cow", [cow(i) for i in range(3)])
     for name, img in (("Wood_Gate001", gate_across(False)), ("Wood_Gate002", gate_across(True)),
                       ("Wood_Gate003", gate_upright(False)), ("Wood_Gate004", gate_upright(True)),
@@ -408,7 +361,7 @@ def main():
                       ("Bench002", side_bench()), ("Bench003", pygame.transform.flip(side_bench(), True, False)),
                       ("Hatch001", hatch(True, None)), ("Trapdoor001", hatch(False)), ("Trapdoor002", hatch(True))):
         pygame.image.save(img, os.path.join(TILES, name + ".png"))
-    print("Drew Tallulah, the cow, the gates, the chapel's stone, glass and tower, the hatch and the trapdoor")
+    print("Drew the cow, the gates, the chapel's stone, glass and tower, the hatch and the trapdoor")
 
 
 if __name__ == "__main__":

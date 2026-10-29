@@ -329,7 +329,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         """st: a saved character (a dict), or None for a new one (saves\\TEMPLATE.ini's start)."""
         d = self.data
         p = self.player
-        from .renames import renamed, renamed_map, merged_skills
+        from .renames import renamed, renamed_map, merged_skills, RENAMED_QUESTS
         st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
         if st.get("skills"):
             st = dict(st, skills=merged_skills(st["skills"]))    # (skills renamed or made one since: rename_skills)
@@ -384,7 +384,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.update_attribute("Passage", "=12")
         if st and val(self.get_attribute("Story")) < 2:
             self.heir_story_from_old_save()
-        self.quest_notes = [[q, int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
+        self.quest_notes = [[RENAMED_QUESTS.get(q, q), int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
         self.taken_once = set(st.get("taken_once", []))
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
@@ -792,9 +792,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.ab_mode:
             self.close_action_box(-1)
         p = self.player
+        # (off somewhere else, not up a ladder or a stair: the view fades out and in again)
+        far = abs(m.ox + x - p.x) + abs(m.oy + y - p.y) > 3 * self.tw
         p.x, p.y, p.z = m.ox + x, m.oy + y, m.mz
         self.player_tile = None
-        self.emit({"t": "teleport"})
+        self.emit({"t": "teleport", "fade": far})
         self.check_map()
 
     # =================================================================================================================
