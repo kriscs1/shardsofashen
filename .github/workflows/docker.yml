@@ -1,5 +1,5 @@
 # Every push to main builds the server's Docker image (with its pictures, animations and music) and puts it in
-# GitHub's registry as ghcr.io/<you>/shards-of-ashen:latest. The servers' updaters pull it and restart the game.
+# GitHub's registry as ghcr.io/<you>/shardsofashen:latest. The servers' updaters pull it and restart the game.
 name: Build the server image
 
 on:
@@ -46,9 +46,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |           # (the old name too, for now: servers set up before the rename still pull it)
-            ghcr.io/${{ github.repository_owner }}/shards-of-ashen
-            ghcr.io/${{ github.repository_owner }}/dragonsword
+          images: ghcr.io/${{ github.repository_owner }}/shardsofashen
           tags: |
             type=raw,value=latest
             type=sha,prefix=
@@ -67,3 +65,13 @@ jobs:
             DS_BUILD_DATE=${{ steps.version.outputs.date }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # The old name too, for now: servers set up before the rename still pull it. (It only works once the old
+      # dragonsword package lets this repository write to it: its Package settings > Manage Actions access. If it
+      # can't, the build above is published all the same.)
+      - name: The old image name too
+        continue-on-error: true
+        run: |
+          docker buildx imagetools create \
+            -t ghcr.io/${{ github.repository_owner }}/dragonsword:latest \
+            ghcr.io/${{ github.repository_owner }}/shardsofashen:latest

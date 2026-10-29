@@ -187,12 +187,12 @@ python tools/admin.py admin Kris on       # the Admin button (give items, set sk
 
 ## The server: Unraid (or any Linux)
 
-Each **Publish Update** sends your changes to https://github.com/kriscs1/shards-of-ashen. GitHub tests them and builds
-the server image, `ghcr.io/kriscs1/shards-of-ashen`; you can watch it in the repository's **Actions** tab. The server
+Each **Publish Update** sends your changes to https://github.com/kriscs1/shardsofashen. GitHub tests them and builds
+the server image, `ghcr.io/kriscs1/shardsofashen`; you can watch it in the repository's **Actions** tab. The server
 downloads the new image and restarts the game with it. Everyone's progress is kept through every update.
 
 Once, before the first install: when the first build is green, check that the image is public, so the server can
-download it without signing in. Go to https://github.com/users/kriscs1/packages/container/shards-of-ashen/settings: if
+download it without signing in. Go to https://github.com/users/kriscs1/packages/container/shardsofashen/settings: if
 it says Private, **Change visibility** > **Public**. (New images can start out private even when the repository is
 public.)
 
@@ -202,7 +202,7 @@ public.)
 working and updating: GitHub still publishes the old image name as well. To move it to the new name, once:
 
 1. Make the new image public (above), then on the **Docker** tab click the DragonSword icon > **Edit**.
-2. Change **Repository** to `ghcr.io/kriscs1/shards-of-ashen:latest` and the **Name** to `ShardsOfAshen`. Leave
+2. Change **Repository** to `ghcr.io/kriscs1/shardsofashen:latest` and the **Name** to `ShardsOfAshen`. Leave
    **Game data** where it is (`/mnt/user/appdata/dragonsword`): that's your world. **Apply**.
 3. The first time it starts, the game renames `dragonsword.db` in that folder to `ashen.db` by itself.
 4. In Auto Update Applications, tick ShardsOfAshen.
@@ -212,10 +212,10 @@ A new server:
 1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
 
    ```
-   docker run --rm ghcr.io/kriscs1/shards-of-ashen cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-ShardsOfAshen.xml
+   docker run --rm ghcr.io/kriscs1/shardsofashen cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-ShardsOfAshen.xml
    ```
 
-   (Its icon comes from GitHub: https://raw.githubusercontent.com/kriscs1/shards-of-ashen/main/web/img/icon.png.)
+   (Its icon comes from GitHub: https://raw.githubusercontent.com/kriscs1/shardsofashen/main/web/img/icon.png.)
 
 2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **ShardsOfAshen**, then
    **Apply**. It's filled in already:
@@ -252,7 +252,7 @@ Players can change their own password in the game (Options > Your password), and
 2. Set up and start the server, all from GitHub, with this one line:
 
    ```
-   mkdir -p ~/shards-of-ashen && cd ~/shards-of-ashen &&    docker run --rm ghcr.io/kriscs1/shards-of-ashen cat docker-compose.yml > docker-compose.yml &&    docker compose up -d
+   mkdir -p ~/shards-of-ashen && cd ~/shards-of-ashen &&    docker run --rm ghcr.io/kriscs1/shardsofashen cat docker-compose.yml > docker-compose.yml &&    docker compose up -d
    ```
 
 That's all:

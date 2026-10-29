@@ -2,7 +2,7 @@
 # every few minutes and restarts the game with it (everyone's progress is kept in the gamedata volume). Both start
 # again on their own whenever Docker starts. This file is inside the game's image, so a server needs nothing else:
 #
-#   docker run --rm ghcr.io/kriscs1/shards-of-ashen cat docker-compose.yml > docker-compose.yml && docker compose up -d
+#   docker run --rm ghcr.io/kriscs1/shardsofashen cat docker-compose.yml > docker-compose.yml && docker compose up -d
 #
 # Settings: put them in a file called .env beside this one (one per line, e.g. DS_PORT=8090), or change the defaults
 # after ":-" below. Then "docker compose up -d" again.
@@ -21,7 +21,7 @@ name: shards-of-ashen
 
 services:
   game:
-    image: ${DS_IMAGE:-ghcr.io/kriscs1/shards-of-ashen:latest}
+    image: ${DS_IMAGE:-ghcr.io/kriscs1/shardsofashen:latest}
     restart: unless-stopped
     ports:
       - "${DS_PORT:-8484}:8484"

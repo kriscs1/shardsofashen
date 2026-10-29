@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>ShardsOfAshen</Name>
-  <Repository>ghcr.io/kriscs1/shards-of-ashen:latest</Repository>
-  <Registry>https://github.com/kriscs1/shards-of-ashen/pkgs/container/shards-of-ashen</Registry>
+  <Repository>ghcr.io/kriscs1/shardsofashen:latest</Repository>
+  <Registry>https://github.com/kriscs1/shardsofashen/pkgs/container/shardsofashen</Registry>
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
   <Overview>Shards of Ashen: a tile-based adventure for up to five players at once, in the browser. Open the WebUI to play.</Overview>
   <Category>GameServers:</Category>
   <WebUI>http://[IP]:[PORT:8484]/</WebUI>
-  <Icon>https://raw.githubusercontent.com/kriscs1/shards-of-ashen/main/web/img/icon.png</Icon>
+  <Icon>https://raw.githubusercontent.com/kriscs1/shardsofashen/main/web/img/icon.png</Icon>
   <ExtraParams>--stop-timeout 30</ExtraParams>
   <Config Name="Web port" Target="8484" Default="8484" Mode="tcp" Description="Players open http://[your server]:this port" Type="Port" Display="always" Required="true" Mask="false">8484</Config>
   <Config Name="Game data" Target="/data" Default="/mnt/user/appdata/shards-of-ashen" Mode="rw" Description="Accounts, characters, the world and daily backups" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/shards-of-ashen</Config>

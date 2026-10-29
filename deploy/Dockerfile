@@ -33,9 +33,9 @@ COPY server server
 COPY tools tools
 COPY web web
 # (the server's compose file travels with the game, so a server can be set up from the image alone:
-#  docker run --rm ghcr.io/<you>/shards-of-ashen cat docker-compose.yml > docker-compose.yml && docker compose up -d)
+#  docker run --rm ghcr.io/<you>/shardsofashen cat docker-compose.yml > docker-compose.yml && docker compose up -d)
 COPY deploy/docker-compose.server.yml docker-compose.yml
-# (and Unraid's template: docker run --rm ghcr.io/<you>/shards-of-ashen cat unraid.xml > .../templates-user/my-ShardsOfAshen.xml)
+# (and Unraid's template: docker run --rm ghcr.io/<you>/shardsofashen cat unraid.xml > .../templates-user/my-ShardsOfAshen.xml)
 COPY deploy/unraid/shards-of-ashen.xml unraid.xml
 COPY --from=assets /game/web/assets web/assets
 COPY deploy/entrypoint.sh /entrypoint.sh

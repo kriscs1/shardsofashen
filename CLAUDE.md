@@ -258,8 +258,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - The game is **Shards of Ashen** (the page, the app, the docs), the kingdom **Ashen** (it was Estforlan), and the
   port city **Northgate** (it was Southport). Everything else is named for it too
-  (`dev/migrate/rename_shards_of_ashen.py`): the GitHub repository `kriscs1/shards-of-ashen`, the Docker image
-  `ghcr.io/kriscs1/shards-of-ashen` (the old `dragonsword` image is pushed as well for now, for servers set up before),
+  (`dev/migrate/rename_shards_of_ashen.py`): the GitHub repository `kriscs1/shardsofashen`, the Docker image
+  `ghcr.io/kriscs1/shardsofashen` (the old `dragonsword` image is pushed as well for now, for servers set up before),
   the Python package `ashen/`, the database `ashen.db` (an old `dragonsword.db` beside it is moved over as the server
   starts), the Android app `io.github.kriscs1.shardsofashen`, and "Shards of Ashen Editor.py". Not the weapon (the
   Dragon Sword, `Dragon_Sword`) or `dsengine/`, `dsedit/` and the `DS_` settings. The builders keep `estforlan` in their
@@ -338,5 +338,5 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
    DS_PORT=85xx python -m server`) and check there are no console errors and that it looks right, on a desktop and
    on a phone (a 915 x 412 touch viewport with `?app=android`).
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
-   `ghcr.io/kriscs1/shards-of-ashen`) builds from GitHub.
+   `ghcr.io/kriscs1/shardsofashen`) builds from GitHub.
 7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`.
