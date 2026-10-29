@@ -426,18 +426,22 @@ export function drawWorldMap(ctx, now) {
   const im = g && !g.live ? minimapImage(g, true) : null;
   if (!im) { centreText(ctx, W / 2, H / 2, "No map of this place.", 12, true, [212, 191, 126]); return; }
   const top = 56, bottom = 40, side = 30;
-  const k = Math.min((W - 2 * side) / im.width, (H - top - bottom) / im.height);
-  const iw = im.width * k, ih = im.height * k;
+  // A level under or over the world is drawn in the world's frame, at the world's scale, so a cave lies just where
+  // the land over it is (and stairs line up); a level of its own (worldFrame: the arena, the Shardrealm...) fills it
+  const f = worldFrame(g, im);
+  const k = Math.min((W - 2 * side) / f.w, (H - top - bottom) / f.h);
+  const iw = f.w * k, ih = f.h * k;
   const ox = Math.round((W - iw) / 2), oy = Math.round(top + (H - top - bottom - ih) / 2);
   roundBox(ctx, ox - 6, oy - 6, iw + 12, ih + 12, [30, 20, 14], [150, 104, 62], 2, 8);
   ctx.fillStyle = hatchPattern(ctx);              // (where there's no map at all looks just as unexplored land does)
   ctx.fillRect(ox - 4, oy - 4, iw + 8, ih + 8);
   ctx.save();
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(im, ox, oy, iw, ih);
+  ctx.drawImage(im, ox + f.dx * k, oy + f.dy * k, im.width * k, im.height * k);
   ctx.restore();
   const per = g.ps * k;                            // (screen pixels a map tile)
-  const toScreen = (gx, gy) => [ox + (gx / G.tw - g.ox * G.xt) * per, oy + (gy / G.th - g.oy * G.yt) * per];
+  const toScreen = (gx, gy) => [ox + f.dx * k + (gx / G.tw - g.ox * G.xt) * per,
+    oy + f.dy * k + (gy / G.th - g.oy * G.yt) * per];
   const seen = (name) => !fogEnabled() || fogSeeAll() || S.explored.has(name);
   // the names of the places you've been: towns first, then the lands, then the rest, each where it doesn't cover
   // another (above its dot, below, right, left); a place with no room left keeps its dot, its name for a bigger map
@@ -513,6 +517,23 @@ export function drawWorldMap(ctx, now) {
     centreText(ctx, sx + 1, sy + 9, "You", 8, true, [10, 6, 4]);
     centreText(ctx, sx, sy + 8, "You", 8, true, [255, 240, 220]);
   }
+}
+
+// The world map's frame for this level's picture im: {w, h} in the picture's pixels, and where the picture goes in it
+// (dx, dy). The levels of their own (CLAUDE.md: the arena 10, the dragon's lair -9, the Shardrealm -10, the Shifting
+// Deep -11 down; homesteads have no picture) are just their picture; the others share the surface's frame (both
+// pictures' extents together).
+function worldFrame(g, im) {
+  const own = { w: im.width, h: im.height, dx: 0, dy: 0 };
+  if (S.mapZ === 0 || S.mapZ >= 10 || S.mapZ <= -9 || !has("Minimap0")) return own;
+  const origin = configRead("Minimap", "Origin.0", "");
+  if (!origin) return own;
+  const sx = val(word(origin, 1, ",")), sy = val(word(origin, 2, ","));
+  const [sw, sh] = size("Minimap0");
+  const mw = G.xt * g.ps, mh = G.yt * g.ps;          // (a map's pixels)
+  const x0 = Math.min(g.ox * mw, sx * mw), y0 = Math.min(g.oy * mh, sy * mh);
+  const x1 = Math.max(g.ox * mw + im.width, sx * mw + sw), y1 = Math.max(g.oy * mh + im.height, sy * mh + sh);
+  return { w: x1 - x0, h: y1 - y0, dx: g.ox * mw - x0, dy: g.oy * mh - y0 };
 }
 
 // ----- the travel map's shardstones (the ones you've activated), and the ways home: what's clicked is in U.stoneHits

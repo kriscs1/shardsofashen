@@ -90,6 +90,8 @@ class QuestPage(IniFormPage):
                        command=lambda m=mv: self.add_place(m)).pack(side="left", padx=(3, 0))
             ttk.Button(mk, text="Show", style="Small.TButton", command=lambda m=mv: self.show_marker(m)).pack(
                 side="left", padx=3)
+            ttk.Button(mk, text="Rename…", style="Small.TButton", command=lambda m=mv: self.rename_marker(m)).pack(
+                side="left")
             r += 1
             self.stage_rows.append((lab, e, mk))
 
@@ -157,6 +159,28 @@ class QuestPage(IniFormPage):
     def append_marker(var, text):
         cur = var.get().strip()
         var.set((cur + ";" if cur else "") + text)
+
+    def rename_marker(self, var):
+        """The marker's place renamed, and everything that uses it with it: its map, every quest's markers, the scripts
+        that name it and its own scripts (Maps does it)."""
+        from ..widgets import PickerDialog
+        names = [x.strip() for x in var.get().split(";") if len(x.split()) == 1]
+        if not names:
+            self.app.status("This marker names no place (only map coordinates): name the tile in Maps first.", "warn")
+            return
+        old = names[0] if len(names) == 1 else PickerDialog(self, "Which place to rename?",
+                                                            [(n, n, "") for n in names]).run()
+        if not old:
+            return
+        if self.is_dirty():
+            self.save()
+        mp = self.app.page_of("map")
+        if mp.doc is None:
+            self.app.status("Open Maps once first.", "warn")
+            return
+        new = mp.ask_place_name(old, "Rename the place %s" % old)
+        if new and mp.rename_everywhere(old, new):
+            self.load(self.key)
 
     def show_marker(self, var):
         first = var.get().split(";")[0].split()

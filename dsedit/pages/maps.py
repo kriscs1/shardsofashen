@@ -1,21 +1,26 @@
 """Maps: maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
 and the Over layer (tree tops); place the entities (items, objects, NPCs), triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
-The maps round this one show (dimmed) round its edges."""
+A level is one big map: every map on it shows, joined, and painting, filling and dragging carry on from one map into
+the next. The map last clicked is the one that's open (its frame in the layer's colour): selecting and the inspector
+are its. Zoomed far out, the level's minimap stands in for the maps not changed yet."""
+import collections
 import copy
-import re
+import time
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 from PIL import Image, ImageEnhance
 
 from .. import theme as T
+from .. import world as WD
 from ..app import Page
 from ..project import MapDoc, Entity, parse_map_name, tile_family, TILE_FAMILIES, ENTITY_TYPES, HOMESTEAD_MAP
 from ..render import render, walk_overlay, tile_image
 from ..widgets import (PaletteGrid, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
 
-LAYERS = [("Ground", "map"), ("Decor", "decor"), ("Roofs", "roof"), ("Over", "infront"), ("Entities", "things")]
+LAYERS = [("Ground", "map"), ("Decor", "decor"), ("Roofs", "roof"), ("Over", "infront"), ("Entities", "things"),
+          ("All", "all")]
 # each layer's colour (the banner over the map and its frame) and what the banner says
 LAYER_LOOK = {"map": ("#3d7a3a", "GROUND", "the floor of the map: grass, paths, walls, water"),
               "decor": ("#6a4c93", "DECOR", "see-through tiles over the ground (chairs, trees, flowers); the ground is "
@@ -23,19 +28,23 @@ LAYER_LOOK = {"map": ("#3d7a3a", "GROUND", "the floor of the map: grass, paths, 
               "roof": ("#9a3d2c", "ROOFS", "the ground and entities are greyed; roofs hide when the player walks under"),
               "infront": ("#2d6a73", "OVER", "the ground and entities are greyed; the Over layer (tree tops, arches) is "
                                        "drawn over the player"),
-              "things": ("#a8692c", "ENTITIES", "items, objects, NPCs, triggers and locks; the ground is greyed")}
+              "things": ("#a8692c", "ENTITIES", "items, objects, NPCs, triggers and locks; the ground is greyed"),
+              "all": ("#3c5a9a", "ALL", "every layer and everything on it: mark an area, then drag it somewhere or "
+                                         "Delete it")}
 LAYER_HINTS = {"map": "Paint the ground tiles (1)",
                "decor": "Decor: a chair, a tree, a pot of flowers over any ground tile (2)",
                "roof": "Roof tiles: hidden while the player is under them (3)",
                "infront": "Over: tree tops, arches and the like, drawn over the player (4)",
-               "things": "Entities - items, objects, NPCs - and triggers and locks (5)"}
+               "things": "Entities - items, objects, NPCs - and triggers and locks (5)",
+               "all": "Every layer at once: mark an area to move or delete all of it (6)"}
 LAYER_NOUN = {"map": "tile", "decor": "decor", "roof": "roof", "infront": "over tile"}
 TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the same tile (or Shift+click)",
               "Rectangle": "Drag a rectangle to fill", "Erase": "Click or drag to remove", "Pick": "Click to pick "
               "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it",
               "Place": "Click to put the palette's pick down",
               "Area": "Drag over part of the map, then Ctrl+X (move it) or Ctrl+C (copy it), and Ctrl+V where "
-                      "its top-left goes - here or on another map: every layer and everything on it",
+                      "its top-left goes - here or on another map: every layer and everything on it. On All, drag "
+                      "the marked area to move it, or Delete empties it",
               "Move": "Drag a tile of this layer to another spot (whatever is there swaps places with it; a bed brings "
                       "its foot); on Entities, drag an item, object or NPC"}
 CURSORS = {"Paint": "pencil", "Fill": "spraycan", "Rectangle": "tcross", "Erase": "X_cursor", "Pick": "dotbox",
@@ -44,11 +53,14 @@ TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Area", "Pick"],
          "decor": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
          "roof": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
          "infront": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
-         "things": ["Select", "Move", "Area", "Place"]}
+         "things": ["Select", "Move", "Area", "Place"],
+         "all": ["Area"]}
 LAYER_PARTS = {"decor": ("Decor", "Under"), "roof": ("Roof",), "infront": ("Infront",)}   # (what Move carries)
 # a bed's head: (its foot, where it lies from the head) - below, or beside it for one lying sideways; they move together
 BED_FEET = {"Bed001": ("Bed002", 0, 1), "Bed003": ("Bed004", 1, 0), "Bed006": ("Bed005", -1, 0)}
-MARGIN = 3              # tiles of the neighbouring maps shown round the edges
+ZOOMS = ["5%", "10%", "25%", "50%", "75%", "100%", "150%", "200%", "300%"]
+FAR = 0.35              # zoomed out further than this, the level is drawn from its minimap (a colour a tile)
+PICS = 48               # map pictures kept (full size, for the layer being edited)
 SPECIAL = ["(Trigger)", "(Lock)", "(Place ID)"]
 SPECIAL_KIND = {"(Trigger)": "Trigger", "(Lock)": "Lock", "(Place ID)": "Id"}
 TILE_KINDS = ("Trigger", "Lock", "Id")      # things on a whole tile (Entity.on_tile)
@@ -115,17 +127,28 @@ class MapPage(Page):
     def __init__(self, app):
         super().__init__(app)
         P = self.project
-        self.doc, self.loaded = None, None
+        self.doc = None                   # the open map: the one last clicked
+        self.docs = {}                    # name -> MapDoc: the maps read so far (any level)
+        self.loaded = {}                  # name -> the map as saved (None: new), for the maps changed since
+        self.touched = set()              # the maps changed (or about to be): what undo and Save look at
+        self.level, self._slots = None, None
+        self._pics = collections.OrderedDict()    # (name, view) -> its picture, full size
+        self._photos = {}                 # name -> its picture at this zoom, on the canvas
+        self._stale = set()               # maps changed since their pictures were made
+        self._fill_job = None
+        self._drawn, self._center = set(), False   # (the squares on the canvas now; scroll to the open map next)
+        self.area = None
         self.layer, self.tool = "map", "Paint"
         self.brush = None                 # the palette's pick
         self.sel_cell, self.sel_ent = None, None
         self.mode = None                  # None, "zone", "chase", "patrol"
         self.zoom = round(T.SCALE * 2) / 2 or 1
-        self.neighbours = {}
         self.show = {k: tk.BooleanVar(value=v) for k, v in (("preview", False), ("walk", False), ("zones", False),
                                                              ("grid", False))}
         for v in self.show.values():
             v.trace_add("write", lambda *a: self.redraw(full=True))
+        self.opt = {k: tk.BooleanVar(value=v) for k, v in (("sets", True), ("mix", False), ("smooth", True))}
+        self.opt["mix"].trace_add("write", lambda *a: self.pick_brush(self.brush, keep_tool=True))
         self.drag = None
         self._redraw_pending = None
         self._hover = None                # (map px, py, shift) of the mouse over the map, for the ghost
@@ -194,6 +217,17 @@ class MapPage(Page):
         self.palette.pack(fill="both", expand=True, pady=4)
         self.brush_label = ttk.Label(left, text="", style="PanelMuted.TLabel")
         self.brush_label.pack(anchor="w")
+        of = ttk.Frame(left, style="Panel.TFrame")
+        of.pack(fill="x", pady=(4, 0))
+        for k, label, tip in (("sets", "Lay out whole sets", "A roof, a rug, the walls round a room or a fence: drag "
+                               "a rectangle with any piece of it and the right corners, edges and middle go down."),
+                              ("mix", "Mix in look-alikes", "Paint with one tile and its look-alikes (Grass001, "
+                               "Grass002...: the same name, walked on the same way) go down at random."),
+                              ("smooth", "Smooth coast corners", "Where water turns a corner against grass, sand, "
+                               "snow or marsh, the diagonal shore piece goes in by itself.")):
+            cb = ttk.Checkbutton(of, text=label, variable=self.opt[k])
+            cb.pack(anchor="w")
+            Tooltip(cb, tip)
         vf = ttk.Frame(left, style="Panel.TFrame")
         vf.pack(fill="x", pady=(6, 0))
         ttk.Label(vf, text="Show", style="Head.TLabel").grid(row=0, column=0, columnspan=2, sticky="w")
@@ -225,8 +259,7 @@ class MapPage(Page):
         zf.pack(side="right")
         ttk.Label(zf, text="Zoom").pack(side="left")
         self.zoom_var = tk.StringVar(value="150%")
-        zb = ttk.Combobox(zf, textvariable=self.zoom_var, values=["50%", "75%", "100%", "150%", "200%", "300%"],
-                          width=6, state="readonly")
+        zb = ttk.Combobox(zf, textvariable=self.zoom_var, values=ZOOMS, width=6, state="readonly")
         zb.pack(side="left", padx=4)
         zb.bind("<<ComboboxSelected>>", lambda e: self.set_zoom(int(self.zoom_var.get()[:-1]) / 100, around=None))
         holder = ttk.Frame(mid)
@@ -234,7 +267,8 @@ class MapPage(Page):
         self.canvas = tk.Canvas(holder, bg="#1a1511", highlightthickness=0)
         xs = ttk.Scrollbar(holder, orient="horizontal", command=self.canvas.xview)
         ys = ttk.Scrollbar(holder, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(xscrollcommand=xs.set, yscrollcommand=ys.set)
+        self.canvas.configure(xscrollcommand=lambda *a: (xs.set(*a), self.view_moved()),
+                              yscrollcommand=lambda *a: (ys.set(*a), self.view_moved()))
         self.canvas.grid(row=0, column=0, sticky="nsew")
         ys.grid(row=0, column=1, sticky="ns")
         xs.grid(row=1, column=0, sticky="ew")
@@ -249,6 +283,7 @@ class MapPage(Page):
         c.bind("<Motion>", self.hover)
         c.bind("<Leave>", lambda e: (setattr(self, "_hover", None), self.canvas.delete("ghost")))
         c.bind("<Control-MouseWheel>", lambda e: self.set_zoom(self.zoom * (1.25 if e.delta > 0 else 0.8), around=e))
+        c.bind("<Configure>", lambda e: self.view_moved())
         # moving the view: drag with the middle button, or hold Space and drag
         c.bind("<ButtonPress-2>", lambda e: (c.scan_mark(e.x, e.y), self.set_cursor("fleur")))
         c.bind("<B2-Motion>", lambda e: c.scan_dragto(e.x, e.y, gain=1))
@@ -273,35 +308,34 @@ class MapPage(Page):
     # Loading and saving
     # =============================================================================================================
     def load(self, name, fill=None):
-        self.doc = MapDoc(self.project, name)
+        """Opens map name (made new and filled with fill, if given). The maps not changed are read again from their
+        files, as they are now."""
+        for n in list(self.docs):
+            if not self.dirty(n):
+                del self.docs[n]
+                self.loaded.pop(n, None)
+                self.touched.discard(n)
+        self.forget_pictures()
         if fill:
-            self.doc.fill(fill)
-        self.loaded = None if fill else self.doc.snapshot()
-        self.sel_cell, self.sel_ent, self.mode = None, None, None
-        self.area = None                                   # (a marked area is this map's: not the next one's)
-        self.clear_history()
-        self.map_var.set(name)
-        self.neighbours = {}
-        self.render_neighbours()
+            doc = self.docs[name] = MapDoc(self.project, name)
+            doc.fill(fill)
+            self.loaded[name] = None
+            self.touched.add(name)
+        self.show_level(parse_map_name(name)[2])
+        self.doc = None
+        self.activate(name)
         self.redraw(full=True, center=True)
-        self.show_inspector()
         if name == HOMESTEAD_MAP:
             self.app.status("Homestead: the land a new home starts as (data\\Homestead.txt). Each home gets its own "
                             "copy when it's made, so changes here are for new homes only. Keep the Homestone and "
                             "Home_Arrival.", "warn")
-        for d, b in self.arrow_btns.items():
-            b.state(["disabled"] if name == HOMESTEAD_MAP else ["!disabled"])     # (nothing next to it)
-        self.app.refresh_chrome()
 
     def open(self, key, tile=None, **kw):
         key = (key or "").strip()
         if not parse_map_name(key):
             return
         if not self.doc or key != self.doc.name:
-            if not self.leave_ok():
-                self.map_var.set(self.doc.name if self.doc else "")
-                return
-            if key not in self.project.maps():
+            if key not in self.project.maps() and key not in self.docs:
                 if not messagebox.askyesno("New map", "There's no map %s yet. Make it?" % key, parent=self):
                     return
                 r = NewMapDialog(self, self.project, key)
@@ -312,31 +346,97 @@ class MapPage(Page):
                 res = r.run()
                 if not res:
                     return
-                self.load(res[0], fill=res[1])
+                if res[0] in self.project.maps() or res[0] in self.docs:
+                    self.open(res[0])
+                else:
+                    self.new_doc(*res)
                 return
-            self.load(key)
+            if self.doc is None or parse_map_name(key)[2] != self.level:
+                self.show_level(parse_map_name(key)[2])
+            self.activate(key)
+            if not tile:
+                self.scroll_to(self.project.map_w // 2, self.project.map_h // 2)
         if tile:
             self.select_cell(tile[0] - 1, tile[1] - 1)
             self.scroll_to(tile[0] - 1, tile[1] - 1)
 
+    def new_doc(self, name, fill):
+        """A new map, in memory until it's saved: on its level, open."""
+        doc = self.docs[name] = MapDoc(self.project, name)
+        doc.fill(fill)
+        self.loaded[name] = None
+        self.touched.add(name)
+        self._slots = None
+        if parse_map_name(name)[2] != self.level:
+            self.show_level(parse_map_name(name)[2])
+        self.activate(name)
+        self.redraw(full=True)
+        self.scroll_to(self.project.map_w // 2, self.project.map_h // 2)
+        self.app.status("New map %s: Save to make the file." % name)
+
+    # ----- the maps read, and the ones changed
+    def get_doc(self, name):
+        d = self.docs.get(name)
+        if d is None:
+            d = self.docs[name] = MapDoc(self.project, name)
+        return d
+
+    def touch(self, doc):
+        """Before doc is changed: it's kept as it was saved (to tell if it's changed), the last undo step gets it as it
+        is now if it hasn't it (a paint stroke carried on into it), and its picture is made again."""
+        n = doc.name
+        if n not in self.loaded:
+            self.loaded[n] = doc.snapshot()
+        if n not in self.touched:
+            self.touched.add(n)
+            if self.undo_stack and n not in self.undo_stack[-1][0]:
+                self.undo_stack[-1][0][n] = doc.snapshot()
+        self._stale.add(n)
+
+    def dirty(self, name):
+        if name not in self.touched or name not in self.docs:
+            return False
+        was = self.loaded.get(name)
+        return was is None or self.docs[name].snapshot() != was
+
+    def remember(self):
+        if self.doc is not None:
+            self.touch(self.doc)
+        super().remember()
+
     def is_dirty(self):
-        return bool(self.doc) and (self.loaded is None or self.doc.snapshot() != self.loaded)
+        return any(self.dirty(n) for n in self.touched)
 
     def current(self):
-        return self.doc.name if self.doc else ""
+        changed = [n for n in self.touched if self.dirty(n)]
+        if len(changed) > 1:
+            return "%d maps" % len(changed)
+        return changed[0] if changed else (self.doc.name if self.doc else "")
 
     def save(self):
         if not self.doc:
             return True
-        self.doc.save()
-        self.loaded = self.doc.snapshot()
+        names = sorted(n for n in self.touched if self.dirty(n))
+        for n in names:
+            self.save_doc(n, minimap=False)
         self.project.refresh("maps")
+        self._slots = None
         self.map_box.configure(values=self.project.maps())
-        self.app.status("Saved map %s." % self.doc.name, "ok")
+        self.app.status("Saved map%s %s." % ("s" if len(names) > 1 else "", ", ".join(names) or self.doc.name), "ok")
         self.app.refresh_chrome()
-        if self.doc.name != HOMESTEAD_MAP:
-            self.rebuild_minimap(parse_map_name(self.doc.name)[2])
+        for z in sorted({parse_map_name(n)[2] for n in names if n != HOMESTEAD_MAP}):
+            self.rebuild_minimap(z)
         return True
+
+    def save_doc(self, name, minimap=True):
+        """One map written to its file (and its level's minimap built again, unless minimap is False)."""
+        doc = self.get_doc(name)
+        doc.save()
+        self.loaded[name] = doc.snapshot()
+        if minimap and name != HOMESTEAD_MAP:
+            self.project.refresh("maps")
+            self._slots = None
+            self.rebuild_minimap(parse_map_name(name)[2])
 
     # ----- the minimap of a saved map's level, built again (the game's minimap and world map, and the editor's
     # world view, show it): in the background, so saving isn't held up; saves while it builds go into one more build
@@ -377,20 +477,42 @@ class MapPage(Page):
             mini = self.app.page_of("minimap")
             if mini is not None and getattr(mini, "level", None) is not None:
                 mini.draw()
+            if self.zoom < FAR:                             # (the far view is drawn from it)
+                self.redraw(full=True)
         if self._mini_want:                                 # (saved again while it built: once more)
             self.rebuild_minimap(next(iter(self._mini_want)))
 
     def discard(self):
-        if self.doc and self.loaded is not None:
-            self.doc.restore(self.loaded)
+        for n in list(self.touched):
+            if self.loaded.get(n) is None:
+                self.docs.pop(n, None)
+            elif n in self.docs:
+                self.docs[n].restore(self.loaded[n])
+        self.touched, self.loaded = set(), {}
+        self._slots = None
+        self.forget_pictures()
+        if self.doc is not None and self.doc.name not in self.docs:
+            slots = self.level_slots()
+            self.doc = None
+            if slots:
+                self.activate(next(iter(slots.values())))
         self.redraw(full=True)
 
     def snapshot(self):
-        return (self.doc.snapshot(), self.sel_ent_index()) if self.doc else None
+        if not self.doc:
+            return None
+        return ({n: self.docs[n].snapshot() for n in self.touched | {self.doc.name} if n in self.docs},
+                self.doc.name, self.sel_ent_index())
 
     def restore(self, snap):
-        text, sel = snap
-        self.doc.restore(text)
+        texts, active, sel = snap
+        for n, text in texts.items():
+            self.get_doc(n).restore(text)
+            self._stale.add(n)
+        if active != self.doc.name:
+            if parse_map_name(active)[2] != self.level:
+                self.show_level(parse_map_name(active)[2])
+            self.activate(active)
         ents = self.doc.placed()
         self.sel_ent = ents[sel] if sel is not None and sel < len(ents) else None
         self.redraw(full=True)
@@ -404,11 +526,17 @@ class MapPage(Page):
 
     def on_show(self):
         self.project.refresh("maps")
+        self._slots = None
         self.map_box.configure(values=self.project.maps())
-        if self.doc and self.doc.exists and not self.is_dirty():
-            from ..project import mtime
-            if mtime(self.doc.path) != self.doc.stamp:
-                self.load(self.doc.name)
+        from ..project import mtime
+        again = [n for n, d in self.docs.items() if not self.dirty(n) and d.exists and mtime(d.path) != d.stamp]
+        for n in again:                                     # (changed on disk, by a builder or another editor)
+            self.docs[n].load()
+            self.loaded.pop(n, None)
+            self.touched.discard(n)
+            self._stale.add(n)
+        if again:
+            self.redraw()
         self.fill_palette()
 
     def search_items(self):
@@ -426,27 +554,100 @@ class MapPage(Page):
     def tile_selected(self):
         """The selected tile (x, y, from 0), or None: on the Entities layer there's no selected tile, only entities
         (a tile is chosen on the layer that paints it)."""
-        return self.sel_cell if self.layer != "things" else None
+        return self.sel_cell if self.layer not in ("things", "all") else None
+
+    # ----- the level: its maps as one big map
+    def show_level(self, z):
+        if z != self.level:
+            self.level, self._slots = z, None
+            self._photos.clear()
+            self.area = None
+
+    def level_slots(self):
+        """{(x, y): map name} of the level shown (new maps not saved yet too)."""
+        if self._slots is None:
+            self._slots = WD.level_slots(self.project, self.level, [n for n in self.docs if n not in
+                                                                    self.project.maps()])
+        return self._slots
+
+    def bounds(self):
+        """(x0, y0, x1, y1): the level's maps, and a ring of empty squares round them (to make a new map in)."""
+        slots = self.level_slots() or {(0, 0): None}
+        xs, ys = [p[0] for p in slots], [p[1] for p in slots]
+        ring = 0 if self.level == 1000 else 1               # (the homestead's land has nothing round it)
+        return min(xs) - ring, min(ys) - ring, max(xs) + ring, max(ys) + ring
+
+    def doc_xy(self, doc=None):
+        """(x, y) of a map on its level."""
+        x, y, _ = parse_map_name((doc or self.doc).name)
+        return (x, y) if (doc or self.doc).name != HOMESTEAD_MAP else (0, 0)
+
+    def activate(self, name):
+        """Opens map name of the level shown: what's selected, the inspector and the area marked are its."""
+        if self.doc is not None and name == self.doc.name:
+            return
+        self.doc = self.get_doc(name)
+        self.sel_cell, self.sel_ent, self.mode, self.area = None, None, None, None
+        self.map_var.set(name)
+        for d, b in self.arrow_btns.items():
+            b.state(["disabled"] if name == HOMESTEAD_MAP else ["!disabled"])     # (nothing next to it)
+        self.redraw()
+        self.show_inspector()
+        self.app.refresh_chrome()
+
+    def at(self, x, y):
+        """(map, x, y on it) of tile x, y counted from the open map's top-left - on it, or on a map round it - or None
+        where there's no map."""
+        W, H = self.project.map_w, self.project.map_h
+        if 0 <= x < W and 0 <= y < H:
+            return self.doc, x, y
+        if self.doc.name == HOMESTEAD_MAP:
+            return None
+        mx, my = self.doc_xy()
+        dx, dy = x // W, y // H
+        name = self.level_slots().get((mx + dx, my + dy))
+        if not name:
+            return None
+        return self.get_doc(name), x - dx * W, y - dy * H
+
+    def tile_at(self, x, y):
+        a = self.at(x, y)
+        return a[0].cells[a[2]][a[1]].tile if a else None
+
+    def name_at(self, x, y):
+        """The map tile x, y (from the open map's top-left) is on, made or not: (its name, made?)."""
+        W, H = self.project.map_w, self.project.map_h
+        mx, my = self.doc_xy()
+        dx, dy = x // W, y // H
+        name = self.level_slots().get((mx + dx, my + dy))
+        return (name, True) if name else (WD.slot_name(mx + dx, my + dy, self.level), False)
 
     # --- moving between maps
     def step(self, dx, dy, dz):
         if not self.doc or self.doc.name == HOMESTEAD_MAP:
             return
         x, y, z = parse_map_name(self.doc.name)
-        self.open("%d,%d,%d" % (x + dx, y + dy, z + dz))
+        name = "%d,%d,%d" % (x + dx, y + dy, z + dz)
+        if dz and name not in self.project.maps() and name not in self.docs:
+            there = WD.level_slots(self.project, z + dz)    # (another level, nothing just there: its nearest map)
+            if there:
+                near = min(there, key=lambda p: abs(p[0] - x) + abs(p[1] - y))
+                self.show_level(z + dz)
+                self.activate(there[near])
+                self.redraw(full=True, center=True)
+                self.app.status("Level %d has no map at %d,%d: opened the nearest, %s." % (z + dz, x, y, there[near]))
+                return
+        self.open(name)
 
     def new_map(self):
-        if not self.leave_ok():
-            return
         r = NewMapDialog(self, self.project, self.doc.name if self.doc else "0,0,0").run()
         if not r:
             return
         name, fill = r
-        if name in self.project.maps():
+        if name in self.project.maps() or name in self.docs:
             self.open(name)
             return
-        self.load(name, fill=fill)
-        self.app.status("New map %s: Save to make the file." % name)
+        self.new_doc(name, fill)
 
     # =============================================================================================================
     # Layers, tools, the palette
@@ -469,15 +670,15 @@ class MapPage(Page):
             self.group_frame.pack(after=self.tool_frame, fill="x", pady=(4, 0))
         else:
             self.group_frame.pack_forget()
-        kinds = ["All"] + ([f for f, _ in TILE_FAMILIES] + ["Other"] if layer != "things" else
-                           ["Triggers, locks & places"] + ENTITY_TYPES)
+        kinds = ["All"] + ([f for f, _ in TILE_FAMILIES] + ["Other"] if layer not in ("things", "all") else
+                           ["Triggers, locks & places"] + ENTITY_TYPES if layer == "things" else [])
         self.pal_kind_box.configure(values=kinds)
         self.pal_kind.set("Roofs" if layer == "roof" else "All")
         self.palette.selected = None
         self.fill_palette()
         self.pick_brush(None, keep_tool=True)
         self.sel_ent = None if layer != "things" else self.sel_ent
-        self.redraw()
+        self.redraw(full=True)
         self.show_inspector()
 
     def set_tool(self, tool):
@@ -491,7 +692,9 @@ class MapPage(Page):
         q = self.pal_search.get().strip().lower()
         k = self.pal_kind.get()
         items = []
-        if self.layer == "things":
+        if self.layer == "all":                         # (nothing to paint with: it's for moving and clearing)
+            pass
+        elif self.layer == "things":
             for s in SPECIAL:
                 if k in ("All", "Triggers, locks & places") and (not q or q in s.lower()):
                     items.append((s, None, TILE_LOOK[SPECIAL_KIND[s]][2] + "\n" + s.strip("()")))
@@ -501,16 +704,19 @@ class MapPage(Page):
                     continue
                 items.append((e, P.sprite("Entities", e), e))
         else:
+            stand = WD.stand_ins(P)                     # (a range's peaks: one of them stands for them all)
             for t in P.tiles():
                 fam = tile_family(t)
-                if k not in ("All", fam) or (q and q not in t.lower()):
+                if k not in ("All", fam) or (q and q not in t.lower()) or stand.get(t, t) != t:
                     continue
                 # a see-through decor tile can't be a cell's ground (it would show black): it's for the Decor layer
                 flat = P.is_under(t)                     # (a rug: painted with the Decor layer, under it)
                 if (self.layer == "map" and (P.is_decor(t) or flat)) or \
                         (self.layer == "decor" and not (P.is_decor(t) or flat)):
                     continue
-                items.append((t, P.sprite("Tiles", t), t))
+                label = t if t not in stand else "%s (%s: any of %d)" % (
+                    t, P.tile_values("Texture").get(t.lower(), ""), WD.texture_count(P, t))
+                items.append((t, P.sprite("Tiles", t), label))
         self.palette.set_items(items)
         if self.layer == "decor" and not items and not q and k == "All":
             self.app.status("No decor tiles yet. Tiles ▸ \"Split props off their floors…\" makes them from furniture "
@@ -581,73 +787,67 @@ class MapPage(Page):
         elif self.layer == "things":
             text = ("Placing %s: click the map to put one down (Esc stops)." % key) if self.tool == "Place" else \
                 "Place tool: puts down %s." % key
+        elif self.shape_brush():
+            text = "Painting with %s: drag a rectangle to lay out the whole %s (Esc stops)." % (
+                key, self.project.tile_set_of(key)[1])
         else:
             text = "Painting with %s (Esc stops)." % key
+            alike = WD.look_alikes(self.project, key) if self.opt["mix"].get() else [key]
+            if len(alike) > 1:
+                text += " Mixed with %s." % ", ".join(a for a in alike if a != key)
         self.brush_label.configure(text=text, wraplength=T.px(280))
         self.update_ghost()
 
     # =============================================================================================================
     # Drawing
     # =============================================================================================================
-    def render_neighbours(self):
-        """The maps round this one (dimmed), for the edges."""
-        if not self.doc:
+    def view_key(self):
+        return self.layer, self.show["preview"].get(), self.show["walk"].get()
+
+    def forget_pictures(self, name=None):
+        if name is None:
+            self._pics.clear()
+            self._photos.clear()
             return
-        x, y, z = parse_map_name(self.doc.name)
-        for dy in (-1, 0, 1):
-            for dx in (-1, 0, 1):
-                if dx == dy == 0:
-                    continue
-                name = "%d,%d,%d" % (x + dx, y + dy, z)
-                if name in self.project.maps():
-                    img = render(self.project, MapDoc(self.project, name), roofs=False, infront=False).convert("RGB")
-                    img = ImageEnhance.Brightness(ImageEnhance.Color(img).enhance(0.35)).enhance(0.55)
-                    self.neighbours[(dx, dy)] = img
-                else:
-                    self.neighbours[(dx, dy)] = None
+        for k in [k for k in self._pics if k[0] == name]:
+            del self._pics[k]
+        self._photos.pop(name, None)
 
-    def composite(self):
-        P = self.project
-        tw, th = P.tile_w, P.tile_h
-        W, H = P.map_w * tw, P.map_h * th
-        m = MARGIN
-        big = Image.new("RGB", (W + 2 * m * tw, H + 2 * m * th), (26, 21, 17))
-        for (dx, dy), img in self.neighbours.items():
-            if img is None:
-                continue
-            sx = 0 if dx == 1 else (W - m * tw if dx == -1 else 0)
-            sy = 0 if dy == 1 else (H - m * th if dy == -1 else 0)
-            sw = m * tw if dx else W
-            sh = m * th if dy else H
-            crop = img.crop((sx, sy, sx + sw, sy + sh))
-            px = {-1: 0, 0: m * tw, 1: m * tw + W}[dx]
-            py = {-1: 0, 0: m * th, 1: m * th + H}[dy]
-            big.paste(crop, (px, py))
-        cur = self.layer_picture()
+    def layer_picture(self, doc):
+        """A map as the layer being edited sees it: that layer bright, what's under it greyed (for where things
+        are), and what's over it left out. "Everything" (and the All layer) shows the map as the game does."""
+        P, layer = self.project, self.layer
+        mx, my = self.doc_xy(doc)
+        org = (mx * P.map_w, my * P.map_h)
+        if self.show["preview"].get() or layer == "all":
+            img = render(P, doc, origin=org)
+        elif layer == "map":
+            img = render(P, doc, roofs=False, infront=False, entities=False, decor=False, origin=org)
+        else:
+            under = render(P, doc, roofs=False, infront=False, entities=layer not in ("things", "decor"),
+                           decor=layer != "decor", origin=org).convert("RGB")
+            img = ImageEnhance.Brightness(ImageEnhance.Color(under).enhance(0.4)).enhance(0.76).convert("RGBA")
+            img.alpha_composite(render(P, doc, ground=False, roofs=layer == "roof", infront=layer == "infront",
+                                       entities=layer == "things", decor=layer == "decor"))
         if self.show["walk"].get():
-            cur.alpha_composite(walk_overlay(P, self.doc))
-        big.paste(cur.convert("RGB"), (m * tw, m * th))
-        return big
+            img.alpha_composite(walk_overlay(P, doc))
+        return img
 
-    def layer_picture(self):
-        """The map as the layer being edited sees it: that layer bright, what's under it greyed (for where things
-        are), and what's over it left out. "Everything" shows the map as the game does."""
-        P, d, layer = self.project, self.doc, self.layer
-        if self.show["preview"].get():
-            return render(P, d)
-        if layer == "map":
-            return render(P, d, roofs=False, infront=False, entities=False, decor=False)
-        under = render(P, d, roofs=False, infront=False, entities=layer not in ("things", "decor"),
-                       decor=layer != "decor").convert("RGB")
-        under = ImageEnhance.Brightness(ImageEnhance.Color(under).enhance(0.4)).enhance(0.76).convert("RGBA")
-        over = render(P, d, ground=False, roofs=layer == "roof", infront=layer == "infront",
-                      entities=layer == "things", decor=layer == "decor")
-        under.alpha_composite(over)
-        return under
+    def picture(self, name):
+        """A map's picture (full size), made if it isn't kept."""
+        key = (name, self.view_key())
+        if key in self._pics:
+            self._pics.move_to_end(key)
+            return self._pics[key]
+        img = self.layer_picture(self.get_doc(name)).convert("RGB")
+        self._pics[key] = img
+        while len(self._pics) > PICS:
+            self._pics.popitem(last=False)
+        return img
 
     def set_zoom(self, z, around=None):
         """around: the mouse event to zoom about (the spot under it stays put), or None: the middle of the view."""
-        z = max(0.5, min(3, z))
+        z = max(0.05, min(3, z))
         c = self.canvas
         if around is not None:
             sx, sy = around.x, around.y
@@ -657,6 +857,7 @@ class MapPage(Page):
         self._zoom_anchor = (c.canvasx(sx) / old, c.canvasy(sy) / old, sx, sy)
         self.zoom = z
         self.zoom_var.set("%d%%" % round(z * 100))
+        self._photos.clear()
         self.redraw(full=True)
 
     def space_down(self, e):
@@ -670,59 +871,247 @@ class MapPage(Page):
         self.update_ghost()
 
     def redraw(self, full=False, center=False):
+        """Draws again soon: the open map's picture made again (and any other map changed), or with full every one
+        (the layer or the view changed)."""
         if not self.doc:
             return
+        if full:
+            self._pics.clear()
+            self._photos.clear()
+            self._stale.clear()
+        else:
+            for n in self._stale | {self.doc.name}:
+                self.forget_pictures(n)
+            self._stale.clear()
+        self._center = getattr(self, "_center", False) or center
         if self._redraw_pending:
             self.after_cancel(self._redraw_pending)
-        self._redraw_pending = self.after(1, lambda: self._redraw(center))
+        self._redraw_pending = self.after(1, self._redraw)
 
-    def _redraw(self, center=False):
+    # ----- where things are on the canvas: the level's top-left square (of the bounds) at 0, 0
+    def map_origin(self, doc=None):
+        """Canvas (x, y) of a map's top-left (the open map's), at this zoom."""
+        P, z = self.project, self.zoom
+        bx, by = self.bounds()[:2]
+        mx, my = self.doc_xy(doc)
+        return (mx - bx) * P.map_w * P.tile_w * z, (my - by) * P.map_h * P.tile_h * z
+
+    def update_region(self):
+        P, z = self.project, self.zoom
+        x0, y0, x1, y1 = self.bounds()
+        w, h = (x1 - x0 + 1) * P.map_w * P.tile_w * z, (y1 - y0 + 1) * P.map_h * P.tile_h * z
+        self.canvas.configure(scrollregion=(0, 0, w, h))
+        return w, h
+
+    def visible(self):
+        """Canvas (x0, y0, x1, y1) in view."""
+        c = self.canvas
+        return c.canvasx(0), c.canvasy(0), c.canvasx(c.winfo_width()), c.canvasy(c.winfo_height())
+
+    def visible_slots(self):
+        """[(x, y)] of the squares of the level in view, the open map first, then the nearest the middle."""
+        P, z = self.project, self.zoom
+        bx, by, bx1, by1 = self.bounds()
+        mw, mh = P.map_w * P.tile_w * z, P.map_h * P.tile_h * z
+        v0, v1, v2, v3 = self.visible()
+        out = [(x, y) for y in range(max(by, by + int(v1 // mh)), min(by1, by + int(v3 // mh)) + 1)
+               for x in range(max(bx, bx + int(v0 // mw)), min(bx1, bx + int(v2 // mw)) + 1)]
+        cx, cy = bx + (v0 + v2) / 2 / mw, by + (v1 + v3) / 2 / mh
+        me = self.doc_xy()
+        out.sort(key=lambda p: (p != me, (p[0] + 0.5 - cx) ** 2 + (p[1] + 0.5 - cy) ** 2))
+        return out
+
+    def view_moved(self):
+        """The view scrolled, or grew: the maps come into it are drawn (soon, and only once it's settled)."""
+        if not self.doc or self._redraw_pending:
+            return
+        if self._fill_job:
+            self.after_cancel(self._fill_job)
+        if self.show["grid"].get():                     # (the grid is drawn over the view only: all again)
+            self._fill_job = self.after(30, self._redraw)
+        else:
+            self._fill_job = self.after(30, self.fill_view)
+
+    def _redraw(self):
         self._redraw_pending = None
+        if not self.doc:
+            return
         P, c, z = self.project, self.canvas, self.zoom
-        big = self.composite()
-        w, h = int(big.size[0] * z), int(big.size[1] * z)
-        self._ph = photo(big.resize((w, h), Image.NEAREST if z >= 1 else Image.BILINEAR))
         c.delete("all")
-        c.create_image(0, 0, image=self._ph, anchor="nw")
-        c.configure(scrollregion=(0, 0, w, h))
+        self._drawn = set()
+        w, h = self.update_region()
         anchor = getattr(self, "_zoom_anchor", None)
         if anchor:                                      # (zoomed: keep the spot that was under the mouse there)
             self._zoom_anchor = None
             mx, my, sx, sy = anchor
             c.xview_moveto(max(0.0, (mx * z - sx) / w))
             c.yview_moveto(max(0.0, (my * z - sy) / h))
+        if self._center:
+            self._center = False
+            self.scroll_to(P.map_w // 2, P.map_h // 2)
+        self.fill_view(first=True)
+        self.draw_marks()
+        self.map_title.configure(text=("Map %s" % self.doc.name) + ("" if self.doc.exists else "   (new: not saved)"))
+        self.update_ghost()
+        self.app.refresh_chrome()
+
+    def fill_view(self, first=False):
+        """Puts the pictures of the maps in view on the canvas: those kept at once, the rest made a few at a time (so
+        the editor never stops answering), each as it's ready. Zoomed far out: one picture of the view, from the
+        level's minimap and the maps changed."""
+        self._fill_job = None
+        if not self.doc:
+            return
+        if self.zoom < FAR:
+            self.draw_far()
+            return
+        P, c, z = self.project, self.canvas, self.zoom
+        slots = self.level_slots()
+        mw, mh = P.map_w * P.tile_w * z, P.map_h * P.tile_h * z
+        bx, by = self.bounds()[:2]
+        start = time.time()
+        later = False
+        for xy in self.visible_slots():
+            name = slots.get(xy)
+            if xy in self._drawn:
+                continue
+            x0, y0 = (xy[0] - bx) * mw, (xy[1] - by) * mh
+            if name is None:
+                self._drawn.add(xy)
+                if self.level != 1000:                     # (an empty square: double-click to make a map there)
+                    c.create_rectangle(x0 + 2, y0 + 2, x0 + mw - 2, y0 + mh - 2, outline="#3a2f26", dash=(4, 4),
+                                       tags=("empty", "under"))
+                    c.create_text(x0 + mw / 2, y0 + mh / 2, text="＋", fill="#5a4a3c",
+                                  font=("Segoe UI", max(10, int(28 * z))), tags=("empty", "under"))
+                continue
+            ph = self._photos.get(name)
+            if ph is None:
+                if not first and time.time() - start > 0.08 or first and time.time() - start > 0.15:
+                    later = True
+                    continue
+                img = self.picture(name)
+                size = (max(1, int(round(mw))), max(1, int(round(mh))))
+                ph = self._photos[name] = photo(img.resize(size, Image.NEAREST if z >= 1 else Image.BILINEAR))
+                while len(self._photos) > 160:
+                    self._photos.pop(next(iter(self._photos)))
+            self._drawn.add(xy)
+            c.create_image(x0, y0, image=ph, anchor="nw", tags=("map", "under"))
+            self.draw_tile_things(self.get_doc(name), x0, y0)
+        c.tag_lower("under")
+        c.tag_raise("thing", "under")
+        if later:
+            self._fill_job = self.after(1, self.fill_view)
+
+    def draw_far(self):
+        """The view zoomed far out: one picture, the level's minimap (a colour a tile) with the maps changed since it
+        was built drawn over it, and the maps' edges."""
+        P, c, z = self.project, self.canvas, self.zoom
+        c.delete("far")
+        v0, v1, v2, v3 = self.visible()
+        w, h = max(1, int(v2 - v0)), max(1, int(v3 - v1))
+        bx, by = self.bounds()[:2]
+        k = P.tile_w * z                                    # (canvas px a tile)
+        gx0, gy0 = bx * P.map_w + v0 / k, by * P.map_h + v1 / k     # (the world tile at the view's top-left)
+        out = Image.new("RGB", (w, h), (26, 21, 17))
+        mini = P.sprite("Interface", "Minimap%d" % self.level) if self.level != 1000 else None
+        origin = P.config.get("Minimap", "Origin.%d" % self.level, "")
+        slots = self.level_slots()
+        mine = {n for n in self.touched | set(self.docs) if n in slots.values() and (self.dirty(n) or mini is None)}
+        if mini is not None and origin:
+            try:
+                ox, oy = (int(v) for v in origin.split(","))
+                ps = max(1, int(P.config.get("Minimap", "Pixel.Size", "1") or 1))
+            except ValueError:
+                mini = None
+            if mini is not None:
+                ax, ay = (gx0 - ox * P.map_w) * ps, (gy0 - oy * P.map_h) * ps
+                part = mini.convert("RGBA").transform((w, h), Image.EXTENT, (ax, ay, ax + w / k * ps, ay + h / k * ps),
+                                                      Image.NEAREST)
+                out.paste(part, (0, 0), part)
+        if mini is None:                                    # (no minimap yet: every map in view, from its tiles)
+            mine |= {slots[xy] for xy in self.visible_slots() if xy in slots}
+        for n in mine:
+            mx, my = self.doc_xy(self.get_doc(n))
+            px, py = (mx * P.map_w - gx0) * k, (my * P.map_h - gy0) * k
+            if px > w or py > h or px + P.map_w * k < 0 or py + P.map_h * k < 0:
+                continue
+            small = self.colours(self.get_doc(n)).resize((max(1, int(P.map_w * k)), max(1, int(P.map_h * k))),
+                                                         Image.NEAREST)
+            out.paste(small, (int(px), int(py)))
+        self._far = photo(out)
+        c.create_image(v0, v1, image=self._far, anchor="nw", tags=("far", "under"))
+        mw, mh = P.map_w * k, P.map_h * k                   # (the maps' edges, and their names when there's room)
+        for (x, y), n in slots.items():
+            x0, y0 = (x - bx) * mw, (y - by) * mh
+            if x0 > v2 or y0 > v3 or x0 + mw < v0 or y0 + mh < v1:
+                continue
+            c.create_rectangle(x0, y0, x0 + mw, y0 + mh, outline="#000000", tags=("far",))
+            if mw > 60:
+                c.create_text(x0 + 3, y0 + 2, text=n, anchor="nw", fill="#f0e6d2", font=("Segoe UI", 7),
+                              tags=("far",))
+        c.tag_lower("far")
+        c.tag_lower("under")
+
+    def colours(self, doc):
+        """A map a pixel a tile: its roofs' colours, else its ground's (as the minimap is)."""
+        P = self.project
+        avg = getattr(self, "_avg", None)
+        if avg is None:
+            avg = self._avg = {}
+        img = Image.new("RGB", (P.map_w, P.map_h))
+        px = []
+        for row in doc.cells:
+            for cell in row:
+                t = cell.roof or cell.tile
+                if t not in avg:
+                    spr = tile_image(P, t)
+                    avg[t] = spr.convert("RGB").resize((1, 1), Image.BOX).getpixel((0, 0))
+                px.append(avg[t])
+        img.putdata(px)
+        return img
+
+    def draw_tile_things(self, doc, ox, oy):
+        """A map's triggers, locks and named places (a place's name under its pin), at canvas ox, oy."""
+        if not (self.layer in ("things", "all") or self.show["preview"].get()):
+            return
+        P, c, z = self.project, self.canvas, self.zoom
         tw, th = P.tile_w, P.tile_h
-        ox, oy = MARGIN * tw * z, MARGIN * th * z
-        W, H = P.map_w * tw * z, P.map_h * th * z
-        c.create_rectangle(ox - 2, oy - 2, ox + W + 1, oy + H + 1, outline=LAYER_LOOK[self.layer][0], width=3)
-        if self.show["grid"].get():                     # (Windows can't stipple lines: a dark line, a light one by it)
-            for x in range(1, P.map_w):
-                gx = ox + x * tw * z
-                c.create_line(gx, oy, gx, oy + H, fill="#000000")
-                c.create_line(gx + 1, oy, gx + 1, oy + H, fill="#d8cbb4", dash=(1, 3))
-            for y in range(1, P.map_h):
-                gy = oy + y * th * z
-                c.create_line(ox, gy, ox + W, gy, fill="#000000")
-                c.create_line(ox, gy + 1, ox + W, gy + 1, fill="#d8cbb4", dash=(1, 3))
-        # triggers, locks and named places (a place's name under its pin)
-        if self.layer == "things" or self.show["preview"].get():
-            for e in self.doc.placed():
-                if e.kind in TILE_KINDS:
-                    x0, y0 = ox + (e.x - 1) * tw * z, oy + (e.y - 1) * th * z
-                    col, pad, sym = TILE_LOOK[e.kind]
-                    c.create_rectangle(x0 + pad, y0 + pad, x0 + tw * z - pad, y0 + th * z - pad, outline=col,
-                                       width=2, dash=(4, 3))
-                    c.create_text(x0 + tw * z / 2, y0 + th * z / 2, text=sym,
-                                  fill=col, font=("Segoe UI Symbol", max(8, int(11 * z))))
-                    if e.kind == "Id":
-                        for dx, dy, fill in ((1, 1, "#000000"), (0, 0, col)):
-                            c.create_text(x0 + tw * z / 2 + dx, y0 + th * z + 1 + dy, text=e.name, fill=fill,
-                                          anchor="n", font=("Segoe UI", max(7, int(7 * z)), "bold"))
-        # NPC zones
-        for e in self.doc.placed():
+        for e in doc.placed():
+            if e.kind in TILE_KINDS:
+                x0, y0 = ox + (e.x - 1) * tw * z, oy + (e.y - 1) * th * z
+                col, pad, sym = TILE_LOOK[e.kind]
+                c.create_rectangle(x0 + pad, y0 + pad, x0 + tw * z - pad, y0 + th * z - pad, outline=col,
+                                   width=2, dash=(4, 3), tags="thing")
+                c.create_text(x0 + tw * z / 2, y0 + th * z / 2, text=sym,
+                              fill=col, font=("Segoe UI Symbol", max(8, int(11 * z))), tags="thing")
+                if e.kind == "Id":
+                    for dx, dy, fill in ((1, 1, "#000000"), (0, 0, col)):
+                        c.create_text(x0 + tw * z / 2 + dx, y0 + th * z + 1 + dy, text=e.name, fill=fill,
+                                      anchor="n", font=("Segoe UI", max(7, int(7 * z)), "bold"), tags="thing")
+        for e in doc.placed():
             if e.kind == "NPC" and (self.show["zones"].get() or e is self.sel_ent):
                 self.draw_npc_areas(e, ox, oy, z, faint=e is not self.sel_ent)
-        # the selection
+
+    def draw_marks(self):
+        """Over the maps: the open map's frame, the grid, what's selected, the area marked, the rectangle dragged."""
+        P, c, z = self.project, self.canvas, self.zoom
+        tw, th = P.tile_w, P.tile_h
+        ox, oy = self.map_origin()
+        W, H = P.map_w * tw * z, P.map_h * th * z
+        v0, v1, v2, v3 = self.visible()
+        if self.show["grid"].get() and z >= 0.5:      # (Windows can't stipple lines: a dark line, a light one by it)
+            gx0, gy0 = ox + ((v0 - ox) // (tw * z)) * tw * z, oy + ((v1 - oy) // (th * z)) * th * z
+            x = gx0
+            while x <= v2:
+                c.create_line(x, v1, x, v3, fill="#000000")
+                c.create_line(x + 1, v1, x + 1, v3, fill="#d8cbb4", dash=(1, 3))
+                x += tw * z
+            y = gy0
+            while y <= v3:
+                c.create_line(v0, y, v2, y, fill="#000000")
+                c.create_line(v0, y + 1, v2, y + 1, fill="#d8cbb4", dash=(1, 3))
+                y += th * z
+        c.create_rectangle(ox - 2, oy - 2, ox + W + 1, oy + H + 1, outline=LAYER_LOOK[self.layer][0], width=3)
         if self.tile_selected():
             x, y = self.sel_cell
             c.create_rectangle(ox + x * tw * z, oy + y * th * z, ox + (x + 1) * tw * z, oy + (y + 1) * th * z,
@@ -734,11 +1123,12 @@ class MapPage(Page):
             c.create_rectangle(ox + x0 * z - 2, oy + y0 * z - 2, ox + x1 * z + 2, oy + y1 * z + 2, outline="#ffe066",
                                width=2, dash=(5, 2))
         clip = getattr(self.app, "clip_region", None)
-        if clip is not None and clip.cut and clip.map == self.doc.name:   # (cut, waiting to move: orange)
+        if clip is not None and clip.cut and clip.map in self.level_slots().values():   # (cut, waiting to move)
+            cx, cy = self.map_origin(self.get_doc(clip.map))
             x0, y0, x1, y1 = clip.rect
-            c.create_rectangle(ox + x0 * tw * z, oy + y0 * th * z, ox + (x1 + 1) * tw * z, oy + (y1 + 1) * th * z,
+            c.create_rectangle(cx + x0 * tw * z, cy + y0 * th * z, cx + (x1 + 1) * tw * z, cy + (y1 + 1) * th * z,
                                outline="#ff9a3c", width=3, dash=(8, 4))
-        if getattr(self, "area", None):                         # (marked: white and blue)
+        if self.area:                                           # (marked: white and blue)
             x0, y0, x1, y1 = self.area
             for col, d in (("#ffffff", (6, 3)), ("#2a7fff", (3, 6))):
                 c.create_rectangle(ox + x0 * tw * z, oy + y0 * th * z, ox + (x1 + 1) * tw * z,
@@ -746,12 +1136,8 @@ class MapPage(Page):
         if self.drag and self.drag.get("rect"):
             (x0, y0), (x1, y1) = self.drag["rect"]
             c.create_rectangle(ox + min(x0, x1) * tw * z, oy + min(y0, y1) * th * z, ox + (max(x0, x1) + 1) * tw * z,
-                               oy + (max(y0, y1) + 1) * th * z, outline="#66d9ff", width=2, dash=(6, 3))
-        if center:
-            self.after(10, lambda: self.scroll_to(P.map_w // 2, P.map_h // 2))
-        self.map_title.configure(text=("Map %s" % self.doc.name) + ("" if self.doc.exists else "   (new: not saved)"))
-        self.update_ghost()
-        self.app.refresh_chrome()
+                               oy + (max(y0, y1) + 1) * th * z, outline="#66d9ff", width=2, dash=(6, 3),
+                               tags="dragrect")
 
     def ghost_photo(self, name, layer):
         """The see-through picture of name at this zoom (a tile, or an entity's sprite)."""
@@ -790,13 +1176,10 @@ class MapPage(Page):
         P, z = self.project, self.zoom
         tw, th = P.tile_w, P.tile_h
         tx, ty = self.tile_of(px, py)
-        ox, oy = MARGIN * tw * z, MARGIN * th * z
+        ox, oy = self.map_origin()
         cursor = "arrow"
-        if not self.inside(tx, ty):
-            x, y, lz = parse_map_name(self.doc.name)
-            dx = -1 if tx < 0 else (1 if tx >= P.map_w else 0)
-            dy = -1 if ty < 0 else (1 if ty >= P.map_h else 0)
-            self.set_cursor("hand2" if "%d,%d,%d" % (x + dx, y + dy, lz) in P.maps() else "arrow")
+        if self.at(tx, ty) is None:                         # (no map there: double-click makes one)
+            self.set_cursor("plus" if self.level != 1000 else "arrow")
             return
         x0, y0 = ox + tx * tw * z, oy + ty * th * z
         box = (x0, y0, x0 + tw * z, y0 + th * z)
@@ -806,10 +1189,21 @@ class MapPage(Page):
             cursor = "target"
             c.create_oval(x0 + tw * z / 2 - 7, y0 + th * z / 2 - 7, x0 + tw * z / 2 + 7, y0 + th * z / 2 + 7,
                           outline="#ffd23c", width=2, tags="ghost")
+        elif self.drag and self.drag.get("areamove"):
+            cursor = "fleur"                                # (All: the marked area, where it would go)
+            (fx, fy), (gx, gy) = self.drag["areamove"], self.drag["to"]
+            x0_, y0_, x1_, y1_ = self.area
+            ax, ay = x0_ + gx - fx, y0_ + gy - fy
+            fits = self.fits(ax, ay, x1_ - x0_ + 1, y1_ - y0_ + 1)
+            c.create_rectangle(ox + ax * tw * z, oy + ay * th * z, ox + (ax + x1_ - x0_ + 1) * tw * z,
+                               oy + (ay + y1_ - y0_ + 1) * th * z, outline="#ff9a3c" if fits else "#ff4040", width=3,
+                               dash=(6, 3), tags="ghost")
+        elif self.layer == "all" and self.area and self.in_area(tx, ty) and not self.drag:
+            cursor = "fleur"
         elif self.tool == "Area" and getattr(self.app, "clip_region", None) is not None and not self.drag:
             cursor = "crosshair"                            # (where Ctrl+V would put the area down)
             w, h = self.app.clip_region.size
-            fits = self.inside(tx + w - 1, ty + h - 1)
+            fits = self.fits(tx, ty, w, h)
             c.create_rectangle(x0, y0, x0 + w * tw * z, y0 + h * th * z, outline="#ff9a3c" if fits else "#ff4040",
                                width=2, dash=(4, 3), tags="ghost")
         elif self.drag and self.drag.get("tilemove"):
@@ -908,13 +1302,38 @@ class MapPage(Page):
         """Map pixel (x, y) of a mouse event (may be outside the map)."""
         z = self.zoom
         cx, cy = self.canvas.canvasx(e.x), self.canvas.canvasy(e.y)
-        return cx / z - MARGIN * self.project.tile_w, cy / z - MARGIN * self.project.tile_h
+        ox, oy = self.map_origin()
+        return (cx - ox) / z, (cy - oy) / z
 
     def tile_of(self, px, py):
         return int(px // self.project.tile_w), int(py // self.project.tile_h)
 
     def inside(self, tx, ty):
         return 0 <= tx < self.project.map_w and 0 <= ty < self.project.map_h
+
+    def fits(self, tx, ty, w, h):
+        """A w x h area with its top-left at tile tx, ty lies on one map."""
+        a, b = self.at(tx, ty), self.at(tx + w - 1, ty + h - 1)
+        return a is not None and b is not None and a[0] is b[0]
+
+    def in_area(self, tx, ty):
+        return bool(self.area) and self.area[0] <= tx <= self.area[2] and self.area[1] <= ty <= self.area[3]
+
+    def focus_at(self, e):
+        """Opens the map under the mouse (if it isn't already): the click is on it. False where there's no map."""
+        px, py = self.map_px(e)
+        a = self.at(*self.tile_of(px, py))
+        if a is None:
+            return False
+        if a[0] is not self.doc:
+            self.activate(a[0].name)
+        return True
+
+    def shape_brush(self):
+        """The palette's pick is a piece of a set that's laid out whole by dragging (and that's switched on)."""
+        if not self.brush or self.layer in ("things", "all") or not self.opt["sets"].get():
+            return False
+        return WD.shape(self.project, self.brush, 2, 2) is not None
 
     def ent_size(self, e):
         spr = self.project.sprite("Entities", e.name) if e.kind not in TILE_KINDS else None
@@ -926,6 +1345,16 @@ class MapPage(Page):
             return (e.x - 1) * tw, (e.y - 1) * th, e.x * tw, e.y * th
         w, h = self.ent_size(e)
         return e.x, e.y, e.x + w, e.y + h
+
+    def ents_at(self, px, py):
+        """Everything under the mouse, the one a click takes first, then the rest (the next one up, the next...)."""
+        hits = [e for e in self.doc.placed() if self.ent_rect(e)[0] <= px < self.ent_rect(e)[2] and
+                self.ent_rect(e)[1] <= py < self.ent_rect(e)[3]]
+        first = self.ent_at(px, py)
+        sprites = sorted((e for e in hits if e is not first and e.kind not in TILE_KINDS),
+                         key=lambda e: -self.ent_rect(e)[3])
+        return ([first] if first is not None else []) + sprites + [e for e in hits if e is not first and
+                                                                     e.kind in TILE_KINDS]
 
     def ent_at(self, px, py, prefer_tile_kind=None):
         hits = [e for e in self.doc.placed() if self.ent_rect(e)[0] <= px < self.ent_rect(e)[2] and
@@ -949,9 +1378,9 @@ class MapPage(Page):
     def scroll_to(self, tx, ty):
         z = self.zoom
         tw, th = self.project.tile_w, self.project.tile_h
-        total_w = (self.project.map_w + 2 * MARGIN) * tw * z
-        total_h = (self.project.map_h + 2 * MARGIN) * th * z
-        cx, cy = (MARGIN + tx + 0.5) * tw * z, (MARGIN + ty + 0.5) * th * z
+        total_w, total_h = self.update_region()
+        ox, oy = self.map_origin()
+        cx, cy = ox + (tx + 0.5) * tw * z, oy + (ty + 0.5) * th * z
         vw, vh = self.canvas.winfo_width(), self.canvas.winfo_height()
         self.canvas.xview_moveto(max(0, (cx - vw / 2) / total_w))
         self.canvas.yview_moveto(max(0, (cy - vh / 2) / total_h))
@@ -1016,6 +1445,8 @@ class MapPage(Page):
             self.canvas.scan_mark(e.x, e.y)
             self.drag = {"pan": True}
             return
+        if not self.mode and not self.focus_at(e):      # (a click on another map opens it; on none, nothing)
+            return
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
         shift, ctrl = e.state & 0x1, e.state & 0x4
@@ -1024,12 +1455,11 @@ class MapPage(Page):
             self.redraw()
             return
         if self.mode == "patrol" and self.sel_ent is not None:
-            if self.inside(tx, ty) or True:
-                self.remember()
-                pts = self.patrol(self.sel_ent) + [(tx + 1, ty + 1)]
-                self.sel_ent.set_opt("Patrol", "/".join("%d,%d" % p for p in pts))
-                self.redraw()
-                self.show_inspector()
+            self.remember()
+            pts = self.patrol(self.sel_ent) + [(tx + 1, ty + 1)]
+            self.sel_ent.set_opt("Patrol", "/".join("%d,%d" % p for p in pts))
+            self.redraw()
+            self.show_inspector()
             return
         if not self.inside(tx, ty):
             return
@@ -1037,6 +1467,10 @@ class MapPage(Page):
             self.pick_under(px, py, tx, ty)
             return
         if self.tool == "Area":                            # (marking an area: the same on every layer)
+            if self.layer == "all" and self.in_area(tx, ty):   # (All: drag what's marked somewhere else)
+                self.drag = {"areamove": (tx, ty), "to": (tx, ty)}
+                self.update_ghost()
+                return
             self.drag = {"rect": ((tx, ty), (tx, ty)), "sel_area": True}
             self.redraw()
             return
@@ -1045,6 +1479,10 @@ class MapPage(Page):
             return
         self.sel_cell = (tx, ty)
         tool = "Fill" if shift else self.tool
+        if tool in ("Paint", "Rectangle") and self.shape_brush():   # (a roof, a rug, a room: dragged out whole)
+            self.drag = {"rect": ((tx, ty), (tx, ty)), "shape": True}
+            self.redraw()
+            return
         if tool == "Move":
             if not self.layer_has(self.doc.cells[ty][tx]):
                 self.app.status("Nothing on the %s layer at %d,%d to move." % (LAYER_LOOK[self.layer][1].lower(),
@@ -1068,8 +1506,8 @@ class MapPage(Page):
             self.remember()
             if tool == "Fill":
                 self.flood(tx, ty)
-            else:
-                self.paint_cell(tx, ty, erase=(tool == "Erase"))
+            elif self.paint_cell(tx, ty, erase=(tool == "Erase")):
+                self.smooth([(tx, ty)])
             self.drag = {"paint": True, "erase": tool == "Erase"}
             self.redraw()
             self.show_inspector()
@@ -1088,15 +1526,22 @@ class MapPage(Page):
                 self.drag["to"] = (tx, ty)
             self.update_ghost()
             return
+        if "areamove" in self.drag:
+            self.drag["to"] = (tx, ty)
+            self.update_ghost()
+            return
         if "rect" in self.drag:
-            self.drag["rect"] = (self.drag["rect"][0], (tx, ty) if self.drag.get("area") else
-                                 (max(0, min(self.project.map_w - 1, tx)), max(0, min(self.project.map_h - 1, ty))))
-            self.redraw()
-        elif self.drag.get("paint"):
-            if self.inside(tx, ty):
-                if self.paint_cell(tx, ty, erase=self.drag["erase"]):
+            if self.drag.get("sel_area"):                  # (an area is marked on one map: the open one)
+                tx, ty = max(0, min(self.project.map_w - 1, tx)), max(0, min(self.project.map_h - 1, ty))
+            if self.drag["rect"][1] != (tx, ty):
+                self.drag["rect"] = (self.drag["rect"][0], (tx, ty))
+                self.draw_drag()
+        elif self.drag.get("paint"):                       # (on into the maps round it, as they join)
+            if self.at(tx, ty) is not None and self.paint_cell(tx, ty, erase=self.drag["erase"]):
+                self.smooth([(tx, ty)])
+                if self.inside(tx, ty):
                     self.sel_cell = (tx, ty)
-                    self.redraw()
+                self.redraw()
         elif self.drag.get("move"):
             ent = self.drag["move"]
             dx, dy = px - self.drag["start"][0], py - self.drag["start"][1]
@@ -1121,6 +1566,20 @@ class MapPage(Page):
                 self.redraw()
             self.show_inspector(light=True)
 
+    def draw_drag(self):
+        """Only the dragged rectangle drawn again (the maps under it haven't changed)."""
+        c = self.canvas
+        c.delete("dragrect")
+        (x0, y0), (x1, y1) = self.drag["rect"]
+        P, z = self.project, self.zoom
+        tw, th = P.tile_w, P.tile_h
+        ox, oy = self.map_origin()
+        c.create_rectangle(ox + min(x0, x1) * tw * z, oy + min(y0, y1) * th * z, ox + (max(x0, x1) + 1) * tw * z,
+                           oy + (max(y0, y1) + 1) * th * z, outline="#66d9ff", width=2, dash=(6, 3), tags="dragrect")
+        c.create_text(ox + (max(x0, x1) + 1) * tw * z + 4, oy + (max(y0, y1) + 1) * th * z + 2, anchor="nw",
+                      text="%d x %d" % (abs(x1 - x0) + 1, abs(y1 - y0) + 1), fill="#66d9ff",
+                      font=("Segoe UI", 9, "bold"), tags="dragrect")
+
     def release(self, e):
         d, self.drag = self.drag, None
         if not d or d.get("pan"):
@@ -1136,13 +1595,24 @@ class MapPage(Page):
                 self.show_inspector()
             self.redraw()
             return
+        if "areamove" in d:
+            (fx, fy), (gx, gy) = d["areamove"], d["to"]
+            if (gx, gy) != (fx, fy):
+                self.move_area(self.area[0] + gx - fx, self.area[1] + gy - fy)
+            self.redraw()
+            return
+        if d.get("move") and not d.get("moved") and d.get("again"):
+            self.next_here()                            # (a click on what's selected: the next thing under it)
+            return
         if "rect" in d:
             (x0, y0), (x1, y1) = d["rect"]
             xa, xb, ya, yb = min(x0, x1), max(x0, x1), min(y0, y1), max(y0, y1)
             if d.get("sel_area"):
                 self.area = (xa, ya, xb, yb)
-                self.app.status("Marked a %dx%d area: Ctrl+X to move it, Ctrl+C to copy it (Esc: unmark)." % (
-                    xb - xa + 1, yb - ya + 1))
+                self.app.status("Marked a %dx%d area: %s" % (
+                    xb - xa + 1, yb - ya + 1, "drag it to move it, Delete to empty it, Ctrl+X / Ctrl+C to take it to "
+                    "another map (Esc: unmark)." if self.layer == "all" else
+                    "Ctrl+X to move it, Ctrl+C to copy it (Esc: unmark)."))
                 self.redraw()
                 return
             if d.get("area"):
@@ -1150,11 +1620,28 @@ class MapPage(Page):
                 key = "Zone" if d["area"] == "zone" else "Chase"
                 self.sel_ent.set_opt(key, "%d,%d,%d,%d" % (xa + 1, ya + 1, xb + 1, yb + 1))
                 self.mode = None
+            elif d.get("shape"):
+                self.remember()
+                rows = WD.shape(self.project, self.brush, xb - xa + 1, yb - ya + 1)
+                done = []
+                for j in range(ya, yb + 1):
+                    for i in range(xa, xb + 1):
+                        name = rows[j - ya][i - xa] if rows else self.brush
+                        if name and self.at(i, j) is not None and self.paint_cell(i, j, name=name):
+                            done.append((i, j))
+                self.smooth(done)
+                if rows:
+                    self.app.status("Laid out a %dx%d %s." % (xb - xa + 1, yb - ya + 1,
+                                                              self.project.tile_set_of(self.brush)[1]), "ok")
             elif self.brush or self.tool == "Erase":
                 self.remember()
+                done = []
                 for y in range(ya, yb + 1):
                     for x in range(xa, xb + 1):
-                        self.paint_cell(x, y, erase=(self.tool == "Erase" or not self.brush))
+                        if self.at(x, y) is not None and \
+                                self.paint_cell(x, y, erase=(self.tool == "Erase" or not self.brush)):
+                            done.append((x, y))
+                self.smooth(done)
             self.show_inspector()
         self.redraw()
 
@@ -1163,11 +1650,11 @@ class MapPage(Page):
             return
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
+        if self.at(tx, ty) is None:                     # (an empty square: make a map there)
+            if self.level != 1000:
+                self.open(self.name_at(tx, ty)[0])
+            return
         if not self.inside(tx, ty):
-            x, y, z = parse_map_name(self.doc.name)
-            dx = -1 if tx < 0 else (1 if tx >= self.project.map_w else 0)
-            dy = -1 if ty < 0 else (1 if ty >= self.project.map_h else 0)
-            self.open("%d,%d,%d" % (x + dx, y + dy, z))
             return
         if self.layer == "things":
             ent = self.ent_at(px, py)
@@ -1193,14 +1680,17 @@ class MapPage(Page):
         tx, ty = self.tile_of(px, py)
         self._hover = (px, py, bool(e.state & 0x1), bool(e.state & 0x4))
         self.update_ghost()
-        if not self.inside(tx, ty):
-            x, y, z = parse_map_name(self.doc.name)
-            dx = -1 if tx < 0 else (1 if tx >= self.project.map_w else 0)
-            dy = -1 if ty < 0 else (1 if ty >= self.project.map_h else 0)
-            self.app.info("Map %d,%d,%d (double-click to open it)" % (x + dx, y + dy, z))
+        a = self.at(tx, ty)
+        if a is None:
+            if self.level != 1000:
+                self.app.info("No map %s yet (double-click to make it)" % self.name_at(tx, ty)[0])
             return
-        cell = self.doc.cells[ty][tx]
-        parts = ["tile %d,%d" % (tx + 1, ty + 1), "x %d y %d" % (px, py), cell.tile]
+        doc, lx, ly = a
+        cell = doc.cells[ly][lx]
+        parts = (["map %s" % doc.name] if doc is not self.doc else []) + ["tile %d,%d" % (lx + 1, ly + 1),
+                                                                            cell.tile]
+        if doc is self.doc:
+            parts.insert(1, "x %d y %d" % (px, py))
         if cell.under:
             parts.append("rug %s" % cell.under)
         if cell.decor:
@@ -1209,19 +1699,23 @@ class MapPage(Page):
             parts.append("roof %s (group %s)" % (cell.roof, cell.roof_group))
         if cell.infront:
             parts.append("top %s" % cell.infront)
-        for ent in self.doc.placed():
-            if ent.kind == "Trigger" and (ent.x, ent.y) == (tx + 1, ty + 1):
+        for ent in doc.placed():
+            if ent.kind == "Trigger" and (ent.x, ent.y) == (lx + 1, ly + 1):
                 parts.append("trigger: %s" % ent.script)
-            if ent.kind == "Lock" and (ent.x, ent.y) == (tx + 1, ty + 1):
+            if ent.kind == "Lock" and (ent.x, ent.y) == (lx + 1, ly + 1):
                 parts.append("lock: %s" % (ent.cond or "always"))
-            if ent.kind == "Id" and (ent.x, ent.y) == (tx + 1, ty + 1):
+            if ent.kind == "Id" and (ent.x, ent.y) == (lx + 1, ly + 1):
                 parts.append("place: %s" % ent.name)
-        ent = self.ent_at(px, py) if self.layer == "things" or self.show["preview"].get() else None
+        here = self.ents_at(px, py) if doc is self.doc and (self.layer == "things" or
+                                                            self.show["preview"].get()) else []
+        ent = here[0] if here else None
         if ent is not None and ent.kind not in TILE_KINDS:
             parts.append("%s %s" % (ent.kind, ent.name) + (" (Id %s)" % ent.opt("Id") if ent.opt("Id") else ""))
             said = self.notice_text(ent)[1] if self.default_verb(ent) == "Read" else None
             if said:
                 parts.append("“%s”" % said.replace("\\", " / ")[:90])
+        if len(here) > 1:
+            parts.append("%d things here: click again (or Tab) for the next" % len(here))
         self.app.info("   ·   ".join(parts))
 
     def context(self, e):
@@ -1232,9 +1726,11 @@ class MapPage(Page):
             self.show_inspector()
             self.redraw()
             return
+        if not self.focus_at(e):
+            return
         px, py = self.map_px(e)
         tx, ty = self.tile_of(px, py)
-        if self.layer != "things" and not e.state & 0x1:      # a tile layer: right-click picks up what's there
+        if self.layer not in ("things", "all") and not e.state & 0x1:   # a tile layer: right-click picks it up
             if not self.inside(tx, ty):
                 return
             cell = self.doc.cells[ty][tx]
@@ -1247,12 +1743,12 @@ class MapPage(Page):
             self.pick_under(px, py, tx, ty)
             self.app.status("Picked %s: paint with it (Shift+right-click for the menu)." % self.brush)
             return
-        if self.brush or self.tool not in ("Select", "Paint"):  # holding something: let go of it and select instead
-            self.palette.pick(None)
-            self.set_tool("Select" if self.layer == "things" else "Paint")
+        if self.layer == "things" and (self.brush or self.tool not in ("Select", "Paint")):
+            self.palette.pick(None)                         # holding something: let go of it and select instead
+            self.set_tool("Select")
             if self.inside(tx, ty):
-                self.sel_ent = self.ent_at(px, py) if self.layer == "things" else None
-                self.sel_cell = (tx, ty) if self.layer != "things" or self.sel_ent is not None else None
+                self.sel_ent = self.ent_at(px, py)
+                self.sel_cell = (tx, ty) if self.sel_ent is not None else None
             self.app.status("Select mode: click to select (right-click again for the menu).")
             self.redraw()
             self.show_inspector()
@@ -1261,8 +1757,11 @@ class MapPage(Page):
             return
         cell = self.doc.cells[ty][tx]
         m = tk.Menu(self, tearoff=0)
-        if self.layer != "things":                           # (on Entities, entities are what's selected)
+        if self.layer not in ("things", "all"):              # (on Entities, entities are what's selected)
             m.add_command(label="Select this tile", command=lambda: self.select_cell(tx, ty))
+            m.add_separator()
+        if self.layer == "all" and self.in_area(tx, ty):
+            m.add_command(label="Delete everything in the area", command=self.delete_area)
             m.add_separator()
         m.add_command(label="Edit the tile %s in Tiles" % cell.tile, command=lambda: self.app.goto("tile", cell.tile))
         if cell.decor:
@@ -1273,7 +1772,12 @@ class MapPage(Page):
         if cell.infront:
             m.add_command(label="Edit the over tile %s in Tiles" % cell.infront,
                           command=lambda: self.app.goto("tile", cell.infront))
-        ent = self.ent_at(px, py)
+        here = self.ents_at(px, py)
+        if len(here) > 1:                                    # (one over another: choose which)
+            m.add_separator()
+            for x in here:
+                m.add_command(label="Select %s" % self.ent_label(x), command=lambda x=x: self.select_ent(x))
+        ent = here[0] if here else None
         if ent is not None:
             m.add_separator()
             if ent.kind == "Trigger":
@@ -1293,23 +1797,70 @@ class MapPage(Page):
         m.add_command(label="Pick what's here into the palette", command=lambda: self.pick_under(px, py, tx, ty))
         m.tk_popup(e.x_root, e.y_root)
 
+    def ent_label(self, e):
+        if e.kind == "Trigger":
+            return "the trigger (%s)" % e.script
+        if e.kind == "Lock":
+            return "the lock"
+        if e.kind == "Id":
+            return "the place %s" % e.name
+        return e.name.replace("_", " ") + (" (%s)" % e.opt("Id") if e.opt("Id") else "")
+
+    def select_ent(self, e):
+        if self.layer != "things":
+            self.set_layer("things")
+        self.sel_ent = e
+        self.sel_cell = tuple(v - 1 for v in self.ent_tile(e))
+        self.redraw()
+        self.show_inspector()
+
+    def next_here(self):
+        """The next of the things one over another where the selected one is (round to the first again)."""
+        if self.sel_ent is None or self._hover is None:
+            return
+        here = self.ents_at(self._hover[0], self._hover[1])
+        if self.sel_ent not in here:
+            here = self.ents_at(*self.ent_mid(self.sel_ent))
+        if len(here) < 2 or self.sel_ent not in here:
+            return
+        nxt = here[(here.index(self.sel_ent) + 1) % len(here)]
+        self.select_ent(nxt)
+        self.app.status("Selected %s (%d of %d here: click again or Tab for the next)." % (
+            self.ent_label(nxt), here.index(nxt) + 1, len(here)))
+
+    def ent_mid(self, e):
+        x0, y0, x1, y1 = self.ent_rect(e)
+        return (x0 + x1) / 2, (y0 + y1) / 2
+
     def key(self, e):
         k = e.keysym
         if not self.doc:
             return
         if e.state & 0x4 and k.lower() in ("x", "c", "v"):  # Ctrl: cut, copy, paste (an area, or an entity)
             if k.lower() == "v":
+                if self._hover is not None:                 # (it goes on the map under the mouse)
+                    a = self.at(*self.tile_of(self._hover[0], self._hover[1]))
+                    if a is not None and a[0] is not self.doc:
+                        ox, oy = self.map_origin()
+                        self.activate(a[0].name)
+                        nx, ny = self.map_origin()
+                        z = self.zoom
+                        self._hover = (self._hover[0] + (ox - nx) / z, self._hover[1] + (oy - ny) / z) + \
+                            self._hover[2:]
                 if getattr(self.app, "clip_last", "") == "region":
                     self.paste_area()
                 else:
                     self.paste_ent()
-            elif getattr(self, "area", None):
+            elif self.area:
                 self.clip_area(cut=k.lower() == "x")
             else:
                 self.clip_ent(cut=k.lower() == "x")
             return "break"
-        if k in ("1", "2", "3", "4", "5"):
+        if k in ("1", "2", "3", "4", "5", "6"):
             self.set_layer(LAYERS[int(k) - 1][1])
+        elif k == "Tab" and self.sel_ent is not None:
+            self.next_here()
+            return "break"
         elif k.lower() == "p":
             self.show["preview"].set(not self.show["preview"].get())
         elif k.lower() == "w":
@@ -1319,7 +1870,9 @@ class MapPage(Page):
         elif k.lower() == "g":
             self.show["grid"].set(not self.show["grid"].get())
         elif k in ("Delete", "BackSpace"):
-            if self.sel_ent is not None:
+            if self.layer == "all" and self.area:
+                self.delete_area()
+            elif self.sel_ent is not None:
                 self.delete_ent(self.sel_ent)
             elif self.sel_cell and self.layer in ("decor", "roof", "infront"):
                 self.remember()
@@ -1329,7 +1882,7 @@ class MapPage(Page):
             self.palette.pick(None)
             if self.layer == "things":
                 self.set_tool("Select")
-        elif k == "Escape" and getattr(self, "area", None):   # (unmark the area first)
+        elif k == "Escape" and self.area:                   # (unmark the area first)
             self.area = None
             self.redraw()
         elif k == "Escape":
@@ -1370,12 +1923,27 @@ class MapPage(Page):
     # =============================================================================================================
     # Painting
     # =============================================================================================================
-    def paint_cell(self, x, y, erase=False):
-        cell = self.doc.cells[y][x]
+    def paint_cell(self, x, y, erase=False, name=None):
+        """Paints tile x, y (from the open map's top-left: it may be on a map round it) on the layer being edited:
+        with name, else the palette's pick (or one of its look-alikes, mixed in). False if nothing changed."""
+        a = self.at(x, y)
+        if a is None:
+            return False
+        doc, lx, ly = a
+        cell = doc.cells[ly][lx]
+        brush = name or self.brush
+        if brush and not name and not erase and self.opt["mix"].get():
+            brush = WD.mixed(self.project, brush)
+        if self.layer_name(cell) == brush and self.layer == "map" or (erase and not self.layer_has(cell)):
+            return False
+        self.touch(doc)
+        return self.paint_on(cell, brush, erase)
+
+    def paint_on(self, cell, brush, erase):
         if self.layer == "map":
-            if not self.brush or cell.tile == self.brush:
+            if not brush or cell.tile == brush:
                 return False
-            cell.tile = self.brush
+            cell.tile = brush
         elif self.layer == "decor":
             # (a rug goes under the decor, so a chair can stand on it; erasing takes the top one off first)
             if erase:
@@ -1385,22 +1953,22 @@ class MapPage(Page):
                     cell.set_under(None)
                 else:
                     return False
-            elif self.project.is_under(self.brush):
-                if cell.under == self.brush:
+            elif self.project.is_under(brush):
+                if cell.under == brush:
                     return False
-                cell.set_under(self.brush)
+                cell.set_under(brush)
             else:
-                if cell.decor == self.brush:
+                if cell.decor == brush:
                     return False
-                cell.set_decor(self.brush)
+                cell.set_decor(brush)
         elif self.layer == "roof":
-            name = None if erase else self.brush
+            name = None if erase else brush
             grp = "%02d" % int(float(self.group.get() or 1))
             if (cell.roof or None) == name and (not name or cell.roof_group == grp):
                 return False
             cell.set_roof(name, grp)
         elif self.layer == "infront":
-            name = None if erase else self.brush
+            name = None if erase else brush
             if (cell.infront or None) == name:
                 return False
             cell.set_infront(name)
@@ -1462,19 +2030,110 @@ class MapPage(Page):
         return True
 
     def flood(self, x, y):
+        """Fills the ground that's all one tile round x, y with the palette's pick - on across the maps round it, as
+        they join. (A range's peaks, painted from one texture, count as one tile.)"""
         if self.layer != "map" or not self.brush:
             return
-        target = self.doc.cells[y][x].tile
-        if target == self.brush:
+        stand = WD.stand_ins(self.project)
+        kind = lambda t: stand.get(t, t)
+        target = kind(self.tile_at(x, y))
+        if target == kind(self.brush):
             return
         todo, seen = [(x, y)], set()
         while todo:
             cx, cy = todo.pop()
-            if (cx, cy) in seen or not self.inside(cx, cy) or self.doc.cells[cy][cx].tile != target:
+            if (cx, cy) in seen:
+                continue
+            t = self.tile_at(cx, cy)
+            if t is None or kind(t) != target:
                 continue
             seen.add((cx, cy))
-            self.doc.cells[cy][cx].tile = self.brush
+            if len(seen) > 200000:
+                self.app.status("That's too much to fill at once (over 200,000 tiles): fence it in first.", "warn")
+                return
             todo += [(cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)]
+        maps = {self.at(cx, cy)[0].name for cx, cy in seen}
+        if len(maps) > 12 and not messagebox.askyesno(
+                "Fill", "That fills %d tiles across %d maps. Go on?" % (len(seen), len(maps)), parent=self):
+            return
+        for cx, cy in seen:
+            self.paint_cell(cx, cy)
+        self.smooth(seen)
+        if len(maps) > 1:
+            self.app.status("Filled %d tiles across %d maps." % (len(seen), len(maps)), "ok")
+
+    def smooth(self, cells):
+        """The diagonal shore pieces round the ground just painted, where the water turns a corner (if that's
+        switched on, and what was painted isn't itself a piece)."""
+        if self.layer != "map" or not cells or not self.opt["smooth"].get():
+            return
+        sets = WD.shore_sets(self.project)
+        if any(self.brush == pat % n for pat in sets.values() for n in range(2, 10)):
+            return
+
+        def put(x, y, name):
+            a = self.at(x, y)
+            self.touch(a[0])
+            a[0].cells[a[2]][a[1]].tile = name
+        WD.smooth_corners(self.project, self.tile_at, put, set(cells))
+
+    # ----- All: everything in the marked area, moved or cleared
+    def area_ents(self, doc, rect):
+        from .. import region as R
+        return [e for e in doc.placed() if R.inside(rect, self.ent_tile(e)[0] - 1, self.ent_tile(e)[1] - 1)]
+
+    def delete_area(self):
+        """Everything in the marked area gone: its entities, its decor, roofs and tree tops, and its ground the ground
+        round it."""
+        from .. import region as R
+        if not self.area:
+            return
+        gone = self.area_ents(self.doc, self.area)
+        named = [e.name for e in gone if e.kind == "Id"] + [e.opt("Id") for e in gone if e.kind not in TILE_KINDS
+                                                             and e.opt("Id")]
+        used = [n for n in named if self.project.place_uses(n)]
+        if used and not messagebox.askyesno("Delete the area", "These places are used by scripts or quests:\n\n%s\n\n"
+                                            "Delete them anyway? (They will stop working.)" % "\n".join(used[:15]),
+                                            parent=self):
+            return
+        self.remember()
+        self.doc.entities = [e for e in self.doc.entities if e not in gone]
+        R.clear(self.doc, self.area, R.ground_round(self.doc, self.area))
+        self.sel_ent = None
+        self.app.status("Emptied the %dx%d area (%d entities gone). Undo brings it back." % (
+            self.area[2] - self.area[0] + 1, self.area[3] - self.area[1] + 1, len(gone)), "ok")
+        self.redraw()
+        self.show_inspector()
+
+    def move_area(self, tx, ty):
+        """The marked area, everything in it, to tile tx, ty (its new top-left, from the open map's: it may be on a
+        map round it). Within its map it's an ordinary change; onto another, it's the same as cutting and pasting
+        it there (both maps saved, and what points at it follows)."""
+        from .. import region as R
+        x0, y0, x1, y1 = self.area
+        w, h = x1 - x0 + 1, y1 - y0 + 1
+        if not self.fits(tx, ty, w, h):
+            self.app.status("It doesn't fit there: an area stays on one map.", "warn")
+            return
+        doc, lx, ly = self.at(tx, ty)
+        if doc is self.doc:
+            self.remember()
+            shift = lambda e, dx, dy: self.shift_ent(e, dx, dy, self.project.tile_w, self.project.tile_h)
+            fresh = R.grab(self.doc, self.area, self.ent_tile, True)
+            gone = self.area_ents(self.doc, self.area)
+            self.doc.entities = [e for e in self.doc.entities if e not in gone]
+            R.clear(self.doc, self.area, R.ground_round(self.doc, self.area))
+            R.put(self.doc, fresh, lx, ly, shift)
+            self.area = (lx, ly, lx + w - 1, ly + h - 1)
+            self.app.status("Moved the area (%d entities). Scripts that name its tiles by number may need a look: "
+                            "Ctrl+X / Ctrl+V moves it and follows them." % len(gone), "ok")
+            self.redraw()
+            self.show_inspector()
+            return
+        self.app.clip_region = R.grab(self.doc, self.area, self.ent_tile, True)
+        self.app.clip_last = "region"
+        self.activate(doc.name)
+        self.paste_area(at=(lx, ly))
 
     def pick_under(self, px, py, tx, ty):
         cell = self.doc.cells[ty][tx]
@@ -1483,6 +2142,7 @@ class MapPage(Page):
             key = ent.name if ent is not None and ent.kind not in TILE_KINDS else None
         else:
             key = self.layer_name(cell) or None
+            key = WD.stand_ins(self.project).get(key, key)     # (a range's peak: the one the palette shows)
             if self.layer == "roof" and cell.roof_group:
                 self.group.set(cell.roof_group)
         if key:
@@ -1543,10 +2203,17 @@ class MapPage(Page):
             self.redraw()
             self.show_inspector()
             return
+        here = self.ents_at(px, py)
+        again = self.sel_ent is not None and self.sel_ent in here and len(here) > 1
+        if again:                                           # (what's selected is under the mouse: drag it, or
+            ent = self.sel_ent                              # a click without a drag takes the next one under it)
         self.sel_ent = ent                                  # (nothing there: nothing selected - not the tile)
         self.sel_cell = (tx, ty) if ent is not None else None
         if ent is not None:
-            self.drag = {"move": ent, "start": (px, py), "orig": (ent.x, ent.y)}
+            self.drag = {"move": ent, "start": (px, py), "orig": (ent.x, ent.y), "again": again}
+            if len(here) > 1 and not again:
+                self.app.status("%d things here: click again (or Tab) for the next, or right-click to choose." %
+                                len(here))
         self.redraw()
         self.show_inspector()
 
@@ -1648,21 +2315,21 @@ class MapPage(Page):
             return
         what = ent.name.replace("_", " ") or ent.kind
         if self.is_dirty() and not messagebox.askyesno(
-                "Move to %s" % name, "This map has changes not saved yet: they're saved now too (with the %s gone). "
+                "Move to %s" % name, "There are changes not saved yet: they're saved now too (with the %s moved). "
                 "Go on?" % what, parent=self):
             return
         moved = copy.deepcopy(ent)
         self.shift_ent(moved, tx - ox, ty - oy, self.project.tile_w, self.project.tile_h)
-        there = MapDoc(self.project, name)
+        self.remember()
+        there = self.get_doc(name)
+        self.touch(there)
         there.entities.append(moved)
-        there.save()
-        self.rebuild_minimap(parse_map_name(name)[2])
         self.doc.entities.remove(ent)
         self.sel_ent = None
         self.save()
         self.app.status("Moved the %s to map %s, tile %d,%d (both maps saved)." % (what, name, tx, ty), "ok")
         if messagebox.askyesno("Moved", "Open map %s to see it there?" % name, parent=self):
-            self.load(name)
+            self.open(name)
             self.sel_ent = next((x for x in self.doc.entities if x.line() == moved.line()), None)
             if self.layer != "things":
                 self.set_layer("things")
@@ -1720,15 +2387,16 @@ class MapPage(Page):
         self.app.status("%s a %dx%d area of %s: open any map (or stay), put the mouse where its top-left corner goes "
                         "and press Ctrl+V." % ("Cut" if cut else "Copied", w, h, self.doc.name), "ok")
 
-    def paste_area(self):
+    def paste_area(self, at=None):
+        """Ctrl+V: the area cut or copied, its top-left on the tile under the mouse (or at, a tile of the open map)."""
         from .. import region as R
         clip = getattr(self.app, "clip_region", None)
         if not self.doc or clip is None:
             return
-        if self._hover is None:
+        if at is None and self._hover is None:
             self.app.status("Put the mouse where the area's top-left corner goes, then Ctrl+V.", "warn")
             return
-        tx, ty = self.tile_of(self._hover[0], self._hover[1])
+        tx, ty = at or self.tile_of(self._hover[0], self._hover[1])
         w, h = clip.size
         if not (self.inside(tx, ty) and self.inside(tx + w - 1, ty + h - 1)):
             self.app.status("It doesn't fit there: a %dx%d area needs its top-left at least %d tiles from the right "
@@ -1749,22 +2417,20 @@ class MapPage(Page):
         if (tx, ty) == rect[:2] and src == self.doc.name:
             return
         if self.is_dirty() and not messagebox.askyesno(
-                "Move an area", "Moving it saves the map%s: this one has changes not saved yet, and they're saved "
-                "too. Go on?" % ("" if src == self.doc.name else "s"), parent=self):
+                "Move an area", "Moving it saves the map%s, and the other changes not saved yet are saved too. "
+                "Go on?" % ("" if src == self.doc.name else "s"), parent=self):
             return
         standing = lambda doc, r: [e for e in doc.placed() if R.inside(r, self.ent_tile(e)[0] - 1,
                                                                        self.ent_tile(e)[1] - 1)]
         here = src == self.doc.name
-        source = self.doc if here else MapDoc(self.project, src)
+        source = self.doc if here else self.get_doc(src)
+        self.remember()
+        self.touch(source)
         own = R.own_scripts(self.project, source)
         fresh = R.grab(source, rect, self.ent_tile, True)       # (as it is now, not as it was when cut)
         gone = standing(source, rect)
         source.entities = [e for e in source.entities if e not in gone]
         R.clear(source, rect, R.ground_round(source, rect))
-        if not here:
-            source.save()
-            self.rebuild_minimap(parse_map_name(src)[2])
-        self.remember()
         already = len(standing(self.doc, (tx, ty, tx + w - 1, ty + h - 1)))
         R.put(self.doc, fresh, tx, ty, shift)
         self.save()
@@ -1913,11 +2579,13 @@ class MapPage(Page):
                 self.app.show(self.app.page_of("script")),
                 self.app.page_of("script").new_script(preset={"kind": "When a map is entered", "map": d.name})))
         ttk.Label(f, text="Keys", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(14, 0))
-        ttk.Label(f, text="1-5 layers · Shift+click fill · right-click a tile picks it · on Entities, right-click selects (again: a menu) · "
+        ttk.Label(f, text="1-6 layers · Shift+click fill · right-click a tile picks it · on Entities, right-click selects (again: a menu) · "
+                          "click again or Tab: the next thing under it · "
                           "Shift+right-click menu · Delete removes · "
                           "arrows move (Shift ×8) · Ctrl+arrows next map · PgUp/PgDn levels · P W Z G views · "
-                          "Ctrl+wheel zoom (where the mouse is) · middle-drag or Space+drag moves the view (so do "
-                          "the arrows with nothing selected) · double-click an edge to go there",
+                          "Ctrl+wheel zoom (where the mouse is: far out, the whole level) · middle-drag or Space+drag "
+                          "moves the view (so do the arrows with nothing selected) · click any map to open it, "
+                          "double-click a + to make one there",
                   style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
 
     def insp_cell(self, f):
@@ -2113,10 +2781,23 @@ class MapPage(Page):
     def id_field(self, f, e):
         """Id= names this one thing: scripts "<Verb> <Id>" (e.g. Pickup CellarKey, Read Ashford, Talk to OldHob) come
         before "<Verb> <Name>". A link to its script for the left-click verb."""
-        self.field(f, "Id", e.opt("Id"), lambda v: self.set_opt(e, "Id", v.strip().replace(" ", "_")), width=16)
+        oid = e.opt("Id")
+        row = ttk.Frame(f, style="Panel.TFrame")
+        row.pack(fill="x", pady=2)
+        ttk.Label(row, text="Id", style="Panel.TLabel", width=10).pack(side="left")
+        if oid:                                         # (renamed, everything that uses it follows)
+            ttk.Label(row, text=oid, style="Panel.TLabel", font=T.FONT_BOLD).pack(side="left")
+            ttk.Button(row, text="Rename…", style="Small.TButton", command=lambda: self.rename_place(e)).pack(
+                side="left", padx=6)
+        else:
+            v = tk.StringVar()
+            ent = ttk.Entry(row, textvariable=v, width=16)
+            ent.pack(side="left", fill="x", expand=True)
+            give = lambda ev=None: v.get().strip() and self.set_opt(e, "Id", v.get().strip().replace(" ", "_"))
+            ent.bind("<Return>", give)
+            ent.bind("<FocusOut>", give)
         ttk.Label(f, text="Names this one (unique in the world): the game runs \"<Verb> <Id>\" before \"<Verb> %s\"."
                   % e.name, style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
-        oid = e.opt("Id")
         if not oid:
             return
         self.script_links(f, oid, self.verbs_of(e))
@@ -2282,23 +2963,53 @@ class MapPage(Page):
                 return name
 
     def rename_place(self, ent):
-        old = ent.name
-        new = self.ask_place_name(old, "Rename the place %s" % old, mine=ent)
-        if new is None:
-            return
-        uses = self.project.place_uses(old)
-        self.remember()
-        ent.name = new
+        """A named tile (an Id line) or a thing's Id=, renamed: asked for, then everything that uses it follows."""
+        old = ent.name if ent.kind == "Id" else ent.opt("Id")
+        new = self.ask_place_name(old, "Rename %s" % old, mine=ent)
+        if new is not None:
+            self.rename_everywhere(old, new, ent)
+
+    def rename_everywhere(self, old, new, ent=None):
+        """Place or Id old is new: on its map (ent, or found by its name on any map), in the quests' markers, in the
+        scripts that name it, and in its own scripts' names ("Examine <old>" is "Examine <new>"). The map's saved
+        with it (so the files all agree), unless it has other changes not saved yet. True if it was found."""
+        if ent is None:
+            pl = self.project.places().get(old.upper())
+            doc = None
+            for d in ([self.docs[pl[1]]] if pl and pl[1] in self.docs else []) + list(self.docs.values()) + \
+                    ([self.get_doc(pl[1])] if pl else []):
+                ent = next((e for e in d.placed() if (e.kind == "Id" and e.name == old) or
+                            (e.kind not in TILE_KINDS and e.opt("Id") == old)), None)
+                if ent is not None:
+                    doc = d
+                    break
+            if ent is None:
+                self.app.status("There's no place or thing called %s on any map." % old, "warn")
+                return False
+        else:
+            doc = next((d for d in self.docs.values() if ent in d.entities), self.doc)
+        clean = not self.dirty(doc.name)
+        if doc is self.doc:
+            self.remember()
+        else:
+            self.touch(doc)
+        if ent.kind == "Id":
+            ent.name = new
+        else:
+            ent.set_opt("Id", new)
+        n = self.project.rename_place_uses(old, new)
+        own = self.project.rename_own_scripts(old, new)
+        if clean:
+            self.save_doc(doc.name)
+        qp = self.app.page_of("quest")                      # (its form shows the markers as they are now)
+        if qp is not None and getattr(qp, "key", None) and not qp.is_dirty():
+            qp.load(qp.key)
         self.redraw()
         self.show_inspector()
-        if uses and messagebox.askyesno(
-                "Rename %s" % old, "%d script(s) and quest(s) use %s:\n\n%s\n\nChange them to %s too?" % (
-                    len(uses), old, "\n".join("%s %s" % u for u in uses[:15]), new), parent=self):
-            n = self.project.rename_place_uses(old, new)
-            self.app.status("Renamed %s to %s in the map and %d file(s): save the map so they match." % (old, new, n),
-                            "ok")
-        else:
-            self.app.status("Renamed %s to %s (save the map)." % (old, new), "ok")
+        self.app.status("Renamed %s to %s: on map %s%s, in %d script%s or quest%s that use%s it%s." % (
+            old, new, doc.name, " (saved)" if clean else " (save it)", n, "" if n == 1 else "s", "" if n == 1 else "s",
+            "s" if n == 1 else "", (", and its own scripts (%s)" % ", ".join(own)) if own else ""), "ok")
+        return True
 
     def insp_place(self, f, e):
         self.head(f, "Place  %s" % e.name, "Tile %d,%d of map %s, named so scripts and quests can use it instead of "

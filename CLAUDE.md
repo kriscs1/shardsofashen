@@ -221,7 +221,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
-- On the world map, places with no map look the same as unexplored ones.
+- On the world map, places with no map look the same as unexplored ones. A level under or over the world is drawn in
+  the world's frame and scale (`ui.js` worldFrame), so a cellar lies just under its house; only the levels of their
+  own fill the map.
 - **The mainland** (`dev/World Plan.md`) is built by `dev/migrate/build_estforlan.py` (its parts in
   `dev/migrate/estforlan`): change the plan there and run it again, never the maps by hand. The Isle is left alone.
   Galaith is a huge walled city in its own mountains west of the West Range (which runs down the whole west coast),
@@ -323,6 +325,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   deleted ones back with `git checkout -- sprites/Walk`.
 - Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run.
+- The map editor shows a level as one map (`dsedit/world.py`): a set in `data/TileSets.ini` is laid out by dragging,
+  by its layout and its pieces' `Piece=` (a 3-column grid stretches: corners, edges, middle; a rug's "runner"s; a
+  fence's "corner: east and south"...). Give a new set the same layout and piece names. Diagonal shore pieces are
+  `Water002-009` on grass and `<Land>_Water002-009` for `<Land>001`.
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
   `dev/migrate/validate.py`.
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.

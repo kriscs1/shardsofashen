@@ -3493,3 +3493,24 @@ def test_an_old_home_keeps_its_land_and_its_homestone_is_its_anchor(world):
     s = Session(w2, "Pioneer")
     s.load_state({"inventory": [["Access_Crystal", 1, 0]]})
     assert s.items_held("Hearth_Anchor") == 1                      # (the Access Crystal, as it's called now)
+
+
+def test_editor_lays_out_sets_and_smooths_coasts():
+    # The map editor (dsedit/world.py): a set dragged out over a rectangle gets its corners, edges and middle; a range's
+    # peaks are one tile in the palette; a coast's inside corner gets its diagonal shore piece
+    from dsedit.project import Project
+    from dsedit import world as WD
+    P = Project(ROOT)
+    roof = WD.shape(P, "Thatch_Roof005", 3, 5)
+    assert [r[0] for r in roof] == ["Thatch_Roof%03d" % n for n in (1, 4, 7, 10, 13)]
+    assert roof[2] == ["Thatch_Roof007", "Thatch_Roof008", "Thatch_Roof009"]      # (the ridge in the middle)
+    fence = WD.shape(P, "Wood_Fence001", 3, 3)
+    assert fence[1][1] is None and fence[0][0] == "Wood_Fence003"               # (round the edge only)
+    assert WD.shape(P, "Rug005", 1, 3) == [["Rug014"], ["Rug015"], ["Rug016"]]    # (a runner)
+    assert WD.shape(P, "Bench001", 3, 3) is None
+    assert WD.stand_ins(P)["Peak003"] == WD.stand_ins(P)["Mountain002"]
+    assert "Pebbles002" in WD.look_alikes(P, "Pebbles001") and WD.look_alikes(P, "Water002") == ["Water002"]
+    grid = {(x, y): "Water001" for x in range(5) for y in range(5)}
+    grid.update({(2, 1): "Grass001", (3, 1): "Grass001", (3, 2): "Grass001"})
+    WD.smooth_corners(P, lambda x, y: grid.get((x, y)), lambda x, y, t: grid.__setitem__((x, y), t), {(3, 2)})
+    assert grid[(2, 2)] == "Water002"                                           # (land to its north and east)

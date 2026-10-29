@@ -17,21 +17,49 @@ def tile_image(project, name):
     return _tile_cache[key]
 
 
+def ground_image(project, name, gx, gy):
+    """A ground tile at world tile gx, gy: its part of its big texture (Tiles.ini Texture=, sprites\\Textures) when
+    it has one, as the game paints it (so a range or a forest is one picture, whichever of its tiles was put down), else
+    its own sprite."""
+    tex = project.tile_values("Texture").get(name.lower())
+    big = _texture(project, tex) if tex else None
+    if big is None:
+        return tile_image(project, name)
+    tw, th = project.tile_w, project.tile_h
+    sx, sy = (gx * tw) % big.size[0], (gy * th) % big.size[1]
+    key = (id(project), "tex", tex, sx, sy)
+    if key not in _tile_cache:
+        sq = Image.new("RGBA", (tw, th), (0, 0, 0, 255))
+        sq.alpha_composite(big.crop((sx, sy, sx + tw, sy + th)))
+        _tile_cache[key] = sq
+    return _tile_cache[key]
+
+
+def _texture(project, tex):
+    key = (id(project), "texture", tex)
+    if key not in _tile_cache:
+        img = project.sprite("Textures", tex)
+        _tile_cache[key] = img.convert("RGBA") if img is not None else None
+    return _tile_cache[key]
+
+
 def forget_tiles():
     _tile_cache.clear()
 
 
 def render(project, doc, roofs=True, infront=True, entities=True, dim_roofs=False, only_rows=None, ground=True,
-           decor=True):
+           decor=True, origin=None):
     """ground=False: transparent where there's nothing but ground (a layer to put over another picture). decor: the
-    see-through tiles over the ground (they're part of it, as in the game)."""
+    see-through tiles over the ground (they're part of it, as in the game). origin: the world tile of the map's
+    top-left, for the tiles painted from a texture."""
     tw, th = project.tile_w, project.tile_h
     W, H = project.map_w, project.map_h
     im = Image.new("RGBA", (W * tw, H * th), (0, 0, 0, 255 if ground else 0))
     if ground:
         for y, row in enumerate(doc.cells):
             for x, cell in enumerate(row):
-                im.paste(tile_image(project, cell.tile), (x * tw, y * th))
+                im.paste(tile_image(project, cell.tile) if origin is None else
+                         ground_image(project, cell.tile, origin[0] + x, origin[1] + y), (x * tw, y * th))
     if decor:
         for y, row in enumerate(doc.cells):
             for x, cell in enumerate(row):

@@ -630,6 +630,28 @@ class Project:
             self._layers_key, self._layers = key, out
         return self._layers.get(layer, set())
 
+    def tile_values(self, key):
+        """{lower-case tile name: its Tiles.ini <key>} for every tile that has one, read in one pass (again whenever
+        Tiles.ini changes)."""
+        lines = self.tiles_ini.lines
+        stamp = hash(tuple(lines))
+        cache = getattr(self, "_values", None)
+        if cache is None or cache[0] != stamp:
+            cache = self._values = (stamp, {})
+        key = key.lower()
+        if key not in cache[1]:
+            out, sec = {}, None
+            for l in lines:
+                s = l.strip()
+                if s.startswith("[") and "]" in s:
+                    sec = s[1:s.index("]")].strip().lower()
+                elif sec and "=" in s and not s.startswith(";"):
+                    k, v = s.split("=", 1)
+                    if k.strip().lower() == key:
+                        out[sec] = v.strip()
+            cache[1][key] = out
+        return cache[1][key]
+
     def tile_sets(self):
         """data\\TileSets.ini: [(set, title, columns, [tile names row by row, "" = a gap])], read again when it
         changes. A set is tiles that go together (a roof, a rug, a fence); each tile's Tiles.ini Piece= says which
@@ -759,6 +781,31 @@ class Project:
                 self.quests_ini.save()
                 n += 1
         return n
+
+    def rename_own_scripts(self, old, new):
+        """A place's or a thing's own scripts ("<Verb> <old>": Examine Old_Well, Read Notice) renamed for new, and
+        anything that names one of them by name (another script's argument) too. Returns the scripts renamed."""
+        moved = []
+        for s in self.scripts():
+            if s.endswith(" " + old):
+                to = s[:-len(old)] + new
+                if to in self.scripts() or not os.path.exists(self.script_path(s)):
+                    continue
+                os.replace(self.script_path(s), self.script_path(to))
+                moved.append((s, to))
+        if moved:
+            self.refresh("scripts")
+            names = dict(moved)
+            for s in self.scripts():
+                try:
+                    lines = read_text_lines(self.script_path(s))
+                except OSError:
+                    continue
+                out = ["	".join(names.get(f, f) for f in l.split("	")) if not l.lstrip().startswith("//") else l
+                       for l in lines]
+                if out != lines:
+                    write_text_lines(self.script_path(s), out)
+        return [to for _, to in moved]
 
     def entity_type(self, name):
         if self.is_decor_object(name):
