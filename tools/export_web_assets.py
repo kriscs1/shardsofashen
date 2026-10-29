@@ -28,10 +28,10 @@ os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 import numpy as np  # noqa: E402
 import pygame  # noqa: E402
 
-from dragonsword import ini  # noqa: E402
-from dragonsword.anim import AnimMixin  # noqa: E402
-from dragonsword.assets import Assets  # noqa: E402
-from dragonsword import cursor as cursors  # noqa: E402
+from ashen import ini  # noqa: E402
+from ashen.anim import AnimMixin  # noqa: E402
+from ashen.assets import Assets  # noqa: E402
+from ashen import cursor as cursors  # noqa: E402
 from dsengine.data import GameData, SPRITE_FOLDERS  # noqa: E402
 
 OUT = os.path.join(ROOT, "web", "assets")

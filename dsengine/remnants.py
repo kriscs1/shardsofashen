@@ -4,7 +4,7 @@ less often, its magic rises as a Shard Remnant (a monster of its own, as strong 
 Level=) and goes for whoever killed it. Killed, a Shard Remnant leaves more remnants, and never rises again.
 
 Only monsters with a Level= leave them (the hostile ones: dev/migrate/build_shards.py gives them theirs)."""
-from dragonsword.lb import val, trim, rnd, parse_quantity
+from ashen.lb import val, trim, rnd, parse_quantity
 
 REMNANT = "Shard_Remnant"           # (the item on the ground)
 LIVING = "Living_Remnant"           # (the monster: "Shard Remnant" over its head)

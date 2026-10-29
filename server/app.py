@@ -12,7 +12,7 @@ from aiohttp import web
 from .game import GameServer
 from . import lan
 
-log = logging.getLogger("dragonsword.server")
+log = logging.getLogger("ashen.server")
 GAME = web.AppKey("game", GameServer)
 TICK = web.AppKey("tick", asyncio.Task)
 LAN = web.AppKey("lan", object)
@@ -60,7 +60,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
 
     def about():
         # (the answer to "who's there?" on the network)
-        return {"game": "dragonsword", "name": name or "Shards of Ashen on " + socket.gethostname(), "port": port,
+        return {"game": "shardsofashen", "name": name or "Shards of Ashen on " + socket.gethostname(), "port": port,
                 "online": len(game.world.sessions), "max": game.max_players, "version": game.version["version"]}
 
     async def start_tick(app):
@@ -83,7 +83,7 @@ def main():
     p = argparse.ArgumentParser(description="Shards of Ashen multiplayer server")
     root_default = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     p.add_argument("--root", default=os.environ.get("DS_ROOT", root_default), help="the game folder (Data, Maps...)")
-    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(root_default, "server-data", "dragonsword.db")))
+    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(root_default, "server-data", "ashen.db")))
     p.add_argument("--host", default=os.environ.get("DS_HOST", "0.0.0.0"))
     p.add_argument("--port", type=int, default=int(os.environ.get("DS_PORT", "8484")))
     p.add_argument("--max-players", type=int, default=int(os.environ.get("DS_MAX_PLAYERS", "5")))

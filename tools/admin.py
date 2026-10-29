@@ -19,8 +19,8 @@ from server.store import Store  # noqa: E402
 
 
 def main():
-    p = argparse.ArgumentParser(description="Dragon Sword server accounts")
-    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "server-data", "dragonsword.db")))
+    p = argparse.ArgumentParser(description="Shards of Ashen server accounts")
+    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "server-data", "ashen.db")))
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list")
     pw = sub.add_parser("password")

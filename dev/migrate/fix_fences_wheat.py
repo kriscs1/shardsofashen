@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from dsengine.fences import is_fence, fence_piece, OLD  # noqa: E402
 from build_isle import Map, XT, YT, TW  # noqa: E402
 

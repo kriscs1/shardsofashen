@@ -18,7 +18,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory) |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
 | `dsedit/` | The map/data editor |
-| `dragonsword/` | Shared helpers (`ini`, `lb`); the old desktop game is retired |
+| `ashen/` | Shared helpers (`ini`, `lb`); the old desktop game is retired |
 | `tests/` | `test_engine.py`, `test_server.py` (pytest) |
 
 References: `README-Server.md` (running, deploying, shared vs personal), `dev/Data Formats.md`,
@@ -257,8 +257,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 ## Look and sound
 
 - The game is **Shards of Ashen** (the page, the app, the docs), the kingdom **Ashen** (it was Estforlan), and the
-  port city **Northgate** (it was Southport). The Android package and the Docker image keep their `dragonsword`
-  names; the builders keep `estforlan` in their file names, and Northgate's Ids keep Southport (`Southport_Square`,
+  port city **Northgate** (it was Southport). Everything else is named for it too
+  (`dev/migrate/rename_shards_of_ashen.py`): the GitHub repository `kriscs1/shards-of-ashen`, the Docker image
+  `ghcr.io/kriscs1/shards-of-ashen` (the old `dragonsword` image is pushed as well for now, for servers set up before),
+  the Python package `ashen/`, the database `ashen.db` (an old `dragonsword.db` beside it is moved over as the server
+  starts), the Android app `io.github.kriscs1.shardsofashen`, and "Shards of Ashen Editor.py". Not the weapon (the
+  Dragon Sword, `Dragon_Sword`) or `dsengine/`, `dsedit/` and the `DS_` settings. The builders keep `estforlan` in their
+  file names, and Northgate's Ids keep Southport (`Southport_Square`,
   `Waystone.Southport`, the builders' town key "Southport", whose `title` is what's shown): rename only what players
   read (`dev/migrate/rename_ashen.py`).
 - A character is a man or a woman (`look.body`: `f` is a woman, the `PlayerF` sprites, long hair and a skirt, drawn by
@@ -333,5 +338,5 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
    DS_PORT=85xx python -m server`) and check there are no console errors and that it looks right, on a desktop and
    on a phone (a 915 x 412 touch viewport with `?app=android`).
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
-   `ghcr.io/kriscs1/dragonsword`) builds from GitHub.
+   `ghcr.io/kriscs1/shards-of-ashen`) builds from GitHub.
 7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`.

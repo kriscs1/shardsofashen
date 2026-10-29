@@ -3,7 +3,7 @@ of each player (their own Set.NPC.Attitude), picks a fight with the nearest play
 player it's fighting), faces whoever is near. Only NPCs on maps near a player think."""
 import math
 
-from dragonsword.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits
+from ashen.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits
 
 from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, TYPE_NAMES
 from .player_combat import CombatMixin

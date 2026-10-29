@@ -24,14 +24,14 @@ World.homes (Homes) keeps every home; HomeMixin is the player's side (Session)."
 import logging
 import time
 
-from dragonsword import ini
-from dragonsword.lb import val, trim, lbstr, strip_digits
+from ashen import ini
+from ashen.lb import val, trim, lbstr, strip_digits
 
 from .entity import STATICOBJECT
 from .fences import is_fence, fence_piece, join_around
 from .maps import MapData
 
-log = logging.getLogger("dragonsword.homes")
+log = logging.getLogger("ashen.homes")
 
 HOME_LEVEL = 1000               # home n is the map 0,0,<HOME_LEVEL + n>
 ANCHOR = "Hearth_Anchor"        # (what you carry: it was the Access Crystal)

@@ -1,6 +1,6 @@
 """A player's skills, hitpoints and spells, their fights (as the desktop game's combat.py; the NPC they fight is shared:
 its hitpoints go down for everyone, and it fights whoever hit it), spells and status effects (extras.py)."""
-from dragonsword.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
+from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
 
 from .entity import NPC, PLAYER, MAPITEM, TYPE_NAMES
 from .renames import SKILL_NAMES

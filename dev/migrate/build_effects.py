@@ -2,7 +2,7 @@
 
 Run:  python -I "dev\\migrate\\build_effects.py" [--preview]
 Deterministic and re-runnable: only files that change are written. --preview writes dev\\Renders\\Effects preview.png.
-The game loads these the first time each one is needed (fx_load in dragonsword\\combat.py), so there can be many.
+The game loads these the first time each one is needed (fx_load in ashen\\combat.py), so there can be many.
 
   Hit<N>, Crit<N>, Heal<N>  N = 1..99: a red splat, a yellow star (critical hit), a green drop (healing), with N on it
   Miss                     a blue splat with 0 on it (a miss, or a blow the armour turned)

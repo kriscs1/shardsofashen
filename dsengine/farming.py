@@ -11,10 +11,10 @@ World.farms (Farms) keeps the plots; FarmMixin is the player's side (Session).""
 import logging
 import random
 
-from dragonsword import ini
-from dragonsword.lb import val, trim, word, lbstr, clock_seconds
+from ashen import ini
+from ashen.lb import val, trim, word, lbstr, clock_seconds
 
-log = logging.getLogger("dragonsword.farming")
+log = logging.getLogger("ashen.farming")
 
 CHECK_MS = 1000
 STAGES = 3

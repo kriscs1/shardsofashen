@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, HERE)
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import DATA  # noqa: E402
 
 JIMMY = "Strawberry_Cat\tNPC\tAttitude=Good Zone=6,8,20,12 Nap=13,7 Pause=4-12 Id=Throne_Jimmy Name=Jimmy"

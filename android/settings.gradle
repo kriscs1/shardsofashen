@@ -1,4 +1,4 @@
-// Dragon Sword for Android: the game's own server and page, on the phone (see android/README.md)
+// Shards of Ashen for Android: the game's own server and page, on the phone (see android/README.md)
 pluginManagement {
     repositories {
         google()
@@ -13,5 +13,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "DragonSword"
+rootProject.name = "ShardsOfAshen"
 include ":app"

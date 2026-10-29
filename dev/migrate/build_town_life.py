@@ -27,7 +27,7 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 import pygame  # noqa: E402
 
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 
 DATA = os.path.join(ROOT, "data")
 ENTS = os.path.join(ROOT, "sprites", "Entities")

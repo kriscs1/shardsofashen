@@ -5,7 +5,7 @@ that no choice is better than another for its price: Shards.ini [Spellwright].
 
 It's the spell Own_Spell (Spells.ini has its section, a bolt, for what nothing here says), known like any other; its
 page, Spellwrights_Page, is what goes on the hotbar. Write it again whenever you like, for a few Shards."""
-from dragonsword.lb import val, trim, lbstr
+from ashen.lb import val, trim, lbstr
 
 OWN = "Own_Spell"
 PAGE = "Spellwrights_Page"

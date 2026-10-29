@@ -204,7 +204,7 @@ def place():
     """The arm-wrestling table: its data, and the Green Dragon's beer garden (2,3,0), by the third dice table."""
     sys.path.insert(0, ROOT)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from dragonsword import ini
+    from ashen import ini
     from build_isle import Map, DATA, obj_line
     ents = os.path.join(DATA, "Entities.ini")
     if not ini.section("Arm_Table", ents):                                   # (no footprint: like the dice tables)

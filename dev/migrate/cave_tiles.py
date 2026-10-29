@@ -1,4 +1,4 @@
-"""Cave and gathering tiles for Dragon Sword v2 (used by build_tiles.py, which writes the sprites).
+"""Cave and gathering tiles for Shards of Ashen (used by build_tiles.py, which writes the sprites).
 
 Every function returns a 32x32 opaque image (rows of (r, g, b)). Floors, walls, water, tracks and fields are
 drawn wrap-around so they tile seamlessly. Run build_tiles.py with --preview to get dev\\Renders\\Tiles preview.png

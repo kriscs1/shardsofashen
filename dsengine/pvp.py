@@ -3,7 +3,7 @@ both players must be standing on (the arena's sand; empty = anywhere on those ma
 all work; your gear, armour and skills count as they do against monsters. Beaten in the arena you lose nothing: you're
 healed and wake by the gate (Respawn.Map / Respawn.X / Respawn.Y), and the arena hears who won (ArenaWins and
 ArenaLosses are kept as attributes)."""
-from dragonsword.lb import val, lbstr, random_number, rnd, trim
+from ashen.lb import val, lbstr, random_number, rnd, trim
 
 from .entity import PLAYER
 

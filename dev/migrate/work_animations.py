@@ -11,7 +11,7 @@ in, as a blow in a fight does. Run it again: a script that has them already is l
   Use Shears With Sheep  Crafting  Wool_Tufts
   Pick *            Alchemy      (no animation: a skill shown)
 Inserting a line moves the ones after it down: every jump to them (any argument that is a line number, as
-dragonsword/script_language.py names them) moves with them.
+ashen/script_language.py names them) moves with them.
 """
 import glob
 import os
@@ -21,7 +21,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
 
-from dragonsword import script_language as L  # noqa: E402
+from ashen import script_language as L  # noqa: E402
 
 SCRIPTS = os.path.join(ROOT, "data", "Scripts")
 # script name pattern: (skill, animation, the work sound it replaces or None, fixed beats or None)

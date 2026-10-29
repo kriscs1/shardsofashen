@@ -1,6 +1,6 @@
 # Trying changes on this PC before publishing them: builds the server from these files ("Test Locally.bat").
 # http://localhost:8484. Its characters and world are its own (the testdata volume), not the real server's.
-name: dragonsword-test
+name: shards-of-ashen-test
 
 services:
   game:
@@ -11,7 +11,7 @@ services:
         DS_BUILD: ${DS_BUILD:-}
         DS_COMMIT: ${DS_COMMIT:-}
         DS_BUILD_DATE: ${DS_BUILD_DATE:-}
-    image: dragonsword:local
+    image: shards-of-ashen:local
     restart: unless-stopped
     ports:
       - "8484:8484"

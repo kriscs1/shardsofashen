@@ -1,5 +1,5 @@
 """Scripts: data\\Scripts\\*.txt. Each line is a command and its arguments; the editor knows every command's arguments
-(dragonsword/script_language.py) and gives each the right choices and builders. Goto lines renumber themselves."""
+(ashen/script_language.py) and gives each the right choices and builders. Goto lines renumber themselves."""
 import os
 import time
 import tkinter as tk

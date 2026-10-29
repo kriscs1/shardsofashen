@@ -6,7 +6,7 @@ come back for it when they've room. It works for every chest's script as it is: 
 Each player's chests are their own: the chest scripts already give each player their reward once."""
 import random
 
-from dragonsword.lb import lbstr, pretty
+from ashen.lb import lbstr, pretty
 
 from .entity import ACTIONBOXITEM, INVENTORYITEM, STATICOBJECT
 

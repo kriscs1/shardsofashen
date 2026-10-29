@@ -1,10 +1,10 @@
-r"""Read the script language (dragonsword/script_language.py), check it, check the scripts, and write dev\Script Commands.txt.
+r"""Read the script language (ashen/script_language.py), check it, check the scripts, and write dev\Script Commands.txt.
    Usage: python -I dev\migrate\build_script_reference.py . "dev\Script Commands.txt"   (run from the game folder)"""
 import re, sys, os, glob
 
 root = sys.argv[1]
 sys.path.insert(0, root)
-from dragonsword import script_language as L     # the script language (it used to be [SE.Get.Commands] in the .bas)
+from ashen import script_language as L     # the script language (it used to be [SE.Get.Commands] in the .bas)
 cmd = {i + 1: dict([(1, name), (2, str(len(args)))] + [(3 + k, a) for k, a in enumerate(args)])
        for i, (name, args) in enumerate(L.COMMANDS)}
 var_n = {i + 1: v for i, v in enumerate(L.VARIABLES)}
@@ -47,10 +47,10 @@ for f in sorted(glob.glob(os.path.join(root, 'data', 'Scripts', '*.txt'))):
 if len(sys.argv) > 2:
     out = []
     w = out.append
-    w('Dragon Sword v2 - Script Commands')
+    w('Shards of Ashen - Script Commands')
     w('=================================')
     w('')
-    w('Generated from dragonsword/script_language.py, which defines the script language.')
+    w('Generated from ashen/script_language.py, which defines the script language.')
     w('Do not rename commands or change their arguments: the game implements exactly this list.')
     w('(Help texts below are the ones shown when you right-click a cell in the Script Editor;')
     w('a "|" in a help text is a line break.)')

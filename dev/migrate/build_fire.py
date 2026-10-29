@@ -15,7 +15,7 @@ sys.path.insert(0, ROOT)
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 import pygame  # noqa: E402
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 
 FRAMES = 6
 OUTLINE = (30, 20, 16)

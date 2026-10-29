@@ -2,7 +2,7 @@
 broadcast. Anything on the network sends PROBE to UDP port DS_LAN_PORT (8485) of 255.255.255.255; every server there
 answers, to whoever asked, with what it is:
 
-  {"game": "dragonsword", "name": "Kris's world", "port": 8484, "online": 2, "max": 5, "version": "1.0.116"}
+  {"game": "shardsofashen", "name": "Kris's world", "port": 8484, "online": 2, "max": 5, "version": "1.0.116"}
 
 DS_LAN=0 turns it off. (A server in Docker is only found with host networking: broadcasts don't cross Docker's own
 network. Anyone can still join it by its address.)"""
@@ -13,8 +13,8 @@ import os
 import socket
 import time
 
-log = logging.getLogger("dragonsword.lan")
-PROBE = b"DRAGONSWORD?"
+log = logging.getLogger("ashen.lan")
+PROBE = b"SHARDSOFASHEN?"
 
 
 class Responder(asyncio.DatagramProtocol):
@@ -76,7 +76,7 @@ def find(seconds=1.5, port=8485, to=("255.255.255.255",)):
                 answer = json.loads(data.decode("utf-8"))
             except ValueError:
                 continue
-            if answer.get("game") == "dragonsword":
+            if answer.get("game") == "shardsofashen":
                 found[(addr[0], answer.get("port"))] = (addr[0], answer)
     finally:
         sock.close()

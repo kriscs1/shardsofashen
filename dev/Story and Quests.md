@@ -1,4 +1,4 @@
-# Dragon Sword: the story and its quests
+# Shards of Ashen: the story and its quests
 
 A summary of the quests in the game as it stands, for planning the story and making changes. The main quest line
 comes first, step by step; then the side quests, by region. The last section says where each quest lives in the

@@ -389,7 +389,7 @@ AMBIENT = {
     "Lair": lambda: loop_of(lambda c: mix((noise(571, c, 0.006), 1.4),
                                           (scaled(noise(572, c, 0.03), swell(c, 2, 0.9, 0.0)), 0.6))),
     "Indoors": lambda: loop_of(lambda c: mix((noise(581, c, 0.01), 0.3), (crackle(582, LOOP + 0.5, 0.004)[:c], 0.5))),
-    # the weather (dragonsword\weather.py plays these instead of a place's own while it rains)
+    # the weather (ashen\weather.py plays these instead of a place's own while it rains)
     # rain: a patter of drops over a soft, steady hiss (no low rushing or swelling: that sounded like wind), now
     # and then a drip from the eaves; a storm: heavier, with a low steady rumble under it
     "Rain": lambda: loop_of(lambda c: mix((noise(591, c, 0.4, high=0.5), 0.12), (rainfall(592, c, 0.006), 0.5),

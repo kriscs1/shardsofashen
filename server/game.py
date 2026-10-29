@@ -14,7 +14,7 @@ from dsengine.view import snapshot
 from . import auth
 from .store import Store
 
-log = logging.getLogger("dragonsword.server")
+log = logging.getLogger("ashen.server")
 
 TICK = 0.05
 SAVE_EVERY = 60

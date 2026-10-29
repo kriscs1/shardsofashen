@@ -3,7 +3,7 @@ their browser sends. The browser works out the verbs to show; the server works t
 the player really has."""
 import math
 
-from dragonsword.lb import val, word, trim, lbstr, distance, strip_digits, pretty
+from ashen.lb import val, word, trim, lbstr, distance, strip_digits, pretty
 
 from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE, ROOF,
                      ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES)
@@ -748,7 +748,7 @@ class ActionsMixin:
     def admin_places(self):
         """[[group, label, where]] for Go to: the world map's names, then every named tile, person and thing (Id=).
         where is a place ID or "map tx ty"."""
-        from dragonsword import ini
+        from ashen import ini
         d = self.data
         out = []
         for sec, items in ini.sections(d.data_file("WorldMap.ini")):
@@ -760,7 +760,7 @@ class ActionsMixin:
         return out
 
     def admin_command(self, msg):
-        from dragonsword import ini
+        from ashen import ini
         what = msg.get("do")
         d = self.data
         if what == "items":
@@ -768,13 +768,13 @@ class ActionsMixin:
         elif what == "places":
             self.emit({"t": "admin_places", "places": self.admin_places()})
         elif what == "commands":
-            from dragonsword import script_language as L
+            from ashen import script_language as L
             self.emit({"t": "admin_commands", "commands": [[n, a, L.help_for(n).replace("|", " "),
                                                              [L.help_for(t).replace("|", " ") for t in a]]
                                                             for n, a in L.commands().items()]})
         elif what == "script":
             # (any script command, run now as a script of one line: the same as a script file's)
-            from dragonsword import script_language as L
+            from ashen import script_language as L
             cmd = str(msg.get("command", ""))
             kinds = L.commands().get(cmd)
             if kinds is None:

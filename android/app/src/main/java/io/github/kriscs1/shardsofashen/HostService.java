@@ -1,4 +1,4 @@
-package io.github.kriscs1.dragonsword;
+package io.github.kriscs1.shardsofashen;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -103,13 +103,13 @@ public class HostService extends Service {
     private void hold() {
         // (the phone stays awake and on its Wi-Fi while it hosts, and hears the network's "who's there?")
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "dragonsword:host");
+        wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "shardsofashen:host");
         wake.acquire();
         WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (wm != null) {
-            wifi = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "dragonsword:host");
+            wifi = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "shardsofashen:host");
             wifi.acquire();
-            multicast = wm.createMulticastLock("dragonsword:find");
+            multicast = wm.createMulticastLock("shardsofashen:find");
             multicast.acquire();
         }
     }

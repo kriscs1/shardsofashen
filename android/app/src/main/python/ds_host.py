@@ -42,7 +42,7 @@ def start(root, db, name, port, build):
         loop.run_until_complete(runner.cleanup())   # (everyone saved, the world too)
         loop.close()
 
-    thread = threading.Thread(target=serve, name="dragonsword", daemon=True)
+    thread = threading.Thread(target=serve, name="shardsofashen", daemon=True)
     _run["thread"] = thread
     thread.start()
     ready.wait(120)

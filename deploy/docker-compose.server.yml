@@ -2,13 +2,13 @@
 # every few minutes and restarts the game with it (everyone's progress is kept in the gamedata volume). Both start
 # again on their own whenever Docker starts. This file is inside the game's image, so a server needs nothing else:
 #
-#   docker run --rm ghcr.io/kriscs1/dragonsword cat docker-compose.yml > docker-compose.yml && docker compose up -d
+#   docker run --rm ghcr.io/kriscs1/shards-of-ashen cat docker-compose.yml > docker-compose.yml && docker compose up -d
 #
 # Settings: put them in a file called .env beside this one (one per line, e.g. DS_PORT=8090), or change the defaults
 # after ":-" below. Then "docker compose up -d" again.
 #   DS_PORT           the port players connect to: http://<server>:<port> (8484)
 #   DS_DATA           where the game's data is kept: accounts, characters, the world, homes, daily backups. A folder
-#                     on the server (e.g. /srv/dragonsword) or a Docker volume's name (gamedata, the default)
+#                     on the server (e.g. /srv/shards-of-ashen) or a Docker volume's name (gamedata, the default)
 #   DS_ADMINS         characters who get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
 #                     (make those characters before you tell anyone the address, or someone else could take the name)
 #   DS_INVITE_CODE    if set, making a character needs this code
@@ -17,11 +17,11 @@
 #   DS_MAX_PLAYERS    how many can play at once (5)
 #   DS_UPDATE_SECONDS how often to look for a new version (300)
 #   GHCR_USER / GHCR_TOKEN   only if the image is private
-name: dragonsword
+name: shards-of-ashen
 
 services:
   game:
-    image: ${DS_IMAGE:-ghcr.io/kriscs1/dragonsword:latest}
+    image: ${DS_IMAGE:-ghcr.io/kriscs1/shards-of-ashen:latest}
     restart: unless-stopped
     ports:
       - "${DS_PORT:-8484}:8484"
@@ -58,7 +58,7 @@ services:
         echo "Checking for updates every $$DS_UPDATE_SECONDS seconds";
         while true; do
           sleep "$$DS_UPDATE_SECONDS";
-          if docker compose -p dragonsword pull -q game; then docker compose -p dragonsword up -d game; fi;
+          if docker compose -p shards-of-ashen pull -q game; then docker compose -p shards-of-ashen up -d game; fi;
         done
 
 volumes:

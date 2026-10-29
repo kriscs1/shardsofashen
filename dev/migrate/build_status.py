@@ -1,4 +1,4 @@
-"""The monsters that fight from afar, status effects and the gravestone (the game's side: dragonsword\\extras.py).
+"""The monsters that fight from afar, status effects and the gravestone (the game's side: ashen\\extras.py).
 
   * Ranged and casting monsters (drawn by build_people.py, walking frames by build_walk.py): the Goblin_Archer and the
     Skeleton_Archer shoot arrows; the Goblin_Shaman throws fire (it can set you alight) and the Frost_Witch ice (it
@@ -93,13 +93,13 @@ def extend(W, C):
     C.MOVEMENT.update(MOVEMENT)
     for name, effect in ON_HIT.items():
         C.ENTITY_KEYS.setdefault(name, []).append(("On.Hit", effect))
-    # who's out when (dragonsword\daynight.py): townsfolk and the meadow's creatures by day, bats and the
+    # who's out when (ashen\daynight.py): townsfolk and the meadow's creatures by day, bats and the
     # skeletons of the open country by night (in the caves they're always about)
     for name in ("Villager", "Man", "Woman", "Settler", "Dog", "Butterfly", "Rabbit", "Chicken", "Duck"):
         C.ENTITY_KEYS.setdefault(name, []).append(("Schedule", "Day"))
     for name in ("Bat", "Skeleton", "Skeleton_Archer"):
         C.ENTITY_KEYS.setdefault(name, []).append(("Schedule", "Night"))
-    # durability (dragonsword\durability.py): how many blows each weapon and piece of armour takes, by what it's made
+    # durability (ashen\durability.py): how many blows each weapon and piece of armour takes, by what it's made
     # of; and the smiths who mend it all for gold
     import re
     slots = {}

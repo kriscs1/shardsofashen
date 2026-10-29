@@ -1,5 +1,5 @@
 # Every push to main builds the server's Docker image (with its pictures, animations and music) and puts it in
-# GitHub's registry as ghcr.io/<you>/dragonsword:latest. The servers' updaters pull it and restart the game.
+# GitHub's registry as ghcr.io/<you>/shards-of-ashen:latest. The servers' updaters pull it and restart the game.
 name: Build the server image
 
 on:
@@ -46,7 +46,9 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/dragonsword
+          images: |           # (the old name too, for now: servers set up before the rename still pull it)
+            ghcr.io/${{ github.repository_owner }}/shards-of-ashen
+            ghcr.io/${{ github.repository_owner }}/dragonsword
           tags: |
             type=raw,value=latest
             type=sha,prefix=

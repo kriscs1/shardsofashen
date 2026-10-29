@@ -1,7 +1,7 @@
 """A player's quests (data\\Quests.ini, their attributes and journal notes), the journal's lists of what they can
 make and gather (as the desktop game's quests.py and screens.py worked them out) and the quest markers on the minimap."""
-from dragonsword import ini
-from dragonsword.lb import val, word, trim, lbstr, pretty
+from ashen import ini
+from ashen.lb import val, word, trim, lbstr, pretty
 from .shards import quest_xp
 
 

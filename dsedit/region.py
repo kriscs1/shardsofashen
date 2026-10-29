@@ -11,7 +11,7 @@ import os
 import re
 from collections import Counter
 
-from dragonsword import script_language as L
+from ashen import script_language as L
 
 TILE_KINDS = ("Trigger", "Lock", "Id")
 LAYER_PARTS = ("Under", "Decor", "Roof", "Infront")

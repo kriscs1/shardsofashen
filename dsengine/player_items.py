@@ -4,8 +4,8 @@ durability.py and extras.py, for one player of many: shop stock is shared (the w
 import math
 import os
 
-from dragonsword import ini
-from dragonsword.lb import val, word, trim, lbstr, pretty, random_number
+from ashen import ini
+from ashen.lb import val, word, trim, lbstr, pretty, random_number
 
 from .entity import InvItem, Entity, ACTIONBOXITEM, MAPITEM, STATICOBJECT
 from .shards import SHARD

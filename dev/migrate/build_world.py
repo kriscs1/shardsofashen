@@ -1,4 +1,4 @@
-"""Build the expanded Dragon Sword world: the Southlands (new maps), their scripts and data.
+"""Build the expanded Shards of Ashen world: the Southlands (new maps), their scripts and data.
 
 Run:  python -I "dev\\migrate\\build_world.py"            (then validate.py, build_minimaps.py)
 Re-runnable: every file is rewritten from the definitions below, and only when its content changes.
@@ -1233,7 +1233,7 @@ def check_scripts_exist(problems):
 
 
 def wrap_text(text, width=48):
-    """wrap_text in dragonsword\\lb.py: a backslash is a line break, and a space at or past width chars breaks the line."""
+    """wrap_text in ashen\\lb.py: a backslash is a line break, and a space at or past width chars breaks the line."""
     out, n = "", 0
     for c in text.replace("\\", "|"):
         if c == "|":

@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 import pygame  # noqa: E402
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import Map, TW, DATA, TILES_INI, obj_line  # noqa: E402
 
 ENTS = os.path.join(DATA, "Entities.ini")

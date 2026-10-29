@@ -14,7 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))
 sys.path.insert(0, HERE)
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import Map, DATA, TW  # noqa: E402
 
 QUEST = "Granny Wren's Walk"

@@ -1,4 +1,4 @@
-"""Content for Dragon Sword v2 on top of the Southlands: caves, more NPCs and monsters, items, gathering,
+"""Content for Shards of Ashen on top of the Southlands: caves, more NPCs and monsters, items, gathering,
 crafting, shops and quests.
 
 Not run on its own: build_world.py imports it and calls extend() (so `python -I "dev\\migrate\\build_world.py"`

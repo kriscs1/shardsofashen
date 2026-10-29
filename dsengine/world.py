@@ -9,7 +9,7 @@ import logging
 import math
 import random
 
-from dragonsword.lb import (val, word, field, trim, lbstr, distance, strip_digits, parse_quantity, wildcard_match,
+from ashen.lb import (val, word, field, trim, lbstr, distance, strip_digits, parse_quantity, wildcard_match,
                             clock_ms, clock_seconds, rnd, random_number)
 
 from .data import GameData
@@ -26,7 +26,7 @@ from .tavern import Tavern
 from .minigames import Arms
 from .npcs import NPCMixin
 
-log = logging.getLogger("dragonsword.world")
+log = logging.getLogger("ashen.world")
 
 PF_DIRS = ((0, -1, 10), (1, 0, 10), (0, 1, 10), (-1, 0, 10), (1, -1, 14), (1, 1, 14), (-1, 1, 14), (-1, -1, 14))
 DOOR_REACH = 34
@@ -1215,7 +1215,7 @@ class World(NPCMixin):
             s.emit(self.clock_event())
 
     def dn(self, section, key, default=""):
-        from dragonsword import ini
+        from ashen import ini
         return ini.read(section, key, str(default), self.data.data_file("DayNight.ini"))
 
     def is_night(self, t=None):
@@ -1233,7 +1233,7 @@ class World(NPCMixin):
         """The world map's labels (data\\WorldMap.ini): [{n: name, k: t(own)/r(egion)/p(lace), x, y (global pixels),
         z, m: its map, c: a condition (Name=Place [if $Attr.X>=3]: shown to those it's true for)}], worked out once."""
         if getattr(self, "_labels", None) is None:
-            from dragonsword import ini
+            from ashen import ini
             path = self.data.data_file("WorldMap.ini")
             out = []
             for kind in ("Towns", "Regions", "Places"):
@@ -1266,15 +1266,15 @@ class World(NPCMixin):
         return val(self.data.config_read("Gameplay", "Weather", "1")) == 1 and os.path.exists(self.weather_path())
 
     def weather_set(self, key, default=""):
-        from dragonsword import ini
+        from ashen import ini
         return ini.read("Weather", key, str(default), self.weather_path())
 
     def weather_of(self, kind, key, default=""):
-        from dragonsword import ini
+        from ashen import ini
         return ini.read("Kind." + kind, key, str(default), self.weather_path())
 
     def climate_odds(self, clim):
-        from dragonsword import ini
+        from ashen import ini
         items = ini.section("Climate." + clim, self.weather_path()) if clim else []
         if not items:
             items = ini.section("Climate.Default", self.weather_path())
@@ -1289,7 +1289,7 @@ class World(NPCMixin):
 
     def climate(self, map_name, z):
         """The climate on a map: its Ambient.ini sound if Weather.ini has a [Climate.<it>]; None underground."""
-        from dragonsword import ini
+        from ashen import ini
         if z != 0:
             return None
         cache = self.data.cache("climate")

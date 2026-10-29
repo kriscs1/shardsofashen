@@ -1,4 +1,4 @@
-"""Small pixel-art toolkit for the Dragon Sword sprite generators (build_tiles.py, build_sprites.py).
+"""Small pixel-art toolkit for the Shards of Ashen sprite generators (build_tiles.py, build_sprites.py).
 
 An image is a list of rows of (r, g, b) tuples or None (None = transparent). Saving writes the LB sprite format:
 a 24-bit BMP twice the visible height, top half = mask (black = drawn, white = see-through),

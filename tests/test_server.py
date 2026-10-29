@@ -318,9 +318,22 @@ def test_a_game_on_the_network_answers_who_is_there(tmp_path, monkeypatch):
         found = await asyncio.get_running_loop().run_in_executor(None, lambda: lan.find(1.0, lan_port, ("127.0.0.1",)))
         assert len(found) == 1
         address, answer = found[0]
-        assert address == "127.0.0.1" and answer["game"] == "dragonsword" and answer["max"] == 5
+        assert address == "127.0.0.1" and answer["game"] == "shardsofashen" and answer["max"] == 5
         async with aiohttp.ClientSession() as http:
             async with http.get(base + "/manifest.webmanifest") as r:
                 assert r.status == 200 and json.loads(await r.text())["display"] == "fullscreen"
         await runner.cleanup()
     asyncio.run(run())
+
+
+def test_a_database_under_the_old_name_carries_on_under_the_new_one(tmp_path):
+    old = Store(str(tmp_path / "dragonsword.db"))
+    old.create_account("Keeper", "x")
+    old.close()
+    new = Store(str(tmp_path / "ashen.db"))                         # (the game's name everywhere now)
+    assert new.account("Keeper") is not None
+    assert not os.path.exists(tmp_path / "dragonsword.db") and os.path.exists(tmp_path / "ashen.db")
+    new.close()
+    fresh = Store(str(tmp_path / "other" / "ashen.db"))             # (nothing old beside it: a new one)
+    assert fresh.account("Keeper") is None
+    fresh.close()

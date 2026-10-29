@@ -1,0 +1,20 @@
+# Without Docker: the game folder in /opt/shards-of-ashen, a Python virtualenv in /opt/shards-of-ashen/venv
+# (pip install -r requirements.txt; python tools/export_web_assets.py once), and a reverse proxy with HTTPS in front
+# (Caddy: "your.domain { reverse_proxy 127.0.0.1:8484 }").
+#   sudo cp deploy/shards-of-ashen.service /etc/systemd/system/ && sudo systemctl enable --now shards-of-ashen
+[Unit]
+Description=Shards of Ashen game server
+After=network.target
+
+[Service]
+User=shards-of-ashen
+WorkingDirectory=/opt/shards-of-ashen
+Environment=DS_DB=/var/lib/shards-of-ashen/ashen.db DS_HOST=127.0.0.1 DS_PORT=8484 DS_MAX_PLAYERS=5
+ExecStart=/opt/shards-of-ashen/venv/bin/python -m server
+Restart=on-failure
+KillSignal=SIGTERM
+TimeoutStopSec=20
+StateDirectory=shards-of-ashen
+
+[Install]
+WantedBy=multi-user.target

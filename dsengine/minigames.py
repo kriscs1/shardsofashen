@@ -10,7 +10,7 @@
 MinigameMixin is the player's side (Session); World.arms keeps the bouts."""
 import random
 
-from dragonsword.lb import val
+from ashen.lb import val
 
 SLIPS = 3                               # (slips of the pick before it slides out)
 ARM_SECONDS = 25

@@ -8,8 +8,8 @@ Shards, besides (only when a hole is dug): Shards.Chance in 100 of Shards=lo-hi,
 now and then (Cache.Chance in 100) a cache of them, Cache=lo-hi."""
 import random
 
-from dragonsword import ini
-from dragonsword.lb import val, word, strip_digits, lbstr
+from ashen import ini
+from ashen.lb import val, word, strip_digits, lbstr
 
 HOLE = "Dug_Hole001"
 

@@ -18,7 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import Map, XT, YT, TW, DATA, obj_line, house, maps_cache, path, gpos, scatter, write_script  # noqa: E402
 
 CENTRE = (97.0, 18.0)                 # (the new land's middle, in global tiles: 3,0,0's east, 4,0,0's west)

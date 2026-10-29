@@ -1,7 +1,7 @@
-Dragon Sword v2 - Script Commands
+Shards of Ashen - Script Commands
 =================================
 
-Generated from dragonsword/script_language.py, which defines the script language.
+Generated from ashen/script_language.py, which defines the script language.
 Do not rename commands or change their arguments: the game implements exactly this list.
 (Help texts below are the ones shown when you right-click a cell in the Script Editor;
 a "|" in a help text is a line break.)

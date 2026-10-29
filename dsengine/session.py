@@ -9,7 +9,7 @@ import json
 import logging
 import math
 
-from dragonsword.lb import val, word, trim, lbstr, distance, clock_ms, pretty
+from ashen.lb import val, word, trim, lbstr, distance, clock_ms, pretty
 
 from .entity import Entity, InvItem, PLAYER, TILE, NPC, MAPITEM
 from .player_items import ItemsMixin
@@ -32,7 +32,7 @@ from .tricks import TrickMixin
 from .deep import DeepMixin
 from .shardcraft import ShardcraftMixin
 
-log = logging.getLogger("dragonsword.session")
+log = logging.getLogger("ashen.session")
 
 HOTBAR_SLOTS = 5
 LOOK_PARTS = ("skin", "hair", "shirt", "legs")
@@ -448,7 +448,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
 
     def new_player_start(self):
         """A new character: saves\\TEMPLATE.ini's skills, inventory, equipment and bank."""
-        from dragonsword import ini
+        from ashen import ini
         path = self.data.path("saves", "TEMPLATE.ini")
         d = self.data
         r = lambda s, k, default: ini.read(s, k, default, path)

@@ -3,10 +3,10 @@ footprints and positions of things; the pictures themselves are the browser's), 
 Everything that doesn't change while the game runs; the INI files are read again when they change on disk."""
 import os
 
-from dragonsword import ini
-from dragonsword.entity import PLAYER, NPC, TILE, INFRONTTILE, ROOF, TYPE_NAMES, DEFAULT_LIMITS
-from dragonsword.lb import val, trim, lbstr, strip_digits
-from dragonsword.places import read_places
+from ashen import ini
+from ashen.entity import PLAYER, NPC, TILE, INFRONTTILE, ROOF, TYPE_NAMES, DEFAULT_LIMITS
+from ashen.lb import val, trim, lbstr, strip_digits
+from ashen.places import read_places
 
 from .imgsize import sprite_size
 
@@ -261,7 +261,7 @@ class GameData:
     def cell_under(self, spec):
         """What a cell spec puts on the floor under its decor: +Under(Name), or a Layer=Under tile on its own
         (None: leave it as it is)."""
-        from dragonsword.lb import word
+        from ashen.lb import word
         spec = trim(spec)
         k = 2
         while word(spec, k, "+") != "":
@@ -342,7 +342,7 @@ class GameData:
 
     def cell_spec(self, spec):
         """What a cell is to change to: (ground tile or "", decor or None = leave the decor as it is)."""
-        from dragonsword.lb import word
+        from ashen.lb import word
         spec = trim(spec)
         tile = trim(word(spec, 1, "+"))
         decor = None

@@ -16,7 +16,7 @@ Each sprite in sprites\\Entities is the standing pose; the frames are made from 
   * SIDE (animals: drawn side-on, all facing west). Two directions, east (mirrored) and west; walking going north or
     south keeps the way it last faced. Frames b and c bob the body and move the legs apart and together.
   * FLAP (the bat and the giant spider: symmetric, seen from the front). Two directions; the frames bob.
-The game (animation_available in dragonsword\\entities.py) loads sprites\\Walk\\<Name>1a.png ... the first time an entity of
+The game (animation_available in ashen\\entities.py) loads sprites\\Walk\\<Name>1a.png ... the first time an entity of
 that name is shown: all 12 frames = four directions, <Name>2a..c and <Name>8a..c only = side-on.
 """
 import os

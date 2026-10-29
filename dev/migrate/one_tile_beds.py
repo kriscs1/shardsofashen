@@ -36,7 +36,7 @@ def pictures():
     pygame.init()
     pygame.display.set_mode((1, 1))
     pygame.image.save(single_bed(), os.path.join(TILES, "Bed001.png"))
-    from dragonsword import ini
+    from ashen import ini
     tiles_ini = os.path.join(ROOT, "data", "Tiles.ini")
     for old in ("Bed002", "Bed102", "Bed201"):         # (the double bed, and the old pieces: gone)
         f = os.path.join(TILES, old + ".png")

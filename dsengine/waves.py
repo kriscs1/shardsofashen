@@ -11,10 +11,10 @@ import logging
 import math
 import random
 
-from dragonsword import ini
-from dragonsword.lb import val, word, trim
+from ashen import ini
+from ashen.lb import val, word, trim
 
-log = logging.getLogger("dragonsword.waves")
+log = logging.getLogger("ashen.waves")
 
 CHECK_MS = 500
 NOBODY_MS = 90000                   # nobody on the map this long: the raiders give up and go

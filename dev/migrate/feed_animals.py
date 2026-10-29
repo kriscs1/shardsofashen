@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import DATA  # noqa: E402
 from build_cats import CATS, NAMED  # noqa: E402
 

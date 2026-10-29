@@ -1,7 +1,7 @@
-# Dragon Sword for Android
+# Shards of Ashen for Android
 
 The app carries the whole game: the same server (`server/`, `dsengine/`, `data/`, `maps/`...) and the same web
-page (`web/`) as any Dragon Sword server, built from this folder. Its start screen offers three ways to play:
+page (`web/`) as any Shards of Ashen server, built from this folder. Its start screen offers three ways to play:
 
 - **Host a game here.** The phone runs the game's server itself (in Python, through
   [Chaquopy](https://chaquo.com/chaquopy/)), and you play on it. Anyone on the same Wi-Fi, or on the phone's own
@@ -22,7 +22,7 @@ Because the game is inside the app, every update to the game is a new app. GitHu
 
 ## Building it
 
-GitHub builds it ("Build the Android app": Actions > the run > Artifacts > `dragonsword-android`):
+GitHub builds it ("Build the Android app": Actions > the run > Artifacts > `shards-of-ashen-android`):
 
 - `app-debug.apk`: install it on a phone to try it (allow installing from your browser or file manager; each build
   has its own debug key, so uninstall the last one first);
@@ -63,4 +63,6 @@ Then on GitHub (Settings > Secrets and variables > Actions > Secrets):
 2. **The hosting service.** The app keeps a game running for the others while the host's phone does other things,
    which is a "special use" foreground service. The Play Console asks what it's for: *it runs a multiplayer game
    server for players on the same local network.*
-3. The package name, `io.github.kriscs1.dragonsword` (`dsPackage`), can never change once it's published.
+3. The package name, `io.github.kriscs1.shardsofashen` (`dsPackage`), can never change once it's published.
+   (It was `io.github.kriscs1.dragonsword` until the game was renamed: an app installed before that is a different
+   app, and doesn't update to this one. Uninstall it.)

@@ -182,7 +182,7 @@ def data():
     SK.copy_tile("Cave_Steps001", "Cave_Floor001", Walkable_Data="1" * 49, Show_Name="1",
                  Use_Words="Climb Up,Examine", Examine_Info="Rough steps up to the daylight.")
     ini_tiles = SK.TILES
-    from dragonsword import ini
+    from ashen import ini
     if ini.read("Cave_Mouth001", "Texture", "", ini_tiles):                # (its own picture, not the range's)
         SK.set_section(ini_tiles, "Cave_Mouth001", ["%s=%s" % kv for kv in ini.section("Cave_Mouth001", ini_tiles)
                                                    if kv[0] != "Texture"])

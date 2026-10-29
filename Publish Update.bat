@@ -1,7 +1,7 @@
 @echo off
 rem One click after changing the game (maps, scripts, sprites, data, code): saves the changes and sends them to
 rem GitHub. GitHub builds the new server image (a few minutes) and the server picks it up by itself.
-title Dragon Sword: publish an update
+title Shards of Ashen: publish an update
 cd /d "%~dp0"
 git remote get-url origin >nul 2>&1 || (
     echo This folder isn't linked to GitHub yet: run "Link GitHub.bat" first.

@@ -1,4 +1,4 @@
-"""Validate the Dragon Sword v2 data files against dev\\Data Formats.md, including data\\Gathering.ini and
+"""Validate the Shards of Ashen data files against dev\\Data Formats.md, including data\\Gathering.ini and
 data\\Quests.ini (read by the in-game Help screen) and whether every shop/craft list is opened by a script.
 
 Run:  python -I "dev\\migrate\\validate.py"  [--quiet]
@@ -596,7 +596,7 @@ def check_condition(where, cond, skills, entities_ini, writes):
 
 # ------------------------------------------------------------------ scripts
 def number_of_commands():
-    return None     # (the language is a list in dragonsword/script_language.py now: no count to fall out of step)
+    return None     # (the language is a list in ashen/script_language.py now: no count to fall out of step)
 
 
 def command_numbers():
@@ -667,7 +667,7 @@ def check_scripts(skills, racks):
         for i, no, cmd, args in parsed:
             where = "%s line %s" % (r, no)
             if cmd not in cmds:
-                err(where, "command %r is not in dragonsword/script_language.py" % cmd)
+                err(where, "command %r is not in ashen/script_language.py" % cmd)
                 continue
             used_cmds.add(cmd)
             want = cmds[cmd]

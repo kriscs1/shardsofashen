@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 import pygame  # noqa: E402
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from long_beds import long_bed, LONG  # noqa: E402
 
 TILES = os.path.join(ROOT, "sprites", "Tiles")

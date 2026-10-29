@@ -69,7 +69,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: dragonsword-android
+          name: shards-of-ashen-android
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/bundle/release/app-release.aab

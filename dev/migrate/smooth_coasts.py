@@ -20,7 +20,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import Map, XT, YT, TW, TILES_INI  # noqa: E402
 
 N, E, S, W = (0, -1), (1, 0), (0, 1), (-1, 0)

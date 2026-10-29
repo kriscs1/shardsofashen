@@ -1,6 +1,6 @@
 # Credits
 
-Almost everything in Dragon Sword is made for it: the art and most sounds are drawn and synthesised in code by
+Almost everything in Shards of Ashen is made for it: the art and most sounds are drawn and synthesised in code by
 `dev/migrate/build_*.py`, and the place music is composed by `dev/migrate/build_music.py`.
 
 These come from elsewhere, all under CC0 (public domain: free to use, credit not required, given anyway with thanks):

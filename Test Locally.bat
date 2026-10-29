@@ -1,7 +1,7 @@
 @echo off
 rem One click: builds the server from these files in Docker and (re)starts it here, at http://localhost:8484,
 rem to try changes before publishing them. The test server keeps its own characters, apart from the real one.
-title Dragon Sword: test locally
+title Shards of Ashen: test locally
 cd /d "%~dp0"
 docker info >nul 2>&1 || (
     echo Starting Docker Desktop...

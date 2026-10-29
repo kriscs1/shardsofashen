@@ -14,8 +14,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from dragonsword import ini  # noqa: E402
-from dragonsword.lb import val, word, trim  # noqa: E402
+from ashen import ini  # noqa: E402
+from ashen.lb import val, word, trim  # noqa: E402
 from dsengine.data import GameData  # noqa: E402
 from server.store import Store  # noqa: E402
 
@@ -97,7 +97,7 @@ def read_save(d, path):
 def main():
     p = argparse.ArgumentParser(description="Import desktop saves into the server")
     p.add_argument("names", nargs="*")
-    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "server-data", "dragonsword.db")))
+    p.add_argument("--db", default=os.environ.get("DS_DB", os.path.join(ROOT, "server-data", "ashen.db")))
     p.add_argument("--replace", action="store_true")
     args = p.parse_args()
     d = GameData(ROOT)

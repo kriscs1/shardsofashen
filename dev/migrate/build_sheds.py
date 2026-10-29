@@ -16,7 +16,7 @@ sys.path.insert(0, HERE)
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 import pygame  # noqa: E402
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 from build_isle import Map, DATA, obj_line, roof_over  # noqa: E402
 
 OUTLINE = (34, 30, 30)

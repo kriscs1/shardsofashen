@@ -6,7 +6,7 @@ import pytest
 
 from dsengine import World, Session
 from dsengine.entity import MAPITEM, NPC, AI_FLEE, AI_IDLE
-from dragonsword.lb import distance
+from ashen.lb import distance
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -128,7 +128,7 @@ def test_quest_scripts_change_things_for_their_player_only(world, tmp_path, monk
 
 def test_shop_stock_is_shared(world):
     a, b = join(world, "Ivy"), join(world, "Jon")
-    from dragonsword import ini
+    from ashen import ini
     racks = [name for name, items in ini.sections(world.data.data_file("ItemRacks.ini"))
              if dict((k.upper(), v) for k, v in items).get("TYPE", "").upper() in ("SHOP", "GENERAL", "SPECIFIC")]
     if not racks:

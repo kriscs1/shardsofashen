@@ -7,7 +7,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
-from dragonsword import script_language as L  # noqa: E402
+from ashen import script_language as L  # noqa: E402
 
 COMMANDS = L.commands()
 COMMAND_NAMES = sorted(COMMANDS, key=lambda n: n.lstrip(">").lower())

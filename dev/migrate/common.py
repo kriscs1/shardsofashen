@@ -1,4 +1,4 @@
-"""Shared helpers for the Dragon Sword v2 data migration and validation scripts.
+"""Shared helpers for the Shards of Ashen data migration and validation scripts.
 
 Paths are resolved relative to this file, so the scripts can be run from anywhere:
     python -I "dev\\migrate\\migrate.py"
@@ -515,9 +515,9 @@ def read_bmp(path):
 
 # ---------------------------------------------------------------- script language
 def script_language():
-    """dragonsword/script_language.py: the commands, their argument types, help and variables."""
+    """ashen/script_language.py: the commands, their argument types, help and variables."""
     import importlib.util
-    spec = importlib.util.spec_from_file_location("script_language", p("dragonsword", "script_language.py"))
+    spec = importlib.util.spec_from_file_location("script_language", p("ashen", "script_language.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod

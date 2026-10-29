@@ -9,7 +9,7 @@ Each player finds each chest (and the Heart) once a shift (the attribute DeepLoo
 The floors are maps made in memory (maps.MapData from text, as a homestead's), never files: 40,40,-11 and down."""
 import random
 
-from dragonsword.lb import val, trim, parse_quantity, pretty
+from ashen.lb import val, trim, parse_quantity, pretty
 from .maps import MapData
 from .shards import shard_words
 from .entity import PLAYER

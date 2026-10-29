@@ -16,7 +16,7 @@ World.tavern (Tavern) keeps the dice rounds; TavernMixin is the player's side (S
 import random
 import time
 
-from dragonsword.lb import val
+from ashen.lb import val
 
 ROUND_SECONDS = 20
 MAX_PLAYERS = 6

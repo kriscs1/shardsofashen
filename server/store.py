@@ -1,10 +1,13 @@
-"""Everything the server keeps: accounts, characters and the shared world, in one SQLite database (server-data/dragonsword.db
+"""Everything the server keeps: accounts, characters and the shared world, in one SQLite database (server-data/ashen.db
 by default; DS_DB to put it elsewhere). Characters and the world are JSON."""
 import json
+import logging
 import os
 import shutil
 import sqlite3
 import time
+
+log = logging.getLogger("ashen.store")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS accounts (
@@ -32,11 +35,29 @@ CREATE TABLE IF NOT EXISTS world (
 """
 
 
+OLD_NAME = "dragonsword.db"   # (the database's name before the game was Shards of Ashen everywhere)
+
+
+def moved_from_old_name(path):
+    """A new database's name with no file yet, beside one under the old name: the old one (and its -wal and -shm,
+    which hold what it last wrote) moved over, so the world, accounts and characters carry on."""
+    folder = os.path.dirname(os.path.abspath(path))
+    old = os.path.join(folder, OLD_NAME)
+    if os.path.exists(path) or os.path.basename(path) == OLD_NAME or not os.path.exists(old):
+        return False
+    for tail in ("", "-wal", "-shm"):
+        if os.path.exists(old + tail):
+            os.replace(old + tail, path + tail)
+    log.info("The database is %s now (it was %s)", os.path.basename(path), OLD_NAME)
+    return True
+
+
 class Store:
     def __init__(self, path):
         self.path = path
         folder = os.path.dirname(os.path.abspath(path))
         os.makedirs(folder, exist_ok=True)
+        moved_from_old_name(path)
         self.db = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("PRAGMA synchronous=NORMAL")
@@ -108,14 +129,14 @@ class Store:
 
     # ----- backups
     def backup(self, folder, keep=14):
-        """A copy of the database in folder (dragonsword-YYYYMMDD-HHMM.db), keeping the newest keep."""
+        """A copy of the database in folder (ashen-YYYYMMDD-HHMM.db), keeping the newest keep."""
         os.makedirs(folder, exist_ok=True)
-        out = os.path.join(folder, time.strftime("dragonsword-%Y%m%d-%H%M.db"))
+        out = os.path.join(folder, time.strftime("ashen-%Y%m%d-%H%M.db"))
         dest = sqlite3.connect(out)
         with dest:
             self.db.backup(dest)
         dest.close()
-        files = sorted(f for f in os.listdir(folder) if f.startswith("dragonsword-") and f.endswith(".db"))
+        files = sorted(f for f in os.listdir(folder) if f.startswith(("ashen-", "dragonsword-")) and f.endswith(".db"))
         for f in files[:-keep]:
             try:
                 os.remove(os.path.join(folder, f))

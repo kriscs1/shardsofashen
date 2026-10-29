@@ -14,7 +14,7 @@ from build_isle import DATA  # noqa: E402
 from build_cats import CATS  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from dragonsword import ini  # noqa: E402
+from ashen import ini  # noqa: E402
 
 HUNTS = {"Wolf": "Rabbit,Sheep,Chicken,Duck", "Snow_Wolf": "Rabbit,Sheep,Chicken,Duck",
          "Alpha_Wolf": "Rabbit,Sheep,Chicken,Duck", "Bear": "Rabbit,Sheep", "Dog": "Rabbit,Rat"}

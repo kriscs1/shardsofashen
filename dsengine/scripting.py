@@ -8,8 +8,8 @@ Personal and Shared set that by hand. A map's entry script never adds a second c
 import os
 import time
 
-from dragonsword import ini
-from dragonsword.lb import (val, word, field, trim, lbstr, distance, strip_digits, random_number, rnd, parse_quantity,
+from ashen import ini
+from ashen.lb import (val, word, field, trim, lbstr, distance, strip_digits, random_number, rnd, parse_quantity,
                             apply_change, is_number, safe_eval, seconds_today, wildcard_match, pretty)
 
 from .entity import (Entity, TILE, MAPITEM, STATICOBJECT, NPC, TYPE_NAMES, normalise_type, attitude_of_type,

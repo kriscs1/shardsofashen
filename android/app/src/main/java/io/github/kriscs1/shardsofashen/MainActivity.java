@@ -1,4 +1,4 @@
-package io.github.kriscs1.dragonsword;
+package io.github.kriscs1.shardsofashen;
 
 import android.Manifest;
 import android.app.Activity;

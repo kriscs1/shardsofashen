@@ -13,7 +13,7 @@ Spells have ranks: a scroll with Rank=2 (Fire_Bolt_Scroll_II) raises a spell you
 that rank up.
 
 The server runs one player's commands at a time, so a check and its payment can't be split by another click."""
-from dragonsword.lb import val, lbstr, trim, pretty
+from ashen.lb import val, lbstr, trim, pretty
 from .ownspell import OWN
 
 SHARD = "Shard"

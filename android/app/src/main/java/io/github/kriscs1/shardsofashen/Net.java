@@ -1,4 +1,4 @@
-package io.github.kriscs1.dragonsword;
+package io.github.kriscs1.shardsofashen;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,7 +21,7 @@ import java.util.Set;
  *  them (server/lan.py: PROBE to UDP 8485, broadcast; each game answers with what it is). */
 final class Net {
     static final int LAN_PORT = 8485;
-    static final byte[] PROBE = "DRAGONSWORD?".getBytes(StandardCharsets.US_ASCII);
+    static final byte[] PROBE = "SHARDSOFASHEN?".getBytes(StandardCharsets.US_ASCII);
 
     private Net() { }
 
@@ -68,7 +68,7 @@ final class Net {
                 try { sock.receive(p); } catch (SocketTimeoutException e) { break; }
                 try {
                     JSONObject a = new JSONObject(new String(p.getData(), 0, p.getLength(), StandardCharsets.UTF_8));
-                    if (!"dragonsword".equals(a.optString("game"))) continue;
+                    if (!"shardsofashen".equals(a.optString("game"))) continue;
                     String ip = p.getAddress().getHostAddress();
                     boolean here = ip.equals("127.0.0.1") || mine.contains(ip);
                     String key = (here ? "here" : ip) + ":" + a.optInt("port");

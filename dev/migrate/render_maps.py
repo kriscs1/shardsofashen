@@ -1,4 +1,4 @@
-"""Render Dragon Sword maps to PNG (pure Python, no PIL) for checking layouts by eye.
+"""Render Shards of Ashen maps to PNG (pure Python, no PIL) for checking layouts by eye.
 
 Run:  python -I "dev\\migrate\\render_maps.py" [map names ...] [--out DIR] [--scale N] [--zones]
   * With map names (e.g. 4,1,0) renders each map to <out>\\<name>.png (and <name> noroof.png if it has roofs).

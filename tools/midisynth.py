@@ -10,7 +10,7 @@ import wave
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from dragonsword.midi import Midi  # noqa: E402
+from ashen.midi import Midi  # noqa: E402
 
 RATE = 32000
 

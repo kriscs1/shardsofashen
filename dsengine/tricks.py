@@ -8,7 +8,7 @@
     snap back into your own body, wherever it has wandered. $Player.Form is the shape you're in (a cat flap's Lock:
     $Player.Form=Cat).
   * A forced change (Turn.Into, a script's: the big red button): the same, with no one to swap with."""
-from dragonsword.lb import val, pretty
+from ashen.lb import val, pretty
 from .entity import NPC
 
 ANIMAL_TALK = {   # (in an animal's body, the animals talk to you)

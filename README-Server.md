@@ -5,14 +5,14 @@ accounts, characters and the shared world (SQLite).
 
 | Folder | What it is |
 |---|---|
-| `dsengine/` | The game's rules without the window, for many players at once (taken from `dragonsword/`) |
+| `dsengine/` | The game's rules without the window, for many players at once (taken from `ashen/`) |
 | `server/` | The web server: the page, the pictures, and the game over a WebSocket (20 ticks a second) |
 | `web/` | The browser game (HTML5 canvas, no build step). `web/assets` is made by `tools/export_web_assets.py` |
 | `tools/` | `export_web_assets.py`, `admin.py` (passwords, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
 | `deploy/` | Docker, docker-compose with Caddy (HTTPS), a systemd unit |
 | `android/` | The Android app: hosts a game on the phone for the network, or joins one (`android/README.md`) |
 | `dsedit/` | The editor (`Shards of Ashen Editor.py`): F5 plays your changes in the browser, on a local server |
-| `dragonsword/` | Helpers shared by the server, the editor and the tools (the desktop game itself is retired) |
+| `ashen/` | Helpers shared by the server, the editor and the tools (the desktop game itself is retired) |
 
 ## Playing locally
 
@@ -187,29 +187,40 @@ python tools/admin.py admin Kris on       # the Admin button (give items, set sk
 
 ## The server: Unraid (or any Linux)
 
-Each **Publish Update** sends your changes to https://github.com/kriscs1/dragonsword. GitHub tests them and builds
-the server image, `ghcr.io/kriscs1/dragonsword`; you can watch it in the repository's **Actions** tab. The server
+Each **Publish Update** sends your changes to https://github.com/kriscs1/shards-of-ashen. GitHub tests them and builds
+the server image, `ghcr.io/kriscs1/shards-of-ashen`; you can watch it in the repository's **Actions** tab. The server
 downloads the new image and restarts the game with it. Everyone's progress is kept through every update.
 
 Once, before the first install: when the first build is green, check that the image is public, so the server can
-download it without signing in. Go to https://github.com/users/kriscs1/packages/container/dragonsword/settings: if
+download it without signing in. Go to https://github.com/users/kriscs1/packages/container/shards-of-ashen/settings: if
 it says Private, **Change visibility** > **Public**. (New images can start out private even when the repository is
 public.)
 
 ### Unraid
 
+**A server set up before the rename** (its container is DragonSword, its image `ghcr.io/kriscs1/dragonsword`) keeps
+working and updating: GitHub still publishes the old image name as well. To move it to the new name, once:
+
+1. Make the new image public (above), then on the **Docker** tab click the DragonSword icon > **Edit**.
+2. Change **Repository** to `ghcr.io/kriscs1/shards-of-ashen:latest` and the **Name** to `ShardsOfAshen`. Leave
+   **Game data** where it is (`/mnt/user/appdata/dragonsword`): that's your world. **Apply**.
+3. The first time it starts, the game renames `dragonsword.db` in that folder to `ashen.db` by itself.
+4. In Auto Update Applications, tick ShardsOfAshen.
+
+A new server:
+
 1. **Add the template.** Open Unraid's **Terminal** (the `>_` icon at the top right) and paste:
 
    ```
-   docker run --rm ghcr.io/kriscs1/dragonsword cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-DragonSword.xml
+   docker run --rm ghcr.io/kriscs1/shards-of-ashen cat unraid.xml > /boot/config/plugins/dockerMan/templates-user/my-ShardsOfAshen.xml
    ```
 
-   (Its icon comes from GitHub: https://raw.githubusercontent.com/kriscs1/dragonsword/main/web/img/icon.png.)
+   (Its icon comes from GitHub: https://raw.githubusercontent.com/kriscs1/shards-of-ashen/main/web/img/icon.png.)
 
-2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **DragonSword**, then
+2. **Make the container.** On the **Docker** tab: **Add Container** > **Template** > choose **ShardsOfAshen**, then
    **Apply**. It's filled in already:
    - **Web port** (8484): the port players connect to. Change it if 8484 is taken.
-   - **Game data** (`/mnt/user/appdata/dragonsword`): where accounts, characters, the world and the daily backups
+   - **Game data** (`/mnt/user/appdata/shards-of-ashen`): where accounts, characters, the world and the daily backups
      are kept. Point it at another share if you like.
    - **Admins**: characters who get the Admin button, comma-separated (e.g. `Kris,Ann`).
    - **Invite code**: if set, making a character needs it.
@@ -217,7 +228,7 @@ public.)
 3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
    **Settings > Auto Update Applications > Docker Auto Update Settings**:
    - Update Check Frequency: **Hourly** (or Custom, e.g. `*/15 * * * *` for every 15 minutes).
-   - Set DragonSword to update.
+   - Set ShardsOfAshen to update.
 
    (Without this, the Docker tab's **Check for Updates** does it by hand.)
 
@@ -227,9 +238,9 @@ the array and keeps everyone's progress in appdata (your appdata backups cover i
 Accounts (Unraid's Terminal):
 
 ```
-docker exec -u 99:100 DragonSword python tools/admin.py list
-docker exec -it -u 99:100 DragonSword python tools/admin.py password <Name>    # set or reset a password
-docker exec -u 99:100 DragonSword python tools/admin.py admin <Name> on
+docker exec -u 99:100 ShardsOfAshen python tools/admin.py list
+docker exec -it -u 99:100 ShardsOfAshen python tools/admin.py password <Name>    # set or reset a password
+docker exec -u 99:100 ShardsOfAshen python tools/admin.py admin <Name> on
 ```
 
 Players can change their own password in the game (Options > Your password), and admins can set anyone's
@@ -241,7 +252,7 @@ Players can change their own password in the game (Options > Your password), and
 2. Set up and start the server, all from GitHub, with this one line:
 
    ```
-   mkdir -p ~/dragonsword && cd ~/dragonsword &&    docker run --rm ghcr.io/kriscs1/dragonsword cat docker-compose.yml > docker-compose.yml &&    docker compose up -d
+   mkdir -p ~/shards-of-ashen && cd ~/shards-of-ashen &&    docker run --rm ghcr.io/kriscs1/shards-of-ashen cat docker-compose.yml > docker-compose.yml &&    docker compose up -d
    ```
 
 That's all:
@@ -249,17 +260,17 @@ That's all:
 - **Starting:** Docker starts with Linux (no one needs to sign in), and the game and its updater start with Docker.
 - **Updates:** they arrive by themselves, a few minutes after each **Publish Update**.
 - **Connecting:** players use `http://<the server's address>:8484`.
-- **Day to day,** in `~/dragonsword`:
+- **Day to day,** in `~/shards-of-ashen`:
   - `docker compose logs -f` shows what it's doing.
   - `docker compose pull game && docker compose up -d` updates at once.
   - `docker compose stop` stops it.
 
-**Settings.** Make a file called `.env` in `~/dragonsword` (beside `docker-compose.yml`) with any of these, then
+**Settings.** Make a file called `.env` in `~/shards-of-ashen` (beside `docker-compose.yml`) with any of these, then
 `docker compose up -d` again:
 
 ```
 DS_PORT=8090                 # the port players connect to (8484)
-DS_DATA=/srv/dragonsword     # where the game's data is kept: a folder, or a Docker volume's name (gamedata)
+DS_DATA=/srv/shards-of-ashen     # where the game's data is kept: a folder, or a Docker volume's name (gamedata)
 DS_ADMINS=Kris,Ann           # characters who get the Admin button
 DS_INVITE_CODE=letmein       # making a character needs this code
 DS_MAX_PLAYERS=5
@@ -295,13 +306,13 @@ docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admi
 
 ### Where the data lives
 
-- **The database.** It lives in the `gamedata` volume (`/data/dragonsword.db`). It is saved every minute, whenever
+- **The database.** It lives in the `gamedata` volume (`/data/ashen.db`). It is saved every minute, whenever
   someone leaves, and when the server stops.
 - **Backups.** A copy goes to `/data/backups` once a day; the last 14 are kept.
 - **Data files the game edits.** The admin panel's switched-off skills and god mode, and anything scripts write with
   `Add.Line.To.File`, live in the container's `data/` folder. They reset when the image is rebuilt.
 
-Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HTTPS reverse proxy.
+Without Docker, `deploy/shards-of-ashen.service` runs it under systemd behind any HTTPS reverse proxy.
 
 ## Settings (environment)
 
@@ -309,7 +320,7 @@ Without Docker, `deploy/dragonsword.service` runs it under systemd behind any HT
 |---|---|---|
 | `DS_PORT` | 8484 | |
 | `DS_HOST` | 0.0.0.0 | |
-| `DS_DB` | `server-data/dragonsword.db` | (not `data/`: on Windows that is the game's own `Data` folder) |
+| `DS_DB` | `server-data/ashen.db` | (not `data/`: on Windows that is the game's own `Data` folder) |
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |

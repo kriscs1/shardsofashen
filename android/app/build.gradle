@@ -9,7 +9,7 @@ def env = System.getenv()
 def game = file(project.findProperty("dsGame") ?: "../..")   // (the game's folder: everything the server needs comes from it)
 
 android {
-    namespace "io.github.kriscs1.dragonsword"
+    namespace "io.github.kriscs1.shardsofashen"
     compileSdk 36
 
     defaultConfig {
@@ -80,7 +80,7 @@ tasks.register("packGame", Zip) {
     from(game) {
         include "VERSION", "saves/TEMPLATE.ini"
         include "data/**", "maps/**", "sprites/**", "web/**"
-        include "dragonsword/**", "dsengine/**", "server/**"
+        include "ashen/**", "dsengine/**", "server/**"
         exclude "**/__pycache__/**", "**/*.pyc", "**/*.db", "**/*.db-*", "data/backups/**"
     }
     doFirst {

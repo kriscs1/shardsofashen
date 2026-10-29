@@ -1,11 +1,11 @@
-# Dragon Sword v2: data formats and conventions
+# Shards of Ashen: data formats and conventions
 
 This is the contract shared by the game (the browser game: the server in `server\` and `dsengine\`, the client in
-`web\`; see README-Server.md), the editor (the Python package `dsedit\`, started by `Dragon Sword Editor.py`: maps,
+`web\`; see README-Server.md), the editor (the Python package `dsedit\`, started by `Shards of Ashen Editor.py`: maps,
 scripts, tiles, entities, item racks, spells, quests, buildables, crops and minimaps in one window) and the builders in
 `dev\migrate`. If you change a format, update this file. (The game and the editor were Liberty BASIC,
 `Dragon Sword.bas` and `Dragon Sword Editor.bas`, until they were ported to Python in October 2026. The desktop
-Python game, `Dragon Sword.py`, was retired for the browser game; `dragonsword\` keeps only the helpers they share.)
+Python game, `Dragon Sword.py`, was retired for the browser game; `ashen\` keeps only the helpers they share.)
 
 All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 
@@ -335,7 +335,7 @@ Example: `Lock	20	7	$Attr.BeggarQuest>=2 or $Item.Key>=1	The door is locked. May
 
 * One command per line: `NN<TAB>Command<TAB>arg1<TAB>arg2...`, where NN is the 2-digit line number.
   Lines starting with `//` are comments.
-* The command set and argument order are defined in `dragonsword/script_language.py` (COMMANDS, HELP, VARIABLES).
+* The command set and argument order are defined in `ashen/script_language.py` (COMMANDS, HELP, VARIABLES).
   That list is the language: the game, the editor and dev\migrate all read it. The game must implement every command
   in it, and the editor must not rename commands or reorder their arguments.
 * Conditions start with `>`; their last argument is the line to jump to if the condition is NOT met.
@@ -540,7 +540,7 @@ egion_tiles.py, with the same Walkable.Data).
 * Shardstones: only four (build_travel.SHARDSTONES): Ashford, Highwatch, Dunerest, Thornwick. None on the Isle.
 * Music: outside, Config [Sounds] Music (TownTheme.ogg: cynicmusic, CC0) plays everywhere, without a break between maps. Inside a
   building (under a roof) it fades over to Hearth, and back out again it fades back in where it had got to (the
-  game plays a copy of the MIDI that starts there: dragonsword\midi.py). Every change fades out (1.1 s) and in
+  game plays a copy of the MIDI that starts there: ashen\midi.py). Every change fades out (1.1 s) and in
   (1.6 s). data\Music.ini (build_music.py): [Themes] <Theme>=its tracks (sounds\Music_<Theme><n>.mid, original
   pieces composed by build_music.py; run it to remake them), [Maps] <map>=<Theme>: used only with Config [Sounds]
   Music.By.Place=1, when each map plays its own theme (changing 2.5 s after you reach a place with different music;
@@ -677,9 +677,9 @@ egion_tiles.py, with the same Walkable.Data).
   obstacles on a grid of half tiles, using Tiles.ini Walkable.Data, Lock lines and blocking entities. Config
   `[Gameplay] Pathfinding=1` (0 = walk in straight lines as before).
 
-## The editor (Dragon Sword Editor.py)
+## The editor (Shards of Ashen Editor.py)
 
-`python "Dragon Sword Editor.py"` (the `dsedit` package) is every editor in one window: a rail of sections on the left
+`python "Shards of Ashen Editor.py"` (the `dsedit` package) is every editor in one window: a rail of sections on the left
 (Ctrl+1..8), the section on the right, Ctrl+K to go to anything (maps, scripts, tiles, entities, racks, spells, quests),
 Ctrl+S / Ctrl+Z / Ctrl+Y in the section you're in, F5 to play the game. A dot on the rail = unsaved changes there;
 you're asked before anything unsaved is lost. Everything links: "Used on" / "Placed on" / "Opened by" lists jump to the
@@ -703,9 +703,9 @@ Entities, a quest marker comes from the tile picked in Maps.
 * Files are written as the builders write them (ANSI, CRLF), changing only what you edited, so a rebuild with
   dev\migrate\build_world.py keeps your edits (common.py GEN) as before.
 * The old Liberty BASIC `Dragon Sword Editor.bas` is no longer used by anything (the script language moved to
-  dragonsword/script_language.py).
+  ashen/script_language.py).
 
-## Status effects, the gravestone, the hotbar (dragonsword\extras.py), moving tiles (dragonsword\anim.py)
+## Status effects, the gravestone, the hotbar (ashen\extras.py), moving tiles (ashen\anim.py)
 * Entities.ini `On.Hit=<Effect> <chance %>` (Poison, Burn, Bleed, Chill): a monster's landed blow or missile gives
   it you. Poison/Burn/Bleed hurt you every so often for a while; Chill slows your walking and your blows. `Cures=<Effect>
   <Effect>...` on an item (the Antidote) ends them when you Drink it. Dying ends them. `Resists=<Effect>...` on
@@ -718,7 +718,7 @@ Entities, a quest marker comes from the tile picked in Maps.
 * The hotbar: the save's `[Hotbar]` SlotN=<item> (1-5).
 * Foam along every shore and flickering flames are drawn by the game from the tiles (Tiles.ini Water=1, Flame=1).
 
-## Day and night (dragonsword\daynight.py), weather (dragonsword\weather.py)
+## Day and night (ashen\daynight.py), weather (ashen\weather.py)
 * The time of day: a fraction of a day (0 midnight, 0.5 noon), a day lasting Config [Gameplay] `Day.Minutes` (24); the
   save's [Player] `Time=`. Config [Gameplay] `DayNight=0`: always day.
 * **data\DayNight.ini**: `[Sky]` `<time>=R G B strength` (the colour over the world, eased between the times);
@@ -744,7 +744,7 @@ Entities, a quest marker comes from the tile picked in Maps.
   `[Climate.Default]`): `<kind>=<how likely>`. Not in caves; indoors you only hear it.
 * Firemaking is no longer a skill: anyone with a tinderbox can light logs (better logs burn longer).
 
-## Durability (dragonsword\durability.py)
+## Durability (ashen\durability.py)
 * Entities.ini `Durability=<blows>` on weapons and armour (dev\migrate\build_status.py sets it by material: copper 60,
   bronze 100, iron 160, steel 240, mithril 360, the Dragon Sword 600, leather 110...). A weapon wears 1 for each blow it
   lands; each blow you take wears one piece of what you're wearing. Worn out: broken, no bonuses till mended.

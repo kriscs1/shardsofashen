@@ -14,8 +14,8 @@
     activated shardstones ($Shardstones.Active) before the ring will hold.
   * Writing scrolls and spells (ItemRacks.ini CRAFT-Scrolls, ownspell.py), absorbing remnants (remnants.py) and
     shaping your pocket of the Shardrealm (homes.py terraforming) train it too."""
-from dragonsword import ini
-from dragonsword.lb import val, lbstr, trim, pretty, random_number
+from ashen import ini
+from ashen.lb import val, lbstr, trim, pretty, random_number
 
 from .entity import INVENTORYITEM, STATICOBJECT
 from .shards import shard_words
