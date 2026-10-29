@@ -69,7 +69,7 @@ def data():
             ("Spellwright_Lectern", [("Type", "StaticObject"), ("Use.Words", "Write,Examine"), ("Solid", "1"),
                                      ("Light", "30"), ("Examine.Info", "The Spellwright's Lectern: a stone lectern, a "
                                                                        "blank page on it and a pot of Shard-ink.")]),
-            ("Spellwrights_Page", [("Type", "MapItem"), ("Use.Words", "Cast"), ("Spell", "Own_Spell"),
+            ("Spellwrights_Page", [("Type", "MapItem"), ("Use.Words", "Learn"), ("Spell", "Own_Spell"),
                                    ("Droppable", "0"), ("Value", "0"),
                                    ("Examine.Info", "A page in your own hand, written at the Spellwright's Lectern: "
                                                     "your own spell.")]),

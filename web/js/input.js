@@ -8,12 +8,12 @@ import { V, screenToWorld, entityUnder, changeZoom, roofCovers } from "./render.
 import { fogBlack } from "./sky.js";
 import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
-  QUESTS_PER_PAGE, QUEST_ROW_TOP, QUEST_ROW_H, questPages, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
+  spellTileAt, spellHoverText, knownSpells, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
   chatArrow, vitalsAt, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
   wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
-import { T, getVerbs, verbLabel, cursorOfVerb, displayName, spellStatus } from "./verbs.js";
-import { J, hit as journalHit, pages as journalPages, spellClick } from "./journal.js";
+import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
+import { J, hit as journalHit, pages as journalPages, spellClick, journalQuests } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
 import { unlock, playSound } from "./audio.js";
 import { pretty, val } from "./util.js";
@@ -119,26 +119,16 @@ export function mouseMove(x, y) {
   if (arrow === -1) msg = U.chatLine === 1 ? "<No More>" : "Scroll Down";
   // the Stats box
   const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
-  U.equipHover = 0; U.skillHover = 0;
-  let questHover = 0;
+  U.equipHover = 0; U.skillHover = 0; U.spellHover = 0;
   if (!msg && smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
     if (smx <= 81) msg = "Stats|your skills";
     else if (smx >= 84 && smx <= 135) msg = "Gear|what you are wearing";
-    else if (smx >= 138) msg = "Quest log|quests in progress, to start and done";
+    else if (smx >= 138) msg = "Channeling|the spells you know: cast them from here";
   }
-  if (!msg && U.statsView === 2 && smx >= 30 && smx <= 194 && smy >= QUEST_ROW_TOP && smy < QUEST_ROW_TOP + QUESTS_PER_PAGE * QUEST_ROW_H) {
-    const row = Math.floor((smy - QUEST_ROW_TOP) / QUEST_ROW_H) + 1;
-    if ((U.questsPage - 1) * QUESTS_PER_PAGE + row <= S.quests.length) {
-      questHover = row;
-      msg = "#Follow this quest|~Click: mark it on the maps (click again: stop)|~Right-click: open it in the journal";
-    }
+  if (!msg && U.statsView === 2) {
+    const i = spellTileAt(smx, smy);
+    if (i) { U.spellHover = i; msg = spellHoverText(knownSpells()[i - 1]); }
   }
-  U.questArrow = 0;
-  if (U.statsView === 2 && questPages() > 1 && smy >= 41 && smy <= 55) {
-    if (smx >= 146 && smx <= 160 && U.questsPage > 1) { msg = "Previous page"; U.questArrow = -1; }
-    if (smx >= 182 && smx <= 196 && U.questsPage < questPages()) { msg = "Next page"; U.questArrow = 1; }
-  }
-  U.questHover = questHover;
   if (!msg && U.statsView === 1) {
     for (let s = 1; s <= 8; s++) {
       if (smx >= equipX(s) && smx < equipX(s) + EQUIP_BOX && smy >= equipY(s) && smy < equipY(s) + EQUIP_BOX) {
@@ -176,17 +166,16 @@ export function mouseMove(x, y) {
     kind = "ENTITY";
     const world = inPlayfield(x, y) && !S.box.mode;
     I.cursor = world && S.me.input ? "walk" : "pointer";
-    if (S.itemInUse) {
+    if (S.spellReady) {                          // (a spell held ready: who it's for)
+      I.cursor = "target";
+      msg = hoverText(e || { k: T.INVITEM });
+    } else if (S.itemInUse) {
       I.cursor = "target";
       msg = hoverText(e || { k: T.INVITEM, u: S.itemInUse });
     } else if (e) {
       const first = getVerbs(e)[0] || "";
       if (first && first !== "Walk here") I.cursor = cursorOfVerb(first);
       msg = hoverText(e);
-      if (e.k === T.INVITEM) {
-        const st = spellStatus(e.n);
-        if (st) msg += "|" + st;
-      }
     }
   }
   setQuick(msg, kind);
@@ -240,6 +229,11 @@ export function mouseDown(button, x, y) {
     if (h === 10) { closeJournal(); return; }
     if (h >= 1 && h <= 5) { J.tab = h; J.page = 1; J.focus = ""; }
     if (spellClick(h)) return;
+    if (h >= 100 && h < 107) {                     // (a quest: follow it, its place marked on the maps)
+      const q = journalQuests()[(J.page - 1) * 7 + h - 100];
+      if (q) toggleTracked(q.title);
+      return;
+    }
     if (h === 11) J.page = Math.max(1, J.page - 1);
     if (h === 12) J.page = Math.min(journalPages(), J.page + 1);
     return;
@@ -281,7 +275,7 @@ export function mouseDown(button, x, y) {
     const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
     if (smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
       U.statsView = smx <= 81 ? 0 : smx <= 135 ? 1 : 2;
-      U.equipHover = U.questHover = 0;
+      U.equipHover = U.spellHover = 0;
       return;
     }
   }
@@ -314,17 +308,14 @@ export function mouseDown(button, x, y) {
     else S.addLocal(skillInfo(U.skillHover, true), "black");
     return;
   }
-  if (U.questArrow) { U.questsPage += U.questArrow; U.questHover = 0; return; }
-  if (U.questHover > 0) {
-    const q = S.quests[(U.questsPage - 1) * QUESTS_PER_PAGE + U.questHover - 1];
-    if (!q) return;
-    if (left) toggleTracked(q.title);              // (follow it: its place marked on the maps)
-    else {
-      J.tab = 3;
-      openJournal();
-      J.focus = q.title;
-      J.page = Math.floor(((U.questsPage - 1) * QUESTS_PER_PAGE + U.questHover - 1) / 7) + 1;
-    }
+  if (U.spellHover > 0) {                          // (Channeling: cast it, or on or off the hotbar)
+    const spell = knownSpells()[U.spellHover - 1];
+    if (!spell) return;
+    if (left) {
+      S.spellReady = "";
+      send({ t: "cast", spell });
+      if (M.on) M.bag = false;                     // (the phone: the bag out of the way, to see who it's at)
+    } else send({ t: "hotbar_spell", spell });
     return;
   }
   if (U.equipHover > 0) {
@@ -337,9 +328,16 @@ export function mouseDown(button, x, y) {
   if (clicked && clicked.k === T.TILE && clicked.offMap) clicked = null;
   const [wx, wy] = screenToWorld(x, y);
   if (right) {
+    if (S.spellReady) { S.spellReady = ""; return; }
     if (S.itemInUse) { S.itemInUse = 0; send({ t: "use_cancel" }); return; }
     if (S.box.mode && !clicked) return;
     openMenu(clicked, x, y, [wx, wy]);
+    return;
+  }
+  if (S.spellReady) {                              // (the spell held ready: cast at what's clicked, or let go)
+    const spell = S.spellReady;
+    S.spellReady = "";
+    if (clicked && clicked.k !== T.INVITEM) send({ t: "cast", spell, target: targetOf(clicked), x: wx, y: wy });
     return;
   }
   if (S.itemInUse) {
@@ -442,6 +440,7 @@ export function keyDown(ev) {
     ev.preventDefault();
     if (U.worldMap) { U.worldMap = false; return; }
     if (U.rcm) { U.rcm = null; return; }
+    if (S.spellReady) { S.spellReady = ""; return; }
     if (S.itemInUse) { S.itemInUse = 0; send({ t: "use_cancel" }); return; }
     if (S.box.mode) { send({ t: "close" }); return; }
     window.dsUI.openQuit();

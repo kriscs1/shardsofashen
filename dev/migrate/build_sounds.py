@@ -214,8 +214,7 @@ SOUNDS.update({
                            (shaped(tone(1046.5, n(1.0)), 0.3, 2.5, delay=0.35), 0.2)),
     "Coins": lambda: coins(61),
     "Door": lambda: mix((creak(62, 220, 0.55, glide=0.6), 0.45), (delay(knock(63, 120, 0.2), 0.5), 0.9)),
-    "Locked": lambda: mix((clang(1500, decay=30, length=0.12), 0.5), (delay(clang(1400, decay=30, length=0.12), 0.09), 0.45),
-                          (delay(clang(1550, decay=30, length=0.12), 0.18), 0.4), (delay(knock(64, 110), 0.2), 0.5)),
+    "Locked": lambda: mix((clang(1300, decay=26, length=0.15), 0.5), (knock(64, 110, 0.2), 0.8)),   # (one clunk: it holds)
     "Chest": lambda: mix((creak(65, 180, 0.5, glide=0.5), 0.4), (delay(knock(66, 140, 0.22), 0.45), 0.9), (delay(coins(67, 3), 0.55), 0.35)),
     "Drop": lambda: knock(68, 150, 0.15),
     "Quest": lambda: mix((arpeggio((392.0, 523.25, 659.25, 783.99), 0.12, 1.4, decay=2.5), 1.0),

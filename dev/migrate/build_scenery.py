@@ -387,7 +387,7 @@ def scripts():
                       ("Update.Attribute", attr, "=1"),
                       ("Play.Sound", "Chest")]
             steps += [("Give.Item", item, str(q)) for item, q in loot]
-            steps += [("Display.Message", "Yellow", msg), ("End",)]
+            steps += [("End",)]                        # (nothing said: what's in it shows in its box; msg is notes)
         steps.append("more:")
         if gi + 1 < len(groups):
             steps += [("Goto.Script", "Open Chest %d" % (gi + 2)), ("End",)]

@@ -844,8 +844,8 @@ class ItemsMixin:
         name = self.hotbar[k]
         e = next((i for i in self.inv if i.name == name), None)
         spell = self.spell_learnable(name)
-        if e is None and spell in self.spells_known:
-            self.cast_spell(spell, None)                # (a known spell's scroll: the spell, scroll or no scroll)
+        if spell in self.spells_known:
+            self.cast_spell(spell, None)                # (a known spell on the hotbar: cast, scroll or no scroll)
             return
         if e is None:
             self.display_message("You have no %s left." % pretty(name), "FAIL")

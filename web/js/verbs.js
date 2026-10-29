@@ -258,22 +258,6 @@ export function cursorOfVerb(verb) {
   return verbs[String(verb).trim().toUpperCase()] || "hand";
 }
 
-export function spellStatus(name) {
-  const spell = entityIni(name, "Spell", "");
-  if (!spell) return "";
-  if (spellIni(spell, "Kind", "Scroll").toUpperCase() === "POTION") return "";
-  const level = val(spellAt(spell, "Level", "1"));
-  const skill = spellIni(spell, "Skill", "Channeling");
-  // (only what stops it being cast now: the hover's own lines say its need and its Shards - tips.js)
-  if (skillLevel(skill) < level) return "";
-  const cost = castCost(spell);
-  if (!knowsSpell(spell)) return "";
-  const cd = cooldownLeft(spell);
-  if (cd > 0) return `!Ready in ${Math.ceil(cd / 1000)} s`;
-  if ((S.me.shards || 0) < cost) return `!Needs ${lbstr(cost)} Shards (you have ${S.me.shards || 0})`;
-  return "";
-}
-
 // Skills renamed or made one (dsengine/renames.py SKILL_NAMES): an old name means the skill it's part of now
 const SKILL_NAMES = { MAGIC: "Channeling", SMITHING: "Crafting", CONSTRUCTION: "Homesteading", FARMING: "Homesteading",
   POTION_MAKING: "Alchemy", HERBLORE: "Alchemy" };

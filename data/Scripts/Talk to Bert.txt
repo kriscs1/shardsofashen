@@ -18,20 +18,18 @@
 17	>Conditional	$Variable.1=1	22
 18	>Conditional	$Item.Staff_of_Ashen>=1 and $Item.Grimoire_of_Unbinding>=1 and $Item.Ember_Ring>=1	20
 19	Goto.Script	Bert's Confession
-20	Display.Conversation	Bert	The staff from the King's keep, the grimoire from under the desert, the ring from the Ashen Priest. All three, mind.	Something else.	22	On my way.	36
+20	Display.Conversation	Bert	The staff from the King's keep, the grimoire from under the desert, the ring from the Ashen Priest. All three, mind.	Something else.	22	On my way.	34
 21	End
-22	Display.Conversation	Bert	I study the arcane arts up here, far from the noise of the court.\I sell spell scrolls, and I can teach you to write your own. Or I can send you anywhere I've been.	Show me your scrolls.	23	Teach me to write scrolls.	25	Can you teleport me?	27	Goodbye.	36
-23	Display.Item.Rack	SPECIFIC	Bert	SHOP-Wizard	36
+22	Display.Conversation	Bert	I study the arcane arts up here, far from the noise of the court.\I sell spell scrolls, though they don't come cheap. Or I can send you anywhere I've been.	Show me your scrolls.	23	Can you teleport me?	25	Goodbye.	34
+23	Display.Item.Rack	SPECIFIC	Bert	SHOP-Wizard	34
 24	End
-25	Display.Item.Rack	GENERAL	Bert	CRAFT-Scrolls	36
-26	End
-27	Display.Conversation	Bert	Where to?	To the Isle.	28	To Northgate.	32	Nowhere, thanks.	36
-28	Play.Sound	Teleporter
-29	Display.Message	Yellow	Bert waves his hands, and the world spins...
-30	Teleport	Isle_Landing	-
-31	End
-32	Play.Sound	Teleporter
-33	Display.Message	Yellow	Bert waves his hands, and the world spins...
-34	Teleport	Southport_Landing	-
-35	End
-36	End
+25	Display.Conversation	Bert	Where to?	To the Isle.	26	To Northgate.	30	Nowhere, thanks.	34
+26	Play.Sound	Teleporter
+27	Display.Message	Yellow	Bert waves his hands, and the world spins...
+28	Teleport	Isle_Landing	-
+29	End
+30	Play.Sound	Teleporter
+31	Display.Message	Yellow	Bert waves his hands, and the world spins...
+32	Teleport	Southport_Landing	-
+33	End
+34	End

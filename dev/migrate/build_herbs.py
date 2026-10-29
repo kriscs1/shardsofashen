@@ -10,7 +10,7 @@ so `python -I "dev\\migrate\\build_world.py"` builds it.
     deep woods (20), Emberroot in the Ashwold's ash (30). Picked like herb patches (Pick <Herb>_Patch), listed in the
     journal's Gathering tab, bought by the herbalist.
   * BREWING (CRAFT-Potion_Making): the Owl, Defence, Combat and Mega potions now need the new herbs, and two new potions
-    use them: the Healing Draught (Sage, Marigold: heals 28-36) and the Ember Tonic (Emberroot, Nightshade: +5 Attack).
+    use them: the Healing Draughts (Marigold, Sage, Cave Mushroom: Minor 8-12, 15-20, Major 26-32) and the Ember Tonic (Emberroot, Nightshade: +5 Attack).
   * WHERE: a couple of patches of each on the generated surface maps of its lands, on open ground away from people and
     doors (the cell and the choice are a hash of the map and cell, so every build puts them in the same places).
 """
@@ -48,16 +48,24 @@ PER_MAP = {"Marigold": 3}    # patches of each herb on a map of its lands (2 unl
                              # have fewer maps)
 
 POTIONS = {     # name: (hue of the Basic_Potion recoloured, value, examine, Spells.ini keys)
-    "Healing_Draught": (0.93, 35, "A rose-pink draught of sage and marigold. Drink it to heal 28-36 hitpoints.",
-                        dict(Effect="Heal", Heal="28-36", Impact="Heal_Glow", Sound="SpellHeal",
-                             Info="heals 28-36 hitpoints")),
+    "Minor_Healing_Draught": (0.95, 15, "A pale pink draught of marigold. Drink it to heal 8-12 hitpoints.",
+                              dict(Effect="Heal", Heal="8-12", Impact="Heal_Glow", Sound="SpellHeal",
+                                   Info="heals 8-12 hitpoints")),
+    "Healing_Draught": (0.93, 35, "A rose-pink draught of sage and marigold. Drink it to heal 15-20 hitpoints.",
+                        dict(Effect="Heal", Heal="15-20", Impact="Heal_Glow", Sound="SpellHeal",
+                             Info="heals 15-20 hitpoints")),
+    "Major_Healing_Draught": (0.99, 80, "A deep crimson draught of sage, marigold and cave mushroom. Drink it to heal "
+                                        "26-32 hitpoints.", dict(Effect="Heal", Heal="26-32", Impact="Heal_Glow",
+                                                                 Sound="SpellHeal", Info="heals 26-32 hitpoints")),
     "Ember_Tonic": (0.04, 110, "A smouldering orange tonic. +5 Attack for two and a half minutes.",
                     dict(Effect="Boost", Attack="5", Duration="150", Impact="Stone_Glow", Sound="SpellShield",
                          Info="+5 Attack for two and a half minutes")),
 }
 RECIPES = {     # CRAFT-Potion Making: the recipes the new herbs go into (a potion's line replaced, or added)
     "Owl_Potion": "Owl_Potion,Sage 2 Egg 1 Empty_Vial 1,0.7,8",
-    "Healing_Draught": "Healing_Draught,Sage 1 Marigold 2 Empty_Vial 1,0.8,12",
+    "Minor_Healing_Draught": "Minor_Healing_Draught,Marigold 1 Empty_Vial 1,0.4,1",
+    "Healing_Draught": "Healing_Draught,Sage 1 Marigold 2 Empty_Vial 1,0.8,6",
+    "Major_Healing_Draught": "Major_Healing_Draught,Sage 2 Marigold 2 Cave_Mushroom 1 Empty_Vial 1,1.3,13",
     "Defence_Potion": "Defence_Potion,Marigold 2 Iron_Ore 1 Empty_Vial 1,0.9,15",
     "Combat_Potion": "Combat_Potion,Nightshade 2 Spider_Silk 1 Cave_Mushroom 1 Empty_Vial 1,1.2,22",
     "Ember_Tonic": "Ember_Tonic,Emberroot 2 Nightshade 1 Empty_Vial 1,1.6,32",

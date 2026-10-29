@@ -39,7 +39,7 @@ export function itemLines(name) {
       const cd = val(spellAt(spell, "Cooldown", "0", rank));
       out.push((skillLevel(skill) >= level ? "+" : "!") + `Needs ${pretty(skill)} ${lbstr(level)}` +
         (cost ? ` · ${lbstr(cost)} Shards a cast` : "") + (cd ? ` · ${lbstr(cd)} s` : ""));
-      if (have >= rank) out.push(`+You know ${spellTitle(spell, have)}: the scroll isn't used up`);
+      if (have >= rank) out.push("+You already know this");
       else if (have < rank - 1) out.push(`!Raises ${spellTitle(spell, rank - 1)} to ${spellTitle(spell, rank)}: learn that first`);
       else out.push(rank > 1 ? `~Read it: your ${spellTitle(spell, have)} becomes ${spellTitle(spell, rank)}` : "~Read it to learn the spell for good");
     }

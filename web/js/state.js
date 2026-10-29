@@ -24,6 +24,7 @@ export const S = {
   exploredNew: new Map(),     // cells seen since the server was last told
   players: [], max: 5,
   itemInUse: 0,               // the inventory item being used (Use, then click what with)
+  spellReady: "",             // a spell held ready (Channeling): the next click is who it's cast at
   mapName: "", mapZ: 0,
   journal: null,
   sleep: null, levelBanner: null, hurtUntil: 0, flashAt: 0,

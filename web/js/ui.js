@@ -10,7 +10,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
-  cooldownLeft, spellAt, spellTitle, castCost } from "./verbs.js";
+  cooldownLeft, spellAt, spellTitle, castCost, spellSummary } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
@@ -101,7 +101,7 @@ export function packShown() { return !M.on || M.bag || (!!S.box.mode && S.box.mo
 export function statsShown() { return !M.on || (M.bag && !S.box.mode); }
 
 export const U = {
-  statsView: 0, questsPage: 1, questHover: 0, equipHover: 0, skillHover: 0, statRows: 1, statRowTop: 41,
+  statsView: 0, spellHover: 0, equipHover: 0, skillHover: 0, statRows: 1, statRowTop: 41,
   statRowH: 33, cursorSize: 22, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
   hover: null, onlineShownUntil: 0, banner: null, markers: true, topY: 8,
   stones: null, stoneHits: [], stoneHover: "",   // (the travel map: worldMap === "stones" - shardcraft.py stone_map)
@@ -199,7 +199,6 @@ export function drawUI(ctx, now) {
   drawInventory(ctx);
   if (S.box.mode) drawResponses(ctx);
   drawChat(ctx);
-  drawQuestPopup(ctx);
   if (U.rcm) drawMenu(ctx);
 }
 
@@ -732,19 +731,21 @@ function drawStats(ctx) {
   if (bg) ctx.drawImage(bg, 0, 0);
   else { ctx.fillStyle = "rgb(51,34,27)"; ctx.fillRect(0, 0, 224, 200); }
   if (U.statsView === 1) drawGear(ctx);
-  else if (U.statsView === 2) drawQuestsTab(ctx);
+  else if (U.statsView === 2) drawChannelTab(ctx);
   else drawSkillsTab(ctx);
   ctx.fillStyle = "rgb(51,31,25)";
   ctx.fillRect(28, 13, 170, 27);
-  [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Quests"]].forEach(([x1, x2, label], t) => {
+  [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Channeling"]].forEach(([x1, x2, label], t) => {
     const on = t === U.statsView;
     ctx.fillStyle = on ? "rgb(126,77,63)" : "rgb(61,40,31)";
     ctx.fillRect(x1, 15, x2 - x1 + 1, 22);
     ctx.strokeStyle = "rgb(126,77,63)";
     ctx.lineWidth = 1;
     ctx.strokeRect(x1 + 0.5, 15.5, x2 - x1, 21);
-    const w = textWidth(ctx, label, 9, true);
-    drawTextMid(ctx, label, x1 + Math.floor((x2 - x1 + 1 - w) / 2), 15, 22, 9, true, on ? TAB_TEXT : [190, 160, 110]);
+    let size = 9;
+    while (size > 7 && textWidth(ctx, label, size, true) > x2 - x1 - 4) size--;
+    const w = textWidth(ctx, label, size, true);
+    drawTextMid(ctx, label, x1 + Math.floor((x2 - x1 + 1 - w) / 2), 15, 22, size, true, on ? TAB_TEXT : [190, 160, 110]);
   });
   ctx.restore();
 }
@@ -907,7 +908,6 @@ export function equipSlotInfo(s) {
   return lines.join("|");
 }
 
-export const QUESTS_PER_PAGE = 7, QUEST_ROW_TOP = 58, QUEST_ROW_H = 16;
 const QUEST_COLOURS = { 0: [255, 214, 90], 1: [160, 140, 118], 2: [120, 205, 105] };
 
 export function questLook(q) {
@@ -915,52 +915,72 @@ export function questLook(q) {
   return [QUEST_COLOURS[q.status] || PARCHMENT, { 0: "In progress", 2: "Complete" }[q.status] || ""];
 }
 
-export function questPages() { return Math.max(1, Math.ceil(S.quests.length / QUESTS_PER_PAGE)); }
+// ----- Channeling: the spells you know, a tile each (click: cast it; right-click: on or off the hotbar)
+const SPELLS_SHOWN = 12;
 
-function drawQuestsTab(ctx) {
-  const total = S.quests.length;
-  U.questsPage = clamp(U.questsPage, 1, questPages());
-  if (!total) {
-    centreText(ctx, 112, 90, "No quests yet.", 7, true, [212, 191, 126]);
-    centreText(ctx, 112, 104, "Talk to people: some will need your help.", 7, true, [170, 150, 120]);
+export function knownSpells() {
+  const level = (sp) => val(spellAt(sp, "Level", "1"));
+  return Object.keys(S.me.spells || {}).filter((sp) => sp !== "Own_Spell" || S.me.own)
+    .sort((a, b) => level(a) - level(b) || a.localeCompare(b));
+}
+
+function spellTileRect(i) {
+  return [29 + (i % 3) * 56, 43 + Math.floor(i / 3) * 36, 54, 34];
+}
+
+export function spellTileAt(px, py) {
+  const n = Math.min(SPELLS_SHOWN, knownSpells().length);
+  for (let i = 0; i < n; i++) {
+    const [x, y, w, h] = spellTileRect(i);
+    if (px >= x && px < x + w && py >= y && py < y + h) return i + 1;
+  }
+  return 0;
+}
+
+export function spellHoverText(spell) {
+  const rank = (S.me.spells || {})[spell] || 1;
+  const cost = castCost(spell);
+  const cd = cooldownLeft(spell);
+  const lines = [`#${spellTitle(spell, rank)}`];
+  const what = spellSummary(spell, rank);
+  if (what) lines.push(what.charAt(0).toUpperCase() + what.slice(1));
+  lines.push(cd > 0 ? `!Ready in ${Math.ceil(cd / 1000)} s` : (S.me.shards || 0) < cost ?
+    `!Needs ${lbstr(cost)} Shards (you have ${S.me.shards || 0})` : `+${lbstr(cost)} Shards a cast`);
+  lines.push(M.on ? "~Tap: cast it · Hold: on or off the hotbar" : "~Click: cast it · Right-click: on or off the hotbar");
+  return lines.join("|");
+}
+
+function drawChannelTab(ctx) {
+  const spells = knownSpells();
+  if (!spells.length) {
+    centreText(ctx, 112, 90, "No spells yet.", 7, true, [212, 191, 126]);
+    centreText(ctx, 112, 104, "A spell's scroll teaches it for good.", 7, true, [170, 150, 120]);
     return;
   }
-  const done = S.quests.filter((q) => q.status === 2).length;
-  drawText(ctx, fitText(ctx, `Level ${S.level}  -  ${done}/${total} done`, 108, 7, true), 34, 43, 7, true, [212, 191, 126]);
-  if (questPages() > 1) {
-    roundBox(ctx, 147, 43, 12, 12, U.questsPage > 1 ? TAB_TEXT : [96, 70, 56], null, 0, 4);
-    roundBox(ctx, 183, 43, 12, 12, U.questsPage < questPages() ? TAB_TEXT : [96, 70, 56], null, 0, 4);
-    centreText(ctx, 153, 42, "<", 7, true, [51, 31, 25]);
-    centreText(ctx, 189, 42, ">", 7, true, [51, 31, 25]);
-    centreText(ctx, 171, 43, `${U.questsPage}/${questPages()}`, 7, true, [212, 191, 126]);
-  }
-  const first = (U.questsPage - 1) * QUESTS_PER_PAGE;
-  for (let row = 1; row <= QUESTS_PER_PAGE; row++) {
-    const q = S.quests[first + row - 1];
-    if (!q) break;
-    const y = QUEST_ROW_TOP + (row - 1) * QUEST_ROW_H;
-    const [c] = questLook(q);
-    const dot = { 0: [240, 190, 50], 2: [70, 170, 80] }[q.status] || [70, 160, 205];
-    if (row === U.questHover) roundBox(ctx, 30, y, 165, QUEST_ROW_H - 1, [74, 48, 38], c, 1, 6);
-    ctx.fillStyle = rgb(q.main ? dot : dot);
-    if (q.needs && q.needs.length) padlock(ctx, 39, y + 8, q.main ? [210, 170, 80] : c);
-    else if (q.main) {
-      ctx.beginPath(); ctx.moveTo(39, y + 3); ctx.lineTo(44, y + 8); ctx.lineTo(39, y + 13); ctx.lineTo(34, y + 8);
-      ctx.closePath(); ctx.fill();
-    } else { ctx.beginPath(); ctx.arc(39, y + 8, 4, 0, 6.283); ctx.fill(); }
-    const followed = q.title === trackedQuest();
-    if (followed) {                                // (the quest followed: a gold target at the row's end)
-      ctx.strokeStyle = "rgb(255,214,90)"; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(188, y + 8, 5, 0, 6.283); ctx.stroke();
+  spells.slice(0, SPELLS_SHOWN).forEach((spell, i) => {
+    const [x, y, w, h] = spellTileRect(i);
+    const cost = castCost(spell), cd = cooldownLeft(spell);
+    const short = (S.me.shards || 0) < cost;
+    const hot = U.spellHover === i + 1, ready = S.spellReady === spell;
+    roundBox(ctx, x, y, w, h, hot || ready ? [74, 48, 38] : [40, 26, 20], ready ? [255, 214, 90] : [126, 77, 63],
+      ready ? 2 : 1, 6);
+    const scroll = spellIni(spell, "Scroll", "");          // (its first scroll: what the hotbar holds)
+    ctx.save();
+    if (cd > 0 || short) ctx.globalAlpha = 0.45;
+    icon(ctx, scroll, x + 3, y + 3, 22);
+    ctx.restore();
+    const col = short ? [240, 110, 100] : [214, 200, 255];
+    shadowCentre(ctx, x + 40, y + 3, 14, lbstr(cost), 9, col);
+    const sh = sprite("Shard");
+    if (sh) ctx.drawImage(sh, x + 33, y + 17, 14, 14);
+    if (cd > 0) shadowCentre(ctx, x + 14, y + 8, 14, String(Math.ceil(cd / 1000)), 9, [255, 214, 90]);
+    if ((S.me.hotbar || []).includes(scroll)) {          // (on the hotbar: a gold dot)
       ctx.fillStyle = "rgb(255,214,90)";
-      ctx.beginPath(); ctx.arc(188, y + 8, 2, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + w - 5, y + 5, 2.5, 0, 6.283); ctx.fill();
     }
-    const title = fitText(ctx, q.title, followed ? 130 : 142, 8, true);
-    const tw = drawText(ctx, title, 49, y + 1, 8, true, c);
-    if (q.status === 2) {
-      ctx.strokeStyle = "rgb(100,150,90)"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(48, y + 7.5); ctx.lineTo(50 + tw, y + 7.5); ctx.stroke();
-    }
+  });
+  if (spells.length > SPELLS_SHOWN) {
+    centreText(ctx, 112, 189, `and ${spells.length - SPELLS_SHOWN} more: the journal's Spells (H)`, 7, true, [170, 150, 120]);
   }
 }
 
@@ -1783,18 +1803,6 @@ function drawSleep(ctx, now) {
   }
 }
 
-// ----- the quest checklist, while a quest in the Quests tab is pointed at
-function drawQuestPopup(ctx) {
-  if (U.statsView !== 2 || U.questHover <= 0) return;
-  const q = S.quests[(U.questsPage - 1) * QUESTS_PER_PAGE + U.questHover - 1];
-  if (!q) return;
-  const w = 300;
-  const rows = questRows(ctx, q, w, "Click: open the journal.  Right-click: in the chat.");
-  const h = 16 + rows.reduce((a, r) => a + ROW_H[r[0]], 0);
-  const rowY = L.statY + QUEST_ROW_TOP + (U.questHover - 1) * QUEST_ROW_H;
-  const y = clamp(rowY - 12, 6, L.VH - h - 6);
-  drawChecklist(ctx, q, rows, M.on ? Math.max(4, L.statX - w - 6) : L.VW - w - 6, y, w, h);
-}
 
 export const ROW_H = { title: 22, giver: 16, heading: 20, item: 15, "item+": 15, footer: 18 };
 
@@ -1863,6 +1871,10 @@ export function drawChecklist(ctx, q, rows, x, y, w, h) {
 // ----- the hover box's text for things in the world
 export function hoverText(e) {
   if (!e) return "";
+  if (S.spellReady) {
+    const name = pretty(S.spellReady);
+    return e.k === T.INVITEM ? `#Cast ${name}|~Click who to cast it at` : `#Cast ${name} at ${displayName(e)}|~Click to cast`;
+  }
   if (S.itemInUse) {
     const it = (S.me.inv || []).find((i) => i[0] === S.itemInUse);
     const name = it ? pretty(it[1]) : "";
@@ -2024,6 +2036,5 @@ function drawTouchUI(ctx, now) {
   drawInventory(ctx);
   if (S.box.mode) drawResponses(ctx);
   if (M.chat) drawChat(ctx);
-  drawQuestPopup(ctx);
   if (U.rcm) drawMenu(ctx);
 }

@@ -146,7 +146,7 @@ def data():
     section(ENTS, "Goblin_Cage", [("Type", "StaticObject"), ("Use.Words", "Open,Examine"),
                                   ("Examine.Info", "A goblin's cage, padlocked. Something red lies inside."), ("Solid", "1")])
     section(SPELLS, "Grasp", [("Cost", "2"), ("Cooldown", "2"), ("Scroll", "Grasp_Scroll"), ("Effect", "Grasp"),
-                              ("Level", "1"), ("Range", "192"), ("Keep", "1"), ("Impact", "Puff"), ("Sound", "SpellCast"),
+                              ("Level", "1"), ("Range", "192"), ("Impact", "Puff"), ("Sound", "SpellCast"),
                               ("XP", "0.2")])
     # crafting: a wooden sword, and the shield at level 1 (a beginner's pair)
     have = [ini.read("CRAFT-Crafting", "Item%d" % i, "", RACKS) for i in range(1, 60)]

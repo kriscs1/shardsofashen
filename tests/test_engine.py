@@ -788,19 +788,19 @@ def test_a_chest_shows_what_is_in_it_before_it_is_yours(world):
         world.tick(0.05)
     assert s.ab_mode == "Chest"
     names = [it["name"] for it in s.box_state()["items"]]
-    assert "Fire_Bolt_Scroll" in names and "Bronze_Sword" in names and "Gold_Coin(s)" in names
-    assert s.items_held("Fire_Bolt_Scroll") == 0 and s.items_held("Gold_Coin(s)") == gold    # (not yours yet)
-    i = names.index("Fire_Bolt_Scroll")
+    assert "Bronze_Sword" in names and "Gold_Coin(s)" in names and not any(n.endswith("_Scroll") for n in names)
+    assert s.items_held("Bronze_Sword") == 0 and s.items_held("Gold_Coin(s)") == gold        # (not yours yet)
+    i = names.index("Gold_Coin(s)")
     assert s.get_verbs(s.rack_pseudo(i)) == "Take 1,Take all,Examine"
     s.do_action("Take 1", s.rack_pseudo(i))
-    assert s.items_held("Fire_Bolt_Scroll") == 1
+    assert s.items_held("Gold_Coin(s)") == gold + 1
     s.close_action_box(-1)
     saved = s.save_state()
-    assert any(it[0] == "Fire_Bolt_Scroll" and it[1] == 2 for v in saved["chests"].values() for it in v)
+    assert any(it[0] == "Gold_Coin(s)" and it[1] == 29 for v in saved["chests"].values() for it in v)
     s.do_action("Open", chest)                                     # (what's left is still there, for them)
     assert s.ab_mode == "Chest"
     s.action_box_response_chosen(1)                                # Take everything
-    assert s.items_held("Fire_Bolt_Scroll") == 3 and s.items_held("Bronze_Sword") == 1
+    assert s.items_held("Bronze_Sword") == 1
     assert s.items_held("Gold_Coin(s)") == gold + 30 and not s.chests
     s.do_action("Open", chest)                                     # (empty now: the script says so)
     for _ in range(10):
@@ -867,14 +867,17 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
     a.do_action("Learn", scroll)                                  # (read: the spell is theirs, the scroll goes)
     assert "Fire_Bolt" in a.spells_known and a.items_held("Fire_Bolt_Scroll") == 1
     scroll = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll")
-    assert "Cast" in a.get_verbs(scroll) and "Learn" not in a.get_verbs(scroll)
-    a.do_action("Cast", scroll)
-    assert a.item_in_use is scroll                                # (held ready, not cast)
-    assert any(e.get("t") == "use" and e.get("uid") == scroll.uid for e in a.out)
+    assert "Cast" not in a.get_verbs(scroll) and "Learn" not in a.get_verbs(scroll)   # (a scroll only teaches)
+    a.out = []
+    a.cast_scroll(scroll, None)
+    assert any("already know this" in str(e.get("text", "")) for e in a.out) and a.items_held("Fire_Bolt_Scroll") == 1
+    a.spell_auto_target = lambda rng: None                        # (nobody in reach: Channeling holds it ready)
+    a.out = []
+    a.handle({"t": "cast", "spell": "Fire_Bolt"})
+    assert any(e.get("t") == "ready" and e.get("spell") == "Fire_Bolt" for e in a.out)
     shards = a.shards()
-    a.script_cursor_x, a.script_cursor_y = wolf.cx, wolf.cy
-    a.use_item_with(wolf)                                         # (then clicked on the wolf)
-    assert a.items_held("Fire_Bolt_Scroll") == 1 and a.shards() == shards - 3     # (the scroll stays; 3 Shards go)
+    a.handle({"t": "cast", "spell": "Fire_Bolt", "target": {"k": "ent", "uid": wolf.uid}, "x": wolf.cx, "y": wolf.cy})
+    assert a.shards() == shards - 3                               # (then clicked on the wolf: cast, 3 Shards)
     leave(world, a)
 
 
@@ -890,11 +893,10 @@ def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
     far = world.add_npc("Wolf", 0, m.ox + 22 * 32, m.oy + 18 * 32, "Attitude=Bad")
     for e in wolves + [boss, far]:
         e.hp = e.max_hp = 500                                      # (alive after the blast)
-    stock(a, Frost_Nova_Scroll=1)
     a.out = []
     shards = a.shards()
-    a.cast_scroll(next(e for e in a.inv if e.name == "Frost_Nova_Scroll"), None)
-    assert a.items_held("Frost_Nova_Scroll") == 1 and a.shards() == shards - a.spell_cost("Frost_Nova")  # (known: the scroll stays)
+    a.handle({"t": "cast", "spell": "Frost_Nova"})                 # (from Channeling)
+    assert a.shards() == shards - a.spell_cost("Frost_Nova")
     assert all(w.hp < 500 and w.frozen_until for w in wolves)       # (hurt, and held in the ice)
     assert boss.hp < 500 and boss.frozen_until is None              # (hurt, but no ice holds it)
     assert far.hp == 500 and far.frozen_until is None               # (too far off)
@@ -1179,7 +1181,9 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     s.action_box_response_chosen(1)
     run(30)
     assert attr("AmuletQuest") == 5 and s.items_held("Grasp_Scroll") == 1
-    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), niche)      # (read at it: learnt, and cast)
+    s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), None)       # (learnt: the scroll is used up)
+    assert "Grasp" in s.spells_known and s.items_held("Grasp_Scroll") == 0
+    s.cast_spell("Grasp", niche)                                                  # (cast, as from Channeling)
     run(30)
     s.action_box_response_chosen(1)
     run(30)
@@ -3592,3 +3596,26 @@ def test_editor_knows_what_points_at_the_maps():
     assert ("script", "3,2,0") in r.of_map("3,2,0")                                      # (its arrival script)
     assert r.tiles and all(len(k) == 3 for k in r.tiles)                                 # (map, tile x, tile y)
     assert not r.fresh()                                                                 # (nothing changed since)
+
+
+def test_scrolls_are_rare_and_only_teach(world):
+    """dev/migrate/rare_scrolls.py: none at the start, one at a time, never sold if a quest or a chest gives it."""
+    d = world.data
+    s = join(world, "Apprentice")
+    assert not any(e.name.endswith("_Scroll") for e in s.inv)                     # (a new character: none)
+    found, sold = "Fire_Bolt_Scroll", "Teleport_Scroll"                           # (Bert gives one; the other is sold)
+    assert d.entity_ini(found, "Value", "") == "0" and float(d.entity_ini(sold, "Value", "0")) >= 100
+    assert d.entity_ini(found, "Stackable", "") == "1"
+    assert not s.can_sell_here(found)                                            # (no shop takes it, to sell it on)
+    racks = open(os.path.join(ROOT, "data", "ItemRacks.ini"), encoding="cp1252").read()
+    assert "Fire_Bolt_Scroll," not in racks and "[CRAFT-Scrolls]" not in racks
+    assert "Scroll" not in d.entity_ini("Bandit", "Drops", "")                     # (no beast drops one)
+    leave(world, s)
+
+
+def test_chests_say_nothing_and_draughts_come_in_three_strengths(world):
+    lines = open(os.path.join(ROOT, "data", "Scripts", "Open Chest 2.txt"), encoding="cp1252").read()
+    assert "Grave goods" not in lines and "\tYellow\t" not in lines
+    heal = lambda n: world.data.spell_ini(n, "Heal", "")
+    assert (heal("Minor_Healing_Draught"), heal("Healing_Draught"), heal("Major_Healing_Draught")) == \
+        ("8-12", "15-20", "26-32")

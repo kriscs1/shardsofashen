@@ -103,8 +103,8 @@ class ShardMixin:
         n = int(self.shard_setting("Start" if new_character else "Old.Save.Grant", 12 if new_character else 20))
         self.add_shards(n)
         if n > 0 and not new_character:
-            self.display_message("Magic in Ashen now runs on Shards, and you have %s to begin with. Read a "
-                                 "spell's scroll to learn it for good (H: the journal's Spells)." % shard_words(n),
+            self.display_message("Magic in Ashen now runs on Shards, and you have %s to begin with. Learn a "
+                                 "spell from its scroll, for good, and cast it from Channeling (the Stats box)." % shard_words(n),
                                  "ACHIEVEMENT")
 
     # ----- quests' rewards, and the screen that shows them
@@ -235,14 +235,16 @@ class ShardMixin:
     def dismantle_worth(self, name):
         """How many Shards dismantling it gives (0: it can't be): one for every Shards.ini [Dismantle] Weapon (or
         Armour: anything worn) gold of its value, at least one; Scroll for a scroll whose spell (at its rank) you
-        know. Not quest things (Droppable=0)."""
-        if name == SHARD or self.entity_ini(name, "Droppable", "1").strip() == "0":
+        know (worth what a wizard would ask for it, even one a quest gave: dev/migrate/rare_scrolls.py). Not quest
+        things (Droppable=0)."""
+        spell = self.spell_learnable(name)
+        if name == SHARD or (self.entity_ini(name, "Droppable", "1").strip() == "0" and not spell):
             return 0
         value = val(self.entity_ini(name, "Value", "0"))
-        spell = self.spell_learnable(name)
         if spell:
             if self.spell_rank(spell) < self.scroll_rank(name):
-                return 0                                # (not learnt yet: read it)
+                return 0                                # (not learnt yet: learn it)
+            value = value or 100 + 40 * val(self.spell_ini(spell, "Level", "1"))
             per = self.shard_setting("Scroll", 10, "Dismantle")
         elif self.equip_verb(name):
             per = self.shard_setting("Weapon" if self.equip_verb(name) == "Wield" else "Armour", 25, "Dismantle")

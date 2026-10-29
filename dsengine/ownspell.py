@@ -131,5 +131,5 @@ class OwnSpellMixin:
         self.play_sound("SpellCast")
         self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 600)
         self.update_skill("Shardcraft", "+" + lbstr(round(0.4 + 0.2 * int(power), 2)))
-        self.display_message("The Shard-ink settles into the page: %s is yours. (H: the journal's Spells, or put it on "
-                             "the hotbar.)" % self.own_spell_title(), "ACHIEVEMENT")
+        self.display_message("The Shard-ink settles into the page: %s is yours: cast it from Channeling, in "
+                             "the Stats box." % self.own_spell_title(), "ACHIEVEMENT")

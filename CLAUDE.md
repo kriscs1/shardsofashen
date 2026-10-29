@@ -39,7 +39,10 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
 1. **The Last Will** (`LastWill`). A new character stands at Mary's fresh grave in the chapel's graveyard (3,1,0's
    entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
    table. The cottage door stays locked (a Lock) until you've read it: the letter (`Last_Will`, Read) tells you who
-   you are, in the owner's own words.
+   you are, and little else: that she hid something, that the Isle kept her secrets, that your father waits in
+   Galaith. **The main quest is discovered, not laid out**: no letter or stage text says where a thing is hidden or
+   who has a boat; people and places reveal it as you go (the Amulet of Succession's stages say "something of your
+   mother's", not "the amulet at the back of the caves").
 2. **Dinner at Edwin's** (`DinnerQuest`). Edwin the lawyer and **Maren**, the Isle's doctor, live in the brick house
    by the chapel (2,1,0, two storeys; it was the bank, and its place Id is still `Isle_Bank`): her surgery and his desk
    downstairs by day, their rooms upstairs (2,1,1), going up at night. There's no bank on the Isle. Three logs for her range (with the axe she
@@ -118,6 +121,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Conversation answers that belong to a quest stage show only at that stage**: append `[if CONDITION]` to the
   answer, e.g. `About a ferry ticket... [if $Attr.Passage>=1 and $Attr.Passage<=10]`.
 - Refusals are plain: "The chest is empty." (with the `Empty` sound), not hints.
+- **Opening a chest says nothing**: what's in it shows in its box (no "Grave goods: ..." line).
 - NPCs can have their own names through the map option `Name=` (underscores become spaces).
 - **One of a kind gets its own script**: a thing's `Id=`, or a tile's place ID (an `Id` line; in the editor,
   right-click a tile, "Name this tile"), makes `<Verb> <Id>` run before `<Verb> <Kind>` (every grave has its own
@@ -191,8 +195,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   opens a copy of the world map with every stone you've activated: tap one to go. The menu never counts your Shards.
   The attunements in saves keep their old names (attribute `Waystone.<Key>`, place Id `Waystone_<Key>`): don't
   rename those.
-- A spell's scroll teaches it for good (if your Channeling is high enough; else it's kept); a known spell's scroll isn't
-  used up (dismantle it for Shards). Scrolls are rare. Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
+- **A scroll only teaches.** Learn it and the spell is yours for good, the scroll used up (if your Channeling is high
+  enough; else it's kept); a scroll for a spell you know says "You already know this" (dismantle it for Shards).
+  Spells are cast from **Channeling**, the Stats box's third tab (click: cast; right-click: on or off the hotbar), or
+  the hotbar; a spell that needs a target and has none is held ready for the next click. Never "Cast" on a scroll.
+- **Scrolls are rare** (`dev/migrate/rare_scrolls.py`): one at a time (`Stackable=1`), none at the start, none from
+  beasts or ordinary chests, and nobody writes them. They come from quests, a few chests in places of their own (the
+  standing stones', the cinder cache's), the Shifting Deep's Heart, and the wizards' shops, dearly (Value 100 + 40 a
+  level). A scroll a quest gives or a chest holds is never for sale (`Value=0`, `Droppable=0`). Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
   spell a rank; each rank's values are `Key.<rank>` in Shards.ini `[Upgrade.<Spell>]`. Quests give items with
   `Reward.Items` and skill xp with `Reward.XP` (`Strength 3 Defence 3`), and a finished quest shows its reward
   screen. Set by `dev/migrate/build_shards.py`.
@@ -207,7 +217,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   - **Channeling** (was Magic) is using magic: casting. Each level past the first takes Shards.ini `[Channeling]`
     percent off a spell's Shards, to a limit, never under a Shard (`channeled_cost`, and `castCost` in the page).
   - **Shardcraft** is making and working Shard magic: activating shardstones and the Shardgate, dismantling, absorbing
-    remnants, writing scrolls (CRAFT-Scrolls) and your own spell, enchanting, shaping your pocket of the realm.
+    remnants, writing your own spell, enchanting, shaping your pocket of the realm.
   - **Crafting** is Smithing and Crafting made one; **Homesteading** is Construction and Farming made one; **Alchemy**
     is herbs and potions (was Potion Making, before that Herblore). A merged skill in an old save keeps the better.
 - A skill's name is one word in data (`Shardcraft`), and shown with spaces wherever a player reads it (`pretty`).
@@ -255,6 +265,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   by their owner in person. Building is Homesteading; terraforming is Shardcraft.
 
 **Items**
+- Healing draughts come in three strengths: `Minor_Healing_Draught` (8-12), `Healing_Draught` (15-20),
+  `Major_Healing_Draught` (26-32), brewed from more herbs as they get stronger; the Mega Potion is above them.
 - Chicken meat is Poultry (`Raw_Poultry`, `Cooked_Poultry`, `Burnt_Poultry`). For any rename, add the old name to
   `dsengine/renames.py` so old saves load.
 - New characters start with no sword.
@@ -298,6 +310,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the feet (a step never skips over it).
 - A tile changing (a door, a chopped tree) sends just that tile (`mapcells`), not the whole map again: keep it so.
   The phone and many NPCs make full-map repaints the thing that lags.
+- The Stats box's tabs are Stats, Gear and Channeling. Quests live in the journal (H): it shows the quests in hand,
+  done, and those you can start now (never the ones still locked), no rewards, and a click on one follows it.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top
   left of the view, not in the sidebar.
 - **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch

@@ -25,10 +25,11 @@ NPC	Skeleton	128	96	Attitude=Bad
 NPC	Skeleton	512	320	Attitude=Bad
 NPC	Skeleton	192	256	Attitude=Bad
 StaticObject	Chest	96	32
-MapItem	Ice_Bolt_Scroll	448	480	2
+MapItem	Ice_Bolt_Scroll	448	480	1
 MapItem	Bones	353	226	1
 MapItem	Bones	225	354	1
 StaticObject	Eel_Spot	288	256
 Trigger	Trap_Darts	16	13
 Trigger	Trap_Pit	16	7
 Trigger	Trap_Pie	10	12
+

@@ -5,8 +5,9 @@ Passage to the Mainland, the ticket book and the goblin's cage). Run it again: i
 
 The story: your mother Mary, the Queen of Ashen in hiding, ran from the capital, Galaith, with you as a baby, to
 save you from the dragon that takes the firstborn heir of every generation. You were raised on the Isle in poverty.
-  1  The Last Will (LastWill 0-2). A new character stands at her grave in the chapel's graveyard (3,1,0's entry
-     script runs The Funeral): the mourners go, Edwin the lawyer walks you home and leaves her letter on the table.
+  1  The Last Will (LastWill 0-2; the letter tells you who you are, and little else: the rest you find). A new
+     character stands at her grave in the chapel's graveyard (3,1,0's entry script runs The Funeral): the mourners
+     go, Edwin the lawyer walks you home and leaves her letter on the table.
      The cottage door (a Lock) stays shut until it's read: the letter (Last_Will, Read) tells you who you are.
   2  Dinner at Edwin's (DinnerQuest 0-4). Maren, Edwin's wife and the Isle's doctor, at their brick house by the
      chapel (2,1,0: her surgery and his desk downstairs; their rooms upstairs, 2,1,1; it was the bank): three logs
@@ -441,14 +442,13 @@ def data():
     }, 4, markers={0: "Isle_Bank", 1: "Isle_Bank", 2: "Hen_Coop", 3: "Isle_Bank"}, chapter=2,
         requires="The Last Will", marker0="Isle_Bank")
     K.quest("The Amulet of Succession", "Milkmaid", "AmuletQuest", {
-        0: "Ask Bess the milkmaid, on the farm in the north, to take you to the mainland.",
+        0: "Bess the milkmaid, on the farm in the north, knew your mother well.",
         1: "Bess's husband Frank, the blacksmith, will help you make a sword and a shield. His smithy is by the dairy.",
         2: "Make a wooden sword and a wooden shield at Frank's workbench, then show them to him.",
         3: "Wield your sword and shield, and train until your Strength and Defence are level 2. Then ask Brother "
-           "Aldous, at the chapel, to let you through the cellar's trapdoor.",
-        4: "Go down through the chapel cellar's trapdoor and find the Amulet of Ashen Succession, at the back of "
-           "the caves.",
-        5: "The amulet lies behind iron bars. Cast Grasp at it (Cast the scroll, then click the bars).",
+           "Aldous, at the chapel, about the trapdoor in its cellar.",
+        4: "Something of your mother's lies in the caves under the chapel.",
+        5: "Something gold glints behind iron bars, out of reach of any hand.",
     }, 6, markers={0: "Milkmaid_Farm", 1: "Franks_Smithy", 2: "Franks_Smithy", 3: "Chapel_Door",
                    4: "Amulet_Niche", 5: "Amulet_Niche"}, chapter=3, requires="The Last Will")
     K.quest("Passage to the Mainland", "Milkmaid", "Passage", {
@@ -900,14 +900,15 @@ def opening():
                          "true heir of Ashen, and its riches, lands and people are yours to protect.",
             ("Read on.", "@p2")),
         ("@p2",),
-        say("Last_Will", "I need you to return to your father, the king, and tell him of my death. You will need to take "
-                         "the Amulet of Ashen Succession; I hid it under the Church in the Caves. Then you will need "
-                         "to convince the milkmaid (Bess) to open the ferry and take you back to the mainland.",
+        say("Last_Will", "I could never tell you who we were while I lived: it was safer that you didn't know. I "
+                         "didn't leave Galaith with nothing. What I carried away, I hid, and the people of this island "
+                         "have kept my secrets for you. When you are ready, they will see that you find it.",
             ("Read on.", "@p3")),
         ("@p3",),
-        say("Last_Will", "You'll need to gain entry to the City of Galaith, which has been closed since your birth, "
-                         "because the Dragon who guards the city wants his payment: the true heir of Ashen, you!!!"
-                         "\\Be careful, and tell your father I never stopped loving him.\\Mary",
+        say("Last_Will", "Your father, the king, still waits behind the walls of Galaith, and he doesn't know that I am "
+                         "gone. Go to him. The city has been shut since the day you were born, and I am the reason "
+                         "why. One day you will understand.\\Be careful, and tell your father I never stopped loving "
+                         "him.\\Mary",
             ("Fold the letter.", "@done")),
         ("@done",),
         ("Get.Value", "ATTRIBUTE", "LastWill", V1),
@@ -1227,11 +1228,11 @@ def chapel_and_caves():
         ("@give",),
         ("Give.Item", "Grasp_Scroll", "1"),
         ("Update.Attribute", "AmuletQuest", "=5"),
-        ("Display.Message", "Yellow", "Read the scroll to learn Grasp (2 Shards a cast), then cast it at what you "
-                                      "want brought to you.", "-"),
+        ("Display.Message", "Yellow", "Learn Grasp from the scroll, then cast it from Channeling at what you want "
+                                      "brought to you.", "-"),
         ("End",),
         ("@not4",), (">Conditional", "$Variable.1=5", "@end"),
-        ("Display.Refusal", "The bars are too close for your hand. Cast Grasp at them."),
+        ("Display.Refusal", "The bars are too close for your hand."),
         ("@end",), ("End",),
     ] + FAR)
     w("Grasp Barred_Niche", [

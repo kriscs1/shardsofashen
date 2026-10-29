@@ -34,10 +34,9 @@ DEEP = [   # Deep.ini [Deep] (key, value, note)
     ("Level.Per.Floor", "3", None),
     ("Mimic.Chance", "12", "In 100: a chest that bites."),
     ("Loot", "Gold_Coin(s),10-30,100 Shard,2-6,60 Shard_Remnant,2-5,40 Healing_Draught,1-2,35 "
-             "Invisibility_Potion,1-1,8 Fire_Bolt_Scroll,1-1,4",
+             "Invisibility_Potion,1-1,8",
      "What a chest holds (item,lo-hi,chance in 100; more the deeper), a secret room's, and the Heart's."),
-    ("Secret.Loot", "Gold_Coin(s),40-80,100 Shard,8-15,100 Invisibility_Potion,1-2,40 Swap_Scroll,1-1,10 "
-                    "Ice_Bolt_Scroll_II,1-1,8", None),
+    ("Secret.Loot", "Gold_Coin(s),40-80,100 Shard,8-15,100 Invisibility_Potion,1-2,40", None),   # (no scrolls)
     ("Heart.Shards", "15-30", None),
     ("Heart.Loot", "Mega_Potion,1-2,50 Fire_Bolt_Scroll_II,1-1,15 Lightning_Scroll,1-1,10", None),
 ]

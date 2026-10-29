@@ -620,7 +620,7 @@ class CombatMixin:
 
     def spell_begin(self, scroll, spell):
         """The cast going ahead: its cooldown starts, then it takes hold (its Shards spent) or it fizzles (nothing
-        spent). A potion is drunk; a scroll isn't used up by casting (it taught the spell already)."""
+        spent). A potion is drunk."""
         self.spell_fizzled = False
         attack = self.spell_ini(spell, "Effect", "Bolt").upper() in ("BOLT", "AREA")
         p = self.player
@@ -691,8 +691,8 @@ class CombatMixin:
             self.display_message("Your %s grows stronger: it's %s now (%s)." %
                                  (pretty(spell), title, self.spell_terms(spell)), "ACHIEVEMENT")
         else:
-            self.display_message("You learn %s! It's yours for good: %s. Cast it from the journal's Spells (H) or "
-                                 "put its scroll on your hotbar." % (title, self.spell_terms(spell)), "ACHIEVEMENT")
+            self.display_message("You learn %s! It's yours for good: %s. Cast it from Channeling, in the Stats "
+                                 "box." % (title, self.spell_terms(spell)), "ACHIEVEMENT")
         self.dirty_me = True
         self.dirty_quests = True
 
@@ -702,20 +702,29 @@ class CombatMixin:
         return spell if spell and not self.spell_is_potion(spell) else ""
 
     def cast_scroll(self, item, target):
-        """A scroll or potion used: a potion is drunk; a scroll teaches its spell, and once it's known, casts it."""
+        """A scroll or potion used: a potion is drunk; a scroll teaches its spell (it's used up), and that's all it
+        does - a spell is cast from Channeling, not from a scroll."""
         spell = self.entity_ini(item.name, "Spell", "")
         if spell == "":
             self.display_message("Nothing interesting happens.", "FAIL")
             return
-        if self.spell_learnable(item.name) and self.spell_rank(spell) < self.scroll_rank(item.name):
+        if not self.spell_learnable(item.name):
+            self.cast_spell(spell, target, item)        # (a potion: drunk)
+        elif self.spell_rank(spell) < self.scroll_rank(item.name):
             self.learn_spell(item, spell)
-            if self.spell_rank(spell) < self.scroll_rank(item.name) or target is None:
-                return                                  # (used on something: learnt, and cast at it, at once)
-        self.cast_spell(spell, target, item)
+        else:
+            self.refuse("You already know this.")
+
+    def ready_spell(self, spell, name, what="who"):
+        """A spell that needs something to be cast at, and nothing chosen: it's held ready, and the next thing
+        clicked is what it's cast at (the browser sends it back with the spell)."""
+        self.emit({"t": "ready", "spell": spell})
+        self.display_message("Choose %s to cast %s at: click %s. (Right-click or Esc: let it go.)" % (
+            what, name, "them" if what == "who" else "it"), "INFO")
 
     def cast_spell(self, spell, target, item=None):
         """Casts a known spell (or drinks a potion, item): at target, or (a bolt, none chosen) the foe you're
-        fighting or the nearest. item: the scroll it was cast with, if any (held ready to choose who it's at)."""
+        fighting or the nearest, or else held ready for a click on who it's for."""
         scroll = item.name if item is not None else ""
         if not self.spell_is_potion(spell) and spell not in self.spells_known:
             self.refuse("You don't know %s yet: read its scroll to learn it." % pretty(spell))
@@ -749,9 +758,9 @@ class CombatMixin:
         if effect == "BOLT":
             rng = val(self.spell_ini(spell, "Range", "256"))
             if target is None and item is None:
-                target = self.spell_auto_target(rng)    # (from the spellbook or the hotbar: your foe, or the nearest)
+                target = self.spell_auto_target(rng)    # (from Channeling or the hotbar: your foe, or the nearest)
                 if target is None:
-                    self.display_message("There's nothing in reach to cast %s at." % name, "FAIL")
+                    self.ready_spell(spell, name)
                     return
             if target is None:
                 # (no target yet: the scroll is held ready - the next thing clicked is what it's cast at)
@@ -761,8 +770,7 @@ class CombatMixin:
                                      "INFO")
                 return
             if not self.spell_target_ok(target):
-                self.display_message("There's nothing to cast %s at. Use the scroll on a monster, or get closer." %
-                                     name, "FAIL")
+                self.display_message("There's nothing to cast %s at there." % name, "FAIL")
                 return
             if self.player_distance_to(target) > rng + 8:
                 self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
@@ -784,7 +792,7 @@ class CombatMixin:
         elif effect == "GRASP":
             rng = val(self.spell_ini(spell, "Range", "192"))
             if target is None and item is None:
-                self.display_message("%s needs something to take hold of: use its scroll on it." % name, "FAIL")
+                self.ready_spell(spell, name, "what")
                 return
             if target is None:
                 self.item_in_use = item

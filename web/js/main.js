@@ -526,6 +526,7 @@ window.dsBack = () => {
   if (J.open) { closeJournal(); return true; }
   if (U.worldMap) { U.worldMap = false; return true; }
   if (U.rcm) { U.rcm = null; return true; }
+  if (S.spellReady) { S.spellReady = ""; return true; }
   if (S.itemInUse) { S.itemInUse = 0; send({ t: "use_cancel" }); return true; }
   if (S.box.mode) { send({ t: "close" }); return true; }
   if (M.bag || M.chat) { M.bag = M.chat = false; return true; }
@@ -736,6 +737,7 @@ N.onMessage = (m) => {
       if (m.fade) startTeleportFade(now);
       break;
     case "use": S.itemInUse = m.uid; break;
+    case "ready": S.spellReady = m.spell; S.itemInUse = 0; break;
     case "reveal": revealCell(m.map, m.cell); break;
     case "lightning":
       if (!V.underRoof) {
