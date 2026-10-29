@@ -7,6 +7,7 @@ import collections
 import copy
 import time
 import tkinter as tk
+import types
 from tkinter import ttk, messagebox
 
 from PIL import Image, ImageEnhance
@@ -1195,6 +1196,9 @@ class MapPage(Page):
             x0_, y0_, x1_, y1_ = self.area
             ax, ay = x0_ + gx - fx, y0_ + gy - fy
             fits = self.fits(ax, ay, x1_ - x0_ + 1, y1_ - y0_ + 1)
+            ph = self.region_photo(self.drag["region"])
+            if ph is not None:
+                c.create_image(ox + ax * tw * z, oy + ay * th * z, image=ph, anchor="nw", tags="ghost")
             c.create_rectangle(ox + ax * tw * z, oy + ay * th * z, ox + (ax + x1_ - x0_ + 1) * tw * z,
                                oy + (ay + y1_ - y0_ + 1) * th * z, outline="#ff9a3c" if fits else "#ff4040", width=3,
                                dash=(6, 3), tags="ghost")
@@ -1204,6 +1208,9 @@ class MapPage(Page):
             cursor = "crosshair"                            # (where Ctrl+V would put the area down)
             w, h = self.app.clip_region.size
             fits = self.fits(tx, ty, w, h)
+            ph = self.region_photo(self.app.clip_region)
+            if ph is not None:
+                c.create_image(x0, y0, image=ph, anchor="nw", tags="ghost")
             c.create_rectangle(x0, y0, x0 + w * tw * z, y0 + h * th * z, outline="#ff9a3c" if fits else "#ff4040",
                                width=2, dash=(4, 3), tags="ghost")
         elif self.drag and self.drag.get("tilemove"):
@@ -1260,6 +1267,29 @@ class MapPage(Page):
                 c.create_rectangle(*box, outline=LAYER_LOOK[self.layer][0] if tool != "Fill" else "#66d9ff", width=2,
                                    tags="ghost")
         self.set_cursor(cursor)
+
+    def region_photo(self, region):
+        """A see-through picture of an area cut, copied or being dragged (every layer and everything on it), at this
+        zoom: what would go down where the mouse is."""
+        P, z = self.project, self.zoom
+        key = (id(region), region.map, region.rect, z)
+        if getattr(self, "_region_ph", (None,))[0] != key:
+            x0, y0 = region.rect[:2]
+            w, h = region.size
+            ents = []
+            for e in region.entities:                       # (from where they stood on their map to the area's corner)
+                e = copy.deepcopy(e)
+                self.shift_ent(e, -x0, -y0, P.tile_w, P.tile_h)
+                ents.append(e)
+            doc = types.SimpleNamespace(cells=region.cells, placed=lambda: ents)
+            mx, my = parse_map_name(region.map)[:2] if region.map != HOMESTEAD_MAP else (0, 0)
+            img = render(P, doc, origin=(mx * P.map_w + x0, my * P.map_h + y0))
+            img = img.crop((0, 0, w * P.tile_w, h * P.tile_h))
+            img = img.resize((max(1, int(w * P.tile_w * z)), max(1, int(h * P.tile_h * z))),
+                             Image.NEAREST if z >= 1 else Image.BILINEAR)
+            img.putalpha(img.getchannel("A").point(lambda v: v * 70 // 100))
+            self._region_ph = (key, photo(img))
+        return self._region_ph[1]
 
     def set_cursor(self, cursor):
         if cursor != self._cursor:
@@ -1468,7 +1498,9 @@ class MapPage(Page):
             return
         if self.tool == "Area":                            # (marking an area: the same on every layer)
             if self.layer == "all" and self.in_area(tx, ty):   # (All: drag what's marked somewhere else)
-                self.drag = {"areamove": (tx, ty), "to": (tx, ty)}
+                from .. import region as R
+                self.drag = {"areamove": (tx, ty), "to": (tx, ty),
+                             "region": R.grab(self.doc, self.area, self.ent_tile, False)}
                 self.update_ghost()
                 return
             self.drag = {"rect": ((tx, ty), (tx, ty)), "sel_area": True}
