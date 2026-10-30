@@ -265,5 +265,5 @@ class QuestMixin:
                                 "skill_xp": self.skill_xp_of(skill) if skill else 0})
         gathers = [g for s in (0, 1, 2) for g in gathers if g["status"] == s]
         return {"t": "journal", "crafts": crafts, "gathers": gathers, "quests": self.quest_list(),
-                "spells": self.spellbook(),
+                "spells": self.spellbook(), "friends": self.friends_rows(), "records": self.records_rows(),
                 "level": self.player_level()}

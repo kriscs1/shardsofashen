@@ -268,6 +268,41 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
 $("opt-lan").addEventListener("input", (ev) => send({ t: "lan", open: ev.target.checked }));
+
+// ----- the trade window (together.py): your pack's things to put in, your offer to take back, theirs; both accept
+function tradeRow(name, n, buttons) {
+  const row = document.createElement("div");
+  row.className = "trade-item";
+  const label = document.createElement("span");
+  label.innerHTML = name === "Gold_Coin(s)" ? coinHTML(`${n} gold`) : coinHTML(`${pretty(name)}${n > 1 ? " x" + n : ""}`);
+  row.append(label);
+  for (const [text, msg] of buttons) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = text;
+    b.addEventListener("click", () => send({ t: "trade", ...msg }));
+    row.append(b);
+  }
+  return row;
+}
+
+function showTrade(m) {
+  $("trade").hidden = !m.open;
+  if (!m.open) return;
+  $("trade-title").textContent = `Trading with ${m.with}`;
+  $("trade-their-head").textContent = `${m.with} offers`;
+  const fill = (id, rows) => { const el = $(id); el.replaceChildren(...rows); };
+  fill("trade-mine", (m.mine || []).map(([n, q]) => tradeRow(n, q, [["Back", { do: "back", item: n }]])));
+  fill("trade-theirs", (m.theirs || []).map(([n, q]) => tradeRow(n, q, [])));
+  fill("trade-stock", (m.stock || []).map(([n, q]) => tradeRow(n, q, n === "Gold_Coin(s)" ?
+    [["+10", { do: "add", item: n, n: 10 }], ["+100", { do: "add", item: n, n: 100 }], ["All", { do: "add", item: n, n: q }]] :
+    q > 1 ? [["+1", { do: "add", item: n, n: 1 }], ["All", { do: "add", item: n, n: q }]] : [["Put in", { do: "add", item: n, n: 1 }]])));
+  $("trade-status").textContent = m.ok && m.their_ok ? "" : m.ok ? `You've accepted. Waiting for ${m.with}...` :
+    m.their_ok ? `${m.with} has accepted: accept too, and it's done.` : "When you're both happy, both accept.";
+  $("trade-accept").disabled = !!m.ok;
+}
+$("trade-accept").addEventListener("click", () => send({ t: "trade", do: "accept" }));
+$("trade-cancel").addEventListener("click", () => send({ t: "trade", do: "cancel" }));
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
@@ -651,6 +686,7 @@ N.onMessage = (m) => {
     case "lan":
       $("opt-lan").checked = !!m.open;
       break;
+    case "trade": showTrade(m); break;
     case "login_fail":
       setLoginError(m.reason);
       $("login-button").disabled = $("register-button").disabled = false;

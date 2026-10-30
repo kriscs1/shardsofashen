@@ -126,9 +126,11 @@ export function getVerbs(e) {
   } else if (t === T.PLAYER) {
     // (a click on someone walks you there; Whisper is in the right-click menu. In the arena, a click attacks.)
     v = e.pvp ? ["Attack", "Whisper", "Examine"] : ["Walk here", "Whisper", "Examine"];
+    addVerb(v, "Trade");
     const party = (S.me && S.me.party) || [];        // (together.py: a party of up to five)
     if (party.includes(e.n)) addVerb(v, "Leave party");
     else if (!party.length || party.length < 5) addVerb(v, "Invite to party");
+    addVerb(v, ((S.me && S.me.friends) || []).includes(e.n) ? "Remove friend" : "Add friend");
   }
   if (S.itemInUse && !(e.k === T.INVITEM && e.u === S.itemInUse) && !mode) v = ["Use with", ...v];
   return v;

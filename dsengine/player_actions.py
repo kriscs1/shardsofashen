@@ -735,6 +735,14 @@ class ActionsMixin:
             self.item_in_use = None
         elif t == "stance":
             self.choose_stance(str(msg.get("stance", "")))
+        elif t == "trade":
+            self.trade_msg(msg)                         # (the trade window: together.py)
+        elif t == "friend":
+            (self.remove_friend_named if msg.get("remove") else self.add_friend_named)(str(msg.get("name", "")))
+        elif t == "party_invite":
+            o = self.w.sessions.get(str(msg.get("name", "")))
+            if o is not None and o is not self:
+                self.invite(o)
         elif t == "respond":
             n = int(msg.get("n", 0))
             if self.ab_mode and 1 <= n <= len(self.responses):

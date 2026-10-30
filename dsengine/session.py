@@ -72,6 +72,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.data = world.data
         self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
         self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
+        self.trade = None
         self.sneak_near = {}                                            # (monsters you're creeping past)
         self.thief_until, self.banned_until, self.guards_after = {}, {}, []   # (thieving.py: robbed lately, caught)
         self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
@@ -596,6 +597,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.end_swap("")                           # (the creature gets its own body back)
         self.ready = False
         self.leave_party(quiet=True)
+        self.trade_close("The trade is off.")
         for e in self.companions():
             self.w.remove_entity(e)
         self.followers = []

@@ -12,6 +12,11 @@
   The crier   tells what's going on (raids, projects, the arena's champion); the bounty clerk sets a hunt a day; the
               record keeper keeps the records (kills, secrets, arena wins); a homestead's Pocket Anchor keeps a
               guestbook and a gift box; and on a return after a day away, what happened while you were gone.
+  Friends     Add a player as a friend (right-click them, or /friend Name): the journal's Friends page shows who's
+              about and where, with Whisper and Invite; you're told when a friend comes or goes; and your homestead's
+              "friends" are yours (kept with the world, so it knows them while you're away).
+  Trading     Trade with a player (right-click them): each puts in things and gold, both accept, and they change
+              hands at once. A change undoes both accepts.
   Companions  Jimmy follows the crowned heir about (a cat: he finds secrets); a sellsword can be hired for a while.
               They step aside when a real player in your party is near.
   Greetings   Townsfolk greet the crowned heir, and a town you saved from a raid thanks you, now and then."""
@@ -40,6 +45,7 @@ class Together:
         self.records = {}           # name -> {"Kills": n, "SecretsFound": n, "ArenaWins": n, "Deep": n}
         self.guests = {}            # owner -> [[name, seconds]] (the newest last)
         self.gifts = {}             # owner -> [[from, item, n]]
+        self.friends = {}           # name -> [names] (kept with the world: a homestead knows them while you're away)
         self.parties = {}           # id -> [names] (not saved: a party lasts while its people play)
         self.next_party = 1
 
@@ -77,7 +83,8 @@ class Together:
         return False
 
     def state(self):
-        return {"projects": self.projects, "records": self.records, "guests": self.guests, "gifts": self.gifts}
+        return {"projects": self.projects, "records": self.records, "guests": self.guests, "gifts": self.gifts,
+                "friends": self.friends}
 
     def load(self, st):
         st = st or {}
@@ -85,6 +92,10 @@ class Together:
         self.records = dict(st.get("records", {}))
         self.guests = dict(st.get("guests", {}))
         self.gifts = dict(st.get("gifts", {}))
+        self.friends = {k: list(v) for k, v in st.get("friends", {}).items()}
+
+    def friends_of(self, name):
+        return self.friends.get(name, [])
 
 
 class TogetherMixin:
@@ -185,7 +196,7 @@ class TogetherMixin:
             t.parties.pop(pid, None)
 
     def party_state(self):
-        return {"party": self.party_names(), "party_id": getattr(self, "party_id", 0)}
+        return {"party": self.party_names(), "party_id": getattr(self, "party_id", 0), "friends": self.friend_names()}
 
     # ----- quest sync: a stage you reach, reached by your party near you at that same stage
     def quest_attribute(self, name):
@@ -231,6 +242,236 @@ class TogetherMixin:
             if o.in_world() and o.items_held(item) <= 0:
                 o.add_inventory_item(item, n)
 
+    # ================================================================================================= friends
+    def friend_names(self):
+        return self.w.together.friends_of(self.player_name)
+
+    def add_friend_named(self, name):
+        name = trim(name)
+        known = self.known_player(name)
+        if not known or known == self.player_name:
+            self.refuse("There's nobody called %s." % name if not known else "You're your own friend already.")
+            return
+        mine = self.w.together.friends.setdefault(self.player_name, [])
+        if known in mine:
+            self.display_message("%s is your friend already." % known, "INFO")
+            return
+        if len(mine) >= 100:
+            self.refuse("Your friends list is full.")
+            return
+        mine.append(known)
+        h = self.homes.home_of(self.player_name)
+        if h is not None and known not in h["friends"]:
+            h["friends"].append(known)                 # (your homestead's friends are your friends)
+        self.display_message("%s is your friend now." % known, "SUCCESS")
+        o = self.w.sessions.get(known)
+        if o is not None:
+            o.display_message("%s has made you a friend." % self.player_name, "INFO")
+        self.dirty_me = True
+
+    def remove_friend_named(self, name):
+        mine = self.w.together.friends.get(self.player_name, [])
+        known = next((n for n in mine if n.lower() == trim(name).lower()), None)
+        if known is None:
+            return
+        mine.remove(known)
+        h = self.homes.home_of(self.player_name)
+        if h is not None and known in h["friends"]:
+            h["friends"].remove(known)
+        self.display_message("%s is no longer on your friends list." % known, "INFO")
+        self.dirty_me = True
+
+    def known_player(self, name):
+        """A player's name as it's written (someone playing, or anyone the world has records of), or ""."""
+        low = trim(name).lower()
+        for n in list(self.w.sessions) + list(self.w.together.records):
+            if n.lower() == low:
+                return n
+        return ""
+
+    def friends_rows(self):
+        """For the journal's Friends page: each friend, whether they're about, where, their level."""
+        out = []
+        for n in self.friend_names():
+            o = self.w.sessions.get(n)
+            on = o is not None and o.in_world()
+            out.append({"name": n, "on": 1 if on else 0, "where": self.where_words(o) if on else "",
+                        "level": o.player_level() if on else self.w.together.records.get(n, {}).get("Level", 0),
+                        "party": 1 if n in self.party_names() else 0})
+        return sorted(out, key=lambda r: (-r["on"], r["name"].lower()))
+
+    def towns_at(self):
+        """[(title, global x, global y)] of the world map's towns (WorldMap.ini [Towns]), worked out once."""
+        got = getattr(self.w, "_towns_at", None)
+        if got is None:
+            got = []
+            for title, pid in ini.section("Towns", self.data.data_file("WorldMap.ini")):
+                pl = self.data.place(trim(pid))
+                m = self.w.map_named(pl.map) if pl is not None else None
+                if m is not None and m.mz == 0:
+                    got.append((title, m.ox + pl.px, m.oy + pl.py))
+            self.w._towns_at = got
+        return got
+
+    def where_words(self, o):
+        """Where another player is, in words: in or near a town, out in the wilds, underground, at a homestead."""
+        p = o.player
+        m = o.cur_map
+        if m is not None and self.homes.is_home_map(m.name):
+            return "at a homestead"
+        if p.z < 0:
+            return "underground"
+        if p.z > 0:
+            return "indoors"
+        best = min(((abs(x - p.cx) + abs(y - p.cy), t) for t, x, y in self.towns_at()), default=None)
+        if best is None:
+            return "in Ashen"
+        d, title = best
+        if d < self.w.sw * 1.2:
+            return "in " + title
+        if d < self.w.sw * 3:
+            return "near " + title
+        return "in the wilds"
+
+    def friends_hear(self, words):
+        """Your friends who are playing are told (you've come, you've gone)."""
+        for o in self.w.sessions.values():
+            if o is not self and o.in_world() and self.player_name in o.friend_names():
+                o.display_message(words, "INFO")
+
+    def records_rows(self):
+        """For the journal's Records page: the top three of each record, and yours."""
+        self.note_records()
+        recs = self.w.together.records
+        rows = []
+        for key, words in self.RECORDS:
+            top = sorted(((r.get(key, 0), n) for n, r in recs.items() if r.get(key, 0)), reverse=True)[:3]
+            rows.append({"key": key, "words": words, "top": [[n, v] for v, n in top],
+                         "mine": recs.get(self.player_name, {}).get(key, 0)})
+        return rows
+
+    # ================================================================================================= trading
+    TRADE_REACH = 192
+
+    def tradeable(self, name):
+        """Gold, and anything that can be dropped (not a quest's own thing)."""
+        return name == "Gold_Coin(s)" or trim(self.data.entity_ini(name, "Droppable", "1")) != "0"
+
+    def trade_other(self):
+        tr = getattr(self, "trade", None)
+        if not tr:
+            return None
+        return tr["b"] if tr["a"] is self else tr["a"]
+
+    def trade_ask(self, o):
+        if getattr(self, "trade", None) or getattr(o, "trade", None):
+            self.refuse("One of you is trading already.")
+            return
+        if distance(self.player.cx, self.player.cy, o.player.cx, o.player.cy) > self.TRADE_REACH:
+            self.refuse("You need to be nearer to trade.")
+            return
+        me = self
+        o.show_menu("Trade", self.player.image, "%s would like to trade with you." % self.player_name,
+                    [("Trade with %s." % self.player_name, lambda: o.trade_open(me)), ("No, thank you.", None)])
+        self.display_message("You ask %s to trade." % o.player_name, "INFO")
+        self.act_done(True)
+
+    def trade_open(self, asker):
+        if not asker.in_world() or getattr(self, "trade", None) or getattr(asker, "trade", None):
+            return
+        tr = {"a": asker, "b": self, "offer": {asker.player_name: {}, self.player_name: {}},
+              "ok": {asker.player_name: False, self.player_name: False}}
+        self.trade = asker.trade = tr
+        self.trade_send()
+
+    def trade_send(self):
+        tr = getattr(self, "trade", None)
+        if not tr:
+            return
+        for s in (tr["a"], tr["b"]):
+            o = tr["b"] if tr["a"] is s else tr["a"]
+            mine, theirs = tr["offer"][s.player_name], tr["offer"][o.player_name]
+            stock = {}
+            for it in s.inv:
+                if self.tradeable(it.name):
+                    stock[it.name] = stock.get(it.name, 0) + max(1, it.quantity)
+            s.emit({"t": "trade", "open": True, "with": o.player_name,
+                    "mine": sorted(mine.items()), "theirs": sorted(theirs.items()),
+                    "ok": tr["ok"][s.player_name], "their_ok": tr["ok"][o.player_name],
+                    "stock": sorted([n, q - mine.get(n, 0)] for n, q in stock.items() if q - mine.get(n, 0) > 0)})
+
+    def trade_close(self, words=""):
+        tr = getattr(self, "trade", None)
+        if not tr:
+            return
+        for s in (tr["a"], tr["b"]):
+            s.trade = None
+            s.emit({"t": "trade", "open": False})
+            if words:
+                s.display_message(words, "INFO")
+
+    def trade_msg(self, msg):
+        """The trade window: add (item, n), take back (item), accept, cancel. Any change undoes both accepts."""
+        tr = getattr(self, "trade", None)
+        if not tr:
+            return
+        do = str(msg.get("do", ""))
+        mine = tr["offer"][self.player_name]
+        if do == "cancel":
+            self.trade_close("The trade is off.")
+            return
+        if do == "add":
+            name = str(msg.get("item", ""))
+            n = int(val(msg.get("n", 1)))
+            left = self.items_held(name) - mine.get(name, 0)
+            if n <= 0 or left <= 0 or not self.tradeable(name):
+                return
+            mine[name] = mine.get(name, 0) + min(n, left)
+        elif do == "back":
+            mine.pop(str(msg.get("item", "")), None)
+        elif do == "accept":
+            tr["ok"][self.player_name] = True
+            if all(tr["ok"].values()):
+                self.trade_finish()
+                return
+            self.trade_send()
+            return
+        else:
+            return
+        for k in tr["ok"]:
+            tr["ok"][k] = False                         # (changed: both look again)
+        self.trade_send()
+
+    def trade_finish(self):
+        tr = self.trade
+        a, b = tr["a"], tr["b"]
+        oa, ob = tr["offer"][a.player_name], tr["offer"][b.player_name]
+        for s, give in ((a, oa), (b, ob)):
+            if any(s.items_held(n) < q for n, q in give.items()):
+                self.trade_close("The trade is off: something offered isn't there now.")
+                return
+        for s, get in ((a, ob), (b, oa)):
+            if any(s.inventory_slots_available(n) < q and n != "Gold_Coin(s)" for n, q in get.items()):
+                self.trade_close("The trade is off: %s hasn't the room." % s.player_name)
+                return
+        for n, q in oa.items():
+            a.remove_inventory_item(n, q)
+        for n, q in ob.items():
+            b.remove_inventory_item(n, q)
+        for n, q in ob.items():
+            a.add_inventory_item(n, q)
+        for n, q in oa.items():
+            b.add_inventory_item(n, q)
+        for s in (a, b):
+            s.play_sound("Coins")
+        self.trade_close("The trade is done.")
+
+    def trade_tick(self):
+        o = self.trade_other()
+        if o is not None and (not o.in_world() or o.player.z != self.player.z or
+                              distance(self.player.cx, self.player.cy, o.player.cx, o.player.cy) > self.TRADE_REACH * 1.5):
+            self.trade_close("The trade is off: you've moved apart.")
+
     # ================================================================================================= scaling
     def boss_scale(self, e):
         """A boss grows tougher for each player fighting it (Entities.ini Boss=1): Boss.Per.Player more health each."""
@@ -255,7 +496,7 @@ class TogetherMixin:
         if distance(self.player.cx, self.player.cy, other.player.cx, other.player.cy) > 96:
             self.refuse("You need to be beside them to hand something over.")
             return
-        if trim(self.data.entity_ini(item.name, "Droppable", "1")) == "0":
+        if not self.tradeable(item.name):
             self.refuse("That's not something you can give away.")
             return
         n = max(1, self.items_held(item.name))           # (all you carry of it, stacked or not)
@@ -443,6 +684,7 @@ class TogetherMixin:
         rec = self.w.together.records.setdefault(self.player_name, {})
         for key, _ in self.RECORDS:
             rec[key] = int(val(self.get_attribute(key)))
+        rec["Level"] = self.player_level()
 
     def records_menu(self):
         self.note_records()
@@ -636,10 +878,12 @@ class TogetherMixin:
         if e.type == PLAYER:
             o = self.session_of(e)
             if o is not None and o is not self:
+                verbs = self.add_verb(verbs, "Trade")
                 if o.player_name in self.party_names():
                     verbs = self.add_verb(verbs, "Leave party")
                 elif not getattr(o, "party_id", 0):
                     verbs = self.add_verb(verbs, "Invite to party")
+                verbs = self.add_verb(verbs, "Remove friend" if o.player_name in self.friend_names() else "Add friend")
             return verbs
         if e.type == NPC:
             return self.companion_verbs(e, verbs)
@@ -656,6 +900,15 @@ class TogetherMixin:
                 return True
             if verb == "Leave party":
                 self.leave_party()
+                return True
+            if verb == "Add friend" and o is not None:
+                self.add_friend_named(o.player_name)
+                return True
+            if verb == "Remove friend" and o is not None:
+                self.remove_friend_named(o.player_name)
+                return True
+            if verb == "Trade" and o is not None:
+                self.trade_ask(o)
                 return True
             if verb == "Use with" and self.item_in_use is not None and o is not None:
                 self.offer_gift(self.item_in_use, o)
@@ -704,5 +957,6 @@ class TogetherMixin:
         return False
 
     def together_tick(self):
+        self.trade_tick()
         self.companion_tick()
         self.greet_tick()

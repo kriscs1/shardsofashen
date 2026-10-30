@@ -58,19 +58,97 @@ const CONTROLS = [
   ["K", "Saving", "Automatic: the server keeps your game."],
 ];
 
-export function pageSize() { return { 1: 14, 2: 7, 3: 7, 4: 8 }[J.tab] || 1; }
+// (the tabs: 1 Crafting, 2 Gathering, 3 Quests, 4 Spells, 5 Records, 6 Friends, 7 Controls)
+export const TABS = 7;
+const TAB_W = 132, TAB_STEP = 136;
+const FRIENDS_SHOWN = 8;
+export function pageSize() { return { 1: 14, 2: 7, 3: 7, 4: 8, 6: FRIENDS_SHOWN }[J.tab] || 1; }
 
 function count() {
   const d = S.journal || { crafts: [], gathers: [], quests: [], spells: [] };
-  return { 1: d.crafts.length, 2: d.gathers.length, 3: journalQuests().length, 4: (d.spells || []).length }[J.tab] || 1;
+  return { 1: d.crafts.length, 2: d.gathers.length, 3: journalQuests().length, 4: (d.spells || []).length,
+    6: (d.friends || []).length }[J.tab] || 1;
+}
+
+// ----- friends (together.py): each a row - about or not, where, their level - with Whisper, Invite and Remove
+const FRIEND_BUTTONS = ["Whisper", "Invite", "Remove"];
+function friendRowY(n) { return 108 + n * 70; }
+
+export function friendClick(h) {
+  // (300 + row x 3 + button: whisper them, ask them into your party, take them off the list)
+  if (h < 300 || h >= 300 + FRIENDS_SHOWN * 3) return false;
+  const rows = (S.journal && S.journal.friends) || [];
+  const f = rows[(J.page - 1) * FRIENDS_SHOWN + Math.floor((h - 300) / 3)];
+  if (!f) return true;
+  const k = (h - 300) % 3;
+  if (k === 0 && f.on) window.dsUI.openChat("/w " + f.name + " ");
+  else if (k === 1 && f.on) send({ t: "party_invite", name: f.name });
+  else if (k === 2) { send({ t: "friend", name: f.name, remove: 1 }); setTimeout(() => send({ t: "journal" }), 300); }
+  return true;
+}
+
+function friendRow(ctx, f, n) {
+  const y = friendRowY(n);
+  card(ctx, 48, y, 928, 62, f.on ? [126, 77, 63] : [77, 43, 33]);
+  ctx.fillStyle = f.on ? "rgb(110,210,110)" : "rgb(110,100,90)";
+  ctx.beginPath(); ctx.arc(70, y + 31, 6, 0, 6.283); ctx.fill();
+  drawText(ctx, f.name + (f.party ? "  (in your party)" : ""), 88, y + 10, 12, true, f.on ? INK : DIM);
+  const where = f.on ? `About, ${f.where || "in Ashen"}` + (f.level ? `  ·  level ${f.level}` : "") :
+    "Away" + (f.level ? `  ·  level ${f.level}` : "");
+  drawText(ctx, where, 88, y + 34, 9, false, f.on ? PARCHMENT : DIM);
+  FRIEND_BUTTONS.forEach((label, k) => {
+    const off = (k < 2 && !f.on) || (k === 1 && f.party);
+    button(ctx, 976 - 316 + k * 104, y + 15, 96, 32, label, off ? 0 : J.hover === 300 + n * 3 + k ? 2 : 1);
+  });
+}
+
+function friendsPage(ctx, d) {
+  const rows = d.friends || [];
+  if (!rows.length) {
+    centreText(ctx, 512, 300, "No friends on your list yet.", 14, true, INK);
+    centreText(ctx, 512, 330, "Right-click a player and choose Add friend, or type /friend and their name in the chat.", 10, false, PARCHMENT);
+    return;
+  }
+  const first = (J.page - 1) * FRIENDS_SHOWN;
+  rows.slice(first, first + FRIENDS_SHOWN).forEach((f, n) => friendRow(ctx, f, n));
+}
+
+// ----- records (together.py): each record's top three across the world, and yours
+function recordsPage(ctx, d) {
+  const recs = d.records || [];
+  if (!recs.length) { centreText(ctx, 512, 330, "No records yet.", 14, true, INK); return; }
+  recs.forEach((r, i) => {
+    const x = 48 + (i % 2) * 466, y = 108 + Math.floor(i / 2) * 290;
+    card(ctx, x, y, 462, 280, [126, 77, 63]);
+    drawText(ctx, "Most " + r.words, x + 18, y + 14, 13, true, INK);
+    if (!r.top.length) drawText(ctx, "Nobody yet. It could be you.", x + 18, y + 54, 10, false, DIM);
+    r.top.forEach(([name, v], k) => {
+      const col = [[250, 215, 110], [220, 220, 230], [210, 160, 110]][k];
+      drawText(ctx, `${k + 1}.  ${name}`, x + 18, y + 54 + k * 40, 12, true, col);
+      const vt = String(v);
+      drawText(ctx, vt, x + 444 - textWidth(ctx, vt, 12, true), y + 54 + k * 40, 12, true, col);
+    });
+    ctx.fillStyle = "rgb(126,77,63)";
+    ctx.fillRect(x + 18, y + 226, 426, 1);
+    drawText(ctx, `Yours: ${r.mine}`, x + 18, y + 240, 11, true, PARCHMENT);
+  });
 }
 
 export function pages() { return Math.max(1, Math.ceil(count() / pageSize())); }
 
 export function hit(x, y) {
-  for (let t = 1; t <= 5; t++) {
-    const tx = 40 + (t - 1) * 160;
-    if (x >= tx && x <= tx + 152 && y >= 60 && y <= 92) return t;
+  for (let t = 1; t <= TABS; t++) {
+    const tx = 40 + (t - 1) * TAB_STEP;
+    if (x >= tx && x <= tx + TAB_W && y >= 60 && y <= 92) return t;
+  }
+  if (J.tab === 6) {
+    for (let n = 0; n < FRIENDS_SHOWN; n++) {
+      const y0 = friendRowY(n) + 15;
+      for (let k = 0; k < 3; k++) {
+        const bx = 976 - 316 + k * 104;
+        if (x >= bx && x <= bx + 96 && y >= y0 && y <= y0 + 32) return 300 + n * 3 + k;
+      }
+    }
   }
   if (x >= 942 && x <= 982 && y >= 20 && y <= 48) return 10;
   if (x >= 40 && x <= 160 && y >= 696 && y <= 724) return 11;
@@ -337,13 +415,15 @@ export function drawJournal(ctx) {
   const tw = textWidth(ctx, "Journal", 16, true);
   drawText(ctx, fitText(ctx, S.name + "  -  what you can make, gather and do", 860 - tw, 9), 58 + tw, 30, 9, false, PARCHMENT);
   button(ctx, 942, 20, 40, 28, "X", J.hover === 10 ? 2 : 1);
-  for (let t = 1; t <= 5; t++) {
+  for (let t = 1; t <= TABS; t++) {
+    const on = (d.friends || []).filter((f) => f.on).length;
     const label = { 1: `Crafting (${d.crafts.length})`, 2: `Gathering (${d.gathers.length})`, 3: `Quests (${journalQuests().length})`,
-      4: `Spells (${spells.filter((s) => knowsSpell(s.spell)).length}/${spells.length})` }[t] || "Controls";
-    button(ctx, 40 + (t - 1) * 160, 60, 152, 32, label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
+      4: `Spells (${spells.filter((s) => knowsSpell(s.spell)).length}/${spells.length})`, 5: "Records",
+      6: `Friends (${on}/${(d.friends || []).length})` }[t] || "Controls";
+    button(ctx, 40 + (t - 1) * TAB_STEP, 60, TAB_W, 32, label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
   }
   roundBox(ctx, 36, 98, 952, 590, [40, 26, 20], [126, 77, 63], 2, 12);
-  if (!S.journal && J.tab !== 5) centreText(ctx, 512, 330, "Opening the journal...", 14, true, INK);
+  if (!S.journal && J.tab !== TABS) centreText(ctx, 512, 330, "Opening the journal...", 14, true, INK);
   else if (J.tab === 1) {
     if (!d.crafts.length) centreText(ctx, 512, 330, "Nothing to make yet.", 14, true, INK);
     const first = (J.page - 1) * 14;
@@ -370,7 +450,9 @@ export function drawJournal(ctx) {
     if (!spells.length) centreText(ctx, 512, 330, "No spells.", 14, true, INK);
     const first = (J.page - 1) * 8;
     spells.slice(first, first + 8).forEach((sp, slot) => spellCard(ctx, sp, slot));
-  } else controls(ctx);
+  } else if (J.tab === 5) recordsPage(ctx, d);
+  else if (J.tab === 6) friendsPage(ctx, d);
+  else controls(ctx);
   button(ctx, 40, 696, 120, 28, "< Previous", J.page > 1 ? (J.hover === 11 ? 2 : 1) : 0);
   button(ctx, 864, 696, 120, 28, "Next >", J.page < pages() ? (J.hover === 12 ? 2 : 1) : 0);
   let info;
@@ -378,8 +460,10 @@ export function drawJournal(ctx) {
   else if (J.tab === 2) info = `${d.gathers.filter((g) => g.status === 0).length} of ${d.gathers.length} you can gather now`;
   else if (J.tab === 3) info = `${journalQuests().filter((q) => q.status === 2).length} done · click a quest to follow it on the map`;
   else if (J.tab === 4) info = `You carry ${S.me.shards || 0} Shards`;
+  else if (J.tab === 5) info = "Kept for everyone who's played here";
+  else if (J.tab === 6) info = "Right-click a player, or /friend Name, to add a friend";
   else info = "The world carries on while the journal is open";
   if (pages() > 1) info = `Page ${J.page} of ${pages()}     ${info}`;
   centreText(ctx, 512, 700, info, 10, true, INK);
-  centreText(ctx, 512, 730, "H, F1 or Esc: close      1-5 or Left/Right: tabs      Up/Down or PgUp/PgDn: pages", 9, false, DIM);
+  centreText(ctx, 512, 730, "H, F1 or Esc: close      1-7 or Left/Right: tabs      Up/Down or PgUp/PgDn: pages", 9, false, DIM);
 }

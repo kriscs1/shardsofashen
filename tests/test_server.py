@@ -366,3 +366,61 @@ def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch):
+    """Behind Caddy (DS_TRUST_PROXY=1) each player's own address counts: three new characters a day from one, names
+    kept back, a long enough password."""
+    monkeypatch.setenv("DS_TRUST_PROXY", "1")
+    monkeypatch.setenv("DS_REGISTER_PER_DAY", "2")
+    monkeypatch.setenv("DS_PASSWORD_MIN", "8")
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        try:
+            async with aiohttp.ClientSession() as http:
+                async def reg(name, password, addr):
+                    ws = await http.ws_connect(url, headers={"X-Forwarded-For": addr + ", 10.0.0.2"})
+                    await ws.send_json({"t": "register", "name": name, "password": password})
+                    while True:
+                        data = json.loads((await asyncio.wait_for(ws.receive(), 10)).data)
+                        for m in data if isinstance(data, list) else [data]:
+                            if m["t"] in ("welcome", "login_fail"):
+                                await ws.close()
+                                return m
+                assert (await reg("Shorty", "abc12", "1.1.1.1"))["t"] == "login_fail"        # (too short)
+                assert (await reg("Admin", "longenough1", "1.1.1.1"))["t"] == "login_fail"   # (kept back)
+                assert (await reg("Firsty", "longenough1", "1.1.1.1"))["t"] == "welcome"
+                assert (await reg("Secondy", "longenough2", "1.1.1.1"))["t"] == "welcome"
+                m = await reg("Thirdy", "longenough3", "1.1.1.1")
+                assert m["t"] == "login_fail" and "today" in m["reason"]                   # (two a day from there)
+                assert (await reg("Elsewhere", "longenough4", "2.2.2.2"))["t"] == "welcome"  # (another player)
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_an_admin_can_ban_kick_and_mute(tmp_path):
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"), admins="Boss")
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                boss, _ = await login(http, url, "Boss", "secret1")
+                pest, _ = await login(http, url, "Pest", "secret2")
+                await boss.send_json({"t": "chat", "text": "/mute Pest 5"})
+                await asyncio.sleep(0.3)
+                assert game.world.sessions["Pest"].muted_until > 0
+                await boss.send_json({"t": "chat", "text": "/ban Pest spamming"})
+                await asyncio.sleep(0.5)
+                assert game.banned("Pest") == "spamming"
+                again, m = await login(http, url, "Pest", "secret2", mode="login")
+                assert m["t"] == "login_fail" and "banned" in m["reason"]
+                await boss.send_json({"t": "chat", "text": "/unban Pest"})
+                await asyncio.sleep(0.3)
+                assert not game.banned("Pest")
+                for ws in (boss, pest, again):
+                    await ws.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())

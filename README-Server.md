@@ -308,6 +308,48 @@ docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admi
 
 Without Docker, `deploy/shards-of-ashen.service` runs it under systemd behind any HTTPS reverse proxy.
 
+## A public server on a cloud VM (anyone can sign up)
+
+What you need: a small Linux VM (2 CPUs and 2 GB of memory keep 20 to 30 players smooth: a Hetzner CX22, a
+DigitalOcean or Linode 2 GB droplet, an AWS Lightsail 2 GB instance, about 5 to 12 a month), Ubuntu 22.04 or 24.04 or
+Debian 12 on it, and a domain name you can add a DNS record to.
+
+1. **Point the domain at the VM.** Add an A record (`play.example.com` -> the VM's public IPv4 address), and an AAAA
+   record if it has IPv6. Wait until `ping play.example.com` answers from the VM's address.
+2. **Run the setup on the VM** (it installs Docker, opens only SSH, HTTP and HTTPS, adds a little swap on a small VM,
+   asks for the domain and your admin character's name, and starts everything in `/opt/shards-of-ashen`):
+
+   ```
+   curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/cloud-setup.sh | sudo sh
+   ```
+
+   (If the repository is private, copy `deploy/cloud-setup.sh` to the VM and run `sudo sh cloud-setup.sh`, with
+   `GHCR_USER` and `GHCR_TOKEN` set in `/opt/shards-of-ashen/.env` so the VM can pull the image.)
+3. **Make your admin character first.** Open `https://play.example.com`, sign up with the name you gave as the admin,
+   and only then tell people the address.
+4. **Players sign up on the login screen.** New characters need a password of 8 characters or more (`DS_PASSWORD_MIN`),
+   one address can make 3 a day (`DS_REGISTER_PER_DAY`), and names like Admin and Moderator are kept back. For a
+   private server, set `DS_INVITE_CODE` (a code they must give), or `DS_REGISTRATION=closed`.
+
+The pieces (`deploy/docker-compose.cloud.yml`): the game, Caddy in front of it (it gets and renews the HTTPS
+certificate by itself, so the game's connection is `wss://`, and it passes on each player's own address:
+`DS_TRUST_PROXY=1`), and the updater, which pulls a new image every 5 minutes when there is one and restarts the
+game with it (players are saved first and simply log in again).
+
+**Running it.**
+
+- Settings: `/opt/shards-of-ashen/.env` (`deploy/cloud.env.example` explains each), then `docker compose up -d` in
+  that folder.
+- Moderating, in the game's chat, as an admin: `/kick Name`, `/ban Name why`, `/unban Name`, `/bans`,
+  `/mute Name minutes`, `/unmute Name`. A banned character can't log in.
+- Accounts: `docker compose exec game python tools/admin.py list` (and `password <Name>`, `admin <Name> on`).
+- Logs: `docker compose logs -f game`. Health: `https://play.example.com/health` (who's on, the tick time).
+- Backups: one a day in the `gamedata` volume's `backups` folder (14 kept). Copy them off the VM now and then, for
+  example `docker compose cp game:/data/backups ./backups`, or turn on your provider's VM snapshots.
+- Updating the VM itself: `sudo apt update && sudo apt upgrade` now and then (the game updates itself).
+- More players than one VM keeps smooth: start a second server (another VM, another domain) rather than a bigger one:
+  each server is a world of its own.
+
 ## Settings (environment)
 
 | Variable | Default | |
@@ -321,6 +363,10 @@ Without Docker, `deploy/shards-of-ashen.service` runs it under systemd behind an
 | `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`) |
 | `DS_NAME` | `Shards of Ashen on <computer>` | the game's name in the Android app's "Games on this network" |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
+| `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
+| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the password wait and the sign-up limit |
+| `DS_PASSWORD_MIN` | 4 | the shortest password a new character may have |
+| `DS_REGISTER_PER_DAY` | 5 | characters one address may make in a day (`0`: no limit) |
 
 ## Checking it works
 

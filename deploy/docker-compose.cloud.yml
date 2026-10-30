@@ -1,0 +1,71 @@
+# A public server on a cloud VM: the game from GitHub's registry, Caddy in front of it (HTTPS, its certificate from
+# Let's Encrypt by itself), and an updater that restarts the game whenever a newer image is out. Players sign up on
+# the login screen. Everyone's progress is in the gamedata volume; all three start again whenever Docker does.
+#
+# deploy/cloud-setup.sh sets it all up on a fresh Ubuntu or Debian VM. By hand: put this file, the Caddyfile and a
+# .env (from cloud.env.example) in one folder, then "docker compose up -d".
+#
+# Settings go in .env beside this file (see cloud.env.example): DS_DOMAIN is the one you must set.
+name: shards-of-ashen
+
+services:
+  game:
+    image: ${DS_IMAGE:-ghcr.io/kriscs1/shardsofashen:latest}
+    restart: unless-stopped
+    environment:
+      DS_MAX_PLAYERS: ${DS_MAX_PLAYERS:-20}
+      DS_REGISTRATION: ${DS_REGISTRATION:-open}
+      DS_INVITE_CODE: ${DS_INVITE_CODE:-}
+      DS_ADMINS: ${DS_ADMINS:-}
+      DS_NAME: ${DS_NAME:-}
+      DS_PASSWORD_MIN: ${DS_PASSWORD_MIN:-8}
+      DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
+      DS_TRUST_PROXY: "1"           # (Caddy passes on each player's own address: the limits go by it)
+      DS_LAN: "0"                   # (no "games on this network" on a cloud server)
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    volumes:
+      - ${DS_DATA:-gamedata}:/data
+    stop_grace_period: 30s
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [game]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DS_DOMAIN: ${DS_DOMAIN:?set DS_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  updater:
+    image: docker:28-cli
+    restart: unless-stopped
+    depends_on: [game]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/deploy:ro
+    working_dir: /deploy
+    environment:
+      GHCR_USER: ${GHCR_USER:-}
+      GHCR_TOKEN: ${GHCR_TOKEN:-}
+      DS_UPDATE_SECONDS: ${DS_UPDATE_SECONDS:-300}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        if [ -n "$$GHCR_TOKEN" ]; then echo "$$GHCR_TOKEN" | docker login ghcr.io -u "$$GHCR_USER" --password-stdin; fi;
+        echo "Checking for updates every $$DS_UPDATE_SECONDS seconds";
+        while true; do
+          sleep "$$DS_UPDATE_SECONDS";
+          if docker compose -p shards-of-ashen pull -q game; then docker compose -p shards-of-ashen up -d game; fi;
+        done
+
+volumes:
+  gamedata:
+  caddy_data:
+  caddy_config:

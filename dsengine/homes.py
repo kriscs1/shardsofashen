@@ -304,7 +304,8 @@ class Homes:
             return False
         if visitor == owner or h["visit"] == "open":
             return True
-        return h["visit"] == "friends" and visitor in h["friends"]
+        return h["visit"] == "friends" and (visitor in h["friends"] or
+                                            visitor in self.w.together.friends_of(owner))   # (together.py)
 
     def visitable_by(self, visitor):
         return sorted(o for o in self.homes if o != visitor and self.may_visit(o, visitor))

@@ -142,6 +142,20 @@
 </div>
 <div id="chat-entry" hidden><input id="chat-input" maxlength="200" placeholder="Say something to everyone. /w name words: whisper. /r words: answer a whisper. (Enter sends, Esc cancels)"></div>
 
+<div id="trade" class="overlay" hidden>
+  <div class="panel trade-panel">
+    <h2 id="trade-title">Trade</h2>
+    <div class="trade-cols">
+      <div><h3>You offer</h3><div id="trade-mine" class="trade-list"></div>
+        <h3>Your pack</h3><div id="trade-stock" class="trade-list"></div></div>
+      <div><h3 id="trade-their-head">They offer</h3><div id="trade-theirs" class="trade-list"></div>
+        <p id="trade-status" class="trade-status"></p></div>
+    </div>
+    <div class="row trade-buttons"><button type="button" id="trade-accept">Accept</button>
+      <button type="button" id="trade-cancel">Cancel</button></div>
+  </div>
+</div>
+
 <div id="options" class="overlay" hidden>
   <div class="panel wide">
     <h2>Options</h2>

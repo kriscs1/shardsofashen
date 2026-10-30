@@ -946,7 +946,7 @@ def bert():
         say("Bert", "I study the arcane arts up here, far from the noise of the court.\\I sell spell scrolls, and I can "
                     "teach you to write your own. Or I can send you anywhere I've been.",
             ("Show me your scrolls.", "@shop"), ("Teach me to write scrolls.", "@craft"),
-            ("Can you teleport me?", "@away"), ("Goodbye.", "@end")),
+            ("Can you teleport me?", "@away"), ("Another heir has come to you, besides me. [if $Players.Near>=1]", "@heirs"), ("Goodbye.", "@end")),
         ("@shop",), ("Display.Item.Rack", "SPECIFIC", "Bert", "SHOP-Wizard", "@end"),
         ("End",),
         ("@craft",), ("Display.Item.Rack", "GENERAL", "Bert", "CRAFT-Scrolls", "@end"),
@@ -960,6 +960,9 @@ def bert():
         ("@southport",), ("Play.Sound", "Teleporter"), ("Display.Message", "Yellow", "Bert waves his hands, and the "
                                                                                     "world spins..."),
         ("Teleport", "Northport_Port", "-"),
+        ("End",),
+        ("@heirs",),                                # (the others the Heart has marked: only when one's near)
+        say("Bert", "Has one? Then the Heart has been busy. When the first king broke it, every piece remembered the blood that broke it, and that blood has run in more veins than one since. The dragon only ever counted one of you; the Shards count you all. Between us, it's the only good news I've had in years.", ("Fancy that.", "@end")),
         ("End",),
         ("@end",), ("End",),
     ])

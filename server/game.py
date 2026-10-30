@@ -81,6 +81,7 @@ class GameServer:
                  time.time() - t0)
         self.clients = {}                   # Session -> Client
         self.login_fails = {}               # ("name" or "addr", which) -> when its passwords were wrong (monotonic)
+        self.signups = {}                   # address -> the days it made characters on (DS_REGISTER_PER_DAY)
         self.running = False
         self.last_save = time.time()
         self.last_where = 0.0
@@ -249,10 +250,43 @@ class GameServer:
     def is_local(self, addr):
         return (addr or "") in self.LOCAL or (addr or "").startswith("127.")
 
+    RESERVED = {"admin", "administrator", "moderator", "mod", "server", "system", "gm", "staff", "support",
+                "owner", "shards of ashen"}
+
+    @staticmethod
+    def client_addr(request):
+        """Who's connecting: behind a reverse proxy (Caddy on a cloud server, DS_TRUST_PROXY=1) the first address in
+        X-Forwarded-For, the player's own; otherwise the connection's. (The wrong-password wait and the sign-up limit
+        go by it: behind a proxy without it, everyone would share the proxy's.)"""
+        if os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true"):
+            fwd = request.headers.get("X-Forwarded-For", "")
+            if fwd:
+                return fwd.split(",")[0].strip()
+        return request.remote
+
+    def setting_int(self, env, default):
+        try:
+            return int(os.environ.get(env, default))
+        except ValueError:
+            return default
+
+    def signups_left(self, addr):
+        """How many more accounts an address may make today (DS_REGISTER_PER_DAY; 0: no limit)."""
+        most = self.setting_int("DS_REGISTER_PER_DAY", 5)
+        if most <= 0:
+            return 99
+        day = time.strftime("%Y%m%d")
+        made = [d for d in self.signups.get(addr, []) if d == day]
+        self.signups[addr] = made
+        return most - len(made)
+
+    def banned(self, name):
+        return self.store.setting("ban:" + name.lower(), "")
+
     async def handle_ws(self, request):
         ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
         await ws.prepare(request)
-        c = Client(ws, request.remote)
+        c = Client(ws, self.client_addr(request))
         c.writer = asyncio.ensure_future(c.write())
         if not self.lan_open and not self.is_local(c.addr):
             await self.send(c, {"t": "closed", "text": "This game isn't open to the network just now."})
@@ -327,9 +361,19 @@ class GameServer:
             await self.send(c, {"t": "login_fail", "reason": "Pick a name: letters, numbers, spaces, _ and -."})
             return
         acct = self.store.account(name)
+        if acct is not None and self.banned(acct[0]):
+            await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % acct[0]})
+            return
         if t == "register":
             if acct is not None:
                 await self.send(c, {"t": "login_fail", "reason": "That name is taken. Log in instead?"})
+                return
+            if name.lower() in self.RESERVED:
+                await self.send(c, {"t": "login_fail", "reason": "That name is kept for the server: pick another."})
+                return
+            if self.signups_left(c.addr) <= 0:
+                await self.send(c, {"t": "login_fail", "reason": "Too many new characters from here today: try "
+                                                                   "again tomorrow."})
                 return
             if self.registration != "open":
                 await self.send(c, {"t": "login_fail", "reason": "New characters can't be made on this server."})
@@ -337,11 +381,17 @@ class GameServer:
             if self.invite_code and str(data.get("invite", "")) != self.invite_code:
                 await self.send(c, {"t": "login_fail", "reason": "That invite code isn't right."})
                 return
-            if len(password) < 4:
-                await self.send(c, {"t": "login_fail", "reason": "Use a password of at least 4 characters."})
+            least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
+            if len(password) < least:
+                await self.send(c, {"t": "login_fail", "reason": "Use a password of at least %d characters." % least})
+                return
+            if password.lower() == name.lower():
+                await self.send(c, {"t": "login_fail", "reason": "Your password can't be your name."})
                 return
             hashed = await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
             self.store.create_account(name, hashed, False)
+            self.signups.setdefault(c.addr, []).append(time.strftime("%Y%m%d"))
+            log.info("New character %s from %s", name, c.addr)
             acct = self.store.account(name)
         else:
             if acct is None:
@@ -389,6 +439,7 @@ class GameServer:
             s.enter_world()
             self.save_session(s)
             self.broadcast({"t": "chat", "from": "", "text": "%s has joined the game." % name}, exclude=s)
+            s.friends_hear("Your friend %s has come into Ashen." % name)
         c.session = s
         self.clients[s] = c
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
@@ -398,6 +449,54 @@ class GameServer:
         self.broadcast(self.players_message())
 
     WHISPER = ("/w ", "/whisper ", "/tell ", "/msg ")
+
+    def moderate(self, s, text):
+        """An admin's commands for a public server: /kick Name, /ban Name [why], /unban Name, /mute Name [minutes],
+        /unmute Name, /bans. True if it was one."""
+        bits = text.split(None, 2)
+        cmd = bits[0].lower()
+        if cmd not in ("/kick", "/ban", "/unban", "/mute", "/unmute", "/bans"):
+            return False
+        say = lambda words: s.emit({"t": "chat", "from": "", "text": words})     # noqa: E731
+        if cmd == "/bans":
+            rows = self.store.db.execute("SELECT key, value FROM world WHERE key LIKE 'set:ban:%'").fetchall()
+            say("Banned: " + (", ".join("%s (%s)" % (k[8:], v) for k, v in rows) or "nobody"))
+            return True
+        if len(bits) < 2:
+            say("Who? %s Name" % cmd)
+            return True
+        acct = self.store.account(bits[1])
+        name = acct[0] if acct else bits[1]
+        o = self.world.sessions.get(name)
+        if cmd == "/unban":
+            self.store.set_setting("ban:" + name.lower(), "")
+            say("%s may play again." % name)
+        elif cmd == "/unmute":
+            if o is not None:
+                o.muted_until = 0
+            say("%s may talk again." % name)
+        elif cmd == "/mute":
+            minutes = int(bits[2]) if len(bits) > 2 and bits[2].strip().isdigit() else 30
+            if o is not None:
+                o.muted_until = time.time() + minutes * 60
+                o.emit({"t": "chat", "from": "", "text": "An admin has muted you for %d minutes." % minutes})
+            say("%s is muted for %d minutes." % (name, minutes))
+        else:
+            if cmd == "/ban":
+                if acct is None:
+                    say("There's no character called %s." % bits[1])
+                    return True
+                self.store.set_setting("ban:" + name.lower(), (bits[2] if len(bits) > 2 else "banned")[:100])
+            c = self.clients.get(o) if o is not None else None
+            if c is not None:
+                self.save_session(o)
+                asyncio.ensure_future(self.send(c, {"t": "kicked", "reason": "An admin has %s you." %
+                                                    ("banned" if cmd == "/ban" else "removed")}))
+                c.closed = True
+                asyncio.ensure_future(c.ws.close())
+            say("%s is %s." % (name, "banned" if cmd == "/ban" else "kicked"))
+            log.info("%s %sed %s", s.player_name, cmd[1:], name)
+        return True
 
     def chat_command(self, s, text):
         """/w <name> <words>: only they hear it (names may have spaces: the longest online name that fits).
@@ -417,6 +516,12 @@ class GameServer:
             return
         if low.strip() == "/records":
             s.records_menu()
+            return
+        if s.admin_enabled and self.moderate(s, text):
+            return
+        if low.startswith("/friend ") or low.startswith("/unfriend "):
+            name = text.split(" ", 1)[1].strip()
+            (s.remove_friend_named if low.startswith("/unfriend") else s.add_friend_named)(name)
             return
         if low.startswith("/r ") or low.startswith("/reply "):
             to = getattr(s, "last_whisper_from", "")
@@ -497,6 +602,9 @@ class GameServer:
         t = data.get("t")
         if t == "chat":
             text = " ".join(str(data.get("text", "")).split())[:CHAT_MAX]
+            if getattr(s, "muted_until", 0) > time.time() and not text.startswith("/"):
+                s.emit({"t": "chat", "from": "", "text": "You're muted for now."})
+                return
             if text.startswith("/"):
                 self.chat_command(s, text)
             elif text:
@@ -545,6 +653,7 @@ class GameServer:
         self.store.save_world(self.world_state())
         log.info("%s left (%d online)", s.player_name, len(self.world.sessions))
         self.broadcast({"t": "chat", "from": "", "text": "%s has left the game." % s.player_name})
+        s.friends_hear("Your friend %s has left Ashen." % s.player_name)
         self.broadcast(self.players_message())
 
     async def shutdown(self):

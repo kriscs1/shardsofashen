@@ -88,6 +88,20 @@ html, body {
 
 .panel.wide { width: min(560px, 100%); }
 
+/* the trade window (together.py): your offer and pack beside theirs; one column on a narrow screen */
+.trade-panel { width: min(720px, 100%); max-height: 100%; overflow-y: auto; }
+.trade-cols { display: flex; gap: 16px; }
+.trade-cols > div { flex: 1; min-width: 0; }
+.trade-cols h3 { margin: 6px 0 4px; color: var(--ink); font-size: 15px; }
+.trade-list { display: flex; flex-direction: column; gap: 4px; max-height: 210px; overflow-y: auto; }
+.trade-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(0, 0, 0, 0.22);
+  border-radius: 8px; font-size: 14px; }
+.trade-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trade-item button { min-width: 44px; min-height: 36px; padding: 2px 8px; }
+.trade-status { margin: 10px 0 0; font-size: 14px; }
+.trade-buttons { justify-content: center; }
+@media (max-width: 640px) { .trade-cols { flex-direction: column; gap: 4px; } .trade-list { max-height: 130px; } }
+
 .panel h1 {
   margin: 0 0 6px;
   color: var(--ink);

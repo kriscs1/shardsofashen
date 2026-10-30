@@ -4286,6 +4286,60 @@ def test_a_day_away_and_back_says_what_happened(world):
         leave(world, s)
 
 
+def test_friends_are_kept_and_shown_in_the_journal(world):
+    a = join(world, "Pal_A", "11,4,0", 300, 300)
+    b = join(world, "Pal_B", "11,4,0", 330, 300)
+    try:
+        assert "Add friend" in a.get_verbs(b.player)
+        a.do_action("Add friend", b.player)
+        assert a.friend_names() == ["Pal_B"] and "Remove friend" in a.get_verbs(b.player)
+        rows = a.journal_state()["friends"] if hasattr(a, "journal_state") else a.friends_rows()
+        assert rows[0]["name"] == "Pal_B" and rows[0]["on"] == 1
+        t2 = type(world.together)(world)
+        t2.load(world.together.state())
+        assert t2.friends_of("Pal_A") == ["Pal_B"]                  # (kept with the world)
+        b.out = []
+        a.friends_hear("Your friend Pal_A has left Ashen.")
+        assert not any("Pal_A" in str(ev.get("text", "")) for ev in b.out)   # (only those who count you a friend)
+        b.add_friend_named("pal_a")                                 # (any case: the name as it's written)
+        b.out = []
+        a.friends_hear("Your friend Pal_A has left Ashen.")
+        assert any("Pal_A has left" in str(ev.get("text", "")) for ev in b.out)
+        a.remove_friend_named("Pal_B")
+        assert a.friend_names() == []
+    finally:
+        world.together.friends.pop("Pal_A", None)
+        world.together.friends.pop("Pal_B", None)
+        leave(world, a)
+        leave(world, b)
+
+
+def test_a_trade_changes_hands_when_both_accept(world):
+    a = join(world, "Trader_A", "11,4,0", 300, 300)
+    b = join(world, "Trader_B", "11,4,0", 330, 300)
+    try:
+        stock(a, Bread=2)
+        stock(b, **{"Gold_Coin(s)": 50})
+        gold_a, bread_b = a.items_held("Gold_Coin(s)"), b.items_held("Bread")
+        a.do_action("Trade", b.player)
+        b.native_menu_chosen(1)                                     # (Trade with Trader_A)
+        assert a.trade is b.trade and a.trade
+        a.trade_msg({"do": "add", "item": "Bread", "n": 2})
+        b.trade_msg({"do": "add", "item": "Gold_Coin(s)", "n": 20})
+        a.trade_msg({"do": "accept"})
+        b.trade_msg({"do": "add", "item": "Gold_Coin(s)", "n": 5})  # (a change: a's accept undone)
+        assert not a.trade["ok"]["Trader_A"]
+        b.trade_msg({"do": "accept"})
+        assert a.trade                                              # (only b has accepted)
+        a.trade_msg({"do": "accept"})
+        assert a.trade is None and b.trade is None
+        assert a.items_held("Bread") == 0 and b.items_held("Bread") == bread_b + 2
+        assert a.items_held("Gold_Coin(s)") == gold_a + 25
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
 def test_a_thief_spots_disarms_and_steps_over_traps(world):
     import dsengine.senses as SN
     m = world.maps["15,18,-1"]                                       # (the buried library: darts, a pit, a pie)

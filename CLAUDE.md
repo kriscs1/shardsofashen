@@ -137,6 +137,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`[Together] Boss.Per.Player`); a raid sends more for each player there. One alone still wins at the base numbers.
 - **Parties** (right-click a player: Invite to party; `/p` talks to it, `/leave`): a quest stage one member reaches,
   the members near at that same stage reach too, with the quest's own things.
+- **Friends** (right-click a player, or `/friend Name`): kept with the world; the journal's Friends page (who's about,
+  where; Whisper, Invite, Remove); told when one comes or goes; your homestead's friends are yours. **Trading**
+  (right-click a player: Trade): a window with both offers, gold too; both accept and it changes hands at once, any
+  change undoing both accepts. The journal's tabs: Crafting, Gathering, Quests, Spells, Records, Friends, Controls.
 - **Gifts**: use an item on a player; they take it or not. **Town projects** (`data/Projects.ini`): anyone gives to
   the foreman; finished, what has `Project=<Key>` on its map line appears and the perk holds, for everyone. The town
   crier tells the news, the bounty clerk sets a hunt a day, the record keeper keeps the records (`/records`), the
@@ -422,7 +426,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The phone can be the server.** The Android app runs `server/` itself (Python 3.11 through Chaquopy, with its
   aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. The host
   (or an admin) can close it to the network in Options: then only that machine may join, and it doesn't answer the
-  network (`lan_open`, kept with the world; `DS_LAN_OPEN=0` starts closed). So
+  network (`lan_open`, kept with the world; `DS_LAN_OPEN=0` starts closed). A public server on a cloud VM:
+  `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
+  go by each player's own address, sign-ups limited by `DS_PASSWORD_MIN` and `DS_REGISTER_PER_DAY`, admins' `/kick`,
+  `/ban`, `/mute`): README-Server.md says how. So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.

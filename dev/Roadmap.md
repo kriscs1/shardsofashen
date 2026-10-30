@@ -324,6 +324,20 @@ and both layouts checked in the browser. Players on the server: the tick stays i
 on the PC server (17 ms average, 31 ms worst, steady); the phone host should stay at 5. So these plans don't need a
 bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
 
+## 16. Friends, trading, records, a public server (2026-10-30)
+
+- [x] **A friends list**: right-click a player or `/friend Name`; the journal's Friends page; told when one comes or
+  goes; homestead friends are the same list.
+- [x] **Bert explains the other heirs** too (his usual talk, when one's near).
+- [x] **A trade window**: both offers side by side, gold too; both accept; a change undoes the accepts. One column
+  on a phone.
+- [x] **Records in the journal**: its own page, each record's top three and yours.
+- [x] **A public server on a cloud VM**: `deploy/docker-compose.cloud.yml` (the game, Caddy, the updater),
+  `deploy/cloud-setup.sh` (a fresh Ubuntu or Debian VM in one command), README-Server.md's steps; each player's own
+  address behind the proxy (the password wait and the sign-up limit had all gone by Caddy's); sign-ups: a password of
+  `DS_PASSWORD_MIN`, `DS_REGISTER_PER_DAY` from one address, names like Admin kept back; admins' `/kick`, `/ban`,
+  `/unban`, `/bans`, `/mute`, `/unmute`.
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

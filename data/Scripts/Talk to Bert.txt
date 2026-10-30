@@ -20,7 +20,7 @@
 19	Goto.Script	Bert's Confession
 20	Display.Conversation	Bert	The staff from the King's keep, the grimoire from under the desert, the ring from the Ashen Priest. All three, mind.	Something else.	22	On my way.	34
 21	End
-22	Display.Conversation	Bert	I study the arcane arts up here, far from the noise of the court.\I sell spell scrolls, though they don't come cheap. Or I can send you anywhere I've been.	Show me your scrolls.	23	Can you teleport me?	25	Goodbye.	34
+22	Display.Conversation	Bert	I study the arcane arts up here, far from the noise of the court.\I sell spell scrolls, though they don't come cheap. Or I can send you anywhere I've been.	Show me your scrolls.	23	Can you teleport me?	25	Another heir has come to you, besides me. [if $Players.Near>=1]	35	Goodbye.	34
 23	Display.Item.Rack	SPECIFIC	Bert	SHOP-Wizard	34
 24	End
 25	Display.Conversation	Bert	Where to?	To the Isle.	26	To Northport.	30	Nowhere, thanks.	34
@@ -33,3 +33,5 @@
 32	Teleport	Northport_Port	-
 33	End
 34	End
+35	Display.Conversation	Bert	Has one? Then the Heart has been busy. When the first king broke it, every piece remembered the blood that broke it, and that blood has run in more veins than one since. The dragon only ever counted one of you; the Shards count you all. Between us, it's the only good news I've had in years.	Fancy that.	36
+36	End
