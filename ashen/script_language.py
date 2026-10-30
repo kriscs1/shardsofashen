@@ -288,6 +288,8 @@ VARIABLES = [
     ('$Variable.8', "A value stored by the 'Get.Value' command (SAVE AS Variable.8$)."),
     ('$Variable.9', "A value stored by the 'Get.Value' command (SAVE AS Variable.9$)."),
     ('$Random.Percent', 'A random number between 1 and 100.'),
+    ('$Players.Near', 'How many other players are within about a map of this one, on the same level.'),
+    ('$Players.Online', 'How many other players are in the game.'),
     ('$Shards.', 'A Shards.ini [Shards] number, e.g. $Shards.Shardstone.Galaith: what it costs, as >Pay.Shards charges it.'),
     ('$Inventory.Slots', "The number of slots left in the player's inventory."),
     ('$Entity.under.Cursor.ID', 'The ID of the entity that the user clicked on.'),

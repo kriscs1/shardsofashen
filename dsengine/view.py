@@ -20,7 +20,7 @@ def entity_state(w, e, viewer):
         st["b"] = 1 if e.show_bar else 0
         # (1: a foe; 2: can be attacked but won't come for you, a rabbit or a hen)
         st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
-        st["uw"] = e.use_words
+        st["uw"] = viewer.companion_verbs(e, e.use_words)    # (Come along, Hire, Send away: together.py)
         st["wr"] = e.weapon_range
         if e.ai is not None and st["f"] == 1:
             # (sneaking: a foe's sight shown, as it is for you - how wide, how far, the way it looks; and how far

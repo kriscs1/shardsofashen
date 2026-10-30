@@ -118,8 +118,9 @@ class Waves:
         random.shuffle(points)
         zone = "%d,%d,%d,%d" % (max(1, cx - 2), max(1, cy - 2), min(w.xt, cx + 2), min(w.yt, cy + 2))
         n = 0
+        extra = max(0, len(self.on_map(r)) - 1)         # (more for each player there: one alone wins at the base)
         for monster, count in r["def"]["waves"][r["wave"]]:
-            for _ in range(count):
+            for _ in range(count + (count * extra + 1) // 2 if extra else count):
                 if not points:
                     break
                 tx, ty = points[n % len(points)]
@@ -246,6 +247,7 @@ class Waves:
                 continue
             if won:
                 self.reward(s, d, r["kills"].get(who, 0))
+                s.update_attribute("Saved." + name, "=1")    # (the town remembers: together.py greetings)
             if script and s.script_exists(script):
                 s.start_script(script, False)
         log.info("Wave attack %s %s (defenders: %s)", name, "won" if won else "lost", ", ".join(sorted(r["defenders"])))

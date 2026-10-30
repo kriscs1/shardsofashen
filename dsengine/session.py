@@ -8,6 +8,7 @@ they own). The rest of the world is World's, shared by everyone."""
 import json
 import logging
 import math
+import time
 
 from ashen.lb import val, word, trim, lbstr, distance, clock_ms, pretty
 
@@ -36,6 +37,7 @@ from .thieving import ThiefMixin
 from .senses import SenseMixin
 from .locks import LockMixin
 from .cold import ColdMixin
+from .together import TogetherMixin
 
 log = logging.getLogger("ashen.session")
 
@@ -64,11 +66,12 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
               MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
-              ThiefMixin, SenseMixin, LockMixin, ColdMixin):
+              ThiefMixin, SenseMixin, LockMixin, ColdMixin, TogetherMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
         self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
+        self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
         self.sneak_near = {}                                            # (monsters you're creeping past)
         self.thief_until, self.banned_until, self.guards_after = {}, {}, []   # (thieving.py: robbed lately, caught)
         self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
@@ -368,6 +371,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p = self.player
         from .renames import renamed, renamed_map, merged_skills, RENAMED_QUESTS, RENAMED_WORDS
         st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
+        self.last_seen_before = int(st.get("last_seen", 0) or 0)
         if st.get("skills"):
             st = dict(st, skills=merged_skills(st["skills"]))    # (skills renamed or made one since: rename_skills)
         m = self.w.map_named(renamed_map(st.get("map", d.start_map))) or self.w.map_named(d.start_map)
@@ -551,7 +555,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "look": self.look,
             "home_return": list(self.home_return) if self.home_return else None,
             "chests": self.chests_state(),
+            "last_seen": int(time.time()),
         }
+        self.note_records()                             # (the hall of records: together.py)
         if self.dead_wait:                  # (dead and gone: they come back where they'd have woken)
             st["map"], st["x"], st["y"] = self.dead_wait[0], int(self.dead_wait[1]), int(self.dead_wait[2])
             st["hp"] = self.player_max_hp
@@ -582,12 +588,17 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.display_message("Welcome to Shards of Ashen, %s!" % self.player_name, "INFORMATION")
         self.display_message("Press H (or F1) for your journal: what you can make and gather, quests and controls.",
                              "INFO")
+        self.welcome_back(self.last_seen_before)       # (a day or more away: what happened - together.py)
 
     def leave_world(self):
         """Gone: their own things go with them, NPCs fighting them give up."""
         if self.swap:
             self.end_swap("")                           # (the creature gets its own body back)
         self.ready = False
+        self.leave_party(quiet=True)
+        for e in self.companions():
+            self.w.remove_entity(e)
+        self.followers = []
         for e in list(self.w.ents):
             if e.owner is self or e in self.guards_after:
                 self.w.remove_entity(e)
@@ -644,6 +655,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.sneak_tick()
         self.thief_tick()
         self.sense_tick()
+        self.together_tick()
         self.cold_tick()
         self.dig_tick()
         self.game_tick()
@@ -1105,6 +1117,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "boost_from": dict(self.boost_from),
             "status_left": {k: max(0, v["until"] - self.now) for k, v in self.status.items()},
             "skill_now": self.skills_now(), **self.tricks_state(), **self.stance_state(), **self.traps_state(),
+            **self.party_state(),
             "skill_boosts": {b["skill"]: {"n": b["n"], "ms": max(0, b["until"] - self.now)}
                              for b in self.skill_boosts.values()},
             "status_info": {k: self.status_words(k) for k in self.status},

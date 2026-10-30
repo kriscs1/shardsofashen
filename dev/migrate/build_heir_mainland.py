@@ -1390,7 +1390,14 @@ def galaith():
                                     "get here?", "-"),
         ("End",),
         ("@after",),
-        say("King_Rupert", "My $Player.Son, the $Player.King. Your mother would be proud.", ("Goodbye, Father.", "@end")),
+        say("King_Rupert", "My $Player.Son, the $Player.King. Your mother would be proud.",
+            ("Another stands here who calls me father. [if $Players.Near>=1]", "@heirs"), ("Goodbye, Father.", "@end")),
+        ("End",),
+        ("@heirs",),                                # (the others the Heart has marked: only when one's near)
+        say("King_Rupert", "Then the Heart has marked more than one of my blood, and Ashen is luckier than it deserves. "
+                           "The Breaking scattered the royal line with the Shards; the dragon only ever counted one of "
+                           "you. Let it be the Order of Heirs, then: every one the Heart knows, sworn to the crown. "
+                           "There is room on this throne for whoever keeps the realm.", ("Long live Ashen.", "@end")),
         ("@end",), ("End",),
     ])
     w("12,5,0", [                                 # (Jimmy, asleep on the throne once you're king: throne_jimmy.py)

@@ -1069,6 +1069,7 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Sleeper.Of",                                                     # the NPC (its Id) a sleeping thing is
                "Lock", "Key", "Sturdy",                                          # a chest's lock (locks.py), its key; 1: never broken open
                "Warm",                                                           # 1: it keeps the cold off (cold.py)
+               "Boss",                                                           # 1: tougher for each fighter (together.py)
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}                # a cart (carts.py): where its rider stands
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",

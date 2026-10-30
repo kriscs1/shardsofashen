@@ -150,7 +150,8 @@ class ShardcraftMixin:
         to = next((s for s in self.stones_active() if s["key"] == key), None)
         if to is None or to["key"] == here["key"]:
             return
-        if not self.spend_shards(int(self.shard_setting("Shardstone.Travel", 2)), "Travelling"):
+        free = self.w.together.perk("FREETRAVEL", to["map"])      # (a town's project done: free to come to)
+        if not free and not self.spend_shards(int(self.shard_setting("Shardstone.Travel", 2)), "Travelling"):
             return
         self.stone_here = None
         self.player_attack_target = None

@@ -1161,7 +1161,13 @@ def chapel_and_caves():
         ("End",),
         ("@done",),
         say("Gravekeeper", "Keep the amulet close, and show it to no one but your father. Go with God.",
-            ("Goodbye.", "@end")),
+            ("Someone else here says they're Mary's heir too. [if $Players.Near>=1]", "@heirs"), ("Goodbye.", "@end")),
+        ("End",),
+        ("@heirs",),                                # (the others the Heart has marked: only when one's near)
+        say("Gravekeeper", "Do they? The Shards don't count the way we do. When the first king broke the Heart, every "
+                           "piece remembered the blood that broke it, and that blood has run in more veins than one "
+                           "since. The Heart will know each of you for an heir. Whether the crown does is your father's "
+                           "business, not mine.", ("Thank you, Brother.", "@end")),
         ("@end",), ("End",),
     ])
     w("Climb Down Trapdoor", [

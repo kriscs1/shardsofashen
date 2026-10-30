@@ -263,6 +263,8 @@ class DeepMixin:
         self.play_sound("Ladder")
         if down and f < len(floors):
             self.display_message("Down, to the Deep's floor %d." % (f + 1), "INFO")
+            if val(self.get_attribute("Deep.Floor")) < f + 1:
+                self.update_attribute("Deep.Floor", "=%d" % (f + 1))     # (the deepest you've been: together.py records)
             self.teleport(floors[f]["map"], *floors[f]["up"])
         elif not down and f > 1:
             back = floors[f - 2]

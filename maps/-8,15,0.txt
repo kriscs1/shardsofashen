@@ -35,3 +35,6 @@ Id	Galaith_Square	13	4
 StaticObject	Old_Statue	320	128	Id=Secret_Galaith
 StaticObject	Old_Statue	416	352	Id=Secret_Galaith_2
 StaticObject	Wishing_Well	256	416	Id=Secret_Galaith_3
+NPC	Settler	384	280	Attitude=Good Stand=1 Face=S Id=Foreman_Galaith_Market Name=Foreman_Brannock
+NPC	Villager	352	312	Attitude=Good Stand=1 Face=S Id=Town_Crier_Galaith Name=Town_Crier
+StaticObject	Project_Plaque	416	312	Id=Plaque_Galaith_Market Project=Galaith_Market

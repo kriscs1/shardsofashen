@@ -38,3 +38,9 @@ Id	Northport_Cathedral	13	12
 StaticObject	Odd_Barrel	160	544	Id=Secret_Northport
 StaticObject	Odd_Barrel	288	128	Id=Secret_Northport_2
 StaticObject	Old_Statue	256	128	Id=Secret_Northport_3
+NPC	Settler	128	568	Attitude=Good Stand=1 Face=S Id=Foreman_Northport_Harbour Name=Foreman_Hale
+NPC	Villager	64	376	Attitude=Good Stand=1 Face=S Id=Town_Crier_Northport Name=Town_Crier
+NPC	Clerk	128	376	Attitude=Good Stand=1 Face=S Id=Bounty_Clerk Name=Bounty_Clerk
+NPC	Clerk	96	344	Attitude=Good Stand=1 Face=S Id=Record_Keeper Name=Keeper_of_Records
+NPC	Guard	96	280	Attitude=Good Stand=1 Face=S Id=Sellsword_Northport Name=Sellsword
+StaticObject	Project_Plaque	288	472	Id=Plaque_Northport_Harbour Project=Northport_Harbour

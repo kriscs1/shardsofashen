@@ -140,6 +140,8 @@ export function addFx(ev, nowMs) {
     f.end = nowMs + 1400;
   } else if (ev.t === "mark") {                   // (stealth: a ! over one that's seen you, a ? over one that heard)
     f.end = nowMs + (ev.kind === "spotted" ? 1400 : 1700);
+  } else if (ev.t === "bubble") {                 // (a townsperson's word over their head: together.py greetings)
+    f.end = nowMs + 2800;
   } else return;
   if (V.fx.length < 60) V.fx.push(f);
 }
@@ -393,6 +395,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     } else if (f.t === "skillpop") drawSkillPop(ctx, f, now, cam);
     else if (f.t === "burst") drawBurst(ctx, f, now, cam);
     else if (f.t === "mark") drawMark(ctx, f, now, cam);
+    else if (f.t === "bubble") drawBubble(ctx, f, now, cam);
   }
   drawStatusIcons(ctx, me, cam);
   for (const e of [...shown, ...(me && me.a ? [me] : [])]) {
@@ -463,6 +466,22 @@ function drawMark(ctx, f, now, cam) {
   ctx.strokeStyle = "rgb(40,20,10)"; ctx.lineWidth = 1.5; ctx.stroke();
   const w = textWidth(ctx, spotted ? "!" : "?", 9, true);
   drawText(ctx, spotted ? "!" : "?", Math.round(x - w / 2), Math.round(y - 7), 9, true, [255, 250, 235]);
+  ctx.globalAlpha = 1;
+}
+
+function drawBubble(ctx, f, now, cam) {
+  // (a few words over someone's head, on a pale slip: fades at the end)
+  const e = entityAt(f.u);
+  if (!e) return;
+  const t = (now - f.start) / (f.end - f.start);
+  const w = textWidth(ctx, f.text, 8, false) + 10;
+  const x = Math.round(e.dx + e.w / 2 - cam.x - w / 2), y = Math.round(e.dy - 20 - cam.y);
+  ctx.globalAlpha = t > 0.8 ? (1 - t) * 5 : 1;
+  ctx.fillStyle = "rgba(250,244,226,0.95)";
+  ctx.fillRect(x, y, w, 13);
+  ctx.strokeStyle = "rgb(90,70,50)"; ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 12);
+  drawText(ctx, f.text, x + 5, y + 2, 8, false, [60, 40, 30]);
   ctx.globalAlpha = 1;
 }
 

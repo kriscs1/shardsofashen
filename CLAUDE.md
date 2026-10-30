@@ -128,6 +128,23 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   attribute, never with shared state.
 - The world keeps running while everyone is logged out.
 
+**Playing together** (`dsengine/together.py`, `dev/migrate/build_together.py`; the plan: `dev/Roadmap.md` group 15)
+- **Every story moment is yours; the world round it is everyone's.** Nothing in the story ever needs a second player;
+  company makes it quicker and safer, never required. A scene's actors are added for the one player (`Add.Entity`
+  after `$Attr`); a line about the other heirs is said only when one is near (`$Players.Near`).
+- **A kill counts for everyone who fought it** in the last minute (a blow either way) and for the killer's party near:
+  its Kill script runs for each, each gets their own loot roll. A boss (`Boss=1`) has more health for each fighter
+  (`[Together] Boss.Per.Player`); a raid sends more for each player there. One alone still wins at the base numbers.
+- **Parties** (right-click a player: Invite to party; `/p` talks to it, `/leave`): a quest stage one member reaches,
+  the members near at that same stage reach too, with the quest's own things.
+- **Gifts**: use an item on a player; they take it or not. **Town projects** (`data/Projects.ini`): anyone gives to
+  the foreman; finished, what has `Project=<Key>` on its map line appears and the perk holds, for everyone. The town
+  crier tells the news, the bounty clerk sets a hunt a day, the record keeper keeps the records (`/records`), the
+  Pocket Anchor has a guestbook and a gift box, and a day away ends with what happened while you were gone.
+- **Companions**: Jimmy follows the crowned heir (he finds secrets), a sellsword can be hired; they step aside when a
+  real player in your party is near. Townsfolk greet the crowned heir (a speech bubble, now and then: never the
+  chat log). The arena: talk to the Arena Master (in Ashford) once and the arena's shardstone knows you.
+
 **Writing**
 - **Notices and signs never give hints or instructions.** They name or describe a place (and a signpost says which
   way places lie), nothing about quests, keys, secrets, who sells what or what you need to get in.
@@ -403,7 +420,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Anything new on screen must work in both layouts, and on a phone both ways up, with finger-sized targets; nothing for the app goes in `android/` that the page
   could do.
 - **The phone can be the server.** The Android app runs `server/` itself (Python 3.11 through Chaquopy, with its
-  aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. So
+  aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. The host
+  (or an admin) can close it to the network in Options: then only that machine may join, and it doesn't answer the
+  network (`lan_open`, kept with the world; `DS_LAN_OPEN=0` starts closed). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.

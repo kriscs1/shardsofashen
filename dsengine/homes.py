@@ -439,11 +439,17 @@ class HomeMixin:
             opts.append(("Take me back.", self.leave_home))
             opts.append(("Who may visit...", self.visit_setting_menu))
             opts.append(("My friends...", self.friends_menu))
+            opts.append(("The guestbook.", lambda: self.guestbook_menu(owner)))
+            n = len(self.w.together.gifts.get(owner, []))
+            if n:
+                opts.append(("The gift box (%d)." % n, lambda: self.gift_box_menu(owner)))
             if self.home_bed_ok():
                 opts.append(("Forget my bed (wake in town if I fall).", self.forget_bed))
         else:
             text = "%s's homestead." % owner
             opts.append(("Take me back.", self.leave_home))
+            opts.append(("Leave a gift.", lambda: self.gift_box_menu(owner)))
+            opts.append(("The guestbook.", lambda: self.guestbook_menu(owner)))
             if self.has_home_access():
                 opts.append(("Take me to my own home.", self.go_home))
         opts.append(("Never mind.", None))
@@ -552,6 +558,7 @@ class HomeMixin:
         self.player_attack_target = None
         self.display_message("The world goes pale and still... and you're in %s's homestead." % owner, "SUCCESS")
         self.teleport(self.homes.map_name(h["n"]), x, y)
+        self.guestbook_sign(owner)                      # (the Pocket Anchor's guestbook: together.py)
         o = self.w.sessions.get(owner)
         if o is not None and o is not self:
             o.display_message("%s has come to visit your homestead." % self.player_name, "INFO")

@@ -257,7 +257,7 @@ chose to have Galaith redrawn.)
   settlement (51 in all), traps on every monster-held level and in the wild camps (48 more).
 - [x] **Chase areas** raised for most monsters (a least per kind, never lowered).
 
-## 15. One game, alone or together (a plan: not started)
+## 15. One game, alone or together (done 2026-10-30, but where noted)
 
 **Where it stands.** The story is one person's: *you* are the true heir, Mary's child, the one Rupert crowns. But up to
 five people share the world, and each of them is told the same thing. The engine already splits it well: quests,
@@ -270,47 +270,51 @@ game says why there are several of you; and nothing rewards being together beyon
 needs a second player; being with others makes it quicker, safer and more fun, never required.
 
 ### Phase A: the story never contradicts itself (first)
-- [ ] **Story set pieces are personal.** Audit every chapter's scenes (the funeral, Tobias's cage, the dragon, the
+- [x] **Story set pieces are personal.** (they were: every scene's actors are `Add.Entity` after `$Attr`, each
+  player's own; the shared ones are the story's bosses, credited below) Audit every chapter's scenes (the funeral, Tobias's cage, the dragon, the
   throne, the Seam): the actors in them are added for that player (`Add.Entity` after `$Attr`, as the letter and
   Tobias already are), so two heirs never see each other's Rupert crowning them. A test walks two players through
   the same scene at once.
-- [ ] **Bosses credit everyone who fought.** A story boss's Kill script runs for every player who hit it (or was hit
+- [x] **Bosses credit everyone who fought.** (all monsters: `fought_by`, `helpers_of`; each gets a loot roll) A story boss's Kill script runs for every player who hit it (or was hit
   by it) in the last minute, not just the killer (`player_combat` already tracks who fought). Loot stays the killer's
   for 10 s, then anyone's. A test with two players and the dragon.
-- [ ] **Why there are several of you, in the story.** The Breaking scattered the royal blood with the Shards: everyone
+- [x] **Why there are several of you, in the story.** (Aldous and Rupert, `$Players.Near`; Bert's talk is
+  written by several builders, so not his) The Breaking scattered the royal blood with the Shards: everyone
   the Heart has marked is an heir by its reckoning. One line from Aldous and one from Bert, said only when another
   player is near (`$World.Players>1`), and Rupert's "the Order of Heirs" for the crowned. The single-player telling
   is unchanged.
 
 ### Phase B: together is better (the reasons to play with friends)
-- [ ] **Parties.** Invite someone (right-click a player: Invite; the journal shows the party). In a party: kills,
+- [x] **Parties.** (not yet: a shardstone to a party member's stone) Invite someone (right-click a player: Invite; the journal shows the party). In a party: kills,
   remnants and quest kill-counts credit everyone nearby; you see each other on the world map and minimap; a
   shardstone can take you to a party member's last stone.
-- [ ] **Quest sync.** In a party at the same quest stage, each member's personal scene shows the others in it
+- [x] **Quest sync.** (as stages: a stage one reaches, those near at the same stage reach, with the quest's
+  own things; each still sees their own copy of a scene's actors) In a party at the same quest stage, each member's personal scene shows the others in it
   (they join *your* phase, not a copy).
-- [ ] **Scaling, never gating.** Raids (`waves.py`) and bosses get more health and more foes for each player
+- [x] **Scaling, never gating.** Raids (`waves.py`) and bosses get more health and more foes for each player
   present, and a little more loot; one player alone still wins at the base numbers.
-- [ ] **Trading.** A trade window between two players (each offers, both accept), and handing an item over.
+- [x] **Trading.** (as gifts each way: use an item on a player, they accept; no two-sided trade window yet) A trade window between two players (each offers, both accept), and handing an item over.
 
 ### Phase C: the shared world keeps you coming back
-- [ ] **Town projects.** Galaith's quarters, Northport's harbour and the Mirefold boardwalks start half-ruined; anyone
+- [x] **Town projects.** (Northport's harbour: free travel there; Galaith's market: quicker restocks;
+  Mirefold's boardwalks: a shardstone; a plaque of givers each) Galaith's quarters, Northport's harbour and the Mirefold boardwalks start half-ruined; anyone
   donates materials and gold to a project at its foreman; when it's full the place changes for everyone (a new shop,
   a shardstone, a bridge), and the foreman names who gave most. The world grows because people played.
-- [ ] **The town crier** (an NPC, not a sign: notices never hint) tells what's happening: a raid on Ashford, a rare
+- [x] **The town crier** (an NPC, not a sign: notices never hint) tells what's happening: a raid on Ashford, a rare
   creature seen near Frosthold, a project nearly done, who won the arena.
-- [ ] **Daily and weekly things to do.** A bounty clerk's daily hunts (one at a time, any player), the King's Seam's
+- [x] **Daily and weekly things to do.** (the bounty clerk's daily hunt; not yet: the weekly raid) A bounty clerk's daily hunts (one at a time, any player), the King's Seam's
   daily crowns (there already), a weekly raid that needs a crowd or a very good fighter.
-- [ ] **Homesteads as places to visit.** A guestbook at the Pocket Anchor, a gift chest friends can leave things in,
+- [x] **Homesteads as places to visit.** (visiting from a shardstone was there already) A guestbook at the Pocket Anchor, a gift chest friends can leave things in,
   and visiting a friend's pocket from any shardstone.
-- [ ] **Records.** Secrets found (out of 51), creatures slain, arena wins, Deep floors reached: a page in the journal,
+- [x] **Records.** (the Keeper of Records in Northport and `/records`; not a journal page) Secrets found (out of 51), creatures slain, arena wins, Deep floors reached: a page in the journal,
   and a hall of records in Northport's City Hall.
-- [ ] **Welcome back.** On login after a day or more: what happened while you were gone (your blooms grew, a project
+- [x] **Welcome back.** On login after a day or more: what happened while you were gone (your blooms grew, a project
   finished, the shop restocked), so the world feels alive between visits.
 
 ### Phase D: alone, never lonely
-- [ ] **NPC companions for solo play.** Jimmy can follow you once you're crowned (a cat: no fighting, finds secrets);
+- [x] **NPC companions for solo play.** Jimmy can follow you once you're crowned (a cat: no fighting, finds secrets);
   a hireling from a tavern for a fight you can't manage. They step aside when real players are in your party.
-- [ ] **The world reacts to you.** Townsfolk greet the heir by name after the crown; a town you saved from a raid
+- [x] **The world reacts to you.** Townsfolk greet the heir by name after the crown; a town you saved from a raid
   remembers it.
 
 ### Order and checks

@@ -389,8 +389,31 @@ class CombatMixin:
             return 0
         return rng
 
+    def fought(self, e):
+        """This player is in a fight with NPC e (a blow either way): it counts them when it dies (kill_npc)."""
+        f = getattr(e, "fought_by", None)
+        if f is None:
+            f = e.fought_by = {}
+        f[self.player_name] = self.now
+        self.boss_scale(e)                              # (a boss: tougher for each fighter - together.py)
+
+    def helpers_of(self, e):
+        """The others who fought e in the last minute, still near (and the party members by them: parties): each has
+        its kill counted as theirs too (a story boss's Kill script, a quest's count)."""
+        w, p = self.w, self.player
+        names = {n for n, t in (getattr(e, "fought_by", None) or {}).items() if self.now - t <= 60000}
+        names |= set(self.party_near(e)) if hasattr(self, "party_near") else set()
+        out = []
+        for n in sorted(names - {self.player_name}):
+            o = w.sessions.get(n)
+            if o is not None and o.in_world() and o.player.z == e.z and \
+                    abs(o.player.cx - e.cx) < w.sw and abs(o.player.cy - e.cy) < w.sh:
+                out.append(o)
+        return out
+
     def damage_npc(self, e, damage):
         self.break_invisibility()                           # (a blow struck: seen)
+        self.fought(e)
         self.w.waves.hit(e, self)
         hp = e.hp - damage
         slayer = self.entity_ini(e.name, "Slain.By", "")         # (only one weapon gives it its death blow)
@@ -420,10 +443,20 @@ class CombatMixin:
             w.add_action_to_queue("ADD", name, TYPE_NAMES[etype], options, m.name,
                                   w.local_coords(m, e.orig_x, e.orig_y), respawn)
         script = self.find_action_script("Kill", name, etype, e.npc_id)
+        helpers = self.helpers_of(e)
+        for o in [self] + helpers:                      # (the records, the day's bounty; each fighter's own loot)
+            o.update_attribute("Kills", "+1")
+            o.bounty_kill(e)
+        for o in helpers:
+            o.add_npc_drops(e)
         w.shard_fade(e)
         w.remove_entity(e)
         if script:
             self.start_script(script, False)
+        for o in helpers:                               # (it's theirs too: their quest goes on, as if they'd struck it)
+            o.display_message("The %s falls: you fought it too." % o.display_name(e), "ACHIEVEMENT")
+            if script:
+                o.start_script(script, False)
 
     def add_npc_drops(self, e):
         """Its Drops on the ground (the killer's to pick up first), and its Shard Remnants, if it leaves any
@@ -484,6 +517,7 @@ class CombatMixin:
         p = self.player
         w = self.w
         self.player_last_combat = now
+        self.fought(e)
         if not ranged:
             w.fx_nudge(e, -w.fx_away(p, e), -w.fx_away_y(p, e), 110)
         if self.player_attack_target is None and not self.player_walk_active and self.pending_ent is None:

@@ -341,3 +341,28 @@ def test_a_database_under_the_old_name_carries_on_under_the_new_one(tmp_path):
     fresh = Store(str(tmp_path / "other" / "ashen.db"))             # (nothing old beside it: a new one)
     assert fresh.account("Keeper") is None
     fresh.close()
+
+
+def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
+    """Closed to the network: only this machine may join, and the game doesn't answer the network's "who's there?"."""
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, m = await login(http, url, "Hostess", "secret1")
+                assert m["t"] == "welcome" and m["host"] and m["lan"]       # (here on this machine: the host)
+                await ws.send_json({"t": "lan", "open": False})
+                for _ in range(20):
+                    await asyncio.sleep(0.05)
+                    if not game.lan_open:
+                        break
+                assert not game.lan_open and game.store.setting("lan_open") == "0"
+                assert not game.is_local("192.168.1.20") and game.is_local("127.0.0.1")
+                ws2, m2 = await login(http, url, "Neighbour", "secret2")    # (still this machine: let in)
+                assert m2["t"] == "welcome"
+                await ws.close()
+                await ws2.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())

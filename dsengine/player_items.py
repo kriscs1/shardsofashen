@@ -467,7 +467,8 @@ class ItemsMixin:
         self.show_rack_page(False)
 
     def shop_restock_seconds(self, item):
-        return int(self.data.shop_restock_delay * min(4, 1 + val(self.entity_ini(item, "Value", "0")) / 100))
+        quick = 0.5 if self.cur_map is not None and self.w.together.perk("RESTOCK", self.cur_map.name) else 1
+        return int(self.data.shop_restock_delay * quick * min(4, 1 + val(self.entity_ini(item, "Value", "0")) / 100))
 
     def rack_sell(self, e, quantity):
         item = e.name

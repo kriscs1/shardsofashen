@@ -100,6 +100,7 @@ class GameServer:
         w.homes.load(st.get("homes"))
         w.farms.load(st.get("farms"))
         w.market.load(st.get("market"), old_stalls=st.get("stalls"))
+        w.together.load(st.get("together"))            # (projects, records, guestbooks, gifts: together.py)
         w.action_queue = [e for e in st.get("queue", []) if isinstance(e, str)]
         w.apply_saved_queue()
         if "day" in st:
@@ -115,7 +116,8 @@ class GameServer:
         if w.weather:
             wt = {"kind": w.weather["kind"], "level": w.weather["level"], "fading": w.weather["fading"],
                   "left": max(0, w.weather["next"] - w.now)}
-        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state()}
+        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state(),
+                "together": w.together.state()}
 
     def save_all(self):
         try:
@@ -210,7 +212,8 @@ class GameServer:
         for s in self.world.sessions.values():
             p = s.player
             if s.in_world() and p is not None and s.player_visible and not s.dead_wait:
-                out.append({"name": s.player_name, "x": round(p.cx), "y": round(p.cy), "z": p.z})
+                out.append({"name": s.player_name, "x": round(p.cx), "y": round(p.cy), "z": p.z,
+                            "pt": s.party_id})          # (the party it's in: the page marks yours)
         return {"t": "where", "list": out}
 
     def players_message(self):
@@ -234,11 +237,28 @@ class GameServer:
             return ""
         return self.assets_seen[1]
 
+    LOCAL = ("127.0.0.1", "::1", "localhost")
+
+    @property
+    def lan_open(self):
+        """Open to the network (anyone who can reach this machine may join), or this machine only. Kept with the
+        world; DS_LAN_OPEN=0 starts a new world closed."""
+        v = self.store.setting("lan_open", os.environ.get("DS_LAN_OPEN", "1"))
+        return v.strip() not in ("0", "no", "off", "false")
+
+    def is_local(self, addr):
+        return (addr or "") in self.LOCAL or (addr or "").startswith("127.")
+
     async def handle_ws(self, request):
         ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
         await ws.prepare(request)
         c = Client(ws, request.remote)
         c.writer = asyncio.ensure_future(c.write())
+        if not self.lan_open and not self.is_local(c.addr):
+            await self.send(c, {"t": "closed", "text": "This game isn't open to the network just now."})
+            await asyncio.sleep(0.2)
+            await ws.close()
+            return ws
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
                             "registration": self.registration, "invite": bool(self.invite_code),
                             "assets": self.assets_version(), **self.version})
@@ -373,6 +393,7 @@ class GameServer:
         self.clients[s] = c
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
+                            "host": s.admin_enabled or self.is_local(c.addr), "lan": self.lan_open,
                             "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())
 
@@ -380,8 +401,23 @@ class GameServer:
 
     def chat_command(self, s, text):
         """/w <name> <words>: only they hear it (names may have spaces: the longest online name that fits).
-        /r <words>: answers whoever whispered to you last."""
+        /r <words>: answers whoever whispered to you last. /p <words>: your party hears it. /leave: leave your
+        party. /records: the hall of records."""
         low = text.lower()
+        if low.startswith("/p ") or low.startswith("/party "):
+            words = text.split(" ", 1)[1].strip()
+            if not s.party_names():
+                s.emit({"t": "chat", "from": "", "text": "You're not in a party. (Right-click a player: Invite to party.)"})
+                return
+            for o in [s] + s.party_members():
+                o.emit({"t": "chat", "from": s.player_name, "text": words, "party": 1})
+            return
+        if low.strip() in ("/leave", "/leaveparty"):
+            s.leave_party()
+            return
+        if low.strip() == "/records":
+            s.records_menu()
+            return
         if low.startswith("/r ") or low.startswith("/reply "):
             to = getattr(s, "last_whisper_from", "")
             words = text.split(" ", 1)[1].strip()
@@ -478,6 +514,19 @@ class GameServer:
             return
         if t == "ping":
             s.emit({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)})
+            return
+        if t == "lan":                                  # (open to the network or not: the host, or an admin)
+            if s.admin_enabled or self.is_local(c.addr):
+                self.store.set_setting("lan_open", "1" if data.get("open") else "0")
+                log.info("%s %s the game to the network", s.player_name, "opened" if self.lan_open else "closed")
+                if not self.lan_open:
+                    for o, oc in list(self.clients.items()):
+                        if not self.is_local(oc.addr) and not o.admin_enabled:
+                            o.emit({"t": "chat", "from": "", "text": "The host has closed the game to the network."})
+                            self.save_session(o)
+                            oc.closed = True
+                            asyncio.ensure_future(oc.ws.close())
+                self.broadcast({"t": "lan", "open": self.lan_open})
             return
         try:
             s.handle(data)

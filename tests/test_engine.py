@@ -4107,6 +4107,185 @@ def test_a_creature_comes_back_out_of_shard_essence(world):
     leave(world, s)
 
 
+def test_a_kill_counts_for_everyone_who_fought(world):
+    """Two players at the bridge goblins: one lands the blow, both count it (each their own quest goes on)."""
+    m = world.maps["16,3,0"]
+    a = join(world, "Striker", "16,3,0", 300, 300)
+    b = join(world, "Shieldmate", "16,3,0", 340, 300)
+    for s in (a, b):
+        s.connected = True
+        s.update_attribute("WardhavenQuest", "=1")
+        s.update_attribute("BridgeGoblins", "=0")
+    goblin = world.add_npc("Goblin", 0, m.ox + 320, m.oy + 330, "Attitude=Bad", "Bad")
+    try:
+        b.fought(goblin)                                            # (b's blows landed too)
+        a.kill_npc(goblin)
+        run_for(world, 5)
+        assert a.get_attribute("BridgeGoblins") == "1" and b.get_attribute("BridgeGoblins") == "1"
+        loner = join(world, "Bystander2", "16,3,0", 360, 300)       # (there, but never fought it: nothing)
+        loner.update_attribute("WardhavenQuest", "=1")
+        g2 = world.add_npc("Goblin", 0, m.ox + 320, m.oy + 330, "Attitude=Bad", "Bad")
+        a.kill_npc(g2)
+        run_for(world, 5)
+        assert loner.get_attribute("BridgeGoblins") == "0" and a.get_attribute("BridgeGoblins") == "2"
+        leave(world, loner)
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_the_arena_master_wakes_the_arenas_shardstone(world):
+    s = join(world, "Gladiator", "11,4,0", 300, 300)
+    s.connected = True
+    assert any(st["key"] == "Arena" and st["map"] == "0,0,10" and st["uid"] for st in s.stones())
+    assert not s.stone_active("Arena")
+    s.start_script("Talk to Arena_Master", False)
+    run_for(world, 5)
+    assert s.stone_active("Arena")                                  # (spoken to once: it knows you, no Shards)
+    leave(world, s)
+
+
+def test_a_party_shares_kills_and_quest_stages(world):
+    """Invited and joined: a kill counts for a party member near who never struck it, and a quest stage one reaches the
+    other at the same stage reaches too (with the quest's own thing given)."""
+    m = world.maps["16,3,0"]
+    a = join(world, "Leader", "16,3,0", 300, 300)
+    b = join(world, "Follower", "16,3,0", 340, 300)
+    try:
+        for s in (a, b):
+            s.connected = True
+            s.update_attribute("WardhavenQuest", "=1")
+            s.update_attribute("BridgeGoblins", "=0")
+        assert "Invite to party" in a.get_verbs(b.player)
+        a.do_action("Invite to party", b.player)
+        b.native_menu_chosen(1)                                     # (Join)
+        assert a.party_names() == ["Leader", "Follower"] and b.party_id == a.party_id
+        assert "Leave party" in a.get_verbs(b.player)
+        goblin = world.add_npc("Goblin", 0, m.ox + 320, m.oy + 330, "Attitude=Bad", "Bad")
+        a.kill_npc(goblin)
+        run_for(world, 5)
+        assert b.get_attribute("BridgeGoblins") == "1"              # (b never struck it: the party counts it)
+        a.update_attribute("BridgeGoblins", "=3")
+        b.update_attribute("BridgeGoblins", "=3")
+        a.start_script("Kill Goblin", False)                        # (a's fourth: the quest's stage moves on)
+        run_for(world, 5)
+        assert a.get_attribute("WardhavenQuest") == "2" and b.get_attribute("WardhavenQuest") == "2"
+        b.leave_party()
+        assert not a.party_id and not b.party_id                    # (one left: no party)
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_a_gift_is_offered_and_taken(world):
+    a = join(world, "Giver", "11,4,0", 300, 300)
+    b = join(world, "Taker", "11,4,0", 330, 300)
+    try:
+        stock(a, Bread=3)
+        before = b.items_held("Bread")
+        bread = next(i for i in a.inv if i.name == "Bread")
+        a.item_in_use = bread
+        a.do_action("Use with", b.player)
+        a.native_menu_chosen(1)                                     # (All 3)
+        b.native_menu_chosen(1)                                     # (Take it)
+        assert a.items_held("Bread") == 0 and b.items_held("Bread") == before + 3
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_a_town_project_changes_the_town_for_everyone(world):
+    t = world.together
+    key = "Mirefold_Boardwalks"
+    t.projects.pop(key, None)
+    stone = next(e for e in world.ents if getattr(e, "project", "") == key and e.name == "Shardstone")
+    s = join(world, "Builder", "11,4,0", 300, 300)
+    try:
+        assert not world.visible_to(stone, s)
+        d = t.defs()[key]
+        stock(s, **{"Logs": 300, "Gold_Coin(s)": 800})
+        s.donate(d, "Logs", 300)
+        assert not t.done(key)
+        s.donate(d, "Gold_Coin(s)", 800)
+        assert t.done(key) and world.visible_to(stone, s)           # (finished: its shardstone stands for everyone)
+        assert "Builder" in s.plaque_text(key)
+        st = t.state()
+        t2 = type(t)(world)
+        t2.load(st)
+        assert t2.done(key)                                         # (kept with the world)
+    finally:
+        t.projects.pop(key, None)
+        leave(world, s)
+
+
+def test_the_bounty_clerk_sets_a_hunt_a_day(world):
+    s = join(world, "Hunter", "11,4,0", 300, 300)
+    try:
+        kind, n, day = s.bounty_today()
+        s.take_bounty(day)
+        prey = world.add_npc(kind, 0, s.player.x + 40, s.player.y, "Attitude=Bad", "Bad")
+        s.kill_npc(prey)
+        assert s.get_attribute("Bounty.Got") == "1"
+        s.update_attribute("Bounty.Got", "=%d" % n)
+        gold = s.items_held("Gold_Coin(s)")
+        s.clerk_menu()                                              # (done: paid)
+        assert s.items_held("Gold_Coin(s)") > gold and s.get_attribute("Bounty.Paid") == str(day)
+    finally:
+        leave(world, s)
+
+
+def test_jimmy_comes_along_and_a_sellsword_can_be_hired(world):
+    s = join(world, "Crowned2", "11,4,0", 300, 300)
+    try:
+        s.update_attribute("KingQuest", "=1")
+        jimmy = world.add_npc("Strawberry_Cat", 0, s.player.x + 30, s.player.y, "Attitude=Good Id=Throne_Jimmy Name=Jimmy")
+        assert "Come along" in s.companion_verbs(jimmy, "")
+        s.do_action("Come along", jimmy)
+        cat = s.companions()[0]
+        assert cat.display == "Jimmy" and s.secrets_nose() > 0
+        s.teleport("11,4,0", 600, 500)
+        s.do_pending_map_change()
+        run_for(world, 10)
+        assert distance(cat.cx, cat.cy, s.player.cx, s.player.cy) < 500   # (he keeps up)
+        sword = next(e for e in world.ents if (e.npc_id or "") == "Sellsword_Northport")
+        stock(s, **{"Gold_Coin(s)": 30})
+        s.do_action("Hire", sword)
+        assert any(getattr(e, "comp_kind", "") == "Sellsword" for e in s.companions())
+        world.remove_entity(jimmy)
+    finally:
+        leave(world, s)
+        assert not any(getattr(e, "comp_of", None) is s and e.alive for e in world.ents)
+
+
+def test_a_boss_grows_tougher_for_each_fighter(world):
+    a = join(world, "BossA", "11,4,0", 300, 300)
+    b = join(world, "BossB", "11,4,0", 330, 300)
+    try:
+        boss = world.add_npc("Barrow_King", 0, a.player.x + 60, a.player.y, "Attitude=Bad", "Bad")
+        hp = boss.max_hp
+        a.fought(boss)
+        assert boss.max_hp == hp                                     # (one fighter: as it is)
+        b.fought(boss)
+        assert boss.max_hp > hp                                      # (two: tougher)
+        world.remove_entity(boss)
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_a_day_away_and_back_says_what_happened(world):
+    import time as T
+    s = Session(world, "Wanderer")
+    s.load_state({"map": "11,4,0", "x": 300, "y": 300, "last_seen": int(T.time()) - 3 * 86400})
+    world.sessions[s.player_name] = s
+    s.out = []
+    s.enter_world()
+    try:
+        assert any("While you were away" in str(ev.get("text", "")) for ev in s.out)
+    finally:
+        leave(world, s)
+
+
 def test_a_thief_spots_disarms_and_steps_over_traps(world):
     import dsengine.senses as SN
     m = world.maps["15,18,-1"]                                       # (the buried library: darts, a pit, a pie)

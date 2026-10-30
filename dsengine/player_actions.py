@@ -159,6 +159,7 @@ class ActionsMixin:
             verbs = self.add_verb(verbs, "Examine")
         elif t == PLAYER:
             verbs = "Attack,Examine" if self.pvp_ok(self.session_of(e)) else "Examine"
+            verbs = self.together_verbs(e, verbs)       # (Invite to party, Leave party: together.py)
         return verbs
 
     def verb_range(self, verb, e):
@@ -327,6 +328,8 @@ class ActionsMixin:
             return
         name, t = e.name, e.type
         self.clicked_ent = e
+        if self.together_do(verb, e):                  # (parties, gifts, projects, the crier...: together.py)
+            return
         if verb == "Use with":
             self.use_item_with(e)
             return

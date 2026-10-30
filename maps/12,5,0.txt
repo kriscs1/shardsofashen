@@ -48,3 +48,4 @@ StaticObject	Muddy_Footprints	256	192	Id=Clue_Footprints
 StaticObject	Valuables	576	152
 StaticObject	Wishing_Well	256	128	Id=Secret_Ashford_2
 StaticObject	Hollow_Stump	256	64	Id=Secret_Ashford_3
+NPC	Villager	256	472	Attitude=Good Stand=1 Face=S Id=Town_Crier_Ashford Name=Town_Crier

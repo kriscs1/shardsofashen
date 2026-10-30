@@ -71,6 +71,8 @@ class World(NPCMixin):
         self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
         self.tavern = Tavern(self)      # the tavern's dice rounds
         self.arms = Arms(self)          # the arm-wrestling bouts (minigames.py)
+        from .together import Together
+        self.together = Together(self)  # projects, records, guestbooks and gifts, parties (together.py)
         self.carts = Carts(self)        # the horses and carts going round their routes (carts.py)
 
     # =================================================================================================================
@@ -206,6 +208,8 @@ class World(NPCMixin):
         they've already taken, not something their quest took away."""
         if e.owner is not None and e.owner is not viewer:
             return False
+        if getattr(e, "project", "") and not self.together.done(e.project):
+            return False                                # (a town's project, not finished yet: together.py)
         if e.private_to is not None:
             if self.now < e.public_at:
                 if viewer is not e.private_to:
@@ -266,6 +270,7 @@ class World(NPCMixin):
             return None
         e.npc_id = self.option_value(options, "Id")
         e.display = self.option_value(options, "Name").replace("_", " ")
+        e.project = self.option_value(options, "Project")    # (shown once a town's project is done: together.py)
         e.hostile = self.npc_attitude(name, options, attitude)
         if e.hostile and Homes.is_home_map(e.map):         # (a pocket of the rim is always safe: homes.py)
             self.remove_entity(e)
@@ -370,6 +375,7 @@ class World(NPCMixin):
                 e.npc_id = self.option_value(misc, "Id")
                 e.lock_level, e.lock_key = self.option_value(misc, "Lock"), self.option_value(misc, "Key")
                 e.sturdy = self.option_value(misc, "Sturdy")      # (1: iron-bound, never broken open; 0: always can be)
+                e.project = self.option_value(misc, "Project")    # (shown once a town's project is done: together.py)
                 e.display = self.option_value(misc, "Name").replace("_", " ")
             return e
         if t == "NPC":

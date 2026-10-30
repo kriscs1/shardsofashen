@@ -13,7 +13,7 @@ class SenseMixin:
         return val(v) if v else default
 
     def sense_chance(self):
-        c = self.sense_num("Chance", 15) + self.stealth_level() * self.sense_num("Chance.Per.Level", 3)
+        c = self.sense_num("Chance", 15) + self.stealth_level() * self.sense_num("Chance.Per.Level", 3) +             self.secrets_nose()                         # (Jimmy along: he finds things - together.py)
         return min(95, c + (self.sense_num("Sneaking", 30) if self.sneaking() else 0))
 
     def sense_tick(self):

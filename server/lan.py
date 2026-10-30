@@ -28,8 +28,11 @@ class Responder(asyncio.DatagramProtocol):
     def datagram_received(self, data, addr):
         if data.strip() != PROBE:
             return
+        about = self.about()
+        if about is None:
+            return                               # (closed to the network: it doesn't answer)
         try:
-            self.transport.sendto(json.dumps(self.about()).encode("utf-8"), addr)
+            self.transport.sendto(json.dumps(about).encode("utf-8"), addr)
         except OSError:
             pass                                 # (whoever asked has gone)
 

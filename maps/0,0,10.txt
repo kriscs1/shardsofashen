@@ -21,3 +21,5 @@ Stone_Wall001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving001:Paving
 Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Wall_Torch001):Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Wall_Torch001):Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Wall_Torch001):Stone_Wall001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Wall_Torch001):Stone_Wall001:Stone_Wall001:Stone_Wall001
 NPC	Guard	288	568	Attitude=Good Stand=1 Id=Arena_Keeper
 Id	Arena_Gate	12	18
+StaticObject	Shardstone	448	544
+Id	Waystone_Arena	15	19

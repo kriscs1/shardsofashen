@@ -23,3 +23,7 @@ Id	Mirefold_Square	1	21
 NPC	Villager	32	600	Attitude=Good Zone=1,15,10,21 Pause=3-9 Id=Mirefold_Villager_3 Name=Marigold
 NPC	Duck	96	184	Attitude=Passive Zone=1,3,9,11
 StaticObject	Valuables	352	376
+NPC	Settler	64	536	Attitude=Good Stand=1 Face=S Id=Foreman_Mirefold_Boardwalks Name=Foreman_Tansy
+StaticObject	Project_Plaque	128	568	Id=Plaque_Mirefold_Boardwalks Project=Mirefold_Boardwalks
+StaticObject	Shardstone	96	576	Project=Mirefold_Boardwalks Id=Waystone_Mirefold_Stone
+Id	Waystone_Mirefold	4	20

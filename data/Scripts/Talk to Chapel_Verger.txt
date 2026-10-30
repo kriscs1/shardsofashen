@@ -23,5 +23,7 @@
 22	>Conditional	$Variable.1=5	25
 23	Display.Conversation	Gravekeeper	Cast the Grasp at the bars, and the amulet will come to you.	I will.	26
 24	End
-25	Display.Conversation	Gravekeeper	Keep the amulet close, and show it to no one but your father. Go with God.	Goodbye.	26
+25	Display.Conversation	Gravekeeper	Keep the amulet close, and show it to no one but your father. Go with God.	Someone else here says they're Mary's heir too. [if $Players.Near>=1]	27	Goodbye.	26
 26	End
+27	Display.Conversation	Gravekeeper	Do they? The Shards don't count the way we do. When the first king broke the Heart, every piece remembered the blood that broke it, and that blood has run in more veins than one since. The Heart will know each of you for an heir. Whether the crown does is your father's business, not mine.	Thank you, Brother.	28
+28	End

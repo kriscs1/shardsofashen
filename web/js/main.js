@@ -267,6 +267,7 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
   });
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
+$("opt-lan").addEventListener("input", (ev) => send({ t: "lan", open: ev.target.checked }));
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
@@ -643,6 +644,13 @@ N.onMessage = (m) => {
       $("invite-row").hidden = !m.invite;
       $("register-button").hidden = m.registration !== "open";
       break;
+    case "closed":                                 // (the host has closed the game to the network)
+      setLoginError(m.text);
+      $("login-button").disabled = $("register-button").disabled = true;
+      break;
+    case "lan":
+      $("opt-lan").checked = !!m.open;
+      break;
     case "login_fail":
       setLoginError(m.reason);
       $("login-button").disabled = $("register-button").disabled = false;
@@ -709,6 +717,7 @@ N.onMessage = (m) => {
     case "chat":
       if (m.whisper === "from") addMessage(`${m.from} whispers: ${m.text}`, "140 40 140");
       else if (m.whisper === "to") addMessage(`You whisper to ${m.to}: ${m.text}`, "140 40 140");
+      else if (m.party) addMessage(`[Party] ${m.from}: ${m.text}`, "30 110 60");
       else addMessage(m.from ? `${m.from}: ${m.text}` : m.text, m.from ? "30 60 140" : "darkgray");
       if (m.from && m.from !== S.name && m.whisper !== "to" && O.chatSound)    // (another player said something)
         playSound(m.whisper === "from" ? "Whisper" : "Chat");
@@ -729,7 +738,7 @@ N.onMessage = (m) => {
       workBeats.clear();
       stopWorkFx(now);
       break;
-    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": case "mark":
+    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": case "mark": case "bubble":
       if (!behind()) addFx(m, now);
       break;
     case "hurt": S.hurtUntil = now + 240; break;
@@ -794,6 +803,8 @@ async function startGame(m) {
   S.name = m.name;
   S.uid = m.uid;
   S.admin = m.admin;
+  $("opt-lan-row").hidden = !m.host;               // (open to the network: the host's say, or an admin's)
+  $("opt-lan").checked = !!m.lan;
   S.explored.clear();
   for (const [k, v] of Object.entries(m.explored || {})) S.explored.set(k, v === "all" ? "all" : new Set(v));
   S.clock = { day: m.time.day, secs: m.time.secs, on: m.time.on, at: performance.now() };

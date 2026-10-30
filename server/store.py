@@ -127,6 +127,17 @@ class Store:
                         "ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated = excluded.updated",
                         (json.dumps(state, separators=(",", ":")), time.time()))
 
+    def setting(self, key, default=""):
+        """A server-wide setting kept with the world (the world table, key 'set:<key>')."""
+        row = self.db.execute("SELECT value FROM world WHERE key = ?", ("set:" + key,)).fetchone()
+        return row[0] if row else default
+
+    def set_setting(self, key, value):
+        self.db.execute("INSERT INTO world (key, value, updated) VALUES (?, ?, ?) "
+                        "ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated = excluded.updated",
+                        ("set:" + key, str(value), time.time()))
+        self.db.commit()
+
     # ----- backups
     def backup(self, folder, keep=14):
         """A copy of the database in folder (ashen-YYYYMMDD-HHMM.db), keeping the newest keep."""

@@ -91,6 +91,7 @@ class ScriptMixin:
             self.begin_script(entry)
 
     def begin_script(self, entry=False):
+        self.synced_now = []                            # (the party who moved on with this script: together.py)
         self.script_running = True
         self.script_state = ""
         self.script_result = 0
@@ -306,6 +307,11 @@ class ScriptMixin:
             text = text.replace(a, b)
         if "$Random.Percent" in text:
             text = text.replace("$Random.Percent", lbstr(random_number(1, 100)))
+        if "$Players." in text:                          # (other heirs: on the server, and within a map of you)
+            others = [o for o in self.w.sessions.values() if o is not self and o.in_world()]
+            near = [o for o in others if o.player.z == p.z and abs(o.player.cx - p.cx) < self.w.sw and
+                    abs(o.player.cy - p.cy) < self.w.sh]
+            text = text.replace("$Players.Online", lbstr(len(others))).replace("$Players.Near", lbstr(len(near)))
         reps = [
             ("$Inventory.Slots", lbstr(self.empty_inventory_slots())),
             ("$Player.Name", self.player_name),
@@ -502,6 +508,7 @@ class ScriptMixin:
         elif c == "Give.Item":
             if not self.loot_give(arg[1], parse_quantity(arg[2] or "1")):      # (a chest's script fills the chest)
                 self.add_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
+                self.sync_give(arg[1], parse_quantity(arg[2] or "1"))         # (a quest's thing: to the party too)
         elif c == "Take.Item":
             self.remove_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
         elif c == "Remove.Entity":
@@ -590,6 +597,7 @@ class ScriptMixin:
                 self.end_script()
                 return
             self.update_attribute(arg[1], arg[2])
+            self.quest_sync(arg[1], arg[2], cur)        # (your party near, at the same stage: with you)
         elif c == ">Quest.Can.Start":
             self.script_personal = True
             self.script_condition(self.quest_can_start(arg[1]), arg[2])
