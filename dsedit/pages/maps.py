@@ -44,7 +44,8 @@ LAYER_HINTS = {"map": "Paint the ground tiles (1)",
 LAYER_NOUN = {"map": "tile", "decor": "decor", "roof": "roof", "infront": "over tile"}
 TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the same tile (or Shift+click)",
               "Rectangle": "Drag a rectangle to fill", "Erase": "Click or drag to remove", "Pick": "Click to pick "
-              "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it",
+              "what's there into the palette (or Ctrl+click)", "Select": "Click a thing to select it; drag to move it (on a tile layer: click a tile to "
+              "select it, drag to mark an area; on All, drag the marked area to move it)",
               "Place": "Click to put the palette's pick down",
               "Area": "Drag over part of the map, then Copy or Cut it (the buttons on the right, or Ctrl+C / "
                       "Ctrl+X), and click where its top-left goes - here or on another map: every layer and "
@@ -53,12 +54,12 @@ TOOL_HINTS = {"Paint": "Click or drag to paint", "Fill": "Fill the area of the s
                       "its foot); on Entities, drag an item, object or NPC"}
 CURSORS = {"Paint": "pencil", "Fill": "spraycan", "Rectangle": "tcross", "Erase": "X_cursor", "Pick": "dotbox",
            "Move": "fleur", "Area": "crosshair"}
-TOOLS = {"map": ["Paint", "Fill", "Rectangle", "Move", "Area", "Pick"],
-         "decor": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
-         "roof": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
-         "infront": ["Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
+TOOLS = {"map": ["Select", "Paint", "Fill", "Rectangle", "Move", "Area", "Pick"],
+         "decor": ["Select", "Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
+         "roof": ["Select", "Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
+         "infront": ["Select", "Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
          "things": ["Select", "Move", "Area", "Place"],
-         "all": ["Area"]}
+         "all": ["Select", "Area"]}
 LAYER_PARTS = {"decor": ("Decor", "Under"), "roof": ("Roof",), "infront": ("Infront",)}   # (what Move carries)
 # a bed's head: (its foot, where it lies from the head) - below, or beside it for one lying sideways; they move together
 BED_FEET = {"Bed001": ("Bed002", 0, 1), "Bed003": ("Bed004", 1, 0), "Bed006": ("Bed005", -1, 0)}
@@ -202,7 +203,7 @@ class MapPage(Page):
         Segmented(lay, self.layer_var, [(key, "%d  %s" % (i + 1, label), LAYER_HINTS[key])
                                         for i, (label, key) in enumerate(LAYERS)],
                   command=lambda: self.set_layer(self.layer_var.get()), columns=2,
-                  colours={"all": LAYER_LOOK["all"][0]}).pack(fill="x")
+                  tints={k: LAYER_LOOK[k][0] for _, k in LAYERS}).pack(fill="x")
         ttk.Label(left, text="Tool", style="Head.TLabel").pack(anchor="w", pady=(10, 2))
         self.tool_frame = ttk.Frame(left, style="Panel.TFrame")
         self.tool_frame.pack(fill="x")
@@ -764,13 +765,13 @@ class MapPage(Page):
     # Layers, tools, the palette
     # =============================================================================================================
     def set_layer(self, layer):
+        """layer to edit, on the Select tool (whatever tool the last layer had)."""
         self.layer = layer
         self.layer_var.set(layer)
         for w in self.tool_frame.winfo_children():
             w.destroy()
         tools = TOOLS[layer]
-        if self.tool not in tools:
-            self.tool = tools[0]
+        self.tool = "Select"
         self.tool_var.set(self.tool)
         Segmented(self.tool_frame, self.tool_var, [(t, t, TOOL_HINTS[t], t) for t in tools],
                   command=lambda: self.set_tool(self.tool_var.get()), columns=3).pack(fill="x")   # (rows of 3: all show)
@@ -1830,9 +1831,8 @@ class MapPage(Page):
         if ctrl:
             self.pick_under(px, py, tx, ty)
             return
-        if self.tool == "Area":                            # (marking an area: the same on every layer)
-            if getattr(self.app, "clip_region", None) is not None and not (self.layer == "all" and
-                                                                           self.in_area(tx, ty)):
+        if self.tool == "Area" or (self.tool == "Select" and self.layer != "things"):   # (marking an area)
+            if self.tool == "Area" and getattr(self.app, "clip_region", None) is not None and                     not (self.layer == "all" and self.in_area(tx, ty)):
                 self.paste_area(at=(tx, ty))                   # (copied or cut: a click puts it down here)
                 return
             if self.layer == "all" and self.in_area(tx, ty):   # (All: drag what's marked somewhere else)
@@ -1841,7 +1841,7 @@ class MapPage(Page):
                              "region": R.grab(self.doc, self.area, self.ent_tile, False)}
                 self.update_ghost()
                 return
-            self.drag = {"rect": ((tx, ty), (tx, ty)), "sel_area": True}
+            self.drag = {"rect": ((tx, ty), (tx, ty)), "sel_area": True, "click": self.tool == "Select"}
             self.redraw()
             return
         if self.layer == "things":
@@ -2009,12 +2009,18 @@ class MapPage(Page):
         if "rect" in d:
             (x0, y0), (x1, y1) = d["rect"]
             xa, xb, ya, yb = min(x0, x1), max(x0, x1), min(y0, y1), max(y0, y1)
+            if d.get("sel_area") and d.get("click") and (xa, ya) == (xb, yb):
+                self.area = None                        # (Select: a click is a tile chosen, not an area)
+                self.select_cell(xa, ya)
+                self.redraw()
+                return
             if d.get("sel_area"):
                 self.area = (xa, ya, xb, yb)
                 self.app.status("Marked a %dx%d area: %s" % (
                     xb - xa + 1, yb - ya + 1, "drag it to move it, Delete to empty it, Copy or Cut (on the right) to "
                     "put it down somewhere else with a click (Esc: unmark)." if self.layer == "all" else
-                    "Copy or Cut it (on the right), then click where it goes (Esc: unmark)."))
+                    "Copy or Cut it (on the right), then click where it goes, or delete what's on this layer "
+                    "in it (Esc: unmark)."))
                 self.redraw()
                 self.show_inspector()
                 return
@@ -2306,6 +2312,8 @@ class MapPage(Page):
         elif k in ("Delete", "BackSpace"):
             if self.layer == "all" and self.area:
                 self.delete_area()
+            elif self.area:
+                self.delete_in_area()
             elif self.sel_ent is not None:
                 self.delete_ent(self.sel_ent)
             elif self.sel_cell and self.layer in ("decor", "roof", "infront"):
@@ -2577,6 +2585,97 @@ class MapPage(Page):
         self.sel_ent = None
         self.app.status("Emptied the %dx%d area (%d entities gone). Undo brings it back." % (
             self.area[2] - self.area[0] + 1, self.area[3] - self.area[1] + 1, len(gone)), "ok")
+        self.redraw()
+        self.show_inspector()
+
+    # ----- a layer's things in the marked area, all of them or one kind, deleted
+    def area_parts(self):
+        """The parts of a cell the layer being edited holds ("tile": the ground)."""
+        return {"map": ("tile",), "all": ("Under", "Decor", "Roof", "Infront")}.get(
+            self.layer, LAYER_PARTS.get(self.layer, ()))
+
+    @staticmethod
+    def kind_of(part, v):
+        """What a cell's part, or an entity (part "ent"), counts as: (part, name) (a roof without its group)."""
+        if part == "ent":
+            return part, v.kind if v.kind in TILE_KINDS else v.name
+        return part, v.rsplit(".", 1)[0] if part == "Roof" else v
+
+    def area_kinds(self):
+        """What the layer being edited has in the marked area: {(part, name): how many}. All counts every layer."""
+        from collections import Counter
+        x0, y0, x1, y1 = self.area
+        out = Counter()
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                cell = self.doc.cells[y][x]
+                for k in self.area_parts():
+                    v = cell.tile if k == "tile" else cell._get(k)
+                    if v:
+                        out[self.kind_of(k, v)] += 1
+        if self.layer in ("things", "all"):
+            for e in self.area_ents(self.doc, self.area):
+                out[self.kind_of("ent", e)] += 1
+        return out
+
+    @staticmethod
+    def kind_label(key, n):
+        part, name = key
+        what = {"Under": " (rug)", "Roof": " (roof)", "Infront": " (over)", "ent": " (entity)"}.get(part, "")
+        return "%s%s  x%d" % (name, what, n)
+
+    def delete_in_area(self, key=None):
+        """The layer's things in the marked area gone: every one (key None), or those of one kind (a key of
+        area_kinds). Ground deleted becomes the ground round the area (not the kind deleted); a bed's head takes its
+        foot with it. Everything on All is delete_area."""
+        from collections import Counter
+        from .. import region as R
+        if not self.area:
+            return
+        if self.layer == "all" and key is None:
+            return self.delete_area()
+        x0, y0, x1, y1 = self.area
+        H, W = len(self.doc.cells), len(self.doc.cells[0])
+        want = lambda k, v: bool(v) and (key is None or key == self.kind_of(k, v))
+        gone = [e for e in self.area_ents(self.doc, self.area) if self.layer in ("things", "all") and want("ent", e)]
+        used = [(e.opt("Id") or e.name) for e in gone if self.uses_of(self.doc, e)]
+        if used and not messagebox.askyesno("Delete in the area", "Scripts, quests or data point at these:\n\n%s\n\n"
+                                            "Delete them anyway? (They will stop working.)" % "\n".join(used[:15]),
+                                            parent=self):
+            return
+        parts, fill = self.area_parts(), None
+        if "tile" in parts:                                 # (the ground round it, not what's being deleted)
+            seen = Counter(self.doc.cells[y][x].tile for y in range(max(0, y0 - 1), min(H, y1 + 2))
+                           for x in range(max(0, x0 - 1), min(W, x1 + 2))
+                           if not R.inside(self.area, x, y) and not want("tile", self.doc.cells[y][x].tile))
+            fill = seen.most_common(1)[0][0] if seen else R.ground_round(self.doc, self.area)
+        self.remember()
+        n = 0
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                cell = self.doc.cells[y][x]
+                for k in parts:
+                    v = cell.tile if k == "tile" else cell._get(k)
+                    if not want(k, v) or (k == "tile" and v == fill):
+                        continue
+                    n += 1
+                    if k == "tile":
+                        cell.tile = fill
+                    elif k == "Decor":
+                        cell.set_decor(None)
+                        foot = BED_FEET.get(v)          # (a bed's foot goes with its head)
+                        if foot and 0 <= y + foot[2] < H and 0 <= x + foot[1] < W and \
+                                self.doc.cells[y + foot[2]][x + foot[1]].decor == foot[0]:
+                            self.doc.cells[y + foot[2]][x + foot[1]].set_decor(None)
+                    elif k == "Under":
+                        cell.set_under(None)
+                    else:
+                        cell._set(k, None)
+        self.doc.entities = [e for e in self.doc.entities if e not in gone]
+        if self.sel_ent in gone:
+            self.sel_ent = None
+        self.app.status("Deleted %s on the %s layer in the area (%d tiles, %d entities). Undo brings it back." % (
+            "everything" if key is None else key[1], LAYER_LOOK[self.layer][1].lower(), n, len(gone)), "ok")
         self.redraw()
         self.show_inspector()
 
@@ -3054,6 +3153,25 @@ class MapPage(Page):
             ttk.Button(row, text="Cut", command=lambda: self.clip_area(True)).pack(side="left", padx=4)
             if self.layer == "all":
                 ttk.Button(row, text="Delete", command=self.delete_area).pack(side="left")
+            kinds = sorted(self.area_kinds().items(), key=lambda kv: (kv[0][0] == "ent", kv[0][1].lower()))
+            ttk.Label(f, text="Delete in the area: %s" % ("every layer" if self.layer == "all" else
+                                                          "the %s layer" % LAYER_LOOK[self.layer][1].title()),
+                      style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(14, 2))
+            if not kinds:
+                ttk.Label(f, text="Nothing on this layer here.", style="PanelMuted.TLabel").pack(anchor="w")
+            else:
+                labels = ["Everything"] + [self.kind_label(k, n) for k, n in kinds]
+                pick = tk.StringVar(value=labels[0])
+                dr = ttk.Frame(f, style="Panel.TFrame")
+                dr.pack(anchor="w", fill="x")
+                ttk.Combobox(dr, textvariable=pick, values=labels, state="readonly", width=26).pack(side="left")
+                ttk.Button(dr, text="Delete", style="Danger.TButton", command=lambda: self.delete_in_area(
+                    None if pick.get() == labels[0] else kinds[labels.index(pick.get()) - 1][0])).pack(
+                    side="left", padx=4)
+                ttk.Label(f, text="Everything, or one kind of tile or thing (how many are here). Undo brings it "
+                          "back." + (" Ground deleted becomes the ground round the area." if self.layer == "map"
+                                     else ""),
+                          style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w", pady=(2, 0))
         if clip is not None:
             w, h = clip.size
             ttk.Label(f, text="%s: a %d x %d area of %s" % ("Cut" if clip.cut else "Copied", w, h, clip.map),

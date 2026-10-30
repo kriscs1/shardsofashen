@@ -318,17 +318,21 @@ class Segmented(tk.Frame):
     """A row of buttons where one is chosen (like tabs): the chosen one is amber with white text, the rest tan with
     a border. options: [(value, text)] or [(value, text, tooltip)] or [(value, text, tooltip, icon)] (icon: a tool's
     name in icons.py, drawn left of the text in the text's colour). var: a StringVar; command() after a click.
-    colours: {value: colour} for buttons in a colour of their own (white text; chosen, bold with a dark edge)."""
+    colours: {value: colour} for buttons in a colour of their own (white text; chosen, bold with a dark edge).
+    tints: {value: colour} for buttons edged in a colour of their own, filled with it only when chosen (bold, a ▶
+    and a gold ring: which one is chosen shows at a glance)."""
 
-    def __init__(self, parent, var, options, command=None, columns=0, bg=None, colours=None):
+    def __init__(self, parent, var, options, command=None, columns=0, bg=None, colours=None, tints=None):
         super().__init__(parent, bg=bg or T.PANEL)
         self.var, self.command, self.buttons, self.colours = var, command, {}, colours or {}
+        self.tints = tints or {}
         for i, opt in enumerate(options):
             value, text = opt[0], opt[1]
             edge = tk.Frame(self, bg=T.BUTTON_EDGE)              # (a 1px border round each button)
             b = tk.Label(edge, text=text, font=T.FONT, padx=T.px(9), pady=T.px(3), cursor="hand2", bd=0)
-            b.pack(fill="both", expand=True, padx=1, pady=1)
-            b.edge = edge
+            ring = 3 if value in self.tints else 1
+            b.pack(fill="both", expand=True, padx=ring, pady=ring)
+            b.edge, b.text = edge, text
             b.icon = opt[3] if len(opt) > 3 else None
             if columns:
                 edge.grid(row=i // columns, column=i % columns, sticky="ew", padx=(0, 3), pady=(0, 3))
@@ -363,8 +367,16 @@ class Segmented(tk.Frame):
         for v, b in self.buttons.items():
             if not b.winfo_exists():
                 continue
-            own = self.colours.get(v)
-            if own:
+            own, tint = self.colours.get(v), self.tints.get(v)
+            if tint:
+                b.configure(text=("▶ " if v == cur else "") + b.text)
+                if v == cur:
+                    b.configure(bg=tint, fg="white", font=T.FONT_BOLD)
+                    b.edge.configure(bg="#ffd23c")
+                else:
+                    b.configure(bg=T.SELECT if v == hot else T.BUTTON, fg=T.TEXT, font=T.FONT)
+                    b.edge.configure(bg=tint)
+            elif own:
                 b.configure(bg=own, fg="white", font=T.FONT_BOLD if v == cur else T.FONT)
                 b.edge.configure(bg="#10131c" if v == cur else T.ACCENT if v == hot else own)
             elif v == cur:
