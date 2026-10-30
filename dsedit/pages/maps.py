@@ -66,6 +66,8 @@ ZOOMS = ["5%", "10%", "25%", "50%", "75%", "100%", "150%", "200%", "300%"]
 FAR = 0.35              # zoomed out further than this, the level is drawn from its minimap (a colour a tile)
 PICS = 48               # map pictures kept (full size, for the layer being edited)
 SPECIAL = ["(Trigger)", "(Lock)", "(Place ID)"]
+# a trap is a Trigger named Trap_<Kind>: the engine springs it (deep.py world_trap), no script needed
+TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 SPECIAL_KIND = {"(Trigger)": "Trigger", "(Lock)": "Lock", "(Place ID)": "Id"}
 TILE_KINDS = ("Trigger", "Lock", "Id")      # things on a whole tile (Entity.on_tile)
 TILE_LOOK = {"Trigger": ("#f0b030", 2, "⚡"), "Lock": ("#e040c0", 6, "🔒"),   # (colour, inset, symbol)
@@ -2209,6 +2211,10 @@ class MapPage(Page):
             self.cart_menu(m, e, tx, ty)
         m.add_separator()
         m.add_command(label="Add a trigger here…", command=lambda: self.add_tile_thing("Trigger", tx, ty))
+        traps = tk.Menu(m, tearoff=0)
+        for kind in TRAP_KINDS:
+            traps.add_command(label=kind, command=lambda k=kind: self.add_trap(k, tx, ty))
+        m.add_cascade(label="Add a trap here", menu=traps)
         m.add_command(label="Add a lock here…", command=lambda: self.add_tile_thing("Lock", tx, ty))
         m.add_command(label="Name this tile (a place ID)…", command=lambda: self.add_tile_thing("Id", tx, ty))
         m.add_command(label="Pick what's here into the palette", command=lambda: self.pick_under(px, py, tx, ty))
@@ -3460,7 +3466,32 @@ class MapPage(Page):
         self.show_inspector()
         self.redraw()
 
+    def add_trap(self, kind, tx, ty):
+        """A hidden trap on tile tx, ty (0-based): a Trigger the engine springs, noticed with Stealth, disarmable."""
+        if self.doc is None:
+            return
+        self.remember()
+        self.doc.entities = [e for e in self.doc.entities
+                             if not (e.kind == "Trigger" and (e.x, e.y) == (tx + 1, ty + 1))]     # (one to a tile)
+        ent = Entity("Trigger", x=tx + 1, y=ty + 1, script="Trap_" + kind)
+        self.doc.entities.append(ent)
+        self.sel_ent, self.sel_cell = ent, (tx, ty)
+        if self.layer != "things":
+            self.set_layer("things")
+        self.redraw()
+        self.show_inspector()
+
     def insp_trigger(self, f, e):
+        if e.script.startswith("Trap_"):                # (a trap: the engine's, its kind's all there is to it)
+            self.head(f, "Trap", "Hidden on tile %d,%d till a player notices it (Stealth); springs as they step on it, "
+                                 "unless they've disarmed it or sneak over it." % (e.x, e.y))
+            self.field(f, "Kind", e.script[5:], self.changer(e, "script", lambda v: "Trap_" + v.strip()),
+                       values=list(TRAP_KINDS))
+            self.field(f, "Tile X", str(e.x), self.changer(e, "x", int), width=6)
+            self.field(f, "Tile Y", str(e.y), self.changer(e, "y", int), width=6)
+            ttk.Button(f, text="Delete", style="Danger.TButton", command=lambda: self.delete_ent(e)).pack(
+                anchor="w", pady=(10, 0))
+            return
         self.head(f, "Trigger", "Runs a script when the player walks onto tile %d,%d." % (e.x, e.y))
         v = self.field(f, "Script", e.script, self.changer(e, "script"), values=self.project.scripts())
         b = ttk.Frame(f, style="Panel.TFrame")

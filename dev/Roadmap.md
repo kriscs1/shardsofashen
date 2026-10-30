@@ -257,6 +257,69 @@ chose to have Galaith redrawn.)
   settlement (51 in all), traps on every monster-held level and in the wild camps (48 more).
 - [x] **Chase areas** raised for most monsters (a least per kind, never lowered).
 
+## 15. One game, alone or together (a plan: not started)
+
+**Where it stands.** The story is one person's: *you* are the true heir, Mary's child, the one Rupert crowns. But up to
+five people share the world, and each of them is told the same thing. The engine already splits it well: quests,
+quest doors, chests, secrets, traps you've noticed and NPC attitudes are each player's own; trees, rocks, kills, shops,
+the time and the weather are shared. Where it rubs: a story boss is a shared NPC whose kill script credits only the
+one who landed the blow (`Kill Galaith_Dragon`); another heir may be standing in the throne room; nothing in the
+game says why there are several of you; and nothing rewards being together beyond the arena.
+
+**The rule to keep.** *Every story moment is yours; the world around it is everyone's.* Nothing in the story ever
+needs a second player; being with others makes it quicker, safer and more fun, never required.
+
+### Phase A: the story never contradicts itself (first)
+- [ ] **Story set pieces are personal.** Audit every chapter's scenes (the funeral, Tobias's cage, the dragon, the
+  throne, the Seam): the actors in them are added for that player (`Add.Entity` after `$Attr`, as the letter and
+  Tobias already are), so two heirs never see each other's Rupert crowning them. A test walks two players through
+  the same scene at once.
+- [ ] **Bosses credit everyone who fought.** A story boss's Kill script runs for every player who hit it (or was hit
+  by it) in the last minute, not just the killer (`player_combat` already tracks who fought). Loot stays the killer's
+  for 10 s, then anyone's. A test with two players and the dragon.
+- [ ] **Why there are several of you, in the story.** The Breaking scattered the royal blood with the Shards: everyone
+  the Heart has marked is an heir by its reckoning. One line from Aldous and one from Bert, said only when another
+  player is near (`$World.Players>1`), and Rupert's "the Order of Heirs" for the crowned. The single-player telling
+  is unchanged.
+
+### Phase B: together is better (the reasons to play with friends)
+- [ ] **Parties.** Invite someone (right-click a player: Invite; the journal shows the party). In a party: kills,
+  remnants and quest kill-counts credit everyone nearby; you see each other on the world map and minimap; a
+  shardstone can take you to a party member's last stone.
+- [ ] **Quest sync.** In a party at the same quest stage, each member's personal scene shows the others in it
+  (they join *your* phase, not a copy).
+- [ ] **Scaling, never gating.** Raids (`waves.py`) and bosses get more health and more foes for each player
+  present, and a little more loot; one player alone still wins at the base numbers.
+- [ ] **Trading.** A trade window between two players (each offers, both accept), and handing an item over.
+
+### Phase C: the shared world keeps you coming back
+- [ ] **Town projects.** Galaith's quarters, Northport's harbour and the Mirefold boardwalks start half-ruined; anyone
+  donates materials and gold to a project at its foreman; when it's full the place changes for everyone (a new shop,
+  a shardstone, a bridge), and the foreman names who gave most. The world grows because people played.
+- [ ] **The town crier** (an NPC, not a sign: notices never hint) tells what's happening: a raid on Ashford, a rare
+  creature seen near Frosthold, a project nearly done, who won the arena.
+- [ ] **Daily and weekly things to do.** A bounty clerk's daily hunts (one at a time, any player), the King's Seam's
+  daily crowns (there already), a weekly raid that needs a crowd or a very good fighter.
+- [ ] **Homesteads as places to visit.** A guestbook at the Pocket Anchor, a gift chest friends can leave things in,
+  and visiting a friend's pocket from any shardstone.
+- [ ] **Records.** Secrets found (out of 51), creatures slain, arena wins, Deep floors reached: a page in the journal,
+  and a hall of records in Northport's City Hall.
+- [ ] **Welcome back.** On login after a day or more: what happened while you were gone (your blooms grew, a project
+  finished, the shop restocked), so the world feels alive between visits.
+
+### Phase D: alone, never lonely
+- [ ] **NPC companions for solo play.** Jimmy can follow you once you're crowned (a cat: no fighting, finds secrets);
+  a hireling from a tavern for a fight you can't manage. They step aside when real players are in your party.
+- [ ] **The world reacts to you.** Townsfolk greet the heir by name after the crown; a town you saved from a raid
+  remembers it.
+
+### Order and checks
+A first: it fixes what's wrong now. Then parties and boss credit (B), the cheapest big win for friends. Then town
+projects and the crier (C), the biggest pull to come back. D last. Each item gets a test in `tests/test_engine.py`
+and both layouts checked in the browser. Players on the server: the tick stays inside its 50 ms budget at 40 players
+on the PC server (17 ms average, 31 ms worst, steady); the phone host should stay at 5. So these plans don't need a
+bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

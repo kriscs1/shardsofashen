@@ -1919,7 +1919,11 @@ def test_mo_sits_for_a_portrait_only_when_sitting(world):
 
 def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
     from dsengine.entity import AI_ROAM
-    seal = next(e for e in world.ents if e.name == "Seal" and e.alive)
+    def roomy(e):                                      # (open water on its map: not a seal by a narrow river)
+        mm = world.maps[e.map]
+        return any(mm.tile_is_water(x, y) and mm.tile_is_water(x + 1, y) and mm.tile_is_water(x, y + 1)
+                   for y in range(2, 20) for x in range(2, 24))
+    seal = next(e for e in world.ents if e.name == "Seal" and e.alive and roomy(e))
     m = world.maps[seal.map]
     s = join(world, "Beachcomber", seal.map, int(seal.x - m.ox), int(seal.y - m.oy))
     s.connected = True

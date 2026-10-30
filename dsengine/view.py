@@ -1,5 +1,7 @@
 """What each player's browser is told every tick: the maps round them (once, and again when one changes), the things
 and people on them (in full when first seen, then only what changed), their own tiles, themselves, the weather."""
+import math
+
 from .entity import PLAYER, NPC, MAPITEM, STATICOBJECT
 
 VIEW_MAPS = 1           # the maps this far round the player's are sent (1 = the 3 x 3 the desktop game kept)
@@ -79,6 +81,21 @@ def view_maps(w, s):
     return out
 
 
+def ents_by_map(w):
+    """Everything in the world by the map it's on, (mx, my, z): made once a tick (or when things come and go) for
+    every player's snapshot, not every thing looked at for each of them."""
+    ents = w.ents
+    key = (w.now, len(ents), id(ents[-1]) if ents else 0)
+    got = getattr(w, "_ents_by_map", None)
+    if got is None or got[0] != key:
+        sw, sh = w.sw, w.sh
+        idx = {}
+        for e in ents:
+            idx.setdefault((math.floor(e.x / sw), math.floor(e.y / sh), e.z), []).append(e)
+        got = w._ents_by_map = (key, idx)
+    return got[1]
+
+
 def snapshot(w, s):
     """The messages for player s this tick (a list)."""
     out = []
@@ -113,10 +130,14 @@ def snapshot(w, s):
         y0 = min(m.oy for m in maps) - 64
         x1 = max(m.ox for m in maps) + w.sw + 64
         y1 = max(m.oy for m in maps) + w.sh + 64
-        for e in w.ents:
-            if e.z != z or not (x0 <= e.x <= x1 and y0 <= e.y <= y1) or not w.visible_to(e, s):
-                continue
-            seen[e.uid] = entity_state(w, e, s)
+        idx = ents_by_map(w)
+        mxs, mys = [m.mx for m in maps], [m.my for m in maps]
+        for mx in range(min(mxs) - 1, max(mxs) + 2):           # (the maps in view, and the edge just past them)
+            for my in range(min(mys) - 1, max(mys) + 2):
+                for e in idx.get((mx, my, z), ()):
+                    if not (x0 <= e.x <= x1 and y0 <= e.y <= y1) or not w.visible_to(e, s):
+                        continue
+                    seen[e.uid] = entity_state(w, e, s)
         for o in w.sessions.values():
             if o is s or not o.in_world() or o.player.z != z:
                 continue

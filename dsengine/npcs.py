@@ -19,6 +19,12 @@ class NPCMixin:
         sw, sh = self.sw, self.sh
         self.pf_searches = 0
         players = [s for s in self.sessions.values() if s.in_world()]
+        self.players_all = players
+        pmap = {}                                       # (mx, my, z) -> the players on it (nearest_player looks round)
+        for s in players:
+            p = s.player
+            pmap.setdefault((math.floor(p.x / sw), math.floor(p.y / sh), p.z), []).append(s)
+        self.players_by_map, self.players_round_cache = pmap, {}
         by_map = {}                                     # (mx, my, z) -> its live NPCs, for hunting (npc_prey)
         for e in self.ents:
             if e.type == NPC and e.alive and e.ai is not None:
@@ -112,10 +118,23 @@ class NPCMixin:
             s.display_message("The %s shouts: \"Intruder!\" The whole camp is after you!" % s.display_name(e), "DAMAGE")
             self.sound("Alarm" if self.data.loaded("Alarm") else "Denied", e.z, e.cx, e.cy)
 
+    def players_round(self, e):
+        """The players on e's map and the eight round it, this tick (nobody further off matters to it)."""
+        key = (math.floor(e.x / self.sw), math.floor(e.y / self.sh), e.z)
+        got = self.players_round_cache.get(key)
+        if got is None:
+            pmap = self.players_by_map
+            got = [s for i in (-1, 0, 1) for j in (-1, 0, 1) for s in pmap.get((key[0] + i, key[1] + j, key[2]), ())]
+            self.players_round_cache[key] = got
+        return got
+
     def nearest_player(self, e, players, want=None):
-        """(session, distance) of the nearest player on e's level who sees it (want(session) must be true too)."""
+        """(session, distance) of the nearest player on e's level who sees it (want(session) must be true too).
+        Everyone in the world (players: this tick's list): only those on the maps round it are looked at."""
         best = None
         ex, ey = e.cx, e.cy
+        if players is getattr(self, "players_all", None):
+            players = self.players_round(e)
         for s in players:
             p = s.player
             if p.z != e.z:
