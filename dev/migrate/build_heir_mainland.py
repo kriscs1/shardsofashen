@@ -681,6 +681,46 @@ def quests():
 
 
 # ================================================================== the scripts: to the Wizards' Court
+
+def archivist_script():
+    """The Royal Archivist: the amulet's true, but she'll put her seal to it only with the Queen's own papers, from
+    the Archive vault under her hall (build_archive_vault.py: ArchiveVault 1, sent down; 2, found)."""
+    archivist = npc_id("Galaith_Clerk", "Archivist")
+    w("Talk to " + archivist, [
+        ("Get.Value", "ATTRIBUTE", "GuardQuest", V1),
+        (">Conditional", "$Variable.1=2", "@chat"),
+        (">Got.Item", "Amulet_of_Succession", "1", "@noamulet"),
+        (">Got.Item", "Marys_Notes", "1", "@vault"),
+        say("Archivist", "Her own hand. Then there's nothing left to doubt.\\She turns the amulet in the lamplight once "
+                         "more, and her hands begin to shake.", ("She was my mother.", "@mother")),
+        ("@mother",),
+        ("Give.Item", "Archivists_Attestation", "1"),
+        ("Update.Attribute", "GuardQuest", "=3"),
+        say("Archivist", "Then welcome home, my $Player.Lord. Take my word to the Chancellor, under my own seal.",
+            ("Thank you.", "@end")),
+        ("End",),
+        ("@vault",),
+        say("Archivist", "The Chancellor sent you? Let me see it.\\The crown, the sapphire, the mark of the old smiths "
+                         "under the clasp. This is the Amulet of Ashen Succession. Queen Mary wore it the night she "
+                         "vanished.\\But an amulet can be stolen, and my seal can't be given back. The night she fled, the "
+                         "old Chancellor had her papers sealed in the vault under this hall, and set the Guard to keep "
+                         "them. Bring me something in her own hand, and I'll know.",
+            ("How do I get down there?", "@hatch")),
+        ("@hatch",),
+        ("Update.Attribute", "ArchiveVault", "=1"),
+        say("Archivist", "There's a hatch at the back of the hall. I'll leave it unbarred. The watchmen down there answer "
+                         "to the Chancellor, not to me, and they don't ask who you are first. Go softly.",
+            ("I will.", "@end")),
+        ("End",),
+        ("@noamulet",),
+        say("Archivist", "An amulet? You'd better show it to me, then. I can't vouch for a story.", ("Right.", "@end")),
+        ("End",),
+        ("@chat",),
+        say("Archivist", "The archive of Galaith: every charter, every seal, every deed since the city was founded.",
+            ("Goodbye.", "@end")),
+        ("@end",), ("End",),
+    ])
+
 def npc_id(prefix, sprite):
     hit = find_npc(prefix, sprite)
     assert hit, prefix
@@ -1272,7 +1312,6 @@ def galaith():
         ("@end",), ("End",),
     ])
     chancellor = npc_id("Galaith_Speaker", "Chancellor")
-    archivist = npc_id("Galaith_Clerk", "Archivist")
     w("Talk to Palace_Captain", [
         ("Get.Value", "ATTRIBUTE", "GuardQuest", V1),
         (">Conditional", "$Variable.1=0", "@s4"),
@@ -1318,28 +1357,7 @@ def galaith():
                           "to do.", ("Goodbye.", "@end")),
         ("@end",), ("End",),
     ])
-    w("Talk to " + archivist, [
-        ("Get.Value", "ATTRIBUTE", "GuardQuest", V1),
-        (">Conditional", "$Variable.1=2", "@chat"),
-        (">Got.Item", "Amulet_of_Succession", "1", "@noamulet"),
-        say("Archivist", "The Chancellor sent you? Let me see it.\\She turns the amulet in the lamplight, and her hands "
-                         "begin to shake.\\The crown, the sapphire, the mark of the old smiths under the clasp. This is "
-                         "the Amulet of Ashen Succession. Queen Mary wore it the night she vanished.",
-            ("She was my mother.", "@mother")),
-        ("@mother",),
-        ("Give.Item", "Archivists_Attestation", "1"),
-        ("Update.Attribute", "GuardQuest", "=3"),
-        say("Archivist", "Then welcome home, my $Player.Lord. Take my word to the Chancellor, under my own seal.",
-            ("Thank you.", "@end")),
-        ("End",),
-        ("@noamulet",),
-        say("Archivist", "An amulet? You'd better show it to me, then. I can't vouch for a story.", ("Right.", "@end")),
-        ("End",),
-        ("@chat",),
-        say("Archivist", "The archive of Galaith: every charter, every seal, every deed since the city was founded.",
-            ("Goodbye.", "@end")),
-        ("@end",), ("End",),
-    ])
+    archivist_script()
     w("Talk to Rupert_On_Throne", [
         ("Get.Value", "ATTRIBUTE", "KingQuest", V1),
         (">Conditional", "$Variable.1=0", "@after"),

@@ -21,7 +21,7 @@ import story_kit as SK                         # noqa: E402
 from story_kit import Map, obj_line            # noqa: E402
 
 MAKER = "build_kings_seam.py"
-MINE = "-11,14,-1"
+MINE = "-7,11,-1"
 AT = (3, 11)
 SHARDS = [("Galaith.Seam", "12"), ("Galaith.Seam.Hours", "20")]
 PICKAXES = ("Mithril_Pickaxe", "Steel_Pickaxe", "Pickaxe", "Bronze_Pickaxe")

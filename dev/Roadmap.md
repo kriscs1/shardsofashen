@@ -152,73 +152,85 @@ The heir stays. What changes is the mystery underneath it:
   (Aldous's lesson done: an attribute set when you first absorb).
 - [x] Rewrite the stage texts and the people's lines along the way (`build_heir_isle.py`, `build_heir_mainland.py`,
   `build_shardgate.py`...), still discovered, never laid out.
-- [ ] **A stealth part** (after group 9: it needs Galaith's new City Hall, with a vault under it): in The Royal Guard, Mary's notes are in the Archive's sealed vault: get in at night past the
+- [x] **A stealth part** (after group 9: it needs Galaith's new City Hall, with a vault under it): in The Royal Guard, Mary's notes are in the Archive's sealed vault: get in at night past the
   archive's watchmen (lookouts) and pick its lock; a test.
 - [x] The ending's choice at the King's Seam; both rewards; Jimmy as now.
 
 ## 9. The world: coasts and Galaith
 
-(The builder rewrites every mainland map: first, it keeps the maps the owner has edited by hand, listed in a file,
-and the new land meets them at their edges.)
+(Done as passes over the built maps, not by rebuilding the mainland: the owner's hand-edited maps are kept. The owner
+chose to have Galaith redrawn.)
 
-- [ ] **Hand-edited maps kept**: a list (in `dev/World Plan.md` or a data file) of maps the builder leaves alone;
+- [x] **Hand-edited maps kept**: a list (in `dev/World Plan.md` or a data file) of maps the builder leaves alone;
   it starts with every map changed in the editor since the last build.
-- [ ] **A coastline in big strokes**: an outline of a few dozen points (a long peninsula in the south-east, a deep
+- [x] **A coastline in big strokes**: an outline of a few dozen points (a long peninsula in the south-east, a deep
   gulf on the north coast, a hooked headland by Ravensgate, a bay under the desert), smoothed to curves, then noise at
   about 150, 40 and 9 tiles. Land = inside the outline, not the plan's letters.
-- [ ] **Protected**: every settlement, quest place, road and bridge on land with a margin; coastal towns keep sea on
+- [x] **Protected**: every settlement, quest place, road and bridge on land with a margin; coastal towns keep sea on
   their coast side (ports and jetties meet water); the Isle, Wardhaven's island, Dragon Island as they are.
-- [ ] **Islets and skerries** off long empty coasts.
-- [ ] **The west finished**: the grey block west of the range becomes land and sea on the same outline; a **swamp**
+- [x] **Islets and skerries** off long empty coasts.
+- [x] **The west finished**: the grey block west of the range becomes land and sea on the same outline; a **swamp**
   biome there (its ground, trees, water pools, ambient and music) with a small village of huts on stilts.
-- [ ] **Galaith opened to the sea** on its west and south (the mountains there gone, a coast and a harbour), and the
+- [x] **Galaith opened to the sea** on its west and south (the mountains there gone, a coast and a harbour), and the
   mountains on its other sides made natural (peaks of all sizes, no box).
-- [ ] **Galaith in quarters**: the royal quarter walled inside the city walls (the palace and throne room), the
+- [x] **Galaith in quarters**: the royal quarter walled inside the city walls (the palace and throne room), the
   nobles' quarter beside it, the merchants' quarter round the market, the commons (hovels) furthest from the royal
   quarter. Each its own streets, stone and houses.
-- [ ] **The mine north of the city** (the King's Shard Seam with it; scripts' coordinates moved with it, a test).
-- [ ] Render the world and each changed map after every change; look; fix; minimaps rebuilt.
+- [x] **The mine north of the city** (the King's Shard Seam with it; scripts' coordinates moved with it, a test).
+- [x] Render the world and each changed map after every change; look; fix; minimaps rebuilt.
 
 ## 10. Buildings and settlements
 
-- [ ] **About half the buildings two storeys, a cellar, or both**: exterior (a taller front, a second row of
+- [x] **About half the buildings two storeys, a cellar, or both** (upper_floors.py: 91 upstairs, 48 cellars,
+  20 both, a dormer on the roof of each upstairs; ladders under hatches): exterior (a taller front, a second row of
   windows) and an interior that matches (stairs where the outside says, ladders lined up, collision right).
-- [ ] **Each town its own look**: a style per settlement (stone, roof colour, timber or plaster, window shape, house
+- [x] **Each town its own look** (town_looks.py: a roof and wall kind per town, four houses in five; Galaith by
+  quarter): a style per settlement (stone, roof colour, timber or plaster, window shape, house
   sizes), varied house to house within it.
-- [ ] **Walls or fences round some towns** (Galaith's, Ravensgate's and the Keep's walls; fences and palisades round
+- [x] **Walls or fences round some towns** (village_edges.py: Oakhollow, Moorcross, Thornwick, Emberwatch, Wildwood;
+  Galaith, Ravensgate and Wardhaven had walls) (Galaith's, Ravensgate's and the Keep's walls; fences and palisades round
   villages), with gates on the roads.
-- [ ] **One path through a settlement**: its streets one paving from end to end, only gardens and offshoots
+- [x] **One path through a settlement** (village_edges.py: every street run one paving): its streets one paving from end to end, only gardens and offshoots
   different.
-- [ ] **An altar in every church**: Pray (a blessing: a short boost, once a day; a sound) and Examine.
+- [x] **An altar in every church** (build_altars.py: 17 halls; Pray: Defence +2 a while, once a day): Pray (a blessing: a short boost, once a day; a sound) and Examine.
 
 ## 11. The cold
 
-- [ ] **Cold lands hurt without warmth**: in snow lands (Frostpeak, Frosthold) health slowly drops unless you're
+- [x] **Cold lands hurt without warmth** (cold.py, data\Cold.ini; Wool Hood, Wool Mittens, Fur Cap, Warming Draught:
+  build_cold.py): in snow lands (Frostpeak, Frosthold) health slowly drops unless you're
   warm: wearing something warm (a wool cloak, fur: new items, so wool has a use), near a fire, indoors, or after a
   warming draught (herbs). A cold mark top left; a test.
 
 ## 12. Speed
 
-- [ ] **A performance review**: profile the server's tick (NPCs, sight, paths, sending) with many NPCs and players,
+- [x] **A performance review** (2026-10-30. The server's tick, five players in busy places, 1567 NPCs: 12.1 ms
+  before, 9.2 after (of 50): only the maps someone's near walked, night worked out once a tick, doors looked at
+  only near doors, the secrets kept in a list. The page: 60 fps on a desktop and a phone, its own code under 3% of
+  each frame, the rest the browser's drawing and idle: nothing there worth changing yet.): profile the server's tick (NPCs, sight, paths, sending) with many NPCs and players,
   and the page's frame (drawing the ground, decor, lights, fog, text) on a desktop and on a phone. Fix the worst first;
   numbers before and after in this file.
 
 ## 13. The checks before it's done
 
-- [ ] New and changed sprites draw right in the editor and the game.
-- [ ] Terrain joins and palisade/wall joins have no gaps.
-- [ ] Map changes join the places round them.
-- [ ] NPC display names, colourings and other pictures work, and nothing that pointed at them broke.
-- [ ] Skills merged keep their levels and what they unlock.
-- [ ] Stealth: detection, sneak attacks, locks, secrets and traps work.
-- [ ] Shards, Channeling, Shardcraft, enchanting and homestead blooms balanced and consistent.
-- [ ] Shardstones dormant till activated; the right words.
-- [ ] Item names, the coin, quantities and skill icons right.
-- [ ] Success and failure sounds play at the right times.
-- [ ] The bench jump gone.
-- [ ] Quests, saves, NPC talk, fighting and many players still work.
-- [ ] No placeholders, old names or skill Ids anywhere a player reads.
-- [ ] A summary: what was done, bugs fixed, what was decided where the list was unclear, what's left.
+- [x] New and changed sprites draw right in the editor and the game. (renders of every new place, the game on desktop
+  and phone; an eye in the editor is still the owner's)
+- [x] Terrain joins and palisade/wall joins have no gaps. (validate.py: 0 errors; the camps and town walls rendered)
+- [x] Map changes join the places round them. (coast, Galaith and Mirefen rendered whole; the floors-line-up test)
+- [x] NPC display names, colourings and other pictures work, and nothing that pointed at them broke. (tests; no
+  console errors)
+- [x] Skills merged keep their levels and what they unlock. (tests)
+- [x] Stealth: detection, sneak attacks, locks, secrets and traps work. (tests; the vault's watchmen)
+- [x] Shards, Channeling, Shardcraft, enchanting and homestead blooms balanced and consistent. (all in Shards.ini;
+  tests)
+- [x] Shardstones dormant till activated; the right words. (tests)
+- [x] Item names, the coin, quantities and skill icons right. (screenshots)
+- [x] Success and failure sounds play at the right times. (validate.py checks every red line names one; by ear: the
+  owner's)
+- [x] The bench jump gone. (test)
+- [x] Quests, saves, NPC talk, fighting and many players still work. (186 tests pass; five players' tick 9 ms)
+- [x] No placeholders, old names or skill Ids anywhere a player reads. (validate.py; screenshots)
+- [x] A summary: what was done, bugs fixed, what was decided where the list was unclear, what's left. (given at the
+  end of the work, 2026-10-30)
 
 ---
 
@@ -237,6 +249,9 @@ and the new land meets them at their edges.)
   Locks: picking them would skip the story.
 - Traps and secrets you've noticed, and chests you've unlocked, are your own; unlocked chests are saved, noticed
   traps are forgotten when you leave (they're easy to notice again).
+- Galaith redrawn by lifting every building whole and setting it down in its quarter (no townsperson renumbered,
+  every script still works); the coast reshaped on the maps as they are (only wild ground and open sea). The swamp is
+  the Mirefen, its hamlet Mirefold (huts on boardwalks), reached along the beach round the West Range's north end.
 - Signs keep their Ids (Sign_Smithy...): only their Display.Name changed, so no script or map needed touching.
 
 - "Passive" is a new `Attitude=Passive`, so `Good` (can't be attacked) and `Bad` (hostile) keep their meaning.

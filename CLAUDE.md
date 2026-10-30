@@ -184,6 +184,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   dungeons (a map `Trigger Trap_<Kind>`: `deep.py` world_trap), animals that talk to you in an animal's body
   (`tricks.py` ANIMAL_TALK); `dev/migrate/build_whimsy.py` places them. Keep adding them, in what things and people
   say and do; a sign still never hints.
+- **The cold** (`dsengine/cold.py`, `data/Cold.ini`): out on snow or ice and not warm, health drops a little at a time
+  after a grace (Cold by your health). Warm is a roof, a fire near, something worn with `Warm=1` (Fur Cap, Wool Hood,
+  Wool Mittens: `build_cold.py`), or a Warming Draught lately (herbs: a potion).
 - **Animals stay out of houses** (a roofed cell): `Indoors=0` in Entities.ini (`dev/migrate/animals_outdoors.py`), on
   every animal but cats and dogs. One that starts under a roof may walk out; a hen goes into her own coop (`Roost=`).
 - Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
@@ -268,14 +271,24 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   own fill the map.
 - **The mainland** (`dev/World Plan.md`) is built by `dev/migrate/build_estforlan.py` (its parts in
   `dev/migrate/estforlan`): change the plan there and run it again, never the maps by hand. The Isle is left alone.
-  Galaith is a huge walled city in its own mountains west of the West Range (which runs down the whole west coast),
-  on maps with columns below 0; the dragon guards its scorched field before the gate, and the barrier fills the pass
-  through the range. Land looks natural: no straight edges to coasts, mountains or deserts. The quest places are lifted from the old maps
-  (`world_parts`) and set down at their old tiles, so scripts' coordinates stay right.
+  Galaith is a huge walled city on the sea west of the West Range (which runs down the whole west coast), on maps
+  with columns below 0: the sea on its west and south (a harbour gate, a quay and a pier), its own mountains north
+  (the mine in them, its level -7,11,-1) and east; the dragon guards its scorched field before the east gate, and the
+  barrier fills the pass through the range. Inside, quarters: the Royal (walled again: the palace), the Nobles', the
+  Merchants' (the square), the Commons (far from the palace). Land looks natural: no straight edges to coasts,
+  mountains or deserts. The quest places are lifted from the old maps (`world_parts`) and set down at their old
+  tiles, so scripts' coordinates stay right.
+- **Passes over the built mainland** (the maps since have the owner's hand on them, so they're changed in place, not
+  rebuilt): `coast_reshape.py` (the coast in big strokes, bays, a peninsula, islets: only wild ground and open sea, never
+  near anything made or placed, nor on the owner's maps), `build_galaith_city.py` (Galaith redrawn: every building
+  lifted whole, Ids and all, and set down in its quarter; what names the palace's or the mine's coordinates moved
+  with them), `build_mirefen.py` (the west finished: the Mirefen swamp and Mirefold, its hut hamlet, reached along the
+  West Range's northern beach; the sea south of Galaith). **Running `build_estforlan.py` again would undo all of them
+  and the owner's edits**: don't, unless they're run again after it.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate
   medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
-  villages; Moorcross, Dunerest, Wildwood and Saltmarsh hamlets.
+  villages; Moorcross, Dunerest, Wildwood, Saltmarsh and Mirefold (in the Mirefen, its huts on boardwalks) hamlets.
 - **At most two merchants of a trade in a settlement** (a trade is what's sold: a market stall's meat and a butcher's
   shop are both the butcher's; taverns too). SIZES keeps to it; `dev/migrate/cap_merchants.py` shut the shops past two
   that were built before (their keepers stay and say so; a tavern past two is an inn, rooms only), and a test holds it.

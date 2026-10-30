@@ -1010,6 +1010,18 @@ class World(NPCMixin):
     # =================================================================================================================
     # Doors (Tiles.ini Open.Tile): a door opens as someone comes to it and shuts behind them
     # =================================================================================================================
+    def door_near(self, m):
+        """The cells of map m a step or less from a door (made again when its doors change)."""
+        cache = getattr(self, "_door_near", None)
+        if cache is None:
+            cache = self._door_near = {}
+        doors = self.door_cells(m)
+        hit = cache.get(m.name)
+        if hit is None or hit[0] is not doors:
+            near = {(x + dx, y + dy) for x, y in doors for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+            hit = cache[m.name] = (doors, near)
+        return hit[1]
+
     def door_cells(self, m):
         """The tiles of map m that are doors (shut; their tile or a gate in the decor), made again when it changes."""
         cached = self.door_cache.get(m.name)
@@ -1033,12 +1045,13 @@ class World(NPCMixin):
         movers = [(s.player, s) for s in self.sessions.values() if s.in_world()]
         for key in self.active:                         # (the NPCs on the maps someone's near)
             movers += [(e, None) for e in getattr(self, "npcs_by_map", {}).get(key, ()) if e.alive and e.active]
+        open_maps = {k[0] for k in self.doors_open}
         for e, s in movers:
             fx, fy = e.fx, e.fy
             home, hx, hy = self.tile_at(e.z, fx, fy)
             inner = home is not None and 1 < hx < self.xt and 1 < hy < self.yt
-            if inner and not self.door_cells(home) and not any(k[0] == home.name for k in self.doors_open):
-                continue                                # (no door on its map, and it isn't at the map's edge)
+            if inner and home.name not in open_maps and (hx, hy) not in self.door_near(home):
+                continue                                # (nowhere near a door, and not at the map's edge)
             for ddy in (-self.th, 0, self.th):
                 for ddx in (-self.tw, 0, self.tw):
                     if inner:
@@ -1312,8 +1325,22 @@ class World(NPCMixin):
         return ini.read(section, key, str(default), self.data.data_file("DayNight.ini"))
 
     def is_night(self, t=None):
-        t = self.day_fraction() if t is None else t
-        return t >= val(self.dn("Night", "From", "0.83")) or t < val(self.dn("Night", "To", "0.21"))
+        if t is None and getattr(self, "night_at", None) == self.now:
+            return self.night_now                       # (asked for every NPC each tick: worked out once a tick)
+        night = self.night_bounds()
+        value = (self.day_fraction() if t is None else t)
+        value = value >= night[0] or value < night[1]
+        if t is None:
+            self.night_at, self.night_now = self.now, value
+        return value
+
+    def night_bounds(self):
+        """(from, to) of the night (DayNight.ini [Night]), read again every few seconds."""
+        cached = getattr(self, "_night_bounds", None)
+        if cached is None or not 0 <= self.now - cached[0] < 5000:
+            cached = (self.now, (val(self.dn("Night", "From", "0.83")), val(self.dn("Night", "To", "0.21"))))
+            self._night_bounds = cached
+        return cached[1]
 
     def clock_event(self):
         return {"t": "clock", "day": self.day_fraction(), "secs": self.data.day_seconds,

@@ -11,6 +11,7 @@ EFFECTS = {
     "Burn": dict(ms=5000, every=1000, dmg=(1, 2), start="You're on fire!", end="The flames go out."),
     "Bleed": dict(ms=7000, every=1500, dmg=(1, 1), start="You're bleeding!", end="The bleeding stops."),
     "Chill": dict(ms=7000, every=0, dmg=(0, 0), start="You're chilled to the bone: slowed!", end="You warm up again."),
+    "Cold": dict(ms=3000, every=0, dmg=(0, 0), start="", end="You're warm again."),     # (cold.py: the snow's bite)
     # (drains: a skill lower for a while - the Stats tab shows it, 18/20)
     "Weaken": dict(ms=30000, every=0, dmg=(0, 0), skill=("Strength", -3), start="You feel weak: your Strength drains!",
                    end="Your strength comes back."),

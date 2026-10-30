@@ -893,3 +893,4 @@ Palisade009	110 76 40
 Palisade010	110 76 40
 Palisade011	110 76 40
 Palisade012	110 76 40
+Altar001	214 208 196

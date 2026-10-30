@@ -2280,11 +2280,14 @@ def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
 
 
 def test_the_royal_guard_and_the_king(world):
-    s = join(world, "Heir", "-9,14,0", 13 * 32, 17 * 32)
+    king_at = next(e for e in world.ents if e.npc_id == "Rupert_On_Throne")      # (the palace: wherever Galaith has it)
+    palace = world.maps[king_at.map]
+    door = next(lk for lk in palace.locks if "GuardQuest>=5" in lk.condition)
+    throne_xy = next((x, y) for y in range(1, 22) for x in range(1, 26) if palace.tile[palace.cell(x, y)] == "Throne001"
+                     or palace.decor[palace.cell(x, y)] == "Throne001")
+    s = join(world, "Heir", palace.name, (door.x - 1) * 32, (door.y + 3) * 32)
     run, npc, talk, use = isle_helpers(world, s)
     attr = lambda a: int(float(s.get_attribute(a) or 0))
-    palace = world.maps["-9,14,0"]
-    door = palace.lock_at[(13, 13)]
     story_done_before(s, 17)
     find = lambda pid: next(e for e in world.ents if e.alive and e.npc_id == pid)
     captain, king = find("Palace_Captain"), find("Rupert_On_Throne")
@@ -2295,6 +2298,9 @@ def test_the_royal_guard_and_the_king(world):
     talk(find("Galaith_Clerk_73"), 1)                                   # (no amulet, no word from her)
     assert attr("GuardQuest") == 2
     stock(s, Amulet_of_Succession=1)
+    talk(find("Galaith_Clerk_73"), 1, 1)                             # (not on the amulet alone: the vault first)
+    assert attr("GuardQuest") == 2 and attr("ArchiveVault") == 1
+    stock(s, Marys_Notes=1)                                          # (from the vault: its own test)
     talk(find("Galaith_Clerk_73"), 1, 1)
     assert attr("GuardQuest") == 3 and s.items_held("Archivists_Attestation") == 1
     talk(find("Galaith_Speaker_70"), 1)
@@ -2310,11 +2316,11 @@ def test_the_royal_guard_and_the_king(world):
     jimmy = world.placed_entity("Throne_Jimmy", s)                   # (the cat himself, curled up on the throne)
     assert jimmy is not None and jimmy.name == "Strawberry_Cat" and world.npc_state(jimmy) == "Curl"
     assert jimmy.image.startswith("Strawberry_Cat_Curl")             # (and drawn curled up)
-    m = world.maps["-9,14,0"]
-    gx, gy = m.ox + 12 * 32 + 16, m.oy + 6 * 32 + 16
+    m = palace
+    gx, gy = m.ox + (throne_xy[0] - 1) * 32 + 16, m.oy + (throne_xy[1] - 1) * 32 + 16
     throne = s.tile_entity_at(gx, gy)
     assert throne.name == "Throne001" and s.get_verbs(throne).split(",")[0] == "Sit"
-    s.teleport("-9,14,0", 12 * 32, 8 * 32 - 8)                       # (in front of it)
+    s.teleport(palace.name, (throne_xy[0] - 1) * 32, (throne_xy[1] + 1) * 32 - 8)   # (in front of it)
     run(10)
     s.choose_verb("Sit", throne, gx, gy)
     run(20)
@@ -2777,7 +2783,7 @@ def test_a_journey_by_shardstone_costs_a_few_shards(world):
     leave(world, a)
 
 def test_the_kings_shard_seam_gives_shards_once_a_day(world):
-    seam = next(e for e in world.ents if e.name == "Shard_Seam" and e.map == "-11,14,-1")
+    seam = next(e for e in world.ents if e.name == "Shard_Seam" and e.map == "-7,11,-1")
     m = world.maps[seam.map]
     s = join(world, "Monarch", seam.map, int(seam.x - m.ox) + 36, int(seam.y - m.oy) + 8)
     s.connected = True
@@ -4083,3 +4089,102 @@ def test_the_kings_seam_asks_what_becomes_of_the_heart(world):
     run_for(world, 20)
     assert s.get_attribute("HeartChoice") == "2" and s.items_held("Heartstone_Ring") == 1
     leave(world, s)
+
+
+def test_the_archive_vault_under_galaiths_city_hall(world):
+    hall = next(m for m in world.maps.values() if any(i[0] == "Archive_Hatch" for i in m.ids))
+    hx, hy = next(i[1:] for i in hall.ids if i[0] == "Archive_Hatch")
+    s = join(world, "Burglar", hall.name, (hx - 1) * 32, hy * 32)
+    s.connected = True
+    gx, gy = hall.ox + (hx - 1) * 32 + 16, hall.oy + (hy - 1) * 32 + 16
+    s.out = []
+    s.choose_verb("Climb Down", s.tile_entity_at(gx, gy), gx, gy)
+    run_for(world, 20)
+    assert s.cur_map is hall and any("locked" in str(e.get("text", "")) for e in s.out)   # (not till she sends you)
+    s.update_attribute("ArchiveVault", "=1")
+    s.choose_verb("Climb Down", s.tile_entity_at(gx, gy), gx, gy)
+    run_for(world, 30)
+    if s.pending_map:
+        s.do_pending_map_change()
+    assert s.cur_map.name == hall.name.replace(",0", ",-1")
+    chest = next(e for e in world.ents if e.npc_id == "Archive_Vault_Chest")
+    assert s.chest_locked(chest)                                     # (Stealth to pick it, or a loud Break Open)
+    s.unlocked_chests.add(s.chest_key(chest))
+    s.god_mode = True                                                # (the watchmen: not what this tests)
+    near(world, s, chest, 0, 30)
+    s.do_action("Open", chest)
+    run_for(world, 20)
+    s.chest_response("CHEST_ALL")
+    assert s.items_held("Marys_Notes") == 1 and s.get_attribute("ArchiveVault") == "2"
+    leave(world, s)
+
+
+def test_the_cold_bites_unless_youre_warm(world):
+    spot = None
+    for m in world.maps.values():
+        if m.mz != 0:
+            continue
+        for ty in range(3, 19):
+            for tx in range(3, 23):
+                c = m.cell(tx, ty)
+                if m.tile[c].startswith("Snow") and not m.roof[c] and not m.decor[c] and "0" not in m.walk[c]:
+                    spot = (m, tx, ty)
+                    break
+            if spot:
+                break
+        if spot:
+            break
+    assert spot, "no snow"
+    m, tx, ty = spot
+    s = join(world, "Shiverer", m.name, (tx - 1) * 32, (ty - 1) * 32 - 12)
+    assert s.cold_ground() and not s.warm()
+    hp = s.player.hp = s.player_max_hp
+    s.cold_since = world.now - 60000                               # (out in it a while)
+    s.cold_at = s.cold_next = 0
+    s.cold_tick()
+    assert s.player.hp < hp and "Cold" in s.status                 # (it bites)
+    stock(s, Wool_Hood=1)
+    s.do_action("Wear", next(e for e in s.inv if e.name == "Wool_Hood"))
+    assert s.warm()                                                # (wool keeps it off)
+    s.cold_at = 0
+    s.cold_tick()
+    assert "Cold" not in s.status
+    leave(world, s)
+
+
+def test_an_altar_blesses_once_a_day(world):
+    m = next(m for m in world.maps.values() if any(d == "Altar001" for d in m.decor))
+    c = m.decor.index("Altar001")
+    tx, ty = c % 25 + 1 if c % 25 else 25, (c - 1) // 25 + 1
+    tx = next(x for x in range(1, 26) if m.decor[m.cell(x, ty)] == "Altar001")
+    s = join(world, "Pilgrim", m.name, (tx - 1) * 32, ty * 32)
+    s.connected = True
+    gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+    before = s.skill_level("Defence")
+    s.choose_verb("Pray", s.tile_entity_at(gx, gy), gx, gy)
+    run_for(world, 20)
+    assert s.skill_level("Defence") == before + 2                   # (blessed: steadier a while)
+    s.out = []
+    s.choose_verb("Pray", s.tile_entity_at(gx, gy), gx, gy)
+    run_for(world, 20)
+    assert any("still" in str(e.get("text", "")) for e in s.out)    # (once a day: then a quiet moment)
+    leave(world, s)
+
+
+def test_houses_with_more_than_one_floor_line_up(world):
+    ups = downs = 0
+    for name, m in world.maps.items():
+        mx, my, mz = (int(v) for v in name.split(","))
+        if mz != 0:
+            continue
+        for z, here, there in ((1, "Ladder001", "Hatch001"), (-1, "Hatch001", "Ladder001")):
+            other = world.maps.get("%d,%d,%d" % (mx, my, z))
+            if other is None:
+                continue
+            for c, d in enumerate(m.decor):
+                if d == here and other.decor[c] == there:     # (the ladder up under the hatch above it, and so on)
+                    if z == 1:
+                        ups += 1
+                    else:
+                        downs += 1
+    assert ups >= 60 and downs >= 40                              # (about half the houses: more than one floor)

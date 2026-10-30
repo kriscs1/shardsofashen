@@ -24,10 +24,9 @@ class NPCMixin:
             if e.type == NPC and e.alive and e.ai is not None:
                 by_map.setdefault((math.floor(e.x / sw), math.floor(e.y / sh), e.z), []).append(e)
         self.npcs_by_map = by_map
-        for e in list(self.ents):
-            if e.type != NPC or not e.alive or e.ai is None:
-                continue
-            if (math.floor(e.x / sw), math.floor(e.y / sh), e.z) not in self.active:
+        # (only the maps someone's near think: the rest wait, as they always have)
+        for e in [e for key in self.active for e in by_map.get(key, ())]:
+            if not e.alive or e.ai is None:
                 continue
             a = e.ai
             near = self.nearest_player(e, players)

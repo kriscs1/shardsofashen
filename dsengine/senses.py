@@ -46,9 +46,12 @@ class SenseMixin:
                         self.play_sound("Sneak_Past")
                         self.update_skill("Stealth", "+" + lbstr(self.sense_num("Trap.XP", 0.2)))
                         self.dirty_me = True
-        for e in w.ents:
-            sid = getattr(e, "npc_id", "") or ""
-            if e.type != STATICOBJECT or not sid.startswith("Secret_") or e.z != p.z or not e.alive:
+        if getattr(w, "_secrets_of", None) is None or w._secrets_of[0] != len(w.ents):
+            w._secrets_of = (len(w.ents), [e for e in w.ents if e.type == STATICOBJECT and
+                                           (getattr(e, "npc_id", "") or "").startswith("Secret_")])
+        for e in w._secrets_of[1]:                              # (the secrets: a list kept, not every thing looked at)
+            sid = e.npc_id
+            if e.z != p.z or not e.alive:
                 continue
             key = ("secret", sid)
             if key in self.secrets_seen or val(self.get_attribute(sid)) > 0 or \

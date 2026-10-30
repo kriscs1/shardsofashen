@@ -1716,6 +1716,7 @@ const DEBUFFS = {
   Burn: { title: "Burning", col: [255, 128, 30] },
   Bleed: { title: "Bleeding", col: [210, 30, 30] },
   Chill: { title: "Chilled", col: [120, 196, 255] },
+  Cold: { title: "Cold", col: [170, 220, 255] },                    // (out in the snow, not warm: cold.py)
   Weaken: { title: "Weakened", col: [200, 150, 90] },               // (drains: a skill lower for a while)
   Daze: { title: "Dazed", col: [180, 130, 255] },
   Frailty: { title: "Frail", col: [170, 170, 180] },

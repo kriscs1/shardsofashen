@@ -35,6 +35,7 @@ from .stances import StanceMixin
 from .thieving import ThiefMixin
 from .senses import SenseMixin
 from .locks import LockMixin
+from .cold import ColdMixin
 
 log = logging.getLogger("ashen.session")
 
@@ -63,7 +64,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
               MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
-              ThiefMixin, SenseMixin, LockMixin):
+              ThiefMixin, SenseMixin, LockMixin, ColdMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -73,6 +74,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
         self.sense_tried, self.sense_at = set(), 0
         self.unlocked_chests, self.break_at = set(), 0                  # (locks.py: the chests you've opened up)
+        self.cold_at = self.cold_since = self.cold_next = 0               # (cold.py)
         self.player_name = name
         self.admin_enabled = admin
         self.god_mode = 0
@@ -642,6 +644,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.sneak_tick()
         self.thief_tick()
         self.sense_tick()
+        self.cold_tick()
         self.dig_tick()
         self.game_tick()
         if not self.ab_mode:
