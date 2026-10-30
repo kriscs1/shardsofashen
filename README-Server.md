@@ -330,6 +330,20 @@ lists the remote game servers (each announces itself to it), and it serves the a
 - **Remote and local**: a game server with `DS_PUBLIC=1` (and `DS_CENTRAL`) announces itself every minute: its id,
   name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
   goodbye as it stops. Without it, it only answers on its own network.
+- **Approving servers**: a remote server that announces itself waits, unlisted, until an admin approves it on the
+  admin page (`https://central.example.com/admin`, signed in with a Shards account named in `DS_CENTRAL_ADMINS` or
+  made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
+  also finds accounts (ban, unban, make admin), edits the start screen's ads, and counts everything.
+- **Email for a forgotten password**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`, `DS_SMTP_USER`, `DS_SMTP_PASSWORD`,
+  `DS_SMTP_FROM`, `DS_SMTP_TLS`: any mail service's SMTP, e.g. Brevo, Mailgun, SES, or Gmail with an app password).
+  Players may give an email when they sign up or in their account; "Forgotten?" then emails a code good for 30
+  minutes. Without SMTP, the recovery code is the only way back in.
+- **The privacy policy** is at `/privacy`: set `DS_CENTRAL_OPERATOR` (who runs it) and `DS_CENTRAL_CONTACT` (an email
+  to write to) for its blanks. Read it through before going public: it's written for this game, but it's yours.
+- **AdSense** (browsers only: Google's rules put apps on AdMob instead): set `DS_ADSENSE_CLIENT` (`ca-pub-...`) and
+  `DS_ADSENSE_SLOT`; the start screen shows the ad unit in a browser, `/ads.txt` gives Google its line, and the
+  privacy policy names it. Add the site in AdSense and, for players in the EEA and UK, turn on Google's consent
+  message there (Privacy & messaging). The apps keep showing your own ads.
 - **Ads**: a JSON list at `DS_CENTRAL_ADS` (`/data/ads.json` in the compose file):
   `[{"text": "...", "link": "https://...", "image": "banner.png"}]`, the pictures in `DS_CENTRAL_ADS_DIR`
   (`/data/ads/`). One is shown on the start screen each time it opens. Without the file, a few of the game's own

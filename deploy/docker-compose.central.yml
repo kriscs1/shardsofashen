@@ -27,6 +27,18 @@ services:
       DS_PASSWORD_MIN: ${DS_PASSWORD_MIN:-8}
       DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
       DS_TRUST_PROXY: "1"
+      DS_CENTRAL_ADMINS: ${DS_CENTRAL_ADMINS:-}        # (who may use /admin: approve servers, accounts, ads)
+      DS_CENTRAL_APPROVED: ${DS_CENTRAL_APPROVED:-}    # (servers listed without waiting: their ids, comma-separated)
+      DS_CENTRAL_OPERATOR: ${DS_CENTRAL_OPERATOR:-}    # (the privacy policy: who runs it, and how to reach them)
+      DS_CENTRAL_CONTACT: ${DS_CENTRAL_CONTACT:-}
+      DS_SMTP_HOST: ${DS_SMTP_HOST:-}                  # (email: a forgotten password's code; none, and it's the
+      DS_SMTP_PORT: ${DS_SMTP_PORT:-587}               #  recovery code alone)
+      DS_SMTP_USER: ${DS_SMTP_USER:-}
+      DS_SMTP_PASSWORD: ${DS_SMTP_PASSWORD:-}
+      DS_SMTP_FROM: ${DS_SMTP_FROM:-}
+      DS_SMTP_TLS: ${DS_SMTP_TLS:-starttls}
+      DS_ADSENSE_CLIENT: ${DS_ADSENSE_CLIENT:-}        # (ca-pub-...: AdSense on the start screen in a browser)
+      DS_ADSENSE_SLOT: ${DS_ADSENSE_SLOT:-}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:

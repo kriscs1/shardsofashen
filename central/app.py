@@ -10,9 +10,12 @@ its own accounts too, for a network with no way to reach here.
 
   python -m central                    (DS_CENTRAL_DB, DS_CENTRAL_PORT 8490, DS_CENTRAL_NAME, DS_CENTRAL_ADS, ...)
 
-  POST /api/register  {name, password}            -> {ok, token, name, recovery}
+  POST /api/register  {name, password, email?}    -> {ok, token, name, recovery}
+  POST /api/account   {token}                     -> {ok, name, email, admin}
+  POST /api/email     {token, email}              -> {ok}                (an email for a forgotten password)
+  POST /api/forgot    {who}                       -> {ok}                (a code by email, if the account has one)
   POST /api/login     {name, password}            -> {ok, token, name}
-  POST /api/reset     {name, code, password}      -> {ok, recovery}
+  POST /api/reset     {name, code, password}      -> {ok, recovery}      (code: the recovery code, or the emailed one)
   POST /api/me        {token}                     -> {ok, name}
   POST /api/logout    {token}
   POST /api/recovery  {token}                     -> {ok, recovery}      (a new code, the old one gone)
@@ -20,7 +23,9 @@ its own accounts too, for a network with no way to reach here.
   POST /api/verify    {ticket, server}            -> {ok, name}          (a game server asking)
   POST /api/announce  {key, secret, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
-  GET  /api/servers                               -> [{key, name, url, online, max, version}]
+  GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
+  POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, ads, stats)
+  GET  /admin, /privacy, /ads.txt                 the admin page, the privacy policy, AdSense's ads.txt
   GET  /api/hello                                 -> {name, motd, ad, players, servers}
   GET  /                                          the start screen (a browser's: join a game, local or remote)"""
 import asyncio
@@ -28,11 +33,13 @@ import json
 import logging
 import os
 import random
+import re
 import time
 
 from aiohttp import web
 
 from server import auth
+from . import mail
 from .store import CentralStore
 
 log = logging.getLogger("ashen.central")
@@ -43,6 +50,14 @@ DEFAULT_ADS = [
     {"text": "Host your own world: friends on your Wi-Fi join it from their phones.", "link": ""},
     {"text": "Run a server on a cloud VM and it's listed here for everyone: see README-Server.md.", "link": ""},
 ]
+
+
+EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,20}$")
+
+
+def clean_email(text):
+    e = str(text or "").strip()[:254]
+    return e if EMAIL_RE.match(e) else ""
 
 
 def env_int(name, default):
@@ -84,7 +99,23 @@ class Central:
         for key in (("name", name.lower()), ("addr", addr)):
             self.fails.setdefault(key, []).append(now)
 
+    def is_admin(self, name):
+        """An admin of the central server: its account marked so (the admin page), or named in DS_CENTRAL_ADMINS."""
+        if not name:
+            return False
+        names = {n.strip().lower() for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(",") if n.strip()}
+        acct = self.store.account(name)
+        return bool(acct) and (bool(acct[5]) or name.lower() in names)
+
     def ads(self):
+        own = self.store.setting("ads", "")
+        if own:                                         # (set on the admin page)
+            try:
+                got = json.loads(own)
+                if isinstance(got, list) and got:
+                    return got
+            except ValueError:
+                pass
         path = os.environ.get("DS_CENTRAL_ADS", "")
         if path and os.path.exists(path):
             try:
@@ -132,8 +163,13 @@ class Central:
         made = [x for x in self.signups.get(addr, []) if x == day]
         if env_int("DS_REGISTER_PER_DAY", 3) > 0 and len(made) >= env_int("DS_REGISTER_PER_DAY", 3):
             return no("Too many new accounts from here today: try again tomorrow.")
+        email = clean_email(d.get("email", ""))
+        if d.get("email") and not email:
+            return no("That doesn't look like an email address (or leave it empty).")
+        if email and self.store.account_by_email(email):
+            return no("That email is on another account already.")
         code = auth.recovery_code()
-        self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)))
+        self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)), email)
         self.signups[addr] = made + [day]
         log.info("New account %s from %s", name, addr)
         return yes(token=self.store.new_token(name), name=name, recovery=code)
@@ -158,10 +194,14 @@ class Central:
         w = self.wait(name, addr)
         if w:
             return no("Too many tries: wait %d seconds." % w)
-        acct = self.store.account(name)
-        if acct is None or not await self.matches(auth.clean_code(d.get("code", "")), acct[2]):
+        acct = self.store.account(name) or self.store.account_by_email(str(d.get("name", "")).strip())
+        code = auth.clean_code(d.get("code", ""))
+        by_mail = acct is not None and await self.matches(code, self.store.mail_code(acct[0]))
+        if acct is None or not (by_mail or await self.matches(code, acct[2])):
             self.failed(name, addr)
-            return no("That name and recovery code don't go together.")
+            return no("That name and code don't go together.")
+        if by_mail:
+            self.store.drop_mail_code(acct[0])
         new = str(d.get("password", ""))[:200]
         if len(new) < max(4, env_int("DS_PASSWORD_MIN", 8)):
             return no("Use a new password of at least %d characters." % max(4, env_int("DS_PASSWORD_MIN", 8)))
@@ -169,6 +209,52 @@ class Central:
         self.store.set_password(acct[0], await self.hashed(new))
         self.store.set_recover(acct[0], await self.hashed(auth.clean_code(code)))
         return yes(recovery=code, name=acct[0])
+
+    async def account(self, request):
+        name = self.store.token_name((await self.body(request)).get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        acct = self.store.account(name)
+        return yes(name=name, email=acct[4] if acct else "", admin=self.is_admin(name), mail=mail.ready())
+
+    async def set_email(self, request):
+        d = await self.body(request)
+        name = self.store.token_name(d.get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        email = clean_email(d.get("email", ""))
+        if d.get("email") and not email:
+            return no("That doesn't look like an email address.")
+        other = self.store.account_by_email(email) if email else None
+        if other and other[0].lower() != name.lower():
+            return no("That email is on another account already.")
+        self.store.set_email(name, email)
+        return yes(email=email)
+
+    async def forgot(self, request):
+        """A code by email to set a new password (the same answer whether or not there's such an account)."""
+        d, addr = await self.body(request), self.addr(request)
+        who = str(d.get("who", "")).strip()[:254]
+        w = self.wait(who, addr)
+        if w:
+            return no("Too many tries: wait %d seconds." % w)
+        if not mail.ready():
+            return no("This server can't send email: use the recovery code you wrote down.")
+        acct = self.store.account(auth.clean_name(who)) if "@" not in who else self.store.account_by_email(who)
+        self.failed(who, addr)                          # (counted: nobody's mailbox flooded)
+        if acct and acct[4]:
+            code = auth.recovery_code()[:9]             # (two groups of four: easy to type in)
+            self.store.new_mail_code(acct[0], await self.hashed(auth.clean_code(code)))
+            text = ("Someone (we hope you) asked to set a new password for %s on %s.\n\nYour code: %s\n\nType it with "
+                    "your name and a new password where you asked. It works for %d minutes. If it wasn't you, do "
+                    "nothing: your password stays as it is.\n" % (acct[0], self.name, code, 30))
+            try:
+                await asyncio.get_running_loop().run_in_executor(None, mail.send, acct[4],
+                                                                 "%s: your code" % self.name, text)
+            except Exception as e:
+                log.warning("The email to %s didn't go: %s", acct[0], e)
+                return no("The email couldn't be sent just now: try again later, or use your recovery code.")
+        return yes(text="If that account has an email, a code is on its way: it works for 30 minutes.")
 
     async def me(self, request):
         name = self.store.token_name((await self.body(request)).get("token", ""))
@@ -218,7 +304,10 @@ class Central:
         key, secret = self.store.announce(str(d.get("key", ""))[:32], str(d.get("secret", ""))[:64], name, url,
                                           int(d.get("online", 0) or 0), int(d.get("max", 0) or 0),
                                           str(d.get("version", ""))[:40])
-        return yes(key=key, secret=secret, url=url)
+        pre = {k.strip() for k in os.environ.get("DS_CENTRAL_APPROVED", "").split(",") if k.strip()}
+        if key in pre and not self.store.approved(key):
+            self.store.set_approved(key, True)          # (approved in the settings, before it ever called)
+        return yes(key=key, secret=secret, url=url, approved=self.store.approved(key))
 
     async def goodbye(self, request):
         d = await self.body(request)
@@ -229,8 +318,56 @@ class Central:
         return web.json_response(self.store.servers())
 
     async def hello(self, request):
+        client = os.environ.get("DS_ADSENSE_CLIENT", "").strip()
         return yes(name=self.name, motd=self.motd, ad=random.choice(self.ads()),
-                   servers=len(self.store.servers()), players=self.store.count_accounts())
+                   servers=len(self.store.servers()), players=self.store.count_accounts(), mail=mail.ready(),
+                   adsense={"client": client, "slot": os.environ.get("DS_ADSENSE_SLOT", "").strip()} if client else None)
+
+    # ----- the admin page's (an admin's token each time)
+    async def admin(self, request):
+        """POST /api/admin/<what> {token, ...}: what an admin may see and do."""
+        d = await self.body(request)
+        name = self.store.token_name(d.get("token", ""))
+        if not self.is_admin(name):
+            return no("That's for the central server's admins.")
+        what = request.match_info["what"]
+        if what == "stats":
+            every = self.store.servers(everyone=True)
+            return yes(accounts=self.store.count_accounts(), servers=len(every),
+                       approved=sum(1 for s in every if s["approved"]), up=sum(1 for s in every if s["up"]),
+                       mail=mail.ready(), adsense=bool(os.environ.get("DS_ADSENSE_CLIENT")))
+        if what == "servers":
+            return yes(servers=self.store.servers(everyone=True))
+        if what == "approve":
+            self.store.set_approved(str(d.get("key", "")), bool(d.get("on")))
+            log.info("%s %s server %s", name, "approved" if d.get("on") else "unlisted", d.get("key"))
+            return yes()
+        if what == "remove":
+            self.store.remove_server(str(d.get("key", "")))
+            return yes()
+        if what == "accounts":
+            rows = self.store.find_accounts(str(d.get("q", ""))[:60])
+            return yes(accounts=[{"name": n, "email": e, "banned": b, "admin": bool(a) or self.is_admin(n),
+                                  "made": int(m)} for n, e, b, a, m in rows])
+        if what == "ban":
+            acct = self.store.account(str(d.get("name", "")))
+            if acct is None:
+                return no("No such account.")
+            self.store.set_banned(acct[0], str(d.get("why", ""))[:100])
+            return yes()
+        if what == "make_admin":
+            acct = self.store.account(str(d.get("name", "")))
+            if acct is None:
+                return no("No such account.")
+            self.store.set_admin(acct[0], bool(d.get("on")))
+            return yes()
+        if what == "ads":
+            if "ads" in d:
+                ads = [a for a in d["ads"] if isinstance(a, dict) and str(a.get("text", "")).strip()][:50] \
+                    if isinstance(d["ads"], list) else []
+                self.store.set_setting("ads", json.dumps(ads))
+            return yes(ads=self.ads())
+        return no("Unknown.")
 
 
 def yes(**more):
@@ -260,6 +397,26 @@ def make_central(db_path):
     async def index(request):
         return web.FileResponse(os.path.join(home, "index.html"), headers={"Cache-Control": "no-cache"})
 
+    pages = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pages")
+
+    async def admin_page(request):
+        return web.FileResponse(os.path.join(pages, "admin.html"), headers={"Cache-Control": "no-cache"})
+
+    async def privacy(request):
+        with open(os.path.join(pages, "privacy.html"), encoding="utf-8") as f:
+            text = f.read()
+        for key, value in (("{{NAME}}", c.name), ("{{OPERATOR}}", os.environ.get("DS_CENTRAL_OPERATOR", c.name)),
+                           ("{{CONTACT}}", os.environ.get("DS_CENTRAL_CONTACT", "the address on the game's page")),
+                           ("{{ADS}}", "Google AdSense" if os.environ.get("DS_ADSENSE_CLIENT") else "our own notes")):
+            text = text.replace(key, value.replace("<", "&lt;"))
+        return web.Response(text=text, content_type="text/html")
+
+    async def ads_txt(request):
+        client = os.environ.get("DS_ADSENSE_CLIENT", "").strip()        # (ca-pub-123...: AdSense's own line)
+        pub = client.replace("ca-", "")
+        return web.Response(text=("google.com, %s, DIRECT, f08c47fec0942fa0\n" % pub) if pub else "",
+                            content_type="text/plain")
+
     async def health(request):
         return web.json_response({"ok": True, "servers": len(c.store.servers())})
 
@@ -267,15 +424,22 @@ def make_central(db_path):
     app["central"] = c
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
                      ("logout", c.logout), ("recovery", c.recovery), ("ticket", c.ticket), ("verify", c.verify),
-                     ("announce", c.announce), ("goodbye", c.goodbye)):
+                     ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
+                     ("email", c.set_email), ("forgot", c.forgot)):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
     app.router.add_get("/api/servers", c.servers)
+    app.router.add_post("/api/admin/{what}", c.admin)
+    app.router.add_get("/admin", admin_page)
+    app.router.add_get("/privacy", privacy)
+    app.router.add_get("/ads.txt", ads_txt)
     app.router.add_get("/api/hello", c.hello)
     app.router.add_get("/health", health)
     app.router.add_get("/", index)
     app.router.add_get("/config.js", lambda r: web.FileResponse(os.path.join(home, "config.js"),
                                                                headers={"Cache-Control": "no-cache"}))
+    for pic in ("logo.png", "bg.jpg"):                  # (the start screen's pictures, beside it)
+        app.router.add_get("/" + pic, lambda r, pic=pic: web.FileResponse(os.path.join(home, pic)))
     if os.path.isdir(home):
         app.router.add_static("/home/", home)
     ads = os.environ.get("DS_CENTRAL_ADS_DIR", "")

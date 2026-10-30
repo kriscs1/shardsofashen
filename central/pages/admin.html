@@ -1,0 +1,208 @@
+<!doctype html>
+<!-- The central server's admin page (central/app.py /api/admin/...): the servers waiting to be listed and those listed,
+     accounts (find, ban, make admin), the start screen's ads, and how many of each. An admin's Shards account only. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin - Shards of Ashen</title>
+<link rel="icon" href="data:,">
+<style>
+:root { --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #e0cf9c; --dim: #b49a6e;
+  --ok: #1f7a3e; --bad: #9a3324; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--parchment); font: 16px/1.4 "Palatino Linotype", Palatino, Georgia, serif; }
+main { max-width: 1000px; margin: 0 auto; padding: 18px 16px 40px; }
+h1 { color: var(--ink); margin: 0 0 12px; font-size: 26px; }
+h2 { color: var(--ink); font-size: 19px; margin: 0 0 10px; }
+.card { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+input, textarea { font: inherit; padding: 8px 10px; border-radius: 9px; border: 2px solid var(--edge); background: #22160f;
+  color: var(--ink); width: 100%; }
+button { font: inherit; font-weight: bold; padding: 7px 12px; border-radius: 9px; color: var(--ink); background: #7e4d3f;
+  border: 2px solid #b07a60; cursor: pointer; min-height: 38px; }
+button.go { background: var(--ok); border-color: #4fbf74; } button.bad { background: var(--bad); border-color: #d06a55; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.tabs button.on { background: #b07a60; color: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+td, th { text-align: left; padding: 7px 6px; border-bottom: 1px solid #4a3027; vertical-align: middle; }
+th { color: var(--dim); font-weight: normal; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 9px; background: #4a3027; }
+.tag.ok { background: var(--ok); color: #fff; } .tag.wait { background: #8a6a1e; color: #fff; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat { background: #24170f; border-radius: 10px; padding: 10px 12px; } .stat b { display: block; font-size: 26px; color: var(--ink); }
+.error { color: #f08a75; } .dim { color: var(--dim); font-size: 14px; }
+@media (max-width: 640px) { td:nth-child(3), th:nth-child(3) { display: none; } }
+</style>
+</head>
+<body><main>
+<h1>Shards of Ashen: admin</h1>
+<p id="error" class="error" hidden></p>
+
+<section id="signin" class="card">
+  <h2>Sign in</h2>
+  <p class="dim">An admin's Shards account (made admin here, or named in DS_CENTRAL_ADMINS).</p>
+  <div class="row" style="margin-top:8px"><input id="name" placeholder="Name" style="flex:1;min-width:160px">
+    <input id="password" type="password" placeholder="Password" style="flex:1;min-width:160px">
+    <button id="login" class="go">Sign in</button></div>
+</section>
+
+<div id="panel" hidden>
+  <div class="tabs"><button data-tab="servers" class="on">Servers</button><button data-tab="accounts">Accounts</button>
+    <button data-tab="ads">Ads</button><button data-tab="stats">Summary</button>
+    <span style="flex:1"></span><button id="logout">Sign out</button></div>
+
+  <section id="servers" class="card">
+    <h2>Game servers</h2>
+    <p class="dim">A remote server announces itself; it's listed for everyone only once it's approved here.</p>
+    <table><thead><tr><th>Name</th><th>State</th><th>Address</th><th>Playing</th><th></th></tr></thead>
+      <tbody id="server-rows"></tbody></table>
+  </section>
+
+  <section id="accounts" class="card" hidden>
+    <h2>Accounts</h2>
+    <div class="row"><input id="q" placeholder="A name or an email" style="flex:1"><button id="search">Find</button></div>
+    <table style="margin-top:8px"><thead><tr><th>Name</th><th>State</th><th>Email</th><th></th></tr></thead>
+      <tbody id="account-rows"></tbody></table>
+  </section>
+
+  <section id="ads" class="card" hidden>
+    <h2>The start screen's ads</h2>
+    <p class="dim">Your own ads, one picked at random each time the start screen opens (in a browser, AdSense instead
+      when DS_ADSENSE_CLIENT is set). A picture is a file name in the ads folder, or a full address.</p>
+    <div id="ad-rows"></div>
+    <div class="row" style="margin-top:8px"><button id="ad-add">Add one</button><button id="ad-save" class="go">Save</button></div>
+  </section>
+
+  <section id="stats" class="card" hidden>
+    <h2>Summary</h2>
+    <div id="stat-boxes" class="stats"></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let token = localStorage.getItem("ds.admin") || "";
+const say = (t) => { $("error").textContent = t || ""; $("error").hidden = !t; };
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+async function api(path, body = {}) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, ...body }) });
+  return r.json();
+}
+async function admin(what, body) {
+  const r = await api("/api/admin/" + what, body);
+  if (!r.ok) { say(r.text); if (/admins/.test(r.text || "")) signedOut(); }
+  return r;
+}
+
+function signedOut() { token = ""; localStorage.removeItem("ds.admin"); $("signin").hidden = false; $("panel").hidden = true; }
+async function signedIn() {
+  const r = await admin("stats");
+  if (!r.ok) return;
+  say(""); $("signin").hidden = true; $("panel").hidden = false;
+  tab("servers");
+}
+
+$("login").onclick = async () => {
+  const r = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: $("name").value, password: $("password").value }) }).then((x) => x.json());
+  if (!r.ok) { say(r.text); return; }
+  token = r.token; localStorage.setItem("ds.admin", token); $("password").value = "";
+  signedIn();
+};
+$("logout").onclick = () => { api("/api/logout"); signedOut(); };
+
+function tab(name) {
+  for (const b of document.querySelectorAll(".tabs button[data-tab]")) b.classList.toggle("on", b.dataset.tab === name);
+  for (const s of ["servers", "accounts", "ads", "stats"]) $(s).hidden = s !== name;
+  ({ servers: loadServers, accounts: loadAccounts, ads: loadAds, stats: loadStats })[name]();
+}
+for (const b of document.querySelectorAll(".tabs button[data-tab]")) b.onclick = () => tab(b.dataset.tab);
+
+async function loadServers() {
+  const r = await admin("servers");
+  if (!r.ok) return;
+  const rows = r.servers.sort((a, b) => a.approved - b.approved || b.seen - a.seen);
+  $("server-rows").innerHTML = rows.length ? rows.map((s) => `<tr>
+    <td>${esc(s.name)}<div class="dim">${esc(s.key)} · ${esc(s.version)}</div></td>
+    <td>${s.approved ? '<span class="tag ok">Listed</span>' : '<span class="tag wait">Waiting</span>'}
+      ${s.up ? '<span class="tag">Up</span>' : '<span class="tag">Not heard lately</span>'}</td>
+    <td><a href="${esc(s.url)}" target="_blank" rel="noopener" style="color:var(--ink)">${esc(s.url)}</a></td>
+    <td>${s.online}/${s.max}</td>
+    <td class="row">${s.approved ? `<button data-k="${esc(s.key)}" data-a="0">Unlist</button>` :
+      `<button class="go" data-k="${esc(s.key)}" data-a="1">Approve</button>`}
+      <button class="bad" data-k="${esc(s.key)}" data-r="1">Remove</button></td></tr>`).join("") :
+    '<tr><td colspan="5" class="dim">No servers have announced themselves yet.</td></tr>';
+  for (const b of $("server-rows").querySelectorAll("button")) b.onclick = async () => {
+    if (b.dataset.r) { if (!confirm("Remove this server from the list? (It's added again, waiting, if it calls.)")) return;
+      await admin("remove", { key: b.dataset.k }); }
+    else await admin("approve", { key: b.dataset.k, on: b.dataset.a === "1" });
+    loadServers();
+  };
+}
+
+async function loadAccounts() {
+  const r = await admin("accounts", { q: $("q").value });
+  if (!r.ok) return;
+  $("account-rows").innerHTML = r.accounts.length ? r.accounts.map((a) => `<tr>
+    <td>${esc(a.name)}<div class="dim">since ${new Date(a.made * 1000).toLocaleDateString()}</div></td>
+    <td>${a.banned ? `<span class="tag wait">Banned: ${esc(a.banned)}</span>` : '<span class="tag">Fine</span>'}
+      ${a.admin ? '<span class="tag ok">Admin</span>' : ""}</td>
+    <td>${esc(a.email) || '<span class="dim">none</span>'}</td>
+    <td class="row">${a.banned ? `<button data-n="${esc(a.name)}" data-ban="">Unban</button>` :
+      `<button class="bad" data-n="${esc(a.name)}" data-ban="1">Ban</button>`}
+      <button data-n="${esc(a.name)}" data-adm="${a.admin ? 0 : 1}">${a.admin ? "Not admin" : "Make admin"}</button></td></tr>`).join("") :
+    '<tr><td colspan="4" class="dim">No accounts found.</td></tr>';
+  for (const b of $("account-rows").querySelectorAll("button")) b.onclick = async () => {
+    if (b.dataset.ban !== undefined) {
+      const why = b.dataset.ban ? prompt("Why? (They're told.)", "breaking the rules") : "";
+      if (why === null) return;
+      await admin("ban", { name: b.dataset.n, why });
+    } else await admin("make_admin", { name: b.dataset.n, on: b.dataset.adm === "1" });
+    loadAccounts();
+  };
+}
+$("search").onclick = loadAccounts;
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") loadAccounts(); });
+
+function adRow(ad = {}) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.style.margin = "6px 0";
+  row.innerHTML = `<input class="t" placeholder="What it says" style="flex:2;min-width:200px"><input class="l" placeholder="Link (optional)" style="flex:1;min-width:140px">
+    <input class="i" placeholder="Picture (optional)" style="flex:1;min-width:120px"><button class="bad">X</button>`;
+  row.querySelector(".t").value = ad.text || ""; row.querySelector(".l").value = ad.link || ""; row.querySelector(".i").value = ad.image || "";
+  row.querySelector("button").onclick = () => row.remove();
+  $("ad-rows").append(row);
+}
+async function loadAds() {
+  const r = await admin("ads");
+  if (!r.ok) return;
+  $("ad-rows").innerHTML = "";
+  r.ads.forEach(adRow);
+}
+$("ad-add").onclick = () => adRow();
+$("ad-save").onclick = async () => {
+  const ads = [...$("ad-rows").children].map((row) => ({ text: row.querySelector(".t").value.trim(),
+    link: row.querySelector(".l").value.trim(), image: row.querySelector(".i").value.trim() })).filter((a) => a.text);
+  const r = await admin("ads", { ads });
+  if (r.ok) { say(""); loadAds(); }
+};
+
+async function loadStats() {
+  const r = await admin("stats");
+  if (!r.ok) return;
+  const box = (n, words) => `<div class="stat"><b>${n}</b>${words}</div>`;
+  $("stat-boxes").innerHTML = box(r.accounts, "accounts") + box(r.approved, "servers listed") +
+    box(r.servers - r.approved, "waiting for approval") + box(r.up, "servers up now") +
+    box(r.mail ? "On" : "Off", "email (password codes)") + box(r.adsense ? "On" : "Off", "AdSense (browsers)");
+}
+
+if (token) signedIn();
+</script>
+</main></body>
+</html>

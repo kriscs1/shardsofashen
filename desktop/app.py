@@ -193,6 +193,11 @@ def home_page(bridge):
         config = f.read()
     shim = SHIM % (json.dumps(bridge.prefs.values), json.dumps(bridge.state()))
     page = page.replace('<script src="config.js"></script>', "<script>%s</script>%s" % (config, shim), 1)
+    import base64
+    for pic, kind in (("logo.png", "image/png"), ("bg.jpg", "image/jpeg")):    # (no folder behind the page: in it)
+        with open(os.path.join(ROOT, "web", "home", pic), "rb") as f:
+            data = "data:%s;base64,%s" % (kind, base64.b64encode(f.read()).decode())
+        page = page.replace('src="%s"' % pic, 'src="%s"' % data).replace("url(%s)" % pic, "url(%s)" % data)
     return page
 
 

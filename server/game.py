@@ -571,6 +571,7 @@ class GameServer:
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
                             "recovery": getattr(c, "recovery", ""), "server": self.server_name(),
+                            "linked": bool(self.store.setting("central:" + name.lower(), "")),
                             "host": s.admin_enabled or self.is_local(c.addr), "lan": self.lan_open,
                             "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())

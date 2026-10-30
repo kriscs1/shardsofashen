@@ -1,10 +1,10 @@
 <!doctype html>
 <!-- The start screen, the same in every version: the Android app, the desktop app (window.DSApp is the app), and a
-     browser (from the central server: no app behind it). It connects to the central server (accounts, the remote
-     servers, the ads), then: play alone or host a game (the apps only: local, answered on this network; or remote,
-     announced to the central server for everyone), or join one (local: the games on this network, or by address; a
-     browser can only give an address; remote: the central server's list). Edit web/home/: tools/sync_home.py copies
-     it into the Android app. -->
+     browser (from the central server: no app behind it). First your Shards account (sign in, make one, a forgotten
+     password, or play without one), then the menu: play alone or host a game (the apps only: local, answered on this
+     network; or remote, announced to the central server), or join one (local: the network's games or an address - a
+     browser only an address; remote: the central server's list, signed in). Signed in, every game you join knows you:
+     no password for the characters you make. Edit web/home/ only: tools/sync_home.py copies it into the Android app. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -14,133 +14,233 @@
 <script src="config.js"></script>
 <style>
 :root {
-  --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #d4bf7e;
-  --dim: rgb(190, 160, 110); --ok: #15ab4b; --bad: #e06a55;
+  --bg: #120a07; --wood: #3a261d; --wood-dark: #24170f; --edge: #7e4d3f; --edge-light: #b07a60; --ink: #f3e888;
+  --parchment: #e6d6a8; --dim: #b49a6e; --ok: #1f7a3e; --ok-edge: #4fbf74; --bad: #e06a55; --shard: #b48cff;
   --font: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--parchment); font-family: var(--font); }
-body { padding: 12px 16px 20px; max-width: 980px; margin: 0 auto; }
-h1 { margin: 0; color: var(--ink); font-size: 30px; text-shadow: 2px 2px 0 #000; }
-.top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 10px; }
+body { min-height: 100vh; }
+.scene { position: fixed; inset: 0; background: url(bg.jpg) center / cover no-repeat; image-rendering: pixelated;
+  filter: saturate(0.9) brightness(0.55); transform: scale(1.06); animation: drift 60s ease-in-out infinite alternate; }
+.scene::after { content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(18,10,7,0.15) 0%, rgba(18,10,7,0.75) 70%, rgba(18,10,7,0.95) 100%); }
+@keyframes drift { from { transform: scale(1.06) translate(-1%, -1%); } to { transform: scale(1.1) translate(1%, 1%); } }
+@media (prefers-reduced-motion: reduce) { .scene { animation: none; } }
+.page { position: relative; max-width: 980px; margin: 0 auto; padding: 14px 16px 24px; display: flex; flex-direction: column;
+  min-height: 100vh; }
+.logo { display: block; width: min(380px, 80%); height: auto; margin: 10px auto 4px; image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
+.logo.small { width: 150px; margin: 0; }
+.panel { background: linear-gradient(180deg, rgba(58,38,29,0.96), rgba(36,23,15,0.96)); border: 3px solid var(--edge);
+  border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,230,170,0.12); padding: 16px 18px; }
+h2 { margin: 0 0 4px; color: var(--ink); font-size: 21px; text-shadow: 1px 1px 0 #000; }
+p { margin: 0; line-height: 1.4; }
 .dim { color: var(--dim); }
 .small { font-size: 13px; }
-.card { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 8px; }
-h2 { margin: 0; color: var(--ink); font-size: 19px; }
-p { margin: 0; line-height: 1.35; }
-input { font: inherit; font-size: 16px; width: 100%; padding: 8px 10px; border-radius: 9px; border: 2px solid var(--edge);
-  background: #22160f; color: var(--ink); }
-button { font: inherit; font-size: 16px; font-weight: bold; padding: 9px 14px; border-radius: 10px; color: var(--ink);
-  background: #7e4d3f; border: 2px solid #b07a60; min-height: 44px; }
-button.go { background: #1f7a3e; border-color: #4fbf74; }
-button:disabled { opacity: 0.5; }
-a { color: var(--ink); }
-.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.game { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: #24170f; }
-.game .what { flex: 1; min-width: 0; }
-.game .name { color: var(--ink); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+input { font: inherit; font-size: 16px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 2px solid var(--edge);
+  background: #1c120c; color: var(--ink); outline: none; transition: border-color 0.15s; }
+input:focus { border-color: var(--edge-light); }
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--dim); }
+button { font: inherit; font-size: 16px; font-weight: bold; padding: 10px 16px; border-radius: 11px; color: var(--ink);
+  background: linear-gradient(180deg, #8d5847, #6c4033); border: 2px solid var(--edge-light); min-height: 46px;
+  cursor: pointer; transition: transform 0.08s, filter 0.15s; text-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+button:hover { filter: brightness(1.12); } button:active { transform: translateY(1px); }
+button.go { background: linear-gradient(180deg, #2a9a52, #1b6b37); border-color: var(--ok-edge); }
+button.link { background: none; border: none; min-height: 0; padding: 4px 2px; color: var(--ink); text-decoration: underline;
+  font-weight: normal; font-size: 14px; text-shadow: none; }
+button:disabled { opacity: 0.5; cursor: default; filter: none; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+/* ----- signing in */
+.signin { width: min(440px, 100%); margin: 6px auto 0; }
+.tabs { display: flex; gap: 4px; margin: -4px 0 14px; border-bottom: 2px solid var(--edge); }
+.tabs button { flex: 1; background: none; border: none; border-radius: 10px 10px 0 0; min-height: 40px; color: var(--dim);
+  font-size: 15px; text-shadow: none; }
+.tabs button.on { color: var(--ink); background: rgba(176,122,96,0.25); }
+.skip { text-align: center; margin-top: 12px; }
+.note { font-size: 13px; color: var(--dim); text-align: center; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
+.status .dot { width: 9px; height: 9px; border-radius: 50%; background: #777; box-shadow: 0 0 0 2px rgba(0,0,0,0.4); }
+.status.on .dot { background: #33d06a; } .status.off .dot { background: var(--bad); }
+/* ----- the menu */
+.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.bar .grow { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px;
+  background: rgba(36,23,15,0.9); border: 2px solid var(--edge); color: var(--parchment); font-size: 15px; min-height: 42px; }
+.chip .face { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: bold;
+  background: var(--shard); color: #22113a; }
+.ad { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 12px; border-radius: 12px;
+  background: rgba(28,18,12,0.92); border: 2px dashed var(--edge); font-size: 15px; color: var(--parchment); text-decoration: none; }
+.ad img { max-height: 54px; max-width: 140px; border-radius: 6px; }
+.ad .tag { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; border: 1px solid var(--edge);
+  border-radius: 6px; padding: 1px 6px; }
+.adsense { margin-bottom: 12px; min-height: 60px; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 640px) { .tiles { grid-template-columns: 1fr; } }
+.tile { display: flex; align-items: center; gap: 16px; text-align: left; padding: 16px 18px; min-height: 104px;
+  border-radius: 16px; font-size: 21px; }
+.tile .icon { flex: none; width: 60px; height: 60px; border-radius: 12px; display: grid; place-items: center;
+  background: rgba(0,0,0,0.28); box-shadow: inset 0 0 0 2px rgba(255,230,170,0.12); }
+.tile .icon svg { width: 40px; height: 40px; shape-rendering: crispEdges; }
+.tile span.words { display: flex; flex-direction: column; gap: 4px; }
+.tile small { font-size: 14px; font-weight: normal; color: var(--parchment); text-shadow: none; line-height: 1.3; }
+.tile.locked { filter: grayscale(0.6) brightness(0.8); }
+.screen-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.screen-head h2 { margin: 0; flex: 1; }
+.cards { display: flex; flex-direction: column; gap: 10px; }
+.server { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(20,12,8,0.75);
+  border: 2px solid #4a3027; }
+.server .what { flex: 1; min-width: 0; }
+.server .name { color: var(--ink); font-weight: bold; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.server .meta { font-size: 13px; color: var(--dim); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 3px; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 9px; background: #4a3027; color: var(--parchment); }
+.badge.here { background: var(--ok); color: #fff; } .badge.remote { background: #4b3a85; color: #fff; }
+.meter { width: 70px; height: 7px; border-radius: 4px; background: #2a1b14; overflow: hidden; display: inline-block; }
+.meter i { display: block; height: 100%; background: linear-gradient(90deg, #33d06a, #e8c060); }
+.empty { padding: 18px; text-align: center; color: var(--dim); border: 2px dashed #4a3027; border-radius: 12px; }
+.mode { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .mode { grid-template-columns: 1fr; } }
+.mode label { display: block; cursor: pointer; padding: 12px 14px; border-radius: 12px; background: rgba(20,12,8,0.75);
+  border: 2px solid #4a3027; font-size: 14px; }
+.mode input { display: none; }
+.mode label b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 3px; }
+.mode label:has(input:checked) { border-color: var(--ok-edge); box-shadow: 0 0 0 2px rgba(79,191,116,0.3); }
+.running { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; border-color: var(--ok-edge); }
+.running p { flex: 1; min-width: 200px; }
 .address { color: var(--ink); font-weight: bold; user-select: all; }
-.error { color: var(--bad); }
-.status { font-size: 13px; }
-.status .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; background: #777; }
-.status.on .dot { background: var(--ok); }
-.ad { display: flex; align-items: center; gap: 12px; padding: 8px 12px; margin-bottom: 10px; border-radius: 12px;
-  background: #24170f; border: 2px dashed var(--edge); font-size: 14px; color: var(--parchment); text-decoration: none; }
-.ad img { max-height: 48px; max-width: 120px; }
-.ad .tag { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
-.menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
-@media (max-width: 640px) { .menu { grid-template-columns: 1fr; } }
-.big { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px 18px; font-size: 21px;
-  text-align: left; border-radius: 14px; min-height: 84px; }
-.big span { font-size: 14px; font-weight: normal; color: var(--parchment); }
-.running { flex-direction: row; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-.running p { flex: 1; min-width: 180px; }
-.back { margin: 10px 0; }
-.modes { display: flex; flex-direction: column; gap: 6px; }
-.modes label { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; }
-.modes input { width: auto; margin-top: 4px; }
-.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
-footer { margin-top: 16px; font-size: 13px; }
+footer { margin-top: auto; padding-top: 18px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+  font-size: 13px; color: var(--dim); }
+footer a, footer button.link { color: var(--dim); font-size: 13px; }
+/* ----- popups, toasts, joining */
+.veil { position: fixed; inset: 0; background: rgba(8,4,2,0.72); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.dialog { width: min(460px, 100%); }
+.code { font-size: 26px; letter-spacing: 3px; color: var(--ink); text-align: center; padding: 12px; margin: 10px 0;
+  border: 2px dashed var(--edge-light); border-radius: 12px; background: #1c120c; user-select: all; font-family: monospace; }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 20; max-width: min(560px, 92vw);
+  padding: 12px 18px; border-radius: 12px; background: rgba(36,23,15,0.97); border: 2px solid var(--edge-light);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6); font-size: 15px; transition: opacity 0.3s; }
+.toast.bad { border-color: var(--bad); }
+.spinner { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(243,232,136,0.2); border-top-color: var(--ink);
+  animation: spin 0.9s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.fade { animation: fade 0.25s ease-out; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
-<div class="top">
-  <h1>Shards of Ashen</h1><span id="version" class="dim small"></span>
-  <span id="central-status" class="status"><span class="dot"></span><span id="central-words">Connecting...</span></span>
-</div>
-<a id="ad" class="ad" hidden target="_blank" rel="noopener"><span class="tag">Ad</span><img id="ad-img" alt="" hidden>
-  <span id="ad-text"></span></a>
-<p id="error" class="error" hidden></p>
+<div class="scene" aria-hidden="true"></div>
+<div class="page">
 
-<section id="account" class="card">
-  <div id="signed-in" hidden class="row">
-    <p style="flex:1">Playing as <span id="me" class="address"></span></p>
-    <button id="new-code">New recovery code</button><button id="logout">Log out</button>
-  </div>
-  <div id="sign-in">
-    <h2>Your account</h2>
-    <p class="dim small">One name and password for every game. (Without the central server, a game's own log-in still
-      works.)</p>
-    <div class="cols">
-      <input id="name" maxlength="20" autocomplete="username" placeholder="Name">
-      <input id="password" type="password" maxlength="200" autocomplete="current-password" placeholder="Password">
+<!-- ----- 1. your Shards account -->
+<section id="welcome" class="fade">
+  <img class="logo" src="logo.png" alt="Shards of Ashen" width="496" height="212">
+  <div class="panel signin">
+    <div class="row" style="justify-content:center;margin:-2px 0 12px"><span id="central-status" class="status">
+      <span class="dot"></span><span id="central-words">Connecting...</span></span></div>
+    <div id="online-forms">
+      <div class="tabs" role="tablist"><button data-tab="in" class="on">Sign in</button><button data-tab="new">Create account</button>
+        <button data-tab="lost">Forgotten?</button></div>
+      <form id="form-in" class="stack" autocomplete="on">
+        <label class="field">Name<input id="in-name" maxlength="20" autocomplete="username" required></label>
+        <label class="field">Password<input id="in-password" type="password" maxlength="200" autocomplete="current-password" required></label>
+        <button type="submit" class="go">Sign in</button>
+        <p class="note">One Shards account for every game: the characters you make need no password of their own.</p>
+      </form>
+      <form id="form-new" class="stack" hidden>
+        <label class="field">Name (what everyone sees)<input id="new-name" maxlength="20" autocomplete="username" required></label>
+        <label class="field">Email (optional: for a forgotten password)<input id="new-email" type="email" maxlength="254" autocomplete="email"></label>
+        <label class="field">Password<input id="new-password" type="password" maxlength="200" autocomplete="new-password" required></label>
+        <button type="submit" class="go">Create my account</button>
+        <p class="note">By making an account you agree to the <a href="#" class="privacy-link">privacy policy</a>.</p>
+      </form>
+      <form id="form-lost" class="stack" hidden>
+        <p class="small dim" id="lost-words">Your name (or email) and the code: one we email you, or the recovery code you wrote down.</p>
+        <label class="field">Name or email<input id="lost-who" maxlength="254" autocomplete="username"></label>
+        <div class="row" id="send-row"><button type="button" id="send-code">Email me a code</button></div>
+        <label class="field">Code<input id="lost-code" maxlength="40" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"></label>
+        <label class="field">New password<input id="lost-password" type="password" maxlength="200" autocomplete="new-password"></label>
+        <button type="submit" class="go">Set my new password</button>
+      </form>
     </div>
-    <div class="row"><button id="login" class="go">Log in</button><button id="register">New account</button>
-      <a href="#" id="forgot-link" class="small">Forgotten your password?</a></div>
-    <div id="forgot" hidden class="cols">
-      <input id="code" maxlength="40" autocapitalize="characters" spellcheck="false" placeholder="Recovery code">
-      <input id="new-password" type="password" maxlength="200" autocomplete="new-password" placeholder="New password">
-      <div class="row"><button id="reset">Set my new password</button></div>
+    <div id="offline-words" hidden class="stack">
+      <p>The central server can't be reached just now (or none is set). You can still play alone, or with others on
+        your network.</p>
+      <button id="retry">Try again</button>
     </div>
+    <div class="skip"><button id="skip" class="link">Play without an account</button></div>
   </div>
 </section>
 
-<section id="running" class="card running" hidden>
-  <p><span id="running-name" class="address"></span> <span id="running-what" class="dim small"></span></p>
-  <button id="resume" class="go">Play</button><button id="running-stop">Stop</button>
-  <p id="running-addresses" class="small" style="flex-basis:100%"></p>
+<!-- ----- 2. the menu -->
+<section id="main" hidden>
+  <div class="bar">
+    <img class="logo small" src="logo.png" alt="Shards of Ashen" width="496" height="212">
+    <span class="grow"></span>
+    <span id="menu-status" class="status"><span class="dot"></span><span id="menu-status-words"></span></span>
+    <button id="chip" class="chip" type="button"><span class="face" id="chip-face">?</span><span id="chip-name">Not signed in</span></button>
+  </div>
+  <div id="adsense" class="adsense" hidden></div>
+  <a id="ad" class="ad" hidden target="_blank" rel="noopener"><span class="tag">Ad</span><img id="ad-img" alt="" hidden><span id="ad-text"></span></a>
+
+  <section id="running" class="panel running" hidden>
+    <p><span id="running-name" class="address"></span> <span id="running-what" class="dim small"></span>
+      <span id="running-addresses" class="small" style="display:block"></span></p>
+    <button id="resume" class="go">Play</button><button id="running-stop">Stop</button>
+  </section>
+
+  <div id="menu" class="tiles fade">
+    <button id="alone" class="tile go app-only"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M7 1h2v2h2v2H9v2h3v2h-1v6H9v-4H7v4H5V9H4V7h3V5H5V3h2z"/></svg></span>
+      <span class="words">Play alone<small>A world of your own on this device. Nobody else can join.</small></span></button>
+    <button id="host-open" class="tile app-only"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M8 1l7 6h-2v8H9v-5H7v5H3V7H1z"/><path fill="#b48cff" d="M7 6h2v2H7z"/></svg></span>
+      <span class="words">Host a game<small>Run a world here for others: on your network, or listed for everyone.</small></span></button>
+    <button id="local-open" class="tile"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M1 5h14v2H1zM3 9h10v2H3zM6 13h4v2H6z"/><path fill="#b48cff" d="M7 1h2v2H7z"/></svg></span>
+      <span class="words">Join a local game<small id="local-words">The games on your network, or one by its address.</small></span></button>
+    <button id="remote-open" class="tile"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M6 1h4v2h2v2h2v6h-2v2h-2v2H6v-2H4v-2H2V5h2V3h2zM7 3v10h2V3zM4 7v2h8V7z"/></svg></span>
+      <span class="words">Join a remote game<small id="remote-words">Approved games anywhere, listed by the central server.</small></span></button>
+  </div>
+
+  <section id="host" class="panel fade" hidden>
+    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Host a game</h2></div>
+    <div class="stack">
+      <label class="field">The game's name<input id="host-name" maxlength="40"></label>
+      <div class="mode">
+        <label><input type="radio" name="mode" value="local" checked><b>Local</b>Found by others on this network (Wi-Fi, or
+          this device's hotspot). Not listed anywhere.</label>
+        <label><input type="radio" name="mode" value="remote"><b>Remote</b>Announced to the central server: listed for
+          everyone once its admins approve it. Others must be able to reach this device (its port 8484).</label>
+      </div>
+      <p class="note">The world, and everyone's characters in it, live on this device.</p>
+      <div class="row"><button id="host" class="go">Start hosting</button></div>
+    </div>
+  </section>
+
+  <section id="local" class="panel fade" hidden>
+    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Join a local game</h2><button id="find" class="app-only">Look again</button></div>
+    <div id="games" class="cards app-only"></div>
+    <div class="stack" style="margin-top:12px">
+      <label class="field">Or its address (like 192.168.1.20, or play.example.com)
+        <input id="address" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <div class="row"><button id="join" class="go">Join</button></div>
+    </div>
+  </section>
+
+  <section id="remote" class="panel fade" hidden>
+    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Join a remote game</h2><button id="refresh">Look again</button></div>
+    <p class="note" style="text-align:left;margin-bottom:10px">Each game is a world of its own: a character you make there
+      lives on that server only.</p>
+    <div id="servers" class="cards"></div>
+  </section>
 </section>
 
-<div id="menu" class="menu">
-  <button id="alone" class="big go app-only">Play alone<span>A world of your own on this device. Nobody else can join.</span></button>
-  <button id="host-open" class="big app-only">Host a game<span>Run a game here for others: on this network, or listed for everyone.</span></button>
-  <button id="local-open" class="big">Join a local game<span id="local-words">Games on this network, or one by its address.</span></button>
-  <button id="remote-open" class="big">Join a remote game<span>Games listed by the central server, anywhere.</span></button>
+<footer><a href="#" class="privacy-link">Privacy policy</a><button id="central-link" class="link" type="button">Central server</button>
+  <span id="version"></span></footer>
 </div>
 
-<section id="host" class="card" hidden>
-  <h2>Host a game</h2>
-  <input id="host-name" maxlength="40" placeholder="The game's name">
-  <div class="modes">
-    <label><input type="radio" name="mode" value="local" checked><span><b>Local</b>: others on this network find it
-      (Wi-Fi, or this device's hotspot).</span></label>
-    <label><input type="radio" name="mode" value="remote"><span><b>Remote</b>: the central server lists it for everyone,
-      anywhere. (Others must be able to reach this device: on a home network, its port 8484 forwarded.)</span></label>
-  </div>
-  <div class="row"><button id="host" class="go">Host</button></div>
-</section>
-
-<section id="local" class="card" hidden>
-  <h2>Join a local game</h2>
-  <div id="lan" class="app-only">
-    <div id="games"><p class="dim small">Looking...</p></div>
-    <div class="row"><button id="find">Look again</button></div>
-  </div>
-  <p class="dim small">Or its address, like 192.168.1.20 (or play.example.com for one on the internet):</p>
-  <input id="address" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Address">
-  <div class="row"><button id="join" class="go">Join</button></div>
-</section>
-
-<section id="remote" class="card" hidden>
-  <h2>Join a remote game</h2>
-  <div id="servers"><p class="dim small">Asking the central server...</p></div>
-  <div class="row"><button id="refresh">Look again</button></div>
-</section>
-
-<footer class="dim"><a href="#" id="central-link">Central server</a>: <span id="central-url"></span></footer>
+<!-- ----- popups -->
+<div id="veil" class="veil" hidden><div class="panel dialog stack" id="dialog"></div></div>
+<div id="toast" class="toast" hidden></div>
 
 <script>
 "use strict";
@@ -153,11 +253,43 @@ const store = {
 };
 const fromCentral = KIND === "browser" && location.protocol.startsWith("http");
 let CENTRAL = (fromCentral ? location.origin : store.get("central") || window.DS_CENTRAL_DEFAULT || "").replace(/\/+$/, "");
-let token = store.get("token"), myName = "", centralUp = false;
+let token = store.get("token"), myName = "", centralUp = false, canMail = false, hello = {};
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-function say(text) { $("error").textContent = text; $("error").hidden = !text; }
 for (const el of document.querySelectorAll(".app-only")) el.hidden = KIND === "browser";
 if (KIND === "browser") $("local-words").textContent = "A game on your network, by its address (like 192.168.1.20).";
+
+// ----- telling: a toast for a moment, a popup for what must be read
+let toastTimer = 0;
+function toast(text, bad) {
+  const t = $("toast");
+  t.textContent = text; t.className = "toast" + (bad ? " bad" : ""); t.hidden = false; t.style.opacity = 1;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.opacity = 0; setTimeout(() => { t.hidden = true; }, 300); }, bad ? 5000 : 3200);
+}
+function dialog(html, buttons) {
+  $("dialog").innerHTML = html;
+  const row = document.createElement("div");
+  row.className = "row"; row.style.justifyContent = "flex-end";
+  for (const [label, cls, then] of buttons) {
+    const b = document.createElement("button");
+    b.textContent = label; if (cls) b.className = cls;
+    b.onclick = () => { if (!then || then() !== false) $("veil").hidden = true; };
+    row.append(b);
+  }
+  $("dialog").append(row);
+  $("veil").hidden = false;
+}
+function busy(text) { $("dialog").innerHTML = `<div class="spinner"></div><p style="text-align:center">${esc(text)}</p>`; $("veil").hidden = false; }
+function done() { $("veil").hidden = true; }
+function showCode(code, words) {
+  if (!code) return;
+  dialog(`<h2>Your recovery code</h2><p>${esc(words)}</p><div class="code">${esc(code)}</div>
+    <p class="small dim">Write it down somewhere safe. With your name and this code you can set a new password if you
+    ever forget yours (and have no email on your account). Nobody else can see it.</p>`,
+    [["Copy", "", () => { try { navigator.clipboard.writeText(code); toast("Copied."); } catch (e) { /* */ } return false; }],
+     ["I've written it down", "go"]]);
+}
 
 // ----- the central server
 async function api(path, body) {
@@ -166,36 +298,123 @@ async function api(path, body) {
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   return r.json();
 }
-
-function centralState(up, words) {
+function setStatus(up, words) {
   centralUp = up;
-  $("central-status").classList.toggle("on", up);
+  for (const id of ["central-status", "menu-status"]) $(id).className = "status " + (up ? "on" : "off");
   $("central-words").textContent = words;
-  $("central-url").textContent = CENTRAL || "(none set)";
+  $("menu-status-words").textContent = up ? (myName ? "Online" : "Online, not signed in") : "Offline";
 }
 
 async function connect() {
-  if (!CENTRAL) {
-    centralState(false, "No central server: play alone, or on your network.");
-    signedIn("");
-    return;
-  }
+  $("online-forms").hidden = false; $("offline-words").hidden = true;
+  if (!CENTRAL) { offline("No central server is set."); return; }
   try {
-    const h = await api("/api/hello");
-    centralState(true, `Connected · ${h.servers} remote game${h.servers === 1 ? "" : "s"}`);
-    showAd(h.ad);
+    hello = await api("/api/hello");
+    canMail = !!hello.mail;
+    setStatus(true, `Connected · ${hello.servers} game${hello.servers === 1 ? "" : "s"} listed`);
+    $("send-row").hidden = !canMail;
+    $("lost-words").textContent = canMail ? "Your name (or email) and the code: one we email you, or the recovery code you wrote down." :
+      "Your name and the recovery code you wrote down when you made your account.";
     if (token) {
       const me = await api("/api/me", { token });
-      signedIn(me.ok ? me.name : "");
-      if (!me.ok) { token = ""; store.set("token", ""); }
-    } else signedIn("");
-  } catch (e) {
-    centralState(false, "Can't reach the central server: play alone, or on your network.");
-    signedIn("");
-  }
+      if (me.ok) { signedIn(me.name); return; }
+      token = ""; store.set("token", "");
+    }
+    showWelcome();
+  } catch (e) { offline("Can't reach the central server."); }
+}
+function offline(words) {
+  setStatus(false, words);
+  $("online-forms").hidden = true; $("offline-words").hidden = false;
+  showWelcome();
 }
 
-function showAd(ad) {
+// ----- 1. signing in
+function showWelcome() { $("welcome").hidden = false; $("main").hidden = true; setTimeout(() => $("in-name").focus(), 50); }
+function signedIn(name) {
+  myName = name;
+  store.set("name", name);
+  $("chip-name").textContent = name || "Not signed in";
+  $("chip-face").textContent = name ? name[0].toUpperCase() : "?";
+  setStatus(centralUp, $("central-words").textContent);
+  $("remote-open").classList.toggle("locked", !name);
+  $("remote-words").textContent = name ? "Approved games anywhere, listed by the central server." :
+    "Sign in to see the games listed by the central server.";
+  $("welcome").hidden = true; $("main").hidden = false;
+  showAds();
+  show("menu");
+}
+function tab(which) {
+  for (const b of document.querySelectorAll(".tabs button")) b.classList.toggle("on", b.dataset.tab === which);
+  $("form-in").hidden = which !== "in"; $("form-new").hidden = which !== "new"; $("form-lost").hidden = which !== "lost";
+}
+for (const b of document.querySelectorAll(".tabs button")) b.onclick = () => tab(b.dataset.tab);
+
+async function account(path, body, then) {
+  busy("A moment...");
+  try {
+    const r = await api(path, body);
+    done();
+    if (!r.ok) { toast(r.text, true); return; }
+    then(r);
+  } catch (e) { done(); toast("The central server didn't answer.", true); }
+}
+$("form-in").onsubmit = (ev) => {
+  ev.preventDefault();
+  account("/api/login", { name: $("in-name").value, password: $("in-password").value }, (r) => {
+    token = r.token; store.set("token", token); $("in-password").value = ""; signedIn(r.name);
+    toast(`Welcome back, ${r.name}.`);
+  });
+};
+$("form-new").onsubmit = (ev) => {
+  ev.preventDefault();
+  account("/api/register", { name: $("new-name").value, email: $("new-email").value, password: $("new-password").value }, (r) => {
+    token = r.token; store.set("token", token); $("new-password").value = ""; signedIn(r.name);
+    showCode(r.recovery, `Welcome to Ashen, ${r.name}! Your account's recovery code:`);
+  });
+};
+$("send-code").onclick = () => account("/api/forgot", { who: $("lost-who").value }, (r) => toast(r.text));
+$("form-lost").onsubmit = (ev) => {
+  ev.preventDefault();
+  account("/api/reset", { name: $("lost-who").value, code: $("lost-code").value, password: $("lost-password").value }, (r) => {
+    tab("in"); $("in-name").value = r.name || $("lost-who").value; $("lost-password").value = "";
+    showCode(r.recovery, "Your new password is set. Here's a new recovery code too (the old one no longer works):");
+  });
+};
+$("skip").onclick = () => signedIn("");
+$("retry").onclick = connect;
+$("in-name").value = store.get("name");
+
+// ----- the account chip
+$("chip").onclick = async () => {
+  if (!myName) { showWelcome(); return; }
+  let email = "";
+  try { email = (await api("/api/account", { token })).email || ""; } catch (e) { /* */ }
+  dialog(`<h2>${esc(myName)}</h2><p class="small dim">Your Shards account: the same on every game. Each game keeps your
+    characters there, and only there.</p>
+    <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(email)}"></label>`,
+    [["New recovery code", "", () => { account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):")); }],
+     ["Sign out", "", () => { api("/api/logout", { token }).catch(() => {}); token = ""; store.set("token", ""); myName = ""; showWelcome(); }],
+     ["Save", "go", () => { account("/api/email", { token, email: $("acct-email").value }, () => toast("Saved.")); }]]);
+};
+
+// ----- ads: AdSense in a browser (when the central server has it), else the central server's own
+function showAds() {
+  const a = hello.adsense;
+  if (a && a.client && fromCentral) {
+    $("ad").hidden = true;
+    if ($("adsense").dataset.on) return;
+    $("adsense").dataset.on = "1"; $("adsense").hidden = false;
+    $("adsense").innerHTML = `<ins class="adsbygoogle" style="display:block" data-ad-client="${esc(a.client)}"
+      ${a.slot ? `data-ad-slot="${esc(a.slot)}"` : ""} data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+    const s = document.createElement("script");
+    s.async = true; s.crossOrigin = "anonymous";
+    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(a.client);
+    s.onload = () => { try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* */ } };
+    document.head.append(s);
+    return;
+  }
+  const ad = hello.ad;
   if (!ad || !ad.text) { $("ad").hidden = true; return; }
   $("ad").hidden = false;
   $("ad-text").textContent = ad.text;
@@ -204,77 +423,27 @@ function showAd(ad) {
   if (ad.image) $("ad-img").src = /^https?:/.test(ad.image) ? ad.image : CENTRAL + "/ads/" + ad.image;
 }
 
-function signedIn(name) {
-  myName = name;
-  $("signed-in").hidden = !name;
-  $("sign-in").hidden = !!name || !centralUp;
-  $("account").hidden = !name && !centralUp;
-  $("me").textContent = name;
-}
-
-function showCode(code, words) {
-  if (code) alert(`${words}\n\n${code}\n\nWrite it down somewhere safe. With your name and this code you can set a new password if you forget yours.`);
-}
-
-async function account(path, body, then) {
-  say("");
-  try {
-    const r = await api(path, body);
-    if (!r.ok) { say(r.text); return; }
-    then(r);
-  } catch (e) { say("The central server didn't answer."); }
-}
-$("login").onclick = () => account("/api/login", { name: $("name").value, password: $("password").value }, (r) => {
-  token = r.token; store.set("token", token); store.set("name", r.name); $("password").value = ""; signedIn(r.name);
-});
-$("register").onclick = () => account("/api/register", { name: $("name").value, password: $("password").value }, (r) => {
-  token = r.token; store.set("token", token); store.set("name", r.name); $("password").value = ""; signedIn(r.name);
-  showCode(r.recovery, "Welcome! Your recovery code:");
-});
-$("forgot-link").onclick = (ev) => { ev.preventDefault(); $("forgot").hidden = !$("forgot").hidden; };
-$("reset").onclick = () => account("/api/reset", { name: $("name").value, code: $("code").value, password: $("new-password").value }, (r) => {
-  $("forgot").hidden = true; say("Your new password is set: log in with it.");
-  showCode(r.recovery, "Your old recovery code is used up. Your new one:");
-});
-$("logout").onclick = () => { api("/api/logout", { token }).catch(() => {}); token = ""; store.set("token", ""); signedIn(""); };
-$("new-code").onclick = () => account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):"));
-$("name").value = store.get("name");
-$("central-link").onclick = (ev) => {
-  ev.preventDefault();
-  if (fromCentral) return;
-  const url = prompt("The central server's address (blank: the one this app came with):", CENTRAL);
-  if (url === null) return;
-  store.set("central", url.trim());
-  CENTRAL = (url.trim() || window.DS_CENTRAL_DEFAULT || "").replace(/\/+$/, "");
-  token = ""; store.set("token", "");
-  connect();
-};
-
-// ----- joining: a ticket from the central server for that one game (logged in there), else the game's own log-in
+// ----- joining: a ticket from the central server for that one game (signed in), else the game's own log-in
 function gameUrl(address) {
   let a = String(address).trim();
-  if (!a) return "";
+  if (!a) return null;
   if (!/^https?:\/\//i.test(a)) a = "http://" + a;
   const u = new URL(a);
   if (u.protocol === "http:" && !u.port) u.port = "8484";
   return u;
 }
-
-async function join(address, id) {
-  say("");
+async function join(address, id, name) {
   let u;
   try { u = gameUrl(address); } catch (e) { u = null; }
-  if (!u) { say("That isn't an address."); return; }
+  if (!u) { toast("That isn't an address.", true); return; }
+  busy(`Joining ${name || u.host}...`);
   if (!id) {                                       // (by address: ask it who it is, for the ticket)
     try { id = (await (await fetch(u.origin + "/api/info")).json()).id; } catch (e) { id = ""; }
   }
   const q = new URLSearchParams();
   if (KIND !== "browser") q.set("app", KIND);
   if (token && id && centralUp) {
-    try {
-      const t = await api("/api/ticket", { token, server: id });
-      if (t.ok) q.set("ticket", t.ticket);
-    } catch (e) { /* (no ticket: its own log-in) */ }
+    try { const t = await api("/api/ticket", { token, server: id }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
   }
   u.search = q.toString();
   if (app) app.play(u.toString()); else location.href = u.toString();
@@ -286,53 +455,57 @@ function show(which) {
   for (const s of ["host", "local", "remote"]) $(s).hidden = which !== s;
   if (which === "local" && KIND !== "browser") find();
   if (which === "remote") listRemote();
-  let back = $("back");
-  if (!back) {
-    back = document.createElement("button");
-    back.id = "back"; back.className = "back"; back.textContent = "< Back";
-    back.onclick = () => { say(""); show("menu"); };
-    $("menu").after(back);
-  }
-  back.hidden = which === "menu";
 }
+for (const b of document.querySelectorAll(".back")) b.onclick = () => show("menu");
 $("host-open").onclick = () => show("host");
 $("local-open").onclick = () => show("local");
-$("remote-open").onclick = () => show("remote");
+$("remote-open").onclick = () => {
+  if (!myName) { toast(centralUp ? "Sign in first: the remote games know you by your Shards account." :
+    "The central server can't be reached just now.", true); if (centralUp) showWelcome(); return; }
+  show("remote");
+};
 
-function gameRow(name, more, action, full) {
-  const row = document.createElement("div");
-  row.className = "game";
-  row.innerHTML = '<div class="what"><div class="name"></div><div class="dim small"></div></div>';
-  row.querySelector(".name").textContent = name;
-  row.querySelector(".small").textContent = more;
+function serverCard(g, badge, action) {
+  const card = document.createElement("div");
+  card.className = "server";
+  const pct = g.max ? Math.min(100, Math.round(g.online / g.max * 100)) : 0;
+  card.innerHTML = `<div class="what"><div class="name"></div><div class="meta">
+    <span class="badge ${badge[1]}">${esc(badge[0])}</span><span class="meter"><i style="width:${pct}%"></i></span>
+    <span>${g.online} of ${g.max} playing</span><span class="where"></span></div>
+    <div class="small dim" style="margin-top:3px">Characters made here live on this server only.</div></div>`;
+  card.querySelector(".name").textContent = g.name;
+  card.querySelector(".where").textContent = g.where || "";
   const b = document.createElement("button");
-  b.className = "go"; b.textContent = "Join"; b.disabled = !!full; b.onclick = action;
-  row.append(b);
-  return row;
+  b.className = "go"; b.textContent = g.online >= g.max ? "Full" : "Join"; b.disabled = g.online >= g.max; b.onclick = action;
+  card.append(b);
+  return card;
 }
 
 async function listRemote() {
   const box = $("servers");
-  if (!centralUp) { box.innerHTML = '<p class="dim small">The central server can\'t be reached just now.</p>'; return; }
+  box.innerHTML = '<div class="empty"><div class="spinner"></div>Asking the central server...</div>';
   try {
     const list = await api("/api/servers");
     box.innerHTML = "";
-    if (!list.length) { box.innerHTML = '<p class="dim small">No remote games just now. Host one, and pick Remote.</p>'; return; }
-    for (const g of list) box.append(gameRow(g.name, `${g.online} of ${g.max} playing · version ${g.version || "?"}`,
-      () => join(g.url, g.key), g.online >= g.max));
-  } catch (e) { box.innerHTML = '<p class="dim small">The central server didn\'t answer.</p>'; }
+    if (!list.length) { box.innerHTML = '<div class="empty">No remote games just now. Host one and pick Remote: it\'s listed once approved.</div>'; return; }
+    for (const g of list) box.append(serverCard(g, ["Listed", "remote"], () => join(g.url, g.key, g.name)));
+  } catch (e) { box.innerHTML = '<div class="empty">The central server didn\'t answer.</div>'; }
 }
 $("refresh").onclick = listRemote;
 
-function find() { $("find").disabled = true; app.find(); }
+function find() {
+  $("find").disabled = true;
+  $("games").innerHTML = '<div class="empty"><div class="spinner"></div>Looking on your network...</div>';
+  app.find();
+}
 window.onGames = (games) => {
   $("find").disabled = false;
   const box = $("games");
   box.innerHTML = "";
-  if (!games.length) { box.innerHTML = '<p class="dim small">None found on this network.</p>'; return; }
+  if (!games.length) { box.innerHTML = '<div class="empty">No games found on this network.</div>'; return; }
   games.sort((a, b) => (b.here ? 1 : 0) - (a.here ? 1 : 0) || String(a.name).localeCompare(b.name));
-  for (const g of games) box.append(gameRow(g.name + (g.here ? " (here)" : ""),
-    `${g.online} of ${g.max} playing` + (g.here ? "" : ` · ${g.address}`), () => join(`${g.address}:${g.port}`, g.id), g.online >= g.max));
+  for (const g of games) box.append(serverCard(Object.assign({ where: g.here ? "" : g.address }, g),
+    g.here ? ["On this device", "here"] : ["On this network", ""], () => join(`${g.address}:${g.port}`, g.id, g.name)));
 };
 $("find").onclick = find;
 $("join").onclick = () => { store.set("address", $("address").value.trim()); join($("address").value); };
@@ -341,47 +514,65 @@ $("address").addEventListener("keydown", (ev) => { if (ev.key === "Enter") $("jo
 
 // ----- hosting (the apps): alone, local or remote
 function current() { try { return app ? JSON.parse(app.state()) : {}; } catch (e) { return {}; } }
-let wantPlay = false;
+let wantPlay = false, lastErr = "";
 function host(mode) {
-  say("");
   const st = current();
-  if (st.status === "on") { say("A game is running here already: stop it first (above)."); return; }
-  wantPlay = mode === "solo";
+  if (st.status === "on") { toast("A game is running here already: stop it first.", true); return; }
+  wantPlay = true;
   if (app.hostAs) app.hostAs(mode === "solo" ? "" : $("host-name").value.trim(), mode, CENTRAL);
   else if (mode === "solo") app.playAlone(); else app.host($("host-name").value.trim());
   store.set("hostName", $("host-name").value.trim());
+  busy(mode === "solo" ? "Starting your world..." : "Starting the game...");
 }
 $("alone").onclick = () => {
   const st = current();
-  if (st.status === "on" && st.mode === "solo") { join("127.0.0.1:" + (st.port || 8484)); return; }
+  if (st.status === "on" && st.mode === "solo") { join("127.0.0.1:" + (st.port || 8484), "", "your world"); return; }
   host("solo");
 };
 $("host").onclick = () => host(document.querySelector("input[name=mode]:checked").value);
-$("resume").onclick = () => join("127.0.0.1:" + (current().port || 8484));
+$("resume").onclick = () => { const st = current(); join("127.0.0.1:" + (st.port || 8484), "", st.name); };
 $("running-stop").onclick = () => app.stopHosting();
 
 function refresh() {
   if (!app) return;
   const st = current();
   $("version").textContent = st.version ? "Version " + st.version : "";
-  const on = st.status === "on", busy = ["unpacking", "starting", "stopping"].includes(st.status);
-  $("running").hidden = !on && !busy;
+  const on = st.status === "on", busyNow = ["unpacking", "starting", "stopping"].includes(st.status);
+  $("running").hidden = !on && !busyNow;
   $("resume").hidden = $("running-stop").hidden = !on;
-  $("running-name").textContent = busy ? ({ unpacking: "Unpacking the game (the first time takes a while)...",
-    starting: "Starting...", stopping: "Saving the world..." }[st.status]) : st.mode === "solo" ? "Your own game" : st.name;
+  $("running-name").textContent = busyNow ? ({ unpacking: "Unpacking the game (the first time takes a while)...",
+    starting: "Starting...", stopping: "Saving the world..." }[st.status]) : st.mode === "solo" ? "Your own world" : st.name;
   $("running-what").textContent = !on ? "" : st.mode === "solo" ? "is running on this device." :
-    st.mode === "remote" ? "is hosted here, listed by the central server." : "is hosted here for this network.";
+    st.mode === "remote" ? "is hosted here, announced to the central server." : "is hosted here for this network.";
   const list = (st.addresses || []).map((ip) => `http://${ip}:${st.port}`);
-  $("running-addresses").innerHTML = on && st.mode !== "solo" && list.length ? "Others join at: " +
-    list.map((u) => `<span class="address">${u}</span>`).join(", ") : "";
-  if (st.status === "error" && st.error) say("The game couldn't start: " + st.error);
-  if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484)); }
+  $("running-addresses").innerHTML = on && st.mode !== "solo" && list.length ? "Others join at " +
+    list.map((u) => `<span class="address">${esc(u)}</span>`).join(", ") : "";
+  if (st.status === "error" && st.error && st.error !== lastErr) { lastErr = st.error; done(); toast("The game couldn't start: " + st.error, true); }
+  if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484), "", st.name); }
   if (!$("host-name").value) $("host-name").value = store.get("hostName") || "Shards of Ashen on " + (st.device || "this device");
 }
 
+// ----- the footer
+for (const a of document.querySelectorAll(".privacy-link")) a.onclick = (ev) => {
+  ev.preventDefault();
+  if (!CENTRAL) { toast("The privacy policy is on the central server, which isn't set.", true); return; }
+  if (app) app.play(CENTRAL + "/privacy"); else window.open(CENTRAL + "/privacy", "_blank");
+};
+$("central-link").onclick = () => {
+  if (fromCentral) { toast("This is the central server: " + CENTRAL); return; }
+  dialog(`<h2>Central server</h2><p class="small dim">Where accounts and the list of games are kept. Leave it empty for
+    the one this app came with.</p><label class="field">Address<input id="central-url" value="${esc(store.get("central"))}"
+    placeholder="${esc(window.DS_CENTRAL_DEFAULT || "https://central.example.com")}"></label>`,
+    [["Cancel", ""], ["Save", "go", () => {
+      store.set("central", $("central-url").value.trim());
+      CENTRAL = ($("central-url").value.trim() || window.DS_CENTRAL_DEFAULT || "").replace(/\/+$/, "");
+      token = ""; store.set("token", ""); myName = "";
+      connect();
+    }]]);
+};
+
 const err = /#error=(.*)$/.exec(location.hash);
-if (err) say(decodeURIComponent(err[1]));
-show("menu");
+if (err) setTimeout(() => toast(decodeURIComponent(err[1]), true), 300);
 connect();
 refresh();
 if (app) setInterval(refresh, 1000);

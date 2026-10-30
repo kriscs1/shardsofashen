@@ -21,40 +21,7 @@
   </div>
   <form id="login-form" class="panel" autocomplete="on">
     <button type="button" id="login-music" class="music-toggle" title="The title music (it starts when you click or type)"></button>
-    <h1 class="logo" aria-label="Shards of Ashen">
-      <svg viewBox="0 0 360 150" aria-hidden="true">
-        <defs>
-          <linearGradient id="logo-gold" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#fff6c8"/><stop offset="0.45" stop-color="#f3d36a"/>
-            <stop offset="0.56" stop-color="#b8792a"/><stop offset="1" stop-color="#f0c060"/>
-          </linearGradient>
-          <linearGradient id="logo-ember" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#ffe08a"/><stop offset="0.45" stop-color="#ff8a2a"/>
-            <stop offset="1" stop-color="#b8261a"/>
-          </linearGradient>
-          <linearGradient id="logo-shard" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#f4eaff"/><stop offset="0.5" stop-color="#b48cff"/>
-            <stop offset="1" stop-color="#5a32b0"/>
-          </linearGradient>
-          <filter id="logo-glow" x="-20%" y="-40%" width="140%" height="180%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
-            <feColorMatrix in="b" values="1 0 0 0 0.3  0 0.5 0 0 0.05  0 0 0.2 0 0  0 0 0 0.9 0"/>
-            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <g id="logo-crystal">
-            <polygon points="0,-13 6,-3 3,12 -3,12 -6,-3" fill="url(#logo-shard)" stroke="#2a160c" stroke-width="1.5"/>
-            <polyline points="0,-13 0,12" stroke="#f4eaff" stroke-width="1" opacity="0.7"/>
-          </g>
-        </defs>
-        <text class="logo-big" x="180" y="60" fill="url(#logo-gold)">SHARDS</text>
-        <line x1="62" y1="80" x2="156" y2="80" stroke="#c98a2a" stroke-width="2"/>
-        <line x1="204" y1="80" x2="298" y2="80" stroke="#c98a2a" stroke-width="2"/>
-        <text class="logo-of" x="180" y="86">of</text>
-        <use href="#logo-crystal" x="48" y="80"/>
-        <use href="#logo-crystal" x="312" y="80"/>
-        <text class="logo-big" x="180" y="138" fill="url(#logo-ember)" filter="url(#logo-glow)">ASHEN</text>
-      </svg>
-    </h1>
+    <h1 class="logo"><img src="/img/logo.png" alt="Shards of Ashen" width="496" height="212"></h1>
     <p id="login-server" class="server-name"></p>
     <p id="login-online" class="dim">Connecting...</p>
     <label>Name <input id="login-name" name="username" maxlength="20" autocomplete="username" required></label>
@@ -79,6 +46,8 @@
       <label>New password <input id="forgot-password" type="password" maxlength="200" autocomplete="new-password"></label>
       <div class="buttons"><button type="button" id="forgot-button">Set my new password</button></div>
     </div>
+    <p class="dim small server-only">Your character lives on this server, and only here: another server is another
+      world.</p>
     <p class="dim small">Adventurers share this world.<span class="desk-only"> Full screen: F11 or the button in the game.</span></p>
     <p id="login-version" class="version"></p>
   </form>
@@ -179,8 +148,10 @@
     <div class="row"><span>Smooth scaling (easier text; off = sharp pixels)</span><input type="checkbox" id="opt-smooth"></div>
     <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
     <div class="row"><span>Your appearance</span><button type="button" id="opt-look">Change</button></div>
-    <div class="row"><span>Your password</span><button type="button" id="opt-password">Change</button></div>
-    <div class="row"><span>Your recovery code (for a forgotten password)</span><button type="button" id="opt-recovery">Make a new one</button></div>
+    <div class="row" id="opt-linked" hidden><span>This character is part of your Shards account (no password of its
+      own), and lives on this server only.</span></div>
+    <div class="row opt-own"><span>Your password</span><button type="button" id="opt-password">Change</button></div>
+    <div class="row opt-own"><span>Your recovery code (for a forgotten password)</span><button type="button" id="opt-recovery">Make a new one</button></div>
     <div class="row" id="opt-name-row" hidden><span>The game's name</span><input id="opt-server-name" maxlength="40">
       <button type="button" id="opt-server-name-save">Save</button></div>
     <div class="row" id="opt-lan-row" hidden><span>Open to your network (others nearby can join)</span><input type="checkbox" id="opt-lan"></div>

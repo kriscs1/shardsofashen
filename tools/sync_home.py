@@ -10,7 +10,7 @@ import shutil
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "web", "home")
 DEST = os.path.join(ROOT, "android", "app", "src", "main", "assets", "home")
-FILES = ("index.html", "config.js")
+FILES = ("index.html", "config.js", "logo.png", "bg.jpg")
 
 
 def main():

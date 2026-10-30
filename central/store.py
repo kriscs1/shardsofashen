@@ -24,6 +24,15 @@ CREATE TABLE IF NOT EXISTS tickets (
     server TEXT NOT NULL,
     made REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS mailcodes (
+    name TEXT PRIMARY KEY COLLATE NOCASE,
+    code TEXT NOT NULL,
+    made REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS servers (
     key TEXT PRIMARY KEY,
     secret TEXT NOT NULL,
@@ -35,6 +44,10 @@ CREATE TABLE IF NOT EXISTS servers (
     seen REAL NOT NULL
 );
 """
+# (columns added since: put on an older database as it opens)
+COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admin", "INTEGER NOT NULL DEFAULT 0"),
+           ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0")]
+MAIL_CODE_MINUTES = 30
 TOKEN_DAYS = 30
 TICKET_SECONDS = 120
 SERVER_SECONDS = 180            # (a remote server not heard from for this long isn't listed)
@@ -54,15 +67,58 @@ class CentralStore:
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         self.db = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
         self.db.executescript(SCHEMA)
+        for table, col, kind in COLUMNS:
+            have = [r[1] for r in self.db.execute("PRAGMA table_info(%s)" % table)]
+            if col not in have:
+                self.db.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, col, kind))
 
     # ----- accounts
     def account(self, name):
-        """(name as made, password hash, recovery hash, banned why) or None."""
-        return self.db.execute("SELECT name, password, recover, banned FROM accounts WHERE name = ?", (name,)).fetchone()
+        """(name as made, password hash, recovery hash, banned why, email, admin) or None."""
+        return self.db.execute("SELECT name, password, recover, banned, email, admin FROM accounts WHERE name = ?",
+                               (name,)).fetchone()
 
-    def create_account(self, name, pw_hash, recover_hash):
-        self.db.execute("INSERT INTO accounts (name, password, recover, made) VALUES (?, ?, ?, ?)",
-                        (name, pw_hash, recover_hash, time.time()))
+    def account_by_email(self, email):
+        row = self.db.execute("SELECT name FROM accounts WHERE email = ? COLLATE NOCASE AND email != ''",
+                              (email,)).fetchone()
+        return self.account(row[0]) if row else None
+
+    def create_account(self, name, pw_hash, recover_hash, email=""):
+        self.db.execute("INSERT INTO accounts (name, password, recover, made, email) VALUES (?, ?, ?, ?, ?)",
+                        (name, pw_hash, recover_hash, time.time(), email))
+
+    def set_email(self, name, email):
+        self.db.execute("UPDATE accounts SET email = ? WHERE name = ?", (email, name))
+
+    def set_admin(self, name, on):
+        self.db.execute("UPDATE accounts SET admin = ? WHERE name = ?", (1 if on else 0, name))
+
+    def find_accounts(self, q, limit=50):
+        like = "%" + q.replace("%", "") + "%"
+        return self.db.execute("SELECT name, email, banned, admin, made FROM accounts WHERE name LIKE ? OR email LIKE ? "
+                               "ORDER BY made DESC LIMIT ?", (like, like, limit)).fetchall()
+
+    # ----- email codes (a forgotten password, when the account has an email)
+    def new_mail_code(self, name, code_hash):
+        self.db.execute("INSERT OR REPLACE INTO mailcodes (name, code, made) VALUES (?, ?, ?)",
+                        (name, code_hash, time.time()))
+
+    def mail_code(self, name):
+        row = self.db.execute("SELECT code, made FROM mailcodes WHERE name = ?", (name,)).fetchone()
+        if not row or time.time() - row[1] > MAIL_CODE_MINUTES * 60:
+            return ""
+        return row[0]
+
+    def drop_mail_code(self, name):
+        self.db.execute("DELETE FROM mailcodes WHERE name = ?", (name,))
+
+    # ----- settings (the ads, set on the admin page)
+    def setting(self, key, default=""):
+        row = self.db.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+        return row[0] if row else default
+
+    def set_setting(self, key, value):
+        self.db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value))
 
     def set_password(self, name, pw_hash):
         self.db.execute("UPDATE accounts SET password = ? WHERE name = ?", (pw_hash, name))
@@ -116,9 +172,9 @@ class CentralStore:
             # (new: its own id if it has one nobody holds - what tickets are made out to - else one given it)
             fresh = key and row is None and len(key) == 16 and all(ch in "0123456789abcdef" for ch in key)
             key, secret = (key if fresh else new_secret()[:16]), new_secret()
-            self.db.execute("INSERT INTO servers (key, secret, name, url, online, max, version, seen) "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                            (key, digest(secret), name, url, online, most, version, time.time()))
+            self.db.execute("INSERT INTO servers (key, secret, name, url, online, max, version, seen, made) "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (key, digest(secret), name, url, online, most, version, time.time(), time.time()))
         else:
             self.db.execute("UPDATE servers SET name = ?, url = ?, online = ?, max = ?, version = ?, seen = ? "
                             "WHERE key = ?", (name, url, online, most, version, time.time(), key))
@@ -127,7 +183,20 @@ class CentralStore:
     def goodbye(self, key, secret):
         self.db.execute("UPDATE servers SET seen = 0 WHERE key = ? AND secret = ?", (key, digest(secret or "")))
 
-    def servers(self):
-        rows = self.db.execute("SELECT key, name, url, online, max, version FROM servers WHERE seen > ? "
-                               "ORDER BY online DESC, name", (time.time() - SERVER_SECONDS,)).fetchall()
-        return [{"key": k, "name": n, "url": u, "online": o, "max": m, "version": v} for k, n, u, o, m, v in rows]
+    def approved(self, key):
+        row = self.db.execute("SELECT approved FROM servers WHERE key = ?", (key,)).fetchone()
+        return bool(row and row[0])
+
+    def servers(self, everyone=False):
+        """The listed servers: approved on the admin page, and heard from lately (everyone: all, for the admin page)."""
+        rows = self.db.execute("SELECT key, name, url, online, max, version, approved, seen FROM servers " +
+                               ("" if everyone else "WHERE approved = 1 AND seen > ? ") + "ORDER BY online DESC, name",
+                               () if everyone else (time.time() - SERVER_SECONDS,)).fetchall()
+        return [{"key": k, "name": n, "url": u, "online": o, "max": m, "version": v, "approved": bool(a),
+                 "up": seen > time.time() - SERVER_SECONDS, "seen": int(seen)} for k, n, u, o, m, v, a, seen in rows]
+
+    def set_approved(self, key, on):
+        self.db.execute("UPDATE servers SET approved = ? WHERE key = ?", (1 if on else 0, key))
+
+    def remove_server(self, key):
+        self.db.execute("DELETE FROM servers WHERE key = ?", (key,))

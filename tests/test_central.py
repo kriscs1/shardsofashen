@@ -47,25 +47,31 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
         monkeypatch.setenv("DS_CENTRAL", central)
         monkeypatch.setenv("DS_PUBLIC", "1")
         monkeypatch.setenv("DS_PUBLIC_URL", "https://play.example.com")
+        monkeypatch.setenv("DS_CENTRAL_ADMINS", "Wanderer")
         gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Kris's World")
         grunner, gport = await run(gapp)
         game = gapp[GAME]
         wsurl = "ws://127.0.0.1:%d/ws" % gport
         try:
             async with aiohttp.ClientSession() as http:
+                r = await post(http, central + "/api/register", {"name": "Wanderer", "password": "longpassword"})
+                assert r["ok"] and r["token"] and len(r["recovery"]) == 19
+                token = r["token"]
                 for _ in range(40):                                     # (it announces itself as it starts)
                     await asyncio.sleep(0.1)
-                    listed = await (await http.get(central + "/api/servers")).json()
-                    if listed:
+                    waiting = (await post(http, central + "/api/admin/servers", {"token": token}))["servers"]
+                    if waiting:
                         break
+                assert waiting and waiting[0]["key"] == game.server_id() and not waiting[0]["approved"]
+                assert await (await http.get(central + "/api/servers")).json() == []    # (not listed till approved)
+                assert (await post(http, central + "/api/admin/approve", {"token": token, "key": game.server_id(),
+                                                                          "on": True}))["ok"]
+                listed = await (await http.get(central + "/api/servers")).json()
                 assert listed and listed[0]["key"] == game.server_id() and listed[0]["name"] == "Kris's World"
                 assert listed[0]["url"] == "https://play.example.com"
                 info = await (await http.get("http://127.0.0.1:%d/api/info" % gport)).json()
                 assert info["id"] == game.server_id()
 
-                r = await post(http, central + "/api/register", {"name": "Wanderer", "password": "longpassword"})
-                assert r["ok"] and r["token"] and len(r["recovery"]) == 19
-                token = r["token"]
                 assert (await post(http, central + "/api/me", {"token": token}))["name"] == "Wanderer"
                 t = await post(http, central + "/api/ticket", {"token": token, "server": game.server_id()})
                 ws, m = await ticket_in(http, wsurl, t["ticket"])
@@ -121,3 +127,55 @@ def test_every_version_has_the_same_start_screen():
         a = open(os.path.join(ROOT, "web", "home", f), "rb").read()
         b = open(os.path.join(ROOT, "android", "app", "src", "main", "assets", "home", f), "rb").read()
         assert a == b, "run tools/sync_home.py"
+
+
+def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
+    """A forgotten password by an emailed code; the privacy policy; the admin page's accounts, bans and ads."""
+    from central import mail
+    monkeypatch.setenv("DS_SMTP_HOST", "test")
+    monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
+    monkeypatch.setenv("DS_ADSENSE_CLIENT", "ca-pub-1234567890")
+    mail.SENT.clear()
+
+    async def go():
+        runner, port = await run(make_central(str(tmp_path / "central.db")))
+        c = "http://127.0.0.1:%d" % port
+        try:
+            async with aiohttp.ClientSession() as http:
+                assert not (await post(http, c + "/api/register", {"name": "Mail", "password": "longpassword",
+                                                                    "email": "not an email"}))["ok"]
+                r = await post(http, c + "/api/register", {"name": "Mail", "password": "longpassword",
+                                                            "email": "mail@example.com"})
+                assert r["ok"]
+                r = await post(http, c + "/api/forgot", {"who": "mail@example.com"})
+                assert r["ok"] and len(mail.SENT) == 1 and mail.SENT[0][0] == "mail@example.com"
+                code = [w for w in mail.SENT[0][2].split() if "-" in w and len(w) == 9][0]
+                assert not (await post(http, c + "/api/reset", {"name": "Mail", "code": "AAAA-BBBB",
+                                                                 "password": "newpassword1"}))["ok"]
+                r = await post(http, c + "/api/reset", {"name": "mail@example.com", "code": code,
+                                                         "password": "newpassword1"})
+                assert r["ok"] and r["recovery"]
+                assert not (await post(http, c + "/api/reset", {"name": "Mail", "code": code,
+                                                                 "password": "newpassword2"}))["ok"]   # (used up)
+                assert (await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"}))["ok"]
+
+                page = await (await http.get(c + "/privacy")).text()
+                assert "Privacy policy" in page and "Google AdSense" in page and "server you made them on" in page
+                assert "pub-1234567890" in await (await http.get(c + "/ads.txt")).text()
+                hello = await (await http.get(c + "/api/hello")).json()
+                assert hello["adsense"]["client"] == "ca-pub-1234567890" and hello["mail"]
+                assert "admin" in (await (await http.get(c + "/admin")).text()).lower()
+
+                boss = (await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword"}))["token"]
+                mine = (await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"}))["token"]
+                assert not (await post(http, c + "/api/admin/stats", {"token": mine}))["ok"]    # (not an admin)
+                found = (await post(http, c + "/api/admin/accounts", {"token": boss, "q": "mail"}))["accounts"]
+                assert [a["name"] for a in found] == ["Mail"]
+                await post(http, c + "/api/admin/ban", {"token": boss, "name": "Mail", "why": "testing"})
+                m = await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"})
+                assert not m["ok"] and "banned" in m["text"]
+                await post(http, c + "/api/admin/ads", {"token": boss, "ads": [{"text": "Buy shards", "link": ""}]})
+                assert (await (await http.get(c + "/api/hello")).json())["ad"]["text"] == "Buy shards"
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())

@@ -359,6 +359,22 @@ bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
   PyInstaller (`desktop/build_desktop.py`, and GitHub's `desktop.yml`).
 - [ ] **The central server's address** in `web/home/config.js`, once it's running somewhere (then `sync_home.py`).
 
+## 19. Admin, privacy, email, ads, sign-in first, a new logo (2026-10-30)
+
+- [x] **The central server's admin page** (`/admin`): servers waiting and listed (approve, unlist, remove), accounts
+  (find, ban, make admin), the ads, a summary.
+- [x] **Only approved servers listed**; `DS_CENTRAL_APPROVED` for ones approved before they call.
+- [x] **A privacy policy** (`/privacy`), linked from the start screen and sign-up.
+- [x] **Email for a forgotten password** (SMTP, a code good for 30 minutes), besides the recovery code.
+- [x] **AdSense** on the start screen in a browser (and `/ads.txt`); the apps keep your own ads (Google wants AdMob in
+  apps).
+- [x] **Characters live on one server only**, said on the game's login, in Options, on every game card.
+- [x] **The start screen redone**: sign in first (or make an account, or play without), then the menu; the game's town
+  behind, toasts and popups, game cards with how full they are.
+- [x] **A Shards account's characters have no password**; their Options say so.
+- [x] **The logo redrawn as pixel art** (`build_logo.py`).
+- [ ] **AdMob in the Android app** (needs an AdMob account and the Google Mobile Ads SDK).
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

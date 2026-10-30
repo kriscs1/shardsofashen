@@ -437,13 +437,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (the host's, in Options; else `DS_NAME`), on the login screen and in the app's list. The app opens on Play alone
   (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
-- **Every version has the same start screen** (`web/home/`): it connects to the central server first (accounts, the
-  remote list, the ads), then Play alone and Host a game (local: answered on its network; remote: announced to the
+- **Every version has the same start screen** (`web/home/`): sign in to your Shards account first (or make one, or a
+  forgotten password by email or recovery code, or play without one); then the menu: Play alone and Host a game (local: answered on its network; remote: announced to the
   central server) in the apps, and Join a local game (the network's, or an address; a browser: an address only) and
   Join a remote game (the central server's list) everywhere. Joining takes a ticket from the central server made out
   to that server's id; a game server's own accounts stay, for a network without the central server. Change the start
   screen in `web/home/` only, then run `tools/sync_home.py`; anything the apps do for it goes through `window.DSApp`
-  (Android's Bridge, the desktop's `desktop/app.py`), the same names in both.
+  (Android's Bridge, the desktop's `desktop/app.py`), the same names in both. Remote servers are listed only once
+  approved on the central server's admin page (`/admin`); a character made by a Shards account has no password of its
+  own, and players are told everywhere that a character lives on its server only. The logo is pixel art made by
+  `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
 - **A click is answered at once**: what's clicked is marked the moment it's clicked (registered: a gold ring; a foe a

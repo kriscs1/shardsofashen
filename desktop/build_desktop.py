@@ -8,6 +8,7 @@ web/assets must be made first (tools/export_web_assets.py).
 import os
 import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -20,9 +21,9 @@ CARRIED = ["data", "maps", "sprites", "web", "server", "dsengine", "ashen", "VER
 def main():
     if not os.path.isdir(os.path.join(ROOT, "web", "assets")):
         sys.exit("web/assets is missing: run python -I tools/export_web_assets.py first")
+    work = os.path.join(tempfile.gettempdir(), "ShardsOfAshen-build")   # (its half-made exe can't run: kept out of sight)
     args = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--windowed", "--name", "ShardsOfAshen",
-            "--distpath", os.path.join(ROOT, "dist"), "--workpath", os.path.join(ROOT, "build", "desktop"),
-            "--specpath", os.path.join(ROOT, "build", "desktop"),
+            "--distpath", os.path.join(ROOT, "dist"), "--workpath", work, "--specpath", work,
             "--collect-all", "aiohttp", "--collect-all", "webview", "--hidden-import", "sqlite3"]
     for item in CARRIED:
         src = os.path.join(ROOT, item)

@@ -118,6 +118,7 @@ html, body {
 
 /* (the title on the login screen: index.html's own drawing, so it's sharp at any size and needs no font from the web) */
 .panel h1.logo { margin: 18px auto 4px; width: min(320px, 82%); line-height: 0; text-shadow: none; }   /* (clear of the music button) */
+.panel h1.logo img { width: 100%; height: auto; image-rendering: pixelated; }   /* (build_logo.py: pixel art, kept crisp) */
 .logo svg { width: 100%; height: auto; overflow: visible; }
 .logo text { font-family: var(--font); text-anchor: middle; paint-order: stroke; stroke: #2a160c; stroke-linejoin: round; }
 .logo .logo-big { font-size: 56px; font-weight: bold; letter-spacing: 7px; stroke-width: 5px; }

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy - {{NAME}}</title>
+<style>
+:root { --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #e6d6a8; }
+body { margin: 0; background: var(--bg); color: var(--parchment); font: 17px/1.55 "Palatino Linotype", Palatino, Georgia, serif; }
+main { max-width: 760px; margin: 0 auto; padding: 24px 18px 48px; }
+article { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 20px 26px; }
+h1, h2 { color: var(--ink); } h1 { margin-top: 0; } h2 { font-size: 20px; margin: 26px 0 6px; }
+a { color: var(--ink); } li { margin: 4px 0; }
+.small { font-size: 14px; opacity: 0.8; }
+</style>
+</head>
+<body>
+<main><article>
+<h1>Privacy policy</h1>
+<p class="small">{{NAME}}, run by {{OPERATOR}}. This policy covers the central server (accounts, the list of games,
+the start screen) and the game servers it lists.</p>
+
+<h2>What we keep, and why</h2>
+<ul>
+  <li><b>Your account</b>: the name you choose, your password (only as a one-way hash: nobody can read it back), a
+    recovery code (also only as a hash) and, if you give one, your email address. We use these to log you in, and the
+    email only to send you a code when you've forgotten your password.</li>
+  <li><b>A log-in token</b>, kept in your app or browser so you needn't type your password each time. Logging out
+    removes it.</li>
+  <li><b>Your IP address</b>, briefly, to stop password guessing and too many accounts from one place, and in the
+    server's logs.</li>
+  <li><b>Game servers</b> that are listed: their name, address and how many are playing.</li>
+</ul>
+
+<h2>Your characters</h2>
+<p>Each game server is a world of its own, and <b>your characters live on the server you made them on, and only
+there</b>: what you carry, your quests, your house. The server's owner keeps them, not the central server. A server
+that closes takes its characters with it. Your account (your name) is the same on every server.</p>
+<p>Servers you join may keep what you do in their world, and what you say in their chat, for as long as they run.
+Each is run by its owner: the central server lists only servers its admins have approved, but it doesn't run them.</p>
+
+<h2>Ads</h2>
+<p>The start screen shows {{ADS}}. When it's Google AdSense (in a web browser), Google and its partners may use
+cookies to show ads based on your visits to this and other sites: see
+<a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">how Google uses data from sites
+that use its services</a>, and turn off personalised ads at
+<a href="https://adssettings.google.com" target="_blank" rel="noopener">Google's ad settings</a>. In the apps, the ads
+are our own and use no cookies.</p>
+
+<h2>What we don't do</h2>
+<ul>
+  <li>We don't sell your data, or share it except as this page says.</li>
+  <li>We don't ask your real name, age or where you live.</li>
+</ul>
+
+<h2>How long, and your say</h2>
+<p>Your account stays until you ask for it to be removed. Ask, and we'll delete it (and your email) from the central
+server; for characters on a game server, ask that server's owner. Write to {{CONTACT}} for that, or with any question
+about this policy.</p>
+
+<h2>Children</h2>
+<p>The game isn't meant for children under 13, and we don't knowingly keep their data. If you think a child has made an
+account, write to us and we'll remove it.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, the new one will be here, with the date.</p>
+<p class="small">Last changed: 30 October 2026.</p>
+</article></main>
+</body>
+</html>

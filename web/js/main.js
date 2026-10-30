@@ -881,6 +881,8 @@ async function startGame(m) {
   S.uid = m.uid;
   S.admin = m.admin;
   $("opt-name-row").hidden = !m.host;              // (the game's name: the host's say, or an admin's)
+  $("opt-linked").hidden = !m.linked;              // (a Shards account's character: no password of its own here)
+  for (const el of document.querySelectorAll(".opt-own")) el.hidden = !!m.linked;
   $("opt-server-name").value = m.server || "";
   if (m.recovery) setTimeout(() => showRecovery(m.recovery, "Welcome! Write this recovery code down somewhere safe: " +
     "with it you can set a new password if you ever forget yours."), 800);
