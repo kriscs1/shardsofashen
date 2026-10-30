@@ -114,21 +114,21 @@ class Prefs:
 class Bridge:
     """What the start screen and the game page may ask of the app (window.pywebview.api.<name>)."""
 
-    def __init__(self):
-        self.host = Host()
-        self.prefs = Prefs()
-        self.window = None
+    def __init__(self):                                   # (private: pywebview hands the page every public attribute)
+        self._host = Host()
+        self._prefs = Prefs()
+        self._window = None
 
     def state(self):
-        return json.dumps({"status": self.host.status, "error": self.host.error, "name": self.host.name,
-                           "mode": self.host.mode, "port": PORT, "addresses": addresses(), "device": platform.node(),
+        return json.dumps({"status": self._host.status, "error": self._host.error, "name": self._host.name,
+                           "mode": self._host.mode, "port": PORT, "addresses": addresses(), "device": platform.node(),
                            "version": version()})
 
     def hostAs(self, name, mode, central):                # noqa: N802 (the start screen's names, as Android's)
-        self.host.start(str(name or "").strip(), str(mode or "local"), str(central or ""))
+        self._host.start(str(name or "").strip(), str(mode or "local"), str(central or ""))
 
     def stopHosting(self):                                # noqa: N802
-        self.host.stop()
+        self._host.stop()
 
     def find(self):
         from server import lan
@@ -144,13 +144,13 @@ class Bridge:
         return out
 
     def play(self, url):
-        self.window.load_url(str(url))
+        self._window.load_url(str(url))
 
     def goHome(self):                                     # noqa: N802
-        self.window.load_html(home_page(self))
+        self._window.load_html(home_page(self))
 
     def set(self, key, value):
-        self.prefs.set(key, value)
+        self._prefs.set(key, value)
 
 
 SHIM = """<script>
@@ -191,7 +191,7 @@ def home_page(bridge):
         page = f.read()
     with open(os.path.join(ROOT, "web", "home", "config.js"), encoding="utf-8") as f:
         config = f.read()
-    shim = SHIM % (json.dumps(bridge.prefs.values), json.dumps(bridge.state()))
+    shim = SHIM % (json.dumps(bridge._prefs.values), json.dumps(bridge.state()))
     page = page.replace('<script src="config.js"></script>', "<script>%s</script>%s" % (config, shim), 1)
     import base64
     for pic, kind in (("logo.png", "image/png"), ("bg.jpg", "image/jpeg")):    # (no folder behind the page: in it)
@@ -206,7 +206,7 @@ def main():
     bridge = Bridge()
     window = webview.create_window("Shards of Ashen", html=home_page(bridge), js_api=bridge, width=1280, height=800,
                                    min_size=(800, 560))
-    bridge.window = window
+    bridge._window = window
 
     def loaded():
         url = window.get_current_url() or ""
@@ -214,7 +214,7 @@ def main():
             window.evaluate_js(GAME_SHIM)
 
     window.events.loaded += loaded
-    window.events.closing += lambda: bridge.host.stop()
+    window.events.closing += lambda: bridge._host.stop()
     webview.start()
 
 
