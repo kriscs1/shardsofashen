@@ -338,6 +338,14 @@ bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
   `DS_PASSWORD_MIN`, `DS_REGISTER_PER_DAY` from one address, names like Admin kept back; admins' `/kick`, `/ban`,
   `/unban`, `/bans`, `/mute`, `/unmute`.
 
+## 17. Passwords, the app's first screen, names (2026-10-30)
+
+- [x] **A forgotten password, reset by the player**: a recovery code at sign-up (and a new one in Options), the login
+  screen's "Forgotten your password?". No email: a server would need one set up to send it.
+- [x] **The app opens on Play alone or Play with others**: alone, a world of your own on the phone (closed to the
+  network); with others, host one for the network (named), the network's games by name, or an address.
+- [x] **Every game has a name**: on the login screen and in the app's list; the host renames it in Options.
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

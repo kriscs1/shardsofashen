@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import os
+import socket
 import time
 
 from aiohttp import web, WSMsgType
@@ -240,6 +241,11 @@ class GameServer:
 
     LOCAL = ("127.0.0.1", "::1", "localhost")
 
+    def server_name(self):
+        """The game's name: what the host called it in Options, else DS_NAME, else this machine's."""
+        return self.store.setting("name", "") or os.environ.get("DS_NAME", "") or \
+            "Shards of Ashen on " + socket.gethostname()
+
     @property
     def lan_open(self):
         """Open to the network (anyone who can reach this machine may join), or this machine only. Kept with the
@@ -294,6 +300,7 @@ class GameServer:
             await ws.close()
             return ws
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
+                            "name": self.server_name(),
                             "registration": self.registration, "invite": bool(self.invite_code),
                             "assets": self.assets_version(), **self.version})
         try:
@@ -346,8 +353,43 @@ class GameServer:
         c.msg_times.append(now)
         return True
 
+    async def new_recovery(self, name):
+        """A new recovery code for name: kept only as a hash, the code itself told to them once."""
+        code = auth.recovery_code()
+        self.store.set_setting("recover:" + name.lower(), await self.hashed(auth.clean_code(code)))
+        return code
+
+    async def reset_password(self, c, data):
+        """Forgotten a password: the name, the recovery code written down at sign-up, a new password. The code is
+        used up (a new one is given). Wrong codes count as wrong passwords (the wait)."""
+        name = auth.clean_name(data.get("name", ""))
+        code = auth.clean_code(data.get("code", ""))
+        new = str(data.get("password", ""))[:200]
+        fail = lambda text: self.send(c, {"t": "reset_result", "ok": False, "text": text})   # noqa: E731
+        wait = self.login_wait(name, c.addr)
+        if wait:
+            return await fail("Too many tries: wait %d seconds." % wait)
+        acct = self.store.account(name)
+        stored = self.store.setting("recover:" + name.lower(), "") if acct else ""
+        right = bool(stored) and await asyncio.get_running_loop().run_in_executor(None, auth.check_password, code, stored)
+        if not right:
+            self.login_failed(name, c.addr)
+            await asyncio.sleep(1)
+            return await fail("That name and recovery code don't go together. (Lost the code too? Ask the server's "
+                              "admin to set you a new password.)")
+        least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
+        if len(new) < least:
+            return await fail("Use a new password of at least %d characters." % least)
+        self.store.set_password(acct[0], await self.hashed(new))
+        log.info("%s set a new password with their recovery code", acct[0])
+        await self.send(c, {"t": "reset_result", "ok": True, "recovery": await self.new_recovery(acct[0]),
+                            "text": "Your new password is set: log in with it."})
+
     async def handle_login(self, c, data):
         t = data.get("t")
+        if t == "reset":
+            await self.reset_password(c, data)
+            return
         if t not in ("login", "register"):
             return
         name = auth.clean_name(data.get("name", ""))
@@ -390,6 +432,7 @@ class GameServer:
                 return
             hashed = await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
             self.store.create_account(name, hashed, False)
+            c.recovery = await self.new_recovery(name)  # (shown once, in the welcome: to write down)
             self.signups.setdefault(c.addr, []).append(time.strftime("%Y%m%d"))
             log.info("New character %s from %s", name, c.addr)
             acct = self.store.account(name)
@@ -444,6 +487,7 @@ class GameServer:
         self.clients[s] = c
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
+                            "recovery": getattr(c, "recovery", ""), "server": self.server_name(),
                             "host": s.admin_enabled or self.is_local(c.addr), "lan": self.lan_open,
                             "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())
@@ -615,6 +659,18 @@ class GameServer:
             return
         if t == "password":
             asyncio.ensure_future(self.change_password(s, data))
+            return
+        if t == "recovery":                             # (Options: a new recovery code, shown once)
+            async def give():
+                s.emit({"t": "recovery", "code": await self.new_recovery(s.player_name)})
+            asyncio.ensure_future(give())
+            return
+        if t == "server_name":                          # (Options: the host names the game)
+            if s.admin_enabled or self.is_local(c.addr):
+                name = " ".join(str(data.get("name", "")).split())[:40]
+                if name:
+                    self.store.set_setting("name", name)
+                    self.broadcast({"t": "server_name", "name": name})
             return
         if t == "admin_password":
             if s.admin_enabled:

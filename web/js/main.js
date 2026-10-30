@@ -268,6 +268,23 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
 $("opt-lan").addEventListener("input", (ev) => send({ t: "lan", open: ev.target.checked }));
+$("opt-recovery").addEventListener("click", () => send({ t: "recovery" }));
+$("opt-server-name-save").addEventListener("click", () => send({ t: "server_name", name: $("opt-server-name").value }));
+
+// ----- a forgotten password: the recovery code (shown once, when the character's made, and after each use)
+function showRecovery(code, words) {
+  if (code) showMessage("Your recovery code", `${words}\n\n${code}\n\nWith your name and this code you can set a new password from the login screen. Nobody else can see it, not even the server's admin.`);
+}
+$("forgot-link").addEventListener("click", (ev) => {
+  ev.preventDefault();
+  $("forgot").hidden = !$("forgot").hidden;
+  if (!$("forgot").hidden) $("forgot-code").focus();
+});
+$("forgot-button").addEventListener("click", () => {
+  if (!N.open) { setLoginError("Not connected to the server yet..."); return; }
+  if (!$("login-name").value.trim()) { setLoginError("Type your name above first."); return; }
+  send({ t: "reset", name: $("login-name").value, code: $("forgot-code").value, password: $("forgot-password").value });
+});
 
 // ----- the trade window (together.py): your pack's things to put in, your offer to take back, theirs; both accept
 function tradeRow(name, n, buttons) {
@@ -670,6 +687,8 @@ N.onMessage = (m) => {
         break;
       }
       $("login-online").textContent = `${m.online} of ${m.max} adventurers online.`;
+      $("login-server").textContent = m.name || "";            // (the game's name: what its host called it)
+      if (m.name) document.title = `${m.name} - Shards of Ashen`;
       if (m.version) {
         const day = m.date ? new Date(m.date + "T12:00:00").toLocaleDateString(undefined,
           { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -686,6 +705,16 @@ N.onMessage = (m) => {
     case "lan":
       $("opt-lan").checked = !!m.open;
       break;
+    case "reset_result":
+      setLoginError(m.text);
+      if (m.ok) {
+        $("forgot").hidden = true;
+        $("login-password").value = "";
+        showRecovery(m.recovery, "Your old recovery code is used up. Here's your new one:");
+      }
+      break;
+    case "recovery": showRecovery(m.code, "Your new recovery code (the old one no longer works):"); break;
+    case "server_name": $("opt-server-name").value = m.name || ""; break;
     case "trade": showTrade(m); break;
     case "login_fail":
       setLoginError(m.reason);
@@ -839,6 +868,10 @@ async function startGame(m) {
   S.name = m.name;
   S.uid = m.uid;
   S.admin = m.admin;
+  $("opt-name-row").hidden = !m.host;              // (the game's name: the host's say, or an admin's)
+  $("opt-server-name").value = m.server || "";
+  if (m.recovery) setTimeout(() => showRecovery(m.recovery, "Welcome! Write this recovery code down somewhere safe: " +
+    "with it you can set a new password if you ever forget yours."), 800);
   $("opt-lan-row").hidden = !m.host;               // (open to the network: the host's say, or an admin's)
   $("opt-lan").checked = !!m.lan;
   S.explored.clear();

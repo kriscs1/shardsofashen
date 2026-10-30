@@ -1,6 +1,7 @@
 <!doctype html>
-<!-- The app's start screen (MainActivity shows it first; window.DSApp is the app): host a game on this phone for
-     the network, join one of the games on the network, or join a game by its address. -->
+<!-- The app's start screen (MainActivity shows it first; window.DSApp is the app): play alone (a game of your own on
+     this phone), or with others: host a game on this phone for the network, join one of the games on the network (each
+     by its name), or join a game by its address. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -38,11 +39,30 @@ button:disabled { opacity: 0.5; }
 .game .name { color: var(--ink); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .address { color: var(--ink); font-weight: bold; user-select: all; }
 .error { color: var(--bad); }
+.menu { display: flex; flex-direction: column; gap: 14px; max-width: 520px; margin: 18px auto 0; }
+.big { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 18px 20px; font-size: 22px;
+  text-align: left; border-radius: 14px; min-height: 84px; }
+.big span { font-size: 14px; font-weight: normal; color: var(--parchment); }
+.running { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 12px 14px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.running p { flex: 1; min-width: 180px; }
+.back { margin-bottom: 10px; }
 </style>
 </head>
 <body>
 <div class="top"><h1>Shards of Ashen</h1><span id="version" class="dim small"></span></div>
 <p id="error" class="error" hidden></p>
+<div id="running" class="running" hidden>
+  <p><span id="running-name" class="address"></span> <span id="running-what" class="dim small"></span></p>
+  <button id="resume" class="go">Play</button><button id="running-stop">Stop</button>
+</div>
+<div id="menu" class="menu">
+  <button id="alone" class="big go">Play alone<span>A world of your own, on this phone. Nobody else can join.</span></button>
+  <button id="together" class="big">Play with others<span>Games on this network, a game hosted here for them, or one
+    on the internet by its address.</span></button>
+</div>
+<div id="multi" hidden>
+<button id="back" class="back">&lt; Back</button>
 <div class="cols">
   <section class="card">
     <h2>Host a game here</h2>
@@ -73,12 +93,13 @@ button:disabled { opacity: 0.5; }
     <div class="row"><button id="join" class="go">Join</button></div>
   </section>
 </div>
+</div>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
 const app = window.DSApp || {           // (in a browser, to look at: nothing behind it)
   state: () => JSON.stringify({ status: "off", addresses: ["192.168.1.23"], port: 8484, device: "Phone", version: "-" }),
-  host() {}, stopHosting() {}, find() { setTimeout(() => window.onGames([]), 300); }, play(u) { location.href = u; },
+  host() {}, playAlone() {}, stopHosting() {}, find() { setTimeout(() => window.onGames([]), 300); }, play(u) { location.href = u; },
   get: () => "", set() {},
 };
 
@@ -95,12 +116,26 @@ function gameUrl(address) {
 
 function say(text) { $("error").textContent = text; $("error").hidden = !text; }
 
-let last = "";
+let last = "", wantAlone = false;
+function show(multi) {
+  $("menu").hidden = multi;
+  $("multi").hidden = !multi;
+  if (multi) find();
+}
 function refresh() {
   let st = {};
   try { st = JSON.parse(app.state()); } catch (e) { /* (not ready yet) */ }
   $("version").textContent = st.version ? "Version " + st.version : "";
   const on = st.status === "on", busy = ["unpacking", "starting", "stopping"].includes(st.status);
+  $("running").hidden = !on;                       // (a game going on this phone: back into it, or stop it)
+  if (on) {
+    $("running-name").textContent = st.solo ? "Your own game" : st.name;
+    $("running-what").textContent = st.solo ? "is running on this phone." : "is hosted on this phone for the network.";
+  }
+  if (on && st.solo && wantAlone) {                // (Play alone: straight in, once it's started)
+    wantAlone = false;
+    app.play(gameUrl("127.0.0.1:" + (st.port || 8484)));
+  }
   $("host-off").hidden = on || busy;
   $("host-busy").hidden = !busy;
   $("host-on").hidden = !on;
@@ -157,8 +192,25 @@ window.onGames = (games) => {
   }
 };
 
+function current() {
+  try { return JSON.parse(app.state()); } catch (e) { return {}; }
+}
+$("alone").onclick = () => {
+  say("");
+  const st = current();
+  if (st.status === "on" && st.solo) { app.play(gameUrl("127.0.0.1:" + (st.port || 8484))); return; }
+  if (st.status === "on") { say("A game for the network is running here: stop it first (above) to play alone."); return; }
+  wantAlone = true;
+  app.playAlone();
+  refresh();
+};
+$("together").onclick = () => { say(""); show(true); };
+$("back").onclick = () => { say(""); show(false); };
+$("resume").onclick = () => app.play(gameUrl("127.0.0.1:" + (current().port || 8484)));
+$("running-stop").onclick = () => { app.stopHosting(); refresh(); };
 $("host").onclick = () => {
   say("");
+  if (current().status === "on") { say("A game is running here already: stop it first (above)."); return; }
   app.set("hostName", $("host-name").value.trim());
   app.host($("host-name").value.trim());
   refresh();
@@ -184,7 +236,7 @@ const err = /#error=(.*)$/.exec(location.hash);
 if (err) say(decodeURIComponent(err[1]));
 refresh();
 setInterval(refresh, 1000);
-find();
+show(false);                                     // (the menu first, every time)
 </script>
 </body>
 </html>

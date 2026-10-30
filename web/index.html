@@ -55,6 +55,7 @@
         <text class="logo-big" x="180" y="138" fill="url(#logo-ember)" filter="url(#logo-glow)">ASHEN</text>
       </svg>
     </h1>
+    <p id="login-server" class="server-name"></p>
     <p id="login-online" class="dim">Connecting...</p>
     <label>Name <input id="login-name" name="username" maxlength="20" autocomplete="username" required></label>
     <div id="login-names" class="names" hidden></div>
@@ -70,7 +71,15 @@
       <button type="button" id="register-button">New character</button>
     </div>
     <p id="login-error" class="error" role="alert"></p>
-    <p class="dim small">Up to five adventurers share this world.<span class="desk-only"> Full screen: F11 or the button in the game.</span></p>
+    <p class="small"><a href="#" id="forgot-link">Forgotten your password?</a></p>
+    <div id="forgot" hidden>
+      <p class="dim small">Your name, the recovery code you wrote down when you made your character, and a new password.</p>
+      <label>Recovery code <input id="forgot-code" maxlength="40" autocomplete="off" autocapitalize="characters"
+             spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"></label>
+      <label>New password <input id="forgot-password" type="password" maxlength="200" autocomplete="new-password"></label>
+      <div class="buttons"><button type="button" id="forgot-button">Set my new password</button></div>
+    </div>
+    <p class="dim small">Adventurers share this world.<span class="desk-only"> Full screen: F11 or the button in the game.</span></p>
     <p id="login-version" class="version"></p>
   </form>
 </div>
@@ -171,6 +180,9 @@
     <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
     <div class="row"><span>Your appearance</span><button type="button" id="opt-look">Change</button></div>
     <div class="row"><span>Your password</span><button type="button" id="opt-password">Change</button></div>
+    <div class="row"><span>Your recovery code (for a forgotten password)</span><button type="button" id="opt-recovery">Make a new one</button></div>
+    <div class="row" id="opt-name-row" hidden><span>The game's name</span><input id="opt-server-name" maxlength="40">
+      <button type="button" id="opt-server-name-save">Save</button></div>
     <div class="row" id="opt-lan-row" hidden><span>Open to your network (others nearby can join)</span><input type="checkbox" id="opt-lan"></div>
     <div class="row"><span>Mouse pointer size</span><select id="opt-cursor">
       <option value="18">Small</option><option value="22">Medium</option><option value="28">Large</option>

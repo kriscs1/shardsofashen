@@ -26,6 +26,20 @@ def check_password(password, stored):
         return False
 
 
+CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"     # (no 0/O, 1/I: easy to copy down)
+
+
+def recovery_code():
+    """A recovery code to write down: four groups of four, e.g. K7QM-2HXA-9WPE-TR3D."""
+    picks = [CODE_CHARS[b % len(CODE_CHARS)] for b in os.urandom(16)]
+    return "-".join("".join(picks[i:i + 4]) for i in range(0, 16, 4))
+
+
+def clean_code(entered):
+    """A recovery code as typed: any case, spaces or dashes."""
+    return "".join(c for c in str(entered).upper() if c in CODE_CHARS)
+
+
 def clean_name(entered):
     """A character's name as the desktop game allowed them: letters, digits, space, _ and -, at most 20."""
     name = "".join(c for c in str(entered) if c in NAME_CHARS).strip(" ")[:20]

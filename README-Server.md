@@ -336,6 +336,11 @@ certificate by itself, so the game's connection is `wss://`, and it passes on ea
 `DS_TRUST_PROXY=1`), and the updater, which pulls a new image every 5 minutes when there is one and restarts the
 game with it (players are saved first and simply log in again).
 
+**Forgotten passwords.** When a character is made, its player is shown a recovery code to write down (and can make
+a new one in Options). On the login screen, "Forgotten your password?" takes the name, that code and a new password;
+the code is then used up and a new one shown. Without the code, an admin sets a new password
+(`tools/admin.py password <Name>`, or the Admin panel).
+
 **Running it.**
 
 - Settings: `/opt/shards-of-ashen/.env` (`deploy/cloud.env.example` explains each), then `docker compose up -d` in

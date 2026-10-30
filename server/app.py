@@ -62,7 +62,8 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
         # (the answer to "who's there?" on the network: nothing while it's closed to the network)
         if not game.lan_open:
             return None
-        return {"game": "shardsofashen", "name": name or "Shards of Ashen on " + socket.gethostname(), "port": port,
+        return {"game": "shardsofashen", "name": game.store.setting("name", "") or name or
+                "Shards of Ashen on " + socket.gethostname(), "port": port,
                 "online": len(game.world.sessions), "max": game.max_players, "version": game.version["version"]}
 
     async def start_tick(app):

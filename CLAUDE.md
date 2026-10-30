@@ -429,7 +429,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   network (`lan_open`, kept with the world; `DS_LAN_OPEN=0` starts closed). A public server on a cloud VM:
   `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
   go by each player's own address, sign-ups limited by `DS_PASSWORD_MIN` and `DS_REGISTER_PER_DAY`, admins' `/kick`,
-  `/ban`, `/mute`): README-Server.md says how. So
+  `/ban`, `/mute`): README-Server.md says how. A forgotten password: the recovery code shown once when a character's
+  made (and in Options, a new one), kept only as a hash, used up at each reset (no email needed). Every game has a name
+  (the host's, in Options; else `DS_NAME`), on the login screen and in the app's list. The app opens on Play alone
+  (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.

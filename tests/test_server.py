@@ -424,3 +424,39 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path):
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+def test_a_forgotten_password_is_reset_with_the_recovery_code(tmp_path):
+    """Made a character: a recovery code, once. With it (any case, dashes or not) a new password; the code is used up."""
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, m = await login(http, url, "Forgetful", "oldpass1")
+                code = m["recovery"]
+                assert len(code) == 19 and m["server"]
+                await ws.close()
+
+                async def reset(code, password):
+                    w = await http.ws_connect(url)
+                    await w.send_json({"t": "reset", "name": "Forgetful", "code": code, "password": password})
+                    while True:
+                        data = json.loads((await asyncio.wait_for(w.receive(), 10)).data)
+                        for r in data if isinstance(data, list) else [data]:
+                            if r["t"] == "reset_result":
+                                await w.close()
+                                return r
+                assert not (await reset("AAAA-BBBB-CCCC-DDDD", "newpass1"))["ok"]
+                r = await reset(code.lower().replace("-", " "), "newpass1")
+                assert r["ok"] and r["recovery"] != code
+                assert not (await reset(code, "newpass2"))["ok"]       # (used up)
+                ws2, m2 = await login(http, url, "Forgetful", "newpass1", mode="login")
+                assert m2["t"] == "welcome" and not m2["recovery"]   # (shown once, at sign-up)
+                await ws2.send_json({"t": "server_name", "name": "Kris's World"})
+                await asyncio.sleep(0.3)
+                assert game.server_name() == "Kris's World"
+                await ws2.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())

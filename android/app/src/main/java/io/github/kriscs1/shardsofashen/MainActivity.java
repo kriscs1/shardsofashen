@@ -136,6 +136,7 @@ public class MainActivity extends Activity {
                 o.put("status", HostService.status);
                 o.put("error", HostService.error);
                 o.put("name", HostService.name);
+                o.put("solo", HostService.solo);
                 o.put("port", HostService.PORT);
                 o.put("addresses", Net.addresses());
                 o.put("device", Build.MODEL);
@@ -148,11 +149,19 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void host(String name) {
-            if (!home()) return;
+            if (home()) startHost(name, false);
+        }
+
+        @JavascriptInterface
+        public void playAlone() {
+            if (home()) startHost("", true);            // (this phone only, its own world: ds_host.py's solo)
+        }
+
+        private void startHost(String name, boolean solo) {
             if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
                 requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, 1);
-            Intent i = new Intent(MainActivity.this, HostService.class).putExtra("name", name);
+            Intent i = new Intent(MainActivity.this, HostService.class).putExtra("name", name).putExtra("solo", solo);
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(i);
             else startService(i);
         }

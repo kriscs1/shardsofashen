@@ -29,6 +29,7 @@ public class HostService extends Service {
     static volatile String status = "off";          // off, unpacking, starting, on, stopping, error
     static volatile String error = "";
     static volatile String name = "";
+    static volatile boolean solo = false;           // (a game of your own: this phone only, its own world)
 
     private PowerManager.WakeLock wake;
     private WifiManager.WifiLock wifi;
@@ -45,7 +46,9 @@ public class HostService extends Service {
         }
         if (!status.equals("off") && !status.equals("error")) return START_NOT_STICKY;
         String wanted = intent != null ? intent.getStringExtra("name") : null;
-        name = wanted == null || wanted.trim().isEmpty() ? "Shards of Ashen on " + Build.MODEL : wanted.trim();
+        solo = intent != null && intent.getBooleanExtra("solo", false);
+        name = solo ? "Your own game" : wanted == null || wanted.trim().isEmpty() ? "Shards of Ashen on " + Build.MODEL
+            : wanted.trim();
         error = "";
         status = "unpacking";
         foreground("Starting " + name + "...");
@@ -56,10 +59,10 @@ public class HostService extends Service {
                 status = "starting";
                 if (!Python.isStarted()) Python.start(new AndroidPlatform(this));
                 PyObject host = Python.getInstance().getModule("ds_host");
-                host.callAttr("start", root.getPath(), new File(getFilesDir(), "world.db").getPath(), name, PORT,
-                    BuildConfig.VERSION_CODE);
+                host.callAttr("start", root.getPath(), new File(getFilesDir(), solo ? "solo.db" : "world.db").getPath(),
+                    name, PORT, BuildConfig.VERSION_CODE, solo);
                 status = "on";
-                foreground(name + ": others on this network can join it");
+                foreground(solo ? "Your own game is running" : name + ": others on this network can join it");
             } catch (Throwable t) {
                 error = String.valueOf(t.getMessage() != null ? t.getMessage() : t);
                 status = "error";

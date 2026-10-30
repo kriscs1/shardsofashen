@@ -9,13 +9,16 @@ import threading
 _run = {}                                        # loop, runner, thread: while it's running
 
 
-def start(root, db, name, port, build):
-    """Starts the server on every network the phone is on (port), its world kept in db: back once it's taking players."""
+def start(root, db, name, port, build, solo=False):
+    """Starts the server on every network the phone is on (port), its world kept in db: back once it's taking players.
+    solo: a game of your own (this phone only: on 127.0.0.1, not answering the network, closed to it)."""
     if _run:
         return
     if root not in sys.path:
         sys.path.insert(0, root)
     os.environ["DS_NAME"] = name
+    os.environ["DS_LAN"] = "0" if solo else "1"                 # (alone: nobody on the network is told of it)
+    os.environ["DS_LAN_OPEN"] = "0" if solo else "1"
     os.environ["DS_BUILD"] = str(build)           # (the app's build number: the version on the login screen)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     logging.getLogger("aiohttp.access").setLevel(logging.WARNING)   # (not a line for every picture fetched)
@@ -31,7 +34,7 @@ def start(root, db, name, port, build):
             app = make_app(root, db, 5, "open", "", name=name, port=port)
             runner = web.AppRunner(app)
             loop.run_until_complete(runner.setup())
-            loop.run_until_complete(web.TCPSite(runner, "0.0.0.0", port).start())
+            loop.run_until_complete(web.TCPSite(runner, "127.0.0.1" if solo else "0.0.0.0", port).start())
         except BaseException as e:
             failed.append(e)
             ready.set()
