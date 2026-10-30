@@ -20,4 +20,4 @@ Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree002):Grass001:Forest0
 Forest001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001+Decor(Bush001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001)
 Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush001):Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Bush001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001
 NPC	Rabbit	512	312	Attitude=Bad Zone=12,7,22,15
-NPC	Wolf	480	376	Attitude=Bad Zone=11,9,21,17
+NPC	Wolf	480	376	Attitude=Bad Zone=11,9,21,17 Chase=2,2,24,20

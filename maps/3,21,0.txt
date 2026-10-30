@@ -37,3 +37,6 @@ NPC	Trader	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
 NPC	Settler	320	344	Attitude=Good Zone=8,10,14,14 Pause=4-12
 NPC	Scholar	384	280	Attitude=Good Stand=1 Face=S Id=Dunerest_Scholar Name=Yusra
 StaticObject	Loose_Cobble	416	448	Id=Secret_Dunerest
+StaticObject	Valuables	256	120
+StaticObject	Wishing_Well	192	352	Id=Secret_Dunerest_2
+StaticObject	Hollow_Stump	64	352	Id=Secret_Dunerest_3

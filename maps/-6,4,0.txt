@@ -22,3 +22,4 @@ Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Bo
 Id	Mirefold_Square	1	21
 NPC	Villager	32	600	Attitude=Good Zone=1,15,10,21 Pause=3-9 Id=Mirefold_Villager_3 Name=Marigold
 NPC	Duck	96	184	Attitude=Passive Zone=1,3,9,11
+StaticObject	Valuables	352	376

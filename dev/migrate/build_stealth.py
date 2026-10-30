@@ -97,18 +97,27 @@ THIEVING = [   # data\Thieving.ini (thieving.py): (section, key, value, what it 
     ("Steal", "Level.Per.Value", "0.2", "A shelf's ware: its Stealth level, 1 and this for each gold of its Value; Stealth xp"),
     ("Steal", "XP", "0.3", "(times the root of the level); minutes before the same shelves again"),
     ("Steal", "Again.Minutes", "5", None),
+    ("Valuables", "Level", "4", "A house's precious things (Valuables): their Stealth level; what's in them (Item,amount,"),
+    ("Valuables", "Items", "Gold_Coin(s),3-12,40 Silver_Ring,1,12 Gold_Ring,1,6 Sapphire,1,4 Bread,1,14 "
+                           "Minor_Healing_Draught,1,14 Egg,1,10", "weight ...); how far off someone sees your hand;"),
+    ("Valuables", "Watch.Range", "192", "minutes before the same box again; Stealth xp (times the root of the level)"),
+    ("Valuables", "Again.Minutes", "30", None),
+    ("Valuables", "XP", "0.4", None),
 ]
 
 
 ISLE = "0,0,0 0,1,0 1,0,0 1,1,0 1,2,0 2,0,0 2,1,0 2,2,0 3,0,0 3,1,0 3,2,0 4,0,0 4,1,0 1,1,-1 1,1,-2 2,2,-2 2,1,1"
 LOCKS = [   # data\Locks.ini (locks.py)
     ("Locks", "Level", "3", "A chest's lock (Stealth to pick it): on the mainland, underground, and up to Variance more,"),
-    ("Locks", "Dungeon.Level", "8", "chest to chest; none on these maps (the Isle: it teaches you first). A map line's"),
+    ("Locks", "Dungeon.Level", "8", "chest to chest; Isle.Level on these maps (the Isle: where you learn). A map line's"),
     ("Locks", "Variance", "3", "Lock= and Key=, or a kind's Entities.ini Lock=, say otherwise. Never on a chest a quest needs."),
-    ("Locks", "Unlocked.Maps", ISLE, None),
+    ("Locks", "Isle.Maps", ISLE, None),
+    ("Locks", "Isle.Level", "1", None),
     ("Locks", "Reach", "4", "How far under its level you may still try to pick it; Stealth xp; Break Open (Strength) in 100"),
     ("Locks", "Pick.XP", "0.2", None),
     ("Locks", "Break.Chance", "40", None),
+    ("Locks", "Sturdy.Level", "9", "Iron-bound (never broken open, only picked or keyed): a lock this high, and this many"),
+    ("Locks", "Sturdy.Chance", "25", "in 100 of the rest, chest to chest (never on the Isle). A map line's Sturdy= says."),
 ]
 
 
@@ -232,15 +241,111 @@ def stance_sneaking():
     return K.outline_img(img, (30, 22, 16))
 
 
+def valuables():
+    """A little keepsake box against the wall, its lid up: coins, a ring's glint (a house's precious things)."""
+    img = K.new()
+    wood, light, dark = (124, 80, 46), (164, 112, 66), (82, 52, 30)
+    for y in range(20, 28):
+        for x in range(9, 23):
+            img[y][x] = light if y == 20 else dark if y >= 26 or x in (9, 22) else wood
+    for y in range(13, 20):                                     # (the lid, up)
+        for x in range(10, 22):
+            img[y][x] = dark if y == 13 or x in (10, 21) else wood
+    for x in range(11, 21):
+        img[19][x] = (230, 190, 70) if x % 2 else (196, 150, 44)    # (the coins, heaped)
+    img[18][13], img[18][14], img[18][17] = (250, 214, 100), (230, 190, 70), (250, 214, 100)
+    img[18][19], img[17][19], img[18][20] = (200, 210, 224), (240, 246, 255), (160, 170, 186)   # (a silver ring)
+    img[23][16] = (200, 170, 96)                                # (its clasp)
+    return K.outline_img(img, (40, 26, 16))
+
+
 def art():
     out = [("Interface", "Skill_Stealth", hood()), ("Interface", "Stance_None", stance_none()),
            ("Interface", "Stance_Fighting", stance_fighting()), ("Interface", "Stance_Channelling", stance_channelling()),
-           ("Interface", "Stance_Sneaking", stance_sneaking())]
+           ("Interface", "Stance_Sneaking", stance_sneaking()), ("Entities", "Valuables", valuables())]
     n = sum(1 for kind, name, img in out if K.save(kind, name, img))
     print("Pictures: %d written (of %d)" % (n, len(out)))
 
 
+def entities():
+    ents = Ini(p("data", "Entities.ini"))
+    for k, v in (("Type", "StaticObject"), ("Use.Words", "Examine"), ("Solid", "1"),
+                 ("Examine.Info", "A little box of somebody's precious things. Not yours.")):
+        if ents.get("Valuables", k) is None:
+            ents.set("Valuables", k, v)
+    ents.save(p("data", "Entities.ini"))
+
+
+HOUSE_TOWNS = [(-12, 11, -4, 18), (-8, 4, -6, 6)]               # (Galaith, redrawn; Mirefold: not in the plan's list)
+
+
+def place_valuables():
+    """In about half the houses of every settlement (not a shop: no shelves of goods), a box of precious things on a
+    back-wall tile, against the wall (sneak in and Steal from it). Never twice in a house."""
+    import zlib
+    from build_isle import Map
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "estforlan"))
+    import layout as L
+    names = set()
+    for spec in list(L.SETTLEMENTS.values()):
+        x1, y1, x2, y2 = spec["maps"]
+        names |= {"%d,%d,0" % (x, y) for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)}
+    for x1, y1, x2, y2 in HOUSE_TOWNS:
+        names |= {"%d,%d,0" % (x, y) for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)}
+    names -= set(ISLE.split())
+    n = 0
+    for name in sorted(names):
+        if not os.path.exists(p("maps", name + ".txt")):
+            continue
+        m = Map(name)
+        taken = set()
+        for ln in m.ents:
+            b = ln.split("\t")
+            if len(b) >= 4 and b[0] in ("NPC", "StaticObject", "MapItem"):
+                try:
+                    taken.add((int(float(b[2])) // 32 + 1, int(float(b[3])) // 32 + 1))
+                    taken.add((int(float(b[2])) // 32 + 1, int(float(b[3])) // 32 + 2))
+                except ValueError:
+                    pass
+            elif len(b) >= 4 and b[0] in ("Id", "Trigger"):
+                taken.add((int(b[2]), int(b[3])))
+        groups = {}
+        for y in range(1, 22):
+            for x in range(1, 26):
+                t, over = m.parts(x, y)
+                if over.get("Roof"):                            # (Piece.Group: the group's the house)
+                    groups.setdefault(over["Roof"].rsplit(".", 1)[-1], []).append((x, y, t, over))
+        changed = False
+        for g, cells in sorted(groups.items()):
+            if any("Shelf_Goods" in (o.get("Decor", "") + t) for _, _, t, o in cells):
+                continue                                        # (a shop: its shelves are stolen from instead)
+            have = {(x, y) for x, y, _, _ in cells}
+            if any(ln.startswith("StaticObject\tValuables\t") and
+                   (int(float(ln.split("\t")[2])) // 32 + 1, int(float(ln.split("\t")[3])) // 32 + 2) in have
+                   for ln in m.ents):
+                continue
+            if zlib.crc32(("valuables" + name + g).encode()) % 100 >= 50:
+                continue
+            top = min(y for _, y, _, _ in cells)
+            xs = [x for x, _, _, _ in cells]
+            spots = [(x, y) for x, y, t, o in cells if y == top > 1 and "_Thin_" in t and not o.get("Decor")
+                     and not o.get("Under") and min(xs) < x < max(xs) and (x, y) not in taken and
+                     (x, y + 1) not in taken and (x, y + 1) in have]
+            if not spots:
+                continue
+            x, y = spots[zlib.crc32((name + g).encode()) % len(spots)]
+            m.ents.append("StaticObject\tValuables\t%d\t%d" % ((x - 1) * 32, (y - 1) * 32 - 8))
+            taken.add((x, y))
+            changed = True
+            n += 1
+        if changed:
+            m.save()
+    print("Valuables: %d set down in houses" % n)
+
+
 def main():
+    entities()
+    place_valuables()
     stances_ini()
     ini_keys("Thieving.ini", THIEVING, "; The hands of a thief (dsengine/thieving.py): pockets and shops' shelves. Written by "
                                        "dev\\migrate\\build_stealth.py: edit the numbers here.")

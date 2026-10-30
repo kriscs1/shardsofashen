@@ -23,3 +23,4 @@ NPC	Sheriff	288	536	Attitude=Good Stand=1 Face=S Id=Ashford_Sheriff_325 Name=Flo
 NPC	Villager	224	312	Attitude=Good Zone=6,8,10,11 Pause=5-15 Id=Ashford_Resident_341 Name=Colin
 NPC	Man	448	344	Attitude=Good Zone=15,10,16,12 Pause=5-15 Id=Ashford_Resident_343 Name=Percy
 Id	Ashford_Gardens_339	17	21
+StaticObject	Valuables	256	184

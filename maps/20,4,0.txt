@@ -28,3 +28,5 @@ NPC	Greengrocer	128	504	Attitude=Good Stand=1 Face=S Id=Court_Greengrocer_359 Na
 StaticObject	Notice	32	610	Id=Court_Notice_369
 Id	Court_Port	14	3
 Id	Court_City_Hall	16	21
+StaticObject	Valuables	704	184
+StaticObject	Valuables	352	184

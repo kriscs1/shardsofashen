@@ -35,3 +35,4 @@ MapItem	Bones	641	226	1
 Trigger	Trap_Bucket	23	9
 Trigger	Trap_Darts	11	15
 Trigger	Trap_Pit	16	15
+Trigger	Trap_Pie	9	9

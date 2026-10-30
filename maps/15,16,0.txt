@@ -26,3 +26,5 @@ NPC	Woman	512	376	Attitude=Good Zone=16,11,18,13 Pause=5-15 Id=Highwatch_Residen
 StaticObject	Notice	32	194	Id=Highwatch_Notice_306
 StaticObject	Notice	256	450	Id=Highwatch_Notice_308
 StaticObject	Notice	768	194	Id=Highwatch_Notice_328
+StaticObject	Valuables	704	56
+StaticObject	Valuables	96	24

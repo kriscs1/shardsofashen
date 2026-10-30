@@ -308,10 +308,21 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
       const w = Math.round(e.w * MAPITEM_SCALE), h = Math.round(e.h * MAPITEM_SCALE);
       ctx.drawImage(im, x + Math.round((e.w - w) / 2), y + (e.h - h), w, h);
     } else if (im) {
+      if (e.sc && !e.gh) drawStance(ctx, e, x, y, now, true);
       if (e.gh) ctx.globalAlpha = e === me ? 0.35 : 0.08;     // (invisible: a shimmer to you, all but nothing to others)
+      const crouch = e.sc === "Sneaking" && !e.rd && !(e === me && S.me.ride);
+      if (crouch) {                               // (sneaking: down low, a little faded)
+        ctx.save();
+        ctx.translate(0, y + e.h);
+        ctx.scale(1, 0.86);
+        ctx.translate(0, -(y + e.h));
+        if (!e.gh) ctx.globalAlpha = 0.72;
+      }
       ctx.drawImage(e.fz ? held(im, e.fz) : im, x, y);
+      if (e.k === T.PLAYER) drawWorn(ctx, e, x, y);
+      if (crouch) ctx.restore();
+      if (e.sc && !e.gh) drawStance(ctx, e, x, y, now, false);
     }
-    if (e.k === T.PLAYER && im) drawWorn(ctx, e, x, y);
     ctx.globalAlpha = 1;
     pick.push([e.dx, e.dy, e.w, e.h, e]);
   };
@@ -404,7 +415,7 @@ const DIR_V = { 1: [0, -1], 2: [1, 0], 4: [0, 1], 8: [-1, 0], 3: [0.71, -0.71], 
 function drawCones(ctx, shown, cam) {
   for (const e of shown) {
     if (e.k !== T.NPC || !Array.isArray(e.cone)) continue;
-    const [deg, reach, dir] = e.cone;
+    const [deg, reach, dir, hears] = e.cone;
     const v = DIR_V[dir] || [0, 1];
     const cx = e.dx + e.w / 2 - cam.x, cy = e.dy + e.h - 6 - cam.y;
     const a = Math.atan2(v[1], v[0]), half = Math.min(Math.PI, deg * Math.PI / 360);
@@ -415,6 +426,12 @@ function drawCones(ctx, shown, cam) {
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, reach, a - half, a + half); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = "rgba(255,150,110,0.45)"; ctx.lineWidth = 1;
     ctx.stroke();
+    if (hears > 8) {                              // (how far it hears you, moving as you are: a faint dashed ring)
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = "rgba(255,220,150,0.35)";
+      ctx.beginPath(); ctx.arc(cx, cy, hears, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
   }
 }
 
@@ -577,6 +594,38 @@ function drawGlows(ctx, shown, cam) {
     ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2);
   }
   ctx.restore();
+}
+
+// ----- a stance shown on whoever's in it (stances.py): Fighting a red ring at the feet; Channelling a blue one and Shard
+// motes going round; Sneaking a dark one (and the crouch, in draw). under: the ring, drawn before the body
+const STANCE_RING = { Fighting: [200, 60, 40], Channelling: [90, 150, 255], Sneaking: [20, 20, 30] };
+function drawStance(ctx, e, x, y, now, under) {
+  const col = STANCE_RING[e.sc];
+  if (!col) return;
+  const cx = x + e.w / 2, fy = y + e.h - 2;
+  if (under) {
+    const pulse = e.sc === "Sneaking" ? 0.35 : 0.42 + 0.14 * Math.sin(now / 260);
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, fy, 11, 4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  if (e.sc !== "Channelling") return;
+  for (let k = 0; k < 3; k++) {                   // (three motes circling at the waist, the one behind dimmer)
+    const a = now / 420 + k * 2.094;
+    const mx = Math.round(cx + Math.cos(a) * 12), my = Math.round(y + e.h * 0.55 + Math.sin(a) * 4);
+    ctx.globalAlpha = Math.sin(a) > 0 ? 0.95 : 0.45;
+    ctx.fillStyle = "#bfe0ff";
+    ctx.fillRect(mx - 1, my - 1, 2, 2);
+    ctx.fillStyle = "#5a96ff";
+    ctx.fillRect(mx, my - 2, 1, 1);
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawWorn(ctx, e, x, y) {

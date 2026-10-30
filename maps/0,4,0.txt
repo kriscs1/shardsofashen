@@ -1,6 +1,6 @@
 Sand001:Sand001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sea_Rock002:Water001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Sand001:Water001:Sand001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Sand001:Grass001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Sand001:Water001:Sand001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Sand001:Grass001
 Peak004:Peak005:Peak006:Peak004:Peak001:Peak003:Peak_Big003:Peak_Big004:Peak006:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001
 Peak003:Peak001:Peak_Big001:Peak_Big002:Peak002:Peak004:Peak003:Peak003:Peak003:Peak002:Peak006:Sand001:Peak003:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Sand001:Water001
 Peak005:Peak005:Peak_Big003:Peak_Big004:Peak004:Peak003:Peak006:Peak002:Peak004:Peak005:Peak003:Sand001:Sand001:Peak002:Water001:Sand001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Peak005

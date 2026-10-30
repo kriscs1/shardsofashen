@@ -40,3 +40,6 @@ Id	Keep_Market_Square	21	17
 Id	Keep_Square	21	17
 Id	Keep_City_Hall	13	12
 StaticObject	Odd_Barrel	704	288	Id=Secret_Keep
+StaticObject	Valuables	384	152
+StaticObject	Hollow_Stump	704	224	Id=Secret_Keep_2
+StaticObject	Loose_Cobble	576	96	Id=Secret_Keep_3

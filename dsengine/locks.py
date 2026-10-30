@@ -1,11 +1,12 @@
 """Locks on chests (data\\Locks.ini). Each chest has a lock of a level (0: none): a map line's Lock= (and Key=: the
-item that opens it), else its kind's (Entities.ini Lock=), else by where it is: none on the Isle, low on the
-mainland, harder underground, a little different chest to chest. A chest a quest needs (its script gives a quest's
-own item or says quest news) is never locked.
+item that opens it), else its kind's (Entities.ini Lock=), else by where it is: the easiest on the Isle (where you
+learn to pick one), low on the mainland, harder underground, a little different chest to chest. A chest a quest needs
+(its script gives a quest's own item or says quest news) is never locked.
 
 Open it with its key; or Pick Lock (Stealth: the lockpicking game, harder the higher the lock); or Break Open
-(Strength: loud, and it may take a few goes). So no chest is ever out of reach for good. Unlocked is yours alone
-(chests are per player), and saved."""
+(Strength: loud, and it may take a few goes), unless it's sturdy (iron-bound: the high locks and some others, a map
+line's or kind's Sturdy=): those are picked or opened with their key, never forced. Unlocked is yours alone (chests
+are per player), and saved."""
 import zlib
 
 from ashen.lb import val, trim, lbstr, rnd, pretty
@@ -40,9 +41,24 @@ class LockMixin:
         m = self.w.maps.get(e.map)
         if m is None or e.map in self.lock_text("Unlocked.Maps", "").split():
             return 0, key
+        if e.map in self.lock_text("Isle.Maps", "").split():
+            return int(self.lock_num("Isle.Level", 1)), key       # (the Isle's: easy, to learn on)
         base = self.lock_num("Dungeon.Level", 8) if m.mz < 0 else self.lock_num("Level", 3)
         spread = int(self.lock_num("Variance", 3))
         return int(base + zlib.crc32(self.chest_key(e).encode()) % (spread + 1)), key
+
+    def chest_sturdy(self, e):
+        """Iron-bound: it can't be broken open (a map line's or its kind's Sturdy=, else the high locks and, chest to
+        chest, Sturdy.Chance in 100 of the rest; never on the Isle, where you learn both ways in)."""
+        own = getattr(e, "sturdy", "") or trim(self.data.entity_ini(e.name, "Sturdy", ""))
+        if own != "":
+            return val(own) > 0
+        if e.map in self.lock_text("Isle.Maps", "").split():
+            return False
+        level, _ = self.chest_lock(e)
+        if level >= self.lock_num("Sturdy.Level", 9):
+            return True
+        return zlib.crc32(("sturdy" + self.chest_key(e)).encode()) % 100 < self.lock_num("Sturdy.Chance", 25)
 
     def lock_text(self, key, default):
         return trim(self.data.ini_read(LOCKS, "Locks", key, "")) or default
@@ -79,7 +95,8 @@ class LockMixin:
     def lock_verbs(self, e, verbs):
         if self.chest_locked(e):
             verbs = self.add_verb(verbs, "Pick Lock")
-            verbs = self.add_verb(verbs, "Break Open")
+            if not self.chest_sturdy(e):
+                verbs = self.add_verb(verbs, "Break Open")
         return verbs
 
     def lock_do(self, verb, e):
@@ -98,6 +115,9 @@ class LockMixin:
             return True
         if verb == "Pick Lock":
             self.pick_chest_lock(e, level)
+        elif self.chest_sturdy(e):
+            self.refuse("It's bound in iron. No forcing this one.")
+            self.act_done(False)
         else:
             self.break_chest_open(e, level)
         return True

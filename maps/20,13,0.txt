@@ -24,3 +24,4 @@ NPC	Barmaid	640	120	Attitude=Good Zone=17,5,22,5 Pause=3-9 Id=Thornwick_Barmaid_
 NPC	Villager	320	408	Attitude=Good Zone=10,11,13,14 Pause=5-15 Id=Thornwick_Resident_322 Name=Colin
 StaticObject	Notice	224	450	Id=Thornwick_Notice_305
 StaticObject	Sign_Pub	640	176
+StaticObject	Valuables	608	24

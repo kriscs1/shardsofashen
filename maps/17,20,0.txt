@@ -34,3 +34,6 @@ NPC	Forgemaster	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
 NPC	Trader	32	440	Attitude=Good Zone=2,13,5,17 Pause=4-12
 NPC	Settler	64	472	Attitude=Good Zone=2,14,6,18 Pause=4-12
 StaticObject	Odd_Barrel	64	320	Id=Secret_Frosthold
+StaticObject	Valuables	224	120
+StaticObject	Odd_Barrel	64	224	Id=Secret_Frosthold_2
+StaticObject	Old_Statue	96	128	Id=Secret_Frosthold_3

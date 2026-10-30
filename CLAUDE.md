@@ -64,8 +64,9 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
-old dagger to break down for a Shard (Dismantle), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and
-the Grasp scroll (learnt for good, cast for Shards), and Bess points out Northport's shardstone. Anything new a player
+old dagger to break down for a Shard (Dismantle) and tells how to pick or force a lock (the Isle's chests have the
+easiest), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and the Grasp scroll (learnt for good, cast
+for Shards), and Bess points out Northport's shardstone. Anything new a player
 must learn early is taught the same way, on the Isle.
 
 On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
@@ -154,6 +155,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.
 - Prey (hens, cows, sheep, rabbits, ducks) has `Flees=1`: it runs from whoever hits it and never fights back.
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
+- **Every monster's senses are its kind's** (Entities.ini, set by `dev/migrate/build_senses.py`): `Sight.Cone` (how
+  wide it sees, 360 all round), `Aggro.Range` (how far), `Hearing` (how far your noise carries to it: a bat 2, a
+  skeleton 0.6) and `Chase.Radius`. They work in every stance: one that looks one way turns to a sound, one that sees
+  all round comes for it; Sneaking only narrows them, and shows them (cones, and a dashed ring for hearing).
+- **Creatures come and go as Shard essence**: one that comes back (a respawn, a raider, a risen remnant) is drawn
+  together out of motes (`Shard_Form`, and its sound), and one that dies lets them go (`Shard_Fade`): `world.shard_form`
+  and `shard_fade`, never a puff of smoke.
 - Buffs and debuffs end on death.
 - A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
   `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab always shows it out of its usual level
@@ -161,13 +169,17 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Stances** (`dsengine/stances.py`, `data/Stances.ini`; the round button by your health, or Q): none, Fighting
   (blows and guard up, magic hurts more), Channelling (spells stronger, wards and spell boosts longer, drains shrugged
   off; slower, a weaker guard; never potions: herbs), Sneaking (heard and seen less, more with Stealth; lookouts' sight
-  cones shown; Pickpocket, Steal; slower). A moment to change; a blow or a spell ends Sneaking. Monsters hear you
+  cones shown; Pickpocket, Steal; slower). Each stance shows on whoever's in it (a red ring, a blue ring and motes, a
+  crouch: `render.js` drawStance). A moment to change; a blow or a spell ends Sneaking. Monsters hear you
   (`noise_radius`): a lookout turns to look, but nothing sees or hears through a wall. A blow on one that never saw you
   is a sneak attack. Feedback: a ? over one that heard you, a ! and a sound when you're seen, a sound slipping past.
-- **Thieving** (`dsengine/thieving.py`, `data/Thieving.ini`): pockets by trade, shops' shelves; caught, a guard of your
-  own comes (levels above you) and that shopkeeper won't serve you a while. **Locks** (`dsengine/locks.py`,
-  `data/Locks.ini`): chests have a lock by place (none on the Isle, never on a chest a quest needs); key, Pick Lock
-  (Stealth) or Break Open (Strength), so none is out of reach; unlocked is yours, saved. **A thief's eye**
+- **Thieving** (`dsengine/thieving.py`, `data/Thieving.ini`): pockets by trade, shops' shelves, houses' Valuables
+  (about half the houses: `build_stealth.py`); caught, a guard comes (levels above you), seen by everyone but after you
+  alone, and that shopkeeper won't serve you a while. **Locks** (`dsengine/locks.py`, `data/Locks.ini`): chests have a
+  lock by place (the easiest on the Isle, to learn on; never on a chest a quest needs); key, Pick Lock (Stealth) or
+  Break Open (Strength), but an iron-bound chest (`Sturdy`: the high locks and a share of the rest, never the Isle's)
+  is only picked or keyed; unlocked is yours, saved. Secrets (51, by every settlement) and traps (every monster-held
+  level under the world, and the wild camps) are scattered by `build_whimsy.py`. **A thief's eye**
   (`dsengine/senses.py`): hidden traps and secrets noticed as you come near; a seen trap is marked, can be disarmed,
   and doesn't spring as you sneak over it. All of it each player's own.
 - **Tricks** (`dsengine/tricks.py`): invisibility (no monster sees you; strike or cast and it's over) and body swaps
@@ -280,7 +292,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   tiles, so scripts' coordinates stay right.
 - **Passes over the built mainland** (the maps since have the owner's hand on them, so they're changed in place, not
   rebuilt): `coast_reshape.py` (the coast in big strokes, bays, a peninsula, islets: only wild ground and open sea, never
-  near anything made or placed, nor on the owner's maps), `build_galaith_city.py` (Galaith redrawn: every building
+  near anything made or placed, nor on the owner's maps; `coast_repair.py` put back the land it ate by roads and
+  sank the specks it left), `build_galaith_city.py` (Galaith redrawn: every building
   lifted whole, Ids and all, and set down in its quarter; what names the palace's or the mine's coordinates moved
   with them), `build_mirefen.py` (the west finished: the Mirefen swamp and Mirefold, its hut hamlet, reached along the
   West Range's northern beach; the sea south of Galaith). **Running `build_estforlan.py` again would undo all of them

@@ -26,3 +26,5 @@ NPC	Sheriff	512	376	Attitude=Good Stand=1 Face=S Id=Court_Sheriff_331 Name=Walte
 StaticObject	Shardstone	608	32
 Id	Waystone_Court	20	3
 Id	Court_Town_Hall	12	8
+StaticObject	Valuables	320	312
+StaticObject	Valuables	480	312

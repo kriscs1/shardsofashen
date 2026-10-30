@@ -847,6 +847,7 @@ def test_a_chest_shows_what_is_in_it_before_it_is_yours(world):
     chest = next(e for e in world.ents if e.name == "Chest" and e.map == m.name)
     s = join(world, "Looter", m.name, int(chest.x - m.ox), int(chest.y - m.oy + 36))
     gold = s.items_held("Gold_Coin(s)")
+    s.unlocked_chests.add(s.chest_key(chest))                       # (the Isle's chests are locked: picked already)
     s.do_action("Open", chest)
     for _ in range(10):
         world.tick(0.05)
@@ -1833,6 +1834,7 @@ def test_a_guard_comes_to_help_against_a_goblin(world):
     s.god_mode = True
     guard = world.add_npc("Guard", m.mz, m.ox + 8 * 32, m.oy + 12 * 32, "Attitude=Good Zone=6,10,18,14")
     goblin = world.add_npc("Goblin", m.mz, m.ox + 14 * 32, m.oy + 12 * 32, "Attitude=Bad Zone=6,10,18,14")
+    goblin.direction = 8                                             # (looking your way: a goblin sees only ahead)
     for _ in range(40):
         world.tick(0.05, now=world.now + 50)
     assert goblin.in_combat and goblin.target is s                    # (it's after the player)
@@ -1989,6 +1991,7 @@ def test_every_player_finds_a_chests_loot(world):
     for s in (a, b, a):
         s.connected = True
         s.out = []
+        s.unlocked_chests.add(s.chest_key(chest))                   # (the Isle's chests are locked: picked already)
         s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
         for _ in range(60):
             world.tick(0.05)
@@ -3818,6 +3821,25 @@ def test_a_frog_on_the_bank_of_a_shore_tile_walks(world):
         world.remove_entity(frog)
 
 
+def test_a_walk_goes_round_someone_in_the_way(world):
+    """Bess stood between you and the tinderbox: you go round her to it, not stop against her."""
+    m = world.maps["2,0,0"]
+    box = next(e for e in world.ents if e.type == MAPITEM and e.name == "Tinderbox")
+    bess = next(e for e in world.ents if e.type == NPC and e.name == "Milkmaid" and e.z == 0 and
+                abs(e.x - box.x) < 300 and abs(e.y - box.y) < 300)
+    assert world.npc_is_solid(bess)
+    s = join(world, "Roundabout", "2,0,0", int(box.x - m.ox) + 90, int(box.y - m.oy) - 6)
+    box.alive = True
+    s.choose_verb("Pickup", box, box.cx, box.cy)
+    for _ in range(300):
+        bess.x, bess.y = box.x + 44, box.y - 4                  # (she stays put, square in the way)
+        world.tick(0.05)
+        if s.items_held("Tinderbox"):
+            break
+    assert s.items_held("Tinderbox") == 1
+    leave(world, s)
+
+
 def test_jimmy_goes_to_bed_and_is_never_two(world):
     day = world.day_fraction()
     jimmy = next(e for e in world.ents if e.npc_id == "Jimmy" and e.map == "4,0,0")
@@ -3987,6 +4009,7 @@ def test_pickpocketing_and_getting_caught(world):
     mark = next(e for e in world.ents if e.type == NPC and e.alive and e.owner is None and not e.hostile and
                 "Talk to" in (e.use_words or "") and s.shop_rack_of(e))           # (a shopkeeper)
     near(world, s, mark, 30, 0)
+    other = join(world, "Bystander", mark.map, int(mark.x - world.maps[mark.map].ox) + 60, int(mark.y - world.maps[mark.map].oy))
     assert "Pickpocket" not in s.get_verbs(mark)                   # (only sneaking)
     s.handle({"t": "stance", "stance": "Sneaking"})
     run_for(world, 25)
@@ -4003,12 +4026,80 @@ def test_pickpocketing_and_getting_caught(world):
         s.pickpocket(mark)
     finally:
         TH.rnd = was
-    assert not s.sneaking() and s.guards_after and s.guards_after[0].owner is s
-    assert s.guards_after[0].hostile and s.guards_after[0].in_combat
+    g = s.guards_after[0] if s.guards_after else None
+    assert not s.sneaking() and g is not None and g.owner is None   # (everyone's to see)
+    assert world.hostile_for(g, s) and not world.hostile_for(g, other) and world.visible_to(g, other)
+    run_for(world, 10)
+    assert g.in_combat and g.target is s                           # (after the thief alone)
+    leave(world, other)
     s.clicked_ent = mark
     assert not s.open_item_rack("SHOP", mark.name, s.shop_rack_of(mark))   # (they won't serve you now)
     for g in s.guards_after:
         world.remove_entity(g)
+    leave(world, s)
+
+
+def test_monsters_see_in_their_cone_and_hear_as_far_as_their_ears(world):
+    """Each kind's Sight.Cone and Hearing (build_senses.py): a bat hears you twice as far as you carry, and sees all
+    round; a skeleton looks one way, and only turns to a sound."""
+    s = join(world, "Footfalls")
+    s.connected = True
+    bat = world.add_npc("Bat", s.player.z, s.player.x + 150, s.player.y, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    bone = world.add_npc("Skeleton", s.player.z, s.player.x - 150, s.player.y, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    try:
+        assert bat.ai.cone == 360 and bat.ai.hearing == 2 and bone.ai.cone == 110 and bone.ai.hearing < 1
+        s.player_moved = True                                      # (walking: heard as far as Noise.Walk carries)
+        d = distance(bat.cx, bat.cy, s.player.cx, s.player.cy)
+        assert s.noise_radius() < d <= s.noise_radius() * 2       # (too far for plain ears; not for a bat's)
+        assert world.npc_listen(bat, bat.ai, s, d) and bat.in_combat and bat.target is s
+        bone.direction = 8                                         # (looking west, away: you're east of it)
+        db = distance(bone.cx, bone.cy, s.player.cx, s.player.cy)
+        assert not world.npc_sees(bone, bone.ai, s, db)            # (behind it)
+        assert not world.npc_listen(bone, bone.ai, s, db) and not bone.in_combat   # (too far for dull ears)
+    finally:
+        world.remove_entity(bat)
+        world.remove_entity(bone)
+        leave(world, s)
+
+
+def test_a_house_has_valuables_to_steal(world):
+    import dsengine.thieving as TH
+    box = next(e for e in world.ents if e.name == "Valuables" and e.z == 0)
+    s = join(world, "Magpie")
+    s.connected = True
+    near(world, s, box, 0, 30)
+    assert "Steal" not in s.get_verbs(box)                         # (only sneaking)
+    s.stance = "Sneaking"
+    assert "Steal" in s.get_verbs(box)
+    was = TH.rnd
+    try:
+        TH.rnd = lambda: 0.0
+        before = sum(s.items_held(n) for n in ("Gold_Coin(s)", "Silver_Ring", "Gold_Ring", "Sapphire", "Bread",
+                                               "Minor_Healing_Draught", "Egg"))
+        s.steal_from(box)
+        after = sum(s.items_held(n) for n in ("Gold_Coin(s)", "Silver_Ring", "Gold_Ring", "Sapphire", "Bread",
+                                              "Minor_Healing_Draught", "Egg"))
+        assert after > before
+        s.out = []
+        s.steal_from(box)                                          # (not twice in a row)
+        assert sum(s.items_held(n) for n in ("Gold_Coin(s)",)) <= after
+    finally:
+        TH.rnd = was
+    leave(world, s)
+
+
+def test_a_creature_comes_back_out_of_shard_essence(world):
+    s = join(world, "Watcher")
+    s.connected = True
+    m = s.cur_map
+    s.out = []
+    world.add_action_to_queue("ADD", "Rabbit", "NPC", "Attitude=Passive", m.name, "200,200", 0)
+    world.run_action_queue()
+    assert any(ev.get("t") == "anim" and ev.get("base") == "Shard_Form" for ev in s.out)
+    rabbit = next(e for e in world.ents if e.name == "Rabbit" and e.map == m.name and e.source == "MAP")
+    s.out = []
+    world.npc_killed_by_npc(rabbit)
+    assert any(ev.get("t") == "anim" and ev.get("base") == "Shard_Fade" for ev in s.out)
     leave(world, s)
 
 
@@ -4042,10 +4133,17 @@ def test_chests_are_locked_and_never_out_of_reach(world):
     import dsengine.locks as LK
     s = join(world, "Locksmith")
     s.connected = True
-    chest = next(e for e in world.ents if s.is_chest(e) and e.map == "13,9,0")
-    assert s.chest_locked(chest) and "Pick Lock" in s.get_verbs(chest) and "Break Open" in s.get_verbs(chest)
+    chests = [e for e in world.ents if s.is_chest(e) and e.z == 0 and s.chest_locked(e) and
+              e.map not in s.lock_text("Isle.Maps", "").split()]
+    chest = next(e for e in chests if not s.chest_sturdy(e))
+    assert "Pick Lock" in s.get_verbs(chest) and "Break Open" in s.get_verbs(chest)
     isle = next(e for e in world.ents if s.is_chest(e) and e.map == "3,1,0")
-    assert not s.chest_locked(isle)                                 # (the Isle teaches you first)
+    assert s.chest_lock(isle)[0] == 1 and not s.chest_sturdy(isle)  # (the Isle's: the easiest, to learn on)
+    iron = next(e for e in chests if s.chest_sturdy(e))              # (iron-bound: picked or keyed, never forced)
+    assert "Pick Lock" in s.get_verbs(iron) and "Break Open" not in s.get_verbs(iron)
+    near(world, s, iron, 30, 0)
+    s.do_action("Break Open", iron)
+    assert s.chest_locked(iron)
     near(world, s, chest, 30, 0)
     s.out = []
     s.do_action("Open", chest)

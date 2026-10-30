@@ -24,3 +24,5 @@ NPC	Armourer	608	24	Attitude=Good Stand=1 Face=S Id=Galaith_Armourer_360 Name=Po
 NPC	Farmer	416	504	Attitude=Good Zone=13,16,15,17 Pause=5-15 Id=Galaith_Resident_444 Name=Toby
 NPC	Farmer	608	504	Attitude=Good Zone=20,16,21,17 Pause=5-15 Id=Galaith_Resident_449 Name=Ida
 StaticObject	Notice	544	546	Id=Galaith_Notice_312
+StaticObject	Valuables	448	440
+StaticObject	Valuables	640	440

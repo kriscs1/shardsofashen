@@ -24,3 +24,6 @@ NPC	Farmer	288	376	Attitude=Good Zone=9,12,12,13 Pause=5-15 Id=Keep_Resident_367
 NPC	Villager	480	376	Attitude=Good Zone=16,12,17,13 Pause=5-15 Id=Keep_Resident_368 Name=Lionel
 StaticObject	Notice	512	162	Id=Keep_Notice_307
 StaticObject	Notice	576	418	Id=Keep_Notice_308
+StaticObject	Valuables	96	24
+StaticObject	Valuables	320	312
+StaticObject	Valuables	512	312

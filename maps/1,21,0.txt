@@ -30,3 +30,5 @@ NPC	Scorpion	480	256	Attitude=Bad
 NPC	Scorpion	160	352	Attitude=Bad
 Id	Caravan_Wreck	14	7
 Trigger	Caravan Wreck	14	10
+Trigger	Trap_Weakness	15	16
+Trigger	Trap_Bucket	24	13

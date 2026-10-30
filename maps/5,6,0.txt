@@ -23,3 +23,4 @@ NPC	Blacksmith	128	120	Attitude=Good Stand=1 Face=S Id=Northport_Smith_369 Name=
 NPC	Farmer	608	152	Attitude=Good Zone=19,5,21,6 Pause=5-15 Id=Northport_Resident_379 Name=Mabel
 StaticObject	Furnace	64	96
 StaticObject	Anvil	192	96
+StaticObject	Valuables	320	24

@@ -32,4 +32,4 @@ StaticObject	Eel_Spot	288	256
 Trigger	Trap_Darts	16	13
 Trigger	Trap_Pit	16	7
 Trigger	Trap_Pie	10	12
-
+Trigger	Trap_Darts	21	9

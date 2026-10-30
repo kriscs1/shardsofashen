@@ -24,3 +24,5 @@ NPC	Villager	256	184	Attitude=Good Zone=8,5,10,7 Pause=5-15 Id=Frosthold_Residen
 StaticObject	Notice	160	194	Id=Frosthold_Notice_307
 StaticObject	Notice	96	450	Id=Frosthold_Notice_309
 StaticObject	Notice	768	194	Id=Frosthold_Notice_327
+StaticObject	Valuables	608	56
+StaticObject	Valuables	480	344

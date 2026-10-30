@@ -234,6 +234,29 @@ chose to have Galaith redrawn.)
 
 ---
 
+## 14. The second round (2026-10-30)
+
+- [x] **The warnings, fixed** (143 to the few known): the Royal quarter had no gate (the palace, the Guard Captain and
+  the King out of reach); the coast reshape had eaten roads (its plain ground took in Dirt) and left specks of land
+  in the sea (`coast_repair.py`); the Parliament's door opened on the church's back wall (Galaith's street rows kept
+  clear now); the Mirefen's beach had a channel across it; a duplicate Stone_Wall tile; stray scripts and a save.
+- [x] **A look for each stance**, on whoever's in it: Fighting a red ring, Channelling a blue ring and Shard motes,
+  Sneaking a crouch, a little faded.
+- [x] **The tinderbox walk**: a friendly creature in the way (Bess, a cow, a hen) stopped the walk dead; now it goes
+  round them (and round the step it couldn't take). A test.
+- [x] **A new tinderbox**: half the size, a shut tin, a fire steel and a flint, a spark.
+- [x] **Iron-bound chests** can't be broken open (only picked or keyed); **the Isle's chests are locked**, the
+  easiest, and Frank tells you how.
+- [x] **Carts cost 1 gold.**
+- [x] **The thief's guard is seen by everyone**, after the thief alone.
+- [x] **Senses by kind** (`build_senses.py`): each monster's sight cone (some all round), sight range, hearing and
+  chase; all in Entities.ini. Cones and hearing work in every stance (Sneaking narrows and shows them).
+- [x] **Shard essence**: creatures form out of motes with a sound when they come back, and the motes lift off when
+  they die.
+- [x] **Lots to steal, find and spring**: Valuables in about half the houses (129), two more secrets by every
+  settlement (51 in all), traps on every monster-held level and in the wild camps (48 more).
+- [x] **Chase areas** raised for most monsters (a least per kind, never lowered).
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

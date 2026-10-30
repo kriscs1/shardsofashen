@@ -38,3 +38,7 @@ NPC	Druid	64	536	Attitude=Good Zone=2,16,6,20 Pause=4-12
 NPC	Trader	64	408	Attitude=Good Zone=2,12,6,16 Pause=4-12
 NPC	Settler	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
 StaticObject	Hollow_Stump	64	352	Id=Secret_Thornwick
+StaticObject	Valuables	192	248
+StaticObject	Valuables	288	472
+StaticObject	Old_Statue	64	224	Id=Secret_Thornwick_2
+StaticObject	Wishing_Well	96	192	Id=Secret_Thornwick_3

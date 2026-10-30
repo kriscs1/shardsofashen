@@ -25,3 +25,5 @@ NPC	Rabbit	480	248	Attitude=Bad Zone=11,5,21,13
 NPC	Wolf	320	152	Attitude=Bad Zone=6,2,16,10
 NPC	Seal	32	544	Attitude=Bad Zone=2,14,7,20
 NPC	Seal	64	544	Attitude=Bad Zone=2,14,7,20
+Trigger	Trap_Darts	2	2
+Trigger	Trap_Pit	20	9

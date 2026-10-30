@@ -32,3 +32,4 @@ StaticObject	Notice	448	354	Id=Highwatch_Notice_313
 StaticObject	Notice	480	354	Id=Highwatch_Notice_342
 StaticObject	Notice	288	610	Id=Highwatch_Notice_343
 Id	Highwatch_Church	13	13
+StaticObject	Valuables	352	152

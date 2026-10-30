@@ -283,22 +283,27 @@ def full_vial():
 # ---------------------------------------------------------------- the tinderbox
 @item("Tinderbox")
 def tinderbox():
-    """A small tin box, its lid up on its hinge, tinder inside; the steel and the flint beside it."""
+    """Small, and plainly what it is: a little round-cornered tin shut on its tinder, a C of fire steel and a nub of
+    flint before it, a spark struck between them (it was a big open box, read as a chest)."""
     img = K.new()
-    poly(img, [(6, 15), (24, 15), (24, 25), (6, 25)], lambda x, y: (126, 120, 112) if y < 17 else (98, 92, 86))
-    poly(img, [(6, 15), (24, 15), (23, 5), (7, 5)], (176, 170, 160))                               # the lid, up
-    poly(img, [(8, 14), (22, 14), (21.5, 7), (8.5, 7)], (84, 78, 72))                              # (inside it)
-    for x in range(7, 24):
-        img[15][x] = (178, 172, 164)                                                               # (the rim)
-        if x % 3:
-            img[16][x] = (150, 120, 60) if x % 2 else (196, 164, 90)                                # the tinder
-    for x in range(6, 25):
-        img[25][x] = (70, 66, 60)
-    for k in range(-10, 11):                                                                       # the steel
-        a = math.radians(k * 13)
-        x, y = 24 + 4.5 * math.sin(a), 24 - 4.5 * math.cos(a) * 0.55
-        K.put(img, int(round(x)), int(round(y)), (196, 200, 208) if k < 4 else (140, 144, 152))
-    K.shaded_ellipse(img, 5.5, 25, 3.2, 2.4, (78, 80, 90), (120, 122, 132), (50, 50, 58))            # the flint
+    tin = lambda x, y: (150, 144, 134) if y < 16 else (118, 112, 104) if y < 21 else (92, 86, 80)   # noqa: E731
+    poly(img, [(11, 14), (22, 14), (23, 15), (23, 21), (22, 22), (11, 22), (10, 21), (10, 15)], tin)  # the tin
+    for x in range(11, 23):
+        img[16][x] = (78, 72, 66)                                                                  # (its lid's seam)
+        img[14][x] = (190, 184, 174)                                                               # (lit from above)
+    img[18][16], img[18][17] = (200, 170, 96), (164, 132, 66)                                      # (the clasp)
+    for deg in range(0, 360, 3):                                                                   # the steel, a C
+        if 55 < deg < 125:
+            continue                                                                               # (open at the top)
+        a = math.radians(deg)
+        for rx, ry in ((6, 2.8), (5.2, 2.1)):
+            x, y = 17.5 + rx * math.cos(a), 25 - ry * math.sin(a)
+            K.put(img, int(round(x)), int(round(y)), (214, 218, 226) if math.sin(a) > -0.3 else (146, 150, 160))
+    for x in (12, 13, 22, 23):
+        img[25][x] = (120, 84, 50)                                                                 # (its wrapped grips)
+    K.shaded_ellipse(img, 8, 25, 2.4, 1.8, (78, 80, 90), (132, 134, 146), (46, 46, 54))              # the flint
+    for x, y, c in ((9, 21, (255, 214, 120)), (10, 20, (255, 170, 60)), (8, 20, (255, 236, 170))):
+        img[y][x] = c                                                                              # a spark
     return done(img)
 
 

@@ -39,3 +39,7 @@ Id	Oakhollow_Square	2	18
 Id	Oakhollow_Chapel	7	14
 StaticObject	Hollow_Stump	96	352	Id=Secret_Oakhollow
 StaticObject	Talking_Scarecrow	96	288	Id=Philosopher_Scarecrow
+StaticObject	Valuables	256	216
+StaticObject	Valuables	224	440
+StaticObject	Loose_Cobble	96	224	Id=Secret_Oakhollow_2
+StaticObject	Odd_Barrel	96	128	Id=Secret_Oakhollow_3

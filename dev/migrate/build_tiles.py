@@ -197,9 +197,10 @@ NEW_TILES = {
     "Sand001": sand,
     "Dirt001": dirt,
     # Forest001 (impassable dense woodland) is drawn by build_forest.py now, from its canopy texture
-    # The castle walls: the existing Stone_Wall sprite has no variant number (and Tiles.ini already has
-    # a [Stone_Wall001] section with no sprite), so this is the same image under the proper name.
-    "Stone_Wall001": lambda: copy_tile("Stone_Wall"),
+    # The castle walls: the old Stone_Wall sprite had no variant number, so this is the same image under the proper
+    # name (the old one's gone: its maps use this one)
+    "Stone_Wall001": lambda: copy_tile("Stone_Wall" if os.path.exists(p("sprites", "Tiles", "Stone_Wall.png"))
+                                       else "Stone_Wall001"),
     "Sea_Rock001": lambda: sea_rock(1),   # rocks in the open sea (scattered by build_scenery.py)
     "Sea_Rock002": lambda: sea_rock(2),
 }

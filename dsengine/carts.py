@@ -64,7 +64,7 @@ class Carts:
             if len(points) < 2 or len(stops) < 2:
                 continue
             c = Cart(key, trim(kv.get("TITLE", "")) or key.replace("_", " "), points, stops, z,
-                     max(0, int(val(kv.get("FARE", "2")))), max(1.0, val(kv.get("WAIT", "6"))),
+                     max(0, int(val(kv.get("FARE", "1")))), max(1.0, val(kv.get("WAIT", "6"))),
                      trim(kv.get("LOOP", "0")) == "1")
             c.i = min(stops)
             self.spawn(c)

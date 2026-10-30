@@ -219,16 +219,55 @@ SECRETS = [   # (town, kind, what's found: [(item, n)], the line)
 ]
 
 
+# (more about every settlement, further out: two each, Secret_<Town>_2 and _3, from these by turns)
+MORE = [
+    ("Hollow_Stump", [("Shard", 6)], "A squirrel's winter larder: nuts, a button, and six Shards it had no use for."),
+    ("Loose_Cobble", [("Gold_Coin(s)", 15)], "Under the stone, a purse and a note: 'Rainy day.' It's sunny. Close "
+                                             "enough."),
+    ("Odd_Barrel", [("Healing_Draught", 1)], "The barrel's labelled VINEGAR. Under the vinegar, a draught in a waxed "
+                                             "bottle. Somebody trusts nobody."),
+    ("Old_Statue", [("Shard", 9)], "The statue's hand is cupped. In it, worn smooth by years of rain, Shards."),
+    ("Wishing_Well", [("Gold_Coin(s)", 25)], "You fish out a fortune in wishes. Twenty-five gold, give or take a "
+                                             "dream."),
+    ("Hollow_Stump", [("Sapphire", 1)], "A magpie's stash: a spoon, a thimble, and a sapphire it must have been very "
+                                        "proud of."),
+    ("Loose_Cobble", [("Shard", 7)], "Under the cobble, a little tin with Shards in it and a child's drawing of a "
+                                     "dragon. The dragon's smiling."),
+    ("Odd_Barrel", [("Gold_Coin(s)", 30)], "A false bottom! Thirty gold under it, and a smuggler's apology note."),
+    ("Old_Statue", [("Super_Potion", 1)], "A potion, tucked behind the statue's cloak. It smells of mint and bad "
+                                          "decisions."),
+    ("Wishing_Well", [("Shard", 11)], "The well's bottom is lined with Shards, thrown in by people who didn't know "
+                                      "what they had."),
+    ("Hollow_Stump", [("Silver_Ring", 1)], "A silver ring, lost so long ago a mushroom's grown through it. The "
+                                           "mushroom gives it up."),
+    ("Loose_Cobble", [("Gold_Coin(s)", 12), ("Shard", 4)], "A beggar's savings, hidden better than a banker's. You "
+                                                           "feel a bit bad. A bit."),
+]
+
+
+def all_secrets():
+    """(Id, town, kind, finds, line, how far out) for every secret: the square's own, then two more further off."""
+    out = [("Secret_%s" % town, town, kind, finds, line, ((4, 9, True), (4, 13, True), (3, 10, False)))
+           for town, kind, finds, line in SECRETS]
+    for i, (town, _, _, _) in enumerate(SECRETS):
+        for k in (2, 3):
+            kind, finds, line = MORE[(i * 2 + k) % len(MORE)]
+            reach = ((9, 15, True), (8, 18, True), (6, 18, False)) if k == 2 else \
+                ((14, 20, True), (12, 22, True), (10, 22, False))
+            out.append(("Secret_%s_%d" % (town, k), town, kind, finds, line, reach))
+    return out
+
+
 def secrets():
     count = 0
-    for i, (town, kind, finds, line) in enumerate(SECRETS):
-        pid = "Secret_%s" % town
+    every = all_secrets()
+    for i, (pid, town, kind, finds, line, reach) in enumerate(every):
         anchor = "%s_Square" % town
         if anchor not in place_ids():
             print("  !! no %s" % anchor)
             continue
         if not placed(pid):
-            for rmin, rmax, off_road in ((4, 9, True), (4, 13, True), (3, 10, False)):
+            for rmin, rmax, off_road in reach:
                 mname, at = free_spot(anchor, rmin, rmax, i, off_road)     # (a paved city: on the paving)
                 if at:
                     break
@@ -251,7 +290,7 @@ def secrets():
                  ("Display.Message", "Yellow", "Ten secrets! People have started hiding things from you on purpose.",
                   "Quest"),
                  ("Give.Item", "Shard", "20"),
-                 ("@all",), (">Conditional", "$Attr.SecretsFound=%d" % len(SECRETS), "@end"),
+                 ("@all",), (">Conditional", "$Attr.SecretsFound=%d" % len(every), "@end"),
                  ("Display.Message", "Yellow", "Every secret in Ashen, found. Somewhere, a squirrel weeps.", "Quest"),
                  ("Give.Item", "Shard", "50"),
                  ("End",),
@@ -263,17 +302,51 @@ def secrets():
 
 
 # ================================================================== traps
-DUNGEONS = ["15,18,-1", "16,4,-1", "17,4,-1", "24,12,-1", "25,12,-1", "25,12,-2", "25,12,-3", "3,18,-1"]
 TRAP_KINDS = ["Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie", "Darts"]
+PER_LEVEL = 4                                   # (traps on each underground level that monsters hold)
+PER_CAMP = 2                                    # (and in each wild camp above ground)
+NO_TRAPS = {"0,0,10", "21,4,-10", "-7,11,-1"}   # (the arena, the Shardrealm's core, the King's mine: none)
+ROADS = ("Dirt", "Cobble", "Gravel", "Path", "Road", "Bridge", "Boardwalk", "Flagstone", "Marble_Paving", "Brick_Paving",
+         "Sandstone_Paving")
+
+
+def dungeons():
+    """(level, how many traps) for every level under the world a foe holds (not the Isle's caves, where you learn, nor
+    NO_TRAPS), PER_LEVEL each; and the wild camps above it (four foes or more, out of town), PER_CAMP each."""
+    import re
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "estforlan"))
+    import layout as L
+    towns = set()
+    for spec in L.SETTLEMENTS.values():
+        x1, y1, x2, y2 = spec["maps"]
+        towns |= {"%d,%d,0" % (x, y) for x in range(x1 - 1, x2 + 2) for y in range(y1 - 1, y2 + 2)}
+    ents = Ini(p("data", "Entities.ini"))
+    foes = {sec for sec, _ in ents.sections
+            if (ents.get(sec, "Type") or "") == "NPC" and (ents.get(sec, "Attitude") or "") == "Bad"}
+    out = [("3,18,-1", PER_LEVEL)]                              # (the buried library: its own, foes or none)
+    for f in sorted(os.listdir(p("maps"))):
+        mm = re.match(r"^(-?\d+),(-?\d+),(-?\d+)\.txt$", f)
+        if not mm or f[:-4] in NO_TRAPS or f[:-4] == "3,18,-1":
+            continue
+        mx, my, mz = (int(v) for v in mm.groups())
+        if 0 <= mx < 5 and my < 3:
+            continue                                            # (the Isle)
+        lines = open(p("maps", f), "rb").read().decode("cp1252").split("\r\n")
+        n = sum(1 for ln in lines if ln.startswith("NPC\t") and len(ln.split("\t")) > 1 and
+                (ln.split("\t")[1] in foes or "Attitude=Bad" in ln))
+        if mz < 0 and n:
+            out.append((f[:-4], 2 if f[:-4] == "-7,13,-1" else PER_LEVEL))     # (the archive vault: small)
+        elif mz == 0 and n >= 4 and f[:-4] not in towns:
+            out.append((f[:-4], PER_CAMP))
+    return out
 
 
 def traps():
     n = 0
-    for i, name in enumerate(DUNGEONS):
-        if not os.path.exists(p("maps", name + ".txt")):
-            continue
+    for i, (name, most) in enumerate(dungeons()):
         m = Map(name)
-        if any(ln.startswith("Trigger\tTrap_") for ln in m.ents):
+        have = sum(1 for ln in m.ents if ln.startswith("Trigger\tTrap_"))
+        if have >= most:
             continue
         near = set()
         for ln in m.ents:
@@ -287,13 +360,13 @@ def traps():
             for x in range(2, 25):
                 t, over = m.parts(x, y)
                 dec = over.get("Decor", "")
-                if (x, y) in near or "Ladder" in dec or "Stairs" in t or "Stairs" in dec:
-                    continue
+                if (x, y) in near or "Ladder" in dec or "Stairs" in t or "Stairs" in dec or t.startswith(ROADS):
+                    continue                                    # (never on a road: a trap's in the wild ground)
                 if not over and walkable(t) and all(walkable(m.parts(x + dx, y + dy)[0])
                                                     for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
                     cells.append((x, y))
         rng = random.Random(name)
-        for k in range(min(3, len(cells))):
+        for k in range(have, have + min(most - have, len(cells))):
             c = rng.choice(cells)
             cells = [q for q in cells if abs(q[0] - c[0]) + abs(q[1] - c[1]) > 4]
             m.ents.append("Trigger\tTrap_%s\t%d\t%d" % (TRAP_KINDS[(i + k * 3) % len(TRAP_KINDS)], c[0], c[1]))

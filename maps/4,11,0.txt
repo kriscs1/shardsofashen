@@ -30,3 +30,5 @@ StaticObject	Chest	480	608
 NPC	Rabbit	576	320	Attitude=Bad
 NPC	Rabbit	672	480	Attitude=Bad
 Id	Spider_Nest	20	14
+Trigger	Trap_Gas	15	14
+Trigger	Trap_Alarm	6	3

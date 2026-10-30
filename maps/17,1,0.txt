@@ -22,3 +22,4 @@ Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass
 NPC	Villager	64	472	Attitude=Good Stand=1 Face=S Id=Wardhaven_Priest_309 Name=Amos
 StaticObject	Notice	128	642	Id=Wardhaven_Notice_310
 Id	Wardhaven_Church	3	21
+StaticObject	Valuables	192	408

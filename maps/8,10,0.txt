@@ -28,3 +28,4 @@ StaticObject	Notice	736	386	Id=Oakhollow_Notice_311
 StaticObject	Notice	384	514	Id=Oakhollow_Notice_317
 Id	Waystone_Oakhollow	23	20
 Id	Oakhollow_Village_Hall	22	14
+StaticObject	Valuables	320	376

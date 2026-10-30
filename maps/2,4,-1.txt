@@ -31,3 +31,7 @@ NPC	Giant_Spider	576	448	Attitude=Bad Zone=16,11,23,17
 StaticObject	Chest	608	416	Id=Hollow_Hill_Chest
 Id	Hollow_Hill_Steps	8	16
 Id	Hollow_Hill_Floor	9	16
+Trigger	Trap_Bucket	4	7
+Trigger	Trap_Darts	17	12
+Trigger	Trap_Pit	16	8
+Trigger	Trap_Pie	21	14

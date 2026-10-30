@@ -36,3 +36,5 @@ Id	Northport_Cart_Stop_1	5	17
 Id	Northport_Square	4	17
 Id	Northport_Cathedral	13	12
 StaticObject	Odd_Barrel	160	544	Id=Secret_Northport
+StaticObject	Odd_Barrel	288	128	Id=Secret_Northport_2
+StaticObject	Old_Statue	256	128	Id=Secret_Northport_3

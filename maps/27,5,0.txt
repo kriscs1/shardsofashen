@@ -40,3 +40,9 @@ Id	Emberwatch_Scout	5	17
 NPC	Trader	32	408	Attitude=Good Zone=2,12,5,16 Pause=4-12
 NPC	Settler	64	408	Attitude=Good Zone=2,12,6,16 Pause=4-12
 StaticObject	Old_Statue	64	352	Id=Secret_Emberwatch
+StaticObject	Valuables	224	248
+StaticObject	Valuables	512	472
+StaticObject	Valuables	448	280
+StaticObject	Valuables	672	280
+StaticObject	Loose_Cobble	64	192	Id=Secret_Emberwatch_2
+StaticObject	Odd_Barrel	192	192	Id=Secret_Emberwatch_3

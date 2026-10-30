@@ -30,3 +30,5 @@ StaticObject	Sign_Pub	544	624
 StaticObject	Notice	576	610	Id=Fenwick_Notice_372
 Id	Fenwick_City_Hall	23	13
 Id	Fenwick_Town_Hall	12	13
+StaticObject	Valuables	288	184
+StaticObject	Valuables	384	440

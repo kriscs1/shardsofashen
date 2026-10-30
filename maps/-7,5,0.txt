@@ -21,3 +21,4 @@ Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+D
 Marsh001:Marsh001+Decor(Bog_Myrtle001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001+Decor(Lily_Pads001):Marsh001
 NPC	Villager	768	24	Attitude=Good Zone=17,1,25,6 Pause=3-9 Id=Mirefold_Villager_2 Name=Hobb
 NPC	Frog	544	472	Attitude=Passive Zone=13,12,23,20
+StaticObject	Valuables	480	248

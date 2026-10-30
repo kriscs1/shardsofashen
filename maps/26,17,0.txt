@@ -38,3 +38,5 @@ StaticObject	Notice	15	0	Id=Ravensgate_Notice_310
 Id	Ravensgate_Market_Square	5	15
 Id	Ravensgate_Square	16	17
 StaticObject	Wishing_Well	705	328	Id=Secret_Ravensgate
+StaticObject	Hollow_Stump	224	576	Id=Secret_Ravensgate_2
+StaticObject	Loose_Cobble	256	288	Id=Secret_Ravensgate_3

@@ -24,3 +24,4 @@ NPC	Nurse	512	568	Attitude=Good Zone=16,17,23,19 Pause=4-10 Id=Northport_Nurse_3
 StaticObject	Notice	768	610	Id=Northport_Notice_351
 Id	Northport_Gardens_370	10	17
 StaticObject	Fish_Spot	416	320
+StaticObject	Valuables	576	440

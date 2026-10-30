@@ -30,3 +30,5 @@ StaticObject	Anvil	672	352
 StaticObject	Notice	672	482	Id=Court_Notice_354
 StaticObject	Notice	576	194	Id=Court_Notice_367
 Id	Court_Gardens_355	7	9
+StaticObject	Valuables	448	56
+StaticObject	Valuables	64	376

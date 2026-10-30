@@ -24,3 +24,7 @@ StaticObject	Notice	416	194	Id=Galaith_Notice_317
 StaticObject	Notice	480	450	Id=Galaith_Notice_313
 StaticObject	Notice	704	162	Id=Galaith_Notice_319
 StaticObject	Notice	512	450	Id=Galaith_Notice_309
+StaticObject	Valuables	192	344
+StaticObject	Valuables	320	24
+StaticObject	Valuables	576	56
+StaticObject	Valuables	576	344

@@ -28,3 +28,4 @@ NPC	Sheriff	480	536	Attitude=Good Stand=1 Face=S Id=Ravensgate_Sheriff_337 Name=
 StaticObject	Notice	0	610	Id=Ravensgate_Notice_371
 Id	Ravensgate_Port	21	11
 Id	Ravensgate_City_Hall	3	13
+StaticObject	Valuables	448	472

@@ -22,3 +22,4 @@ Gravel001:Gravel001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass00
 NPC	Man	416	504	Attitude=Good Zone=12,16,16,17 Pause=5-15 Id=Oakhollow_Resident_323 Name=Dora
 NPC	Man	96	280	Attitude=Good Zone=4,9,5,10 Pause=5-15 Id=Oakhollow_Resident_325 Name=Peggy
 StaticObject	Notice	544	610	Id=Oakhollow_Notice_306
+StaticObject	Valuables	128	408

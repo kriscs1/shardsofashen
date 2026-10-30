@@ -137,6 +137,8 @@ class ActionsMixin:
             if verbs == "":
                 verbs = "Use"
             verbs = self.lock_verbs(e, verbs)              # (a locked chest: locks.py)
+            if self.can_steal(e):
+                verbs = self.add_verb(verbs, "Steal")       # (sneaking: a house's Valuables - thieving.py)
             verbs = self.add_verb(verbs, "Examine")
         elif t == NPC and getattr(e, "cart", None) is not None:
             verbs = self.w.carts.verbs(self, e)             # (a horse and cart: carts.py)

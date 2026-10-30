@@ -29,3 +29,5 @@ NPC	Tailor	576	568	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_306 Name=Sybil
 NPC	Cobbler	768	568	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_307 Name=Peggy
 NPC	Tailor	672	408	Attitude=Good Stand=1 Face=S Id=Galaith_Tailor_324 Name=Bertha
 StaticObject	Notice	576	514	Id=Galaith_Notice_458
+StaticObject	Valuables	192	56
+StaticObject	Valuables	160	344

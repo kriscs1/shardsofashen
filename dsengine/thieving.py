@@ -3,13 +3,14 @@
   Pickpocket  townsfolk (anyone you can talk to who isn't an animal): gold and a thing or two, by their trade
               ([Pickpocket.<Trade>]); once in a while for each of them (personal).
   Steal       a shop's shelves (Shelf_Goods*): one of the nearest shopkeeper's wares; harder under their eye.
+              Or a house's Valuables (a box of someone's precious things: [Valuables]), harder with anyone about.
 
-Caught, the one you robbed shouts for the guard: a guard of your own comes for you (a few levels above you), gone
-after a while or when you're out of reach, and a shopkeeper won't serve you for a time."""
+Caught, the one you robbed shouts for the guard: a guard comes for you (a few levels above you), seen by everyone
+but after you alone, gone after a while or when you're out of reach; and a shopkeeper won't serve you for a time."""
 import random
 
 from ashen.lb import val, word, trim, lbstr, distance, rnd, parse_quantity, pretty, strip_digits
-from .entity import NPC, TILE
+from .entity import NPC, TILE, STATICOBJECT
 
 THIEVES = "Thieving.ini"
 
@@ -33,7 +34,8 @@ class ThiefMixin:
         return True
 
     def can_steal(self, e):
-        return self.sneaking() and e.type == TILE and e.name.startswith("Shelf_Goods")
+        return self.sneaking() and ((e.type == TILE and e.name.startswith("Shelf_Goods")) or
+                                    (e.type == STATICOBJECT and e.name.startswith("Valuables")))
 
     def trade_of(self, e):
         """Its trade, for Thieving.ini [Pickpocket.<Trade>]: the kind (Baker), or the trade in its Id
@@ -102,6 +104,56 @@ class ThiefMixin:
         self.update_skill("Stealth", "+" + lbstr(self.thief_num("Pickpocket", "XP", 0.25) * max(1, level) ** 0.5))
         self.act_done(True)
 
+    def steal_valuables(self, e):
+        """A house's precious things ([Valuables]): one of them, if nobody who lives there catches your hand."""
+        key = "valuables:%s@%d,%d" % (e.map, int(e.x), int(e.y))
+        if self.thief_until.get(key, 0) > self.now:
+            self.display_message("You've been through these already. There's nothing left worth the risk.", "FAIL")
+            self.play_sound("Empty")
+            self.act_done(False)
+            return
+        loot = []
+        for part in self.thief_text("Valuables", "Items", "Gold_Coin(s),3-10").split():
+            bits = part.split(",")
+            if len(bits) >= 2 and self.data.entity_ini(bits[0], "Type", ""):
+                loot.append((bits[0], bits[1], val(bits[2]) if len(bits) > 2 else 10))
+        if not loot:
+            return
+        level = int(self.thief_num("Valuables", "Level", 4))
+        watcher = None
+        for n in self.w.npcs_near(e.z, e.cx, e.cy):     # (whoever's about: anyone you could talk to, looking your way)
+            if n.alive and n.type == NPC and "Talk to" in (n.use_words or "") and not self.w.hostile_for(n, self) \
+                    and distance(n.cx, n.cy, e.cx, e.cy) <= self.thief_num("Valuables", "Watch.Range", 192) \
+                    and self.watching(n):
+                watcher = n
+                break
+        self.thief_until[key] = self.now + int(self.thief_num("Valuables", "Again.Minutes", 30) * 60000)
+        if rnd() * 100 >= self.thief_chance(level, watcher is not None):
+            if watcher is not None:
+                self.caught(watcher, "house")
+            else:
+                self.display_message("Something rattles as you reach in. You freeze, and leave it.", "FAIL", "Fail")
+                self.act_done(False)
+            return
+        total = sum(w for _, _, w in loot)
+        roll, name, amount = rnd() * total, loot[0][0], loot[0][1]
+        for n_, a_, w_ in loot:
+            roll -= w_
+            if roll < 0:
+                name, amount = n_, a_
+                break
+        qty = max(1, parse_quantity(amount)) if "-" in amount else max(1, int(val(amount)))
+        if self.inventory_slots_available(name) <= 0:
+            self.display_message("You don't have enough room in your inventory!", "FAIL")
+            self.act_done(False)
+            return
+        self.add_inventory_item(name, qty)
+        self.play_sound("Coins" if name == "Gold_Coin(s)" else "Pickup")
+        self.display_message("You lift %s from among someone's precious things." %
+                             ("%d gold" % qty if name == "Gold_Coin(s)" else "the " + pretty(name)), "SUCCESS")
+        self.update_skill("Stealth", "+" + lbstr(self.thief_num("Valuables", "XP", 0.4) * max(1, level) ** 0.5))
+        self.act_done(True)
+
     def shopkeeper_near(self, e):
         """(the shopkeeper NPC, its rack) nearest shelf e, on its map: someone whose Talk to shows a shop."""
         best = None
@@ -130,6 +182,9 @@ class ThiefMixin:
 
     def steal_from(self, e):
         if not self.can_steal(e):
+            return
+        if e.type == STATICOBJECT:
+            self.steal_valuables(e)
             return
         keeper, rack = self.shopkeeper_near(e)
         if keeper is None:
@@ -185,7 +240,8 @@ class ThiefMixin:
         self.act_done(False)
 
     def summon_guard(self, near):
-        """A guard of your own (only you see them), a few levels above you, comes from a little way off."""
+        """A guard comes from a little way off, a few levels above you: everyone sees them, and they're after you
+        alone (a foe to you, a guard like any other to the rest)."""
         w, p = self.w, self.player
         kind = self.thief_text("Pickpocket", "Guard", "Guard")
         for r in (96, 128, 64, 160):
@@ -194,9 +250,10 @@ class ThiefMixin:
                 import math
                 x, y = near.cx + math.cos(ang) * r, near.cy + math.sin(ang) * r
                 if w.pixel_walkable(p.z, x, y + 12, self):
-                    g = w.add_npc(kind, p.z, x - 16, y - 16, "Attitude=Bad", "Bad", owner=self)
+                    g = w.add_npc(kind, p.z, x - 16, y - 16, "Attitude=Good", "Good")
                     if g is None:
                         return
+                    self.ent_attitudes[g.uid] = True              # (a foe to you alone)
                     level = self.player_level() + int(self.thief_num("Pickpocket", "Guard.Levels.Above", 2))
                     g.hp = g.max_hp = max(g.max_hp, 10 + level * 4)
                     g.strength = max(g.strength, round(level * 0.8))

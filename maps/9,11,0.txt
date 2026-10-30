@@ -23,3 +23,4 @@ NPC	Barkeep	160	88	Attitude=Good Stand=1 Face=S Id=Oakhollow_Barkeep_319 Name=Ro
 NPC	Barmaid	224	152	Attitude=Good Zone=4,6,9,6 Pause=3-9 Id=Oakhollow_Barmaid_320 Name=Alice
 StaticObject	Notice	384	450	Id=Oakhollow_Notice_307
 StaticObject	Sign_Pub	128	208
+StaticObject	Valuables	192	56

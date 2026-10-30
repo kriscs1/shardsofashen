@@ -31,3 +31,5 @@ StaticObject	Anvil	320	448
 StaticObject	Notice	320	578	Id=Ashford_Notice_338
 StaticObject	Notice	384	578	Id=Ashford_Notice_346
 Id	Ashford_Church	23	12
+StaticObject	Valuables	544	120
+StaticObject	Valuables	352	152

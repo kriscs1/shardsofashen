@@ -33,3 +33,5 @@ Id	Galaith_Market_Square	13	4
 Id	Galaith_Cart_Stop_1	14	4
 Id	Galaith_Square	13	4
 StaticObject	Old_Statue	320	128	Id=Secret_Galaith
+StaticObject	Old_Statue	416	352	Id=Secret_Galaith_2
+StaticObject	Wishing_Well	256	416	Id=Secret_Galaith_3

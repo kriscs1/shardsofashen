@@ -35,3 +35,4 @@ Lock	7	8	$Skill.Mining>=10	You need to be able to mine at level 10 to enter the 
 Trigger	Trap_Alarm	15	13
 Trigger	Trap_Darts	20	7
 Trigger	Trap_Weakness	7	6
+Trigger	Trap_Bucket	14	17

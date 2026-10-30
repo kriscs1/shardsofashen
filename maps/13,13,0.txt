@@ -23,3 +23,5 @@ NPC	Rabbit	640	88	Attitude=Bad Zone=16,2,24,8
 NPC	Rabbit	384	120	Attitude=Bad Zone=8,2,18,9
 NPC	Wolf	64	216	Attitude=Bad Zone=2,4,8,12
 NPC	Wolf	480	88	Attitude=Bad Zone=11,2,21,8
+Trigger	Trap_Pie	9	13
+Trigger	Trap_Gas	7	2

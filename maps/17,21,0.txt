@@ -26,3 +26,5 @@ NPC	Villager	672	152	Attitude=Good Zone=22,5,23,6 Pause=5-15 Id=Frosthold_Reside
 StaticObject	Notice	608	450	Id=Frosthold_Notice_308
 StaticObject	Shardstone	96	224
 Id	Waystone_Frosthold	4	9
+StaticObject	Valuables	64	280
+StaticObject	Valuables	288	344

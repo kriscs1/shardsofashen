@@ -27,3 +27,5 @@ NPC	Fishmonger	224	408	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_350 Na
 NPC	Villager	384	280	Attitude=Good Zone=13,9,14,10 Pause=5-15 Id=Galaith_Resident_437 Name=Polly
 StaticObject	Notice	480	386	Id=Galaith_Notice_321
 NPC	Villager	384	568	Attitude=Good Zone=13,18,14,19 Pause=5-15 Id=Galaith_Resident_454 Name=Greta
+StaticObject	Valuables	416	216
+StaticObject	Valuables	416	504

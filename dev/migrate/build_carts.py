@@ -313,7 +313,7 @@ def routes(ground):
                 way = [tile, nxt]
             for k, t in enumerate(corners(way)[:-1]):
                 points.append((t, word if k == 0 else ""))
-        lines = ["Title=%s" % title, "Fare=2", "Wait=6", "Loop=0"]
+        lines = ["Title=%s" % title, "Fare=1", "Wait=6", "Loop=0"]
         for n, ((gx, gy), word) in enumerate(points, 1):
             lines.append("Point%d=%d,%d,0,%d,%d%s" % (n, gx // xt, gy // yt, gx % xt + 1, gy % yt + 1,
                                                     "," + word if word else ""))

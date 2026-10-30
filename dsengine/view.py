@@ -10,6 +10,8 @@ def entity_state(w, e, viewer):
           "a": 1 if e.active else 0}
     if e.type == STATICOBJECT and viewer.is_chest(e):
         st["lk"] = viewer.chest_lock(e)[0] if viewer.chest_locked(e) else 0     # (locked for you: its level)
+        if st["lk"] and viewer.chest_sturdy(e):
+            st["ib"] = 1                                # (iron-bound: no Break Open)
     if e.type == NPC:
         st["hp"] = e.hp
         st["mh"] = e.max_hp
@@ -18,12 +20,13 @@ def entity_state(w, e, viewer):
         st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
         st["uw"] = e.use_words
         st["wr"] = e.weapon_range
-        if e.ai is not None and getattr(e.ai, "cone", 0) > 0:
-            # (sneaking: a lookout's sight shown, as it is for you - how wide, how far, the way it looks)
-            seen = st["f"] == 1 and viewer.sneaking()
-            st["cone"] = [round(e.ai.cone * viewer.cone_factor()),
-                          round(w.stat_for(e, viewer, "aggro_range") * viewer.sight_factor()), e.direction or 4] \
-                if seen else 0
+        if e.ai is not None and st["f"] == 1:
+            # (sneaking: a foe's sight shown, as it is for you - how wide, how far, the way it looks; and how far
+            # it hears you as you move now)
+            cone = getattr(e.ai, "cone", 0)
+            cone = 360 if cone <= 0 or cone >= 360 else round(cone * viewer.cone_factor())
+            st["cone"] = [cone, round(w.stat_for(e, viewer, "aggro_range") * viewer.sight_factor()), e.direction or 4,
+                          round(viewer.noise_radius() * getattr(e.ai, "hearing", 1.0))] if viewer.sneaking() else 0
         if e.ai is not None:
             st["un"] = e.ai.under
             st["fly"] = e.ai.flying
@@ -58,6 +61,8 @@ def player_state(s, viewer):
         st["rd"] = s.ride.e.uid                         # (in a cart: drawn standing in it, carts.py)
     if s.invisible():
         st["gh"] = 1                                    # (a shimmer: faint to you, all but nothing to others)
+    if s.stance and not s.swap:
+        st["sc"] = s.stance                             # (its look: a ring, motes, a crouch - render.js drawStance)
     return st
 
 

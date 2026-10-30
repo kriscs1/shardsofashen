@@ -356,9 +356,11 @@ def royal(atlas):
                 atlas.set(gx, gy, tile="Grass001", decor="Flowers001" if r < 0.05 else "Bush001" if r < 0.08 else "")
     pave(atlas, [((x1 + x2) // 2, gy) for gy in range(y1 + 1, y2 + 1)] +
          [((x1 + x2) // 2 + 1, gy) for gy in range(y1 + 1, y2 + 1)], "Marble_Paving001")
-    gate = [(x2, GATE), (x2, GATE + 1)]
+    mid = (x1 + x2) // 2                                        # (the gate: in the south wall, at the path's end)
+    gate = [(mid, y2), (mid + 1, y2)]
     lay_walls(atlas, royal_wall_cells(), gate, keep=wall_cells())
-    pave(atlas, gate, "Marble_Paving001")
+    lane = [(x, y) for x in (mid, mid + 1) for y in range(y2, GATE + 2)] +         [(x, y) for x in range(mid, x2 + 1) for y in (GATE, GATE + 1)]     # (and on to the avenue)
+    pave(atlas, lane, "Marble_Paving001")
 
 
 # ================================================================== setting the buildings down
@@ -370,6 +372,7 @@ def place_blocks(atlas, blocks, rows, rng):
         spots[q].append([y, x1 + 2, AVENUE_X - 2, x1 + 2])      # (street y; the next free x; the row's end; its start)
         spots[q].append([y, AVENUE_X + 4, x2 - 1, AVENUE_X + 4])
     where, left, placed = {}, [], []
+    street = {(x, y) for _, y, x1, x2 in rows for x in range(x1, x2 + 1)}     # (paved after: kept clear now)
     houses = sorted((b for b in blocks if b.role == "house"), key=lambda b: -b.size)
     rank = {id(b): i / max(1, len(houses)) for i, b in enumerate(houses)}
 
@@ -377,7 +380,7 @@ def place_blocks(atlas, blocks, rows, rng):
         if (x // XT) != ((x + b.w - 1) // XT) or (y0 // YT) != ((y0 + b.h - 1) // YT):
             return False                                          # (one map: its roof one group)
         cells = [(x + i, y0 + j) for i in range(-1, b.w + 1) for j in range(-1, b.h)]
-        return all(city(*c) and c not in atlas.taken and c not in atlas.roads for c in cells)
+        return all(city(*c) and c not in atlas.taken and c not in atlas.roads and c not in street for c in cells)
 
     for b in sorted(blocks, key=lambda b: -b.size):
         if b.role == "palace":

@@ -88,7 +88,7 @@ export function entityTip(e) {
     if (e.f === 2) lines.push(`Passive  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
     else if (e.f) lines.push(`!Hostile  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
   } else if (e.k === T.STATICOBJECT && e.lk) {
-    lines.push("#" + name, `!Locked  -  Stealth ${e.lk} to pick it`);
+    lines.push("#" + name, `!${e.ib ? "Iron-bound" : "Locked"}  -  Stealth ${e.lk} to pick it`);
   } else if (e.k === T.PLAYER) {
     lines.push("#" + name, e.pvp ? "!In the arena: you can fight" : "Another adventurer", "~Right-click: Whisper");
     return lines.join("|");

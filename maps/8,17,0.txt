@@ -30,3 +30,4 @@ StaticObject	Shardstone	640	192
 StaticObject	Sign_Pub	352	464
 StaticObject	Sign_Pub	480	464
 Id	Waystone_Fenwick	21	8
+StaticObject	Valuables	448	56

@@ -25,3 +25,5 @@ NPC	Rabbit	320	472	Attitude=Bad Zone=6,12,16,20
 NPC	Butterfly	576	152	Attitude=Good Zone=14,2,24,10
 NPC	Skeleton	224	216	Attitude=Bad Zone=3,4,13,12
 StaticObject	Fish_Spot	160	512
+Trigger	Trap_Darts	2	13
+Trigger	Trap_Weakness	3	7

@@ -1106,7 +1106,14 @@ def bess_and_frank():
         ("End",),
         ("@s3",),
         say("Frank", "Hot work, smithing. If your gear's knocked about, I'll mend it for a fair price (Repair).",
-            ("Goodbye.", "@end")),
+            ("Can you open a locked chest?", "@locks"), ("Goodbye.", "@end")),
+        ("End",),
+        ("@locks",),                                    # (the Isle teaches locks: its chests have the easiest)
+        say("Frank", "I make the things, so I know their tricks. A lock's a few pins on springs: work each one up "
+                     "till it catches, quiet and patient, and the lid's yours (Pick Lock). The better you are at "
+                     "keeping out of sight, the steadier your hands.\\Or put your weight on the lid till it splits "
+                     "(Break Open). Loud, mind. And a chest bound in iron won't split for anyone: that one you pick, "
+                     "or find its key.", ("Thanks, Frank.", "@end")),
         ("@end",), ("End",),
     ])
 

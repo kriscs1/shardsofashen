@@ -23,3 +23,5 @@ NPC	Sheriff	96	120	Attitude=Good Stand=1 Face=S Id=Highwatch_Sheriff_325 Name=Ru
 NPC	Man	128	376	Attitude=Good Zone=3,11,7,13 Pause=5-15 Id=Highwatch_Resident_335 Name=Vera
 NPC	Man	384	472	Attitude=Good Zone=12,13,14,16 Pause=5-15 Id=Highwatch_Resident_339 Name=Sid
 NPC	Villager	576	472	Attitude=Good Zone=18,15,21,16 Pause=5-15 Id=Highwatch_Resident_341 Name=Lettie
+StaticObject	Valuables	288	120
+StaticObject	Valuables	384	344

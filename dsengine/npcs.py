@@ -50,16 +50,27 @@ class NPCMixin:
     SEEN_CLOSE = 44         # (right beside it: it knows you're there, whichever way it looks)
 
     def npc_listen(self, e, a, s, d):
-        """A lookout hears s (their noise reaches it, nothing solid between): it turns to look that way, and if they're
-        in its sight now, it's seen them next time it looks."""
+        """A monster hears s (their noise, as far as its Hearing carries it, nothing solid between). One that looks
+        one way turns to look (if they're in its sight now, it's seen them next time it looks); one that sees all round
+        comes for them. True if it came."""
         p = s.player
-        if d > s.noise_radius() or not self.in_line_of_sight(e.z, e.cx, e.cy, p.cx, p.cy):
-            return
+        if d > s.noise_radius() * getattr(a, "hearing", 1.0) or not self.in_line_of_sight(e.z, e.cx, e.cy, p.cx, p.cy):
+            return False
+        cone = getattr(a, "cone", 0)
+        if cone <= 0 or cone >= 360:
+            if not self.in_chase_area(a, p.fx, p.fy):
+                return False
+            e.target = s
+            self.npc_start_fight(e, a, s, d)
+            self.npc_alarm(e, a, s)
+            s.spotted_by(e)
+            return True
         before = e.direction
         self.npc_face(e, e.cx, e.cy, p.cx, p.cy)
         if e.direction != before and self.now - getattr(a, "heard_at", -10 ** 9) > 4000:
             a.heard_at = self.now
             s.heard_by(e)
+        return False
 
     def npc_sees(self, e, a, s, d):
         """Does NPC e see player s, d away? Walls, tents and stacked cargo hide you (line of sight); one with a
@@ -152,6 +163,7 @@ class NPCMixin:
         stand = ping = 0
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
+        a.hearing = max(0.0, val(d.entity_ini(n, "Hearing", "1")))     # (how far your noise carries to it: build_senses.py)
         a.group = a.friendly_if = a.fixed_pose = ""
         a.poses = [trim(p) for p in d.entity_ini(n, "States", "").split(",") if trim(p)]   # (Sit,Lie: when it stops)
         a.fidgets = [trim(p) for p in d.entity_ini(n, "Fidgets", "").split(",") if trim(p)]   # (Stretch: now and then)
@@ -363,8 +375,9 @@ class NPCMixin:
                                 foe = s
                                 self.npc_alarm(e, a, s)
                                 s.spotted_by(e)
-                    if foe is None and getattr(a, "cone", 0) > 0 and self.stat_for(e, s, "aggressive") == 1:
-                        self.npc_listen(e, a, s, d)
+                    if foe is None and self.stat_for(e, s, "aggressive") == 1 and self.npc_listen(e, a, s, d):
+                        state = a.state
+                        foe = s
         if state not in (AI_CHASE, AI_FLEE) and not e.in_combat and (e.npc_foe is not None or a.hunts):
             if self.npc_versus_npc(e, a):
                 return
@@ -685,7 +698,7 @@ class NPCMixin:
             options = e.ai.options if e.ai is not None and e.ai.options else "-"
             self.add_action_to_queue("ADD", e.name, TYPE_NAMES[e.type], options, m.name,
                                      self.local_coords(m, e.orig_x, e.orig_y), respawn)
-        self.fx_anim("Puff", e.z, e.cx, e.cy, 500)
+        self.shard_fade(e)
         self.waves.gone(e)                                    # (a raider the guards cut down)
         self.remove_entity(e)
 

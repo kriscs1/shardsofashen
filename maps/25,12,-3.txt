@@ -44,3 +44,4 @@ StaticObject	Sign_Dwarf	352	80
 Trigger	Trap_Pie	15	6
 Trigger	Trap_Gas	21	7
 Trigger	Trap_Alarm	4	10
+Trigger	Trap_Darts	21	11

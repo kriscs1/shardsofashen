@@ -33,3 +33,4 @@ StaticObject	Sign_Pub	288	624
 StaticObject	Sign_Pub	736	304
 StaticObject	Sign_Pub	288	400
 Id	Ravensgate_Cathedral	23	21
+StaticObject	Valuables	192	248

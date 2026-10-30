@@ -67,7 +67,7 @@ class RemnantMixin:
         make_remnant(self.data, e, level)
         e.fades_at = w.now + int(self.remnant_num("Mob.Lasts", 120) * 1000)
         w.sound("Remnant_Rise", e.z, e.cx, e.cy)
-        self.fx_anim("Teleport_Glow", e.cx, e.cy, 600)
+        w.fx_anim("Shard_Form", e.z, e.cx, e.fy - 20, 700)
         self.display_message("The %s's magic rises from it: a Shard Remnant!" % self.display_name(dead), "DAMAGE", "-")
         if e.ai is not None:
             w.npc_start_fight(e, e.ai, self, 0)
@@ -94,5 +94,5 @@ def fade_remnants(w):
     """Risen Shard Remnants nobody is fighting fade away once their time is up (the world's tick; a map's stay)."""
     for e in [e for e in w.ents if e.alive and e.name == LIVING and getattr(e, "fades_at", None) is not None]:
         if w.now >= e.fades_at and not e.in_combat:
-            w.fx_anim("Puff", e.z, e.cx, e.cy, 500)
+            w.shard_fade(e)
             w.remove_entity(e)

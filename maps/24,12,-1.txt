@@ -32,3 +32,4 @@ MapItem	Bones	481	450	1
 Trigger	Trap_Pit	19	7
 Trigger	Trap_Pie	7	11
 Trigger	Trap_Gas	13	6
+Trigger	Trap_Pit	21	13

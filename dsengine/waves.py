@@ -129,6 +129,7 @@ class Waves:
                 if e is None:
                     continue
                 e.source = "WAVE"
+                w.shard_form(e)                         # (drawn together out of Shard essence where it stands)
                 e.aggressive = 1
                 e.aggro_range = max(getattr(e, "aggro_range", 0), 288)
                 r["uids"].add(e.uid)

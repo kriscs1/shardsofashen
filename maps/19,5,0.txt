@@ -28,3 +28,6 @@ StaticObject	Sign_Pub	256	560
 StaticObject	Notice	160	578	Id=Court_Notice_338
 StaticObject	Notice	512	258	Id=Court_Notice_368
 Id	Court_Cathedral	22	20
+StaticObject	Valuables	384	312
+StaticObject	Valuables	192	376
+StaticObject	Valuables	160	152

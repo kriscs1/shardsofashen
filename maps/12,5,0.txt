@@ -45,3 +45,6 @@ StaticObject	Torn_Washing	320	288	Id=Clue_Washing
 StaticObject	Goose_Feather_Clue	288	288	Id=Clue_Feather
 NPC	Guard	320	256	Attitude=Good Stand=1 Id=Constable_Dobbs Name=Constable_Dobbs
 StaticObject	Muddy_Footprints	256	192	Id=Clue_Footprints
+StaticObject	Valuables	576	152
+StaticObject	Wishing_Well	256	128	Id=Secret_Ashford_2
+StaticObject	Hollow_Stump	256	64	Id=Secret_Ashford_3

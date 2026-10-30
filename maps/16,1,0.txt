@@ -42,3 +42,5 @@ NPC	Trader	384	568	Attitude=Good Zone=10,17,16,20 Pause=4-12
 NPC	Guard	352	472	Attitude=Good Stand=1
 StaticObject	Fish_Spot	256	160
 StaticObject	Loose_Cobble	448	320	Id=Secret_Wardhaven
+StaticObject	Hollow_Stump	320	320	Id=Secret_Wardhaven_2
+StaticObject	Loose_Cobble	160	320	Id=Secret_Wardhaven_3

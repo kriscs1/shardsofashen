@@ -29,3 +29,5 @@ StaticObject	Notice	352	98	Id=Wardhaven_Notice_306
 StaticObject	Notice	512	450	Id=Wardhaven_Notice_321
 Id	Waystone_Wardhaven	12	3
 Id	Wardhaven_Town_Hall	15	8
+StaticObject	Valuables	608	24
+StaticObject	Valuables	320	312

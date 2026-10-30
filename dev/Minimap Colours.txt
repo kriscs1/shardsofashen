@@ -465,7 +465,6 @@ Statue001	112 126 80
 Statue002	167 161 149
 Stone001	74 100 29
 Stone002	73 98 29
-Stone_Wall	120 120 120
 Stone_Wall001	120 120 120
 Stone_Wall_Lamp001	131 127 120
 Stone_Wall_Thin_Marble001	171 168 161

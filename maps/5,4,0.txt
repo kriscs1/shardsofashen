@@ -25,3 +25,4 @@ NPC	Farmer	544	568	Attitude=Good Zone=18,18,19,19 Pause=5-15 Id=Northport_Reside
 StaticObject	Notice	621	391	Id=Northport_Notice_306
 StaticObject	Notice	640	610	Id=Northport_Notice_308
 NPC	Villager	512	344	Attitude=Good Zone=16,10,19,12 Pause=5-15 Id=Northport_Resident_384 Name=Walter
+StaticObject	Valuables	352	248

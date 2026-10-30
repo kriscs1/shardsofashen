@@ -22,3 +22,4 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Man	448	120	Attitude=Good Zone=14,4,17,5 Pause=5-15 Id=Galaith_Resident_457 Name=Hugh
 StaticObject	Notice	288	386	Id=Galaith_Notice_318
 NPC	Villager	576	408	Attitude=Good Zone=18,13,21,14 Pause=5-15 Id=Galaith_Resident_429 Name=Toby
+StaticObject	Valuables	640	344

@@ -43,3 +43,8 @@ NPC	Trader	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
 NPC	Settler	64	504	Attitude=Good Zone=2,15,6,19 Pause=4-12
 NPC	Guard	32	449	Attitude=Good Zone=2,13,5,17 Pause=4-12
 StaticObject	Old_Statue	64	224	Id=Secret_Highwatch
+StaticObject	Valuables	352	184
+StaticObject	Valuables	320	472
+StaticObject	Valuables	544	440
+StaticObject	Hollow_Stump	64	128	Id=Secret_Highwatch_2
+StaticObject	Loose_Cobble	192	128	Id=Secret_Highwatch_3

@@ -29,3 +29,4 @@ StaticObject	Sign_Pub	96	368
 StaticObject	Notice	0	354	Id=Court_Notice_352
 StaticObject	Shardgate_Ring	576	192	Id=Old_Ring_Stones
 Id	Shardgate_Site	20	9
+StaticObject	Valuables	480	312

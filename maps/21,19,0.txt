@@ -31,3 +31,5 @@ Id	Grave_Kings_Shieldman	8	13
 Id	Grave_Kings_Spearman	10	13
 Id	Grave_Kings_Steward	7	15
 Id	Grave_Kings_Hound	11	15
+Trigger	Trap_Darts	6	4
+Trigger	Trap_Pit	12	2

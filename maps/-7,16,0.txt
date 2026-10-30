@@ -24,3 +24,4 @@ NPC	Villager	544	88	Attitude=Good Zone=17,2,20,4 Pause=5-15 Id=Galaith_Resident_
 NPC	Villager	160	504	Attitude=Good Zone=5,16,8,17 Pause=5-15 Id=Galaith_Resident_451 Name=Winnie
 NPC	Man	416	504	Attitude=Good Zone=14,14,15,17 Pause=5-15 Id=Galaith_Resident_430 Name=Ned
 StaticObject	Notice	640	546	Id=Galaith_Notice_314
+StaticObject	Valuables	224	440

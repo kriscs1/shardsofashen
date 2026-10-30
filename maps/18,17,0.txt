@@ -23,3 +23,5 @@ NPC	Rabbit	576	152	Attitude=Bad Zone=14,2,24,10
 NPC	Rabbit	448	312	Attitude=Bad Zone=10,7,20,15
 NPC	Rabbit	160	216	Attitude=Bad Zone=2,4,11,12
 NPC	Skeleton	384	376	Attitude=Bad Zone=8,9,18,17
+Trigger	Trap_Alarm	15	18
+Trigger	Trap_Darts	2	19

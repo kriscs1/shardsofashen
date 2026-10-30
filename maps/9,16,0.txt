@@ -26,3 +26,4 @@ NPC	Barmaid	480	536	Attitude=Good Zone=11,17,17,18 Pause=3-9 Id=Fenwick_Barmaid_
 StaticObject	Sign_Pub	448	592
 StaticObject	Notice	352	610	Id=Fenwick_Notice_356
 Id	Fenwick_Cathedral	3	13
+StaticObject	Valuables	320	88

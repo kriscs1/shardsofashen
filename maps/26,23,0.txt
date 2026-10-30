@@ -31,3 +31,5 @@ NPC	Drake	544	464	Attitude=Bad Zone=15,14,21,18
 NPC	Drake	320	368	Attitude=Bad Zone=8,11,14,15
 Id	Dragon_Island_Landing	13	18
 Id	Temple_of_Valour	13	10
+Trigger	Trap_Darts	7	11
+Trigger	Trap_Pit	7	6

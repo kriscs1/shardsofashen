@@ -31,3 +31,9 @@ Id	Waystone_Wildwood	17	13
 Id	Wildwood_Square	16	12
 Id	Wildwood_Chapel	18	11
 StaticObject	Hollow_Stump	352	352	Id=Secret_Wildwood
+StaticObject	Valuables	672	120
+StaticObject	Valuables	384	152
+StaticObject	Valuables	576	408
+StaticObject	Valuables	320	408
+StaticObject	Wishing_Well	288	352	Id=Secret_Wildwood_2
+StaticObject	Hollow_Stump	448	64	Id=Secret_Wildwood_3

@@ -24,3 +24,4 @@ NPC	Sheriff	96	536	Attitude=Good Stand=1 Face=S Id=Keep_Sheriff_337 Name=Ned
 NPC	Baker	96	216	Attitude=Good Stand=1 Face=S Id=Keep_Baker_363 Name=Nell
 StaticObject	Notice	384	642	Id=Keep_Notice_316
 Id	Keep_Cathedral	10	21
+StaticObject	Valuables	64	472

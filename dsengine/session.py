@@ -589,7 +589,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.end_swap("")                           # (the creature gets its own body back)
         self.ready = False
         for e in list(self.w.ents):
-            if e.owner is self:
+            if e.owner is self or e in self.guards_after:
                 self.w.remove_entity(e)
             elif e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
@@ -756,9 +756,16 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         w.path_progress(p, sx, sy)
         self.player_walk_stuck = p.path_stuck
         if self.player_walk_stuck > 15:
-            if self.player_walk_replans < 2:
-                self.player_walk_replans += 1
-                w.plan_path(p, self.player_walk_x, self.player_walk_y, self.player_walk_range, 2200, self)
+            if self.player_walk_replans < 3:
+                self.player_walk_replans += 1             # (round whoever's standing in the way: a cow, Bess)
+                avoid = w.solid_cells_near(p, self)
+                d = distance(p.cx, p.cy, sx, sy)
+                if d > 0:                               # (and the step it couldn't take: a shore's corner, a post)
+                    cell = self.data.grid_cell
+                    avoid.add((math.floor((p.fx + (sx - p.cx) / d * 12) / cell),
+                               math.floor((p.fy + (sy - p.cy) / d * 12) / cell)))
+                w.plan_path(p, self.player_walk_x, self.player_walk_y, self.player_walk_range, 2200, self,
+                            avoid=avoid)
                 self.player_walk_stuck = 0
             else:
                 self.finish_player_walk()

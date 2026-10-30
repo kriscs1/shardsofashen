@@ -23,7 +23,9 @@ StaticObject	Fire	385	322
 StaticObject	Strongbox	448	256
 NPC	Bandit	320	352	Attitude=Bad
 NPC	Bandit	448	352	Attitude=Bad
-NPC	Bandit	384	256	Attitude=Bad
+NPC	Bandit	384	256	Attitude=Bad Chase=2,2,24,20
 NPC	Bandit	192	128	Attitude=Bad
 NPC	Bandit	224	288	Attitude=Bad
 Id	Bandit_Camp	13	11
+Trigger	Trap_Pit	6	17
+Trigger	Trap_Pie	13	7

@@ -28,3 +28,6 @@ StaticObject	Notice	32	450	Id=Ravensgate_Notice_309
 StaticObject	Furnace	384	96
 StaticObject	Anvil	512	96
 StaticObject	Notice	477	198	Id=Ravensgate_Notice_358
+StaticObject	Valuables	160	24
+StaticObject	Valuables	704	344
+StaticObject	Valuables	512	344

@@ -169,11 +169,19 @@ def range_beach():
     """The West Range's north end on 0,4,0: its first peaks worn back to sand, so the beach runs on into the fen."""
     m = Map("0,4,0")
     changed = False
-    for y in range(1, 4):
+    for y in range(2, 4):
         for x in range(1, 10):
-            if m.tile(x, y).startswith("Peak"):
+            if m.tile(x, y).startswith(("Peak", "Water")):       # (and the inlet between them: the beach whole)
                 m.set(x, y, tile="Sand001", decor="")
                 changed = True
+    if changed:
+        m.save()
+    m = Map("1,4,0")                                            # (and on east, round the range's last peak: a whole one)
+    changed = False
+    for x, y in ((22, 1), (23, 1), (24, 1), (25, 1), (24, 2), (25, 2)):
+        if m.tile(x, y).startswith(("Peak", "Water")):
+            m.set(x, y, tile="Sand001", decor="")
+            changed = True
     if changed:
         m.save()
 

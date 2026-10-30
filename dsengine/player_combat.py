@@ -420,7 +420,7 @@ class CombatMixin:
             w.add_action_to_queue("ADD", name, TYPE_NAMES[etype], options, m.name,
                                   w.local_coords(m, e.orig_x, e.orig_y), respawn)
         script = self.find_action_script("Kill", name, etype, e.npc_id)
-        self.fx_anim("Puff", e.cx, e.cy, 500)
+        w.shard_fade(e)
         w.remove_entity(e)
         if script:
             self.start_script(script, False)

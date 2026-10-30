@@ -31,3 +31,6 @@ Id	Waystone_Saltmarsh	12	11
 Id	Saltmarsh_Square	13	12
 Id	Saltmarsh_Chapel	20	10
 StaticObject	Wishing_Well	480	384	Id=Secret_Saltmarsh
+StaticObject	Valuables	160	152
+StaticObject	Loose_Cobble	320	128	Id=Secret_Saltmarsh_2
+StaticObject	Odd_Barrel	64	480	Id=Secret_Saltmarsh_3

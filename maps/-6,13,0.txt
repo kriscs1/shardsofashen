@@ -22,3 +22,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 StaticObject	Notice	0	514	Id=Galaith_Notice_330
 NPC	Farmer	224	472	Attitude=Good Zone=6,13,10,16 Pause=5-15 Id=Galaith_Resident_453 Name=Peggy
 NPC	Man	512	184	Attitude=Good Zone=16,4,19,7 Pause=5-15 Id=Galaith_Resident_442 Name=Fred
+StaticObject	Valuables	256	344
+StaticObject	Valuables	512	56

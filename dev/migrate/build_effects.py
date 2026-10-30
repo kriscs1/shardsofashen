@@ -7,7 +7,8 @@ The game loads these the first time each one is needed (fx_load in ashen\\combat
   Hit<N>, Crit<N>, Heal<N>  N = 1..99: a red splat, a yellow star (critical hit), a green drop (healing), with N on it
   Miss                     a blue splat with 0 on it (a miss, or a blow the armour turned)
   <Anim>1..4               four-frame animations, 32 x 32: Puff (smoke when something dies), Slash (a sword stroke),
-                           Fire_Burst, Ice_Burst, Spark (lightning), Heal_Glow, Stone_Glow, Teleport_Glow; and
+                           Fire_Burst, Ice_Burst, Spark (lightning), Heal_Glow, Stone_Glow, Teleport_Glow; 32 x 40:
+                           Shard_Form, Shard_Fade (a creature drawn together from Shard essence, and let go); and
                            for work: Wood_Chips, Rock_Chips, Splash, Dirt_Clods, Wool_Tufts
   <Spell>_Missile          16 x 16 projectiles: Fire_Bolt_Missile, Ice_Bolt_Missile, Lightning_Missile
   Hurt_Top, Hurt_Side      the red flash round the edge of the map when the player is hurt (screen width x 8, 8 x height)
@@ -196,6 +197,52 @@ def stone_glow(i, n):
     return img
 
 
+SHARD = [(90, 150, 255), (191, 224, 255), (150, 190, 255), (255, 255, 255)]
+
+
+def shard_motes(i, n, seed, inward):
+    """Shard essence, 32 x 40: motes spiralling in and rising into a column as a creature forms (inward), or lifting
+    off it and scattering upward as it fades. Each mote a 2 px glint with a white heart."""
+    img = K.new(32, 40)
+    rng = random.Random(seed)
+    t = (i + 1) / float(n)
+    for k in range(18):
+        a0 = rng.random() * 2 * math.pi
+        r0 = 9 + rng.random() * 7
+        h = rng.random()                                    # (how high up the body it ends: feet to head)
+        if inward:
+            r = r0 * (1 - t) + 2 * t
+            a = a0 + t * 2.4
+            y = 36 - h * 30 * t - (1 - t) * 4
+        else:
+            r = 3 + r0 * t
+            a = a0 - t * 1.6
+            y = 34 - h * 26 - t * (10 + rng.random() * 10)
+        x = 16 + math.cos(a) * r
+        y += math.sin(a) * r * 0.3
+        if (k + i) % 4 == 3 and (not inward or t < 1):
+            continue                                        # (a twinkle: not every mote every frame)
+        c = SHARD[k % 3]
+        if not inward and t > 0.75 and k % 2:
+            c = K.mix(c, (40, 60, 110), 0.5)                # (fading out)
+        K.put(img, int(x), int(y), (255, 255, 255))
+        K.put(img, int(x) + 1, int(y), c)
+        K.put(img, int(x), int(y) + 1, c)
+    if inward and i == n - 1:                               # (at the last: a soft column where it stands)
+        for y in range(8, 38):
+            if y % 3:
+                K.put(img, 16, y, SHARD[1])
+    return img
+
+
+def shard_form(i, n):
+    return shard_motes(i, n, 61, True)
+
+
+def shard_fade(i, n):
+    return shard_motes(i, n, 62, False)
+
+
 def teleport_glow(i, n):
     return sparkles(i, n, 51, [(190, 110, 255), (240, 200, 255), (130, 60, 220)], 24)
 
@@ -248,6 +295,7 @@ def wool_tufts(i, n):
 
 ANIMS = {"Puff": puff, "Slash": slash, "Fire_Burst": fire_burst, "Ice_Burst": ice_burst, "Spark": spark,
          "Heal_Glow": heal_glow, "Stone_Glow": stone_glow, "Teleport_Glow": teleport_glow,
+         "Shard_Form": shard_form, "Shard_Fade": shard_fade,
          "Wood_Chips": wood_chips, "Rock_Chips": rock_chips, "Splash": splash, "Dirt_Clods": dirt_clods,
          "Wool_Tufts": wool_tufts}
 

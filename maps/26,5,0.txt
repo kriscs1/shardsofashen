@@ -29,3 +29,4 @@ StaticObject	Notice	672	546	Id=Emberwatch_Notice_306
 StaticObject	Notice	704	418	Id=Emberwatch_Notice_309
 Id	Waystone_Emberwatch	22	21
 Id	Emberwatch_Village_Hall	21	15
+StaticObject	Valuables	640	248

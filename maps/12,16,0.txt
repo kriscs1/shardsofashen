@@ -23,3 +23,5 @@ NPC	Frog	704	280	Attitude=Bad Zone=18,6,24,14
 NPC	Duck	608	280	Attitude=Bad Zone=15,6,24,14
 NPC	Seal	192	320	Attitude=Bad Zone=2,7,12,15
 NPC	Seal	224	320	Attitude=Bad Zone=2,7,12,15
+Trigger	Trap_Bucket	15	18
+Trigger	Trap_Darts	12	10

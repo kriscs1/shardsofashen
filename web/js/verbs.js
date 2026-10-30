@@ -106,7 +106,8 @@ export function getVerbs(e) {
   } else if (t === T.STATICOBJECT || t === T.TEMPORARY || t === T.MISSILE) {
     addVerbs(v, e.uw);
     if (!v.length) v = ["Use"];
-    if (e.lk) { addVerb(v, "Pick Lock"); addVerb(v, "Break Open"); }   // (a chest locked for you: locks.py)
+    if (e.lk) { addVerb(v, "Pick Lock"); if (!e.ib) addVerb(v, "Break Open"); }   // (a chest locked for you: locks.py)
+    if (canSteal(e)) addVerb(v, "Steal");
     addVerb(v, "Examine");
   } else if (t === T.NPC && entityIni(e.n, "Vehicle", "0").trim() === "1") {
     // (a horse and cart, carts.py: hail it, get in; riding it, get out where it stops)
@@ -262,7 +263,9 @@ function canPickpocket(e) {
   return sneaking() && !e.f && String(e.uw || "").includes("Talk to") && !entityIni(e.n, "Calls", "").trim() &&
     entityIni(e.n, "Vehicle", "0").trim() !== "1" && entityIni(e.n, "Flees", "0").trim() !== "1";
 }
-export function canSteal(e) { return sneaking() && e.k === T.TILE && /^Shelf_Goods/.test(e.n || ""); }
+export function canSteal(e) {
+  return sneaking() && ((e.k === T.TILE && /^Shelf_Goods/.test(e.n || "")) || (e.k === T.STATICOBJECT && /^Valuables/.test(e.n || "")));
+}
 
 export function cursorOfVerb(verb) {
   const verbs = A.m.cursors?.verbs || {};

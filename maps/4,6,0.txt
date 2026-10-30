@@ -33,3 +33,5 @@ StaticObject	Sign_Pub	224	464
 StaticObject	Sign_Pub	544	464
 StaticObject	Notice	448	450	Id=Northport_Notice_368
 Id	Waystone_Northport	3	3
+StaticObject	Valuables	320	280
+StaticObject	Valuables	576	280

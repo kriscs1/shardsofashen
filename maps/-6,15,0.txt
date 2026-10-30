@@ -27,3 +27,4 @@ NPC	Cat	608	216	Attitude=Good Zone=15,4,25,12 Pause=4-12
 NPC	Baker	704	120	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_334 Name=Vera
 NPC	Fishmonger	768	568	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_302 Name=Quentin
 NPC	Baker	704	408	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_336 Name=Ulric
+StaticObject	Valuables	160	376

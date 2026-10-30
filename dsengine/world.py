@@ -369,6 +369,7 @@ class World(NPCMixin):
             if e is not None:
                 e.npc_id = self.option_value(misc, "Id")
                 e.lock_level, e.lock_key = self.option_value(misc, "Lock"), self.option_value(misc, "Key")
+                e.sturdy = self.option_value(misc, "Sturdy")      # (1: iron-bound, never broken open; 0: always can be)
                 e.display = self.option_value(misc, "Name").replace("_", " ")
             return e
         if t == "NPC":
@@ -626,8 +627,8 @@ class World(NPCMixin):
             if not (r and r[0] <= x < r[2] + 1 and r[1] <= y < r[3] + 1):
                 return False
         if mover is not None:
-            for n in self.ents:
-                if (n.type == NPC and n.z == z and n.active and self.npc_is_solid(n) and
+            for n in self.npcs_near(z, x, y):           # (the NPCs on the maps round it, not every thing there is)
+                if (n.active and self.npc_is_solid(n) and
                         self.visible_to(n, mover) and self.blocks(n.fx, n.fy, x, y, old_x, old_y)):
                     return False
         elif self.npc_is_solid(e):
@@ -637,6 +638,29 @@ class World(NPCMixin):
                         self.blocks(p.fx, p.fy, x, y, old_x, old_y)):
                     return False
         return True
+
+    def npcs_near(self, z, x, y):
+        """The live NPCs on the map at x, y and the maps round it (update_npcs keeps them by map, each tick)."""
+        mx, my = math.floor(x / self.sw), math.floor(y / self.sh)
+        by_map = self.npcs_by_map
+        out = []
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                out += by_map.get((mx + i, my + j, z), ())
+        return out
+
+    def solid_cells_near(self, e, mover, reach=96):
+        """The path grid's cells a solid NPC stands in, near e (what a walk steers round once it's bumped into one)."""
+        cell = self.data.grid_cell
+        out = set()
+        for n in self.npcs_near(e.z, e.fx, e.fy):
+            if (n.active and self.npc_is_solid(n) and self.visible_to(n, mover) and
+                    abs(n.fx - e.fx) < reach and abs(n.fy - e.fy) < reach):
+                for dx in (-10, 0, 10):
+                    for dy in (-10, 0, 10):
+                        out.add((math.floor((n.fx + dx) / cell), math.floor((n.fy + dy) / cell)))
+        out.discard((math.floor(e.fx / cell), math.floor(e.fy / cell)))
+        return out
 
     def try_move_entity(self, e, x, y, mover=None):
         fx, fy = e.fx, e.fy
@@ -782,9 +806,10 @@ class World(NPCMixin):
         cell = self.data.grid_cell
         return "%d,%d,%s" % (int(x / cell), int(y / cell), lbstr(rng))
 
-    def plan_path(self, e, target_x, target_y, rng, budget, mover=None):
+    def plan_path(self, e, target_x, target_y, rng, budget, mover=None, avoid=()):
         """A path for e so its centre gets within rng of the target (A*, 8 directions, no corner cutting, then string
-        pulling). Waypoints (centres) go in e.path (empty = walk straight). False if there's no way."""
+        pulling). Waypoints (centres) go in e.path (empty = walk straight). False if there's no way.
+        avoid: grid cells to keep out of (someone standing in the way)."""
         e.path = []
         e.path_best = None
         e.path_stuck = 0
@@ -800,9 +825,19 @@ class World(NPCMixin):
             return True
         reach = (d - max(0, rng - 2)) / d
         swim = e.type == NPC and e.ai is not None and e.ai.swims
-        if self.grid_line_walkable(z, sx, sy, sx + (tx - sx) * reach, sy + (ty - sy) * reach, mover, swim):
-            return True
         cell = self.data.grid_cell
+
+        def line_clear(ax, ay, bx, by):
+            if not self.grid_line_walkable(z, ax, ay, bx, by, mover, swim):
+                return False
+            if avoid:
+                n = int(distance(ax, ay, bx, by) / 4) + 1
+                for i in range(n + 1):
+                    if (math.floor((ax + (bx - ax) * i / n) / cell), math.floor((ay + (by - ay) * i / n) / cell)) in avoid:
+                        return False
+            return True
+        if line_clear(sx, sy, sx + (tx - sx) * reach, sy + (ty - sy) * reach):
+            return True
         gwk = (lambda z_, x_, y_, m_: self.grid_walkable(z_, x_, y_, m_, True)) if swim else self.grid_walkable
         radius = max(rng - 2, int(cell * 0.75))
         r2 = radius * radius
@@ -845,7 +880,7 @@ class World(NPCMixin):
             k = (x, y)
             v = walk_cache.get(k)
             if v is None:
-                v = walk_cache[k] = gwk(z, x, y, mover)
+                v = walk_cache[k] = 0 if k in avoid else gwk(z, x, y, mover)
             return v
 
         def cross(ax, ay, bx, by):
@@ -913,7 +948,7 @@ class World(NPCMixin):
         while j < len(corners):
             k = j
             while k < len(corners) - 1:
-                if not self.grid_line_walkable(z, ax, ay, corners[k + 1][0], corners[k + 1][1], mover, swim):
+                if not line_clear(ax, ay, corners[k + 1][0], corners[k + 1][1]):
                     break
                 k += 1
             path.append((corners[k][0], corners[k][1] - feet_offset))
@@ -1122,6 +1157,16 @@ class World(NPCMixin):
     def fx_anim(self, base, z, x, y, ms, owner=None):
         self.fx({"t": "anim", "base": base, "x": int(x), "y": int(y), "ms": int(ms)}, z, x, y, owner)
 
+    def shard_form(self, e):
+        """A creature drawn together out of Shard essence (come back after it was killed, or risen): motes and a sound."""
+        self.fx_anim("Shard_Form", e.z, e.cx, e.fy - 20, 900)
+        self.sound("Shard_Form", e.z, e.cx, e.cy, radius=HEAR_CALL)
+
+    def shard_fade(self, e):
+        """A creature's Shard essence let go as it dies: motes lifting off where it fell."""
+        self.fx_anim("Shard_Fade", e.z, e.cx, e.fy - 20, 700)
+        self.sound("Shard_Fade", e.z, e.cx, e.cy, radius=HEAR_CALL)
+
     def fx_nudge(self, e, dx, dy, ms, owner=None):
         if e is None or (dx == 0 and dy == 0):
             return
@@ -1263,6 +1308,8 @@ class World(NPCMixin):
                 e = self.add_entity_of_type(type_name, name, m.mz, gx, gy, misc, home=m.name)
                 if e is not None:
                     e.source = "MAP"
+                    if e.type == NPC:
+                        self.shard_form(e)
         elif action in ("REMOVE", "REMOVE.ENTITY"):
             if normalise_type(type_name) != "Tile":
                 self.remove_entity(self.find_entity_at(m.mz, gx, gy, name))

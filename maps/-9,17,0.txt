@@ -21,3 +21,4 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall002:Galaith_Wa
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall002:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001:Galaith_Wall002:Grass001:Grass001:Grass001:Grass001:Galaith_Wall002:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Farmer	64	408	Attitude=Good Zone=2,13,4,14 Pause=5-15 Id=Galaith_Resident_434 Name=Winnie
 NPC	Farmer	32	120	Attitude=Good Zone=2,3,3,5 Pause=5-15 Id=Galaith_Resident_436 Name=Lettie
+StaticObject	Valuables	96	344

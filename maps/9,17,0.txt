@@ -21,3 +21,5 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 NPC	Villager	672	120	Attitude=Good Zone=22,4,23,5 Pause=5-15 Id=Fenwick_Resident_364 Name=Winnie
 Id	Fenwick_Gardens_359	3	8
+StaticObject	Valuables	480	88
+StaticObject	Valuables	704	56

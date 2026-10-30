@@ -25,3 +25,5 @@ NPC	Scorpion	576	248	Attitude=Bad Zone=14,5,24,13
 StaticObject	Fish_Spot	736	608
 NPC	Seal	672	384	Attitude=Bad Zone=17,9,24,17
 NPC	Seal	704	384	Attitude=Bad Zone=17,9,24,17
+Trigger	Trap_Pit	4	20
+Trigger	Trap_Pie	12	8

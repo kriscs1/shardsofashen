@@ -21,3 +21,4 @@ Marsh001:Marsh001:Marsh001:Marsh_Water005:Water001:Water001:Water001:Water001:Wa
 Marsh001+Decor(Reeds001):Marsh001+Decor(Bog_Myrtle002):Marsh_Water005:Water001+Decor(Lily_Pads003):Water001:Water001:Water001:Water001:Water001:Water001:Marsh001+Decor(Willow_Tree001):Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Water001:Marsh_Water008:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 NPC	Fisherman	96	24	Attitude=Good Zone=1,1,10,6 Pause=3-9 Id=Mirefold_Fisherman Name=Ewan
 NPC	Frog	448	472	Attitude=Passive Zone=10,12,20,20
+StaticObject	Valuables	32	280

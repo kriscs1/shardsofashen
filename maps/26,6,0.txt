@@ -26,3 +26,4 @@ NPC	Farmer	672	440	Attitude=Good Zone=21,14,23,15 Pause=5-15 Id=Emberwatch_Resid
 NPC	Farmer	224	440	Attitude=Good Zone=7,14,10,15 Pause=5-15 Id=Emberwatch_Resident_325 Name=Colin
 StaticObject	Sign_Pub	736	208
 StaticObject	Notice	640	226	Id=Emberwatch_Notice_319
+StaticObject	Valuables	416	376

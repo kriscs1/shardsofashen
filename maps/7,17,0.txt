@@ -24,3 +24,5 @@ NPC	Villager	416	152	Attitude=Good Zone=13,5,15,6 Pause=5-15 Id=Fenwick_Resident
 StaticObject	Furnace	576	96
 StaticObject	Anvil	704	96
 StaticObject	Notice	768	194	Id=Fenwick_Notice_358
+StaticObject	Valuables	448	88
+StaticObject	Valuables	416	312

@@ -39,8 +39,8 @@ KEEP = set("""-10,15,0 -5,14,0 -5,15,0 -6,13,0 -6,14,0 -6,15,0 -6,16,0 -7,16,0 -
 27,4,0 3,1,0 3,2,0 3,20,0 3,21,0 3,22,0 3,4,0 3,5,0 3,6,0 3,7,0 4,21,0 4,4,0 4,5,0 4,6,0 4,7,0 5,4,0 5,5,0 5,6,0
 5,8,0 6,5,0 6,6,0 -4,14,0 -7,14,0 3,5,0 4,4,0 6,4,0 7,5,0 7,6,0 8,5,0 8,6,0 8,8,0 9,4,0 9,5,0 9,6,0 9,7,0 9,8,0
 9,9,0""".split())
-PLAIN = re.compile(r"^(Grass|Sand|Snow|Marsh|Ash|Scorched|Dirt|Moss|Heath)\d{3}$")
-WILD_DECOR = re.compile(r"^(Tree|Pine|Palm|Oak|Willow|Yew|Birch|Bush|Shrub|Rock|Boulder|Pebble|Flower|Grass|Fern|Reed|"
+PLAIN = re.compile(r"^(Grass|Sand|Snow|Marsh|Ash|Scorched|Moss|Heath)\d{3}$")   # (not Dirt: a road)
+WILD_DECOR = re.compile(r"^(Tall_Grass|Tree|Pine|Palm|Oak|Willow|Yew|Birch|Bush|Shrub|Rock|Boulder|Pebble|Flower|Grass|Fern|Reed|"
                         r"Mushroom|Weed|Cactus|Dead_Tree|Stump|Snow_Tree|Ash_Tree|Log|Heather|Thistle|Clover|Herb)")
 GUARD = 3                                     # (tiles kept clear round anything made or placed)
 
