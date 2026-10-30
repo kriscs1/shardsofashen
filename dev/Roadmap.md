@@ -373,7 +373,9 @@ bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
   behind, toasts and popups, game cards with how full they are.
 - [x] **A Shards account's characters have no password**; their Options say so.
 - [x] **The logo redrawn as pixel art** (`build_logo.py`).
-- [ ] **AdMob in the Android app** (needs an AdMob account and the Google Mobile Ads SDK).
+- [x] **AdMob in the Android app**: a banner on the start screen's menu (never in a game), Google's consent form in
+  the EEA and UK and "Ad choices" to change it, `/app-ads.txt` on the central server. Its ids are the build's
+  (`dsAdmobApp`, `dsAdmobBanner`, or the workflow's variables): test ads in a debug build, none without them.
 
 ## Decisions made where the list was unclear
 

@@ -39,6 +39,7 @@ services:
       DS_SMTP_TLS: ${DS_SMTP_TLS:-starttls}
       DS_ADSENSE_CLIENT: ${DS_ADSENSE_CLIENT:-}        # (ca-pub-...: AdSense on the start screen in a browser)
       DS_ADSENSE_SLOT: ${DS_ADSENSE_SLOT:-}
+      DS_ADMOB_APP: ${DS_ADMOB_APP:-}                  # (ca-app-pub-...~...: the Android app's, for /app-ads.txt and the privacy policy)
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:

@@ -113,6 +113,7 @@ button:disabled { opacity: 0.5; cursor: default; filter: none; }
 footer { margin-top: auto; padding-top: 18px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
   font-size: 13px; color: var(--dim); }
 footer a, footer button.link { color: var(--dim); font-size: 13px; }
+body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 high, over the foot of the page) */
 /* ----- popups, toasts, joining */
 .veil { position: fixed; inset: 0; background: rgba(8,4,2,0.72); display: grid; place-items: center; padding: 16px; z-index: 10; }
 .dialog { width: min(460px, 100%); }
@@ -234,7 +235,7 @@ footer a, footer button.link { color: var(--dim); font-size: 13px; }
   </section>
 </section>
 
-<footer><a href="#" class="privacy-link">Privacy policy</a><button id="central-link" class="link" type="button">Central server</button>
+<footer><a href="#" class="privacy-link">Privacy policy</a><button id="ad-choices" class="link" type="button" hidden>Ad choices</button><button id="central-link" class="link" type="button">Central server</button>
   <span id="version"></span></footer>
 </div>
 
@@ -330,7 +331,10 @@ function offline(words) {
 }
 
 // ----- 1. signing in
-function showWelcome() { $("welcome").hidden = false; $("main").hidden = true; setTimeout(() => $("in-name").focus(), 50); }
+function showWelcome() {
+  $("welcome").hidden = false; $("main").hidden = true; setTimeout(() => $("in-name").focus(), 50);
+  if (app && app.banner) { app.banner(false); document.body.classList.remove("banner"); }
+}
 function signedIn(name) {
   myName = name;
   store.set("name", name);
@@ -398,8 +402,14 @@ $("chip").onclick = async () => {
      ["Save", "go", () => { account("/api/email", { token, email: $("acct-email").value }, () => toast("Saved.")); }]]);
 };
 
-// ----- ads: AdSense in a browser (when the central server has it), else the central server's own
+// ----- ads: AdMob in the Android app (when it was built with it), AdSense in a browser (when the central server has
+// it), else the central server's own
 function showAds() {
+  if (app && app.banner && app.banner(true)) {            // (the app's own ad, once one's come: our own till then)
+    const choices = () => { $("ad-choices").hidden = !(app.adChoices && app.adChoices()); };
+    choices(); setTimeout(choices, 4000);                 // (consent's known a moment after the app opens)
+    if (document.body.classList.contains("banner")) return;
+  }
   const a = hello.adsense;
   if (a && a.client && fromCentral) {
     $("ad").hidden = true;
@@ -414,6 +424,13 @@ function showAds() {
     document.head.append(s);
     return;
   }
+  houseAd();
+}
+window.onBanner = (shown) => {                            // (the app: its banner's come, or none could be had)
+  document.body.classList.toggle("banner", !!shown);
+  if (shown) $("ad").hidden = true; else houseAd();
+};
+function houseAd() {
   const ad = hello.ad;
   if (!ad || !ad.text) { $("ad").hidden = true; return; }
   $("ad").hidden = false;
@@ -553,6 +570,7 @@ function refresh() {
 }
 
 // ----- the footer
+$("ad-choices").onclick = () => app && app.showAdChoices && app.showAdChoices();
 for (const a of document.querySelectorAll(".privacy-link")) a.onclick = (ev) => {
   ev.preventDefault();
   if (!CENTRAL) { toast("The privacy policy is on the central server, which isn't set.", true); return; }

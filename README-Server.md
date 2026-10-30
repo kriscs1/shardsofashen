@@ -343,12 +343,15 @@ lists the remote game servers (each announces itself to it), and it serves the a
 - **AdSense** (browsers only: Google's rules put apps on AdMob instead): set `DS_ADSENSE_CLIENT` (`ca-pub-...`) and
   `DS_ADSENSE_SLOT`; the start screen shows the ad unit in a browser, `/ads.txt` gives Google its line, and the
   privacy policy names it. Add the site in AdSense and, for players in the EEA and UK, turn on Google's consent
-  message there (Privacy & messaging). The apps keep showing your own ads.
+  message there (Privacy & messaging).
+- **AdMob** (the Android app; android/README.md says how to build it in): set `DS_ADMOB_APP` (`ca-app-pub-...~...`)
+  here too, so `/app-ads.txt` gives AdMob its line and the privacy policy names it. Give this server's address as
+  the developer website in the Play Store listing (AdMob looks for `app-ads.txt` there). The desktop app keeps
+  showing your own ads.
 - **Ads**: a JSON list at `DS_CENTRAL_ADS` (`/data/ads.json` in the compose file):
   `[{"text": "...", "link": "https://...", "image": "banner.png"}]`, the pictures in `DS_CENTRAL_ADS_DIR`
   (`/data/ads/`). One is shown on the start screen each time it opens. Without the file, a few of the game's own
-  notes. (House ads, chosen by you: an ad network such as AdSense or AdMob would need its own account and consent
-  screen.)
+  notes. (House ads, chosen by you, shown wherever AdSense and AdMob aren't.)
 - **Its settings**: `DS_CENTRAL_DB`, `DS_CENTRAL_PORT` (8490), `DS_CENTRAL_NAME`, `DS_CENTRAL_MOTD`,
   `DS_REGISTRATION`, `DS_PASSWORD_MIN` (8), `DS_REGISTER_PER_DAY` (3), `DS_TRUST_PROXY`.
 

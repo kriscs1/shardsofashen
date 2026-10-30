@@ -54,12 +54,29 @@ Then on GitHub (Settings > Secrets and variables > Actions > Secrets):
 | `ANDROID_KEY_ALIAS` | `upload` |
 | `ANDROID_KEY_PASSWORD` | the key's password (the same, unless you gave it its own) |
 
+## Ads (AdMob)
+
+The start screen's menu shows an AdMob banner along its foot (never in a game). In the EEA and the UK, Google's
+consent form comes first, and "Ad choices" in the start screen's footer changes the answer.
+
+1. At [apps.admob.com](https://apps.admob.com): add the app (Android), and make a **Banner** ad unit. Turn on the
+   GDPR message (Privacy & messaging) for the consent form.
+2. On GitHub (Settings > Secrets and variables > Actions > **Variables**, not secrets: they aren't secret):
+   `ADMOB_APP_ID` (`ca-app-pub-...~...`) and `ADMOB_BANNER_ID` (`ca-app-pub-.../...`). Building it yourself, set
+   `dsAdmobApp` and `dsAdmobBanner` in `android/gradle.properties`.
+3. On the central server, `DS_ADMOB_APP` (the same app id): it serves `/app-ads.txt`, which AdMob looks for on the
+   developer website in the Play Store listing (give the central server's address there).
+
+Without the ids, a debug build shows Google's test ads (so it can be tried) and a release build shows none; the
+start screen then shows the central server's own ads. Never click your own real ads.
+
 ## Publishing
 
 1. In the Play Console (a Google Play developer account, a one-off fee): Create app. Upload `app-release.aab` to a
    testing track (Internal testing is quickest), and fill in the store listing (the 512 px icon is
-   `android/store/icon-512.png`), the content rating and the privacy details. Players only talk to each other's
-   phones on the network, and nothing is sent anywhere else.
+   `android/store/icon-512.png`), the content rating and the privacy details. Data safety: the account (a name, a
+   password, an email if given) is kept on the central server; with AdMob, Google collects the advertising ID and
+   device information for ads ("Contains ads": yes). The privacy policy is the central server's `/privacy`.
 2. **The hosting service.** The app keeps a game running for the others while the host's phone does other things,
    which is a "special use" foreground service. The Play Console asks what it's for: *it runs a multiplayer game
    server for players on the same local network.*

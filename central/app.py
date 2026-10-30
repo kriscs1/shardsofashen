@@ -25,7 +25,7 @@ its own accounts too, for a network with no way to reach here.
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
   POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, ads, stats)
-  GET  /admin, /privacy, /ads.txt                 the admin page, the privacy policy, AdSense's ads.txt
+  GET  /admin, /privacy, /ads.txt, /app-ads.txt   the admin page, the privacy policy, AdSense's and AdMob's lines
   GET  /api/hello                                 -> {name, motd, ad, players, servers}
   GET  /                                          the start screen (a browser's: join a game, local or remote)"""
 import asyncio
@@ -407,14 +407,19 @@ def make_central(db_path):
             text = f.read()
         for key, value in (("{{NAME}}", c.name), ("{{OPERATOR}}", os.environ.get("DS_CENTRAL_OPERATOR", c.name)),
                            ("{{CONTACT}}", os.environ.get("DS_CENTRAL_CONTACT", "the address on the game's page")),
-                           ("{{ADS}}", "Google AdSense" if os.environ.get("DS_ADSENSE_CLIENT") else "our own notes")):
+                           ("{{ADS}}", "Google AdSense" if os.environ.get("DS_ADSENSE_CLIENT") else "our own notes"),
+                           ("{{APPADS}}", "Google AdMob" if os.environ.get("DS_ADMOB_APP") else "our own notes")):
             text = text.replace(key, value.replace("<", "&lt;"))
         return web.Response(text=text, content_type="text/html")
 
     async def ads_txt(request):
-        client = os.environ.get("DS_ADSENSE_CLIENT", "").strip()        # (ca-pub-123...: AdSense's own line)
-        pub = client.replace("ca-", "")
-        return web.Response(text=("google.com, %s, DIRECT, f08c47fec0942fa0\n" % pub) if pub else "",
+        # (Google's line for each publisher: AdSense's ca-pub-123..., AdMob's app ca-app-pub-123...~456, often the same)
+        pubs = []
+        for key, cut in (("DS_ADSENSE_CLIENT", "ca-"), ("DS_ADMOB_APP", "ca-app-")):
+            pub = os.environ.get(key, "").strip().split("~")[0].replace(cut, "", 1)
+            if pub and pub not in pubs:
+                pubs.append(pub)
+        return web.Response(text="".join("google.com, %s, DIRECT, f08c47fec0942fa0\n" % p for p in pubs),
                             content_type="text/plain")
 
     async def health(request):
@@ -433,6 +438,7 @@ def make_central(db_path):
     app.router.add_get("/admin", admin_page)
     app.router.add_get("/privacy", privacy)
     app.router.add_get("/ads.txt", ads_txt)
+    app.router.add_get("/app-ads.txt", ads_txt)        # (AdMob reads it on the developer's site the Play Store names)
     app.router.add_get("/api/hello", c.hello)
     app.router.add_get("/health", health)
     app.router.add_get("/", index)

@@ -135,6 +135,7 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
     monkeypatch.setenv("DS_SMTP_HOST", "test")
     monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
     monkeypatch.setenv("DS_ADSENSE_CLIENT", "ca-pub-1234567890")
+    monkeypatch.setenv("DS_ADMOB_APP", "ca-app-pub-1234567890~5555")
     mail.SENT.clear()
 
     async def go():
@@ -162,6 +163,9 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                 page = await (await http.get(c + "/privacy")).text()
                 assert "Privacy policy" in page and "Google AdSense" in page and "server you made them on" in page
                 assert "pub-1234567890" in await (await http.get(c + "/ads.txt")).text()
+                assert "Google AdMob" in page
+                lines = (await (await http.get(c + "/app-ads.txt")).text()).splitlines()
+                assert lines == ["google.com, pub-1234567890, DIRECT, f08c47fec0942fa0"]    # (one publisher, once)
                 hello = await (await http.get(c + "/api/hello")).json()
                 assert hello["adsense"]["client"] == "ca-pub-1234567890" and hello["mail"]
                 assert "admin" in (await (await http.get(c + "/admin")).text()).lower()

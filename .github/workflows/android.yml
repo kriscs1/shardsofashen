@@ -5,6 +5,7 @@
 # Settings > Secrets and variables > Actions > Secrets (for the Play Store's bundle; android/README.md):
 #   ANDROID_KEYSTORE (the upload key's keystore, base64), ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
 #   ANDROID_KEY_PASSWORD
+# Variables (AdMob, android/README.md): ADMOB_APP_ID, ADMOB_BANNER_ID. Without them a release build shows no ads.
 # Without the keystore the bundle is unsigned (and the Play Store won't take it); the APK is always signed, with a
 # debug key, so it installs.
 name: Build the Android app
@@ -62,6 +63,8 @@ jobs:
           DS_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           DS_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           DS_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          DS_ADMOB_APP: ${{ vars.ADMOB_APP_ID }}
+          DS_ADMOB_BANNER: ${{ vars.ADMOB_BANNER_ID }}
         run: |
           export DS_VERSION_CODE=$(git rev-list --count HEAD)
           export DS_VERSION_NAME="$(cat VERSION).$DS_VERSION_CODE"
