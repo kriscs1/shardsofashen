@@ -1,0 +1,41 @@
+# The desktop app (desktop/): a Windows program (dist/ShardsOfAshen, zipped) from every push to main, the same start
+# screen and choices as the Android app. It carries the whole game, to host one here.
+name: Build the desktop app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-app
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: The game's pictures, sounds and music for the web page (web/assets)
+        run: |
+          choco install ffmpeg -y --no-progress
+          pip install pygame numpy
+          python -I tools/export_web_assets.py
+
+      - name: The program
+        run: |
+          pip install -r desktop/requirements.txt
+          python desktop/build_desktop.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShardsOfAshen-Windows
+          path: dist/ShardsOfAshen

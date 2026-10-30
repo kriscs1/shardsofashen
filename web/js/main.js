@@ -236,8 +236,9 @@ $("quit-logout").onclick = () => {
   showMessage("Shards of Ashen", "Your game is saved. See you soon!", () => location.reload());
 };
 
-// (in the Android app: out of the game, to the app's start screen: host, the games on the network, an address)
-if (window.DSApp) {
+// (in an app - Android, or the desktop one, which says so a moment later - out of the game to its start screen)
+function appQuit() {
+  if (!window.DSApp) return;
   $("quit-app").hidden = false;
   $("quit-app").onclick = () => {
     if (running) send({ t: "quit" });
@@ -247,6 +248,8 @@ if (window.DSApp) {
     window.DSApp.goHome();
   };
 }
+appQuit();
+window.addEventListener("dsapp", appQuit);
 
 function openOptions() {
   releaseKeys();
@@ -677,6 +680,7 @@ N.onClose = () => {
 // The server's messages
 // ================================================================================================================
 const workBeats = new Set();         // (the sounds of the swings still to come: cancelled if the work stops)
+let ticket = new URLSearchParams(location.search).get("ticket") || "";    // (the central server's: once)
 N.onMessage = (m) => {
   const now = performance.now();
   switch (m.t) {
@@ -697,6 +701,14 @@ N.onMessage = (m) => {
       }
       $("invite-row").hidden = !m.invite;
       $("register-button").hidden = m.registration !== "open";
+      if (ticket) {                                  // (from the start screen: in by the central server's ticket)
+        send({ t: "ticket", ticket });
+        ticket = "";
+        const q = new URLSearchParams(location.search);
+        q.delete("ticket");
+        history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : ""));
+        setLoginError("Logging you in...");
+      }
       break;
     case "closed":                                 // (the host has closed the game to the network)
       setLoginError(m.text);

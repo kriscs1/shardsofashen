@@ -21,6 +21,9 @@ services:
       DS_PASSWORD_MIN: ${DS_PASSWORD_MIN:-8}
       DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
       DS_TRUST_PROXY: "1"           # (Caddy passes on each player's own address: the limits go by it)
+      DS_CENTRAL: ${DS_CENTRAL:-}   # (the central server: players come in with its tickets, and it lists this server)
+      DS_PUBLIC: ${DS_PUBLIC:-1}
+      DS_PUBLIC_URL: ${DS_PUBLIC_URL:-https://${DS_DOMAIN}}
       DS_LAN: "0"                   # (no "games on this network" on a cloud server)
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}

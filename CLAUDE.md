@@ -14,6 +14,9 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `server/` | aiohttp: the page, assets, the game over a WebSocket at 20 ticks/s, SQLite (`DS_DB`) |
 | `web/js/` | The browser client: canvas, ES modules, no build step. `web/assets/` is generated, never edited |
 | `android/` | The Android app: carries the server and page; a phone hosts a game for its network, or joins one |
+| `desktop/` | The desktop app (pywebview, built by PyInstaller): the same start screen and choices as the Android app |
+| `central/` | The central server: everyone's account, the remote game servers' list, the start screen's ads |
+| `web/home/` | The start screen, the same in every version (`tools/sync_home.py` copies it into the Android app) |
 | `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
 | `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory) |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
@@ -434,6 +437,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (the host's, in Options; else `DS_NAME`), on the login screen and in the app's list. The app opens on Play alone
   (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
+- **Every version has the same start screen** (`web/home/`): it connects to the central server first (accounts, the
+  remote list, the ads), then Play alone and Host a game (local: answered on its network; remote: announced to the
+  central server) in the apps, and Join a local game (the network's, or an address; a browser: an address only) and
+  Join a remote game (the central server's list) everywhere. Joining takes a ticket from the central server made out
+  to that server's id; a game server's own accounts stay, for a network without the central server. Change the start
+  screen in `web/home/` only, then run `tools/sync_home.py`; anything the apps do for it goes through `window.DSApp`
+  (Android's Bridge, the desktop's `desktop/app.py`), the same names in both.
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
 - **A click is answered at once**: what's clicked is marked the moment it's clicked (registered: a gold ring; a foe a

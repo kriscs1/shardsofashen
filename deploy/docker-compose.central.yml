@@ -1,0 +1,52 @@
+# The central server (central/): every player's account, the list of remote game servers, the ads on the start
+# screen, and the start screen for a browser. One for the whole game: the apps and every game server point at it
+# (web/home/config.js DS_CENTRAL_DEFAULT; a game server's DS_CENTRAL). The same image as the game, run as
+# "python -m central", with Caddy in front (HTTPS). Everything it keeps is in the centraldata volume.
+#
+#   put this file and Caddyfile.central (as Caddyfile) in one folder with a .env:
+#     DS_CENTRAL_DOMAIN=central.example.com      (its DNS must point here)
+#     DS_CENTRAL_NAME=Shards of Ashen            (shown on the start screen)
+#   then: docker compose up -d
+#
+# Ads: a JSON list in the volume's ads.json, [{"text": "...", "link": "https://...", "image": "banner.png"}], the
+# pictures in its ads/ folder (docker compose cp ads.json central:/data/ads.json). Without it, the game's own notes.
+name: shards-of-ashen-central
+
+services:
+  central:
+    image: ${DS_IMAGE:-ghcr.io/kriscs1/shardsofashen:latest}
+    restart: unless-stopped
+    command: ["python", "-m", "central"]
+    environment:
+      DS_CENTRAL_DB: /data/central.db
+      DS_CENTRAL_NAME: ${DS_CENTRAL_NAME:-Shards of Ashen}
+      DS_CENTRAL_MOTD: ${DS_CENTRAL_MOTD:-}
+      DS_CENTRAL_ADS: /data/ads.json
+      DS_CENTRAL_ADS_DIR: /data/ads
+      DS_REGISTRATION: ${DS_REGISTRATION:-open}
+      DS_PASSWORD_MIN: ${DS_PASSWORD_MIN:-8}
+      DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
+      DS_TRUST_PROXY: "1"
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    volumes:
+      - centraldata:/data
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [central]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DS_CENTRAL_DOMAIN: ${DS_CENTRAL_DOMAIN:?set DS_CENTRAL_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  centraldata:
+  caddy_data:
+  caddy_config:

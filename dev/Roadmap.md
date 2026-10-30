@@ -346,6 +346,19 @@ bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
   network); with others, host one for the network (named), the network's games by name, or an address.
 - [x] **Every game has a name**: on the login screen and in the app's list; the host renames it in Options.
 
+## 18. One start screen, a central server, a desktop app (2026-10-30)
+
+- [x] **The central server** (`central/`): accounts (with recovery codes), one-time tickets into a game server, the
+  remote servers' list (they announce themselves every minute), house ads on the start screen, the browser's start
+  screen. `deploy/docker-compose.central.yml`.
+- [x] **Game servers**: an id each; in by a central ticket (a character made for you the first time; one a server had
+  of its own first links by its password); remote (`DS_PUBLIC=1`) announced, local answered on its network only.
+- [x] **One start screen for every version** (`web/home/`): Play alone and Host a game (local or remote) in the
+  apps; Join a local game (the network's, or an address; a browser by address only) and Join a remote game everywhere.
+- [x] **A desktop app** (`desktop/`): the same start screen and choices; hosting as the Android app does; built by
+  PyInstaller (`desktop/build_desktop.py`, and GitHub's `desktop.yml`).
+- [ ] **The central server's address** in `web/home/config.js`, once it's running somewhere (then `sync_home.py`).
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

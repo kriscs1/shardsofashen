@@ -16,6 +16,7 @@ log = logging.getLogger("ashen.server")
 GAME = web.AppKey("game", GameServer)
 TICK = web.AppKey("tick", asyncio.Task)
 LAN = web.AppKey("lan", object)
+ANNOUNCE = web.AppKey("announce", object)
 
 
 def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins="", name="", port=8484):
@@ -24,6 +25,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     assets = os.path.join(web_dir, "assets")
     app = web.Application()
     app[GAME] = game
+    game.default_name = name                            # (what the host called it: the Android or desktop app)
 
     async def index(request):
         return web.FileResponse(os.path.join(web_dir, "index.html"), headers={"Cache-Control": "no-cache"})
@@ -31,6 +33,13 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     async def manifest(request):
         return web.FileResponse(os.path.join(web_dir, "manifest.webmanifest"),
                                 headers={"Content-Type": "application/manifest+json", "Cache-Control": "no-cache"})
+
+    async def info(request):
+        # (a start screen asking who this is before it joins by address: its id for the ticket, its name)
+        return web.json_response({"game": "shardsofashen", "id": game.server_id(), "name": game.server_name(),
+                                  "online": len(game.world.sessions), "max": game.max_players,
+                                  "central": bool(game.central_url())},
+                                 headers={"Access-Control-Allow-Origin": "*"})
 
     async def health(request):
         return web.json_response({"ok": True, "online": len(game.world.sessions), "tick_ms": round(game.tick_ms, 2),
@@ -48,6 +57,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     app.middlewares.append(caching)
     app.router.add_get("/", index)
     app.router.add_get("/health", health)
+    app.router.add_get("/api/info", info)
     app.router.add_get("/manifest.webmanifest", manifest)
     app.router.add_get("/ws", game.handle_ws)
     if os.path.isdir(assets):
@@ -62,15 +72,23 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
         # (the answer to "who's there?" on the network: nothing while it's closed to the network)
         if not game.lan_open:
             return None
-        return {"game": "shardsofashen", "name": game.store.setting("name", "") or name or
+        return {"game": "shardsofashen", "id": game.server_id(), "name": game.store.setting("name", "") or name or
                 "Shards of Ashen on " + socket.gethostname(), "port": port,
                 "online": len(game.world.sessions), "max": game.max_players, "version": game.version["version"]}
+
+    async def announcing():
+        while True:                                     # (remote: the central server lists it while it's heard)
+            await game.announce()
+            await asyncio.sleep(60)
 
     async def start_tick(app):
         app[TICK] = asyncio.create_task(game.run())
         app[LAN] = await lan.start(about)
+        app[ANNOUNCE] = asyncio.create_task(announcing())
 
     async def stop_tick(app):
+        app[ANNOUNCE].cancel()
+        await game.announce(bye=True)
         if app[LAN] is not None:
             app[LAN].close()
         await game.shutdown()

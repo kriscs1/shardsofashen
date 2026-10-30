@@ -308,6 +308,36 @@ docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admi
 
 Without Docker, `deploy/shards-of-ashen.service` runs it under systemd behind any HTTPS reverse proxy.
 
+## The central server (accounts, the remote games list, ads)
+
+One central server serves the whole game. Every version's start screen connects to it first (the Android app, the
+desktop app, and a browser, which gets the start screen from it): players have one account there for every game, it
+lists the remote game servers (each announces itself to it), and it serves the ads on the start screen.
+
+- **What it is**: `central/` (standard library and aiohttp, like the game server), run from the same image as
+  `python -m central` on port 8490. `deploy/docker-compose.central.yml` runs it behind Caddy for HTTPS on a VM of its
+  own (a small one is plenty): a folder with that file, `deploy/Caddyfile.central` saved as `Caddyfile`, and a `.env`
+  with `DS_CENTRAL_DOMAIN=central.example.com`, then `docker compose up -d`.
+- **Pointing everything at it**: put its address in `web/home/config.js` (`window.DS_CENTRAL_DEFAULT =
+  "https://central.example.com";`), run `python -I tools/sync_home.py`, and build the apps; give each game server
+  `DS_CENTRAL=https://central.example.com`. A player can point their app at another under "Central server" at the
+  foot of the start screen.
+- **Joining a game**: the start screen asks the central server for a ticket made out to that one server (its id: on
+  the network's answer, in the central list, or from its `/api/info`), and opens the game with it; the game server
+  checks it with the central server (`/api/verify`) and the player is in, a character made for them there the first
+  time. A server's own accounts still work (a network that can't reach the central server, or a character it had
+  first: logging in with that character's password once links it).
+- **Remote and local**: a game server with `DS_PUBLIC=1` (and `DS_CENTRAL`) announces itself every minute: its id,
+  name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
+  goodbye as it stops. Without it, it only answers on its own network.
+- **Ads**: a JSON list at `DS_CENTRAL_ADS` (`/data/ads.json` in the compose file):
+  `[{"text": "...", "link": "https://...", "image": "banner.png"}]`, the pictures in `DS_CENTRAL_ADS_DIR`
+  (`/data/ads/`). One is shown on the start screen each time it opens. Without the file, a few of the game's own
+  notes. (House ads, chosen by you: an ad network such as AdSense or AdMob would need its own account and consent
+  screen.)
+- **Its settings**: `DS_CENTRAL_DB`, `DS_CENTRAL_PORT` (8490), `DS_CENTRAL_NAME`, `DS_CENTRAL_MOTD`,
+  `DS_REGISTRATION`, `DS_PASSWORD_MIN` (8), `DS_REGISTER_PER_DAY` (3), `DS_TRUST_PROXY`.
+
 ## A public server on a cloud VM (anyone can sign up)
 
 What you need: a small Linux VM (2 CPUs and 2 GB of memory keep 20 to 30 players smooth: a Hetzner CX22, a
@@ -371,6 +401,10 @@ the code is then used up and a new one shown. Without the code, an admin sets a 
 | `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
 | `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the password wait and the sign-up limit |
 | `DS_PASSWORD_MIN` | 4 | the shortest password a new character may have |
+| `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
+| `DS_PUBLIC` | (off) | `1`: a remote server, announced to the central server and listed for everyone |
+| `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |
+| `DS_PUBLIC_PORT` | `DS_PORT` | the port it's listed by, when it has no `DS_PUBLIC_URL` |
 | `DS_REGISTER_PER_DAY` | 5 | characters one address may make in a day (`0`: no limit) |
 
 ## Checking it works

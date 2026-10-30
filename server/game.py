@@ -243,7 +243,7 @@ class GameServer:
 
     def server_name(self):
         """The game's name: what the host called it in Options, else DS_NAME, else this machine's."""
-        return self.store.setting("name", "") or os.environ.get("DS_NAME", "") or \
+        return self.store.setting("name", "") or getattr(self, "default_name", "") or os.environ.get("DS_NAME", "") or \
             "Shards of Ashen on " + socket.gethostname()
 
     @property
@@ -300,7 +300,7 @@ class GameServer:
             await ws.close()
             return ws
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
-                            "name": self.server_name(),
+                            "name": self.server_name(), "id": self.server_id(), "central": bool(self.central_url()),
                             "registration": self.registration, "invite": bool(self.invite_code),
                             "assets": self.assets_version(), **self.version})
         try:
@@ -385,10 +385,87 @@ class GameServer:
         await self.send(c, {"t": "reset_result", "ok": True, "recovery": await self.new_recovery(acct[0]),
                             "text": "Your new password is set: log in with it."})
 
+    # ----- the central server (central/): one account for every game, a ticket to come in by, and the server list
+    def central_url(self):
+        return os.environ.get("DS_CENTRAL", "").strip().rstrip("/")
+
+    def server_id(self):
+        """This server's own id (made once, kept with the world): what a ticket is made out to, what the network and
+        the central server know it by."""
+        sid = self.store.setting("server_id", "")
+        if not sid:
+            sid = os.urandom(8).hex()
+            self.store.set_setting("server_id", sid)
+        return sid
+
+    async def central_post(self, path, body):
+        import aiohttp
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8)) as http:
+                async with http.post(self.central_url() + path, json=body) as r:
+                    return await r.json(content_type=None)
+        except Exception as e:                          # (no network, the central server down: say so, go on)
+            log.warning("The central server didn't answer %s: %s", path, e)
+            return None
+
+    async def ticket_account(self, c, data):
+        """A ticket from the central server: the account it's for (made here the first time), or None (told why)."""
+        if not self.central_url():
+            await self.send(c, {"t": "login_fail", "reason": "This server isn't joined to the central server: log "
+                                                             "in with a name and password here."})
+            return None
+        got = await self.central_post("/api/verify", {"ticket": str(data.get("ticket", ""))[:100],
+                                                      "server": self.server_id()})
+        if not got or not got.get("ok"):
+            await self.send(c, {"t": "login_fail", "reason": (got or {}).get("text") or
+                                "The central server couldn't be reached: log in with this server's own account."})
+            return None
+        name = auth.clean_name(got.get("name", ""))
+        if self.banned(name):
+            await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % name})
+            return None
+        acct = self.store.account(name)
+        if acct is None:
+            self.store.create_account(name, "", False)  # (no password here: they come in by ticket)
+            self.store.set_setting("central:" + name.lower(), "1")
+            acct = self.store.account(name)
+        elif not self.store.setting("central:" + name.lower(), ""):
+            c.central_name = acct[0]                    # (their own here first: its password links it)
+            await self.send(c, {"t": "login_fail", "reason": "This server already has a character called %s of its "
+                                "own. Log in with its password here, and it's yours from the central server from now "
+                                "on too." % acct[0]})
+            return None
+        return acct
+
+    async def announce(self, bye=False):
+        """A remote server (DS_PUBLIC=1) tells the central server it's there: its id, name, address (DS_PUBLIC_URL,
+        or where it calls from and its port), how many are playing. Every minute; goodbye as it stops."""
+        if not self.central_url() or os.environ.get("DS_PUBLIC", "").strip() not in ("1", "yes", "on", "true"):
+            return
+        key, secret = self.server_id(), self.store.setting("central_secret", "")
+        if bye:
+            await self.central_post("/api/goodbye", {"key": key, "secret": secret})
+            return
+        got = await self.central_post("/api/announce", {
+            "key": key, "secret": secret, "name": self.server_name(), "url": os.environ.get("DS_PUBLIC_URL", ""),
+            "port": int(os.environ.get("DS_PUBLIC_PORT", os.environ.get("DS_PORT", "8484"))),
+            "online": len([s for s in self.world.sessions.values() if s.ready]), "max": self.max_players,
+            "version": self.version.get("version", "")})
+        if got and got.get("ok"):
+            if got.get("secret") and got.get("secret") != secret:
+                self.store.set_setting("central_secret", got["secret"])
+            if got.get("key") and got["key"] != key:
+                self.store.set_setting("server_id", got["key"])     # (the central server gave it another)
+
     async def handle_login(self, c, data):
         t = data.get("t")
         if t == "reset":
             await self.reset_password(c, data)
+            return
+        if t == "ticket":
+            acct = await self.ticket_account(c, data)
+            if acct is not None:
+                await self.enter_game(c, acct, data)
             return
         if t not in ("login", "register"):
             return
@@ -448,6 +525,12 @@ class GameServer:
                 self.login_failed(name, c.addr)
                 await self.send(c, {"t": "login_fail", "reason": "Wrong password."})
                 return
+            if getattr(c, "central_name", "") == acct[0]:
+                self.store.set_setting("central:" + acct[0].lower(), "1")   # (theirs from the central server too)
+        await self.enter_game(c, acct, data)
+
+    async def enter_game(self, c, acct, data):
+        """Logged in (a password, a new character, or a ticket from the central server): into the world."""
         name, _, admin = acct
         w = self.world
         old = w.sessions.get(name)
@@ -476,7 +559,7 @@ class GameServer:
             s = Session(w, name, admin=bool(admin) or name.lower() in self.admins)
             saved = self.store.load_character(name)
             s.load_state(saved)
-            if saved is None and t == "register":
+            if saved is None and data.get("t") == "register":
                 s.set_look(data.get("look"))
             w.sessions[name] = s
             s.enter_world()

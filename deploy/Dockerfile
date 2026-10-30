@@ -30,6 +30,7 @@ COPY saves/TEMPLATE.ini saves/TEMPLATE.ini
 COPY ashen ashen
 COPY dsengine dsengine
 COPY server server
+COPY central central
 COPY tools tools
 COPY web web
 # (the server's compose file travels with the game, so a server can be set up from the image alone:
@@ -40,6 +41,9 @@ COPY deploy/docker-compose.cloud.yml cloud/docker-compose.yml
 COPY deploy/Caddyfile cloud/Caddyfile
 COPY deploy/cloud.env.example cloud/cloud.env.example
 COPY deploy/cloud-setup.sh cloud/cloud-setup.sh
+# (and the central server's: accounts, the remote servers list, the ads - the same image, "python -m central")
+COPY deploy/docker-compose.central.yml central-deploy/docker-compose.yml
+COPY deploy/Caddyfile.central central-deploy/Caddyfile
 # (and Unraid's template: docker run --rm ghcr.io/<you>/shardsofashen cat unraid.xml > .../templates-user/my-ShardsOfAshen.xml)
 COPY deploy/unraid/shards-of-ashen.xml unraid.xml
 COPY --from=assets /game/web/assets web/assets

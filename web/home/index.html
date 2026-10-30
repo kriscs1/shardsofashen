@@ -1,0 +1,390 @@
+<!doctype html>
+<!-- The start screen, the same in every version: the Android app, the desktop app (window.DSApp is the app), and a
+     browser (from the central server: no app behind it). It connects to the central server (accounts, the remote
+     servers, the ads), then: play alone or host a game (the apps only: local, answered on this network; or remote,
+     announced to the central server for everyone), or join one (local: the games on this network, or by address; a
+     browser can only give an address; remote: the central server's list). Edit web/home/: tools/sync_home.py copies
+     it into the Android app. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Shards of Ashen</title>
+<link rel="icon" href="data:,">
+<script src="config.js"></script>
+<style>
+:root {
+  --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #d4bf7e;
+  --dim: rgb(190, 160, 110); --ok: #15ab4b; --bad: #e06a55;
+  --font: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--parchment); font-family: var(--font); }
+body { padding: 12px 16px 20px; max-width: 980px; margin: 0 auto; }
+h1 { margin: 0; color: var(--ink); font-size: 30px; text-shadow: 2px 2px 0 #000; }
+.top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 10px; }
+.dim { color: var(--dim); }
+.small { font-size: 13px; }
+.card { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px; }
+h2 { margin: 0; color: var(--ink); font-size: 19px; }
+p { margin: 0; line-height: 1.35; }
+input { font: inherit; font-size: 16px; width: 100%; padding: 8px 10px; border-radius: 9px; border: 2px solid var(--edge);
+  background: #22160f; color: var(--ink); }
+button { font: inherit; font-size: 16px; font-weight: bold; padding: 9px 14px; border-radius: 10px; color: var(--ink);
+  background: #7e4d3f; border: 2px solid #b07a60; min-height: 44px; }
+button.go { background: #1f7a3e; border-color: #4fbf74; }
+button:disabled { opacity: 0.5; }
+a { color: var(--ink); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.game { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: #24170f; }
+.game .what { flex: 1; min-width: 0; }
+.game .name { color: var(--ink); font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.address { color: var(--ink); font-weight: bold; user-select: all; }
+.error { color: var(--bad); }
+.status { font-size: 13px; }
+.status .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; background: #777; }
+.status.on .dot { background: var(--ok); }
+.ad { display: flex; align-items: center; gap: 12px; padding: 8px 12px; margin-bottom: 10px; border-radius: 12px;
+  background: #24170f; border: 2px dashed var(--edge); font-size: 14px; color: var(--parchment); text-decoration: none; }
+.ad img { max-height: 48px; max-width: 120px; }
+.ad .tag { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+.menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 640px) { .menu { grid-template-columns: 1fr; } }
+.big { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px 18px; font-size: 21px;
+  text-align: left; border-radius: 14px; min-height: 84px; }
+.big span { font-size: 14px; font-weight: normal; color: var(--parchment); }
+.running { flex-direction: row; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.running p { flex: 1; min-width: 180px; }
+.back { margin: 10px 0; }
+.modes { display: flex; flex-direction: column; gap: 6px; }
+.modes label { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; }
+.modes input { width: auto; margin-top: 4px; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+footer { margin-top: 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Shards of Ashen</h1><span id="version" class="dim small"></span>
+  <span id="central-status" class="status"><span class="dot"></span><span id="central-words">Connecting...</span></span>
+</div>
+<a id="ad" class="ad" hidden target="_blank" rel="noopener"><span class="tag">Ad</span><img id="ad-img" alt="" hidden>
+  <span id="ad-text"></span></a>
+<p id="error" class="error" hidden></p>
+
+<section id="account" class="card">
+  <div id="signed-in" hidden class="row">
+    <p style="flex:1">Playing as <span id="me" class="address"></span></p>
+    <button id="new-code">New recovery code</button><button id="logout">Log out</button>
+  </div>
+  <div id="sign-in">
+    <h2>Your account</h2>
+    <p class="dim small">One name and password for every game. (Without the central server, a game's own log-in still
+      works.)</p>
+    <div class="cols">
+      <input id="name" maxlength="20" autocomplete="username" placeholder="Name">
+      <input id="password" type="password" maxlength="200" autocomplete="current-password" placeholder="Password">
+    </div>
+    <div class="row"><button id="login" class="go">Log in</button><button id="register">New account</button>
+      <a href="#" id="forgot-link" class="small">Forgotten your password?</a></div>
+    <div id="forgot" hidden class="cols">
+      <input id="code" maxlength="40" autocapitalize="characters" spellcheck="false" placeholder="Recovery code">
+      <input id="new-password" type="password" maxlength="200" autocomplete="new-password" placeholder="New password">
+      <div class="row"><button id="reset">Set my new password</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="running" class="card running" hidden>
+  <p><span id="running-name" class="address"></span> <span id="running-what" class="dim small"></span></p>
+  <button id="resume" class="go">Play</button><button id="running-stop">Stop</button>
+  <p id="running-addresses" class="small" style="flex-basis:100%"></p>
+</section>
+
+<div id="menu" class="menu">
+  <button id="alone" class="big go app-only">Play alone<span>A world of your own on this device. Nobody else can join.</span></button>
+  <button id="host-open" class="big app-only">Host a game<span>Run a game here for others: on this network, or listed for everyone.</span></button>
+  <button id="local-open" class="big">Join a local game<span id="local-words">Games on this network, or one by its address.</span></button>
+  <button id="remote-open" class="big">Join a remote game<span>Games listed by the central server, anywhere.</span></button>
+</div>
+
+<section id="host" class="card" hidden>
+  <h2>Host a game</h2>
+  <input id="host-name" maxlength="40" placeholder="The game's name">
+  <div class="modes">
+    <label><input type="radio" name="mode" value="local" checked><span><b>Local</b>: others on this network find it
+      (Wi-Fi, or this device's hotspot).</span></label>
+    <label><input type="radio" name="mode" value="remote"><span><b>Remote</b>: the central server lists it for everyone,
+      anywhere. (Others must be able to reach this device: on a home network, its port 8484 forwarded.)</span></label>
+  </div>
+  <div class="row"><button id="host" class="go">Host</button></div>
+</section>
+
+<section id="local" class="card" hidden>
+  <h2>Join a local game</h2>
+  <div id="lan" class="app-only">
+    <div id="games"><p class="dim small">Looking...</p></div>
+    <div class="row"><button id="find">Look again</button></div>
+  </div>
+  <p class="dim small">Or its address, like 192.168.1.20 (or play.example.com for one on the internet):</p>
+  <input id="address" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Address">
+  <div class="row"><button id="join" class="go">Join</button></div>
+</section>
+
+<section id="remote" class="card" hidden>
+  <h2>Join a remote game</h2>
+  <div id="servers"><p class="dim small">Asking the central server...</p></div>
+  <div class="row"><button id="refresh">Look again</button></div>
+</section>
+
+<footer class="dim"><a href="#" id="central-link">Central server</a>: <span id="central-url"></span></footer>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const app = window.DSApp || null;                 // (the Android or desktop app; a browser has none)
+const KIND = app ? (app.kind ? app.kind() : "android") : "browser";
+const store = {
+  get: (k) => { try { return app ? app.get(k) || "" : localStorage.getItem("ds." + k) || ""; } catch (e) { return ""; } },
+  set: (k, v) => { try { if (app) app.set(k, v); else localStorage.setItem("ds." + k, v); } catch (e) { /* */ } },
+};
+const fromCentral = KIND === "browser" && location.protocol.startsWith("http");
+let CENTRAL = (fromCentral ? location.origin : store.get("central") || window.DS_CENTRAL_DEFAULT || "").replace(/\/+$/, "");
+let token = store.get("token"), myName = "", centralUp = false;
+
+function say(text) { $("error").textContent = text; $("error").hidden = !text; }
+for (const el of document.querySelectorAll(".app-only")) el.hidden = KIND === "browser";
+if (KIND === "browser") $("local-words").textContent = "A game on your network, by its address (like 192.168.1.20).";
+
+// ----- the central server
+async function api(path, body) {
+  if (!CENTRAL) throw new Error("no central server");
+  const r = await fetch(CENTRAL + path, body === undefined ? {} :
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  return r.json();
+}
+
+function centralState(up, words) {
+  centralUp = up;
+  $("central-status").classList.toggle("on", up);
+  $("central-words").textContent = words;
+  $("central-url").textContent = CENTRAL || "(none set)";
+}
+
+async function connect() {
+  if (!CENTRAL) {
+    centralState(false, "No central server: play alone, or on your network.");
+    signedIn("");
+    return;
+  }
+  try {
+    const h = await api("/api/hello");
+    centralState(true, `Connected · ${h.servers} remote game${h.servers === 1 ? "" : "s"}`);
+    showAd(h.ad);
+    if (token) {
+      const me = await api("/api/me", { token });
+      signedIn(me.ok ? me.name : "");
+      if (!me.ok) { token = ""; store.set("token", ""); }
+    } else signedIn("");
+  } catch (e) {
+    centralState(false, "Can't reach the central server: play alone, or on your network.");
+    signedIn("");
+  }
+}
+
+function showAd(ad) {
+  if (!ad || !ad.text) { $("ad").hidden = true; return; }
+  $("ad").hidden = false;
+  $("ad-text").textContent = ad.text;
+  if (ad.link) $("ad").href = ad.link; else $("ad").removeAttribute("href");
+  $("ad-img").hidden = !ad.image;
+  if (ad.image) $("ad-img").src = /^https?:/.test(ad.image) ? ad.image : CENTRAL + "/ads/" + ad.image;
+}
+
+function signedIn(name) {
+  myName = name;
+  $("signed-in").hidden = !name;
+  $("sign-in").hidden = !!name || !centralUp;
+  $("account").hidden = !name && !centralUp;
+  $("me").textContent = name;
+}
+
+function showCode(code, words) {
+  if (code) alert(`${words}\n\n${code}\n\nWrite it down somewhere safe. With your name and this code you can set a new password if you forget yours.`);
+}
+
+async function account(path, body, then) {
+  say("");
+  try {
+    const r = await api(path, body);
+    if (!r.ok) { say(r.text); return; }
+    then(r);
+  } catch (e) { say("The central server didn't answer."); }
+}
+$("login").onclick = () => account("/api/login", { name: $("name").value, password: $("password").value }, (r) => {
+  token = r.token; store.set("token", token); store.set("name", r.name); $("password").value = ""; signedIn(r.name);
+});
+$("register").onclick = () => account("/api/register", { name: $("name").value, password: $("password").value }, (r) => {
+  token = r.token; store.set("token", token); store.set("name", r.name); $("password").value = ""; signedIn(r.name);
+  showCode(r.recovery, "Welcome! Your recovery code:");
+});
+$("forgot-link").onclick = (ev) => { ev.preventDefault(); $("forgot").hidden = !$("forgot").hidden; };
+$("reset").onclick = () => account("/api/reset", { name: $("name").value, code: $("code").value, password: $("new-password").value }, (r) => {
+  $("forgot").hidden = true; say("Your new password is set: log in with it.");
+  showCode(r.recovery, "Your old recovery code is used up. Your new one:");
+});
+$("logout").onclick = () => { api("/api/logout", { token }).catch(() => {}); token = ""; store.set("token", ""); signedIn(""); };
+$("new-code").onclick = () => account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):"));
+$("name").value = store.get("name");
+$("central-link").onclick = (ev) => {
+  ev.preventDefault();
+  if (fromCentral) return;
+  const url = prompt("The central server's address (blank: the one this app came with):", CENTRAL);
+  if (url === null) return;
+  store.set("central", url.trim());
+  CENTRAL = (url.trim() || window.DS_CENTRAL_DEFAULT || "").replace(/\/+$/, "");
+  token = ""; store.set("token", "");
+  connect();
+};
+
+// ----- joining: a ticket from the central server for that one game (logged in there), else the game's own log-in
+function gameUrl(address) {
+  let a = String(address).trim();
+  if (!a) return "";
+  if (!/^https?:\/\//i.test(a)) a = "http://" + a;
+  const u = new URL(a);
+  if (u.protocol === "http:" && !u.port) u.port = "8484";
+  return u;
+}
+
+async function join(address, id) {
+  say("");
+  let u;
+  try { u = gameUrl(address); } catch (e) { u = null; }
+  if (!u) { say("That isn't an address."); return; }
+  if (!id) {                                       // (by address: ask it who it is, for the ticket)
+    try { id = (await (await fetch(u.origin + "/api/info")).json()).id; } catch (e) { id = ""; }
+  }
+  const q = new URLSearchParams();
+  if (KIND !== "browser") q.set("app", KIND);
+  if (token && id && centralUp) {
+    try {
+      const t = await api("/api/ticket", { token, server: id });
+      if (t.ok) q.set("ticket", t.ticket);
+    } catch (e) { /* (no ticket: its own log-in) */ }
+  }
+  u.search = q.toString();
+  if (app) app.play(u.toString()); else location.href = u.toString();
+}
+
+// ----- the screens
+function show(which) {
+  $("menu").hidden = which !== "menu";
+  for (const s of ["host", "local", "remote"]) $(s).hidden = which !== s;
+  if (which === "local" && KIND !== "browser") find();
+  if (which === "remote") listRemote();
+  let back = $("back");
+  if (!back) {
+    back = document.createElement("button");
+    back.id = "back"; back.className = "back"; back.textContent = "< Back";
+    back.onclick = () => { say(""); show("menu"); };
+    $("menu").after(back);
+  }
+  back.hidden = which === "menu";
+}
+$("host-open").onclick = () => show("host");
+$("local-open").onclick = () => show("local");
+$("remote-open").onclick = () => show("remote");
+
+function gameRow(name, more, action, full) {
+  const row = document.createElement("div");
+  row.className = "game";
+  row.innerHTML = '<div class="what"><div class="name"></div><div class="dim small"></div></div>';
+  row.querySelector(".name").textContent = name;
+  row.querySelector(".small").textContent = more;
+  const b = document.createElement("button");
+  b.className = "go"; b.textContent = "Join"; b.disabled = !!full; b.onclick = action;
+  row.append(b);
+  return row;
+}
+
+async function listRemote() {
+  const box = $("servers");
+  if (!centralUp) { box.innerHTML = '<p class="dim small">The central server can\'t be reached just now.</p>'; return; }
+  try {
+    const list = await api("/api/servers");
+    box.innerHTML = "";
+    if (!list.length) { box.innerHTML = '<p class="dim small">No remote games just now. Host one, and pick Remote.</p>'; return; }
+    for (const g of list) box.append(gameRow(g.name, `${g.online} of ${g.max} playing · version ${g.version || "?"}`,
+      () => join(g.url, g.key), g.online >= g.max));
+  } catch (e) { box.innerHTML = '<p class="dim small">The central server didn\'t answer.</p>'; }
+}
+$("refresh").onclick = listRemote;
+
+function find() { $("find").disabled = true; app.find(); }
+window.onGames = (games) => {
+  $("find").disabled = false;
+  const box = $("games");
+  box.innerHTML = "";
+  if (!games.length) { box.innerHTML = '<p class="dim small">None found on this network.</p>'; return; }
+  games.sort((a, b) => (b.here ? 1 : 0) - (a.here ? 1 : 0) || String(a.name).localeCompare(b.name));
+  for (const g of games) box.append(gameRow(g.name + (g.here ? " (here)" : ""),
+    `${g.online} of ${g.max} playing` + (g.here ? "" : ` · ${g.address}`), () => join(`${g.address}:${g.port}`, g.id), g.online >= g.max));
+};
+$("find").onclick = find;
+$("join").onclick = () => { store.set("address", $("address").value.trim()); join($("address").value); };
+$("address").value = store.get("address");
+$("address").addEventListener("keydown", (ev) => { if (ev.key === "Enter") $("join").click(); });
+
+// ----- hosting (the apps): alone, local or remote
+function current() { try { return app ? JSON.parse(app.state()) : {}; } catch (e) { return {}; } }
+let wantPlay = false;
+function host(mode) {
+  say("");
+  const st = current();
+  if (st.status === "on") { say("A game is running here already: stop it first (above)."); return; }
+  wantPlay = mode === "solo";
+  if (app.hostAs) app.hostAs(mode === "solo" ? "" : $("host-name").value.trim(), mode, CENTRAL);
+  else if (mode === "solo") app.playAlone(); else app.host($("host-name").value.trim());
+  store.set("hostName", $("host-name").value.trim());
+}
+$("alone").onclick = () => {
+  const st = current();
+  if (st.status === "on" && st.mode === "solo") { join("127.0.0.1:" + (st.port || 8484)); return; }
+  host("solo");
+};
+$("host").onclick = () => host(document.querySelector("input[name=mode]:checked").value);
+$("resume").onclick = () => join("127.0.0.1:" + (current().port || 8484));
+$("running-stop").onclick = () => app.stopHosting();
+
+function refresh() {
+  if (!app) return;
+  const st = current();
+  $("version").textContent = st.version ? "Version " + st.version : "";
+  const on = st.status === "on", busy = ["unpacking", "starting", "stopping"].includes(st.status);
+  $("running").hidden = !on && !busy;
+  $("resume").hidden = $("running-stop").hidden = !on;
+  $("running-name").textContent = busy ? ({ unpacking: "Unpacking the game (the first time takes a while)...",
+    starting: "Starting...", stopping: "Saving the world..." }[st.status]) : st.mode === "solo" ? "Your own game" : st.name;
+  $("running-what").textContent = !on ? "" : st.mode === "solo" ? "is running on this device." :
+    st.mode === "remote" ? "is hosted here, listed by the central server." : "is hosted here for this network.";
+  const list = (st.addresses || []).map((ip) => `http://${ip}:${st.port}`);
+  $("running-addresses").innerHTML = on && st.mode !== "solo" && list.length ? "Others join at: " +
+    list.map((u) => `<span class="address">${u}</span>`).join(", ") : "";
+  if (st.status === "error" && st.error) say("The game couldn't start: " + st.error);
+  if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484)); }
+  if (!$("host-name").value) $("host-name").value = store.get("hostName") || "Shards of Ashen on " + (st.device || "this device");
+}
+
+const err = /#error=(.*)$/.exec(location.hash);
+if (err) say(decodeURIComponent(err[1]));
+show("menu");
+connect();
+refresh();
+if (app) setInterval(refresh, 1000);
+</script>
+</body>
+</html>

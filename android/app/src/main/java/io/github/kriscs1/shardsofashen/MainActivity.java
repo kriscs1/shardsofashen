@@ -137,6 +137,7 @@ public class MainActivity extends Activity {
                 o.put("error", HostService.error);
                 o.put("name", HostService.name);
                 o.put("solo", HostService.solo);
+                o.put("mode", HostService.mode);
                 o.put("port", HostService.PORT);
                 o.put("addresses", Net.addresses());
                 o.put("device", Build.MODEL);
@@ -149,19 +150,30 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void host(String name) {
-            if (home()) startHost(name, false);
+            if (home()) startHost(name, false, "local", "");
+        }
+
+        @JavascriptInterface
+        public String kind() {
+            return "android";
+        }
+
+        @JavascriptInterface
+        public void hostAs(String name, String mode, String central) {
+            if (home()) startHost(name, "solo".equals(mode), mode, central);   // (the start screen: solo, local, remote)
         }
 
         @JavascriptInterface
         public void playAlone() {
-            if (home()) startHost("", true);            // (this phone only, its own world: ds_host.py's solo)
+            if (home()) startHost("", true, "solo", ""); // (this phone only, its own world: ds_host.py's solo)
         }
 
-        private void startHost(String name, boolean solo) {
+        private void startHost(String name, boolean solo, String mode, String central) {
             if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
                 requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, 1);
-            Intent i = new Intent(MainActivity.this, HostService.class).putExtra("name", name).putExtra("solo", solo);
+            Intent i = new Intent(MainActivity.this, HostService.class).putExtra("name", name).putExtra("solo", solo)
+                .putExtra("mode", mode).putExtra("central", central);
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(i);
             else startService(i);
         }
