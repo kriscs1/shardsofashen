@@ -179,16 +179,20 @@ class FilterList(ttk.Frame):
 
 
 class PaletteGrid(tk.Frame):
-    """A grid of sprite thumbnails to pick from (the map's palette). items: [(key, PIL image or None, label)]."""
+    """A grid of sprite thumbnails to pick from (the map's palette). items: [(key, PIL image, or a function that
+    gives it, or None, label)]. Only the rows in view are drawn (their pictures read when they first come into it), so
+    a palette of thousands opens at once."""
 
     def __init__(self, parent, on_pick, on_hover=None, cell=40, preview_fn=None):
         super().__init__(parent, bg=T.PANEL)
         self.on_pick, self.on_hover, self.cell = on_pick, on_hover, cell
         self.preview_fn = preview_fn          # key -> (PIL image, caption): shown big beside the palette on hover
+        self.badge_fn = None                  # key -> (text, colour) or None: a little tag in a cell's corner
         self._pv, self._pv_key, self._pv_photo = None, None, None
+        self._rows, self._job = None, None
         self.canvas = tk.Canvas(self, bg=T.FIELD, highlightthickness=1, highlightbackground=T.LINE, bd=0)
         sb = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=sb.set)
+        self.canvas.configure(yscrollcommand=lambda *a: (sb.set(*a), self._scrolled()))
         self.canvas.pack(side="left", fill="both", expand=True)
         sb.pack(side="right", fill="y")
         self.items, self.selected, self.photos = [], None, []
@@ -208,16 +212,38 @@ class PaletteGrid(tk.Frame):
     def cols(self):
         return max(1, (self.canvas.winfo_width() - 4) // self.cell)
 
+    def _scrolled(self):
+        """Scrolled (or resized): the rows come into view are drawn, soon."""
+        if self._rows is not None and self._job is None:
+            self._job = self.after(15, self._draw_if_moved)
+
+    def _draw_if_moved(self):
+        self._job = None
+        if self._rows != self._view_rows():
+            self.draw()
+
+    def _view_rows(self):
+        c, s = self.canvas, self.cell
+        top = max(0, int(c.canvasy(0) // s) - 2)
+        return top, top + int(max(1, c.winfo_height()) // s) + 5
+
     def draw(self):
         c = self.canvas
         c.delete("all")
         self.photos = []
         cols, s = self.cols(), self.cell
-        for i, (key, img, label) in enumerate(self.items):
+        rows = (len(self.items) + cols - 1) // cols
+        c.configure(scrollregion=(0, 0, cols * s + 4, rows * s + 4))
+        self._rows = r0, r1 = self._view_rows()
+        for i in range(r0 * cols, min(len(self.items), r1 * cols)):
+            key, img, label = self.items[i]
             x, y = 2 + (i % cols) * s, 2 + (i // cols) * s
             if key == self.selected:
                 c.create_rectangle(x, y, x + s - 1, y + s - 1, fill=T.SELECT, outline=T.ACCENT, width=2)
-            ph = photo(img, (s - 8, s - 8), key=("pal", key, s)) if img is not None else None
+            k = ("pal", key, s)
+            if callable(img):                         # (read only now it's in view; kept once made)
+                img = None if (k, (s - 8, s - 8)) in _photos else img()
+            ph = _photos.get((k, (s - 8, s - 8))) or (photo(img, (s - 8, s - 8), key=k) if img is not None else None)
             if ph:
                 self.photos.append(ph)
                 c.create_image(x + s // 2, y + s // 2, image=ph)
@@ -231,8 +257,11 @@ class PaletteGrid(tk.Frame):
                 else:
                     c.create_text(x + s // 2, y + s // 2, text=label, font=("Segoe UI", -max(8, s // 5)), fill=T.MUTED,
                                   width=s - 6, justify="center")
-        rows = (len(self.items) + cols - 1) // cols
-        c.configure(scrollregion=(0, 0, cols * s + 4, rows * s + 4))
+            badge = self.badge_fn(key) if self.badge_fn else None
+            if badge:                                 # (what it is: a tag in the corner, in its kind's colour)
+                text, col = badge
+                c.create_rectangle(x + s - 3 - 6 * len(text) - 2, y + 1, x + s - 2, y + 11, fill=col, outline="")
+                c.create_text(x + s - 3, y + 6, text=text, anchor="e", fill="white", font=("Segoe UI", -9, "bold"))
 
     def _at(self, e):
         x, y = self.canvas.canvasx(e.x) - 2, self.canvas.canvasy(e.y) - 2

@@ -222,7 +222,7 @@ def kind_of(project, name):
         return "Map entry"
     if name.endswith(" Skill"):
         return "Skill"
-    if name in project.index()["script_trigger"]:
+    if name in project.trigger_scripts():
         return "Trigger"
     first = name.split(" ")[0]
     if first in project.verbs() or name.split(" [")[0] in project.verbs():

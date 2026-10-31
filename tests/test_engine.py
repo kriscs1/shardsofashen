@@ -4651,3 +4651,76 @@ def test_the_journal_is_sent_at_most_once_a_second(world):
     world.tick(0.05, now=world.now + 1000)
     assert journals() == 2
     leave(world, s)
+
+
+def test_an_npc_roams_a_zone_of_any_shape(world):
+    """Zone= (and Chase=) can be several rectangles joined by / (the map editor paints them tile by tile): it roams
+    only in them, not in the gap their corners leave."""
+    m = world.maps["3,5,0"]
+    rabbit = world.add_npc("Rabbit", m.mz, m.ox + 4 * 32, m.oy + 4 * 32, "Attitude=Passive Zone=4,4,6,5/4,6,4,9")
+    a = rabbit.ai
+    inside = lambda tx, ty: world.in_zone(a, m.ox + (tx - 0.5) * 32, m.oy + (ty - 0.5) * 32)
+    assert inside(5, 4) and inside(4, 9) and inside(6, 5)
+    assert not inside(6, 8) and not inside(7, 4)                      # (the L's corner, and past it)
+    assert a.zone.parts and len(a.zone.parts) == 2
+    for _ in range(200):                                              # (where it picks to go: in one of them)
+        r = a.zone.pick()
+        assert r in a.zone.parts
+    assert world.npc_rects("4,4,6,5/4,6,x,9") == []                   # (a part that isn't one: none of it)
+    world.remove_entity(rabbit)
+
+
+def test_a_cart_route_takes_its_nodes_in_order():
+    """Carts.ini: NodeN= in Order= (a node more than once: out and back by the same street), else PointN= in turn;
+    a stop it passes twice is offered once, at the next time it comes to it."""
+    from dsengine.carts import route_points, Carts, Cart
+    kv = {"NODE1": "a", "NODE2": "b", "NODE3": "c", "NODE4": "d", "ORDER": "1,2,3,2,4"}
+    assert route_points(kv) == ["a", "b", "c", "b", "d"]
+    assert route_points({"NODE2": "b", "NODE1": "a"}) == ["a", "b"]          # (no order: in number order)
+    assert route_points({"POINT1": "x", "POINT2": "y"}) == ["x", "y"]
+    c = Cart("T", "T", [(0, 0), (1, 0), (2, 0), (1, 0), (3, 0)], {0: "the gate", 1: "the square", 3: "the square",
+                                                                   4: "the port"}, 0, 1, 6, True)
+    c.i = 2
+    ahead = Carts.ahead(None, c)
+    assert [c.stops[j] for j in ahead] == ["the square", "the port", "the gate"] and ahead[0] == 3
+
+
+def test_editor_terrains_zones_routes_and_map_names():
+    """The map editor: a terrain painted lays its ground and decor and takes off another's (dsedit/terrain.py); an
+    area painted tile by tile is written as few rectangles; a cart's order can visit a node twice; a map's name is
+    found only where it stands on its own (dsedit/mapops.py)."""
+    import random as _r
+    from dsedit.project import Project, MapDoc
+    from dsedit import terrain as TR, mapops
+    from dsedit.pages.maps import MapPage
+    from dsedit.carts import CartRoutes
+    P = Project(ROOT)
+    doc = MapDoc(P, "4,0,0")
+    at = lambda x, y: (doc, x, y) if 0 <= x < P.map_w and 0 <= y < P.map_h else None
+    spot = [(x, y) for x in range(2, 8) for y in range(2, 8)]
+    TR.paint(P, TR.named(P, "Woodland"), spot, at, lambda d: None, rng=_r.Random(3))
+    assert all(doc.cells[y][x].tile == "Grass001" for x, y in spot)
+    assert sum(1 for x, y in spot if doc.cells[y][x].decor) > 10                  # (trees, mostly)
+    TR.paint(P, TR.named(P, "Water"), spot, at, lambda d: None, rng=_r.Random(3))
+    assert all(doc.cells[y][x].tile == "Water001" for x, y in spot)
+    assert not any((doc.cells[y][x].decor or "").startswith("Tree") for x, y in spot)   # (the woodland's, gone)
+    TR.paint(P, TR.named(P, "Cave_Rock"), spot, at, lambda d: None, rng=_r.Random(3))
+    TR.paint(P, TR.named(P, "Cave_Floor"), [(4, 5), (5, 5)], at, lambda d: None, rng=_r.Random(3))
+    assert doc.cells[4][4].tile in ("Cave_Wall002", "Cave_Wall003") and doc.cells[3][4].tile == "Cave_Wall001"
+    TR.paint(P, TR.named(P, "Cave_Rock"), [(4, 5), (5, 5)], at, lambda d: None, rng=_r.Random(3))
+    assert doc.cells[4][4].tile == "Cave_Wall001"                                # (filled in: no face)
+    assert len(TR.disc(0, 0, 5)) == 21 and TR.disc(3, 3, 1) == [(3, 3)]
+    assert (5, 5) in TR.inside_outline([(0, 0), (10, 0), (10, 10), (0, 10)])
+    tiles = {(x, y) for x in range(1, 4) for y in range(1, 3)} | {(1, 3), (1, 4)}
+    text = MapPage.rects_text(tiles)
+    assert MapPage.tiles_of(MapPage.opt_rects(text)) == tiles and text.count("/") == 1
+    routes = CartRoutes(P)
+    r = routes.routes[0]
+    plain = routes.text()
+    r.order = [0, 1, 2, 1, 3]
+    assert "Order=1,2,3,2,4" in routes.text() and "Node1=" in routes.text()
+    r.order = []
+    assert routes.text() == plain                                                # (one after another: PointN= as before)
+    pat = mapops.name_re("4,0,0")
+    assert pat.search("Start.Map=4,0,0") and pat.search("Point3=4,0,0,5,17,the market")
+    assert not pat.search("14,0,0") and not pat.search("-4,0,0") and not pat.search("4,0,01")

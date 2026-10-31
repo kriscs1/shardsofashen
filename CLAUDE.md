@@ -336,7 +336,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Shop.Vary.Stock=1` (a rack's own `Vary.Stock=` wins). What's bought comes back after `Shop.Restock.Seconds` (an hour,
   up to four for dear things).
 - **Horses and carts** (`dsengine/carts.py`, `data/Carts.ini`, `dev/migrate/build_carts.py`): a city's cart keeps to
-  its route's points (set in the map editor, on Entities, or in the file), stop to stop, waiting `Wait=` seconds at each,
+  its route's points (set in the map editor, on Entities, or in the file: `PointN=` in turn, or `NodeN=` taken in its
+  `Order=1,2,3,2,4`, a node more than once when it goes by again), stop to stop, waiting `Wait=` seconds at each,
   to the end and back (`Loop=1`: round and round). Hail it as it passes and it pulls up; Get In, pick a stop, pay the
   `Fare=`, and it takes you there, at a walk with nobody aboard and three times that with anyone in it. The rider stands
   in its box (the page draws them over it above its `Seat.<dir>` panel line); Get Out where it stops.
@@ -481,8 +482,22 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   copied or cut with the inspector's buttons, then each click puts it down; after a change only the maps changed are
   drawn again, and nothing goes black while new pictures are made. A thing dragged off a map lands on the next one.
   Zoomed far out, a double-click zooms in on that tile at 100%. Every level under or over the world is laid out in the
-  world's frame (`dsedit/world.py` own_level): the same corners, a map just over or under the one it's above or below,
-  and going up or down keeps the same spot in view.
+  world's frame (`dsedit/world.py` own_level): one frame round every map on any of them, so a tile is at the same spot
+  of the canvas on every level, and **going up or down keeps the view exactly** (the same scroll and zoom, every tile
+  over the one below it), even where the other level has no map there. A slow job shows a banner over the window
+  (`app.busy`) or a spinner in the header for one in the background (`app.working`): never a window that looks stuck.
+  Right-click lets go of an area being pasted. Dragging an entity moves only its picture (the map is drawn once
+  without it), and the palette makes only the pictures in view: keep both so.
+- **The map editor's Auto palette and brushes** (`dsedit/terrain.py`): a terrain (`data/TileSets.ini` `Kind=Terrain`,
+  `dev/migrate/build_terrains.py`: its ground mixed by weight, decor and creatures scattered at a density, `Water=1`,
+  a wall's `Face=`), a set or a family of look-alikes is one palette entry that puts the right tile down itself;
+  Detail shows every tile. Terrains are painted with a brush of any size, Fill, Rectangle, or an Outline drawn round a
+  place; painting rolls the decor and creatures afresh, takes off what another terrain scattered (never anything with
+  an Id, a name, a zone or a patrol, nor built decor), smooths the coasts and turns cave rock to its face over open
+  ground. A new kind of ground or a wall gets a terrain in the data, not code. An NPC's `Zone=`/`Chase=` can be any
+  shape: rectangles joined by `/`, painted tile by tile. Whole maps are moved, copied or deleted from the map's
+  right-click menu (`dsedit/mapops.py`: what names them follows; the code that names them is listed). An entity's
+  options are fields of their own (`OPT_SPECS` in `dsedit/pages/maps.py`): a new map option gets one there too.
 - The map editor shows a level as one map (`dsedit/world.py`). **How tiles go together is in the data, never the
   editor's code**: a set in `data/TileSets.ini` has a `Kind=` (Stretch: a 3-column grid of corners, edges and middle;
   Rug: that and its "runner"s; Join: pieces that join their neighbours, each with `Joins=` in Tiles.ini, the sides it

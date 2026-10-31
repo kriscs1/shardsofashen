@@ -596,6 +596,8 @@ class Project:
                 self._lists.pop("tiles_shown", None)
             if k == "entities":
                 self._lists.pop("entity_set", None)
+            if k == "maps":
+                self._lists.pop("triggers", None)
         self._index = None
 
     def _files(self, key, folder, ext):
@@ -686,6 +688,8 @@ class Project:
             doc = IniDoc(path) if os.path.exists(path) else None
             out, info = [], {}
             for sec in (doc.sections() if doc else []):
+                if doc.get(sec, "Kind", "").strip().lower() == "terrain":
+                    continue                            # (a terrain isn't pieces that fit: dsedit/terrain.py)
                 info[sec] = {k: doc.get(sec, k, "") for k in ("Kind", "Land", "Water", "Corners", "Small")}
                 names = [n.strip() for n in doc.get(sec, "Tiles", "").split(",")]
                 try:
@@ -963,6 +967,24 @@ class Project:
         path = self.p("dev", "Minimap Colours.txt")
         lines = ["%s\t%s" % (k, v) for k, v in sorted(self.minimap_colours.items(), key=lambda kv: kv[0].lower())]
         return write_text_lines(path, lines)
+
+    def trigger_scripts(self):
+        """The scripts the maps' triggers run (the Scripts list's "Trigger" kind): the full index if it's been
+        made, else only the maps' trigger lines read (the scripts aren't needed for it: a much quicker start)."""
+        if self._index is not None:
+            return self._index["script_trigger"]
+        if "triggers" not in self._lists:
+            out = set()
+            for m in self.maps():
+                try:
+                    lines = read_text_lines(self.map_path(m))
+                except OSError:
+                    continue
+                for l in lines[self.map_h:]:
+                    if l.startswith("Trigger\t"):
+                        out.add(l.split("\t")[1])
+            self._lists["triggers"] = out
+        return self._lists["triggers"]
 
     # --- where things are used
     def index(self):

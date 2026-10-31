@@ -14,6 +14,29 @@ PF_NPC_BUDGET = 400
 
 LYING = ("Curl", "Lie")                                # (poses lying down: still, no turning about, sat up from)
 
+
+class Area(list):
+    """An NPC's Zone or Chase area, in pixels: [x0, y0, x1, y1] round it all, and its parts when it's more than one
+    rectangle (Zone=3,4,8,9/8,5,12,6: an L, a ring round a pond...; the map editor paints them tile by tile)."""
+    parts = None
+
+    def has(self, x, y):
+        if not (self[0] <= x <= self[2] and self[1] <= y <= self[3]):
+            return False
+        return self.parts is None or any(r[0] <= x <= r[2] and r[1] <= y <= r[3] for r in self.parts)
+
+    def pick(self):
+        """One of its rectangles, the bigger ones the likelier (a random spot of it is a random spot of the area)."""
+        if not self.parts:
+            return self
+        total = sum((r[2] - r[0] + 1) * (r[3] - r[1] + 1) for r in self.parts)
+        k = rnd() * total
+        for r in self.parts:
+            k -= (r[2] - r[0] + 1) * (r[3] - r[1] + 1)
+            if k <= 0:
+                return r
+        return self.parts[-1]
+
 class NPCMixin:
     def update_npcs(self):
         sw, sh = self.sw, self.sh
@@ -250,8 +273,10 @@ class NPCMixin:
         a.way_index = 1
         a.way_step = 1
         a.pingpong = ping
-        if self.npc_rect_valid(zone):
-            x1, y1, x2, y2 = (val(word(zone, i, ",")) for i in range(1, 5))
+        zone_parts = self.npc_rects(zone)
+        if zone_parts:
+            x1, y1, x2, y2 = (min(r[0] for r in zone_parts), min(r[1] for r in zone_parts),
+                              max(r[2] for r in zone_parts), max(r[3] for r in zone_parts))
         else:
             x1 = x2 = spawn_tx
             y1 = y2 = spawn_ty
@@ -263,9 +288,11 @@ class NPCMixin:
                 x1, y1, x2, y2 = x1 - roam, y1 - roam, x2 + roam, y2 + roam
                 if roam == 0:
                     stand = 1
-        self.npc_set_rect(a, 0, x1, y1, x2, y2)
-        if self.npc_rect_valid(chase_r):
-            self.npc_set_rect(a, 1, *(val(word(chase_r, i, ",")) for i in range(1, 5)))
+        self.npc_set_rect(a, 0, x1, y1, x2, y2, zone_parts)
+        chase_parts = self.npc_rects(chase_r)
+        if chase_parts:
+            self.npc_set_rect(a, 1, min(r[0] for r in chase_parts), min(r[1] for r in chase_parts),
+                              max(r[2] for r in chase_parts), max(r[3] for r in chase_parts), chase_parts)
         else:
             self.npc_set_rect(a, 1, min(x1, x2) - chase, min(y1, y2) - chase, max(x1, x2) + chase, max(y1, y2) + chase)
         a.roost = None
@@ -307,14 +334,27 @@ class NPCMixin:
             return False
         return all(is_number(trim(word(rect, k, ","))) for k in range(1, 5))
 
-    def npc_set_rect(self, a, which, x1, y1, x2, y2):
+    @classmethod
+    def npc_rects(cls, text):
+        """"x1,y1,x2,y2", or several joined by / (tiles) -> [(x1, y1, x2, y2)], or [] if any of them isn't one."""
+        parts = [trim(p) for p in str(text or "").split("/") if trim(p)]
+        if not parts or not all(cls.npc_rect_valid(p) for p in parts):
+            return []
+        return [tuple(val(word(p, i, ",")) for i in range(1, 5)) for p in parts]
+
+    def npc_set_rect(self, a, which, x1, y1, x2, y2, parts=None):
         xt, yt, tw, th = self.xt, self.yt, self.tw, self.th
-        left = min(2 * xt, max(1 - xt, int(min(x1, x2))))
-        right = min(2 * xt, max(1 - xt, int(max(x1, x2))))
-        top = min(2 * yt, max(1 - yt, int(min(y1, y2))))
-        bottom = min(2 * yt, max(1 - yt, int(max(y1, y2))))
-        rect = [(left - 1) * tw + a.home_ox, (top - 1) * th + a.home_oy, right * tw - 1 + a.home_ox,
-                bottom * th - 1 + a.home_oy]
+
+        def px(x1, y1, x2, y2):
+            left = min(2 * xt, max(1 - xt, int(min(x1, x2))))
+            right = min(2 * xt, max(1 - xt, int(max(x1, x2))))
+            top = min(2 * yt, max(1 - yt, int(min(y1, y2))))
+            bottom = min(2 * yt, max(1 - yt, int(max(y1, y2))))
+            return [(left - 1) * tw + a.home_ox, (top - 1) * th + a.home_oy, right * tw - 1 + a.home_ox,
+                    bottom * th - 1 + a.home_oy]
+        rect = Area(px(x1, y1, x2, y2))
+        if parts and len(parts) > 1:                   # (more than one rectangle: an L, a ring...)
+            rect.parts = [px(*r) for r in parts]
         if which == 0:
             a.zone = rect
         else:
@@ -322,11 +362,13 @@ class NPCMixin:
 
     @staticmethod
     def in_chase_area(a, x, y):
-        return a.chase[0] <= x <= a.chase[2] and a.chase[1] <= y <= a.chase[3]
+        c = a.chase
+        return c.has(x, y) if isinstance(c, Area) else c[0] <= x <= c[2] and c[1] <= y <= c[3]
 
     @staticmethod
     def in_zone(a, x, y):
-        return a.zone[0] <= x <= a.zone[2] and a.zone[1] <= y <= a.zone[3]
+        z = a.zone
+        return z.has(x, y) if isinstance(z, Area) else z[0] <= x <= z[2] and z[1] <= y <= z[3]
 
     # =================================================================================================================
     # Thinking
@@ -923,8 +965,9 @@ class NPCMixin:
         if zone_w <= self.tw * 2 and zone_h <= self.th * 2:
             min_dist = self.tw * 0.5
         for attempt in range(1, 11):
-            gx = a.zone[0] + self.tw / 4 + rnd() * max(0, zone_w - self.tw / 2)
-            gy = a.zone[1] + self.th / 4 + rnd() * max(0, zone_h - self.th / 2)
+            r = a.zone.pick() if isinstance(a.zone, Area) else a.zone     # (one of its parts, if it has them)
+            gx = r[0] + self.tw / 4 + rnd() * max(0, r[2] - r[0] + 1 - self.tw / 2)
+            gy = r[1] + self.th / 4 + rnd() * max(0, r[3] - r[1] + 1 - self.th / 2)
             ok = not (distance(fx, fy, gx, gy) < min_dist and attempt < 10)
             if ok:
                 region = self.grid_region_at(e.z, gx, gy)
@@ -947,8 +990,9 @@ class NPCMixin:
         want_water = rnd() < (0.7 if self.in_water(e) else 0.9)
         feet_offset = e.fy - e.cy
         for _ in range(16):
-            gx = a.zone[0] + rnd() * (a.zone[2] - a.zone[0])
-            gy = a.zone[1] + rnd() * (a.zone[3] - a.zone[1])
+            r = a.zone.pick() if isinstance(a.zone, Area) else a.zone
+            gx = r[0] + rnd() * (r[2] - r[0])
+            gy = r[1] + rnd() * (r[3] - r[1])
             if not self.pixel_walkable(e.z, gx, gy, None, True) or distance(e.fx, e.fy, gx, gy) < self.tw:
                 continue
             m, tx, ty = self.tile_at(e.z, gx, gy)

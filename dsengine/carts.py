@@ -1,5 +1,6 @@
 """Horse-drawn carts (data/Carts.ini): each route has a horse and cart that keep to its points, stop to stop (to its
-end and back again, or round and round with Loop=1), waiting Wait seconds at each stop. Hail one as it goes by and it
+end and back again, or round and round with Loop=1), waiting Wait seconds at each stop. A route's points are its
+NodeN= taken in its Order= (1,2,3,2,4: a node can come up more than once), or its PointN= one after another. Hail one as it goes by and it
 pulls up for you; Get In, pick a stop and pay the fare, and it takes you there along its way, stopping at the stops
 between. It goes at a walk with nobody aboard and three times that with anyone in it. The cart is everyone's (they all
 see it go by); who rides it, and where to, is each rider's own."""
@@ -28,6 +29,21 @@ class Cart:
         self.e = None
 
 
+def route_points(kv):
+    """A route's way, as written in Carts.ini (its keys upper case): [the PointN text, in order]. NodeN= in Order=
+    (a comma list of node numbers; a node more than once goes by it again), else PointN= in number order."""
+    nodes = {int(k[4:]): v for k, v in kv.items() if k.startswith("NODE") and k[4:].isdigit()}
+    if nodes:
+        order = [int(t) for t in str(kv.get("ORDER", "")).replace(" ", "").split(",") if t.isdigit()]
+        return [nodes[n] for n in (order or sorted(nodes)) if n in nodes]
+    out = []
+    for n in range(1, 500):
+        if "POINT%d" % n not in kv:
+            break
+        out.append(kv["POINT%d" % n])
+    return out
+
+
 def parse_point(text):
     """"MAP,X,Y[,Stop name]" (a 1-based tile of map MAP) -> (map, x, y, name) or None."""
     p = [trim(v) for v in str(text).split(",", 5)]
@@ -48,11 +64,9 @@ class Carts:
         for key, items in ini.sections(w.data.data_file("Carts.ini")):
             kv = {k.upper(): v for k, v in items if k}
             points, stops, z = [], {}, None
-            for n in range(1, 500):
-                pt = parse_point(kv.get("POINT%d" % n, ""))
+            for text in route_points(kv):
+                pt = parse_point(text)
                 if pt is None:
-                    if "POINT%d" % n not in kv:
-                        break
                     continue
                 m = w.map_named(pt[0])
                 if m is None or (z is not None and m.mz != z):
@@ -61,7 +75,7 @@ class Carts:
                 if pt[3]:
                     stops[len(points)] = pt[3]
                 points.append((m.ox + (pt[1] - 0.5) * w.tw, m.oy + (pt[2] - 0.5) * w.th))
-            if len(points) < 2 or len(stops) < 2:
+            if len(points) < 2 or len(set(stops.values())) < 2:
                 continue
             c = Cart(key, trim(kv.get("TITLE", "")) or key.replace("_", " "), points, stops, z,
                      max(0, int(val(kv.get("FARE", "1")))), max(1.0, val(kv.get("WAIT", "6"))),
@@ -181,7 +195,7 @@ class Carts:
         w.sound("Hooves", c.z, x, y, radius=256.0)
         for name, dest in list(c.riders.items()):
             s = w.sessions.get(name)
-            if s is not None and dest == j:
+            if s is not None and c.stops.get(dest) == c.stops.get(j):       # (that stop, here or where it's again)
                 self.get_out(s, arrived=True)
 
     def pin_riders(self, c):
@@ -238,11 +252,25 @@ class Carts:
         if w.now >= c.wait_until:
             c.wait_until = w.now + HAIL_WAIT                 # (beside it as it goes: it stops for you)
         here = self.stop_at(c)
-        options = [("To %s." % name, (lambda j=j: self.choose(s, c, j))) for j, name in sorted(c.stops.items())
-                   if j != here][:5]
+        options = [("To %s." % c.stops[j], (lambda j=j: self.choose(s, c, j))) for j in self.ahead(c)
+                   if here is None or c.stops[j] != c.stops[here]][:5]
         fare = ("%d gold" % c.fare) if c.fare else "nothing"
         s.show_menu(c.title, "Horse_Cart2a", "The cart goes round %s. A ride to any stop is %s." % (c.title, fare)
                     + ("" if here is None else " You're at %s." % c.stops[here]), options + [("Not now.", None)])
+
+    def ahead(self, c):
+        """Each stop once, by name, at the point it next comes to it (a route that goes by a node twice)."""
+        seen, out = set(), []
+        i, step, n = c.i, c.step, len(c.pts)
+        for _ in range(2 * n + 2):
+            if i in c.stops and c.stops[i] not in seen:
+                seen.add(c.stops[i])
+                out.append(i)
+            i = (i + 1) % n if c.loop else i + step
+            if not 0 <= i < n:
+                step = -step
+                i += 2 * step
+        return out
 
     def stop_at(self, c):
         """The stop the cart is standing at, or None (between stops: pulled up for someone)."""

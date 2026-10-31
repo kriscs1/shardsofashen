@@ -341,11 +341,23 @@ def map_of_tile(home, tx, ty):
     return name, tx - dx * MAP_W, ty - dy * MAP_H
 
 
+def parse_rects(v):
+    """A Zone or Chase: one rectangle, or several joined by / (an L, a ring round a pond: painted in the map editor)
+    -> [(x1, y1, x2, y2)], or None if any part isn't one."""
+    out = [parse_rect(part) for part in v.split("/")]
+    return None if not out or None in out else out
+
+
 def rect_has(rc, x, y):
+    if isinstance(rc, list):                        # (several rectangles: in any of them)
+        return any(rect_has(r, x, y) for r in rc)
     return rc[0] <= x <= rc[2] and rc[1] <= y <= rc[3]
 
 
 def rect_in(inner, outer):
+    if isinstance(inner, list) or isinstance(outer, list):      # (every tile of the one in the other)
+        return all(rect_has(outer, x, y) for r in (inner if isinstance(inner, list) else [inner])
+                   for x in range(r[0], r[2] + 1) for y in range(r[1], r[3] + 1))
     return outer[0] <= inner[0] and outer[1] <= inner[1] and inner[2] <= outer[2] and inner[3] <= outer[3]
 
 
@@ -421,18 +433,18 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
     zone = chase = None
     for k in ("Zone", "Chase"):
         if k in opts:
-            rc = parse_rect(opts[k])
-            if rc is None:
-                report(where, "%s=%r should be x1,y1,x2,y2 (whole tile numbers)" % (k, opts[k]))
-            elif not rect_ok(rc):
+            rcs = parse_rects(opts[k])
+            if rcs is None:
+                report(where, "%s=%r should be x1,y1,x2,y2 (whole tile numbers; several joined by /)" % (k, opts[k]))
+            elif not all(rect_ok(rc) for rc in rcs):
                 report(where, "%s=%s is not a rectangle with x1<=x2 and y1<=y2 inside %d..%d,%d..%d (this map and the next ones)"
                        % (k, opts[k], 1 - MAP_W, 2 * MAP_W, 1 - MAP_H, 2 * MAP_H))
-            elif any(map_of_tile(home, cx, cy) is None for cx in (rc[0], rc[2]) for cy in (rc[1], rc[3])):
+            elif any(map_of_tile(home, cx, cy) is None for rc in rcs for cx in (rc[0], rc[2]) for cy in (rc[1], rc[3])):
                 report(where, "%s=%s reaches past this map onto a map that doesn't exist" % (k, opts[k]))
             elif k == "Zone":
-                zone = rc
+                zone = rcs[0] if len(rcs) == 1 else rcs
             else:
-                chase = rc
+                chase = rcs[0] if len(rcs) == 1 else rcs
     if "Pause" in opts:
         m = PAUSE_RE.match(opts["Pause"])
         if not m:
@@ -493,7 +505,8 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
         if not rect_has(chase, *spawn):
             report(where, "Chase=%s doesn't contain its spawn tile %d,%d" % (opts["Chase"], spawn[0], spawn[1]))
         if "Patrol" not in opts and not stand and not rect_in(eff_zone, chase):
-            report(where, "Chase=%s doesn't contain its Zone %s" % (opts["Chase"], ",".join(str(v) for v in eff_zone)))
+            report(where, "Chase=%s doesn't contain its Zone %s" % (opts["Chase"], opts.get("Zone") or
+                                                                     ",".join(str(v) for v in eff_zone)))
         for px, py in points:
             if not rect_has(chase, px, py):
                 report(where, "Chase=%s doesn't contain patrol waypoint %d,%d" % (opts["Chase"], px, py))
@@ -507,8 +520,10 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
     if entities_ini is not None and entities_ini.get(name, "Aggressive") == "1" and not stand:
         cr = entities_ini.get(name, "Chase.Radius")
         cr = int(float(cr)) if cr is not None and is_num(cr) else 0
-        area = chase or (max(1, eff_zone[0] - cr), max(1, eff_zone[1] - cr),
-                         min(MAP_W, eff_zone[2] + cr), min(MAP_H, eff_zone[3] + cr))
+        box = eff_zone if not isinstance(eff_zone, list) else (                  # (round all its parts)
+            min(r[0] for r in eff_zone), min(r[1] for r in eff_zone), max(r[2] for r in eff_zone),
+            max(r[3] for r in eff_zone))
+        area = chase or (max(1, box[0] - cr), max(1, box[1] - cr), min(MAP_W, box[2] + cr), min(MAP_H, box[3] + cr))
         if area == (1, 1, MAP_W, MAP_H):
             warn(where, "aggressive %s can chase the player over the whole map (give it a Chase rectangle)" % name)
 
@@ -1008,7 +1023,8 @@ def check_tiles():
 
 def check_tile_sets():
     """data\\TileSets.ini: sets of tiles that go together (Title, Columns, Tiles, Kind; a coast's Land, Water, Corners,
-    Small); every tile in one is there."""
+    Small); every tile in one is there. And the terrains the editor paints (Kind=Terrain: its ground tiles, the decor
+    and creatures scattered over it, each with a weight; build_terrains.py)."""
     path = p("data", "TileSets.ini")
     if not os.path.exists(path):
         return
@@ -1018,6 +1034,9 @@ def check_tile_sets():
     r = rel(path)
     for sec, items in ini.sections:
         keys = {k: v for k, v in items if k}
+        if keys.get("Kind") == "Terrain":
+            check_terrain(r, sec, keys)
+            continue
         for k in keys:
             if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small"):
                 warn(r, "[%s] unknown key %s" % (sec, k))
@@ -1039,6 +1058,45 @@ def check_tile_sets():
         for n in names:
             if n and n not in TILES:
                 err(r, "[%s] tile %r has no sprite in sprites\\Tiles" % (sec, n))
+
+
+_LAYERED = None
+TERRAIN_KEYS = ("Title", "Kind", "Tiles", "Decor", "Decor.Density", "Entities", "Entities.Density", "Water", "Face")
+
+
+def check_terrain(r, sec, keys):
+    """A terrain: Tiles= ground tiles, Decor= decor tiles, Entities= things with a sprite, Face= ground tiles (a
+    wall's face over open ground), each Name or Name*weight; the densities numbers from 0 to 100; Water=0 or 1."""
+    for k in keys:
+        if k not in TERRAIN_KEYS:
+            warn(r, "[%s] unknown key %s (a terrain has %s)" % (sec, k, ", ".join(TERRAIN_KEYS)))
+    global _LAYERED
+    if _LAYERED is None:
+        tiles_ini = Ini(p("data", "Tiles.ini"))
+        _LAYERED = {t.lower() for t in TILES if (tiles_ini.get(t, "Layer", "") or "").strip().lower() in
+                    ("decor", "under")}
+    decor = _LAYERED
+    for k in ("Tiles", "Decor", "Entities", "Face"):
+        for part in [x.strip() for x in keys.get(k, "").split(",") if x.strip()]:
+            name, _, w = part.partition("*")
+            name = name.strip()
+            if w and not is_num(w):
+                err(r, "[%s] %s: %r - the weight after * should be a number" % (sec, k, part))
+            if k == "Entities":
+                if not os.path.exists(p("sprites", "Entities", name + ".png")):
+                    err(r, "[%s] Entities: %r has no sprite in sprites\\Entities" % (sec, name))
+            elif name not in TILES:
+                err(r, "[%s] %s: %r has no sprite in sprites\\Tiles" % (sec, k, name))
+            elif decor is not None and (name.lower() in decor) != (k == "Decor"):
+                err(r, "[%s] %s: %r is %s" % (sec, k, name, "a ground tile, not decor" if k == "Decor" else
+                                              "decor, not ground"))
+    if not keys.get("Tiles", "").strip():
+        err(r, "[%s] a terrain needs its Tiles" % sec)
+    for k in ("Decor.Density", "Entities.Density"):
+        if k in keys and not (is_num(keys[k]) and 0 <= float(keys[k]) <= 100):
+            err(r, "[%s] %s=%r should be a number from 0 to 100" % (sec, k, keys[k]))
+    if keys.get("Water", "0") not in ("0", "1"):
+        err(r, "[%s] Water=%r should be 0 or 1" % (sec, keys["Water"]))
 
 
 def footprint_fits(name, data):
@@ -1234,7 +1292,7 @@ SHARDS_KEYS = {
     "Enchant": {"Level", "Shards", "Shards.Per.Value", "XP"},
     "Homestead": {"Bloom.Shards", "Bloom.Hours", "Bloom.Max", "Bloom.Per.Levels", "Bloom.Most"},
     "Spellwright": {"Bolt.Cost", "Burst.Cost", "Frost.Cost", "Ward.Cost", "Power.Exponent", "Far", "Write"},
-    "Dismantle": {"Weapon", "Armour", "Scroll"},
+    "Dismantle": {"Weapon", "Armour", "Scroll", "Min.Value"},
     "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
                  "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.XP"},
@@ -1334,7 +1392,8 @@ def check_shards(entities_ini):
 
 
 def check_carts():
-    """data\Carts.ini: each route's points on maps there are, inside them, on one level; two stops at least."""
+    """data\Carts.ini: each route's points (or nodes, and the Order they're taken in) on maps there are, inside them,
+    on one level; two stops at least."""
     path = p("data", "Carts.ini")
     if not os.path.exists(path):
         return
@@ -1345,11 +1404,21 @@ def check_carts():
     ini = Ini(path)
     r = rel(path)
     for sec, items in ini.sections:
-        stops, levels = 0, set()
+        stops, levels = set(), set()
+        nodes = {int(k[4:]) for k, v in items if k and re.fullmatch(r"Node\d+", k)}
         for k, v in items:
             if k is None:
                 continue
-            if re.fullmatch(r"Point\d+", k):
+            if k == "Order":
+                order = [t.strip() for t in v.split(",")]
+                if not nodes:
+                    err(r, "[%s] Order= without any NodeN=" % sec)
+                elif not all(t.isdigit() and int(t) in nodes for t in order):
+                    err(r, "[%s] Order=%r should be node numbers it has (%s), commas between" % (
+                        sec, v, ",".join(str(n) for n in sorted(nodes))))
+                elif len(order) < 2:
+                    err(r, "[%s] Order=%r: a way needs two nodes at least" % (sec, v))
+            elif re.fullmatch(r"(Point|Node)\d+", k):
                 pt = parse_point(v)
                 if pt is None:
                     err(r, "[%s] %s=%r should be MAP,X,Y[,Stop name]" % (sec, k, v))
@@ -1359,7 +1428,8 @@ def check_carts():
                 if not (1 <= pt[1] <= MAP_W and 1 <= pt[2] <= MAP_H):
                     err(r, "[%s] %s: tile %d,%d isn't on a map" % (sec, k, pt[1], pt[2]))
                 levels.add(pt[0].split(",")[2])
-                stops += 1 if pt[3] else 0
+                if pt[3]:
+                    stops.add(pt[3])
             elif k in ("Fare", "Wait"):
                 if not is_num(v):
                     err(r, "[%s] %s=%r should be a number" % (sec, k, v))
@@ -1368,8 +1438,10 @@ def check_carts():
                     err(r, "[%s] Loop=%r should be 0 or 1" % (sec, v))
             elif k != "Title":
                 warn(r, "[%s] %s: not a key of a cart's route" % (sec, k))
-        if stops < 2:
-            err(r, "[%s] has %d stops (a point with a name is one): it needs two" % (sec, stops))
+        if nodes and any(re.fullmatch(r"Point\d+", k or "") for k, v in items):
+            err(r, "[%s] has both NodeN= and PointN=: one or the other" % sec)
+        if len(stops) < 2:
+            err(r, "[%s] has %d stops (a point with a name is one): it needs two" % (sec, len(stops)))
         if len(levels) > 1:
             err(r, "[%s] goes over more than one level (%s)" % (sec, ", ".join(sorted(levels))))
 

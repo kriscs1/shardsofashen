@@ -464,6 +464,41 @@ Each is in `dev/QA Audit 2026-10-31.md` under its number, with how to see it and
 - [ ] A lock's tap is judged within 400 ms of the server's clock: a bot that times its taps could still pick every
   lock. Not sending the pins' timing would need the server to draw the pins' moves.
 
+## 22. The map editor, the second round (2026-10-31)
+
+- [x] **Picking entities quick**: dragging one moves only its picture (the map drawn once without it: 20 ms a move,
+  was 60); the palette makes only the pictures in view (Entities' palette 0.08 s); the editor starts a third quicker
+  (the Scripts list reads only the maps' trigger lines, not the whole index), with a splash saying what it's loading.
+- [x] **Whole maps moved, copied, deleted** (right-click a map: "The whole map", or its inspector; `dsedit/mapops.py`):
+  moved, every data file and script that names it follows and its arrival script is renamed; the game's code and the
+  builders that name it are listed to look at. Copied with or without its entities (Ids and place names left off).
+- [x] **Entities duplicated**: Ctrl+D, the right-click menu or the inspector (its Id left off).
+- [x] **What's what**: every kind has its colour (NPC, object, item, decor, rug, over...): a tag on each palette cell, a
+  label by the mouse naming what's under it (and the layer it's on, if it isn't this one), and the Kinds view (K).
+- [x] **Roaming zones of any shape**: Zone= and Chase= are rectangles joined by `/` (the engine's `Area`); "Paint tiles"
+  adds tiles by dragging, Shift+drag takes them off; drawn as their outline.
+- [x] **Every option its own field** (`OPT_SPECS`): Faces, Sight, Alarm group, Hours, Friendly if, Roost and Nap spot
+  (drawn or clicked on the map), Rests as, Level, Look; an object's Project, Lock, Key, Iron-bound; an item's Project.
+  Anything else is kept in "Other options".
+- [x] **Passive** beside Friendly and Foe.
+- [x] **Scrolling and zooming don't jump**: wheel clicks faster than the redraw were worked out from the new zoom on
+  the old view; a map made past the level's edge no longer shifts what's in view.
+- [x] **Cart routes by nodes and an order** (`NodeN=`, `Order=1,2,3,2,4`; the engine and the validator too): Add nodes
+  by clicking, Click the order (a node again if it goes by again), Loop, the way drawn with arrows; a route in plain
+  order is still written as `PointN=`.
+- [x] **Terrains and big brushes** (`dsedit/terrain.py`, `data/TileSets.ini` Kind=Terrain, `build_terrains.py`): 28 terrains
+  (meadow, woodland, marsh, water, sand, desert, snow, ash, cave floor, cave rock with its faces, mountains, lava,
+  streets, the Shardrealm's...), each its ground mixed, decor and creatures scattered; painted with a brush 1-15
+  across, Fill, Rectangle, or an Outline drawn round a place and "Fill with…". Coasts get their diagonal pieces,
+  cave rock its face over open ground (`Face=`). The Terrains window edits them.
+- [x] **Auto and Detail palettes**: Auto shows a terrain, a set (roofs, fences, rugs) or a family of look-alikes as one
+  entry that puts the right tile down itself; Detail every tile. Picking from the map picks its set or family.
+- [x] **Right-click after copying cancels** the paste.
+- [x] **A busy banner** over the window for slow jobs (saving many maps, big fills, map jobs) and a spinner in the
+  header for background ones (the minimap being built, maps being drawn).
+- [x] **Up and down a level keeps the view exactly**: every level of the world in one frame, so each tile lies over the
+  one below it; where the other level has no map there, the view stays and the nearest map opens.
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

@@ -3,6 +3,7 @@ Entities, Item Racks, Spells, Quests, Buildables, Crops, Minimaps), the section 
 trigger opens its script, a placed entity its Entities page, an item in a rack its entity, "Used in" lists jump to the
 place. Ctrl+K: go to anything. Ctrl+S save, Ctrl+Z / Ctrl+Y undo / redo (in the section you're in).
 F5: play what you've made, in the browser (a local server started from these files)."""
+import contextlib
 import os
 import queue
 import subprocess
@@ -156,10 +157,15 @@ class App:
         except tk.TclError:
             pass
         self.page, self.pages, self.rail_items = None, [], {}
+        self._busy, self._work = [], {}
         self.build_chrome()
         from .pages import all_pages
+        splash = self.splash()                          # (the sections read every file once: it takes a while)
         for cls in all_pages():
+            splash.configure(text="Loading %s…" % cls.title)
+            splash.update()
             self.pages.append(cls(self))
+        splash.winfo_toplevel().destroy()
         for i, pg in enumerate(self.pages):
             self.add_rail_item(pg, i)
         self.add_rail_footer()
@@ -168,6 +174,66 @@ class App:
         self.show(self.pages[0])
         self.root.deiconify()
         self.root.after(600, self.watch)
+
+    def splash(self):
+        """A little window while the editor starts (the main one is hidden till it's ready): returns its label."""
+        w = tk.Toplevel(self.root)
+        w.overrideredirect(True)
+        w.configure(bg=T.ACCENT_DARK)
+        box = tk.Frame(w, bg=T.RAIL, padx=T.px(28), pady=T.px(20))
+        box.pack(padx=2, pady=2)
+        tk.Label(box, text="⚔  Shards of Ashen Editor", bg=T.RAIL, fg="#f2c46d",
+                 font=("Segoe UI Semibold", 16)).pack(anchor="w")
+        lab = tk.Label(box, text="Loading…", bg=T.RAIL, fg=T.RAIL_TEXT, font=("Segoe UI", 11), anchor="w", width=34)
+        lab.pack(anchor="w", pady=(10, 0))
+        w.update_idletasks()
+        w.geometry("+%d+%d" % ((w.winfo_screenwidth() - w.winfo_width()) // 2,
+                               (w.winfo_screenheight() - w.winfo_height()) // 2))
+        return lab
+
+    # --- jobs that take a while: shown, so the editor never looks stuck
+    @contextlib.contextmanager
+    def busy(self, text):
+        """with app.busy("Filling 4,000 tiles…"): a banner over the window says what's being done and the cursor is an
+        hourglass till it's finished (drawn before the work starts: the work holds the window up)."""
+        self._busy.append(text)
+        try:
+            self.busy_label.configure(text="⏳  " + text)
+            self.busy_label.place(relx=0.5, y=T.px(64), anchor="n")
+            self.busy_label.lift()
+            self.root.configure(cursor="watch")
+            self.root.update_idletasks()
+            yield
+        finally:
+            self._busy.pop()
+            if self._busy:
+                self.busy_label.configure(text="⏳  " + self._busy[-1])
+            else:
+                self.busy_label.place_forget()
+                self.root.configure(cursor="")
+
+    def working(self, key, text=None):
+        """Work going on in the background (a minimap being built, maps being drawn): text in the header, with a
+        spinner, till working(key) with no text says it's done."""
+        if text:
+            self._work[key] = text
+        else:
+            self._work.pop(key, None)
+        if self._work and not getattr(self, "_spin_job", None):
+            self._spin()
+        self._show_work()
+
+    def _show_work(self, frame=0):
+        if not self._work:
+            self.work_label.configure(text="")
+            return
+        self.work_label.configure(text="%s  %s" % ("◐◓◑◒"[frame % 4], "  ·  ".join(self._work.values())))
+
+    def _spin(self, frame=0):
+        self._spin_job = None
+        if self._work:
+            self._show_work(frame)
+            self._spin_job = self.root.after(150, lambda: self._spin(frame + 1))
 
     # --- the window
     def build_chrome(self):
@@ -196,6 +262,10 @@ class App:
         self.undo_btn = ttk.Button(head, text="↶ Undo", command=lambda: self.page and self.page.undo())
         self.undo_btn.pack(side="right", padx=(0, 4))
         ttk.Button(head, text="Go to…  Ctrl+K", command=self.quick_open).pack(side="right", padx=(0, 18))
+        self.work_label = tk.Label(head, text="", fg="#b85c00", bg=T.BG, font=T.FONT_BOLD)
+        self.work_label.pack(side="right", padx=(0, 18))
+        self.busy_label = tk.Label(r, text="", bg="#b85c00", fg="white", font=("Segoe UI Semibold", 14),
+                                   padx=T.px(22), pady=T.px(10), relief="raised", bd=2)
         ttk.Separator(main).pack(fill="x")
         self.content = ttk.Frame(main, padding=(14, 10, 14, 4))
         self.content.pack(fill="both", expand=True)
