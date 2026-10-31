@@ -311,7 +311,7 @@ The bank is not a rack: it's stored in the save file.
     The other Options control how the NPC moves; tile coordinates are 1-based:
     * `Zone=x1,y1,x2,y2`: the rectangle of tiles it roams in. Default: Entities.ini `Roam.Radius` tiles around its spawn tile.
       Any shape is several rectangles joined by `/` (`Zone=3,4,8,9/8,5,12,6`: an L); the map editor's "Paint tiles"
-      writes them as you paint (dsengine/npcs.py `Area`). Chase and Roost take the same.
+      writes them as you paint (dsengine/npcs.py `Area`). Chase and Home take the same.
     * `Chase=x1,y1,x2,y2`: the rectangle it may follow the player in. Default: the Zone grown by `Chase.Radius` tiles
       on every side. When the player leaves it (or gets out of sight range), the NPC gives up, walks back and carries on
       with what it was doing (roaming, or its patrol from the waypoint it was heading to).
@@ -321,6 +321,16 @@ The bank is not a rack: it's stored in the save file.
     * `Stand=1`: it stays where it is (shopkeepers, guards on a post); it still turns to face a nearby player.
     * `Nap=x,y`: a tile it now and then hops up onto and curls up on (its Curl pose), when no player is sitting there
       (Jimmy on the throne). Put down on it, it starts asleep there.
+    * `Schedule=Day|Night|Always`: its own hours, over its kind's Entities.ini `Schedule=` (Day: out by day, in at
+      night; Night the other way; Always: never in).
+    * `Home=x1,y1,x2,y2` (several joined by `/`): where it is for the hours it's in - its house at night, a hen's coop.
+      Its Home is its zone then: it walks in (nobody near, it's just there) and roams only inside it, then back out.
+      It was `Roost=` (still read). dev/migrate/assign_homes.py gives townsfolk a house each.
+    * `Bed=x,y`: its own bed (the head, a Bed001): at night it walks to it and sleeps in it till morning, drawn as
+      `<Name>_Sleep4` (its head on the pillow: dev/migrate/build_sleepers.py), and can't be talked to.
+    Without either, at its hours' end a person goes out of the nearest door and is gone; an animal slips away once
+    nobody's near. Animals keep out of houses by where they roam: their zones leave out the roofed tiles of their map
+    (assign_homes.py); there's no rule against it.
     Anything that isn't `Key=Value` (old stray fields) is ignored. Tools must keep the field when re-saving.
     Zone, Chase and Patrol tiles may reach past the map's edges onto the maps around it, up to one map's width or height
     (x from -24 to 50, y from -20 to 42 on a 25 x 21 map): 26,5 is tile 1,5 of the map to the east, 0,5 tile 25,5 of the

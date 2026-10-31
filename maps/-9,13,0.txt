@@ -19,7 +19,7 @@ Grass001:Galaith_Wall002:Grass001:Marble_Paving001:Marble_Paving001:Marble_Pavin
 Grass001:Galaith_Wall002:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001+Decor(Flowers001):Galaith_Wall002:Grass001:Dirt001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Galaith_Wall002:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Villager	416	312	Attitude=Good Stand=1 Face=S Id=Galaith_Priest_327 Name=Walter
+NPC	Villager	416	312	Attitude=Good Stand=1 Face=S Id=Galaith_Priest_327 Name=Walter Home=6,9,6,9/8,9,9,9/11,9,15,9/17,9,18,9/6,10,11,10/16,10,18,10/6,11,18,11/6,12,6,15/14,12,14,15/18,12,18,15/6,16,18,16
 Id	Galaith_Cathedral	14	18
 NPC	Chancellor	352	24	Attitude=Good Stand=1 Face=S Id=Galaith_Speaker_70 Name=Lord_Chancellor_Vane
 Id	Galaith_Parliament	7	9

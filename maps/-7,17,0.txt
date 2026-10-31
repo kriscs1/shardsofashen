@@ -19,7 +19,7 @@ Dirt001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:
 Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001
 Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Bush001):Grass001:Grass001:Grass001
-NPC	Woman	128	408	Attitude=Good Zone=5,11,6,14 Pause=5-15 Id=Galaith_Resident_450 Name=Winnie
+NPC	Woman	128	408	Attitude=Good Zone=5,11,6,14 Pause=5-15 Id=Galaith_Resident_450 Name=Winnie Home=19,1,19,1/22,1,22,1/19,2,22,3/19,4,19,4/21,4,22,4/19,5,22,5 Bed=20,1
 StaticObject	Notice	704	98	Id=Galaith_Notice_316
-NPC	Villager	672	408	Attitude=Good Zone=22,12,23,14 Pause=5-15 Id=Galaith_Resident_452 Name=Agnes
+NPC	Villager	672	408	Attitude=Good Zone=22,12,23,14 Pause=5-15 Id=Galaith_Resident_452 Name=Agnes Home=21,11,22,11/24,11,24,11/21,12,24,12/21,13,22,13/24,13,24,13/21,14,24,14
 StaticObject	Notice	608	514	Id=Galaith_Notice_308

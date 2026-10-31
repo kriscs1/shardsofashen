@@ -32,11 +32,11 @@ Id	Grave_Isolde_Ashby	19	19
 NPC	Fishmonger	384	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_327 Name=Sid
 NPC	Fishmonger	576	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Fishmonger_329 Name=Martha
 NPC	Greengrocer	192	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Greengrocer_331 Name=Lettie
-NPC	Woman	96	408	Attitude=Good Zone=4,11,5,14 Pause=5-15 Id=Ravensgate_Resident_362 Name=Harold
+NPC	Woman	96	408	Attitude=Good Zone=4,11,5,14 Pause=5-15 Id=Ravensgate_Resident_362 Name=Harold Home=3,10,3,10/6,10,6,10/3,11,6,12/3,13,3,13/5,13,6,13/3,14,6,14 Bed=5,10
 StaticObject	Shardstone	448	256
 StaticObject	Notice	288	194	Id=Ravensgate_Notice_372
 Id	Waystone_Ravensgate	15	10
 NPC	Gravekeeper	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
 Id	Ravensgate_Gravekeeper	13	11
 NPC	Trader	416	312	Attitude=Good Zone=11,9,17,13 Pause=4-12
-NPC	Settler	384	280	Attitude=Good Zone=10,8,16,12 Pause=4-12
+NPC	Settler	384	280	Attitude=Good Zone=10,8,16,12 Pause=4-12 Home=9,11,10,11/12,11,12,11/9,12,12,12/9,13,9,13/11,13,12,13/9,14,12,14 Bed=11,11

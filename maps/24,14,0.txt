@@ -20,5 +20,5 @@ Grass001:Grass001:Grass001:Grass001:Water006:Water001:Water002:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Water001:Water001:Water001:Water001:Water001:Forest001:Forest001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Water007:Water001:Water001:Water001:Water001:Water001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Farmer	672	184	Attitude=Good Zone=21,4,23,7 Pause=5-15 Id=Keep_Resident_364 Name=Nell
-NPC	Bear	128	472	Attitude=Bad Zone=2,12,10,20
+NPC	Bear	128	472	Attitude=Bad Zone=2,12,10,20 Chase=1,4,18,12/1,13,17,15/1,16,18,21
 NPC	Otter	32	448	Attitude=Bad Zone=2,11,6,19

@@ -19,9 +19,9 @@ Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Man	96	472	Attitude=Good Zone=3,15,5,16 Pause=5-15 Id=Northport_Resident_376 Name=Gilbert
+NPC	Man	96	472	Attitude=Good Zone=3,15,5,16 Pause=5-15 Id=Northport_Resident_376 Name=Gilbert Home=2,14,6,16
 NPC	Rabbit	544	344	Attitude=Bad Zone=13,8,23,16
 NPC	Rabbit	384	472	Attitude=Bad Zone=8,12,18,20
-NPC	Butterfly	224	344	Attitude=Good Zone=3,8,13,16
+NPC	Butterfly	224	344	Attitude=Good Zone=3,8,13,13/7,14,13,16 Chase=3,8,13,13/7,14,13,16
 NPC	Butterfly	704	184	Attitude=Good Zone=18,3,24,11
 NPC	Blue_Butterfly	544	152	Attitude=Good Zone=13,2,23,10

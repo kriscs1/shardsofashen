@@ -22,10 +22,10 @@ Basalt_Paving001:Basalt_Paving001:Basalt_Paving001:Basalt_Paving001+Decor(Lamp_P
 NPC	Fishmonger	32	472	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_302 Name=Fred
 NPC	Baker	32	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Stall_304 Name=Oswald
 NPC	Cat	128	536	Attitude=Good Zone=2,14,10,20 Pause=4-12
-NPC	Villager	160	312	Attitude=Good Stand=1 Face=S Id=Emberwatch_Priest_310 Name=Nell
+NPC	Villager	160	312	Attitude=Good Stand=1 Face=S Id=Emberwatch_Priest_310 Name=Nell Home=5,9,8,9/10,9,11,9/5,10,5,10/9,10,11,10/5,11,11,11/5,12,6,12/11,12,11,12/5,13,11,13
 NPC	Sheriff	224	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Sheriff_312 Name=Agnes
 NPC	Doctor	448	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Doctor_314 Name=Amos
-NPC	Villager	416	344	Attitude=Good Zone=14,11,15,12 Pause=5-15 Id=Emberwatch_Resident_321 Name=Martha
+NPC	Villager	416	344	Attitude=Good Zone=14,11,15,12 Pause=5-15 Id=Emberwatch_Resident_321 Name=Martha Home=13,10,13,10/15,10,16,10/13,11,16,12
 NPC	Farmer	640	344	Attitude=Good Zone=21,11,22,12 Pause=5-15 Id=Emberwatch_Resident_323 Name=Hugh
 StaticObject	Market_Stall_Open	32	512
 StaticObject	Market_Stall_Open	32	576
@@ -38,7 +38,7 @@ NPC	Warden	64	536	Attitude=Good Stand=1
 NPC	Scout	128	504	Attitude=Good Stand=1
 Id	Emberwatch_Scout	5	17
 NPC	Trader	32	408	Attitude=Good Zone=2,12,5,16 Pause=4-12
-NPC	Settler	64	408	Attitude=Good Zone=2,12,6,16 Pause=4-12
+NPC	Settler	64	408	Attitude=Good Zone=2,12,6,16 Pause=4-12 Home=5,9,8,9/10,9,11,9/5,10,5,10/9,10,11,10/5,11,11,11/5,12,6,12/11,12,11,12/5,13,11,13
 StaticObject	Old_Statue	64	352	Id=Secret_Emberwatch
 StaticObject	Valuables	224	248
 StaticObject	Valuables	512	472

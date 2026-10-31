@@ -21,4 +21,4 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 NPC	Farmer	96	504	Attitude=Good Zone=3,16,6,17 Pause=5-15 Id=Frosthold_Resident_337 Name=Percy
 StaticObject	Notice	224	578	Id=Frosthold_Notice_305
-NPC	Snow_Wolf	608	312	Attitude=Bad Zone=15,7,24,15
+NPC	Snow_Wolf	608	312	Attitude=Bad Zone=15,7,24,15 Chase=5,1,25,14/8,15,25,17/5,18,25,21

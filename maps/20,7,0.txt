@@ -21,7 +21,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Gr
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Barkeep	416	88	Attitude=Good Stand=1 Face=S Id=Court_Barkeep_347 Name=Tilly
 NPC	Barmaid	480	152	Attitude=Good Zone=11,6,17,6 Pause=3-9 Id=Court_Barmaid_348 Name=Elsie
-NPC	Woman	128	184	Attitude=Good Zone=3,6,7,7 Pause=5-15 Id=Court_Resident_362 Name=Quentin
+NPC	Woman	128	184	Attitude=Good Zone=3,6,7,7 Pause=5-15 Id=Court_Resident_362 Name=Quentin Home=2,5,2,5/4,5,6,5/8,5,8,5/2,6,8,7
 StaticObject	Sign_Pub	448	208
 NPC	Rabbit	416	408	Attitude=Bad Zone=9,10,19,18
 NPC	Rabbit	224	504	Attitude=Bad Zone=3,13,13,20

@@ -24,8 +24,8 @@ StaticObject	Shardstone	128	0
 NPC	Cobbler	224	120	Attitude=Good Stand=1 Face=S Id=Galaith_Cobbler_423 Name=Rosie
 StaticObject	Notice	128	226	Id=Galaith_Notice_462
 NPC	Fishmonger	224	408	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_350 Name=Elsie
-NPC	Villager	384	280	Attitude=Good Zone=13,9,14,10 Pause=5-15 Id=Galaith_Resident_437 Name=Polly
+NPC	Villager	384	280	Attitude=Good Zone=13,9,14,10 Pause=5-15 Id=Galaith_Resident_437 Name=Polly Home=12,8,12,8/14,8,15,8/12,9,15,10
 StaticObject	Notice	480	386	Id=Galaith_Notice_321
-NPC	Villager	384	568	Attitude=Good Zone=13,18,14,19 Pause=5-15 Id=Galaith_Resident_454 Name=Greta
+NPC	Villager	384	568	Attitude=Good Zone=13,18,14,19 Pause=5-15 Id=Galaith_Resident_454 Name=Greta Home=12,17,12,17/14,17,15,17/12,18,15,19
 StaticObject	Valuables	416	216
 StaticObject	Valuables	416	504

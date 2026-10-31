@@ -23,7 +23,7 @@ NPC	Fishmonger	672	88	Attitude=Good Stand=1 Face=S Id=Court_Fishmonger_325 Name=
 NPC	Barkeep	416	88	Attitude=Good Stand=1 Face=S Id=Court_Barkeep_344 Name=Amos
 NPC	Barmaid	480	184	Attitude=Good Zone=11,6,17,7 Pause=3-9 Id=Court_Barmaid_345 Name=Ivor
 NPC	Blacksmith	608	376	Attitude=Good Stand=1 Face=S Id=Court_Smith_353 Name=Ida
-NPC	Man	224	472	Attitude=Good Zone=8,15,9,16 Pause=5-15 Id=Court_Resident_363 Name=Sybil
+NPC	Man	224	472	Attitude=Good Zone=8,15,9,16 Pause=5-15 Id=Court_Resident_363 Name=Sybil Home=7,14,10,16
 StaticObject	Sign_Pub	544	240
 StaticObject	Furnace	544	352
 StaticObject	Anvil	672	352

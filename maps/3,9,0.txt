@@ -19,6 +19,6 @@ Dirt001:Timber001:Door004:Timber001:Timber001:Grass001:Dirt001:Grass001:Grass001
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001+Decor(Tree001):Forest001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Yew_Tree001):Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Sage_Patch001):Grass001+Decor(Tree002):Grass001:Forest001:Forest001:Forest001:Forest001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Yew_Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush001):Forest001:Forest001:Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Grass001:Grass001+Decor(Tree001):Grass001:Forest001:Forest001:Forest001:Forest001:Forest001
 Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Bush001):Grass001+Decor(Oak_Tree001):Forest001:Grass001+Decor(Tree001):Grass001:Forest001:Forest001:Grass001+Decor(Tree001):Grass001+Decor(Yew_Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001:Forest001:Forest001:Forest001:Forest001:Forest001
-NPC	Woman	96	248	Attitude=Good Zone=3,6,5,9 Pause=5-15 Id=Wildwood_Resident_307 Name=Mabel
-NPC	Man	64	504	Attitude=Good Zone=3,15,4,17 Pause=5-15 Id=Wildwood_Resident_309 Name=Oswald
+NPC	Woman	96	248	Attitude=Good Zone=3,6,5,9 Pause=5-15 Id=Wildwood_Resident_307 Name=Mabel Home=2,5,2,5/6,5,6,5/2,6,6,9 Bed=5,5
+NPC	Man	64	504	Attitude=Good Zone=3,15,4,17 Pause=5-15 Id=Wildwood_Resident_309 Name=Oswald Home=2,14,2,14/5,14,5,14/2,15,5,17 Bed=3,14
 StaticObject	Notice	160	546	Id=Wildwood_Notice_301

@@ -20,5 +20,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall003:G
 Grass001+Decor(Tree002):Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Galaith_Wall005:Galaith_Wall004:Galaith_Wall004:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Galaith_Wall003:Galaith_Wall003:Galaith_Wall003:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Armourer	480	24	Attitude=Good Stand=1 Face=S Id=Galaith_Armourer_378 Name=Peggy
-NPC	Woman	448	504	Attitude=Good Zone=14,15,16,17 Pause=5-15 Id=Galaith_Resident_448 Name=Lettie
+NPC	Woman	448	504	Attitude=Good Zone=14,15,16,17 Pause=5-15 Id=Galaith_Resident_448 Name=Lettie Home=13,14,13,14/16,14,17,14/13,15,17,17 Bed=14,14
 StaticObject	Valuables	480	408

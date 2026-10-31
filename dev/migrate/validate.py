@@ -282,8 +282,8 @@ def check_map(path, entities_ini, tiles_ini, report):
 # ------------------------------------------------------------------ NPC movement Options on map lines
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
-               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Roost",
-               "State", "Nap", "Level", "Look"}   # (Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
+               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed",
+               "State", "Nap", "Level", "Look"}   # (Home=: where it is while its hours keep it in; Bed=x,y: its bed; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
 _npc_ids = None
 
 
@@ -431,7 +431,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
     spawn = (sx + 1, sy + 1)
     walk, flood = map_walker(lines, tiles_ini)
     zone = chase = None
-    for k in ("Zone", "Chase"):
+    for k in ("Zone", "Chase", "Home"):
         if k in opts:
             rcs = parse_rects(opts[k])
             if rcs is None:
@@ -443,8 +443,17 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
                 report(where, "%s=%s reaches past this map onto a map that doesn't exist" % (k, opts[k]))
             elif k == "Zone":
                 zone = rcs[0] if len(rcs) == 1 else rcs
-            else:
+            elif k == "Chase":
                 chase = rcs[0] if len(rcs) == 1 else rcs
+    if "Bed" in opts:                               # (its own bed: the head of a bed on its map)
+        q = opts["Bed"].split(",")
+        if len(q) != 2 or not all(re.fullmatch(r"\d+", c.strip()) for c in q) or                 not (1 <= int(q[0]) <= MAP_W and 1 <= int(q[1]) <= MAP_H):
+            report(where, "Bed=%r should be x,y: a tile of this map" % opts["Bed"])
+        else:
+            cell = lines[int(q[1]) - 1].split(":")[int(q[0]) - 1] if int(q[1]) - 1 < len(lines) else ""
+            decor = DECOR_RE.search(cell)
+            if not decor or not decor.group(1).startswith("Bed"):
+                report(where, "Bed=%s: there's no bed at that tile" % opts["Bed"])
     if "Pause" in opts:
         m = PAUSE_RE.match(opts["Pause"])
         if not m:
@@ -511,7 +520,9 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             if not rect_has(chase, px, py):
                 report(where, "Chase=%s doesn't contain patrol waypoint %d,%d" % (opts["Chase"], px, py))
     swims = entities_ini is not None and (entities_ini.get(name, "Swims") or "").strip() == "1"
-    if zone and "Patrol" not in opts and not stand and not swims:    # (a swimmer has the water too: it can't be stuck)
+    flies = entities_ini is not None and (entities_ini.get(name, "Layer") or "").strip().lower() == "over"
+    if zone and "Patrol" not in opts and not stand and not swims and not flies:   # (a swimmer has the water too, and
+        # a butterfly the air: neither can be stuck)
         reach = reach or flood([(spawn[0] - 1, spawn[1] - 1)])
         room = [t for t in reach if rect_has(zone, t[0] + 1, t[1] + 1)]
         if len(room) < 2:
@@ -1121,7 +1132,6 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
                "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
                "Swims", "Calls",                                                 # at home in the water too (an otter); its call
-               "Indoors",                                                        # 0: an animal that won't walk into a house
                "Look.Parts", "Looks",                                            # its parts' colours; its other colourings
                "Display.Name",                                                   # what the player sees it called
                "Sleeper.Of",                                                     # the NPC (its Id) a sleeping thing is
@@ -1224,6 +1234,8 @@ def check_entities():
                     frames.add("%s_%s%s" % (e, st, d))
                     if "%s_%s%s" % (e, st, d) not in ENTITIES:
                         err(r, "[%s] %s=%s but there's no sprite %s_%s%s" % (e, key, states, e, st, d))
+        if "%s_Sleep4" % e in ENTITIES:             # (asleep in its bed: build_sleepers.py, a Bed= on its map line)
+            frames.add("%s_Sleep4" % e)
     for e in sorted(ENTITIES - NON_PLACEABLE - frames):
         if ini.section(e) is None:
             err(r, "no [%s] section for entity sprite" % e)

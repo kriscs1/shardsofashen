@@ -343,6 +343,9 @@ class ActionsMixin:
             return
         if verb == "Talk to" and self.swap and t == NPC and self.animal_chat(e):
             return                                      # (in an animal's body, the animals talk: tricks.py)
+        if verb == "Talk to" and t == NPC and getattr(e.ai, "asleep", False):
+            self.display_message("%s is fast asleep." % self.display_name(e), "FAIL", "Denied")
+            return                                      # (in bed at night: npcs.py npc_bedtime)
         if self.lock_do(verb, e):                       # (a locked chest: locks.py)
             return
         if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or

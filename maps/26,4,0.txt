@@ -19,7 +19,7 @@ Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Cinder001:Cinder001:Cinder00
 Ash001:Ash001:Ash001:Ash001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.01):Plank001+Roof(Slate_Roof014.01):Stone_Wall_Thin_Plank002+Roof(Slate_Roof015.01):Ash001
 Ash001:Ash001:Ash001:Cinder001+Decor(Dead_Tree001):Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Stone_Wall001:Stone_Wall001:Door002:Stone_Wall001:Ash001
 Ash001:Ash001:Cinder001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Dirt001
-NPC	Ember_Hound	160	88	Attitude=Bad Zone=2,2,11,8
+NPC	Ember_Hound	160	88	Attitude=Bad Zone=2,2,11,8 Chase=1,1,21,16/1,17,20,18
 StaticObject	Fish_Spot	32	160
 NPC	Seal	32	160	Attitude=Bad Zone=2,2,7,10
 NPC	Seal	64	160	Attitude=Bad Zone=2,2,7,10

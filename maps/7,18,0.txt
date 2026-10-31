@@ -20,4 +20,4 @@ Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Mars
 Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Sand001+Decor(Gold_Rock001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Bog_Myrtle001):Sand001:Sand001:Sand001:Sand001:Sand001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001+Decor(Bog_Myrtle001)
 Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Sand001:Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001
 StaticObject	Notice	320	194	Id=Fenwick_Notice_309
-NPC	Scorpion	608	536	Attitude=Bad Zone=15,14,24,20
+NPC	Scorpion	608	536	Attitude=Bad Zone=15,14,24,20 Chase=9,8,19,8/25,8,25,8/9,9,25,21

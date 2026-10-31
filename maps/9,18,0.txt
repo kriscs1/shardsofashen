@@ -19,7 +19,7 @@ Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Mar
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Marigold_Patch001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001
-NPC	Villager	96	152	Attitude=Good Zone=4,5,5,6 Pause=5-15 Id=Fenwick_Resident_366 Name=Oswald
+NPC	Villager	96	152	Attitude=Good Zone=4,5,5,6 Pause=5-15 Id=Fenwick_Resident_366 Name=Oswald Home=8,2,9,2/12,2,12,2/8,3,12,5 Bed=10,2
 NPC	Farmer	512	184	Attitude=Good Zone=15,4,19,7 Pause=5-15 Id=Fenwick_Resident_369 Name=Dora
 StaticObject	Notice	640	194	Id=Fenwick_Notice_308
 NPC	Frog	608	440	Attitude=Bad Zone=15,11,24,19

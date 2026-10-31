@@ -23,5 +23,5 @@ NPC	Barkeep	608	56	Attitude=Good Stand=1 Face=S Id=Ashford_Barkeep_330 Name=Haro
 NPC	Barmaid	672	152	Attitude=Good Zone=17,5,23,6 Pause=3-9 Id=Ashford_Barmaid_331 Name=Gilbert
 StaticObject	Sign_Pub	736	208
 StaticObject	Notice	640	226	Id=Ashford_Notice_332
-NPC	Rabbit	384	88	Attitude=Bad Zone=8,2,18,8
+NPC	Rabbit	384	88	Attitude=Bad Zone=8,2,15,3/8,4,8,6/13,4,15,6/8,7,18,8 Chase=8,2,15,3/8,4,8,6/13,4,15,6/8,7,18,8
 NPC	Rabbit	96	536	Attitude=Bad Zone=2,14,9,20

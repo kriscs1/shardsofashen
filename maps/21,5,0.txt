@@ -26,7 +26,7 @@ NPC	Guard	320	448	Attitude=Good Stand=1
 NPC	Guard	384	448	Attitude=Good Stand=1
 NPC	Guard	608	320	Attitude=Good Stand=1
 NPC	Guard	96	160	Attitude=Good Patrol=4,4/4,19/12,19 PatrolMode=PingPong Pause=2-5
-NPC	Villager	480	384	Attitude=Good Zone=14,11,18,15 Pause=2-6
+NPC	Villager	480	384	Attitude=Good Zone=14,11,18,15 Pause=2-6 Home=19,12,23,13
 StaticObject	Notice	129	98	Id=The_Royal_Isle
 StaticObject	Notice	673	450	Id=Royal_Treasury
 StaticObject	Chest	640	384

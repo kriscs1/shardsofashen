@@ -19,7 +19,7 @@ Grass001:Stone_Wall_Thin_Plank004+Roof(Shingle_Roof007.01):Plank001+Decor(Ladder
 Grass001:Stone_Wall_Thin_Plank004+Roof(Shingle_Roof013.01):Plank001+Roof(Shingle_Roof031.01):Plank001+Roof(Shingle_Roof014.01):Stone_Wall_Thin_Plank002+Roof(Shingle_Roof015.01):Grass001:Grass001:Plaster_Thin_Plank004+Roof(Thatch_Roof013.03):Plank001+Roof(Thatch_Roof031.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plank001+Roof(Thatch_Roof014.03):Plaster_Thin_Plank002+Roof(Thatch_Roof015.03):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001
 Grass001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):Door002:Stone_Wall001:Grass001:Grass001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001+Decor(Plaster_Window001):Door005:Plaster001:Plaster001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Sand001:Sand001:Sand001
 Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-NPC	Villager	64	568	Attitude=Good Zone=3,18,4,19 Pause=5-15 Id=Keep_Resident_365 Name=Toby
+NPC	Villager	64	568	Attitude=Good Zone=3,18,4,19 Pause=5-15 Id=Keep_Resident_365 Name=Toby Home=2,17,5,19
 StaticObject	Notice	416	610	Id=Keep_Notice_306
 StaticObject	Valuables	96	504
 StaticObject	Valuables	160	312

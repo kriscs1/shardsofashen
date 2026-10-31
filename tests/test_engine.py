@@ -3662,7 +3662,9 @@ def test_a_fence_thinner_than_a_cell_is_walked_round_not_through():
     leave(w, s)
 
 
-def test_animals_stay_out_of_houses_but_cats_come_in():
+def test_animals_keep_out_of_houses_by_where_they_roam():
+    """No rule stops an animal at a door now (Indoors= is gone): its zone leaves out the houses on its map
+    (dev/migrate/assign_homes.py), and cats and dogs come in as they always did."""
     w = World(ROOT)
     m = w.maps["2,1,0"]
     spot = None                                       # (open ground just south of a roofed, walkable cell)
@@ -3681,9 +3683,17 @@ def test_animals_stay_out_of_houses_but_cats_come_in():
     assert w.roofed(m.mz, fx, fy - 8) and not w.roofed(m.mz, fx, fy)
     sheep = w.add_npc("Sheep", m.mz, fx, fy, "")
     cat = w.add_npc("Cat", m.mz, fx, fy, "")
-    assert not sheep.ai.indoors and cat.ai.indoors
-    assert not w.entity_can_stand(sheep, fx, fy - 8, fx, fy)
-    assert w.entity_can_stand(cat, fx, fy - 8, fx, fy)
+    assert w.entity_can_stand(sheep, fx, fy - 8, fx, fy) and w.entity_can_stand(cat, fx, fy - 8, fx, fy)
+    yard = w.maps["3,1,0"]                            # (the churchyard's sheep: its zone goes round the chapel)
+    flock = [e for e in w.ents if e.name == "Sheep" and e.map == "3,1,0"]
+    lines = open(os.path.join(ROOT, "maps", "3,1,0.txt"), encoding="cp1252").read().splitlines()
+    assert flock and all("Attitude=Passive" in ln for ln in lines if ln.startswith("NPC\tSheep\t"))
+    for e in flock:
+        z = e.ai.zone
+        for gx in range(int(z[0]), int(z[2]), 32):
+            for gy in range(int(z[1]), int(z[3]), 32):
+                if w.roofed(yard.mz, gx + 16, gy + 16) and not w.roofed(yard.mz, e.fx, e.fy):
+                    assert not w.in_zone(e.ai, gx + 16, gy + 16)
 
 
 def test_editor_knows_what_points_at_the_maps():
@@ -4886,3 +4896,56 @@ def test_what_everyone_sees_is_the_same_worked_out_once(world):
     assert pick(alone) == pick(together)
     leave(world, a)
     leave(world, b)
+
+
+def test_townsfolk_go_home_and_to_bed_at_night(world):
+    """dev/migrate/assign_homes.py gave townsfolk a Home= and a Bed=: at night one goes to its bed and sleeps in it
+    (<Name>_Sleep4: its head on the pillow), can't be talked to, and gets up in the morning, beside it."""
+    sleeper = next(e for e in world.ents if e.ai is not None and getattr(e.ai, "bed", None) and e.z == 0 and
+                   world.data.loaded("%s_Sleep4" % e.name))
+    m = world.maps[sleeper.map]
+    s = join(world, "Nightowl", sleeper.map, 2 * 32, 2 * 32)
+    s.connected = True
+    day = world.day_fraction()
+    world.set_day_fraction(0.95)
+    for _ in range(900):
+        world.tick(0.05, now=world.now + 50)
+        if sleeper.ai.asleep:
+            break
+    assert sleeper.ai.asleep and sleeper.pose == "Sleep" and sleeper.image == sleeper.name + "_Sleep4"
+    bx, by = sleeper.ai.bed
+    assert abs(sleeper.cx - (bx + 16)) <= 2 and by <= sleeper.y <= by + 4          # (in its bed)
+    s.player.x, s.player.y = sleeper.x, sleeper.y + 40                       # (at the bedside)
+    s.out = []
+    s.choose_verb("Talk to", sleeper, sleeper.cx, sleeper.cy)
+    assert any("fast asleep" in ev.get("text", "") for ev in s.out if ev["t"] == "msg")
+    world.set_day_fraction(0.5)
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    assert not sleeper.ai.asleep and sleeper.active and sleeper.pose != "Sleep"
+    world.set_day_fraction(day)
+    leave(world, s)
+
+
+def test_a_home_is_where_its_hours_keep_it(world):
+    """Home= (a hen's coop, it was Roost=): for the hours it's in, its zone is its home; out of them, its own."""
+    day = world.day_fraction()
+    world.set_day_fraction(0.5)
+    hen = world.add_npc("Chicken", 0, world.maps["2,0,0"].ox + 20 * 32, world.maps["2,0,0"].oy + 16 * 32,
+                        "Attitude=Passive Zone=19,15,25,18 Home=21,12,23,13")
+    a = hen.ai
+    assert a.home is not None and a.zone is a.day_zone
+    world.set_day_fraction(0.95)
+    world.tick(0.05, now=world.now + 50)             # (the hour's worked out once a tick)
+    world.schedule_npc(hen, None)                    # (nobody near: it's simply in its coop)
+    assert a.zone is a.home and world.in_zone(a, hen.fx, hen.fy)
+    world.set_day_fraction(0.5)
+    world.tick(0.05, now=world.now + 50)
+    world.schedule_npc(hen, None)
+    assert a.zone is a.day_zone
+    old = world.add_npc("Chicken", 0, world.maps["2,0,0"].ox + 20 * 32, world.maps["2,0,0"].oy + 16 * 32,
+                        "Roost=21,12,23,13")         # (an old map's Roost= still reads as its Home)
+    assert old.ai.home is not None
+    world.set_day_fraction(day)
+    world.remove_entity(hen)
+    world.remove_entity(old)

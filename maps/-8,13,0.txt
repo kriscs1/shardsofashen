@@ -19,5 +19,5 @@ Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Pavin
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marble_Paving001
 Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marble_Paving001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Marble_Paving001
-NPC	Woman	96	184	Attitude=Good Zone=2,4,6,7 Pause=5-15 Id=Galaith_Resident_446 Name=Kit
+NPC	Woman	96	184	Attitude=Good Zone=2,4,6,7 Pause=5-15 Id=Galaith_Resident_446 Name=Kit Home=1,3,1,3/3,3,5,3/7,3,7,3/1,4,7,5/1,6,3,6/5,6,7,6/1,7,7,7 Bed=6,3
 StaticObject	Valuables	96	56

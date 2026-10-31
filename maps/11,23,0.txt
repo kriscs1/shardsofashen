@@ -20,10 +20,10 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Boardwalk001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Boardwalk001:Marsh001:Dirt001:Dirt001:Dirt001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Marsh001:Dirt001:Dirt001
 NPC	Cat	416	408	Attitude=Good Zone=9,10,19,18 Pause=4-12
-NPC	Villager	608	152	Attitude=Good Stand=1 Face=S Id=Saltmarsh_Priest_303 Name=Quentin
+NPC	Villager	608	152	Attitude=Good Stand=1 Face=S Id=Saltmarsh_Priest_303 Name=Quentin Home=16,15,16,15/19,15,19,15/16,16,19,18 Bed=18,15
 NPC	Barkeep	128	184	Attitude=Good Stand=1 Face=S Id=Saltmarsh_Barkeep_305 Name=Ida
 NPC	Barmaid	160	248	Attitude=Good Zone=4,9,7,9 Pause=3-9 Id=Saltmarsh_Barmaid_306 Name=Florence
-NPC	Woman	256	472	Attitude=Good Zone=8,15,11,16 Pause=5-15 Id=Saltmarsh_Resident_307 Name=Clara
+NPC	Woman	256	472	Attitude=Good Zone=8,15,11,16 Pause=5-15 Id=Saltmarsh_Resident_307 Name=Clara Home=7,14,7,14/9,14,9,14/11,14,12,14/7,15,12,16
 StaticObject	Shardstone	352	288
 StaticObject	Notice	352	354	Id=Saltmarsh_Notice_302
 StaticObject	Sign_Pub	224	304

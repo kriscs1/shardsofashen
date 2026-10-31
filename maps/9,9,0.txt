@@ -19,7 +19,7 @@ Gravel001:Gravel001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Door00
 Gravel001:Gravel001:Grass001:Grass001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Wood_Fence002)
 Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Wood_Fence002)
 Gravel001:Gravel001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Wood_Fence002)
-NPC	Man	416	504	Attitude=Good Zone=12,16,16,17 Pause=5-15 Id=Oakhollow_Resident_323 Name=Dora
-NPC	Man	96	280	Attitude=Good Zone=4,9,5,10 Pause=5-15 Id=Oakhollow_Resident_325 Name=Peggy
+NPC	Man	416	504	Attitude=Good Zone=12,16,16,17 Pause=5-15 Id=Oakhollow_Resident_323 Name=Dora Home=3,14,3,14/5,14,5,14/7,14,7,14/9,14,9,14/3,15,9,17 Bed=4,14
+NPC	Man	96	280	Attitude=Good Zone=4,9,5,10 Pause=5-15 Id=Oakhollow_Resident_325 Name=Peggy Home=3,8,3,8/5,8,6,8/3,9,6,10
 StaticObject	Notice	544	610	Id=Oakhollow_Notice_306
 StaticObject	Valuables	128	408

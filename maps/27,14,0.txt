@@ -19,9 +19,9 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001
-NPC	Man	384	120	Attitude=Good Zone=12,4,15,5 Pause=5-15 Id=Keep_Resident_366 Name=Ernest
+NPC	Man	384	120	Attitude=Good Zone=12,4,15,5 Pause=5-15 Id=Keep_Resident_366 Name=Ernest Home=2,2,2,2/4,2,4,2/6,2,8,2/2,3,8,3/2,4,3,4/5,4,8,4/2,5,8,5 Bed=5,2
 NPC	Farmer	288	376	Attitude=Good Zone=9,12,12,13 Pause=5-15 Id=Keep_Resident_367 Name=Gilbert
-NPC	Villager	480	376	Attitude=Good Zone=16,12,17,13 Pause=5-15 Id=Keep_Resident_368 Name=Lionel
+NPC	Villager	480	376	Attitude=Good Zone=16,12,17,13 Pause=5-15 Id=Keep_Resident_368 Name=Lionel Home=15,11,18,13
 StaticObject	Notice	512	162	Id=Keep_Notice_307
 StaticObject	Notice	576	418	Id=Keep_Notice_308
 StaticObject	Valuables	96	24

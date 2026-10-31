@@ -24,11 +24,11 @@ NPC	Fishmonger	544	376	Attitude=Good Stand=1 Face=S Id=Court_Stall_302 Name=Cedr
 NPC	Butcher	288	504	Attitude=Good Stand=1 Face=S Id=Court_Stall_303 Name=Harold
 NPC	Baker	544	504	Attitude=Good Stand=1 Face=S Id=Court_Stall_304 Name=Agnes
 NPC	Black_Cat	192	376	Attitude=Good Zone=2,9,12,17 Pause=4-12
-NPC	Dog	640	408	Attitude=Good Zone=16,10,24,18 Pause=4-12
+NPC	Dog	640	408	Attitude=Good Zone=16,10,24,18 Pause=4-12 Home=21,16,22,16/24,16,24,16/21,17,24,18
 NPC	Baker	320	216	Attitude=Good Stand=1 Face=S Id=Court_Baker_317 Name=Alice
 NPC	Baker	512	216	Attitude=Good Stand=1 Face=S Id=Court_Baker_319 Name=Sybil
 NPC	Butcher	128	472	Attitude=Good Stand=1 Face=S Id=Court_Butcher_321 Name=Martha
-NPC	Man	672	536	Attitude=Good Zone=22,17,23,18 Pause=5-15 Id=Court_Resident_360 Name=Rufus
+NPC	Man	672	536	Attitude=Good Zone=22,17,23,18 Pause=5-15 Id=Court_Resident_360 Name=Rufus Home=21,7,21,7/23,7,24,7/21,8,24,10 Bed=22,7
 StaticObject	Market_Stall_Open	288	416
 StaticObject	Market_Stall_Open	544	416
 StaticObject	Market_Stall_Open	288	544

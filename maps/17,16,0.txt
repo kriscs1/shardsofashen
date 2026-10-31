@@ -20,4 +20,4 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Forest001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 StaticObject	Notice	224	450	Id=Highwatch_Notice_307
-NPC	Wolf	512	248	Attitude=Bad Zone=12,5,22,13
+NPC	Wolf	512	248	Attitude=Bad Zone=12,5,22,13 Chase=2,1,25,10/8,11,25,15/2,16,25,21

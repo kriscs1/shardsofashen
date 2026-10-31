@@ -20,10 +20,10 @@ Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh0
 Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Bog_Myrtle001):Marsh001+Decor(Bog_Myrtle001):Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Timber_Thin_Plank008+Roof(Thatch_Roof001.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02):Timber_Thin_Plank001+Roof(Thatch_Roof002.02)
 Id	Mirefold_Square	1	21
-NPC	Villager	32	600	Attitude=Good Zone=1,15,10,21 Pause=3-9 Id=Mirefold_Villager_3 Name=Marigold
-NPC	Duck	96	184	Attitude=Passive Zone=1,3,9,11
+NPC	Villager	32	600	Attitude=Good Zone=1,15,10,21 Pause=3-9 Id=Mirefold_Villager_3 Name=Marigold Home=10,13,14,13/10,14,10,14/12,14,12,14/14,14,14,14/10,15,14,16 Bed=11,14
+NPC	Duck	96	184	Attitude=Passive Zone=1,3,9,10/5,11,9,11 Chase=1,3,9,10/5,11,9,11
 StaticObject	Valuables	352	376
-NPC	Settler	64	536	Attitude=Good Stand=1 Face=S Id=Foreman_Mirefold_Boardwalks Name=Foreman_Tansy
+NPC	Settler	64	536	Attitude=Good Stand=1 Face=S Id=Foreman_Mirefold_Boardwalks Name=Foreman_Tansy Home=1,11,4,11/1,12,2,12/4,12,4,12/1,13,4,14/22,21,25,21
 StaticObject	Project_Plaque	128	568	Id=Plaque_Mirefold_Boardwalks Project=Mirefold_Boardwalks
 StaticObject	Shardstone	96	576	Project=Mirefold_Boardwalks Id=Waystone_Mirefold_Stone
 Id	Waystone_Mirefold	4	20

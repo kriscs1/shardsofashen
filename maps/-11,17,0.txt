@@ -19,7 +19,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall005:G
 Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall002:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Galaith_Wall003:Galaith_Wall001:Galaith_Wall001:Galaith_Wall001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Man	448	120	Attitude=Good Zone=14,4,17,5 Pause=5-15 Id=Galaith_Resident_457 Name=Hugh
+NPC	Man	448	120	Attitude=Good Zone=14,4,17,5 Pause=5-15 Id=Galaith_Resident_457 Name=Hugh Home=11,10,12,10/14,10,14,10/11,11,14,14 Bed=13,10
 StaticObject	Notice	288	386	Id=Galaith_Notice_318
-NPC	Villager	576	408	Attitude=Good Zone=18,13,21,14 Pause=5-15 Id=Galaith_Resident_429 Name=Toby
+NPC	Villager	576	408	Attitude=Good Zone=18,13,21,14 Pause=5-15 Id=Galaith_Resident_429 Name=Toby Home=17,12,17,12/19,12,22,12/17,13,22,14
 StaticObject	Valuables	640	344

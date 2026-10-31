@@ -239,13 +239,11 @@ class EntityPage(IniFormPage):
         r += 1
         self.row(g, 0, "Hours", ttk.Combobox(g, textvariable=self.var("Schedule"), values=["", "Day", "Night"],
                                              width=8),
-                 "Day: out by day, home at night (townsfolk walk to a door; creatures with a Roost go to it). Night: "
-                 "hidden by day. Blank: always out. One placed on a map can have its own (the Maps inspector's "
-                 "Hours).")
+                 "Day: out by day, in at night - to its Home and Bed if it has them (set on the map: the Maps "
+                 "inspector's Options), else it slips away once nobody's near. Night: the other way round. Blank: "
+                 "always out. One placed on a map can have its own (the Maps inspector's Hours).")
         self.row(g, 0, "", ttk.Checkbutton(g, text="Flees (prey: runs, never fights back)",
                                            variable=self.var("Flees", "bool", "0")), col=2)
-        self.row(g, 1, "", ttk.Checkbutton(g, text="Goes indoors (untick: an animal that stays out of houses)",
-                                           variable=self.var("Indoors", "bool", "1")), span=3)
         self.row(g, 2, "Rests as", ttk.Entry(g, textvariable=self.var("States"), width=16),
                  "How it may rest when it stops: Sit, Lie, Curl (commas between). A cat sits before it lies down.")
         self.row(g, 2, "Fidgets", ttk.Entry(g, textvariable=self.var("Fidgets"), width=16),

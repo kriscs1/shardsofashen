@@ -632,11 +632,6 @@ class World(NPCMixin):
                     if not self.pixel_walkable(z, old_x + (x - old_x) * i / (steps + 1),
                                                old_y + (y - old_y) * i / (steps + 1), mover, swim):
                         return False
-        if (mover is None and e.type == NPC and e.ai is not None and not e.ai.indoors and
-                self.roofed(z, x, y) and not self.roofed(z, old_x, old_y)):
-            r = e.ai.roost                          # (no animal walks into a house: a hen to her own coop, though)
-            if not (r and r[0] <= x < r[2] + 1 and r[1] <= y < r[3] + 1):
-                return False
         if mover is not None:
             for n in self.npcs_near(z, x, y):           # (the NPCs on the maps round it, not every thing there is)
                 if (n.active and self.npc_is_solid(n) and

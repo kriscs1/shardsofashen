@@ -19,7 +19,7 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Grass001:Grass001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Pebbles003):Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Pebbles001):Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
-NPC	Villager	672	120	Attitude=Good Zone=22,4,23,5 Pause=5-15 Id=Fenwick_Resident_364 Name=Winnie
+NPC	Villager	672	120	Attitude=Good Zone=22,4,23,5 Pause=5-15 Id=Fenwick_Resident_364 Name=Winnie Home=14,4,14,4/16,4,16,4/18,4,18,4/14,5,18,7 Bed=15,4
 Id	Fenwick_Gardens_359	3	8
 StaticObject	Valuables	480	88
 StaticObject	Valuables	704	56

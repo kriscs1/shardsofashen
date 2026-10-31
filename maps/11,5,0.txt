@@ -19,7 +19,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Stone_Wall001:Stone_Wall001+Decor(S
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001:Gravel001:Grass001:Grass001:Grass001:Grass001:Brick001:Brick001:Door001:Brick001:Brick001:Grass001:Brick001:Brick001+Decor(Brick_Window001):Brick001:Door001:Brick001:Grass001
 Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Villager	704	184	Attitude=Good Stand=1 Face=S Id=Ashford_Priest_309 Name=Mabel
+NPC	Villager	704	184	Attitude=Good Stand=1 Face=S Id=Ashford_Priest_309 Name=Mabel Home=16,5,16,5/18,5,19,5/21,5,24,5/16,6,19,6/21,6,21,6/24,6,24,6/16,7,24,7/16,8,16,9/23,8,24,9/16,10,24,10
 NPC	Greengrocer	672	472	Attitude=Good Stand=1 Face=S Id=Ashford_Greengrocer_319 Name=Ned
 NPC	Butcher	480	472	Attitude=Good Stand=1 Face=S Id=Ashford_Butcher_321 Name=Greta
 NPC	Doctor	320	216	Attitude=Good Stand=1 Face=S Id=Ashford_Doctor_327 Name=Dora

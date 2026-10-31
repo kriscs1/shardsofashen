@@ -19,5 +19,5 @@ Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Water001:Mar
 Marsh001:Marsh001:Marsh_Water004:Water001:Marsh_Water008:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001
 Marsh001+Decor(Bog_Myrtle001):Marsh001:Water001+Decor(Lily_Pads001):Marsh_Water009:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Bog_Myrtle001):Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001
-NPC	Villager	704	600	Attitude=Good Zone=17,15,25,21 Pause=3-9 Id=Mirefold_Villager_1 Name=Old_Nell
+NPC	Villager	704	600	Attitude=Good Zone=17,15,25,21 Pause=3-9 Id=Mirefold_Villager_1 Name=Old_Nell Home=24,11,25,11/24,12,24,12/24,13,25,14 Bed=25,12
 NPC	Frog	192	184	Attitude=Passive Zone=2,3,12,11

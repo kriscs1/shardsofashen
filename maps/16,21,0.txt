@@ -20,7 +20,7 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:
 Snow001:Snow001+Decor(Pebbles001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Snow_Peak003:Snow_Peak004:Snow001:Snow001:Snow001+Decor(Pebbles003):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 NPC	Sheriff	640	120	Attitude=Good Stand=1 Face=S Id=Frosthold_Sheriff_326 Name=Agnes
-NPC	Villager	256	184	Attitude=Good Zone=8,5,10,7 Pause=5-15 Id=Frosthold_Resident_338 Name=Hugh
+NPC	Villager	256	184	Attitude=Good Zone=8,5,10,7 Pause=5-15 Id=Frosthold_Resident_338 Name=Hugh Home=7,4,7,4/11,4,11,4/7,5,11,5/7,6,8,6/10,6,11,6/7,7,11,7 Bed=10,4
 StaticObject	Notice	160	194	Id=Frosthold_Notice_307
 StaticObject	Notice	96	450	Id=Frosthold_Notice_309
 StaticObject	Notice	768	194	Id=Frosthold_Notice_327

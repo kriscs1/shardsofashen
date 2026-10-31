@@ -20,7 +20,7 @@ Grass001:Grass001+Decor(Wood_Fence002):Grass001:Grass001:Grass001:Grass001:Grave
 Grass001:Grass001+Decor(Wood_Fence002):Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Wood_Fence002)
 Grass001:Grass001+Decor(Wood_Fence002):Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Wood_Fence002)
 NPC	Cat	352	600	Attitude=Good Zone=7,16,17,20 Pause=4-12
-NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Priest_303 Name=Ida
+NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Priest_303 Name=Ida Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
 NPC	Barkeep	512	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Barkeep_305 Name=Hattie
 NPC	Barmaid	576	248	Attitude=Good Zone=15,9,20,9 Pause=3-9 Id=Moorcross_Barmaid_306 Name=Rosie
 NPC	Farmer	256	504	Attitude=Good Zone=7,14,11,17 Pause=5-15 Id=Moorcross_Resident_307 Name=Hattie
@@ -35,7 +35,7 @@ Id	Moorcross_Chapel	11	11
 NPC	Shepherd	352	344	Attitude=Good Zone=9,10,15,14 Pause=4-12
 Id	Moorcross_Shepherd	12	12
 NPC	Trader	320	344	Attitude=Good Zone=8,10,14,14 Pause=4-12
-NPC	Settler	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
+NPC	Settler	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12 Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
 StaticObject	Loose_Cobble	512	384	Id=Secret_Moorcross
 StaticObject	Valuables	544	152
 StaticObject	Valuables	256	376

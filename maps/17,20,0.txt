@@ -21,7 +21,7 @@ Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001+Decor(Lamp_Post
 Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 NPC	Fishmonger	64	376	Attitude=Good Stand=1 Face=S Id=Frosthold_Stall_302 Name=Ivor
 NPC	Baker	64	504	Attitude=Good Stand=1 Face=S Id=Frosthold_Stall_304 Name=Greta
-NPC	Villager	192	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Priest_314 Name=Winnie
+NPC	Villager	192	184	Attitude=Good Stand=1 Face=S Id=Frosthold_Priest_314 Name=Winnie Home=19,13,19,13/23,13,23,13/19,14,23,17 Bed=21,13
 NPC	Greengrocer	224	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Greengrocer_320 Name=Oswald
 NPC	Butcher	416	472	Attitude=Good Stand=1 Face=S Id=Frosthold_Butcher_322 Name=Edith
 StaticObject	Market_Stall_Open	64	416
@@ -32,7 +32,7 @@ Id	Frosthold_Square	1	17
 Id	Frosthold_Church	7	12
 NPC	Forgemaster	32	472	Attitude=Good Zone=2,14,5,18 Pause=4-12
 NPC	Trader	32	440	Attitude=Good Zone=2,13,5,17 Pause=4-12
-NPC	Settler	64	472	Attitude=Good Zone=2,14,6,18 Pause=4-12
+NPC	Settler	64	472	Attitude=Good Zone=2,14,6,18 Pause=4-12 Home=6,5,9,5/11,5,12,5/14,5,14,5/6,6,6,6/9,6,9,6/11,6,14,6/6,7,14,7/6,8,7,9/14,8,14,9/6,10,14,10
 StaticObject	Odd_Barrel	64	320	Id=Secret_Frosthold
 StaticObject	Valuables	224	120
 StaticObject	Odd_Barrel	64	224	Id=Secret_Frosthold_2

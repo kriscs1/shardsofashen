@@ -19,7 +19,7 @@ Marsh001:Timber_Thin_Plank004+Roof(Shingle_Roof010.02):Plank001+Decor(Counter001
 Marsh001:Timber_Thin_Plank004+Roof(Shingle_Roof013.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Plank001+Roof(Shingle_Roof014.02):Timber_Thin_Plank002+Roof(Shingle_Roof015.02):Marsh001:Marsh001:Marsh001:Timber001:Timber001:Timber001+Decor(Timber_Window001):Timber001:Door004:Timber001:Timber001+Decor(Timber_Window001):Timber001:Timber001:Marsh001:Marsh001:Marsh001:Grass001:Grass001:Grass001:Grass001
 Marsh001:Timber001:Door004:Timber001:Timber001+Decor(Timber_Window001):Timber001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Grass001
 Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Sea_Rock002:Marsh001:Grass001:Grass001:Grass001:Grass001:Grass001:Boardwalk001:Boardwalk001
-NPC	Villager	64	152	Attitude=Good Stand=1 Face=S Id=Fenwick_Priest_314 Name=Jasper
+NPC	Villager	64	152	Attitude=Good Stand=1 Face=S Id=Fenwick_Priest_314 Name=Jasper Home=2,4,5,4/7,4,8,4/10,4,11,4/13,4,14,4/2,5,2,5/5,5,7,5/9,5,14,5/2,6,14,6/2,7,3,10/14,7,14,10/2,11,14,11
 NPC	Greengrocer	96	504	Attitude=Good Stand=1 Face=S Id=Fenwick_Greengrocer_333 Name=Amos
 NPC	Barkeep	416	440	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_354 Name=Cedric
 NPC	Barmaid	480	536	Attitude=Good Zone=11,17,17,18 Pause=3-9 Id=Fenwick_Barmaid_355 Name=Elsie

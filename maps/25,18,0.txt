@@ -22,7 +22,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Greengrocer	672	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Greengrocer_333 Name=Fred
 NPC	Blacksmith	448	120	Attitude=Good Stand=1 Face=S Id=Ravensgate_Smith_357 Name=Winnie
 NPC	Farmer	672	408	Attitude=Good Zone=22,13,23,14 Pause=5-15 Id=Ravensgate_Resident_365 Name=Percy
-NPC	Man	480	408	Attitude=Good Zone=16,13,17,14 Pause=5-15 Id=Ravensgate_Resident_366 Name=Kit
+NPC	Man	480	408	Attitude=Good Zone=16,13,17,14 Pause=5-15 Id=Ravensgate_Resident_366 Name=Kit Home=3,11,3,11/6,11,6,11/3,12,6,14 Bed=5,11
 NPC	Farmer	288	408	Attitude=Good Zone=9,11,12,14 Pause=5-15 Id=Ravensgate_Resident_367 Name=Clara
 StaticObject	Notice	32	450	Id=Ravensgate_Notice_309
 StaticObject	Furnace	384	96

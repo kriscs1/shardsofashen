@@ -19,15 +19,15 @@ Slate_Flag001:Plaster_Thin_Plank004+Roof(Thatch_Roof010.02):Plank001+Roof(Thatch
 Slate_Flag001:Plaster_Thin_Plank004+Roof(Thatch_Roof013.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plank001+Roof(Thatch_Roof014.02):Plaster_Thin_Plank002+Roof(Thatch_Roof015.02):Slate_Flag001:Stone_Wall_Thin_Tile004+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Steeple001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Chapel_Stone_Upper001.01):Tile001+Roof(Steeple001.01):Stone_Wall_Thin_Tile002+Roof(Chapel_Stone_Upper001.01):Slate_Flag001
 Slate_Flag001:Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Plaster001+Decor(Plaster_Window001):Plaster001:Door005:Plaster001:Slate_Flag001:Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Door002:Chapel_Stone001:Slate_Flag001
 Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001
-NPC	Villager	704	408	Attitude=Good Stand=1 Face=S Id=Ravensgate_Priest_314 Name=Florence
+NPC	Villager	704	408	Attitude=Good Stand=1 Face=S Id=Ravensgate_Priest_314 Name=Florence Home=4,2,4,2/7,2,7,2/4,3,7,4/4,5,4,5/6,5,7,5/4,6,7,6 Bed=6,2
 NPC	Barkeep	160	472	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_342 Name=Rosie
 NPC	Barmaid	224	568	Attitude=Good Zone=3,18,9,19 Pause=3-9 Id=Ravensgate_Barmaid_343 Name=Harold
 NPC	Barkeep	608	152	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_352 Name=Ida
 NPC	Barmaid	672	248	Attitude=Good Zone=17,8,23,9 Pause=3-9 Id=Ravensgate_Barmaid_353 Name=Lettie
 NPC	Barkeep	160	280	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_355 Name=Fred
 NPC	Barmaid	224	344	Attitude=Good Zone=3,12,9,12 Pause=3-9 Id=Ravensgate_Barmaid_356 Name=Rufus
-NPC	Villager	288	152	Attitude=Good Zone=10,4,11,6 Pause=5-15 Id=Ravensgate_Resident_359 Name=Dora
-NPC	Woman	128	152	Attitude=Good Zone=5,3,6,6 Pause=5-15 Id=Ravensgate_Resident_360 Name=Dora
+NPC	Villager	288	152	Attitude=Good Zone=10,4,11,6 Pause=5-15 Id=Ravensgate_Resident_359 Name=Dora Home=9,3,9,3/11,3,12,3/9,4,12,6
+NPC	Woman	128	152	Attitude=Good Zone=5,3,6,6 Pause=5-15 Id=Ravensgate_Resident_360 Name=Dora Home=4,2,4,2/7,2,7,2/4,3,7,4/4,5,4,5/6,5,7,5/4,6,7,6
 StaticObject	Notice	768	610	Id=Ravensgate_Notice_315
 StaticObject	Sign_Pub	288	624
 StaticObject	Sign_Pub	736	304

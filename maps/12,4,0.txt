@@ -20,7 +20,7 @@ Grass001:Grass001:Grass001:Brick_Paving001:Grass001:Grass001:Brick_Paving001:Tim
 Grass001:Grass001:Grass001:Brick_Paving001:Grass001:Grass001:Brick_Paving001:Timber001:Door004:Timber001:Timber001+Decor(Timber_Window001):Timber001:Timber001+Decor(Timber_Window001):Timber001:Grass001:Grass001:Brick_Paving001:Grass001+Decor(Flower_Bed001):Grass001:Grass001:Grass001+Decor(Flower_Bed001):Grass001+Decor(Tree001):Dirt001:Dirt001:Dirt001
 Grass001:Grass001+Decor(Flowers003):Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Gravel001:Dirt001:Grass001
 NPC	Sheriff	288	536	Attitude=Good Stand=1 Face=S Id=Ashford_Sheriff_325 Name=Florence
-NPC	Villager	224	312	Attitude=Good Zone=6,8,10,11 Pause=5-15 Id=Ashford_Resident_341 Name=Colin
-NPC	Man	448	344	Attitude=Good Zone=15,10,16,12 Pause=5-15 Id=Ashford_Resident_343 Name=Percy
+NPC	Villager	224	312	Attitude=Good Zone=6,8,10,11 Pause=5-15 Id=Ashford_Resident_341 Name=Colin Home=5,7,5,7/7,7,9,7/11,7,11,7/5,8,11,9/5,10,7,10/9,10,11,10/5,11,11,11 Bed=6,7
+NPC	Man	448	344	Attitude=Good Zone=15,10,16,12 Pause=5-15 Id=Ashford_Resident_343 Name=Percy Home=14,9,14,9/17,9,17,9/14,10,17,12 Bed=16,9
 Id	Ashford_Gardens_339	17	21
 StaticObject	Valuables	256	184

@@ -12,7 +12,7 @@ from .remnants import death_remnants, make_remnant, LIVING
 PF_NPC_BUDGET = 400
 
 
-LYING = ("Curl", "Lie")                                # (poses lying down: still, no turning about, sat up from)
+LYING = ("Curl", "Lie", "Sleep")                       # (poses lying down: still, no turning about, sat up from)
 
 
 class Area(list):
@@ -186,7 +186,6 @@ class NPCMixin:
         a.solid = 0 if d.entity_ini(n, "Solid", "1") == "0" else 1
         a.flees = trim(d.entity_ini(n, "Flees", "0")) == "1"         # (prey: runs from whoever hits it, never fights)
         a.swims = trim(d.entity_ini(n, "Swims", "0")) == "1"         # (an otter, a seal: at home in the water too)
-        a.indoors = trim(d.entity_ini(n, "Indoors", "1")) != "0"     # (0: an animal kept out of houses; cats come in)
         layer = trim(d.entity_ini(n, "Layer", "")).upper()
         a.under = 1 if layer == "UNDER" else 0
         a.flying = 1 if layer == "OVER" else 0
@@ -201,7 +200,7 @@ class NPCMixin:
             walk = 0.5
         a.walk_speed = max(4, min(1, walk) * e.move_speed)
         pause = d.entity_ini(n, "Pause", "1-4")
-        zone = chase_r = patrol = roost = nap = ""
+        zone = chase_r = patrol = home_area = bed = nap = ""
         stand = ping = 0
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
@@ -249,8 +248,10 @@ class NPCMixin:
                     a.schedule = value
                 elif key == "FRIENDLY.IF":
                     a.friendly_if = value
-                elif key == "ROOST":                   # (where it spends the night, not gone home: hens in their coop)
-                    roost = value
+                elif key in ("HOME", "ROOST"):         # (where it is while its hours keep it in: a house, a coop)
+                    home_area = value
+                elif key == "BED":                     # (its own bed, x,y: asleep in it at night)
+                    bed = value
                 elif key == "STATE":                   # (how it always rests: State=Sit)
                     a.fixed_pose = value
                 elif key == "NAP":                     # (a spot it hops up onto to curl up: Nap=13,7, the throne)
@@ -295,11 +296,17 @@ class NPCMixin:
                               max(r[2] for r in chase_parts), max(r[3] for r in chase_parts), chase_parts)
         else:
             self.npc_set_rect(a, 1, min(x1, x2) - chase, min(y1, y2) - chase, max(x1, x2) + chase, max(y1, y2) + chase)
-        a.roost = None
-        if self.npc_rect_valid(roost):
+        a.home = None
+        home_parts = self.npc_rects(home_area)
+        if home_parts:                                  # (its Home: the zone it has while its hours keep it in)
             a.day_zone, a.day_chase = a.zone, a.chase
-            self.npc_set_rect(a, 0, *(val(word(roost, i, ",")) for i in range(1, 5)))
-            a.roost, a.zone = a.zone, a.day_zone
+            self.npc_set_rect(a, 0, min(r[0] for r in home_parts), min(r[1] for r in home_parts),
+                              max(r[2] for r in home_parts), max(r[3] for r in home_parts), home_parts)
+            a.home, a.zone = a.zone, a.day_zone
+        a.bed, a.bed_from, a.asleep, a.bed_tries = None, None, False, 0
+        a.spawn_at = (e.fx, e.fy)                       # (where it was put: back out, it's somewhere it can walk from)
+        if word(bed, 2, ",") and is_number(word(bed, 1, ",")) and is_number(word(bed, 2, ",")):
+            a.bed = (a.home_ox + (val(word(bed, 1, ",")) - 1) * self.tw, a.home_oy + (val(word(bed, 2, ",")) - 1) * self.th)
         p_min = val(word(pause, 1, "-"))
         p_max = p_min
         if "-" in pause:
@@ -1012,15 +1019,26 @@ class NPCMixin:
         self.npc_set_idle(e, a, False)
 
     # =================================================================================================================
-    # Who's out (Entities.ini Schedule=Day / Night): townsfolk go home at night, night creatures hide by day
+    # Who's out (Entities.ini Schedule=Day / Night, a map line's own Schedule=): townsfolk go home at night and to
+    # their beds, night creatures hide by day. One with a Bed= sleeps in it at night; one with a Home= goes there
+    # (a house, a coop) for the hours it's in; a person with neither (Maren at her counter: her night self is
+    # upstairs) goes out of the nearest door; an animal with neither slips away once nobody's near
     # =================================================================================================================
     def schedule_npc(self, e, near):
+        """True while it's away or asleep (it thinks no more this tick)."""
+        a = e.ai
         sched = self.data.npc_schedule(e.name)
-        own = getattr(e.ai, "schedule", None) if e.ai is not None else None
+        own = getattr(a, "schedule", None) if a is not None else None
         if own is not None:
             sched = "" if own.upper() in ("ALWAYS", "NONE", "") else own.capitalize()
-        if getattr(e.ai, "roost", None) and sched == "Day" and self.data.day_night_enabled and not e.in_combat:
-            return self.npc_roost(e, e.ai)
+        if getattr(a, "bed", None) and self.data.day_night_enabled:
+            if self.is_night() and not e.in_combat and not e.sched_away:
+                return self.npc_bedtime(e, a, near)
+            if a.asleep:
+                self.npc_get_up(e, a)
+        if getattr(a, "home", None) and sched in ("Day", "Night") and self.data.day_night_enabled and \
+                not e.in_combat:
+            return self.npc_go_home(e, a, sched, near)
         indoors_own = own is not None and e.z > 0           # (its own hours upstairs: at home only at night)
         if not sched or not self.data.day_night_enabled or (e.z != 0 and not indoors_own) or e.in_combat:
             if e.sched_away and not sched:
@@ -1032,8 +1050,12 @@ class NPCMixin:
         far = near is None or near[1] > 380 or indoors_own   # (upstairs at home: gone at once, downstairs the while)
         if away_now and not e.sched_away:
             if sched == "Day" and not far:
-                door = self.bed_of(e) or self.nearest_door(e)          # (a cat to its bed; townsfolk out of a door)
-                d = distance(e.cx, e.cy, door[0], door[1]) if door is not None else 0
+                door = self.bed_of(e)                                # (a cat to its bed: Sleeping_Jimmy is it, abed)
+                if door is None and self.data.animation_available(e.name) == 4:
+                    door = self.nearest_door(e)                      # (a person with no home of its own here)
+                if door is None:
+                    return False                                     # (an animal: it slips away once nobody's near)
+                d = distance(e.cx, e.cy, door[0], door[1])
                 if door is not None and d > 14:
                     moved = self.npc_walk_to(e, door[0], door[1], e.ai.walk_speed if e.ai else e.move_speed, 6, False)
                     if moved and d < getattr(e, "sched_best", 1e9) - 0.5:     # (getting nearer: on its way)
@@ -1055,18 +1077,44 @@ class NPCMixin:
             return False
         return e.sched_away
 
-    def npc_roost(self, e, a):
-        """A creature with a Roost: by night it goes there and stays (roaming only inside it); by day, back out."""
+    def npc_go_home(self, e, a, sched, near):
+        """One with a Home: for the hours it's in (Day: the night; Night: the day) its Home is its zone - it walks in
+        and stays, roaming only inside it (townsfolk in their house, hens in their coop); then back out. Nobody near,
+        it's simply there."""
         if e.sched_away:
             e.sched_away, e.active = False, True
-        night = self.is_night()
-        zone, chase = (a.roost, a.roost) if night else (a.day_zone, a.day_chase)
+        inside = (sched == "Day") == self.is_night()
+        zone, chase = (a.home, a.home) if inside else (a.day_zone, a.day_chase)
         if a.zone is not zone:
             a.zone, a.chase = zone, chase
             if not self.in_zone(a, e.fx, e.fy):
                 self.forget_path(e)
-                a.goal_x, a.goal_y = (zone[0] + zone[2]) / 2, (zone[1] + zone[3]) / 2
-                self.npc_walk_started(e, a, AI_RETURN)
+                if near is None or near[1] > 380:
+                    self.npc_put_in_zone(e, a)
+                else:
+                    a.goal_x, a.goal_y = (zone[0] + zone[2]) / 2, (zone[1] + zone[3]) / 2
+                    self.npc_walk_started(e, a, AI_RETURN)
+        return False
+
+    def npc_put_in_zone(self, e, a):
+        """Straight to a walkable spot of its zone (nobody's there to see it walk) - out of its home, one joined to
+        where it was put on the map (not over a fence the zone's rectangle reaches past)."""
+        feet = e.fy - e.y
+        want = None
+        if a.zone is not getattr(a, "home", None) and getattr(a, "spawn_at", None):
+            want = self.grid_region_at(e.z, *a.spawn_at)
+            if want is not None and not want[1]:
+                want = None
+        for _ in range(40):
+            r = a.zone.pick() if isinstance(a.zone, Area) else a.zone
+            gx, gy = r[0] + rnd() * (r[2] - r[0]), r[1] + rnd() * (r[3] - r[1])
+            if want is not None and self.grid_region_at(e.z, gx, gy) != want:
+                continue
+            if self.pixel_walkable(e.z, gx, gy):
+                self.set_entity_position(e, gx - e.w / 2, gy - feet)
+                a.back_x, a.back_y = e.cx, e.cy
+                self.npc_set_idle(e, a, True)
+                return True
         return False
 
     def nearest_door(self, e):
@@ -1087,3 +1135,49 @@ class NPCMixin:
         if not doors:
             return None
         return min(doors, key=lambda dd: distance(e.cx, e.cy, dd[0], dd[1]))
+
+    def bed_side(self, e, a):
+        """Where it gets into its bed from: the walkable spot nearest it beside the bed's head or foot."""
+        bx, by = a.bed
+        tw, th = self.tw, self.th
+        best = None
+        for dx, dy in ((0, 2), (-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1)):
+            x, y = bx + dx * tw + tw / 2, by + dy * th + th * 0.6
+            if self.pixel_walkable(e.z, x, y):
+                d = distance(e.fx, e.fy, x, y)
+                if best is None or d < best[0]:
+                    best = (d, x, y)
+        return best[1:] if best else None
+
+    def npc_bedtime(self, e, a, near):
+        """Night, and it has a bed: it walks to it and gets in (its head on the pillow: <Name>_Sleep4, or out of
+        sight if it has none), asleep till the morning. Nobody near, it's in bed already."""
+        if a.asleep:
+            return True
+        far = near is None or near[1] > 380
+        side = self.bed_side(e, a)
+        if not far and side is not None and distance(e.fx, e.fy, *side) > 12 and a.bed_tries < 600:
+            a.bed_tries += 1                            # (off to bed; half a minute stuck and it's in it anyway)
+            moved = self.npc_walk_to(e, side[0], side[1] - (e.fy - e.cy), a.walk_speed, 6, False)
+            self.animate_entity(e, bool(moved))
+            return True
+        self.forget_path(e)
+        a.bed_from, a.asleep, a.bed_tries = (e.x, e.y), True, 0
+        if side is not None:
+            a.bed_from = (side[0] - e.w / 2, side[1] - (e.fy - e.y))
+        e.direction = 4
+        self.set_entity_position(e, a.bed[0] + (self.tw - e.w) / 2, a.bed[1] + 2)
+        if self.data.loaded("%s_Sleep4" % e.name):
+            e.pose = "Sleep"
+        else:
+            e.active = False
+        self.animate_entity(e, False)
+        return True
+
+    def npc_get_up(self, e, a):
+        """Morning (or a fight): out of bed, beside it, and about its day."""
+        a.asleep, a.bed_tries = False, 0
+        e.pose, e.active = a.fixed_pose, True
+        if a.bed_from is not None:
+            self.set_entity_position(e, *a.bed_from)
+        self.npc_set_idle(e, a, True)

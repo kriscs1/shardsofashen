@@ -20,4 +20,4 @@ Marsh001+Decor(Bog_Myrtle001):Grass001+Decor(Tree001):Grass001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Pebbles001):Marsh001+Decor(Pebbles001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 NPC	Frog	128	472	Attitude=Bad Zone=2,12,10,20
-NPC	Duck	672	120	Attitude=Bad Zone=17,2,24,9
+NPC	Duck	672	120	Attitude=Bad Zone=17,2,24,8/17,9,19,9 Chase=17,2,24,8/17,9,19,9

@@ -21,7 +21,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001
 NPC	Villager	224	384	Attitude=Good Zone=5,11,12,16
 NPC	Rabbit	160	224	Attitude=Bad
-NPC	Rabbit	512	256	Attitude=Bad
+NPC	Rabbit	512	256	Attitude=Bad Zone=14,7,20,12
 NPC	Butterfly	288	288	Attitude=Good
 NPC	Blue_Butterfly	160	576	Attitude=Good
 NPC	Maren	416	56	Attitude=Good Stand=1 Face=S Schedule=Day Id=Maren_At_Counter

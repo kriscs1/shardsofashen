@@ -21,7 +21,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Barkeep	576	56	Attitude=Good Stand=1 Face=S Id=Thornwick_Barkeep_317 Name=Quentin
 NPC	Barmaid	640	120	Attitude=Good Zone=17,5,22,5 Pause=3-9 Id=Thornwick_Barmaid_318 Name=Vera
-NPC	Villager	320	408	Attitude=Good Zone=10,11,13,14 Pause=5-15 Id=Thornwick_Resident_322 Name=Colin
+NPC	Villager	320	408	Attitude=Good Zone=10,11,13,14 Pause=5-15 Id=Thornwick_Resident_322 Name=Colin Home=9,10,9,10/11,10,11,10/14,10,14,10/9,11,14,12/9,13,10,13/12,13,14,13/9,14,14,14 Bed=13,10
 StaticObject	Notice	224	450	Id=Thornwick_Notice_305
 StaticObject	Sign_Pub	640	176
 StaticObject	Valuables	608	24

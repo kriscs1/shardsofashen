@@ -20,6 +20,6 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:San
 Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sea_Rock002:Water001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 NPC	Butcher	128	56	Attitude=Good Stand=1 Face=S Id=Wardhaven_Butcher_330 Name=Vera
-NPC	Woman	128	408	Attitude=Good Zone=3,13,7,14 Pause=5-15 Id=Wardhaven_Resident_331 Name=Nell
+NPC	Woman	128	408	Attitude=Good Zone=3,13,7,14 Pause=5-15 Id=Wardhaven_Resident_331 Name=Nell Home=2,12,4,12/6,12,6,12/8,12,8,12/2,13,8,14
 StaticObject	Notice	544	162	Id=Wardhaven_Notice_305
 StaticObject	Notice	32	162	Id=Wardhaven_Notice_333

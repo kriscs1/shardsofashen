@@ -15,6 +15,8 @@ from tkinter import ttk, messagebox
 
 from PIL import Image, ImageEnhance
 
+from ashen import areas as AR
+
 from .. import theme as T
 from .. import world as WD
 from ..app import Page
@@ -116,7 +118,10 @@ OPT_SPECS = {
                  "at night; Night: hidden by day; Always: never goes home."),
     "Friendly.If": ("Friendly if", "text", None, "A condition (no spaces, e.g. $Attr.SmugglerQuest>=3): while it's "
                     "true for a player, it's friendly to them."),
-    "Roost": ("Roost", "rect", None, "Where it spends the night (x1,y1,x2,y2 tiles): hens in their coop."),
+    "Home": ("Home", "rect", None, "Where it is while its Hours keep it in (x1,y1,x2,y2 tiles; several joined by /): "
+             "its house at night, a hen's coop. Drawn in blue."),
+    "Bed": ("Bed", "tile", None, "Its own bed (the head of a Bed001, x,y): it walks to it at night and sleeps there "
+            "till morning. Shown as a blue square."),
     "State": ("Rests as", "choice", _kind_list("States"), "How it always rests (one of its kind's States=)."),
     "Nap": ("Nap spot", "tile", None, "A tile it hops up onto to curl up (x,y): the throne, a bed."),
     "Level": ("Level", "number", None, "A Shard Remnant's strength (1-25)."),
@@ -127,7 +132,7 @@ OPT_SPECS = {
     "Key": ("Key", "text", None, "The item that opens its lock."),
     "Sturdy": ("Iron-bound", "bool", None, "It can't be broken open: only picked, or opened with its key."),
 }
-NPC_FORM = ("Face", "Cone", "Group", "Schedule", "Friendly.If", "Roost", "State", "Nap", "Level", "Look")
+NPC_FORM = ("Schedule", "Home", "Bed", "Face", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
 OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy")
 ITEM_FORM = ("Project",)
 HANDLED_OPTS = {"Attitude", "Stand", "Id", "Name", "Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Once"}
@@ -2024,7 +2029,7 @@ class MapPage(Page):
             return
         x0, y0 = ox + tx * tw * z, oy + ty * th * z
         box = (x0, y0, x0 + tw * z, y0 + th * z)
-        if self.mode in ("zone", "chase", "opt:Roost", "opt:Nap"):
+        if self.mode in ("zone", "chase", "opt:Home", "opt:Nap", "opt:Bed"):
             cursor = "crosshair"
         elif self.mode == "cartadd":
             cursor = "plus"
@@ -2241,6 +2246,17 @@ class MapPage(Page):
             rect(zone[0], "#5fd35f", None if zone[1] else (4, 4))
         if chase:
             rect(chase[0], "#ff6050", None if chase[1] else (4, 4))
+        home = self.opt_rects(e.opt("Home"))
+        if home:                                         # (where it is while its hours keep it in: blue)
+            rect(home, "#4ea8ff", (6, 3))
+        bed = e.opt("Bed").split(",")
+        if len(bed) == 2 and all(v.strip().isdigit() for v in bed):
+            bx, by = ox + (int(bed[0]) - 1) * tw * z, oy + (int(bed[1]) - 1) * th * z
+            c.create_rectangle(bx + 2, by + 2, bx + tw * z - 2, by + th * z - 2, outline="#4ea8ff",
+                               width=1 if faint else 3, tags=slot)
+            if not faint:
+                c.create_text(bx + tw * z / 2, by - 2, text="bed", anchor="s", fill="#4ea8ff",
+                              font=("Segoe UI", 8, "bold"), tags=slot)
         pts = self.patrol(e)
         if pts:
             coords = []
@@ -2353,48 +2369,10 @@ class MapPage(Page):
     # =============================================================================================================
     # The NPC options
     # =============================================================================================================
-    @staticmethod
-    def opt_rects(text):
-        """A Zone or Chase: "x1,y1,x2,y2", or several joined by / (an L, a ring: painted tile by tile) ->
-        [(x1, y1, x2, y2)], or None if any part isn't one."""
-        out = []
-        for part in (text or "").split("/"):
-            try:
-                r = tuple(int(v) for v in part.split(","))
-            except ValueError:
-                return None
-            if len(r) != 4:
-                return None
-            out.append((min(r[0], r[2]), min(r[1], r[3]), max(r[0], r[2]), max(r[1], r[3])))
-        return out or None
-
-    @staticmethod
-    def tiles_of(rects):
-        return {(x, y) for x1, y1, x2, y2 in rects for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)}
-
-    @staticmethod
-    def rects_text(tiles):
-        """Tiles (x, y) as few rectangles as rows allow: each row's runs, the same runs in the rows under them merged
-        into one - "x1,y1,x2,y2/..." for a Zone= or Chase=."""
-        runs = {}
-        for y in sorted({t[1] for t in tiles}):
-            xs = sorted(x for x, yy in tiles if yy == y)
-            start = prev = xs[0]
-            for x in xs[1:] + [None]:
-                if x is not None and x == prev + 1:
-                    prev = x
-                    continue
-                runs.setdefault((start, prev), []).append(y)
-                start = prev = x
-        rects = []
-        for (x1, x2), ys in runs.items():
-            y0 = ys[0]
-            for a, b in zip(ys, ys[1:] + [None]):
-                if b != a + 1:
-                    rects.append((x1, y0, x2, a))
-                    y0 = b
-        rects.sort(key=lambda r: (r[1], r[0]))
-        return "/".join("%d,%d,%d,%d" % r for r in rects)
+    # (an area: rectangles joined by /, ashen/areas.py - the engine, the migrations and the editor read them alike)
+    opt_rects = staticmethod(AR.parse)
+    tiles_of = staticmethod(AR.tiles_of)
+    rects_text = staticmethod(AR.rects_text)
 
     def npc_zone(self, e):
         """([(x1, y1, x2, y2)...], from the map line?) or None."""
@@ -2498,7 +2476,7 @@ class MapPage(Page):
             if self.cart_sel is not None:
                 self.cart_sel = None
                 self.show_inspector()
-        if self.mode in ("zone", "chase", "opt:Roost") and self.sel_ent is not None:
+        if self.mode in ("zone", "chase", "opt:Home") and self.sel_ent is not None:
             self.drag = {"rect": ((tx, ty), (tx, ty)), "area": self.mode}
             self.redraw()
             return
@@ -2507,8 +2485,8 @@ class MapPage(Page):
             self.drag = {"areapaint": self.mode[:-5], "erase": bool(shift)}
             self.paint_area(self.mode[:-5], tx, ty, bool(shift))
             return
-        if self.mode == "opt:Nap" and self.sel_ent is not None:
-            self.set_opt(self.sel_ent, "Nap", "%d,%d" % (tx + 1, ty + 1))
+        if self.mode in ("opt:Nap", "opt:Bed") and self.sel_ent is not None:
+            self.set_opt(self.sel_ent, self.mode[4:], "%d,%d" % (tx + 1, ty + 1))
             self.mode = None
             self.show_inspector()
             return
@@ -2840,7 +2818,7 @@ class MapPage(Page):
                 return
             if d.get("area"):
                 self.remember()
-                key = {"zone": "Zone", "chase": "Chase"}.get(d["area"], "Roost")
+                key = {"zone": "Zone", "chase": "Chase"}.get(d["area"], "Home")
                 self.sel_ent.set_opt(key, "%d,%d,%d,%d" % (xa + 1, ya + 1, xb + 1, yb + 1))
                 self.mode = None
             elif d.get("shape") and WD.joins(self.project, self.brush):
@@ -3702,14 +3680,15 @@ class MapPage(Page):
             ent.x, ent.y = ent.x + dtx, ent.y + dty
             return
         ent.x, ent.y = ent.x + dtx * tw, ent.y + dty * th
-        for key in ("Zone", "Chase", "Roost"):
+        for key in ("Zone", "Chase", "Home"):
             rs = MapPage.opt_rects(ent.opt(key))
             if rs:
                 ent.set_opt(key, "/".join("%d,%d,%d,%d" % (a[0] + dtx, a[1] + dty, a[2] + dtx, a[3] + dty)
                                           for a in rs))
-        nap = ent.opt("Nap").split(",")
-        if len(nap) == 2 and all(n.strip().lstrip("-").isdigit() for n in nap):
-            ent.set_opt("Nap", "%d,%d" % (int(nap[0]) + dtx, int(nap[1]) + dty))
+        for key in ("Nap", "Bed"):
+            spot = ent.opt(key).split(",")
+            if len(spot) == 2 and all(n.strip().lstrip("-").isdigit() for n in spot):
+                ent.set_opt(key, "%d,%d" % (int(spot[0]) + dtx, int(spot[1]) + dty))
         pat = ent.opt("Patrol")
         if pat:
             pts = []
@@ -4464,7 +4443,9 @@ class MapPage(Page):
                                "chasepaint": "Drag over tiles where it may chase you; Shift+drag takes them off. "
                                              "Enter or right-click when it's done.",
                                "patrol": "Click tiles in order. Enter or right-click to finish.",
-                               "opt:Roost": "Drag a rectangle on the map for where it spends the night.",
+                               "opt:Home": "Drag a rectangle on the map for its home (more parts: type them in, "
+                                           "joined by /).",
+                               "opt:Bed": "Click the head of its bed.",
                                "opt:Nap": "Click the tile it curls up on."}.get(self.mode, ""),
                       style="Warn.TLabel", wraplength=T.px(300)).pack(anchor="w", pady=6)
         self.opt_form(f, e, NPC_FORM)

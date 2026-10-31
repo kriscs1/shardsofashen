@@ -22,4 +22,4 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Dirt001:Dirt001:Mar
 StaticObject	Notice	544	194	Id=Fenwick_Notice_306
 StaticObject	Notice	512	450	Id=Fenwick_Notice_307
 NPC	Duck	64	88	Attitude=Bad Zone=2,2,8,8
-NPC	Duck	576	280	Attitude=Bad Zone=14,6,24,14
+NPC	Duck	576	280	Attitude=Bad Zone=14,6,18,7/14,8,24,11/14,12,18,14/23,12,24,14 Chase=14,6,18,7/14,8,24,11/14,12,18,14/23,12,24,14

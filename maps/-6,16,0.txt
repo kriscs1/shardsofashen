@@ -19,7 +19,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Timber001:Timber001+Decor(Timber_Wi
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001
-NPC	Man	64	88	Attitude=Good Zone=2,2,5,4 Pause=5-15 Id=Galaith_Resident_440 Name=Agnes
+NPC	Man	64	88	Attitude=Good Zone=2,2,5,4 Pause=5-15 Id=Galaith_Resident_440 Name=Agnes Home=1,1,1,1/3,1,3,1/6,1,6,1/1,2,6,4 Bed=4,1
 NPC	Armourer	608	24	Attitude=Good Stand=1 Face=S Id=Galaith_Armourer_360 Name=Polly
 NPC	Farmer	416	504	Attitude=Good Zone=13,16,15,17 Pause=5-15 Id=Galaith_Resident_444 Name=Toby
 NPC	Farmer	608	504	Attitude=Good Zone=20,16,21,17 Pause=5-15 Id=Galaith_Resident_449 Name=Ida

@@ -20,9 +20,9 @@ Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Sno
 Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Flagstone001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Pebbles002):Snow001:Snow001
 NPC	Banker	128	88	Attitude=Good Stand=1 Face=S Id=Frosthold_Banker_324
-NPC	Man	96	408	Attitude=Good Zone=3,11,6,14 Pause=5-15 Id=Frosthold_Resident_336 Name=Agnes
-NPC	Woman	288	472	Attitude=Good Zone=10,13,11,16 Pause=5-15 Id=Frosthold_Resident_339 Name=Jasper
-NPC	Villager	672	152	Attitude=Good Zone=22,5,23,6 Pause=5-15 Id=Frosthold_Resident_340 Name=Mabel
+NPC	Man	96	408	Attitude=Good Zone=3,11,6,14 Pause=5-15 Id=Frosthold_Resident_336 Name=Agnes Home=2,10,4,10/7,10,7,10/2,11,7,12/2,13,3,13/5,13,7,13/2,14,7,14 Bed=5,10
+NPC	Woman	288	472	Attitude=Good Zone=10,13,11,16 Pause=5-15 Id=Frosthold_Resident_339 Name=Jasper Home=9,12,10,12/12,12,12,12/9,13,12,16 Bed=11,12
+NPC	Villager	672	152	Attitude=Good Zone=22,5,23,6 Pause=5-15 Id=Frosthold_Resident_340 Name=Mabel Home=12,2,12,2/14,2,14,2/16,2,16,2/18,2,18,2/12,3,18,3/12,4,14,4/16,4,18,4/12,5,18,5 Bed=17,2
 StaticObject	Notice	608	450	Id=Frosthold_Notice_308
 StaticObject	Shardstone	96	224
 Id	Waystone_Frosthold	4	9

@@ -19,5 +19,5 @@ Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001+Decor(Oak_Tree001):G
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Cobble001
 Cobble001:Cobble001:Grass001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Marble_Paving001:Grass001:Cobble001:Cobble001
-NPC	Man	128	88	Attitude=Good Zone=3,2,7,4 Pause=5-15 Id=Galaith_Resident_433 Name=Winnie
+NPC	Man	128	88	Attitude=Good Zone=3,2,7,4 Pause=5-15 Id=Galaith_Resident_433 Name=Winnie Home=2,1,2,1/4,1,4,1/6,1,8,1/2,2,8,2/2,3,4,3/6,3,8,3/2,4,8,4 Bed=3,1
 StaticObject	Notice	256	130	Id=Galaith_Notice_320

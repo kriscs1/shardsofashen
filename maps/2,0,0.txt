@@ -25,8 +25,8 @@ StaticObject	Range	96	64
 NPC	Milkmaid	124	234	Attitude=Good Zone=2,8,19,14 Pause=3-8 Name=Bess
 NPC	Cow	91	347	Attitude=Bad Zone=3,11,7,13
 NPC	Cow	168	358	Attitude=Bad Zone=3,11,7,13
-NPC	Butterfly	128	160	Attitude=Good
-NPC	Blue_Butterfly	736	160	Attitude=Good
+NPC	Butterfly	128	160	Attitude=Good Zone=7,3,7,5/2,6,7,6/2,7,8,9 Chase=7,3,7,5/2,6,7,6/2,7,8,9
+NPC	Blue_Butterfly	736	160	Attitude=Good Zone=21,3,25,3/23,4,25,7/21,8,25,9 Chase=21,3,25,3/23,4,25,7/21,8,25,9
 Id	Hen_Nests	22	13
 Id	Milkmaid_Farm	9	9
 StaticObject	Sign_Dairy	163	157
@@ -59,9 +59,9 @@ StaticObject	Ripe_Wheat001	475	600
 StaticObject	Ripe_Wheat002	485	609
 StaticObject	Ripe_Wheat001	506	598
 StaticObject	Ripe_Wheat003	521	609
-NPC	Chicken	608	480	Attitude=Bad Zone=19,15,25,18 Roost=21,12,23,13
-NPC	Chicken	672	512	Attitude=Bad Zone=19,15,25,18 Roost=21,12,23,13
-NPC	Chicken	736	480	Attitude=Bad Zone=19,15,25,18 Roost=21,12,23,13
+NPC	Chicken	608	480	Zone=19,15,25,18 Home=21,12,23,13 Attitude=Passive
+NPC	Chicken	672	512	Zone=19,15,25,18 Home=21,12,23,13 Attitude=Passive
+NPC	Chicken	736	480	Zone=19,15,25,18 Home=21,12,23,13 Attitude=Passive
 StaticObject	Furnace	319	109
 StaticObject	Workbench	247	63	Id=Franks_Workbench
 StaticObject	Anvil	244	157

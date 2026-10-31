@@ -226,9 +226,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The cold** (`dsengine/cold.py`, `data/Cold.ini`): out on snow or ice and not warm, health drops a little at a time
   after a grace (Cold by your health). Warm is a roof, a fire near, something worn with `Warm=1` (Fur Cap, Wool Hood,
   Wool Mittens: `build_cold.py`), or a Warming Draught lately (herbs: a potion).
-- **Animals stay out of houses** (a roofed cell): `Indoors=0` in Entities.ini (`dev/migrate/animals_outdoors.py`), on
-  every animal but cats and dogs. One that starts under a roof may walk out; a hen goes into her own coop (`Roost=`).
-- Animals with a home sleep in it: `Roost=x1,y1,x2,y2` (hens in their coop) rather than vanishing at night.
+- **Animals keep out of houses by where they roam**, not by a rule: an animal's `Zone=`/`Chase=` leave out the roofed
+  tiles of its map (but the building it starts in, and its Home); cats and dogs come in. A new animal near houses gets
+  its zone drawn round them (the editor's Paint tiles, or `dev/migrate/assign_homes.py`).
+- **Homes and beds**: an NPC's `Home=` (an area) is where it is for the hours its Schedule keeps it in - townsfolk in
+  their house at night, hens in their coop - and its `Bed=x,y` the bed it sleeps in at night (`<Name>_Sleep4`, made
+  by `build_sleepers.py`; Talk gets "fast asleep"). Townsfolk have a house each (`assign_homes.py`: never a building
+  someone else lives or works in). Without either, a person goes out of the nearest door, an animal slips away once
+  nobody's near. `Roost=` is the old name of `Home=` (still read).
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less
   often, its magic rises as a **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for

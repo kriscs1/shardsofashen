@@ -19,10 +19,10 @@ Grass001:Grass001:Grass001:Grass001+Decor(Bush001):Grass001:Brick_Thin_Plank004+
 Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.03):Plank001+Roof(Clay_Roof014.03):Plank001+Roof(Clay_Roof014.03):Plank001+Roof(Clay_Roof014.03):Brick_Thin_Plank002+Roof(Clay_Roof015.03):Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Brick_Thin_Plank004+Roof(Clay_Roof013.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Plank001+Roof(Clay_Roof014.04):Brick_Thin_Plank002+Roof(Clay_Roof015.04):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Brick001:Brick001:Door005:Brick001+Decor(Brick_Window001):Brick001:Grass001:Grass001:Grass001:Grass001:Brick001:Brick001:Door001:Brick001:Brick001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001:Cobble001
-NPC	Villager	96	88	Attitude=Good Zone=2,2,6,4 Pause=5-15 Id=Galaith_Resident_443 Name=Florence
+NPC	Villager	96	88	Attitude=Good Zone=2,2,6,4 Pause=5-15 Id=Galaith_Resident_443 Name=Florence Home=1,1,1,1/3,1,3,1/5,1,7,1/1,2,7,2/1,3,3,3/5,3,7,3/1,4,7,4 Bed=2,1
 StaticObject	Notice	224	130	Id=Galaith_Notice_315
-NPC	Villager	448	88	Attitude=Good Zone=14,2,17,4 Pause=5-15 Id=Galaith_Resident_432 Name=Fred
+NPC	Villager	448	88	Attitude=Good Zone=14,2,17,4 Pause=5-15 Id=Galaith_Resident_432 Name=Fred Home=13,1,15,1/18,1,18,1/13,2,18,4 Bed=17,1
 NPC	Armourer	512	504	Attitude=Good Stand=1 Face=S Id=Galaith_Armourer_364 Name=Polly
 StaticObject	Notice	416	610	Id=Galaith_Notice_461
 StaticObject	Notice	768	610	Id=Galaith_Notice_322
-NPC	Woman	640	88	Attitude=Good Zone=21,3,22,4 Pause=5-15 Id=Galaith_Resident_435 Name=Jane
+NPC	Woman	640	88	Attitude=Good Zone=21,3,22,4 Pause=5-15 Id=Galaith_Resident_435 Name=Jane Home=20,2,20,2/22,2,23,2/20,3,23,4

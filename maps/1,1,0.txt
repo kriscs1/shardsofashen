@@ -21,11 +21,11 @@ Water001:Water001:Water001:Water001:Water002:Grass001:Grass001:Grass001:Grass001
 Water001:Water001:Water001:Water001:Water001:Water002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 MapItem	Bucket	581	108	1
 NPC	Goblin	499	509	Attitude=Bad
-NPC	Villager	320	288	Attitude=Good Zone=8,8,15,13
-NPC	Dog	416	352	Attitude=Good Zone=10,9,18,15
+NPC	Villager	320	288	Attitude=Good Zone=8,8,15,13 Home=18,3,22,3/18,4,18,4/20,4,22,4/18,5,22,5/18,6,18,6/20,6,22,6
+NPC	Dog	416	352	Attitude=Good Zone=10,9,18,15 Home=18,3,22,3/18,4,18,4/20,4,22,4/18,5,22,5/18,6,18,6/20,6,22,6
 NPC	Butterfly	352	32	Attitude=Good
 NPC	Blue_Butterfly	608	448	Attitude=Good
-NPC	Rabbit	224	288	Attitude=Bad
+NPC	Rabbit	224	288	Attitude=Bad Zone=5,7,11,11/5,12,8,13 Chase=5,7,11,11/5,12,8,13
 NPC	Duck	32	416	Attitude=Bad
 NPC	Duck	160	608	Attitude=Bad
 StaticObject	Notice	673	226	Id=Fathers_Home

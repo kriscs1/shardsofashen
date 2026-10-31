@@ -19,6 +19,6 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Berry_Bush001):Grass
 Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Yew_Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Bush001):Grass001+Decor(Tree001):Grass001+Decor(Bush001):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001:Grass001+Decor(Tree002):Forest001:Grass001+Decor(Tree001):Grass001+Decor(Yew_Tree001)
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001)
-NPC	Woman	416	184	Attitude=Good Zone=13,4,16,7 Pause=5-15 Id=Northport_Resident_380 Name=Fred
-NPC	Rabbit	640	312	Attitude=Bad Zone=16,7,24,15
-NPC	Wolf	352	504	Attitude=Bad Zone=7,13,17,20
+NPC	Woman	416	184	Attitude=Good Zone=13,4,16,7 Pause=5-15 Id=Northport_Resident_380 Name=Fred Home=12,3,12,3/14,3,14,3/17,3,17,3/12,4,17,5/12,6,12,6/14,6,17,6/12,7,17,7 Bed=13,3
+NPC	Rabbit	640	312	Attitude=Bad Zone=18,7,24,7/16,8,24,15 Chase=18,7,24,7/16,8,24,15
+NPC	Wolf	352	504	Attitude=Bad Zone=7,13,17,20 Chase=1,3,11,3/18,3,20,6/25,3,25,6/1,4,4,7/11,4,11,7/18,7,25,7/1,8,25,21

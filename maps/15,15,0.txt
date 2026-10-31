@@ -21,7 +21,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Gravel001:Dirt001:Red_Sandstone001:Red_Sandstone001:Dirt001:Dirt001:Red_Sandstone001:Red_Sandstone001:Red_Sandstone001:Red_Sandstone001:Red_Sandstone001:Red_Sandstone001+Decor(Lamp_Post001):Red_Sandstone001:Red_Sandstone001:Red_Sandstone001
 NPC	Greengrocer	736	408	Attitude=Good Stand=1 Face=S Id=Highwatch_Stall_301 Name=Lionel
 NPC	Butcher	736	536	Attitude=Good Stand=1 Face=S Id=Highwatch_Stall_303 Name=Ernest
-NPC	Villager	384	216	Attitude=Good Stand=1 Face=S Id=Highwatch_Priest_312 Name=Lionel
+NPC	Villager	384	216	Attitude=Good Stand=1 Face=S Id=Highwatch_Priest_312 Name=Lionel Home=6,6,6,6/8,6,9,6/11,6,14,6/6,7,9,7/11,7,11,7/14,7,14,7/6,8,14,8/6,9,6,10/13,9,14,10/6,11,14,11
 NPC	Baker	576	248	Attitude=Good Stand=1 Face=S Id=Highwatch_Baker_315 Name=Percy
 NPC	Greengrocer	576	504	Attitude=Good Stand=1 Face=S Id=Highwatch_Greengrocer_319 Name=Albert
 NPC	Butcher	384	504	Attitude=Good Stand=1 Face=S Id=Highwatch_Butcher_321 Name=Sybil

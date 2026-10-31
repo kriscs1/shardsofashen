@@ -20,9 +20,9 @@ Grass001:Brick_Thin_Plank004+Roof(Slate_Roof013.01):Plank001+Roof(Slate_Roof014.
 Grass001+Decor(Flower_Bed002):Brick001:Door001:Brick001:Brick001+Decor(Brick_Window001):Brick001:Brick001:Grass001+Decor(Flower_Bed003):Brick001:Door001:Brick001:Brick001+Decor(Brick_Window001):Brick001+Decor(Brick_Window001):Brick001:Grass001:Brick_Paving001:Brick001:Door001:Brick001:Brick001:Grass001:Grass001:Grass001:Grass001:Grass001
 Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Farmer	96	568	Attitude=Good Zone=3,16,6,19 Pause=5-15 Id=Northport_Resident_374 Name=Polly
-NPC	Woman	320	568	Attitude=Good Zone=10,18,13,19 Pause=5-15 Id=Northport_Resident_377 Name=Sid
+NPC	Woman	320	568	Attitude=Good Zone=10,18,13,19 Pause=5-15 Id=Northport_Resident_377 Name=Sid Home=15,9,15,9/17,9,17,9/20,9,20,9/15,10,20,12 Bed=16,9
 NPC	Farmer	544	568	Attitude=Good Zone=18,18,19,19 Pause=5-15 Id=Northport_Resident_382 Name=Agnes
 StaticObject	Notice	621	391	Id=Northport_Notice_306
 StaticObject	Notice	640	610	Id=Northport_Notice_308
-NPC	Villager	512	344	Attitude=Good Zone=16,10,19,12 Pause=5-15 Id=Northport_Resident_384 Name=Walter
+NPC	Villager	512	344	Attitude=Good Zone=16,10,19,12 Pause=5-15 Id=Northport_Resident_384 Name=Walter Home=15,9,15,9/17,9,17,9/20,9,20,9/15,10,20,12
 StaticObject	Valuables	352	248

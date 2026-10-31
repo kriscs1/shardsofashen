@@ -19,7 +19,7 @@ Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass
 Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001+Decor(Tall_Grass001):Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001
-NPC	Villager	672	152	Attitude=Good Zone=22,3,23,6 Pause=5-15 Id=Ravensgate_Resident_361 Name=Polly
+NPC	Villager	672	152	Attitude=Good Zone=22,3,23,6 Pause=5-15 Id=Ravensgate_Resident_361 Name=Polly Home=21,2,21,2/23,2,24,2/21,3,24,6 Bed=22,2
 StaticObject	Notice	608	194	Id=Ravensgate_Notice_308
 NPC	Rabbit	384	408	Attitude=Bad Zone=8,10,18,18
 NPC	Butterfly	256	280	Attitude=Good Zone=4,6,14,14

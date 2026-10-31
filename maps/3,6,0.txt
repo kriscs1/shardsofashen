@@ -24,7 +24,7 @@ NPC	Barkeep	320	56	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_360 Name=Ne
 NPC	Barmaid	384	152	Attitude=Good Zone=8,5,14,6 Pause=3-9 Id=Northport_Barmaid_361 Name=Agnes
 NPC	Barkeep	608	312	Attitude=Good Stand=1 Face=S Id=Northport_Barkeep_363 Name=Martha
 NPC	Barmaid	672	408	Attitude=Good Zone=17,13,23,14 Pause=3-9 Id=Northport_Barmaid_364 Name=Amos
-NPC	Man	64	152	Attitude=Good Zone=3,4,4,6 Pause=5-15 Id=Northport_Resident_373 Name=Kit
+NPC	Man	64	152	Attitude=Good Zone=3,4,4,6 Pause=5-15 Id=Northport_Resident_373 Name=Kit Home=2,3,3,3/5,3,5,3/2,4,5,6 Bed=4,3
 StaticObject	Sign_Pub	448	208
 StaticObject	Sign_Pub	736	464
 Id	Northport_Gardens_372	12	12

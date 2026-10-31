@@ -19,6 +19,6 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:
 Snow001+Decor(Pebbles001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Snow_Peak001:Snow_Peak_Huge001:Snow_Peak_Huge002:Snow_Peak_Huge003:Snow_Peak005
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak004:Snow_Peak_Huge004:Snow_Peak_Huge005:Snow_Peak_Huge006:Snow_Peak006
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak006:Snow_Peak_Huge007:Snow_Peak_Huge008:Snow_Peak_Huge009:Snow_Peak001
-NPC	Woman	96	152	Attitude=Good Zone=3,5,5,6 Pause=5-15 Id=Frosthold_Resident_341 Name=Lionel
+NPC	Woman	96	152	Attitude=Good Zone=3,5,5,6 Pause=5-15 Id=Frosthold_Resident_341 Name=Lionel Home=2,4,2,4/5,4,6,4/2,5,6,6
 StaticObject	Notice	192	194	Id=Frosthold_Notice_306
-NPC	Snow_Wolf	576	248	Attitude=Bad Zone=14,5,24,13
+NPC	Snow_Wolf	576	248	Attitude=Bad Zone=14,5,24,13 Chase=4,1,25,3/7,4,25,6/4,7,25,21

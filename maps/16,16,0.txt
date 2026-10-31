@@ -20,8 +20,8 @@ Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass00
 Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001
 Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001
 NPC	Sheriff	96	120	Attitude=Good Stand=1 Face=S Id=Highwatch_Sheriff_325 Name=Rufus
-NPC	Man	128	376	Attitude=Good Zone=3,11,7,13 Pause=5-15 Id=Highwatch_Resident_335 Name=Vera
-NPC	Man	384	472	Attitude=Good Zone=12,13,14,16 Pause=5-15 Id=Highwatch_Resident_339 Name=Sid
-NPC	Villager	576	472	Attitude=Good Zone=18,15,21,16 Pause=5-15 Id=Highwatch_Resident_341 Name=Lettie
+NPC	Man	128	376	Attitude=Good Zone=3,11,7,13 Pause=5-15 Id=Highwatch_Resident_335 Name=Vera Home=2,10,2,10/4,10,4,10/6,10,6,10/8,10,8,10/2,11,8,13 Bed=5,10
+NPC	Man	384	472	Attitude=Good Zone=12,13,14,16 Pause=5-15 Id=Highwatch_Resident_339 Name=Sid Home=11,12,11,12/13,12,13,12/15,12,15,12/11,13,15,14/11,15,12,15/14,15,15,15/11,16,15,16 Bed=12,12
+NPC	Villager	576	472	Attitude=Good Zone=18,15,21,16 Pause=5-15 Id=Highwatch_Resident_341 Name=Lettie Home=17,14,20,14/22,14,22,14/17,15,22,16
 StaticObject	Valuables	288	120
 StaticObject	Valuables	384	344

@@ -19,7 +19,7 @@ Grass001:Stone_Wall001:Stone_Wall001:Stone_Wall001+Decor(Stone_Wall_Window001):S
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Gravel001:Gravel001:Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Chapel_Stone001+Decor(Stained_Glass001):Chapel_Stone001:Door002:Chapel_Stone001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gravel001:Grass001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001:Mage_Flag001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Villager	672	376	Attitude=Good Stand=1 Face=S Id=Court_Priest_312 Name=Gilbert
+NPC	Villager	672	376	Attitude=Good Stand=1 Face=S Id=Court_Priest_312 Name=Gilbert Home=12,5,12,5/15,5,15,5/12,6,15,8 Bed=14,5
 NPC	Barkeep	128	408	Attitude=Good Stand=1 Face=S Id=Court_Barkeep_336 Name=Mabel
 NPC	Barmaid	192	504	Attitude=Good Zone=3,16,8,17 Pause=3-9 Id=Court_Barmaid_337 Name=Gilbert
 NPC	Butcher	608	152	Attitude=Good Stand=1 Face=S Id=Court_Butcher_357 Name=Rufus

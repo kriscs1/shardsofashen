@@ -23,7 +23,7 @@ NPC	Greengrocer	0	440	Attitude=Good Stand=1 Face=S Id=Oakhollow_Stall_301 Name=O
 NPC	Fishmonger	64	440	Attitude=Good Stand=1 Face=S Id=Oakhollow_Stall_302 Name=Sid
 NPC	Butcher	0	504	Attitude=Good Stand=1 Face=S Id=Oakhollow_Stall_303 Name=Elsie
 NPC	Baker	64	504	Attitude=Good Stand=1 Face=S Id=Oakhollow_Stall_304 Name=Agnes
-NPC	Villager	192	280	Attitude=Good Stand=1 Face=S Id=Oakhollow_Priest_312 Name=Ivor
+NPC	Villager	192	280	Attitude=Good Stand=1 Face=S Id=Oakhollow_Priest_312 Name=Ivor Home=6,8,9,8/11,8,12,8/6,9,6,9/10,9,12,9/6,10,12,10/6,11,7,11/12,11,12,11/6,12,12,12
 NPC	Sheriff	256	504	Attitude=Good Stand=1 Face=S Id=Oakhollow_Sheriff_314 Name=Rufus
 NPC	Blacksmith	544	472	Attitude=Good Stand=1 Face=S Id=Oakhollow_Smith_321 Name=Clara
 StaticObject	Market_Stall_Open	0	480

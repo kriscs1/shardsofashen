@@ -25,5 +25,5 @@ Id	Hobs_Window_Inside	19	8
 Id	Hobs_Window_Outside	19	10
 NPC	Ranger	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12
 NPC	Trader	352	312	Attitude=Good Zone=9,9,15,13 Pause=4-12
-NPC	Settler	384	280	Attitude=Good Zone=10,8,16,12 Pause=4-12
+NPC	Settler	384	280	Attitude=Good Zone=10,8,16,12 Pause=4-12 Home=21,10,21,10/21,11,23,11 Bed=22,10
 StaticObject	Valuables	608	152

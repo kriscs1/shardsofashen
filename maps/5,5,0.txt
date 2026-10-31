@@ -24,10 +24,10 @@ NPC	Fishmonger	96	472	Attitude=Good Stand=1 Face=S Id=Northport_Fishmonger_337 N
 Id	Northport_Gardens_371	18	10
 Id	Northport_Town_Hall	3	12
 NPC	Woman	352	192	Attitude=Good Stand=1 Face=E Id=Lady_Pettigrew Name=Lady_Pettigrew
-NPC	Goose	384	160	Attitude=Good Zone=12,6,14,7 Pause=3-8 Id=Tame_Goose Name=Lady_Pettigrew's_Goose
+NPC	Goose	384	160	Attitude=Good Zone=12,6,14,7 Pause=3-8 Id=Tame_Goose Name=Lady_Pettigrew's_Goose Chase=8,2,18,5/12,6,18,10/8,11,18,11
 StaticObject	Goose_Nest	480	64	Id=Goose_Green_Nest
 Id	Goose_Green	16	5
-NPC	Goose	448	32	Attitude=Bad Zone=15,2,17,4 Pause=2-6
-NPC	Goose	512	96	Attitude=Bad Zone=15,2,17,4 Pause=2-6
-NPC	Goose	448	96	Attitude=Bad Zone=15,2,17,4 Pause=2-6
-NPC	Goose	512	32	Attitude=Bad Zone=15,2,17,4 Pause=2-6
+NPC	Goose	448	32	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
+NPC	Goose	512	96	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
+NPC	Goose	448	96	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
+NPC	Goose	512	32	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8

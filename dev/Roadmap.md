@@ -501,6 +501,22 @@ Each is in `dev/QA Audit 2026-10-31.md` under its number, with how it was seen.
 - [x] **Up and down a level keeps the view exactly**: every level of the world in one frame, so each tile lies over the
   one below it; where the other level has no map there, the view stays and the nearest map opens.
 
+## 23. Homes and beds (2026-10-31)
+
+- [x] **The hens on 2,0,0 and the churchyard's sheep are Passive** (they were Bad, or Good: unattackable).
+- [x] **Roost is Home=** (any shape, rectangles joined by `/`), for any NPC: where it is for the hours its schedule
+  keeps it in (a Night creature's den by day too). `Roost=` still reads as Home.
+- [x] **A house of its own**: `dev/migrate/assign_homes.py` gave 121 townsfolk a Home (the nearest house with room,
+  never a building someone else lives or works in) and 5 dogs theirs; at night they walk in.
+- [x] **A bed of their own**: `Bed=x,y` (63 townsfolk have one; the rest have no bed free on their floor); at night
+  one walks to it and sleeps (`<Name>_Sleep4`, 70 people drawn by
+  `build_sleepers.py`: the head on the pillow, the sheet turned down), can't be talked to, and gets up in the morning.
+- [x] **No rule keeps animals out of houses** (Indoors= gone, `animals_outdoors.py` superseded): their zones and chase
+  areas leave out the roofed tiles of their map instead (35 zones, 59 chase areas), but where they start and their
+  home; cats and dogs come in.
+- Decided: a person with no house on its map (Maren at her counter, whose night self is upstairs; 20 townsfolk with
+  no free house near) still goes out of the nearest door; an animal with no home slips away once nobody's near.
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

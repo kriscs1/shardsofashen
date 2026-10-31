@@ -19,5 +19,5 @@ Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:
 Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001+Decor(Bush001)
 Grass001:Grass001+Decor(Tree002):Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Oak_Tree001):Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Tree001)
 Grass001+Decor(Tree001):Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001:Forest001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Yew_Tree001):Grass001:Grass001+Decor(Bush001):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree002):Grass001:Grass001
-NPC	Wolf	480	504	Attitude=Bad Zone=11,13,21,20
+NPC	Wolf	480	504	Attitude=Bad Zone=11,13,21,20 Chase=1,3,1,5/8,3,25,5/1,6,25,21
 NPC	Butterfly	640	280	Attitude=Good Zone=16,6,24,14
