@@ -30,7 +30,7 @@ public class HostService extends Service {
     static volatile String error = "";
     static volatile String name = "";
     static volatile boolean solo = false;           // (a game of your own: this phone only, its own world)
-    static volatile String mode = "local";          // solo, local (this network) or remote (the central server lists it)
+    static volatile String mode = "local";          // solo, local (this network), friends (and the host's friends) or remote
     static volatile String central = "";            // (the central server: accounts, the remote list)
     static volatile String hostKey = "";            // (the start screen's key: in as the host, no ticket)
 
@@ -51,7 +51,7 @@ public class HostService extends Service {
         String wanted = intent != null ? intent.getStringExtra("name") : null;
         solo = intent != null && intent.getBooleanExtra("solo", false);
         String m = intent != null ? intent.getStringExtra("mode") : null;
-        mode = solo ? "solo" : "remote".equals(m) ? "remote" : "local";
+        mode = solo ? "solo" : "friends".equals(m) ? "friends" : "remote".equals(m) ? "remote" : "local";
         String c = intent != null ? intent.getStringExtra("central") : null;
         central = c == null ? "" : c.trim();
         String k = intent != null ? intent.getStringExtra("hostKey") : null;
@@ -71,7 +71,8 @@ public class HostService extends Service {
                 host.callAttr("start", root.getPath(), new File(getFilesDir(), solo ? "solo.db" : "world.db").getPath(),
                     name, PORT, BuildConfig.VERSION_CODE, solo, mode, central, hostKey);
                 status = "on";
-                foreground(solo ? "Your own game is running" : "remote".equals(mode)
+                foreground(solo ? "Your own game is running" : "friends".equals(mode)
+                    ? name + ": open to your friends" : "remote".equals(mode)
                     ? name + ": listed by the central server" : name + ": others on this network can join it");
             } catch (Throwable t) {
                 error = String.valueOf(t.getMessage() != null ? t.getMessage() : t);

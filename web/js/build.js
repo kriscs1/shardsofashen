@@ -80,7 +80,7 @@ function fillGrid() {
     b.title = p.name;
     b.className = (p.id === B.piece && !B.remove ? "on " : "") + (level < p.level ? "locked" : canAfford(p) ? "" : "short");
     const img = document.createElement("img");
-    img.src = "/assets/sprites/" + encodeURIComponent(p.image) + ".png";
+    img.src = "assets/sprites/" + encodeURIComponent(p.image) + ".png";
     img.alt = p.name;
     b.appendChild(img);
     if (level < p.level) {

@@ -10,6 +10,7 @@ import socket
 from aiohttp import web
 
 from .game import GameServer
+from .relay import Relay
 from . import lan
 
 log = logging.getLogger("ashen.server")
@@ -17,6 +18,7 @@ GAME = web.AppKey("game", GameServer)
 TICK = web.AppKey("tick", asyncio.Task)
 LAN = web.AppKey("lan", object)
 ANNOUNCE = web.AppKey("announce", object)
+RELAY = web.AppKey("relay", object)
 
 
 def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins="", name="", port=8484):
@@ -86,9 +88,13 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
         app[TICK] = asyncio.create_task(game.run())
         app[LAN] = await lan.start(about)
         app[ANNOUNCE] = asyncio.create_task(announcing())
+        game.relay = Relay(game, port)                  # (hosted for friends: through the central server)
+        app[RELAY] = asyncio.create_task(game.relay.run()) if game.for_friends() else None
 
     async def stop_tick(app):
         app[ANNOUNCE].cancel()
+        if app[RELAY] is not None:
+            app[RELAY].cancel()
         await game.announce(bye=True)
         if app[LAN] is not None:
             app[LAN].close()

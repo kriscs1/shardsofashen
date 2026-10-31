@@ -263,3 +263,69 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch):
             await grunner.cleanup()
             await crunner.cleanup()
     asyncio.run(go())
+
+
+def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypatch):
+    """Hosting for friends: the game connects out to the central server with its host's key (from the ticket the host
+    came in with), its host's friends see it and come in through <central>/play/<id>/ (the page, its files, the game);
+    anyone else, or a device with no account, is turned away."""
+    async def go():
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL", central)
+        monkeypatch.setenv("DS_FRIENDS", "1")
+        monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+        gport = free_port()                                             # (the relay asks the game on its own port)
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Hostess's World", port=gport)
+        grunner = web.AppRunner(gapp)
+        await grunner.setup()
+        await web.TCPSite(grunner, "127.0.0.1", gport).start()
+        game = gapp[GAME]
+        key = game.server_id()
+        try:
+            async with aiohttp.ClientSession() as http:
+                tok = {}
+                for n in ("Hostess", "Pal", "Stranger"):
+                    tok[n] = (await post(http, central + "/api/register", {"name": n, "password": "longpassword"}))["token"]
+                await post(http, central + "/api/friend", {"token": tok["Hostess"], "name": "Pal"})
+                await post(http, central + "/api/friend", {"token": tok["Pal"], "name": "Hostess"})
+                t = await post(http, central + "/api/ticket", {"token": tok["Hostess"], "server": key})
+                host, m = await come_in(http, "ws://127.0.0.1:%d/ws" % gport, device_of("host"), ticket=t["ticket"],
+                                        host="the-hosts-own-key", account="Hostess")
+                assert m["t"] == "characters" and m["account"] == "Hostess"
+                await host.close()
+                for _ in range(100):                                    # (the relay opens with the host's key)
+                    await asyncio.sleep(0.1)
+                    if game.relay.up and game.host_friends:
+                        break
+                assert game.relay.up and game.host_friends == ["Pal"]
+                r = await post(http, central + "/api/friends", {"token": tok["Pal"]})
+                assert r["hosting"]["Hostess"] == {"key": key, "place": "Hostess's World"}
+
+                via = central + "/play/%s/" % key
+                async with http.get(via) as page:                       # (the game's page, through the central server)
+                    assert page.status == 200 and "js/main.js" in await page.text()
+                async with http.get(via + "js/net.js") as js:
+                    assert js.status == 200 and "location.pathname" in await js.text()
+                async with http.get(central + "/play/0123456789abcdef/") as gone:
+                    assert gone.status == 404
+
+                wsvia = "ws://127.0.0.1:%d/play/%s/ws" % (cport, key)
+                t = await post(http, central + "/api/ticket", {"token": tok["Pal"], "server": key, "url": via})
+                ws, m = await come_in(http, wsvia, device_of("pal"), ticket=t["ticket"])
+                assert m["t"] == "characters" and m["account"] == "Pal"
+                await ws.send_json({"t": "create", "name": "Palomino"})
+                m = await replies(ws, ("welcome", "login_fail"))
+                assert m["t"] == "welcome" and not m["host"]             # (relayed: never this machine)
+                await ws.close()
+                t = await post(http, central + "/api/ticket", {"token": tok["Stranger"], "server": key, "url": via})
+                ws, m = await come_in(http, wsvia, device_of("stranger"), ticket=t["ticket"])
+                assert m["t"] == "login_fail" and "friends" in m["reason"]
+                await ws.close()
+                ws, m = await come_in(http, wsvia, device_of("nobody"))
+                assert m["t"] == "login_fail"                            # (a device alone: not through here)
+                await ws.close()
+        finally:
+            await grunner.cleanup()
+            await crunner.cleanup()
+    asyncio.run(go())

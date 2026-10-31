@@ -534,11 +534,14 @@ friends across the internet through the central server.
 - [x] **Friends on the central server, by account**: requests, accept, remove; any character of a friend's account is
   a friend everywhere; the journal shows "Character (account)"; the Friends page shows where friends are playing, with
   Join. The world's friend lists move over where the account is known.
-- [ ] **Measure a game's traffic per player** (before passing games through the central server).
-- [ ] **Hosting: Just me / My network / Friends.** Friends: the host's server connects out to the central server,
-  which passes the game (its page, pictures and sounds too) both ways, and lets only the host's friends in. The old
-  Remote hosting goes.
-- [ ] **Join: Friends' games / Local / Address / Public servers (Limited beta).**
+- [x] **Measure a game's traffic per player**: 10-13 KB a second down to each player (five bots, 90 seconds, the
+  start of the game in it), little up; the page's files once (then kept by the central server per version).
+- [x] **Hosting: Just me / My network / Friends.** Friends: the host's server connects out to the central server
+  (`server/relay.py`), which passes the game (its page, pictures and sounds too) both ways (`central/relay.py`), and
+  lets only the host's friends in. The old Remote hosting is gone from the start screen.
+- [x] **Join: Friends' games / Local / Address / Public servers (Limited beta).** Friends' games: the games friends
+  host (through the central server) or play in (a listed game), with Join.
+- [x] **No bringing in old characters** (the owner: the game isn't played yet).
 
 ## Decisions made where the list was unclear
 

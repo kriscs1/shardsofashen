@@ -98,6 +98,12 @@ class GameServer:
         self.max_players = max_players
         self.registration = registration
         self.invite_code = invite_code
+        self.host_grant = self.store.setting("host_grant", "")     # (the host's key to the central server: relay.py)
+        self.host_account = self.store.setting("host_account", "")
+        try:
+            self.host_friends = json.loads(self.store.setting("host_friends", "[]"))
+        except ValueError:
+            self.host_friends = []
         self.backup_dir = backup_dir or os.path.join(os.path.dirname(os.path.abspath(db_path)), "backups")
         t0 = time.time()
         self.world = World(root)
@@ -357,7 +363,7 @@ class GameServer:
         await ws.prepare(request)
         c = Client(ws, self.client_addr(request))
         c.writer = asyncio.ensure_future(c.write())
-        if not self.lan_open and not self.is_local(c.addr):
+        if not self.lan_open and not self.is_local(c.addr) and not self.relayed(c.addr):
             await self.send(c, {"t": "closed", "text": "This game isn't open to the network just now."})
             await asyncio.sleep(0.2)
             await ws.close()
@@ -489,10 +495,27 @@ class GameServer:
                 asyncio.ensure_future(self.friends_now(o))
 
     async def keep_friends(self):
-        """Every minute: everyone in by an account is still playing here, and hears their friends' news."""
+        """Every minute: everyone in by an account is still playing here, and hears their friends' news; and the host's
+        friends, who may come in through the central server."""
         for s in list(self.world.sessions.values()):
             if getattr(s, "grant", "") and s.connected:
                 await self.friends_now(s)
+        await self.host_friends_now()
+
+    def hosted_by(self, account, grant):
+        self.host_account, self.host_grant = account, grant
+        self.store.set_setting("host_account", account)
+        self.store.set_setting("host_grant", grant)
+        if self.for_friends():
+            asyncio.ensure_future(self.host_friends_now())
+
+    async def host_friends_now(self):
+        if not (self.for_friends() and self.host_grant and self.central_url()):
+            return
+        got = await self.central_post("/api/game/friends", {"grant": self.host_grant})
+        if got and got.get("ok"):
+            self.host_friends = [str(a) for a in got.get("friends") or []]
+            self.store.set_setting("host_friends", json.dumps(self.host_friends))
 
     async def announce(self, bye=False):
         """A remote server (DS_PUBLIC=1) tells the central server it's there: its id, name, address (DS_PUBLIC_URL,
@@ -528,6 +551,22 @@ class GameServer:
         except ValueError:
             return False
         return ip.is_loopback or ip.is_private
+
+    @staticmethod
+    def relayed(addr):
+        return (addr or "").startswith("relay:")
+
+    @staticmethod
+    def for_friends():
+        """Hosted for friends (DS_FRIENDS=1, the app's Friends hosting): the central server passes their visits here."""
+        return os.environ.get("DS_FRIENDS", "").strip() in ("1", "yes", "on", "true")
+
+    def friend_of_host(self, owner):
+        """A relayed visitor is let in only as the host's Shards account, or a friend's."""
+        if not owner.startswith("a:") or not self.host_account:
+            return False
+        who = owner[2:].lower()
+        return who == self.host_account.lower() or who in [f.lower() for f in self.host_friends]
 
     @staticmethod
     def device_owner(key):
@@ -585,10 +624,16 @@ class GameServer:
         if self.banned_owner(owner):
             await self.send(c, {"t": "login_fail", "reason": "You're banned from this server."})
             return
+        if self.relayed(c.addr) and not self.friend_of_host(owner):
+            await self.send(c, {"t": "login_fail", "reason": "This game is for %s's friends: ask them to be yours."
+                                % (self.host_account or "its host")})
+            return
         if device and owner.startswith("a:") and linked.lower() != owner.lower():
             self.store.set_setting("dev:" + device[2:], owner)    # (a reload, or the central server away: still you)
         c.owner, c.account = owner, owner[2:] if owner.startswith("a:") else ""
         c.grant, c.friends_got = (got.get("grant") or "", got) if got else ("", None)
+        if c.host and c.grant and c.account and c.grant != self.host_grant:
+            self.hosted_by(c.account, c.grant)          # (the host's key: the relay opens with it, for friends)
         await self.send_characters(c)
 
     async def send_characters(self, c, text=""):

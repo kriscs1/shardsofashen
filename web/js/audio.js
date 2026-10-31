@@ -57,7 +57,7 @@ function file(name) {
 
 async function buffer(f) {
   if (AU.buffers.has(f)) return AU.buffers.get(f);
-  const p = fetch("/assets/sounds/" + encodeURIComponent(f)).then((r) => r.arrayBuffer())
+  const p = fetch("assets/sounds/" + encodeURIComponent(f)).then((r) => r.arrayBuffer())
     .then((b) => AU.ctx.decodeAudioData(b)).catch(() => null);
   AU.buffers.set(f, p);
   return p;
@@ -138,7 +138,7 @@ function startMusic(theme, fadeIn) {
   }
   const f = file(name);
   if (!f) return;
-  const el = new Audio("/assets/sounds/" + encodeURIComponent(f));
+  const el = new Audio("assets/sounds/" + encodeURIComponent(f));
   el.preload = "auto";
   el.volume = fadeIn ? 0 : musicLevel();
   el.addEventListener("ended", () => { if (AU.music === el) { AU.music = null; startMusic(AU.musicTheme, false); } });
@@ -159,7 +159,7 @@ function playEffectTune(f) {
     AU.resume[AU.musicTheme] = [AU.musicFile, AU.music.currentTime];
     stopMusicNow();
   }
-  const el = new Audio("/assets/sounds/" + encodeURIComponent(f));
+  const el = new Audio("assets/sounds/" + encodeURIComponent(f));
   el.volume = O.volume / 100;
   AU.effect = true;
   el.addEventListener("ended", () => { AU.effect = false; AU.musicTheme = null; });

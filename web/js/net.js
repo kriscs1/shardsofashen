@@ -3,7 +3,9 @@
 export const N = { ws: null, open: false, onMessage: null, onClose: null, onOpen: null };
 
 export function connect() {
-  const url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
+  // (beside the page: the game's own at /ws, or a friend's game through the central server at /play/<game>/ws)
+  const url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host +
+    location.pathname.replace(/[^/]*$/, "") + "ws";
   const ws = new WebSocket(url);
   N.ws = ws;
   ws.addEventListener("open", () => {             // (only the current socket counts: not one that's been replaced)

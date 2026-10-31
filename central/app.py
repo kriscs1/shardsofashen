@@ -41,6 +41,7 @@ from aiohttp import web
 
 from server import auth
 from . import mail
+from .relay import Relays
 from .store import CentralStore, MOST_FRIENDS
 
 log = logging.getLogger("ashen.central")
@@ -72,6 +73,7 @@ def env_int(name, default):
 class Central:
     def __init__(self, db_path):
         self.store = CentralStore(db_path)
+        self.relays = Relays(self.store)            # (games hosted for friends, passed through here)
         self.fails = {}                 # (kind, which) -> [times]
         self.signups = {}               # address -> [days]
         self.announces = {}             # address -> [times] a game server called
@@ -330,8 +332,13 @@ class Central:
 
     # ----- friends: by account, the same in every game
     def friends_of(self, name):
+        """name's friends, asks either way, where friends are playing, and the games friends host (relay.py)."""
         friends, asking, asked = self.store.friend_lists(name)
-        return {"friends": friends, "asking": asking, "asked": asked, "playing": self.store.playing_of(friends)}
+        playing = self.store.playing_of(friends)
+        for p in playing.values():
+            p["relay"] = p["server"] in self.relays.tunnels      # (a friend's game: joined through here)
+        return {"friends": friends, "asking": asking, "asked": asked, "playing": playing,
+                "hosting": self.relays.hosting(friends)}
 
     def change_friend(self, name, other, remove):
         """name asks other to be friends (or accepts their ask), or they're friends no more: (what happened, why not)."""
@@ -503,6 +510,8 @@ def make_central(db_path):
             resp = web.Response()
         else:
             resp = await handler(request)
+        if resp.prepared:                               # (a WebSocket: under way already)
+            return resp
         resp.headers["Access-Control-Allow-Origin"] = "*"
         resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
         resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
@@ -549,6 +558,11 @@ def make_central(db_path):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
     app.router.add_get("/api/servers", c.servers)
+    app.router.add_get("/api/relay", c.relays.host)
+    async def to_game(request):                     # (a friend's game's page is a folder: its files beside it)
+        raise web.HTTPFound("/play/%s/" % request.match_info["key"])
+    app.router.add_get("/play/{key}", to_game)
+    app.router.add_route("*", "/play/{key}/{path:.*}", c.relays.play)
     app.router.add_post("/api/admin/{what}", c.admin)
     app.router.add_get("/admin", admin_page)
     app.router.add_get("/privacy", privacy)

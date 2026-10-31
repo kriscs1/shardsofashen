@@ -452,10 +452,17 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - **Every version has the same start screen** (`web/home/`): sign in to your Shards account first (or make one, or a
-  forgotten password by email or recovery code, or play without one); then the menu: Play alone and Host a game (local: answered on its network; remote: announced to the
-  central server) in the apps, and Join a local game (the network's, or an address; a browser: an address only) and
-  Join a remote game (the central server's list) everywhere. Joining takes a ticket from the central server made out
-  to that server's id. Change the start
+  forgotten password by email or recovery code, or play without one); then the menu: Play alone and Host a game (My
+  network: answered on its network; Friends: that, and the host's friends anywhere, through the central server) in
+  the apps, and Friends' games (the games friends host or play; your friends), Join a local game (the network's, or
+  an address; a browser: an address only) and Public servers (a limited beta: the central server's list) everywhere.
+  Joining takes a ticket from the central server made out to that server's id.
+- **Hosting for friends goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
+  connects out (no router port, any network) with the key the host's ticket brought; friends open
+  `<central>/play/<game id>/` and the central server passes the page, its files (kept there per version) and the game
+  both ways. A relayed connection is "relay:<address>" (`auth.RELAY_KEY`): never this machine or its network, and let
+  in only as the host's account or a friend's. So the game page's paths are relative (`assets/...`, `ws` beside the
+  page): keep them so. Change the start
   screen in `web/home/` only, then run `tools/sync_home.py`; anything the apps do for it goes through `window.DSApp`
   (Android's Bridge, the desktop's `desktop/app.py`), the same names in both. Remote servers are listed only once
   approved on the central server's admin page (`/admin`), and players are told everywhere that a character lives on

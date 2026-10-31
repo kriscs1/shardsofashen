@@ -347,7 +347,15 @@ lists the remote game servers (each announces itself to it), and it serves the a
   the network's answer, in the central list, or from its `/api/info`), and opens the game with it; the game server
   checks it with the central server (`/api/verify`) and shows the account's characters there (or makes their
   first). See "Who's who" below.
-- **Remote and local**: a game server with `DS_PUBLIC=1` (and `DS_CENTRAL`) announces itself every minute: its id,
+- **Hosting for friends** (the apps' Host a game, Friends): the game connects out to the central server
+  (`server/relay.py`) with the key the host's sign-in brought, so nothing on the host's router needs opening and it
+  works on any network, a phone's too. The host's friends see it under Friends' games and open it at
+  `<central>/play/<the game's id>/`; the central server (`central/relay.py`) passes the page, its pictures and sounds
+  (kept there per version, so they come through once) and the game itself both ways. Only the host's account and its
+  friends get in that way. A game is about 10-13 KB a second to each player (measured with five bots), so a full game
+  of five is about 60 KB a second through the central server each way.
+- **Public servers (a limited beta)**: a game server with `DS_PUBLIC=1` (and `DS_CENTRAL`) announces itself every minute (the start screen's
+  Public servers list): its id,
   name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
   goodbye as it stops. Without it, it only answers on its own network.
 - **Approving servers**: a remote server that announces itself waits, unlisted, until an admin approves it on the

@@ -62,7 +62,7 @@ class Host:
     def start(self, name, mode, central, host_key=""):
         if self.status not in ("off", "error"):
             return
-        self.mode = mode if mode in ("solo", "local", "remote") else "local"
+        self.mode = mode if mode in ("solo", "local", "friends", "remote") else "local"
         self.name = "Your own game" if self.mode == "solo" else (name or "Shards of Ashen on " + platform.node())
         self.status, self.error = "starting", ""
 

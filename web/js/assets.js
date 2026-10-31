@@ -8,7 +8,7 @@ const lower = { tiles: null, entities: null, config: null, spells: null, shards:
 export const OWN = { spell: "Own_Spell", v: null };
 
 export async function loadManifest() {
-  const r = await fetch("/assets/manifest.json", { cache: "no-cache" });
+  const r = await fetch("assets/manifest.json", { cache: "no-cache" });
   if (!r.ok) throw new Error("The game's pictures aren't on this server yet (web/assets: run tools/export_web_assets.py).");
   A.m = await r.json();
   for (const k of Object.keys(lower)) lower[k] = indexIni(A.m[k] || {});
@@ -107,31 +107,31 @@ export function size(name) {
 export function sprite(name) {
   // The sprite's image if it has loaded (null while it loads, or if there's no such sprite)
   if (!has(name)) return null;
-  const e = image("s:" + name, "/assets/sprites/" + encodeURIComponent(name) + ".png");
+  const e = image("s:" + name, "assets/sprites/" + encodeURIComponent(name) + ".png");
   return e.ok ? e.img : null;
 }
 
 export function fallback() { return has("Placeholder") ? "Placeholder" : ""; }
 
 export function animFrame(name, prefix, k) {
-  const e = image("a:" + name + prefix + k, "/assets/anim/" + encodeURIComponent(name + "~" + prefix + k) + ".png");
+  const e = image("a:" + name + prefix + k, "assets/anim/" + encodeURIComponent(name + "~" + prefix + k) + ".png");
   return e.ok ? e.img : null;
 }
 
 export function mask(name) {
-  const e = image("m:" + name, "/assets/masks/" + encodeURIComponent(name) + ".png");
+  const e = image("m:" + name, "assets/masks/" + encodeURIComponent(name) + ".png");
   return e.ok ? e.img : null;
 }
 
 export function texture(name) {
-  const e = image("t:" + name, "/assets/textures/" + encodeURIComponent(name) + ".png");
+  const e = image("t:" + name, "assets/textures/" + encodeURIComponent(name) + ".png");
   return e.ok ? e.img : null;
 }
 
 export function preload(names) {
   // Starts loading these sprites; resolves when they've all arrived (or failed)
   return Promise.all(names.filter(has).map((n) => new Promise((resolve) => {
-    const e = image("s:" + n, "/assets/sprites/" + encodeURIComponent(n) + ".png");
+    const e = image("s:" + n, "assets/sprites/" + encodeURIComponent(n) + ".png");
     if (e.ok || e.bad) return resolve();
     e.img.addEventListener("load", resolve, { once: true });
     e.img.addEventListener("error", resolve, { once: true });

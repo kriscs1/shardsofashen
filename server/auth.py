@@ -47,12 +47,19 @@ def clean_name(entered):
     return "" if name.upper() == "TEMPLATE" else name
 
 
+RELAY_KEY = os.urandom(16).hex()    # (relay.py's mark on a friend's connection it passes on: this run's own)
+
+
 def client_address(request):
-    """Who's connecting. Behind a reverse proxy (Caddy on a cloud server, DS_TRUST_PROXY=1): the last address in
+    """Who's connecting. A friend's game connection through the central server (relay.py, marked with RELAY_KEY):
+    "relay:<their address>", never this machine or its network. Behind a reverse proxy (Caddy on a cloud server, DS_TRUST_PROXY=1): the last address in
     X-Forwarded-For, the one the proxy put there (the ones before it are anyone's to write), and only when the
     connection itself is from the proxy (this machine or a private network: a port published straight to the world
     gets no say). Otherwise the connection's own address."""
     remote = request.remote or ""
+    mark = request.headers.get("X-DS-Relay", "")
+    if mark and hmac.compare_digest(mark, RELAY_KEY):
+        return "relay:" + request.headers.get("X-DS-Relay-IP", "")[:64]
     if os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true"):
         fwd = request.headers.get("X-Forwarded-For", "")
         try:
