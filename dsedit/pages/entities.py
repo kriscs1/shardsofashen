@@ -235,6 +235,33 @@ class EntityPage(IniFormPage):
                                            variable=self.var("Solid", "bool", "1")),
                  "Untick for something small you walk over (a rabbit, a duck).", span=3)
 
+        g = self.group(f, r, "NPC: daily life", "NPC")      # (its kind's: a map line's options can say otherwise)
+        r += 1
+        self.row(g, 0, "Hours", ttk.Combobox(g, textvariable=self.var("Schedule"), values=["", "Day", "Night"],
+                                             width=8),
+                 "Day: out by day, home at night (townsfolk walk to a door; creatures with a Roost go to it). Night: "
+                 "hidden by day. Blank: always out. One placed on a map can have its own (the Maps inspector's "
+                 "Hours).")
+        self.row(g, 0, "", ttk.Checkbutton(g, text="Flees (prey: runs, never fights back)",
+                                           variable=self.var("Flees", "bool", "0")), col=2)
+        self.row(g, 1, "", ttk.Checkbutton(g, text="Goes indoors (untick: an animal that stays out of houses)",
+                                           variable=self.var("Indoors", "bool", "1")), span=3)
+        self.row(g, 2, "Rests as", ttk.Entry(g, textvariable=self.var("States"), width=16),
+                 "How it may rest when it stops: Sit, Lie, Curl (commas between). A cat sits before it lies down.")
+        self.row(g, 2, "Fidgets", ttk.Entry(g, textvariable=self.var("Fidgets"), width=16),
+                 "A moment's pose now and then (Stretch).", col=2)
+        self.row(g, 3, "Hunts", ttk.Entry(g, textvariable=self.var("Hunts"), width=16),
+                 "The NPCs it goes after: Rabbit,Sheep (All: any that can be fought).")
+        self.row(g, 3, "Calls", ttk.Combobox(g, textvariable=self.var("Calls"), values=sounds, width=16),
+                 "A sound it makes now and then (a frog's croak), heard from close by.", col=2)
+        self.row(g, 4, "Sight (°)", ttk.Spinbox(g, textvariable=self.var("Sight.Cone"), from_=0, to=360, width=6),
+                 "How wide it sees (360: all round). One placed on a map can look one way (Faces) as a lookout.")
+        self.row(g, 4, "Hearing", ttk.Spinbox(g, textvariable=self.var("Hearing"), from_=0, to=5, increment=0.1,
+                                              width=6),
+                 "How far your noise carries to it (a bat 2, a skeleton 0.6).", col=2)
+        self.row(g, 5, "", ttk.Checkbutton(g, text="Swims (at home in the water too)",
+                                           variable=self.var("Swims", "bool", "0")), span=3)
+
         g = self.group(f, r, "Object", "StaticObject")
         r += 1
         fp = ttk.Frame(g, style="Panel.TFrame")
