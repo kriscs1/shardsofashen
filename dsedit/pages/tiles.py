@@ -136,10 +136,11 @@ class TilePage(IniFormPage):
                  "x the normal walking speed on this tile (0.2 to 3); blank = normal.")
         r += 1
         self.row(f, r, "Edge blending", ttk.Combobox(f, textvariable=self.var("Blend"),
-                                                     values=["", "0", "1", "2", "3", "4", "5", "6"], width=10),
+                                                     values=["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                                                     width=10),
                  "Where two blending tiles meet, the higher one's texture is drawn over the lower one's edge "
-                 "(grass 6, snow 5, cave floor and walls 4, sand 3, dirt paths 2, open water 1; blank or 0 = never "
-                 "blends).")
+                 "(mountains 8, forest 7, grass 6, snow 5, cave floor and walls 4, sand 3, dirt paths 2, open water 1; "
+                 "blank or 0 = never blends; 9 at most).")
         r += 1
         self.section_label(f, r, "Decor")
         r += 1

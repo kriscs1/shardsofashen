@@ -105,8 +105,8 @@ Use.Words=Chop,Examine ; comma list of right-click verbs; the first is the defau
 Examine.Info=text
 Line.of.Sight=0|1      ; 0 blocks line of sight
 Walk.Speed=0.8         ; x the normal walking speed on this tile (0.2 to 3): roads 1.2, sand 0.8, rubble 0.7
-Blend=6                ; edge blending: grass 6, snow 5, cave floor and walls 4, sand 3, dirt paths 2, open water 1
-                       ; (0 or none = never blends)
+Blend=6                ; edge blending: mountains 8, forest 7, grass 6, snow 5, cave floor and walls 4, sand 3,
+                       ; dirt paths 2, open water 1 (0 or none = never blends; 9 at most)
 Blend.Texture=Grass001 ; the picture drawn over a lower neighbour's edge (default: the tile itself)
 Unlocked.Tile=City_Gate002 ; Python game: where a map's Lock line is on this tile, drawn instead while the lock is
                        ; open (a gate drawn open); the map's own tile again if it locks
