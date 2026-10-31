@@ -1,3 +1,8 @@
 # Windows batch files need Windows line endings (or "goto" can go wrong)
 *.bat text eol=crlf
 *.sh text eol=lf
+
+# The data files and maps are cp1252 with CRLF, on every machine (the server on Linux and its tests too)
+data/**/*.txt text eol=crlf
+data/**/*.ini text eol=crlf
+maps/**/*.txt text eol=crlf
