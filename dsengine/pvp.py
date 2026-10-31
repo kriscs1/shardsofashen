@@ -3,6 +3,8 @@ both players must be standing on (the arena's sand; empty = anywhere on those ma
 all work; your gear, armour and skills count as they do against monsters. Beaten in the arena you lose nothing: you're
 healed and wake by the gate (Respawn.Map / Respawn.X / Respawn.Y), and the arena hears who won (ArenaWins and
 ArenaLosses are kept as attributes)."""
+import time
+
 from ashen.lb import val, lbstr, random_number, rnd, trim
 
 from .entity import PLAYER
@@ -11,9 +13,13 @@ from .entity import PLAYER
 class PvPMixin:
     # ----- where you may fight
     def pvp_rules(self):
+        got = self.data.cache("pvp_rules")              # (asked of every player for every other, every tick)
+        if got and time.monotonic() - got["at"] < 5:
+            return got["rules"]
         c = self.data.config_read
         maps = set(c("PvP", "Maps", "").replace(";", " ").split())          # 0,0,10;3,3,5 (or spaces between)
         ground = {trim(g) for g in c("PvP", "Ground", "").replace(";", ",").split(",") if trim(g)}
+        got.update(at=time.monotonic(), rules=(maps, ground))
         return maps, ground
 
     def in_arena(self):
@@ -22,6 +28,16 @@ class PvPMixin:
 
     def on_arena_ground(self):
         """Standing where you can fight (and be fought)."""
+        p = self.player
+        where = (self.cur_map.name if self.cur_map is not None else "", p.fx, p.fy, self.in_world())
+        got = getattr(self, "arena_seen", None)
+        if got is not None and got[0] == where:
+            return got[1]                               # (still standing where it was worked out)
+        here = self.on_arena_ground_now()
+        self.arena_seen = (where, here)
+        return here
+
+    def on_arena_ground_now(self):
         if not self.in_arena():
             return False
         _, ground = self.pvp_rules()

@@ -7,28 +7,15 @@ from .entity import PLAYER, NPC, MAPITEM, STATICOBJECT
 VIEW_MAPS = 1           # the maps this far round the player's are sent (1 = the 3 x 3 the desktop game kept)
 
 
-def entity_state(w, e, viewer):
+def shared_state(w, e):
+    """What everyone is told of e (the same whoever's looking: worked out once a tick, entity_state adds theirs)."""
     st = {"k": e.type, "n": e.name, "i": e.image, "x": int(e.x), "y": int(e.y), "w": e.w, "h": e.h,
           "a": 1 if e.active else 0}
-    if e.type == STATICOBJECT and viewer.is_chest(e):
-        st["lk"] = viewer.chest_lock(e)[0] if viewer.chest_locked(e) else 0     # (locked for you: its level)
-        if st["lk"] and viewer.chest_sturdy(e):
-            st["ib"] = 1                                # (iron-bound: no Break Open)
     if e.type == NPC:
         st["hp"] = e.hp
         st["mh"] = e.max_hp
         st["b"] = 1 if e.show_bar else 0
-        # (1: a foe; 2: can be attacked but won't come for you, a rabbit or a hen)
-        st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
-        st["uw"] = viewer.companion_verbs(e, e.use_words)    # (Come along, Hire, Send away: together.py)
         st["wr"] = e.weapon_range
-        if e.ai is not None and st["f"] == 1:
-            # (sneaking: a foe's sight shown, as it is for you - how wide, how far, the way it looks; and how far
-            # it hears you as you move now)
-            cone = getattr(e.ai, "cone", 0)
-            cone = 360 if cone <= 0 or cone >= 360 else round(cone * viewer.cone_factor())
-            st["cone"] = [cone, round(w.stat_for(e, viewer, "aggro_range") * viewer.sight_factor()), e.direction or 4,
-                          round(viewer.noise_radius() * getattr(e.ai, "hearing", 1.0))] if viewer.sneaking() else 0
         if e.ai is not None:
             st["un"] = e.ai.under
             st["fly"] = e.ai.flying
@@ -47,7 +34,50 @@ def entity_state(w, e, viewer):
     return st
 
 
-def player_state(s, viewer):
+def entity_state(w, e, viewer, shared=None):
+    """shared: {uid: shared_state} for this tick's views (each thing worked out once, not once a viewer)."""
+    if shared is None:
+        base = shared_state(w, e)
+    else:
+        base = shared.get(e.uid)
+        if base is None:
+            base = shared[e.uid] = shared_state(w, e)
+    st = dict(base)
+    if e.type == STATICOBJECT and viewer.is_chest(e):
+        lock = viewer.chest_lock(e)[0] if viewer.chest_locked(e) else 0     # (locked for you: its level)
+        if "lk" not in base:
+            st["lk"] = lock
+        if lock and viewer.chest_sturdy(e):
+            st["ib"] = 1                                # (iron-bound: no Break Open)
+    if e.type == NPC:
+        # (1: a foe; 2: can be attacked but won't come for you, a rabbit or a hen)
+        st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
+        st["uw"] = viewer.companion_verbs(e, e.use_words)    # (Come along, Hire, Send away: together.py)
+        if e.ai is not None and st["f"] == 1:
+            # (sneaking: a foe's sight shown, as it is for you - how wide, how far, the way it looks; and how far
+            # it hears you as you move now)
+            cone = getattr(e.ai, "cone", 0)
+            cone = 360 if cone <= 0 or cone >= 360 else round(cone * viewer.cone_factor())
+            st["cone"] = [cone, round(w.stat_for(e, viewer, "aggro_range") * viewer.sight_factor()), e.direction or 4,
+                          round(viewer.noise_radius() * getattr(e.ai, "hearing", 1.0))] if viewer.sneaking() else 0
+    return st
+
+
+def player_state(s, viewer, shared=None):
+    if shared is None:
+        st = own_state(s)
+    else:
+        base = shared.get(s.player.uid)
+        if base is None:
+            base = shared[s.player.uid] = own_state(s)
+        st = dict(base)
+    if viewer.pvp_ok(s):
+        st["pvp"] = 1
+    return st
+
+
+def own_state(s):
+    """What everyone is told of player s (pvp, the one thing that's the viewer's own, is player_state's)."""
     p = s.player
     st = {"k": PLAYER, "n": s.player_name, "i": p.image, "x": int(p.x), "y": int(p.y), "w": p.w, "h": p.h,
           "a": 1 if (s.player_visible or s.swap or s.invisible()) else 0, "hp": p.hp, "mh": s.player_max_hp,
@@ -55,8 +85,6 @@ def player_state(s, viewer):
           "worn": s.worn_items()}
     if s.look:
         st["look"] = s.look
-    if viewer.pvp_ok(s):
-        st["pvp"] = 1
     if s.sleeping():
         st["zz"] = 1
     if s.ride is not None and s.ride.e is not None:
@@ -96,8 +124,9 @@ def ents_by_map(w):
     return got[1]
 
 
-def snapshot(w, s):
-    """The messages for player s this tick (a list)."""
+def snapshot(w, s, shared=None):
+    """The messages for player s this tick (a list). shared: one dict for all of this tick's snapshots (what's the
+    same for every viewer is worked out once)."""
     out = []
     maps = view_maps(w, s)
     names = {m.name for m in maps}
@@ -137,13 +166,13 @@ def snapshot(w, s):
                 for e in idx.get((mx, my, z), ()):
                     if not (x0 <= e.x <= x1 and y0 <= e.y <= y1) or not w.visible_to(e, s):
                         continue
-                    seen[e.uid] = entity_state(w, e, s)
+                    seen[e.uid] = entity_state(w, e, s, shared)
         for o in w.sessions.values():
             if o is s or not o.in_world() or o.player.z != z:
                 continue
             p = o.player
             if x0 <= p.x <= x1 and y0 <= p.y <= y1:
-                seen[p.uid] = player_state(o, s)
+                seen[p.uid] = player_state(o, s, shared)
     known = s.view_known
     add, change = [], []
     for uid, st in seen.items():

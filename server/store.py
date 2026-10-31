@@ -140,6 +140,10 @@ class Store:
                         ("set:" + key, str(value), time.time()))
         self.db.commit()
 
+    def drop_setting(self, key):
+        self.db.execute("DELETE FROM world WHERE key = ?", ("set:" + key,))
+        self.db.commit()
+
     # ----- backups
     def backup(self, folder, keep=14):
         """A copy of the database in folder (ashen-YYYYMMDD-HHMM.db), keeping the newest keep."""

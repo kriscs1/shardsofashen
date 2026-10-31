@@ -63,6 +63,7 @@ class World(NPCMixin):
         self.weather = None
         self.lightning_next = 0
         self.last_queue_check = 0
+        self.failed = set()             # (player, what) that has gone wrong: logged once, not every tick
         self.active = set()             # (mx, my, mz) of maps someone is near: their NPCs think
         self.door_cache = {}            # map name -> (its version, the tiles that are doors)
         self.npcs_by_map = {}           # (mx, my, mz) -> its live NPCs, this tick (update_npcs)
@@ -1596,6 +1597,16 @@ class World(NPCMixin):
                     act.add((mx + i, my + j, p.z))
         self.active = act
 
+    def guarded(self, s, what, fn, *args):
+        """fn for player s, alone: if it goes wrong, the rest of the world goes on (and it's logged once)."""
+        try:
+            return fn(*args)
+        except Exception:
+            if (s.player_name, what) not in self.failed:
+                self.failed.add((s.player_name, what))
+                log.exception("%s's %s failed", s.player_name, what)
+            return None
+
     def tick(self, dt, now=None):
         """now: the time in clock_ms (tests run the world faster than the clock)."""
         self.now = clock_ms() if now is None else now
@@ -1604,11 +1615,11 @@ class World(NPCMixin):
         self.update_object_blocks()
         self.carts.tick()                       # (before the players: its riders go with it)
         for s in list(self.sessions.values()):
-            s.tick_before_npcs()
+            self.guarded(s, "tick", s.tick_before_npcs)
         self.update_npcs()
         self.update_missiles()
         for s in list(self.sessions.values()):
-            s.tick_after_npcs()
+            self.guarded(s, "tick", s.tick_after_npcs)
         if self.now - self.last_queue_check >= 250 or self.now < self.last_queue_check:
             self.last_queue_check = self.now
             self.run_action_queue()

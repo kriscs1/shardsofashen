@@ -167,7 +167,7 @@ class CentralStore:
     # ----- remote servers
     def announce(self, key, secret, name, url, online, most, version):
         """A remote server says it's there (key and secret: its own, from the first time). Returns (key, secret)."""
-        row = self.db.execute("SELECT secret FROM servers WHERE key = ?", (key,)).fetchone() if key else None
+        row = self.db.execute("SELECT secret, name, url FROM servers WHERE key = ?", (key,)).fetchone() if key else None
         if row is None or row[0] != digest(secret or ""):
             # (new: its own id if it has one nobody holds - what tickets are made out to - else one given it)
             fresh = key and row is None and len(key) == 16 and all(ch in "0123456789abcdef" for ch in key)
@@ -176,9 +176,18 @@ class CentralStore:
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             (key, digest(secret), name, url, online, most, version, time.time(), time.time()))
         else:
+            if (name, url) != (row[1], row[2]):        # (a new name or address: approved again, or a listed game
+                self.set_approved(key, False)           # could become anything, anywhere)
             self.db.execute("UPDATE servers SET name = ?, url = ?, online = ?, max = ?, version = ?, seen = ? "
                             "WHERE key = ?", (name, url, online, most, version, time.time(), key))
         return key, secret
+
+    def prune(self):
+        """What's had its day: used-up tickets, old tokens, games never approved and not heard from in a week."""
+        now = time.time()
+        self.db.execute("DELETE FROM tickets WHERE made < ?", (now - TICKET_SECONDS,))
+        self.db.execute("DELETE FROM tokens WHERE made < ?", (now - TOKEN_DAYS * 86400,))
+        self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
 
     def server_url(self, key):
         """The address a server announced itself at, or "" (a game this server's never heard from: on a network)."""

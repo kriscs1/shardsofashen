@@ -305,8 +305,8 @@ def village():
             ini.write("SHOP-Isle", k, v, racks)
         print("ItemRacks.ini [SHOP-Isle]")
     write_script("Talk to Isle_Storekeeper", [
-        "01\tDisplay.Conversation\tMerchant\tWelcome to the Isle Store! This old place was a bank once, but there's "
-        "precious little money on the Isle. Tools, bait and a bite to eat: that's what folk need here.\tLet me see "
+        "01\tDisplay.Conversation\tMerchant\tWelcome to the Isle Store! There's precious little money on the Isle, so I "
+        "keep what folk can't do without. Tools, bait and a bite to eat: that's what folk need here.\tLet me see "
         "your goods.\t02\tGoodbye.\t04",
         "02\tDisplay.Item.Rack\tGENERAL\tMerchant\tSHOP-Isle\t04",
         "03\tEnd",

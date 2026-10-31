@@ -5,10 +5,12 @@ import json
 import logging
 import os
 import socket
+import sqlite3
 import time
 
 from aiohttp import web, WSMsgType
 
+from ashen.lb import local_offset
 from dsengine import World, Session
 from dsengine.view import snapshot
 
@@ -22,10 +24,22 @@ SAVE_EVERY = 60
 SAVE_SOON = 1.0             # (seconds: the soonest everyone is saved again when something's changed hands)
 WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other players)
 CHAT_MAX = 200
+CHAT_LINES, CHAT_SECONDS = 6, 5.0   # (the most lines anyone can say in those seconds: no flooding everyone's chat)
+TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/msg ")    # (commands that talk)
 
 
 BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
 FAILS, FAIL_WINDOW, FAIL_WAIT = 5, 60.0, 30.0     # wrong passwords (a name or an address) before a wait, and how long
+
+
+def shift_due(entry, seconds):
+    """An action queue entry with its due time (the last field) moved by seconds."""
+    parts = entry.split("\t")
+    try:
+        parts[-1] = str(int(float(parts[-1]) + seconds))
+    except ValueError:
+        pass
+    return "\t".join(parts)
 
 
 class Client:
@@ -47,7 +61,7 @@ class Client:
                 msg = await self.queue.get()
                 try:
                     if not self.closed:
-                        await self.ws.send_str(json.dumps(msg, separators=(",", ":")))
+                        await self.ws.send_str(msg)     # (made into JSON already, as it was queued: send)
                 except (ConnectionResetError, RuntimeError):
                     self.closed = True
                 finally:
@@ -87,6 +101,8 @@ class GameServer:
         t0 = time.time()
         self.world = World(root)
         self.load_world()
+        self.world.data.places()                        # (read now, not on the first player's login: they'd wait)
+        self.world.data.quest_table()
         log.info("World ready: %d maps, %d things (%.1fs)", len(self.world.maps), len(self.world.ents),
                  time.time() - t0)
         self.clients = {}                   # Session -> Client
@@ -95,6 +111,7 @@ class GameServer:
         self.running = False
         self.last_save = time.time()
         self.last_where = 0.0
+        self.last_where_sent = None     # (the minimap's dots as last sent: again only when they move)
         self.last_backup_day = None
         self.tick_ms = 0.0
 
@@ -108,6 +125,11 @@ class GameServer:
             return
         from dsengine.renames import renamed
         st = renamed(st)                                # (items renamed since it was saved: their new names)
+        if st.get("clock") != "utc":                    # (saved by local time, before: put on UTC as the clock is now)
+            shift = local_offset()
+            st["queue"] = [shift_due(e, -shift) for e in st.get("queue", []) if isinstance(e, str)]
+            st["farms"] = [row[:5] + [float(row[5]) - shift] for row in st.get("farms") or []
+                           if isinstance(row, list) and len(row) == 6]
         w.homes.load(st.get("homes"))
         w.farms.load(st.get("farms"))
         w.market.load(st.get("market"), old_stalls=st.get("stalls"))
@@ -127,7 +149,7 @@ class GameServer:
         if w.weather:
             wt = {"kind": w.weather["kind"], "level": w.weather["level"], "fading": w.weather["fading"],
                   "left": max(0, w.weather["next"] - w.now)}
-        return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state(),
+        return {"clock": "utc", "queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state(),
                 "together": w.together.state()}
 
     def save_all(self, also=None):
@@ -164,7 +186,7 @@ class GameServer:
     # =================================================================================================================
     async def run(self):
         self.running = True
-        last = time.perf_counter()
+        last = next_at = time.perf_counter()
         self.nightly_backup()
         while self.running:
             start = time.perf_counter()
@@ -180,20 +202,28 @@ class GameServer:
                 self.save_all()
             if time.time() - self.last_where >= WHERE_EVERY:
                 self.last_where = time.time()
-                self.broadcast(self.where_message())
+                where = self.where_message()
+                if where != self.last_where_sent:       # (nobody's moved: nothing to send everyone)
+                    self.last_where_sent = where
+                    self.broadcast(where)
             if time.time() - self.last_save >= SAVE_EVERY:
                 self.save_all()
                 self.nightly_backup()
             spent = time.perf_counter() - start
             self.tick_ms = self.tick_ms * 0.95 + spent * 1000 * 0.05
-            await asyncio.sleep(max(0.001, TICK - spent))
+            next_at += TICK
+            if next_at < time.perf_counter() - TICK:
+                next_at = time.perf_counter()           # (fell behind: carry on from now, no rush to catch up)
+            while time.perf_counter() < next_at:        # (a sleep can end early, on Windows: 20 ticks a second)
+                await asyncio.sleep(max(0.001, next_at - time.perf_counter()))
 
     async def send_updates(self):
         sends = []
+        shared = {}                                     # (what's the same for every viewer, worked out once)
         for s, c in list(self.clients.items()):
             if c.closed or not s.ready:
                 continue
-            msgs = snapshot(self.world, s)
+            msgs = self.world.guarded(s, "view", snapshot, self.world, s, shared) or []
             if s.out:
                 msgs += s.take_out()
             if msgs:
@@ -211,7 +241,12 @@ class GameServer:
             c.closed = True
             await c.ws.close()
             return
-        c.queue.put_nowait(msg)
+        try:
+            text = json.dumps(msg, separators=(",", ":"))  # (here, in the tick's time, where it's counted)
+        except (TypeError, ValueError):                 # (one that can't be written: skipped, the rest still go)
+            log.exception("A message that can't be sent: %.200r", msg)
+            return
+        c.queue.put_nowait(text)
 
     def broadcast(self, msg, exclude=None):
         for s in self.world.sessions.values():
@@ -224,8 +259,9 @@ class GameServer:
         for s in self.world.sessions.values():
             p = s.player
             if s.in_world() and p is not None and s.player_visible and not s.dead_wait:
-                out.append({"name": s.player_name, "x": round(p.cx), "y": round(p.cy), "z": p.z,
-                            "pt": s.party_id})          # (the party it's in: the page marks yours)
+                # (to 16 pixels: finer than a minimap's dot; pt: the party it's in, the page marks yours)
+                out.append({"name": s.player_name, "x": round(p.cx / 16) * 16, "y": round(p.cy / 16) * 16, "z": p.z,
+                            "pt": s.party_id})
         return {"t": "where", "list": out}
 
     def players_message(self):
@@ -271,14 +307,9 @@ class GameServer:
 
     @staticmethod
     def client_addr(request):
-        """Who's connecting: behind a reverse proxy (Caddy on a cloud server, DS_TRUST_PROXY=1) the first address in
-        X-Forwarded-For, the player's own; otherwise the connection's. (The wrong-password wait and the sign-up limit
-        go by it: behind a proxy without it, everyone would share the proxy's.)"""
-        if os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true"):
-            fwd = request.headers.get("X-Forwarded-For", "")
-            if fwd:
-                return fwd.split(",")[0].strip()
-        return request.remote
+        """Who's connecting (auth.client_address: behind a proxy, the player's own address). The wrong-password wait
+        and the sign-up limit go by it: behind a proxy without it, everyone would share the proxy's."""
+        return auth.client_address(request)
 
     def setting_int(self, env, default):
         try:
@@ -293,13 +324,34 @@ class GameServer:
             return 99
         day = time.strftime("%Y%m%d")
         made = [d for d in self.signups.get(addr, []) if d == day]
-        self.signups[addr] = made
+        if made:
+            self.signups[addr] = made
+        else:
+            self.signups.pop(addr, None)                # (yesterday's forgotten: the list doesn't grow for ever)
         return most - len(made)
 
     def banned(self, name):
         return self.store.setting("ban:" + name.lower(), "")
 
+    @staticmethod
+    def origin_ok(request):
+        """A browser says which page opened the connection: only the game's own pages (served from here, whatever
+        address they were reached by) may, never another site's open on a host's computer (DS_ORIGINS: others)."""
+        origin = request.headers.get("Origin", "")
+        if not origin or origin == "null":
+            return True                         # (not a web page: the tests, the bots, a file page in an app)
+        from urllib.parse import urlsplit
+        try:
+            host = urlsplit(origin).netloc.lower()
+        except ValueError:
+            return False
+        more = [o.strip().lower() for o in os.environ.get("DS_ORIGINS", "").split(",") if o.strip()]
+        return host == (request.host or "").lower() or origin.lower() in more
+
     async def handle_ws(self, request):
+        if not self.origin_ok(request):
+            log.warning("A page from %s tried to join from %s", request.headers.get("Origin"), request.remote)
+            return web.Response(status=403, text="Only this game's own page may join it.")
         ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
         await ws.prepare(request)
         c = Client(ws, self.client_addr(request))
@@ -344,15 +396,26 @@ class GameServer:
         waits = []
         for key in (("name", name.lower()), ("addr", addr)):
             times = [t for t in self.login_fails.get(key, []) if now - t < FAIL_WINDOW]
-            self.login_fails[key] = times
+            if times:
+                self.login_fails[key] = times
+            else:
+                self.login_fails.pop(key, None)
             if len(times) >= FAILS:
                 waits.append(int(FAIL_WAIT - (now - times[-1])) + 1)
         return max([w for w in waits if w > 0], default=0)
 
     def login_failed(self, name, addr):
+        """Counted as a wrong password (before it's checked, so tries at once can't all slip by): when, for
+        login_forgiven if it was right after all."""
         now = time.monotonic()
         for key in (("name", name.lower()), ("addr", addr)):
             self.login_fails.setdefault(key, []).append(now)
+        return now
+
+    def login_forgiven(self, name, addr, at):
+        for key in (("name", name.lower()), ("addr", addr)):
+            if at in self.login_fails.get(key, []):
+                self.login_fails[key].remove(at)
 
     @staticmethod
     def rate_ok(c):
@@ -381,9 +444,11 @@ class GameServer:
             return await fail("Too many tries: wait %d seconds." % wait)
         acct = self.store.account(name)
         stored = self.store.setting("recover:" + name.lower(), "") if acct else ""
+        at = self.login_failed(name, c.addr)
         right = bool(stored) and await asyncio.get_running_loop().run_in_executor(None, auth.check_password, code, stored)
-        if not right:
-            self.login_failed(name, c.addr)
+        if right:
+            self.login_forgiven(name, c.addr, at)
+        else:
             await asyncio.sleep(1)
             return await fail("That name and recovery code don't go together. (Lost the code too? Ask the server's "
                               "admin to set you a new password.)")
@@ -439,6 +504,10 @@ class GameServer:
             await self.send(c, {"t": "login_fail", "reason": "%s is kept for this server's admin: make it here with "
                                                              "the code from the server's log first." % name})
             return None
+        if acct is None and (self.registration != "open" or self.invite_code):
+            await self.send(c, {"t": "login_fail", "reason": "New characters can't be made on this server just by "
+                                                             "signing in: ask its admin."})
+            return None                                 # (closed, or by invitation: a ticket isn't one)
         if acct is None:
             self.store.create_account(name, "", False)  # (no password here: they come in by ticket)
             self.store.set_setting("central:" + name.lower(), "1")
@@ -526,11 +595,18 @@ class GameServer:
             if password.lower() == name.lower():
                 await self.send(c, {"t": "login_fail", "reason": "Your password can't be your name."})
                 return
+            day = time.strftime("%Y%m%d")
+            self.signups.setdefault(c.addr, []).append(day)     # (counted now: sign-ups at once can't all slip by)
             hashed = await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
-            self.store.create_account(name, hashed, False)
+            try:
+                self.store.create_account(name, hashed, False)
+            except sqlite3.IntegrityError:              # (someone took the name while the password was hashed)
+                if day in self.signups.get(c.addr, []):
+                    self.signups[c.addr].remove(day)
+                await self.send(c, {"t": "login_fail", "reason": "That name is taken. Log in instead?"})
+                return
             self.claims.pop(name.lower(), None)
             c.recovery = await self.new_recovery(name)  # (shown once, in the welcome: to write down)
-            self.signups.setdefault(c.addr, []).append(time.strftime("%Y%m%d"))
             log.info("New character %s from %s", name, c.addr)
             acct = self.store.account(name)
         else:
@@ -541,10 +617,11 @@ class GameServer:
                 await self.send(c, {"t": "login_fail",
                                     "reason": "%s has no password yet: ask the server's admin to set one." % name})
                 return
-            elif not await asyncio.get_running_loop().run_in_executor(None, auth.check_password, password, acct[1]):
-                self.login_failed(name, c.addr)
+            at = self.login_failed(name, c.addr)
+            if not await asyncio.get_running_loop().run_in_executor(None, auth.check_password, password, acct[1]):
                 await self.send(c, {"t": "login_fail", "reason": "Wrong password."})
                 return
+            self.login_forgiven(name, c.addr, at)
             if getattr(c, "central_name", "") == acct[0]:
                 self.store.set_setting("central:" + acct[0].lower(), "1")   # (theirs from the central server too)
         await self.enter_game(c, acct, data)
@@ -571,6 +648,10 @@ class GameServer:
             s.sent_maps = {}
             s.view_known = {}
             s.dirty_me = s.dirty_quests = s.cells_dirty = s.weather_dirty = True
+            if getattr(s, "trade", None):           # (the new page never saw it: off, rather than open unseen)
+                s.trade_close("The trade is off.")
+            if s.ab_mode:
+                s.emit(s.box_state())               # (a box that was open: open on the new page too)
             if not s.ready:
                 s.enter_world()
             if s.dead_wait:                 # (they died and went: back to life, where they'd have woken)
@@ -588,6 +669,7 @@ class GameServer:
             s.friends_hear("Your friend %s has come into Ashen." % name)
         c.session = s
         self.clients[s] = c
+        self.last_where_sent = None                     # (the one come in hasn't had the dots yet)
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
                             "recovery": getattr(c, "recovery", ""), "server": self.server_name(),
@@ -601,30 +683,37 @@ class GameServer:
     def moderate(self, s, text):
         """An admin's commands for a public server: /kick Name, /ban Name [why], /unban Name, /mute Name [minutes],
         /unmute Name, /bans. True if it was one."""
-        bits = text.split(None, 2)
-        cmd = bits[0].lower()
+        words = text.split()
+        cmd = words[0].lower()
         if cmd not in ("/kick", "/ban", "/unban", "/mute", "/unmute", "/bans"):
             return False
         say = lambda words: s.emit({"t": "chat", "from": "", "text": words})     # noqa: E731
         if cmd == "/bans":
-            rows = self.store.db.execute("SELECT key, value FROM world WHERE key LIKE 'set:ban:%'").fetchall()
+            rows = self.store.db.execute("SELECT key, value FROM world WHERE key LIKE 'set:ban:%' AND value != ''"
+                                         ).fetchall()
             say("Banned: " + (", ".join("%s (%s)" % (k[8:], v) for k, v in rows) or "nobody"))
             return True
-        if len(bits) < 2:
+        if len(words) < 2:
             say("Who? %s Name" % cmd)
             return True
-        acct = self.store.account(bits[1])
-        name = acct[0] if acct else bits[1]
+        name, extra = words[1], " ".join(words[2:])
+        for k in range(len(words) - 1, 1, -1):          # (names may have spaces: the longest that's a character)
+            maybe = " ".join(words[1:k + 1])
+            if self.store.account(maybe) or maybe in self.world.sessions:
+                name, extra = maybe, " ".join(words[k + 1:])
+                break
+        acct = self.store.account(name)
+        name = acct[0] if acct else name
         o = self.world.sessions.get(name)
         if cmd == "/unban":
-            self.store.set_setting("ban:" + name.lower(), "")
+            self.store.drop_setting("ban:" + name.lower())
             say("%s may play again." % name)
         elif cmd == "/unmute":
             if o is not None:
                 o.muted_until = 0
             say("%s may talk again." % name)
         elif cmd == "/mute":
-            minutes = int(bits[2]) if len(bits) > 2 and bits[2].strip().isdigit() else 30
+            minutes = int(extra) if extra.strip().isdigit() else 30
             if o is not None:
                 o.muted_until = time.time() + minutes * 60
                 o.emit({"t": "chat", "from": "", "text": "An admin has muted you for %d minutes." % minutes})
@@ -632,9 +721,9 @@ class GameServer:
         else:
             if cmd == "/ban":
                 if acct is None:
-                    say("There's no character called %s." % bits[1])
+                    say("There's no character called %s." % name)
                     return True
-                self.store.set_setting("ban:" + name.lower(), (bits[2] if len(bits) > 2 else "banned")[:100])
+                self.store.set_setting("ban:" + name.lower(), (extra or "banned")[:100])
             c = self.clients.get(o) if o is not None else None
             if c is not None:
                 self.save_session(o)
@@ -721,8 +810,9 @@ class GameServer:
         if not right:
             await asyncio.sleep(1)                      # (no quick guessing)
             return reply(False, "That isn't your current password.")
-        if len(new) < 4:
-            return reply(False, "Use a new password of at least 4 characters.")
+        least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
+        if len(new) < least:
+            return reply(False, "Use a new password of at least %d characters." % least)
         self.store.set_password(s.player_name, await self.hashed(new))     # (other browsers forget them)
         log.info("%s changed their password", s.player_name)
         s.emit({"t": "password_result", "ok": True, "text": "Your password is changed. Use the new one next time you "
@@ -736,8 +826,9 @@ class GameServer:
         acct = self.store.account(name) if name else None
         if acct is None:
             return say("There's no character called %s." % (name or "that"))
-        if len(new) < 4:
-            return say("Use a password of at least 4 characters.")
+        least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
+        if len(new) < least:
+            return say("Use a password of at least %d characters." % least)
         self.store.set_password(acct[0], await self.hashed(new))
         log.info("%s (admin) set %s's password", s.player_name, acct[0])
         other = self.world.sessions.get(acct[0])
@@ -750,11 +841,19 @@ class GameServer:
         t = data.get("t")
         if t == "chat":
             text = " ".join(str(data.get("text", "")).split())[:CHAT_MAX]
-            if getattr(s, "muted_until", 0) > time.time() and not text.startswith("/"):
+            talks = not text.startswith("/") or text.lower().startswith(TALKING)
+            if getattr(s, "muted_until", 0) > time.time() and talks:
                 s.emit({"t": "chat", "from": "", "text": "You're muted for now."})
                 return
+            if talks and text:
+                now = time.monotonic()
+                said = [t for t in getattr(s, "chat_times", []) if now - t < CHAT_SECONDS]
+                if len(said) >= CHAT_LINES:
+                    s.emit({"t": "chat", "from": "", "text": "You're talking too fast: a moment."})
+                    return
+                s.chat_times = said + [now]
             if text.startswith("/"):
-                self.chat_command(s, text)
+                self.world.guarded(s, "chat command", self.chat_command, s, text)
             elif text:
                 self.broadcast({"t": "chat", "from": s.player_name, "text": text})
             return
@@ -799,10 +898,7 @@ class GameServer:
                             asyncio.ensure_future(oc.ws.close())
                 self.broadcast({"t": "lan", "open": self.lan_open})
             return
-        try:
-            s.handle(data)
-        except Exception:
-            log.exception("Command %r from %s failed", t, s.player_name)
+        self.world.guarded(s, "command %s" % str(t)[:20], s.handle, data)    # (a bad one logged once, not each time)
 
     def disconnect(self, c):
         s = c.session

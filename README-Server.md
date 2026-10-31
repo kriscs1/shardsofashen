@@ -417,7 +417,8 @@ the code is then used up and a new one shown. Without the code, an admin sets a 
 | `DS_NAME` | `Shards of Ashen on <computer>` | the game's name in the Android app's "Games on this network" |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 | `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
-| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the password wait and the sign-up limit |
+| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
+| `DS_ORIGINS` | (none) | other pages allowed to open the game's connection, comma-separated (e.g. `https://play.example.com`). The game's own page always may; any other site's page is turned away |
 | `DS_PASSWORD_MIN` | 4 | the shortest password a new character may have |
 | `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
 | `DS_PUBLIC` | (off) | `1`: a remote server, announced to the central server and listed for everyone |

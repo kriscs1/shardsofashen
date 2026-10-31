@@ -739,6 +739,10 @@ class ItemsMixin:
         """What is drawn over the player, lowest first."""
         if self.player_sprite_base not in ("Player", "PlayerF"):
             return []                                   # (a shape a script made them: no armour drawn on it)
+        key = tuple(self.equipped)
+        got = getattr(self, "worn_seen", None)
+        if got is not None and got[0] == key:
+            return list(got[1])                         # (nothing put on or off since: every viewer asks)
         d = self.data
         items = []
         for s in range(1, d.equip_slots + 1):
@@ -747,7 +751,8 @@ class ItemsMixin:
             if it and d.gear_has_art(it):
                 items.append((d.gear_rank[s], it))
         items.sort()
-        return [it for _, it in items]
+        self.worn_seen = (key, [it for _, it in items])
+        return list(self.worn_seen[1])
 
     # ----- wear
     def wear_slot(self, s, amount=1):
@@ -902,7 +907,8 @@ class ItemsMixin:
 
     def death_sort(self):
         """Dying: what you can't drop stays with you, and so do your most valuable things (Config [Gameplay]
-        Death.Keep.Items, 5: single items, worn or carried; not gold). The rest goes in the grave: [(name, qty, wear)]."""
+        Death.Keep.Items, 5: single items, worn or carried; not gold), what's in your hands first (the sword you
+        made on the Isle is worth little, but it's yours). The rest goes in the grave: [(name, qty, wear)]."""
         d = self.data
         keep_n = max(0, int(val(d.config_read("Gameplay", "Death.Keep.Items", "5"))))
         units = []                      # (value, order, where, index): one per single item
@@ -912,9 +918,11 @@ class ItemsMixin:
             worth = val(self.entity_ini(e.name, "Value", "0"))
             for _ in range(min(e.quantity, keep_n)):
                 units.append((worth, len(units), "inv", k))
+        hands = {self.equip_slot_index("Weapon"), self.equip_slot_index("Shield")}
         for i in range(1, d.equip_slots + 1):
             if self.equipped[i]:
-                units.append((val(self.entity_ini(self.equipped[i], "Value", "0")), len(units), "eq", i))
+                worth = val(self.entity_ini(self.equipped[i], "Value", "0"))
+                units.append((10 ** 9 + worth if i in hands else worth, len(units), "eq", i))
         units.sort(key=lambda u: (-u[0], u[1]))
         keep_inv, keep_eq = {}, set()
         for worth, _, where, k in units[:keep_n]:

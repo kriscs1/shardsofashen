@@ -963,8 +963,8 @@ function frame(now) {
   loginFilm();
   if (!running || !A.m || !S.me) return;
   ctx.setTransform(screen.k, 0, 0, screen.k, screen.ox, screen.oy);
-  ctx.imageSmoothingEnabled = smoothing;
-  ctx.imageSmoothingQuality = "high";
+  if (ctx.imageSmoothingEnabled !== smoothing) ctx.imageSmoothingEnabled = smoothing;
+  if (ctx.imageSmoothingQuality !== "high") ctx.imageSmoothingQuality = "high";    // (a resize resets it: only then)
   glide(now);
   if (J.open) {
     ctx.save();

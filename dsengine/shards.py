@@ -234,7 +234,7 @@ class ShardMixin:
     # ----- dismantling: gear, or a scroll whose spell you know already, broken down into its Shards
     def dismantle_worth(self, name):
         """How many Shards dismantling it gives (0: it can't be): one for every Shards.ini [Dismantle] Weapon (or
-        Armour: anything worn) gold of its value, at least one; Scroll for a scroll whose spell (at its rank) you
+        Armour: anything worn) gold of its value, at least one, if it's worth Min.Value; Scroll for a scroll whose spell (at its rank) you
         know (worth what a wizard would ask for it, even one a quest gave: dev/migrate/rare_scrolls.py). Not quest
         things (Droppable=0)."""
         spell = self.spell_learnable(name)
@@ -248,6 +248,8 @@ class ShardMixin:
             per = self.shard_setting("Scroll", 10, "Dismantle")
         elif self.equip_verb(name):
             per = self.shard_setting("Weapon" if self.equip_verb(name) == "Wield" else "Armour", 25, "Dismantle")
+            if value < self.shard_setting("Min.Value", 10, "Dismantle"):
+                return 0                                # (too cheap to have any magic in it: a wooden sword)
         else:
             return 0
         return max(1, int(value // max(1, per)))

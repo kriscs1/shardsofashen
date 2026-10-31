@@ -27,6 +27,7 @@ from ashen.lb import val, trim, lbstr, distance, pretty
 from ashen import ini
 
 from .entity import NPC, PLAYER, STATICOBJECT, INVENTORYITEM
+from .shards import SHARD
 
 PROJECTS = "Projects.ini"
 ASK_GAP = 10000                         # (ms before you can ask the same player again: no flood of boxes)
@@ -374,8 +375,46 @@ class TogetherMixin:
     TRADE_REACH = 192
 
     def tradeable(self, name):
-        """Gold, and anything that can be dropped (not a quest's own thing)."""
+        """Gold, and anything that can be dropped (not a quest's own thing; never Shards: a balance, not a thing)."""
+        if name == SHARD:
+            return False
         return name == "Gold_Coin(s)" or trim(self.data.entity_ini(name, "Droppable", "1")) != "0"
+
+    def fits_after(self, give, get):
+        """Would what's offered to you (get: {name: n}) fit in your pack once your own offer (give) has gone?"""
+        packs = [[e.name, e.quantity] for e in self.inv]
+        for name, q in give.items():
+            for p in reversed(packs):
+                if q <= 0:
+                    break
+                if p[0] == name:
+                    took = min(q, p[1])
+                    p[1] -= took
+                    q -= took
+        packs = [p for p in packs if p[1] > 0]
+        for name, q in get.items():
+            stack = self.stackable_quantity(name)
+            for p in packs:
+                if p[0] == name and p[1] < stack and q > 0:
+                    put = min(q, stack - p[1])
+                    p[1] += put
+                    q -= put
+            while q > 0:
+                packs.append([name, min(q, stack)])
+                q -= stack
+        return len(packs) <= self.inventory_capacity()
+
+    @staticmethod
+    def hand_over(giver, taker, name, n):
+        """n of name from giver to taker, each with its own wear (a worn tool stays worn, a broken one broken)."""
+        wears = giver.wears_of(name, n)
+        giver.remove_inventory_item(name, n)
+        if any(wears):
+            for wear in wears:
+                taker.add_inventory_item(name, 1, wear=wear)
+            n -= len(wears)
+        if n > 0:
+            taker.add_inventory_item(name, n)
 
     def trade_other(self):
         tr = getattr(self, "trade", None)
@@ -472,18 +511,21 @@ class TogetherMixin:
             if any(s.items_held(n) < q for n, q in give.items()):
                 self.trade_close("The trade is off: something offered isn't there now.")
                 return
-        for s, get in ((a, ob), (b, oa)):
-            if any(s.inventory_slots_available(n) < q and n != "Gold_Coin(s)" for n, q in get.items()):
+        for s, give, get in ((a, oa, ob), (b, ob, oa)):
+            if not s.fits_after(give, get):             # (all of it together: nothing left on the floor)
                 self.trade_close("The trade is off: %s hasn't the room." % s.player_name)
                 return
-        for n, q in oa.items():
-            a.remove_inventory_item(n, q)
-        for n, q in ob.items():
-            b.remove_inventory_item(n, q)
-        for n, q in ob.items():
-            a.add_inventory_item(n, q)
-        for n, q in oa.items():
-            b.add_inventory_item(n, q)
+        moves = ([(a, b, n, q, a.wears_of(n, q)) for n, q in oa.items()] +
+                 [(b, a, n, q, b.wears_of(n, q)) for n, q in ob.items()])
+        for giver, _, n, q, _ in moves:                 # (both offers out first: a full pack makes room)
+            giver.remove_inventory_item(n, q)
+        for _, taker, n, q, wears in moves:
+            if any(wears):
+                for wear in wears:
+                    taker.add_inventory_item(n, 1, wear=wear)
+                q -= len(wears)
+            if q > 0:
+                taker.add_inventory_item(n, q)
         for s in (a, b):
             s.play_sound("Coins")
         self.w.save_soon = True                         # (both sides saved together: never in two packs, or none)
@@ -504,13 +546,17 @@ class TogetherMixin:
         per = self.tg_num("Boss.Per.Player", 0.6)
         want = 1 + per * max(0, fighters - 1)
         have = getattr(e, "scaled", 1.0)
+        if want == have:
+            return
+        base = getattr(e, "base_hp", e.max_hp)
+        e.base_hp = base
+        new = max(1, int(base * want))
         if want > have:
-            base = getattr(e, "base_hp", e.max_hp)
-            e.base_hp = base
-            new = int(base * want)
             e.hp = min(new, e.hp + (new - e.max_hp))
-            e.max_hp = new
-            e.scaled = want
+        else:                                           # (fighters gone: back down, as hurt as it was)
+            e.hp = max(1, min(new, int(round(e.hp * new / max(1, e.max_hp)))))
+        e.max_hp = new
+        e.scaled = want
 
     # ================================================================================================= gifts
     def offer_gift(self, item, other):
@@ -550,8 +596,7 @@ class TogetherMixin:
         if self.inventory_slots_available(name) <= 0:
             self.refuse("You don't have enough room in your inventory!")
             return
-        giver.remove_inventory_item(name, n)
-        self.add_inventory_item(name, n)
+        self.hand_over(giver, self, name, n)
         self.w.save_soon = True
         self.play_sound("Coins" if name == "Gold_Coin(s)" else "Pickup")
         giver.display_message("%s takes your gift." % self.player_name, "SUCCESS")
@@ -749,12 +794,13 @@ class TogetherMixin:
             if not gifts:
                 self.show_menu("Gift box", "Pocket_Anchor", "Nothing in the gift box.", [("Close it.", None)])
                 return
-            for frm, item, n in gifts:
-                if self.inventory_slots_available(item) > 0:
+            for gift in list(gifts):                     # (a copy: taking one mustn't skip the next)
+                frm, item, n = gift
+                if self.inventory_slots_available(item) >= n:
                     self.add_inventory_item(item, n)
                     self.display_message("A gift from %s: %s." % (frm, ("%d gold" % n) if item == "Gold_Coin(s)" else
                                                                    "%d %s" % (n, pretty(item))), "SUCCESS")
-                    gifts.remove([frm, item, n]) if [frm, item, n] in gifts else None
+                    gifts.remove(gift)
             self.w.save_soon = True
             self.play_sound("Pickup")
             return

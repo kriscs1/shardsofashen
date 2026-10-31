@@ -5,6 +5,7 @@ What a script changes in the world is shared, except quest business: once a scri
 attributes ($Attr, Get.Value ATTRIBUTE, >Quest.Can.Start), what it changes after that is the player's own (a tile they
 alone see changed, an NPC that is a friend or weaker to them alone, a thing that's gone for them alone). The commands
 Personal and Shared set that by hand. A map's entry script never adds a second copy of something already there."""
+import logging
 import os
 import time
 
@@ -15,12 +16,15 @@ from ashen.lb import (val, word, field, trim, lbstr, distance, strip_digits, ran
 from .entity import (Entity, TILE, MAPITEM, STATICOBJECT, NPC, TYPE_NAMES, normalise_type, attitude_of_type,
                      parse_attitude)
 
+log = logging.getLogger("ashen.scripting")
+
 PIXEL_ARGS = {"Remove.Entity": (1,), "Add.Entity": (1,), "Teleport": (1,), "Edit.Entity": (1,), "Move.Entity": (1, 3),
               "Move.Player": (1,), ">Distance.From.Coordinates": (1,), ">Entity.In.Line.Of.Sight": (1,),
               "Add.Action.To.Queue": (6,)}
 TILE_ARGS = {"Change.Tile": (1,), ">Tile.In.Line.Of.Sight": (1,), ">On.Tile.Coordinates": (1,),
              ">Not.On.Tile.Coordinates": (1,)}
 MAP_ARGS = {"Teleport": 2, "Add.Action.To.Queue": 5}
+ATTRS_MOST = 2000               # (a player's attributes at most: quests' progress; about 250 are used)
 SCRIPT_RECHECK = 2.0            # (seconds a script's being there, or not, is taken as known: the tick asks often)
 ENTITY_COMMANDS = ("Remove.Entity", "Edit.Entity", "Move.Entity")
 PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "aggressive",
@@ -50,6 +54,7 @@ class ScriptMixin:
         self.script_personal = False        # what it changes now is this player's own
         self.script_forced = None           # Personal / Shared said so
         self.work_from = None               # (x, y) the player stood at when its Play.Animation began (they stay put)
+        self.work_cell = None               # (map, x, y, what was there) the work is at: a tree, a rock
 
     # =================================================================================================================
     # Starting, stopping
@@ -153,7 +158,7 @@ class ScriptMixin:
         self.script_line_no = 0
         self.script_personal = False                # (no script running: nothing done now is a quest's own)
         self.script_forced = None
-        self.work_from = None
+        self.work_from = self.work_cell = None
         if self.script_move_ent is not None:
             self.script_move_ent.script_moving = False
             self.script_move_ent = None
@@ -186,8 +191,15 @@ class ScriptMixin:
                 self.end_script()                   # (walked off from a tree, a rock, the water: no logs for that)
                 self.emit({"t": "work_stop"})
                 return
+            if self.work_cell is not None and self.work_cell[0].cell_text(*self.work_cell[1:3]) != self.work_cell[3]:
+                self.end_script()                   # (someone else felled the tree first: nothing left to chop)
+                self.emit({"t": "work_stop"})
+                self.display_message("..but someone else has got there first.", "FAIL")
+                self.play_sound("Fail")
+                return
             if self.now < self.script_wait_until:
                 return
+            self.work_cell = None
         elif st == "CONVERSATION":
             if self.script_result == 0:
                 return
@@ -786,6 +798,8 @@ class ScriptMixin:
         x, y = at if at is not None else (self.script_cursor_x, self.script_cursor_y)
         if not x and not y:
             x, y = p.cx, p.cy
+        m, tx, ty = w.tile_at(p.z, x, y)
+        self.work_cell = (m, tx, ty, m.cell_text(tx, ty)) if m is not None and m.inside(tx, ty) else None
         d = max(1.0, distance(p.cx, p.cy, x, y))
         dx, dy = round((x - p.cx) / d * 3), round((y - p.cy) / d * 3)
         for k in range(max(1, min(8, int(val(times) or 1)))):
@@ -1081,8 +1095,14 @@ class ScriptMixin:
             return
         idx = next((i for i, (n, v) in enumerate(self.attributes) if n.upper() == name.upper()), -1)
         if idx < 0:
-            if len(self.attributes) >= 500:
+            if len(self.attributes) >= ATTRS_MOST:
+                if not getattr(self, "attrs_full_said", False):
+                    self.attrs_full_said = True
+                    log.error("%s has %d attributes: no more are kept (%s)", self.player_name, ATTRS_MOST, name)
                 return
+            if len(self.attributes) == ATTRS_MOST * 9 // 10:
+                log.warning("%s has %d attributes, near the most kept (%d)", self.player_name, len(self.attributes),
+                            ATTRS_MOST)
             self.attributes.append([name, "0"])
             idx = len(self.attributes) - 1
         if change[:1] == "=" and not is_number(change[1:]):

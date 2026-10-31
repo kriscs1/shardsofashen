@@ -9,7 +9,7 @@
 08	End
 09	Display.Conversation	Gravekeeper	You're ready, I'd say. But the trapdoor's locked, and I gave its key to Maren, the doctor, for safekeeping.	I'll ask her.	26
 10	End
-11	Display.Conversation	Gravekeeper	Wooden swords and good intentions. Practise first: a few rats and wolves, until your Strength and Defence are level 2. Then come back.	I will.	26
+11	Display.Conversation	Gravekeeper	Wooden swords and good intentions. Practise first: the goblins in the woods to the west, until your Strength and Defence are level 2. Then come back.	I will.	26
 12	End
 13	Display.Conversation	Gravekeeper	Down there, with your sword and shield in your pack? Wield them both, then we'll talk.	Right.	26
 14	End

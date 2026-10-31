@@ -407,7 +407,8 @@ def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch)
         try:
             async with aiohttp.ClientSession() as http:
                 async def reg(name, password, addr):
-                    ws = await http.ws_connect(url, headers={"X-Forwarded-For": addr + ", 10.0.0.2"})
+                    # (the proxy puts the player's own address last: what's before it is anyone's to write)
+                    ws = await http.ws_connect(url, headers={"X-Forwarded-For": "127.0.0.1, " + addr})
                     await ws.send_json({"t": "register", "name": name, "password": password})
                     while True:
                         data = json.loads((await asyncio.wait_for(ws.receive(), 10)).data)
@@ -484,6 +485,128 @@ def test_a_forgotten_password_is_reset_with_the_recovery_code(tmp_path):
                 await asyncio.sleep(0.3)
                 assert game.server_name() == "Kris's World"
                 await ws2.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+async def chats(ws, seconds=0.6):
+    """The chat lines that come in a moment."""
+    out = []
+    end = asyncio.get_event_loop().time() + seconds
+    while True:
+        left = end - asyncio.get_event_loop().time()
+        if left <= 0:
+            return out
+        try:
+            msg = await asyncio.wait_for(ws.receive(), left)
+        except asyncio.TimeoutError:
+            return out
+        if msg.type != aiohttp.WSMsgType.TEXT:
+            return out
+        data = json.loads(msg.data)
+        out += [m for m in (data if isinstance(data, list) else [data]) if m.get("t") == "chat"]
+
+
+def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
+    """A muted player can't whisper either; nobody floods the chat; /ban takes a name with spaces, /unban undoes it;
+    a new password is as long as DS_PASSWORD_MIN says."""
+    monkeypatch.setenv("DS_PASSWORD_MIN", "8")
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "m.db"), admins="Boss")
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                boss, _ = await login(http, url, "Boss", "bosspass1", invite=game.claims["boss"])
+                pest, _ = await login(http, url, "Old Pest", "pestpass1")
+                await boss.send_json({"t": "chat", "text": "/mute Old Pest 5"})
+                await asyncio.sleep(0.3)
+                assert game.world.sessions["Old Pest"].muted_until > 0          # (a name with a space)
+                await pest.send_json({"t": "chat", "text": "/w Boss hello"})
+                said = await chats(pest)
+                assert any("muted" in m["text"] for m in said)
+                game.world.sessions["Old Pest"].muted_until = 0
+                for k in range(10):
+                    await pest.send_json({"t": "chat", "text": "spam %d" % k})
+                heard = await chats(boss, 1.0)
+                assert len([m for m in heard if m.get("from") == "Old Pest"]) <= 6        # (no more than six at once)
+                await pest.send_json({"t": "password", "old": "pestpass1", "new": "short"})
+                m = await wait_for(pest, "password_result")
+                assert m and not m["ok"] and "8" in m["text"]
+                await boss.send_json({"t": "chat", "text": "/ban Old Pest being a pest"})
+                await asyncio.sleep(0.5)
+                assert game.banned("Old Pest") == "being a pest"
+                await boss.send_json({"t": "chat", "text": "/unban Old Pest"})
+                await asyncio.sleep(0.3)
+                await boss.send_json({"t": "chat", "text": "/bans"})
+                assert any("nobody" in m["text"] for m in await chats(boss))
+                await boss.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_only_the_games_own_page_may_join_and_guesses_count_at_once(tmp_path):
+    async def go():
+        runner, app, url = await start(str(tmp_path / "o.db"))
+        try:
+            async with aiohttp.ClientSession() as http:
+                with pytest.raises(aiohttp.WSServerHandshakeError):
+                    await http.ws_connect(url, headers={"Origin": "https://evil.example"})
+                host = url.split("//")[1].split("/")[0]
+                ws = await http.ws_connect(url, headers={"Origin": "http://" + host})     # (its own page)
+                await ws.close()
+                w, _ = await login(http, url, "Guarded", "rightpass1")
+                await w.close()
+
+                async def guess():
+                    _, m = await login(http, url, "Guarded", "wrongpass", mode="login")
+                    return m["reason"]
+                said = await asyncio.gather(*[guess() for _ in range(20)])
+                assert sum("Wrong password" in r for r in said) <= 5     # (twenty at once: only five are tried)
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_an_older_world_save_is_put_on_utc(tmp_path):
+    from ashen.lb import clock_seconds, local_offset
+    db = str(tmp_path / "u.db")
+    due = clock_seconds() + local_offset() + 3600                      # (an hour off, in local time as it was kept)
+    st = Store(db)
+    st.save_world({"queue": ["ADD\tOld_Thing\tMapItem\t1\t1,1,0\t100,100\t3600\t%d" % due],
+                   "farms": [["3,3,0", 5, 14, "Potato", "Someone", float(due)]]})
+    st.close()
+
+    async def go():
+        runner, app, url = await start(db)
+        try:
+            w = app[GAME].world
+            entry = next(q for q in w.action_queue if "Old_Thing" in q)
+            assert abs(float(entry.split("\t")[-1]) - (clock_seconds() + 3600)) < 60
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_a_closed_server_makes_no_character_for_a_ticket(tmp_path, monkeypatch):
+    async def go():
+        runner, app, url = await start(str(tmp_path / "c.db"))
+        game = app[GAME]
+        game.registration = "closed"
+        monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
+
+        async def verified(path, body):
+            return {"ok": True, "name": "Stranger"}
+        monkeypatch.setattr(game, "central_post", verified)
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws = await http.ws_connect(url)
+                await ws.send_json({"t": "ticket", "ticket": "anything"})
+                m = await wait_for(ws, "login_fail")
+                assert m and game.store.account("Stranger") is None
+                await ws.close()
         finally:
             await runner.cleanup()
     asyncio.run(go())

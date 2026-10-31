@@ -2,6 +2,7 @@
 import base64
 import hashlib
 import hmac
+import ipaddress
 import os
 
 N, R, P = 2 ** 14, 8, 1
@@ -44,3 +45,21 @@ def clean_name(entered):
     """A character's name as the desktop game allowed them: letters, digits, space, _ and -, at most 20."""
     name = "".join(c for c in str(entered) if c in NAME_CHARS).strip(" ")[:20]
     return "" if name.upper() == "TEMPLATE" else name
+
+
+def client_address(request):
+    """Who's connecting. Behind a reverse proxy (Caddy on a cloud server, DS_TRUST_PROXY=1): the last address in
+    X-Forwarded-For, the one the proxy put there (the ones before it are anyone's to write), and only when the
+    connection itself is from the proxy (this machine or a private network: a port published straight to the world
+    gets no say). Otherwise the connection's own address."""
+    remote = request.remote or ""
+    if os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true"):
+        fwd = request.headers.get("X-Forwarded-For", "")
+        try:
+            near = ipaddress.ip_address(remote)
+            from_proxy = near.is_loopback or near.is_private
+        except ValueError:
+            from_proxy = False
+        if fwd and from_proxy:
+            return fwd.split(",")[-1].strip()
+    return remote

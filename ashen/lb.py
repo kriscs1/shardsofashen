@@ -180,21 +180,24 @@ def distance(x1, y1, x2, y2):
     return math.hypot(x1 - x2, y1 - y2)
 
 
-# ----- Clocks. Clock.MS/Clock.Seconds count from 1 Jan 1901 like LB's date$("days") so the action queue in old
-# saves (due times in those seconds) keeps working.
+# ----- Clocks. Clock.MS/Clock.Seconds count from 1 Jan 1901 like LB's date$("days"), in UTC: the clocks going back
+# an hour in autumn never makes a wait an hour longer. (Saves from before were in local time: local_offset() is how
+# far they're out.)
 _EPOCH = datetime.date(1901, 1, 1)
+_UTC_1901 = (datetime.date(1970, 1, 1) - _EPOCH).days * 86400
 
 
 def clock_seconds():
-    now = datetime.datetime.now()
-    days = (now.date() - _EPOCH).days
-    return days * 86400 + now.hour * 3600 + now.minute * 60 + now.second
+    return int(time.time()) + _UTC_1901
 
 
 def clock_ms():
-    now = datetime.datetime.now()
-    days = (now.date() - _EPOCH).days
-    return days * 86400000 + ((now.hour * 60 + now.minute) * 60 + now.second) * 1000 + now.microsecond // 1000
+    return int(time.time() * 1000) + _UTC_1901 * 1000
+
+
+def local_offset():
+    """Seconds local time is ahead of UTC here, now."""
+    return int(datetime.datetime.now().astimezone().utcoffset().total_seconds())
 
 
 def frame_ms():

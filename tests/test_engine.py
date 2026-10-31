@@ -4724,3 +4724,165 @@ def test_editor_terrains_zones_routes_and_map_names():
     pat = mapops.name_re("4,0,0")
     assert pat.search("Start.Map=4,0,0") and pat.search("Point3=4,0,0,5,17,the market")
     assert not pat.search("14,0,0") and not pat.search("-4,0,0") and not pat.search("4,0,01")
+
+
+def test_a_poison_that_kills_takes_the_other_effects_without_a_fault(world):
+    s = join(world, "Poisoned")
+    s.connected = True
+    s.status_start("Poison")
+    s.status_start("Daze")
+    s.player.hp = 1
+    s.status["Poison"]["next"] = world.now
+    world.tick(0.05, now=world.now + 50)                            # (no KeyError: the tick goes on)
+    assert s.dead_wait and not s.status
+    s.respawn()
+    leave(world, s)
+
+
+def test_one_players_fault_doesnt_stop_the_others(world):
+    a, b = join(world, "Faulty"), join(world, "Fine")
+    a.tick_before_npcs = lambda: 1 / 0                              # (something in a's own state goes wrong)
+    b.out = []
+    b.journal_wanted, b.journal_at = True, -10 ** 9
+    world.tick(0.05, now=world.now + 50)
+    assert any(ev["t"] == "journal" for ev in b.out)                # (b's tick went on all the same)
+    del a.tick_before_npcs
+    leave(world, a)
+    leave(world, b)
+
+
+def test_a_trade_keeps_wear_and_room_and_leaves_shards_alone(world):
+    a = join(world, "Wear_A", "11,4,0", 300, 300)
+    b = join(world, "Wear_B", "11,4,0", 330, 300)
+    try:
+        stock(a, Pickaxe=1)
+        next(e for e in a.inv if e.name == "Pickaxe").wear = 150
+        a.shard_balance = 40
+        a.do_action("Trade", b.player)
+        b.native_menu_chosen(1)
+        a.trade_msg({"do": "add", "item": "Shard", "n": 40})       # (a hand-made message: not a thing to trade)
+        assert a.trade["offer"]["Wear_A"] == {}
+        a.trade_msg({"do": "add", "item": "Pickaxe", "n": 1})
+        a.trade_msg({"do": "accept"})
+        b.trade_msg({"do": "accept"})
+        assert next(e for e in b.inv if e.name == "Pickaxe").wear == 150     # (worn as it was)
+        assert a.shard_balance == 40
+        cap = b.inventory_capacity()
+        while len(b.inv) < cap - 1:
+            b.inv.append(type(b.inv[0])("Stone", 1, 0))
+        stock(a, Bronze_Sword=1, Iron_Dagger=1)
+        a.do_action("Trade", b.player)
+        b.native_menu_chosen(1)
+        a.trade_msg({"do": "add", "item": "Bronze_Sword", "n": 1})
+        a.trade_msg({"do": "add", "item": "Iron_Dagger", "n": 1})
+        a.trade_msg({"do": "accept"})
+        b.trade_msg({"do": "accept"})
+        assert a.items_held("Bronze_Sword") == 1 and b.items_held("Bronze_Sword") == 0   # (one slot: both or neither)
+    finally:
+        a.trade_close()
+        leave(world, a)
+        leave(world, b)
+
+
+def test_a_boss_goes_back_down_when_its_fighters_go(world):
+    a = join(world, "Down_A", "11,4,0", 300, 300)
+    b = join(world, "Down_B", "11,4,0", 330, 300)
+    try:
+        boss = world.add_npc("Barrow_King", 0, a.player.x + 60, a.player.y, "Attitude=Bad", "Bad")
+        hp = boss.max_hp
+        a.fought(boss)
+        b.fought(boss)
+        assert boss.max_hp > hp
+        boss.fought_by["Down_B"] = world.now - 120000               # (b's blows were two minutes ago)
+        a.fought(boss)
+        assert boss.max_hp == hp and 1 <= boss.hp <= hp             # (one fighter: the base numbers again)
+        world.remove_entity(boss)
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_no_shards_from_gear_too_cheap_to_hold_magic(world):
+    s = join(world, "Breaker")
+    assert s.dismantle_worth("Wooden_Sword") == 0                   # (two free logs: no Shards from nothing)
+    assert s.dismantle_worth("Copper_Dagger") >= 1                  # (Frank's old dagger still teaches it)
+    leave(world, s)
+
+
+def test_a_dead_creature_isnt_killed_twice(world):
+    s = join(world, "Twice")
+    g = world.add_npc("Goblin", 0, s.player.x + 40, s.player.y, "Attitude=Bad", "Bad")
+    queued = len(world.action_queue)
+    s.damage_npc(g, 999)
+    after = len(world.action_queue)
+    s.damage_npc(g, 999)
+    assert len(world.action_queue) == after and after >= queued    # (one death, one respawn)
+    leave(world, s)
+
+
+def test_dying_keeps_what_was_in_your_hands_and_the_grave_waits(world):
+    s = join(world, "Fallen")
+    s.connected = True
+    stock(s, Wooden_Sword=1, Healing_Draught=5, Iron_Dagger=1)
+    s.do_action("Wield", next(e for e in s.inv if e.name == "Wooden_Sword"))
+    s.player.hp = 0
+    s.player_dies()
+    assert s.equipped[s.equip_slot_index("Weapon")] == "Wooden_Sword"     # (cheap, but it was in their hand)
+    left = s.grave["left"]
+    world.tick(0.05, now=world.now + 5000)
+    assert s.grave["left"] == left                                  # (no time lost on the death screen)
+    s.respawn()
+    leave(world, s)
+
+
+def test_thieving_and_disarmed_traps_are_remembered_across_a_relog(world):
+    s = join(world, "Pocket")
+    s.thief_until["pick:Someone"] = world.now + 600000
+    s.banned_until["Shopkeeper"] = world.now + 600000
+    s.traps_disarmed.add(("15,18,-1", 16, 13))
+    s.traps_disarmed.add(("40,40,-11", 3, 3))                       # (the Deep's: made anew each shift)
+    st = s.save_state()
+    leave(world, s)
+    t = Session(world, "Pocket")
+    t.load_state(st)
+    assert t.thief_until.get("pick:Someone", 0) > world.now and "Shopkeeper" in t.banned_until
+    assert ("15,18,-1", 16, 13) in t.traps_disarmed and ("40,40,-11", 3, 3) not in t.traps_disarmed
+
+
+def test_the_gift_box_gives_every_gift(world):
+    s = join(world, "Giftee")
+    world.together.gifts["Giftee"] = [["A", "Bread", 1], ["B", "Logs", 2], ["C", "Bread", 1]]
+    try:
+        s.gift_box_menu("Giftee")
+        assert world.together.gifts["Giftee"] == [] and s.items_held("Logs") == 2 and s.items_held("Bread") == 2
+    finally:
+        world.together.gifts.pop("Giftee", None)
+        leave(world, s)
+
+
+def test_work_stops_when_someone_else_gets_there_first(world):
+    s = join(world, "Chopper")
+    s.connected = True
+    m = world.maps["1,1,0"]
+    before = m.cell_text(5, 5)
+    lines = ["01\tPlay.Animation\tWood_Chips\t1\tWoodChop", "02\tWait\t3", "03\tGive.Item\tLogs\t1", "04\tEnd"]
+    s.script_cursor_x, s.script_cursor_y = m.ox + 4 * 32 + 16, m.oy + 4 * 32 + 16
+    assert s.run_script_lines("Chop Test", lines)
+    s.run_scripts()
+    world.change_tile(m, 5, 5, "Tree_Stump001", keep_decor=False)  # (another player felled it)
+    s.run_scripts()
+    assert not s.script_running and s.items_held("Logs") == 0
+    world.change_tile(m, 5, 5, before, keep_decor=False)
+    leave(world, s)
+
+
+def test_what_everyone_sees_is_the_same_worked_out_once(world):
+    from dsengine.view import snapshot
+    a, b = join(world, "Look_A"), join(world, "Look_B", x=330, y=300)
+    alone = snapshot(world, a)
+    a.view_known, a.sent_maps = {}, {}
+    together = snapshot(world, a, {})
+    pick = lambda out: sorted((e["u"], sorted(e.items())) for m in out if m["t"] == "snap" for e in m["add"])
+    assert pick(alone) == pick(together)
+    leave(world, a)
+    leave(world, b)

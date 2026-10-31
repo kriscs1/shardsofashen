@@ -432,10 +432,9 @@ def data():
                    4: "Amulet_Niche", 5: "Amulet_Niche"}, chapter=3, requires="The Last Will")
     K.quest("Passage to the Mainland", "Milkmaid", "Passage", {
         0: "Bess the milkmaid, on the farm in the north, has the only boat that crosses to the mainland.",
-        1: "Find Bess's father's compass. His house in the village is locked, and the hobgoblins have its key: their "
-           "lair is in the caves under the chapel.",
+        1: "Find Bess's father's compass. His house in the village is locked, and the hobgoblins have its key.",
         2: "Bess's father, Tobias, is locked in a cage in the hobgoblins' lair. Pick its lock to free him. His house "
-           "key is hidden in one of the lair's barrels.",
+           "key must be in the lair somewhere.",
         3: "Tobias has given you his house. Unlock it with his key and find the compass he hid there.",
         4: "Give Tobias's compass to Bess, on the farm.",
     }, 5, markers={0: "Milkmaid_Farm", 1: "Hobgoblin_Lair", 2: "Hobgoblin_Lair", 3: "Fathers_House",
@@ -1090,7 +1089,8 @@ def bess_and_frank():
         (">Conditional", "$Item.Wooden_Sword>=1 and $Item.Wooden_Shield>=1", "@notyet"),
         ("Update.Attribute", "AmuletQuest", "=3"),
         say("Frank", "Not bad at all! Now wield them: sword in your hand, shield on your arm, and get used to the weight. "
-                     "Practise on the rats and wolves till your arm's strong (Strength 2) and you can take a knock "
+                     "Practise on the goblins in the woods west of the village till your arm's strong (Strength 2) and "
+                     "you can take a knock "
                      "(Defence 2).\\Then go and see Brother Aldous at the chapel. He keeps the way down.",
             ("I will.", "@dagger")),
         ("@dagger",),
@@ -1137,8 +1137,8 @@ def chapel_and_caves():
                            "for safekeeping.", ("I'll ask her.", "@end")),
         ("End",),
         ("@untrained",),
-        say("Gravekeeper", "Wooden swords and good intentions. Practise first: a few rats and wolves, until your Strength "
-                           "and Defence are level 2. Then come back.", ("I will.", "@end")),
+        say("Gravekeeper", "Wooden swords and good intentions. Practise first: the goblins in the woods to the west, until "
+                           "your Strength and Defence are level 2. Then come back.", ("I will.", "@end")),
         ("End",),
         ("@unarmed",),
         say("Gravekeeper", "Down there, with your sword and shield in your pack? Wield them both, then we'll talk.",

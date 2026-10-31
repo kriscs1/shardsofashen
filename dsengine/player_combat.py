@@ -412,6 +412,8 @@ class CombatMixin:
         return out
 
     def damage_npc(self, e, damage):
+        if not e.alive:
+            return                                          # (dead already: no second kill, nor a second respawn)
         self.break_invisibility()                           # (a blow struck: seen)
         self.fought(e)
         self.w.waves.hit(e, self)
@@ -1089,6 +1091,8 @@ class CombatMixin:
             return
         now = self.now
         for name in list(self.status):
+            if name not in self.status or self.dead_wait:
+                return                      # (it killed them: death took every effect away)
             s, fx = self.status[name], EFFECTS[name]
             if now >= s["until"] or now < s["until"] - fx["ms"] - 1000:
                 self.status_end(name)

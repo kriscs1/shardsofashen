@@ -34,6 +34,7 @@ import logging
 import os
 import random
 import re
+import sqlite3
 import time
 
 from aiohttp import web
@@ -45,6 +46,7 @@ from .store import CentralStore
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FAILS, FAIL_WINDOW, FAIL_WAIT = 6, 300, 60
+ANNOUNCES = 30                  # (calls from one address in ten minutes: a game announces itself once a minute)
 RESERVED = {"admin", "administrator", "moderator", "mod", "server", "system", "gm", "staff", "support", "owner"}
 DEFAULT_ADS = [
     {"text": "Host your own world: friends on your Wi-Fi join it from their phones.", "link": ""},
@@ -72,6 +74,8 @@ class Central:
         self.store = CentralStore(db_path)
         self.fails = {}                 # (kind, which) -> [times]
         self.signups = {}               # address -> [days]
+        self.announces = {}             # address -> [times] a game server called
+        self.pruned = 0.0
         self.name = os.environ.get("DS_CENTRAL_NAME", "Shards of Ashen")
         self.motd = os.environ.get("DS_CENTRAL_MOTD", "")
         # (an admin named in DS_CENTRAL_ADMINS with no account yet: only someone with the code from this log may make
@@ -86,26 +90,32 @@ class Central:
     # ----- who's asking, and how often
     @staticmethod
     def addr(request):
-        if os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true"):
-            fwd = request.headers.get("X-Forwarded-For", "")
-            if fwd:
-                return fwd.split(",")[0].strip()
-        return request.remote or ""
+        return auth.client_address(request)
 
     def wait(self, name, addr):
         now = time.monotonic()
         waits = []
         for key in (("name", name.lower()), ("addr", addr)):
             times = [t for t in self.fails.get(key, []) if now - t < FAIL_WINDOW]
-            self.fails[key] = times
+            if times:
+                self.fails[key] = times
+            else:
+                self.fails.pop(key, None)
             if len(times) >= FAILS:
                 waits.append(int(FAIL_WAIT - (now - times[-1])) + 1)
         return max([w for w in waits if w > 0], default=0)
 
     def failed(self, name, addr):
+        """Counted as a wrong try (before it's checked, so tries at once can't all slip by): when, for forgiven."""
         now = time.monotonic()
         for key in (("name", name.lower()), ("addr", addr)):
             self.fails.setdefault(key, []).append(now)
+        return now
+
+    def forgiven(self, name, addr, at):
+        for key in (("name", name.lower()), ("addr", addr)):
+            if at in self.fails.get(key, []):
+                self.fails[key].remove(at)
 
     def is_admin(self, name):
         """An admin of the central server: its account marked so (the admin page), or named in DS_CENTRAL_ADMINS."""
@@ -181,9 +191,14 @@ class Central:
         if email and self.store.account_by_email(email):
             return no("That email is on another account already.")
         code = auth.recovery_code()
-        self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)), email)
+        self.signups[addr] = made + [day]               # (counted now: sign-ups at once can't all slip by)
+        try:
+            self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)),
+                                      email)
+        except sqlite3.IntegrityError:                  # (taken while the password was hashed)
+            self.signups[addr] = made
+            return no("That name is taken. Log in instead?")
         self.claims.pop(name.lower(), None)
-        self.signups[addr] = made + [day]
         log.info("New account %s from %s", name, addr)
         return yes(token=self.store.new_token(name), name=name, recovery=code)
 
@@ -194,9 +209,10 @@ class Central:
         if w:
             return no("Too many tries: wait %d seconds." % w)
         acct = self.store.account(name)
+        at = self.failed(name, addr)
         if acct is None or not await self.matches(str(d.get("password", ""))[:200], acct[1]):
-            self.failed(name, addr)
             return no("That name and password don't go together.")
+        self.forgiven(name, addr, at)
         if acct[3]:
             return no("%s is banned: %s" % (acct[0], acct[3]))
         return yes(token=self.store.new_token(acct[0]), name=acct[0])
@@ -209,10 +225,11 @@ class Central:
             return no("Too many tries: wait %d seconds." % w)
         acct = self.store.account(name) or self.store.account_by_email(str(d.get("name", "")).strip())
         code = auth.clean_code(d.get("code", ""))
+        at = self.failed(name, addr)
         by_mail = acct is not None and await self.matches(code, self.store.mail_code(acct[0]))
         if acct is None or not (by_mail or await self.matches(code, acct[2])):
-            self.failed(name, addr)
             return no("That name and code don't go together.")
+        self.forgiven(name, addr, at)
         if by_mail:
             self.store.drop_mail_code(acct[0])
         new = str(d.get("password", ""))[:200]
@@ -308,19 +325,27 @@ class Central:
         return yes(name=name) if name else no("That ticket isn't good here.")
 
     async def announce(self, request):
-        d = await self.body(request)
+        d, addr = await self.body(request), self.addr(request)
+        now = time.monotonic()
+        heard = [t for t in self.announces.get(addr, []) if now - t < 600]
+        if len(heard) >= ANNOUNCES:                     # (a game calls once a minute: not hundreds of rows a second)
+            return no("Too many calls from here: a minute between them.")
+        self.announces[addr] = heard + [now]
+        if now - self.pruned > 600:
+            self.pruned = now
+            self.store.prune()
         name = " ".join(str(d.get("name", "")).split())[:40] or "A game of Shards of Ashen"
         url = str(d.get("url", "")).strip()[:200]
         if not url:                                   # (no address of its own: where it's calling from, its port)
             host = self.addr(request)
             if ":" in host:
                 host = "[%s]" % host
-            url = "http://%s:%d" % (host, int(d.get("port", 8484) or 8484))
+            url = "http://%s:%d" % (host, whole(d.get("port"), 1, 65535, 8484))
         if not url.startswith(("http://", "https://")):
             return no("A server's address starts http:// or https://.")
+        most = whole(d.get("max"), 0, 500)
         key, secret = self.store.announce(str(d.get("key", ""))[:32], str(d.get("secret", ""))[:64], name, url,
-                                          int(d.get("online", 0) or 0), int(d.get("max", 0) or 0),
-                                          str(d.get("version", ""))[:40])
+                                          whole(d.get("online"), 0, most), most, str(d.get("version", ""))[:40])
         pre = {k.strip() for k in os.environ.get("DS_CENTRAL_APPROVED", "").split(",") if k.strip()}
         if key in pre and not self.store.approved(key):
             self.store.set_approved(key, True)          # (approved in the settings, before it ever called)
@@ -389,6 +414,14 @@ class Central:
 
 def yes(**more):
     return web.json_response({"ok": True, **more})
+
+
+def whole(v, lo, hi, default=0):
+    """A whole number from a request, kept between lo and hi (anything else: default)."""
+    try:
+        return max(lo, min(hi, int(v)))
+    except (TypeError, ValueError):
+        return max(lo, min(hi, default))
 
 
 def same_place(a, b):

@@ -194,3 +194,30 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+def test_a_listed_game_is_approved_again_when_it_changes_and_calls_are_limited(tmp_path):
+    async def go():
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        store = capp["central"].store
+        try:
+            async with aiohttp.ClientSession() as http:
+                r = await post(http, c + "/api/announce", {"name": "Good Game", "url": "https://good.example",
+                                                            "online": "lots", "max": 5, "port": "x"})
+                assert r["ok"]                                           # (a bad number: not a fault)
+                store.set_approved(r["key"], True)
+                same = {"key": r["key"], "secret": r["secret"], "name": "Good Game", "url": "https://good.example",
+                        "online": 99999, "max": 5}
+                assert (await post(http, c + "/api/announce", same))["approved"]
+                listed = await (await http.get(c + "/api/servers")).json()
+                assert listed[0]["online"] <= listed[0]["max"]           # (no 99999 of 5)
+                moved = dict(same, name="FREE GOLD", url="https://phish.example")
+                assert not (await post(http, c + "/api/announce", moved))["approved"]   # (approved again first)
+                said = [await post(http, c + "/api/announce", {"name": "Spam %d" % k, "url": "https://x.example"})
+                        for k in range(40)]
+                assert not all(x["ok"] for x in said)                   # (not hundreds of rows from one address)
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())

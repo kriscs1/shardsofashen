@@ -17,7 +17,7 @@ from .entity import Entity, InvItem, PLAYER, TILE, NPC, MAPITEM
 from .player_items import ItemsMixin
 from .player_combat import CombatMixin
 from .player_actions import ActionsMixin
-from .scripting import ScriptMixin
+from .scripting import ScriptMixin, ATTRS_MOST
 from .quests import QuestMixin
 from .pvp import PvPMixin
 from .homes import HomeMixin
@@ -31,7 +31,7 @@ from .shards import ShardMixin
 from .remnants import RemnantMixin
 from .ownspell import OwnSpellMixin
 from .tricks import TrickMixin
-from .deep import DeepMixin
+from .deep import DeepMixin, MX as DEEP_X, MY as DEEP_Y
 from .shardcraft import ShardcraftMixin
 from .stances import StanceMixin
 from .thieving import ThiefMixin
@@ -447,7 +447,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.bank_qty[i] = max(1, int(qty))
             self.bank_wear[i] = [int(w) for w in wears]
         self.shards_from_bank()                         # (banked when Shards were an item)
-        self.attributes = [[k, v] for k, v in st.get("attributes", [])][:500]
+        self.attributes = [[k, v] for k, v in st.get("attributes", [])][:ATTRS_MOST]
         for a in self.attributes:                       # (named for a place that's been renamed: its new name)
             for old, new in RENAMED_WORDS.items():
                 a[0] = a[0].replace(old, new)
@@ -460,6 +460,12 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
         self.taken_once = set(st.get("taken_once", []))
         self.unlocked_chests = set(st.get("unlocked_chests", []))
+        for kind in ("thief_until", "banned_until"):  # (robbed lately, refused service: a relog doesn't clear them)
+            got = st.get(kind)
+            setattr(self, kind, {str(k): int(v) for k, v in got.items() if isinstance(v, (int, float))}
+                    if isinstance(got, dict) else {})
+        self.traps_disarmed = {(t[0], int(t[1]), int(t[2])) for t in st.get("traps_disarmed", [])
+                               if isinstance(t, list) and len(t) == 3}
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
         self.hotbar = (list(st.get("hotbar", [])) + [""] * HOTBAR_SLOTS)[:HOTBAR_SLOTS]
         self.hotbar = [self.renamed(h) for h in self.hotbar]
@@ -576,6 +582,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "npc_attitudes": dict(self.npc_attitudes),
             "taken_once": sorted(self.taken_once),
             "unlocked_chests": sorted(self.unlocked_chests),
+            "thief_until": {k: int(v) for k, v in self.thief_until.items() if v > self.now},
+            "banned_until": {k: int(v) for k, v in self.banned_until.items() if v > self.now},
+            "traps_disarmed": sorted([list(t) for t in self.traps_disarmed      # (not the Deep's: made anew)
+                                      if not t[0].startswith("%d,%d," % (DEEP_X, DEEP_Y))]),
             "hotbar": list(self.hotbar),
             "bets": [int(t) for t in self.bets],
             "explored": self.explored_for_client(),
@@ -659,8 +669,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.journal_wanted and not 0 <= self.now - self.journal_at < JOURNAL_GAP:
             self.journal_wanted, self.journal_at = False, self.now
             self.emit(self.journal_data())
-        if self.dead_wait:                  # (dead, waiting to respawn: only the grave's time goes on)
-            self.grave_tick(self.w.dt * 1000)
+        if self.dead_wait:                  # (dead, waiting to respawn: the grave's time starts when they're up again)
             return
         self.status_tick()
         self.grave_tick(self.w.dt * 1000)
