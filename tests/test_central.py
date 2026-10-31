@@ -214,3 +214,71 @@ def test_a_listed_game_is_approved_again_when_it_changes_and_calls_are_limited(t
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch):
+    """Two Shards accounts: one asks, the other accepts (on the start screen, or in a game by right-click or the
+    journal), and they're friends in every game, any character of theirs; a game says where they're playing; the
+    world's old friends of a character move over to its account; a homestead lets an account's friends in."""
+    async def go():
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL", central)
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Kris's World")
+        grunner, gport = await run(gapp)
+        game = gapp[GAME]
+        wsurl = "ws://127.0.0.1:%d/ws" % gport
+        try:
+            async with aiohttp.ClientSession() as http:
+                tok = {}
+                for n in ("Alpha", "Beta", "Gamma"):
+                    tok[n] = (await post(http, central + "/api/register", {"name": n, "password": "longpassword"}))["token"]
+                r = await post(http, central + "/api/friend", {"token": tok["Alpha"], "name": "nobody"})
+                assert not r["ok"]
+                r = await post(http, central + "/api/friend", {"token": tok["Alpha"], "name": "gamma"})
+                assert r["done"] == "asked" and r["asked"] == ["Gamma"]
+                r = await post(http, central + "/api/friends", {"token": tok["Gamma"]})
+                assert r["asking"] == ["Alpha"] and r["friends"] == []
+                r = await post(http, central + "/api/friend", {"token": tok["Gamma"], "name": "Alpha"})
+                assert r["done"] == "friends" and r["friends"] == ["Alpha"]
+
+                async def come(account, char):
+                    t = await post(http, central + "/api/ticket", {"token": tok[account], "server": game.server_id()})
+                    return await ticket_in(http, wsurl, t["ticket"], char, device=account)
+                game.world.together.friends["Bee"] = ["Ace"]          # (the world's own list, from before)
+                game.world.together.accounts["Ace"] = "Alpha"
+                a, m = await come("Alpha", "Ace")
+                assert m["t"] == "welcome"
+                b, m = await come("Beta", "Bee")
+                await asyncio.sleep(1.0)
+                sa, sb = game.world.sessions["Ace"], game.world.sessions["Bee"]
+                assert sb.central_friends["asked"] == ["Alpha"]           # (Bee's old friend Ace: asked by account)
+                assert "Bee" not in game.world.together.friends or not game.world.together.friends["Bee"]
+                game.world.tick(0.05, now=game.world.now + 50)
+                await game.friends_now(sa)
+                assert sa.central_friends["asking"] == ["Beta"] and sa.central_friends["friends"] == ["Gamma"]
+                rows = sa.friends_rows()
+                assert rows[0]["asks"] and rows[0]["account"] == "Beta"
+                sa.add_friend_named("Beta", True)                         # (the journal's Accept)
+                await asyncio.sleep(1.0)
+                assert "Beta" in sa.central_friends["friends"] and "Bee" in sa.friend_names()
+                assert "Ace" in sb.friend_names()
+                row = next(r for r in sa.friends_rows() if r.get("char") == "Bee")
+                assert row["name"] == "Bee (Beta)" and row["on"]
+                assert game.world.together.account_friend("Ace", "Bee")    # (a homestead lets them in)
+
+                r = await post(http, central + "/api/friends", {"token": tok["Gamma"]})
+                assert r["playing"]["Alpha"]["character"] == "Ace" and r["playing"]["Alpha"]["place"] == "Kris's World"
+                await a.close()
+                await asyncio.sleep(1.0)
+                r = await post(http, central + "/api/friends", {"token": tok["Gamma"]})
+                assert "Alpha" not in r["playing"]                        # (gone from the game)
+
+                sb.remove_friend_named("Ace")                             # (right-click: Remove friend)
+                await asyncio.sleep(1.0)
+                assert "Alpha" not in sb.central_friends["friends"] and "Ace" not in sb.friend_names()
+                await b.close()
+        finally:
+            await grunner.cleanup()
+            await crunner.cleanup()
+    asyncio.run(go())

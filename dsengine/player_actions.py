@@ -741,7 +741,8 @@ class ActionsMixin:
         elif t == "trade":
             self.trade_msg(msg)                         # (the trade window: together.py)
         elif t == "friend":
-            (self.remove_friend_named if msg.get("remove") else self.add_friend_named)(str(msg.get("name", "")))
+            (self.remove_friend_named if msg.get("remove") else self.add_friend_named)(str(msg.get("name", "")),
+                                                                                      bool(msg.get("account")))
         elif t == "party_invite":
             o = self.w.sessions.get(str(msg.get("name", "")))
             if o is not None and o is not self:

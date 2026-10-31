@@ -41,7 +41,7 @@ from aiohttp import web
 
 from server import auth
 from . import mail
-from .store import CentralStore
+from .store import CentralStore, MOST_FRIENDS
 
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -320,9 +320,61 @@ class Central:
         return yes(ticket=self.store.new_ticket(name, server))
 
     async def verify(self, request):
+        """A game server checks a ticket: whose it is, their friends, and a key to them while they play there."""
         d = await self.body(request)
-        name = self.store.use_ticket(d.get("ticket", ""), str(d.get("server", ""))[:64])
-        return yes(name=name) if name else no("That ticket isn't good here.")
+        server = str(d.get("server", ""))[:64]
+        name = self.store.use_ticket(d.get("ticket", ""), server)
+        if not name:
+            return no("That ticket isn't good here.")
+        return yes(name=name, grant=self.store.new_grant(name, server), **self.friends_of(name))
+
+    # ----- friends: by account, the same in every game
+    def friends_of(self, name):
+        friends, asking, asked = self.store.friend_lists(name)
+        return {"friends": friends, "asking": asking, "asked": asked, "playing": self.store.playing_of(friends)}
+
+    def change_friend(self, name, other, remove):
+        """name asks other to be friends (or accepts their ask), or they're friends no more: (what happened, why not)."""
+        acct = self.store.account(auth.clean_name(other))
+        if acct is None:
+            return "", "There's no Shards account called %s." % str(other)[:20]
+        if acct[0].lower() == name.lower():
+            return "", "That's your own account."
+        if remove:
+            self.store.drop_friend(name, acct[0])
+            return "removed", ""
+        if self.store.asked_count(name) >= MOST_FRIENDS:
+            return "", "Your friends list is full."
+        return self.store.ask_friend(name, acct[0]), ""
+
+    async def friends(self, request):
+        name = self.store.token_name((await self.body(request)).get("token", ""))
+        return yes(**self.friends_of(name)) if name else no("Not logged in.")
+
+    async def friend(self, request):
+        d = await self.body(request)
+        name = self.store.token_name(d.get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        done, why = self.change_friend(name, d.get("name", ""), bool(d.get("remove")))
+        return no(why) if why else yes(done=done, **self.friends_of(name))
+
+    async def game_friends(self, request):
+        """A game server, for a player playing there (its key from their ticket): where they're playing (playing: the
+        character, "" when they've gone), a friend asked or removed (name), and their friends back."""
+        d = await self.body(request)
+        got = self.store.grant_name(d.get("grant", ""))
+        if not got:
+            return no("Come in again from the start screen to see your friends.")
+        name, server = got
+        done = ""
+        if d.get("name"):
+            done, why = self.change_friend(name, d["name"], bool(d.get("remove")))
+            if why:
+                return no(why)
+        if "playing" in d:
+            self.store.set_playing(name, server, str(d.get("place", ""))[:60], auth.clean_name(d.get("playing", "")))
+        return yes(done=done, **self.friends_of(name))
 
     async def announce(self, request):
         d, addr = await self.body(request), self.addr(request)
@@ -492,7 +544,8 @@ def make_central(db_path):
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
                      ("logout", c.logout), ("recovery", c.recovery), ("ticket", c.ticket), ("verify", c.verify),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
-                     ("email", c.set_email), ("forgot", c.forgot)):
+                     ("email", c.set_email), ("forgot", c.forgot), ("friends", c.friends), ("friend", c.friend),
+                     ("game/friends", c.game_friends)):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
     app.router.add_get("/api/servers", c.servers)

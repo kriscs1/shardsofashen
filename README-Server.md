@@ -185,6 +185,11 @@ Characters have no passwords. Each belongs to someone, and its name is one of a 
 A device that came in by an account (a ticket, or the host's key) is that account's on that server from then on: a
 reload, or the central server away, is still you. Signing out on the start screen gives every game a new key.
 
+**Friends** are by Shards account, kept on the central server: asking (the start screen's Friends, or in a game:
+right-click a player, Add friend, or `/friend Name`) is a request till they ask back, and then any character of
+theirs is a friend in every game. A game server sees a player's friends only with the key their ticket brought, and
+tells the central server where they're playing, so friends see it. A device's characters keep the world's own list.
+
 **Old characters** (made with a password of their own, before accounts) wait to be brought in: on the character
 screen, "Bring in an old character" takes its name and password once, and it's yours for good, with no password. An
 admin can give one a password to bring it in with (Admin > An old character's password, or

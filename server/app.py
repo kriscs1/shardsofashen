@@ -79,6 +79,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     async def announcing():
         while True:                                     # (remote: the central server lists it while it's heard)
             await game.announce()
+            await game.keep_friends()                   # (and everyone in by an account: playing here, their friends)
             await asyncio.sleep(60)
 
     async def start_tick(app):

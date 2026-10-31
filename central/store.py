@@ -1,5 +1,6 @@
 """The central server's database (SQLite): accounts, their log-in tokens, the one-time tickets that take a player into
-a game server, and the remote servers that announce themselves."""
+a game server, the remote servers that announce themselves, and friends: who asked whom (both ways: friends), the
+keys a game server is given to a player's friends while they play there, and where each account is playing."""
 import hashlib
 import os
 import sqlite3
@@ -33,6 +34,25 @@ CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS friends (
+    who TEXT NOT NULL COLLATE NOCASE,
+    whom TEXT NOT NULL COLLATE NOCASE,
+    made REAL NOT NULL,
+    PRIMARY KEY (who, whom)
+);
+CREATE TABLE IF NOT EXISTS grants (
+    token TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    server TEXT NOT NULL,
+    made REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS playing (
+    name TEXT PRIMARY KEY COLLATE NOCASE,
+    server TEXT NOT NULL,
+    place TEXT NOT NULL,
+    character TEXT NOT NULL,
+    seen REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS servers (
     key TEXT PRIMARY KEY,
     secret TEXT NOT NULL,
@@ -51,6 +71,9 @@ MAIL_CODE_MINUTES = 30
 TOKEN_DAYS = 30
 TICKET_SECONDS = 120
 SERVER_SECONDS = 180            # (a remote server not heard from for this long isn't listed)
+GRANT_DAYS = 2                  # (a game server's key to a player's friends: while they play there, and a while after)
+PLAYING_SECONDS = 300           # (playing somewhere: as long as their game says so this often)
+MOST_FRIENDS = 200
 
 
 def digest(secret):
@@ -164,6 +187,68 @@ class CentralStore:
             return None
         return row[0]
 
+    # ----- friends: who asked whom (an ask both ways: friends)
+    def ask_friend(self, who, whom):
+        """who asks whom: "friends" (whom had asked: now both are), "asked", or "already"."""
+        if self.db.execute("SELECT 1 FROM friends WHERE who = ? AND whom = ?", (who, whom)).fetchone():
+            return "already"
+        self.db.execute("INSERT INTO friends (who, whom, made) VALUES (?, ?, ?)", (who, whom, time.time()))
+        back = self.db.execute("SELECT 1 FROM friends WHERE who = ? AND whom = ?", (whom, who)).fetchone()
+        return "friends" if back else "asked"
+
+    def drop_friend(self, who, whom):
+        """Friends no more, or an ask taken back or turned down: both ways."""
+        self.db.execute("DELETE FROM friends WHERE (who = ? AND whom = ?) OR (who = ? AND whom = ?)",
+                        (who, whom, whom, who))
+
+    def friend_lists(self, name):
+        """(friends, asking: asked name, asked: name asked) - names as their accounts were made."""
+        out = self.db.execute("SELECT a.name FROM friends f JOIN accounts a ON a.name = f.whom WHERE f.who = ?",
+                              (name,)).fetchall()
+        inn = self.db.execute("SELECT a.name FROM friends f JOIN accounts a ON a.name = f.who WHERE f.whom = ?",
+                              (name,)).fetchall()
+        out, inn = {r[0] for r in out}, {r[0] for r in inn}
+        key = str.lower
+        return sorted(out & inn, key=key), sorted(inn - out, key=key), sorted(out - inn, key=key)
+
+    def asked_count(self, name):
+        return self.db.execute("SELECT COUNT(*) FROM friends WHERE who = ?", (name,)).fetchone()[0]
+
+    # ----- a game server's key to a player's friends (given with the ticket: only their friends, only from there)
+    def new_grant(self, name, server):
+        token = new_secret()
+        self.db.execute("INSERT INTO grants (token, name, server, made) VALUES (?, ?, ?, ?)",
+                        (digest(token), name, server, time.time()))
+        return token
+
+    def grant_name(self, token):
+        """(name, server) for a game server's key, or None. Each use keeps it good a while longer."""
+        key = digest(str(token))
+        row = self.db.execute("SELECT name, server, made FROM grants WHERE token = ?", (key,)).fetchone()
+        if not row or time.time() - row[2] > GRANT_DAYS * 86400:
+            return None
+        self.db.execute("UPDATE grants SET made = ? WHERE token = ?", (time.time(), key))
+        return row[0], row[1]
+
+    # ----- where everyone's playing (their game says so while they play)
+    def set_playing(self, name, server, place, character):
+        if character:
+            self.db.execute("INSERT OR REPLACE INTO playing (name, server, place, character, seen) VALUES (?, ?, ?, ?, ?)",
+                            (name, server, place, character, time.time()))
+        else:
+            self.db.execute("DELETE FROM playing WHERE name = ? AND server = ?", (name, server))
+
+    def playing_of(self, names):
+        """{name: {"server", "place", "character", "url"}} for those of names playing just now (url: a listed game's)."""
+        out = {}
+        for n in names:
+            row = self.db.execute("SELECT p.server, p.place, p.character, s.url, s.approved FROM playing p LEFT JOIN "
+                                  "servers s ON s.key = p.server WHERE p.name = ? AND p.seen > ?",
+                                  (n, time.time() - PLAYING_SECONDS)).fetchone()
+            if row:
+                out[n] = {"server": row[0], "place": row[1], "character": row[2], "url": row[3] if row[4] else ""}
+        return out
+
     # ----- remote servers
     def announce(self, key, secret, name, url, online, most, version):
         """A remote server says it's there (key and secret: its own, from the first time). Returns (key, secret)."""
@@ -187,6 +272,8 @@ class CentralStore:
         now = time.time()
         self.db.execute("DELETE FROM tickets WHERE made < ?", (now - TICKET_SECONDS,))
         self.db.execute("DELETE FROM tokens WHERE made < ?", (now - TOKEN_DAYS * 86400,))
+        self.db.execute("DELETE FROM grants WHERE made < ?", (now - GRANT_DAYS * 86400,))
+        self.db.execute("DELETE FROM playing WHERE seen < ?", (now - PLAYING_SECONDS,))
         self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
 
     def server_url(self, key):

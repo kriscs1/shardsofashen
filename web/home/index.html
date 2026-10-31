@@ -88,6 +88,10 @@ button:disabled { opacity: 0.5; cursor: default; filter: none; }
 .tile span.words { display: flex; flex-direction: column; gap: 4px; }
 .tile small { font-size: 14px; font-weight: normal; color: var(--parchment); text-shadow: none; line-height: 1.3; }
 .tile.locked { filter: grayscale(0.6) brightness(0.8); }
+.tile.wide { grid-column: 1 / -1; min-height: 84px; }
+.server.ask { border: 2px solid var(--ok); }
+.server .go + button, .server button + button { margin-left: 0; }
+.server .buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .screen-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .screen-head h2 { margin: 0; flex: 1; }
 .cards { display: flex; flex-direction: column; gap: 10px; }
@@ -202,6 +206,8 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
       <span class="words">Join a local game<small id="local-words">The games on your network, or one by its address.</small></span></button>
     <button id="remote-open" class="tile"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M6 1h4v2h2v2h2v6h-2v2h-2v2H6v-2H4v-2H2V5h2V3h2zM7 3v10h2V3zM4 7v2h8V7z"/></svg></span>
       <span class="words">Join a remote game<small id="remote-words">Approved games anywhere, listed by the central server.</small></span></button>
+    <button id="friends-open" class="tile wide"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M3 2h4v4H3zM9 2h4v4H9zM1 8h8v6H1zM7 8h8v6H7z"/><path fill="#b48cff" d="M7 8h2v2H7z"/></svg></span>
+      <span class="words">Friends<small id="friends-words">Your friends by Shards account: any character of theirs, in every game.</small></span></button>
   </div>
 
   <section id="host" class="panel fade" hidden>
@@ -227,6 +233,15 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
         <input id="address" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <div class="row"><button id="join" class="go">Join</button></div>
     </div>
+  </section>
+
+  <section id="friends" class="panel fade" hidden>
+    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Friends</h2><button id="friends-refresh">Look again</button></div>
+    <form id="friend-form" class="row" style="margin-bottom:12px">
+      <input id="friend-name" placeholder="A friend's Shards account" maxlength="20" autocomplete="off" spellcheck="false" style="flex:1">
+      <button class="go" type="submit">Ask</button>
+    </form>
+    <div id="friend-list" class="cards"></div>
   </section>
 
   <section id="remote" class="panel fade" hidden>
@@ -483,10 +498,11 @@ async function join(address, id, name, mine) {
   }
   const q = new URLSearchParams(), h = new URLSearchParams();
   if (KIND !== "browser") q.set("app", KIND);
-  if (mine) {                                      // (this app's own game: in as its host)
+  if (mine) {                                      // (this app's own game: in as its host, no network needed)
     h.set("host", hostKey());
     if (myName) h.set("account", myName);
-  } else if (token && id && centralUp) {
+  }
+  if (token && id && centralUp) {                  // (and a ticket when there's one to be had: your friends with it)
     try { const t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
   }
   h.set("device", deviceKey(id || u.host));
@@ -498,9 +514,10 @@ async function join(address, id, name, mine) {
 // ----- the screens
 function show(which) {
   $("menu").hidden = which !== "menu";
-  for (const s of ["host", "local", "remote"]) $(s).hidden = which !== s;
+  for (const s of ["host", "local", "remote", "friends"]) $(s).hidden = which !== s;
   if (which === "local" && KIND !== "browser") find();
   if (which === "remote") listRemote();
+  if (which === "friends") listFriends();
 }
 for (const b of document.querySelectorAll(".back")) b.onclick = () => show("menu");
 $("host-open").onclick = () => show("host");
@@ -509,6 +526,66 @@ $("remote-open").onclick = () => {
   if (!myName) { toast(centralUp ? "Sign in first: the remote games know you by your Shards account." :
     "The central server can't be reached just now.", true); if (centralUp) showWelcome(); return; }
   show("remote");
+};
+
+$("friends-open").onclick = () => {
+  if (!myName || !centralUp) { toast(centralUp ? "Sign in first: friends are kept by your Shards account." :
+    "The central server can't be reached just now.", true); if (centralUp) showWelcome(); return; }
+  show("friends");
+};
+
+// ----- friends: by Shards account, on the central server (the same in every game); asking is a request till they
+// ask back, and a friend who's playing in a listed game can be joined
+function friendCard(name, words, buttons, ask) {
+  const card = document.createElement("div");
+  card.className = "server" + (ask ? " ask" : "");
+  card.innerHTML = '<div class="what"><div class="name"></div><div class="meta"><span class="where"></span></div></div><div class="buttons"></div>';
+  card.querySelector(".name").textContent = name;
+  card.querySelector(".where").textContent = words;
+  for (const [text, cls, fn] of buttons) {
+    const b = document.createElement("button");
+    b.textContent = text;
+    if (cls) b.className = cls;
+    b.onclick = fn;
+    card.querySelector(".buttons").append(b);
+  }
+  return card;
+}
+function showFriends(r) {
+  const box = $("friend-list");
+  box.innerHTML = "";
+  const change = (name, remove) => account("/api/friend", { token, name, remove }, showFriends);
+  for (const a of r.asking) box.append(friendCard(a, "Asks to be your friend", [["Accept", "go", () => change(a)], ["Decline", "", () => change(a, true)]], true));
+  for (const a of r.friends) {
+    const p = (r.playing || {})[a];
+    const buttons = [];
+    if (p && p.url) buttons.push(["Join", "go", () => join(p.url, p.server, p.place)]);
+    buttons.push(["Remove", "", () => dialog(`<h2>Remove ${esc(a)}?</h2><p class="small dim">You won't be friends in any game.</p>`,
+      [["Keep", ""], ["Remove", "go", () => change(a, true)]])]);
+    box.append(friendCard(a, p ? `Playing ${p.character} on ${p.place || "a game"}` : "Not playing just now", buttons));
+  }
+  for (const a of r.asked) box.append(friendCard(a, "You've asked them to be your friend", [["Cancel", "", () => change(a, true)]]));
+  if (!box.children.length) box.innerHTML = '<div class="empty">No friends yet. Ask someone by their Shards account above, or right-click them in a game: Add friend.</div>';
+  const n = r.asking.length;
+  $("friends-words").textContent = n ? `${n} asking to be your friend.` : `${r.friends.length} friend${r.friends.length === 1 ? "" : "s"}, by Shards account, in every game.`;
+}
+async function listFriends() {
+  $("friend-list").innerHTML = '<div class="empty"><div class="spinner"></div>Asking the central server...</div>';
+  try {
+    const r = await api("/api/friends", { token });
+    if (r.ok) showFriends(r); else $("friend-list").innerHTML = `<div class="empty">${esc(r.text)}</div>`;
+  } catch (e) { $("friend-list").innerHTML = '<div class="empty">The central server didn\'t answer.</div>'; }
+}
+$("friends-refresh").onclick = listFriends;
+$("friend-form").onsubmit = (ev) => {
+  ev.preventDefault();
+  const name = $("friend-name").value.trim();
+  if (!name) return;
+  account("/api/friend", { token, name }, (r) => {
+    $("friend-name").value = "";
+    toast(r.done === "friends" ? `${name} is your friend now.` : r.done === "already" ? `You've asked ${name} already.` : `You've asked ${name} to be your friend.`);
+    showFriends(r);
+  });
 };
 
 function serverCard(g, badge, action) {

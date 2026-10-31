@@ -57,6 +57,8 @@ class Client:
         self.owner = None           # (who's playing, once they've said: "a:<Shards account>" or "d:<device>")
         self.account = ""           # (their Shards account's name, if they came in by one)
         self.host = False           # (the host, by the key its app started the server with)
+        self.grant = ""             # (the central server's key to their friends, from their ticket)
+        self.friends_got = None     # (their friends, as the ticket's check said)
         self.msg_times = []
         self.closed = False
         self.queue = asyncio.Queue()
@@ -105,6 +107,7 @@ class GameServer:
         self.backup_dir = backup_dir or os.path.join(os.path.dirname(os.path.abspath(db_path)), "backups")
         t0 = time.time()
         self.world = World(root)
+        self.world.central_friend = self.central_friend     # (friends by account: together.py asks)
         self.load_world()
         self.world.data.places()                        # (read now, not on the first player's login: they'd wait)
         self.world.data.quest_table()
@@ -454,6 +457,77 @@ class GameServer:
             log.warning("The central server didn't answer %s: %s", path, e)
             return None
 
+    # ----- friends by Shards account: the central server keeps them; this game asks it with the key a player's ticket
+    # brought (only their friends), says where they're playing, and tells the engine (Session.central_friends)
+    def took_friends(self, s, got):
+        """The central server's word on s's friends: theirs, asks either way, where friends are playing."""
+        s.central_friends = {k: [str(a) for a in got.get(k) or []] for k in ("friends", "asking", "asked")}
+        s.central_friends["playing"] = got.get("playing") if isinstance(got.get("playing"), dict) else {}
+        self.world.together.account_friends[s.account.lower()] = list(s.central_friends["friends"])
+        s.dirty_me = s.journal_wanted = True            # (the Friends page, if it's open: sent from the tick)
+
+    async def friends_now(self, s, **ask):
+        """s's friends from the central server (and where s is playing: here), asking or removing one first."""
+        got = await self.central_post("/api/game/friends", {"grant": s.grant, "playing": s.player_name,
+                                                            "place": self.server_name(), **ask})
+        if got and got.get("ok") and s.connected:
+            self.took_friends(s, got)
+        return got
+
+    async def welcome_friends(self, s):
+        """Come in by an account: it's playing here; the world's friends of this character whose characters are
+        Shards accounts' are asked by account instead (when both have come in, they're friends again)."""
+        got = await self.friends_now(s)
+        if not got or not got.get("ok"):
+            return
+        t = self.world.together
+        known = {a.lower() for k in ("friends", "asked") for a in s.central_friends.get(k, [])}
+        for n in list(t.friends.get(s.player_name, [])):
+            acct = t.accounts.get(n, "")
+            if not acct or acct.lower() == s.account.lower():
+                continue
+            if acct.lower() not in known:
+                await self.friends_now(s, name=acct)
+            t.friends[s.player_name].remove(n)
+
+    def central_friend(self, s, account, remove):
+        """The engine's ask (Add friend, Remove friend, the journal's Accept and Decline) for a Shards account."""
+        if not getattr(s, "grant", ""):
+            s.refuse("Friends by account are kept by the central server: come in from the start screen, signed in.")
+            return
+        asyncio.ensure_future(self.change_friend(s, account, remove))
+
+    async def change_friend(self, s, account, remove):
+        got = await self.friends_now(s, name=account, remove=bool(remove))
+        if not got or not got.get("ok"):
+            s.refuse((got or {}).get("text") or "The central server didn't answer: try again soon.")
+            return
+        done = got.get("done")
+        who = next((a for k in ("friends", "asking", "asked") for a in s.central_friends.get(k, [])
+                    if a.lower() == account.lower()), account)
+        if done == "removed":
+            s.display_message("%s is no longer on your friends list." % who, "INFO")
+        elif done == "friends":
+            s.display_message("%s is your friend now." % who, "SUCCESS")
+        elif done == "asked":
+            s.display_message("You've asked %s to be your friend." % who, "INFO")
+        else:
+            s.display_message("You've asked %s already." % who, "INFO")
+        for o in list(self.world.sessions.values()):    # (their characters here hear it at once)
+            if o is not s and o.account and o.account.lower() == who.lower() and getattr(o, "grant", ""):
+                if done == "asked":
+                    o.display_message("%s (%s) asks to be your friend: see the journal's Friends page." %
+                                      (s.player_name, s.account), "INFO")
+                elif done == "friends":
+                    o.display_message("%s is your friend now." % s.account, "SUCCESS")
+                asyncio.ensure_future(self.friends_now(o))
+
+    async def keep_friends(self):
+        """Every minute: everyone in by an account is still playing here, and hears their friends' news."""
+        for s in list(self.world.sessions.values()):
+            if getattr(s, "grant", "") and s.connected:
+                await self.friends_now(s)
+
     async def announce(self, bye=False):
         """A remote server (DS_PUBLIC=1) tells the central server it's there: its id, name, address (DS_PUBLIC_URL,
         or where it calls from and its port), how many are playing. Every minute; goodbye as it stops."""
@@ -497,13 +571,14 @@ class GameServer:
         return self.store.setting("banowner:" + owner.lower(), "")
 
     async def ticket_name(self, ticket):
-        """The Shards account a ticket from the central server is for, or ("", why not)."""
+        """The Shards account a ticket from the central server is for, why not, and what else it said (their friends
+        and a key to them): (name, "", got) or ("", why, None)."""
         if not self.central_url():
-            return "", "This game isn't joined to the central server."
+            return "", "This game isn't joined to the central server.", None
         got = await self.central_post("/api/verify", {"ticket": str(ticket)[:100], "server": self.server_id()})
         if not got or not got.get("ok"):
-            return "", (got or {}).get("text") or "The central server couldn't be reached just now."
-        return auth.clean_name(got.get("name", "")), ""
+            return "", (got or {}).get("text") or "The central server couldn't be reached just now.", None
+        return auth.clean_name(got.get("name", "")), "", got
 
     async def handle_login(self, c, data):
         t = data.get("t")
@@ -524,14 +599,17 @@ class GameServer:
         device = str(data.get("device", ""))[:100]
         device = self.device_owner(device) if len(device) >= 16 else ""
         linked = self.store.setting("dev:" + device[2:], "") if device else ""
-        owner, why = "", ""
+        owner, why, got = "", "", None
+        if data.get("ticket"):
+            name, why, got = await self.ticket_name(data["ticket"])
+            owner = "a:" + name if name else ""
         key = os.environ.get("DS_HOST_KEY", "")
         if key and self.is_local(c.addr) and hmac.compare_digest(str(data.get("host", "")), key):
             name = auth.clean_name(data.get("account", ""))
-            owner, c.host = ("a:" + name if name else linked or device), True
-        elif data.get("ticket"):
-            name, why = await self.ticket_name(data["ticket"])
-            owner = "a:" + name if name else ""
+            mine = "a:" + name if name else linked or device
+            if mine.lower() != owner.lower():
+                got = None                              # (a ticket for someone else: the host's say goes)
+            owner, c.host = mine, True
         if not owner and linked:
             owner = linked                              # (this device came in by its account here before)
         elif not owner and device and self.devices_welcome(c.addr):
@@ -546,6 +624,7 @@ class GameServer:
         if device and owner.startswith("a:") and linked.lower() != owner.lower():
             self.store.set_setting("dev:" + device[2:], owner)    # (a reload, or the central server away: still you)
         c.owner, c.account = owner, owner[2:] if owner.startswith("a:") else ""
+        c.grant, c.friends_got = (got.get("grant") or "", got) if got else ("", None)
         await self.send_characters(c)
 
     async def send_characters(self, c, text=""):
@@ -656,6 +735,12 @@ class GameServer:
             self.broadcast({"t": "chat", "from": "", "text": "%s has joined the game." % name}, exclude=s)
             s.friends_hear("Your friend %s has come into Ashen." % name)
         s.account = c.account
+        if c.account:
+            w.together.accounts[name] = c.account
+        if c.grant:
+            s.grant = c.grant
+            self.took_friends(s, c.friends_got or {})
+            asyncio.ensure_future(self.welcome_friends(s))
         c.session = s
         self.clients[s] = c
         self.last_where_sent = None                     # (the one come in hasn't had the dots yet)
@@ -882,6 +967,8 @@ class GameServer:
         self.broadcast({"t": "chat", "from": "", "text": "%s has left the game." % s.player_name})
         s.friends_hear("Your friend %s has left Ashen." % s.player_name)
         self.broadcast(self.players_message())
+        if getattr(s, "grant", ""):                     # (not playing here now, as their friends see it)
+            asyncio.ensure_future(self.central_post("/api/game/friends", {"grant": s.grant, "playing": ""}))
 
     async def shutdown(self):
         self.running = False

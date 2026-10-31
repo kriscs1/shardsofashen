@@ -14,7 +14,9 @@
               guestbook and a gift box; and on a return after a day away, what happened while you were gone.
   Friends     Add a player as a friend (right-click them, or /friend Name): the journal's Friends page shows who's
               about and where, with Whisper and Invite; you're told when a friend comes or goes; and your homestead's
-              "friends" are yours (kept with the world, so it knows them while you're away).
+              "friends" are yours (kept with the world, so it knows them while you're away). Two Shards accounts are
+              friends by account, on the central server (server/game.py asks it): any character of theirs, in any
+              game; asking is a request till they ask back. A device's characters keep the world's own list.
   Trading     Trade with a player (right-click them): each puts in things and gold, both accept, and they change
               hands at once. A change undoes both accepts.
   Companions  Jimmy follows the crowned heir about (a cat: he finds secrets); a sellsword can be hired for a while.
@@ -48,6 +50,8 @@ class Together:
         self.guests = {}            # owner -> [[name, seconds]] (the newest last)
         self.gifts = {}             # owner -> [[from, item, n]]
         self.friends = {}           # name -> [names] (kept with the world: a homestead knows them while you're away)
+        self.accounts = {}          # character -> its Shards account (as it last came in)
+        self.account_friends = {}   # account (lower case) -> [accounts]: its friends, as the central server last said
         self.parties = {}           # id -> [names] (not saved: a party lasts while its people play)
         self.next_party = 1
 
@@ -86,7 +90,7 @@ class Together:
 
     def state(self):
         return {"projects": self.projects, "records": self.records, "guests": self.guests, "gifts": self.gifts,
-                "friends": self.friends}
+                "friends": self.friends, "accounts": self.accounts, "account_friends": self.account_friends}
 
     def load(self, st):
         st = st or {}
@@ -95,9 +99,16 @@ class Together:
         self.guests = dict(st.get("guests", {}))
         self.gifts = dict(st.get("gifts", {}))
         self.friends = {k: list(v) for k, v in st.get("friends", {}).items()}
+        self.accounts = {str(k): str(v) for k, v in (st.get("accounts") or {}).items()}
+        self.account_friends = {str(k): [str(a) for a in v] for k, v in (st.get("account_friends") or {}).items()}
 
     def friends_of(self, name):
         return self.friends.get(name, [])
+
+    def account_friend(self, a, b):
+        """Are characters a and b of Shards accounts that are friends (as the central server last said)?"""
+        aa, ba = self.accounts.get(a, ""), self.accounts.get(b, "")
+        return bool(aa and ba) and ba.lower() in [f.lower() for f in self.account_friends.get(aa.lower(), [])]
 
 
 class TogetherMixin:
@@ -264,12 +275,37 @@ class TogetherMixin:
                 o.add_inventory_item(item, n)
 
     # ================================================================================================= friends
-    def friend_names(self):
-        return self.w.together.friends_of(self.player_name)
+    def account_friends(self):
+        """Your Shards account's friends (the central server's word, as server/game.py last heard it)."""
+        return (getattr(self, "central_friends", None) or {}).get("friends", [])
 
-    def add_friend_named(self, name):
+    def friend_names(self):
+        """Your friends' characters: the world's list, and those here of your account's friends."""
+        local = self.w.together.friends_of(self.player_name)
+        mine = {a.lower() for a in self.account_friends()} if self.account else set()
+        if not mine:
+            return local
+        return local + [n for n, o in self.w.sessions.items()
+                        if o is not self and n not in local and o.account and o.account.lower() in mine]
+
+    def account_of(self, name):
+        o = self.w.sessions.get(name)
+        return (o.account if o is not None else "") or self.w.together.accounts.get(name, "")
+
+    def add_friend_named(self, name, account=False):
         name = trim(name)
-        known = self.known_player(name)
+        known = "" if account else self.known_player(name)
+        other = name if account else self.account_of(known) if known else ""
+        if self.account and (other or not known):       # (both Shards accounts: friends by account, everywhere)
+            if other.lower() == self.account.lower() or (not other and name.lower() == self.account.lower()):
+                self.refuse("That's you, on another character.")
+                return
+            hook = getattr(self.w, "central_friend", None)
+            if hook is None:
+                self.refuse("There's nobody called %s." % name)
+            else:
+                hook(self, other or name, False)
+            return
         if not known or known == self.player_name:
             self.refuse("There's nobody called %s." % name if not known else "You're your own friend already.")
             return
@@ -290,7 +326,16 @@ class TogetherMixin:
             o.display_message("%s has made you a friend." % self.player_name, "INFO")
         self.dirty_me = True
 
-    def remove_friend_named(self, name):
+    def remove_friend_named(self, name, account=False):
+        c = getattr(self, "central_friends", None) or {}
+        acct = name if account else self.account_of(trim(name))     # (here or not: the world knows whose it was)
+        listed = [a for k in ("friends", "asking", "asked") for a in c.get(k, [])]
+        if self.account and acct and acct.lower() in [a.lower() for a in listed] and \
+                trim(name) not in self.w.together.friends_of(self.player_name):
+            hook = getattr(self.w, "central_friend", None)
+            if hook is not None:
+                hook(self, acct, True)                  # (friends no more, or an ask taken back or turned down)
+            return
         mine = self.w.together.friends.get(self.player_name, [])
         known = next((n for n in mine if n.lower() == trim(name).lower()), None)
         if known is None:
@@ -311,15 +356,32 @@ class TogetherMixin:
         return ""
 
     def friends_rows(self):
-        """For the journal's Friends page: each friend, whether they're about, where, their level."""
+        """For the journal's Friends page: each friend, whether they're about, where, their level; your account's
+        friends by account ("Character (account)" here, or where they're playing), and asks either way."""
         out = []
-        for n in self.friend_names():
+        for n in self.w.together.friends_of(self.player_name):
             o = self.w.sessions.get(n)
             on = o is not None and o.in_world()
-            out.append({"name": n, "on": 1 if on else 0, "where": self.where_words(o) if on else "",
+            out.append({"name": n, "char": n, "on": 1 if on else 0, "where": self.where_words(o) if on else "",
                         "level": o.player_level() if on else self.w.together.records.get(n, {}).get("Level", 0),
                         "party": 1 if n in self.party_names() else 0})
-        return sorted(out, key=lambda r: (-r["on"], r["name"].lower()))
+        c = (getattr(self, "central_friends", None) or {}) if self.account else {}
+        playing = c.get("playing") or {}
+        for a in c.get("friends", []):
+            here = [o for o in self.w.sessions.values()
+                    if o is not self and o.in_world() and o.account and o.account.lower() == a.lower()]
+            for o in here:
+                out.append({"name": "%s (%s)" % (o.player_name, a), "char": o.player_name, "account": a, "on": 1,
+                            "where": self.where_words(o), "level": o.player_level(),
+                            "party": 1 if o.player_name in self.party_names() else 0})
+            if not here:
+                p = playing.get(a) or {}
+                out.append({"name": a, "account": a, "on": 0, "level": 0, "party": 0,
+                            "where": "Playing %s on %s" % (p.get("character", ""), p.get("place") or "another game")
+                            if p else ""})
+        out += [{"name": a, "account": a, "on": 0, "asks": 1} for a in c.get("asking", [])]
+        out += [{"name": a, "account": a, "on": 0, "asked": 1} for a in c.get("asked", [])]
+        return sorted(out, key=lambda r: (-r.get("asks", 0), -r["on"], r.get("asked", 0), r["name"].lower()))
 
     def towns_at(self):
         """[(title, global x, global y)] of the world map's towns (WorldMap.ini [Towns]), worked out once."""

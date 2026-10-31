@@ -531,7 +531,7 @@ friends across the internet through the central server.
 - [x] **Your own world needs no login**: the app starts its game with the start screen's host key, so Play alone and
   your own hosted game let you straight in, as your account, with no network. A device that came in by an account is
   that account's on that server after (a reload, or the central server away).
-- [ ] **Friends on the central server, by account**: requests, accept, remove; any character of a friend's account is
+- [x] **Friends on the central server, by account**: requests, accept, remove; any character of a friend's account is
   a friend everywhere; the journal shows "Character (account)"; the Friends page shows where friends are playing, with
   Join. The world's friend lists move over where the account is known.
 - [ ] **Measure a game's traffic per player** (before passing games through the central server).

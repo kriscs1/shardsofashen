@@ -70,8 +70,10 @@ function count() {
     6: (d.friends || []).length }[J.tab] || 1;
 }
 
-// ----- friends (together.py): each a row - about or not, where, their level - with Whisper, Invite and Remove
+// ----- friends (together.py): each a row - about or not, where, their level - with Whisper, Invite and Remove; a
+// Shards account's friends by account ("Character (account)" here, or where they're playing), asks to Accept or Decline
 const FRIEND_BUTTONS = ["Whisper", "Invite", "Remove"];
+function friendButtons(f) { return f.asks ? ["Accept", "", "Decline"] : f.asked ? ["", "", "Cancel"] : FRIEND_BUTTONS; }
 function friendRowY(n) { return 108 + n * 70; }
 
 export function friendClick(h) {
@@ -80,10 +82,14 @@ export function friendClick(h) {
   const rows = (S.journal && S.journal.friends) || [];
   const f = rows[(J.page - 1) * FRIENDS_SHOWN + Math.floor((h - 300) / 3)];
   if (!f) return true;
-  const k = (h - 300) % 3;
-  if (k === 0 && f.on) window.dsUI.openChat("/w " + f.name + " ");
-  else if (k === 1 && f.on) send({ t: "party_invite", name: f.name });
-  else if (k === 2) { send({ t: "friend", name: f.name, remove: 1 }); setTimeout(() => send({ t: "journal" }), 300); }
+  const k = (h - 300) % 3, who = f.char || f.name, acct = f.account ? 1 : 0;
+  if (f.asks && k === 0) send({ t: "friend", name: f.account, account: 1 });
+  else if (f.asks || f.asked) { if (k === 2) send({ t: "friend", name: f.account, account: 1, remove: 1 }); }
+  else if (k === 0 && f.on) window.dsUI.openChat("/w " + who + " ");
+  else if (k === 1 && f.on) send({ t: "party_invite", name: who });
+  else if (k === 2) send({ t: "friend", name: f.account || f.name, account: acct, remove: 1 });
+  else return true;
+  setTimeout(() => send({ t: "journal" }), 600);
   return true;
 }
 
@@ -92,12 +98,14 @@ function friendRow(ctx, f, n) {
   card(ctx, 48, y, 928, 62, f.on ? [126, 77, 63] : [77, 43, 33]);
   ctx.fillStyle = f.on ? "rgb(110,210,110)" : "rgb(110,100,90)";
   ctx.beginPath(); ctx.arc(70, y + 31, 6, 0, 6.283); ctx.fill();
-  drawText(ctx, f.name + (f.party ? "  (in your party)" : ""), 88, y + 10, 12, true, f.on ? INK : DIM);
-  const where = f.on ? `About, ${f.where || "in Ashen"}` + (f.level ? `  ·  level ${f.level}` : "") :
-    "Away" + (f.level ? `  ·  level ${f.level}` : "");
-  drawText(ctx, where, 88, y + 34, 9, false, f.on ? PARCHMENT : DIM);
-  FRIEND_BUTTONS.forEach((label, k) => {
-    const off = (k < 2 && !f.on) || (k === 1 && f.party);
+  drawText(ctx, f.name + (f.party ? "  (in your party)" : ""), 88, y + 10, 12, true, f.on || f.asks ? INK : DIM);
+  const where = f.asks ? "Asks to be your friend" : f.asked ? "You've asked them to be your friend" :
+    f.on ? `About, ${f.where || "in Ashen"}` + (f.level ? `  ·  level ${f.level}` : "") :
+    (f.where || "Away") + (f.level ? `  ·  level ${f.level}` : "");
+  drawText(ctx, where, 88, y + 34, 9, false, f.on || f.asks ? PARCHMENT : DIM);
+  friendButtons(f).forEach((label, k) => {
+    if (!label) return;
+    const off = !f.asks && !f.asked && ((k < 2 && !f.on) || (k === 1 && f.party));
     button(ctx, 976 - 316 + k * 104, y + 15, 96, 32, label, off ? 0 : J.hover === 300 + n * 3 + k ? 2 : 1);
   });
 }
@@ -106,7 +114,7 @@ function friendsPage(ctx, d) {
   const rows = d.friends || [];
   if (!rows.length) {
     centreText(ctx, 512, 300, "No friends on your list yet.", 14, true, INK);
-    centreText(ctx, 512, 330, "Right-click a player and choose Add friend, or type /friend and their name in the chat.", 10, false, PARCHMENT);
+    centreText(ctx, 512, 330, "Right-click a player and choose Add friend, or type /friend and their name (or their Shards account's) in the chat.", 10, false, PARCHMENT);
     return;
   }
   const first = (J.page - 1) * FRIENDS_SHOWN;
@@ -416,10 +424,10 @@ export function drawJournal(ctx) {
   drawText(ctx, fitText(ctx, S.name + "  -  what you can make, gather and do", 860 - tw, 9), 58 + tw, 30, 9, false, PARCHMENT);
   button(ctx, 942, 20, 40, 28, "X", J.hover === 10 ? 2 : 1);
   for (let t = 1; t <= TABS; t++) {
-    const on = (d.friends || []).filter((f) => f.on).length;
+    const mine = (d.friends || []).filter((f) => !f.asks && !f.asked), on = mine.filter((f) => f.on).length;
     const label = { 1: `Crafting (${d.crafts.length})`, 2: `Gathering (${d.gathers.length})`, 3: `Quests (${journalQuests().length})`,
       4: `Spells (${spells.filter((s) => knowsSpell(s.spell)).length}/${spells.length})`, 5: "Records",
-      6: `Friends (${on}/${(d.friends || []).length})` }[t] || "Controls";
+      6: `Friends (${on}/${mine.length})` }[t] || "Controls";
     button(ctx, 40 + (t - 1) * TAB_STEP, 60, TAB_W, 32, label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
   }
   roundBox(ctx, 36, 98, 952, 590, [40, 26, 20], [126, 77, 63], 2, 12);

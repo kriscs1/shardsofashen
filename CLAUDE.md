@@ -140,7 +140,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`[Together] Boss.Per.Player`); a raid sends more for each player there. One alone still wins at the base numbers.
 - **Parties** (right-click a player: Invite to party; `/p` talks to it, `/leave`): a quest stage one member reaches,
   the members near at that same stage reach too, with the quest's own things.
-- **Friends** (right-click a player, or `/friend Name`): kept with the world; the journal's Friends page (who's about,
+- **Friends** (right-click a player, or `/friend Name`): two Shards accounts are friends **by account, on the
+  central server** (asking is a request till they ask back; any character of theirs, in every game; the journal shows
+  "Character (account)", where friends are playing, and asks to Accept or Decline; the start screen's Friends too). A
+  game server acts for a player only with the key their ticket brought (`/api/game/friends`). A device's characters
+  keep the world's own list. The journal's Friends page (who's about,
   where; Whisper, Invite, Remove); told when one comes or goes; your homestead's friends are yours. **Trading**
   (right-click a player: Trade): a window with both offers, gold too; both accept and it changes hands at once, any
   change undoing both accepts. The journal's tabs: Crafting, Gathering, Quests, Spells, Records, Friends, Controls.
