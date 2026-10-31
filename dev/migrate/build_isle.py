@@ -188,7 +188,7 @@ def dairy_indoors():
     if n:
         ents = [ln for ln in ents if not (ln.startswith("NPC\tChicken") and ("Zone=" + COOP_ZONE) in ln)]
         for x, y in COOP_HENS:
-            ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Bad Zone=" + COOP_ZONE))
+            ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Passive Zone=" + COOP_ZONE))
         m.ents = ents
         m.save()
         print("The dairy: hens in their coop, the range in the hut, the workbench in the barn")
@@ -354,7 +354,7 @@ def dairy():
             ln = "Id\tHen_Nests\t22\t13"
         ents.append(ln)
     for x, y in COOP_HENS:
-        ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Bad Zone=" + COOP_ZONE))
+        ents.append(obj_line("NPC", "Chicken", x, y, "Attitude=Passive Zone=" + COOP_ZONE))
     ents.append(obj_line("NPC", "Shepherd", 13, 15, "Attitude=Good Zone=10,11,17,17 Pause=4-10 Id=Isle_Shepherd", -8))
     ents += ["Id\tDairy_Barn\t19\t9", "Id\tHen_Coop\t22\t15"]
     from fix_fences_wheat import wheat_plants

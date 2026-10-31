@@ -19,9 +19,9 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001:Sand001:Sand001:Sand_Water004:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-NPC	Rabbit	448	344	Attitude=Bad Zone=10,8,20,16
-NPC	Rabbit	96	152	Attitude=Bad Zone=2,2,9,10
-NPC	Rabbit	192	312	Attitude=Bad Zone=2,7,12,15
+NPC	Rabbit	448	344	Attitude=Passive Zone=10,8,20,16
+NPC	Rabbit	96	152	Attitude=Passive Zone=2,2,9,10
+NPC	Rabbit	192	312	Attitude=Passive Zone=2,7,12,15
 NPC	Skeleton	352	56	Attitude=Bad Zone=7,2,17,7
 Trigger	Trap_Pie	8	12
 Trigger	Trap_Gas	10	16

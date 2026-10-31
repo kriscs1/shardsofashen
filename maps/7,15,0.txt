@@ -20,7 +20,7 @@ Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Marsh001:Brick001:Brick001:Door001:Brick
 Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Dirt001:Dirt001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Flower_Bed003):Plaster001:Plaster001:Door005:Plaster001+Decor(Plaster_Window001):Plaster001:Marsh001+Decor(Flower_Bed001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Boardwalk001:Dirt001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 NPC	Farmer	480	568	Attitude=Good Zone=15,17,17,19 Pause=5-15 Id=Fenwick_Resident_362 Name=Cedric
-NPC	Frog	672	184	Attitude=Bad Zone=17,3,24,11
-NPC	Frog	384	280	Attitude=Bad Zone=8,6,18,14
-NPC	Duck	96	88	Attitude=Bad Zone=2,2,9,8
-NPC	Duck	608	184	Attitude=Bad Zone=15,3,24,11
+NPC	Frog	672	184	Attitude=Passive Zone=17,3,24,11
+NPC	Frog	384	280	Attitude=Passive Zone=8,6,18,14
+NPC	Duck	96	88	Attitude=Passive Zone=2,2,9,8
+NPC	Duck	608	184	Attitude=Passive Zone=15,3,24,11

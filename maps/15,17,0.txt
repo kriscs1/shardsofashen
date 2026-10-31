@@ -19,6 +19,6 @@ Water001:Water001:Water001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:D
 Water001:Dirt001:Dirt001:Snow001:Snow001:Snow001:Snow001:Grass001+Decor(Rock001):Snow001:Snow001:Snow001:Snow001:Dirt001+Decor(Tree001):Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Dirt001:Dirt001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Gem_Rock001):Snow001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001+Decor(Tall_Grass001):Dirt001:Dirt001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001
 Ice001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Dirt001:Grass001:Dirt001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Dirt001:Dirt001:Dirt001:Dirt001+Decor(Tree001):Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Rabbit	608	504	Attitude=Bad Zone=15,13,24,20
+NPC	Rabbit	608	504	Attitude=Passive Zone=15,13,24,20
 NPC	Bandit	544	504	Attitude=Bad Zone=13,13,23,20
 StaticObject	Trout_Spot	640	320

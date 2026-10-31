@@ -422,6 +422,8 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             report(where, "option %s given twice" % k)
         if k == "Attitude" and v not in ("Good", "Bad", "Passive"):
             report(where, "Attitude=%r should be Good, Bad or Passive" % v)
+        elif k == "Attitude" and v != "Passive" and entities_ini is not None and                 (entities_ini.get(name, "Flees") or "").strip() == "1":
+            report(where, "Attitude=%s on prey (Flees=1): prey is Passive (prey_passive.py)" % v)
         if k == "Id" and len(npc_ids().get(v, [])) > 1:
             report(where, "Id=%s is on more than one NPC (%s): an Id names one NPC" % (v, ", ".join(npc_ids()[v])))
         opts[k] = v

@@ -34,8 +34,8 @@ NPC	Goblin	401	598	Attitude=Bad
 NPC	Goblin	117	479	Attitude=Bad
 StaticObject	Fire	481	130
 NPC	Hermit	512	96	Attitude=Good
-NPC	Rabbit	576	256	Attitude=Bad
-NPC	Rabbit	448	512	Attitude=Bad
+NPC	Rabbit	576	256	Attitude=Passive
+NPC	Rabbit	448	512	Attitude=Passive
 NPC	Butterfly	320	64	Attitude=Good
 StaticObject	Fish_Spot	576	448
 Id	Hermit_Hut	17	4

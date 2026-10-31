@@ -20,6 +20,6 @@ Water001:Water003:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Gr
 Water001:Water001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Forest001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001
 Water001:Water001:Water001:Water003:Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Forest001:Grass001:Forest001:Forest001:Forest001:Forest001:Grass001:Grass001+Decor(Tree001):Grass001
 NPC	Bear	512	568	Attitude=Bad Zone=12,15,22,20
-NPC	Rabbit	160	184	Attitude=Bad Zone=2,3,11,11
-NPC	Rabbit	544	56	Attitude=Bad Zone=13,2,23,7
+NPC	Rabbit	160	184	Attitude=Passive Zone=2,3,11,11
+NPC	Rabbit	544	56	Attitude=Passive Zone=13,2,23,7
 StaticObject	Salmon_Spot	32	608

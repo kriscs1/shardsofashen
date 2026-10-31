@@ -21,5 +21,5 @@ Marsh001:Marsh001+Decor(Reeds001):Marsh_Water005:Water001:Water001:Water001:Wate
 Marsh001:Marsh001:Water001:Water001:Water001:Water001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Water001:Marsh_Water003:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001)
 NPC	Villager	64	152	Attitude=Good Zone=3,3,4,6 Pause=5-15 Id=Fenwick_Resident_365 Name=Walter Home=2,2,3,2/5,2,5,2/2,3,5,6 Bed=4,2
 NPC	Man	224	152	Attitude=Good Zone=8,4,9,6 Pause=5-15 Id=Fenwick_Resident_367 Name=Hugh Home=7,3,7,3/9,3,10,3/7,4,10,6 Bed=8,3
-NPC	Duck	352	248	Attitude=Bad Zone=11,5,17,6/7,7,17,13 Chase=11,5,17,6/7,7,17,13
-NPC	Duck	448	312	Attitude=Bad Zone=10,7,20,15
+NPC	Duck	352	248	Attitude=Passive Zone=11,5,17,6/7,7,17,13 Chase=11,5,17,6/7,7,17,13
+NPC	Duck	448	312	Attitude=Passive Zone=10,7,20,15

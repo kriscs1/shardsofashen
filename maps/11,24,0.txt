@@ -21,5 +21,5 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 StaticObject	Fish_Spot	320	416
 Id	Saltmarsh_Dock	11	10
-NPC	Duck	416	56	Attitude=Bad Zone=9,2,19,7
-NPC	Duck	160	56	Attitude=Bad Zone=2,2,11,7
+NPC	Duck	416	56	Attitude=Passive Zone=9,2,19,7
+NPC	Duck	160	56	Attitude=Passive Zone=2,2,11,7

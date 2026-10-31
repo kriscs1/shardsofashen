@@ -19,4 +19,4 @@ Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water007:Water001:
 Dirt001:Dirt001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water007:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water003:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001)
 Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water007:Water001:Water001:Water001:Water001:Water001
 Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Water007:Water001:Water001
-NPC	Rabbit	672	408	Attitude=Bad Zone=17,10,24,18
+NPC	Rabbit	672	408	Attitude=Passive Zone=17,10,24,18

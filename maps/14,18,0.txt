@@ -19,6 +19,6 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Dirt001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Gem_Rock001):Snow001:Grass001:Grass001:Dirt001+Decor(Tree001):Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Rock001)
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-NPC	Rabbit	224	440	Attitude=Bad Zone=3,11,13,19
+NPC	Rabbit	224	440	Attitude=Passive Zone=3,11,13,19
 NPC	Wolf	512	88	Attitude=Bad Zone=12,2,22,8
 StaticObject	Salmon_Spot	32	32

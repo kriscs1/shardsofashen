@@ -23,7 +23,7 @@ StaticObject	Notice	321	290	Id=Ashford_Iron_Mine
 MapItem	Herb	96	352	1
 NPC	Guard	224	320	Attitude=Good Patrol=5,11/11,11 PatrolMode=PingPong Pause=3-6
 StaticObject	Chest	288	480
-NPC	Rabbit	192	64	Attitude=Bad
+NPC	Rabbit	192	64	Attitude=Passive
 Trigger	Mine Gate	6	9
 Trigger	Mine Gate	7	9
 Trigger	Mine Gate	8	9

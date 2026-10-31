@@ -19,7 +19,7 @@ Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowe
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001
 Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001
-NPC	Rabbit	544	504	Attitude=Bad Zone=13,13,23,20
-NPC	Rabbit	64	216	Attitude=Bad Zone=2,4,8,12
-NPC	Rabbit	512	248	Attitude=Bad Zone=12,5,22,13
+NPC	Rabbit	544	504	Attitude=Passive Zone=13,13,23,20
+NPC	Rabbit	64	216	Attitude=Passive Zone=2,4,8,12
+NPC	Rabbit	512	248	Attitude=Passive Zone=12,5,22,13
 NPC	Skeleton	96	568	Attitude=Bad Zone=2,15,9,20

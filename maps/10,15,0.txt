@@ -19,5 +19,5 @@ Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001+Decor(Reeds00
 Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001+Decor(Bog_Myrtle001):Marsh001:Marsh001:Marsh001+Decor(Marigold_Patch001):Marsh001
 Marsh001:Grass001:Grass001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001+Decor(Bog_Myrtle001):Marsh001:Grass001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh_Water004:Marsh_Water003:Marsh001+Decor(Reeds001):Grass001:Grass001:Grass001:Marsh001:Marsh001:Marsh001
-NPC	Duck	384	184	Attitude=Bad Zone=8,3,18,11
-NPC	Duck	384	248	Attitude=Bad Zone=8,5,18,13
+NPC	Duck	384	184	Attitude=Passive Zone=8,3,18,11
+NPC	Duck	384	248	Attitude=Passive Zone=8,5,18,13

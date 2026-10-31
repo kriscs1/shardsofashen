@@ -22,5 +22,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass0
 NPC	Barkeep	448	88	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_345 Name=Ivor
 NPC	Barmaid	512	152	Attitude=Good Zone=12,6,18,6 Pause=3-9 Id=Ravensgate_Barmaid_346 Name=Mabel
 StaticObject	Sign_Pub	512	208
-NPC	Rabbit	192	280	Attitude=Bad Zone=2,6,10,6/2,7,12,14 Chase=2,6,10,6/2,7,12,14
-NPC	Rabbit	192	56	Attitude=Bad Zone=2,2,12,2/2,3,10,6/2,7,12,7 Chase=2,2,12,2/2,3,10,6/2,7,12,7
+NPC	Rabbit	192	280	Attitude=Passive Zone=2,6,10,6/2,7,12,14 Chase=2,6,10,6/2,7,12,14
+NPC	Rabbit	192	56	Attitude=Passive Zone=2,2,12,2/2,3,10,6/2,7,12,7 Chase=2,2,12,2/2,3,10,6/2,7,12,7

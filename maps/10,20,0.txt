@@ -19,4 +19,4 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh_Water005:Water001:Marsh_Water008:Marsh001+Decor(Reeds001):Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh_Water004:Water001:Water001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001)
 Marsh001+Decor(Bog_Myrtle001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Marigold_Patch001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Water001:Water001:Marsh_Water009:Marsh001:Marsh001+Decor(Reeds001):Marsh_Water004:Water001
-NPC	Duck	64	56	Attitude=Bad Zone=2,2,8,7
+NPC	Duck	64	56	Attitude=Passive Zone=2,2,8,7

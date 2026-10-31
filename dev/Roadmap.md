@@ -504,6 +504,8 @@ Each is in `dev/QA Audit 2026-10-31.md` under its number, with how it was seen.
 ## 23. Homes and beds (2026-10-31)
 
 - [x] **The hens on 2,0,0 and the churchyard's sheep are Passive** (they were Bad, or Good: unattackable).
+- [x] **All prey is Passive** (`prey_passive.py`: 476 rabbits, ducks, frogs, seals, otters, hens, cows and sheep on
+  245 maps; the builders write Passive for them; validate.py reports prey placed as anything else).
 - [x] **Roost is Home=** (any shape, rectangles joined by `/`), for any NPC: where it is for the hours its schedule
   keeps it in (a Night creature's den by day too). `Roost=` still reads as Home.
 - [x] **A house of its own**: `dev/migrate/assign_homes.py` gave 121 townsfolk a Home (the nearest house with room,

@@ -21,9 +21,9 @@ Dirt001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Scarecrow001):Grass001:G
 Grass001:Grass001:Grass001+Decor(Haystack001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Berry_Bush001):Grass001+Decor(Rock001):Water001
 NPC	Farmer	352	448	Attitude=Good Zone=12,14,13,16 Pause=3-8
 NPC	Herbalist	672	480	Attitude=Good Zone=22,15,23,16 Pause=4-10
-NPC	Chicken	288	256	Attitude=Bad Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11
-NPC	Chicken	384	256	Attitude=Bad Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11
-NPC	Chicken	320	288	Attitude=Bad Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11
+NPC	Chicken	288	256	Attitude=Passive Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11
+NPC	Chicken	384	256	Attitude=Passive Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11
+NPC	Chicken	320	288	Attitude=Passive Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11
 StaticObject	Notice	417	386	Id=Farmlands_Crossroads
 MapItem	Cabbage	65	546	1
 MapItem	Cabbage	161	546	1
@@ -57,17 +57,17 @@ StaticObject	Ripe_Wheat002	316	596
 StaticObject	Ripe_Wheat003	327	610
 StaticObject	Workbench	96	224
 StaticObject	Alchemy_Table	640	448
-NPC	Cow	416	448	Attitude=Bad Zone=13,14,15,18
-NPC	Cow	416	544	Attitude=Bad Zone=13,14,15,18
+NPC	Cow	416	448	Attitude=Passive Zone=13,14,15,18
+NPC	Cow	416	544	Attitude=Passive Zone=13,14,15,18
 NPC	Villager	608	352	Attitude=Good Zone=19,7,23,12 Home=3,8,4,8/6,8,8,8/3,9,6,9/8,9,8,9/3,10,8,10
 StaticObject	Trout_Spot	544	448
 NPC	Butterfly	416	608	Attitude=Good
 NPC	Blue_Butterfly	32	448	Attitude=Good
-NPC	Duck	480	320	Attitude=Bad
+NPC	Duck	480	320	Attitude=Passive
 StaticObject	Sign_Farm	352	400
 StaticObject	Sign_Herbalist	704	528
 NPC	Barkeep	224	376	Attitude=Good Stand=1 Face=S Id=Ashford_Barkeep_16 Name=Albert
 NPC	Barmaid	256	440	Attitude=Good Zone=7,15,10,15 Pause=3-9 Id=Ashford_Barmaid_17 Name=Sybil
 StaticObject	Sign_Pub	288	496
 StaticObject	Notice	192	514	Id=Ashford_Notice_18
-NPC	Otter	544	568	Attitude=Bad Zone=14,11,21,13/14,14,19,16/14,17,21,19 Chase=14,11,21,13/14,14,19,16/14,17,21,19
+NPC	Otter	544	568	Attitude=Passive Zone=14,11,21,13/14,14,19,16/14,17,21,19 Chase=14,11,21,13/14,14,19,16/14,17,21,19

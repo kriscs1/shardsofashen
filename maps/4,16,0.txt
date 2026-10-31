@@ -19,9 +19,9 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marsh001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marsh001:Grass001:Grass001:Grass001:Grass001:Marsh001+Decor(Bog_Myrtle001):Sand001:Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Bog_Myrtle001):Marsh001:Marsh001+Decor(Reeds001):Marsh001
 Grass001:Grass001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001+Decor(Reeds001):Marsh001
 Grass001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Reeds001)
-NPC	Frog	224	216	Attitude=Bad Zone=3,4,13,12
-NPC	Frog	640	440	Attitude=Bad Zone=16,11,24,19
-NPC	Seal	640	64	Attitude=Bad Zone=16,2,24,7
-NPC	Seal	672	64	Attitude=Bad Zone=16,2,24,7
+NPC	Frog	224	216	Attitude=Passive Zone=3,4,13,12
+NPC	Frog	640	440	Attitude=Passive Zone=16,11,24,19
+NPC	Seal	640	64	Attitude=Passive Zone=16,2,24,7
+NPC	Seal	672	64	Attitude=Passive Zone=16,2,24,7
 Trigger	Trap_Weakness	8	17
 Trigger	Trap_Bucket	16	8

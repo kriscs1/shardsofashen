@@ -19,5 +19,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass0
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Silver_Rock001):Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Rabbit	192	408	Attitude=Bad Zone=2,10,12,18
+NPC	Rabbit	192	408	Attitude=Passive Zone=2,10,12,18
 NPC	Bandit	192	88	Attitude=Bad Zone=2,2,12,8

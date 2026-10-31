@@ -20,6 +20,6 @@ Marsh001:Timber001:Door004:Timber001:Timber001+Decor(Timber_Window001):Timber001
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 StaticObject	Notice	192	546	Id=Saltmarsh_Notice_301
-NPC	Frog	256	56	Attitude=Bad Zone=4,2,14,7
-NPC	Frog	64	248	Attitude=Bad Zone=2,5,8,13
-NPC	Duck	384	56	Attitude=Bad Zone=8,2,18,7
+NPC	Frog	256	56	Attitude=Passive Zone=4,2,14,7
+NPC	Frog	64	248	Attitude=Passive Zone=2,5,8,13
+NPC	Duck	384	56	Attitude=Passive Zone=8,2,18,7

@@ -23,9 +23,9 @@ StaticObject	Moored_Boat	416	416
 StaticObject	Swordfish_Spot	480	288
 NPC	Fisherman	448	440	Attitude=Good Stand=1 Face=S Id=Ashford_Harbour_Master_306 Name=Ned
 Id	Ashford_Port	16	16
-NPC	Rabbit	64	504	Attitude=Bad Zone=2,13,8,20
-NPC	Rabbit	256	344	Attitude=Bad Zone=4,8,14,16
-NPC	Rabbit	64	536	Attitude=Bad Zone=2,14,8,20
+NPC	Rabbit	64	504	Attitude=Passive Zone=2,13,8,20
+NPC	Rabbit	256	344	Attitude=Passive Zone=4,8,14,16
+NPC	Rabbit	64	536	Attitude=Passive Zone=2,14,8,20
 NPC	Butterfly	160	440	Attitude=Good Zone=2,11,11,19
 NPC	Butterfly	320	536	Attitude=Good Zone=6,14,16,20
 NPC	Blue_Butterfly	256	568	Attitude=Good Zone=4,15,14,20

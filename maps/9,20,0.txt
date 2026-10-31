@@ -19,7 +19,7 @@ Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:M
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh_Water007:Water001:Water001:Water001:Water001:Water001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Marigold_Patch001):Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001+Decor(Reeds001):Water001:Water001:Water001:Water001:Water001:Marsh001+Decor(Reeds001):Marsh001
 Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Water001+Decor(Lily_Pads001):Water001:Water001:Water001:Water001:Marsh_Water003:Marsh001+Decor(Reeds001)
-NPC	Frog	128	472	Attitude=Bad Zone=2,12,10,20
-NPC	Duck	576	280	Attitude=Bad Zone=14,6,24,14
-NPC	Duck	288	440	Attitude=Bad Zone=5,11,15,19
+NPC	Frog	128	472	Attitude=Passive Zone=2,12,10,20
+NPC	Duck	576	280	Attitude=Passive Zone=14,6,24,14
+NPC	Duck	288	440	Attitude=Passive Zone=5,11,15,19
 StaticObject	Fish_Spot	704	512

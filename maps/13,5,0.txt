@@ -25,7 +25,7 @@ NPC	Barmaid	192	536	Attitude=Good Zone=3,17,8,18 Pause=3-9 Id=Ashford_Barmaid_33
 StaticObject	Notice	128	354	Id=Ashford_Notice_313
 StaticObject	Sign_Pub	96	592
 Id	Ashford_Town_Hall	3	12
-NPC	Rabbit	608	216	Attitude=Bad Zone=15,4,24,12
-NPC	Rabbit	480	184	Attitude=Bad Zone=11,3,21,11
+NPC	Rabbit	608	216	Attitude=Passive Zone=15,4,24,12
+NPC	Rabbit	480	184	Attitude=Passive Zone=11,3,21,11
 NPC	Butterfly	288	120	Attitude=Good Zone=5,2,15,5/11,6,15,9 Chase=5,2,15,5/11,6,15,9
 NPC	Blue_Butterfly	672	536	Attitude=Good Zone=17,14,24,20

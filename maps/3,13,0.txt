@@ -20,5 +20,5 @@ Forest001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Dirt001:Forest001:For
 Forest001:Dirt001:Grass001:Grass001:Dirt001:Grass001:Forest001:Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Forest001:Forest001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Bush001):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 StaticObject	Signpost	192	32	Id=Signpost_81_274
-NPC	Rabbit	640	248	Attitude=Bad Zone=16,5,24,13
+NPC	Rabbit	640	248	Attitude=Passive Zone=16,5,24,13
 NPC	Wolf	512	536	Attitude=Bad Zone=12,14,22,20

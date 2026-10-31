@@ -23,8 +23,8 @@ StaticObject	Range	320	256
 StaticObject	Notice	256	418	Id=Cottage_Notice
 Id	Cottage	9	12
 Id	Cottage_Door	8	14
-NPC	Rabbit	448	512	Attitude=Bad Zone=12,14,19,19
-NPC	Rabbit	64	512	Attitude=Bad Zone=2,15,10,19
+NPC	Rabbit	448	512	Attitude=Passive Zone=12,14,19,19
+NPC	Rabbit	64	512	Attitude=Passive Zone=2,15,10,19
 NPC	Strawberry_Cat	288	344	Attitude=Good Zone=6,10,11,12 Pause=6-15 Schedule=Day Id=Jimmy Name=Jimmy
 StaticObject	Sleeping_Jimmy	192	274
 Lock	8	13	$Attr.LastWill<>1	You should read your mother's letter before you go out.

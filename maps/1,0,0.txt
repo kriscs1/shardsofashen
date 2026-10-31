@@ -19,10 +19,10 @@ Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001+Decor(Pebbles003):Grass001
 Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001+Decor(Tall_Grass001):Grass001
 Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Pebbles003):Grass001:Grass001+Decor(Rock002):Grass001+Decor(Flowers003):Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001+Decor(Fallen_Log001):Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003)
-NPC	Chicken	576	416	Attitude=Bad Zone=17,12,22,17
-NPC	Chicken	640	448	Attitude=Bad Zone=17,12,22,17
-NPC	Duck	256	512	Attitude=Bad
-NPC	Duck	64	160	Attitude=Bad
-NPC	Duck	512	160	Attitude=Bad
+NPC	Chicken	576	416	Attitude=Passive Zone=17,12,22,17
+NPC	Chicken	640	448	Attitude=Passive Zone=17,12,22,17
+NPC	Duck	256	512	Attitude=Passive
+NPC	Duck	64	160	Attitude=Passive
+NPC	Duck	512	160	Attitude=Passive
 NPC	Butterfly	352	320	Attitude=Good
 NPC	Blue_Butterfly	160	480	Attitude=Good

@@ -19,6 +19,6 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine0
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Grass001:Grass001+Decor(Rock001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Snow001:Snow001+Decor(Snow_Pine001):Snow001+Decor(Snow_Pine001):Grass001:Grass001:Grass001
 Snow001:Snow001+Decor(Snow_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Snow001+Decor(Snow_Pine001):Snow001:Snow001+Decor(Snow_Pine001):Grass001:Grass001+Decor(Tall_Grass001):Grass001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Grass001:Grass001:Grass001
-NPC	Rabbit	480	344	Attitude=Bad Zone=11,8,21,16
-NPC	Rabbit	704	568	Attitude=Bad Zone=18,15,24,20
+NPC	Rabbit	480	344	Attitude=Passive Zone=11,8,21,16
+NPC	Rabbit	704	568	Attitude=Passive Zone=18,15,24,20
 NPC	Butterfly	416	280	Attitude=Good Zone=9,6,19,14

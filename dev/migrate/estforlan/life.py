@@ -23,6 +23,7 @@ CREATURES = {
     "galaith": [],
 }
 GENTLE = {"Rabbit", "Butterfly", "Blue_Butterfly", "Frog", "Duck"}
+PREY = {"Rabbit", "Frog", "Duck", "Seal", "Otter", "Chicken", "Cow", "Sheep"}     # (Flees=1: Passive, never Bad)
 OPEN = ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001", "Cinder001", "Dirt001")
 SOUND = {"meadow": "Wind", "moor": "Wind", "hills": "Wind", "downs": "Wind", "wood": "Forest", "elder": "Forest",
          "marsh": "Marsh", "desert": "Desert", "snow": "Snow", "ash": "Wind", "field": "Wind", "galaith": "Wind",
@@ -74,7 +75,7 @@ def populate(atlas, plans, parts_maps):
                         continue
                     lx, ly = x - mx * XT + 1, y - my * YT + 1
                     zone = "Zone=%d,%d,%d,%d" % (max(2, lx - 5), max(2, ly - 4), min(XT - 1, lx + 5), min(YT - 1, ly + 4))
-                    o = (opts or "Attitude=Bad") + " " + zone
+                    o = (opts or ("Attitude=Passive" if kind in PREY else "Attitude=Bad")) + " " + zone
                     m.ents.append("NPC\t%s\t%d\t%d\t%s" % (kind, (lx - 1) * TW, (ly - 1) * TW - 8, o))
                     atlas.taken.add((x, y))
                     made += 1
@@ -121,14 +122,14 @@ def waters(atlas, plans):
             x, y = shore[int(h01("sealc", name) * len(shore))]
             lx, ly = min(XT - 2, x - mx * XT + 1), y - my * YT + 1
             for k in range(2):
-                m.ents.append("NPC\tSeal\t%d\t%d\tAttitude=Bad Zone=%d,%d,%d,%d" % (
+                m.ents.append("NPC\tSeal\t%d\t%d\tAttitude=Passive Zone=%d,%d,%d,%d" % (
                     (lx - 1) * TW + k * 32, (ly - 1) * TW, max(2, lx - 5), max(2, ly - 4), min(XT - 1, lx + 5),
                     min(YT - 1, ly + 4)))
             made += 2
         if river and h01("otter", name) < 0.3:
             x, y = river[int(h01("otc", name) * len(river))]
             lx, ly = x - mx * XT + 1, y - my * YT + 1
-            m.ents.append("NPC\tOtter\t%d\t%d\tAttitude=Bad Zone=%d,%d,%d,%d" % (
+            m.ents.append("NPC\tOtter\t%d\t%d\tAttitude=Passive Zone=%d,%d,%d,%d" % (
                 (lx - 1) * TW, (ly - 1) * TW, max(2, lx - 4), max(2, ly - 4), min(XT - 1, lx + 4), min(YT - 1, ly + 4)))
             made += 1
     return made

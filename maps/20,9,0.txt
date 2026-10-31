@@ -19,8 +19,8 @@ Grass001:Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:For
 Grass001:Grass001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Cinder_Peak006:Cinder_Peak006:Cinder_Peak003:Cinder_Peak_Big003:Cinder_Peak_Big004:Cinder_Peak002
 Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Cinder_Peak001:Cinder_Peak002:Cinder_Peak003:Cinder_Peak003:Cinder_Peak001:Cinder_Peak003
 Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Cinder_Peak005:Cinder_Peak002:Cinder_Peak002:Cinder_Peak003:Cinder_Peak003:Cinder_Peak004
-NPC	Rabbit	256	344	Attitude=Bad Zone=4,8,14,16
-NPC	Rabbit	608	184	Attitude=Bad Zone=15,3,24,11
+NPC	Rabbit	256	344	Attitude=Passive Zone=4,8,14,16
+NPC	Rabbit	608	184	Attitude=Passive Zone=15,3,24,11
 NPC	Butterfly	128	376	Attitude=Good Zone=2,9,10,17
 NPC	Butterfly	416	56	Attitude=Good Zone=9,2,19,7
 NPC	Blue_Butterfly	448	376	Attitude=Good Zone=10,9,20,17

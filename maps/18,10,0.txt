@@ -20,4 +20,4 @@ Grass001+Decor(Tree001):Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:G
 Grass001+Decor(Tree002):Forest001:Forest001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Mushroom_Patch001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001
 Grass001:Forest001:Forest001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001:Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Bear	224	88	Attitude=Bad Zone=3,2,13,8
-NPC	Rabbit	704	568	Attitude=Bad Zone=18,15,24,20
+NPC	Rabbit	704	568	Attitude=Passive Zone=18,15,24,20

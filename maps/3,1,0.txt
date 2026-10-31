@@ -21,10 +21,10 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:
 Grass001+Decor(Flowers002):Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Water001:Water001:Water001:Water001:Water001:Water001
 StaticObject	Chest	352	96
 NPC	Villager	352	224	Attitude=Good Zone=9,5,15,10
-NPC	Sheep	452	446	Zone=8,13,21,16 Attitude=Passive
+NPC	Sheep	452	446	Attitude=Passive Zone=8,13,21,16
 NPC	Sheep	512	416	Attitude=Passive Zone=20,11,20,11/13,12,20,16 Chase=12,10,12,11/20,10,21,11/12,12,21,17
 NPC	Skeleton	224	96	Attitude=Bad
-NPC	Rabbit	320	288	Attitude=Bad Zone=8,7,12,11/8,12,14,13 Chase=8,7,12,11/8,12,14,13
+NPC	Rabbit	320	288	Attitude=Passive Zone=8,7,12,11/8,12,14,13 Chase=8,7,12,11/8,12,14,13
 StaticObject	Notice	448	386	Id=Isle_Chapel
 Id	Chapel_Door	16	13
 NPC	Gravekeeper	448	248	Attitude=Good Stand=1 Id=Chapel_Verger Name=Brother_Aldous

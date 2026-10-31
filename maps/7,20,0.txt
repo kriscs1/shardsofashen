@@ -19,6 +19,6 @@ Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reed
 Sand001:Sand001:Sand001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh_Water004:Marsh_Water003:Marsh001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001
 Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Sand_Water008:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Water001:Water001:Water001+Decor(Lily_Pads001):Water001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001
-NPC	Frog	96	216	Attitude=Bad Zone=2,4,9,12
-NPC	Duck	672	376	Attitude=Bad Zone=17,9,24,17
-NPC	Duck	64	184	Attitude=Bad Zone=2,3,8,11
+NPC	Frog	96	216	Attitude=Passive Zone=2,4,9,12
+NPC	Duck	672	376	Attitude=Passive Zone=17,9,24,17
+NPC	Duck	64	184	Attitude=Passive Zone=2,3,8,11

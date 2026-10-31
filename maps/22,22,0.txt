@@ -19,6 +19,6 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Grass001:Grass001+Decor(Bush001):Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Sand_Water003:Sand001:Sand001:Sand001:Grass001
 Grass001:Grass001+Decor(Bush001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand_Water003:Sand001:Sand001:Sand001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Bush001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Sand001:Sand001:Sand001
-NPC	Rabbit	416	88	Attitude=Bad Zone=9,2,19,8
-NPC	Rabbit	704	440	Attitude=Bad Zone=18,11,24,19
+NPC	Rabbit	416	88	Attitude=Passive Zone=9,2,19,8
+NPC	Rabbit	704	440	Attitude=Passive Zone=18,11,24,19
 NPC	Skeleton	256	152	Attitude=Bad Zone=4,2,14,10

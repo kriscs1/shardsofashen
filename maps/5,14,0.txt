@@ -19,6 +19,6 @@ Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Forest001:Fore
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Bush001):Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001:Grass001+Decor(Oak_Tree001)
 Grass001:Grass001:Grass001:Marsh001:Forest001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Oak_Tree001):Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Bush001):Grass001+Decor(Tree002):Grass001+Decor(Bush001):Grass001:Grass001+Decor(Tree002)
 Grass001+Decor(Oak_Tree001):Grass001:Forest001:Forest001:Forest001:Forest001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree002):Grass001
-NPC	Rabbit	160	248	Attitude=Bad Zone=2,5,11,13
+NPC	Rabbit	160	248	Attitude=Passive Zone=2,5,11,13
 NPC	Wolf	256	152	Attitude=Bad Zone=4,2,14,10
 NPC	Wolf	416	88	Attitude=Bad Zone=9,2,19,8

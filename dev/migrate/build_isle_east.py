@@ -139,8 +139,8 @@ def surroundings():
     n += scatter(get(3, 0), rng, (12, 8, 24, 20), ["Tree001", "Flowers002", "Rock002", "Flowers001"], 10)
     n += scatter(get(4, 1), rng, (1, 1, 14, 8), ["Rock003", "Flowers003", "Tree001"], 5)
     if not m.has_line("NPC\tRabbit"):
-        m.ents += [obj_line("NPC", "Rabbit", 15, 17, "Attitude=Bad Zone=12,14,19,19"),
-                   obj_line("NPC", "Rabbit", 3, 17, "Attitude=Bad Zone=2,15,10,19")]
+        m.ents += [obj_line("NPC", "Rabbit", 15, 17, "Attitude=Passive Zone=12,14,19,19"),
+                   obj_line("NPC", "Rabbit", 3, 17, "Attitude=Passive Zone=2,15,10,19")]
     for mm in cache.values():
         if mm is not None:
             mm.save()

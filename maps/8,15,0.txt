@@ -24,6 +24,6 @@ NPC	Nurse	128	568	Attitude=Good Zone=4,17,11,19 Pause=4-10 Id=Fenwick_Nurse_340 
 NPC	Barkeep	544	472	Attitude=Good Stand=1 Face=S Id=Fenwick_Barkeep_342 Name=Sybil
 NPC	Barmaid	608	568	Attitude=Good Zone=15,18,21,19 Pause=3-9 Id=Fenwick_Barmaid_343 Name=Fred
 StaticObject	Sign_Pub	480	624
-NPC	Rabbit	512	88	Attitude=Bad Zone=12,2,22,8
-NPC	Rabbit	608	56	Attitude=Bad Zone=15,2,24,7
+NPC	Rabbit	512	88	Attitude=Passive Zone=12,2,22,8
+NPC	Rabbit	608	56	Attitude=Passive Zone=15,2,24,7
 NPC	Wolf	192	120	Attitude=Bad Zone=2,2,12,9 Chase=1,1,22,14/1,15,2,19/13,15,13,19

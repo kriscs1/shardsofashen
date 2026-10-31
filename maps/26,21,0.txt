@@ -19,9 +19,9 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand_Water003:Sand001:Sand001:Sand001:Sand001:Sand_Water007:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001
-NPC	Rabbit	672	376	Attitude=Bad Zone=17,9,24,17
-NPC	Rabbit	512	344	Attitude=Bad Zone=12,8,22,16
-NPC	Rabbit	320	472	Attitude=Bad Zone=6,12,16,20
+NPC	Rabbit	672	376	Attitude=Passive Zone=17,9,24,17
+NPC	Rabbit	512	344	Attitude=Passive Zone=12,8,22,16
+NPC	Rabbit	320	472	Attitude=Passive Zone=6,12,16,20
 NPC	Butterfly	576	152	Attitude=Good Zone=14,2,24,10
 NPC	Skeleton	224	216	Attitude=Bad Zone=3,4,13,12
 StaticObject	Fish_Spot	160	512

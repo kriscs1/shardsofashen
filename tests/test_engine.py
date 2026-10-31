@@ -4949,3 +4949,17 @@ def test_a_home_is_where_its_hours_keep_it(world):
     world.set_day_fraction(day)
     world.remove_entity(hen)
     world.remove_entity(old)
+
+
+def test_prey_is_passive_everywhere():
+    """Every placed animal that flees (Flees=1) is Passive: hunted, never a foe (dev/migrate/prey_passive.py)."""
+    from ashen import ini
+    path = os.path.join(ROOT, "data", "Entities.ini")
+    prey = {s for s, _ in ini.sections(path) if s and (ini.read(s, "Flees", "", path) or "").strip() == "1"}
+    assert {"Rabbit", "Duck", "Chicken", "Sheep"} <= prey
+    for f in os.listdir(os.path.join(ROOT, "maps")):
+        if f.endswith(".txt"):
+            for ln in open(os.path.join(ROOT, "maps", f), encoding="cp1252").read().splitlines():
+                fl = ln.split("	")
+                if fl[0] == "NPC" and len(fl) > 1 and fl[1] in prey:
+                    assert "Attitude=Passive" in (fl[4] if len(fl) > 4 else ""), (f, ln)

@@ -19,7 +19,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Fl
 Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Flowers002):Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Pebbles001):Grass001:Grass001:Grass001:Grass001:Water001
 Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Water004:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Water001:Water001
-NPC	Rabbit	448	536	Attitude=Bad Zone=10,14,20,20
-NPC	Rabbit	224	152	Attitude=Bad Zone=3,2,13,10
+NPC	Rabbit	448	536	Attitude=Passive Zone=10,14,20,20
+NPC	Rabbit	224	152	Attitude=Passive Zone=3,2,13,10
 NPC	Butterfly	352	312	Attitude=Good Zone=7,7,17,15
 StaticObject	Fish_Spot	544	448

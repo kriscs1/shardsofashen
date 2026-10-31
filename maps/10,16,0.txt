@@ -19,6 +19,6 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Shingle_R
 Grass001:Grass001:Grass001:Grass001:Grass001:Timber_Thin_Plank004+Roof(Shingle_Roof013.01):Plank001+Roof(Shingle_Roof014.01):Plank001+Roof(Shingle_Roof014.01):Timber_Thin_Plank002+Roof(Shingle_Roof015.01):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Grass001:Grass001:Grass001:Grass001:Grass001:Timber001:Timber001:Door004:Timber001:Marsh001+Decor(Barrel001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001
 Boardwalk001:Boardwalk001:Grass001:Grass001:Marsh001:Marsh001:Marsh001:Dirt001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
-NPC	Frog	544	376	Attitude=Bad Zone=13,9,23,17
-NPC	Duck	672	536	Attitude=Bad Zone=17,14,24,20
-NPC	Duck	512	88	Attitude=Bad Zone=12,2,22,8
+NPC	Frog	544	376	Attitude=Passive Zone=13,9,23,17
+NPC	Duck	672	536	Attitude=Passive Zone=17,14,24,20
+NPC	Duck	512	88	Attitude=Passive Zone=12,2,22,8

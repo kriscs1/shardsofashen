@@ -19,8 +19,8 @@ Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Water004:Water003:Grass001+Decor(Rock001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001+Decor(Rock001):Grass001+Decor(Flowers003):Grass001:Grass001:Water007:Water009:Grass001+Decor(Rock001):Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001+Decor(Pebbles001):Grass001:Grass001+Decor(Bush001):Grass001:Grass001+Decor(Pebbles003):Grass001
-NPC	Rabbit	96	88	Attitude=Bad Zone=2,2,9,8
-NPC	Rabbit	672	248	Attitude=Bad Zone=17,5,24,13
-NPC	Rabbit	160	504	Attitude=Bad Zone=2,13,11,20
+NPC	Rabbit	96	88	Attitude=Passive Zone=2,2,9,8
+NPC	Rabbit	672	248	Attitude=Passive Zone=17,5,24,13
+NPC	Rabbit	160	504	Attitude=Passive Zone=2,13,11,20
 NPC	Butterfly	160	312	Attitude=Good Zone=2,7,11,15
 NPC	Blue_Butterfly	576	536	Attitude=Good Zone=14,14,24,20

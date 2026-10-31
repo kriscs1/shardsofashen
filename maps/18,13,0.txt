@@ -19,6 +19,6 @@ Forest001:Forest001:Forest001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tr
 Forest001:Forest001:Forest001:Grass001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
 Forest001:Forest001:Forest001:Grass001:Grass001+Decor(Tree002):Forest001:Forest001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Bush001):Grass001+Decor(Bush001):Grass001:Grass001+Decor(Bush001):Grass001:Grass001+Decor(Yew_Tree001):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
 Forest001:Forest001:Forest001:Grass001+Decor(Tree002):Forest001:Forest001:Forest001:Forest001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001:Grass001:Grass001+Decor(Tree001):Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001:Forest001
-NPC	Rabbit	448	280	Attitude=Bad Zone=10,6,20,14
-NPC	Rabbit	160	568	Attitude=Bad Zone=2,15,11,20
+NPC	Rabbit	448	280	Attitude=Passive Zone=10,6,20,14
+NPC	Rabbit	160	568	Attitude=Passive Zone=2,15,11,20
 NPC	Butterfly	416	504	Attitude=Good Zone=9,13,19,20

@@ -19,6 +19,6 @@ Sand001:Sand001+Decor(Cactus001):Marsh001:Marsh001:Marsh001+Decor(Bog_Myrtle001)
 Sand001:Sand001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Marigold_Patch001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Sand001:Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Willow_Tree001):Marsh001+Decor(Reeds001):Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Sand001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
-NPC	Duck	352	504	Attitude=Bad Zone=7,13,17,20
-NPC	Duck	224	568	Attitude=Bad Zone=3,15,13,20
+NPC	Duck	352	504	Attitude=Passive Zone=7,13,17,20
+NPC	Duck	224	568	Attitude=Passive Zone=3,15,13,20
 StaticObject	Fish_Spot	192	192

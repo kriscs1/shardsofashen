@@ -23,9 +23,9 @@ NPC	Barkeep	416	88	Attitude=Good Stand=1 Face=S Id=Court_Barkeep_347 Name=Tilly
 NPC	Barmaid	480	152	Attitude=Good Zone=11,6,17,6 Pause=3-9 Id=Court_Barmaid_348 Name=Elsie
 NPC	Woman	128	184	Attitude=Good Zone=3,6,7,7 Pause=5-15 Id=Court_Resident_362 Name=Quentin Home=2,5,2,5/4,5,6,5/8,5,8,5/2,6,8,7
 StaticObject	Sign_Pub	448	208
-NPC	Rabbit	416	408	Attitude=Bad Zone=9,10,19,18
-NPC	Rabbit	224	504	Attitude=Bad Zone=3,13,13,20
-NPC	Rabbit	608	504	Attitude=Bad Zone=15,13,24,20
+NPC	Rabbit	416	408	Attitude=Passive Zone=9,10,19,18
+NPC	Rabbit	224	504	Attitude=Passive Zone=3,13,13,20
+NPC	Rabbit	608	504	Attitude=Passive Zone=15,13,24,20
 NPC	Butterfly	352	504	Attitude=Good Zone=7,13,17,20
 NPC	Butterfly	608	344	Attitude=Good Zone=15,8,24,16
 NPC	Blue_Butterfly	64	440	Attitude=Good Zone=2,11,8,19

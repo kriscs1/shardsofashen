@@ -23,6 +23,6 @@ NPC	Sea_Captain	192	344	Attitude=Good Stand=1 Face=E Id=Captain_Rook Name=Captai
 StaticObject	Boat001	288	336
 StaticObject	Swordfish_Spot	352	352
 Id	Rooks_Pier	7	12
-NPC	Rabbit	640	376	Attitude=Bad Zone=16,9,24,17
-NPC	Rabbit	608	184	Attitude=Bad Zone=15,3,24,11
+NPC	Rabbit	640	376	Attitude=Passive Zone=16,9,24,17
+NPC	Rabbit	608	184	Attitude=Passive Zone=15,3,24,11
 NPC	Butterfly	320	184	Attitude=Good Zone=6,3,16,11

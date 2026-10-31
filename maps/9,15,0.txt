@@ -20,5 +20,5 @@ Marsh001+Decor(Flower_Bed002):Timber001:Door004:Timber001:Timber001+Decor(Timber
 Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Boardwalk001:Boardwalk001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Grass001:Grass001:Marsh001:Grass001:Grass001:Grass001:Grass001:Marsh001+Decor(Reeds001):Marsh001
 NPC	Villager	96	536	Attitude=Good Zone=3,16,6,18 Pause=5-15 Id=Fenwick_Resident_360 Name=Fred Home=2,15,2,15/4,15,4,15/6,15,7,15/2,16,7,16/2,17,3,17/5,17,7,17/2,18,7,18 Bed=3,15
-NPC	Frog	544	376	Attitude=Bad Zone=13,9,23,17
-NPC	Frog	192	88	Attitude=Bad Zone=2,2,12,8
+NPC	Frog	544	376	Attitude=Passive Zone=13,9,23,17
+NPC	Frog	192	88	Attitude=Passive Zone=2,2,12,8

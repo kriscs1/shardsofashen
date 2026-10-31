@@ -19,4 +19,4 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Gr
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001+Decor(Nightshade_Patch001):Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Nightshade_Patch001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Ore_Rock001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-NPC	Rabbit	512	248	Attitude=Bad Zone=12,5,22,13
+NPC	Rabbit	512	248	Attitude=Passive Zone=12,5,22,13

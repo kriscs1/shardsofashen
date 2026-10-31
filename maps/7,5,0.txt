@@ -20,8 +20,8 @@ Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001+Decor(Oak_Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001)
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 StaticObject	Signpost	96	480	Id=Signpost_178_120
-NPC	Rabbit	288	152	Attitude=Bad Zone=5,2,15,10
-NPC	Rabbit	416	312	Attitude=Bad Zone=9,7,19,15
-NPC	Rabbit	320	408	Attitude=Bad Zone=6,10,16,18
+NPC	Rabbit	288	152	Attitude=Passive Zone=5,2,15,10
+NPC	Rabbit	416	312	Attitude=Passive Zone=9,7,19,15
+NPC	Rabbit	320	408	Attitude=Passive Zone=6,10,16,18
 NPC	Butterfly	384	88	Attitude=Good Zone=8,2,18,8
 NPC	Blue_Butterfly	64	280	Attitude=Good Zone=2,6,8,14

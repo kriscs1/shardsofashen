@@ -21,5 +21,5 @@ Slate_Flag001:Slate_Flag001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass
 Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001:Slate_Flag001
 NPC	Clerk	608	472	Attitude=Good Stand=1 Face=S Id=Ravensgate_Clerk_317
 Id	Ravensgate_Town_Hall	18	21
-NPC	Rabbit	288	408	Attitude=Bad Zone=5,10,15,18
+NPC	Rabbit	288	408	Attitude=Passive Zone=5,10,15,18
 NPC	Butterfly	448	568	Attitude=Good Zone=10,15,16,19/10,20,20,20 Chase=10,15,16,19/10,20,20,20

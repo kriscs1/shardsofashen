@@ -23,8 +23,8 @@ NPC	Dog	160	56	Attitude=Good Zone=2,2,11,7 Pause=4-12 Home=18,2,20,2/23,2,23,2/1
 NPC	Banker	320	88	Attitude=Good Stand=1 Face=S Id=Ashford_Banker_323
 NPC	Farmer	64	152	Attitude=Good Zone=3,4,4,6 Pause=5-15 Id=Ashford_Resident_340 Name=Dora
 StaticObject	Notice	160	34	Id=Ashford_Notice_305
-NPC	Rabbit	288	536	Attitude=Bad Zone=5,14,15,20
-NPC	Rabbit	160	120	Attitude=Bad Zone=2,2,11,2/6,3,7,6/2,7,11,9 Chase=2,2,11,2/6,3,7,6/2,7,11,9
+NPC	Rabbit	288	536	Attitude=Passive Zone=5,14,15,20
+NPC	Rabbit	160	120	Attitude=Passive Zone=2,2,11,2/6,3,7,6/2,7,11,9 Chase=2,2,11,2/6,3,7,6/2,7,11,9
 NPC	Butterfly	704	248	Attitude=Good Zone=18,5,24,13
 NPC	Butterfly	192	536	Attitude=Good Zone=2,14,12,20
 NPC	Blue_Butterfly	256	248	Attitude=Good Zone=6,5,7,6/4,7,14,13 Chase=6,5,7,6/4,7,14,13

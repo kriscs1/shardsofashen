@@ -177,7 +177,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 **Creatures**
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.
-- Prey (hens, cows, sheep, rabbits, ducks) has `Flees=1`: it runs from whoever hits it and never fights back.
+- Prey (hens, cows, sheep, rabbits, ducks, frogs, seals, otters) has `Flees=1` and is **Passive**, its kind and every
+  map line (`dev/migrate/prey_passive.py`; validate.py holds it): it can be hunted, runs from whoever hits it and never
+  fights back.
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
 - **Every monster's senses are its kind's** (Entities.ini, set by `dev/migrate/build_senses.py`): `Sight.Cone` (how
   wide it sees, 360 all round), `Aggro.Range` (how far), `Hearing` (how far your noise carries to it: a bat 2, a

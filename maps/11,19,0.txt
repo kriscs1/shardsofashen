@@ -19,6 +19,6 @@ Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Mars
 Marsh001+Decor(Willow_Tree001):Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Water001:Water001:Marsh_Water008:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Dirt001:Dirt001:Marsh001:Marsh001+Decor(Bog_Myrtle001)
 Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh_Water004:Water001:Marsh_Water008:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001+Decor(Bog_Myrtle001):Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Water001:Water001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Dirt001:Dirt001:Marsh001:Marsh001
-NPC	Duck	640	88	Attitude=Bad Zone=16,2,24,8
-NPC	Duck	224	216	Attitude=Bad Zone=3,4,13,12
-NPC	Otter	704	224	Attitude=Bad Zone=19,4,24,12
+NPC	Duck	640	88	Attitude=Passive Zone=16,2,24,8
+NPC	Duck	224	216	Attitude=Passive Zone=3,4,13,12
+NPC	Otter	704	224	Attitude=Passive Zone=19,4,24,12

@@ -21,5 +21,5 @@ Marsh001+Decor(Bog_Myrtle001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marsh001
 NPC	Farmer	672	504	Attitude=Good Zone=21,14,23,17 Pause=5-15 Id=Fenwick_Resident_368 Name=Jasper
 StaticObject	Notice	576	610	Id=Fenwick_Notice_305
-NPC	Duck	192	216	Attitude=Bad Zone=2,4,12,12
-NPC	Duck	192	568	Attitude=Bad Zone=2,15,12,20
+NPC	Duck	192	216	Attitude=Passive Zone=2,4,12,12
+NPC	Duck	192	568	Attitude=Passive Zone=2,15,12,20

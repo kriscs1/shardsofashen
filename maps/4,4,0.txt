@@ -25,7 +25,7 @@ NPC	Man	512	256	Attitude=Good Zone=14,7,24,9
 StaticObject	Boat001	384	48
 Id	Northport_Pier	3	5
 NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Northport_Port_Guard Name=Sergeant_Brand
-NPC	Seal	416	120	Attitude=Bad Zone=14,2,24,8
+NPC	Seal	416	120	Attitude=Passive Zone=14,2,24,8
 StaticObject	Swordfish_Spot	64	64
 NPC	Fisherman	32	216	Attitude=Good Stand=1 Face=S Id=Northport_Harbour_Master_314 Name=Ivor
 NPC	Constable	224	536	Attitude=Good Stand=1 Face=S Id=Northport_Constable_347 Name=Hugh

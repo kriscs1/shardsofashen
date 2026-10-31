@@ -21,5 +21,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Gravel001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Ash001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001
 NPC	Villager	608	568	Attitude=Good Zone=20,18,21,19 Pause=5-15 Id=Keep_Resident_369 Name=Ulric Home=19,17,20,17/22,17,22,17/19,18,22,19
 StaticObject	Notice	704	610	Id=Keep_Notice_305
-NPC	Rabbit	352	408	Attitude=Bad Zone=7,10,17,14/7,15,13,18 Chase=7,10,17,14/7,15,13,18
+NPC	Rabbit	352	408	Attitude=Passive Zone=7,10,17,14/7,15,13,18 Chase=7,10,17,14/7,15,13,18
 NPC	Butterfly	640	56	Attitude=Good Zone=16,2,24,7

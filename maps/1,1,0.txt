@@ -25,9 +25,9 @@ NPC	Villager	320	288	Attitude=Good Zone=8,8,15,13 Home=18,3,22,3/18,4,18,4/20,4,
 NPC	Dog	416	352	Attitude=Good Zone=10,9,18,15 Home=18,3,22,3/18,4,18,4/20,4,22,4/18,5,22,5/18,6,18,6/20,6,22,6
 NPC	Butterfly	352	32	Attitude=Good
 NPC	Blue_Butterfly	608	448	Attitude=Good
-NPC	Rabbit	224	288	Attitude=Bad Zone=5,7,11,11/5,12,8,13 Chase=5,7,11,11/5,12,8,13
-NPC	Duck	32	416	Attitude=Bad
-NPC	Duck	160	608	Attitude=Bad
+NPC	Rabbit	224	288	Attitude=Passive Zone=5,7,11,11/5,12,8,13 Chase=5,7,11,11/5,12,8,13
+NPC	Duck	32	416	Attitude=Passive
+NPC	Duck	160	608	Attitude=Passive
 StaticObject	Notice	673	226	Id=Fathers_Home
 StaticObject	Notice	212	594	Id=Keep_Out_Of_The_Water
 NPC	Merchant	320	384	Attitude=Good Stand=1 Id=Isle_Storekeeper Name=Hilda
@@ -38,7 +38,7 @@ NPC	Cat	256	312	Attitude=Good Zone=6,8,12,14
 Id	Fathers_House	20	8
 Trigger	Squeaky Floorboard	21	6
 Lock	20	7	$Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1	The door is locked.
-NPC	Sheep	64	88	Attitude=Bad Zone=2,2,7,10
-NPC	Sheep	128	184	Attitude=Bad Zone=2,2,7,10
-NPC	Sheep	160	56	Attitude=Bad Zone=2,2,7,10
+NPC	Sheep	64	88	Attitude=Passive Zone=2,2,7,10
+NPC	Sheep	128	184	Attitude=Passive Zone=2,2,7,10
+NPC	Sheep	160	56	Attitude=Passive Zone=2,2,7,10
 NPC	Shepherd	96	216	Attitude=Good Zone=2,2,7,10 Pause=4-10 Id=Isle_Shepherd Name=Old_Tom

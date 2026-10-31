@@ -23,5 +23,5 @@ StaticObject	Notice	160	194	Id=Northport_Notice_309
 NPC	Butterfly	448	184	Attitude=Good Zone=10,3,20,11
 NPC	Blue_Butterfly	608	280	Attitude=Good Zone=15,6,24,14
 StaticObject	Fish_Spot	384	192
-NPC	Seal	352	192	Attitude=Bad Zone=7,3,17,11
-NPC	Seal	384	192	Attitude=Bad Zone=7,3,17,11
+NPC	Seal	352	192	Attitude=Passive Zone=7,3,17,11
+NPC	Seal	384	192	Attitude=Passive Zone=7,3,17,11

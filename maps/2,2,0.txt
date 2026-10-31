@@ -21,7 +21,7 @@ Water001:Water001:Water001:Water001:Water001:Sea_Rock002:Water001:Water001:Water
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 StaticObject	Fire	385	258
 StaticObject	Chest	384	192
-NPC	Rabbit	160	416	Attitude=Bad
+NPC	Rabbit	160	416	Attitude=Passive
 NPC	Hobgoblin	352	248	Attitude=Bad Zone=8,4,18,12
 NPC	Hobgoblin	448	216	Attitude=Bad Zone=8,4,18,12
 Id	Hobgoblin_Camp	13	8

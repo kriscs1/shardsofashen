@@ -20,8 +20,8 @@ Grass001+Decor(Flowers002):Grass001+Decor(Tall_Grass001):Grass001+Decor(Pebbles0
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Flowers002):Grass001:Grass001+Decor(Rock003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001
 NPC	Villager	224	384	Attitude=Good Zone=5,11,12,16
-NPC	Rabbit	160	224	Attitude=Bad
-NPC	Rabbit	512	256	Attitude=Bad Zone=14,7,20,12
+NPC	Rabbit	160	224	Attitude=Passive
+NPC	Rabbit	512	256	Attitude=Passive Zone=14,7,20,12
 NPC	Butterfly	288	288	Attitude=Good
 NPC	Blue_Butterfly	160	576	Attitude=Good
 NPC	Maren	416	56	Attitude=Good Stand=1 Face=S Schedule=Day Id=Maren_At_Counter
@@ -30,5 +30,5 @@ StaticObject	Notice	448	226	Id=Isle_Bank_Notice
 Id	Isle_Bank	16	8
 Id	Isle_Pond	13	12
 NPC	Fat_Grey_Cat	416	216	Attitude=Good Zone=11,5,17,11 Pause=5-14 Id=Noops Name=Noops
-NPC	Frog	480	408	Attitude=Bad Zone=10,9,16,15
-NPC	Frog	320	408	Attitude=Bad Zone=10,9,16,15
+NPC	Frog	480	408	Attitude=Passive Zone=10,9,16,15
+NPC	Frog	320	408	Attitude=Passive Zone=10,9,16,15

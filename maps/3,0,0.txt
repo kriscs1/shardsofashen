@@ -22,5 +22,5 @@ Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass
 StaticObject	Chest	192	416
 NPC	Wolf	128	288	Attitude=Bad Zone=2,7,8,13 Chase=1,4,9,16
 NPC	Wolf	64	480	Attitude=Bad Zone=1,13,7,19 Chase=1,10,9,21
-NPC	Rabbit	288	608	Attitude=Bad
-NPC	Rabbit	96	608	Attitude=Bad
+NPC	Rabbit	288	608	Attitude=Passive
+NPC	Rabbit	96	608	Attitude=Passive

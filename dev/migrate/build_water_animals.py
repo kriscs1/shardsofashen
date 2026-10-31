@@ -490,7 +490,7 @@ def place():
         rng = random.Random(name + kind)
         for k in range(count):
             x, y = water[rng.randrange(len(water))]
-            m.ents.append(obj_line("NPC", kind, x, y, "Attitude=Bad Zone=%d,%d,%d,%d" % (x1, y1, x2, y2), -8))
+            m.ents.append(obj_line("NPC", kind, x, y, "Attitude=Passive Zone=%d,%d,%d,%d" % (x1, y1, x2, y2), -8))
             n += 1
         m.save()
     print("Placed %d otters, seals and frogs" % n)

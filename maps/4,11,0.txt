@@ -27,8 +27,8 @@ MapItem	Bones	609	418	1
 MapItem	Bones	641	354	1
 MapItem	Bones	545	482	1
 StaticObject	Chest	480	608
-NPC	Rabbit	576	320	Attitude=Bad
-NPC	Rabbit	672	480	Attitude=Bad
+NPC	Rabbit	576	320	Attitude=Passive
+NPC	Rabbit	672	480	Attitude=Passive
 Id	Spider_Nest	20	14
 Trigger	Trap_Gas	15	14
 Trigger	Trap_Alarm	6	3

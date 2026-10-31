@@ -19,5 +19,5 @@ Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Reeds001):Marsh001:Marsh001:Marsh001:Marsh_Water004:Marsh001:Marsh001:Marsh_Water002:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Water001:Marsh001:Marsh001:Marsh001:Marsh_Water002:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001
 Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh_Water004:Marsh001:Marsh001:Marsh001+Decor(Bush001):Marsh001:Marsh001:Marsh_Water003:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001:Marsh001+Decor(Willow_Tree001):Marsh001:Marsh001
-NPC	Frog	512	504	Attitude=Bad Zone=12,13,22,20
-NPC	Frog	256	408	Attitude=Bad Zone=4,10,14,18
+NPC	Frog	512	504	Attitude=Passive Zone=12,13,22,20
+NPC	Frog	256	408	Attitude=Passive Zone=4,10,14,18

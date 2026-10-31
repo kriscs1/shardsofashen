@@ -19,8 +19,8 @@ Water001:Water001:Water001:Water001:Water001+Decor(Sea_Rock001):Water001:Water00
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-NPC	Rabbit	480	320	Attitude=Bad
-NPC	Rabbit	576	192	Attitude=Bad
+NPC	Rabbit	480	320	Attitude=Passive
+NPC	Rabbit	576	192	Attitude=Passive
 NPC	Blue_Butterfly	160	160	Attitude=Good
 StaticObject	Boat002	416	400
 Id	Isle_Ferry_Notice	17	12
