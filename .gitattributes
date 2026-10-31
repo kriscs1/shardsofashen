@@ -6,3 +6,5 @@
 data/**/*.txt text eol=crlf
 data/**/*.ini text eol=crlf
 maps/**/*.txt text eol=crlf
+saves/*.ini text eol=crlf
+dev/Minimap[[:space:]]Colours.txt text eol=crlf
