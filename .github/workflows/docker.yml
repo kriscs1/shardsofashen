@@ -30,6 +30,10 @@ jobs:
           echo "commit=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "date=$(git log -1 --format=%cs)" >> "$GITHUB_OUTPUT"
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"            # (with tkinter, which the map editor's tests import)
+
       - name: The tests first (nothing broken gets published)
         run: |
           pip install aiohttp pytest pillow             # (pillow: the map editor's tests)
