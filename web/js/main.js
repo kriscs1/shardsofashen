@@ -436,10 +436,6 @@ $("admin-save").onclick = () => {
   send({ t: "admin", do: "skills", on, levels });
 };
 $("admin-wave-go").onclick = () => send({ t: "admin", do: "wave", name: $("admin-wave").value.trim() });
-$("admin-pw-go").onclick = () => {
-  send({ t: "admin_password", name: $("admin-pw-name").value.trim(), new: $("admin-pw-new").value });
-  $("admin-pw-new").value = "";
-};
 $("death-respawn").onclick = () => send({ t: "respawn" });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
@@ -575,15 +571,14 @@ function authenticate() {
   $("login-who").textContent = "Finding your characters...";
 }
 
-function loginShow(which) {         // ("chars", "make" or "old")
-  for (const id of ["chars", "make", "old"]) $(id).hidden = id !== which;
-  $("old-row").hidden = which !== "chars" || !(mine && mine.old);
+function loginShow(which) {         // ("chars" or "make")
+  for (const id of ["chars", "make"]) $(id).hidden = id !== which;
   if (which === "make") {
     pickLook = buildPicker($("look-picker"), DEFAULT_LOOK);
     $("invite-row").hidden = !(mine && mine.invite);
     $("make-back").hidden = !(mine && mine.list.length);
     $("login-name").focus();
-  } else if (which === "old") $("old-name").focus();
+  }
 }
 
 function portrait(look) {
@@ -648,14 +643,6 @@ $("login-form").addEventListener("submit", (ev) => {
   send({ t: "create", name: $("login-name").value, invite: $("login-invite").value, look: pickLook ? pickLook() : undefined });
 });
 $("make-back").onclick = () => { setLoginError(""); loginShow("chars"); };
-$("old-link").onclick = (ev) => { ev.preventDefault(); setLoginError(""); loginShow("old"); };
-$("old-back").onclick = () => { setLoginError(""); loginShow("chars"); };
-$("old-button").onclick = () => {
-  setLoginError("");
-  busyLogin(true);
-  send({ t: "claim", name: $("old-name").value, password: $("old-password").value });
-  $("old-password").value = "";
-};
 $("home-link").onclick = (ev) => { ev.preventDefault(); if (window.DSApp && window.DSApp.goHome) window.DSApp.goHome(); };
 
 N.onOpen = () => { $("login-online").textContent = "Connected."; };

@@ -1,6 +1,5 @@
 """The central server: accounts, tickets into a game server, the remote servers list."""
 import asyncio
-import json
 import socket
 
 import aiohttp
@@ -88,24 +87,6 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
                 other = await post(http, central + "/api/ticket", {"token": token, "server": "0123456789abcdef"})
                 ws, m = await ticket_in(http, wsurl, other["ticket"], device="another")
                 assert m["t"] == "login_fail"                               # (made out to another server)
-                await ws.close()
-
-                # (a character this server had of its own first: its password brings it in, once)
-                from server import auth
-                game.store.create_account("Oldtimer", auth.hash_password("localpass1"))
-                r = await post(http, central + "/api/register", {"name": "Oldtimer", "password": "longpassword"})
-                t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id(),
-                                                               "url": here})
-                ws, m = await come_in(http, wsurl, device_of("old"), ticket=t["ticket"])
-                assert m["account"] == "Oldtimer" and m["list"] == [] and m["old"]
-                await ws.send_json({"t": "claim", "name": "Oldtimer", "password": "localpass1"})
-                m = await replies(ws, ("characters", "login_fail"))
-                assert [c["name"] for c in m["list"]] == ["Oldtimer"]
-                await ws.close()
-                t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id(),
-                                                               "url": here})
-                ws, m = await ticket_in(http, wsurl, t["ticket"], "Oldtimer")
-                assert m["t"] == "welcome" and m["name"] == "Oldtimer" and m["account"] == "Oldtimer"
                 await ws.close()
 
                 bad = await post(http, central + "/api/login", {"name": "Wanderer", "password": "wrong"})

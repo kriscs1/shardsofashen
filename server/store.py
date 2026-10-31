@@ -1,7 +1,7 @@
 """Everything the server keeps: accounts, characters and the shared world, in one SQLite database (server-data/ashen.db
 by default; DS_DB to put it elsewhere). Characters and the world are JSON. A row of accounts is a character: its name
-(one of a kind on this server), whose it is (owner: "a:<Shards account>" or "d:<a device's key, hashed>"; empty for
-an old one with a password of its own, till it's brought in) and the Admin button."""
+(one of a kind on this server), whose it is (owner: "a:<Shards account>" or "d:<a device's key, hashed>") and the
+Admin button. (pw_hash: a column from when characters had passwords, always empty now.)"""
 import json
 import logging
 import os
@@ -90,7 +90,7 @@ class Store:
         return row[0] if row else None
 
     def set_owner(self, name, owner):
-        """name is owner's now (and needs no password: it's dropped)."""
+        """name is owner's now."""
         self.db.execute("UPDATE accounts SET owner = ?, pw_hash = '' WHERE name = ?", (owner, name))
 
     def characters_of(self, owner):
@@ -99,29 +99,10 @@ class Store:
             "SELECT a.name FROM accounts a LEFT JOIN characters c ON c.name = a.name WHERE lower(a.owner) = lower(?) "
             "ORDER BY COALESCE(c.updated, a.created) DESC", (owner,))] if owner else []
 
-    def owners_from_old_links(self):
-        """Characters the central server's tickets made (or linked) before characters had owners: their account's
-        (a character made by a ticket was named for its account)."""
-        for (key,) in self.db.execute("SELECT key FROM world WHERE key LIKE 'set:central:%'").fetchall():
-            row = self.account(key[len("set:central:"):])
-            if row is not None and not self.owner(row[0]):
-                self.set_owner(row[0], "a:" + row[0])
-            self.db.execute("DELETE FROM world WHERE key = ?", (key,))
-
-    def old_ones(self):
-        """How many old characters (a password of their own, nobody's yet) wait to be brought in."""
-        return self.db.execute("SELECT COUNT(*) FROM accounts WHERE owner = '' AND pw_hash != ''").fetchone()[0]
-
-    def set_password(self, name, pw_hash):
-        cur = self.db.execute("UPDATE accounts SET pw_hash = ? WHERE name = ?", (pw_hash, name))
-        self.forget_tokens(name)
-        return cur.rowcount > 0
-
     def set_admin(self, name, admin):
         self.db.execute("UPDATE accounts SET admin = ? WHERE name = ?", (1 if admin else 0, name))
 
-    # ----- (logging in without a password is gone: what's left of its tokens is cleared on start and on a new
-    # password, so none of them can ever be used again)
+    # ----- (the tokens of logging in long ago: cleared on start, so none of them can ever be used again)
     def forget_tokens(self, name=None):
         if name is None:
             self.db.execute("DELETE FROM tokens")

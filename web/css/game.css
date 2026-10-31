@@ -100,7 +100,7 @@ html, body {
 .char-words { display: flex; flex-direction: column; min-width: 0; }
 .char-words b { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .char-words small { color: var(--dim); font-size: 13px; }
-#old-link, #home-link { color: var(--ink); }
+#home-link { color: var(--ink); }
 #message-text { white-space: pre-line; }
 
 /* the trade window (together.py): your offer and pack beside theirs; one column on a narrow screen */

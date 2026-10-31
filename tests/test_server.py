@@ -205,18 +205,11 @@ def test_chat_and_whispers(tmp_path):
 
 
 def test_admins_from_the_server_settings(tmp_path, monkeypatch):
-    """DS_ADMINS names Shards accounts (proved by a ticket, or the host's key), never a new character's name. An old
-    character it named before (a password of its own) keeps the Admin button."""
+    """DS_ADMINS names Shards accounts (proved by a ticket, or the host's key), never a character's name."""
     monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
-    db = str(tmp_path / "a.db")
-    st = Store(db)
-    st.create_account("Olda", auth.hash_password("oldpass1"))
-    st.create_account("Devo", "", owner="d:somedevice")
-    st.close()
 
     async def run():
-        runner, app, url = await start(db, admins="Kris, ann, Olda, Devo")
-        assert app[GAME].store.account("Olda")[2] and not app[GAME].store.account("Devo")[2]
+        runner, app, url = await start(str(tmp_path / "a.db"), admins="Kris, ann")
         async with aiohttp.ClientSession() as http:
             host = lambda account: {"host": "the-hosts-own-key", "account": account}      # noqa: E731
             _, m = await login(http, url, "Kristoff", auth_with=host("Kris"))
@@ -278,58 +271,6 @@ async def wait_for(ws, kind, seconds=5.0):
                 return m
 
 
-def test_an_old_character_is_brought_in_with_its_password(tmp_path, monkeypatch):
-    """A character from before accounts (a password of its own): its password once, and it's yours, with no password.
-    An admin can give one a password to bring it in with, never one that's someone's already."""
-    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
-
-    async def run():
-        runner, app, url = await start(str(tmp_path / "p.db"), admins="Boss")
-        game = app[GAME]
-        game.store.create_account("Oldie", auth.hash_password("oldpass1"))
-        game.store.set_setting("recover:oldie", "something")
-        game.store.create_account("Lost", "")
-        try:
-            async with aiohttp.ClientSession() as http:
-                ws, m = await come_in(http, url, device_of("mine"))
-                assert m["t"] == "characters" and m["list"] == [] and m["old"] and m["make"]
-                await ws.send_json({"t": "claim", "name": "Oldie", "password": "wrong"})
-                m = await replies(ws, ("characters", "login_fail"))
-                assert m["t"] == "login_fail" and m["old"]
-                await ws.send_json({"t": "claim", "name": "oldie", "password": "oldpass1"})
-                m = await replies(ws, ("characters", "login_fail"))
-                assert m["t"] == "characters" and [c["name"] for c in m["list"]] == ["Oldie"]
-                assert "yours now" in m["text"] and not m["old"]                # (Lost has no password: not waiting)
-                assert game.store.account("Oldie")[1] == "" and not game.store.setting("recover:oldie")
-                await ws.send_json({"t": "play", "name": "Oldie"})
-                assert (await replies(ws, ("welcome", "login_fail")))["t"] == "welcome"
-                await ws.close()
-                ws, m = await come_in(http, url, device_of("theirs"))
-                await ws.send_json({"t": "claim", "name": "Oldie", "password": "oldpass1"})
-                assert (await replies(ws, ("characters", "login_fail")))["t"] == "login_fail"     # (it's someone's)
-                await ws.close()
-
-                boss, _ = await login(http, url, "Bossy", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
-                await boss.send_json({"t": "admin_password", "name": "Oldie", "new": "fresh1"})
-                m = await wait_for(boss, "admin_status")
-                assert m and "someone's already" in m["text"]
-                await boss.send_json({"t": "admin_password", "name": "Lost", "new": "fresh1"})
-                m = await wait_for(boss, "admin_status")
-                assert m and "Lost's password is set" in m["text"]
-                nobody, _ = await login(http, url, "Nobody")                     # (not an admin: ignored)
-                await nobody.send_json({"t": "admin_password", "name": "Lost", "new": "hacked"})
-                await asyncio.sleep(0.5)
-                ws, m = await come_in(http, url, device_of("the lost one"))
-                await ws.send_json({"t": "claim", "name": "Lost", "password": "fresh1"})
-                m = await replies(ws, ("characters", "login_fail"))
-                assert m["t"] == "characters" and m["list"][0]["name"] == "Lost"
-                for w in (ws, boss, nobody):
-                    await w.close()
-        finally:
-            await runner.cleanup()
-    asyncio.run(run())
-
-
 def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
     """A device's key (no Shards account) has its characters here, at most MOST_CHARACTERS; names are one of a kind on
     the server; a device's key alone does on this machine and its network, never from the internet or on a public
@@ -378,19 +319,16 @@ def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
 def test_the_host_and_an_account_need_no_network(tmp_path, monkeypatch):
     """The app's own game lets its host in by the key it was started with, as their account, no central server; the
     device that came in by an account (a ticket, or the host's key) is that account's here from then on, so a reload,
-    or the central server away, is still them. Characters a ticket made before characters had owners are their
-    account's."""
+    or the central server away, is still them."""
     db = str(tmp_path / "h.db")
     st = Store(db)
-    st.create_account("Wanderer", "")
-    st.set_setting("central:wanderer", "1")
+    st.create_account("Wanderer", "", owner="a:Wanderer")
     st.close()
     monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
 
     async def run():
         runner, app, url = await start(db)
         game = app[GAME]
-        assert game.store.owner("Wanderer") == "a:Wanderer" and not game.store.setting("central:wanderer")
         try:
             async with aiohttp.ClientSession() as http:
                 ws, m = await come_in(http, url, device_of("phone"), host="the-hosts-own-key", account="Wanderer")
@@ -431,30 +369,6 @@ def test_everyone_sees_where_the_others_are(tmp_path):
             await one.close()
             await two.close()
         await runner.cleanup()
-    asyncio.run(run())
-
-
-async def claim(http, url, name, password):
-    ws, _ = await come_in(http, url, device_of("claimer"))
-    await ws.send_json({"t": "claim", "name": name, "password": password})
-    m = await replies(ws, ("characters", "login_fail"))
-    await ws.close()
-    return m
-
-
-def test_too_many_wrong_passwords_wait(tmp_path):
-    async def run():
-        runner, app, url = await start(str(tmp_path / "t.db"))
-        app[GAME].store.create_account("Guarded", auth.hash_password("right-one"))
-        try:
-            async with aiohttp.ClientSession() as http:
-                reasons = [(await claim(http, url, "Guarded", "wrong")).get("reason", "") for _ in range(6)]
-                assert reasons[:5] == ["That name and password don't go together."] * 5
-                assert "Too many wrong passwords" in reasons[5]
-                m = await claim(http, url, "Guarded", "right-one")
-                assert m["t"] == "login_fail" and "Too many" in m["reason"]     # (even the right one, for a while)
-        finally:
-            await runner.cleanup()
     asyncio.run(run())
 
 
@@ -637,7 +551,7 @@ def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
     asyncio.run(go())
 
 
-def test_only_the_games_own_page_may_join_and_guesses_count_at_once(tmp_path):
+def test_only_the_games_own_page_may_join(tmp_path):
     async def go():
         runner, app, url = await start(str(tmp_path / "o.db"))
         try:
@@ -647,12 +561,6 @@ def test_only_the_games_own_page_may_join_and_guesses_count_at_once(tmp_path):
                 host = url.split("//")[1].split("/")[0]
                 ws = await http.ws_connect(url, headers={"Origin": "http://" + host})     # (its own page)
                 await ws.close()
-                app[GAME].store.create_account("Guarded", auth.hash_password("rightpass1"))
-
-                async def guess():
-                    return (await claim(http, url, "Guarded", "wrongpass")).get("reason", "")
-                said = await asyncio.gather(*[guess() for _ in range(20)])
-                assert sum("don't go together" in r for r in said) <= 5     # (twenty at once: only five are tried)
         finally:
             await runner.cleanup()
     asyncio.run(go())

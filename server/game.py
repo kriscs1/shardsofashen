@@ -32,7 +32,6 @@ TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/m
 
 
 BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
-FAILS, FAIL_WINDOW, FAIL_WAIT = 5, 60.0, 30.0     # wrong passwords (a name or an address) before a wait, and how long
 MOST_CHARACTERS = 5     # (an account's, or a device's, on one server)
 
 
@@ -96,11 +95,6 @@ class GameServer:
         self.version = version_info(root)
         self.assets_seen = (None, "")                   # (web/assets' manifest: when it was written, its version)
         self.store = Store(db_path)
-        self.store.owners_from_old_links()
-        for n in self.admins:       # (named when DS_ADMINS named characters: an old one, or that account's, keeps it)
-            row = self.store.account(n)
-            if row is not None and not row[2] and (self.store.owner(row[0]) or "a:" + n).lower() == "a:" + n:
-                self.store.set_admin(row[0], True)
         self.max_players = max_players
         self.registration = registration
         self.invite_code = invite_code
@@ -114,7 +108,6 @@ class GameServer:
         log.info("World ready: %d maps, %d things (%.1fs)", len(self.world.maps), len(self.world.ents),
                  time.time() - t0)
         self.clients = {}                   # Session -> Client
-        self.login_fails = {}               # ("name" or "addr", which) -> when its passwords were wrong (monotonic)
         self.signups = {}                   # address -> the days it made characters on (DS_REGISTER_PER_DAY)
         self.running = False
         self.last_save = time.time()
@@ -398,33 +391,6 @@ class GameServer:
             self.disconnect(c)
         return ws
 
-    def login_wait(self, name, addr):
-        """Seconds a name or an address must wait after too many wrong passwords (0: none)."""
-        now = time.monotonic()
-        waits = []
-        for key in (("name", name.lower()), ("addr", addr)):
-            times = [t for t in self.login_fails.get(key, []) if now - t < FAIL_WINDOW]
-            if times:
-                self.login_fails[key] = times
-            else:
-                self.login_fails.pop(key, None)
-            if len(times) >= FAILS:
-                waits.append(int(FAIL_WAIT - (now - times[-1])) + 1)
-        return max([w for w in waits if w > 0], default=0)
-
-    def login_failed(self, name, addr):
-        """Counted as a wrong password (before it's checked, so tries at once can't all slip by): when, for
-        login_forgiven if it was right after all."""
-        now = time.monotonic()
-        for key in (("name", name.lower()), ("addr", addr)):
-            self.login_fails.setdefault(key, []).append(now)
-        return now
-
-    def login_forgiven(self, name, addr, at):
-        for key in (("name", name.lower()), ("addr", addr)):
-            if at in self.login_fails.get(key, []):
-                self.login_fails[key].remove(at)
-
     @staticmethod
     def rate_ok(c):
         now = time.monotonic()
@@ -584,15 +550,13 @@ class GameServer:
         t = data.get("t")
         if t == "auth":
             await self.authenticate(c, data)
-        elif t in ("play", "create", "claim"):
+        elif t in ("play", "create"):
             if c.owner is None:
                 await self.send(c, {"t": "login_fail", "reason": "Join from the start screen first."})
             elif t == "play":
                 await self.choose(c, data)
-            elif t == "create":
-                await self.create(c, data)
             else:
-                await self.bring_in(c, data)
+                await self.create(c, data)
 
     async def authenticate(self, c, data):
         """Who's playing (a ticket, the host's key or a device's key): their characters here."""
@@ -633,8 +597,7 @@ class GameServer:
             st = self.store.load_character(name) or {}
             mine.append({"name": name, "level": st.get("level") or 1, "look": st.get("look")})
         await self.send(c, {"t": "characters", "list": mine, "account": c.account, "most": MOST_CHARACTERS,
-                            "make": self.registration == "open", "invite": bool(self.invite_code),
-                            "old": self.store.old_ones() > 0, "text": text})
+                            "make": self.registration == "open", "invite": bool(self.invite_code), "text": text})
 
     async def choose(self, c, data):
         name = auth.clean_name(data.get("name", ""))
@@ -671,27 +634,6 @@ class GameServer:
             return await fail("Someone here has a character called %s already: pick another name." % name)
         log.info("New character %s (%s) from %s", name, c.account or "a device", c.addr)
         await self.enter_game(c, self.store.account(name), data)
-
-    async def bring_in(self, c, data):
-        """An old character (a password of its own, from before accounts): its password once, and it's theirs for
-        good, with no password."""
-        fail = lambda text: self.send(c, {"t": "login_fail", "reason": text, "old": True})     # noqa: E731
-        name = auth.clean_name(data.get("name", ""))
-        wait = self.login_wait(name, c.addr)
-        if wait:
-            return await fail("Too many wrong passwords: try again in %d seconds." % wait)
-        acct = self.store.account(name) if name else None
-        at = self.login_failed(name, c.addr)
-        right = acct is not None and bool(acct[1]) and not self.store.owner(acct[0]) and \
-            await asyncio.get_running_loop().run_in_executor(None, auth.check_password,
-                                                             str(data.get("password", ""))[:200], acct[1])
-        if not right:
-            return await fail("That name and password don't go together.")
-        self.login_forgiven(name, c.addr, at)
-        self.store.set_owner(acct[0], c.owner)
-        self.store.drop_setting("recover:" + acct[0].lower())
-        log.info("%s is %s's now", acct[0], c.account or "a device")
-        await self.send_characters(c, "%s is yours now." % acct[0])
 
     async def enter_game(self, c, acct, data):
         """One of theirs chosen, or a new one made: into the world."""
@@ -873,30 +815,6 @@ class GameServer:
         o.emit({"t": "chat", "from": s.player_name, "text": words, "whisper": "from"})
         s.emit({"t": "chat", "from": s.player_name, "to": to, "text": words, "whisper": "to"})
 
-    # (passwords: scrypt is slow on purpose, so it's worked out off the game's tick)
-    async def hashed(self, password):
-        return await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
-
-    async def admin_password(self, s, data):
-        """An admin sets an old character's password (Admin panel): its player brings it in with it."""
-        name = auth.clean_name(data.get("name", ""))
-        new = str(data.get("new", ""))[:200]
-        say = lambda text: s.emit({"t": "admin_status", "text": text})
-        acct = self.store.account(name) if name else None
-        if acct is None:
-            return say("There's no character called %s." % (name or "that"))
-        if self.store.owner(acct[0]):
-            return say("%s is someone's already: it needs no password." % acct[0])
-        least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
-        if len(new) < least:
-            return say("Use a password of at least %d characters." % least)
-        self.store.set_password(acct[0], await self.hashed(new))
-        log.info("%s (admin) set %s's password", s.player_name, acct[0])
-        other = self.world.sessions.get(acct[0])
-        if other is not None and other is not s:
-            other.display_message("An admin has given you a new password: use it next time you log in.", "INFO")
-        say("%s's password is set. Tell them: they bring it in with it." % acct[0])
-
     def handle_game(self, c, data):
         s = c.session
         t = data.get("t")
@@ -930,10 +848,6 @@ class GameServer:
                 if name:
                     self.store.set_setting("name", name)
                     self.broadcast({"t": "server_name", "name": name})
-            return
-        if t == "admin_password":
-            if s.admin_enabled:
-                asyncio.ensure_future(self.admin_password(s, data))
             return
         if t == "ping":
             s.emit({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)})

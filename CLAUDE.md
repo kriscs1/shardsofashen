@@ -466,9 +466,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   server, its name one of a kind there; the game page opens on that player's characters (choose one, or make one). A
   device's key alone does on this machine's network, or anywhere on a server with no central server, never on a public
   one that has. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
-  so playing alone needs no network. A device that came in by an account is that account's on that server after. An
-  old character (a password of its own) is brought in by its password once, and then has none. Never add a password
-  or a recovery code to a game server again. The logo is pixel art made by
+  so playing alone needs no network. A device that came in by an account is that account's on that server after.
+  Never add a password or a recovery code to a game server again. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
@@ -550,7 +549,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
    `ghcr.io/kriscs1/shardsofashen`) builds from GitHub.
 7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS` (Shards
-   accounts, proved by the central server's ticket or the host's key; an old character it named keeps it), or
+   accounts, proved by the central server's ticket or the host's key), or
    `DS_CENTRAL_ADMINS` on the central server, where a name with no account yet is made only with the claim code the
    server logs as it starts, never by whoever signs up first.
 8. **The owner's uncommitted changes are kept.** Whatever is changed in the folder before you start (maps from the

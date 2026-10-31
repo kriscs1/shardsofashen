@@ -190,16 +190,13 @@ right-click a player, Add friend, or `/friend Name`) is a request till they ask 
 theirs is a friend in every game. A game server sees a player's friends only with the key their ticket brought, and
 tells the central server where they're playing, so friends see it. A device's characters keep the world's own list.
 
-**Old characters** (made with a password of their own, before accounts) wait to be brought in: on the character
-screen, "Bring in an old character" takes its name and password once, and it's yours for good, with no password. An
-admin can give one a password to bring it in with (Admin > An old character's password, or
-`tools/admin.py password <Name>`), or give it straight to an account (`tools/admin.py owner <Name> <Account>`).
+An admin can give a character to an account: `tools/admin.py owner <Name> <Account>`.
 
 ## Bringing over old desktop characters
 
 ```
 python tools/import_saves.py              # every saves\*.ini (their waiting respawns join the shared world)
-python tools/admin.py owner Kris Kris     # give it to a Shards account (or: password Kris, to bring it in with)
+python tools/admin.py owner Kris Kris     # give it to a Shards account
 python tools/admin.py admin Kris on       # the Admin button (give items, set skills, god mode)
 ```
 
@@ -434,13 +431,12 @@ above.
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
-| `DS_ADMINS` | (none) | Shards accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. An old character it named before keeps the button |
+| `DS_ADMINS` | (none) | Shards accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. |
 | `DS_NAME` | `Shards of Ashen on <computer>` | the game's name in the Android app's "Games on this network" |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 | `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
 | `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the wrong-password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
 | `DS_ORIGINS` | (none) | other pages allowed to open the game's connection, comma-separated (e.g. `https://play.example.com`). The game's own page always may; any other site's page is turned away |
-| `DS_PASSWORD_MIN` | 4 | the shortest password an admin may give an old character (to bring it in with) |
 | `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
 | `DS_PUBLIC` | (off) | `1`: a remote server, announced to the central server and listed for everyone |
 | `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |

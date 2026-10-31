@@ -2,14 +2,11 @@
 
   python tools/admin.py list                        the characters, whose they are, the admins
   python tools/admin.py owner <name> <account>      give a character to a Shards account (no password: it's theirs)
-  python tools/admin.py password <name>            an old character's password (asks for it), for its player to
-                                                   bring it in with - also makes the character if needed
   python tools/admin.py admin <name> on|off        the Admin button (give items, set skills, god mode)
   python tools/admin.py backup                     a copy of the database in server-data/backups
 
 --db <path> (or DS_DB) for a database somewhere else."""
 import argparse
-import getpass
 import os
 import sys
 
@@ -28,9 +25,6 @@ def main():
     ow = sub.add_parser("owner")
     ow.add_argument("name")
     ow.add_argument("account")
-    pw = sub.add_parser("password")
-    pw.add_argument("name")
-    pw.add_argument("--password", help="(else it is asked for)")
     ad = sub.add_parser("admin")
     ad.add_argument("name")
     ad.add_argument("state", choices=("on", "off"))
@@ -41,9 +35,8 @@ def main():
         rows = store.accounts()
         if not rows:
             print("No accounts yet.")
-        for name, has_pw, admin, owner in rows:
-            whose = ("account " + owner[2:]) if owner.startswith("a:") else "a device's" if owner else \
-                "old: a password to bring it in" if has_pw else "old: NO PASSWORD (owner or password)"
+        for name, _, admin, owner in rows:
+            whose = ("account " + owner[2:]) if owner.startswith("a:") else "a device's" if owner else "nobody's"
             print("%-20s %s%s" % (name, whose, "  (admin)" if admin else ""))
     elif args.cmd == "owner":
         row = store.account(args.name)
@@ -52,21 +45,6 @@ def main():
             sys.exit("No character called %s." % args.name if row is None else "That isn't an account's name.")
         store.set_owner(row[0], "a:" + account)
         print("%s is %s's now." % (row[0], account))
-    elif args.cmd == "password":
-        name = auth.clean_name(args.name)
-        if not name:
-            sys.exit("That isn't a valid name.")
-        password = args.password or getpass.getpass("New password for %s: " % name)
-        if len(password) < 4:
-            sys.exit("Use at least 4 characters.")
-        if store.account(name) is None:
-            store.create_account(name, auth.hash_password(password))
-            print("Made the character %s." % name)
-        elif store.owner(name):
-            sys.exit("%s is someone's already: it needs no password." % name)
-        else:
-            store.set_password(name, auth.hash_password(password))
-            print("Password set for %s." % name)
     elif args.cmd == "admin":
         if store.account(args.name) is None:
             sys.exit("No account called %s." % args.name)

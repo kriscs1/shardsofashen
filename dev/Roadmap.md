@@ -527,7 +527,7 @@ friends across the internet through the central server.
 - [x] **Characters belong to an account or a device, with no passwords.** A character's name is one of a kind on its
   server; an account or a device has up to 5 there, chosen on the game page's character screen. A device's key
   (playing without an account) does on this machine's network, never on a public server joined to the central server.
-  Old characters with a password are brought in by it once. Admins are Shards accounts (`DS_ADMINS`).
+  Admins are Shards accounts (`DS_ADMINS`). (No bringing in old characters: the game isn't played yet.)
 - [x] **Your own world needs no login**: the app starts its game with the start screen's host key, so Play alone and
   your own hosted game let you straight in, as your account, with no network. A device that came in by an account is
   that account's on that server after (a reload, or the central server away).
