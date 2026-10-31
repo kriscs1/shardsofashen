@@ -14,7 +14,7 @@ import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
 import { messageColour, clamp, val, pretty, coinHTML } from "./util.js";
-import { buildPicker, DEFAULT_LOOK } from "./look.js";
+import { buildPicker, DEFAULT_LOOK, lookImage, bodyFrame } from "./look.js";
 import { preload, entityIni, sprite } from "./assets.js";
 import { onGame } from "./games.js";
 import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, buildMouseDown, buildMouseMove, drawBuild } from "./build.js";
@@ -28,28 +28,6 @@ let running = false;
 let lastFrame = performance.now();
 let lastSlow = 0;
 let lastExplored = 0;
-let loginMode = "login";
-
-// ----- the characters logged in from this browser: their names on the login screen (the password, every time)
-const NAMES_KEY = "ds.names", MAX_NAMES = 8;
-function savedNames() {
-  try {
-    const old = JSON.parse(localStorage.getItem("ds.login") || "null");    // (the old "remember me": its name only)
-    if (old) {
-      localStorage.removeItem("ds.login");
-      if (old.name) localStorage.setItem(NAMES_KEY, JSON.stringify([old.name]));
-    }
-    const v = JSON.parse(localStorage.getItem(NAMES_KEY) || "[]");
-    return Array.isArray(v) ? v.filter((n) => typeof n === "string" && n) : [];
-  } catch (e) { return []; }
-}
-function saveNames(list) {
-  try { localStorage.setItem(NAMES_KEY, JSON.stringify(list.slice(0, MAX_NAMES))); } catch (e) { /* (private window) */ }
-}
-function rememberName(name) {
-  saveNames([name, ...savedNames().filter((n) => n.toLowerCase() !== name.toLowerCase())]);
-}
-
 S.addLocal = (text, col) => addMessage(text, col);
 
 // ================================================================================================================
@@ -221,7 +199,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 
 function overlayOpen() {
   // (not the chat line: you can walk, click and fight with it open)
-  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "password", "death", "tavern-game"].some((id) => !$(id).hidden);
+  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "death", "tavern-game"].some((id) => !$(id).hidden);
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -271,23 +249,7 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
 $("opt-lan").addEventListener("input", (ev) => send({ t: "lan", open: ev.target.checked }));
-$("opt-recovery").addEventListener("click", () => send({ t: "recovery" }));
 $("opt-server-name-save").addEventListener("click", () => send({ t: "server_name", name: $("opt-server-name").value }));
-
-// ----- a forgotten password: the recovery code (shown once, when the character's made, and after each use)
-function showRecovery(code, words) {
-  if (code) showMessage("Your recovery code", `${words}\n\n${code}\n\nWith your name and this code you can set a new password from the login screen. Nobody else can see it, not even the server's admin.`);
-}
-$("forgot-link").addEventListener("click", (ev) => {
-  ev.preventDefault();
-  $("forgot").hidden = !$("forgot").hidden;
-  if (!$("forgot").hidden) $("forgot-code").focus();
-});
-$("forgot-button").addEventListener("click", () => {
-  if (!N.open) { setLoginError("Not connected to the server yet..."); return; }
-  if (!$("login-name").value.trim()) { setLoginError("Type your name above first."); return; }
-  send({ t: "reset", name: $("login-name").value, code: $("forgot-code").value, password: $("forgot-password").value });
-});
 
 // ----- the trade window (together.py): your pack's things to put in, your offer to take back, theirs; both accept
 function tradeRow(name, n, buttons) {
@@ -479,25 +441,6 @@ $("admin-pw-go").onclick = () => {
   $("admin-pw-new").value = "";
 };
 $("death-respawn").onclick = () => send({ t: "respawn" });
-// ----- changing your own password (Options)
-$("opt-password").onclick = () => {
-  for (const id of ["pw-old", "pw-new", "pw-again"]) $(id).value = "";
-  $("pw-status").textContent = "";
-  $("options").hidden = true;
-  $("password").hidden = false;
-  $("pw-old").focus();
-};
-$("pw-cancel").onclick = () => { $("password").hidden = true; canvas.focus(); };
-$("password-form").addEventListener("submit", (ev) => {
-  ev.preventDefault();
-  const old = $("pw-old").value, nw = $("pw-new").value;
-  const bad = nw.length < 4 ? "Use a new password of at least 4 characters."
-    : nw !== $("pw-again").value ? "The two new passwords aren't the same." : "";
-  if (bad) { $("pw-status").textContent = bad; $("pw-status").className = "error small"; return; }
-  $("pw-status").textContent = "Changing it...";
-  $("pw-status").className = "dim small";
-  send({ t: "password", old, new: nw });
-});
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
 for (const id of ["admin-noblack", "admin-nofog"]) {
@@ -580,7 +523,7 @@ window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, as
 // (then the app goes back to its start screen)
 window.dsBack = () => {
   const shut = { options: "options-done", quit: "quit-no", admin: "admin-close", price: "price-cancel",
-                 password: "pw-cancel", appearance: "appearance-cancel", message: "message-ok", reward: "reward-ok" };
+                 appearance: "appearance-cancel", message: "message-ok", reward: "reward-ok" };
   for (const [id, button] of Object.entries(shut)) if (!$(id).hidden) { $(button).click(); return true; }
   if (!$("chat-entry").hidden) { $("chat-input").value = ""; $("chat-entry").hidden = true; return true; }
   if (J.open) { closeJournal(); return true; }
@@ -595,80 +538,134 @@ window.dsBack = () => {
 window.dsDebug = { S, V, send, layout: () => ({ ...L, k: screen.k / screen.dpr }) };   // (for tools/browser_check.py, and scripted play-throughs)
 
 // ================================================================================================================
-// Logging in
+// Who you are, then which of your characters: the server keeps them by your Shards account (the start screen's
+// ticket) or by this device (a key of its own: each game gets its own from the start screen); no passwords
 // ================================================================================================================
-function setLoginError(text) { $("login-error").textContent = text || ""; }
-
-function showNames() {
-  // (a button for each character logged in from here: click one, then type its password; x forgets it)
-  const box = $("login-names");
-  box.textContent = "";
-  const names = savedNames();
-  box.hidden = !names.length;
-  for (const n of names) {
-    const b = document.createElement("span");
-    b.className = "name";
-    b.title = `Log in as ${n}`;
-    b.textContent = n;
-    b.onclick = () => { $("login-name").value = n; $("login-password").value = ""; $("login-password").focus(); };
-    const x = document.createElement("button");
-    x.type = "button";
-    x.className = "forget";
-    x.title = `Forget ${n} on this browser`;
-    x.textContent = "\u00d7";
-    x.onclick = (ev) => {
-      ev.stopPropagation();
-      saveNames(savedNames().filter((m) => m !== n));
-      if ($("login-name").value === n) $("login-name").value = "";
-      showNames();
-    };
-    b.appendChild(x);
-    box.appendChild(b);
-  }
+const joinArgs = new URLSearchParams(location.hash.slice(1));     // (the start screen's: device, host, account)
+if (location.hash) history.replaceState(null, "", location.pathname + location.search);    // (keys off the address)
+const randomKey = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, "0")).join("");
+function deviceKey() {
+  let k = joinArgs.get("device") || "";
+  try {
+    if (k) localStorage.setItem("ds.device", k);
+    else k = localStorage.getItem("ds.device") || "";
+    if (!k) { k = randomKey(); localStorage.setItem("ds.device", k); }
+  } catch (e) { k = k || randomKey(); }     // (a private window: this visit only)
+  return k;
 }
-{
-  const names = savedNames();
-  if (names.length) $("login-name").value = names[0];
-  showNames();
-  (names.length ? $("login-password") : $("login-name")).focus();
+let ticket = new URLSearchParams(location.search).get("ticket") || "";    // (the central server's: once)
+let mine = null, pickLook = null;
+
+function setLoginError(text, ok) {
+  $("login-error").textContent = text || "";
+  $("login-error").className = ok ? "ok" : "error";
+}
+function busyLogin(on) {
+  for (const b of document.querySelectorAll("#login-form button:not(.music-toggle)")) b.disabled = on;
+}
+
+function authenticate() {
+  send({ t: "auth", ticket, device: deviceKey(), host: joinArgs.get("host") || "", account: joinArgs.get("account") || "" });
+  if (ticket) {
+    ticket = "";
+    const q = new URLSearchParams(location.search);
+    q.delete("ticket");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : ""));
+  }
+  $("login-who").textContent = "Finding your characters...";
+}
+
+function loginShow(which) {         // ("chars", "make" or "old")
+  for (const id of ["chars", "make", "old"]) $(id).hidden = id !== which;
+  $("old-row").hidden = which !== "chars" || !(mine && mine.old);
+  if (which === "make") {
+    pickLook = buildPicker($("look-picker"), DEFAULT_LOOK);
+    $("invite-row").hidden = !(mine && mine.invite);
+    $("make-back").hidden = !(mine && mine.list.length);
+    $("login-name").focus();
+  } else if (which === "old") $("old-name").focus();
+}
+
+function portrait(look) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 48;
+  c.className = "char-face";
+  const draw = () => {
+    const im = lookImage(bodyFrame("Player4a", look), look);
+    const x = c.getContext("2d");
+    x.imageSmoothingEnabled = false;
+    x.clearRect(0, 0, 48, 48);
+    if (im) x.drawImage(im, 0, 0, 48, 48);
+  };
+  draw();
+  setTimeout(draw, 400);           // (the sprite, once it's come)
+  return c;
+}
+
+function showCharacters(m) {
+  mine = m;
+  busyLogin(false);
+  $("login-who").textContent = m.account ? `Signed in as ${m.account}` :
+    "Playing without a Shards account: your characters here are this device's.";
+  const box = $("chars");
+  box.textContent = "";
+  for (const ch of m.list) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "char";
+    b.title = `Play as ${ch.name}`;
+    const words = document.createElement("span");
+    words.className = "char-words";
+    const name = document.createElement("b");
+    name.textContent = ch.name;
+    const level = document.createElement("small");
+    level.textContent = `Level ${ch.level || 1}`;
+    words.append(name, level);
+    b.append(portrait(ch.look || DEFAULT_LOOK), words);
+    b.onclick = () => { unlock(); setLoginError(""); busyLogin(true); send({ t: "play", name: ch.name }); };
+    box.append(b);
+  }
+  if (m.make && m.list.length < m.most) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "char new";
+    b.textContent = "+ New character";
+    b.onclick = () => { unlock(); setLoginError(""); loginShow("make"); };
+    box.append(b);
+  }
+  if (!m.list.length && !m.make) setLoginError("New characters can't be made on this server.");
+  else setLoginError(m.text, true);
+  loginShow(!m.list.length && m.make ? "make" : "chars");
 }
 
 $("login-form").addEventListener("submit", (ev) => {
   ev.preventDefault();
+  if ($("make").hidden) return;
   unlock();
-  login("login");
-});
-let pickLook = null;
-$("register-button").onclick = () => {
-  unlock();
-  if ($("look-section").hidden) {           // first: how they look, then the same button makes them
-    $("look-section").hidden = false;
-    setLoginError("");
-    pickLook = buildPicker($("look-picker"), DEFAULT_LOOK);
-    $("register-button").textContent = "Create character";
-    $("login-password").setAttribute("autocomplete", "new-password");
-    return;
-  }
-  login("register");
-};
-
-function login(mode) {
-  loginMode = mode;
   setLoginError("");
   if (!N.open) { setLoginError("Not connected to the server yet..."); return; }
-  send({ t: mode, name: $("login-name").value, password: $("login-password").value,
-    invite: $("login-invite").value, look: mode === "register" && pickLook ? pickLook() : undefined });
-  $("login-button").disabled = $("register-button").disabled = true;
-}
+  busyLogin(true);
+  send({ t: "create", name: $("login-name").value, invite: $("login-invite").value, look: pickLook ? pickLook() : undefined });
+});
+$("make-back").onclick = () => { setLoginError(""); loginShow("chars"); };
+$("old-link").onclick = (ev) => { ev.preventDefault(); setLoginError(""); loginShow("old"); };
+$("old-back").onclick = () => { setLoginError(""); loginShow("chars"); };
+$("old-button").onclick = () => {
+  setLoginError("");
+  busyLogin(true);
+  send({ t: "claim", name: $("old-name").value, password: $("old-password").value });
+  $("old-password").value = "";
+};
+$("home-link").onclick = (ev) => { ev.preventDefault(); if (window.DSApp && window.DSApp.goHome) window.DSApp.goHome(); };
 
 N.onOpen = () => { $("login-online").textContent = "Connected."; };
 N.onClose = () => {
-  $("login-button").disabled = $("register-button").disabled = false;
+  busyLogin(false);
   if (running) {
     running = false;
     releaseKeys();
     stopMusic();
-    showMessage("Disconnected", "The connection to the server was lost. Your game is saved: log in again to carry on.",
+    showMessage("Disconnected", "The connection to the server was lost. Your game is saved: come back in to carry on.",
       () => location.reload());
   } else {
     $("login-online").textContent = "Can't reach the server. Trying again...";
@@ -680,7 +677,6 @@ N.onClose = () => {
 // The server's messages
 // ================================================================================================================
 const workBeats = new Set();         // (the sounds of the swings still to come: cancelled if the work stops)
-let ticket = new URLSearchParams(location.search).get("ticket") || "";    // (the central server's: once)
 N.onMessage = (m) => {
   const now = performance.now();
   switch (m.t) {
@@ -699,39 +695,26 @@ N.onMessage = (m) => {
         $("login-version").textContent = "Version " + m.version + (day ? "  ·  " + day : "");
         $("login-version").title = m.commit ? "Build " + m.commit : "";
       }
-      $("invite-row").hidden = !m.invite;
-      $("register-button").hidden = m.registration !== "open";
-      if (ticket) {                                  // (from the start screen: in by the central server's ticket)
-        send({ t: "ticket", ticket });
-        ticket = "";
-        const q = new URLSearchParams(location.search);
-        q.delete("ticket");
-        history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : ""));
-        setLoginError("Logging you in...");
-      }
+      if (!running) authenticate();
       break;
     case "closed":                                 // (the host has closed the game to the network)
       setLoginError(m.text);
-      $("login-button").disabled = $("register-button").disabled = true;
+      busyLogin(true);
       break;
     case "lan":
       $("opt-lan").checked = !!m.open;
       break;
-    case "reset_result":
-      setLoginError(m.text);
-      if (m.ok) {
-        $("forgot").hidden = true;
-        $("login-password").value = "";
-        showRecovery(m.recovery, "Your old recovery code is used up. Here's your new one:");
-      }
-      break;
-    case "recovery": showRecovery(m.code, "Your new recovery code (the old one no longer works):"); break;
     case "server_name": $("opt-server-name").value = m.name || ""; break;
     case "trade": showTrade(m); break;
+    case "characters": showCharacters(m); break;
     case "login_fail":
       setLoginError(m.reason);
-      if (m.invite) $("invite-row").hidden = false;       // (a name kept for the admin: the code from the server's log)
-      $("login-button").disabled = $("register-button").disabled = false;
+      if (m.invite) $("invite-row").hidden = false;
+      busyLogin(false);
+      if (!mine) {                                   // (not let in at all: nothing here to choose)
+        $("login-who").textContent = "";
+        $("home-row").hidden = !window.DSApp;
+      }
       break;
     case "welcome": startGame(m); break;
     case "kicked":
@@ -858,13 +841,6 @@ N.onMessage = (m) => {
       break;
     }
     case "respawned": $("death").hidden = true; canvas.focus(); break;
-    case "password_result":
-      $("pw-status").textContent = m.text;
-      $("pw-status").className = m.ok ? "ok small" : "error small";
-      if (m.ok) {
-        setTimeout(() => { $("password").hidden = true; canvas.focus(); }, 1500);
-      }
-      break;
     case "wave": S.wave = m.name ? { ...m, at: now } : null; break;
     case "game": releaseKeys(); onGame(m, now); break;
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
@@ -877,16 +853,13 @@ N.onMessage = (m) => {
 
 async function startGame(m) {
   S.labels = m.labels || [];
-  rememberName(m.name);                           // (its name on the login screen next time; never its password)
   S.name = m.name;
   S.uid = m.uid;
   S.admin = m.admin;
   $("opt-name-row").hidden = !m.host;              // (the game's name: the host's say, or an admin's)
-  $("opt-linked").hidden = !m.linked;              // (a Shards account's character: no password of its own here)
-  for (const el of document.querySelectorAll(".opt-own")) el.hidden = !!m.linked;
+  $("opt-whose").textContent = (m.account ? `Part of your Shards account, ${m.account}` : "This device's") +
+    ": it lives on this server only.";
   $("opt-server-name").value = m.server || "";
-  if (m.recovery) setTimeout(() => showRecovery(m.recovery, "Welcome! Write this recovery code down somewhere safe: " +
-    "with it you can set a new password if you ever forget yours."), 800);
   $("opt-lan-row").hidden = !m.host;               // (open to the network: the host's say, or an admin's)
   $("opt-lan").checked = !!m.lan;
   S.explored.clear();

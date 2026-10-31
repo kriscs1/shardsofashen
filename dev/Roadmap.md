@@ -519,6 +519,27 @@ Each is in `dev/QA Audit 2026-10-31.md` under its number, with how it was seen.
 - Decided: a person with no house on its map (Maren at her counter, whose night self is upstairs; 20 townsfolk with
   no free house near) still goes out of the nearest door; an animal with no home slips away once nobody's near.
 
+## 24. Accounts, friends, hosting for friends (2026-10-31)
+
+The owner's plan: one login (the Shards account), friends kept by account on the central server, and hosting for
+friends across the internet through the central server.
+
+- [x] **Characters belong to an account or a device, with no passwords.** A character's name is one of a kind on its
+  server; an account or a device has up to 5 there, chosen on the game page's character screen. A device's key
+  (playing without an account) does on this machine's network, never on a public server joined to the central server.
+  Old characters with a password are brought in by it once. Admins are Shards accounts (`DS_ADMINS`).
+- [x] **Your own world needs no login**: the app starts its game with the start screen's host key, so Play alone and
+  your own hosted game let you straight in, as your account, with no network. A device that came in by an account is
+  that account's on that server after (a reload, or the central server away).
+- [ ] **Friends on the central server, by account**: requests, accept, remove; any character of a friend's account is
+  a friend everywhere; the journal shows "Character (account)"; the Friends page shows where friends are playing, with
+  Join. The world's friend lists move over where the account is known.
+- [ ] **Measure a game's traffic per player** (before passing games through the central server).
+- [ ] **Hosting: Just me / My network / Friends.** Friends: the host's server connects out to the central server,
+  which passes the game (its page, pictures and sounds too) both ways, and lets only the host's friends in. The old
+  Remote hosting goes.
+- [ ] **Join: Friends' games / Local / Address / Public servers (Limited beta).**
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

@@ -1,6 +1,9 @@
 """The game server: one shared World, up to MAX_PLAYERS players connected over WebSockets, the world ticking 20 times
 a second, and everything saved to the database (every minute, when someone leaves, and when the server stops)."""
 import asyncio
+import hashlib
+import hmac
+import ipaddress
 import json
 import logging
 import os
@@ -30,6 +33,7 @@ TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/m
 
 BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
 FAILS, FAIL_WINDOW, FAIL_WAIT = 5, 60.0, 30.0     # wrong passwords (a name or an address) before a wait, and how long
+MOST_CHARACTERS = 5     # (an account's, or a device's, on one server)
 
 
 def shift_due(entry, seconds):
@@ -50,6 +54,9 @@ class Client:
         self.ws = ws
         self.addr = addr
         self.session = None
+        self.owner = None           # (who's playing, once they've said: "a:<Shards account>" or "d:<device>")
+        self.account = ""           # (their Shards account's name, if they came in by one)
+        self.host = False           # (the host, by the key its app started the server with)
         self.msg_times = []
         self.closed = False
         self.queue = asyncio.Queue()
@@ -80,20 +87,18 @@ class Client:
 class GameServer:
     def __init__(self, root, db_path, max_players=5, registration="open", invite_code="", backup_dir=None, admins=""):
         self.root = root
-        # (DS_ADMINS: names the server's owner gives the Admin button, besides the accounts tools/admin.py made admin)
+        # (DS_ADMINS: the Shards accounts the server's owner gives the Admin button, besides the characters
+        # tools/admin.py made admin)
         self.admins = {a.strip().lower() for a in str(admins or "").split(",") if a.strip()}
         from .version import version_info
         self.version = version_info(root)
         self.assets_seen = (None, "")                   # (web/assets' manifest: when it was written, its version)
         self.store = Store(db_path)
-        # (an admin named in DS_ADMINS with no character yet: made only with the code from this log, as its invite
-        # code, or with tools/admin.py; else whoever took the name first would have the Admin button)
-        self.claims = {}
-        for n in sorted(self.admins):
-            if self.store.account(n) is None:
-                self.claims[n] = auth.recovery_code()
-                log.warning("DS_ADMINS names %s, who has no character yet: make it with the invite code %s", n,
-                            self.claims[n])
+        self.store.owners_from_old_links()
+        for n in self.admins:       # (named when DS_ADMINS named characters: an old one, or that account's, keeps it)
+            row = self.store.account(n)
+            if row is not None and not row[2] and (self.store.owner(row[0]) or "a:" + n).lower() == "a:" + n:
+                self.store.set_admin(row[0], True)
         self.max_players = max_players
         self.registration = registration
         self.invite_code = invite_code
@@ -426,40 +431,6 @@ class GameServer:
         c.msg_times.append(now)
         return True
 
-    async def new_recovery(self, name):
-        """A new recovery code for name: kept only as a hash, the code itself told to them once."""
-        code = auth.recovery_code()
-        self.store.set_setting("recover:" + name.lower(), await self.hashed(auth.clean_code(code)))
-        return code
-
-    async def reset_password(self, c, data):
-        """Forgotten a password: the name, the recovery code written down at sign-up, a new password. The code is
-        used up (a new one is given). Wrong codes count as wrong passwords (the wait)."""
-        name = auth.clean_name(data.get("name", ""))
-        code = auth.clean_code(data.get("code", ""))
-        new = str(data.get("password", ""))[:200]
-        fail = lambda text: self.send(c, {"t": "reset_result", "ok": False, "text": text})   # noqa: E731
-        wait = self.login_wait(name, c.addr)
-        if wait:
-            return await fail("Too many tries: wait %d seconds." % wait)
-        acct = self.store.account(name)
-        stored = self.store.setting("recover:" + name.lower(), "") if acct else ""
-        at = self.login_failed(name, c.addr)
-        right = bool(stored) and await asyncio.get_running_loop().run_in_executor(None, auth.check_password, code, stored)
-        if right:
-            self.login_forgiven(name, c.addr, at)
-        else:
-            await asyncio.sleep(1)
-            return await fail("That name and recovery code don't go together. (Lost the code too? Ask the server's "
-                              "admin to set you a new password.)")
-        least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
-        if len(new) < least:
-            return await fail("Use a new password of at least %d characters." % least)
-        self.store.set_password(acct[0], await self.hashed(new))
-        log.info("%s set a new password with their recovery code", acct[0])
-        await self.send(c, {"t": "reset_result", "ok": True, "recovery": await self.new_recovery(acct[0]),
-                            "text": "Your new password is set: log in with it."})
-
     # ----- the central server (central/): one account for every game, a ticket to come in by, and the server list
     def central_url(self):
         return os.environ.get("DS_CENTRAL", "").strip().rstrip("/")
@@ -483,43 +454,6 @@ class GameServer:
             log.warning("The central server didn't answer %s: %s", path, e)
             return None
 
-    async def ticket_account(self, c, data):
-        """A ticket from the central server: the account it's for (made here the first time), or None (told why)."""
-        if not self.central_url():
-            await self.send(c, {"t": "login_fail", "reason": "This server isn't joined to the central server: log "
-                                                             "in with a name and password here."})
-            return None
-        got = await self.central_post("/api/verify", {"ticket": str(data.get("ticket", ""))[:100],
-                                                      "server": self.server_id()})
-        if not got or not got.get("ok"):
-            await self.send(c, {"t": "login_fail", "reason": (got or {}).get("text") or
-                                "The central server couldn't be reached: log in with this server's own account."})
-            return None
-        name = auth.clean_name(got.get("name", ""))
-        if self.banned(name):
-            await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % name})
-            return None
-        acct = self.store.account(name)
-        if acct is None and name.lower() in self.claims:
-            await self.send(c, {"t": "login_fail", "reason": "%s is kept for this server's admin: make it here with "
-                                                             "the code from the server's log first." % name})
-            return None
-        if acct is None and (self.registration != "open" or self.invite_code):
-            await self.send(c, {"t": "login_fail", "reason": "New characters can't be made on this server just by "
-                                                             "signing in: ask its admin."})
-            return None                                 # (closed, or by invitation: a ticket isn't one)
-        if acct is None:
-            self.store.create_account(name, "", False)  # (no password here: they come in by ticket)
-            self.store.set_setting("central:" + name.lower(), "1")
-            acct = self.store.account(name)
-        elif not self.store.setting("central:" + name.lower(), ""):
-            c.central_name = acct[0]                    # (their own here first: its password links it)
-            await self.send(c, {"t": "login_fail", "reason": "This server already has a character called %s of its "
-                                "own. Log in with its password here, and it's yours from the central server from now "
-                                "on too." % acct[0]})
-            return None
-        return acct
-
     async def announce(self, bye=False):
         """A remote server (DS_PUBLIC=1) tells the central server it's there: its id, name, address (DS_PUBLIC_URL,
         or where it calls from and its port), how many are playing. Every minute; goodbye as it stops."""
@@ -540,94 +474,148 @@ class GameServer:
             if got.get("key") and got["key"] != key:
                 self.store.set_setting("server_id", got["key"])     # (the central server gave it another)
 
+    # ----- who's playing: a Shards account (the central server's ticket), the host (the key its app started the server
+    # with) or a device (a key of its own: on this machine and its network only); then one of their characters
+    def devices_welcome(self, addr):
+        """A device's own key (no Shards account) is enough here: from this machine and its network; from anywhere
+        on a server with no central server (there's no other way in); never on a public one that has."""
+        if not self.central_url():
+            return True
+        if os.environ.get("DS_PUBLIC", "").strip() in ("1", "yes", "on", "true"):
+            return False
+        try:
+            ip = ipaddress.ip_address(addr or "")
+        except ValueError:
+            return False
+        return ip.is_loopback or ip.is_private
+
+    @staticmethod
+    def device_owner(key):
+        return "d:" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
+
+    def banned_owner(self, owner):
+        return self.store.setting("banowner:" + owner.lower(), "")
+
+    async def ticket_name(self, ticket):
+        """The Shards account a ticket from the central server is for, or ("", why not)."""
+        if not self.central_url():
+            return "", "This game isn't joined to the central server."
+        got = await self.central_post("/api/verify", {"ticket": str(ticket)[:100], "server": self.server_id()})
+        if not got or not got.get("ok"):
+            return "", (got or {}).get("text") or "The central server couldn't be reached just now."
+        return auth.clean_name(got.get("name", "")), ""
+
     async def handle_login(self, c, data):
         t = data.get("t")
-        if t == "reset":
-            await self.reset_password(c, data)
+        if t == "auth":
+            await self.authenticate(c, data)
+        elif t in ("play", "create", "claim"):
+            if c.owner is None:
+                await self.send(c, {"t": "login_fail", "reason": "Join from the start screen first."})
+            elif t == "play":
+                await self.choose(c, data)
+            elif t == "create":
+                await self.create(c, data)
+            else:
+                await self.bring_in(c, data)
+
+    async def authenticate(self, c, data):
+        """Who's playing (a ticket, the host's key or a device's key): their characters here."""
+        device = str(data.get("device", ""))[:100]
+        device = self.device_owner(device) if len(device) >= 16 else ""
+        linked = self.store.setting("dev:" + device[2:], "") if device else ""
+        owner, why = "", ""
+        key = os.environ.get("DS_HOST_KEY", "")
+        if key and self.is_local(c.addr) and hmac.compare_digest(str(data.get("host", "")), key):
+            name = auth.clean_name(data.get("account", ""))
+            owner, c.host = ("a:" + name if name else linked or device), True
+        elif data.get("ticket"):
+            name, why = await self.ticket_name(data["ticket"])
+            owner = "a:" + name if name else ""
+        if not owner and linked:
+            owner = linked                              # (this device came in by its account here before)
+        elif not owner and device and self.devices_welcome(c.addr):
+            owner = device
+        if not owner:
+            await self.send(c, {"t": "login_fail", "reason": why or "Sign in with your Shards account on the start "
+                                                                   "screen to play here."})
             return
-        if t == "ticket":
-            acct = await self.ticket_account(c, data)
-            if acct is not None:
-                await self.enter_game(c, acct, data)
+        if self.banned_owner(owner):
+            await self.send(c, {"t": "login_fail", "reason": "You're banned from this server."})
             return
-        if t not in ("login", "register"):
-            return
+        if device and owner.startswith("a:") and linked.lower() != owner.lower():
+            self.store.set_setting("dev:" + device[2:], owner)    # (a reload, or the central server away: still you)
+        c.owner, c.account = owner, owner[2:] if owner.startswith("a:") else ""
+        await self.send_characters(c)
+
+    async def send_characters(self, c, text=""):
+        mine = []
+        for name in self.store.characters_of(c.owner):
+            st = self.store.load_character(name) or {}
+            mine.append({"name": name, "level": st.get("level") or 1, "look": st.get("look")})
+        await self.send(c, {"t": "characters", "list": mine, "account": c.account, "most": MOST_CHARACTERS,
+                            "make": self.registration == "open", "invite": bool(self.invite_code),
+                            "old": self.store.old_ones() > 0, "text": text})
+
+    async def choose(self, c, data):
         name = auth.clean_name(data.get("name", ""))
-        password = str(data.get("password", ""))[:200]
+        acct = self.store.account(name) if name else None
+        if acct is None or (self.store.owner(acct[0]) or "").lower() != c.owner.lower():
+            await self.send(c, {"t": "login_fail", "reason": "That isn't one of your characters here."})
+        elif self.banned(acct[0]):
+            await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % acct[0]})
+        else:
+            await self.enter_game(c, acct, data)
+
+    async def create(self, c, data):
+        """A new character: its name one of a kind here."""
+        fail = lambda text, **more: self.send(c, {"t": "login_fail", "reason": text, **more})     # noqa: E731
+        name = auth.clean_name(data.get("name", ""))
+        if not name:
+            return await fail("Pick a name: letters, numbers, spaces, _ and -.")
+        if self.registration != "open":
+            return await fail("New characters can't be made on this server.")
+        if self.invite_code and str(data.get("invite", "")) != self.invite_code:
+            return await fail("That invite code isn't right.", invite=True)
+        if len(self.store.characters_of(c.owner)) >= MOST_CHARACTERS:
+            return await fail("You have %d characters here already: that's the most." % MOST_CHARACTERS)
+        if name.lower() in self.RESERVED:
+            return await fail("That name is kept for the server: pick another.")
+        if self.store.account(name) is not None:
+            return await fail("Someone here has a character called %s already: pick another name." % name)
+        if self.signups_left(c.addr) <= 0:
+            return await fail("Too many new characters from here today: try again tomorrow.")
+        self.signups.setdefault(c.addr, []).append(time.strftime("%Y%m%d"))
+        try:
+            self.store.create_account(name, "", False, c.owner)
+        except sqlite3.IntegrityError:
+            return await fail("Someone here has a character called %s already: pick another name." % name)
+        log.info("New character %s (%s) from %s", name, c.account or "a device", c.addr)
+        await self.enter_game(c, self.store.account(name), data)
+
+    async def bring_in(self, c, data):
+        """An old character (a password of its own, from before accounts): its password once, and it's theirs for
+        good, with no password."""
+        fail = lambda text: self.send(c, {"t": "login_fail", "reason": text, "old": True})     # noqa: E731
+        name = auth.clean_name(data.get("name", ""))
         wait = self.login_wait(name, c.addr)
         if wait:
-            await self.send(c, {"t": "login_fail", "reason": "Too many wrong passwords: try again in %d seconds."
-                                % wait})
-            return
-        if not name:
-            await self.send(c, {"t": "login_fail", "reason": "Pick a name: letters, numbers, spaces, _ and -."})
-            return
-        acct = self.store.account(name)
-        if acct is not None and self.banned(acct[0]):
-            await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % acct[0]})
-            return
-        if t == "register":
-            if acct is not None:
-                await self.send(c, {"t": "login_fail", "reason": "That name is taken. Log in instead?"})
-                return
-            if name.lower() in self.RESERVED:
-                await self.send(c, {"t": "login_fail", "reason": "That name is kept for the server: pick another."})
-                return
-            claim = self.claims.get(name.lower())
-            if claim and auth.clean_code(str(data.get("invite", ""))) != auth.clean_code(claim):
-                await self.send(c, {"t": "login_fail", "invite": True, "reason": "That name is kept for this "
-                                    "server's admin: give the code from the server's log as the invite code."})
-                return
-            if self.signups_left(c.addr) <= 0:
-                await self.send(c, {"t": "login_fail", "reason": "Too many new characters from here today: try "
-                                                                   "again tomorrow."})
-                return
-            if self.registration != "open":
-                await self.send(c, {"t": "login_fail", "reason": "New characters can't be made on this server."})
-                return
-            if self.invite_code and not claim and str(data.get("invite", "")) != self.invite_code:
-                await self.send(c, {"t": "login_fail", "reason": "That invite code isn't right."})
-                return
-            least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
-            if len(password) < least:
-                await self.send(c, {"t": "login_fail", "reason": "Use a password of at least %d characters." % least})
-                return
-            if password.lower() == name.lower():
-                await self.send(c, {"t": "login_fail", "reason": "Your password can't be your name."})
-                return
-            day = time.strftime("%Y%m%d")
-            self.signups.setdefault(c.addr, []).append(day)     # (counted now: sign-ups at once can't all slip by)
-            hashed = await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
-            try:
-                self.store.create_account(name, hashed, False)
-            except sqlite3.IntegrityError:              # (someone took the name while the password was hashed)
-                if day in self.signups.get(c.addr, []):
-                    self.signups[c.addr].remove(day)
-                await self.send(c, {"t": "login_fail", "reason": "That name is taken. Log in instead?"})
-                return
-            self.claims.pop(name.lower(), None)
-            c.recovery = await self.new_recovery(name)  # (shown once, in the welcome: to write down)
-            log.info("New character %s from %s", name, c.addr)
-            acct = self.store.account(name)
-        else:
-            if acct is None:
-                await self.send(c, {"t": "login_fail", "reason": "No character called %s. Make one?" % name})
-                return
-            if not acct[1]:                         # (a password every time: no browser logs in by itself)
-                await self.send(c, {"t": "login_fail",
-                                    "reason": "%s has no password yet: ask the server's admin to set one." % name})
-                return
-            at = self.login_failed(name, c.addr)
-            if not await asyncio.get_running_loop().run_in_executor(None, auth.check_password, password, acct[1]):
-                await self.send(c, {"t": "login_fail", "reason": "Wrong password."})
-                return
-            self.login_forgiven(name, c.addr, at)
-            if getattr(c, "central_name", "") == acct[0]:
-                self.store.set_setting("central:" + acct[0].lower(), "1")   # (theirs from the central server too)
-        await self.enter_game(c, acct, data)
+            return await fail("Too many wrong passwords: try again in %d seconds." % wait)
+        acct = self.store.account(name) if name else None
+        at = self.login_failed(name, c.addr)
+        right = acct is not None and bool(acct[1]) and not self.store.owner(acct[0]) and \
+            await asyncio.get_running_loop().run_in_executor(None, auth.check_password,
+                                                             str(data.get("password", ""))[:200], acct[1])
+        if not right:
+            return await fail("That name and password don't go together.")
+        self.login_forgiven(name, c.addr, at)
+        self.store.set_owner(acct[0], c.owner)
+        self.store.drop_setting("recover:" + acct[0].lower())
+        log.info("%s is %s's now", acct[0], c.account or "a device")
+        await self.send_characters(c, "%s is yours now." % acct[0])
 
     async def enter_game(self, c, acct, data):
-        """Logged in (a password, a new character, or a ticket from the central server): into the world."""
+        """One of theirs chosen, or a new one made: into the world."""
         name, _, admin = acct
         w = self.world
         old = w.sessions.get(name)
@@ -657,24 +645,24 @@ class GameServer:
             if s.dead_wait:                 # (they died and went: back to life, where they'd have woken)
                 s.respawn()
         else:
-            s = Session(w, name, admin=bool(admin) or name.lower() in self.admins)
+            s = Session(w, name, admin=bool(admin) or c.account.lower() in self.admins)
             saved = self.store.load_character(name)
             s.load_state(saved)
-            if saved is None and data.get("t") == "register":
+            if saved is None and data.get("t") == "create":
                 s.set_look(data.get("look"))
             w.sessions[name] = s
             s.enter_world()
             self.save_session(s)
             self.broadcast({"t": "chat", "from": "", "text": "%s has joined the game." % name}, exclude=s)
             s.friends_hear("Your friend %s has come into Ashen." % name)
+        s.account = c.account
         c.session = s
         self.clients[s] = c
         self.last_where_sent = None                     # (the one come in hasn't had the dots yet)
         log.info("%s logged in from %s (%d online)", name, c.addr, len(w.sessions))
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
-                            "recovery": getattr(c, "recovery", ""), "server": self.server_name(),
-                            "linked": bool(self.store.setting("central:" + name.lower(), "")),
-                            "host": s.admin_enabled or self.is_local(c.addr), "lan": self.lan_open,
+                            "account": c.account, "server": self.server_name(),
+                            "host": s.admin_enabled or c.host or self.is_local(c.addr), "lan": self.lan_open,
                             "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())
 
@@ -705,8 +693,11 @@ class GameServer:
         acct = self.store.account(name)
         name = acct[0] if acct else name
         o = self.world.sessions.get(name)
+        own = self.store.owner(name) or ""             # (a ban is on whose it is too: not just a new character away)
         if cmd == "/unban":
             self.store.drop_setting("ban:" + name.lower())
+            if own:
+                self.store.drop_setting("banowner:" + own.lower())
             say("%s may play again." % name)
         elif cmd == "/unmute":
             if o is not None:
@@ -724,6 +715,8 @@ class GameServer:
                     say("There's no character called %s." % name)
                     return True
                 self.store.set_setting("ban:" + name.lower(), (extra or "banned")[:100])
+                if own:
+                    self.store.set_setting("banowner:" + own.lower(), (extra or "banned")[:100])
             c = self.clients.get(o) if o is not None else None
             if c is not None:
                 self.save_session(o)
@@ -799,33 +792,16 @@ class GameServer:
     async def hashed(self, password):
         return await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
 
-    async def change_password(self, s, data):
-        """A player changes their own password (Options): their current one first."""
-        old, new = str(data.get("old", ""))[:200], str(data.get("new", ""))[:200]
-        reply = lambda ok, text: s.emit({"t": "password_result", "ok": ok, "text": text})
-        acct = self.store.account(s.player_name)
-        if acct is None:
-            return reply(False, "Your account wasn't found.")
-        right = await asyncio.get_running_loop().run_in_executor(None, auth.check_password, old, acct[1] or "")
-        if not right:
-            await asyncio.sleep(1)                      # (no quick guessing)
-            return reply(False, "That isn't your current password.")
-        least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
-        if len(new) < least:
-            return reply(False, "Use a new password of at least %d characters." % least)
-        self.store.set_password(s.player_name, await self.hashed(new))     # (other browsers forget them)
-        log.info("%s changed their password", s.player_name)
-        s.emit({"t": "password_result", "ok": True, "text": "Your password is changed. Use the new one next time you "
-                "log in."})
-
     async def admin_password(self, s, data):
-        """An admin sets another player's password (Admin panel): for someone who's forgotten theirs."""
+        """An admin sets an old character's password (Admin panel): its player brings it in with it."""
         name = auth.clean_name(data.get("name", ""))
         new = str(data.get("new", ""))[:200]
         say = lambda text: s.emit({"t": "admin_status", "text": text})
         acct = self.store.account(name) if name else None
         if acct is None:
             return say("There's no character called %s." % (name or "that"))
+        if self.store.owner(acct[0]):
+            return say("%s is someone's already: it needs no password." % acct[0])
         least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
         if len(new) < least:
             return say("Use a password of at least %d characters." % least)
@@ -834,7 +810,7 @@ class GameServer:
         other = self.world.sessions.get(acct[0])
         if other is not None and other is not s:
             other.display_message("An admin has given you a new password: use it next time you log in.", "INFO")
-        say("%s's password is set. Tell them the new one." % acct[0])
+        say("%s's password is set. Tell them: they bring it in with it." % acct[0])
 
     def handle_game(self, c, data):
         s = c.session
@@ -862,14 +838,6 @@ class GameServer:
                 self.save_session(s)
             else:
                 s.save_requested = True         # (saved with everyone in a moment: not a save a message)
-            return
-        if t == "password":
-            asyncio.ensure_future(self.change_password(s, data))
-            return
-        if t == "recovery":                             # (Options: a new recovery code, shown once)
-            async def give():
-                s.emit({"t": "recovery", "code": await self.new_recovery(s.player_name)})
-            asyncio.ensure_future(give())
             return
         if t == "server_name":                          # (Options: the host names the game)
             if s.admin_enabled or self.is_local(c.addr):

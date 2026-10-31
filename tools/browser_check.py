@@ -1,5 +1,5 @@
-"""Plays the game in a headless browser (Playwright + Chromium) and saves screenshots: a check that the page loads, logs
-in, draws the world and reacts to the keyboard and mouse without script errors.
+"""Plays the game in a headless browser (Playwright + Chromium) and saves screenshots: a check that the page loads, comes
+in (a new browser: a device of its own, its character made the first time), draws the world and reacts to the keyboard and mouse without script errors.
 
   python tools/browser_check.py --url http://localhost:8484 --out <folder> [--name Tester] [--size 1600x900]"""
 import argparse
@@ -14,7 +14,6 @@ async def main():
     p.add_argument("--url", default="http://localhost:8484")
     p.add_argument("--out", default=".")
     p.add_argument("--name", default="Tester")
-    p.add_argument("--password", default="testpass")
     p.add_argument("--size", default="1600x900")
     args = p.parse_args()
     w, h = (int(v) for v in args.size.split("x"))
@@ -26,20 +25,21 @@ async def main():
         page.on("console", lambda m: errors.append("console %s: %s" % (m.type, m.text)) if m.type in ("error", "warning") else None)
         page.on("pageerror", lambda e: errors.append("page error: %s" % e))
         await page.goto(args.url)
-        await page.wait_for_function("document.getElementById('login-online').textContent.includes('online')", timeout=15000)
-        await page.fill("#login-name", args.name)
-        await page.fill("#login-password", args.password)
-        await page.click("#login-button")
-        await page.wait_for_timeout(1500)
-        err = await page.text_content("#login-error")
-        if err and "No character" in err:
-            await page.click("#register-button")          # shows the appearance picker
-            await page.wait_for_timeout(500)
+        await page.wait_for_function("!document.getElementById('chars').hidden || !document.getElementById('make').hidden",
+                                     timeout=15000)
+        mine = page.locator("#chars .char", has_text=args.name)
+        if await page.locator("#make").is_visible() or not await mine.count():
+            if not await page.locator("#make").is_visible():
+                await page.click("#chars .char.new")      # shows the name and the appearance picker
+            await page.fill("#login-name", args.name)
             for part, n in ((1, 4), (2, 5), (3, 2)):        # hair, shirt, trousers: a swatch each
                 await page.locator(".look-row").nth(part).locator(".swatch").nth(n).click()
             await page.wait_for_timeout(1200)
             await page.screenshot(path=os.path.join(args.out, "0-new-character.png"))
-            await page.click("#register-button")          # makes the character
+            await page.click("#make-button")              # makes the character
+        else:
+            await page.screenshot(path=os.path.join(args.out, "0-characters.png"))
+            await mine.first.click()
         await page.wait_for_function("document.getElementById('login').hidden && document.getElementById('loading').hidden",
                                      timeout=20000)
         await page.wait_for_timeout(3500)

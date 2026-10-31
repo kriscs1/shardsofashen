@@ -96,6 +96,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
+        self.account = ""                                               # (the Shards account it's part of, if any)
         self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
         self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
         self.trade = None
@@ -572,7 +573,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
             "sprite": self.swap["body"] if self.swap else self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
-            "skills_of": d.skill_max_level,
+            "skills_of": d.skill_max_level, "level": self.player_level(),     # (the level: for the character list)
             "inventory": [[e.name, e.quantity, e.wear] for e in self.inv],
             "equipped": [[self.equipped[i], self.equip_wear[i]] for i in range(1, d.equip_slots + 1)],
             "bank": [[self.bank_item[i], self.bank_qty[i], self.bank_wear[i][:self.bank_qty[i]]]

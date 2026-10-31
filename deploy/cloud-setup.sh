@@ -48,7 +48,7 @@ if [ ! -f .env ]; then
     if [ -t 0 ] || [ -e /dev/tty ]; then
         printf "Your server's domain (its DNS must point here already): " > /dev/tty
         read -r domain < /dev/tty
-        printf "Your admin character's name (you'll make it first): " > /dev/tty
+        printf "Your Shards account's name (its characters get the Admin button): " > /dev/tty
         read -r admin < /dev/tty
         sed -i "s|^DS_DOMAIN=.*|DS_DOMAIN=$domain|; s|^DS_ADMINS=.*|DS_ADMINS=$admin|" .env
     fi
@@ -63,5 +63,5 @@ docker compose up -d
 domain=$(grep "^DS_DOMAIN=" .env | cut -d= -f2)
 echo
 echo "Done. In a minute or two (while Caddy gets its certificate) the game is at https://$domain"
-echo "Make your admin character there first. Settings: $DIR/.env (then: cd $DIR && docker compose up -d)."
+echo "Settings: $DIR/.env (then: cd $DIR && docker compose up -d)."
 echo "Logs: cd $DIR && docker compose logs -f game        Accounts: docker compose exec game python tools/admin.py list"

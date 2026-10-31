@@ -1,4 +1,4 @@
-"""The server: accounts, the player limit, saving and loading the world."""
+"""The server: who's playing and their characters, the player limit, saving and loading the world."""
 import asyncio
 import json
 import os
@@ -31,15 +31,36 @@ async def start(db, max_players=5, admins=""):
     return runner, app, "ws://127.0.0.1:%d/ws" % port
 
 
-async def login(http, url, name, password, mode="register", **more):
-    ws = await http.ws_connect(url)
-    await ws.send_json({"t": mode, "name": name, "password": password, **more})
+def device_of(name):
+    return ("device of " + name).ljust(16, ".")
+
+
+async def replies(ws, kinds):
     while True:
         msg = await asyncio.wait_for(ws.receive(), 10)
         data = json.loads(msg.data)
         for m in data if isinstance(data, list) else [data]:
-            if m["t"] in ("welcome", "login_fail"):
-                return ws, m
+            if m["t"] in kinds:
+                return m
+
+
+async def login(http, url, name, password="", mode="register", device=None, headers=None, auth_with=None, **more):
+    """In as a device of its own (each name its own device, unless device is given; auth_with: a ticket, the host's
+    key...), then a new character (register) or one of theirs (login). (password: the old tests'; nobody needs one.)"""
+    ws = await http.ws_connect(url, headers=headers or {})
+    await ws.send_json({"t": "auth", "device": device or device_of(name), **(auth_with or {})})
+    m = await replies(ws, ("characters", "login_fail"))
+    if m["t"] == "login_fail":
+        return ws, m
+    await ws.send_json({"t": "create" if mode == "register" else "play", "name": name, **more})
+    return ws, await replies(ws, ("welcome", "login_fail"))
+
+
+async def come_in(http, url, device, **more):
+    """In as someone, no further: their characters (or why not)."""
+    ws = await http.ws_connect(url, headers=more.pop("headers", {}))
+    await ws.send_json({"t": "auth", "device": device, **more})
+    return ws, await replies(ws, ("characters", "login_fail"))
 
 
 def test_passwords():
@@ -49,24 +70,24 @@ def test_passwords():
     assert auth.clean_name("Bob <script>") == "Bob script"
 
 
-def test_login_limit_and_passwords(tmp_path):
+def test_the_player_limit_and_whose_characters(tmp_path):
     async def run():
         runner, app, url = await start(str(tmp_path / "t.db"), max_players=2)
         try:
             async with aiohttp.ClientSession() as http:
-                w1, m1 = await login(http, url, "One", "pass1")
+                w1, m1 = await login(http, url, "One")
                 assert m1["t"] == "welcome"
-                w2, m2 = await login(http, url, "Two", "pass2")
+                w2, m2 = await login(http, url, "Two")
                 assert m2["t"] == "welcome"
-                w3, m3 = await login(http, url, "Three", "pass3")
+                w3, m3 = await login(http, url, "Three")
                 assert m3["t"] == "login_fail" and "full" in m3["reason"]
                 await w3.close()
                 await w2.close()
                 await asyncio.sleep(0.3)
-                w4, m4 = await login(http, url, "One", "wrong", "login")
-                assert m4["t"] == "login_fail"          # (One is still on; a wrong password is refused anyway)
+                w4, m4 = await login(http, url, "One", mode="login", device=device_of("Two"))
+                assert m4["t"] == "login_fail" and "isn't one of your" in m4["reason"]    # (someone else's)
                 await w4.close()
-                w5, m5 = await login(http, url, "Two", "pass2", "login")
+                w5, m5 = await login(http, url, "Two", mode="login")
                 assert m5["t"] == "welcome"
                 for w in (w1, w5):
                     await w.close()
@@ -183,19 +204,29 @@ def test_chat_and_whispers(tmp_path):
     asyncio.run(run())
 
 
-def test_admins_from_the_server_settings(tmp_path):
+def test_admins_from_the_server_settings(tmp_path, monkeypatch):
+    """DS_ADMINS names Shards accounts (proved by a ticket, or the host's key), never a new character's name. An old
+    character it named before (a password of its own) keeps the Admin button."""
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+    db = str(tmp_path / "a.db")
+    st = Store(db)
+    st.create_account("Olda", auth.hash_password("oldpass1"))
+    st.create_account("Devo", "", owner="d:somedevice")
+    st.close()
+
     async def run():
-        runner, app, url = await start(str(tmp_path / "a.db"), admins="Kris, ann")
-        claims = dict(app[GAME].claims)
+        runner, app, url = await start(db, admins="Kris, ann, Olda, Devo")
+        assert app[GAME].store.account("Olda")[2] and not app[GAME].store.account("Devo")[2]
         async with aiohttp.ClientSession() as http:
-            _, m = await login(http, url, "Kris", "pw12")
-            assert m["t"] == "login_fail" and m["invite"]               # (an admin's name: the log's code first)
-            _, m = await login(http, url, "Kris", "pw12", invite=claims["kris"])
-            assert m["t"] == "welcome" and m["admin"] is True
-            _, m = await login(http, url, "Ann", "pw12", invite=claims["ann"])     # (names in any case)
+            host = lambda account: {"host": "the-hosts-own-key", "account": account}      # noqa: E731
+            _, m = await login(http, url, "Kristoff", auth_with=host("Kris"))
+            assert m["t"] == "welcome" and m["admin"] is True and m["account"] == "Kris"
+            _, m = await login(http, url, "Annie", auth_with=host("ANN"))     # (accounts in any case)
             assert m["admin"] is True
-            _, m = await login(http, url, "Bob", "pw12")
-            assert m["admin"] is False
+            _, m = await login(http, url, "Kris")                              # (a device's character called Kris)
+            assert m["t"] == "welcome" and m["admin"] is False
+            _, m = await login(http, url, "Sly", auth_with={"host": "a-guess", "account": "Kris"})
+            assert m["admin"] is False and m["account"] == ""                  # (the wrong key: only a device)
         await runner.cleanup()
     asyncio.run(run())
 
@@ -247,54 +278,142 @@ async def wait_for(ws, kind, seconds=5.0):
                 return m
 
 
-def test_changing_and_resetting_passwords(tmp_path):
+def test_an_old_character_is_brought_in_with_its_password(tmp_path, monkeypatch):
+    """A character from before accounts (a password of its own): its password once, and it's yours, with no password.
+    An admin can give one a password to bring it in with, never one that's someone's already."""
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+
     async def run():
         runner, app, url = await start(str(tmp_path / "p.db"), admins="Boss")
-        async with aiohttp.ClientSession() as http:
-            ws, _ = await login(http, url, "Player", "oldpass")
-            await ws.send_json({"t": "password", "old": "wrong", "new": "newpass"})
-            m = await wait_for(ws, "password_result")
-            assert m and not m["ok"]                                   # (not without the current one)
-            await ws.send_json({"t": "password", "old": "oldpass", "new": "newpass"})
-            m = await wait_for(ws, "password_result")
-            assert m and m["ok"]
-            await ws.close()
-            _, m = await login(http, url, "Player", "oldpass", mode="login")
-            assert m["t"] == "login_fail"
-            ws, m = await login(http, url, "Player", "newpass", mode="login")
-            assert m["t"] == "welcome"
-            await ws.close()
-            boss, _ = await login(http, url, "Boss", "bosspass", invite=app[GAME].claims["boss"])
-            await boss.send_json({"t": "admin_password", "name": "Player", "new": "fresh1"})
-            m = await wait_for(boss, "admin_status")
-            assert m and "Player's password is set" in m["text"]
-            await boss.close()
-            _, m = await login(http, url, "Player", "fresh1", mode="login")
-            assert m["t"] == "welcome"
-            nobody, _ = await login(http, url, "Nobody", "pass1")       # (not an admin: ignored)
-            await nobody.send_json({"t": "admin_password", "name": "Player", "new": "hacked"})
-            await asyncio.sleep(0.5)
-            await nobody.close()
-            _, m = await login(http, url, "Player", "hacked", mode="login")
-            assert m["t"] == "login_fail"
-        await runner.cleanup()
+        game = app[GAME]
+        game.store.create_account("Oldie", auth.hash_password("oldpass1"))
+        game.store.set_setting("recover:oldie", "something")
+        game.store.create_account("Lost", "")
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, m = await come_in(http, url, device_of("mine"))
+                assert m["t"] == "characters" and m["list"] == [] and m["old"] and m["make"]
+                await ws.send_json({"t": "claim", "name": "Oldie", "password": "wrong"})
+                m = await replies(ws, ("characters", "login_fail"))
+                assert m["t"] == "login_fail" and m["old"]
+                await ws.send_json({"t": "claim", "name": "oldie", "password": "oldpass1"})
+                m = await replies(ws, ("characters", "login_fail"))
+                assert m["t"] == "characters" and [c["name"] for c in m["list"]] == ["Oldie"]
+                assert "yours now" in m["text"] and not m["old"]                # (Lost has no password: not waiting)
+                assert game.store.account("Oldie")[1] == "" and not game.store.setting("recover:oldie")
+                await ws.send_json({"t": "play", "name": "Oldie"})
+                assert (await replies(ws, ("welcome", "login_fail")))["t"] == "welcome"
+                await ws.close()
+                ws, m = await come_in(http, url, device_of("theirs"))
+                await ws.send_json({"t": "claim", "name": "Oldie", "password": "oldpass1"})
+                assert (await replies(ws, ("characters", "login_fail")))["t"] == "login_fail"     # (it's someone's)
+                await ws.close()
+
+                boss, _ = await login(http, url, "Bossy", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
+                await boss.send_json({"t": "admin_password", "name": "Oldie", "new": "fresh1"})
+                m = await wait_for(boss, "admin_status")
+                assert m and "someone's already" in m["text"]
+                await boss.send_json({"t": "admin_password", "name": "Lost", "new": "fresh1"})
+                m = await wait_for(boss, "admin_status")
+                assert m and "Lost's password is set" in m["text"]
+                nobody, _ = await login(http, url, "Nobody")                     # (not an admin: ignored)
+                await nobody.send_json({"t": "admin_password", "name": "Lost", "new": "hacked"})
+                await asyncio.sleep(0.5)
+                ws, m = await come_in(http, url, device_of("the lost one"))
+                await ws.send_json({"t": "claim", "name": "Lost", "password": "fresh1"})
+                m = await replies(ws, ("characters", "login_fail"))
+                assert m["t"] == "characters" and m["list"][0]["name"] == "Lost"
+                for w in (ws, boss, nobody):
+                    await w.close()
+        finally:
+            await runner.cleanup()
     asyncio.run(run())
 
 
-def test_a_password_every_time(tmp_path):
+def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
+    """A device's key (no Shards account) has its characters here, at most MOST_CHARACTERS; names are one of a kind on
+    the server; a device's key alone does on this machine and its network, never from the internet or on a public
+    server."""
+    from server.game import MOST_CHARACTERS
+    monkeypatch.setenv("DS_REGISTER_PER_DAY", "0")         # (no day's limit: they all come from this machine)
+
     async def run():
         runner, app, url = await start(str(tmp_path / "r.db"))
-        async with aiohttp.ClientSession() as http:
-            ws, m = await login(http, url, "Keeper", "pass1", remember=True)
-            assert m["t"] == "welcome" and "token" not in m             # (nothing to log in with but the password)
-            await ws.close()
-            _, m = await login(http, url, "Keeper", "", mode="login", token="anything")
-            assert m["t"] == "login_fail"
-            ws, m = await login(http, url, "Keeper", "pass1", mode="login")
-            assert m["t"] == "welcome"
-            await ws.close()
-        await runner.cleanup()
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, m = await login(http, url, "Keeper")
+                assert m["t"] == "welcome" and m["account"] == ""
+                await ws.close()
+                await asyncio.sleep(0.3)
+                ws, m = await come_in(http, url, device_of("Keeper"))           # (again, a reload: still theirs)
+                assert [(c["name"], c["level"]) for c in m["list"]] == [("Keeper", 1)] and "look" in m["list"][0]
+                await ws.close()
+                ws, m = await come_in(http, url, device_of("Another"))
+                assert m["list"] == []
+                await ws.send_json({"t": "create", "name": "keeper"})
+                m = await replies(ws, ("welcome", "login_fail"))
+                assert m["t"] == "login_fail" and "already" in m["reason"]      # (one of a kind here, any case)
+                await ws.close()
+                for k in range(MOST_CHARACTERS):
+                    w, m = await login(http, url, "Many%d" % k, device=device_of("Many"))
+                    assert m["t"] == "welcome"
+                    await w.close()
+                _, m = await login(http, url, "Too Many", device=device_of("Many"))
+                assert m["t"] == "login_fail" and "the most" in m["reason"]
+                _, m = await come_in(http, url, "short")
+                assert m["t"] == "login_fail" and "Sign in" in m["reason"]
+        finally:
+            await runner.cleanup()
     asyncio.run(run())
+    game_addr = __import__("server.game", fromlist=["GameServer"]).GameServer
+    g = game_addr.__new__(game_addr)
+    assert g.devices_welcome("8.8.8.8")                                         # (no central server: no other way)
+    monkeypatch.setenv("DS_CENTRAL", "https://central.example.com")
+    assert g.devices_welcome("127.0.0.1") and g.devices_welcome("192.168.1.20") and g.devices_welcome("::1")
+    assert not g.devices_welcome("8.8.8.8") and not g.devices_welcome("")
+    monkeypatch.setenv("DS_PUBLIC", "1")
+    assert not g.devices_welcome("192.168.1.20")                                # (a public server: accounts only)
+
+
+def test_the_host_and_an_account_need_no_network(tmp_path, monkeypatch):
+    """The app's own game lets its host in by the key it was started with, as their account, no central server; the
+    device that came in by an account (a ticket, or the host's key) is that account's here from then on, so a reload,
+    or the central server away, is still them. Characters a ticket made before characters had owners are their
+    account's."""
+    db = str(tmp_path / "h.db")
+    st = Store(db)
+    st.create_account("Wanderer", "")
+    st.set_setting("central:wanderer", "1")
+    st.close()
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+
+    async def run():
+        runner, app, url = await start(db)
+        game = app[GAME]
+        assert game.store.owner("Wanderer") == "a:Wanderer" and not game.store.setting("central:wanderer")
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, m = await come_in(http, url, device_of("phone"), host="the-hosts-own-key", account="Wanderer")
+                assert m["account"] == "Wanderer" and [c["name"] for c in m["list"]] == ["Wanderer"]
+                await ws.close()
+                ws, m = await come_in(http, url, device_of("phone"))            # (no key: the device is theirs here)
+                assert m["account"] == "Wanderer" and [c["name"] for c in m["list"]] == ["Wanderer"]
+                await ws.close()
+                monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
+
+                async def down(path, body):
+                    return None
+                monkeypatch.setattr(game, "central_post", down)
+                ws, m = await come_in(http, url, device_of("phone"), ticket="anything")
+                assert m["t"] == "characters" and m["account"] == "Wanderer"     # (the central server away)
+                await ws.close()
+                ws, m = await come_in(http, url, device_of("laptop"), ticket="anything")
+                assert m["t"] == "characters" and m["account"] == ""              # (another device: its own)
+                await ws.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(run())
+
 
 def test_everyone_sees_where_the_others_are(tmp_path):
     async def run():
@@ -315,24 +434,25 @@ def test_everyone_sees_where_the_others_are(tmp_path):
     asyncio.run(run())
 
 
+async def claim(http, url, name, password):
+    ws, _ = await come_in(http, url, device_of("claimer"))
+    await ws.send_json({"t": "claim", "name": name, "password": password})
+    m = await replies(ws, ("characters", "login_fail"))
+    await ws.close()
+    return m
+
+
 def test_too_many_wrong_passwords_wait(tmp_path):
     async def run():
         runner, app, url = await start(str(tmp_path / "t.db"))
+        app[GAME].store.create_account("Guarded", auth.hash_password("right-one"))
         try:
             async with aiohttp.ClientSession() as http:
-                w, m = await login(http, url, "Guarded", "right-one")
-                assert m["t"] == "welcome"
-                await w.close()
-                reasons = []
-                for _ in range(6):
-                    w, m = await login(http, url, "Guarded", "wrong", mode="login")
-                    reasons.append(m.get("reason", ""))
-                    await w.close()
-                assert reasons[:5] == ["Wrong password."] * 5
+                reasons = [(await claim(http, url, "Guarded", "wrong")).get("reason", "") for _ in range(6)]
+                assert reasons[:5] == ["That name and password don't go together."] * 5
                 assert "Too many wrong passwords" in reasons[5]
-                w, m = await login(http, url, "Guarded", "right-one", mode="login")
+                m = await claim(http, url, "Guarded", "right-one")
                 assert m["t"] == "login_fail" and "Too many" in m["reason"]     # (even the right one, for a while)
-                await w.close()
         finally:
             await runner.cleanup()
     asyncio.run(run())
@@ -388,6 +508,9 @@ def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
                 assert not game.is_local("192.168.1.20") and game.is_local("127.0.0.1")
                 ws2, m2 = await login(http, url, "Neighbour", "secret2")    # (still this machine: let in)
                 assert m2["t"] == "welcome"
+                await ws2.send_json({"t": "server_name", "name": "Kris's World"})
+                await asyncio.sleep(0.3)
+                assert game.server_name() == "Kris's World"                 # (the host names the game)
                 await ws.close()
                 await ws2.close()
         finally:
@@ -396,95 +519,66 @@ def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
 
 
 def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch):
-    """Behind Caddy (DS_TRUST_PROXY=1) each player's own address counts: three new characters a day from one, names
-    kept back, a long enough password."""
+    """Behind Caddy (DS_TRUST_PROXY=1) each player's own address counts: two new characters a day from one, names
+    kept back; and from the internet, a Shards account (a ticket) or nothing."""
     monkeypatch.setenv("DS_TRUST_PROXY", "1")
     monkeypatch.setenv("DS_REGISTER_PER_DAY", "2")
-    monkeypatch.setenv("DS_PASSWORD_MIN", "8")
 
     async def go():
         runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
+
+        async def verified(path, body):
+            return {"ok": True, "name": body["ticket"]}               # (this test's tickets: the account's name)
+        monkeypatch.setattr(game, "central_post", verified)
         try:
             async with aiohttp.ClientSession() as http:
-                async def reg(name, password, addr):
+                async def reg(name, addr, account):
                     # (the proxy puts the player's own address last: what's before it is anyone's to write)
-                    ws = await http.ws_connect(url, headers={"X-Forwarded-For": "127.0.0.1, " + addr})
-                    await ws.send_json({"t": "register", "name": name, "password": password})
-                    while True:
-                        data = json.loads((await asyncio.wait_for(ws.receive(), 10)).data)
-                        for m in data if isinstance(data, list) else [data]:
-                            if m["t"] in ("welcome", "login_fail"):
-                                await ws.close()
-                                return m
-                assert (await reg("Shorty", "abc12", "1.1.1.1"))["t"] == "login_fail"        # (too short)
-                assert (await reg("Admin", "longenough1", "1.1.1.1"))["t"] == "login_fail"   # (kept back)
-                assert (await reg("Firsty", "longenough1", "1.1.1.1"))["t"] == "welcome"
-                assert (await reg("Secondy", "longenough2", "1.1.1.1"))["t"] == "welcome"
-                m = await reg("Thirdy", "longenough3", "1.1.1.1")
+                    ws, m = await login(http, url, name, headers={"X-Forwarded-For": "127.0.0.1, " + addr},
+                                        auth_with={"ticket": account} if account else None)
+                    await ws.close()
+                    return m
+                m = await reg("Lone", "1.1.1.1", "")
+                assert m["t"] == "login_fail" and "Sign in" in m["reason"]                 # (no account)
+                assert (await reg("Admin", "1.1.1.1", "Acct"))["t"] == "login_fail"         # (kept back)
+                assert (await reg("Firsty", "1.1.1.1", "Acct"))["t"] == "welcome"
+                assert (await reg("Secondy", "1.1.1.1", "Acct"))["t"] == "welcome"
+                m = await reg("Thirdy", "1.1.1.1", "Other")
                 assert m["t"] == "login_fail" and "today" in m["reason"]                   # (two a day from there)
-                assert (await reg("Elsewhere", "longenough4", "2.2.2.2"))["t"] == "welcome"  # (another player)
+                assert (await reg("Elsewhere", "2.2.2.2", "Other"))["t"] == "welcome"       # (another player)
         finally:
             await runner.cleanup()
     asyncio.run(go())
 
 
-def test_an_admin_can_ban_kick_and_mute(tmp_path):
+def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
+    """A ban is on the character and whose it is: not a new character away."""
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+
     async def go():
         runner, app, url = await start(str(tmp_path / "t.db"), admins="Boss")
         game = app[GAME]
         try:
             async with aiohttp.ClientSession() as http:
-                boss, _ = await login(http, url, "Boss", "secret1", invite=game.claims["boss"])
-                pest, _ = await login(http, url, "Pest", "secret2")
+                boss, _ = await login(http, url, "Bossy", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
+                pest, _ = await login(http, url, "Pest")
                 await boss.send_json({"t": "chat", "text": "/mute Pest 5"})
                 await asyncio.sleep(0.3)
                 assert game.world.sessions["Pest"].muted_until > 0
                 await boss.send_json({"t": "chat", "text": "/ban Pest spamming"})
                 await asyncio.sleep(0.5)
                 assert game.banned("Pest") == "spamming"
-                again, m = await login(http, url, "Pest", "secret2", mode="login")
+                again, m = await login(http, url, "Pest", mode="login")
                 assert m["t"] == "login_fail" and "banned" in m["reason"]
+                fresh, m = await login(http, url, "Pest Two", device=device_of("Pest"))
+                assert m["t"] == "login_fail" and "banned" in m["reason"]      # (the same device: still them)
                 await boss.send_json({"t": "chat", "text": "/unban Pest"})
                 await asyncio.sleep(0.3)
-                assert not game.banned("Pest")
-                for ws in (boss, pest, again):
+                assert not game.banned("Pest") and not game.banned_owner(game.store.owner("Pest"))
+                for ws in (boss, pest, again, fresh):
                     await ws.close()
-        finally:
-            await runner.cleanup()
-    asyncio.run(go())
-
-
-def test_a_forgotten_password_is_reset_with_the_recovery_code(tmp_path):
-    """Made a character: a recovery code, once. With it (any case, dashes or not) a new password; the code is used up."""
-    async def go():
-        runner, app, url = await start(str(tmp_path / "t.db"))
-        game = app[GAME]
-        try:
-            async with aiohttp.ClientSession() as http:
-                ws, m = await login(http, url, "Forgetful", "oldpass1")
-                code = m["recovery"]
-                assert len(code) == 19 and m["server"]
-                await ws.close()
-
-                async def reset(code, password):
-                    w = await http.ws_connect(url)
-                    await w.send_json({"t": "reset", "name": "Forgetful", "code": code, "password": password})
-                    while True:
-                        data = json.loads((await asyncio.wait_for(w.receive(), 10)).data)
-                        for r in data if isinstance(data, list) else [data]:
-                            if r["t"] == "reset_result":
-                                await w.close()
-                                return r
-                assert not (await reset("AAAA-BBBB-CCCC-DDDD", "newpass1"))["ok"]
-                r = await reset(code.lower().replace("-", " "), "newpass1")
-                assert r["ok"] and r["recovery"] != code
-                assert not (await reset(code, "newpass2"))["ok"]       # (used up)
-                ws2, m2 = await login(http, url, "Forgetful", "newpass1", mode="login")
-                assert m2["t"] == "welcome" and not m2["recovery"]   # (shown once, at sign-up)
-                await ws2.send_json({"t": "server_name", "name": "Kris's World"})
-                await asyncio.sleep(0.3)
-                assert game.server_name() == "Kris's World"
-                await ws2.close()
         finally:
             await runner.cleanup()
     asyncio.run(go())
@@ -509,17 +603,16 @@ async def chats(ws, seconds=0.6):
 
 
 def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
-    """A muted player can't whisper either; nobody floods the chat; /ban takes a name with spaces, /unban undoes it;
-    a new password is as long as DS_PASSWORD_MIN says."""
-    monkeypatch.setenv("DS_PASSWORD_MIN", "8")
+    """A muted player can't whisper either; nobody floods the chat; /ban takes a name with spaces, /unban undoes it."""
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
 
     async def go():
         runner, app, url = await start(str(tmp_path / "m.db"), admins="Boss")
         game = app[GAME]
         try:
             async with aiohttp.ClientSession() as http:
-                boss, _ = await login(http, url, "Boss", "bosspass1", invite=game.claims["boss"])
-                pest, _ = await login(http, url, "Old Pest", "pestpass1")
+                boss, _ = await login(http, url, "Boss", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
+                pest, _ = await login(http, url, "Old Pest")
                 await boss.send_json({"t": "chat", "text": "/mute Old Pest 5"})
                 await asyncio.sleep(0.3)
                 assert game.world.sessions["Old Pest"].muted_until > 0          # (a name with a space)
@@ -531,9 +624,6 @@ def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
                     await pest.send_json({"t": "chat", "text": "spam %d" % k})
                 heard = await chats(boss, 1.0)
                 assert len([m for m in heard if m.get("from") == "Old Pest"]) <= 6        # (no more than six at once)
-                await pest.send_json({"t": "password", "old": "pestpass1", "new": "short"})
-                m = await wait_for(pest, "password_result")
-                assert m and not m["ok"] and "8" in m["text"]
                 await boss.send_json({"t": "chat", "text": "/ban Old Pest being a pest"})
                 await asyncio.sleep(0.5)
                 assert game.banned("Old Pest") == "being a pest"
@@ -557,14 +647,12 @@ def test_only_the_games_own_page_may_join_and_guesses_count_at_once(tmp_path):
                 host = url.split("//")[1].split("/")[0]
                 ws = await http.ws_connect(url, headers={"Origin": "http://" + host})     # (its own page)
                 await ws.close()
-                w, _ = await login(http, url, "Guarded", "rightpass1")
-                await w.close()
+                app[GAME].store.create_account("Guarded", auth.hash_password("rightpass1"))
 
                 async def guess():
-                    _, m = await login(http, url, "Guarded", "wrongpass", mode="login")
-                    return m["reason"]
+                    return (await claim(http, url, "Guarded", "wrongpass")).get("reason", "")
                 said = await asyncio.gather(*[guess() for _ in range(20)])
-                assert sum("Wrong password" in r for r in said) <= 5     # (twenty at once: only five are tried)
+                assert sum("don't go together" in r for r in said) <= 5     # (twenty at once: only five are tried)
         finally:
             await runner.cleanup()
     asyncio.run(go())
@@ -602,10 +690,11 @@ def test_a_closed_server_makes_no_character_for_a_ticket(tmp_path, monkeypatch):
         monkeypatch.setattr(game, "central_post", verified)
         try:
             async with aiohttp.ClientSession() as http:
-                ws = await http.ws_connect(url)
-                await ws.send_json({"t": "ticket", "ticket": "anything"})
-                m = await wait_for(ws, "login_fail")
-                assert m and game.store.account("Stranger") is None
+                ws, m = await come_in(http, url, device_of("Stranger"), ticket="anything")
+                assert m["t"] == "characters" and m["account"] == "Stranger" and not m["make"]
+                await ws.send_json({"t": "create", "name": "Stranger"})
+                m = await replies(ws, ("welcome", "login_fail"))
+                assert m["t"] == "login_fail" and game.store.account("Stranger") is None
                 await ws.close()
         finally:
             await runner.cleanup()

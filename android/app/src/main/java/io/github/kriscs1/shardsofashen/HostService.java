@@ -32,6 +32,7 @@ public class HostService extends Service {
     static volatile boolean solo = false;           // (a game of your own: this phone only, its own world)
     static volatile String mode = "local";          // solo, local (this network) or remote (the central server lists it)
     static volatile String central = "";            // (the central server: accounts, the remote list)
+    static volatile String hostKey = "";            // (the start screen's key: in as the host, no ticket)
 
     private PowerManager.WakeLock wake;
     private WifiManager.WifiLock wifi;
@@ -53,6 +54,8 @@ public class HostService extends Service {
         mode = solo ? "solo" : "remote".equals(m) ? "remote" : "local";
         String c = intent != null ? intent.getStringExtra("central") : null;
         central = c == null ? "" : c.trim();
+        String k = intent != null ? intent.getStringExtra("hostKey") : null;
+        hostKey = k == null ? "" : k;
         name = solo ? "Your own game" : wanted == null || wanted.trim().isEmpty() ? "Shards of Ashen on " + Build.MODEL
             : wanted.trim();
         error = "";
@@ -66,7 +69,7 @@ public class HostService extends Service {
                 if (!Python.isStarted()) Python.start(new AndroidPlatform(this));
                 PyObject host = Python.getInstance().getModule("ds_host");
                 host.callAttr("start", root.getPath(), new File(getFilesDir(), solo ? "solo.db" : "world.db").getPath(),
-                    name, PORT, BuildConfig.VERSION_CODE, solo, mode, central);
+                    name, PORT, BuildConfig.VERSION_CODE, solo, mode, central, hostKey);
                 status = "on";
                 foreground(solo ? "Your own game is running" : "remote".equals(mode)
                     ? name + ": listed by the central server" : name + ": others on this network can join it");

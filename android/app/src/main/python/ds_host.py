@@ -9,11 +9,12 @@ import threading
 _run = {}                                        # loop, runner, thread: while it's running
 
 
-def start(root, db, name, port, build, solo=False, mode="local", central=""):
+def start(root, db, name, port, build, solo=False, mode="local", central="", host_key=""):
     """Starts the server on every network the phone is on (port), its world kept in db: back once it's taking players.
     solo: a game of your own (this phone only: on 127.0.0.1, not answering the network, closed to it). mode: local
     (answered on this network) or remote (announced to the central server, listed for everyone). central: the central
-    server (accounts: a player comes in by its ticket)."""
+    server (accounts: a player comes in by its ticket). host_key: the start screen's own key, that lets it in as the
+    host (as its Shards account, or this device) with no ticket: playing alone needs no network."""
     if _run:
         return
     if root not in sys.path:
@@ -22,6 +23,7 @@ def start(root, db, name, port, build, solo=False, mode="local", central=""):
     os.environ["DS_LAN"] = "0" if solo else "1"                 # (alone: nobody on the network is told of it)
     os.environ["DS_LAN_OPEN"] = "0" if solo else "1"
     os.environ["DS_CENTRAL"] = central or ""
+    os.environ["DS_HOST_KEY"] = host_key or ""
     os.environ["DS_PUBLIC"] = "1" if mode == "remote" and not solo else "0"
     os.environ["DS_BUILD"] = str(build)           # (the app's build number: the version on the login screen)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")

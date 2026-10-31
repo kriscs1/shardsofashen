@@ -4,7 +4,9 @@
   python tools/import_saves.py Kris            just that one
   --replace                                     overwrite a character the server already has
 
-Each becomes an account with no password: set one with  python tools/admin.py password <Name>. Characters named in
+Each becomes a character that's nobody's yet: give it to a Shards account with  python tools/admin.py owner <Name>
+<Account>, or set it a password (python tools/admin.py password <Name>) for its player to bring it in with. Characters
+named in
 Config [Admin] Players get the admin flag. What a save's [Action.Queue] has waiting (respawns, dropped things,
 regrowing trees) goes into the shared world's queue; one-time items taken and NPC attitudes stay the character's."""
 import argparse
@@ -126,7 +128,7 @@ def main():
     world["queue"] = queue
     store.save_world(world)
     store.close()
-    print("Set passwords with: python tools/admin.py password <Name>")
+    print("Give them to their players: python tools/admin.py owner <Name> <Account> (or password <Name>)")
 
 
 if __name__ == "__main__":

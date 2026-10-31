@@ -24,28 +24,31 @@
     <h1 class="logo"><img src="/img/logo.png" alt="Shards of Ashen" width="496" height="212"></h1>
     <p id="login-server" class="server-name"></p>
     <p id="login-online" class="dim">Connecting...</p>
-    <label>Name <input id="login-name" name="username" maxlength="20" autocomplete="username" required></label>
-    <div id="login-names" class="names" hidden></div>
-    <label id="pw-row">Password <input id="login-password" name="password" type="password" maxlength="200"
-                           autocomplete="current-password" required></label>
-    <div id="look-section" hidden>
+    <p id="login-who" class="dim small who"></p>
+    <div id="chars" class="chars" hidden></div>
+    <div id="make" hidden>
+      <label>Name <input id="login-name" maxlength="20" autocomplete="off" spellcheck="false"></label>
       <p class="look-title">How your adventurer looks</p>
       <div id="look-picker" class="look"></div>
+      <label id="invite-row" hidden>Invite code <input id="login-invite" maxlength="60"></label>
+      <div class="buttons">
+        <button type="submit" id="make-button">Create character</button>
+        <button type="button" id="make-back">Back</button>
+      </div>
     </div>
-    <label id="invite-row" hidden>Invite code <input id="login-invite" maxlength="60"></label>
-    <div class="buttons">
-      <button type="submit" id="login-button">Log in</button>
-      <button type="button" id="register-button">New character</button>
+    <div id="old" hidden>
+      <p class="dim small">A character made here before Shards accounts: its name and password, once, and it's yours
+        for good.</p>
+      <label>Name <input id="old-name" maxlength="20" autocomplete="username"></label>
+      <label>Password <input id="old-password" type="password" maxlength="200" autocomplete="current-password"></label>
+      <div class="buttons">
+        <button type="button" id="old-button">Bring it in</button>
+        <button type="button" id="old-back">Back</button>
+      </div>
     </div>
     <p id="login-error" class="error" role="alert"></p>
-    <p class="small"><a href="#" id="forgot-link">Forgotten your password?</a></p>
-    <div id="forgot" hidden>
-      <p class="dim small">Your name, the recovery code you wrote down when you made your character, and a new password.</p>
-      <label>Recovery code <input id="forgot-code" maxlength="40" autocomplete="off" autocapitalize="characters"
-             spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"></label>
-      <label>New password <input id="forgot-password" type="password" maxlength="200" autocomplete="new-password"></label>
-      <div class="buttons"><button type="button" id="forgot-button">Set my new password</button></div>
-    </div>
+    <p class="small" id="old-row" hidden><a href="#" id="old-link">Bring in an old character</a></p>
+    <p class="small" id="home-row" hidden><a href="#" id="home-link">Back to the start screen</a></p>
     <p class="dim small server-only">Your character lives on this server, and only here: another server is another
       world.</p>
     <p class="dim small">Adventurers share this world.<span class="desk-only"> Full screen: F11 or the button in the game.</span></p>
@@ -92,20 +95,6 @@
   </form>
 </div>
 
-<div id="password" class="overlay" hidden>
-  <form id="password-form" class="panel" autocomplete="off">
-    <h2>Change your password</h2>
-    <label>Current password <input id="pw-old" type="password" maxlength="200" autocomplete="current-password" required></label>
-    <label>New password <input id="pw-new" type="password" maxlength="200" autocomplete="new-password" required></label>
-    <label>New password again <input id="pw-again" type="password" maxlength="200" autocomplete="new-password" required></label>
-    <p id="pw-status" class="dim small"></p>
-    <div class="buttons">
-      <button type="submit">Change it</button>
-      <button type="button" id="pw-cancel">Cancel</button>
-    </div>
-  </form>
-</div>
-
 <div id="death" class="overlay" hidden>
   <div class="panel death">
     <h2>You have died</h2>
@@ -148,10 +137,7 @@
     <div class="row"><span>Smooth scaling (easier text; off = sharp pixels)</span><input type="checkbox" id="opt-smooth"></div>
     <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
     <div class="row"><span>Your appearance</span><button type="button" id="opt-look">Change</button></div>
-    <div class="row" id="opt-linked" hidden><span>This character is part of your Shards account (no password of its
-      own), and lives on this server only.</span></div>
-    <div class="row opt-own"><span>Your password</span><button type="button" id="opt-password">Change</button></div>
-    <div class="row opt-own"><span>Your recovery code (for a forgotten password)</span><button type="button" id="opt-recovery">Make a new one</button></div>
+    <div class="row"><span id="opt-whose"></span></div>
     <div class="row" id="opt-name-row" hidden><span>The game's name</span><input id="opt-server-name" maxlength="40">
       <button type="button" id="opt-server-name-save">Save</button></div>
     <div class="row" id="opt-lan-row" hidden><span>Open to your network (others nearby can join)</span><input type="checkbox" id="opt-lan"></div>
@@ -201,7 +187,7 @@
       </div>
       <h3>Tools</h3>
       <div class="admin-tools">
-        <span>Reset a player's password</span>
+        <span>An old character's password (its player brings it in with it)</span>
         <div class="row"><input id="admin-pw-name" placeholder="their name" maxlength="20">
           <input id="admin-pw-new" placeholder="new password" maxlength="200">
           <button type="button" id="admin-pw-go">Set</button></div>

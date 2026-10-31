@@ -25,7 +25,7 @@ quest rewards once...).
   an item not in the pack, the same message 100 times in one tick.
 - Run the real server on a scratch DB (`DS_DB=<scratch>/sec.db DS_PORT=8593 python -m server`) and send crafted
   messages from Python `aiohttp` clients. Use the engine directly (`tests/test_engine.py` helpers) where faster.
-- Also check: password and recovery-code handling, rate limits and sign-up limits, admin checks (`admin_enabled`,
+- Also check: who's let in (tickets, the host's key, devices' keys, bringing in an old character by its password), rate limits and sign-up limits, admin checks (`admin_enabled`,
   `is_local`, `DS_TRUST_PROXY` and X-Forwarded-For spoofing), the ticket flow with `central/`, chat commands, static
   file serving (path traversal), oversized messages, flooding, and anything the client decides that the server
   trusts (positions, damage, prices, timers).

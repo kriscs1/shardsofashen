@@ -8,7 +8,7 @@ accounts, characters and the shared world (SQLite).
 | `dsengine/` | The game's rules without the window, for many players at once (taken from `ashen/`) |
 | `server/` | The web server: the page, the pictures, and the game over a WebSocket (20 ticks a second) |
 | `web/` | The browser game (HTML5 canvas, no build step). `web/assets` is made by `tools/export_web_assets.py` |
-| `tools/` | `export_web_assets.py`, `admin.py` (passwords, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
+| `tools/` | `export_web_assets.py`, `admin.py` (whose characters are, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
 | `deploy/` | Docker, docker-compose with Caddy (HTTPS), a systemd unit |
 | `android/` | The Android app: hosts a game on the phone for the network, or joins one (`android/README.md`) |
 | `dsedit/` | The editor (`Shards of Ashen Editor.py`): F5 plays your changes in the browser, on a local server |
@@ -22,7 +22,7 @@ python tools/export_web_assets.py          # once, and again after changing spri
 python -m server                           # http://localhost:8484
 ```
 
-Open http://localhost:8484 and make a character (name and password). **F11** (or the button at the top left of the
+Open http://localhost:8484 and make a character (a name and how they look: no password). **F11** (or the button at the top left of the
 view) goes full screen. Press **Enter** to chat with the other players.
 
 ## What's shared and what's yours
@@ -169,11 +169,32 @@ the **Stillwater**. A pocket is always safe: nothing hostile can be in one.
 - `dev/migrate/build_market.py` (signs) and `dev/migrate/build_town_life.py` (boards, vendors, tavern, digging,
   raids) make all of this.
 
+## Who's who
+
+Characters have no passwords. Each belongs to someone, and its name is one of a kind on its server:
+
+- **A Shards account** (signed in on the start screen): the start screen gets a ticket from the central server for that
+  one game, and the game shows the account's characters there (up to 5) or makes their first. The same account on
+  another server is the same player, with that server's characters.
+- **A device** (playing without an account): the start screen gives each game a key of this device's own, and the
+  game knows it by that. A device's key lets you in from this machine and its network, or anywhere on a server that
+  isn't joined to a central server; a public server joined to one wants an account.
+- **The host**: the app's own game (Play alone, Host a game) lets the start screen in by the key it started the
+  server with, as its Shards account, or this device: no ticket, so playing alone needs no network.
+
+A device that came in by an account (a ticket, or the host's key) is that account's on that server from then on: a
+reload, or the central server away, is still you. Signing out on the start screen gives every game a new key.
+
+**Old characters** (made with a password of their own, before accounts) wait to be brought in: on the character
+screen, "Bring in an old character" takes its name and password once, and it's yours for good, with no password. An
+admin can give one a password to bring it in with (Admin > An old character's password, or
+`tools/admin.py password <Name>`), or give it straight to an account (`tools/admin.py owner <Name> <Account>`).
+
 ## Bringing over old desktop characters
 
 ```
 python tools/import_saves.py              # every saves\*.ini (their waiting respawns join the shared world)
-python tools/admin.py password Kris       # imported characters need a password before they can log in
+python tools/admin.py owner Kris Kris     # give it to a Shards account (or: password Kris, to bring it in with)
 python tools/admin.py admin Kris on       # the Admin button (give items, set skills, god mode)
 ```
 
@@ -216,7 +237,7 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
    - **Web port** (8484): the port players connect to. Change it if 8484 is taken.
    - **Game data** (`/mnt/user/appdata/shards-of-ashen`): where accounts, characters, the world and the daily backups
      are kept. Point it at another share if you like.
-   - **Admins**: characters who get the Admin button, comma-separated (e.g. `Kris,Ann`).
+   - **Admins**: Shards accounts whose characters get the Admin button, comma-separated (e.g. `Kris,Ann`).
    - **Invite code**: if set, making a character needs it.
    - It runs as nobody:users.
 3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
@@ -233,12 +254,11 @@ Accounts (Unraid's Terminal):
 
 ```
 docker exec -u 99:100 ShardsOfAshen python tools/admin.py list
-docker exec -it -u 99:100 ShardsOfAshen python tools/admin.py password <Name>    # set or reset a password
+docker exec -u 99:100 ShardsOfAshen python tools/admin.py owner <Name> <Account>  # give a character to an account
 docker exec -u 99:100 ShardsOfAshen python tools/admin.py admin <Name> on
 ```
 
-Players can change their own password in the game (Options > Your password), and admins can set anyone's
-(Admin > Reset a player's password) for a player who has forgotten theirs.
+Characters have no passwords (see "Who's who" above).
 
 ### A plain Linux server
 
@@ -265,7 +285,7 @@ That's all:
 ```
 DS_PORT=8090                 # the port players connect to (8484)
 DS_DATA=/srv/shards-of-ashen     # where the game's data is kept: a folder, or a Docker volume's name (gamedata)
-DS_ADMINS=Kris,Ann           # characters who get the Admin button
+DS_ADMINS=Kris,Ann           # Shards accounts whose characters get the Admin button
 DS_INVITE_CODE=letmein       # making a character needs this code
 DS_MAX_PLAYERS=5
 DS_REGISTRATION=open         # closed: only accounts made with tools/admin.py
@@ -273,8 +293,7 @@ PUID=1000                    # the user and group the game runs as (they own the
 PGID=1000
 ```
 
-Make the admins' characters yourself before you share the address: whoever makes a character with an admin's name
-gets the Admin button. If you move the data to a folder, copy the old data over first, or the world starts new.
+If you move the data to a folder, copy the old data over first, or the world starts new.
 
 
 
@@ -294,7 +313,7 @@ Managing accounts inside the container:
 
 ```
 docker compose -f deploy/docker-compose.yml exec game python tools/admin.py list
-docker compose -f deploy/docker-compose.yml exec game python tools/admin.py password <Name>
+docker compose -f deploy/docker-compose.yml exec game python tools/admin.py owner <Name> <Account>
 docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admin <Name> on
 ```
 
@@ -324,9 +343,8 @@ lists the remote game servers (each announces itself to it), and it serves the a
   foot of the start screen.
 - **Joining a game**: the start screen asks the central server for a ticket made out to that one server (its id: on
   the network's answer, in the central list, or from its `/api/info`), and opens the game with it; the game server
-  checks it with the central server (`/api/verify`) and the player is in, a character made for them there the first
-  time. A server's own accounts still work (a network that can't reach the central server, or a character it had
-  first: logging in with that character's password once links it).
+  checks it with the central server (`/api/verify`) and shows the account's characters there (or makes their
+  first). See "Who's who" below.
 - **Remote and local**: a game server with `DS_PUBLIC=1` (and `DS_CENTRAL`) announces itself every minute: its id,
   name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
   goodbye as it stops. Without it, it only answers on its own network.
@@ -373,29 +391,27 @@ Debian 12 on it, and a domain name you can add a DNS record to.
 
    (If the repository is private, copy `deploy/cloud-setup.sh` to the VM and run `sudo sh cloud-setup.sh`, with
    `GHCR_USER` and `GHCR_TOKEN` set in `/opt/shards-of-ashen/.env` so the VM can pull the image.)
-3. **Make your admin character first.** Open `https://play.example.com`, sign up with the name you gave as the admin,
-   and only then tell people the address.
-4. **Players sign up on the login screen.** New characters need a password of 8 characters or more (`DS_PASSWORD_MIN`),
-   one address can make 3 a day (`DS_REGISTER_PER_DAY`), and names like Admin and Moderator are kept back. For a
-   private server, set `DS_INVITE_CODE` (a code they must give), or `DS_REGISTRATION=closed`.
+3. **Admins are Shards accounts** (`DS_ADMINS`): their characters get the Admin button, proved by the central
+   server's ticket. Without a central server (`DS_CENTRAL`), make someone admin with `tools/admin.py admin <Name> on`.
+4. **Players make characters on the character screen**: one address can make 3 a day (`DS_REGISTER_PER_DAY`), an
+   account or a device at most 5 on a server, and names like Admin and Moderator are kept back. For a private server,
+   set `DS_INVITE_CODE` (a code they must give), or `DS_REGISTRATION=closed`.
 
 The pieces (`deploy/docker-compose.cloud.yml`): the game, Caddy in front of it (it gets and renews the HTTPS
 certificate by itself, so the game's connection is `wss://`, and it passes on each player's own address:
 `DS_TRUST_PROXY=1`), and the updater, which pulls a new image every 5 minutes when there is one and restarts the
 game with it (players are saved first and simply log in again).
 
-**Forgotten passwords.** When a character is made, its player is shown a recovery code to write down (and can make
-a new one in Options). On the login screen, "Forgotten your password?" takes the name, that code and a new password;
-the code is then used up and a new one shown. Without the code, an admin sets a new password
-(`tools/admin.py password <Name>`, or the Admin panel).
+**Who's who.** Characters have no passwords: they belong to a Shards account, or to a device. See "Who's who"
+above.
 
 **Running it.**
 
 - Settings: `/opt/shards-of-ashen/.env` (`deploy/cloud.env.example` explains each), then `docker compose up -d` in
   that folder.
 - Moderating, in the game's chat, as an admin: `/kick Name`, `/ban Name why`, `/unban Name`, `/bans`,
-  `/mute Name minutes`, `/unmute Name`. A banned character can't log in.
-- Accounts: `docker compose exec game python tools/admin.py list` (and `password <Name>`, `admin <Name> on`).
+  `/mute Name minutes`, `/unmute Name`. A ban is on the character and on whose it is (the account, or the device).
+- Characters: `docker compose exec game python tools/admin.py list` (and `owner <Name> <Account>`, `admin <Name> on`).
 - Logs: `docker compose logs -f game`. Health: `https://play.example.com/health` (who's on, the tick time).
 - Backups: one a day in the `gamedata` volume's `backups` folder (14 kept). Copy them off the VM now and then, for
   example `docker compose cp game:/data/backups ./backups`, or turn on your provider's VM snapshots.
@@ -413,13 +429,13 @@ the code is then used up and a new one shown. Without the code, an admin sets a 
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
-| `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`). One with no character yet is kept: the server's log, as it starts, gives a code to make it with (as the invite code), so nobody else can take the name first |
+| `DS_ADMINS` | (none) | Shards accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. An old character it named before keeps the button |
 | `DS_NAME` | `Shards of Ashen on <computer>` | the game's name in the Android app's "Games on this network" |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 | `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
-| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
+| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the wrong-password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
 | `DS_ORIGINS` | (none) | other pages allowed to open the game's connection, comma-separated (e.g. `https://play.example.com`). The game's own page always may; any other site's page is turned away |
-| `DS_PASSWORD_MIN` | 4 | the shortest password a new character may have |
+| `DS_PASSWORD_MIN` | 4 | the shortest password an admin may give an old character (to bring it in with) |
 | `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
 | `DS_PUBLIC` | (off) | `1`: a remote server, announced to the central server and listed for everyone |
 | `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |

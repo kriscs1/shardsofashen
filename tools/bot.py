@@ -1,4 +1,4 @@
-"""Test players: they log in (making their characters the first time), walk about, click things and chat, and report
+"""Test players: they come in as a device of their own (making their characters the first time), walk about, click things and chat, and report
 what they saw. For trying the server out, and for the load test:
 
   python tools/bot.py --count 5 --seconds 60 [--url ws://localhost:8484/ws]"""
@@ -12,8 +12,8 @@ import aiohttp
 
 
 class Bot:
-    def __init__(self, name, url, password="botpass"):
-        self.name, self.url, self.password = name, url, password
+    def __init__(self, name, url):
+        self.name, self.url = name, url
         self.stats = {"messages": 0, "bytes": 0, "snaps": 0, "ents": 0, "maps": 0, "errors": [], "msgs": []}
         self.uid = 0
         self.pos = None
@@ -22,7 +22,7 @@ class Bot:
     async def run(self, seconds, actions=True):
         async with aiohttp.ClientSession() as http:
             async with http.ws_connect(self.url) as ws:
-                await ws.send_json({"t": "login", "name": self.name, "password": self.password})
+                await ws.send_json({"t": "auth", "device": ("bot " + self.name).ljust(16, ".")})
                 logged_in = False
                 end = time.time() + seconds
                 next_act = time.time() + 1
@@ -39,12 +39,12 @@ class Bot:
                         for m in data if isinstance(data, list) else [data]:
                             self.stats["messages"] += 1
                             t = m.get("t")
-                            if t == "login_fail":
-                                if "No character" in m["reason"]:
-                                    await ws.send_json({"t": "register", "name": self.name, "password": self.password})
-                                else:
-                                    self.stats["errors"].append(m["reason"])
-                                    return self.stats
+                            if t == "characters":      # (its own, or made the first time)
+                                mine = any(c["name"].lower() == self.name.lower() for c in m["list"])
+                                await ws.send_json({"t": "play" if mine else "create", "name": self.name})
+                            elif t == "login_fail":
+                                self.stats["errors"].append(m["reason"])
+                                return self.stats
                             elif t == "welcome":
                                 logged_in = True
                                 self.uid = m["uid"]

@@ -442,9 +442,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (or an admin) can close it to the network in Options: then only that machine may join, and it doesn't answer the
   network (`lan_open`, kept with the world; `DS_LAN_OPEN=0` starts closed). A public server on a cloud VM:
   `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
-  go by each player's own address, sign-ups limited by `DS_PASSWORD_MIN` and `DS_REGISTER_PER_DAY`, admins' `/kick`,
-  `/ban`, `/mute`): README-Server.md says how. A forgotten password: the recovery code shown once when a character's
-  made (and in Options, a new one), kept only as a hash, used up at each reset (no email needed). Every game has a name
+  go by each player's own address, sign-ups limited by `DS_REGISTER_PER_DAY`, admins' `/kick`,
+  `/ban`, `/mute`): README-Server.md says how. Every game has a name
   (the host's, in Options; else `DS_NAME`), on the login screen and in the app's list. The app opens on Play alone
   (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
@@ -452,11 +451,20 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   forgotten password by email or recovery code, or play without one); then the menu: Play alone and Host a game (local: answered on its network; remote: announced to the
   central server) in the apps, and Join a local game (the network's, or an address; a browser: an address only) and
   Join a remote game (the central server's list) everywhere. Joining takes a ticket from the central server made out
-  to that server's id; a game server's own accounts stay, for a network without the central server. Change the start
+  to that server's id. Change the start
   screen in `web/home/` only, then run `tools/sync_home.py`; anything the apps do for it goes through `window.DSApp`
   (Android's Bridge, the desktop's `desktop/app.py`), the same names in both. Remote servers are listed only once
-  approved on the central server's admin page (`/admin`); a character made by a Shards account has no password of its
-  own, and players are told everywhere that a character lives on its server only. The logo is pixel art made by
+  approved on the central server's admin page (`/admin`), and players are told everywhere that a character lives on
+  its server only.
+- **Characters have no passwords; the Shards account is the only login** (`server/game.py` authenticate,
+  README-Server.md "Who's who"). A character belongs to an account (`owner` "a:Name": the central server's ticket) or
+  a device (`owner` "d:...": a key the start screen gives each game, each its own), at most `MOST_CHARACTERS` on a
+  server, its name one of a kind there; the game page opens on that player's characters (choose one, or make one). A
+  device's key alone does on this machine's network, or anywhere on a server with no central server, never on a public
+  one that has. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
+  so playing alone needs no network. A device that came in by an account is that account's on that server after. An
+  old character (a password of its own) is brought in by its password once, and then has none. Never add a password
+  or a recovery code to a game server again. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
@@ -510,8 +518,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   editor's code**: a set in `data/TileSets.ini` has a `Kind=` (Stretch: a 3-column grid of corners, edges and middle;
   Rug: that and its "runner"s; Join: pieces that join their neighbours, each with `Joins=` in Tiles.ini, the sides it
   joins, `*` a tower, `-` a post, and `Below=` for one two tiles tall; Shore: a coast's `Land`, `Water`, `Corners` and
-  `Small` pieces). A Join set (fences, palisades, the town wall) is dragged as a line or round a rectangle, or painted
-  freehand, and its pieces round it are joined again, painting or erasing. `dev/migrate/tile_joins.py` wrote them.
+  `Small` pieces; Whole: one thing more than a tile big, a bed's head and foot, put down and taken up whole). A
+  tile kept only for old maps has `Retired=1`: the Auto palette leaves it to Detail. The terrains are edited on
+  their own Terrains page. A Join set (fences, palisades, the town wall) is dragged as a line or round a rectangle,
+  or painted freehand, and its pieces round it are joined again, painting or erasing. `dev/migrate/tile_joins.py` wrote them.
   Give a new set its Kind, and its pieces their `Piece=` (and `Joins=`).
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
   `dev/migrate/validate.py`.
@@ -535,9 +545,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
    on a phone (a 915 x 412 touch viewport with `?app=android`).
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
    `ghcr.io/kriscs1/shardsofashen`) builds from GitHub.
-7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`
-   (`DS_CENTRAL_ADMINS` on the central server); a name there with no account yet is made only with the claim code
-   the server logs as it starts, never by whoever signs up first.
+7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS` (Shards
+   accounts, proved by the central server's ticket or the host's key; an old character it named keeps it), or
+   `DS_CENTRAL_ADMINS` on the central server, where a name with no account yet is made only with the claim code the
+   server logs as it starts, never by whoever signs up first.
 8. **The owner's uncommitted changes are kept.** Whatever is changed in the folder before you start (maps from the
    editor, sprites, scripts, from this PC or another synced one) is the owner's work: never revert or overwrite it
    unless asked to update it. Fix what it breaks and commit it along with your own work. A Google Drive

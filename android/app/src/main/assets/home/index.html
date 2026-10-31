@@ -3,8 +3,9 @@
      browser (from the central server: no app behind it). First your Shards account (sign in, make one, a forgotten
      password, or play without one), then the menu: play alone or host a game (the apps only: local, answered on this
      network; or remote, announced to the central server), or join one (local: the network's games or an address - a
-     browser only an address; remote: the central server's list, signed in). Signed in, every game you join knows you:
-     no password for the characters you make. Edit web/home/ only: tools/sync_home.py copies it into the Android app. -->
+     browser only an address; remote: the central server's list, signed in). Signed in, every game you join knows you
+     by your account; not, by this device (a key of its own for each game); the app's own game by the host's key.
+     Edit web/home/ only: tools/sync_home.py copies it into the Android app. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -328,6 +329,7 @@ async function connect() {
 function offline(words) {
   setStatus(false, words);
   $("online-forms").hidden = true; $("offline-words").hidden = false;
+  if (token && store.get("name")) { signedIn(store.get("name")); return; }   // (still you: your own game needs no network)
   showWelcome();
 }
 
@@ -400,7 +402,12 @@ $("chip").onclick = async () => {
     characters there, and only there.</p>
     <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(email)}"></label>`,
     [["New recovery code", "", () => { account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):")); }],
-     ["Sign out", "", () => { api("/api/logout", { token }).catch(() => {}); token = ""; store.set("token", ""); myName = ""; showWelcome(); }],
+     ["Sign out", "", () => {
+       api("/api/logout", { token }).catch(() => {});
+       token = ""; store.set("token", ""); myName = "";
+       store.set("devices", "");                  // (the games knew this device as yours: a new key for each from now on)
+       showWelcome();
+     }],
      ["Save", "go", () => { account("/api/email", { token, email: $("acct-email").value }, () => toast("Saved.")); }]]);
 };
 
@@ -442,7 +449,22 @@ function houseAd() {
   if (ad.image) $("ad-img").src = /^https?:/.test(ad.image) ? ad.image : CENTRAL + "/ads/" + ad.image;
 }
 
-// ----- joining: a ticket from the central server for that one game (signed in), else the game's own log-in
+// ----- who you are to a game: signed in, a ticket from the central server for that one game; and always a key of this
+// device's own for each game (it learns only its own: a reload, or the central server away, and it still knows you).
+// The games this app runs itself let you in as their host by its key: as your account, or this device, no network.
+const randomKey = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, "0")).join("");
+function deviceKey(game) {
+  let keys = {};
+  try { keys = JSON.parse(store.get("devices") || "{}") || {}; } catch (e) { keys = {}; }
+  if (!keys[game]) { keys[game] = randomKey(); store.set("devices", JSON.stringify(keys)); }
+  return keys[game];
+}
+function hostKey() {
+  let k = store.get("hostKey");
+  if (!k) { k = randomKey(); store.set("hostKey", k); }
+  return k;
+}
+
 function gameUrl(address) {
   let a = String(address).trim();
   if (!a) return null;
@@ -451,7 +473,7 @@ function gameUrl(address) {
   if (u.protocol === "http:" && !u.port) u.port = "8484";
   return u;
 }
-async function join(address, id, name) {
+async function join(address, id, name, mine) {
   let u;
   try { u = gameUrl(address); } catch (e) { u = null; }
   if (!u) { toast("That isn't an address.", true); return; }
@@ -459,12 +481,17 @@ async function join(address, id, name) {
   if (!id) {                                       // (by address: ask it who it is, for the ticket)
     try { id = (await (await fetch(u.origin + "/api/info")).json()).id; } catch (e) { id = ""; }
   }
-  const q = new URLSearchParams();
+  const q = new URLSearchParams(), h = new URLSearchParams();
   if (KIND !== "browser") q.set("app", KIND);
-  if (token && id && centralUp) {
+  if (mine) {                                      // (this app's own game: in as its host)
+    h.set("host", hostKey());
+    if (myName) h.set("account", myName);
+  } else if (token && id && centralUp) {
     try { const t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
   }
+  h.set("device", deviceKey(id || u.host));
   u.search = q.toString();
+  u.hash = h.toString();                           // (never sent to the server's log: the page reads it)
   if (app) app.play(u.toString()); else location.href = u.toString();
 }
 
@@ -525,7 +552,7 @@ window.onGames = (games) => {
   if (!games.length) { box.innerHTML = '<div class="empty">No games found on this network.</div>'; return; }
   games.sort((a, b) => (b.here ? 1 : 0) - (a.here ? 1 : 0) || String(a.name).localeCompare(b.name));
   for (const g of games) box.append(serverCard(Object.assign({ where: g.here ? "" : g.address }, g),
-    g.here ? ["On this device", "here"] : ["On this network", ""], () => join(`${g.address}:${g.port}`, g.id, g.name)));
+    g.here ? ["On this device", "here"] : ["On this network", ""], () => join(`${g.address}:${g.port}`, g.id, g.name, g.here)));
 };
 $("find").onclick = find;
 $("join").onclick = () => { store.set("address", $("address").value.trim()); join($("address").value); };
@@ -539,18 +566,18 @@ function host(mode) {
   const st = current();
   if (st.status === "on") { toast("A game is running here already: stop it first.", true); return; }
   wantPlay = true;
-  if (app.hostAs) app.hostAs(mode === "solo" ? "" : $("host-name").value.trim(), mode, CENTRAL);
+  if (app.hostAs) app.hostAs(mode === "solo" ? "" : $("host-name").value.trim(), mode, CENTRAL, hostKey());
   else if (mode === "solo") app.playAlone(); else app.host($("host-name").value.trim());
   store.set("hostName", $("host-name").value.trim());
   busy(mode === "solo" ? "Starting your world..." : "Starting the game...");
 }
 $("alone").onclick = () => {
   const st = current();
-  if (st.status === "on" && st.mode === "solo") { join("127.0.0.1:" + (st.port || 8484), "", "your world"); return; }
+  if (st.status === "on" && st.mode === "solo") { join("127.0.0.1:" + (st.port || 8484), "", "your world", true); return; }
   host("solo");
 };
 $("host").onclick = () => host(document.querySelector("input[name=mode]:checked").value);
-$("resume").onclick = () => { const st = current(); join("127.0.0.1:" + (st.port || 8484), "", st.name); };
+$("resume").onclick = () => { const st = current(); join("127.0.0.1:" + (st.port || 8484), "", st.name, true); };
 $("running-stop").onclick = () => app.stopHosting();
 
 function refresh() {
@@ -568,7 +595,7 @@ function refresh() {
   $("running-addresses").innerHTML = on && st.mode !== "solo" && list.length ? "Others join at " +
     list.map((u) => `<span class="address">${esc(u)}</span>`).join(", ") : "";
   if (st.status === "error" && st.error && st.error !== lastErr) { lastErr = st.error; done(); toast("The game couldn't start: " + st.error, true); }
-  if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484), "", st.name); }
+  if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484), "", st.name, true); }
   if (!$("host-name").value) $("host-name").value = store.get("hostName") || "Shards of Ashen on " + (st.device || "this device");
 }
 

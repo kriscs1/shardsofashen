@@ -59,7 +59,7 @@ class Host:
     def __init__(self):
         self.status, self.error, self.name, self.mode = "off", "", "", "local"
 
-    def start(self, name, mode, central):
+    def start(self, name, mode, central, host_key=""):
         if self.status not in ("off", "error"):
             return
         self.mode = mode if mode in ("solo", "local", "remote") else "local"
@@ -70,7 +70,7 @@ class Host:
             try:
                 import ds_host
                 db = os.path.join(data_dir(), "solo.db" if self.mode == "solo" else "world.db")
-                ds_host.start(ROOT, db, self.name, PORT, version(), self.mode == "solo", self.mode, central)
+                ds_host.start(ROOT, db, self.name, PORT, version(), self.mode == "solo", self.mode, central, host_key)
                 self.status = "on"
             except Exception as e:                      # (the port's taken, the files are missing...)
                 self.error, self.status = str(e), "error"
@@ -124,8 +124,8 @@ class Bridge:
                            "mode": self._host.mode, "port": PORT, "addresses": addresses(), "device": platform.node(),
                            "version": version()})
 
-    def hostAs(self, name, mode, central):                # noqa: N802 (the start screen's names, as Android's)
-        self._host.start(str(name or "").strip(), str(mode or "local"), str(central or ""))
+    def hostAs(self, name, mode, central, host_key=""):   # noqa: N802 (the start screen's names, as Android's)
+        self._host.start(str(name or "").strip(), str(mode or "local"), str(central or ""), str(host_key or ""))
 
     def stopHosting(self):                                # noqa: N802
         self._host.stop()
@@ -167,7 +167,7 @@ SHIM = """<script>
     state: () => state,
     get: (k) => prefs[k] || "",
     set: (k, v) => { prefs[k] = String(v); later((api) => api.set(k, String(v))); },
-    hostAs: (name, mode, central) => later((api) => api.hostAs(name, mode, central)),
+    hostAs: (name, mode, central, key) => later((api) => api.hostAs(name, mode, central, key || "")),
     host: (name) => later((api) => api.hostAs(name, "local", "")),
     playAlone: () => later((api) => api.hostAs("", "solo", "")),
     stopHosting: () => later((api) => api.stopHosting()),

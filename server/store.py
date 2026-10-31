@@ -1,5 +1,7 @@
 """Everything the server keeps: accounts, characters and the shared world, in one SQLite database (server-data/ashen.db
-by default; DS_DB to put it elsewhere). Characters and the world are JSON."""
+by default; DS_DB to put it elsewhere). Characters and the world are JSON. A row of accounts is a character: its name
+(one of a kind on this server), whose it is (owner: "a:<Shards account>" or "d:<a device's key, hashed>"; empty for
+an old one with a password of its own, till it's brought in) and the Admin button."""
 import json
 import logging
 import os
@@ -34,6 +36,9 @@ CREATE TABLE IF NOT EXISTS world (
 );
 """
 
+# (columns added since: put on an older database as it opens)
+COLUMNS = [("accounts", "owner", "TEXT NOT NULL DEFAULT ''")]
+
 
 OLD_NAME = "dragonsword.db"   # (the database's name before the game was Shards of Ashen everywhere)
 
@@ -62,6 +67,9 @@ class Store:
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("PRAGMA synchronous=NORMAL")
         self.db.executescript(SCHEMA)
+        for table, col, kind in COLUMNS:
+            if col not in [r[1] for r in self.db.execute("PRAGMA table_info(%s)" % table)]:
+                self.db.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, col, kind))
         self.forget_tokens()
 
     def close(self):
@@ -73,9 +81,36 @@ class Store:
         row = self.db.execute("SELECT name, pw_hash, admin FROM accounts WHERE name = ?", (name,)).fetchone()
         return row
 
-    def create_account(self, name, pw_hash, admin=False):
-        self.db.execute("INSERT INTO accounts (name, pw_hash, admin, created) VALUES (?, ?, ?, ?)",
-                        (name, pw_hash, 1 if admin else 0, time.time()))
+    def create_account(self, name, pw_hash, admin=False, owner=""):
+        self.db.execute("INSERT INTO accounts (name, pw_hash, admin, created, owner) VALUES (?, ?, ?, ?, ?)",
+                        (name, pw_hash, 1 if admin else 0, time.time(), owner))
+
+    def owner(self, name):
+        row = self.db.execute("SELECT owner FROM accounts WHERE name = ?", (name,)).fetchone()
+        return row[0] if row else None
+
+    def set_owner(self, name, owner):
+        """name is owner's now (and needs no password: it's dropped)."""
+        self.db.execute("UPDATE accounts SET owner = ?, pw_hash = '' WHERE name = ?", (owner, name))
+
+    def characters_of(self, owner):
+        """owner's characters here, the one played last first."""
+        return [r[0] for r in self.db.execute(
+            "SELECT a.name FROM accounts a LEFT JOIN characters c ON c.name = a.name WHERE lower(a.owner) = lower(?) "
+            "ORDER BY COALESCE(c.updated, a.created) DESC", (owner,))] if owner else []
+
+    def owners_from_old_links(self):
+        """Characters the central server's tickets made (or linked) before characters had owners: their account's
+        (a character made by a ticket was named for its account)."""
+        for (key,) in self.db.execute("SELECT key FROM world WHERE key LIKE 'set:central:%'").fetchall():
+            row = self.account(key[len("set:central:"):])
+            if row is not None and not self.owner(row[0]):
+                self.set_owner(row[0], "a:" + row[0])
+            self.db.execute("DELETE FROM world WHERE key = ?", (key,))
+
+    def old_ones(self):
+        """How many old characters (a password of their own, nobody's yet) wait to be brought in."""
+        return self.db.execute("SELECT COUNT(*) FROM accounts WHERE owner = '' AND pw_hash != ''").fetchone()[0]
 
     def set_password(self, name, pw_hash):
         cur = self.db.execute("UPDATE accounts SET pw_hash = ? WHERE name = ?", (pw_hash, name))
@@ -94,7 +129,7 @@ class Store:
             self.db.execute("DELETE FROM tokens WHERE name = ?", (name,))
 
     def accounts(self):
-        return self.db.execute("SELECT name, pw_hash != '', admin FROM accounts ORDER BY name").fetchall()
+        return self.db.execute("SELECT name, pw_hash != '', admin, owner FROM accounts ORDER BY name").fetchall()
 
     # ----- characters
     def load_character(self, name):

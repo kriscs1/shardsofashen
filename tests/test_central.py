@@ -8,7 +8,7 @@ from aiohttp import web
 
 from central.app import make_central
 from server.app import make_app, GAME
-from tests.test_server import ROOT, login
+from tests.test_server import ROOT, come_in, device_of, replies
 
 
 def free_port():
@@ -30,14 +30,14 @@ async def post(http, url, body):
         return await r.json()
 
 
-async def ticket_in(http, url, ticket):
-    ws = await http.ws_connect(url)
-    await ws.send_json({"t": "ticket", "ticket": ticket})
-    while True:
-        data = json.loads((await asyncio.wait_for(ws.receive(), 10)).data)
-        for m in data if isinstance(data, list) else [data]:
-            if m["t"] in ("welcome", "login_fail"):
-                return ws, m
+async def ticket_in(http, url, ticket, name="Wanderer", device="a phone"):
+    """In by a ticket: one of the account's characters here, or a new one called name."""
+    ws, m = await come_in(http, url, device_of(device), ticket=ticket)
+    if m["t"] == "login_fail":
+        return ws, m
+    mine = [c["name"] for c in m["list"]]
+    await ws.send_json({"t": "play" if name in mine else "create", "name": name})
+    return ws, await replies(ws, ("welcome", "login_fail"))
 
 
 def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
@@ -80,39 +80,32 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
                 t = await post(http, central + "/api/ticket", {"token": token, "server": game.server_id(),
                                                                "url": here})
                 ws, m = await ticket_in(http, wsurl, t["ticket"])
-                assert m["t"] == "welcome" and m["name"] == "Wanderer"     # (a character here, made by the ticket)
+                assert m["t"] == "welcome" and m["name"] == "Wanderer" and m["account"] == "Wanderer"
                 await ws.close()
-                ws, m = await ticket_in(http, wsurl, t["ticket"])
+                ws, m = await ticket_in(http, wsurl, t["ticket"], device="another")
                 assert m["t"] == "login_fail"                               # (a ticket's good once)
                 await ws.close()
                 other = await post(http, central + "/api/ticket", {"token": token, "server": "0123456789abcdef"})
-                ws, m = await ticket_in(http, wsurl, other["ticket"])
+                ws, m = await ticket_in(http, wsurl, other["ticket"], device="another")
                 assert m["t"] == "login_fail"                               # (made out to another server)
                 await ws.close()
 
-                # (a character this server had of its own first: its password links it)
-                local, _ = await login(http, wsurl, "Oldtimer", "localpass1")
-                await local.close()
+                # (a character this server had of its own first: its password brings it in, once)
+                from server import auth
+                game.store.create_account("Oldtimer", auth.hash_password("localpass1"))
                 r = await post(http, central + "/api/register", {"name": "Oldtimer", "password": "longpassword"})
                 t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id(),
                                                                "url": here})
-                ws = await http.ws_connect(wsurl)
-                await ws.send_json({"t": "ticket", "ticket": t["ticket"]})
-                got = None
-                while got is None:
-                    data = json.loads((await asyncio.wait_for(ws.receive(), 10)).data)
-                    got = next((x for x in (data if isinstance(data, list) else [data]) if x["t"] == "login_fail"), None)
-                assert "of its own" in got["reason"]
-                await ws.send_json({"t": "login", "name": "Oldtimer", "password": "localpass1"})
-                while True:
-                    data = json.loads((await asyncio.wait_for(ws.receive(), 10)).data)
-                    if any(x["t"] == "welcome" for x in (data if isinstance(data, list) else [data])):
-                        break
+                ws, m = await come_in(http, wsurl, device_of("old"), ticket=t["ticket"])
+                assert m["account"] == "Oldtimer" and m["list"] == [] and m["old"]
+                await ws.send_json({"t": "claim", "name": "Oldtimer", "password": "localpass1"})
+                m = await replies(ws, ("characters", "login_fail"))
+                assert [c["name"] for c in m["list"]] == ["Oldtimer"]
                 await ws.close()
                 t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id(),
                                                                "url": here})
-                ws, m = await ticket_in(http, wsurl, t["ticket"])
-                assert m["t"] == "welcome" and m["name"] == "Oldtimer"     # (linked: in by ticket now)
+                ws, m = await ticket_in(http, wsurl, t["ticket"], "Oldtimer")
+                assert m["t"] == "welcome" and m["name"] == "Oldtimer" and m["account"] == "Oldtimer"
                 await ws.close()
 
                 bad = await post(http, central + "/api/login", {"name": "Wanderer", "password": "wrong"})
