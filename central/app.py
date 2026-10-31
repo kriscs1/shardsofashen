@@ -74,6 +74,14 @@ class Central:
         self.signups = {}               # address -> [days]
         self.name = os.environ.get("DS_CENTRAL_NAME", "Shards of Ashen")
         self.motd = os.environ.get("DS_CENTRAL_MOTD", "")
+        # (an admin named in DS_CENTRAL_ADMINS with no account yet: only someone with the code from this log may make
+        # it, or whoever signed up first would be the admin)
+        self.claims = {}
+        for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(","):
+            if n.strip() and not self.store.account(n.strip()):
+                self.claims[n.strip().lower()] = auth.recovery_code()
+                log.warning("DS_CENTRAL_ADMINS names %s, who has no account yet: sign up as %s with the admin code %s",
+                            n.strip(), n.strip(), self.claims[n.strip().lower()])
 
     # ----- who's asking, and how often
     @staticmethod
@@ -156,6 +164,10 @@ class Central:
             return no("That name is kept back: pick another.")
         if self.store.account(name):
             return no("That name is taken. Log in instead?")
+        claim = self.claims.get(name.lower())
+        if claim and auth.clean_code(str(d.get("claim", ""))) != auth.clean_code(claim):
+            return web.json_response({"ok": False, "claim": True, "text": "That name is kept for this server's "
+                                      "admin: give the admin code from the server's log."})
         least = max(4, env_int("DS_PASSWORD_MIN", 8))
         if len(password) < least or password.lower() == name.lower():
             return no("Use a password of at least %d characters (not your name)." % least)
@@ -170,6 +182,7 @@ class Central:
             return no("That email is on another account already.")
         code = auth.recovery_code()
         self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)), email)
+        self.claims.pop(name.lower(), None)
         self.signups[addr] = made + [day]
         log.info("New account %s from %s", name, addr)
         return yes(token=self.store.new_token(name), name=name, recovery=code)
@@ -283,6 +296,10 @@ class Central:
         acct = self.store.account(name)
         if acct and acct[3]:
             return no("%s is banned." % name)
+        known = self.store.server_url(server)
+        if known and not same_place(known, str(d.get("url", ""))[:200]):
+            # (a listed game is where it said it was: a game that gave another's id gets no ticket to pass on)
+            return no("That game isn't at the address it was listed at.")
         return yes(ticket=self.store.new_ticket(name, server))
 
     async def verify(self, request):
@@ -372,6 +389,18 @@ class Central:
 
 def yes(**more):
     return web.json_response({"ok": True, **more})
+
+
+def same_place(a, b):
+    """Do two addresses name the same server (its host and port, whichever scheme)?"""
+    from urllib.parse import urlsplit
+    try:
+        ua, ub = urlsplit(a), urlsplit(b)
+        pa = ua.port or (443 if ua.scheme == "https" else 80)
+        pb = ub.port or (443 if ub.scheme == "https" else 80)
+    except ValueError:
+        return False
+    return bool(ua.hostname) and ua.hostname == ub.hostname and pa == pb
 
 
 def no(text):

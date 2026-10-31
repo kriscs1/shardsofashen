@@ -75,6 +75,30 @@ def test_login_limit_and_passwords(tmp_path):
     asyncio.run(run())
 
 
+def test_everyone_and_the_world_are_saved_together(tmp_path):
+    """A save is everyone online and the world in one go: a trade's two sides can't be saved apart."""
+    db = str(tmp_path / "j.db")
+
+    async def run():
+        runner, app, url = await start(db)
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                a, _ = await login(http, url, "Giver", "pw12")
+                b, _ = await login(http, url, "Taker", "pw12")
+                game.world.sessions["Taker"].add_inventory_item("Logs", 7, quiet=True)
+                game.world.add_action_to_queue("ADD", "Joint_Thing", "MapItem", "1", "1,1,0", "100,100", 3600)
+                await a.close()                     # (one leaves: the other, and the world, are saved with them)
+                await asyncio.sleep(0.3)
+                st = Store(db)
+                assert any(i[0] == "Logs" and i[1] >= 7 for i in st.load_character("Taker")["inventory"])
+                assert any("Joint_Thing" in q for q in st.load_world()["queue"])
+                await b.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(run())
+
+
 def test_world_survives_a_restart(tmp_path):
     db = str(tmp_path / "w.db")
 
@@ -162,10 +186,13 @@ def test_chat_and_whispers(tmp_path):
 def test_admins_from_the_server_settings(tmp_path):
     async def run():
         runner, app, url = await start(str(tmp_path / "a.db"), admins="Kris, ann")
+        claims = dict(app[GAME].claims)
         async with aiohttp.ClientSession() as http:
             _, m = await login(http, url, "Kris", "pw12")
+            assert m["t"] == "login_fail" and m["invite"]               # (an admin's name: the log's code first)
+            _, m = await login(http, url, "Kris", "pw12", invite=claims["kris"])
             assert m["t"] == "welcome" and m["admin"] is True
-            _, m = await login(http, url, "Ann", "pw12")                # (names in any case)
+            _, m = await login(http, url, "Ann", "pw12", invite=claims["ann"])     # (names in any case)
             assert m["admin"] is True
             _, m = await login(http, url, "Bob", "pw12")
             assert m["admin"] is False
@@ -237,7 +264,7 @@ def test_changing_and_resetting_passwords(tmp_path):
             ws, m = await login(http, url, "Player", "newpass", mode="login")
             assert m["t"] == "welcome"
             await ws.close()
-            boss, _ = await login(http, url, "Boss", "bosspass")
+            boss, _ = await login(http, url, "Boss", "bosspass", invite=app[GAME].claims["boss"])
             await boss.send_json({"t": "admin_password", "name": "Player", "new": "fresh1"})
             m = await wait_for(boss, "admin_status")
             assert m and "Player's password is set" in m["text"]
@@ -406,7 +433,7 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path):
         game = app[GAME]
         try:
             async with aiohttp.ClientSession() as http:
-                boss, _ = await login(http, url, "Boss", "secret1")
+                boss, _ = await login(http, url, "Boss", "secret1", invite=game.claims["boss"])
                 pest, _ = await login(http, url, "Pest", "secret2")
                 await boss.send_json({"t": "chat", "text": "/mute Pest 5"})
                 await asyncio.sleep(0.3)

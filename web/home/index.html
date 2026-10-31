@@ -153,6 +153,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
         <label class="field">Name (what everyone sees)<input id="new-name" maxlength="20" autocomplete="username" required></label>
         <label class="field">Email (optional: for a forgotten password)<input id="new-email" type="email" maxlength="254" autocomplete="email"></label>
         <label class="field">Password<input id="new-password" type="password" maxlength="200" autocomplete="new-password" required></label>
+        <label class="field" id="claim-row" hidden>Admin code (from the server's log)<input id="new-claim" maxlength="40" autocomplete="off"></label>
         <button type="submit" class="go">Create my account</button>
         <p class="note">By making an account you agree to the <a href="#" class="privacy-link">privacy policy</a>.</p>
       </form>
@@ -359,7 +360,7 @@ async function account(path, body, then) {
   try {
     const r = await api(path, body);
     done();
-    if (!r.ok) { toast(r.text, true); return; }
+    if (!r.ok) { if (r.claim) $("claim-row").hidden = false; toast(r.text, true); return; }
     then(r);
   } catch (e) { done(); toast("The central server didn't answer.", true); }
 }
@@ -372,7 +373,8 @@ $("form-in").onsubmit = (ev) => {
 };
 $("form-new").onsubmit = (ev) => {
   ev.preventDefault();
-  account("/api/register", { name: $("new-name").value, email: $("new-email").value, password: $("new-password").value }, (r) => {
+  account("/api/register", { name: $("new-name").value, email: $("new-email").value, password: $("new-password").value,
+    claim: $("new-claim").value }, (r) => {
     token = r.token; store.set("token", token); $("new-password").value = ""; signedIn(r.name);
     showCode(r.recovery, `Welcome to Ashen, ${r.name}! Your account's recovery code:`);
   });
@@ -460,7 +462,7 @@ async function join(address, id, name) {
   const q = new URLSearchParams();
   if (KIND !== "browser") q.set("app", KIND);
   if (token && id && centralUp) {
-    try { const t = await api("/api/ticket", { token, server: id }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
+    try { const t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
   }
   u.search = q.toString();
   if (app) app.play(u.toString()); else location.href = u.toString();
@@ -485,15 +487,16 @@ $("remote-open").onclick = () => {
 function serverCard(g, badge, action) {
   const card = document.createElement("div");
   card.className = "server";
-  const pct = g.max ? Math.min(100, Math.round(g.online / g.max * 100)) : 0;
+  const online = Math.max(0, Math.floor(Number(g.online)) || 0), most = Math.max(0, Math.floor(Number(g.max)) || 0);
+  const pct = most ? Math.min(100, Math.round(online / most * 100)) : 0;    // (numbers only: a network's answer is anyone's)
   card.innerHTML = `<div class="what"><div class="name"></div><div class="meta">
     <span class="badge ${badge[1]}">${esc(badge[0])}</span><span class="meter"><i style="width:${pct}%"></i></span>
-    <span>${g.online} of ${g.max} playing</span><span class="where"></span></div>
+    <span>${online} of ${most} playing</span><span class="where"></span></div>
     <div class="small dim" style="margin-top:3px">Characters made here live on this server only.</div></div>`;
   card.querySelector(".name").textContent = g.name;
   card.querySelector(".where").textContent = g.where || "";
   const b = document.createElement("button");
-  b.className = "go"; b.textContent = g.online >= g.max ? "Full" : "Join"; b.disabled = g.online >= g.max; b.onclick = action;
+  b.className = "go"; b.textContent = online >= most ? "Full" : "Join"; b.disabled = online >= most; b.onclick = action;
   card.append(b);
   return card;
 }

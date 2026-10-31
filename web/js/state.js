@@ -98,6 +98,7 @@ export function applySnap(msg, now) {
       const jump = Math.abs((c.x ?? e.x) - e.dx) > 96 || Math.abs((c.y ?? e.y) - e.dy) > 96;
       if (jump) { e.fx = c.x ?? e.x; e.fy = c.y ?? e.y; }
     }
+    if (c.rm) { for (const k of c.rm) delete e[k]; delete c.rm; }    // (what's over: a stance, a spell, a sleep)
     Object.assign(e, c);
   }
   for (const u of msg.del) S.ents.delete(u);
@@ -156,6 +157,18 @@ export function addMessage(text, colour, id = 0, of = 0) {
 
 // ----- fog of war: what this player has seen (16-pixel cells, numbered row by row from 1)
 export function fogCell() { return Math.max(4, Math.min(128, Math.floor(+configRead("Interface", "FogOfWar.Cell.Size", "16")) || 16)); }
+
+export function unpackCells(v) {
+  // A map's seen cells as the server keeps them: "all", "b:" and a bitset in base64, or (an older save's) a list
+  if (v === "all") return "all";
+  if (typeof v !== "string") return new Set(Array.isArray(v) ? v : []);
+  const bin = atob(v.slice(2)), s = new Set();
+  for (let i = 0; i < bin.length; i++) {
+    const b = bin.charCodeAt(i);
+    if (b) for (let j = 0; j < 8; j++) if (b >> j & 1) s.add(i * 8 + j);
+  }
+  return s;
+}
 
 export function markExplored(name, cell) {
   let s = S.explored.get(name);

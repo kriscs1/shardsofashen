@@ -76,7 +76,7 @@ function act() {
   // The one thing to do, as fast as you can: set the pin, push the arm
   const m = T.ev;
   if (!m) return;
-  if (m.game === "lock" && m.phase === "pick") send({ t: "game", do: "set", t: Math.round(performance.now() - T.pinStart) });
+  if (m.game === "lock" && m.phase === "pick") send({ t: "game", do: "set", ms: Math.round(performance.now() - T.pinStart) });
   else if (m.game === "arm" && m.bout && !m.winner) send({ t: "game", do: "push" });
 }
 

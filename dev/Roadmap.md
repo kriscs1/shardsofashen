@@ -377,6 +377,93 @@ bigger server, only `DS_MAX_PLAYERS` raised where the server is a PC.
   the EEA and UK and "Ad choices" to change it, `/app-ads.txt` on the central server. Its ids are the build's
   (`dsAdmobApp`, `dsAdmobBanner`, or the workflow's variables): test ads in a debug build, none without them.
 
+## 20. The QA audit: its Critical and High fixes (2026-10-31)
+
+Five testers (`.claude/agents/`) played, loaded, attacked and read the game; their report, with every finding's
+steps, is `dev/QA Audit 2026-10-31.md` (the QA-nn numbers).
+
+- [x] **Picking a lock works again** (QA-01): the page sent the tap's time as a second `t`, so every tap was lost and
+  Tobias's cage couldn't be opened. Now `ms`, judged within `TAP_LAG` of the server's own clock (a page can't name
+  any moment it likes).
+- [x] **The journal at most once a second** (QA-02): asked for faster, it's sent when the second's up (one player
+  asking a hundred times a second froze the world).
+- [x] **No question breaks into a busy player** (QA-03): a party invite, a trade or a gift to someone in a box, a
+  script's choice, a game or a cutscene is refused ("busy just now"), and not again within 10 s; an engine box over a
+  script's lets the script go on (it was stuck till they logged out).
+- [x] **Saved together** (QA-04): every save is everyone online and the world in one transaction; a trade, a gift,
+  the market, a project or the gift box saves within a second. A crash can't leave a thing in two packs, or none.
+  (The per-player autosave went: the minute's save covers it.)
+- [x] **A tree felled by two grows back** (QA-05): a change back puts the tile back only if it's still what was put
+  there, and a change to what's there already is skipped.
+- [x] **Respawns always queue** (QA-06): a shop's sales of one thing within a minute are one entry; only restocks
+  are ever turned away when there are too many.
+- [x] **A listed game's ticket only to its own address** (QA-07): the central server won't give a ticket for a
+  listed game to a page going somewhere else (a game giving another's id gets nothing to pass on).
+- [x] **The start screen's game cards** take only numbers from a network's answer (QA-08: one could run script).
+- [x] **An admin's name can't be taken first** (QA-09): a `DS_ADMINS` / `DS_CENTRAL_ADMINS` name with no account is
+  made only with the claim code the server logs as it starts.
+- [x] **What's over is forgotten** (QA-12): the view's changes list the keys that went (`rm`), so a stance, an
+  invisibility, a sleep or a cart ride doesn't stay drawn on someone.
+- [x] **No files looked at every tick** (QA-13): whether a script is there is known for 2 s; the weather file 5 s.
+- [x] **The maps folder looked at every 3 s at most** (QA-14): logging in froze everyone for up to 2 s.
+- [x] **What you've seen kept small** (QA-15): a map's fog cells as a bitset (`b:` in base64), all of it once 97% is
+  seen; old saves' lists still load.
+- QA-10 (the graveyard's Skeleton) and QA-11 (the lair's four hobgoblins): kept as they are, the owner's choice.
+
+## 21. The QA audit: Medium and Low, for later
+
+Each is in `dev/QA Audit 2026-10-31.md` under its number, with how to see it and what to do.
+
+**Medium**
+- [ ] QA-16 A death from poison, burning or bleeding with another status effect after it raises KeyError and cuts the
+  tick short (`player_combat.py` status_tick).
+- [ ] QA-17 One player's error stops everyone's tick: each player's tick, snapshot and chat command in its own try.
+- [ ] QA-18 Limits counted after an `await` (wrong passwords, sign-ups, the central's too): reserve the slot first;
+  the same name signed up twice at once raises IntegrityError.
+- [ ] QA-19 `DS_TRUST_PROXY`: the right-most `X-Forwarded-For`, only from the proxy; never "local" from a header.
+- [ ] QA-20 `/ws` checks `Origin`; the host's powers by a secret, not by 127.0.0.1.
+- [ ] QA-21 A closed server (registration closed, an invite code) still makes a character for any central ticket.
+- [ ] QA-22 Trading or giving a tool or a weapon resets its wear (free repairs with a friend).
+- [ ] QA-23 A trade's room is checked item by item: the rest lands on the floor.
+- [ ] QA-24 A boss's health only grows with fighters, never back down.
+- [ ] QA-25 The world's clock is the wall clock: when the clocks go back, every Wait and spell lasts an hour longer.
+- [ ] QA-26 Wooden swords from free logs, dismantled: 240-480 Shards an hour (a value floor for dismantling?).
+- [ ] QA-27 Frank and Aldous send you to practise on rats (in caves you can't enter yet) and wolves (37 of 40 duels
+  lost): name the goblins, or a training dummy at the smithy.
+- [ ] QA-28 Each player's state built once a tick, not once for every other player (and `pvp_rules` cached).
+- [ ] QA-29 Each thing's state built once a tick, its few per-viewer keys added after.
+- [ ] QA-30 The minimap's `where` to everyone every second grows as players squared; send changes only.
+
+**Low**
+- [ ] QA-31 Thieving's timers (shopkeepers' bans, guards, pockets tried) aren't saved: a relog resets them.
+- [ ] QA-32 A muted player can still `/w`, `/r` and `/p`.
+- [ ] QA-33 An approved server can rename itself or move its address without being approved again.
+- [ ] QA-34 `/api/announce`: no limit (300 rows in 2 s), a 500 on a bad number, old tickets and tokens never pruned.
+- [ ] QA-35 Chat at 120 lines a second; a malformed command logs a whole traceback each time.
+- [ ] QA-36 Changing a password, or an admin setting one, takes 4 characters whatever `DS_PASSWORD_MIN` says.
+- [ ] QA-37 Shards can be put in a trade by a hand-made message.
+- [ ] QA-38 Logging in from a second tab mid-trade leaves a trade nobody can see or cancel.
+- [ ] QA-39 `damage_npc` doesn't check the creature's still alive (no caller gets it wrong yet).
+- [ ] QA-40 A message that can't be made JSON ends that player's connection's writer without a word.
+- [ ] QA-41 `/ban`, `/kick`, `/mute` cut names with spaces; `/unban` leaves the name in `/bans`; login records grow.
+- [ ] QA-42 The grave's two minutes run while the death screen's up; dying keeps the five dearest things, so the
+  quest's wooden sword goes in the grave.
+- [ ] QA-43 Passage stage 2's text says the key's in a lair barrel ("discovered, not laid out").
+- [ ] QA-44 The Isle storekeeper says the store was a bank (Edwin and Maren's house was).
+- [ ] QA-45 `Basic_Potion` heals 15 for what a Minor Healing Draught (8-12) costs.
+- [ ] QA-46 On Windows 24-28 snapshots a second at low load; the `pong` tick time leaves out the JSON.
+- [ ] QA-47 `imageSmoothingQuality` set every frame (`main.js`).
+- [ ] QA-48 Attributes stop at 500 without a word (about 235 used); the first login after a start takes about 4 s.
+
+**Found while fixing group 20**
+- [ ] Two players chopping one tree at once both get its logs: Chop's script (`build_content.py`) gives them after
+  its Wait without asking whether the tree is still there.
+- [ ] The gift box's "take them all" removes from the list it's going through, so every other gift is left behind
+  (`together.py` gift_box_menu).
+- [ ] Saves still run on the event loop: small now (QA-15), but a thread of their own would take them off the tick.
+- [ ] A lock's tap is judged within 400 ms of the server's clock: a bot that times its taps could still pick every
+  lock. Not sending the pins' timing would need the server to draw the pins' moves.
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

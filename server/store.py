@@ -106,12 +106,14 @@ class Store:
                         "ON CONFLICT(name) DO UPDATE SET state = excluded.state, updated = excluded.updated",
                         (name, json.dumps(state, separators=(",", ":")), time.time()))
 
-    def save_characters(self, items):
-        """[(name, state)] in one transaction."""
+    def save_characters(self, items, world=None):
+        """[(name, state)] in one transaction, and the world's state with them if it's given."""
         self.db.execute("BEGIN")
         try:
             for name, state in items:
                 self.save_character(name, state)
+            if world is not None:
+                self.save_world(world)
             self.db.execute("COMMIT")
         except Exception:
             self.db.execute("ROLLBACK")

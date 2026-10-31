@@ -792,7 +792,7 @@ class ActionsMixin:
             if isinstance(cells, list):
                 self.note_explored(str(msg.get("map", "")), cells)
         elif t == "journal":
-            self.emit(self.journal_data())
+            self.journal_wanted = True                  # (sent from the tick, at most once a JOURNAL_GAP)
         elif t == "stop":
             self.stop_player_walk()
             self.player_attack_target = None

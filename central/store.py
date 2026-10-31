@@ -180,6 +180,11 @@ class CentralStore:
                             "WHERE key = ?", (name, url, online, most, version, time.time(), key))
         return key, secret
 
+    def server_url(self, key):
+        """The address a server announced itself at, or "" (a game this server's never heard from: on a network)."""
+        row = self.db.execute("SELECT url FROM servers WHERE key = ?", (key,)).fetchone()
+        return row[0] if row else ""
+
     def goodbye(self, key, secret):
         self.db.execute("UPDATE servers SET seen = 0 WHERE key = ? AND secret = ?", (key, digest(secret or "")))
 

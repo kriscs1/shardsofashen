@@ -748,7 +748,7 @@ def test_picking_a_lock_is_a_minigame(world):
     shown = lambda: [ev for ev in s.out if ev["t"] == "game"][-1]
     assert shown()["game"] == "lock" and len(shown()["pins"]) == 3 and s.script_state == "MINIGAME"
     pin = s.game["pins"][0]
-    s.game_input({"do": "set", "t": ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"]})   # (at the bottom)
+    tap(s, ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"])   # (at the bottom)
     assert shown()["slipped"] and s.game["slips"] == 1 and s.game["pin"] == 0
     pick_the_lock(s)
     assert shown()["game"] == "" and s.game is None
@@ -759,11 +759,25 @@ def test_picking_a_lock_is_a_minigame(world):
     s.run_scripts()
     for _ in range(3):                                              # (three slips and the nail's out of the lock)
         pin = s.game["pins"][0]
-        s.game_input({"do": "set", "t": ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"]})
+        tap(s, ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"])
     assert s.game is None
     s.run_scripts()
     s.run_scripts()
     assert s.get_attribute("Picked") == "0" and not s.script_running
+    leave(world, s)
+
+
+def test_a_lock_judges_the_tap_by_the_servers_clock(world):
+    from dsengine.minigames import TAP_LAG
+    s = join(world, "Cheat")
+    assert s.run_script_lines("Lock Test", ["01\tPlay.Minigame\tLOCK\t1\t02", "02\tEnd"])
+    s.run_scripts()
+    pin = s.game["pins"][0]
+    good = ((pin["band"] / 2 - pin["phase"]) % 1) * pin["period"]             # (just on its line)
+    bottom = ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"]
+    s.w.now = s.game["pin_at"] + int(bottom + 3 * pin["period"] + TAP_LAG)    # (it's at the bottom, by the server)
+    s.game_input({"do": "set", "ms": int(good)})                              # (the page says it was long ago, just so)
+    assert s.game["pin"] == 0 and s.game["slips"] == 1
     leave(world, s)
 
 
@@ -1119,7 +1133,13 @@ def pick_the_lock(s):
     """Sets every pin of the lock on s's game screen, each just as it crosses its line."""
     while s.game is not None and s.game["game"] == "lock":
         pin = s.game["pins"][s.game["pin"]]
-        s.game_input({"do": "set", "t": ((pin["band"] / 2 - pin["phase"]) % 1) * pin["period"]})
+        tap(s, ((pin["band"] / 2 - pin["phase"]) % 1) * pin["period"])
+
+
+def tap(s, ms):
+    """Taps the lock's pin ms after it began bobbing, by the server's clock as by the page's."""
+    s.w.now = s.game["pin_at"] + int(ms)
+    s.game_input({"do": "set", "ms": int(ms)})
 
 
 def isle_helpers(world, s):
@@ -2152,15 +2172,15 @@ def test_each_grave_says_who_lies_there(world):
 
 def test_a_gate_is_decor_and_opens_as_a_door(world):
     m = world.maps["2,0,0"]
-    c = m.cell(8, 11)
+    c = m.cell(8, 12)
     held = [e for e in world.ents if e.type == NPC and e.active and e.z == m.mz and
-            distance(e.fx, e.fy, m.ox + 7.5 * 32, m.oy + 10.5 * 32) < 160]
+            distance(e.fx, e.fy, m.ox + 7.5 * 32, m.oy + 11.5 * 32) < 160]
     for e in held:
         world.ents.remove(e)                                         # (no sheep through the gate while we watch)
     for _ in range(30):
         world.tick(0.05, now=world.now + 100)
     assert m.decor[c] == "Wood_Gate003" and m.tile[c] != "Wood_Gate003"    # (in the decor, over its ground)
-    s = join(world, "Drover", "2,0,0", 7 * 32, 10 * 32 - 8)          # (standing at the gate)
+    s = join(world, "Drover", "2,0,0", 7 * 32, 11 * 32 - 8)          # (standing at the gate)
     for _ in range(10):
         world.tick(0.05, now=world.now + 50)
     assert m.decor[c] == "Wood_Gate004"                              # (open, as someone comes through)
@@ -3829,8 +3849,7 @@ def test_a_walk_goes_round_someone_in_the_way(world):
     """Bess stood between you and the tinderbox: you go round her to it, not stop against her."""
     m = world.maps["2,0,0"]
     box = next(e for e in world.ents if e.type == MAPITEM and e.name == "Tinderbox")
-    bess = next(e for e in world.ents if e.type == NPC and e.name == "Milkmaid" and e.z == 0 and
-                abs(e.x - box.x) < 300 and abs(e.y - box.y) < 300)
+    bess = next(e for e in world.ents if e.type == NPC and e.name == "Milkmaid" and e.map == "2,0,0")
     assert world.npc_is_solid(bess)
     s = join(world, "Roundabout", "2,0,0", int(box.x - m.ox) + 90, int(box.y - m.oy) - 6)
     box.alive = True
@@ -4523,3 +4542,112 @@ def test_houses_with_more_than_one_floor_line_up(world):
                     else:
                         downs += 1
     assert ups >= 60 and downs >= 40                              # (about half the houses: more than one floor)
+
+
+def test_a_question_never_breaks_into_a_busy_player(world):
+    a, b = join(world, "Asker"), join(world, "Busy")
+    lines = ["01\tDisplay.Conversation\tFrank\tWell?\tYes.\t02\tNo.\t03", "02\tEnd", "03\tEnd"]
+    assert b.run_script_lines("Talk Test", lines)
+    b.run_scripts()
+    assert b.ab_mode == "Conversation" and b.script_state == "CONVERSATION"
+    a.invite(b)                                                     # (from anywhere, while they talk: refused)
+    assert b.ab_mode == "Conversation" and not getattr(b, "native_menu", None)
+    b.action_box_response_chosen(1)
+    b.run_scripts()
+    assert not b.script_running                                     # (their conversation went on as it should)
+    a.invite(b)
+    assert getattr(b, "native_menu", None)                          # (free now: asked)
+    b.action_box_response_chosen(2)
+    a.invite(b)
+    assert b.ab_mode == ""                                          # (asked a moment ago: not again yet)
+    assert b.run_script_lines("Talk Test", lines)
+    b.run_scripts()
+    b.show_menu("Test", "Man", "Something else.", [("All right.", None)])   # (an engine box over a script's)
+    b.run_scripts()
+    assert not b.script_running                                     # (the script went on, as if it were closed)
+    b.action_box_response_chosen(1)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_a_tree_felled_by_two_at_once_grows_back(world, monkeypatch):
+    import dsengine.world as dw
+    clock = [dw.clock_seconds()]
+    monkeypatch.setattr(dw, "clock_seconds", lambda: clock[0])
+    a, b = join(world, "Feller1"), join(world, "Feller2")
+    m = world.maps["1,1,0"]
+    before = m.cell_text(5, 5)
+    a.script_change_tile("5,5", "Tree_Stump001", 0, 20)
+    b.script_change_tile("5,5", "Tree_Stump001", 0, 20)            # (half a second later: it's a stump already)
+    assert "Tree_Stump001" in m.cell_text(5, 5)
+    clock[0] += 25
+    world.run_action_queue()
+    assert m.cell_text(5, 5) == before
+    clock[0] += 25
+    world.run_action_queue()
+    assert m.cell_text(5, 5) == before
+    leave(world, a)
+    leave(world, b)
+
+
+def test_shop_restocks_never_crowd_out_respawns(world, monkeypatch):
+    import dsengine.world as dw
+    saved = list(world.action_queue)
+    try:
+        world.action_queue = []
+        world.add_action_to_queue("ADD.SHOP.ITEM", "Bread", "SHOP-Test", "1", "-", "0,0", 3600)
+        world.add_action_to_queue("ADD.SHOP.ITEM", "Bread", "SHOP-Test", "2", "-", "0,0", 3600)
+        assert len(world.action_queue) == 1 and float(world.action_queue[0].split("\t")[3]) == 3   # (one entry)
+        monkeypatch.setattr(dw, "SHOP_QUEUE_MOST", 5)
+        for i in range(10):
+            world.add_action_to_queue("ADD.SHOP.ITEM", "Thing%d" % i, "SHOP-Test", "1", "-", "0,0", 3600)
+        assert len(world.action_queue) == 5
+        world.add_action_to_queue("ADD", "Goblin", "NPC", "-", "1,1,0", "100,100", 60)
+        assert world.action_queue[-1].startswith("ADD\tGoblin")      # (a respawn always has its place)
+    finally:
+        world.action_queue = saved
+
+
+def test_what_ends_is_forgotten_by_the_others(world):
+    from dsengine.view import snapshot
+    a, b = join(world, "Seer"), join(world, "Sneak", x=330, y=300)
+    b.stance = "Sneaking"
+    snapshot(world, a)
+    b.stance = ""
+    out = snapshot(world, a)
+    chg = [c for m in out if m["t"] == "snap" for c in m["chg"] if c["u"] == b.player.uid]
+    assert chg and "sc" in chg[0]["rm"]                             # (the page is told the crouch is over)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_what_a_player_has_seen_is_kept_small(world):
+    from dsengine.session import pack_cells, unpack_cells
+    cells = {1, 2, 9, 2100}
+    assert unpack_cells(pack_cells(cells)) == cells
+    assert unpack_cells([3, 4]) == {3, 4} and unpack_cells("all") == "all"     # (an older save's list)
+    s = join(world, "Mapper")
+    s.note_explored("1,1,0", list(range(1, 1001)))
+    assert isinstance(s.explored["1,1,0"], set)
+    s.note_explored("1,1,0", list(range(1001, s.fog_cells() + 1)))
+    assert s.explored["1,1,0"] == "all"                              # (all of it seen: kept as all)
+    s.note_explored("1,0,0", [5, 6])
+    st = s.save_state()
+    assert st["explored"]["1,1,0"] == "all" and unpack_cells(st["explored"]["1,0,0"]) == {5, 6}
+    leave(world, s)
+
+
+def test_the_journal_is_sent_at_most_once_a_second(world):
+    s = join(world, "Reader")
+    s.out = []
+    journals = lambda: sum(ev["t"] == "journal" for ev in s.out)
+    s.handle({"t": "journal"})
+    s.handle({"t": "journal"})
+    world.tick(0.05, now=world.now + 50)
+    assert journals() == 1
+    s.handle({"t": "journal"})
+    world.tick(0.05, now=world.now + 50)
+    assert journals() == 1                                          # (asked again at once: in a moment)
+    world.tick(0.05, now=world.now + 1000)
+    assert journals() == 2
+    leave(world, s)

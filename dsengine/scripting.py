@@ -21,6 +21,7 @@ PIXEL_ARGS = {"Remove.Entity": (1,), "Add.Entity": (1,), "Teleport": (1,), "Edit
 TILE_ARGS = {"Change.Tile": (1,), ">Tile.In.Line.Of.Sight": (1,), ">On.Tile.Coordinates": (1,),
              ">Not.On.Tile.Coordinates": (1,)}
 MAP_ARGS = {"Teleport": 2, "Add.Action.To.Queue": 5}
+SCRIPT_RECHECK = 2.0            # (seconds a script's being there, or not, is taken as known: the tick asks often)
 ENTITY_COMMANDS = ("Remove.Entity", "Edit.Entity", "Move.Entity")
 PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "aggressive",
                    "AGGRO.RANGE": "aggro_range"}
@@ -59,10 +60,17 @@ class ScriptMixin:
     def script_exists(self, name):
         if not name:
             return False
-        try:
-            return os.path.getsize(self.script_path(name)) > 0
-        except OSError:
-            return False
+        path = self.script_path(name)
+        known = self.data.cache("script_exists")
+        now = time.monotonic()
+        got = known.get(path)
+        if got is None or now - got[0] >= SCRIPT_RECHECK:
+            try:
+                there = os.path.getsize(path) > 0
+            except OSError:
+                there = False
+            got = known[path] = (now, there)
+        return got[1]
 
     def find_action_script(self, verb, name, etype, ent_id=""):
         if ent_id and self.script_exists("%s %s" % (verb, ent_id)):
@@ -835,6 +843,9 @@ class ScriptMixin:
         w = self.w
         original = m.cell_text(tx, ty)
         coords = "%d,%d" % (tx, ty)
+        c = m.cell(tx, ty)
+        if delay <= 0 and word(name, 1, "+") in (m.tile[c], m.decor[c]):
+            return                          # (someone got there first: it's that already, and theirs comes back)
         if delay <= 0:
             w.change_tile(m, tx, ty, name, keep_decor=False)
             if change_back > 0:

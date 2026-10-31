@@ -2,6 +2,7 @@
 footprints and positions of things; the pictures themselves are the browser's), named places and the quests.
 Everything that doesn't change while the game runs; the INI files are read again when they change on disk."""
 import os
+import time
 
 from ashen import ini
 from ashen.entity import PLAYER, NPC, TILE, INFRONTTILE, ROOF, TYPE_NAMES, DEFAULT_LIMITS
@@ -13,6 +14,7 @@ from .imgsize import sprite_size
 # The order the desktop game loaded its sprite folders in (the first one loaded keeps a name)
 SPRITE_FOLDERS = ("Interface", "Tiles", "Entities", "Walk", "Worn", "Effects")
 EXTS = (".png", ".bmp")
+PLACES_RECHECK = 3.0          # (seconds between looks at the maps folder for changed place Ids)
 
 
 class GameData:
@@ -431,16 +433,21 @@ class GameData:
     # Places and quests
     # =================================================================================================================
     def places(self):
+        cache = self._caches.get("places_cache")
+        now = time.monotonic()
+        if cache is not None and now - cache[2] < PLACES_RECHECK:
+            return cache[1]                 # (the maps folder looked at a moment ago: a thousand files to stat)
         folder = os.path.join(self.root, "maps")
         try:
             stamp = max((e.stat().st_mtime for e in os.scandir(folder) if e.name.lower().endswith(".txt")), default=0)
         except OSError:
             stamp = 0
-        cache = self._caches.get("places_cache")
         if cache is None or cache[0] != stamp:
             found, _ = read_places(folder, self.yt, self.tw)
-            cache = self._caches["places_cache"] = (stamp, found)
-        return cache[1]
+        else:
+            found = cache[1]
+        self._caches["places_cache"] = (stamp, found, now)
+        return found
 
     def tile_place(self, map_name, tx, ty):
         """The place ID on tile tx,ty of a map (an Id line, put on a tile in the editor), or "": a tile's own name,

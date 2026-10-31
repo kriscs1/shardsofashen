@@ -2,7 +2,8 @@
 
   * Picking a lock (a script's Play.Minigame LOCK <level> <line if lost>): the pins, one at a time, bob up and down;
     set each as it crosses the shear line (the band where the lock turns). Three slips and the pick slides out. The
-    server keeps each pin's timing and judges the tap at the moment the browser says it was made.
+    server keeps each pin's timing and judges the tap at the moment the browser says it was made, but only within
+    TAP_LAG of what its own clock says (the browser can't name any moment it likes).
   * Arm wrestling at the Green Dragon's arm-wrestling table (Arm_Table): against the innkeeper, or another player
     who's sat down at it, for a stake. Push (tap) to force the arms your way; Strength makes each push count for more.
     First to pin the other's hand down wins; at the bell (ARM_SECONDS), whoever's ahead.
@@ -16,6 +17,7 @@ SLIPS = 3                               # (slips of the pick before it slides ou
 ARM_SECONDS = 25
 ARM_STAKES = (5, 20, 50)
 PUSH_MS = 70                            # (the fastest a push counts: a dozen a second)
+TAP_LAG = 400                           # (ms a tap may be said to have been made before the server had it: the trip)
 HOUSE = "the innkeeper"
 
 
@@ -87,7 +89,7 @@ class MinigameMixin:
                 for _ in range(2 + level)]
         at = self.clicked_ent if self.clicked_ent is not None and self.clicked_ent.alive else self.player
         self.game = {"game": "lock", "at": at, "phase": "pick", "pins": pins, "pin": 0, "slips": 0, "script": True,
-                     "won": False}
+                     "won": False, "pin_at": self.now}
         self.script_state = "MINIGAME"
         self.script_result = 0
         self.script_cancel_line = int(val(lost_line))
@@ -103,8 +105,10 @@ class MinigameMixin:
         if do != "set" or g["phase"] != "pick":
             return
         pin = g["pins"][g["pin"]]
-        t = max(0, int(val(msg.get("t", 0))))
-        if abs(pin_at(pin, t) - pin["band"]) <= pin["width"]:
+        held = self.now - g.get("pin_at", self.now)            # (how long the pin has bobbed, by the server's clock)
+        t = min(held, max(held - TAP_LAG, int(val(msg.get("ms", 0)))))
+        g["pin_at"] = self.now                                  # (the page starts the next, or this one again, now)
+        if abs(pin_at(pin, max(0, t)) - pin["band"]) <= pin["width"]:
             g["pin"] += 1
             self.play_sound("Lockpick")
             if g["pin"] >= len(g["pins"]):                  # (the last pin: the lock turns)

@@ -331,7 +331,8 @@ lists the remote game servers (each announces itself to it), and it serves the a
   name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
   goodbye as it stops. Without it, it only answers on its own network.
 - **Approving servers**: a remote server that announces itself waits, unlisted, until an admin approves it on the
-  admin page (`https://central.example.com/admin`, signed in with a Shards account named in `DS_CENTRAL_ADMINS` or
+  admin page (`https://central.example.com/admin`, signed in with a Shards account named in `DS_CENTRAL_ADMINS` (one
+  with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
   also finds accounts (ban, unban, make admin), edits the start screen's ads, and counts everything.
 - **Email for a forgotten password**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`, `DS_SMTP_USER`, `DS_SMTP_PASSWORD`,
@@ -412,7 +413,7 @@ the code is then used up and a new one shown. Without the code, an admin sets a 
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
-| `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`) |
+| `DS_ADMINS` | (none) | characters who get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`). One with no character yet is kept: the server's log, as it starts, gives a code to make it with (as the invite code), so nobody else can take the name first |
 | `DS_NAME` | `Shards of Ashen on <computer>` | the game's name in the Android app's "Games on this network" |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 | `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |

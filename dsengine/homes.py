@@ -403,7 +403,7 @@ class HomeMixin:
     def show_menu(self, title, image, text, options):
         """options: [(words, callable)]."""
         if self.ab_mode:
-            self.hide_action_box()
+            self.close_action_box(-1)       # (a script waiting on the box under it goes on, as if it were closed)
         self.responses = [o[0] for o in options]
         self.response_actions = [""] * len(options)
         self.native_menu = [o[1] for o in options]

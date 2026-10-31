@@ -152,6 +152,9 @@ def snapshot(w, s):
             add.append(dict(st, u=uid))
         elif old != st:
             diff = {k: v for k, v in st.items() if old.get(k) != v}
+            rm = [k for k in old if k not in st]
+            if rm:                                      # (a stance, a spell, a sleep over: the page forgets it)
+                diff["rm"] = rm
             diff["u"] = uid
             change.append(diff)
     gone = [uid for uid in known if uid not in seen]

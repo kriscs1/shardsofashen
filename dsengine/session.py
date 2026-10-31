@@ -5,12 +5,13 @@ Everything that is theirs alone lives here: inventory, skills, equipment, bank, 
 turned friend or foe, the one-time things they've taken, their own view of quest-locked doors and gates (cell_override)
 and the changes their quests made to the world just for them (personal_cells, hidden_uids, ent_overrides, entities
 they own). The rest of the world is World's, shared by everyone."""
+import base64
 import json
 import logging
 import math
 import time
 
-from ashen.lb import val, word, trim, lbstr, distance, clock_ms, pretty
+from ashen.lb import val, word, trim, lbstr, distance, pretty
 
 from .entity import Entity, InvItem, PLAYER, TILE, NPC, MAPITEM
 from .player_items import ItemsMixin
@@ -42,6 +43,8 @@ from .together import TogetherMixin
 log = logging.getLogger("ashen.session")
 
 HOTBAR_SLOTS = 5
+FOG_ALL = 0.97                      # (a map this much seen is kept as all of it: its corners are the same to anyone)
+JOURNAL_GAP = 1000                  # (ms between journals sent: one costs the server a good part of a tick)
 LOOK_PARTS = ("skin", "hair", "shirt", "legs")
 
 
@@ -60,6 +63,29 @@ def clean_look(look):
     return out or None
 
 
+def pack_cells(cells):
+    """A set of fog cell numbers as "b:" and a bitset in base64 (a map's 2100 cells in 350 bytes, not 10 KB of list)."""
+    if not cells:
+        return []
+    bits = bytearray((max(cells) >> 3) + 1)
+    for c in cells:
+        bits[c >> 3] |= 1 << (c & 7)
+    return "b:" + base64.b64encode(bytes(bits)).decode("ascii")
+
+
+def unpack_cells(v):
+    """pack_cells' string, "all", or the list an older save kept."""
+    if v == "all":
+        return "all"
+    if isinstance(v, str) and v.startswith("b:"):
+        try:
+            bits = base64.b64decode(v[2:])
+        except ValueError:
+            return set()
+        return {i * 8 + j for i, b in enumerate(bits) if b for j in range(8) if b >> j & 1}
+    return {c for c in v if isinstance(c, int)} if isinstance(v, list) else set()
+
+
 SKILLS_BEFORE = 50                  # (what skills were out of in a save that doesn't say)
 BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man's, a woman's)
 
@@ -73,6 +99,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
         self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
         self.trade = None
+        self.asked_at = {}                                              # (player -> when you last asked them something)
+        self.journal_wanted, self.journal_at = False, -JOURNAL_GAP      # (the journal: dear to make, so not too often)
         self.sneak_near = {}                                            # (monsters you're creeping past)
         self.thief_until, self.banned_until, self.guards_after = {}, {}, []   # (thieving.py: robbed lately, caught)
         self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
@@ -190,7 +218,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.message_log_last = ("", 0)
         self.msg_seq = 0                    # (each message's id: a line that ends .. stays open for its outcome)
         self.msg_open = None                # (id, when) of the last line that ended ..
-        self.last_auto_save = clock_ms()
         self.dirty_me = True                # inventory, skills... changed: the browser is sent them again
         self.dirty_quests = True
         self.weather_dirty = True
@@ -436,7 +463,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
         self.hotbar = (list(st.get("hotbar", [])) + [""] * HOTBAR_SLOTS)[:HOTBAR_SLOTS]
         self.hotbar = [self.renamed(h) for h in self.hotbar]
-        self.explored = {k: ("all" if v == "all" else set(v)) for k, v in st.get("explored", {}).items()}
+        self.explored = {k: unpack_cells(v) for k, v in st.get("explored", {}).items()}
         g = st.get("grave")
         self.set_look(st.get("look"))
         self.load_chests(st.get("chests"))
@@ -551,7 +578,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "unlocked_chests": sorted(self.unlocked_chests),
             "hotbar": list(self.hotbar),
             "bets": [int(t) for t in self.bets],
-            "explored": {k: ("all" if v == "all" else sorted(v)) for k, v in self.explored.items()},
+            "explored": self.explored_for_client(),
             "grave": self.grave,
             "look": self.look,
             "home_return": list(self.home_return) if self.home_return else None,
@@ -629,6 +656,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def tick_before_npcs(self):
         if not self.in_world():
             return
+        if self.journal_wanted and not 0 <= self.now - self.journal_at < JOURNAL_GAP:
+            self.journal_wanted, self.journal_at = False, self.now
+            self.emit(self.journal_data())
         if self.dead_wait:                  # (dead, waiting to respawn: only the grave's time goes on)
             self.grave_tick(self.w.dt * 1000)
             return
@@ -670,9 +700,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.run_personal_timers()
         if self.pending_map is not None:
             self.do_pending_map_change()
-        if self.now - self.last_auto_save >= 60000 or self.now < self.last_auto_save:
-            self.last_auto_save = self.now
-            self.save_requested = True
 
     # =================================================================================================================
     # Moving
@@ -1021,9 +1048,16 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         for c in cells[:2000]:
             if isinstance(c, int) and 0 < c < 10000:
                 cur.add(c)
+        if len(cur) >= FOG_ALL * self.fog_cells():
+            self.explored[name] = "all"
+
+    def fog_cells(self):
+        """How many fog cells a map has (the page's fogCell: FogOfWar.Cell.Size pixels, 4 to 128)."""
+        size = max(4, min(128, int(val(self.data.config_read("Interface", "FogOfWar.Cell.Size", "16"))) or 16))
+        return math.ceil(self.sw / size) * math.ceil(self.sh / size)
 
     def explored_for_client(self):
-        return {k: ("all" if v == "all" else sorted(v)) for k, v in self.explored.items()}
+        return {k: ("all" if v == "all" else pack_cells(v)) for k, v in self.explored.items()}
 
     # =================================================================================================================
     # Sleeping (DayNight.ini [Sleep]): the screen goes dark and you're healed. The time only jumps on when everyone

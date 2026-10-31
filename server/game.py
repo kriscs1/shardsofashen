@@ -19,6 +19,7 @@ log = logging.getLogger("ashen.server")
 
 TICK = 0.05
 SAVE_EVERY = 60
+SAVE_SOON = 1.0             # (seconds: the soonest everyone is saved again when something's changed hands)
 WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other players)
 CHAT_MAX = 200
 
@@ -71,6 +72,14 @@ class GameServer:
         self.version = version_info(root)
         self.assets_seen = (None, "")                   # (web/assets' manifest: when it was written, its version)
         self.store = Store(db_path)
+        # (an admin named in DS_ADMINS with no character yet: made only with the code from this log, as its invite
+        # code, or with tools/admin.py; else whoever took the name first would have the Admin button)
+        self.claims = {}
+        for n in sorted(self.admins):
+            if self.store.account(n) is None:
+                self.claims[n] = auth.recovery_code()
+                log.warning("DS_ADMINS names %s, who has no character yet: make it with the invite code %s", n,
+                            self.claims[n])
         self.max_players = max_players
         self.registration = registration
         self.invite_code = invite_code
@@ -121,20 +130,23 @@ class GameServer:
         return {"queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state(),
                 "together": w.together.state()}
 
-    def save_all(self):
+    def save_all(self, also=None):
+        """Everyone in the world, and the world, in one go: what's changed hands between them (a trade, a gift, the
+        market) is never saved in two places, or in none, whenever the server stops. also: one leaving, saved too."""
+        ss = [s for s in self.world.sessions.values() if s.ready]
+        if also is not None and also not in ss:
+            ss.append(also)
         try:
-            self.store.save_characters([(s.player_name, s.save_state()) for s in self.world.sessions.values()
-                                        if s.ready])
-            self.store.save_world(self.world_state())
+            self.store.save_characters([(s.player_name, s.save_state()) for s in ss], self.world_state())
         except Exception:
             log.exception("Saving failed")
         self.last_save = time.time()
+        self.world.save_soon = False
+        for s in ss:
+            s.save_requested = False
 
     def save_session(self, s):
-        try:
-            self.store.save_character(s.player_name, s.save_state())
-        except Exception:
-            log.exception("Saving %s failed", s.player_name)
+        self.save_all(also=s)
 
     def nightly_backup(self):
         day = time.strftime("%Y-%m-%d")
@@ -163,11 +175,9 @@ class GameServer:
                 await self.send_updates()
             except Exception:
                 log.exception("Tick failed")
-            if any(s.save_requested for s in self.world.sessions.values()):
-                for s in self.world.sessions.values():
-                    if s.save_requested:
-                        s.save_requested = False
-                        self.save_session(s)
+            wanted = self.world.save_soon or any(s.save_requested for s in self.world.sessions.values())
+            if wanted and time.time() - self.last_save >= SAVE_SOON:
+                self.save_all()
             if time.time() - self.last_where >= WHERE_EVERY:
                 self.last_where = time.time()
                 self.broadcast(self.where_message())
@@ -425,6 +435,10 @@ class GameServer:
             await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % name})
             return None
         acct = self.store.account(name)
+        if acct is None and name.lower() in self.claims:
+            await self.send(c, {"t": "login_fail", "reason": "%s is kept for this server's admin: make it here with "
+                                                             "the code from the server's log first." % name})
+            return None
         if acct is None:
             self.store.create_account(name, "", False)  # (no password here: they come in by ticket)
             self.store.set_setting("central:" + name.lower(), "1")
@@ -490,6 +504,11 @@ class GameServer:
             if name.lower() in self.RESERVED:
                 await self.send(c, {"t": "login_fail", "reason": "That name is kept for the server: pick another."})
                 return
+            claim = self.claims.get(name.lower())
+            if claim and auth.clean_code(str(data.get("invite", ""))) != auth.clean_code(claim):
+                await self.send(c, {"t": "login_fail", "invite": True, "reason": "That name is kept for this "
+                                    "server's admin: give the code from the server's log as the invite code."})
+                return
             if self.signups_left(c.addr) <= 0:
                 await self.send(c, {"t": "login_fail", "reason": "Too many new characters from here today: try "
                                                                    "again tomorrow."})
@@ -497,7 +516,7 @@ class GameServer:
             if self.registration != "open":
                 await self.send(c, {"t": "login_fail", "reason": "New characters can't be made on this server."})
                 return
-            if self.invite_code and str(data.get("invite", "")) != self.invite_code:
+            if self.invite_code and not claim and str(data.get("invite", "")) != self.invite_code:
                 await self.send(c, {"t": "login_fail", "reason": "That invite code isn't right."})
                 return
             least = max(4, self.setting_int("DS_PASSWORD_MIN", 4))
@@ -509,6 +528,7 @@ class GameServer:
                 return
             hashed = await asyncio.get_running_loop().run_in_executor(None, auth.hash_password, password)
             self.store.create_account(name, hashed, False)
+            self.claims.pop(name.lower(), None)
             c.recovery = await self.new_recovery(name)  # (shown once, in the welcome: to write down)
             self.signups.setdefault(c.addr, []).append(time.strftime("%Y%m%d"))
             log.info("New character %s from %s", name, c.addr)
@@ -739,7 +759,10 @@ class GameServer:
                 self.broadcast({"t": "chat", "from": s.player_name, "text": text})
             return
         if t == "quit":
-            self.save_session(s)
+            if time.time() - self.last_save >= SAVE_SOON:
+                self.save_session(s)
+            else:
+                s.save_requested = True         # (saved with everyone in a moment: not a save a message)
             return
         if t == "password":
             asyncio.ensure_future(self.change_password(s, data))

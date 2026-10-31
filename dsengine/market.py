@@ -50,7 +50,9 @@ class Market:
             self.listings.remove(it)
 
     def changed(self, by=None):
-        """Everyone with a market board open sees the market as it is now."""
+        """Everyone with a market board open sees the market as it is now (and it's saved soon, with the players
+        whose packs it changed)."""
+        self.w.save_soon = True
         for s in self.w.sessions.values():
             if s is not by and s.ab_mode == "Market":
                 s.show_market()

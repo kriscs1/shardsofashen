@@ -2,7 +2,7 @@
 // out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp; a phone's is laid out
 // lower, so everything's bigger: mobile.js) and the frame loop.
 import { A, loadManifest, configRead, onLoaded, OWN } from "./assets.js";
-import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer } from "./state.js";
+import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer, unpackCells } from "./state.js";
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom, markOutcome, markSwing } from "./render.js";
 import { invalidateMap, invalidateCell, mapCells } from "./ground.js";
@@ -730,6 +730,7 @@ N.onMessage = (m) => {
     case "trade": showTrade(m); break;
     case "login_fail":
       setLoginError(m.reason);
+      if (m.invite) $("invite-row").hidden = false;       // (a name kept for the admin: the code from the server's log)
       $("login-button").disabled = $("register-button").disabled = false;
       break;
     case "welcome": startGame(m); break;
@@ -889,7 +890,7 @@ async function startGame(m) {
   $("opt-lan-row").hidden = !m.host;               // (open to the network: the host's say, or an admin's)
   $("opt-lan").checked = !!m.lan;
   S.explored.clear();
-  for (const [k, v] of Object.entries(m.explored || {})) S.explored.set(k, v === "all" ? "all" : new Set(v));
+  for (const [k, v] of Object.entries(m.explored || {})) S.explored.set(k, unpackCells(v));
   S.clock = { day: m.time.day, secs: m.time.secs, on: m.time.on, at: performance.now() };
   $("login").hidden = true;
   $("loading").hidden = false;

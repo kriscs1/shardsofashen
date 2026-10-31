@@ -29,6 +29,7 @@ from ashen import ini
 from .entity import NPC, PLAYER, STATICOBJECT, INVENTORYITEM
 
 PROJECTS = "Projects.ini"
+ASK_GAP = 10000                         # (ms before you can ask the same player again: no flood of boxes)
 BOUNTIES = ["Wolf", "Goblin", "Bandit", "Skeleton", "Giant_Spider", "Bear", "Hobgoblin", "Scorpion", "Rat", "Bat"]
 
 
@@ -130,6 +131,23 @@ class TogetherMixin:
         for o in [self] + self.party_members():
             o.display_message(text, kind)
 
+    def busy(self):
+        """In the middle of something a question would break into: a box, a script's choice, a game, a cutscene."""
+        return bool(self.ab_mode or self.game is not None or self.dead_wait or self.sleep_state or
+                    not self.user_input_enabled or self.script_state in ("CONVERSATION", "RACK", "MINIGAME"))
+
+    def ask_ok(self, other):
+        """May you put a question (a party, a trade, a gift) to other now? Not while they're busy, nor over and over."""
+        if other.busy():
+            self.refuse("%s is busy just now." % other.player_name)
+            return False
+        at = self.asked_at.get(other.player_name)
+        if at is not None and 0 <= self.now - at < ASK_GAP:
+            self.refuse("You've just asked %s." % other.player_name)
+            return False
+        self.asked_at[other.player_name] = self.now
+        return True
+
     def invite(self, other):
         if other is None or other is self or not other.in_world():
             return
@@ -141,6 +159,8 @@ class TogetherMixin:
             return
         if len(self.party_names()) >= self.tg_num("Party.Size", 5):
             self.refuse("Your party is full.")
+            return
+        if not self.ask_ok(other):
             return
         me = self
         other.show_menu("Party", self.player.image, "%s asks you to join their party: kills and quest stages shared "
@@ -370,6 +390,8 @@ class TogetherMixin:
         if distance(self.player.cx, self.player.cy, o.player.cx, o.player.cy) > self.TRADE_REACH:
             self.refuse("You need to be nearer to trade.")
             return
+        if not self.ask_ok(o):
+            return
         me = self
         o.show_menu("Trade", self.player.image, "%s would like to trade with you." % self.player_name,
                     [("Trade with %s." % self.player_name, lambda: o.trade_open(me)), ("No, thank you.", None)])
@@ -464,6 +486,7 @@ class TogetherMixin:
             b.add_inventory_item(n, q)
         for s in (a, b):
             s.play_sound("Coins")
+        self.w.save_soon = True                         # (both sides saved together: never in two packs, or none)
         self.trade_close("The trade is done.")
 
     def trade_tick(self):
@@ -509,6 +532,8 @@ class TogetherMixin:
         self.offer_gift_n(item.name, 1, other)
 
     def offer_gift_n(self, name, n, other):
+        if not other.in_world() or not self.ask_ok(other):
+            return
         me = self
         what = "%d gold" % n if name == "Gold_Coin(s)" else "%s%s" % ("%d " % n if n > 1 else "", pretty(name))
         other.show_menu("A gift", name, "%s offers you %s." % (self.player_name, what),
@@ -527,6 +552,7 @@ class TogetherMixin:
             return
         giver.remove_inventory_item(name, n)
         self.add_inventory_item(name, n)
+        self.w.save_soon = True
         self.play_sound("Coins" if name == "Gold_Coin(s)" else "Pickup")
         giver.display_message("%s takes your gift." % self.player_name, "SUCCESS")
 
@@ -576,6 +602,7 @@ class TogetherMixin:
             return
         self.remove_inventory_item(item, n)
         pr["have"][item] = pr["have"].get(item, 0) + n
+        self.w.save_soon = True
         worth = n if item == "Gold_Coin(s)" else n * max(1, int(val(self.data.entity_ini(item, "Value", "1"))))
         pr["givers"][self.player_name] = pr["givers"].get(self.player_name, 0) + worth
         self.play_sound("Coins" if item == "Gold_Coin(s)" else "Build" if self.data.loaded("Build") else "Pickup")
@@ -728,6 +755,7 @@ class TogetherMixin:
                     self.display_message("A gift from %s: %s." % (frm, ("%d gold" % n) if item == "Gold_Coin(s)" else
                                                                    "%d %s" % (n, pretty(item))), "SUCCESS")
                     gifts.remove([frm, item, n]) if [frm, item, n] in gifts else None
+            self.w.save_soon = True
             self.play_sound("Pickup")
             return
         opts = []
@@ -747,6 +775,7 @@ class TogetherMixin:
             return
         self.remove_inventory_item(item, n)
         box.append([self.player_name, item, n])
+        self.w.save_soon = True
         self.display_message("You leave it in %s's gift box." % owner, "SUCCESS")
         o = self.w.sessions.get(owner)
         if o is not None:

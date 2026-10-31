@@ -175,6 +175,22 @@ floor in the middle), rugs, fences and potted plants. Pointing at a tile in the 
 laid out with that piece marked, and its Tiles.ini `Piece=`. Only the editor reads it (and validate.py checks every tile
 in it has a sprite). Made by dev\migrate\decor_sets.py; your changes are kept.
 
+Terrains are in it too (`Kind=Terrain`, dev\migrateuild_terrains.py adds the missing ones): what the editor's big
+brushes, flood fills and outlines paint, and its palette's Auto view shows as one entry each.
+```ini
+[Terrain_Woodland]
+Title=woodland
+Kind=Terrain
+Tiles=Grass001                       ; its ground, mixed (a weight after *: Ash001*3,Cinder001*1)
+Decor=Tree001*30,Tree002*18,Bush001*4 ; decor scattered over it, by weight
+Decor.Density=55                     ; how many of a hundred of its tiles get decor
+Entities=Rabbit*2,Butterfly*1        ; creatures (or objects) scattered too
+Entities.Density=0.3
+Water=1                              ; (water: its coasts get their diagonal pieces, the Kind=Shore sets)
+```
+Painting one rolls its decor and creatures afresh on each tile, and takes off what another terrain scattered there
+(plain things only: anything with an Id, a name, a zone or a patrol stays); built decor (a chair) stays.
+
 The ground is painted solid, so a tile with see-through parts (Pine_Tree002) only works as an overlay
 (`Grass001+Infront(Pine_Tree002)` or `Plank001+Decor(Chair001)`), never as a cell's own tile: dev\migrate\validate.py
 reports it.
@@ -294,6 +310,8 @@ The bank is not a rack: it's stored in the save file.
       the Map Editor saves them as NPC lines, validate.py warns about them).
     The other Options control how the NPC moves; tile coordinates are 1-based:
     * `Zone=x1,y1,x2,y2`: the rectangle of tiles it roams in. Default: Entities.ini `Roam.Radius` tiles around its spawn tile.
+      Any shape is several rectangles joined by `/` (`Zone=3,4,8,9/8,5,12,6`: an L); the map editor's "Paint tiles"
+      writes them as you paint (dsengine/npcs.py `Area`). Chase and Roost take the same.
     * `Chase=x1,y1,x2,y2`: the rectangle it may follow the player in. Default: the Zone grown by `Chase.Radius` tiles
       on every side. When the player leaves it (or gets out of sight range), the NPC gives up, walks back and carries on
       with what it was doing (roaming, or its patrol from the waypoint it was heading to).
@@ -593,7 +611,9 @@ egion_tiles.py, with the same Walkable.Data).
   for it.
 * The wheat field: Field001 (ploughed earth) with StaticObjects Ripe_Wheat001-003 on it (verb Harvest, walk-through).
   Harvesting gives Wheat and leaves a Stubble for 60 seconds (Add.Action.To.Queue), then the plant is back. Entity and
-  tile names show without their 3-digit number (Ripe_Wheat002 -> "Ripe Wheat").
+  tile names show without their 3-digit number (Ripe_Wheat002 -> "Ripe Wheat"). They're objects, not decor, on
+  purpose: two clumps a cell, a few pixels off the grid, sorted with people so you wade through them (decor is always
+  drawn under you, one picture a cell).
 * Shardstones (StaticObject Shardstone, verb Travel): one in each town. Touching one sets attribute Shardstone.<Key>=1; the
   travel menu (scripts Travel Shardstone and Shardstone Menu) only goes to shardstones with that set. Made by build_travel.py.
 * Entities.ini, bows: Range=<pixels> (shoots from that far when the target can be seen) and Ammo=<item> (one used up

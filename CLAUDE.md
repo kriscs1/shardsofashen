@@ -187,6 +187,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   together out of motes (`Shard_Form`, and its sound), and one that dies lets them go (`Shard_Fade`): `world.shard_form`
   and `shard_fade`, never a puff of smoke.
 - Buffs and debuffs end on death.
+- **The Isle's hard fights stay as they are** (the owner's choice): the Skeleton walking the chapel graveyard (3,1,0)
+  and the hobgoblins' lair's four. Don't take them out or soften them to make the start easier.
 - A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
   `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab always shows it out of its usual level
   (20/20; drained 18/20, red; boosted 23/20, green, a potion's or spell's boost to your blows counted in), and hitpoints and your level go by the usual one.
@@ -504,7 +506,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
    on a phone (a 915 x 412 touch viewport with `?app=android`).
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
    `ghcr.io/kriscs1/shardsofashen`) builds from GitHub.
-7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`.
+7. Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS`
+   (`DS_CENTRAL_ADMINS` on the central server); a name there with no account yet is made only with the claim code
+   the server logs as it starts, never by whoever signs up first.
 8. **The owner's uncommitted changes are kept.** Whatever is changed in the folder before you start (maps from the
    editor, sprites, scripts, from this PC or another synced one) is the owner's work: never revert or overwrite it
    unless asked to update it. Fix what it breaks and commit it along with your own work. A Google Drive

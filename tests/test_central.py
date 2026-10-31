@@ -73,7 +73,12 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
                 assert info["id"] == game.server_id()
 
                 assert (await post(http, central + "/api/me", {"token": token}))["name"] == "Wanderer"
-                t = await post(http, central + "/api/ticket", {"token": token, "server": game.server_id()})
+                here = "https://play.example.com"
+                relayed = await post(http, central + "/api/ticket", {"token": token, "server": game.server_id(),
+                                                                     "url": "http://evil.example:8484"})
+                assert not relayed["ok"]            # (another game giving this one's id: no ticket to pass on)
+                t = await post(http, central + "/api/ticket", {"token": token, "server": game.server_id(),
+                                                               "url": here})
                 ws, m = await ticket_in(http, wsurl, t["ticket"])
                 assert m["t"] == "welcome" and m["name"] == "Wanderer"     # (a character here, made by the ticket)
                 await ws.close()
@@ -89,7 +94,8 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
                 local, _ = await login(http, wsurl, "Oldtimer", "localpass1")
                 await local.close()
                 r = await post(http, central + "/api/register", {"name": "Oldtimer", "password": "longpassword"})
-                t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id()})
+                t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id(),
+                                                               "url": here})
                 ws = await http.ws_connect(wsurl)
                 await ws.send_json({"t": "ticket", "ticket": t["ticket"]})
                 got = None
@@ -103,7 +109,8 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
                     if any(x["t"] == "welcome" for x in (data if isinstance(data, list) else [data])):
                         break
                 await ws.close()
-                t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id()})
+                t = await post(http, central + "/api/ticket", {"token": r["token"], "server": game.server_id(),
+                                                               "url": here})
                 ws, m = await ticket_in(http, wsurl, t["ticket"])
                 assert m["t"] == "welcome" and m["name"] == "Oldtimer"     # (linked: in by ticket now)
                 await ws.close()
@@ -139,7 +146,8 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
     mail.SENT.clear()
 
     async def go():
-        runner, port = await run(make_central(str(tmp_path / "central.db")))
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
         try:
             async with aiohttp.ClientSession() as http:
@@ -170,7 +178,10 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                 assert hello["adsense"]["client"] == "ca-pub-1234567890" and hello["mail"]
                 assert "admin" in (await (await http.get(c + "/admin")).text()).lower()
 
-                boss = (await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword"}))["token"]
+                squat = await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword"})
+                assert not squat["ok"] and squat["claim"]       # (an admin's name: only with the code from the log)
+                boss = (await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword",
+                                                               "claim": capp["central"].claims["boss"]}))["token"]
                 mine = (await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"}))["token"]
                 assert not (await post(http, c + "/api/admin/stats", {"token": mine}))["ok"]    # (not an admin)
                 found = (await post(http, c + "/api/admin/accounts", {"token": boss, "q": "mail"}))["accounts"]

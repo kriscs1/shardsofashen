@@ -8,6 +8,7 @@ import heapq
 import logging
 import math
 import random
+import time
 
 from ashen.lb import (val, word, field, trim, lbstr, distance, strip_digits, parse_quantity, wildcard_match,
                             clock_ms, clock_seconds, rnd, random_number)
@@ -31,6 +32,8 @@ log = logging.getLogger("ashen.world")
 
 PF_DIRS = ((0, -1, 10), (1, 0, 10), (0, 1, 10), (-1, 0, 10), (1, -1, 14), (1, 1, 14), (-1, 1, 14), (-1, -1, 14))
 DOOR_REACH = 34
+SHOP_ACTIONS = ("ADD.SHOP.ITEM", "REMOVE.SHOP.ITEM")
+SHOP_QUEUE_MOST = 3000                  # (shops' restocks waiting at most: past it a sale just isn't remembered)
 DOOR_SHUT_MS = 1500
 HEAR_NEAR, HEAR_FAR = 96.0, 600.0
 HEAR_DOOR, HEAR_CALL = 192.0, 256.0             # (a door, an animal's call: only heard from close by)
@@ -49,6 +52,7 @@ class World(NPCMixin):
         self.by_uid = {}
         self.sessions = {}              # player name -> Session
         self.action_queue = []
+        self.save_soon = False          # (something changed hands: the server saves everyone, and the world, soon)
         self.map_npcs = {}              # map -> [(name, x, y, options)] its NPC lines (for respawns)
         self.doors_open = {}            # (map, x, y) -> [closed tile, when last someone was near]
         self.door_check_at = 0
@@ -1230,13 +1234,25 @@ class World(NPCMixin):
     # (X,Y in the map's own pixels; tile x,y for CHANGE.TILE)
     # =================================================================================================================
     def add_action_to_queue(self, action, name, type_name, misc, map_name, coords, seconds):
-        if len(self.action_queue) >= 3000:
-            log.error("Action queue is full")
-            return
         if misc == "":
             misc = "-"
+        due = clock_seconds() + seconds
+        if action.upper() in SHOP_ACTIONS:      # (shops' restocks: one entry a minute for each thing at each shop)
+            shop = 0
+            for i, entry in enumerate(self.action_queue):
+                parts = entry.split("\t")
+                if parts[0].upper() not in SHOP_ACTIONS:
+                    continue
+                shop += 1
+                if parts[:3] == [action, name, type_name] and len(parts) > 7 and abs(val(parts[7]) - due) < 60:
+                    parts[3] = lbstr(val(parts[3]) + val(misc))
+                    self.action_queue[i] = "\t".join(parts)
+                    return
+            if shop >= SHOP_QUEUE_MOST:             # (never respawns or what's dropped: only a restock goes untold)
+                log.warning("Action queue: too many shop restocks waiting")
+                return
         self.action_queue.append("\t".join([action, name, type_name, misc, map_name, coords, lbstr(seconds),
-                                            lbstr(clock_seconds() + seconds)]))
+                                            lbstr(due)]))
 
     def set_queue_quantity(self, action, name, map_name, coords, quantity):
         for i, entry in enumerate(self.action_queue):
@@ -1293,6 +1309,10 @@ class World(NPCMixin):
         if m is None:
             return True
         if action == "CHANGE.TILE":
+            if misc != "-" and m.inside(int(x), int(y)):    # (a change back: only if the cell still has what was put)
+                c = m.cell(int(x), int(y))
+                if word(misc, 1, "+") not in (m.tile[c], m.decor[c], m.under[c]):
+                    return True
             for s in self.sessions.values():
                 p = s.player
                 if s.in_world() and p.z == m.mz:
@@ -1436,7 +1456,13 @@ class World(NPCMixin):
 
     def weather_on(self):
         import os
-        return val(self.data.config_read("Gameplay", "Weather", "1")) == 1 and os.path.exists(self.weather_path())
+        if val(self.data.config_read("Gameplay", "Weather", "1")) != 1:
+            return False
+        now = time.monotonic()
+        got = getattr(self, "weather_file_seen", None)
+        if got is None or now - got[0] >= 5:               # (the file's being there: looked at now and then)
+            got = self.weather_file_seen = (now, os.path.exists(self.weather_path()))
+        return got[1]
 
     def weather_set(self, key, default=""):
         from ashen import ini
