@@ -50,9 +50,10 @@ def word(text, glyphs, gap=1, zoom=2):
     return out, x - gap * zoom, len(glyphs[text[0]]) * zoom
 
 
-def shard(surface, cx, top, h):
-    """A Shard crystal: a long six-sided gem, lit from the top left, a bright line down it."""
-    w = max(3, h // 3)
+def shard(surface, cx, top, h, w=None):
+    """A Shard crystal: a long six-sided gem, lit from the top left, a bright line down it. w: its half width at the
+    widest (a third of its height unless said: build_icon.py's are slimmer)."""
+    w = w or max(3, h // 3)
     for y in range(h):
         t = y / max(1, h - 1)
         half = int(w * (t * 2 if t < 0.25 else 1 - (t - 0.25) / 0.75 * 0.6) + 0.5) if t < 1 else 1
