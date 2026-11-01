@@ -44,6 +44,8 @@ COPY deploy/cloud-setup.sh cloud/cloud-setup.sh
 # (and the central server's: accounts, the remote servers list, the ads - the same image, "python -m central")
 COPY deploy/docker-compose.central.yml central-deploy/docker-compose.yml
 COPY deploy/Caddyfile.central central-deploy/Caddyfile
+COPY deploy/central.env.example central-deploy/central.env.example
+COPY deploy/central-setup.sh central-deploy/central-setup.sh
 # (and Unraid's template: docker run --rm ghcr.io/<you>/shardsofashen cat unraid.xml > .../templates-user/my-ShardsOfAshen.xml)
 COPY deploy/unraid/shards-of-ashen.xml unraid.xml
 COPY --from=assets /game/web/assets web/assets

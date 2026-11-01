@@ -335,11 +335,23 @@ One central server serves the whole game. Every version's start screen connects 
 desktop app, and a browser, which gets the start screen from it): players have one account there for every game, it
 lists the remote game servers (each announces itself to it), and it serves the ads on the start screen.
 
+- **The game's own** is `https://soa.hallisium.online`: the apps' start screen (`web/home/config.js`) and a cloud
+  server's `.env` (`deploy/cloud.env.example`) point there already.
 - **What it is**: `central/` (standard library and aiohttp, like the game server), run from the same image as
-  `python -m central` on port 8490. `deploy/docker-compose.central.yml` runs it behind Caddy for HTTPS on a VM of its
-  own (a small one is plenty): a folder with that file, `deploy/Caddyfile.central` saved as `Caddyfile`, and a `.env`
-  with `DS_CENTRAL_DOMAIN=central.example.com`, then `docker compose up -d`.
-- **Pointing everything at it**: put its address in `web/home/config.js` (`window.DS_CENTRAL_DEFAULT =
+  `python -m central` on port 8490, behind Caddy for HTTPS, with an updater (`deploy/docker-compose.central.yml`). It
+  keeps every account, the friends lists and who's playing where in one SQLite file. A VM of its own (1 CPU and 1 GB
+  is plenty; what grows is the traffic of games hosted for friends, below), Ubuntu or Debian, its domain's A record
+  pointing at it, then one line on it:
+
+  ```sh
+  curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/central-setup.sh | sudo sh
+  ```
+
+  It installs Docker, opens only SSH, HTTP and HTTPS, asks for the domain (`-` for none: the VM's address as
+  `1-2-3-4.sslip.io`, still with a real certificate) and your Shards account's name (the admin), and starts it all in
+  `/opt/shards-of-ashen-central`. Run it again to bring it up to date; your `.env` and the accounts are kept. The rest
+  of its settings are in that `.env` (`deploy/central.env.example`), then `docker compose up -d` in that folder.
+- **Pointing everything at another one**: put its address in `web/home/config.js` (`window.DS_CENTRAL_DEFAULT =
   "https://central.example.com";`), run `python -I tools/sync_home.py`, and build the apps; give each game server
   `DS_CENTRAL=https://central.example.com`. A player can point their app at another under "Central server" at the
   foot of the start screen.

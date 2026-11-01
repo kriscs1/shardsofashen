@@ -1,12 +1,12 @@
-# The central server (central/): every player's account, the list of remote game servers, the ads on the start
-# screen, and the start screen for a browser. One for the whole game: the apps and every game server point at it
+# The central server (central/): every player's account and friends, the list of remote game servers, the ads on the
+# start screen, and the start screen for a browser. One for the whole game: the apps and every game server point at it
 # (web/home/config.js DS_CENTRAL_DEFAULT; a game server's DS_CENTRAL). The same image as the game, run as
-# "python -m central", with Caddy in front (HTTPS). Everything it keeps is in the centraldata volume.
+# "python -m central", with Caddy in front (HTTPS) and an updater that restarts it whenever a newer image is out.
+# Everything it keeps is in the centraldata volume.
 #
-#   put this file and Caddyfile.central (as Caddyfile) in one folder with a .env:
-#     DS_CENTRAL_DOMAIN=central.example.com      (its DNS must point here)
-#     DS_CENTRAL_NAME=Shards of Ashen            (shown on the start screen)
-#   then: docker compose up -d
+# deploy/central-setup.sh sets it all up on a fresh Ubuntu or Debian VM. By hand: put this file, Caddyfile.central
+# (as Caddyfile) and a .env (from central.env.example: DS_CENTRAL_DOMAIN is the one you must set) in one folder,
+# then "docker compose up -d".
 #
 # Ads: a JSON list in the volume's ads.json, [{"text": "...", "link": "https://...", "image": "banner.png"}], the
 # pictures in its ads/ folder (docker compose cp ads.json central:/data/ads.json). Without it, the game's own notes.
@@ -52,12 +52,35 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     environment:
       DS_CENTRAL_DOMAIN: ${DS_CENTRAL_DOMAIN:?set DS_CENTRAL_DOMAIN in .env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+
+  updater:
+    image: docker:28-cli
+    restart: unless-stopped
+    depends_on: [central]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/deploy:ro
+    working_dir: /deploy
+    environment:
+      GHCR_USER: ${GHCR_USER:-}
+      GHCR_TOKEN: ${GHCR_TOKEN:-}
+      DS_UPDATE_SECONDS: ${DS_UPDATE_SECONDS:-300}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        if [ -n "$$GHCR_TOKEN" ]; then echo "$$GHCR_TOKEN" | docker login ghcr.io -u "$$GHCR_USER" --password-stdin; fi;
+        echo "Checking for updates every $$DS_UPDATE_SECONDS seconds";
+        while true; do
+          sleep "$$DS_UPDATE_SECONDS";
+          if docker compose -p shards-of-ashen-central pull -q central; then docker compose -p shards-of-ashen-central up -d central; fi;
+        done
 
 volumes:
   centraldata:
