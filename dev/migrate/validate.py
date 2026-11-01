@@ -282,8 +282,8 @@ def check_map(path, entities_ini, tiles_ini, report):
 # ------------------------------------------------------------------ NPC movement Options on map lines
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
-               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed", "Bed.Level", "Home.Level",
-               "State", "Nap", "Level", "Look"}   # (Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
+               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed", "Bed.Level", "Home.Level", "Zone.Levels",
+               "State", "Nap", "Level", "Look"}   # (Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Zone.Levels=0,1: its Zone on those levels too; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
 _npc_ids = None
 
 
@@ -466,6 +466,20 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             elif k == "Bed.Level":
                 with open(there, encoding="cp1252", newline="") as f:
                     bed_lines = f.read().replace("\r\n", "\n").split("\n")
+    if "Zone.Levels" in opts:                       # (its Zone on more levels: each a map here, joined by a climb)
+        lv = opts["Zone.Levels"].split(",")
+        if not all(re.fullmatch(r"-?\d+", v.strip()) for v in lv):
+            report(where, "Zone.Levels=%r should be levels joined by commas (0,1)" % opts["Zone.Levels"])
+        elif "Zone" not in opts:
+            report(where, "Zone.Levels=%s without a Zone=" % opts["Zone.Levels"])
+        else:
+            try:
+                mx, my, _ = (int(v) for v in home.split(","))
+            except ValueError:
+                mx = None
+            for v in lv:
+                if mx is None or not os.path.exists(p("maps", "%d,%d,%s.txt" % (mx, my, v.strip()))):
+                    report(where, "Zone.Levels=%s: there's no map on level %s here" % (opts["Zone.Levels"], v))
     if "Bed" in opts:                               # (its own bed: the head of a bed on its map, or its Bed.Level's)
         q = opts["Bed"].split(",")
         if len(q) != 2 or not all(re.fullmatch(r"\d+", c.strip()) for c in q) or                 not (1 <= int(q[0]) <= MAP_W and 1 <= int(q[1]) <= MAP_H):
@@ -1028,14 +1042,14 @@ def check_tiles():
                            "Joins", "Below",                                        # (the sides a set's piece joins;
                                                                                     #  the tile under a tall one)
                            "Retired",                                               # (old art: the editor's Detail only)
-                           "Stairs"):                                               # (townsfolk take it too: npc_stairs.py)
+                           "Climb"):                                                # (townsfolk climb it too: npc_stairs.py)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
-            elif k in ("Flame", "Water", "Overhead", "Retired", "Stairs") and v not in ("0", "1"):
+            elif k in ("Flame", "Water", "Overhead", "Retired", "Climb") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
-            elif k == "Stairs" and v == "1" and not re.search(r"Climb (Up|Down)", dict(items).get("Use.Words") or ""):
-                err(r, "[%s] Stairs=1 but its Use.Words have no Climb Up or Climb Down (the way it goes)" % sec)
+            elif k == "Climb" and v == "1" and not re.search(r"Climb (Up|Down)", dict(items).get("Use.Words") or ""):
+                err(r, "[%s] Climb=1 but its Use.Words have no Climb Up or Climb Down (the way it goes)" % sec)
             elif k == "Joins" and not (v in ("*", "-") or (v and set(v) <= set("NESW"))):
                 err(r, "[%s] Joins must be the sides it joins (N, E, S, W), * (any) or - (none)" % sec)
             elif k == "Below" and v not in TILES:

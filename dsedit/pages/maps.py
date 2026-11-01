@@ -127,10 +127,13 @@ OPT_SPECS = {
              "its house at night, a hen's coop. Drawn in blue."),
     "Bed": ("Bed", "tile", None, "Its own bed (the head of a Bed001, x,y): it walks to it at night and sleeps there "
             "till morning. Shown as a blue square."),
-    "Bed.Level": ("Bed's level", "number", None, "The level its bed is on, if not its own (1: upstairs): it takes "
-                  "the stairs (Stairs=1 tiles) up to bed and back down in the morning. Its Bed is that level's tile."),
-    "Home.Level": ("Home's level", "number", None, "The level its Home is on, if not its own: it takes the stairs "
-                   "there for the hours its Home keeps it in."),
+    "Bed.Level": ("Bed's level", "number", None, "The level its bed is on, if not its own (1: upstairs): it climbs "
+                  "the stairs or a ladder (Climb=1 tiles) up to bed and back down in the morning. Its Bed is that "
+                  "level's tile."),
+    "Home.Level": ("Home's level", "number", None, "The level its Home is on, if not its own: it climbs there for "
+                   "the hours its Home keeps it in."),
+    "Zone.Levels": ("Zone's levels", "text", None, "The levels its Zone holds on, the same tiles on each (0,1: this "
+                    "floor and the one above): now and then it climbs the stairs or a ladder to roam the other."),
     "State": ("Rests as", "choice", _kind_list("States"), "How it always rests (one of its kind's States=)."),
     "Nap": ("Nap spot", "tile", None, "A tile it hops up onto to curl up (x,y): the throne, a bed."),
     "Level": ("Level", "number", None, "A Shard Remnant's strength (1-25)."),
@@ -141,7 +144,7 @@ OPT_SPECS = {
     "Key": ("Key", "text", None, "The item that opens its lock."),
     "Sturdy": ("Iron-bound", "bool", None, "It can't be broken open: only picked, or opened with its key."),
 }
-NPC_FORM = ("Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
+NPC_FORM = ("Zone.Levels", "Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
 OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy")
 ITEM_FORM = ("Project",)
 HANDLED_OPTS = {"Attitude", "Stand", "Id", "Name", "Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Once"}

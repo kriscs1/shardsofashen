@@ -123,8 +123,8 @@ Anim.Frames=4          ; drawn from its own pictures <Name>1..<Name>4 in sprites
 Anim.Speed=200         ; out of step with the next; ms a picture (default 200). The pictures aren't tiles of their own
 Door=1                 ; a door: townsfolk go home through it at night (Gate: a gateway nobody lives behind);
                        ; either way a doorway, so standing in it under a roof's edge you see inside
-Stairs=1               ; stairs townsfolk take too (to a bed upstairs): its Use.Words' Climb Up or Climb Down is the
-                       ; way it goes, to a stair the other way at the same spot of the next level (not ladders)
+Climb=1                ; stairs or a ladder townsfolk climb too: its Use.Words' Climb Up or Climb Down is the way it
+                       ; goes, to one the other way at the same spot of the next level (a ladder up to a hatch)
 Glow.Colour=255 160 70 ; for the editor's "Split props off their floors": drawn with the floor lit this colour round
 Glow.Match=4           ; it, kept as see-through light (Match: how near, a few if exact)
 Light=72               ; how far (pixels) it lights the dark at night: on a ground tile, a decor or a roof
@@ -331,8 +331,10 @@ The bank is not a rack: it's stored in the save file.
     * `Bed=x,y`: its own bed (the head, a Bed001): at night it walks to it and sleeps in it till morning, drawn as
       `<Name>_Sleep4` (its head on the pillow: dev/migrate/build_sleepers.py), and can't be talked to.
     * `Bed.Level=1`, `Home.Level=-1`: the level its Bed or Home is on, when it isn't its own (the tile is that
-      level's). It walks to the stairs (Tiles.ini `Stairs=1`) and up or down them, and back in the morning; with
-      nobody near either end it's simply there.
+      level's). It walks to the stairs or a ladder (Tiles.ini `Climb=1`) and up or down, and back in the morning;
+      with nobody near either end it's simply there.
+    * `Zone.Levels=0,1`: the levels its Zone holds on, the same tiles on each: now and then (a third of its roams)
+      its next spot is on the level above or below, and it climbs there.
     Without either, at its hours' end a person goes out of the nearest door and is gone; an animal slips away once
     nobody's near. Animals keep out of houses by where they roam: their zones leave out the roofed tiles of their map
     (assign_homes.py); there's no rule against it.

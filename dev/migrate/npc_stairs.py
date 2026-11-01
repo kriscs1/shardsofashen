@@ -1,6 +1,9 @@
-"""Townsfolk take the stairs: the house stairs (Stairs001 up, Stairs002 down) get Stairs=1 in Tiles.ini, so an NPC
-whose bed is upstairs (Bed=x,y Bed.Level=1) or whose home is on another level (Home.Level=) walks to them and up or
-down (npcs.py npc_to_level). Edwin and Maren are one each now, not a day self downstairs and a night self upstairs:
+"""Townsfolk climb stairs and ladders: the house stairs (Stairs001 up, Stairs002 down) and ladders (Ladder001 up to a
+Hatch001 or a Ladder002) get Climb=1 in Tiles.ini (it was Stairs=1, on the stairs alone), so an NPC whose bed is
+upstairs (Bed=x,y Bed.Level=1), whose home is on another level (Home.Level=) or whose Zone is on more than one
+(Zone.Levels=0,1) walks to them and up or down (npcs.py npc_to_level, npc_pick_floor_goal). Not a cave's hole
+(Ladder006), a tunnel's or a quest's ladder, nor the chapel's stair. Edwin and Maren are one each now, not a day self
+downstairs and a night self upstairs:
 by day at her counter and his desk, at night up the stairs to their double bed (2,1,1). build_heir_isle.py writes
 them so too. Safe to run again.
 
@@ -16,19 +19,24 @@ from ashen import ini  # noqa: E402
 from dsedit.project import read_text_lines, write_text_lines  # noqa: E402
 
 TILES = os.path.join(ROOT, "data", "Tiles.ini")
-STAIRS = ("Stairs001", "Stairs002")
+CLIMBS = ("Stairs001", "Stairs002", "Ladder001", "Ladder002", "Hatch001")
 H = 21
 BEDS = {"Maren_At_Counter": "Bed=13,1 Bed.Level=1",          # (the double bed's left half, and its right)
         "Edwin_At_Desk": "Bed=14,1 Bed.Level=1"}
 
 
-def stairs():
+def climbs():
+    lines = read_text_lines(TILES)
+    kept = [ln for ln in lines if ln.strip() != "Stairs=1"]          # (the old key: Climb=1 now)
+    if kept != lines:
+        write_text_lines(TILES, kept)
+        ini.forget(TILES)
     n = 0
-    for name in STAIRS:
-        if (ini.read(name, "Stairs", "", TILES) or "").strip() != "1":
-            ini.write(name, "Stairs", "1", TILES)
+    for name in CLIMBS:
+        if (ini.read(name, "Climb", "", TILES) or "").strip() != "1":
+            ini.write(name, "Climb", "1", TILES)
             n += 1
-    print("stairs townsfolk take: %d marked (%s)" % (n, ", ".join(STAIRS)))
+    print("stairs and ladders townsfolk climb: %d marked (%s)" % (n, ", ".join(CLIMBS)))
 
 
 def edwin_and_maren():
@@ -56,5 +64,5 @@ def edwin_and_maren():
 
 
 if __name__ == "__main__":
-    stairs()
+    climbs()
     edwin_and_maren()

@@ -341,13 +341,13 @@ class GameData:
             cache[name] = "" if v in ("", "0") else ("Gate" if v.lower() == "gate" else "1")
         return cache[name]
 
-    def stair_dir(self, name):
-        """Tiles.ini Stairs=1 (a stair townsfolk take too, not a ladder or a hatch): 1 up, -1 down (by its Use.Words),
-        0 not one."""
-        cache = self.cache("stair_dir")
+    def climb_dir(self, name):
+        """Tiles.ini Climb=1 (stairs or a ladder townsfolk climb too, not a cave's or a quest's): 1 up, -1 down (by its
+        Use.Words), 0 not one."""
+        cache = self.cache("climb_dir")
         if name not in cache:
             v = 0
-            if name and trim(self.tile_ini(name, "Stairs", "")) == "1":
+            if name and trim(self.tile_ini(name, "Climb", "")) == "1":
                 words = self.tile_ini(name, "Use.Words", "")
                 v = 1 if "Climb Up" in words else (-1 if "Climb Down" in words else 0)
             cache[name] = v

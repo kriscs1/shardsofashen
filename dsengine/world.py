@@ -1609,7 +1609,7 @@ class World(NPCMixin):
                     act.add((mx + i, my + j, p.z))
             m = self.by_pos.get((mx, my, p.z))
             if m is not None:
-                for _, _, dz in self.stair_spots(m):            # (upstairs and down: whoever's coming up to bed)
+                for _, _, dz in self.climb_spots(m):            # (upstairs and down: whoever's coming up to bed)
                     act.add((mx, my, p.z + dz))
         self.active = act
 

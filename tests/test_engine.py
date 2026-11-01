@@ -1344,15 +1344,14 @@ def test_the_lairs_hobgoblins_come_back_when_someone_comes_in(world):
 
 def test_townsfolk_take_the_stairs_to_bed(world):
     """Maren tends her counter by day; at night she walks up the stairs to her bed (Bed.Level=1) while you watch,
-    and in the morning comes back down to it. Only Stairs=1 tiles lead her: one Maren, not a night self upstairs."""
+    and in the morning comes back down to it. Only Climb=1 tiles lead her: one Maren, not a night self upstairs."""
     def run(ticks):
         for _ in range(ticks):
             world.tick(0.05, now=world.now + 50)
     assert not [e for e in world.ents if e.npc_id in ("Maren_At_Home", "Edwin_At_Home")]
-    assert world.data.stair_dir("Stairs001") == 1 and world.data.stair_dir("Stairs002") == -1
-    assert world.data.stair_dir("Ladder001") == 0                   # (never a ladder)
+    assert world.data.climb_dir("Stairs001") == 1 and world.data.climb_dir("Stairs002") == -1
     down = world.maps["2,1,0"]
-    assert (down.ox + 19.5 * 32, down.oy + 1.5 * 32, 1) in world.stair_spots(down)
+    assert (down.ox + 19.5 * 32, down.oy + 1.5 * 32, 1) in world.climb_spots(down)
     s = join(world, "Lodger", "2,1,0", 16 * 32, 4 * 32)             # (in the house, watching)
     day = world.day_fraction()
     maren = next(e for e in world.ents if e.npc_id == "Maren_At_Counter")
@@ -1388,6 +1387,52 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     assert edwin.z == 1 and edwin.ai.asleep
     world.set_day_fraction(day)
     leave(world, u)
+
+
+def test_townsfolk_climb_ladders_and_roam_a_zone_on_two_floors(world):
+    """A ladder up to a hatch is a climb as stairs are (Climb=1; never a cave's hole). One whose Zone.Levels=0,1 roams
+    both floors of its house, up the ladder and back down it while you watch."""
+    d = world.data
+    assert d.climb_dir("Ladder001") == 1 and d.climb_dir("Hatch001") == -1 and d.climb_dir("Ladder006") == 0
+    found = None
+    for m in sorted(world.maps.values(), key=lambda m: m.name):
+        if m.mz != 0:
+            continue
+        for x, y, dz in world.climb_spots(m):
+            c = m.cell(int((x - m.ox) / 32) + 1, int((y - m.oy) / 32) + 1)
+            below = (x, y + 32)
+            if dz == 1 and "Ladder001" in (m.tile[c], m.decor[c]) and world.pixel_walkable(0, *below):
+                found = (m, x, y)
+                break
+        if found:
+            break
+    assert found, "no house ladder"
+    m, x, y = found
+    tx, ty = int((x - m.ox) / 32) + 1, int((y - m.oy) / 32) + 1
+    zone = "%d,%d,%d,%d" % (max(1, tx - 3), max(1, ty - 3), min(25, tx + 3), min(21, ty + 3))
+    day = world.day_fraction()
+    world.set_day_fraction(0.5)
+    e = world.add_npc("Villager", 0, x - 16, y + 32 - 24, "Attitude=Good Zone=%s Zone.Levels=0,1 Schedule=Always" % zone)
+    assert e.ai.zone_levels == {0, 1} and e.ai.levels
+    s = join(world, "Watcher", m.name, int(x - m.ox) + 40, int(y - m.oy) + 40)
+    heard = []
+    world.sound = lambda name, z, x_, y_, only=None, radius=600.0: heard.append((name, z))
+    went_up = came_down = False
+    try:
+        for _ in range(8000):
+            world.tick(0.05, now=world.now + 50)
+            if e.z == 1:
+                went_up = True
+                s.teleport(world.map_at(1, e.x, e.y).name, int(e.x - m.ox) + 40, int(e.y - m.oy) + 40)
+            elif went_up:
+                came_down = True
+                break
+    finally:
+        del world.sound
+        world.remove_entity(e)
+        world.set_day_fraction(day)
+        leave(world, s)
+    assert went_up and came_down and ("Ladder", 0) in heard and ("Ladder", 1) in heard
 
 
 def test_the_smithy_smokes_by_day(world):
