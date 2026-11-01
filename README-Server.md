@@ -335,7 +335,7 @@ One central server serves the whole game. Every version's start screen connects 
 desktop app, and a browser, which gets the start screen from it): players have one account there for every game, it
 lists the remote game servers (each announces itself to it), and it serves the ads on the start screen.
 
-- **The game's own** is `https://soa.hallisium.online`: the apps' start screen (`web/home/config.js`) and a cloud
+- **The game's own** is `https://soa.hallisium.com`: the apps' start screen (`web/home/config.js`) and a cloud
   server's `.env` (`deploy/cloud.env.example`) point there already.
 - **What it is**: `central/` (standard library and aiohttp, like the game server), run from the same image as
   `python -m central` on port 8490, behind Caddy for HTTPS, with an updater (`deploy/docker-compose.central.yml`). It
