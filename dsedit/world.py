@@ -103,6 +103,18 @@ def drags(project, brush):
     return set_kind(project, st) in ("Stretch", "Rug", "Join")
 
 
+def whole(project, name):
+    """A piece of one thing more than a tile big (TileSets.ini Kind=Whole: a bed's head and foot, a double bed's
+    four): [(dx, dy, piece)] of every piece, from name's own cell; [] for anything else. It goes down, and comes up,
+    whole."""
+    st = project.tile_set_of(name) if name else None
+    if not st or set_kind(project, st) != "Whole":
+        return []
+    _, _, cols, names = st
+    at = names.index(next(n for n in names if n.lower() == name.lower()))
+    return [(i % cols - at % cols, i // cols - at // cols, n) for i, n in enumerate(names) if n]
+
+
 def joins(project, brush):
     """Is brush a piece of a set that joins its neighbours (a fence, a palisade, a town wall)?"""
     return bool(brush) and set_kind(project, project.tile_set_of(brush)) == "Join"
@@ -244,8 +256,9 @@ def join_cells(w, h):
 
 
 # ----- diagonal shore pieces (TileSets.ini Kind=Shore: its Land, its Water, which piece goes in which corner): a water
-# cell in the inside corner of a step in the coast (land on two sides that meet and on the corner between them, water
-# on the other two) becomes the piece with land in that corner; the Small piece where the coast steps on past it
+# cell in the inside corner of a step in the coast (the coast's land on two sides that meet, any dry ground on the
+# corner between them, water on the other two) becomes the piece with land in that corner; the Small piece where the
+# coast steps on past it
 WATER = "Water001"
 
 
@@ -309,9 +322,11 @@ def smooth_corners(project, get, put, changed, keep=()):
         want = WATER if t in pieces or t == WATER else t
         for (ns, ew) in (("N", "E"), ("N", "W"), ("S", "W"), ("S", "E")):
             dy, dx = (-1 if ns == "N" else 1), (1 if ew == "E" else -1)
-            land = [land_of(v) for v in (tile(x, y + dy), tile(x + dx, y), tile(x + dx, y + dy))]
+            land = [land_of(v) for v in (tile(x, y + dy), tile(x + dx, y))]
+            corner = tile(x + dx, y + dy)           # (any dry ground: a path off the corner still gets its diagonal)
             s = sets.get(land[0])
-            if s and land[0] == land[1] == land[2] and wet(tile(x, y - dy)) and wet(tile(x - dx, y)):
+            if s and land[0] == land[1] and corner is not None and not wet(corner) and \
+                    wet(tile(x, y - dy)) and wet(tile(x - dx, y)):
                 shallow = land_of(tile(x - dx, y + dy)) == land[0] or land_of(tile(x + dx, y - dy)) == land[0]
                 want = (s["small"] if shallow else s["corner"]).get((ns, ew), want)
                 break

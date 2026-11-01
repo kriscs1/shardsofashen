@@ -833,8 +833,25 @@ class World(NPCMixin):
         swim = e.type == NPC and e.ai is not None and e.ai.swims
         cell = self.data.grid_cell
 
+        def feet_clear(bx, by):
+            """From the feet a cell's length toward bx,by, by the walk masks: a fence across the very cell the feet
+            are in (the grid can't tell which side of it they stand)."""
+            d = distance(sx, sy, bx, by)
+            if d < 1:
+                return True
+            k = min(1.0, cell / d)
+            for i in range(1, 9):
+                x, y = sx + (bx - sx) * k * i / 8, sy + (by - sy) * k * i / 8
+                m = self.map_at(z, x, y)
+                if m is not None and not (m.local_swimmable(x - m.ox, y - m.oy) if swim else
+                                          m.local_walkable(x - m.ox, y - m.oy, None)):
+                    return False
+            return True
+
         def line_clear(ax, ay, bx, by):
             if not self.grid_line_walkable(z, ax, ay, bx, by, mover, swim):
+                return False
+            if (ax, ay) == (sx, sy) and not feet_clear(bx, by):
                 return False
             if avoid:
                 n = int(distance(ax, ay, bx, by) / 4) + 1
@@ -849,12 +866,12 @@ class World(NPCMixin):
         r2 = radius * radius
         range_cost = int(radius / cell * 10)
         scx, scy = math.floor(sx / cell), math.floor(sy / cell)
-        if gwk(z, scx, scy, mover) == 0:
+        if gwk(z, scx, scy, mover) == 0 or not feet_clear(scx * cell + cell / 2, scy * cell + cell / 2):
             best_d = 999999
             new_start = None
             for ddx, ddy, _ in PF_DIRS:
                 mx, my = scx + ddx, scy + ddy
-                if gwk(z, mx, my, mover) == 1:
+                if gwk(z, mx, my, mover) == 1 and feet_clear(mx * cell + cell / 2, my * cell + cell / 2):
                     dd = abs(mx * cell + cell / 2 - sx) + abs(my * cell + cell / 2 - sy)
                     if dd < best_d:
                         best_d, new_start = dd, (mx, my)
@@ -1590,6 +1607,10 @@ class World(NPCMixin):
             for j in (-1, 0, 1):
                 for i in (-1, 0, 1):
                     act.add((mx + i, my + j, p.z))
+            m = self.by_pos.get((mx, my, p.z))
+            if m is not None:
+                for _, _, dz in self.stair_spots(m):            # (upstairs and down: whoever's coming up to bed)
+                    act.add((mx, my, p.z + dz))
         self.active = act
 
     def guarded(self, s, what, fn, *args):

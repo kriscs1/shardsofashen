@@ -349,16 +349,16 @@ class Segmented(tk.Frame):
     name in icons.py, drawn left of the text in the text's colour). var: a StringVar; command() after a click.
     colours: {value: colour} for buttons in a colour of their own (white text; chosen, bold with a dark edge).
     tints: {value: colour} for buttons edged in a colour of their own, filled with it only when chosen (bold, a ▶
-    and a gold ring: which one is chosen shows at a glance)."""
+    and a gold ring: which one is chosen shows at a glance). pad: the room either side of a button's text."""
 
-    def __init__(self, parent, var, options, command=None, columns=0, bg=None, colours=None, tints=None):
+    def __init__(self, parent, var, options, command=None, columns=0, bg=None, colours=None, tints=None, pad=9):
         super().__init__(parent, bg=bg or T.PANEL)
         self.var, self.command, self.buttons, self.colours = var, command, {}, colours or {}
         self.tints = tints or {}
         for i, opt in enumerate(options):
             value, text = opt[0], opt[1]
             edge = tk.Frame(self, bg=T.BUTTON_EDGE)              # (a 1px border round each button)
-            b = tk.Label(edge, text=text, font=T.FONT, padx=T.px(9), pady=T.px(3), cursor="hand2", bd=0)
+            b = tk.Label(edge, text=text, font=T.FONT, padx=T.px(pad), pady=T.px(3), cursor="hand2", bd=0)
             ring = 3 if value in self.tints else 1
             b.pack(fill="both", expand=True, padx=ring, pady=ring)
             b.edge, b.text = edge, text

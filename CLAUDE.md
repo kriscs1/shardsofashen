@@ -240,6 +240,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   by `build_sleepers.py`; Talk gets "fast asleep"). Townsfolk have a house each (`assign_homes.py`: never a building
   someone else lives or works in). Without either, a person goes out of the nearest door, an animal slips away once
   nobody's near. `Roost=` is the old name of `Home=` (still read).
+- **Townsfolk take the stairs** (`npcs.py` npc_to_level, `dev/migrate/npc_stairs.py`): a bed upstairs is
+  `Bed=x,y Bed.Level=1` (a home on another level, `Home.Level=`); at night they walk up the stairs to it and in the
+  morning come back down, and with nobody near either end they're simply there. Only tiles with `Stairs=1` lead them
+  (the house stairs: a stair the other way at the same spot of the next level), never ladders, hatches or trapdoors.
+  One person is one NPC: never a day self downstairs and a night self upstairs (Edwin and Maren were).
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less
   often, its magic rises as a **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for

@@ -104,7 +104,8 @@ class DecorSplitDialog(Dialog):
                     Image.alpha_composite(other.convert("RGBA"), decor) if other is not None else None]
             for i, img in enumerate(pics):
                 ph = photo(img, size, key=("decorsplit", s.name, i)) if img is not None else None
-                tk.Label(row, image=ph or "", bg=T.PANEL, width=size[0], height=size[1]).pack(side="left", padx=2)
+                (tk.Label(row, image=ph, bg=T.PANEL, width=size[0], height=size[1]) if ph else    # (no picture: a
+                 tk.Frame(row, bg=T.PANEL, width=size[0], height=size[1])).pack(side="left", padx=2)  # px-sized gap)
             text = ttk.Frame(row, style="Panel.TFrame")
             text.pack(side="left", fill="x", expand=True, padx=(10, 0))
             ttk.Label(text, text=s.name.replace("_", " "), style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w")

@@ -24,8 +24,8 @@ NPC	Rabbit	160	224	Attitude=Passive
 NPC	Rabbit	512	256	Attitude=Passive Zone=14,7,20,12
 NPC	Butterfly	288	288	Attitude=Good
 NPC	Blue_Butterfly	160	576	Attitude=Good
-NPC	Maren	416	56	Attitude=Good Stand=1 Face=S Schedule=Day Id=Maren_At_Counter
-NPC	Edwin	544	24	Attitude=Good Stand=1 Face=S Schedule=Day Id=Edwin_At_Desk
+NPC	Maren	416	56	Attitude=Good Stand=1 Face=S Bed=13,1 Bed.Level=1 Id=Maren_At_Counter
+NPC	Edwin	544	24	Attitude=Good Stand=1 Face=S Bed=14,1 Bed.Level=1 Id=Edwin_At_Desk
 StaticObject	Notice	448	226	Id=Isle_Bank_Notice
 Id	Isle_Bank	16	8
 Id	Isle_Pond	13	12

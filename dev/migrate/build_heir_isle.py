@@ -552,8 +552,9 @@ def home():
     for y in range(y2 + 1, y2 + 4):                             # a path down to the Isle's path
         m.set(HOME_DOOR, y, tile="Dirt001", decor="")
     m.ents += [
-        obj_line("NPC", "Maren", 14, 3, "Attitude=Good Stand=1 Face=S Schedule=Day Id=Maren_At_Counter", -8),
-        obj_line("NPC", "Edwin", 18, 2, "Attitude=Good Stand=1 Face=S Schedule=Day Id=Edwin_At_Desk", -8),
+        # (by day at her counter and his desk; at night up the stairs to their double bed: npc_stairs.py)
+        obj_line("NPC", "Maren", 14, 3, "Attitude=Good Stand=1 Face=S Bed=13,1 Bed.Level=1 Id=Maren_At_Counter", -8),
+        obj_line("NPC", "Edwin", 18, 2, "Attitude=Good Stand=1 Face=S Bed=14,1 Bed.Level=1 Id=Edwin_At_Desk", -8),
         "StaticObject\tNotice\t%d\t%d\tId=Isle_Bank_Notice" % px(15, 8, 2),
     ]
     K.place_id(m, "Isle_Bank", HOME_DOOR, y2 + 1)
@@ -570,8 +571,6 @@ def home():
     up.ents = [ln for ln in up.ents if "Marens_Range" not in ln and "_At_Home" not in ln]
     up.ents += [
         obj_line("StaticObject", "Range", 18, 1, "Id=Marens_Range"),
-        obj_line("NPC", "Maren", 14, 3, "Attitude=Good Stand=1 Face=S Schedule=Night Id=Maren_At_Home", -8),
-        obj_line("NPC", "Edwin", 15, 4, "Attitude=Good Stand=1 Face=S Schedule=Night Id=Edwin_At_Home", -8),
     ]
     up.save()
     print("2,1,0 and 2,1,1: Edwin and Maren's house, two storeys of brick: her surgery and his desk, their rooms "

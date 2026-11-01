@@ -208,8 +208,6 @@ Door_Open040	60 39 27
 Door_Open041	58 38 28
 Door_Open042	82 60 42
 Fallen_Log001	81 97 29
-Fence001	88 103 32
-Fence002	82 102 30
 Field001	103 77 46
 Fireplace001	139 117 94
 Fireplace002	138 115 93

@@ -12,6 +12,8 @@ them:
     at the corners and ends).
   * A Shore set for each coast (Grass001 and Water002-009; <Land>001 and <Land>_Water002-009): its Land, its Water,
     and which piece goes in which corner (Corners=, and Small= where the coast steps on past it).
+  * A Whole set for each bed (Kind=Whole: one thing more than a tile big, its pieces as they lie): the editor puts it
+    down, and takes it up, whole, and its Auto palette shows the bed, not its foot.
 
 Safe to run again (what's there is kept).
 
@@ -36,6 +38,9 @@ WALL = [("City_Wall001", "east-west: battlements (its face under it)", "EW", "Ci
         ("City_Wall003", "a tower (corners, ends and T's; its face under it)", "*", "City_Wall005"),
         ("City_Wall004", "the wall's face, under its battlements", "", ""),
         ("City_Wall005", "a tower's face", "", "")]
+BEDS = [("Bed", "bed", 1, "Bed001,Bed002"), ("Bed_Sideways", "bed lying sideways, its head on the left", 2,
+         "Bed003,Bed004"), ("Bed_Sideways_Right", "bed lying sideways, its head on the right", 2, "Bed005,Bed006"),
+        ("Double_Bed", "double bed", 2, "Double_Bed001,Double_Bed002,Double_Bed003,Double_Bed004")]
 CORNERS = "NE:%s002,NW:%s005,SW:%s006,SE:%s008"
 SMALL = "NE:%s003,NW:%s004,SW:%s007,SE:%s009"
 
@@ -54,6 +59,11 @@ def main():
                      ("Kind", "Join")):
             sets.set("City_Wall", k, v)
         made += 1
+    for key, title, cols, members in BEDS:
+        if sets.section(key) is None and all(n in names for n in members.split(",")):
+            for k, v in (("Title", title), ("Columns", str(cols)), ("Tiles", members), ("Kind", "Whole")):
+                sets.set(key, k, v)
+            made += 1
     for t, piece, joins, below in WALL:
         tiles.set(t, "Piece", piece, overwrite=False)
         if joins:

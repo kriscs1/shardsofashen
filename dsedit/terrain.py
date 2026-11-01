@@ -16,7 +16,7 @@ import os
 import random
 import re
 
-from .project import IniDoc, mtime, Entity
+from .project import IniDoc, mtime, Entity, tile_family
 from . import world as WD
 
 
@@ -254,7 +254,13 @@ def groups(project, layer):
             out["hide:" + sec] = Group("Hidden", "hide:" + sec, title, pieces, None)
         elif kind in ("Stretch", "Rug", "Join"):
             mid = names[len(names) // 2] or pieces[0]
-            out["set:" + sec] = Group("Set", "set:" + sec, title, pieces, mid)
+            under = [project.tiles_ini.get(n, "Below", "").strip() for n in pieces]   # (a town wall's face)
+            out["set:" + sec] = Group("Set", "set:" + sec, title, pieces + [b for b in under if b], mid)
+        elif kind == "Whole":                          # (a bed: its head and foot go down together)
+            out["set:" + sec] = Group("Set", "set:" + sec, title, pieces, pieces[0])
+    retired = [t for t in project.tiles() if project.tiles_ini.get(t, "Retired", "").strip() == "1"]
+    if retired:                                        # (old art kept for old maps: in Detail only)
+        out["hide:retired"] = Group("Hidden", "hide:retired", "retired", retired, None)
     taken = {n for g in out.values() if g.kind != "Terrain" for n in g.tiles}   # (a terrain's own tiles still show)
     stems = {}
     for t in project.tiles():
@@ -273,9 +279,14 @@ def groups(project, layer):
 
 
 def layer_test(project, layer):
-    """Is a tile one the layer paints with?"""
+    """Is a tile one the layer paints with? (Roofs: roofs, upper storeys, steeples; Over: what's see-through, and
+    tree tops.)"""
     if layer == "map":
         return lambda t: not project.is_decor(t) and not project.is_under(t)
     if layer == "decor":
         return lambda t: project.is_decor(t) or project.is_under(t)
+    if layer == "roof":
+        return lambda t: tile_family(t) == "Roofs"
+    if layer == "infront":
+        return lambda t: project.is_decor(t) or tile_family(t) == "Trees"
     return lambda t: True

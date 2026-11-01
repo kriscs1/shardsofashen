@@ -20,5 +20,3 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 StaticObject	Range	544	0	Id=Marens_Range
-NPC	Maren	416	56	Attitude=Good Stand=1 Face=S Schedule=Night Id=Maren_At_Home
-NPC	Edwin	448	88	Attitude=Good Stand=1 Face=S Schedule=Night Id=Edwin_At_Home

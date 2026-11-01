@@ -282,8 +282,8 @@ def check_map(path, entities_ini, tiles_ini, report):
 # ------------------------------------------------------------------ NPC movement Options on map lines
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
-               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed",
-               "State", "Nap", "Level", "Look"}   # (Home=: where it is while its hours keep it in; Bed=x,y: its bed; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
+               "Face", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed", "Bed.Level", "Home.Level",
+               "State", "Nap", "Level", "Look"}   # (Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
 _npc_ids = None
 
 
@@ -447,14 +447,33 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
                 zone = rcs[0] if len(rcs) == 1 else rcs
             elif k == "Chase":
                 chase = rcs[0] if len(rcs) == 1 else rcs
-    if "Bed" in opts:                               # (its own bed: the head of a bed on its map)
+    bed_lines = lines
+    for k, of in (("Bed.Level", "Bed"), ("Home.Level", "Home")):      # (up or down the stairs: that level's map)
+        if k not in opts:
+            continue
+        if of not in opts:
+            report(where, "%s=%s without a %s=" % (k, opts[k], of))
+        elif not re.fullmatch(r"-?\d+", opts[k]):
+            report(where, "%s=%r should be a level (a whole number: 1 upstairs, -1 the cellar)" % (k, opts[k]))
+        else:
+            try:
+                mx, my, _ = (int(v) for v in home.split(","))
+                there = p("maps", "%d,%d,%s.txt" % (mx, my, opts[k]))
+            except ValueError:
+                there = ""
+            if not there or not os.path.exists(there):
+                report(where, "%s=%s: there's no map on that level here" % (k, opts[k]))
+            elif k == "Bed.Level":
+                with open(there, encoding="cp1252", newline="") as f:
+                    bed_lines = f.read().replace("\r\n", "\n").split("\n")
+    if "Bed" in opts:                               # (its own bed: the head of a bed on its map, or its Bed.Level's)
         q = opts["Bed"].split(",")
         if len(q) != 2 or not all(re.fullmatch(r"\d+", c.strip()) for c in q) or                 not (1 <= int(q[0]) <= MAP_W and 1 <= int(q[1]) <= MAP_H):
             report(where, "Bed=%r should be x,y: a tile of this map" % opts["Bed"])
         else:
-            cell = lines[int(q[1]) - 1].split(":")[int(q[0]) - 1] if int(q[1]) - 1 < len(lines) else ""
+            cell = bed_lines[int(q[1]) - 1].split(":")[int(q[0]) - 1] if int(q[1]) - 1 < len(bed_lines) else ""
             decor = DECOR_RE.search(cell)
-            if not decor or not decor.group(1).startswith("Bed"):
+            if not decor or not re.match(r"(Double_)?Bed\d", decor.group(1)):
                 report(where, "Bed=%s: there's no bed at that tile" % opts["Bed"])
     if "Pause" in opts:
         m = PAUSE_RE.match(opts["Pause"])
@@ -1006,13 +1025,17 @@ def check_tiles():
                            "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat",    # (Seat=S: sit on it, facing south)
                            "Overhead", "Display.Name",                              # (drawn over people too: an arch;
                                                                                     #  what it's called, shown)
-                           "Joins", "Below"):                                       # (the sides a set's piece joins;
+                           "Joins", "Below",                                        # (the sides a set's piece joins;
                                                                                     #  the tile under a tall one)
+                           "Retired",                                               # (old art: the editor's Detail only)
+                           "Stairs"):                                               # (townsfolk take it too: npc_stairs.py)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
-            elif k in ("Flame", "Water", "Overhead") and v not in ("0", "1"):
+            elif k in ("Flame", "Water", "Overhead", "Retired", "Stairs") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
+            elif k == "Stairs" and v == "1" and not re.search(r"Climb (Up|Down)", dict(items).get("Use.Words") or ""):
+                err(r, "[%s] Stairs=1 but its Use.Words have no Climb Up or Climb Down (the way it goes)" % sec)
             elif k == "Joins" and not (v in ("*", "-") or (v and set(v) <= set("NESW"))):
                 err(r, "[%s] Joins must be the sides it joins (N, E, S, W), * (any) or - (none)" % sec)
             elif k == "Below" and v not in TILES:
@@ -1053,8 +1076,8 @@ def check_tile_sets():
         for k in keys:
             if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small"):
                 warn(r, "[%s] unknown key %s" % (sec, k))
-        if keys.get("Kind", "Set") not in ("Set", "Stretch", "Rug", "Join", "Shore"):
-            err(r, "[%s] Kind must be Set, Stretch, Rug, Join or Shore" % sec)
+        if keys.get("Kind", "Set") not in ("Set", "Stretch", "Rug", "Join", "Shore", "Whole"):
+            err(r, "[%s] Kind must be Set, Stretch, Rug, Join, Shore or Whole" % sec)
         for k in ("Land", "Water"):
             if keys.get(k) and keys[k] not in TILES:
                 err(r, "[%s] %s %r has no sprite in sprites\\Tiles" % (sec, k, keys[k]))

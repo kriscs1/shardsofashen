@@ -2,7 +2,6 @@
 a straight run, a post on its own) from the twelve Wood_Fence pieces (Tiles.ini says what each one is)."""
 
 FENCE = "Wood_Fence"
-OLD = ("Fence001", "Fence002")            # (the plain rails and posts fences were once built of: they join up too)
 N, E, S, W = (0, -1), (1, 0), (0, 1), (-1, 0)
 PIECES = {
     frozenset(): "012",
@@ -15,7 +14,7 @@ PIECES = {
 
 
 def is_fence(name):
-    return bool(name) and (name.startswith(FENCE) or name in OLD)
+    return bool(name) and name.startswith(FENCE)
 
 
 def fence_piece(fence_at, x, y):

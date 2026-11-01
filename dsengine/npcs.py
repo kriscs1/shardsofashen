@@ -200,7 +200,7 @@ class NPCMixin:
             walk = 0.5
         a.walk_speed = max(4, min(1, walk) * e.move_speed)
         pause = d.entity_ini(n, "Pause", "1-4")
-        zone = chase_r = patrol = home_area = bed = nap = ""
+        zone = chase_r = patrol = home_area = bed = nap = bed_level = home_level = ""
         stand = ping = 0
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
@@ -252,6 +252,10 @@ class NPCMixin:
                     home_area = value
                 elif key == "BED":                     # (its own bed, x,y: asleep in it at night)
                     bed = value
+                elif key == "BED.LEVEL":               # (its bed's on another level: upstairs, up the stairs to it)
+                    bed_level = value
+                elif key == "HOME.LEVEL":
+                    home_level = value
                 elif key == "STATE":                   # (how it always rests: State=Sit)
                     a.fixed_pose = value
                 elif key == "NAP":                     # (a spot it hops up onto to curl up: Nap=13,7, the throne)
@@ -307,6 +311,11 @@ class NPCMixin:
         a.spawn_at = (e.fx, e.fy)                       # (where it was put: back out, it's somewhere it can walk from)
         if word(bed, 2, ",") and is_number(word(bed, 1, ",")) and is_number(word(bed, 2, ",")):
             a.bed = (a.home_ox + (val(word(bed, 1, ",")) - 1) * self.tw, a.home_oy + (val(word(bed, 2, ",")) - 1) * self.th)
+        a.base_z = e.z                                  # (its own level, where it's put: its days)
+        a.bed_z = int(val(bed_level)) if a.bed and is_number(bed_level) else e.z
+        a.home_z = int(val(home_level)) if a.home and is_number(home_level) else e.z
+        a.levels = a.bed_z != e.z or a.home_z != e.z    # (a bed upstairs, a home down in the cellar: it takes the stairs)
+        a.stair_tries = 0
         p_min = val(word(pause, 1, "-"))
         p_max = p_min
         if "-" in pause:
@@ -1031,6 +1040,10 @@ class NPCMixin:
         own = getattr(a, "schedule", None) if a is not None else None
         if own is not None:
             sched = "" if own.upper() in ("ALWAYS", "NONE", "") else own.capitalize()
+        if getattr(a, "levels", False) and self.data.day_night_enabled and not e.in_combat:
+            busy, near = self.npc_to_level(e, a, sched, near)
+            if busy:
+                return True
         if getattr(a, "bed", None) and self.data.day_night_enabled:
             if self.is_night() and not e.in_combat and not e.sched_away:
                 return self.npc_bedtime(e, a, near)
@@ -1057,13 +1070,17 @@ class NPCMixin:
                     return False                                     # (an animal: it slips away once nobody's near)
                 d = distance(e.cx, e.cy, door[0], door[1])
                 if door is not None and d > 14:
+                    if a is not None:                                    # (on its feet: this walk is all it does)
+                        self.npc_wake(e, a)
+                        e.pose, a.fidget_until, a.pose_next = "", 0, ""
                     moved = self.npc_walk_to(e, door[0], door[1], e.ai.walk_speed if e.ai else e.move_speed, 6, False)
+                    self.animate_entity(e, bool(moved))
                     if moved and d < getattr(e, "sched_best", 1e9) - 0.5:     # (getting nearer: on its way)
                         e.sched_best, e.sched_stuck = d, 0
-                        return False
+                        return True
                     e.sched_stuck += 1                                   # (no nearer: stuck, or walking on the spot)
                     if e.sched_stuck < 240:
-                        return False
+                        return True
             elif sched == "Night" and not far:
                 return False
             e.sched_away, e.sched_stuck, e.sched_best = True, 0, 1e9
@@ -1116,6 +1133,108 @@ class NPCMixin:
                 self.npc_set_idle(e, a, True)
                 return True
         return False
+
+    # =================================================================================================================
+    # Stairs (Tiles.ini Stairs=1): townsfolk go up and down them as a player does, to a bed upstairs (Bed.Level=) or a
+    # home on another level (Home.Level=). A stair leads to the same spot of the next level, where a stair the other
+    # way stands; never a ladder, a hatch or a trapdoor
+    # =================================================================================================================
+    def stair_spots(self, m):
+        """Map m's stairs that lead somewhere: [(x, y, dz)], the middle of each stair tile and the way it goes."""
+        cache = self.data.cache("stair_spots")
+        got = cache.get(m.name)
+        if got is None or got[0] != m.version:
+            spots = []
+            sd = self.data.stair_dir
+            for y in range(1, self.yt + 1):
+                for x in range(1, self.xt + 1):
+                    c = m.cell(x, y)
+                    dz = sd(m.tile[c]) or sd(m.decor[c])
+                    o = self.by_pos.get((m.mx, m.my, m.mz + dz)) if dz else None
+                    if o is not None and -dz in (sd(o.tile[c]), sd(o.decor[c])):     # (a stair the other way there)
+                        spots.append((m.ox + (x - 0.5) * self.tw, m.oy + (y - 0.5) * self.th, dz))
+            got = cache[m.name] = (m.version, spots)
+        return got[1]
+
+    def stairs_toward(self, e, dz):
+        """The nearest stair going dz (1 up, -1 down) on e's map and those round it that it can walk to, or None."""
+        m = self.map_at(e.z, e.fx, e.fy)
+        if m is None:
+            return None
+        own = self.grid_region_at(e.z, e.fx, e.fy)
+        best = None
+        for n in self.neighbours(m):
+            for x, y, d in self.stair_spots(n):
+                if d != dz:
+                    continue
+                region = self.grid_region_at(e.z, x, y)
+                if own is not None and own[1] and region is not None and region[0] == own[0] and region != own:
+                    continue                                    # (the other side of a wall)
+                dd = distance(e.fx, e.fy, x, y)
+                if best is None or dd < best[2]:
+                    best = (x, y, dd)
+        return best[:2] if best else None
+
+    def anyone_near(self, z, x, y, r=380):
+        """Is a player on level z within r of x,y (to see an NPC come up the stairs there)?"""
+        for s in getattr(self, "players_all", ()):
+            p = s.player
+            if p.z == z and abs(p.cx - x) <= r and abs(p.cy - y) <= r and distance(p.cx, p.cy, x, y) <= r:
+                return True
+        return False
+
+    def npc_level_now(self, e, a, sched):
+        """(level, x, y): the level its hours keep it on now, and where on it it's going - its bed's at night, its
+        Home's for the hours it's in, else its own (where it stands or roams by day)."""
+        night = self.is_night()
+        if a.bed and night and not e.sched_away:
+            return a.bed_z, a.bed[0] + self.tw / 2, a.bed[1] + self.th
+        if a.home and sched in ("Day", "Night") and (sched == "Day") == night:
+            h = a.home
+            return a.home_z, (h[0] + h[2]) / 2, (h[1] + h[3]) / 2
+        return a.base_z, a.back_x, a.back_y
+
+    def npc_to_level(self, e, a, sched, near):
+        """Off up (or down) the stairs to the level its hours keep it on. (busy, near): busy while it's on its way to a
+        stair or just up it; near None once it's simply been put there (nobody near either end to see it go)."""
+        z, tx, ty = self.npc_level_now(e, a, sched)
+        if z == e.z:
+            a.stair_tries = 0
+            return False, near
+        if a.asleep:
+            self.npc_get_up(e, a)                               # (morning, and its bed's upstairs: up, and down to work)
+        dz = 1 if z > e.z else -1
+        stair = self.stairs_toward(e, dz)
+        seen = (near is not None and near[1] <= 380) or (stair is not None and self.anyone_near(e.z + dz, *stair))
+        if not seen:
+            self.forget_path(e)
+            e.z = z
+            self.set_entity_position(e, tx - e.w / 2, ty - e.h / 2)
+            self.npc_set_idle(e, a, True)
+            a.stair_tries = 0
+            return False, None
+        if stair is None:
+            return False, near                                  # (no way up it can walk: it stays, as it was)
+        sx, sy = stair
+        if distance(e.fx, e.fy, sx, sy) > 8 and a.stair_tries < 600:
+            a.stair_tries += 1                                  # (off to the stairs; half a minute stuck and it's up them)
+            moved = self.npc_walk_to(e, sx, sy - (e.fy - e.cy), a.walk_speed, 4, False)
+            self.animate_entity(e, bool(moved))
+            return True, near
+        self.npc_climb(e, a, sx, sy, dz)
+        return True, near
+
+    def npc_climb(self, e, a, x, y, dz):
+        """Up (or down) the stair it's on, onto the stair at the same spot of the next level: heard at both ends, from
+        close by only (as a door)."""
+        self.sound("Ladder", e.z, e.cx, e.cy, radius=192.0)
+        self.forget_path(e)
+        e.z += dz
+        self.set_entity_position(e, x - e.w / 2, y - (e.fy - e.y))
+        self.sound("Ladder", e.z, e.cx, e.cy, radius=192.0)
+        a.stair_tries = 0
+        self.npc_set_idle(e, a, True)
+        self.animate_entity(e, False)
 
     def nearest_door(self, e):
         m = self.maps.get(e.map) or self.map_at(e.z, e.x, e.y)

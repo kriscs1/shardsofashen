@@ -794,26 +794,6 @@ def grave(kind):
     return img
 
 
-def fence(vertical=False):
-    img = copy_tile("Grass001")
-    wood, dark, light = (150, 104, 56), (100, 66, 32), (186, 140, 86)
-    if not vertical:
-        for x in range(32):
-            for y in (13, 19):
-                img[y][x] = light; img[y + 1][x] = wood
-        for x in (4, 20):
-            for y in range(9, 26):
-                img[y][x] = wood; img[y][x + 1] = dark
-    else:
-        for y in range(32):
-            for x in (14,):
-                img[y][x] = light; img[y][x + 1] = wood; img[y][x + 2] = dark
-        for y in (6, 22):
-            for x in range(12, 20):
-                img[y][x] = wood; img[y + 1][x] = dark
-    return img
-
-
 def well():
     img = copy_tile("Grass001")
     _shadow(img, 17, 26, 12, 4)
@@ -934,8 +914,6 @@ DECOR = {
     "Grave001": lambda: grave(1),
     "Grave002": lambda: grave(2),
     "Grave003": lambda: grave(3),
-    "Fence001": fence,
-    "Fence002": lambda: fence(True),
     "Well001": well,
     "Pond001": pond,
     "Haystack001": haystack,

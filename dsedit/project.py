@@ -10,9 +10,10 @@ ENC = "cp1252"
 SLOTS = ["Weapon", "Shield", "Head", "Body", "Legs", "Feet", "Hands", "Ring"]
 ENTITY_TYPES = ["MapItem", "StaticObject", "NPC"]
 # Tile families (the Tiles list and the map palette): a tile is in the first family with a keyword in its name
-TILE_FAMILIES = [("Roofs", "roof"), ("Furniture & Props", "bed table chair bookshelf plant fireplace rug carpet throne "
-                 "pillar banner torch statue fountain hedge stairs anvil furnace range barrel crate log fence grave "
-                 "haystack portal scarecrow tent well"),
+TILE_FAMILIES = [("Roofs", "roof _upper steeple spire"),     # (an upper storey and a steeple: the Roof layer's)
+                 ("Furniture & Props", "bed table chair bookshelf plant fireplace rug carpet throne pillar banner "
+                 "torch statue fountain hedge stairs anvil furnace range barrel crate log fence grave haystack portal "
+                 "scarecrow tent well"),
                  ("Cave", "cave mine_ stalagmite"), ("Water", "water pool puddle pond"),
                  ("Trees", "tree pine forest stump willow oak yew"), ("Rocks & Ore", "rock ore"),
                  ("Plants", "bush herb mushroom weed wheat nest flower reed grass_tall tall_grass cactus myrtle"),
@@ -565,6 +566,7 @@ class Project:
         self.quests_ini = IniDoc(self.p("data", "Quests.ini"))
         self.buildables_ini = IniDoc(self.p("data", "Buildables.ini"))
         self.crops_ini = IniDoc(self.p("data", "Crops.ini"))
+        self.tilesets_ini = IniDoc(self.p("data", "TileSets.ini"))    # (the Terrains page's: the rest read as sets)
         self._sprites = {}
         self._lists = {}
         self._index = None

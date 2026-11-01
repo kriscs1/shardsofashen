@@ -63,6 +63,7 @@ TOOL_HINTS["Outline"] = ("Draw round a place (hold the button down), let go, and
                          "terrain (its ground, decor and creatures, coasts and all) or the palette's pick")
 CURSORS["Outline"] = "pencil"
 BRUSH_SIZES = ("1", "3", "5", "9", "15")
+SHAPE_TOOLS = ("Fill", "Rectangle", "Outline")   # (a whole place at once: a group of their own, under the brush tools)
 TOOLS = {"map": ["Select", "Paint", "Fill", "Rectangle", "Outline", "Move", "Area", "Pick"],
          "decor": ["Select", "Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
          "roof": ["Select", "Paint", "Rectangle", "Move", "Erase", "Area", "Pick"],
@@ -83,11 +84,15 @@ TILE_KINDS = ("Trigger", "Lock", "Id")      # things on a whole tile (Entity.on_
 TILE_LOOK = {"Trigger": ("#f0b030", 2, "⚡"), "Lock": ("#e040c0", 6, "🔒"),   # (colour, inset, symbol)
              "Id": ("#4cc9f0", 4, "📍")}
 REF_LOOK = ("#ff2e88", "#ffffff")  # (the badge on anything a script, quest or data file points at: its fill, edge)
-# what a thing is, each in its own colour: the palette's tags, the Kinds view's outlines (K), the label by the mouse
-KIND_LOOK = {"NPC": ("#d9433b", "NPC"), "StaticObject": ("#e08a1e", "OBJECT"), "MapItem": ("#2f9e44", "ITEM"),
-             "DecorObject": ("#b0632a", "DECOR OBJECT"), "Decor": ("#8a5cd6", "DECOR"), "Under": ("#c0569e", "RUG"),
-             "Roof": ("#9a3d2c", "ROOF"), "Infront": ("#2d8a96", "OVER"), "Ground": ("#5b7a3a", "GROUND"),
-             "Trigger": ("#f0b030", "TRIGGER"), "Lock": ("#e040c0", "LOCK"), "Id": ("#4cc9f0", "PLACE")}
+# what a thing is, in the colour of the layer it's on (as the layer buttons and the banner): the palette's tags, the
+# Kinds view's outlines (K), the label by the mouse; a rug a paler decor, triggers, locks and places their markers'
+_ENT = LAYER_LOOK["things"][0]
+KIND_LOOK = {"NPC": (_ENT, "NPC"), "StaticObject": (_ENT, "OBJECT"), "MapItem": (_ENT, "ITEM"),
+             "DecorObject": (_ENT, "DECOR OBJECT"), "Decor": (LAYER_LOOK["decor"][0], "DECOR"),
+             "Under": ("#9b7fc4", "RUG"), "Roof": (LAYER_LOOK["roof"][0], "ROOF"),
+             "Infront": (LAYER_LOOK["infront"][0], "OVER"), "Ground": (LAYER_LOOK["map"][0], "GROUND"),
+             "Trigger": (TILE_LOOK["Trigger"][0], "TRIGGER"), "Lock": (TILE_LOOK["Lock"][0], "LOCK"),
+             "Id": (TILE_LOOK["Id"][0], "PLACE")}
 PAL_TAG = {"NPC": "NPC", "StaticObject": "OBJ", "MapItem": "ITEM", "DecorObject": "DEC", "Decor": "DEC",
            "Under": "RUG"}
 
@@ -122,6 +127,10 @@ OPT_SPECS = {
              "its house at night, a hen's coop. Drawn in blue."),
     "Bed": ("Bed", "tile", None, "Its own bed (the head of a Bed001, x,y): it walks to it at night and sleeps there "
             "till morning. Shown as a blue square."),
+    "Bed.Level": ("Bed's level", "number", None, "The level its bed is on, if not its own (1: upstairs): it takes "
+                  "the stairs (Stairs=1 tiles) up to bed and back down in the morning. Its Bed is that level's tile."),
+    "Home.Level": ("Home's level", "number", None, "The level its Home is on, if not its own: it takes the stairs "
+                   "there for the hours its Home keeps it in."),
     "State": ("Rests as", "choice", _kind_list("States"), "How it always rests (one of its kind's States=)."),
     "Nap": ("Nap spot", "tile", None, "A tile it hops up onto to curl up (x,y): the throne, a bed."),
     "Level": ("Level", "number", None, "A Shard Remnant's strength (1-25)."),
@@ -132,7 +141,7 @@ OPT_SPECS = {
     "Key": ("Key", "text", None, "The item that opens its lock."),
     "Sturdy": ("Iron-bound", "bool", None, "It can't be broken open: only picked, or opened with its key."),
 }
-NPC_FORM = ("Schedule", "Home", "Bed", "Face", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
+NPC_FORM = ("Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
 OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy")
 ITEM_FORM = ("Project",)
 HANDLED_OPTS = {"Attitude", "Stand", "Id", "Name", "Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Once"}
@@ -301,8 +310,9 @@ class MapPage(Page):
                   command=lambda: self.set_layer(self.layer_var.get()), columns=2,
                   tints={k: LAYER_LOOK[k][0] for _, k in LAYERS}).pack(fill="x")
         ttk.Label(left, text="Tool", style="Head.TLabel").pack(anchor="w", pady=(10, 2))
-        self.tool_frame = ttk.Frame(left, style="Panel.TFrame")
+        self.tool_frame = ttk.Frame(left, style="Panel.TFrame")   # (the tools that work where you click or drag)
         self.tool_frame.pack(fill="x")
+        self.shape_frame = ttk.Frame(left, style="Panel.TFrame")  # (and those that fill a whole place)
         self.tool_var = tk.StringVar(value="Paint")
         self.group_frame = ttk.Frame(left, style="Panel.TFrame")
         ttk.Label(self.group_frame, text="Roof group", style="Panel.TLabel").pack(side="left")
@@ -312,11 +322,13 @@ class MapPage(Page):
         Tooltip(self.group_frame, "All roofs of a group hide together when the player is under any of them.")
 
         self.brush_frame = ttk.Frame(left, style="Panel.TFrame")   # (the brush's size, and creatures with terrains)
-        ttk.Label(self.brush_frame, text="Brush", style="Panel.TLabel").pack(side="left")
+        ttk.Label(self.brush_frame, text="Brush size", style="Panel.TLabel").pack(side="left")
         self.brush_size = tk.StringVar(value="1")
-        Segmented(self.brush_frame, self.brush_size, [(v, v, "%s tile%s across" % (v, "" if v == "1" else "s"))
-                                                      for v in BRUSH_SIZES],
-                  command=self.update_ghost).pack(side="left", padx=(6, 0))
+        sb = ttk.Combobox(self.brush_frame, textvariable=self.brush_size, values=BRUSH_SIZES, state="readonly",
+                          width=4)
+        sb.pack(side="left", padx=(6, 0))
+        sb.bind("<<ComboboxSelected>>", lambda e: (self.update_ghost(), self.canvas.focus_set()))
+        Tooltip(sb, "How many tiles across Paint and Erase are (a round brush)")
         self.creatures = tk.BooleanVar(value=True)
         cb = ttk.Checkbutton(self.brush_frame, text="Creatures", variable=self.creatures)
         cb.pack(side="left", padx=(8, 0))
@@ -326,13 +338,11 @@ class MapPage(Page):
         ttk.Label(ph, text="Palette", style="Head.TLabel").pack(side="left")
         self.pal_mode = tk.StringVar(value="auto")
         self.pal_mode_bar = Segmented(ph, self.pal_mode, [
-            ("auto", "Auto", "A terrain, a set (a roof, a fence, a rug) or a family of look-alikes as one: the right "
-                             "tile goes down by itself"),
+            ("auto", "Auto", "A terrain (the Terrains page), a set (a roof, a fence, a rug) or a family of "
+                             "look-alikes as one: the right tile goes down by itself"),
             ("detail", "Detail", "Every tile on its own, to put down exactly that one")],
-            command=lambda: (self.palette.pick(None), self.fill_palette()))
+            command=lambda: (self.palette.pick(None), self.fill_palette()), pad=6)
         self.pal_mode_bar.pack(side="right")
-        ttk.Button(ph, text="Terrains…", style="Small.TButton", command=self.edit_terrains).pack(side="right",
-                                                                                                padx=4)
         pf = ttk.Frame(left, style="Panel.TFrame")
         pf.pack(fill="x")
         self.pal_kind = tk.StringVar(value="All")
@@ -369,13 +379,13 @@ class MapPage(Page):
                                              ("grid", "Grid", "G"), ("kinds", "What's what", "K"))):
             cb = ttk.Checkbutton(vf, text="%s (%s)" % (label, key), variable=self.show[k])
             cb.grid(row=1 + i // 2, column=i % 2, sticky="w")
-        Tooltip(cb, "Outlines everything in its kind's colour: NPCs, objects, items, decor, rugs, over tiles, "
-                    "triggers. The label by the mouse always says what's under it.")
+        Tooltip(cb, "Outlines everything in its layer's colour (as the layer buttons): decor, rugs, over tiles, and "
+                    "the entities with what each is (NPC, object, item). The label by the mouse always says what's "
+                    "under it.")
         legend = tk.Frame(vf, bg=T.PANEL)                   # (the kinds' colours, as the outlines and labels use them)
         legend.grid(row=3, column=0, columnspan=2, sticky="w", pady=(2, 0))
-        for i, k in enumerate(("NPC", "StaticObject", "MapItem", "Decor", "Under", "Infront")):
-            col, name = KIND_LOOK[k]
-            tk.Label(legend, text=name.title(), bg=col, fg="white", font=("Segoe UI", 7, "bold"), padx=3).grid(
+        for i, (k, name) in enumerate((("Decor", "Decor"), ("Under", "Rug"), ("Infront", "Over"), ("NPC", "Entities"))):
+            tk.Label(legend, text=name, bg=KIND_LOOK[k][0], fg="white", font=("Segoe UI", 7, "bold"), padx=3).grid(
                 row=0, column=i, padx=1)
 
         # ----- right: the inspector (it scrolls: an NPC's options are long)
@@ -1013,23 +1023,32 @@ class MapPage(Page):
         """layer to edit, on the Select tool (whatever tool the last layer had)."""
         self.layer = layer
         self.layer_var.set(layer)
-        for w in self.tool_frame.winfo_children():
+        for w in self.tool_frame.winfo_children() + self.shape_frame.winfo_children():
             w.destroy()
         tools = TOOLS[layer]
         self.tool = "Select"
         self.tool_var.set(self.tool)
-        Segmented(self.tool_frame, self.tool_var, [(t, t, TOOL_HINTS[t], t) for t in tools],
-                  command=lambda: self.set_tool(self.tool_var.get()), columns=3).pack(fill="x")   # (rows of 3: all show)
+        pick = lambda: self.set_tool(self.tool_var.get())
+        Segmented(self.tool_frame, self.tool_var, [(t, t, TOOL_HINTS[t], t) for t in tools if t not in SHAPE_TOOLS],
+                  command=pick, columns=3, pad=5).pack(anchor="w")         # (rows of 3: all show)
+        shapes = [t for t in tools if t in SHAPE_TOOLS]
+        if shapes:
+            ttk.Label(self.shape_frame, text="Fill a place", style="PanelMuted.TLabel").pack(anchor="w")
+            Segmented(self.shape_frame, self.tool_var, [(t, t, TOOL_HINTS[t], t) for t in shapes],
+                      command=pick, columns=3, pad=5).pack(anchor="w")
+            self.shape_frame.pack(after=self.tool_frame, fill="x", pady=(4, 0))
+        else:
+            self.shape_frame.pack_forget()
+        above = self.shape_frame if shapes else self.tool_frame
         col, name, note = LAYER_LOOK[layer]
         self.banner.configure(text="Editing:  " + name, bg=col)
         self.banner_note.configure(text=note)
         if layer == "roof":
-            self.group_frame.pack(after=self.tool_frame, fill="x", pady=(4, 0))
+            self.group_frame.pack(after=above, fill="x", pady=(4, 0))
         else:
             self.group_frame.pack_forget()
         if layer in ("map", "decor", "roof", "infront"):
-            self.brush_frame.pack(after=self.group_frame if layer == "roof" else self.tool_frame, fill="x",
-                                  pady=(4, 0))
+            self.brush_frame.pack(after=self.group_frame if layer == "roof" else above, fill="x", pady=(6, 0))
             self.pal_mode_bar.pack(side="right")
         else:
             self.brush_frame.pack_forget()
@@ -1082,9 +1101,11 @@ class MapPage(Page):
                     items.append((key, (lambda g=g: self.group_picture(g)),
                                   ("%s (terrain)" % g.title) if g.kind == "Terrain" else
                                   "%s (any of %d)" % (g.title, len(g.tiles))))
+            on_layer = TR.layer_test(P, self.layer) if self.pal_mode.get() == "auto" else (lambda t: True)
             for t in P.tiles():
                 fam = tile_family(t)
-                if k not in ("All", fam) or (q and q not in t.lower()) or stand.get(t, t) != t or t in grouped:
+                if k not in ("All", fam) or (q and q not in t.lower()) or stand.get(t, t) != t or t in grouped or \
+                        not on_layer(t):
                     continue
                 # a see-through decor tile can't be a cell's ground (it would show black): it's for the Decor layer
                 flat = P.is_under(t)                     # (a rug: painted with the Decor layer, under it)
@@ -1120,7 +1141,7 @@ class MapPage(Page):
                     text += "\nDecor on %g in 100 tiles: %s" % (t.decor_density, names(t.decor))
                 if t.ents:
                     text += "\nCreatures on %g in 100: %s" % (t.ents_density, names(t.ents))
-                return img, text + "\nPaint, fill, or draw an Outline round a place. Terrains… to change it."
+                return img, text + "\nPaint, fill, or draw an Outline round a place. The Terrains page changes it."
             return img, "%s: any of %d, the right one put down itself\n%s" % (
                 g.title, len(g.tiles), ", ".join(g.tiles[:8]) + ("…" if len(g.tiles) > 8 else ""))
         sheet = self.piece_set(key)
@@ -1205,13 +1226,6 @@ class MapPage(Page):
             if d is not None:
                 img.alpha_composite(d.convert("RGBA"))
         return img
-
-    def edit_terrains(self):
-        from ..terraindialog import TerrainsDialog
-        if TerrainsDialog(self, self.project).run():
-            self.fill_palette()
-            self.pick_brush(self.brush, keep_tool=True)
-            self.app.status("Terrains saved (data\\TileSets.ini).", "ok")
 
     def terrain(self):
         """The terrain being painted with (the palette's pick, in Auto), or None."""
@@ -2130,9 +2144,15 @@ class MapPage(Page):
                             c.create_line(*line, fill="#000000", width=4, tags="ghost")
                             c.create_line(*line, fill=col, width=2, tags="ghost")
             elif not (self.drag and self.drag.get("rect")):
-                ph = self.ghost_photo(self.brush, self.layer)
-                if ph is not None:
-                    c.create_image(x0, y0, image=ph, anchor="nw", tags="ghost")
+                parts = WD.whole(P, self.brush) if tool == "Paint" else []
+                for dx, dy, n in parts or [(0, 0, self.brush)]:  # (a bed: all of it, where it'd go)
+                    ph = self.ghost_photo(n, self.layer)
+                    if ph is not None:
+                        c.create_image(x0 + dx * tw * z, y0 + dy * th * z, image=ph, anchor="nw", tags="ghost")
+                if parts:
+                    xs, ys = [dx for dx, _, _ in parts], [dy for _, dy, _ in parts]
+                    box = (x0 + min(xs) * tw * z, y0 + min(ys) * th * z, x0 + (max(xs) + 1) * tw * z,
+                           y0 + (max(ys) + 1) * th * z)
                 c.create_rectangle(*box, outline=LAYER_LOOK[self.layer][0] if tool != "Fill" else "#66d9ff", width=2,
                                    tags="ghost")
         if not self.drag and not self.mode:
@@ -2255,7 +2275,9 @@ class MapPage(Page):
             c.create_rectangle(bx + 2, by + 2, bx + tw * z - 2, by + th * z - 2, outline="#4ea8ff",
                                width=1 if faint else 3, tags=slot)
             if not faint:
-                c.create_text(bx + tw * z / 2, by - 2, text="bed", anchor="s", fill="#4ea8ff",
+                lvl = e.opt("Bed.Level").strip()                 # (upstairs: that level's bed, this tile)
+                c.create_text(bx + tw * z / 2, by - 2, text="bed, level %s" % lvl if lvl else "bed", anchor="s",
+                              fill="#4ea8ff",
                               font=("Segoe UI", 8, "bold"), tags=slot)
         pts = self.patrol(e)
         if pts:
@@ -2617,6 +2639,8 @@ class MapPage(Page):
                     self.opt["sets"].get()):
                 if self.rejoin(self.brush, [(tx, ty)]):         # (painted freehand: a path of joined pieces)
                     self.redraw()
+            elif not self.drag["erase"] and WD.whole(self.project, self.brush):
+                pass                                            # (a bed goes down once a click, not along the drag)
             elif self.paint_brush(tx, ty, erase=self.drag["erase"], was=was):
                 if self.inside(tx, ty):
                     self.sel_cell = (tx, ty)
@@ -2651,8 +2675,21 @@ class MapPage(Page):
     def paint_brush(self, tx, ty, erase=False, was=None):
         """The palette's pick (or erasing) over the brush round tile tx, ty, the coasts smoothed and what joined what
         was erased joined again. True if anything changed."""
-        done = [(x, y) for x, y in self.brush_cells(tx, ty)
-                if self.at(x, y) is not None and self.paint_cell(x, y, erase=erase)]
+        parts = [] if erase else WD.whole(self.project, self.brush)
+        if parts:                                       # (a bed: its head and foot, or none of it)
+            if any(self.at(tx + dx, ty + dy) is None for dx, dy, _ in parts):
+                return False
+            done = [(tx + dx, ty + dy) for dx, dy, n in parts if self.paint_cell(tx + dx, ty + dy, name=n)]
+            return bool(done)
+        cells = self.brush_cells(tx, ty)
+        if erase and self.layer == "decor":             # (a bed's foot goes with its head, and its head with its foot)
+            for x, y in list(cells):
+                a = self.at(x, y)
+                for dx, dy, n in WD.whole(self.project, a[0].cells[a[2]][a[1]].decor) if a else []:
+                    b = self.at(x + dx, y + dy)
+                    if b is not None and b[0].cells[b[2]][b[1]].decor == n and (x + dx, y + dy) not in cells:
+                        cells.append((x + dx, y + dy))
+        done = [(x, y) for x, y in cells if self.at(x, y) is not None and self.paint_cell(x, y, erase=erase)]
         if done:
             self.smooth(done)
             if erase and was:
@@ -4139,7 +4176,10 @@ class MapPage(Page):
             row.pack(fill="x", pady=3)
             img = self.project.sprite("Tiles", name) if name else None
             ph = photo(img, (32, 32), key=("tile", name)) if img else None
-            tk.Label(row, image=ph or "", bg=T.PANEL, width=34, height=34).pack(side="left")
+            if ph:
+                tk.Label(row, image=ph, bg=T.PANEL, width=34, height=34).pack(side="left")
+            else:                               # (a Label with no picture would take 34 as letters and lines, not px)
+                tk.Frame(row, bg=T.PANEL, width=34, height=34).pack(side="left")
             box = ttk.Frame(row, style="Panel.TFrame")
             box.pack(side="left", padx=6)
             ttk.Label(box, text="%s%s" % (label, (" (group %s)" % cell.roof_group) if label == "Roof" and name else ""),

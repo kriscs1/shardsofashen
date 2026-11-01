@@ -1153,8 +1153,8 @@ def isle_helpers(world, s):
                     (not npc_id or e.npc_id == npc_id) and world.visible_to(e, s))
 
     def talk(e, *answers):
-        m = world.maps[e.map]
-        s.teleport(e.map, int(e.x - m.ox), int(e.y - m.oy) + 30)
+        m = world.map_at(e.z, e.x, e.y) or world.maps[e.map]          # (upstairs, if that's where they are now)
+        s.teleport(m.name, int(e.x - m.ox), int(e.y - m.oy) + 30)
         run(5)
         s.do_action("Talk to", e)
         run(30)
@@ -1342,30 +1342,52 @@ def test_the_lairs_hobgoblins_come_back_when_someone_comes_in(world):
     leave(world, s)
 
 
-def test_the_bank_keeps_its_hours_upstairs_and_down(world):
-    """Maren tends the counter by day; at night she's upstairs at home (her own Schedule=, on an upper floor too)."""
-    s = join(world, "Lodger", "2,1,0", 16 * 32, 9 * 32)
+def test_townsfolk_take_the_stairs_to_bed(world):
+    """Maren tends her counter by day; at night she walks up the stairs to her bed (Bed.Level=1) while you watch,
+    and in the morning comes back down to it. Only Stairs=1 tiles lead her: one Maren, not a night self upstairs."""
+    def run(ticks):
+        for _ in range(ticks):
+            world.tick(0.05, now=world.now + 50)
+    assert not [e for e in world.ents if e.npc_id in ("Maren_At_Home", "Edwin_At_Home")]
+    assert world.data.stair_dir("Stairs001") == 1 and world.data.stair_dir("Stairs002") == -1
+    assert world.data.stair_dir("Ladder001") == 0                   # (never a ladder)
+    down = world.maps["2,1,0"]
+    assert (down.ox + 19.5 * 32, down.oy + 1.5 * 32, 1) in world.stair_spots(down)
+    s = join(world, "Lodger", "2,1,0", 16 * 32, 4 * 32)             # (in the house, watching)
     day = world.day_fraction()
-    counter = next(e for e in world.ents if e.npc_id == "Maren_At_Counter")
-    home = next(e for e in world.ents if e.npc_id == "Maren_At_Home")
-    world.set_day_fraction(0.95)                                    # (night: she shuts the bank and goes up)
+    maren = next(e for e in world.ents if e.npc_id == "Maren_At_Counter")
+    counter = (maren.cx, maren.cy)
+    world.set_day_fraction(0.95)                                    # (night: off up to bed)
+    run(10)
+    assert maren.z == 0 and not maren.ai.asleep                     # (walking to the stairs, not gone at once)
+    heard = []
+    world.sound = lambda name, z, x, y, only=None, radius=600.0: heard.append((name, z))
     for _ in range(900):
-        world.tick(0.05, now=world.now + 50)
-    assert counter.sched_away and not counter.active
-    s.teleport("2,1,1", 19 * 32, 2 * 32)                            # (upstairs: there she is)
-    for _ in range(20):
-        world.tick(0.05, now=world.now + 50)
-    assert home.active and not home.sched_away
-    world.set_day_fraction(0.5)                                     # (morning: off downstairs, not in front of you)
-    for _ in range(20):
-        world.tick(0.05, now=world.now + 50)
-    assert home.sched_away and not home.active
-    s.teleport("2,1,0", 16 * 32, 9 * 32)
-    for _ in range(20):
-        world.tick(0.05, now=world.now + 50)
-    assert counter.active and not counter.sched_away
-    world.set_day_fraction(day)
+        run(1)
+        if maren.z == 1:
+            break
+    del world.sound
+    assert maren.z == 1 and ("Ladder", 0) in heard and ("Ladder", 1) in heard
+    s.teleport("2,1,1", 14 * 32, 3 * 32)                            # (upstairs after her: to bed she goes)
+    run(600)
+    assert maren.ai.asleep and maren.pose == "Sleep" and maren.z == 1
+    world.set_day_fraction(0.5)                                     # (morning: down the stairs to her counter)
+    for _ in range(1200):
+        run(1)
+        if maren.z == 0 and distance(maren.cx, maren.cy, *counter) < 4:
+            break
+    assert maren.z == 0 and not maren.ai.asleep and distance(maren.cx, maren.cy, *counter) < 4
     leave(world, s)
+    world.set_day_fraction(0.95)                                    # (nobody about: simply in bed)
+    edwin = next(e for e in world.ents if e.npc_id == "Edwin_At_Desk")
+    t = join(world, "Passer", "2,1,0", 3 * 32, 18 * 32)             # (out by the pond: too far off to see)
+    run(5)
+    leave(world, t)
+    u = join(world, "Guest", "2,1,1", 13 * 32, 2 * 32)
+    run(5)
+    assert edwin.z == 1 and edwin.ai.asleep
+    world.set_day_fraction(day)
+    leave(world, u)
 
 
 def test_the_smithy_smokes_by_day(world):
@@ -3623,6 +3645,28 @@ def test_editor_lays_out_sets_and_smooths_coasts():
     grid.update({(2, 1): "Grass001", (3, 1): "Grass001", (3, 2): "Grass001"})
     WD.smooth_corners(P, lambda x, y: grid.get((x, y)), lambda x, y, t: grid.__setitem__((x, y), t), {(3, 2)})
     assert grid[(2, 2)] == "Water002"                                           # (land to its north and east)
+    grid = {(x, y): "Water001" for x in range(5) for y in range(5)}
+    grid.update({(2, 1): "Grass001", (3, 1): "Dirt001", (3, 2): "Grass001"})     # (a path off the corner)
+    WD.smooth_corners(P, lambda x, y: grid.get((x, y)), lambda x, y, t: grid.__setitem__((x, y), t), {(3, 2)})
+    assert grid[(2, 2)] == "Water002"
+
+
+def test_editor_palette_auto_shows_whole_things_not_their_pieces():
+    # The Maps palette's Auto view: a bed is one entry (its foot isn't on its own) and goes down whole; a town wall's
+    # face (put in by its set) is in Detail only; Roofs offers roofs, not grass
+    from dsedit.project import Project
+    from dsedit import world as WD, terrain as TR
+    P = Project(ROOT)
+    decor = TR.groups(P, "decor")
+    hidden = {n for g in decor.values() if g.kind != "Terrain" for n in g.tiles}
+    assert {"Bed002", "Double_Bed004"} <= hidden
+    assert decor["set:Bed"].brush == "Bed001" and decor["set:Bed"].kind == "Set"
+    assert "City_Wall004" in {n for g in TR.groups(P, "map").values() for n in g.tiles}
+    assert sorted(WD.whole(P, "Bed001")) == [(0, 0, "Bed001"), (0, 1, "Bed002")]
+    assert (-1, 0, "Bed005") in WD.whole(P, "Bed006") and WD.whole(P, "Bench001") == []
+    assert len(WD.whole(P, "Double_Bed004")) == 4 and (-1, -1, "Double_Bed001") in WD.whole(P, "Double_Bed004")
+    roof = TR.layer_test(P, "roof")
+    assert roof("Thatch_Roof001") and roof("Steeple001") and roof("Chapel_Stone_Upper001") and not roof("Grass001")
 
 
 def test_a_fence_thinner_than_a_cell_is_walked_round_not_through():
@@ -3643,21 +3687,24 @@ def test_a_fence_thinner_than_a_cell_is_walked_round_not_through():
     assert spot, "no open ground"
     m, tx, ty = spot
     for x in range(tx, tx + 3):                       # (three tiles of fence, east-west, across the middle)
-        assert m.change_cell(x, ty, "Fence001")
+        assert m.change_cell(x, ty, "Wood_Fence001")      # (a rail, east-west)
     x = m.ox + tx * 32 + 16                           # (the middle of the fence, a tile above it and a tile below)
     above, below = m.oy + (ty - 1) * 32 - 12, m.oy + ty * 32 + 12
     assert not w.grid_line_walkable(m.mz, x, above, x, below)
     s = join(w, "Fencer", m.name, x - 16 - m.ox, above - 30 - m.oy)
     p = s.player
-    assert p.fy < m.oy + (ty - 1) * 32 + 14
+    assert p.fy < m.oy + (ty - 1) * 32 + 19                   # (short of the rail, low in its tile)
     for _ in range(30):                               # (straight at it, as fast as a step goes: it holds)
         w.try_move_entity(p, 0, 6, s)
-    assert p.fy < m.oy + (ty - 1) * 32 + 14
+    assert p.fy < m.oy + (ty - 1) * 32 + 19
     assert w.plan_path(p, x, below - (p.fy - p.cy), 0, 4000, s) and p.path    # (a way round)
     ax, ay = p.fx, p.fy
-    for wx, wy in p.path:
+    for i, (wx, wy) in enumerate(p.path):
         wy += p.fy - p.cy
-        assert w.grid_line_walkable(m.mz, ax, ay, wx, wy, s)
+        if i == 0:                                    # (from the feet, in the rail's own cell: by the walk masks)
+            assert all(w.pixel_walkable(m.mz, ax + (wx - ax) * k / 20, ay + (wy - ay) * k / 20) for k in range(21))
+        else:
+            assert w.grid_line_walkable(m.mz, ax, ay, wx, wy, s)
         ax, ay = wx, wy
     leave(w, s)
 

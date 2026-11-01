@@ -325,8 +325,6 @@ for _n, _what in LADDERS.items():
 for _kind in F.KINDS:
     for _num, _sides, _what in F.PIECES:
         TILE_KEYS.setdefault(F.name(_kind, _num), []).append(("Piece", _what))
-TILE_KEYS["Fence001"] = [("Piece", "east-west")]
-TILE_KEYS["Fence002"] = [("Piece", "north-south")]
 
 
 def roof_pieces():
@@ -375,7 +373,6 @@ def sets():
         out.append(("%s_Fence" % kind, "%s fence" % kind.lower(), 4,
                     [F.name(kind, n) for row in [[3, 7, 1, 4], [9, 11, 1, 10], [2, 2, 12, 2], [5, 8, 1, 6]]
                      for n in row]))
-    out.append(("Fence", "old wooden fence", 2, ["Fence001", "Fence002"]))
     out.append(("Ivy", "ivy", 3, ["Ivy%03d" % k for k in IVY]))
     for base in ("Brick", "Stone_Wall", "Timber", "Plaster", "Sandstone"):
         out.append(("%s_Window" % base, "%s windows" % base.replace("_", " ").lower(), 5,
