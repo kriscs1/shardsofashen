@@ -81,11 +81,14 @@ class Central:
         self.name = os.environ.get("DS_CENTRAL_NAME", "Shards of Ashen")
         self.motd = os.environ.get("DS_CENTRAL_MOTD", "")
         # (an admin named in DS_CENTRAL_ADMINS with no account yet: only someone with the code from this log may make
-        # it, or whoever signed up first would be the admin)
+        # it, or whoever signed up first would be the admin; kept, so a restart or an update doesn't change it)
         self.claims = {}
         for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(","):
             if n.strip() and not self.store.account(n.strip()):
-                self.claims[n.strip().lower()] = auth.recovery_code()
+                key = "claim:" + n.strip().lower()
+                if not self.store.setting(key):
+                    self.store.set_setting(key, auth.recovery_code())
+                self.claims[n.strip().lower()] = self.store.setting(key)
                 log.warning("DS_CENTRAL_ADMINS names %s, who has no account yet: sign up as %s with the admin code %s",
                             n.strip(), n.strip(), self.claims[n.strip().lower()])
 

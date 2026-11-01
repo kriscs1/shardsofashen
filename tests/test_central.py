@@ -170,6 +170,15 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
     asyncio.run(go())
 
 
+def test_the_admin_code_stays_the_same_across_restarts(tmp_path, monkeypatch):
+    """The admin code in the log is kept: a restart or an update doesn't make the one given out wrong."""
+    from central.app import Central
+    monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
+    db = str(tmp_path / "central.db")
+    first = Central(db).claims["boss"]
+    assert first and Central(db).claims["boss"] == first
+
+
 def test_a_listed_game_is_approved_again_when_it_changes_and_calls_are_limited(tmp_path):
     async def go():
         capp = make_central(str(tmp_path / "central.db"))
