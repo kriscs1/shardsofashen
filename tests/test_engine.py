@@ -1790,6 +1790,8 @@ def test_jimmy_is_at_home_in_the_cottage(world):
 
 
 def test_a_cat_sits_stretches_and_eats_a_fish(world):
+    day = world.day_fraction()
+    world.set_day_fraction(0.5)                                      # (by day: Jimmy keeps Schedule=Day)
     s = join(world, "CatFeeder", "4,0,0", 7 * 32, 11 * 32)
     s.connected = True
     e = next(e for e in world.ents if getattr(e, "display", "") == "Jimmy")
@@ -1801,8 +1803,9 @@ def test_a_cat_sits_stretches_and_eats_a_fish(world):
         if e.pose == "Sit":
             break
     assert e.pose == "Sit" and e.image.startswith("Strawberry_Cat_Sit")
+    a.pose_next = ""                                                 # (settled: not about to lie down, which it may roll)
     a.fidget_at = world.now                                          # (now and then: a stretch, or its back to you)
-    world.tick(0.05)
+    world.npc_fidget(e, a, world.now)                                # (its turn comes in the tick's own order: asked here)
     assert e.image[len("Strawberry_Cat_"):-1] in ("Stretch", "Butt")
     for _ in range(4):
         world.tick(0.05, now=world.now + 1000)
@@ -1821,6 +1824,7 @@ def test_a_cat_sits_stretches_and_eats_a_fish(world):
     assert s.items_held("Raw_Trout") == 1 and s.items_held("Raw_Meat") == 1   # (a cat: the fish, not the meat)
     assert any("Jimmy eats the raw trout" in str(ev.get("text", "")) for ev in s.out)
     leave(world, s)
+    world.set_day_fraction(day)
 
 
 def test_sitting_on_a_bench_till_you_move(world):
@@ -5498,12 +5502,18 @@ def test_the_isle_has_grown_north_with_its_new_places(world):
     assert next(e for e in world.ents if e.npc_id == "Edwin_At_Desk").map == "0,-2,0"   # (the north-west corner)
     stones = next(e for e in world.ents if e.npc_id == "Stone_Circle_Chest")
     assert stones.map in ("2,2,0", "3,2,0", "2,1,0", "3,1,0")          # (the south-east)
+    day = world.day_fraction()
+    world.set_day_fraction(0.5)
     s = join(world, "Wanderer", camp.map, 300, 300)
+    s.connected = True
     assert s.cur_map.name in s.lock_text("Isle.Maps", "").split()   # (the Isle's easy locks, up there too)
     hearth = next(e for e in world.ents if e.npc_id == "Old_Beacon_Hearth")
     near(world, s, hearth, 0, 30)
+    s.out = []
     s.clicked_ent = hearth
     s.start_script("Search Old_Beacon_Hearth", True)
-    run_for(world, 5)
+    run_for(world, 20)
+    assert s.get_attribute("Old_Beacon_Hearth") == "1", [ev for ev in s.out if ev.get("t") == "msg"]
     assert s.items_held("Tinderbox") >= 1
     leave(world, s)
+    world.set_day_fraction(day)

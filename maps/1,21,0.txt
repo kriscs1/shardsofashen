@@ -18,7 +18,7 @@ Peak_Big004:Peak_Big003:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Peak003:Peak006:Peak006:Peak003:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Dead_Tree001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Peak001:Peak001:Peak003:Peak001:Peak004:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001
 Peak_Big002:Peak_Big001:Peak_Big002:Peak004:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Peak_Big004:Peak_Big003:Peak_Big004:Peak004:Sand001:Sand001:Sand001:Sand001:Sand001:Peak002:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Peak_Big004:Peak_Big003:Peak_Big004:Peak004:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 MapItem	Bones	353	162	1
 MapItem	Bones	481	194	1
 MapItem	Bones	385	258	1

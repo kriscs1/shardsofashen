@@ -125,6 +125,17 @@ def path(w, door):
     return W.join_roads(w, [(door[0], door[1] + 1)], network=net)
 
 
+def yard(w):
+    """Open ground round the house (the wild that grew where the camp was came up as thick wood to its walls)."""
+    ox, oy = NEW[0] * XT - 1, NEW[1] * YT - 1
+    x1, y1, x2, y2 = HOUSE
+    for x in range(x1 - 2, x2 + 3):
+        for y in range(y1, y2 + 7):
+            c = w.cell(ox + x, oy + y)
+            if c is not None and W.parts(c)[0] == "Forest001":
+                w.put(ox + x, oy + y, "Grass001")
+
+
 def words():
     up_old, up_new = W.mname(*OLD, 1), W.mname(*NEW, 1)
     for f in ("Locks.ini", "Music.ini", "Ambient.ini"):
@@ -153,6 +164,7 @@ def main():
     w.rewild(wild, seed="hobcamp-gone")
     door = house(w, wild)
     coast(w)
+    yard(w)
     n = path(w, door)
     changed = w.save()
     words()
