@@ -1158,12 +1158,32 @@ class World(NPCMixin):
             if s.in_world() and p.z == z and distance(p.cx, p.cy, x, y) <= radius:
                 yield s
 
-    def sound(self, name, z, x, y, only=None, radius=HEAR_FAR):
-        """A sound made at global x,y: everyone within radius hears it (quieter further off), or only that player."""
+    def sound(self, name, z, x, y, only=None, radius=HEAR_FAR, seen=False):
+        """A sound made at global x,y: everyone within radius hears it (quieter further off), or only that player.
+        seen: only those who could see the spot (someone on the stairs in a house you're outside of: not a sound)."""
         if not trim(name):
             return
         for s in ([only] if only is not None else self.hearers(z, x, y, radius)):
-            s.emit({"t": "sound", "name": name, "x": int(x), "y": int(y)})
+            if not seen or self.sees_spot(s, z, x, y):
+                s.emit({"t": "sound", "name": name, "x": int(x), "y": int(y)})
+
+    def roof_over(self, z, x, y):
+        """Which building's roof x,y on level z is under ((map, roof group)), or None out in the open."""
+        m, tx, ty = self.tile_at(z, x, y)
+        if m is None or not m.inside(tx, ty) or not m.roof[m.cell(tx, ty)]:
+            return None
+        return m.name, m.roof_group[m.cell(tx, ty)]
+
+    def sees_spot(self, s, z, x, y):
+        """Could player s see x,y on level z: on that level, nothing solid between, and not under a roof they're
+        outside of (only the roof over their own head is lifted)."""
+        p = s.player
+        if not s.in_world() or p.z != z:
+            return False
+        under = self.roof_over(z, x, y)
+        if under is not None and under != self.roof_over(z, p.fx, p.fy):
+            return False
+        return self.in_line_of_sight(z, p.cx, p.cy, x, y)
 
     def fx(self, ev, z, x, y, owner=None):
         """A visual effect at x,y for everyone who can see it (or just the owner of a personal thing)."""

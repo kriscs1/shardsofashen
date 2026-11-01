@@ -1342,6 +1342,19 @@ def test_the_lairs_hobgoblins_come_back_when_someone_comes_in(world):
     leave(world, s)
 
 
+def listen(world):
+    """Every sound made from now on, as (name, level, who heard it), till world.sound is put back (del world.sound)."""
+    heard, sound = [], world.sound
+
+    def record(name, z, x, y, only=None, radius=600.0, seen=False):
+        who = [s.player_name for s in ([only] if only is not None else world.hearers(z, x, y, radius))
+               if not seen or world.sees_spot(s, z, x, y)]
+        heard.append((name, z, who))
+        sound(name, z, x, y, only, radius, seen)
+    world.sound = record
+    return heard
+
+
 def test_townsfolk_take_the_stairs_to_bed(world):
     """Maren tends her counter by day; at night she walks up the stairs to her bed (Bed.Level=1) while you watch,
     and in the morning comes back down to it. Only Climb=1 tiles lead her: one Maren, not a night self upstairs."""
@@ -1359,14 +1372,14 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     world.set_day_fraction(0.95)                                    # (night: off up to bed)
     run(10)
     assert maren.z == 0 and not maren.ai.asleep                     # (walking to the stairs, not gone at once)
-    heard = []
-    world.sound = lambda name, z, x, y, only=None, radius=600.0: heard.append((name, z))
+    heard = listen(world)
     for _ in range(900):
         run(1)
         if maren.z == 1:
             break
     del world.sound
-    assert maren.z == 1 and ("Ladder", 0) in heard and ("Ladder", 1) in heard
+    assert maren.z == 1 and ("Ladder", 0, ["Lodger"]) in heard     # (heard going up: in the room with her)
+    assert ("Ladder", 1, []) in heard                               # (nobody upstairs to hear her come up)
     s.teleport("2,1,1", 14 * 32, 3 * 32)                            # (upstairs after her: to bed she goes)
     run(600)
     assert maren.ai.asleep and maren.pose == "Sleep" and maren.z == 1
@@ -1377,7 +1390,18 @@ def test_townsfolk_take_the_stairs_to_bed(world):
             break
     assert maren.z == 0 and not maren.ai.asleep and distance(maren.cx, maren.cy, *counter) < 4
     leave(world, s)
-    world.set_day_fraction(0.95)                                    # (nobody about: simply in bed)
+    world.set_day_fraction(0.6)
+    run(5)
+    assert maren.z == 0
+    out = join(world, "Outsider", "2,1,0", 23 * 32, 2 * 32)          # (outside, by the wall the stairs are against)
+    assert world.roof_over(0, maren.cx, maren.cy) and not world.roof_over(0, out.player.fx, out.player.fy)
+    assert not world.sees_spot(out, 0, down.ox + 19.5 * 32, down.oy + 1.5 * 32)
+    heard = listen(world)
+    world.set_day_fraction(0.95)                                    # (night: under the roof, she can't be seen going)
+    run(5)
+    del world.sound
+    assert maren.z == 1 and not [h for h in heard if h[0] == "Ladder" and h[2]]   # (up, and nobody heard a thing)
+    leave(world, out)
     edwin = next(e for e in world.ents if e.npc_id == "Edwin_At_Desk")
     t = join(world, "Passer", "2,1,0", 3 * 32, 18 * 32)             # (out by the pond: too far off to see)
     run(5)
@@ -1414,16 +1438,25 @@ def test_townsfolk_climb_ladders_and_roam_a_zone_on_two_floors(world):
     world.set_day_fraction(0.5)
     e = world.add_npc("Villager", 0, x - 16, y + 32 - 24, "Attitude=Good Zone=%s Zone.Levels=0,1 Schedule=Always" % zone)
     assert e.ai.zone_levels == {0, 1} and e.ai.levels
-    s = join(world, "Watcher", m.name, int(x - m.ox) + 40, int(y - m.oy) + 40)
-    heard = []
-    world.sound = lambda name, z, x_, y_, only=None, radius=600.0: heard.append((name, z))
+    def in_the_room(z):
+        """A spot a tile or two from the ladder (or hatch) on level z, under its roof, that can see it."""
+        under = world.roof_over(z, x, y)
+        for dx, dy in ((0, 64), (32, 64), (-32, 64), (64, 32), (-64, 32), (0, 96), (64, 0), (-64, 0)):
+            if world.pixel_walkable(z, x + dx, y + dy) and world.roof_over(z, x + dx, y + dy) == under and                     world.in_line_of_sight(z, x + dx, y + dy - 15, x, y):
+                return x + dx - 16, y + dy - 31
+        return x - 16, y + 33
+    sx, sy = in_the_room(0)
+    s = join(world, "Watcher", m.name, int(sx - m.ox), int(sy - m.oy))
+    heard = listen(world)
     went_up = came_down = False
     try:
         for _ in range(8000):
             world.tick(0.05, now=world.now + 50)
             if e.z == 1:
+                if not went_up:                       # (up after it: by the hatch, to see it come back down)
+                    ux, uy = in_the_room(1)
+                    s.teleport(world.map_at(1, x, y).name, int(ux - m.ox), int(uy - m.oy))
                 went_up = True
-                s.teleport(world.map_at(1, e.x, e.y).name, int(e.x - m.ox) + 40, int(e.y - m.oy) + 40)
             elif went_up:
                 came_down = True
                 break
@@ -1432,7 +1465,7 @@ def test_townsfolk_climb_ladders_and_roam_a_zone_on_two_floors(world):
         world.remove_entity(e)
         world.set_day_fraction(day)
         leave(world, s)
-    assert went_up and came_down and ("Ladder", 0) in heard and ("Ladder", 1) in heard
+    assert went_up and came_down and ("Ladder", 0, ["Watcher"]) in heard and ("Ladder", 1, ["Watcher"]) in heard
 
 
 def test_the_smithy_smokes_by_day(world):

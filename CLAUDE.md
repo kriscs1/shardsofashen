@@ -242,9 +242,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   nobody's near. `Roost=` is the old name of `Home=` (still read).
 - **Townsfolk climb stairs and ladders** (`npcs.py` npc_to_level, `dev/migrate/npc_stairs.py`): a bed upstairs is
   `Bed=x,y Bed.Level=1` (a home on another level, `Home.Level=`); at night they walk up to it and in the morning come
-  back down, and with nobody near either end they're simply there. `Zone.Levels=0,1` makes a Zone hold on both
-  floors (the same tiles): now and then its roam takes it up or down (`dev/migrate/zone_levels.py` gave it to
-  the townsfolk who roam a house with stairs or a ladder in it). Only tiles with `Climb=1` lead them (the house
+  back down, and with nobody who could see either end they're simply there (seen and heard only in sight of it:
+  never through a wall, nor under a roof you're outside of: `world.sees_spot`). `Zone.Levels=0,1` makes a Zone
+  hold on both floors (the same tiles): now and then its roam takes it up or down (`dev/migrate/zone_levels.py`
+  gave it to the townsfolk who roam a house with stairs or a ladder in it). Only tiles with `Climb=1` lead them (the house
   stairs, and a ladder up to a hatch: one the other way at the same spot of the next level), never a cave's hole, a
   tunnel's or a quest's ladder, the chapel's stair or one behind a `Lock`. One person is one NPC: never a day self
   downstairs and a night self upstairs (Edwin and Maren were).

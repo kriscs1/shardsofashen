@@ -1195,11 +1195,12 @@ class NPCMixin:
                     best = (x, y, dd)
         return best[:2] if best else None
 
-    def anyone_near(self, z, x, y, r=380):
-        """Is a player on level z within r of x,y (to see an NPC come up the stairs there)?"""
+    def anyone_sees(self, z, x, y, r=380):
+        """Could a player on level z within r see x,y (an NPC on its way up the stairs there): nothing solid between,
+        and not in a house they're outside of?"""
         for s in getattr(self, "players_all", ()):
             p = s.player
-            if p.z == z and abs(p.cx - x) <= r and abs(p.cy - y) <= r and distance(p.cx, p.cy, x, y) <= r:
+            if p.z == z and abs(p.cx - x) <= r and abs(p.cy - y) <= r and distance(p.cx, p.cy, x, y) <= r and                     self.sees_spot(s, z, x, y):
                 return True
         return False
 
@@ -1237,7 +1238,7 @@ class NPCMixin:
         or, nobody near either end to see, straight there. "walking", "climbed", "put", or None (no way there)."""
         dz = 1 if z > e.z else -1
         spot = self.climb_toward(e, dz)
-        seen = (near is not None and near[1] <= 380) or (spot is not None and self.anyone_near(e.z + dz, *spot))
+        seen = self.anyone_sees(e.z, e.cx, e.cy) or (spot is not None and self.anyone_sees(e.z + dz, *spot))
         if not seen:
             self.forget_path(e)
             e.z = z
@@ -1257,12 +1258,12 @@ class NPCMixin:
 
     def npc_climb(self, e, a, x, y, dz):
         """Up (or down) the stair or ladder it's on, onto the one at the same spot of the next level: heard at both
-        ends, from close by only (as a door)."""
-        self.sound("Ladder", e.z, e.cx, e.cy, radius=192.0)
+        ends, from close by only (as a door), and only by those who could see it (never through a wall or a roof)."""
+        self.sound("Ladder", e.z, e.cx, e.cy, radius=192.0, seen=True)
         self.forget_path(e)
         e.z += dz
         self.set_entity_position(e, x - e.w / 2, y - (e.fy - e.y))
-        self.sound("Ladder", e.z, e.cx, e.cy, radius=192.0)
+        self.sound("Ladder", e.z, e.cx, e.cy, radius=192.0, seen=True)
         a.stair_tries = 0
         self.animate_entity(e, False)
 
