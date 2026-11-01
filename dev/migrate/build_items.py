@@ -349,18 +349,20 @@ def bones():
 
 # ---------------------------------------------------------------- poultry
 def poultry(base, light, dark, hi, speck=None):
-    """A plucked bird on its back: the plump body, its wing tucked in, both drumsticks up, their bone ends."""
+    """A drumstick (it was a whole bird on its back, whose legs looked like ears): the plump meat low on the left,
+    narrowing up to the right into its bone and the knuckle at the end."""
     img = K.new()
     import build_sprites as B
-    for x0, y0, x1, y1 in ((12, 16, 8, 9), (20, 16, 24, 9)):       # the drumsticks
-        B.seg(img, x0, y0, x1, y1, 5.2, light, base, dark)
-        K.shaded_ellipse(img, x1, y1, 1.8, 1.8, (242, 236, 220), (252, 250, 240), (206, 196, 176))
-    K.shaded_ellipse(img, 16, 19.5, 10, 7.2, base, light, dark, hi=hi)
-    K.shaded_ellipse(img, 20, 21, 3.6, 2.4, K.mul(base, 0.92), base, dark)                          # (the wing)
+    bone = ((236, 228, 210), (252, 248, 236), (196, 186, 166))
+    B.seg(img, 17, 15, 24.5, 7.5, 2.4, *bone)                      # the bone, out of the meat
+    for x, y in ((24, 5.6), (26.4, 8)):                             # the knuckle: two knobs
+        K.shaded_ellipse(img, x, y, 2.0, 2.0, bone[0], bone[1], bone[2])
+    B.seg(img, 12.5, 19.5, 18.5, 13.5, 5.6, light, base, dark)      # the meat narrowing to the bone
+    K.shaded_ellipse(img, 11.5, 20.5, 7.4, 6.6, base, light, dark, hi=hi)
     if speck:
         rng = random.Random(7)
-        for _ in range(9):
-            x, y = rng.randrange(9, 24), rng.randrange(15, 25)
+        for _ in range(10):
+            x, y = rng.randrange(6, 19), rng.randrange(15, 26)
             if img[y][x] is not None:
                 img[y][x] = speck
     return done(img)
@@ -373,7 +375,7 @@ def raw_poultry():
 
 @item("Cooked_Poultry")
 def cooked_poultry():
-    return poultry((194, 120, 50), (230, 164, 82), (146, 82, 30), (250, 206, 132))
+    return poultry((194, 120, 50), (230, 164, 82), (146, 82, 30), (250, 206, 132), speck=(150, 84, 34))
 
 
 # ---------------------------------------------------------------- buckets

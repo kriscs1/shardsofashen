@@ -103,7 +103,7 @@ export function statsShown() { return !M.on || (M.bag && !S.box.mode); }
 export const U = {
   statsView: 0, spellHover: 0, equipHover: 0, skillHover: 0, statRows: 1, statRowTop: 41,
   statRowH: 33, cursorSize: 22, chatLine: 1, qm: "", qmKind: "", rcm: null, hotHover: -1, minimapZoom: 0, rbHover: 0,
-  hover: null, onlineShownUntil: 0, banner: null, markers: true, topY: 8,
+  hover: null, stanceOpen: false, onlineShownUntil: 0, banner: null, markers: true, topY: 8,
   stones: null, stoneHits: [], stoneHover: "",   // (the travel map: worldMap === "stones" - shardcraft.py stone_map)
   wm: null, wmZoom: 1, wmCx: 0, wmCy: 0, wmShown: 0,   // (the world map's box, how far it's zoomed in and its middle)
 };
@@ -738,7 +738,7 @@ function drawStats(ctx) {
   else drawSkillsTab(ctx);
   ctx.fillStyle = "rgb(51,31,25)";
   ctx.fillRect(28, 13, 170, 27);
-  [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Channeling"]].forEach(([x1, x2, label], t) => {
+  [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Spells"]].forEach(([x1, x2, label], t) => {
     const on = t === U.statsView;
     ctx.fillStyle = on ? "rgb(126,77,63)" : "rgb(61,40,31)";
     ctx.fillRect(x1, 15, x2 - x1 + 1, 22);
@@ -1440,38 +1440,51 @@ function drawVitals(ctx) {
   drawStance(ctx);
 }
 
-// ----- your stance (stances.py): a round button right of the bars; click or tap (or Q) for the next one
+// ----- your stance (stances.py): a round button for each, right of the bars (a phone: the one you're in, which opens
+// the others); the one you chose fills a ring round it as it takes hold
 export const STANCES = ["", "Fighting", "Channelling", "Sneaking"];
-export const STANCE_WORDS = { "": "Standing easy", Fighting: "Fighting|harder blows, a firmer guard|magic hurts more",
-  Channelling: "Channelling|stronger spells, longer wards|slower, a weaker guard",
-  Sneaking: "Sneaking|quiet, hard to see; lookouts' sight shown|slower; a blow or a spell ends it" };
+export const STANCE_WORDS = { "": "No stance|You stand easy: nothing gained, nothing given up.",
+  Fighting: "Fighting|You hit harder and guard better.|Magic hurts you more.",
+  Channelling: "Channelling|Your spells are stronger and your wards last longer.|You walk slower and guard worse.",
+  Sneaking: "Sneaking|You're quieter and harder to see, and you see where lookouts look.|You walk slower; a blow or a spell ends it." };
 
-function stanceButton() {
-  const r = M.on ? 18 : 14;
-  return [VITALS.barX + VITALS.barW + 10 + r, VITALS.y + 18, r];
+function stanceButtons() {
+  // ([stance, cx, cy, r] for each button shown: a phone shows the one you're in, and the rest only once it's opened)
+  const r = M.on ? 18 : 12, gap = M.on ? 6 : 4, y = VITALS.y + 18, x0 = VITALS.barX + VITALS.barW + 10 + r;
+  const now = S.me.stance_next || S.me.stance || "";
+  const order = M.on ? [now, ...(U.stanceOpen ? STANCES.filter((st) => st !== now) : [])] : STANCES;
+  return order.map((st, i) => [st, x0 + i * (2 * r + gap), y, r]);
 }
 
 function drawStance(ctx) {
-  const me = S.me, [cx, cy, r] = stanceButton();
-  const hot = U.hover === "stance";
-  ctx.fillStyle = hot ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.92)";
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
-  const im = sprite("Stance_" + (me.stance || "None"));
-  if (im) {
-    ctx.save(); ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(im, cx - r + 2, cy - r + 2, 2 * r - 4, 2 * r - 4);
-    ctx.restore();
-  }
-  if (me.stance_next !== undefined && (me.stance_next || me.stance_ms)) {   // (changing: a ring filling round it)
-    const t = 1 - clamp((me.stance_ms || 0) / 1000, 0, 1);
-    ctx.strokeStyle = "rgb(255,214,110)"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(cx, cy, r - 1, -1.571, -1.571 + 6.283 * t); ctx.stroke();
-  }
+  const me = S.me, now = me.stance || "", next = me.stance_next;
+  const changing = next !== undefined && (next || me.stance_ms);
+  stanceButtons().forEach(([st, cx, cy, r]) => {
+    const hot = U.hover === "stance:" + st, held = st === now && !changing;
+    ctx.fillStyle = hot ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.92)";
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
+    const im = sprite("Stance_" + (st || "None"));
+    if (im) {
+      ctx.save(); ctx.imageSmoothingEnabled = false;
+      if (!held && !(changing && st === next)) ctx.globalAlpha = 0.6;
+      ctx.drawImage(im, cx - r + 2, cy - r + 2, 2 * r - 4, 2 * r - 4);
+      ctx.restore();
+    }
+    if (held) {                                           // (the stance you're in: a gold rim)
+      ctx.strokeStyle = "rgb(214,170,70)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, 6.283); ctx.stroke();
+    } else if (changing && st === next) {                 // (taking hold: a ring filling slowly round it)
+      const t = 1 - clamp((me.stance_ms || 0) / 1000, 0, 1);
+      ctx.strokeStyle = "rgb(255,214,110)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r - 1, -1.571, -1.571 + 6.283 * t); ctx.stroke();
+    }
+  });
 }
 
 export function stanceAt(x, y) {
-  const [cx, cy, r] = stanceButton();
-  return Math.hypot(x - cx, y - cy) <= r + 2;
+  // (the stance whose button is under the mouse, or undefined)
+  const hit = stanceButtons().find(([, cx, cy, r]) => Math.hypot(x - cx, y - cy) <= r + 2);
+  return hit ? hit[0] : undefined;
 }
 
 export function nextStance() {
@@ -1966,7 +1979,7 @@ export function skillInfo(i, long) {
     return `${pretty(name)}: ${pts(xp)} xp / ${pts(level + 1)} xp to level ${level + 1}.`;
   }
   const prog = level >= maxLevel() ? "the highest level" : `${pts(xp)} xp / ${pts(level + 1)} xp`;
-  return `${name}: level ${level} / ${maxLevel()}|${prog}`;
+  return `${pretty(name)}: level ${now} / ${level}|${prog}`;
 }
 
 // ================================================================================================================

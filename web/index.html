@@ -21,6 +21,7 @@
   </div>
   <form id="login-form" class="panel" autocomplete="on">
     <button type="button" id="login-music" class="music-toggle" title="The title music (it starts when you click or type)"></button>
+    <button type="button" id="login-full" class="full-toggle" title="Full screen (F11)">Full screen</button>
     <h1 class="logo"><img src="img/logo.png" alt="Shards of Ashen" width="496" height="212"></h1>
     <p id="login-server" class="server-name"></p>
     <p id="login-online" class="dim">Connecting...</p>
@@ -40,7 +41,6 @@
     <p class="small" id="home-row" hidden><a href="#" id="home-link">Back to the start screen</a></p>
     <p class="dim small server-only">Your character lives on this server, and only here: another server is another
       world.</p>
-    <p class="dim small">Adventurers share this world.<span class="desk-only"> Full screen: F11 or the button in the game.</span></p>
     <p id="login-version" class="version"></p>
   </form>
 </div>
@@ -115,6 +115,9 @@
 <div id="options" class="overlay" hidden>
   <div class="panel wide">
     <h2>Options</h2>
+    <div class="tabs" role="tablist"><button type="button" data-pane="sound" class="on">Sound</button>
+      <button type="button" data-pane="view">Screen</button><button type="button" data-pane="game">Game</button></div>
+    <div class="pane" data-pane="sound">
     <div class="row"><span>Sound effects</span><input type="checkbox" id="opt-sound"></div>
     <div class="row"><span>Volume</span><input type="range" id="opt-volume" min="0" max="100" step="5"></div>
     <div class="row"><span>A chime when another player talks to you</span><input type="checkbox" id="opt-chat-sound"></div>
@@ -122,20 +125,25 @@
     <div class="row"><span>Music volume</span><input type="range" id="opt-music-volume" min="0" max="100" step="5"></div>
     <div class="row"><span>Background sounds</span><input type="checkbox" id="opt-ambient"></div>
     <div class="row"><span>Background volume</span><input type="range" id="opt-ambient-volume" min="0" max="100" step="5"></div>
+    </div>
+    <div class="pane" data-pane="view" hidden>
+    <div class="row"><span>Full screen</span><button type="button" id="opt-fullscreen">Toggle</button></div>
     <div class="row"><span>Quest markers on the minimap</span><input type="checkbox" id="opt-markers"></div>
     <div class="row"><span>Smooth scaling (easier text; off = sharp pixels)</span><input type="checkbox" id="opt-smooth"></div>
     <div class="row"><span>Camera easing</span><input type="range" id="opt-camera" min="0" max="16" step="1"></div>
+    <div class="row"><span>Mouse pointer size</span><select id="opt-cursor">
+      <option value="18">Small</option><option value="22">Medium</option><option value="28">Large</option>
+      <option value="32">Largest</option></select></div>
+    <div class="row" id="opt-layout-row"><span>Layout</span><select id="opt-layout">
+      <option value="">Automatic</option><option value="0">Desktop</option><option value="1">Touch</option></select></div>
+    </div>
+    <div class="pane" data-pane="game" hidden>
     <div class="row"><span>Your appearance</span><button type="button" id="opt-look">Change</button></div>
     <div class="row"><span id="opt-whose"></span></div>
     <div class="row" id="opt-name-row" hidden><span>The game's name</span><input id="opt-server-name" maxlength="40">
       <button type="button" id="opt-server-name-save">Save</button></div>
     <div class="row" id="opt-lan-row" hidden><span>Open to your network (others nearby can join)</span><input type="checkbox" id="opt-lan"></div>
-    <div class="row"><span>Mouse pointer size</span><select id="opt-cursor">
-      <option value="18">Small</option><option value="22">Medium</option><option value="28">Large</option>
-      <option value="32">Largest</option></select></div>
-    <div class="row"><span>Full screen</span><button type="button" id="opt-fullscreen">Toggle</button></div>
-    <div class="row" id="opt-layout-row"><span>Layout</span><select id="opt-layout">
-      <option value="">Automatic</option><option value="0">Desktop</option><option value="1">Touch</option></select></div>
+    </div>
     <div class="buttons"><button type="button" id="options-done">Done</button></div>
   </div>
 </div>

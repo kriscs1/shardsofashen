@@ -543,6 +543,44 @@ friends across the internet through the central server.
   host (through the central server) or play in (a listed game), with Join.
 - [x] **No bringing in old characters** (the owner: the game isn't played yet).
 
+## 25. The third round (2026-11-01)
+
+Words and screens first, then stances and stealth, then moving about and furniture, then where people sleep, then art.
+
+- [x] **The web asset export**: nothing was left to export.
+- [x] **The Channeling tab is called Spells.**
+- [x] **Mary's will doesn't say "don't spend it all at once".**
+- [x] **A skill's hover says out of its usual level**, not out of 25.
+- [x] **The stances' hover text** reads as sentences.
+- [x] **Going somewhere at once fades for at least 2 seconds.**
+- [x] **The start screen's menu buttons sit in the middle**, top to bottom.
+- [x] **A full screen option; the login screen loses its text.**
+- [x] **Public servers has a back button.** (It had one already: the new start screen.)
+- [x] **Options in tabs** (Sound, Screen, Game), short enough for the screen; Change password was gone already.
+- [x] **The journal's Quests: In hand and Done tabs.**
+- [x] **A button for each stance**, not one that cycles; the chosen one fills a ring round it as it changes. On a phone,
+  one button shows the stance and opens the others.
+- [x] **Sneaking is slower still.**
+- [x] **Steal from a shop's shelf of goods while sneaking**: offered on the shelves (checked in a browser at the
+  Galaith tailor's); not reproduced. A shelf seen from outside, under the roof, can't be clicked; and the stance takes
+  a second to take hold.
+- [x] **No Stealth xp for standing still**: only walking past one yourself, in its roam or within 3 tiles of its
+  patrol's path (indoors too), against one above your level or no more than 5 under it.
+- [x] **Loud thieving wakes sleepers near.**
+- [x] **Monsters see much further** (about 1.8 times: `build_senses.py` SIGHT).
+- [x] **A monster that stands still faces a way of its own and turns now and then** (map options for both).
+- [x] **Stairs and ladders: the sound, then the move.**
+- [x] **Benches**: walk to it, then sit; getting up steps off it.
+- [x] **A bed is clicked where it's drawn** (its head and foot).
+- [x] **The double bed looks right** (one picture: a headboard, a pillow each, no seams).
+- [x] **Inside walls for every kind of house, in the editor's Auto palette.**
+- [x] **The marsh looks like marsh, not a pattern, and is slow to wade.**
+- [x] **Townsfolk with no door near sleep in a tent** (one put down: Galaith's square, for the crier and the
+  foreman); zzz over sleepers, in bed or in a tent.
+- [x] **Night folk**: guards and tavern keepers were up all night already; a night owl in four towns (home by day,
+  out after dark); Schedule=Always never goes to bed.
+- [x] **Poultry drawn again** (a drumstick: the bird on its back looked like a rabbit).
+
 ## Decisions made where the list was unclear
 
 - Every NPC an NPC kills leaves its loot for anyone (no killer's 10 s), and a Shard Remnant rising from it goes for

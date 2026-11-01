@@ -25,6 +25,9 @@ STANCES = [   # (section, key, value, what it means: the comment above it)
     ("Stances", "Sneak.Attack", "2", "A blow a monster never saw coming: its most, times this"),
     ("Stances", "Sneak.Attack.XP", "0.3", "Stealth xp for one, and for slipping past a monster unseen"),
     ("Stances", "Sneak.Past.XP", "0.15", None),
+    ("Stances", "Sneak.Past.Again", "300", "Slipping past the same one again pays after (seconds), and only one at most this many"),
+    ("Stances", "Sneak.Past.Levels", "5", "levels under yours; and pays in its roam, or this many tiles from its patrol's path"),
+    ("Stances", "Sneak.Past.Path", "3", None),
     ("Fighting", "Attack", "1.15", "Harder blows and a firmer guard (times), but magic in a blow and its drains and poisons"),
     ("Fighting", "Damage", "1.15", None),
     ("Fighting", "Defence", "1.15", None),
@@ -35,7 +38,7 @@ STANCES = [   # (section, key, value, what it means: the comment above it)
     ("Channelling", "Resist.Status", "50", None),
     ("Channelling", "Walk", "0.8", None),
     ("Channelling", "Defence", "0.85", None),
-    ("Sneaking", "Walk", "0.6", "Slower on foot; heard (times) and seen (a part of a monster's Aggro.Range) less; each"),
+    ("Sneaking", "Walk", "0.45", "Slower on foot; heard (times) and seen (a part of a monster's Aggro.Range) less; each"),
     ("Sneaking", "Noise", "0.45", "Stealth level takes a little more off (Per.Level), never under Least; a lookout's cone"),
     ("Sneaking", "Noise.Per.Level", "0.02", "narrows the same way"),
     ("Sneaking", "Sight", "0.6", None),
@@ -103,6 +106,9 @@ THIEVING = [   # data\Thieving.ini (thieving.py): (section, key, value, what it 
     ("Valuables", "Watch.Range", "192", "minutes before the same box again; Stealth xp (times the root of the level)"),
     ("Valuables", "Again.Minutes", "30", None),
     ("Valuables", "XP", "0.4", None),
+    ("Wake", "Break", "224", "How far a sleeper hears thieving (pixels): a lock forced, something rattling; minutes"),
+    ("Wake", "Rattle", "160", "one woken stays up"),
+    ("Wake", "Minutes", "2", None),
 ]
 
 

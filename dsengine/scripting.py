@@ -12,21 +12,15 @@ import time
 from ashen import ini
 from ashen.lb import (val, word, field, trim, lbstr, distance, strip_digits, random_number, rnd, parse_quantity,
                             apply_change, is_number, safe_eval, seconds_today, wildcard_match, pretty)
+from ashen.places import PIXEL_ARGS, TILE_ARGS, MAP_ARGS, ENTITY_COMMANDS     # (the arguments that may name a place)
 
 from .entity import (Entity, TILE, MAPITEM, STATICOBJECT, NPC, TYPE_NAMES, normalise_type, attitude_of_type,
                      parse_attitude)
 
 log = logging.getLogger("ashen.scripting")
 
-PIXEL_ARGS = {"Remove.Entity": (1,), "Add.Entity": (1,), "Teleport": (1,), "Edit.Entity": (1,), "Move.Entity": (1, 3),
-              "Move.Player": (1,), ">Distance.From.Coordinates": (1,), ">Entity.In.Line.Of.Sight": (1,),
-              "Add.Action.To.Queue": (6,)}
-TILE_ARGS = {"Change.Tile": (1,), ">Tile.In.Line.Of.Sight": (1,), ">On.Tile.Coordinates": (1,),
-             ">Not.On.Tile.Coordinates": (1,)}
-MAP_ARGS = {"Teleport": 2, "Add.Action.To.Queue": 5}
 ATTRS_MOST = 2000               # (a player's attributes at most: quests' progress; about 250 are used)
 SCRIPT_RECHECK = 2.0            # (seconds a script's being there, or not, is taken as known: the tick asks often)
-ENTITY_COMMANDS = ("Remove.Entity", "Edit.Entity", "Move.Entity")
 PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "aggressive",
                    "AGGRO.RANGE": "aggro_range"}
 
@@ -729,6 +723,8 @@ class ScriptMixin:
             self.script_condition(arg[1].replace(" ", "") == self.screen_name, arg[2])
         elif c == ">Not.On.Map":
             self.script_condition(arg[1].replace(" ", "") != self.screen_name, arg[2])
+        elif c == ">Map.Exists":                    # (a stair or a ladder that leads somewhere: its sound, then the move)
+            self.script_condition(self.w.map_named(arg[1].replace(" ", "")) is not None, arg[2])
         elif c == ">On.Tile.Coordinates":
             self.script_condition(self.player_on_tile_coords(arg[1]), arg[2])
         elif c == ">Not.On.Tile.Coordinates":

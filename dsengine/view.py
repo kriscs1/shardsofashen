@@ -21,6 +21,7 @@ def shared_state(w, e):
             st["fly"] = e.ai.flying
         held = e.frozen_until is not None and e.frozen_until > w.now
         st["fz"] = (2 if e.frozen_word == "stunned" else 1) if held else 0      # (iced over, or dazed)
+        st["zz"] = 1 if (e.ai is not None and getattr(e.ai, "asleep", False)) or             (e.sched_away and getattr(e, "tent_front", None)) else 0           # (asleep in bed, or in its tent: zzz)
     elif e.type == MAPITEM:
         st["q"] = e.quantity
     else:

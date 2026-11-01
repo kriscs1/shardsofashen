@@ -343,15 +343,22 @@ def roof_pieces():
 
 
 THIN_WHAT = ("the north wall", "the east wall", "the south wall", "the west wall", "the north-east corner",
-             "the south-east corner", "the south-west corner", "the north-west corner")
+             "the south-east corner", "the south-west corner", "the north-west corner",
+             "an inner corner: north-east", "an inner corner: south-east", "an inner corner: south-west",
+             "an inner corner: north-west", "walls north and south (a passage)", "walls east and west (a passage)",
+             "a dead end, open to the west", "a dead end, open to the north", "a dead end, open to the east",
+             "a dead end, open to the south")
 THIN_ORDER = [8, 1, 5, 4, 0, 2, 7, 3, 6]               # round a room: NW N NE / W (the floor) E / SW S SE
+THIN_MORE = [0, 0, 0, 12, 9, 13, 11, 10, 14, 17, 18, 15, 16, 0, 0]   # (a gap row, then rooms that aren't rectangles:
+#                                                         the inner corners as they'd sit, the passages, the dead ends)
 
 
 def thin_walls():
     """{(wall, floor): its 8 pieces} (house_tiles: <Wall>_Thin_<Floor>001-008, a wall along the room's edge)."""
     import house_tiles as H
     walls = sorted(set(H.WALL_BASES.values()))
-    return {(w, f): ["%s_Thin_%s%03d" % (w, f, n) for n in range(1, 9)] for w in walls for f in H.THIN_FLOORS.values()}
+    return {(w, f): ["%s_Thin_%s%03d" % (w, f, n) for n in range(1, len(H.THIN_EDGES) + 1)] for w in walls
+            for f in H.THIN_FLOORS.values()}
 
 
 def sets():
@@ -366,7 +373,8 @@ def sets():
     floors = {v: k for k, v in H.THIN_FLOORS.items()}
     for (w, f), names in thin_walls().items():
         out.append(("%s_Thin_%s" % (w, f), "thin %s walls round a %s floor" % (w.replace("_", " ").lower(), f.lower()),
-                    3, [names[k - 1] if k else floors[f] for k in THIN_ORDER]))
+                    3, [names[k - 1] if k else floors[f] for k in THIN_ORDER] +
+                    [names[k - 1] if k else "" for k in THIN_MORE]))
     for style in RUG_STYLES:
         out.append((style, style.replace("_", " ").lower(), 4, [rug_name(style, k) for row in RUG_LAYOUT for k in row]))
     for kind in F.KINDS:

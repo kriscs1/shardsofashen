@@ -21,7 +21,7 @@ Grass001:Grass001:Brick_Paving001:Grass001:Grass001:Brick001:Door001:Brick001:Br
 Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001:Brick_Paving001
 NPC	Ferryman	448	96	Attitude=Good Stand=1 Name=Wim Schedule=Always
 StaticObject	Notice	324	194	Id=Northport
-NPC	Man	512	256	Attitude=Good Zone=14,7,24,9
+NPC	Man	512	256	Attitude=Good Zone=14,7,24,9 Schedule=Night
 StaticObject	Boat001	384	48
 Id	Northport_Pier	3	5
 NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Northport_Port_Guard Name=Sergeant_Brand

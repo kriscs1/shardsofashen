@@ -231,16 +231,46 @@ def loose_board():
 
 
 def double_bed():
-    """Double_Bed001/002 (the head, left and right halves) and 003/004 (the foot): Bed001/002 widened."""
+    """Double_Bed001/002 (the head, left and right halves) and 003/004 (the foot): one bed two tiles wide and 1.5 long,
+    in the single bed's wood and quilt - a headboard, a pillow on each half (where each sleeper's head goes), the sheet
+    turned down over a patchwork quilt with no seam down it."""
+    pg = K.pg()
+    big = pg.Surface((64, 64), pg.SRCALPHA)
+    dark, wood, light = (84, 52, 26), (138, 88, 48), (176, 122, 72)
+    sheet, fold, pillow, crease = (252, 250, 244), (236, 228, 208), (246, 242, 232), (214, 204, 186)
+    red, deep = (196, 52, 48), (150, 34, 36)
+    pg.draw.rect(big, (0, 0, 0, 90), (5, 45, 54, 2))                          # its shadow on the floor
+    pg.draw.rect(big, dark, (4, 0, 56, 46))                                   # the frame
+    pg.draw.rect(big, wood, (6, 2, 52, 6))                                    # the headboard
+    pg.draw.line(big, light, (6, 1), (57, 1))
+    for x in (4, 57):                                                         # its posts
+        pg.draw.rect(big, light, (x, 0, 3, 2))
+    for x in (16, 32, 47):                                                    # (panels in it)
+        pg.draw.line(big, dark, (x, 3), (x, 6))
+    pg.draw.rect(big, wood, (6, 8, 52, 34))                                   # the sides
+    pg.draw.rect(big, sheet, (8, 8, 48, 12))                                  # the sheet under the pillows
+    for cx in (16, 48):                                                       # a pillow on each half
+        r = pg.Rect(cx - 8, 9, 17, 8)
+        pg.draw.rect(big, pillow, r, border_radius=3)
+        pg.draw.line(big, crease, (r.x + 2, r.bottom - 1), (r.right - 3, r.bottom - 1))
+        big.set_at((cx, 12), crease)
+        big.set_at((cx + 1, 13), crease)
+    for y in range(20, 42):                                                   # the quilt: patchwork, 4 px checks
+        for x in range(8, 56):
+            big.set_at((x, y), red if ((x - 8) // 4 + (y - 20) // 4) % 2 == 0 else deep)
+    pg.draw.rect(big, fold, (8, 19, 48, 3))                                   # the sheet turned down over it
+    pg.draw.line(big, (232, 210, 170), (8, 22), (55, 22))
+    pg.draw.line(big, (120, 24, 26), (8, 41), (55, 41))                       # (its hem, tucked in)
+    pg.draw.rect(big, wood, (4, 42, 56, 3))                                   # the footboard
+    pg.draw.line(big, light, (4, 42), (59, 42))
+    for x in (4, 57):
+        pg.draw.rect(big, light, (x, 42, 3, 1))
     out = []
-    for src in ("Bed001", "Bed002"):
-        b = K.load("Tiles", src)
-        left, right = K.surface(), K.surface()
-        for y in range(32):
-            for x in range(32):
-                left.set_at((x, y), b.get_at((x if x < 16 else x - 8, y)))
-                right.set_at((x, y), b.get_at((8 + x if x < 16 else x, y)))
-        out += [left, right]
+    for oy in (0, 32):
+        for ox in (0, 32):
+            t = K.surface()
+            t.blit(big, (0, 0), (ox, oy, 32, 32))
+            out.append(t)
     return out[0], out[1], out[2], out[3]
 
 
@@ -833,7 +863,7 @@ def opening():
         ("@jar",),
         say("Edwin", "Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\\Shards "
                      "are splinters of the world's old magic. Spells drink them, and so do the old standing stones on "
-                     "the mainland. Don't spend them all at once.", ("I won't.", "@out")),
+                     "the mainland.", ("Thank you.", "@out")),
         ("@out",),
         ("Play.Sound", "Absorb"),
         ("Display.Message", "Cyan", "Mary's Shards are yours: their count is under your health.", "-"),

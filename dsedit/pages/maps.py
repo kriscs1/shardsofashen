@@ -117,10 +117,13 @@ def _projects(pg, e):
 OPT_SPECS = {
     "Face": ("Faces", "choice", ["", "N", "E", "S", "W"], "Which way it looks, standing still (a lookout). Blank: "
              "about it, as it likes."),
+    "Turn": ("Turns (s)", "number", None, "How often it glances about, in seconds (0: never, but to a sound, and then "
+             "back the way it faces); blank: every few seconds."),
     "Cone": ("Sight (°)", "number", None, "How wide this one sees (360 all round); blank: its kind's Sight.Cone."),
     "Group": ("Alarm group", "text", None, "Lookouts of one group raise the alarm together."),
     "Schedule": ("Hours", "choice", ["", "Day", "Night", "Always"], "Its own hours (blank: its kind's). Day: home "
-                 "at night; Night: hidden by day; Always: never goes home."),
+                 "at night; Night: home by day (asleep, if it has a bed), out after dark; Always: never goes home or "
+                 "to bed."),
     "Friendly.If": ("Friendly if", "text", None, "A condition (no spaces, e.g. $Attr.SmugglerQuest>=3): while it's "
                     "true for a player, it's friendly to them."),
     "Home": ("Home", "rect", None, "Where it is while its Hours keep it in (x1,y1,x2,y2 tiles; several joined by /): "
@@ -144,7 +147,7 @@ OPT_SPECS = {
     "Key": ("Key", "text", None, "The item that opens its lock."),
     "Sturdy": ("Iron-bound", "bool", None, "It can't be broken open: only picked, or opened with its key."),
 }
-NPC_FORM = ("Zone.Levels", "Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
+NPC_FORM = ("Zone.Levels", "Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Turn", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
 OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy")
 ITEM_FORM = ("Project",)
 HANDLED_OPTS = {"Attitude", "Stand", "Id", "Name", "Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Once"}
@@ -715,7 +718,7 @@ class MapPage(Page):
             for k in list(self.project._sprites):
                 if k[0] == "Interface" and k[1].startswith("Minimap"):
                     del self.project._sprites[k]
-            mini = self.app.page_of("minimap")
+            mini = self.app.page_of("minimap", build=False)
             if mini is not None and getattr(mini, "level", None) is not None:
                 mini.draw()
             if self.zoom < FAR:                             # (the far view is drawn from it)
@@ -4690,7 +4693,7 @@ class MapPage(Page):
         own = self.project.rename_own_scripts(old, new)
         if clean:
             self.save_doc(doc.name)
-        qp = self.app.page_of("quest")                      # (its form shows the markers as they are now)
+        qp = self.app.page_of("quest", build=False)         # (its form shows the markers as they are now)
         if qp is not None and getattr(qp, "key", None) and not qp.is_dirty():
             qp.load(qp.key)
         self.redraw()

@@ -301,6 +301,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   V.seen = new Set(shown.map((e) => e.u));
   if (lastImage.size > 600) lastImage.clear();
   const draw = (e) => {
+    if (e.gstand) e = { ...e, i: e.gstand };       // (stepping onto a seat: on its feet till it's there)
     let im = e.k === T.PLAYER && e.look ? (warmWalk(e.i), lookImage(e.i, e.look)) : entityImage(e, now);
     if (im) lastImage.set(e.u, im);               // (a frame not loaded yet: the one before it, or nothing till it has)
     else im = lastImage.get(e.u) || null;
@@ -398,6 +399,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     else if (f.t === "bubble") drawBubble(ctx, f, now, cam);
   }
   drawStatusIcons(ctx, me, cam);
+  drawSleepers(ctx, now, cam, pc);
   for (const e of [...shown, ...(me && me.a ? [me] : [])]) {
     if (e.b && (e.k === T.NPC || e.k === T.PLAYER)) {
       const im = healthImage(e.hp, e.mh);
@@ -466,6 +468,26 @@ function drawMark(ctx, f, now, cam) {
   ctx.strokeStyle = "rgb(40,20,10)"; ctx.lineWidth = 1.5; ctx.stroke();
   const w = textWidth(ctx, spotted ? "!" : "?", 9, true);
   drawText(ctx, spotted ? "!" : "?", Math.round(x - w / 2), Math.round(y - 7), 9, true, [255, 250, 235]);
+  ctx.globalAlpha = 1;
+}
+
+function drawSleepers(ctx, now, cam, pc) {
+  // (zzz rising over whoever's asleep: in bed, or out of sight in a tent - the server's zz)
+  for (const e of S.ents.values()) {
+    if (!e.zz) continue;
+    const cx = e.dx + e.w / 2, cy = e.dy + e.h / 2;
+    if (e.dx - cam.x > V.ww || e.dy - cam.y > V.wh || e.dx + e.w - cam.x < 0 || e.dy + e.h - cam.y < 0) continue;
+    if (roofCovers(cx, cy) || fogCovers(cx, cy, pc, 0)) continue;
+    for (let k = 0; k < 3; k++) {
+      const t = ((now / 2400 + k / 3 + (e.u % 7) / 7) % 1);
+      const x = Math.round(e.dx + e.w * 0.62 + t * 9 + Math.sin(t * 6.283) * 2 - cam.x);
+      const y = Math.round(e.dy + 2 - t * 16 - cam.y);
+      ctx.globalAlpha = t < 0.2 ? t * 5 : 1 - (t - 0.2) / 0.8;
+      const size = 6 + Math.round(t * 4);
+      drawText(ctx, "z", x + 1, y + 1, size, true, [30, 30, 50]);
+      drawText(ctx, "z", x, y, size, true, [226, 232, 255]);
+    }
+  }
   ctx.globalAlpha = 1;
 }
 

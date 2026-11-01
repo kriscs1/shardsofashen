@@ -97,6 +97,9 @@ class MinimapPage(Page):
             self.draw()
 
     def show_unknown(self):
+        if self.project._index is None:                 # (the first time, every map and script is read: a while)
+            with self.app.busy("Finding the tiles every map uses…"):
+                self.project.index()
         used = set(self.project.index()["tile"])
         missing = sorted(t for t in used if t not in self.project.minimap_colours)
         IniFormPage.fill_links(self.unknown, [(t, lambda t=t: self.app.goto("tile", t)) for t in missing], "none")

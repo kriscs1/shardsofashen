@@ -6,6 +6,7 @@ client paints each cell with its part of the texture, as the forest canopy does:
     Range_Rock (blue-grey: Peak..., Mountain...), Range_Snow (Snow_Peak...), Range_Cinder (black, lava glowing in
     the cracks: Cinder_Peak...). Their Blend is over grass and forest, so a range's edge breaks up raggedly.
   * Streets: uneven stones, never a grid - cobbles, setts, flags of all sizes, bricks in a wandering bond, gravel.
+  * The marsh (Marsh001): wet grass and mud, murky pools, tussocks; slow to wade (Walk.Speed).
 
 Each tile's own picture becomes one cell of its texture (for the editor and the minimap). Run it after
 build_world_art.py (which draws the old tiles). Safe to run again.
@@ -340,6 +341,55 @@ STREETS = {   # tile: (texture, how it's drawn)
 }
 
 
+# ================================================================== the marsh
+MARSH_SIZE = 256
+
+
+def marsh_texture(rng, size=MARSH_SIZE):
+    """Boggy ground: wet grass and mud in drifts, murky pools where the ground dips (a pale rim, scum and the odd
+    lily pad on them), tussocks and sedge - nowhere the same twice in 256 px."""
+    wet = fractal(rng, size, 4, cells=4)                       # (where the water lies: the low places)
+    mott = fractal(rng, size, 4, cells=8)
+    fine = fractal(rng, size, 2, cells=64)
+    col = ramp(mott * 0.75 + fine * 0.25, [(0.0, (62, 74, 38)), (0.35, (78, 92, 46)), (0.6, (92, 104, 54)),
+                                           (1.0, (108, 116, 62))])
+    mud = np.clip((wet - 0.5) * 6, 0, 1)[..., None]            # (darker, browner as it gets wetter)
+    col = col * (1 - mud) + ramp(fine, [(0.0, (58, 54, 34)), (1.0, (76, 70, 44))]) * mud
+    pool = wet > 0.66
+    edge = pool & ~(np.roll(pool, 1, 0) & np.roll(pool, -1, 0) & np.roll(pool, 1, 1) & np.roll(pool, -1, 1))
+    deep = np.clip((wet - 0.66) * 8, 0, 1)[..., None]
+    water = ramp(fine, [(0.0, (46, 62, 58)), (1.0, (56, 74, 66))]) * (1 - deep * 0.35)
+    col = np.where(pool[..., None], water, col)
+    col[edge] = (96, 108, 74)                                  # (the rim, where the mud meets the water)
+    lit = pool & ~np.roll(pool, 1, 0) & ~edge                   # (a glint under the top edge: lit from above)
+    col[np.roll(lit, 1, 0) & pool & ~edge] = (82, 102, 94)
+    for _ in range(size * size // 900):                        # (scum and lily pads, out on the water)
+        x, y = rng.randrange(size), rng.randrange(size)
+        if not pool[y, x]:
+            continue
+        pad = rng.random() < 0.35
+        r = rng.choice((2, 3)) if pad else 1
+        for yy in range(-r, r + 1):
+            for xx in range(-r, r + 1):
+                if xx * xx + yy * yy <= r * r and pool[(y + yy) % size, (x + xx) % size]:
+                    col[(y + yy) % size, (x + xx) % size] = (70, 112, 52) if pad else (88, 100, 64)
+        if pad:
+            col[y % size, (x + 1) % size] = (52, 84, 40)        # (the pad's notch)
+    for _ in range(size * size // 160):                        # (tussocks and sedge: blades in clumps, out of the water)
+        x, y = rng.randrange(size), rng.randrange(size)
+        if wet[y, x] > 0.6:
+            continue
+        base = np.array(rng.choice([(104, 122, 58), (118, 132, 64), (92, 110, 50), (128, 128, 70)]), dtype=float)
+        for _ in range(rng.randint(3, 6)):
+            dx, h = rng.randint(-2, 2), rng.randint(2, 4)
+            lean = rng.choice((-1, 0, 0, 1))
+            for k in range(h):
+                xx, yy = (x + dx + (lean if k >= h // 2 else 0)) % size, (y - k) % size
+                col[yy, xx] = np.clip(base * (0.8 + 0.25 * k / h), 0, 255)
+            col[(y + 1) % size, (x + dx) % size] = base * 0.55     # (its shadow at the foot)
+    return np.clip(col, 0, 255).astype(np.uint8)
+
+
 # ================================================================== writing
 def save_texture(name, arr):
     write_sprite(os.path.join(TEX, name + ".png"), [[tuple(int(v) for v in c) for c in r] for r in arr], plain=True)
@@ -382,6 +432,11 @@ def main():
         K.save("Tiles", tile, cell_of(arr, 0))
         SK.section(SK.TILES, tile, [("Texture", name), ("Blend.Texture", tile)])
     print("Streets: %d textures" % len(STREETS))
+    arr = marsh_texture(random.Random("Marsh"))
+    save_texture("Marsh", arr)
+    K.save("Tiles", "Marsh001", cell_of(arr, 5))
+    SK.section(SK.TILES, "Marsh001", [("Texture", "Marsh"), ("Walk.Speed", "0.45")])   # (wading: slow going)
+    print("Marsh: its texture")
 
 
 if __name__ == "__main__":

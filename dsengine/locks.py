@@ -150,6 +150,7 @@ class LockMixin:
             return
         self.break_at = self.now + 1500
         self.player_last_combat = self.now                         # (loud: anything near hears it)
+        self.wake_sleepers(e, self.thief_num("Wake", "Break", 224))
         self.play_sound("Block", (e.cx, e.cy))
         self.fx_nudge(e, 0, 2, 120)
         chance = max(5, min(90, self.lock_num("Break.Chance", 40) + (self.skill_level("Strength") - level) * 4))

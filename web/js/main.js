@@ -289,6 +289,14 @@ $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checke
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
 $("opt-fullscreen").onclick = toggleFullscreen;
+$("login-full").onclick = toggleFullscreen;
+$("login-full").hidden = M.app || !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+for (const b of document.querySelectorAll("#options .tabs button")) {
+  b.onclick = () => {                                    // (Options in tabs: short enough for a phone's screen)
+    for (const t of document.querySelectorAll("#options .tabs button")) t.classList.toggle("on", t === b);
+    for (const pane of document.querySelectorAll("#options .pane")) pane.hidden = pane.dataset.pane !== b.dataset.pane;
+  };
+}
 $("opt-layout-row").hidden = M.app;                      // (the app is always the touch layout)
 $("opt-layout").value = layoutChoice();
 $("opt-layout").addEventListener("input", (ev) => chooseLayout(ev.target.value));
@@ -883,7 +891,7 @@ window.addEventListener("pagehide", () => {
 const FRAME_MS = 13;                           // (about 60 a second at most: a 120 Hz phone draws every other one)
 
 // ----- off somewhere else (a shardstone, a script, dying): the last view fades to black, then the new one fades in
-const TP_OUT = 220, TP_IN = 380;
+const TP_OUT = 800, TP_HOLD = 300, TP_IN = 1000;      // (2.1 s in all: out, a breath of black, in)
 let tpFade = null;
 function startTeleportFade(now) {
   const w = Math.round(L.VW * screen.k), h = Math.round(L.VH * screen.k);
@@ -898,11 +906,11 @@ function startTeleportFade(now) {
 function drawTeleportFade(c, now) {
   if (!tpFade) return;
   const t = now - tpFade.start;
-  if (t >= TP_OUT + TP_IN) { tpFade = null; return; }
+  if (t >= TP_OUT + TP_HOLD + TP_IN) { tpFade = null; return; }
   if (t < TP_OUT) {
     if (tpFade.shot) c.drawImage(tpFade.shot, 0, 0, L.VW, L.VH);
     c.fillStyle = `rgba(0,0,0,${t / TP_OUT})`;
-  } else c.fillStyle = `rgba(0,0,0,${1 - (t - TP_OUT) / TP_IN})`;
+  } else c.fillStyle = `rgba(0,0,0,${t < TP_OUT + TP_HOLD ? 1 : 1 - (t - TP_OUT - TP_HOLD) / TP_IN})`;
   c.fillRect(0, 0, L.VW, L.VH);
 }
 

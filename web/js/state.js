@@ -84,6 +84,19 @@ const GLIDE_MS = 70;
 const SIT_MS = 260;                    // (sitting down or getting up: a step onto the seat, eased, not a jump)
 const sitting = (i) => /_Sit[1248]$/.test(i || "");
 
+function glideFrom(e, ni, now) {
+  // (a new spot from the server: from where it's drawn now. Onto a seat or off it, a step eased over SIT_MS, on
+  // its feet till it's there; a step off a seat isn't cut short by the walk that follows it)
+  const end = e.t0 + (e.gms || 0), was = e.i;
+  e.fx = e.dx; e.fy = e.dy;
+  if (ni !== undefined && sitting(ni) !== sitting(was)) {
+    e.gms = SIT_MS; e.gease = true; e.gstand = sitting(ni) ? was : "";
+  } else if (e.gms && now < end) {
+    e.gms = Math.max(GLIDE_MS, end - now); e.gease = false;
+  } else e.gms = 0;
+  e.t0 = now;
+}
+
 export function applySnap(msg, now) {
   for (const e of msg.add) {
     e.dx = e.x; e.dy = e.y; e.fx = e.x; e.fy = e.y; e.t0 = now;
@@ -93,10 +106,9 @@ export function applySnap(msg, now) {
     const e = S.ents.get(c.u);
     if (!e) continue;
     if ("x" in c || "y" in c) {
-      e.fx = e.dx; e.fy = e.dy; e.t0 = now;
-      e.gms = "i" in c && sitting(c.i) !== sitting(e.i) ? SIT_MS : 0;
+      glideFrom(e, c.i, now);
       const jump = Math.abs((c.x ?? e.x) - e.dx) > 96 || Math.abs((c.y ?? e.y) - e.dy) > 96;
-      if (jump) { e.fx = c.x ?? e.x; e.fy = c.y ?? e.y; }
+      if (jump) { e.fx = c.x ?? e.x; e.fy = c.y ?? e.y; e.gstand = ""; }
     }
     if (c.rm) { for (const k of c.rm) delete e[k]; delete c.rm; }    // (what's over: a stance, a spell, a sleep)
     Object.assign(e, c);
@@ -106,8 +118,7 @@ export function applySnap(msg, now) {
   if (!S.pos || S.pos.z !== me.z || Math.abs(me.x - S.pos.dx) > 96 || Math.abs(me.y - S.pos.dy) > 96) {
     S.pos = { ...me, dx: me.x, dy: me.y, fx: me.x, fy: me.y, t0: now };
   } else {
-    S.pos.fx = S.pos.dx; S.pos.fy = S.pos.dy; S.pos.t0 = now;
-    if (me.x !== S.pos.x || me.y !== S.pos.y) S.pos.gms = sitting(me.i) !== sitting(S.pos.i) ? SIT_MS : 0;
+    if (me.x !== S.pos.x || me.y !== S.pos.y) glideFrom(S.pos, me.i, now);
     Object.assign(S.pos, me);
   }
   S.viewMaps = msg.maps;
@@ -116,7 +127,8 @@ export function applySnap(msg, now) {
 export function glide(now) {
   const step = (e) => {
     let k = Math.min(1, (now - e.t0) / (e.gms || GLIDE_MS));
-    if (e.gms) k = k * k * (3 - 2 * k);                       // (onto a seat or off it: eased in and out)
+    if (k >= 1) e.gstand = "";                                // (on the seat now: sitting)
+    if (e.gms && e.gease) k = k * k * (3 - 2 * k);            // (onto a seat or off it: eased in and out)
     e.dx = e.fx + (e.x - e.fx) * k;
     e.dy = e.fy + (e.y - e.fy) * k;
   };
@@ -130,7 +142,7 @@ export function myPlayer() {
   if (!p || !me) return null;
   const [w, h] = sizeOfImage(p.i);
   // (unseen by monsters but still drawn: invisible, a shimmer; in another body, that body - tricks.py)
-  return { u: S.uid, k: 1, n: S.name, i: p.i, x: p.x, y: p.y, dx: p.dx, dy: p.dy, w, h,
+  return { u: S.uid, k: 1, n: S.name, i: p.gstand || p.i, x: p.x, y: p.y, dx: p.dx, dy: p.dy, w, h,
     a: me.visible || me.invisible_left || me.swap ? 1 : 0, gh: me.invisible_left ? 1 : 0,
     hp: me.hp, mh: me.max_hp, b: me.hp < me.max_hp ? 1 : 0, worn: me.worn || [], look: me.look, self: true,
     sc: me.swap ? "" : me.stance || "" };

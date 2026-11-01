@@ -9,6 +9,7 @@
                thief (Pickpocket, Steal, Pick Lock); you walk slowly. A blow struck or a spell cast ends it."""
 from ashen.lb import val, trim, lbstr, distance
 from .entity import NPC
+from .remnants import monster_level
 
 STANCES = ("", "Fighting", "Channelling", "Sneaking")
 WORDS = {"": "You stand easy.", "Fighting": "You stand ready to fight.",
@@ -116,7 +117,10 @@ class StanceMixin:
         return not self.w.npc_sees(t, a, self, distance(t.cx, t.cy, p.cx, p.cy))
 
     def sneak_tick(self):
-        """Sneaking past a monster that would have come for you, unseen: a little Stealth, and a soft sound."""
+        """Sneaking past a monster that would have come for you, unseen: a little Stealth, and a soft sound. Only for
+        getting past it yourself (you walked on, not it wandering off), in its roam or near its patrol's path, one
+        above your level or not far under it, and once a monster for a while: standing still near one teaches
+        nothing."""
         if not self.sneaking():
             self.sneak_near = {}
             return
@@ -126,20 +130,41 @@ class StanceMixin:
         for j in (-1, 0, 1):
             for i in (-1, 0, 1):
                 for e in w.npcs_by_map.get((mx + i, my + j, p.z), ()):
-                    if e.alive and e.active and e.ai is not None and w.hostile_for(e, self) and \
-                            w.stat_for(e, self, "aggressive") == 1:
+                    if e.alive and e.active and e.ai is not None and w.hostile_for(e, self) and                             w.stat_for(e, self, "aggressive") == 1:
                         near[e.uid] = (e, distance(e.cx, e.cy, p.cx, p.cy), w.stat_for(e, self, "aggro_range"))
+        paid = self.__dict__.setdefault("sneak_paid", {})
+        again = self.stance_setting("Sneak.Past.Again", 300) * 1000
+        under = self.stance_setting("Sneak.Past.Levels", 5)
         for uid, (e, d, rng) in near.items():
-            if d <= rng and not e.in_combat:
-                self.sneak_near[uid] = True
+            if d <= rng and not e.in_combat and uid not in self.sneak_near and self.now >= paid.get(uid, 0) and                     monster_level(self.data, e) >= self.player_level() - under and                     (w.in_zone(e.ai, p.fx, p.fy) or self.near_patrol(e, p.fx, p.fy)):
+                self.sneak_near[uid] = (p.cx, p.cy)
         for uid in list(self.sneak_near):
             e, d, rng = near.get(uid, (None, 1e9, 0))
             if e is None or e.in_combat:
                 self.sneak_near.pop(uid)                       # (seen after all, or gone)
             elif d > rng * 1.5:
-                self.sneak_near.pop(uid)
-                self.play_sound("Sneak_Past")
-                self.update_skill("Stealth", "+" + lbstr(self.stance_setting("Sneak.Past.XP", 0.15)))
+                x0, y0 = self.sneak_near.pop(uid)
+                if distance(x0, y0, p.cx, p.cy) >= rng:                                    # (you went past it)
+                    paid[uid] = self.now + again
+                    self.play_sound("Sneak_Past")
+                    self.update_skill("Stealth", "+" + lbstr(self.stance_setting("Sneak.Past.XP", 0.15)))
+
+    def near_patrol(self, e, x, y):
+        """Is x,y within Sneak.Past.Path tiles of monster e's patrol route (Patrol= on its map line)?"""
+        a, w = e.ai, self.w
+        way = getattr(a, "way", None)
+        if not way:
+            return False
+        reach = self.stance_setting("Sneak.Past.Path", 3) * w.tw
+        pts = [(a.home_ox + (wx - 0.5) * w.tw, a.home_oy + (wy - 0.5) * w.th) for wx, wy in way]
+        if len(pts) > 1 and not getattr(a, "pingpong", 0):
+            pts.append(pts[0])                           # (round and round: back to the first)
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:] or pts):
+            dx, dy = x2 - x1, y2 - y1
+            t = max(0.0, min(1.0, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy or 1)))
+            if distance(x, y, x1 + dx * t, y1 + dy * t) <= reach:
+                return True
+        return False
 
     def stance_state(self):
         return {"stance": self.stance, "stance_next": "" if self.stance_next == "-" else self.stance_next,

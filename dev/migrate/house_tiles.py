@@ -518,8 +518,11 @@ for _w, _b in WALL_BASES.items():
 # Under a house's roof, its side and back walls take a whole tile each, which leaves the rooms poky. These are the
 # floor with the wall as a strip along the outside edge(s) (a little over a quarter of the tile), so the room runs out
 # nearly to the wall: <Wall>_Thin_<Floor>001-008, the strip on the N, E, S, W side or the NE, SE, SW, NW corner.
-# build_content.thin_walls() puts them in place of the wall tiles under every roof.
-THIN_EDGES = ["N", "E", "S", "W", "NE", "SE", "SW", "NW"]
+# build_content.thin_walls() puts them in place of the wall tiles under every roof. 009-018 for rooms that aren't
+# rectangles (thin_wall_pieces.py): an inner corner (+NE: just the corner's square, where an L-shaped room turns or a
+# wall meets another), walls both sides (NS, EW: a passage a tile wide) and a dead end (three sides, open on the fourth).
+THIN_EDGES = ["N", "E", "S", "W", "NE", "SE", "SW", "NW", "+NE", "+SE", "+SW", "+NW", "NS", "EW", "NES", "ESW",
+              "NSW", "NEW"]
 THIN_FLOORS = {"Plank001": "Plank", "Tile001": "Tile", "Marble001": "Marble"}
 THIN_PX = 9                                         # the strip's width (2 of the 7 walk cells)
 
@@ -533,6 +536,12 @@ def thin_name(wall, floor, edges):
 
 def thin_walk(edges):
     rows = []
+    if edges.startswith("+"):                       # (an inner corner: only the corner's square)
+        c = edges[1:]
+        for y in range(7):
+            rows.append("".join("0" if (y < 2 if "N" in c else y > 4) and (x > 4 if "E" in c else x < 2) else "1"
+                                for x in range(7)))
+        return "".join(rows)
     for y in range(7):
         rows.append("".join("0" if ("N" in edges and y < 2) or ("S" in edges and y > 4) or
                                    ("W" in edges and x < 2) or ("E" in edges and x > 4) else "1" for x in range(7)))
@@ -545,6 +554,17 @@ def thin_wall(wall, floor, edges):
     ys, xs = np.mgrid[0:S, 0:S]
     t = THIN_PX
     strip = np.zeros((S, S), dtype=bool)
+    if edges.startswith("+"):                       # (an inner corner: the corner's square, lit on its two inner faces)
+        c = edges[1:]
+        strip = (ys < t if "N" in c else ys >= S - t) & (xs >= S - t if "E" in c else xs < t)
+        img[strip] = w[strip]
+        inner = strip & ((ys == t - 1) if "N" in c else (ys == S - t)) |             strip & ((xs == S - t) if "E" in c else (xs == t - 1))
+        img[inner] = np.minimum(255, img[inner] * 0.7)
+        rows_ = (ys == t) if "N" in c else (ys == S - t - 1)
+        cols_ = (xs == S - t - 1) if "E" in c else (xs == t)
+        near = (xs >= S - t - 1 if "E" in c else xs <= t) & (ys <= t if "N" in c else ys >= S - t - 1)
+        img[(rows_ | cols_) & near & ~strip] *= 0.6
+        return to_rows(img)
     if "N" in edges:
         strip |= ys < t
     if "S" in edges:

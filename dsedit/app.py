@@ -112,6 +112,9 @@ class QuickOpen(Dialog):
         super().__init__(app.root, "Go to anything", ok="Go")
         self.app = app
         items = []
+        with app.busy("Opening every section…"):            # (Ctrl+K looks in them all)
+            for cls in app.page_classes:
+                app.build(cls)
         for page in app.pages:
             for key, label in page.search_items():
                 items.append(("%s\x1f%s" % (page.kind, key), "%s   ·  %s" % (label, page.title), page.title))
@@ -152,33 +155,46 @@ class App:
         self.project = Project(root_dir)
         self.root.geometry("1440x900")
         self.root.minsize(1100, 700)
-        try:
-            self.root.state("zoomed")
-        except tk.TclError:
-            pass
-        self.page, self.pages, self.rail_items = None, [], {}
+        self.page, self.built, self.rail_items = None, {}, {}
         self._busy, self._work = [], {}
         self.build_chrome()
         from .pages import all_pages
-        splash = self.splash()                          # (the sections read every file once: it takes a while)
-        for cls in all_pages():
-            splash.configure(text="Loading %s…" % cls.title)
-            splash.update()
-            self.pages.append(cls(self))
-        splash.winfo_toplevel().destroy()
-        for i, pg in enumerate(self.pages):
-            self.add_rail_item(pg, i)
+        self.page_classes = all_pages()
+        splash = self.splash()
+        splash.configure(text="Loading %s…" % self.page_classes[0].title)
+        splash.update()
+        first = self.build(self.page_classes[0])        # (the rest are made the first time they're opened: each reads
+        for i, cls in enumerate(self.page_classes):     # its files once, and all of them took the best part of a minute)
+            self.add_rail_item(cls, i)
         self.add_rail_footer()
         self.bind_keys()
         self.root.protocol("WM_DELETE_WINDOW", self.quit)
-        self.show(self.pages[0])
+        self.show(first)
+        splash.winfo_toplevel().destroy()
         self.root.deiconify()
+        try:                                            # (not before: zooming a hidden window shows it, empty)
+            self.root.state("zoomed")
+        except tk.TclError:
+            pass
         self.root.after(600, self.watch)
+
+    @property
+    def pages(self):
+        """The sections made so far (an unopened one has nothing to save or find)."""
+        return [self.built[c] for c in self.page_classes if c in self.built]
+
+    def build(self, cls):
+        """The section of that class, made now if it hasn't been yet."""
+        if cls not in self.built:
+            with self.busy("Opening %s…" % cls.title) if self.page is not None else contextlib.nullcontext():
+                self.built[cls] = cls(self)
+        return self.built[cls]
 
     def splash(self):
         """A little window while the editor starts (the main one is hidden till it's ready): returns its label."""
         w = tk.Toplevel(self.root)
         w.overrideredirect(True)
+        w.attributes("-topmost", True)
         w.configure(bg=T.ACCENT_DARK)
         box = tk.Frame(w, bg=T.RAIL, padx=T.px(28), pady=T.px(20))
         box.pack(padx=2, pady=2)
@@ -278,12 +294,12 @@ class App:
         self.info_var = tk.StringVar()
         tk.Label(bar, textvariable=self.info_var, bg="#e3d8c5", fg=T.MUTED, font=T.FONT_SMALL, padx=12).pack(side="right")
 
-    def add_rail_item(self, page, i):
+    def add_rail_item(self, cls, i):
         f = tk.Frame(self.rail_list, bg=T.RAIL, cursor="hand2")
         f.pack(fill="x")
-        icon = tk.Label(f, text=page.icon, bg=T.RAIL, fg="#d9a75a", font=("Segoe UI Symbol", 13), width=3)
+        icon = tk.Label(f, text=cls.icon, bg=T.RAIL, fg="#d9a75a", font=("Segoe UI Symbol", 13), width=3)
         icon.pack(side="left", padx=(10, 0), pady=7)
-        lab = tk.Label(f, text=page.title, bg=T.RAIL, fg=T.RAIL_TEXT, font=("Segoe UI", 11), anchor="w")
+        lab = tk.Label(f, text=cls.title, bg=T.RAIL, fg=T.RAIL_TEXT, font=("Segoe UI", 11), anchor="w")
         lab.pack(side="left", fill="x", expand=True)
         dot = tk.Label(f, text="", bg=T.RAIL, fg="#f2c46d", font=("Segoe UI", 11))
         dot.pack(side="right", padx=12)
@@ -291,10 +307,10 @@ class App:
         key.pack(side="right")
         widgets = (f, icon, lab, dot, key)
         for w in widgets:
-            w.bind("<Button-1>", lambda e, p=page: self.show(p))
-            w.bind("<Enter>", lambda e, p=page: self.rail_hover(p, True))
-            w.bind("<Leave>", lambda e, p=page: self.rail_hover(p, False))
-        self.rail_items[page] = (widgets, dot)
+            w.bind("<Button-1>", lambda e, c=cls: self.show(self.build(c)))
+            w.bind("<Enter>", lambda e, c=cls: self.rail_hover(c, True))
+            w.bind("<Leave>", lambda e, c=cls: self.rail_hover(c, False))
+        self.rail_items[cls] = (widgets, dot)
 
     def add_rail_footer(self):
         foot = tk.Frame(self.rail, bg=T.RAIL)
@@ -305,18 +321,19 @@ class App:
             l.pack(fill="x", pady=2)
             l.bind("<Button-1>", lambda e, c=cmd: c())
 
-    def rail_hover(self, page, on):
-        widgets, _ = self.rail_items[page]
-        bg = T.RAIL_SEL if page is self.page else (T.RAIL_HOT if on else T.RAIL)
+    def rail_hover(self, cls, on):
+        widgets, _ = self.rail_items[cls]
+        bg = T.RAIL_SEL if self.built.get(cls) is self.page else (T.RAIL_HOT if on else T.RAIL)
         for w in widgets:
             w.configure(bg=bg)
 
     def refresh_chrome(self):
-        for pg, (widgets, dot) in self.rail_items.items():
-            bg = T.RAIL_SEL if pg is self.page else T.RAIL
+        for cls, (widgets, dot) in self.rail_items.items():
+            pg = self.built.get(cls)
+            bg = T.RAIL_SEL if pg is not None and pg is self.page else T.RAIL
             for w in widgets:
                 w.configure(bg=bg)
-            dot.configure(text="●" if pg.is_dirty() else "")
+            dot.configure(text="●" if pg is not None and pg.is_dirty() else "")
         p = self.page
         if p is None:
             return
@@ -339,8 +356,10 @@ class App:
         page.on_show()
         self.refresh_chrome()
 
-    def page_of(self, kind):
-        return next(p for p in self.pages if p.kind == kind)
+    def page_of(self, kind, build=True):
+        """The section for kind (build=False: None if it hasn't been opened yet)."""
+        cls = next(c for c in self.page_classes if c.kind == kind)
+        return self.build(cls) if build else self.built.get(cls)
 
     def goto(self, kind, key, **kw):
         """Opens key in the section kind (map, script, tile, entity, rack, spell, quest, buildable, crop, minimap, or
@@ -447,8 +466,8 @@ class App:
         r.bind_all("<Control-z>", lambda e: None if in_text() else (self.page.undo(), "break")[1])
         r.bind_all("<Control-y>", lambda e: None if in_text() else (self.page.redo(), "break")[1])
         r.bind_all("<F5>", lambda e: self.play())
-        for i in range(min(9, len(self.pages))):              # (Ctrl+1..9: the first nine sections)
-            r.bind_all("<Control-Key-%d>" % (i + 1), lambda e, i=i: self.show(self.pages[i]))
+        for i in range(min(9, len(self.page_classes))):       # (Ctrl+1..9: the first nine sections)
+            r.bind_all("<Control-Key-%d>" % (i + 1), lambda e, i=i: self.show(self.build(self.page_classes[i])))
 
     def watch(self):
         """Every so often: the dots and buttons, and files changed by something else (a rebuild)."""

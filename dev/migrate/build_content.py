@@ -886,6 +886,25 @@ def drink_script(potion, heal=0, skill=None, xp=0, msg=""):
     return steps
 
 
+def climb_script(verb, dz, msg):
+    """The same X,Y one level up or down: the climb heard first, then the move (climb_sound_first.py)."""
+    return [
+        "// The same X,Y one level %s: its sound, a moment, then there. If that map doesn't exist the engine" % verb,
+        "// says it leads nowhere and the player stays put.",
+        ("Get.Value", "CALCULATION", "$Map.Z%s" % dz, "Variable.9$"),
+        ("Get.Value", "CALCULATION", "$Player.X", "Variable.7$"),
+        ("Get.Value", "CALCULATION", "$Player.Y", "Variable.6$"),
+        (">Map.Exists", "$Map.X,$Map.Y,$Variable.9", "@nowhere"),
+        ("Play.Sound", "Ladder"),
+        ("Wait", "0.4"),
+        ("Teleport", "$Variable.7,$Variable.6", "$Map.X,$Map.Y,$Variable.9"),
+        ("Display.Message", "Cyan", msg),
+        ("End",),
+        "nowhere:",
+        ("Teleport", "$Variable.7,$Variable.6", "$Map.X,$Map.Y,$Variable.9"),
+        ("End",)]
+
+
 def scripts():
     S = {}
     # ----- ladders: no special cases any more (the house ladder on the Isle is now a hatch down to its cellar)
@@ -895,16 +914,7 @@ def scripts():
                                 ("Climb Down Ladder009", "down", "-1", "You climb down the ladder."),
                                 ("Climb Up Stairs", "up", "+1", "You go up the stairs."),
                                 ("Climb Down Stairs", "down", "-1", "You go down the stairs.")):
-        S[name] = [
-            "// The same X,Y one level %s. If that map doesn't exist the engine says it leads nowhere" % verb,
-            "// and the player stays put, so the message is only shown once the map has really changed.",
-            ("Get.Value", "CALCULATION", "$Map.Z%s" % dz, "Variable.9$"),
-            ("Get.Value", "CALCULATION", "$Map.Name", "Variable.8$"),
-            ("Teleport", "$Player.X,$Player.Y", "$Map.X,$Map.Y,$Variable.9"),
-            (">Conditional", "$Map.Name<>$Variable.8", "@end"),
-            ("Play.Sound", "Ladder"),
-            ("Display.Message", "Cyan", msg),
-            "end:", ("End",)]
+        S[name] = climb_script(verb, dz, msg)
 
     # ----- map entry
     S["1,1,-1"] = [("Display.Message", "Cyan", "A damp cellar. The far wall has fallen in, and something squeaks in the dark."), ("End",)]

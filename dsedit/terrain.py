@@ -253,7 +253,8 @@ def groups(project, layer):
         if kind == "Shore":                            # (a coast's diagonal pieces go in by themselves)
             out["hide:" + sec] = Group("Hidden", "hide:" + sec, title, pieces, None)
         elif kind in ("Stretch", "Rug", "Join"):
-            mid = names[len(names) // 2] or pieces[0]
+            body = names.index("") if "" in names else len(names)   # (what's stretched: the pieces before a gap)
+            mid = names[body // 2] or pieces[0]
             under = [project.tiles_ini.get(n, "Below", "").strip() for n in pieces]   # (a town wall's face)
             out["set:" + sec] = Group("Set", "set:" + sec, title, pieces + [b for b in under if b], mid)
         elif kind == "Whole":                          # (a bed: its head and foot go down together)

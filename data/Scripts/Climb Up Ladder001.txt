@@ -1,9 +1,13 @@
-// The same X,Y one level up. If that map doesn't exist the engine says it leads nowhere
-// and the player stays put, so the message is only shown once the map has really changed.
+// The same X,Y one level up: its sound, a moment, then there. If that map doesn't exist the engine
+// says it leads nowhere and the player stays put.
 01	Get.Value	CALCULATION	$Map.Z+1	Variable.9$
-02	Get.Value	CALCULATION	$Map.Name	Variable.8$
-03	Teleport	$Player.X,$Player.Y	$Map.X,$Map.Y,$Variable.9
-04	>Conditional	$Map.Name<>$Variable.8	07
+02	Get.Value	CALCULATION	$Player.X	Variable.7$
+03	Get.Value	CALCULATION	$Player.Y	Variable.6$
+04	>Map.Exists	$Map.X,$Map.Y,$Variable.9	10
 05	Play.Sound	Ladder
-06	Display.Message	Cyan	You climb up the ladder.
-07	End
+06	Wait	0.4
+07	Teleport	$Variable.7,$Variable.6	$Map.X,$Map.Y,$Variable.9
+08	Display.Message	Cyan	You climb up the ladder.
+09	End
+10	Teleport	$Variable.7,$Variable.6	$Map.X,$Map.Y,$Variable.9
+11	End

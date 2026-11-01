@@ -231,6 +231,12 @@ Format:  Command  ARG 1 | ARG 2 | ...
     2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
          (If it is met, the script continues on the next line)
 
+>Map.Exists    MAP NAME | GOTO LINE IF NOT MET
+    CONDITION: Requires that a map exists (a stair or ladder that leads somewhere) in order to continue
+    1. MAP NAME: The name of the map (X,Y,Z, e.g. 1,1,-1)
+    2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
+         (If it is met, the script continues on the next line)
+
 >On.Map    REQUIRED MAP NAME | GOTO LINE IF NOT MET
     CONDITION: Requires that the player is on a certain map in order to continue
     1. REQUIRED MAP NAME: The name of the map that the player must be on (X,Y,Z, e.g. 1,1,0)

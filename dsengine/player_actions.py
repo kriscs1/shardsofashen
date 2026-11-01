@@ -195,6 +195,15 @@ class ActionsMixin:
     # =================================================================================================================
     # What was clicked: the browser names it, the server finds it
     # =================================================================================================================
+    def open_part_of(self, decor, lx, ly):
+        """Is lx,ly (in its cell) past the end of a bed (1.5 tiles long: its foot's tile is walkable where nothing's
+        drawn)? As the page's openPartOf. (Not trees or rocks: walkable under their leaves, but drawn there.)"""
+        walk = self.data.tile_walk_data(decor)
+        if "Sleep" not in self.data.tile_ini(decor, "Use.Words", "") or len(walk) != 49 or "0" not in walk:
+            return False
+        col, row = min(6, max(0, int(lx * 7 // self.tw))), min(6, max(0, int(ly * 7 // self.th)))
+        return walk[row * 7 + col] == "1"
+
     def tile_entity_at(self, gx, gy):
         """The tile at global pixel gx,gy as a Tile entity (its decor if it has one), as this player sees it."""
         z = self.player.z
@@ -202,6 +211,8 @@ class ActionsMixin:
         if m is None or not m.inside(tx, ty):
             return None
         tile, decor = self.cell_names(m, tx, ty)
+        if decor and self.open_part_of(decor, gx - m.ox - (tx - 1) * self.tw, gy - m.oy - (ty - 1) * self.th):
+            decor = ""                                  # (past where it's drawn - a bed's foot - the floor under it)
         name = decor or tile
         if not name or name == "Black001":
             return None
@@ -492,18 +503,22 @@ class ActionsMixin:
         return e.x + {2: 2, 8: -2}.get(face, 0), e.y - 8, face          # (the seat under them, feet on the floor)
 
     def seat_front(self, e):
-        """Where to stand before sitting on e: a step out from it the way you'll face (centre point), or None if
-        that's no floor (then you sit from where you are)."""
+        """Where to stand before sitting on e: a step out from it the way you'll face (centre point); if that's no
+        floor (a bench at a table), a step out from its nearest other side; None if it's walled in (then you sit
+        from where you are)."""
         spot = self.seat_spot(e)
         if spot is None:
             return None
         x, y, face = spot
         p = self.player
-        vx, vy = {1: (0, -1), 2: (1, 0), 4: (0, 1), 8: (-1, 0)}[face]
-        cx, cy = x + p.w / 2 + vx * 22, y + p.h / 2 + vy * 22
-        if not self.w.pixel_walkable(p.z, cx + (p.fx - p.cx), cy + (p.fy - p.cy), self):
-            return None
-        return cx, cy
+        ways = sorted((1, 2, 4, 8), key=lambda f: (f != face, distance(
+            x + p.w / 2 + {2: 22, 8: -22}.get(f, 0), y + p.h / 2 + {1: -22, 4: 22}.get(f, 0), p.cx, p.cy)))
+        for f in ways:
+            vx, vy = {1: (0, -1), 2: (1, 0), 4: (0, 1), 8: (-1, 0)}[f]
+            cx, cy = x + p.w / 2 + vx * 22, y + p.h / 2 + vy * 22
+            if self.w.pixel_walkable(p.z, cx + (p.fx - p.cx), cy + (p.fy - p.cy), self):
+                return cx, cy
+        return None
 
     def sit_on(self, e):
         spot = self.seat_spot(e)

@@ -570,6 +570,7 @@ class Project:
         self._sprites = {}
         self._lists = {}
         self._index = None
+        self._parsed = {}                       # {(path, parse): (mtime, what index() read from it)}: unchanged files aren't read again
         self.minimap_colours = self.load_minimap_colours()
         b = self.sprite("Tiles", "Black001")
         if b is not None:
@@ -994,37 +995,27 @@ class Project:
         if self._index is None:
             idx = {"tile": {}, "entity": {}, "script_trigger": {}, "script_mention": {}, "rack": {}, "item_rack": {},
                    "drops": {}}
-            W, H = self.map_w, self.map_h
             for m in self.maps():
                 try:
-                    lines = read_text_lines(self.map_path(m))
+                    tiles, triggers, ents = self.parsed(self.map_path(m), self._index_map)
                 except OSError:
                     continue
-                for y, row in enumerate(lines[:H]):
-                    for x, c in enumerate(row.split(":")):
-                        cell = Cell(c)
-                        for t in (cell.tile, cell.decor, cell.roof, cell.infront):
-                            if t:
-                                idx["tile"].setdefault(t, {}).setdefault(m, (x + 1, y + 1))
-                for l in lines[H:]:
-                    e = Entity.parse(l)
-                    if e.raw is not None:
-                        continue
-                    if e.kind == "Trigger":
-                        idx["script_trigger"].setdefault(e.script, []).append((m, e.x, e.y))
-                    elif e.kind != "Lock":
-                        idx["entity"].setdefault(e.name, {}).setdefault(m, (e.x // self.tile_w + 1, e.y // self.tile_h + 1))
+                for t, xy in tiles.items():
+                    idx["tile"].setdefault(t, {}).setdefault(m, xy)
+                for script, x, y in triggers:
+                    idx["script_trigger"].setdefault(script, []).append((m, x, y))
+                for name, xy in ents.items():
+                    idx["entity"].setdefault(name, {}).setdefault(m, xy)
             names = set(self.entities())
             for s in self.scripts():
                 try:
-                    text = "\n".join(read_text_lines(self.script_path(s)))
+                    words, racks = self.parsed(self.script_path(s), self._index_script)
                 except OSError:
                     continue
-                for word in set(re.findall(r"[A-Za-z][A-Za-z0-9_()']*", text)):
-                    if word in names:
-                        idx["script_mention"].setdefault(word, []).append(s)
-                for m in re.finditer(r"Display\.Item\.Rack\t[^\t]*\t[^\t]*\t([^\t\r\n]+)", text):
-                    idx["rack"].setdefault(m.group(1).strip(), []).append(s)
+                for word in words & names:
+                    idx["script_mention"].setdefault(word, []).append(s)
+                for r in racks:
+                    idx["rack"].setdefault(r, []).append(s)
             for rack in self.racks_ini.sections():
                 for k, v in self.racks_ini.items(rack):
                     if k.lower().startswith("item"):
@@ -1038,3 +1029,39 @@ class Project:
                     idx["drops"].setdefault(d.split(",")[0], []).append(npc)
             self._index = idx
         return self._index
+
+    def parsed(self, path, parse):
+        """parse(the file's lines), kept till the file changes."""
+        st = mtime(path)
+        if st is None:
+            raise OSError(path)
+        hit = self._parsed.get((path, parse))
+        if hit is None or hit[0] != st:
+            hit = self._parsed[path, parse] = (st, parse(read_text_lines(path)))
+        return hit[1]
+
+    def _index_map(self, lines):
+        """A map's part of the index: ({tile: its first (x, y)}, [(script, x, y) of its triggers], {entity: (x, y)})."""
+        tiles, triggers, ents = {}, [], {}
+        for y, row in enumerate(lines[:self.map_h]):
+            for x, c in enumerate(row.split(":")):
+                cell = Cell(c)
+                for t in (cell.tile, cell.decor, cell.roof, cell.infront):
+                    if t:
+                        tiles.setdefault(t, (x + 1, y + 1))
+        for l in lines[self.map_h:]:
+            e = Entity.parse(l)
+            if e.raw is not None:
+                continue
+            if e.kind == "Trigger":
+                triggers.append((e.script, e.x, e.y))
+            elif e.kind != "Lock":
+                ents.setdefault(e.name, (e.x // self.tile_w + 1, e.y // self.tile_h + 1))
+        return tiles, triggers, ents
+
+    @staticmethod
+    def _index_script(lines):
+        """A script's part of the index: (every word in it, the racks it shows)."""
+        text = "\n".join(lines)
+        return (set(re.findall(r"[A-Za-z][A-Za-z0-9_()']*", text)),
+                [m.group(1).strip() for m in re.finditer(r"Display\.Item\.Rack\t[^\t]*\t[^\t]*\t([^\t\r\n]+)", text)])

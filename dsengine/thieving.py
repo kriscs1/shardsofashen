@@ -55,7 +55,9 @@ class ThiefMixin:
         return max(5, min(95, c))
 
     def watching(self, e):
-        """Does NPC e see you now (its line of sight, and the way it faces if it looks one way)?"""
+        """Does NPC e see you now (its line of sight, and the way it faces if it looks one way)? Asleep, never."""
+        if e.ai is not None and getattr(e.ai, "asleep", False):
+            return False
         p = self.player
         d = distance(e.cx, e.cy, p.cx, p.cy)
         if d > 200 or not self.w.in_line_of_sight(e.z, e.cx, e.cy, p.cx, p.cy):
@@ -134,6 +136,7 @@ class ThiefMixin:
             else:
                 self.display_message("Something rattles as you reach in. You freeze, and leave it.", "FAIL", "Fail")
                 self.act_done(False)
+                self.wake_sleepers(e, self.thief_num("Wake", "Rattle", 160))
             return
         total = sum(w for _, _, w in loot)
         roll, name, amount = rnd() * total, loot[0][0], loot[0][1]
@@ -153,6 +156,22 @@ class ThiefMixin:
                              ("%d gold" % qty if name == "Gold_Coin(s)" else "the " + pretty(name)), "SUCCESS")
         self.update_skill("Stealth", "+" + lbstr(self.thief_num("Valuables", "XP", 0.4) * max(1, level) ** 0.5))
         self.act_done(True)
+
+    def wake_sleepers(self, at, radius):
+        """Thieving made a noise at thing at: whoever's asleep that near wakes and gets up (and stays up a while);
+        one who then sees you shouts for the guard."""
+        w = self.w
+        for n in list(w.npcs_near(at.z, at.cx, at.cy)):
+            a = n.ai
+            if n.type != NPC or not n.alive or a is None or not getattr(a, "asleep", False) or                     distance(n.cx, n.cy, at.cx, at.cy) > radius:
+                continue
+            w.npc_get_up(n, a)
+            a.woken_until = self.now + int(self.thief_num("Wake", "Minutes", 2) * 60000)
+            w.npc_face(n, n.cx, n.cy, self.player.cx, self.player.cy)
+            w.fx({"t": "mark", "kind": "heard", "u": n.uid}, n.z, n.cx, n.cy, self)
+            if "Talk to" in (n.use_words or "") and not w.hostile_for(n, self) and self.watching(n):
+                self.caught(n, "house")
+                return
 
     def shopkeeper_near(self, e):
         """(the shopkeeper NPC, its rack) nearest shelf e, on its map: someone whose Talk to shows a shop."""

@@ -199,13 +199,18 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
   `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab always shows it out of its usual level
   (20/20; drained 18/20, red; boosted 23/20, green, a potion's or spell's boost to your blows counted in), and hitpoints and your level go by the usual one.
-- **Stances** (`dsengine/stances.py`, `data/Stances.ini`; the round button by your health, or Q): none, Fighting
+- **Stances** (`dsengine/stances.py`, `data/Stances.ini`; a round button for each by your health, never one that cycles
+  (a phone: the one you're in, which opens the others; the chosen one fills a ring as it takes hold), or Q): none, Fighting
   (blows and guard up, magic hurts more), Channelling (spells stronger, wards and spell boosts longer, drains shrugged
   off; slower, a weaker guard; never potions: herbs), Sneaking (heard and seen less, more with Stealth; lookouts' sight
   cones shown; Pickpocket, Steal; slower). Each stance shows on whoever's in it (a red ring, a blue ring and motes, a
   crouch: `render.js` drawStance). A moment to change; a blow or a spell ends Sneaking. Monsters hear you
   (`noise_radius`): a lookout turns to look, but nothing sees or hears through a wall. A blow on one that never saw you
   is a sneak attack. Feedback: a ? over one that heard you, a ! and a sound when you're seen, a sound slipping past.
+  Slipping past pays Stealth only for walking past it yourself, in its roam or near its patrol's path, against one
+  above your level or not far under it, once a monster a while: standing still near one teaches nothing. Loud thieving (a chest
+  forced, a rattle) wakes sleepers near (`wake_sleepers`); asleep, nobody sees your hand. A standing lookout's map
+  line can say how often it glances about (`Turn=` seconds; 0 never, but to a sound and back).
 - **Thieving** (`dsengine/thieving.py`, `data/Thieving.ini`): pockets by trade, shops' shelves, houses' Valuables
   (about half the houses: `build_stealth.py`); caught, a guard comes (levels above you), seen by everyone but after you
   alone, and that shopkeeper won't serve you a while. **Locks** (`dsengine/locks.py`, `data/Locks.ini`): chests have a
@@ -238,8 +243,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Homes and beds**: an NPC's `Home=` (an area) is where it is for the hours its Schedule keeps it in - townsfolk in
   their house at night, hens in their coop - and its `Bed=x,y` the bed it sleeps in at night (`<Name>_Sleep4`, made
   by `build_sleepers.py`; Talk gets "fast asleep"). Townsfolk have a house each (`assign_homes.py`: never a building
-  someone else lives or works in). Without either, a person goes out of the nearest door, an animal slips away once
-  nobody's near. `Roost=` is the old name of `Home=` (still read).
+  someone else lives or works in). Without either, a person goes out of the nearest door (no door on its map: into the
+  nearest tent, `Shelter=1` in Tiles.ini: `dev/migrate/houseless_tents.py`), an animal slips away once nobody's near.
+  A zzz rises over whoever's asleep, in bed or in a tent. `Schedule=Night` is a night owl (home by day, asleep if it
+  has a bed, out after dark: one plain townsperson a town, `night_folk.py`); `Schedule=Always` never goes home or to
+  bed (guards and tavern keepers have no bed: up all night already). `Roost=` is the old name of `Home=` (still read).
 - **Townsfolk climb stairs and ladders** (`npcs.py` npc_to_level, `dev/migrate/npc_stairs.py`): a bed upstairs is
   `Bed=x,y Bed.Level=1` (a home on another level, `Home.Level=`); at night they walk up to it and in the morning come
   back down, and with nobody who could see either end they're simply there (seen and heard only in sight of it:
@@ -286,7 +294,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   rename those.
 - **A scroll only teaches.** Learn it and the spell is yours for good, the scroll used up (if your Channeling is high
   enough; else it's kept); a scroll for a spell you know says "You already know this" (dismantle it for Shards).
-  Spells are cast from **Channeling**, the Stats box's third tab (click: cast; right-click: on or off the hotbar), or
+  Spells are cast from **Spells**, the Stats box's third tab (click: cast; right-click: on or off the hotbar), or
   the hotbar; a spell that needs a target and has none is held ready for the next click. Never "Cast" on a scroll.
 - **Scrolls are rare** (`dev/migrate/rare_scrolls.py`): one at a time (`Stackable=1`), none at the start, none from
   beasts or ordinary chests, and nobody writes them. They come from quests, a few chests in places of their own (the
@@ -320,7 +328,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **All tools wear** (`Durability`, no `Slot`): a use each go, and a broken one doesn't count until it's mended.
 
 **Places and furniture**
-- Inside walls are `*_Thin_Plank*` floor tiles with the wall drawn along their edge. Beds, bookshelves, chests,
+- Inside walls are `*_Thin_Plank*` floor tiles with the wall drawn along their edge (001-008 round a rectangle, 009-018
+  the inner corners, passages and dead ends: `house_tiles.THIN_EDGES`, `dev/migrate/thin_wall_pieces.py`; a set's
+  pieces after a gap row are put down by hand, the nine before it stretched). Beds, bookshelves, chests,
   sacks and work stations stand on the back-wall tile, against the wall, not a floorboard out from it.
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
@@ -434,13 +444,15 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
 - The camera stays on the player: past the last map there's only black (never held back at the edge of the maps).
-- Going somewhere else at once (a shardstone, a script, dying; not a ladder or a stair) fades the view out and in.
+- Going somewhere else at once (a shardstone, a script, dying; not a ladder or a stair) fades the view out and in, over
+  at least 2 seconds. A stair or a ladder is heard first, then you move (`>Map.Exists`, the sound, `Wait 0.4`, the
+  `Teleport`: `dev/migrate/climb_sound_first.py`).
 - Walking keeps to the walk masks: a fence thinner than a path cell stops the path (`maps.py` cross_r/cross_d) and
   the feet (a step never skips over it).
 - A tile changing (a door, a chopped tree) sends just that tile (`mapcells`), not the whole map again: keep it so.
   The phone and many NPCs make full-map repaints the thing that lags.
-- The Stats box's tabs are Stats, Gear and Channeling. Quests live in the journal (H): it shows the quests in hand,
-  done, and those you can start now (never the ones still locked), no rewards, and a click on one follows it.
+- The Stats box's tabs are Stats, Gear and Spells. Quests live in the journal (H), in two tabs: In hand (begun, and
+  those you can start now, never the ones still locked) and Done; no rewards, and a click on one follows it.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top
   left of the view, not in the sidebar.
 - **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch

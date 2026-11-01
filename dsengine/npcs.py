@@ -99,6 +99,7 @@ class NPCMixin:
         self.npc_face(e, e.cx, e.cy, p.cx, p.cy)
         if e.direction != before and self.now - getattr(a, "heard_at", -10 ** 9) > 4000:
             a.heard_at = self.now
+            a.turn_at = max(a.turn_at, self.now + 4000)       # (it looks that way a while before it turns back)
             s.heard_by(e)
         return False
 
@@ -241,6 +242,8 @@ class NPCMixin:
                 elif key == "FACE":                  # (N, E, S, W - or 1, 2, 4, 8 - the way it looks, standing)
                     face = {"N": 1, "E": 2, "S": 4, "W": 8}.get(value.upper()[:1], int(val(value)) or 4)
                     e.direction = a.face = face
+                elif key == "TURN":                  # (seconds between glances about; 0: only to a sound)
+                    a.turn_every = max(0.0, val(value))
                 elif key == "CONE":
                     a.cone = max(0, val(value))
                 elif key == "GROUP":
@@ -573,11 +576,19 @@ class NPCMixin:
             if a.fidgets and not a.fixed_pose and not lying and not a.pose_next:
                 self.npc_fidget(e, a, now)
             if not faced and now >= a.turn_at and not lying:
-                e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
-                if getattr(a, "face", 0) and rnd() < 0.75:   # (a lookout: mostly the way it's set to look)
-                    e.direction = a.face
-                self.animate_entity(e, False)
-                a.turn_at = now + random_number(2000, 5000)
+                every = getattr(a, "turn_every", None)
+                if every == 0:                            # (never glances about: back the way it faces, after a sound)
+                    if getattr(a, "face", 0) and e.direction != a.face:
+                        e.direction = a.face
+                        self.animate_entity(e, False)
+                    a.turn_at = now + 4000
+                else:
+                    e.direction = (1, 2, 4, 8)[random_number(1, 4) - 1]
+                    if getattr(a, "face", 0) and rnd() < 0.75:   # (a lookout: mostly the way it's set to look)
+                        e.direction = a.face
+                    self.animate_entity(e, False)
+                    a.turn_at = now + (random_number(2000, 5000) if every is None else
+                                       int(every * 1000 * (0.7 + rnd() * 0.6)))
             if now >= a.timer or now < a.timer - 600000:
                 self.npc_next_move(e, a)
 
@@ -1061,8 +1072,9 @@ class NPCMixin:
             busy, near = self.npc_to_level(e, a, sched, near)
             if busy:
                 return True
-        if getattr(a, "bed", None) and self.data.day_night_enabled:
-            if self.is_night() and not e.in_combat and not e.sched_away:
+        if getattr(a, "bed", None) and self.data.day_night_enabled and (own or "").upper() != "ALWAYS":
+            sleepy = not self.is_night() if sched == "Night" else self.is_night()   # (a night owl sleeps by day;
+            if sleepy and not e.in_combat and not e.sched_away and                     self.now >= getattr(a, "woken_until", 0):                       #  Always: up all night)
                 return self.npc_bedtime(e, a, near)
             if a.asleep:
                 self.npc_get_up(e, a)
@@ -1079,11 +1091,13 @@ class NPCMixin:
         away_now = (sched == "Day" and night) or (sched == "Night" and not night)
         far = near is None or near[1] > 380 or indoors_own   # (upstairs at home: gone at once, downstairs the while)
         if away_now and not e.sched_away:
+            person = self.data.animation_available(e.name) == 4
+            tent = self.nearest_shelter(e) if sched == "Day" and person and self.nearest_door(e) is None else None
             if sched == "Day" and not far:
                 door = self.bed_of(e)                                # (a cat to its bed: Sleeping_Jimmy is it, abed)
-                if door is None and self.data.animation_available(e.name) == 4:
-                    door = self.nearest_door(e)                      # (a person with no home of its own here)
-                if door is None:
+                if door is None and person:
+                    door = self.nearest_door(e) or (tent and tent[1])   # (a person with no home of its own here;
+                if door is None:                                     #  no door at all: a tent's front)
                     return False                                     # (an animal: it slips away once nobody's near)
                 d = distance(e.cx, e.cy, door[0], door[1])
                 if door is not None and d > 14:
@@ -1102,11 +1116,18 @@ class NPCMixin:
                 return False
             e.sched_away, e.sched_stuck, e.sched_best = True, 0, 1e9
             e.active = False
+            if tent is not None:                                   # (in the tent, asleep: zzz over it)
+                e.tent_front = tent[1]
+                self.set_entity_position(e, tent[0][0] - e.w / 2, tent[0][1] - e.h / 2)
             self.hours_check_at = -10 ** 9                         # (its sleeping self shows at once)
             return True
         if not away_now and e.sched_away:
             e.sched_away = False
             e.active = True
+            front = getattr(e, "tent_front", None)
+            if front is not None:                                  # (out of the tent in the morning)
+                e.tent_front = None
+                self.set_entity_position(e, front[0] - e.w / 2, front[1] - (e.fy - e.y))
             self.hours_check_at = -10 ** 9
             return False
         return e.sched_away
@@ -1294,6 +1315,31 @@ class NPCMixin:
             a.goal_until += 20000                               # (the climb too)
             return True
         return False
+
+    def nearest_shelter(self, e):
+        """((tent's middle), (the spot in front of it)) of the nearest shelter on its map (Tiles.ini Shelter=1: a
+        canvas tent) with open ground in front, where a person with no house and no door near sleeps; or None."""
+        m = self.maps.get(e.map) or self.map_at(e.z, e.x, e.y)
+        if m is None:
+            return None
+        cache = self.data.cache("shelter_spots")
+        key = (m.name, m.version)
+        spots = cache.get(key)
+        if spots is None:
+            spots = []
+            for y in range(1, self.yt + 1):
+                for x in range(1, self.xt + 1):
+                    c = m.cell(x, y)
+                    if "1" in (trim(self.data.tile_ini(m.tile[c], "Shelter", "")),
+                               trim(self.data.tile_ini(m.decor[c], "Shelter", "") if m.decor[c] else "")):
+                        mid = (m.ox + (x - 0.5) * self.tw, m.oy + (y - 0.5) * self.th)
+                        front = (mid[0], mid[1] + self.th)
+                        if y < self.yt and self.pixel_walkable(m.mz, front[0], front[1]):
+                            spots.append((mid, front))
+            cache[key] = spots
+        if not spots:
+            return None
+        return min(spots, key=lambda sp: distance(e.cx, e.cy, sp[1][0], sp[1][1]))
 
     def nearest_door(self, e):
         m = self.maps.get(e.map) or self.map_at(e.z, e.x, e.y)

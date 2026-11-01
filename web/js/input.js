@@ -13,7 +13,7 @@ import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, b
   wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
-import { J, hit as journalHit, pages as journalPages, spellClick, friendClick, journalQuests, TABS } from "./journal.js";
+import { J, hit as journalHit, pages as journalPages, spellClick, friendClick, journalQuests, TABS, QUESTS_SHOWN } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
 import { unlock, playSound } from "./audio.js";
 import { pretty, val } from "./util.js";
@@ -22,11 +22,21 @@ export const I = { mx: -1, my: -1, keys: new Set(), dir: 0, cursor: "pointer", c
   hoverEnt: null, joyDir: 0 };
 
 // ----- what's under the mouse
+function openPartOf(decor, lx, ly) {
+  // (a bed is 1.5 tiles long: its foot's tile is walkable where nothing's drawn, and a click there is the floor
+  // under it. As the server's open_part_of; not trees or rocks, drawn over where they're walkable)
+  const walk = String(tileIni(decor, "Walkable.Data", "")).trim();
+  if (!String(tileIni(decor, "Use.Words", "")).includes("Sleep") || walk.length !== 49 || !walk.includes("0")) return false;
+  const col = Math.min(6, Math.max(0, Math.floor(lx * 7 / G.tw))), row = Math.min(6, Math.max(0, Math.floor(ly * 7 / G.th)));
+  return walk[row * 7 + col] === "1";
+}
+
 function tileEntity(wx, wy, worldOnly) {
   const t = tileAt(S.mapZ, wx, wy);
   if (!t || t.tx < 1 || t.ty < 1 || t.tx > G.xt || t.ty > G.yt) return null;
   if (roofCovers(wx, wy) || fogBlack(wx, wy)) return null;
-  const [tile, decor] = cellOf(t.m, t.tx, t.ty);
+  let [tile, decor] = cellOf(t.m, t.tx, t.ty);
+  if (decor && openPartOf(decor, wx - t.m.ox - (t.tx - 1) * G.tw, wy - t.m.oy - (t.ty - 1) * G.th)) decor = "";
   const name = decor || tile;
   if (!name || name === "Black001") return null;
   const lock = S.locks.get(t.m.name + "," + t.tx + "," + t.ty);
@@ -105,9 +115,11 @@ export function mouseMove(x, y) {
     msg = { bag: "Bag|your stats, gear, quests and pack", chat: "Chat|the messages, and a line to say something",
       journal: "Journal and help", menu: "Menu|options, and leaving the game", admin: "Admin panel" }[tb];
   }
-  if (!msg && stanceAt(x, y)) {
-    U.hover = "stance";
-    msg = `#${STANCE_WORDS[S.me.stance || ""]}|~${M.on ? "Tap" : "Click (or Q)"}: ${nextStance() || "stand easy"}`;
+  const st = !msg && S.me ? stanceAt(x, y) : undefined;
+  if (st !== undefined) {
+    U.hover = "stance:" + st;
+    const chosen = st === (S.me.stance_next || S.me.stance || "");
+    msg = `#${STANCE_WORDS[st]}|~${chosen ? "The stance you're in" : (M.on ? "Tap" : "Click") + " to take it"}${M.on ? "" : " (Q: the next one)"}`;
   }
   const vit = !msg ? vitalsAt(x, y) : "";
   if (vit === "level") msg = "Your level|the best of your fighting skills";
@@ -127,7 +139,7 @@ export function mouseMove(x, y) {
   if (!msg && smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
     if (smx <= 81) msg = "Stats|your skills";
     else if (smx >= 84 && smx <= 135) msg = "Gear|what you are wearing";
-    else if (smx >= 138) msg = "Channeling|the spells you know: cast them from here";
+    else if (smx >= 138) msg = "Spells|the spells you know: cast them from here";
   }
   if (!msg && U.statsView === 2) {
     const i = spellTileAt(smx, smy);
@@ -235,8 +247,9 @@ export function mouseDown(button, x, y) {
     if (h >= 1 && h <= TABS) { J.tab = h; J.page = 1; J.focus = ""; }
     if (spellClick(h)) return;
     if (friendClick(h)) return;
-    if (h >= 100 && h < 107) {                     // (a quest: follow it, its place marked on the maps)
-      const q = journalQuests()[(J.page - 1) * 7 + h - 100];
+    if (h === 400 || h === 401) { J.done = h === 401; J.page = 1; return; }   // (Quests: In hand, or Done)
+    if (h >= 100 && h < 100 + QUESTS_SHOWN) {      // (a quest: follow it, its place marked on the maps)
+      const q = journalQuests()[(J.page - 1) * QUESTS_SHOWN + h - 100];
       if (q) toggleTracked(q.title);
       return;
     }
@@ -258,7 +271,15 @@ export function mouseDown(button, x, y) {
     }
   }
   if (left && !U.rcm && (desk || M.chat) && scrollBarClick(x, y)) return;
-  if (left && !U.rcm && S.me && stanceAt(x, y)) { send({ t: "stance", stance: nextStance() }); return; }
+  const st = left && !U.rcm && S.me ? stanceAt(x, y) : undefined;
+  if (st !== undefined) {
+    const chosen = st === (S.me.stance_next || S.me.stance || "");
+    if (M.on && chosen) { U.stanceOpen = !U.stanceOpen; return; }   // (a phone: the one you're in opens the rest)
+    U.stanceOpen = false;
+    if (!chosen) send({ t: "stance", stance: st });
+    return;
+  }
+  if (left) U.stanceOpen = false;
   if (left && M.on && !U.rcm) {
     const tb = touchButtonAt(x, y);
     if (tb === "bag") { M.bag = !M.bag; M.chat = false; if (M.bag && S.box.mode === "Conversation") send({ t: "close" }); return; }

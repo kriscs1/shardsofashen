@@ -1,7 +1,8 @@
 """Each monster's senses, by its kind (Entities.ini; npcs.py reads them):
 
   Sight.Cone    how wide it sees, in degrees: 360 all round (a bat, a spider's eyes, a Shard Remnant), a narrow wedge
-                for the dull-eyed and the dead; a lookout's map line Cone= says otherwise. Its Aggro.Range is how far.
+                for the dull-eyed and the dead; a lookout's map line Cone= says otherwise.
+  Aggro.Range   how far it sees (SIGHT, pixels).
   Hearing       how keen its ears are: how far your noise carries to it, as a part of how far it carries (2 a bat,
                 1.6 a wolf, 0.5 a scorpion, 0.3 a slime). One that looks one way turns to a sound; one that sees all
                 round comes for it.
@@ -32,6 +33,16 @@ SENSES = {
 }
 DEFAULT = (160, 1.0, 7)                         # (a foe not named here: one added later)
 
+# kind: how far it sees (Aggro.Range, pixels): far enough that slipping by takes care (the owner: "too easy to avoid")
+SIGHT = {
+    "Goblin": 170, "Hobgoblin": 160, "Rat": 110, "Bat": 170, "Wolf": 220, "Giant_Spider": 160, "Skeleton": 140,
+    "Cave_Troll": 170, "Bear": 170, "Snow_Wolf": 230, "Alpha_Wolf": 260, "Scorpion": 150, "Bog_Troll": 160,
+    "Frost_Troll": 200, "Bandit": 220, "Dragon": 360, "Barrow_King": 200, "Hob": 200, "Goblin_Archer": 260,
+    "Goblin_Shaman": 250, "Skeleton_Archer": 240, "Frost_Witch": 280, "Ashen_Cultist": 210, "Ashen_Priest": 240,
+    "Ember_Hound": 230, "Smuggler": 240, "Galaith_Dragon": 380, "Drake": 250, "Tomb_Guardian": 170,
+    "Living_Remnant": 240, "Shard_Warden": 280, "Goose": 64,
+}
+
 
 def main():
     ents = Ini(p("data", "Entities.ini"))
@@ -42,6 +53,8 @@ def main():
         cone, hearing, chase = SENSES.get(sec, DEFAULT)
         old = float(ents.get(sec, "Chase.Radius") or 4)
         ents.set(sec, "Sight.Cone", str(cone))
+        if sec in SIGHT:
+            ents.set(sec, "Aggro.Range", str(SIGHT[sec]))
         ents.set(sec, "Hearing", ("%g" % hearing))
         ents.set(sec, "Chase.Radius", ("%g" % max(old, chase)))
         n += 1

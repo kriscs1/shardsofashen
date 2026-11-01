@@ -157,8 +157,13 @@ def shape(project, brush, w, h):
         out[0][0], out[0][w - 1] = find("corner: east and south"), find("corner: west and south")
         out[h - 1][0], out[h - 1][w - 1] = find("corner: north and east"), find("corner: north and west")
         return out
-    if cols == 3 and rows >= 3 and all(len(r) == 3 and all(r) for r in grid):
-        return stretch(grid)                        # (a roof, the walls round a room: corners, edges, the middle)
+    body = []
+    for r in grid:                                  # (the rows before a gap: after it, pieces put down by hand - the
+        if len(r) != 3 or not all(r):               #  inner corners and ends of a room that isn't a rectangle)
+            break
+        body.append(r)
+    if cols == 3 and len(body) >= 3:
+        return stretch(body)                        # (a roof, the walls round a room: corners, edges, the middle)
     return None
 
 

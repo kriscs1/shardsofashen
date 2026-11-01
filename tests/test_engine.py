@@ -1010,7 +1010,7 @@ def test_the_way_down_is_through_the_chapel(world):
         s.out = []
         s.choose_verb(verb, e, gx, gy)                             # (as a click does: where, too)
         for _ in range(60):
-            world.tick(0.05)
+            world.tick(0.05, now=world.now + 50)                   # (the climb's heard, then a moment, then you move)
         return s.cur_map.name, any(ev.get("t") == "sound" and ev.get("name") == "Denied" for ev in s.out)
 
     s = join(world, "Pilgrim", "3,1,0", 17 * 32, 8 * 32)
@@ -1667,7 +1667,7 @@ def test_up_to_the_chapel_loft_and_its_bell(world):
         s.out = []
         s.choose_verb(verb, e, gx, gy)
         for _ in range(120):                                       # (time to walk there first)
-            world.tick(0.05)
+            world.tick(0.05, now=world.now + 50)
 
     use("Climb Up", 14, 8)
     assert s.cur_map.name == "3,1,1"
@@ -5088,3 +5088,157 @@ def test_prey_is_passive_everywhere():
                 fl = ln.split("	")
                 if fl[0] == "NPC" and len(fl) > 1 and fl[1] in prey:
                     assert "Attitude=Passive" in (fl[4] if len(fl) > 4 else ""), (f, ln)
+
+
+def test_sneaking_xp_is_for_getting_past(world, monkeypatch):
+    """Stealth xp for slipping past a monster is for walking past it yourself, in its roam or near its patrol's path,
+    against one above your level or not far under it, once a monster for a while: standing still while it wanders
+    off teaches nothing."""
+    m = world.maps["-2,15,0"]
+    at = lambda tx, ty: (m.ox + (tx - 1) * 32, m.oy + (ty - 1) * 32)
+    monkeypatch.setattr(world, "npc_sees", lambda e, a, s, d: False)   # (a perfect sneak, for the test)
+    gob = world.add_npc("Goblin", 0, *at(5, 5), "Attitude=Bad Zone=1,1,25,21")
+    s = join(world, "Creeper", "-2,15,0", 6 * 32, 5 * 32)
+    world.npc_give_up(gob, gob.ai)
+    s.stance = "Sneaking"
+    xp = lambda: s.skill_xp_of("Stealth")
+    before = xp()
+    s.sneak_tick()
+    assert gob.uid in s.sneak_near
+    world.set_entity_position(gob, *at(20, 18))                     # (it wanders off; you stood still)
+    s.sneak_tick()
+    assert xp() == before and gob.uid not in s.sneak_near
+    world.set_entity_position(gob, *at(5, 5))
+    s.sneak_tick()
+    s.player.x, s.player.y = at(18, 16)                              # (you walk on past it)
+    s.sneak_tick()
+    assert xp() > before
+    got = xp()
+    s.player.x, s.player.y = at(6, 5)                                # (back and past it again at once: nothing)
+    s.sneak_tick()
+    s.player.x, s.player.y = at(18, 16)
+    s.sneak_tick()
+    assert xp() == got
+    world.remove_entity(gob)
+    walker = world.add_npc("Goblin", 0, *at(3, 18), "Attitude=Bad Zone=3,18,3,18 Patrol=3,18/12,18")
+    world.npc_give_up(walker, walker.ai)
+    s.sneak_near.clear()
+    s.player.x, s.player.y = at(8, 16)                               # (out of its roam, 2 tiles off its path)
+    assert not world.in_zone(walker.ai, s.player.fx, s.player.fy) and s.near_patrol(walker, s.player.fx, s.player.fy)
+    s.player.x, s.player.y = at(8, 10)
+    assert not s.near_patrol(walker, s.player.fx, s.player.fy)
+    world.remove_entity(walker)
+    leave(world, s)
+
+
+def test_loud_thieving_wakes_sleepers(world):
+    """A lock forced or a rattle wakes whoever's asleep near; they get up and stay up a while, and one who sees you
+    shouts for the guard. Asleep, nobody sees your hand."""
+    sleeper = next(e for e in world.ents if e.ai is not None and getattr(e.ai, "bed", None) and e.z == 0 and
+                   world.data.loaded("%s_Sleep4" % e.name))
+    s = join(world, "Burglar", sleeper.map, 2 * 32, 2 * 32)
+    s.connected = True
+    day = world.day_fraction()
+    world.set_day_fraction(0.95)
+    for _ in range(900):
+        world.tick(0.05, now=world.now + 50)
+        if sleeper.ai.asleep:
+            break
+    assert sleeper.ai.asleep
+    s.player.x, s.player.y = sleeper.x, sleeper.y + 40
+    assert not s.watching(sleeper)
+    s.wake_sleepers(s.player, 224)
+    assert not sleeper.ai.asleep
+    for _ in range(20):
+        world.tick(0.05, now=world.now + 50)
+    assert not sleeper.ai.asleep                                     # (up a while, night or not)
+    world.set_day_fraction(day)
+    leave(world, s)
+
+
+def test_a_lookout_can_be_set_never_to_turn(world, monkeypatch):
+    """Turn= on a map line: how often it glances about (seconds); 0, never, but back the way it faces after a sound."""
+    monkeypatch.setattr(world, "npc_sees", lambda e, a, s, d: False)
+    m = world.maps["-2,15,0"]
+    s = join(world, "Watcher", "-2,15,0", 2 * 32, 2 * 32)          # (someone on the map, far off: it thinks)
+    g = world.add_npc("Smuggler", 0, m.ox + 22 * 32, m.oy + 15 * 32, "Attitude=Bad Stand=1 Face=S Turn=0")
+    assert g.ai.turn_every == 0 and g.direction == 4
+    for _ in range(200):
+        world.tick(0.05, now=world.now + 100)
+    assert g.direction == 4
+    g.direction = 1                                                  # (it turned to a sound)
+    for _ in range(80):
+        world.tick(0.05, now=world.now + 100)
+    assert g.direction == 4
+    world.remove_entity(g)
+    leave(world, s)
+
+
+def test_a_bed_is_clicked_where_its_drawn(world):
+    """A bed is 1.5 tiles: a click past its foot (the walkable half of Bed002's tile) is the floor under it."""
+    m = next(mm for mm in world.maps.values() if mm.mz == 0 and any(d == "Bed002" for d in mm.decor))
+    i = m.decor.index("Bed002")
+    xt = world.data.xt
+    ty = (i - 1) // xt + 1
+    tx = i - (ty - 1) * xt
+    assert m.cell(tx, ty) == i
+    s = join(world, "Sleepy", m.name, (tx - 1) * 32 + 16, (ty - 1) * 32 + 40)
+    x0, y0 = m.ox + (tx - 1) * 32, m.oy + (ty - 1) * 32
+    assert s.tile_entity_at(x0 + 16, y0 + 4).name == "Bed002"
+    assert s.tile_entity_at(x0 + 16, y0 + 28).name != "Bed002"
+    leave(world, s)
+
+
+def test_a_night_owl_sleeps_by_day_and_one_on_watch_never(world):
+    """Schedule=Night with a bed: asleep in it by day, up after dark. Schedule=Always: never to bed."""
+    sleeper = next(e for e in world.ents if e.ai is not None and getattr(e.ai, "bed", None) and e.z == 0 and
+                   world.data.loaded("%s_Sleep4" % e.name))
+    s = join(world, "Owl", sleeper.map, 2 * 32, 2 * 32)
+    day = world.day_fraction()
+    was = sleeper.ai.schedule if hasattr(sleeper.ai, "schedule") else None
+    try:
+        sleeper.ai.schedule = "Night"
+        sleeper.ai.woken_until = 0                                         # (not still up from a burglar)
+        world.set_day_fraction(0.5)
+        for _ in range(900):
+            world.tick(0.05, now=world.now + 50)
+            if sleeper.ai.asleep:
+                break
+        assert sleeper.ai.asleep                                          # (by day: abed)
+        world.set_day_fraction(0.95)
+        for _ in range(20):
+            world.tick(0.05, now=world.now + 50)
+        assert not sleeper.ai.asleep                                      # (after dark: up)
+        sleeper.ai.schedule = "Always"
+        for _ in range(200):
+            world.tick(0.05, now=world.now + 50)
+        assert not sleeper.ai.asleep                                      # (on watch all night)
+    finally:
+        sleeper.ai.schedule = was
+        world.set_day_fraction(day)
+        leave(world, s)
+
+
+def test_one_with_no_door_sleeps_in_a_tent(world):
+    """Galaith's town crier has no house and no door on the square: at night into the tent (houseless_tents.py),
+    zzz over it; out of it in the morning."""
+    crier = next(e for e in world.ents if e.npc_id == "Town_Crier_Galaith")
+    assert world.nearest_door(crier) is None and world.nearest_shelter(crier) is not None
+    s = join(world, "Passer", crier.map, 2 * 32, 2 * 32)
+    day = world.day_fraction()
+    try:
+        world.set_day_fraction(0.95)
+        for _ in range(1200):
+            world.tick(0.05, now=world.now + 50)
+            if crier.sched_away:
+                break
+        assert crier.sched_away and not crier.active
+        from dsengine.view import shared_state
+        assert shared_state(world, crier)["zz"] == 1
+        world.set_day_fraction(0.5)
+        for _ in range(20):
+            world.tick(0.05, now=world.now + 50)
+        assert crier.active and not crier.sched_away and shared_state(world, crier)["zz"] == 0
+    finally:
+        world.set_day_fraction(day)
+        leave(world, s)
