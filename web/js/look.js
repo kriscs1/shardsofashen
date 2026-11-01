@@ -22,20 +22,24 @@ export const PRESETS = {
 
 export const DEFAULT_LOOK = { skin: PRESETS.skin[0], hair: PRESETS.hair[0], shirt: PRESETS.shirt[0], legs: PRESETS.legs[0] };
 
-function hex(c) {
-  const n = parseInt(c.slice(1), 16);
+function hex(c) {                   // ("#a83a1a" or "a83a1a")
+  const n = parseInt(c.replace("#", ""), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
 const lum = (c) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] + 1;
 
-// The sprite's other colours, kept as they are: the boots, the eyes, the mouth
-const KEEP = [[128, 128, 128], [88, 88, 88], [40, 20, 30], [190, 90, 120]];
-const NEAR = 30 * 30;           // how far (squared, in RGB) a pixel may be from one of the sprite's colours
+const NEAR = 30 * 30;           // how far (squared, in RGB) a pixel may be from one of the picture's colours
+
+// A part's shade in its new colour: as much lighter or darker than the new main colour as it was than the old one
+function shadeOf(want, shade, main) {
+  const k = Math.min(1.8, lum(shade) / lum(main));
+  return want.map((v) => Math.max(0, Math.min(255, Math.round(k >= 1 ? v + (255 - v) * (k - 1) * 0.6 : v * k))));
+}
 
 function swaps(look) {
-  // [[the sprite's colour, what it becomes]] for every colour the sprite is drawn in
-  const out = KEEP.map((c) => [c, c]);
+  // [[the sprite's colour, what it becomes]] for each part's colours (its others, the eyes, mouth and boots: kept)
+  const out = [];
   for (const [part, [main, shades]] of Object.entries(PARTS)) {
     const want = look && look[part];
     if (!want) {
@@ -43,13 +47,43 @@ function swaps(look) {
       continue;
     }
     const w = hex(want);
-    out.push([main, w]);
-    for (const s of shades) {
-      const k = Math.min(1.8, lum(s) / lum(main));
-      out.push([s, w.map((v) => Math.max(0, Math.min(255, Math.round(k >= 1 ? v + (255 - v) * (k - 1) * 0.6 : v * k))))]);
-    }
+    out.push(...[main, ...shades].map((s) => [s, shadeOf(w, s, main)]));
   }
   return out;
+}
+
+// The picture in new colours, as a canvas: pairs [[a colour it's drawn in, what it becomes]]; every other colour in it
+// is kept as it is, never mistaken for one of those. Each pixel is matched to the nearest of the picture's colours, not
+// exactly: some browsers (Brave, Firefox's and Safari's fingerprinting protection) add a little noise to pictures read
+// back from a canvas, and an exact match would leave those pixels in their old colours, as dots. The pixel is then
+// written in its clean new colour. (Player looks and townsfolk colourings both: one way, so they look alike.)
+function recolour(base, pairs) {
+  const c = document.createElement("canvas");
+  c.width = base.width;
+  c.height = base.height;
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.drawImage(base, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height);
+  const px = d.data;
+  const own = new Set();
+  for (let i = 0; i < px.length; i += 4) if (px[i + 3] >= 128) own.add((px[i] << 16) | (px[i + 1] << 8) | px[i + 2]);
+  const all = pairs.slice();
+  for (const v of own) {
+    const col = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+    if (!pairs.some(([f]) => (f[0] - col[0]) ** 2 + (f[1] - col[1]) ** 2 + (f[2] - col[2]) ** 2 < 9)) all.push([col, col]);
+  }
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] < 128) { px[i + 3] = 0; continue; }        // (see-through stays see-through, noise or not)
+    let best = null, bd = NEAR + 1;
+    for (const [from, to] of all) {
+      const dr = px[i] - from[0], dg = px[i + 1] - from[1], db = px[i + 2] - from[2];
+      const dd = dr * dr + dg * dg + db * db;
+      if (dd < bd) { bd = dd; best = to; }
+    }
+    if (best) { px[i] = best[0]; px[i + 1] = best[1]; px[i + 2] = best[2]; px[i + 3] = 255; }
+  }
+  x.putImageData(d, 0, 0);
+  return c;
 }
 
 const cache = new Map();
@@ -65,33 +99,12 @@ export function bodyFrame(name, look) {
 
 export function lookImage(name, look) {
   // The sprite name (a Player frame) in these colours: a canvas, or the plain sprite while it loads.
-  // Each pixel is matched to the nearest of the sprite's own colours, not exactly: some browsers (Brave, Firefox's
-  // and Safari's fingerprinting protection) add a little noise to pictures read back from a canvas, and an exact
-  // match would leave those pixels in their old colours, as dots. The pixel is then written in its clean new colour.
   const base = sprite(name);
   if (!base || !look || !/^Player/.test(name)) return base;
   const key = name + "|" + lookKey(look);
   let c = cache.get(key);
   if (c) return c;
-  c = document.createElement("canvas");
-  c.width = base.width;
-  c.height = base.height;
-  const x = c.getContext("2d", { willReadFrequently: true });
-  x.drawImage(base, 0, 0);
-  const d = x.getImageData(0, 0, c.width, c.height);
-  const map = swaps(look);
-  const px = d.data;
-  for (let i = 0; i < px.length; i += 4) {
-    if (px[i + 3] < 128) { px[i + 3] = 0; continue; }        // (see-through stays see-through, noise or not)
-    let best = null, bd = NEAR + 1;
-    for (const [from, to] of map) {
-      const dr = px[i] - from[0], dg = px[i + 1] - from[1], db = px[i + 2] - from[2];
-      const dd = dr * dr + dg * dg + db * db;
-      if (dd < bd) { bd = dd; best = to; }
-    }
-    if (best) { px[i] = best[0]; px[i + 1] = best[1]; px[i + 2] = best[2]; px[i + 3] = 255; }
-  }
-  x.putImageData(d, 0, 0);
+  c = recolour(base, swaps(look));
   if (cache.size > 2000) cache.clear();
   cache.set(key, c);
   return c;
@@ -101,7 +114,6 @@ export function lookImage(name, look) {
 // (Entities.ini Look.Parts: each part's exact colours; Looks: the other colourings - dev/migrate/build_people.py looks).
 // Every other colour in the picture stays as it is; it's only how they look, not who they are.
 const npcCache = new Map();
-const rgbOf = (h) => [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 
 export function npcImage(name, kind, n) {
   const base = sprite(name);
@@ -112,45 +124,17 @@ export function npcImage(name, kind, n) {
   const want = {};                                          // part -> its new main colour
   for (const kv of (entityIni(kind, "Looks", "").split("|")[n - 1] || "").trim().split(/\s+/)) {
     const [k, v] = kv.split("=");
-    if (k && v) want[k] = rgbOf(v);
+    if (k && v) want[k] = hex(v);
   }
   const map = [];                                           // [[a colour in the picture, what it becomes]]
   for (const part of entityIni(kind, "Look.Parts", "").split(";")) {
     const [k, cols] = part.split(":");
     if (!cols) continue;
-    const shades = cols.trim().split(/\s+/).map(rgbOf);
-    const w = want[k];
-    for (const s of shades) {
-      if (!w) { map.push([s, s]); continue; }
-      const f = Math.min(1.8, lum(s) / lum(shades[0]));     // (each shade as much lighter or darker than its main)
-      map.push([s, w.map((v) => Math.max(0, Math.min(255, Math.round(f >= 1 ? v + (255 - v) * (f - 1) * 0.6 : v * f))))]);
-    }
+    const shades = cols.trim().split(/\s+/).map(hex);
+    map.push(...shades.map((s) => [s, want[k] ? shadeOf(want[k], s, shades[0]) : s]));
   }
   if (!map.length) return base;                             // (nothing to recolour: no canvas made for nothing)
-  c = document.createElement("canvas");
-  c.width = base.width;
-  c.height = base.height;
-  const x = c.getContext("2d", { willReadFrequently: true });
-  x.drawImage(base, 0, 0);
-  const d = x.getImageData(0, 0, c.width, c.height);
-  const px = d.data;
-  const own = new Map();                                    // (the picture's other colours: kept, never mistaken)
-  for (let i = 0; i < px.length; i += 4) if (px[i + 3] >= 128) own.set((px[i] << 16) | (px[i + 1] << 8) | px[i + 2], 1);
-  const keep = [...own.keys()].map((v) => [(v >> 16) & 255, (v >> 8) & 255, v & 255])
-    .filter((col) => !map.some(([f]) => f[0] === col[0] && f[1] === col[1] && f[2] === col[2]));
-  const all = map.concat(keep.filter((col) => !map.some(([f]) => (f[0] - col[0]) ** 2 + (f[1] - col[1]) ** 2 + (f[2] - col[2]) ** 2 < 9))
-    .map((col) => [col, col]));
-  for (let i = 0; i < px.length; i += 4) {
-    if (px[i + 3] < 128) continue;
-    let best = null, bd = NEAR + 1;
-    for (const [from, to] of all) {
-      const dr = px[i] - from[0], dg = px[i + 1] - from[1], db = px[i + 2] - from[2];
-      const dd = dr * dr + dg * dg + db * db;
-      if (dd < bd) { bd = dd; best = to; }
-    }
-    if (best) { px[i] = best[0]; px[i + 1] = best[1]; px[i + 2] = best[2]; }
-  }
-  x.putImageData(d, 0, 0);
+  c = recolour(base, map);
   if (npcCache.size > 3000) npcCache.clear();
   npcCache.set(key, c);
   return c;

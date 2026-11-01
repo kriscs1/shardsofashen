@@ -165,6 +165,17 @@ function greyed(name) {
 // ================================================================================================================
 // The frame's interface
 // ================================================================================================================
+// (what's drawn over the view in both layouts, the same and in this order: a new one goes here, never in one alone)
+function drawViewOverlays(ctx, now) {
+  drawBanner(ctx, now);
+  drawVitals(ctx);
+  drawOnline(ctx, now);
+  drawHoverTop(ctx);
+  drawArena(ctx, now);
+  drawWave(ctx, now);
+  drawSleep(ctx, now);
+}
+
 export function drawUI(ctx, now) {
   if (!S.me) return;
   if (M.on) { drawTouchUI(ctx, now); return; }
@@ -175,13 +186,7 @@ export function drawUI(ctx, now) {
   ctx.clip();
   drawHurt(ctx, now);
   drawHotbar(ctx);
-  drawBanner(ctx, now);
-  drawVitals(ctx);
-  drawOnline(ctx, now);
-  drawHoverTop(ctx);
-  drawArena(ctx, now);
-  drawWave(ctx, now);
-  drawSleep(ctx, now);
+  drawViewOverlays(ctx, now);
   ctx.restore();
   drawMinimap(ctx);
   blit(ctx, "SideBar", VW, 0);
@@ -2083,13 +2088,7 @@ function drawTouchUI(ctx, now) {
   drawHotbar(ctx);
   drawJoystick(ctx);
   drawToasts(ctx, now);
-  drawBanner(ctx, now);
-  drawVitals(ctx);
-  drawOnline(ctx, now);
-  drawHoverTop(ctx);
-  drawArena(ctx, now);
-  drawWave(ctx, now);
-  drawSleep(ctx, now);
+  drawViewOverlays(ctx, now);
   drawMinimap(ctx);
   ctx.strokeStyle = "rgb(214,170,70)"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(L.mmX, L.mmY, L.mmSize / 2, 0, 6.283); ctx.stroke();

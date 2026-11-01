@@ -77,6 +77,17 @@ const FRIEND_BUTTONS = ["Whisper", "Invite", "Remove"];
 function friendButtons(f) { return f.asks ? ["Accept", "", "Decline"] : f.asked ? ["", "", "Cancel"] : FRIEND_BUTTONS; }
 function friendRowY(n) { return 108 + n * 70; }
 
+// ----- each button's [x, y, w, h], said once: drawn by it and clicked by it (hit), so the two can't drift apart
+const BUTTON_RECTS = { 10: [942, 20, 40, 28], 11: [40, 696, 120, 28], 12: [864, 696, 120, 28],   // (close; the pages)
+  400: [48, 106, 180, 30], 401: [236, 106, 180, 30] };                                          // (Quests: In hand, Done)
+const tabRect = (t) => [40 + (t - 1) * TAB_STEP, 60, TAB_W, 32];
+const friendButtonRect = (n, k) => [976 - 316 + k * 104, friendRowY(n) + 15, 96, 32];
+function spellButtonRect(slot, k) {                 // (k 0: Cast, 1: Hotbar)
+  const [x, y] = spellCardAt(slot);
+  return [x + SPELL_W - (k ? 100 : 196), y + SPELL_H - 38, 88, 28];
+}
+const within = (x, y, [bx, by, w, h]) => x >= bx && x <= bx + w && y >= by && y <= by + h;    // (its edges count too)
+
 export function friendClick(h) {
   // (300 + row x 3 + button: whisper them, ask them into your party, take them off the list)
   if (h < 300 || h >= 300 + FRIENDS_SHOWN * 3) return false;
@@ -107,7 +118,7 @@ function friendRow(ctx, f, n) {
   friendButtons(f).forEach((label, k) => {
     if (!label) return;
     const off = !f.asks && !f.asked && ((k < 2 && !f.on) || (k === 1 && f.party));
-    button(ctx, 976 - 316 + k * 104, y + 15, 96, 32, label, off ? 0 : J.hover === 300 + n * 3 + k ? 2 : 1);
+    button(ctx, ...friendButtonRect(n, k), label, off ? 0 : J.hover === 300 + n * 3 + k ? 2 : 1);
   });
 }
 
@@ -146,34 +157,19 @@ function recordsPage(ctx, d) {
 export function pages() { return Math.max(1, Math.ceil(count() / pageSize())); }
 
 export function hit(x, y) {
-  for (let t = 1; t <= TABS; t++) {
-    const tx = 40 + (t - 1) * TAB_STEP;
-    if (x >= tx && x <= tx + TAB_W && y >= 60 && y <= 92) return t;
-  }
+  for (let t = 1; t <= TABS; t++) if (within(x, y, tabRect(t))) return t;
   if (J.tab === 6) {
     for (let n = 0; n < FRIENDS_SHOWN; n++) {
-      const y0 = friendRowY(n) + 15;
-      for (let k = 0; k < 3; k++) {
-        const bx = 976 - 316 + k * 104;
-        if (x >= bx && x <= bx + 96 && y >= y0 && y <= y0 + 32) return 300 + n * 3 + k;
-      }
+      for (let k = 0; k < 3; k++) if (within(x, y, friendButtonRect(n, k))) return 300 + n * 3 + k;
     }
   }
-  if (x >= 942 && x <= 982 && y >= 20 && y <= 48) return 10;
-  if (x >= 40 && x <= 160 && y >= 696 && y <= 724) return 11;
-  if (x >= 864 && x <= 984 && y >= 696 && y <= 724) return 12;
+  for (const b of [10, 11, 12]) if (within(x, y, BUTTON_RECTS[b])) return b;
   if (J.tab === 4) {                              // (a known spell's Cast and Hotbar buttons: 200 + slot x 2 (+1))
     for (let slot = 0; slot < 8; slot++) {
-      const [cx, cy] = spellCardAt(slot);
-      for (const [n, bx] of [[0, cx + SPELL_W - 196], [1, cx + SPELL_W - 100]]) {
-        if (x >= bx && x <= bx + 88 && y >= cy + SPELL_H - 38 && y <= cy + SPELL_H - 10) return 200 + slot * 2 + n;
-      }
+      for (const k of [0, 1]) if (within(x, y, spellButtonRect(slot, k))) return 200 + slot * 2 + k;
     }
   }
-  if (J.tab === 3 && y >= 106 && y <= 136) {
-    if (x >= 48 && x <= 228) return 400;
-    if (x >= 236 && x <= 416) return 401;
-  }
+  if (J.tab === 3) for (const b of [400, 401]) if (within(x, y, BUTTON_RECTS[b])) return b;
   if (J.tab === 3 && x >= 48 && x <= 976) {
     const n = Math.floor((y - QUEST_TOP) / 82);
     if (n >= 0 && n < QUESTS_SHOWN && y - QUEST_TOP - n * 82 <= 76 &&
@@ -390,9 +386,9 @@ function spellCard(ctx, sp, slot) {
     if (left > 0) drawText(ctx, `Ready in ${Math.ceil(left / 1000)} s`, x + 16, y + SPELL_H - 32, 9, true, [255, 214, 90]);
     else if (poor) drawText(ctx, "Not enough Shards", x + 16, y + SPELL_H - 32, 9, true, [235, 105, 85]);
     const h = J.hover - 200 - slot * 2;
-    button(ctx, x + SPELL_W - 196, y + SPELL_H - 38, 88, 28, "Cast", left > 0 || poor ? 0 : h === 0 ? 2 : 1);
+    button(ctx, ...spellButtonRect(slot, 0), "Cast", left > 0 || poor ? 0 : h === 0 ? 2 : 1);
     const on = (S.me.hotbar || []).includes(sp.scroll);
-    button(ctx, x + SPELL_W - 100, y + SPELL_H - 38, 88, 28, on ? "On hotbar" : "Hotbar", on ? 0 : h === 1 ? 2 : 1);
+    button(ctx, ...spellButtonRect(slot, 1), on ? "On hotbar" : "Hotbar", on ? 0 : h === 1 ? 2 : 1);
   } else {
     wrap(ctx, x + 16, y + SPELL_H - 30, SPELL_W - 32, "Learn it from its scroll: they're rare (quests, and the wizards, who charge dearly).", DIM, 15, 1);
   }
@@ -432,13 +428,13 @@ export function drawJournal(ctx) {
   drawText(ctx, "Journal", 44, 18, 16, true, INK);
   const tw = textWidth(ctx, "Journal", 16, true);
   drawText(ctx, fitText(ctx, S.name + "  -  what you can make, gather and do", 860 - tw, 9), 58 + tw, 30, 9, false, PARCHMENT);
-  button(ctx, 942, 20, 40, 28, "X", J.hover === 10 ? 2 : 1);
+  button(ctx, ...BUTTON_RECTS[10], "X", J.hover === 10 ? 2 : 1);
   for (let t = 1; t <= TABS; t++) {
     const mine = (d.friends || []).filter((f) => !f.asks && !f.asked), on = mine.filter((f) => f.on).length;
     const label = { 1: `Crafting (${d.crafts.length})`, 2: `Gathering (${d.gathers.length})`, 3: `Quests (${allQuests().length})`,
       4: `Spells (${spells.filter((s) => knowsSpell(s.spell)).length}/${spells.length})`, 5: "Records",
       6: `Friends (${on}/${mine.length})` }[t] || "Controls";
-    button(ctx, 40 + (t - 1) * TAB_STEP, 60, TAB_W, 32, label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
+    button(ctx, ...tabRect(t), label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
   }
   roundBox(ctx, 36, 98, 952, 590, [40, 26, 20], [126, 77, 63], 2, 12);
   if (!S.journal && J.tab !== TABS) centreText(ctx, 512, 330, "Opening the journal...", 14, true, INK);
@@ -452,8 +448,8 @@ export function drawJournal(ctx) {
     d.gathers.slice(first, first + 7).forEach((g, n) => gather(ctx, g, 48, 108 + n * 82, 928));
   } else if (J.tab === 3) {
     const quests = journalQuests(), all = allQuests(), done = all.filter((q) => q.status === 2).length;
-    button(ctx, 48, 106, 180, 30, `In hand (${all.length - done})`, !J.done ? 3 : J.hover === 400 ? 2 : 1);
-    button(ctx, 236, 106, 180, 30, `Done (${done})`, J.done ? 3 : J.hover === 401 ? 2 : 1);
+    button(ctx, ...BUTTON_RECTS[400], `In hand (${all.length - done})`, !J.done ? 3 : J.hover === 400 ? 2 : 1);
+    button(ctx, ...BUTTON_RECTS[401], `Done (${done})`, J.done ? 3 : J.hover === 401 ? 2 : 1);
     if (!quests.length) centreText(ctx, 512, 330, J.done ? "No quests done yet." : "No quests in hand.", 14, true, INK);
     const first = (J.page - 1) * QUESTS_SHOWN;
     quests.slice(first, first + QUESTS_SHOWN).forEach((q, n) => questCard(ctx, q, 48, QUEST_TOP + n * 82, 928));
@@ -473,8 +469,8 @@ export function drawJournal(ctx) {
   } else if (J.tab === 5) recordsPage(ctx, d);
   else if (J.tab === 6) friendsPage(ctx, d);
   else controls(ctx);
-  button(ctx, 40, 696, 120, 28, "< Previous", J.page > 1 ? (J.hover === 11 ? 2 : 1) : 0);
-  button(ctx, 864, 696, 120, 28, "Next >", J.page < pages() ? (J.hover === 12 ? 2 : 1) : 0);
+  button(ctx, ...BUTTON_RECTS[11], "< Previous", J.page > 1 ? (J.hover === 11 ? 2 : 1) : 0);
+  button(ctx, ...BUTTON_RECTS[12], "Next >", J.page < pages() ? (J.hover === 12 ? 2 : 1) : 0);
   let info;
   if (J.tab === 1) info = `${d.crafts.filter((c) => c.status === 0).length} of ${d.crafts.length} recipes ready to make`;
   else if (J.tab === 2) info = `${d.gathers.filter((g) => g.status === 0).length} of ${d.gathers.length} you can gather now`;
