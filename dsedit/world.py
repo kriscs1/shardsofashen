@@ -314,8 +314,8 @@ def shore_sets(project):
     return out
 
 
-def smooth_corners(project, get, put, changed, keep=()):
-    """The pieces round the changed cells (two out), as they should be now. get(x, y) -> tile name (None off the
+def smooth_corners(project, get, put, changed, keep=(), reach=2):
+    """The pieces round the changed cells (reach out: 0 for a pass over every cell given), as they should be now. get(x, y) -> tile name (None off the
     maps), put(x, y, name). A piece none of whose corners are there any more goes back to its base ground, unless
     it's in keep (painted there on purpose). Returns how many cells changed."""
     sets = shores(project)
@@ -328,7 +328,7 @@ def smooth_corners(project, get, put, changed, keep=()):
     for s in sets:
         for n in list(s["pieces"].values()) + list(s["small"].values()):
             piece_of[n] = s["water"]
-    near = {(x + dx, y + dy) for x, y in changed for dx in range(-2, 3) for dy in range(-2, 3)}
+    near = {(x + dx, y + dy) for x, y in changed for dx in range(-reach, reach + 1) for dy in range(-reach, reach + 1)}
     old = {}
 
     def tile(x, y):

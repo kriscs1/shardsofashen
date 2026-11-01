@@ -357,6 +357,8 @@ class ActionsMixin:
         if verb == "Talk to" and t == NPC and getattr(e.ai, "asleep", False):
             self.display_message("%s is fast asleep." % self.display_name(e), "FAIL", "Denied")
             return                                      # (in bed at night: npcs.py npc_bedtime)
+        if verb == "Talk to" and t == NPC and self.rumour_first(e):
+            return                                      # (a rumour first, now and then: rumours.py)
         if self.lock_do(verb, e):                       # (a locked chest: locks.py)
             return
         if (self.chest_do(verb, e) or self.market_do(verb, e, self.verb_price, self.verb_qty) or

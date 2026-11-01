@@ -1,6 +1,7 @@
 """The pieces where two grounds meet on the slant: a coast's land in the corners of the water by it, and grass in the
 corners of sand. Every way the corners can go (one, two, three or all four: water with land on three sides is two
-corners), for the sea, for inland water (Lake001, new) and for sand meeting grass.
+corners), for the sea, for inland water (Lake001, new), marsh water (Bog001: build_marsh.py) and for sand meeting
+grass.
 
   * A piece says what it's made of (Tiles.ini Corner.Base: the ground it is; Corner.Land: the ground in its corners;
     Corner.Mask: which corners, NE,SE,SW,NW; Corner.Small=1: a shallow one). The game (ground.js) and the editor
@@ -31,7 +32,7 @@ from PIL import Image, ImageDraw                 # noqa: E402
 TW = 32
 CORNERS = ("NE", "SE", "SW", "NW")
 LANDS = {"Grass": "Grass001", "Marsh": "Marsh001", "Sand": "Sand001", "Snow": "Snow001"}
-SEA, LAKE = "Water001", "Lake001"
+SEA, LAKE, BOG = "Water001", "Lake001", "Bog001"
 SMALL = 0.68                                     # (a shallow corner's legs, of a tile)
 POOL = 0.55                                      # (three or four corners, or two opposite: the water left a pool)
 TILES, SETS = p("data", "Tiles.ini"), p("data", "TileSets.ini")
@@ -135,6 +136,10 @@ def kinds(sets):
         out.append(("Shore_%s_Lake" % word, "%s by a lake: diagonal pieces" % word.lower(), LAKE, land, word, "Lake",
                     "0" * 49, {}, [("Water", "1"), ("Show.Name", "0"), ("Use.Words", ""), ("Line.of.Sight", "1"),
                                    ("Examine.Info", "Still water at the edge of the %s." % word.lower())]))
+    for word in ("Marsh", "Grass"):                    # (marsh water: build_marsh.py's Bog001)
+        out.append(("Shore_%s_Bog" % word, "%s by marsh water: diagonal pieces" % word.lower(), BOG, LANDS[word], word,
+                    "Bog", "0" * 49, {}, [("Water", "1"), ("Show.Name", "0"), ("Use.Words", ""), ("Line.of.Sight", "1"),
+                                          ("Examine.Info", "Brown water at the edge of the %s." % word.lower())]))
     out.append(("Edge_Sand_Grass", "sand meets grass: diagonal pieces", "Sand001", "Grass001", "Sand", "Grass",
                 "1" * 49, {}, [("Show.Name", "0"), ("Use.Words", "Walk here,Dig"), ("Walk.Speed", "0.8"),
                                ("Blend", "3"), ("Blend.Texture", "Sand001"), ("Line.of.Sight", "1")]))

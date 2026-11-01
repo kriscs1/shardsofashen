@@ -5543,3 +5543,54 @@ def test_editor_smooths_bays_ponds_lakes_and_sand_into_grass():
     assert smooth(sand, (3, 2))[(2, 2)] == "Sand_Grass_NE001"
     sand[(3, 2)] = "Sand001"                                                    # (the grass gone: back to sand)
     assert smooth(sand, (3, 2))[(2, 2)] == "Sand001"
+
+
+def test_townsfolk_mention_a_quest_you_could_start_now_and_then(world, monkeypatch):
+    # Rumours (dsengine/rumours.py): a gossip with no words of its own tells one first, then talks as usual; never
+    # again till Every.Minutes have passed, and never about a quest you've started
+    import dsengine.rumours as R
+    monkeypatch.setattr(R.random, "random", lambda: 0.0)              # (the chance always comes up)
+    s = join(world, "Listener", "11,-3,0", 384, 300)
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+    s.skill_level = s.base_skill_level = lambda skill: 25
+    gossip = world.add_npc("Villager", s.player.z, s.player.x + 30, s.player.y, "Attitude=Good Stand=1", "Good")
+    rumours = {v for _, d in world.data.quest_table() for k, v in d.items() if k.startswith("RUMOUR")}
+    try:
+        s.choose_verb("Talk to", gossip, int(gossip.cx), int(gossip.cy))
+        run_for(world, 10)
+        assert s.ab_mode == "Conversation" and s.ab_text in rumours
+        heard = [a for a, v in s.attributes if a.startswith("Rumour.") and a != "Rumour.At"]
+        assert len(heard) == 1
+        s.action_box_response_chosen(1)                             # (thanks: and now what they always say)
+        run_for(world, 10)
+        assert s.ab_text not in rumours
+        if s.ab_mode:
+            s.close_action_box(-1)
+        s.choose_verb("Talk to", gossip, int(gossip.cx), int(gossip.cy))
+        run_for(world, 10)
+        assert s.ab_text not in rumours                             # (not again so soon)
+        if s.ab_mode:
+            s.close_action_box(-1)
+        quest = world.data.quest_of_attribute(heard[0][len("Rumour."):])[0]
+        s.update_attribute(heard[0][len("Rumour."):], "=1")         # (started it: never told of it again)
+        s.update_attribute("Rumour.At", "=0")
+        for _ in range(20):
+            r = s.rumour_due(gossip)
+            assert r is None or r[0] != quest
+        guard = next(e for e in world.ents if e.npc_id and e.type == NPC and s.script_exists("Talk to " + e.npc_id))
+        assert not s.gossips(guard)                                 # (someone with words of their own never gossips)
+    finally:
+        world.remove_entity(gossip)
+        leave(world, s)
+
+
+def test_two_corner_pieces_meeting_round_into_each_other():
+    # Where one piece's corner runs on into its neighbour's (a two-tile inlet: a NE corner over a SE one), the land is
+    # thickened at that tip and curved between, not a point (dsedit/render.py, as ground.js draws it)
+    from dsedit import render as RD
+    plain = RD._corner_poly(0, 32, 32, 1.0, (False, False))
+    joined = RD._corner_poly(0, 32, 32, 1.0, (False, True))
+    assert plain == [(32, 0), (0, 0), (32, 32)]
+    assert (32 - 32 * RD.JOIN, 32) in [tuple(round(v, 6) for v in pt) for pt in joined]   # (thick where it meets)
+    assert len(joined) > 6                                           # (and curved between)

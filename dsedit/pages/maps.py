@@ -24,7 +24,7 @@ from ..project import MapDoc, Entity, parse_map_name, tile_family, TILE_FAMILIES
 from ..render import render, walk_overlay, tile_image
 from ..refs import Refs, label as use_label
 from ..carts import CartRoutes
-from ..widgets import (PaletteGrid, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
+from ..widgets import (PaletteGrid, HEADER, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
 from .. import terrain as TR
 
@@ -77,6 +77,9 @@ ZOOMS = ["5%", "10%", "25%", "50%", "75%", "100%", "150%", "200%", "300%"]
 FAR = 0.35              # zoomed out further than this, the level is drawn from its minimap (a colour a tile)
 PICS = 48               # map pictures kept (full size, for the layer being edited)
 SPECIAL = ["(Trigger)", "(Lock)", "(Place ID)"]
+# the palette's sections in Auto, in order (Detail: every tile, no headings)
+PAL_SECTIONS = ("Terrains", "Walls, fences & joins", "Roofs", "Sets (rugs, beds, bridges...)",
+                "Look-alikes (one of them at random)", "Single tiles")
 # a trap is a Trigger named Trap_<Kind>: the engine springs it (deep.py world_trap), no script needed
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 SPECIAL_KIND = {"(Trigger)": "Trigger", "(Lock)": "Lock", "(Place ID)": "Id"}
@@ -284,6 +287,7 @@ class MapPage(Page):
         left = ttk.Frame(self, style="Panel.TFrame", padding=10, width=T.px(300))
         left.pack(side="left", fill="y")
         left.pack_propagate(False)
+        ttk.Label(left, text="Map", style="Head.TLabel").pack(anchor="w", pady=(0, 2))
         nav = ttk.Frame(left, style="Panel.TFrame")
         nav.pack(fill="x")
         self.map_var = tk.StringVar()
@@ -360,7 +364,7 @@ class MapPage(Page):
         e.pack(side="left", padx=4, fill="x", expand=True)
         Tooltip(e, "Filter by name")
         self.pal_search.trace_add("write", lambda *a: self.fill_palette())
-        self.palette = PaletteGrid(left, self.pick_brush, on_hover=lambda k: self.app.info(k or ""), cell=T.px(40),
+        self.palette = PaletteGrid(left, self.pick_brush, on_hover=lambda k: self.app.info(k or ""), cell=T.px(54),
                                    preview_fn=self.palette_preview)
         self.palette.badge_fn = self.palette_badge
         self.palette.canvas.configure(height=T.px(90))      # (it takes the room left: what's under it always shows)
@@ -369,12 +373,14 @@ class MapPage(Page):
         self.brush_label.pack(anchor="w")
         of = ttk.Frame(left, style="Panel.TFrame")
         of.pack(fill="x", pady=(4, 0))
+        ttk.Label(of, text="When painting", style="Head.TLabel").pack(anchor="w", pady=(2, 0))
         for k, label, tip in (("sets", "Lay out whole sets", "A roof, a rug, the walls round a room or a fence: drag "
                                "a rectangle with any piece of it and the right corners, edges and middle go down."),
                               ("mix", "Mix in look-alikes", "Paint with one tile and its look-alikes (Grass001, "
                                "Grass002...: the same name, walked on the same way) go down at random."),
                               ("smooth", "Smooth coast corners", "Where water turns a corner against grass, sand, "
-                               "snow or marsh, the diagonal shore piece goes in by itself.")):
+                               "snow or marsh (or sand into grass), the diagonal piece goes in by itself: every "
+                               "corner whose two sides are land, two tiles round what you paint.")):
             cb = ttk.Checkbutton(of, text=label, variable=self.opt[k])
             cb.pack(anchor="w")
             Tooltip(cb, tip)
@@ -1095,7 +1101,8 @@ class MapPage(Page):
         else:
             stand = WD.stand_ins(P)                     # (a range's peaks: one of them stands for them all)
             self._groups, grouped = {}, set()
-            if self.pal_mode.get() == "auto":            # (a terrain, a set, a family: one entry each, first)
+            sections = {name: [] for name in PAL_SECTIONS}
+            if self.pal_mode.get() == "auto":            # (a terrain, a set, a family: one entry each, in sections)
                 for key, g in TR.groups(P, self.layer).items():
                     if g.kind != "Terrain":
                         grouped.update(g.tiles)
@@ -1104,9 +1111,7 @@ class MapPage(Page):
                     if q and q not in g.title.lower() and q not in key.lower():
                         continue
                     self._groups[key] = g
-                    items.append((key, (lambda g=g: self.group_picture(g)),
-                                  ("%s (terrain)" % g.title) if g.kind == "Terrain" else
-                                  "%s (any of %d)" % (g.title, len(g.tiles))))
+                    sections[self.pal_section(g)].append((key, (lambda g=g: self.group_picture(g)), g.title))
             on_layer = TR.layer_test(P, self.layer) if self.pal_mode.get() == "auto" else (lambda t: True)
             for t in P.tiles():
                 fam = tile_family(t)
@@ -1120,11 +1125,28 @@ class MapPage(Page):
                     continue
                 label = t if t not in stand else "%s (%s: any of %d)" % (
                     t, P.tile_values("Texture").get(t.lower(), ""), WD.texture_count(P, t))
-                items.append((t, lambda t=t: P.sprite("Tiles", t), label))
+                sections["Single tiles"].append((t, lambda t=t: P.sprite("Tiles", t), label))
+            heads = self.pal_mode.get() == "auto"        # (Detail: every tile, no headings)
+            for name in PAL_SECTIONS:
+                if sections[name]:
+                    items += ([(HEADER, None, name)] if heads else []) + sections[name]
         self.palette.set_items(items)
         if self.layer == "decor" and not items and not q and k == "All":
             self.app.status("No decor tiles yet. Tiles ▸ \"Split props off their floors…\" makes them from furniture "
                             "and plants, or tick \"Decor\" on a see-through tile.", "warn")
+
+    def pal_section(self, g):
+        """Which of the palette's sections an Auto entry goes under (PAL_SECTIONS)."""
+        if g.kind == "Terrain":
+            return "Terrains"
+        if g.kind == "Family":
+            return "Look-alikes (one of them at random)"
+        kind = WD.set_kind(self.project, self.project.tile_set_of(g.brush)) if g.brush else ""
+        if kind == "Join":
+            return "Walls, fences & joins"
+        if "roof" in (g.key + g.title).lower():
+            return "Roofs"
+        return "Sets (rugs, beds, bridges...)"
 
     def palette_preview(self, key):
         """The palette's hover picture: the sprite three times over, its name, and for a piece of a set (a roof, a rug)
@@ -1210,7 +1232,7 @@ class MapPage(Page):
             return None
         group = getattr(self, "_groups", {}).get(key)
         if group is not None:                               # (Auto: a whole terrain, set or family in one)
-            return ("x%d" % len(group.tiles), "#3c5a9a") if group.kind != "Terrain" else ("AUTO", "#3d7a3a")
+            return ("x%d" % len(group.tiles), "#3c5a9a") if group.kind != "Terrain" else None   # (its section says)
         if self.layer == "things":
             k = "DecorObject" if P.is_decor_object(key) else P.entity_type(key)
         elif self.layer == "decor":

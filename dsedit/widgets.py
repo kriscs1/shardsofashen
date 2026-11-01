@@ -178,18 +178,23 @@ class FilterList(ttk.Frame):
         self.select(self.shown[i])
 
 
+HEADER = "__header__"         # (a palette item that's a section's heading across the grid: (HEADER, None, its title))
+
+
 class PaletteGrid(tk.Frame):
-    """A grid of sprite thumbnails to pick from (the map's palette). items: [(key, PIL image, or a function that
-    gives it, or None, label)]. Only the rows in view are drawn (their pictures read when they first come into it), so
-    a palette of thousands opens at once."""
+    """A grid of sprite thumbnails to pick from (the map's palette), each with its name under it, in sections under
+    headings. items: [(key, PIL image, or a function that gives it, or None, label)]; (HEADER, None, title) starts a
+    section. Only what's in view is drawn (pictures read when they first come into it), so thousands open at once."""
 
     def __init__(self, parent, on_pick, on_hover=None, cell=40, preview_fn=None):
         super().__init__(parent, bg=T.PANEL)
         self.on_pick, self.on_hover, self.cell = on_pick, on_hover, cell
+        self.label_h = T.px(15)               # (the name under each picture)
+        self.header_h = T.px(22)
         self.preview_fn = preview_fn          # key -> (PIL image, caption): shown big beside the palette on hover
         self.badge_fn = None                  # key -> (text, colour) or None: a little tag in a cell's corner
         self._pv, self._pv_key, self._pv_photo = None, None, None
-        self._rows, self._job = None, None
+        self._rows, self._job, self._layout = None, None, ([], 0)
         self.canvas = tk.Canvas(self, bg=T.FIELD, highlightthickness=1, highlightbackground=T.LINE, bd=0)
         sb = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=lambda *a: (sb.set(*a), self._scrolled()))
@@ -212,8 +217,25 @@ class PaletteGrid(tk.Frame):
     def cols(self):
         return max(1, (self.canvas.winfo_width() - 4) // self.cell)
 
+    def layout(self):
+        """[(x, y, w, h)] of every item (a heading the grid's width, a cell its picture and name), and the height."""
+        cols, s, rh = self.cols(), self.cell, self.cell + self.label_h
+        out, y, col = [], 2, 0
+        for key, _, _ in self.items:
+            if key == HEADER:
+                if col:
+                    y, col = y + rh, 0
+                out.append((2, y, cols * s, self.header_h))
+                y += self.header_h
+                continue
+            out.append((2 + col * s, y, s, rh))
+            col += 1
+            if col == cols:
+                y, col = y + rh, 0
+        return out, y + (rh if col else 0) + 2
+
     def _scrolled(self):
-        """Scrolled (or resized): the rows come into view are drawn, soon."""
+        """Scrolled (or resized): what's come into view is drawn, soon."""
         if self._rows is not None and self._job is None:
             self._job = self.after(15, self._draw_if_moved)
 
@@ -223,53 +245,75 @@ class PaletteGrid(tk.Frame):
             self.draw()
 
     def _view_rows(self):
-        c, s = self.canvas, self.cell
-        top = max(0, int(c.canvasy(0) // s) - 2)
-        return top, top + int(max(1, c.winfo_height()) // s) + 5
+        c, rh = self.canvas, self.cell + self.label_h
+        top = int(c.canvasy(0))
+        return top // rh, (top + max(1, c.winfo_height())) // rh + 1
+
+    def _fit(self, text, width, px):
+        """text cut to fit width pixels at a font px high (an ellipsis where it's cut), measured as it's drawn."""
+        from tkinter import font as tkfont
+        f = getattr(self, "_font", None)
+        if f is None or self._font_px != px:
+            self._font, self._font_px = tkfont.Font(family="Segoe UI", size=-px), px
+            f = self._font
+        if f.measure(text) <= width:
+            return text
+        while len(text) > 1 and f.measure(text + "…") > width:
+            text = text[:-1]
+        return text + "…"
 
     def draw(self):
         c = self.canvas
         c.delete("all")
         self.photos = []
         cols, s = self.cols(), self.cell
-        rows = (len(self.items) + cols - 1) // cols
-        c.configure(scrollregion=(0, 0, cols * s + 4, rows * s + 4))
-        self._rows = r0, r1 = self._view_rows()
-        for i in range(r0 * cols, min(len(self.items), r1 * cols)):
-            key, img, label = self.items[i]
-            x, y = 2 + (i % cols) * s, 2 + (i // cols) * s
+        self._layout = boxes, total = self.layout()
+        c.configure(scrollregion=(0, 0, cols * s + 4, total))
+        self._rows = self._view_rows()
+        top = c.canvasy(0)
+        bottom = top + max(1, c.winfo_height())
+        font_px = max(9, s // 4)
+        for i, (key, img, label) in enumerate(self.items):
+            x, y, w, h = boxes[i]
+            if y + h < top - s or y > bottom + s:
+                continue
+            if key == HEADER:                         # (a section's heading: bold, a rule under it)
+                c.create_text(x + 4, y + h // 2, text=label, anchor="w", fill=T.ACCENT_DARK,
+                              font=("Segoe UI", -max(11, s // 3), "bold"))
+                c.create_line(x, y + h - 2, x + w - 2, y + h - 2, fill=T.LINE)
+                continue
             if key == self.selected:
-                c.create_rectangle(x, y, x + s - 1, y + s - 1, fill=T.SELECT, outline=T.ACCENT, width=2)
+                c.create_rectangle(x, y, x + s - 1, y + h - 1, fill=T.SELECT, outline=T.ACCENT, width=2)
             k = ("pal", key, s)
             if callable(img):                         # (read only now it's in view; kept once made)
                 img = None if (k, (s - 8, s - 8)) in _photos else img()
             ph = _photos.get((k, (s - 8, s - 8))) or (photo(img, (s - 8, s - 8), key=k) if img is not None else None)
+            parts = label.split("\n", 1)
             if ph:
                 self.photos.append(ph)
                 c.create_image(x + s // 2, y + s // 2, image=ph)
             else:
                 c.create_rectangle(x + 3, y + 3, x + s - 4, y + s - 4, fill="#efe2cc", outline=T.LINE)
-                if "\n" in label:                     # a symbol over a short name (the map's Trigger and Lock)
-                    sym, name = label.split("\n", 1)
-                    c.create_text(x + s // 2, y + s * 0.4, text=sym, font=("Segoe UI Symbol", -max(10, s * 2 // 5)),
-                                  fill=T.ACCENT_DARK)
-                    c.create_text(x + s // 2, y + s * 0.78, text=name, font=("Segoe UI", -max(8, s // 5)), fill=T.TEXT)
-                else:
-                    c.create_text(x + s // 2, y + s // 2, text=label, font=("Segoe UI", -max(8, s // 5)), fill=T.MUTED,
-                                  width=s - 6, justify="center")
+                if len(parts) > 1:                    # a symbol over its name (the map's Trigger and Lock)
+                    c.create_text(x + s // 2, y + s // 2, text=parts[0],
+                                  font=("Segoe UI Symbol", -max(10, s * 2 // 5)), fill=T.ACCENT_DARK)
+            c.create_text(x + s // 2, y + s + self.label_h // 2 - 1, text=self._fit(parts[-1], s - 2, font_px),
+                          font=("Segoe UI", -font_px), fill=T.TEXT)   # (its name under it, readable, cut to fit)
             badge = self.badge_fn(key) if self.badge_fn else None
             if badge:                                 # (what it is: a tag in the corner, in its kind's colour)
                 text, col = badge
-                c.create_rectangle(x + s - 3 - 6 * len(text) - 2, y + 1, x + s - 2, y + 11, fill=col, outline="")
-                c.create_text(x + s - 3, y + 6, text=text, anchor="e", fill="white", font=("Segoe UI", -9, "bold"))
+                bw = int(len(text) * font_px * 0.62) + 6
+                c.create_rectangle(x + s - 2 - bw, y + 1, x + s - 2, y + font_px + 4, fill=col, outline="")
+                c.create_text(x + s - 2 - bw // 2, y + 3 + font_px // 2, text=text, fill="white",
+                              font=("Segoe UI", -font_px + 1, "bold"))
 
     def _at(self, e):
-        x, y = self.canvas.canvasx(e.x) - 2, self.canvas.canvasy(e.y) - 2
-        cols, s = self.cols(), self.cell
-        if x < 0 or y < 0 or x >= cols * s:
-            return None
-        i = int(y // s) * cols + int(x // s)
-        return self.items[i][0] if 0 <= i < len(self.items) else None
+        x, y = self.canvas.canvasx(e.x), self.canvas.canvasy(e.y)
+        for i, (bx, by, w, h) in enumerate(self._layout[0]):
+            if bx <= x < bx + w and by <= y < by + h:
+                key = self.items[i][0]
+                return None if key == HEADER else key
+        return None
 
     def _click(self, e):
         k = self._at(e)
@@ -290,16 +334,15 @@ class PaletteGrid(tk.Frame):
         if key not in keys:
             return
         self.canvas.update_idletasks()
-        cols, s = self.cols(), self.cell
-        rows = (len(self.items) + cols - 1) // cols
-        total, view = rows * s + 4, max(1, self.canvas.winfo_height())
+        boxes, total = self.layout()
+        view = max(1, self.canvas.winfo_height())
         if total <= view:
             return
-        y = 2 + (keys.index(key) // cols) * s
+        _, y, _, h = boxes[keys.index(key)]
         top, bottom = (f * total for f in self.canvas.yview())
-        if top <= y and y + s <= bottom:                              # (in sight already: clicked, it stays put)
+        if top <= y and y + h <= bottom:                              # (in sight already: clicked, it stays put)
             return
-        self.canvas.yview_moveto(max(0.0, min(1.0, (y + s / 2 - view / 2) / total)))
+        self.canvas.yview_moveto(max(0.0, min(1.0, (y + h / 2 - view / 2) / total)))
 
     def _motion(self, e):
         k = self._at(e)

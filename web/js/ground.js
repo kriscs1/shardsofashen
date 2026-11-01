@@ -299,6 +299,42 @@ function cornerPath(ctx, k, dx, dy, gx, gy, leg = 1) {
   ctx.closePath();
 }
 
+// (a corner piece's two tips, 0 NE 1 SE 2 SW 3 NW: the neighbour whose own corner runs on from it along the same
+//  edge, and where its land is thickened to so the two round into each other instead of meeting in a point)
+const TIPS = [[[-1, 0, "NW", 0, 1], [0, 1, "SE", 1, 0]], [[0, -1, "NE", 1, 0], [-1, 0, "SW", 0, 1]],
+  [[1, 0, "SE", 0, 1], [0, -1, "NW", 1, 0]], [[0, 1, "SW", 1, 0], [1, 0, "NE", 0, 1]]];
+const JOIN = 0.4;                                  // (how thick the land is where two pieces' corners meet)
+
+function cornerJoins(z, gx, gy, k) {
+  // [tip a joined?, tip b joined?] of corner k of the piece at gx, gy: a whole-tile corner whose neighbour has the
+  // corner that carries on along that edge
+  return TIPS[k].map(([ox, oy, want]) => {
+    const c = cellAtTile(z, gx + ox, gy + oy);
+    const o = c && c[0] ? info(c[0]).corner : null;
+    return !!(o && o.leg >= 1 && o.mask.includes(want));
+  });
+}
+
+function joinedCornerPath(ctx, k, dx, dy, joins) {
+  // The corner's land, thickened at a joined tip and curved between, so it runs on into its neighbour's
+  const w = G.tw, h = G.th;
+  const c = [[w, 0], [w, h], [0, h], [0, 0]][k];
+  const a = [[0, 0], [w, 0], [w, h], [0, h]][k], b = [[w, h], [0, h], [0, 0], [w, 0]][k];
+  const ext = (tip, t) => {                       // (in from the tip, along the cell's other edge)
+    const [, , , ix, iy] = TIPS[k][t];
+    return [tip[0] + (tip[0] ? -1 : 1) * ix * w * JOIN, tip[1] + (tip[1] ? -1 : 1) * iy * h * JOIN];
+  };
+  const ea = joins[0] ? ext(a, 0) : a, eb = joins[1] ? ext(b, 1) : b;
+  ctx.beginPath();
+  ctx.moveTo(dx + c[0], dy + c[1]);
+  ctx.lineTo(dx + a[0], dy + a[1]);
+  ctx.lineTo(dx + ea[0], dy + ea[1]);
+  ctx.quadraticCurveTo(dx + (a[0] + b[0]) / 2 + (c[0] - (a[0] + b[0]) / 2) * 0.1,
+    dy + (a[1] + b[1]) / 2 + (c[1] - (a[1] + b[1]) / 2) * 0.1, dx + eb[0], dy + eb[1]);
+  ctx.lineTo(dx + b[0], dy + b[1]);
+  ctx.closePath();
+}
+
 function paintGroundIn(ctx, name, gx, gy, dx, dy, ch, clip = true) {
   // name's ground drawn where the path is (a texture: its part for this cell, so it carries on unbroken)
   const i = info(name);
@@ -558,7 +594,9 @@ function paintCell(ch, ci, now) {
     for (const c of ti.corner.mask) {
       const k = ["NE", "SE", "SW", "NW"].indexOf(c);
       if (k < 0 || !ti.corner.land) continue;
-      cornerPath(ctx, k, dx, dy, gx, gy, ti.corner.leg);
+      const joins = ti.corner.leg >= 1 ? cornerJoins(m.mz, gx, gy, k) : [false, false];
+      if (joins[0] || joins[1]) joinedCornerPath(ctx, k, dx, dy, joins);
+      else cornerPath(ctx, k, dx, dy, gx, gy, ti.corner.leg);
       paintGroundIn(ctx, ti.corner.land, gx, gy, dx, dy, ch);
     }
   } else if (ti.texture) {

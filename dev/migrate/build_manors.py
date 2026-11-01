@@ -23,6 +23,7 @@ sys.path.insert(0, HERE)
 import world_edit as W                                   # noqa: E402
 from world_edit import XT, YT, TW                       # noqa: E402
 import story_kit as SK                                   # noqa: E402
+from story_kit import Map                               # noqa: E402
 
 ROOT = W.ROOT
 MAKER = "build_manors.py"
@@ -180,8 +181,12 @@ def build(w, pid, near, ground):
 
 # ================================================================== Redrock Manor: a maze on three floors
 MAZE = "Redrock_Manor"
-COLS = [(3, 7), (8, 12), (13, 17), (18, 22)]            # (its rooms: four across, two deep, on every floor)
-SPLIT = 11                                              # (the back rooms over this row, the front rooms from it)
+# its rooms, four across and two deep on every floor, each floor's its own: the columns' (first, last) tiles, and the
+# row each column's front room starts at (the owner's wish: not every room the same size and shape)
+LAYOUT = {"G": ([(3, 6), (7, 12), (13, 17), (18, 22)], [10, 11, 10, 12]),
+          "U": ([(3, 8), (9, 11), (12, 17), (18, 22)], [11, 9, 12, 10]),
+          "C": ([(3, 7), (8, 13), (14, 16), (17, 22)], [11, 10, 9, 12])}
+LAST = {"G": Y2 - 1, "U": Y2 - 2, "C": Y2 - 1}         # (each floor's last row inside: upstairs, the eaves' wall under it)
 CODES = {frozenset("n"): "001", frozenset("e"): "002", frozenset("s"): "003", frozenset("w"): "004",
          frozenset("ne"): "005", frozenset("se"): "006", frozenset("sw"): "007", frozenset("nw"): "008"}
 # the doorways between rooms on each floor (G ground, U upstairs, C cellar; (column, row) of a room, 0-based):
@@ -199,6 +204,88 @@ LINKS = [("G", "U", (4, 13), "stairs"), ("G", "U", (6, 6), "ladder"), ("C", "G",
          ("C", "G", (21, 8), "ladder"), ("C", "G", (19, 13), "ladder"), ("G", "U", (21, 15), "stairs"),
          ("G", "U", (14, 13), "ladder"), ("G", "U", (9, 6), "stairs")]
 FLOORS = {"C": -1, "G": 0, "U": 1}
+PEOPLE = {   # floor: [(kind, x, y, its room (col, row) or None: outside, other options)]
+    "G": [("Bandit", DOOR - 2, Y2 + 2, None, "Stand=1 Face=S Look=1"),
+          ("Bandit", DOOR + 2, Y2 + 2, None, "Stand=1 Face=S Look=2"),
+          ("Bandit", 10, 14, (1, 1), ""), ("Bandit", 5, 15, (0, 1), "Look=3"), ("Bandit", 16, 5, (2, 0), ""),
+          ("Bandit", 20, 12, (3, 1), "Look=1"), ("Bandit", 15, 15, (2, 1), "Name=%s_Chief" % MAZE)],
+    "U": [("Bandit", 4, 5, (0, 0), "Look=2"), ("Bandit", 20, 8, (3, 0), ""), ("Bandit", 16, 14, (2, 1), "Look=3")],
+    "C": [("Bandit", 10, 7, (1, 0), ""), ("Rat", 6, 14, (0, 1), ""), ("Rat", 15, 14, (2, 1), ""),
+          ("Bandit", 21, 14, (3, 1), "Look=1")],
+}
+THINGS = {
+    "G": [("Chest", 11, 4, "Id=%s_Pantry Lock=2" % MAZE), ("Chest", 16, 11, "Id=%s_Vault Lock=9 Sturdy=1" % MAZE),
+          ("Chest", 13, 11, "Id=%s_Strongbox Lock=7 Sturdy=1" % MAZE)],
+    "U": [("Chest", 11, 11, "Id=%s_Footlocker Lock=4" % MAZE)],
+    "C": [("Odd_Barrel", 11, 15, "Id=%s_Stash" % MAZE)],
+}
+TRAPS = [("G", "Bucket", 5, 12), ("C", "Darts", 9, 7), ("U", "Gas", 17, 7), ("G", "Pit", 20, 14), ("U", "Alarm", 15, 13),
+         ("C", "Weakness", 20, 12), ("U", "Pie", 10, 7)]
+RUG = ["Woven_Rug%03d" % n for n in range(1, 10)]           # (a 3 x 3 rug: its corners, edges and middle)
+FURNITURE = {   # floor: [(x, y, decor)]; a rug: ("rug", x, y) at its top left. Each room what it is.
+    "G": [  # a storeroom; the kitchen; the guardroom; a scullery; the sitting room; the hall; the vault; the dining hall
+          (3, 4, "Barrel001"), (4, 4, "Barrel002"), (3, 5, "Sacks001"), (3, 9, "Crate001"), (5, 9, "Crate002"),
+          (7, 4, "Shelf_Goods001"), (8, 4, "Shelf_Goods001"), (12, 4, "Barrel001"), (11, 8, "Table001"),
+          (10, 8, "Chair003"), (12, 10, "Sacks001"), (7, 10, "Herb_Rack001"),
+          (13, 4, "Banner001"), (17, 4, "Crate001"), (17, 5, "Crate002"), (13, 9, "Bench001"), (14, 9, "Bench002"),
+          (15, 9, "Bench003"),
+          (18, 4, "Fish_Barrel001"), (22, 4, "Barrel002"), (22, 11, "Sacks001"), (18, 11, "Crate001"),
+          (3, 10, "Bookshelf001"), (6, 16, "Potted_Plant002"), (3, 16, "Chair001"), (6, 10, "Candles001"),
+          (7, 11, "Potted_Plant001"), (12, 11, "Potted_Plant003"), (7, 16, "Bench001"), (8, 16, "Bench002"),
+          (9, 16, "Bench003"), ("rug", 9, 12),
+          (17, 10, "Potion_Shelf001"), (13, 10, "Shelf_Goods001"), (17, 16, "Coin_Chest001"), (13, 16, "Candles001"),
+          (21, 13, "Dining_Table001"), (22, 13, "Dining_Table002"), (21, 12, "Chair001"), (22, 12, "Chair001"),
+          (22, 14, "Chair002"), (18, 12, "Banner001"), (18, 16, "Potted_Plant004")],
+    "U": [  # a bedroom; the linen closet; the library; the study; a bedroom; the bunk room; the master's; the gallery
+          (3, 4, "Bed001"), (3, 5, "Bed002"), (8, 4, "Bookshelf001"), (8, 10, "Potted_Plant004"), ("rug", 4, 7),
+          (10, 4, "Shelf_Goods001"), (11, 4, "Shelf_Goods001"),
+          (12, 4, "Bookshelf001"), (13, 4, "Bookshelf001"), (14, 4, "Bookshelf001"), (15, 4, "Bookshelf001"),
+          (13, 8, "Desk001"), (13, 9, "Chair002"), (12, 11, "Candles001"),
+          (21, 5, "Desk001"), (21, 6, "Chair002"), (22, 4, "Bookshelf001"), (18, 4, "Potion_Shelf001"),
+          (8, 11, "Bed001"), (8, 12, "Bed002"), (3, 11, "Shelf_Goods001"), (6, 15, "Chair003"),
+          (9, 9, "Bed001"), (9, 10, "Bed002"), (10, 13, "Bed001"), (10, 14, "Bed002"), (11, 15, "Barrel001"),
+          (12, 12, "Double_Bed001"), (13, 12, "Double_Bed002"), (12, 13, "Double_Bed003"),
+          (13, 13, "Double_Bed004"), (17, 15, "Potted_Plant005"),
+          (18, 10, "Statue002"), (22, 10, "Banner001"), (18, 15, "Potted_Plant001"), (19, 12, "Bench001"),
+          (20, 12, "Bench002"), (21, 12, "Bench003")],
+    "C": [  # the wine cellar; a storeroom; the root cellar; the cold store; a workshop; the old cells; a narrow store;
+            # the servants' room
+          (3, 4, "Cellar_Barrel001"), (5, 4, "Cellar_Barrel001"), (7, 4, "Cellar_Barrel001"), (3, 6, "Barrel002"),
+          (8, 4, "Cellar_Crate001"), (13, 4, "Cellar_Crate001"), (13, 5, "Cellar_Crate001"), (8, 9, "Sacks001"),
+          (16, 4, "Sacks001"), (16, 8, "Barrel001"),
+          (17, 4, "Fish_Barrel001"), (22, 4, "Cellar_Crate001"), (22, 5, "Barrel001"),
+          (3, 11, "Table001"), (4, 11, "Chair003"), (7, 16, "Crate002"),
+          (8, 10, "Cellar_Barrel001"), (13, 10, "Candles001"),
+          (14, 16, "Crate001"), (16, 9, "Sacks001"),
+          (22, 12, "Bed001"), (22, 13, "Bed002"), (17, 16, "Table001"), (18, 16, "Chair004")],
+}
+
+
+def room_box(floor, col, row):
+    """(x1, y1, x2, y2) of the room at (col, row) on a floor."""
+    cols, splits = LAYOUT[floor]
+    a, b = cols[col]
+    return (a, Y1, b, splits[col] - 1) if row == 0 else (a, splits[col], b, LAST[floor])
+
+
+def room_of(floor, x, y):
+    for col in range(4):
+        for row in (0, 1):
+            x1, y1, x2, y2 = room_box(floor, col, row)
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                return col, row
+    return None
+
+
+def door_y(floor, col, row):
+    """The row of the doorway east of room (col, row): the middle of where it and the room east of it overlap."""
+    a, b = room_box(floor, col, row), room_box(floor, col + 1, row)
+    return (max(a[1], b[1]) + min(a[3], b[3])) // 2
+
+
+def door_x(floor, col):
+    a, _, b, _ = room_box(floor, col, 0)
+    return (a + b) // 2
 
 
 def maze_edges(floor, x, y, last):
@@ -213,16 +300,12 @@ def maze_edges(floor, x, y, last):
     if floor == "C" and y == last:
         e.add("s")
     gaps = GAPS[floor]
-    if y == SPLIT:
-        col = next(i for i, (a, b) in enumerate(COLS) if a <= x <= b)
-        if not (("s", col) in gaps and x == (COLS[col][0] + COLS[col][1]) // 2):
-            e.add("n")
-    for i, (a, b) in enumerate(COLS[:-1]):
-        if x == b:
-            row = 0 if y < SPLIT else 1
-            mid = 7 if row == 0 else 13
-            if not (("e", i, row) in gaps and y == mid):
-                e.add("e")
+    col, row = room_of(floor, x, y)
+    cols, splits = LAYOUT[floor]
+    if y == splits[col] and not (("s", col) in gaps and x == door_x(floor, col)):
+        e.add("n")
+    if col < 3 and x == cols[col][1] and not (("e", col, row) in gaps and y == door_y(floor, col, row)):
+        e.add("e")
     return e
 
 
@@ -231,23 +314,51 @@ def maze_floor(m, floor, floor_tile, last):
         for x in range(X1, X2 + 1):
             t, over = m.parts(x, y)
             over.pop("Decor", None)
+            over.pop("Under", None)
             e = maze_edges(floor, x, y, last)
             m.put(x, y, THIN + CODES[frozenset(e)] if e else floor_tile, over)
 
 
-def maze(w, pid):
-    m, c = w.find_id(pid)
-    mx, my, _ = W.mxyz(m.name)
-    up_name, down_name = W.mname(mx, my, 1), W.mname(mx, my, -1)
-    if SK.map_exists(up_name) or SK.map_exists(down_name):
-        return False
-    up, down = SK.black_map(up_name), SK.black_map(down_name)
-    maze_floor(m, "G", "Plank001", Y2 - 1)
-    for x in range(X1, X2 + 1):                             # (upstairs: its front under the eaves, windows in it)
-        up.put(x, Y2 - 1, WALL, {"Decor": "Stone_Wall_Window001"} if x % 3 == 0 and X1 < x < X2 else {})
-    maze_floor(up, "U", "Plank001", Y2 - 2)
-    maze_floor(down, "C", "Flagstone001", Y2 - 1)
-    maps = {"G": m, "U": up, "C": down}
+def kept_clear(floor):
+    """Where nothing may stand: the ways up and down, the chests, the traps, where people start, the doorways."""
+    out = set()
+    for lower, upper, (x, y), _ in LINKS:
+        if floor in (lower, upper):
+            out.add((x, y))
+    out |= {(x, y) for _, x, y, _ in THINGS.get(floor, [])}
+    out |= {(x, y) for f, _, x, y in TRAPS if f == floor}
+    out |= {(x, y) for _, x, y, _, _ in PEOPLE[floor]}
+    for g in GAPS[floor]:
+        if g[0] == "e":
+            y = door_y(floor, g[1], g[2])
+            b = LAYOUT[floor][0][g[1]][1]
+            out |= {(b, y), (b + 1, y)}
+        else:
+            x = door_x(floor, g[1])
+            s = LAYOUT[floor][1][g[1]]
+            out |= {(x, s), (x, s - 1)}
+    return out
+
+
+def furnish(m, floor):
+    """Each room's furniture (FURNITURE), checked: in a room, and clear of what must be kept clear."""
+    clear = kept_clear(floor)
+    for f in FURNITURE[floor]:
+        rug = f[0] == "rug"                           # (a rug's decor too, walked over: anyone may start on it)
+        cells = [(f[1] + i, f[2] + j, RUG[j * 3 + i]) for j in range(3) for i in range(3)] if rug else [f]
+        for x, y, name in cells:
+            assert room_of(floor, x, y) is not None, (floor, x, y, name)
+            assert rug or (x, y) not in clear, ("in the way", floor, x, y, name)
+            t, over = m.parts(x, y)
+            over["Decor"] = name
+            m.put(x, y, t, over)
+
+
+def lay_out(maps):
+    """Every floor's rooms, its ways up and down, its furniture (maps: {"G": ..., "U": ..., "C": ...})."""
+    maze_floor(maps["G"], "G", "Plank001", LAST["G"])
+    maze_floor(maps["U"], "U", "Plank001", LAST["U"])
+    maze_floor(maps["C"], "C", "Flagstone001", LAST["C"])
     for lower, upper, (x, y), kind in LINKS:
         if kind == "stairs":
             t, over = maps[lower].parts(x, y)
@@ -257,46 +368,51 @@ def maze(w, pid):
         else:
             maps[lower].set(x, y, decor="Ladder001")
             maps[upper].set(x, y, decor="Hatch001")
-    # (what was in the house, out; what's in the maze, in)
+    for floor, m in maps.items():
+        furnish(m, floor)
+
+
+def people(maps, inside):
+    """The bandits and rats, each roaming its own room (what was there before taken off first)."""
+    bad = "Attitude=Bad Group=%s" % MAZE.upper()
+    for floor, m in maps.items():
+        m.ents = [ln for ln in m.ents if not (ln.split("\t")[0] == "NPC" and ln.split("\t")[1] in ("Bandit", "Rat")
+                                              and inside(ln))]
+        for kind, x, y, at, opts in PEOPLE[floor]:
+            zone = "" if at is None else "Zone=%d,%d,%d,%d" % room_box(floor, *at)
+            words = " ".join(w for w in ((bad if kind == "Bandit" else "Attitude=Bad"), zone, opts) if w)
+            m.ents.append(ent("NPC", kind, x, y, words))
+
+
+def maze(w, pid, again=False):
+    """Its three floors laid out (again=True: over the floors there are now, the rooms and their people and furniture
+    drawn afresh; the chests, traps and stash where they were)."""
+    m, c = w.find_id(pid)
+    mx, my, _ = W.mxyz(m.name)
+    up_name, down_name = W.mname(mx, my, 1), W.mname(mx, my, -1)
+    there = SK.map_exists(up_name) or SK.map_exists(down_name)
+    if there and not again:
+        return False
+    if there:
+        up, down = Map(up_name), Map(down_name)
+    else:
+        up, down = SK.black_map(up_name), SK.black_map(down_name)
+        for x in range(X1, X2 + 1):                         # (upstairs: its front under the eaves, windows in it)
+            up.put(x, Y2 - 1, WALL, {"Decor": "Stone_Wall_Window001"} if x % 3 == 0 and X1 < x < X2 else {})
+    maps = {"G": m, "U": up, "C": down}
+    lay_out(maps)
+
     def inside(ln):
-        q = W.line_cell(ln, mx, my)
-        return q is not None and X1 - 3 <= q[0] - mx * XT + 1 <= X2 + 3 and Y1 <= q[1] - my * YT + 1 <= Y2 + 3 \
-            and W.line_id(ln) != pid
-    m.ents = [ln for ln in m.ents if not inside(ln)]
-    bad = "Attitude=Bad Group=%s" % pid.upper()
-    room = lambda floor, col, row: "Zone=%d,%d,%d,%d" % (          # noqa: E731
-        COLS[col][0], Y1 if row == 0 else SPLIT, COLS[col][1],
-        SPLIT - 1 if row == 0 else (Y2 - 2 if floor == "U" else Y2 - 1))
-    people = {
-        "G": [("Bandit", DOOR - 2, Y2 + 2, "Stand=1 Face=S Look=1"), ("Bandit", DOOR + 2, Y2 + 2, "Stand=1 Face=S Look=2"),
-              ("Bandit", 10, 14, room("G", 1, 1)), ("Bandit", 5, 15, room("G", 0, 1) + " Look=3"),
-              ("Bandit", 16, 5, room("G", 2, 0)), ("Bandit", 20, 12, room("G", 3, 1) + " Look=1"),
-              ("Bandit", 15, 15, room("G", 2, 1) + " Name=%s_Chief" % pid)],
-        "U": [("Bandit", 4, 5, room("U", 0, 0) + " Look=2"), ("Bandit", 20, 8, room("U", 3, 0)),
-              ("Bandit", 16, 14, room("U", 2, 1) + " Look=3")],
-        "C": [("Bandit", 10, 7, room("C", 1, 0)), ("Rat", 6, 14, room("C", 0, 1)), ("Rat", 15, 14, room("C", 2, 1)),
-              ("Bandit", 21, 14, room("C", 3, 1) + " Look=1")],
-    }
-    for floor, folk in people.items():
-        for kind, x, y, opts in folk:
-            maps[floor].ents.append(ent("NPC", kind, x, y, "%s %s" % (bad if kind == "Bandit" else "Attitude=Bad",
-                                                                      opts)))
-    things = {
-        "G": [("Chest", 11, 4, "Id=%s_Pantry Lock=2" % pid), ("Chest", 16, 11, "Id=%s_Vault Lock=9 Sturdy=1" % pid),
-              ("Chest", 13, 11, "Id=%s_Strongbox Lock=7 Sturdy=1" % pid)],
-        "U": [("Chest", 11, 11, "Id=%s_Footlocker Lock=4" % pid)],
-        "C": [("Odd_Barrel", 11, 15, "Id=%s_Stash" % pid)],
-    }
-    for floor, objs in things.items():
-        for kind, x, y, opts in objs:
-            maps[floor].ents.append(ent("StaticObject", kind, x, y, opts))
-    for floor, kind, x, y in (("G", "Bucket", 5, 12), ("C", "Darts", 9, 7), ("U", "Gas", 17, 7), ("G", "Pit", 20, 14),
-                              ("U", "Alarm", 15, 13), ("C", "Weakness", 20, 12), ("U", "Pie", 10, 7)):
-        maps[floor].ents.append("Trigger\tTrap_%s\t%d\t%d" % (kind, x, y))
-    for x, y, d in ((X1, Y1, "Barrel001"), (X2, Y1, "Bookshelf001"), (17, SPLIT, "Bed001"), (17, SPLIT + 1, "Bed002"),
-                    (X1, SPLIT, "Shelf_Goods001")):
-        if not up.decor(x, y) and up.tile(x, y) not in ("Stairs002",):
-            up.set(x, y, decor=d)
+        q = W.line_cell(ln, 0, 0)
+        return q is not None and X1 - 3 <= q[0] + 1 <= X2 + 3 and Y1 <= q[1] + 1 <= Y2 + 3
+    if not there:
+        m.ents = [ln for ln in m.ents if not (inside(ln) and W.line_id(ln) != pid)]
+        for floor, objs in THINGS.items():
+            for kind, x, y, opts in objs:
+                maps[floor].ents.append(ent("StaticObject", kind, x, y, opts))
+        for floor, kind, x, y in TRAPS:
+            maps[floor].ents.append("Trigger\tTrap_%s\t%d\t%d" % (kind, x, y))
+    people(maps, inside)
     up.save()
     down.save()
     w.changed.add(m.name)

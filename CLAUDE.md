@@ -190,6 +190,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 **Creatures**
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.
+- **Mosquitoes over the marsh** (`dev/migrate/build_mosquito.py`): weak, quick, flying, buzzing; one for every so many
+  marsh tiles out in the wild (never a settlement's map), and the Marsh and Bog terrains scatter them.
 - Prey (hens, cows, sheep, rabbits, ducks, frogs, seals, otters) has `Flees=1` and is **Passive**, its kind and every
   map line (`dev/migrate/prey_passive.py`; validate.py holds it): it can be hunted, runs from whoever hits it and never
   fights back.
@@ -245,6 +247,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Shift.Minutes` once nobody's inside: rooms and tunnels, monsters by depth, chests (once each a shift; now and then
   a mimic), hidden traps, a secret room behind a cracked wall, and the Deep's Heart at the bottom. Its things are the
   engine's (`deep_do`), not scripts.
+- **Rumours** (`dsengine/rumours.py`, `dev/migrate/build_rumours.py`): townsfolk who gossip (Entities.ini `Gossip=1`:
+  the trades, shopkeepers, guards) and have no words of their own (no `Talk to <Id>` script) now and then mention a
+  quest you could start and haven't, before their usual talk; what's said is the quest's `Rumour=` (`Rumour.2=`...)
+  in Quests.ini; how often is Config.ini `[Rumours]` (one every Every.Minutes, Chance in 100, each quest Times at
+  most). A script can tell one: `Tell.Rumour`. Never for the main story (found, not told). A new side quest gets a
+  rumour.
 - **The world has a sense of humour, secrets and traps**: odd quests (Pip the invisible apprentice, Lady Pettigrew's
   hat and the geese, Granny Bramble's practice hex, the philosophical scarecrow, Duchess the talking cow, the Mayor's
   trousers), Bert's cat flap and big red button, a secret to Search by every settlement's square, traps in the old
@@ -381,7 +389,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the east gate), `move_ashford.py` (Ashford seven maps north, onto a peninsula grown for it: maps up to row -6),
   `build_manors.py` (Fenmoor Hall and Redrock Manor, bandit manors where Fenwick and Highwatch stood, and the Drowned
   Abbey; Redrock Manor a maze on three floors - its rooms shut off from each other, reached only by ladders and stairs
-  up and down, the vault last: GAPS and LINKS say which, and a test holds that the way through is the long one). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
+  up and down, the vault last: GAPS and LINKS say which, and a test holds that the way through is the long one; its
+  rooms each floor's own sizes and each furnished for what it is, LAYOUT and FURNITURE, laid out again by
+  `refurnish_redrock.py`). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
   run again after it.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep and the Wizards' Court medium cities;
@@ -456,7 +466,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   map line (0: as drawn). Only how it looks: its name, words and quests are its own. One-of-a-kind people and guards'
   uniforms aren't varied.
 - **Nothing looks like a grid.** Ground that covers wide areas (mountains, streets, the forest canopy) is painted from a
-  big seamless texture (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
+  big seamless texture (marsh is the exception, the owner's wish: varied tiles, `build_marsh.py`, each its own
+  feature kept in from its edges so any two meet without a seam, mixed by weight by its terrain) (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
   picture repeated every tile; a range is peaks of all sizes overlapping. Trees, bushes, rocks, grass and flowers
   are sized and nudged per tile (`ground.js` paintDecor), always inside their own cell.
   A range's edge has no right angles: its corners are cut on the slant as the ground's painted (`ground.js`
@@ -574,7 +585,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The map editor's Auto palette and brushes** (`dsedit/terrain.py`): a terrain (`data/TileSets.ini` `Kind=Terrain`,
   `dev/migrate/build_terrains.py`: its ground mixed by weight, decor and creatures scattered at a density, `Water=1`,
   a wall's `Face=`), a set or a family of look-alikes is one palette entry that puts the right tile down itself;
-  Detail shows every tile. Terrains are painted with a brush of any size, Fill, Rectangle, or an Outline drawn round a
+  Detail shows every tile. Every palette entry has its name under it; Auto's are in sections under headings
+  (Terrains; walls, fences and joins; roofs; sets; look-alikes; single tiles: `PAL_SECTIONS`). Terrains are painted with a brush of any size, Fill, Rectangle, or an Outline drawn round a
   place; painting rolls the decor and creatures afresh, takes off what another terrain scattered (never anything with
   an Id, a name, a zone or a patrol, nor built decor), smooths the coasts and turns cave rock to its face over open
   ground. A new kind of ground or a wall gets a terrain in the data, not code. An NPC's `Zone=`/`Chase=` can be any
@@ -600,6 +612,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Sea terrain) and sand going into grass. The editor's smoothing (`world.py` smooth_corners) gives a cell of the base
   ground every corner whose two sides are both the land, whatever's on the diagonal or beyond, two cells round
   what's painted. A new coast or edge is a set and a run of that builder, not code.
+- **Two corners that meet round into each other**: where a piece's corner runs on along an edge into its neighbour's
+  (a two-tile inlet's end, two pieces along a bank), the land is thickened at that tip and curved between, never a
+  point (`ground.js` cornerJoins, `render.py` _corner_poly): worked out from the neighbours, no pieces of its own.
+  `dev/migrate/retile_world.py` ran the editor's smoothing over every level (and varied the marsh); run it again
+  after a big change to the coasts.
 - **What's raised off the ground** (Tiles.ini `Raised=1`: the boardwalk, `dev/migrate/build_crossings.py`) casts its
   shadow south and east, shows its front edge and the posts it stands on, isn't blended over, and turns its planks
   across the way where it runs east and west (`ground.js` paintRaised, `render.py`). The fancy bridge is two Stretch

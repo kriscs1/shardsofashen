@@ -432,11 +432,8 @@ def main():
         K.save("Tiles", tile, cell_of(arr, 0))
         SK.section(SK.TILES, tile, [("Texture", name), ("Blend.Texture", tile)])
     print("Streets: %d textures" % len(STREETS))
-    arr = marsh_texture(random.Random("Marsh"))
-    save_texture("Marsh", arr)
-    K.save("Tiles", "Marsh001", cell_of(arr, 5))
-    SK.section(SK.TILES, "Marsh001", [("Texture", "Marsh"), ("Walk.Speed", "0.45")])   # (wading: slow going)
-    print("Marsh: its texture")
+    SK.section(SK.TILES, "Marsh001", [("Walk.Speed", "0.45")])   # (wading: slow going. Marsh is varied tiles now,
+    print("Marsh: slow going")                                    #  not a texture: build_marsh.py draws them)
 
 
 if __name__ == "__main__":

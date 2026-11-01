@@ -562,6 +562,11 @@ Teleport    X COORDINATE,Y COORDINATE | MAP NAME
          In PIXELS, except for Change.Tile and >Tile.In.Line.Of.Sight, which take TILE coordinates (1-25,1-21)
     2. MAP NAME: The name of the map (X,Y,Z, e.g. 1,1,0) or $Map.Name for the current map
 
+Tell.Rumour    [WHO]
+    COMMAND: Now and then, a rumour of a quest the player could start and hasn't (Quests.ini Rumour=), told by
+    WHO in a conversation box; the script goes on when it's answered. None due (Config.ini [Rumours]): straight on.
+    1. WHO: Who tells it (an NPC's name; blank: the one clicked)
+
 Toggle.Player.Visibility    ON/OFF
     COMMAND: Toggles Player's visibility ON or OFF
     1. ON/OFF: ON or OFF

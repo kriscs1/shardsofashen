@@ -574,6 +574,8 @@ class ScriptMixin:
             self.teleport(target.replace(" ", ""), x, y)
         elif c == "Display.Conversation":
             self.script_conversation()
+        elif c == "Tell.Rumour":                     # (a rumour, if one's due; else straight on: rumours.py)
+            self.tell_rumour(trim(arg[1]))
         elif c == "Display.Item.Rack":
             if self.open_item_rack(arg[1], arg[2], arg[3]):
                 self.script_state = "RACK"

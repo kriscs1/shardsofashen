@@ -19,6 +19,7 @@ from .player_combat import CombatMixin
 from .player_actions import ActionsMixin
 from .scripting import ScriptMixin, ATTRS_MOST
 from .quests import QuestMixin
+from .rumours import RumourMixin
 from .pvp import PvPMixin
 from .homes import HomeMixin
 from .farming import FarmMixin
@@ -93,7 +94,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
               MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
-              ThiefMixin, SenseMixin, LockMixin, ColdMixin, TogetherMixin):
+              ThiefMixin, SenseMixin, LockMixin, ColdMixin, TogetherMixin, RumourMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
