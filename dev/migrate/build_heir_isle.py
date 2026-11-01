@@ -443,7 +443,7 @@ def data():
     K.remove_section(K.QUESTS, "Dinner at the Bank")              # (the house was the bank: renames.py QUEST_NAMES)
     K.quest("Dinner at Edwin's", "Maren", "DinnerQuest", {
         0: "Edwin the lawyer asked you to dinner. He and his wife Maren, the Isle's doctor, live in the brick house "
-           "by the chapel.",
+           "in the Isle's north-west, by the sea.",
         1: "Chop 3 logs for Maren's range with the axe she lent you (Chop a tree), and bring them to her.",
         2: "Take an egg from the hen coop on Bess's farm, in the north, and fry it on Maren's range, upstairs in their "
            "house (use the egg on the range).",
@@ -858,7 +858,7 @@ def opening():
             ("Continue", "@leave")),
         ("@leave",),
         ("Move.Entity", at(10, 11, -8), "Edwin", at(COTTAGE_DOOR, 12, -8), "2"),
-        say("Edwin", "Of course. If you need anything, you can find my wife, Maren, and me at our house, by the chapel. "
+        say("Edwin", "Of course. If you need anything, you can find my wife, Maren, and me at our house, up in the north-west, by the sea. "
                      "Come for dinner.", ("Thank you, Edwin.", "@jar")),
         ("@jar",),
         say("Edwin", "Oh, and this. Mary kept a little jar of Shards on the mantel: she'd want you to have them.\\Shards "

@@ -41,6 +41,9 @@ def climbs():
 
 def edwin_and_maren():
     down, up = os.path.join(ROOT, "maps", "2,1,0.txt"), os.path.join(ROOT, "maps", "2,1,1.txt")
+    if not os.path.exists(up):                         # (their house is on 0,-2 now: move_lawyers_house.py)
+        print("Edwin and Maren's house has moved (move_lawyers_house.py): nothing to do here.")
+        return
     lines = read_text_lines(down)
     out = list(lines)
     for i in range(H, len(lines)):

@@ -48,8 +48,9 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    who has a boat; people and places reveal it as you go (the Amulet of Succession's stages say "something of your
    mother's", not "the amulet at the back of the caves").
 2. **Dinner at Edwin's** (`DinnerQuest`). Edwin the lawyer and **Maren**, the Isle's doctor, live in the brick house
-   by the chapel (2,1,0, two storeys; it was the bank, and its place Id is still `Isle_Bank`): her surgery and his desk
-   downstairs by day, their rooms upstairs (2,1,1), going up at night. There's no bank on the Isle. Three logs for her range (with the axe she
+   in the Isle's north-west corner, by the sea (0,-2,0, two storeys; it was the bank, by the chapel, and its place Id
+   is still `Isle_Bank`): her surgery and his desk downstairs by day, their rooms upstairs (0,-2,1), going up at
+   night. There's no bank on the Isle. Three logs for her range (with the axe she
    lends you), an egg from Bess's coop fried on her range, the egg to Edwin. Maren gives the chapel trapdoor's key
    and makes you promise not to go down without a sword and shield.
 3. **The Amulet of Succession** (`AmuletQuest`). **Bess** the milkmaid won't sail without her father's compass; her
@@ -61,14 +62,15 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    house, 1,1,0, "Maren & Bess's Father's Home") is locked. The hobgoblins' lair (2,2,-2) is behind an iron door in the
    caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
    Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
-   their bolt-hole tent over the lair (2,2,0; their palisaded camp is in the Isle's north-west corner): only a tent
-   until you've climbed it from below. In his house a floorboard
+   a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
    squeaks: stand on it, then Search it, for the compass. Bess sails you to Northport; **Wim** the ferryman crosses
    for a coin after that.
 
 **The Isle** is maps 0..4 by -3..2: `dev/migrate/grow_isle.py` grew it north to twice its size (its old north coast's
 shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
-the new land, the hobgoblins' camp in its north-west corner and the ring of standing stones by its south-east shore.
+the new land, and the ring of standing stones by its south-east shore. `move_lawyers_house.py` then put the
+hobgoblins' camp back over their lair and moved Edwin and Maren's house to the north-west corner by whole maps (2,1 to
+0,-2: every tile of it, upstairs and down, where it was on its map).
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his

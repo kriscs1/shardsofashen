@@ -1250,7 +1250,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     monkeypatch.setattr(sc, "rnd", lambda: 0.0)                     # (and the cage's lock gives at the first try)
     day = world.day_fraction()
     world.set_day_fraction(0.5)                                     # (by day: Maren at her counter)
-    s = join(world, "Heir", "2,1,0", 16 * 32, 8 * 32)
+    s = join(world, "Heir", "0,-2,0", 16 * 32, 8 * 32)
     s.connected = True
     s.god_mode = True                                               # (the caves' beasts: no dying in a test)
     attr = lambda name: int(float(s.get_attribute(name) or 0))
@@ -1258,22 +1258,22 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("LastWill") == 2                                    # (a saved character: past the funeral)
     assert "Bronze_Sword" not in s.equipped                         # (no sword to start with)
     # Dinner at Edwin's
-    maren = npc("Maren", "2,1,0", "Maren_At_Counter")
+    maren = npc("Maren", "0,-2,0", "Maren_At_Counter")
     talk(maren, 1)                                                  # dinner? logs for the range first: an axe
     assert attr("DinnerQuest") == 1 and s.items_held("Bronze_Axe") == 1
     stock(s, Logs=3)
     talk(maren, 1)
     assert attr("DinnerQuest") == 2 and s.items_held("Logs") == 0
     rng = next(e for e in world.ents if e.npc_id == "Marens_Range")
-    up = world.maps["2,1,1"]
-    s.teleport("2,1,1", int(rng.x - up.ox), int(rng.y - up.oy) + 30)
+    up = world.maps["0,-2,1"]
+    s.teleport("0,-2,1", int(rng.x - up.ox), int(rng.y - up.oy) + 30)
     run(5)
     stock(s, Egg=1)
     s.item_in_use = next(e for e in s.inv if e.name == "Egg")
     s.use_item_with(rng)                                            # fried on Maren's range, upstairs
     run(60)
     assert s.items_held("Fried_Egg") == 1 and attr("DinnerQuest") == 3
-    talk(npc("Edwin", "2,1,0", "Edwin_At_Desk"), 1, 1, 1)           # the egg to Edwin; Maren gives the key
+    talk(npc("Edwin", "0,-2,0", "Edwin_At_Desk"), 1, 1, 1)           # the egg to Edwin; Maren gives the key
     assert s.items_held("Healing_Draught") >= 2                     # (and draughts: herbs mend you, not Shards)
     assert attr("DinnerQuest") == 4 and s.items_held("Chapel_Cellar_Key") == 1
     # The Amulet of Succession, and Bess's compass begun
@@ -1427,9 +1427,9 @@ def test_townsfolk_take_the_stairs_to_bed(world):
             world.tick(0.05, now=world.now + 50)
     assert not [e for e in world.ents if e.npc_id in ("Maren_At_Home", "Edwin_At_Home")]
     assert world.data.climb_dir("Stairs001") == 1 and world.data.climb_dir("Stairs002") == -1
-    down = world.maps["2,1,0"]
+    down = world.maps["0,-2,0"]
     assert (down.ox + 19.5 * 32, down.oy + 1.5 * 32, 1) in world.climb_spots(down)
-    s = join(world, "Lodger", "2,1,0", 16 * 32, 4 * 32)             # (in the house, watching)
+    s = join(world, "Lodger", "0,-2,0", 16 * 32, 4 * 32)             # (in the house, watching)
     day = world.day_fraction()
     maren = next(e for e in world.ents if e.npc_id == "Maren_At_Counter")
     counter = (maren.cx, maren.cy)
@@ -1444,7 +1444,7 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     del world.sound
     assert maren.z == 1 and ("Ladder", 0, ["Lodger"]) in heard     # (heard going up: in the room with her)
     assert ("Ladder", 1, []) in heard                               # (nobody upstairs to hear her come up)
-    s.teleport("2,1,1", 14 * 32, 3 * 32)                            # (upstairs after her: to bed she goes)
+    s.teleport("0,-2,1", 14 * 32, 3 * 32)                            # (upstairs after her: to bed she goes)
     run(600)
     assert maren.ai.asleep and maren.pose == "Sleep" and maren.z == 1
     world.set_day_fraction(0.5)                                     # (morning: down the stairs to her counter)
@@ -1457,7 +1457,7 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     world.set_day_fraction(0.6)
     run(5)
     assert maren.z == 0
-    out = join(world, "Outsider", "2,1,0", 23 * 32, 2 * 32)          # (outside, by the wall the stairs are against)
+    out = join(world, "Outsider", "0,-2,0", 23 * 32, 2 * 32)          # (outside, by the wall the stairs are against)
     assert world.roof_over(0, maren.cx, maren.cy) and not world.roof_over(0, out.player.fx, out.player.fy)
     assert not world.sees_spot(out, 0, down.ox + 19.5 * 32, down.oy + 1.5 * 32)
     heard = listen(world)
@@ -1467,10 +1467,10 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     assert maren.z == 1 and not [h for h in heard if h[0] == "Ladder" and h[2]]   # (up, and nobody heard a thing)
     leave(world, out)
     edwin = next(e for e in world.ents if e.npc_id == "Edwin_At_Desk")
-    t = join(world, "Passer", "2,1,0", 3 * 32, 18 * 32)             # (out by the pond: too far off to see)
+    t = join(world, "Passer", "0,-2,0", 9 * 32, 18 * 32)             # (out by the shore: too far off to see)
     run(5)
     leave(world, t)
-    u = join(world, "Guest", "2,1,1", 13 * 32, 2 * 32)
+    u = join(world, "Guest", "0,-2,1", 13 * 32, 2 * 32)
     run(5)
     assert edwin.z == 1 and edwin.ai.asleep
     world.set_day_fraction(day)
@@ -3857,7 +3857,7 @@ def test_animals_keep_out_of_houses_by_where_they_roam():
     """No rule stops an animal at a door now (Indoors= is gone): its zone leaves out the houses on its map
     (dev/migrate/assign_homes.py), and cats and dogs come in as they always did."""
     w = World(ROOT)
-    m = w.maps["2,1,0"]
+    m = w.maps["0,-2,0"]
     spot = None                                       # (open ground just south of a roofed, walkable cell)
     for ty in range(2, 20):
         for tx in range(2, 24):
@@ -5493,8 +5493,9 @@ def test_the_isle_has_grown_north_with_its_new_places(world):
     for pid in ("Mirror_Tarn", "Hollow_Wood", "Tin_Braes", "Old_Beacon", "Standing_Stones", "Hobgoblin_Camp"):
         assert pid in ids
     camp = next(e for e in world.ents if e.npc_id == "Hob_Camp_Chest")
-    assert camp.map.split(",")[1].startswith("-")                     # (north of the old Isle)
+    assert camp.map == "2,2,0"                                      # (back over their lair: move_lawyers_house.py)
     assert any(e.name == "Hobgoblin" and e.map == camp.map for e in world.ents)
+    assert next(e for e in world.ents if e.npc_id == "Edwin_At_Desk").map == "0,-2,0"   # (the north-west corner)
     stones = next(e for e in world.ents if e.npc_id == "Stone_Circle_Chest")
     assert stones.map in ("2,2,0", "3,2,0", "2,1,0", "3,1,0")          # (the south-east)
     s = join(world, "Wanderer", camp.map, 300, 300)

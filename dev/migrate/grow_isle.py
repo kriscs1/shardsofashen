@@ -12,6 +12,7 @@ south-east; new places in the new land.
   * The hobgoblins' camp (palisade, tents, fire, chest, its two hobgoblins) is lifted whole to the north-west corner.
     Their bolt-hole tent stays where it was, over their lair (2,2,-2): the hidden ladder still comes up in it, as
     ladders line up with what's over them. The camp's chest is Hob_Camp_Chest (its own script, the same attribute).
+    (move_lawyers_house.py put the camp back, and Edwin and Maren's house in the corner instead.)
   * The standing stones and their chest (Stone_Circle_Chest, the same attribute) to the south-east shore; the Hermit and
     the villager who talk of them say where.
   * The new maps on the Isle's lists: easy locks (Locks.ini), music and ambience, the world map's labels.
