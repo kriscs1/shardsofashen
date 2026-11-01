@@ -672,15 +672,15 @@ def data():
         "Ranger": C.good("Ranger Ash, keeper of the Wildwood's watch stones."),
         "Shepherd": C.good("A weather-beaten shepherd. His sheep are fewer than they were."),
         "Witch": C.good("Old Morwen, the bog witch. Her cottage smells of smoke and herbs."),
-        "Elder": C.good("Elder Pike of Fenwick. He looks pale and tired."),
-        "Captain": C.good("Captain Hale of Highwatch, in battered armour."),
+        "Elder": C.good("Elder Pike of Saltmarsh. He looks pale and tired."),
+        "Captain": C.good("Captain Hale of the Redrock road, in battered armour."),
         "Merchant": C.good("Qadir the merchant. His caravan is late."),
         "Forgemaster": C.good("Brann the forgemaster, staring at his cold forge."),
         "Trader": C.good("A trader with a little of everything."),
         "Settler": C.good("One of the Wildlands' settlers."),
         "Bog_Myrtle": C.item(6, "A sprig of bog myrtle. It smells of resin.", 20),
         "Witch_Brew": C.item(0, "Morwen's brew for Elder Pike. It bubbles on its own.", 1, droppable=0),
-        "Stolen_Goods": C.item(0, "A sack of goods the bandits stole from Highwatch.", 1, droppable=0),
+        "Stolen_Goods": C.item(0, "A sack of goods the bandits stole on the Redrock road.", 1, droppable=0),
         "Caravan_Ledger": C.item(0, "Qadir's caravan ledger, half buried in sand.", 1),
         "Strongbox": C.station("Open", "The bandits' iron strongbox."),
     })
@@ -733,17 +733,17 @@ QUESTS = [
         ("Done", "4")]),
     ("Bog Lights", [
         ("Giver", "Witch"), ("Attribute", "BogQuest"),
-        ("Stage0", "Speak to Old Morwen the witch in Fenwick, in the Saltmarsh."),
-        ("Stage1", "Gather 4 bog myrtle in the Saltmarsh (Alchemy 5) and bring them to Morwen."),
-        ("Stage2", "Take Morwen's brew to Elder Pike in Fenwick."),
+        ("Stage0", "Speak to Old Morwen the witch in Saltmarsh, in the fens."),
+        ("Stage1", "Gather 4 bog myrtle in the fens (Alchemy 5) and bring them to Morwen."),
+        ("Stage2", "Take Morwen's brew to Elder Pike in Saltmarsh."),
         ("Stage3", "Tell Morwen that the Elder has drunk her brew."),
         ("Done", "4")]),
     ("Bandits on the Road", [
         ("Giver", "Captain"), ("Attribute", "BanditQuest"),
-        ("Stage0", "Speak to Captain Hale in Highwatch, the hill fort on the Redrock road."),
+        ("Stage0", "Speak to Captain Hale in Frosthold, on the Redrock road."),
         ("Stage1", "Slay five bandits ($BanditsSlain of 5) on the roads and hills, then report to Captain Hale."),
         ("Stage2", "Find the bandits' camp in the eastern hills and take back the stolen goods from their strongbox."),
-        ("Stage3", "Bring the stolen goods to Captain Hale in Highwatch."),
+        ("Stage3", "Bring the stolen goods to Captain Hale in Frosthold."),
         ("Done", "4")]),
     ("The Lost Caravan", [
         ("Giver", "Merchant"), ("Attribute", "CaravanQuest"),
@@ -882,7 +882,7 @@ def scripts():
              ("Update.Attribute", "BogQuest", "=2"), ("Play.Sound", "Brew"),
              conv("Witch", "Good, good. Into the pot... there. Take this to Elder Pike, and don't you dare sip it.", ("I won't.", "@bye")),
              ("End",), "b_more:", conv("Witch", "Four sprigs of bog myrtle, dearie. It grows among the reeds.", ("I'll keep looking.", "@bye"))]),
-        (2, [conv("Witch", "Off you go! The Elder's house is in the south-west of the village.", ("On my way.", "@bye"))]),
+        (2, [conv("Witch", "Off you go! The Elder's never far from the inn.", ("On my way.", "@bye"))]),
         (3, [("Update.Attribute", "BogQuest", "=4"),
              ("Give.Item", "Mega_Potion", "2"), ("Give.Item", "Gold_Coin(s)", "80"), ("Update.Skill", "Alchemy", "+2"),
              conv("Witch", "He drank it? Then he'll live, the old goat. Here: two of my best potions, and some coin.", ("Thank you!", "@b_done")),
@@ -900,7 +900,7 @@ def scripts():
         ("End",),
         "nobrew:", conv("Elder", "*cough* Morwen said she'd send something... have you got it?", ("Not yet.", "@bye")),
         ("End",),
-        "other:", conv("Elder", "Welcome to Fenwick, traveller. Keep to the boardwalks.", ("Thanks.", "@bye")),
+        "other:", conv("Elder", "Welcome to Saltmarsh, traveller. Keep to the dry ground.", ("Thanks.", "@bye")),
         "bye:", ("End",)]
     S["Pick Bog_Myrtle"] = C.pick_script("bog myrtle", "Bog_Myrtle", "Bog_Myrtle002", 60, "Alchemy", 5, "0.15", 60,
                                          "You pick some bog myrtle...", "...its leaves smell of resin.")
@@ -920,11 +920,11 @@ def scripts():
              ("Take.Item", "Stolen_Goods", "1"),
              ("Update.Attribute", "BanditQuest", "=4"),
              ("Give.Item", "Gold_Coin(s)", "200"), ("Give.Item", "Steel_Platebody", "1"), ("Update.Skill", "Strength", "+2"),
-             conv("Captain", "The town's goods! You've done Highwatch a great service. Take this armour, and the reward.", ("Thank you!", "@c_done")),
+             conv("Captain", "The town's goods! You've done the Redrock road a great service. Take this armour, and the reward.", ("Thank you!", "@c_done")),
              "c_done:", ("Display.Message", "Yellow", "Quest complete: Bandits on the Road! You receive 200 gold, a steel platebody and Strength experience."),
              ("End",), "c_nogoods:", conv("Captain", "Where are the goods? Did you lose them?", ("I'll get them.", "@bye"))]),
-    ], "The road is safe again. Highwatch salutes you.")
-    S["Kill Bandit"] = kill_count("BanditQuest", 1, "BanditsSlain", 5, "Bandits slain for Captain Hale", "Five bandits! Report to Captain Hale in Highwatch.")
+    ], "The road is safe again. Frosthold salutes you.")
+    S["Kill Bandit"] = kill_count("BanditQuest", 1, "BanditsSlain", 5, "Bandits slain for Captain Hale", "Five bandits! Report to Captain Hale in Frosthold.")
     S["Open Strongbox"] = [
         "// The bandits' strongbox (Bandits on the Road). Generated by build_regions.py",
         (">Distance.From.Clicked.Entity", "48", "@far"),

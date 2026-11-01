@@ -42,3 +42,4 @@ StaticObject	Valuables	192	248
 StaticObject	Valuables	288	472
 StaticObject	Old_Statue	64	224	Id=Secret_Thornwick_2
 StaticObject	Wishing_Well	96	192	Id=Secret_Thornwick_3
+NPC	Old_Woman	64	504	Attitude=Good Stand=1 Face=E Id=Granny_Bramble Name=Granny_Bramble

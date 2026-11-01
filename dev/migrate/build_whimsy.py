@@ -245,6 +245,10 @@ MORE = [
 ]
 
 
+GONE = {   # (towns taken off the map, remove_towns.py: their secrets stayed where they were, by these)
+    "Fenwick": "Drowned_Abbey", "Highwatch": "Redrock_Manor", "Ravensgate": "Keep_Gravekeeper"}
+
+
 def all_secrets():
     """(Id, town, kind, finds, line, how far out) for every secret: the square's own, then two more further off."""
     out = [("Secret_%s" % town, town, kind, finds, line, ((4, 9, True), (4, 13, True), (3, 10, False)))
@@ -262,7 +266,7 @@ def secrets():
     count = 0
     every = all_secrets()
     for i, (pid, town, kind, finds, line, reach) in enumerate(every):
-        anchor = "%s_Square" % town
+        anchor = GONE.get(town, "%s_Square" % town)
         if anchor not in place_ids():
             print("  !! no %s" % anchor)
             continue

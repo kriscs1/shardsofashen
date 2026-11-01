@@ -79,11 +79,11 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.
-8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Ashen** (the King's solar, 22,11,1, up a locked
+8. **Bert's Three Treasures** (`BertQuest`): 9. **The Staff of Ashen** (the King's solar, 26,18,1, up a locked
    stair in the keep); 10. **The Sunken Grimoire** (the scholar in Dunerest; a buried library under a mound in the
    desert, 3,18,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
-12. **A Ship for Dragon Island** (Captain Rook, on the shore south of Ravensgate, 27,19,0), 13. **The Island of
+12. **A Ship for Dragon Island** (Captain Rook, on the shore below King Rupert's Keep, 27,20,0), 13. **The Island of
    Dragons** (26,23,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
 15. **The Shardgate** (`ShardgateQuest`, `dev/migrate/build_shardgate.py`): with the sword, the staff at the barrier
    fails, because the dragon anchored it in the **Shardrealm**, where all broken magic goes. Bert gives the plans; you
@@ -138,6 +138,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **A kill counts for everyone who fought it** in the last minute (a blow either way) and for the killer's party near:
   its Kill script runs for each, each gets their own loot roll. A boss (`Boss=1`) has more health for each fighter
   (`[Together] Boss.Per.Player`); a raid sends more for each player there. One alone still wins at the base numbers.
+  **Every town has a surprise raid** (`data/Waves.ini`, `dev/migrate/build_town_raids.py`: raiders to suit its land),
+  and it comes only while someone's there to meet it (`waves.py` random_attacks).
 - **Parties** (right-click a player: Invite to party; `/p` talks to it, `/leave`): a quest stage one member reaches,
   the members near at that same stage reach too, with the quest's own things.
 - **Friends** (right-click a player, or `/friend Name`): two Shards accounts are friends **by account, on the
@@ -352,12 +354,22 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   near anything made or placed, nor on the owner's maps; `coast_repair.py` put back the land it ate by roads and
   sank the specks it left), `build_galaith_city.py` (Galaith redrawn: every building
   lifted whole, Ids and all, and set down in its quarter; what names the palace's or the mine's coordinates moved
-  with them), `build_mirefen.py` (the west finished: the Mirefen swamp and Mirefold, its hut hamlet, reached along the
-  West Range's northern beach; the sea south of Galaith). **Running `build_estforlan.py` again would undo all of them
-  and the owner's edits**: don't, unless they're run again after it.
+  with them), `build_mirefen.py` (the west finished: the Mirefen swamp and Mirefold, its hut hamlet; the sea south of
+  Galaith), and the owner's redrawing (`world_edit.py` holds what they share: the world as one grid of cells, what's
+  natural and what's built, rewilding, roads joined again): `remove_towns.py` (Fenwick, Highwatch and Ravensgate gone,
+  their quests moved: Morwen and Elder Pike to Saltmarsh, Granny Bramble to Thornwick, Captain Hale to Frosthold;
+  Fenwick's cathedral kept), `move_keep.py` (King Rupert's Keep five maps south, onto Ravensgate's ground: maps
+  renamed, so its solar is 26,18,1; Ravensgate's graves in a graveyard west of it; its old iron mine stays in the
+  hills), `reshape_west.py` (the coast, the mountains' edges and the Mire Tunnel as the owner drew them: the Mirefen is
+  reached **only** through the tunnel under the West Range, and the dragon's field opens on Galaith's valley only at
+  the east gate), `move_ashford.py` (Ashford seven maps north, onto a peninsula grown for it: maps up to row -6),
+  `build_manors.py` (Fenmoor Hall and Redrock Manor, bandit manors where Fenwick and Highwatch stood, and the Drowned
+  Abbey; Redrock Manor a maze on three floors - its rooms shut off from each other, reached only by ladders and stairs
+  up and down, the vault last: GAPS and LINKS say which, and a test holds that the way through is the long one). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
+  run again after it.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
-  large city (its City Hall is the Parliament for now); King Rupert's Keep, the Wizards' Court, Fenwick and Ravensgate
-  medium cities; Ashford a small city; Highwatch, Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
+  large city (its City Hall is the Parliament for now); King Rupert's Keep and the Wizards' Court medium cities;
+  Ashford a small city; Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
   villages; Moorcross, Dunerest, Wildwood, Saltmarsh and Mirefold (in the Mirefen, its huts on boardwalks) hamlets.
 - **At most two merchants of a trade in a settlement** (a trade is what's sold: a market stall's meat and a butcher's
   shop are both the butcher's; taverns too). SIZES keeps to it; `dev/migrate/cap_merchants.py` shut the shops past two

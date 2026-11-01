@@ -644,7 +644,7 @@ def quests():
     }, 2, markers={0: "Emberwatch_Square", 1: "Cinder_Fort"}, chapter=11, requires="The Steward's Hunt",
         marker0="Emberwatch_Square")
     K.quest("A Ship for Dragon Island", "Sea_Captain", "ShipQuest", {
-        0: "Find Captain Rook, the only captain mad enough to sail to Dragon Island, on the shore east of Ravensgate.",
+        0: "Find Captain Rook, the only captain mad enough to sail to Dragon Island, on the shore below King Rupert's Keep.",
         1: "Bring Captain Rook 10 planks and 20 nails to mend his hull.",
     }, 2, markers={0: "Rooks_Pier", 1: "Rooks_Pier"}, chapter=12, requires="Bert's Three Treasures",
         marker0="Rooks_Pier", level=12)
@@ -987,7 +987,7 @@ def bert():
         say("Bert", "Take the staff back: it's the King's, and the spell needs a king's staff. Hold it to the barrier and "
                     "say the words, and it will fall.\\But hear me. Behind the barrier waits the dragon, and no blade "
                     "made by men will kill it. Only the Sword of Valour, driven into its heart. It lies on Dragon "
-                    "Island, far out in the eastern sea. Captain Rook, by Ravensgate, is the only sailor mad enough to "
+                    "Island, far out in the eastern sea. Captain Rook, on the shore below the Keep, is the only sailor mad enough to "
                     "take you there.", ("Thank you, Bert.", "@done")),
         ("@done",),
         ("Update.Attribute", "BertQuest", "=2"),
@@ -1170,7 +1170,7 @@ def sword():
         ("Wait", "3"),
         ("Toggle.User.Input", "ON"),
         ("Teleport", "Rooks_Pier", "-"),
-        ("Display.Message", "Yellow", "..and you step ashore by Ravensgate.", "-"),
+        ("Display.Message", "Yellow", "..and you step ashore below King Rupert's Keep.", "-"),
         ("@end",), ("End",),
     ])
     w("Kill Drake", [

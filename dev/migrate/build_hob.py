@@ -18,7 +18,7 @@ W = C = R = None        # build_world, build_content, build_regions
 QUEST = ("Old Hob", [
     ("Giver", "Hob"), ("Attribute", "HobQuest"),
     ("Stage0", "Old Hob of Oakhollow went missing, and his house is boarded up. One of its shutters hangs loose..."),
-    ("Stage1", "Old Hob's diary: a giant spider bit him and he feels himself going wild. Ask Morwen the witch in Fenwick for a cure."),
+    ("Stage1", "Old Hob's diary: a giant spider bit him and he feels himself going wild. Ask Morwen the witch in Saltmarsh for a cure."),
     ("Stage2", "Find the wild man in the western woods of the Wildwood and use Morwen's calming draught on him."),
     ("Stage3", "Hob is himself again! Talk to him."),
     ("Done", "4")])
@@ -72,7 +72,7 @@ def scripts():
         ("Display.Conversation", "Hobs_Diary",
          "...out by the old watch stone in the western woods a spider as big as a dog caught my arm. The bite burns and "
          "won't heal.\\I dream of running on all fours. I hear the trees calling. I've bolted the door so I can't get "
-         "out at night.\\If I go wild, someone fetch Morwen in Fenwick. She'll know a cure.  - Hob",
+         "out at night.\\If I go wild, someone fetch Morwen in Saltmarsh. She'll know a cure.  - Hob",
          "Close the diary.", "@read"),
         "read:",
         ("Get.Value", "ATTRIBUTE", "HobQuest", "Variable.1$"),

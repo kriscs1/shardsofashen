@@ -26,3 +26,4 @@ NPC	Butterfly	544	536	Attitude=Good Zone=13,14,23,20
 NPC	Skeleton	448	88	Attitude=Bad Zone=10,2,20,8
 Trigger	Trap_Pit	6	7
 Trigger	Trap_Pie	3	15
+NPC	Butterfly	64	152	Attitude=Good Zone=2,2,8,10

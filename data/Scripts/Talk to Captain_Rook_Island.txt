@@ -6,5 +6,5 @@
 05	Wait	3
 06	Toggle.User.Input	ON
 07	Teleport	Rooks_Pier	-
-08	Display.Message	Yellow	..and you step ashore by Ravensgate.	-
+08	Display.Message	Yellow	..and you step ashore below King Rupert's Keep.	-
 09	End

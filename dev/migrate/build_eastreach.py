@@ -411,10 +411,10 @@ QUESTS = [
         ("Done", "4")]),
     ("The Barrow King", [
         ("Giver", "Gravekeeper"), ("Attribute", "BarrowQuest"),
-        ("Stage0", "Speak to the Gravekeeper in Ravensgate, on the Barrowdowns."),
-        ("Stage1", "Find the old king's barrow, out on the downs east of Ravensgate."),
+        ("Stage0", "Speak to the Gravekeeper at King Rupert's Keep, on the Barrowdowns."),
+        ("Stage1", "Find the old king's barrow, out on the downs west of King Rupert's Keep."),
         ("Stage2", "Lay the Barrow King to rest."),
-        ("Stage3", "Return to the Gravekeeper in Ravensgate."),
+        ("Stage3", "Return to the Gravekeeper at King Rupert's Keep."),
         ("Done", "4")]),
 ]
 
@@ -422,7 +422,7 @@ QUESTS = [
 def data():
     C.ENTITIES.update({
         "Druid": C.good("The Druid of Thornwick, in robes the colour of moss."),
-        "Gravekeeper": C.good("The Gravekeeper of Ravensgate. He smells faintly of earth."),
+        "Gravekeeper": C.good("The Gravekeeper of the Barrowdowns. He smells faintly of earth."),
         "Barrow_King": C.bad("The old king of the downs, crowned and long dead. He does not want to rest.", 90, 1.4, 8, 8,
                              90, 1.5, 1, 300, "Bones,1-1,100 Gold_Coin(s),30-60,100 Ruby,1-1,40 Silver_Bar,1-2,60"),
     })
@@ -463,15 +463,15 @@ def scripts():
     S["Kill Bear"] = kill_count("DruidQuest", 2, "BlightBears", 4, "Maddened bears slain for the Druid",
                                 "Four bears! Return to the Druid in Thornwick.", then=3)
     S["Talk to Gravekeeper"] = talk("Gravekeeper", "BarrowQuest", [
-        (0, [conv("Gravekeeper", "Every night the old king walks his barrow, and his dead walk with him.\\Someone must go in and lay him to rest. His barrow is out on the downs, east of Ravensgate. Will you?",
+        (0, [conv("Gravekeeper", "Every night the old king walks his barrow, and his dead walk with him.\\Someone must go in and lay him to rest. His barrow is out on the downs, west of the Keep. Will you?",
                   ("I'll find the barrow.", "@g_ok"), ("Not now.", "@bye")),
              ("End",), "g_ok:", ("Update.Attribute", "BarrowQuest", "=1"),
              ("Display.Message", "Yellow", "Quest started: The Barrow King.")]),
-        (1, [conv("Gravekeeper", "East, on the open downs. Look for the broken walls.", ("I'll look.", "@bye"))]),
+        (1, [conv("Gravekeeper", "West, on the open downs. Look for the broken walls.", ("I'll look.", "@bye"))]),
         (2, [conv("Gravekeeper", "You've seen him? Then you know. Strike him down, and the downs will sleep.", ("I will.", "@bye"))]),
         (3, [("Update.Attribute", "BarrowQuest", "=4"),
              ("Give.Item", "Gold_Coin(s)", "250"), ("Give.Item", "Mithril_Helm", "1"), ("Update.Skill", "Defence", "+2"),
-             conv("Gravekeeper", "He's at rest? Truly? Ravensgate will sleep tonight. Take his helm, it's mithril, and this gold.", ("Thank you!", "@g_done")),
+             conv("Gravekeeper", "He's at rest? Truly? The Keep will sleep tonight. Take his helm, it's mithril, and this gold.", ("Thank you!", "@g_done")),
              "g_done:", ("Display.Message", "Yellow", "Quest complete: The Barrow King! You receive 250 gold, a mithril helm and Defence experience.")]),
     ], "The downs are quiet. Even the crows have stopped complaining.")
     S["Barrow Door"] = [
@@ -486,7 +486,7 @@ def scripts():
         ("Get.Value", "ATTRIBUTE", "BarrowQuest", "Variable.1$"),
         (">Conditional", "$Variable.1<=2", "@end"),
         ("Update.Attribute", "BarrowQuest", "=3"),
-        ("Display.Message", "Yellow", "The Barrow King crumbles to dust. Return to the Gravekeeper in Ravensgate."),
+        ("Display.Message", "Yellow", "The Barrow King crumbles to dust. Return to the Gravekeeper at King Rupert's Keep."),
         "end:", ("End",)]
 
 

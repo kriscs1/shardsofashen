@@ -1,5 +1,6 @@
 """Monster waves: monsters attacking a place at once, wave after wave, for everyone there to fight off together
-(data\\Waves.ini). Anything can start one: a surprise raid now and then (Random.Every, when enough players are on),
+(data\\Waves.ini). Anything can start one: a surprise raid now and then on any town (Random.Every, when enough
+players are on and one of them is there),
 or a script, Start.Wave <name> (a quest's battle: its On.Win.Script runs for each defender afterwards).
 
   * Each wave's monsters come in from round the edge and make for the Centre; they go for any player near them.
@@ -147,6 +148,11 @@ class Waves:
                 self.next_random[name] = w.now + every * 60000 * random.uniform(0.5, 1.5)
                 continue
             if w.now < due:
+                continue
+            m = w.map_named(d["map"])
+            if m is None or not self.on_map({"map": m}):
+                # (a town's surprise raid comes while someone's there to meet it: a while after they arrive)
+                self.next_random[name] = w.now + 60000 * random.uniform(5, 30)
                 continue
             self.next_random[name] = w.now + every * 60000 * random.uniform(0.5, 1.5)
             if len(online) >= max(1, int(val(d.get("random.players", "2")))) and not self.running:

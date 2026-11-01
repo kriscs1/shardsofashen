@@ -9,6 +9,6 @@
 08	Display.Message	Yellow	Bandits slain for Captain Hale: $Variable.2 of 5.
 09	End
 10	Quest.Note.Done	BanditQuest	Bandits rob travellers on the Redrock road and in the hills: slay five.
-11	Quest.Note	BanditQuest	Report to Captain Hale in Highwatch.
-12	Display.Message	Yellow	Five bandits! Report to Captain Hale in Highwatch.
+11	Quest.Note	BanditQuest	Report to Captain Hale in Frosthold.
+12	Display.Message	Yellow	Five bandits! Report to Captain Hale in Frosthold.
 13	End

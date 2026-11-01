@@ -357,7 +357,7 @@ def data():
 
 
 TOWN_CATS = [("Ashford_Market", "Cat"), ("Northport_Port", "Black_Cat"), ("Oakhollow_Square", "Ginger_Cat"),
-             ("Fenwick_Square", "Cat"), ("Moorcross_Square", "Black_Cat"), ("Highwatch_Square", "Ginger_Cat"),
+             ("Moorcross_Square", "Black_Cat"),
              ("Isle_Landing", "Cat")]
 
 

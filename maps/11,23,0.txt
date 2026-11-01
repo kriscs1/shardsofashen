@@ -34,3 +34,6 @@ StaticObject	Wishing_Well	480	384	Id=Secret_Saltmarsh
 StaticObject	Valuables	160	152
 StaticObject	Loose_Cobble	320	128	Id=Secret_Saltmarsh_2
 StaticObject	Odd_Barrel	64	480	Id=Secret_Saltmarsh_3
+NPC	Elder	320	280	Attitude=Good Pause=4-12 Zone=8,7,14,13
+Id	Saltmarsh_Elder	11	10
+NPC	Witch	384	280	Attitude=Good Pause=4-12 Zone=10,7,16,13

@@ -9,7 +9,7 @@
 09	End
 10	Display.Conversation	Guard	The quartermaster at the keep sells leather and iron. Or tan some cowhide and make your own on a workbench.\And wear it! In your pack it won't stop a hobgoblin's axe.	Thanks.	21
 11	End
-12	>On.Map	11,4,0	15
+12	>On.Map	11,-3,0	15
 13	Display.Conversation	Guard	Keep the peace in Ashford, citizen.\If you're looking for work, the King's Steward pays well for hobgoblin ears.\The Steward keeps the King's keep, south of here.	Any other news?	17	Goodbye.	21
 14	End
 15	Display.Conversation	Guard	Halt! ...ah, you look honest enough. Go on in.\The Steward holds the hall while the King is away.\The quartermaster in the courtyard sells arms.	Any other news?	17	Goodbye.	21

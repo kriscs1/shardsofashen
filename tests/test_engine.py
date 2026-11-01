@@ -440,7 +440,7 @@ def test_dropped_things_are_yours_alone_for_ten_seconds(world):
 def test_farming_grows_and_only_the_sower_harvests(world):
     a, b = join(world, "Farmer Jo"), join(world, "Thief")
     farms = world.farms
-    m = world.maps["13,4,0"]
+    m = world.maps["13,-3,0"]
     x, y = 4, 14
     assert m.tile[m.cell(x, y)] == "Soil001"
     for s in (a, b):
@@ -611,7 +611,7 @@ def test_what_you_dig_up_depends_on_where(world):
     chance, finds = s.dig_finds(world.maps["1,1,0"])                 # (the Isle: worms as well as the usual)
     names = {f[0] for f in finds}
     assert chance == 12 and {"Bait", "Gold_Coin(s)", "Potato_Seed"} <= names
-    chance, finds = s.dig_finds(world.maps["11,4,0"])                 # (Ashford: the usual)
+    chance, finds = s.dig_finds(world.maps["11,-3,0"])                 # (Ashford: the usual)
     assert chance == 7 and "Bait" not in {f[0] for f in finds}
     leave(world, s)
 
@@ -665,6 +665,70 @@ def test_a_wave_attack_comes_in_waves_and_rewards_the_defenders(world):
     assert "Ashford_Raid" not in waves.running
     assert s.items_held("Gold_Coin(s)") > gold + int(d["reward.gold"])   # (the reward, and gold for each kill)
     leave(world, s)
+
+
+def test_every_town_has_a_surprise_raid_that_waits_for_someone_there(world):
+    """build_town_raids.py: a raid for every town; waves.py: a surprise one comes while someone's there to meet it."""
+    waves = world.waves
+    assert len([k for k in waves.defs if k.endswith("_Raid")]) >= 13
+    assert {"Northport_Raid", "Keep_Raid", "Frosthold_Raid", "Dunerest_Raid"} <= set(waves.defs)
+    a, b = join(world, "Far_Away", "1,1,0", 300, 300), join(world, "Far_Away_Too", "1,1,0", 340, 300)
+    for k in waves.defs:
+        waves.next_random[k] = world.now + 10 ** 9
+    waves.next_random["Northport_Raid"] = world.now - 1
+    waves.random_attacks()
+    assert "Northport_Raid" not in waves.running                    # (nobody in Northport: it waits)
+    assert waves.next_random["Northport_Raid"] > world.now
+    s = join(world, "Northporter", waves.defs["Northport_Raid"]["map"], 384, 300)
+    waves.next_random["Northport_Raid"] = world.now - 1
+    waves.random_attacks()
+    assert "Northport_Raid" in waves.running
+    waves.finish("Northport_Raid", waves.running["Northport_Raid"], False)
+    for who in (a, b, s):
+        leave(world, who)
+
+
+def test_the_towns_gone_and_moved_and_their_quests_with_them(world):
+    """remove_towns.py, move_keep.py, move_ashford.py, build_manors.py: what the quests name is where they say."""
+    place = world.data.place
+    for gone in ("Fenwick_Square", "Highwatch_Square", "Ravensgate_Square"):
+        assert place(gone) is None, gone
+    for pid in ("Saltmarsh_Elder", "Frosthold_Captain", "Keep_Gravekeeper", "Granny_Bramble", "Rooks_Pier",
+                "Drowned_Abbey", "Fenmoor_Hall", "Redrock_Manor", "Mire_Tunnel_East", "Mire_Tunnel_West"):
+        assert place(pid) is not None, pid
+    assert place("Kings_Solar").map == "26,18,1" and place("Keep_Square").map == "25,18,0"
+    assert place("Ashford_Square").map == "12,-2,0" and world.maps.get("12,-6,0") is not None
+    assert place("Granny_Bramble").map == place("Thornwick_Square").map
+
+
+def test_redrock_manor_is_a_maze_of_ladders_and_stairs(world):
+    """build_manors.py: three floors, every way up lined up with its way down, the vault reached only from above."""
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(world.data.root, "dev", "migrate"))
+    import build_manors as B
+    pl = world.data.place("Redrock_Manor")
+    mx, my = pl.map.split(",")[:2]
+    floors = {f: world.maps["%s,%s,%d" % (mx, my, z)] for f, z in B.FLOORS.items()}
+    for lower, upper, (x, y), kind in B.LINKS:
+        lo, hi = floors[lower], floors[upper]
+        if kind == "stairs":
+            assert lo.tile[lo.cell(x, y)] == "Stairs001" and hi.tile[hi.cell(x, y)] == "Stairs002", (lower, x, y)
+        else:
+            assert lo.decor[lo.cell(x, y)] == "Ladder001" and hi.decor[hi.cell(x, y)] == "Hatch001", (lower, x, y)
+    assert ("e", 1, 1) not in B.GAPS["G"] and ("s", 2) not in B.GAPS["G"] and ("e", 2, 1) not in B.GAPS["G"]
+
+
+def test_the_mire_tunnel_leads_under_the_range_and_up_again(world):
+    """reshape_west.py: the Mirefen's only way in, a cave mouth each side of the range and steps up from the tunnel."""
+    import re as _re
+    for side in ("East", "West"):
+        down = open(os.path.join(world.data.root, "data", "Scripts", "Enter Mire_Tunnel_%s.txt" % side)).read()
+        up = open(os.path.join(world.data.root, "data", "Scripts", "Climb Up Mire_Tunnel_%s_Steps.txt" % side)).read()
+        below = _re.search(r"Teleport\t\d+,\d+\t(\S+)", down).group(1)
+        above = _re.search(r"Teleport\t\d+,\d+\t(\S+)", up).group(1)
+        assert below.endswith(",-1") and below in world.maps
+        assert above.endswith(",0") and above in world.maps
+        assert world.data.place("Mire_Tunnel_%s_Steps" % side).map.endswith(",-1")
 
 
 def test_a_script_starts_a_wave_and_a_lost_one_ends(world):
@@ -899,7 +963,7 @@ def test_not_skilled_enough_plays_a_sound(world):
 
 
 def test_dying_waits_for_the_player_to_respawn(world):
-    a = join(world, "Mortal", "11,4,0", 384, 300)
+    a = join(world, "Mortal", "11,-3,0", 384, 300)
     where = (a.player.x, a.player.y, a.cur_map.name)
     a.player_dies()
     assert any(e.get("t") == "died" for e in a.out) and any(e.get("name") == "Death" for e in a.out)
@@ -917,7 +981,7 @@ def test_dying_waits_for_the_player_to_respawn(world):
 
 
 def test_nothing_carries_on_while_dead(world):
-    a = join(world, "Bleeder", "11,4,0", 384, 300)
+    a = join(world, "Bleeder", "11,-3,0", 384, 300)
     a.status_start("Bleed")
     a.keyboard_direction = 2                                       # (an arrow key held down as they fell)
     a.player_dies()
@@ -961,7 +1025,7 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
 
 
 def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
-    a = join(world, "Frosty", "11,4,0", 384, 300)
+    a = join(world, "Frosty", "11,-3,0", 384, 300)
     m = a.cur_map
     a.skill_level = lambda skill: 60                               # (a mage who never fizzles)
     a.spell_chance = lambda spell: 100
@@ -1485,11 +1549,11 @@ def test_the_towns_are_the_size_they_were_asked_to_be(world):
     import re
     ids = [e.npc_id for e in world.ents if e.npc_id]
     count = lambda town, who: len([i for i in ids if re.fullmatch(r"%s_%s_\d+" % (town, who), i)])
-    for town in ("Northport", "Keep", "Court", "Fenwick", "Ravensgate"):
+    for town in ("Northport", "Keep", "Court"):
         assert count(town, "Barkeep") == 5, town                       # (five taverns)
         assert count(town, "Doctor") == 1, town                        # (a hospital)
     assert count("Northport", "Speaker") == 1 and count("Northport", "Constable") == 1     # (Parliament; police)
-    for town in ("Highwatch", "Frosthold", "Oakhollow", "Thornwick", "Emberwatch"):
+    for town in ("Frosthold", "Oakhollow", "Thornwick", "Emberwatch"):
         assert count(town, "Sheriff") == 1 and count(town, "Doctor") == 1, town
     for town in ("Moorcross", "Dunerest", "Wildwood", "Saltmarsh"):
         assert count(town, "Barkeep") == 1, town                       # (a hamlet: its pub)
@@ -1872,7 +1936,7 @@ def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
     s.admin_command({"do": "goto", "place": "Waystone_Ashford"})
     for _ in range(5):
         world.tick(0.05)                                             # (Ashford's own script, as you arrive)
-    assert s.cur_map.name == "11,4,0" and not s.script_running
+    assert s.cur_map.name == "11,-3,0" and not s.script_running
     s.out = []
     s.admin_command({"do": "commands"})
     cmds = {c[0]: c[1] for c in next(ev["commands"] for ev in s.out if ev["t"] == "admin_commands")}
@@ -1905,7 +1969,7 @@ def test_walking_granny_wren_to_her_daughter(world):
     for _ in range(5):
         world.tick(0.05)
     assert attr() == "1" and granny.follow is s
-    m = world.maps["11,4,0"]
+    m = world.maps["11,-3,0"]
     door = (m.ox + 13 * 32 + 16, m.oy + 18 * 32 + 16)                # (in front of Percy's door)
     bridges = [(bm.ox + (x - 1) * 32 + 16, bm.oy + (y - 1) * 32 + 16) for bm in world.maps.values()
                if bm.name.endswith(",0") and 4 <= int(bm.name.split(",")[1]) <= 6 and
@@ -1914,7 +1978,8 @@ def test_walking_granny_wren_to_her_daughter(world):
                not bm.roof[bm.cell(x, y)] and any(bm.tile_is_water(x + dx, y + dy)
                                                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))]   # (a bridge)
     bridge = min(bridges, key=lambda b: abs(b[0] - (s.player.cx + door[0]) / 2) + abs(b[1] - door[1]))
-    legs = [bridge, door]                                            # (along the road: over the river's bridge)
+    up_the_peninsula = [(gx * 32 + 16, gy * 32 + 16) for gx, gy in ((309, 80), (316, 40), (316, 0))]   # (to Ashford, north)
+    legs = [bridge] + up_the_peninsula + [door]                      # (along the road: over the river's bridge)
     for _ in range(12000):                                           # (a long road: the guide waits for her)
         behind = distance(granny.cx, granny.cy, s.player.cx, s.player.cy)
         if legs[0] is not door and distance(s.player.cx, s.player.cy, *legs[0]) < 40:
@@ -1938,13 +2003,13 @@ def test_walking_granny_wren_to_her_daughter(world):
     assert attr() == "2" and granny.follow is None and s.items_held("Gold_Coin(s)") == gold + 30
     leave(world, s)
     assert not granny.alive                                          # (gone with them; she lives at Percy's now)
-    s = join(world, "Guide", "11,4,0", 13 * 32, 19 * 32)
-    s.load_state({"map": "11,4,0", "x": 13 * 32, "y": 19 * 32, "attributes": [["EscortQuest", "2"]]})
+    s = join(world, "Guide", "11,-3,0", 13 * 32, 19 * 32)
+    s.load_state({"map": "11,-3,0", "x": 13 * 32, "y": 19 * 32, "attributes": [["EscortQuest", "2"]]})
     s.enter_world()
     for _ in range(10):
         world.tick(0.05)
     granny = world.placed_entity("Granny_Wren", s)
-    assert granny is not None and granny.map == "11,4,0" and distance(granny.cx, granny.cy, *door) < 64
+    assert granny is not None and granny.map == "11,-3,0" and distance(granny.cx, granny.cy, *door) < 64
     leave(world, s)
 
 
@@ -1969,7 +2034,7 @@ def test_a_guard_comes_to_help_against_a_goblin(world):
 
 def test_the_guards_kills_count_and_whoever_fought_is_rewarded(world):
     waves = world.waves
-    s = join(world, "Fighter", "11,4,0", 10 * 32, 12 * 32)
+    s = join(world, "Fighter", "11,-3,0", 10 * 32, 12 * 32)
     s.god_mode = True
     assert waves.start("Ashford_Raid")
     r = waves.running["Ashford_Raid"]
@@ -2355,7 +2420,7 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
 
 
 def test_clearing_the_wardhaven_bridge_opens_its_gates(world):
-    s = join(world, "Bridger", "11,4,0", 13 * 32, 10 * 32)
+    s = join(world, "Bridger", "11,-3,0", 13 * 32, 10 * 32)
     s.connected = True
     s.god_mode = 1
     run, npc, talk, use = isle_helpers(world, s)
@@ -2390,7 +2455,7 @@ def test_clearing_the_wardhaven_bridge_opens_its_gates(world):
 
 
 def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
-    s = join(world, "Scaler", "11,4,0", 13 * 32, 10 * 32)
+    s = join(world, "Scaler", "11,-3,0", 13 * 32, 10 * 32)
     s.connected = True
     run, npc, talk, use = isle_helpers(world, s)
     wyrmsmith = next(e for e in world.ents if e.name == "Wyrmsmith")
@@ -2485,7 +2550,7 @@ def test_a_new_character_has_shards_and_an_old_one_gets_them_once(world):
 
 
 def test_a_learnt_spell_stays_through_death_and_logging_off(world):
-    a = join(world, "Learner", "11,4,0", 384, 300)
+    a = join(world, "Learner", "11,-3,0", 384, 300)
     a.skill_level = lambda skill: 10
     stock(a, Shard_Ward_Scroll=1)
     a.do_action("Learn", next(e for e in a.inv if e.name == "Shard_Ward_Scroll"))
@@ -2523,7 +2588,7 @@ def test_a_scroll_too_hard_to_learn_is_kept(world):
 
 
 def test_casting_spends_shards_only_when_it_takes(world):
-    a = join(world, "Spender", "11,4,0", 384, 300)
+    a = join(world, "Spender", "11,-3,0", 384, 300)
     a.skill_level = lambda skill: 10
     a.spells_known["Shard_Ward"] = 1
     c = a.spell_cost("Shard_Ward")                                 # (its 10, less what Channeling 10 saves)
@@ -2550,7 +2615,7 @@ def test_casting_spends_shards_only_when_it_takes(world):
 
 
 def test_the_hotbar_casts_a_known_spell_without_its_scroll(world):
-    a = join(world, "Quick", "11,4,0", 384, 300)
+    a = join(world, "Quick", "11,-3,0", 384, 300)
     a.skill_level = lambda skill: 10
     a.spells_known["Shard_Ward"] = 1
     a.spell_chance = lambda spell: 100
@@ -2567,15 +2632,15 @@ def test_the_hotbar_casts_a_known_spell_without_its_scroll(world):
 def test_digging_turns_up_shards_now_and_then(world, monkeypatch):
     s = join(world, "Delver")
     import random as rnd
-    assert s.dig_shard_odds(world.maps["11,4,0"]) == (5.0, "1-3")
+    assert s.dig_shard_odds(world.maps["11,-3,0"]) == (5.0, "1-3")
     cave = next(m for m in world.maps.values() if m.mz < 0)
     assert s.dig_shard_odds(cave) == (15.0, "1-5")                 # (under the ground: likelier)
     assert s.dig_shard_odds(world.maps["2,19,0"])[0] == 15.0        # (the desert's old places)
     monkeypatch.setattr(rnd, "uniform", lambda a, b: b)            # (the unluckiest: nothing)
     before = s.shards()
-    assert s.dig_shards(world.maps["11,4,0"]) == 0 and s.shards() == before
+    assert s.dig_shards(world.maps["11,-3,0"]) == 0 and s.shards() == before
     monkeypatch.setattr(rnd, "uniform", lambda a, b: 3.0)          # (under 5 in 100: Shards; not a cache)
-    assert s.dig_shards(world.maps["11,4,0"]) >= 1 and s.shards() > before
+    assert s.dig_shards(world.maps["11,-3,0"]) >= 1 and s.shards() > before
     leave(world, s)
 
 
@@ -2691,7 +2756,7 @@ def test_shards_are_a_balance_not_an_item(world):
     assert saved["shards"] == 0 and not any(i[0] == "Shard" for i in saved["inventory"])
     leave(world, a)
     old = Session(world, "Hoarder")                                # (a save from when Shards were an item)
-    old.load_state({"map": "11,4,0", "x": 384, "y": 300, "inventory": [["Shard", 9, 0]],
+    old.load_state({"map": "11,-3,0", "x": 384, "y": 300, "inventory": [["Shard", 9, 0]],
                     "bank": [["Shard", 4, []]], "attributes": [["ShardsGiven", "1"]]})
     assert old.shards() == 13 and not any(e.name == "Shard" for e in old.inv)
     assert "Shard" not in old.bank_item
@@ -2699,7 +2764,7 @@ def test_shards_are_a_balance_not_an_item(world):
 
 def test_a_beast_leaves_shard_remnants_not_shards(world, monkeypatch):
     import dsengine.remnants as RM
-    a = join(world, "Hunter", "11,4,0", 384, 300)
+    a = join(world, "Hunter", "11,-3,0", 384, 300)
     m = a.cur_map
     wolf = world.add_npc("Wolf", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Bad")
     monkeypatch.setattr(RM, "rnd", lambda: 0.3)                    # (30 in 100: remnants, but nothing rises)
@@ -2721,7 +2786,7 @@ def test_a_beast_leaves_shard_remnants_not_shards(world, monkeypatch):
 
 def test_a_shard_remnant_rises_as_strong_as_the_beast_and_leaves_more(world, monkeypatch):
     import dsengine.remnants as RM
-    a = join(world, "Riser", "11,4,0", 384, 300)
+    a = join(world, "Riser", "11,-3,0", 384, 300)
     m = a.cur_map
     bear = world.add_npc("Bear", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Bad")
     level = a.monster_level(bear)
@@ -2746,7 +2811,7 @@ def test_a_shard_remnant_rises_as_strong_as_the_beast_and_leaves_more(world, mon
 
 
 def test_a_shard_remnant_nobody_fights_fades(world):
-    a = join(world, "Watcher", "11,4,0", 384, 300)
+    a = join(world, "Watcher", "11,-3,0", 384, 300)
     m = a.cur_map
     wolf = world.add_npc("Wolf", 0, m.ox + 14 * 32, m.oy + 12 * 32, "Attitude=Bad")
     a.remnant_rise(wolf, 3)
@@ -2761,8 +2826,8 @@ def test_a_shard_remnant_nobody_fights_fades(world):
 
 
 def test_shard_numbers_come_from_shards_ini(world):
-    a = join(world, "Counter", "11,4,0", 384, 300)
-    assert a.shard_setting("Shardstone.Galaith") == 20 and a.shard_setting("Shardstone.Highwatch") == 5
+    a = join(world, "Counter", "11,-3,0", 384, 300)
+    assert a.shard_setting("Shardstone.Galaith") == 20 and a.shard_setting("Shardstone.Northport") == 5
     assert a.shard_setting("Weapon", 0, "Dismantle") == 25 and a.shard_setting("Scroll", 0, "Dismantle") == 10
     assert a.upgrade_scroll("Fire_Bolt", 2) == "Fire_Bolt_Scroll_II"
     assert a.spell_ini_at("Fire_Bolt", "Damage", "", 3) == "7-13" and a.spell_ini_at("Fire_Bolt", "Range", "", 3) == "256"
@@ -2820,7 +2885,7 @@ def test_a_quest_gives_its_skill_xp_once(world):
 
 
 def test_upgrade_scrolls_raise_a_known_spell_a_rank(world):
-    a = join(world, "Ranker", "11,4,0", 384, 300)
+    a = join(world, "Ranker", "11,-3,0", 384, 300)
     a.skill_level = lambda skill: 20
     a.spell_chance = lambda spell: 100
     stock(a, Fire_Bolt_Scroll_II=1)
@@ -2843,7 +2908,7 @@ def test_upgrade_scrolls_raise_a_known_spell_a_rank(world):
 
 
 def test_dismantling_breaks_gear_into_shards_after_asking(world):
-    a = join(world, "Breaker", "11,4,0", 384, 300)
+    a = join(world, "Breaker", "11,-3,0", 384, 300)
     stock(a, Iron_Sword=1, Logs=3, Fire_Bolt_Scroll=1)
     sword = next(e for e in a.inv if e.name == "Iron_Sword")
     logs = next(e for e in a.inv if e.name == "Logs")
@@ -2903,10 +2968,10 @@ def test_a_journey_by_shardstone_costs_a_few_shards(world):
     assert a.shards() == 10 and a.cur_map.name == m.name
     a.handle({"t": "stone_go", "k": "Ashford"})
     ticks(world, 5)
-    assert a.shards() == 8 and a.cur_map.name == "11,4,0"          # (2 Shards, and there)
+    assert a.shards() == 8 and a.cur_map.name == "11,-3,0"          # (2 Shards, and there)
     a.handle({"t": "stone_go", "k": "Northport"})                  # (not by a stone you've opened the map at)
     ticks(world, 5)
-    assert a.shards() == 8 and a.cur_map.name == "11,4,0"
+    assert a.shards() == 8 and a.cur_map.name == "11,-3,0"
     leave(world, a)
 
 def test_the_kings_shard_seam_gives_shards_once_a_day(world):
@@ -3059,7 +3124,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     assert s.get_attribute("ShardgateQuest") == "2"                 # (no stones to steady it, nothing to build with)
     assert any("shardstones active" in str(e.get("text", "")) for e in s.out)
     stock(s, Silver_Bar=4, Sapphire=2, Remnant_Core=1, Shard=40)
-    for k in ("Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Fenwick", "Court"):
+    for k in ("Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Dunerest", "Court"):
         s.update_attribute("Waystone." + k, "=1")
     s.update_skill("Shardcraft", "=1")
     s.out = []
@@ -3111,7 +3176,7 @@ def test_the_shardrealms_remnants_are_as_strong_as_their_level_and_stay(world):
 
 
 def test_drains_and_boosts_show_a_skill_as_it_is_now(world):
-    s = join(world, "Sapped", "11,4,0", 384, 300)
+    s = join(world, "Sapped", "11,-3,0", 384, 300)
     s.update_skill("Strength", "=10")
     hp = s.player_max_hp
     s.status_start("Weaken")
@@ -3132,7 +3197,7 @@ def test_drains_and_boosts_show_a_skill_as_it_is_now(world):
 
 
 def test_an_invisibility_potion_hides_you_till_you_strike(world):
-    s = join(world, "Ghost", "11,4,0", 384, 300)
+    s = join(world, "Ghost", "11,-3,0", 384, 300)
     s.connected = True
     m = s.cur_map
     wolf = world.add_npc("Wolf", 0, s.player.x + 40, s.player.y, "Attitude=Bad")
@@ -3149,7 +3214,7 @@ def test_an_invisibility_potion_hides_you_till_you_strike(world):
 
 
 def test_a_body_swap_is_a_strict_while_and_needs_no_hands(world):
-    s = join(world, "Swapper", "11,4,0", 384, 300)
+    s = join(world, "Swapper", "11,-3,0", 384, 300)
     s.connected = True
     duck = world.add_npc("Duck", 0, s.player.x + 60, s.player.y, "Attitude=Good")
     s.skill_level = lambda skill: 10
@@ -3360,7 +3425,7 @@ def test_an_old_dungeons_trap_springs_then_rests(world):
 
 
 def test_in_an_animals_body_the_animals_talk(world):
-    s = join(world, "Moo", "11,4,0", 384, 300)
+    s = join(world, "Moo", "11,-3,0", 384, 300)
     s.connected = True
     cow = world.add_npc("Cow", 0, s.player.x + 50, s.player.y, "Attitude=Good")
     s.turn_into("Cow", 30, "")
@@ -3524,7 +3589,7 @@ def test_channeling_makes_spells_cheaper_but_never_free(world):
     assert costs[4] == 9 and costs[9] == 9 and costs[14] == 8       # (slowly: a Shard every few levels)
     assert channeled_cost(1, 25, d) == 1 and channeled_cost(2, 25, d) == 1   # (never under a Shard)
     assert channeled_cost(0, 25, d) == 0                            # (free stays free)
-    a = join(world, "Channeler", "11,4,0", 384, 300)
+    a = join(world, "Channeler", "11,-3,0", 384, 300)
     a.update_skill("Channeling", "=1")
     full = a.spell_cost("Fire_Storm")
     a.update_skill("Channeling", "=25")
@@ -3534,7 +3599,7 @@ def test_channeling_makes_spells_cheaper_but_never_free(world):
 
 
 def test_dismantling_trains_shardcraft_and_can_leave_a_rare_shard(world, monkeypatch):
-    a = join(world, "Breaker", "11,4,0", 384, 300)
+    a = join(world, "Breaker", "11,-3,0", 384, 300)
     import dsengine.shardcraft as SC
     monkeypatch.setattr(SC, "random_number", lambda lo, hi: lo)    # (the luckiest roll)
     stock(a, Iron_Sword=1, Oak_Staff=1, Iron_Shield=1, Copper_Dagger=1)
@@ -3555,7 +3620,7 @@ def test_dismantling_trains_shardcraft_and_can_leave_a_rare_shard(world, monkeyp
 
 
 def test_enchanting_binds_a_rare_shard_into_gear(world):
-    a = join(world, "Enchanter", "11,4,0", 384, 300)
+    a = join(world, "Enchanter", "11,-3,0", 384, 300)
     a.connected = True
     stock(a, Iron_Sword=1, Ember_Shard=1, Ward_Shard=1, Shard=50)
     sword = next(e for e in a.inv if e.name == "Iron_Sword")
@@ -3663,7 +3728,7 @@ def test_shard_blooms_give_shards_to_their_owner_now_and_then(world, monkeypatch
 
 
 def test_a_shardstone_takes_you_home_and_the_anchor_back(world):
-    m = world.maps["11,4,0"]
+    m = world.maps["11,-3,0"]
     ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
     a = join(world, "Homebody", m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
     a.connected = True
@@ -3750,7 +3815,7 @@ def test_editor_palette_auto_shows_whole_things_not_their_pieces():
 def test_a_fence_thinner_than_a_cell_is_walked_round_not_through():
     w = World(ROOT)
     spot = None
-    for m in (w.maps[n] for n in ("1,1,0", "2,4,0", "3,5,0", "4,6,0", "5,5,0", "11,4,0")):
+    for m in (w.maps[n] for n in ("1,1,0", "2,4,0", "3,5,0", "4,6,0", "5,5,0", "11,-3,0")):
         for ty in range(4, 16):
             for tx in range(4, 18):
                 if all(m.tile[m.cell(x, y)] and "0" not in m.walk[m.cell(x, y)] and not m.decor[m.cell(x, y)] and
@@ -3862,7 +3927,7 @@ def test_chests_say_nothing_and_draughts_come_in_three_strengths(world):
 
 
 def test_a_cat_sits_before_it_lies_down_and_sits_up_before_it_walks(world):
-    m = world.maps["11,4,0"]
+    m = world.maps["11,-3,0"]
     cat = world.add_npc("Cat", m.mz, m.ox + 12 * 32, m.oy + 10 * 32, "")
     a = cat.ai
     world.npc_ease_pose(cat, a, "Curl")
@@ -4321,7 +4386,7 @@ def test_a_kill_counts_for_everyone_who_fought(world):
 
 
 def test_the_arena_master_wakes_the_arenas_shardstone(world):
-    s = join(world, "Gladiator", "11,4,0", 300, 300)
+    s = join(world, "Gladiator", "11,-3,0", 300, 300)
     s.connected = True
     assert any(st["key"] == "Arena" and st["map"] == "0,0,10" and st["uid"] for st in s.stones())
     assert not s.stone_active("Arena")
@@ -4364,8 +4429,8 @@ def test_a_party_shares_kills_and_quest_stages(world):
 
 
 def test_a_gift_is_offered_and_taken(world):
-    a = join(world, "Giver", "11,4,0", 300, 300)
-    b = join(world, "Taker", "11,4,0", 330, 300)
+    a = join(world, "Giver", "11,-3,0", 300, 300)
+    b = join(world, "Taker", "11,-3,0", 330, 300)
     try:
         stock(a, Bread=3)
         before = b.items_held("Bread")
@@ -4385,7 +4450,7 @@ def test_a_town_project_changes_the_town_for_everyone(world):
     key = "Mirefold_Boardwalks"
     t.projects.pop(key, None)
     stone = next(e for e in world.ents if getattr(e, "project", "") == key and e.name == "Shardstone")
-    s = join(world, "Builder", "11,4,0", 300, 300)
+    s = join(world, "Builder", "11,-3,0", 300, 300)
     try:
         assert not world.visible_to(stone, s)
         d = t.defs()[key]
@@ -4405,7 +4470,7 @@ def test_a_town_project_changes_the_town_for_everyone(world):
 
 
 def test_the_bounty_clerk_sets_a_hunt_a_day(world):
-    s = join(world, "Hunter", "11,4,0", 300, 300)
+    s = join(world, "Hunter", "11,-3,0", 300, 300)
     try:
         kind, n, day = s.bounty_today()
         s.take_bounty(day)
@@ -4421,7 +4486,7 @@ def test_the_bounty_clerk_sets_a_hunt_a_day(world):
 
 
 def test_jimmy_comes_along_and_a_sellsword_can_be_hired(world):
-    s = join(world, "Crowned2", "11,4,0", 300, 300)
+    s = join(world, "Crowned2", "11,-3,0", 300, 300)
     try:
         s.update_attribute("KingQuest", "=1")
         jimmy = world.add_npc("Strawberry_Cat", 0, s.player.x + 30, s.player.y, "Attitude=Good Id=Throne_Jimmy Name=Jimmy")
@@ -4429,7 +4494,7 @@ def test_jimmy_comes_along_and_a_sellsword_can_be_hired(world):
         s.do_action("Come along", jimmy)
         cat = s.companions()[0]
         assert cat.display == "Jimmy" and s.secrets_nose() > 0
-        s.teleport("11,4,0", 600, 500)
+        s.teleport("11,-3,0", 600, 500)
         s.do_pending_map_change()
         run_for(world, 10)
         assert distance(cat.cx, cat.cy, s.player.cx, s.player.cy) < 500   # (he keeps up)
@@ -4444,8 +4509,8 @@ def test_jimmy_comes_along_and_a_sellsword_can_be_hired(world):
 
 
 def test_a_boss_grows_tougher_for_each_fighter(world):
-    a = join(world, "BossA", "11,4,0", 300, 300)
-    b = join(world, "BossB", "11,4,0", 330, 300)
+    a = join(world, "BossA", "11,-3,0", 300, 300)
+    b = join(world, "BossB", "11,-3,0", 330, 300)
     try:
         boss = world.add_npc("Barrow_King", 0, a.player.x + 60, a.player.y, "Attitude=Bad", "Bad")
         hp = boss.max_hp
@@ -4462,7 +4527,7 @@ def test_a_boss_grows_tougher_for_each_fighter(world):
 def test_a_day_away_and_back_says_what_happened(world):
     import time as T
     s = Session(world, "Wanderer")
-    s.load_state({"map": "11,4,0", "x": 300, "y": 300, "last_seen": int(T.time()) - 3 * 86400})
+    s.load_state({"map": "11,-3,0", "x": 300, "y": 300, "last_seen": int(T.time()) - 3 * 86400})
     world.sessions[s.player_name] = s
     s.out = []
     s.enter_world()
@@ -4473,8 +4538,8 @@ def test_a_day_away_and_back_says_what_happened(world):
 
 
 def test_friends_are_kept_and_shown_in_the_journal(world):
-    a = join(world, "Pal_A", "11,4,0", 300, 300)
-    b = join(world, "Pal_B", "11,4,0", 330, 300)
+    a = join(world, "Pal_A", "11,-3,0", 300, 300)
+    b = join(world, "Pal_B", "11,-3,0", 330, 300)
     try:
         assert "Add friend" in a.get_verbs(b.player)
         a.do_action("Add friend", b.player)
@@ -4501,8 +4566,8 @@ def test_friends_are_kept_and_shown_in_the_journal(world):
 
 
 def test_a_trade_changes_hands_when_both_accept(world):
-    a = join(world, "Trader_A", "11,4,0", 300, 300)
-    b = join(world, "Trader_B", "11,4,0", 330, 300)
+    a = join(world, "Trader_A", "11,-3,0", 300, 300)
+    b = join(world, "Trader_B", "11,-3,0", 330, 300)
     try:
         stock(a, Bread=2)
         stock(b, **{"Gold_Coin(s)": 50})
@@ -4919,8 +4984,8 @@ def test_one_players_fault_doesnt_stop_the_others(world):
 
 
 def test_a_trade_keeps_wear_and_room_and_leaves_shards_alone(world):
-    a = join(world, "Wear_A", "11,4,0", 300, 300)
-    b = join(world, "Wear_B", "11,4,0", 330, 300)
+    a = join(world, "Wear_A", "11,-3,0", 300, 300)
+    b = join(world, "Wear_B", "11,-3,0", 330, 300)
     try:
         stock(a, Pickaxe=1)
         next(e for e in a.inv if e.name == "Pickaxe").wear = 150
@@ -4952,8 +5017,8 @@ def test_a_trade_keeps_wear_and_room_and_leaves_shards_alone(world):
 
 
 def test_a_boss_goes_back_down_when_its_fighters_go(world):
-    a = join(world, "Down_A", "11,4,0", 300, 300)
-    b = join(world, "Down_B", "11,4,0", 330, 300)
+    a = join(world, "Down_A", "11,-3,0", 300, 300)
+    b = join(world, "Down_B", "11,-3,0", 330, 300)
     try:
         boss = world.add_npc("Barrow_King", 0, a.player.x + 60, a.player.y, "Attitude=Bad", "Bad")
         hp = boss.max_hp

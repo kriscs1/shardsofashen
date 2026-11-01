@@ -12,7 +12,7 @@
 11	Get.Value	ATTRIBUTE	BanditsSlain	Variable.2$
 12	>Conditional	$Variable.2>=5	19
 13	Update.Attribute	BanditQuest	=2
-14	Quest.Note.Done	BanditQuest	Report to Captain Hale in Highwatch.
+14	Quest.Note.Done	BanditQuest	Report to Captain Hale in Frosthold.
 15	Quest.Note	BanditQuest	The bandits' camp is somewhere in the eastern hills.
 16	Quest.Note	BanditQuest	Break open their strongbox and take back the stolen goods.
 17	Display.Conversation	Captain	Five! Now for their camp: somewhere in the eastern hills. They keep what they steal in an iron strongbox. Bring the goods back.	I'll find it.	38
@@ -30,12 +30,12 @@
 29	Give.Item	Gold_Coin(s)	200
 30	Give.Item	Steel_Platebody	1
 31	Update.Skill	Strength	+2
-32	Display.Conversation	Captain	The town's goods! You've done Highwatch a great service. Take this armour, and the reward.	Thank you!	33
+32	Display.Conversation	Captain	The town's goods! You've done the Redrock road a great service. Take this armour, and the reward.	Thank you!	33
 33	Display.Message	Yellow	Quest complete: Bandits on the Road! You receive 200 gold, a steel platebody and Strength experience.
 34	End
 35	Display.Conversation	Captain	Where are the goods? Did you lose them?	I'll get them.	38
 36	End
-37	Display.Conversation	Captain	The road is safe again. Highwatch salutes you.	Goodbye.	38
+37	Display.Conversation	Captain	The road is safe again. Frosthold salutes you.	Goodbye.	38
 38	End
 39	Display.Conversation	Captain	The road's no place for civilians while it's crawling with bandits. When you can swing a sword like you mean it, report back to me.	Yes, Captain.	40
 40	End

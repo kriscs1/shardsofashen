@@ -43,13 +43,13 @@ STAGES = {
         3: ["-Slay the Alpha Wolf, the great black brute leading the pack."],
     },
     "BogQuest": {
-        1: ["+Bog myrtle grows in the Saltmarsh round Fenwick (Alchemy 5 to pick it).",
+        1: ["+Bog myrtle grows in the fens round Saltmarsh (Alchemy 5 to pick it).",
             "+Bring Morwen 4 bog myrtle."],
         2: ["-Bring Morwen 4 bog myrtle."],
     },
     "BanditQuest": {
         1: ["+Bandits rob travellers on the Redrock road and in the hills: slay five."],
-        2: ["-Report to Captain Hale in Highwatch.",
+        2: ["-Report to Captain Hale in Frosthold.",
             "+The bandits' camp is somewhere in the eastern hills.",
             "+Break open their strongbox and take back the stolen goods."],
         3: ["-Break open their strongbox and take back the stolen goods."],
@@ -80,16 +80,16 @@ STAGES = {
         3: ["-Slay four maddened bears in the Elderwood."],
     },
     "HobQuest": {
-        1: ["+Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow."],
-        2: ["-Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow.",
+        1: ["+Morwen the witch lives in Saltmarsh, in the fens on the south coast."],
+        2: ["-Morwen the witch lives in Saltmarsh, in the fens on the south coast.",
             "+The wild man roams the western woods, near the old watch stone. He attacks on sight.",
             "+Use the calming draught on him (Use, then click him)."],
         3: ["-The wild man roams the western woods, near the old watch stone. He attacks on sight.",
             "-Use the calming draught on him (Use, then click him)."],
     },
     "BarrowQuest": {
-        1: ["+The barrow is out on the downs east of Ravensgate: look for the broken walls."],
-        2: ["-The barrow is out on the downs east of Ravensgate: look for the broken walls.",
+        1: ["+The barrow is out on the downs west of King Rupert's Keep: look for the broken walls."],
+        2: ["-The barrow is out on the downs west of King Rupert's Keep: look for the broken walls.",
             "+The Barrow King has two skeleton guards. Bring food."],
     },
 }
@@ -104,7 +104,7 @@ EVENTS = [   # (script, the step the notes follow, quest attribute, notes)
      ["-Slay five giant spiders there.", "+Return to Ranger Ash in Oakhollow."]),
     ("Kill Wolf", "enough:", "WolfQuest", ["-Slay six wolves on Greymoor.", "+Tell the shepherd in Moorcross."]),
     ("Kill Bandit", "enough:", "BanditQuest",
-     ["-Bandits rob travellers on the Redrock road and in the hills: slay five.", "+Report to Captain Hale in Highwatch."]),
+     ["-Bandits rob travellers on the Redrock road and in the hills: slay five.", "+Report to Captain Hale in Frosthold."]),
     ("Kill Scorpion", "enough:", "CaravanQuest", ["-Slay the scorpions at the wreck."]),
 ]
 

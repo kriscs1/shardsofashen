@@ -37,3 +37,5 @@ StaticObject	Odd_Barrel	64	320	Id=Secret_Frosthold
 StaticObject	Valuables	224	120
 StaticObject	Odd_Barrel	64	224	Id=Secret_Frosthold_2
 StaticObject	Old_Statue	96	128	Id=Secret_Frosthold_3
+NPC	Captain	64	440	Attitude=Good Pause=4-12 Zone=0,12,6,18
+Id	Frosthold_Captain	3	15

@@ -1041,3 +1041,5 @@ Palisade010	110 76 40
 Palisade011	110 76 40
 Palisade012	110 76 40
 Altar001	214 208 196
+Mire_Tunnel_Mouth001	24 20 22
+Mire_Tunnel_Mouth002	24 20 22

@@ -35,8 +35,8 @@ COURT, PIP = "21,5,0", (11, 9)
 TOWER, BUTTON, FLAP = "21,5,1", (19, 6), (18, 8)
 GREEN, LADY, TAME, NEST = "5,5,0", (12, 7), (13, 6), (16, 3)
 GEESE = [(15, 2), (17, 4), (15, 4), (17, 2)]   # (round the nest: they mind it, not the road)
-MARKET, GRANNY = "8,16,0", (6, 18)
-RATS = [(3, 14), (23, 14), (2, 5), (20, 5)]
+MARKET, GRANNY = "21,12,0", (3, 17)
+RATS = [(4, 14), (2, 13), (4, 12), (2, 11)]
 SWAPPABLE = ("Cat", "Strawberry_Cat", "Chicken", "Duck", "Goose", "Sheep", "Cow", "Rabbit", "Dog", "Villager",
              "Farmer", "Merchant", "Guard")
 
@@ -342,8 +342,8 @@ def lady():
 
 def granny():
     SK.quest("Granny Bramble's Practice Hex", "Old_Woman", "HexQuest", {
-        0: "An old woman at Fenwick's market is looking for someone to practise a hex on.",
-        1: "Granny Bramble has hexed you weak as a kitten. Clear the rats round Fenwick's market anyway ($HexRats of "
+        0: "An old woman on Thornwick's green is looking for someone to practise a hex on.",
+        1: "Granny Bramble has hexed you weak as a kitten. Clear the rats round Thornwick's green anyway ($HexRats of "
            "4): your sword arm's no use. A spell, a potion, or someone else's body."}, 2,
         markers={0: "Granny_Bramble", 1: "Granny_Bramble"}, kind="Side", requires="The Invisible Apprentice")
     SK.section(p("data", "Quests.ini"), "Granny Bramble's Practice Hex",

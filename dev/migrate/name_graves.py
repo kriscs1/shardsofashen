@@ -28,7 +28,7 @@ GRAVES = {
         ("Grave_Hester_Bell", "'Hester Bell, midwife. Half the Isle came into the world through her hands.'"),
     ],
     "8,8,0": [                                                         # Ravensgate, the gravekeepers' town
-        ("Grave_Osric_Raven", "'Osric Raven, first gravekeeper of Ravensgate. He dug his own, and dug it well.'"),
+        ("Grave_Osric_Raven", "'Osric Raven, first gravekeeper of the Barrowdowns. He dug his own, and dug it well.'"),
         ("Grave_Elsa_Moor", "'Elsa Moor. She walked the downs at night with a lantern, so the dead had light.'"),
         ("Grave_Gideon_Sexton", "'Gideon Sexton, bell-ringer. Deaf by forty; ringing still at eighty.'"),
         ("Grave_Rowan_Twins", "'The Rowan twins. Born together, buried together. One stone was always enough.'"),
@@ -62,7 +62,7 @@ GRAVES = {
     ],
     "8,7,0": [
         ("Grave_Old_Wat", "'Old Wat, who lived alone and liked it. Leave him be.'"),
-        ("Grave_Raven_Mark", "A raven is carved where a name should be: Ravensgate's mark, very old."),
+        ("Grave_Raven_Mark", "A raven is carved where a name should be: the mark of Ravensgate, a town long gone."),
     ],
     "9,8,0": [
         ("Grave_Bram_Smith", "'Bram, smith. His hammer lies with him, so he may mend things on the other side.'"),
