@@ -78,6 +78,7 @@ class NPCMixin:
             self.update_npc_healthbar(e)
 
     SEEN_CLOSE = 44         # (right beside it: it knows you're there, whichever way it looks)
+    ROUSE_HEAR = 160        # (how far a fight's din carries to a monster of Hearing 1)
 
     def npc_listen(self, e, a, s, d):
         """A monster hears s (their noise, as far as its Hearing carries it, nothing solid between). One that looks
@@ -125,7 +126,7 @@ class NPCMixin:
     def npc_alarm(self, e, a, s):
         """e has seen s: its Group= (the camp it belongs to) all come for them."""
         group = getattr(a, "group", "")
-        if not group:
+        if not group or s.silent():                             # (hushed: it can't shout)
             return
         said = False
         for o in self.ents:
@@ -137,7 +138,7 @@ class NPCMixin:
             if od > 480:
                 continue
             o.target = s
-            self.npc_start_fight(o, oa, s, od)
+            self.npc_start_fight(o, oa, s, od, rouse=False)
             said = True
         if said:
             s.display_message("The %s shouts: \"Intruder!\" The whole camp is after you!" % s.display_name(e), "DAMAGE")
@@ -639,8 +640,35 @@ class NPCMixin:
         e.direction = self.vector_direction((tx - cx) / d, (ty - cy) / d)
         self.animate_entity(e, False)
 
-    def npc_start_fight(self, e, a, foe, d):
-        """foe: the player it fights (it chases them if it's their foe, else runs from them)."""
+    def npc_rouse(self, e, s):
+        """e has come for s: the din of it brings the others of its side near it, any that would see it (their own
+        Aggro.Range) or hear it (ROUSE_HEAR by their Hearing), nothing solid between, that could chase s from where
+        they are. Only those: they don't bring more. Not while s is hushed (Silence: tricks.py)."""
+        if s.silent() or not s.in_world():
+            return
+        p = s.player
+        mx, my = math.floor(e.x / self.sw), math.floor(e.y / self.sh)
+        for j in (-1, 0, 1):
+            for i in (-1, 0, 1):
+                for o in self.npcs_by_map.get((mx + i, my + j, e.z), ()):
+                    oa = o.ai
+                    if (o is e or oa is None or not o.alive or not o.active or o.in_combat or o.owner is not None or
+                            oa.flees or o.npc_foe is not None or getattr(o, "script_moving", False)):
+                        continue
+                    if not self.hostile_for(o, s) or self.stat_for(o, s, "aggressive") != 1:
+                        continue
+                    d = distance(o.cx, o.cy, e.cx, e.cy)
+                    if d > max(self.stat_for(o, s, "aggro_range"), self.ROUSE_HEAR * getattr(oa, "hearing", 1.0)):
+                        continue
+                    if not self.in_chase_area(oa, p.fx, p.fy) or not self.visible_to(o, s) or                             not self.in_line_of_sight(o.z, o.cx, o.cy, e.cx, e.cy):
+                        continue
+                    o.target = s
+                    self.npc_start_fight(o, oa, s, distance(o.cx, o.cy, p.cx, p.cy), rouse=False)
+                    self.fx({"t": "mark", "kind": "spotted", "u": o.uid}, o.z, o.cx, o.cy, s)
+
+    def npc_start_fight(self, e, a, foe, d, rouse=True):
+        """foe: the player it fights (it chases them if it's their foe, else runs from them); rouse: and the others
+        near it come too (npc_rouse)."""
         now = self.now
         if a.stand == 0:
             if a.state == AI_ROAM:
@@ -661,6 +689,8 @@ class NPCMixin:
             a.state = AI_CHASE
             a.progress_time = now
             a.best_d = d
+            if rouse:
+                self.npc_rouse(e, foe)
 
     # =================================================================================================================
     # NPCs against NPCs: a wolf after the sheep (Hunts=), the sheep running, a rat biting back

@@ -42,7 +42,8 @@ from .together import TogetherMixin
 
 log = logging.getLogger("ashen.session")
 
-HOTBAR_SLOTS = 5
+HOTBAR_SLOTS = 10                                   # (the most a hotbar has; how many show is each player's)
+HOTBAR_SHOWN = 5
 FOG_ALL = 0.97                      # (a map this much seen is kept as all of it: its corners are the same to anyone)
 JOURNAL_GAP = 1000                  # (ms between journals sent: one costs the server a good part of a tick)
 LOOK_PARTS = ("skin", "hair", "shirt", "legs")
@@ -143,6 +144,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.taken_once = set()
         self.explored = {}                  # map -> "all" or a set of fog cell numbers
         self.hotbar = [""] * HOTBAR_SLOTS
+        self.hotbar_n = HOTBAR_SHOWN
         self.grave = None
         self.look = None                    # their colours (skin, hair, shirt, legs), or None
         self.grave_ent = None
@@ -237,6 +239,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.spell_attack_bonus = self.spell_attack_until = 0
         self.spell_magic_bonus = self.spell_magic_until = 0
         self.spell_sight_bonus = self.spell_sight_until = 0
+        self.silent_until = 0                                   # (Silence: a ward, ended as the others are)
 
     @property
     def now(self):
@@ -479,6 +482,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
         self.hotbar = (list(st.get("hotbar", [])) + [""] * HOTBAR_SLOTS)[:HOTBAR_SLOTS]
         self.hotbar = [self.renamed(h) for h in self.hotbar]
+        self.hotbar_n = max(1, min(HOTBAR_SLOTS, int(val(st.get("hotbar_n", HOTBAR_SHOWN)))))
         self.explored = {k: unpack_cells(v) for k, v in st.get("explored", {}).items()}
         g = st.get("grave")
         self.set_look(st.get("look"))
@@ -597,6 +601,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "traps_disarmed": sorted([list(t) for t in self.traps_disarmed      # (not the Deep's: made anew)
                                       if not t[0].startswith("%d,%d," % (DEEP_X, DEEP_Y))]),
             "hotbar": list(self.hotbar),
+            "hotbar_n": self.hotbar_n,
             "bets": [int(t) for t in self.bets],
             "explored": self.explored_for_client(),
             "grave": self.grave,
@@ -1160,7 +1165,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "inv": [[e.uid, e.name, e.quantity, e.wear] for e in self.inv],
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],
             "totals": [self.equip_attack_total, self.equip_defence_total, self.equip_magic_total],
-            "hotbar": self.hotbar, "status": sorted(self.status), "input": self.user_input_enabled,
+            "hotbar": self.hotbar[:self.hotbar_n], "status": sorted(self.status), "input": self.user_input_enabled,
             "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(), "look": self.look,
             "view": self.fog_view_distance + self.spell_sight_bonus,
             "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,

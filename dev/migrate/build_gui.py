@@ -285,6 +285,55 @@ def save_if_changed(surf, path):
     return write_sprite(path, rows, plain=name in PLAIN)
 
 
+# The sidebar runs the whole height (the chat bar is only under the view): the Stats box is STAT_H tall and the pack's
+# well under it has room for INV_ROWS rows, its heading drawn by the page (ui.js drawInventory), not painted in
+STAT_H, INV_ROWS = 240, 9
+INV_TOP = 175 + STAT_H + 5                   # (the well's top edge; the page's invY is INV_TOP + 22)
+
+
+def rows_of(pic, spans):
+    """A picture made of the original's rows: (first, last) spans of it, or (row, n) as ("x", row, n) repeats."""
+    out = []
+    for s in spans:
+        if s[0] == "x":
+            out += [pic[s[1]]] * s[2]
+        else:
+            out += list(pic[s[0]:s[1] + 1])
+    return np.array(out)
+
+
+def no_lettering(pic, y0, y1, fill):
+    """The old green lettering between rows y0 and y1 painted over with fill (the leather of the well round it)."""
+    band = pic[y0:y1 + 1]
+    green = (band[..., 1] > band[..., 0] + 50) & (band[..., 1] > band[..., 2] + 50)
+    near = green.copy()
+    for d in (1, 2):
+        near |= np.roll(green, d, 0) | np.roll(green, -d, 0) | np.roll(green, d, 1) | np.roll(green, -d, 1)
+    band[near & (band.sum(-1) > 150)] = fill
+    return pic
+
+
+def reshape(name, mask, pic):
+    """The sidebar and the Stats box as tall as they are now, from the original's rows (its torn edges and boards)."""
+    if name == "StatBox":                    # (its middle rows again, STAT_H - 200 more of them)
+        pic = rows_of(pic, [(0, 119), ("x", 120, STAT_H - 200), (120, 199)])
+        return mask, pic
+    if name != "SideBar":
+        return mask, pic
+    # (the well's torn top edge, its leather for the heading and the rows, its bottom edge, walnut to the frame's
+    # foot; the old hover-text box that was under the chat bar is gone)
+    pic = no_lettering(pic.copy(), 386, 414, (54, 32, 27))
+    body = INV_ROWS * 32 + 7
+    bottom = INV_TOP + 8 + body + 12
+    pic = rows_of(pic, [(0, 174), ("x", 360, INV_TOP - 175), (386, 393), ("x", 470, body), (637, 648),
+                        ("x", 650, 752 - bottom)])
+    foot = np.zeros((16, pic.shape[1], 3))
+    foot[...] = (90, 52, 42)                 # (the frame along the bottom: oak, as the sides)
+    pic = np.concatenate([pic, foot], 0)
+    mask = rows_of(mask, [(0, 174), ("x", 700, 768 - 175)])
+    return mask, pic
+
+
 def main():
     os.makedirs(ARCHIVE, exist_ok=True)
     for name in list(SPRITES) + list(ICONS) + ["InterfaceNumber" + c for c in DIGITS] + BARS:   # keep the originals
@@ -296,18 +345,13 @@ def main():
         arr = to_array(surf)
         if masked:
             h = arr.shape[0] // 2
-            mask, pic = arr[:h], arr[h:]
+            mask, pic = reshape(name, arr[:h], arr[h:])
             drawn = mask.sum(-1) < 384
-            if name == "SideBar":
-                # the old hover-text box at the bottom: the chat bar's own box covers it from y 672, so the strip of
-                # it above showed as a line through the hover text. Plain panel there instead.
-                pic = pic.copy()
-                pic[650:, 20:205] = (118, 72, 56)
             new = paint(pic, 1000 + k)
             new[~drawn] = pic[~drawn]                  # (hidden pixels left alone)
             arr = np.concatenate([mask, new], 0)
         else:
-            arr = paint(arr, 1000 + k)
+            arr = paint(reshape(name, None, arr)[1], 1000 + k)
         print(("wrote " if save_if_changed(to_surface(arr), p("sprites", "Interface", name + ".png")) else "unchanged ") + name)
     small = [("InterfaceNumber" + c, (lambda c=c: digit(c)), False) for c in DIGITS] +             [("%dPCHealth" % k, (lambda k=k: health_bar(k)), False) for k in range(0, 101, 10)]
     for name, make, ring in [("Heart", icon_heart, True), ("Mana", icon_mana, True)] + small:

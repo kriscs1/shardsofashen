@@ -77,7 +77,7 @@ COPSE_TREES = ["Tree001", "Tree002", "Tree001", "Oak_Tree001"]
 # ------------------------------------------------------------------ landmarks: (x, y, tile) and entities, 1-based tiles
 LANDMARKS = {
     # the Isle (original maps: patched)
-    "0,0,0": dict(   # a stone circle on the north-west headland, a chest in the middle
+    "0,0,0": dict(   # a stone circle by the south-east shore, a chest in the middle
         tiles=[(17, 9, "Standing_Stone001"), (20, 10, "Standing_Stone001"), (20, 14, "Standing_Stone001"),
                (17, 15, "Standing_Stone001"), (14, 14, "Standing_Stone001"), (14, 10, "Standing_Stone001"),
                (16, 13, "Mushroom_Ring001"), (18, 11, "Mushroom_Ring001")],
@@ -432,7 +432,7 @@ def scripts():
         ("Give.Item", "Oak_Staff", "1"),
         ("Give.Item", "Gold_Coin(s)", "25"),
         ("Update.Skill", "Woodcutting", "+1.5"),
-        ("Display.Conversation", "Hermit", "Ahh, good oak. That'll burn all week. Here, take my old staff: it'll put some fire in your spells.\\And a secret, for a friend: the standing stones on the north-west headland hide more than moss.",
+        ("Display.Conversation", "Hermit", "Ahh, good oak. That'll burn all week. Here, take my old staff: it'll put some fire in your spells.\\And a secret, for a friend: the standing stones by the south-east shore hide more than moss.",
          "Thank you!", "@bye"),
         ("Display.Message", "Yellow", "Quest complete! You receive an oak staff, 25 gold and Woodcutting experience."),
         ("End",),
@@ -450,7 +450,7 @@ def scripts():
     # villagers: more gossip, with hints about the landmarks
     isle = ["Lovely day on the Isle! If you're bored, there's a hole under the cliffs to the east. Bats down there, mind.",
             "The milkmaid up north keeps cows and sheep. She'll sell you shears if you fancy some wool.\\The ferry to the mainland leaves from the pier in the south.",
-            "There's a ring of old stones on the north-west headland. My granny said never to dig there. So of course I did. Found nothing. Wrong spot, probably.",
+            "There's a ring of old stones by the south-east shore. My granny said never to dig there. So of course I did. Found nothing. Wrong spot, probably.",
             "An old watchtower stands in ruins by the sea in the north-east. The wolves have it now.",
             "A hermit lives in the western woods. Odd fellow, but he knows every tree on the Isle.",
             "Don't go near the graveyard in the east after dark. Or before dark. Just don't."]

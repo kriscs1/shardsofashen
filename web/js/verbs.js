@@ -161,6 +161,8 @@ export function spellSummary(spell, rank = 0) {
   else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellAt(spell, "Damage", "", rank)} damage`);
   else if (eff === "TELEPORT" || eff === "HOME") parts.push("teleports you");
   else if (eff === "GRASP") parts.push("pulls a thing to you, from afar");
+  else if (eff === "SILENCE") parts.push(`a hush round you, ${n("Duration") || 30} s`);
+  if (n("Fear")) parts.push(`sends it fleeing, ${n("Fear")} s`);
   if (n("Shards")) parts.push(`+${n("Shards")} Shards`);
   return parts.join(", ");
 }

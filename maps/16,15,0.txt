@@ -22,3 +22,4 @@ Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:
 StaticObject	Old_Statue	64	224	Id=Secret_Highwatch
 StaticObject	Hollow_Stump	64	128	Id=Secret_Highwatch_2
 StaticObject	Loose_Cobble	192	128	Id=Secret_Highwatch_3
+NPC	Manor_Steward	64	576	Attitude=Good Stand=1 Face=W Id=Redrock_Steward Name=Ambrose

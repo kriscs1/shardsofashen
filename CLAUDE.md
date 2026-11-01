@@ -61,9 +61,14 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    house, 1,1,0, "Maren & Bess's Father's Home") is locked. The hobgoblins' lair (2,2,-2) is behind an iron door in the
    caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
    Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
-   a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
+   their bolt-hole tent over the lair (2,2,0; their palisaded camp is in the Isle's north-west corner): only a tent
+   until you've climbed it from below. In his house a floorboard
    squeaks: stand on it, then Search it, for the compass. Bess sails you to Northport; **Wim** the ferryman crosses
    for a coin after that.
+
+**The Isle** is maps 0..4 by -3..2: `dev/migrate/grow_isle.py` grew it north to twice its size (its old north coast's
+shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
+the new land, the hobgoblins' camp in its north-west corner and the ring of standing stones by its south-east shore.
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
@@ -187,6 +192,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   map line (`dev/migrate/prey_passive.py`; validate.py holds it): it can be hunted, runs from whoever hits it and never
   fights back.
 - Aggro needs line of sight; lookouts (`Face=`, `Sight.Cone=`) can be sneaked past, and a `Group=` raises the alarm.
+- **A fight brings the others near it**: a monster that comes for you brings those of its side that would see it
+  (their `Aggro.Range`) or hear it (`ROUSE_HEAR` by their `Hearing`), nothing solid between, and that could chase you
+  where they are (`npcs.py` npc_rouse). One step: those it brings don't bring more. Not while you're hushed (Silence).
 - **Every monster's senses are its kind's** (Entities.ini, set by `dev/migrate/build_senses.py`): `Sight.Cone` (how
   wide it sees, 360 all round), `Aggro.Range` (how far), `Hearing` (how far your noise carries to it: a bat 2, a
   skeleton 0.6) and `Chase.Radius`. They work in every stance: one that looks one way turns to a sound, one that sees
@@ -224,7 +232,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   and doesn't spring as you sneak over it. All of it each player's own.
 - **Tricks** (`dsengine/tricks.py`): invisibility (no monster sees you; strike or cast and it's over) and body swaps
   (`Swap=1` creatures and townsfolk, for a strict time: no hands, monsters pay you no mind, `$Player.Form` says what
-  you are, e.g. a cat flap's `$Player.Form=Cat`). A script can `Turn.Into` a creature for a while.
+  you are, e.g. a cat flap's `$Player.Form=Cat`). A script can `Turn.Into` a creature for a while. **Silence**
+  (Effect=Silence): a hush round you for a while; whatever you fight makes no sound to bring the others, a camp can't
+  raise its alarm and your fighting isn't heard. **Dread** (a bolt's `Fear=` seconds, `player_combat.py` frighten):
+  the foe runs from you, and a blow doesn't turn it; never a boss, a `Slain.By` one or a `Fear.Immune=1` one.
+  (`dev/migrate/build_hush_and_dread.py`: Silence's scroll at the wizards', Dread's in Redrock Manor's vault, behind
+  Ambrose's quest, The Redrock Signet.)
 - **The Shifting Deep** (`dsengine/deep.py`, `data/Deep.ini`, `dev/migrate/build_deep.py`): an old Shard mine south
   of Moorcross whose floors (40,40,-11 and down) are made in memory, never files, and made again every
   `Shift.Minutes` once nobody's inside: rooms and tunnels, monsters by depth, chests (once each a shift; now and then
@@ -273,7 +286,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`dev/migrate/potions_and_spells.py` put Healing and Farsight among the potions and made Stone Skin the Shard Ward).
 - **A spell of your own**: Magister Quill's The Spellwright teaches it; at the Spellwright's Lectern (the Court's great
   hall) you choose its effect, power and reach, and its Shards and rest are worked out to balance
-  (`dsengine/ownspell.py`, Shards.ini `[Spellwright]`). It's `Own_Spell`, known like any other.
+  (`dsengine/ownspell.py`, Shards.ini `[Spellwright]`: a bolt, a burst, a frost, a mire that slows, a ward). It's
+  `Own_Spell`, known like any other.
 - Magic runs on **Shards**, a balance each player has, shown on the bar under their health: **never an item in the
   pack** (`dsengine/shards.py`; a script's `Give.Item Shard` or an old save's Shards go on the balance). They never
   come back by themselves. Shard Remnants, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells,
@@ -463,6 +477,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the feet (a step never skips over it).
 - A tile changing (a door, a chopped tree) sends just that tile (`mapcells`), not the whole map again: keep it so.
   The phone and many NPCs make full-map repaints the thing that lags.
+- **The sidebar runs the whole height** of the desktop layout, the chat bar only under the view (`ui.js` layout; the
+  art: `build_gui.py` STAT_H, INV_ROWS): the Stats box 240 high, the pack's well under it with its heading drawn by
+  the page (Inventory, and how full it is). The pack is Config `InventoryItems.Rows` by `Columns` (9 by 5), read the
+  same by the server and both layouts.
+- **The hotbar has as many slots as each player chooses**, 1 to 10 (Options; kept with the character: `hotbar_n`),
+  keys 1-9 and 0; on a phone it goes in two rows when one would run under the stick.
 - The Stats box's tabs are Stats, Gear and Spells. Quests live in the journal (H), in two tabs: In hand (begun, and
   those you can start now, never the ones still locked) and Done; no rewards, and a click on one follows it.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top

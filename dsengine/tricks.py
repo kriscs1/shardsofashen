@@ -59,6 +59,17 @@ class TrickMixin:
                              "or cast." % seconds, "ACHIEVEMENT")          # (what: said already, as it's drunk)
         self.dirty_me = True
 
+    # ----- Silence: a hush of Shards round you; the foes you fight make no sound to bring the others (npcs.py npc_rouse,
+    # npc_alarm), and your fighting isn't heard (stances.py noise_radius)
+    def silent(self):
+        return getattr(self, "silent_until", 0) > self.now
+
+    def go_silent(self, seconds, what):
+        self.silent_until = self.now + int(seconds * 1000)
+        self.display_message("%s: a hush of Shards closes round you. For %s, whatever you fight makes no sound." %
+                             (what, self.how_long(seconds)), "ACHIEVEMENT")
+        self.dirty_me = True
+
     def end_invisible(self, why=""):
         if not getattr(self, "invisible_until", 0):
             return
@@ -164,6 +175,10 @@ class TrickMixin:
     def tricks_tick(self):
         if getattr(self, "invisible_until", 0) and self.now >= self.invisible_until:
             self.end_invisible()
+        if getattr(self, "silent_until", 0) and self.now >= self.silent_until:
+            self.silent_until = 0
+            self.display_message("The hush round you lifts.", "INFO")
+            self.dirty_me = True
         sw = self.swap
         if sw:
             left = sw["until"] - self.now
@@ -177,6 +192,8 @@ class TrickMixin:
         st = {}
         if self.invisible():
             st["invisible_left"] = self.invisible_until - self.now
+        if self.silent():
+            st["silent_left"] = self.silent_until - self.now
         if self.swap:
             st["swap"] = {"form": self.swap["form"], "left": max(0, self.swap["until"] - self.now)}
         return st

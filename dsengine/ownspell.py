@@ -1,6 +1,6 @@
 """A spell of your own (The Spellwright, Magister Quill's quest): at the Spellwright's Lectern in the Wizards' Court you
-write it, choosing its effect (a bolt at one foe, a burst round you, a frost that holds them, a ward of Shards round
-you), its power (1-5, as far as your Magic goes) and its reach. What it costs and how long it rests are worked out so
+write it, choosing its effect (a bolt at one foe, a burst round you, a frost that holds them, a mire that slows them,
+a ward of Shards round you), its power (1-5, as far as your Magic goes) and its reach. What it costs and how long it rests are worked out so
 that no choice is better than another for its price: Shards.ini [Spellwright].
 
 It's the spell Own_Spell (Spells.ini has its section, a bolt, for what nothing here says), known like any other; its
@@ -14,6 +14,7 @@ EFFECTS = {   # effect: (what it is, near and far reach words)
     "Bolt": ("a bolt of Shard light at one foe", ("near: 6 tiles", "far: 10 tiles")),
     "Burst": ("a burst of Shards at every foe round you", ("close: 3 tiles round", "wide: 5 tiles round")),
     "Frost": ("a frost that holds every foe round you still", ("close: 3 tiles round", "wide: 4 tiles round")),
+    "Slow": ("a mire of Shards that slows every foe round you", ("close: 3 tiles round", "wide: 5 tiles round")),
     "Ward": ("a ward of Shards round you, for Defence", ("short: a minute or so", "long: two minutes or so")),
 }
 
@@ -34,6 +35,10 @@ def own_values(effect, power, far, cost_of):
         v.update(Effect="Area", Damage="%d-%d" % (max(1, p // 2), p + 1), Radius=str(128 if f else 96),
                  Freeze=str(1 + p), **{"Freeze.Word": "frozen"}, Cooldown=lbstr(6 + 3 * p), Level=str(max(2, 3 * p)),
                  Impact="Ice_Burst", Sound="Freeze")
+    elif effect == "Slow":                   # (slower and for longer as it's stronger: Spells.ini Slow=percent,seconds)
+        v.update(Effect="Area", Damage="1-%d" % (p + 1), Radius=str(160 if f else 96),
+                 Slow="%d,%d" % (60 - 8 * p, 4 + 2 * p), Cooldown=lbstr(5 + 2 * p), Level=str(max(1, 3 * p - 2)),
+                 Impact="Ice_Burst", Sound="SpellIce")
     else:
         effect = "Ward"
         v.update(Effect="Shield", Defence=str(2 * p), Duration=str((60 + 20 * p) if f else (30 + 10 * p)),
@@ -117,6 +122,8 @@ class OwnSpellMixin:
         words += " to every foe within %d tiles" % (int(v["Radius"]) // 32)
         if "Freeze" in v:
             words += ", frozen for %s s" % v["Freeze"]
+        if "Slow" in v:
+            words += ", slowed to %s%% for %s s" % tuple(v["Slow"].split(","))
         return words
 
     def write_spell(self, effect, power, far, fee):

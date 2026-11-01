@@ -370,14 +370,19 @@ def gone_key(pid):
         W.write(ENTITIES, s[:a] + (s[b + 2:] if b >= 0 else ""))
 
 
-def chest_script(pid, attr, items):
+def chest_script(pid, attr, items, more=None):
+    """more: (attribute, items) found there once too, by its own attribute (put in after the chest was first opened:
+    whoever emptied it before still finds them)."""
+    give_more = [("Update.Attribute", more[0], "=1")] + [("Give.Item", item, str(n)) for item, n in more[1]]         if more else []
     rows = [(">Distance.From.Clicked.Entity", "48", "@far"),
-            (">Conditional", "$Attr.%s=0" % attr, "@empty"),
+            (">Conditional", "$Attr.%s=0" % attr, "@more" if more else "@empty"),
             ("Update.Attribute", attr, "=1"),
             ("Play.Sound", "Chest")]
-    rows += [("Give.Item", item, str(n)) for item, n in items]
-    rows += [("End",),
-             ("@empty",), ("Display.Message", "Cyan", "The chest is empty.", "Empty"), ("End",),
+    rows += [("Give.Item", item, str(n)) for item, n in items] + give_more
+    rows += [("End",)]
+    if more:
+        rows += [("@more",), (">Conditional", "$Attr.%s=0" % more[0], "@empty"), ("Play.Sound", "Chest")] + give_more +             [("End",)]
+    rows += [("@empty",), ("Display.Message", "Cyan", "The chest is empty.", "Empty"), ("End",),
              ("@far",), ("Display.Message", "DarkRed", "You are too far away!", "Denied"), ("End",)]
     SK.write_script("Open %s" % pid, rows, MAKER)
 
@@ -389,7 +394,8 @@ def scripts(pid, prize):
                                                            ("Leather_Cap", 1)])
     chest_script(pid + "_Strongbox", pid + "Strongbox", [(pid + "_Key", 1), ("Gold_Coin(s)", 30)] if pid != MAZE else
                  [("Gold_Coin(s)", 70), ("Super_Potion", 1)])
-    chest_script(pid + "_Vault", pid + "Vault", prize)
+    chest_script(pid + "_Vault", pid + "Vault", prize,      # (the maze's: the signet and the old lord's scroll too,
+                 (pid + "Signet", [("Redrock_Signet", 1), ("Dread_Scroll", 1)]) if pid == MAZE else None)   # hush_and_dread)
     SK.write_script("Search %s_Stash" % pid, [
         (">Distance.From.Clicked.Entity", "48", "@far"),
         (">Conditional", "$Attr.%sStash=0" % pid, "@empty"),

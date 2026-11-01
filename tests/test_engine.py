@@ -921,8 +921,8 @@ def test_only_so_many_bets_an_hour(world):
 
 
 def test_a_chest_shows_what_is_in_it_before_it_is_yours(world):
-    m = world.maps["2,2,0"]
-    chest = next(e for e in world.ents if e.name == "Chest" and e.map == m.name)
+    chest = next(e for e in world.ents if e.npc_id == "Hob_Camp_Chest")    # (the hobgoblins' camp: grow_isle.py)
+    m = world.maps[chest.map]
     s = join(world, "Looter", m.name, int(chest.x - m.ox), int(chest.y - m.oy + 36))
     gold = s.items_held("Gold_Coin(s)")
     s.unlocked_chests.add(s.chest_key(chest))                       # (the Isle's chests are locked: picked already)
@@ -2174,9 +2174,10 @@ def test_seal_blubber_is_bait_for_the_big_fish(world):
 
 
 def test_every_player_finds_a_chests_loot(world):
-    a = join(world, "FirstFinder", "0,0,0", 15 * 32, 11 * 32)        # (beside the stone circle's chest)
-    b = join(world, "SecondFinder", "0,0,0", 15 * 32, 12 * 32)
-    chest = next(e for e in world.ents if e.name == "Chest" and e.map == "0,0,0")
+    chest = next(e for e in world.ents if e.npc_id == "Stone_Circle_Chest")   # (the stone circle's: grow_isle.py)
+    m = world.maps[chest.map]
+    a = join(world, "FirstFinder", chest.map, int(chest.x - m.ox) - 32, int(chest.y - m.oy))
+    b = join(world, "SecondFinder", chest.map, int(chest.x - m.ox) - 32, int(chest.y - m.oy) + 32)
     for s in (a, b, a):
         s.connected = True
         s.out = []
@@ -5339,3 +5340,169 @@ def test_one_with_no_door_sleeps_in_a_tent(world):
     finally:
         world.set_day_fraction(day)
         leave(world, s)
+
+
+def test_the_hotbar_has_as_many_slots_as_you_choose(world):
+    s = join(world, "Tenfingers")
+    s.connected = True
+    assert len(s.me_state()["hotbar"]) == 5
+    s.handle({"t": "hotbar_slots", "n": 10})
+    for k in range(10):
+        s.hotbar_add("Thing%d" % k)
+    assert s.me_state()["hotbar"][9] == "Thing9"
+    s.handle({"t": "hotbar_slots", "n": 3})
+    assert s.me_state()["hotbar"] == ["Thing0", "Thing1", "Thing2"]
+    s.hotbar_add("Thing8")                                          # (a hidden slot's thing, brought back into view)
+    assert s.me_state()["hotbar"][2] == "Thing8" and s.hotbar.count("Thing8") == 1
+    s.handle({"t": "hotbar_slots", "n": 99})
+    assert s.hotbar_n == 10
+    saved = s.save_state()
+    leave(world, s)
+    t = Session(world, "Tenfingers")
+    t.load_state(saved)
+    assert t.hotbar_n == 10 and len(t.me_state()["hotbar"]) == 10
+
+
+def test_a_spell_of_your_own_can_slow(world):
+    from dsengine.ownspell import own_values, EFFECTS
+    assert "Slow" in EFFECTS
+    v = own_values("Slow", 3, True, lambda k, d: d)
+    assert v["Effect"] == "Area" and v["Slow"] == "36,10" and v["Radius"] == "160"
+    s = join(world, "Treacle", "14,15,0", 100, 300)
+    s.connected = True
+    s.own_spell = {"effect": "Slow", "power": 3, "far": False}
+    s.spells_known["Own_Spell"] = 1
+    s.skill_level = lambda skill: 25
+    s.add_shards(50)
+    p = s.player
+    foes = [world.add_npc("Goblin", p.z, p.x + 40 + 20 * k, p.y, "Attitude=Bad Zone=1,1,25,21", "Bad") for k in range(3)]
+    try:
+        for f in foes:
+            f.hp = f.max_hp = 500
+        speed = foes[0].move_speed
+        s.out = []
+        s.cast_spell("Own_Spell", None)
+        run_for(world, 1)
+        assert all(f.slow_until is not None and f.move_speed < speed for f in foes)
+        lines = [ev.get("text", "") for ev in s.out if ev.get("t") == "msg"]
+        assert sum("slow" in ln for ln in lines) == 1                # (one line for the lot)
+    finally:
+        for f in foes:
+            world.remove_entity(f)
+        leave(world, s)
+
+
+def test_a_foe_set_upon_brings_the_others_near_it_unless_you_are_hushed(world):
+    s = join(world, "Brawler", "14,15,0", 100, 300)
+    s.connected = True
+    p = s.player
+    near_one = world.add_npc("Goblin", p.z, p.x + 120, p.y, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    friend = world.add_npc("Goblin", p.z, p.x + 200, p.y, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    far = world.add_npc("Goblin", p.z, p.x + 120, p.y + 400, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    folk = (near_one, friend, far)
+    try:
+        world.tick(0.05, now=world.now + 50)                        # (on the map's index of who's where)
+        for e in folk:
+            e.in_combat, e.target = False, None
+            world.npc_give_up(e, e.ai)
+        s.provoke(near_one)
+        assert near_one.in_combat and friend.in_combat and friend.target is s and not far.in_combat
+        for e in folk:
+            world.npc_give_up(e, e.ai)
+            e.in_combat, e.target = False, None
+        s.spells_known["Silence"] = 1
+        s.skill_level = lambda skill: 25
+        s.add_shards(20)
+        s.cast_spell("Silence", None)                               # (tricks.py: a hush round you)
+        assert s.silent() and "silent_left" in s.me_state()
+        s.provoke(near_one)
+        assert near_one.in_combat and not friend.in_combat
+    finally:
+        for e in folk:
+            world.remove_entity(e)
+        leave(world, s)
+
+
+def test_dread_sends_a_foe_running_but_not_a_boss(world):
+    from dsengine.entity import AI_FLEE
+    s = join(world, "Bogeyman", "14,15,0", 100, 300)
+    s.connected = True
+    s.spells_known["Dread"] = 1
+    s.skill_level = lambda skill: 25
+    s.add_shards(50)
+    p = s.player
+    gob = world.add_npc("Goblin", p.z, p.x + 90, p.y, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    try:
+        gob.hp = gob.max_hp = 500
+        s.cast_spell("Dread", gob)
+        run_for(world, 10)
+        assert gob.ai.state == AI_FLEE and gob.target is s
+        s.provoke(gob)                                              # (a blow doesn't turn it)
+        assert gob.ai.state == AI_FLEE
+        start = distance(gob.cx, gob.cy, p.cx, p.cy)
+        run_for(world, 20)
+        assert distance(gob.cx, gob.cy, p.cx, p.cy) > start
+        assert "flees from you" in s.spell_what("Dread", 1)
+    finally:
+        world.remove_entity(gob)
+    boss = world.add_npc("Tomb_Guardian", p.z, p.x + 90, p.y, "Attitude=Bad Zone=1,1,25,21", "Bad")
+    try:
+        s.frighten(boss, 6)
+        assert boss.ai.state != AI_FLEE
+    finally:
+        world.remove_entity(boss)
+        leave(world, s)
+
+
+def test_ambrose_wants_the_redrock_signet_from_the_vault(world):
+    ambrose = next(e for e in world.ents if e.npc_id == "Redrock_Steward")
+    s = join(world, "Signet", ambrose.map, 300, 300)
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+    s.skill_level = s.base_skill_level = lambda skill: 25          # (Requires.Level=6: your level)
+    near(world, s, ambrose, 0, 36)
+
+    def talk(*answers):
+        s.choose_verb("Talk to", ambrose, int(ambrose.cx), int(ambrose.cy))
+        run_for(world, 10)
+        for n in answers:
+            assert s.ab_mode == "Conversation", n
+            s.action_box_response_chosen(n)
+            run_for(world, 10)
+        if s.ab_mode:
+            s.close_action_box(-1)
+
+    talk(1, 1, 1)                                                   # (what happened; you want something; I'll bring it)
+    assert s.get_attribute("RedrockSignetQuest") == "1"
+    vault = next(e for e in world.ents if e.npc_id == "Redrock_Manor_Vault")
+    s.update_attribute("Redrock_ManorVault", "=1")                  # (emptied before the signet was put in it)
+    near(world, s, vault, 0, 30)
+    s.clicked_ent = vault
+    s.start_script("Open Redrock_Manor_Vault", True)
+    run_for(world, 5)
+    s.close_action_box(-1)
+    assert s.items_held("Redrock_Signet") == 1 and s.items_held("Dread_Scroll") == 1
+    near(world, s, ambrose, 0, 36)
+    talk(1)
+    assert s.get_attribute("RedrockSignetQuest") == "2" and s.items_held("Redrock_Signet") == 0
+    leave(world, s)
+
+
+def test_the_isle_has_grown_north_with_its_new_places(world):
+    ids = {i[0] for m in world.maps.values() for i in m.ids}
+    for pid in ("Mirror_Tarn", "Hollow_Wood", "Tin_Braes", "Old_Beacon", "Standing_Stones", "Hobgoblin_Camp"):
+        assert pid in ids
+    camp = next(e for e in world.ents if e.npc_id == "Hob_Camp_Chest")
+    assert camp.map.split(",")[1].startswith("-")                     # (north of the old Isle)
+    assert any(e.name == "Hobgoblin" and e.map == camp.map for e in world.ents)
+    stones = next(e for e in world.ents if e.npc_id == "Stone_Circle_Chest")
+    assert stones.map in ("2,2,0", "3,2,0", "2,1,0", "3,1,0")          # (the south-east)
+    s = join(world, "Wanderer", camp.map, 300, 300)
+    assert s.cur_map.name in s.lock_text("Isle.Maps", "").split()   # (the Isle's easy locks, up there too)
+    hearth = next(e for e in world.ents if e.npc_id == "Old_Beacon_Hearth")
+    near(world, s, hearth, 0, 30)
+    s.clicked_ent = hearth
+    s.start_script("Search Old_Beacon_Hearth", True)
+    run_for(world, 5)
+    assert s.items_held("Tinderbox") >= 1
+    leave(world, s)

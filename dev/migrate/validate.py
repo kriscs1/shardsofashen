@@ -1163,7 +1163,7 @@ def footprint_fits(name, data):
 ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Hearing", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
-               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Rank", "Level", "Swap",
+               "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Fear.Immune", "Rank", "Level", "Swap",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
@@ -1343,7 +1343,7 @@ SHARDS_KEYS = {
                    "Rare.Min.Value"},
     "Enchant": {"Level", "Shards", "Shards.Per.Value", "XP"},
     "Homestead": {"Bloom.Shards", "Bloom.Hours", "Bloom.Max", "Bloom.Per.Levels", "Bloom.Most"},
-    "Spellwright": {"Bolt.Cost", "Burst.Cost", "Frost.Cost", "Ward.Cost", "Power.Exponent", "Far", "Write"},
+    "Spellwright": {"Bolt.Cost", "Burst.Cost", "Frost.Cost", "Slow.Cost", "Ward.Cost", "Power.Exponent", "Far", "Write"},
     "Dismantle": {"Weapon", "Armour", "Scroll", "Min.Value"},
     "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
@@ -1823,8 +1823,10 @@ def check_spells(entities_ini, skills):
         where = "%s [%s]" % (rel(path), sec)
         spells.add(sec)
         effect = (ini.get(sec, "Effect") or "Bolt").strip().upper()
-        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME", "GRASP", "INVISIBLE", "SWAP"):
-            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport, Home, Grasp, Invisible or Swap" % effect)
+        if effect not in ("BOLT", "AREA", "HEAL", "SHIELD", "BOOST", "TELEPORT", "HOME", "GRASP", "INVISIBLE", "SWAP",
+                          "SILENCE"):
+            err(where, "Effect=%r is not Bolt, Area, Heal, Shield, Boost, Teleport, Home, Grasp, Invisible, Swap or "
+                       "Silence" % effect)
         scroll = (ini.get(sec, "Scroll") or "").strip()
         if not scroll:
             err(where, "Scroll missing")
@@ -1837,7 +1839,7 @@ def check_spells(entities_ini, skills):
             if verb not in [w.strip().lower() for w in (entities_ini.get(scroll, "Use.Words") or "").split(",")]:
                 warn(where, "[%s] has no %s in its Use.Words" % (scroll, verb.title()))
         for k in ("Level", "XP", "Range", "Radius", "Attack", "Defence", "Magic", "Sight", "Duration", "Cost", "Cooldown", "Shards",
-                  "Freeze"):
+                  "Freeze", "Fear"):
             v = ini.get(sec, k)
             if v is not None and not is_num(v):
                 err(where, "%s=%r is not a number" % (k, v))

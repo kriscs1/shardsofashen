@@ -30,7 +30,7 @@ COURT, LECTERN = "21,5,0", (15, 5)
 SPELLWRIGHT = [   # Shards.ini [Spellwright] (key, value, note)
     ("Bolt.Cost", "3", "A written spell's Shards a cast: its effect's .Cost, times its power to Power.Exponent,"),
     ("Burst.Cost", "3.5", "times Far for the far reach. Write: Shards to write it again over your old one."),
-    ("Frost.Cost", "3.5", None), ("Ward.Cost", "3", None), ("Power.Exponent", "1.1", None), ("Far", "1.4", None),
+    ("Frost.Cost", "3.5", None), ("Slow.Cost", "3", None), ("Ward.Cost", "3", None), ("Power.Exponent", "1.1", None), ("Far", "1.4", None),
     ("Write", "10", None),
 ]
 OWN_DEFAULTS = [("Kind", "Scroll"), ("Scroll", "Spellwrights_Page"), ("Skill", "Channeling"), ("Effect", "Bolt"),

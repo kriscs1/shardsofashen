@@ -16,7 +16,7 @@
 15	Give.Item	Oak_Staff	1
 16	Give.Item	Gold_Coin(s)	25
 17	Update.Skill	Woodcutting	+1.5
-18	Display.Conversation	Hermit	Ahh, good oak. That'll burn all week. Here, take my old staff: it'll put some fire in your spells.\And a secret, for a friend: the standing stones on the north-west headland hide more than moss.	Thank you!	27
+18	Display.Conversation	Hermit	Ahh, good oak. That'll burn all week. Here, take my old staff: it'll put some fire in your spells.\And a secret, for a friend: the standing stones by the south-east shore hide more than moss.	Thank you!	27
 19	Display.Message	Yellow	Quest complete! You receive an oak staff, 25 gold and Woodcutting experience.
 20	End
 21	Display.Conversation	Hermit	Five oak logs, friend. Oaks are the broad ones with the acorns. Woodcutting 5, mind.	I'll keep looking.	27

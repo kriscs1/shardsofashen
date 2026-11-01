@@ -798,6 +798,8 @@ class ActionsMixin:
             self.hotbar_use(int(msg.get("k", -1)))
         elif t == "hotbar_remove":
             self.hotbar_remove(int(msg.get("k", -1)))
+        elif t == "hotbar_slots":
+            self.hotbar_set_slots(int(msg.get("n", 5)))
         elif t == "unequip":
             self.unequip_slot(int(msg.get("slot", 0)))
         elif t == "skill":

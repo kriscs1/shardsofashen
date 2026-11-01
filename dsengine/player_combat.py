@@ -2,7 +2,7 @@
 its hitpoints go down for everyone, and it fights whoever hit it), spells and status effects (extras.py)."""
 from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, apply_change, pretty
 
-from .entity import NPC, PLAYER, MAPITEM
+from .entity import NPC, PLAYER, MAPITEM, AI_FLEE
 from .renames import SKILL_NAMES
 from .shards import shard_words, SHARD, channeled_cost
 
@@ -849,12 +849,17 @@ class CombatMixin:
             if self.spell_fizzled:
                 return
             self.player_last_combat = now
-            held = []
+            held, slowed = [], []
             for e in targets:
                 if e.alive:
                     self.provoke(e)
                     if self.spell_hit(spell, e) and e.alive:
                         held.append(e)
+                    elif e.alive and e.slow_until is not None and e.slow_until > now:
+                        slowed.append(e)
+            if slowed and self.spell_ini(spell, "Slow", ""):
+                who = "The %s slows" % self.display_name(slowed[0]) if len(slowed) == 1 else "%d foes slow" % len(slowed)
+                self.display_message("%s down." % who, "COMBAT")
             if held:                                    # (one line for the lot, not one a foe)
                 how = self.spell_ini(spell, "Freeze.Word", "frozen") or "frozen"
                 who = "The %s is" % self.display_name(held[0]) if len(held) == 1 else "%d foes are" % len(held)
@@ -907,6 +912,13 @@ class CombatMixin:
             self.display_message("The world spins around you...", "SUCCESS")
             self.player_attack_target = None
             self.teleport(m, x, y)
+        elif effect == "SILENCE":                            # (tricks.py: a ward, held longer Channelling)
+            self.spell_begin(scroll, spell)
+            if self.spell_fizzled:
+                return
+            self.spell_glow(spell)
+            self.go_silent(max(1, val(self.spell_ini(spell, "Duration", "30"))) * self.stance_num("Spell.Duration"),
+                           "You cast %s" % pretty(spell))
         elif effect == "INVISIBLE":                          # (tricks.py)
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:
@@ -993,7 +1005,8 @@ class CombatMixin:
                 e.normal_speed = e.move_speed
             e.move_speed = e.normal_speed * max(5, val(word(slow, 1, ","))) / 100
             e.slow_until = self.now + max(1, val(word(slow, 2, ","))) * 1000
-            self.display_message("The %s slows down." % self.display_name(e), "COMBAT")
+            if self.spell_ini(spell, "Effect", "Bolt").upper() != "AREA":    # (an area's: one line for the lot)
+                self.display_message("The %s slows down." % self.display_name(e), "COMBAT")
         held = False
         freeze = val(self.spell_ini(spell, "Freeze", "0"))
         if freeze > 0 and damage < e.hp and val(self.entity_ini(e.name, "Freeze.Immune", "0")) != 1:
@@ -1001,7 +1014,26 @@ class CombatMixin:
             e.frozen_word = self.spell_ini(spell, "Freeze.Word", "frozen") or "frozen"
             held = True
         self.damage_npc(e, damage)
+        fear = val(self.spell_ini(spell, "Fear", "0"))
+        if fear > 0 and e.alive:
+            self.frighten(e, fear)
         return held
+
+    def frighten(self, e, seconds):
+        """Fear (Spells.ini Fear=seconds): it runs from you till then, and a blow doesn't turn it (provoke leaves a
+        fleeing one be). Not a boss, nor one only its bane can kill, nor one that's Fear.Immune."""
+        a = e.ai
+        if a is None or val(self.entity_ini(e.name, "Boss", "0")) == 1 or self.entity_ini(e.name, "Slain.By", "") or                 val(self.entity_ini(e.name, "Fear.Immune", "0")) == 1:
+            self.display_message("The %s stands its ground." % self.display_name(e), "COMBAT")
+            return
+        e.in_combat = True
+        e.target = self
+        e.last_combat = self.now
+        self.w.forget_path(e)
+        a.state = AI_FLEE
+        a.timer = self.now + int(min(9, seconds) * 1000)      # (npcs.py: a flee's timer is never more than 10 s off)
+        self.w.fx({"t": "mark", "kind": "heard", "u": e.uid}, e.z, e.cx, e.cy, self)
+        self.display_message("The %s flees in terror!" % self.display_name(e), "COMBAT")
 
     # =================================================================================================================
     # Status effects

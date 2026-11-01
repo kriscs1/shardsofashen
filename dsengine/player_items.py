@@ -848,22 +848,30 @@ class ItemsMixin:
     # The hotbar
     # =================================================================================================================
     def hotbar_add(self, name):
-        if name in self.hotbar:
+        shown = self.hotbar[:self.hotbar_n]           # (the slots past the ones shown keep theirs for when they're back)
+        if name in shown:
             return
-        free = [k for k, n in enumerate(self.hotbar) if not n]
-        k = free[0] if free else len(self.hotbar) - 1
+        self.hotbar = [n if n != name else "" for n in self.hotbar]
+        free = [k for k, n in enumerate(shown) if not n]
+        k = free[0] if free else self.hotbar_n - 1
         self.hotbar[k] = name
         self.dirty_me = True
-        self.display_message("%s is on your hotbar: press %d to use it." % (pretty(name), k + 1), "INFO")
+        self.display_message("%s is on your hotbar: press %d to use it." % (pretty(name), (k + 1) % 10), "INFO")
+
+    def hotbar_set_slots(self, n):
+        n = max(1, min(len(self.hotbar), int(n)))
+        if n != self.hotbar_n:
+            self.hotbar_n = n
+            self.dirty_me = True
 
     def hotbar_remove(self, k):
-        if 0 <= k < len(self.hotbar) and self.hotbar[k]:
+        if 0 <= k < self.hotbar_n and self.hotbar[k]:
             self.display_message("%s is off your hotbar." % pretty(self.hotbar[k]), "INFO")
             self.hotbar[k] = ""
             self.dirty_me = True
 
     def hotbar_use(self, k):
-        if not (0 <= k < len(self.hotbar)) or not self.hotbar[k] or not self.user_input_enabled or self.ab_mode:
+        if not (0 <= k < self.hotbar_n) or not self.hotbar[k] or not self.user_input_enabled or self.ab_mode:
             return
         name = self.hotbar[k]
         e = next((i for i in self.inv if i.name == name), None)

@@ -20,6 +20,9 @@ const PARCHMENT = [212, 191, 126];
 const INK = [243, 232, 136];
 
 export const L = {};
+export const STAT_H = 240;                          // (the Stats box's height: build_gui.py STAT_H)
+const packCols = () => Math.max(1, val(configRead("Interface", "InventoryItems.Columns", "5")));
+export const packRows = () => Math.max(1, val(configRead("Interface", "InventoryItems.Rows", "7")));
 
 export function layout(W, H = 768) {
   L.W = W;
@@ -38,7 +41,7 @@ export function layout(W, H = 768) {
     L.btnX = W - 30;
     L.btnY = L.mmY + L.mmSize / 2 + 30;
     L.packW = 190;
-    L.packH = 14 + 32 * 7 + 12;
+    L.packH = 14 + 32 * packRows() + 12;
     L.bagW = 224 + L.packW;
     L.bagX = Math.min(W - 64, L.mmX - L.mmSize / 2 - 8) - L.bagW;   // (clear of the minimap)
     L.bagY = Math.max(6, Math.floor((H - L.packH) / 2));
@@ -53,7 +56,7 @@ export function layout(W, H = 768) {
     L.boostR = L.mmX - L.mmSize / 2 - 10;
     L.abX = Math.max(4, Math.min(Math.floor((L.VW - abw) / 2), L.packX - abw - 6));
     L.packY = L.bagY;
-    L.bagH = Math.max(200, L.packH);
+    L.bagH = Math.max(STAT_H, L.packH);
     L.upright = H > W;
     if (L.upright) {
       // (held upright: one column under the minimap - a box and its answers over the pack, or in the bag, the Stats
@@ -63,7 +66,7 @@ export function layout(W, H = 768) {
       L.packY = L.abY + abh + rbh + 14;
       L.bagW = 224;
       L.bagX = Math.max(6, Math.floor((W - 64 - L.bagW) / 2));
-      L.bagY = Math.max(L.mmY + L.mmSize / 2 + 12, L.packY - 208);
+      L.bagY = Math.max(L.mmY + L.mmSize / 2 + 12, L.packY - STAT_H - 8);
       L.bagH = L.packY + L.packH - L.bagY;
       L.statX = L.bagX;
       L.statY = L.bagY;
@@ -77,13 +80,13 @@ export function layout(W, H = 768) {
     L.statX = L.VW;
     L.statY = 175;
     L.invX = L.VW + 34;
-    L.invY = 413;
+    L.invY = 175 + STAT_H + 29;                     // (under the pack's heading, in the well build_gui.py paints)
     L.mmX = L.VW + 140;
     L.mmY = 84;
     L.mmSize = 160;
     L.chatY = L.VH;
-    L.chatW = W;
-    L.chatR = W - 44;
+    L.chatW = L.VW;                                  // (under the view only: the sidebar runs the whole height)
+    L.chatR = L.chatW - 44;
     L.boostR = L.VW - 8;
     L.abX = Math.floor((L.VW - abw) / 2);
     L.upright = false;
@@ -737,23 +740,23 @@ function drawStats(ctx) {
   ctx.translate(x0, y0);
   const bg = sprite("StatBox");
   if (bg) ctx.drawImage(bg, 0, 0);
-  else { ctx.fillStyle = "rgb(51,34,27)"; ctx.fillRect(0, 0, 224, 200); }
+  else { ctx.fillStyle = "rgb(51,34,27)"; ctx.fillRect(0, 0, 224, STAT_H); }
   if (U.statsView === 1) drawGear(ctx);
   else if (U.statsView === 2) drawChannelTab(ctx);
   else drawSkillsTab(ctx);
-  ctx.fillStyle = "rgb(51,31,25)";
-  ctx.fillRect(28, 13, 170, 27);
+  // (the tabs: a dark strip over the old painted heading, each tab a rounded plate, the one you're on lit, with a
+  // gold rule under it)
+  roundBox(ctx, 28, 12, 170, 28, [34, 21, 16], [92, 60, 44], 1, 8);
   [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Spells"]].forEach(([x1, x2, label], t) => {
-    const on = t === U.statsView;
-    ctx.fillStyle = on ? "rgb(126,77,63)" : "rgb(61,40,31)";
-    ctx.fillRect(x1, 15, x2 - x1 + 1, 22);
-    ctx.strokeStyle = "rgb(126,77,63)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x1 + 0.5, 15.5, x2 - x1, 21);
+    const on = t === U.statsView, hot = U.hover === "tab" + t;
+    roundBox(ctx, x1, 15, x2 - x1 + 1, 22, on ? [104, 64, 48] : hot ? [64, 42, 32] : [46, 30, 23],
+      on ? [214, 170, 70] : [92, 60, 44], 1, 6);
+    if (on) { ctx.fillStyle = "rgb(250,220,140)"; ctx.fillRect(x1 + 8, 34, x2 - x1 - 15, 1); }
     let size = 9;
     while (size > 7 && textWidth(ctx, label, size, true) > x2 - x1 - 4) size--;
     const w = textWidth(ctx, label, size, true);
-    drawTextMid(ctx, label, x1 + Math.floor((x2 - x1 + 1 - w) / 2), 15, 22, size, true, on ? TAB_TEXT : [190, 160, 110]);
+    drawTextMid(ctx, label, x1 + Math.floor((x2 - x1 + 1 - w) / 2), 15, 21, size, true,
+      on ? [255, 236, 170] : hot ? [230, 200, 140] : [170, 140, 100]);
   });
   ctx.restore();
 }
@@ -800,7 +803,7 @@ function drawSkillsTab(ctx) {
   const shown = skills.filter((_, i) => skillShown(i + 1)).length;
   U.statRows = Math.max(1, Math.floor((shown + 2) / 3));
   U.statRowTop = 41;
-  U.statRowH = Math.min(33, Math.floor(150 / U.statRows));
+  U.statRowH = Math.min(40, Math.floor((STAT_H - 60) / U.statRows));   // (as tall as the box has room for)
   let k = 1;
   skills.forEach((name, i) => {
     if (!skillShown(i + 1)) return;
@@ -925,7 +928,7 @@ export function questLook(q) {
 }
 
 // ----- Channeling: the spells you know, a tile each (click: cast it; right-click: on or off the hotbar)
-const SPELLS_SHOWN = 12;
+const SPELLS_SHOWN = 15;
 
 export function knownSpells() {
   const level = (sp) => val(spellAt(sp, "Level", "1"));
@@ -934,7 +937,7 @@ export function knownSpells() {
 }
 
 function spellTileRect(i) {
-  return [29 + (i % 3) * 56, 43 + Math.floor(i / 3) * 36, 54, 34];
+  return [29 + (i % 3) * 56, 43 + Math.floor(i / 3) * 35, 54, 33];
 }
 
 export function spellTileAt(px, py) {
@@ -989,7 +992,7 @@ function drawChannelTab(ctx) {
     }
   });
   if (spells.length > SPELLS_SHOWN) {
-    centreText(ctx, 112, 189, `and ${spells.length - SPELLS_SHOWN} more: the journal's Spells (H)`, 7, true, [170, 150, 120]);
+    centreText(ctx, 112, STAT_H - 18, `and ${spells.length - SPELLS_SHOWN} more: the journal's Spells (H)`, 7, true, [170, 150, 120]);
   }
 }
 
@@ -1003,7 +1006,7 @@ export function padlock(ctx, cx, cy, col) {
 
 // ----- the inventory
 export function invSlotPos(i) {
-  const cols = Math.max(1, val(configRead("Interface", "InventoryItems.Columns", "5")));
+  const cols = packCols();
   return [L.invX + G.tw * (i % cols), L.invY + G.tw * Math.floor(i / cols)];
 }
 
@@ -1049,6 +1052,25 @@ function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = f
 function drawInventory(ctx) {
   if (!packShown()) return;
   const shop = S.box.mode === "Shop";
+  const room = packCols() * packRows(), used = S.me.inv.length;
+  if (!M.on) {
+    // (the heading: the pack's name in the game's lettering, how full it is at the right, a gold rule under both)
+    const y = L.invY - 20, x1 = L.invX + packCols() * G.tw;
+    drawText(ctx, "Inventory", L.invX + 1, y + 1, 10, true, [20, 12, 8]);
+    drawText(ctx, "Inventory", L.invX, y, 10, true, [250, 220, 140]);
+    const n = `${used} / ${room}`, nw = textWidth(ctx, n, 8, true);
+    drawText(ctx, n, x1 - nw, y + 2, 8, true, used >= room ? [255, 128, 100] : [190, 160, 110]);
+    const grad = ctx.createLinearGradient(L.invX, 0, x1, 0);
+    grad.addColorStop(0, "rgba(214,170,70,0.9)");
+    grad.addColorStop(1, "rgba(214,170,70,0.15)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(L.invX, y + 15, x1 - L.invX, 1);
+  }
+  // (a slot for every place in the pack: sunk a little into the leather, the empty ones too)
+  for (let i = 0; i < room; i++) {
+    const [x, y] = invSlotPos(i);
+    roundBox(ctx, x + 1, y + 1, G.tw - 2, G.th - 2, i < used ? [44, 28, 21] : [36, 23, 17], [24, 14, 10], 1, 5);
+  }
   S.me.inv.forEach(([uid, name, qty, wear], i) => {
     const [x, y] = invSlotPos(i);
     slotItem(ctx, name, x, y, qty, { dim: shop && !canSellHere(name), wear, inv: true });
@@ -1564,15 +1586,26 @@ function drawMenu(ctx) {
 }
 
 // ----- the hotbar
-export function hotbarRect(k) {
-  const total = 5 * HOTBAR_SIZE + 4 * 4;
-  const x0 = Math.floor((L.VW - total) / 2);
-  return [x0 + k * (HOTBAR_SIZE + 4), L.VH - HOTBAR_SIZE - 8, HOTBAR_SIZE, HOTBAR_SIZE];   // (along the bottom)
+const hotbarSlots = () => (S.me && S.me.hotbar || []).length;
+
+function hotbarPerRow() {
+  // (along the bottom in one row; on a phone, two if one would run under the stick)
+  const n = hotbarSlots(), room = M.on ? L.VW - 2 * (16 + 2 * JOY.r + 10) : L.VW - 16;
+  return n * (HOTBAR_SIZE + 4) - 4 <= room ? n : Math.ceil(n / 2);
 }
+
+export function hotbarRect(k) {
+  const per = Math.max(1, hotbarPerRow()), rows = Math.ceil(hotbarSlots() / per);
+  const row = Math.floor(k / per), inRow = row < rows - 1 ? per : hotbarSlots() - per * row;
+  const x0 = Math.floor((L.VW - (inRow * (HOTBAR_SIZE + 4) - 4)) / 2);
+  return [x0 + (k % per) * (HOTBAR_SIZE + 4), L.VH - (rows - row) * (HOTBAR_SIZE + 4) - 4, HOTBAR_SIZE, HOTBAR_SIZE];
+}
+
+export function hotbarTop() { return hotbarSlots() ? hotbarRect(0)[1] : L.VH; }
 
 export function hotbarAt(x, y) {
   if (S.box.mode || (M.on && (M.chat || M.bag))) return -1;
-  for (let k = 0; k < 5; k++) {
+  for (let k = 0; k < hotbarSlots(); k++) {
     const [hx, hy, w, h] = hotbarRect(k);
     if (x >= hx && x < hx + w && y >= hy && y < hy + h) return k;
   }
@@ -1585,7 +1618,7 @@ function held(name) {
 
 function drawHotbar(ctx) {
   if (S.box.mode || (M.on && (M.chat || M.bag))) return;
-  for (let k = 0; k < 5; k++) {
+  for (let k = 0; k < hotbarSlots(); k++) {
     const [x, y, w, h] = hotbarRect(k);
     ctx.fillStyle = "rgba(24,14,8,0.67)";
     ctx.fillRect(x, y, w, h);
@@ -1614,16 +1647,17 @@ function drawHotbar(ctx) {
         drawText(ctx, t, x + w - 3 - textWidth(ctx, t, 8, true), y + h - 12, 8, true, n ? [255, 240, 200] : [200, 90, 80]);
       }
     }
-    drawText(ctx, String(k + 1), x + 3, y + 1, 8, true, [214, 170, 70]);
+    drawText(ctx, String((k + 1) % 10), x + 3, y + 1, 8, true, [214, 170, 70]);
   }
 }
 
 export function hotbarLabel(k) {
   const name = (S.me.hotbar || [])[k];
-  if (!name) return `#Hotbar slot ${k + 1}|~Right-click an item in your pack: Hotbar`;
+  const key = (k + 1) % 10;
+  if (!name) return `#Hotbar slot ${key}|~Right-click an item in your pack: Hotbar (Options: how many slots)`;
   const sp = spellTaught(name);
-  if (sp && knowsSpell(sp)) return [`#${spellTitle(sp)}  (a spell you know)`, ...itemLines(name), `~Press ${k + 1} or click to cast it`].join("|");
-  return [`#${pretty(name)}  (${held(name)})`, ...itemLines(name), `~Press ${k + 1} or click to use it`].join("|");
+  if (sp && knowsSpell(sp)) return [`#${spellTitle(sp)}  (a spell you know)`, ...itemLines(name), `~Press ${key} or click to cast it`].join("|");
+  return [`#${pretty(name)}  (${held(name)})`, ...itemLines(name), `~Press ${key} or click to use it`].join("|");
 }
 
 // ----- the hurt flash, the level-up banner, who's online, sleeping
@@ -1817,6 +1851,9 @@ export function drawBoosts(ctx, now, mx, my) {
   }
   if (me.invisible_left && me.invisible_left - since > 0) {           // (tricks.py: unseen, and in another body)
     shown.push(["buff", "Invisibility_Potion", me.invisible_left - since, ["#Invisible", "+No monster sees you (strike or cast and it's over)"]]);
+  }
+  if (me.silent_left && me.silent_left - since > 0) {               // (Silence: tricks.py)
+    shown.push(["buff", "Silence_Scroll", me.silent_left - since, ["#Silence", "+Whatever you fight makes no sound to bring the others"]]);
   }
   if (me.swap && me.swap.left - since > 0) {
     shown.push(["buff", me.swap.form + "2a", me.swap.left - since, [`#A ${pretty(me.swap.form).toLowerCase()} for now`, "+You snap back into your own body when it runs out"]]);
@@ -2060,7 +2097,7 @@ function drawToasts(ctx, now) {
   // (the newest lines of the chat, for a few seconds, over the hotbar: the log itself is under Chat)
   if (M.chat) return;
   const fresh = S.messages.slice(0, 3).filter((m) => now - m[2] < 7000);
-  let y = L.VH - HOTBAR_SIZE - 26;
+  let y = hotbarTop() - 18;
   for (const m of fresh) {
     const a = Math.min(1, (7000 - (now - m[2])) / 800);
     const text = fitText(ctx, m[0], Math.min(520, L.VW - 260), 9, true);
@@ -2106,7 +2143,7 @@ function drawTouchUI(ctx, now) {
     roundBox(ctx, bx, by, bw, bh, "rgba(51,34,27,0.96)", [126, 77, 63], 2, 12);
     if (statsShown()) drawStats(ctx);
     ctx.strokeStyle = "rgb(92,60,46)"; ctx.lineWidth = 1;
-    ctx.strokeRect(L.invX - 2.5, L.invY - 2.5, 32 * 5 + 5, 32 * 7 + 5);
+    ctx.strokeRect(L.invX - 2.5, L.invY - 2.5, 32 * packCols() + 5, 32 * packRows() + 5);
   }
   drawBox(ctx);
   drawInventory(ctx);

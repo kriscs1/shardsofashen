@@ -136,9 +136,9 @@ export function mouseMove(x, y) {
   const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
   U.equipHover = 0; U.skillHover = 0; U.spellHover = 0;
   if (!msg && smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
-    if (smx <= 81) msg = "Stats|your skills";
-    else if (smx >= 84 && smx <= 135) msg = "Gear|what you are wearing";
-    else if (smx >= 138) msg = "Spells|the spells you know: cast them from here";
+    if (smx <= 81) { msg = "Stats|your skills"; U.hover = "tab0"; }
+    else if (smx >= 84 && smx <= 135) { msg = "Gear|what you are wearing"; U.hover = "tab1"; }
+    else if (smx >= 138) { msg = "Spells|the spells you know: cast them from here"; U.hover = "tab2"; }
   }
   if (!msg && U.statsView === 2) {
     const i = spellTileAt(smx, smy);
@@ -487,8 +487,9 @@ export function keyDown(ev) {
   if (code === "Minus" || code === "NumpadSubtract") { if (!S.box.mode) changeZoom(-1); return; }
   if (!S.me || !S.me.input || S.box.mode) return;
   if (code === "KeyQ") { send({ t: "stance", stance: nextStance() }); return; }
-  const hk = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3, Numpad5: 4 }[code];
-  if (hk !== undefined) { send({ t: "hotbar", k: hk }); return; }
+  const digit = /^(Digit|Numpad)([0-9])$/.exec(code);            // (1-9, and 0 for the tenth slot)
+  const hk = digit ? (+digit[2] + 9) % 10 : -1;
+  if (hk >= 0 && hk < (S.me.hotbar || []).length) { send({ t: "hotbar", k: hk }); return; }
   if (code in DIRS) {
     ev.preventDefault();
     I.keys.add(code);

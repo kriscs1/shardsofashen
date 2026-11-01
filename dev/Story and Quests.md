@@ -185,6 +185,13 @@ her he drank it. Reward: 80 gold, 2 mega potions, Potion Making experience. (Mor
 Captain Hale in Highwatch: slay 5 bandits, then find their camp in the eastern hills and take the stolen goods
 from their strongbox. Reward: 200 gold, a steel platebody, Strength experience.
 
+**The Redrock Signet**: *level 6, after chapter 4*
+Ambrose, the last steward of Redrock Manor, thrown out by the bandits who hold it, waits on the road by its gate. The
+old lord built the house so no thief could find his way about it (rooms with no doors, stairs to nowhere), and the
+bandits have never found the vault. Bring him the family's signet from it. Beside the signet lies the old lord's scroll
+of Dread (a spell that sends a foe running), yours with his blessing. Reward: 120 gold, Shards, Stealth and Strength
+experience.
+
 ### The desert, the north and the downs
 
 **The Lost Caravan**: *level 6, after Bandits on the Road*
@@ -338,6 +345,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Temporary Capital, The Ashford Road | ParliamentQuest, AshfordQuest | Talk to Northport_Port_Guard, Talk to Northport_Speaker_*, Talk to the Mayor, Farm Raid Won |
 | The Steward's Hunt, The Staff of Ashen | HobgoblinQuest, StaffQuest | Talk to Keep_Steward, Kill Hobgoblin, 22,11,1, Pickup Staff_of_Ashen |
 | Bert's Three Treasures | BertQuest | Talk to Bert, Bert's Confession |
+| The Redrock Signet | RedrockSignetQuest | Talk to Redrock_Steward, Open Redrock_Manor_Vault (build_hush_and_dread.py) |
 | The Sunken Grimoire, The Ember Ring | GrimoireQuest, RingQuest | Talk to Dunerest_Scholar, 3,16,0, 3,16,-1, Talk to Warden, Kill Ashen_Priest |
 | A Ship for Dragon Island, The Island of Dragons, The Sword of Valour | ShipQuest, DragonIsleQuest, ValourQuest | Talk to Captain_Rook*, 22,20,0, Temple Door, Talk to Valour_Guardian_Knight |
 | The Dragon of Galaith | GalaithQuest | 9,12,0, Use Staff_of_Ashen With Barrier, The Dragon Speaks, Kill Galaith_Dragon |

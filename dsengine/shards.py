@@ -224,7 +224,11 @@ class ShardMixin:
             slow = at("Slow")
             if slow:
                 words += ", slowed to %s%% for %s s" % tuple(slow.split(",")[:2])
+            if val(at("Fear", "0")) > 0:
+                words += ", and it flees from you for %s s" % at("Fear")
             return words
+        if eff == "SILENCE":
+            return "a hush round you for %s s: whatever you fight makes no sound" % at("Duration", "30")
         if eff == "HEAL":
             return "heals %s hitpoints" % at("Heal")
         info = self.entity_ini(trim(self.data.spell_ini(spell, "Scroll", "")), "Examine.Info", "")

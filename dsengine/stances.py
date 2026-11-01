@@ -87,7 +87,7 @@ class StanceMixin:
     def noise_radius(self):
         """How far off you're heard: walking, standing still, fighting; softer sneaking, and with Stealth."""
         n = self.stance_setting("Noise.Walk", 110) if self.player_moved else self.stance_setting("Noise.Still", 24)
-        if self.player_last_combat and 0 <= self.now - self.player_last_combat < 4000:
+        if self.player_last_combat and 0 <= self.now - self.player_last_combat < 4000 and not self.silent():
             n = max(n, self.stance_setting("Noise.Fight", 220))
         return n * self.stance_num("Noise", 1.0) * self.stealth_cut("Noise", 0.3)
 

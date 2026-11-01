@@ -237,6 +237,7 @@ function openOptions() {
   $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing;
   $("opt-camera").value = V.smooth;
   $("opt-cursor").value = String(U.cursorSize || 22);
+  $("opt-hotbar").value = String((S.me && S.me.hotbar || []).length || 5);
   $("options").hidden = false;
 }
 for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"], ["opt-chat-sound", "chatSound"],
@@ -288,6 +289,7 @@ $("trade-cancel").addEventListener("click", () => send({ t: "trade", do: "cancel
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
+$("opt-hotbar").addEventListener("input", (ev) => send({ t: "hotbar_slots", n: +ev.target.value }));   // (kept with the character)
 $("opt-fullscreen").onclick = toggleFullscreen;
 $("login-full").onclick = toggleFullscreen;
 $("login-full").hidden = M.app || !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
