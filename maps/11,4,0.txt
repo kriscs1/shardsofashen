@@ -22,7 +22,7 @@ Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass
 NPC	Baker	128	256	Attitude=Good Zone=5,9,7,10 Pause=4-10
 NPC	Shopkeeper	576	256	Attitude=Good Stand=1
 NPC	Banker	160	480	Attitude=Good Stand=1
-NPC	Blacksmith	544	480	Attitude=Good Zone=18,15,20,16 Pause=3-8
+NPC	Blacksmith	544	480	Attitude=Good Zone=18,15,20,16 Pause=3-8 Zone.Levels=0,1
 NPC	Beggar	704	255	Attitude=Good Stand=1
 StaticObject	Notice	417	320	Id=Ashford
 MapItem	Herb	32	608	1

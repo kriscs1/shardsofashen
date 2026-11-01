@@ -26,7 +26,7 @@ NPC	Barkeep	608	152	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_352 Name=
 NPC	Barmaid	672	248	Attitude=Good Zone=17,8,23,9 Pause=3-9 Id=Ravensgate_Barmaid_353 Name=Lettie
 NPC	Barkeep	160	280	Attitude=Good Stand=1 Face=S Id=Ravensgate_Barkeep_355 Name=Fred
 NPC	Barmaid	224	344	Attitude=Good Zone=3,12,9,12 Pause=3-9 Id=Ravensgate_Barmaid_356 Name=Rufus
-NPC	Villager	288	152	Attitude=Good Zone=10,4,11,6 Pause=5-15 Id=Ravensgate_Resident_359 Name=Dora Home=9,3,9,3/11,3,12,3/9,4,12,6
+NPC	Villager	288	152	Attitude=Good Zone=10,4,11,6 Pause=5-15 Id=Ravensgate_Resident_359 Name=Dora Home=9,3,9,3/11,3,12,3/9,4,12,6 Zone.Levels=0,1
 NPC	Woman	128	152	Attitude=Good Zone=5,3,6,6 Pause=5-15 Id=Ravensgate_Resident_360 Name=Dora Home=4,2,4,2/7,2,7,2/4,3,7,4/4,5,4,5/6,5,7,5/4,6,7,6
 StaticObject	Notice	768	610	Id=Ravensgate_Notice_315
 StaticObject	Sign_Pub	288	624

@@ -23,8 +23,8 @@ NPC	Cat	352	600	Attitude=Good Zone=7,16,17,20 Pause=4-12
 NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Priest_303 Name=Ida Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
 NPC	Barkeep	512	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Barkeep_305 Name=Hattie
 NPC	Barmaid	576	248	Attitude=Good Zone=15,9,20,9 Pause=3-9 Id=Moorcross_Barmaid_306 Name=Rosie
-NPC	Farmer	256	504	Attitude=Good Zone=7,14,11,17 Pause=5-15 Id=Moorcross_Resident_307 Name=Hattie
-NPC	Farmer	544	504	Attitude=Good Zone=16,16,20,17 Pause=5-15 Id=Moorcross_Resident_308 Name=Jane
+NPC	Farmer	256	504	Attitude=Good Zone=7,14,11,17 Pause=5-15 Id=Moorcross_Resident_307 Name=Hattie Zone.Levels=-1,0
+NPC	Farmer	544	504	Attitude=Good Zone=16,16,20,17 Pause=5-15 Id=Moorcross_Resident_308 Name=Jane Zone.Levels=-1,0
 StaticObject	Notice	128	546	Id=Moorcross_Notice_301
 StaticObject	Shardstone	448	352
 StaticObject	Notice	416	98	Id=Moorcross_Notice_302

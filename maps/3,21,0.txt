@@ -23,7 +23,7 @@ NPC	Black_Cat	416	408	Attitude=Good Zone=9,10,19,18 Pause=4-12
 NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Dunerest_Priest_303 Name=Fred Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
 NPC	Barkeep	512	184	Attitude=Good Stand=1 Face=S Id=Dunerest_Barkeep_305 Name=Jasper
 NPC	Barmaid	576	248	Attitude=Good Zone=15,9,20,9 Pause=3-9 Id=Dunerest_Barmaid_306 Name=Polly
-NPC	Farmer	288	504	Attitude=Good Zone=9,15,11,17 Pause=5-15 Id=Dunerest_Resident_307 Name=Quentin
+NPC	Farmer	288	504	Attitude=Good Zone=9,15,11,17 Pause=5-15 Id=Dunerest_Resident_307 Name=Quentin Zone.Levels=0,1
 NPC	Woman	576	472	Attitude=Good Zone=17,14,21,16 Pause=5-15 Id=Dunerest_Resident_308 Name=Harold Home=16,13,18,13/20,13,20,13/22,13,22,13/16,14,22,16 Bed=19,13
 StaticObject	Shardstone	352	352
 StaticObject	Notice	416	386	Id=Dunerest_Notice_302

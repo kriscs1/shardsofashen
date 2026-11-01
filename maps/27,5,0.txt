@@ -25,8 +25,8 @@ NPC	Cat	128	536	Attitude=Good Zone=2,14,10,20 Pause=4-12
 NPC	Villager	160	312	Attitude=Good Stand=1 Face=S Id=Emberwatch_Priest_310 Name=Nell Home=5,9,8,9/10,9,11,9/5,10,5,10/9,10,11,10/5,11,11,11/5,12,6,12/11,12,11,12/5,13,11,13
 NPC	Sheriff	224	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Sheriff_312 Name=Agnes
 NPC	Doctor	448	536	Attitude=Good Stand=1 Face=S Id=Emberwatch_Doctor_314 Name=Amos
-NPC	Villager	416	344	Attitude=Good Zone=14,11,15,12 Pause=5-15 Id=Emberwatch_Resident_321 Name=Martha Home=13,10,13,10/15,10,16,10/13,11,16,12
-NPC	Farmer	640	344	Attitude=Good Zone=21,11,22,12 Pause=5-15 Id=Emberwatch_Resident_323 Name=Hugh
+NPC	Villager	416	344	Attitude=Good Zone=14,11,15,12 Pause=5-15 Id=Emberwatch_Resident_321 Name=Martha Home=13,10,13,10/15,10,16,10/13,11,16,12 Zone.Levels=0,1
+NPC	Farmer	640	344	Attitude=Good Zone=21,11,22,12 Pause=5-15 Id=Emberwatch_Resident_323 Name=Hugh Zone.Levels=0,1
 StaticObject	Market_Stall_Open	32	512
 StaticObject	Market_Stall_Open	32	576
 StaticObject	Market_Board	0	480

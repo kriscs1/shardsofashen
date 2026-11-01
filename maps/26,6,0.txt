@@ -22,8 +22,8 @@ Ash001:Ash001+Decor(Palisade005):Ash001+Decor(Palisade001):Ash001+Decor(Palisade
 NPC	Barkeep	608	88	Attitude=Good Stand=1 Face=S Id=Emberwatch_Barkeep_317 Name=Lettie
 NPC	Barmaid	672	152	Attitude=Good Zone=18,6,23,6 Pause=3-9 Id=Emberwatch_Barmaid_318 Name=Walter
 NPC	Farmer	320	120	Attitude=Good Zone=10,4,13,5 Pause=5-15 Id=Emberwatch_Resident_322 Name=Clara
-NPC	Farmer	672	440	Attitude=Good Zone=21,14,23,15 Pause=5-15 Id=Emberwatch_Resident_324 Name=Dora
-NPC	Farmer	224	440	Attitude=Good Zone=7,14,10,15 Pause=5-15 Id=Emberwatch_Resident_325 Name=Colin
+NPC	Farmer	672	440	Attitude=Good Zone=21,14,23,15 Pause=5-15 Id=Emberwatch_Resident_324 Name=Dora Zone.Levels=-1,0
+NPC	Farmer	224	440	Attitude=Good Zone=7,14,10,15 Pause=5-15 Id=Emberwatch_Resident_325 Name=Colin Zone.Levels=-1,0
 StaticObject	Sign_Pub	736	208
 StaticObject	Notice	640	226	Id=Emberwatch_Notice_319
 StaticObject	Valuables	416	376
