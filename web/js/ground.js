@@ -35,15 +35,20 @@ function info(name) {
     else if (anim.d) dkind = "sway";
     else if (anim.F) dkind = "flame";
   }
+  // (a piece where two grounds meet on the slant: its base, and the ground in its corners - build_ground_pieces.py)
+  const cBase = tileIni(name, "Corner.Base", "").trim();
+  const corner = cBase ? { base: cBase, land: tileIni(name, "Corner.Land", "").trim(),
+    mask: tileIni(name, "Corner.Mask", "").split(",").map((c) => c.trim()).filter(Boolean),
+    leg: val(tileIni(name, "Corner.Leg", "1")) || 1 } : null;
   i = {
-    decor, kind, dkind, frames: fr, anim,
+    decor, kind, dkind, frames: fr, anim, corner,
     blend: Math.min(9, Math.max(0, Math.floor(val(tileIni(name, "Blend", "0"))))),
     tex: tileIni(name, "Blend.Texture", name) || name,
     texture: tileIni(name, "Texture", ""),
     water: flag("Water"),
+    raised: flag("Raised"),                         // (a boardwalk: up on posts, its shadow on what's round it)
     // (a diagonal shore piece, Water002-009 or <Land>_Water002-009: the corner its land is in - region_tiles.py)
-    shore: (/(?:^|_)Water00([2-9])$/.exec(name) || [])[1] ? { 2: "NE", 3: "NE", 4: "NW", 5: "NW", 6: "SW", 7: "SW",
-      8: "SE", 9: "SE" }[/(?:^|_)Water00([2-9])$/.exec(name)[1]] : "",
+    shore: corner && flag("Water") ? corner.mask.join("") : "",
     wade: decor && tileIni(name, "Foam", "1").trim() === "0",   // (Foam=0: reeds, lily pads - in the water, not land)
   };
   cache.info.set(name, i);
@@ -274,11 +279,14 @@ function isRange(name) {
   return (i.texture || "").startsWith("Range_") || name.startsWith("Cave_Mouth");
 }
 
-function cornerPath(ctx, k, dx, dy, gx, gy) {
-  // The triangle at corner k (0 NE, 1 SE, 2 SW, 3 NW) of a cell, its long side a little rough
+function cornerPath(ctx, k, dx, dy, gx, gy, leg = 1) {
+  // The triangle at corner k (0 NE, 1 SE, 2 SW, 3 NW) of a cell, its legs leg of the cell's sides, its long side a
+  // little rough
   const w = G.tw, h = G.th;
   const c = [[w, 0], [w, h], [0, h], [0, 0]][k];          // (the corner itself)
-  const a = [[0, 0], [w, 0], [w, h], [0, h]][k], b = [[w, h], [0, h], [0, 0], [w, 0]][k];
+  const a0 = [[0, 0], [w, 0], [w, h], [0, h]][k], b0 = [[w, h], [0, h], [0, 0], [w, 0]][k];
+  const a = [c[0] + (a0[0] - c[0]) * leg, c[1] + (a0[1] - c[1]) * leg];
+  const b = [c[0] + (b0[0] - c[0]) * leg, c[1] + (b0[1] - c[1]) * leg];
   ctx.beginPath();
   ctx.moveTo(dx + c[0], dy + c[1]);
   ctx.lineTo(dx + a[0], dy + a[1]);
@@ -291,11 +299,11 @@ function cornerPath(ctx, k, dx, dy, gx, gy) {
   ctx.closePath();
 }
 
-function paintGroundIn(ctx, name, gx, gy, dx, dy, ch) {
+function paintGroundIn(ctx, name, gx, gy, dx, dy, ch, clip = true) {
   // name's ground drawn where the path is (a texture: its part for this cell, so it carries on unbroken)
   const i = info(name);
   ctx.save();
-  ctx.clip();
+  if (clip) ctx.clip();
   if (i.texture) {
     const t = texture(i.texture);
     if (t) drawTextureCell(ctx, t, ((gx * G.tw) % t.width + t.width) % t.width, ((gy * G.th) % t.height + t.height) % t.height, dx, dy);
@@ -353,6 +361,46 @@ function paintSlants(ctx, z, gx, gy, tile, dx, dy, ch) {
     cornerPath(ctx, k, dx, dy, gx, gy);
     paintGroundIn(ctx, rock, gx, gy, dx, dy, ch);
   });
+}
+
+// ----- what's raised off the ground (Tiles.ini Raised=1: a boardwalk on its posts): the light from the top left, so
+// its shadow falls south and east of it, and its front edge shows where it ends
+function raisedAt(z, gx, gy) {
+  const c = cellAtTile(z, gx, gy);
+  return !!(c && c[0] && info(c[0]).raised);
+}
+
+function shadowBand(ctx, x, y, w, h, vertical, a) {
+  const g = vertical ? ctx.createLinearGradient(x, y, x + w, y) : ctx.createLinearGradient(x, y, x, y + h);
+  g.addColorStop(0, `rgba(10,8,6,${a})`);
+  g.addColorStop(1, "rgba(10,8,6,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+}
+
+function paintRaised(ctx, z, gx, gy, ti, dx, dy) {
+  const tw = G.tw, th = G.th;
+  const n = raisedAt(z, gx, gy - 1), s = raisedAt(z, gx, gy + 1), w = raisedAt(z, gx - 1, gy), e = raisedAt(z, gx + 1, gy);
+  if (ti.raised) {
+    if (!s) {                                      // (its front: the planks' ends and the beam under them)
+      ctx.fillStyle = "rgba(150,128,96,0.55)"; ctx.fillRect(dx, dy + th - 4, tw, 1);
+      ctx.fillStyle = "rgba(34,24,16,0.9)"; ctx.fillRect(dx, dy + th - 3, tw, 3);
+    }
+    if (!n) { ctx.fillStyle = "rgba(255,240,210,0.22)"; ctx.fillRect(dx, dy, tw, 1); }
+    if (!w) { ctx.fillStyle = "rgba(255,240,210,0.18)"; ctx.fillRect(dx, dy, 1, th); }
+    if (!e) { ctx.fillStyle = "rgba(20,14,10,0.5)"; ctx.fillRect(dx + tw - 2, dy, 2, th); }
+    return;
+  }
+  if (n) {                                         // (its shadow, and the posts it stands on going down)
+    shadowBand(ctx, dx, dy, tw, 8, false, 0.5);
+    for (const px of [5, tw - 8]) {
+      ctx.fillStyle = "rgb(56,42,30)"; ctx.fillRect(dx + px, dy, 3, 6);
+      ctx.fillStyle = "rgb(30,22,16)"; ctx.fillRect(dx + px + 2, dy, 1, 6);
+      ctx.fillStyle = "rgba(20,30,20,0.6)"; ctx.fillRect(dx + px - 1, dy + 6, 5, 1);   // (where it goes in)
+    }
+  }
+  if (w) shadowBand(ctx, dx, dy, 5, th, true, 0.4);
+  if (!n && !w && raisedAt(z, gx - 1, gy - 1)) shadowBand(ctx, dx, dy, 5, 5, false, 0.35);
 }
 
 function img(name, ch) {
@@ -504,7 +552,16 @@ function paintCell(ch, ci, now) {
     return;
   }
   const ti = info(tile);
-  if (ti.texture) {
+  if (ti.corner) {
+    // (two grounds on the slant: the base, then each corner's land from its own ground, so it matches what's beside)
+    paintGroundIn(ctx, ti.corner.base, gx, gy, dx, dy, ch, false);
+    for (const c of ti.corner.mask) {
+      const k = ["NE", "SE", "SW", "NW"].indexOf(c);
+      if (k < 0 || !ti.corner.land) continue;
+      cornerPath(ctx, k, dx, dy, gx, gy, ti.corner.leg);
+      paintGroundIn(ctx, ti.corner.land, gx, gy, dx, dy, ch);
+    }
+  } else if (ti.texture) {
     const t = texture(ti.texture);
     if (t) drawTextureCell(ctx, t, ((gx * G.tw) % t.width + t.width) % t.width, ((gy * G.th) % t.height + t.height) % t.height, dx, dy);
     else ch.missing = true;
@@ -513,11 +570,20 @@ function paintCell(ch, ci, now) {
     if (ti.kind === "frames") pic = img(framesName(tile, ti.frames, gx1, gy1, now), ch);
     else if (ti.kind === "sway") pic = animFrame(tile, "s", swayFrame(gx1, now) % ti.anim.s);
     if (!pic) pic = img(tile, ch);
-    if (pic) ctx.drawImage(pic, dx, dy);
+    if (pic && ti.raised && !raisedAt(m.mz, gx, gy - 1) && !raisedAt(m.mz, gx, gy + 1) &&
+        (raisedAt(m.mz, gx - 1, gy) || raisedAt(m.mz, gx + 1, gy))) {
+      // (a boardwalk running east and west: its planks across the way, turned a quarter)
+      ctx.save();
+      ctx.translate(dx + G.tw / 2, dy + G.th / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(pic, -G.tw / 2, -G.th / 2);
+      ctx.restore();
+    } else if (pic) ctx.drawImage(pic, dx, dy);
     else { ctx.fillStyle = "#000"; ctx.fillRect(dx, dy, G.tw, G.th); }
   }
   if (ti.blend > 0) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch);
   paintSlants(ctx, m.mz, gx, gy, tile, dx, dy, ch);
+  paintRaised(ctx, m.mz, gx, gy, ti, dx, dy);
   const roofShown = !!roof && !(ch.hidden && group === ch.hidden);
   const sea = decor && ti.kind === "water" && !info(decor).wade;   // (a rock: the foam goes round it)
   if (sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);

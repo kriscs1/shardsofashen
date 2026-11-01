@@ -686,7 +686,7 @@ class Project:
             for sec in (doc.sections() if doc else []):
                 if doc.get(sec, "Kind", "").strip().lower() == "terrain":
                     continue                            # (a terrain isn't pieces that fit: dsedit/terrain.py)
-                info[sec] = {k: doc.get(sec, k, "") for k in ("Kind", "Land", "Water", "Corners", "Small")}
+                info[sec] = {k: doc.get(sec, k, "") for k in ("Kind", "Land", "Water", "Corners", "Small", "Pieces")}
                 names = [n.strip() for n in doc.get(sec, "Tiles", "").split(",")]
                 try:
                     cols = max(1, int(doc.get(sec, "Columns", "") or 0) or len(names))
@@ -698,7 +698,7 @@ class Project:
         return self._sets
 
     def set_info(self, sec):
-        """A set's other keys in TileSets.ini (Kind, and a coast's Land, Water, Corners, Small): {} if none."""
+        """A set's other keys in TileSets.ini (Kind, and a coast's Land, Water, Corners, Small, Pieces): {} if none."""
         self.tile_sets()
         return self._set_info.get(sec, {})
 

@@ -584,12 +584,27 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - The map editor shows a level as one map (`dsedit/world.py`). **How tiles go together is in the data, never the
   editor's code**: a set in `data/TileSets.ini` has a `Kind=` (Stretch: a 3-column grid of corners, edges and middle;
   Rug: that and its "runner"s; Join: pieces that join their neighbours, each with `Joins=` in Tiles.ini, the sides it
-  joins, `*` a tower, `-` a post, and `Below=` for one two tiles tall; Shore: a coast's `Land`, `Water`, `Corners` and
-  `Small` pieces; Whole: one thing more than a tile big, a bed's head and foot, put down and taken up whole). A
+  joins, `*` a tower, `-` a post, and `Below=` for one two tiles tall; Shore: where two grounds meet on the slant, its
+  `Land`, its `Water` (the ground its pieces lie on: the sea, a lake, sand), `Corners` and `Small` pieces of one
+  corner and `Pieces=NE+NW:name` of more; Whole: one thing more than a tile big, a bed's head and foot, put down and
+  taken up whole). A
   tile kept only for old maps has `Retired=1`: the Auto palette leaves it to Detail. The terrains are edited on
   their own Terrains page. A Join set (fences, palisades, the town wall) is dragged as a line or round a rectangle,
   or painted freehand, and its pieces round it are joined again, painting or erasing. `dev/migrate/tile_joins.py` wrote them.
   Give a new set its Kind, and its pieces their `Piece=` (and `Joins=`).
+- **Where two grounds meet on the slant** (`dev/migrate/build_ground_pieces.py`): a piece says what it's made of
+  (Tiles.ini `Corner.Base`, `Corner.Land`, `Corner.Mask` NE,SE,SW,NW, `Corner.Leg`), and the game (`ground.js`) and
+  the editor (`render.py`) paint it from those, its corners from the land's own texture: never a picture of its own
+  that has to match. Every way the corners go has its piece (water with land on three sides takes two; a one-tile
+  pond all four, its water still a pool), for the sea, inland water (`Lake001`, the Lake terrain; the sea is the
+  Sea terrain) and sand going into grass. The editor's smoothing (`world.py` smooth_corners) gives a cell of the base
+  ground every corner whose two sides are both the land, whatever's on the diagonal or beyond, two cells round
+  what's painted. A new coast or edge is a set and a run of that builder, not code.
+- **What's raised off the ground** (Tiles.ini `Raised=1`: the boardwalk, `dev/migrate/build_crossings.py`) casts its
+  shadow south and east, shows its front edge and the posts it stands on, isn't blended over, and turns its planks
+  across the way where it runs east and west (`ground.js` paintRaised, `render.py`). The fancy bridge is two Stretch
+  sets (`Fancy_Bridge_NS`, `Fancy_Bridge_EW`: dragged over the water, its balustrade not walked over, its corner lamps
+  lit at night); Galaith's wall is drawn there too.
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
   `dev/migrate/validate.py`.
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.

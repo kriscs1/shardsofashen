@@ -24,7 +24,8 @@ SEA = "Water001"
 NATURAL = re.compile(r"^(Grass|Sand|Snow|Marsh|Ash|Cinder|Scorched|Moss|Heath|Forest|Ice|Lava|Water|Sand_Water|"
                      r"Marsh_Water|Snow_Water|Peak|Peak_Big|Peak_Huge|Snow_Peak|Snow_Peak_Big|Snow_Peak_Huge|"
                      r"Cinder_Peak|Cinder_Peak_Big|Cinder_Peak_Huge|Sea_Rock)\d{3}$")
-WATERY = re.compile(r"^(Water|Sand_Water|Marsh_Water|Snow_Water)\d{3}$")
+WATERY = re.compile(r"^((Water|Sand_Water|Marsh_Water|Snow_Water|Lake)\d{3}|"
+                    r"(Grass|Marsh|Sand|Snow)_(Water|Lake)_[NSEW_]+?(_Small)?)$")   # (build_ground_pieces.py's too)
 PEAKY = re.compile(r"^(Snow_|Cinder_)?Peak(_Big|_Huge)?\d{3}$")
 WILD_DECOR = re.compile(r"^(Tall_Grass|Tree|Pine|Palm|Oak_Tree|Willow_Tree|Yew_Tree|Birch|Bush|Berry_Bush|Shrub|Rock|"
                         r"Boulder|Pebbles|Flowers|Grass|Fern|Reeds|Mushroom_Patch|Weed|Cactus|Dead_Tree|Stump|"

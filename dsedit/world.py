@@ -260,11 +260,13 @@ def join_cells(w, h):
     return [(i, j) for j in range(h) for i in range(w) if i in (0, w - 1) or j in (0, h - 1)]
 
 
-# ----- diagonal shore pieces (TileSets.ini Kind=Shore: its Land, its Water, which piece goes in which corner): a water
-# cell in the inside corner of a step in the coast (the coast's land on two sides that meet, any dry ground on the
-# corner between them, water on the other two) becomes the piece with land in that corner; the Small piece where the
-# coast steps on past it
+# ----- pieces where two grounds meet on the slant (TileSets.ini Kind=Shore: its Land, its Water - the ground it's laid
+# on, the sea, a lake or sand - and its pieces: Corners=, Small= one corner each, Pieces=NE+NW:name for more): a cell of
+# the base ground whose two sides at a corner are both the land takes that corner (whatever is on the diagonal or the
+# far side: water with land on three sides takes two), and the piece with every corner it takes; one corner alone, the
+# Small piece where the coast steps on past it (build_ground_pieces.py made every piece)
 WATER = "Water001"
+CORNERS = (("N", "E"), ("S", "E"), ("S", "W"), ("N", "W"))
 
 
 def _corners(text):
@@ -278,33 +280,55 @@ def _corners(text):
     return out
 
 
+def _pieces(text):
+    out = {}
+    for part in text.split(","):
+        if ":" in part:
+            k, v = part.split(":", 1)
+            out[frozenset(c.strip().upper() for c in k.split("+") if c.strip())] = v.strip()
+    return out
+
+
 def shores(project):
-    """[{land, water, corner: {(ns, ew): piece}, small: {...}}] of every Shore set in TileSets.ini."""
+    """[{land, water, corner: {(ns, ew): piece}, small: {...}, pieces: {frozenset of "NE"...: piece}}] of every Shore
+    set in TileSets.ini (water: the ground its pieces are laid on)."""
     out = []
     for st in project.tile_sets():
         info = project.set_info(st[0])
         if (info.get("Kind") or "").strip().lower() != "shore" or not info.get("Land"):
             continue
-        out.append({"land": info["Land"].strip(), "water": info.get("Water", "").strip() or WATER,
-                    "corner": _corners(info.get("Corners", "")), "small": _corners(info.get("Small", ""))})
+        s = {"land": info["Land"].strip(), "water": info.get("Water", "").strip() or WATER,
+             "corner": _corners(info.get("Corners", "")), "small": _corners(info.get("Small", "")),
+             "pieces": _pieces(info.get("Pieces", ""))}
+        for (ns, ew), n in s["corner"].items():
+            s["pieces"].setdefault(frozenset([ns + ew]), n)
+        out.append(s)
     return out
 
 
 def shore_sets(project):
-    """{land tile: [its diagonal pieces]} (for the palette's look-alikes and the smoothing)."""
-    return {s["land"]: list(s["corner"].values()) + list(s["small"].values()) for s in shores(project)}
+    """{land tile: [every piece with that land in its corners]} (for the palette's look-alikes and the smoothing)."""
+    out = {}
+    for s in shores(project):
+        out.setdefault(s["land"], []).extend(list(s["pieces"].values()) + list(s["small"].values()))
+    return out
 
 
 def smooth_corners(project, get, put, changed, keep=()):
-    """The diagonal pieces round the changed cells, as they should be now. get(x, y) -> tile name (None off the
-    maps), put(x, y, name). A piece whose corner isn't there any more goes back to water, unless it's in keep (painted
-    there on purpose). Returns how many cells changed."""
-    sets = {s["land"]: s for s in shores(project)}
+    """The pieces round the changed cells (two out), as they should be now. get(x, y) -> tile name (None off the
+    maps), put(x, y, name). A piece none of whose corners are there any more goes back to its base ground, unless
+    it's in keep (painted there on purpose). Returns how many cells changed."""
+    sets = shores(project)
     if not sets or not changed:
         return 0
-    pieces = {n for s in sets.values() for n in list(s["corner"].values()) + list(s["small"].values())}
-    waters = {s["water"] for s in sets.values()}
-    near = {(x + dx, y + dy) for x, y in changed for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+    by = {(s["water"], s["land"]): s for s in sets}
+    bases = {s["water"] for s in sets}
+    lands = {s["land"] for s in sets}
+    piece_of = {}                                   # (a piece: the base it's laid on)
+    for s in sets:
+        for n in list(s["pieces"].values()) + list(s["small"].values()):
+            piece_of[n] = s["water"]
+    near = {(x + dx, y + dy) for x, y in changed for dx in range(-2, 3) for dy in range(-2, 3)}
     old = {}
 
     def tile(x, y):
@@ -312,30 +336,40 @@ def smooth_corners(project, get, put, changed, keep=()):
             old[(x, y)] = get(x, y)
         return old[(x, y)]
 
-    def land_of(t):
-        """The coast's land a tile is: its own, or the one it's a look-alike of (Grass002 is Grass001's grass)."""
-        if t in sets or not t or t in pieces:
+    def ground(t):
+        """What a tile counts as here: a piece its base; a look-alike its own (Grass002 is Grass001's grass)."""
+        if not t:
+            return t
+        if t in piece_of:
+            return piece_of[t]
+        if t in bases or t in lands:
             return t
         base = re.sub(r"\d+$", "", t) + "001"
-        return base if base in sets else t
-    wet = lambda t: t in waters or t in pieces
+        return base if base in bases or base in lands else t
     todo = {}
     for x, y in near:
         t = tile(x, y)
-        if not wet(t):
-            continue
-        want = WATER if t in pieces or t == WATER else t
-        for (ns, ew) in (("N", "E"), ("N", "W"), ("S", "W"), ("S", "E")):
+        b = ground(t)
+        if b not in bases or (t not in piece_of and t != b):
+            continue                                # (not a base ground, nor a piece of one)
+        took = {}                                   # land -> [the corners it takes]
+        for ns, ew in CORNERS:
             dy, dx = (-1 if ns == "N" else 1), (1 if ew == "E" else -1)
-            land = [land_of(v) for v in (tile(x, y + dy), tile(x + dx, y))]
-            corner = tile(x + dx, y + dy)           # (any dry ground: a path off the corner still gets its diagonal)
-            s = sets.get(land[0])
-            if s and land[0] == land[1] and corner is not None and not wet(corner) and \
-                    wet(tile(x, y - dy)) and wet(tile(x - dx, y)):
-                shallow = land_of(tile(x - dx, y + dy)) == land[0] or land_of(tile(x + dx, y - dy)) == land[0]
-                want = (s["small"] if shallow else s["corner"]).get((ns, ew), want)
-                break
-        if want != t and not (want == WATER and (x, y) in keep):
+            a, c = ground(tile(x, y + dy)), ground(tile(x + dx, y))
+            if a and a == c and a != b and (b, a) in by:
+                took.setdefault(a, []).append(ns + ew)
+        want = b
+        if took:
+            land = max(took, key=lambda k: len(took[k]))
+            s, mask = by[(b, land)], took[land]
+            if len(mask) == 1:
+                ns, ew = mask[0][0], mask[0][1]
+                dy, dx = (-1 if ns == "N" else 1), (1 if ew == "E" else -1)
+                shallow = ground(tile(x - dx, y + dy)) == land or ground(tile(x + dx, y - dy)) == land
+                want = (s["small"] if shallow else s["corner"]).get((ns, ew)) or s["corner"].get((ns, ew), b)
+            else:
+                want = s["pieces"].get(frozenset(mask), b)
+        if want != t and not (want == b and (x, y) in keep):
             todo[(x, y)] = want
     for (x, y), t in todo.items():
         put(x, y, t)

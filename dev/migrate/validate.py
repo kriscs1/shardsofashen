@@ -1029,6 +1029,12 @@ def check_tiles():
                 err(r, "[%s] Blend must be a whole number 0 to 9 (a higher one is drawn over a lower one's edge)" % sec)
             elif k == "Blend.Texture" and v not in TILES:
                 err(r, "[%s] Blend.Texture %r has no sprite in sprites\\Tiles" % (sec, v))
+            elif k in ("Corner.Base", "Corner.Land") and v not in TILES:
+                err(r, "[%s] %s %r has no sprite in sprites\Tiles" % (sec, k, v))
+            elif k == "Corner.Mask" and not all(c.strip() in ("NE", "SE", "SW", "NW") for c in v.split(",")):
+                err(r, "[%s] Corner.Mask=%r: corners NE, SE, SW and NW, by commas" % (sec, v))
+            elif k == "Corner.Leg" and not (is_num(v) and 0 < float(v) <= 1):
+                err(r, "[%s] Corner.Leg must be a number over 0, 1 at most" % sec)
             elif k == "Open.Tile" and v not in TILES:
                 err(r, "[%s] Open.Tile %r has no sprite in sprites\\Tiles" % (sec, v))
             elif k == "Unlocked.Tile" and v not in TILES:
@@ -1043,7 +1049,10 @@ def check_tiles():
                                                                                     #  the tile under a tall one)
                            "Retired",                                               # (old art: the editor's Detail only)
                            "Climb",                                                 # (townsfolk climb it too: npc_stairs.py)
-                           "Shelter"):                                              # (one with no house sleeps in it)
+                           "Shelter",                                               # (one with no house sleeps in it)
+                           "Corner.Base", "Corner.Land", "Corner.Mask", "Corner.Leg",   # (two grounds on the slant:
+                                                                                    #  build_ground_pieces.py)
+                           "Raised"):                                               # (a boardwalk: its shadow cast)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
@@ -1089,7 +1098,7 @@ def check_tile_sets():
             check_terrain(r, sec, keys)
             continue
         for k in keys:
-            if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small"):
+            if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small", "Pieces"):
                 warn(r, "[%s] unknown key %s" % (sec, k))
         if keys.get("Kind", "Set") not in ("Set", "Stretch", "Rug", "Join", "Shore", "Whole"):
             err(r, "[%s] Kind must be Set, Stretch, Rug, Join, Shore or Whole" % sec)
@@ -1101,6 +1110,10 @@ def check_tile_sets():
                 corner, _, tile = part.partition(":")
                 if corner.strip() not in ("NE", "NW", "SE", "SW") or tile.strip() not in TILES:
                     err(r, "[%s] %s: %r should be NE, NW, SE or SW and a tile" % (sec, k, part))
+        for part in [x for x in keys.get("Pieces", "").split(",") if x.strip()]:
+            corners, _, tile = part.partition(":")
+            if not all(c.strip() in ("NE", "NW", "SE", "SW") for c in corners.split("+")) or tile.strip() not in TILES:
+                err(r, "[%s] Pieces: %r should be corners joined by + (NE+NW) and a tile" % (sec, part))
         if not keys.get("Columns", "").isdigit() or int(keys["Columns"]) < 1:
             err(r, "[%s] Columns must be a whole number, 1 or more" % sec)
         names = [n.strip() for n in keys.get("Tiles", "").split(",")]

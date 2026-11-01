@@ -171,14 +171,9 @@ def mine_mouth():
 
 
 def draw_pictures():
-    made = []
-    for n in range(1, 6):
-        made += ["Galaith_Wall%03d" % n] if K.save("Tiles", "Galaith_Wall%03d" % n, recolour(
-            K.load("Tiles", "City_Wall%03d" % n), white_and_burnt(n))) else []
+    made = []                                      # (the walls and the west gate: build_crossings.py draws them now)
     for n in range(1, 5):
         K.save("Tiles", "Galaith_Gate%03d" % n, recolour(K.load("Tiles", "City_Gate%03d" % n), white_and_burnt(10 + n)))
-    K.save("Tiles", "Galaith_Gate005", gate_west(False))
-    K.save("Tiles", "Galaith_Gate006", gate_west(True))
     for n in range(1, 5):
         K.save("Tiles", "Mountain%03d" % n, mountain(n))
     K.save("Tiles", "Barrier001", barrier(0))
@@ -205,7 +200,8 @@ def data():
         K.copy_tile("Galaith_Wall%03d" % n, "City_Wall%03d" % n,
                     Examine_Info="Galaith's walls: white stone once, blackened by the dragon's fire.")
     for n in range(1, 5):
-        K.copy_tile("Galaith_Gate%03d" % n, "City_Gate%03d" % n, Examine_Info="The gate of Galaith, scorched black.")
+        K.copy_tile("Galaith_Gate%03d" % n, "City_Gate%03d" % n, Examine_Info="The gate of Galaith, scorched black.",
+                    **({"Unlocked_Tile": "Galaith_Gate%03d" % (n + 1)} if n in (1, 3) else {}))   # (its own, open)
     K.copy_tile("Galaith_Gate005", "City_Wall002", Walkable_Data="1" * 49, Line_of_Sight="0",
                 Examine_Info="The west gate of Galaith, barred and blackened.", Unlocked_Tile="Galaith_Gate006")
     K.copy_tile("Galaith_Gate006", "City_Wall002", Walkable_Data="1" * 49, Line_of_Sight="1",

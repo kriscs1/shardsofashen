@@ -5517,3 +5517,29 @@ def test_the_isle_has_grown_north_with_its_new_places(world):
     assert s.items_held("Tinderbox") >= 1
     leave(world, s)
     world.set_day_fraction(day)
+
+
+def test_editor_smooths_bays_ponds_lakes_and_sand_into_grass():
+    # Every way two grounds meet on the slant (build_ground_pieces.py): water with land on three sides takes two
+    # corners, a one-tile pond all four, a lake has its own coast, and sand going into grass takes the grass's corners
+    from dsedit.project import Project
+    from dsedit import world as WD
+    P = Project(ROOT)
+
+    def smooth(grid, at):
+        WD.smooth_corners(P, lambda x, y: grid.get((x, y)), lambda x, y, t: grid.__setitem__((x, y), t), {at})
+        return grid
+    bay = {(x, y): "Marsh001" for x in range(5) for y in range(5)}
+    bay.update({(2, 2): "Water001", (2, 3): "Water001", (2, 4): "Water001"})     # (an inlet, open to the south)
+    smooth(bay, (2, 2))
+    assert bay[(2, 2)] == "Marsh_Water_NE_NW001" and bay[(2, 3)] == "Water001"
+    assert P.tiles_ini.get("Marsh_Water_NE_NW001", "Corner.Land", "") == "Marsh001"   # (painted from the marsh itself)
+    pond = {(x, y): "Grass001" for x in range(3) for y in range(3)}
+    pond[(1, 1)] = "Lake001"
+    assert smooth(pond, (1, 1))[(1, 1)] == "Grass_Lake_NE_SE_SW_NW001"
+    assert P.tiles_ini.get("Grass_Lake_NE_SE_SW_NW001", "Corner.Leg", "") == "0.55"   # (still a pool, not all land)
+    sand = {(x, y): "Sand001" for x in range(5) for y in range(5)}
+    sand.update({(2, 1): "Grass001", (3, 1): "Grass001", (3, 2): "Grass001"})
+    assert smooth(sand, (3, 2))[(2, 2)] == "Sand_Grass_NE001"
+    sand[(3, 2)] = "Sand001"                                                    # (the grass gone: back to sand)
+    assert smooth(sand, (3, 2))[(2, 2)] == "Sand001"

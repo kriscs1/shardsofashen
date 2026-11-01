@@ -344,9 +344,7 @@ STREETS = {   # name: (how it's drawn, what Examine says)
     "Basalt_Paving001": (lambda s, r: basalt(s, r), "Black basalt setts, warm underfoot."),
     "Sandstone_Paving001": (lambda s, r: flags(s, r, [(216, 192, 142), (206, 182, 132), (226, 202, 152)],
                                                (160, 138, 96)), "Pale sandstone slabs."),
-    "Boardwalk001": (lambda s, r: planks(s, r, [(130, 94, 58), (118, 84, 50), (140, 104, 64)], (60, 52, 40)),
-                     "A boardwalk over the marsh."),
-}
+}                                                   # (Boardwalk001: build_crossings.py draws it, raised off the marsh)
 
 
 def streets():
