@@ -592,7 +592,7 @@ class ActionsMixin:
 
     def examine_entity(self, e):
         if e.type == PLAYER:
-            s = next((s for s in self.w.sessions.values() if s.player is e), None)
+            s = self.session_of(e)
             if s is not None:
                 record = ""
                 if val(s.get_attribute("ArenaWins")) or val(s.get_attribute("ArenaLosses")):
@@ -845,17 +845,10 @@ class ActionsMixin:
     # The admin panel (Config [Admin] Players): give yourself items, set skill levels, switch skills off, god mode
     # =================================================================================================================
     def admin_items(self):
-        import os
-        path = self.data.data_file("Entities.ini")
-        items = []
-        section = ""
-        for line in self.data.read_lines(path):
-            ln = trim(line.replace("\t", " ")).strip()
-            if ln.startswith("["):
-                section = ln[1:-1] if ln.endswith("]") else ln[1:]
-            if ln.upper().replace(" ", "") == "TYPE=MAPITEM" and section and len(items) < 1000:
-                items.append(section)
-        return sorted(items, key=str.lower)
+        from ashen import ini
+        items = [sec for sec, kv in ini.sections(self.data.data_file("Entities.ini"))
+                 if any(k.upper() == "TYPE" and v.replace(" ", "").upper() == "MAPITEM" for k, v in kv)]
+        return sorted(items[:1000], key=str.lower)
 
     def admin_places(self):
         """[[group, label, where]] for Go to: the world map's names, then every named tile, person and thing (Id=).

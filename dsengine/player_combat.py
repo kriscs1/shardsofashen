@@ -1,8 +1,8 @@
 """A player's skills, hitpoints and spells, their fights (as the desktop game's combat.py; the NPC they fight is shared:
 its hitpoints go down for everyone, and it fights whoever hit it), spells and status effects (extras.py)."""
-from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, parse_quantity, apply_change, pretty
+from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, apply_change, pretty
 
-from .entity import NPC, PLAYER, MAPITEM, TYPE_NAMES
+from .entity import NPC, PLAYER, MAPITEM
 from .renames import SKILL_NAMES
 from .shards import shard_words, SHARD, channeled_cost
 
@@ -22,6 +22,7 @@ EFFECTS = {
                                                                              "drains!", end="Your guard steadies."),
 }
 CHILL_MOVE, CHILL_ATTACK = 0.6, 1.4
+MELEE_REACH = 36        # (a blow's reach between two a tile wide, centre to centre)
 
 
 class CombatMixin:
@@ -272,8 +273,11 @@ class CombatMixin:
         self.dirty_me = True
         self.act_done(True)
 
-    def reach_extra(self, e):
-        return max(0, int((e.w - 32) / 2))
+    @staticmethod
+    def melee_reach(e):
+        """How near a blow at e is struck from, centre to centre (or e's own, at you): further for one wider than a
+        tile. The world's NPCs fight by it too."""
+        return MELEE_REACH + max(0, int((e.w - 32) / 2))
 
     def player_distance_to(self, e):
         p = self.player
@@ -305,7 +309,7 @@ class CombatMixin:
             self.display_message("You can only fight other players on the arena's sand.", "FAIL")
             return
         p = self.player
-        rng = 36 + self.reach_extra(t)
+        rng = self.melee_reach(t)
         bow = self.player_bow_range()
         if bow > 0:
             if self.w.in_line_of_sight(p.z, p.cx, p.cy, t.cx, t.cy):
@@ -332,7 +336,7 @@ class CombatMixin:
         self.emit({"t": "act", "ok": 1, "swing": t.uid})   # (each blow, hit or miss: the target's mark pulses)
         self.provoke(t)
         self.w.npc_face(p, p.cx, p.cy, t.cx, t.cy)
-        if bow > 0 and self.player_distance_to(t) > 36 + self.reach_extra(t):
+        if bow > 0 and self.player_distance_to(t) > self.melee_reach(t):
             self.remove_inventory_item(self.entity_ini(self.equipped[1], "Ammo", ""), 1)
             self.play_sound("Miss", (p.cx, p.cy))
             self.w.fx_shot(p, "Arrow_Missile", t, "ARROW", self)
@@ -360,7 +364,7 @@ class CombatMixin:
             self.play_sound("Crit", (t.cx, t.cy))
             self.fx_splat("Crit", damage, t)
             self.update_skill("Stealth", "+" + lbstr(self.stance_setting("Sneak.Attack.XP", 0.3)))
-        elif rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15:
+        elif self.lands_crit():
             damage = max_hit + random_number(0, int(max_hit / 2))
             self.play_sound("Crit", (t.cx, t.cy))
             self.fx_splat("Crit", damage, t)
@@ -372,6 +376,10 @@ class CombatMixin:
         self.fx_nudge(t, w.fx_away(self.player, t), w.fx_away_y(self.player, t), 130)
         self.update_skill("Strength", "+" + lbstr(damage * 0.01), pop=False)
         self.damage_npc(t, damage)
+
+    def lands_crit(self):
+        """Does this blow land hard (a crit)? Strength's chance: the same at a monster or another player (pvp.py)."""
+        return rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15
 
     def player_bow_range(self):
         weapon = self.equipped[1]
@@ -406,8 +414,7 @@ class CombatMixin:
         out = []
         for n in sorted(names - {self.player_name}):
             o = w.sessions.get(n)
-            if o is not None and o.in_world() and o.player.z == e.z and \
-                    abs(o.player.cx - e.cx) < w.sw and abs(o.player.cy - e.cy) < w.sh:
+            if o is not None and o.in_world() and w.within_view(o.player, e):
                 out.append(o)
         return out
 
@@ -438,12 +445,7 @@ class CombatMixin:
         self.play_sound("Kill_" + (self.entity_ini(name, "Kill.Sound", "") or "Beast"), (e.cx, e.cy))
         self.add_npc_drops(e)
         w.waves.killed(e, self)
-        m = w.maps.get(e.map)
-        if e.source == "MAP" and e.owner is None and m is not None:
-            respawn = e.respawn_delay if e.respawn_delay > 0 else self.data.npc_respawn_delay
-            options = e.ai.options if e.ai is not None and e.ai.options else "-"
-            w.add_action_to_queue("ADD", name, TYPE_NAMES[etype], options, m.name,
-                                  w.local_coords(m, e.orig_x, e.orig_y), respawn)
+        w.queue_respawn(e)
         script = self.find_action_script("Kill", name, etype, e.npc_id)
         helpers = self.helpers_of(e)
         for o in [self] + helpers:                      # (the records, the day's bounty; each fighter's own loot)
@@ -462,40 +464,8 @@ class CombatMixin:
 
     def add_npc_drops(self, e):
         """Its Drops on the ground (the killer's to pick up first), and its Shard Remnants, if it leaves any
-        (remnants.py: a kill gives no Shards of itself)."""
-        w = self.w
-        drops = self.entity_ini(e.name, "Drops", "")
-        drop_x, drop_y = e.cx, e.fy
-        loot_secs = val(self.data.config_read("Gameplay", "Loot.Private.Seconds", "10"))
-
-        def drop(name, amount):
-            copies, each = (1, amount) if self.stackable_quantity(name) > 1 else (min(amount, 10), 1)
-            iw, ih = self.data.sprite_size_of(3, name)
-            for _ in range(int(copies)):
-                x = int(drop_x - iw / 2 + random_number(-8, 8))
-                y = int(drop_y - ih + random_number(-4, 6))
-                item = w.add_map_item(name, e.z, x, y, each, e.owner)
-                if item is not None:
-                    item.source = "DROPPED"
-                    if item.owner is None and loot_secs > 0:          # (the killer's to pick up first)
-                        item.private_to = self
-                        item.public_at = self.now + loot_secs * 1000
-                    m = w.maps.get(item.map)
-                    if m is not None and item.owner is None:
-                        w.add_action_to_queue("REMOVE", name, "MapItem", lbstr(each), m.name,
-                                              w.local_coords(m, x, y), self.data.item_despawn_delay)
-        i = 1
-        while word(drops, i) != "":
-            dd = word(drops, i)
-            name = word(dd, 1, ",")
-            amount_s = word(dd, 2, ",") or "1"
-            percent = word(dd, 3, ",") or "100"
-            if rnd() * 100 < val(percent):
-                amount = parse_quantity(amount_s) if "-" in amount_s else val(amount_s)
-                if amount > 0:
-                    drop(name, amount)
-            i += 1
-        self.remnants_on_death(e, drop)
+        (remnants.py: a kill gives no Shards of itself). The world rolls them, as for one killed by another NPC."""
+        self.w.drop_kill_loot(e, lambda level: self.remnant_rise(e, level), first=self)
 
     # ----- NPCs hitting this player (the world's NPC AI calls these)
     def npc_shoot(self, e, missile):
@@ -816,20 +786,12 @@ class CombatMixin:
                     self.ready_spell(spell, name)
                     return
             if target is None:
-                # (no target yet: the scroll is held ready - the next thing clicked is what it's cast at)
-                self.item_in_use = item
-                self.emit({"t": "use", "uid": item.uid})
-                self.display_message("Choose who to cast %s at: click them. (Right-click or Esc: put it away.)" % name,
-                                     "INFO")
+                self.hold_spell(item, "Choose who to cast %s at: click them." % name)
                 return
             if not self.spell_target_ok(target):
                 self.display_message("There's nothing to cast %s at there." % name, "FAIL")
                 return
-            if self.player_distance_to(target) > rng + 8:
-                self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
-                return
-            if not w.in_line_of_sight(p.z, pcx, pcy, target.cx, target.cy):
-                self.display_message("You can't see the %s from here." % self.display_name(target), "FAIL")
+            if not self.spell_reaches(target, rng):
                 return
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:
@@ -848,10 +810,7 @@ class CombatMixin:
                 self.ready_spell(spell, name, "what")
                 return
             if target is None:
-                self.item_in_use = item
-                self.emit({"t": "use", "uid": item.uid})
-                self.display_message("Choose what to cast %s at: click it. (Right-click or Esc: put it away.)" % name,
-                                     "INFO")
+                self.hold_spell(item, "Choose what to cast %s at: click it." % name)
                 return
             script = ""
             if target.type != MAPITEM:
@@ -861,11 +820,7 @@ class CombatMixin:
                     return
             elif not w.visible_to(target, self):
                 return
-            if self.player_distance_to(target) > rng + 8:
-                self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
-                return
-            if not w.in_line_of_sight(p.z, pcx, pcy, target.cx, target.cy):
-                self.display_message("You can't see the %s from here." % self.display_name(target), "FAIL")
+            if not self.spell_reaches(target, rng):
                 return
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:
@@ -968,17 +923,13 @@ class CombatMixin:
                     self.display_message("There's no creature in reach to swap bodies with.", "FAIL")
                     return
             if target is None:
-                self.item_in_use = item
-                self.emit({"t": "use", "uid": item.uid})
-                self.display_message("Choose who to swap bodies with: click them. (Right-click or Esc: put it "
-                                     "away.)", "INFO")
+                self.hold_spell(item, "Choose who to swap bodies with: click them.")
                 return
             if self.swap or not self.swap_ok(target):
                 self.display_message("You can't swap bodies with %s." % ("anyone just now" if self.swap else
                                                                         "that"), "FAIL")
                 return
-            if self.player_distance_to(target) > val(self.spell_ini(spell, "Range", "160")) + 8:
-                self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
+            if not self.spell_reaches(target, val(self.spell_ini(spell, "Range", "160")), sight=False):
                 return
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:
@@ -995,6 +946,23 @@ class CombatMixin:
             self.go_home()
         else:
             self.display_message("Nothing interesting happens.", "FAIL")
+
+    def hold_spell(self, item, prompt):
+        """No target yet: the scroll is held ready, and the next thing clicked is what it's cast at."""
+        self.item_in_use = item
+        self.emit({"t": "use", "uid": item.uid})
+        self.display_message(prompt + " (Right-click or Esc: put it away.)", "INFO")
+
+    def spell_reaches(self, target, rng, sight=True):
+        """Is target in the spell's range (and, sight, in view)? If not, said why."""
+        p = self.player
+        if self.player_distance_to(target) > rng + 8:
+            self.display_message("The %s is too far away." % self.display_name(target), "FAIL")
+            return False
+        if sight and not self.w.in_line_of_sight(p.z, p.cx, p.cy, target.cx, target.cy):
+            self.display_message("You can't see the %s from here." % self.display_name(target), "FAIL")
+            return False
+        return True
 
     def spell_glow(self, spell):
         p = self.player

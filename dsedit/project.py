@@ -644,18 +644,11 @@ class Project:
 
     def layer_tiles(self, layer):
         """The (lower-case) names of every tile with Layer=<layer> (decor, under), read again when Tiles.ini changes."""
-        lines = self.tiles_ini.lines
         key = id(self.tiles_ini), self.tiles_ini.version
         if getattr(self, "_layers_key", None) != key:
-            out, sec = {}, None
-            for l in lines:
-                s = l.strip()
-                if s.startswith("[") and "]" in s:
-                    sec = s[1:s.index("]")].strip().lower()
-                elif sec and "=" in s and not s.startswith(";"):
-                    k, v = s.split("=", 1)
-                    if k.strip().lower() == "layer":
-                        out.setdefault(v.strip().lower(), set()).add(sec)
+            out = {}
+            for sec, v in self.tile_values("layer").items():
+                out.setdefault(v.lower(), set()).add(sec)
             self._layers_key, self._layers = key, out
         return self._layers.get(layer, set())
 

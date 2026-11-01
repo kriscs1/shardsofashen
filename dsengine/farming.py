@@ -30,24 +30,12 @@ class Farms:
         self.clock = clock_seconds      # (tests make time pass faster)
 
     def read_crops(self):
-        path = self.d.data_file("Crops.ini")
         out = {}
-        try:
-            text = ini.read_text(path)
-        except OSError:
-            return out
-        sec = None
-        for ln in text.replace("\r", "").split("\n"):
-            ln = ln.strip()
-            if not ln or ln.startswith(";"):
-                continue
-            if ln.startswith("[") and ln.endswith("]"):
-                sec = ln[1:-1].strip()
-                out[sec] = {"name": sec, "seed": sec + "_Seed", "gives": sec, "level": 1, "minutes": 5.0,
+        for sec, items in ini.sections(self.d.data_file("Crops.ini")):
+            c = out[sec] = {"name": sec, "seed": sec + "_Seed", "gives": sec, "level": 1, "minutes": 5.0,
                             "yield": "2-4", "xp": 0.1, "seed_back": 30, "wither": 60.0}
-            elif sec and "=" in ln:
-                k, v = (s.strip() for s in ln.split("=", 1))
-                c, k = out[sec], k.lower()
+            for k, v in items:
+                k = k.lower()
                 if k == "seed":
                     c["seed"] = v
                 elif k == "gives":
@@ -175,8 +163,7 @@ class FarmMixin:
         if target is None or target.type != TILE:
             self.display_message("Sow seeds in tilled soil: use them on it.", "FAIL")
             return True
-        if self.player_distance_to(target) > 48:
-            self.display_message("You are too far away!", "FAIL")
+        if self.too_far(target, 48):
             return True
         m, x, y = self.tile_xy(target)
         if m is None:
@@ -233,8 +220,7 @@ class FarmMixin:
         if not mine:
             self.display_message("That's %s's %s: they sowed it." % (plot["owner"], what), "FAIL")
             return True
-        if self.player_distance_to(e) > 48:
-            self.display_message("You are too far away!", "FAIL")
+        if self.too_far(e, 48):
             return True
         c = farms.crops[crop]
         lo, hi = (int(val(v)) for v in (word(c["yield"], 1, "-"), word(c["yield"], 2, "-") or word(c["yield"], 1, "-")))

@@ -323,8 +323,7 @@ class ScriptMixin:
             text = text.replace("$Random.Percent", lbstr(random_number(1, 100)))
         if "$Players." in text:                          # (other heirs: on the server, and within a map of you)
             others = [o for o in self.w.sessions.values() if o is not self and o.in_world()]
-            near = [o for o in others if o.player.z == p.z and abs(o.player.cx - p.cx) < self.w.sw and
-                    abs(o.player.cy - p.cy) < self.w.sh]
+            near = [o for o in others if self.w.within_view(o.player, p)]
             text = text.replace("$Players.Online", lbstr(len(others))).replace("$Players.Near", lbstr(len(near)))
         reps = [
             ("$Inventory.Slots", lbstr(self.empty_inventory_slots())),

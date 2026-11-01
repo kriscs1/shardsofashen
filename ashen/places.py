@@ -10,7 +10,7 @@ Lair_Dragon  Dragon  HP  -90. A named NPC or object is found by its ID wherever 
 markers may name places too: Marker1=Ferry_Pier;Milkmaid (the old "<map> <x> <y>" still works)."""
 import os
 
-from .lb import field, trim, val, word
+from .lb import field, trim, val
 
 PIXEL_ARGS = {"Remove.Entity": (1,), "Add.Entity": (1,), "Teleport": (1,), "Edit.Entity": (1,), "Move.Entity": (1, 3),
               "Move.Player": (1,), ">Distance.From.Coordinates": (1,), ">Entity.In.Line.Of.Sight": (1,),
@@ -77,90 +77,3 @@ def read_places(maps_dir, map_h=21, tile=32):
             found[key] = place
     return found, twice
 
-
-class PlacesMixin:
-    def places(self):
-        """Every named place, read from the maps (again when a map file has changed since: the editor's IDs show up
-        without restarting)."""
-        folder = os.path.join(self.root, "maps")
-        try:
-            stamp = max((e.stat().st_mtime for e in os.scandir(folder) if e.name.lower().endswith(".txt")), default=0)
-        except OSError:
-            stamp = 0
-        cache = self.__dict__.get("places_cache")
-        if cache is None or cache[0] != stamp:
-            found, twice = read_places(folder, self.yt, self.tw)
-            for pid, a, b in twice:
-                self.log("ERROR - Place ID '%s' is on both %s and %s (IDs must be unique; %s's is used)" % (pid, a, b, a))
-            cache = self.places_cache = (stamp, found)
-        return cache[1]
-
-    def place(self, name):
-        """The Place called name (any case), or None. Coordinates, numbers and $ variables are never places."""
-        name = trim(name)
-        if not name or "," in name or " " in name or name[:1] in "$-+=0123456789":
-            return None
-        return self.places().get(name.upper())
-
-    def placed_entity(self, pid):
-        """The entity in the world with this Id= (where it is now), or None."""
-        pid = pid.upper()
-        for e in self.world:
-            if getattr(e, "npc_id", "") and e.npc_id.upper() == pid and e.alive:
-                return e
-        return None
-
-    def place_args(self, command, arg):
-        """A script line's arguments with any place names turned into the coordinates (and map) the command wants.
-        Returns the Place given for an entity command (Remove/Edit/Move.Entity), so it is found by its ID."""
-        tiles = TILE_ARGS.get(command, ())
-        pixels = PIXEL_ARGS.get(command, ())
-        if command == "Add.Action.To.Queue" and arg[1].upper() == "CHANGE.TILE":
-            tiles, pixels = pixels, ()
-        named = None
-        for i in tiles + pixels:
-            if command in (">On.Tile.Coordinates", ">Not.On.Tile.Coordinates"):    # (a list: "x,y x,y" or names)
-                parts = []
-                for part in arg[i].split():
-                    pl = self.place(part)
-                    parts.append("%d,%d" % (pl.tx, pl.ty) if pl else part)
-                    if pl:
-                        self.place_on_this_map(pl, command)
-                arg[i] = " ".join(parts)
-                continue
-            pl = self.place(arg[i])
-            if pl is None:
-                if arg[i] and "," not in arg[i] and arg[i][:1] not in "$-" and command != "Add.Action.To.Queue":
-                    self.log("ERROR - Script %s: '%s' is not a place ID or coordinates (%s)" % (
-                        self.script_name, arg[i], command))
-                continue
-            if i == 1 and command in ENTITY_COMMANDS and pl.kind != "TILE":
-                named = pl
-            if command == "Add.Entity" and pl.kind == "TILE":  # standing on the tile: centred, feet on its bottom row
-                w, h = self.assets.width(arg[2]), self.assets.height(arg[2])
-                arg[i] = "%d,%d" % (pl.px + (self.tw - w) // 2, pl.py + self.th - h)
-            else:
-                arg[i] = "%d,%d" % ((pl.tx, pl.ty) if i in tiles else (pl.px, pl.py))
-            m = MAP_ARGS.get(command)
-            if m:
-                if arg[m] in ("", "-"):
-                    arg[m] = pl.map
-            elif named is None:
-                self.place_on_this_map(pl, command)
-        return named
-
-    def place_on_this_map(self, pl, command):
-        if pl.map != self.screen_name:
-            self.log("ERROR - Script %s: %s uses place '%s', which is on map %s, not this one (%s)" % (
-                self.script_name, command, pl.name, pl.map, self.screen_name))
-
-    def place_marker(self, part):
-        """A quest marker: (map, tile x, tile y) from "<map> <x> <y>" or a place's name; None if it names nothing."""
-        part = trim(part)
-        if " " in part:
-            return word(part, 1), val(word(part, 2)), val(word(part, 3))
-        pl = self.place(part)
-        if pl is None:
-            self.log("ERROR - Quests.ini: marker '%s' is not a place ID" % part)
-            return None
-        return pl.map, pl.tx, pl.ty

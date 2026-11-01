@@ -123,14 +123,12 @@ class TavernMixin:
             self.innkeeper_menu(e)
             return True
         if e.name == "Arm_Table" and verb in ("Play", "Use"):
-            if self.player_distance_to(e) > 64:
-                self.display_message("You are too far away!", "FAIL")
+            if self.too_far(e, 64):
                 return True
             self.arm_table(e)
             return True
         if e.name == "Dice_Table" and verb in ("Play", "Use"):
-            if self.player_distance_to(e) > 64:
-                self.display_message("You are too far away!", "FAIL")
+            if self.too_far(e, 64):
                 return True
             self.game_open("dice", e)
             return True

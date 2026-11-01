@@ -95,25 +95,12 @@ class Homes:
 
     # ----- what can be built (data\Buildables.ini)
     def read_catalog(self):
-        path = self.d.data_file("Buildables.ini")
         out = {}
-        try:
-            text = ini.read_text(path)
-        except OSError:
-            return out
-        sec = None
-        for ln in text.replace("\r", "").split("\n"):
-            ln = ln.strip()
-            if not ln or ln.startswith(";"):
-                continue
-            if ln.startswith("[") and ln.endswith("]"):
-                sec = ln[1:-1].strip()
-                out[sec] = {"id": sec, "kind": "Decor", "cat": "Other", "name": sec.replace("_", " "), "needs": [],
+        for sec, items in ini.sections(self.d.data_file("Buildables.ini")):
+            p = out[sec] = {"id": sec, "kind": "Decor", "cat": "Other", "name": sec.replace("_", " "), "needs": [],
                             "level": 1, "xp": 0.0, "on": ""}
-            elif sec and "=" in ln:
-                k, v = ln.split("=", 1)
-                k, v = k.strip().lower(), v.strip()
-                p = out[sec]
+            for k, v in items:
+                k = k.lower()
                 if k == "kind":
                     p["kind"] = v.capitalize()
                 elif k == "category":
@@ -420,8 +407,7 @@ class HomeMixin:
 
     # ----- homestones
     def homestone_touched(self, e):
-        if self.player_distance_to(e) > 56:
-            self.display_message("You are too far away!", "FAIL")
+        if self.too_far(e):
             return
         homes = self.homes
         if not homes.available:
@@ -644,8 +630,7 @@ class HomeMixin:
         return m.name, ax, ay
 
     def open_home_chest(self, e):
-        if self.player_distance_to(e) > 56:
-            self.display_message("You are too far away!", "FAIL")
+        if self.too_far(e):
             return
         owner = self.homes.owner_of(e.map)
         if owner != self.player_name:
@@ -814,8 +799,7 @@ class HomeMixin:
 
     # ----- Shard Blooms (Shards.ini [Homestead])
     def bloom_num(self, key, default):
-        v = trim(self.data.shards_ini("Homestead", key, ""))
-        return val(v) if v != "" else default
+        return self.data.ini_num("Shards.ini", "Homestead", key, default)
 
     def blooms_allowed(self):
         per = max(1, int(self.bloom_num("Bloom.Per.Levels", 5)))
@@ -823,8 +807,7 @@ class HomeMixin:
                        self.bloom_num("Bloom.Max", 1) + self.skill_level("Shardcraft") // per))
 
     def harvest_bloom(self, e):
-        if self.player_distance_to(e) > 56:
-            self.refuse("You are too far away!")
+        if self.too_far(e):
             return
         m = self.cur_map
         owner = self.homes.owner_of(m.name) if m is not None else None

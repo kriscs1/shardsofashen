@@ -1077,9 +1077,9 @@ def test_the_effects_bar_knows_what_hurts_and_for_how_long(world):
 
 
 def test_a_kills_loot_is_the_killers_for_ten_seconds(world, monkeypatch):
-    import dsengine.player_combat as PC
+    import dsengine.npcs as NP
     import dsengine.remnants as RM
-    monkeypatch.setattr(PC, "rnd", lambda: 0.0)                    # (every drop drops)
+    monkeypatch.setattr(NP, "rnd", lambda: 0.0)                    # (every drop drops: the world rolls a kill's loot)
     monkeypatch.setattr(RM, "rnd", lambda: 0.0)                    # (and its remnants: a goblin's too weak to rise)
     a, b = join(world, "Slayer"), join(world, "Passerby")
     goblin = next(e for e in world.ents if e.name == "Goblin")
@@ -4044,6 +4044,38 @@ def test_an_npc_kill_leaves_loot_and_remnants_hunt_creatures(world):
     finally:
         world.remove_entity(remnant)
         world.remove_entity(wolf)
+
+
+def test_a_kill_by_a_player_or_an_npc_comes_back_and_its_loot_goes_alike(world, monkeypatch):
+    import dsengine.npcs as NP
+    monkeypatch.setattr(NP, "rnd", lambda: 0.0)                    # (every drop drops)
+    a = join(world, "Reaper")
+    foes = [e for e in world.ents if e.type == NPC and e.source == "MAP" and e.owner is None and e.hostile and
+            world.data.entity_ini(e.name, "Drops", "")][:2]
+    assert len(foes) == 2
+    for foe, kill in zip(foes, (a.kill_npc, world.npc_killed_by_npc)):
+        m = world.maps[foe.map]
+        before, uids = len(world.action_queue), {e.uid for e in world.ents}
+        kill(foe)
+        new = world.action_queue[before:]
+        assert any(q.startswith("ADD\t%s\tNPC\t" % foe.name) and world.local_coords(m, foe.orig_x, foe.orig_y) in q
+                   for q in new)                                   # (it comes back where its map puts it)
+        loot = [e for e in world.ents if e.uid not in uids and e.type == MAPITEM and e.name != "Shard_Remnant"]
+        assert loot and all(e.source == "DROPPED" for e in loot)
+        assert all(any(q.startswith("REMOVE\t%s\tMapItem\t" % e.name) for q in new) for e in loot)   # (and it goes)
+        assert all((e.private_to is a) == (kill == a.kill_npc) for e in loot)       # (a player's kill: theirs first)
+        for e in [e for e in world.ents if e.uid not in uids]:
+            world.remove_entity(e)
+    leave(world, a)
+
+
+def test_ini_comments_are_never_keys(tmp_path):
+    from ashen import ini
+    path = str(tmp_path / "t.ini")
+    with open(path, "wb") as f:
+        f.write(b"[Sky]\r\n; The colour: <time>=R G B\r\n0.5=1 2 3 4\r\n")
+    assert ini.section("Sky", path) == [("0.5", "1 2 3 4")]
+    assert ini.read("Sky", "; The colour: <time>", "none", path) == "none"
 
 
 def test_burnt_food_is_one_stack(world):

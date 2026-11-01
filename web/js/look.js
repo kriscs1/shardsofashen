@@ -126,12 +126,12 @@ export function npcImage(name, kind, n) {
       map.push([s, w.map((v) => Math.max(0, Math.min(255, Math.round(f >= 1 ? v + (255 - v) * (f - 1) * 0.6 : v * f))))]);
     }
   }
+  if (!map.length) return base;                             // (nothing to recolour: no canvas made for nothing)
   c = document.createElement("canvas");
   c.width = base.width;
   c.height = base.height;
   const x = c.getContext("2d", { willReadFrequently: true });
   x.drawImage(base, 0, 0);
-  if (!map.length) return base;
   const d = x.getImageData(0, 0, c.width, c.height);
   const px = d.data;
   const own = new Map();                                    // (the picture's other colours: kept, never mistaken)

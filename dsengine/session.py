@@ -356,6 +356,15 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.display_message(message, "FAIL")
         self.play_sound(sound or "Denied")
 
+    REACH = 56              # (how near you must be to use a thing in the world, centre to centre)
+
+    def too_far(self, e, reach=REACH):
+        """Out of reach of e: said, with the Denied tell, and True."""
+        if self.player_distance_to(e) <= reach:
+            return False
+        self.refuse("You are too far away!")
+        return True
+
     def play_sound(self, sound, at=None):
         """A sound: at = the global point it is made at (everyone near hears it), None = only this player."""
         if not trim(sound):

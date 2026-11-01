@@ -18,8 +18,7 @@ LOCKS = "Locks.ini"
 
 class LockMixin:
     def lock_num(self, key, default):
-        v = trim(self.data.ini_read(LOCKS, "Locks", key, ""))
-        return val(v) if v else default
+        return self.data.ini_num(LOCKS, "Locks", key, default)
 
     def is_chest(self, e):
         return e is not None and e.type == STATICOBJECT and "Chest" in e.name and \

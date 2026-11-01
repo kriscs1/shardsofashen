@@ -33,7 +33,7 @@ class Deep:
         self.warned = False
 
     def num(self, key, default):
-        return val(trim(self.d.deep_ini(key, "")) or str(default))
+        return self.d.ini_num("Deep.ini", "Deep", key, default)
 
     def text(self, key, default):
         return trim(self.d.deep_ini(key, "")) or str(default)
@@ -246,8 +246,7 @@ class DeepMixin:
         return True
 
     def deep_enter(self, e):
-        if self.player_distance_to(e) > 64:
-            self.refuse("You are too far away!")
+        if self.too_far(e, 64):
             return
         fl = self.deep.floors[0]
         self.play_sound("Ladder")
@@ -306,8 +305,7 @@ class DeepMixin:
         return got
 
     def deep_chest(self, e):
-        if self.player_distance_to(e) > 56:
-            self.refuse("You are too far away!")
+        if self.too_far(e):
             return
         f = self.deep.floor_of(e.map)
         key = e.npc_id or "chest"
@@ -333,8 +331,7 @@ class DeepMixin:
         self.display_message("You open the chest: %s." % (", ".join(got) or "dust, and a very old sock"), "SUCCESS")
 
     def deep_heart(self, e):
-        if self.player_distance_to(e) > 64:
-            self.refuse("You are too far away!")
+        if self.too_far(e, 64):
             return
         if "heart" in self.deep_had():
             self.display_message("The Heart's light is dim for you: come back when the Deep has shifted.", "FAIL",

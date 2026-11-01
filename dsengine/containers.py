@@ -32,8 +32,7 @@ class ChestMixin:
             return False
         key = self.chest_key(e)
         if self.chests.get(key):
-            if self.player_distance_to(e) > 56:
-                self.display_message("You are too far away!", "FAIL")
+            if self.too_far(e):
                 return True
             self.play_sound("Chest")
             self.show_chest(key, full=True)

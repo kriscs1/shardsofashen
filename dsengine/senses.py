@@ -2,15 +2,14 @@
 Shifting Deep's) or a secret (a thing with Id=Secret_..., not yet found), you may notice it: more surely sneaking,
 and with Stealth. A trap you've seen is marked for you; Disarm it (Stealth), or sneak over it and it doesn't spring.
 A secret you've noticed glints, once: Search it as ever. Each player's own."""
-from ashen.lb import val, trim, lbstr, distance, rnd
+from ashen.lb import val, lbstr, distance, rnd
 
 from .entity import STATICOBJECT
 
 
 class SenseMixin:
     def sense_num(self, key, default):
-        v = trim(self.data.ini_read("Stances.ini", "Senses", key, ""))
-        return val(v) if v else default
+        return self.data.ini_num("Stances.ini", "Senses", key, default)
 
     def sense_chance(self):
         c = self.sense_num("Chance", 15) + self.stealth_level() * self.sense_num("Chance.Per.Level", 3) +             self.secrets_nose()                         # (Jimmy along: he finds things - together.py)

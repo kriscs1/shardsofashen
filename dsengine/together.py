@@ -136,8 +136,7 @@ class TogetherMixin:
 
     def party_near(self, e):
         """The names of your party near e (a kill counts for them too: player_combat.helpers_of)."""
-        return [o.player_name for o in self.party_members() if o.player.z == e.z and
-                abs(o.player.cx - e.cx) < self.w.sw and abs(o.player.cy - e.cy) < self.w.sh]
+        return [o.player_name for o in self.party_members() if self.w.within_view(o.player, e)]
 
     def party_say(self, text, kind="INFO"):
         for o in [self] + self.party_members():

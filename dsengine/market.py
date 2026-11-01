@@ -103,8 +103,7 @@ class MarketMixin:
             self.display_message("The market board: %d listing%s from everyone. Put your own things up for sale here."
                                  % (n, "" if n == 1 else "s"), "EXAMINE")
             return True
-        if self.player_distance_to(e) > 56:
-            self.display_message("You are too far away!", "FAIL")
+        if self.too_far(e):
             return True
         self.market_mine = False
         self.rack_page = 1
@@ -117,12 +116,9 @@ class MarketMixin:
         return sorted(lst, key=lambda it: (it["item"].lower(), it["price"], it["id"]))
 
     def show_market(self, full=False):
-        d = self.data
         view = self.market_view()
-        page_size = max(1, d.ab_columns * d.ab_rows)
-        self.rack_pages = max(1, (len(view) + page_size - 1) // page_size)
-        self.rack_page = min(max(1, self.rack_page), self.rack_pages)
-        shown = view[(self.rack_page - 1) * page_size:self.rack_page * page_size]
+        lo, hi = self.page_rack(len(view))
+        shown = view[lo:hi]
         self.market_ids = [it["id"] for it in shown]
         self.rack_type = "Market"
         self.rack = [{"item": it["item"], "quantity": it["qty"]} for it in shown]
@@ -134,14 +130,7 @@ class MarketMixin:
             self.response_actions.append("MARKET_COLLECT")
         self.responses.append("Show everyone's" if self.market_mine else "Show only mine")
         self.response_actions.append("MARKET_TOGGLE")
-        if self.rack_page < self.rack_pages:
-            self.responses.append("Next page")
-            self.response_actions.append("NEXT")
-        if self.rack_page > 1:
-            self.responses.append("Previous page")
-            self.response_actions.append("PREV")
-        self.responses.append("Close")
-        self.response_actions.append("CLOSE")
+        self.page_responses()
         self.ab_image = BOARD
         mine = len(self.market.of(self.player_name))
         self.ab_title = "Your listings (%d of %d)" % (mine, LISTINGS) if self.market_mine else "The market"

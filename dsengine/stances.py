@@ -7,7 +7,7 @@
                but you walk slowly and your guard drops. (Not potions: they're herbs, and Shards can't touch them.)
   Sneaking     quieter and harder to see (better with Stealth), the lookouts' sight shown to you, and the hands of a
                thief (Pickpocket, Steal, Pick Lock); you walk slowly. A blow struck or a spell cast ends it."""
-from ashen.lb import val, trim, lbstr, distance
+from ashen.lb import trim, lbstr, distance
 from .entity import NPC
 from .remnants import monster_level
 
@@ -22,12 +22,10 @@ class StanceMixin:
         st = self.stance if stance is None else stance
         if not st:
             return default
-        v = trim(self.data.ini_read("Stances.ini", st, key, ""))
-        return val(v) if v else default
+        return self.data.ini_num("Stances.ini", st, key, default)
 
     def stance_setting(self, key, default):
-        v = trim(self.data.ini_read("Stances.ini", "Stances", key, ""))
-        return val(v) if v else default
+        return self.data.ini_num("Stances.ini", "Stances", key, default)
 
     def choose_stance(self, name):
         """The player picked a stance (the same again: back to none). It takes hold after Change.Seconds."""

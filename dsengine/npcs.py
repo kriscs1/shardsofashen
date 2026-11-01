@@ -3,7 +3,7 @@ of each player (their own Set.NPC.Attitude), picks a fight with the nearest play
 player it's fighting), faces whoever is near. Only NPCs on maps near a player think."""
 import math
 
-from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, is_number, strip_digits, parse_quantity
+from ashen.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits, parse_quantity
 
 from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, TYPE_NAMES
 from .player_combat import CombatMixin
@@ -473,7 +473,7 @@ class NPCMixin:
             p = s.player if s is not None else None
             give_up = s is None or not e.in_combat or not s.player_visible
             d = distance(cx, cy, p.cx, p.cy) if p is not None else 9999
-            near_r = 36 + self.reach_extra(e)
+            near_r = CombatMixin.melee_reach(e)
             reach = near_r + e.weapon_range
             shot = ""
             if not give_up and d > near_r + 8:
@@ -632,10 +632,6 @@ class NPCMixin:
             self.forget_path(e)
             self.npc_face(e, e.cx, e.cy, p.cx, p.cy)
 
-    @staticmethod
-    def reach_extra(e):
-        return max(0, int((e.w - 32) / 2))
-
     def npc_face(self, e, cx, cy, tx, ty):
         d = distance(cx, cy, tx, ty)
         if d < 1:
@@ -699,7 +695,7 @@ class NPCMixin:
                 self.animate_entity(e, False)
             a.progress_time = now
             return True
-        if d <= 36 + self.reach_extra(e) + e.weapon_range:
+        if d <= CombatMixin.melee_reach(e) + e.weapon_range:
             self.npc_face(e, cx, cy, foe.cx, foe.cy)
             a.progress_time = now
             a.best_d = d
@@ -794,23 +790,35 @@ class NPCMixin:
         ground for anyone, or its magic rising to go for its killer."""
         self.sound("Kill_" + (self.data.entity_ini(e.name, "Kill.Sound", "") or "Beast"), e.z, e.cx, e.cy)
         self.npc_loot(e, killer)
+        self.queue_respawn(e)
+        self.shard_fade(e)
+        self.waves.gone(e)                                    # (a raider the guards cut down)
+        self.remove_entity(e)
+
+    def queue_respawn(self, e):
+        """A map's own NPC that died (to a player or another NPC) comes back where its map line puts it, after its
+        Respawn= (else Config's) delay."""
         m = self.maps.get(e.map)
         if e.source == "MAP" and e.owner is None and m is not None:
             respawn = e.respawn_delay if e.respawn_delay > 0 else self.data.npc_respawn_delay
             options = e.ai.options if e.ai is not None and e.ai.options else "-"
             self.add_action_to_queue("ADD", e.name, TYPE_NAMES[e.type], options, m.name,
                                      self.local_coords(m, e.orig_x, e.orig_y), respawn)
-        self.shard_fade(e)
-        self.waves.gone(e)                                    # (a raider the guards cut down)
-        self.remove_entity(e)
 
     def npc_loot(self, e, killer):
         """What an NPC killed by another leaves: its Drops and its remnants, anyone's to pick up (a player's own kill
         is theirs first: player_combat.add_npc_drops)."""
         if e.owner is not None:
             return                                            # (someone's own quest creature: nothing for the world)
+        self.drop_kill_loot(e, lambda level: self.npc_remnant_rise(e, level, killer))
+
+    def drop_kill_loot(self, e, rise, first=None):
+        """A dead NPC's Drops (Entities.ini: item,amount,percent ...) on the ground round where it fell, then its
+        Shard Remnants, or its magic rising (rise(level): remnants.py). first: the player who killed it, theirs to
+        pick up first (Config Loot.Private.Seconds). A quest's own creature's loot is only its player's."""
         drops = self.data.entity_ini(e.name, "Drops", "")
         drop_x, drop_y = e.cx, e.fy
+        secs = val(self.data.config_read("Gameplay", "Loot.Private.Seconds", "10")) if first is not None else 0
 
         def drop(name, amount):
             copies, each = (1, amount) if self.data.stackable_quantity(name) > 1 else (min(amount, 10), 1)
@@ -818,13 +826,7 @@ class NPCMixin:
             for _ in range(int(copies)):
                 x = int(drop_x - iw / 2 + random_number(-8, 8))
                 y = int(drop_y - ih + random_number(-4, 6))
-                item = self.add_map_item(name, e.z, x, y, each)
-                if item is not None:
-                    item.source = "DROPPED"
-                    m = self.maps.get(item.map)
-                    if m is not None:
-                        self.add_action_to_queue("REMOVE", name, "MapItem", lbstr(each), m.name,
-                                                 self.local_coords(m, x, y), self.data.item_despawn_delay)
+                self.drop_item(name, e.z, x, y, each, e.owner, first, secs)
         i = 1
         while word(drops, i) != "":
             dd = word(drops, i)
@@ -834,7 +836,7 @@ class NPCMixin:
                 if amount > 0:
                     drop(name, amount)
             i += 1
-        death_remnants(self.data, e, drop, lambda level: self.npc_remnant_rise(e, level, killer))
+        death_remnants(self.data, e, drop, rise)
 
     def npc_remnant_rise(self, dead, level, killer):
         """Its magic rises as a Shard Remnant and goes for the NPC that killed it."""

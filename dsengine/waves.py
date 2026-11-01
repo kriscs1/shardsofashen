@@ -30,23 +30,10 @@ class Waves:
         self.last_check = 0
 
     def read(self):
-        path = self.w.data.data_file("Waves.ini")
         out = {}
-        try:
-            text = ini.read_text(path)
-        except OSError:
-            return out
-        sec = None
-        for ln in text.replace("\r", "").split("\n"):
-            ln = ln.strip()
-            if not ln or ln.startswith(";"):
-                continue
-            if ln.startswith("[") and ln.endswith("]"):
-                sec = ln[1:-1].strip()
-                out[sec] = {"key": sec}
-            elif sec and "=" in ln:
-                k, v = ln.split("=", 1)
-                out[sec][k.strip().lower()] = v.strip()
+        for sec, items in ini.sections(self.w.data.data_file("Waves.ini")):
+            out[sec] = {"key": sec}
+            out[sec].update((k.lower(), v) for k, v in items)
         for d in out.values():
             d["waves"] = [[(word(p, 1, "*").strip(), max(1, int(val(word(p, 2, "*")) or 1)))
                            for p in part.split(",") if p.strip()]

@@ -69,6 +69,11 @@ class GameData:
         """Any of the data files: file [section] key (Stances.ini...)."""
         return ini.read(section, key, default, self.data_file(file))
 
+    def ini_num(self, file, section, key, default):
+        """A number from any of the data files (default when it says nothing): every system's *_num reads by it."""
+        v = trim(self.ini_read(file, section, key, ""))
+        return val(v) if v else default
+
     def shards_ini(self, section, key, default):
         """Shards.ini: every Shard number (costs, dismantling, spells' upgrades, remnants)."""
         return ini.read(section, key, default, self.data_file("Shards.ini"))

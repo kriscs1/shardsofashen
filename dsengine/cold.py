@@ -12,8 +12,7 @@ FIRES = ("Fire", "Campfire", "Fireplace", "Brazier", "Forge", "Range", "Oven", "
 
 class ColdMixin:
     def cold_num(self, key, default):
-        v = trim(self.data.ini_read(COLD, "Cold", key, ""))
-        return val(v) if v else default
+        return self.data.ini_num(COLD, "Cold", key, default)
 
     def cold_ground(self):
         """Snow or ice underfoot, out in the open."""

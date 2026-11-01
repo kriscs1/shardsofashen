@@ -54,10 +54,6 @@ class RemnantMixin:
     def monster_level(self, e):
         return monster_level(self.data, e)
 
-    def remnants_on_death(self, e, drop):
-        """This player killed it: its remnants (the killer's first), or a Shard Remnant rising to go for them."""
-        death_remnants(self.data, e, drop, lambda level: self.remnant_rise(e, level))
-
     def remnant_rise(self, dead, level):
         """The dead monster's magic rises as a Shard Remnant, as strong as it was, and goes for its killer."""
         w = self.w

@@ -236,6 +236,28 @@ class World(NPCMixin):
         e.orig_quantity = e.quantity
         return e
 
+    def within_view(self, a, b):
+        """a and b on one level, within a screen of each other (a kill's helpers, a party near, $Players.Near)."""
+        return a.z == b.z and abs(a.cx - b.cx) < self.sw and abs(a.cy - b.cy) < self.sh
+
+    def drop_item(self, name, z, x, y, quantity, owner=None, first=None, first_secs=0, wear=0):
+        """Something put down on the ground (dropped from a pack, a kill's loot): gone after Item.Despawn.Delay.
+        first: the player whose it is to pick up for its first first_secs seconds, then anyone's. owner: only that
+        player ever sees it (a quest's own creature's loot), and it doesn't go."""
+        item = self.add_map_item(name, z, x, y, quantity, owner)
+        if item is None:
+            return None
+        item.wear = wear
+        item.source = "DROPPED"
+        if first is not None and owner is None and first_secs > 0:
+            item.private_to = first
+            item.public_at = self.now + first_secs * 1000
+        m = self.maps.get(item.map)
+        if m is not None and owner is None:
+            self.add_action_to_queue("REMOVE", name, "MapItem", lbstr(quantity), m.name, self.local_coords(m, x, y),
+                                     self.data.item_despawn_delay)
+        return item
+
     @staticmethod
     def option_value(options, key):
         for pair in str(options).replace("\t", " ").split():

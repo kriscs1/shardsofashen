@@ -72,8 +72,7 @@ function under(x, y) {
   const inv = invItemAt(x, y);
   if (inv) return inv;
   const br = boxRect(), rr = responseBoxRect();
-  if (br && x >= br[0] && x < br[0] + br[2] && y >= br[1] && y < br[1] + br[3]) return null;
-  if (rr && x >= rr[0] && x < rr[0] + rr[2] && y >= rr[1] && y < rr[1] + rr[3]) return null;
+  if (inRect(x, y, br) || inRect(x, y, rr)) return null;
   if (x >= L.VW || S.box.mode || overTouchUI(x, y)) return null;
   const [wx, wy] = screenToWorld(x, y);
   const e = entityUnder(wx, wy);
@@ -128,7 +127,7 @@ export function mouseMove(x, y) {
   const [cx, cy, cw, ch] = clockRect();
   if (!msg && S.clock.on && x >= cx && x < cx + cw && y >= cy && y < cy + ch) msg = timeText(dayFraction(performance.now()));
   const fr = U.fullscreenRect;
-  if (fr && x >= fr[0] && x < fr[0] + fr[2] && y >= fr[1] && y < fr[1] + fr[3]) { msg = "Full screen (F11)"; U.hover = "fullscreen"; }
+  if (inRect(x, y, fr)) { msg = "Full screen (F11)"; U.hover = "fullscreen"; }
   if (!msg && minimapHit(x, y)) msg = M.on ? "#World map|~Tap: the whole map, its places named" : "#World map|~Click (or M): the whole map, its places named";
   const arrow = desk || M.chat ? chatArrow(x, y) : 0;
   if (arrow === 1) msg = U.chatLine + 4 < S.messages.length ? "Scroll Up" : "<No More>";
@@ -420,7 +419,7 @@ export function wheel(dy, x, y) {
   }
   if ((M.on ? M.chat : true) && y >= L.chatY && x < L.chatR + 20) { scrollChat(dy < 0 ? 1 : -1); return; }
   const br = boxRect();
-  if (br && S.box.mode !== "Conversation" && x >= br[0] && x < br[0] + br[2] && y >= br[1] && y < br[1] + br[3]) {
+  if (S.box.mode !== "Conversation" && inRect(x, y, br)) {
     const page = Math.min(S.box.pages, Math.max(1, S.box.page + (dy < 0 ? -1 : 1)));
     if (page !== S.box.page) send({ t: "page", page });
     return;

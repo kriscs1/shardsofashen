@@ -114,20 +114,9 @@ class ItemsMixin:
             return
         p = self.player
         w, h = self.data.sprite_size_of(MAPITEM, name)
-        x = int(p.fx - w / 2)
-        y = int(p.fy - h + 4)
-        e = self.w.add_map_item(name, p.z, x, y, quantity)
-        if e is not None:
-            e.wear = wear
-            e.source = "DROPPED"
-            secs = val(self.data.config_read("Gameplay", "Drop.Private.Seconds", "10"))
-            if secs > 0:
-                e.private_to = self
-                e.public_at = self.now + secs * 1000
-            m = self.w.maps.get(e.map)
-            if m is not None:
-                self.w.add_action_to_queue("REMOVE", name, "MapItem", lbstr(quantity), m.name,
-                                           self.w.local_coords(m, x, y), self.data.item_despawn_delay)
+        secs = val(self.data.config_read("Gameplay", "Drop.Private.Seconds", "10"))
+        self.w.drop_item(name, p.z, int(p.fx - w / 2), int(p.fy - h + 4), quantity, first=self, first_secs=secs,
+                         wear=wear)
 
     def take_inventory_entity(self, e):
         """Takes one of this very item out of the inventory. Its wear."""
@@ -355,6 +344,24 @@ class ItemsMixin:
         self.rack_page = 1
         self.show_rack_page(False)
 
+    def page_rack(self, count):
+        """The box's pages for count things (rack_pages; rack_page kept in them): the slice the page shown holds."""
+        page_size = max(1, self.data.ab_columns * self.data.ab_rows)
+        self.rack_pages = max(1, (count + page_size - 1) // page_size)
+        self.rack_page = min(max(1, self.rack_page), self.rack_pages)
+        return (self.rack_page - 1) * page_size, self.rack_page * page_size
+
+    def page_responses(self):
+        """The box's answers to turn its pages, as there are more either way, then Close."""
+        if self.rack_page < self.rack_pages:
+            self.responses.append("Next page")
+            self.response_actions.append("NEXT")
+        if self.rack_page > 1:
+            self.responses.append("Previous page")
+            self.response_actions.append("PREV")
+        self.responses.append("Close")
+        self.response_actions.append("CLOSE")
+
     def show_rack_page(self, full_redraw):
         d = self.data
         if self.rack_type == "Bank":
@@ -362,12 +369,9 @@ class ItemsMixin:
         else:
             visible = [i for i, r in enumerate(self.rack) if r["quantity"] != 0]
         visible = [i for i in visible if self.rack_shows(i)]
-        page_size = max(1, d.ab_columns * d.ab_rows)
-        total_pages = max(1, int((len(visible) + page_size - 1) / page_size))
-        self.rack_pages = total_pages
-        self.rack_page = min(max(1, self.rack_page), total_pages)
+        lo, hi = self.page_rack(len(visible))
         self.ab_item_defs = []
-        for i in visible[(self.rack_page - 1) * page_size:self.rack_page * page_size]:
+        for i in visible[lo:hi]:
             if self.rack_type == "Bank":
                 self.ab_item_defs.append((self.bank_item[i], lbstr(self.bank_qty[i]), i))
             else:
@@ -378,14 +382,7 @@ class ItemsMixin:
                 self.ab_item_defs.append((r["item"], q, i))
         self.responses = []
         self.response_actions = []
-        if self.rack_page < total_pages:
-            self.responses.append("Next page")
-            self.response_actions.append("NEXT")
-        if self.rack_page > 1:
-            self.responses.append("Previous page")
-            self.response_actions.append("PREV")
-        self.responses.append("Close")
-        self.response_actions.append("CLOSE")
+        self.page_responses()
         if full_redraw or self.ab_mode != self.rack_type:
             self.show_action_box(self.rack_type)
         else:

@@ -5,7 +5,7 @@ healed and wake by the gate (Respawn.Map / Respawn.X / Respawn.Y), and the arena
 ArenaLosses are kept as attributes)."""
 import time
 
-from ashen.lb import val, lbstr, random_number, rnd, trim
+from ashen.lb import val, lbstr, random_number, trim
 
 from .entity import PLAYER
 
@@ -75,7 +75,7 @@ class PvPMixin:
             return
         max_hit = self.player_max_hit()
         damage = random_number(1, max_hit)
-        crit = rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15
+        crit = self.lands_crit()
         if crit:
             damage = max_hit + random_number(0, int(max_hit / 2))
         damage -= v.armour_soak()

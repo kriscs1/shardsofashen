@@ -37,6 +37,8 @@ class _Parsed:
         current = None
         for line in text.splitlines():
             s = line.strip()
+            if s.startswith(";"):
+                continue                # (a comment, even one with an = in it: never a key)
             if s.startswith("["):
                 end = s.find("]")
                 name = s[1:end].strip() if end > 0 else s[1:].strip()

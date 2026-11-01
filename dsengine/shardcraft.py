@@ -53,8 +53,7 @@ def shardstone_table(w):
 
 class ShardcraftMixin:
     def craft_num(self, key, default, section="Shardcraft"):
-        v = trim(self.data.shards_ini(section, key, ""))
-        return val(v) if v != "" else default
+        return self.data.ini_num("Shards.ini", section, key, default)
 
     def shardcraft_do(self, verb, e):
         """The engine's own Shardcraft things (True: done): a shardstone, enchanting."""
@@ -87,8 +86,7 @@ class ShardcraftMixin:
         return int(self.shard_setting("Shardstone." + key, 5))
 
     def shardstone_touched(self, e):
-        if self.player_distance_to(e) > STONE_REACH:
-            self.refuse("You are too far away!")
+        if self.too_far(e, STONE_REACH):
             return
         s = self.stone_of(e)
         if s is None:

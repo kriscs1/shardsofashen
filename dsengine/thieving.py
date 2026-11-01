@@ -17,8 +17,7 @@ THIEVES = "Thieving.ini"
 
 class ThiefMixin:
     def thief_num(self, sec, key, default):
-        v = trim(self.data.ini_read(THIEVES, sec, key, ""))
-        return val(v) if v else default
+        return self.data.ini_num(THIEVES, sec, key, default)
 
     def thief_text(self, sec, key, default=""):
         return trim(self.data.ini_read(THIEVES, sec, key, "")) or default

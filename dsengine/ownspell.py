@@ -5,7 +5,7 @@ that no choice is better than another for its price: Shards.ini [Spellwright].
 
 It's the spell Own_Spell (Spells.ini has its section, a bolt, for what nothing here says), known like any other; its
 page, Spellwrights_Page, is what goes on the hotbar. Write it again whenever you like, for a few Shards."""
-from ashen.lb import val, trim, lbstr
+from ashen.lb import val, lbstr
 
 OWN = "Own_Spell"
 PAGE = "Spellwrights_Page"
@@ -44,8 +44,7 @@ def own_values(effect, power, far, cost_of):
 
 class OwnSpellMixin:
     def spellwright_num(self, key, default):
-        v = trim(self.data.shards_ini("Spellwright", key, ""))
-        return val(v) if v != "" else default
+        return self.data.ini_num("Shards.ini", "Spellwright", key, default)
 
     def own_spell_values(self):
         o = getattr(self, "own_spell", None)
@@ -64,8 +63,7 @@ class OwnSpellMixin:
 
     # ----- the Spellwright's Lectern
     def lectern_write(self, e):
-        if self.player_distance_to(e) > 56:
-            self.refuse("You are too far away!")
+        if self.too_far(e):
             return
         if val(self.get_attribute(QUEST)) < 3:
             self.refuse("The lectern's pages are blank to you.")
