@@ -103,10 +103,12 @@ class CentralStore:
             have = [r[1] for r in self.db.execute("PRAGMA table_info(%s)" % table)]
             if col not in have:
                 self.db.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, col, kind))
+        self.db.execute("UPDATE accounts SET recover = '' WHERE recover != ''")     # (recovery codes are gone: none kept)
 
     # ----- accounts
     def account(self, name):
-        """(name as made, password hash, recovery hash, banned why, email, admin, when deleted (its name kept)) or None."""
+        """(name as made, password hash, nothing now (recovery codes are gone), banned why, email, admin, when deleted
+        (its name kept)) or None."""
         return self.db.execute("SELECT name, password, recover, banned, email, admin, deleted FROM accounts "
                                "WHERE name = ?", (name,)).fetchone()
 
@@ -115,9 +117,9 @@ class CentralStore:
                               (email,)).fetchone()
         return self.account(row[0]) if row else None
 
-    def create_account(self, name, pw_hash, recover_hash, email=""):
-        self.db.execute("INSERT INTO accounts (name, password, recover, made, email) VALUES (?, ?, ?, ?, ?)",
-                        (name, pw_hash, recover_hash, time.time(), email))
+    def create_account(self, name, pw_hash, email=""):
+        self.db.execute("INSERT INTO accounts (name, password, made, email) VALUES (?, ?, ?, ?)",
+                        (name, pw_hash, time.time(), email))
 
     def set_email(self, name, email):
         self.db.execute("UPDATE accounts SET email = ? WHERE name = ?", (email, name))
@@ -202,9 +204,6 @@ class CentralStore:
     def set_password(self, name, pw_hash):
         self.db.execute("UPDATE accounts SET password = ? WHERE name = ?", (pw_hash, name))
         self.db.execute("DELETE FROM tokens WHERE name = ?", (name,))      # (logged out everywhere)
-
-    def set_recover(self, name, recover_hash):
-        self.db.execute("UPDATE accounts SET recover = ? WHERE name = ?", (recover_hash, name))
 
     def set_banned(self, name, why):
         self.db.execute("UPDATE accounts SET banned = ? WHERE name = ?", (why, name))

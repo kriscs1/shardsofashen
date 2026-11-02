@@ -406,7 +406,9 @@ lists the remote game servers (each announces itself to it), and it serves the a
   nothing: mail scanners open links); till then no code goes to it, the one before it still counts, and it's forgotten
   after 30 days. An email that can't go never stops a sign-up: the account can ask for the link again.
   Players may give an email when they sign up or in their account; "Forgotten?" then emails a code good for 30
-  minutes. Without SMTP, the recovery code is the only way back in.
+  minutes. Without SMTP a forgotten password can't be reset and nobody new can confirm an email, and there's no other
+  way: there are no recovery codes, and an account's email must be confirmed before it can join a game (the central
+  server gives it no ticket till then; an account from before with none is asked for one). Playing alone needs none.
 - **The privacy policy** is at `/privacy`: set `DS_CENTRAL_OPERATOR` (who runs it) and `DS_CENTRAL_CONTACT` (an email
   to write to) for its blanks. Read it through before going public: it's written for this game, but it's yours.
 - **AdSense** (browsers only: Google's rules put apps on AdMob instead): set `DS_ADSENSE_CLIENT` (`ca-pub-...`) and

@@ -131,8 +131,6 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
 .dialog { width: min(460px, 100%); }
 .dialog.wide { width: min(780px, 100%); }
 .dialog iframe { display: block; width: 100%; height: min(calc(100vh - 140px), 640px); border: 0; border-radius: 8px; }
-.code { font-size: 26px; letter-spacing: 3px; color: var(--ink); text-align: center; padding: 12px; margin: 10px 0;
-  border: 2px dashed var(--edge-light); border-radius: 12px; background: #1c120c; user-select: all; font-family: monospace; }
 .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 20; max-width: min(560px, 92vw);
   padding: 12px 18px; border-radius: 12px; background: rgba(36,23,15,0.97); border: 2px solid var(--edge-light);
   box-shadow: 0 8px 24px rgba(0,0,0,0.6); font-size: 15px; transition: opacity 0.3s; }
@@ -165,7 +163,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
       </form>
       <form id="form-new" class="stack" hidden>
         <label class="field">Name (what everyone sees)<input id="new-name" maxlength="20" autocomplete="username" required></label>
-        <label class="field">Email (optional: for a forgotten password; we'll send a link to confirm it)<input id="new-email" type="email" maxlength="254" autocomplete="email"></label>
+        <label class="field">Email (the only way back in if you forget your password; we'll send a link to confirm it)<input id="new-email" type="email" maxlength="254" autocomplete="email" required></label>
         <label class="field">Password<input id="new-password" type="password" maxlength="200" autocomplete="new-password" required></label>
         <label class="field" id="claim-row" hidden>Admin code (from the server's log)<input id="new-claim" maxlength="40" autocomplete="off"></label>
         <label class="agree"><input id="new-agree" type="checkbox" required><span>I've read and agree to the
@@ -173,7 +171,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
         <button type="submit" class="go">Create my account</button>
       </form>
       <form id="form-lost" class="stack" hidden>
-        <p class="small dim" id="lost-words">Your name (or confirmed email) and the code: one we email you, or the recovery code you wrote down.</p>
+        <p class="small dim" id="lost-words">Your name (or confirmed email), and the code we email you.</p>
         <label class="field">Name or email<input id="lost-who" maxlength="254" autocomplete="username"></label>
         <div class="row" id="send-row"><button type="button" id="send-code">Email me a code</button></div>
         <label class="field">Code<input id="lost-code" maxlength="40" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"></label>
@@ -311,14 +309,6 @@ function dialog(html, buttons) {
 }
 function busy(text) { $("dialog").innerHTML = `<div class="spinner"></div><p style="text-align:center">${esc(text)}</p>`; $("veil").hidden = false; }
 function done() { $("veil").hidden = true; }
-function showCode(code, words) {
-  if (!code) return;
-  dialog(`<h2>Your recovery code</h2><p>${esc(words)}</p><div class="code">${esc(code)}</div>
-    <p class="small dim">Write it down somewhere safe. With your name and this code you can set a new password if you
-    ever forget yours (and have no confirmed email on your account). Nobody else can see it.</p>`,
-    [["Copy", "", () => { try { navigator.clipboard.writeText(code); toast("Copied."); } catch (e) { /* */ } return false; }],
-     ["I've written it down", "go"]]);
-}
 
 // ----- the central server
 async function api(path, body) {
@@ -342,11 +332,11 @@ async function connect() {
     canMail = !!hello.mail;
     setStatus(true, `Connected · ${hello.servers} game${hello.servers === 1 ? "" : "s"} listed`);
     $("send-row").hidden = !canMail;
-    $("lost-words").textContent = canMail ? "Your name (or confirmed email) and the code: one we email you, or the recovery code you wrote down." :
-      "Your name and the recovery code you wrote down when you made your account.";
+    $("lost-words").textContent = canMail ? "Your name (or confirmed email), and the code we email you." :
+      "This server can't send email just now, so a password can't be reset: try again later.";
     if (token) {
       const me = await api("/api/me", { token });
-      if (me.ok) { signedIn(me.name); return; }
+      if (me.ok) { signedIn(me.name); if (me.needs_email) $("chip").onclick(); return; }
       token = ""; store.set("token", "");
     }
     showWelcome();
@@ -398,6 +388,7 @@ $("form-in").onsubmit = (ev) => {
   account("/api/login", { name: $("in-name").value, password: $("in-password").value }, (r) => {
     token = r.token; store.set("token", token); $("in-password").value = ""; signedIn(r.name);
     toast(`Welcome back, ${r.name}.`);
+    if (r.needs_email) $("chip").onclick();
   });
 };
 $("form-new").onsubmit = (ev) => {
@@ -405,8 +396,10 @@ $("form-new").onsubmit = (ev) => {
   account("/api/register", { name: $("new-name").value, email: $("new-email").value, password: $("new-password").value,
     claim: $("new-claim").value }, (r) => {
     token = r.token; store.set("token", token); $("new-password").value = ""; signedIn(r.name);
-    showCode(r.recovery, `Welcome to Ashen, ${r.name}! Your account's recovery code:` +
-      (r.confirm && canMail ? " (We've emailed you a link too: your email counts once you've confirmed it.)" : ""));
+    dialog(`<h2>Welcome to Ashen, ${esc(r.name)}!</h2><p>` + (canMail ?
+      "We've emailed you a link. Confirm your email with it to join a game: it's also the only way back in if you forget your password." :
+      "This server can't send email just now. Confirm your email from your account once it can, to join a game: it's also the only way back in if you forget your password.") +
+      "</p>", [["Carry on", "go"]]);
   });
 };
 $("send-code").onclick = () => account("/api/forgot", { who: $("lost-who").value }, (r) => toast(r.text));
@@ -414,7 +407,7 @@ $("form-lost").onsubmit = (ev) => {
   ev.preventDefault();
   account("/api/reset", { name: $("lost-who").value, code: $("lost-code").value, password: $("lost-password").value }, (r) => {
     tab("in"); $("in-name").value = r.name || $("lost-who").value; $("lost-password").value = "";
-    showCode(r.recovery, "Your new password is set. Here's a new recovery code too (the old one no longer works):");
+    toast("Your new password is set: sign in with it.");
   });
 };
 $("skip").onclick = () => signedIn("");
@@ -427,14 +420,14 @@ $("chip").onclick = async () => {
   let email = "", pending = "";
   try { ({ email = "", pending = "" } = await api("/api/account", { token })); } catch (e) { /* */ }
   const standing = pending ? `Waiting for you to confirm ${esc(pending)}: the link's in that inbox.` +
-    (email ? ` Until then a code goes to ${esc(email)}.` : "") : email ? "Confirmed." : "";
+    (email ? ` Until then a code goes to ${esc(email)}.` : " You can join games once it's confirmed.") : email ? "Confirmed." :
+    "Your account needs an email: it's the only way back in if you forget your password.";
   dialog(`<h2>${esc(myName)}</h2><p class="small dim">Your Shards account: the same on every game. Each game keeps your
     characters there, and only there.</p>
     <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(pending || email)}"></label>
     <p class="small dim">${standing}</p>`,
     [...(pending && canMail ? [["Send the link again", "", () => {
        account("/api/email/again", { token }, (r) => toast(r.text)); return false; }]] : []),
-     ["New recovery code", "", () => { account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):")); }],
      ["Sign out", "", () => {
        api("/api/logout", { token }).catch(() => {});
        token = ""; store.set("token", ""); myName = "";
@@ -524,7 +517,9 @@ async function join(address, id, name, mine) {
     if (myName) h.set("account", myName);
   }
   if (token && id && centralUp) {                  // (and a ticket when there's one to be had: your friends with it)
-    try { const t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
+    let t = null;
+    try { t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
+    if (t && t.refused && !mine) { toast(t.text, true); return; }     // (banned, or no confirmed email; your own game needs neither)
   }
   h.set("device", deviceKey(id || u.host));
   u.search = q.toString();

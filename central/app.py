@@ -10,17 +10,17 @@ its own accounts too, for a network with no way to reach here.
 
   python -m central                    (DS_CENTRAL_DB, DS_CENTRAL_PORT 8490, DS_CENTRAL_NAME, DS_CENTRAL_ADS, ...)
 
-  POST /api/register  {name, password, email?}    -> {ok, token, name, recovery}
+  POST /api/register  {name, password, email}     -> {ok, token, name, confirm}
   POST /api/account   {token}                     -> {ok, name, email, pending, admin}
   POST /api/email     {token, email}              -> {ok, email, pending, text}   (it counts once a link's confirmed it)
   POST /api/email/again {token}                   -> {ok, text}          (the link again, for the one waiting)
   POST /api/forgot    {who}                       -> {ok}                (a code by email, if it has a confirmed one)
-  POST /api/login     {name, password}            -> {ok, token, name}
-  POST /api/reset     {name, code, password}      -> {ok, recovery}      (code: the recovery code, or the emailed one)
-  POST /api/me        {token}                     -> {ok, name}
+  POST /api/login     {name, password}            -> {ok, token, name, needs_email}
+  POST /api/reset     {name, code, password}      -> {ok, name}          (code: the emailed one)
+  POST /api/me        {token}                     -> {ok, name, needs_email}
   POST /api/logout    {token}
-  POST /api/recovery  {token}                     -> {ok, recovery}      (a new code, the old one gone)
-  POST /api/ticket    {token, server}             -> {ok, ticket}        (server: the game server's id)
+  POST /api/ticket    {token, server}             -> {ok, ticket}        (server: the game server's id; refused: banned,
+                                                  or no confirmed email: the join stops there and says why)
   POST /api/verify    {ticket, server}            -> {ok, name}          (a game server asking)
   POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
   POST /api/announce  {key, secret, name, url?, port, online, max, version}  -> {key, secret}
@@ -63,6 +63,7 @@ DEFAULT_ADS = [
 
 
 CONFIRMS_A_DAY = 5
+NEEDS_EMAIL = "Your account needs an email: it's the only way back in if you forget your password."
 EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,20}$")
 
 
@@ -201,24 +202,29 @@ class Central:
         if env_int("DS_REGISTER_PER_DAY", 3) > 0 and len(made) >= env_int("DS_REGISTER_PER_DAY", 3):
             return no("Too many new accounts from here today: try again tomorrow.")
         email = clean_email(d.get("email", ""))
-        if d.get("email") and not email:
-            return no("That doesn't look like an email address (or leave it empty).")
-        if email and self.store.account_by_email(email):
+        if not d.get("email"):
+            return no(NEEDS_EMAIL)
+        if not email:
+            return no("That doesn't look like an email address.")
+        if self.store.account_by_email(email):
             return no("That email is on another account already.")
-        code = auth.recovery_code()
         self.signups[addr] = made + [day]               # (counted now: sign-ups at once can't all slip by)
         try:
-            self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)))
+            self.store.create_account(name, await self.hashed(password))
         except sqlite3.IntegrityError:                  # (taken while the password was hashed)
             self.signups[addr] = made
             return no("That name is taken. Log in instead?")
         self.claims.pop(name.lower(), None)
         log.info("New account %s from %s", name, addr)
-        if email:
-            self.store.set_pending_email(name, email)
-            # (to one side: a mail service's trouble is never a sign-up's, and they can ask again from their account)
-            asyncio.ensure_future(self.ask_confirm(self.base_url(request), name, email, welcome=True))
-        return yes(token=self.store.new_token(name), name=name, recovery=code, confirm=bool(email))
+        self.store.set_pending_email(name, email)
+        # (to one side: a mail service's trouble is never a sign-up's, and they can ask again from their account)
+        asyncio.ensure_future(self.ask_confirm(self.base_url(request), name, email, welcome=True))
+        return yes(token=self.store.new_token(name), name=name, confirm=True)
+
+    def needs_email(self, name):
+        """An account from before an email was required, with none given yet (or one forgotten, never confirmed)."""
+        acct = self.store.account(name)
+        return bool(acct and not acct[4] and not self.store.pending_email(name))
 
     @staticmethod
     def base_url(request):
@@ -279,7 +285,7 @@ class Central:
         self.forgiven(name, addr, at)
         if acct[3]:
             return no("%s is banned: %s" % (acct[0], acct[3]))
-        return yes(token=self.store.new_token(acct[0]), name=acct[0])
+        return yes(token=self.store.new_token(acct[0]), name=acct[0], needs_email=self.needs_email(acct[0]))
 
     async def reset(self, request):
         d, addr = await self.body(request), self.addr(request)
@@ -290,19 +296,15 @@ class Central:
         acct = self.store.account(name) or self.store.account_by_email(str(d.get("name", "")).strip())
         code = auth.clean_code(d.get("code", ""))
         at = self.failed(name, addr)
-        by_mail = acct is not None and await self.matches(code, self.store.mail_code(acct[0]))
-        if acct is None or not (by_mail or await self.matches(code, acct[2])):
+        if acct is None or not await self.matches(code, self.store.mail_code(acct[0])):
             return no("That name and code don't go together.")
         self.forgiven(name, addr, at)
-        if by_mail:
-            self.store.drop_mail_code(acct[0])
+        self.store.drop_mail_code(acct[0])
         new = str(d.get("password", ""))[:200]
         if len(new) < max(4, env_int("DS_PASSWORD_MIN", 8)):
             return no("Use a new password of at least %d characters." % max(4, env_int("DS_PASSWORD_MIN", 8)))
-        code = auth.recovery_code()
         self.store.set_password(acct[0], await self.hashed(new))
-        self.store.set_recover(acct[0], await self.hashed(auth.clean_code(code)))
-        return yes(recovery=code, name=acct[0])
+        return yes(name=acct[0])
 
     async def account(self, request):
         name = self.store.token_name((await self.body(request)).get("token", ""))
@@ -320,8 +322,10 @@ class Central:
         email = clean_email(d.get("email", ""))
         if d.get("email") and not email:
             return no("That doesn't look like an email address.")
+        if not email:
+            return no(NEEDS_EMAIL)
         mine = self.store.account(name)[4]
-        if not email or email.lower() == mine.lower():  # (none, or back to the one that's confirmed: nothing to ask)
+        if email.lower() == mine.lower():               # (back to the one that's confirmed: nothing to ask)
             self.store.drop_mail_check(name)
             self.store.set_email(name, email)
             return yes(email=email, pending="", text="Saved.")
@@ -352,7 +356,7 @@ class Central:
         if w:
             return no("Too many tries: wait %d seconds." % w)
         if not mail.ready():
-            return no("This server can't send email: use the recovery code you wrote down.")
+            return no("This server can't send email just now: try again later.")
         acct = self.store.account(auth.clean_name(who)) if "@" not in who else self.store.account_by_email(who)
         self.failed(who, addr)                          # (counted: nobody's mailbox flooded)
         if acct and acct[4]:
@@ -366,24 +370,16 @@ class Central:
                                                                  "%s: your code" % self.name, text)
             except Exception as e:
                 log.warning("The email to %s didn't go: %s", acct[0], e)
-                return no("The email couldn't be sent just now: try again later, or use your recovery code.")
-        return yes(text="If that account has an email, a code is on its way: it works for 30 minutes.")
+                return no("The email couldn't be sent just now: try again later.")
+        return yes(text="If that account has a confirmed email, a code is on its way: it works for 30 minutes.")
 
     async def me(self, request):
         name = self.store.token_name((await self.body(request)).get("token", ""))
-        return yes(name=name) if name else no("Not logged in.")
+        return yes(name=name, needs_email=self.needs_email(name)) if name else no("Not logged in.")
 
     async def logout(self, request):
         self.store.drop_token((await self.body(request)).get("token", ""))
         return yes()
-
-    async def recovery(self, request):
-        name = self.store.token_name((await self.body(request)).get("token", ""))
-        if not name:
-            return no("Not logged in.")
-        code = auth.recovery_code()
-        self.store.set_recover(name, await self.hashed(auth.clean_code(code)))
-        return yes(recovery=code)
 
     async def ticket(self, request):
         d = await self.body(request)
@@ -395,7 +391,12 @@ class Central:
             return no("Which game?")
         acct = self.store.account(name)
         if acct and acct[3]:
-            return no("%s is banned: %s" % (name, acct[3]))
+            return no("%s is banned: %s" % (name, acct[3]), refused=True)
+        if self.needs_email(name):
+            return no("Your account needs an email first: open your account to give one.", refused=True)
+        if acct and not acct[4]:                        # (only ever a confirmed one: what's waiting doesn't count yet)
+            return no("Confirm your email first: the link's in your inbox, or open your account to send it again.",
+                      refused=True)
         known = self.store.server_url(server)
         if known and not same_place(known, str(d.get("url", ""))[:200]):
             # (a listed game is where it said it was: a game that gave another's id gets no ticket to pass on)
@@ -711,7 +712,7 @@ def make_central(db_path):
     app = web.Application(middlewares=[cors])
     app["central"] = c
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
-                     ("logout", c.logout), ("recovery", c.recovery), ("ticket", c.ticket), ("verify", c.verify),
+                     ("logout", c.logout), ("ticket", c.ticket), ("verify", c.verify),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
                      ("email", c.set_email), ("email/again", c.email_again), ("forgot", c.forgot),
                      ("friends", c.friends), ("friend", c.friend),

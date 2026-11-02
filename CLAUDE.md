@@ -534,7 +534,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - **Every version has the same start screen** (`web/home/`): sign in to your Shards account first (or make one, or a
-  forgotten password by email or recovery code, or play without one); then the menu: Play alone and Host a game (My
+  forgotten password by email, or play without one); then the menu: Play alone and Host a game (My
   network: answered on its network; Friends: that, and the host's friends anywhere, through the central server) in
   the apps, and Friends' games (the games friends host or play; your friends), Join a local game (the network's, or
   an address; a browser: an address only) and Public servers (a limited beta: the central server's list) everywhere.
@@ -564,7 +564,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   admin's: **Delete** keeps the name back (`accounts.deleted`, so nobody gets its characters), **Delete and free the
   name** takes the row too; an account the central server doesn't have counts as banned on a game server.
   A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:...`, never this machine or its network.
-  Never add a password or a recovery code to a game server again. The logo is pixel art made by
+  Never add a password or a recovery code to a game server again. A Shards account has no recovery code either: every
+  account has an email, confirmed before it can join a game (no ticket till then; the app's own game needs none), and a
+  forgotten password goes only to a confirmed one. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.

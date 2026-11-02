@@ -1,7 +1,7 @@
 """Email from the central server (a link to confirm an address, a forgotten password's code), through any mail service's
 SMTP (the standard library's smtplib): DS_SMTP_HOST, DS_SMTP_PORT (587), DS_SMTP_USER, DS_SMTP_PASSWORD, DS_SMTP_FROM,
-and DS_SMTP_TLS (starttls, the default; ssl for port 465; none). Without DS_SMTP_HOST there's no email, and the recovery
-code is the only way back in.
+and DS_SMTP_TLS (starttls, the default; ssl for port 465; none). Without DS_SMTP_HOST there's no email, and a forgotten
+password can't be reset.
 
   python -m central.mail you@example.com      (a test email, or why it didn't go)"""
 import os

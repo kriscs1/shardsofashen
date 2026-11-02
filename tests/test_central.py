@@ -7,11 +7,23 @@ import socket
 import time
 
 import aiohttp
+import pytest
 from aiohttp import web
 
 from central.app import make_central
+from central.store import CentralStore
 from server.app import make_app, GAME
 from tests.test_server import ROOT, come_in, device_of, replies
+
+
+SIGNUP = {"password": "longpassword", "email": "player@example.com"}
+
+
+@pytest.fixture
+def confirmed(monkeypatch):
+    """Sign-ups whose email counts at once (each its own): for the tests about what comes after."""
+    monkeypatch.setattr(CentralStore, "set_pending_email",
+                        lambda self, name, email: self.set_email(name, name.lower() + "@example.com"))
 
 
 def free_port():
@@ -89,7 +101,7 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
                     async with http.post(c + "/confirm", data={"code": code}) as r:
                         return await r.text()
 
-                r = await post(http, c + "/api/register", {"name": "Ann", "password": "longpassword",
+                r = await post(http, c + "/api/register", {"name": "Ann", **SIGNUP,
                                                            "email": "ann@example.com"})
                 assert r["confirm"]
                 token = r["token"]
@@ -121,7 +133,7 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
                 new_link = link_in(mail.SENT[0][2])
                 assert "run out" in await confirm(old_link)                                    # (the newer link only)
 
-                other = await post(http, c + "/api/register", {"name": "Bob", "password": "longpassword",
+                other = await post(http, c + "/api/register", {"name": "Bob", **SIGNUP,
                                                                "email": "bob@example.com"})
                 refused = await post(http, c + "/api/email", {"token": other["token"], "email": "ann@example.com"})
                 assert not refused["ok"]                                                       # (confirmed: Ann's)
@@ -131,8 +143,9 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
                 assert "on another account" in await confirm(bobs)                             # (Ann got there first)
                 assert (await post(http, c + "/api/account", {"token": other["token"]}))["email"] == ""
 
-                r = await post(http, c + "/api/email", {"token": token, "email": ""})          # (taken off)
-                assert r["email"] == "" and await forgot("Ann") == []
+                r = await post(http, c + "/api/email", {"token": token, "email": ""})          # (it can't be taken off)
+                assert not r["ok"] and "needs an email" in r["text"]
+                assert (await post(http, c + "/api/account", {"token": token}))["email"] == "new@example.com"
 
                 mail.SENT.clear()                                                              # (no flooding an address)
                 capp["central"].confirms = {}                                                  # (a new day's count)
@@ -156,6 +169,57 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
     asyncio.run(go())
 
 
+def test_no_recovery_codes_and_every_account_has_an_email(tmp_path, monkeypatch):
+    """A forgotten password goes only by email. An account from before has its old code wiped; with no email it's asked
+    for one, and can't join a game till it's given."""
+    path = str(tmp_path / "central.db")
+    old = CentralStore(path)
+    old.create_account("Oldie", "not-a-real-hash")
+    old.db.execute("UPDATE accounts SET recover = 'a-saved-code-hash' WHERE name = 'Oldie'")
+    old.db.close()
+
+    async def go():
+        capp = make_central(path)
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        store = capp["central"].store
+        try:
+            async with aiohttp.ClientSession() as http:
+                assert store.account("Oldie")[2] == ""                                         # (wiped)
+                assert (await http.post(c + "/api/recovery", json={"token": "x"})).status == 404
+                r = await post(http, c + "/api/register", {"name": "Nomail", "password": "longpassword"})
+                assert not r["ok"] and "needs an email" in r["text"]
+                r = await post(http, c + "/api/register", {"name": "Nomail", "password": "longpassword", "email": "nope"})
+                assert not r["ok"] and "doesn't look like" in r["text"]
+
+                r = await post(http, c + "/api/register", {"name": "Newbie", **SIGNUP})
+                assert r["ok"] and r["confirm"] and "recovery" not in r
+                assert (await post(http, c + "/api/me", {"token": r["token"]}))["needs_email"] is False
+                m = await post(http, c + "/api/ticket", {"token": r["token"], "server": "abc"})
+                assert not m["ok"] and m["refused"] and "Confirm your email" in m["text"]      # (not till it's confirmed)
+                store.set_email("Newbie", "player@example.com")
+                assert (await post(http, c + "/api/ticket", {"token": r["token"], "server": "abc"}))["ok"]
+
+                token = store.new_token("Oldie")
+                assert (await post(http, c + "/api/me", {"token": token}))["needs_email"] is True
+                m = await post(http, c + "/api/ticket", {"token": token, "server": "abc"})
+                assert not m["ok"] and m["refused"] and "needs an email" in m["text"]
+                assert (await post(http, c + "/api/email", {"token": token, "email": "old@example.com"}))["ok"]
+                assert (await post(http, c + "/api/me", {"token": token}))["needs_email"] is False
+                m = await post(http, c + "/api/ticket", {"token": token, "server": "abc"})
+                assert not m["ok"] and "Confirm your email" in m["text"]
+                store.set_email("Oldie", "old@example.com")
+                assert (await post(http, c + "/api/ticket", {"token": token, "server": "abc"}))["ok"]
+
+                m = await post(http, c + "/api/reset", {"name": "Newbie", "code": "AAAA-BBBB", "password": "newpassword1"})
+                assert not m["ok"]                                                             # (no code of any other kind)
+                m = await post(http, c + "/api/forgot", {"who": "Newbie"})
+                assert not m["ok"] and "recovery" not in m["text"]                             # (no email to send: says so)
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
 def test_a_bans_reason_shows_where_they_have_proved_who_they_are(tmp_path, monkeypatch):
     """Signing in, or a ticket, says why. Anyone can ask whether a name is banned, so that never says why."""
     async def go():
@@ -165,12 +229,12 @@ def test_a_bans_reason_shows_where_they_have_proved_who_they_are(tmp_path, monke
         store = crunner.app["central"].store
         try:
             async with aiohttp.ClientSession() as http:
-                tok = (await post(http, central + "/api/register", {"name": "Rogue", "password": "longpassword"}))["token"]
+                tok = (await post(http, central + "/api/register", {"name": "Rogue", **SIGNUP}))["token"]
                 store.set_banned("Rogue", "cheating at cards")
                 m = await post(http, central + "/api/login", {"name": "Rogue", "password": "longpassword"})
                 assert "cheating at cards" in m["text"]
                 m = await post(http, central + "/api/ticket", {"token": tok, "server": "abc"})
-                assert not m["ok"] and "cheating at cards" in m["text"]
+                assert not m["ok"] and m["refused"] and "cheating at cards" in m["text"]
                 m = await post(http, central + "/api/game/standing", {"name": "Rogue"})
                 assert m["banned"] is True and "cheating" not in json.dumps(m)
         finally:
@@ -178,7 +242,7 @@ def test_a_bans_reason_shows_where_they_have_proved_who_they_are(tmp_path, monke
     asyncio.run(go())
 
 
-def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, monkeypatch):
+def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, monkeypatch, confirmed):
     """Either way all that's theirs goes and they're turned away from a game. Delete keeps the name back; the other
     frees it. An admin can't be deleted (a name in DS_CENTRAL_ADMINS left free would make whoever took it an admin)."""
     async def go():
@@ -193,13 +257,13 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
         store = capp["central"].store
         try:
             async with aiohttp.ClientSession() as http:
-                boss = (await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword",
+                boss = (await post(http, c + "/api/register", {"name": "Boss", **SIGNUP,
                                                                "claim": capp["central"].claims.get("boss", "")}))["token"]
-                pal = (await post(http, c + "/api/register", {"name": "Pal", "password": "longpassword"}))["token"]
+                pal = (await post(http, c + "/api/register", {"name": "Pal", **SIGNUP}))["token"]
 
                 async def signup(name):
                     capp["central"].signups.clear()
-                    return (await post(http, c + "/api/register", {"name": name, "password": "longpassword",
+                    return (await post(http, c + "/api/register", {"name": name, **SIGNUP,
                                                                    "email": name + "@example.com"}))["token"]
 
                 async def gone_from_everywhere(name, tok):
@@ -253,7 +317,7 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
                 m = await post(http, c + "/api/reset", {"name": "Kept", "code": "", "password": "anotherpassword"})
                 assert not m["ok"]
                 capp["central"].signups.clear()
-                m = await post(http, c + "/api/register", {"name": "kept", "password": "longpassword"})
+                m = await post(http, c + "/api/register", {"name": "kept", **SIGNUP})
                 assert not m["ok"] and "taken" in m["text"]                     # (nor by another case of it)
                 assert not (await post(http, c + "/api/friend", {"token": pal, "name": "Kept"}))["ok"]
                 assert not (await post(http, c + "/api/admin/ban", {"token": boss, "name": "Kept"}))["ok"]
@@ -295,20 +359,20 @@ def test_a_new_account_with_an_email_is_welcomed(tmp_path, monkeypatch):
         try:
             async with aiohttp.ClientSession() as http:
                 r = await post(http, central + "/api/register", {"name": "Quiet", "password": "longpassword"})
-                assert r["ok"]
-                r = await post(http, central + "/api/register", {"name": "Hello", "password": "longpassword",
+                assert not r["ok"] and "needs an email" in r["text"]            # (one's required)
+                r = await post(http, central + "/api/register", {"name": "Hello", **SIGNUP,
                                                                  "email": "hello@example.com"})
                 assert r["ok"]
                 await asyncio.sleep(0.2)
-                assert [m[0] for m in mail.SENT] == ["hello@example.com"]       # (none for Quiet)
+                assert [m[0] for m in mail.SENT] == ["hello@example.com"]
                 to, subject, text = mail.SENT[0]
                 assert "confirm" in subject and "Welcome" in text and "Hello" in text and link_in(text)
-                assert "longpassword" not in text and r["recovery"] not in text
+                assert "longpassword" not in text and "recovery" not in r
 
                 def broken(*args):
                     raise OSError("the mail service is away")
                 monkeypatch.setattr(mail, "send", broken)
-                r = await post(http, central + "/api/register", {"name": "Still", "password": "longpassword",
+                r = await post(http, central + "/api/register", {"name": "Still", **SIGNUP,
                                                                  "email": "still@example.com"})
                 assert r["ok"] and r["token"]
                 await asyncio.sleep(0.2)
@@ -321,7 +385,7 @@ def test_a_new_account_with_an_email_is_welcomed(tmp_path, monkeypatch):
     assert msg["Message-ID"].endswith("@hallisium.com>")
 
 
-def test_a_central_ban_reaches_those_who_come_straight_back(tmp_path, monkeypatch):
+def test_a_central_ban_reaches_those_who_come_straight_back(tmp_path, monkeypatch, confirmed):
     """A device that came in by its account comes back with no ticket: still them, till the central server bans the
     account (and that turns away who's playing, at the next minute's check). The central server away isn't a ban."""
     async def go():
@@ -335,8 +399,8 @@ def test_a_central_ban_reaches_those_who_come_straight_back(tmp_path, monkeypatc
         url = "ws://127.0.0.1:%d/ws" % gport
         try:
             async with aiohttp.ClientSession() as http:
-                boss = (await post(http, central + "/api/register", {"name": "Boss", "password": "longpassword"}))["token"]
-                tok = (await post(http, central + "/api/register", {"name": "Rogue", "password": "longpassword"}))["token"]
+                boss = (await post(http, central + "/api/register", {"name": "Boss", **SIGNUP}))["token"]
+                tok = (await post(http, central + "/api/register", {"name": "Rogue", **SIGNUP}))["token"]
 
                 async def ticket():
                     return (await post(http, central + "/api/ticket", {"token": tok, "server": game.server_id()}))["ticket"]
@@ -384,7 +448,7 @@ def test_the_central_server_says_its_version_and_who_is_behind(tmp_path, monkeyp
         try:
             async with aiohttp.ClientSession() as http:
                 assert (await (await http.get(central + "/health")).json())["version"].endswith(".500")
-                boss = (await post(http, central + "/api/register", {"name": "Boss", "password": "longpassword"}))["token"]
+                boss = (await post(http, central + "/api/register", {"name": "Boss", **SIGNUP}))["token"]
                 for name, version in (("Old", "1.0.499"), ("Same", "1.0.500"), ("New", "1.0.501"), ("Dev", "1.0-dev"),
                                       ("Quiet", "")):
                     r = await post(http, central + "/api/announce", {"name": name, "url": "https://%s.example.com" % name,
@@ -399,7 +463,7 @@ def test_the_central_server_says_its_version_and_who_is_behind(tmp_path, monkeyp
     asyncio.run(go())
 
 
-def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
+def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch, confirmed):
     async def go():
         crunner, cport = await run(make_central(str(tmp_path / "central.db")))
         central = "http://127.0.0.1:%d" % cport
@@ -413,8 +477,8 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
         wsurl = "ws://127.0.0.1:%d/ws" % gport
         try:
             async with aiohttp.ClientSession() as http:
-                r = await post(http, central + "/api/register", {"name": "Wanderer", "password": "longpassword"})
-                assert r["ok"] and r["token"] and len(r["recovery"]) == 19
+                r = await post(http, central + "/api/register", {"name": "Wanderer", **SIGNUP})
+                assert r["ok"] and r["token"]
                 token = r["token"]
                 for _ in range(40):                                     # (it announces itself as it starts)
                     await asyncio.sleep(0.1)
@@ -496,9 +560,9 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
         c = "http://127.0.0.1:%d" % port
         try:
             async with aiohttp.ClientSession() as http:
-                assert not (await post(http, c + "/api/register", {"name": "Mail", "password": "longpassword",
+                assert not (await post(http, c + "/api/register", {"name": "Mail", **SIGNUP,
                                                                     "email": "not an email"}))["ok"]
-                r = await post(http, c + "/api/register", {"name": "Mail", "password": "longpassword",
+                r = await post(http, c + "/api/register", {"name": "Mail", **SIGNUP,
                                                             "email": "mail@example.com"})
                 assert r["ok"]
                 await until_mail(mail)                  # (the link goes to one side: past it, to the code)
@@ -512,7 +576,7 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                                                                  "password": "newpassword1"}))["ok"]
                 r = await post(http, c + "/api/reset", {"name": "mail@example.com", "code": code,
                                                          "password": "newpassword1"})
-                assert r["ok"] and r["recovery"]
+                assert r["ok"] and r["name"] == "Mail" and "recovery" not in r
                 assert not (await post(http, c + "/api/reset", {"name": "Mail", "code": code,
                                                                  "password": "newpassword2"}))["ok"]   # (used up)
                 assert (await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"}))["ok"]
@@ -527,9 +591,9 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                 assert hello["adsense"]["client"] == "ca-pub-1234567890" and hello["mail"]
                 assert "admin" in (await (await http.get(c + "/admin")).text()).lower()
 
-                squat = await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword"})
+                squat = await post(http, c + "/api/register", {"name": "Boss", **SIGNUP})
                 assert not squat["ok"] and squat["claim"]       # (an admin's name: only with the code from the log)
-                boss = (await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword",
+                boss = (await post(http, c + "/api/register", {"name": "Boss", **SIGNUP,
                                                                "claim": capp["central"].claims["boss"]}))["token"]
                 mine = (await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"}))["token"]
                 assert not (await post(http, c + "/api/admin/stats", {"token": mine}))["ok"]    # (not an admin)
@@ -581,7 +645,7 @@ def test_a_listed_game_is_approved_again_when_it_changes_and_calls_are_limited(t
     asyncio.run(go())
 
 
-def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch):
+def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
     """Two Shards accounts: one asks, the other accepts (on the start screen, or in a game by right-click or the
     journal), and they're friends in every game, any character of theirs; a game says where they're playing; the
     world's old friends of a character move over to its account; a homestead lets an account's friends in."""
@@ -597,7 +661,7 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch):
             async with aiohttp.ClientSession() as http:
                 tok = {}
                 for n in ("Alpha", "Beta", "Gamma"):
-                    tok[n] = (await post(http, central + "/api/register", {"name": n, "password": "longpassword"}))["token"]
+                    tok[n] = (await post(http, central + "/api/register", {"name": n, **SIGNUP}))["token"]
                 r = await post(http, central + "/api/friend", {"token": tok["Alpha"], "name": "nobody"})
                 assert not r["ok"]
                 r = await post(http, central + "/api/friend", {"token": tok["Alpha"], "name": "gamma"})
@@ -665,7 +729,7 @@ def test_a_hosted_games_files_are_kept_by_its_code_too(tmp_path, monkeypatch):
     game.store.close()
 
 
-def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypatch):
+def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypatch, confirmed):
     """Hosting for friends: the game connects out to the central server with its host's key (from the ticket the host
     came in with), its host's friends see it and come in through <central>/play/<id>/ (the page, its files, the game);
     anyone else, or a device with no account, is turned away."""
@@ -686,7 +750,7 @@ def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypa
             async with aiohttp.ClientSession() as http:
                 tok = {}
                 for n in ("Hostess", "Pal", "Stranger"):
-                    tok[n] = (await post(http, central + "/api/register", {"name": n, "password": "longpassword"}))["token"]
+                    tok[n] = (await post(http, central + "/api/register", {"name": n, **SIGNUP}))["token"]
                 await post(http, central + "/api/friend", {"token": tok["Hostess"], "name": "Pal"})
                 await post(http, central + "/api/friend", {"token": tok["Pal"], "name": "Hostess"})
                 t = await post(http, central + "/api/ticket", {"token": tok["Hostess"], "server": key})
