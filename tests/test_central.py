@@ -178,6 +178,110 @@ def test_a_bans_reason_shows_where_they_have_proved_who_they_are(tmp_path, monke
     asyncio.run(go())
 
 
+def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, monkeypatch):
+    """Either way all that's theirs goes and they're turned away from a game. Delete keeps the name back; the other
+    frees it. An admin can't be deleted (a name in DS_CENTRAL_ADMINS left free would make whoever took it an admin)."""
+    async def go():
+        monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
+        capp = make_central(str(tmp_path / "central.db"))
+        crunner, cport = await run(capp)
+        c = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL", c)
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5)
+        grunner, gport = await run(gapp)
+        game, url = gapp[GAME], "ws://127.0.0.1:%d/ws" % gport
+        store = capp["central"].store
+        try:
+            async with aiohttp.ClientSession() as http:
+                boss = (await post(http, c + "/api/register", {"name": "Boss", "password": "longpassword",
+                                                               "claim": capp["central"].claims.get("boss", "")}))["token"]
+                pal = (await post(http, c + "/api/register", {"name": "Pal", "password": "longpassword"}))["token"]
+
+                async def signup(name):
+                    capp["central"].signups.clear()
+                    return (await post(http, c + "/api/register", {"name": name, "password": "longpassword",
+                                                                   "email": name + "@example.com"}))["token"]
+
+                async def gone_from_everywhere(name, tok):
+                    assert not (await post(http, c + "/api/me", {"token": tok}))["ok"]
+                    assert not (await post(http, c + "/api/ticket", {"token": tok, "server": "abc"}))["ok"]
+                    assert (await post(http, c + "/api/game/standing", {"name": name}))["banned"] is True
+                    assert (await post(http, c + "/api/friends", {"token": pal}))["friends"] == []
+                    for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing"):
+                        assert not store.db.execute("SELECT 1 FROM %s WHERE name = ?" % table, (name,)).fetchone()
+                    assert not store.db.execute("SELECT 1 FROM friends WHERE who = ? OR whom = ?", (name, name)).fetchone()
+
+                # (not for anyone but an admin, and not an admin)
+                assert not (await post(http, c + "/api/admin/delete", {"token": pal, "name": "Boss"}))["ok"]
+                m = await post(http, c + "/api/admin/erase", {"token": boss, "name": "Boss"})
+                assert not m["ok"] and "admin" in m["text"] and store.account("Boss")
+                await post(http, c + "/api/admin/make_admin", {"token": boss, "name": "Pal", "on": True})
+                assert not (await post(http, c + "/api/admin/delete", {"token": boss, "name": "Pal"}))["ok"]
+                await post(http, c + "/api/admin/make_admin", {"token": boss, "name": "Pal", "on": False})
+
+                # (Delete: in play with a key, and hosting for friends)
+                tok = await signup("Kept")
+                await post(http, c + "/api/friend", {"token": tok, "name": "Pal"})
+                await post(http, c + "/api/friend", {"token": pal, "name": "Kept"})
+                assert (await post(http, c + "/api/friends", {"token": pal}))["friends"] == ["Kept"]
+                ticket = (await post(http, c + "/api/ticket", {"token": tok, "server": game.server_id()}))["ticket"]
+                ws, m = await ticket_in(http, url, ticket, name="Keeper", device="a laptop")
+                assert m["t"] == "welcome"
+                grant = store.new_grant("Kept", "hostgame1")
+                host = await http.ws_connect("http://127.0.0.1:%d/api/relay?grant=%s&key=hostgame1" % (cport, grant))
+                await asyncio.sleep(0.1)
+                assert "hostgame1" in capp["central"].relays.tunnels
+                count = store.count_accounts()
+
+                assert (await post(http, c + "/api/admin/delete", {"token": boss, "name": "Kept"}))["ok"]
+                await gone_from_everywhere("Kept", tok)
+                await host.receive()
+                assert host.closed and "hostgame1" not in capp["central"].relays.tunnels
+                await game.keep_friends()                                       # (the minute's check, in play)
+                assert (await replies(ws, ("kicked",)))["t"] == "kicked"
+                await ws.close()
+                await asyncio.sleep(0.2)
+                back, m = await come_in(http, url, device_of("a laptop"))       # (straight back: no ticket)
+                assert m["t"] == "login_fail"
+                await back.close()
+
+                acct = store.account("Kept")
+                assert acct[1:5] == ("", "", "", "") and not acct[5] and acct[6]    # (the name, and nothing else of theirs)
+                assert store.count_accounts() == count - 1
+                m = await post(http, c + "/api/login", {"name": "Kept", "password": "longpassword"})
+                assert not m["ok"] and "deleted" in m["text"]
+                m = await post(http, c + "/api/reset", {"name": "Kept", "code": "", "password": "anotherpassword"})
+                assert not m["ok"]
+                capp["central"].signups.clear()
+                m = await post(http, c + "/api/register", {"name": "kept", "password": "longpassword"})
+                assert not m["ok"] and "taken" in m["text"]                     # (nor by another case of it)
+                assert not (await post(http, c + "/api/friend", {"token": pal, "name": "Kept"}))["ok"]
+                assert not (await post(http, c + "/api/admin/ban", {"token": boss, "name": "Kept"}))["ok"]
+                assert not (await post(http, c + "/api/admin/make_admin", {"token": boss, "name": "Kept", "on": True}))["ok"]
+                found = (await post(http, c + "/api/admin/accounts", {"token": boss, "q": "Kept"}))["accounts"]
+                assert found[0]["deleted"] and not found[0]["email"]
+
+                # (and a name kept back can be freed after)
+                assert (await post(http, c + "/api/admin/erase", {"token": boss, "name": "Kept"}))["ok"]
+                assert store.account("Kept") is None
+
+                # (Delete and free the name: another may take it, and the email)
+                tok = await signup("Freed")
+                store.set_email("Freed", "Freed@example.com")
+                assert (await post(http, c + "/api/admin/erase", {"token": boss, "name": "Freed"}))["ok"]
+                await gone_from_everywhere("Freed", tok)
+                assert store.account("Freed") is None and store.account_by_email("Freed@example.com") is None
+                m = await post(http, c + "/api/login", {"name": "Freed", "password": "longpassword"})
+                assert not m["ok"] and "deleted" not in m["text"]
+                new = await signup("Freed")
+                assert (await post(http, c + "/api/me", {"token": new}))["name"] == "Freed"
+                assert (await post(http, c + "/api/game/standing", {"name": "Freed"}))["banned"] is False
+        finally:
+            await grunner.cleanup()
+            await crunner.cleanup()
+    asyncio.run(go())
+
+
 def test_a_new_account_with_an_email_is_welcomed(tmp_path, monkeypatch):
     """A welcome with its link for whoever gives an address (never their password or recovery code), and a mail
     service's trouble doesn't stop the sign-up. Email that goes has what mail services want of it."""

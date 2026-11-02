@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS servers (
 """
 # (columns added since: put on an older database as it opens)
 COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admin", "INTEGER NOT NULL DEFAULT 0"),
-           ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0")]
+           ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0"),
+           ("accounts", "deleted", "REAL NOT NULL DEFAULT 0")]
 MAIL_CODE_MINUTES = 30
 CONFIRM_DAYS = 3                # (a link to confirm an email works this long)
 UNCONFIRMED_DAYS = 30           # (an email nobody confirmed is forgotten after this)
@@ -105,9 +106,9 @@ class CentralStore:
 
     # ----- accounts
     def account(self, name):
-        """(name as made, password hash, recovery hash, banned why, email, admin) or None."""
-        return self.db.execute("SELECT name, password, recover, banned, email, admin FROM accounts WHERE name = ?",
-                               (name,)).fetchone()
+        """(name as made, password hash, recovery hash, banned why, email, admin, when deleted (its name kept)) or None."""
+        return self.db.execute("SELECT name, password, recover, banned, email, admin, deleted FROM accounts "
+                               "WHERE name = ?", (name,)).fetchone()
 
     def account_by_email(self, email):
         row = self.db.execute("SELECT name FROM accounts WHERE email = ? COLLATE NOCASE AND email != ''",
@@ -127,9 +128,27 @@ class CentralStore:
     def find_accounts(self, q, limit=50):
         like = "%" + q.replace("%", "") + "%"
         waiting = "(SELECT email FROM mailchecks WHERE mailchecks.name = accounts.name)"
-        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, '') FROM accounts WHERE name LIKE ? "
-                               "OR email LIKE ? OR %s LIKE ? ORDER BY made DESC LIMIT ?" % (waiting, waiting),
-                               (like, like, like, limit)).fetchall()
+        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, ''), deleted FROM accounts "
+                               "WHERE name LIKE ? OR email LIKE ? OR %s LIKE ? ORDER BY made DESC LIMIT ?"
+                               % (waiting, waiting), (like, like, like, limit)).fetchall()
+
+    def delete_account(self, name, keep_name):
+        """All of an account's gone at once: its logins, keys, emails, friends. keep_name: its row stays, emptied, so
+        nobody else can take the name (and the characters that go by it); else the name's free for anyone."""
+        self.db.execute("BEGIN")
+        try:
+            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing"):
+                self.db.execute("DELETE FROM %s WHERE name = ? COLLATE NOCASE" % table, (name,))
+            self.db.execute("DELETE FROM friends WHERE who = ? OR whom = ?", (name, name))
+            if keep_name:
+                self.db.execute("UPDATE accounts SET password = '', recover = '', email = '', banned = '', admin = 0, "
+                                "deleted = ? WHERE name = ?", (time.time(), name))
+            else:
+                self.db.execute("DELETE FROM accounts WHERE name = ?", (name,))
+            self.db.execute("COMMIT")
+        except sqlite3.Error:
+            self.db.execute("ROLLBACK")
+            raise
 
     # ----- an email waiting to be confirmed (accounts.email is only ever one that has been)
     def set_pending_email(self, name, email):
@@ -191,7 +210,7 @@ class CentralStore:
         self.db.execute("UPDATE accounts SET banned = ? WHERE name = ?", (why, name))
 
     def count_accounts(self):
-        return self.db.execute("SELECT COUNT(*) FROM accounts").fetchone()[0]
+        return self.db.execute("SELECT COUNT(*) FROM accounts WHERE deleted = 0").fetchone()[0]
 
     # ----- log-in tokens (kept by the app or browser: no password each time)
     def new_token(self, name):

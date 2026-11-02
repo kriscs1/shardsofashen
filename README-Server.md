@@ -396,7 +396,7 @@ lists the remote game servers (each announces itself to it), and it serves the a
   admin page (`https://central.example.com/admin`, signed in with a Shards account named in `DS_CENTRAL_ADMINS` (one
   with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
-  also finds accounts (ban, unban, make admin), edits the start screen's ads, and counts everything.
+  also finds accounts (ban, unban, make admin, delete), edits the start screen's ads, and counts everything.
 - **Email (a link to confirm an address, a forgotten password's code)**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`,
   `DS_SMTP_USER`, `DS_SMTP_PASSWORD`, `DS_SMTP_FROM`, `DS_SMTP_TLS`: any mail service's SMTP, e.g. Namecheap Private Email,
   Brevo, Mailgun, SES, or Gmail with an app password). `central.env.example` has Namecheap's. The domain's DNS must say

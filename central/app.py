@@ -26,7 +26,7 @@ its own accounts too, for a network with no way to reach here.
   POST /api/announce  {key, secret, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
-  POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, ads, stats)
+  POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, deleting, ads, stats)
   GET  /confirm?code=, POST /confirm {code}       a link's page, and its button (a mail scanner opens links: only the
                                                   button confirms)
   GET  /admin, /privacy, /ads.txt, /app-ads.txt   the admin page, the privacy policy, AdSense's and AdMob's lines
@@ -271,6 +271,8 @@ class Central:
         if w:
             return no("Too many tries: wait %d seconds." % w)
         acct = self.store.account(name)
+        if acct and acct[6]:
+            return no("%s has been deleted." % acct[0])
         at = self.failed(name, addr)
         if acct is None or not await self.matches(str(d.get("password", ""))[:200], acct[1]):
             return no("That name and password don't go together.")
@@ -412,8 +414,9 @@ class Central:
         return yes(name=name, grant=self.store.new_grant(name, server), **self.friends_of(name))
 
     def is_banned(self, name):
+        """Kept out: banned, or the account's been deleted (a device it came in by doesn't go on being let in)."""
         acct = self.store.account(name)
-        return bool(acct and acct[3])
+        return acct is None or bool(acct[3] or acct[6])
 
     async def game_standing(self, request):
         """A game server, for someone who came straight back to it with no ticket: is the account banned? Only that:
@@ -434,7 +437,7 @@ class Central:
     def change_friend(self, name, other, remove):
         """name asks other to be friends (or accepts their ask), or they're friends no more: (what happened, why not)."""
         acct = self.store.account(auth.clean_name(other))
-        if acct is None:
+        if acct is None or acct[6]:
             return "", "There's no Shards account called %s." % str(other)[:20]
         if acct[0].lower() == name.lower():
             return "", "That's your own account."
@@ -543,17 +546,27 @@ class Central:
             return yes()
         if what == "accounts":
             rows = self.store.find_accounts(str(d.get("q", ""))[:60])
-            return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b,
-                                  "admin": bool(a) or self.is_admin(n), "made": int(m)} for n, e, b, a, m, p in rows])
-        if what == "ban":
+            return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b, "deleted": int(x),
+                                  "admin": bool(a) or self.is_admin(n), "made": int(m)} for n, e, b, a, m, p, x in rows])
+        if what in ("delete", "erase"):                 # (delete: the name's kept back; erase: it's free for anyone)
             acct = self.store.account(str(d.get("name", "")))
             if acct is None:
+                return no("No such account.")
+            if self.is_admin(acct[0]):                  # (nor could a name in DS_CENTRAL_ADMINS be left for anyone to take)
+                return no("%s is an admin: take that away first." % acct[0])
+            self.store.delete_account(acct[0], what == "delete")
+            await self.relays.stop_hosting(acct[0])
+            log.info("%s %s account %s", name, "deleted" if what == "delete" else "erased", acct[0])
+            return yes()
+        if what == "ban":
+            acct = self.store.account(str(d.get("name", "")))
+            if acct is None or acct[6]:
                 return no("No such account.")
             self.store.set_banned(acct[0], str(d.get("why", ""))[:100])
             return yes()
         if what == "make_admin":
             acct = self.store.account(str(d.get("name", "")))
-            if acct is None:
+            if acct is None or acct[6]:
                 return no("No such account.")
             self.store.set_admin(acct[0], bool(d.get("on")))
             return yes()

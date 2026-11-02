@@ -559,7 +559,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   one that has. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
   so playing alone needs no network. A device that came in by an account is that account's on that server after, unless
   the central server has banned it (`central_banned`: asked each time and every minute in play; no answer isn't a ban;
-  it says only yes or no, so the reason shows where they've proved who they are: signing in, or a ticket).
+  it says only yes or no, so the reason shows where they've proved who they are: signing in, or a ticket). The central
+  server's admin page deletes an account two ways, its email, password, friends and keys gone either way, never an
+  admin's: **Delete** keeps the name back (`accounts.deleted`, so nobody gets its characters), **Delete and free the
+  name** takes the row too; an account the central server doesn't have counts as banned on a game server.
   A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:...`, never this machine or its network.
   Never add a password or a recovery code to a game server again. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).

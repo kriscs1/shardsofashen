@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- The central server's admin page (central/app.py /api/admin/...): the servers waiting to be listed and those listed,
-     accounts (find, ban, make admin), the start screen's ads, and how many of each. An admin's Shards account only. -->
+     accounts (find, ban, delete, make admin), the start screen's ads, and how many of each. An admin's Shards account only. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -153,16 +153,24 @@ async function loadAccounts() {
   if (!r.ok) return;
   $("account-rows").innerHTML = r.accounts.length ? r.accounts.map((a) => `<tr>
     <td>${esc(a.name)}<div class="dim">since ${new Date(a.made * 1000).toLocaleDateString()}</div></td>
-    <td>${a.banned ? `<span class="tag wait">Banned: ${esc(a.banned)}</span>` : '<span class="tag">Fine</span>'}
+    <td>${a.deleted ? `<span class="tag wait">Deleted ${new Date(a.deleted * 1000).toLocaleDateString()}: name kept</span>` :
+      a.banned ? `<span class="tag wait">Banned: ${esc(a.banned)}</span>` : '<span class="tag">Fine</span>'}
       ${a.admin ? '<span class="tag ok">Admin</span>' : ""}</td>
     <td>${esc(a.email) || '<span class="dim">none</span>'}
       ${a.pending ? `<div class="dim">${esc(a.pending)} (not confirmed)</div>` : ""}</td>
-    <td class="row">${a.banned ? `<button data-n="${esc(a.name)}" data-ban="">Unban</button>` :
+    <td class="row">${a.deleted ? "" : `${a.banned ? `<button data-n="${esc(a.name)}" data-ban="">Unban</button>` :
       `<button class="bad" data-n="${esc(a.name)}" data-ban="1">Ban</button>`}
-      <button data-n="${esc(a.name)}" data-adm="${a.admin ? 0 : 1}">${a.admin ? "Not admin" : "Make admin"}</button></td></tr>`).join("") :
+      <button data-n="${esc(a.name)}" data-adm="${a.admin ? 0 : 1}">${a.admin ? "Not admin" : "Make admin"}</button>`}
+      ${a.admin ? "" : `${a.deleted ? "" : `<button class="bad" data-n="${esc(a.name)}" data-del="delete">Delete</button>`}
+      <button class="bad" data-n="${esc(a.name)}" data-del="erase">${a.deleted ? "Free the name" : "Delete and free the name"}</button>`}</td></tr>`).join("") :
     '<tr><td colspan="4" class="dim">No accounts found.</td></tr>';
   for (const b of $("account-rows").querySelectorAll("button")) b.onclick = async () => {
-    if (b.dataset.ban !== undefined) {
+    if (b.dataset.del) {
+      if (!confirm(b.dataset.del === "delete" ?
+        `Delete ${b.dataset.n}? Their email, password and friends go for good, and they can't sign in. The name stays taken, so nobody else can have it or their characters on game servers.` :
+        `Delete ${b.dataset.n} and free the name? Everything of theirs here goes for good. Anyone can then sign up as ${b.dataset.n}, and whoever does gets the characters that name has on game servers.`)) return;
+      await admin(b.dataset.del, { name: b.dataset.n });
+    } else if (b.dataset.ban !== undefined) {
       const why = b.dataset.ban ? prompt("Why? (They're told.)", "breaking the rules") : "";
       if (why === null) return;
       await admin("ban", { name: b.dataset.n, why });

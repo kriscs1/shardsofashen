@@ -523,8 +523,11 @@ class GameServer:
             if not s.connected:
                 continue
             if getattr(s, "grant", ""):
-                await self.friends_now(s)
-            elif s.account and await self.central_banned(s.account):    # (come straight back: no key to their friends)
+                got = await self.friends_now(s)
+                if got is None or got.get("ok") or got.get("banned"):
+                    continue
+            # (come straight back, no key to their friends; or their key's no good: run out, or the account's deleted)
+            if s.account and await self.central_banned(s.account):
                 await self.turn_away(s)
         await self.host_friends_now()
 

@@ -49,6 +49,11 @@ class Relays:
         return {low[t.account.lower()]: {"key": t.key, "place": t.place}
                 for t in self.tunnels.values() if t.account.lower() in low}
 
+    async def stop_hosting(self, account):
+        """An account deleted: the games it's hosting for friends close (its key's gone, so they can't come back)."""
+        for t in [t for t in self.tunnels.values() if t.account.lower() == account.lower()]:
+            await t.ws.close()
+
     # ----- the host's end
     async def host(self, request):
         q = request.query
