@@ -1,7 +1,13 @@
 """The central server's database (SQLite): accounts, their log-in tokens, the one-time tickets that take a player into
 a game server, the remote servers that announce themselves, and friends: who asked whom (both ways: friends), the
-keys a game server is given to a player's friends while they play there, and where each account is playing."""
+keys a game server is given to a player's friends while they play there, and where each account is playing; and what
+every game server says its characters have got to (level, skills, quests), for the admin page.
+
+Every value in every query here goes in as a ? parameter, never into the query's text: only this file's own table and
+column names are ever put in with %s (a test holds it). And once it's opened, the connection may only read and write
+rows (no_schema_changes), so even a query gone wrong couldn't drop a table or reach another file."""
 import hashlib
+import json
 import os
 import sqlite3
 import time
@@ -69,11 +75,70 @@ CREATE TABLE IF NOT EXISTS servers (
     version TEXT NOT NULL DEFAULT '',
     seen REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS reporters (
+    key TEXT PRIMARY KEY,
+    name TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL DEFAULT '',
+    version TEXT NOT NULL DEFAULT '',
+    listed INTEGER NOT NULL DEFAULT 0,
+    blocked INTEGER NOT NULL DEFAULT 0,
+    made REAL NOT NULL,
+    seen REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS characters (
+    server TEXT NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE,
+    account TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
+    level INTEGER NOT NULL DEFAULT 1,
+    shards INTEGER NOT NULL DEFAULT 0,
+    gold INTEGER NOT NULL DEFAULT 0,
+    map TEXT NOT NULL DEFAULT '',
+    played REAL NOT NULL DEFAULT 0,
+    made REAL NOT NULL,
+    seen REAL NOT NULL,
+    PRIMARY KEY (server, name)
+) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS character_skills (
+    server TEXT NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE,
+    skill TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    xp REAL NOT NULL,
+    PRIMARY KEY (server, name, skill)
+) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS character_quests (
+    server TEXT NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE,
+    quest TEXT NOT NULL,
+    stage INTEGER NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0,
+    began REAL NOT NULL,
+    finished REAL NOT NULL DEFAULT 0,
+    PRIMARY KEY (server, name, quest)
+) WITHOUT ROWID;
 """
 # (columns added since: put on an older database as it opens)
 COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admin", "INTEGER NOT NULL DEFAULT 0"),
            ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0"),
-           ("accounts", "deleted", "REAL NOT NULL DEFAULT 0")]
+           ("accounts", "deleted", "REAL NOT NULL DEFAULT 0"), ("accounts", "google", "TEXT NOT NULL DEFAULT ''")]
+# (what's looked up by something other than its key: after the columns, as some are on those)
+INDEXES = """
+CREATE INDEX IF NOT EXISTS accounts_email ON accounts (email COLLATE NOCASE);
+CREATE UNIQUE INDEX IF NOT EXISTS accounts_google ON accounts (google) WHERE google != '';
+CREATE INDEX IF NOT EXISTS accounts_made ON accounts (made);
+CREATE INDEX IF NOT EXISTS tokens_name ON tokens (name COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS tokens_made ON tokens (made);
+CREATE INDEX IF NOT EXISTS tickets_made ON tickets (made);
+CREATE INDEX IF NOT EXISTS grants_made ON grants (made);
+CREATE INDEX IF NOT EXISTS grants_name ON grants (name COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS friends_whom ON friends (whom);
+CREATE INDEX IF NOT EXISTS mailchecks_token ON mailchecks (token);
+CREATE INDEX IF NOT EXISTS servers_listed ON servers (approved, seen);
+CREATE INDEX IF NOT EXISTS characters_seen ON characters (seen);
+CREATE INDEX IF NOT EXISTS characters_account ON characters (account);
+CREATE INDEX IF NOT EXISTS character_skills_skill ON character_skills (skill, level);
+CREATE INDEX IF NOT EXISTS character_quests_quest ON character_quests (quest, done, stage);
+"""
 MAIL_CODE_MINUTES = 30
 CONFIRM_DAYS = 3                # (a link to confirm an email works this long)
 UNCONFIRMED_DAYS = 30           # (an email nobody confirmed is forgotten after this)
@@ -83,6 +148,10 @@ SERVER_SECONDS = 180            # (a remote server not heard from for this long 
 GRANT_DAYS = 2                  # (a game server's key to a player's friends: while they play there, and a while after)
 PLAYING_SECONDS = 300           # (playing somewhere: as long as their game says so this often)
 MOST_FRIENDS = 200
+PROGRESS_DAYS = 365             # (a character not heard of for a year is forgotten, and a game server that has none left)
+# (all the connection may do once it's open: read and write rows, in transactions)
+ALLOWED = {sqlite3.SQLITE_SELECT, sqlite3.SQLITE_READ, sqlite3.SQLITE_INSERT, sqlite3.SQLITE_UPDATE, sqlite3.SQLITE_DELETE,
+           sqlite3.SQLITE_TRANSACTION, sqlite3.SQLITE_FUNCTION, sqlite3.SQLITE_RECURSIVE}
 
 
 def digest(secret):
@@ -94,16 +163,35 @@ def new_secret():
     return os.urandom(24).hex()
 
 
+def no_schema_changes(action, what, column, database, trigger):
+    """SQLite's authorizer: rows may be read and written; nothing else (no DROP, ALTER, ATTACH or PRAGMA), and not
+    the list of tables."""
+    if action not in ALLOWED:
+        return sqlite3.SQLITE_DENY
+    if action == sqlite3.SQLITE_READ and what in ("sqlite_master", "sqlite_schema", "sqlite_temp_master"):
+        return sqlite3.SQLITE_DENY
+    return sqlite3.SQLITE_OK
+
+
+def like(q):
+    """What a search asks for, as a LIKE that means just that (with ESCAPE '\\': a name can have a _ in it)."""
+    return "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
 class CentralStore:
     def __init__(self, path):
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         self.db = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
+        self.db.execute("PRAGMA journal_mode=WAL")      # (readers don't wait for a writer, and fewer disk syncs)
+        self.db.execute("PRAGMA synchronous=NORMAL")
         self.db.executescript(SCHEMA)
         for table, col, kind in COLUMNS:
             have = [r[1] for r in self.db.execute("PRAGMA table_info(%s)" % table)]
             if col not in have:
                 self.db.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, col, kind))
+        self.db.executescript(INDEXES)
         self.db.execute("UPDATE accounts SET recover = '' WHERE recover != ''")     # (recovery codes are gone: none kept)
+        self.db.set_authorizer(no_schema_changes)
 
     # ----- accounts
     def account(self, name):
@@ -117,9 +205,21 @@ class CentralStore:
                               (email,)).fetchone()
         return self.account(row[0]) if row else None
 
-    def create_account(self, name, pw_hash, email=""):
-        self.db.execute("INSERT INTO accounts (name, password, made, email) VALUES (?, ?, ?, ?)",
-                        (name, pw_hash, time.time(), email))
+    def account_by_google(self, sub):
+        """The account that signs in with this Google account (Google's own id for it, which never changes)."""
+        row = self.db.execute("SELECT name FROM accounts WHERE google = ? AND google != ''", (sub,)).fetchone()
+        return self.account(row[0]) if row else None
+
+    def create_account(self, name, pw_hash, email="", google=""):
+        self.db.execute("INSERT INTO accounts (name, password, made, email, google) VALUES (?, ?, ?, ?, ?)",
+                        (name, pw_hash, time.time(), email, google))
+
+    def google_of(self, name):
+        row = self.db.execute("SELECT google FROM accounts WHERE name = ?", (name,)).fetchone()
+        return row[0] if row else ""
+
+    def set_google(self, name, sub):
+        self.db.execute("UPDATE accounts SET google = ? WHERE name = ?", (sub, name))
 
     def set_email(self, name, email):
         self.db.execute("UPDATE accounts SET email = ? WHERE name = ?", (email, name))
@@ -127,12 +227,13 @@ class CentralStore:
     def set_admin(self, name, on):
         self.db.execute("UPDATE accounts SET admin = ? WHERE name = ?", (1 if on else 0, name))
 
-    def find_accounts(self, q, limit=50):
-        like = "%" + q.replace("%", "") + "%"
+    def find_accounts(self, q, limit=50, skip=0):
+        found = like(q)
         waiting = "(SELECT email FROM mailchecks WHERE mailchecks.name = accounts.name)"
-        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, ''), deleted FROM accounts "
-                               "WHERE name LIKE ? OR email LIKE ? OR %s LIKE ? ORDER BY made DESC LIMIT ?"
-                               % (waiting, waiting), (like, like, like, limit)).fetchall()
+        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, ''), deleted, google != '' "
+                               "FROM accounts WHERE name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR %s LIKE ? "
+                               "ESCAPE '\\' ORDER BY made DESC LIMIT ? OFFSET ?"
+                               % (waiting, waiting), (found, found, found, limit, skip)).fetchall()
 
     def delete_account(self, name, keep_name):
         """All of an account's gone at once: its logins, keys, emails, friends. keep_name: its row stays, emptied, so
@@ -142,13 +243,17 @@ class CentralStore:
             for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing"):
                 self.db.execute("DELETE FROM %s WHERE name = ? COLLATE NOCASE" % table, (name,))
             self.db.execute("DELETE FROM friends WHERE who = ? OR whom = ?", (name, name))
+            for table in ("character_skills", "character_quests"):      # (what their characters got to: theirs too)
+                self.db.execute("DELETE FROM %s WHERE (server, name) IN (SELECT server, name FROM characters "
+                                "WHERE account = ?)" % table, (name,))
+            self.db.execute("DELETE FROM characters WHERE account = ?", (name,))
             if keep_name:
                 self.db.execute("UPDATE accounts SET password = '', recover = '', email = '', banned = '', admin = 0, "
-                                "deleted = ? WHERE name = ?", (time.time(), name))
+                                "google = '', deleted = ? WHERE name = ?", (time.time(), name))
             else:
                 self.db.execute("DELETE FROM accounts WHERE name = ?", (name,))
             self.db.execute("COMMIT")
-        except sqlite3.Error:
+        except Exception:                       # (anything at all: a transaction left open would stop every write after)
             self.db.execute("ROLLBACK")
             raise
 
@@ -295,14 +400,15 @@ class CentralStore:
 
     def playing_of(self, names):
         """{name: {"server", "place", "character", "url"}} for those of names playing just now (url: a listed game's)."""
-        out = {}
-        for n in names:
-            row = self.db.execute("SELECT p.server, p.place, p.character, s.url, s.approved FROM playing p LEFT JOIN "
-                                  "servers s ON s.key = p.server WHERE p.name = ? AND p.seen > ?",
-                                  (n, time.time() - PLAYING_SECONDS)).fetchone()
-            if row:
-                out[n] = {"server": row[0], "place": row[1], "character": row[2], "url": row[3] if row[4] else ""}
-        return out
+        names = list(names)
+        if not names:
+            return {}
+        asked = {n.lower(): n for n in names}
+        rows = self.db.execute("SELECT p.name, p.server, p.place, p.character, s.url, s.approved FROM playing p LEFT JOIN "
+                               "servers s ON s.key = p.server WHERE p.seen > ? AND p.name IN (SELECT value FROM "
+                               "json_each(?))", (time.time() - PLAYING_SECONDS, json.dumps(names))).fetchall()
+        return {asked[r[0].lower()]: {"server": r[1], "place": r[2], "character": r[3], "url": r[4] if r[5] else ""}
+                for r in rows if r[0].lower() in asked}
 
     # ----- remote servers
     def announce(self, key, secret, name, url, online, most, version):
@@ -331,6 +437,12 @@ class CentralStore:
         self.db.execute("DELETE FROM mailchecks WHERE made < ?", (now - UNCONFIRMED_DAYS * 86400,))
         self.db.execute("DELETE FROM playing WHERE seen < ?", (now - PLAYING_SECONDS,))
         self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
+        old = now - PROGRESS_DAYS * 86400
+        for table in ("character_skills", "character_quests"):
+            self.db.execute("DELETE FROM %s WHERE (server, name) IN (SELECT server, name FROM characters WHERE seen < ?)"
+                            % table, (old,))
+        self.db.execute("DELETE FROM characters WHERE seen < ?", (old,))
+        self.db.execute("DELETE FROM reporters WHERE seen < ? AND blocked = 0", (old,))
 
     def server_url(self, key):
         """The address a server announced itself at, or "" (a game this server's never heard from: on a network)."""
@@ -352,8 +464,158 @@ class CentralStore:
         return [{"key": k, "name": n, "url": u, "online": o, "max": m, "version": v, "approved": bool(a),
                  "up": seen > time.time() - SERVER_SECONDS, "seen": int(seen)} for k, n, u, o, m, v, a, seen in rows]
 
+    def count_servers(self):
+        """How many are listed just now (what the start screen says): counted, not fetched."""
+        return self.db.execute("SELECT COUNT(*) FROM servers WHERE approved = 1 AND seen > ?",
+                               (time.time() - SERVER_SECONDS,)).fetchone()[0]
+
+    def server_stats(self):
+        """(every server, those approved, those heard from lately)."""
+        return self.db.execute("SELECT COUNT(*), COALESCE(SUM(approved), 0), COALESCE(SUM(seen > ?), 0) FROM servers",
+                               (time.time() - SERVER_SECONDS,)).fetchone()
+
+    def proves_server(self, key, secret):
+        """Is this the secret of a listed server? (A report saying it's that server.)"""
+        return bool(self.db.execute("SELECT 1 FROM servers WHERE key = ? AND secret = ? AND approved = 1",
+                                    (key, digest(secret or ""))).fetchone())
+
     def set_approved(self, key, on):
         self.db.execute("UPDATE servers SET approved = ? WHERE key = ?", (1 if on else 0, key))
 
     def remove_server(self, key):
         self.db.execute("DELETE FROM servers WHERE key = ?", (key,))
+
+    # ----- what every game server says its characters have got to (only as honest as that server: a report's own key
+    # is the hash of a secret it keeps, so nobody can write under another's)
+    def reporter(self, key):
+        row = self.db.execute("SELECT blocked FROM reporters WHERE key = ?", (key,)).fetchone()
+        return None if row is None else {"blocked": bool(row[0])}
+
+    def count_reported(self, key):
+        return self.db.execute("SELECT COUNT(*) FROM characters WHERE server = ?", (key,)).fetchone()[0]
+
+    def find_total(self, server=""):
+        return self.db.execute("SELECT COUNT(*) FROM characters WHERE ? = '' OR server = ?", (server, server)).fetchone()[0]
+
+    def account_standing(self, names):
+        """{lower name: is it there, and not deleted?} of the accounts named."""
+        rows = self.db.execute("SELECT name, deleted FROM accounts WHERE name IN (SELECT value FROM json_each(?))",
+                               (json.dumps(list(names)),)).fetchall()
+        return {r[0].lower(): not r[1] for r in rows}
+
+    def take_report(self, key, name, kind, version, listed, characters):
+        """One game server's report, in one transaction. characters: [{name, account, level, shards, gold, map, played,
+        skills: {skill: (level, xp)}, quests: {quest: (stage, done)}}], each the whole of what that character has: only
+        what's changed is written (a quest keeps when it began and when it was finished)."""
+        now = time.time()
+        self.db.execute("BEGIN")
+        try:
+            self.db.execute("INSERT INTO reporters (key, name, kind, version, listed, made, seen) VALUES (?, ?, ?, ?, ?, ?, ?) "
+                            "ON CONFLICT(key) DO UPDATE SET name = excluded.name, kind = excluded.kind, "
+                            "version = excluded.version, listed = excluded.listed, seen = excluded.seen",
+                            (key, name, kind, version, 1 if listed else 0, now, now))
+            for c in characters:
+                self.db.execute("INSERT INTO characters (server, name, account, level, shards, gold, map, played, made, seen) "
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(server, name) DO UPDATE SET "
+                                "account = excluded.account, level = excluded.level, shards = excluded.shards, "
+                                "gold = excluded.gold, map = excluded.map, played = excluded.played, seen = excluded.seen",
+                                (key, c["name"], c["account"], c["level"], c["shards"], c["gold"], c["map"], c["played"],
+                                 now, now))
+                self.db.execute("DELETE FROM character_skills WHERE server = ? AND name = ?", (key, c["name"]))
+                self.db.executemany("INSERT INTO character_skills (server, name, skill, level, xp) VALUES (?, ?, ?, ?, ?)",
+                                    [(key, c["name"], s, lv, xp) for s, (lv, xp) in c["skills"].items()])
+                had = {r[0]: r[1:] for r in self.db.execute("SELECT quest, stage, done FROM character_quests WHERE "
+                                                            "server = ? AND name = ?", (key, c["name"]))}
+                for quest, (stage, done) in c["quests"].items():
+                    if had.get(quest) == (stage, done):
+                        continue
+                    self.db.execute("INSERT INTO character_quests (server, name, quest, stage, done, began, finished) "
+                                    "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(server, name, quest) DO UPDATE SET "
+                                    "stage = excluded.stage, done = excluded.done, finished = "
+                                    "CASE WHEN excluded.done = 0 THEN 0 WHEN finished > 0 THEN finished ELSE ? END",
+                                    (key, c["name"], quest, stage, done, now, now if done else 0, now))
+                self.db.executemany("DELETE FROM character_quests WHERE server = ? AND name = ? AND quest = ?",
+                                    [(key, c["name"], q) for q in had if q not in c["quests"]])
+            self.db.execute("COMMIT")
+        except Exception:                       # (anything at all: a transaction left open would stop every write after)
+            self.db.execute("ROLLBACK")
+            raise
+
+    def progress_totals(self):
+        """(characters, of those with an account, seen in the last day, in the last week, game servers reporting)."""
+        now = time.time()
+        return self.db.execute("SELECT COUNT(*), COALESCE(SUM(account != ''), 0), COALESCE(SUM(seen > ?), 0), "
+                               "COALESCE(SUM(seen > ?), 0), (SELECT COUNT(*) FROM reporters) FROM characters",
+                               (now - 86400, now - 7 * 86400)).fetchone()
+
+    def reporters(self):
+        return [{"key": k, "name": n, "kind": kd, "version": v, "listed": bool(li), "blocked": bool(b), "seen": int(s),
+                 "characters": c} for k, n, kd, v, li, b, s, c in self.db.execute(
+            "SELECT r.key, r.name, r.kind, r.version, r.listed, r.blocked, r.seen, (SELECT COUNT(*) FROM characters c "
+            "WHERE c.server = r.key) FROM reporters r ORDER BY r.seen DESC LIMIT 200")]
+
+    def block_reporter(self, key, on):
+        """A game server's reports ignored from now on (what it's sent is gone): junk, or its owner asked. Unblocked,
+        it's heard again."""
+        self.db.execute("BEGIN")
+        try:
+            for table in ("character_skills", "character_quests", "characters"):
+                self.db.execute("DELETE FROM %s WHERE server = ?" % table, (key,))
+            self.db.execute("INSERT INTO reporters (key, blocked, made, seen) VALUES (?, ?, ?, ?) "
+                            "ON CONFLICT(key) DO UPDATE SET blocked = excluded.blocked",
+                            (key, 1 if on else 0, time.time(), time.time()))
+            self.db.execute("COMMIT")
+        except Exception:                       # (anything at all: a transaction left open would stop every write after)
+            self.db.execute("ROLLBACK")
+            raise
+
+    def find_characters(self, q="", server="", limit=50, skip=0):
+        """The characters found (by their name or their account's), the one played last first, most in a page."""
+        found = like(q)
+        rows = self.db.execute(
+            "SELECT c.server, c.name, c.account, c.level, c.shards, c.gold, c.map, c.seen, r.name, r.kind, r.listed, "
+            "(SELECT COUNT(*) FROM character_quests q WHERE q.server = c.server AND q.name = c.name AND q.done = 1) "
+            "FROM characters c LEFT JOIN reporters r ON r.key = c.server "
+            "WHERE (? = '' OR c.server = ?) AND (? = '' OR c.name LIKE ? ESCAPE '\\' OR c.account LIKE ? ESCAPE '\\') "
+            "ORDER BY c.seen DESC LIMIT ? OFFSET ?", (server, server, q, found, found, limit, skip)).fetchall()
+        return [{"server": r[0], "name": r[1], "account": r[2], "level": r[3], "shards": r[4], "gold": r[5], "map": r[6],
+                 "seen": int(r[7]), "place": r[8] or "", "kind": r[9] or "", "listed": bool(r[10]), "done": r[11]}
+                for r in rows]
+
+    def character(self, server, name):
+        """One character's skills and quests (the quests by when they began), or None."""
+        c = self.db.execute("SELECT c.name, c.account, c.level, c.shards, c.gold, c.map, c.played, c.made, c.seen, r.name, "
+                            "r.kind FROM characters c LEFT JOIN reporters r ON r.key = c.server "
+                            "WHERE c.server = ? AND c.name = ?", (server, name)).fetchone()
+        if c is None:
+            return None
+        return {"name": c[0], "account": c[1], "level": c[2], "shards": c[3], "gold": c[4], "map": c[5], "played": int(c[6]),
+                "made": int(c[7]), "seen": int(c[8]), "place": c[9] or "", "kind": c[10] or "",
+                "skills": [{"skill": s, "level": lv, "xp": round(xp, 2)} for s, lv, xp in self.db.execute(
+                    "SELECT skill, level, xp FROM character_skills WHERE server = ? AND name = ? ORDER BY level DESC, skill",
+                    (server, name))],
+                "quests": [{"quest": q, "stage": st, "done": bool(d), "began": int(b), "finished": int(f)}
+                           for q, st, d, b, f in self.db.execute(
+                    "SELECT quest, stage, done, began, finished FROM character_quests WHERE server = ? AND name = ? "
+                    "ORDER BY began", (server, name))]}
+
+    def quest_stats(self, server=""):
+        """{quest: (characters that have begun it, those that have finished it)}."""
+        return {q: (n, d) for q, n, d in self.db.execute(
+            "SELECT quest, COUNT(*), COALESCE(SUM(done), 0) FROM character_quests WHERE ? = '' OR server = ? GROUP BY quest",
+            (server, server))}
+
+    def quest_stages(self, quest, server=""):
+        """[(stage, how many are at it)]: where those on a quest have got to."""
+        return self.db.execute("SELECT stage, COUNT(*) FROM character_quests WHERE quest = ? AND (? = '' OR server = ?) "
+                               "GROUP BY stage ORDER BY stage", (quest, server, server)).fetchall()
+
+    def skill_stats(self, server=""):
+        """[{skill, characters, average, highest, and how many have reached each of levels 5, 10, 15, 20, 25}]."""
+        rows = self.db.execute(
+            "SELECT skill, COUNT(*), AVG(level), MAX(level), COALESCE(SUM(level >= 5), 0), COALESCE(SUM(level >= 10), 0), "
+            "COALESCE(SUM(level >= 15), 0), COALESCE(SUM(level >= 20), 0), COALESCE(SUM(level >= 25), 0) "
+            "FROM character_skills WHERE ? = '' OR server = ? GROUP BY skill ORDER BY AVG(level) DESC",
+            (server, server)).fetchall()
+        return [{"skill": r[0], "characters": r[1], "average": round(r[2], 1), "highest": r[3], "reached": list(r[4:])}
+                for r in rows]

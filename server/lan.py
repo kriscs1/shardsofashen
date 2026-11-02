@@ -73,7 +73,7 @@ def find(seconds=1.5, port=8485, to=("255.255.255.255",)):
         while time.monotonic() < until:
             try:
                 data, addr = sock.recvfrom(4096)
-            except socket.timeout:
+            except (socket.timeout, ConnectionResetError):      # (on Windows: a port that was shut, heard of late)
                 continue
             try:
                 answer = json.loads(data.decode("utf-8"))

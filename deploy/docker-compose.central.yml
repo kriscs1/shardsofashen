@@ -37,6 +37,8 @@ services:
       DS_SMTP_PASSWORD: ${DS_SMTP_PASSWORD:-}
       DS_SMTP_FROM: ${DS_SMTP_FROM:-}
       DS_SMTP_TLS: ${DS_SMTP_TLS:-starttls}
+      DS_GOOGLE_CLIENT_ID: ${DS_GOOGLE_CLIENT_ID:-}    # (sign in with Google: README-Server.md says how; none, no button)
+      DS_GOOGLE_CLIENT_SECRET: ${DS_GOOGLE_CLIENT_SECRET:-}
       DS_ADSENSE_CLIENT: ${DS_ADSENSE_CLIENT:-}        # (ca-pub-...: AdSense on the start screen in a browser)
       DS_ADSENSE_SLOT: ${DS_ADSENSE_SLOT:-}
       DS_ADMOB_APP: ${DS_ADMOB_APP:-}                  # (ca-app-pub-...~...: the Android app's, for /app-ads.txt and the privacy policy)

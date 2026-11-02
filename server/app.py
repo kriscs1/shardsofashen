@@ -10,6 +10,7 @@ import socket
 from aiohttp import web
 
 from .game import GameServer
+from .progress import Reporter
 from .relay import Relay
 from . import lan
 
@@ -19,6 +20,7 @@ TICK = web.AppKey("tick", asyncio.Task)
 LAN = web.AppKey("lan", object)
 ANNOUNCE = web.AppKey("announce", object)
 RELAY = web.AppKey("relay", object)
+PROGRESS = web.AppKey("progress", object)
 
 
 def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins="", name="", port=8484):
@@ -90,9 +92,12 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
         app[ANNOUNCE] = asyncio.create_task(announcing())
         game.relay = Relay(game, port)                  # (hosted for friends: through the central server)
         app[RELAY] = asyncio.create_task(game.relay.run()) if game.for_friends() else None
+        game.reporter = Reporter(game)                  # (how characters are getting on: the central server's admin page)
+        app[PROGRESS] = asyncio.create_task(game.reporter.run())
 
     async def stop_tick(app):
         app[ANNOUNCE].cancel()
+        app[PROGRESS].cancel()
         if app[RELAY] is not None:
             app[RELAY].cancel()
         await game.announce(bye=True)
@@ -103,6 +108,11 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
 
     app.on_startup.append(start_tick)
     app.on_shutdown.append(stop_tick)
+
+    async def close_central(app):
+        await game.close_central()
+
+    app.on_cleanup.append(close_central)
     return app
 
 

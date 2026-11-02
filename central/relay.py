@@ -5,6 +5,7 @@ game of a version is kept here, so it's sent through once), and a friend's game 
 ("open", "m", "close"). Only the host's friends get in: the host's game checks each one's ticket."""
 import asyncio
 import base64
+import hashlib
 import itertools
 import json
 import logging
@@ -19,7 +20,7 @@ log = logging.getLogger("ashen.central")
 TUNNEL_MAX = 64 * 1024 * 1024
 ASK_SECONDS = 30                  # (a page or picture the host hasn't sent by then: gone)
 CONNS_MOST = 12                   # (friends' connections at once through one game: its 5 players and some to spare)
-KEPT_MOST = 400 * 1024 * 1024     # (the pictures kept here, every version's: past this, the oldest go)
+KEPT_MOST = 200 * 1024 * 1024     # (the pictures kept here, every version's: past this, the oldest go)
 KEPT_PATHS = ("assets/", "img/", "js/", "css/")
 
 
@@ -118,6 +119,12 @@ class Relays:
         if request.method != "GET":
             return web.Response(status=405)
         ask = path + ("?" + request.query_string if request.query_string else "")
+        # (a game's version says what its files are, so a browser that has one needs no more than this: nothing is
+        # asked of the host, and nothing's sent)
+        tag = '"%s"' % hashlib.md5(("%s|%s" % (t.version, ask)).encode("utf-8")).hexdigest()[:20] \
+            if t.version and path.startswith(KEPT_PATHS) else ""
+        if tag and request.headers.get("If-None-Match") == tag:
+            return web.Response(status=304, headers={"ETag": tag})
         kept = self.kept.get((t.version, ask)) if t.version else None
         if kept is None:
             rid = next(self.ids)
@@ -141,14 +148,17 @@ class Relays:
             resp.headers["Content-Type"] = ctype
         if cache:
             resp.headers["Cache-Control"] = cache
+        if tag and status == 200:
+            resp.headers["ETag"] = tag
         return resp
 
     def keep(self, k, kept):
-        if self.kept_bytes + len(kept[3]) > KEPT_MOST:
-            self.kept.clear()
-            self.kept_bytes = 0
+        if k in self.kept:
+            return
         self.kept[k] = kept
         self.kept_bytes += len(kept[3])
+        while self.kept_bytes > KEPT_MOST and len(self.kept) > 1:       # (dicts keep their order: the oldest first)
+            self.kept_bytes -= len(self.kept.pop(next(iter(self.kept)))[3])
 
     async def friend(self, request, t):
         if len(t.conns) >= CONNS_MOST:

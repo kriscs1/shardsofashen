@@ -214,6 +214,19 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> web.loadUrl(url));
         }
 
+        /** Out to the phone's own browser (Google won't sign in inside an app's web view). */
+        @JavascriptInterface
+        public void openLink(String url) {
+            if (!home() || url == null || !(url.startsWith("https://") || url.startsWith("http://"))) return;
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                } catch (android.content.ActivityNotFoundException e) {
+                    web.evaluateJavascript("window.onLinkFailed && window.onLinkFailed()", null);
+                }
+            });
+        }
+
         /** The start screen's menu showing (or not): AdMob's banner along its foot. False: no AdMob in this build. */
         @JavascriptInterface
         public boolean banner(boolean show) {

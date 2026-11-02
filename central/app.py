@@ -1,6 +1,7 @@
-"""The central server: every player's account (one name and password for every game), the list of remote game servers
-(each announces itself: its name, address and how many are playing), the ads on the start screen, and the start
-screen itself for a browser. Standard library plus aiohttp, like the game server.
+"""The central server: every player's account (one name and password for every game, or Google), the list of remote game
+servers (each announces itself: its name, address and how many are playing), what every game's characters have got to
+(for the admin page), the ads on the start screen, and the start screen itself for a browser. Standard library plus
+aiohttp, like the game server.
 
 The apps (Android, desktop) and a browser open the start screen, log in here, and then: play alone, host a game (local:
 only answered on its own network; remote: announced here, listed for everyone), or join one (local: on the network or
@@ -16,6 +17,9 @@ its own accounts too, for a network with no way to reach here.
   POST /api/email/again {token}                   -> {ok, text}          (the link again, for the one waiting)
   POST /api/forgot    {who}                       -> {ok}                (a code by email, if it has a confirmed one)
   POST /api/login     {name, password}            -> {ok, token, name, needs_email}
+  GET  /auth/google?to=home|app|admin, /auth/google/done   off to Google and back (google.py): a browser comes back to
+                                                  the page with a code in its fragment, an app's shows the code to type
+  POST /api/google    {code, name?, claim?}       -> {ok, token, name} or, new to us, {ok, choose}: send the name wanted
   POST /api/reset     {name, code, password}      -> {ok, name}          (code: the emailed one)
   POST /api/me        {token}                     -> {ok, name, needs_email}
   POST /api/logout    {token}
@@ -23,6 +27,8 @@ its own accounts too, for a network with no way to reach here.
                                                   or no confirmed email: the join stops there and says why)
   POST /api/verify    {ticket, server}            -> {ok, name}          (a game server asking)
   POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
+  POST /api/game/report {secret, kind, name?, version, server?, proof?, characters: [...]}  -> {ok, took}  (a game server:
+                                                  what its characters have got to, for the admin page: server/progress.py)
   POST /api/announce  {key, secret, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
@@ -34,6 +40,9 @@ its own accounts too, for a network with no way to reach here.
   GET  /health                                    -> {ok, servers, version, commit, date}
   GET  /                                          the start screen (a browser's: join a game, local or remote)"""
 import asyncio
+import functools
+import hashlib
+import hmac
 import html
 import json
 import logging
@@ -47,14 +56,24 @@ from aiohttp import web
 
 from server import auth
 from server.version import version_info
-from . import mail
+from ashen import ini
+from . import google, mail
 from .relay import Relays
-from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS
+from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS, digest
 
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FAILS, FAIL_WINDOW, FAIL_WAIT = 6, 300, 60
 ANNOUNCES = 30                  # (calls from one address in ten minutes: a game announces itself once a minute)
+REPORTS = 90                    # (reports from one address in ten minutes: every five, more while it catches up)
+REPORTERS_A_DAY = 20            # (new game servers reporting from one address in a day)
+REPORT_CHARACTERS = 50          # (characters in one report: more wait for the next)
+REPORTER_MOST = 20000           # (characters a game server may have here)
+PAGE = 50                       # (rows the admin page gets at a time)
+GOOGLE_COOKIE = "ds_google"
+GOOGLE_PENDING = 2000           # (sign-ins under way at once: past this the oldest go)
+HOUSEKEEPING = 600              # (seconds between clearing out what's had its day)
+HELLO_SECONDS = 30              # (the start screen's counts are worked out this often)
 RESERVED = {"admin", "administrator", "moderator", "mod", "server", "system", "gm", "staff", "support", "owner"}
 DEFAULT_ADS = [
     {"text": "Host your own world: friends on your Wi-Fi join it from their phones.", "link": ""},
@@ -70,6 +89,9 @@ EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,20}$")
 def clean_email(text):
     e = str(text or "").strip()[:254]
     return e if EMAIL_RE.match(e) else ""
+
+
+compact = functools.partial(json.dumps, separators=(",", ":"))      # (no spaces: every answer a little smaller)
 
 
 def env_int(name, default):
@@ -88,7 +110,13 @@ class Central:
         self.confirms = {}              # account or email -> how many confirmation emails today
         self.confirm_day = ""
         self.announces = {}             # address -> [times] a game server called
-        self.pruned = 0.0
+        self.reports = {}               # address -> [times] a game server reported
+        self.new_reporters = {}         # address -> [days] a new game server reported
+        self.google_flows = {}          # state -> a sign-in on its way to Google and back
+        self.google_results = {}        # code -> who came back from Google: {name} or {sub, email}, and when
+        self.hello_cache = (0.0, {})    # (when, the start screen's counts)
+        self.ads_cache = (0.0, None)    # (when, the ads)
+        self.quests_cache = (None, [])  # (Quests.ini's time, what's in it)
         self.name = os.environ.get("DS_CENTRAL_NAME", "Shards of Ashen")
         self.motd = os.environ.get("DS_CENTRAL_MOTD", "")
         # (an admin named in DS_CENTRAL_ADMINS with no account yet: only someone with the code from this log may make
@@ -142,6 +170,12 @@ class Central:
         return bool(acct) and (bool(acct[5]) or name.lower() in names)
 
     def ads(self):
+        now = time.monotonic()
+        if self.ads_cache[1] is None or now - self.ads_cache[0] > HELLO_SECONDS:
+            self.ads_cache = (now, self.read_ads())
+        return self.ads_cache[1]
+
+    def read_ads(self):
         own = self.store.setting("ads", "")
         if own:                                         # (set on the admin page)
             try:
@@ -182,24 +216,14 @@ class Central:
         d, addr = await self.body(request), self.addr(request)
         name = auth.clean_name(d.get("name", ""))
         password = str(d.get("password", ""))[:200]
-        if not name:
-            return no("Pick a name: letters, numbers, spaces, _ and -.")
-        if os.environ.get("DS_REGISTRATION", "open") != "open":
-            return no("New accounts can't be made just now.")
-        if name.lower() in RESERVED:
-            return no("That name is kept back: pick another.")
-        if self.store.account(name):
-            return no("That name is taken. Log in instead?")
-        claim = self.claims.get(name.lower())
-        if claim and auth.clean_code(str(d.get("claim", ""))) != auth.clean_code(claim):
-            return web.json_response({"ok": False, "claim": True, "text": "That name is kept for this server's "
-                                      "admin: give the admin code from the server's log."})
+        refused = self.name_refused(name, d.get("claim", ""))
+        if refused:
+            return no(**refused)
         least = max(4, env_int("DS_PASSWORD_MIN", 8))
         if len(password) < least or password.lower() == name.lower():
             return no("Use a password of at least %d characters (not your name)." % least)
-        day = time.strftime("%Y%m%d")
-        made = [x for x in self.signups.get(addr, []) if x == day]
-        if env_int("DS_REGISTER_PER_DAY", 3) > 0 and len(made) >= env_int("DS_REGISTER_PER_DAY", 3):
+        made = self.signups_today(addr)
+        if made is None:
             return no("Too many new accounts from here today: try again tomorrow.")
         email = clean_email(d.get("email", ""))
         if not d.get("email"):
@@ -208,7 +232,7 @@ class Central:
             return no("That doesn't look like an email address.")
         if self.store.account_by_email(email):
             return no("That email is on another account already.")
-        self.signups[addr] = made + [day]               # (counted now: sign-ups at once can't all slip by)
+        self.signups[addr] = made + [time.strftime("%Y%m%d")]   # (counted now: sign-ups at once can't all slip by)
         try:
             self.store.create_account(name, await self.hashed(password))
         except sqlite3.IntegrityError:                  # (taken while the password was hashed)
@@ -220,6 +244,29 @@ class Central:
         # (to one side: a mail service's trouble is never a sign-up's, and they can ask again from their account)
         asyncio.ensure_future(self.ask_confirm(self.base_url(request), name, email, welcome=True))
         return yes(token=self.store.new_token(name), name=name, confirm=True)
+
+    def name_refused(self, name, claim):
+        """Why a new account can't have this name, or nothing: (no's words)."""
+        if not name:
+            return {"text": "Pick a name: letters, numbers, spaces, _ and -."}
+        if os.environ.get("DS_REGISTRATION", "open") != "open":
+            return {"text": "New accounts can't be made just now."}
+        if name.lower() in RESERVED:
+            return {"text": "That name is kept back: pick another."}
+        if self.store.account(name):
+            return {"text": "That name is taken. Log in instead?"}
+        code = self.claims.get(name.lower())
+        if code and auth.clean_code(str(claim or "")) != auth.clean_code(code):
+            return {"claim": True, "text": "That name is kept for this server's admin: give the admin code from the "
+                                           "server's log."}
+        return None
+
+    def signups_today(self, addr):
+        """The accounts made from here today, or None when that's as many as may be."""
+        day = time.strftime("%Y%m%d")
+        made = [x for x in self.signups.get(addr, []) if x == day]
+        most = env_int("DS_REGISTER_PER_DAY", 3)
+        return None if most > 0 and len(made) >= most else made
 
     def needs_email(self, name):
         """An account from before an email was required, with none given yet (or one forgotten, never confirmed)."""
@@ -286,6 +333,77 @@ class Central:
         if acct[3]:
             return no("%s is banned: %s" % (acct[0], acct[3]))
         return yes(token=self.store.new_token(acct[0]), name=acct[0], needs_email=self.needs_email(acct[0]))
+
+    # ----- signing in with Google (google.py): one way for a browser and the apps, no polling, nothing kept on disk
+    def google_person(self, sub, email):
+        """Who this Google account is here: {name} (an account that signs in with it, or has it as its confirmed email:
+        from now on it signs in with it), or {sub, email} (nobody yet, a name to choose)."""
+        acct = self.store.account_by_google(sub)
+        if acct is None:
+            acct = self.store.account_by_email(email)   # (only ever a confirmed one, so it's theirs)
+            if acct is not None:
+                if self.store.google_of(acct[0]):
+                    raise google.Refused("%s signs in with another Google account." % acct[0])
+                self.store.set_google(acct[0], sub)
+                log.info("%s now signs in with Google too", acct[0])
+        if acct is None:
+            return {"sub": sub, "email": email}
+        if acct[3]:
+            raise google.Refused("%s is banned: %s" % (acct[0], acct[3]))
+        return {"name": acct[0]}
+
+    def trim_google(self):
+        now = time.time()
+        for kept, seconds in ((self.google_flows, google.FLOW_SECONDS), (self.google_results, google.RESULT_SECONDS)):
+            for k in [k for k, v in kept.items() if now - v["at"] > seconds]:
+                del kept[k]
+            while len(kept) > GOOGLE_PENDING:           # (dicts keep their order: the oldest first)
+                del kept[next(iter(kept))]
+
+    async def google_result(self, request):
+        """The start screen hands in the code it was given: signed in, or (new here) it asks for a name, and creates the
+        account as a sign-up would, its email the one Google has verified."""
+        d, addr = await self.body(request), self.addr(request)
+        code = auth.clean_code(d.get("code", ""))
+        w = self.wait("google:" + code, addr)
+        if w:
+            return no("Too many tries: wait %d seconds." % w)
+        at = self.failed("google:" + code, addr)
+        self.trim_google()
+        found = self.google_results.get(code)
+        if found is None:
+            return no("That code isn't right, or it's run out: sign in with Google again.")
+        self.forgiven("google:" + code, addr, at)
+        if "name" in found:
+            del self.google_results[code]
+            acct = self.store.account(found["name"])
+            if acct is None or acct[6]:
+                return no("That account has been deleted.")
+            if acct[3]:
+                return no("%s is banned: %s" % (acct[0], acct[3]))
+            return yes(token=self.store.new_token(acct[0]), name=acct[0], needs_email=self.needs_email(acct[0]))
+        wanted = d.get("name")
+        if wanted is None:
+            return yes(choose=True, email=found["email"])
+        name = auth.clean_name(wanted)
+        refused = self.name_refused(name, d.get("claim", ""))
+        if refused:
+            return no(choose=True, **refused)
+        made = self.signups_today(addr)
+        if made is None:
+            return no("Too many new accounts from here today: try again tomorrow.")
+        if self.store.account_by_google(found["sub"]) or self.store.account_by_email(found["email"]):
+            del self.google_results[code]               # (made meanwhile, by another way in: sign in instead)
+            return no("That Google account has an account here now: sign in with Google again.")
+        try:
+            self.store.create_account(name, "", found["email"], found["sub"])
+        except sqlite3.IntegrityError:
+            return no("That name is taken. Log in instead?", choose=True)
+        self.signups[addr] = made + [time.strftime("%Y%m%d")]
+        self.claims.pop(name.lower(), None)
+        del self.google_results[code]
+        log.info("New account %s from %s, by Google", name, addr)
+        return yes(token=self.store.new_token(name), name=name, needs_email=False, made=True)
 
     async def reset(self, request):
         d, addr = await self.body(request), self.addr(request)
@@ -478,7 +596,47 @@ class Central:
                 return no(why)
         if "playing" in d:
             self.store.set_playing(name, server, str(d.get("place", ""))[:60], auth.clean_name(d.get("playing", "")))
-        return yes(done=done, **self.friends_of(name))
+        news = self.friends_of(name)
+        have = hashlib.md5(json.dumps(news, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+        if d.get("have") == have:                       # (each player, each minute: mostly nothing's changed)
+            return yes(done=done, same=True)
+        return yes(done=done, have=have, **news)
+
+    # ----- what every game server's characters have got to (server/progress.py), for the admin page
+    async def game_report(self, request):
+        """A game server's report: only as honest as that server (the admin page says which it was, and can block it).
+        Its key is the hash of its own secret, so nobody can write under another's; a character said to be an account's
+        is taken only if there's such an account (a deleted one's stay deleted)."""
+        d, addr = await self.body(request), self.addr(request)
+        now = time.monotonic()
+        heard = [t for t in self.reports.get(addr, []) if now - t < 600]
+        if len(heard) >= REPORTS:
+            return no("Too many reports from here: wait a while.")
+        self.reports[addr] = heard + [now]
+        secret = str(d.get("secret", ""))
+        if not 16 <= len(secret) <= 128:
+            return no("A report needs its server's secret.")
+        key = digest(secret)[:32]
+        known = self.store.reporter(key)
+        if known and known["blocked"]:
+            return yes(took=0, blocked=True)
+        if known is None:
+            day = time.strftime("%Y%m%d")
+            new = [x for x in self.new_reporters.get(addr, []) if x == day]
+            if len(new) >= REPORTERS_A_DAY:
+                return no("Too many new game servers from here today.")
+            self.new_reporters[addr] = new + [day]
+        rows = clean_characters(d["characters"]) if isinstance(d.get("characters"), list) else []
+        if self.store.count_reported(key) + len(rows) > REPORTER_MOST:
+            return no("That's more characters than this server keeps for one game.")
+        standing = self.store.account_standing({c["account"] for c in rows if c["account"]})
+        rows = [c for c in rows if not c["account"] or standing.get(c["account"].lower())]
+        kind = str(d.get("kind", ""))
+        listed = self.store.proves_server(str(d.get("server", ""))[:64], str(d.get("proof", ""))[:128])
+        self.store.take_report(key, " ".join(str(d.get("name", "")).split())[:40],
+                               kind if kind in ("solo", "local", "friends", "public") else "local",
+                               str(d.get("version", ""))[:40], listed, rows)
+        return yes(took=len(rows))
 
     async def announce(self, request):
         d, addr = await self.body(request), self.addr(request)
@@ -487,9 +645,6 @@ class Central:
         if len(heard) >= ANNOUNCES:                     # (a game calls once a minute: not hundreds of rows a second)
             return no("Too many calls from here: a minute between them.")
         self.announces[addr] = heard + [now]
-        if now - self.pruned > 600:
-            self.pruned = now
-            self.store.prune()
         name = " ".join(str(d.get("name", "")).split())[:40] or "A game of Shards of Ashen"
         url = str(d.get("url", "")).strip()[:200]
         if not url:                                   # (no address of its own: where it's calling from, its port)
@@ -513,13 +668,58 @@ class Central:
         return yes()
 
     async def servers(self, request):
-        return web.json_response(self.store.servers())
+        # (the list as a browser has it already: said in a few bytes)
+        text = compact(self.store.servers())
+        tag = '"%s"' % hashlib.md5(text.encode("utf-8")).hexdigest()[:16]
+        if request.headers.get("If-None-Match") == tag:
+            return web.Response(status=304, headers={"ETag": tag, "Cache-Control": "no-cache"})
+        return web.Response(text=text, content_type="application/json", headers={"ETag": tag, "Cache-Control": "no-cache"})
 
     async def hello(self, request):
         client = os.environ.get("DS_ADSENSE_CLIENT", "").strip()
-        return yes(name=self.name, motd=self.motd, ad=random.choice(self.ads()),
-                   servers=len(self.store.servers()), players=self.store.count_accounts(), mail=mail.ready(),
+        now = time.monotonic()
+        if not self.hello_cache[1] or now - self.hello_cache[0] > HELLO_SECONDS:
+            self.hello_cache = (now, {"servers": self.store.count_servers(), "players": self.store.count_accounts()})
+        return yes(name=self.name, motd=self.motd, ad=random.choice(self.ads()), mail=mail.ready(),
+                   google=google.ready(), **self.hello_cache[1],
                    adsense={"client": client, "slot": os.environ.get("DS_ADSENSE_SLOT", "").strip()} if client else None)
+
+    # ----- clearing out what's had its day: the database's, and the counts kept here
+    def housekeeping(self):
+        self.store.prune()
+        self.trim_google()
+        now, day = time.monotonic(), time.strftime("%Y%m%d")
+        for times, seconds in ((self.announces, 600), (self.reports, 600)):
+            for k in [k for k, v in times.items() if not v or now - v[-1] > seconds]:
+                del times[k]
+        for key in [k for k, v in self.fails.items() if not v or now - v[-1] > FAIL_WINDOW]:
+            del self.fails[key]
+        for days in (self.signups, self.new_reporters):
+            for k in [k for k, v in days.items() if day not in v]:
+                del days[k]
+
+    async def keep_clean(self):
+        while True:
+            await asyncio.sleep(HOUSEKEEPING)
+            try:
+                self.housekeeping()
+            except Exception:
+                log.exception("Clearing out failed")
+
+    # ----- the quests as the game has them (data/Quests.ini: this server is the same image), for the admin page
+    def quest_list(self):
+        """[(name, {KEY: value})], in the file's order, the main story's by chapter first."""
+        path = os.path.join(ROOT, "data", "Quests.ini")
+        try:
+            stamp = os.path.getmtime(path)
+        except OSError:
+            return []
+        if self.quests_cache[0] != stamp:
+            rows = [(name, {k.upper(): v.strip() for k, v in items}) for name, items in ini.sections(path)]
+            main = sorted((r for r in rows if r[1].get("TYPE", "").lower() == "main"),
+                          key=lambda r: whole(r[1].get("CHAPTER"), 0, 999))
+            self.quests_cache = (stamp, main + [r for r in rows if r[1].get("TYPE", "").lower() != "main"])
+        return self.quests_cache[1]
 
     # ----- the admin page's (an admin's token each time)
     async def admin(self, request):
@@ -530,10 +730,11 @@ class Central:
             return no("That's for the central server's admins.")
         what = request.match_info["what"]
         if what == "stats":
-            every = self.store.servers(everyone=True)
-            return yes(accounts=self.store.count_accounts(), servers=len(every),
-                       approved=sum(1 for s in every if s["approved"]), up=sum(1 for s in every if s["up"]),
-                       mail=mail.ready(), adsense=bool(os.environ.get("DS_ADSENSE_CLIENT")))
+            every, approved, up = self.store.server_stats()
+            chars, accounted, today, week, reporting = self.store.progress_totals()
+            return yes(accounts=self.store.count_accounts(), servers=every, approved=approved, up=up, mail=mail.ready(),
+                       adsense=bool(os.environ.get("DS_ADSENSE_CLIENT")), google=google.ready(), characters=chars,
+                       with_account=accounted, today=today, week=week, reporting=reporting)
         if what == "servers":
             mine = self.version["version"]
             return yes(version=mine, servers=[{**s, "behind": s["up"] and behind(s["version"], mine)}
@@ -546,9 +747,47 @@ class Central:
             self.store.remove_server(str(d.get("key", "")))
             return yes()
         if what == "accounts":
-            rows = self.store.find_accounts(str(d.get("q", ""))[:60])
-            return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b, "deleted": int(x),
-                                  "admin": bool(a) or self.is_admin(n), "made": int(m)} for n, e, b, a, m, p, x in rows])
+            rows = self.store.find_accounts(str(d.get("q", ""))[:60], PAGE, whole(d.get("skip"), 0, 10 ** 9))
+            names = {n.strip().lower() for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(",") if n.strip()}
+            return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b, "deleted": int(x), "google": bool(g),
+                                  "admin": bool(a) or n.lower() in names, "made": int(m)}
+                                 for n, e, b, a, m, p, x, g in rows], page=PAGE)
+        server = str(d.get("server", ""))[:64]
+        if what == "characters":
+            return yes(characters=self.store.find_characters(str(d.get("q", ""))[:60], server, PAGE,
+                                                             whole(d.get("skip"), 0, 10 ** 9)), page=PAGE)
+        if what == "character":
+            c = self.store.character(server, str(d.get("name", ""))[:40])
+            if c is None:
+                return no("No such character.")
+            known = dict(self.quest_list())
+            for q in c["quests"]:
+                info = known.get(q["quest"], {})
+                q["of"] = whole(info.get("DONE"), 0, 10 ** 6)
+                q["doing"] = info.get("STAGE%d" % q["stage"], "")
+            return yes(character=c)
+        if what == "quests":
+            counts = self.store.quest_stats(server)
+            quests = [{"quest": n, "main": q.get("TYPE", "").lower() == "main", "chapter": whole(q.get("CHAPTER"), 0, 999),
+                       "began": counts.get(n, (0, 0))[0], "done": counts.get(n, (0, 0))[1]} for n, q in self.quest_list()]
+            have = {q["quest"] for q in quests}
+            quests += [{"quest": n, "main": False, "chapter": 0, "began": c[0], "done": c[1]}    # (no longer in the game)
+                       for n, c in sorted(counts.items()) if n not in have]
+            return yes(quests=quests, characters=self.store.find_total(server))
+        if what == "quest":
+            quest = str(d.get("quest", ""))[:80]
+            info = dict(self.quest_list()).get(quest, {})
+            return yes(quest=quest, stages=[{"stage": s, "count": n, "doing": info.get("STAGE%d" % s, "")}
+                                            for s, n in self.store.quest_stages(quest, server)],
+                       done=whole(info.get("DONE"), 0, 10 ** 6))
+        if what == "skills":
+            return yes(skills=self.store.skill_stats(server))
+        if what == "reporters":
+            return yes(reporters=self.store.reporters())
+        if what == "block":
+            self.store.block_reporter(str(d.get("key", ""))[:64], bool(d.get("on")))
+            log.info("%s %s a game server's reports", name, "blocked" if d.get("on") else "unblocked")
+            return yes()
         if what in ("delete", "erase"):                 # (delete: the name's kept back; erase: it's free for anyone)
             acct = self.store.account(str(d.get("name", "")))
             if acct is None:
@@ -576,19 +815,50 @@ class Central:
                 ads = [a for a in d["ads"] if isinstance(a, dict) and str(a.get("text", "")).strip()][:50] \
                     if isinstance(d["ads"], list) else []
                 self.store.set_setting("ads", json.dumps(ads))
+                self.ads_cache = (0.0, None)
             return yes(ads=self.ads())
         return no("Unknown.")
 
 
 def yes(**more):
-    return web.json_response({"ok": True, **more})
+    return web.json_response({"ok": True, **more}, dumps=compact)
+
+
+def clean_characters(rows):
+    """A report's characters, as this server keeps them: names, numbers in range, no more than there should be of
+    anything (it's anyone's to send)."""
+    out = []
+    for c in rows[:REPORT_CHARACTERS]:
+        if not isinstance(c, dict):
+            continue
+        name = auth.clean_name(c.get("name", ""))
+        skills, quests = c.get("skills"), c.get("quests")
+        if not name:
+            continue
+        out.append({"name": name, "account": auth.clean_name(c.get("account", "")), "level": whole(c.get("level"), 1, 1000),
+                    "shards": whole(c.get("shards"), 0, 10 ** 9), "gold": whole(c.get("gold"), 0, 10 ** 12),
+                    "map": str(c.get("map", ""))[:24], "played": whole(c.get("played"), 0, 2 ** 40),
+                    "skills": {str(k)[:30]: (whole(v[0], 0, 1000), number(v[1])) for k, v in list(skills.items())[:40]
+                               if isinstance(v, list) and len(v) == 2} if isinstance(skills, dict) else {},
+                    "quests": {str(k)[:80]: (whole(v[0], -10 ** 6, 10 ** 6), 1 if v[1] else 0)
+                               for k, v in list(quests.items())[:400]
+                               if isinstance(v, list) and len(v) == 2} if isinstance(quests, dict) else {}})
+    return out
+
+
+def number(v):
+    try:
+        x = float(v)
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+    return x if 0 <= x < 1e12 else 0.0              # (and not NaN: that fails both)
 
 
 def whole(v, lo, hi, default=0):
     """A whole number from a request, kept between lo and hi (anything else: default)."""
     try:
         return max(lo, min(hi, int(v)))
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):      # (OverflowError: 1e999 is infinity, in JSON)
         return max(lo, min(hi, default))
 
 
@@ -605,7 +875,7 @@ def same_place(a, b):
 
 
 def no(text, **more):
-    return web.json_response({"ok": False, "text": text, **more})
+    return web.json_response({"ok": False, "text": text, **more}, dumps=compact)
 
 
 def version_numbers(version):
@@ -631,7 +901,10 @@ def make_central(db_path):
         if request.method == "OPTIONS":
             resp = web.Response()
         else:
-            resp = await handler(request)
+            try:
+                resp = await handler(request)
+            except UnicodeError:                        # (a broken character: nothing here could look it up or store it)
+                resp = no("That has a character in it that can't be read.")
         if resp.prepared:                               # (a WebSocket: under way already)
             return resp
         resp.headers["Access-Control-Allow-Origin"] = "*"
@@ -645,7 +918,11 @@ def make_central(db_path):
     pages = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pages")
 
     async def admin_page(request):
-        return web.FileResponse(os.path.join(pages, "admin.html"), headers={"Cache-Control": "no-cache"})
+        return web.FileResponse(os.path.join(pages, "admin.html"), headers={
+            "Cache-Control": "no-cache", "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; "
+                                       "connect-src 'self'; img-src data:; base-uri 'none'; form-action 'none'; "
+                                       "frame-ancestors 'none'"})
 
     async def privacy(request):
         with open(os.path.join(pages, "privacy.html"), encoding="utf-8") as f:
@@ -655,15 +932,15 @@ def make_central(db_path):
                            ("{{ADS}}", "Google AdSense" if os.environ.get("DS_ADSENSE_CLIENT") else "our own notes"),
                            ("{{APPADS}}", "Google AdMob" if os.environ.get("DS_ADMOB_APP") else "our own notes")):
             text = text.replace(key, value.replace("<", "&lt;"))
-        return web.Response(text=text, content_type="text/html")
+        return web.Response(text=text, content_type="text/html", headers={"Cache-Control": "public, max-age=3600"})
 
-    def confirm_page(title, words, code=""):
+    def confirm_page(title, words, code="", way_back=True):
         """The page a link in an email opens: its words, and its button (only that confirms) or the way back."""
         with open(os.path.join(pages, "confirm.html"), encoding="utf-8") as f:
             text = f.read()
         form = ('<form method="post" action="confirm"><input type="hidden" name="code" value="%s">'
                 "<button>Confirm</button></form>" % html.escape(code)) if code else \
-            '<p><a href="/">Go to the start screen</a></p>'
+            '<p><a href="/">Go to the start screen</a></p>' if way_back else ""
         for key, value in (("{{FORM}}", form), ("{{NAME}}", html.escape(c.name)), ("{{TITLE}}", html.escape(title)),
                            ("{{WORDS}}", html.escape(words))):
             text = text.replace(key, value)
@@ -696,6 +973,51 @@ def make_central(db_path):
         log.info("%s confirmed their email", name)
         return confirm_page("Email confirmed", "If %s's password is ever forgotten, we'll send a code to %s." % (name, email))
 
+    # ----- off to Google and back (google.py)
+    async def google_off(request):
+        if not google.ready():
+            return confirm_page("Not set up", "This server can't sign in with Google.")
+        to = request.query.get("to", "home")
+        flow = google.new_flow(to if to in ("home", "app", "admin") else "home")
+        c.google_flows[flow["state"]] = flow
+        c.trim_google()
+        base = c.base_url(request)
+        resp = web.HTTPFound(google.auth_url(base + "/auth/google/done", flow))
+        # (this browser's own: Google's answer is taken only in the one that set off, so nobody can sign you in as them)
+        resp.set_cookie(GOOGLE_COOKIE, flow["state"], max_age=google.FLOW_SECONDS, path="/auth/google", httponly=True,
+                        samesite="Lax", secure=base.startswith("https://"))
+        resp.headers["Cache-Control"] = "no-store"
+        raise resp
+
+    async def google_back(request):
+        q = request.query
+        state = q.get("state", "")
+        c.trim_google()
+        flow = c.google_flows.get(state)
+        if flow is None or not hmac.compare_digest(request.cookies.get(GOOGLE_COOKIE, "").encode("utf-8"), state.encode("utf-8")):
+            return confirm_page("That sign-in has run out", "Start again from the sign-in button.", way_back=flow is None)
+        del c.google_flows[state]
+        if q.get("error") or not q.get("code"):
+            return confirm_page("Not signed in", "Google didn't sign you in. Nothing has changed.",
+                                way_back=flow["to"] != "app")
+        try:
+            sub, email = await google.sign_in(q["code"], c.base_url(request) + "/auth/google/done", flow)
+            email = clean_email(email)
+            if not email:
+                raise google.Refused("Google's address for that account can't be used here.")
+            person = c.google_person(sub, email)
+        except google.Refused as e:
+            return confirm_page("Not signed in", str(e), way_back=flow["to"] != "app")
+        code = auth.recovery_code()[:9]
+        c.google_results[auth.clean_code(code)] = {**person, "at": time.time()}
+        if flow["to"] == "app":                         # (the app's in another window, with nothing to come back through)
+            return confirm_page("Signed in", "Go back to the game and type this code: %s" % code, way_back=False)
+        where = "/admin" if flow["to"] == "admin" else "/"
+        resp = web.HTTPFound("%s#google=%s" % (where, code))
+        resp.del_cookie(GOOGLE_COOKIE, path="/auth/google")
+        resp.headers["Cache-Control"] = "no-store"
+        raise resp
+
     async def ads_txt(request):
         # (Google's line for each publisher: AdSense's ca-pub-123..., AdMob's app ca-app-pub-123...~456, often the same)
         pubs = []
@@ -707,16 +1029,27 @@ def make_central(db_path):
                             content_type="text/plain")
 
     async def health(request):
-        return web.json_response({"ok": True, "servers": len(c.store.servers()), **c.version})
+        return web.json_response({"ok": True, "servers": c.store.count_servers(), **c.version}, dumps=compact)
 
     app = web.Application(middlewares=[cors])
     app["central"] = c
+    cleaning = web.AppKey("cleaning", asyncio.Task)
+
+    async def start_cleaning(app):
+        app[cleaning] = asyncio.create_task(c.keep_clean())
+
+    async def stop_cleaning(app):
+        app[cleaning].cancel()
+
+    app.on_startup.append(start_cleaning)
+    app.on_shutdown.append(stop_cleaning)
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
                      ("logout", c.logout), ("ticket", c.ticket), ("verify", c.verify),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
                      ("email", c.set_email), ("email/again", c.email_again), ("forgot", c.forgot),
                      ("friends", c.friends), ("friend", c.friend),
-                     ("game/friends", c.game_friends), ("game/standing", c.game_standing)):
+                     ("game/friends", c.game_friends), ("game/standing", c.game_standing),
+                     ("game/report", c.game_report), ("google", c.google_result)):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
     app.router.add_get("/api/servers", c.servers)
@@ -727,6 +1060,8 @@ def make_central(db_path):
     app.router.add_route("*", "/play/{key}/{path:.*}", c.relays.play)
     app.router.add_post("/api/admin/{what}", c.admin)
     app.router.add_get("/admin", admin_page)
+    app.router.add_get("/auth/google", google_off)
+    app.router.add_get("/auth/google/done", google_back)
     app.router.add_get("/privacy", privacy)
     app.router.add_get("/confirm", confirm_ask)
     app.router.add_post("/confirm", confirm_done)
@@ -738,7 +1073,8 @@ def make_central(db_path):
     app.router.add_get("/config.js", lambda r: web.FileResponse(os.path.join(home, "config.js"),
                                                                headers={"Cache-Control": "no-cache"}))
     for pic in ("logo.png", "bg.jpg"):                  # (the start screen's pictures, beside it)
-        app.router.add_get("/" + pic, lambda r, pic=pic: web.FileResponse(os.path.join(home, pic)))
+        app.router.add_get("/" + pic, lambda r, pic=pic: web.FileResponse(os.path.join(home, pic), headers={
+            "Cache-Control": "public, max-age=86400"}))     # (not asked for again each time the start screen opens)
     if os.path.isdir(home):
         app.router.add_static("/home/", home)
     ads = os.environ.get("DS_CENTRAL_ADS_DIR", "")

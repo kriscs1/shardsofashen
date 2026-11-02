@@ -397,6 +397,32 @@ lists the remote game servers (each announces itself to it), and it serves the a
   with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
   also finds accounts (ban, unban, make admin, delete), edits the start screen's ads, and counts everything.
+- **Characters' progress**: every game that can reach the central server (its `DS_CENTRAL`, also an app's game alone or
+  on a network; `DS_PROGRESS=0` turns it off) tells it what its characters have got to (`server/progress.py`): level,
+  skills, each quest's stage, Shards, gold, where they are. Only what's changed, every five minutes, zipped: nothing at
+  all when nobody's getting anywhere; about 800 bytes for a character with 40 quests begun. It's all from the saves, so
+  the characters already on a server are told too, a few dozen at a time, as it updates. It's in the central server's
+  `characters`, `character_skills` and `character_quests` tables, and on the admin page: **Characters** (find one by its
+  name or its account's, and open it for its skills and quests), **Quests** (how many have begun and done each, and
+  which stage people are at) and **Skills**. A report is only as honest as the game that sends it (the page says which
+  game; a listed server proves it's that one), so **Servers** can block a game: what it sent goes, and it isn't heard
+  again. A deleted account's characters go with it; any other is forgotten a year after it's last heard of. The privacy
+  policy says all this.
+- **Sign in with Google**: in the [Google Cloud console](https://console.cloud.google.com/apis/credentials) make a
+  project, set up its OAuth consent screen (External; only the `openid` and `email` scopes; its privacy policy
+  `https://<your central server>/privacy`; publish it, or only its test users can sign in), then Create credentials,
+  OAuth client ID, Web application, with the authorised redirect URI
+  `https://<your central server>/auth/google/done`, exactly. Put its ID and secret in the `.env` as `DS_GOOGLE_CLIENT_ID`
+  and `DS_GOOGLE_CLIENT_SECRET`, then `docker compose up -d`: the button appears on the start screen and the admin page.
+  A browser signs in and comes straight back. Google refuses to sign in inside an app's web view, so the apps open the
+  device's own browser, which shows a code to type into the app (a new app build is needed for it). Someone new
+  chooses a name, and their email counts as confirmed, as Google has verified it; an account with that same address
+  confirmed signs in with Google from then on. "Forgotten?" still works, to give such an account a password too.
+- **Bandwidth**: a game keeps one connection open to the central server rather than a new TLS handshake for each call,
+  and its minute's "how are this player's friends?" is answered "the same" when it is. Everything through a game hosted
+  for friends is compressed on the tunnel (a real game's traffic came out about 85% smaller), and a browser that has a
+  game's file gets a 304 without the host being asked. Caddy zips the answers on their way out; `/api/servers` has an
+  ETag; the start screen's pictures are cached for a day. `central/relay.py` keeps at most 200 MB of files in memory.
 - **Email (a link to confirm an address, a forgotten password's code)**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`,
   `DS_SMTP_USER`, `DS_SMTP_PASSWORD`, `DS_SMTP_FROM`, `DS_SMTP_TLS`: any mail service's SMTP, e.g. Namecheap Private Email,
   Brevo, Mailgun, SES, or Gmail with an app password). `central.env.example` has Namecheap's. The domain's DNS must say
@@ -489,6 +515,7 @@ above.
 | `DS_ORIGINS` | (none) | other pages allowed to open the game's connection, comma-separated (e.g. `https://play.example.com`). The game's own page always may; any other site's page is turned away |
 | `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
 | `DS_PUBLIC` | (off) | `1`: a remote server, announced to the central server and listed for everyone |
+| `DS_PROGRESS` | `1` | `0`: this server doesn't tell the central server how its characters are getting on |
 | `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |
 | `DS_PUBLIC_PORT` | `DS_PORT` | the port it's listed by, when it has no `DS_PUBLIC_URL` |
 | `DS_REGISTER_PER_DAY` | 5 | characters one address may make in a day (`0`: no limit) |

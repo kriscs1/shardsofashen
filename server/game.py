@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import hmac
 import ipaddress
+import gzip
 import json
 import logging
 import os
@@ -99,6 +100,7 @@ class GameServer:
         self.max_players = max_players
         self.registration = registration
         self.invite_code = invite_code
+        self.central_http = None        # (the one connection to the central server: central_post)
         self.host_grant = self.store.setting("host_grant", "")     # (the host's key to the central server: relay.py)
         self.host_account = self.store.setting("host_account", "")
         try:
@@ -445,15 +447,25 @@ class GameServer:
             self.store.set_setting("server_id", sid)
         return sid
 
-    async def central_post(self, path, body):
+    async def central_post(self, path, body, packed=False):
+        """A question for the central server, on one connection kept open (a new one is a new TLS handshake: several
+        KB, each player each minute). packed: it's big enough to be worth zipping."""
         import aiohttp
         try:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8)) as http:
-                async with http.post(self.central_url() + path, json=body) as r:
-                    return await r.json(content_type=None)
+            if self.central_http is None or self.central_http.closed:
+                self.central_http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8),
+                                                          connector=aiohttp.TCPConnector(keepalive_timeout=120))
+            ask = {"data": gzip.compress(json.dumps(body, separators=(",", ":")).encode("utf-8")),
+                   "headers": {"Content-Type": "application/json", "Content-Encoding": "gzip"}} if packed else {"json": body}
+            async with self.central_http.post(self.central_url() + path, **ask) as r:
+                return await r.json(content_type=None)
         except Exception as e:                          # (no network, the central server down: say so, go on)
             log.warning("The central server didn't answer %s: %s", path, e)
             return None
+
+    async def close_central(self):
+        if self.central_http is not None:
+            await self.central_http.close()
 
     # ----- friends by Shards account: the central server keeps them; this game asks it with the key a player's ticket
     # brought (only their friends), says where they're playing, and tells the engine (Session.central_friends)
@@ -467,8 +479,10 @@ class GameServer:
     async def friends_now(self, s, **ask):
         """s's friends from the central server (and where s is playing: here), asking or removing one first."""
         got = await self.central_post("/api/game/friends", {"grant": s.grant, "playing": s.player_name,
-                                                            "place": self.server_name(), **ask})
-        if got and got.get("ok") and s.connected:
+                                                            "place": self.server_name(),
+                                                            "have": getattr(s, "friends_have", ""), **ask})
+        if got and got.get("ok") and s.connected and not got.get("same"):     # (same: as they had it, nothing to tell)
+            s.friends_have = got.get("have", "")
             self.took_friends(s, got)
         elif got and got.get("banned"):
             await self.turn_away(s)
@@ -794,6 +808,7 @@ class GameServer:
             w.together.accounts[name] = c.account
         if c.grant:
             s.grant = c.grant
+            s.friends_have = ""                         # (come in again: told the whole of it, not "the same")
             self.took_friends(s, c.friends_got or {})
             asyncio.ensure_future(self.welcome_friends(s))
         c.session = s

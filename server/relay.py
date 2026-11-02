@@ -53,7 +53,8 @@ class Relay:
                 continue
             try:
                 async with aiohttp.ClientSession() as http:
-                    async with http.ws_connect(self.url(), heartbeat=20, max_msg_size=TUNNEL_MAX) as tunnel:
+                    # (compressed: everything a game's friends get goes through this, and it's mostly JSON)
+                    async with http.ws_connect(self.url(), heartbeat=20, max_msg_size=TUNNEL_MAX, compress=15) as tunnel:
                         self.tunnel, self.up, fails = tunnel, True, 0
                         log.info("Open to friends through the central server")
                         async for msg in tunnel:

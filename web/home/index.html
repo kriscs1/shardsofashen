@@ -58,6 +58,8 @@ button:disabled { opacity: 0.5; cursor: default; filter: none; }
 /* ----- signing in */
 .signin { width: min(440px, 100%); margin: 6px auto 0; }
 .tabs { display: flex; gap: 4px; margin: -4px 0 14px; border-bottom: 2px solid var(--edge); }
+button.google { display: block; width: 100%; margin-bottom: 14px; background: #f7f3e8; color: #2a1b14; border-color: #d8c9a4;
+  text-shadow: none; }
 .tabs button { flex: 1; background: none; border: none; border-radius: 10px 10px 0 0; min-height: 40px; color: var(--dim);
   font-size: 15px; text-shadow: none; }
 .tabs button.on { color: var(--ink); background: rgba(176,122,96,0.25); }
@@ -153,6 +155,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
     <div class="row" style="justify-content:center;margin:-2px 0 12px"><span id="central-status" class="status">
       <span class="dot"></span><span id="central-words">Connecting...</span></span></div>
     <div id="online-forms">
+      <button id="google" type="button" class="google" hidden>Continue with Google</button>
       <div class="tabs" role="tablist"><button data-tab="in" class="on">Sign in</button><button data-tab="new">Create account</button>
         <button data-tab="lost">Forgotten?</button></div>
       <form id="form-in" class="stack" autocomplete="on">
@@ -330,10 +333,13 @@ async function connect() {
   try {
     hello = await api("/api/hello");
     canMail = !!hello.mail;
+    $("google").hidden = !hello.google;
     setStatus(true, `Connected · ${hello.servers} game${hello.servers === 1 ? "" : "s"} listed`);
     $("send-row").hidden = !canMail;
     $("lost-words").textContent = canMail ? "Your name (or confirmed email), and the code we email you." :
       "This server can't send email just now, so a password can't be reset: try again later.";
+    const back = /#google=([\w-]+)/.exec(location.hash);    // (back from Google, in a browser: never in anyone's log)
+    if (back) { history.replaceState(null, "", location.pathname + location.search); showWelcome(); googleIn(back[1]); return; }
     if (token) {
       const me = await api("/api/me", { token });
       if (me.ok) { signedIn(me.name); if (me.needs_email) $("chip").onclick(); return; }
@@ -410,6 +416,47 @@ $("form-lost").onsubmit = (ev) => {
     toast("Your new password is set: sign in with it.");
   });
 };
+// ----- signing in with Google: in a browser, off to it and back here with a code; an app opens the phone's or PC's own
+// browser (Google won't sign in inside an app), which shows the code to type in here. New here: a name to choose.
+function openOut(url) {
+  if (app && app.openLink) app.openLink(url); else window.open(url, "_blank", "noopener");
+}
+window.onLinkFailed = () => toast("This device has no browser to open.", true);
+$("google").onclick = () => {
+  if (fromCentral) { location.href = CENTRAL + "/auth/google"; return; }
+  openOut(CENTRAL + "/auth/google?to=app");
+  dialog(`<h2>Sign in with Google</h2><p class="small dim">Your browser has opened. Once you've signed in there, it shows a
+    code: type it here.</p><label class="field">Code<input id="google-code" maxlength="20" autocapitalize="characters"
+    autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX"></label>`,
+    [["Cancel", ""], ["Sign in", "go", () => { const code = $("google-code").value.trim(); if (!code) return false; googleIn(code); }]]);
+};
+async function googleIn(code, name, claim) {
+  busy("A moment...");
+  let r;
+  try { r = await api("/api/google", name === undefined ? { code } : { code, name, claim }); }
+  catch (e) { done(); toast("The central server didn't answer.", true); return; }
+  done();
+  if (r.choose) { chooseName(code, r, name); return; }
+  if (!r.ok) { toast(r.text, true); return; }
+  token = r.token; store.set("token", token); signedIn(r.name);
+  if (r.made) dialog(`<h2>Welcome to Ashen, ${esc(r.name)}!</h2><p>Your account is ready, and signs in with Google.</p>`, [["Carry on", "go"]]);
+  else toast(`Welcome back, ${r.name}.`);
+  if (r.needs_email) $("chip").onclick();
+}
+function chooseName(code, r, name) {
+  dialog(`<h2>Choose your name</h2><p class="small dim">A new Shards account for ${esc(r.email || "this Google account")}.</p>
+    ${r.text ? `<p class="small" style="color:var(--bad)">${esc(r.text)}</p>` : ""}
+    <label class="field">Name (what everyone sees)<input id="google-name" maxlength="20" autocomplete="username" value="${esc(name || "")}"></label>
+    <label class="field" ${r.claim ? "" : "hidden"}>Admin code (from the server's log)<input id="google-claim" maxlength="40" autocomplete="off"></label>
+    <label class="agree"><input id="google-agree" type="checkbox"><span>I've read and agree to the
+      <a href="#" id="google-privacy">privacy policy</a>.</span></label>`,
+    [["Cancel", ""], ["Create my account", "go", () => {
+      if (!$("google-agree").checked) { toast("Tick that you've read the privacy policy first.", true); return false; }
+      googleIn(code, $("google-name").value, $("google-claim").value);
+    }]]);
+  $("google-privacy").onclick = (ev) => { ev.preventDefault(); openOut(CENTRAL + "/privacy"); };
+  setTimeout(() => $("google-name").focus(), 50);
+}
 $("skip").onclick = () => signedIn("");
 $("retry").onclick = connect;
 $("in-name").value = store.get("name");

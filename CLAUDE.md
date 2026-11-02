@@ -15,7 +15,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `web/js/` | The browser client: canvas, ES modules, no build step. `web/assets/` is generated, never edited |
 | `android/` | The Android app: carries the server and page; a phone hosts a game for its network, or joins one |
 | `desktop/` | The desktop app (pywebview, built by PyInstaller): the same start screen and choices as the Android app |
-| `central/` | The central server: everyone's account, the remote game servers' list, the start screen's ads |
+| `central/` | The central server: everyone's account, the remote game servers' list, what every game's characters have got to, the start screen's ads |
 | `web/home/` | The start screen, the same in every version (`tools/sync_home.py` copies it into the Android app) |
 | `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
 | `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory) |
@@ -612,7 +612,28 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   work); something new a player does by clicking calls `act_done` when it succeeds or fails, if nothing else does.
 - Text centred in a row uses `drawTextMid` (it measures the font's capital height): never guess offsets.
 
+- **Every character's progress is on the central server** (`server/progress.py`, `central/store.py`, the admin page's
+  Characters, Quests and Skills): every game with `DS_CENTRAL` tells it level, skills, quests' stages, Shards, gold and
+  map, from the saves, only what's changed. Never a device's key, the look, what's carried or what's said. Something new
+  worth counting is added there, and to the privacy policy (`central/pages/privacy.html`) in the same commit. Anyone can
+  send a report, so what's in one is cleaned (`clean_characters`), and written to the admin page only through `esc`.
+- **The admin page stays plain** (`central/pages/admin.html`, the owner's wish): the browser's own font and colours, no
+  pictures, gradients, shadows or rounded corners, nothing from anywhere else, nothing loaded till its tab's opened,
+  lists a page at a time, and it works on a phone (each row a few lines, no sideways scrolling).
+- **The central server is light on the wire**: a game keeps one connection to it (`central_post`), says nothing when
+  nothing's changed (`have`/`same`, a report's hash), zips what's big; a browser gets a 304 for what it has. Nothing
+  polls: a call made for every player every minute must have earned it.
+- **Sign in with Google** (`central/google.py`, `DS_GOOGLE_CLIENT_ID`, `DS_GOOGLE_CLIENT_SECRET`): the code flow on the
+  server, the same for a browser and the apps; never Google's own script (it can't work in an app's web view). An app
+  opens the device's browser (`DSApp.openLink`, the same name in both) and has a code typed in. A Google account is
+  matched by its id, or by an address only if that's already confirmed on the account.
+
 ## Code and data conventions
+
+- **Every value in a query is a `?` parameter, never in its text**: in `central/store.py` and `server/store.py` only the
+  file's own table and column names are put in with `%s` (a test reads the code and holds it). A search goes through
+  `like()`. Once it's opened the central database may only read and write rows (`no_schema_changes`). A multi-statement
+  write rolls back on any exception, not only SQLite's.
 
 - Match the surrounding code: its naming, its comment density, and its comment voice (short plain-English
   asides in parentheses, e.g. `# (a rug: under whatever stands there)`).

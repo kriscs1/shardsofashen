@@ -146,6 +146,13 @@ class Bridge:
     def play(self, url):
         self._window.load_url(str(url))
 
+    def openLink(self, url):                              # noqa: N802
+        """Out to the PC's own browser (Google won't sign in inside an app's window)."""
+        url = str(url)
+        if url.startswith(("https://", "http://")):
+            import webbrowser
+            webbrowser.open(url)
+
     def goHome(self):                                     # noqa: N802
         self._window.load_html(home_page(self))
 
@@ -173,6 +180,7 @@ SHIM = """<script>
     stopHosting: () => later((api) => api.stopHosting()),
     find: () => later((api) => api.find().then((g) => window.onGames && window.onGames(g))),
     play: (url) => later((api) => api.play(url)),
+    openLink: (url) => later((api) => api.openLink(url)),
     goHome: () => later((api) => api.goHome()),
   };
 })();

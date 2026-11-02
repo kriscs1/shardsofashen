@@ -122,6 +122,13 @@ class Store:
                         "ON CONFLICT(name) DO UPDATE SET state = excluded.state, updated = excluded.updated",
                         (name, json.dumps(state, separators=(",", ":")), time.time()))
 
+    def characters_since(self, mark, limit):
+        """[(name, state, when, owner)] of those saved at or since mark (a clock can read the same for two saves: the last
+        one told comes again, and is seen to be nothing new), the earliest first: for server/progress.py."""
+        return self.db.execute("SELECT c.name, c.state, c.updated, COALESCE(a.owner, '') FROM characters c LEFT JOIN "
+                               "accounts a ON a.name = c.name WHERE c.updated >= ? ORDER BY c.updated LIMIT ?",
+                               (mark, limit)).fetchall()
+
     def save_characters(self, items, world=None):
         """[(name, state)] in one transaction, and the world's state with them if it's given."""
         self.db.execute("BEGIN")

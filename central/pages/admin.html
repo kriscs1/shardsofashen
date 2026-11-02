@@ -1,220 +1,359 @@
 <!doctype html>
-<!-- The central server's admin page (central/app.py /api/admin/...): the servers waiting to be listed and those listed,
-     accounts (find, ban, delete, make admin), the start screen's ads, and how many of each. An admin's Shards account only. -->
+<!-- The central server's admin page (central/app.py /api/admin/...): servers, accounts, what characters have got to, ads.
+     Plain on purpose: the browser's own font and colours, no pictures, nothing loaded till its tab's opened. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
 <title>Admin - Shards of Ashen</title>
 <link rel="icon" href="data:,">
 <style>
-:root { --bg: #180e0a; --panel: #33221b; --edge: #7e4d3f; --ink: #f3e888; --parchment: #e0cf9c; --dim: #b49a6e;
-  --ok: #1f7a3e; --bad: #9a3324; }
+:root { color-scheme: light dark; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0; background: var(--bg); color: var(--parchment); font: 16px/1.4 "Palatino Linotype", Palatino, Georgia, serif; }
-main { max-width: 1000px; margin: 0 auto; padding: 18px 16px 40px; }
-h1 { color: var(--ink); margin: 0 0 12px; font-size: 26px; }
-h2 { color: var(--ink); font-size: 19px; margin: 0 0 10px; }
-.card { background: var(--panel); border: 3px solid var(--edge); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
-input, textarea { font: inherit; padding: 8px 10px; border-radius: 9px; border: 2px solid var(--edge); background: #22160f;
-  color: var(--ink); width: 100%; }
-button { font: inherit; font-weight: bold; padding: 7px 12px; border-radius: 9px; color: var(--ink); background: #7e4d3f;
-  border: 2px solid #b07a60; cursor: pointer; min-height: 38px; }
-button.go { background: var(--ok); border-color: #4fbf74; } button.bad { background: var(--bad); border-color: #d06a55; }
-.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.tabs button.on { background: #b07a60; color: #fff; }
-table { width: 100%; border-collapse: collapse; font-size: 15px; }
-td, th { text-align: left; padding: 7px 6px; border-bottom: 1px solid #4a3027; vertical-align: middle; }
-th { color: var(--dim); font-weight: normal; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 9px; background: #4a3027; }
-.tag.ok { background: var(--ok); color: #fff; } .tag.wait { background: #8a6a1e; color: #fff; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.stat { background: #24170f; border-radius: 10px; padding: 10px 12px; } .stat b { display: block; font-size: 26px; color: var(--ink); }
-.error { color: #f08a75; } .dim { color: var(--dim); font-size: 14px; }
-@media (max-width: 640px) { td:nth-child(3), th:nth-child(3) { display: none; } }
+body { margin: 0 auto; max-width: 1100px; padding: 8px 12px 32px; font: 15px/1.4 system-ui, sans-serif; }
+h1 { font-size: 18px; margin: 4px 0 8px; } h2 { font-size: 16px; margin: 16px 0 6px; }
+nav { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+nav .on { font-weight: bold; text-decoration: underline; }
+button, input, select, textarea { font: inherit; min-height: 34px; padding: 3px 8px; max-width: 100%; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.grow { flex: 1 1 160px; min-width: 0; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #8884; vertical-align: top; overflow-wrap: anywhere; }
+th { font-size: 13px; font-weight: 600; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+td button { margin: 1px 2px 1px 0; }
+tr.open { cursor: pointer; } tr.open:hover { background: #8882; }
+.dim { opacity: 0.7; font-size: 13px; }
+.bad { color: #c33; }
+@media (max-width: 640px) {
+  thead { display: none; }
+  table, tbody, tr { display: block; width: 100%; }
+  tr { border-bottom: 1px solid #8886; padding: 6px 0; }
+  td, td.n { display: inline-block; border: 0; padding: 1px 12px 1px 0; text-align: left; }
+  td:first-child { display: block; font-weight: 600; }
+  td:not([data-l]) { display: block; }
+  td[data-l]:not(:first-child)::before { content: attr(data-l) " "; opacity: 0.7; font-size: 13px; }
+  .grow { flex-basis: 100%; }
+  button { min-height: 40px; }
+}
 </style>
 </head>
-<body><main>
-<h1>Shards of Ashen: admin</h1>
-<p id="error" class="error" hidden></p>
+<body>
+<h1>Shards of Ashen admin</h1>
+<p id="error" class="bad" hidden></p>
 
-<section id="signin" class="card">
-  <h2>Sign in</h2>
-  <p class="dim">An admin's Shards account (made admin here, or named in DS_CENTRAL_ADMINS).</p>
-  <div class="row" style="margin-top:8px"><input id="name" placeholder="Name" style="flex:1;min-width:160px">
-    <input id="password" type="password" placeholder="Password" style="flex:1;min-width:160px">
-    <button id="login" class="go">Sign in</button></div>
-</section>
+<form id="signin" hidden>
+  <p class="dim">An admin's Shards account.</p>
+  <div class="row"><input id="name" class="grow" placeholder="Name" autocomplete="username">
+    <input id="password" class="grow" type="password" placeholder="Password" autocomplete="current-password">
+    <button>Sign in</button><a id="google" href="/auth/google?to=admin" hidden>Sign in with Google</a></div>
+</form>
 
 <div id="panel" hidden>
-  <div class="tabs"><button data-tab="servers" class="on">Servers</button><button data-tab="accounts">Accounts</button>
-    <button data-tab="ads">Ads</button><button data-tab="stats">Summary</button>
-    <span style="flex:1"></span><button id="logout">Sign out</button></div>
-
-  <section id="servers" class="card">
-    <h2>Game servers</h2>
-    <p class="dim">A remote server announces itself; it's listed for everyone only once it's approved here.
-      <span id="central-version"></span></p>
-    <table><thead><tr><th>Name</th><th>State</th><th>Address</th><th>Playing</th><th></th></tr></thead>
-      <tbody id="server-rows"></tbody></table>
-  </section>
-
-  <section id="accounts" class="card" hidden>
-    <h2>Accounts</h2>
-    <div class="row"><input id="q" placeholder="A name or an email" style="flex:1"><button id="search">Find</button></div>
-    <table style="margin-top:8px"><thead><tr><th>Name</th><th>State</th><th>Email</th><th></th></tr></thead>
-      <tbody id="account-rows"></tbody></table>
-  </section>
-
-  <section id="ads" class="card" hidden>
-    <h2>The start screen's ads</h2>
-    <p class="dim">Your own ads, one picked at random each time the start screen opens (in a browser, AdSense instead
-      when DS_ADSENSE_CLIENT is set). A picture is a file name in the ads folder, or a full address.</p>
-    <div id="ad-rows"></div>
-    <div class="row" style="margin-top:8px"><button id="ad-add">Add one</button><button id="ad-save" class="go">Save</button></div>
-  </section>
-
-  <section id="stats" class="card" hidden>
-    <h2>Summary</h2>
-    <div id="stat-boxes" class="stats"></div>
-  </section>
+  <nav id="tabs"><button data-tab="summary">Summary</button><button data-tab="servers">Servers</button>
+    <button data-tab="accounts">Accounts</button><button data-tab="characters">Characters</button>
+    <button data-tab="quests">Quests</button><button data-tab="skills">Skills</button><button data-tab="ads">Ads</button>
+    <button id="logout" style="margin-left:auto">Sign out</button></nav>
+  <div id="filter" class="row" hidden><input id="q" class="grow" placeholder="Search"><select id="server" class="grow"></select></div>
+  <main id="view"></main>
+  <div class="row"><button id="more" hidden>More</button></div>
 </div>
 
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
-let token = localStorage.getItem("ds.admin") || "";
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const say = (t) => { $("error").textContent = t || ""; $("error").hidden = !t; };
-const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const day = (t) => t ? new Date(t * 1000).toLocaleDateString() : "";
+const when = (t) => t ? new Date(t * 1000).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
+const pct = (a, b) => b ? Math.round(a * 100 / b) + "%" : "";
+let token = "", current = "", shown = 0, serversLoaded = false, asking = 0, more = null;
+try { token = localStorage.getItem("ds.admin") || ""; } catch (e) { /* */ }
 
-async function api(path, body = {}) {
-  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, ...body }) });
+function remember(t) { token = t; try { if (t) localStorage.setItem("ds.admin", t); else localStorage.removeItem("ds.admin"); } catch (e) { /* */ } }
+
+async function post(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   return r.json();
 }
-async function admin(what, body) {
-  const r = await api("/api/admin/" + what, body);
-  if (!r.ok) { say(r.text); if (/admins/.test(r.text || "")) signedOut(); }
+async function admin(what, body = {}) {
+  let r;
+  try { r = await post("/api/admin/" + what, { token, ...body }); }
+  catch (e) { say("The server didn't answer."); return { ok: false }; }
+  if (!r.ok) { say(r.text); if (/admins/.test(r.text || "")) signedOut(); } else say("");
   return r;
 }
 
-function signedOut() { token = ""; localStorage.removeItem("ds.admin"); $("signin").hidden = false; $("panel").hidden = true; }
+// (rows of a table: [label, value, is it a number?]; what's in a value is already escaped; a row's own attributes in .at)
+function table(cols, rows, none) {
+  if (!rows.length) return `<p class="dim">${none}</p>`;
+  return `<table><thead><tr>${cols.map((c) => `<th${c.n ? ' class="n"' : ""}>${c.l}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map((r) => `<tr ${r.at || ""}>${cols.map((c) => `<td${c.n ? ' class="n"' : ""}${c.l ? ` data-l="${c.l}"` : ""}>${c.v(r)}</td>`).join("")}</tr>`).join("") +
+    "</tbody></table>";
+}
+function view(html) { $("view").innerHTML = html; }
+function more_(fn) { more = fn; $("more").hidden = !fn; }
+
+function signedOut() { remember(""); $("signin").hidden = false; $("panel").hidden = true; }
 async function signedIn() {
   const r = await admin("stats");
-  if (!r.ok) return;
-  say(""); $("signin").hidden = true; $("panel").hidden = false;
-  tab("servers");
+  if (!r.ok) { $("signin").hidden = false; return; }
+  $("signin").hidden = true; $("panel").hidden = false;
+  tab(location.hash.slice(1) in TABS ? location.hash.slice(1) : "summary", r);
 }
 
-$("login").onclick = async () => {
-  const r = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: $("name").value, password: $("password").value }) }).then((x) => x.json());
-  if (!r.ok) { say(r.text); return; }
-  token = r.token; localStorage.setItem("ds.admin", token); $("password").value = "";
-  signedIn();
+function tab(name, had) {
+  current = name;
+  if (location.hash.slice(1) !== name) history.replaceState(null, "", "#" + name);
+  for (const b of $("tabs").querySelectorAll("[data-tab]")) b.classList.toggle("on", b.dataset.tab === name);
+  const t = TABS[name];
+  $("filter").hidden = !t.filter;
+  $("q").hidden = !t.search;
+  $("q").placeholder = t.search || "";
+  $("server").hidden = !t.byServer;
+  if (t.byServer) loadServerList();
+  more_(null);
+  t.load(had);
+}
+
+async function loadServerList() {
+  if (serversLoaded) return;
+  const r = await admin("reporters");
+  if (!r.ok) return;
+  serversLoaded = true;
+  $("server").innerHTML = '<option value="">Every game server</option>' +
+    r.reporters.map((s) => `<option value="${esc(s.key)}">${esc(placeOf({ place: s.name, kind: s.kind }))} (${s.characters})</option>`).join("");
+}
+function placeOf(s) { return s.place || ({ solo: "Alone on a device", local: "On a network", public: "Public", friends: "For friends" })[s.kind] || "A game"; }
+
+const TABS = {
+  summary: { load: async (had) => {
+    const r = had && had.ok ? had : await admin("stats");
+    if (!r.ok) return;
+    const line = (k, v) => ({ k, v });
+    view(table([{ l: "", v: (x) => x.k }, { l: "", n: 1, v: (x) => esc(x.v) }], [
+      line("Accounts", r.accounts), line("Characters", r.characters), line("Of those with an account", r.with_account),
+      line("Characters played in the last day", r.today), line("In the last week", r.week),
+      line("Game servers reporting", r.reporting), line("Servers listed", r.approved), line("Waiting for approval", r.servers - r.approved),
+      line("Servers up now", r.up), line("Email (password codes)", r.mail ? "On" : "Off"),
+      line("Sign in with Google", r.google ? "On" : "Off"), line("AdSense (browsers)", r.adsense ? "On" : "Off"),
+    ], ""));
+  } },
+
+  servers: { load: async () => {
+    const [r, p] = await Promise.all([admin("servers"), admin("reporters")]);
+    if (!r.ok || !p.ok) return;
+    const rows = r.servers.sort((a, b) => a.approved - b.approved || b.seen - a.seen);
+    view(`<p class="dim">A remote server is listed for everyone only once it's approved here. ${r.version ? `This server is on version ${esc(r.version)}.` : ""}</p>` +
+      table([
+        { l: "Name", v: (s) => `${esc(s.name)}<div class="dim">${esc(s.key)} ${esc(s.version)}</div>` },
+        { l: "State", v: (s) => `${s.approved ? "Listed" : "<b>Waiting</b>"}, ${s.up ? "up" : "not heard lately"}${s.behind ? ", behind" : ""}` },
+        { l: "Address", v: (s) => /^https?:/.test(s.url) ? `<a href="${esc(s.url)}" rel="noopener noreferrer" target="_blank">${esc(s.url)}</a>` : esc(s.url) },
+        { l: "Playing", n: 1, v: (s) => `${s.online}/${s.max}` },
+        { l: "", v: (s) => (s.approved ? `<button data-act="approve" data-k="${esc(s.key)}" data-on="">Unlist</button>` :
+          `<button data-act="approve" data-k="${esc(s.key)}" data-on="1">Approve</button>`) +
+          `<button data-act="remove" data-k="${esc(s.key)}">Remove</button>` },
+      ], rows, "No servers have announced themselves yet.") +
+      "<h2>Reporting characters</h2><p class=\"dim\">Every game that can reach this server says how its characters are getting on. A report is only as honest as the game that sends it: a blocked one's data goes, and it isn't heard again.</p>" +
+      table([
+        { l: "Game", v: (s) => `${esc(placeOf({ place: s.name, kind: s.kind }))}<div class="dim">${esc(s.key.slice(0, 12))} ${esc(s.version)}</div>` },
+        { l: "Kind", v: (s) => `${esc(s.kind)}${s.listed ? ", listed" : ""}${s.blocked ? ", <b>blocked</b>" : ""}` },
+        { l: "Last report", v: (s) => esc(when(s.seen)) },
+        { l: "Characters", n: 1, v: (s) => s.characters },
+        { l: "", v: (s) => `<button data-act="block" data-k="${esc(s.key)}" data-on="${s.blocked ? "" : "1"}">${s.blocked ? "Unblock" : "Block"}</button>` },
+      ], p.reporters, "No game has reported yet."));
+  } },
+
+  accounts: { filter: true, search: "Find a name or an email", load: () => list("accounts", { q: $("q").value }, (a) => a.accounts, [
+    { l: "Name", v: (a) => `${esc(a.name)}<div class="dim">since ${esc(day(a.made))}</div>` },
+    { l: "State", v: (a) => [a.deleted ? `Deleted ${esc(day(a.deleted))}: name kept` : a.banned ? `<b>Banned</b>: ${esc(a.banned)}` : "Fine",
+      a.admin ? "admin" : "", a.google ? "Google" : ""].filter(Boolean).join(", ") },
+    { l: "Email", v: (a) => (esc(a.email) || '<span class="dim">none</span>') + (a.pending ? `<div class="dim">${esc(a.pending)} (not confirmed)</div>` : "") },
+    { l: "", v: (a) => {
+      const n = esc(a.name);
+      return `<button data-act="characters" data-n="${n}">Characters</button>` + (a.deleted ? "" : (a.banned ? `<button data-act="ban" data-n="${n}" data-on="">Unban</button>` : `<button data-act="ban" data-n="${n}" data-on="1">Ban</button>`) +
+        `<button data-act="make_admin" data-n="${n}" data-on="${a.admin ? "" : "1"}">${a.admin ? "Not admin" : "Make admin"}</button>`) +
+        (a.admin ? "" : (a.deleted ? "" : `<button data-act="delete" data-n="${n}">Delete</button>`) +
+        `<button data-act="erase" data-n="${n}">${a.deleted ? "Free the name" : "Delete and free the name"}</button>`);
+    } },
+  ], "No accounts found.") },
+
+  characters: { filter: true, search: "Find a character, or an account's characters", byServer: true, load: () => list("characters", { q: $("q").value, server: $("server").value }, (r) => r.characters, [
+    { l: "Character", v: (c) => esc(c.name) },
+    { l: "Account", v: (c) => esc(c.account) || '<span class="dim">none</span>' },
+    { l: "Game", v: (c) => esc(placeOf(c)) + (c.listed ? ' <span class="dim">listed</span>' : "") },
+    { l: "Level", n: 1, v: (c) => c.level },
+    { l: "Quests done", n: 1, v: (c) => c.done },
+    { l: "Shards", n: 1, v: (c) => c.shards },
+    { l: "Gold", n: 1, v: (c) => c.gold },
+    { l: "Where", v: (c) => esc(c.map) },
+    { l: "Last heard", v: (c) => esc(when(c.seen)) },
+  ], "No characters have been reported yet.", (c) => `class="open" data-act="character" data-k="${esc(c.server)}" data-n="${esc(c.name)}"`) },
+
+  quests: { filter: true, byServer: true, load: async () => {
+    const r = await admin("quests", { server: $("server").value });
+    if (!r.ok) return;
+    const row = (l) => table([
+      { l: "Quest", v: (q) => esc(q.quest) },
+      { l: "Begun", n: 1, v: (q) => q.began },
+      { l: "Done", n: 1, v: (q) => q.done },
+      { l: "Done of begun", n: 1, v: (q) => pct(q.done, q.began) },
+      { l: "Done of everyone", n: 1, v: (q) => pct(q.done, r.characters) },
+    ], l.map((q) => ({ ...q, at: `class="open" data-act="quest" data-q="${esc(q.quest)}"` })), "None.");
+    view(`<p class="dim">${r.characters} character${r.characters === 1 ? "" : "s"}. Choose a quest to see which stage people have got to.</p><div id="detail"></div>` +
+      "<h2>The main story</h2>" + row(r.quests.filter((q) => q.main)) + "<h2>Side quests</h2>" + row(r.quests.filter((q) => !q.main)));
+  } },
+
+  skills: { filter: true, byServer: true, load: async () => {
+    const r = await admin("skills", { server: $("server").value });
+    if (!r.ok) return;
+    view(table([
+      { l: "Skill", v: (s) => esc(s.skill.replace(/_/g, " ")) },
+      { l: "Characters", n: 1, v: (s) => s.characters },
+      { l: "Average", n: 1, v: (s) => s.average },
+      { l: "Highest", n: 1, v: (s) => s.highest },
+      ...[5, 10, 15, 20, 25].map((n, i) => ({ l: "Level " + n + "+", n: 1, v: (s) => s.reached[i] })),
+    ], r.skills, "No characters have been reported yet."));
+  } },
+
+  ads: { load: async () => {
+    const r = await admin("ads");
+    if (!r.ok) return;
+    view('<p class="dim">Your own ads, one at random each time the start screen opens (in a browser, AdSense instead when DS_ADSENSE_CLIENT is set). A picture is a file name in the ads folder, or a full address.</p><div id="ad-rows"></div><div class="row"><button data-act="ad-add">Add one</button><button data-act="ad-save">Save</button></div>');
+    r.ads.forEach(adRow);
+  } },
 };
-$("logout").onclick = () => { api("/api/logout"); signedOut(); };
 
-function tab(name) {
-  for (const b of document.querySelectorAll(".tabs button[data-tab]")) b.classList.toggle("on", b.dataset.tab === name);
-  for (const s of ["servers", "accounts", "ads", "stats"]) $(s).hidden = s !== name;
-  ({ servers: loadServers, accounts: loadAccounts, ads: loadAds, stats: loadStats })[name]();
+// (a list that comes a page at a time: the newest asked for wins)
+async function list(what, body, rowsOf, cols, none, at) {
+  const mine = ++asking;
+  shown = 0;
+  const first = await admin(what, { ...body, skip: 0 });
+  if (mine !== asking || !first.ok) return;
+  let rows = rowsOf(first);
+  const draw = () => view(table(cols, at ? rows.map((r) => ({ ...r, at: at(r) })) : rows, none));
+  draw();
+  const page = first.page || 50;
+  const on = () => more_(rows.length && rows.length % page === 0 ? async () => {
+    const next = await admin(what, { ...body, skip: rows.length });
+    if (mine !== asking || !next.ok) return;
+    const got = rowsOf(next);
+    rows = rows.concat(got);
+    draw();
+    if (got.length < page) more_(null); else on();
+  } : null);
+  on();
 }
-for (const b of document.querySelectorAll(".tabs button[data-tab]")) b.onclick = () => tab(b.dataset.tab);
-
-async function loadServers() {
-  const r = await admin("servers");
-  if (!r.ok) return;
-  $("central-version").textContent = r.version ? `This central server is on version ${r.version}.` : "";
-  const rows = r.servers.sort((a, b) => a.approved - b.approved || b.seen - a.seen);
-  $("server-rows").innerHTML = rows.length ? rows.map((s) => `<tr>
-    <td>${esc(s.name)}<div class="dim">${esc(s.key)} · ${esc(s.version)}</div></td>
-    <td>${s.approved ? '<span class="tag ok">Listed</span>' : '<span class="tag wait">Waiting</span>'}
-      ${s.up ? '<span class="tag">Up</span>' : '<span class="tag">Not heard lately</span>'}
-      ${s.behind ? '<span class="tag wait">Behind</span>' : ""}</td>
-    <td><a href="${esc(s.url)}" target="_blank" rel="noopener" style="color:var(--ink)">${esc(s.url)}</a></td>
-    <td>${s.online}/${s.max}</td>
-    <td class="row">${s.approved ? `<button data-k="${esc(s.key)}" data-a="0">Unlist</button>` :
-      `<button class="go" data-k="${esc(s.key)}" data-a="1">Approve</button>`}
-      <button class="bad" data-k="${esc(s.key)}" data-r="1">Remove</button></td></tr>`).join("") :
-    '<tr><td colspan="5" class="dim">No servers have announced themselves yet.</td></tr>';
-  for (const b of $("server-rows").querySelectorAll("button")) b.onclick = async () => {
-    if (b.dataset.r) { if (!confirm("Remove this server from the list? (It's added again, waiting, if it calls.)")) return;
-      await admin("remove", { key: b.dataset.k }); }
-    else await admin("approve", { key: b.dataset.k, on: b.dataset.a === "1" });
-    loadServers();
-  };
-}
-
-async function loadAccounts() {
-  const r = await admin("accounts", { q: $("q").value });
-  if (!r.ok) return;
-  $("account-rows").innerHTML = r.accounts.length ? r.accounts.map((a) => `<tr>
-    <td>${esc(a.name)}<div class="dim">since ${new Date(a.made * 1000).toLocaleDateString()}</div></td>
-    <td>${a.deleted ? `<span class="tag wait">Deleted ${new Date(a.deleted * 1000).toLocaleDateString()}: name kept</span>` :
-      a.banned ? `<span class="tag wait">Banned: ${esc(a.banned)}</span>` : '<span class="tag">Fine</span>'}
-      ${a.admin ? '<span class="tag ok">Admin</span>' : ""}</td>
-    <td>${esc(a.email) || '<span class="dim">none</span>'}
-      ${a.pending ? `<div class="dim">${esc(a.pending)} (not confirmed)</div>` : ""}</td>
-    <td class="row">${a.deleted ? "" : `${a.banned ? `<button data-n="${esc(a.name)}" data-ban="">Unban</button>` :
-      `<button class="bad" data-n="${esc(a.name)}" data-ban="1">Ban</button>`}
-      <button data-n="${esc(a.name)}" data-adm="${a.admin ? 0 : 1}">${a.admin ? "Not admin" : "Make admin"}</button>`}
-      ${a.admin ? "" : `${a.deleted ? "" : `<button class="bad" data-n="${esc(a.name)}" data-del="delete">Delete</button>`}
-      <button class="bad" data-n="${esc(a.name)}" data-del="erase">${a.deleted ? "Free the name" : "Delete and free the name"}</button>`}</td></tr>`).join("") :
-    '<tr><td colspan="4" class="dim">No accounts found.</td></tr>';
-  for (const b of $("account-rows").querySelectorAll("button")) b.onclick = async () => {
-    if (b.dataset.del) {
-      if (!confirm(b.dataset.del === "delete" ?
-        `Delete ${b.dataset.n}? Their email, password and friends go for good, and they can't sign in. The name stays taken, so nobody else can have it or their characters on game servers.` :
-        `Delete ${b.dataset.n} and free the name? Everything of theirs here goes for good. Anyone can then sign up as ${b.dataset.n}, and whoever does gets the characters that name has on game servers.`)) return;
-      await admin(b.dataset.del, { name: b.dataset.n });
-    } else if (b.dataset.ban !== undefined) {
-      const why = b.dataset.ban ? prompt("Why? (They're told.)", "breaking the rules") : "";
-      if (why === null) return;
-      await admin("ban", { name: b.dataset.n, why });
-    } else await admin("make_admin", { name: b.dataset.n, on: b.dataset.adm === "1" });
-    loadAccounts();
-  };
-}
-$("search").onclick = loadAccounts;
-$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") loadAccounts(); });
 
 function adRow(ad = {}) {
   const row = document.createElement("div");
   row.className = "row";
-  row.style.margin = "6px 0";
-  row.innerHTML = `<input class="t" placeholder="What it says" style="flex:2;min-width:200px"><input class="l" placeholder="Link (optional)" style="flex:1;min-width:140px">
-    <input class="i" placeholder="Picture (optional)" style="flex:1;min-width:120px"><button class="bad">X</button>`;
+  row.innerHTML = '<input class="t grow" placeholder="What it says"><input class="l grow" placeholder="Link"><input class="i grow" placeholder="Picture"><button data-act="ad-drop">Remove</button>';
   row.querySelector(".t").value = ad.text || ""; row.querySelector(".l").value = ad.link || ""; row.querySelector(".i").value = ad.image || "";
-  row.querySelector("button").onclick = () => row.remove();
   $("ad-rows").append(row);
 }
-async function loadAds() {
-  const r = await admin("ads");
+
+async function showCharacter(server, name) {
+  const r = await admin("character", { server, name });
   if (!r.ok) return;
-  $("ad-rows").innerHTML = "";
-  r.ads.forEach(adRow);
+  const c = r.character;
+  view(`<div class="row"><button data-act="back">Back</button></div><h2>${esc(c.name)}, level ${c.level}</h2>
+    <p class="dim">${esc(placeOf(c))}. ${c.account ? "Account " + esc(c.account) + ". " : "No account. "}First heard of ${esc(day(c.made))}, last played ${esc(when(c.played || c.seen))}, at ${esc(c.map)}. ${c.shards} Shards, ${c.gold} gold.</p>
+    <h2>Skills</h2>` + table([{ l: "Skill", v: (s) => esc(s.skill.replace(/_/g, " ")) }, { l: "Level", n: 1, v: (s) => s.level }, { l: "Xp", n: 1, v: (s) => s.xp }], c.skills, "None.") +
+    `<h2>Quests (${c.quests.filter((q) => q.done).length} done, ${c.quests.filter((q) => !q.done).length} under way)</h2>` + table([
+      { l: "Quest", v: (q) => esc(q.quest) },
+      { l: "Stage", n: 1, v: (q) => q.of ? `${q.stage}/${q.of}` : q.stage },
+      { l: "State", v: (q) => q.done ? `Done ${esc(day(q.finished))}` : esc(q.doing) || "Begun" },
+      { l: "Begun", v: (q) => esc(day(q.began)) },
+    ], c.quests, "None begun."));
+  more_(null);
+  window.scrollTo(0, 0);
 }
-$("ad-add").onclick = () => adRow();
-$("ad-save").onclick = async () => {
-  const ads = [...$("ad-rows").children].map((row) => ({ text: row.querySelector(".t").value.trim(),
-    link: row.querySelector(".l").value.trim(), image: row.querySelector(".i").value.trim() })).filter((a) => a.text);
-  const r = await admin("ads", { ads });
-  if (r.ok) { say(""); loadAds(); }
+
+async function showQuest(quest) {
+  const r = await admin("quest", { quest, server: $("server").value });
+  if (!r.ok || !$("detail")) return;
+  $("detail").innerHTML = `<h2>${esc(quest)}: where people have got to</h2>` + table([
+    { l: "Stage", n: 1, v: (s) => s.stage },
+    { l: "Characters", n: 1, v: (s) => s.count },
+    { l: "", v: (s) => r.done && s.stage >= r.done ? "Done" : esc(s.doing) },
+  ], r.stages, "Nobody has begun it.");
+  $("detail").scrollIntoView();
+}
+
+const ACTS = {
+  approve: async (d) => { await admin("approve", { key: d.k, on: !!d.on }); return true; },
+  remove: async (d) => { if (!confirm("Remove this server from the list? (It's added again, waiting, if it calls.)")) return; await admin("remove", { key: d.k }); return true; },
+  block: async (d) => {
+    if (d.on && !confirm("Block this game's reports? What it has sent goes for good, and it isn't heard again till you unblock it.")) return;
+    await admin("block", { key: d.k, on: !!d.on }); serversLoaded = false; return true;
+  },
+  ban: async (d) => {
+    const why = d.on ? prompt("Why? (They're told.)", "breaking the rules") : "";
+    if (why === null) return;
+    await admin("ban", { name: d.n, why }); return true;
+  },
+  make_admin: async (d) => { await admin("make_admin", { name: d.n, on: !!d.on }); return true; },
+  delete: async (d) => {
+    if (!confirm(`Delete ${d.n}? Their email, password, friends and what's known of their characters go for good, and they can't sign in. The name stays taken, so nobody else can have it or their characters on game servers.`)) return;
+    await admin("delete", { name: d.n }); return true;
+  },
+  erase: async (d) => {
+    if (!confirm(`Delete ${d.n} and free the name? Everything of theirs here goes for good. Anyone can then sign up as ${d.n}, and whoever does gets the characters that name has on game servers.`)) return;
+    await admin("erase", { name: d.n }); return true;
+  },
+  character: (d) => showCharacter(d.k, d.n),
+  characters: (d) => { $("q").value = d.n; $("server").value = ""; tab("characters"); },
+  quest: (d) => showQuest(d.q),
+  back: () => true,
+  "ad-add": () => adRow(),
+  "ad-drop": (d, el) => el.parentElement.remove(),
+  "ad-save": async () => {
+    const ads = [...$("ad-rows").children].map((row) => ({ text: row.querySelector(".t").value.trim(),
+      link: row.querySelector(".l").value.trim(), image: row.querySelector(".i").value.trim() })).filter((a) => a.text);
+    await admin("ads", { ads }); return true;
+  },
 };
+$("view").addEventListener("click", async (ev) => {
+  const el = ev.target.closest("[data-act]");
+  if (!el || ev.target.closest("a")) return;
+  const act = ACTS[el.dataset.act];
+  if (!act) return;
+  if (el.tagName === "BUTTON") el.disabled = true;
+  const again = await act(el.dataset, el);
+  if (el.tagName === "BUTTON") el.disabled = false;
+  if (again) tab(current);
+});
 
-async function loadStats() {
-  const r = await admin("stats");
-  if (!r.ok) return;
-  const box = (n, words) => `<div class="stat"><b>${n}</b>${words}</div>`;
-  $("stat-boxes").innerHTML = box(r.accounts, "accounts") + box(r.approved, "servers listed") +
-    box(r.servers - r.approved, "waiting for approval") + box(r.up, "servers up now") +
-    box(r.mail ? "On" : "Off", "email (password codes)") + box(r.adsense ? "On" : "Off", "AdSense (browsers)");
-}
+$("tabs").addEventListener("click", (ev) => { const b = ev.target.closest("[data-tab]"); if (b) tab(b.dataset.tab); });
+$("more").onclick = async () => { if (more) { $("more").disabled = true; await more(); $("more").disabled = false; } };
+$("logout").onclick = () => { post("/api/logout", { token }).catch(() => {}); signedOut(); };
+$("signin").onsubmit = async (ev) => {
+  ev.preventDefault();
+  let r;
+  try { r = await post("/api/login", { name: $("name").value, password: $("password").value }); }
+  catch (e) { say("The server didn't answer."); return; }
+  if (!r.ok) { say(r.text); return; }
+  remember(r.token); $("password").value = "";
+  signedIn();
+};
+let searching = 0;
+$("q").addEventListener("input", () => { clearTimeout(searching); searching = setTimeout(() => tab(current), 300); });
+$("server").addEventListener("change", () => tab(current));
 
-if (token) signedIn();
+(async () => {
+  const back = /#google=([\w-]+)/.exec(location.hash);
+  if (back) {
+    history.replaceState(null, "", location.pathname);
+    const r = await post("/api/google", { code: back[1] }).catch(() => ({}));
+    if (r.ok && r.token) remember(r.token);
+    else say(r.text || (r.choose ? "That Google account has no Shards account: make one on the start screen first." : "That didn't work."));
+  }
+  if (token) { signedIn(); } else { $("signin").hidden = false; }
+  fetch("/api/hello").then((x) => x.json()).then((h) => { $("google").hidden = !h.google; }).catch(() => {});
+})();
 </script>
-</main></body>
+</body>
 </html>
