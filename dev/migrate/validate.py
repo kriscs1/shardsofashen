@@ -1052,11 +1052,13 @@ def check_tiles():
                            "Shelter",                                               # (one with no house sleeps in it)
                            "Corner.Base", "Corner.Land", "Corner.Mask", "Corner.Leg",   # (two grounds on the slant:
                                                                                     #  build_ground_pieces.py)
-                           "Raised"):                                               # (a boardwalk: its shadow cast)
+                           "Raised",                                                # (a boardwalk: its shadow cast)
+                           "Round"):                                                # (natural ground: rounded where
+                                                                                    #  it meets another: round_world.py)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
-            elif k in ("Flame", "Water", "Overhead", "Retired", "Climb", "Shelter") and v not in ("0", "1"):
+            elif k in ("Flame", "Water", "Overhead", "Retired", "Climb", "Shelter", "Round", "Raised") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
             elif k == "Climb" and v == "1" and not re.search(r"Climb (Up|Down)", dict(items).get("Use.Words") or ""):
                 err(r, "[%s] Climb=1 but its Use.Words have no Climb Up or Climb Down (the way it goes)" % sec)

@@ -39,6 +39,8 @@ def pick(weights, r):
 
 
 def main():
+    print("Superseded: the ground rounds itself now (round_world.py), no pieces laid.")
+    return
     project = Project(W.ROOT)
     bases = {s["water"] for s in WD.shores(project)}
     weights = marsh_weights()

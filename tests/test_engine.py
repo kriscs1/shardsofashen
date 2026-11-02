@@ -4020,34 +4020,28 @@ def test_no_quest_locked_message(world):
 
 
 def test_a_frog_on_the_bank_of_a_shore_tile_walks(world):
+    # (a corner piece laid by hand, its land in one corner: the coasts round themselves now, so none lie in the maps)
+    m = world.maps["4,0,0"]
+    tx, ty = 2, 2
+    old = m.tile[m.cell(tx, ty)]
+    assert world.change_tile(m, tx, ty, "Water002")
     found = None
-    for m in world.maps.values():
-        if m.mz != 0:
-            continue
-        for ty in range(1, world.yt + 1):
-            for tx in range(1, world.xt + 1):
-                if m.tile_is_water(tx, ty):
-                    for lx in range((tx - 1) * world.tw + 2, tx * world.tw - 2, 3):
-                        for ly in range((ty - 1) * world.th + 2, ty * world.th - 2, 3):
-                            if m.local_walkable(lx, ly):
-                                found = (m, lx, ly)
-                                break
-                        if found:
-                            break
-                if found:
-                    break
-            if found:
-                break
-        if found:
-            break
-    assert found, "a shore tile with land on it"
-    m, lx, ly = found
-    frog = world.add_npc("Frog", m.mz, m.ox + lx - 16, m.oy + ly - 28, "-")
     try:
-        world.set_entity_position(frog, frog.x + (m.ox + lx - frog.fx), frog.y + (m.oy + ly - frog.fy))
-        assert not world.in_water(frog)                                     # (its feet on the bank: it hops)
+        assert m.tile_is_water(tx, ty)
+        for lx in range((tx - 1) * world.tw + 2, tx * world.tw - 2, 3):
+            for ly in range((ty - 1) * world.th + 2, ty * world.th - 2, 3):
+                if not found and m.local_walkable(lx, ly):
+                    found = (lx, ly)
+        assert found, "a shore tile with land on it"
+        lx, ly = found
+        frog = world.add_npc("Frog", m.mz, m.ox + lx - 16, m.oy + ly - 28, "-")
+        try:
+            world.set_entity_position(frog, frog.x + (m.ox + lx - frog.fx), frog.y + (m.oy + ly - frog.fy))
+            assert not world.in_water(frog)                                 # (its feet on the bank: it hops)
+        finally:
+            world.remove_entity(frog)
     finally:
-        world.remove_entity(frog)
+        world.change_tile(m, tx, ty, old)
 
 
 def test_a_walk_goes_round_someone_in_the_way(world):
@@ -4353,10 +4347,12 @@ def test_a_creature_comes_back_out_of_shard_essence(world):
     s.connected = True
     m = s.cur_map
     s.out = []
+    before = {id(e) for e in world.ents}
     world.add_action_to_queue("ADD", "Rabbit", "NPC", "Attitude=Passive", m.name, "200,200", 0)
     world.run_action_queue()
     assert any(ev.get("t") == "anim" and ev.get("base") == "Shard_Form" for ev in s.out)
-    rabbit = next(e for e in world.ents if e.name == "Rabbit" and e.map == m.name and e.source == "MAP")
+    rabbit = next(e for e in world.ents if e.name == "Rabbit" and id(e) not in before)   # (the one just added: not
+    #  another of the map's own)
     s.out = []
     world.npc_killed_by_npc(rabbit)
     assert any(ev.get("t") == "anim" and ev.get("base") == "Shard_Fade" for ev in s.out)
@@ -5509,6 +5505,10 @@ def test_the_isle_has_grown_north_with_its_new_places(world):
     assert s.cur_map.name in s.lock_text("Isle.Maps", "").split()   # (the Isle's easy locks, up there too)
     hearth = next(e for e in world.ents if e.npc_id == "Old_Beacon_Hearth")
     near(world, s, hearth, 0, 30)
+    hm = world.maps[hearth.map]
+    s.teleport(hearth.map, int(hearth.x - hm.ox), int(hearth.y - hm.oy) + 30)   # (by it again: nothing nudged since)
+    s.do_pending_map_change()
+    assert s.player_distance_to(hearth) <= 48, s.player_distance_to(hearth)
     s.out = []
     s.clicked_ent = hearth
     s.start_script("Search Old_Beacon_Hearth", True)
@@ -5594,3 +5594,28 @@ def test_two_corner_pieces_meeting_round_into_each_other():
     assert plain == [(32, 0), (0, 0), (32, 32)]
     assert (32 - 32 * RD.JOIN, 32) in [tuple(round(v, 6) for v in pt) for pt in joined]   # (thick where it meets)
     assert len(joined) > 6                                           # (and curved between)
+
+
+def test_natural_grounds_round_into_each_other_at_every_corner():
+    # round_world.py: the game and the editor round where grounds meet, from the four cells round each corner of the
+    # grid: a lone tile round, a lone pond round, a diagonal of two grounds joined by the higher, a straight edge left
+    from dsedit.project import Project
+    from dsedit import render as RD
+    P = Project(ROOT)
+
+    def fills(grid, x, y):
+        return RD.round_fills(P, lambda a, b: grid.get((a, b)), x, y)
+    islet = {(x, y): "Water001" for x in range(3) for y in range(3)}
+    islet[(1, 1)] = "Sand001"
+    assert sorted(k for k, *_ in fills(islet, 1, 1)) == [0, 1, 2, 3]            # (sand, round, in the water)
+    assert all(fills(islet, x, y) == [] for x, y in islet if (x, y) != (1, 1))  # (the water round it: as it was)
+    pond = {(x, y): "Grass001" for x in range(3) for y in range(3)}
+    pond[(1, 1)] = "Lake001"
+    assert sorted(k for k, *_ in fills(pond, 1, 1)) == [0, 1, 2, 3]
+    saddle = {(0, 0): "Grass001", (1, 1): "Grass001", (1, 0): "Water001", (0, 1): "Water001"}
+    assert [k for k, *_ in fills(saddle, 1, 0)] == [2] and fills(saddle, 0, 0) == []   # (the land joins across)
+    edge = {(x, y): ("Grass001" if y == 0 else "Sand001") for x in range(3) for y in range(2)}
+    assert all(fills(edge, x, y) == [] for x, y in edge)                       # (a straight edge stays straight)
+    assert RD.round_poly(0, 32, 32, 5, 7)[:3] == [(32, 0), (16, 0), (16, 0)]     # (the corner, then its edge's middle)
+    assert RD.round_poly(1, 32, 32, 5, 7, 5)[:3] == [(32, 32), (16, 32), (16, 27)]   # (round a higher ground's bands)
+    assert [i for _, _, i in fills(pond, 1, 1)] == [5] * 4 and [i for _, _, i in fills(islet, 1, 1)] == [0] * 4

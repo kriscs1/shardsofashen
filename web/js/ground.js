@@ -45,6 +45,9 @@ function info(name) {
     blend: Math.min(9, Math.max(0, Math.floor(val(tileIni(name, "Blend", "0"))))),
     tex: tileIni(name, "Blend.Texture", name) || name,
     texture: tileIni(name, "Texture", ""),
+    // (natural ground, rounded where it meets another: Round=1; its ground, Grass002 Grass001's; which wins a tie)
+    round: flag("Round") && !decor ? name.replace(/\d+$/, "") : "",
+    rank: Math.min(9, Math.max(0, Math.floor(val(tileIni(name, "Blend", "0"))))),
     water: flag("Water"),
     raised: flag("Raised"),                         // (a boardwalk: up on posts, its shadow on what's round it)
     // (a diagonal shore piece, Water002-009 or <Land>_Water002-009: the corner its land is in - region_tiles.py)
@@ -109,11 +112,12 @@ export function forgetChunks(keep) {
 }
 
 export function invalidateCell(name, x, y) {
-  // A cell changed (and its neighbours' edges may have): paint them again, across map edges too
+  // A cell changed (and its neighbours' edges may have, and their rounded corners two out): paint them again, across
+  // map edges too
   const m = S.maps.get(name);
   if (!m) return;
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
+  for (let dy = -2; dy <= 2; dy++) {
+    for (let dx = -2; dx <= 2; dx++) {
       const gx = m.mx * G.xt + x - 1 + dx, gy = m.my * G.yt + y - 1 + dy;
       const n = mapByPos(Math.floor(gx / G.xt), Math.floor(gy / G.yt), m.mz);
       if (!n) continue;
@@ -195,8 +199,10 @@ function taperBand(x, side, ends) {
     return [S - v, uu];
   };
   x.globalCompositeOperation = "destination-out";
-  for (const end of ends) {
-    const pts = [[S - BAND, S + 1], [S - BAND, BAND], [S + 1, -1], [S + 1, S + 1]].map(([u, v]) => at(u, v, end));
+  for (const e of ends) {
+    // (a capital: narrowing to its end; small: gone from its middle on, where the ground beside it rounds away)
+    const end = e.toUpperCase(), u0 = e === end ? S - BAND : S / 2 - 3, u1 = e === end ? S + 1 : S / 2 + BAND / 2;
+    const pts = [[u0, S + 1], [u0, BAND], [u1, -1], [S + 1, -1], [S + 1, S + 1]].map(([u, v]) => at(u, v, end));
     x.beginPath();
     x.moveTo(...pts[0]);
     for (const pt of pts.slice(1)) x.lineTo(...pt);
@@ -244,6 +250,8 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
     if (level > b && tex && slantedToward(z, gx + ddx, gy + ddy, side)) level = 0;   // (its corner's cut away)
     if (level > b && k >= 4 && (shoreAt(z, gx + ddx, gy) || shoreAt(z, gx, gy + ddy))) level = 0;   // (a diagonal
     //  shore beside it already runs to that corner: no blob of land filling it)
+    if (level > b && k >= 4 && roundedAway(z, gx + ddx, gy + ddy, -ddx, -ddy)) level = 0;   // (its corner here's
+    //  another ground's now, rounded into it)
     let taper = "";
     if (level > b && k < 4) {                    // (an end of the band where a diagonal shore's coast starts)
       const along = ddy ? [[1, 0, "E", "W"], [-1, 0, "W", "E"]] : [[0, 1, "S", "N"], [0, -1, "N", "S"]];
@@ -254,6 +262,10 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
         if ((by && by.includes(side) && by.includes(end)) || (past && past.includes(side) && past.includes(back))) {
           taper += end;
         }
+      }
+      for (const [ex, ey, end] of ddy ? [[1, 0, "e"], [-1, 0, "w"]] : [[0, 1, "s"], [0, -1, "n"]]) {
+        // (and where its corner's rounded away: gone from the middle on)
+        if (!taper.includes(end.toUpperCase()) && roundedAway(z, gx + ddx, gy + ddy, ex || -ddx, ey || -ddy)) taper += end;
       }
     }
     if (level > b && tex) {
@@ -399,6 +411,72 @@ function paintSlants(ctx, z, gx, gy, tile, dx, dy, ch) {
   });
 }
 
+// ----- where natural grounds meet: rounded, worked out at every corner of the grid from the four cells round it
+// (Tiles.ini Round=1). A cell's corner whose two neighbours beside it there are both another ground takes that ground,
+// out to the middle of its two edges (where the ground beside it meets it too, so the coast runs on unbroken), on a
+// curve: so a lone tile is round, a staircase of them a slope, an inlet's end a bay, and where it's two and two across
+// the corner the higher ground (Blend) runs through. The curve's bend is the corner's own (the same from every cell
+// round it), so no two islets are quite alike.
+const QUAD = [[1, -1], [1, 1], [-1, 1], [-1, -1]];   // (0 NE, 1 SE, 2 SW, 3 NW: the way to its neighbours there)
+const INSET = 5;   // (where the ground filling a corner spills over this one's edges anyway (a higher Blend), its curve
+//  runs that far in, round the corner of its bands: else it'd be under them, and the corner square)
+
+function roundOf(z, gx, gy) {
+  const c = cellAtTile(z, gx, gy);
+  return c && c[0] ? info(c[0]) : null;
+}
+
+function roundsAt(z, gx, gy, ti) {
+  // [[corner, the tile whose ground fills it]] of a cell
+  const out = [];
+  if (!ti || !ti.round || ti.corner) return out;
+  QUAD.forEach(([sx, sy], k) => {
+    const a = roundOf(z, gx + sx, gy), b = roundOf(z, gx, gy + sy), d = roundOf(z, gx + sx, gy + sy);
+    if (!a || !b || !a.round || a.round !== b.round || a.round === ti.round) return;
+    if (d && d.round === ti.round && (a.rank < ti.rank || (a.rank === ti.rank && a.round < ti.round))) return;
+    const c = cellAtTile(z, gx + sx, gy);
+    out.push([k, c[0]]);
+  });
+  return out;
+}
+
+function roundedAway(z, gx, gy, sx, sy) {
+  // Is the cell's corner toward (sx, sy) another ground's, rounded into it? (then its own doesn't spill out there)
+  const k = QUAD.findIndex(([a, b]) => a === sx && b === sy);
+  return roundsAt(z, gx, gy, roundOf(z, gx, gy)).some(([kk]) => kk === k);
+}
+
+function roundPath(ctx, k, dx, dy, vx, vy, inset) {
+  // The corner k's fill: from the corner to the middle of its two edges, (inset from them,) a curve between bending
+  // toward the corner by the grid corner's (vx, vy) own amount: rounder round the bands' corner
+  const w = G.tw, h = G.th;
+  const c = [[w, 0], [w, h], [0, h], [0, 0]][k];
+  const ix = c[0] ? -inset : inset, iy = c[1] ? -inset : inset;
+  const p = [w / 2, c[1]], q = [c[0], h / 2], p2 = [p[0], p[1] + iy], q2 = [q[0] + ix, q[1]], c2 = [c[0] + ix, c[1] + iy];
+  const hsh = ((vx * 73856093) ^ (vy * 19349663)) >>> 0;
+  const bend = inset ? 0.55 + (hsh % 1000) / 1000 * 0.4 : 0.18 + (hsh % 1000) / 1000 * 0.32;
+  const m = [(p2[0] + q2[0]) / 2, (p2[1] + q2[1]) / 2];
+  ctx.beginPath();
+  ctx.moveTo(dx + c[0], dy + c[1]);
+  ctx.lineTo(dx + p[0], dy + p[1]);
+  ctx.lineTo(dx + p2[0], dy + p2[1]);
+  ctx.quadraticCurveTo(dx + m[0] + (c2[0] - m[0]) * bend, dy + m[1] + (c2[1] - m[1]) * bend, dx + q2[0], dy + q2[1]);
+  ctx.lineTo(dx + q[0], dy + q[1]);
+  ctx.closePath();
+}
+
+function paintRounds(ctx, z, gx, gy, ti, dx, dy, ch) {
+  // This cell's corners where another ground rounds into it; true if any of them is water
+  let wet = false;
+  for (const [k, other] of roundsAt(z, gx, gy, ti)) {
+    const [sx, sy] = QUAD[k];
+    roundPath(ctx, k, dx, dy, gx + (sx > 0 ? 1 : 0), gy + (sy > 0 ? 1 : 0), info(other).rank > ti.rank ? INSET : 0);
+    paintGroundIn(ctx, other, gx, gy, dx, dy, ch);
+    if (info(other).water && !ti.water) wet = true;
+  }
+  return wet;
+}
+
 // ----- what's raised off the ground (Tiles.ini Raised=1: a boardwalk on its posts): the light from the top left, so
 // its shadow falls south and east of it, and its front edge shows where it ends
 function raisedAt(z, gx, gy) {
@@ -502,7 +580,23 @@ function foamSides(z, gx, gy) {
   return out;
 }
 
-function foamDistance(ctx, dx, dy, sides) {
+// (a water cell's sides beside land: the halves where that land's own corner is water now - rounded into it - get
+//  no band of land: [side, half (0 west or north, 1 east or south), the neighbour, its corner touching that half])
+const HALVES = [["N", 0, 0, -1, 2], ["N", 1, 0, -1, 1], ["E", 0, 1, 0, 3], ["E", 1, 1, 0, 2],
+  ["S", 0, 0, 1, 3], ["S", 1, 0, 1, 0], ["W", 0, -1, 0, 0], ["W", 1, -1, 0, 1]];
+
+function wetHalves(z, gx, gy) {
+  const out = new Set();
+  for (const [side, half, ox, oy, k] of HALVES) {
+    const n = roundOf(z, gx + ox, gy + oy);
+    if (!n || n.water) continue;
+    const r = roundsAt(z, gx + ox, gy + oy, n).find(([kk]) => kk === k);
+    if (r && info(r[1]).water) out.add(side + half);
+  }
+  return out;
+}
+
+function foamDistance(ctx, dx, dy, sides, skip = new Set()) {
   // How far (0-5) each pixel of the cell is from land (anim.py foam_distance)
   const tw = G.tw, th = G.th, W = tw + 8, H = th + 8;
   if (!cache.scratch) {
@@ -523,10 +617,12 @@ function foamDistance(ctx, dx, dy, sides) {
     if (isLand) { land[(y + 4) * W + x + 4] = 1; any = true; }
   }
   const fill = (x0, y0, x1, y1) => { for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) land[y * W + x] = 1; any = true; };
-  if (sides.includes("N")) fill(0, 0, W, 4);
-  if (sides.includes("S")) fill(0, th + 4, W, H);
-  if (sides.includes("W")) fill(0, 0, 4, H);
-  if (sides.includes("E")) fill(tw + 4, 0, W, H);
+  const hw = 4 + tw / 2, hh = 4 + th / 2;          // (a side in its two halves: one skipped where it's water now)
+  const band = (side, a, b) => { if (!skip.has(side + "0")) a(); if (!skip.has(side + "1")) b(); };
+  if (sides.includes("N")) band("N", () => fill(0, 0, hw, 4), () => fill(hw, 0, W, 4));
+  if (sides.includes("S")) band("S", () => fill(0, th + 4, hw, H), () => fill(hw, th + 4, W, H));
+  if (sides.includes("W")) band("W", () => fill(0, 0, 4, hh), () => fill(0, hh, 4, H));
+  if (sides.includes("E")) band("E", () => fill(tw + 4, 0, W, hh), () => fill(tw + 4, hh, W, H));
   if (!any) return null;
   const d = new Int8Array(W * H).fill(9);
   for (let i = 0; i < W * H; i++) if (land[i]) d[i] = 0;
@@ -620,18 +716,19 @@ function paintCell(ch, ci, now) {
     else { ctx.fillStyle = "#000"; ctx.fillRect(dx, dy, G.tw, G.th); }
   }
   if (ti.blend > 0) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch);
+  const wet = paintRounds(ctx, m.mz, gx, gy, ti, dx, dy, ch);
   paintSlants(ctx, m.mz, gx, gy, tile, dx, dy, ch);
   paintRaised(ctx, m.mz, gx, gy, ti, dx, dy);
   const roofShown = !!roof && !(ch.hidden && group === ch.hidden);
   const sea = decor && ti.kind === "water" && !info(decor).wade;   // (a rock: the foam goes round it)
   if (sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);
-  if (ti.kind === "water") {
+  if (ti.kind === "water" || wet) {               // (and a corner of water rounded into the land: its foam too)
     let f = ch.foam.get(ci);
     if (f === undefined) {
-      const sides = foamSides(m.mz, gx, gy);
+      const sides = ti.kind === "water" ? foamSides(m.mz, gx, gy) : "";
       f = null;
-      if (sides || hasLand(tile) || sea) {
-        const dist = foamDistance(ctx, dx, dy, sides);
+      if (sides || hasLand(tile) || sea || wet) {
+        const dist = foamDistance(ctx, dx, dy, sides, ti.kind === "water" ? wetHalves(m.mz, gx, gy) : undefined);
         f = dist ? { dist, frames: new Map() } : null;
       }
       if (!ch.missing) ch.foam.set(ci, f);                        // (not on a picture still loading: it'd all be land)

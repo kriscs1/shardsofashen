@@ -19,6 +19,8 @@ BOX = (48, -24, 72, -6)                                 # (round the tarn, on 1,
 
 
 def main():
+    print("Superseded: the ground rounds itself now (round_world.py), no pieces laid.")
+    return
     w = W.World(0)
     _, at = w.find_id("Mirror_Tarn")
     water = {(gx, gy) for gx in range(BOX[0], BOX[2] + 1) for gy in range(BOX[1], BOX[3] + 1)

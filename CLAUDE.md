@@ -469,7 +469,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   big seamless texture (marsh is the exception, the owner's wish: varied tiles, `build_marsh.py`, each its own
   feature kept in from its edges so any two meet without a seam, mixed by weight by its terrain) (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
   picture repeated every tile; a range is peaks of all sizes overlapping. Trees, bushes, rocks, grass and flowers
-  are sized and nudged per tile (`ground.js` paintDecor), always inside their own cell.
+  are sized and nudged per tile (`ground.js` paintDecor), always inside their own cell. Small things to put down anywhere
+  (stones, pebbles, shells, twigs, fallen leaves: `dev/migrate/build_small_decor.py`) are decor, some scattered by
+  the terrains they suit.
   A range's edge has no right angles: its corners are cut on the slant as the ground's painted (`ground.js`
   paintSlants), and a bay's inner corner filled with rock.
 - Nothing shows as a placeholder ("?") while its picture loads: draw nothing till it has.
@@ -574,7 +576,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   same). A migration that is superseded refuses to run.
 - The map editor's map: the mouse wheel zooms (Shift+wheel, middle-drag or Space+drag move the view); an area is
   copied or cut with the inspector's buttons, then each click puts it down; after a change only the maps changed are
-  drawn again, and nothing goes black while new pictures are made. A thing dragged off a map lands on the next one.
+  drawn again, and nothing goes black while new pictures are made. The Ground layer shows the decor and creatures faded over it, so you can see where you paint. A thing dragged off a map lands on the next one.
   Zoomed far out, a double-click zooms in on that tile at 100%. Every level under or over the world is laid out in the
   world's frame (`dsedit/world.py` own_level): one frame round every map on any of them, so a tile is at the same spot
   of the canvas on every level, and **going up or down keeps the view exactly** (the same scroll and zoom, every tile
@@ -588,8 +590,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Detail shows every tile. Every palette entry has its name under it; Auto's are in sections under headings
   (Terrains; walls, fences and joins; roofs; sets; look-alikes; single tiles: `PAL_SECTIONS`). Terrains are painted with a brush of any size, Fill, Rectangle, or an Outline drawn round a
   place; painting rolls the decor and creatures afresh, takes off what another terrain scattered (never anything with
-  an Id, a name, a zone or a patrol, nor built decor), smooths the coasts and turns cave rock to its face over open
-  ground. A new kind of ground or a wall gets a terrain in the data, not code. An NPC's `Zone=`/`Chase=` can be any
+  an Id, a name, a zone or a patrol, nor built decor) and turns cave rock to its face over open ground (the coasts
+  round themselves: see below). A new kind of ground or a wall gets a terrain in the data, not code. An NPC's `Zone=`/`Chase=` can be any
   shape: rectangles joined by `/`, painted tile by tile. Whole maps are moved, copied or deleted from the map's
   right-click menu (`dsedit/mapops.py`: what names them follows; the code that names them is listed). An entity's
   options are fields of their own (`OPT_SPECS` in `dsedit/pages/maps.py`): a new map option gets one there too.
@@ -604,19 +606,20 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   their own Terrains page. A Join set (fences, palisades, the town wall) is dragged as a line or round a rectangle,
   or painted freehand, and its pieces round it are joined again, painting or erasing. `dev/migrate/tile_joins.py` wrote them.
   Give a new set its Kind, and its pieces their `Piece=` (and `Joins=`).
-- **Where two grounds meet on the slant** (`dev/migrate/build_ground_pieces.py`): a piece says what it's made of
-  (Tiles.ini `Corner.Base`, `Corner.Land`, `Corner.Mask` NE,SE,SW,NW, `Corner.Leg`), and the game (`ground.js`) and
-  the editor (`render.py`) paint it from those, its corners from the land's own texture: never a picture of its own
-  that has to match. Every way the corners go has its piece (water with land on three sides takes two; a one-tile
-  pond all four, its water still a pool), for the sea, inland water (`Lake001`, the Lake terrain; the sea is the
-  Sea terrain) and sand going into grass. The editor's smoothing (`world.py` smooth_corners) gives a cell of the base
-  ground every corner whose two sides are both the land, whatever's on the diagonal or beyond, two cells round
-  what's painted. A new coast or edge is a set and a run of that builder, not code.
-- **Two corners that meet round into each other**: where a piece's corner runs on along an edge into its neighbour's
-  (a two-tile inlet's end, two pieces along a bank), the land is thickened at that tip and curved between, never a
-  point (`ground.js` cornerJoins, `render.py` _corner_poly): worked out from the neighbours, no pieces of its own.
-  `dev/migrate/retile_world.py` ran the editor's smoothing over every level (and varied the marsh); run it again
-  after a big change to the coasts.
+- **Where natural grounds meet, they round themselves** (Tiles.ini `Round=1`: water, lakes, bog, sand, grass, marsh,
+  dirt, snow...; `dev/migrate/round_world.py` set it and turned every laid corner piece back to its base): the game
+  (`ground.js` paintRounds) and the editor (`render.py` _rounds) work it out at every corner of the grid from the four
+  cells round it, so a map holds only plain tiles. A cell's corner whose two neighbours there are both another ground
+  takes that ground out to the middle of its two edges, on a curve bent by that grid corner's own hash: a lone tile is
+  round (no two alike), a one-tile pond a pool, a staircase a slope, an inlet's end a bay, two and two across a corner
+  joined by the higher `Blend`. Where the ground filling it spills its blend over this cell's edges anyway, its curve
+  runs round the bands (`INSET`); where a corner is rounded away, its own ground's band stops at the middle of that
+  edge, and the foam follows the water. Don't paint coasts with pieces or run a smoothing over the maps.
+- **Corner pieces are only for a shape the rounding can't make** (`dev/migrate/build_ground_pieces.py`, laid by hand
+  from Detail): a piece says what it's made of (Tiles.ini `Corner.Base`, `Corner.Land`, `Corner.Mask` NE,SE,SW,NW,
+  `Corner.Leg`) and is painted from those, its corners from the land's own texture (`ground.js` cornerJoins,
+  `render.py` _corner_poly where two pieces' corners run into each other). `retile_world.py` and `tarn_to_lake.py`
+  are superseded.
 - **What's raised off the ground** (Tiles.ini `Raised=1`: the boardwalk, `dev/migrate/build_crossings.py`) casts its
   shadow south and east, shows its front edge and the posts it stands on, isn't blended over, and turns its planks
   across the way where it runs east and west (`ground.js` paintRaised, `render.py`). The fancy bridge is two Stretch

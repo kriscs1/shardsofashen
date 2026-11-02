@@ -377,10 +377,7 @@ class MapPage(Page):
         for k, label, tip in (("sets", "Lay out whole sets", "A roof, a rug, the walls round a room or a fence: drag "
                                "a rectangle with any piece of it and the right corners, edges and middle go down."),
                               ("mix", "Mix in look-alikes", "Paint with one tile and its look-alikes (Grass001, "
-                               "Grass002...: the same name, walked on the same way) go down at random."),
-                              ("smooth", "Smooth coast corners", "Where water turns a corner against grass, sand, "
-                               "snow or marsh (or sand into grass), the diagonal piece goes in by itself: every "
-                               "corner whose two sides are land, two tiles round what you paint.")):
+                               "Grass002...: the same name, walked on the same way) go down at random.")):
             cb = ttk.Checkbutton(of, text=label, variable=self.opt[k])
             cb.pack(anchor="w")
             Tooltip(cb, tip)
@@ -1280,13 +1277,7 @@ class MapPage(Page):
         big = len(cells) > 1500
         with self.app.busy("Painting %s over %d tiles…" % (t.title, len(cells))) if big else contextlib.nullcontext():
             done = TR.paint(self.project, t, cells, self.at, self.touch, creatures=self.creatures.get())
-            if done and self.opt["smooth"].get():
-                def put(x, y, name):
-                    a = self.at(x, y)
-                    self.touch(a[0])
-                    a[0].cells[a[2]][a[1]].tile = name
-                WD.smooth_corners(self.project, self.tile_at, put, set(done))
-        return done
+        return done                                 # (where grounds meet, the game and the editor round them: no pieces)
 
     def pick_brush(self, key, keep_tool=False):
         g = getattr(self, "_groups", {}).get(key) if key else None
@@ -1345,19 +1336,32 @@ class MapPage(Page):
         P, layer = self.project, self.layer
         mx, my = self.doc_xy(doc)
         org = (mx * P.map_w, my * P.map_h)
+        near = self.world_tile                          # (the ground rounds into the next map's across the edge)
         if layer == "all":
-            img = render(P, doc, origin=org)
-        elif layer == "map":
-            img = render(P, doc, roofs=False, infront=False, entities=False, decor=False, origin=org)
+            img = render(P, doc, origin=org, around=near)
+        elif layer == "map":                            # (the ground, and what stands on it faded over it: where to paint)
+            img = render(P, doc, roofs=False, infront=False, entities=False, decor=False, origin=org, around=near)
+            over = render(P, doc, ground=False, roofs=False, infront=False, entities=True, decor=True, origin=org)
+            over.putalpha(over.getchannel("A").point(lambda v: v * 45 // 100))
+            img.alpha_composite(over)
         else:
             under = render(P, doc, roofs=False, infront=False, entities=layer not in ("things", "decor"),
-                           decor=layer != "decor", origin=org).convert("RGB")
+                           decor=layer != "decor", origin=org, around=near).convert("RGB")
             img = ImageEnhance.Brightness(ImageEnhance.Color(under).enhance(0.4)).enhance(0.76).convert("RGBA")
             img.alpha_composite(render(P, doc, ground=False, roofs=layer == "roof", infront=layer == "infront",
                                        entities=layer == "things", decor=layer == "decor"))
         if self.show["walk"].get():
             img.alpha_composite(walk_overlay(P, doc))
         return img
+
+    def world_tile(self, gx, gy):
+        """The tile at a world tile of the level shown (None where there's no map)."""
+        P = self.project
+        mx, my = gx // P.map_w, gy // P.map_h
+        name = self.level_slots().get((mx, my))
+        if name is None:
+            return None
+        return self.get_doc(name).cells[gy - my * P.map_h][gx - mx * P.map_w].tile
 
     def picture(self, name):
         """A map's picture (full size), made if it isn't kept. An entity being dragged is left out of it (it's drawn
@@ -1500,11 +1504,16 @@ class MapPage(Page):
             self._zoom_anchor = ((c.canvasx(0) / dz + (was[1][0] - frame[1][0]) * P.map_w * P.tile_w),
                                  (c.canvasy(0) / dz + (was[1][1] - frame[1][1]) * P.map_h * P.tile_h), 0, 0)
         same = self._drawn_zoom == z and z >= FAR and not self._center and not getattr(self, "_zoom_anchor", None)
-        if same and not everything:                     # (just the maps changed: their squares drawn again)
-            slots = {n: xy for xy, n in self.level_slots().items()}
-            for n in fresh:
+        if same and not everything:                     # (just the maps changed: their squares drawn again, the old
+            slots = {n: xy for xy, n in self.level_slots().items()}   # picture kept till the new one's ready: never
+            for n in fresh:                                           # black while it's made)
                 if n in slots:
-                    c.delete("slot%d_%d" % slots[n])
+                    for item in c.find_withtag("slot%d_%d" % slots[n]):
+                        if "map" in c.gettags(item):
+                            c.dtag(item, "map")
+                            c.addtag_withtag("old", item)
+                        else:
+                            c.delete(item)
                     self._drawn.discard(slots[n])
             c.delete("marks")
         elif same:                                      # (every square again: the old pictures stay till replaced)
@@ -3430,18 +3439,8 @@ class MapPage(Page):
         switched on, and what was painted isn't itself a piece)."""
         if self.layer != "map" or not cells:
             return
-        TR.fix_faces(self.project, list(cells), self.at, self.touch)   # (cave rock's face over open ground)
-        if not self.opt["smooth"].get():
-            return
-        sets = WD.shore_sets(self.project)
-        if any(self.brush in pieces for pieces in sets.values()):
-            return
-
-        def put(x, y, name):
-            a = self.at(x, y)
-            self.touch(a[0])
-            a[0].cells[a[2]][a[1]].tile = name
-        WD.smooth_corners(self.project, self.tile_at, put, set(cells))
+        TR.fix_faces(self.project, list(cells), self.at, self.touch)   # (cave rock's face over open ground; where
+        #  grounds meet, the game and the editor round them themselves: round_world.py)
 
     # ----- All: everything in the marked area, moved or cleared
     def area_ents(self, doc, rect):

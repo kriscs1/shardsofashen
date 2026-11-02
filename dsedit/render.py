@@ -1,4 +1,6 @@
 """Drawing a map to a picture (PIL): its tiles, decor, roofs, tree tops and entities, as the editor shows them."""
+import re
+
 from PIL import Image, ImageDraw
 
 _tile_cache = {}
@@ -117,10 +119,11 @@ def forget_tiles():
 
 
 def render(project, doc, roofs=True, infront=True, entities=True, dim_roofs=False, only_rows=None, ground=True,
-           decor=True, origin=None):
+           decor=True, origin=None, around=None):
     """ground=False: transparent where there's nothing but ground (a layer to put over another picture). decor: the
     see-through tiles over the ground (they're part of it, as in the game). origin: the world tile of the map's
-    top-left, for the tiles painted from a texture."""
+    top-left, for the tiles painted from a texture. around(gx, gy): the tile at a world tile off this map (so the
+    ground rounds into its neighbours' across the edge), None if it isn't known."""
     tw, th = project.tile_w, project.tile_h
     W, H = project.map_w, project.map_h
     im = Image.new("RGBA", (W * tw, H * th), (0, 0, 0, 255 if ground else 0))
@@ -131,6 +134,8 @@ def render(project, doc, roofs=True, infront=True, entities=True, dim_roofs=Fals
                                                   if 0 <= y + oy < H and 0 <= x + ox < W else None)
                 im.paste(tile_image(project, cell.tile) if origin is None else
                          ground_image(project, cell.tile, origin[0] + x, origin[1] + y, near), (x * tw, y * th))
+        if origin is not None:
+            _rounds(project, doc, im, origin, around)
         _raised_turns(project, doc, im, origin)
         _raised_shadows(project, doc, im)
     if decor:
@@ -167,6 +172,84 @@ def render(project, doc, roofs=True, infront=True, entities=True, dim_roofs=Fals
                         spr.putalpha(a)
                     im.paste(spr, (x * tw, y * th), spr)
     return im
+
+
+# ----- where natural grounds meet: rounded at every corner of the grid from the four cells round it (Tiles.ini
+# Round=1), as ground.js paintRounds draws it
+QUAD = [(1, -1), (1, 1), (-1, 1), (-1, -1)]
+
+
+def _round_of(project, name):
+    key = (id(project), "round", name)
+    if key not in _tile_cache:
+        on = (bool(name) and project.tiles_ini.get(name, "Round", "") == "1" and
+              not project.tiles_ini.get(name, "Corner.Base", ""))
+        try:
+            rank = max(0, min(9, int(project.tiles_ini.get(name, "Blend", "0") or 0)))
+        except ValueError:
+            rank = 0
+        _tile_cache[key] = (re.sub(r"\d+$", "", name) if on else "", rank)
+    return _tile_cache[key]
+
+
+def round_fills(project, get, x, y):
+    """[(corner 0-3, the tile whose ground fills it, how far its curve is inset)] of the cell at x, y; get(x, y): a
+    tile name or None."""
+    me, mine = _round_of(project, get(x, y) or "")
+    if not me:
+        return []
+    out = []
+    for k, (sx, sy) in enumerate(QUAD):
+        an, bn, dn = get(x + sx, y), get(x, y + sy), get(x + sx, y + sy)
+        a, ar = _round_of(project, an or "")
+        b, _ = _round_of(project, bn or "")
+        d, _ = _round_of(project, dn or "")
+        if not a or a != b or a == me:
+            continue
+        if d == me and (ar < mine or (ar == mine and a < me)):
+            continue
+        out.append((k, an, INSET if ar > mine else 0))
+    return out
+
+
+INSET = 5   # (as ground.js: a higher ground's bands are over this one's edges already, so its curve runs round them)
+
+
+def round_poly(k, tw, th, vx, vy, inset=0):
+    """The corner's fill: from the corner to the middle of its two edges (inset from them), a curve between bent
+    toward the corner by the grid corner's own amount (the same hash as ground.js roundPath)."""
+    c = [(tw, 0), (tw, th), (0, th), (0, 0)][k]
+    ix, iy = (-inset if c[0] else inset), (-inset if c[1] else inset)
+    p, q = (tw / 2, c[1]), (c[0], th / 2)
+    p2, q2, c2 = (p[0], p[1] + iy), (q[0] + ix, q[1]), (c[0] + ix, c[1] + iy)
+    h = (((vx * 73856093) & 0xffffffff) ^ ((vy * 19349663) & 0xffffffff)) & 0xffffffff
+    bend = 0.55 + (h % 1000) / 1000.0 * 0.4 if inset else 0.18 + (h % 1000) / 1000.0 * 0.32
+    m = ((p2[0] + q2[0]) / 2, (p2[1] + q2[1]) / 2)
+    ctl = (m[0] + (c2[0] - m[0]) * bend, m[1] + (c2[1] - m[1]) * bend)
+    curve = [((1 - t) ** 2 * p2[0] + 2 * (1 - t) * t * ctl[0] + t * t * q2[0],
+              (1 - t) ** 2 * p2[1] + 2 * (1 - t) * t * ctl[1] + t * t * q2[1]) for t in (i / 10.0 for i in range(11))]
+    return [c, p] + curve + [q]
+
+
+def _rounds(project, doc, im, origin, around):
+    tw, th = project.tile_w, project.tile_h
+    H, W = len(doc.cells), len(doc.cells[0]) if doc.cells else 0
+
+    def get(x, y):
+        if 0 <= y < H and 0 <= x < W:
+            return doc.cells[y][x].tile
+        return around(origin[0] + x, origin[1] + y) if around else None
+    for y in range(H):
+        for x in range(W):
+            fills = round_fills(project, get, x, y)
+            if not fills:
+                continue
+            gx, gy = origin[0] + x, origin[1] + y
+            for k, other, inset in fills:
+                sx, sy = QUAD[k]
+                cut = Image.new("L", (tw, th), 0)
+                ImageDraw.Draw(cut).polygon(round_poly(k, tw, th, gx + (sx > 0), gy + (sy > 0), inset), fill=255)
+                im.paste(ground_image(project, other, gx, gy), (x * tw, y * th), cut)
 
 
 def _raised_turns(project, doc, im, origin):
