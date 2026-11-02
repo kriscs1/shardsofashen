@@ -1075,9 +1075,9 @@ async def words(r):
 
 
 def test_signing_in_with_google(tmp_path, monkeypatch):
-    """New: a name to choose (as a sign-up's checks), its email confirmed by Google. Again: signed in. An account with
-    that address confirmed: signs in with it from now on; one only waiting to be confirmed: not. A cookie ties Google's
-    answer to the browser that set off, so nobody can sign you in as them."""
+    """New: a name to choose (as a sign-up's checks), its email kept like anyone's, confirmed by Google. Again: signed in.
+    It's an account of its own: never joined to one with a password, either way. A cookie ties Google's answer to the
+    browser that set off, so nobody can sign you in as them."""
     from central import google, mail
     monkeypatch.setenv("DS_SMTP_HOST", "test")
     mail.SENT.clear()
@@ -1148,17 +1148,37 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
                 r = await post(http, api, {"code": typed.lower().replace("-", " ")})
                 assert r["ok"] and r["name"] == "Newcomer"
 
-                # (only ever an address that's been confirmed)
+                # (its email is kept like anyone's: found by it, shown to the admin, and nobody else can have it)
+                assert db.account_by_email("new@gmail.com")[0] == "Newcomer"
+                r = await post(http, c + "/api/register", {"name": "Copycat", "password": "longpassword", "email": "new@gmail.com"})
+                assert not r["ok"] and "another account" in r["text"]
+
+                # (never joined to a Shards account, whatever the email says: its address stays with it, its password its way in)
                 await post(http, c + "/api/register", {"name": "Waiting", "password": "longpassword", "email": "wait@gmail.com"})
                 back = await fake.sign_in(http, c, sub="g-2", email="wait@gmail.com")
-                assert (await post(http, api, {"code": code_from(back)}))["choose"]
+                early = code_from(back)                         # (only waiting to be confirmed: not on the account yet)
+                assert (await post(http, api, {"code": early}))["choose"]
                 db.set_email("Waiting", "wait@gmail.com")
+                r = await post(http, api, {"code": early, "name": "Latecomer"})      # (confirmed while they chose a name)
+                assert not r["ok"] and "on an account here" in r["text"] and db.account("Latecomer") is None
                 back = await fake.sign_in(http, c, sub="g-3", email="wait@gmail.com")
-                r = await post(http, api, {"code": code_from(back)})
-                assert r["ok"] and r["name"] == "Waiting"
-                assert db.google_of("Waiting") == "g-3"
-                back = await fake.sign_in(http, c, sub="g-4", email="wait@gmail.com")
-                assert back.status == 200 and "another Google account" in await words(back)    # (not taken over)
+                page = await words(back)
+                assert back.status == 200 and "on a Shards account already" in page and "Waiting" not in page
+                assert db.google_of("Waiting") == "" and db.account_by_google("g-3") is None
+                assert (await post(http, c + "/api/login", {"name": "Waiting", "password": "longpassword"}))["ok"]
+
+                # (nor the other way: an account made with Google gets no password, and says how it signs in)
+                central.fails.clear()
+                r = await post(http, c + "/api/login", {"name": "Newcomer", "password": "anything at all"})
+                assert not r["ok"] and "signs in with Google" in r["text"] and "token" not in r
+                mail.SENT.clear()
+                r = await post(http, c + "/api/forgot", {"who": "new@gmail.com"})
+                told = await post(http, c + "/api/forgot", {"who": "nobody@gmail.com"})
+                assert r["ok"] and r["text"] == told["text"]    # (the same answer, account or none)
+                assert len(mail.SENT) == 1 and "Continue with Google" in mail.SENT[0][2]
+                assert db.mail_code("Newcomer") == ""           # (no code, so no new password)
+                r = await post(http, c + "/api/reset", {"name": "Newcomer", "code": "AAAA-BBBB", "password": "longpassword"})
+                assert not r["ok"] and db.account("Newcomer")[1] == ""
 
                 # (Google's word has to hold up)
                 for bad, word in (({"email_verified": False}, "verified"), ({"aud": "someone-else"}, "wasn't for this game"),

@@ -328,6 +328,8 @@ class Central:
             return no("%s has been deleted." % acct[0])
         at = self.failed(name, addr)
         if acct is None or not await self.matches(str(d.get("password", ""))[:200], acct[1]):
+            if acct and self.store.google_of(acct[0]):
+                return no("%s signs in with Google: it has no password." % acct[0])
             return no("That name and password don't go together.")
         self.forgiven(name, addr, at)
         if acct[3]:
@@ -336,17 +338,13 @@ class Central:
 
     # ----- signing in with Google (google.py): one way for a browser and the apps, no polling, nothing kept on disk
     def google_person(self, sub, email):
-        """Who this Google account is here: {name} (an account that signs in with it, or has it as its confirmed email:
-        from now on it signs in with it), or {sub, email} (nobody yet, a name to choose)."""
+        """Who this Google account is here: {name} (the account made with it), or {sub, email} (nobody yet, a name to
+        choose). An account made with Google is one of its own, and a Shards account made with a password is never joined
+        to one: an address that's on one already stays there."""
         acct = self.store.account_by_google(sub)
         if acct is None:
-            acct = self.store.account_by_email(email)   # (only ever a confirmed one, so it's theirs)
-            if acct is not None:
-                if self.store.google_of(acct[0]):
-                    raise google.Refused("%s signs in with another Google account." % acct[0])
-                self.store.set_google(acct[0], sub)
-                log.info("%s now signs in with Google too", acct[0])
-        if acct is None:
+            if self.store.account_by_email(email):
+                raise google.Refused("That email is on a Shards account already: sign in with its name and password.")
             return {"sub": sub, "email": email}
         if acct[3]:
             raise google.Refused("%s is banned: %s" % (acct[0], acct[3]))
@@ -389,12 +387,12 @@ class Central:
         refused = self.name_refused(name, d.get("claim", ""))
         if refused:
             return no(choose=True, **refused)
+        if self.store.account_by_google(found["sub"]) or self.store.account_by_email(found["email"]):
+            del self.google_results[code]               # (made meanwhile, by another way in: sign in that way)
+            return no("That email is on an account here now: sign in the way it was made.")
         made = self.signups_today(addr)
         if made is None:
             return no("Too many new accounts from here today: try again tomorrow.")
-        if self.store.account_by_google(found["sub"]) or self.store.account_by_email(found["email"]):
-            del self.google_results[code]               # (made meanwhile, by another way in: sign in instead)
-            return no("That Google account has an account here now: sign in with Google again.")
         try:
             self.store.create_account(name, "", found["email"], found["sub"])
         except sqlite3.IntegrityError:
@@ -467,7 +465,7 @@ class Central:
 
     async def forgot(self, request):
         """A code by email to set a new password (the same answer whether or not there's such an account), only ever
-        to an address its owner has confirmed."""
+        to an address its owner has confirmed. An account made with Google has no password to set: it's told so, no code."""
         d, addr = await self.body(request), self.addr(request)
         who = str(d.get("who", "")).strip()[:254]
         w = self.wait(who, addr)
@@ -478,14 +476,19 @@ class Central:
         acct = self.store.account(auth.clean_name(who)) if "@" not in who else self.store.account_by_email(who)
         self.failed(who, addr)                          # (counted: nobody's mailbox flooded)
         if acct and acct[4]:
-            code = auth.recovery_code()[:9]             # (two groups of four: easy to type in)
-            self.store.new_mail_code(acct[0], await self.hashed(auth.clean_code(code)))
-            text = ("Someone (we hope you) asked to set a new password for %s on %s.\n\nYour code: %s\n\nType it with "
-                    "your name and a new password where you asked. It works for %d minutes. If it wasn't you, do "
-                    "nothing: your password stays as it is.\n" % (acct[0], self.name, code, 30))
+            if self.store.google_of(acct[0]):
+                subject = "%s: signing in" % self.name
+                text = ("Someone (we hope you) asked to set a new password for %s on %s. That account signs in with Google "
+                        "and has no password: use Continue with Google on the start screen.\n" % (acct[0], self.name))
+            else:
+                code = auth.recovery_code()[:9]         # (two groups of four: easy to type in)
+                self.store.new_mail_code(acct[0], await self.hashed(auth.clean_code(code)))
+                subject = "%s: your code" % self.name
+                text = ("Someone (we hope you) asked to set a new password for %s on %s.\n\nYour code: %s\n\nType it with "
+                        "your name and a new password where you asked. It works for %d minutes. If it wasn't you, do "
+                        "nothing: your password stays as it is.\n" % (acct[0], self.name, code, 30))
             try:
-                await asyncio.get_running_loop().run_in_executor(None, mail.send, acct[4],
-                                                                 "%s: your code" % self.name, text)
+                await asyncio.get_running_loop().run_in_executor(None, mail.send, acct[4], subject, text)
             except Exception as e:
                 log.warning("The email to %s didn't go: %s", acct[0], e)
                 return no("The email couldn't be sent just now: try again later.")

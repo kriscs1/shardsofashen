@@ -416,8 +416,10 @@ lists the remote game servers (each announces itself to it), and it serves the a
   and `DS_GOOGLE_CLIENT_SECRET`, then `docker compose up -d`: the button appears on the start screen and the admin page.
   A browser signs in and comes straight back. Google refuses to sign in inside an app's web view, so the apps open the
   device's own browser, which shows a code to type into the app (a new app build is needed for it). Someone new
-  chooses a name, and their email counts as confirmed, as Google has verified it; an account with that same address
-  confirmed signs in with Google from then on. "Forgotten?" still works, to give such an account a password too.
+  chooses a name, and their email is kept like anyone's, counting as confirmed since Google has verified it. An account
+  made with Google is an account of its own, with no password, and is never joined to one made with a password: an
+  address already on such an account can't make one (they sign in with its name and password), and "Forgotten?" only
+  reminds an account made with Google how it signs in.
 - **Bandwidth**: a game keeps one connection open to the central server rather than a new TLS handshake for each call,
   and its minute's "how are this player's friends?" is answered "the same" when it is. Everything through a game hosted
   for friends is compressed on the tunnel (a real game's traffic came out about 85% smaller), and a browser that has a

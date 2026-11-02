@@ -218,9 +218,6 @@ class CentralStore:
         row = self.db.execute("SELECT google FROM accounts WHERE name = ?", (name,)).fetchone()
         return row[0] if row else ""
 
-    def set_google(self, name, sub):
-        self.db.execute("UPDATE accounts SET google = ? WHERE name = ?", (sub, name))
-
     def set_email(self, name, email):
         self.db.execute("UPDATE accounts SET email = ? WHERE name = ?", (email, name))
 

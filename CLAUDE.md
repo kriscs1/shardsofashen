@@ -625,8 +625,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   polls: a call made for every player every minute must have earned it.
 - **Sign in with Google** (`central/google.py`, `DS_GOOGLE_CLIENT_ID`, `DS_GOOGLE_CLIENT_SECRET`): the code flow on the
   server, the same for a browser and the apps; never Google's own script (it can't work in an app's web view). An app
-  opens the device's browser (`DSApp.openLink`, the same name in both) and has a code typed in. A Google account is
-  matched by its id, or by an address only if that's already confirmed on the account.
+  opens the device's browser (`DSApp.openLink`, the same name in both) and has a code typed in. **An account made with
+  Google is one of its own, instead of a password** (the owner's wish): found by Google's id, its email kept in
+  `accounts.email` like anyone's, no password. Never joined to an account made with a password, either way: an address
+  already on one is refused, and "Forgotten?" gives a Google account no code.
 
 ## Code and data conventions
 
