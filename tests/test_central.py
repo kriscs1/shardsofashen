@@ -1076,8 +1076,8 @@ async def words(r):
 
 def test_signing_in_with_google(tmp_path, monkeypatch):
     """New: a name to choose (as a sign-up's checks), its email kept like anyone's, confirmed by Google. Again: signed in.
-    It's an account of its own: never joined to one with a password, either way. A cookie ties Google's answer to the
-    browser that set off, so nobody can sign you in as them."""
+    An account with that address confirmed: Google gets into it, nothing kept. One made with Google has no password. A
+    cookie ties Google's answer to the browser that set off, so nobody can sign you in as them."""
     from central import google, mail
     monkeypatch.setenv("DS_SMTP_HOST", "test")
     mail.SENT.clear()
@@ -1153,7 +1153,7 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
                 r = await post(http, c + "/api/register", {"name": "Copycat", "password": "longpassword", "email": "new@gmail.com"})
                 assert not r["ok"] and "another account" in r["text"]
 
-                # (never joined to a Shards account, whatever the email says: its address stays with it, its password its way in)
+                # (an account with that address confirmed: Google gets into it, nothing's kept, and its password goes on working)
                 await post(http, c + "/api/register", {"name": "Waiting", "password": "longpassword", "email": "wait@gmail.com"})
                 back = await fake.sign_in(http, c, sub="g-2", email="wait@gmail.com")
                 early = code_from(back)                         # (only waiting to be confirmed: not on the account yet)
@@ -1161,11 +1161,23 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
                 db.set_email("Waiting", "wait@gmail.com")
                 r = await post(http, api, {"code": early, "name": "Latecomer"})      # (confirmed while they chose a name)
                 assert not r["ok"] and "on an account here" in r["text"] and db.account("Latecomer") is None
-                back = await fake.sign_in(http, c, sub="g-3", email="wait@gmail.com")
-                page = await words(back)
-                assert back.status == 200 and "on a Shards account already" in page and "Waiting" not in page
+                back = await fake.sign_in(http, c, sub="g-3", email="WAIT@gmail.com")
+                r = await post(http, api, {"code": code_from(back)})
+                assert r["ok"] and r["name"] == "Waiting" and r["token"] and not r.get("made")
                 assert db.google_of("Waiting") == "" and db.account_by_google("g-3") is None
                 assert (await post(http, c + "/api/login", {"name": "Waiting", "password": "longpassword"}))["ok"]
+                # (banned: not by this way either)
+                db.set_banned("Waiting", "testing")
+                back = await fake.sign_in(http, c, sub="g-3", email="wait@gmail.com")
+                assert back.status == 200 and "banned" in await words(back)
+                db.set_banned("Waiting", "")
+                # (its email changed: that Google account no longer gets in, and may make its own)
+                db.set_email("Waiting", "elsewhere@example.com")
+                back = await fake.sign_in(http, c, sub="g-3", email="wait@gmail.com")
+                assert (await post(http, api, {"code": code_from(back)}))["choose"]
+                # (an account made with one Google account isn't got into by another with its address)
+                back = await fake.sign_in(http, c, sub="g-99", email="new@gmail.com")
+                assert back.status == 200 and "another Google account" in await words(back)
 
                 # (nor the other way: an account made with Google gets no password, and says how it signs in)
                 central.fails.clear()

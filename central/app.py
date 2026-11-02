@@ -338,14 +338,17 @@ class Central:
 
     # ----- signing in with Google (google.py): one way for a browser and the apps, no polling, nothing kept on disk
     def google_person(self, sub, email):
-        """Who this Google account is here: {name} (the account made with it), or {sub, email} (nobody yet, a name to
-        choose). An account made with Google is one of its own, and a Shards account made with a password is never joined
-        to one: an address that's on one already stays there."""
+        """Who this Google account is here: {name} (the account made with it, or the one with its email: accounts.email
+        is only ever a confirmed address, and Google has verified it, so it's the same person; nothing's kept of it, so
+        the account's password goes on working, and if its email changes this no longer gets in), or {sub, email} (nobody
+        yet, a name to choose)."""
         acct = self.store.account_by_google(sub)
         if acct is None:
-            if self.store.account_by_email(email):
-                raise google.Refused("That email is on a Shards account already: sign in with its name and password.")
-            return {"sub": sub, "email": email}
+            acct = self.store.account_by_email(email)
+            if acct is None:
+                return {"sub": sub, "email": email}
+            if self.store.google_of(acct[0]):           # (made with another Google account, that once had this address)
+                raise google.Refused("That email is on an account made with another Google account.")
         if acct[3]:
             raise google.Refused("%s is banned: %s" % (acct[0], acct[3]))
         return {"name": acct[0]}
@@ -389,7 +392,7 @@ class Central:
             return no(choose=True, **refused)
         if self.store.account_by_google(found["sub"]) or self.store.account_by_email(found["email"]):
             del self.google_results[code]               # (made meanwhile, by another way in: sign in that way)
-            return no("That email is on an account here now: sign in the way it was made.")
+            return no("That email is on an account here now: sign in with Google again to go into it.")
         made = self.signups_today(addr)
         if made is None:
             return no("Too many new accounts from here today: try again tomorrow.")
