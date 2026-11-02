@@ -1,16 +1,18 @@
-"""The Mosquito: a marsh's own pest, as big as a sparrow and twice as rude (the owner's wish: throughout the marsh).
+"""Mosquitoes: the marsh's own pest, tiny, and never alone (the owner's wish: small, and they swarm; throughout the marsh).
 
-  * Its pictures: a striped body, long legs, a needle of a nose and glassy wings, beating in its frames (Mosquito2a-c,
-    and 8a-c the other way); a 1 px dark outline (build_wolf.py's way).
+  * One Mosquito on the map is a swarm: the page draws Swarm= of them (Entities.ini) buzzing about its spot, each its
+    own way and never still, fewer as it's hurt (render.js drawSwarm). The pictures are one tiny mosquito, a few pixels
+    long, its wings beating in its frames (Mosquito2a-c, and 8a-c the other way); Mosquito.png, what the editor shows, a
+    little cloud of them. Too small for an outline: the body's dark enough.
   * Entities.ini: weak, fast, it sees all round and hears you coming; it flies (over the pools); it buzzes now and
     then (Calls=Buzz: build_soundscape.py). Level 2.
-  * Out over the marsh: on every map of the world with marsh enough (not a settlement's), a mosquito for every
+  * Out over the marsh: on every map of the world with marsh enough (not a settlement's), a swarm for every
     MARSH_PER marsh tiles, MOST at most, each roaming the marsh round where it starts. The Marsh and Bog terrains
     scatter them too (build_marsh.py).
 
 Safe to run again (they are laid out afresh, the same each time).
 
-  python -I "dev\\migrate\\build_mosquito.py"
+  python -I "dev\migrate\build_mosquito.py"
 """
 import os
 import sys
@@ -25,7 +27,6 @@ from world_edit import XT, YT, h01              # noqa: E402
 from PIL import Image, ImageDraw                 # noqa: E402
 
 MARSH_PER, MOST = 110, 2
-OUTLINE = (30, 24, 20, 255)
 
 
 def marshy(t):
@@ -33,44 +34,36 @@ def marshy(t):
 
 
 # ================================================================== pictures
+def bug(d, x, y, beat):
+    """One mosquito, facing east, its middle at x, y: a few pixels of striped body, a nose, legs and a beating wing."""
+    dark, brown, wing = (40, 32, 28, 255), (92, 66, 48, 255), (214, 226, 232, 190)
+    d.point([(x - 2, y), (x, y)], fill=brown)                    # (its abdomen, striped)
+    d.point([(x - 1, y), (x + 1, y), (x + 2, y)], fill=dark)     # (thorax, head)
+    d.point((x + 3, y + 1), fill=dark)                           # (and that nose)
+    d.point([(x - 1, y + 1), (x + 1, y + 1)], fill=dark)         # (its legs)
+    d.point({0: [(x, y - 1), (x - 1, y - 2)], 1: [(x - 1, y - 1), (x - 2, y - 1)], 2: [(x, y + 1), (x - 1, y + 2)]}[beat],
+            fill=wing)
+
+
 def frame(beat):
-    """Facing east. beat 0, 1, 2: its wings up, level, down."""
+    """One mosquito in the middle of the tile. beat 0, 1, 2: its wings up, level, down."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    bug(ImageDraw.Draw(im), 16, 16, beat)
+    return im
+
+
+def cloud():
+    """A little cloud of them, for the editor."""
     im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    lift = (0, 1, 0)[beat]                                       # (it bobs as it beats)
-    y = 14 + lift
-    for lx, ly in ((13, y + 3), (16, y + 3), (19, y + 3)):        # (its legs, long and bent)
-        d.line((lx, ly, lx - 2, ly + 5), fill=(46, 38, 34, 255))
-        d.line((lx - 2, ly + 5, lx - 3, ly + 8), fill=(46, 38, 34, 255))
-    for i, x in enumerate(range(9, 18)):                          # (its abdomen, striped)
-        d.line((x, y, x, y + 3), fill=(90, 66, 50, 255) if i % 2 else (52, 40, 34, 255))
-    d.ellipse((17, y - 1, 21, y + 3), fill=(70, 56, 46, 255))    # (its thorax)
-    d.ellipse((21, y, 24, y + 3), fill=(52, 42, 36, 255))        # (its head)
-    d.point((23, y + 1), fill=(170, 40, 30, 255))                 # (a red eye)
-    d.line((24, y + 2, 29, y + 4), fill=(36, 30, 26, 255))       # (and that nose)
-    wing = {0: [(18, y), (12, y - 9), (9, y - 7)], 1: [(18, y), (8, y - 3), (7, y - 1)],
-            2: [(18, y + 1), (11, y + 7), (8, y + 6)]}[beat]
-    d.polygon(wing, fill=(206, 222, 230, 170), outline=(150, 170, 180, 220))
-    return outlined(im)
-
-
-def outlined(im):
-    """The 1 px dark outline round its silhouette (not round the glassy wing: it's see-through)."""
-    a = im.getchannel("A")
-    solid = a.point(lambda v: 255 if v > 200 else 0)
-    out = Image.new("RGBA", im.size, (0, 0, 0, 0))
-    ring = Image.new("RGBA", im.size, OUTLINE)
-    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-        out.paste(ring, (dx, dy), solid)
-    out.alpha_composite(im)
-    return out
+    for i, (x, y) in enumerate(((8, 10), (20, 7), (13, 15), (24, 16), (9, 22), (18, 24))):
+        bug(d, x, y, i % 3)
+    return im
 
 
 def art():
-    made = 0
-    frames = [frame(b) for b in range(3)]
-    made += write_image(p("sprites", "Entities", "Mosquito.png"), frames[0])
-    for f, im in zip("abc", frames):
+    made = write_image(p("sprites", "Entities", "Mosquito.png"), cloud())
+    for f, im in zip("abc", [frame(b) for b in range(3)]):
         made += write_image(p("sprites", "Walk", "Mosquito2%s.png" % f), im)
         made += write_image(p("sprites", "Walk", "Mosquito8%s.png" % f), im.transpose(Image.Transpose.FLIP_LEFT_RIGHT))
     return made
@@ -79,9 +72,9 @@ def art():
 # ================================================================== data
 def data():
     ents = Ini(p("data", "Entities.ini"))
-    for k, v in (("Type", "NPC"), ("Examine.Info", "A marsh mosquito as big as a sparrow. It wants your blood, and it "
-                                                   "isn't sorry."),
-                 ("Hitpoints", "4"), ("Attack.Speed", "0.7"), ("Strength", "1"), ("Defence", "1"),
+    for k, v in (("Type", "NPC"), ("Examine.Info", "A cloud of marsh mosquitoes. They want your blood, and they "
+                                                   "aren't sorry."),
+                 ("Swarm", "6"), ("Hitpoints", "6"), ("Attack.Speed", "0.7"), ("Strength", "1"), ("Defence", "1"),
                  ("Aggro.Range", "150"), ("Weapon.Range", "0"), ("Movement.Speed", "2.8"), ("Aggressive", "1"),
                  ("Respawn", "60"), ("Roam.Radius", "4"), ("Chase.Radius", "7"), ("Walk.Speed", "0.9"),
                  ("Pause", "0.2-1.2"), ("Kill.Sound", "Small"), ("Attitude", "Bad"), ("Level", "2"),

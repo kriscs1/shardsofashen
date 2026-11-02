@@ -48,8 +48,8 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    who has a boat; people and places reveal it as you go (the Amulet of Succession's stages say "something of your
    mother's", not "the amulet at the back of the caves").
 2. **Dinner at Edwin's** (`DinnerQuest`). Edwin the lawyer and **Maren**, the Isle's doctor, live in the brick house
-   in the Isle's north-west corner, by the sea (0,-2,0, two storeys; it was the bank, by the chapel, and its place Id
-   is still `Isle_Bank`): her surgery and his desk downstairs by day, their rooms upstairs (0,-2,1), going up at
+   in the Isle's north-west, by the sea (1,-2,0, two storeys; it was the bank, by the chapel, and its place Id
+   is still `Isle_Bank`): her surgery and his desk downstairs by day, their rooms upstairs (1,-2,1), going up at
    night. There's no bank on the Isle. Three logs for her range (with the axe she
    lends you), an egg from Bess's coop fried on her range, the egg to Edwin. Maren gives the chapel trapdoor's key
    and makes you promise not to go down without a sword and shield.
@@ -70,7 +70,9 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
 shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
 the new land, and the ring of standing stones by its south-east shore. `move_lawyers_house.py` then put the
 hobgoblins' camp back over their lair and moved Edwin and Maren's house to the north-west corner by whole maps (2,1 to
-0,-2: every tile of it, upstairs and down, where it was on its map).
+0,-2: every tile of it, upstairs and down, where it was on its map), and `cut_isle_corner.py` cut that corner away: the
+coast comes down on the slant from the inlet on the north coast to the top of the west coast, so the Isle isn't a box,
+and the house moved one more whole map east (0,-2 to 1,-2).
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
@@ -190,8 +192,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 **Creatures**
 - `Attitude=Good` NPCs are friendly and can't be attacked. Only NPCs that would attack you keep you from sleeping.
-- **Mosquitoes over the marsh** (`dev/migrate/build_mosquito.py`): weak, quick, flying, buzzing; one for every so many
-  marsh tiles out in the wild (never a settlement's map), and the Marsh and Bog terrains scatter them.
+- **Mosquitoes over the marsh** (`dev/migrate/build_mosquito.py`): tiny, and they swarm: one on the map is a cloud, the
+  page drawing `Swarm=` of them (Entities.ini) buzzing about its spot, never still, fewer as it's hurt (`render.js`
+  drawSwarm); weak, quick, flying; one for every so many marsh tiles out in the wild (never a settlement's map), and the
+  Marsh and Bog terrains scatter them.
 - Prey (hens, cows, sheep, rabbits, ducks, frogs, seals, otters) has `Flees=1` and is **Passive**, its kind and every
   map line (`dev/migrate/prey_passive.py`; validate.py holds it): it can be hunted, runs from whoever hits it and never
   fights back.
@@ -242,6 +246,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the foe runs from you, and a blow doesn't turn it; never a boss, a `Slain.By` one or a `Fear.Immune=1` one.
   (`dev/migrate/build_hush_and_dread.py`: Silence's scroll at the wizards', Dread's in Redrock Manor's vault, behind
   Ambrose's quest, The Redrock Signet.)
+- **Secret rooms in the caves** (`dev/migrate/build_secret_caves.py`): a chamber in the rock behind a cave's wall, under
+  a black roof of its own (`Hidden_Dark001`, a roof group: gone once you're under it, so nothing shows from outside),
+  reached by walking through a wall that isn't there (`Cave_Wall_Hollow001`, a hairline seam; a `Hidden_Way_<map>`
+  Trigger says so once). A chest each inside, by what lives there. A thief's eye may catch the draught first
+  (`senses.py`). More can be drawn by hand from those two tiles.
 - **The Shifting Deep** (`dsengine/deep.py`, `data/Deep.ini`, `dev/migrate/build_deep.py`): an old Shard mine south
   of Moorcross whose floors (40,40,-11 and down) are made in memory, never files, and made again every
   `Shift.Minutes` once nobody's inside: rooms and tunnels, monsters by depth, chests (once each a shift; now and then
@@ -358,6 +367,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the inner corners, passages and dead ends: `house_tiles.THIN_EDGES`, `dev/migrate/thin_wall_pieces.py`; a set's
   pieces after a gap row are put down by hand, the nine before it stretched). Beds, bookshelves, chests,
   sacks and work stations stand on the back-wall tile, against the wall, not a floorboard out from it.
+- **Rooms have things in them** (`dev/migrate/build_interiors.py`): pictures, mirrors, tapestries, pegs and wall shelves
+  (walked past) and cupboards, wardrobes, dressers, desks, tables, washstands and long clocks (solid), by what the room
+  is and how big, on the wall behind the back row only: never in a door's or stair's way, where someone stands or a
+  script puts someone, and a room's floor stays all one. Redrock Manor has its own.
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
@@ -543,7 +556,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   server, its name one of a kind there; the game page opens on that player's characters (choose one, or make one). A
   device's key alone does on this machine's network, or anywhere on a server with no central server, never on a public
   one that has. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
-  so playing alone needs no network. A device that came in by an account is that account's on that server after.
+  so playing alone needs no network. A device that came in by an account is that account's on that server after, unless
+  the central server has banned it (`central_banned`: asked each time and every minute in play; no answer isn't a ban).
+  A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:...`, never this machine or its network.
   Never add a password or a recovery code to a game server again. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);

@@ -45,6 +45,18 @@ class SenseMixin:
                         self.play_sound("Sneak_Past")
                         self.update_skill("Stealth", "+" + lbstr(self.sense_num("Trap.XP", 0.2)))
                         self.dirty_me = True
+                elif trig.startswith("Hidden_Way_"):        # (a way through a cave's wall: build_secret_caves.py)
+                    key = ("way", m.name, tx, ty)
+                    gx, gy = m.ox + (tx - 0.5) * tw, m.oy + (ty - 0.5) * th
+                    if key in self.secrets_seen or val(self.get_attribute(trig)) > 0 or \
+                            distance(p.cx, p.cy, gx, gy) > reach:
+                        continue
+                    near.add(key)
+                    if key not in self.sense_tried and rnd() * 100 < self.sense_chance() * 0.6:
+                        self.secrets_seen.add(key)
+                        self.fx_anim("Teleport_Glow", gx, gy, 700)
+                        self.display_message("You feel a draught on your face. It's coming through the rock.", "INFO")
+                        self.update_skill("Stealth", "+" + lbstr(self.sense_num("Secret.XP", 0.2)))
         if getattr(w, "_secrets_of", None) is None or w._secrets_of[0] != len(w.ents):
             w._secrets_of = (len(w.ents), [e for e in w.ents if e.type == STATICOBJECT and
                                            (getattr(e, "npc_id", "") or "").startswith("Secret_")])

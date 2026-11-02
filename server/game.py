@@ -94,6 +94,7 @@ class GameServer:
         from .version import version_info
         self.version = version_info(root)
         self.assets_seen = (None, "")                   # (web/assets' manifest: when it was written, its version)
+        self.code_seen = None                           # (the page's own code: its version, worked out once)
         self.store = Store(db_path)
         self.max_players = max_players
         self.registration = registration
@@ -292,6 +293,24 @@ class GameServer:
             return ""
         return self.assets_seen[1]
 
+    def code_version(self):
+        """The page's own code (web/index.html, js, css), as a version: a page loaded from other code loads again, and
+        the central server keeps a game's files by it. Not the build number: a desktop app has none."""
+        if self.code_seen is None:
+            web_dir, h = os.path.join(self.root, "web"), hashlib.sha1()
+            paths = [os.path.join(web_dir, "index.html")]
+            for sub in ("js", "css"):
+                for folder, _, names in sorted(os.walk(os.path.join(web_dir, sub))):
+                    paths += [os.path.join(folder, n) for n in sorted(names)]
+            for path in paths:
+                try:
+                    with open(path, "rb") as f:
+                        h.update(os.path.relpath(path, web_dir).replace(os.sep, "/").encode() + b"\0" + f.read() + b"\0")
+                except OSError:
+                    pass
+            self.code_seen = h.hexdigest()[:12]
+        return self.code_seen
+
     LOCAL = ("127.0.0.1", "::1", "localhost")
 
     def server_name(self):
@@ -371,7 +390,8 @@ class GameServer:
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
                             "name": self.server_name(), "id": self.server_id(), "central": bool(self.central_url()),
                             "registration": self.registration, "invite": bool(self.invite_code),
-                            "assets": self.assets_version(), **self.version})
+                            "assets": self.assets_version(), "code": self.code_version(),
+                            "home": self.central_url(), **self.version})
         try:
             async for msg in ws:
                 if msg.type != WSMsgType.TEXT:
@@ -444,6 +464,8 @@ class GameServer:
                                                             "place": self.server_name(), **ask})
         if got and got.get("ok") and s.connected:
             self.took_friends(s, got)
+        elif got and got.get("banned"):
+            await self.turn_away(s)
         return got
 
     async def welcome_friends(self, s):
@@ -498,9 +520,35 @@ class GameServer:
         """Every minute: everyone in by an account is still playing here, and hears their friends' news; and the host's
         friends, who may come in through the central server."""
         for s in list(self.world.sessions.values()):
-            if getattr(s, "grant", "") and s.connected:
+            if not s.connected:
+                continue
+            if getattr(s, "grant", ""):
                 await self.friends_now(s)
+            elif s.account and await self.central_banned(s.account):    # (come straight back: no key to their friends)
+                await self.turn_away(s)
         await self.host_friends_now()
+
+    async def central_banned(self, account):
+        """Has the central server banned this account? No answer (no central server, or it's away) isn't a ban."""
+        if not self.central_url() or not account:
+            return False
+        got = await self.central_post("/api/game/standing", {"name": account})
+        return bool(got and got.get("banned"))
+
+    async def turn_away(self, s):
+        """The central server has banned s's account while s plays here (never the host, in their own game)."""
+        c = self.clients.get(s)
+        if c is None or c.host:
+            return
+        self.save_session(s)
+        await self.send(c, {"t": "kicked", "reason": "Your Shards account is banned."})
+        await c.flush()                                 # (said before it's closed: a closed one sends nothing)
+        c.closed = True
+        try:
+            await c.ws.close()
+        except Exception:
+            pass
+        log.info("%s's account is banned on the central server: turned away", s.player_name)
 
     def hosted_by(self, account, grant):
         self.host_account, self.host_grant = account, grant
@@ -614,6 +662,9 @@ class GameServer:
                 got = None                              # (a ticket for someone else: the host's say goes)
             owner, c.host = mine, True
         if not owner and linked:
+            if await self.central_banned(linked[2:]):   # (come straight back: a central ban still counts)
+                await self.send(c, {"t": "login_fail", "reason": "Your Shards account is banned."})
+                return
             owner = linked                              # (this device came in by its account here before)
         elif not owner and device and self.devices_welcome(c.addr):
             owner = device

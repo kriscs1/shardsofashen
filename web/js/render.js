@@ -175,6 +175,27 @@ function updateFx(now, dt) {
 
 // ----- objects that animate where they stand, decor tiles placed as objects
 const flaps = new Map();                           // kind -> does it flap (Flap=1: a butterfly's wings)
+// (a swarm, Entities.ini Swarm=N: N tiny ones buzzing about its spot, each its own way and never still, fewer as it's
+//  hurt; its picture is one of them, the middle of its tile)
+const swarms = new Map();
+function swarmOf(e) {
+  if (e.k !== T.NPC) return 0;
+  if (!swarms.has(e.n)) swarms.set(e.n, val(entityIni(e.n, "Swarm", "0")));
+  return swarms.get(e.n);
+}
+
+function drawSwarm(ctx, e, x, y, n, now) {
+  const live = e.mh > 0 ? Math.max(1, Math.ceil(n * e.hp / e.mh)) : n;
+  const t = e.fz ? 0 : now / 1000;
+  for (let i = 0; i < live; i++) {
+    const a = e.u * 7.3 + i * 2.399, sp = 1.1 + (i % 3) * 0.35, w = t * sp * 2.3 + a;
+    const ox = Math.sin(w) * 9 + Math.sin(t * sp * 5.1 + a * 2) * 3;
+    const oy = Math.cos(t * sp * 1.9 + a * 1.7) * 7 + Math.sin(t * sp * 6.3 + a) * 2;
+    const im = sprite(e.n + (Math.cos(w) >= 0 ? "2" : "8") + "abc"[Math.floor(t * 14 + i) % 3]);
+    if (im) ctx.drawImage(im, Math.round(x + ox), Math.round(y + oy));
+  }
+}
+
 function entityImage(e, now) {
   let image = e.i || e.n;
   if (e.k === T.NPC) {                            // (its wings beat all the time, hovering or not)
@@ -310,6 +331,8 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     if (im && e.k === T.MAPITEM) {                // (things on the ground: smaller than in your hand)
       const w = Math.round(e.w * MAPITEM_SCALE), h = Math.round(e.h * MAPITEM_SCALE);
       ctx.drawImage(im, x + Math.round((e.w - w) / 2), y + (e.h - h), w, h);
+    } else if (swarmOf(e)) {
+      drawSwarm(ctx, e, x, y, swarmOf(e), now);
     } else if (im) {
       if (e.sc && !e.gh) drawStance(ctx, e, x, y, now, true);
       if (e.gh) ctx.globalAlpha = e === me ? 0.35 : 0.08;     // (invisible: a shimmer to you, all but nothing to others)

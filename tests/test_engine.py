@@ -1250,7 +1250,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     monkeypatch.setattr(sc, "rnd", lambda: 0.0)                     # (and the cage's lock gives at the first try)
     day = world.day_fraction()
     world.set_day_fraction(0.5)                                     # (by day: Maren at her counter)
-    s = join(world, "Heir", "0,-2,0", 16 * 32, 8 * 32)
+    s = join(world, "Heir", "1,-2,0", 16 * 32, 8 * 32)
     s.connected = True
     s.god_mode = True                                               # (the caves' beasts: no dying in a test)
     attr = lambda name: int(float(s.get_attribute(name) or 0))
@@ -1258,22 +1258,22 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("LastWill") == 2                                    # (a saved character: past the funeral)
     assert "Bronze_Sword" not in s.equipped                         # (no sword to start with)
     # Dinner at Edwin's
-    maren = npc("Maren", "0,-2,0", "Maren_At_Counter")
+    maren = npc("Maren", "1,-2,0", "Maren_At_Counter")
     talk(maren, 1)                                                  # dinner? logs for the range first: an axe
     assert attr("DinnerQuest") == 1 and s.items_held("Bronze_Axe") == 1
     stock(s, Logs=3)
     talk(maren, 1)
     assert attr("DinnerQuest") == 2 and s.items_held("Logs") == 0
     rng = next(e for e in world.ents if e.npc_id == "Marens_Range")
-    up = world.maps["0,-2,1"]
-    s.teleport("0,-2,1", int(rng.x - up.ox), int(rng.y - up.oy) + 30)
+    up = world.maps["1,-2,1"]
+    s.teleport("1,-2,1", int(rng.x - up.ox), int(rng.y - up.oy) + 30)
     run(5)
     stock(s, Egg=1)
     s.item_in_use = next(e for e in s.inv if e.name == "Egg")
     s.use_item_with(rng)                                            # fried on Maren's range, upstairs
     run(60)
     assert s.items_held("Fried_Egg") == 1 and attr("DinnerQuest") == 3
-    talk(npc("Edwin", "0,-2,0", "Edwin_At_Desk"), 1, 1, 1)           # the egg to Edwin; Maren gives the key
+    talk(npc("Edwin", "1,-2,0", "Edwin_At_Desk"), 1, 1, 1)           # the egg to Edwin; Maren gives the key
     assert s.items_held("Healing_Draught") >= 2                     # (and draughts: herbs mend you, not Shards)
     assert attr("DinnerQuest") == 4 and s.items_held("Chapel_Cellar_Key") == 1
     # The Amulet of Succession, and Bess's compass begun
@@ -1427,9 +1427,9 @@ def test_townsfolk_take_the_stairs_to_bed(world):
             world.tick(0.05, now=world.now + 50)
     assert not [e for e in world.ents if e.npc_id in ("Maren_At_Home", "Edwin_At_Home")]
     assert world.data.climb_dir("Stairs001") == 1 and world.data.climb_dir("Stairs002") == -1
-    down = world.maps["0,-2,0"]
+    down = world.maps["1,-2,0"]
     assert (down.ox + 19.5 * 32, down.oy + 1.5 * 32, 1) in world.climb_spots(down)
-    s = join(world, "Lodger", "0,-2,0", 16 * 32, 4 * 32)             # (in the house, watching)
+    s = join(world, "Lodger", "1,-2,0", 16 * 32, 4 * 32)             # (in the house, watching)
     day = world.day_fraction()
     maren = next(e for e in world.ents if e.npc_id == "Maren_At_Counter")
     counter = (maren.cx, maren.cy)
@@ -1444,7 +1444,7 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     del world.sound
     assert maren.z == 1 and ("Ladder", 0, ["Lodger"]) in heard     # (heard going up: in the room with her)
     assert ("Ladder", 1, []) in heard                               # (nobody upstairs to hear her come up)
-    s.teleport("0,-2,1", 14 * 32, 3 * 32)                            # (upstairs after her: to bed she goes)
+    s.teleport("1,-2,1", 14 * 32, 3 * 32)                            # (upstairs after her: to bed she goes)
     run(600)
     assert maren.ai.asleep and maren.pose == "Sleep" and maren.z == 1
     world.set_day_fraction(0.5)                                     # (morning: down the stairs to her counter)
@@ -1457,7 +1457,7 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     world.set_day_fraction(0.6)
     run(5)
     assert maren.z == 0
-    out = join(world, "Outsider", "0,-2,0", 23 * 32, 2 * 32)          # (outside, by the wall the stairs are against)
+    out = join(world, "Outsider", "1,-2,0", 23 * 32, 2 * 32)          # (outside, by the wall the stairs are against)
     assert world.roof_over(0, maren.cx, maren.cy) and not world.roof_over(0, out.player.fx, out.player.fy)
     assert not world.sees_spot(out, 0, down.ox + 19.5 * 32, down.oy + 1.5 * 32)
     heard = listen(world)
@@ -1467,10 +1467,10 @@ def test_townsfolk_take_the_stairs_to_bed(world):
     assert maren.z == 1 and not [h for h in heard if h[0] == "Ladder" and h[2]]   # (up, and nobody heard a thing)
     leave(world, out)
     edwin = next(e for e in world.ents if e.npc_id == "Edwin_At_Desk")
-    t = join(world, "Passer", "0,-2,0", 9 * 32, 18 * 32)             # (out by the shore: too far off to see)
+    t = join(world, "Passer", "1,-2,0", 9 * 32, 18 * 32)             # (out by the shore: too far off to see)
     run(5)
     leave(world, t)
-    u = join(world, "Guest", "0,-2,1", 13 * 32, 2 * 32)
+    u = join(world, "Guest", "1,-2,1", 13 * 32, 2 * 32)
     run(5)
     assert edwin.z == 1 and edwin.ai.asleep
     world.set_day_fraction(day)
@@ -3861,7 +3861,7 @@ def test_animals_keep_out_of_houses_by_where_they_roam():
     """No rule stops an animal at a door now (Indoors= is gone): its zone leaves out the houses on its map
     (dev/migrate/assign_homes.py), and cats and dogs come in as they always did."""
     w = World(ROOT)
-    m = w.maps["0,-2,0"]
+    m = w.maps["1,-2,0"]
     spot = None                                       # (open ground just south of a roofed, walkable cell)
     for ty in range(2, 20):
         for tx in range(2, 24):
@@ -4348,11 +4348,11 @@ def test_a_creature_comes_back_out_of_shard_essence(world):
     m = s.cur_map
     s.out = []
     before = {id(e) for e in world.ents}
-    world.add_action_to_queue("ADD", "Rabbit", "NPC", "Attitude=Passive", m.name, "200,200", 0)
+    # (a seal: none lives here, so none has wandered onto the spot, which would stop the add)
+    world.add_action_to_queue("ADD", "Seal", "NPC", "Attitude=Passive", m.name, "200,200", 0)
     world.run_action_queue()
     assert any(ev.get("t") == "anim" and ev.get("base") == "Shard_Form" for ev in s.out)
-    rabbit = next(e for e in world.ents if e.name == "Rabbit" and id(e) not in before)   # (the one just added: not
-    #  another of the map's own)
+    rabbit = next(e for e in world.ents if e.name == "Seal" and id(e) not in before)
     s.out = []
     world.npc_killed_by_npc(rabbit)
     assert any(ev.get("t") == "anim" and ev.get("base") == "Shard_Fade" for ev in s.out)
@@ -5495,7 +5495,7 @@ def test_the_isle_has_grown_north_with_its_new_places(world):
     camp = next(e for e in world.ents if e.npc_id == "Hob_Camp_Chest")
     assert camp.map == "2,2,0"                                      # (back over their lair: move_lawyers_house.py)
     assert any(e.name == "Hobgoblin" and e.map == camp.map for e in world.ents)
-    assert next(e for e in world.ents if e.npc_id == "Edwin_At_Desk").map == "0,-2,0"   # (the north-west corner)
+    assert next(e for e in world.ents if e.npc_id == "Edwin_At_Desk").map == "1,-2,0"   # (the north-west corner)
     stones = next(e for e in world.ents if e.npc_id == "Stone_Circle_Chest")
     assert stones.map in ("2,2,0", "3,2,0", "2,1,0", "3,1,0")          # (the south-east)
     day = world.day_fraction()
@@ -5619,3 +5619,54 @@ def test_natural_grounds_round_into_each_other_at_every_corner():
     assert RD.round_poly(0, 32, 32, 5, 7)[:3] == [(32, 0), (16, 0), (16, 0)]     # (the corner, then its edge's middle)
     assert RD.round_poly(1, 32, 32, 5, 7, 5)[:3] == [(32, 32), (16, 32), (16, 27)]   # (round a higher ground's bands)
     assert [i for _, _, i in fills(pond, 1, 1)] == [5] * 4 and [i for _, _, i in fills(islet, 1, 1)] == [0] * 4
+
+
+def test_a_secret_room_lies_behind_a_wall_you_can_walk_through(world):
+    # build_secret_caves.py: a cave wall that isn't there, a black roof over what's behind it, a chest each
+    found = [(m, c) for m in world.maps.values() for c, t in enumerate(m.trigger) if t.startswith("Hidden_Way_")]
+    assert len(found) >= 4
+    assert sum(1 for m, _ in found if m.name in ("-1,5,-1", "0,5,-1")) == 2      # (two in the Mire Tunnel)
+    m, c = found[0]
+    tx, ty = (c - 1) % world.xt + 1, (c - 1) // world.xt + 1
+    assert m.tile[c] == "Cave_Wall_Hollow001" and "1" in m.walk[c]
+    assert not m.roof[c]                                        # (the wall itself shows, like any other)
+    slug = m.trigger[c][len("Hidden_Way_"):]
+    chest = next(e for e in world.ents if e.npc_id == "Hidden_Cache_" + slug)
+    assert chest.map == m.name and m.roof[m.cell(int((chest.x - m.ox) // world.tw) + 1,
+                                                 int((chest.y - m.oy) // world.th) + 1)]    # (hidden under the dark)
+    a = join(world, "Delver", m.name, (tx - 1) * world.tw, ty * world.th)   # (beside it: not on it, yet)
+    a.connected = True
+    a.out = []
+    a.start_script(m.trigger[c], False)
+    run_for(world, 5)
+    assert a.get_attribute(m.trigger[c]) == "1"
+    assert any(ev.get("t") == "msg" for ev in a.out)
+    a.out = []
+    a.start_script(m.trigger[c], False)                         # (it says so only the first time)
+    run_for(world, 5)
+    assert not any(ev.get("t") == "msg" for ev in a.out)
+    leave(world, a)
+
+
+def test_the_isle_comes_down_on_the_slant_and_rooms_are_furnished(world):
+    # cut_isle_corner.py: the corner's sea, the house moved a whole map east; build_interiors.py: furniture never in a door
+    corner = world.maps["0,-2,0"]
+    assert corner.tile_is_water(5, 5) and corner.tile_is_water(16, 4)   # (where the house stood)
+    assert not world.maps["1,-2,0"].tile_is_water(16, 9)                 # (its door's step)
+    assert next(e for e in world.ents if e.npc_id == "Maren_At_Counter").map == "1,-2,0"
+    assert "1,-2,1" in world.maps and "0,-2,1" not in world.maps
+    assert world.data.entity_ini("Mosquito", "Swarm", "") == "6"
+    standing = {"Cupboard001", "Cupboard002", "Wardrobe001", "Dresser001", "Writing_Desk001", "Writing_Desk002",
+                "Side_Table001", "Washstand001", "Long_Clock001"}
+    seen = 0
+    for m in world.maps.values():
+        if m.mz not in (0, 1):
+            continue
+        for y in range(1, world.yt + 1):
+            for x in range(1, world.xt + 1):
+                c = m.cell(x, y)
+                if m.decor[c] in standing:
+                    seen += 1
+                    assert not m.tile[c].startswith("Door")
+                    assert m.inside(x, y + 1) and m.decor[m.cell(x, y + 1)] not in standing
+    assert seen > 100

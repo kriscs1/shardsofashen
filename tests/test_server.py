@@ -3,6 +3,7 @@ import asyncio
 import json
 import os
 import socket
+from types import SimpleNamespace
 
 import aiohttp
 import pytest
@@ -269,6 +270,55 @@ async def wait_for(ws, kind, seconds=5.0):
         for m in data if isinstance(data, list) else [data]:
             if m.get("t") == kind:
                 return m
+
+
+def test_an_unknown_proxy_is_not_the_local_network(tmp_path, monkeypatch):
+    """Coming through a reverse proxy nobody declared looks like the local network (the connection's from the proxy):
+    it mustn't count as that. Declared, the proxy's word goes, but never that it's passing on this machine."""
+    def addr(remote, **headers):
+        return auth.client_address(SimpleNamespace(remote=remote, headers=headers))
+    outside = {"X-Forwarded-For": "8.8.8.8"}
+    assert addr("192.168.1.5") == "192.168.1.5"
+    assert addr("192.168.1.5", **outside) == "proxied:8.8.8.8"
+    assert addr("192.168.1.5", **{"X-Real-IP": "8.8.8.8"}) == "proxied:8.8.8.8"
+    assert addr("8.8.4.4", **outside) == "8.8.4.4"                              # (straight from the world: no say)
+    monkeypatch.setenv("DS_TRUST_PROXY", "1")
+    assert addr("172.18.0.2", **outside) == "8.8.8.8"
+    assert addr("172.18.0.2", **{"X-Forwarded-For": "1.2.3.4, 192.168.1.9"}) == "192.168.1.9"
+    assert addr("172.18.0.2", **{"X-Forwarded-For": "127.0.0.1"}) == "proxied:127.0.0.1"   # (nobody is this machine)
+    assert addr("172.18.0.2", **{"X-Real-IP": "8.8.8.8"}) == "proxied:8.8.8.8"
+    monkeypatch.delenv("DS_TRUST_PROXY")
+
+    async def run():
+        monkeypatch.setenv("DS_CENTRAL", "http://127.0.0.1:9")                  # (joined to one: no ticket is asked of it)
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        try:
+            async with aiohttp.ClientSession() as http:
+                _, m = await come_in(http, url, device_of("Lan"))
+                assert m["t"] == "characters"                                   # (this machine: a device's key will do)
+                _, m = await come_in(http, url, device_of("Far"), headers=outside)
+                assert m["t"] == "login_fail" and "Sign in" in m["reason"]
+        finally:
+            await runner.cleanup()
+    asyncio.run(run())
+
+
+def test_a_page_is_told_the_code_it_should_be_running(tmp_path, monkeypatch):
+    """The hello says the page's code (a page from other code loads again) and where the start screen is."""
+    async def run():
+        monkeypatch.setenv("DS_CENTRAL", "https://central.example.com/")
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws = await http.ws_connect(url)
+                hello = await replies(ws, ("hello",))
+                assert hello["code"] == game.code_version() and len(hello["code"]) == 12
+                assert hello["home"] == "https://central.example.com"
+                await ws.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(run())
 
 
 def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):

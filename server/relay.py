@@ -29,13 +29,18 @@ class Relay:
         self.conns = {}              # the central server's connection id -> queue of messages for the game
         self.tasks = set()
 
+    def page_version(self):
+        """What the central server keeps this game's files by: new pictures or new code are new files."""
+        assets = self.game.assets_version()
+        return "%s-%s" % (assets, self.game.code_version()) if assets else ""
+
     def url(self):
         base = self.game.central_url()
         base = "wss://" + base[8:] if base.startswith("https://") else "ws://" + base[7:] if base.startswith("http://") \
             else base
         return base + "/api/relay?" + urlencode({"grant": self.game.host_grant, "key": self.game.server_id(),
                                                  "place": self.game.server_name(),
-                                                 "version": self.game.assets_version() or ""})
+                                                 "version": self.page_version()})
 
     async def run(self):
         """Connected to the central server while this game is hosted for friends, the host's key at hand; again after

@@ -1,5 +1,7 @@
 """The central server: accounts, tickets into a game server, the remote servers list."""
 import asyncio
+import os
+import re
 import socket
 
 import aiohttp
@@ -37,6 +39,134 @@ async def ticket_in(http, url, ticket, name="Wanderer", device="a phone"):
     mine = [c["name"] for c in m["list"]]
     await ws.send_json({"t": "play" if name in mine else "create", "name": name})
     return ws, await replies(ws, ("welcome", "login_fail"))
+
+
+def test_every_self_hosted_template_offers_the_central_server():
+    """A setting a template leaves out can't be turned on there (Unraid's had none of them)."""
+    for name in ("unraid/shards-of-ashen.xml", "docker-compose.yml", "docker-compose.server.yml",
+                 "docker-compose.cloud.yml"):
+        with open(os.path.join(ROOT, "deploy", name), encoding="utf-8") as f:
+            text = f.read()
+        for var in ("DS_CENTRAL", "DS_PUBLIC", "DS_PUBLIC_URL", "DS_TRUST_PROXY"):
+            assert re.search(r"\b%s\b" % var, text), (name, var)
+
+
+def test_a_new_account_with_an_email_is_welcomed(tmp_path, monkeypatch):
+    """A welcome for whoever gives an address (never their password or recovery code), and a mail service's trouble
+    doesn't stop the sign-up. Email that goes has what mail services want of it."""
+    from central import mail
+
+    async def go():
+        monkeypatch.setenv("DS_SMTP_HOST", "test")
+        monkeypatch.setenv("DS_CENTRAL_CONTACT", "help@example.com")
+        mail.SENT.clear()
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        try:
+            async with aiohttp.ClientSession() as http:
+                r = await post(http, central + "/api/register", {"name": "Quiet", "password": "longpassword"})
+                assert r["ok"]
+                r = await post(http, central + "/api/register", {"name": "Hello", "password": "longpassword",
+                                                                 "email": "hello@example.com"})
+                assert r["ok"]
+                await asyncio.sleep(0.2)
+                assert [m[0] for m in mail.SENT] == ["hello@example.com"]       # (none for Quiet)
+                to, subject, text = mail.SENT[0]
+                assert "Welcome" in subject and "Hello" in text and "help@example.com" in text
+                assert "longpassword" not in text and r["recovery"] not in text
+
+                def broken(*args):
+                    raise OSError("the mail service is away")
+                monkeypatch.setattr(mail, "send", broken)
+                r = await post(http, central + "/api/register", {"name": "Still", "password": "longpassword",
+                                                                 "email": "still@example.com"})
+                assert r["ok"] and r["token"]
+                await asyncio.sleep(0.2)
+        finally:
+            await crunner.cleanup()
+    asyncio.run(go())
+    monkeypatch.setenv("DS_SMTP_FROM", "Shards of Ashen <shardsofashen@hallisium.com>")
+    msg = mail.message("you@example.com", "A subject", "Words.\n")
+    assert msg["From"] == "Shards of Ashen <shardsofashen@hallisium.com>" and msg["Date"]
+    assert msg["Message-ID"].endswith("@hallisium.com>")
+
+
+def test_a_central_ban_reaches_those_who_come_straight_back(tmp_path, monkeypatch):
+    """A device that came in by its account comes back with no ticket: still them, till the central server bans the
+    account (and that turns away who's playing, at the next minute's check). The central server away isn't a ban."""
+    async def go():
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL", central)
+        monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5)
+        grunner, gport = await run(gapp)
+        game = gapp[GAME]
+        url = "ws://127.0.0.1:%d/ws" % gport
+        try:
+            async with aiohttp.ClientSession() as http:
+                boss = (await post(http, central + "/api/register", {"name": "Boss", "password": "longpassword"}))["token"]
+                tok = (await post(http, central + "/api/register", {"name": "Rogue", "password": "longpassword"}))["token"]
+
+                async def ticket():
+                    return (await post(http, central + "/api/ticket", {"token": tok, "server": game.server_id()}))["ticket"]
+                ws, m = await ticket_in(http, url, await ticket(), name="Roguey", device="a laptop")
+                assert m["t"] == "welcome"
+                await ws.close()
+                await asyncio.sleep(0.2)
+
+                ws, m = await come_in(http, url, device_of("a laptop"))         # (straight back: no ticket)
+                assert m["t"] == "characters" and m["account"] == "Rogue"
+                await ws.send_json({"t": "play", "name": "Roguey"})
+                assert (await replies(ws, ("welcome", "login_fail")))["t"] == "welcome"
+                late = await ticket()                                           # (made before the ban, used after)
+
+                await post(http, central + "/api/admin/ban", {"token": boss, "name": "Rogue", "why": "testing"})
+                await game.keep_friends()                                       # (the minute's check, in play)
+                assert (await replies(ws, ("kicked",)))["reason"] == "Your Shards account is banned."
+                await ws.close()
+                await asyncio.sleep(0.2)
+
+                back, m = await come_in(http, url, device_of("a laptop"))
+                assert m["t"] == "login_fail" and "banned" in m["reason"]
+                await back.close()
+                new, m = await come_in(http, url, device_of("a new phone"), ticket=late)
+                assert m["t"] != "characters" or m["account"] != "Rogue"        # (the old ticket's no way in either)
+                await new.close()
+
+                monkeypatch.setenv("DS_CENTRAL", "http://127.0.0.1:%d" % free_port())   # (it's away: no word of a ban)
+                ws, m = await come_in(http, url, device_of("a laptop"))
+                assert m["t"] == "characters" and m["account"] == "Rogue"
+                await ws.close()
+        finally:
+            await grunner.cleanup()
+            await crunner.cleanup()
+    asyncio.run(go())
+
+
+def test_the_central_server_says_its_version_and_who_is_behind(tmp_path, monkeypatch):
+    """/health says its version; the admin page marks a server older than it, and only one it can tell is older."""
+    async def go():
+        monkeypatch.setenv("DS_BUILD", "500")
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
+        try:
+            async with aiohttp.ClientSession() as http:
+                assert (await (await http.get(central + "/health")).json())["version"].endswith(".500")
+                boss = (await post(http, central + "/api/register", {"name": "Boss", "password": "longpassword"}))["token"]
+                for name, version in (("Old", "1.0.499"), ("Same", "1.0.500"), ("New", "1.0.501"), ("Dev", "1.0-dev"),
+                                      ("Quiet", "")):
+                    r = await post(http, central + "/api/announce", {"name": name, "url": "https://%s.example.com" % name,
+                                                                     "port": 8484, "max": 5, "version": version})
+                    assert r["ok"]
+                got = await post(http, central + "/api/admin/servers", {"token": boss})
+                assert got["version"].endswith(".500")
+                assert {s["name"]: s["behind"] for s in got["servers"]} == {
+                    "Old": True, "Same": False, "New": False, "Dev": False, "Quiet": False}
+        finally:
+            await crunner.cleanup()
+    asyncio.run(go())
 
 
 def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch):
@@ -130,6 +260,11 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                 r = await post(http, c + "/api/register", {"name": "Mail", "password": "longpassword",
                                                             "email": "mail@example.com"})
                 assert r["ok"]
+                for _ in range(200):                    # (the welcome goes to one side: past it, to the code)
+                    if mail.SENT:
+                        break
+                    await asyncio.sleep(0.01)
+                mail.SENT.clear()
                 r = await post(http, c + "/api/forgot", {"who": "mail@example.com"})
                 assert r["ok"] and len(mail.SENT) == 1 and mail.SENT[0][0] == "mail@example.com"
                 code = [w for w in mail.SENT[0][2].split() if "-" in w and len(w) == 9][0]
@@ -272,6 +407,22 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch):
             await grunner.cleanup()
             await crunner.cleanup()
     asyncio.run(go())
+
+
+def test_a_hosted_games_files_are_kept_by_its_code_too(tmp_path, monkeypatch):
+    """The central server keeps a hosted game's files by version: a new build with the same pictures has new code."""
+    from server.relay import Relay
+    gapp = make_app(ROOT, str(tmp_path / "game.db"), 5)
+    game = gapp[GAME]
+    relay = Relay(game, 8484)
+    monkeypatch.setattr(game, "assets_version", lambda: "pictures")
+    game.code_seen = "code-one"
+    first = relay.page_version()
+    game.code_seen = "code-two"
+    assert first == "pictures-code-one" and relay.page_version() == "pictures-code-two" and len(first) <= 40
+    monkeypatch.setattr(game, "assets_version", lambda: "")
+    assert relay.page_version() == ""                                           # (none to go by: nothing's kept)
+    game.store.close()
 
 
 def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypatch):

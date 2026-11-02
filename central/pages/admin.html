@@ -55,7 +55,8 @@ th { color: var(--dim); font-weight: normal; font-size: 13px; text-transform: up
 
   <section id="servers" class="card">
     <h2>Game servers</h2>
-    <p class="dim">A remote server announces itself; it's listed for everyone only once it's approved here.</p>
+    <p class="dim">A remote server announces itself; it's listed for everyone only once it's approved here.
+      <span id="central-version"></span></p>
     <table><thead><tr><th>Name</th><th>State</th><th>Address</th><th>Playing</th><th></th></tr></thead>
       <tbody id="server-rows"></tbody></table>
   </section>
@@ -126,11 +127,13 @@ for (const b of document.querySelectorAll(".tabs button[data-tab]")) b.onclick =
 async function loadServers() {
   const r = await admin("servers");
   if (!r.ok) return;
+  $("central-version").textContent = r.version ? `This central server is on version ${r.version}.` : "";
   const rows = r.servers.sort((a, b) => a.approved - b.approved || b.seen - a.seen);
   $("server-rows").innerHTML = rows.length ? rows.map((s) => `<tr>
     <td>${esc(s.name)}<div class="dim">${esc(s.key)} · ${esc(s.version)}</div></td>
     <td>${s.approved ? '<span class="tag ok">Listed</span>' : '<span class="tag wait">Waiting</span>'}
-      ${s.up ? '<span class="tag">Up</span>' : '<span class="tag">Not heard lately</span>'}</td>
+      ${s.up ? '<span class="tag">Up</span>' : '<span class="tag">Not heard lately</span>'}
+      ${s.behind ? '<span class="tag wait">Behind</span>' : ""}</td>
     <td><a href="${esc(s.url)}" target="_blank" rel="noopener" style="color:var(--ink)">${esc(s.url)}</a></td>
     <td>${s.online}/${s.max}</td>
     <td class="row">${s.approved ? `<button data-k="${esc(s.key)}" data-a="0">Unlist</button>` :

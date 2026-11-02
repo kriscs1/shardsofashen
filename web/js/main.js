@@ -561,6 +561,7 @@ function deviceKey() {
 }
 let ticket = new URLSearchParams(location.search).get("ticket") || "";    // (the central server's: once)
 let mine = null, pickLook = null;
+let homeUrl = "", pageCode = "";      // (the start screen's address; the page's code as this page was loaded)
 
 function setLoginError(text, ok) {
   $("login-error").textContent = text || "";
@@ -653,7 +654,11 @@ $("login-form").addEventListener("submit", (ev) => {
   send({ t: "create", name: $("login-name").value, invite: $("login-invite").value, look: pickLook ? pickLook() : undefined });
 });
 $("make-back").onclick = () => { setLoginError(""); loginShow("chars"); };
-$("home-link").onclick = (ev) => { ev.preventDefault(); if (window.DSApp && window.DSApp.goHome) window.DSApp.goHome(); };
+$("home-link").onclick = (ev) => {
+  if (!window.DSApp) return;          // (a browser: the link's own address, the central server's start screen)
+  ev.preventDefault();
+  if (window.DSApp.goHome) window.DSApp.goHome();
+};
 
 N.onOpen = () => { $("login-online").textContent = "Connected."; };
 N.onClose = () => {
@@ -678,11 +683,15 @@ N.onMessage = (m) => {
   const now = performance.now();
   switch (m.t) {
     case "hello":
-      if (A.m && m.assets && A.m.version && m.assets !== A.m.version) {     // (the server's pictures changed under us)
+      if (!pageCode) pageCode = m.code || "";
+      if ((A.m && m.assets && A.m.version && m.assets !== A.m.version) ||   // (the server's pictures changed under us)
+          (m.code && m.code !== pageCode)) {                                // (or the page's own code did)
         if (running) showMessage("Shards of Ashen", "The game has been updated. It will load again.", () => location.reload());
         else location.reload();
         break;
       }
+      homeUrl = m.home || "";
+      $("home-link").href = homeUrl || "#";
       $("login-online").textContent = `${m.online} of ${m.max} adventurers online.`;
       $("login-server").textContent = m.name || "";            // (the game's name: what its host called it)
       if (m.name) document.title = `${m.name} - Shards of Ashen`;
@@ -710,7 +719,7 @@ N.onMessage = (m) => {
       busyLogin(false);
       if (!mine) {                                   // (not let in at all: nothing here to choose)
         $("login-who").textContent = "";
-        $("home-row").hidden = !window.DSApp;
+        $("home-row").hidden = !(window.DSApp || homeUrl);
       }
       break;
     case "welcome": startGame(m); break;

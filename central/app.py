@@ -21,12 +21,14 @@ its own accounts too, for a network with no way to reach here.
   POST /api/recovery  {token}                     -> {ok, recovery}      (a new code, the old one gone)
   POST /api/ticket    {token, server}             -> {ok, ticket}        (server: the game server's id)
   POST /api/verify    {ticket, server}            -> {ok, name}          (a game server asking)
+  POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
   POST /api/announce  {key, secret, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
   POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, ads, stats)
   GET  /admin, /privacy, /ads.txt, /app-ads.txt   the admin page, the privacy policy, AdSense's and AdMob's lines
   GET  /api/hello                                 -> {name, motd, ad, players, servers}
+  GET  /health                                    -> {ok, servers, version, commit, date}
   GET  /                                          the start screen (a browser's: join a game, local or remote)"""
 import asyncio
 import json
@@ -40,6 +42,7 @@ import time
 from aiohttp import web
 
 from server import auth
+from server.version import version_info
 from . import mail
 from .relay import Relays
 from .store import CentralStore, MOST_FRIENDS
@@ -205,7 +208,23 @@ class Central:
             return no("That name is taken. Log in instead?")
         self.claims.pop(name.lower(), None)
         log.info("New account %s from %s", name, addr)
+        if email and mail.ready():
+            asyncio.ensure_future(self.welcome(name, email))
         return yes(token=self.store.new_token(name), name=name, recovery=code)
+
+    async def welcome(self, name, email):
+        """A new account's first email, sent to one side: a mail service's trouble is never a sign-up's. Never its
+        password or recovery code."""
+        contact = os.environ.get("DS_CENTRAL_CONTACT", "").strip()
+        text = ("Welcome to %s, %s.\n\nYour Shards account is ready: the same name and password sign you in to every "
+                "game. Your characters live on the server you make them on.\n\nThis address is kept to send you a code "
+                "if you ever forget your password. Keep your recovery code somewhere safe too.\n\nIf you didn't make "
+                "this account, someone gave your address by mistake%s.\n" %
+                (self.name, name, ": write to %s and we'll take it off" % contact if contact else ""))
+        try:
+            await asyncio.get_running_loop().run_in_executor(None, mail.send, email, "Welcome to %s" % self.name, text)
+        except Exception as e:
+            log.warning("The welcome email to %s didn't go: %s", name, e)
 
     async def login(self, request):
         d, addr = await self.body(request), self.addr(request)
@@ -331,7 +350,18 @@ class Central:
         name = self.store.use_ticket(d.get("ticket", ""), server)
         if not name:
             return no("That ticket isn't good here.")
+        if self.is_banned(name):                        # (banned since the ticket was made)
+            return no("%s is banned." % name, banned=True)
         return yes(name=name, grant=self.store.new_grant(name, server), **self.friends_of(name))
+
+    def is_banned(self, name):
+        acct = self.store.account(name)
+        return bool(acct and acct[3])
+
+    async def game_standing(self, request):
+        """A game server, for someone who came straight back to it with no ticket: is the account banned? Only that."""
+        d = await self.body(request)
+        return yes(banned=self.is_banned(str(d.get("name", ""))[:40]))
 
     # ----- friends: by account, the same in every game
     def friends_of(self, name):
@@ -377,6 +407,8 @@ class Central:
         if not got:
             return no("Come in again from the start screen to see your friends.")
         name, server = got
+        if self.is_banned(name):
+            return no("%s is banned." % name, banned=True)
         done = ""
         if d.get("name"):
             done, why = self.change_friend(name, d["name"], bool(d.get("remove")))
@@ -441,7 +473,9 @@ class Central:
                        approved=sum(1 for s in every if s["approved"]), up=sum(1 for s in every if s["up"]),
                        mail=mail.ready(), adsense=bool(os.environ.get("DS_ADSENSE_CLIENT")))
         if what == "servers":
-            return yes(servers=self.store.servers(everyone=True))
+            mine = self.version["version"]
+            return yes(version=mine, servers=[{**s, "behind": s["up"] and behind(s["version"], mine)}
+                                              for s in self.store.servers(everyone=True)])
         if what == "approve":
             self.store.set_approved(str(d.get("key", "")), bool(d.get("on")))
             log.info("%s %s server %s", name, "approved" if d.get("on") else "unlisted", d.get("key"))
@@ -498,12 +532,25 @@ def same_place(a, b):
     return bool(ua.hostname) and ua.hostname == ub.hostname and pa == pb
 
 
-def no(text):
-    return web.json_response({"ok": False, "text": text})
+def no(text, **more):
+    return web.json_response({"ok": False, "text": text, **more})
+
+
+def version_numbers(version):
+    """A version's numbers ("1.0.123+": (1, 0, 123)), or None with none to go by ("1.0-dev", or none said)."""
+    m = re.fullmatch(r"(\d+(?:\.\d+)*)\+?", str(version).strip())
+    return tuple(int(n) for n in m.group(1).split(".")) if m else None
+
+
+def behind(theirs, ours):
+    """Is a game server's version older than this central server's? (A server a little ahead has only updated first.)"""
+    a, b = version_numbers(theirs), version_numbers(ours)
+    return bool(a and b and a < b)
 
 
 def make_central(db_path):
     c = Central(db_path)
+    c.version = version_info(ROOT)
     home = os.path.join(ROOT, "web", "home")
 
     @web.middleware
@@ -549,7 +596,7 @@ def make_central(db_path):
                             content_type="text/plain")
 
     async def health(request):
-        return web.json_response({"ok": True, "servers": len(c.store.servers())})
+        return web.json_response({"ok": True, "servers": len(c.store.servers()), **c.version})
 
     app = web.Application(middlewares=[cors])
     app["central"] = c
@@ -557,7 +604,7 @@ def make_central(db_path):
                      ("logout", c.logout), ("recovery", c.recovery), ("ticket", c.ticket), ("verify", c.verify),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
                      ("email", c.set_email), ("forgot", c.forgot), ("friends", c.friends), ("friend", c.friend),
-                     ("game/friends", c.game_friends)):
+                     ("game/friends", c.game_friends), ("game/standing", c.game_standing)):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
     app.router.add_get("/api/servers", c.servers)

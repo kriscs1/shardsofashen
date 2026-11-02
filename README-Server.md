@@ -183,7 +183,13 @@ Characters have no passwords. Each belongs to someone, and its name is one of a 
   server with, as its Shards account, or this device: no ticket, so playing alone needs no network.
 
 A device that came in by an account (a ticket, or the host's key) is that account's on that server from then on: a
-reload, or the central server away, is still you. Signing out on the start screen gives every game a new key.
+reload, or the central server away, is still you, unless the central server says the account is banned (it's asked
+each time, and every minute while they play). Signing out on the start screen gives every game a new key.
+
+Someone who goes straight to a server's address, past the start screen, gets the page, but the game goes by the rules
+above. Anyone turned away gets a link to the start screen. A connection through a reverse proxy nobody told the server
+of (no `DS_TRUST_PROXY`) never counts as this machine or its network, so a device's key alone doesn't get in that way
+on a server joined to a central server.
 
 **Friends** are by Shards account, kept on the central server: asking (the start screen's Friends, or in a game:
 right-click a player, Add friend, or `/friend Name`) is a request till they ask back, and then any character of
@@ -240,6 +246,14 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
    - **Game data** (`/mnt/user/appdata/shards-of-ashen`): where accounts, characters, the world and the daily backups
      are kept. Point it at another share if you like.
    - **Admins**: Shards accounts whose characters get the Admin button, comma-separated (e.g. `Kris,Ann`).
+   - **Central server** (`https://soa.hallisium.com`): players sign in by their Shards accounts, and it proves your
+     Admins. Blank: no accounts here, only each device's own characters.
+   - **Public server** (0): 1 announces it for the start screen's Public servers, once it's approved on the central
+     server's admin page. Everyone then needs a Shards account, even on your own network.
+   - **Public address**: where players outside your network reach it, e.g. `https://play.example.com`. Forward the port
+     or put a reverse proxy in front yourself: the central server only passes the address on.
+   - **Behind a reverse proxy** (0): 1 if players come through one on your network, so those on your own network still
+     count as on it. Without it, anyone coming through the proxy needs a Shards account.
    - **Invite code**: if set, making a character needs it.
    - It runs as nobody:users.
 3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
@@ -370,13 +384,21 @@ lists the remote game servers (each announces itself to it), and it serves the a
   Public servers list): its id,
   name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
   goodbye as it stops. Without it, it only answers on its own network.
+- **Versions**: every server pulls the same `:latest` image, and the page always comes from the game it's playing, so
+  they match by themselves once a server has updated (an Unraid server only with Auto Update Applications). A page left
+  open loads again when the server's page code or pictures change. `/health` says the version, on game servers and the
+  central server alike; the admin page says the central server's and marks a server **Behind** when it's older. Nothing
+  turns an old server away, so what the central server answers must keep working for game servers a version or so old.
 - **Approving servers**: a remote server that announces itself waits, unlisted, until an admin approves it on the
   admin page (`https://central.example.com/admin`, signed in with a Shards account named in `DS_CENTRAL_ADMINS` (one
   with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
   also finds accounts (ban, unban, make admin), edits the start screen's ads, and counts everything.
-- **Email for a forgotten password**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`, `DS_SMTP_USER`, `DS_SMTP_PASSWORD`,
-  `DS_SMTP_FROM`, `DS_SMTP_TLS`: any mail service's SMTP, e.g. Brevo, Mailgun, SES, or Gmail with an app password).
+- **Email (a new account's welcome, a forgotten password's code)**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`,
+  `DS_SMTP_USER`, `DS_SMTP_PASSWORD`, `DS_SMTP_FROM`, `DS_SMTP_TLS`: any mail service's SMTP, e.g. Namecheap Private Email,
+  Brevo, Mailgun, SES, or Gmail with an app password). `central.env.example` has Namecheap's. The domain's DNS must say
+  that service sends its mail (SPF, DKIM), or mail is lost to spam. Try it with
+  `docker compose exec central python -m central.mail you@example.com`. A welcome that can't go never stops a sign-up.
   Players may give an email when they sign up or in their account; "Forgotten?" then emails a code good for 30
   minutes. Without SMTP, the recovery code is the only way back in.
 - **The privacy policy** is at `/privacy`: set `DS_CENTRAL_OPERATOR` (who runs it) and `DS_CENTRAL_CONTACT` (an email
