@@ -5678,3 +5678,215 @@ def test_the_isle_comes_down_on_the_slant_and_rooms_are_furnished(world):
     for m, c in sides:                                          # (a west wall's on the west of its room, an east's east)
         word = m.decor[c][-4]
         assert ("_Thin_" not in m.tile[c]) or m.tile[c][-3:] == ("004" if word == "W" else "002")
+
+
+# ----- Galaith's grounds (build_galaith_grounds.py)
+def test_galaith_is_paved_nicer_among_the_nobles_and_royals(world):
+    d = world.data
+
+    def ground(gx, gy):
+        m = world.maps["%d,%d,0" % (gx // 25, gy // 21)]
+        return m, m.cell(gx - (gx // 25) * 25 + 1, gy - (gy // 21) * 21 + 1)
+    plots = ((-113, 270, -83, 285), (-111, 306, -82, 326))     # (the graveyard's lawn and the orchard's)
+    for gx in range(-262, -90, 3):
+        for gy in range(272, 372, 3):
+            m, c = ground(gx, gy)
+            if m.roof[c] or any(a <= gx <= x and b <= gy <= y for a, b, x, y in plots):
+                continue
+            assert m.tile[c] not in ("Grass001", "Dirt001"), (gx, gy, m.tile[c])
+    m, c = ground(-258, 290)
+    assert m.tile[c] == "Royal_Paving001"
+    m, c = ground(-160, 293)
+    assert m.tile[c] == "Noble_Paving001"
+    m, c = ground(-250, 345)
+    assert m.tile[c] == "Flagstone001"
+    for tile in ("Royal_Paving001", "Noble_Paving001", "Lawn001"):
+        assert d.tile_ini(tile, "Texture", "")                  # (a big texture: never one picture every tile)
+
+
+def test_the_fountains_pool_is_raised_and_you_can_toss_a_coin(world):
+    m = world.maps["-4,14,0"]
+    assert m.decor[m.cell(4, 2)].startswith("Fountain_Pool")
+    assert "1" not in m.walk[m.cell(4, 2)]                      # (the water's walked round, not through)
+    s = join(world, "Wisher", "-4,14,0", 96, 200)               # (on the paving, its south side)
+    fountain = next(e for e in world.ents if e.npc_id == "The_Grand_Fountain")
+    assert "Toss a Coin" in s.get_verbs(fountain)
+    stock(s, **{"Gold_Coin(s)": 5})
+    coins = s.items_held("Gold_Coin(s)")
+    s.choose_verb("Toss a Coin", fountain, int(fountain.cx), int(fountain.cy))
+    run_for(world, 200)
+    assert s.get_attribute("Fountain.Coins") == "1"
+    assert s.items_held("Gold_Coin(s)") in (coins - 1, coins + 1)     # (now and then, it comes back with a friend)
+    leave(world, s)
+
+
+def test_every_stone_in_galaiths_graveyard_says_its_own(world):
+    m = world.maps["-5,13,0"]
+    assert sum(1 for c in range(1, len(m.decor)) if m.decor[c].startswith(("Headstone", "Stone_Cross", "Grave_Slab",
+                                                                           "Royal_Cenotaph"))) >= 8
+    for pid in ("Grave_Tobin_Lamps", "Grave_Hobb_Vintner", "Stone_Prince_Alaric", "Stone_The_Empty_One"):
+        assert world.data.place(pid) is not None
+        assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Examine %s.txt" % pid))
+    assert next(e for e in world.ents if e.npc_id == "Galaith_Sexton").display == "Sexton"
+
+
+def test_the_orchard_gives_fruit_for_the_picking(world):
+    pl = world.data.place("Galaith_Orchard")
+    m = world.map_named(pl.map)
+    s = join(world, "Picker", pl.map, (pl.tx - 1) * 32, (pl.ty + 1) * 32)
+    s.connected = True
+    tree = next((x, y) for y in range(1, 22) for x in range(1, 26)
+                if m.decor[m.cell(x, y)] in ("Apple_Tree001", "Pear_Tree001"))
+    kind = "Apple" if m.decor[m.cell(*tree)].startswith("Apple") else "Pear"
+    gx, gy = m.ox + (tree[0] - 1) * 32 + 16, m.oy + (tree[1] - 1) * 32 + 16
+    s.choose_verb("Pick", s.tile_entity_at(gx, gy), gx, gy)
+    run_for(world, 400)
+    assert s.items_held(kind) == 1
+    racks = open(os.path.join(ROOT, "data", "ItemRacks.ini"), "rb").read().decode("cp1252")
+    assert "Apple_Pie,Flour 1 Apple 2" in racks                # (and they bake)
+    leave(world, s)
+
+
+# ----- random encounters (dsengine/encounters.py)
+def wild_spot(world):
+    """A map out in the wild (no settlement near), past the Isle, with open ground in its middle to stand on."""
+    enc = world.encounters
+    for m in world.maps.values():
+        mx, my = (int(v) for v in m.name.split(",")[:2])
+        if m.mz != 0 or mx < 5 or enc.settled(m):
+            continue
+        if all("0" not in m.walk[m.cell(x, y)] and not m.tile_is_water(x, y) and not m.decor[m.cell(x, y)]
+               for x in range(10, 17) for y in range(8, 15)):
+            return m
+    raise AssertionError("no wild ground")
+
+
+def met(world, kind, name):
+    m = wild_spot(world)
+    s = join(world, name, m.name, 13 * 32, 11 * 32)
+    s.update_attribute("Passage", "=5")
+    e = world.encounters.start(kind, s)
+    assert e is not None
+    return s, e
+
+
+def test_a_salesman_turns_up_and_his_goods_differ_each_visit(world):
+    enc = world.encounters
+    s, e = met(world, "Salesman", "Customer")
+    assert e.source == "ENCOUNTER" and e.name == "Travelling_Salesman" and not e.hostile
+    assert distance(e.cx, e.fy, s.player.cx, s.player.fy) > 6 * 32
+
+    def goods(who):
+        who.open_item_rack("GENERAL", "Travelling_Salesman", "SHOP-Salesman")
+        out = sorted(r["item"] for r in who.rack)
+        who.close_action_box(0)
+        return out
+    first = goods(s)
+    assert len(first) == 7
+    assert goods(s) == first                                     # (the same all through his visit, for everyone)
+    t = join(world, "Customer2", s.cur_map.name, 13 * 32, 11 * 32)
+    assert goods(t) == first
+    leave(world, t)
+    seen = {tuple(first)}
+    for k in range(1, 6):                                        # (his next visits bring something else)
+        enc.visit["Salesman"] += k * 1000
+        seen.add(tuple(goods(s)))
+    assert len(seen) > 1
+    enc.remove(e.uid, e)
+    leave(world, s)
+
+
+def test_what_the_salesman_sells_is_gone_till_his_next_visit(world):
+    enc = world.encounters
+    s, e = met(world, "Salesman", "Haggler")
+    stock(s, **{"Gold_Coin(s)": 50000})
+    s.open_item_rack("GENERAL", "Travelling_Salesman", "SHOP-Salesman")
+    assert "#" in s.rack_name
+    item = next(r for r in s.rack if r["quantity"] > 0)
+    name, left = item["item"], item["quantity"]
+    s.rack_buy(type("Clicked", (), {"misc": s.rack.index(item)})(), 1)
+    assert s.items_held(name) >= 1
+    s.open_item_rack("GENERAL", "Travelling_Salesman", "SHOP-Salesman")
+    assert next(r for r in s.rack if r["item"] == name)["quantity"] == left - 1
+    s.close_action_box(0)
+    enc.visit["Salesman"] += 1000
+    s.open_item_rack("GENERAL", "Travelling_Salesman", "SHOP-Salesman")
+    again = [r for r in s.rack if r["item"] == name]
+    assert not again or again[0]["quantity"] == left             # (a new visit, new stock)
+    s.close_action_box(0)
+    enc.remove(e.uid, e)
+    leave(world, s)
+
+
+def test_an_encounter_walks_off_when_its_time_is_up(world):
+    enc = world.encounters
+    s, e = met(world, "Jester", "Audience")
+    r = enc.running[e.uid]
+    r["ends"] = world.now - 1
+    enc.update(e.uid, r)
+    assert r["leaving"] and e.alive                              # (off it goes)
+    r["gone_by"] = world.now - 1                                 # (out of sight, or out of time: gone)
+    enc.update(e.uid, r)
+    assert not e.alive and e.uid not in enc.running
+    leave(world, s)
+
+
+def test_the_abomination_is_as_strong_as_who_it_found_and_leaves_plenty(world, monkeypatch):
+    import dsengine.remnants as RM
+    enc = world.encounters
+    s, e = met(world, "Abomination", "Hunter")
+    weak = e.max_hp
+    assert e.hostile and e.in_combat and s.monster_level(e) == s.player_level() + 1
+    enc.remove(e.uid, e)
+    e2 = world.add_npc("Shard_Abomination", s.player.z, s.player.x + 320, s.player.y, "Attitude=Bad")
+    enc.scale(e2, enc.kinds["Abomination"], 20)
+    assert e2.max_hp > weak and e2.strength > e.strength
+    monkeypatch.setattr(RM, "rnd", lambda: 0.99)                 # (no remnants of its own roll: only its Drops)
+    uids = {x.uid for x in world.ents}
+    s.kill_npc(e2)
+    left = [x for x in world.ents if x.uid not in uids]
+    assert sum(x.quantity for x in left if x.name == "Shard_Remnant") >= 6
+    assert not any(x.alive and x.name == "Shard_Abomination" for x in world.ents)
+    for x in left:
+        world.remove_entity(x)
+    leave(world, s)
+
+
+def test_encounters_keep_off_the_isle_new_players_towns_and_fights(world):
+    enc = world.encounters
+    s = join(world, "Greenhorn", "1,1,0", 300, 300)
+    assert not any(enc.allowed(k, s) for k in enc.kinds)         # (the Isle's first days are left alone)
+    s.update_attribute("Passage", "=5")
+    assert enc.allowed("Jester", s) and enc.allowed("Salesman", s)
+    assert not enc.allowed("Abomination", s)                     # (too new, and on a settlement's map)
+    leave(world, s)
+    m = wild_spot(world)
+    t = join(world, "Traveller", m.name, 13 * 32, 11 * 32)
+    t.player_last_combat = -10 ** 9
+    assert enc.free(t)
+    t.player_last_combat = t.now
+    assert not enc.free(t)                                       # (not in a fight)
+    leave(world, t)
+
+
+def test_more_kills_leave_or_raise_a_shard_remnant(world):
+    assert world.data.shards_ini("Remnants", "Mob.Chance", "") == "15"
+    assert world.data.shards_ini("Remnants", "Chance", "") == "65"
+
+
+def test_an_encounter_comes_round_on_its_own(world):
+    enc = world.encounters
+    m = wild_spot(world)
+    s = join(world, "Wanderer", m.name, 13 * 32, 11 * 32)
+    s.update_attribute("Passage", "=5")
+    s.player_last_combat = -10 ** 9
+    before = set(enc.running)
+    enc.next_for[s.player_name] = world.now - 1
+    enc.last_check = world.now - 5000
+    enc.tick()
+    new = set(enc.running) - before
+    assert len(new) == 1
+    for u in new:
+        enc.remove(u, world.by_uid[u])
+    assert enc.next_for[s.player_name] > world.now               # (and the next one's a while off)
+    leave(world, s)

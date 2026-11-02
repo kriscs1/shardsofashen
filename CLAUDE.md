@@ -256,6 +256,15 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Shift.Minutes` once nobody's inside: rooms and tunnels, monsters by depth, chests (once each a shift; now and then
   a mimic), hidden traps, a secret room behind a cracked wall, and the Deep's Heart at the bottom. Its things are the
   engine's (`deep_do`), not scripts.
+- **Random encounters** (`dsengine/encounters.py`, `data/Encounters.ini`, `dev/migrate/build_encounters.py`): about every
+  `Every.Minutes` a player's turn comes round, out of doors with nothing else going on, and someone or something turns
+  up near them for all to see: the **travelling salesman** (different goods each visit: ItemRacks.ini `Pick=N` of its
+  items, chosen as he arrives, the same for everyone; what's bought is gone till his next visit), the **jester** (jokes;
+  riddles that pay once each; a trick every ten minutes, from a coin behind your ear to a chicken), the **Shard
+  Abomination** (`Where=Wild`, `Min.Level=`: as strong as the player it found, `Boss=1`, plenty of remnants). A kind's
+  `Requires=` keeps them off the Isle's first days. People walk in and walk off once their time's up; a monster nobody's
+  fighting comes apart. Never saved. A script or the admin panel can send one: `Start.Encounter`. A new one is a
+  section of Encounters.ini.
 - **Rumours** (`dsengine/rumours.py`, `dev/migrate/build_rumours.py`): townsfolk who gossip (Entities.ini `Gossip=1`:
   the trades, shopkeepers, guards) and have no words of their own (no `Talk to <Id>` script) now and then mention a
   quest you could start and haven't, before their usual talk; what's said is the quest's `Rumour=` (`Rumour.2=`...)
@@ -407,6 +416,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   rooms each floor's own sizes and each furnished for what it is, LAYOUT and FURNITURE, laid out again by
   `refurnish_redrock.py`). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
   run again after it.
+- **Galaith is paved inside its walls** (`dev/migrate/build_galaith_grounds.py`, the owner's wish; once on the maps): the
+  Royal quarter in `Royal_Paving001`, the Nobles' in `Noble_Paving001`, the rest in `Flagstone001`; streets cobbled, marble
+  among the nobles; a tree stands in its own `Tree_Pit001` (an Under: it works on any paving). Just inside the east gate:
+  the **Fountain Court** (`Galaith_Fountain`: the raised pool is a Stretch set, `Fountain_Pool`; its shadow on the paving
+  is `Pool_Shadow_*` under what's there; the Grand Fountain stands in it, Toss a Coin), the **Graveyard**
+  (`Galaith_Graveyard`: iron rails, `Lawn001`, every stone its own `Examine <Id>`; the royal firstborn's are empty) and the
+  **Orchard** (`Galaith_Orchard`: Pick the apples and pears, `Apple_Pie` in Cooking). No grass or dirt inside the walls but
+  those two lawns.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep and the Wizards' Court medium cities;
   Ashford a small city; Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch

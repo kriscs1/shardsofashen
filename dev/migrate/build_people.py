@@ -97,6 +97,10 @@ PEOPLE = {
                   dress=(220, 140, 40), hat="cap:240 230 210", held="book"),
     "Forgemaster": P(hair=((150, 60, 30), (110, 40, 20)), hair_style="bald", beard="big", shirt=((100, 100, 108),),
                      apron=(80, 50, 24), trousers=((60, 60, 70),), held="hammer", bare_arms=True),
+    "Jester": P(hair=((150, 90, 40), (110, 60, 24)), shirt=((186, 44, 58),), trousers=((56, 70, 170),),
+                shoes=((186, 44, 58),), hat="jester", motley=((236, 186, 54), (56, 70, 170))),
+    "Travelling_Salesman": P(hair=((90, 70, 54), (60, 46, 36)), beard="stubble", shirt=((96, 112, 70),),
+                             trousers=((88, 70, 52),), shoes=((60, 44, 30),), hat="cap:116 62 40", pack=True),
     "Trader": P(hair=((120, 80, 40), (90, 56, 26)), shirt=((140, 40, 50),), apron=(230, 220, 200),
                 trousers=((70, 60, 50),), held="book"),
     "Settler": P(hair=((150, 100, 50), (110, 70, 30)), hair_style="long", shirt=((150, 120, 70),),
@@ -414,6 +418,47 @@ def draw_person(name, d, f):
         horn = (236, 226, 200)
         for x, y in ((x0 + 1, top - 1), (x0, top - 2), (x1 - 1, top - 1), (x1, top - 2)):
             put(img, x, y, horn)
+    if kind == "jester":                              # (a cap of two points, a bell on each)
+        reds, blues, gold = (186, 44, 58), (56, 70, 170), (250, 214, 90)
+        rect(img, x0, top - 1, x1, top + 1, reds)
+        rect(img, CX, top - 1, x1, top + 1, blues)
+        for i in range(2):
+            put(img, x0 - 1 - i, top - i, reds)
+            put(img, x1 + 1 + i, top - i, blues)
+        put(img, x0 - 3, top - 2, gold)
+        put(img, x1 + 3, top - 2, gold)
+    if sp.get("motley"):                              # (his tunic quartered, a row of points at its hem)
+        a, b = sp["motley"]
+        body = sp["shirt"][0]
+        for y in range(13, 22):
+            for x in range(32):
+                if img[y][x] == body and x >= CX and y < 17:
+                    img[y][x] = a
+                elif img[y][x] == body and x < CX and y >= 17:
+                    img[y][x] = b
+        for x in range(CX - 5, CX + 5, 2):
+            put(img, x, 21, a)
+    if sp.get("pack"):                                # (a great pack on his back, pans and all, higher than his head)
+        wood, cloth, dark = (120, 88, 52), (150, 118, 76), (92, 68, 42)
+        if dd == "1":                                 # (from behind: it's most of what you see)
+            rect(img, CX - 7, 4, CX + 6, 22, cloth)
+            rect(img, CX - 7, 4, CX + 6, 4, dark)
+            rect(img, CX - 7, 12, CX + 6, 12, dark)
+            rect(img, CX - 1, 4, CX, 22, wood)
+            rect(img, CX - 5, 1, CX + 4, 3, wood)
+            put(img, CX - 4, 7, (200, 200, 208)); put(img, CX + 3, 8, (200, 170, 70))
+            put(img, CX + 4, 16, (170, 60, 50)); put(img, CX - 5, 17, (70, 120, 170))
+        elif dd == "4":                               # (from the front: its top over his shoulders)
+            rect(img, CX - 7, 1, CX + 6, 3, cloth, under=True)
+            for y in range(4, 16):
+                put(img, CX - 7, y, cloth, under=True)
+                put(img, CX + 6, y, dark, under=True)
+            rect(img, CX - 6, 0, CX + 5, 0, wood, under=True)
+        else:                                         # (side on: behind him, the straps over his shoulder)
+            rect(img, CX - 9, 3, CX - 4, 21, cloth, under=True)
+            rect(img, CX - 9, 3, CX - 9, 21, dark, under=True)
+            rect(img, CX - 8, 0, CX - 4, 2, wood, under=True)
+            put(img, CX - 7, 8, (200, 200, 208), under=True); put(img, CX - 6, 15, (170, 60, 50), under=True)
     # --- held things
     held = sp["held"]
     if held:

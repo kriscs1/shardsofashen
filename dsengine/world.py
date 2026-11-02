@@ -23,6 +23,7 @@ from .remnants import fade_remnants, make_remnant, LIVING
 from .deep import Deep
 from .market import Market
 from .waves import Waves
+from .encounters import Encounters
 from .tavern import Tavern
 from .minigames import Arms
 from .carts import Carts
@@ -74,6 +75,7 @@ class World(NPCMixin):
         self.farms = Farms(self)        # what's growing in tilled soil
         self.market = Market(self)      # the marketplace: everyone's listings
         self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
+        self.encounters = Encounters(self)    # who turns up now and then, out of doors (a salesman, a jester...)
         self.tavern = Tavern(self)      # the tavern's dice rounds
         self.arms = Arms(self)          # the arm-wrestling bouts (minigames.py)
         from .together import Together
@@ -1687,6 +1689,7 @@ class World(NPCMixin):
         self.update_object_hours()
         self.farms.tick()
         self.waves.tick()
+        self.encounters.tick()
         self.tavern.tick()
         self.arms.tick()
         self.weather_tick()

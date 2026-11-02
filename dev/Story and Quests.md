@@ -317,6 +317,10 @@ shrines stand quiet in the Ashwold).
 
 ## Loose threads and hooks
 
+- **Who turns up on the road**: a travelling salesman, a jester and now and then a Shard Abomination
+  (`data/Encounters.ini`). They aren't quests, and they don't say where anything is.
+- **The stones in Galaith's graveyard**: the royal firstborn have stones with nobody under them, and the last is small,
+  new and blank (the King had it cut the year the city shut). The sexton won't say more; nothing needs it to.
 - **Wardhaven** opens once the dragon is dead, but nothing happens there yet.
 - **The mine behind Galaith** opens to the King: the gold and Shard mines the bargain was made for. At its far
   wall the **King's Shard Seam** gives the Crown 12 Shards once every 20 hours (Shards.ini `Galaith.Seam`), with a

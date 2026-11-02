@@ -235,7 +235,8 @@ class ItemsMixin:
             if ini.read(rack, "Type", "", f) == "" and ini.read(rack, "Item1", "", f) == "":
                 self.display_message("There's nothing here.", "FAIL")
                 return False
-        self.rack_name = rack
+        picks = val(ini.read(rack, "Pick", "0", f))                # (some of its goods, new each visit: encounters.py)
+        self.rack_name = self.w.encounters.rack_id(rack, picks)
         self.rack = []
         self.rack_page = 1
         self.rack_filter, self.rack_ready = "", False
@@ -261,6 +262,8 @@ class ItemsMixin:
                     r["quantity"] = max(1, val(word(item, 5, ",")))
                 self.rack.append(r)
             if self.rack_type == "Shop":
+                if picks > 0:
+                    self.rack = self.w.encounters.picked(rack, self.rack, picks)
                 self.apply_shop_queue()
             elif self.rack_type == "Craft":
                 self.rack.sort(key=lambda r: r["level"])          # (by the level it needs: easiest first)

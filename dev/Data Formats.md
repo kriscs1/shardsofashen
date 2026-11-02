@@ -263,6 +263,8 @@ Item1=Tinderbox,3         ; Name,stock (bought stock comes back after Config [Ga
                           ; has: each delivery (Shop.Stock.Hours) it has a third of it up, now and then none
                           ; (Shop.Sold.Out percent), while Config Shop.Vary.Stock=1
 Vary.Stock=0              ; (optional) this shop always has its full stock (1: it varies, whatever Config says)
+Pick=7                    ; (optional) a visitor's rack: it shows this many of its items, chosen as they arrive
+                          ; (data\Encounters.ini Rack=), the same for everyone; new stock and new goods next visit
 Item2=Bucket,2
 [CRAFT-Cooking]
 Type=Craft

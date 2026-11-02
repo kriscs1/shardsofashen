@@ -27,10 +27,10 @@ import sprite_kit as K                         # noqa: E402
 
 MAKER = "build_remnants.py"
 REMNANTS = [   # Shards.ini [Remnants] (key, value, what it means: written as the comment above it)
-    ("Chance", "45", "In 100: a monster that dies leaves Shard Remnants on the ground"),
+    ("Chance", "65", "In 100: a monster that dies leaves Shard Remnants on the ground"),
     ("Count", "1-2", "How many"),
     ("Count.Per.Level", "0.25", "And this many more for each level of the monster (Entities.ini Level=)"),
-    ("Mob.Chance", "6", "In 100: instead, its magic rises as a Shard Remnant and attacks its killer"),
+    ("Mob.Chance", "15", "In 100: instead, its magic rises as a Shard Remnant and attacks its killer"),
     ("Mob.Min.Level", "2", "Only from monsters of this level and up"),
     ("Mob.Hitpoints", "5", "The Shard Remnant's hitpoints: this, and Mob.Hitpoints.Per.Level for each level"),
     ("Mob.Hitpoints.Per.Level", "5", None),

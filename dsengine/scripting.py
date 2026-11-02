@@ -566,6 +566,11 @@ class ScriptMixin:
         elif c == "Start.Wave":
             # Start.Wave <name>: a data\Waves.ini attack starts (a quest's battle; for everyone there)
             self.w.waves.start(trim(arg[1]), by=self)
+        elif c == "Start.Encounter":                 # (one of data\Encounters.ini's turns up near them: encounters.py)
+            if trim(arg[1]) in self.w.encounters.kinds:
+                self.w.encounters.start(trim(arg[1]), self)
+            else:
+                self.log("ERROR - Start.Encounter: no [%s] in data\\Encounters.ini" % trim(arg[1]))
         elif c == "Teleport":
             target = arg[2] if arg[2] not in ("", "-") else self.screen_name
             x, y = p.x - self.map_ox(), p.y - self.map_oy()

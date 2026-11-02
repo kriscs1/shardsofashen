@@ -51,7 +51,7 @@ read it back as $Variable.n.
   $Player.Form               The shape the player is in just now (a body swap, Turn.Into): Cat, Duck..., or - for their own.
   $Shardstones.Active        How many shardstones the player has activated (the Shardgate needs Shards.ini Shardgate.Stones).
   $Player.Health             The player's hitpoints just now.
-  $Player.Health.Max         The player's hitpoints when they're fully well.
+  $Player.Health.Max         The player's hitpoints when they're fully well (a doctor: >Conditional $Player.Health<$Player.Health.Max).
   $Clock                     Seconds on the real clock, always counting up (now minus a time saved in an attribute: how long ago).
   $Player.Son                son, or daughter for a woman (the player's body).
   $Player.Boy                boy, or girl for a woman.
@@ -73,6 +73,8 @@ read it back as $Variable.n.
   $Variable.8                A value stored by the 'Get.Value' command (SAVE AS Variable.8$).
   $Variable.9                A value stored by the 'Get.Value' command (SAVE AS Variable.9$).
   $Random.Percent            A random number between 1 and 100.
+  $Players.Near              How many other players are within about a map of this one, on the same level.
+  $Players.Online            How many other players are in the game.
   $Shards.                   A Shards.ini [Shards] number, e.g. $Shards.Shardstone.Galaith: what it costs, as >Pay.Shards charges it.
   $Inventory.Slots           The number of slots left in the player's inventory.
   $Entity.under.Cursor.ID    The ID of the entity that the user clicked on.
@@ -82,7 +84,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (70)
+COMMANDS (72)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -191,6 +193,12 @@ Format:  Command  ARG 1 | ARG 2 | ...
     3. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
          (If it is met, the script continues on the next line)
 
+>Map.Exists    MAP NAME | GOTO LINE IF NOT MET
+    CONDITION: Requires that a map exists (a stair or ladder that leads somewhere) in order to continue
+    1. MAP NAME: The name of the map (X,Y,Z, e.g. 1,1,0) or $Map.Name for the current map
+    2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
+         (If it is met, the script continues on the next line)
+
 >Name    $PLAYER.NAME | GOTO LINE IF NOT MET
     CONDITION: Requires that the player has a certain name in order to continue
     1. $PLAYER.NAME: The name that is required
@@ -228,12 +236,6 @@ Format:  Command  ARG 1 | ARG 2 | ...
     CONDITION: Requires that the player is not on a certain type of tile in order to continue
     1. DISALLOWED TILE NAME: The name of the tile that the player must not be on
          (Stored in the '\sprites\Tiles\' folder)
-    2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
-         (If it is met, the script continues on the next line)
-
->Map.Exists    MAP NAME | GOTO LINE IF NOT MET
-    CONDITION: Requires that a map exists (a stair or ladder that leads somewhere) in order to continue
-    1. MAP NAME: The name of the map (X,Y,Z, e.g. 1,1,-1)
     2. GOTO LINE IF NOT MET: The line that the script continues at if the condition is not met
          (If it is met, the script continues on the next line)
 
@@ -546,6 +548,10 @@ Sleep    SLEEP UNTIL
     (as in a bed; not with a foe near or just after a fight: data\DayNight.ini [Sleep])
     1. SLEEP UNTIL: Morning, Evening, a time of day (0-1: 0.5 = noon), or blank: the morning if it is night, else the evening
 
+Start.Encounter    ENCOUNTER
+    COMMAND: Someone or something from data\Encounters.ini turns up near the player now
+    1. ENCOUNTER: Which: a section of data\Encounters.ini (Salesman, Jester, Abomination)
+
 Start.Wave    WAVE ATTACK
     COMMAND: Starts a monster attack: wave after wave, for everyone there to fight off
     1. WAVE ATTACK: The attack: a section of data\Waves.ini (e.g. Farm_Raid). Its On.Win.Script runs for each
@@ -561,11 +567,6 @@ Teleport    X COORDINATE,Y COORDINATE | MAP NAME
     1. X COORDINATE,Y COORDINATE: The X and Y coordinates, separated by a comma (e.g. 300,250 or $Player.X,$Player.Y).
          In PIXELS, except for Change.Tile and >Tile.In.Line.Of.Sight, which take TILE coordinates (1-25,1-21)
     2. MAP NAME: The name of the map (X,Y,Z, e.g. 1,1,0) or $Map.Name for the current map
-
-Tell.Rumour    [WHO]
-    COMMAND: Now and then, a rumour of a quest the player could start and hasn't (Quests.ini Rumour=), told by
-    WHO in a conversation box; the script goes on when it's answered. None due (Config.ini [Rumours]): straight on.
-    1. WHO: Who tells it (an NPC's name; blank: the one clicked)
 
 Toggle.Player.Visibility    ON/OFF
     COMMAND: Toggles Player's visibility ON or OFF

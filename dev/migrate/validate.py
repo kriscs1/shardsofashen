@@ -1010,8 +1010,10 @@ def check_tiles():
     check_ini_syntax(path)
     ini = Ini(path)
     r = rel(path)
+    frames = {"%s%d" % (s, k + 1) for s, _ in ini.sections if is_num(ini.get(s, "Anim.Frames") or "")
+              for k in range(int(float(ini.get(s, "Anim.Frames"))))}   # (<Name>1..N: a tile's frames, not tiles)
     for t in sorted(TILES):
-        if ini.section(t) is None:
+        if ini.section(t) is None and t not in frames:
             err(r, "no [%s] section for tile sprite" % t)
     for sec, items in ini.sections:
         if sec not in TILES:
@@ -1550,6 +1552,33 @@ def check_digging():
                 err(r, "[%s] Maps= covers no map there is" % sec)
 
 
+def check_encounters(racks):
+    """data\\Encounters.ini: each kind an NPC there is, its rack, its sounds."""
+    path = p("data", "Encounters.ini")
+    if not os.path.exists(path):
+        err(rel(path), "missing: run dev\\migrate\\build_encounters.py")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    r = rel(path)
+    for sec, items in ini.sections:
+        if sec.lower() == "encounters":
+            continue
+        npc = ini.get(sec, "NPC")
+        if not npc or npc not in ENTITIES:
+            err(r, "[%s] NPC=%s: no such thing in Entities.ini" % (sec, npc))
+        rack = ini.get(sec, "Rack")
+        if rack and rack not in racks:
+            err(r, "[%s] Rack=%s: no such list in ItemRacks.ini" % (sec, rack))
+        if (ini.get(sec, "Attitude") or "Good") not in ("Good", "Bad"):
+            err(r, "[%s] Attitude must be Good or Bad" % sec)
+        for key in ("Sound", "Message.Sound"):
+            v = ini.get(sec, key)
+            if v and v != "-" and not os.path.exists(p("sounds", v + ".wav")):
+                err(r, "[%s] %s=%s: there's no sounds\\%s.wav" % (sec, key, v, v))
+
+
 def check_itemracks(entities_ini, skills):
     path = p("data", "ItemRacks.ini")
     if not os.path.exists(path):
@@ -1565,6 +1594,8 @@ def check_itemracks(entities_ini, skills):
             err(r, "[%s] Type must be Shop or Craft" % sec)
         if (ini.get(sec, "Vary.Stock") or "").strip() not in ("", "0", "1"):
             err(r, "[%s] Vary.Stock must be 0 or 1" % sec)
+        if not (ini.get(sec, "Pick") or "0").strip().isdigit():
+            err(r, "[%s] Pick must be how many of its goods a visit brings" % sec)
         for k, v in items:
             if k is None or not re.fullmatch(r"Item\d+", k):
                 continue
@@ -2147,6 +2178,9 @@ class World:
         return {(m, sx // R, sy // R) for m, sx, sy in seen}
 
 
+ACROSS_THE_WATER = {"Grand_Fountain"}      # (it stands in its pool: its verb's used from the rim)
+
+
 def reachable_entity(reach, m, tile):
     """An entity counts as reachable when its tile, or a tile next to it, can be walked to."""
     x, y = tile
@@ -2242,7 +2276,7 @@ def check_world(tiles_ini, entities_ini, skills):
     swimmers = {n for n in placements if ENTITIES_INI is not None and (ENTITIES_INI.get(n, "Swims") or "") == "1"}
     for name, where in sorted(placements.items()):
         for m, t in where:
-            if name not in swimmers and not reachable_entity(open_reach, m, t):   # (a swimmer comes ashore)
+            if name not in swimmers and name not in ACROSS_THE_WATER and not reachable_entity(open_reach, m, t):   # (a swimmer comes ashore)
                 warn("maps\\%s.txt" % m, "%s at tile %d,%d can't be reached from the start (even with every lock open)"
                      % (name, t[0] + 1, t[1] + 1))
     for m, x, y, cond, msg, where in LOCKS:
@@ -2328,6 +2362,7 @@ def main():
     check_deep()
     check_digging()
     check_carts()
+    check_encounters(racks)
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)
     if not quiet:
