@@ -660,3 +660,21 @@ def test_a_closed_server_makes_no_character_for_a_ticket(tmp_path, monkeypatch):
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+
+def test_a_servers_name_is_what_its_given_and_never_a_containers_number(monkeypatch):
+    from types import SimpleNamespace
+    from server.game import GameServer
+    saved = {}
+    me = SimpleNamespace(store=SimpleNamespace(setting=lambda k, d="": saved.get(k, d)), default_name="")
+    name = lambda: GameServer.server_name(me)                     # noqa: E731
+    monkeypatch.delenv("DS_NAME", raising=False)
+    monkeypatch.delenv("DS_PUBLIC", raising=False)
+    assert name().startswith("Shards of Ashen on ")               # (at home: this machine's)
+    monkeypatch.setenv("DS_PUBLIC", "1")
+    assert name() == "A Shards of Ashen server"                   # (listed: the same whichever container it's in)
+    monkeypatch.setenv("DS_NAME", "The Ashen Inn")
+    assert name() == "The Ashen Inn"                              # (the Unraid template's Server name)
+    saved["name"] = "Kris's World"
+    assert name() == "Kris's World"                               # (an admin's, in Options)

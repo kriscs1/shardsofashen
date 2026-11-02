@@ -314,9 +314,15 @@ class GameServer:
     LOCAL = ("127.0.0.1", "::1", "localhost")
 
     def server_name(self):
-        """The game's name: what the host called it in Options, else DS_NAME, else this machine's."""
-        return self.store.setting("name", "") or getattr(self, "default_name", "") or os.environ.get("DS_NAME", "") or \
-            "Shards of Ashen on " + socket.gethostname()
+        """The game's name: what the host called it in Options, else DS_NAME, else this machine's (a public server's
+        machine is a container's number, new each time it's made, and a new name takes it off the list till it's approved
+        again: a plain name, till it's given one)."""
+        named = self.store.setting("name", "") or getattr(self, "default_name", "") or os.environ.get("DS_NAME", "")
+        if named:
+            return named
+        if os.environ.get("DS_PUBLIC", "").strip() in ("1", "yes", "on", "true"):
+            return "A Shards of Ashen server"
+        return "Shards of Ashen on " + socket.gethostname()
 
     @property
     def lan_open(self):

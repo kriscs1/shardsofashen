@@ -14,7 +14,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 @pytest.fixture(scope="module")
 def world():
     random.seed(1)
-    return World(ROOT)
+    w = World(ROOT)
+    w.encounters.settings["on"] = w.banter.settings["on"] = "0"   # (nobody turning up in other tests: they ask for them)
+    return w
 
 
 @pytest.fixture(autouse=True)
@@ -3172,7 +3174,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
 
 
 def test_the_shardrealms_remnants_are_as_strong_as_their_level_and_stay(world):
-    rems = [e for e in world.ents if e.name == "Living_Remnant" and e.map == "21,4,-10"]
+    rems = [e for e in world.ents if e.name == "Living_Remnant" and e.map == "21,4,-10" and e.source == "MAP"]
     assert rems and all(e.max_hp == 5 + 5 * e.remnant_level for e in rems)
     from dsengine.remnants import fade_remnants
     world.now += 10 ** 7
@@ -3364,6 +3366,8 @@ def test_the_deeps_chests_traps_heart_and_shifting(world, monkeypatch):
     run_for(world, 10)
     f1 = world.deep.floors[0]["map"]
     assert s.cur_map.name == f1
+    for e in [e for e in world.ents if e.map == f1 and e.type == NPC and e.hostile]:
+        world.remove_entity(e)                                      # (only the chest and the traps: nothing wearing them down)
     monkeypatch.setattr(D.random, "uniform", lambda a, b: 99.0)     # (no mimics; every loot roll fails but gold's)
     chest = next(e for e in world.ents if e.map == f1 and e.name == "Deep_Chest")
     near(world, s, chest, 0, 30)
@@ -5871,11 +5875,12 @@ def test_encounters_keep_off_the_isle_new_players_towns_and_fights(world):
 
 def test_more_kills_leave_or_raise_a_shard_remnant(world):
     assert world.data.shards_ini("Remnants", "Mob.Chance", "") == "15"
-    assert world.data.shards_ini("Remnants", "Chance", "") == "65"
+    assert world.data.shards_ini("Remnants", "Chance", "") == "53"
 
 
 def test_an_encounter_comes_round_on_its_own(world):
     enc = world.encounters
+    enc.settings["on"] = "1"
     m = wild_spot(world)
     s = join(world, "Wanderer", m.name, 13 * 32, 11 * 32)
     s.update_attribute("Passage", "=5")
@@ -5884,9 +5889,304 @@ def test_an_encounter_comes_round_on_its_own(world):
     enc.next_for[s.player_name] = world.now - 1
     enc.last_check = world.now - 5000
     enc.tick()
+    enc.settings["on"] = "0"
     new = set(enc.running) - before
     assert len(new) == 1
     for u in new:
         enc.remove(u, world.by_uid[u])
     assert enc.next_for[s.player_name] > world.now               # (and the next one's a while off)
     leave(world, s)
+
+
+def jester_box(world, s, e, *answers):
+    """Talk to the jester, give these answers in turn, and say what he said last (the text of the last box)."""
+    s.out = []
+    s.do_action("Talk to", e)
+    run_for(world, 4)
+    for a in answers:
+        s.out = []
+        s.action_box_response_chosen(a)
+        run_for(world, 6)
+    boxes = [ev for ev in s.out if ev.get("t") == "box"]
+    return boxes[-1]["text"] if boxes else ""
+
+
+def jester_done(world, s):
+    while s.ab_mode or s.script_running:
+        s.action_box_response_chosen(1)
+        run_for(world, 6)
+
+
+def test_the_jesters_riddles_pay_once_each_and_wrong_pays_nothing(world):
+    s, e = met(world, "Jester", "Riddler")
+    world.encounters.running[e.uid]["ends"] = world.now + 3600000
+    stock(s, **{"Gold_Coin(s)": 100})
+    for attr, right in (("Jester.Riddle1", 1), ("Jester.Riddle2", 2), ("Jester.Riddle3", 2)):
+        coins = s.items_held("Gold_Coin(s)")
+        assert "Wrong!" in jester_box(world, s, e, 2, 3)
+        assert s.items_held("Gold_Coin(s)") == coins and val_attr(s, attr) == 0
+        jester_done(world, s)
+        assert "Right first time" in jester_box(world, s, e, 2, right)
+        assert s.items_held("Gold_Coin(s)") == coins + 15 and val_attr(s, attr) == 1
+        s.out = []
+        while s.ab_mode or s.script_running:
+            s.action_box_response_chosen(2)                      # (Goodbye)
+            run_for(world, 6)
+    coins = s.items_held("Gold_Coin(s)")
+    assert "all the riddles" in jester_box(world, s, e, 2)
+    assert s.items_held("Gold_Coin(s)") == coins
+    jester_done(world, s)
+    world.encounters.remove(e.uid, e)
+    leave(world, s)
+
+
+def val_attr(s, attr):
+    return int(float(s.get_attribute(attr) or 0))
+
+
+def test_the_jesters_jokes_come_back_to_him(world):
+    s, e = met(world, "Jester", "Heckler")
+    world.encounters.running[e.uid]["ends"] = world.now + 3600000
+    jokes = set()
+    for _ in range(40):
+        jokes.add(jester_box(world, s, e, 1))
+        s.out = []
+        s.action_box_response_chosen(1)                          # (That's terrible.)
+        run_for(world, 6)
+        assert any("jester needs a king" in ev.get("text", "") for ev in s.out if ev.get("t") == "box")
+        s.action_box_response_chosen(4)                          # (Goodbye.)
+        run_for(world, 6)
+        assert not s.script_running
+    assert len(jokes) == 5
+    world.encounters.remove(e.uid, e)
+    leave(world, s)
+
+
+def test_the_jesters_trick_does_something_and_then_he_makes_you_wait(world):
+    s, e = met(world, "Jester", "Mark")
+    world.encounters.running[e.uid]["ends"] = world.now + 3600000
+    stock(s, **{"Gold_Coin(s)": 20})
+    seen = set()
+    for _ in range(60):
+        s.update_attribute("Jester.Trick", "=0")
+        coins = s.items_held("Gold_Coin(s)")
+        s.out = []
+        s.do_action("Talk to", e)
+        run_for(world, 4)
+        s.out = []
+        s.action_box_response_chosen(3)
+        run_for(world, 10)
+        assert not s.script_running
+        if s.parse_script_variables("$Player.Form") == "Chicken":
+            seen.add("chicken")
+            run_for(world, 21 * 20 + 20)                         # (it wears off)
+            assert s.parse_script_variables("$Player.Form") == "-"
+        elif s.items_held("Gold_Coin(s)") > coins:
+            seen.add("coins")
+        elif s.items_held("Gold_Coin(s)") < coins:
+            seen.add("pickpocket")
+        else:
+            assert any("working out" in ev.get("text", "") for ev in s.out if ev.get("t") == "msg")
+            seen.add("boost")
+    assert seen == {"chicken", "coins", "pickpocket", "boost"}
+    s.remove_inventory_item("Gold_Coin(s)", s.items_held("Gold_Coin(s)"))
+    for _ in range(40):                                          # (nothing to take: a cabbage, out of pity)
+        s.update_attribute("Jester.Trick", "=0")
+        cabbages = s.items_held("Cabbage")
+        s.do_action("Talk to", e)
+        run_for(world, 4)
+        s.action_box_response_chosen(3)
+        run_for(world, 10)
+        if s.items_held("Cabbage") > cabbages:
+            break
+        if s.items_held("Gold_Coin(s)"):
+            s.remove_inventory_item("Gold_Coin(s)", s.items_held("Gold_Coin(s)"))
+        if s.parse_script_variables("$Player.Form") == "Chicken":
+            run_for(world, 21 * 20 + 20)
+    assert s.items_held("Cabbage") > cabbages
+    s.update_attribute("Jester.Trick", "=%s" % s.parse_script_variables("$Clock"))
+    assert "only had the one" in jester_box(world, s, e, 3)      # (and it's a while till the next)
+    jester_done(world, s)
+    world.encounters.remove(e.uid, e)
+    leave(world, s)
+
+
+def test_the_jester_juggles_whichever_way_he_faces(world):
+    s, e = met(world, "Jester", "Crowd")
+    for direction, d in ((1, "1"), (2, "2"), (4, "4"), (8, "8")):
+        e.direction = direction
+        e.pose = "Juggle"
+        world.animate_entity(e, False)
+        assert e.image == "Jester_Juggle" + d
+    world.encounters.remove(e.uid, e)
+    leave(world, s)
+
+
+def test_galaiths_gardener_and_sexton_go_home_at_night(world):
+    def where(pid):
+        return next(x for x in world.ents if x.npc_id == pid)
+    day = world.day_fraction()
+    gardener, sexton = where("Galaith_Gardener"), where("Galaith_Sexton")
+    a = join(world, "Nightwatch", gardener.map, 12 * 32, 11 * 32)
+    b = join(world, "Nightwatch2", sexton.map, 20 * 32, 8 * 32)
+    world.set_day_fraction(world.night_bounds()[0] + 0.01)
+    run_for(world, 1)
+    assert world.is_night()
+    run_for(world, 2400)
+    assert gardener.ai.asleep and gardener.image == "Farmer_Sleep4"   # (in his own bed, in the orchard)
+    m = world.maps[gardener.map]
+    bx, by = gardener.ai.bed
+    assert m.decor[m.cell(int((bx - m.ox) // 32) + 1, int((by - m.oy) // 32) + 1)] == "Bed001"
+    h = sexton.ai.home
+    assert h[0] <= sexton.fx <= h[2] and h[1] <= sexton.fy <= h[3]
+    world.set_day_fraction(0.4)
+    run_for(world, 2400)
+    assert not gardener.ai.asleep and gardener.active
+    z = gardener.ai.day_zone
+    assert z[0] <= gardener.fx <= z[2] and z[1] <= gardener.fy <= z[3]   # (back at work)
+    world.set_day_fraction(day)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_the_fountain_is_heard_near_it_not_over_whole_maps(world):
+    d = world.data
+    assert d.entity_ini("Grand_Fountain", "Sound.Loop", "") == "Ambient_Fountain"
+    assert os.path.exists(os.path.join(ROOT, "sounds", "Ambient_Fountain.wav"))
+    amb = open(os.path.join(ROOT, "data", "Ambient.ini"), "rb").read().decode("cp1252")
+    assert "=Fountain" not in amb
+
+
+# ----- banter (dsengine/banter.py)
+def banter_pair(world, name, a_kind, b_kind):
+    """A player out in the wild, two characters beside them that nothing else is doing anything with."""
+    m = wild_spot(world)
+    s = join(world, name, m.name, 13 * 32, 11 * 32)
+    s.connected = True
+    a = world.add_npc(a_kind, 0, m.ox + 11 * 32, m.oy + 10 * 32, "Attitude=Good Schedule=Always")
+    b = world.add_npc(b_kind, 0, m.ox + 14 * 32, m.oy + 10 * 32, "Attitude=Good Schedule=Always")
+    world.banter.speaker_rest.clear()
+    world.banter.scene_rest.clear()
+    return s, a, b
+
+
+def banter_bubbles(s):
+    return [(ev["u"], ev["text"]) for ev in s.out if ev.get("t") == "bubble"]
+
+
+def test_two_who_meet_turn_and_have_words_over_their_heads(world):
+    s, a, b = banter_pair(world, "Eavesdropper", "Guard", "Villager")
+    s.player.x, s.player.y = a.x + 40, a.y + 32
+    d = world.banter.scenes["Scene.Along"]
+    s.out = []
+    r = world.banter.start(d, a, b, s)
+    assert a.direction == 2 and b.direction == 8                  # (facing each other)
+    assert r in world.banter.running
+    for _ in range(10 * 20):
+        world.tick(0.05, now=world.now + 50)
+    said = [x for x in banter_bubbles(s) if x[0] in (a.uid, b.uid)]
+    assert [t for _, t in said] == ["Move along.", "Along where?", "Just along."]
+    assert [u for u, _ in said] == [a.uid, b.uid, a.uid]
+    assert r not in world.banter.running
+    assert not [ev for ev in s.out if ev.get("t") == "msg"]        # (never the chat log)
+    world.remove_entity(a)
+    world.remove_entity(b)
+    leave(world, s)
+
+
+def test_a_dog_sends_a_cat_running(world):
+    s, dog, cat = banter_pair(world, "Dogwalker", "Dog", "Cat")
+    s.out = []
+    r = world.banter.start(world.banter.scenes["Scene.Dog_Cat"], dog, cat, s)
+    x0, y0 = cat.fx, cat.fy
+    for _ in range(12 * 20):
+        world.tick(0.05, now=world.now + 50)
+    assert r not in world.banter.running
+    assert distance(cat.fx, cat.fy, x0, y0) > 32                  # (off it went)
+    assert "Dog_Bark" in [ev.get("name") for ev in s.out if ev.get("t") == "sound"]
+    world.remove_entity(dog)
+    world.remove_entity(cat)
+    leave(world, s)
+
+
+def test_banter_picks_who_it_fits_and_rests_after(world):
+    ban = world.banter
+    s, a, b = banter_pair(world, "Passerby", "Guard", "Villager")
+    s.player.x, s.player.y = a.x + 48, a.y + 32
+    run_for(world, 1)
+    for e in list(world.ents):                                    # (only these two about)
+        if e.type == NPC and e not in (a, b) and e.source != "MAP" and e.name in ("Villager", "Guard"):
+            world.remove_entity(e)
+    r = ban.roll(s)
+    assert r is not None and r["a"] in (a, b) and r["b"] in (a, b) and r["a"] is not r["b"]
+    assert r["a"].name in r["d"]["a_kinds"] and r["b"].name in r["d"]["b_kinds"]
+    assert not ban.free_to_talk(a, s)                             # (they've had their say, for a while)
+    ban.running.remove(r)
+    assert ban.resting(r["d"]["key"])
+    world.remove_entity(a)
+    world.remove_entity(b)
+    leave(world, s)
+
+
+def test_banter_leaves_out_those_with_words_of_their_own_and_foes(world):
+    ban = world.banter
+    s, a, b = banter_pair(world, "Bystander", "Guard", "Villager")
+    assert ban.free_to_talk(a, s)
+    a.npc_id = "Galaith_Sexton"                                   # (it has its own Talk to script)
+    assert not ban.free_to_talk(a, s)
+    mo = next(e for e in world.ents if e.npc_id and os.path.exists(os.path.join(ROOT, "data", "Scripts", "Stroke %s.txt" % e.npc_id)))
+    assert not ban.free_to_talk(mo, s)                            # (any verb of its own: a scene would stop what it's doing)
+    a.npc_id = ""
+    a.in_combat = True
+    assert not ban.free_to_talk(a, s)
+    a.in_combat = False
+    wolf = world.add_npc("Wolf", 0, a.x, a.y, "Attitude=Bad")
+    assert not ban.free_to_talk(wolf, s)
+    world.remove_entity(wolf)
+    world.remove_entity(a)
+    world.remove_entity(b)
+    leave(world, s)
+
+
+def test_townsfolk_have_something_to_say_about_a_chicken_in_boots(world):
+    ban = world.banter
+    s, a, b = banter_pair(world, "Clucker", "Villager", "Guard")
+    s.player.x, s.player.y = a.x + 48, a.y + 32
+    run_for(world, 1)
+    assert not ban.applies("Chicken", s) and not ban.applies("Form", s)
+    s.run_script_lines("(test)", ["01\tTurn.Into\tChicken\t20\tCluck.", "02\tEnd"])
+    run_for(world, 4)
+    assert s.player_form() == "Chicken" and ban.applies("Chicken", s) and ban.applies("Form", s)
+    r = ban.roll(s)
+    assert r is not None and r["b"] is None and r["d"]["b"] == "Player"
+    assert "chicken" in r["d"]["lines"][0][1].lower() or "Bird" in r["d"]["lines"][0][1] or "different" in r["d"]["lines"][0][1]
+    ban.running.remove(r)
+    world.remove_entity(a)
+    world.remove_entity(b)
+    leave(world, s)
+
+
+def test_no_banter_is_heard_through_a_roof_youre_outside_of(world):
+    ban = world.banter
+    s, a, b = banter_pair(world, "Outside", "Guard", "Villager")
+    s.out = []
+    world.sees_spot, keep = (lambda *args: False), world.sees_spot
+    try:
+        ban.say(a, "Psst.")
+    finally:
+        del world.sees_spot
+    assert not banter_bubbles(s)
+    world.remove_entity(a)
+    world.remove_entity(b)
+    leave(world, s)
+
+
+def test_every_banter_scene_is_for_kinds_there_are_and_fits_over_a_head(world):
+    ban = world.banter
+    assert len(ban.scenes) >= 30
+    for key, d in ban.scenes.items():
+        assert d["lines"], key
+        assert d["a_kinds"], key
+        for who, said, _ in d["lines"]:
+            assert who in ("A", "B") and 0 < len(said) <= 60, (key, said)
+            assert d["b"].lower() != "player" or who == "A", key

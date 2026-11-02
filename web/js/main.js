@@ -11,7 +11,7 @@ import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showB
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
 import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
-import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, unlock, stopMusic } from "./audio.js";
+import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, nearLoopTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
 import { messageColour, clamp, val, pretty, coinHTML } from "./util.js";
 import { buildPicker, DEFAULT_LOOK, lookImage, bodyFrame } from "./look.js";
@@ -970,6 +970,7 @@ function frame(now) {
     lastSlow = now;
     musicTick(V.underRoof, null);
     ambientTick(V.underRoof);
+    nearLoopTick(V.underRoof);
   } else musicTick(V.underRoof, null);
   if (now - lastExplored > 3000) {
     lastExplored = now;

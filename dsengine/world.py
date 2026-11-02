@@ -24,6 +24,7 @@ from .deep import Deep
 from .market import Market
 from .waves import Waves
 from .encounters import Encounters
+from .banter import Banter
 from .tavern import Tavern
 from .minigames import Arms
 from .carts import Carts
@@ -76,6 +77,7 @@ class World(NPCMixin):
         self.market = Market(self)      # the marketplace: everyone's listings
         self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
         self.encounters = Encounters(self)    # who turns up now and then, out of doors (a salesman, a jester...)
+        self.banter = Banter(self)      # who says what to whom, over their heads, where a player can see it
         self.tavern = Tavern(self)      # the tavern's dice rounds
         self.arms = Arms(self)          # the arm-wrestling bouts (minigames.py)
         from .together import Together
@@ -1690,6 +1692,7 @@ class World(NPCMixin):
         self.farms.tick()
         self.waves.tick()
         self.encounters.tick()
+        self.banter.tick()
         self.tavern.tick()
         self.arms.tick()
         self.weather_tick()

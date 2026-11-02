@@ -1,6 +1,6 @@
 // Sounds, music and the background sounds (the desktop game's save.py, its second half), in Web Audio. Browsers only
 // let a page make sound after a click or a key, so it all starts then.
-import { A, configRead, dictIni } from "./assets.js";
+import { A, configRead, dictIni, entityIni } from "./assets.js";
 import { S } from "./state.js";
 import { val, trim, clamp } from "./util.js";
 import { weatherAmbient } from "./sky.js";
@@ -235,6 +235,63 @@ export async function ambientTick(underRoof) {
 }
 
 function ambientLevel() { return O.volume / 100 * O.ambientVolume / 100 * 0.25; }
+
+// ----- what's heard only near it (Entities.ini Sound.Loop, Sound.Reach in pixels: the Grand Fountain), over the place's
+// own sound: louder as you come, nothing past its reach, nothing under a roof
+const NEAR_GAIN = 2.0;
+const nearKinds = new Map();
+function nearKind(name) {
+  if (!nearKinds.has(name)) {
+    const sound = trim(entityIni(name, "Sound.Loop", ""));
+    nearKinds.set(name, sound ? [sound, val(entityIni(name, "Sound.Reach", "320")) || 320] : null);
+  }
+  return nearKinds.get(name);
+}
+
+function nearestLoop(underRoof) {
+  if (underRoof || !S.pos || !O.sound || !O.ambient) return null;
+  const px = S.pos.dx + 16, py = S.pos.dy + 24;
+  let best = null;
+  for (const e of S.ents.values()) {
+    const kind = nearKind(e.n);
+    if (!kind) continue;
+    const k = 1 - Math.hypot(e.dx + e.w / 2 - px, e.dy + e.h / 2 - py) / kind[1];
+    if (k > 0 && (!best || k > best.k)) best = { sound: kind[0], k };
+  }
+  return best;
+}
+
+export async function nearLoopTick(underRoof) {
+  if (!AU.ctx) return;
+  const near = nearestLoop(underRoof);
+  const want = near ? near.sound : "";
+  AU.nearK = near ? near.k : 0;
+  if (want !== AU.nearWant) {
+    AU.nearWant = want;
+    if (AU.near) {
+      const old = AU.near;
+      old.gain.gain.setTargetAtTime(0, AU.ctx.currentTime, 0.3);
+      setTimeout(() => { try { old.src.stop(); } catch (e) { /* (already stopped) */ } }, 1500);
+      AU.near = null;
+    }
+    if (want) {
+      const f = file(want);
+      const b = f ? await buffer(f) : null;
+      if (b && AU.nearWant === want) {
+        const src = AU.ctx.createBufferSource();
+        src.buffer = b;
+        src.loop = true;
+        const gain = AU.ctx.createGain();
+        gain.gain.value = 0;
+        src.connect(gain);
+        gain.connect(AU.master);
+        src.start();
+        AU.near = { src, gain, name: want };
+      }
+    }
+  }
+  if (AU.near) AU.near.gain.gain.setTargetAtTime(ambientLevel() * NEAR_GAIN * AU.nearK ** 1.5, AU.ctx.currentTime, 0.25);
+}
 
 export function applyVolume() {
   if (AU.music && !AU.fade) AU.music.volume = musicLevel();

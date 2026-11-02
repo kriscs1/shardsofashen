@@ -40,7 +40,7 @@ def death_remnants(data, e, drop, rise):
     if level >= num("Mob.Min.Level", 2) and rnd() * 100 < num("Mob.Chance", 15):
         rise(level)
         return
-    if rnd() * 100 < num("Chance", 65):
+    if rnd() * 100 < num("Chance", 53):
         drop(REMNANT, max(1, parse_quantity(setting("Count", "1-2")) + int(level * num("Count.Per.Level", 0.25))))
 
 

@@ -265,6 +265,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Requires=` keeps them off the Isle's first days. People walk in and walk off once their time's up; a monster nobody's
   fighting comes apart. Never saved. A script or the admin panel can send one: `Start.Encounter`. A new one is a
   section of Encounters.ini.
+- **Banter** (`dsengine/banter.py`, `data/Banter.ini`, `dev/migrate/build_banter.py`): the world's people and animals carry
+  on with each other where a player can see it. About every `Every.Seconds`, two near that player whom a scene fits stop,
+  turn to each other and have a few words in bubbles (never the chat log); a dog sends a cat running (`After=Scatter`); the
+  jester and the salesman have scenes with the guards and the trades; `B=Player` scenes are said to you when you've given
+  cause (`When=` a chicken, any other shape, Sneaking, Hurt). Only how things look: never a hint or a quest, and nobody with
+  a script of their own (`<Verb> <Id>`), hostile, asleep or fighting. A new scene is a section of Banter.ini.
 - **Rumours** (`dsengine/rumours.py`, `dev/migrate/build_rumours.py`): townsfolk who gossip (Entities.ini `Gossip=1`:
   the trades, shopkeepers, guards) and have no words of their own (no `Talk to <Id>` script) now and then mention a
   quest you could start and haven't, before their usual talk; what's said is the quest's `Rumour=` (`Rumour.2=`...)
@@ -422,8 +428,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the **Fountain Court** (`Galaith_Fountain`: the raised pool is a Stretch set, `Fountain_Pool`; its shadow on the paving
   is `Pool_Shadow_*` under what's there; the Grand Fountain stands in it, Toss a Coin), the **Graveyard**
   (`Galaith_Graveyard`: iron rails, `Lawn001`, every stone its own `Examine <Id>`; the royal firstborn's are empty) and the
-  **Orchard** (`Galaith_Orchard`: Pick the apples and pears, `Apple_Pie` in Cooking). No grass or dirt inside the walls but
-  those two lawns.
+  **Orchard** (`Galaith_Orchard`: Pick the apples and pears, `Apple_Pie` in Cooking; the gardener's cottage in it). No grass
+  or dirt inside the walls but those two lawns. A thing can be heard only near it: Entities.ini `Sound.Loop`, `Sound.Reach`
+  (`audio.js` nearLoopTick: the fountain, louder as you come, nothing past its reach or under a roof): use it, not a whole
+  map's Ambient.ini, for something that's in one spot.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep and the Wizards' Court medium cities;
   Ashford a small city; Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
@@ -547,7 +555,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
   go by each player's own address, sign-ups limited by `DS_REGISTER_PER_DAY`, admins' `/kick`,
   `/ban`, `/mute`): README-Server.md says how. Every game has a name
-  (the host's, in Options; else `DS_NAME`), on the login screen and in the app's list. The app opens on Play alone
+  (the host's, in Options; else `DS_NAME`: on Unraid, "Server name"), on the login screen, in the app's list and in the start screen's Public servers. The app opens on Play alone
   (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
 - **Every version has the same start screen** (`web/home/`): sign in to your Shards account first (or make one, or a

@@ -17,7 +17,7 @@ sys.path.insert(0, HERE)
 from common import Ini, p, write_image                  # noqa: E402
 import build_people as BP                               # noqa: E402
 import sprite_kit as K                                  # noqa: E402
-from build_sounds import n, noise, mix, shaped, delay, lowpass, voice, crackle   # noqa: E402
+from build_sounds import n, noise, mix, shaped, delay, lowpass, voice   # noqa: E402
 from build_soundscape import bell, breath, knock, room, wav_bytes                      # noqa: E402
 
 from PIL import Image, ImageDraw                        # noqa: E402
@@ -151,8 +151,8 @@ def write_people():
         made += K.save("Entities", name, fr["4a"])
         for key, im in fr.items():
             made += K.save("Walk", name + key, im)
-    # (the jester, stopping to juggle: Fidgets=Juggle. Three balls over his head, his arms up)
-    for d in ("2", "8"):
+    # (the jester, stopping to juggle: Fidgets=Juggle, whichever way he's facing. Three balls over his head)
+    for d in "1248":
         img = [list(r) for r in BP.draw_person("Jester", d, "a")]
         cols = ((236, 186, 54), (186, 44, 58), (70, 110, 200))
         for (x, y), c in zip(((10, 3), (16, 0), (22, 3)), cols):
@@ -176,9 +176,21 @@ def salesman_bell():
                (delay(knock(210, 0.14, 8, 0.4), 0.14), 0.3), (delay(knock(320, 0.1, 9, 0.5), 0.48), 0.3))
 
 
+def cracks(seed, length, count):
+    """Crystal giving way: a few sharp cracks, each a snap and the small low ring of the stone, nothing in between."""
+    rng = random.Random(seed)
+    parts = []
+    for k in range(count):
+        at = rng.uniform(0, max(0.01, length - 0.15))
+        snap = shaped(noise(seed + k, n(0.04), 0.5), 0.001, 90)
+        ring = shaped(bell(rng.uniform(420, 760), 0.14, 18), 0.001, 30)
+        parts.append((delay(mix((snap, 0.8), (ring, 0.4)), at), rng.uniform(0.5, 1.0)))
+    return mix(*parts)
+
+
 def abomination_rise():
     """Breath drawn in, the crack of crystal, and a low voice that was several voices."""
-    return room(mix((breath(31, 1.3, 0.05, 0.75), 0.7), (delay(crackle(32, 0.8, 0.03), 0.5), 0.55),
+    return room(mix((breath(31, 1.3, 0.05, 0.75), 0.7), (delay(cracks(32, 0.8, 7), 0.5), 0.5),
                     (delay(voice(68, 1.1, glide=-0.25, vibrato=0.05, rough=0.5, seed=3), 0.55), 0.9),
                     (delay(voice(103, 0.9, glide=-0.3, vibrato=0.07, rough=0.6, seed=4), 0.6), 0.5)), 0.3)
 
@@ -187,7 +199,7 @@ def abomination_groan():
     """It breathes, and something in it settles like ice."""
     return mix((voice(60, 0.9, glide=-0.15, vibrato=0.06, rough=0.55, seed=5), 0.8),
                (lowpass(noise(6, n(0.9), 0.1), 0.3), 0.25),
-               (delay(crackle(7, 0.3, 0.02), 0.45), 0.4))
+               (delay(cracks(7, 0.3, 3), 0.45), 0.4))
 
 
 def write_sounds():

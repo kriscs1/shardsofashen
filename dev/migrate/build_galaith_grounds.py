@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(HERE, "estforlan"))
 from common import Ini, p, write_image                  # noqa: E402
 import story_kit as SK                                  # noqa: E402
 import sprite_kit as K                                  # noqa: E402
-from build_isle import Map, XT, YT                      # noqa: E402
+from build_isle import Map, XT, YT, house               # noqa: E402
 from atlas import Atlas, h01                            # noqa: E402
 from build_terrain import fractal, rows_of_stones, save_texture, cell_of   # noqa: E402
 from build_sounds import n, noise, mix, shaped, lowpass, delay, loop_of, tone   # noqa: E402
@@ -583,7 +583,8 @@ def entity_data():
     for k, v in (("Type", "StaticObject"), ("Use.Words", "Toss a Coin,Examine"), ("Solid", "1"),
                  ("Examine.Info", "The Grand Fountain of Galaith: three bowls of white stone. It's run every day the "
                                   "city's been shut."),
-                 ("Anim.Frames", "4"), ("Anim.Speed", "220"), ("Light", "150")):   # (lit at night, in the middle of it all)
+                 ("Anim.Frames", "4"), ("Anim.Speed", "220"), ("Light", "150"),    # (lit at night, in the middle of it all)
+                 ("Sound.Loop", "Ambient_Fountain"), ("Sound.Reach", "400")):      # (heard round the court, no further)
         ents.set("Grand_Fountain", k, v)
     for name, im, words, stack, value, food in (
             ("Apple", fruit_item("Apple"), "A crisp red apple. Heals 2.", 30, 3, 2),
@@ -599,10 +600,6 @@ def entity_data():
     if not any(v.startswith("Apple_Pie,") for _, v in items):
         racks.set("CRAFT-Cooking", "Item%d" % (max(int(k[4:]) for k, _ in items) + 1), "Apple_Pie,Flour 1 Apple 2,0.35,5")
     racks.save(p("data", "ItemRacks.ini"))
-    amb = Ini(p("data", "Ambient.ini"))                            # (the water, heard on the court's maps)
-    for name in ("-5,13,0", "-5,14,0", "-4,13,0", "-4,14,0"):
-        amb.set("Maps", name, "Fountain")
-    amb.save(p("data", "Ambient.ini"))
     wm = Ini(p("data", "WorldMap.ini"))
     for label, pid in (("The Grand Fountain", "Galaith_Fountain"), ("Galaith Graveyard", "Galaith_Graveyard"),
                        ("The Orchard", "Galaith_Orchard")):
@@ -1008,10 +1005,56 @@ def lay_orchard(atlas):
     return n_trees
 
 
+WEST_GATE = (14, 3)                                      # (on -5,13,0: in the graveyard's west side, at its gravel)
+
+
+def lay_west_gate():
+    """A second gate into the graveyard, on the side the sexton's house is (all the way round by the court was further
+    than anyone walks home; and nobody likes walking round). Once."""
+    m = Map("-5,13,0")
+    if any(ln.split("\t")[:2] == ["Id", "Galaith_Graveyard_West"] for ln in m.ents):
+        return False
+    x, y = WEST_GATE
+    m.set(x, y, tile="Gravel001", decor="")
+    post = join_pieces("Iron_Fence")[frozenset()]
+    m.set(x, y - 1, decor=post)
+    m.set(x, y + 1, decor=post)
+    SK.place_id(m, "Galaith_Graveyard_West", x, y)
+    m.save()
+    return True
+
+
+COTTAGE_MAP = "-4,15,0"
+COTTAGE = (9, 5, 15, 9)                                  # (its tiles on that map: the orchard's south-east)
+
+
+def lay_cottage():
+    """The gardener's cottage, in the orchard: he goes home at dusk and to his bed (the map pass's second part, on maps
+    that may have the owner's hand on them: only its own cells and his line change, once)."""
+    m = Map(COTTAGE_MAP)
+    if any(ln.split("\t")[:2] == ["Id", "Galaith_Gardeners_Cottage"] for ln in m.ents):
+        return False
+    x1, y1, x2, y2 = COTTAGE
+    house(m, x1, y1, x2, y2, door=12, windows=(10, 14), roof="Thatch")
+    m.set(10, y1, decor="Bed001")                            # (against the back wall: its head, and its foot below)
+    m.set(10, y1 + 1, decor="Bed002")
+    m.set(12, y1, decor="Picture_Frame002")
+    m.set(14, y1, decor="Cupboard001")
+    m.set(14, y1 + 2, decor="Table001")
+    m.set(13, y1 + 2, decor="Chair001")
+    home = "Schedule=Day Home=%d,%d,%d,%d Bed=10,%d" % (x1 + 1, y1 + 1, x2 - 1, y2 - 1, y1)
+    m.ents = [re.sub(r"Zone=\S+", "Zone=1,1,16,%d" % (y2 + 1), ln) + " " + home if "Id=Galaith_Gardener" in ln else ln
+              for ln in m.ents]                                  # (his roam takes in the step in front of his door)
+    SK.place_id(m, "Galaith_Gardeners_Cottage", 12, y2 + 1)
+    m.save()
+    return True
+
+
 def lay_all():
     atlas = load_city()
     if any(ln.split("\t")[:2] == ["Id", "Galaith_Fountain"] for m in atlas.maps.values() for ln in m.ents):
-        print("Galaith's grounds are laid already: maps left alone.")
+        lay_west_gate()
+        print("Galaith's grounds are laid already: maps left alone%s." % (" but for the cottage" if lay_cottage() else ""))
         return
     inside = inside_walls(atlas)
     made = pave(atlas, inside)
@@ -1020,6 +1063,8 @@ def lay_all():
     lay_graveyard(atlas)
     n_trees = lay_orchard(atlas)
     atlas.save()
+    lay_west_gate()
+    lay_cottage()
     print("Paved: %s; %d lamps; the court, the graveyard (%d stones) and the orchard (%d trees)" %
           (made, n_lamps, len(ROYAL_STONES) + len(GRAVES), n_trees))
 

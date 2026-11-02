@@ -20,7 +20,8 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Ini, p                      # noqa: E402
+from PIL import Image                          # noqa: E402
+from common import Ini, p, write_image         # noqa: E402
 import sprite_kit as K                         # noqa: E402
 import story_kit as SK                         # noqa: E402
 from story_kit import Map, obj_line            # noqa: E402
@@ -169,8 +170,9 @@ def art():
     out = [("Entities", "Rubber_Duck", rubber_duck()), ("Entities", "Lucky_Sock", sock()),
            ("Entities", "Suspicious_Key", key()), ("Entities", "Loose_Cobble", cobble())]
     n = sum(1 for kind, name, img in out if K.save(kind, name, img))
-    for name, (kind, src, _) in SECRET_KINDS.items():
-        if src and K.save("Entities", name, K.load(kind, src)):
+    for name, (kind, src, _) in SECRET_KINDS.items():              # (as the tile is now: see-through round it)
+        if src and write_image(p("sprites", "Entities", name + ".png"),
+                               Image.open(p("sprites", kind, src + ".png")).convert("RGBA")):
             n += 1
     if K.save("Entities", "Talking_Scarecrow", K.load("Tiles", "Scarecrow001")):
         n += 1

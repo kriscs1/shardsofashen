@@ -251,6 +251,9 @@ Spell=Fire_Bolt            ; the data\Spells.ini section it casts (give it Use.W
 Equippable items get the right-click verbs `Wield` (Weapon, Shield) or `Wear` (others) automatically; equipped items
 are shown in the Equipment panel and can be removed from there. NPCs use their own Strength/Defence only.
 
+A thing heard only near it (Entities.ini): `Sound.Loop=` a sound looped over the place's own, `Sound.Reach=` how far in
+pixels; louder as you come, nothing past its reach or under a roof (`web/js/audio.js` nearLoopTick: the Grand Fountain).
+
 ## data\ItemRacks.ini
 
 ```

@@ -482,7 +482,7 @@ above.
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
 | `DS_ADMINS` | (none) | Shards accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. |
-| `DS_NAME` | `Shards of Ashen on <computer>` | the game's name in the Android app's "Games on this network" |
+| `DS_NAME` | `Shards of Ashen on <computer>` (a public server: `A Shards of Ashen server`) | what players see the server called: the start screen's Public servers list (40 letters at most), its login screen, the Android app's "Games on this network". Changing it takes a listed server off the list till it's approved again. An admin's name in Options wins over it |
 | `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
 | `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
 | `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the wrong-password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |

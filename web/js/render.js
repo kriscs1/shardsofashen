@@ -396,7 +396,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   // ----- effects, health bars, names
   for (const f of V.fx) {
     if (now < f.start) continue;                  // (not yet: its beat is still to come)
-    if (f.t !== "skillpop" && fogCovers(f.x + 16, f.y + 16, pc)) continue;   // (a fight in the fog stays unseen)
+    if (f.t !== "skillpop" && f.t !== "bubble" && fogCovers(f.x + 16, f.y + 16, pc)) continue;   // (a fight in the fog stays unseen)
     if (f.t === "splat") {
       const t = (now - f.start) / 900;
       const im = sprite(f.image);
@@ -419,7 +419,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     } else if (f.t === "skillpop") drawSkillPop(ctx, f, now, cam);
     else if (f.t === "burst") drawBurst(ctx, f, now, cam);
     else if (f.t === "mark") drawMark(ctx, f, now, cam);
-    else if (f.t === "bubble") drawBubble(ctx, f, now, cam);
+    else if (f.t === "bubble") drawBubble(ctx, f, now, cam, pc);
   }
   drawStatusIcons(ctx, me, cam);
   drawSleepers(ctx, now, cam, pc);
@@ -514,13 +514,13 @@ function drawSleepers(ctx, now, cam, pc) {
   ctx.globalAlpha = 1;
 }
 
-function drawBubble(ctx, f, now, cam) {
-  // (a few words over someone's head, on a pale slip: fades at the end)
+function drawBubble(ctx, f, now, cam, pc) {
+  // (a few words over someone's head, on a pale slip: fades at the end. By them: they carry it, and the fog hides it)
   const e = entityAt(f.u);
-  if (!e) return;
+  if (!e || fogCovers(e.dx + e.w / 2, e.dy + e.h / 2, pc, FOG_KEEP)) return;
   const t = (now - f.start) / (f.end - f.start);
   const w = textWidth(ctx, f.text, 8, false) + 10;
-  const x = Math.round(e.dx + e.w / 2 - cam.x - w / 2), y = Math.round(e.dy - 20 - cam.y);
+  const x = Math.round(clamp(e.dx + e.w / 2 - cam.x - w / 2, 2, Math.max(2, V.ww - w - 2))), y = Math.round(e.dy - 20 - cam.y);
   ctx.globalAlpha = t > 0.8 ? (1 - t) * 5 : 1;
   ctx.fillStyle = "rgba(250,244,226,0.95)";
   ctx.fillRect(x, y, w, 13);

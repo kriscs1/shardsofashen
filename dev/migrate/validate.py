@@ -1188,7 +1188,7 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Base", "Enchanted", "Enchant",                                   # an enchanted kind's gear and word; a rare shard's word (shardcraft.py)
                "States", "Fidgets",                                              # how it may rest when it stops (Sit,Lie); a moment's pose now and then
                "Hunts",                                                          # the NPCs it goes for (Rabbit,Sheep)
-               "Swims", "Calls",                                                 # at home in the water too (an otter); its call
+               "Swims", "Calls", "Sound.Loop", "Sound.Reach",                                                 # at home in the water too (an otter); its call
                "Look.Parts", "Looks",                                            # its parts' colours; its other colourings
                "Display.Name",                                                   # what the player sees it called
                "Sleeper.Of",                                                     # the NPC (its Id) a sleeping thing is
@@ -1197,7 +1197,7 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Boss",                                                           # 1: tougher for each fighter (together.py)
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}                # a cart (carts.py): where its rider stands
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
-                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls",
+                                     "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
                                      "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
@@ -1291,6 +1291,9 @@ def check_entities():
                     frames.add("%s_%s%s" % (e, st, d))
                     if "%s_%s%s" % (e, st, d) not in ENTITIES:
                         err(r, "[%s] %s=%s but there's no sprite %s_%s%s" % (e, key, states, e, st, d))
+                for d in "14":                      # (one who walks four ways: facing you, and away, too)
+                    if "%s_%s%s" % (e, st, d) in ENTITIES:
+                        frames.add("%s_%s%s" % (e, st, d))
         if "%s_Sleep4" % e in ENTITIES:             # (asleep in its bed: build_sleepers.py, a Bed= on its map line)
             frames.add("%s_Sleep4" % e)
     for e in sorted(ENTITIES - NON_PLACEABLE - frames):
@@ -1300,6 +1303,9 @@ def check_entities():
         if sec not in ENTITIES:
             warn(r, "[%s] has no sprite in sprites\\Entities" % sec)
         typ = ini.get(sec, "Type")
+        loop = (ini.get(sec, "Sound.Loop") or "").strip()
+        if loop and loop not in SOUNDS:
+            err(r, "[%s] Sound.Loop=%s: there's no sounds\\%s.wav" % (sec, loop, loop))
         call = (ini.get(sec, "Calls") or "").strip()
         if call and call not in SOUNDS:
             err(r, "[%s] Calls=%s: there's no sounds\\%s.wav" % (sec, call, call))
@@ -1577,6 +1583,44 @@ def check_encounters(racks):
             v = ini.get(sec, key)
             if v and v != "-" and not os.path.exists(p("sounds", v + ".wav")):
                 err(r, "[%s] %s=%s: there's no sounds\\%s.wav" % (sec, key, v, v))
+
+
+def check_banter():
+    """data\\Banter.ini: each scene's kinds there are (or its [Groups]), its lines' speakers and sounds."""
+    path = p("data", "Banter.ini")
+    if not os.path.exists(path):
+        err(rel(path), "missing: run dev\\migrate\\build_banter.py")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    r = rel(path)
+    groups = {}
+    for k, v in (ini.section("Groups") or ["", []])[1]:
+        if k:
+            groups[k.lower()] = [x.strip() for x in v.split(",") if x.strip()]
+            for name in groups[k.lower()]:
+                if name not in ENTITIES:
+                    err(r, "[Groups] %s: no such thing as %s" % (k, name))
+    for sec, items in ini.sections:
+        if sec.lower() in ("banter", "groups"):
+            continue
+        for side in ("A", "B"):
+            for part in (ini.get(sec, side) or "").split(","):
+                part = part.strip()
+                if not part:
+                    err(r, "[%s] needs %s=" % (sec, side))
+                elif part.lower() not in groups and part not in ENTITIES and not (side == "B" and part == "Player"):
+                    err(r, "[%s] %s=%s: no such group or kind" % (sec, side, part))
+        for k, v in items:
+            if k and re.fullmatch(r"Line\d+", k):
+                who = v.split(":", 1)[0].strip().upper()
+                if who not in ("A", "B") or ":" not in v:
+                    err(r, "[%s] %s=%r should be A: or B: and the words" % (sec, k, v))
+                elif len(v) > 62:
+                    err(r, "[%s] %s is too long for one line over a head" % (sec, k))
+            elif k and re.fullmatch(r"Sound\d+", k) and not os.path.exists(p("sounds", v.strip() + ".wav")):
+                err(r, "[%s] %s=%s: there's no such sound" % (sec, k, v))
 
 
 def check_itemracks(entities_ini, skills):
@@ -2363,6 +2407,7 @@ def main():
     check_digging()
     check_carts()
     check_encounters(racks)
+    check_banter()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)
     if not quiet:
