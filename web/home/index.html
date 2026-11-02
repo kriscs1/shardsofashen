@@ -63,6 +63,9 @@ button:disabled { opacity: 0.5; cursor: default; filter: none; }
 .tabs button.on { color: var(--ink); background: rgba(176,122,96,0.25); }
 .skip { text-align: center; margin-top: 12px; }
 .note { font-size: 13px; color: var(--dim); text-align: center; }
+label.agree { display: flex; gap: 10px; align-items: center; min-height: 44px; font-size: 14px; cursor: pointer; }
+label.agree input { width: 22px; height: 22px; flex: none; margin: 0; accent-color: var(--ok-edge); }
+label.agree a { color: var(--ink); }
 .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
 .status .dot { width: 9px; height: 9px; border-radius: 50%; background: #777; box-shadow: 0 0 0 2px rgba(0,0,0,0.4); }
 .status.on .dot { background: #33d06a; } .status.off .dot { background: var(--bad); }
@@ -126,6 +129,8 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
 /* ----- popups, toasts, joining */
 .veil { position: fixed; inset: 0; background: rgba(8,4,2,0.72); display: grid; place-items: center; padding: 16px; z-index: 10; }
 .dialog { width: min(460px, 100%); }
+.dialog.wide { width: min(780px, 100%); }
+.dialog iframe { display: block; width: 100%; height: min(calc(100vh - 140px), 640px); border: 0; border-radius: 8px; }
 .code { font-size: 26px; letter-spacing: 3px; color: var(--ink); text-align: center; padding: 12px; margin: 10px 0;
   border: 2px dashed var(--edge-light); border-radius: 12px; background: #1c120c; user-select: all; font-family: monospace; }
 .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 20; max-width: min(560px, 92vw);
@@ -163,8 +168,9 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
         <label class="field">Email (optional: for a forgotten password; we'll send a link to confirm it)<input id="new-email" type="email" maxlength="254" autocomplete="email"></label>
         <label class="field">Password<input id="new-password" type="password" maxlength="200" autocomplete="new-password" required></label>
         <label class="field" id="claim-row" hidden>Admin code (from the server's log)<input id="new-claim" maxlength="40" autocomplete="off"></label>
+        <label class="agree"><input id="new-agree" type="checkbox" required><span>I've read and agree to the
+          <a href="#" class="privacy-link">privacy policy</a>.</span></label>
         <button type="submit" class="go">Create my account</button>
-        <p class="note">By making an account you agree to the <a href="#" class="privacy-link">privacy policy</a>.</p>
       </form>
       <form id="form-lost" class="stack" hidden>
         <p class="small dim" id="lost-words">Your name (or confirmed email) and the code: one we email you, or the recovery code you wrote down.</p>
@@ -710,7 +716,9 @@ $("ad-choices").onclick = () => app && app.showAdChoices && app.showAdChoices();
 for (const a of document.querySelectorAll(".privacy-link")) a.onclick = (ev) => {
   ev.preventDefault();
   if (!CENTRAL) { toast("The privacy policy is on the central server, which isn't set.", true); return; }
-  if (app) app.play(CENTRAL + "/privacy"); else window.open(CENTRAL + "/privacy", "_blank");
+  // (over the start screen, in every version: what's typed into the sign-up stays, and the apps have no way back from a page)
+  dialog(`<iframe title="Privacy policy" src="${esc(CENTRAL)}/privacy"></iframe>`, [["Close", "", () => { $("dialog").classList.remove("wide"); }]]);
+  $("dialog").classList.add("wide");
 };
 $("central-link").onclick = () => {
   if (fromCentral) { toast("This is the central server: " + CENTRAL); return; }

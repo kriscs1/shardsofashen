@@ -470,6 +470,17 @@ def test_every_version_has_the_same_start_screen():
         assert a == b, "run tools/sync_home.py"
 
 
+def test_making_an_account_asks_for_the_privacy_policy():
+    """The sign-up can't go ahead without its tick, and the policy opens over the form, whatever's typed kept."""
+    import os
+    import re
+    page = open(os.path.join(ROOT, "web", "home", "index.html"), encoding="utf-8").read()
+    form = re.search(r'<form id="form-new".*?</form>', page, re.S).group(0)
+    assert '<input id="new-agree" type="checkbox" required>' in form and "privacy-link" in form
+    assert form.index("new-agree") < form.index('type="submit"')
+    assert "<iframe" in page and 'app.play(CENTRAL + "/privacy")' not in page
+
+
 def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
     """A forgotten password by an emailed code; the privacy policy; the admin page's accounts, bans and ads."""
     from central import mail
