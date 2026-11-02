@@ -246,7 +246,7 @@ class MarketMixin:
         if qty <= 0:
             return
         mine = self.market.of(self.player_name)
-        worn = self.data.item_max_dur(name) > 0
+        worn = self.data.keeps_wear(name)
         same = None if worn else next((it for it in mine if it["item"] == name and it["price"] == price), None)
         if same is None and len(mine) >= LISTINGS:
             self.display_message("You have %d things up for sale already: take something back first." % LISTINGS,

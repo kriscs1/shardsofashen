@@ -6190,3 +6190,223 @@ def test_every_banter_scene_is_for_kinds_there_are_and_fits_over_a_head(world):
         for who, said, _ in d["lines"]:
             assert who in ("A", "B") and 0 < len(said) <= 60, (key, said)
             assert d["b"].lower() != "player" or who == "A", key
+
+
+def test_status_effects_last_longer_in_fighting_stance_not_shorter(world):
+    s = join(world, "StanceHurt")
+    s.stance = "Fighting"
+    s.status_start("Poison")
+    left = s.status["Poison"]["until"] - s.now
+    assert left > 14000                                         # (Fighting: it lasts half as long again...)
+    s.status_tick()
+    assert "Poison" in s.status                                 # (... and isn't taken for a clock gone wrong)
+    s.status_reset()
+    s.stance = ""
+    leave(world, s)
+
+
+def test_malaria_stays_until_the_fever_tonic(world):
+    s = join(world, "Bitten")
+    s.diseases.clear()
+    s.catch_disease("Malaria")
+    assert "Fever Tonic" in s.me_state()["diseases"]["Malaria"]
+    # (a bout comes when it's due: Strength down, and it never kills)
+    strength = s.skill_level("Strength")
+    s.diseases["Malaria"] = s.now
+    s.disease_at = 0
+    s.disease_tick()
+    assert "Fever" in s.status and s.skill_level("Strength") == max(1, strength - 3)
+    s.player.hp = 1
+    s.status["Fever"]["next"] = s.now
+    s.status_tick()
+    assert s.player.hp == 1 and not s.dead_wait
+    # (the Antidote takes neither away)
+    s.status_end("Fever", quiet=True)
+    stock(s, Antidote=1)
+    s.drink_cure(next(e for e in s.inv if e.name == "Antidote"))
+    assert "Malaria" in s.diseases
+    # (dying ends the bout, and not the disease)
+    s.status_start("Fever")
+    s.player.hp = 5
+    s.player_dies()
+    assert "Fever" not in s.status and "Malaria" in s.diseases
+    s.respawn()
+    # (logging off and on: still there, the wait to its next bout kept)
+    left = s.diseases["Malaria"] - s.now
+    saved = s.save_state()
+    assert abs(saved["diseases"]["Malaria"] - left) < 2000
+    back = Session(world, "Bitten2")
+    back.load_state(dict(saved, map="1,1,0", x=300, y=300))
+    assert "Malaria" in back.diseases
+    # (the tonic: gone, and the bout with it)
+    s.status_start("Fever")
+    stock(s, Fever_Tonic=1)
+    s.drink_cure(next(e for e in s.inv if e.name == "Fever_Tonic"))
+    assert "Malaria" not in s.diseases and "Fever" not in s.status
+    leave(world, s)
+
+
+def test_a_mosquito_gives_malaria_through_armour(world):
+    s = join(world, "Armoured")
+    m = next(e for e in world.ents if e.name == "Mosquito")
+    assert world.data.entity_ini("Mosquito", "On.Hit", "").startswith("Malaria")
+    real = s.entity_ini
+    s.entity_ini = lambda n, k, d: "Malaria 100" if k == "On.Hit" else real(n, k, d)
+    s.disease_on_blocked_hit(m)
+    assert "Malaria" in s.diseases
+    del s.entity_ini
+    leave(world, s)
+
+
+def test_a_fever_tonic_goes_off_wherever_it_is(world):
+    s = join(world, "Shelf")
+    stock(s, Fever_Tonic=2)
+    tonics = [e for e in s.inv if e.name == "Fever_Tonic"]
+    assert len(tonics) == 2 and all(e.wear for e in tonics)     # (one a slot, each with its own age)
+    life = world.data.shelf_life("Fever_Tonic")
+    assert life == int(world.data.entity_ini("Fever_Tonic", "Shelf.Minutes", "0")) * 60 > 0
+    assert 0.9 < s.shelf_left(tonics[0]) <= 1 and "keep" in s.shelf_text(tonics[0])
+    # (the bank doesn't freshen it)
+    old = int(s.now / 1000) - life // 2
+    tonics[0].wear = tonics[1].wear = old
+    s.bank_deposit(tonics[0], 2)
+    assert s.items_held("Fever_Tonic") == 0
+    slot = next(i for i in range(1, s.data.bank_slots + 1) if s.bank_item[i] == "Fever_Tonic")
+    assert s.bank_wear[slot] == [old, old]
+    s.bank_withdraw(type("Slot", (), {"misc": slot})(), 2)
+    assert [e.wear for e in s.inv if e.name == "Fever_Tonic"] == [old, old]
+    # (past its time it turns, and what it turns into cures nothing)
+    for e in s.inv:
+        if e.name == "Fever_Tonic":
+            e.wear = int(s.now / 1000) - life - 1
+    s.shelf_at = 0
+    s.shelf_tick()
+    assert s.items_held("Fever_Tonic") == 0 and s.items_held("Spoiled_Tonic") == 2
+    assert not world.data.entity_ini("Spoiled_Tonic", "Cures", "")
+    s.remove_inventory_item("Spoiled_Tonic", 2)
+    leave(world, s)
+
+
+def test_what_doesnt_keep_keeps_its_age_when_dropped_and_picked_up(world):
+    s = join(world, "Dropper")
+    assert world.data.keeps_wear("Fever_Tonic") and not world.data.keeps_wear("Herb")
+    stock(s, Fever_Tonic=1)
+    e = next(x for x in s.inv if x.name == "Fever_Tonic")
+    e.wear = int(s.now / 1000) - 600
+    s.drop_inventory_item(e, 1)
+    assert s.items_held("Fever_Tonic") == 0
+    world.tick(0.05)
+    down = next(x for x in world.ents if x.name == "Fever_Tonic" and x.alive)
+    assert down.wear == e.wear
+    s.pickup_map_item(down, reach=9999)
+    assert next(x for x in s.inv if x.name == "Fever_Tonic").wear == down.wear
+    leave(world, s)
+
+
+def dark_mage(world, s, dist=40):
+    """A Dark Mage in the open on the Barrow's field, fighting s, dist from them."""
+    e = next(x for x in world.ents if x.name == "Dark_Mage" and x.map == "21,19,0")
+    p = s.player
+    world.set_entity_position(e, p.cx + dist - e.w / 2, p.cy - e.h / 2)
+    world.npc_start_fight(e, e.ai, s, dist)
+    e.frozen_until = None
+    e.ai.blink_every = None
+    assert not world.npc_blink(e, e.ai, s, dist)                # (not the moment a fight starts)
+    e.ai.blink_at = world.now - 1
+    return e
+
+
+def test_a_dark_mage_jumps_away_when_you_come_near_and_is_held_by_ice(world):
+    s = join(world, "MageHunter", "21,19,0", 18 * 32, 8 * 32)
+    e = dark_mage(world, s)
+    a = e.ai
+    old = (e.cx, e.cy)
+    assert world.npc_blink(e, a, s, 40)                         # (too close: gone)
+    p = s.player
+    assert ((e.cx - old[0]) ** 2 + (e.cy - old[1]) ** 2) ** 0.5 >= 100
+    assert world.pixel_walkable(e.z, e.fx, e.fy) and world.in_line_of_sight(e.z, e.cx, e.cy - 12, p.cx, p.cy)
+    assert world.in_chase_area(a, e.fx, e.fy)
+    assert e.last_attack == world.now                           # (it can't throw at once: the moment to catch it)
+    assert not world.npc_blink(e, a, s, 40)                     # (and not again at once)
+    # (hit, once it's ready again: gone)
+    a.blink_at = world.now - 1
+    a.blink_hp = e.hp
+    e.hp -= 5
+    assert world.npc_blink(e, a, s, 150)
+    e.hp = e.max_hp
+    # (frozen, its tick never gets as far as a jump)
+    a.blink_at = 0
+    world.set_entity_position(e, p.cx + 40 - e.w / 2, p.cy - e.h / 2)
+    e.frozen_until = world.now + 5000
+    at = (e.x, e.y)
+    world.tick(0.05)
+    assert (e.x, e.y) == at
+    e.frozen_until = None
+    world.npc_give_up(e, a)
+    leave(world, s)
+
+
+def test_a_dark_mage_never_lands_where_it_cant_be_reached(world):
+    s = join(world, "MageHunter2", "21,19,0", 18 * 32, 8 * 32)
+    e = dark_mage(world, s)
+    a, p = e.ai, s.player
+    here = world.grid_region_at(e.z, e.fx, e.fy)
+    for _ in range(60):
+        spot = world.npc_blink_spot(e, a, p)
+        if spot is None:
+            continue
+        assert world.pixel_walkable(e.z, *spot) and world.in_chase_area(a, *spot)
+        assert world.grid_region_at(e.z, *spot) == here
+    world.npc_give_up(e, a)
+    leave(world, s)
+
+
+def test_every_dark_mage_stands_on_open_ground(world):
+    mages = [e for e in world.ents if e.name == "Dark_Mage"]
+    assert len(mages) == 3
+    for e in mages:
+        assert e.ai is not None and world.pixel_walkable(e.z, e.fx, e.fy)
+
+
+def test_morwen_knows_malaria_gives_one_tonic_then_sells_them(world):
+    s = join(world, "Shaking", "11,23,0", 12 * 32, 9 * 32)
+    witch = next(e for e in world.ents if e.name == "Witch")
+
+    def talk():
+        s.do_action("Talk to", witch)
+        for _ in range(30):
+            world.tick(0.05)
+
+    m = world.maps[witch.map]
+    s.teleport(witch.map, int(witch.x - m.ox) + 26, int(witch.y - m.oy))
+    world.tick(0.05)
+    talk()                                                      # (well: only her usual words, no tonic)
+    words = list(s.responses)
+    assert s.ab_mode == "Conversation" and "Thank you." not in words and "I'll take one." not in words
+    s.close_action_box(0)
+    s.script_running = False
+    s.catch_disease("Malaria")
+    talk()
+    assert list(s.responses) == ["Thank you."]
+    s.action_box_response_chosen(1)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.items_held("Fever_Tonic") == 1
+    stock(s, **{"Gold_Coin(s)": 50})
+    talk()                                                      # (only the one for nothing; after that, for coin)
+    assert "I'll take one." in s.responses
+    s.action_box_response_chosen(1)
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.items_held("Fever_Tonic") == 2 and s.items_held("Gold_Coin(s)") == 5
+    # (gone off, it's only good for its vial)
+    tonic = next(e for e in s.inv if e.name == "Fever_Tonic")
+    tonic.wear = int(s.now / 1000) - world.data.shelf_life("Fever_Tonic") - 1
+    s.shelf_at = 0
+    s.shelf_tick()
+    vials = s.items_held("Empty_Vial")
+    s.do_action("Pour Out", next(e for e in s.inv if e.name == "Spoiled_Tonic"))
+    for _ in range(10):
+        world.tick(0.05)
+    assert s.items_held("Spoiled_Tonic") == 0 and s.items_held("Empty_Vial") == vials + 1
+    leave(world, s)

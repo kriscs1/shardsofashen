@@ -605,6 +605,8 @@ class ActionsMixin:
         text = self.examine_text(e) or "It's not very interesting."
         if e.type == INVENTORYITEM and self.dur_text(e.name, e.wear):
             text += " (Condition: %s)" % self.dur_text(e.name, e.wear)
+        if e.type == INVENTORYITEM and self.shelf_text(e):
+            text += " " + self.shelf_text(e)
         self.display_message(text, "EXAMINE")
 
     def pickup_map_item(self, e, reach=40):
@@ -678,7 +680,7 @@ class ActionsMixin:
             self.display_message("You can't drop that!", "FAIL")
             return
         quantity = min(max(1, quantity), max(1, e.quantity))
-        if self.data.item_max_dur(name) > 0 and quantity == 1:
+        if self.data.keeps_wear(name) and quantity == 1:
             self.drop_on_floor(name, 1, self.take_inventory_entity(e))
         else:
             self.remove_inventory_item(name, quantity)

@@ -39,6 +39,7 @@ from .thieving import ThiefMixin
 from .senses import SenseMixin
 from .locks import LockMixin
 from .cold import ColdMixin
+from .disease import DiseaseMixin
 from .together import TogetherMixin
 
 log = logging.getLogger("ashen.session")
@@ -94,7 +95,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
               MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
-              ThiefMixin, SenseMixin, LockMixin, ColdMixin, TogetherMixin, RumourMixin):
+              ThiefMixin, SenseMixin, LockMixin, ColdMixin, DiseaseMixin, TogetherMixin, RumourMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -151,6 +152,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.grave_ent = None
         self.status = {}
         self.skill_boosts = {}                  # SKILL: {n, until, skill}: a script's Boost.Skill, for a while
+        self.diseases = {}                      # name -> when its next bout comes (ms): disease.py
+        self.disease_at = self.shelf_at = 0     # (when each is next looked at)
         self.swap = None                        # in another body for a while (tricks.py)
         self.invisible_until = 0                # unseen till then (tricks.py)
         self.cooldowns = {}                 # spell -> when it's ready again (ms)
@@ -451,6 +454,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         for spell, left in dict(st.get("cooldowns", {})).items():   # (logging off doesn't cut a cooldown short)
             if 0 < val(left) < 3600000:
                 self.cooldowns[str(spell)] = self.w.now + val(left)
+        self.diseases_load(st.get("diseases"))
         for name, qty, wear in st.get("inventory", []):
             self.add_inventory_item(self.renamed(name), max(1, int(qty)), int(wear), quiet=True)
         for i, (name, wear) in enumerate(st.get("equipped", [])[:d.equip_slots], 1):
@@ -585,6 +589,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "hp": p.hp, "direction": max(1, int(p.direction)),
             "spells": dict(self.spells_known), "shards": self.shard_balance, "own_spell": self.own_spell,
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
+            "diseases": self.diseases_save(),
             "sprite": self.swap["body"] if self.swap else self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
             "skills_of": d.skill_max_level, "level": self.player_level(),     # (the level: for the character list)
@@ -714,6 +719,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.sense_tick()
         self.together_tick()
         self.cold_tick()
+        self.disease_tick()
+        self.shelf_tick()
         self.dig_tick()
         self.game_tick()
         if not self.ab_mode:
@@ -1163,7 +1170,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "t": "me", "name": self.player_name, "uid": p.uid, "admin": self.admin_enabled, "god": self.god_mode,
             "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": dict(self.spells_known), "own": self.own_spell_state(),
             "xp": self.skill_xp[1:], "skill_off": self.skill_off[1:],
-            "inv": [[e.uid, e.name, e.quantity, e.wear] for e in self.inv],
+            "inv": [[e.uid, e.name, e.quantity, e.wear] + self.shelf_shown(e) for e in self.inv],
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],
             "totals": [self.equip_attack_total, self.equip_defence_total, self.equip_magic_total],
             "hotbar": self.hotbar[:self.hotbar_n], "status": sorted(self.status), "input": self.user_input_enabled,
@@ -1182,6 +1189,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "skill_boosts": {b["skill"]: {"n": b["n"], "ms": max(0, b["until"] - self.now)}
                              for b in self.skill_boosts.values()},
             "status_info": {k: self.status_words(k) for k in self.status},
+            "diseases": self.diseases_state(),
             "grave": ({"map": self.grave["map"], "left": int(self.grave["left"]), "x": int(self.grave["x"]),
                        "y": int(self.grave["y"])} if self.grave else None),
             "dead": bool(self.dead_wait),

@@ -9,6 +9,8 @@ from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, 
 from .player_combat import CombatMixin
 from .remnants import death_remnants, make_remnant, LIVING
 
+BLINK_HEARD = 256.0     # (a Dark Mage's jump: from as near as an animal's call)
+
 PF_NPC_BUDGET = 400
 FLOOR_ROAM = 0.3            # (one roaming a Zone on more than one level: how often its next spot is up or down)
 
@@ -474,6 +476,8 @@ class NPCMixin:
             p = s.player if s is not None else None
             give_up = s is None or not e.in_combat or not s.player_visible
             d = distance(cx, cy, p.cx, p.cy) if p is not None else 9999
+            if not give_up and self.npc_blink(e, a, s, d):
+                return
             near_r = CombatMixin.melee_reach(e)
             reach = near_r + e.weapon_range
             shot = ""
@@ -592,6 +596,59 @@ class NPCMixin:
                                        int(every * 1000 * (0.7 + rnd() * 0.6)))
             if now >= a.timer or now < a.timer - 600000:
                 self.npc_next_move(e, a)
+
+    def npc_blink(self, e, a, s, d):
+        """Entities.ini Blink.Every (seconds; a Dark Mage): in a fight it won't stand to be caught. Come within Blink.Near
+        of it, or hit it, or give it long enough, and it's gone in a wisp of Shard essence and stands somewhere else,
+        as far as it can shoot, in sight of you. Then it needs a moment before it can throw anything: that, the walk
+        and being held still (frozen or stunned: its tick never gets here) are how it's beaten."""
+        every = getattr(a, "blink_every", None)
+        if every is None:
+            every = a.blink_every = val(self.data.entity_ini(e.name, "Blink.Every", "0")) * 1000
+            a.blink_at, a.blink_hp = self.now + min(every, 1500), e.hp      # (not as a fight starts: a sneak attack lands)
+        if not every:
+            return False
+        now = self.now
+        a.blink_hp = max(a.blink_hp, e.hp)
+        if now < a.blink_at and a.blink_at - now <= every * 2:
+            return False
+        near = val(self.data.entity_ini(e.name, "Blink.Near", "64"))
+        if d > near and e.hp >= a.blink_hp and now < a.blink_at + every:
+            return False
+        spot = self.npc_blink_spot(e, a, s.player)
+        if spot is None:
+            a.blink_at = now + 500                      # (nowhere just now: it tries again soon)
+            return False
+        self.fx_anim("Shard_Fade", e.z, e.cx, e.fy - 20, 500)
+        self.sound("Mage_Blink", e.z, e.cx, e.cy, radius=BLINK_HEARD)
+        self.forget_path(e)
+        self.set_entity_position(e, spot[0] - e.w / 2, spot[1] - (e.fy - e.y))
+        self.fx_anim("Shard_Form", e.z, e.cx, e.fy - 20, 600)
+        self.npc_face(e, e.cx, e.cy, s.player.cx, s.player.cy)
+        a.blink_at = now + int(every * (0.8 + rnd() * 0.4))
+        a.blink_hp = e.hp
+        a.best_d = distance(e.cx, e.cy, s.player.cx, s.player.cy)
+        a.progress_time = e.last_attack = now
+        return True
+
+    def npc_blink_spot(self, e, a, p):
+        """Where it can land: a walkable spot in its chase area, the same ground it stands on (never over a fence, into
+        or out of a house), in sight of its foe, out of arm's reach and far enough that it's a jump (the page glides
+        anything nearer: state.js)."""
+        far = max(128, e.weapon_range)
+        here, roofed = self.grid_region_at(e.z, e.fx, e.fy), self.roofed(e.z, e.fx, e.fy)
+        for _ in range(24):
+            angle, r = rnd() * 6.2832, 96 + rnd() * (far - 96)
+            x, y = p.fx + math.cos(angle) * r, p.fy + math.sin(angle) * r
+            if distance(x, y, e.fx, e.fy) < 140 or not self.in_chase_area(a, x, y):
+                continue
+            if not self.pixel_walkable(e.z, x, y) or self.roofed(e.z, x, y) != roofed:
+                continue
+            if here is not None and self.grid_region_at(e.z, x, y) != here:
+                continue
+            if self.in_line_of_sight(e.z, x, y - 12, p.cx, p.cy):
+                return x, y
+        return None
 
     def npc_state(self, e):
         """What NPC e is doing now, for scripts (>Entity.State): Fighting, Following, Walking, its pose (Sit, Curl,

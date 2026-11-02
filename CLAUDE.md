@@ -196,6 +196,17 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   page drawing `Swarm=` of them (Entities.ini) buzzing about its spot, never still, fewer as it's hurt (`render.js`
   drawSwarm); weak, quick, flying; one for every so many marsh tiles out in the wild (never a settlement's map), and the
   Marsh and Bog terrains scatter them.
+- **Malaria** (`dsengine/disease.py`, `data/Diseases.ini`, `dev/migrate/build_malaria.py`): a mosquito's bite may give it
+  (`On.Hit=Malaria 5`; armour's no help). A disease has no end of its own: it stays through death and logging off, comes
+  on as a bout of Fever now and again (Strength down, health down, the player shaking; a fever never kills by itself),
+  and goes only for what says `Cures=Malaria` (the Fever Tonic: not the Antidote, nothing else). Morwen, in Saltmarsh,
+  tells what it is and gives the first tonic; it's brewed of bog myrtle and marigold.
+- **What doesn't keep** (Entities.ini `Shelf.Minutes`, `Spoils.To`; `player_items.py` shelf_*): real time, wherever it is;
+  an item's `wear` is the second it was made, so it goes with it through the bank, the ground, the market, a trade and
+  a grave. `keeps_wear` is what says each one has its own; anything new that stores an item keeps it, or refuses it.
+- **The Dark Mage** (`build_dark_mage.py`; Entities.ini `Blink.Every`, `Blink.Near`; `npcs.py` npc_blink): in a fight it
+  jumps away when you come near, when it's hit, or when it's stood long enough, always somewhere in sight of you on the
+  same ground. It's beaten in the moment after a jump, before it can throw again, or held still by ice or a stun.
 - Prey (hens, cows, sheep, rabbits, ducks, frogs, seals, otters) has `Flees=1` and is **Passive**, its kind and every
   map line (`dev/migrate/prey_passive.py`; validate.py holds it): it can be hunted, runs from whoever hits it and never
   fights back.
@@ -210,7 +221,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Creatures come and go as Shard essence**: one that comes back (a respawn, a raider, a risen remnant) is drawn
   together out of motes (`Shard_Form`, and its sound), and one that dies lets them go (`Shard_Fade`): `world.shard_form`
   and `shard_fade`, never a puff of smoke.
-- Buffs and debuffs end on death. Dying keeps what's in your hands first (weapon, shield), then the dearest things
+- Buffs and debuffs end on death (a disease doesn't: below). Dying keeps what's in your hands first (weapon, shield), then the dearest things
   (`Death.Keep.Items`); the grave's time starts once you're up again, not on the death screen.
 - **The Isle's hard fights stay as they are** (the owner's choice): the Skeleton walking the chapel graveyard (3,1,0)
   and the hobgoblins' lair's four. Don't take them out or soften them to make the start easier.

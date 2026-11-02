@@ -29,7 +29,7 @@ SENSES = {
     "Frost_Troll": (130, 0.8, 7), "Bandit": (150, 1.1, 9), "Smuggler": (110, 1.1, 8), "Ashen_Cultist": (150, 1.0, 8),
     "Ashen_Priest": (180, 1.2, 6), "Frost_Witch": (200, 1.3, 7), "Drake": (200, 1.4, 9), "Dragon": (360, 1.5, 9),
     "Galaith_Dragon": (360, 1.5, 6), "Living_Remnant": (360, 1.2, 10), "Shard_Warden": (360, 1.0, 10),
-    "Goose": (300, 1.5, 4),
+    "Goose": (300, 1.5, 4), "Dark_Mage": (220, 1.3, 9),
 }
 DEFAULT = (160, 1.0, 7)                         # (a foe not named here: one added later)
 
@@ -40,7 +40,7 @@ SIGHT = {
     "Frost_Troll": 200, "Bandit": 220, "Dragon": 360, "Barrow_King": 200, "Hob": 200, "Goblin_Archer": 260,
     "Goblin_Shaman": 250, "Skeleton_Archer": 240, "Frost_Witch": 280, "Ashen_Cultist": 210, "Ashen_Priest": 240,
     "Ember_Hound": 230, "Smuggler": 240, "Galaith_Dragon": 380, "Drake": 250, "Tomb_Guardian": 170,
-    "Living_Remnant": 240, "Shard_Warden": 280, "Goose": 64,
+    "Living_Remnant": 240, "Shard_Warden": 280, "Goose": 64, "Dark_Mage": 260,
 }
 
 

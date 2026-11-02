@@ -339,6 +339,7 @@ class ScriptMixin:
             ("$Time", lbstr(seconds_today())),
             ("$Clock", lbstr(int(time.time()))),
             ("$Player.Form", self.player_form() or "-"),
+            ("$Player.Malaria", "1" if "Malaria" in self.diseases else "0"),
             ("$Shardstones.Active", lbstr(len(self.stones_active()))),
             ("$Player.Health.Max", lbstr(self.player_max_hp)),       # (before $Player.Health, which it starts with)
             ("$Player.Health", lbstr(int(self.player.hp))),

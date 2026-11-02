@@ -29,3 +29,4 @@ StaticObject	Chest	192	128	Id=Drowned_Abbey_Reliquary Lock=5
 Trigger	Trap_Weakness	11	6
 NPC	Mosquito	640	512	Attitude=Bad Zone=17,13,25,21
 NPC	Mosquito	608	288	Attitude=Bad Zone=16,6,24,14
+NPC	Dark_Mage	576	128	Attitude=Bad Zone=15,2,24,12 Chase=15,1,25,14

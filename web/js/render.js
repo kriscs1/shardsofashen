@@ -747,12 +747,12 @@ function drawInfront(ctx, cam, pick, pc) {
 
 const MAPITEM_SCALE = 0.75;
 const FOG_KEEP = 24;            // (in sight already: it stays until this far past the edge of what you can see)
-const STATUS_COLOURS = { Poison: [90, 200, 60], Burn: [255, 128, 30], Bleed: [200, 24, 24], Chill: [120, 196, 255] };
+const STATUS_COLOURS = { Poison: [90, 200, 60], Burn: [255, 128, 30], Bleed: [200, 24, 24], Chill: [120, 196, 255], Fever: [240, 150, 70] };
 
 function drawStatusIcons(ctx, me, cam) {
   const st = S.me?.status || [];
   if (!st.length || !me) return;
-  const names = ["Poison", "Burn", "Bleed", "Chill"].filter((n) => st.includes(n));
+  const names = ["Poison", "Burn", "Bleed", "Chill", "Fever"].filter((n) => st.includes(n));
   const x0 = Math.round(me.dx + me.w / 2 - cam.x - names.length * 7), y = Math.round(me.dy - cam.y) - 26;
   names.forEach((n, i) => {
     const cx = x0 + i * 14 + 6, cy = y + 6, col = STATUS_COLOURS[n];

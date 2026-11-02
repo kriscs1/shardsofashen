@@ -864,6 +864,13 @@ export function durText(name, wear) {
   return left === 0 ? "broken!" : Math.ceil(100 * left / m) + "%";
 }
 
+function shelfBar(ctx, left, x, y, w) {             // (what doesn't keep: how much of its life is left)
+  ctx.fillStyle = "rgb(24,14,10)";
+  ctx.fillRect(x + 3, y + w - 5, w - 6, 3);
+  ctx.fillStyle = `rgb(${Math.round(190 - 120 * left)},${Math.round(90 + 110 * left)},${Math.round(150 - 60 * left)})`;
+  ctx.fillRect(x + 3, y + w - 5, Math.max(1, Math.floor((w - 6) * left)), 3);
+}
+
 function wearBar(ctx, name, wear, x, y, w) {
   const m = Math.max(0, Math.floor(val(entityIni(name, "Durability", "0"))));
   if (m <= 0 || wear <= 0) return;
@@ -1026,11 +1033,12 @@ function qtyText(q) {
 }
 
 function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = false, wear = 0, inv = false,
-  badgeInk = null } = {}) {
+  badgeInk = null, shelf = null } = {}) {
   const broken = inv && durText(name, wear) === "broken!";
   const im = dim || broken ? greyed(name) : sprite(name);   // (not loaded yet: nothing, till it is)
   if (im) ctx.drawImage(im, x, y);
   if (inv) wearBar(ctx, name, wear, x, y, G.tw);
+  if (shelf !== null) shelfBar(ctx, shelf, x, y, G.tw);
   if (x2) {
     const x0 = x + G.tw - 11, y0 = y + 1, s = 8;
     for (const [col, w] of [[[40, 8, 6], 4], [[214, 40, 32], 2]]) {
@@ -1071,9 +1079,9 @@ function drawInventory(ctx) {
     const [x, y] = invSlotPos(i);
     roundBox(ctx, x + 1, y + 1, G.tw - 2, G.th - 2, i < used ? [44, 28, 21] : [36, 23, 17], [24, 14, 10], 1, 5);
   }
-  S.me.inv.forEach(([uid, name, qty, wear], i) => {
+  S.me.inv.forEach(([uid, name, qty, wear, shelf = null], i) => {
     const [x, y] = invSlotPos(i);
-    slotItem(ctx, name, x, y, qty, { dim: shop && !canSellHere(name), wear, inv: true });
+    slotItem(ctx, name, x, y, qty, { dim: shop && !canSellHere(name), wear, inv: true, shelf });
     if (uid === S.itemInUse) {
       ctx.strokeStyle = rgb(TAB_TEXT); ctx.lineWidth = 1;
       ctx.strokeRect(x - 0.5, y - 0.5, G.tw + 1, G.th + 1);
@@ -1775,6 +1783,8 @@ const DEBUFFS = {
   Weaken: { title: "Weakened", col: [200, 150, 90] },               // (drains: a skill lower for a while)
   Daze: { title: "Dazed", col: [180, 130, 255] },
   Frailty: { title: "Frail", col: [170, 170, 180] },
+  Fever: { title: "Fever", col: [240, 150, 70] },                   // (a bout of a disease: disease.py)
+  Malaria: { title: "Malaria", col: [214, 200, 90] },               // (no end of its own: no clock)
   Drained: { title: "Drained", col: [240, 110, 100] },              // (a script's Boost.Skill down)
   Boosted: { title: "Boosted", col: [120, 235, 120] },              // (... and up)
 };
@@ -1858,6 +1868,9 @@ export function drawBoosts(ctx, now, mx, my) {
   if (me.swap && me.swap.left - since > 0) {
     shown.push(["buff", me.swap.form + "2a", me.swap.left - since, [`#A ${pretty(me.swap.form).toLowerCase()} for now`, "+You snap back into your own body when it runs out"]]);
   }
+  for (const [name, words] of Object.entries(me.diseases || {})) {    // (disease.py: till it's cured)
+    if (DEBUFFS[name]) shown.push(["debuff", name, Infinity, [`#${DEBUFFS[name].title}`, "!" + words]]);
+  }
   for (const [skill, b] of Object.entries(me.skill_boosts || {})) {   // (a script's Boost.Skill: up or down)
     const left = b.ms - since;
     if (left <= 0) continue;
@@ -1881,9 +1894,9 @@ export function drawBoosts(ctx, now, mx, my) {
       const im = sprite(key) || sprite("Magic_Burst");
       if (im) ctx.drawImage(im, x + 4, y + 3, 32, 32);
     }
-    centreText(ctx, x + EFFECT_BOX / 2, y + 36, clockText(left), 8, true, blink ? [255, 200, 120] : [235, 245, 220]);
+    if (left !== Infinity) centreText(ctx, x + EFFECT_BOX / 2, y + 36, clockText(left), 8, true, blink ? [255, 200, 120] : [235, 245, 220]);
     if (mx >= x && mx < x + EFFECT_BOX && my >= y && my < y + EFFECT_BOX + 10) {
-      tip = [x + EFFECT_BOX, y + EFFECT_BOX + 14, [...lines, `~${clockText(left)} left`]];
+      tip = [x + EFFECT_BOX, y + EFFECT_BOX + 14, left === Infinity ? lines : [...lines, `~${clockText(left)} left`]];
     }
     x -= EFFECT_BOX + EFFECT_GAP;
   }

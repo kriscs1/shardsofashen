@@ -58,6 +58,8 @@ class ItemsMixin:
         if name == SHARD:
             self.add_shards(quantity)                   # (onto the balance, never into the pack)
             return
+        if not wear and self.data.shelf_life(name):
+            wear = int(self.now / 1000)                 # (new-made: its wear is the second it was made)
         self.reward_note(name, quantity)
         room = self.inventory_slots_available(name)
         if room - quantity < 0:
@@ -159,6 +161,45 @@ class ItemsMixin:
 
     def wears_of(self, name, quantity):
         return [x.wear for x in reversed(self.inv) if x.name == name][:quantity]
+
+    # ----- what doesn't keep (Entities.ini Shelf.Minutes, real time, wherever it is): its wear is when it was made, and
+    # it goes with it through the pack, the bank, the ground, a trade and a grave. Past that it turns into Spoils.To
+    def shelf_left(self, e):
+        """How much of its life this one has left, 0 to 1; None for what keeps."""
+        life = self.data.shelf_life(e.name)
+        if not life or not e.wear:
+            return None
+        return max(0.0, min(1.0, 1 - (self.now / 1000 - e.wear) / life))
+
+    def shelf_shown(self, e):
+        left = self.shelf_left(e)
+        return [] if left is None else [round(left, 2)]
+
+    def shelf_text(self, e):
+        """How long it'll keep, in the world's days."""
+        left = self.shelf_left(e)
+        if left is None:
+            return ""
+        days = left * self.data.shelf_life(e.name) / 60 / max(1, val(self.data.config_read("Gameplay", "Day.Minutes", "24")))
+        return "It's on the turn: a day at most." if days < 1 else "It'll keep about %d more day%s." % (
+            round(days), "" if round(days) == 1 else "s")
+
+    def shelf_tick(self):
+        if self.now < self.shelf_at:
+            return
+        self.shelf_at = self.now + 5000
+        for e in self.inv:
+            left = self.shelf_left(e)
+            if left is None:
+                continue
+            self.dirty_me = True                        # (its bar goes down)
+            if left <= 0:
+                old = e.name
+                e.name = trim(self.entity_ini(old, "Spoils.To", "")) or old
+                e.wear = 0
+                if self.item_in_use is e:
+                    self.item_in_use = None
+                self.display_message("Your %s has gone off." % pretty(old), "DAMAGE", "Denied")
 
     # =================================================================================================================
     # Item racks (shops, crafting) and the bank
@@ -528,7 +569,7 @@ class ItemsMixin:
             return
         self.bank_item[slot] = item
         self.bank_qty[slot] += quantity
-        if self.data.item_max_dur(item) > 0:
+        if self.data.keeps_wear(item):
             self.bank_wear[slot] += self.wears_of(item, quantity)
         self.remove_inventory_item(item, quantity)
         self.display_message("You bank (%d) %s." % (quantity, pretty(item)), "SUCCESS")
@@ -553,7 +594,7 @@ class ItemsMixin:
         if self.bank_qty[slot] <= 0:
             self.bank_item[slot] = ""
             self.bank_qty[slot] = 0
-        if self.data.item_max_dur(item) > 0:
+        if self.data.keeps_wear(item):
             for _ in range(quantity):
                 wears = self.bank_wear[slot]
                 self.add_inventory_item(item, 1, wears.pop() if wears else 0)

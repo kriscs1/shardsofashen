@@ -20,6 +20,9 @@ EFFECTS = {
                  end="Your head clears."),
     "Frailty": dict(ms=30000, every=0, dmg=(0, 0), skill=("Defence", -3), start="Your guard falters: your Defence "
                                                                              "drains!", end="Your guard steadies."),
+    # (a disease's bout, disease.py: it shakes you, drains you and wears you down, but never kills by itself)
+    "Fever": dict(ms=45000, every=6000, dmg=(1, 2), skill=("Strength", -3), spares=True, shakes=True,
+                  start="The fever's on you: you shake with cold, then burn.", end="The fever breaks, for now."),
 }
 CHILL_MOVE, CHILL_ATTACK = 0.6, 1.4
 MELEE_REACH = 36        # (a blow's reach between two a tile wide, centre to centre)
@@ -512,6 +515,7 @@ class CombatMixin:
             self.fx_splat("Miss", 0, p)
             self.play_sound("Block", (p.cx, p.cy))
             self.update_skill("Defence", "+0.03", pop=False)
+            self.disease_on_blocked_hit(e)
             return
         self.play_sound("Hurt", (p.cx, p.cy))
         self.fx_splat("Hit", damage, p)
@@ -1094,12 +1098,16 @@ class CombatMixin:
             if name not in self.status or self.dead_wait:
                 return                      # (it killed them: death took every effect away)
             s, fx = self.status[name], EFFECTS[name]
-            if now >= s["until"] or now < s["until"] - fx["ms"] - 1000:
+            if now >= s["until"] or now < s["until"] - fx["ms"] * 2 - 1000:     # (a stance can make it last longer)
                 self.status_end(name)
                 continue
             if fx["every"] and now >= s["next"]:
                 s["next"] = now + fx["every"]
                 dmg = random_number(*fx["dmg"])
+                if fx.get("spares"):
+                    dmg = min(dmg, self.player.hp - 1)
+                if fx.get("shakes"):
+                    self.w.fx_nudge(self.player, random_number(0, 1) * 4 - 2, 0, 240)
                 if dmg > 0 and self.player.hp > 0:
                     self.fx_splat("Hit", dmg, self.player)
                     self.player_last_combat = now
@@ -1114,6 +1122,15 @@ class CombatMixin:
         name, chance = word(on, 1), val(word(on, 2)) or 100
         if name in EFFECTS and rnd() * 100 < chance:
             self.status_start(name)
+        elif self.disease_known(name) and rnd() * 100 < chance:
+            self.catch_disease(name)
+
+    def disease_on_blocked_hit(self, e):
+        """A blow that armour took all of. A disease is carried by the bite, not the force of it: under a collar, it
+        still gets in."""
+        name = word(trim(self.entity_ini(e.name, "On.Hit", "")), 1)
+        if name and self.disease_known(name):
+            self.status_on_hit(e)
 
     def resists(self, effect):
         for s in range(1, self.data.equip_slots + 1):
@@ -1133,11 +1150,21 @@ class CombatMixin:
 
     def drink_cure(self, e):
         cures = trim(self.entity_ini(e.name, "Cures", "")).split()
-        self.remove_inventory_item(e.name, 1)
+        if e in self.inv:                       # (this very one: one that keeps its age isn't the same as the next)
+            self.take_inventory_entity(e)
+            if self.item_in_use is e:
+                self.item_in_use = None
+        else:
+            self.remove_inventory_item(e.name, 1)
         self.play_sound("EatFood")
         ended = [c for c in cures if c in self.status]
         for c in ended:
             self.status_end(c, quiet=True)
+        for c in cures:
+            if self.cure_disease(c):
+                ended.append(c)
+                self.display_message(trim(self.data.ini_read("Diseases.ini", c, "Cured", "")) or "You're cured.",
+                                     "SUCCESS", trim(self.data.ini_read("Diseases.ini", c, "Cured.Sound", "")) or "-")
         self.display_message("You drink the %s.%s" % (pretty(e.name), " You feel much better!" if ended else ""),
                              "SUCCESS")
         food = val(self.entity_ini(e.name, "Food.Value", "0"))

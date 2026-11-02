@@ -269,6 +269,7 @@ VARIABLES = [
     ('$Map.Name', 'The name of Map (X,Y,Z).'),
     ('$Time', 'The current Time (in seconds).'),
     ('$Player.Form', 'The shape the player is in just now (a body swap, Turn.Into): Cat, Duck..., or - for their own.'),
+    ('$Player.Malaria', '1 if the player has malaria just now (dsengine/disease.py), else 0.'),
     ('$Shardstones.Active', 'How many shardstones the player has activated (the Shardgate needs Shards.ini Shardgate.Stones).'),
     ('$Player.Health', "The player's hitpoints just now."),
     ('$Player.Health.Max', "The player's hitpoints when they're fully well (a doctor: >Conditional $Player.Health<$Player.Health.Max)."),

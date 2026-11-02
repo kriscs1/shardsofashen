@@ -78,7 +78,8 @@ def data():
                  ("Aggro.Range", "150"), ("Weapon.Range", "0"), ("Movement.Speed", "2.8"), ("Aggressive", "1"),
                  ("Respawn", "60"), ("Roam.Radius", "4"), ("Chase.Radius", "7"), ("Walk.Speed", "0.9"),
                  ("Pause", "0.2-1.2"), ("Kill.Sound", "Small"), ("Attitude", "Bad"), ("Level", "2"),
-                 ("Sight.Cone", "360"), ("Hearing", "1.5"), ("Layer", "Over"), ("Calls", "Buzz")):
+                 ("Sight.Cone", "360"), ("Hearing", "1.5"), ("Layer", "Over"), ("Calls", "Buzz"),
+                 ("On.Hit", "Malaria 5")):        # (build_malaria.py)
         ents.set("Mosquito", k, v)
     ents.save(p("data", "Entities.ini"))
 

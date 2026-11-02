@@ -750,6 +750,16 @@ Entities, a quest marker comes from the tile picked in Maps.
 * The old Liberty BASIC `Dragon Sword Editor.bas` is no longer used by anything (the script language moved to
   ashen/script_language.py).
 
+## Diseases, what doesn't keep, monsters that jump
+* data/Diseases.ini `[<Disease>]` (dsengine/disease.py): `Effect` (its bout, an effect in player_combat.py EFFECTS),
+  `Incubation.Seconds`, `Every.Min.Minutes`, `Every.Max.Minutes`, `Words` (the hover by your health), `Caught`,
+  `Caught.Sound`, `Bout.Sound`, `Cured`, `Cured.Sound`. Entities.ini `On.Hit=<Disease> <chance %>` gives it (even when
+  armour takes the whole blow) and `Cures=<Disease>` ends it; nothing else does, not death. Saved: `diseases`, the ms
+  till each next bout. Scripts: `$Player.Malaria` (1 or 0).
+* Entities.ini `Shelf.Minutes` (real minutes it keeps, wherever it is) and `Spoils.To` (what it turns into). Its `wear`
+  is the second it was made. It shows as a bar on its slot.
+* Entities.ini `Blink.Every` (seconds between jumps) and `Blink.Near` (pixels: this close and it jumps): npcs.py npc_blink.
+
 ## Status effects, the gravestone, the hotbar (ashen\extras.py), moving tiles (ashen\anim.py)
 * Entities.ini `On.Hit=<Effect> <chance %>` (Poison, Burn, Bleed, Chill): a monster's landed blow or missile gives
   it you. Poison/Burn/Bleed hurt you every so often for a while; Chill slows your walking and your blows. `Cures=<Effect>

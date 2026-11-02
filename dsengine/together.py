@@ -880,6 +880,9 @@ class TogetherMixin:
         if len(box) >= 20:
             self.refuse("The gift box is full.")
             return
+        if self.data.shelf_life(item):
+            self.refuse("That wouldn't keep in a box.")
+            return
         self.remove_inventory_item(item, n)
         box.append([self.player_name, item, n])
         self.w.save_soon = True

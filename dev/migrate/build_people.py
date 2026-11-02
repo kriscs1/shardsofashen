@@ -118,6 +118,10 @@ PEOPLE = {
     "Frost_Witch": P(skin=((214, 226, 240), (170, 186, 206)), hair=((236, 244, 255), (190, 206, 230)),
                      hair_style="long", eyes=(90, 180, 255), shirt=((70, 120, 190),), dress=(70, 120, 190),
                      cape=(200, 226, 250), hat="wizard", held="orb_staff:150 220 255"),
+    # (build_dark_mage.py: robes the colour of a bruise, and a staff with what it found in it)
+    "Dark_Mage": P(skin=((206, 196, 200), (168, 156, 164)), hair=((36, 30, 44), (22, 18, 28)), eyes=(190, 110, 255),
+                   shirt=((58, 36, 84),), dress=(58, 36, 84), cape=(34, 22, 52), hat="hood:44 28 64",
+                   held="orb_staff:170 90 255"),
     # The Ashen Omens (build_omens.py): the dragon cult's acolyte
     "Ashen_Acolyte": P(skin=((214, 196, 186), (176, 156, 146)), hair=((40, 36, 34), (24, 22, 20)), eyes=(230, 90, 30),
                        shirt=((96, 92, 90),), dress=(96, 92, 90), cape=(60, 56, 54), hat="hood:70 66 64",

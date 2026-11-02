@@ -33,3 +33,4 @@ Id	Grave_Kings_Steward	7	15
 Id	Grave_Kings_Hound	11	15
 Trigger	Trap_Darts	6	4
 Trigger	Trap_Pit	12	2
+NPC	Dark_Mage	640	128	Attitude=Bad Zone=17,2,24,9 Chase=15,1,24,11

@@ -9,7 +9,8 @@ few takes (Fail, Fail_2, Fail_3) are picked among at random as they play (audio.
   Doing well:     Gather_Wood, Gather_Ore, Gather_Fish, Harvest, Cooked, Crafted, Unlock, Learn, Success
   Magic:          Rare_Shard, Appear, Vanish, Swap, SpellHeal, LevelUp, Quest, Remnant_Rise, Absorb, Bloom_Harvest,
                   Freeze, Stone_Wake, Enchant, Portal, Gate_Built, Anchor_Shatter (harps for the old sine chimes),
-                  Hush, Dread, Buzz (a mosquito)
+                  Hush, Dread, Buzz (a mosquito), Mage_Blink (a Dark Mage gone and back)
+  A fever:        Fever_Shiver (teeth chattering, a shaky breath), Fever_Cured (a long breath out, a low harp)
   Creatures:      Croak (a frog's ribbit: a pulsed call, as a real frog makes it), Kill_Small (a rat's squeal)
   Traps:          Darts (a soft hiss of darts)
 
@@ -227,6 +228,15 @@ SOUNDS = {
     "Buzz": (lambda: [v * (0.55 + 0.45 * math.sin(2 * math.pi * 38 * i / RATE)) for i, v in
                       enumerate(mix((breath(170, 0.9, 0.18, 0.45), 0.7),
                                     (shaped(tone(196, n(0.9), glide=0.04, shape="tri"), 0.25, 2.5), 0.12)))], 0.3),
+    # ----- a Dark Mage's jump: a breath snatched away, a low bell under it and the air closing where it stood
+    "Mage_Blink": (lambda: room(mix((breath(301, 0.35, 0.09, 0.15), 0.8), (bell(165, 0.5, 7), 0.35),
+                                    (delay(breath(302, 0.3, 0.06, 0.7), 0.16), 0.55)), 0.3), 0.55),
+    # ----- a fever's bout (teeth chattering over a shaky breath) and the end of it (a long breath out, a low harp)
+    "Fever_Shiver": (lambda: room(mix((breath(303, 1.1, 0.05, 0.3), 0.45),
+                                      (seq(*[(knock(300 + 25 * (k % 3), 0.035, 310 + k, 0.5), k * 0.085, 0.5)
+                                             for k in range(11)]), 0.7)), 0.2), 0.55),
+    "Fever_Cured": (lambda: room(mix((breath(304, 1.2, 0.04, 0.2), 0.7), (delay(harp(NOTE["C4"], 1.0, 305), 0.35), 0.35),
+                                     (delay(harp(NOTE["G4"], 0.9, 306), 0.5), 0.25)), 0.3), 0.55),
     # ----- Silence (a long hush of breath going still, a low bell under it) and Dread (a slow toll, a cold swell)
     "Hush": (lambda: room(mix((breath(160, 1.3, 0.035, 0.12), 0.8), (delay(bell(147, 1.2, 2.2), 0.1), 0.18)), 0.3), 0.5),
     "Dread": (lambda: room(mix((bell(98, 1.8, 1.4), 0.7), (delay(bell(92.5, 1.4, 1.6), 0.55), 0.45),

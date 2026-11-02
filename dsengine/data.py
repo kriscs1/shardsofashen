@@ -435,6 +435,17 @@ class GameData:
             cache[name] = max(0, int(val(self.entity_ini(name, "Durability", "0")))) if name else 0
         return cache[name]
 
+    def shelf_life(self, name):
+        """How long an item keeps, in seconds (Entities.ini Shelf.Minutes); 0: for ever."""
+        cache = self.cache("shelf_life")
+        if name not in cache:
+            cache[name] = max(0, int(val(self.entity_ini(name, "Shelf.Minutes", "0")) * 60)) if name else 0
+        return cache[name]
+
+    def keeps_wear(self, name):
+        """Each one has its own wear: how worn (Durability) or when it was made (Shelf.Minutes)."""
+        return self.item_max_dur(name) > 0 or self.shelf_life(name) > 0
+
     def stackable_quantity(self, name):
         return max(1, val(self.entity_ini(name, "Stackable", "1")))
 
