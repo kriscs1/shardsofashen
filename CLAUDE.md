@@ -48,8 +48,8 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    who has a boat; people and places reveal it as you go (the Amulet of Succession's stages say "something of your
    mother's", not "the amulet at the back of the caves").
 2. **Dinner at Edwin's** (`DinnerQuest`). Edwin the lawyer and **Maren**, the Isle's doctor, live in the brick house
-   in the Isle's north-west, by the sea (1,-2,0, two storeys; it was the bank, by the chapel, and its place Id
-   is still `Isle_Bank`): her surgery and his desk downstairs by day, their rooms upstairs (1,-2,1), going up at
+   in the Isle's north-west corner, by the sea (0,-2,0, two storeys; it was the bank, by the chapel, and its place Id
+   is still `Isle_Bank`): her surgery and his desk downstairs by day, their rooms upstairs (0,-2,1), going up at
    night. There's no bank on the Isle. Three logs for her range (with the axe she
    lends you), an egg from Bess's coop fried on her range, the egg to Edwin. Maren gives the chapel trapdoor's key
    and makes you promise not to go down without a sword and shield.
@@ -70,9 +70,9 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
 shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
 the new land, and the ring of standing stones by its south-east shore. `move_lawyers_house.py` then put the
 hobgoblins' camp back over their lair and moved Edwin and Maren's house to the north-west corner by whole maps (2,1 to
-0,-2: every tile of it, upstairs and down, where it was on its map), and `cut_isle_corner.py` cut that corner away: the
-coast comes down on the slant from the inlet on the north coast to the top of the west coast, so the Isle isn't a box,
-and the house moved one more whole map east (0,-2 to 1,-2).
+0,-2: every tile of it, upstairs and down, where it was on its map). `cut_isle_corner.py` cut away the Isle's
+north-east corner: the coast comes down on the slant from the bay on the north coast to above the cottage, so the Isle
+isn't a box, and the tin that was out there lies nearer the Tin Braes.
 
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
@@ -369,8 +369,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   sacks and work stations stand on the back-wall tile, against the wall, not a floorboard out from it.
 - **Rooms have things in them** (`dev/migrate/build_interiors.py`): pictures, mirrors, tapestries, pegs and wall shelves
   (walked past) and cupboards, wardrobes, dressers, desks, tables, washstands and long clocks (solid), by what the room
-  is and how big, on the wall behind the back row only: never in a door's or stair's way, where someone stands or a
-  script puts someone, and a room's floor stays all one. Redrock Manor has its own.
+  is and how big, against the walls: never in a door's or stair's way, where someone stands or a
+  script puts someone, and a room's floor stays all one. The side walls have theirs too, seen side on (`Side_*_W` against
+  a west wall, `Side_*_E` the same mirrored for an east one). Redrock Manor has its own.
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
@@ -557,7 +558,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   device's key alone does on this machine's network, or anywhere on a server with no central server, never on a public
   one that has. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
   so playing alone needs no network. A device that came in by an account is that account's on that server after, unless
-  the central server has banned it (`central_banned`: asked each time and every minute in play; no answer isn't a ban).
+  the central server has banned it (`central_banned`: asked each time and every minute in play; no answer isn't a ban;
+  it says only yes or no, so the reason shows where they've proved who they are: signing in, or a ticket).
   A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:...`, never this machine or its network.
   Never add a password or a recovery code to a game server again. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).

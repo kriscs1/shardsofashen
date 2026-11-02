@@ -11,9 +11,10 @@ its own accounts too, for a network with no way to reach here.
   python -m central                    (DS_CENTRAL_DB, DS_CENTRAL_PORT 8490, DS_CENTRAL_NAME, DS_CENTRAL_ADS, ...)
 
   POST /api/register  {name, password, email?}    -> {ok, token, name, recovery}
-  POST /api/account   {token}                     -> {ok, name, email, admin}
-  POST /api/email     {token, email}              -> {ok}                (an email for a forgotten password)
-  POST /api/forgot    {who}                       -> {ok}                (a code by email, if the account has one)
+  POST /api/account   {token}                     -> {ok, name, email, pending, admin}
+  POST /api/email     {token, email}              -> {ok, email, pending, text}   (it counts once a link's confirmed it)
+  POST /api/email/again {token}                   -> {ok, text}          (the link again, for the one waiting)
+  POST /api/forgot    {who}                       -> {ok}                (a code by email, if it has a confirmed one)
   POST /api/login     {name, password}            -> {ok, token, name}
   POST /api/reset     {name, code, password}      -> {ok, recovery}      (code: the recovery code, or the emailed one)
   POST /api/me        {token}                     -> {ok, name}
@@ -26,11 +27,14 @@ its own accounts too, for a network with no way to reach here.
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
   POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, ads, stats)
+  GET  /confirm?code=, POST /confirm {code}       a link's page, and its button (a mail scanner opens links: only the
+                                                  button confirms)
   GET  /admin, /privacy, /ads.txt, /app-ads.txt   the admin page, the privacy policy, AdSense's and AdMob's lines
   GET  /api/hello                                 -> {name, motd, ad, players, servers}
   GET  /health                                    -> {ok, servers, version, commit, date}
   GET  /                                          the start screen (a browser's: join a game, local or remote)"""
 import asyncio
+import html
 import json
 import logging
 import os
@@ -45,7 +49,7 @@ from server import auth
 from server.version import version_info
 from . import mail
 from .relay import Relays
-from .store import CentralStore, MOST_FRIENDS
+from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS
 
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -58,6 +62,7 @@ DEFAULT_ADS = [
 ]
 
 
+CONFIRMS_A_DAY = 5
 EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,20}$")
 
 
@@ -79,6 +84,8 @@ class Central:
         self.relays = Relays(self.store)            # (games hosted for friends, passed through here)
         self.fails = {}                 # (kind, which) -> [times]
         self.signups = {}               # address -> [days]
+        self.confirms = {}              # account or email -> how many confirmation emails today
+        self.confirm_day = ""
         self.announces = {}             # address -> [times] a game server called
         self.pruned = 0.0
         self.name = os.environ.get("DS_CENTRAL_NAME", "Shards of Ashen")
@@ -201,30 +208,61 @@ class Central:
         code = auth.recovery_code()
         self.signups[addr] = made + [day]               # (counted now: sign-ups at once can't all slip by)
         try:
-            self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)),
-                                      email)
+            self.store.create_account(name, await self.hashed(password), await self.hashed(auth.clean_code(code)))
         except sqlite3.IntegrityError:                  # (taken while the password was hashed)
             self.signups[addr] = made
             return no("That name is taken. Log in instead?")
         self.claims.pop(name.lower(), None)
         log.info("New account %s from %s", name, addr)
-        if email and mail.ready():
-            asyncio.ensure_future(self.welcome(name, email))
-        return yes(token=self.store.new_token(name), name=name, recovery=code)
+        if email:
+            self.store.set_pending_email(name, email)
+            # (to one side: a mail service's trouble is never a sign-up's, and they can ask again from their account)
+            asyncio.ensure_future(self.ask_confirm(self.base_url(request), name, email, welcome=True))
+        return yes(token=self.store.new_token(name), name=name, recovery=code, confirm=bool(email))
 
-    async def welcome(self, name, email):
-        """A new account's first email, sent to one side: a mail service's trouble is never a sign-up's. Never its
-        password or recovery code."""
-        contact = os.environ.get("DS_CENTRAL_CONTACT", "").strip()
-        text = ("Welcome to %s, %s.\n\nYour Shards account is ready: the same name and password sign you in to every "
-                "game. Your characters live on the server you make them on.\n\nThis address is kept to send you a code "
-                "if you ever forget your password. Keep your recovery code somewhere safe too.\n\nIf you didn't make "
-                "this account, someone gave your address by mistake%s.\n" %
-                (self.name, name, ": write to %s and we'll take it off" % contact if contact else ""))
+    @staticmethod
+    def base_url(request):
+        """Where a link in an email goes: this server's address. (Caddy answers only for its own domain, so the Host
+        it passes on can be trusted.)"""
+        proto = request.scheme
+        if os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true"):
+            told = request.headers.get("X-Forwarded-Proto", "")
+            proto = told if told in ("http", "https") else proto
+        return "%s://%s" % (proto, request.host)
+
+    def counted_confirm(self, name, email):
+        """So many confirmation emails a day, to an account or to an address: nobody's mailbox flooded."""
+        day = time.strftime("%Y%m%d")
+        if day != self.confirm_day:
+            self.confirm_day, self.confirms = day, {}
+        keys = (name.lower(), email.lower())
+        if any(self.confirms.get(k, 0) >= CONFIRMS_A_DAY for k in keys):
+            return False
+        for k in keys:
+            self.confirms[k] = self.confirms.get(k, 0) + 1
+        return True
+
+    async def ask_confirm(self, base, name, email, welcome=False):
+        """Emails the link that confirms what's waiting on this account: "" when it's gone, else why not. Never a
+        password or a recovery code."""
+        if not mail.ready():
+            return "This server can't send email just now."
+        if not self.counted_confirm(name, email):
+            return "We've sent that address enough for one day: look in its spam folder, or try again tomorrow."
+        link = "%s/confirm?code=%s" % (base, self.store.new_mail_check(name))
+        hello = ("Welcome to %s, %s.\n\nYour Shards account is ready: the same name and password sign you in to every "
+                 "game. Your characters live on the server you make them on.\n\n" % (self.name, name) if welcome else
+                 "Someone (we hope you) gave this address for the Shards account %s.\n\n" % name)
+        text = ("%sConfirm this address so we can send you a code if you ever forget your password:\n\n%s\n\nThe link "
+                "works for %d days. If this wasn't you, do nothing: this address won't be used, and we'll forget it.\n"
+                % (hello, link, CONFIRM_DAYS))
         try:
-            await asyncio.get_running_loop().run_in_executor(None, mail.send, email, "Welcome to %s" % self.name, text)
+            await asyncio.get_running_loop().run_in_executor(None, mail.send, email,
+                                                             "%s: confirm your email" % self.name, text)
         except Exception as e:
-            log.warning("The welcome email to %s didn't go: %s", name, e)
+            log.warning("The email to confirm %s's address didn't go: %s", name, e)
+            return "The email couldn't be sent just now: try again later."
+        return ""
 
     async def login(self, request):
         d, addr = await self.body(request), self.addr(request)
@@ -269,7 +307,8 @@ class Central:
         if not name:
             return no("Not logged in.")
         acct = self.store.account(name)
-        return yes(name=name, email=acct[4] if acct else "", admin=self.is_admin(name), mail=mail.ready())
+        return yes(name=name, email=acct[4] if acct else "", pending=self.store.pending_email(name),
+                   admin=self.is_admin(name), mail=mail.ready())
 
     async def set_email(self, request):
         d = await self.body(request)
@@ -279,14 +318,32 @@ class Central:
         email = clean_email(d.get("email", ""))
         if d.get("email") and not email:
             return no("That doesn't look like an email address.")
-        other = self.store.account_by_email(email) if email else None
+        mine = self.store.account(name)[4]
+        if not email or email.lower() == mine.lower():  # (none, or back to the one that's confirmed: nothing to ask)
+            self.store.drop_mail_check(name)
+            self.store.set_email(name, email)
+            return yes(email=email, pending="", text="Saved.")
+        other = self.store.account_by_email(email)
         if other and other[0].lower() != name.lower():
             return no("That email is on another account already.")
-        self.store.set_email(name, email)
-        return yes(email=email)
+        if self.store.pending_email(name).lower() != email.lower():
+            self.store.set_pending_email(name, email)   # (the one they have now, if any, counts till this is confirmed)
+        why = await self.ask_confirm(self.base_url(request), name, email)
+        return yes(email=mine, pending=email, text=why or "Look in that inbox for a link to confirm it.")
+
+    async def email_again(self, request):
+        name = self.store.token_name((await self.body(request)).get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        email = self.store.pending_email(name)
+        if not email:
+            return no("There's no email waiting to be confirmed.")
+        why = await self.ask_confirm(self.base_url(request), name, email)
+        return no(why) if why else yes(text="Sent. Look in that inbox for the link, and its spam folder.")
 
     async def forgot(self, request):
-        """A code by email to set a new password (the same answer whether or not there's such an account)."""
+        """A code by email to set a new password (the same answer whether or not there's such an account), only ever
+        to an address its owner has confirmed."""
         d, addr = await self.body(request), self.addr(request)
         who = str(d.get("who", "")).strip()[:254]
         w = self.wait(who, addr)
@@ -336,7 +393,7 @@ class Central:
             return no("Which game?")
         acct = self.store.account(name)
         if acct and acct[3]:
-            return no("%s is banned." % name)
+            return no("%s is banned: %s" % (name, acct[3]))
         known = self.store.server_url(server)
         if known and not same_place(known, str(d.get("url", ""))[:200]):
             # (a listed game is where it said it was: a game that gave another's id gets no ticket to pass on)
@@ -351,7 +408,7 @@ class Central:
         if not name:
             return no("That ticket isn't good here.")
         if self.is_banned(name):                        # (banned since the ticket was made)
-            return no("%s is banned." % name, banned=True)
+            return no("%s is banned: %s" % (name, self.store.account(name)[3]), banned=True)
         return yes(name=name, grant=self.store.new_grant(name, server), **self.friends_of(name))
 
     def is_banned(self, name):
@@ -359,7 +416,8 @@ class Central:
         return bool(acct and acct[3])
 
     async def game_standing(self, request):
-        """A game server, for someone who came straight back to it with no ticket: is the account banned? Only that."""
+        """A game server, for someone who came straight back to it with no ticket: is the account banned? Only that:
+        anyone can ask this, so the reason's kept for whoever signs in (login, ticket)."""
         d = await self.body(request)
         return yes(banned=self.is_banned(str(d.get("name", ""))[:40]))
 
@@ -485,8 +543,8 @@ class Central:
             return yes()
         if what == "accounts":
             rows = self.store.find_accounts(str(d.get("q", ""))[:60])
-            return yes(accounts=[{"name": n, "email": e, "banned": b, "admin": bool(a) or self.is_admin(n),
-                                  "made": int(m)} for n, e, b, a, m in rows])
+            return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b,
+                                  "admin": bool(a) or self.is_admin(n), "made": int(m)} for n, e, b, a, m, p in rows])
         if what == "ban":
             acct = self.store.account(str(d.get("name", "")))
             if acct is None:
@@ -585,6 +643,45 @@ def make_central(db_path):
             text = text.replace(key, value.replace("<", "&lt;"))
         return web.Response(text=text, content_type="text/html")
 
+    def confirm_page(title, words, code=""):
+        """The page a link in an email opens: its words, and its button (only that confirms) or the way back."""
+        with open(os.path.join(pages, "confirm.html"), encoding="utf-8") as f:
+            text = f.read()
+        form = ('<form method="post" action="confirm"><input type="hidden" name="code" value="%s">'
+                "<button>Confirm</button></form>" % html.escape(code)) if code else \
+            '<p><a href="/">Go to the start screen</a></p>'
+        for key, value in (("{{FORM}}", form), ("{{NAME}}", html.escape(c.name)), ("{{TITLE}}", html.escape(title)),
+                           ("{{WORDS}}", html.escape(words))):
+            text = text.replace(key, value)
+        return web.Response(text=text, content_type="text/html", headers={
+            "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Frame-Options": "DENY"})
+
+    def confirm_gone():
+        return confirm_page("That link has run out", "It's been used, it's more than %d days old, or a newer one has "
+                            "been sent. Sign in and open your account to send another." % CONFIRM_DAYS)
+
+    async def confirm_ask(request):
+        code = request.query.get("code", "")
+        found = c.store.mail_check(code)
+        if not found:
+            return confirm_gone()
+        return confirm_page("Confirm your email", "Use %s for the Shards account %s? We only write to it to send a code "
+                            "if you forget your password." % (found[1], found[0]), code)
+
+    async def confirm_done(request):
+        found = c.store.mail_check(str((await request.post()).get("code", "")))
+        if not found:
+            return confirm_gone()
+        name, email = found
+        other = c.store.account_by_email(email)
+        c.store.drop_mail_check(name)
+        if other and other[0].lower() != name.lower():
+            return confirm_page("That email is taken", "%s is on another account already, so it can't be used for %s."
+                                % (email, name))
+        c.store.set_email(name, email)
+        log.info("%s confirmed their email", name)
+        return confirm_page("Email confirmed", "If %s's password is ever forgotten, we'll send a code to %s." % (name, email))
+
     async def ads_txt(request):
         # (Google's line for each publisher: AdSense's ca-pub-123..., AdMob's app ca-app-pub-123...~456, often the same)
         pubs = []
@@ -603,7 +700,8 @@ def make_central(db_path):
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
                      ("logout", c.logout), ("recovery", c.recovery), ("ticket", c.ticket), ("verify", c.verify),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
-                     ("email", c.set_email), ("forgot", c.forgot), ("friends", c.friends), ("friend", c.friend),
+                     ("email", c.set_email), ("email/again", c.email_again), ("forgot", c.forgot),
+                     ("friends", c.friends), ("friend", c.friend),
                      ("game/friends", c.game_friends), ("game/standing", c.game_standing)):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
@@ -616,6 +714,8 @@ def make_central(db_path):
     app.router.add_post("/api/admin/{what}", c.admin)
     app.router.add_get("/admin", admin_page)
     app.router.add_get("/privacy", privacy)
+    app.router.add_get("/confirm", confirm_ask)
+    app.router.add_post("/confirm", confirm_done)
     app.router.add_get("/ads.txt", ads_txt)
     app.router.add_get("/app-ads.txt", ads_txt)        # (AdMob reads it on the developer's site the Play Store names)
     app.router.add_get("/api/hello", c.hello)

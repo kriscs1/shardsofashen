@@ -1,8 +1,10 @@
 """The central server: accounts, tickets into a game server, the remote servers list."""
 import asyncio
+import json
 import os
 import re
 import socket
+import time
 
 import aiohttp
 from aiohttp import web
@@ -51,14 +53,138 @@ def test_every_self_hosted_template_offers_the_central_server():
             assert re.search(r"\b%s\b" % var, text), (name, var)
 
 
+def link_in(text):
+    return re.search(r"/confirm\?code=(\w+)", text).group(1)
+
+
+async def until_mail(mail, n=1):
+    for _ in range(200):
+        if len(mail.SENT) >= n:
+            return
+        await asyncio.sleep(0.01)
+    raise AssertionError("no email: %r" % mail.SENT)
+
+
+def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
+    """Given at sign-up or later, an address gets a link; opening it does nothing (a mail scanner opens links), its
+    button confirms it. Till then no code goes to it and the one before it still counts."""
+    from central import mail
+    from central import store as central_store
+    monkeypatch.setenv("DS_SMTP_HOST", "test")
+    mail.SENT.clear()
+
+    async def go():
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        db = capp["central"].store
+        try:
+            async with aiohttp.ClientSession() as http:
+                async def forgot(who):
+                    mail.SENT.clear()
+                    r = await post(http, c + "/api/forgot", {"who": who})
+                    return r["ok"] and [m[0] for m in mail.SENT]
+
+                async def confirm(code):
+                    async with http.post(c + "/confirm", data={"code": code}) as r:
+                        return await r.text()
+
+                r = await post(http, c + "/api/register", {"name": "Ann", "password": "longpassword",
+                                                           "email": "ann@example.com"})
+                assert r["confirm"]
+                token = r["token"]
+                await until_mail(mail)
+                first = link_in(mail.SENT[0][2])
+                me = await post(http, c + "/api/account", {"token": token})
+                assert me["email"] == "" and me["pending"] == "ann@example.com"
+                assert await forgot("Ann") == [] and await forgot("ann@example.com") == []     # (not till it's confirmed)
+
+                page = await (await http.get(c + "/confirm?code=" + first)).text()
+                assert "ann@example.com" in page and "<button>" in page
+                assert (await post(http, c + "/api/account", {"token": token}))["email"] == ""  # (opening it isn't enough)
+                assert "Email confirmed" in await confirm(first)
+                me = await post(http, c + "/api/account", {"token": token})
+                assert me["email"] == "ann@example.com" and me["pending"] == ""
+                assert await forgot("Ann") == ["ann@example.com"]
+                assert "run out" in await confirm(first)                                       # (once)
+                assert "run out" in await (await http.get(c + "/confirm?code=" + first)).text()
+                assert "run out" in await (await http.get(c + "/confirm")).text()              # (no code: no match on none)
+
+                mail.SENT.clear()                                                              # (a new address)
+                r = await post(http, c + "/api/email", {"token": token, "email": "new@example.com"})
+                assert r["email"] == "ann@example.com" and r["pending"] == "new@example.com"
+                old_link = link_in(mail.SENT[0][2])
+                assert mail.SENT[0][0] == "new@example.com"
+                assert await forgot("Ann") == ["ann@example.com"]                              # (the old one, till then)
+                mail.SENT.clear()
+                assert (await post(http, c + "/api/email/again", {"token": token}))["ok"]
+                new_link = link_in(mail.SENT[0][2])
+                assert "run out" in await confirm(old_link)                                    # (the newer link only)
+
+                other = await post(http, c + "/api/register", {"name": "Bob", "password": "longpassword",
+                                                               "email": "bob@example.com"})
+                refused = await post(http, c + "/api/email", {"token": other["token"], "email": "ann@example.com"})
+                assert not refused["ok"]                                                       # (confirmed: Ann's)
+                await post(http, c + "/api/email", {"token": other["token"], "email": "new@example.com"})
+                bobs = link_in(mail.SENT[-1][2])
+                assert "Email confirmed" in await confirm(new_link)
+                assert "on another account" in await confirm(bobs)                             # (Ann got there first)
+                assert (await post(http, c + "/api/account", {"token": other["token"]}))["email"] == ""
+
+                r = await post(http, c + "/api/email", {"token": token, "email": ""})          # (taken off)
+                assert r["email"] == "" and await forgot("Ann") == []
+
+                mail.SENT.clear()                                                              # (no flooding an address)
+                capp["central"].confirms = {}                                                  # (a new day's count)
+                await post(http, c + "/api/email", {"token": other["token"], "email": "flood@example.com"})
+                tries = [await post(http, c + "/api/email/again", {"token": other["token"]}) for _ in range(8)]
+                assert len([m for m in mail.SENT if m[0] == "flood@example.com"]) == 5
+                assert not tries[-1]["ok"] and "enough" in tries[-1]["text"]
+
+                await post(http, c + "/api/email", {"token": token, "email": "<b>x</b>@example.com"})
+                code = link_in(mail.SENT[-1][2])
+                page = await (await http.get(c + "/confirm?code=" + code)).text()
+                assert "<b>x</b>" not in page and "&lt;b&gt;" in page                          # (written safely)
+
+                db.db.execute("UPDATE mailchecks SET made = ?", (time.time() - (central_store.CONFIRM_DAYS + 1) * 86400,))
+                assert "run out" in await confirm(code)                                        # (too old)
+                db.db.execute("UPDATE mailchecks SET made = ?", (time.time() - (central_store.UNCONFIRMED_DAYS + 1) * 86400,))
+                db.prune()
+                assert db.pending_email("Ann") == ""                                           # (forgotten)
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_a_bans_reason_shows_where_they_have_proved_who_they_are(tmp_path, monkeypatch):
+    """Signing in, or a ticket, says why. Anyone can ask whether a name is banned, so that never says why."""
+    async def go():
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
+        store = crunner.app["central"].store
+        try:
+            async with aiohttp.ClientSession() as http:
+                tok = (await post(http, central + "/api/register", {"name": "Rogue", "password": "longpassword"}))["token"]
+                store.set_banned("Rogue", "cheating at cards")
+                m = await post(http, central + "/api/login", {"name": "Rogue", "password": "longpassword"})
+                assert "cheating at cards" in m["text"]
+                m = await post(http, central + "/api/ticket", {"token": tok, "server": "abc"})
+                assert not m["ok"] and "cheating at cards" in m["text"]
+                m = await post(http, central + "/api/game/standing", {"name": "Rogue"})
+                assert m["banned"] is True and "cheating" not in json.dumps(m)
+        finally:
+            await crunner.cleanup()
+    asyncio.run(go())
+
+
 def test_a_new_account_with_an_email_is_welcomed(tmp_path, monkeypatch):
-    """A welcome for whoever gives an address (never their password or recovery code), and a mail service's trouble
-    doesn't stop the sign-up. Email that goes has what mail services want of it."""
+    """A welcome with its link for whoever gives an address (never their password or recovery code), and a mail
+    service's trouble doesn't stop the sign-up. Email that goes has what mail services want of it."""
     from central import mail
 
     async def go():
         monkeypatch.setenv("DS_SMTP_HOST", "test")
-        monkeypatch.setenv("DS_CENTRAL_CONTACT", "help@example.com")
         mail.SENT.clear()
         crunner, cport = await run(make_central(str(tmp_path / "central.db")))
         central = "http://127.0.0.1:%d" % cport
@@ -72,7 +198,7 @@ def test_a_new_account_with_an_email_is_welcomed(tmp_path, monkeypatch):
                 await asyncio.sleep(0.2)
                 assert [m[0] for m in mail.SENT] == ["hello@example.com"]       # (none for Quiet)
                 to, subject, text = mail.SENT[0]
-                assert "Welcome" in subject and "Hello" in text and "help@example.com" in text
+                assert "confirm" in subject and "Welcome" in text and "Hello" in text and link_in(text)
                 assert "longpassword" not in text and r["recovery"] not in text
 
                 def broken(*args):
@@ -260,10 +386,9 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                 r = await post(http, c + "/api/register", {"name": "Mail", "password": "longpassword",
                                                             "email": "mail@example.com"})
                 assert r["ok"]
-                for _ in range(200):                    # (the welcome goes to one side: past it, to the code)
-                    if mail.SENT:
-                        break
-                    await asyncio.sleep(0.01)
+                await until_mail(mail)                  # (the link goes to one side: past it, to the code)
+                async with http.post(c + "/confirm", data={"code": link_in(mail.SENT[0][2])}) as done:
+                    assert "Email confirmed" in await done.text()
                 mail.SENT.clear()
                 r = await post(http, c + "/api/forgot", {"who": "mail@example.com"})
                 assert r["ok"] and len(mail.SENT) == 1 and mail.SENT[0][0] == "mail@example.com"

@@ -534,6 +534,9 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
                 await boss.send_json({"t": "chat", "text": "/ban Pest spamming"})
                 await asyncio.sleep(0.5)
                 assert game.banned("Pest") == "spamming"
+                assert game.ban_words("Out", "spamming") == "Out: spamming" and game.ban_words("Out", "banned") == "Out."
+                _, why = await come_in(http, url, device_of("Pest"))
+                assert why["t"] == "login_fail" and why["reason"] == "You're banned from this server: spamming"
                 again, m = await login(http, url, "Pest", mode="login")
                 assert m["t"] == "login_fail" and "banned" in m["reason"]
                 fresh, m = await login(http, url, "Pest Two", device=device_of("Pest"))

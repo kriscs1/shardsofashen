@@ -623,6 +623,11 @@ class GameServer:
     def banned_owner(self, owner):
         return self.store.setting("banowner:" + owner.lower(), "")
 
+    @staticmethod
+    def ban_words(start, why):
+        """Why they can't come in, with the admin's reason if they gave one (/ban with none keeps the word "banned")."""
+        return "%s: %s" % (start, why) if why and why != "banned" else start + "."
+
     async def ticket_name(self, ticket):
         """The Shards account a ticket from the central server is for, why not, and what else it said (their friends
         and a key to them): (name, "", got) or ("", why, None)."""
@@ -663,7 +668,8 @@ class GameServer:
             owner, c.host = mine, True
         if not owner and linked:
             if await self.central_banned(linked[2:]):   # (come straight back: a central ban still counts)
-                await self.send(c, {"t": "login_fail", "reason": "Your Shards account is banned."})
+                await self.send(c, {"t": "login_fail", "reason": "Your Shards account is banned. Sign in on the start "
+                                                                 "screen to see why."})
                 return
             owner = linked                              # (this device came in by its account here before)
         elif not owner and device and self.devices_welcome(c.addr):
@@ -673,7 +679,8 @@ class GameServer:
                                                                    "screen to play here."})
             return
         if self.banned_owner(owner):
-            await self.send(c, {"t": "login_fail", "reason": "You're banned from this server."})
+            await self.send(c, {"t": "login_fail", "reason": self.ban_words("You're banned from this server",
+                                                                            self.banned_owner(owner))})
             return
         if self.relayed(c.addr) and not self.friend_of_host(owner):
             await self.send(c, {"t": "login_fail", "reason": "This game is for %s's friends: ask them to be yours."
@@ -701,7 +708,8 @@ class GameServer:
         if acct is None or (self.store.owner(acct[0]) or "").lower() != c.owner.lower():
             await self.send(c, {"t": "login_fail", "reason": "That isn't one of your characters here."})
         elif self.banned(acct[0]):
-            await self.send(c, {"t": "login_fail", "reason": "%s is banned from this server." % acct[0]})
+            await self.send(c, {"t": "login_fail", "reason": self.ban_words("%s is banned from this server" % acct[0],
+                                                                            self.banned(acct[0]))})
         else:
             await self.enter_game(c, acct, data)
 

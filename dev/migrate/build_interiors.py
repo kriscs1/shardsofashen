@@ -8,6 +8,9 @@
     its size and by what it is (a home, a shop, a tavern, a study, a hall; a smithy only a shelf or pegs; a chapel a
     tapestry; a barn or a coop nothing): never by a door or a stair, where a thing or a person stands, or where a script puts someone,
     and a room's floor stays all one (a piece that would shut part of it off is left out).
+  * The side walls too, seen side on (Side_*_W against a west wall, _E the same mirrored for an east one): a
+    painting squeezed narrow along the wall, a mirror, a tapestry, a shelf end on, a cloak on a peg, a candle in a
+    sconce; and standing, a cupboard, a bookcase, a dresser, a bench, a desk. Never where you couldn't get past.
   * Redrock Manor has its own furniture (build_manors.py) and is left alone.
 
 Safe to run again (a room that has any of these already is left as it is).
@@ -275,6 +278,155 @@ def long_clock():
     return outlined(im)
 
 
+# ----- on the side walls, seen side on: drawn against the west wall (its strip is the tile's first 9 pixels), and
+# mirrored for the east
+EDGE = 9
+
+
+def side_picture(col, a, b):
+    """A painting seen along the wall: squeezed narrow, its far edge a little shorter."""
+    im, d = blank()
+    x0, x1 = EDGE, EDGE + 5
+    d.polygon([(x0, 5), (x1, 7), (x1, 19), (x0, 21)], fill=tone(col, 1))
+    d.polygon([(x0 + 1, 7), (x1 - 1, 8), (x1 - 1, 18), (x0 + 1, 19)], fill=tone(a, 1))
+    d.polygon([(x0 + 1, 13), (x1 - 1, 13), (x1 - 1, 18), (x0 + 1, 19)], fill=tone(b, 1))
+    d.line((x1, 7, x1, 19), fill=tone(col, 1.25))
+    return outlined(im)
+
+
+def side_mirror():
+    im, d = blank()
+    d.ellipse((EDGE, 4, EDGE + 5, 20), fill=tone(GOLD, 1))
+    d.ellipse((EDGE + 1, 6, EDGE + 4, 18), fill=(178, 208, 220, 255))
+    d.line((EDGE + 2, 8, EDGE + 2, 12), fill=(232, 244, 248, 255))
+    return outlined(im)
+
+
+def side_tapestry():
+    im, d = blank()
+    x0, x1 = EDGE, EDGE + 4
+    d.rectangle((x0, 3, x1, 23), fill=(128, 40, 44, 255))
+    d.line((x1, 3, x1, 23), fill=(216, 176, 86, 255))
+    d.line((x0, 3, x1 + 1, 3), fill=tone(BROWN, 1))
+    for y in (8, 13, 18):
+        d.line((x0, y, x1 - 1, y), fill=(216, 176, 86, 255))
+    d.point([(x0 + 1, 24), (x0 + 3, 24)], fill=(216, 176, 86, 255))
+    return outlined(im)
+
+
+def side_shelf():
+    """A shelf running out from the wall, end on, its pots on top."""
+    im, d = blank()
+    wood(d, EDGE, 15, EDGE + 12, 17, OAK)
+    d.line((EDGE, 18, EDGE + 4, 21), fill=tone(OAK, 0.7))    # (its bracket)
+    d.rectangle((EDGE + 1, 10, EDGE + 4, 14), fill=(170, 112, 70, 255))
+    d.line((EDGE + 1, 10, EDGE + 4, 10), fill=(204, 146, 96, 255))
+    d.rectangle((EDGE + 7, 11, EDGE + 10, 14), fill=(120, 136, 150, 255))
+    return outlined(im)
+
+
+def side_pegs():
+    im, d = blank()
+    wood(d, EDGE, 6, EDGE + 2, 8, OAK)
+    d.rectangle((EDGE + 1, 9, EDGE + 7, 25), fill=(70, 86, 110, 255))   # (a cloak hung on it)
+    d.line((EDGE + 7, 9, EDGE + 7, 25), fill=(92, 110, 136, 255))
+    d.line((EDGE + 1, 25, EDGE + 7, 25), fill=(50, 62, 82, 255))
+    return outlined(im)
+
+
+def side_sconce():
+    im, d = blank()
+    d.line((EDGE, 15, EDGE + 4, 15), fill=(70, 62, 56, 255))     # (its iron arm)
+    d.line((EDGE, 16, EDGE + 2, 18), fill=(70, 62, 56, 255))
+    d.rectangle((EDGE + 3, 9, EDGE + 5, 14), fill=(232, 224, 196, 255))
+    d.point((EDGE + 4, 7), fill=(250, 200, 90, 255))
+    d.point((EDGE + 4, 8), fill=(250, 170, 70, 255))
+    return outlined(im)
+
+
+def side_cupboard():
+    """Its end against the room: a plain side, and the edge of its doors at the front."""
+    im, d = blank()
+    wood(d, EDGE, 3, EDGE + 14, 29, OAK)
+    d.rectangle((EDGE + 2, 6, EDGE + 11, 26), outline=tone(OAK, 0.75))
+    d.rectangle((EDGE + 13, 4, EDGE + 14, 28), fill=tone(OAK, 1.2))
+    return outlined(im)
+
+
+def side_bookcase():
+    """Its end, and the books' edges showing past it."""
+    im, d = blank()
+    wood(d, EDGE, 2, EDGE + 11, 29, DARK)
+    for y0 in (5, 13, 21):
+        for i, c in enumerate(((120, 50, 44), (60, 86, 110), (176, 150, 90), (70, 104, 66), (120, 50, 44), (60, 86, 110))):
+            d.line((EDGE + 8, y0 + i, EDGE + 10, y0 + i), fill=c + (255,))
+    return outlined(im)
+
+
+def side_dresser():
+    im, d = blank()
+    wood(d, EDGE, 14, EDGE + 14, 29, OAK)
+    d.rectangle((EDGE + 2, 17, EDGE + 11, 26), outline=tone(OAK, 0.75))
+    d.rectangle((EDGE + 13, 15, EDGE + 14, 28), fill=tone(OAK, 1.2))
+    d.rectangle((EDGE + 4, 8, EDGE + 8, 13), fill=(190, 196, 210, 255))   # (a jug on it)
+    d.line((EDGE + 9, 9, EDGE + 9, 11), fill=(150, 156, 170, 255))
+    return outlined(im)
+
+
+def side_bench():
+    """A bench along the wall: its long seat, and its near end."""
+    im, d = blank()
+    wood(d, EDGE, 3, EDGE + 9, 23, PINE)
+    wood(d, EDGE, 24, EDGE + 9, 29, tuple(int(v * 0.72) for v in PINE))
+    return outlined(im)
+
+
+def side_desk():
+    """A desk along the wall: its top, papers and a pot of ink on it, and its near end."""
+    im, d = blank()
+    wood(d, EDGE, 4, EDGE + 14, 22, OAK)
+    wood(d, EDGE, 23, EDGE + 14, 29, tuple(int(v * 0.72) for v in OAK))
+    d.rectangle((EDGE + 3, 7, EDGE + 10, 14), fill=(232, 226, 204, 255))
+    d.line((EDGE + 4, 9, EDGE + 9, 9), fill=(120, 110, 96, 255))
+    d.line((EDGE + 4, 11, EDGE + 9, 11), fill=(120, 110, 96, 255))
+    d.rectangle((EDGE + 5, 17, EDGE + 8, 20), fill=(40, 40, 60, 255))
+    d.line((EDGE + 7, 14, EDGE + 10, 18), fill=(240, 240, 236, 255))
+    return outlined(im)
+
+
+SIDE_HUNG = {   # (the west wall's; _E the east's, mirrored)
+    "Side_Picture_W001": (lambda: side_picture(GOLD, (150, 196, 226), (92, 140, 66)), "A painting of green hills."),
+    "Side_Picture_W002": (lambda: side_picture(BROWN, (176, 206, 224), (44, 90, 150)), "A painting of the sea."),
+    "Side_Picture_W003": (lambda: side_picture(GOLD, (58, 48, 62), (116, 36, 40)), "A dark portrait of someone important."),
+    "Side_Mirror_W001": (side_mirror, "A mirror on the wall."),
+    "Side_Tapestry_W001": (side_tapestry, "A tapestry hanging along the wall."),
+    "Side_Shelf_W001": (side_shelf, "A shelf of pots and jars."),
+    "Side_Pegs_W001": (side_pegs, "A cloak hung on a peg."),
+    "Side_Sconce_W001": (side_sconce, "A candle in an iron sconce."),
+}
+SIDE_STANDING = {
+    "Side_Cupboard_W001": (side_cupboard, "A cupboard against the wall."),
+    "Side_Bookcase_W001": (side_bookcase, "A bookcase against the wall."),
+    "Side_Dresser_W001": (side_dresser, "A chest of drawers, a jug on top."),
+    "Side_Bench_W001": (side_bench, "A plain bench along the wall."),
+    "Side_Desk_W001": (side_desk, "A desk along the wall: papers and ink."),
+}
+SIDES = {n: n.replace("_W00", "_%s00") for n in list(SIDE_HUNG) + list(SIDE_STANDING)}
+PICTURES_SIDE = ["Side_Picture_W001", "Side_Picture_W002", "Side_Picture_W003"]
+SIDE_ROOMS = {   # kind: (what may stand along a side wall, what may hang there)
+    "home": (["Side_Cupboard_W001", "Side_Dresser_W001", "Side_Bench_W001"],
+             PICTURES_SIDE + ["Side_Mirror_W001", "Side_Pegs_W001", "Side_Shelf_W001", "Side_Sconce_W001"]),
+    "shop": (["Side_Cupboard_W001", "Side_Bench_W001"], PICTURES_SIDE + ["Side_Shelf_W001", "Side_Sconce_W001"]),
+    "tavern": (["Side_Bench_W001", "Side_Dresser_W001"],
+               PICTURES_SIDE + ["Side_Sconce_W001", "Side_Pegs_W001", "Side_Shelf_W001"]),
+    "study": (["Side_Bookcase_W001", "Side_Desk_W001"], PICTURES_SIDE + ["Side_Sconce_W001", "Side_Mirror_W001"]),
+    "hall": (["Side_Bookcase_W001", "Side_Bench_W001"], PICTURES_SIDE + ["Side_Tapestry_W001", "Side_Sconce_W001"]),
+    "work": ([], ["Side_Shelf_W001", "Side_Pegs_W001", "Side_Sconce_W001"]),
+    "chapel": (["Side_Bench_W001"], ["Side_Tapestry_W001", "Side_Sconce_W001"]),
+    "barn": ([], []),
+}
+
+
 HUNG = {   # name: (picture, what Examine says)
     "Picture_Frame001": (lambda: frame(16, 13, GOLD, hills), "A painting of green hills, somewhere you'd rather be."),
     "Picture_Frame002": (lambda: frame(16, 13, BROWN, sea), "A ship under sail. The painter had never seen one."),
@@ -323,6 +475,10 @@ FLOOR = re.compile(r"^(Plank|Tile|Marble|Carpet)\d{3}$|_Thin_(Plank|Tile|Marble)
 KEEP_CLEAR = re.compile(r"(?i)door|stairs|ladder|hatch|trapdoor|gate|cave_mouth")
 SKIP_MAPS = re.compile(r"^(15,15|16,15|15,16|16,16),")         # (Redrock Manor's)
 NEW = set(HUNG) | set(STANDING)
+SIDE_ON = re.compile(r"^Side_.+_[WE]\d{3}$")
+WALL = re.compile(r"(?i).*(wall|brick|plaster|timber|sandstone\d)")
+SOLID = re.compile(r"^(?!Picture_|Mirror|Tapestry|Coat_Pegs|Wall_Shelf|Antlers|Woven_Rug|Rug|Flower|"
+                   r"Side_(Picture|Mirror|Tapestry|Shelf|Pegs|Sconce))")   # (what stands in the way: not what's hung or lies flat)
 NARROW = re.compile(r"^(Picture_Frame|Mirror|Tapestry)")   # (narrow enough for a corner, clear of the side wall)
 
 
@@ -331,6 +487,11 @@ def art():
     for table in (HUNG, STANDING):
         for name, (draw, _) in table.items():
             made += write_image(p("sprites", "Tiles", name + ".png"), draw())
+    for table in (SIDE_HUNG, SIDE_STANDING):
+        for name, (draw, _) in table.items():
+            made += write_image(p("sprites", "Tiles", name + ".png"), draw())
+            made += write_image(p("sprites", "Tiles", SIDES[name] % "E" + ".png"),
+                                draw().transpose(Image.Transpose.FLIP_LEFT_RIGHT))
     return made
 
 
@@ -341,13 +502,20 @@ def data():
             for k, v in (("Walkable.Data", mask), ("Show.Name", "0"), ("Use.Words", ""), ("Examine.Info", words),
                          ("Line.of.Sight", "1"), ("Layer", "Decor")):
                 tiles.set(name, k, v)
+    for table, mask in ((SIDE_HUNG, "1" * 49), (SIDE_STANDING, "0" * 49)):
+        for name, (_, words) in table.items():
+            for one in (name, SIDES[name] % "E"):
+                for k, v in (("Walkable.Data", mask), ("Show.Name", "0"), ("Use.Words", ""), ("Examine.Info", words),
+                             ("Line.of.Sight", "1"), ("Layer", "Decor")):
+                    tiles.set(one, k, v)
     tiles.save(p("data", "Tiles.ini"))
     path = p("dev", "Minimap Colours.txt")
     lines = read_lines(path)
     while lines and not lines[-1]:
         lines.pop()
     have = {ln.split("\t")[0]: ln.split("\t")[1] for ln in lines if "\t" in ln}
-    for name in sorted(NEW):                             # (the floor's colour: nothing to see from outside)
+    every = NEW | set(SIDES) | {SIDES[n] % "E" for n in SIDES}
+    for name in sorted(every):                           # (the floor's colour: nothing to see from outside)
         if name not in have:
             lines.append("%s\t%s" % (name, have["Plank001"]))
     write_lines(path, lines)
@@ -449,6 +617,28 @@ def still_one(room, solid):
     return seen == left
 
 
+def by_a_way(m, c):
+    """Is the cell by a door, a stair or a ladder?"""
+    for i in (-1, 0, 1):
+        for j in (-1, 0, 1, 2):
+            n = (c[0] + i, c[1] + j)
+            if 1 <= n[0] <= XT and 1 <= n[1] <= YT and KEEP_CLEAR.search(m.rows[n[1] - 1][n[0] - 1]):
+                return True
+    return False
+
+
+def room_kind(m, room, over, names):
+    words = [o.get("Decor", "") for o in over.values() if o.get("Decor") and o.get("Decor") not in NEW and
+             not SIDE_ON.match(o.get("Decor"))]
+    words += [n for x, y, n in names if (x, y) in room]
+    rows = [W.parts(m.rows[c[1] - 1][c[0] - 1])[0] for c in room]
+    kind = kind_of(words)
+    if kind == "hall" and len(room) < 30 and sum(r.startswith(("Tile", "Marble")) or "_Thin_" in r and "Plank" not in r
+                                                 for r in rows) == 0:
+        kind = "home"                                    # (a plain little room: somebody's)
+    return kind
+
+
 def furnish(m, z, spots):
     cells, names = line_cells(m)
     placed = 0
@@ -456,25 +646,11 @@ def furnish(m, z, spots):
         over = {c: W.parts(m.rows[c[1] - 1][c[0] - 1])[1] for c in room}
         if any(o.get("Decor") in NEW for o in over.values()) or len(room) < 6:
             continue
-        words = [o.get("Decor", "") for o in over.values() if o.get("Decor")]
-        words += [n for x, y, n in names if (x, y) in room]
-        rows = [W.parts(m.rows[c[1] - 1][c[0] - 1])[0] for c in room]
-        kind = kind_of(words)
-        if kind == "hall" and len(room) < 30 and sum(r.startswith(("Tile", "Marble")) or "_Thin_" in r and "Plank" not in r
-                                                     for r in rows) == 0:
-            kind = "home"                                # (a plain little room: somebody's)
+        kind = room_kind(m, room, over, names)
         rng = random.Random("%s %d" % (m.name, min(room)[0] * 100 + min(room)[1]))
-
-        def by_a_way(c):
-            for i in (-1, 0, 1):
-                for j in (-1, 0, 1, 2):
-                    n = (c[0] + i, c[1] + j)
-                    if 1 <= n[0] <= XT and 1 <= n[1] <= YT and KEEP_CLEAR.search(m.rows[n[1] - 1][n[0] - 1]):
-                        return True
-            return False
         backs = [c for c in room if at_back_wall(m, c) and (c[0], c[1] - 1) not in room and not over[c].get("Decor") and
                  c not in cells and (c[0] - 1, c[1]) in room and (c[0] + 1, c[1]) in room and   # (not in a corner: over a wall)
-                 not by_a_way(c)]
+                 not by_a_way(m, c)]
         backs.sort()
         rng.shuffle(backs)
         size = len(room)
@@ -514,6 +690,69 @@ def furnish(m, z, spots):
     return placed
 
 
+def side_wall(m, c, room):
+    """Which side wall the cell's against, not in a corner: "W", "E" or ""."""
+    if (c[0], c[1] - 1) not in room or (c[0], c[1] + 1) not in room:
+        return ""
+    t = W.parts(m.rows[c[1] - 1][c[0] - 1])[0]
+    thin = re.search(r"_Thin_[A-Za-z]+(\d{3})$", t)
+    if thin:
+        edges = THIN_EDGES[int(thin.group(1)) - 1]
+        return edges if edges in ("W", "E") else ""
+    for side, dx in (("W", -1), ("E", 1)):
+        x = c[0] + dx
+        if (x, c[1]) not in room and 1 <= x <= XT and WALL.match(W.parts(m.rows[c[1] - 1][x - 1])[0]):
+            return side
+    return ""
+
+
+def furnish_sides(m, z, spots):
+    """The same for the side walls: what's there seen side on."""
+    cells, names = line_cells(m)
+    placed = 0
+    for room in rooms_of(m, z):
+        over = {c: W.parts(m.rows[c[1] - 1][c[0] - 1])[1] for c in room}
+        if len(room) < 9 or any(SIDE_ON.match(o.get("Decor", "")) for o in over.values()):
+            continue
+        kind = room_kind(m, room, over, names)
+        rng = random.Random("sides %s %d" % (m.name, min(room)[0] * 100 + min(room)[1]))
+        walls = sorted((c, side_wall(m, c, room)) for c in room if not over[c].get("Decor"))
+        walls = [(c, s) for c, s in walls if s]
+        rng.shuffle(walls)
+        size = len(room)
+        stand_n = 0 if size < 16 else 1 if size < 40 else 2
+        hang_n = 1 if size < 16 else 2 if size < 40 else 3
+        stand, hang = SIDE_ROOMS[kind]
+        stand, hang = rng.sample(stand, min(stand_n, len(stand))), rng.sample(hang, min(hang_n, len(hang)))
+        solid = {c for c, o in over.items() if o.get("Decor") and SOLID.search(o["Decor"])}
+        chosen = []
+
+        def apart(c, side):
+            return all(s != side or abs(c[1] - o[1]) > 1 for o, s, _ in chosen)
+        for name in stand:
+            for c, side in walls:
+                inward = 1 if side == "W" else -1
+                if c in cells or c in spots or by_a_way(m, c) or not apart(c, side):
+                    continue
+                if (c[0] + inward, c[1]) not in room or (c[0] + inward * 2, c[1]) not in room:
+                    continue                             # (room to get past it)
+                if still_one(room, solid | {c}):
+                    chosen.append((c, side, name))
+                    solid.add(c)
+                    break
+        for name in hang:
+            for c, side in walls:
+                if not any(c == o for o, _, _ in chosen) and apart(c, side):
+                    chosen.append((c, side, name))
+                    break
+        for c, side, name in chosen:
+            t, o = W.parts(m.rows[c[1] - 1][c[0] - 1])
+            o["Decor"] = SIDES[name] % side
+            m.rows[c[1] - 1][c[0] - 1] = W.join(t, o)
+            placed += 1
+    return placed
+
+
 def place():
     spots = script_spots()
     placed, maps = 0, 0
@@ -522,7 +761,7 @@ def place():
         for m in w.maps.values():
             if SKIP_MAPS.match(m.name):
                 continue
-            n = furnish(m, z, spots)
+            n = furnish(m, z, spots) + furnish_sides(m, z, spots)
             if n:
                 w.touch(m)
                 placed += n

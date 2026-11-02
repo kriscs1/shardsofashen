@@ -30,6 +30,12 @@ CREATE TABLE IF NOT EXISTS mailcodes (
     code TEXT NOT NULL,
     made REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS mailchecks (
+    name TEXT PRIMARY KEY COLLATE NOCASE,
+    email TEXT NOT NULL,
+    token TEXT NOT NULL DEFAULT '',
+    made REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -68,6 +74,8 @@ CREATE TABLE IF NOT EXISTS servers (
 COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admin", "INTEGER NOT NULL DEFAULT 0"),
            ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0")]
 MAIL_CODE_MINUTES = 30
+CONFIRM_DAYS = 3                # (a link to confirm an email works this long)
+UNCONFIRMED_DAYS = 30           # (an email nobody confirmed is forgotten after this)
 TOKEN_DAYS = 30
 TICKET_SECONDS = 120
 SERVER_SECONDS = 180            # (a remote server not heard from for this long isn't listed)
@@ -118,8 +126,37 @@ class CentralStore:
 
     def find_accounts(self, q, limit=50):
         like = "%" + q.replace("%", "") + "%"
-        return self.db.execute("SELECT name, email, banned, admin, made FROM accounts WHERE name LIKE ? OR email LIKE ? "
-                               "ORDER BY made DESC LIMIT ?", (like, like, limit)).fetchall()
+        waiting = "(SELECT email FROM mailchecks WHERE mailchecks.name = accounts.name)"
+        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, '') FROM accounts WHERE name LIKE ? "
+                               "OR email LIKE ? OR %s LIKE ? ORDER BY made DESC LIMIT ?" % (waiting, waiting),
+                               (like, like, like, limit)).fetchall()
+
+    # ----- an email waiting to be confirmed (accounts.email is only ever one that has been)
+    def set_pending_email(self, name, email):
+        self.db.execute("INSERT OR REPLACE INTO mailchecks (name, email, token, made) VALUES (?, ?, '', ?)",
+                        (name, email, time.time()))
+
+    def pending_email(self, name):
+        row = self.db.execute("SELECT email FROM mailchecks WHERE name = ?", (name,)).fetchone()
+        return row[0] if row else ""
+
+    def new_mail_check(self, name):
+        """A new link's secret for what's waiting (the last link's no good after this)."""
+        token = new_secret()
+        self.db.execute("UPDATE mailchecks SET token = ?, made = ? WHERE name = ?", (digest(token), time.time(), name))
+        return token
+
+    def mail_check(self, token):
+        """(name, email) that a link's secret confirms, if it's good."""
+        if not token:
+            return None
+        row = self.db.execute("SELECT name, email, made FROM mailchecks WHERE token = ?", (digest(str(token)),)).fetchone()
+        if not row or time.time() - row[2] > CONFIRM_DAYS * 86400:
+            return None
+        return row[0], row[1]
+
+    def drop_mail_check(self, name):
+        self.db.execute("DELETE FROM mailchecks WHERE name = ?", (name,))
 
     # ----- email codes (a forgotten password, when the account has an email)
     def new_mail_code(self, name, code_hash):
@@ -273,6 +310,7 @@ class CentralStore:
         self.db.execute("DELETE FROM tickets WHERE made < ?", (now - TICKET_SECONDS,))
         self.db.execute("DELETE FROM tokens WHERE made < ?", (now - TOKEN_DAYS * 86400,))
         self.db.execute("DELETE FROM grants WHERE made < ?", (now - GRANT_DAYS * 86400,))
+        self.db.execute("DELETE FROM mailchecks WHERE made < ?", (now - UNCONFIRMED_DAYS * 86400,))
         self.db.execute("DELETE FROM playing WHERE seen < ?", (now - PLAYING_SECONDS,))
         self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
 

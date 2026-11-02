@@ -160,14 +160,14 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
       </form>
       <form id="form-new" class="stack" hidden>
         <label class="field">Name (what everyone sees)<input id="new-name" maxlength="20" autocomplete="username" required></label>
-        <label class="field">Email (optional: for a forgotten password)<input id="new-email" type="email" maxlength="254" autocomplete="email"></label>
+        <label class="field">Email (optional: for a forgotten password; we'll send a link to confirm it)<input id="new-email" type="email" maxlength="254" autocomplete="email"></label>
         <label class="field">Password<input id="new-password" type="password" maxlength="200" autocomplete="new-password" required></label>
         <label class="field" id="claim-row" hidden>Admin code (from the server's log)<input id="new-claim" maxlength="40" autocomplete="off"></label>
         <button type="submit" class="go">Create my account</button>
         <p class="note">By making an account you agree to the <a href="#" class="privacy-link">privacy policy</a>.</p>
       </form>
       <form id="form-lost" class="stack" hidden>
-        <p class="small dim" id="lost-words">Your name (or email) and the code: one we email you, or the recovery code you wrote down.</p>
+        <p class="small dim" id="lost-words">Your name (or confirmed email) and the code: one we email you, or the recovery code you wrote down.</p>
         <label class="field">Name or email<input id="lost-who" maxlength="254" autocomplete="username"></label>
         <div class="row" id="send-row"><button type="button" id="send-code">Email me a code</button></div>
         <label class="field">Code<input id="lost-code" maxlength="40" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"></label>
@@ -309,7 +309,7 @@ function showCode(code, words) {
   if (!code) return;
   dialog(`<h2>Your recovery code</h2><p>${esc(words)}</p><div class="code">${esc(code)}</div>
     <p class="small dim">Write it down somewhere safe. With your name and this code you can set a new password if you
-    ever forget yours (and have no email on your account). Nobody else can see it.</p>`,
+    ever forget yours (and have no confirmed email on your account). Nobody else can see it.</p>`,
     [["Copy", "", () => { try { navigator.clipboard.writeText(code); toast("Copied."); } catch (e) { /* */ } return false; }],
      ["I've written it down", "go"]]);
 }
@@ -336,7 +336,7 @@ async function connect() {
     canMail = !!hello.mail;
     setStatus(true, `Connected · ${hello.servers} game${hello.servers === 1 ? "" : "s"} listed`);
     $("send-row").hidden = !canMail;
-    $("lost-words").textContent = canMail ? "Your name (or email) and the code: one we email you, or the recovery code you wrote down." :
+    $("lost-words").textContent = canMail ? "Your name (or confirmed email) and the code: one we email you, or the recovery code you wrote down." :
       "Your name and the recovery code you wrote down when you made your account.";
     if (token) {
       const me = await api("/api/me", { token });
@@ -399,7 +399,8 @@ $("form-new").onsubmit = (ev) => {
   account("/api/register", { name: $("new-name").value, email: $("new-email").value, password: $("new-password").value,
     claim: $("new-claim").value }, (r) => {
     token = r.token; store.set("token", token); $("new-password").value = ""; signedIn(r.name);
-    showCode(r.recovery, `Welcome to Ashen, ${r.name}! Your account's recovery code:`);
+    showCode(r.recovery, `Welcome to Ashen, ${r.name}! Your account's recovery code:` +
+      (r.confirm && canMail ? " (We've emailed you a link too: your email counts once you've confirmed it.)" : ""));
   });
 };
 $("send-code").onclick = () => account("/api/forgot", { who: $("lost-who").value }, (r) => toast(r.text));
@@ -417,19 +418,27 @@ $("in-name").value = store.get("name");
 // ----- the account chip
 $("chip").onclick = async () => {
   if (!myName) { showWelcome(); return; }
-  let email = "";
-  try { email = (await api("/api/account", { token })).email || ""; } catch (e) { /* */ }
+  let email = "", pending = "";
+  try { ({ email = "", pending = "" } = await api("/api/account", { token })); } catch (e) { /* */ }
+  const standing = pending ? `Waiting for you to confirm ${esc(pending)}: the link's in that inbox.` +
+    (email ? ` Until then a code goes to ${esc(email)}.` : "") : email ? "Confirmed." : "";
   dialog(`<h2>${esc(myName)}</h2><p class="small dim">Your Shards account: the same on every game. Each game keeps your
     characters there, and only there.</p>
-    <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(email)}"></label>`,
-    [["New recovery code", "", () => { account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):")); }],
+    <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(pending || email)}"></label>
+    <p class="small dim">${standing}</p>`,
+    [...(pending && canMail ? [["Send the link again", "", () => {
+       account("/api/email/again", { token }, (r) => toast(r.text)); return false; }]] : []),
+     ["New recovery code", "", () => { account("/api/recovery", { token }, (r) => showCode(r.recovery, "Your new recovery code (the old one no longer works):")); }],
      ["Sign out", "", () => {
        api("/api/logout", { token }).catch(() => {});
        token = ""; store.set("token", ""); myName = "";
        store.set("devices", "");                  // (the games knew this device as yours: a new key for each from now on)
        showWelcome();
      }],
-     ["Save", "go", () => { account("/api/email", { token, email: $("acct-email").value }, () => toast("Saved.")); }]]);
+     ["Save", "go", () => {
+       const typed = $("acct-email").value.trim();
+       if (typed !== (pending || email)) account("/api/email", { token, email: typed }, (r) => toast(r.text || "Saved."));
+     }]]);
 };
 
 // ----- ads: AdMob in the Android app (when it was built with it), AdSense in a browser (when the central server has

@@ -156,9 +156,6 @@ def words():
 
 
 def main():
-    if os.path.exists(os.path.join(ROOT, "maps", "1,-2,1.txt")):
-        print("Superseded: cut_isle_corner.py moved the house on, to 1,-2.")
-        return
     if os.path.exists(os.path.join(ROOT, "maps", W.mname(*NEW, 1) + ".txt")):
         print("Edwin and Maren's house is in the north-west already.")
         return

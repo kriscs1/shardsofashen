@@ -155,7 +155,8 @@ async function loadAccounts() {
     <td>${esc(a.name)}<div class="dim">since ${new Date(a.made * 1000).toLocaleDateString()}</div></td>
     <td>${a.banned ? `<span class="tag wait">Banned: ${esc(a.banned)}</span>` : '<span class="tag">Fine</span>'}
       ${a.admin ? '<span class="tag ok">Admin</span>' : ""}</td>
-    <td>${esc(a.email) || '<span class="dim">none</span>'}</td>
+    <td>${esc(a.email) || '<span class="dim">none</span>'}
+      ${a.pending ? `<div class="dim">${esc(a.pending)} (not confirmed)</div>` : ""}</td>
     <td class="row">${a.banned ? `<button data-n="${esc(a.name)}" data-ban="">Unban</button>` :
       `<button class="bad" data-n="${esc(a.name)}" data-ban="1">Ban</button>`}
       <button data-n="${esc(a.name)}" data-adm="${a.admin ? 0 : 1}">${a.admin ? "Not admin" : "Make admin"}</button></td></tr>`).join("") :

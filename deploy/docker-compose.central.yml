@@ -31,7 +31,7 @@ services:
       DS_CENTRAL_APPROVED: ${DS_CENTRAL_APPROVED:-}    # (servers listed without waiting: their ids, comma-separated)
       DS_CENTRAL_OPERATOR: ${DS_CENTRAL_OPERATOR:-}    # (the privacy policy: who runs it, and how to reach them)
       DS_CENTRAL_CONTACT: ${DS_CENTRAL_CONTACT:-}
-      DS_SMTP_HOST: ${DS_SMTP_HOST:-}                  # (email: a welcome, a forgotten password's code; none, and
+      DS_SMTP_HOST: ${DS_SMTP_HOST:-}                  # (email: a link to confirm it, a forgotten password's code; none, and
       DS_SMTP_PORT: ${DS_SMTP_PORT:-587}               #  it's the recovery code alone)
       DS_SMTP_USER: ${DS_SMTP_USER:-}
       DS_SMTP_PASSWORD: ${DS_SMTP_PASSWORD:-}

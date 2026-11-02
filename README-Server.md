@@ -184,7 +184,10 @@ Characters have no passwords. Each belongs to someone, and its name is one of a 
 
 A device that came in by an account (a ticket, or the host's key) is that account's on that server from then on: a
 reload, or the central server away, is still you, unless the central server says the account is banned (it's asked
-each time, and every minute while they play). Signing out on the start screen gives every game a new key.
+each time, and every minute while they play). Signing out on the start screen gives every game a new key. A ban's
+reason shows when they try to come in: on the start screen or by a ticket for a central ban, on the game for its own.
+Coming straight back with only a device's key they're told to sign in to see why, since anyone can ask whether a name
+is banned and the reason isn't theirs to read.
 
 Someone who goes straight to a server's address, past the start screen, gets the page, but the game goes by the rules
 above. Anyone turned away gets a link to the start screen. A connection through a reverse proxy nobody told the server
@@ -394,11 +397,14 @@ lists the remote game servers (each announces itself to it), and it serves the a
   with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
   also finds accounts (ban, unban, make admin), edits the start screen's ads, and counts everything.
-- **Email (a new account's welcome, a forgotten password's code)**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`,
+- **Email (a link to confirm an address, a forgotten password's code)**: set `DS_SMTP_HOST` (and `DS_SMTP_PORT`,
   `DS_SMTP_USER`, `DS_SMTP_PASSWORD`, `DS_SMTP_FROM`, `DS_SMTP_TLS`: any mail service's SMTP, e.g. Namecheap Private Email,
   Brevo, Mailgun, SES, or Gmail with an app password). `central.env.example` has Namecheap's. The domain's DNS must say
   that service sends its mail (SPF, DKIM), or mail is lost to spam. Try it with
-  `docker compose exec central python -m central.mail you@example.com`. A welcome that can't go never stops a sign-up.
+  `docker compose exec central python -m central.mail you@example.com`. An address given when signing up, or later in
+  the account, counts only once its owner has followed the emailed link and pressed Confirm (the link alone does
+  nothing: mail scanners open links); till then no code goes to it, the one before it still counts, and it's forgotten
+  after 30 days. An email that can't go never stops a sign-up: the account can ask for the link again.
   Players may give an email when they sign up or in their account; "Forgotten?" then emails a code good for 30
   minutes. Without SMTP, the recovery code is the only way back in.
 - **The privacy policy** is at `/privacy`: set `DS_CENTRAL_OPERATOR` (who runs it) and `DS_CENTRAL_CONTACT` (an email
