@@ -576,7 +576,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the apps, and Friends' games (the games friends host or play; your friends), Join a local game (the network's, or
   an address; a browser: an address only) and Public servers (a limited beta: the central server's list) everywhere.
   Joining takes a ticket from the central server made out to that server's id. **The central server is
-  `https://soa.hallisium.com`** (`web/home/config.js`, a cloud server's `DS_CENTRAL`); `deploy/central-setup.sh`
+  `https://shardsofashen.hallisium.com`** (`web/home/config.js`, a cloud server's `DS_CENTRAL`); `deploy/central-setup.sh`
   sets one up on a VM in one line.
 - **Hosting for friends goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
   connects out (no router port, any network) with the key the host's ticket brought; friends open

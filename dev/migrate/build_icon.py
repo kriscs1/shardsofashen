@@ -6,7 +6,8 @@ square, so it's crisp at every size.
 
   * web/img/icon.png (256 x 256): the Docker container's icon (Unraid: the template's Icon), and for phones' home
     screens (apple-touch-icon). build_android.py makes the Android app's icons from it: run it after this.
-  * web/img/favicon.png (64 x 64): the browser tab's icon (the grid itself, pixel for pixel).
+  * web/img/favicon.png, web/home/favicon.png (64 x 64): the browser tab's icon, the game's and the start
+    screen's (the grid itself, pixel for pixel).
   * web/img/icon.ico (16 to 256): the desktop app's program icon (desktop/build_desktop.py gives it to the .exe).
   * sprites/Interface/Magic_Burst.png (32 x 32): the Magic skill's icon (Config [Skills] Icon.Magic), a magical blast.
 The server serves them at /img/icon.png and /img/favicon.png. Run it again to redraw them (it overwrites them)."""
@@ -166,6 +167,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     pygame.image.save(at_size(grid, SIZE), os.path.join(OUT, "icon.png"))
     pygame.image.save(grid, os.path.join(OUT, "favicon.png"))
+    pygame.image.save(grid, os.path.join(ROOT, "web", "home", "favicon.png"))
     save_ico(grid, os.path.join(OUT, "icon.ico"))
     print("Made web/img/icon.png, favicon.png and icon.ico, and sprites/Interface/Magic_Burst.png")
 

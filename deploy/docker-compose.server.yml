@@ -11,7 +11,7 @@
 #                     on the server (e.g. /srv/shards-of-ashen) or a Docker volume's name (gamedata, the default)
 #   DS_ADMINS         Shards accounts whose characters get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
 #                     (the central server proves them, so it needs DS_CENTRAL)
-#   DS_CENTRAL        the central server, for signing in by Shards accounts: DS_CENTRAL=https://soa.hallisium.com
+#   DS_CENTRAL        the central server, for signing in by Shards accounts: DS_CENTRAL=https://shardsofashen.hallisium.com
 #   DS_PUBLIC         1: listed on the start screen's Public servers, once approved on the central server's admin
 #                     page. Everyone then needs a Shards account, even on your own network
 #   DS_PUBLIC_URL     the address players outside your network use (blank: where it calls the central server from)

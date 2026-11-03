@@ -1078,7 +1078,7 @@ def make_central(db_path):
     app.router.add_get("/", index)
     app.router.add_get("/config.js", lambda r: web.FileResponse(os.path.join(home, "config.js"),
                                                                headers={"Cache-Control": "no-cache"}))
-    for pic in ("logo.png", "bg.jpg"):                  # (the start screen's pictures, beside it)
+    for pic in ("logo.png", "bg.jpg", "favicon.png"):   # (the start screen's pictures, beside it)
         app.router.add_get("/" + pic, lambda r, pic=pic: web.FileResponse(os.path.join(home, pic), headers={
             "Cache-Control": "public, max-age=86400"}))     # (not asked for again each time the start screen opens)
     if os.path.isdir(home):

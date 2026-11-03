@@ -1425,6 +1425,9 @@ def test_the_central_server_answers_in_as_few_bytes_as_it_can(tmp_path, confirme
                 # (the start screen's pictures aren't asked for each time, and the page only if it's changed)
                 async with http.get(c + "/logo.png") as r:
                     assert "max-age=86400" in r.headers["Cache-Control"]
+                # (and it has its icon in a browser's tab)
+                async with http.get(c + "/favicon.png") as r:
+                    assert r.status == 200 and r.content_type == "image/png"
                 async with http.get(c + "/") as r:
                     tag = r.headers["ETag"]
                 async with http.get(c + "/", headers={"If-None-Match": tag}) as r:
@@ -1455,7 +1458,8 @@ def test_the_central_server_answers_in_as_few_bytes_as_it_can(tmp_path, confirme
                 assert db.playing_of([]) == {}
 
                 # (old rows and the counts kept in memory are cleared without a game having to call)
-                capp["central"].fails[("addr", "1.2.3.4")] = [0.0]
+                # (long ago by the monotonic clock: 0.0 isn't, on a machine only just started)
+                capp["central"].fails[("addr", "1.2.3.4")] = [time.monotonic() - 9999]
                 capp["central"].signups["1.2.3.4"] = ["19990101"]
                 capp["central"].housekeeping()
                 assert ("addr", "1.2.3.4") not in capp["central"].fails and "1.2.3.4" not in capp["central"].signups

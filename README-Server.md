@@ -249,7 +249,7 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
    - **Game data** (`/mnt/user/appdata/shards-of-ashen`): where accounts, characters, the world and the daily backups
      are kept. Point it at another share if you like.
    - **Admins**: Shards accounts whose characters get the Admin button, comma-separated (e.g. `Kris,Ann`).
-   - **Central server** (`https://soa.hallisium.com`): players sign in by their Shards accounts, and it proves your
+   - **Central server** (`https://shardsofashen.hallisium.com`): players sign in by their Shards accounts, and it proves your
      Admins. Blank: no accounts here, only each device's own characters.
    - **Public server** (0): 1 announces it for the start screen's Public servers, once it's approved on the central
      server's admin page. Everyone then needs a Shards account, even on your own network.
@@ -352,7 +352,7 @@ One central server serves the whole game. Every version's start screen connects 
 desktop app, and a browser, which gets the start screen from it): players have one account there for every game, it
 lists the remote game servers (each announces itself to it), and it serves the ads on the start screen.
 
-- **The game's own** is `https://soa.hallisium.com`: the apps' start screen (`web/home/config.js`) and a cloud
+- **The game's own** is `https://shardsofashen.hallisium.com`: the apps' start screen (`web/home/config.js`) and a cloud
   server's `.env` (`deploy/cloud.env.example`) point there already.
 - **What it is**: `central/` (standard library and aiohttp, like the game server), run from the same image as
   `python -m central` on port 8490, behind Caddy for HTTPS, with an updater (`deploy/docker-compose.central.yml`). It
