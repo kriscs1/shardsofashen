@@ -101,6 +101,8 @@ class GameServer:
         self.registration = registration
         self.invite_code = invite_code
         self.central_http = None        # (the one connection to the central server: central_post)
+        self.own = False                # (an app's own game: this machine's till its host opens it, in Options)
+        self.network_changed = self.internet_changed = None     # (make_app's: what opening it means to the machine)
         self.host_grant = self.store.setting("host_grant", "")     # (the host's key to the central server: relay.py)
         self.host_account = self.store.setting("host_account", "")
         try:
@@ -627,10 +629,28 @@ class GameServer:
     def relayed(addr):
         return (addr or "").startswith("relay:")
 
-    @staticmethod
-    def for_friends():
-        """Hosted for friends (DS_FRIENDS=1, the app's Friends hosting): the central server passes their visits here."""
-        return os.environ.get("DS_FRIENDS", "").strip() in ("1", "yes", "on", "true")
+    def for_friends(self):
+        """Open to the internet (its host's say, in Options; or DS_FRIENDS=1): it still runs here, and the central server
+        passes the host's friends' visits to it."""
+        return self.store.setting("internet_open", "0") == "1" or \
+            os.environ.get("DS_FRIENDS", "").strip() in ("1", "yes", "on", "true")
+
+    def lan_address(self):
+        """Where others on this network open an app's own game (a machine in Docker can't tell: it's never one)."""
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("10.255.255.255", 1))        # (no packet goes: it only picks the way out)
+                ip = s.getsockname()[0]
+        except OSError:
+            return ""
+        return "http://%s:%d" % (ip, self.port) if self.own and not ip.startswith("127.") else ""
+
+    def reach_of(self, c):
+        """What the host's Options show of who can reach an app's own game."""
+        signed = c.account and c.account.lower() == (self.host_account or "").lower() and self.host_grant
+        return {"own": self.own and self.is_local(c.addr), "internet": self.for_friends(), "signed": bool(signed),
+                "address": self.lan_address(), "link": "%s/play/%s/" % (self.central_url(), self.server_id())
+                if self.central_url() else ""}
 
     def friend_of_host(self, owner):
         """A relayed visitor is let in only as the host's Shards account, or a friend's."""
@@ -818,6 +838,7 @@ class GameServer:
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
                             "account": c.account, "server": self.server_name(),
                             "host": s.admin_enabled or c.host or self.is_local(c.addr), "lan": self.lan_open,
+                            "reach": self.reach_of(c),
                             "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())
 
@@ -991,7 +1012,24 @@ class GameServer:
                             self.save_session(o)
                             oc.closed = True
                             asyncio.ensure_future(oc.ws.close())
+                if self.network_changed:
+                    asyncio.ensure_future(self.network_changed())
                 self.broadcast({"t": "lan", "open": self.lan_open})
+            return
+        if t == "internet":                             # (open to the internet or not: an app's own game's host, signed in)
+            if self.own and self.is_local(c.addr):
+                on = bool(data.get("open")) and self.reach_of(c)["signed"]
+                self.store.set_setting("internet_open", "1" if on else "0")
+                log.info("%s %s the game to the internet", s.player_name, "opened" if on else "closed")
+                if not on:
+                    for o, oc in list(self.clients.items()):
+                        if self.relayed(oc.addr):
+                            o.emit({"t": "chat", "from": "", "text": "The host has closed the game to the internet."})
+                            self.save_session(o)
+                            oc.closed = True
+                            asyncio.ensure_future(oc.ws.close())
+                asyncio.ensure_future(self.internet_changed())
+                self.broadcast({"t": "internet", "internet": on})
             return
         self.world.guarded(s, "command %s" % str(t)[:20], s.handle, data)    # (a bad one logged once, not each time)
 

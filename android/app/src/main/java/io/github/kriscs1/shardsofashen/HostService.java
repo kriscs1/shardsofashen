@@ -56,8 +56,7 @@ public class HostService extends Service {
         central = c == null ? "" : c.trim();
         String k = intent != null ? intent.getStringExtra("hostKey") : null;
         hostKey = k == null ? "" : k;
-        name = solo ? "Your own game" : wanted == null || wanted.trim().isEmpty() ? "Shards of Ashen on " + Build.MODEL
-            : wanted.trim();
+        name = wanted == null || wanted.trim().isEmpty() ? "Shards of Ashen on " + Build.MODEL : wanted.trim();
         error = "";
         status = "unpacking";
         foreground("Starting " + name + "...");
@@ -68,12 +67,10 @@ public class HostService extends Service {
                 status = "starting";
                 if (!Python.isStarted()) Python.start(new AndroidPlatform(this));
                 PyObject host = Python.getInstance().getModule("ds_host");
-                host.callAttr("start", root.getPath(), new File(getFilesDir(), solo ? "solo.db" : "world.db").getPath(),
-                    name, PORT, BuildConfig.VERSION_CODE, solo, mode, central, hostKey);
+                host.callAttr("start", root.getPath(), new File(getFilesDir(), "solo.db").getPath(),
+                    name, PORT, BuildConfig.VERSION_CODE, central, hostKey);
                 status = "on";
-                foreground(solo ? "Your own game is running" : "friends".equals(mode)
-                    ? name + ": open to your friends" : "remote".equals(mode)
-                    ? name + ": listed by the central server" : name + ": others on this network can join it");
+                foreground("Your game is running");
             } catch (Throwable t) {
                 error = String.valueOf(t.getMessage() != null ? t.getMessage() : t);
                 status = "error";

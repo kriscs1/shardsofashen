@@ -17,14 +17,17 @@ from . import lan
 log = logging.getLogger("ashen.server")
 GAME = web.AppKey("game", GameServer)
 TICK = web.AppKey("tick", asyncio.Task)
-LAN = web.AppKey("lan", object)
 ANNOUNCE = web.AppKey("announce", object)
-RELAY = web.AppKey("relay", object)
 PROGRESS = web.AppKey("progress", object)
 
 
-def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins="", name="", port=8484):
+def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins="", name="", port=8484, own=False):
     game = GameServer(root, db_path, max_players, registration, invite_code, admins=admins)
+    game.port, game.own = port, own
+    game.bind_network, game.lan_answer, game.relay_task = None, None, None
+    if own:                                             # (each time it starts it's yours alone, till you open it)
+        game.store.set_setting("lan_open", "0")
+        game.store.set_setting("internet_open", "0")
     web_dir = os.path.join(root, "web")
     assets = os.path.join(web_dir, "assets")
     app = web.Application()
@@ -32,6 +35,11 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     game.default_name = name                            # (what the host called it: the Android or desktop app)
 
     async def index(request):
+        # (nothing here but for who's come through a client or the central server's start screen, a ticket or what's left
+        # of one; this machine; and an app's own game to those on its network, at the address its host gives them)
+        if not ({"ticket", "joined", "app"} & set(request.query) or game.is_local(game.client_addr(request))
+                or (game.own and game.lan_open)):
+            return web.Response(status=404)
         return web.FileResponse(os.path.join(web_dir, "index.html"), headers={"Cache-Control": "no-cache"})
 
     async def manifest(request):
@@ -86,23 +94,48 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
             await game.keep_friends()                   # (and everyone in by an account: playing here, their friends)
             await asyncio.sleep(60)
 
+    async def network_changed():
+        try:
+            if game.bind_network:
+                await game.bind_network(game.lan_open)
+        except OSError as e:
+            log.warning("Couldn't open the game to the network: %s", e)
+            game.store.set_setting("lan_open", "0")
+            game.broadcast({"t": "lan", "open": False})
+        if game.lan_open and game.lan_answer is None:
+            game.lan_answer = await lan.start(about)
+        elif not game.lan_open and game.lan_answer is not None:
+            game.lan_answer.close()
+            game.lan_answer = None
+
+    async def internet_changed():
+        if game.for_friends() and game.relay_task is None:
+            game.relay_task = asyncio.create_task(game.relay.run())
+            await game.host_friends_now()
+        elif not game.for_friends() and game.relay_task is not None:
+            game.relay_task.cancel()
+            game.relay_task = None
+            game.relay.stopped()
+
+    game.network_changed, game.internet_changed = network_changed, internet_changed
+
     async def start_tick(app):
         app[TICK] = asyncio.create_task(game.run())
-        app[LAN] = await lan.start(about)
+        game.lan_answer = None if own else await lan.start(about)
         app[ANNOUNCE] = asyncio.create_task(announcing())
         game.relay = Relay(game, port)                  # (hosted for friends: through the central server)
-        app[RELAY] = asyncio.create_task(game.relay.run()) if game.for_friends() else None
+        game.relay_task = asyncio.create_task(game.relay.run()) if game.for_friends() else None
         game.reporter = Reporter(game)                  # (how characters are getting on: the central server's admin page)
         app[PROGRESS] = asyncio.create_task(game.reporter.run())
 
     async def stop_tick(app):
         app[ANNOUNCE].cancel()
         app[PROGRESS].cancel()
-        if app[RELAY] is not None:
-            app[RELAY].cancel()
+        if game.relay_task is not None:
+            game.relay_task.cancel()
         await game.announce(bye=True)
-        if app[LAN] is not None:
-            app[LAN].close()
+        if game.lan_answer is not None:
+            game.lan_answer.close()
         await game.shutdown()
         app[TICK].cancel()
 

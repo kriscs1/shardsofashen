@@ -44,6 +44,7 @@ import functools
 import hashlib
 import hmac
 import html
+import ipaddress
 import json
 import logging
 import os
@@ -521,8 +522,8 @@ class Central:
         if acct and not acct[4]:                        # (only ever a confirmed one: what's waiting doesn't count yet)
             return no("Confirm your email first: the link's in your inbox, or open your account to send it again.",
                       refused=True)
-        known = self.store.server_url(server)
-        if known and not same_place(known, str(d.get("url", ""))[:200]):
+        known, url = self.store.server_url(server), str(d.get("url", ""))[:200]
+        if known and not same_place(known, url) and not on_a_network(url):     # (a listed game, from its own network: fine)
             # (a listed game is where it said it was: a game that gave another's id gets no ticket to pass on)
             return no("That game isn't at the address it was listed at.")
         return yes(ticket=self.store.new_ticket(name, server))
@@ -866,6 +867,16 @@ def whole(v, lo, hi, default=0):
         return max(lo, min(hi, int(v)))
     except (TypeError, ValueError, OverflowError):      # (OverflowError: 1e999 is infinity, in JSON)
         return max(lo, min(hi, default))
+
+
+def on_a_network(url):
+    """Is this an address only its own network reaches: a private one?"""
+    from urllib.parse import urlsplit
+    try:
+        ip = ipaddress.ip_address(urlsplit(url).hostname or "")
+    except ValueError:
+        return False
+    return ip.is_private and not ip.is_loopback and not ip.is_link_local
 
 
 def same_place(a, b):

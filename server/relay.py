@@ -79,6 +79,13 @@ class Relay:
             await asyncio.sleep(RETRY[min(fails, len(RETRY) - 1)])
             fails += 1
 
+    def stopped(self):
+        """Its host has closed it to the internet: whoever came in this way goes too."""
+        self.up, self.tunnel = False, None
+        for q in self.conns.values():
+            q.put_nowait(None)
+        self.conns.clear()
+
     async def send(self, data):
         t = self.tunnel
         if t is not None and not t.closed:

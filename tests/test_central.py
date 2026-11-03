@@ -646,6 +646,164 @@ def test_a_listed_game_is_approved_again_when_it_changes_and_calls_are_limited(t
     asyncio.run(go())
 
 
+def test_a_servers_own_address_shows_a_browser_nothing(tmp_path, monkeypatch):
+    """Through a client or the website: a ticket, or an app. /health and what a client asks stay."""
+    monkeypatch.setenv("DS_TRUST_PROXY", "1")           # (so a call can say it isn't this machine)
+    monkeypatch.delenv("DS_HOST_KEY", raising=False)
+    away = {"X-Forwarded-For": "192.168.1.9"}
+
+    async def status(http, url, headers=away):
+        async with http.get(url, headers=headers) as r:
+            return r.status, await r.read()
+
+    async def go():
+        runner, port = await run(make_app(ROOT, str(tmp_path / "game.db"), 5))
+        own = make_app(ROOT, str(tmp_path / "own.db"), 5, own=True)
+        orunner, oport = await run(own)
+        at, there = "http://127.0.0.1:%d" % port, "http://127.0.0.1:%d" % oport
+        try:
+            async with aiohttp.ClientSession() as http:
+                assert await status(http, at + "/") == (404, b"")
+                for query in ("?ticket=abc", "?joined=1", "?app=android"):
+                    assert (await status(http, at + "/" + query))[0] == 200, query
+                assert (await status(http, at + "/", {}))[0] == 200         # (this machine)
+                assert (await status(http, at + "/health"))[0] == 200
+                assert (await status(http, at + "/api/info"))[0] == 200
+
+                assert (await status(http, there + "/"))[0] == 404          # (an app's own game: closed)
+                own[GAME].store.set_setting("lan_open", "1")
+                assert (await status(http, there + "/"))[0] == 200          # (open: at the address its host gives)
+        finally:
+            await orunner.cleanup()
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_a_listed_game_gives_its_own_network_tickets_too(tmp_path, monkeypatch, confirmed):
+    async def go():
+        runner, port = await run(make_central(str(tmp_path / "central.db")))
+        c = "http://127.0.0.1:%d" % port
+        try:
+            async with aiohttp.ClientSession() as http:
+                key = (await post(http, c + "/api/announce", {"name": "Tower", "url": "https://play.example.com"}))["key"]
+                token = (await post(http, c + "/api/register", {"name": "Wanderer", **SIGNUP}))["token"]
+
+                async def ticket(url):
+                    return (await post(http, c + "/api/ticket", {"token": token, "server": key, "url": url}))["ok"]
+                assert await ticket("https://play.example.com")
+                assert await ticket("http://192.168.1.20:8484")
+                assert await ticket("http://[fd22:ad95:615f::5]:8484")
+                for elsewhere in ("https://evil.example", "http://8.8.8.8:8484", "http://127.0.0.1:8484", "http://169.254.1.1"):
+                    assert not await ticket(elsewhere), elsewhere
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_an_apps_game_is_opened_from_inside_it(tmp_path, monkeypatch, confirmed):
+    """Closed as it starts; the network's needs no login, the internet's the host signed in; closing sends them home."""
+    async def go():
+        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        central = "http://127.0.0.1:%d" % cport
+        monkeypatch.setenv("DS_CENTRAL", central)
+        monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+        monkeypatch.delenv("DS_FRIENDS", raising=False)
+        monkeypatch.delenv("DS_PUBLIC", raising=False)
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:     # (Windows keeps some back for UDP alone)
+            s.bind(("0.0.0.0", 0))
+            monkeypatch.setenv("DS_LAN_PORT", str(s.getsockname()[1]))
+        gport = free_port()
+        path = str(tmp_path / "game.db")
+        gapp = make_app(ROOT, path, 5, name="Hostess's World", port=gport, own=True)
+        grunner = web.AppRunner(gapp)
+        await grunner.setup()
+        await web.TCPSite(grunner, "127.0.0.1", gport).start()
+        game = gapp[GAME]
+        wsurl = "ws://127.0.0.1:%d/ws" % gport
+
+        async def choose(ws, name):
+            await ws.send_json({"t": "create", "name": name})
+            return await replies(ws, ("welcome", "login_fail"))
+
+        async def until(check):
+            for _ in range(100):
+                if check():
+                    return True
+                await asyncio.sleep(0.1)
+            return False
+        try:
+            async with aiohttp.ClientSession() as http:
+                assert game.lan_answer is None and game.relay_task is None
+                guest, m = await come_in(http, wsurl, device_of("guest"), host="the-hosts-own-key")
+                m = await choose(guest, "Lonely")
+                assert m["reach"]["own"] and not m["reach"]["signed"] and not m["reach"]["internet"]
+                await guest.send_json({"t": "lan", "open": True})           # (the network needs no login)
+                m = await replies(guest, ("lan",))
+                assert m["open"] and await until(lambda: game.lan_answer is not None)
+                await guest.send_json({"t": "internet", "open": True})      # (the internet does)
+                m = await replies(guest, ("internet",))
+                assert not m["internet"] and game.relay_task is None
+                await guest.send_json({"t": "lan", "open": False})
+                assert await until(lambda: game.lan_answer is None)
+                await guest.close()
+
+                tok = {}
+                for n in ("Hostess", "Pal"):
+                    tok[n] = (await post(http, central + "/api/register", {"name": n, **SIGNUP}))["token"]
+                await post(http, central + "/api/friend", {"token": tok["Hostess"], "name": "Pal"})
+                await post(http, central + "/api/friend", {"token": tok["Pal"], "name": "Hostess"})
+                key = game.server_id()
+                t = await post(http, central + "/api/ticket", {"token": tok["Hostess"], "server": key})
+                host, m = await come_in(http, wsurl, device_of("host"), ticket=t["ticket"],
+                                        host="the-hosts-own-key", account="Hostess")
+                m = await choose(host, "Hostess")
+                assert m["reach"]["signed"] and m["reach"]["link"] == "%s/play/%s/" % (central, key)
+                await host.send_json({"t": "internet", "open": True})
+                m = await replies(host, ("internet",))
+                assert m["internet"] and await until(lambda: game.relay.up and game.host_friends)
+
+                # (the link as it's given: to the start screen to sign in; with a ticket, the page)
+                async with http.get("%s/play/%s/" % (central, key), allow_redirects=False) as r:
+                    assert r.status == 302 and r.headers["Location"] == "/?join=" + key
+                t = await post(http, central + "/api/ticket", {"token": tok["Pal"], "server": key})
+                async with http.get("%s/play/%s/?ticket=%s" % (central, key, t["ticket"])) as r:
+                    assert r.status == 200
+                pal, m = await come_in(http, "ws://127.0.0.1:%d/play/%s/ws" % (cport, key), device_of("pal"), ticket=t["ticket"])
+                assert m["t"] == "characters"
+                assert (await choose(pal, "Pal"))["t"] == "welcome"
+
+                await host.send_json({"t": "internet", "open": False})
+                m = await replies(host, ("internet",))
+                assert not m["internet"] and await until(lambda: game.relay_task is None and not game.relay.up)
+                assert await until(lambda: pal.closed or len(game.world.sessions) == 1)
+                await asyncio.sleep(0.2)
+                async with http.get("%s/play/%s/?joined=1" % (central, key)) as r:
+                    assert r.status == 404                      # (the link's shut with it)
+                await pal.close()
+                await host.close()
+                game.store.set_setting("lan_open", "1")
+                game.store.set_setting("internet_open", "1")
+        finally:
+            await grunner.cleanup()
+            await crunner.cleanup()
+
+        # (starts again: closed again, whatever it was)
+        again = make_app(ROOT, path, 5, port=free_port(), own=True)
+        assert not again[GAME].lan_open and not again[GAME].for_friends()
+    asyncio.run(go())
+
+
+def test_the_ways_in_are_as_the_owner_said():
+    """The website: sign-in, public servers, a friend's link. Local stays local: nothing about it goes to the central server."""
+    with open(os.path.join(ROOT, "web", "home", "index.html"), encoding="utf-8") as f:
+        home = f.read()
+    for app_only in ('id="alone" class="tile go app-only"', 'id="friends-open" class="tile app-only"',
+                     'id="local-open" class="tile app-only"', 'class="skip app-only"'):
+        assert app_only in home, app_only
+    assert 'id="host-open"' not in home and "/api/local" not in home
+    assert 'id="remote-open"' in home and "app-only" not in home.split('id="remote-open"')[1].split(">")[0]
+
+
 def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
     """Two Shards accounts: one asks, the other accepts (on the start screen, or in a game by right-click or the
     journal), and they're friends in every game, any character of theirs; a game says where they're playing; the
@@ -769,7 +927,7 @@ def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypa
                 assert r["hosting"]["Hostess"] == {"key": key, "place": "Hostess's World"}
 
                 via = central + "/play/%s/" % key
-                async with http.get(via) as page:                       # (the game's page, through the central server)
+                async with http.get(via + "?joined=1") as page:        # (the game's page, through the central server)
                     assert page.status == 200 and "js/main.js" in await page.text()
                 async with http.get(via + "js/net.js") as js:
                     assert js.status == 200 and "location.pathname" in await js.text()

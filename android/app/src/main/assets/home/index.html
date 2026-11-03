@@ -1,11 +1,11 @@
 <!doctype html>
 <!-- The start screen, the same in every version: the Android app, the desktop app (window.DSApp is the app), and a
      browser (from the central server: no app behind it). First your Shards account (sign in, make one, a forgotten
-     password, or play without one), then the menu: play alone or host a game (the apps only: for this network, or for
-     your friends anywhere too, through the central server), friends' games (the games your friends host or play, and
-     your friends), a local game (the network's games or an address - a browser only an address), or a public server
-     (the central server's list: a limited beta). Signed in, every game you join knows you
-     by your account; not, by this device (a key of its own for each game); the app's own game by the host's key.
+     password; in the apps, or play without one). A browser then has only the public servers (the central server's list:
+     a limited beta), and a friend's link. The apps have a single-player game (Options, in it, opens it to the network,
+     the internet or both), friends' games, a local game (the network's, an address, or a friend's link) and the public
+     servers. Signed in, every game you join knows you by your account; not, by this device (a key of its own for each
+     game: a guest's stay when you sign out, your account's go); the app's own game by the host's key.
      Edit web/home/ only: tools/sync_home.py copies it into the Android app. -->
 <html lang="en">
 <head>
@@ -114,13 +114,7 @@ label.agree a { color: var(--ink); }
 .meter { width: 70px; height: 7px; border-radius: 4px; background: #2a1b14; overflow: hidden; display: inline-block; }
 .meter i { display: block; height: 100%; background: linear-gradient(90deg, #33d06a, #e8c060); }
 .empty { padding: 18px; text-align: center; color: var(--dim); border: 2px dashed #4a3027; border-radius: 12px; }
-.mode { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 560px) { .mode { grid-template-columns: 1fr; } }
-.mode label { display: block; cursor: pointer; padding: 12px 14px; border-radius: 12px; background: rgba(20,12,8,0.75);
   border: 2px solid #4a3027; font-size: 14px; }
-.mode input { display: none; }
-.mode label b { display: block; color: var(--ink); font-size: 17px; margin-bottom: 3px; }
-.mode label:has(input:checked) { border-color: var(--ok-edge); box-shadow: 0 0 0 2px rgba(79,191,116,0.3); }
 .running { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; border-color: var(--ok-edge); }
 .running p { flex: 1; min-width: 200px; }
 .address { color: var(--ink); font-weight: bold; user-select: all; }
@@ -187,7 +181,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
         your network.</p>
       <button id="retry">Try again</button>
     </div>
-    <div class="skip"><button id="skip" class="link">Play without an account</button></div>
+    <div class="skip app-only"><button id="skip" class="link">Play without an account</button></div>
   </div>
 </section>
 
@@ -204,44 +198,26 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
 
   <section id="running" class="panel running" hidden>
     <p><span id="running-name" class="address"></span> <span id="running-what" class="dim small"></span>
-      <span id="running-addresses" class="small" style="display:block"></span></p>
+</p>
     <button id="resume" class="go">Play</button><button id="running-stop">Stop</button>
   </section>
 
   <div id="menu" class="tiles fade">
     <button id="alone" class="tile go app-only"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M7 1h2v2h2v2H9v2h3v2h-1v6H9v-4H7v4H5V9H4V7h3V5H5V3h2z"/></svg></span>
-      <span class="words">Play alone<small>A world of your own on this device. Nobody else can join.</small></span></button>
-    <button id="host-open" class="tile app-only"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M8 1l7 6h-2v8H9v-5H7v5H3V7H1z"/><path fill="#b48cff" d="M7 6h2v2H7z"/></svg></span>
-      <span class="words">Host a game<small>Run a world here: for your network, or for your friends anywhere.</small></span></button>
-    <button id="friends-open" class="tile"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M3 2h4v4H3zM9 2h4v4H9zM1 8h8v6H1zM7 8h8v6H7z"/><path fill="#b48cff" d="M7 8h2v2H7z"/></svg></span>
+      <span class="words">Single player<small>A world of your own on this device. Open it to others from Options, in the game.</small></span></button>
+    <button id="friends-open" class="tile app-only"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M3 2h4v4H3zM9 2h4v4H9zM1 8h8v6H1zM7 8h8v6H7z"/><path fill="#b48cff" d="M7 8h2v2H7z"/></svg></span>
       <span class="words">Friends' games<small id="friends-words">The games your friends host or play, and your friends.</small></span></button>
-    <button id="local-open" class="tile"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M1 5h14v2H1zM3 9h10v2H3zM6 13h4v2H6z"/><path fill="#b48cff" d="M7 1h2v2H7z"/></svg></span>
-      <span class="words">Join a local game<small id="local-words">The games on your network, or one by its address.</small></span></button>
+    <button id="local-open" class="tile app-only"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M1 5h14v2H1zM3 9h10v2H3zM6 13h4v2H6z"/><path fill="#b48cff" d="M7 1h2v2H7z"/></svg></span>
+      <span class="words">Join a local game<small id="local-words">The games on your network, one by its address, or a friend's link.</small></span></button>
     <button id="remote-open" class="tile public"><span class="icon"><svg viewBox="0 0 16 16"><path fill="#f3e888" d="M6 1h4v2h2v2h2v6h-2v2h-2v2H6v-2H4v-2H2V5h2V3h2zM7 3v10h2V3zM4 7v2h8V7z"/></svg></span>
       <span class="words"><span>Public servers <span class="badge beta">Limited beta</span></span><small id="remote-words">Open servers anyone can join, listed by the central server.</small></span></button>
   </div>
 
-  <section id="host" class="panel fade" hidden>
-    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Host a game</h2></div>
-    <div class="stack">
-      <label class="field">The game's name<input id="host-name" maxlength="40"></label>
-      <div class="mode">
-        <label><input type="radio" name="mode" value="local" checked><b>My network</b>Found by others on this network
-          (Wi-Fi, or this device's hotspot). Not listed anywhere.</label>
-        <label><input type="radio" name="mode" value="friends"><b>Friends</b>Your friends (by Shards account) can join
-          from anywhere, through the central server, and others on this network too. Nobody else. You must be signed
-          in.</label>
-      </div>
-      <p class="note">The world, and everyone's characters in it, live on this device.</p>
-      <div class="row"><button id="host" class="go">Start hosting</button></div>
-    </div>
-  </section>
-
   <section id="local" class="panel fade" hidden>
-    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Join a local game</h2><button id="find" class="app-only">Look again</button></div>
-    <div id="games" class="cards app-only"></div>
+    <div class="screen-head"><button class="back">&#8249; Back</button><h2>Join a local game</h2><button id="find">Look again</button></div>
+    <div id="games" class="cards"></div>
     <div class="stack" style="margin-top:12px">
-      <label class="field">Or its address (like 192.168.1.20, or play.example.com)
+      <label class="field">Or its address (like 192.168.1.20), or a friend's link
         <input id="address" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <div class="row"><button id="join" class="go">Join</button></div>
     </div>
@@ -284,10 +260,16 @@ const store = {
 const fromCentral = KIND === "browser" && location.protocol.startsWith("http");
 let CENTRAL = (fromCentral ? location.origin : store.get("central") || window.DS_CENTRAL_DEFAULT || "").replace(/\/+$/, "");
 let token = store.get("token"), myName = "", centralUp = false, canMail = false, hello = {};
+let skipped = false;
+let linkedGame = new URLSearchParams(location.search).get("join") || "";      // (a friend's link, as central/relay.py sends it)
+if (!token && store.get("devices") && !store.get("guests")) {      // (from before a guest's keys were kept apart)
+  store.set("guests", store.get("devices"));
+  store.set("devices", "");
+}
 const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 for (const el of document.querySelectorAll(".app-only")) el.hidden = KIND === "browser";
-if (KIND === "browser") $("local-words").textContent = "A game on your network, by its address (like 192.168.1.20).";
+if (KIND === "browser") $("remote-open").style.gridColumn = "1 / -1";     // (all a browser has: the whole row)
 
 // ----- telling: a toast for a moment, a popup for what must be read
 let toastTimer = 0;
@@ -324,7 +306,8 @@ function setStatus(up, words) {
   centralUp = up;
   for (const id of ["central-status", "menu-status"]) $(id).className = "status " + (up ? "on" : "off");
   $("central-words").textContent = words;
-  $("menu-status-words").textContent = up ? (myName ? "Online" : "Online, not signed in") : "Offline";
+  $("menu-status-words").textContent = up ? "Online" : "Offline";
+  $("menu-status").hidden = up && !myName;    // (the chip beside it says so already)
 }
 
 async function connect() {
@@ -345,14 +328,14 @@ async function connect() {
       if (me.ok) { signedIn(me.name); if (me.needs_email) $("chip").onclick(); return; }
       token = ""; store.set("token", "");
     }
-    showWelcome();
+    if (!skipped) showWelcome();                   // (playing without an account already: the answer came late)
   } catch (e) { offline("Can't reach the central server."); }
 }
 function offline(words) {
   setStatus(false, words);
   $("online-forms").hidden = true; $("offline-words").hidden = false;
   if (token && store.get("name")) { signedIn(store.get("name")); return; }   // (still you: your own game needs no network)
-  showWelcome();
+  if (!skipped) showWelcome();
 }
 
 // ----- 1. signing in
@@ -373,6 +356,12 @@ function signedIn(name) {
   $("welcome").hidden = true; $("main").hidden = false;
   showAds();
   show("menu");
+  if (name && linkedGame) {                        // (came by a friend's link: on in, now you've signed in)
+    const key = linkedGame;
+    linkedGame = "";
+    history.replaceState(null, "", location.pathname);
+    join(`${CENTRAL}/play/${encodeURIComponent(key)}/`, key);
+  }
 }
 function tab(which) {
   for (const b of document.querySelectorAll(".tabs button")) b.classList.toggle("on", b.dataset.tab === which);
@@ -457,7 +446,7 @@ function chooseName(code, r, name) {
   $("google-privacy").onclick = (ev) => { ev.preventDefault(); openOut(CENTRAL + "/privacy"); };
   setTimeout(() => $("google-name").focus(), 50);
 }
-$("skip").onclick = () => signedIn("");
+$("skip").onclick = () => { skipped = true; signedIn(""); };
 $("retry").onclick = connect;
 $("in-name").value = store.get("name");
 
@@ -479,6 +468,7 @@ $("chip").onclick = async () => {
        api("/api/logout", { token }).catch(() => {});
        token = ""; store.set("token", ""); myName = "";
        store.set("devices", "");                  // (the games knew this device as yours: a new key for each from now on)
+       if (app) app.stopHosting();                // (your game: saved, and shut to whoever you'd let in)
        showWelcome();
      }],
      ["Save", "go", () => {
@@ -530,9 +520,11 @@ function houseAd() {
 // The games this app runs itself let you in as their host by its key: as your account, or this device, no network.
 const randomKey = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, "0")).join("");
 function deviceKey(game) {
+  // (signing out forgets your account's keys, the games knowing them as you; a guest's stay, its characters with them)
+  const which = token ? "devices" : "guests";
   let keys = {};
-  try { keys = JSON.parse(store.get("devices") || "{}") || {}; } catch (e) { keys = {}; }
-  if (!keys[game]) { keys[game] = randomKey(); store.set("devices", JSON.stringify(keys)); }
+  try { keys = JSON.parse(store.get(which) || "{}") || {}; } catch (e) { keys = {}; }
+  if (!keys[game]) { keys[game] = randomKey(); store.set(which, JSON.stringify(keys)); }
   return keys[game];
 }
 function hostKey() {
@@ -555,7 +547,13 @@ async function join(address, id, name, mine) {
   if (!u) { toast("That isn't an address.", true); return; }
   busy(`Joining ${name || u.host}...`);
   if (!id) {                                       // (by address: ask it who it is, for the ticket)
-    try { id = (await (await fetch(u.origin + "/api/info")).json()).id; } catch (e) { id = ""; }
+    const link = /\/play\/([^/]+)\/?$/.exec(u.pathname);    // (a friend's link: its id is in it)
+    if (link) {
+      id = decodeURIComponent(link[1]);
+      if (!u.pathname.endsWith("/")) u.pathname += "/";
+    } else {
+      try { id = (await (await fetch(u.origin + "/api/info")).json()).id; } catch (e) { id = ""; }
+    }
   }
   const q = new URLSearchParams(), h = new URLSearchParams();
   if (KIND !== "browser") q.set("app", KIND);
@@ -577,13 +575,12 @@ async function join(address, id, name, mine) {
 // ----- the screens
 function show(which) {
   $("menu").hidden = which !== "menu";
-  for (const s of ["host", "local", "remote", "friends"]) $(s).hidden = which !== s;
-  if (which === "local" && KIND !== "browser") find();
+  for (const s of ["local", "remote", "friends"]) $(s).hidden = which !== s;
+  if (which === "local") find();
   if (which === "remote") listRemote();
   if (which === "friends") listFriends();
 }
 for (const b of document.querySelectorAll(".back")) b.onclick = () => show("menu");
-$("host-open").onclick = () => show("host");
 $("local-open").onclick = () => show("local");
 $("remote-open").onclick = () => {
   if (!myName) { toast(centralUp ? "Sign in first: the remote games know you by your Shards account." :
@@ -707,29 +704,19 @@ $("join").onclick = () => { store.set("address", $("address").value.trim()); joi
 $("address").value = store.get("address");
 $("address").addEventListener("keydown", (ev) => { if (ev.key === "Enter") $("join").click(); });
 
-// ----- hosting (the apps): alone, local or remote
+// ----- the single-player game (the apps): who else it's open to is said in it, in Options
 function current() { try { return app ? JSON.parse(app.state()) : {}; } catch (e) { return {}; } }
 let wantPlay = false, lastErr = "";
-function host(mode) {
-  const st = current();
-  if (st.status === "on") { toast("A game is running here already: stop it first.", true); return; }
-  if (mode === "friends" && (!myName || !centralUp)) {
-    toast(myName ? "The central server can't be reached just now: host for your network instead." :
-      "Sign in first: your friends find your game by your Shards account.", true);
-    return;
-  }
+function startGame() {
   wantPlay = true;
-  if (app.hostAs) app.hostAs(mode === "solo" ? "" : $("host-name").value.trim(), mode, CENTRAL, hostKey());
-  else if (mode === "solo") app.playAlone(); else app.host($("host-name").value.trim());
-  store.set("hostName", $("host-name").value.trim());
-  busy(mode === "solo" ? "Starting your world..." : "Starting the game...");
+  app.hostAs(myName ? `${myName}'s game` : "", "solo", CENTRAL, hostKey());
+  busy("Starting your world...");
 }
 $("alone").onclick = () => {
   const st = current();
-  if (st.status === "on" && st.mode === "solo") { join("127.0.0.1:" + (st.port || 8484), "", "your world", true); return; }
-  host("solo");
+  if (st.status === "on") { join("127.0.0.1:" + (st.port || 8484), "", "your world", true); return; }
+  startGame();
 };
-$("host").onclick = () => host(document.querySelector("input[name=mode]:checked").value);
 $("resume").onclick = () => { const st = current(); join("127.0.0.1:" + (st.port || 8484), "", st.name, true); };
 $("running-stop").onclick = () => app.stopHosting();
 
@@ -741,16 +728,10 @@ function refresh() {
   $("running").hidden = !on && !busyNow;
   $("resume").hidden = $("running-stop").hidden = !on;
   $("running-name").textContent = busyNow ? ({ unpacking: "Unpacking the game (the first time takes a while)...",
-    starting: "Starting...", stopping: "Saving the world..." }[st.status]) : st.mode === "solo" ? "Your own world" : st.name;
-  $("running-what").textContent = !on ? "" : st.mode === "solo" ? "is running on this device." :
-    st.mode === "friends" ? "is hosted here for your friends, and this network." :
-    st.mode === "remote" ? "is hosted here, announced to the central server." : "is hosted here for this network.";
-  const list = (st.addresses || []).map((ip) => `http://${ip}:${st.port}`);
-  $("running-addresses").innerHTML = on && st.mode !== "solo" && list.length ? "Others join at " +
-    list.map((u) => `<span class="address">${esc(u)}</span>`).join(", ") : "";
+    starting: "Starting...", stopping: "Saving the world..." }[st.status]) : st.name;
+  $("running-what").textContent = on ? "is running on this device." : "";
   if (st.status === "error" && st.error && st.error !== lastErr) { lastErr = st.error; done(); toast("The game couldn't start: " + st.error, true); }
   if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484), "", st.name, true); }
-  if (!$("host-name").value) $("host-name").value = store.get("hostName") || "Shards of Ashen on " + (st.device || "this device");
 }
 
 // ----- the footer

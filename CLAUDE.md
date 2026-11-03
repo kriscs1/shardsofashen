@@ -567,18 +567,28 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
   go by each player's own address, sign-ups limited by `DS_REGISTER_PER_DAY`, admins' `/kick`,
   `/ban`, `/mute`): README-Server.md says how. Every game has a name
-  (the host's, in Options; else `DS_NAME`: on Unraid, "Server name"), on the login screen, in the app's list and in the start screen's Public servers. The app opens on Play alone
-  (`solo.db`, this phone only: 127.0.0.1, `DS_LAN=0`) or Play with others (host, the network's games, an address). So
+  (the host's, in Options; else `DS_NAME`: on Unraid, "Server name"), on the login screen, in the app's list and in the start screen's Public servers. The app opens on Single player
+  (`solo.db`, this device only: 127.0.0.1) or joining a game. So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.
+- **Getting into a game is simple, the owner's rule** (README-Server.md "How you get in"). A server's own address shows a
+  browser nothing (`make_app` index: a 404) unless it has a ticket (or `joined`, what's left of one) or comes from an app
+  (`app`), or it's this machine, or an app's own game open to its network, at the address its host's Options show. The
+  **website** has sign-in, the Public servers (login needed) and a friend's link (`/play/<id>/` sends you to sign in, then
+  on in), nothing else. The **apps** ask you to sign in, and can skip it: Single player (no login); Friends' games; Join a
+  local game (found by UDP broadcast on the network, never through the central server, or an address, or a friend's link;
+  no login, and everything stays on the network); Public servers (login needed).
+- **The apps have one game, opened from inside it** (Options; `ds_host.py`, `make_app(own=True)`): closed each time it
+  starts, on 127.0.0.1. Open to your network: it binds to the network and answers its broadcast, needing no login, its
+  address shown to the host. Open to the internet, needing the host signed in: `server/relay.py`, the game still running on
+  the host's machine, its link shown to the host, the host's friends let in. Either or both, any time, nobody playing
+  dropped by it. Signing out stops it. There's no hosting as a separate thing, and no listing an app's game publicly.
 - **Every version has the same start screen** (`web/home/`): sign in to your Shards account first (or make one, or a
-  forgotten password by email, or play without one); then the menu: Play alone and Host a game (My
-  network: answered on its network; Friends: that, and the host's friends anywhere, through the central server) in
-  the apps, and Friends' games (the games friends host or play; your friends), Join a local game (the network's, or
-  an address; a browser: an address only) and Public servers (a limited beta: the central server's list) everywhere.
+  forgotten password by email; in the apps, or play without one), then what's above.
+  Signing out forgets the keys games know your account by; a guest's keys stay, so its characters are still there.
   Joining takes a ticket from the central server made out to that server's id. **The central server is
   `https://shardsofashen.hallisium.com`** (`web/home/config.js`, a cloud server's `DS_CENTRAL`); `deploy/central-setup.sh`
   sets one up on a VM in one line.
-- **Hosting for friends goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
+- **Open to the internet goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
   connects out (no router port, any network) with the key the host's ticket brought; friends open
   `<central>/play/<game id>/` and the central server passes the page, its files (kept there per version) and the game
   both ways. A relayed connection is "relay:<address>" (`auth.RELAY_KEY`): never this machine or its network, and let
@@ -693,10 +703,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   dirt, snow...; `dev/migrate/round_world.py` set it and turned every laid corner piece back to its base): the game
   (`ground.js` paintRounds) and the editor (`render.py` _rounds) work it out at every corner of the grid from the four
   cells round it, so a map holds only plain tiles. A cell's corner whose two neighbours there are both another ground
-  takes that ground out to the middle of its two edges, on a curve bent by that grid corner's own hash: a lone tile is
+  takes that ground out to the middle of its two edges, on a curve that leaves each edge along it (no angle where it
+  starts), how full it is by that grid corner's own hash: a lone tile is
   round (no two alike), a one-tile pond a pool, a staircase a slope, an inlet's end a bay, two and two across a corner
   joined by the higher `Blend`. Where the ground filling it spills its blend over this cell's edges anyway, its curve
-  runs round the bands (`INSET`); where a corner is rounded away, its own ground's band stops at the middle of that
+  runs round the bands (`INSET`: the game's, the editor drawing no bands), and a side rounded at both ends has no band
+  at all, its curve its edge (so a lone tile is a full round, not a square of bands); where a corner is rounded away, its own ground's band stops at the middle of that
   edge, and the foam follows the water. Don't paint coasts with pieces or run a smoothing over the maps.
 - **Corner pieces are only for a shape the rounding can't make** (`dev/migrate/build_ground_pieces.py`, laid by hand
   from Detail): a piece says what it's made of (Tiles.ini `Corner.Base`, `Corner.Land`, `Corner.Mask` NE,SE,SW,NW,
@@ -725,8 +737,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
    `leave`, `stock`; click with `s.choose_verb(verb, e, gx, gy)`).
 3. After changing sprites, sounds or data: `python -I tools/export_web_assets.py`.
 4. After changing maps: `python -I dev/migrate/build_minimaps.py`, and commit the changed `Minimap*.png`.
-5. Client changes (`web/js`): load the game in a browser (Playwright, with `DS_DB=<scratch>/t.db
-   DS_PORT=85xx python -m server`) and check there are no console errors and that it looks right, on a desktop and
+5. Client changes (`web/js`): load the game in a browser (Playwright, at `http://127.0.0.1:85xx`, with `DS_DB=<scratch>/t.db
+   DS_PORT=85xx python -m server`: this machine's the one address that shows the page without a ticket) and check there are no console errors and that it looks right, on a desktop and
    on a phone (a 915 x 412 touch viewport with `?app=android`).
 6. Commit to `main` with a message saying what changed for players, then push. Deployment (Docker on Unraid,
    `ghcr.io/kriscs1/shardsofashen`) builds from GitHub.

@@ -171,6 +171,20 @@ the **Stillwater**. A pocket is always safe: nothing hostile can be in one.
 
 ## Who's who
 
+**How you get in.** A server's own address shows nothing to a browser, unless it comes with a ticket or from an app. There
+are only these ways in:
+
+| Way | From | Login |
+|---|---|---|
+| Single player | An app | Asked, not needed |
+| A single-player game opened to your network (Options) | The app's Join a local game (a list, or an address), or a browser at the address its host's Options show | Not needed. Everything stays on the network, but a signed-in player's ticket is checked with the central server |
+| A single-player game opened to the internet (Options) | The link in its host's Options, or Friends' games | The host and the friend. The game still runs on the host's machine, passed through the central server |
+| A home server that isn't public | The app's Join a local game | Not needed |
+| A public server | The website, or the app's Public servers | Needed |
+
+An app asks you to sign in each time you start it, signed out; the website only has the public servers, so it wants a
+login first. Each time a single-player game starts it's closed again, till its host opens it.
+
 Characters have no passwords. Each belongs to someone, and its name is one of a kind on its server:
 
 - **A Shards account** (signed in on the start screen): the start screen gets a ticket from the central server for that
@@ -179,7 +193,7 @@ Characters have no passwords. Each belongs to someone, and its name is one of a 
 - **A device** (playing without an account): the start screen gives each game a key of this device's own, and the
   game knows it by that. A device's key lets you in from this machine and its network, or anywhere on a server that
   isn't joined to a central server; a public server joined to one wants an account.
-- **The host**: the app's own game (Play alone, Host a game) lets the start screen in by the key it started the
+- **The host**: the app's own game (Single player) lets the start screen in by the key it started the
   server with, as its Shards account, or this device: no ticket, so playing alone needs no network.
 
 A device that came in by an account (a ticket, or the host's key) is that account's on that server from then on: a
@@ -266,7 +280,8 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
 
    (Without this, the Docker tab's **Check for Updates** does it by hand.)
 
-Players open `http://<your Unraid server>:8484`; the WebUI entry of the container's menu opens it too. It starts with
+Players join through the app (found on your network, or by its address) or, once it's a listed public server, the
+website; there's nothing to open at its own address. It starts with
 the array and keeps everyone's progress in appdata (your appdata backups cover it).
 
 Accounts (Unraid's Terminal):
@@ -292,7 +307,8 @@ That's all:
 
 - **Starting:** Docker starts with Linux (no one needs to sign in), and the game and its updater start with Docker.
 - **Updates:** they arrive by themselves, a few minutes after each **Publish Update**.
-- **Connecting:** players use `http://<the server's address>:8484`.
+- **Connecting:** players use the app (Join a local game: found on the network, or the server's address) or, for a
+  listed public server, the website. Opening the server's address in a browser shows nothing.
 - **Day to day,** in `~/shards-of-ashen`:
   - `docker compose logs -f` shows what it's doing.
   - `docker compose pull game && docker compose up -d` updates at once.
@@ -376,7 +392,7 @@ lists the remote game servers (each announces itself to it), and it serves the a
   the network's answer, in the central list, or from its `/api/info`), and opens the game with it; the game server
   checks it with the central server (`/api/verify`) and shows the account's characters there (or makes their
   first). See "Who's who" below.
-- **Hosting for friends** (the apps' Host a game, Friends): the game connects out to the central server
+- **Open to the internet** (Options, in an app's single-player game; its host must be signed in): the game connects out to the central server
   (`server/relay.py`) with the key the host's sign-in brought, so nothing on the host's router needs opening and it
   works on any network, a phone's too. The host's friends see it under Friends' games and open it at
   `<central>/play/<the game's id>/`; the central server (`central/relay.py`) passes the page, its pictures and sounds

@@ -68,7 +68,7 @@ class Reporter:
         g = self.game
         public = os.environ.get("DS_PUBLIC", "").strip() in ("1", "yes", "on", "true")
         kind = "public" if public else "friends" if g.for_friends() else \
-            "solo" if os.environ.get("DS_LAN", "1").strip() == "0" else "local"
+            "solo" if os.environ.get("DS_LAN", "1").strip() == "0" or (g.own and not g.lan_open) else "local"
         out = {"secret": self.secret(), "kind": kind, "version": g.version.get("version", ""),
                "name": g.server_name() if kind in ("public", "friends") else ""}
         if public:                  # (that it's the server listed: it says so with what it announces itself by)

@@ -250,6 +250,22 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
 $("opt-lan").addEventListener("input", (ev) => send({ t: "lan", open: ev.target.checked }));
+$("opt-net").addEventListener("input", (ev) => send({ t: "internet", open: ev.target.checked }));
+// (who can reach an app's own game: its host's say. The network's stays on it; the internet's goes through the central
+// server, the game still running here, and needs the host signed in)
+const reach = {};
+function showReach(m) {
+  Object.assign(reach, m);
+  $("opt-net-row").hidden = !reach.own;
+  $("opt-net").checked = !!reach.internet;
+  $("opt-net").disabled = !reach.signed;
+  $("opt-net-words").textContent = reach.signed ? "Open to the internet (your friends join by a link)" :
+    "Open to the internet: sign in on the start screen first";
+  $("opt-net-link-row").hidden = !(reach.own && reach.internet && reach.link);
+  $("opt-net-link").value = reach.link || "";
+  $("opt-lan-at-row").hidden = !(reach.own && $("opt-lan").checked && reach.address);
+  $("opt-lan-at").textContent = `Others join from Join a local game, or at ${reach.address || ""}`;
+}
 $("opt-server-name-save").addEventListener("click", () => send({ t: "server_name", name: $("opt-server-name").value }));
 
 // ----- the trade window (together.py): your pack's things to put in, your offer to take back, theirs; both accept
@@ -577,6 +593,7 @@ function authenticate() {
     ticket = "";
     const q = new URLSearchParams(location.search);
     q.delete("ticket");
+    q.set("joined", "1");                          // (a reload's still welcome: without it, the server shows nothing)
     history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : ""));
   }
   $("login-who").textContent = "Finding your characters...";
@@ -709,7 +726,9 @@ N.onMessage = (m) => {
       break;
     case "lan":
       $("opt-lan").checked = !!m.open;
+      showReach({});
       break;
+    case "internet": showReach({ internet: m.internet }); break;
     case "server_name": $("opt-server-name").value = m.name || ""; break;
     case "trade": showTrade(m); break;
     case "characters": showCharacters(m); break;
@@ -868,6 +887,7 @@ async function startGame(m) {
   $("opt-server-name").value = m.server || "";
   $("opt-lan-row").hidden = !m.host;               // (open to the network: the host's say, or an admin's)
   $("opt-lan").checked = !!m.lan;
+  showReach(m.reach || {});
   S.explored.clear();
   for (const [k, v] of Object.entries(m.explored || {})) S.explored.set(k, unpackCells(v));
   S.clock = { day: m.time.day, secs: m.time.secs, on: m.time.on, at: performance.now() };

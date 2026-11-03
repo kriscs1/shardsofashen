@@ -57,20 +57,19 @@ class Host:
     """The game hosted here (or played alone): its server in a thread of its own, as the Android app's HostService."""
 
     def __init__(self):
-        self.status, self.error, self.name, self.mode = "off", "", "", "local"
+        self.status, self.error, self.name, self.mode = "off", "", "", "solo"
 
     def start(self, name, mode, central, host_key=""):
         if self.status not in ("off", "error"):
             return
-        self.mode = mode if mode in ("solo", "local", "friends", "remote") else "local"
-        self.name = "Your own game" if self.mode == "solo" else (name or "Shards of Ashen on " + platform.node())
+        self.mode = "solo"
+        self.name = name or "Shards of Ashen on " + platform.node()
         self.status, self.error = "starting", ""
 
         def run():
             try:
                 import ds_host
-                db = os.path.join(data_dir(), "solo.db" if self.mode == "solo" else "world.db")
-                ds_host.start(ROOT, db, self.name, PORT, version(), self.mode == "solo", self.mode, central, host_key)
+                ds_host.start(ROOT, os.path.join(data_dir(), "solo.db"), self.name, PORT, version(), central, host_key)
                 self.status = "on"
             except Exception as e:                      # (the port's taken, the files are missing...)
                 self.error, self.status = str(e), "error"

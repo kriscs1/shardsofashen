@@ -10,6 +10,7 @@ import itertools
 import json
 import logging
 import time
+from urllib.parse import quote
 
 from aiohttp import web, WSMsgType
 
@@ -116,6 +117,8 @@ class Relays:
                                 "<p style='font:18px serif;padding:2em'>That game isn't open to friends just now.</p>")
         if path == "ws":
             return await self.friend(request, t)
+        if not path and not {"ticket", "joined", "app"} & set(request.query):     # (the link as it was given: sign in, and on in)
+            raise web.HTTPFound("/?join=" + quote(key, safe=""))
         if request.method != "GET":
             return web.Response(status=405)
         ask = path + ("?" + request.query_string if request.query_string else "")
