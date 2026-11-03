@@ -434,8 +434,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `refurnish_redrock.py`). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
   run again after it.
 - **Galaith is paved inside its walls** (`dev/migrate/build_galaith_grounds.py`, the owner's wish; once on the maps): the
-  Royal quarter in `Royal_Paving001`, the Nobles' in `Noble_Paving001`, the rest in `Flagstone001`; streets cobbled, marble
-  among the nobles; a tree stands in its own `Tree_Pit001` (an Under: it works on any paving). Just inside the east gate:
+  Royal quarter in `Royal_Paving001`, the Nobles' in `Noble_Paving001`, the rest in `Flagstone001`; **no paths or streets of their own
+  on it** (`dev/migrate/galaith_no_paths.py`, the owner's wish: it's all stone, so a line of cobble or marble is only a line;
+  the market square and the Fountain Court keep their marble, the two lawns their gravel); a tree stands in its own `Tree_Pit001` (an Under: it works on any paving). Just inside the east gate:
   the **Fountain Court** (`Galaith_Fountain`: the raised pool is a Stretch set, `Fountain_Pool`; its shadow on the paving
   is `Pool_Shadow_*` under what's there; the Grand Fountain stands in it, Toss a Coin), the **Graveyard**
   (`Galaith_Graveyard`: iron rails, `Lawn001`, every stone its own `Examine <Id>`; the royal firstborn's are empty) and the
