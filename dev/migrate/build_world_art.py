@@ -222,7 +222,8 @@ def scorched():
 
 
 def burnt_walls():
-    """Galaith's walls and gates, white stone, burnt black: soot thickest at the foot and in blotches."""
+    """Galaith's walls and gates, white stone, burnt black: soot thickest at the foot and in blotches, the stones' courses
+    still showing through (drawn from the wall's art as it is now: build_crossings.py draws Galaith_Wall)."""
     made = []
     for src, dst, n in (("Galaith_Wall", "Burnt_Wall", 5), ("Galaith_Gate", "Burnt_Gate", 6)):
         for v in range(1, n + 1):
@@ -239,12 +240,12 @@ def burnt_walls():
                     c = im.get_at((x, y))
                     if c.a < 10:
                         continue
-                    k = 0.35 + 0.45 * (y / S)
+                    k = 0.22 + 0.3 * (y / S)
                     for bx, by, r in blots:
                         d = math.hypot(x - bx, y - by)
                         if d < r:
-                            k += 0.35 * (1 - d / r)
-                    k = min(0.92, k + rng.uniform(-0.05, 0.05))
+                            k += 0.25 * (1 - d / r)
+                    k = min(0.72, k + rng.uniform(-0.04, 0.04))
                     out.set_at((x, y), (int(c.r * (1 - k) + 18 * k), int(c.g * (1 - k) + 14 * k),
                                         int(c.b * (1 - k) + 12 * k), c.a))
             b = "%s%03d" % (dst, v)
@@ -252,6 +253,45 @@ def burnt_walls():
             K.copy_tile(b, a, Examine_Info="Galaith's wall: white stone once, burnt black by dragon fire.")
             K.minimap_colour(b, average(out))
             made.append(b)
+    return made
+
+
+def scorch_marks():
+    """Soot on paving where the dragon's fire came over the wall (decor: on any stone): a blot, a streak, cracked and
+    blackened slabs, an ember or two."""
+    made = []
+    for v in range(1, 4):
+        rng = random.Random("scorch%d" % v)
+        s = pygame.Surface((S, S), pygame.SRCALPHA)
+        blots = [(rng.randrange(6, 26), rng.randrange(6, 26), rng.randrange(5, 11)) for _ in range(2 + v)]
+        for y in range(S):
+            for x in range(S):
+                a = 0.0
+                for bx, by, r in blots:
+                    d = math.hypot((x - bx) * (1.0 if v != 2 else 0.6), y - by)
+                    if d < r:
+                        a = max(a, (1 - d / r) ** 0.7)
+                a *= rng.uniform(0.8, 1.0)
+                if a > 0.08 and 2 <= x < S - 2 and 2 <= y < S - 2:
+                    s.set_at((x, y), (22, 18, 16, int(200 * a)))
+        for _ in range(v + 1):                                   # (a crack across a slab)
+            x, y = rng.randrange(4, 28), rng.randrange(4, 28)
+            for _ in range(rng.randrange(4, 9)):
+                if 1 <= x < S - 1 and 1 <= y < S - 1:
+                    s.set_at((x, y), (12, 10, 10, 230))
+                x += rng.choice((-1, 0, 1))
+                y += rng.choice((0, 1))
+        for _ in range(v):                                       # (embers)
+            x, y = rng.randrange(6, 26), rng.randrange(6, 26)
+            if s.get_at((x, y)).a > 60:
+                s.set_at((x, y), rng.choice([(232, 108, 40, 255), (200, 70, 30, 255)]))
+        name = "Scorch_Mark%03d" % v
+        save(name, s)
+        K.minimap_colour(name, average(s))
+        K.section(K.TILES, name, [("Walkable.Data", OPEN), ("Show.Name", "0"), ("Use.Words", ""),
+                                  ("Examine.Info", "Soot, and the stone cracked by the heat. The dragon's fire came over the wall."),
+                                  ("Line.of.Sight", "1"), ("Layer", "Decor")])
+        made.append(name)
     return made
 
 
@@ -410,7 +450,7 @@ def moored_boat():
 def main():
     pygame.init()
     pygame.display.set_mode((1, 1))
-    made = mountains() + scorched() + burnt_walls() + streets() + signpost() + moored_boat()
+    made = mountains() + scorched() + burnt_walls() + scorch_marks() + streets() + signpost() + moored_boat()
     print("Drew %d tiles: %s" % (len(made), ", ".join(made)))
 
 

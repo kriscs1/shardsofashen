@@ -314,6 +314,8 @@ class World(NPCMixin):
         level = val(self.option_value(options, "Level"))
         if level > 0 and name == LIVING:                      # (a map's Shard Remnant, as strong as its Level=)
             make_remnant(self.data, e, int(level))
+        else:
+            self.set_npc_level(e, options, int(level))
         self.init_npc_ai(e, options)
         e.look, e.look_of = self.npc_look(e, options), name
         return e
@@ -357,6 +359,28 @@ class World(NPCMixin):
         e.respawn_delay = val(d.entity_ini(n, "Respawn", lbstr(d.npc_respawn_delay)))
         e.in_combat = False
         e.direction = 4
+
+    def set_npc_level(self, e, options, given=0):
+        """Its level (the owner's wish: every NPC has one): its map line's Level=, else its kind's (Entities.ini Level), a
+        little above or below for one that's one of many (no Id, not a boss: the same each time it comes back). Its
+        health, blows and guard go up or down with it, as a Shard Remnant's do (Shards.ini [Remnants] ...Per.Level)."""
+        d = self.data
+        base = max(1, int(val(d.entity_ini(e.name, "Level", "1"))))
+        if given > 0:
+            level = given
+        elif e.npc_id or val(d.entity_ini(e.name, "Boss", "0")) or val(self.option_value(options, "Boss")):
+            level = base
+        else:
+            import zlib
+            level = base + (-1, 0, 0, 1)[zlib.crc32(self.npc_key(e).encode()) % 4]
+        level = max(1, min(25, level))
+        e.npc_level = level
+        k = level - base
+        if k:
+            num = lambda key, dflt: val(trim(d.shards_ini("Remnants", key, "")) or str(dflt))
+            e.hp = e.max_hp = max(1, int(e.max_hp + k * num("Mob.Hitpoints.Per.Level", 5)))
+            e.strength = max(1, round(e.strength + k * num("Mob.Strength.Per.Level", 0.5)))
+            e.defence = max(1, round(e.defence + k * num("Mob.Defence.Per.Level", 0.5)))
 
     def set_npc_hostile(self, e, hostile):
         """Turns an NPC into a foe (for everyone) or a friend."""

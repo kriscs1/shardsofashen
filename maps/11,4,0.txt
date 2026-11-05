@@ -21,5 +21,4 @@ Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass
 Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles003):Grass001:Grass001:Grass001+Decor(Pebbles003):Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001)
 MapItem	Herb	32	608	1
 StaticObject	Trout_Spot	480	96
-StaticObject	Arm_Table	576	128	Id=Arm_Table_1
 Id	Inn_Spot_8	9	13

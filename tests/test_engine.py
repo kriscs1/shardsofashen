@@ -17,6 +17,7 @@ def world():
     w = World(ROOT)
     w.encounters.settings["on"] = w.banter.settings["on"] = "0"   # (nobody turning up in other tests: they ask for them)
     w.wonders.on = False
+    w.seasons.pinned = "Summer"         # (the same season every run: a 16-day year would change it under them)
     return w
 
 
@@ -24,6 +25,49 @@ def world():
 def same_luck(request):
     """Each test rolls the same dice every run (the world is shared: a sheep wandering through a gate shouldn't fail one)."""
     random.seed(request.node.name)
+
+
+def test_a_scene_that_ends_never_leaves_you_rooted(world):
+    s = join(world, "Rooted", "4,0,0", 224, 380)
+    assert s.run_script_lines("(test)", ["01\tToggle.User.Input\tOFF", "02\tEnd"])
+    world.tick(0.05)
+    assert s.user_input_enabled and not s.script_running            # (the scene's over: you can walk)
+    leave(world, s)
+
+
+def test_every_npc_has_a_level_and_its_strength_goes_by_it(world):
+    d = world.data
+    wolf = int(d.entity_ini("Wolf", "Level", "0"))
+    assert wolf >= 1 and int(d.entity_ini("Villager", "Level", "0")) >= 1      # (townsfolk too)
+    many = [world.add_npc("Wolf", 0, 40 + 3 * k, 40, "") for k in range(12)]
+    levels = {e.npc_level for e in many}
+    assert levels <= {wolf - 1, wolf, wolf + 1} and len(levels) > 1            # (a little above or below its kind's)
+    hp = {e.npc_level: e.max_hp for e in many}
+    assert all(hp[a] < hp[b] for a in hp for b in hp if a < b)
+    set_to = world.add_npc("Wolf", 0, 40, 80, "Level=%d" % (wolf + 6))
+    named = world.add_npc("Wolf", 0, 40, 120, "Id=Test_Wolf")
+    assert set_to.npc_level == wolf + 6 and named.npc_level == wolf          # (its map line's; one of a kind: its kind's)
+    from dsengine.remnants import monster_level
+    villager = world.add_npc("Villager", 0, 40, 160, "Attitude=Good")
+    assert monster_level(d, set_to) == wolf + 6 and monster_level(d, villager) == 0   # (no remnants from townsfolk)
+    for e in many + [set_to, named, villager]:
+        world.remove_entity(e)
+
+
+def test_standing_stones_are_decor_and_lava_runs_over_its_neighbours(world):
+    d = world.data
+    assert d.tile_ini("Standing_Stone001", "Layer", "") == "Decor"
+    assert not any(t == "Standing_Stone001" for m in world.maps.values() for t in m.tile)
+    assert int(d.tile_ini("Lava001", "Blend", "0")) == 9
+
+
+def test_marys_grave_is_by_the_sea_and_galaith_has_no_way_in_from_it(world):
+    m = world.maps["4,1,0"]
+    assert ("Mothers_Grave", 2, 5) in m.ids
+    assert not any(world.pixel_walkable(0, gx * 32 + 16, 378 * 32 + 16) for gx in range(-263, -82))   # (the south wall whole)
+    harbour = [world.maps["%d,18,0" % mx] for mx in (-6, -5, -4)]
+    assert any("Burnt_Hull001" in c for h in harbour for c in h.decor)
+    assert sum(1 for e in world.ents if e.name == "Fire" and e.map in ("-6,18,0", "-5,18,0", "-4,18,0")) >= 5
 
 
 def test_locked_out_runs_through_the_secret_cellars(world):
@@ -1607,7 +1651,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     use("1,1,0", 21, 6, "Search")
     assert s.items_held("Fathers_Compass") == 1 and attr("Passage") == 4
     for k in range(len(s.skill_xp)):
-        s.skill_xp[k] = max(s.skill_xp[k], 6)                       # (Bess won't sail a green hand: level 5)
+        s.skill_xp[k] = max(s.skill_xp[k], 6)                       # (Bess won't sail a green hand: level 3)
     s.absorb_remnants(next(e for e in s.inv if e.name == "Shard_Remnant"))   # (Aldous's lesson: Bess won't sail before)
     talk(bess, 3, 1)                                                # the compass to Bess: she sails you over
     run(60, ms=200)
@@ -1921,7 +1965,7 @@ def test_a_new_character_starts_at_their_mothers_funeral(world):
     s.enter_world()
     for _ in range(10):
         world.tick(0.05, now=world.now + 50)
-    assert s.cur_map.name == "3,1,0" and "Bronze_Sword" not in s.equipped
+    assert s.cur_map.name == "4,1,0" and "Bronze_Sword" not in s.equipped
     assert not s.user_input_enabled                                 # (the funeral: you watch)
     for _ in range(40):                                             # (each answer as it comes, up to the cottage)
         for _ in range(60):
@@ -4890,7 +4934,7 @@ def test_no_leaving_the_isle_without_knowing_shard_remnants(world):
     s.update_attribute("RemnantsAbsorbed", "=1")
     s.start_script("Bess Sails to Northport", False)
     run_for(world, 20)
-    assert s.cur_map.name == "3,2,0"                                # (nor a green hand: level 5)
+    assert s.cur_map.name == "3,2,0"                                # (nor a green hand: level 3)
     s.close_action_box(-1) if s.ab_mode else None
     run_for(world, 5)
     for k in range(len(s.skill_xp)):
@@ -6186,8 +6230,7 @@ def test_galaith_is_paved_nicer_among_the_nobles_and_royals(world):
     m, c = ground(-258, 290)
     assert m.tile[c] == "Royal_Paving001"
     assert any(ground(x, y)[0].tile[ground(x, y)[1]] == "Noble_Paving001" for x in range(-263, -226) for y in range(268, 286))
-    m, c = ground(-130, 375)
-    assert m.tile[c] == "Flagstone001"
+    assert any(ground(x, 375)[0].tile[ground(x, 375)[1]] == "Flagstone001" for x in range(-146, -114))   # (the hovels')
     for tile in ("Royal_Paving001", "Noble_Paving001", "Lawn001"):
         assert d.tile_ini(tile, "Texture", "")                  # (a big texture: never one picture every tile)
 

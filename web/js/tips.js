@@ -84,7 +84,7 @@ export function entityTip(e) {
       lines.push(canSellHere(e.n) ? `$Sells for ${itemPrice(e.n, S.box.sell_rate || 0.2)} gold` : "!Can't be sold here");
     }
   } else if (e.k === T.NPC) {
-    lines.push("#" + name);
+    lines.push("#" + name + (e.lv ? `  (level ${e.lv})` : ""));
     if (e.f === 2) lines.push(`Passive  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
     else if (e.f) lines.push(`!Hostile  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
   } else if (e.k === T.STATICOBJECT && e.lk) {

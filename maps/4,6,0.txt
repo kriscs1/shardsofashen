@@ -37,3 +37,4 @@ StaticObject	Notice	448	450	Id=Northport_Notice_368
 Id	Waystone_Northport	3	3
 StaticObject	Valuables	320	280
 StaticObject	Valuables	576	280
+StaticObject	Arm_Table	640	384	Id=Arm_Table_1

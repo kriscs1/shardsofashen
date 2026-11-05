@@ -1,4 +1,4 @@
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Standing_Stone001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Standing_Stone001)
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001+Decor(Rock002):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001

@@ -14,6 +14,7 @@ from .. import theme as T
 from ..app import Page
 from ..project import parse_map_name, Cell, read_text_lines
 from ..widgets import photo
+from ..world import own_level
 from .iniform import IniFormPage
 
 
@@ -123,8 +124,11 @@ class MinimapPage(Page):
         mw, mh = self.project.map_w, self.project.map_h
         nx = max(x for x, _ in lv) - ox + 1
         ny = max(y for _, y in lv) - oy + 1
-        gx, gy = min([ox] + [x for x, _ in lv]) - 1, min([oy] + [y for _, y in lv]) - 1   # (a ring of empty
-        cols, rows = max(x for x, _ in lv) - gx + 2, max(y for _, y in lv) - gy + 2       # squares all round)
+        # (every level under or over the world in the world's frame: the same squares, the same size, wherever its own
+        # maps are, so going from one to the next keeps every square where it was; a level of its own, its own frame)
+        frame = lv if own_level(z) else [xy for zz, l in self.level_maps().items() if not own_level(zz) for xy in l]
+        gx, gy = min([ox] + [x for x, _ in frame]) - 1, min([oy] + [y for _, y in frame]) - 1   # (a ring of empty
+        cols, rows = max(x for x, _ in frame) - gx + 2, max(y for _, y in frame) - gy + 2       # squares all round)
         cw, ch = max(50, c.winfo_width()), max(50, c.winfo_height())
         s = min(cw / (cols * mw), ch / (rows * mh))
         self.geom = (gx, gy, s, mw, mh)

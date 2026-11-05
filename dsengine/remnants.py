@@ -21,9 +21,15 @@ def make_remnant(data, e, level):
 
 
 def monster_level(data, e):
-    """Its Entities.ini Level= (a Shard Remnant: the level it rose at)."""
+    """Its level: as it was placed (world.py set_npc_level), else its kind's Entities.ini Level= (a Shard Remnant: the
+    level it rose at). A creature that isn't a monster's leaves no remnants, whatever its level."""
     lv = getattr(e, "remnant_level", 0)
-    return int(lv) if lv else int(val(data.entity_ini(e.name, "Level", "0")))
+    if lv:
+        return int(lv)
+    kind = int(val(data.entity_ini(e.name, "Level", "0")))
+    if kind <= 0 or trim(data.entity_ini(e.name, "Attitude", "")) == "Good":
+        return 0
+    return int(getattr(e, "npc_level", 0) or kind)
 
 
 def death_remnants(data, e, drop, rise):

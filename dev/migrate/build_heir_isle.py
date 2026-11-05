@@ -39,7 +39,9 @@ import story_kit as K  # noqa: E402
 from story_kit import Map, obj_line, TW, say, ini  # noqa: E402
 
 MAKER = "build_heir_isle.py"
-GRAVE = (15, 4)                                  # Mary's grave, 3,1,0 (you stand below it)
+GRAVE_MAP = "4,1,0"                              # Mary's grave: the graveyard's east end, by the sea (move_marys_grave.py)
+GRAVE = (2, 5)                                   # (you stand below it)
+GRAVE_GATE = (3, 1)                              # (just out of its gate, the cottage's way)
 COTTAGE = (5, 9, 12, 13)                         # the cottage, 4,0,0 (made wider: two beds)
 COTTAGE_DOOR = 8
 HOME = (12, 1, 21, 7)                            # Edwin and Maren's house, 2,1,0, their rooms upstairs on 2,1,1
@@ -469,11 +471,7 @@ def data():
         4: "Give Tobias's compass to Bess, on the farm.",
     }, 5, markers={0: "Milkmaid_Farm", 1: "Hobgoblin_Lair", 2: "Hobgoblin_Lair", 3: "Fathers_House",
                     4: "Milkmaid_Farm"}, chapter=4, requires="The Last Will")
-    # a new character begins at the graveyard (dying still wakes you in the cottage: Config's Start.Map)
-    tpl = os.path.join(K.ROOT, "saves", "TEMPLATE.ini")
-    for k, v in (("Map", "3,1,0"), ("X", str((GRAVE[0] - 1) * TW)), ("Y", str(GRAVE[1] * TW - 4)), ("Direction", "1")):
-        if ini.read("Player", k, "<unset>", tpl) != v:
-            ini.write("Player", k, v, tpl)
+    template()
     K.drop_label("Places", "The Isle Bank")
     K.place_label("Places", "Edwin & Maren's House", "Isle_Bank")
     K.place_label("Places", "Frank's Smithy", "Franks_Smithy")
@@ -492,8 +490,16 @@ def at(x, y, dy=0):
     return "%d,%d" % px(x, y, dy)
 
 
+def template():
+    """A new character begins at the graveyard (dying still wakes you in the cottage: Config's Start.Map)."""
+    tpl = os.path.join(K.ROOT, "saves", "TEMPLATE.ini")
+    for k, v in (("Map", GRAVE_MAP), ("X", str((GRAVE[0] - 1) * TW)), ("Y", str(GRAVE[1] * TW - 4)), ("Direction", "1")):
+        if ini.read("Player", k, "<unset>", tpl) != v:
+            ini.write("Player", k, v, tpl)
+
+
 def grave():
-    m = Map("3,1,0")
+    m = Map(GRAVE_MAP)
     if K.has_id(m, "Mothers_Grave"):
         return
     gx, gy = GRAVE
@@ -502,7 +508,7 @@ def grave():
     K.place_id(m, "Mothers_Grave", gx, gy)
     K.place_id(m, "Funeral_Spot", gx, gy + 1)
     m.save()
-    print("3,1,0: Mary's grave, fresh, in the chapel's graveyard")
+    print("%s: Mary's grave, fresh, in the chapel's graveyard" % GRAVE_MAP)
 
 
 def cottage():
@@ -810,9 +816,10 @@ def notice(pid, title, text, cond=None, alt=None):
 
 
 def opening():
-    """The funeral (3,1,0's entry script, for a character who's never been: LastWill 0), the walk home, the letter."""
+    """The funeral (the grave's map's entry script, for a character who's never been: LastWill 0), the walk home, the
+    letter."""
     gx, gy = GRAVE
-    w("3,1,0", [
+    w(GRAVE_MAP, [
         ("Get.Value", "ATTRIBUTE", "LastWill", V1),
         (">Conditional", "$Variable.1=0", "@end"),
         ("Goto.Script", "The Funeral"),
@@ -822,7 +829,7 @@ def opening():
     rows = [
         ("Toggle.User.Input", "OFF"),
         ("Get.Value", "ATTRIBUTE", "LastWill", V1),                  # (what's added from here is this player's alone)
-        ("Teleport", at(gx, gy + 1, -4), "3,1,0"),
+        ("Teleport", at(gx, gy + 1, -4), GRAVE_MAP),
         ("Add.Entity", at(gx + 1, gy + 1, -8), "Edwin", "NPC", "Attitude=Good Stand=1 Face=W"),
     ]
     rows += [("Add.Entity", at(x, y, -8), who, "NPC", "Attitude=Good Stand=1 Face=%s" % f) for who, x, y, f in mourners]
@@ -836,7 +843,7 @@ def opening():
         ("@go",),
     ]
     for who, x, y, f in mourners:                                # (they go home, out of the graveyard's gate)
-        rows += [("Move.Entity", at(x, y, -8), who, at(22, 3, -8), "3"), ("Remove.Entity", at(x, y, -8), who)]
+        rows += [("Move.Entity", at(x, y, -8), who, at(*GRAVE_GATE, -8), "3"), ("Remove.Entity", at(x, y, -8), who)]
     rows += [
         say("Edwin", "I'm so sorry. Mary was a friend to all of us here.\\Come: I'll walk you home. She left something "
                      "for you, and it's to be given to you alone.", ("Lead the way.", "@walk")),
@@ -1084,7 +1091,7 @@ def bess_and_frank():
     ])
     w("Bess Sails to Northport", [
         # (not till you know what a dead beast's Shard Remnants are: Brother Aldous shows you)
-        (">Conditional", "$Attr.RemnantsAbsorbed<1 or $Player.Level<5", "@sail"),
+        (">Conditional", "$Attr.RemnantsAbsorbed<1 or $Player.Level<3", "@sail"),
         say("Milkmaid", "Wait, love, before we go. I'll not take a green hand over to the mainland, not till you've grown into yourself a bit: level 5, Aldous would say. Out there the beasts run wild, and when one dies its magic doesn't: it leaves splinters behind, and sometimes worse. Has Brother Aldous shown you what to do with them? He showed me, once. Go and see him, then come back to me.", ("I'll go and see him.", "@stay")),
         ("@stay",), ("End",),
         ("@sail",),

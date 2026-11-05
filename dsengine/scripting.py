@@ -151,6 +151,7 @@ class ScriptMixin:
         self.script_state = ""
         self.script_line_no = 0
         self.script_personal = False                # (no script running: nothing done now is a quest's own)
+        self.user_input_enabled = True              # (a scene that ends or breaks off never leaves you rooted there)
         self.script_forced = None
         self.work_from = self.work_cell = None
         if self.script_move_ent is not None:
@@ -611,9 +612,11 @@ class ScriptMixin:
             self.script_jump(arg[1])
         elif c == "Goto.Script":
             personal, forced, entry = self.script_personal, self.script_forced, self.script_entry
+            held = self.user_input_enabled              # (a scene going on in another file: still the same scene)
             self.loot_hold = True                       # (a chest's script going on in another file: same chest)
             self.end_script()
             self.loot_hold = False
+            self.user_input_enabled = held
             self.start_script(arg[1], False, entry)
             if not self.script_running and self.loot_collect is not None:
                 self.loot_finish()

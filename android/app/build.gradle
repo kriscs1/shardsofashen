@@ -12,6 +12,8 @@ def game = file(project.findProperty("dsGame") ?: "../..")   // (the game's fold
 def TEST_APP = "ca-app-pub-3940256099942544~3347511713", TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
 def admobApp = (env.DS_ADMOB_APP ?: project.findProperty("dsAdmobApp") ?: "").trim()
 def admobBanner = (env.DS_ADMOB_BANNER ?: project.findProperty("dsAdmobBanner") ?: "").trim()
+// ("Remove ads": the one-time product's id in the Play Console; "none" for a build without it)
+def adFree = (env.DS_ADFREE_PRODUCT ?: project.findProperty("dsAdFreeProduct") ?: "remove_ads").trim()
 
 android {
     namespace "io.github.kriscs1.shardsofashen"
@@ -29,6 +31,7 @@ android {
         }
         manifestPlaceholders = [admobApp: admobApp ?: TEST_APP]     // (the SDK won't start without an app id)
         buildConfigField "String", "ADMOB_BANNER", "\"${admobApp && admobBanner ? admobBanner : ""}\""
+        buildConfigField "String", "ADFREE_PRODUCT", "\"${adFree == "none" ? "" : adFree}\""
     }
 
     signingConfigs {
@@ -74,6 +77,7 @@ android {
 dependencies {
     implementation "com.google.android.gms:play-services-ads:24.4.0"
     implementation "com.google.android.ump:user-messaging-platform:3.2.0"   // (the consent form, in the EEA and UK)
+    implementation "com.android.billingclient:billing:7.1.1"                // ("Remove ads", through Google Play)
 }
 
 chaquopy {

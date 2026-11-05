@@ -908,7 +908,7 @@ DECOR = {
     "Rock001": rock,
     "Bush001": bush,
     "Fallen_Log001": fallen_log,
-    "Standing_Stone001": standing_stone,
+    # (Standing_Stone001 is decor now, drawn clear by stone_decor.py)
     "Ruined_Wall001": ruined_wall,
     "Ruined_Wall002": lambda: ruined_wall(True),
     "Grave001": lambda: grave(1),

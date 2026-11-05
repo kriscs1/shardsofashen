@@ -1503,3 +1503,12 @@ Woven_Rug017	44 62 108
 Writing_Desk001	126 81 39
 Writing_Desk002	126 81 39
 Yew_Tree001	24 64 46
+Scorch_Mark001	22 18 15
+Scorch_Mark002	22 18 15
+Scorch_Mark003	22 17 15
+Burnt_Hull001	19 15 11
+Burnt_Hull002	34 27 19
+Burnt_Hull003	39 32 24
+Burnt_Hull004	32 27 19
+Burnt_Hull005	30 24 17
+Burnt_Hull006	33 27 19

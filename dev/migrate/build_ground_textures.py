@@ -28,8 +28,8 @@ LAVA_SPEED = 380            # (milliseconds a frame: a slow crawl)
 GRASS = [(0.00, (60, 84, 22)), (0.28, (70, 98, 25)), (0.52, (75, 106, 27)), (0.76, (81, 115, 29)), (1.00, (92, 126, 40))]
 SAND = [(0.00, (188, 164, 114)), (0.30, (203, 181, 127)), (0.55, (209, 187, 133)), (0.80, (214, 192, 138)), (1.00, (222, 201, 150))]
 WATER = [(0.00, (11, 35, 148)), (0.35, (14, 40, 158)), (0.60, (18, 43, 163)), (0.85, (22, 47, 170)), (1.00, (30, 56, 188))]
-LAVA = [(0.00, (34, 24, 24)), (0.30, (58, 38, 34)), (0.42, (96, 30, 12)), (0.56, (176, 54, 10)), (0.72, (232, 112, 18)),
-        (0.88, (250, 176, 44)), (1.00, (255, 226, 120))]
+LAVA = [(0.00, (52, 14, 8)), (0.24, (82, 20, 8)), (0.40, (128, 30, 6)), (0.55, (190, 54, 8)), (0.70, (236, 106, 16)),
+        (0.86, (252, 170, 40)), (1.00, (255, 224, 112))]     # (crust a dark red, never grey: the owner's wish)
 
 
 def soft(rng, size, beta, low=0.0):
@@ -111,8 +111,8 @@ def lava_frames(seed=34):
         t = f / LAVA_FRAMES * 2 * math.pi
         w = [0.5 + 0.5 * math.cos(t + k * 2 * math.pi / 3) for k in range(3)]
         mix = sum(a * b for a, b in zip(w, fields)) / sum(w)
-        glow = stretch(mix) ** 3.6                           # (mostly crust, thin bright veins)
-        v = np.clip(0.18 + 0.72 * glow + 0.22 * (heat - 0.5) + 0.05 * math.sin(t), 0, 1)
+        glow = stretch(mix) ** 2.6                           # (crust, and plenty of bright veins)
+        v = np.clip(0.26 + 0.7 * glow + 0.22 * (heat - 0.5) + 0.05 * math.sin(t), 0, 1)
         out.append(ramp(steps(v, 12), LAVA))
     return out
 
@@ -132,7 +132,8 @@ def main():
     path = os.path.join(ROOT, "data", "Tiles.ini")
     text = open(path, "rb").read().decode("cp1252")
     for tile, adds in (("Grass001", ["Texture=Grass"]), ("Sand001", ["Texture=Sand"]), ("Water001", ["Texture=Water"]),
-                       ("Lava001", ["Texture=Lava", "Texture.Frames=%d" % LAVA_FRAMES, "Texture.Speed=%d" % LAVA_SPEED])):
+                       ("Lava001", ["Texture=Lava", "Texture.Frames=%d" % LAVA_FRAMES, "Texture.Speed=%d" % LAVA_SPEED,
+                                    "Blend=9"])):                # (lava runs over what's round it, not under)
         head = "[%s]\r\n" % tile
         at = text.index(head) + len(head)
         end = text.find("\r\n[", at)

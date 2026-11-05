@@ -32,6 +32,8 @@ def shared_state(w, e):
         st["id"] = e.npc_id
     if e.display:
         st["dn"] = e.display
+    if getattr(e, "npc_level", 0):
+        st["lv"] = e.npc_level
     return st
 
 

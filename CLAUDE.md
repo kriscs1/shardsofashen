@@ -40,8 +40,8 @@ owner's own cats' photos). New characters start with no sword.
 The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's are built by
 `dev/migrate/build_heir_isle.py`):
 
-1. **The Last Will** (`LastWill`). A new character stands at Mary's fresh grave in the chapel's graveyard (3,1,0's
-   entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
+1. **The Last Will** (`LastWill`). A new character stands at Mary's fresh grave at the chapel graveyard's east end, by the
+   sea (4,1,0's entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
    table. The cottage door stays locked (a Lock) until you've read it: the letter (`Last_Will`, Read) tells you who
    you are, and little else: that she hid something, that the Isle kept her secrets, that your father waits in
    Galaith. **The main quest is discovered, not laid out**: no letter or stage text says where a thing is hidden or
@@ -278,7 +278,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   section of Encounters.ini.
 - **The seasons** (`dsengine/seasons.py`, `data/Seasons.ini`): a year of `Year.Days` real days, from the clock. Longer days in summer, longer nights in winter; winter's snow instead of rain, rivers and lakes frozen to walk on (bodies of water under `River.Most`), `Season.Absent=Winter` kinds gone; the catch swaps (`[Swap.<Season>]`, on every script's Give.Item), crops grow by `Crop.Growth`. What's only seen is the page's (`ground.js` seasonal, snowPatches: worked out once for each picture, never a canvas filter). `$World.Season` for a script.
 - **What happens on its own** (`dsengine/wonders.py`, `data/Wonders.ini`, `dev/migrate/build_wonders.py`): shard storms; ghost ships on foggy nights, gone by morning; the Wandering Inn (a different `Inn_Spot_<n>` each day); mimics (a misspelt name, a glint, `Glint=1`; accuse one and it stops pretending); grudges (what killed you or got away hurt comes back scarred and stronger, attributes `Grudge.*`); the Tax Collector, polite and unkillable, walking after anyone over `Tax.Gold`; the year's Champion (arena wins in winter, crowned in spring, a statue on the boulevard); letters by carrier (`/letter Name [+Item] text`, friends only, a courier finds them). Your own legend (`data/Legend.ini`) is told with the rumours (`legend_due`); a line's condition is any script condition.
-- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Dustlands 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks lie above ground only in these. You leave the Isle at level 5 (Bess and Wim won't sail before).
+- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Dustlands 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks lie above ground only in these. You leave the Isle at level 3 (Bess and Wim won't sail before).
 - **Mary's notes** (`dev/migrate/build_wonders.py` NOTES): seven notes where she went; all found make a map to her cache at the Mirror Tarn (`Mary's Notes`), the Heart Splinter. Found, never told.
 - **Banter** (`dsengine/banter.py`, `data/Banter.ini`, `dev/migrate/build_banter.py`): the world's people and animals carry
   on with each other where a player can see it. About every `Every.Seconds`, two near that player whom a scene fits stop,
@@ -449,7 +449,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   is `Pool_Shadow_*` under what's there; the Grand Fountain stands in it, Toss a Coin), the **Graveyard**
   (`Galaith_Graveyard`: iron rails, `Lawn001`, every stone its own `Examine <Id>`; the royal firstborn's are empty) and the
   **Orchard** (`Galaith_Orchard`: Pick the apples and pears, `Apple_Pie` in Cooking; the gardener's cottage in it). No grass
-  or dirt inside the walls but those two lawns. A thing can be heard only near it: Entities.ini `Sound.Loop`, `Sound.Reach`
+  or dirt inside the walls but those two lawns and the gardens (a strip from the north wall to the south: the graveyard, the
+  fountain, the orchard, then lawns, hedges, walks and a pond down to the south wall). The hovels stand about at random. A thing can be heard only near it: Entities.ini `Sound.Loop`, `Sound.Reach`
   (`audio.js` nearLoopTick: the fountain, louder as you come, nothing past its reach or under a roof): use it, not a whole
   map's Ambient.ini, for something that's in one spot.
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
@@ -606,6 +607,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Joining takes a ticket from the central server made out to that server's id. **The central server is
   `https://shardsofashen.hallisium.com`** (`web/home/config.js`, a cloud server's `DS_CENTRAL`); `deploy/central-setup.sh`
   sets one up on a VM in one line.
+- **Ads, and paying once to remove them** (the owner's wish): the start screen shows AdMob in the Android app, AdSense in a
+  browser (`DS_ADSENSE_CLIENT`, `DS_ADSENSE_SLOT`; `/ads.txt` from the central server), else the central server's own.
+  The Android app sells **Remove ads**, a one-time Google Play product (`android/.../Billing.java`, `DS_ADFREE_PRODUCT`,
+  `remove_ads` unless set): bought, its start screen shows no ads at all, and Google Play restores it on a reinstall. Never
+  an ad in a game.
 - **Open to the internet goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
   connects out (no router port, any network) with the key the host's ticket brought; friends open
   `<central>/play/<game id>/` and the central server passes the page, its files (kept there per version) and the game

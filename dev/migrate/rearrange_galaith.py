@@ -58,9 +58,12 @@ def mxy(name):
     return int(p[0]), int(p[1]), int(p[2])
 
 
+BASE = "82d4ac2d"                                       # (the last commit with the city as it was before any of this)
+
+
 def committed(path):
-    """A file as git has it at HEAD: the city as it was before any of this, whatever a run before left behind."""
-    raw = subprocess.run(["git", "show", "HEAD:" + path], cwd=ROOT, capture_output=True).stdout
+    """A file as git has it at BASE: the city as it was before any of this, whatever a run before left behind."""
+    raw = subprocess.run(["git", "show", BASE + ":" + path], cwd=ROOT, capture_output=True).stdout
     return raw.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")       # (data files are CRLF, whatever git keeps them as)
 
 
@@ -71,7 +74,7 @@ class Level:
         self.z = z
         self.maps = {}
         self.groups = {}
-        names = subprocess.run(["git", "ls-tree", "--name-only", "HEAD", "maps/"], cwd=ROOT, capture_output=True, text=True).stdout
+        names = subprocess.run(["git", "ls-tree", "--name-only", BASE, "maps/"], cwd=ROOT, capture_output=True, text=True).stdout
         for line in names.split("\n"):
             n = os.path.basename(line.strip().strip('"'))[:-4]
             if not n.endswith(",%d" % z) or n.count(",") != 2:
@@ -291,9 +294,78 @@ def pack(blocks, rects, keep_out, gapx=2, gapy=3):
     return placed, todo
 
 
+def scatter(blocks, rects, rng, gap=2):
+    """Blocks set down about rects at random, not in rows (the hovels: the owner's wish): [(block, x, y)], and those that
+    found no room. Each on one map, a gap round it, and a cell clear under its door."""
+    placed, left, boxes = [], [], []
+    for b in sorted(blocks, key=lambda b: -(b.w * b.h)):
+        for _ in range(1500):
+            x1, y1, x2, y2 = rng.choice(rects)
+            if x2 - x1 + 1 < b.w or y2 - y1 + 1 < b.h + 1:
+                continue
+            x, y = rng.randint(x1, x2 - b.w + 1), rng.randint(y1, y2 - b.h)
+            if x // XT != (x + b.w - 1) // XT or y // YT != (y + b.h - 1) // YT:
+                continue
+            if any(x <= bx2 + gap and x + b.w - 1 >= bx1 - gap and y <= by2 + gap + 1 and y + b.h >= by1 - gap
+                   for bx1, by1, bx2, by2 in boxes):
+                continue
+            placed.append((b, x, y))
+            boxes.append((x, y, x + b.w - 1, y + b.h - 1))
+            break
+        else:
+            left.append(b)
+    return placed, left
+
+
 def lines_at(level, cells_rect):
     return [(ln, n) for n, m in level.maps.items() for ln in m.ents
             if (lambda c: c and in_rect(c[0], c[1], cells_rect))(line_cell(ln, n))]
+
+
+def garden(ground, rect, rng):
+    """The gardens, from the orchard down to the south wall (the owner's wish: green from wall to wall): lawns in beds
+    of hedge, gravel walks across them, a pond, statues, flower beds, benches and lamps, trees standing in the grass."""
+    x1, y1, x2, y2 = rect
+    mid = (x1 + x2) // 2
+    walks_y = list(range(y1 + 2, y2 - 1, 12))
+    pond = (mid - 3, (y1 + y2) // 2 - 2, mid + 3, (y1 + y2) // 2 + 2)
+    for gy in range(y1, y2 + 1):
+        for gx in range(x1, x2 + 1):
+            c = ground.get(gx, gy)
+            if c is None or c.split("+")[0] not in ("Flagstone001", "Marble_Paving001") or "+" in c:
+                continue
+            walk = abs(gx - mid) <= 1 or gy in walks_y or gy - 1 in walks_y or gx in (x1 + 1, x2 - 1)
+            if in_rect(gx, gy, pond):
+                edge = gx in (pond[0], pond[2]) or gy in (pond[1], pond[3])
+                ground.put(gx, gy, "Gravel001" if edge else "Pond001")
+            elif walk:
+                ground.put(gx, gy, "Gravel001")
+            elif gx in (x1, x2) or (gy - 1 in walks_y[:1] and False):
+                ground.put(gx, gy, "Hedge001")
+            else:
+                ground.put(gx, gy, "Lawn001")
+    for gy in range(y1, y2 + 1):                     # (each bed of lawn: hedged round, then planted)
+        for gx in range(x1 + 2, x2 - 1):
+            c = ground.get(gx, gy)
+            if c != "Lawn001":
+                continue
+            near_walk = any(ground.get(gx + dx, gy + dy) == "Gravel001" for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            r = rng.random()
+            if near_walk and r < 0.18:
+                ground.put(gx, gy, "Lawn001+Decor(Flower_Bed%03d)" % rng.randint(1, 3))
+            elif near_walk and r < 0.22 and ground.get(gx, gy + 1) == "Gravel001":
+                ground.put(gx, gy, "Lawn001+Decor(Bench001)")
+            elif not near_walk and r < 0.07:
+                ground.put(gx, gy, "Lawn001+Decor(%s)" % rng.choice(("Tree001", "Tree002", "Oak_Tree001")))
+            elif not near_walk and r < 0.09:
+                ground.put(gx, gy, "Lawn001+Decor(%s)" % rng.choice(("Flowers001", "Flowers002", "Flowers003")))
+    for gy in walks_y:                               # (statues where the walks cross, lamps along them)
+        for gx in (mid - 3, mid + 3):
+            if ground.get(gx, gy - 1) == "Lawn001":
+                ground.put(gx, gy - 1, "Lawn001+Decor(Statue00%d)" % rng.randint(1, 2))
+        for gx in range(x1 + 4, x2 - 2, 6):
+            if ground.get(gx, gy + 2) == "Lawn001":
+                ground.put(gx, gy + 2, "Lawn001+Decor(Lamp_Post001)")
 
 
 def main(dry=False):
@@ -325,7 +397,7 @@ def main(dry=False):
     placed, left = pack(nobles, NOBLES, [])
     p2, l2 = pack(merchants + left, MERCHANTS, keep_out)
     placed += p2
-    p3, l3 = pack(hovels + l2, HOVELS, [], gapx=3, gapy=7)
+    p3, l3 = scatter(hovels + l2, HOVELS, rng)
     placed += p3
     if l3:
         print("No room for %d buildings" % len(l3))
@@ -388,6 +460,16 @@ def main(dry=False):
         gate_map.ents.append("Lock\t%d\t%d\t$Attr.GalaithQuest>=2\tThe gate is barred. Something huge breathes behind you."
                              % (GATE_X % XT + 1, gy % YT + 1))
 
+    # ----- towers either side of the gate, and the dragon's soot on the paving just inside it
+    for gy, part in ((302, "Burnt_Wall003"), (303, "Burnt_Wall005"), (306, "Burnt_Wall003"), (307, "Burnt_Wall005")):
+        ground.set(GATE_X, gy, tile=part, decor="")
+    for gy in range(292, 318):
+        for gx in range(GATE_X - 14, GATE_X):
+            c = ground.get(gx, gy)
+            d = abs(gx - GATE_X) + abs(gy - 304.5) * 0.8
+            if c and "+" not in c and c.split("+")[0] in ("Flagstone001", "Marble_Paving001") and rng.random() < 0.85 - d / 14:
+                ground.put(gx, gy, c + "+Decor(Scorch_Mark%03d)" % rng.randint(1, 3))
+
     # ----- the boulevard's trees, and the way from the back gate
     def tree(gx, gy):
         c = ground.get(gx, gy)
@@ -408,7 +490,7 @@ def main(dry=False):
                 if c and "+" not in c and c.split("+")[0] in ("Flagstone001", "Royal_Paving001", "Noble_Paving001") and \
                         (gx * 7 + gy * 13) % every == 0:
                     ground.put(gx, gy, c + "+Decor(%s)" % rng.choice(things))
-    dress((GREEN[0], 329, GREEN[1], Y2), ("Flower_Urn001", "Bench001", "Lamp_Post001", "Flowers001", "Flowers002"), 19)
+    garden(ground, (GREEN[0], 329, GREEN[1], Y2 - 1), rng)
     dress((ROYAL[0] + 2, ROYAL[1] + 2, ROYAL[2] - 2, BLVD[0] - 9), ("Flower_Urn001", "Lamp_Post001"), 23)
     dress((ROYAL[0] + 2, BLVD[1] + 2, ROYAL[2] - 2, ROYAL[3] - 2), ("Flower_Urn001", "Lamp_Post001", "Bench001"), 23)
 

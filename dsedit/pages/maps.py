@@ -164,7 +164,8 @@ OPT_SPECS = {
                     "floor and the one above): now and then it climbs the stairs or a ladder to roam the other."),
     "State": ("Rests as", "choice", _kind_list("States"), "How it always rests (one of its kind's States=)."),
     "Nap": ("Nap spot", "tile", None, "A tile it hops up onto to curl up (x,y): the throne, a bed."),
-    "Level": ("Level", "number", None, "A Shard Remnant's strength (1-25)."),
+    "Level": ("Level", "number", None, "Its level (1-25). Blank: its kind's (Entities.ini Level), a little above or "
+              "below; its health, blows and guard go by it. A Shard Remnant: how strong it is."),
     "Look": ("Look", "choice", _looks, "Which of its trade's colourings it wears (0: as drawn; blank: by its Id)."),
     "Project": ("Project", "choice", _projects, "It's there only once this town project (data\\Projects.ini) is "
                 "finished."),

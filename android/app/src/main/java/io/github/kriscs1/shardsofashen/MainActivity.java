@@ -33,6 +33,7 @@ public class MainActivity extends Activity {
 
     private WebView web;
     private Ads ads;
+    private Billing billing;
     private volatile String shown = HOME;           // (the page showing: the start screen may do more than a game's page)
 
     @Override
@@ -46,6 +47,10 @@ public class MainActivity extends Activity {
         setContentView(frame);
         ads = new Ads(this, frame, (shown) -> web.evaluateJavascript(
             "window.onBanner && window.onBanner(" + shown + ")", null));
+        billing = new Billing(this, (what) -> runOnUiThread(() -> {
+            if ("bought".equals(what)) ads.show(false);
+            web.evaluateJavascript("window.onAdFree && window.onAdFree('" + what + "')", null);
+        }));
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -76,6 +81,7 @@ public class MainActivity extends Activity {
         }
         web.loadUrl(HOME);
         ads.start();
+        billing.start();
     }
 
     private void back() {
@@ -121,6 +127,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         ads.destroy();
+        billing.destroy();
         web.destroy();
         super.onDestroy();
     }
@@ -230,9 +237,26 @@ public class MainActivity extends Activity {
         /** The start screen's menu showing (or not): AdMob's banner along its foot. False: no AdMob in this build. */
         @JavascriptInterface
         public boolean banner(boolean show) {
-            if (!home() || !Ads.on()) return false;
+            if (!home() || !Ads.on() || billing.adFree()) return false;
             ads.show(show);
             return true;
+        }
+
+        /** "Remove ads": bought already (no ads at all), its price ("" while it isn't known, or in a build without it), and
+         *  Google Play's payment sheet. */
+        @JavascriptInterface
+        public boolean adFree() {
+            return billing.adFree();
+        }
+
+        @JavascriptInterface
+        public String adFreePrice() {
+            return home() && Billing.on() ? billing.price() : "";
+        }
+
+        @JavascriptInterface
+        public void buyAdFree() {
+            if (home()) billing.buy();
         }
 
         @JavascriptInterface

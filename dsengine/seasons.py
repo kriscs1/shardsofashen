@@ -27,6 +27,7 @@ class Seasons:
         self.w = world
         self.path = world.data.data_file("Seasons.ini")
         self.now_is = None
+        self.pinned = None                  # (a season that stays, whatever the clock says: the tests')
         self.checked = -10 ** 12
         self.rivers = None
         self.todo = []
@@ -39,7 +40,7 @@ class Seasons:
         return val(self.setting(section, key, default))
 
     def year_ms(self):
-        return max(1.0, self.number("Seasons", "Year.Days", 28)) * 86400000
+        return max(1.0, self.number("Seasons", "Year.Days", 16)) * 86400000
 
     def season(self, now=None):
         now = self.w.now if now is None else now
@@ -88,7 +89,7 @@ class Seasons:
         if 0 <= w.now - self.checked < EVERY:
             return
         self.checked = w.now
-        now = self.season()
+        now = self.pinned or self.season()
         if now != self.now_is:
             self.now_is = now
             self.changed()
