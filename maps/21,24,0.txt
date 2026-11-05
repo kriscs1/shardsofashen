@@ -1,0 +1,25 @@
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001+Decor(Snow_Pine001):Snow001+Decor(Snow_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Water001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Rock001):Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001+Decor(Snow_Rock001):Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001
+NPC	Rime_Drake	352	440	Attitude=Bad Zone=9,12,15,18 Chase=5,8,19,21
+NPC	Snow_Wolf	64	600	Attitude=Bad Zone=1,17,6,21 Chase=1,13,10,21
+NPC	Ice_Wraith	704	408	Attitude=Bad Zone=20,11,25,17 Chase=16,7,25,21
+NPC	Man	128	440	Attitude=Good Stand=1 Face=S Schedule=Always Id=Surveyor_Nils Name=Surveyor_Nils

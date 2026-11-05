@@ -19,3 +19,4 @@ Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain
 Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001
+Id	Zone_Scar	13	2

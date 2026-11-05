@@ -449,6 +449,7 @@ class CombatMixin:
         self.add_npc_drops(e)
         w.waves.killed(e, self)
         w.queue_respawn(e)
+        self.w.wonders.grudge_settled(self, e)
         script = self.find_action_script("Kill", name, etype, e.npc_id)
         helpers = self.helpers_of(e)
         for o in [self] + helpers:                      # (the records, the day's bounty; each fighter's own loot)
@@ -530,6 +531,15 @@ class CombatMixin:
             self.low_hp_warned = now
             self.display_message("You are badly hurt! Eat something, drink a potion or run!", "ERROR")
 
+    def death_remembered(self):
+        """What killed them keeps a grudge, and the town keeps count (rumours.py legend_due)."""
+        w = self.w
+        self.update_attribute("Legend.Deaths", "+1")
+        who = next((e for e in w.ents if e.type == NPC and getattr(e, "target", None) is self), None)
+        if who is not None:
+            self.update_attribute("Legend.Died.%s" % who.name, "+1")
+            w.wonders.grudge_noted(self, who)
+
     def player_dies(self):
         if self.dead_wait:                  # (dead already)
             return
@@ -539,6 +549,7 @@ class CombatMixin:
         if self.in_arena():
             self.arena_defeat()
             return
+        self.death_remembered()
         d = self.data
         self.display_message("Oh dear, you are dead!", "ERROR")
         self.play_sound("Death", (self.player.cx, self.player.cy))

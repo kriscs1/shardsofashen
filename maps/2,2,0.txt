@@ -25,6 +25,6 @@ StaticObject	Chest	768	32	Id=Stone_Circle_Chest
 Id	Standing_Stones	25	6
 StaticObject	Fire	385	258
 StaticObject	Chest	384	192	Id=Hob_Camp_Chest
+Id	Hobgoblin_Camp	13	8
 NPC	Hobgoblin	352	248	Attitude=Bad Zone=8,4,18,12
 NPC	Hobgoblin	448	216	Attitude=Bad Zone=8,4,18,12
-Id	Hobgoblin_Camp	13	8

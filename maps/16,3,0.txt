@@ -23,3 +23,4 @@ Lock	13	3	$Attr.WardhavenQuest>=3	The gates of Wardhaven are barred. Nobody answ
 Lock	14	3	$Attr.WardhavenQuest>=3	The gates of Wardhaven are barred. Nobody answers from the wall.
 Id	Wardhaven_Gate	13	4
 Id	Wardhaven_Bridge_Span	14	9
+StaticObject	Trout_Spot	32	96

@@ -46,3 +46,4 @@ StaticObject	Valuables	448	280
 StaticObject	Valuables	672	280
 StaticObject	Loose_Cobble	64	192	Id=Secret_Emberwatch_2
 StaticObject	Odd_Barrel	192	192	Id=Secret_Emberwatch_3
+StaticObject	Mary_Note	128	544	Id=Mary_Note_5

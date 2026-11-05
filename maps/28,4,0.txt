@@ -19,3 +19,4 @@ Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash0
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Cinder001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+NPC	Cinder_Guard	96	536	Attitude=Bad Zone=1,15,7,21 Chase=1,11,11,21

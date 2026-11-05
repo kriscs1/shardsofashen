@@ -74,7 +74,7 @@ function count() {
 // ----- friends (together.py): each a row - about or not, where, their level - with Whisper, Invite and Remove; a
 // Hallisium account's friends by account ("Character (account)" here, or where they're playing), asks to Accept or Decline
 const FRIEND_BUTTONS = ["Whisper", "Invite", "Remove"];
-function friendButtons(f) { return f.asks ? ["Accept", "", "Decline"] : f.asked ? ["", "", "Cancel"] : FRIEND_BUTTONS; }
+function friendButtons(f) { return !f.asks && !f.asked && !f.on ? ["Letter", "Invite", "Remove"] : f.asks ? ["Accept", "", "Decline"] : f.asked ? ["", "", "Cancel"] : FRIEND_BUTTONS; }
 function friendRowY(n) { return 108 + n * 70; }
 
 // ----- each button's [x, y, w, h], said once: drawn by it and clicked by it (hit), so the two can't drift apart
@@ -97,7 +97,7 @@ export function friendClick(h) {
   const k = (h - 300) % 3, who = f.char || f.name, acct = f.account ? 1 : 0;
   if (f.asks && k === 0) send({ t: "friend", name: f.account, account: 1 });
   else if (f.asks || f.asked) { if (k === 2) send({ t: "friend", name: f.account, account: 1, remove: 1 }); }
-  else if (k === 0 && f.on) window.dsUI.openChat("/w " + who + " ");
+  else if (k === 0) window.dsUI.openChat((f.on ? "/w " : "/letter ") + who + " ");
   else if (k === 1 && f.on) send({ t: "party_invite", name: who });
   else if (k === 2) send({ t: "friend", name: f.account || f.name, account: acct, remove: 1 });
   else return true;
@@ -117,7 +117,7 @@ function friendRow(ctx, f, n) {
   drawText(ctx, where, 88, y + 34, 9, false, f.on || f.asks ? PARCHMENT : DIM);
   friendButtons(f).forEach((label, k) => {
     if (!label) return;
-    const off = !f.asks && !f.asked && ((k < 2 && !f.on) || (k === 1 && f.party));
+    const off = !f.asks && !f.asked && ((k === 1 && !f.on) || (k === 1 && f.party));
     button(ctx, ...friendButtonRect(n, k), label, off ? 0 : J.hover === 300 + n * 3 + k ? 2 : 1);
   });
 }

@@ -28,3 +28,4 @@ NPC	Farmer	224	440	Attitude=Good Zone=7,14,10,15 Pause=5-15 Id=Emberwatch_Reside
 StaticObject	Sign_Pub	736	208
 StaticObject	Notice	640	226	Id=Emberwatch_Notice_319
 StaticObject	Valuables	416	376
+NPC	Cinder_Guard	480	152	Attitude=Bad Zone=13,3,19,9 Chase=9,1,23,13

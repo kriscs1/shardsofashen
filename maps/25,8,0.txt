@@ -18,7 +18,11 @@ Cinder_Peak_Big002:Cinder_Peak005:Cinder_Peak004:Ash001:Ash001:Ash001:Ash001:Ash
 Cinder_Peak_Big004:Cinder_Peak002:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Dirt001:Dirt001:Ash001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001:Dirt001:Dirt001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
-Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ruined_Wall001:Ruined_Wall001:Ruined_Wall001
 NPC	Ashen_Cultist	608	544	Attitude=Bad
 Id	Burnt_Shrine_3	18	18
 Trigger	Ashen Shrine 3	18	18
+NPC	Ash_Hound	0	632	Attitude=Bad Zone=1,18,4,21 Chase=1,14,8,21
+NPC	Cinder_Imp	32	0	Attitude=Bad Zone=1,1,5,4 Chase=1,1,9,8
+NPC	Flame_Cultist	96	152	Attitude=Bad Zone=1,3,7,9 Chase=1,1,11,13
+NPC	Magma_Brute	224	408	Attitude=Bad Zone=5,11,11,17 Chase=1,7,15,21

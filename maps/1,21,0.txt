@@ -1,7 +1,7 @@
-Mountain002:Mountain002:Mountain003:Mountain002:Mountain003:Mountain001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Sand001:Sand001:Sand001:Grass001+Decor(Tree001):Grass001
-Mountain003:Mountain004:Mountain003:Mountain003:Mountain002:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Mountain002:Mountain004:Mountain002:Mountain001:Mountain003:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Mountain002:Mountain001:Mountain002:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Tree001):Sand001:Sand001+Decor(Cactus001):Sand001
+Mountain002:Mountain002:Mountain003:Mountain002:Mountain003:Mountain001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Grass001:Grass001:Sand001:Sand001:Sand001:Grass001+Decor(Tree001):Grass001
+Mountain003:Mountain004:Mountain003:Mountain003:Mountain002:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Mountain002:Mountain004:Mountain002:Mountain001:Mountain003:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Mountain002:Mountain001:Mountain002:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Tree001):Sand001:Sand001+Decor(Cactus001):Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001+Decor(Desert_Rock001):Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001+Decor(Dead_Tree001):Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Grass001
@@ -32,3 +32,6 @@ Id	Caravan_Wreck	14	7
 Trigger	Caravan Wreck	14	10
 Trigger	Trap_Weakness	15	16
 Trigger	Trap_Bucket	24	13
+NPC	Sun_Mummy	640	24	Attitude=Bad Zone=18,1,24,5 Chase=14,1,25,9
+NPC	Sun_Mummy	256	376	Attitude=Bad Zone=6,10,12,16 Chase=2,6,16,20
+NPC	Sand_Scorpion	576	472	Attitude=Bad Zone=16,13,22,19 Chase=12,9,25,21

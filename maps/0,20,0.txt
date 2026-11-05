@@ -15,7 +15,11 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain003:Mountain001:Mountain004:Mountain002
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain002:Mountain002:Mountain001:Mountain002
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain004:Mountain002:Mountain002:Mountain004:Mountain002
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain001:Mountain001:Mountain003:Mountain003:Mountain002
-Mountain001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain004:Mountain002:Mountain002:Mountain004:Mountain002
-Peak004:Peak003:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain002:Mountain001:Mountain002:Mountain004:Mountain004
-Peak006:Peak005:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain004:Mountain002:Mountain002:Mountain002
+Sand001:Sand001:Sand001:Ruined_Wall001:Ruined_Wall001:Sand001:Ruined_Wall001:Ruined_Wall001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain001:Mountain001:Mountain003:Mountain003:Mountain002
+Mountain001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain004:Mountain002:Mountain002:Mountain004:Mountain002
+Peak004:Peak003:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain002:Mountain001:Mountain002:Mountain004:Mountain004
+Peak006:Peak005:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Mountain004:Mountain002:Mountain002:Mountain002
+NPC	Dune_Stalker	0	120	Attitude=Bad Zone=1,2,4,8 Chase=1,1,8,12
+NPC	Sand_Drake	416	600	Attitude=Bad Zone=11,17,17,21 Chase=7,13,21,21
+NPC	Sand_Scorpion	608	56	Attitude=Bad Zone=17,1,23,6 Chase=13,1,25,10
+NPC	Dune_Stalker	640	152	Attitude=Bad Zone=18,3,24,9 Chase=14,1,25,13

@@ -14,8 +14,9 @@ export function dayFraction(nowMs) {
 }
 
 export function isNight(t) {
-  const from = val(iniValue("daynight", "Night", "From", "0.83"));
-  const to = val(iniValue("daynight", "Night", "To", "0.21"));
+  // (the server says, by the season: longer days in summer, longer nights in winter)
+  const from = S.night ? S.night[0] : val(iniValue("daynight", "Night", "From", "0.83"));
+  const to = S.night ? S.night[1] : val(iniValue("daynight", "Night", "To", "0.21"));
   return t >= from || t < to;
 }
 

@@ -19,3 +19,4 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001
+NPC	Dune_Stalker	640	88	Attitude=Bad Zone=18,1,24,7 Chase=14,1,25,11

@@ -19,3 +19,6 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Peak004:Peak004:Peak004
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak004:Peak001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+NPC	Sand_Drake	192	120	Attitude=Bad Zone=4,2,10,8 Chase=1,1,14,12
+NPC	Sand_Scorpion	320	600	Attitude=Bad Zone=8,17,14,21 Chase=4,13,18,21
+NPC	Dune_Stalker	480	472	Attitude=Bad Zone=13,13,19,19 Chase=9,9,23,21

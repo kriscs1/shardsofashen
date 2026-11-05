@@ -19,3 +19,6 @@ Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain
 Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Peak_Big002:Peak004:Peak_Huge001:Peak_Huge002:Peak_Huge003:Peak_Huge001:Peak_Huge002:Peak_Huge003:Peak004:Peak006:Peak002:Peak_Huge001
 Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Peak005:Peak_Huge004:Peak_Huge005:Peak_Huge006:Peak_Huge004:Peak_Huge005:Peak_Huge006:Peak004:Peak005:Peak002:Peak_Huge004
 Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Peak004:Peak_Huge007:Peak_Huge008:Peak_Huge009:Peak_Huge007:Peak_Huge008:Peak_Huge009:Peak001:Peak_Big001:Peak_Big002:Peak_Huge007
+NPC	Cave_Horror	736	0	Attitude=Bad Zone=21,1,25,4 Chase=17,1,25,8
+NPC	Tunnel_Wraith	448	216	Attitude=Bad Zone=12,5,18,11 Chase=8,1,22,15
+NPC	Tunnel_Wraith	224	120	Attitude=Bad Zone=5,2,11,8 Chase=1,1,15,12

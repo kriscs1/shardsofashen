@@ -339,6 +339,11 @@ class ScriptMixin:
             ("$Time", lbstr(seconds_today())),
             ("$Clock", lbstr(int(time.time()))),
             ("$Player.Form", self.player_form() or "-"),
+            ("$Player.Level", lbstr(self.player_level())),
+            ("$World.Season", self.w.seasons.current()),
+            ("$World.Night", lbstr(self.w.wonders.night_number())),
+            ("$World.Champion", self.w.wonders.champion or "-"),
+            ("$Tax.Due", lbstr(self.w.wonders.tax_due(self))),
             ("$Player.Malaria", "1" if "Malaria" in self.diseases else "0"),
             ("$Shardstones.Active", lbstr(len(self.stones_active()))),
             ("$Player.Health.Max", lbstr(self.player_max_hp)),       # (before $Player.Health, which it starts with)
@@ -519,7 +524,18 @@ class ScriptMixin:
             self.play_work(arg[1], arg[2], arg[3])
         elif c == "Display.Message":
             self.display_message(arg[2], arg[1], sound=trim(arg[3]))   # (the script says what's heard: maybe nothing)
+        elif c == "Mimic.Caught":
+            self.w.wonders.mimic_caught(self, getattr(self, "clicked_ent", None))
+        elif c == "Tax.Pay":
+            self.w.wonders.tax_paid(self)
+        elif c == "Take.Letters":
+            self.w.wonders.take_letters(self)
+        elif c == "Say.Legend":
+            line = self.legend_due(force=True)
+            if line:
+                self.tell_line(line[2])
         elif c == "Give.Item":
+            arg[1] = self.w.seasons.swapped(arg[1])
             if not self.loot_give(arg[1], parse_quantity(arg[2] or "1")):      # (a chest's script fills the chest)
                 self.add_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
                 self.sync_give(arg[1], parse_quantity(arg[2] or "1"))         # (a quest's thing: to the party too)

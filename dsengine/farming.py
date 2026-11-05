@@ -74,6 +74,7 @@ class Farms:
         if c is None:
             return STAGES
         grown = ((self.clock() if now is None else now) - plot["sown"]) / (c["minutes"] * 60)
+        grown *= self.w.seasons.crop_growth()           # (slow in the cold: the year's own pace)
         return max(1, min(STAGES, 1 + int(grown * (STAGES - 1))))
 
     def seconds_left(self, plot):

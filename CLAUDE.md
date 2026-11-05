@@ -105,7 +105,7 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 16. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;
    it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
    onto the field; its Id is still `Galaith_West_Gate`).
-17. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-9,14,0), the Lord Chancellor (Galaith's
+17. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-10,14,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
 18. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
@@ -276,6 +276,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Requires=` keeps them off the Isle's first days. People walk in and walk off once their time's up; a monster nobody's
   fighting comes apart. Never saved. A script or the admin panel can send one: `Start.Encounter`. A new one is a
   section of Encounters.ini.
+- **The seasons** (`dsengine/seasons.py`, `data/Seasons.ini`): a year of `Year.Days` real days, from the clock. Longer days in summer, longer nights in winter; winter's snow instead of rain, rivers and lakes frozen to walk on (bodies of water under `River.Most`), `Season.Absent=Winter` kinds gone; the catch swaps (`[Swap.<Season>]`, on every script's Give.Item), crops grow by `Crop.Growth`. What's only seen is the page's (`ground.js` seasonal, snowPatches: worked out once for each picture, never a canvas filter). `$World.Season` for a script.
+- **What happens on its own** (`dsengine/wonders.py`, `data/Wonders.ini`, `dev/migrate/build_wonders.py`): shard storms; ghost ships on foggy nights, gone by morning; the Wandering Inn (a different `Inn_Spot_<n>` each day); mimics (a misspelt name, a glint, `Glint=1`; accuse one and it stops pretending); grudges (what killed you or got away hurt comes back scarred and stronger, attributes `Grudge.*`); the Tax Collector, polite and unkillable, walking after anyone over `Tax.Gold`; the year's Champion (arena wins in winter, crowned in spring, a statue on the boulevard); letters by carrier (`/letter Name [+Item] text`, friends only, a courier finds them). Your own legend (`data/Legend.ini`) is told with the rumours (`legend_due`); a line's condition is any script condition.
+- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Dustlands 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks lie above ground only in these. You leave the Isle at level 5 (Bess and Wim won't sail before).
+- **Mary's notes** (`dev/migrate/build_wonders.py` NOTES): seven notes where she went; all found make a map to her cache at the Mirror Tarn (`Mary's Notes`), the Heart Splinter. Found, never told.
 - **Banter** (`dsengine/banter.py`, `data/Banter.ini`, `dev/migrate/build_banter.py`): the world's people and animals carry
   on with each other where a player can see it. About every `Every.Seconds`, two near that player whom a scene fits stop,
   turn to each other and have a few words in bubbles (never the chat log); a dog sends a cat running (`After=Scatter`); the
@@ -436,6 +440,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `refurnish_redrock.py`). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
   run again after it.
 - **The marshes** (the Mirefen and the marsh round Saltmarsh): their water is **marsh water** (`Bog001`, a greeny brown, `build_marsh.py`; painted with the Bog terrain), the sea's `Water001` only out at the sea itself (`marsh_water.py`, once on the maps). A long boardwalk wanders, a single line of planks (`wind_boardwalks.py` ROUTES); a street near a settlement's middle stays straight. Places out in them (`build_marsh_places.py`): the Sunken Barge, the Peat Cuttings and the Wisp Ring in the Mirefen, the Eel-Catcher's Hut and the Drowned Bell by Saltmarsh, none needed by a quest.
+- **Galaith's layout, the owner's sketch** (`dev/migrate/rearrange_galaith.py`, once): west to east the Royal quarter (walled, its gate on the boulevard, royal guards outside) with the Nobles' above and below; the fountain, graveyard, orchard and gardens; the Merchants' and the market; the hovels; then two more walls and the ground before the east gate, kept for war (ramparts, palisades, stores, guards). A tree-lined marble boulevard runs from the east gate to the palace door (`BLVD`). The palace is on -10,14,0 now.
 - **Galaith is paved inside its walls** (`dev/migrate/build_galaith_grounds.py`, the owner's wish; once on the maps): the
   Royal quarter in `Royal_Paving001`, the Nobles' in `Noble_Paving001`, the rest in `Flagstone001`; **no paths or streets of their own
   on it** (`dev/migrate/galaith_no_paths.py`, the owner's wish: it's all stone, so a line of cobble or marble is only a line;

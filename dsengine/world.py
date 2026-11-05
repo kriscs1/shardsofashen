@@ -24,6 +24,8 @@ from .deep import Deep
 from .market import Market
 from .waves import Waves
 from .encounters import Encounters
+from .seasons import Seasons
+from .wonders import Wonders
 from .banter import Banter
 from .tavern import Tavern
 from .minigames import Arms
@@ -76,6 +78,8 @@ class World(NPCMixin):
         self.farms = Farms(self)        # what's growing in tilled soil
         self.market = Market(self)      # the marketplace: everyone's listings
         self.waves = Waves(self)        # monsters attacking in waves (raids, quests' battles)
+        self.seasons = Seasons(self)          # the time of year (one for everyone: from the clock)
+        self.wonders = Wonders(self)          # what happens in the world on its own (storms, ghost ships...)
         self.encounters = Encounters(self)    # who turns up now and then, out of doors (a salesman, a jester...)
         self.banter = Banter(self)      # who says what to whom, over their heads, where a player can see it
         self.tavern = Tavern(self)      # the tavern's dice rounds
@@ -1470,13 +1474,19 @@ class World(NPCMixin):
         """(from, to) of the night (DayNight.ini [Night]), read again every few seconds."""
         cached = getattr(self, "_night_bounds", None)
         if cached is None or not 0 <= self.now - cached[0] < 5000:
-            cached = (self.now, (val(self.dn("Night", "From", "0.83")), val(self.dn("Night", "To", "0.21"))))
+            cached = (self.now, self.seasons.night())            # (longer days in summer, longer nights in winter)
             self._night_bounds = cached
         return cached[1]
 
     def clock_event(self):
+        night = self.night_bounds()
         return {"t": "clock", "day": self.day_fraction(), "secs": self.data.day_seconds,
-                "on": bool(self.data.day_night_enabled)}
+                "on": bool(self.data.day_night_enabled), "season": self.seasons.current(), "night": list(night)}
+
+    def season_hide(self, e):
+        """Out of season: gone, without a death, and back when it next respawns in season."""
+        self.queue_respawn(e)
+        self.remove_entity(e)
 
     # =================================================================================================================
     # The weather (data\\Weather.ini): one sky for everyone; what it does where you are depends on the place's climate
@@ -1561,7 +1571,9 @@ class World(NPCMixin):
         clim = self.climate(map_name, z)
         if not w or clim is None:
             return "clear", 0.0
-        kind = w["kind"]
+        kind = self.seasons.rain_is(w["kind"])
+        if kind == "shardstorm":                        # (wild magic falls on every climate alike)
+            return kind, w["level"]
         odds = self.climate_odds(clim)
         if kind not in odds:
             kind = trim(self.weather_of(kind, "Becomes", ""))
@@ -1692,6 +1704,8 @@ class World(NPCMixin):
         self.farms.tick()
         self.waves.tick()
         self.encounters.tick()
+        self.seasons.tick()
+        self.wonders.tick()
         self.banter.tick()
         self.tavern.tick()
         self.arms.tick()

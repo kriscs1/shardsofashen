@@ -19,3 +19,4 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001
+Id	Inn_Spot_6	7	3

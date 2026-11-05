@@ -28,3 +28,4 @@ StaticObject	Furnace	576	288
 StaticObject	Anvil	704	288
 StaticObject	Notice	768	386	Id=Wardhaven_Notice_328
 NPC	Rabbit	672	608	Attitude=Passive
+StaticObject	Trout_Spot	320	640

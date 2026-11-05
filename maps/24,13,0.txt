@@ -11,11 +11,22 @@ Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Gr
 Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Forest001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Forest001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tent001):Grass001:Grass001:Grass001
 Forest001:Grass001+Decor(Tree002):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001+Decor(Tree001):Grass001:Grass001:Grass001+Decor(Fallen_Log001):Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Fallen_Log001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tent001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tent002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Campfire001)
+Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Campfire001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001+Decor(Tree001):Grass001:Grass001:Grass001+Decor(Fallen_Log001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001+Decor(Berry_Bush001):Grass001+Decor(Sage_Patch001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+NPC	Bear	672	504	Attitude=Bad Zone=19,14,25,20 Chase=15,10,25,21 Group=Camp_619_284
+NPC	Alpha_Wolf	672	568	Attitude=Bad Zone=19,16,25,21 Chase=15,12,25,21 Group=Camp_619_284
+NPC	Ashen_Cultist	704	536	Attitude=Bad Zone=20,15,25,21 Chase=16,11,25,21 Group=Camp_619_284
+NPC	Cave_Troll	640	440	Attitude=Bad Zone=18,12,24,18 Chase=14,8,25,21 Group=Camp_619_284
+NPC	Bear	640	536	Attitude=Bad Zone=18,15,24,21 Chase=14,11,25,21 Group=Camp_619_284
+NPC	Bear	448	600	Attitude=Bad Zone=12,17,18,21 Chase=8,13,22,21 Group=Camp_605_286
+NPC	Alpha_Wolf	160	568	Attitude=Bad Zone=3,16,9,21 Chase=1,12,13,21 Group=Camp_605_286
+NPC	Ashen_Cultist	320	568	Attitude=Bad Zone=8,16,14,21 Chase=4,12,18,21 Group=Camp_605_286
+NPC	Cave_Troll	448	600	Attitude=Bad Zone=12,17,18,21 Chase=8,13,22,21 Group=Camp_605_286
+NPC	Bear	448	632	Attitude=Bad Zone=12,18,18,21 Chase=8,14,22,21 Group=Camp_605_286
+Id	Inn_Spot_4	14	12

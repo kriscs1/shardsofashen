@@ -12,10 +12,16 @@ Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:C
 Ash001:Ash001:Ash001:Ash001:Cinder001+Decor(Dead_Tree001):Ash001:Ash001:Cinder001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001
 Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Cinder001:Cinder001+Decor(Basalt_Rock001):Ash001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001+Decor(Ember_Vent001):Cinder001
 Ash001:Ash001:Ash001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Cinder001+Decor(Basalt_Rock001)
-Ash001:Ash001:Ash001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Lava001:Ash001+Decor(Dead_Tree001):Ash001
-Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Cinder001:Ash001:Ash001:Ash001:Ash001:Cinder001:Lava001:Lava001:Ash001:Ash001
-Cinder001:Cinder001:Cinder001:Ash001:Ash001:Lava001:Lava001:Lava001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Lava001:Lava001:Ash001+Decor(Emberroot_Patch001):Ash001
-Cinder001:Cinder001:Ash001:Cinder001+Decor(Basalt_Rock001):Ash001:Lava001:Lava001:Lava001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Cinder001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Lava001:Lava001:Cinder001+Decor(Dead_Tree001):Ash001
-Ash001:Ash001+Decor(Dead_Tree002):Ash001:Lava001:Lava001:Lava001:Lava001:Lava001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Lava001:Ash001:Ash001
-Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Lava001:Lava001:Lava001:Ash001:Cinder001:Ash001:Cinder_Peak_Huge005:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Lava001:Ash001:Ash001
+Ruined_Wall001:Ash001:Ash001:Cinder001:Cinder001:Cinder001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Lava001:Ash001+Decor(Dead_Tree001):Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Cinder001:Ash001:Ash001:Ash001:Ash001:Cinder001:Lava001:Lava001:Ash001:Ash001
+Ruined_Wall001:Cinder001:Cinder001:Ash001:Ash001:Lava001:Lava001:Lava001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Lava001:Lava001:Ash001+Decor(Emberroot_Patch001):Ash001
+Ruined_Wall001:Cinder001:Ash001:Cinder001+Decor(Basalt_Rock001):Ash001:Lava001:Lava001:Lava001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Cinder001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Lava001:Lava001:Cinder001+Decor(Dead_Tree001):Ash001
+Ruined_Wall001:Ash001+Decor(Dead_Tree002):Ash001:Lava001:Lava001:Lava001:Lava001:Lava001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Lava001:Ash001:Ash001
+Ruined_Wall001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Lava001:Lava001:Lava001:Ash001:Cinder001:Ash001:Cinder_Peak_Huge005:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Lava001:Ash001:Ash001
 Cinder001:Cinder001+Decor(Dead_Tree002):Cinder001:Ash001:Lava001:Lava001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001+Decor(Dead_Tree002):Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001
+NPC	Flame_Cultist	576	472	Attitude=Bad Zone=16,13,22,19 Chase=12,9,25,21
+NPC	Flame_Cultist	640	504	Attitude=Bad Zone=18,14,24,20 Chase=14,10,25,21
+NPC	Ash_Golem	128	0	Attitude=Bad Zone=2,1,8,4 Chase=1,1,12,8
+NPC	Flame_Cultist	96	56	Attitude=Bad Zone=1,1,7,6 Chase=1,1,11,10
+NPC	Cinder_Imp	160	248	Attitude=Bad Zone=3,6,9,12 Chase=1,2,13,16
+Id	Zone_Ashfall	12	3

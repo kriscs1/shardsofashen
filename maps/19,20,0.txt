@@ -14,12 +14,15 @@ Ice001:Ice001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass0
 Ice001:Snow001+Decor(Snow_Pine001):Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001
 Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers003):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001)
 Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Flowers003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001+Decor(Tall_Grass001)
-Ice001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Snow001:Ice001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Ice001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Snow001:Ice001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tent001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tent002):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak_Big001:Snow_Peak_Big002:Grass001:Grass001:Grass001:Grass001+Decor(Pebbles002):Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak_Big001:Snow_Peak_Big002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Campfire001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Rabbit	608	376	Attitude=Passive Zone=15,9,24,17
 NPC	Rabbit	608	440	Attitude=Passive Zone=15,11,24,19
 NPC	Rabbit	608	184	Attitude=Passive Zone=15,3,24,11
 NPC	Butterfly	480	56	Attitude=Good Zone=11,2,21,7
+NPC	Alpha_Wolf	448	632	Attitude=Bad Zone=12,18,18,21 Chase=8,14,22,21 Group=Camp_483_436
+NPC	Ashen_Cultist	416	632	Attitude=Bad Zone=11,18,17,21 Chase=7,14,21,21 Group=Camp_483_436
+NPC	Bear	288	600	Attitude=Bad Zone=7,17,13,21 Chase=3,13,17,21 Group=Camp_483_436

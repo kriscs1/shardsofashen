@@ -22,3 +22,6 @@ Cave_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Blac
 NPC	Rat	640	536	Attitude=Bad Zone=18,15,24,21
 Trigger	Hidden_Way_0_5_n1	22	16
 StaticObject	Chest	608	352	Id=Hidden_Cache_0_5_n1
+NPC	Mire_Horror	576	632	Attitude=Bad Zone=17,19,21,21
+NPC	Mire_Horror	768	536	Attitude=Bad Zone=23,16,25,20
+NPC	Mire_Horror	704	504	Attitude=Bad Zone=21,15,25,19

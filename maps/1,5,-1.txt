@@ -23,3 +23,6 @@ NPC	Giant_Spider	32	472	Attitude=Bad Zone=1,13,5,19
 MapItem	Cave_Mushroom	160	544	1
 Trigger	Trap_Pit	1	18
 Trigger	Trap_Weakness	4	17
+NPC	Mire_Horror	128	440	Attitude=Bad Zone=3,13,7,17
+NPC	Mire_Horror	192	568	Attitude=Bad Zone=5,17,9,21
+NPC	Mire_Horror	96	536	Attitude=Bad Zone=2,16,6,20

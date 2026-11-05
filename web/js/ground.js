@@ -123,6 +123,59 @@ export function forgetChunks(keep) {
 
 function repaint(c) { c.full = true; c.paintAt = 0; c.foam.clear(); }
 
+export function repaintAll() { for (const c of chunks.values()) repaint(c); }
+
+// ----- what's only to be seen of the season: a tree's leaves in autumn, flowers in the long grass in spring, snow lying in winter
+const LEAFY = /^(Tree|Oak_Tree|Birch|Willow_Tree|Yew_Tree|Apple_Tree|Pear_Tree)\d/;
+const FLOWERING = /^(Tall_Grass|Grass_Tuft)\d/;
+const AUTUMN = [[196, 110, 40], [214, 150, 50], [170, 70, 40], [190, 130, 60]];
+
+function seasonal(name, pic) {
+  // (worked out once for each picture and season, then kept: never a filter on the canvas)
+  const season = S.season;
+  if (!pic || !season || (season !== "Autumn" && season !== "Spring")) return pic;
+  if (season === "Autumn" ? !LEAFY.test(name) : !FLOWERING.test(name)) return pic;
+  const key = season + "|" + name + "|" + (pic.width || 0);
+  let out = cache.blend.get(key);
+  if (out) return out;
+  out = document.createElement("canvas");
+  out.width = pic.width; out.height = pic.height;
+  const x = out.getContext("2d", { willReadFrequently: true });
+  x.drawImage(pic, 0, 0);
+  const im = x.getImageData(0, 0, out.width, out.height), d = im.data;
+  let seed = 7;
+  for (let i = 0; i < name.length; i++) seed = (seed * 31 + name.charCodeAt(i)) >>> 0;
+  for (let p = 0; p < d.length; p += 4) {
+    if (d[p + 3] < 200 || d[p + 1] <= d[p] + 6 || d[p + 1] <= d[p + 2]) continue;   // (only what's green)
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    if (season === "Autumn") {
+      const c = AUTUMN[(seed >>> 8) % AUTUMN.length], k = d[p + 1] / 128;
+      d[p] = Math.min(255, c[0] * k); d[p + 1] = Math.min(255, c[1] * k); d[p + 2] = Math.min(255, c[2] * k);
+    } else if ((seed >>> 8) % 11 === 0) {
+      const c = [[250, 244, 150], [240, 150, 190], [190, 170, 250]][(seed >>> 16) % 3];
+      d[p] = c[0]; d[p + 1] = c[1]; d[p + 2] = c[2];
+    }
+  }
+  x.putImageData(im, 0, 0);
+  cache.blend.set(key, out);
+  return out;
+}
+
+function snowPatches(ctx, gx, gy, dx, dy) {
+  // (winter: snow lying here and there on open ground, thicker and thinner by the lie of the land)
+  const coarse = Math.imul(Math.floor(gx / 4), 73856093) ^ Math.imul(Math.floor(gy / 4), 19349663);
+  if (((coarse >>> 4) % 10) > 3) return;
+  let h = (Math.imul(gx + 11, 83492791) ^ Math.imul(gy + 5, 2654435761)) >>> 0;
+  const roll = (n) => { h = (Math.imul(h, 1664525) + 1013904223) >>> 0; return (h >>> 8) % n; };
+  ctx.fillStyle = "rgba(236,241,248,0.9)";
+  for (let k = 1 + roll(3); k > 0; k--) {         // (a drift: wider in its middle, its ends stepped in)
+    const w = 6 + roll(12), hh = 2 + roll(4), x = dx + 1 + roll(Math.max(1, G.tw - w - 2)), y = dy + 1 + roll(Math.max(1, G.th - hh - 2));
+    ctx.fillRect(x + 2, y - 1, w - 4, 1);
+    ctx.fillRect(x, y, w, hh);
+    ctx.fillRect(x + 2, y + hh, w - 4, 1);
+  }
+}
+
 function paintEdge(c, dx, dy) {
   // (the map dx,dy from it has come: only the cells near that side look at it, two out for rounded corners)
   if (c.full) return;
@@ -618,6 +671,7 @@ function paintDecor(ctx, name, gx1, now, dx, dy, ch, gy1 = 0, vary = false) {
   else if (i.dkind === "flame") pic = animFrame(name, "F", flameFrame(now) % i.anim.F);
   if (!pic) pic = img(name, ch);
   if (!pic) return;
+  pic = seasonal(name, pic);
   const grown = vary && GROWN.test(name), lying = vary && !grown && LYING.test(name);
   if (!grown && !lying) { ctx.drawImage(pic, dx, dy); return; }
   const h = ((gx1 * 73856093) ^ (gy1 * 19349663)) >>> 0;        // (the same each time this cell is painted)
@@ -791,6 +845,7 @@ function paintCell(ch, ci, now) {
   const wet = paintRounds(ctx, m.mz, gx, gy, ti, dx, dy, ch);
   paintSlants(ctx, m.mz, gx, gy, tile, dx, dy, ch);
   paintRaised(ctx, m.mz, gx, gy, ti, dx, dy);
+  if (S.season === "Winter" && m.mz === 0 && /^(Grass|Dirt|Heath|Moss)\d/.test(tile)) snowPatches(ctx, gx, gy, dx, dy);
   const roofShown = !!roof && !(ch.hidden && group === ch.hidden);
   const sea = decor && ti.kind === "water" && !info(decor).wade;   // (a rock: the foam goes round it)
   if (sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch);

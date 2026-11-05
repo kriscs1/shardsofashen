@@ -73,46 +73,46 @@ Carry on from the first unticked box.
       mangrove bark now (Strip Bark, Alchemy 3), not marigold.
 
 ## 7. Galaith rearranged (a builder in the `build_galaith_city.py` style; outer walls unchanged)
-- [ ] West to east, roughly as sketched: Royal quarter in the middle on the left with Nobles above and below it;
+- [x] West to east, roughly as sketched: Royal quarter in the middle on the left with Nobles above and below it;
       fountains, orchard and gardens left of it; then Merchants (the market); then the hovels on the right;
       a tree-lined grand boulevard (white) along the middle.
-- [ ] Double walls spaced apart on the east side, ramparts and makeshift defences, lots of guards.
-- [ ] The gate put back at the end of the boulevard; royal guards outside the royal gate.
-- [ ] Quest coordinates (palace -9,14,0, east gate, mine) follow their buildings; tests; minimaps.
+- [x] Double walls spaced apart on the east side, ramparts and makeshift defences, lots of guards.
+- [x] The gate put back at the end of the boulevard; royal guards outside the royal gate.
+- [x] Quest coordinates (palace -9,14,0, east gate, mine) follow their buildings; tests; minimaps.
 
 ## 8. Level gates and training (data + scripts; one table in `dev/migrate/zones.py`)
-- [ ] The table of zones and level bands (gradual progression from the Isle outward).
-- [ ] A story reason you can't leave the Isle before level 5 (Bess/Wim; no hint text).
-- [ ] The Mire Tunnel and Emberwatch guarded by high-level mobs so you must level to enter.
-- [ ] Lots of bad-NPC training areas across the bands (camps, dens, graveyards), by builder.
-- [ ] Every hard zone's mobs and ores checked against the table (validate warns on a gap).
+- [x] The table of zones and level bands (gradual progression from the Isle outward).
+- [x] A story reason you can't leave the Isle before level 5 (Bess/Wim; no hint text).
+- [x] The Mire Tunnel and Emberwatch guarded by high-level mobs so you must level to enter.
+- [x] Lots of bad-NPC training areas across the bands (camps, dens, graveyards), by builder.
+- [x] Every hard zone's mobs and ores checked against the table (validate warns on a gap).
 
 ## 9. New zones (each its own builder, natural shapes, quests, levelled by the table)
-- [ ] The four new zones around 0,-3,10 / -1,18,0 / 21,8,0 / 24,7,0 (read what's there first): high-level mobs,
+- [x] The four new zones around 0,-3,10 / -1,18,0 / 21,8,0 / 24,7,0 (read what's there first): high-level mobs,
       higher-level mining rocks moved in, structures to explore, a few quests each; one zone only magic NPCs.
-- [ ] A dusty wasteland around 12,7,0 to 16,13,0: a natural (non-rectangular) outline, desert terrain, ruins.
-- [ ] A snowy, icy island growing from 18,23,0: yetis and more, a harder band, the cold applies.
-- [ ] Fill the open mainland: farms, side quests (each with a rumour), big buildings, mining areas, fishing areas,
+- [x] A dusty wasteland around 12,7,0 to 16,13,0: a natural (non-rectangular) outline, desert terrain, ruins.
+- [x] A snowy, icy island growing from 18,23,0: yetis and more, a harder band, the cold applies.
+- [x] Fill the open mainland: farms, side quests (each with a rumour), big buildings, mining areas, fishing areas,
       other (ruins, camps, shrines, a lighthouse); roads join them.
 
-## 10. Seasons (`dsengine/seasons.py`, `data/Seasons.ini`)
-- [ ] Season from the UTC date; longer days in summer, longer nights in winter.
-- [ ] Winter: snow instead of rain, rivers freeze and can be walked, marsh mosquitoes gone, snowy patches about;
+## 10. Seasons (`dsengine/seasons.py`, `data/Seasons.ini`; a year is 28 real days, not the calendar, so players see them all)
+- [x] Season from the UTC date; longer days in summer, longer nights in winter.
+- [x] Winter: snow instead of rain, rivers freeze and can be walked, marsh mosquitoes gone, snowy patches about;
       the snowy land is always snow.
-- [ ] Autumn trees change colour; in spring tall grass gets flowers (cheap tint/decor, no canvas filters).
-- [ ] Crops and fish change by season (gathering scripts read the season).
+- [x] Autumn trees change colour; in spring tall grass gets flowers (cheap tint/decor, no canvas filters).
+- [x] Crops and fish change by season (gathering scripts read the season).
 
-## 11. The new systems (a module, a data file and a test each)
-- [ ] Shard storms (rare weather: remnants rise, Shards on the ground; warn players).
-- [ ] Ghost ships (foggy nights at a port; loot and the dead aboard; gone by morning).
-- [ ] The Wandering Inn (a different wild spot each day; rumours, dice, a keeper who knows too much).
-- [ ] Mimic villagers (a name misspelt, never sleeps, a purple glint; turn on you when caught).
-- [ ] A hunter that remembers (a survivor grows stronger and tracks you down; saved per player).
-- [ ] The Tax Collector (unkillable, polite, follows anyone carrying too much gold, at walking pace).
-- [ ] Your own legend (gossip from stats the game already keeps; added like rumours).
-- [ ] Rival heirs (a yearly crown tournament in the arena; the winner's statue in Galaith).
-- [ ] Letters by carrier (items and notes to offline friends; a courier appears on their next login).
-- [ ] Mary's notes as a hunt (her scattered notes form a map once all found; the Heart of Ashen secret).
+## 11. The new systems (`dsengine/wonders.py`, one module for all, `data/Wonders.ini`, `data/Legend.ini`, a test each)
+- [x] Shard storms (rare weather: remnants rise, Shards on the ground; warn players).
+- [x] Ghost ships (foggy nights at a port; loot and the dead aboard; gone by morning).
+- [x] The Wandering Inn (a different wild spot each day; rumours, dice, a keeper who knows too much).
+- [x] Mimic villagers (a name misspelt, never sleeps, a purple glint; turn on you when caught).
+- [x] A hunter that remembers (a survivor grows stronger and tracks you down; saved per player).
+- [x] The Tax Collector (unkillable, polite, follows anyone carrying too much gold, at walking pace).
+- [x] Your own legend (gossip from stats the game already keeps; added like rumours).
+- [x] Rival heirs (a yearly crown tournament in the arena; the winner's statue in Galaith).
+- [x] Letters by carrier (items and notes to offline friends; a courier appears on their next login).
+- [x] Mary's notes as a hunt (her scattered notes form a map once all found; the Heart of Ashen secret).
 
 ## Before each commit
 validate 0 errors, pytest green, export assets / minimaps when changed, a browser check for client changes,

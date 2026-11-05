@@ -5,7 +5,7 @@ import { A, loadManifest, configRead, onLoaded, OWN } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer, unpackCells } from "./state.js";
 import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom, markOutcome, markSwing } from "./render.js";
-import { invalidateMap, invalidateCell, mapCells } from "./ground.js";
+import { invalidateMap, invalidateCell, mapCells, repaintAll } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
   JOY, wmPan, wmZoomAt, wmInBox } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
@@ -920,7 +920,11 @@ N.onMessage = (m) => {
     case "hurt": S.hurtUntil = now + 240; break;
     case "act": if (m.swing) markSwing(m.swing, now); else markOutcome(!!m.ok, now); break;   // (how a click went)
     case "levelup": showBanner(m.skill, m.level, now); break;
-    case "clock": S.clock = { day: m.day, secs: m.secs, on: m.on, at: now }; break;
+    case "clock":
+      S.clock = { day: m.day, secs: m.secs, on: m.on, at: now };
+      if (m.night) S.night = m.night;
+      if (m.season && m.season !== S.season) { S.season = m.season; repaintAll(); }
+      break;
     case "map":
       if (m.z !== S.mapZ) V.cam.snap = true;
       S.mapName = m.name;

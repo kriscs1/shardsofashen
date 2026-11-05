@@ -29,6 +29,10 @@ class RumourMixin:
             return None
         if random.random() * 100 >= self.rumour_setting("Chance", "35"):
             return None
+        if random.random() * 100 < self.rumour_setting("Legend.Chance", "40"):
+            legend = self.legend_due()
+            if legend:
+                return legend
         times = self.rumour_setting("Times", "2")
         own = (getattr(about, "npc_id", "") or "").lower()
         out = []
@@ -46,6 +50,28 @@ class RumourMixin:
             return None
         name, attr, said = random.choice(out)
         return name, attr, random.choice(said)
+
+    def legend_due(self, force=False):
+        """A line about what this player's actually done (data/Legend.ini), once each: (quest, attribute, what's said)."""
+        from ashen import ini
+        rows = ini.section("Lines", self.data.data_file("Legend.ini"))
+        out = []
+        for k, v in rows:
+            cond, _, said = v.partition("|")
+            attr = "Legend.%s" % trim(k)
+            if said and self.condition_met(trim(cond)) and (force or val(self.get_attribute("Rumour." + attr)) < 1):
+                out.append(("", attr, said.replace("$Player.Name", self.player_name)))
+        return random.choice(out) if out else None
+
+    def tell_line(self, words):
+        """A line said by whoever was clicked, in a conversation box (a script waiting on it)."""
+        e = getattr(self, "clicked_ent", None)
+        args = [""] * 34
+        args[1] = e.name if e is not None and e.type == NPC else ""
+        args[2] = words
+        args[3], args[4] = "I see.", "0"
+        self.script_args = args
+        self.script_conversation()
 
     def rumour_heard(self, attr):
         self.update_attribute("Rumour.At", "=%d" % int(self.now / 1000.0))

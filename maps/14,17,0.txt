@@ -21,3 +21,4 @@ Grass001+Decor(Copper_Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Gras
 Grass001+Decor(Ore_Rock001):Grass001:Grass001:Grass001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Grass001:Snow001:Snow001:Grass001:Grass001+Decor(Rock001):Grass001:Snow001:Snow001
 NPC	Bandit	256	216	Attitude=Bad Zone=4,4,14,12
 NPC	Wolf	64	280	Attitude=Bad Zone=2,6,8,14
+Id	Inn_Spot_12	10	5

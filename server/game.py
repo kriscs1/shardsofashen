@@ -146,6 +146,7 @@ class GameServer:
         w.homes.load(st.get("homes"))
         w.farms.load(st.get("farms"))
         w.market.load(st.get("market"), old_stalls=st.get("stalls"))
+        w.wonders.load(st.get("wonders"))
         w.together.load(st.get("together"))            # (projects, records, guestbooks, gifts: together.py)
         w.action_queue = [e for e in st.get("queue", []) if isinstance(e, str)]
         w.apply_saved_queue()
@@ -163,7 +164,7 @@ class GameServer:
             wt = {"kind": w.weather["kind"], "level": w.weather["level"], "fading": w.weather["fading"],
                   "left": max(0, w.weather["next"] - w.now)}
         return {"clock": "utc", "queue": list(w.action_queue), "day": w.day_fraction(), "weather": wt, "homes": w.homes.state(), "farms": w.farms.state(), "market": w.market.state(),
-                "together": w.together.state()}
+                "together": w.together.state(), "wonders": w.wonders.state()}
 
     def save_all(self, also=None):
         """Everyone in the world, and the world, in one go: what's changed hands between them (a trade, a gift, the
@@ -1008,6 +1009,13 @@ class GameServer:
         if low.startswith("/friend ") or low.startswith("/unfriend "):
             name = text.split(" ", 1)[1].strip()
             (s.remove_friend_named if low.startswith("/unfriend") else s.add_friend_named)(name)
+            return
+        if low.startswith("/letter "):                  # (to a friend who's away: a courier finds them)
+            bits = text.split(" ", 2)
+            if len(bits) < 3:
+                s.refuse("/letter Name your message (or /letter Name +Item_Name your message)")
+            else:
+                self.world.wonders.send_letter(s, bits[1], bits[2])
             return
         if low.startswith("/r ") or low.startswith("/reply "):
             to = getattr(s, "last_whisper_from", "")

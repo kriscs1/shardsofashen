@@ -1,5 +1,5 @@
-01	>Conditional	$Attr.RemnantsAbsorbed<1	05
-02	Display.Conversation	Ferryman	Hold up, friend. Bess says you've never had a beast's leavings in your hands, and the mainland's thick with them. See Brother Aldous first. Here's your coin back.	Fair enough.	03
+01	>Conditional	$Attr.RemnantsAbsorbed<1 or $Player.Level<5	05
+02	Display.Conversation	Ferryman	Hold up, friend. You're green as grass yet, and Bess says you've never had a beast's leavings in your hands. The mainland eats the likes of you: come back at level 5, and see Brother Aldous first. Here's your coin back.	Fair enough.	03
 03	Give.Item	Gold_Coin(s)	1
 04	End
 05	Display.Message	Cyan	You climb aboard the ferry and cast off...

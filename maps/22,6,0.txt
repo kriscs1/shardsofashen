@@ -19,3 +19,8 @@ Cinder_Peak002:Cinder_Peak004:Cinder_Peak_Huge007:Cinder_Peak_Huge008:Cinder_Pea
 Cinder_Peak_Huge002:Cinder_Peak_Huge003:Cinder_Peak001:Cinder_Peak001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001+Decor(Dead_Tree001):Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001
 Cinder_Peak_Huge005:Cinder_Peak_Huge006:Cinder_Peak003:Cinder_Peak002:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001
 Cinder_Peak_Huge008:Cinder_Peak_Huge009:Cinder_Peak005:Cinder_Peak001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001
+NPC	Shard_Golem	768	568	Attitude=Bad Zone=22,16,25,21 Chase=18,12,25,21
+NPC	Hexblade	736	120	Attitude=Bad Zone=21,2,25,8 Chase=17,1,25,12
+NPC	Shard_Golem	448	152	Attitude=Bad Zone=12,3,18,9 Chase=8,1,22,13
+NPC	Archmage_Shade	544	216	Attitude=Bad Zone=15,5,21,11 Chase=11,1,25,15
+NPC	Wild_Mage	768	280	Attitude=Bad Zone=22,7,25,13 Chase=18,3,25,17

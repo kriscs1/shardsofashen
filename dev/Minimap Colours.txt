@@ -384,6 +384,7 @@ Double_Bed004	200 50 50
 Dragon_Skull001	222 212 188
 Dresser001	126 81 39
 Dug_Hole001	87 116 53
+Dust001	150 124 90
 Ember_Vent001	200 100 40
 Emberroot_Patch001	16 7 4
 Emberroot_Patch002	2 0 0

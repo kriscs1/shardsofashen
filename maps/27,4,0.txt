@@ -26,3 +26,4 @@ NPC	Ashen_Cultist	352	352	Attitude=Bad
 NPC	Ashen_Cultist	448	256	Attitude=Bad
 Id	Cinder_Fort	13	14
 Trigger	Cinder Fort Gate	13	14
+NPC	Cinder_Guard	352	312	Attitude=Bad Zone=9,8,15,14 Chase=5,4,19,18

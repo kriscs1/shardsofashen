@@ -19,3 +19,4 @@ Grass001:Peak002:Peak001:Peak001:Peak002:Peak005:Peak001:Peak_Big001:Peak_Big002
 Mountain001:Peak_Huge002:Peak_Huge003:Peak004:Peak003:Peak004:Peak006:Peak_Big003:Peak_Big004:Peak002:Peak001:Peak003:Peak004:Peak002:Peak001:Peak001:Peak001:Peak005:Peak005:Peak005:Peak004:Peak_Big003:Sand001:Sand001:Sand001
 Mountain001+Decor(Tree002):Peak_Huge005:Peak_Huge006:Peak_Big001:Peak_Big002:Peak005:Peak002:Peak005:Peak005:Peak_Big001:Peak_Big002:Peak_Big001:Peak_Big002:Peak005:Peak003:Peak006:Peak001:Peak004:Peak001:Peak_Big001:Peak_Big002:Sand001:Sand001:Sand001:Sand001
 Mountain001:Peak_Huge008:Peak_Huge009:Peak_Big003:Peak_Big004:Peak003:Peak006:Peak005:Peak004:Peak_Big003:Peak_Big004:Peak_Big003:Peak_Big004:Peak003:Peak006:Peak002:Peak006:Peak005:Peak003:Peak_Big003:Peak_Big004:Sand001:Sand001:Sand001:Sand001
+NPC	Dune_Stalker	512	408	Attitude=Bad Zone=14,11,20,17 Chase=10,7,24,21

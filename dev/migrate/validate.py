@@ -1180,7 +1180,7 @@ def footprint_fits(name, data):
     return len(data) == max(1, round(w * 7 / 32)) * max(1, round(h * 7 / 32))
 
 
-ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
+ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Droppable", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Hearing", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
                "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Fear.Immune", "Gossip", "Swarm", "Shelf.Minutes", "Spoils.To", "Blink.Every", "Blink.Near", "Rank", "Level", "Swap",
@@ -1199,7 +1199,7 @@ ENTITY_KEYS = {"Type", "Attitude", "Use.Words", "Examine.Info", "Stackable", "Dr
                "Warm",                                                           # 1: it keeps the cold off (cold.py)
                "Boss",                                                           # 1: tougher for each fighter (together.py)
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}                # a cart (carts.py): where its rider stands
-NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Spoils.To", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
+NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Season.Absent", "Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Spoils.To", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
                                      "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}

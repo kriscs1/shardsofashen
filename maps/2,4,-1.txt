@@ -35,3 +35,6 @@ Trigger	Trap_Bucket	4	7
 Trigger	Trap_Darts	17	12
 Trigger	Trap_Pit	16	8
 Trigger	Trap_Pie	21	14
+NPC	Mire_Horror	224	120	Attitude=Bad Zone=6,3,10,7
+NPC	Mire_Horror	224	504	Attitude=Bad Zone=6,15,10,19
+NPC	Mire_Horror	224	152	Attitude=Bad Zone=6,4,10,8

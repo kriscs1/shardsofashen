@@ -45,6 +45,7 @@ TERRAINS = [
     ("Snow_Mountains", "snowy mountains", "Snow_Peak001", "", 0, "", 0, 0),
     ("Cinder_Mountains", "cinder mountains", "Cinder_Peak001", "", 0, "", 0, 0),
     ("Lava", "lava", "Lava001", "", 0, "", 0, 0),
+    ("Dust", "dust", "Dust001", "", 0, "", 0, 0),
     ("Field", "a ploughed field", "Field001", "", 0, "", 0, 0),
     ("Cobbles", "cobbled street", "Cobble001", "", 0, "", 0, 0),
     ("Gravel", "gravel road", "Gravel001", "", 0, "", 0, 0),

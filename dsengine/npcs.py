@@ -939,6 +939,8 @@ class NPCMixin:
 
     def npc_give_up(self, e, a):
         now = self.now
+        if e.target is not None and e.hp < e.max_hp * 0.75 and hasattr(e.target, "player_name"):
+            self.wonders.grudge_noted(e.target, e)       # (hurt, and they got away: it remembers)
         e.in_combat = False
         e.target = None
         self.forget_path(e)

@@ -19,3 +19,9 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+NPC	Sand_Scorpion	64	280	Attitude=Bad Zone=1,7,6,13 Chase=1,3,10,17
+NPC	Dune_Stalker	96	376	Attitude=Bad Zone=1,10,7,16 Chase=1,6,11,20
+NPC	Sand_Drake	224	568	Attitude=Bad Zone=5,16,11,21 Chase=1,12,15,21
+NPC	Sun_Mummy	320	344	Attitude=Bad Zone=8,9,14,15 Chase=4,5,18,19
+NPC	Sun_Mummy	0	344	Attitude=Bad Zone=1,9,4,15 Chase=1,5,8,19
+NPC	Sun_Mummy	448	472	Attitude=Bad Zone=12,13,18,19 Chase=8,9,22,21

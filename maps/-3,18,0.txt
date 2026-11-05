@@ -19,3 +19,4 @@ Water001:Water001:Water001:Water001:Water001:Peak_Big003:Peak_Big004:Peak003:Pea
 Water001:Water001:Water001:Water001:Water001:Water001:Peak_Big002:Peak_Big001:Peak_Big002:Peak_Huge001:Peak_Huge002:Peak_Huge003:Peak001:Peak001:Peak001:Peak004:Peak005:Peak001:Peak006:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Peak_Big003:Peak_Big004:Peak_Huge004:Peak_Huge005:Peak_Huge006:Peak002:Peak006:Peak003:Peak003:Peak002:Peak002:Peak001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Peak_Huge007:Peak_Huge008:Peak_Huge009:Water001:Water001:Peak003:Peak001:Peak003:Peak005:Peak001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001:Mountain001
+NPC	Sand_Drake	672	24	Attitude=Bad Zone=19,1,25,5 Chase=15,1,25,9

@@ -138,6 +138,7 @@ class PvPMixin:
         self.update_attribute("ArenaLosses", "+1")
         if winner is not None:
             winner.update_attribute("ArenaWins", "+1")
+            self.w.wonders.arena_kill(winner)
             winner.play_sound("Quest")
             winner.display_message("You have beaten %s in the arena! (%s wins)" % (
                 self.player_name, winner.get_attribute("ArenaWins")), "ACHIEVEMENT")

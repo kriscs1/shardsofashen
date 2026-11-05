@@ -424,6 +424,16 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     else if (f.t === "bubble") drawBubble(ctx, f, now, cam, pc);
   }
   drawStatusIcons(ctx, me, cam);
+  for (const e of shown) {                         // (what's not quite what it seems: a glint of Shard, now and then)
+    if (e.k !== T.NPC || entityIni(e.n, "Glint", "") !== "1") continue;
+    const phase = (now + e.u * 977) % 2600;
+    if (phase < 160) {
+      const x = Math.round(e.dx + e.w / 2 - cam.x + ((e.u * 13) % 9) - 4), y = Math.round(e.dy + 8 - cam.y + ((e.u * 7) % 11));
+      ctx.fillStyle = phase < 80 ? "rgb(214,170,255)" : "rgb(150,90,230)";
+      ctx.fillRect(x - 1, y, 3, 1);
+      ctx.fillRect(x, y - 1, 1, 3);
+    }
+  }
   drawSleepers(ctx, now, cam, pc);
   for (const e of [...shown, ...(me && me.a ? [me] : [])]) {
     if (e.b && (e.k === T.NPC || e.k === T.PLAYER)) {

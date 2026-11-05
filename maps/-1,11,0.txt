@@ -19,3 +19,7 @@ Cave_Floor003:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor
 Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor002+Decor(Pebbles003):Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor001
 Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor001
 Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Puddle001:Cave_Floor001:Cave_Floor001+Decor(Mushroom_Patch001):Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor002:Cave_Floor003:Peak002
+NPC	Deep_Troll	640	632	Attitude=Bad Zone=18,18,24,21 Chase=14,14,25,21
+NPC	Deep_Troll	128	472	Attitude=Bad Zone=2,13,8,19 Chase=1,9,12,21
+NPC	Stone_Golem	544	24	Attitude=Bad Zone=15,1,21,5 Chase=11,1,25,9
+NPC	Stone_Golem	480	440	Attitude=Bad Zone=13,12,19,18 Chase=9,8,23,21

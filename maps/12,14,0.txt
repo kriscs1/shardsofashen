@@ -1,8 +1,8 @@
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Grass001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
-Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Coal_Rock001):Marsh009:Grass001:Grass001:Grass001+Decor(Rock001):Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Campfire001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Copper_Rock001):Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Rock001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Coal_Rock001):Marsh009:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Marsh002:Marsh001:Marsh001:Marsh001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001
 Grass001:Marsh007:Marsh006:Marsh008:Marsh005:Marsh002:Marsh009:Marsh006+Decor(Willow_Tree001):Marsh010:Marsh002:Marsh001:Marsh009+Decor(Reeds001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Marsh002+Decor(Bog_Myrtle001):Marsh002:Marsh001:Marsh010:Marsh003:Marsh003:Marsh004:Marsh001:Marsh001:Marsh007:Marsh009+Decor(Reeds001):Marsh002:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001
@@ -21,3 +21,9 @@ Marsh006:Marsh002:Marsh008:Marsh001:Marsh009+Decor(Reeds001):Marsh004:Marsh009:M
 Marsh003:Marsh009:Marsh002:Marsh002:Marsh001:Marsh005:Marsh005:Marsh009:Bog001:Bog001:Marsh001:Marsh002+Decor(Reeds001):Marsh006:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 NPC	Rabbit	544	312	Attitude=Passive Zone=13,7,23,15
 NPC	Mosquito	224	576	Attitude=Bad Zone=4,15,12,21
+NPC	Wolf	672	88	Attitude=Bad Zone=19,1,25,7 Chase=15,1,25,11 Group=Camp_313_291
+NPC	Hobgoblin	608	88	Attitude=Bad Zone=17,1,23,7 Chase=13,1,25,11 Group=Camp_313_291
+NPC	Goblin_Shaman	608	120	Attitude=Bad Zone=17,2,23,8 Chase=13,1,25,12 Group=Camp_313_291
+NPC	Skeleton_Archer	672	56	Attitude=Bad Zone=19,1,25,6 Chase=15,1,25,10 Group=Camp_313_291
+NPC	Wolf	608	24	Attitude=Bad Zone=17,1,23,5 Chase=13,1,25,9 Group=Camp_313_291
+NPC	Hobgoblin	480	0	Attitude=Bad Zone=13,1,19,4 Chase=9,1,23,8 Group=Camp_313_291

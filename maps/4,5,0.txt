@@ -44,3 +44,4 @@ NPC	Clerk	128	376	Attitude=Good Stand=1 Face=S Id=Bounty_Clerk Name=Bounty_Clerk
 NPC	Clerk	96	344	Attitude=Good Stand=1 Face=S Id=Record_Keeper Name=Keeper_of_Records
 NPC	Guard	96	280	Attitude=Good Stand=1 Face=S Id=Sellsword_Northport Name=Sellsword
 StaticObject	Project_Plaque	288	472	Id=Plaque_Northport_Harbour Project=Northport_Harbour
+StaticObject	Mary_Note	0	640	Id=Mary_Note_2

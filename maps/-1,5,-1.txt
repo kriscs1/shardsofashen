@@ -22,3 +22,6 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Id	Mire_Tunnel_West_Steps	20	19
 Trigger	Hidden_Way_n1_5_n1	18	18
 StaticObject	Chest	416	480	Id=Hidden_Cache_n1_5_n1
+NPC	Mire_Horror	608	536	Attitude=Bad Zone=18,16,22,20
+NPC	Mire_Horror	704	632	Attitude=Bad Zone=21,19,25,21
+NPC	Mire_Horror	672	568	Attitude=Bad Zone=20,17,24,21

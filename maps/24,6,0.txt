@@ -19,3 +19,5 @@ Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Cinder001:Ash001:Ash001:Ash001:A
 Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001+Decor(Dead_Tree001):Ash001:Cinder001:Cinder001+Decor(Dead_Tree001):Lava001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder_Peak006
 Cinder001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Cinder001:Lava001:Lava001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001
 Cinder001:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Lava001:Lava001:Lava001:Cinder001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+NPC	Cinder_Imp	288	472	Attitude=Bad Zone=7,13,13,19 Chase=3,9,17,21
+NPC	Ash_Hound	128	472	Attitude=Bad Zone=2,13,8,19 Chase=1,9,12,21

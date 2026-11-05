@@ -41,3 +41,4 @@ StaticObject	Loose_Cobble	416	448	Id=Secret_Dunerest
 StaticObject	Valuables	256	120
 StaticObject	Wishing_Well	192	352	Id=Secret_Dunerest_2
 StaticObject	Hollow_Stump	64	352	Id=Secret_Dunerest_3
+StaticObject	Mary_Note	416	352	Id=Mary_Note_4

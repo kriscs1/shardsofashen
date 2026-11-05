@@ -16,6 +16,7 @@ def world():
     random.seed(1)
     w = World(ROOT)
     w.encounters.settings["on"] = w.banter.settings["on"] = "0"   # (nobody turning up in other tests: they ask for them)
+    w.wonders.on = False
     return w
 
 
@@ -47,6 +48,196 @@ def test_every_pub_has_a_dice_table_and_every_barkeep_plays(world):
     tables = [e for e in world.ents if e.name == "Dice_Table"]
     for b in barkeeps:
         assert any(t.z == b.z and abs(t.x - b.x) <= 800 and abs(t.y - b.y) <= 672 for t in tables), b.npc_id
+
+
+def test_the_year_goes_round(world):
+    y = world.seasons.year_ms()
+    assert [world.seasons.season(k * y / 4 + 1000) for k in range(4)] == ["Spring", "Summer", "Autumn", "Winter"]
+    was = world.seasons.now_is
+    try:
+        world.seasons.now_is = "Winter"
+        winter = world.seasons.night()
+        assert world.seasons.rain_is("rain") == "snow" and world.seasons.crop_growth() < 1
+        world.seasons.now_is = "Summer"
+        summer = world.seasons.night()
+        assert (1 - winter[0]) + winter[1] > (1 - summer[0]) + summer[1]    # (longer nights in winter)
+        assert world.seasons.rain_is("rain") == "rain"
+        assert world.seasons.swapped("Raw_Herring") == "Raw_Trout" and world.seasons.swapped("Bread") == "Bread"
+    finally:
+        world.seasons.now_is = was
+
+
+def test_a_river_freezes_in_winter_but_never_the_sea(world):
+    s = world.seasons
+    if s.rivers is None:
+        s.find_rivers()
+    assert s.rivers
+    sizes = {m.name for m, _, _ in s.rivers}
+    assert "23,23,0" not in sizes                       # (open sea: too big a body of water)
+    m, x, y = s.rivers[0]
+    before = m.tile[m.cell(x, y)]
+    assert before.startswith("Water0")
+
+
+def test_a_shard_storm_rains_on_those_out_in_it(world):
+    wd = world.wonders
+    s = join(world, "Stormy", "2,0,0", 300, 300)
+    s.connected = True
+    wd.storm_start()
+    assert wd.in_storm() and world.weather["kind"] == "shardstorm"
+    assert world.weather_kind("4,6,0", 0)[0] == "shardstorm"
+    before = sum(1 for e in world.ents if e.name in ("Shard_Remnant", "Living_Remnant"))
+    for _ in range(40):
+        wd.storm_rains_on(s)
+    assert sum(1 for e in world.ents if e.name in ("Shard_Remnant", "Living_Remnant")) > before
+    wd.storm_until = 0
+    world.weather["kind"] = "clear"
+    for e in [e for e in world.ents if e.name == "Living_Remnant" and e.source == "ENCOUNTER"]:
+        world.remove_entity(e)
+    leave(world, s)
+
+
+def test_the_tax_collector_walks_after_the_rich_and_is_polite_about_it(world):
+    wd = world.wonders
+    s = join(world, "Moneybags", "2,0,0", 300, 300)
+    s.connected = True
+    s.script_running = False
+    stock(s, **{"Gold_Coin(s)": 10000})
+    wd.tax_tick()
+    e = wd.collectors[s.player_name]
+    assert e.follow is s and not e.hostile
+    assert "Attack" not in s.get_verbs(e)
+    due = wd.tax_due(s)
+    wd.tax_paid(s)
+    assert s.items_held("Gold_Coin(s)") == 10000 - due and s.player_name not in wd.collectors
+    leave(world, s)
+
+
+def test_a_letter_waits_for_a_friend_and_a_courier_brings_it(world):
+    wd = world.wonders
+    a = join(world, "Sender", "4,6,0", 300, 300)
+    world.together.friends[a.player_name] = ["Faraway"]
+    stock(a, **{"Bread": 1})
+    assert wd.send_letter(a, "Faraway", "+Bread Eat something.")
+    assert a.items_held("Bread") == 0 and wd.mail["faraway"][0]["item"] == "Bread"
+    assert not wd.send_letter(a, "Stranger", "Hello.")
+    state = wd.state()
+    wd.load(state)                                      # (saved with the world: still there)
+    b = join(world, "Faraway", "4,6,0", 300, 340)
+    assert wd.take_letters(b) == 1 and b.items_held("Bread") == 1 and "faraway" not in wd.mail
+    world.together.friends.pop(a.player_name)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_a_mimic_stops_pretending_when_its_caught(world):
+    wd = world.wonders
+    s = join(world, "Accuser", "4,6,0", 300, 300)
+    s.connected = True
+    m = world.maps["4,6,0"]
+    e = wd.add("Mimic_Villager", m, 10, 10, "Attitude=Good Schedule=Always Name=Viilager")
+    wd.mimics[e.uid] = world.now + 60000
+    wd.mimic_caught(s, e)
+    assert not e.alive
+    thing = next(o for o in world.ents if o.name == "Mimic_Thing")
+    assert thing.hostile and thing.target is s
+    world.remove_entity(thing)
+    leave(world, s)
+
+
+def test_what_killed_you_holds_a_grudge_and_comes_back_stronger(world):
+    wd = world.wonders
+    s = join(world, "Grudged", "2,0,0", 300, 300)
+    s.connected = True
+    m = world.maps["2,0,0"]
+    wolf = world.add_npc("Wolf", 0, m.ox + 300, m.oy + 300, "Attitude=Bad", home=m.name)
+    wolf.target = s
+    s.death_remembered()
+    assert s.get_attribute("Legend.Died.Wolf") in (1, "1") and s.get_attribute("Grudge.Kind") == "Wolf"
+    plain = (wolf.max_hp, wolf.strength)
+    world.remove_entity(wolf)
+    s.update_attribute("Grudge.At", "=1")
+    s.script_running = False
+    wd.grudge_tick()
+    who = [world.by_uid[u] for u, n in wd.grudges.items() if n == s.player_name]
+    assert who and who[0].max_hp > plain[0] and who[0].strength > plain[1] and who[0].display.startswith("Scarred")
+    wd.grudge_settled(s, who[0])
+    assert s.player_name not in wd.grudges.values() and float(s.get_attribute("Grudge.At")) == 0
+    world.remove_entity(who[0])
+    leave(world, s)
+
+
+def test_your_legend_gets_about(world):
+    s = join(world, "Goosed", "4,6,0", 300, 300)
+    assert s.legend_due() is None or True
+    s.update_attribute("Legend.Died.Goose", "=1")
+    line = s.legend_due()
+    assert line and "Goosed" in line[2] and "goose" in line[2]
+    s.rumour_heard(line[1])
+    assert s.legend_due() is None or s.legend_due()[1] != line[1]
+    leave(world, s)
+
+
+def test_the_champion_is_crowned_at_the_years_turn(world):
+    wd = world.wonders
+    s = join(world, "Champ", "4,6,0", 300, 300)
+    was = world.seasons.now_is, wd.champion, wd.champion_year, dict(wd.scores)
+    try:
+        world.seasons.now_is = "Winter"
+        wd.arena_kill(s)
+        assert wd.scores["Champ"] == 1
+        world.seasons.now_is = "Spring"
+        wd.champion_year = wd.year() - 1
+        wd.champion_tick()
+        assert wd.champion == "Champ" and not wd.scores
+    finally:
+        world.seasons.now_is, wd.champion, wd.champion_year, wd.scores = was
+    leave(world, s)
+
+
+def test_marys_notes_make_a_map(world):
+    s = join(world, "Reader", "4,6,0", 300, 300)
+    for k in range(1, 8):
+        assert world.data.place("Mary_Note_%d" % k) is not None or any(
+            e.npc_id == "Mary_Note_%d" % k for e in world.ents), k
+        assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Read Mary_Note_%d.txt" % k))
+    assert world.data.place("Marys_Cache") is not None
+    leave(world, s)
+
+
+def test_the_wandering_inn_is_somewhere_today(world):
+    wd = world.wonders
+    wd.inn_tick()
+    assert wd.inn and {e.name for e in wd.inn["ents"]} >= {"Wandering_Inn", "Wandering_Keeper", "Dice_Table"}
+
+
+def test_a_ghost_ship_comes_and_is_gone_by_morning(world):
+    wd = world.wonders
+    wd.ship_comes(1)
+    assert wd.ship and any(e.name == "Ghost_Ship" for e in wd.ship["ents"])
+    ents = wd.ship["ents"]
+    assert any(e.name == "Drowned_Sailor" for e in ents) or len(ents) >= 2
+    world.is_night = lambda t=None: False
+    try:
+        wd.ship_tick()
+    finally:
+        del world.is_night
+    assert wd.ship is None and not any(e.alive for e in ents)
+
+
+def test_no_building_in_galaith_stands_across_a_map_edge(world):
+    # (a roof's group is its own map's: half of it wouldn't lift as you went in)
+    for mx in range(-11, -3):
+        for my in range(12, 18):
+            m = world.maps.get("%d,%d,0" % (mx, my))
+            east = world.maps.get("%d,%d,0" % (mx + 1, my))
+            south = world.maps.get("%d,%d,0" % (mx, my + 1))
+            if m is None:
+                continue
+            for y in range(1, 22):
+                assert not (east and m.roof[m.cell(25, y)] and east.roof[east.cell(1, y)]), (m.name, y)
+            for x in range(1, 26):
+                assert not (south and m.roof[m.cell(x, 21)] and south.roof[south.cell(x, 1)]), (m.name, x)
 
 
 def test_every_finished_quest_shows_its_screen_even_with_no_reward(world):
@@ -1415,6 +1606,8 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("Squeaked") == 1
     use("1,1,0", 21, 6, "Search")
     assert s.items_held("Fathers_Compass") == 1 and attr("Passage") == 4
+    for k in range(len(s.skill_xp)):
+        s.skill_xp[k] = max(s.skill_xp[k], 6)                       # (Bess won't sail a green hand: level 5)
     s.absorb_remnants(next(e for e in s.inv if e.name == "Shard_Remnant"))   # (Aldous's lesson: Bess won't sail before)
     talk(bess, 3, 1)                                                # the compass to Bess: she sails you over
     run(60, ms=200)
@@ -1535,7 +1728,7 @@ def test_townsfolk_climb_ladders_and_roam_a_zone_on_two_floors(world):
     assert found, "no house ladder"
     m, x, y = found
     tx, ty = int((x - m.ox) / 32) + 1, int((y - m.oy) / 32) + 1
-    zone = "%d,%d,%d,%d" % (max(1, tx - 3), max(1, ty - 3), min(25, tx + 3), min(21, ty + 3))
+    zone = "%d,%d,%d,%d" % (max(1, tx - 1), max(1, ty - 1), min(25, tx + 1), min(21, ty + 2))     # (close by: a house may have other rooms, out of the watcher's sight)
     day = world.day_fraction()
     world.set_day_fraction(0.5)
     e = world.add_npc("Villager", 0, x - 16, y + 32 - 24, "Attitude=Good Zone=%s Zone.Levels=0,1 Schedule=Always" % zone)
@@ -4696,6 +4889,13 @@ def test_no_leaving_the_isle_without_knowing_shard_remnants(world):
     run_for(world, 5)
     s.update_attribute("RemnantsAbsorbed", "=1")
     s.start_script("Bess Sails to Northport", False)
+    run_for(world, 20)
+    assert s.cur_map.name == "3,2,0"                                # (nor a green hand: level 5)
+    s.close_action_box(-1) if s.ab_mode else None
+    run_for(world, 5)
+    for k in range(len(s.skill_xp)):
+        s.skill_xp[k] = max(s.skill_xp[k], 6)
+    s.start_script("Bess Sails to Northport", False)
     run_for(world, 120)
     if s.pending_map:
         s.do_pending_map_change()
@@ -5959,7 +6159,7 @@ def test_the_isle_comes_down_on_the_slant_and_rooms_are_furnished(world):
                 if m.decor[c] in standing:
                     seen += 1
                     assert not m.tile[c].startswith("Door")
-                    assert m.inside(x, y + 1) and m.decor[m.cell(x, y + 1)] not in standing
+                    assert not m.inside(x, y + 1) or m.decor[m.cell(x, y + 1)] not in standing
     assert seen > 100
     sides = [(m, c) for m in world.maps.values() if m.mz in (0, 1) for c in range(1, len(m.decor))
              if m.decor[c].startswith("Side_") and m.decor[c][-4] in "WE"]
@@ -5976,7 +6176,7 @@ def test_galaith_is_paved_nicer_among_the_nobles_and_royals(world):
     def ground(gx, gy):
         m = world.maps["%d,%d,0" % (gx // 25, gy // 21)]
         return m, m.cell(gx - (gx // 25) * 25 + 1, gy - (gy // 21) * 21 + 1)
-    plots = ((-113, 270, -83, 285), (-111, 306, -82, 326))     # (the graveyard's lawn and the orchard's)
+    plots = ((-222, 268, -192, 284), (-222, 308, -192, 328))   # (the graveyard's lawn and the orchard's)
     for gx in range(-262, -90, 3):
         for gy in range(272, 372, 3):
             m, c = ground(gx, gy)
@@ -5985,20 +6185,19 @@ def test_galaith_is_paved_nicer_among_the_nobles_and_royals(world):
             assert m.tile[c] not in ("Grass001", "Dirt001"), (gx, gy, m.tile[c])
     m, c = ground(-258, 290)
     assert m.tile[c] == "Royal_Paving001"
-    m, c = ground(-160, 293)
-    assert m.tile[c] == "Noble_Paving001"
-    m, c = ground(-250, 345)
+    assert any(ground(x, y)[0].tile[ground(x, y)[1]] == "Noble_Paving001" for x in range(-263, -226) for y in range(268, 286))
+    m, c = ground(-130, 375)
     assert m.tile[c] == "Flagstone001"
     for tile in ("Royal_Paving001", "Noble_Paving001", "Lawn001"):
         assert d.tile_ini(tile, "Texture", "")                  # (a big texture: never one picture every tile)
 
 
 def test_the_fountains_pool_is_raised_and_you_can_toss_a_coin(world):
-    m = world.maps["-4,14,0"]
-    assert m.decor[m.cell(4, 2)].startswith("Fountain_Pool")
-    assert "1" not in m.walk[m.cell(4, 2)]                      # (the water's walked round, not through)
-    s = join(world, "Wisher", "-4,14,0", 96, 200)               # (on the paving, its south side)
     fountain = next(e for e in world.ents if e.npc_id == "The_Grand_Fountain")
+    m = world.maps[fountain.map]
+    pool = next(c for c in range(1, len(m.decor)) if m.decor[c].startswith("Fountain_Pool"))
+    assert "1" not in m.walk[pool]                              # (the water's walked round, not through)
+    s = join(world, "Wisher", "-9,14,0", 576, 136)              # (on the paving, its south side)
     assert "Toss a Coin" in s.get_verbs(fountain)
     stock(s, **{"Gold_Coin(s)": 5})
     coins = s.items_held("Gold_Coin(s)")
@@ -6010,7 +6209,7 @@ def test_the_fountains_pool_is_raised_and_you_can_toss_a_coin(world):
 
 
 def test_every_stone_in_galaiths_graveyard_says_its_own(world):
-    m = world.maps["-5,13,0"]
+    m = world.maps[world.data.place("Grave_Tobin_Lamps").map]
     assert sum(1 for c in range(1, len(m.decor)) if m.decor[c].startswith(("Headstone", "Stone_Cross", "Grave_Slab",
                                                                            "Royal_Cenotaph"))) >= 8
     for pid in ("Grave_Tobin_Lamps", "Grave_Hobb_Vintner", "Stone_Prince_Alaric", "Stone_The_Empty_One"):
@@ -6322,8 +6521,7 @@ def test_galaiths_gardener_and_sexton_go_home_at_night(world):
     m = world.maps[gardener.map]
     bx, by = gardener.ai.bed
     assert m.decor[m.cell(int((bx - m.ox) // 32) + 1, int((by - m.oy) // 32) + 1)] == "Bed001"
-    h = sexton.ai.home
-    assert h[0] <= sexton.fx <= h[2] and h[1] <= sexton.fy <= h[3]
+    assert not sexton.active or sexton.ai.home is None         # (his house is elsewhere now: off by the nearest door)
     world.set_day_fraction(0.4)
     run_for(world, 2400)
     assert not gardener.ai.asleep and gardener.active

@@ -23,3 +23,4 @@ NPC	Rabbit	512	152	Attitude=Passive Zone=12,2,22,10
 NPC	Rabbit	448	88	Attitude=Passive Zone=10,2,20,8
 NPC	Butterfly	576	280	Attitude=Good Zone=14,6,24,14
 NPC	Butterfly	160	472	Attitude=Good Zone=2,12,11,20
+StaticObject	Salmon_Spot	640	224

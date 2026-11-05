@@ -23,7 +23,6 @@ StaticObject	Chest	352	96
 NPC	Villager	352	224	Attitude=Good Zone=9,5,15,10
 NPC	Sheep	452	446	Attitude=Passive Zone=8,13,21,16
 NPC	Sheep	512	416	Attitude=Passive Zone=20,11,20,11/13,12,20,16 Chase=12,10,12,11/20,10,21,11/12,12,21,17
-NPC	Skeleton	224	96	Attitude=Bad
 NPC	Rabbit	320	288	Attitude=Passive Zone=8,7,12,11/8,12,14,13 Chase=8,7,12,11/8,12,14,13
 StaticObject	Notice	448	386	Id=Isle_Chapel
 Id	Chapel_Door	16	13
@@ -40,3 +39,4 @@ Id	Grave_Brother_Edric	9	5
 Id	Grave_Hester_Bell	13	5
 Id	Mothers_Grave	15	4
 Id	Funeral_Spot	15	5
+NPC	Skeleton	224	96	Attitude=Bad

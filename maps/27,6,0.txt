@@ -22,3 +22,4 @@ Basalt_Paving001:Ash001+Decor(Palisade001):Ash001+Decor(Palisade001):Ash001+Deco
 NPC	Blacksmith	160	88	Attitude=Good Stand=1 Face=S Id=Emberwatch_Smith_320 Name=Polly
 StaticObject	Furnace	96	64
 StaticObject	Anvil	224	64
+NPC	Cinder_Guard	384	248	Attitude=Bad Zone=10,6,16,12 Chase=6,2,20,16

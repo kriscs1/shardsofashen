@@ -19,3 +19,10 @@ Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Stalagmite
 Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Puddle001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor003
 Cave_Floor001:Stalagmite001:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001
 Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Puddle001:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Rubble001:Cave_Floor001:Cave_Floor001
+NPC	Tunnel_Wraith	384	88	Attitude=Bad Zone=10,1,16,7 Chase=6,1,20,11
+NPC	Cave_Horror	672	536	Attitude=Bad Zone=19,15,25,21 Chase=15,11,25,21
+NPC	Deep_Troll	608	56	Attitude=Bad Zone=17,1,23,6 Chase=13,1,25,10
+NPC	Stone_Golem	64	216	Attitude=Bad Zone=1,5,6,11 Chase=1,1,10,15
+NPC	Stone_Golem	96	536	Attitude=Bad Zone=1,15,7,21 Chase=1,11,11,21
+NPC	Deep_Troll	128	24	Attitude=Bad Zone=2,1,8,5 Chase=1,1,12,9
+NPC	Deep_Troll	544	0	Attitude=Bad Zone=15,1,21,4 Chase=11,1,25,8

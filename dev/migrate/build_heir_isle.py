@@ -1084,8 +1084,8 @@ def bess_and_frank():
     ])
     w("Bess Sails to Northport", [
         # (not till you know what a dead beast's Shard Remnants are: Brother Aldous shows you)
-        (">Conditional", "$Attr.RemnantsAbsorbed<1", "@sail"),
-        say("Milkmaid", "Wait, love, before we go. Out there the beasts run wild, and when one dies its magic doesn't: it leaves splinters behind, and sometimes worse. Has Brother Aldous shown you what to do with them? He showed me, once. Go and see him, then come back to me.", ("I'll go and see him.", "@stay")),
+        (">Conditional", "$Attr.RemnantsAbsorbed<1 or $Player.Level<5", "@sail"),
+        say("Milkmaid", "Wait, love, before we go. I'll not take a green hand over to the mainland, not till you've grown into yourself a bit: level 5, Aldous would say. Out there the beasts run wild, and when one dies its magic doesn't: it leaves splinters behind, and sometimes worse. Has Brother Aldous shown you what to do with them? He showed me, once. Go and see him, then come back to me.", ("I'll go and see him.", "@stay")),
         ("@stay",), ("End",),
         ("@sail",),
         ("Display.Message", "Cyan", "Bess takes the tiller, her father's compass in her hand, and the Isle slips away "

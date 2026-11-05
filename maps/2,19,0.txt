@@ -16,8 +16,8 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sa
 Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001+Decor(Desert_Rock001):Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001+Decor(Cactus001):Sand001:Sand001+Decor(Cactus001):Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Sand001:Sand001:Sand001+Decor(Dead_Tree001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001
+Ruined_Wall001:Sand001:Ruined_Wall001:Ruined_Wall001:Ruined_Wall001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Ruined_Wall001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001
 NPC	Scorpion	576	536	Attitude=Bad Zone=14,14,24,20
 NPC	Scorpion	480	216	Attitude=Bad Zone=11,4,21,12

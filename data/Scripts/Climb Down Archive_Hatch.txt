@@ -4,7 +4,7 @@
 03	Play.Sound	Ladder
 04	Display.Message	Cyan	You lift the hatch and climb down into the dark. Somewhere below, boots.	-
 05	Wait	0.4
-06	Teleport	608,376	-7,13,-1
+06	Teleport	608,120	-10,13,-1
 07	End
 08	Display.Message	DarkRed	The hatch is locked.	Locked
 09	End

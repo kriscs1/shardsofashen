@@ -19,3 +19,5 @@ Cinder_Peak001:Cinder_Peak_Huge007:Cinder_Peak_Huge008:Cinder_Peak_Huge009:Cinde
 Cinder_Peak_Big002:Cinder_Peak_Huge001:Cinder_Peak_Huge002:Cinder_Peak_Huge003:Cinder_Peak006:Cinder_Peak002:Cinder_Peak005:Cinder_Peak002:Ash001:Cinder001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Ash001:Cinder001:Cinder001
 Cinder_Peak_Big004:Cinder_Peak_Huge004:Cinder_Peak_Huge005:Cinder_Peak_Huge006:Cinder_Peak002:Cinder_Peak001:Cinder_Peak002:Cinder_Peak002:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Cinder001:Ash001+Decor(Dead_Tree002):Ash001:Cinder001
 Cinder_Peak002:Cinder_Peak_Huge007:Cinder_Peak_Huge008:Cinder_Peak_Huge009:Cinder_Peak002:Cinder_Peak002:Cinder_Peak006:Ash001:Ash001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Cinder001:Ash001:Cinder001:Ash001:Ash001:Ash001:Ash001
+NPC	Archmage_Shade	128	0	Attitude=Bad Zone=2,1,8,4 Chase=1,1,12,8
+NPC	Magma_Brute	416	280	Attitude=Bad Zone=11,7,17,13 Chase=7,3,21,17

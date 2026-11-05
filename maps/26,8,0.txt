@@ -18,5 +18,5 @@ Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:A
 Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Emberroot_Patch001):Ash001:Ash001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Dirt001:Dirt001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Water001:Ash001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Ash001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Water001
+Ash001:Ash001:Ruined_Wall001:Ash001:Dirt001:Dirt001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Water001
 StaticObject	Chest	288	128
