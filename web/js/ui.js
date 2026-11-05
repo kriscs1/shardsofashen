@@ -52,7 +52,7 @@ export function layout(W, H = 768) {
     L.invY = L.bagY + 14;
     L.chatY = H - 96;
     L.chatW = W - 64;                                // (clear of the buttons)
-    L.chatR = L.chatW - 44;
+    L.chatR = L.chatW - 20;
     L.boostR = L.mmX - L.mmSize / 2 - 10;
     L.abX = Math.max(4, Math.min(Math.floor((L.VW - abw) / 2), L.packX - abw - 6));
     L.packY = L.bagY;
@@ -86,7 +86,7 @@ export function layout(W, H = 768) {
     L.mmSize = 160;
     L.chatY = L.VH;
     L.chatW = L.VW;                                  // (under the view only: the sidebar runs the whole height)
-    L.chatR = L.chatW - 44;
+    L.chatR = L.chatW - 20;
     L.boostR = L.VW - 8;
     L.abX = Math.floor((L.VW - abw) / 2);
     L.upright = false;
@@ -115,9 +115,9 @@ const SLOT_OUTLINES = { Weapon: "Iron_Sword", Shield: "Iron_Shield", Head: "Iron
   Legs: "Iron_Platelegs", Feet: "Iron_Boots", Hands: "Iron_Gauntlets", Ring: "Gold_Ring" };
 const SLOT_NAMES = ["", "Weapon", "Shield", "Head", "Body", "Legs", "Feet", "Hands", "Ring"];
 const EQUIP_GRID = [[0, 1], [2, 1], [1, 0], [1, 1], [1, 2], [1, 3], [0, 2], [2, 2]];
-export const EQUIP_BOX = 28;
-export const equipX = (s) => 49 + EQUIP_GRID[s - 1][0] * 50;
-export const equipY = (s) => 41 + EQUIP_GRID[s - 1][1] * 32;
+export const EQUIP_BOX = 30;
+export const equipX = (s) => 36 + EQUIP_GRID[s - 1][0] * 62;
+export const equipY = (s) => 44 + EQUIP_GRID[s - 1][1] * 44;
 export const HOTBAR_SIZE = 38;
 
 export const INTERFACE = ["SideBar", "SideBarBorder", "StatBox", "ChatBar", "InfoBox", "AB_Conversation", "AB_Bank",
@@ -803,7 +803,7 @@ function drawSkillsTab(ctx) {
   const shown = skills.filter((_, i) => skillShown(i + 1)).length;
   U.statRows = Math.max(1, Math.floor((shown + 2) / 3));
   U.statRowTop = 41;
-  U.statRowH = Math.min(40, Math.floor((STAT_H - 60) / U.statRows));   // (as tall as the box has room for)
+  U.statRowH = Math.min(44, Math.floor((STAT_H - 60) / U.statRows));   // (as tall as the box has room for)
   let k = 1;
   skills.forEach((name, i) => {
     if (!skillShown(i + 1)) return;
@@ -905,8 +905,8 @@ function drawGear(ctx) {
     }
   }
   const [atk, def, mag] = me.totals;
-  const totals = [[63, 44, "Attack", atk], [163, 44, "Defence", def]];
-  if (mag > 0) totals.push([63, 139, "Magic", mag]);
+  const totals = [[51, 50, "Attack", atk], [175, 50, "Defence", def]];
+  if (mag > 0) totals.push([51, 182, "Magic", mag]);
   for (const [xm, y, label, v] of totals) {
     centreText(ctx, xm, y, label, 7, true, [190, 160, 110]);
     centreText(ctx, xm, y + 10, "+" + lbstr(v), 11, true, TAB_TEXT);
@@ -1186,11 +1186,11 @@ function drawBox(ctx) {
     }
     const room = Math.max(1, Math.floor((h - 64) / lineH));
     const first = Math.max(1, room - (heading ? 2 : 0));         // (the heading takes the first page's top)
-    const pages = lines.length <= first ? 1 : 1 + Math.ceil((lines.length - first) / room);
+    const [pages, onFirst, perPage] = pageSplit(lines.length, first, room);
     b.tpages = pages;
     b.tpage = Math.min(b.tpage || 0, pages - 1);
     b.responses = b.tpage < pages - 1 ? ["Read on..."] : (b.answers || b.responses);
-    const shown = b.tpage === 0 ? lines.slice(0, first) : lines.slice(first + (b.tpage - 1) * room, first + b.tpage * room);
+    const shown = b.tpage === 0 ? lines.slice(0, onFirst) : lines.slice(onFirst + (b.tpage - 1) * perPage, onFirst + b.tpage * perPage);
     let y = 54;
     if (heading && b.tpage === 0) {
       drawText(ctx, heading, x0 + titleX, y0 + y, 11, true, [255, 214, 110]);
@@ -1324,24 +1324,30 @@ export function responseBoxRect() {
 }
 
 // ----- the chat bar and the hover box
+export function pageSplit(total, first, room) {
+  // ([pages, lines on the first, lines on each after]: the lines shared out evenly, so no last page holds a word or two)
+  if (total <= first) return [1, first, room];
+  const pages = 1 + Math.ceil((total - first) / room), short = room - first;   // (short: what the heading takes)
+  const even = Math.min(room, Math.ceil((total + short) / pages));
+  return [pages, Math.max(1, even - short), even];
+}
+
 function drawChat(ctx) {
-  // (the bar's picture: its left end, its parchment stretched as wide as the screen, then its scroll arrows and the
-  // wood at its right end)
+  // (the bar's picture: its left end, its parchment stretched as wide as there's room for, then its scroll arrows)
   const y0 = L.chatY, W = L.chatW;
   const bar = sprite("ChatBar");
   ctx.fillStyle = "rgb(212,191,126)";
   ctx.fillRect(0, y0, W, 96);
   if (bar) {
     ctx.drawImage(bar, 0, 0, 10, 96, 0, y0, 10, 96);
-    ctx.drawImage(bar, 10, 0, 760, 96, 10, y0, W - 64, 96);
-    ctx.drawImage(bar, 770, 0, 30, 96, W - 54, y0, 30, 96);
-    ctx.drawImage(bar, 1000, 0, 24, 96, W - 24, y0, 24, 96);
+    ctx.drawImage(bar, 10, 0, 760, 96, 10, y0, W - 40, 96);
+    ctx.drawImage(bar, 770, 0, 30, 96, W - 30, y0, 30, 96);
   }
   const lineH = 15;
   let y = y0 + 8;
   for (let i = U.chatLine + 4; i >= U.chatLine; i--) {
     const m = S.messages[i - 1];
-    if (m) drawText(ctx, fitText(ctx, m[0], W - 74, 9, false), 10, y, 9, false, colour(m[1]));
+    if (m) drawText(ctx, fitText(ctx, m[0], W - 50, 9, false), 10, y, 9, false, colour(m[1]));
     y += lineH;
   }
   drawThumb(ctx);
@@ -1391,7 +1397,8 @@ function drawHoverTop(ctx) {
   if (!raw.length) return;
   const styled = raw.map((part, i) => {
     const mark = "#~!+$".includes(part[0]) ? part[0] : "";
-    return [QUICK_STYLES[mark || (i === 0 ? "#" : "")], mark ? trim(part.slice(1)) : part];
+    const text = mark ? trim(part.slice(1)) : part;     // (every line starts with a capital)
+    return [QUICK_STYLES[mark || (i === 0 ? "#" : "")], text.charAt(0).toUpperCase() + text.slice(1)];
   });
   if (U.qmKind === "ERROR" || U.qmKind === "WARNING") styled[0][0] = QUICK_STYLES["!"];
   // (between your health top left and the effects or minimap top right)
@@ -1494,6 +1501,13 @@ function stanceButtons() {
 function drawStance(ctx) {
   const me = S.me, now = me.stance || "", next = me.stance_next;
   const changing = next !== undefined && (next || me.stance_ms);
+  // (the ring runs on this page's own clock, from when the change began: the server only says it now and then)
+  const going = changing ? String(next) : null;
+  if (going !== U.stanceGoing) {
+    U.stanceGoing = going;
+    U.stanceFrom = performance.now();
+    U.stanceTotal = Math.max(me.stance_ms || 0, 250);
+  }
   stanceButtons().forEach(([st, cx, cy, r]) => {
     const hot = U.hover === "stance:" + st, held = st === now && !changing;
     ctx.fillStyle = hot ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.92)";
@@ -1509,9 +1523,16 @@ function drawStance(ctx) {
       ctx.strokeStyle = "rgb(214,170,70)"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, 6.283); ctx.stroke();
     } else if (changing && st === next) {                 // (taking hold: a ring filling slowly round it)
-      const t = 1 - clamp((me.stance_ms || 0) / 1000, 0, 1);
-      ctx.strokeStyle = "rgb(255,214,110)"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(cx, cy, r - 1, -1.571, -1.571 + 6.283 * t); ctx.stroke();
+      const t = clamp((performance.now() - U.stanceFrom) / U.stanceTotal, 0, 1);
+      const ease = t * t * (3 - 2 * t), end = -1.571 + 6.283 * ease;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "rgba(90,66,40,0.9)"; ctx.lineWidth = 2;            // (the way it's still to go)
+      ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,214,110,0.35)"; ctx.lineWidth = 4;        // (a soft light round what's lit)
+      ctx.beginPath(); ctx.arc(cx, cy, r - 1, -1.571, end); ctx.stroke();
+      ctx.strokeStyle = "rgb(255,226,140)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, r - 1, -1.571, end); ctx.stroke();
+      ctx.lineCap = "butt";
     }
   });
 }

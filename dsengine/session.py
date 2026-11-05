@@ -99,7 +99,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
-        self.account = ""                                               # (the Shards account it's part of, if any)
+        self.account = ""                                               # (the Hallisium account it's part of, if any)
         self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
         self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
         self.trade = None
@@ -183,6 +183,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.pending_map = None             # (map, x, y): a teleport waiting for the end of the tick
         self.player_moved = False
         self.seat = None                    # sitting: (where they stood, where they sit), till they move again
+        self.walk_hold = 0                  # (stepping off a seat: no walking till then)
         self.player_prev_x = self.player_prev_y = 0
         self.player_entry_x = self.player_entry_y = 0
         self.player_tile = None
@@ -748,6 +749,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         elif self.seat is not None and self.keyboard_direction != 0 and self.user_input_enabled:
             self.stand_up()
         self.player_prev_x, self.player_prev_y = p.x, p.y
+        if self.now < self.walk_hold:
+            return
         if self.keyboard_direction != 0 and self.user_input_enabled:
             self.stop_player_walk()
             self.player_attack_target = None

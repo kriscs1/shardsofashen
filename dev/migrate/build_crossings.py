@@ -1,7 +1,8 @@
 """Ways over the wet and the wall round Galaith, drawn again (the owner's wish: the boardwalk grittier and raised off the
 marsh, Galaith's wall better, a fancy bridge to put down whole).
 
-  * Boardwalk001: weathered planks across a frame, gaps with the mud showing, nails, moss and splashes. Raised=1: the
+  * Boardwalk001: weathered planks from a big seamless texture (sprites/Textures/Boardwalk), rows of their own lengths,
+    thin gaps with the mud showing, nails, knots and moss, the joins between tiles not showing. Raised=1: the
     page (ground.js) casts its shadow on the marsh south and east of it, shows its plank ends and the posts it stands
     on, and the marsh doesn't blend over its edge (Blend=0).
   * Galaith's wall (Galaith_Wall001-005: the top of an east-west run, its face, a north-south run, a corner tower's top
@@ -56,37 +57,55 @@ def average(im):
 
 
 # ================================================================== the boardwalk
+BOARD_SIZE = 256
+
+
 def boardwalk():
+    """A big seamless texture (Tiles.ini Texture=): rows of planks of their own lengths, the same thin gap everywhere and
+    round the edges, so no tile's join shows and nothing lines up from one tile to the next."""
     rng = random.Random("boardwalk")
-    im = new((34, 28, 22))                                 # (the mud between the planks)
+    size = BOARD_SIZE
+    im = Image.new("RGBA", (size, size), (44, 36, 28, 255))       # (the mud between the planks)
     px = im.load()
-    for y in range(S):                                     # (the frame's beams under the planks, through the gaps)
-        for x in (2, 3, 28, 29):
-            px[x, y] = (58, 48, 36, 255)
     woods = [(112, 96, 76), (98, 86, 68), (120, 104, 84), (92, 80, 64), (106, 92, 70)]
-    for row, y0 in enumerate(range(1, 31, 5)):
-        joint = rng.randrange(6, 26)                       # (where two planks butt end to end)
-        for x in range(S):
-            base = woods[(row * 3 + (x > joint)) % len(woods)]
-            if x == joint:
-                continue
-            for dy in range(4):
-                c = base
-                c = shade(c, (1.12, 1.0, 0.95, 0.8)[dy])   # (lit along its top, its edge rounded below)
-                if rng.random() < 0.18:
-                    c = shade(c, 0.86)                     # (grain)
-                if 10 <= x <= 21 and rng.random() < 0.3:
-                    c = mix(c, (150, 138, 116), 0.25)      # (worn pale down the middle where feet go)
-                px[x, y0 + dy] = c + (255,)
-        for x in (3, 28):                                  # (its nails, over the beams)
-            px[x, y0 + 1] = (40, 34, 30, 255)
-            px[x, y0 + 2] = (70, 64, 58, 255)
-        for _ in range(2):                                 # (a knot)
-            kx, ky = rng.randrange(5, 27), y0 + rng.randrange(1, 3)
-            px[kx, ky] = (70, 58, 44, 255)
-    for _ in range(14):                                    # (moss in the gaps and splashes of mud at the edges)
-        x, y = rng.choice([rng.randrange(0, 6), rng.randrange(26, 32)]), rng.randrange(S)
-        px[x, y] = rng.choice([(70, 92, 46), (58, 78, 40), (84, 70, 50), (66, 54, 40)]) + (255,)
+    heights = [4] * 32 + [5] * 16                                 # (with a gap under each: 256 exactly, so it wraps)
+    rng.shuffle(heights)
+    y = 0
+    for height in heights:
+        x0 = rng.randrange(size)                                  # (where this row's first plank starts: wraps round)
+        along = 0
+        while along < size:
+            length = rng.randrange(26, 72)
+            if size - along < length + 26:
+                length = size - along                             # (the last plank butts against the row's first)
+            wood, worn = rng.choice(woods), rng.random() * 0.2
+            streaks = [rng.randrange(height) for _ in range(2)]
+            for i in range(length - 1):                           # (one pixel left at its end: where two planks butt)
+                px_x = (x0 + along + i) % size
+                for dy in range(height):
+                    k = 1.12 if dy == 0 else 0.8 if dy == height - 1 else 1.0     # (lit along its top, rounded below)
+                    c = shade(wood, k)
+                    if dy in streaks and rng.random() < 0.3:
+                        c = shade(c, 0.88)                        # (grain, along the plank)
+                    if rng.random() < 0.18:
+                        c = shade(c, 0.9)
+                    if rng.random() < worn:
+                        c = mix(c, (150, 138, 116), 0.25)         # (worn pale where feet go)
+                    px[px_x, y + dy] = c + (255,)
+            for i in (2, length - 4):                             # (its nails, near each end)
+                ny = y + rng.randrange(1, height - 1)
+                px[(x0 + along + i) % size, ny] = (58, 50, 42, 255)
+            if rng.random() < 0.5:                                # (a knot)
+                px[(x0 + along + rng.randrange(4, max(5, length - 5))) % size, y + rng.randrange(1, height - 1)] = (70, 58, 44, 255)
+            along += length
+        y += height + 1
+    for _ in range(size // 2):                                    # (moss and mud in the gaps, wherever it's gathered)
+        x, y = rng.randrange(size), rng.randrange(size)
+        if px[x, y][:3] == (44, 36, 28):
+            colour = rng.choice([(70, 92, 46), (58, 78, 40), (84, 70, 50), (66, 54, 40)])
+            for i in range(rng.randrange(1, 4)):
+                if px[(x + i) % size, y][:3] == (44, 36, 28):
+                    px[(x + i) % size, y] = colour + (255,)
     return im
 
 
@@ -351,9 +370,12 @@ def bridges():
 def main():
     tiles, sets = Ini(TILES), Ini(SETS)
     made = 0
-    im = boardwalk()
+    big = boardwalk()
+    made += write_image(p("sprites", "Textures", "Boardwalk.png"), big)
+    im = big.crop((0, 0, S, S))                                   # (its picture where a tile has to have one: the palette)
     made += save("Boardwalk001", im)
-    for k, v in (("Blend", "0"), ("Raised", "1"), ("Examine.Info", "A boardwalk over the marsh, on posts. It creaks.")):
+    for k, v in (("Blend", "0"), ("Raised", "1"), ("Texture", "Boardwalk"),
+                 ("Examine.Info", "A boardwalk over the marsh, on posts. It creaks.")):
         tiles.set("Boardwalk001", k, v)
     SK.minimap_colour("Boardwalk001", average(im))
     rng = random.Random("galaith")

@@ -23,10 +23,8 @@ def start(root, db, name, port, build, central="", host_key=""):
     if root not in sys.path:
         sys.path.insert(0, root)
     os.environ["DS_NAME"] = name
-    os.environ["DS_LAN"] = "1"
     os.environ["DS_CENTRAL"] = central or ""
     os.environ["DS_HOST_KEY"] = host_key or ""
-    os.environ["DS_PUBLIC"] = os.environ["DS_FRIENDS"] = "0"
     os.environ["DS_BUILD"] = str(build)           # (the app's build number: the version on the login screen)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     logging.getLogger("aiohttp.access").setLevel(logging.WARNING)   # (not a line for every picture fetched)

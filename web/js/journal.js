@@ -72,7 +72,7 @@ function count() {
 }
 
 // ----- friends (together.py): each a row - about or not, where, their level - with Whisper, Invite and Remove; a
-// Shards account's friends by account ("Character (account)" here, or where they're playing), asks to Accept or Decline
+// Hallisium account's friends by account ("Character (account)" here, or where they're playing), asks to Accept or Decline
 const FRIEND_BUTTONS = ["Whisper", "Invite", "Remove"];
 function friendButtons(f) { return f.asks ? ["Accept", "", "Decline"] : f.asked ? ["", "", "Cancel"] : FRIEND_BUTTONS; }
 function friendRowY(n) { return 108 + n * 70; }
@@ -126,7 +126,7 @@ function friendsPage(ctx, d) {
   const rows = d.friends || [];
   if (!rows.length) {
     centreText(ctx, 512, 300, "No friends on your list yet.", 14, true, INK);
-    centreText(ctx, 512, 330, "Right-click a player and choose Add friend, or type /friend and their name (or their Shards account's) in the chat.", 10, false, PARCHMENT);
+    centreText(ctx, 512, 330, "Right-click a player and choose Add friend, or type /friend and their name (or their Hallisium account's) in the chat.", 10, false, PARCHMENT);
     return;
   }
   const first = (J.page - 1) * FRIENDS_SHOWN;

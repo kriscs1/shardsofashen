@@ -523,7 +523,7 @@ for _w, _b in WALL_BASES.items():
 # wall meets another), walls both sides (NS, EW: a passage a tile wide) and a dead end (three sides, open on the fourth).
 THIN_EDGES = ["N", "E", "S", "W", "NE", "SE", "SW", "NW", "+NE", "+SE", "+SW", "+NW", "NS", "EW", "NES", "ESW",
               "NSW", "NEW"]
-THIN_FLOORS = {"Plank001": "Plank", "Tile001": "Tile", "Marble001": "Marble"}
+THIN_FLOORS = {"Plank001": "Plank", "Tile001": "Tile", "Marble001": "Marble", "Flagstone001": "Flag"}
 THIN_PX = 9                                         # the strip's width (2 of the 7 walk cells)
 
 

@@ -11,7 +11,7 @@ const PARTS = {
   legs: [[64, 0, 255], [[44, 0, 185]]],
 };
 
-export const PART_NAMES = { skin: "Skin", hair: "Hair", shirt: "Shirt", legs: "Trousers or skirt" };
+export const PART_NAMES = { skin: "Skin", hair: "Hair", shirt: "Top", legs: "Bottom" };
 
 export const PRESETS = {
   skin: ["#f4b8dd", "#ffdcc0", "#f1c27d", "#e0ac69", "#c68642", "#8d5524", "#5c3a1e"],
@@ -150,12 +150,12 @@ export function buildPicker(root, look, onChange) {
   preview.className = "look-preview";
   const rows = document.createElement("div");
   rows.className = "look-rows";
-  const bodyRow = document.createElement("div");           // (a man or a woman)
+  const bodyRow = document.createElement("div");           // (a man's or a woman's: said only as Body 1 and 2)
   bodyRow.className = "look-row";
   const bodyLabel = document.createElement("span");
   bodyLabel.textContent = "Body";
   bodyRow.append(bodyLabel);
-  const bodies = [["m", "Man"], ["f", "Woman"]].map(([b, words]) => {
+  const bodies = [["m", "Body 1"], ["f", "Body 2"]].map(([b, words]) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "body-choice";

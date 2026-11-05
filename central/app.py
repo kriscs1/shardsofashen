@@ -44,7 +44,6 @@ import functools
 import hashlib
 import hmac
 import html
-import ipaddress
 import json
 import logging
 import os
@@ -304,9 +303,9 @@ class Central:
         if not self.counted_confirm(name, email):
             return "We've sent that address enough for one day: look in its spam folder, or try again tomorrow."
         link = "%s/confirm?code=%s" % (base, self.store.new_mail_check(name))
-        hello = ("Welcome to %s, %s.\n\nYour Shards account is ready: the same name and password sign you in to every "
+        hello = ("Welcome to %s, %s.\n\nYour Hallisium account is ready: the same name and password sign you in to every "
                  "game. Your characters live on the server you make them on.\n\n" % (self.name, name) if welcome else
-                 "Someone (we hope you) gave this address for the Shards account %s.\n\n" % name)
+                 "Someone (we hope you) gave this address for the Hallisium account %s.\n\n" % name)
         text = ("%sConfirm this address so we can send you a code if you ever forget your password:\n\n%s\n\nThe link "
                 "works for %d days. If this wasn't you, do nothing: this address won't be used, and we'll forget it.\n"
                 % (hello, link, CONFIRM_DAYS))
@@ -523,9 +522,11 @@ class Central:
             return no("Confirm your email first: the link's in your inbox, or open your account to send it again.",
                       refused=True)
         known, url = self.store.server_url(server), str(d.get("url", ""))[:200]
-        if known and not same_place(known, url) and not on_a_network(url):     # (a listed game, from its own network: fine)
+        if not url and known and self.store.approved(server):   # (from the list: the address comes with the ticket)
+            return yes(ticket=self.store.new_ticket(name, server), url=known)
+        if known and not same_place(known, url):
             # (a listed game is where it said it was: a game that gave another's id gets no ticket to pass on)
-            return no("That game isn't at the address it was listed at.")
+            return no("That server is joined at its public address, from the list.", refused=True)
         return yes(ticket=self.store.new_ticket(name, server))
 
     async def verify(self, request):
@@ -564,7 +565,7 @@ class Central:
         """name asks other to be friends (or accepts their ask), or they're friends no more: (what happened, why not)."""
         acct = self.store.account(auth.clean_name(other))
         if acct is None or acct[6]:
-            return "", "There's no Shards account called %s." % str(other)[:20]
+            return "", "There's no Hallisium account called %s." % str(other)[:20]
         if acct[0].lower() == name.lower():
             return "", "That's your own account."
         if remove:
@@ -676,7 +677,8 @@ class Central:
 
     async def servers(self, request):
         # (the list as a browser has it already: said in a few bytes)
-        text = compact(self.store.servers())
+        # (no addresses: a signed-in player's ticket brings the one they join)
+        text = compact([{k: v for k, v in s.items() if k != "url"} for s in self.store.servers()])
         tag = '"%s"' % hashlib.md5(text.encode("utf-8")).hexdigest()[:16]
         if request.headers.get("If-None-Match") == tag:
             return web.Response(status=304, headers={"ETag": tag, "Cache-Control": "no-cache"})
@@ -869,16 +871,6 @@ def whole(v, lo, hi, default=0):
         return max(lo, min(hi, default))
 
 
-def on_a_network(url):
-    """Is this an address only its own network reaches: a private one?"""
-    from urllib.parse import urlsplit
-    try:
-        ip = ipaddress.ip_address(urlsplit(url).hostname or "")
-    except ValueError:
-        return False
-    return ip.is_private and not ip.is_loopback and not ip.is_link_local
-
-
 def same_place(a, b):
     """Do two addresses name the same server (its host and port, whichever scheme)?"""
     from urllib.parse import urlsplit
@@ -973,7 +965,7 @@ def make_central(db_path):
         found = c.store.mail_check(code)
         if not found:
             return confirm_gone()
-        return confirm_page("Confirm your email", "Use %s for the Shards account %s? We only write to it to send a code "
+        return confirm_page("Confirm your email", "Use %s for the Hallisium account %s? We only write to it to send a code "
                             "if you forget your password." % (found[1], found[0]), code)
 
     async def confirm_done(request):

@@ -151,7 +151,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   and it comes only while someone's there to meet it (`waves.py` random_attacks).
 - **Parties** (right-click a player: Invite to party; `/p` talks to it, `/leave`): a quest stage one member reaches,
   the members near at that same stage reach too, with the quest's own things.
-- **Friends** (right-click a player, or `/friend Name`): two Shards accounts are friends **by account, on the
+- **Friends** (right-click a player, or `/friend Name`): two Hallisium accounts are friends **by account, on the
   central server** (asking is a request till they ask back; any character of theirs, in every game; the journal shows
   "Character (account)", where friends are playing, and asks to Accept or Decline; the start screen's Friends too). A
   game server acts for a player only with the key their ticket brought (`/api/game/friends`). A device's characters
@@ -200,7 +200,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`On.Hit=Malaria 5`; armour's no help). A disease has no end of its own: it stays through death and logging off, comes
   on as a bout of Fever now and again (Strength down, health down, the player shaking; a fever never kills by itself),
   and goes only for what says `Cures=Malaria` (the Fever Tonic: not the Antidote, nothing else). Morwen, in Saltmarsh,
-  tells what it is and gives the first tonic; it's brewed of bog myrtle and marigold.
+  tells what it is and gives the first tonic; it's brewed of bog myrtle and mangrove bark (`dev/migrate/build_mangroves.py`: mangroves stand in the mud where marshland meets the sea; Strip Bark).
 - **What doesn't keep** (Entities.ini `Shelf.Minutes`, `Spoils.To`; `player_items.py` shelf_*): real time, wherever it is;
   an item's `wear` is the second it was made, so it goes with it through the bank, the ground, the market, a trade and
   a grave. `keeps_wear` is what says each one has its own; anything new that stores an item keeps it, or refuses it.
@@ -288,6 +288,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   in Quests.ini; how often is Config.ini `[Rumours]` (one every Every.Minutes, Chance in 100, each quest Times at
   most). A script can tell one: `Tell.Rumour`. Never for the main story (found, not told). A new side quest gets a
   rumour.
+- **Every pub has its games** (`dev/migrate/build_pub_dice.py`): a Dice_Table, and a barkeep's Play (Three Cups, High or Low).
 - **The world has a sense of humour, secrets and traps**: odd quests (Pip the invisible apprentice, Lady Pettigrew's
   hat and the geese, Granny Bramble's practice hex, the philosophical scarecrow, Duchess the talking cow, the Mayor's
   trousers), Bert's cat flap and big red button, a secret to Search by every settlement's square, traps in the old
@@ -398,6 +399,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   is and how big, against the walls: never in a door's or stair's way, where someone stands or a
   script puts someone, and a room's floor stays all one. The side walls have theirs too, seen side on (`Side_*_W` against
   a west wall, `Side_*_E` the same mirrored for an east one). Redrock Manor has its own.
+- **A house shows its levels** (`dev/migrate/build_house_levels.py`): rooms under and over the world have a south wall; a flagged room's walls are `*_Thin_Flag*`, stone right up to them; a building with an upstairs has the upper storey's front (`<Wall>_Upper001/002`) in its roof's group, never a church's.
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
@@ -433,6 +435,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   rooms each floor's own sizes and each furnished for what it is, LAYOUT and FURNITURE, laid out again by
   `refurnish_redrock.py`). **Running `build_estforlan.py` again would undo all of them and the owner's edits**: don't, unless they're
   run again after it.
+- **The marshes** (the Mirefen and the marsh round Saltmarsh): their water is **marsh water** (`Bog001`, a greeny brown, `build_marsh.py`; painted with the Bog terrain), the sea's `Water001` only out at the sea itself (`marsh_water.py`, once on the maps). A long boardwalk wanders, a single line of planks (`wind_boardwalks.py` ROUTES); a street near a settlement's middle stays straight. Places out in them (`build_marsh_places.py`): the Sunken Barge, the Peat Cuttings and the Wisp Ring in the Mirefen, the Eel-Catcher's Hut and the Drowned Bell by Saltmarsh, none needed by a quest.
 - **Galaith is paved inside its walls** (`dev/migrate/build_galaith_grounds.py`, the owner's wish; once on the maps): the
   Royal quarter in `Royal_Paving001`, the Nobles' in `Noble_Paving001`, the rest in `Flagstone001`; **no paths or streets of their own
   on it** (`dev/migrate/galaith_no_paths.py`, the owner's wish: it's all stone, so a line of cobble or marble is only a line;
@@ -516,13 +519,15 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   shade for shade (`look.js` npcImage). Which one a placed NPC wears goes by its Id (or its spot), or `Look=N` on its
   map line (0: as drawn). Only how it looks: its name, words and quests are its own. One-of-a-kind people and guards'
   uniforms aren't varied.
-- **Nothing looks like a grid.** Ground that covers wide areas (mountains, streets, the forest canopy) is painted from a
+- **Nothing looks like a grid.** Ground that covers wide areas (mountains, streets, the forest canopy, grass, sand, the sea,
+  and lava, whose texture moves: `Texture.Frames`, `dev/migrate/build_ground_textures.py`) is painted from a
   big seamless texture (marsh is the exception, the owner's wish: varied tiles, `build_marsh.py`, each its own
   feature kept in from its edges so any two meet without a seam, mixed by weight by its terrain) (`Texture=` in Tiles.ini, `sprites/Textures`, `dev/migrate/build_terrain.py`), never one
   picture repeated every tile; a range is peaks of all sizes overlapping. Trees, bushes, rocks, grass and flowers
   are sized and nudged per tile (`ground.js` paintDecor), always inside their own cell. Small things to put down anywhere
   (stones, pebbles, shells, twigs, fallen leaves: `dev/migrate/build_small_decor.py`) are decor, some scattered by
   the terrains they suit.
+  Where two grounds of different `Blend` meet, a few flecks of each lie across on the other's side (`ground.js` flecksOf).
   A range's edge has no right angles: its corners are cut on the slant as the ground's painted (`ground.js`
   paintSlants), and a bay's inner corner filled with rock.
 - Nothing shows as a placeholder ("?") while its picture loads: draw nothing till it has.
@@ -561,9 +566,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Anything new on screen must work in both layouts, and on a phone both ways up, with finger-sized targets; nothing for the app goes in `android/` that the page
   could do.
 - **The phone can be the server.** The Android app runs `server/` itself (Python 3.11 through Chaquopy, with its
-  aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. The host
-  (or an admin) can close it to the network in Options: then only that machine may join, and it doesn't answer the
-  network (`lan_open`, kept with the world; `DS_LAN_OPEN=0` starts closed). A public server on a cloud VM:
+  aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. A public server on a cloud VM:
   `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
   go by each player's own address, sign-ups limited by `DS_REGISTER_PER_DAY`, admins' `/kick`,
   `/ban`, `/mute`): README-Server.md says how. Every game has a name
@@ -577,12 +580,22 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   on in), nothing else. The **apps** ask you to sign in, and can skip it: Single player (no login); Friends' games; Join a
   local game (found by UDP broadcast on the network, never through the central server, or an address, or a friend's link;
   no login, and everything stays on the network); Public servers (login needed).
+- **A server of its own is always a remote server, the owner's rule** (Unraid, a cloud VM: `GameServer.remote`; there's no
+  setting for it): with `DS_CENTRAL` it announces itself, is listed once it's approved, wants a Hallisium account even from its
+  own network, never answers the network's search, and a ticket is only given for its listed address. Local games are only
+  ever an app's own.
+- **A character is tied to where it's made, the owner's rule**: the creation screen says so (`PLACE_WORDS`, `place_of`).
+  Nothing made on a device ever reaches a public server. A public server's character can be **copied one way** to the
+  player's own device (`export_character`, `import_character`: only an app's own game takes one, from its host), and the
+  original stays on the server. **A remote server's page shows only for a ticket** (or the `joined` token its page was
+  given for one), never for its own network or machine, and it's never joined by address; the Public servers list has no
+  addresses (a ticket brings the one you join).
 - **The apps have one game, opened from inside it** (Options; `ds_host.py`, `make_app(own=True)`): closed each time it
   starts, on 127.0.0.1. Open to your network: it binds to the network and answers its broadcast, needing no login, its
   address shown to the host. Open to the internet, needing the host signed in: `server/relay.py`, the game still running on
   the host's machine, its link shown to the host, the host's friends let in. Either or both, any time, nobody playing
   dropped by it. Signing out stops it. There's no hosting as a separate thing, and no listing an app's game publicly.
-- **Every version has the same start screen** (`web/home/`): sign in to your Shards account first (or make one, or a
+- **Every version has the same start screen** (`web/home/`): sign in to your Hallisium account first (or make one, or a
   forgotten password by email; in the apps, or play without one), then what's above.
   Signing out forgets the keys games know your account by; a guest's keys stay, so its characters are still there.
   Joining takes a ticket from the central server made out to that server's id. **The central server is
@@ -598,12 +611,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (Android's Bridge, the desktop's `desktop/app.py`), the same names in both. Remote servers are listed only once
   approved on the central server's admin page (`/admin`), and players are told everywhere that a character lives on
   its server only.
-- **Characters have no passwords; the Shards account is the only login** (`server/game.py` authenticate,
+- **Characters have no passwords; the Hallisium account is the only login** (`server/game.py` authenticate,
   README-Server.md "Who's who"). A character belongs to an account (`owner` "a:Name": the central server's ticket) or
   a device (`owner` "d:...": a key the start screen gives each game, each its own), at most `MOST_CHARACTERS` on a
   server, its name one of a kind there; the game page opens on that player's characters (choose one, or make one). A
-  device's key alone does on this machine's network, or anywhere on a server with no central server, never on a public
-  one that has. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
+  device's key alone does on an app's own game, from its machine and network, or anywhere on a server with no central
+  server, never on a remote one. The app's own game lets the start screen in by the host's key (`DS_HOST_KEY`, the start screen's own),
   so playing alone needs no network. A device that came in by an account is that account's on that server after, unless
   the central server has banned it (`central_banned`: asked each time and every minute in play; no answer isn't a ban;
   it says only yes or no, so the reason shows where they've proved who they are: signing in, or a ticket). The central
@@ -611,12 +624,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   admin's: **Delete** keeps the name back (`accounts.deleted`, so nobody gets its characters), **Delete and free the
   name** takes the row too; an account the central server doesn't have counts as banned on a game server.
   A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:...`, never this machine or its network.
-  Never add a password or a recovery code to a game server again. A Shards account has no recovery code either: every
+  Never add a password or a recovery code to a game server again. A Hallisium account has no recovery code either: every
   account has an email, confirmed before it can join a game (no ticket till then; the app's own game needs none), and a
   forgotten password goes only to a confirmed one. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
+- **Every finished quest has its screen** (`reward_tick`, `showReward`), apart from the chat, its name and what it gave,
+  even when it gave nothing but thanks.
 - **A click is answered at once**: what's clicked is marked the moment it's clicked (registered: a gold ring; a foe a
   red one that tightens at each blow, hit or miss), then green when it's done or red, with a cross, when it's refused or
   comes to nothing. The server says which (`act`: `Session.act_done`, from its messages, sounds, boxes, items and
@@ -625,7 +640,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - **Every character's progress is on the central server** (`server/progress.py`, `central/store.py`, the admin page's
   Characters, Quests and Skills): every game with `DS_CENTRAL` tells it level, skills, quests' stages, Shards, gold and
-  map, from the saves, only what's changed. Never a device's key, the look, what's carried or what's said. Something new
+  map, from the saves, only what's changed. Never a device's key, the look, what's carried or what's said. **An app's own
+  game is anonymous, the owner's wish**: no game name, account or character's name, only the device's random id (and a
+  first-run notice on the start screen says so). Something new
   worth counting is added there, and to the privacy policy (`central/pages/privacy.html`) in the same commit. Anyone can
   send a report, so what's in one is cleaned (`clean_characters`), and written to the admin page only through `esc`.
 - **The admin page stays plain** (`central/pages/admin.html`, the owner's wish): the browser's own font and colours, no
@@ -668,8 +685,15 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run.
 - The map editor's map: the mouse wheel zooms (Shift+wheel, middle-drag or Space+drag move the view); an area is
-  copied or cut with the inspector's buttons, then each click puts it down; after a change only the maps changed are
-  drawn again, and nothing goes black while new pictures are made. The Ground layer shows the decor and creatures faded over it, so you can see where you paint. A thing dragged off a map lands on the next one.
+  marked across as many maps as it likes and copied or cut with the inspector's buttons, then each click puts it down,
+  across maps too (`dsedit/region.py` parts); after a change only the maps changed are drawn again, and nothing goes
+  black while new pictures are made: **a picture on the canvas is held till its new one is there** (`retire_photos`: Tk
+  blanks an image that's let go of), and during a stroke only the tiles changed go on the canvas (`show_stroke`), so it
+  keeps up with the mouse. What's read for every cell of a map comes from one pass (`tile_values`), never `tiles_ini.get`.
+  **A map is drawn as the game draws it at its edges**: whatever looks at a neighbouring tile takes it from the next map
+  (`render.py` `_tile_at`), and a change to a map's edge draws the maps round it again (`maps_round`).
+  **Every line drawn on the map says what it is**: a `line:<key>` tag and an entry in `LINES` (the mouse's label reads it;
+  "What are the lines?" lists them); an NPC draws no zone or chase it doesn't use (standing still, friendly). The Ground layer shows the decor and creatures faded over it, so you can see where you paint. A thing dragged off a map lands on the next one, whatever it is (a trigger, lock or place too; where there's no map it stays and says so), and on Entities an area marked and dragged moves just the entities in it (`move_area_ents`). **An NPC's zone, chase area and patrol go with it when it's dragged, the owner's wish** (`zone_follows`); its home, bed and nap are real places, and stay.
   Zoomed far out, a double-click zooms in on that tile at 100%. Every level under or over the world is laid out in the
   world's frame (`dsedit/world.py` own_level): one frame round every map on any of them, so a tile is at the same spot
   of the canvas on every level, and **going up or down keeps the view exactly** (the same scroll and zoom, every tile
@@ -696,8 +720,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   corner and `Pieces=NE+NW:name` of more; Whole: one thing more than a tile big, a bed's head and foot, put down and
   taken up whole). A
   tile kept only for old maps has `Retired=1`: the Auto palette leaves it to Detail. The terrains are edited on
-  their own Terrains page. A Join set (fences, palisades, the town wall) is dragged as a line or round a rectangle,
-  or painted freehand, and its pieces round it are joined again, painting or erasing. `dev/migrate/tile_joins.py` wrote them.
+  their own Terrains page. A Join set (fences, palisades, the town wall, Galaith's wall) is painted freehand (the whole stroke
+  laid again each step, so it comes out the same whichever way it's drawn, and the mouse outrunning it leaves no gaps), or
+  with Rectangle a line or round a rectangle, and its pieces round it are joined again, painting or erasing; `Joins.Too=` on
+  a set names the tiles that count as more of it without being changed (a gate in the wall). `dev/migrate/tile_joins.py`
+  wrote them. Tiles numbered alike with no set of their own are look-alikes, one at random: anything that needs a
+  particular piece in each place gets a set.
   Give a new set its Kind, and its pieces their `Piece=` (and `Joins=`).
 - **Where natural grounds meet, they round themselves** (Tiles.ini `Round=1`: water, lakes, bog, sand, grass, marsh,
   dirt, snow...; `dev/migrate/round_world.py` set it and turned every laid corner piece back to its base): the game

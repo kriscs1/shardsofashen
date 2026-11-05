@@ -3,7 +3,7 @@
 Run:  python -I "dev\\migrate\\build_tiles.py" [--preview]   (--preview also writes dev\\Renders\\Tiles preview.png and Tiles 4x4.png)
 Deterministic (fixed seeds) and re-runnable; it only (re)writes the tiles listed in NEW_TILES.
 Format, as for every LB sprite here: 24-bit BMP, 32 wide x 64 high, top half = mask
-(black = drawn, white = transparent), bottom half = image. All of these tiles are opaque.
+(black = drawn, white = transparent), bottom half = image. All of these tiles are opaque, but the sea rocks.
 """
 import os
 import random
@@ -210,6 +210,7 @@ NEW_TILES.update(CAVE_TILES)
 # The Wildlands (build_regions.py): snow, ice, marsh, reeds, bog myrtle, snowy pines and rocks, cacti: see region_tiles.py
 from region_tiles import TILES as REGION_TILES
 NEW_TILES.update(REGION_TILES)
+SEE_THROUGH = ("Sea_Rock001", "Sea_Rock002")
 
 
 def write_sprite_bmp(path, image, mask=None):
@@ -219,11 +220,21 @@ def write_sprite_bmp(path, image, mask=None):
     return write_sprite(path, rows + image)         # (top half mask, bottom half image)
 
 
+def write_see_through(name):
+    """A sea rock: only what's drawn over the water shows (it's decor, on Water001)."""
+    water, image = copy_tile("Water001"), NEW_TILES[name]()
+    mask = [[tuple(image[y][x]) != tuple(water[y][x]) for x in range(S)] for y in range(S)]
+    return write_sprite_bmp(p("sprites", "Tiles", name + ".png"), image, mask)
+
+
 def main():
     made = {}
     for name, make in NEW_TILES.items():
         made[name] = make()
-        changed = write_sprite_bmp(p("sprites", "Tiles", name + ".png"), made[name])
+        if name in SEE_THROUGH:
+            changed = write_see_through(name)
+        else:
+            changed = write_sprite_bmp(p("sprites", "Tiles", name + ".png"), made[name])
         print(("wrote " if changed else "unchanged ") + name)
     for name, (side, v) in BLEND_MASKS.items():
         m = blend_mask(side, v)

@@ -1042,7 +1042,7 @@ def check_tiles():
             elif k == "Unlocked.Tile" and v not in TILES:
                 err(r, "[%s] Unlocked.Tile %r has no sprite in sprites\\Tiles" % (sec, v))
             elif k not in ("Walkable.Data", "Show.Name", "Use.Words", "Examine.Info", "Line.of.Sight", "Walk.Speed",
-                           "Blend", "Blend.Texture", "Texture", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
+                           "Blend", "Blend.Texture", "Texture", "Texture.Frames", "Texture.Speed", "Unlocked.Tile", "Open.Tile",     # Texture: the Python game's big textures
                            "Layer", "Foam", "Sway", "Sway.Ground", "Flame", "Water", "Light", "Anim.Frames", "Anim.Speed",
                            "Door", "Glow.Colour", "Glow.Match", "Piece", "Seat",    # (Seat=S: sit on it, facing south)
                            "Overhead", "Display.Name",                              # (drawn over people too: an arch;
@@ -1102,13 +1102,16 @@ def check_tile_sets():
             check_terrain(r, sec, keys)
             continue
         for k in keys:
-            if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small", "Pieces"):
+            if k not in ("Title", "Columns", "Tiles", "Kind", "Land", "Water", "Corners", "Small", "Pieces", "Joins.Too"):
                 warn(r, "[%s] unknown key %s" % (sec, k))
         if keys.get("Kind", "Set") not in ("Set", "Stretch", "Rug", "Join", "Shore", "Whole"):
             err(r, "[%s] Kind must be Set, Stretch, Rug, Join, Shore or Whole" % sec)
         for k in ("Land", "Water"):
             if keys.get(k) and keys[k] not in TILES:
                 err(r, "[%s] %s %r has no sprite in sprites\\Tiles" % (sec, k, keys[k]))
+        for n in [x.strip() for x in keys.get("Joins.Too", "").split(",") if x.strip()]:
+            if n not in TILES:
+                err(r, "[%s] Joins.Too %r has no sprite in sprites\\Tiles" % (sec, n))
         for k in ("Corners", "Small"):
             for part in [x for x in keys.get(k, "").split(",") if x.strip()]:
                 corner, _, tile = part.partition(":")
@@ -1359,7 +1362,7 @@ def check_entities():
 
 SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
-               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Shardgate", "Realm.Cluster",
+               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Shardgate", "Realm.Cluster",
                "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
     "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost"},
     "Shardcraft": {"Dismantle.XP", "Dismantle.XP.Min", "Shardstone.XP", "Rare.Chance", "Rare.Chance.Per.Level",

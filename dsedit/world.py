@@ -215,9 +215,11 @@ def lay_joins(project, brush, cells, get, put, erased=()):
         return 0
     faces = set(below.values())
     path = set(cells)
+    st = project.tile_set_of(brush)
+    also = {n.strip() for n in project.set_info(st[0]).get("Joins.Too", "").split(",") if n.strip()}
 
-    def member(x, y):
-        return (x, y) in path or get(x, y) in pieces
+    def member(x, y):                                                  # (Joins.Too: a gate in the wall, its burnt part)
+        return (x, y) in path or get(x, y) in pieces or get(x, y) in also
 
     def face(x, y):
         return get(x, y) in faces and (x, y) not in path
@@ -251,6 +253,22 @@ def lay_joins(project, brush, cells, get, put, erased=()):
         elif get(x, y + 1) in faces and (x, y + 1) not in path:
             pass                                                       # (someone else's face: left alone)
     return changed
+
+
+def line_cells(a, b):
+    """The tiles from a to b (without a), each next to the last along a side: a stroke the mouse outran has no gaps, and
+    a wall drawn on the slant still joins."""
+    (x, y), (x1, y1) = a, b
+    dx, dy = abs(x1 - x), abs(y1 - y)
+    sx, sy = (1 if x1 > x else -1), (1 if y1 > y else -1)
+    out, err = [], dx - dy
+    while (x, y) != (x1, y1):
+        if y == y1 or (err >= 0 and x != x1):
+            x, err = x + sx, err - dy
+        else:
+            y, err = y + sy, err + dx
+        out.append((x, y))
+    return out
 
 
 def join_cells(w, h):

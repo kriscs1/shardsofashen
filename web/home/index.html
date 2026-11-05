@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- The start screen, the same in every version: the Android app, the desktop app (window.DSApp is the app), and a
-     browser (from the central server: no app behind it). First your Shards account (sign in, make one, a forgotten
+     browser (from the central server: no app behind it). First your Hallisium account (sign in, make one, a forgotten
      password; in the apps, or play without one). A browser then has only the public servers (the central server's list:
      a limited beta), and a friend's link. The apps have a single-player game (Options, in it, opens it to the network,
      the internet or both), friends' games, a local game (the network's, an address, or a friend's link) and the public
@@ -109,7 +109,7 @@ label.agree a { color: var(--ink); }
 .server .what { flex: 1; min-width: 0; }
 .server .name { color: var(--ink); font-weight: bold; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .server .meta { font-size: 13px; color: var(--dim); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 3px; }
-.badge { font-size: 11px; padding: 2px 8px; border-radius: 9px; background: #4a3027; color: var(--parchment); }
+.badge { white-space: nowrap; font-size: 11px; padding: 2px 8px; border-radius: 9px; background: #4a3027; color: var(--parchment); }
 .badge.here { background: var(--ok); color: #fff; } .badge.remote { background: #4b3a85; color: #fff; }
 .meter { width: 70px; height: 7px; border-radius: 4px; background: #2a1b14; overflow: hidden; display: inline-block; }
 .meter i { display: block; height: 100%; background: linear-gradient(90deg, #33d06a, #e8c060); }
@@ -142,7 +142,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
 <div class="scene" aria-hidden="true"></div>
 <div class="page">
 
-<!-- ----- 1. your Shards account -->
+<!-- ----- 1. your Hallisium account -->
 <section id="welcome" class="fade">
   <img class="logo" src="logo.png" alt="Shards of Ashen" width="496" height="212">
   <div class="panel signin">
@@ -156,7 +156,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
         <label class="field">Name<input id="in-name" maxlength="20" autocomplete="username" required></label>
         <label class="field">Password<input id="in-password" type="password" maxlength="200" autocomplete="current-password" required></label>
         <button type="submit" class="go">Sign in</button>
-        <p class="note">One Shards account for every game: the characters you make need no password of their own.</p>
+        <p class="note">One Hallisium account for every game: the characters you make need no password of their own.</p>
       </form>
       <form id="form-new" class="stack" hidden>
         <label class="field">Name (what everyone sees)<input id="new-name" maxlength="20" autocomplete="username" required></label>
@@ -226,7 +226,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
   <section id="friends" class="panel fade" hidden>
     <div class="screen-head"><button class="back">&#8249; Back</button><h2>Friends' games</h2><button id="friends-refresh">Look again</button></div>
     <form id="friend-form" class="row" style="margin-bottom:12px">
-      <input id="friend-name" placeholder="A friend's Shards account" maxlength="20" autocomplete="off" spellcheck="false" style="flex:1">
+      <input id="friend-name" placeholder="A friend's Hallisium account" maxlength="20" autocomplete="off" spellcheck="false" style="flex:1">
       <button class="go" type="submit">Ask</button>
     </form>
     <div id="friend-list" class="cards"></div>
@@ -433,7 +433,7 @@ async function googleIn(code, name, claim) {
   if (r.needs_email) $("chip").onclick();
 }
 function chooseName(code, r, name) {
-  dialog(`<h2>Choose your name</h2><p class="small dim">A new Shards account for ${esc(r.email || "this Google account")}.</p>
+  dialog(`<h2>Choose your name</h2><p class="small dim">A new Hallisium account for ${esc(r.email || "this Google account")}.</p>
     ${r.text ? `<p class="small" style="color:var(--bad)">${esc(r.text)}</p>` : ""}
     <label class="field">Name (what everyone sees)<input id="google-name" maxlength="20" autocomplete="username" value="${esc(name || "")}"></label>
     <label class="field" ${r.claim ? "" : "hidden"}>Admin code (from the server's log)<input id="google-claim" maxlength="40" autocomplete="off"></label>
@@ -458,7 +458,7 @@ $("chip").onclick = async () => {
   const standing = pending ? `Waiting for you to confirm ${esc(pending)}: the link's in that inbox.` +
     (email ? ` Until then a code goes to ${esc(email)}.` : " You can join games once it's confirmed.") : email ? "Confirmed." :
     "Your account needs an email: it's the only way back in if you forget your password.";
-  dialog(`<h2>${esc(myName)}</h2><p class="small dim">Your Shards account: the same on every game. Each game keeps your
+  dialog(`<h2>${esc(myName)}</h2><p class="small dim">Your Hallisium account: the same on every game. Each game keeps your
     characters there, and only there.</p>
     <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(pending || email)}"></label>
     <p class="small dim">${standing}</p>`,
@@ -541,7 +541,7 @@ function gameUrl(address) {
   if (u.protocol === "http:" && !u.port) u.port = "8484";
   return u;
 }
-async function join(address, id, name, mine) {
+async function join(address, id, name, mine, given) {
   let u;
   try { u = gameUrl(address); } catch (e) { u = null; }
   if (!u) { toast("That isn't an address.", true); return; }
@@ -552,7 +552,10 @@ async function join(address, id, name, mine) {
       id = decodeURIComponent(link[1]);
       if (!u.pathname.endsWith("/")) u.pathname += "/";
     } else {
-      try { id = (await (await fetch(u.origin + "/api/info")).json()).id; } catch (e) { id = ""; }
+      let info = {};
+      try { info = await (await fetch(u.origin + "/api/info")).json(); } catch (e) { info = {}; }
+      if (info.remote) { done(); toast("That's a public server: join it from Public servers.", true); return; }
+      id = info.id || "";
     }
   }
   const q = new URLSearchParams(), h = new URLSearchParams();
@@ -561,10 +564,11 @@ async function join(address, id, name, mine) {
     h.set("host", hostKey());
     if (myName) h.set("account", myName);
   }
-  if (token && id && centralUp) {                  // (and a ticket when there's one to be had: your friends with it)
+  if (given) q.set("ticket", given);               // (from the list: the ticket brought the address)
+  else if (token && id && centralUp) {             // (and a ticket when there's one to be had: your friends with it)
     let t = null;
     try { t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
-    if (t && t.refused && !mine) { toast(t.text, true); return; }     // (banned, or no confirmed email; your own game needs neither)
+    if (t && t.refused && !mine) { done(); toast(t.text, true); return; }     // (banned, or no confirmed email; your own game needs neither)
   }
   h.set("device", deviceKey(id || u.host));
   u.search = q.toString();
@@ -583,18 +587,18 @@ function show(which) {
 for (const b of document.querySelectorAll(".back")) b.onclick = () => show("menu");
 $("local-open").onclick = () => show("local");
 $("remote-open").onclick = () => {
-  if (!myName) { toast(centralUp ? "Sign in first: the remote games know you by your Shards account." :
+  if (!myName) { toast(centralUp ? "Sign in first: the remote games know you by your Hallisium account." :
     "The central server can't be reached just now.", true); if (centralUp) showWelcome(); return; }
   show("remote");
 };
 
 $("friends-open").onclick = () => {
-  if (!myName || !centralUp) { toast(centralUp ? "Sign in first: friends are kept by your Shards account." :
+  if (!myName || !centralUp) { toast(centralUp ? "Sign in first: friends are kept by your Hallisium account." :
     "The central server can't be reached just now.", true); if (centralUp) showWelcome(); return; }
   show("friends");
 };
 
-// ----- friends: by Shards account, on the central server (the same in every game); asking is a request till they
+// ----- friends: by Hallisium account, on the central server (the same in every game); asking is a request till they
 // ask back, and a friend who's playing in a listed game can be joined
 function friendCard(name, words, buttons, ask) {
   const card = document.createElement("div");
@@ -631,7 +635,7 @@ function showFriends(r) {
     box.append(friendCard(a, words.filter((w) => w).join(" · ") || "Not playing just now", buttons));
   }
   for (const a of r.asked) box.append(friendCard(a, "You've asked them to be your friend", [["Cancel", "", () => change(a, true)]]));
-  if (!box.children.length) box.innerHTML = '<div class="empty">No friends yet. Ask someone by their Shards account above, or right-click them in a game: Add friend.</div>';
+  if (!box.children.length) box.innerHTML = '<div class="empty">No friends yet. Ask someone by their Hallisium account above, or right-click them in a game: Add friend.</div>';
   const n = r.asking.length;
   const open = Object.keys(hosting).length;
   $("friends-words").textContent = n ? `${n} asking to be your friend.` : open ? `${open} friend${open === 1 ? "" : "s"} hosting a game now.` :
@@ -673,6 +677,15 @@ function serverCard(g, badge, action) {
   return card;
 }
 
+// (the list has no addresses: the ticket, asked for by a signed-in player, brings the one they join)
+async function joinListed(g) {
+  busy(`Joining ${g.name}...`);
+  let t = null;
+  try { t = await api("/api/ticket", { token, server: g.key }); } catch (e) { t = null; }
+  if (!t || !t.ok || !t.url) { done(); toast((t && t.text) || "The central server didn't answer.", true); return; }
+  join(t.url, g.key, g.name, false, t.ticket);
+}
+
 async function listRemote() {
   const box = $("servers");
   box.innerHTML = '<div class="empty"><div class="spinner"></div>Asking the central server...</div>';
@@ -680,7 +693,7 @@ async function listRemote() {
     const list = await api("/api/servers");
     box.innerHTML = "";
     if (!list.length) { box.innerHTML = '<div class="empty">No public servers just now.</div>'; return; }
-    for (const g of list) box.append(serverCard(g, ["Listed", "remote"], () => join(g.url, g.key, g.name)));
+    for (const g of list) box.append(serverCard(g, ["Listed", "remote"], () => joinListed(g)));
   } catch (e) { box.innerHTML = '<div class="empty">The central server didn\'t answer.</div>'; }
 }
 $("refresh").onclick = listRemote;
@@ -713,6 +726,13 @@ function startGame() {
   busy("Starting your world...");
 }
 $("alone").onclick = () => {
+  if (!store.get("toldProgress")) {                // (once: what a game alone tells us)
+    dialog(`<h2>Before you play</h2><p>Your world is saved on this device only. So that we can see how the game is played,
+      it also tells us how characters get on: level, skills, quests, Shards and gold. That's anonymous: no name and no
+      account, only a random id this device makes for itself. The privacy policy, at the foot of the page, has the rest.</p>`,
+      [["Carry on", "go", () => { store.set("toldProgress", "1"); setTimeout(() => $("alone").click(), 0); }]]);
+    return;
+  }
   const st = current();
   if (st.status === "on") { join("127.0.0.1:" + (st.port || 8484), "", "your world", true); return; }
   startGame();

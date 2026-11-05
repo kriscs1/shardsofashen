@@ -3,24 +3,23 @@
   <Name>ShardsOfAshen</Name>
   <Repository>ghcr.io/kriscs1/shardsofashen:latest</Repository>
   <Registry>https://github.com/kriscs1/shardsofashen/pkgs/container/shardsofashen</Registry>
-  <Network>host</Network>
+  <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
   <Overview>Shards of Ashen: a top-down pixel-art RPG for up to five players sharing one world, played through the Shards of Ashen app, or the website for a public server. You are the true heir of Ashen. There's nothing to open at this server's own address.</Overview>
   <Category>GameServers:</Category>
   <Icon>https://raw.githubusercontent.com/kriscs1/shardsofashen/main/web/img/icon.png</Icon>
   <ExtraParams>--stop-timeout 30</ExtraParams>
-  <Config Name="Web port" Target="8484" Default="8484" Mode="tcp" Description="The port the game answers on. With host networking (so the apps find it on your network) it's always 8484" Type="Port" Display="always" Required="true" Mask="false">8484</Config>
+  <Config Name="Web port" Target="8484" Default="8484" Mode="tcp" Description="The port the game answers on: forward it on your router, or put a reverse proxy in front" Type="Port" Display="always" Required="true" Mask="false">8484</Config>
   <Config Name="Game data" Target="/data" Default="/mnt/user/appdata/shards-of-ashen" Mode="rw" Description="Accounts, characters, the world and daily backups" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/shards-of-ashen</Config>
   <Config Name="Max players" Target="DS_MAX_PLAYERS" Default="5" Mode="" Description="How many can play at once" Type="Variable" Display="always" Required="false" Mask="false">5</Config>
   <Config Name="New characters" Target="DS_REGISTRATION" Default="open|closed" Mode="" Description="open: anyone who can reach the server can make a character. closed: only accounts made with tools/admin.py" Type="Variable" Display="always" Required="false" Mask="false">open</Config>
   <Config Name="Invite code" Target="DS_INVITE_CODE" Default="" Mode="" Description="If set, making a character needs this code" Type="Variable" Display="always" Required="false" Mask="true"></Config>
-  <Config Name="Admins" Target="DS_ADMINS" Default="" Mode="" Description="Shards accounts whose characters get the Admin button, comma-separated (e.g. Kris,Ann): the central server proves them. Without one, use tools/admin.py admin Name on." Type="Variable" Display="always" Required="false" Mask="false"></Config>
-  <Config Name="Central server" Target="DS_CENTRAL" Default="https://shardsofashen.hallisium.com" Mode="" Description="The central server: players sign in by their Shards accounts, and it proves your Admins. Blank: no accounts here, only each device's own characters" Type="Variable" Display="always" Required="false" Mask="false">https://shardsofashen.hallisium.com</Config>
-  <Config Name="Public server" Target="DS_PUBLIC" Default="0|1" Mode="" Description="1: a public server: listed on the website and in the apps, once it's approved on the central server's admin page. Everyone then needs a Shards account, even on your own network. 0: only the apps on your own network find it" Type="Variable" Display="always" Required="false" Mask="false">0</Config>
+  <Config Name="Admins" Target="DS_ADMINS" Default="" Mode="" Description="Hallisium accounts whose characters get the Admin button, comma-separated (e.g. Kris,Ann): the central server proves them. Without one, use tools/admin.py admin Name on." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="Central server" Target="DS_CENTRAL" Default="https://shardsofashen.hallisium.com" Mode="" Description="The central server: this is a remote server, listed there once it's approved on its admin page, and players sign in by their Hallisium accounts, from anywhere" Type="Variable" Display="always" Required="true" Mask="false">https://shardsofashen.hallisium.com</Config>
   <Config Name="Public address" Target="DS_PUBLIC_URL" Default="" Mode="" Description="The address players outside your network use, e.g. https://play.example.com. Blank: the address it calls the central server from, on port 8484" Type="Variable" Display="always" Required="false" Mask="false"></Config>
   <Config Name="Server name" Target="DS_NAME" Default="" Mode="" Description="What players see this server called: in the start screen's Public servers list (up to 40 letters), on its login screen and in the Android app's list of games on the network. Changing it takes a listed server off the list till it's approved again. An admin's name in the game's Options wins over this one." Type="Variable" Display="always" Required="false" Mask="false"></Config>
-  <Config Name="Behind a reverse proxy" Target="DS_TRUST_PROXY" Default="0|1" Mode="" Description="1 if players come through a reverse proxy on your network (Caddy, Nginx Proxy Manager, SWAG), so those on your own network still count as on it. Without it, anyone coming through the proxy needs a Shards account" Type="Variable" Display="always" Required="false" Mask="false">0</Config>
+  <Config Name="Behind a reverse proxy" Target="DS_TRUST_PROXY" Default="0|1" Mode="" Description="1 if players come through a reverse proxy on your network (Caddy, Nginx Proxy Manager, SWAG), so those on your own network still count as on it. Without it, anyone coming through the proxy needs a Hallisium account" Type="Variable" Display="always" Required="false" Mask="false">0</Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="The user the game runs as (Unraid: 99, nobody)" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="The group the game runs as (Unraid: 100, users)" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
 </Container>

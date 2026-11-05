@@ -19,6 +19,10 @@ Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Fl
 Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001
 Flagstone001:Flagstone001:Flagstone001+Decor(Lamp_Post001):Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001
 Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001
+StaticObject	Dice_Table	608	480	Id=Dice_Table_n7_15_0_04
+StaticObject	Dice_Table	608	192	Id=Dice_Table_n7_15_0_03
+StaticObject	Dice_Table	160	448	Id=Dice_Table_n7_15_0_02
+StaticObject	Dice_Table	160	160	Id=Dice_Table_n7_15_0_01
 NPC	Barkeep	224	88	Attitude=Good Stand=1 Face=S Id=Galaith_Barkeep_404 Name=Edith
 NPC	Barmaid	288	184	Attitude=Good Zone=5,6,11,7 Pause=3-9 Id=Galaith_Barmaid_405 Name=Ida
 StaticObject	Sign_Pub	352	240

@@ -9,7 +9,7 @@ import socket
 
 from aiohttp import web
 
-from .game import GameServer
+from .game import GameServer, UNNAMED
 from .progress import Reporter
 from .relay import Relay
 from . import lan
@@ -35,6 +35,12 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     game.default_name = name                            # (what the host called it: the Android or desktop app)
 
     async def index(request):
+        # (a remote server: only a ticket from the central server, or what its page was given for one: no other way in,
+        # this machine and its network no different)
+        if game.remote():
+            if "ticket" in request.query or game.joined_ok(request.query.get("joined", "")):
+                return web.FileResponse(os.path.join(web_dir, "index.html"), headers={"Cache-Control": "no-cache"})
+            return web.Response(status=404)
         # (nothing here but for who's come through a client or the central server's start screen, a ticket or what's left
         # of one; this machine; and an app's own game to those on its network, at the address its host gives them)
         if not ({"ticket", "joined", "app"} & set(request.query) or game.is_local(game.client_addr(request))
@@ -47,7 +53,10 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
                                 headers={"Content-Type": "application/manifest+json", "Cache-Control": "no-cache"})
 
     async def info(request):
-        # (a start screen asking who this is before it joins by address: its id for the ticket, its name)
+        # (a start screen asking who this is before it joins by address: its id for the ticket, its name; a remote server
+        # is never joined by address, so it says only that)
+        if game.remote():
+            return web.json_response({"game": "shardsofashen", "remote": True}, headers={"Access-Control-Allow-Origin": "*"})
         return web.json_response({"game": "shardsofashen", "id": game.server_id(), "name": game.server_name(),
                                   "online": len(game.world.sessions), "max": game.max_players,
                                   "central": bool(game.central_url())},
@@ -121,7 +130,7 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
 
     async def start_tick(app):
         app[TICK] = asyncio.create_task(game.run())
-        game.lan_answer = None if own else await lan.start(about)
+        game.lan_answer = None          # (only an app's own game ever answers the network, once it's opened)
         app[ANNOUNCE] = asyncio.create_task(announcing())
         game.relay = Relay(game, port)                  # (hosted for friends: through the central server)
         game.relay_task = asyncio.create_task(game.relay.run()) if game.for_friends() else None
@@ -164,8 +173,11 @@ def main():
                    help="characters who get the Admin button, comma-separated (as well as tools/admin.py's)")
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.getLogger("aiohttp.access").setLevel(logging.WARNING)   # (not a line for every picture and health check)
     app = make_app(args.root, args.db, args.max_players, args.registration, args.invite, args.admins,
                    name=os.environ.get("DS_NAME", ""), port=args.port)
     log.info("Shards of Ashen %s on http://%s:%d (up to %d players)", app[GAME].version["version"], args.host, args.port,
              args.max_players)
+    if app[GAME].remote() and app[GAME].server_name() == UNNAMED:
+        log.warning("This server has no name: set DS_NAME (Unraid: \"Server name\"), or name it in Options as an admin")
     web.run_app(app, host=args.host, port=args.port, print=None, handle_signals=True)

@@ -19,6 +19,8 @@ Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Gra
 Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Brick_Paving001:Brick_Paving001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
+StaticObject	Dice_Table	544	384	Id=Dice_Table_4_6_0_05
+StaticObject	Dice_Table	224	384	Id=Dice_Table_4_6_0_04
 NPC	Cat	64	120	Attitude=Good Zone=2,2,8,9 Pause=4-12
 NPC	Greengrocer	224	88	Attitude=Good Stand=1 Face=S Id=Northport_Greengrocer_339 Name=Oswald
 NPC	Greengrocer	416	88	Attitude=Good Stand=1 Face=S Id=Northport_Greengrocer_341 Name=Gilbert

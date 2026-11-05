@@ -14,7 +14,7 @@
               guestbook and a gift box; and on a return after a day away, what happened while you were gone.
   Friends     Add a player as a friend (right-click them, or /friend Name): the journal's Friends page shows who's
               about and where, with Whisper and Invite; you're told when a friend comes or goes; and your homestead's
-              "friends" are yours (kept with the world, so it knows them while you're away). Two Shards accounts are
+              "friends" are yours (kept with the world, so it knows them while you're away). Two Hallisium accounts are
               friends by account, on the central server (server/game.py asks it): any character of theirs, in any
               game; asking is a request till they ask back. A device's characters keep the world's own list.
   Trading     Trade with a player (right-click them): each puts in things and gold, both accept, and they change
@@ -50,7 +50,7 @@ class Together:
         self.guests = {}            # owner -> [[name, seconds]] (the newest last)
         self.gifts = {}             # owner -> [[from, item, n]]
         self.friends = {}           # name -> [names] (kept with the world: a homestead knows them while you're away)
-        self.accounts = {}          # character -> its Shards account (as it last came in)
+        self.accounts = {}          # character -> its Hallisium account (as it last came in)
         self.account_friends = {}   # account (lower case) -> [accounts]: its friends, as the central server last said
         self.parties = {}           # id -> [names] (not saved: a party lasts while its people play)
         self.next_party = 1
@@ -106,7 +106,7 @@ class Together:
         return self.friends.get(name, [])
 
     def account_friend(self, a, b):
-        """Are characters a and b of Shards accounts that are friends (as the central server last said)?"""
+        """Are characters a and b of Hallisium accounts that are friends (as the central server last said)?"""
         aa, ba = self.accounts.get(a, ""), self.accounts.get(b, "")
         return bool(aa and ba) and ba.lower() in [f.lower() for f in self.account_friends.get(aa.lower(), [])]
 
@@ -275,7 +275,7 @@ class TogetherMixin:
 
     # ================================================================================================= friends
     def account_friends(self):
-        """Your Shards account's friends (the central server's word, as server/game.py last heard it)."""
+        """Your Hallisium account's friends (the central server's word, as server/game.py last heard it)."""
         return (getattr(self, "central_friends", None) or {}).get("friends", [])
 
     def friend_names(self):
@@ -295,7 +295,7 @@ class TogetherMixin:
         name = trim(name)
         known = "" if account else self.known_player(name)
         other = name if account else self.account_of(known) if known else ""
-        if self.account and (other or not known):       # (both Shards accounts: friends by account, everywhere)
+        if self.account and (other or not known):       # (both Hallisium accounts: friends by account, everywhere)
             if other.lower() == self.account.lower() or (not other and name.lower() == self.account.lower()):
                 self.refuse("That's you, on another character.")
                 return

@@ -3,7 +3,7 @@ natural), not by pieces laid in the maps: worked out at every corner of the grid
 (ground.js paintRounds, dsedit/render.py round_fills). So a lone tile is round, a staircase a slope, an inlet's end a
 bay, two grounds' corners round into each other, for every pair of grounds that has it, no tiles of its own.
 
-  * Tiles.ini Round=1 on the natural grounds (water, lakes, bog, ice, sand, ash, scorched ground, snow, grass, marsh,
+  * Tiles.ini Round=1 on the natural grounds (water, lakes, a pond, lava, bog, ice, sand, ash, scorched ground, snow, grass, marsh,
     dirt and gravel paths, cinder, the forest's canopy): the grounds that round into each other (streets, floors,
     walls, mountains and caves keep their own edges).
   * Every piece laid in the maps (Tiles.ini Corner.Base: build_ground_pieces.py's, and the old coasts' diagonals)
@@ -22,7 +22,7 @@ sys.path.insert(0, HERE)
 import world_edit as W                                   # noqa: E402
 from common import Ini, p                                # noqa: E402
 
-ROUND = re.compile(r"^(Water|Lake|Bog|Ice|Sand|Ash|Scorched|Snow|Grass|Marsh|Dirt|Gravel|Cinder|Forest)\d{3}$")
+ROUND = re.compile(r"^(Water|Lake|Pond|Lava|Bog|Ice|Sand|Ash|Scorched|Snow|Grass|Marsh|Dirt|Gravel|Cinder|Forest)\d{3}$")
 
 
 def main():

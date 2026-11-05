@@ -151,8 +151,6 @@ class ShardMixin:
         if r is None or (self.script_running and self.now - r["at"] < 20000):
             return
         self.reward = None
-        if not r["got"] and not r["xp"]:
-            return                                      # (it gave nothing: no screen to say so)
         got = sorted(r["got"].items(), key=lambda kv: (kv[0] != SHARD, kv[0]))
         self.emit({"t": "reward", "quest": r["quest"], "items": [[k, n] for k, n in got if k != SHARD],
                    "shards": r["got"].get(SHARD, 0), "xp": [[k, round(v, 2)] for k, v in sorted(r["xp"].items())]})

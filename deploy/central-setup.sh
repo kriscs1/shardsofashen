@@ -55,7 +55,7 @@ if [ ! -f .env ]; then
             ip=$(curl -4 -fsS https://api.ipify.org || curl -4 -fsS https://ifconfig.me)
             domain="$(echo "$ip" | tr . -).sslip.io"
         fi
-        printf "Your Shards account's name (it may use /admin; signed up with the code in the log if it's new): " > /dev/tty
+        printf "Your Hallisium account's name (it may use /admin; signed up with the code in the log if it's new): " > /dev/tty
         read -r admin < /dev/tty
         sed -i "s|^DS_CENTRAL_DOMAIN=.*|DS_CENTRAL_DOMAIN=$domain|; s|^DS_CENTRAL_ADMINS=.*|DS_CENTRAL_ADMINS=$admin|" .env
     fi

@@ -45,6 +45,8 @@ function info(name) {
     blend: Math.min(9, Math.max(0, Math.floor(val(tileIni(name, "Blend", "0"))))),
     tex: tileIni(name, "Blend.Texture", name) || name,
     texture: tileIni(name, "Texture", ""),
+    texFrames: Math.floor(val(tileIni(name, "Texture.Frames", "0"))),     // (a texture that moves: lava)
+    texSpeed: Math.floor(val(tileIni(name, "Texture.Speed", "400"))) || 400,
     // (natural ground, rounded where it meets another: Round=1; its ground, Grass002 Grass001's; which wins a tie)
     round: flag("Round") && !decor ? name.replace(/\d+$/, "") : "",
     rank: Math.min(9, Math.max(0, Math.floor(val(tileIni(name, "Blend", "0"))))),
@@ -88,7 +90,10 @@ class Chunk {
     this.version = -1;
     this.full = true;               // paint every cell
     this.dirty = new Set();         // cells (index) to paint again
-    this.missing = false;           // a picture it needed hadn't loaded
+    this.missing = false;           // a picture the cell being painted needed hadn't loaded
+    this.gaps = new Set();          // the cells painted without one: they alone are painted again when pictures come
+    this.paintAt = 0;               // how far a full paint has got (a map not in view yet is painted over a few frames)
+    this.used = 0;                  // when it was last in view
     this.anim = [];                 // [cell index, kinds...] cells that move
     this.foam = new Map();          // cell index -> {dist, frames: Map}
     this.hidden = 0;                // the roof group hidden (the player is under it)
@@ -104,11 +109,31 @@ export function chunkOf(m) {
     if (old) c.hidden = old.hidden;   // (the map sent again: the roof you're under stays hidden - no flash of it)
     chunks.set(m.name, c);
   }
+  c.used = performance.now();
   return c;
 }
 
+const CHUNKS_KEPT = 15;                // (the 3 x 3 in view and those just left: walking back paints nothing)
+
 export function forgetChunks(keep) {
-  for (const name of [...chunks.keys()]) if (!keep.has(name)) chunks.delete(name);
+  if (chunks.size <= CHUNKS_KEPT) return;
+  const old = [...chunks.entries()].filter(([name]) => !keep.has(name)).sort((a, b) => a[1].used - b[1].used);
+  for (const [name] of old.slice(0, chunks.size - CHUNKS_KEPT)) chunks.delete(name);
+}
+
+function repaint(c) { c.full = true; c.paintAt = 0; c.foam.clear(); }
+
+function paintEdge(c, dx, dy) {
+  // (the map dx,dy from it has come: only the cells near that side look at it, two out for rounded corners)
+  if (c.full) return;
+  for (let ly = 0; ly < G.yt; ly++) {
+    for (let lx = 0; lx < G.xt; lx++) {
+      if ((dx > 0 && lx < G.xt - 2) || (dx < 0 && lx >= 2) || (dy > 0 && ly < G.yt - 2) || (dy < 0 && ly >= 2)) continue;
+      const ci = ly * G.xt + lx;
+      c.dirty.add(ci);
+      c.foam.delete(ci);
+    }
+  }
 }
 
 export function invalidateCell(name, x, y) {
@@ -147,14 +172,14 @@ export function mapCells(d) {
 
 export function invalidateMap(name) {
   const c = chunks.get(name);
-  if (c) { c.full = true; c.foam.clear(); }
+  if (c) repaint(c);
   // the maps beside it paint their edges again (blending reaches over the seam)
   const m = S.maps.get(name);
   if (!m) return;
   for (const [dx, dy] of DIRS) {
     const n = mapByPos(m.mx + dx, m.my + dy, m.mz);
     const nc = n && chunks.get(n.name);
-    if (nc) { nc.full = true; nc.foam.clear(); }                  // (its shore may meet this map's land)
+    if (nc) paintEdge(nc, -dx, -dy);                              // (its shore may meet this map's land)
   }
 }
 
@@ -240,10 +265,32 @@ function blendLevelAt(z, gx, gy) {
   return [i.blend, i.blend > 0 ? i.tex : ""];
 }
 
-function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
-  const found = [];
+// (where two grounds meet, a few flecks of each lie over on the other's side: never along the sea's edge, whose foam goes by
+// what's water, and never the same twice)
+const FLECK_MIN = 2, FLECK_MAX = 15;
+
+function flecksOf(ctx, tex, gx, gy, k, dx, dy, ch) {
+  let h = (Math.imul(gx + 1, 73856093) ^ Math.imul(gy + 1, 19349663) ^ Math.imul(k + 1, 83492791)) >>> 0;
+  const roll = (n) => { h = (Math.imul(h, 1664525) + 1013904223) >>> 0; return (h >>> 8) % n; };
+  if (roll(10) < 3) return;                                 // (not everywhere)
+  const [ddx, ddy] = DIRS[k];
+  ctx.beginPath();
+  for (let patch = 1 + roll(3); patch > 0; patch--) {
+    const along = 3 + roll(G.tw - 6), depth = FLECK_MIN + roll(FLECK_MAX - FLECK_MIN);
+    for (let bit = 2 + roll(4); bit > 0; bit--) {
+      const a = along + roll(5) - 2, d = depth + roll(4) - 1, w = 1 + roll(3), hh = 1 + roll(2);
+      const x = ddx ? (ddx > 0 ? G.tw - d : d) : a, y = ddy ? (ddy > 0 ? G.th - d : d) : a;
+      ctx.rect(dx + Math.max(0, Math.min(G.tw - w, x)), dy + Math.max(0, Math.min(G.th - hh, y)), w, hh);
+    }
+  }
+  paintGroundIn(ctx, tex, gx, gy, dx, dy, ch);
+}
+
+function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch, wet = false) {
+  const found = [], flecks = [];
   DIRS.forEach(([ddx, ddy, side], k) => {
     let [level, tex] = blendLevelAt(z, gx + ddx, gy + ddy);
+    if (!wet && k < 4 && level > 0 && level !== b && tex && !info(tex).water) flecks.push([tex, k]);
     if (level > b && k >= 4) {
       if (blendLevelAt(z, gx + ddx, gy)[0] >= level || blendLevelAt(z, gx, gy + ddy)[0] >= level) level = 0;
     }
@@ -252,6 +299,7 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
     //  shore beside it already runs to that corner: no blob of land filling it)
     if (level > b && k >= 4 && roundedAway(z, gx + ddx, gy + ddy, -ddx, -ddy)) level = 0;   // (its corner here's
     //  another ground's now, rounded into it)
+    if (level > b && k < 4 && capped(z, gx, gy, k)) level = 0;   // (a lone tile, a tongue's end: the curve is its edge)
     let taper = "";
     if (level > b && k < 4) {                    // (an end of the band where a diagonal shore's coast starts)
       const along = ddy ? [[1, 0, "E", "W"], [-1, 0, "W", "E"]] : [[0, 1, "S", "N"], [0, -1, "N", "S"]];
@@ -279,6 +327,7 @@ function paintBlendEdges(ctx, z, gx, gy, b, dx, dy, ch) {
     if (s) ctx.drawImage(s, dx, dy);
     else ch.missing = true;
   }
+  for (const [tex, k] of flecks) flecksOf(ctx, tex, gx, gy, k, dx, dy, ch);
 }
 
 // ----- mountains' corners cut on the slant: no right angles where a range turns
@@ -415,8 +464,8 @@ function paintSlants(ctx, z, gx, gy, tile, dx, dy, ch) {
 // (Tiles.ini Round=1). A cell's corner whose two neighbours beside it there are both another ground takes that ground,
 // out to the middle of its two edges (where the ground beside it meets it too, so the coast runs on unbroken), on a
 // curve: so a lone tile is round, a staircase of them a slope, an inlet's end a bay, and where it's two and two across
-// the corner the higher ground (Blend) runs through. The curve's bend is the corner's own (the same from every cell
-// round it), so no two islets are quite alike.
+// the corner the higher ground (Blend) runs through. The curve leaves each edge along it (no angle where it starts),
+// and how full it is is the corner's own (the same from every cell round it), so no two islets are quite alike.
 const QUAD = [[1, -1], [1, 1], [-1, 1], [-1, -1]];   // (0 NE, 1 SE, 2 SW, 3 NW: the way to its neighbours there)
 const INSET = 5;   // (where the ground filling a corner spills over this one's edges anyway (a higher Blend), its curve
 //  runs that far in, round the corner of its bands: else it'd be under them, and the corner square)
@@ -446,21 +495,30 @@ function roundedAway(z, gx, gy, sx, sy) {
   return roundsAt(z, gx, gy, roundOf(z, gx, gy)).some(([kk]) => kk === k);
 }
 
-function roundPath(ctx, k, dx, dy, vx, vy, inset) {
-  // The corner k's fill: from the corner to the middle of its two edges, (inset from them,) a curve between bending
-  // toward the corner by the grid corner's (vx, vy) own amount: rounder round the bands' corner
+const SIDE_CORNERS = [[0, 3], [0, 1], [1, 2], [2, 3]];   // (N, E, S, W: as DIRS)
+
+function capped(z, gx, gy, side) {
+  // Both this cell's corners on that side rounded away? (then that side's all curve: no band along it)
+  const fills = roundsAt(z, gx, gy, roundOf(z, gx, gy));
+  return SIDE_CORNERS[side].every((k) => fills.some(([kk]) => kk === k));
+}
+
+function roundPath(ctx, k, dx, dy, vx, vy, insetH, insetV) {
+  // The corner k's fill: from the corner to the middle of its two edges, (inset from them: its north or south edge by
+  // insetH, the other by insetV,) a curve between that runs on from each, pulled toward the corner by the grid
+  // corner's (vx, vy) own amount
   const w = G.tw, h = G.th;
   const c = [[w, 0], [w, h], [0, h], [0, 0]][k];
-  const ix = c[0] ? -inset : inset, iy = c[1] ? -inset : inset;
+  const ix = c[0] ? -insetV : insetV, iy = c[1] ? -insetH : insetH;
   const p = [w / 2, c[1]], q = [c[0], h / 2], p2 = [p[0], p[1] + iy], q2 = [q[0] + ix, q[1]], c2 = [c[0] + ix, c[1] + iy];
   const hsh = ((vx * 73856093) ^ (vy * 19349663)) >>> 0;
-  const bend = inset ? 0.55 + (hsh % 1000) / 1000 * 0.4 : 0.18 + (hsh % 1000) / 1000 * 0.32;
-  const m = [(p2[0] + q2[0]) / 2, (p2[1] + q2[1]) / 2];
+  const pull = 0.4 + (hsh % 1000) / 1000 * 0.3;
   ctx.beginPath();
   ctx.moveTo(dx + c[0], dy + c[1]);
   ctx.lineTo(dx + p[0], dy + p[1]);
   ctx.lineTo(dx + p2[0], dy + p2[1]);
-  ctx.quadraticCurveTo(dx + m[0] + (c2[0] - m[0]) * bend, dy + m[1] + (c2[1] - m[1]) * bend, dx + q2[0], dy + q2[1]);
+  ctx.bezierCurveTo(dx + p2[0] + (c2[0] - p2[0]) * pull, dy + p2[1] + (c2[1] - p2[1]) * pull,
+    dx + q2[0] + (c2[0] - q2[0]) * pull, dy + q2[1] + (c2[1] - q2[1]) * pull, dx + q2[0], dy + q2[1]);
   ctx.lineTo(dx + q[0], dy + q[1]);
   ctx.closePath();
 }
@@ -468,9 +526,13 @@ function roundPath(ctx, k, dx, dy, vx, vy, inset) {
 function paintRounds(ctx, z, gx, gy, ti, dx, dy, ch) {
   // This cell's corners where another ground rounds into it; true if any of them is water
   let wet = false;
-  for (const [k, other] of roundsAt(z, gx, gy, ti)) {
+  const fills = roundsAt(z, gx, gy, ti);
+  const rounded = (k) => fills.some(([kk]) => kk === k);
+  for (const [k, other] of fills) {
     const [sx, sy] = QUAD[k];
-    roundPath(ctx, k, dx, dy, gx + (sx > 0 ? 1 : 0), gy + (sy > 0 ? 1 : 0), info(other).rank > ti.rank ? INSET : 0);
+    // (no bands to run round on a ground with no Blend of its own, nor along an edge rounded at both ends: capped)
+    const inset = ti.blend > 0 && info(other).rank > ti.rank ? INSET : 0;
+    roundPath(ctx, k, dx, dy, gx + (sx > 0 ? 1 : 0), gy + (sy > 0 ? 1 : 0), rounded(3 - k) ? 0 : inset, rounded(k ^ 1) ? 0 : inset);
     paintGroundIn(ctx, other, gx, gy, dx, dy, ch);
     if (info(other).water && !ti.water) wet = true;
   }
@@ -696,8 +758,17 @@ function paintCell(ch, ci, now) {
       paintGroundIn(ctx, ti.corner.land, gx, gy, dx, dy, ch);
     }
   } else if (ti.texture) {
-    const t = texture(ti.texture);
-    if (t) drawTextureCell(ctx, t, ((gx * G.tw) % t.width + t.width) % t.width, ((gy * G.th) % t.height + t.height) % t.height, dx, dy);
+    const t = texture(ti.texFrames ? `${ti.texture}_${Math.floor(now / ti.texSpeed) % ti.texFrames}` : ti.texture);
+    if (t && ti.raised && !raisedAt(m.mz, gx, gy - 1) && !raisedAt(m.mz, gx, gy + 1) &&
+        (raisedAt(m.mz, gx - 1, gy) || raisedAt(m.mz, gx + 1, gy))) {
+      // (a boardwalk running east and west: its planks across the way, turned a quarter, carrying on along the run)
+      ctx.save();
+      ctx.translate(dx + G.tw / 2, dy + G.th / 2);
+      ctx.rotate(Math.PI / 2);
+      drawTextureCell(ctx, t, ((gy * G.tw) % t.width + t.width) % t.width, ((-gx * G.th) % t.height + t.height) % t.height,
+        -G.tw / 2, -G.th / 2);
+      ctx.restore();
+    } else if (t) drawTextureCell(ctx, t, ((gx * G.tw) % t.width + t.width) % t.width, ((gy * G.th) % t.height + t.height) % t.height, dx, dy);
     else ch.missing = true;
   } else {
     let pic = null;
@@ -715,7 +786,8 @@ function paintCell(ch, ci, now) {
     } else if (pic) ctx.drawImage(pic, dx, dy);
     else { ctx.fillStyle = "#000"; ctx.fillRect(dx, dy, G.tw, G.th); }
   }
-  if (ti.blend > 0) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch);
+  if (ti.blend > 0 && !ti.water) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch);
+  else if (ti.blend > 0) paintBlendEdges(ctx, m.mz, gx, gy, ti.blend, dx, dy, ch, true);
   const wet = paintRounds(ctx, m.mz, gx, gy, ti, dx, dy, ch);
   paintSlants(ctx, m.mz, gx, gy, tile, dx, dy, ch);
   paintRaised(ctx, m.mz, gx, gy, ti, dx, dy);
@@ -739,9 +811,10 @@ function paintCell(ch, ci, now) {
       if (!o) { o = foamOverlay(f.dist, k); f.frames.set(k, o); }
       ctx.drawImage(o, dx, dy);
     }
-  } else if (ti.kind === "flame") {
+  } else if (ti.kind === "flame" && !ti.texFrames) {
     const fr = animFrame(tile, "f", flameFrame(now) % ti.anim.f);
     if (fr) ctx.drawImage(fr, dx, dy);
+    if (fr && ti.round) paintRounds(ctx, m.mz, gx, gy, ti, dx, dy, ch);   // (lava's flames fill the cell: its corners over them)
   }
   if (under) paintDecor(ctx, under, gx1, now, dx, dy, ch);      // (a rug, then what stands on it)
   if (decor && !sea) paintDecor(ctx, decor, gx1, now, dx, dy, ch, gy1, !roofShown);
@@ -767,6 +840,7 @@ function animKinds(ch, ci) {
     const f = ch.foam.get(ci);
     if (f) kinds += "w";
   } else if (ti.kind === "frames") kinds += "t" + ti.frames[1];
+  else if (ti.texFrames) kinds += "t" + ti.texSpeed;
   else if (ti.kind === "flame") kinds += "f";
   else if (ti.kind === "sway") kinds += "s";
   if (decor) {
@@ -798,16 +872,31 @@ function kindList(kinds) {
   return out;
 }
 
-export function updateChunk(ch, now) {
+function paintKept(ch, ci, now) {
+  ch.missing = false;
+  paintCell(ch, ci, now);
+  if (ch.missing) ch.gaps.add(ci); else ch.gaps.delete(ci);
+}
+
+const SLICE_MS = 4;                    // (of a frame, for painting maps not in view yet: walking on never waits for them)
+let sliceEnd = 0;
+
+export function updateChunk(ch, now, seen = true) {
   const m = ch.m;
-  if (ch.version !== m.v) { ch.version = m.v; ch.full = true; ch.foam.clear(); }
-  if (anyLoaded && ch.missing) { ch.full = true; ch.foam.clear(); }   // (foam measured on a missing picture was wrong)
+  if (ch.version !== m.v) { ch.version = m.v; repaint(ch); }
+  if (anyLoaded && ch.gaps.size) {                                    // (foam measured on a missing picture was wrong)
+    for (const ci of ch.gaps) { ch.dirty.add(ci); ch.foam.delete(ci); }
+  }
   const n = G.xt * G.yt;
   if (ch.full) {
+    if (!ch.paintAt) { ch.dirty.clear(); ch.gaps.clear(); }
+    if (!seen && !sliceEnd) sliceEnd = performance.now() + SLICE_MS;
+    while (ch.paintAt < n) {
+      paintKept(ch, ch.paintAt++, now);
+      if (!seen && performance.now() >= sliceEnd) return;             // (carried on next frame)
+    }
     ch.full = false;
-    ch.missing = false;
-    ch.dirty.clear();
-    for (let ci = 0; ci < n; ci++) paintCell(ch, ci, now);
+    ch.paintAt = 0;
     ch.anim = [];
     for (let ci = 0; ci < n; ci++) {
       const k = animKinds(ch, ci);
@@ -816,7 +905,7 @@ export function updateChunk(ch, now) {
     ch.counters = {};
     return;
   }
-  for (const ci of ch.dirty) paintCell(ch, ci, now);
+  for (const ci of ch.dirty) paintKept(ch, ci, now);
   if (ch.dirty.size) {
     ch.dirty.clear();
     ch.anim = [];
@@ -831,10 +920,10 @@ export function updateChunk(ch, now) {
   }
   if (!changed.size) return;
   for (const k of changed) ch.counters[k] = counter(k, now);
-  for (const [ci, kinds] of ch.anim) if (kinds.some((k) => changed.has(k))) paintCell(ch, ci, now);
+  for (const [ci, kinds] of ch.anim) if (kinds.some((k) => changed.has(k))) paintKept(ch, ci, now);
 }
 
-export function endFrame() { anyLoaded = false; }
+export function endFrame() { anyLoaded = false; sliceEnd = 0; }
 
 export function setHiddenRoof(m, group) {
   const ch = chunks.get(m.name);

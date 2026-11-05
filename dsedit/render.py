@@ -23,7 +23,7 @@ def ground_image(project, name, gx, gy, near=None):
     """A ground tile at world tile gx, gy: its part of its big texture (Tiles.ini Texture=, sprites\\Textures) when
     it has one, as the game paints it (so a range or a forest is one picture, whichever of its tiles was put down), else
     its own sprite."""
-    base = project.tiles_ini.get(name, "Corner.Base", "")
+    base = project.tile_values("Corner.Base").get(name.lower())
     if base:
         return _corner_piece(project, name, base, gx, gy, near)
     tex = project.tile_values("Texture").get(name.lower())
@@ -125,19 +125,18 @@ def render(project, doc, roofs=True, infront=True, entities=True, dim_roofs=Fals
     top-left, for the tiles painted from a texture. around(gx, gy): the tile at a world tile off this map (so the
     ground rounds into its neighbours' across the edge), None if it isn't known."""
     tw, th = project.tile_w, project.tile_h
-    W, H = project.map_w, project.map_h
+    W, H = len(doc.cells[0]), len(doc.cells)            # (a map; or an area cut or copied, any size)
     im = Image.new("RGBA", (W * tw, H * th), (0, 0, 0, 255 if ground else 0))
     if ground:
         for y, row in enumerate(doc.cells):
             for x, cell in enumerate(row):
-                near = lambda ox, oy, x=x, y=y: (doc.cells[y + oy][x + ox].tile                   # noqa: E731
-                                                  if 0 <= y + oy < H and 0 <= x + ox < W else None)
+                near = lambda ox, oy, x=x, y=y: _tile_at(doc, x + ox, y + oy, origin, around)     # noqa: E731
                 im.paste(tile_image(project, cell.tile) if origin is None else
                          ground_image(project, cell.tile, origin[0] + x, origin[1] + y, near), (x * tw, y * th))
         if origin is not None:
             _rounds(project, doc, im, origin, around)
-        _raised_turns(project, doc, im, origin)
-        _raised_shadows(project, doc, im)
+        _raised_turns(project, doc, im, origin, around)
+        _raised_shadows(project, doc, im, origin, around)
     if decor:
         for y, row in enumerate(doc.cells):
             for x, cell in enumerate(row):
@@ -193,8 +192,7 @@ def _round_of(project, name):
 
 
 def round_fills(project, get, x, y):
-    """[(corner 0-3, the tile whose ground fills it, how far its curve is inset)] of the cell at x, y; get(x, y): a
-    tile name or None."""
+    """[(corner 0-3, the tile whose ground fills it)] of the cell at x, y; get(x, y): a tile name or None."""
     me, mine = _round_of(project, get(x, y) or "")
     if not me:
         return []
@@ -208,27 +206,23 @@ def round_fills(project, get, x, y):
             continue
         if d == me and (ar < mine or (ar == mine and a < me)):
             continue
-        out.append((k, an, INSET if ar > mine else 0))
+        out.append((k, an))
     return out
 
 
-INSET = 5   # (as ground.js: a higher ground's bands are over this one's edges already, so its curve runs round them)
-
-
-def round_poly(k, tw, th, vx, vy, inset=0):
-    """The corner's fill: from the corner to the middle of its two edges (inset from them), a curve between bent
-    toward the corner by the grid corner's own amount (the same hash as ground.js roundPath)."""
+def round_poly(k, tw, th, vx, vy):
+    """The corner's fill: from the corner to the middle of its two edges, a curve between that runs on from each,
+    pulled toward the corner by the grid corner's own amount (the same hash as ground.js roundPath). The game's curve
+    runs round the bands a higher ground lays over the edges; the editor draws no bands, so no inset here."""
     c = [(tw, 0), (tw, th), (0, th), (0, 0)][k]
-    ix, iy = (-inset if c[0] else inset), (-inset if c[1] else inset)
     p, q = (tw / 2, c[1]), (c[0], th / 2)
-    p2, q2, c2 = (p[0], p[1] + iy), (q[0] + ix, q[1]), (c[0] + ix, c[1] + iy)
     h = (((vx * 73856093) & 0xffffffff) ^ ((vy * 19349663) & 0xffffffff)) & 0xffffffff
-    bend = 0.55 + (h % 1000) / 1000.0 * 0.4 if inset else 0.18 + (h % 1000) / 1000.0 * 0.32
-    m = ((p2[0] + q2[0]) / 2, (p2[1] + q2[1]) / 2)
-    ctl = (m[0] + (c2[0] - m[0]) * bend, m[1] + (c2[1] - m[1]) * bend)
-    curve = [((1 - t) ** 2 * p2[0] + 2 * (1 - t) * t * ctl[0] + t * t * q2[0],
-              (1 - t) ** 2 * p2[1] + 2 * (1 - t) * t * ctl[1] + t * t * q2[1]) for t in (i / 10.0 for i in range(11))]
-    return [c, p] + curve + [q]
+    pull = 0.4 + (h % 1000) / 1000.0 * 0.3
+    a = (p[0] + (c[0] - p[0]) * pull, p[1] + (c[1] - p[1]) * pull)
+    b = (q[0] + (c[0] - q[0]) * pull, q[1] + (c[1] - q[1]) * pull)
+    curve = [tuple((1 - t) ** 3 * p[i] + 3 * (1 - t) ** 2 * t * a[i] + 3 * (1 - t) * t * t * b[i] + t ** 3 * q[i]
+                   for i in (0, 1)) for t in (j / 12.0 for j in range(13))]
+    return [c] + curve
 
 
 def _rounds(project, doc, im, origin, around):
@@ -245,31 +239,42 @@ def _rounds(project, doc, im, origin, around):
             if not fills:
                 continue
             gx, gy = origin[0] + x, origin[1] + y
-            for k, other, inset in fills:
+            for k, other in fills:
                 sx, sy = QUAD[k]
                 cut = Image.new("L", (tw, th), 0)
-                ImageDraw.Draw(cut).polygon(round_poly(k, tw, th, gx + (sx > 0), gy + (sy > 0), inset), fill=255)
+                ImageDraw.Draw(cut).polygon(round_poly(k, tw, th, gx + (sx > 0), gy + (sy > 0)), fill=255)
                 im.paste(ground_image(project, other, gx, gy), (x * tw, y * th), cut)
 
 
-def _raised_turns(project, doc, im, origin):
+def _tile_at(doc, x, y, origin, around):
+    """The tile at x, y of a map; off its edges, the map beside it's (around), so nothing looks like it stops there."""
+    if 0 <= y < len(doc.cells) and 0 <= x < len(doc.cells[y]):
+        return doc.cells[y][x].tile
+    return around(origin[0] + x, origin[1] + y) if around and origin is not None else None
+
+
+def _raised_test(project, doc, origin, around):
+    high = project.tile_values("Raised")
+    return lambda x, y: high.get((_tile_at(doc, x, y, origin, around) or "").lower()) == "1"
+
+
+def _raised_turns(project, doc, im, origin, around=None):
     """A boardwalk running east and west: its planks across the way, turned a quarter (as ground.js draws it)."""
     tw, th = project.tile_w, project.tile_h
-    raised = lambda x, y: (0 <= y < len(doc.cells) and 0 <= x < len(doc.cells[y]) and          # noqa: E731
-                           project.tiles_ini.get(doc.cells[y][x].tile, "Raised", "") == "1")
+    raised = _raised_test(project, doc, origin, around)
     for y, row in enumerate(doc.cells):
         for x, cell in enumerate(row):
             if raised(x, y) and not raised(x, y - 1) and not raised(x, y + 1) and (raised(x - 1, y) or raised(x + 1, y)):
-                pic = tile_image(project, cell.tile) if origin is None else                     ground_image(project, cell.tile, origin[0] + x, origin[1] + y)
+                pic = tile_image(project, cell.tile) if origin is None else                     ground_image(project, cell.tile, origin[1] + y, -(origin[0] + x))     # (carrying on along the run)
                 im.paste(pic.rotate(-90), (x * tw, y * th))
 
 
-def _raised_shadows(project, doc, im):
+def _raised_shadows(project, doc, im, origin=None, around=None):
     """What's raised off the ground (Tiles.ini Raised=1: a boardwalk) casts its shadow south and east of it, as the
-    game draws it (ground.js paintRaised), and shows its front edge."""
+    game draws it (ground.js paintRaised), and shows its front edge: over the maps' edges as anywhere (a boardwalk
+    running on into the next map has no front here, and one coming from the last map casts its shadow on this)."""
     tw, th = project.tile_w, project.tile_h
-    raised = lambda x, y: (0 <= y < len(doc.cells) and 0 <= x < len(doc.cells[y]) and          # noqa: E731
-                           project.tiles_ini.get(doc.cells[y][x].tile, "Raised", "") == "1")
+    raised = _raised_test(project, doc, origin, around)
     over = Image.new("RGBA", im.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(over)
     for y, row in enumerate(doc.cells):

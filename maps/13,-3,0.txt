@@ -19,6 +19,7 @@ Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:
 Grass001:Grass001:Dirt001:Field001:Field001:Field001:Field001:Field001:Field001:Field001:Field001:Dirt001:Dirt001:Grass001+Decor(Oak_Tree001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Dirt001:Dirt001:Grass001:Grass001:Grass001
 Dirt001:Grass001:Grass001:Grass001+Decor(Scarecrow001):Grass001+Decor(Pebbles002):Grass001+Decor(Oak_Tree001):Field001:Field001:Field001:Field001:Field001:Grass001:Dirt001:Grass001+Decor(Tree001):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001:Grass001:Grass001:Grass001+Decor(Herb_Patch001):Dirt001:Grass001:Grass001:Grass001+Decor(Pebbles001)
 Grass001:Grass001:Grass001+Decor(Haystack001):Grass001+Decor(Berry_Bush001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001
+StaticObject	Dice_Table	288	416	Id=Dice_Table_13_n3_0_03
 NPC	Farmer	352	448	Attitude=Good Zone=12,14,13,16 Pause=3-8
 NPC	Herbalist	672	480	Attitude=Good Zone=22,15,23,16 Pause=4-10
 NPC	Chicken	288	256	Attitude=Passive Zone=9,8,15,10 Chase=8,7,16,7/9,8,16,10/8,11,16,11

@@ -1,7 +1,7 @@
 """Looking after the server's accounts (run it where the database is; stop the server first or not, either is safe):
 
   python tools/admin.py list                        the characters, whose they are, the admins
-  python tools/admin.py owner <name> <account>      give a character to a Shards account (no password: it's theirs)
+  python tools/admin.py owner <name> <account>      give a character to a Hallisium account (no password: it's theirs)
   python tools/admin.py admin <name> on|off        the Admin button (give items, set skills, god mode)
   python tools/admin.py backup                     a copy of the database in server-data/backups
 

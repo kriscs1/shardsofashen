@@ -4,8 +4,8 @@ playing now and those long gone, and every character on the server is told once 
 
 Kept small: it's told only what's changed since it last heard (nothing at all when nobody's getting anywhere), every
 few minutes, a few dozen characters at a time, zipped. Never a device's key, the character's look, what they carry or
-what they say. DS_PROGRESS=0 keeps a server's characters to itself. A game alone or on a network has no name told
-(its host's device or PC is in its name)."""
+what they say. DS_PROGRESS=0 keeps a server's characters to itself. An app's own game is anonymous: no game name, no
+account, no character's name, only a random id that device made for itself (the secret, hashed) and a label from it."""
 import asyncio
 import hashlib
 import json
@@ -56,6 +56,9 @@ class Reporter:
     def on(self):
         return bool(self.game.central_url()) and os.environ.get("DS_PROGRESS", "1").strip() not in ("0", "no", "off", "false")
 
+    def anonymous(self):
+        return self.game.own        # (an app's own game)
+
     def secret(self):
         """This server's own (made once, kept with the world): the central server knows its reports by the hash."""
         got = self.game.store.setting("progress_secret", "")
@@ -66,11 +69,11 @@ class Reporter:
 
     def about(self):
         g = self.game
-        public = os.environ.get("DS_PUBLIC", "").strip() in ("1", "yes", "on", "true")
+        public = g.remote()
         kind = "public" if public else "friends" if g.for_friends() else \
-            "solo" if os.environ.get("DS_LAN", "1").strip() == "0" or (g.own and not g.lan_open) else "local"
+            "solo" if g.own and not g.lan_open else "local"
         out = {"secret": self.secret(), "kind": kind, "version": g.version.get("version", ""),
-               "name": g.server_name() if kind in ("public", "friends") else ""}
+               "name": g.server_name() if kind in ("public", "friends") and not g.own else ""}
         if public:                  # (that it's the server listed: it says so with what it announces itself by)
             out.update(server=g.server_id(), proof=g.store.setting("central_secret", ""))
         return out
@@ -93,6 +96,9 @@ class Reporter:
                 continue
             c["name"] = name
             c["account"] = owner[2:] if owner.startswith("a:") else ""    # (a device's own key stays here)
+            if self.anonymous():
+                c["name"] = "Heir " + hashlib.sha256((self.secret() + name.lower()).encode("utf-8")).hexdigest()[:10]
+                c["account"] = ""
             seen = hashlib.md5(json.dumps(c, sort_keys=True).encode("utf-8")).hexdigest()
             if self.sent.get(name.lower()) != seen:
                 c["played"] = int(val(state.get("last_seen", updated)))

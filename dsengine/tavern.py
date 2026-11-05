@@ -122,6 +122,15 @@ class TavernMixin:
         if verb == "Talk to" and getattr(e, "npc_id", "") == "Innkeeper":
             self.innkeeper_menu(e)
             return True
+        if e.name == "Barkeep" and verb == "Play":      # (every pub's: dev/migrate/build_pub_dice.py)
+            if self.too_far(e, 64):
+                return True
+            self.show_menu("Barkeep", "Barkeep", "Fancy your luck? I've three cups and a die back here.",
+                           [("Three Cups.", lambda: self.game_open("cups", e)),
+                            ("High or Low.", lambda: self.game_open("highlow", e)),
+                            ("How does Dragon Dice work?", self.dice_rules),
+                            ("Not today.", None)])
+            return True
         if e.name == "Arm_Table" and verb in ("Play", "Use"):
             if self.too_far(e, 64):
                 return True

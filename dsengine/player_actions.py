@@ -8,6 +8,7 @@ from ashen.lb import val, word, trim, lbstr, distance, strip_digits, pretty
 from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE, ROOF,
                      ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES)
 
+STAND_MS = 300          # (getting up: state.js SIT_MS, and a moment)
 SEAT_FACES = {"N": 1, "E": 2, "S": 4, "W": 8}    # (Seat= in Tiles.ini: the way you face, sitting on it)
 WALK_FIRST_WORDS = ("Wall", "Forest", "Hedge", "Pond", "Pool", "_Window", "Water", "Timber0", "Plaster0", "Sandstone0",
                     "Brick0")
@@ -539,6 +540,7 @@ class ActionsMixin:
         p.direction = face
         p.pose = "Sit"
         self.w.animate_entity(p, False)
+        self.act_done(True)                             # (done: the click's mark says so, and goes)
 
     def stand_up(self):
         if self.seat is None:
@@ -547,6 +549,7 @@ class ActionsMixin:
         self.seat = None
         self.player.pose = ""
         self.w.set_entity_position(self.player, x, y)                 # (back where they stood: off the bench)
+        self.walk_hold = self.now + STAND_MS            # (the step off, then the walk: never both at once, at a run)
         self.w.animate_entity(self.player, False)
 
     def stand_x(self):

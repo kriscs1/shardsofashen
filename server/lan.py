@@ -4,8 +4,7 @@ answers, to whoever asked, with what it is:
 
   {"game": "shardsofashen", "name": "Kris's world", "port": 8484, "online": 2, "max": 5, "version": "1.0.116"}
 
-DS_LAN=0 turns it off. (A server in Docker is only found with host networking: broadcasts don't cross Docker's own
-network. Anyone can still join it by its address.)"""
+Only an app's own game answers, once its host has opened it to the network; a server of its own is a remote one."""
 import asyncio
 import json
 import logging
@@ -39,8 +38,6 @@ class Responder(asyncio.DatagramProtocol):
 
 async def start(about, port=None):
     """Answers probes on the LAN port: the transport (close it to stop), or None if it's off or the port's taken."""
-    if os.environ.get("DS_LAN", "1").strip() in ("0", "no", "off", "false"):
-        return None
     port = int(os.environ.get("DS_LAN_PORT", "8485")) if port is None else port
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

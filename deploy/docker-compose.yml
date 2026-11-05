@@ -14,7 +14,6 @@ services:
       DS_ADMINS: ${DS_ADMINS:-}
       DS_NAME: ${DS_NAME:-}
       DS_CENTRAL: ${DS_CENTRAL:-}   # (the central server: players come in with its tickets)
-      DS_PUBLIC: ${DS_PUBLIC:-0}    # (1: and it lists this server)
       DS_PUBLIC_URL: ${DS_PUBLIC_URL:-https://${DS_DOMAIN}}
       DS_TRUST_PROXY: "1"           # (Caddy passes on each player's own address: the limits go by it)
     volumes:

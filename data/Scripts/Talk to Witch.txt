@@ -54,7 +54,7 @@
 53	>Conditional	$Player.Malaria=1	02
 54	Get.Value	ATTRIBUTE	MorwenFeverGift	Variable.3$
 55	>Conditional	$Variable.3=0	60
-56	Display.Conversation	Witch	Look at the shake on you, and that yellow in your eye. Marsh fever, dearie: malaria, the Court's wizards call it, the mosquitoes put it in your blood. It won't leave of itself, and dying won't shift it either.\Here, a tonic, drink it while it's good. It turns in a few days, so there's no keeping it by. Bog myrtle and marigold, if you've to brew your own.	Thank you.	57
+56	Display.Conversation	Witch	Look at the shake on you, and that yellow in your eye. Marsh fever, dearie: malaria, the Court's wizards call it, the mosquitoes put it in your blood. It won't leave of itself, and dying won't shift it either.\Here, a tonic, drink it while it's good. It turns in a few days, so there's no keeping it by. Bog myrtle and mangrove bark, if you've to brew your own.	Thank you.	57
 57	Update.Attribute	MorwenFeverGift	=1
 58	Give.Item	Fever_Tonic	1
 59	End

@@ -27,6 +27,13 @@ def confirmed(monkeypatch):
                         lambda self, name, email: self.set_email(name, name.lower() + "@example.com"))
 
 
+def quiet(gapp):
+    """A remote server that hasn't announced itself: tickets by its id alone are good."""
+    async def nothing(bye=False):
+        pass
+    gapp[GAME].announce = nothing
+
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -62,7 +69,7 @@ def test_every_self_hosted_template_offers_the_central_server():
                  "docker-compose.cloud.yml"):
         with open(os.path.join(ROOT, "deploy", name), encoding="utf-8") as f:
             text = f.read()
-        for var in ("DS_CENTRAL", "DS_PUBLIC", "DS_PUBLIC_URL", "DS_TRUST_PROXY"):
+        for var in ("DS_CENTRAL", "DS_PUBLIC_URL", "DS_TRUST_PROXY"):
             assert re.search(r"\b%s\b" % var, text), (name, var)
 
 
@@ -253,6 +260,7 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
         c = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", c)
         gapp = make_app(ROOT, str(tmp_path / "game.db"), 5)
+        quiet(gapp)
         grunner, gport = await run(gapp)
         game, url = gapp[GAME], "ws://127.0.0.1:%d/ws" % gport
         store = capp["central"].store
@@ -395,6 +403,7 @@ def test_a_central_ban_reaches_those_who_come_straight_back(tmp_path, monkeypatc
         monkeypatch.setenv("DS_CENTRAL", central)
         monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
         gapp = make_app(ROOT, str(tmp_path / "game.db"), 5)
+        quiet(gapp)
         grunner, gport = await run(gapp)
         game = gapp[GAME]
         url = "ws://127.0.0.1:%d/ws" % gport
@@ -418,7 +427,7 @@ def test_a_central_ban_reaches_those_who_come_straight_back(tmp_path, monkeypatc
 
                 await post(http, central + "/api/admin/ban", {"token": boss, "name": "Rogue", "why": "testing"})
                 await game.keep_friends()                                       # (the minute's check, in play)
-                assert (await replies(ws, ("kicked",)))["reason"] == "Your Shards account is banned."
+                assert (await replies(ws, ("kicked",)))["reason"] == "Your Hallisium account is banned."
                 await ws.close()
                 await asyncio.sleep(0.2)
 
@@ -469,7 +478,6 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch, c
         crunner, cport = await run(make_central(str(tmp_path / "central.db")))
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", central)
-        monkeypatch.setenv("DS_PUBLIC", "1")
         monkeypatch.setenv("DS_PUBLIC_URL", "https://play.example.com")
         monkeypatch.setenv("DS_CENTRAL_ADMINS", "Wanderer")
         gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Kris's World")
@@ -492,9 +500,9 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch, c
                                                                           "on": True}))["ok"]
                 listed = await (await http.get(central + "/api/servers")).json()
                 assert listed and listed[0]["key"] == game.server_id() and listed[0]["name"] == "Kris's World"
-                assert listed[0]["url"] == "https://play.example.com"
+                assert "url" not in listed[0]                            # (a ticket brings it, to those signed in)
                 info = await (await http.get("http://127.0.0.1:%d/api/info" % gport)).json()
-                assert info["id"] == game.server_id()
+                assert info == {"game": "shardsofashen", "remote": True}  # (never joined by its address)
 
                 assert (await post(http, central + "/api/me", {"token": token}))["name"] == "Wanderer"
                 here = "https://play.example.com"
@@ -679,7 +687,7 @@ def test_a_servers_own_address_shows_a_browser_nothing(tmp_path, monkeypatch):
     asyncio.run(go())
 
 
-def test_a_listed_game_gives_its_own_network_tickets_too(tmp_path, monkeypatch, confirmed):
+def test_a_remote_server_is_joined_at_its_listed_address_only(tmp_path, monkeypatch, confirmed):
     async def go():
         runner, port = await run(make_central(str(tmp_path / "central.db")))
         c = "http://127.0.0.1:%d" % port
@@ -691,13 +699,103 @@ def test_a_listed_game_gives_its_own_network_tickets_too(tmp_path, monkeypatch, 
                 async def ticket(url):
                     return (await post(http, c + "/api/ticket", {"token": token, "server": key, "url": url}))["ok"]
                 assert await ticket("https://play.example.com")
-                assert await ticket("http://192.168.1.20:8484")
-                assert await ticket("http://[fd22:ad95:615f::5]:8484")
-                for elsewhere in ("https://evil.example", "http://8.8.8.8:8484", "http://127.0.0.1:8484", "http://169.254.1.1"):
-                    assert not await ticket(elsewhere), elsewhere
+                for elsewhere in ("https://evil.example", "http://192.168.1.20:8484", "http://[fd22:ad95:615f::5]:8484"):
+                    assert not await ticket(elsewhere), elsewhere       # (its own network's address no different)
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+def test_a_remote_servers_page_shows_only_for_a_ticket(tmp_path, monkeypatch):
+    monkeypatch.setenv("DS_CENTRAL", "http://127.0.0.1:9")
+
+    async def go():
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5)
+        runner, port = await run(gapp)
+        game = gapp[GAME]
+        at = "http://127.0.0.1:%d/" % port
+        try:
+            assert game.remote()
+            async with aiohttp.ClientSession() as http:
+                for query in ("", "?app=android", "?joined=1"):         # (this machine, an app, an old token: nothing)
+                    async with http.get(at + query) as r:
+                        assert r.status == 404, query
+                for query in ("?ticket=abc", "?joined=" + game.joined_token()):
+                    async with http.get(at + query) as r:
+                        assert r.status == 200, query
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_a_character_goes_from_a_public_server_to_a_device_and_never_back(tmp_path, monkeypatch):
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+    monkeypatch.setenv("DS_CENTRAL", "http://127.0.0.1:9")
+
+    async def go():
+        pub = make_app(ROOT, str(tmp_path / "pub.db"), 5)
+        own = make_app(ROOT, str(tmp_path / "own.db"), 5, own=True)
+        prunner, pport = await run(pub)
+        orunner, oport = await run(own)
+        try:
+            pub[GAME].store.create_account("Traveller", "", False, "a:Wanderer")
+            pub[GAME].store.save_character("Traveller", {"level": 7, "last_seen": 1})
+            async with aiohttp.ClientSession() as http:
+                # (the public server's own side: the owner's copy, nobody else's)
+                c = type("C", (), {"owner": "a:Wanderer", "host": False, "account": "Wanderer"})()
+                sent = []
+
+                async def send(_, m):
+                    sent.append(m)
+                pub[GAME].send = send
+                await pub[GAME].export_character(c, {"name": "Traveller"})
+                assert sent[-1]["t"] == "exported" and sent[-1]["save"]["level"] == 7
+                c.owner = "a:Someone"
+                await pub[GAME].export_character(c, {"name": "Traveller"})
+                assert sent[-1]["t"] == "login_fail"
+                save = sent[0]["save"]
+
+                # (a public server never takes one, nor an app's game from anyone but its host)
+                c.owner = "a:Wanderer"
+                await pub[GAME].import_character(c, {"name": "Home", "save": save})
+                assert sent[-1]["t"] == "login_fail" and pub[GAME].store.account("Home") is None
+
+                ws = await http.ws_connect("ws://127.0.0.1:%d/ws" % oport)
+                await replies(ws, ("hello",))
+                await ws.send_json({"t": "auth", "device": "d" * 32, "host": "the-hosts-own-key"})
+                got = await replies(ws, ("characters",))
+                assert got["place"] == "own" and got["joined"] == ""
+                await ws.send_json({"t": "import", "name": "Traveller", "save": save})
+                got = await replies(ws, ("characters", "login_fail"))
+                assert got["t"] == "characters" and [x["name"] for x in got["list"]] == ["Traveller"]
+                await ws.send_json({"t": "import", "name": "Traveller", "save": "no"})
+                assert (await replies(ws, ("characters", "login_fail")))["t"] == "login_fail"
+                await ws.close()
+        finally:
+            await orunner.cleanup()
+            await prunner.cleanup()
+    asyncio.run(go())
+
+
+def test_an_apps_game_tells_its_progress_anonymously(tmp_path, monkeypatch):
+    from server.progress import Reporter
+    monkeypatch.setenv("DS_CENTRAL", "http://127.0.0.1:9")
+    gapp = make_app(ROOT, str(tmp_path / "own.db"), 5, own=True)
+    game = gapp[GAME]
+    game.store.create_account("Kris", "", False, "a:RealName")
+    game.store.save_character("Kris", {"level": 3})
+    told = []
+
+    async def post(path, body, packed=False):
+        told.append(body)
+        return {"ok": True}
+    game.central_post = post
+    asyncio.run(Reporter(game).report())
+    body = told[0]
+    who = body["characters"][0]
+    assert body["name"] == "" and who["account"] == "" and who["name"].startswith("Heir ")
+    assert "Kris" not in json.dumps(body) and "RealName" not in json.dumps(body) and body["secret"]
+    assert who["level"] == 3
 
 
 def test_an_apps_game_is_opened_from_inside_it(tmp_path, monkeypatch, confirmed):
@@ -707,8 +805,6 @@ def test_an_apps_game_is_opened_from_inside_it(tmp_path, monkeypatch, confirmed)
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", central)
         monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
-        monkeypatch.delenv("DS_FRIENDS", raising=False)
-        monkeypatch.delenv("DS_PUBLIC", raising=False)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:     # (Windows keeps some back for UDP alone)
             s.bind(("0.0.0.0", 0))
             monkeypatch.setenv("DS_LAN_PORT", str(s.getsockname()[1]))
@@ -805,7 +901,7 @@ def test_the_ways_in_are_as_the_owner_said():
 
 
 def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
-    """Two Shards accounts: one asks, the other accepts (on the start screen, or in a game by right-click or the
+    """Two Hallisium accounts: one asks, the other accepts (on the start screen, or in a game by right-click or the
     journal), and they're friends in every game, any character of theirs; a game says where they're playing; the
     world's old friends of a character move over to its account; a homestead lets an account's friends in."""
     async def go():
@@ -813,6 +909,7 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", central)
         gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Kris's World")
+        quiet(gapp)
         grunner, gport = await run(gapp)
         game = gapp[GAME]
         wsurl = "ws://127.0.0.1:%d/ws" % gport
@@ -896,15 +993,16 @@ def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypa
         crunner, cport = await run(make_central(str(tmp_path / "central.db")))
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", central)
-        monkeypatch.setenv("DS_FRIENDS", "1")
         monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
         gport = free_port()                                             # (the relay asks the game on its own port)
-        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Hostess's World", port=gport)
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Hostess's World", port=gport, own=True)
         grunner = web.AppRunner(gapp)
         await grunner.setup()
         await web.TCPSite(grunner, "127.0.0.1", gport).start()
         game = gapp[GAME]
         key = game.server_id()
+        game.store.set_setting("internet_open", "1")
+        await game.internet_changed()
         try:
             async with aiohttp.ClientSession() as http:
                 tok = {}
@@ -979,8 +1077,7 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
         crunner, cport = await run(capp)
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", central)
-        monkeypatch.setenv("DS_LAN", "0")
-        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Someone's PC")
+        gapp = make_app(ROOT, str(tmp_path / "game.db"), 5, name="Someone's PC", own=True)
         grunner, gport = await run(gapp)
         game = gapp[GAME]
         gapp[PROGRESS].cancel()                         # (it's told when this test says, not by the clock as well)
@@ -1013,6 +1110,7 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
                 await wd.close()
                 await left(game, "Loner")
 
+                game.reporter.anonymous = lambda: False     # (the admin page's side, by name: anonymous has its own test)
                 assert await game.reporter.report() is False
                 body, packed = told[-1]
                 assert packed and body["kind"] == "solo" and body["name"] == ""     # (a phone's or PC's name stays with it)

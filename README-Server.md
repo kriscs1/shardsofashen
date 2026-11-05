@@ -179,22 +179,21 @@ are only these ways in:
 | Single player | An app | Asked, not needed |
 | A single-player game opened to your network (Options) | The app's Join a local game (a list, or an address), or a browser at the address its host's Options show | Not needed. Everything stays on the network, but a signed-in player's ticket is checked with the central server |
 | A single-player game opened to the internet (Options) | The link in its host's Options, or Friends' games | The host and the friend. The game still runs on the host's machine, passed through the central server |
-| A home server that isn't public | The app's Join a local game | Not needed |
-| A public server | The website, or the app's Public servers | Needed |
+| A server of its own (Unraid, a cloud VM...): always a remote server | The website, or the app's Public servers, at its public address, once it's approved | Needed, even from its own network |
 
 An app asks you to sign in each time you start it, signed out; the website only has the public servers, so it wants a
 login first. Each time a single-player game starts it's closed again, till its host opens it.
 
 Characters have no passwords. Each belongs to someone, and its name is one of a kind on its server:
 
-- **A Shards account** (signed in on the start screen): the start screen gets a ticket from the central server for that
+- **A Hallisium account** (signed in on the start screen): the start screen gets a ticket from the central server for that
   one game, and the game shows the account's characters there (up to 5) or makes their first. The same account on
   another server is the same player, with that server's characters.
 - **A device** (playing without an account): the start screen gives each game a key of this device's own, and the
-  game knows it by that. A device's key lets you in from this machine and its network, or anywhere on a server that
-  isn't joined to a central server; a public server joined to one wants an account.
+  game knows it by that. A device's key lets you in to an app's own game from its machine and network, or anywhere on
+  a server that isn't joined to a central server; a remote server wants an account.
 - **The host**: the app's own game (Single player) lets the start screen in by the key it started the
-  server with, as its Shards account, or this device: no ticket, so playing alone needs no network.
+  server with, as its Hallisium account, or this device: no ticket, so playing alone needs no network.
 
 A device that came in by an account (a ticket, or the host's key) is that account's on that server from then on: a
 reload, or the central server away, is still you, unless the central server says the account is banned (it's asked
@@ -208,7 +207,7 @@ above. Anyone turned away gets a link to the start screen. A connection through 
 of (no `DS_TRUST_PROXY`) never counts as this machine or its network, so a device's key alone doesn't get in that way
 on a server joined to a central server.
 
-**Friends** are by Shards account, kept on the central server: asking (the start screen's Friends, or in a game:
+**Friends** are by Hallisium account, kept on the central server: asking (the start screen's Friends, or in a game:
 right-click a player, Add friend, or `/friend Name`) is a request till they ask back, and then any character of
 theirs is a friend in every game. A game server sees a player's friends only with the key their ticket brought, and
 tells the central server where they're playing, so friends see it. A device's characters keep the world's own list.
@@ -219,7 +218,7 @@ An admin can give a character to an account: `tools/admin.py owner <Name> <Accou
 
 ```
 python tools/import_saves.py              # every saves\*.ini (their waiting respawns join the shared world)
-python tools/admin.py owner Kris Kris     # give it to a Shards account
+python tools/admin.py owner Kris Kris     # give it to a Hallisium account
 python tools/admin.py admin Kris on       # the Admin button (give items, set skills, god mode)
 ```
 
@@ -262,15 +261,15 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
    - **Web port** (8484): the port players connect to. Change it if 8484 is taken.
    - **Game data** (`/mnt/user/appdata/shards-of-ashen`): where accounts, characters, the world and the daily backups
      are kept. Point it at another share if you like.
-   - **Admins**: Shards accounts whose characters get the Admin button, comma-separated (e.g. `Kris,Ann`).
-   - **Central server** (`https://shardsofashen.hallisium.com`): players sign in by their Shards accounts, and it proves your
+   - **Admins**: Hallisium accounts whose characters get the Admin button, comma-separated (e.g. `Kris,Ann`).
+   - **Central server** (`https://shardsofashen.hallisium.com`): players sign in by their Hallisium accounts, and it proves your
      Admins. Blank: no accounts here, only each device's own characters.
-   - **Public server** (0): 1 announces it for the start screen's Public servers, once it's approved on the central
-     server's admin page. Everyone then needs a Shards account, even on your own network.
+     With one, this is a remote server: it's listed for everyone once it's approved on the central server's admin page,
+     and everyone needs a Hallisium account, even on your own network. It isn't found on the network.
    - **Public address**: where players outside your network reach it, e.g. `https://play.example.com`. Forward the port
      or put a reverse proxy in front yourself: the central server only passes the address on.
    - **Behind a reverse proxy** (0): 1 if players come through one on your network, so those on your own network still
-     count as on it. Without it, anyone coming through the proxy needs a Shards account.
+     count as on it. Without it, anyone coming through the proxy needs a Hallisium account.
    - **Invite code**: if set, making a character needs it.
    - It runs as nobody:users.
 3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
@@ -280,8 +279,8 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
 
    (Without this, the Docker tab's **Check for Updates** does it by hand.)
 
-Players join through the app (found on your network, or by its address) or, once it's a listed public server, the
-website; there's nothing to open at its own address. It starts with
+Players join from the Public servers, on the website or in the app, once you've approved it on the central server's
+admin page; there's nothing to open at its own address, and it isn't found on your network. It starts with
 the array and keeps everyone's progress in appdata (your appdata backups cover it).
 
 Accounts (Unraid's Terminal):
@@ -307,8 +306,8 @@ That's all:
 
 - **Starting:** Docker starts with Linux (no one needs to sign in), and the game and its updater start with Docker.
 - **Updates:** they arrive by themselves, a few minutes after each **Publish Update**.
-- **Connecting:** players use the app (Join a local game: found on the network, or the server's address) or, for a
-  listed public server, the website. Opening the server's address in a browser shows nothing.
+- **Connecting:** players use the Public servers, on the website or in the app, once it's approved. Opening the server's
+  address in a browser shows nothing.
 - **Day to day,** in `~/shards-of-ashen`:
   - `docker compose logs -f` shows what it's doing.
   - `docker compose pull game && docker compose up -d` updates at once.
@@ -320,7 +319,7 @@ That's all:
 ```
 DS_PORT=8090                 # the port players connect to (8484)
 DS_DATA=/srv/shards-of-ashen     # where the game's data is kept: a folder, or a Docker volume's name (gamedata)
-DS_ADMINS=Kris,Ann           # Shards accounts whose characters get the Admin button
+DS_ADMINS=Kris,Ann           # Hallisium accounts whose characters get the Admin button
 DS_INVITE_CODE=letmein       # making a character needs this code
 DS_MAX_PLAYERS=5
 DS_REGISTRATION=open         # closed: only accounts made with tools/admin.py
@@ -381,7 +380,7 @@ lists the remote game servers (each announces itself to it), and it serves the a
   ```
 
   It installs Docker, opens only SSH, HTTP and HTTPS, asks for the domain (`-` for none: the VM's address as
-  `1-2-3-4.sslip.io`, still with a real certificate) and your Shards account's name (the admin), and starts it all in
+  `1-2-3-4.sslip.io`, still with a real certificate) and your Hallisium account's name (the admin), and starts it all in
   `/opt/shards-of-ashen-central`. Run it again to bring it up to date; your `.env` and the accounts are kept. The rest
   of its settings are in that `.env` (`deploy/central.env.example`), then `docker compose up -d` in that folder.
 - **Pointing everything at another one**: put its address in `web/home/config.js` (`window.DS_CENTRAL_DEFAULT =
@@ -399,17 +398,18 @@ lists the remote game servers (each announces itself to it), and it serves the a
   (kept there per version, so they come through once) and the game itself both ways. Only the host's account and its
   friends get in that way. A game is about 10-13 KB a second to each player (measured with five bots), so a full game
   of five is about 60 KB a second through the central server each way.
-- **Public servers (a limited beta)**: a game server with `DS_PUBLIC=1` (and `DS_CENTRAL`) announces itself every minute (the start screen's
+- **Public servers (a limited beta)**: a server of its own with `DS_CENTRAL` is a remote server, and announces itself every minute (the start screen's
   Public servers list): its id,
   name, how many are playing, and its address (`DS_PUBLIC_URL`, or where it calls from and `DS_PUBLIC_PORT`), and says
-  goodbye as it stops. Without it, it only answers on its own network.
+  goodbye as it stops. From your own network it's reached at that same address, so your router must allow that
+  (OpenWrt's port forwards do, by default).
 - **Versions**: every server pulls the same `:latest` image, and the page always comes from the game it's playing, so
   they match by themselves once a server has updated (an Unraid server only with Auto Update Applications). A page left
   open loads again when the server's page code or pictures change. `/health` says the version, on game servers and the
   central server alike; the admin page says the central server's and marks a server **Behind** when it's older. Nothing
   turns an old server away, so what the central server answers must keep working for game servers a version or so old.
 - **Approving servers**: a remote server that announces itself waits, unlisted, until an admin approves it on the
-  admin page (`https://central.example.com/admin`, signed in with a Shards account named in `DS_CENTRAL_ADMINS` (one
+  admin page (`https://central.example.com/admin`, signed in with a Hallisium account named in `DS_CENTRAL_ADMINS` (one
   with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
   also finds accounts (ban, unban, make admin, delete), edits the start screen's ads, and counts everything.
@@ -487,7 +487,7 @@ Debian 12 on it, and a domain name you can add a DNS record to.
 
    (If the repository is private, copy `deploy/cloud-setup.sh` to the VM and run `sudo sh cloud-setup.sh`, with
    `GHCR_USER` and `GHCR_TOKEN` set in `/opt/shards-of-ashen/.env` so the VM can pull the image.)
-3. **Admins are Shards accounts** (`DS_ADMINS`): their characters get the Admin button, proved by the central
+3. **Admins are Hallisium accounts** (`DS_ADMINS`): their characters get the Admin button, proved by the central
    server's ticket. Without a central server (`DS_CENTRAL`), make someone admin with `tools/admin.py admin <Name> on`.
 4. **Players make characters on the character screen**: one address can make 3 a day (`DS_REGISTER_PER_DAY`), an
    account or a device at most 5 on a server, and names like Admin and Moderator are kept back. For a private server,
@@ -498,7 +498,7 @@ certificate by itself, so the game's connection is `wss://`, and it passes on ea
 `DS_TRUST_PROXY=1`), and the updater, which pulls a new image every 5 minutes when there is one and restarts the
 game with it (players are saved first and simply log in again).
 
-**Who's who.** Characters have no passwords: they belong to a Shards account, or to a device. See "Who's who"
+**Who's who.** Characters have no passwords: they belong to a Hallisium account, or to a device. See "Who's who"
 above.
 
 **Running it.**
@@ -525,14 +525,11 @@ above.
 | `DS_MAX_PLAYERS` | 5 | more are told the server is full |
 | `DS_REGISTRATION` | open | `closed`: only accounts made with `tools/admin.py` |
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
-| `DS_ADMINS` | (none) | Shards accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. |
+| `DS_ADMINS` | (none) | Hallisium accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. |
 | `DS_NAME` | `Shards of Ashen on <computer>` (a public server: `A Shards of Ashen server`) | what players see the server called: the start screen's Public servers list (40 letters at most), its login screen, the Android app's "Games on this network". Changing it takes a listed server off the list till it's approved again. An admin's name in Options wins over it |
-| `DS_LAN` | 1 | answer "who's there?" broadcasts on UDP `DS_LAN_PORT` (8485), so phones on the network find it; `0`: don't |
-| `DS_LAN_OPEN` | 1 | a new world starts open to the network; `0`: closed (only this machine may join). The host changes it in Options |
 | `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the wrong-password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
 | `DS_ORIGINS` | (none) | other pages allowed to open the game's connection, comma-separated (e.g. `https://play.example.com`). The game's own page always may; any other site's page is turned away |
 | `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
-| `DS_PUBLIC` | (off) | `1`: a remote server, announced to the central server and listed for everyone |
 | `DS_PROGRESS` | `1` | `0`: this server doesn't tell the central server how its characters are getting on |
 | `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |
 | `DS_PUBLIC_PORT` | `DS_PORT` | the port it's listed by, when it has no `DS_PUBLIC_URL` |

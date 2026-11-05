@@ -6,7 +6,7 @@ potion doesn't keep.
   * Entities.ini: the Mosquito's On.Hit=Malaria (a small chance a bite; armour is no help: it's the bite that does it).
     The Fever_Tonic (Cures=Malaria Fever), good for Shelf.Minutes of real time wherever it's kept, then it's a
     Spoiled_Tonic, which you can only pour out for its vial.
-  * The tonic is brewed of bog myrtle (the marsh's own) and marigold (Alchemy 4), sold by the herbalist and sometimes the
+  * The tonic is brewed of bog myrtle and mangrove bark (the marsh's own) (Alchemy 4), sold by the herbalist and sometimes the
     travelling salesman, and Morwen, in Saltmarsh, who knows what's wrong with you when she sees you shaking: one free,
     then for coin. So nothing in the marsh is out of reach, but it can't just sit in a bank till it's needed.
   * Pictures: a healing draught gone amber; the spoiled one murky.
@@ -36,14 +36,14 @@ ITEMS = {
     "Fever_Tonic": [("Type", "MapItem"), ("Display.Name", "Fever Tonic"), ("Use.Words", "Drink"), ("Stackable", "1"),
                     ("Value", "34"), ("Shelf.Minutes", "120"), ("Spoils.To", "Spoiled_Tonic"),
                     ("Cures", "Malaria Fever"),
-                    ("Examine.Info", "Bog myrtle and marigold, brewed bitter. The one thing that clears marsh fever "
+                    ("Examine.Info", "Bog myrtle and mangrove bark, brewed bitter. The one thing that clears marsh fever "
                                      "from the blood, and it doesn't keep.")],
     "Spoiled_Tonic": [("Type", "MapItem"), ("Display.Name", "Spoiled Tonic"), ("Use.Words", "Pour Out"),
                       ("Stackable", "1"), ("Value", "0"),
                       ("Examine.Info", "It was a fever tonic. It's cloudy now, and it smells of old ponds. The vial "
                                        "would be worth keeping.")],
 }
-RECIPES = [("CRAFT-Potion_Making", "Fever_Tonic,Bog_Myrtle 2 Marigold 1 Empty_Vial 1,0.7,4")]
+RECIPES = [("CRAFT-Potion_Making", "Fever_Tonic,Bog_Myrtle 2 Mangrove_Bark 1 Empty_Vial 1,0.7,4")]
 SHOPS = [("SHOP-Herbalist", "Fever_Tonic,2"), ("SHOP-Salesman", "Fever_Tonic,2")]
 AMBER, MURK = (206, 160, 60), (92, 88, 62)
 TONIC_PRICE = 45
@@ -124,7 +124,7 @@ def witch():
         "56\tDisplay.Conversation\tWitch\tLook at the shake on you, and that yellow in your eye. Marsh fever, dearie: "
         "malaria, the Court's wizards call it, the mosquitoes put it in your blood. It won't leave of itself, and dying "
         "won't shift it either.\\Here, a tonic, drink it while it's good. It turns in a few days, so there's no keeping "
-        "it by. Bog myrtle and marigold, if you've to brew your own.\tThank you.\t57",
+        "it by. Bog myrtle and mangrove bark, if you've to brew your own.\tThank you.\t57",
         "57\tUpdate.Attribute\tMorwenFeverGift\t=1",
         "58\tGive.Item\tFever_Tonic\t1",
         "59\tEnd",

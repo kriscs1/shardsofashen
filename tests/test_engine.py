@@ -25,6 +25,41 @@ def same_luck(request):
     random.seed(request.node.name)
 
 
+def test_locked_out_runs_through_the_secret_cellars(world):
+    s = join(world, "Lockpicker", "17,2,0", 520, 240)
+    s.update_attribute("LockedOutQuest", "=1")
+    assert world.map_named("17,2,-1") is not None
+    s.update_attribute("LockedOutQuest", "=3")
+    assert s.get_attribute("LockedOutQuest") in ("3", 3)
+    world.tick(0.05)
+    s.out = []
+    s.update_attribute("LockedOutQuest", "=4")          # (done: the reward screen, with what it gave)
+    world.tick(0.05, now=world.now + 21000)
+    ev = next(e for e in s.out if e.get("t") == "reward")
+    assert ev["quest"] == "Locked Out" and ev["shards"] == 8
+    leave(world, s)
+
+
+def test_every_pub_has_a_dice_table_and_every_barkeep_plays(world):
+    barkeeps = [e for e in world.ents if e.name == "Barkeep"]
+    assert barkeeps
+    assert "Play" in world.data.entity_ini("Barkeep", "Use.Words", "")
+    tables = [e for e in world.ents if e.name == "Dice_Table"]
+    for b in barkeeps:
+        assert any(t.z == b.z and abs(t.x - b.x) <= 800 and abs(t.y - b.y) <= 672 for t in tables), b.npc_id
+
+
+def test_every_finished_quest_shows_its_screen_even_with_no_reward(world):
+    s = join(world, "Quester")
+    s.out.clear()
+    s.reward_begin("A Thankless Task")
+    s.reward["at"] = -10 ** 9                           # (long enough ago, whatever's running)
+    s.reward_tick()
+    ev = next(e for e in s.out if e.get("t") == "reward")
+    assert ev["quest"] == "A Thankless Task" and not ev["items"] and not ev["xp"] and not ev["shards"]
+    leave(world, s)
+
+
 def join(w, name, map_name="1,1,0", x=300, y=300):
     s = Session(w, name)
     s.load_state({"map": map_name, "x": x, "y": y})
@@ -839,6 +874,7 @@ def test_a_lock_judges_the_tap_by_the_servers_clock(world):
     assert s.run_script_lines("Lock Test", ["01\tPlay.Minigame\tLOCK\t1\t02", "02\tEnd"])
     s.run_scripts()
     pin = s.game["pins"][0]
+    pin["band"], pin["width"] = 0.7, 0.1                                      # (the bottom is never on its line, whatever's rolled)
     good = ((pin["band"] / 2 - pin["phase"]) % 1) * pin["period"]             # (just on its line)
     bottom = ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"]
     s.w.now = s.game["pin_at"] + int(bottom + 3 * pin["period"] + TAP_LAG)    # (it's at the bottom, by the server)
@@ -4963,6 +4999,248 @@ def test_editor_terrains_zones_routes_and_map_names():
     assert not pat.search("14,0,0") and not pat.search("-4,0,0") and not pat.search("4,0,01")
 
 
+def test_editor_galaith_wall_joins_and_a_stroke_has_no_gaps():
+    """Galaith's wall, white and burnt, is a set that joins (it was look-alikes: a random piece a tile); a piece beside
+    its gate or its other colour counts it as more of the wall; a stroke the mouse outran has no gaps."""
+    from dsedit.project import Project
+    from dsedit import terrain as TR, world as WD
+    P = Project(ROOT)
+    groups = TR.groups(P, "map")
+    for key in ("Galaith_Wall", "Burnt_Wall"):
+        assert groups["set:" + key].kind == "Set" and "fam:" + key not in groups and WD.joins(P, key + "001")
+
+    def lay(cells, there=None):
+        grid = dict(there or {})
+        WD.lay_joins(P, "Galaith_Wall001", cells, lambda x, y: grid.get((x, y), "Flagstone001"),
+                     lambda x, y, n: grid.__setitem__((x, y), n))
+        return grid
+    run = lay([(x, 5) for x in range(5)])
+    assert [run[(x, 5)] for x in range(5)] == ["Galaith_Wall003"] + ["Galaith_Wall001"] * 3 + ["Galaith_Wall003"]
+    assert [run[(x, 6)] for x in range(5)] == ["Galaith_Wall005"] + ["Galaith_Wall004"] * 3 + ["Galaith_Wall005"]
+    col = lay([(5, y) for y in range(6)])
+    assert [col[(5, y)] for y in range(7)] == ["Galaith_Wall003", "Galaith_Wall005"] + ["Galaith_Wall002"] * 3 + \
+        ["Galaith_Wall003", "Galaith_Wall005"]                       # (a tower's face takes the cell under it)
+    both = lay([(0, 5), (1, 5)], {(2, 5): "Burnt_Gate005", (-1, 5): "Burnt_Wall001"})
+    assert both[(0, 5)] == both[(1, 5)] == "Galaith_Wall001"          # (run on through: no tower by the gate)
+    for a, b in (((0, 0), (5, 3)), ((5, 3), (0, 0)), ((2, 2), (2, 7)), ((2, 2), (9, 2)), ((0, 0), (-4, 4))):
+        line = WD.line_cells(a, b)
+        assert line[-1] == b
+        for p, q in zip([a] + line, line):
+            assert abs(p[0] - q[0]) + abs(p[1] - q[1]) == 1           # (next to the last along a side)
+    assert WD.line_cells((3, 3), (3, 3)) == []
+
+
+def test_editor_an_area_lies_across_maps():
+    """An area marked over the corner of four maps: every tile and entity taken, a roof group of the same number on two
+    maps kept apart, put down on maps of its own, each entity on the map it lands on; a cut's references map to map."""
+    import types
+    from dsedit import region as R
+    from dsedit.project import Cell
+    W, H = 25, 21
+
+    def blank(name, tile):
+        return types.SimpleNamespace(name=name, cells=[[Cell(tile) for _ in range(W)] for _ in range(H)], entities=[],
+                                     placed=lambda: [])
+    docs = {}
+    for name, tile in (("a", "Grass001"), ("b", "Sand001"), ("c", "Dirt001"), ("d", "Water001")):
+        d = docs[name] = blank(name, tile)
+        d.placed = (lambda d: lambda: d.entities)(d)
+    at_grid = {"a": (0, 0), "b": (1, 0), "c": (0, 1), "d": (1, 1)}
+
+    def on(names):
+        """at(), parts_of() over maps set out in a grid, counted from the first's top-left."""
+        grid = {v: k for k, v in at_grid.items() if k in names}
+
+        def at(x, y):
+            n = grid.get((x // W, y // H))
+            return (docs[n], x % W, y % H) if n else None
+
+        def parts(r):
+            out = []
+            for (i, j), n in grid.items():
+                dx, dy = i * W, j * H
+                x0, y0, x1, y1 = max(r[0], dx), max(r[1], dy), min(r[2], dx + W - 1), min(r[3], dy + H - 1)
+                if x0 <= x1 and y0 <= y1:
+                    out.append((docs[n], dx, dy, (x0 - dx, y0 - dy, x1 - dx, y1 - dy)))
+            return out
+        return at, parts
+    ent_tile = lambda e: (e.x // 32 + 1, e.y // 32 + 1)
+
+    def shift(e, dx, dy):
+        e.x, e.y = e.x + dx * 32, e.y + dy * 32
+    docs["a"].cells[20][24].set_roof("Roof001", "01")
+    docs["b"].cells[20][0].set_roof("Roof002", "01")
+    docs["d"].entities.append(types.SimpleNamespace(x=32, y=32, name="Cat"))         # (tile 2,2 of d)
+    at, parts = on("abcd")
+    rect = (23, 19, 27, 23)
+    got = R.grab(parts(rect), "a", rect, ent_tile, shift, False)
+    assert got.size == (5, 5)
+    assert got.cells[0][0].tile == "Grass001" and got.cells[0][4].tile == "Sand001"
+    assert got.cells[4][0].tile == "Dirt001" and got.cells[4][4].tile == "Water001"
+    assert got.cells[1][1].roof_group != got.cells[1][2].roof_group           # (two maps' 01s: two roofs)
+    assert [(e.x // 32, e.y // 32) for e in got.entities] == [(26, 22)]       # (as if it stood on a)
+    assert R.ground_round(lambda x, y: "Sand001" if x > 25 else "Grass001", (10, 10, 12, 12)) == "Grass001"
+    # (put down lower, on maps c and d's own ground: across their edge, the cat on d)
+    before = len(docs["d"].entities)
+    added = R.put(at, got, 23, 30, ent_tile, shift)
+    assert docs["c"].cells[9][23].tile == "Grass001" and docs["d"].cells[9][2].tile == "Sand001"
+    assert len(added) == 1 and added[0] in docs["d"].entities and len(docs["d"].entities) == before + 1
+    assert (added[0].x // 32, added[0].y // 32) == (1, 12)                    # (that map's own tiles)
+    # (a gap in the world: a cell of None lands nowhere and needs nothing there)
+    at2, parts2 = on("a")
+    gappy = R.grab(parts2(rect), "a", rect, ent_tile, shift, False)
+    assert gappy.cells[0][4] is None and gappy.cells[0][0] is not None
+    assert R.put(at2, gappy, 0, 0, ent_tile, shift) == []
+    # (a cut moved over an edge: each part of it says where it went, in that map's tiles, once)
+    moved = R.moves(parts((23, 2, 27, 2)), (23, 2, 27, 2), parts((23, 3, 27, 3)), 23, 3)
+    assert sorted(moved) == [("a", (23, 2, 24, 2), "a", 0, 1), ("b", (0, 2, 2, 2), "b", 0, 1)]
+    moved = R.moves(parts((23, 2, 27, 2)), (23, 2, 27, 2), parts((24, 2, 28, 2)), 24, 2)
+    assert sorted(moved) == [("a", (23, 2, 23, 2), "a", 1, 0), ("a", (24, 2, 24, 2), "b", -24, 0),
+                             ("b", (0, 2, 2, 2), "b", 1, 0)]
+    assert R._moved(moved, "a", 25, 3, True) == ("b", 1, 3)                  # (tile 24,2 of a: tile 0,2 of b, from 1)
+
+
+def test_editor_draws_a_boardwalk_on_over_a_maps_edge():
+    """A boardwalk running on into the next map has no front at this one's edge (as the game draws it: ground.js
+    raisedAt goes by the world); one that ends there does; and it casts its shadow onto the map south of it."""
+    import types
+    from PIL import ImageChops
+    from dsedit.project import Project, Cell
+    from dsedit.render import render, ground_image
+    P = Project(ROOT)
+    board = types.SimpleNamespace(cells=[[Cell("Boardwalk001") for _ in range(P.map_w)] for _ in range(P.map_h)],
+                                  placed=lambda: [])
+    grass = types.SimpleNamespace(cells=[[Cell("Grass001") for _ in range(P.map_w)] for _ in range(P.map_h)],
+                                  placed=lambda: [])
+    tw, th = P.tile_w, P.tile_h
+    x, y = 5, P.map_h - 1
+    last = (x * tw, y * th, (x + 1) * tw, (y + 1) * th)
+    plain = ground_image(P, "Boardwalk001", x, y).convert("RGB")
+    on = render(P, board, entities=False, origin=(0, 0), around=lambda gx, gy: "Boardwalk001").convert("RGB").crop(last)
+    assert ImageChops.difference(on, plain).getbbox() is None         # (nothing drawn over it: it goes on)
+    ends = render(P, board, entities=False, origin=(0, 0), around=lambda gx, gy: "Grass001").convert("RGB").crop(last)
+    assert ImageChops.difference(ends, plain).getbbox() is not None   # (its front)
+    top = (x * tw, 0, (x + 1) * tw, th)
+    alone = render(P, grass, entities=False, origin=(0, P.map_h), around=lambda gx, gy: "Grass001").convert("RGB")
+    under = render(P, grass, entities=False, origin=(0, P.map_h), around=lambda gx, gy: "Boardwalk001" if gy < P.map_h
+                   else "Grass001").convert("RGB")
+    assert ImageChops.difference(alone.crop(top), under.crop(top)).getbbox() is not None   # (its shadow, from the last map)
+
+
+def test_editor_moves_any_entity_over_a_maps_edge():
+    """Dragged past a map's edge, an NPC, a trigger, a lock or a place goes onto the next map (a tile that has its own
+    already says no); with no map there it stays where it is. A marked group on Entities moves just its entities."""
+    import types
+    from dsedit.pages.maps import MapPage
+    from dsedit.project import Entity
+    W, H = 25, 21
+    said = []
+
+    def blank(name):
+        return types.SimpleNamespace(name=name, cells=[[None] * W for _ in range(H)], entities=[], placed=None)
+    a, b = blank("a"), blank("b")
+    for d in (a, b):
+        d.placed = (lambda d: lambda: d.entities)(d)
+    pg = types.SimpleNamespace(doc=a, project=types.SimpleNamespace(map_w=W, map_h=H, tile_w=32, tile_h=32), area=None,
+                               app=types.SimpleNamespace(status=lambda m, k="": said.append(m)), touch=lambda d: None,
+                               sel_ent=None, shift_ent=MapPage.shift_ent, ent_size=lambda e: (32, 32),
+                               tile_taken=MapPage.tile_taken, remember=lambda: None, redraw=lambda: None,
+                               show_inspector=lambda: None)
+    pg.activate = lambda n: setattr(pg, "doc", {"a": a, "b": b}[n])
+    pg.zone_follows, pg.zone_keeps_up = MapPage.zone_follows, lambda d: MapPage.zone_keeps_up(pg, d)
+    pg.inside = lambda x, y: 0 <= x < W and 0 <= y < H
+
+    def at(x, y):
+        if not 0 <= y < H:
+            return None
+        return (pg.doc, x, y) if 0 <= x < W else ((b if pg.doc is a else a), x % W, y) if -W <= x < 2 * W else None
+    pg.at = at
+    pg.ent_tile = lambda e: MapPage.ent_tile(pg, e)
+    pg.tile_of = lambda x, y: (int(x // 32), int(y // 32))
+    pg.parts_of = lambda r: [(pg.doc, 0, 0, (r[0], r[1], min(r[2], W - 1), r[3]))]
+    pg.area_ents = lambda parts: MapPage.area_ents(pg, parts)
+    pg.ents_land = lambda dx, dy: MapPage.ents_land(pg, dx, dy)
+    npc = Entity("NPC", "Fisherman", 25 * 32, 5 * 32, opts="Attitude=Good Zone=20,5,24,8")
+    a.entities.append(npc)
+    MapPage.settle_ent(pg, npc)
+    assert npc in b.entities and npc not in a.entities and (npc.x, npc.y) == (0, 5 * 32) and pg.doc is b
+    assert npc.opt("Zone") == "-5,5,-1,8"                             # (where it was: on the map beside this)
+    pg.doc = a
+    place = Entity("Id", "Probe_Place", 26, 3)                        # (dragged to tile 26: the next map's first)
+    a.entities.append(place)
+    MapPage.settle_ent(pg, place, {"move": place, "orig": (24, 3)})
+    assert place in b.entities and (place.x, place.y) == (1, 3)
+    pg.doc = a
+    other = Entity("Id", "Another", 26, 3)
+    a.entities.append(other)
+    MapPage.settle_ent(pg, other, {"move": other, "orig": (24, 3)})
+    assert other in a.entities and (other.x, other.y) == (24, 3) and "already" in said[-1]
+    lost = Entity("NPC", "Fisherman", 5 * 32, 30 * 32)
+    a.entities.append(lost)
+    MapPage.settle_ent(pg, lost)
+    assert lost in a.entities and lost.y == (H - 1) * 32 and "no map" in said[-1]
+    # (its zone, chase area and patrol go with it, tile by tile; its home and bed are where they really are)
+    pg.doc = a
+    walker = Entity("NPC", "Fisherman", 10 * 32, 5 * 32,
+                    opts="Zone=9,4,13,8 Chase=7,2,15,10 Patrol=10,6/12,6 Home=1,1,3,3 Bed=2,2")
+    a.entities.append(walker)
+    drag = {"move": walker, "orig": (walker.x, walker.y), "tile": tuple(pg.ent_tile(walker))}
+    walker.x = 13 * 32                                                # (three tiles along)
+    MapPage.zone_keeps_up(pg, drag)
+    assert walker.opt("Zone") == "12,4,16,8" and walker.opt("Chase") == "10,2,18,10"
+    assert walker.opt("Patrol") == "13,6/15,6" and walker.opt("Home") == "1,1,3,3" and walker.opt("Bed") == "2,2"
+    walker.x = 26 * 32                                                # (and on over the edge: the next map's tile 2)
+    MapPage.settle_ent(pg, walker, drag)
+    assert walker in b.entities and walker.x == 32 and walker.opt("Zone") == "0,4,4,8"
+    assert walker.opt("Patrol") == "1,6/3,6"                          # (round it, on its new map)
+    assert walker.opt("Home") == "-24,1,-22,3" and walker.opt("Bed") == "-23,2"   # (still that house, back on the last map)
+    pg.doc = a
+    held = Entity("NPC", "Fisherman", 5 * 32, 19 * 32, opts="Zone=4,18,8,21")
+    a.entities.append(held)
+    drag = {"move": held, "orig": (held.x, held.y), "tile": tuple(pg.ent_tile(held))}
+    held.y = 30 * 32
+    MapPage.zone_keeps_up(pg, drag)
+    assert held.opt("Zone") == "4,29,8,32"
+    MapPage.settle_ent(pg, held, drag)
+    assert held.y == 20 * 32 and held.opt("Zone") == "4,19,8,22"      # (where it was held back to)
+    # (a group: over the edge together, nothing left behind; one that can't go, none go)
+    a.entities[:] = []
+    one, two = Entity("NPC", "Fisherman", 20 * 32, 2 * 32, opts="Zone=19,1,22,4 Bed=1,1"), \
+        Entity("Trigger", x=24, y=4, script="Probe")
+    a.entities += [one, two]
+    pg.area = (20, 0, 24, 6)
+    MapPage.move_area_ents(pg, 3, 0)
+    assert one in a.entities and two in b.entities and (two.x, two.y) == (2, 4) and pg.area == (23, 0, 27, 6)
+    assert one.opt("Zone") == "22,1,25,4" and one.opt("Bed") == "1,1"
+    pg.area = (20, 0, 24, 6)
+    MapPage.move_area_ents(pg, 0, 40)                                 # (off the bottom of the maps)
+    assert one in a.entities and (one.x, one.y) == (23 * 32, 2 * 32) and "Not there" in said[-1]
+
+
+def test_editor_keeps_a_picture_till_its_new_one_is_there():
+    """A Tk image that's let go of goes blank at once, which was the map flashing black each time it was painted: a
+    map's picture stays held till what replaces it is on the canvas. Friendly and standing NPCs draw no lines they don't
+    have."""
+    import types
+    from dsedit.pages.maps import MapPage, LINES
+    from dsedit.project import Project
+    pg = types.SimpleNamespace(_pics={}, _photos={("a", "map"): "old a", ("b", "map"): "old b"}, _retired=[],
+                              _edges={})
+    pg.retire_photos = lambda name=None: MapPage.retire_photos(pg, name)
+    MapPage.forget_pictures(pg, "a")
+    assert pg._photos == {("b", "map"): "old b"} and pg._retired == ["old a"]
+    MapPage.forget_pictures(pg)
+    assert pg._photos == {} and sorted(pg._retired) == ["old a", "old b"]
+    pg = types.SimpleNamespace(project=Project(ROOT))
+    for a in ("npc_attitude", "npc_roams", "npc_chases"):
+        setattr(pg, a, (lambda f: lambda e: f(pg, e))(getattr(MapPage, a)))
+    npc = lambda **o: types.SimpleNamespace(name="Fisherman", opt=lambda k: o.get(k, ""))
+    assert not pg.npc_roams(npc(Stand="1", Attitude="Good")) and not pg.npc_chases(npc(Stand="1", Attitude="Good"))
+    assert pg.npc_roams(npc(Attitude="Good")) and pg.npc_chases(npc(Attitude="Bad"))
+    assert pg.npc_roams(npc(Stand="1", Zone="1,1,3,3")) and pg.npc_chases(npc(Attitude="Good", Chase="1,1,3,3"))
+    assert all(len(v) == 3 and v[1] and v[2] for v in LINES.values())
+
+
 def test_a_poison_that_kills_takes_the_other_effects_without_a_fault(world):
     s = join(world, "Poisoned")
     s.connected = True
@@ -5620,9 +5898,16 @@ def test_natural_grounds_round_into_each_other_at_every_corner():
     assert [k for k, *_ in fills(saddle, 1, 0)] == [2] and fills(saddle, 0, 0) == []   # (the land joins across)
     edge = {(x, y): ("Grass001" if y == 0 else "Sand001") for x in range(3) for y in range(2)}
     assert all(fills(edge, x, y) == [] for x, y in edge)                       # (a straight edge stays straight)
-    assert RD.round_poly(0, 32, 32, 5, 7)[:3] == [(32, 0), (16, 0), (16, 0)]     # (the corner, then its edge's middle)
-    assert RD.round_poly(1, 32, 32, 5, 7, 5)[:3] == [(32, 32), (16, 32), (16, 27)]   # (round a higher ground's bands)
-    assert [i for _, _, i in fills(pond, 1, 1)] == [5] * 4 and [i for _, _, i in fills(islet, 1, 1)] == [0] * 4
+    for k, y in ((0, 0), (1, 32)):
+        c, mid, near, *_, last = RD.round_poly(k, 32, 32, 5, 7)
+        assert c == (32, y) and mid == (16, y) and last == (32, 16)     # (the corner, then its edges' middles)
+        assert abs(near[1] - y) < abs(near[0] - 16)                     # (leaving the edge along it: no angle there)
+    lava = {(x, y): "Ash001" for x in range(3) for y in range(3)}
+    lava[(1, 1)] = "Lava001"
+    assert sorted(k for k, *_ in fills(lava, 1, 1)) == [0, 1, 2, 3]
+    pond[(1, 1)] = "Pond001"
+    assert sorted(k for k, *_ in fills(pond, 1, 1)) == [0, 1, 2, 3]
+    assert P.tiles_ini.get("Sea_Rock002", "Layer", "") == "Decor"       # (rocks on the water, not a square of their own)
 
 
 def test_a_secret_room_lies_behind_a_wall_you_can_walk_through(world):
@@ -6409,4 +6694,136 @@ def test_morwen_knows_malaria_gives_one_tonic_then_sells_them(world):
     for _ in range(10):
         world.tick(0.05)
     assert s.items_held("Spoiled_Tonic") == 0 and s.items_held("Empty_Vial") == vials + 1
+    leave(world, s)
+
+
+def test_the_marshes_water_is_marsh_water_and_the_sea_is_not(world):
+    """marsh_water.py: the pools in the fen are Bog001, the sea off its coast is still the sea, and both are water."""
+    fen, sea = world.maps["-6,6,0"], world.maps["-13,5,0"]
+    assert "Bog001" in fen.tile and "Water001" not in fen.tile
+    assert "Water001" in sea.tile and "Bog001" not in sea.tile
+    assert world.data.tile_water("Bog001")
+
+
+def test_mirefolds_boardwalk_wanders_and_still_joins_up(world):
+    """wind_boardwalks.py: from the square to under the tunnel's mouth in one line of planks, no ruler line of it."""
+    cells = set()
+    for mx in range(-7, 0):
+        for my in (4, 5):
+            m = world.maps["%d,%d,0" % (mx, my)]
+            for y in range(1, 22):
+                for x in range(1, 26):
+                    if m.tile[m.cell(x, y)] == "Boardwalk001":
+                        cells.add((mx * 25 + x - 1, my * 21 + y - 1))
+    seen, todo = {(-145, 104)}, [(-145, 104)]
+    while todo:
+        x, y = todo.pop()
+        for c in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if c in cells and c not in seen:
+                seen.add(c)
+                todo.append(c)
+    assert (-6, 124) in seen
+    rows = {}
+    for x, y in cells:
+        if -120 < x < -20:                                          # (out of the hamlet, short of the tunnel)
+            rows[y] = rows.get(y, 0) + 1
+    assert len(rows) > 8 and max(rows.values()) < 40
+
+
+def test_the_marshes_places_are_on_the_world_map(world):
+    """build_marsh_places.py: each a named place with a label."""
+    labels = open(os.path.join(world.data.root, "data", "WorldMap.ini"), encoding="cp1252").read()
+    for pid in ("Sunken_Barge", "Peat_Cuttings", "Wisp_Ring", "Eel_Catchers_Hut", "Drowned_Bell_Site"):
+        assert world.data.place(pid) is not None and "=%s" % pid in labels, pid
+
+
+def test_the_marsh_chests_are_each_players_own(world):
+    chest = next(e for e in world.ents if e.npc_id == "Sunken_Barge_Hold")
+
+    def loot(s):
+        s.unlocked_chests.add(s.chest_key(chest))                   # (its lock picked: locks.py has its own test)
+        near(world, s, chest, -32, 8)                               # (from the end of the boardwalk)
+        s.choose_verb("Open", chest, int(chest.cx), int(chest.cy))
+        run_for(world, 20)
+        s.chest_response("CHEST_ALL")
+    a, b = join(world, "Barge_A"), join(world, "Barge_B")
+    a.connected = b.connected = True
+    loot(a)
+    assert a.items_held("Emerald") == 1
+    loot(a)
+    assert a.items_held("Emerald") == 1                             # (once each)
+    loot(b)
+    assert b.items_held("Emerald") == 1                             # (and each)
+    leave(world, a)
+    leave(world, b)
+
+
+def test_the_lights_are_caught_on_the_third_try_and_only_once(world):
+    lights = next(e for e in world.ents if e.name == "Marsh_Lights")
+    s = join(world, "Wisp_Hunter", lights.map, 300, 300)
+    s.connected = True
+    near(world, s, lights, 0, 30)
+    before = s.shards()
+
+    def reach():
+        s.choose_verb("Reach For", lights, int(lights.cx), int(lights.cy))
+        run_for(world, 20)
+    reach()
+    reach()
+    assert s.shards() == before and s.get_attribute("MarshLights") == "2"
+    reach()
+    assert s.shards() == before + 12
+    reach()
+    assert s.shards() == before + 12
+    leave(world, s)
+
+
+def test_the_drowned_bell_answers_once(world):
+    bell = next(e for e in world.ents if e.name == "Drowned_Bell")
+    s = join(world, "Bell_Ringer", bell.map, 300, 300)
+    s.connected = True
+    near(world, s, bell, 0, 32)                                     # (from the shore below it)
+    shards, gold = s.shards(), s.items_held("Gold_Coin(s)")
+
+    def ring():
+        s.choose_verb("Ring", bell, int(bell.cx), int(bell.cy))
+        run_for(world, 60)
+    ring()
+    assert s.shards() == shards + 6 and s.items_held("Gold_Coin(s)") == gold + 30
+    ring()
+    assert s.shards() == shards + 6 and s.items_held("Gold_Coin(s)") == gold + 30
+    leave(world, s)
+
+
+def test_the_peat_man_gives_up_his_torc_once(world):
+    man = next(e for e in world.ents if e.name == "Peat_Man")
+    s = join(world, "Peat_Robber", man.map, 300, 300)
+    s.connected = True
+    near(world, s, man, 32, 0)
+    before = s.shards()
+
+    def search():
+        s.choose_verb("Search", man, int(man.cx), int(man.cy))
+        run_for(world, 20)
+        s.chest_response("CHEST_ALL")
+    search()
+    got = s.shards()
+    assert s.items_held("Old_Torc") == 1 and got >= before + 8      # (a chest's treasure may have a few Shards more)
+    search()
+    assert s.items_held("Old_Torc") == 1 and s.shards() == got      # (once each)
+    leave(world, s)
+
+
+def test_old_silt_talks_and_gives_one_eel(world):
+    silt = next(e for e in world.ents if e.npc_id == "Eel_Catcher")
+    s = join(world, "Eel_Fancier", silt.map, 300, 300)
+    s.connected = True
+    near(world, s, silt, 32, 0)
+    for _ in range(2):
+        assert talk_to(world, s, silt)
+        s.action_box_response_chosen(3)                             # (is that eel I can smell?)
+        run_for(world, 10)
+        assert s.items_held("Cooked_Cave_Eel") == 1
+        s.action_box_response_chosen(2)                             # (I'll leave you to it)
+        run_for(world, 10)
     leave(world, s)

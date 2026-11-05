@@ -33,6 +33,7 @@ TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/m
 
 
 BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
+UNNAMED = "A Shards of Ashen server"    # (a remote server nobody's named: DS_NAME, or Options)
 MOST_CHARACTERS = 5     # (an account's, or a device's, on one server)
 
 
@@ -54,8 +55,8 @@ class Client:
         self.ws = ws
         self.addr = addr
         self.session = None
-        self.owner = None           # (who's playing, once they've said: "a:<Shards account>" or "d:<device>")
-        self.account = ""           # (their Shards account's name, if they came in by one)
+        self.owner = None           # (who's playing, once they've said: "a:<Hallisium account>" or "d:<device>")
+        self.account = ""           # (their Hallisium account's name, if they came in by one)
         self.host = False           # (the host, by the key its app started the server with)
         self.grant = ""             # (the central server's key to their friends, from their ticket)
         self.friends_got = None     # (their friends, as the ticket's check said)
@@ -89,7 +90,7 @@ class Client:
 class GameServer:
     def __init__(self, root, db_path, max_players=5, registration="open", invite_code="", backup_dir=None, admins=""):
         self.root = root
-        # (DS_ADMINS: the Shards accounts the server's owner gives the Admin button, besides the characters
+        # (DS_ADMINS: the Hallisium accounts the server's owner gives the Admin button, besides the characters
         # tools/admin.py made admin)
         self.admins = {a.strip().lower() for a in str(admins or "").split(",") if a.strip()}
         from .version import version_info
@@ -101,7 +102,7 @@ class GameServer:
         self.registration = registration
         self.invite_code = invite_code
         self.central_http = None        # (the one connection to the central server: central_post)
-        self.own = False                # (an app's own game: this machine's till its host opens it, in Options)
+        self.central_away = False       # (it didn't answer last time: said once in the log)
         self.network_changed = self.internet_changed = None     # (make_app's: what opening it means to the machine)
         self.host_grant = self.store.setting("host_grant", "")     # (the host's key to the central server: relay.py)
         self.host_account = self.store.setting("host_account", "")
@@ -316,24 +317,31 @@ class GameServer:
         return self.code_seen
 
     LOCAL = ("127.0.0.1", "::1", "localhost")
+    own = False                 # (an app's own game: this machine's till its host opens it, in Options)
+
+    def remote(self):
+        """A server of its own, joined to a central server, is a remote server, whatever network it's on: listed once it's
+        approved, a Hallisium account always, and nothing different for its own network. Only an app's game is local."""
+        return not self.own and bool(self.central_url())
 
     def server_name(self):
         """The game's name: what the host called it in Options, else DS_NAME, else this machine's (a public server's
         machine is a container's number, new each time it's made, and a new name takes it off the list till it's approved
         again: a plain name, till it's given one)."""
-        named = self.store.setting("name", "") or getattr(self, "default_name", "") or os.environ.get("DS_NAME", "")
+        saved = self.store.setting("name", "")
+        if saved == UNNAMED:                            # (Options saved with only the plain name in it: no name at all)
+            saved = ""
+        named = saved or getattr(self, "default_name", "") or os.environ.get("DS_NAME", "")
         if named:
             return named
-        if os.environ.get("DS_PUBLIC", "").strip() in ("1", "yes", "on", "true"):
-            return "A Shards of Ashen server"
+        if self.remote():
+            return UNNAMED
         return "Shards of Ashen on " + socket.gethostname()
 
     @property
     def lan_open(self):
-        """Open to the network (anyone who can reach this machine may join), or this machine only. Kept with the
-        world; DS_LAN_OPEN=0 starts a new world closed."""
-        v = self.store.setting("lan_open", os.environ.get("DS_LAN_OPEN", "1"))
-        return v.strip() not in ("0", "no", "off", "false")
+        """An app's own game, opened to the network by its host (closed each time it starts)."""
+        return self.store.setting("lan_open", "0").strip() == "1"
 
     def is_local(self, addr):
         return (addr or "") in self.LOCAL or (addr or "").startswith("127.")
@@ -388,11 +396,12 @@ class GameServer:
         if not self.origin_ok(request):
             log.warning("A page from %s tried to join from %s", request.headers.get("Origin"), request.remote)
             return web.Response(status=403, text="Only this game's own page may join it.")
-        ws = web.WebSocketResponse(heartbeat=5, max_msg_size=65536)     # (a closed browser: gone in seconds)
+        # (a closed browser: gone in seconds; an app's own game takes a character brought from a public server)
+        ws = web.WebSocketResponse(heartbeat=5, max_msg_size=8 * 1024 * 1024 if self.own else 65536)
         await ws.prepare(request)
         c = Client(ws, self.client_addr(request))
         c.writer = asyncio.ensure_future(c.write())
-        if not self.lan_open and not self.is_local(c.addr) and not self.relayed(c.addr):
+        if self.own and not self.lan_open and not self.is_local(c.addr) and not self.relayed(c.addr):
             await self.send(c, {"t": "closed", "text": "This game isn't open to the network just now."})
             await asyncio.sleep(0.2)
             await ws.close()
@@ -460,16 +469,22 @@ class GameServer:
             ask = {"data": gzip.compress(json.dumps(body, separators=(",", ":")).encode("utf-8")),
                    "headers": {"Content-Type": "application/json", "Content-Encoding": "gzip"}} if packed else {"json": body}
             async with self.central_http.post(self.central_url() + path, **ask) as r:
-                return await r.json(content_type=None)
-        except Exception as e:                          # (no network, the central server down: say so, go on)
-            log.warning("The central server didn't answer %s: %s", path, e)
+                got = await r.json(content_type=None)
+                if self.central_away:
+                    log.info("The central server is answering again")
+                self.central_away = False
+                return got
+        except Exception as e:                          # (no network, the central server down: said once, not each call)
+            if not self.central_away:
+                log.warning("The central server didn't answer %s: %s", path, e)
+            self.central_away = True
             return None
 
     async def close_central(self):
         if self.central_http is not None:
             await self.central_http.close()
 
-    # ----- friends by Shards account: the central server keeps them; this game asks it with the key a player's ticket
+    # ----- friends by Hallisium account: the central server keeps them; this game asks it with the key a player's ticket
     # brought (only their friends), says where they're playing, and tells the engine (Session.central_friends)
     def took_friends(self, s, got):
         """The central server's word on s's friends: theirs, asks either way, where friends are playing."""
@@ -492,7 +507,7 @@ class GameServer:
 
     async def welcome_friends(self, s):
         """Come in by an account: it's playing here; the world's friends of this character whose characters are
-        Shards accounts' are asked by account instead (when both have come in, they're friends again)."""
+        Hallisium accounts' are asked by account instead (when both have come in, they're friends again)."""
         got = await self.friends_now(s)
         if not got or not got.get("ok"):
             return
@@ -507,7 +522,7 @@ class GameServer:
             t.friends[s.player_name].remove(n)
 
     def central_friend(self, s, account, remove):
-        """The engine's ask (Add friend, Remove friend, the journal's Accept and Decline) for a Shards account."""
+        """The engine's ask (Add friend, Remove friend, the journal's Accept and Decline) for a Hallisium account."""
         if not getattr(s, "grant", ""):
             s.refuse("Friends by account are kept by the central server: come in from the start screen, signed in.")
             return
@@ -566,7 +581,7 @@ class GameServer:
         if c is None or c.host:
             return
         self.save_session(s)
-        await self.send(c, {"t": "kicked", "reason": "Your Shards account is banned."})
+        await self.send(c, {"t": "kicked", "reason": "Your Hallisium account is banned."})
         await c.flush()                                 # (said before it's closed: a closed one sends nothing)
         c.closed = True
         try:
@@ -591,9 +606,9 @@ class GameServer:
             self.store.set_setting("host_friends", json.dumps(self.host_friends))
 
     async def announce(self, bye=False):
-        """A remote server (DS_PUBLIC=1) tells the central server it's there: its id, name, address (DS_PUBLIC_URL,
+        """A remote server tells the central server it's there: its id, name, address (DS_PUBLIC_URL,
         or where it calls from and its port), how many are playing. Every minute; goodbye as it stops."""
-        if not self.central_url() or os.environ.get("DS_PUBLIC", "").strip() not in ("1", "yes", "on", "true"):
+        if not self.remote():
             return
         key, secret = self.server_id(), self.store.setting("central_secret", "")
         if bye:
@@ -610,14 +625,14 @@ class GameServer:
             if got.get("key") and got["key"] != key:
                 self.store.set_setting("server_id", got["key"])     # (the central server gave it another)
 
-    # ----- who's playing: a Shards account (the central server's ticket), the host (the key its app started the server
+    # ----- who's playing: a Hallisium account (the central server's ticket), the host (the key its app started the server
     # with) or a device (a key of its own: on this machine and its network only); then one of their characters
     def devices_welcome(self, addr):
-        """A device's own key (no Shards account) is enough here: from this machine and its network; from anywhere
-        on a server with no central server (there's no other way in); never on a public one that has."""
+        """A device's own key (no Hallisium account) is enough here: on an app's own game, from this machine and its
+        network; from anywhere on a server with no central server (there's no other way in); never on a remote one."""
         if not self.central_url():
             return True
-        if os.environ.get("DS_PUBLIC", "").strip() in ("1", "yes", "on", "true"):
+        if self.remote():
             return False
         try:
             ip = ipaddress.ip_address(addr or "")
@@ -625,15 +640,34 @@ class GameServer:
             return False
         return ip.is_loopback or ip.is_private
 
+    def joined_token(self):
+        """What a remote server's page gets once it's been let in, for its address: a reload is still welcome, and nothing
+        else shows the page but a ticket."""
+        key = self.store.setting("joined_key", "")
+        if not key:
+            key = os.urandom(24).hex()
+            self.store.set_setting("joined_key", key)
+        return hmac.new(key.encode("utf-8"), b"joined", hashlib.sha256).hexdigest()[:32]
+
+    def joined_ok(self, token):
+        return bool(token) and hmac.compare_digest(str(token), self.joined_token())
+
+    def place_of(self, c):
+        """What kind of place this is to c, for what the character screen tells them about where a character lives."""
+        if self.remote():
+            return "public"
+        if self.own:
+            return "own" if c.host else "theirs"
+        return "server"
+
     @staticmethod
     def relayed(addr):
         return (addr or "").startswith("relay:")
 
     def for_friends(self):
-        """Open to the internet (its host's say, in Options; or DS_FRIENDS=1): it still runs here, and the central server
-        passes the host's friends' visits to it."""
-        return self.store.setting("internet_open", "0") == "1" or \
-            os.environ.get("DS_FRIENDS", "").strip() in ("1", "yes", "on", "true")
+        """Open to the internet (its host's say, in Options): it still runs here, and the central server passes the host's
+        friends' visits to it."""
+        return self.store.setting("internet_open", "0") == "1"
 
     def lan_address(self):
         """Where others on this network open an app's own game (a machine in Docker can't tell: it's never one)."""
@@ -653,7 +687,7 @@ class GameServer:
                 if self.central_url() else ""}
 
     def friend_of_host(self, owner):
-        """A relayed visitor is let in only as the host's Shards account, or a friend's."""
+        """A relayed visitor is let in only as the host's Hallisium account, or a friend's."""
         if not owner.startswith("a:") or not self.host_account:
             return False
         who = owner[2:].lower()
@@ -672,7 +706,7 @@ class GameServer:
         return "%s: %s" % (start, why) if why and why != "banned" else start + "."
 
     async def ticket_name(self, ticket):
-        """The Shards account a ticket from the central server is for, why not, and what else it said (their friends
+        """The Hallisium account a ticket from the central server is for, why not, and what else it said (their friends
         and a key to them): (name, "", got) or ("", why, None)."""
         if not self.central_url():
             return "", "This game isn't joined to the central server.", None
@@ -692,6 +726,13 @@ class GameServer:
                 await self.choose(c, data)
             else:
                 await self.create(c, data)
+        elif t in ("export", "import"):
+            if c.owner is None:
+                await self.send(c, {"t": "login_fail", "reason": "Join from the start screen first."})
+            elif t == "export":
+                await self.export_character(c, data)
+            else:
+                await self.import_character(c, data)
 
     async def authenticate(self, c, data):
         """Who's playing (a ticket, the host's key or a device's key): their characters here."""
@@ -711,14 +752,14 @@ class GameServer:
             owner, c.host = mine, True
         if not owner and linked:
             if await self.central_banned(linked[2:]):   # (come straight back: a central ban still counts)
-                await self.send(c, {"t": "login_fail", "reason": "Your Shards account is banned. Sign in on the start "
+                await self.send(c, {"t": "login_fail", "reason": "Your Hallisium account is banned. Sign in on the start "
                                                                  "screen to see why."})
                 return
             owner = linked                              # (this device came in by its account here before)
         elif not owner and device and self.devices_welcome(c.addr):
             owner = device
         if not owner:
-            await self.send(c, {"t": "login_fail", "reason": why or "Sign in with your Shards account on the start "
+            await self.send(c, {"t": "login_fail", "reason": why or "Sign in with your Hallisium account on the start "
                                                                    "screen to play here."})
             return
         if self.banned_owner(owner):
@@ -743,7 +784,46 @@ class GameServer:
             st = self.store.load_character(name) or {}
             mine.append({"name": name, "level": st.get("level") or 1, "look": st.get("look")})
         await self.send(c, {"t": "characters", "list": mine, "account": c.account, "most": MOST_CHARACTERS,
-                            "make": self.registration == "open", "invite": bool(self.invite_code), "text": text})
+                            "make": self.registration == "open", "invite": bool(self.invite_code), "text": text,
+                            "place": self.place_of(c), "joined": self.joined_token() if self.remote() else ""})
+
+    # ----- a character copied from a public server to the player's own device: one way, never back (an app's own game
+    # takes it; nothing ever takes one from a device, so nothing made at home reaches a public server)
+    async def export_character(self, c, data):
+        name = auth.clean_name(data.get("name", ""))
+        acct = self.store.account(name) if name else None
+        if not self.remote() or acct is None or (self.store.owner(acct[0]) or "").lower() != c.owner.lower():
+            await self.send(c, {"t": "login_fail", "reason": "That isn't one of your characters here."})
+            return
+        live = self.world.sessions.get(acct[0])
+        if live is not None:                            # (playing somewhere just now: what it is this moment)
+            self.save_session(live)
+        await self.send(c, {"t": "exported", "name": acct[0], "save": self.store.load_character(acct[0]) or {}})
+
+    async def import_character(self, c, data):
+        fail = lambda text: self.send(c, {"t": "login_fail", "reason": text})     # noqa: E731
+        save = data.get("save")
+        if not (self.own and c.host):
+            return await fail("A character can only be brought to your own game, on your own device.")
+        if not isinstance(save, dict):
+            return await fail("That isn't a character.")
+        if len(self.store.characters_of(c.owner)) >= MOST_CHARACTERS:
+            return await fail("You have %d characters here already: that's the most." % MOST_CHARACTERS)
+        base = auth.clean_name(data.get("name", ""))
+        if not base:
+            return await fail("That isn't a character.")
+        name, n = base, 1
+        while self.store.account(name) is not None or name.lower() in self.RESERVED:
+            n += 1
+            name = "%s %d" % (base[:17], n)
+        try:
+            Session(self.world, name).load_state(save)  # (one that won't load never gets a place on the list)
+        except Exception:
+            return await fail("That character can't be read.")
+        self.store.create_account(name, "", False, c.owner)
+        self.store.save_character(name, save)
+        log.info("Character %s copied to this device", name)
+        await self.send_characters(c, "%s is here now." % name)
 
     async def choose(self, c, data):
         name = auth.clean_name(data.get("name", ""))
@@ -1001,8 +1081,8 @@ class GameServer:
         if t == "ping":
             s.emit({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)})
             return
-        if t == "lan":                                  # (open to the network or not: the host, or an admin)
-            if s.admin_enabled or self.is_local(c.addr):
+        if t == "lan":                                  # (open to the network or not: an app's own game's host)
+            if self.own and (s.admin_enabled or self.is_local(c.addr)):
                 self.store.set_setting("lan_open", "1" if data.get("open") else "0")
                 log.info("%s %s the game to the network", s.player_name, "opened" if self.lan_open else "closed")
                 if not self.lan_open:

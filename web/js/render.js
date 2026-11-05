@@ -55,8 +55,10 @@ function updateCamera(viewW, viewH, dt) {
     if (Math.abs(wx - c.fx) < 0.3) c.fx = wx;
     if (Math.abs(wy - c.fy) < 0.3) c.fy = wy;
   }
-  c.x = Math.round(c.fx * V.zoom) / V.zoom;
-  c.y = Math.round(c.fy * V.zoom) / V.zoom;
+  // (whole pixels of the world, as everything's drawn: a part of one rounds the ground and the people differently, and
+  // as the camera settles they shake against each other)
+  c.x = Math.round(c.fx);
+  c.y = Math.round(c.fy);
 }
 
 // ----- roofs: standing under one hides every roof tile of its group (on the map you're on)
@@ -302,9 +304,9 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     if (!m || m.mz !== S.mapZ) continue;
     keep.add(name);
     const ch = chunkOf(m);
-    updateChunk(ch, now);
-    const x = m.ox - cam.x, y = m.oy - cam.y;
-    if (x < V.ww && y < V.wh && x + G.sw > 0 && y + G.sh > 0) snapDraw(ctx, ch.canvas, Math.round(x), Math.round(y));
+    const x = m.ox - cam.x, y = m.oy - cam.y, seen = x < V.ww && y < V.wh && x + G.sw > 0 && y + G.sh > 0;
+    updateChunk(ch, now, seen);
+    if (seen) snapDraw(ctx, ch.canvas, Math.round(x), Math.round(y));
   }
   forgetChunks(keep);
   endFrame();

@@ -48,7 +48,7 @@ if [ ! -f .env ]; then
     if [ -t 0 ] || [ -e /dev/tty ]; then
         printf "Your server's domain (its DNS must point here already): " > /dev/tty
         read -r domain < /dev/tty
-        printf "Your Shards account's name (its characters get the Admin button): " > /dev/tty
+        printf "Your Hallisium account's name (its characters get the Admin button): " > /dev/tty
         read -r admin < /dev/tty
         sed -i "s|^DS_DOMAIN=.*|DS_DOMAIN=$domain|; s|^DS_ADMINS=.*|DS_ADMINS=$admin|" .env
     fi

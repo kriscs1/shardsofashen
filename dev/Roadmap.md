@@ -575,6 +575,7 @@ Words and screens first, then stances and stealth, then moving about and furnitu
 - [x] **The double bed looks right** (one picture: a headboard, a pillow each, no seams).
 - [x] **Inside walls for every kind of house, in the editor's Auto palette.**
 - [x] **The marsh looks like marsh, not a pattern, and is slow to wade.**
+- [x] **Marsh water is a greeny brown, the boardwalks wander, and there's more to find out there** (the Sunken Barge, the Peat Cuttings, the Wisp Ring, the Eel-Catcher's Hut, the Drowned Bell).
 - [x] **Townsfolk with no door near sleep in a tent** (one put down: Galaith's square, for the crier and the
   foreman); zzz over sleepers, in bed or in a tent.
 - [x] **Night folk**: guards and tavern keepers were up all night already; a night owl in four towns (home by day,

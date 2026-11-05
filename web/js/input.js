@@ -4,7 +4,7 @@
 import { G, S, tileAt, cellOf } from "./state.js";
 import { A, tileIni, entityIni, size } from "./assets.js";
 import { send } from "./net.js";
-import { V, screenToWorld, entityUnder, entitiesUnder, changeZoom, roofCovers, markClick } from "./render.js";
+import { V, screenToWorld, entitiesUnder, changeZoom, roofCovers, markClick } from "./render.js";
 import { fogBlack } from "./sky.js";
 import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
@@ -75,12 +75,9 @@ function under(x, y) {
   if (inRect(x, y, br) || inRect(x, y, rr)) return null;
   if (x >= L.VW || S.box.mode || overTouchUI(x, y)) return null;
   const [wx, wy] = screenToWorld(x, y);
-  const e = entityUnder(wx, wy);
-  if (e) {
-    if (e.self) return null;
-    return e;
-  }
-  return tileEntity(wx, wy);
+  // (never yourself: what you're standing on, a stair or an item, is what's clicked)
+  const e = entitiesUnder(wx, wy).find((o) => !o.self);
+  return e || tileEntity(wx, wy);
 }
 
 export function mouseMove(x, y) {

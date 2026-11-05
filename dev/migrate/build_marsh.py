@@ -4,7 +4,7 @@
     tussocks, sedge; Marsh001 plain), so any two meet without a seam; the Marsh terrain mixes them by weight (common
     plain, rarer pools) and nowhere looks like a grid. Marsh001 has no Texture= any more (build_terrain.py's marsh
     texture is left unused).
-  * Bog001: marsh water, brown-green and still, scum on it; its coasts (build_ground_pieces.py: Shore_Marsh_Bog,
+  * Bog001: marsh water, a greeny brown and still, scum on it (laid over the maps by marsh_water.py); its coasts (build_ground_pieces.py: Shore_Marsh_Bog,
     Shore_Grass_Bog); the Bog terrain (lily pads, reeds standing in it, mosquitoes).
   * The Mosquito (Entities.ini; build_mosquito.py draws it): the Marsh and Bog terrains scatter them.
 
@@ -26,7 +26,7 @@ S = 32
 TILES, SETS = p("data", "Tiles.ini"), p("data", "TileSets.ini")
 GROUND = [(71, 73, 42), (85, 97, 50), (81, 94, 47), (89, 100, 52), (75, 85, 44), (80, 88, 47)]
 MUD = [(58, 54, 34), (66, 60, 38), (52, 48, 32)]
-POOL = [(46, 62, 58), (52, 68, 62), (42, 56, 52)]
+POOL = [(68, 64, 36), (74, 70, 40), (62, 58, 34)]        # (the same greeny brown as Bog001)
 BLADES = [(104, 122, 58), (118, 132, 64), (92, 110, 50), (128, 128, 70)]
 VARIANTS = [   # (what's on it, its weight in the terrain)
     ("plain", 8), ("tussocks", 3), ("mud", 2), ("pool", 1.2), ("moss", 2), ("sedge", 2.5), ("mud tussocks", 1.5),
@@ -88,7 +88,7 @@ def marsh_tile(kind, seed):
                 px[x, y] = (96, 108, 74) if rim else rng.choice(POOL)
             for x, y in cells:                                   # (a glint under its top edge)
                 if (x, y - 1) not in cells and (x, y + 1) in cells:
-                    px[x, y + 1] = (82, 102, 94)
+                    px[x, y + 1] = (92, 90, 56)
     if "tussocks" in kind:
         for _ in range(rng.randint(2, 4)):
             tuft(px, rng, rng.randint(5, 27), rng.randint(8, 28))
@@ -100,15 +100,15 @@ def marsh_tile(kind, seed):
 
 
 def bog():
-    """Bog001: still marsh water, brown-green, flecks of scum (no marks that would show the grid)."""
+    """Bog001: still marsh water, a greeny brown, flecks of scum (no marks that would show the grid)."""
     rng = random.Random("bog")
     im = Image.new("RGB", (S, S))
     px = im.load()
     for y in range(S):
         for x in range(S):
-            px[x, y] = rng.choice([(48, 58, 40), (52, 62, 42), (46, 54, 38), (50, 60, 44)])
+            px[x, y] = rng.choice([(68, 66, 36), (72, 68, 38), (64, 62, 34), (70, 70, 40)])
     for _ in range(6):
-        px[rng.randrange(S), rng.randrange(S)] = (82, 92, 58)
+        px[rng.randrange(S), rng.randrange(S)] = (98, 100, 60)
     return im.convert("RGBA")
 
 
@@ -134,7 +134,7 @@ def main():
     made += write_image(p("sprites", "Tiles", "Bog001.png"), pic)
     for k, v in (("Walkable.Data", "0" * 49), ("Show.Name", "0"), ("Use.Words", ""), ("Line.of.Sight", "1"),
                  ("Blend", "1"), ("Blend.Texture", "Bog001"), ("Water", "1"),
-                 ("Examine.Info", "Brown, still marsh water. Something hums over it.")):
+                 ("Examine.Info", "Greeny brown marsh water, still as soup. Something hums over it.")):
         tiles.set("Bog001", k, v)
     SK.minimap_colour("Bog001", average(pic))
     sets.set("Terrain_Marsh", "Tiles", ",".join(weights))

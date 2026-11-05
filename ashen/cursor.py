@@ -18,6 +18,7 @@ STEEL = (214, 222, 232)
 STEEL_DK = (126, 138, 152)
 WOOD = (150, 98, 52)
 WOOD_DK = (98, 60, 30)
+WOOD_LT = (186, 130, 76)
 CREAM = (250, 242, 222)
 RED = (206, 56, 44)
 
@@ -32,7 +33,7 @@ VERBS = {
     "DEPOSIT 1": "coin", "DEPOSIT ALL": "coin", "WITHDRAW 1": "coin", "WITHDRAW ALL": "coin",
     "EAT": "eat", "DRINK": "drink",
     "MAKE": "hammer", "SMITH": "hammer", "SMELT": "hammer", "COOK": "hammer", "BREW": "hammer", "CRAFT": "hammer",
-    "CAST": "magic", "USE WITH": "target", "SLEEP": "sleep", "SIT": "sleep",
+    "CAST": "magic", "USE WITH": "target", "SLEEP": "sleep", "SIT": "sit",
 }
 SWINGS = {"attack", "axe", "pick", "hammer"}        # these swing when you click; the others press in
 
@@ -233,6 +234,18 @@ def draw_sleep(s):
     line(s, CREAM, (6, 11), (12, 11), 1.4)
 
 
+def draw_sit(s):
+    """A wooden bench, seen from the front and a little above."""
+    poly(s, WOOD, [(5, 8), (27, 8), (27, 15), (5, 15)])                 # the back
+    line(s, WOOD_DK, (5, 11.5), (27, 11.5), 1)
+    poly(s, WOOD_LT, [(3, 17), (29, 17), (29, 21.5), (3, 21.5)])        # the seat
+    line(s, WOOD_DK, (3, 21.5), (29, 21.5), 1)
+    for x in (6, 24):                                                   # the legs
+        poly(s, WOOD_DK, [(x, 21.5), (x + 3, 21.5), (x + 3, 29), (x, 29)])
+    for x in (6, 24):                                                   # the back's posts
+        poly(s, WOOD_DK, [(x, 8), (x + 2.5, 8), (x + 2.5, 17), (x, 17)])
+
+
 # kind: (draw, hotspot (in SIZE pixels))
 KINDS = {
     "pointer": (draw_pointer, (2, 2)), "walk": (draw_walk, (16, 16)), "hand": (draw_hand, (14, 12)),
@@ -242,6 +255,7 @@ KINDS = {
     "key": (draw_key, (9, 9)), "door": (draw_door, (16, 16)), "coin": (draw_coin, (16, 16)),
     "eat": (draw_eat, (16, 16)), "drink": (draw_drink, (16, 16)), "hammer": (draw_hammer, (6, 6)),
     "magic": (draw_magic, (16, 16)), "target": (draw_target, (16, 16)), "sleep": (draw_sleep, (16, 16)),
+    "sit": (draw_sit, (16, 16)),
 }
 
 

@@ -21,7 +21,7 @@ SCRIPTS = os.path.join(ROOT, "data", "Scripts")
 ENT_KINDS = ("NPC", "StaticObject", "MapItem")
 SEA = "Water001"
 
-NATURAL = re.compile(r"^(Grass|Sand|Snow|Marsh|Ash|Cinder|Scorched|Moss|Heath|Forest|Ice|Lava|Water|Sand_Water|"
+NATURAL = re.compile(r"^(Grass|Sand|Snow|Marsh|Bog|Ash|Cinder|Scorched|Moss|Heath|Forest|Ice|Lava|Water|Sand_Water|"
                      r"Marsh_Water|Snow_Water|Peak|Peak_Big|Peak_Huge|Snow_Peak|Snow_Peak_Big|Snow_Peak_Huge|"
                      r"Cinder_Peak|Cinder_Peak_Big|Cinder_Peak_Huge|Sea_Rock)\d{3}$")
 WATERY = re.compile(r"^((Water|Sand_Water|Marsh_Water|Snow_Water|Lake|Bog)\d{3}|"

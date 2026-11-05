@@ -45,7 +45,7 @@ tr.open { cursor: pointer; } tr.open:hover { background: #8882; }
 <p id="error" class="bad" hidden></p>
 
 <form id="signin" hidden>
-  <p class="dim">An admin's Shards account.</p>
+  <p class="dim">An admin's Hallisium account.</p>
   <div class="row"><input id="name" class="grow" placeholder="Name" autocomplete="username">
     <input id="password" class="grow" type="password" placeholder="Password" autocomplete="current-password">
     <button>Sign in</button><a id="google" href="/auth/google?to=admin" hidden>Sign in with Google</a></div>
@@ -349,7 +349,7 @@ $("server").addEventListener("change", () => tab(current));
     history.replaceState(null, "", location.pathname);
     const r = await post("/api/google", { code: back[1] }).catch(() => ({}));
     if (r.ok && r.token) remember(r.token);
-    else say(r.text || (r.choose ? "That Google account has no Shards account: make one on the start screen first." : "That didn't work."));
+    else say(r.text || (r.choose ? "That Google account has no Hallisium account: make one on the start screen first." : "That didn't work."));
   }
   if (token) { signedIn(); } else { $("signin").hidden = false; }
   fetch("/api/hello").then((x) => x.json()).then((h) => { $("google").hidden = !h.google; }).catch(() => {});

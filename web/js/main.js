@@ -228,6 +228,7 @@ function appQuit() {
 }
 appQuit();
 window.addEventListener("dsapp", appQuit);
+window.addEventListener("dsapp", () => homeRow());
 
 function openOptions() {
   releaseKeys();
@@ -560,7 +561,7 @@ window.dsBack = () => {
 window.dsDebug = { S, V, send, layout: () => ({ ...L, k: screen.k / screen.dpr }) };   // (for tools/browser_check.py, and scripted play-throughs)
 
 // ================================================================================================================
-// Who you are, then which of your characters: the server keeps them by your Shards account (the start screen's
+// Who you are, then which of your characters: the server keeps them by your Hallisium account (the start screen's
 // ticket) or by this device (a key of its own: each game gets its own from the start screen); no passwords
 // ================================================================================================================
 const joinArgs = new URLSearchParams(location.hash.slice(1));     // (the start screen's: device, host, account)
@@ -625,11 +626,86 @@ function portrait(look) {
   return c;
 }
 
+// (what a character is tied to, said where it's made and where it's chosen)
+const PLACE_WORDS = {
+  public: ["This character will live on this server only, saved online here and not on your device. It can never join another server. " +
+    "You can copy it to your own device later, but a copy can never come back.", "Characters here live on this server, saved online here and not on your device."],
+  own: ["This character will be saved on this device only, with no copy online. It can only be played in your own game: " +
+    "it can never join a public server.", "Characters here are saved on this device only."],
+  theirs: ["This character will live in your host's game, saved on their device, and can never move to another game.",
+    "Characters here live in your host's game, saved on their device."],
+  server: ["This character will live on this server only.", "Characters here live on this server only."],
+};
+function homeRow() { $("home-row").hidden = !(window.DSApp || homeUrl); }
+const CARRIED = "carried";                          // (a character on its way from a public server to this device)
+function saveFile(name, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.download = `${name}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function exported(m) {
+  busyLogin(false);
+  const text = JSON.stringify({ name: m.name, save: m.save });
+  if (window.DSApp && window.DSApp.set) {
+    window.DSApp.set(CARRIED, text);
+    setLoginError(`A copy of ${m.name} is on this device: go back to the main menu and open Single player to find it.`, true);
+  } else {
+    saveFile(m.name, text);
+    setLoginError(`A copy of ${m.name} is downloaded. Open Single player in the Shards of Ashen app, and choose the file there.`, true);
+  }
+}
+function bring(text, fromApp) {
+  let got = null;
+  try { got = JSON.parse(text); } catch (e) { got = null; }
+  if (!got || !got.name || !got.save) { setLoginError("That isn't a character."); return; }
+  busyLogin(true);
+  send({ t: "import", name: got.name, save: got.save });
+  if (fromApp) window.DSApp.set(CARRIED, "");
+}
+async function offerCarried(box) {
+  let text = "";
+  try { text = (window.DSApp && window.DSApp.get && await window.DSApp.get(CARRIED)) || ""; } catch (e) { text = ""; }
+  if (text) {
+    let name = "";
+    try { name = JSON.parse(text).name; } catch (e) { name = ""; }
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "char new";
+    b.textContent = `Bring ${name} here (copied from a public server)`;
+    b.onclick = () => bring(text, true);
+    box.prepend(b);
+  }
+  if (!(window.DSApp && window.DSApp.kind && window.DSApp.kind() === "android")) {   // (Android's window can't pick a file)
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "char new";
+    b.textContent = "Bring a character from a file";
+    b.onclick = () => $("bring-file").click();
+    box.append(b);
+  }
+}
+$("bring-file").onchange = async () => {
+  const f = $("bring-file").files[0];
+  $("bring-file").value = "";
+  if (f) bring(await f.text());
+};
+
 function showCharacters(m) {
   mine = m;
   busyLogin(false);
+  if (m.joined) {                                    // (a reload's still welcome here: what's left of the ticket)
+    const q = new URLSearchParams(location.search);
+    q.set("joined", m.joined);
+    history.replaceState(null, "", location.pathname + "?" + q);
+  }
+  const words = PLACE_WORDS[m.place] || PLACE_WORDS.server;
+  $("make-warn").textContent = words[0];
+  $("login-place").textContent = words[1];
+  homeRow();
   $("login-who").textContent = m.account ? `Signed in as ${m.account}` :
-    "Playing without a Shards account: your characters here are this device's.";
+    "Playing without a Hallisium account: your characters here are this device's.";
   const box = $("chars");
   box.textContent = "";
   for (const ch of m.list) {
@@ -646,7 +722,18 @@ function showCharacters(m) {
     words.append(name, level);
     b.append(portrait(ch.look || DEFAULT_LOOK), words);
     b.onclick = () => { unlock(); setLoginError(""); busyLogin(true); send({ t: "play", name: ch.name }); };
-    box.append(b);
+    if (m.place === "public") {                      // (a copy for the player's own device: one way)
+      const row = document.createElement("div");
+      row.className = "char-row";
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "char-copy";
+      copy.textContent = "Copy to device";
+      copy.title = `Copy ${ch.name} to your own device. The copy can't come back to this server.`;
+      copy.onclick = () => { unlock(); setLoginError(""); busyLogin(true); send({ t: "export", name: ch.name }); };
+      row.append(b, copy);
+      box.append(row);
+    } else box.append(b);
   }
   if (m.make && m.list.length < m.most) {
     const b = document.createElement("button");
@@ -656,6 +743,7 @@ function showCharacters(m) {
     b.onclick = () => { unlock(); setLoginError(""); loginShow("make"); };
     box.append(b);
   }
+  if (m.place === "own") offerCarried(box);
   if (!m.list.length && !m.make) setLoginError("New characters can't be made on this server.");
   else setLoginError(m.text, true);
   loginShow(!m.list.length && m.make ? "make" : "chars");
@@ -709,6 +797,7 @@ N.onMessage = (m) => {
       }
       homeUrl = m.home || "";
       $("home-link").href = homeUrl || "#";
+      homeRow();
       $("login-online").textContent = `${m.online} of ${m.max} adventurers online.`;
       $("login-server").textContent = m.name || "";            // (the game's name: what its host called it)
       if (m.name) document.title = `${m.name} - Shards of Ashen`;
@@ -732,13 +821,14 @@ N.onMessage = (m) => {
     case "server_name": $("opt-server-name").value = m.name || ""; break;
     case "trade": showTrade(m); break;
     case "characters": showCharacters(m); break;
+    case "exported": exported(m); break;
     case "login_fail":
       setLoginError(m.reason);
       if (m.invite) $("invite-row").hidden = false;
       busyLogin(false);
       if (!mine) {                                   // (not let in at all: nothing here to choose)
         $("login-who").textContent = "";
-        $("home-row").hidden = !(window.DSApp || homeUrl);
+        homeRow();
       }
       break;
     case "welcome": startGame(m); break;
@@ -882,10 +972,10 @@ async function startGame(m) {
   S.uid = m.uid;
   S.admin = m.admin;
   $("opt-name-row").hidden = !m.host;              // (the game's name: the host's say, or an admin's)
-  $("opt-whose").textContent = (m.account ? `Part of your Shards account, ${m.account}` : "This device's") +
+  $("opt-whose").textContent = (m.account ? `Part of your Hallisium account, ${m.account}` : "This device's") +
     ": it lives on this server only.";
   $("opt-server-name").value = m.server || "";
-  $("opt-lan-row").hidden = !m.host;               // (open to the network: the host's say, or an admin's)
+  $("opt-lan-row").hidden = !(m.reach && m.reach.own);    // (open to the network: an app's own game's host's say)
   $("opt-lan").checked = !!m.lan;
   showReach(m.reach || {});
   S.explored.clear();

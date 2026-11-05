@@ -97,6 +97,8 @@ def disc(cx, cy, size):
     """The tiles of a round brush size tiles across, centred on tile cx, cy."""
     if size <= 1:
         return [(cx, cy)]
+    if size == 2:                                       # (two across: the tile under the mouse, and the next along and down)
+        return [(cx, cy), (cx + 1, cy), (cx, cy + 1), (cx + 1, cy + 1)]
     r = (size - 1) / 2
     lo, hi = -int(r + 0.5), int(r + 0.5)
     return [(cx + dx, cy + dy) for dy in range(lo, hi + 1) for dx in range(lo, hi + 1)

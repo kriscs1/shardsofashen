@@ -152,6 +152,9 @@ class Bridge:
             import webbrowser
             webbrowser.open(url)
 
+    def get(self, key):
+        return self._prefs.get(key)
+
     def goHome(self):                                     # noqa: N802
         self._window.load_html(home_page(self))
 
@@ -187,7 +190,8 @@ SHIM = """<script>
 
 GAME_SHIM = """(function () {
   // (the game page in the desktop app: Quit takes you back to the start screen - main.js listens for "dsapp")
-  window.DSApp = window.DSApp || { kind: () => "desktop", goHome: () => window.pywebview.api.goHome() };
+  window.DSApp = window.DSApp || { kind: () => "desktop", goHome: () => window.pywebview.api.goHome(),
+    get: (k) => window.pywebview.api.get(k), set: (k, v) => window.pywebview.api.set(k, v) };
   window.dispatchEvent(new Event("dsapp"));
 })();"""
 

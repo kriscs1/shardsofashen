@@ -10,6 +10,8 @@ them:
     wall's battlements over its face).
   * A Join set for the town wall (City_Wall001-005: battlements over a face east-west, one tile north-south, a tower
     at the corners and ends).
+  * A Join set each for Galaith's wall, white and burnt (Galaith_Wall001-005, Burnt_Wall001-005: the same five pieces;
+    Joins.Too= the tiles that count as more of the wall without being changed: its gates and the other colour).
   * A Shore set for each coast (Grass001 and Water002-009; <Land>001 and <Land>_Water002-009): its Land, its Water,
     and which piece goes in which corner (Corners=, and Small= where the coast steps on past it).
   * A Whole set for each bed (Kind=Whole: one thing more than a tile big, its pieces as they lie): the editor puts it
@@ -33,11 +35,15 @@ JOINS = [   # (a Piece= name starts with this) -> the sides it joins
     ("a t: east, south and west", "ESW"), ("a t: north, east and west", "NEW"), ("a t: north, east and south", "NES"),
     ("a t: north, south and west", "NSW"), ("a crossing", "NESW"), ("a post on its own", "-"),
 ]
-WALL = [("City_Wall001", "east-west: battlements (its face under it)", "EW", "City_Wall004"),
-        ("City_Wall002", "north-south", "NS", ""),
-        ("City_Wall003", "a tower (corners, ends and T's; its face under it)", "*", "City_Wall005"),
-        ("City_Wall004", "the wall's face, under its battlements", "", ""),
-        ("City_Wall005", "a tower's face", "", "")]
+WALL = [("%s001", "east-west: battlements (its face under it)", "EW", "%s004"),
+        ("%s002", "north-south", "NS", ""),
+        ("%s003", "a tower (corners, ends and T's; its face under it)", "*", "%s005"),
+        ("%s004", "the wall's face, under its battlements", "", ""),
+        ("%s005", "a tower's face", "", "")]
+GATES = ",".join("%s_Gate%03d" % (k, n) for k in ("Galaith", "Burnt") for n in range(1, 7))
+WALLS = [("City_Wall", "town wall", ""),
+         ("Galaith_Wall", "Galaith's wall", ",".join("Burnt_Wall%03d" % n for n in (1, 2, 3)) + "," + GATES),
+         ("Burnt_Wall", "Galaith's wall, burnt", ",".join("Galaith_Wall%03d" % n for n in (1, 2, 3)) + "," + GATES)]
 BEDS = [("Bed", "bed", 1, "Bed001,Bed002"), ("Bed_Sideways", "bed lying sideways, its head on the left", 2,
          "Bed003,Bed004"), ("Bed_Sideways_Right", "bed lying sideways, its head on the right", 2, "Bed005,Bed006"),
         ("Double_Bed", "double bed", 2, "Double_Bed001,Double_Bed002,Double_Bed003,Double_Bed004")]
@@ -54,22 +60,24 @@ def main():
     sets, tiles = Ini(p("data", "TileSets.ini")), Ini(p("data", "Tiles.ini"))
     names = {s for s, _ in tiles.sections if s}
     made = 0
-    if sets.section("City_Wall") is None:
-        for k, v in (("Title", "town wall"), ("Columns", "3"), ("Tiles", "City_Wall003,City_Wall001,City_Wall002"),
-                     ("Kind", "Join")):
-            sets.set("City_Wall", k, v)
-        made += 1
+    for key, title, too in WALLS:
+        if sets.section(key) is None:
+            for k, v in (("Title", title), ("Columns", "3"), ("Tiles", "{0}003,{0}001,{0}002".format(key)),
+                         ("Kind", "Join")) + ((("Joins.Too", too),) if too else ()):
+                sets.set(key, k, v)
+            made += 1
     for key, title, cols, members in BEDS:
         if sets.section(key) is None and all(n in names for n in members.split(",")):
             for k, v in (("Title", title), ("Columns", str(cols)), ("Tiles", members), ("Kind", "Whole")):
                 sets.set(key, k, v)
             made += 1
-    for t, piece, joins, below in WALL:
-        tiles.set(t, "Piece", piece, overwrite=False)
-        if joins:
-            tiles.set(t, "Joins", joins, overwrite=False)
-        if below:
-            tiles.set(t, "Below", below, overwrite=False)
+    for key, _, _ in WALLS:
+        for t, piece, joins, below in WALL:
+            tiles.set(t % key, "Piece", piece, overwrite=False)
+            if joins:
+                tiles.set(t % key, "Joins", joins, overwrite=False)
+            if below:
+                tiles.set(t % key, "Below", below % key, overwrite=False)
     for sec, items in sets.sections:
         if not sec or sets.get(sec, "Kind"):
             continue

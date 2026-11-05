@@ -9,14 +9,12 @@
 #   DS_PORT           the port players connect to: http://<server>:<port> (8484)
 #   DS_DATA           where the game's data is kept: accounts, characters, the world, homes, daily backups. A folder
 #                     on the server (e.g. /srv/shards-of-ashen) or a Docker volume's name (gamedata, the default)
-#   DS_ADMINS         Shards accounts whose characters get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
+#   DS_ADMINS         Hallisium accounts whose characters get the Admin button, comma-separated: DS_ADMINS=Kris,Ann
 #                     (the central server proves them, so it needs DS_CENTRAL)
-#   DS_CENTRAL        the central server, for signing in by Shards accounts: DS_CENTRAL=https://shardsofashen.hallisium.com
-#   DS_PUBLIC         1: listed on the start screen's Public servers, once approved on the central server's admin
-#                     page. Everyone then needs a Shards account, even on your own network
+#   DS_CENTRAL        the central server, for signing in by Hallisium accounts: DS_CENTRAL=https://shardsofashen.hallisium.com
 #   DS_PUBLIC_URL     the address players outside your network use (blank: where it calls the central server from)
 #   DS_TRUST_PROXY    1 if players come through a reverse proxy, so those on your own network still count as on it:
-#                     without it, anyone coming through the proxy needs a Shards account
+#                     without it, anyone coming through the proxy needs a Hallisium account
 #   DS_INVITE_CODE    if set, making a character needs this code
 #   DS_NAME           what players see it called: the Public servers list, the login screen, the Android app's list
 #   DS_REGISTRATION   open (anyone can make a character) or closed (only accounts made with tools/admin.py)
@@ -38,7 +36,6 @@ services:
       DS_ADMINS: ${DS_ADMINS:-}
       DS_NAME: ${DS_NAME:-}
       DS_CENTRAL: ${DS_CENTRAL:-}
-      DS_PUBLIC: ${DS_PUBLIC:-0}
       DS_PUBLIC_URL: ${DS_PUBLIC_URL:-}
       DS_TRUST_PROXY: ${DS_TRUST_PROXY:-0}
       PUID: ${PUID:-1000}

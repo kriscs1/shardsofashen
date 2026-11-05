@@ -1,6 +1,6 @@
 """Everything the server keeps: accounts, characters and the shared world, in one SQLite database (server-data/ashen.db
 by default; DS_DB to put it elsewhere). Characters and the world are JSON. A row of accounts is a character: its name
-(one of a kind on this server), whose it is (owner: "a:<Shards account>" or "d:<a device's key, hashed>") and the
+(one of a kind on this server), whose it is (owner: "a:<Hallisium account>" or "d:<a device's key, hashed>") and the
 Admin button. (pw_hash: a column from when characters had passwords, always empty now.)"""
 import json
 import logging

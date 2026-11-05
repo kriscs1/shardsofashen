@@ -22,8 +22,8 @@ def free_port():
         return s.getsockname()[1]
 
 
-async def start(db, max_players=5, admins=""):
-    app = make_app(ROOT, db, max_players, admins=admins)
+async def start(db, max_players=5, admins="", own=False):
+    app = make_app(ROOT, db, max_players, admins=admins, own=own)
     runner = web.AppRunner(app)
     await runner.setup()
     port = free_port()
@@ -206,7 +206,7 @@ def test_chat_and_whispers(tmp_path):
 
 
 def test_admins_from_the_server_settings(tmp_path, monkeypatch):
-    """DS_ADMINS names Shards accounts (proved by a ticket, or the host's key), never a character's name."""
+    """DS_ADMINS names Hallisium accounts (proved by a ticket, or the host's key), never a character's name."""
     monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
 
     async def run():
@@ -291,9 +291,10 @@ def test_an_unknown_proxy_is_not_the_local_network(tmp_path, monkeypatch):
 
     async def run():
         monkeypatch.setenv("DS_CENTRAL", "http://127.0.0.1:9")                  # (joined to one: no ticket is asked of it)
-        runner, app, url = await start(str(tmp_path / "t.db"))
+        runner, app, url = await start(str(tmp_path / "t.db"), own=True)
         try:
             async with aiohttp.ClientSession() as http:
+                app[GAME].store.set_setting("lan_open", "1")
                 _, m = await come_in(http, url, device_of("Lan"))
                 assert m["t"] == "characters"                                   # (this machine: a device's key will do)
                 _, m = await come_in(http, url, device_of("Far"), headers=outside)
@@ -322,7 +323,7 @@ def test_a_page_is_told_the_code_it_should_be_running(tmp_path, monkeypatch):
 
 
 def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
-    """A device's key (no Shards account) has its characters here, at most MOST_CHARACTERS; names are one of a kind on
+    """A device's key (no Hallisium account) has its characters here, at most MOST_CHARACTERS; names are one of a kind on
     the server; a device's key alone does on this machine and its network, never from the internet or on a public
     server."""
     from server.game import MOST_CHARACTERS
@@ -360,10 +361,10 @@ def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
     g = game_addr.__new__(game_addr)
     assert g.devices_welcome("8.8.8.8")                                         # (no central server: no other way)
     monkeypatch.setenv("DS_CENTRAL", "https://central.example.com")
+    assert not g.devices_welcome("192.168.1.20") and not g.devices_welcome("127.0.0.1")     # (a remote server: accounts only)
+    g.own = True                                                                # (an app's own game: its network's)
     assert g.devices_welcome("127.0.0.1") and g.devices_welcome("192.168.1.20") and g.devices_welcome("::1")
     assert not g.devices_welcome("8.8.8.8") and not g.devices_welcome("")
-    monkeypatch.setenv("DS_PUBLIC", "1")
-    assert not g.devices_welcome("192.168.1.20")                                # (a public server: accounts only)
 
 
 def test_the_host_and_an_account_need_no_network(tmp_path, monkeypatch):
@@ -377,7 +378,7 @@ def test_the_host_and_an_account_need_no_network(tmp_path, monkeypatch):
     monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
 
     async def run():
-        runner, app, url = await start(db)
+        runner, app, url = await start(db, own=True)
         game = app[GAME]
         try:
             async with aiohttp.ClientSession() as http:
@@ -428,7 +429,15 @@ def test_a_game_on_the_network_answers_who_is_there(tmp_path, monkeypatch):
     monkeypatch.setenv("DS_LAN_PORT", str(lan_port))
 
     async def run():
-        runner, app, url = await start(str(tmp_path / "a.db"))
+        runner, app, url = await start(str(tmp_path / "s.db"))
+        none = await asyncio.get_running_loop().run_in_executor(None, lambda: lan.find(0.5, lan_port, ("127.0.0.1",)))
+        assert not none                                                 # (a server of its own never answers)
+        await runner.cleanup()
+        runner, app, url = await start(str(tmp_path / "a.db"), own=True)
+        none = await asyncio.get_running_loop().run_in_executor(None, lambda: lan.find(0.5, lan_port, ("127.0.0.1",)))
+        assert not none                                                 # (nor an app's, till it's opened)
+        app[GAME].store.set_setting("lan_open", "1")
+        await app[GAME].network_changed()
         base = url.replace("ws://", "http://").replace("/ws", "")
         found = await asyncio.get_running_loop().run_in_executor(None, lambda: lan.find(1.0, lan_port, ("127.0.0.1",)))
         assert len(found) == 1
@@ -457,8 +466,9 @@ def test_a_database_under_the_old_name_carries_on_under_the_new_one(tmp_path):
 def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
     """Closed to the network: only this machine may join, and the game doesn't answer the network's "who's there?"."""
     async def go():
-        runner, app, url = await start(str(tmp_path / "t.db"))
+        runner, app, url = await start(str(tmp_path / "t.db"), own=True)
         game = app[GAME]
+        game.store.set_setting("lan_open", "1")
         try:
             async with aiohttp.ClientSession() as http:
                 ws, m = await login(http, url, "Hostess", "secret1")
@@ -484,13 +494,14 @@ def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
 
 def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch):
     """Behind Caddy (DS_TRUST_PROXY=1) each player's own address counts: two new characters a day from one, names
-    kept back; and from the internet, a Shards account (a ticket) or nothing."""
+    kept back; and from the internet, a Hallisium account (a ticket) or nothing."""
     monkeypatch.setenv("DS_TRUST_PROXY", "1")
     monkeypatch.setenv("DS_REGISTER_PER_DAY", "2")
 
     async def go():
-        runner, app, url = await start(str(tmp_path / "t.db"))
+        runner, app, url = await start(str(tmp_path / "t.db"), own=True)
         game = app[GAME]
+        game.store.set_setting("lan_open", "1")
         monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
 
         async def verified(path, body):
@@ -667,12 +678,13 @@ def test_a_servers_name_is_what_its_given_and_never_a_containers_number(monkeypa
     from types import SimpleNamespace
     from server.game import GameServer
     saved = {}
-    me = SimpleNamespace(store=SimpleNamespace(setting=lambda k, d="": saved.get(k, d)), default_name="")
+    remote = []
+    me = SimpleNamespace(store=SimpleNamespace(setting=lambda k, d="": saved.get(k, d)), default_name="",
+                         remote=lambda: bool(remote))
     name = lambda: GameServer.server_name(me)                     # noqa: E731
     monkeypatch.delenv("DS_NAME", raising=False)
-    monkeypatch.delenv("DS_PUBLIC", raising=False)
     assert name().startswith("Shards of Ashen on ")               # (at home: this machine's)
-    monkeypatch.setenv("DS_PUBLIC", "1")
+    remote.append(True)
     assert name() == "A Shards of Ashen server"                   # (listed: the same whichever container it's in)
     monkeypatch.setenv("DS_NAME", "The Ashen Inn")
     assert name() == "The Ashen Inn"                              # (the Unraid template's Server name)

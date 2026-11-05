@@ -14,16 +14,16 @@ sys.path.insert(0, HERE)
 import sprite_kit as K  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(HERE))
-SIZE = 128
+SIZE = 256
 
 
 def canopy(seed=11):
     rng = random.Random(seed)
     img = np.zeros((SIZE, SIZE, 3), dtype=np.float32)
-    img[:, :] = (30, 46, 20)  # Deep shade between the crowns
+    img[:, :] = (64, 92, 32)  # (no black gaps: only more leaves between the crowns, the owner's wish)
     ys, xs = np.mgrid[0:SIZE, 0:SIZE]
     crowns = []
-    for _ in range(95):
+    for _ in range(95 * (SIZE // 128) ** 2 * 2):
         crowns.append((rng.uniform(0, SIZE), rng.uniform(0, SIZE), rng.uniform(6.5, 12.5), rng.uniform(-1, 1),
                        rng.uniform(-1, 1)))
     crowns.sort(key=lambda c: c[1])  # Lower crowns overlap higher ones
@@ -33,7 +33,7 @@ def canopy(seed=11):
         dy = (ys - cy + SIZE / 2) % SIZE - SIZE / 2
         # Its shadow on what is below and to the right
         sd = np.sqrt((dx - 2) ** 2 + (dy - 3) ** 2) / r
-        img[sd < 1.0] *= 0.72
+        img[sd < 1.0] *= 0.93
         # Lumpy edge: the radius wobbles with the angle
         ang = np.arctan2(dy, dx)
         wob = 1 + 0.10 * np.sin(ang * 5 + var * 3) + 0.06 * np.sin(ang * 9 + hue * 5)
@@ -42,19 +42,19 @@ def canopy(seed=11):
         # Lit from the top left, rounder in the middle
         k = np.clip(-(dx + dy) / (r * 1.6) + (1 - d) * 0.55, -1, 1)
         # Olive greens, like the grass round the forest
-        dark = np.array((44 + 6 * hue, 70 + 8 * var, 26), dtype=np.float32)
+        dark = np.array((62 + 6 * hue, 92 + 8 * var, 30), dtype=np.float32)
         mid = np.array((78 + 10 * hue, 108 + 10 * var, 36 - 4 * hue), dtype=np.float32)
         light = np.array((128 + 14 * hue, 152 + 10 * var, 56 - 6 * hue), dtype=np.float32)
         t = (k + 1) / 2
         col = np.where((t < 0.5)[..., None], dark + (mid - dark) * (t * 2)[..., None],
                        mid + (light - mid) * ((t - 0.5) * 2)[..., None])
         edge = inside & (d > 0.86)
-        col[edge] = col[edge] * 0.62
+        col[edge] = col[edge] * 0.88
         img[inside] = col[inside]
     # Leafy grain
     noise = np.array([[rng.uniform(-9, 9) for _ in range(SIZE)] for _ in range(SIZE)], dtype=np.float32)
     img += noise[..., None]
-    img *= 0.86  # A shade darker than the open grass round it
+    img *= 0.95  # A shade darker than the open grass round it
     return np.clip(img, 0, 255).astype(np.uint8)
 
 
