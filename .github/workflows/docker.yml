@@ -36,7 +36,7 @@ jobs:
 
       - name: The tests first (nothing broken gets published)
         run: |
-          pip install aiohttp pytest pillow             # (pillow: the map editor's tests)
+          pip install aiohttp pytest pillow numpy       # (pillow: the map editor's tests; numpy: the builders they import)
           python -m pytest tests -q
 
       - uses: docker/setup-buildx-action@v3
