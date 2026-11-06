@@ -956,6 +956,11 @@ class ActionsMixin:
                 self.emit({"t": "admin_status", "text": "%s has begun." % name})
             else:
                 self.emit({"t": "admin_status", "text": "%s is on already." % name})
+        elif what == "fly":
+            self.flying = bool(msg.get("on"))
+            self.display_message("Flying: walls, water and mountains don't stop you." if self.flying else
+                                 "You're on your feet again.", "INFO")
+            self.dirty_me = True
         elif what == "god":
             self.god_mode = 1 if msg.get("on") else 0
             ini.write("Admin", "GodMode", lbstr(self.god_mode), d.config_path)

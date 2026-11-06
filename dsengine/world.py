@@ -680,6 +680,8 @@ class World(NPCMixin):
     def entity_can_stand(self, e, x, y, old_x, old_y, mover=None):
         """mover: the Session whose player e is (None for NPCs)."""
         z = e.z
+        if mover is not None and mover.flying:          # (an admin flying: anywhere there's a map)
+            return self.map_at(z, x, y) is not None
         swim = e.type == NPC and e.ai is not None and e.ai.swims
         if not self.pixel_walkable(z, x, y, mover, swim):
             if self.pixel_walkable(z, old_x, old_y, mover, swim):
@@ -882,6 +884,8 @@ class World(NPCMixin):
         e.path_time = self.now + 400
         if not self.data.pathfinding_enabled:
             return False
+        if mover is not None and getattr(mover, "flying", False):
+            return True                                 # (flying: straight there)
         z = e.z
         feet_offset = e.fy - e.cy
         sx, sy = e.fx, e.fy

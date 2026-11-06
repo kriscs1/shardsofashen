@@ -108,6 +108,22 @@ def test_galaiths_fires_go_out_for_whoever_has_done_the_royal_guard(world):
     leave(world, newcomer)
 
 
+def test_an_admin_can_fly_over_what_stops_a_walker(world):
+    s = join(world, "Flyer", "4,0,0", 224, 380)
+    s.admin_enabled = True
+    p = s.player
+    m = world.maps["4,0,0"]
+    wall = next((x, y) for y in range(m.oy + 260, m.oy + 520, 4) for x in range(m.ox + 120, m.ox + 420, 4)
+                if not world.pixel_walkable(0, x, y, s) and world.pixel_walkable(0, x, y + 40, s))
+    assert not world.entity_can_stand(p, wall[0], wall[1], wall[0], wall[1] + 40, s)
+    s.handle({"t": "admin", "do": "fly", "on": True})
+    assert s.flying and world.entity_can_stand(p, wall[0], wall[1], wall[0], wall[1] + 40, s)
+    assert not world.entity_can_stand(p, -99999, -99999, p.fx, p.fy, s)          # (never off the world's maps)
+    s.handle({"t": "admin", "do": "fly", "on": False})
+    assert not s.flying and not world.entity_can_stand(p, wall[0], wall[1], wall[0], wall[1] + 40, s)
+    leave(world, s)
+
+
 def test_locked_out_runs_through_the_secret_cellars(world):
     s = join(world, "Lockpicker", "17,2,0", 520, 240)
     s.update_attribute("LockedOutQuest", "=1")

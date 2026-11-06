@@ -114,6 +114,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.player_name = name
         self.admin_enabled = admin
         self.god_mode = 0
+        self.flying = False                 # (the admin panel's Fly: over walls, water and mountains, till it's off)
         self.out = []                       # events waiting to go to the browser
         self.connected = True
         self.ready = False                  # in the world (not still loading)
@@ -1171,6 +1172,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p = self.player
         return {
             "t": "me", "name": self.player_name, "uid": p.uid, "admin": self.admin_enabled, "god": self.god_mode,
+            "fly": self.flying,
             "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": dict(self.spells_known), "own": self.own_spell_state(),
             "xp": self.skill_xp[1:], "skill_off": self.skill_off[1:],
             "inv": [[e.uid, e.name, e.quantity, e.wear] + self.shelf_shown(e) for e in self.inv],

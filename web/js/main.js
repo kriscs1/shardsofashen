@@ -376,6 +376,7 @@ function openAdmin() {
     box.append(row);
   });
   $("admin-god").checked = !!S.me.god;
+  $("admin-fly").checked = !!S.me.fly;
   $("admin-noblack").checked = fogAdmin().noBlack;
   $("admin-nofog").checked = fogAdmin().noFog;
 }
@@ -466,6 +467,7 @@ $("admin-wave-go").onclick = () => send({ t: "admin", do: "wave", name: $("admin
 $("death-respawn").onclick = () => send({ t: "respawn" });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
+$("admin-fly").addEventListener("input", (ev) => send({ t: "admin", do: "fly", on: ev.target.checked }));
 for (const id of ["admin-noblack", "admin-nofog"]) {
   $(id).addEventListener("input", () => setFogAdmin($("admin-noblack").checked, $("admin-nofog").checked));
 }
