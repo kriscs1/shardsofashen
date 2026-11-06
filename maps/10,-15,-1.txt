@@ -1,0 +1,48 @@
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001+Decor(Warden_Brazier001):Warden_Flag001:Warden_Flag001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001+Decor(Pillar001):Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001+Decor(Pillar001):Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001+Decor(Warden_Brazier001):Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall001:Black001:Black001:Black001:Warden_Wall001:Warden_Wall002:Warden_Wall003:Warden_Wall002:Warden_Wall002:Warden_Wall002:Warden_Wall003:Warden_Wall002:Warden_Wall002:Warden_Wall002:Warden_Wall002:Warden_Wall002
+Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Wall003:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001
+Spore_Loam001:Spore_Loam001:Spore_Loam001+Decor(Glow_Moss001):Fungal_Rock001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001:Warden_Flag001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001:Warden_Wall001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Spore_Loam001:Spore_Loam001:Spore_Loam001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Spore_Loam001:Fungal_Rock001:Fungal_Rock001:Fungal_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Id	Wardens_Hold	2	4
+Trigger	Chart_Hold	1	2
+Trigger	Chart_Hold	1	3
+Trigger	Chart_Hold	1	4
+Trigger	Chart_Hold	1	5
+Trigger	Chart_Hold	1	6
+Trigger	Chart_Hold	2	1
+Trigger	Chart_Hold	2	2
+Trigger	Chart_Hold	2	3
+Trigger	Chart_Hold	2	4
+Trigger	Chart_Hold	2	5
+Trigger	Chart_Hold	2	6
+Trigger	Chart_Hold	2	7
+Trigger	Chart_Hold	3	2
+Trigger	Chart_Hold	3	3
+Trigger	Chart_Hold	3	4
+Trigger	Chart_Hold	3	5
+Trigger	Chart_Hold	3	6
+Trigger	Chart_Hold	4	3
+Trigger	Chart_Hold	4	4
+Trigger	Chart_Hold	4	5
+Trigger	Chart_Hold	5	4
+NPC	Ghost_Warden	32	24	Attitude=Good Stand=1 Face=S Id=Warden_Ysolde Name=Ysolde
+NPC	Glass_Sentinel	128	184	Attitude=Bad Zone=1,2,9,9 Chase=1,2,12,12 Face=S Cone=140
+NPC	Glass_Sentinel	224	88	Attitude=Bad Zone=1,2,9,9 Chase=1,2,12,12 Face=S Cone=140
+NPC	Drowned_Warden	704	472	Attitude=Bad Zone=15,10,25,17 Chase=12,7,25,20
+NPC	Spore_Shambler	64	376	Attitude=Bad Zone=1,10,6,16 Chase=1,6,10,20

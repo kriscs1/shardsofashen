@@ -1199,10 +1199,10 @@ def chapel_and_caves():
         say("Gravekeeper", "Keep the amulet close, and show it to no one but your father. Go with God.",
             ("Someone else here says they're Mary's heir too. [if $Players.Near>=1]", "@heirs"), ("Goodbye.", "@end")),
         ("End",),
-        ("@heirs",),                                # (the others the Heart has marked: only when one's near)
-        say("Gravekeeper", "Do they? The Shards don't count the way we do. When the first king broke the Heart, every "
-                           "piece remembered the blood that broke it, and that blood has run in more veins than one "
-                           "since. The Heart will know each of you for an heir. Whether the crown does is your father's "
+        ("@heirs",),                                # (the others the Shards know: only when one's near)
+        say("Gravekeeper", "Do they? The Shards don't count the way we do. When the first king cut the dragon down, it "
+                           "took royal blood to hold the cut, and that blood has run in more veins than one "
+                           "since. The Shards will know each of you for an heir. Whether the crown does is your father's "
                            "business, not mine.", ("Thank you, Brother.", "@end")),
         ("@end",), ("End",),
     ])
@@ -1251,8 +1251,8 @@ def chapel_and_caves():
                            "from the floor.\\Something died here, a rat or a bat, and left its magic behind: Shard "
                            "Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. "
                            "Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie "
-                           "still. The old books say every Shard is a piece of something greater, broken long ago, "
-                           "and that the pieces want to go home.", ("I'll remember.", "@remnants")),
+                           "still. The old books say every Shard is a scrap of something far greater, cut down long ago, "
+                           "and that scraps like that are hungry: take them in before they take root in you.", ("I'll remember.", "@remnants")),
         ("@remnants",),
         ("Give.Item", "Shard_Remnant", "3"),
         say("Gravekeeper", "Now, the amulet. Your mother put it there, and the bars after it, so that no "

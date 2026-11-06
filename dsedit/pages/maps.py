@@ -481,7 +481,7 @@ class MapPage(Page):
         c.bind("<Button-3>", self.context)
         c.bind("<Motion>", self.hover)
         c.bind("<Leave>", lambda e: (setattr(self, "_hover", None), self.canvas.delete("ghost")))
-        c.bind("<Control-MouseWheel>", lambda e: self.set_zoom(self.zoom * (1.25 if e.delta > 0 else 0.8), around=e))
+        c.bind("<Control-MouseWheel>", self.wheel_zoom)
         c.bind("<Configure>", lambda e: self.view_moved())
         # moving the view: drag with the middle button, or hold Space and drag
         c.bind("<ButtonPress-2>", lambda e: (c.scan_mark(e.x, e.y), self.set_cursor("fleur")))
@@ -490,8 +490,8 @@ class MapPage(Page):
         self._space = False
         c.bind("<KeyPress-space>", self.space_down, add="+")
         c.bind("<KeyRelease-space>", self.space_up, add="+")
-        c.bind("<MouseWheel>", lambda e: self.set_zoom(self.zoom * (1.25 if e.delta > 0 else 0.8), around=e))
-        c.bind("<Shift-MouseWheel>", lambda e: c.xview_scroll(int(-e.delta / 120) * 3, "units"))
+        c.bind("<MouseWheel>", self.wheel_zoom)
+        c.bind("<Shift-MouseWheel>", lambda e: c.xview_scroll(-max(1, round(abs(e.delta) / 40)) * (1 if e.delta > 0 else -1), "units"))
         for k in ("<Key>",):
             c.bind(k, self.key)
         c.bind("<Enter>", lambda e: c.focus_set())
@@ -1442,6 +1442,16 @@ class MapPage(Page):
             self._pics.popitem(last=False)
         return img
 
+    def wheel_zoom(self, e):
+        """The wheel zooms about the spot under the mouse: a notch a quarter in or out, a touchpad's small turns a
+        little at a time (each event's delta, not a whole notch for each)."""
+        if not e.delta:
+            return
+        c, step = self.canvas, max(-480, min(480, e.delta)) / 120
+        e.x, e.y = e.x_root - c.winfo_rootx(), e.y_root - c.winfo_rooty()   # (where the mouse really is on the canvas:
+        inside = 0 <= e.x < c.winfo_width() and 0 <= e.y < c.winfo_height()  # the event's own x, y can be another
+        self.set_zoom(self.zoom * 1.25 ** step, around=e if inside else None)  # window's on Windows)
+
     def set_zoom(self, z, around=None):
         """around: the mouse event to zoom about (the spot under it stays put), or None: the middle of the view."""
         z = max(0.05, min(3, z))
@@ -1598,8 +1608,10 @@ class MapPage(Page):
         if anchor:                                      # (zoomed: keep the spot that was under the mouse there)
             self._zoom_anchor = None
             mx, my, sx, sy = anchor
-            c.xview_moveto(max(0.0, (mx * z - sx) / w))
-            c.yview_moveto(max(0.0, (my * z - sy) / h))
+            # (not held at 0: zoomed far out the level's smaller than the view and may sit anywhere in it, so the
+            # spot only stays under the mouse with the view's corner off the level; Tk keeps the view on it itself)
+            c.xview_moveto((mx * z - sx) / w)
+            c.yview_moveto((my * z - sy) / h)
         if self._center:
             self._center = False
             self.scroll_to(P.map_w // 2, P.map_h // 2)
@@ -2257,7 +2269,8 @@ class MapPage(Page):
                                oy + (ay + y1_ - y0_ + 1) * th * z, outline="#ff9a3c" if fits else "#ff4040", width=3,
                                dash=(6, 3), tags="ghost")
         elif self.area and self.in_area(tx, ty) and not self.drag and (
-                self.layer == "all" or self.layer == "things" and self.tool == "Area"):
+                self.layer == "all" or self.layer == "things" and self.tool == "Area") and not (
+                self.tool == "Area" and getattr(self.app, "clip_region", None) is not None):
             cursor = "fleur"
         elif self.tool == "Area" and getattr(self.app, "clip_region", None) is not None and not self.drag:
             cursor = "crosshair"                            # (where a click would put the area down)
@@ -2731,6 +2744,8 @@ class MapPage(Page):
         tx, ty = self.tile_of(px, py)
         held = self.in_area(tx, ty) and (self.layer == "all" and self.tool in ("Select", "Area") or   # (dragged, from any
                                          self.layer == "things" and self.tool == "Area")              # map it's on. Else
+        if held and self.tool == "Area" and getattr(self.app, "clip_region", None) is not None:
+            held = False                                # (copied or cut: a click puts it down, even over the marked area)
         if not self.mode and not held and not self.focus_at(e):      # a click on another map opens it; on none, nothing)
             return
         px, py = self.map_px(e)
@@ -3660,9 +3675,9 @@ class MapPage(Page):
         stand = WD.stand_ins(self.project)
         kind = lambda t: stand.get(t, t)
         target = kind(self.tile_at(x, y))
-        t = self.terrain()
-        if target == kind(self.brush) or (t is not None and target in {n for n, _ in t.tiles} and len(t.tiles) == 1
-                                          and not t.decor):
+        ter = self.terrain()
+        if target == kind(self.brush) or (ter is not None and target in {n for n, _ in ter.tiles} and len(ter.tiles) == 1
+                                          and not ter.decor):
             return
         todo, seen = [(x, y)], set()
         while todo:
@@ -3682,7 +3697,7 @@ class MapPage(Page):
                 "Fill", "That fills %d tiles across %d maps. Go on?" % (len(seen), len(maps)), parent=self):
             return
         with self.app.busy("Filling %d tiles…" % len(seen)) if len(seen) > 1500 else contextlib.nullcontext():
-            if t is not None:
+            if ter is not None:
                 self.paint_terrain(sorted(seen))
             else:
                 for cx, cy in seen:

@@ -7,7 +7,7 @@ she fled); bring them, and she'll put her seal to it.
     shelves of charters; two watchmen of the Royal Guard keeping it (lookouts: they see a cone ahead of them, hear you
     coming, and fight anyone they catch), a chest with a lock (Stealth 5 to pick; Break Open is loud).
   * In the chest, Mary's Notes (Marys_Notes, Read): what she found out at the Wizards' Court, the Pact's price, the
-    Heart of Ashen. GuardQuest's stages don't change: ArchiveVault is the step inside stage 2 (1: sent down, 2: found).
+    Cutting. GuardQuest's stages don't change: ArchiveVault is the step inside stage 2 (1: sent down, 2: found).
   * The Archivist's script (build_heir_mainland.py writes it: the same rows are there) asks for the notes first.
 
 Safe to run again (it finds the hall by its Archivist, wherever Galaith's had her set down).
@@ -28,11 +28,11 @@ MAKER = "build_archive_vault.py"
 ROOT = os.path.dirname(os.path.dirname(HERE))
 ARCHIVIST = "Galaith_Clerk_73"
 NOTES = ("Mary's Notes\\Folded small, in your mother's hand:\\They told me at the Court that the Shards are only "
-         "magic, splintered. They are not. They are the Heart of Ashen, the first king's crystal, broken on the mountain "
-         "to bind the dragon. Every splinter wants to be whole. The dragon carries the largest; and the Pact keeps the "
-         "rest apart with the blood of every firstborn heir.\\I will not pay it with my child. If the pieces could be "
-         "kept apart some other way, or made whole and held, the price would end. I go to find out how.\\The place it "
-         "broke is under the mountain behind the city. Remember the Seam.")
+         "magic, splintered. They are not. They are scraps of the dragon, thrown off when the first king cut it down "
+         "to a size he could bind. Most of it lies asleep beyond the world, and every scrap is hungry to grow; the Pact keeps the "
+         "dragon quiet with the blood of every firstborn heir.\\I will not pay it with my child. If the Cut could be "
+         "kept shut some other way, or the dragon ended, the price would end. I go to find out how.\\The place it "
+         "was cut is under the mountain behind the city. Remember the Seam.")
 
 
 def find_hall():

@@ -401,8 +401,8 @@ def scripts():
         ("Update.Attribute", "ShardgateQuest", "=4"),
         ("Toggle.User.Input", "ON"),
         ("Display.Message", "Yellow", "..and it shatters. Under it the realm's floor falls away into a hollow, "
-                                      "vast and the shape of a heart, where something once lay: every splinter of "
-                                      "magic here leans toward it. Far away, in the pass of Galaith, something gives. "
+                                      "vast and warm, where something huge lies sleeping: every splinter of "
+                                      "magic here leans toward it, and it breathes. Far away, in the pass of Galaith, something gives. "
                                       "Tell Bert.", "-"),
         ("End",),
         ("@nostaff",), ("Display.Message", "DarkRed", "Your bare hands won't break it: it needs the Staff of "
@@ -446,8 +446,8 @@ def scripts():
         ("End",),
         ("@s1",), (">Conditional", "$Variable.1=1", "@late"),
         SK.say("Bert", "It held? Of course it held. Oh, don't look at me like that: I only half thought it would.\\"
-                       "Listen. When the dragon drank the mountain's magic, what it couldn't hold it shattered, and "
-                       "the pieces went somewhere: the Shardrealm, where all broken magic goes. The barrier draws on "
+                       "Listen. The first king cut the dragon down, and the greater part of it didn't die. It went "
+                       "somewhere: the Shardrealm, where all broken magic goes. The barrier draws on "
                        "it. It's anchored there, beyond the world.", ("How do I get there?", "@how")),
         ("@how",),
         SK.say("Bert", "You build a door. Not a little one. Any old shardstone can reach the realm's rim, where it's "

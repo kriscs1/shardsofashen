@@ -1,0 +1,39 @@
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Face001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Face001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Deep_Kelp002):Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Glow_Moss001):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Deep_Kelp001):Wet_Rock001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Deep_Kelp001):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Wet_Rock001:Wet_Rock001:Wet_Rock001:Wet_Rock001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Wet_Rock001:Black001:Black001:Wet_Rock001:Wet_Face001:Wet_Face002:Wet_Face002:Wet_Face002:Wet_Face001:Wet_Face002:Wet_Face002:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Wet_Rock001:Wet_Face002:Wet_Face001:Wet_Face002
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Face002:Wet_Face001:Wet_Face002:Wet_Face002:Wet_Face001:Deep_Shingle001+Decor(Deep_Kelp001):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Face002:Wet_Face002:Wet_Face001:Wet_Face002:Wet_Face002:Wet_Face002:Wet_Face001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Deep_Kelp002):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Deep_Kelp001):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001
+Deep_Shingle001+Decor(Deep_Kelp001):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Bones002):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001+Decor(Bones002):Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
+Id	Brinewater_Deep	12	11
+Trigger	Chart_Brinewater	9	11
+Trigger	Chart_Brinewater	10	10
+Trigger	Chart_Brinewater	10	11
+Trigger	Chart_Brinewater	10	12
+Trigger	Chart_Brinewater	11	10
+Trigger	Chart_Brinewater	11	11
+Trigger	Chart_Brinewater	11	12
+Trigger	Chart_Brinewater	12	10
+Trigger	Chart_Brinewater	12	11
+Trigger	Chart_Brinewater	13	10
+Trigger	Chart_Brinewater	13	11
+Trigger	Chart_Brinewater	14	10
+Trigger	Chart_Brinewater	14	11
+Trigger	Chart_Brinewater	14	12
+Trigger	Chart_Brinewater	15	11
+NPC	Brine_Mother	352	296	Attitude=Bad Zone=8,9,16,15 Chase=3,5,21,19
+StaticObject	Glowfin_Spot	224	384

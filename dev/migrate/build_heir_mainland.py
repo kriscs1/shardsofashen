@@ -248,7 +248,7 @@ def data():
         ("Archivists_Attestation", "The Royal Archivist's word, in green wax: the amulet is the true seal of "
          "succession.", ""),
         ("Chancellors_Warrant", "The Lord Chancellor's warrant, in gold wax: let the bearer see the King.", ""),
-        ("Grimoire_of_Unbinding", "The Grimoire of Unbinding: the spell that undoes what magic has bound. Its first pages tell of the Breaking: how the first king shattered the Heart of Ashen to bind a dragon, and its pieces scattered as Shards.", ""),
+        ("Grimoire_of_Unbinding", "The Grimoire of Unbinding: the spell that undoes what magic has bound. Its first pages tell of the Cutting: how the first king cut a hungry dragon down to bind it, and the scraps it threw off became Shards.", ""),
         ("Solar_Key", "The key to the King's solar, at the top of the keep.", ""),
         ("Valour_Seal", "A Valour Seal: gold, a sword's point in red. A drake carried it.", ""),
     ]
@@ -258,7 +258,7 @@ def data():
     K.section(E, "Ember_Ring", [("Type", "MapItem"), ("Examine.Info", "The Ember Ring: a ruby that glows like a "
                                                                       "coal. Warm to the touch. Inside the band, worn "
                                                                       "thin: the seal of the Pact, a dragon coiled round "
-                                                                      "a broken heart."),
+                                                                      "a ring of broken scales."),
                                 ("Slot", "Ring"), ("Magic", "2"), ("Defence", "1"), ("Droppable", "0"), ("Value", "0")])
     K.section(E, "Staff_of_Ashen", [("Type", "MapItem"), ("Examine.Info", "The Staff of Ashen, the kings' staff: "
                                         "gold and blue, warm with magic."), ("Slot", "Weapon"), ("Attack", "4"),
@@ -961,8 +961,8 @@ def bert():
                                                                                     "world spins..."),
         ("Teleport", "Northport_Port", "-"),
         ("End",),
-        ("@heirs",),                                # (the others the Heart has marked: only when one's near)
-        say("Bert", "Has one? Then the Heart has been busy. When the first king broke it, every piece remembered the blood that broke it, and that blood has run in more veins than one since. The dragon only ever counted one of you; the Shards count you all. Between us, it's the only good news I've had in years.", ("Fancy that.", "@end")),
+        ("@heirs",),                                # (the others the Shards know: only when one's near)
+        say("Bert", "Has one? Then the blood has been busy. When the first king cut the dragon down, it took royal blood to hold the cut, and that blood has run in more veins than one since. The dragon only ever counted one of you; the Shards count you all. Between us, it's the only good news I've had in years.", ("Fancy that.", "@end")),
         ("End",),
         ("@end",), ("End",),
     ])
@@ -1287,10 +1287,10 @@ def galaith():
                               "have waited at these walls. Eighteen winters the city has starved for want of the road, "
                               "and all for one small debt.", ("What debt?", "@debt")),
         ("@debt",),
-        say("Galaith_Dragon", "A bargain, child, not a curse. Your first king broke the Heart of Ashen to bind me, and "
-                              "every splinter of it has ached to be whole again since. I let your line keep the pieces, "
-                              "the mountain's gold and its Shards, for the firstborn heir of every generation: royal "
-                              "blood holds the pieces apart. They signed in blood. Your mother broke it, and ran.",
+        say("Galaith_Dragon", "A bargain, child, not a curse. Your first king cut me down to a size he could bind, and "
+                              "thought himself clever. I let your line keep the scraps of me, the mountain's gold and "
+                              "its Shards, for the firstborn heir of every generation: royal blood is the lock, and the "
+                              "lock needs feeding. They signed in blood. Your mother broke it, and ran.",
             ("She saved me.", "@saved")),
         ("@saved",),
         say("Player", "My mother saved my life. The bargain ends today.", ("...", "@answer")),
@@ -1308,8 +1308,8 @@ def galaith():
         (">Conditional", "$Variable.1=1", "@end"),
         ("Update.Attribute", "GalaithQuest", "=2"),
         ("Display.Message", "Yellow", "The Sword of Valour finds the dragon's heart. With its last breath it hisses: "
-                                      "\"The Heart... I carried its greatest piece... yours now, to keep apart... or "
-                                      "make whole...\" and the black hulk crashes to the scorched earth.", "-"),
+                                      "\"The Seam... I carried my greatest piece... the rest of me still sleeps... yours now, to keep shut... or "
+                                      "wear...\" and the black hulk crashes to the scorched earth.", "-"),
         ("Play.Sound", "Quest"),
         ("Display.Message", "Yellow", "Quest complete: The Dragon of Galaith! The gates of Galaith swing open.", "-"),
         ("@end",), ("End",),
@@ -1396,10 +1396,10 @@ def galaith():
         say("King_Rupert", "My $Player.Son, the $Player.King. Your mother would be proud.",
             ("Another stands here who calls me father. [if $Players.Near>=1]", "@heirs"), ("Goodbye, Father.", "@end")),
         ("End",),
-        ("@heirs",),                                # (the others the Heart has marked: only when one's near)
-        say("King_Rupert", "Then the Heart has marked more than one of my blood, and Ashen is luckier than it deserves. "
-                           "The Breaking scattered the royal line with the Shards; the dragon only ever counted one of "
-                           "you. Let it be the Order of Heirs, then: every one the Heart knows, sworn to the crown. "
+        ("@heirs",),                                # (the others the Shards know: only when one's near)
+        say("King_Rupert", "Then the blood has marked more than one of my line, and Ashen is luckier than it deserves. "
+                           "The Cutting scattered the royal line with the Shards; the dragon only ever counted one of "
+                           "you. Let it be the Order of Heirs, then: every one the Shards know, sworn to the crown. "
                            "There is room on this throne for whoever keeps the realm.", ("Long live Ashen.", "@end")),
         ("@end",), ("End",),
     ])

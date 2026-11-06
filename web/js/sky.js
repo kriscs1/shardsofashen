@@ -72,11 +72,22 @@ function layer(name, w, h) {
   return c;
 }
 
+// ----- a deep place, dim at every hour (Config.ini [Darkness] Maps: the Shardfall Deep), lit by what glows in it
+let dimMaps = null;
+function dimHere() {
+  if (!dimMaps) dimMaps = new Set(configRead("Darkness", "Maps", "").split(/\s+/).filter(Boolean));
+  return S.mapZ < 0 && dimMaps.has(S.mapName);
+}
+function nums(text) {
+  return text.replace(/,/g, " ").split(/\s+/).filter(Boolean).map(Number);
+}
+
 export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
-  if (!S.clock.on || (S.mapZ !== 0 && S.mapZ < 1000)) return;      // (homesteads, 1000 up, are outdoors)
+  const dim = dimHere();
+  if (!dim && (!S.clock.on || (S.mapZ !== 0 && S.mapZ < 1000))) return;      // (homesteads, 1000 up, are outdoors)
   const t = dayFraction(now);
-  let [r, g, b, a] = sky(t);
-  if (underRoof) a = Math.floor(a * val(iniValue("daynight", "Night", "Indoors", "0.55")));
+  let [r, g, b, a] = dim ? nums(configRead("Darkness", "Colour", "8 6 22 205")) : sky(t);
+  if (underRoof && !dim) a = Math.floor(a * val(iniValue("daynight", "Night", "Indoors", "0.55")));
   if (a < 4) return;
   const dark = clamp((a - 40) / 110, 0, 1);
   const L = layer("night", Math.ceil(ww), Math.ceil(wh));
@@ -100,11 +111,13 @@ export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
     const sx = lx - cam.x, sy = ly - cam.y;
     if (sx > -rad && sx < ww + rad && sy > -rad && sy < wh + rad) hole(sx, sy, rad, 0.15);
   }
-  const pr = Math.max(0, val(configRead("Gameplay", "Night.Light.Radius", "130")));
+  const pr = Math.max(0, val(dim ? configRead("Darkness", "Player.Light", "150")
+    : configRead("Gameplay", "Night.Light.Radius", "130")));
   if (pr > 0 && playerC) hole(playerC[0] - cam.x, playerC[1] - cam.y, pr, 0.35);
   ctx.drawImage(L, 0, 0);
   if (dark > 0.3) {
-    const glow = iniValue("daynight", "Night", "Glow.Colour", "70 38 8").split(/\s+/).map(Number);
+    const glow = nums(dim ? configRead("Darkness", "Glow.Colour", "34 18 60")
+      : iniValue("daynight", "Night", "Glow.Colour", "70 38 8"));
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (const [lx, ly, rad, warm] of lights) {

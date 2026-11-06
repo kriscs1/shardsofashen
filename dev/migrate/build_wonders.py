@@ -33,10 +33,10 @@ PEOPLE = {   # name: base, tint, what it is
 NOTES = [   # place Id (near it), what she wrote
     ("Isle_Bank", "Edwin won't ask me again. Good. I told him the jar was for the child. So it is, but not the way he thinks."),
     ("Northport_Square", "Every Shard I've weighed here leans the same way, a hair's breadth, if you hang it on a thread. North and west. They all lean to the same place."),
-    ("Court_Square", "The Court's oldest book has the Pact's price in it, and someone has torn out the page after. I've seen the stub. A firstborn each generation, to keep the pieces apart. Apart from what?"),
-    ("Dunerest_Square", "The scholar here calls it the Breaking. A crystal, all the world's magic in one stone, and the first king took a hammer to it. He thought that would be the end of it."),
+    ("Court_Square", "The Court's oldest book has the Pact's price in it, and someone has torn out the page after. I've seen the stub. A firstborn each generation, and the dragon keeps its peace. Keeps it from doing what?"),
+    ("Dunerest_Square", "The scholar here calls it the Cutting. The dragon was once far bigger than the world, and the first king cut it down to something he could bind. He thought that would be the end of it."),
     ("Emberwatch_Square", "The seal on the Pact is older than the keep that guards it. I held it for as long as I dared. It's warm. It knows when you're afraid."),
-    ("Frosthold_Square", "They'll come for my child. So I'll run, and I'll keep running, and what I've cut from the Heart will stay where no king ever thinks to look: somewhere small, and still, and full of sky."),
+    ("Frosthold_Square", "They'll come for my child. So I'll run, and I'll keep running, and what I took from the Seam will stay where no king ever thinks to look: somewhere small, and still, and full of sky."),
     ("Galaith_City_Hall", "If you've found this, you've been inside the walls and I haven't. Forgive me. Look for still water, on the Isle, where the sky looks up at itself."),
 ]
 
@@ -88,7 +88,7 @@ def people():
             ents.set(name, k, v, overwrite=False)
     ents.set("Ghost_Ship", "Solid", "0", overwrite=False)
     for name, disp, words in (("Marys_Map", "Mary's Map", "Seven notes, and the shape they make when you lay them edge to edge."),
-                              ("Heart_Splinter", "Heart Splinter", "A sliver of something that was once the whole of the world's magic. It leans, very slightly, north and west.")):
+                              ("Heart_Splinter", "Seam Splinter", "A sliver of the dragon, taken from the Seam. It leans, very slightly, north and west, and it hums when no one is listening.")):
         for k, v in (("Type", "MapItem"), ("Display.Name", disp), ("Examine.Info", words), ("Stackable", "1"), ("Droppable", "0"), ("Value", "0"),
                      ("Use.Words", "Read" if name == "Marys_Map" else "")):
             ents.set(name, k, v, overwrite=False)
@@ -232,7 +232,7 @@ def scripts():
         "04\tPlay.Sound\tChest",
         "05\tGive.Item\tHeart_Splinter\t1",
         "06\tDisplay.Message\tYellow\tQuest complete: Mary's Notes.\tQuest",
-        "07\tDisplay.Conversation\tLast_Will\tWrapped in oilcloth, under a stone at the water's edge: a sliver of crystal, and one line. It isn't a weapon and it isn't a gift. It's the only piece of the Heart that was ever taken and not given. It wants to go home, as they all do. Don't let them tell you that's the same as wanting to be whole.\tYou close your hand.\t08",
+        "07\tDisplay.Conversation\tLast_Will\tWrapped in oilcloth, under a stone at the water's edge: a sliver of dark glass, and one line. It isn't a weapon and it isn't a gift. It's a scrap of the dragon, taken from the Seam, and it's still growing. It will tell you what you want to hear. Don't answer it.\tYou close your hand.\t08",
         "08\tEnd",
         "09\tDisplay.Message\tCyan\tMud, and a very still sky.\t-",
         "10\tEnd",

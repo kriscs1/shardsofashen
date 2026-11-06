@@ -18,7 +18,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `central/` | The central server: everyone's account, the remote game servers' list, what every game's characters have got to, the start screen's ads |
 | `web/home/` | The start screen, the same in every version (`tools/sync_home.py` copies it into the Android app) |
 | `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
-| `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory) |
+| `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory). The Shardfall Deep is on -1 under the sea north of Ashford (4..12, -17..-5) |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content (see below) |
 | `dsedit/` | The map/data editor |
 | `ashen/` | Shared helpers (`ini`, `lb`); the old desktop game is retired |
@@ -112,16 +112,21 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens: at its far wall
    the **King's Shard Seam** gives the Crown Shards once a (real) day (`dev/migrate/build_kings_seam.py`).
 
-**The secret under it all: the Heart of Ashen** (being written into the chapters: `dev/Roadmap.md` group 8). Shards
-are the pieces of the Heart of Ashen, a crystal of all the world's magic that the first king broke to bind the dragon
-(the Breaking). Every piece wants to be whole again: that's why a dead beast's remnants go for its killer, and why
-broken magic sinks into the Shardrealm, the hollow where the Heart lay. The dragon took the Pact to stay bound; its
-price is a royal firstborn each generation, whose blood keeps the pieces apart, and the dragon carries the largest
-piece itself. The King's Shard Seam is where the Heart was broken. Mary found the Pact's price at the Wizards' Court
-and ran to learn how it was made; her notes are found as you go. Each chapter gives a piece (Aldous: the pieces "want
-to go home"; the Sunken Grimoire: the Breaking; the Ember Ring: the Pact's seal; the Shardrealm's core: the hollow;
-the dragon, dying: what it carried), still discovered, never laid out. At the Seam you choose: keep the pieces apart
-(the Binding) or bind the dragon's piece into the crown; the game plays the same after either. You don't leave the
+**The secret under it all: the Cutting** (the owner's choice; replaces the Heart of Ashen; `dev/Story and Quests.md`
+"The secret of the Shards"). The dragon was a **devourer**, a vast hungry thing that swallowed the world's magic. The
+first king **cut it down**: almost all of it was pushed out of the world into the Shardrealm, and what was left was
+small enough to bind. **Shards are scraps of it**, thrown off by the Cutting: its power and hunger in small pieces,
+tamed enough to use and still growing, and good at telling you what you want to hear. That's why a dead beast's
+remnants go for its killer (a scrap wants a body to grow in), and why broken magic sinks into the Shardrealm, the rest
+of the dragon, asleep (its rim the cooled edge, its core a storm where it dreams). The Pact is extortion: a royal
+firstborn each generation is what the dragon feeds on, and the King's Shard Seam is where the first cut was made. **The
+dragon is a villain and killing it is right**; the rest of it stays asleep in the Shardrealm as a shadow after. Mary
+found the Pact's price at the Wizards' Court and ran to learn how it was made; her notes are found as you go. Each
+chapter gives a piece (Aldous: take it in before it takes root in you; the Sunken Grimoire and the Ember Ring: the
+king's side; the Shardrealm's core: the dragon's sleeping body; the dragon, dying: what it carried), still discovered,
+never laid out. The Glass Wardens' chain in the Shardfall Deep (a side storyline, level 20+) puts the rest together. At
+the Seam you choose: the Binding, the Crown, or, only with the Wardens' truth, **Unmake** (break the Seam: storms calmer
+and remnants passive for you, no more Crown Shards); the game plays the same after any. You don't leave the
 Isle till you know what Shard Remnants are (Bess and Wim won't sail till you've absorbed some).
 
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
@@ -283,7 +288,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   ground, real buildings, landmarks, monsters; the quest givers live in a few, with company, and no monster on their
   doorstep); never a ruin's outline: a few ruins, each its own shape (a corner, a tower's stump, a hall's wall,
   a wall with an arch, a foundation: `--ruins`), rubble round them and the odd thing to pick up.  You leave the Isle at level 3 (Bess and Wim won't sail before).
-- **Mary's notes** (`dev/migrate/build_wonders.py` NOTES): seven notes where she went; all found make a map to her cache at the Mirror Tarn (`Mary's Notes`), the Heart Splinter. Found, never told.
+- **Mary's notes** (`dev/migrate/build_wonders.py` NOTES): seven notes where she went; all found make a map to her cache at the Mirror Tarn (`Mary's Notes`), the Seam Splinter. Found, never told.
 - **Banter** (`dsengine/banter.py`, `data/Banter.ini`, `dev/migrate/build_banter.py`): the world's people and animals carry
   on with each other where a player can see it. About every `Every.Seconds`, two near that player whom a scene fits stop,
   turn to each other and have a few words in bubbles (never the chat log); a dog sends a cat running (`After=Scatter`); the
@@ -303,6 +308,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   dungeons (a map `Trigger Trap_<Kind>`: `deep.py` world_trap), animals that talk to you in an animal's body
   (`tricks.py` ANIMAL_TALK); `dev/migrate/build_whimsy.py` places them. Keep adding them, in what things and people
   say and do; a sign still never hints.
+- **The Shardfall Deep** (`dev/migrate/build_shardfall.py`, art `shardfall_art.py`): the level 20+ zone under the sea north of Ashford, round 8,-13,-1 (maps 4..12 by -17..-5 on level -1), where a great Shard fell into the sea. The way in is Gull Point's sea cave (12,-5,0) and the Wardens' Seal (a Lock: `ShardfallGate>=5`, the signet woken with Shards and Shardcraft 15). Its areas each have their own ground (textures), walls (each wall terrain its own rock tile, so the editor never mixes their faces), decor and monsters: the Drowned Stair, the Glimmering Galleries (a secret grotto, the Singing Geode), the Brinewater (glowfin, Fishing 22; the Brine Mother), the Lantern Wood (the delvers' camp and a shardstone, nothing hostile near it), Leviathan's Rest, the Wardens' Hold (dressed stone rooms, traps; the Hollow Marshal) and the Shardfall (Shard pools; the Shardborn; the Fallen Shard, Shards once a real day). **It's dim at every hour** (Config.ini `[Darkness] Maps`, `sky.js` dimHere): lit only by what has a `Light=` in it. Its maps are laid out once (`--maps` lays them out again, over edits to them).
 - **The cold** (`dsengine/cold.py`, `data/Cold.ini`): out on snow or ice and not warm, health drops a little at a time
   after a grace (Cold by your health). Warm is a roof, a fire near, something worn with `Warm=1` (Fur Cap, Wool Hood,
   Wool Mittens: `build_cold.py`), or a Warming Draught lately (herbs: a potion).
@@ -448,8 +454,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   run again after it.
 - **The marshes** (the Mirefen and the marsh round Saltmarsh): their water is **marsh water** (`Bog001`, a greeny brown, `build_marsh.py`; painted with the Bog terrain), the sea's `Water001` only out at the sea itself (`marsh_water.py`, once on the maps). A long boardwalk wanders, a single line of planks (`wind_boardwalks.py` ROUTES); a street near a settlement's middle stays straight. Places out in them (`build_marsh_places.py`): the Sunken Barge, the Peat Cuttings and the Wisp Ring in the Mirefen, the Eel-Catcher's Hut and the Drowned Bell by Saltmarsh, none needed by a quest.
 - **Galaith's layout, the owner's sketch** (`dev/migrate/rearrange_galaith.py`, once): west to east the Royal quarter (walled, its gate on the boulevard, royal guards outside) with the Nobles' above and below; the fountain, graveyard, orchard and gardens; the Merchants' and the market; the hovels; then two more walls and the ground before the east gate, kept for war (ramparts, palisades, stores, guards). A tree-lined marble boulevard runs from the east gate to the palace door (`BLVD`). The palace is on -10,14,0 now.
+- **Galaith's Royal quarter is a household** (`dev/migrate/build_royal_quarter.py`, the owner's wish): the palace has three storeys, the throne hall (-10,14,0) left exactly as the story's scenes need it; a stair down at (2,2) to the kitchens, servants' hall, larder and wine cellar (-10,14,-1), the King's stair up at (18,2) to the solar, Queen Mary's chamber, the nursery and the King's bedchamber (-10,14,1). Round it: the servants' quarters and the guards' lodgings, the royal stables with a riding yard and a farrier, kennels, a drill yard and gardens, everyone in it with a bed or a watch that never sleeps, the named folk with words of their own.
 - **Galaith is paved inside its walls** (`dev/migrate/build_galaith_grounds.py`, the owner's wish; once on the maps): the
-  Royal quarter in `Royal_Paving001`, the Nobles' in `Noble_Paving001`, the rest in `Flagstone001`; **no paths or streets of their own
+  Royal quarter in `Royal_Paving001`, the Nobles' in `Marble_Paving001` (the owner's repaving; it was `Noble_Paving001`), the rest in `Flagstone001`; **no paths or streets of their own
   on it** (`dev/migrate/galaith_no_paths.py`, the owner's wish: it's all stone, so a line of cobble or marble is only a line;
   the market square and the Fountain Court keep their marble, the two lawns their gravel); a tree stands in its own `Tree_Pit001` (an Under: it works on any paving). Just inside the east gate:
   the **Fountain Court** (`Galaith_Fountain`: the raised pool is a Stretch set, `Fountain_Pool`; its shadow on the paving

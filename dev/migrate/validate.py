@@ -4,6 +4,7 @@ data\\Quests.ini (read by the in-game Help screen) and whether every shop/craft 
 Run:  python -I "dev\\migrate\\validate.py"  [--quiet]
 Exit code 0 = no errors (warnings allowed), 1 = errors.
 """
+import functools
 import os
 import re
 import sys
@@ -1362,7 +1363,8 @@ def check_entities():
 
 SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
-               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Shardgate", "Realm.Cluster",
+               "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Shardfall.Draw", "Shardfall.Draw.Hours",
+               "Shardfall.Seal", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Shardgate", "Realm.Cluster",
                "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
     "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost"},
     "Shardcraft": {"Dismantle.XP", "Dismantle.XP.Min", "Shardstone.XP", "Rare.Chance", "Rare.Chance.Per.Level",
@@ -1749,8 +1751,9 @@ def check_minimap():
 
 
 # ------------------------------------------------------------------ help screen data (Gathering.ini, Quests.ini)
+@functools.lru_cache(maxsize=None)
 def script_lines(name):
-    """[(command, [args])] of a script, or [] when missing."""
+    """[(command, [args])] of a script, or [] when missing (read once: every quest asks about every script)."""
     path = os.path.join(SCRIPT_DIR, name + ".txt")
     if not os.path.exists(path):
         return []

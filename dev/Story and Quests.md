@@ -4,21 +4,30 @@ A summary of the quests in the game as it stands, for planning the story and mak
 comes first, step by step; then the side quests, by region. The last section says where each quest lives in the
 game's files.
 
-## The secret of the Shards (the Heart of Ashen)
+## The secret of the Shards (the Cutting)
 
-Being written into the chapters (`dev/Roadmap.md` group 8). The heir's story stays; under it is what Shards are.
+The heir's story stays; under it is what Shards are. (This replaced the earlier "Heart of Ashen" idea, the owner's
+choice: the dragon should be a real villain, so killing it feels right.)
 
-- **The Heart of Ashen**: once all the world's magic was one crystal. The first king broke it to bind the dragon (the
-  **Breaking**); its pieces are the Shards. Every piece wants to be whole again: a dead beast's remnants go for whoever
-  killed it, and broken magic sinks into the Shardrealm, the hollow where the Heart lay.
-- **The Pact**: the dragon took the bargain to stay bound. Its price is a royal firstborn each generation, whose blood
-  keeps the pieces apart. The dragon carries the largest piece itself. The King's Shard Seam is where the Heart broke.
+- **The dragon was a devourer**: a vast, hungry thing that swallowed the world's magic and wanted all of it. The first
+  king found a way to **cut it down** (the **Cutting**): almost all of it he pushed out of the world into a hollow, the
+  **Shardrealm**; what was left was small enough to bind. That's the dragon the heir meets.
+- **Shards are scraps of it**, thrown off by the Cutting: its power and its hunger in small pieces, tamed enough to
+  use, and still growing, and good at telling you what you want to hear. A dead beast's **remnants** go for whoever
+  killed it because a scrap wants a body to grow in. Broken magic sinks into the Shardrealm, the rest of the dragon,
+  asleep: its rim is the cooled edge, its core a storm where it dreams. The dragon could anchor its barrier there
+  because it's its own place.
+- **The Pact** is extortion: a royal firstborn each generation is what the dragon feeds on so it doesn't tear its
+  barrier open, and the blood also keeps the Cutting's wound apart. The King's Shard Seam is where the first cut was made.
+- **The dragon is a villain and killing it is right.** But the rest of it is still asleep in the Shardrealm, a shadow
+  that stays after the dragon dies.
 - **Mary** found the Pact's price while she studied at the Wizards' Court, and ran to learn how it was made. Her notes
   are found as you go.
-- **Through the chapters**: Aldous's lesson on remnants (the pieces "want to go home"); the Sunken Grimoire (the
-  Breaking); the Ember Ring (the Pact's seal); the Shardrealm's core (the hollow); the dragon, dying (what it carried);
-  a stealthy part in The Royal Guard (Mary's notes in the Archive's sealed vault, past its watchmen at night); the
-  King's Seam (the choice: keep the pieces apart, the Binding, or bind the dragon's piece into the crown).
+- **Through the chapters**: Aldous's lesson on remnants (take it in before it takes root in you); the Sunken Grimoire
+  and the Ember Ring (the king's side: the Cutting told as a triumph; the Pact's seal); the Shardrealm's core (the
+  dragon's sleeping body); the dragon, dying (what it carried); a stealthy part in The Royal Guard (Mary's notes in the
+  Archive's sealed vault, past its watchmen at night); the **Glass Wardens** (below) for the rest; the King's Seam
+  (the choice: the Binding, the Crown, or, with the Wardens' truth, Unmake).
 - Before leaving the Isle you must know what Shard Remnants are: Bess, and Wim after her, won't sail till you've
   absorbed some (`RemnantsAbsorbed`); they send you to Brother Aldous.
 
@@ -289,6 +298,164 @@ throne in the great hall: choose its effect (a bolt, a burst round you, a frost 
 (as far as your Magic goes) and its reach; its Shards and rest are worked out to balance. Write it again whenever you
 like, for a few Shards. Reward: 20 Shards, Magic experience.
 
+### The Shardfall Deep (level 20 and up)
+
+Under the sea north of Ashford, a great cave where a great Shard fell long ago, and the hold the first
+king's Glass Wardens built beside it (`dev/migrate/build_shardfall.py`).
+
+**Glass in the Nets** (`ShardfallGate`, the way in). Nell Tarrow, a fisherwoman at Gull Point (the tip of Ashford's
+peninsula), pulls glowing glass out of the sea. The sea cave in the point's rocks goes down to a door of black glass,
+the Wardens' Seal; Nell sends you to her grandmother Bryony, who gives you her late husband's Warden's Signet. Pour
+100 Shards into it at the Seal, with Shardcraft 15, and it opens (for you). Reward: 40 Shards, Shardcraft.
+
+**Charting the Deep** (`DeepChartQuest`). Pell Varrow, a cartographer camped in the Lantern Wood, wants five places
+on her chart: stand in the Brinewater, Leviathan's Rest, by the Singing Geode, in the Wardens' Hold and in the
+Shardfall. Reward: 600 gold, 40 Shards.
+
+**The Brine Mother** (`BrineQuest`). Morrow the angler (the same camp) wants the Brine Mother dead, on the
+Brinewater's north shore. Reward: the Brine Pearl Ring, 500 gold, 30 Shards.
+
+**The Last Watch** (`WardenQuest`). Ysolde, the last Glass Warden's ghost, keeps the Hold's gate: end Marshal Corvane,
+the Hollow Marshal, in the Great Hall, and bring her his seal. The Reliquary's iron door opens to you (its chest: the
+Wardens' Aegis, a Lightning scroll II). Reward: 60 Shards.
+
+**The Fallen Shard** (`FallenShardQuest`, after The Last Watch). Break the Shardborn in the Shardfall, then lay your
+hand on the Fallen Shard and hear what the Wardens heard. Reward: the Shardglass Blade, 80 Shards. After it
+the Fallen Shard gives Shards once a (real) day (Draw From).
+
+#### The Glass Wardens (a secondary storyline in the Deep)
+
+*Planned, not built yet. Written to be read by a twelve-year-old and still be worth an adult's time: plain words, one
+big idea, and the frightening parts kept gentle. It builds on the Deep as it stands (Ysolde, Corvane, Hale, the Brine
+Mother, Nell and Bryony, the five quests above) and changes none of their stages, rewards or attributes.*
+
+**The idea in one line.** The Shards are scraps of the dragon, and they're still a little bit of it: hungry, growing,
+and very good at telling you what you want to hear.
+
+**The truth under the whole game (replacing the Heart of Ashen).** The dragon was a **devourer**, a vast, hungry thing
+that swallowed the world's magic and wanted all of it. The first king found a way to **cut it down**: almost all of it
+he pushed out of the world into a hollow (the **Shardrealm**), and what was left was small enough to bind. That is the
+dragon the heir meets. The cutting threw off scraps: those are **Shards**. They are not a crystal, not a treasure and
+not gentle. They are its power and its hunger in small pieces, tamed enough to use.
+
+- **Remnants hunt their killer** because a scrap wants a body to grow in.
+- **The Shardrealm** is the rest of the dragon, asleep. Its rim is the cooled edge; its core is a storm where it
+  dreams. It's why broken magic sinks there, and why the dragon could anchor its barrier there: it's its own place.
+- **The Pact** is extortion, not a bargain. A royal firstborn each generation is what the dragon feeds on to keep
+  from tearing its barrier open. The King's Shard Seam is where the first cut was made.
+- **Killing the dragon is right.** It's a villain, and nobody should feel bad about it. But the rest of it is still
+  asleep in the Shardrealm: a **shadow** that stays after the dragon dies.
+- **Shardcraft** is learning to use its power without being used by it.
+
+**What the Wardens learned, one piece at a time** (each found, none told; a journal, a vision or a person gives one
+piece, and the last quest puts them together):
+
+1. **The Shard grows.** Hale measured it for years: a hair a year, always. A scrap of the dragon that is growing back.
+2. **It sings, and the song is a voice.** It tells you what you want, and offers it. If you answer, you're lost.
+   Corvane answered. (Mary's note: *listen, but never answer it.*)
+3. **It is calling something.** The Wardens heard something very large answer, a long way down.
+4. **The first king's orders were fear.** He told them to keep it asleep. If the scraps were ever joined to the rest,
+   the cut would heal and the dragon would come back whole.
+5. **The Seam is a wound the Pact keeps open.** The firstborn's blood holds the cut apart: the dragon's price is also
+   its prison. Break the Seam itself and the shadow fades. The Order died knowing this and could not get to it.
+
+**Why this fits the rest of the story.** Aldous's remnants lesson now means *take it in before it takes root in you*.
+The Sunken Grimoire and the Ember Ring are the king's side, the cutting told as a triumph. The Shardrealm chapter's
+core is the dragon's sleeping body. Mary's notes stop at the Pact's price; here is the part she learned in the Deep
+when she was young (see her eighth note below).
+
+**Tone rules for every line in this chain.** Short sentences. Say it with an image, not a lecture (a plant growing
+in the dark; a song you can't stop humming; a voice that knows your name). Nothing gory. Ghosts are sad and kind,
+never scary for its own sake; the dragon's voice is the only thing that is truly sinister, and it is charming. A sign
+still never hints, and nothing is laid out: the finale puts the pieces together, it doesn't announce them.
+
+**How it starts: above ground.** The chain begins where Glass in the Nets does: Nell Tarrow at Gull Point. Two
+more doors lead in without anyone being told: Ashford's rumours (the glowing nets; the woman who asked questions in
+every library) and one of Mary's notes naming the Order. A player who ignores it loses nothing.
+
+**Shape.** A gate, a wide middle you can do in any order, one finale.
+
+```
+Glass in the Nets (the gate: the Seal)                         [exists]
+├── Charting the Deep (Pell)                                   [exists]
+├── The Brine Mother (Morrow)  + Odile's Log (new, one line)   [exists, one addition]
+├── The Last Watch (Ysolde) ── The Fallen Shard                [exist, one addition: the vision]
+├── The Wardens' Words (Pell): six lost journals, nine in all  [new]
+└── The Four Notes (found by listening at the Singing Geode)   [new]
+        ↓  all of: nine journals, Four Notes, Odile's Log, The Last Watch
+What the Wardens Heard (Ysolde): the Listening Room            [new finale]
+```
+
+All `Type=Side`, `Requires.Level=20`; the new ones are named so they read as a set in the journal ("The Glass
+Wardens: The Four Notes"). The new quests only read the old ones' attributes (`ShardfallGate`, `DeepChartQuest`,
+`BrineQuest`, `WardenQuest`, `FallenShardQuest`); they never change them.
+
+**The quests**
+
+- **The Wardens' Words** (`WardensWords`, Pell Varrow). Pell wants the Order's own writing for her book. Nine
+  journals lie about the Deep, three already in the Hold's library; six more are new (the camp's old cairn,
+  Leviathan's Rest, the Chapel, the cistern, the Shardfall's rim, and the Brinewater's shore). They run in the order
+  the Order fell, whichever order you find them: Ysolde (the watch is quiet), Hale (it grows), Corvane (it asks to be
+  listened to), Odile (the water hums back), Hale (the growth is quicker: something answers), Corvane (I asked it a
+  question and it answered: it knows my name), Ysolde (the Order splits), Odile (I am going into the water, to get
+  away from it), Ysolde (the last: *don't answer it*). A count in an attribute, like Charting the Deep. Reward: gold,
+  Shards, and Pell's finished book as an item to read.
+- **The Four Notes** (`FourNotes`, begun by listening at the Singing Geode). The Geode sings four notes in an order.
+  Four **Warden's Chimes** (water at the Brinewater, bone at Leviathan's Rest, flame in the Chapel of the Flame, glass
+  at the Shardfall's rim) are the Order's wards, each ringing one note to drown the voice out. Strike them in the
+  Geode's order and the Hold's inner seal answers: the Listening Room is safe to hear in. *Sound-based, not worded*:
+  the Geode plays its four sounds and each chime plays its own, so the puzzle is heard. **Seasons**: the order shifts
+  with the season, so it's a puzzle to listen to afresh, and the Geode always sings today's. Reward: Shardcraft, and
+  the way to the Listening Room.
+- **Odile's Log** (no quest; an addition to the Brine Mother). Killing the Brine Mother, as now, finishes Morrow's
+  quest. She also drops *Odile's Log*: a Warden's cook who went into the water to get away from the song, and was
+  changed by it. She dragged sailors under because she knew it calls to them and couldn't stop. The kill stays a
+  kill, and a mercy; the log makes it a sad one. Morrow gets one more line when you show it: it doesn't undo Davey,
+  it explains.
+- **The Last Watch / The Fallen Shard** (existing). The Hollow Marshal's honour guard can be passed by Sneaking (or
+  fought). The Shardborn's Singing Remnant, absorbed, plays **the vision**: a short flashback of the cutting as the
+  dragon felt it, huge, furious, and then small. It sets `SawCutting`.
+- **What the Wardens Heard** (`WardensHeard`, Ysolde; the finale). When the four are done she asks you to the
+  **Listening Room**, a small chamber behind the Reliquary where the Order did their listening. You stand there
+  in the **Channelling stance** and hold it while the voice speaks. It's charming, it knows your name, and it offers you
+  things; it tells the truth because it believes you'll help it. Hold the stance and don't answer: the voice boasts of
+  the cutting, of what the Pact feeds, and of the one thing it fears, the Seam being broken. (A player who doesn't use
+  stances is told, by Ysolde, to.) Ysolde rests (she fades, with the Shard's chime). **Mary's eighth note** lies in the
+  room: she was here young and unmarried, Ysolde let her by because she listened and didn't answer, and she copied
+  what she heard. Reward: the **Wardens' Lantern** (a light), 100 Shards, Shardcraft XP, and `WardensTruth`.
+- **What changes above ground afterwards.** Nell's nets come up with ordinary fish again, and the glass stops
+  glowing; Bryony says her mother was right; Pell redraws her chart; Ashford's rumours change. Quiet things.
+
+**The Shardsong** (an affliction, `data/Diseases.ini`; optional; the Malaria rules apply). The longer you stand near
+the Geode or the Fallen Shard, the more a faint voice gets into your head. It stays through death and logging off,
+comes as a short *listening* bout now and again (you sway and stop; afterwards your eyes are sharper for a moment, so
+you see traps and secrets), and goes only for what says `Cures=Shardsong`: the **Quiet Draught**, brewed in Alchemy
+from glowfin and shore salt. Morrow knows it; he's had it for years. A cost with a bonus, never a death.
+
+**At the King's Seam: the third answer, Unmake.** Needs `WardensTruth`, so it's found through this chain, never
+offered cold. The two old answers stand: the **Binding** (your blood the lock, the Seam gives the Crown Shards each day
+as now) and the **Crown** (the dragon's piece in the crown: stronger, and it sings faintly in your head). **Unmake**
+breaks the Seam itself. It costs the daily Crown Shards and the crown, and it gives:
+- **Calmer storms.** Shard storms are rarer, shorter and softer for you.
+- **Passive remnants.** The remnants of what you kill no longer hunt you; they lie where they fall to be absorbed.
+- the Shardrealm still there, thinner and quieter: a shadow that stays after the dragon is gone, going slowly dark.
+- a **statue** in Galaith's square, a title, and a trophy (a hammer-head from the Seam). No extra power.
+Shards still exist and still work. The dragon's *hold* is what's gone. *(Personal to you, like every ending's
+epilogue: the world round you keeps its storms and remnants for everyone else.)*
+
+**With company.** A story moment is yours; nothing needs a second player. A party near you at the same stage
+reaches it too. The Shardborn and the Hollow Marshal get more health for each fighter, as every boss does.
+
+**Rumours and banter** (data only): Ashford's gossip about the glowing nets and the fisherwoman; Nell and Bryony's
+lines to each other; Pell talking to the mushrooms. No hints in any of it.
+
+**New things this needs.** Items: Odile's Log, six journals, the Warden's Chimes (four), the Quiet Draught, the
+Wardens' Lantern, the Singing Remnant, the Seam's hammer-head. A small Listening Room map (a free map, laid out by the
+new builder alone, never over the owner's edits). The Shardsong disease. Engine: a personal "Unmade" attribute that
+quiets storms (`wonders.py`) and makes the player's remnants passive (`remnants.py`). A chain name in the journal (or a
+naming prefix). Sounds: four chime notes, the vision's sound, Ysolde's rest. Everything in a new builder,
+`dev/migrate/build_glass_wardens.py`, with the small additions to the Shardfall scripts made in `build_shardfall.py`.
+
 ---
 
 ## How the quests lead into one another
@@ -372,6 +539,11 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Withering Wood | DruidQuest | Talk to Druid, Heartwood, Kill Bear |
 | The Barrow King | BarrowQuest | Talk to Gravekeeper, Barrow Door, Kill Barrow_King |
 | The Lost Patrol | PatrolQuest | Talk to Scout |
+| Glass in the Nets | ShardfallGate | Talk to Nell_Tarrow, Talk to Bryony_Tarrow, Touch Shardfall_Seal |
+| Charting the Deep | DeepChartQuest | Talk to Pell_Varrow, Chart_Brinewater, Chart_Rest, Chart_Geode, Chart_Hold, Chart_Fall |
+| The Brine Mother | BrineQuest | Talk to Morrow_Angler, Kill Brine_Mother |
+| The Last Watch | WardenQuest | Talk to Warden_Ysolde, Kill Hollow_Marshal |
+| The Fallen Shard | FallenShardQuest | Talk to Warden_Ysolde, Kill Shardborn, Touch Fallen_Shard |
 
 House rules for new writing (from `CLAUDE.md`): notices and signs never give hints; a conversation answer that
 belongs to one stage of a quest shows only at that stage; each player's chest loot and quest progress are their

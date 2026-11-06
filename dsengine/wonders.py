@@ -137,7 +137,7 @@ class Wonders:
         x, y = m.ox + (tx - 1) * w.tw, m.oy + (ty - 1) * w.th
         w.drop_item("Shard_Remnant", p.z, x, y, max(1, s.player_level() // 3))
         w.fx_anim("Shard_Form", p.z, x + 16, y + 16, 700)
-        if self.rng.random() * 100 < self.num("Storm", "Rise.Chance", 35):
+        if s.get_attribute("Unmade") != "1" and self.rng.random() * 100 < self.num("Storm", "Rise.Chance", 35):   # (calmer once the Seam is unmade)
             e = self.add("Living_Remnant", m, tx, ty, "Attitude=Bad")
             if e is not None:
                 from .remnants import make_remnant

@@ -63,8 +63,10 @@ def script():
                  ("Goto.Line", "@dig")]
     rows += [
         ("@dig",),
-        # (the ending: the first time, where the Heart of Ashen broke, you choose what becomes of its pieces)
+        # (the ending: the first time, where the dragon was cut, you choose what becomes of what is left of it;
+        #  HeartChoice keeps its old name, it is in saves: 1 the Binding, 2 the Crown, 3 Unmake)
         (">Conditional", "$Attr.HeartChoice>=1", "@choose"),
+        (">Conditional", "$Attr.HeartChoice<3", "@unmade"),
         ("Get.Value", "ATTRIBUTE", "ShardSeamAt", "Variable.4$"),
         ("Get.Value", "CALCULATION", "$Clock-$Variable.4", "Variable.5$"),
         ("Get.Value", "CALCULATION", "$Shards.Galaith.Seam.Hours*3600", "Variable.6$"),
@@ -81,27 +83,41 @@ def script():
                                       "Crown's again."),
         ("End",),
         ("@choose",),
-        ("Display.Conversation", "Player", "Your hand on the seam, you feel it: this is where the Heart of Ashen broke. "
+        ("Display.Conversation", "Player", "Your hand on the seam, you feel it: this is where the dragon was cut. "
                                            "Every Shard in the world leans toward this place, and the dragon's last "
-                                           "words come back to you: keep them apart, or make it whole.",
-         "Keep the pieces apart: the Binding holds.", "@apart", "Make it whole, in the Crown.", "@whole",
+                                           "words come back to you: keep it shut, or wear what is left of it.",
+         "Give your blood to hold the Cut shut: the Binding.", "@apart", "Set its piece in the Crown, and wear it.", "@whole",
+         "Break the Seam. Unmake the Cut. [if $Attr.WardensTruth>=1]", "@unmake",
          "Not yet.", "@later"),
         ("@apart",),
         ("Update.Attribute", "HeartChoice", "=1"),
         ("Give.Item", "Shard", "60"),
         ("Play.Sound", "Quest"),
-        ("Display.Message", "Yellow", "You take your hand away. The pieces stay apart, and the Binding holds, as it "
+        ("Display.Message", "Yellow", "You take your hand away. The Cut stays shut, and the Binding holds, as it "
                                       "always has: the Crown's to keep now, and yours.", "-"),
         ("End",),
         ("@whole",),
         ("Update.Attribute", "HeartChoice", "=2"),
         ("Give.Item", "Heartstone_Ring", "1"),
         ("Play.Sound", "Quest"),
-        ("Display.Message", "Yellow", "The seam flares, and something warm and whole settles into your palm: a "
-                                      "Heartstone, set in a ring. The Heart beats again, small, in the Crown's keeping.",
-         "-"),
+        ("Display.Message", "Yellow", "The seam flares, and something warm settles into your palm: a piece of the "
+                                      "dragon, set in a ring. It hums, faintly, and it knows your name. It is the Crown's "
+                                      "to keep now, and yours.", "-"),
+        ("End",),
+        ("@unmake",),
+        ("Update.Attribute", "HeartChoice", "=3"),
+        ("Update.Attribute", "Unmade", "=1"),
+        ("Give.Item", "Seam_Hammerhead", "1"),
+        ("Play.Sound", "Quest"),
+        ("Display.Message", "Yellow", "You do not give your blood and you do not take the piece. You press both hands "
+                                      "to the seam and say no, and the old cut breaks open like a held breath let go. "
+                                      "Somewhere far below, something huge turns over in its sleep, and begins, very "
+                                      "slowly, to fade. The storms will be calmer now, and the scraps will not come "
+                                      "for you. The seam goes dark.", "-"),
         ("End",),
         ("@later",), ("End",),
+        ("@unmade",), ("Display.Message", "Cyan", "The seam is dark and still. Whatever lay under it is a long way "
+                                                  "down now, and going quiet.", "-"), ("End",),
         ("@dim",), ("Display.Message", "DarkRed", "The seam glows dimly: its Shards haven't grown back yet.", "Fail"),
         ("End",),
         ("@nopick",), ("Display.Message", "DarkRed", "You need a pickaxe!", "Denied"), ("End",),
@@ -124,11 +140,16 @@ def data():
     for k, v in SHARDS:
         shards.set("Shards", k, v, overwrite=False)
     shards.save(p("data", "Shards.ini"))
-    for k, v in (("Type", "MapItem"), ("Display.Name", "Heartstone Ring"), ("Slot", "Ring"), ("Magic", "4"),
+    for k, v in (("Type", "MapItem"), ("Display.Name", "Dragonstone Ring"), ("Slot", "Ring"), ("Magic", "4"),
                  ("Defence", "1"), ("Stackable", "1"), ("Droppable", "0"), ("Value", "0"),
-                 ("Examine.Info", "The Heart of Ashen, made whole and small, in a ring of the Crown's gold. It "
-                                  "beats, faintly, against your finger.")):
+                 ("Examine.Info", "A piece of the dragon, set in a ring of the Crown's gold. It hums, faintly, "
+                                  "against your finger, and it knows your name.")):
         ents.set("Heartstone_Ring", k, v)
+    for k, v in (("Type", "MapItem"), ("Display.Name", "Seam Hammer-Head"), ("Stackable", "1"), ("Droppable", "0"),
+                 ("Value", "0"), ("Use.Words", "Examine"),
+                 ("Examine.Info", "The head of a hammer, cold and heavy, that broke the Seam. It is not a weapon. It is "
+                                  "what is left of a cut that is not coming back.")):
+        ents.set("Seam_Hammerhead", k, v)
     ents.save(p("data", "Entities.ini"))
 
 
@@ -141,10 +162,26 @@ def place():
     print("The seam, on %s at %d,%d" % (MINE, AT[0], AT[1]))
 
 
+def hammerhead():
+    """The Seam's hammer-head (a dark iron block with a worn face, a violet glint where it struck the Seam)."""
+    from PIL import Image, ImageDraw
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    dark = (24, 20, 30, 255)
+    d.polygon([(5, 11), (25, 9), (27, 20), (7, 23)], fill=dark)
+    d.polygon([(6, 12), (24, 10), (26, 19), (8, 22)], fill=(92, 90, 104, 255))
+    d.polygon([(6, 12), (24, 10), (24, 13), (7, 15)], fill=(132, 130, 146, 255))
+    d.rectangle([13, 21, 18, 26], fill=dark)
+    d.rectangle([14, 21, 17, 25], fill=(104, 70, 44, 255))
+    d.line([(20, 14), (23, 18)], fill=(190, 150, 250, 255))
+    im.save(p("sprites", "Entities", "Seam_Hammerhead.png"))
+
+
 def main():
     print(("wrote " if K.save("Entities", "Shard_Seam", seam()) else "unchanged ") + "Shard_Seam")
     import build_heir_mainland as HM                  # (the Heartstone Ring: drawn as the Ember Ring is)
     SK.save("Entities", "Heartstone_Ring", HM.ring((176, 120, 255)))
+    hammerhead()
     data()
     place()
     script()

@@ -186,7 +186,7 @@ def join_pieces(project, brush):
     return out, below
 
 
-def join_pick(pieces, mask):
+def join_pick(pieces, mask, below_of=None):
     """The piece for a cell joined on the sides in mask: the one that joins just those, else one that joins any
     (a tower), else the straight one along them (an end), else the post."""
     want = set(mask)
@@ -194,6 +194,10 @@ def join_pick(pieces, mask):
     if exact:
         return exact[0]
     anyway = [n for n, j in pieces.items() if j == "*"]
+    if "S" in want and ("N" in want or {"E", "W"} <= want):            # (a wall running on south has no tower's face
+        through = next((n for n, j in pieces.items() if set(j) == {"N", "S"}), None)   # cutting it: a T keeps the straight piece)
+        if through and not (below_of or {}).get(through):
+            return through
     if anyway and want:
         return anyway[0]
     if want <= {"E", "W"} and want:
@@ -237,14 +241,16 @@ def lay_joins(project, brush, cells, get, put, erased=()):
     for x, y in todo:
         if (x, y) in faced:
             continue
-        name = join_pick(pieces, mask(x, y))
+        name = join_pick(pieces, mask(x, y), below)
         if name is None:
             continue
         if get(x, y) != name:
             put(x, y, name)
             changed += 1
         under = below.get(name)
-        if under:                                                      # (two tiles tall: its face in the cell below)
+        if under and "S" in mask(x, y):                                # (the wall goes on south: no face cutting it, a corner
+            under = None                                               #  turning south keeps the wall below it)
+        if under:                                                    # (two tiles tall: its face in the cell below)
             if get(x, y + 1) != under:
                 put(x, y + 1, under)
                 changed += 1

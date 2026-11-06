@@ -324,7 +324,8 @@ def test_a_ghost_ship_comes_and_is_gone_by_morning(world):
 
 
 def test_no_building_in_galaith_stands_across_a_map_edge(world):
-    # (a roof's group is its own map's: half of it wouldn't lift as you went in)
+    # (a roof's group is its own map's: half of it wouldn't lift as you went in. The orchard gardener's cottage on
+    # -9,15 / -8,15 is the owner's, left across the edge on purpose)
     for mx in range(-11, -3):
         for my in range(12, 18):
             m = world.maps.get("%d,%d,0" % (mx, my))
@@ -333,6 +334,8 @@ def test_no_building_in_galaith_stands_across_a_map_edge(world):
             if m is None:
                 continue
             for y in range(1, 22):
+                if m.name == "-9,15,0":
+                    continue
                 assert not (east and m.roof[m.cell(25, y)] and east.roof[east.cell(1, y)]), (m.name, y)
             for x in range(1, 26):
                 assert not (south and m.roof[m.cell(x, 21)] and south.roof[south.cell(x, 1)]), (m.name, x)
@@ -2387,7 +2390,7 @@ def test_the_guards_kills_count_and_whoever_fought_is_rewarded(world):
 
 def test_mo_sits_for_a_portrait_only_when_sitting(world):
     from dsengine.entity import AI_IDLE, AI_ROAM
-    ottilie = next(e for e in world.ents if e.name == "Painter")
+    ottilie = next(e for e in world.ents if e.npc_id == "Ashford_Painter")   # (not the court painter in Galaith)
     pm = world.maps[ottilie.map]
     s = join(world, "Patron", ottilie.map, int(ottilie.x - pm.ox), int(ottilie.y - pm.oy + 40))   # (by her easel)
     s.connected = True
@@ -4525,7 +4528,7 @@ def test_editor_joins_fences_and_walls_and_smooths_mixed_grass():
     wall = {}
     WD.lay_joins(P, "City_Wall001", [(i, j) for i, j in WD.join_cells(5, 5)], lambda x, y: wall.get((x, y)),
                  lambda x, y, t: wall.__setitem__((x, y), t))
-    assert wall[(0, 0)] == "City_Wall003" and wall[(0, 1)] == "City_Wall005"   # (a corner tower over its face)
+    assert wall[(0, 0)] == "City_Wall003" and wall[(0, 1)] == "City_Wall002"   # (a corner tower, the wall going on south under it)
     assert wall[(2, 0)] == "City_Wall001" and wall[(2, 1)] == "City_Wall004"   # (battlements over the face)
     assert wall[(0, 2)] == "City_Wall002"                                       # (north-south, under the tower)
     coast = {(x, y): "Water001" for x in range(5) for y in range(5)}
@@ -5016,6 +5019,23 @@ def test_the_kings_seam_asks_what_becomes_of_the_heart(world):
     leave(world, s)
 
 
+def test_the_seam_can_be_unmade_only_with_the_wardens_truth(world):
+    s = join(world, "Unmaker")
+    stock(s, Pickaxe=1)
+    s.update_attribute("KingQuest", "=1")
+    s.update_attribute("WardensTruth", "=1")
+    seam = next(e for e in world.ents if e.npc_id == "Kings_Shard_Seam")
+    near(world, s, seam, 0, 30)
+    s.choose_verb("Mine", seam, int(seam.cx), int(seam.cy))
+    run_for(world, 30)
+    assert s.ab_mode == "Conversation"
+    s.action_box_response_chosen(3)                                 # (break it)
+    run_for(world, 20)
+    assert s.get_attribute("HeartChoice") == "3" and s.get_attribute("Unmade") == "1"
+    assert s.items_held("Seam_Hammerhead") == 1 and s.items_held("Heartstone_Ring") == 0
+    leave(world, s)
+
+
 def test_the_archive_vault_under_galaiths_city_hall(world):
     hall = next(m for m in world.maps.values() if any(i[0] == "Archive_Hatch" for i in m.ids))
     hx, hy = next(i[1:] for i in hall.ids if i[0] == "Archive_Hatch")
@@ -5316,8 +5336,8 @@ def test_editor_galaith_wall_joins_and_a_stroke_has_no_gaps():
     assert [run[(x, 5)] for x in range(5)] == ["Galaith_Wall003"] + ["Galaith_Wall001"] * 3 + ["Galaith_Wall003"]
     assert [run[(x, 6)] for x in range(5)] == ["Galaith_Wall005"] + ["Galaith_Wall004"] * 3 + ["Galaith_Wall005"]
     col = lay([(5, y) for y in range(6)])
-    assert [col[(5, y)] for y in range(7)] == ["Galaith_Wall003", "Galaith_Wall005"] + ["Galaith_Wall002"] * 3 + \
-        ["Galaith_Wall003", "Galaith_Wall005"]                       # (a tower's face takes the cell under it)
+    assert [col[(5, y)] for y in range(7)] == ["Galaith_Wall003"] + ["Galaith_Wall002"] * 4 + \
+        ["Galaith_Wall003", "Galaith_Wall005"]                   # (a face only under the south end, never cutting a wall that runs on)
     both = lay([(0, 5), (1, 5)], {(2, 5): "Burnt_Gate005", (-1, 5): "Burnt_Wall001"})
     assert both[(0, 5)] == both[(1, 5)] == "Galaith_Wall001"          # (run on through: no tower by the gate)
     for a, b in (((0, 0), (5, 3)), ((5, 3), (0, 0)), ((2, 2), (2, 7)), ((2, 2), (9, 2)), ((0, 0), (-4, 4))):
@@ -6283,7 +6303,8 @@ def test_galaith_is_paved_nicer_among_the_nobles_and_royals(world):
             assert m.tile[c] not in ("Grass001", "Dirt001"), (gx, gy, m.tile[c])
     m, c = ground(-258, 290)
     assert m.tile[c] == "Royal_Paving001"
-    assert any(ground(x, y)[0].tile[ground(x, y)[1]] == "Noble_Paving001" for x in range(-263, -226) for y in range(268, 286))
+    assert any(ground(x, y)[0].tile[ground(x, y)[1]] in ("Noble_Paving001", "Marble_Paving001")   # (the owner's marble, now)
+               for x in range(-263, -226) for y in range(268, 286))
     assert any(ground(x, 375)[0].tile[ground(x, 375)[1]] == "Flagstone001" for x in range(-146, -114))   # (the hovels')
     for tile in ("Royal_Paving001", "Noble_Paving001", "Lawn001"):
         assert d.tile_ini(tile, "Texture", "")                  # (a big texture: never one picture every tile)
@@ -7123,3 +7144,137 @@ def test_old_silt_talks_and_gives_one_eel(world):
         s.action_box_response_chosen(2)                             # (I'll leave you to it)
         run_for(world, 10)
     leave(world, s)
+
+
+def test_the_shardfall_deep_opens_only_to_a_woken_signet_and_its_shard_gives_once_a_day(world):
+    """The Shardfall Deep (dev/migrate/build_shardfall.py): down the sea cave on Gull Point; the Wardens' Seal shut till
+    Bryony's signet is woken there with Shards and Shardcraft 15; the Fallen Shard's Shards once a day to whoever
+    finished the watch; its maps dim (Config.ini [Darkness])."""
+    s = join(world, "Delver", "12,-5,0", 192, 300)
+    s.connected = True
+    s.god_mode = True
+
+    def tile_verb(verb, map_name, tx, ty, stand):
+        s.teleport(map_name, (stand[0] - 1) * 32, (stand[1] - 1) * 32 - 8)
+        if s.pending_map:
+            s.do_pending_map_change()
+        run_for(world, 5)
+        m = s.cur_map
+        gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+        s.out = []
+        s.choose_verb(verb, s.tile_entity_at(gx, gy), gx, gy)
+        run_for(world, 40)
+        if s.pending_map:
+            s.do_pending_map_change()
+        run_for(world, 5)
+        return " ".join(str(e.get("text", "")) for e in s.out if e.get("t") == "msg")
+
+    tile_verb("Enter", "12,-5,0", 7, 8, (7, 9))
+    assert s.cur_map.name == "12,-5,-1"                              # (down the sea cave)
+    m = world.maps["12,-6,-1"]
+    lk = m.lock_at[(7, 16)]
+    assert s.lock_closed(m, lk)                                      # (the Seal: shut)
+    assert "small round hollow" in tile_verb("Touch", "12,-6,-1", 7, 16, (7, 18))
+    s.update_attribute("ShardfallGate", "=4")
+    stock(s, Wardens_Signet=1)
+    s.add_shards(150)
+    start = s.shards()
+    assert "Shardcraft 15" in tile_verb("Touch", "12,-6,-1", 7, 16, (7, 18))
+    assert s.lock_closed(m, lk) and s.items_held("Wardens_Signet") == 1 and s.shards() == start
+    s.skill_level = lambda skill: 25
+    tile_verb("Touch", "12,-6,-1", 7, 16, (7, 18))
+    assert s.get_attribute("ShardfallGate") == "5" and not s.lock_closed(m, lk)
+    assert s.items_held("Wardens_Signet") == 0 and s.shards() == start - 100 + 40   # (Shardfall.Seal; the quest's reward)
+    tile_verb("Climb Up", "12,-5,-1", 7, 10, (7, 9))
+    assert s.cur_map.name == "12,-5,0"                               # (and up again)
+
+    shard = next(e for e in world.ents if e.npc_id == "The_Fallen_Shard")
+    near(world, s, shard, 32, 100)
+
+    def draw():
+        s.out = []
+        s.choose_verb("Draw From", shard, int(shard.cx), int(shard.cy))
+        run_for(world, 80)
+        return " ".join(str(e.get("text", "")) for e in s.out if e.get("t") == "msg")
+
+    before = s.shards()
+    assert "pushes you back" in draw() and s.shards() == before      # (not till the watch is finished)
+    s.update_attribute("FallenShardQuest", "=3")
+    before = s.shards()                                              # (after the quest's own reward)
+    assert "10 Shards" in draw() and s.shards() == before + 10
+    assert "given what it will" in draw() and s.shards() == before + 10
+    s.update_attribute("FallenShardAt", "=%d" % (int(s.get_attribute("FallenShardAt")) - 21 * 3600))
+    draw()
+    assert s.shards() == before + 20
+    dim = world.data.ini_read("Config.ini", "Darkness", "Maps", "").split()
+    assert shard.map in dim and "12,-6,-1" in dim and "12,-5,0" not in dim
+    leave(world, s)
+
+
+def test_the_shardfall_deep_is_all_one_place_with_its_people_and_its_three_of_a_kind(world):
+    names = [n for n in world.maps if n.endswith(",-1") and 4 <= int(n.split(",")[0]) <= 12
+             and -17 <= int(n.split(",")[1]) <= -5]
+    assert len(names) >= 40
+    ids = {e.npc_id: e for e in world.ents if e.npc_id}
+    for pid in ("Warden_Ysolde", "Pell_Varrow", "Morrow_Angler", "Nell_Tarrow", "Bryony_Tarrow", "The_Fallen_Shard",
+                "The_Singing_Geode", "Wardens_Reliquary", "Prism_Grotto", "Leviathans_Jaw"):
+        assert pid in ids, pid
+    for boss in ("Brine_Mother", "Hollow_Marshal", "Shardborn"):
+        e = next(e for e in world.ents if e.name == boss)
+        assert world.data.entity_ini(boss, "Boss", "") == "1" and int(world.data.entity_ini(boss, "Level", "0")) == \
+            (24 if boss == "Brine_Mother" else 25)
+    for kind in ("Prism_Crawler", "Shard_Wraith", "Hollow_Warden", "Shard_Drake"):
+        assert int(world.data.entity_ini(kind, "Level", "0")) >= 20
+    for q in ("Glass in the Nets", "Charting the Deep", "The Brine Mother", "The Last Watch", "The Fallen Shard"):
+        assert world.data.ini_read("Quests.ini", q, "Requires.Level", "") == "20", q
+
+
+def test_the_palace_has_cellars_below_and_the_royal_floor_above(world):
+    """Galaith's palace (dev/migrate/build_royal_quarter.py): the throne hall as it was, a stair down to the kitchens and
+    the King's own stair up to the royal floor; the courtyard's folk each have a bed or a watch that never sleeps."""
+    hall, cellar, upper = world.maps["-10,14,0"], world.maps["-10,14,-1"], world.maps["-10,14,1"]
+    assert hall.tile[hall.cell(2, 2)] == "Stairs002" and cellar.tile[cellar.cell(2, 2)] == "Stairs001"
+    assert hall.tile[hall.cell(18, 2)] == "Stairs001" and upper.tile[upper.cell(18, 2)] == "Stairs002"
+    rupert = next(e for e in world.ents if e.npc_id == "Rupert_On_Throne")
+    assert rupert.map == "-10,14,0" and (10, 8) in hall.lock_at          # (the story's throne hall, its door's lock)
+    s = join(world, "Courtier", "-10,14,0", 17 * 32, 2 * 32 - 8)
+    s.connected = True
+    m = s.cur_map
+    gx, gy = m.ox + 17 * 32 + 16, m.oy + 1 * 32 + 16
+    s.choose_verb("Climb Up", s.tile_entity_at(gx, gy), gx, gy)
+    run_for(world, 40)
+    if s.pending_map:
+        s.do_pending_map_change()
+    assert s.cur_map.name == "-10,14,1"
+    leave(world, s)
+    for name in ("-11,14,0", "-10,14,0", "-10,15,0", "-10,14,-1", "-10,14,1", "-11,15,0"):
+        mm = world.maps[name]
+        for ln in open(os.path.join(ROOT, "maps", name + ".txt"), encoding="cp1252").read().splitlines():
+            f = ln.split("	")
+            if f[0] != "NPC" or len(f) < 5:
+                continue
+            opts = " " + f[4] + " "
+            pid = opts.split(" Id=")[1].split()[0] if " Id=" in opts else ""
+            if pid.startswith(("Royal_", "Palace_", "Court_", "Nurse_")) and pid not in ("Palace_Guard_1", "Palace_Guard_2",
+                                                                                          "Palace_Captain"):
+                assert " Bed=" in opts or "Schedule=Always" in opts, pid   # (a bed, or a watch that never sleeps)
+                assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Talk to %s.txt" % pid)), pid
+            if " Bed=" in opts:
+                bx, by = (int(v) for v in opts.split(" Bed=")[1].split()[0].split(","))
+                assert mm.decor[mm.cell(bx, by)] in ("Bed001", "Bed003", "Double_Bed001"), (pid, name, bx, by)
+
+
+def test_the_editor_wheel_zooms_about_where_the_mouse_really_is(world):
+    """The map editor (dsedit/pages/maps.py wheel_zoom): the spot under the mouse is found from the screen, not the event's
+    own x, y (on Windows that can be another widget's); a touchpad's small turns zoom a little each, not a notch each."""
+    from types import SimpleNamespace as NS
+    from dsedit.pages.maps import MapPage
+    canvas = NS(winfo_rootx=lambda: 100, winfo_rooty=lambda: 50, winfo_width=lambda: 800, winfo_height=lambda: 600)
+    calls = []
+    pg = NS(canvas=canvas, zoom=1.0, set_zoom=lambda z, around=None: calls.append((z, around and (around.x, around.y))))
+    MapPage.wheel_zoom(pg, NS(delta=120, x=5, y=5, x_root=400, y_root=350))
+    assert calls[-1] == (1.25, (300, 300))                          # (where the mouse is on the canvas)
+    MapPage.wheel_zoom(pg, NS(delta=-30, x=0, y=0, x_root=400, y_root=350))
+    assert abs(calls[-1][0] - 1.25 ** -0.25) < 1e-9                 # (a quarter of a notch)
+    MapPage.wheel_zoom(pg, NS(delta=120, x=0, y=0, x_root=5, y_root=5))
+    assert calls[-1][1] is None                                     # (off the canvas: about the middle)

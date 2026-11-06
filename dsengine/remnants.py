@@ -70,6 +70,11 @@ class RemnantMixin:
         e.fades_at = w.now + int(self.remnant_num("Mob.Lasts", 120) * 1000)
         w.sound("Remnant_Rise", e.z, e.cx, e.cy)
         w.fx_anim("Shard_Form", e.z, e.cx, e.fy - 20, 700)
+        if self.get_attribute("Unmade") == "1":                  # (the Seam unmade: its scraps hunt no more)
+            e.aggressive = 0                                     # (passive: it only fights back)
+            self.display_message("The %s's magic rises from it, and drifts, and does not come for you." % self.display_name(dead),
+                                 "DAMAGE", "-")
+            return
         self.display_message("The %s's magic rises from it: a Shard Remnant!" % self.display_name(dead), "DAMAGE", "-")
         if e.ai is not None:
             w.npc_start_fight(e, e.ai, self, 0)

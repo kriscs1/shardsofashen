@@ -5,7 +5,7 @@
 04	Play.Sound	Chest
 05	Give.Item	Heart_Splinter	1
 06	Display.Message	Yellow	Quest complete: Mary's Notes.	Quest
-07	Display.Conversation	Last_Will	Wrapped in oilcloth, under a stone at the water's edge: a sliver of crystal, and one line. It isn't a weapon and it isn't a gift. It's the only piece of the Heart that was ever taken and not given. It wants to go home, as they all do. Don't let them tell you that's the same as wanting to be whole.	You close your hand.	08
+07	Display.Conversation	Last_Will	Wrapped in oilcloth, under a stone at the water's edge: a sliver of dark glass, and one line. It isn't a weapon and it isn't a gift. It's a scrap of the dragon, taken from the Seam, and it's still growing. It will tell you what you want to hear. Don't answer it.	You close your hand.	08
 08	End
 09	Display.Message	Cyan	Mud, and a very still sky.	-
 10	End

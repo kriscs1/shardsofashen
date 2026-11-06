@@ -132,6 +132,9 @@ then the big systems (stealth, locks), then the world and the story (they use al
 
 ## 8. The story: the secret of the Shards (A with C)
 
+**Superseded:** the Heart of Ashen below was replaced by the Cutting (the dragon a devourer, Shards its scraps); see
+`CLAUDE.md` and `dev/Story and Quests.md`. The ticked work below stays done; its words are being changed to match.
+
 The heir stays. What changes is the mystery underneath it:
 
 - **What Shards are**: the pieces of the **Heart of Ashen**, a crystal of all the world's magic that the first king
