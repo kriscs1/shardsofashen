@@ -288,7 +288,8 @@ class Wonders:
         if val(self.w.data.entity_ini(e.name, "Boss", "0")) >= 1 or trim(self.w.data.entity_ini(e.name, "Slain.By", "")):
             return
         s.update_attribute("Grudge.Kind", "=" + e.name)
-        s.update_attribute("Grudge.Level", "=%d" % max(1, int(val(self.w.data.entity_ini(e.name, "Level", "1")))))
+        s.update_attribute("Grudge.Level", "=%d" % max(1, int(getattr(e, "npc_level", 0) or
+                                                           val(self.w.data.entity_ini(e.name, "Level", "1")))))
         s.update_attribute("Grudge.At", "=%d" % int(time.time() + self.num("Grudge", "After.Minutes", 30) * 60))
 
     def grudge_tick(self):
@@ -308,10 +309,12 @@ class Wonders:
                 continue
             s.update_attribute("Grudge.At", "=%d" % int(now + self.num("Grudge", "Again.Minutes", 15) * 60))
             m, tx, ty = spot
-            e = self.add(kind, m, tx, ty, "Attitude=Bad Chase=%d,%d,%d,%d Name=Scarred_%s" % (tx - 24, ty - 21, tx + 24, ty + 21, kind))
+            times = int(val(s.get_attribute("Grudge.Times"))) + 1
+            level = max(1, int(val(s.get_attribute("Grudge.Level")))) + times     # (a level up on the one that got you)
+            e = self.add(kind, m, tx, ty, "Attitude=Bad Chase=%d,%d,%d,%d Name=Scarred_%s Level=%d" % (
+                tx - 24, ty - 21, tx + 24, ty + 21, kind, min(25, level)))
             if e is None:
                 continue
-            times = int(val(s.get_attribute("Grudge.Times"))) + 1
             s.update_attribute("Grudge.Times", "=%d" % times)
             grow = 1 + self.num("Grudge", "Stronger", 0.25) * times
             e.hp = e.max_hp = int(e.max_hp * grow)

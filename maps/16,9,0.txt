@@ -1,8 +1,8 @@
-Dust001:Dust001:Dust001:Ruined_Wall001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Dead_Tree002):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001+Decor(Dead_Tree001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Pebbles001):Dust001:Dust001:Dust001:Dust001:Dust001
+Gravel001:Gravel001:Gravel001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Dead_Tree002):Dust001+Decor(Desert_Rock001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
+Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001+Decor(Pebbles003):Gravel001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
+Dust001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Dust001:Gravel001:Gravel001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
+Dust001:Dust001:Dust001:Dust001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Gravel001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Gravel001:Gravel001:Dust001:Dust001:Dust001:Dust001+Decor(Pebbles001):Dust001:Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001+Decor(Sea_Rock001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Rock002):Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Rock001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
@@ -12,13 +12,13 @@ Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Pe
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001+Decor(Pebbles001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Rock002):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Dust001:Dust001
+Dust001:Dust001:Dust001:Dust001+Decor(Pebbles001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Water001:Dust001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Rock002):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001+Decor(Desert_Rock001):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Dust001
 NPC	Wolf	512	568	Attitude=Bad Zone=12,15,22,20
 NPC	Scorpion	608	24	Attitude=Bad Zone=17,1,23,5 Chase=13,1,25,9
 NPC	Dust_Wraith	576	0	Attitude=Bad Zone=16,1,22,4 Chase=12,1,25,8

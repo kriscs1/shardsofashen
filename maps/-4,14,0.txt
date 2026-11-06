@@ -29,3 +29,6 @@ NPC	Guard	544	216	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	544	440	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	448	216	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	448	440	Attitude=Good Stand=1 Face=E Schedule=Always
+StaticObject	Fire	736	539	Gone.After=GuardQuest:5
+StaticObject	Fire	37	59	Gone.After=GuardQuest:5
+StaticObject	Fire	91	472	Gone.After=GuardQuest:5

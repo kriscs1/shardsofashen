@@ -167,6 +167,8 @@ OPT_SPECS = {
     "Level": ("Level", "number", None, "Its level (1-25). Blank: its kind's (Entities.ini Level), a little above or "
               "below; its health, blows and guard go by it. A Shard Remnant: how strong it is."),
     "Look": ("Look", "choice", _looks, "Which of its trade's colourings it wears (0: as drawn; blank: by its Id)."),
+    "Gone.After": ("Gone after", "text", None, "Gone for a player once a quest's attribute has reached a stage: "
+                   "Attribute:N (GalaithQuest:2, the dragon dead: the fires on its field go out for them)."),
     "Project": ("Project", "choice", _projects, "It's there only once this town project (data\\Projects.ini) is "
                 "finished."),
     "Lock": ("Lock level", "number", None, "This chest's lock (0: none). Blank: its kind's, else by where it is."),
@@ -174,7 +176,7 @@ OPT_SPECS = {
     "Sturdy": ("Iron-bound", "bool", None, "It can't be broken open: only picked, or opened with its key."),
 }
 NPC_FORM = ("Zone.Levels", "Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Turn", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
-OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy")
+OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy", "Gone.After")
 ITEM_FORM = ("Project",)
 HANDLED_OPTS = {"Attitude", "Stand", "Id", "Name", "Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Once"}
 

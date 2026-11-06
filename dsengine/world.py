@@ -232,6 +232,11 @@ class World(NPCMixin):
         if viewer is not None:
             if e.uid in viewer.hidden_uids:
                 return False
+            gone = getattr(e, "gone_after", "")
+            if gone:                                    # (Gone.After=GalaithQuest:2: gone for whoever's got that far)
+                attr, _, at = gone.partition(":")
+                if val(viewer.get_attribute(attr)) >= val(at or "1"):
+                    return False
             if e.type == MAPITEM and e.once and viewer.once_taken(e):
                 return False
         return True
@@ -436,6 +441,7 @@ class World(NPCMixin):
                 e.sturdy = self.option_value(misc, "Sturdy")      # (1: iron-bound, never broken open; 0: always can be)
                 e.project = self.option_value(misc, "Project")    # (shown once a town's project is done: together.py)
                 e.display = self.option_value(misc, "Name").replace("_", " ")
+                e.gone_after = self.option_value(misc, "Gone.After")
             return e
         if t == "NPC":
             if misc == "":

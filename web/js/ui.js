@@ -1388,6 +1388,9 @@ const QUICK_STYLES = {
   "": { size: 9, bold: false, col: [236, 226, 206] },
 };
 
+// (a creature's name, by how its level stands to yours: tips.js difficulty)
+const DIFFICULTY = [[160, 160, 156], [140, 226, 120], [250, 236, 110], [255, 164, 70], [255, 96, 84]];
+
 const QUICK_MAX = 4;
 
 function drawHoverTop(ctx) {
@@ -1396,6 +1399,10 @@ function drawHoverTop(ctx) {
   const raw = U.qm.split("|").map((part) => trim(part)).filter(Boolean);
   if (!raw.length) return;
   const styled = raw.map((part, i) => {
+    if (part[0] === "%" && DIFFICULTY[+part[1]]) {
+      const text = trim(part.slice(2));
+      return [{ ...QUICK_STYLES["#"], col: DIFFICULTY[+part[1]] }, text.charAt(0).toUpperCase() + text.slice(1)];
+    }
     const mark = "#~!+$".includes(part[0]) ? part[0] : "";
     const text = mark ? trim(part.slice(1)) : part;     // (every line starts with a capital)
     return [QUICK_STYLES[mark || (i === 0 ? "#" : "")], text.charAt(0).toUpperCase() + text.slice(1)];

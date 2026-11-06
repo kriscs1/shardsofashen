@@ -1,7 +1,7 @@
 """The harder zones and what fills the mainland (dev/Roadmap-4.md groups 8 and 9). ZONES is the one table of what's how hard: each
 zone's level band, so a player goes on from one to the next as they grow.
 
-  The Dustlands (12..16,7..13)  6-9   a natural blob of dust, made here (Dust001)
+  The Sallow Waste (12..16,7..13)  6-9   a natural blob of dust, made here (Dust001)
   Mire and Emberwatch gates     10-12 hard mobs on the way in, so you must have levelled
   The Shattered Reach (21,8)    10-14 only magic things: nothing in it swings a blade
   The Rime (18,23 and south)    12-16 a snowy, icy island, made here, joined to the snow by an ice bridge
@@ -259,7 +259,7 @@ def lay_rime(world):
 # ----- zones
 ZONES = [
     # name, cells (predicate on tile in a box of maps), mobs per this many cells, its mobs, rocks, chest loot
-    dict(key="Dustlands", title="The Dustlands", box=None, mobs=["Dust_Rat", "Scorpion", "Dust_Wraith", "Scavenger"], per=160,
+    dict(key="Dustlands", title="The Sallow Waste", box=None, mobs=["Dust_Rat", "Scorpion", "Dust_Wraith", "Scavenger"], per=160,
          rocks=[("Coal_Rock001", 8), ("Silver_Rock001", 6)], loot=[("Gold_Coin(s)", 120), ("Shard", 14)]),
     dict(key="Reach", title="The Shattered Reach", box=(21, 6, 23, 9), tile="Gravel", per=120,
          mobs=["Wild_Mage", "Arcane_Wisp", "Shard_Golem", "Hexblade", "Archmage_Shade"], rocks=[("Gem_Rock001", 6)],
@@ -306,6 +306,8 @@ def free_cells(world, cells, taken):
 
 def spawn(world, gx, gy, mob, taken, opts=""):
     x, y = gx % XT + 1, gy % YT + 1
+    if y == 1 or y == YT:                                     # (never on a map's top or bottom row: off the map)
+        return
     zone = "Zone=%d,%d,%d,%d Chase=%d,%d,%d,%d" % (max(1, x - 3), max(1, y - 3), min(XT, x + 3), min(YT, y + 3),
                                                    max(1, x - 7), max(1, y - 7), min(XT, x + 7), min(YT, y + 7))
     world.line(gx, gy, "NPC", mob, ("Attitude=Bad %s %s" % (zone, opts)).strip())
@@ -387,10 +389,10 @@ def make_zone(world, z, cells, rng, taken):
 QUESTS = [
     ("Dustlands", "Rats of Unusual Size", "DustRatQuest", "Old_Sal", "Woman", "Dust_Rat", 6,
      "They ate my boots, stranger. While I was in them. Kill six of those rats, would you?", "Six rats. Good. I can hear myself think. Here.",
-     "An old woman on the edge of the Dustlands is shouting about rats. Big ones.", [("Gold_Coin(s)", 90)], 12, "Strength 1"),
+     "An old woman on the edge of the Sallow Waste is shouting about rats. Big ones.", [("Gold_Coin(s)", 90)], 12, "Strength 1"),
     ("Dustlands", "Scavenger Season", "ScavengerQuest", "Prospector_Hale", "Man", "Scavenger", 5,
      "Scavengers have my claim staked out. Five of them less and I might get back to it.", "That'll give them something to think about. Your share.",
-     "A prospector out by the Dustlands has more claim than friends.", [("Gold_Coin(s)", 120)], 14, "Defence 1"),
+     "A prospector out by the Sallow Waste has more claim than friends.", [("Gold_Coin(s)", 120)], 14, "Defence 1"),
     ("Reach", "What Went Wrong at the Reach", "ReachQuest", "Apprentice_Ione", "Woman", "Wild_Mage", 5,
      "We were only meant to study the Reach. Five of the ones who went wild are still out there. Please.", "They were my teachers. Thank you. Take these.",
      "A wizard's apprentice is looking for someone who isn't afraid of the Reach.", [("Gold_Coin(s)", 150)], 18, "Channeling 2"),

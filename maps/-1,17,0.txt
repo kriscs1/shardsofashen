@@ -7,12 +7,12 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak003:Peak002:Peak005:Peak003:Peak_Huge001:Peak_Huge002:Peak_Huge003:Peak004:Peak002:Peak001:Peak001:Peak_Big003:Peak_Big004
 Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Peak005:Peak001:Peak003:Peak001:Peak_Huge004:Peak_Huge005:Peak_Huge006:Peak006:Peak005:Peak001:Peak006:Peak_Big001:Peak_Big002
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Peak003:Peak003:Peak003:Peak_Huge007:Peak_Huge008:Peak_Huge009:Peak001:Peak004:Peak005:Peak002:Peak_Big003:Peak_Big004
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak004:Peak002:Peak004:Peak001:Peak_Big001:Peak_Big002:Peak001:Peak004:Peak001:Peak002:Peak004:Peak004
-Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak003:Peak006:Peak006:Peak_Big003:Peak_Big004:Peak001:Peak005:Peak006:Peak001:Peak001:Peak004
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak003:Peak001:Peak006:Peak003:Peak_Big001:Peak_Big002:Peak_Big001:Peak_Big002:Peak005:Peak001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak006:Peak003:Peak001:Peak_Big003:Peak_Big004:Peak_Big003:Peak_Big004:Peak003:Peak001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001+Decor(Cactus001):Sand001:Sand001:Peak004:Peak002:Peak_Big001:Peak_Big002:Peak001:Peak003:Peak001:Peak001
-Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak004:Peak_Big003:Peak_Big004:Peak001:Peak004:Peak004:Peak006
+Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Pebbles003):Sand001+Decor(Rock002):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak004:Peak002:Peak004:Peak001:Peak_Big001:Peak_Big002:Peak001:Peak004:Peak001:Peak002:Peak004:Peak004
+Sand001:Sand001+Decor(Cactus001):Sand001:Sand001+Decor(Ruined_Wall002):Sand001+Decor(Ruined_Wall001):Sand001+Decor(Ruined_Wall002):Sand001+Decor(Ruined_Wall002):Sand001+Decor(Ruined_Wall002):Sand001+Decor(Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Peak003:Peak006:Peak006:Peak_Big003:Peak_Big004:Peak001:Peak005:Peak006:Peak001:Peak001:Peak004
+Sand001:Sand001:Sand001+Decor(Rock001):Sand001+Decor(Ruined_Wall001):Sand001:Sand001+Decor(Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak003:Peak001:Peak006:Peak003:Peak_Big001:Peak_Big002:Peak_Big001:Peak_Big002:Peak005:Peak001
+Sand001:Sand001:Sand001:Sand001+Decor(Ruined_Wall002):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak006:Peak003:Peak001:Peak_Big003:Peak_Big004:Peak_Big003:Peak_Big004:Peak003:Peak001
+Sand001:Sand001:Sand001:Sand001+Decor(Ruined_Wall001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001+Decor(Cactus001):Sand001:Sand001:Peak004:Peak002:Peak_Big001:Peak_Big002:Peak001:Peak003:Peak001:Peak001
+Sand001:Sand001:Sand001:Sand001+Decor(Ruined_Wall002):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak004:Peak_Big003:Peak_Big004:Peak001:Peak004:Peak004:Peak006
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak_Big001:Peak_Big002:Peak001:Peak004:Peak_Big001:Peak_Big002
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak002:Peak006:Peak_Big003:Peak_Big004
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Peak006:Peak006:Peak006
@@ -22,3 +22,5 @@ Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:
 NPC	Sand_Drake	192	120	Attitude=Bad Zone=4,2,10,8 Chase=1,1,14,12
 NPC	Sand_Scorpion	320	600	Attitude=Bad Zone=8,17,14,21 Chase=4,13,18,21
 NPC	Dune_Stalker	480	472	Attitude=Bad Zone=13,13,19,19 Chase=9,9,23,21
+MapItem	Gold_Coin(s)	192	352	11
+MapItem	Gold_Coin(s)	256	288	10

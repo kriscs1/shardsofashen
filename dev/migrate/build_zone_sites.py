@@ -55,7 +55,7 @@ SITES = [
          decor=[("Dead_Tree001", 3), ("Dead_Tree002", 2), ("Bones001", 1), ("Desert_Rock001", 2)], dens=8,
          houses=[(5, 4, "Timber001", "Thatch", "home")], giver="Old_Sal", mobs=[("Dust_Rat", 4)], mobs_away=True),
     # ----- the Shattered Reach: magic only, 10-14
-    dict(zone="Reach", id="Sundered_Tower", label="The Sundered Tower", r=(9, 7), ground=[("Stone001", 2), ("Gravel001", 1)],
+    dict(zone="Reach", id="Sundered_Tower", label="The Sundered Tower", r=(9, 7), ground=[("Gravel001", 3), ("Ash001", 1)],
          houses=[(7, 6, "Stone_Wall001", "Slate", "study")], chest=True,
          things=[("Pillar001", 4), ("Statue002", 1), ("Candles001", 1)], decor=[("Rock001", 1)], dens=3,
          mobs=[("Archmage_Shade", 1), ("Hexblade", 3)]),
@@ -292,6 +292,67 @@ def free_cell(world, gx, gy, taken, allow):
     return all(b.startswith("Decor(") and W.WILD_DECOR.match(b[6:-1]) for b in bits[1:])
 
 
+OPEN_GROUND = re.compile(r"^(Grass|Dirt|Gravel|Sand0|Cave_Floor|Cave_Rubble|Cave_Puddle|Dust|Snow0|Ice0|Ash0|Cinder0|Scorched|Salt_Flat|Stone0|"
+                         r"Rim_Glass|Heath|Moss)")
+
+
+def find_site_loosely(world, cells, rng, taken, sites, w=15, h=11, apart=26):
+    """Where a zone's ground is broken up (gravel among rocks, cave floor among walls): somewhere mostly its own, the rest
+    any open ground."""
+    zone = set(cells)
+    cells = sorted(cells)
+    for _ in range(6000):
+        cx, cy = rng.choice(cells)
+        gx, gy = cx - w // 2, cy - h // 2
+        if gx // XT != (gx + w - 1) // XT or gy // YT != (gy + h - 1) // YT:
+            continue
+        if any(abs(cx - a) + abs(cy - b) < apart for a, b in sites):
+            continue
+        box = [(x, y) for y in range(gy, gy + h) for x in range(gx, gx + w)]
+        if sum(1 for c in box if c in zone) < len(box) * 0.55:
+            continue
+        if all(free_cell(world, x, y, taken, OPEN_GROUND) for x, y in box):
+            return cx, cy, gx, gy
+    return None
+
+
+ROCK = re.compile(r"^((Snow_|Cinder_)?Peak(_Big|_Huge)?\d{3}|Mountain\d{3}|Stalagmite\d{3}|Cave_Rock\d{3}|Cave_Wall\d{3}|Forest\d{3})$")
+
+
+def find_site_carved(world, cells, rng, taken, sites, w=15, h=11, apart=20):
+    """Where a zone is tunnels and ridges: a chamber dug out of the rock round some of its ground (the place's own floor
+    goes down over the rock: build_site)."""
+    zone = set(cells)
+    cells = sorted(cells)
+    for _ in range(8000):
+        cx, cy = rng.choice(cells)
+        gx, gy = cx - w // 2, cy - h // 2
+        if gx // XT != (gx + w - 1) // XT or gy // YT != (gy + h - 1) // YT:
+            continue
+        if any(abs(cx - a) + abs(cy - b) < apart for a, b in sites):
+            continue
+        box = [(x, y) for y in range(gy, gy + h) for x in range(gx, gx + w)]
+        if sum(1 for c in box if c in zone) < len(box) * 0.3:
+            continue
+        ok = True
+        for x, y in box:
+            c = world.cell(x, y)
+            if c is None or (x, y) in taken:
+                ok = False
+                break
+            bits = c.split("+")
+            if not (OPEN_GROUND.match(bits[0]) or ROCK.match(bits[0])) or \
+                    not all(b.startswith("Decor(") and W.WILD_DECOR.match(b[6:-1]) for b in bits[1:]):
+                ok = False
+                break
+        if ok:
+            for x, y in box:                                    # (dug out)
+                if ROCK.match(world.cell(x, y).split("+")[0]):
+                    world.put(x, y, "Cave_Floor001" if "Cave" in "".join(world.cell(*c) or "" for c in cells[:1]) else "Gravel001")
+            return cx, cy, gx, gy
+    return None
+
+
 def find_site(world, cells, rng, taken, sites, w=18, h=13):
     cells = sorted(cells)
     allow = re.compile(r"^(%s)" % "|".join(sorted({re.sub(r"\d+$", "", world.cell(*c).split("+")[0]) for c in cells[::7]
@@ -320,11 +381,11 @@ def pick(pairs, rng):
 
 FURNISH = {
     "home": [("Bed001", "back", 1), ("Bookshelf001", "back", -2), ("Table001", "mid", 0), ("Chair003", "mid", -1), ("Barrel001", "corner", 0)],
-    "lodge": [("Bed001", "back", 1), ("Bed001", "back", 2), ("Fireplace001", "back", -2), ("Table001", "mid", 0), ("Bench002", "mid", -1)],
+    "lodge": [("Bed001", "back", 1), ("Bed001", "back", 2), ("Cupboard001", "back", -2), ("Table001", "mid", 0), ("Bench002", "mid", -1)],
     "store": [("Crate001", "back", 1), ("Barrel001", "back", 2), ("Sacks001", "back", -2), ("Crate002", "corner", 0)],
     "study": [("Bookshelf001", "back", 1), ("Bookshelf001", "back", 2), ("Desk001", "back", -2), ("Candles001", "mid", 0), ("Chair003", "mid", -1)],
     "shrine": [("Altar001", "back", 0), ("Candles001", "back", 1), ("Candles001", "back", -1), ("Banner001", "back", 2)],
-    "forge": [("Fireplace003", "back", 1), ("Crate002", "back", -2), ("Barrel002", "corner", 0)],
+    "forge": [("Barrel002", "back", 1), ("Crate002", "back", -2), ("Barrel002", "corner", 0)],
     "barracks": [("Bedroll001", "mid", -1), ("Bedroll001", "mid", 1), ("Table001", "back", 1), ("Barrel001", "back", -2)],
     "hall": [("Statue002", "back", 0), ("Pillar001", "mid", -2), ("Pillar001", "mid", 2), ("Banner001", "back", -2)],
 }
@@ -361,8 +422,8 @@ def build_site(world, site, spot, rng, taken, zone_cells):
     cx, cy, gx, gy = spot
     rx, ry = site["r"]
     allow_into = set(zone_cells)
-    patch = [c for c in Z.ring_of(cx, cy, rx, ry, hash(site["id"]) % 997) if c in allow_into and
-             free_cell(world, c[0], c[1], taken, re.compile(r"^(?!.*(Roof|Wall|Door))"))]
+    patch = [c for c in Z.ring_of(cx, cy, rx, ry, sum(map(ord, site["id"])) % 997) if (c in allow_into or
+             (gx <= c[0] < gx + 15 and gy <= c[1] < gy + 11)) and free_cell(world, c[0], c[1], taken, OPEN_GROUND)]
     for x, y in patch:                                          # (its own ground, then what lies about on it)
         t = pick(site["ground"], rng)
         d = ""
@@ -395,10 +456,10 @@ def build_site(world, site, spot, rng, taken, zone_cells):
                     taken.add(c)
     # (its buildings: in the middle of it, side by side, each on its own map with room before its door)
     rooms = []
-    hx = gx + 2
+    hx = gx + 1
     for w, h, wall, roof, kind in site.get("houses", []):
         hy = cy - h // 2
-        if hx + w >= gx + 18 or hx // XT != (hx + w - 1) // XT or hy // YT != (hy + h) // YT:
+        if hx + w >= gx + 16 or hx // XT != (hx + w - 1) // XT or hy // YT != (hy + h) // YT:
             continue
         for y in range(hy, hy + h + 2):
             for x in range(hx - 1, hx + w + 1):
@@ -529,6 +590,9 @@ def keeps(world, rng, taken):
                 if inside and (ty in (y1, y1 + 5) or tx in (x1, x1 + 8)) and yard:
                     ax, ay = yard.pop(0)
                     g[2], g[3] = str((ax - 1) * 32), str((ay - 1) * 32 - (8 if g[0] == "NPC" else 0))
+                    if len(g) > 4:                              # (its roam round where it stands now)
+                        g[4] = (re.sub(r"\b(Zone|Chase)=\S*", "", g[4]).strip() + " Zone=%d,%d,%d,%d" % (
+                            max(1, ax - 3), max(1, ay - 3), min(XT, ax + 3), min(YT, ay + 3))).strip()
                     m.ents[m.ents.index(ln)] = "\t".join(g)
             n += 1
     return n
@@ -545,9 +609,366 @@ def rename(old, new):
             open(path, "wb").write(t2.encode(enc))
 
 
+def more():
+    """The places a run before found no room for (its zone's ground broken up): somewhere looser."""
+    rng = random.Random(6262)
+    world = Z.World()
+    for n in glob.glob(p("maps", "*,0.txt")):
+        mx, my, _ = W.mxyz(os.path.basename(n)[:-4])
+        if -14 <= mx <= 30 and -8 <= my <= 31:
+            world.get_map(mx, my)
+    have = {}
+    for n, m in world.maps.items():
+        mx, my, _ = W.mxyz(n)
+        for ln in m.ents:
+            f = ln.split("\t")
+            if f[0] == "Id":
+                have[f[1]] = (mx * XT + int(f[2]) - 1, my * YT + int(f[3]) - 1)
+    sites = [have[s["id"]] for s in SITES if s["id"] in have]
+    taken = Z.occupied(world)
+    labels = []
+    for z in Z.ZONES:
+        todo = [s for s in SITES if s["zone"] == z["key"] and s["id"] not in have]
+        if not todo:
+            continue
+        if z["key"] == "Dustlands":
+            cells = [(W.mxyz(n)[0] * XT + x, W.mxyz(n)[1] * YT + y) for n, m in world.maps.items()
+                     for y in range(YT) for x in range(XT) if m.rows[y][x].split("+")[0] in ("Dust001", "Salt_Flat001")]
+        elif z["key"] == "Rime":
+            x1, x2, y1, y2 = RIME
+            cells = [(mx * XT + x, my * YT + y) for mx in range(x1, x2 + 1) for my in range(y1, y2 + 1)
+                     for y in range(YT) for x in range(XT) if (world.cell(mx * XT + x, my * YT + y) or "").startswith("Snow001")]
+        else:
+            cells = Z.zone_cells(world, z)
+        for site in todo:
+            spot = find_site_loosely(world, cells, rng, taken, sites) or find_site_carved(world, cells, rng, taken, sites)
+            if spot is None:
+                print("  still no room for", site["label"])
+                continue
+            sites.append(spot[:2])
+            n = build_site(world, site, spot, rng, taken, cells)
+            labels.append((site["label"], site["id"]))
+            print("  %s: %s (%d cells)" % (z["title"], site["label"], n))
+    world.save()
+    path = p("data", "WorldMap.ini")
+    text = open(path, "rb").read().decode("cp1252")
+    for title, where in labels:
+        if ("\r\n%s=" % title) not in text:
+            at = text.index("[Places]\r\n") + len("[Places]\r\n")
+            text = text[:at] + "%s=%s\r\n" % (title, where) + text[at:]
+    open(path, "wb").write(text.encode("cp1252"))
+
+
+def vary_waste():
+    """The Sallow Waste not all one dust: dry riverbeds of gravel wandering across it, rock standing up out of it, drifts of
+    sand, cracked earth, groves of dead trees, bones (--vary: once, VARIED marks it)."""
+    marker = p("dev", "migrate", ".waste_varied")
+    if os.path.exists(marker):
+        print("The Sallow Waste is varied already")
+        return
+    rng = random.Random(7070)
+    world = Z.World()
+    for mx in range(9, 20):
+        for my in range(3, 16):
+            world.get_map(mx, my)
+    taken = Z.occupied(world)
+    dust = [(W.mxyz(n)[0] * XT + x, W.mxyz(n)[1] * YT + y) for n, m in world.maps.items()
+            for y in range(YT) for x in range(XT) if m.rows[y][x].split("+")[0] == "Dust001"]
+    plain = set(dust)
+
+    def open_dust(c):
+        cell = world.cell(*c)
+        return c in plain and c not in taken and cell is not None and cell.split("+")[0] == "Dust001" and \
+            all(b.startswith("Decor(") and W.WILD_DECOR.match(b[6:-1]) for b in cell.split("+")[1:])
+
+    def blob_at(rx, ry, seed):
+        cx, cy = rng.choice(dust)
+        return [c for c in Z.ring_of(cx, cy, rx, ry, seed) if open_dust(c)]
+    made = {"riverbeds": 0, "outcrops": 0, "drifts": 0, "cracked": 0, "groves": 0}
+    for k in range(6):                                          # (dry riverbeds: a wandering line, two or three wide)
+        x, y = rng.choice(dust)
+        a = rng.uniform(0, 6.28)
+        for step in range(rng.randint(40, 80)):
+            a += rng.uniform(-0.35, 0.35)
+            x, y = x + math.cos(a), y + math.sin(a)
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0):
+                    c = (int(x) + dx, int(y) + dy)
+                    if open_dust(c):
+                        d = "+Decor(%s)" % rng.choice(("Pebbles001", "Pebbles003", "Dead_Tree002")) if rng.random() < 0.05 else ""
+                        world.put(c[0], c[1], "Gravel001" + d)
+        made["riverbeds"] += 1
+    for k in range(10):                                         # (rock standing up: an outcrop, boulders round it)
+        cells = blob_at(rng.randint(2, 4), rng.randint(1, 3), 500 + k)
+        for c in cells:
+            world.put(c[0], c[1], "Mountain001")
+            taken.add(c)
+        for c in cells:
+            for dx, dy in ((2, 0), (-2, 0), (0, 2), (0, -2), (2, 2), (-2, -2)):
+                n = (c[0] + dx, c[1] + dy)
+                if open_dust(n) and rng.random() < 0.15:
+                    world.put(n[0], n[1], "Dust001+Decor(Desert_Rock001)")
+        made["outcrops"] += bool(cells)
+    for k in range(7):                                          # (drifts of sand, a cactus or two)
+        for c in blob_at(rng.randint(4, 8), rng.randint(3, 6), 600 + k):
+            world.put(c[0], c[1], "Sand001" + ("+Decor(Cactus001)" if rng.random() < 0.04 else ""))
+        made["drifts"] += 1
+    for k in range(7):                                          # (cracked earth)
+        for c in blob_at(rng.randint(3, 7), rng.randint(3, 5), 700 + k):
+            world.put(c[0], c[1], "Dirt001" + ("+Decor(Pebbles002)" if rng.random() < 0.05 else ""))
+        made["cracked"] += 1
+    for k in range(6):                                          # (groves of dead trees, bones under them)
+        for c in blob_at(rng.randint(3, 5), rng.randint(2, 4), 800 + k):
+            r = rng.random()
+            if r < 0.3:
+                world.put(c[0], c[1], "Dust001+Decor(%s)" % rng.choice(("Dead_Tree001", "Dead_Tree002")))
+            elif r < 0.34:
+                world.put(c[0], c[1], "Dust001+Decor(%s)" % rng.choice(("Bones001", "Bones002")))
+        made["groves"] += 1
+    world.save()
+    open(marker, "w").write("done\n")
+    print("The Sallow Waste varied:", made)
+
+
+def rare_in_zones():
+    """The highest things to gather only in the hard zones, as mithril is (the owner's wish): yews (Woodcutting 18) in groves
+    in the Stoneways' and the Reach's green, swordfish (Fishing 18) round the Rime; elsewhere an oak, a salmon."""
+    marker = p("dev", "migrate", ".rare_in_zones")
+    if os.path.exists(marker):
+        print("The rare things are in the zones already")
+        return
+    rng = random.Random(8080)
+    world = Z.World()
+    yews = fish = 0
+    for path in glob.glob(p("maps", "*,0.txt")):
+        b = open(path, "rb").read()
+        if b"Yew_Tree001" not in b and b"Swordfish_Spot" not in b:
+            continue
+        mx, my, _ = W.mxyz(os.path.basename(path)[:-4])
+        m = world.get_map(mx, my)
+        for y in range(YT):
+            for x in range(XT):
+                if "Yew_Tree001" in m.rows[y][x]:
+                    m.rows[y][x] = m.rows[y][x].replace("Yew_Tree001", "Oak_Tree001")
+                    yews += 1
+        for k, ln in enumerate(m.ents):
+            if ln.split("\t")[1:2] == ["Swordfish_Spot"]:
+                m.ents[k] = ln.replace("Swordfish_Spot", "Salmon_Spot", 1)
+                fish += 1
+    planted = 0
+    for z, groves in (("Stoneways", 3), ("Reach", 2)):
+        box = next(zz["box"] for zz in Z.ZONES if zz["key"] == z)
+        green = [(mx * XT + x, my * YT + y) for mx in range(box[0], box[2] + 1) for my in range(box[1], box[3] + 1)
+                 if world.get_map(mx, my) for y in range(YT) for x in range(XT)
+                 if world.get_map(mx, my).rows[y][x] == "Grass001"]
+        for _ in range(groves):
+            if not green:
+                break
+            cx, cy = rng.choice(green)
+            for _ in range(12):
+                gx, gy = cx + rng.randint(-3, 3), cy + rng.randint(-3, 3)
+                if world.cell(gx, gy) == "Grass001":
+                    world.put(gx, gy, "Grass001+Decor(Yew_Tree001)")
+                    planted += 1
+    coast = []
+    x1, x2, y1, y2 = RIME
+    for mx in range(x1, x2 + 1):
+        for my in range(y1 + 2, y2 + 1):
+            m = world.get_map(mx, my)
+            if m is None:
+                continue
+            for y in range(1, YT - 1):
+                for x in range(1, XT - 1):
+                    if m.rows[y][x] == "Water001" and any(m.rows[y + dy][x + dx].startswith("Snow001")
+                                                          for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                        coast.append((mx * XT + x, my * YT + y))
+    rng.shuffle(coast)
+    spots = []
+    for c in coast:
+        if len(spots) >= 8:
+            break
+        if all(abs(c[0] - a) + abs(c[1] - b) > 25 for a, b in spots):
+            spots.append(c)
+            world.line(c[0], c[1], "StaticObject", "Swordfish_Spot")
+    world.save()
+    path = p("data", "TileSets.ini")
+    t = open(path, "rb").read().decode("cp1252")
+    open(path, "wb").write(t.replace("Oak_Tree001*12,Yew_Tree001*3,", "Oak_Tree001*15,").encode("cp1252"))
+    open(marker, "w").write("done\n")
+    print("Yews made oaks: %d, planted in the zones: %d; swordfish made salmon: %d, round the Rime: %d" %
+          (yews, planted, fish, len(spots)))
+
+
+RUINS = {"Dustlands": 3, "Reach": 2, "Rime": 2, "Ashfall": 2, "Scar": 2, "Stoneways": 1}
+FINDS = [("Gold_Coin(s)", "3-12", 30), ("Bones", "1", 14), ("Healing_Draught", "1", 10), ("Silver_Ring", "1", 8),
+         ("Bronze_Shield", "1", 6), ("Iron_Shield", "1", 4), ("Silver_Bar", "1", 6), ("Gold_Ring", "1", 4), ("Sapphire", "1", 3),
+         ("Emerald", "1", 2)]
+
+
+def ruin_shape(rng, kind):
+    """The cells of a ruin's walls round 0,0 and where its pillars stand: never the same twice, never a whole outline."""
+    walls, pillars = set(), []
+    if kind == "corner":                                    # (two walls meeting, the rest fallen)
+        a, b = rng.randint(4, 7), rng.randint(3, 6)
+        walls |= {(x, 0) for x in range(a)} | {(0, y) for y in range(b)}
+    elif kind == "tower":                                   # (a round tower's stump, its door gone)
+        r = rng.choice((2, 3))
+        gap = rng.uniform(0, 6.28)
+        for k in range(36):
+            t = k * 6.28 / 36
+            if abs((t - gap + 3.14) % 6.28 - 3.14) > 0.7:
+                walls.add((int(round(r * math.cos(t))), int(round(r * math.sin(t)))))
+    elif kind == "hall":                                    # (one long wall standing, stubs of the rest, pillars down it)
+        w, h = rng.randint(6, 9), rng.randint(4, 5)
+        walls |= {(x, 0) for x in range(w)} | {(0, 1), (w - 1, 1), (0, h - 1), (1, h - 1), (w - 1, h - 2)}
+        pillars = [(x, 2) for x in range(1, w - 1, 2)]
+    elif kind == "wall":                                    # (a wandering wall, an arch through it)
+        y = 0
+        n = rng.randint(6, 10)
+        arch = rng.randint(2, n - 3)
+        for x in range(n):
+            if x != arch:
+                walls.add((x, y))
+            if rng.random() < 0.25:
+                y += rng.choice((-1, 1))
+    else:                                                   # (a foundation: pillars, a corner of wall)
+        pillars = [(x, y) for x in (0, 3, 6) for y in (0, 3)]
+        walls |= {(7, 0), (7, 1), (6, -1)}
+    walls = {c for c in walls if rng.random() < 0.82}        # (broken)
+    return walls, pillars
+
+
+def ruins_back():
+    """A few ruins in the zones again (the owner's wish), each its own shape, rubble round it and the odd thing lying in it to
+    pick up."""
+    marker = p("dev", "migrate", ".zone_ruins")
+    if os.path.exists(marker):
+        print("The ruins are back already")
+        return
+    rng = random.Random(9191)
+    world = Z.World()
+    for n in glob.glob(p("maps", "*,0.txt")):
+        mx, my, _ = W.mxyz(os.path.basename(n)[:-4])
+        if -14 <= mx <= 30 and -8 <= my <= 31:
+            world.get_map(mx, my)
+    places = []
+    for n, m in world.maps.items():
+        mx, my, _ = W.mxyz(n)
+        for ln in m.ents:
+            f = ln.split("\t")
+            if f[0] == "Id" and any(s["id"] == f[1] for s in SITES):
+                places.append((mx * XT + int(f[2]) - 1, my * YT + int(f[3]) - 1))
+    taken = Z.occupied(world)
+    made = 0
+    for z in Z.ZONES:
+        if z["key"] == "Dustlands":
+            cells = [(W.mxyz(n)[0] * XT + x, W.mxyz(n)[1] * YT + y) for n, m in world.maps.items()
+                     for y in range(YT) for x in range(XT) if m.rows[y][x].split("+")[0] in ("Dust001", "Dirt001", "Gravel001")]
+        elif z["key"] == "Rime":
+            x1, x2, y1, y2 = RIME
+            cells = [(mx * XT + x, my * YT + y) for mx in range(x1, x2 + 1) for my in range(y1, y2 + 1)
+                     for y in range(YT) for x in range(XT) if (world.cell(mx * XT + x, my * YT + y) or "") == "Snow001"]
+        else:
+            cells = Z.zone_cells(world, z)
+        for k in range(RUINS.get(z["key"], 0)):
+            spot = find_site_loosely(world, cells, rng, taken, places, w=12, h=10, apart=18)
+            if spot is None:
+                continue
+            cx, cy, gx, gy = spot
+            places.append((cx, cy))
+            kind = ("corner", "tower", "hall", "wall", "foundation")[(made + k) % 5]
+            walls, pillars = ruin_shape(rng, kind)
+            ox, oy = gx + 3, gy + 3
+            inside = []
+            for dx, dy in walls:
+                c = world.cell(ox + dx, oy + dy)
+                if c is not None:
+                    world.put(ox + dx, oy + dy, c.split("+")[0] + "+Decor(%s)" % rng.choice(("Ruined_Wall001", "Ruined_Wall002", "Ruined_Wall002")))
+                    taken.add((ox + dx, oy + dy))
+            for dx, dy in pillars:
+                c = world.cell(ox + dx, oy + dy)
+                if c is not None and "+" not in c:
+                    world.put(ox + dx, oy + dy, c + "+Decor(Pillar001)")
+                    taken.add((ox + dx, oy + dy))
+            for y in range(gy, gy + 10):                        # (rubble about it)
+                for x in range(gx, gx + 12):
+                    c = world.cell(x, y)
+                    if c and "+" not in c and (x, y) not in taken and not c.startswith("Ruined"):
+                        near = any((x + a, y + b) in taken for a in (-1, 0, 1) for b in (-1, 0, 1))
+                        if near and rng.random() < 0.18:
+                            world.put(x, y, c + "+Decor(%s)" % rng.choice(("Rock001", "Rock002", "Pebbles001", "Pebbles003")))
+                        elif near:
+                            inside.append((x, y))
+            rng.shuffle(inside)
+            for x, y in inside[:rng.randint(1, 2)]:            # (something lying in it)
+                total = sum(w for _, _, w in FINDS)
+                r = rng.uniform(0, total)
+                for item, q, w in FINDS:
+                    r -= w
+                    if r <= 0:
+                        break
+                n = q if "-" not in q else str(rng.randint(*map(int, q.split("-"))))
+                world.line(x, y, "MapItem", item, n)
+                taken.add((x, y))
+            made += 1
+            print("  %s: a ruin (%s) at %d,%d" % (z["title"], kind, cx, cy))
+    world.save()
+    open(marker, "w").write("done\n")
+    print("Ruins back:", made)
+
+
+HOMES = ("Rustwater_Halt", "Students_Camp", "Frostwatch_Lodge", "Ashfall_Outpost", "Nomads_Well", "Delvers_Camp")
+
+
+def calm_homes(near=14):
+    """No monster on the doorstep of a place people live (a zone's mobs were scattered before the homes went down): any
+    without a name within near tiles of one is taken off."""
+    world = Z.World()
+    homes, gone = [], 0
+    for path in glob.glob(p("maps", "*,0.txt")):
+        b = open(path, "rb").read().decode("cp1252")
+        for h in HOMES:
+            if "Id\t%s\t" % h in b:
+                mx, my, _ = W.mxyz(os.path.basename(path)[:-4])
+                f = next(ln for ln in b.split("\r\n") if ln.startswith("Id\t%s\t" % h)).split("\t")
+                homes.append((mx * XT + int(f[2]) - 1, my * YT + int(f[3]) - 1))
+    for hx, hy in homes:
+        for mx in range((hx - near) // XT, (hx + near) // XT + 1):
+            for my in range((hy - near) // YT, (hy + near) // YT + 1):
+                m = world.get_map(mx, my)
+                if m is None:
+                    continue
+                keep = []
+                for ln in m.ents:
+                    c = W.line_cell(ln, mx, my)
+                    if c and ln.startswith("NPC\t") and "Attitude=Bad" in ln and "Id=" not in ln and \
+                            abs(c[0] - hx) <= near and abs(c[1] - hy) <= near:
+                        gone += 1
+                        continue
+                    keep.append(ln)
+                m.ents = keep
+    world.save()
+    print("Monsters off the homes' doorsteps:", gone)
+
+
 def main():
+    if "--ruins" in sys.argv:
+        ruins_back()
+        return
+    if "--rare" in sys.argv:
+        rare_in_zones()
+        return
+    if "--calm" in sys.argv:
+        calm_homes()
+        return
+    if "--vary" in sys.argv:
+        vary_waste()
+        return
     if os.path.exists(DONE):
-        print("The zones' places are built already (delete %s to do it again)." % DONE)
+        if "--more" in sys.argv:
+            more()
+            return
+        print("The zones' places are built already (delete %s to do it again; --more: the ones with no room)." % DONE)
         return
     rng = random.Random(5150)
     salt_tile()
@@ -588,6 +1009,7 @@ def main():
                     Z.spawn(world, free[k][0], free[k][1], z["mobs"][k % len(z["mobs"])], taken)
     print("Keeps: %d" % keeps(world, rng, taken))
     world.save()
+    calm_homes()
     for old, new in RENAMED.items():
         rename(old, new)
     path = p("data", "WorldMap.ini")

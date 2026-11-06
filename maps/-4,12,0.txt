@@ -20,3 +20,4 @@ Flagstone001:Flagstone001:Flagstone001:Flagstone001:Galaith_Wall002:Boardwalk001
 Flagstone001:Flagstone001:Flagstone001:Flagstone001:Galaith_Wall002:Boardwalk001:Boardwalk001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Mountain001:Peak003:Peak004:Peak_Huge004:Peak_Huge005:Peak_Huge006
 Flagstone001:Flagstone001:Flagstone001:Flagstone001:Galaith_Wall002:Boardwalk001:Boardwalk001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001:Flagstone001+Decor(Cellar_Barrel001):Flagstone001:Flagstone001:Flagstone001:Flagstone001:Mountain001:Peak002:Peak001:Peak_Huge007:Peak_Huge008:Peak_Huge009
 NPC	Guard	160	632	Attitude=Good Stand=1 Face=E Schedule=Always
+StaticObject	Fire	484	638	Gone.After=GuardQuest:5

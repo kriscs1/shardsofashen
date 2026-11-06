@@ -63,6 +63,13 @@ export function itemLines(name) {
   return out;
 }
 
+// How a creature's level stands to yours: 0 far below (grey), 1 below (green), 2 about yours (yellow), 3 above (orange),
+// 4 far above (red)
+export function difficulty(lv) {
+  const d = lv - ((S.me && S.me.level) || S.level || 1);
+  return d <= -6 ? 0 : d <= -2 ? 1 : d <= 1 ? 2 : d <= 4 ? 3 : 4;
+}
+
 export function entityTip(e) {
   // The lines the hover box shows for e ("" = nothing to say)
   if (!e) return "";
@@ -84,7 +91,9 @@ export function entityTip(e) {
       lines.push(canSellHere(e.n) ? `$Sells for ${itemPrice(e.n, S.box.sell_rate || 0.2)} gold` : "!Can't be sold here");
     }
   } else if (e.k === T.NPC) {
-    lines.push("#" + name + (e.lv ? `  (level ${e.lv})` : ""));
+    // (one you can fight: its name coloured by how it stands to you - %0 far below to %4 far above: ui.js DIFFICULTY)
+    const odds = e.f && e.lv ? "%" + difficulty(e.lv) : "#";
+    lines.push(odds + name + (e.lv ? `  (level ${e.lv})` : ""));
     if (e.f === 2) lines.push(`Passive  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
     else if (e.f) lines.push(`!Hostile  -  ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
   } else if (e.k === T.STATICOBJECT && e.lk) {

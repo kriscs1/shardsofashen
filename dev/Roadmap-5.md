@@ -30,10 +30,10 @@ The owner's list of 2026-11-06, in groups. Work down it; tick a box when it's do
 - [x] Every level's overview in one frame, and the same zoom: switching levels keeps x, y, width and height.
 
 ## 7. The hard zones made places
-- [ ] The Dustlands renamed, and made varied: real buildings, landmarks, ground of several kinds, no ruin outlines.
-- [ ] The Rime: finished on its west side, no squares of ice across it, varied (frozen lakes, pines, cliffs, camps).
-- [ ] Every hard zone in areas of their own: each its ground, buildings, features and monsters; good people in a few.
-- [ ] Other high-level things only in the zones (trees, herbs, fish, chests).
+- [x] The Dustlands renamed, and made varied: real buildings, landmarks, ground of several kinds, no ruin outlines.
+- [x] The Rime: finished on its west side, no squares of ice across it, varied (frozen lakes, pines, cliffs, camps).
+- [x] Every hard zone in areas of their own: each its ground, buildings, features and monsters; good people in a few.
+- [x] Other high-level things only in the zones (trees, herbs, fish, chests).
 
 ## 8. Ad-free
 - [x] A one-off "Remove ads" purchase in the Android app (Google Play Billing), remembered and restored; the start

@@ -22,3 +22,6 @@ Flagstone001:Flagstone001:Flagstone001:Flagstone001:Galaith_Wall002:Boardwalk001
 NPC	Guard	160	184	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	160	408	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	160	632	Attitude=Good Stand=1 Face=E Schedule=Always
+StaticObject	Fire	284	345	Gone.After=GuardQuest:5
+StaticObject	Fire	282	380	Gone.After=GuardQuest:5
+StaticObject	Fire	320	379	Gone.After=GuardQuest:5

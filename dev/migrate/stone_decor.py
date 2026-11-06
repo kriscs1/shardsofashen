@@ -1,6 +1,7 @@
-"""Standing stones are decor (the owner's wish): one stands on any ground, snow, sand or grass, and the ground under it
-is the cell's own. Draws Standing_Stone001 on a clear background with its outline, makes it Layer=Decor in Tiles.ini,
-and turns every map cell whose ground was the stone into its neighbours' ground with the stone over it.
+"""Standing stones and ruined walls are decor (the owner's wish): one stands on any ground, snow, sand or grass, and the
+ground under it is the cell's own. Draws Standing_Stone001 and Ruined_Wall001/002 on a clear background with their outline,
+makes them Layer=Decor in Tiles.ini, and turns every map cell whose ground was one into its neighbours' ground with it
+over it.
 
   python -I "dev\\migrate\\stone_decor.py"
 
@@ -52,13 +53,42 @@ def draw():
     pygame.image.save(img, p("sprites", "Tiles", NAME + ".png"))
 
 
-def set_tiles_ini():
+def ruin(broken):
+    """A run of old wall: courses of stone, mossy, the top broken off (broken: lower, and gapped)."""
+    img = pygame.Surface((32, 32), pygame.SRCALPHA)
+    body = pygame.Surface((32, 32), pygame.SRCALPHA)
+    top = 8 if not broken else 15
+    for y in range(top, 30):
+        for x in range(1, 31):
+            if broken and y < 20 and (x // 6) % 2:
+                continue
+            row, col = (y - top) // 5, (x + ((y - top) // 5) * 4) // 8
+            edge = (y - top) % 5 == 0 or (x + ((y - top) // 5) * 4) % 8 == 0
+            body.set_at((x, y), ((90, 86, 80) if edge else (150, 144, 132) if (row + col) % 3 else (130, 124, 114)) + (255,))
+    for x, y in ((3, top + 1), (12, top + 6), (24, top + 3), (18, top + 11), (7, top + 2)):
+        if body.get_at((x, y)).a:
+            body.set_at((x, y), (92, 124, 60, 255))                 # (moss)
+    shadow = pygame.Surface((32, 32), pygame.SRCALPHA)
+    pygame.draw.rect(shadow, (0, 0, 0, 60), (2, 29, 30, 3))
+    img.blit(shadow, (0, 0))
+    mask = pygame.mask.from_surface(body)
+    for x, y in mask.outline():
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < 32 and 0 <= ny < 32 and not mask.get_at((nx, ny)):
+                body.set_at((nx, ny), (44, 42, 38, 255))
+    img.blit(body, (0, 0))
+    return img
+
+
+def set_tiles_ini(name=None):
+    NAME = name or globals()["NAME"]
     path = p("data", "Tiles.ini")
     text = open(path, "rb").read().decode("cp1252")
     head = "[%s]\r\n" % NAME
     i = text.index(head) + len(head)
     j = text.find("\r\n[", i)
-    keep = [ln for ln in text[i:j].split("\r\n") if ln and not ln.startswith(("Blend", "Layer="))]
+    keep = [ln for ln in text[i:j].split("\r\n") if ln and not ln.startswith(("Blend", "Layer=", "Round="))]
     body = "\r\n".join(keep + ["Layer=Decor"]) + "\r\n"     # (and the blank line between sections)
     text = text[:i] + body + text[j:]
     open(path, "wb").write(text.encode("cp1252"))
@@ -76,7 +106,7 @@ def ground_of(rows, x, y, cells_of):
     return seen.most_common(1)[0][0] if seen else "Grass001"
 
 
-def convert_maps():
+def convert_maps(NAME=NAME):
     changed = 0
     for path in glob.glob(p("maps", "*.txt")):
         raw = open(path, "rb").read()
@@ -108,3 +138,7 @@ if __name__ == "__main__":
     draw()
     set_tiles_ini()
     print("stones made decor:", convert_maps())
+    for name, broken in (("Ruined_Wall001", False), ("Ruined_Wall002", True)):
+        pygame.image.save(ruin(broken), p("sprites", "Tiles", name + ".png"))
+        set_tiles_ini(name)
+        print("%s made decor:" % name, convert_maps(name))

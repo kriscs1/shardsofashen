@@ -278,7 +278,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   section of Encounters.ini.
 - **The seasons** (`dsengine/seasons.py`, `data/Seasons.ini`): a year of `Year.Days` real days, from the clock. Longer days in summer, longer nights in winter; winter's snow instead of rain, rivers and lakes frozen to walk on (bodies of water under `River.Most`), `Season.Absent=Winter` kinds gone; the catch swaps (`[Swap.<Season>]`, on every script's Give.Item), crops grow by `Crop.Growth`. What's only seen is the page's (`ground.js` seasonal, snowPatches: worked out once for each picture, never a canvas filter). `$World.Season` for a script.
 - **What happens on its own** (`dsengine/wonders.py`, `data/Wonders.ini`, `dev/migrate/build_wonders.py`): shard storms; ghost ships on foggy nights, gone by morning; the Wandering Inn (a different `Inn_Spot_<n>` each day); mimics (a misspelt name, a glint, `Glint=1`; accuse one and it stops pretending); grudges (what killed you or got away hurt comes back scarred and stronger, attributes `Grudge.*`); the Tax Collector, polite and unkillable, walking after anyone over `Tax.Gold`; the year's Champion (arena wins in winter, crowned in spring, a statue on the boulevard); letters by carrier (`/letter Name [+Item] text`, friends only, a courier finds them). Your own legend (`data/Legend.ini`) is told with the rumours (`legend_due`); a line's condition is any script condition.
-- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Dustlands 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks lie above ground only in these. You leave the Isle at level 3 (Bess and Wim won't sail before).
+- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Sallow Waste (it was the Dustlands, round Moorcross) 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks, yews and swordfish lie above ground only in these
+  (`build_zone_sites.py --rare`). Each zone has places of its own (`dev/migrate/build_zone_sites.py` SITES: their own
+  ground, real buildings, landmarks, monsters; the quest givers live in a few, with company, and no monster on their
+  doorstep); never a ruin's outline: a few ruins, each its own shape (a corner, a tower's stump, a hall's wall,
+  a wall with an arch, a foundation: `--ruins`), rubble round them and the odd thing to pick up.  You leave the Isle at level 3 (Bess and Wim won't sail before).
 - **Mary's notes** (`dev/migrate/build_wonders.py` NOTES): seven notes where she went; all found make a map to her cache at the Mirror Tarn (`Mary's Notes`), the Heart Splinter. Found, never told.
 - **Banter** (`dsengine/banter.py`, `data/Banter.ini`, `dev/migrate/build_banter.py`): the world's people and animals carry
   on with each other where a player can see it. About every `Every.Seconds`, two near that player whom a scene fits stop,
@@ -322,6 +326,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   stairs, and a ladder up to a hatch: one the other way at the same spot of the next level), never a cave's hole, a
   tunnel's or a quest's ladder, the chapel's stair or one behind a `Lock`. One person is one NPC: never a day self
   downstairs and a night self upstairs (Edwin and Maren were).
+- **Every NPC has a level** (its kind's, a little above or below; a map line's `Level=`: `world.py` set_npc_level), and
+  a creature you can fight shows it on hover, its name coloured by how it stands to yours (grey far below, green, yellow
+  about yours, orange, red far above: `tips.js` difficulty).
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less
   often, its magic rises as a **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for

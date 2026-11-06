@@ -26,3 +26,7 @@ StaticObject	Valuables	32	376
 NPC	Guard	448	88	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	448	312	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	448	536	Attitude=Good Stand=1 Face=E Schedule=Always
+StaticObject	Fire	506	342	Gone.After=GuardQuest:5
+StaticObject	Fire	477	381	Gone.After=GuardQuest:5
+StaticObject	Fire	733	602	Gone.After=GuardQuest:5
+StaticObject	Fire	700	603	Gone.After=GuardQuest:5

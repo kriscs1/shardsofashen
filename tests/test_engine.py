@@ -70,6 +70,44 @@ def test_marys_grave_is_by_the_sea_and_galaith_has_no_way_in_from_it(world):
     assert sum(1 for e in world.ents if e.name == "Fire" and e.map in ("-6,18,0", "-5,18,0", "-4,18,0")) >= 5
 
 
+def test_the_hard_zones_are_places_with_homes_and_no_ruin_outlines(world):
+    import sys
+    sys.path.insert(0, os.path.join(ROOT, "dev", "migrate"))
+    from build_zone_sites import SITES, HOMES
+    ids = {i[0]: (m, i[1], i[2]) for m in world.maps.values() for i in m.ids}
+    for site in SITES:
+        assert site["id"] in ids, site["id"]                    # (every place made, and named on the world map)
+    for h in HOMES:                                            # (where people live, no monster on the doorstep)
+        m, x, y = ids[h]
+        hx, hy = m.ox + (x - 1) * 32, m.oy + (y - 1) * 32
+        assert not any(e.hostile and e.z == 0 and abs(e.x - hx) < 12 * 32 and abs(e.y - hy) < 12 * 32 for e in world.ents
+                       if e.type == NPC and not e.npc_id), h
+    walls = sum(1 for m in world.maps.values() if m.mz == 0 for t in m.decor if t.startswith("Ruined_Wall"))
+    assert 40 < walls < 600                                    # (a few ruins of every shape: never an outline everywhere)
+    assert world.data.tile_ini("Ruined_Wall001", "Layer", "") == "Decor"
+    yews = [m.name for m in world.maps.values() if m.mz == 0 and "Yew_Tree001" in m.decor]
+    assert yews and all(-7 <= int(n.split(",")[0]) <= 23 and 6 <= int(n.split(",")[1]) <= 12 for n in yews), yews
+
+
+def test_galaiths_fires_go_out_for_whoever_has_done_the_royal_guard(world):
+    fires = [e for e in world.ents if e.name == "Fire" and getattr(e, "gone_after", "") == "GuardQuest:5"]
+    field = [e for e in fires if e.x > -78 * 32]
+    ramparts = [e for e in fires if e.x < -82 * 32]
+    assert len(field) >= 10 and len(ramparts) >= 8
+    fire = field[0]
+    m = world.maps[fire.map]
+    slayer = join(world, "Slayer", m.name, int(fire.x - m.ox) + 40, int(fire.y - m.oy))
+    newcomer = join(world, "Newcomer", m.name, int(fire.x - m.ox) + 60, int(fire.y - m.oy))
+    assert world.visible_to(fire, slayer) and world.visible_to(fire, newcomer)
+    slayer.update_attribute("GalaithQuest", "=2")
+    assert world.visible_to(fire, slayer)                       # (the dragon dead: still burning)
+    slayer.update_attribute("GuardQuest", "=5")
+    assert not world.visible_to(fire, slayer) and not world.visible_to(ramparts[0], slayer)
+    assert world.visible_to(fire, newcomer)                     # (out for them alone)
+    leave(world, slayer)
+    leave(world, newcomer)
+
+
 def test_locked_out_runs_through_the_secret_cellars(world):
     s = join(world, "Lockpicker", "17,2,0", 520, 240)
     s.update_attribute("LockedOutQuest", "=1")
@@ -6282,11 +6320,12 @@ def test_the_orchard_gives_fruit_for_the_picking(world):
 def wild_spot(world):
     """A map out in the wild (no settlement near), past the Isle, with open ground in its middle to stand on."""
     enc = world.encounters
+    fierce = [(e.x, e.y) for e in world.ents if e.type == NPC and e.hostile and e.z == 0]
     for m in world.maps.values():
         mx, my = (int(v) for v in m.name.split(",")[:2])
-        if m.mz != 0 or mx < 5 or enc.settled(m):
+        if m.mz != 0 or mx < 5 or enc.settled(m) or any(abs(x - m.ox - 416) < 448 and abs(y - m.oy - 352) < 448 for x, y in fierce):   # (nothing near)
             continue
-        if all("0" not in m.walk[m.cell(x, y)] and not m.tile_is_water(x, y) and not m.decor[m.cell(x, y)]
+        if all("0" not in m.walk[m.cell(x, y)] and not m.tile_is_water(x, y) and not m.roof[m.cell(x, y)]
                for x in range(10, 17) for y in range(8, 15)):
             return m
     raise AssertionError("no wild ground")

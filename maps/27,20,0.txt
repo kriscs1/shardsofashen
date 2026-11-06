@@ -21,7 +21,7 @@ Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Wat
 Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 NPC	Sea_Captain	192	344	Attitude=Good Stand=1 Face=E Id=Captain_Rook Name=Captain_Rook
 StaticObject	Boat001	288	336
-StaticObject	Swordfish_Spot	352	352
+StaticObject	Salmon_Spot	352	352
 Id	Rooks_Pier	7	12
 NPC	Rabbit	640	376	Attitude=Passive Zone=16,9,24,17
 NPC	Rabbit	608	184	Attitude=Passive Zone=15,3,24,11
