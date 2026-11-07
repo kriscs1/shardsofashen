@@ -14,7 +14,7 @@ Shards of Ashen: one Python process (aiohttp) runs the authoritative engine (`ds
 ticks/s and streams state over WebSockets (`server/game.py`; view and diffs in `dsengine/view.py`; tile changes sent
 as `mapcells`, never whole maps). SQLite (`server/store.py`) holds accounts and saves. The browser client
 (`web/js/`, canvas, no build step) draws the view; it also runs on phones, and the Android app can be the server
-itself (Python on a phone). Read `CLAUDE.md` ("Drawing stays cheap", "A tile changing...", the phone notes).
+itself (Python on a phone). Read `CLAUDE.md`, then `dev/Rules.md` ("Drawing stays cheap", "A tile changing...", the phone notes).
 
 ## How to test
 

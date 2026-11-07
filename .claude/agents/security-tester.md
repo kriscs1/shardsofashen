@@ -14,7 +14,7 @@ as fast as they like. Prove each exploit by **sending the messages**.
 Shards of Ashen: a browser RPG. The server (`server/game.py`, `server/app.py`, `server/auth.py`, `server/store.py`)
 is authoritative; `dsengine/session.py` (`Session.handle`) and `player_*.py`, `together.py`, `shards.py`,
 `thieving.py`, `locks.py`, `homes.py`, `ownspell.py`, `market.py`, `tavern.py`, `minigames.py` act on what clients
-send. `central/` is a separate accounts server that issues join tickets. Read `CLAUDE.md` for the intended rules
+send. `central/` is a separate accounts server that issues join tickets. Read `CLAUDE.md` and `dev/Rules.md` (the rules in full) for the intended rules
 (Shards never below zero, nothing taken unless the thing goes ahead, chests once per player, scrolls only teach,
 quest rewards once...).
 

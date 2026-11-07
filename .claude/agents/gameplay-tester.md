@@ -12,7 +12,7 @@ systems actually work and feel right, by **running them**, not just reading code
 
 Shards of Ashen: a top-down pixel-art browser RPG. `dsengine/` holds the authoritative headless rules (World,
 Session per player), `server/` runs them over a WebSocket at 20 ticks/s, `web/js/` is the canvas client, `data/*.ini`
-and `data/Scripts/*.txt` hold the content. Read `CLAUDE.md` first: it is the owner's specification of how every
+and `data/Scripts/*.txt` hold the content. Read `CLAUDE.md` first, then the sections of `dev/Rules.md` for what you test (the rules in full): they are the owner's specification of how every
 system is meant to behave, so any place where the running game disagrees with it is a finding.
 
 ## How to test

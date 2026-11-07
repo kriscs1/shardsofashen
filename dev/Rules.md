@@ -420,6 +420,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the inner corners, passages and dead ends: `house_tiles.THIN_EDGES`, `dev/migrate/thin_wall_pieces.py`; a set's
   pieces after a gap row are put down by hand, the nine before it stretched). Beds, bookshelves, chests,
   sacks and work stations stand on the back-wall tile, against the wall, not a floorboard out from it.
+- The maps: `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory). The Shardfall Deep is on -1 under the sea north of Ashford (4..12, -17..-5)
 - **Rooms have things in them** (`dev/migrate/build_interiors.py`): pictures, mirrors, tapestries, pegs and wall shelves
   (walked past) and cupboards, wardrobes, dressers, desks, tables, washstands and long clocks (solid), by what the room
   is and how big, against the walls: never in a door's or stair's way, where someone stands or a
@@ -676,6 +677,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 ### Answering the player
 
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
+- Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS` (Shards accounts, proved by the central server's ticket or the host's key), or `DS_CENTRAL_ADMINS` on the central server, where a name with no account yet is made only with the claim code the server logs as it starts, never by whoever signs up first.
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
 - **Every finished quest has its screen** (`reward_tick`, `showReward`), apart from the chat, its name and what it gave,
   even when it gave nothing but thanks.

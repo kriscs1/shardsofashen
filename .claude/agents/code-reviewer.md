@@ -13,7 +13,7 @@ hurt as the game grows. Quality nits matter only when they hide a bug.
 
 Shards of Ashen: `dsengine/` (authoritative engine), `server/` (aiohttp, WebSocket, SQLite), `web/js/` (canvas
 client, ES modules), `central/` (accounts server), `data/` (ini and scripts), `dev/migrate/validate.py` (the data
-validator). Read `CLAUDE.md` first: it is the owner's specification and conventions (cp1252/CRLF data, lowercase
+validator). Read `CLAUDE.md` first, then the sections of `dev/Rules.md` for the code you review (the rules in full): they are the owner's specification and conventions (cp1252/CRLF data, lowercase
 paths for Linux, standard library plus aiohttp only in `server/` and `dsengine/`, `mapcells` not full maps...).
 
 ## How to review

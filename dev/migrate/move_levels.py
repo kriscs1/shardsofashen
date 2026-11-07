@@ -57,7 +57,7 @@ def main():
     files += [at("maps", f) for f in os.listdir(at("maps")) if f.endswith(".txt")]
     for d in ("dev/migrate", "dev/migrate/estforlan", "tests", "dsengine", "server"):
         files += [at(d, f) for f in os.listdir(at(d)) if f.endswith(".py") and f != "move_levels.py"]
-    files += [at("CLAUDE.md"), at("README-Server.md"), at("dev", "Story and Quests.md"), at("dev", "World Plan.md")]
+    files += [at("CLAUDE.md"), at("dev", "Rules.md"), at("README-Server.md"), at("dev", "Story and Quests.md"), at("dev", "World Plan.md")]
     for path in files:
         if os.path.isfile(path) and not path.endswith("renames.py"):
             rewrite(path, names)
