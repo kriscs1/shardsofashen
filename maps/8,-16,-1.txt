@@ -32,3 +32,4 @@ StaticObject	Shard_Spire002	192	282
 StaticObject	Shard_Spire003	128	506
 StaticObject	Shard_Spire001	256	474
 StaticObject	Shard_Spire002	448	474
+StaticObject	Wardens_Chime_Glass	256	16	Id=Glass_Chime

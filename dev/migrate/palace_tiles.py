@@ -64,17 +64,30 @@ def paving():
 
 
 def marble_floor():
+    """Polished marble: cream and grey squares, each lit from the top left, veined, a glint on the cream ones."""
     rng = random.Random(7102)
     img = np.empty((S, S, 3), dtype=np.float32)
     check = ((XS // 16) + (YS // 16)) % 2 == 0
     img[check] = (232, 226, 212)
     img[~check] = (176, 172, 168)
-    vein = smooth_noise(rng, 1, 3)
-    img[:, :] *= (1 + 0.05 * vein)[:, :, None]
-    for _ in range(5):                                  # a few fine veins
-        x, y = rng.randrange(S), rng.randrange(S)
-        for t in range(10):
-            img[(y + t // 2) % S, (x + t) % S] *= 0.9
+    img[:, :] *= (1 + 0.05 * smooth_noise(rng, 1, 3))[:, :, None]
+    lx, ly = (XS % 16) / 15.0, (YS % 16) / 15.0
+    img *= (1.05 - 0.10 * (lx + ly) / 2)[:, :, None]                  # (each square brighter at its top left: polish)
+    for sq in range(4):                                                # (veins: a wandering line or two through each square)
+        ox, oy = (sq % 2) * 16, (sq // 2) * 16
+        for _ in range(2):
+            x, y = ox + rng.randrange(16), oy + rng.randrange(16)
+            dx, dy = rng.choice(((1, 1), (1, 0), (0, 1), (1, -1)))
+            for t_ in range(rng.randint(9, 15)):
+                for halo, k in ((0, 0.86), (1, 0.95)):
+                    px, py = (x + (halo * dy)) % S, (y + (halo * dx)) % S
+                    if (px // 16, py // 16) == (ox // 16, oy // 16):
+                        img[py, px] *= k
+                x += dx + (1 if rng.random() < 0.18 else 0) * dy
+                y += dy + (1 if rng.random() < 0.18 else 0) * dx
+    for ox, oy in ((0, 0), (16, 16)):                                  # (a glint on the cream squares)
+        for k in range(4):
+            img[(oy + 3 + k) % S, (ox + 8 - k) % S] = np.minimum(255, img[(oy + 3 + k) % S, (ox + 8 - k) % S] * 1.06 + 5)
     img[(XS % 16 == 15) | (YS % 16 == 15)] *= 0.8
     img[(XS % 16 == 0) | (YS % 16 == 0)] *= 1.05
     return img

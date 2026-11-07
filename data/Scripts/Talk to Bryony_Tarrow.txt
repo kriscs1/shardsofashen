@@ -13,5 +13,5 @@
 12	>Conditional	$Variable.1>=5	15
 13	Display.Conversation	Old_Woman	It opened, did it? Then the Wardens are still down there, in a manner of speaking. Be careful how you talk to them. They'll have been alone a long time.	I will.	16
 14	End
-15	Display.Conversation	Old_Woman	Sit down, sit down. Nell's out on the rocks again. That girl will have the sea in her pockets one of these days.	Goodbye, Bryony.	16
+15	Goto.Script	Bryony and the Wardens
 16	End

@@ -1,4 +1,4 @@
-"""Galaith still burning (the owner's wish): fires across the dragon's scorched field before the east gate, and along the
+"""Galaith still burning (the owner's wish): blazes (build_blaze.py: wreckage burning, not a campfire) across the dragon's scorched field before the east gate, and along the
 ramparts at the war end inside it. Each is a player's own to see go out (a map line's Gone.After, world.py visible_to),
 all of them once The Royal Guard is done (GuardQuest 5): the city's own again, its guard behind its heir.
 
@@ -55,7 +55,7 @@ def lay(atlas, area, rng, taken):
                     gx // XT != (gx + dx) // XT or gy // YT != (gy + dy) // YT:
                 continue
             taken.add((gx + dx, gy + dy))
-            atlas.map_of(gx, gy).ents.append("StaticObject\tFire\t%d\t%d\tGone.After=%s" % (
+            atlas.map_of(gx, gy).ents.append("StaticObject\tBlaze\t%d\t%d\tGone.After=%s" % (
                 ((gx + dx) % XT) * TW + rng.randint(-6, 6), max(0, ((gy + dy) % YT) * TW - 6 + rng.randint(-4, 4)), out))
     return len(spots)
 

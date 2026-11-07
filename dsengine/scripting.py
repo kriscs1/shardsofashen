@@ -346,6 +346,8 @@ class ScriptMixin:
             ("$World.Champion", self.w.wonders.champion or "-"),
             ("$Tax.Due", lbstr(self.w.wonders.tax_due(self))),
             ("$Player.Malaria", "1" if "Malaria" in self.diseases else "0"),
+            ("$Player.Shardsong", "1" if "Shardsong" in self.diseases else "0"),
+            ("$Player.Stance", self.stance or "-"),             # (the one you're in: Fighting, Channelling, Sneaking)
             ("$Shardstones.Active", lbstr(len(self.stones_active()))),
             ("$Player.Health.Max", lbstr(self.player_max_hp)),       # (before $Player.Health, which it starts with)
             ("$Player.Health", lbstr(int(self.player.hp))),
@@ -584,6 +586,11 @@ class ScriptMixin:
         elif c == "Start.Wave":
             # Start.Wave <name>: a data\Waves.ini attack starts (a quest's battle; for everyone there)
             self.w.waves.start(trim(arg[1]), by=self)
+        elif c == "Catch.Disease":                   # (Catch.Disease <name>: it's in the blood, as a bite gives it)
+            if self.disease_known(trim(arg[1])):
+                self.catch_disease(trim(arg[1]))
+            else:
+                self.log("ERROR - Catch.Disease: no [%s] in data\Diseases.ini" % trim(arg[1]))
         elif c == "Start.Encounter":                 # (one of data\Encounters.ini's turns up near them: encounters.py)
             if trim(arg[1]) in self.w.encounters.kinds:
                 self.w.encounters.start(trim(arg[1]), self)

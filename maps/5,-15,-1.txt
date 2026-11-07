@@ -27,3 +27,4 @@ NPC	Fossil_Horror	64	208	Attitude=Bad Zone=1,5,6,11 Chase=1,2,10,15
 NPC	Chalk_Wraith	576	184	Attitude=Bad Zone=16,4,22,10 Chase=12,2,25,14
 NPC	Fossil_Horror	352	48	Attitude=Bad Zone=9,2,15,6 Chase=5,2,19,10
 NPC	Chalk_Wraith	128	472	Attitude=Bad Zone=2,13,8,19 Chase=1,9,12,20
+StaticObject	Wardens_Chime_Bone	64	464	Id=Bone_Chime

@@ -1813,6 +1813,9 @@ const DEBUFFS = {
   Frailty: { title: "Frail", col: [170, 170, 180] },
   Fever: { title: "Fever", col: [240, 150, 70] },                   // (a bout of a disease: disease.py)
   Malaria: { title: "Malaria", col: [214, 200, 90] },               // (no end of its own: no clock)
+  Shardsong: { title: "Shardsong", col: [190, 150, 250] },          // (another: the Deep's voice in your head)
+  Listening: { title: "Listening", col: [190, 150, 250] },          // (its bout: held still)
+  Keen: { title: "Sharp-eyed", col: [120, 235, 120] },              // (after it: traps and secrets noticed)
   Drained: { title: "Drained", col: [240, 110, 100] },              // (a script's Boost.Skill down)
   Boosted: { title: "Boosted", col: [120, 235, 120] },              // (... and up)
 };
@@ -1828,8 +1831,8 @@ function debuffIcon(ctx, name, cx, cy) {
   const col = DEBUFFS[name].col, c = `rgb(${col})`;
   ctx.save();
   ctx.fillStyle = c; ctx.strokeStyle = c; ctx.lineWidth = 2;
-  if (DEBUFFS[name].title.match(/Weakened|Dazed|Frail|Drained|Boosted/)) {   // (an arrow: down, or up)
-    const up = name === "Boosted" ? -1 : 1;
+  if (DEBUFFS[name].title.match(/Weakened|Dazed|Frail|Drained|Boosted|Sharp-eyed/)) {   // (an arrow: down, or up)
+    const up = name === "Boosted" || name === "Keen" ? -1 : 1;
     ctx.beginPath();
     ctx.moveTo(cx - 4, cy - 10 * up); ctx.lineTo(cx + 4, cy - 10 * up); ctx.lineTo(cx + 4, cy + 1 * up);
     ctx.lineTo(cx + 9, cy + 1 * up); ctx.lineTo(cx, cy + 11 * up); ctx.lineTo(cx - 9, cy + 1 * up);

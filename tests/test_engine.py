@@ -90,7 +90,7 @@ def test_the_hard_zones_are_places_with_homes_and_no_ruin_outlines(world):
 
 
 def test_galaiths_fires_go_out_for_whoever_has_done_the_royal_guard(world):
-    fires = [e for e in world.ents if e.name == "Fire" and getattr(e, "gone_after", "") == "GuardQuest:5"]
+    fires = [e for e in world.ents if e.name == "Blaze" and getattr(e, "gone_after", "") == "GuardQuest:5"]
     field = [e for e in fires if e.x > -78 * 32]
     ramparts = [e for e in fires if e.x < -82 * 32]
     assert len(field) >= 10 and len(ramparts) >= 8
@@ -2293,6 +2293,7 @@ def test_walking_granny_wren_to_her_daughter(world):
     s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northport's landing)
     s.connected = True
     s.update_attribute("Passage", "=5")                              # (over from the Isle: it can start)
+    s.update_attribute("ParliamentQuest", "=2")                      # (the Speaker's word: Northport's roads are open)
     for _ in range(10):
         world.tick(0.05)
     granny = world.placed_entity("Granny_Wren", s)
@@ -2310,7 +2311,7 @@ def test_walking_granny_wren_to_her_daughter(world):
     bridges = [(bm.ox + (x - 1) * 32 + 16, bm.oy + (y - 1) * 32 + 16) for bm in world.maps.values()
                if bm.name.endswith(",0") and 4 <= int(bm.name.split(",")[1]) <= 6 and
                int(bm.name.split(",")[0]) in range(5, 11)
-               for y in range(2, 21) for x in range(2, 25) if bm.tile[bm.cell(x, y)] == "Plank001" and
+               for y in range(2, 21) for x in range(2, 25) if bm.tile[bm.cell(x, y)].startswith("Wood_Bridge_") and
                not bm.roof[bm.cell(x, y)] and any(bm.tile_is_water(x + dx, y + dy)
                                                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))]   # (a bridge)
     bridge = min(bridges, key=lambda b: abs(b[0] - (s.player.cx + door[0]) / 2) + abs(b[1] - door[1]))
@@ -2328,7 +2329,7 @@ def test_walking_granny_wren_to_her_daughter(world):
         if s.cur_map is m and distance(s.player.cx, s.player.cy, *door) < 40 and \
                 distance(granny.cx, granny.cy, s.player.cx, s.player.cy) < 80:
             break
-    assert s.cur_map is m and distance(granny.cx, granny.cy, s.player.cx, s.player.cy) < 80   # (she kept up)
+    assert s.cur_map is m and distance(granny.cx, granny.cy, s.player.cx, s.player.cy) < 80, (s.cur_map.name, s.player.cx / 32, s.player.cy / 32, granny.cx / 32, legs[:1] and (legs[0][0] / 32, legs[0][1] / 32))   # (she kept up)
     gold = s.items_held("Gold_Coin(s)")
     s.choose_verb("Talk to", granny, int(granny.cx), int(granny.cy))
     for _ in range(5):
@@ -2606,7 +2607,8 @@ def test_bad_news_is_heard_and_work_is_seen(world):
     leave(world, s)
 
 
-def test_a_racks_search_finds_across_its_pages(world):
+def test_a_racks_search_finds_across_its_pages(world, monkeypatch):
+    monkeypatch.setattr(world.data, "shop_vary_stock", False)       # (the milk may be sold out this delivery)
     s = join(world, "Shopper")
     s.connected = True
     assert s.open_item_rack("SPECIFIC", "Milkmaid", "SHOP-Dairy")
@@ -5036,6 +5038,97 @@ def test_the_seam_can_be_unmade_only_with_the_wardens_truth(world):
     leave(world, s)
 
 
+def test_the_seam_cant_be_unmade_without_the_wardens_truth(world):
+    s = join(world, "Binder")
+    stock(s, Pickaxe=1)
+    s.update_attribute("KingQuest", "=1")
+    seam = next(e for e in world.ents if e.npc_id == "Kings_Shard_Seam")
+    near(world, s, seam, 0, 30)
+    s.choose_verb("Mine", seam, int(seam.cx), int(seam.cy))
+    run_for(world, 30)
+    assert s.ab_mode == "Conversation"
+    s.action_box_response_chosen(3)                                 # (the third shown: Not yet)
+    run_for(world, 20)
+    assert s.get_attribute("Unmade") == "0" and s.get_attribute("HeartChoice") == "0"
+    leave(world, s)
+
+
+def test_the_glass_wardens_journals_chimes_shardsong_and_the_listening_room(world):
+    """The Glass Wardens (dev/migrate/build_glass_wardens.py): nine journals read for Pell; the four chimes struck in
+    the season's order; the Shardsong (a bout held still, then sharp eyes; the Quiet Draught cures it); the Listening
+    Room's horn heard out only in the Channelling stance, never answered, which gives the Wardens' truth."""
+    s = join(world, "Listener", "8,-13,-1", 300, 300)
+    s.connected = True
+    s.god_mode = True
+    held = [e for e in world.ents if e.type == NPC and e.hostile and e.map.endswith(",-1") and world.maps[e.map].my < -4]
+    for e in held:
+        world.ents.remove(e)                                         # (the Deep's monsters: a fight shuts the books)
+
+    def use(verb, e, answers=()):
+        near(world, s, e, 0, 40)
+        s.out = []
+        s.choose_verb(verb, e, int(e.cx), int(e.cy))
+        run_for(world, 40)
+        for a in answers:
+            assert s.ab_mode == "Conversation"
+            s.action_box_response_chosen(a)
+            run_for(world, 40)
+        return " ".join(str(o.get("text", "")) for o in s.out if o.get("t") == "msg")
+
+    # ----- the journals: nine, each counted once
+    s.update_attribute("WardensWords", "=1")
+    for i in range(1, 10):
+        book = next(e for e in world.ents if e.npc_id == "Wardens_Journal_%d" % i)
+        use("Read", book, [1])
+        if i == 1:
+            use("Read", book, [1])                                   # (read twice: counted once)
+    assert s.get_attribute("WardensJournals") == "9" and s.get_attribute("WardensWords") == "2"
+
+    # ----- the four notes, in spring's order (a wrong one starts it again)
+    was = (world.seasons.now_is, world.seasons.pinned)
+    world.seasons.now_is = world.seasons.pinned = "Spring"
+    s.update_attribute("FourNotes", "=1")
+    chime = {k: next(e for e in world.ents if e.npc_id == "%s_Chime" % k) for k in ("Water", "Bone", "Flame", "Glass")}
+    use("Strike", chime["Water"])
+    assert "jars" in use("Strike", chime["Flame"]) and s.get_attribute("FourNotes.Step") == "0"
+    for k in ("Water", "Bone", "Flame", "Glass"):
+        use("Strike", chime[k])
+    assert s.get_attribute("FourNotes") == "2"
+    world.seasons.now_is, world.seasons.pinned = was
+
+    # ----- the Shardsong: held still to listen, then sharp eyes; the Quiet Draught ends it
+    s.diseases.clear()
+    s.god_mode = False                                               # (god mode shrugs off every bout)
+    s.catch_disease("Shardsong")
+    s.diseases["Shardsong"] = s.now
+    s.disease_at = 0
+    s.disease_tick()
+    assert "Listening" in s.status
+    s.status_end("Listening")
+    assert "Keen" in s.status
+    stock(s, Quiet_Draught=1)
+    s.drink_cure(next(e for e in s.inv if e.name == "Quiet_Draught"))
+    assert "Shardsong" not in s.diseases
+    s.god_mode = True
+
+    # ----- the Listening Room: the horn, only in the Channelling stance, and never answered
+    s.update_attribute("WardensHeard", "=1")
+    horn = next(e for e in world.ents if e.npc_id == "Wardens_Horn")
+    s.stance = ""
+    use("Listen", horn, [1])                                         # (Ysolde: stand as if to cast)
+    assert s.get_attribute("WardensTruth") == "0"
+    assert any(e.name == "Ysolde" and e.map == horn.map for e in world.ents)   # (she's there for you)
+    s.stance = "Channelling"
+    msg = use("Listen", horn, [2])                                   # (answered: it's over)
+    assert "You answered it" in msg and s.get_attribute("WardensTruth") == "0"
+    use("Listen", horn, [1, 1, 1, 1, 1, 1])                          # (four times nothing; then Ysolde, twice)
+    assert s.get_attribute("WardensTruth") == "1" and s.get_attribute("WardensHeard") == "2"
+    assert s.items_held("Wardens_Lantern") == 1
+    s.diseases.clear()
+    leave(world, s)
+    world.ents.extend(held)
+
+
 def test_the_archive_vault_under_galaiths_city_hall(world):
     hall = next(m for m in world.maps.values() if any(i[0] == "Archive_Hatch" for i in m.ids))
     hx, hy = next(i[1:] for i in hall.ids if i[0] == "Archive_Hatch")
@@ -7278,3 +7371,55 @@ def test_the_editor_wheel_zooms_about_where_the_mouse_really_is(world):
     assert abs(calls[-1][0] - 1.25 ** -0.25) < 1e-9                 # (a quarter of a notch)
     MapPage.wheel_zoom(pg, NS(delta=120, x=0, y=0, x_root=5, y_root=5))
     assert calls[-1][1] is None                                     # (off the canvas: about the middle)
+
+
+def test_winter_ice_is_thin_and_cracked_and_never_walked_on(world):
+    """Seasons.ini freezes a river to Thin_Ice001: dark water under a cracked skin, with the water's own (empty) walk mask."""
+    import re
+    from dsedit.project import Project
+    P = Project(ROOT)
+    assert re.search(r"(?m)^Ice=Thin_Ice001", open(os.path.join(ROOT, "data", "Seasons.ini"), encoding="cp1252").read())
+    assert set(P.tiles_ini.get("Thin_Ice001", "Walkable.Data", "")) == {"0"}
+    assert P.tiles_ini.get("Thin_Ice001", "Texture", "") == "Thin_Ice"
+    assert os.path.exists(os.path.join(ROOT, "sprites", "Textures", "Thin_Ice.png"))
+
+
+def test_a_blaze_warms_you_like_any_fire(world):
+    from dsengine.cold import FIRES
+    assert "Blaze" in FIRES
+    f = [ln for ln in open(os.path.join(ROOT, "maps", "-4,14,0.txt"), encoding="cp1252").read().splitlines() if "\tBlaze\t" in ln]
+    assert all("Gone.After=GuardQuest:5" in ln for ln in f)            # (a player's own to see go out)
+
+
+def test_wooden_bridges_are_a_set_with_rails_on_their_open_sides(world):
+    """Wood_Bridge: sixteen pieces by the sides they join; the open sides are railed (not walkable), the joined ones open;
+    and no plank pier is left over water."""
+    from dsedit.project import Project
+    P = Project(ROOT)
+    for bits in range(16):
+        mask = "".join(s for i, s in enumerate("NESW") if bits >> i & 1)
+        name = "Wood_Bridge_%s001" % (mask or "X")
+        assert P.tiles_ini.get(name, "Joins", "") == (mask or "-"), name
+        walk = P.tiles_ini.get(name, "Walkable.Data", "")
+        assert len(walk) == 49
+        rows = [walk[i * 7:i * 7 + 7] for i in range(7)]
+        assert (set(rows[0]) == {"0"}) == ("N" not in mask)
+        assert (set(rows[6]) == {"0"}) == ("S" not in mask)
+        assert (set(r[0] for r in rows) == {"0"}) == ("W" not in mask)
+        assert (set(r[6] for r in rows) == {"0"}) == ("E" not in mask)
+
+
+def test_northport_is_shut_till_the_speaker_gives_her_word(world):
+    """build_northport_blockade.py: a ring of Lock lines round the city (open at ParliamentQuest>=2), a guard at each road
+    out who says why; the Speaker's word is the way through."""
+    locks = 0
+    for my in range(4, 7):
+        for mx in range(2, 6):
+            fn = os.path.join(ROOT, "maps", "%d,%d,0.txt" % (mx, my))
+            locks += sum(1 for ln in open(fn, encoding="cp1252").read().splitlines()
+                         if ln.startswith("Lock	") and "$Attr.ParliamentQuest>=2" in ln)
+    assert locks > 150
+    for way in ("East", "East_2", "South", "West"):
+        fn = os.path.join(ROOT, "data", "Scripts", "Talk to Northport_%s_Gate_Guard.txt" % way)
+        assert "ParliamentQuest" in open(fn, encoding="cp1252").read()
+    assert "Speaker" in open(os.path.join(ROOT, "data", "Quests.ini"), encoding="cp1252").read().split("[The Temporary Capital]")[1].split("Marker0")[0]

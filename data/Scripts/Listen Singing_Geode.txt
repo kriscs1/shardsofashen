@@ -6,7 +6,7 @@
 05	Update.Skill	Shardcraft	+1
 06	Display.Message	Cyan	You put your ear to the stone. It sings four notes, over and over, and every crystal in the gallery sings them back.	-
 07	End
-08	Display.Message	Cyan	Four notes, over and over. You find you're humming them too.	-
+08	Goto.Script	Geode's Four Notes
 09	End
 10	Display.Message	DarkRed	You are too far away!	Denied
 11	End

@@ -19,7 +19,7 @@ Scorched003:Scorched003:Scorched002:Scorched003:Scorched003:Scorched001:Scorched
 Scorched003:Scorched001:Scorched001:Scorched003:Scorched001:Scorched002:Scorched003:Scorched001:Scorched002:Scorched003:Scorched001:Scorched001:Scorched001:Scorched002:Scorched002:Scorched003:Scorched003:Scorched003:Scorched001:Scorched003:Scorched003:Scorched001:Scorched002:Scorched001:Scorched001
 Scorched001:Scorched003:Scorched001:Scorched001:Scorched001:Scorched003:Scorched001:Scorched003:Scorched002+Decor(Dead_Tree002):Scorched002:Scorched001:Scorched001:Scorched002:Scorched001:Scorched002:Scorched003:Scorched002:Scorched002:Scorched003:Scorched003:Scorched003:Scorched001:Scorched002:Scorched003:Scorched001
 Scorched003:Scorched002:Scorched003+Decor(Dragon_Skull001):Scorched002:Scorched003:Scorched002:Scorched001:Scorched003:Scorched001:Scorched002:Scorched003:Scorched001:Scorched003:Scorched002:Scorched002:Scorched002:Scorched002:Scorched002:Scorched002:Scorched003:Scorched003:Scorched002:Scorched001+Decor(Dead_Tree002):Scorched002:Scorched001
-StaticObject	Fire	614	605	Gone.After=GuardQuest:5
-StaticObject	Fire	613	638	Gone.After=GuardQuest:5
-StaticObject	Fire	578	605	Gone.After=GuardQuest:5
-StaticObject	Fire	131	442	Gone.After=GuardQuest:5
+StaticObject	Blaze	614	605	Gone.After=GuardQuest:5
+StaticObject	Blaze	613	638	Gone.After=GuardQuest:5
+StaticObject	Blaze	578	605	Gone.After=GuardQuest:5
+StaticObject	Blaze	131	442	Gone.After=GuardQuest:5

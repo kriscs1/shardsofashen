@@ -1246,9 +1246,13 @@ def thing_data():
     SK.set_section(p("data", "Shardstones.ini"), "Shardfall", ["Title=The Shardfall Deep"])
 
 
+DIM_TOO = ("12,-17,-2",)   # (maps of the Deep's made by other builders: build_glass_wardens.py's Listening Room)
+
+
 def config_data(names):
     """The Deep is dim (sky.js): its maps, the dark's colour and the glow of what's lit in it."""
-    SK.section(SK.CONFIG, "Darkness", [("Maps", " ".join(names)), ("Colour", "8 6 22 205"), ("Glow.Colour", "34 18 60"),
+    names = list(names) + [n for n in DIM_TOO if SK.map_exists(n)]  # (the Listening Room under the Reliquary)
+    SK.section(SK.CONFIG, "Darkness", [("Maps", " ".join(names)),("Colour", "8 6 22 205"), ("Glow.Colour", "34 18 60"),
                                        ("Player.Light", "150")])
 
 
@@ -1376,9 +1380,7 @@ def scripts(grotto_map):
         ("@three",), (">Conditional", "$Variable.1<5", "@open"),
         say("Woman", "Gran's the one to ask. Mind, she'll want you to sit down first. Everybody sits down first.",
             ("All right.", "@end")), ("End",),
-        ("@open",),
-        say("Woman", "You went in? Through that door? And came out again?\\The glass is still coming in on the tide. I've "
-                     "started selling it. Somebody may as well.", ("Goodbye, Nell.", "@end")), ("End",),
+        ("@open",), ("Goto.Script", "Nell and the Wardens"),         # (and after the Wardens: build_glass_wardens.py)
         ("@idle",),
         say("Woman", "Nets, glass, nets. Mind the rocks on the north side if you're walking: they've cut better boots than "
                      "yours.", ("Goodbye.", "@end")),
@@ -1406,9 +1408,7 @@ def scripts(grotto_map):
         ("@later",), (">Conditional", "$Variable.1>=5", "@idle"),
         say("Old_Woman", "It opened, did it? Then the Wardens are still down there, in a manner of speaking. Be careful how you "
                          "talk to them. They'll have been alone a long time.", ("I will.", "@end")), ("End",),
-        ("@idle",),
-        say("Old_Woman", "Sit down, sit down. Nell's out on the rocks again. That girl will have the sea in her pockets one of "
-                         "these days.", ("Goodbye, Bryony.", "@end")),
+        ("@idle",), ("Goto.Script", "Bryony and the Wardens"),       # (and after the Wardens: build_glass_wardens.py)
         ("@end",), ("End",)])
     W("Touch Shardfall_Seal", [
         (">Distance.From.Clicked.Tile", "48", "@far"),
@@ -1466,9 +1466,7 @@ def scripts(grotto_map):
         say("Scholar", "Five! Look at it. A real map of a real place nobody's ever seen. The Crown will want it. The Crown will "
                        "pay for it, which is better.\\Here: your share.", ("Thank you, Pell.", "@end")),
         ("Display.Message", "Yellow", "Quest complete: Charting the Deep!", "Quest"), ("End",),
-        ("@idle",),
-        say("Scholar", "The lake's north, the bones are west, the pit's north again. The mushrooms are everywhere. Mind the "
-                       "moths.", ("Goodbye, Pell.", "@end")),
+        ("@idle",), ("Goto.Script", "Pell and the Wardens"),          # (the Wardens' Words: build_glass_wardens.py)
         ("@end",), ("End",)])
     for key, pid, words in CHART_SPOTS:
         W("Chart_%s" % key, [
@@ -1503,15 +1501,13 @@ def scripts(grotto_map):
                          "last time I put a hook in her, before she bit through the line. Take it. I don't want it near me.",
             ("Thank you, Morrow.", "@end")),
         ("Display.Message", "Yellow", "Quest complete: The Brine Mother!", "Quest"), ("End",),
-        ("@idle",),
-        say("Fisherman", "Glowfin bite where the water lights up, off the shore. You'll want a good rod, good bait, and good "
-                         "fishing: twenty-two years of it, I'd say.", ("Thanks.", "@end")),
+        ("@idle",), ("Goto.Script", "Morrow and the Log"),           # (Odile's Log: build_glass_wardens.py)
         ("@end",), ("End",)])
     W("Kill Brine_Mother", [(">Conditional", "$Attr.%s=1" % BRINEQ, "@end"), ("Update.Attribute", BRINEQ, "=2"),
                             ("Quest.Note.Done", "The Brine Mother", "The Brine Mother is dead."),
                             ("Display.Message", "Yellow", "The Brine Mother sinks into her lake for the last time. Morrow will "
                              "want to know.", "-"),
-                            ("@end",), ("End",)])
+                            ("@end",), ("Goto.Script", "Brine Mother's Log"), ("End",)])
 
     # ----- The Last Watch, The Fallen Shard
     W("Talk to Warden_Ysolde", [
@@ -1555,9 +1551,7 @@ def scripts(grotto_map):
         ("@f1",), (">Conditional", "$Variable.2<3", "@done"),
         say("Ghost_Warden", "West, through the Watch Gallery. The light will show you the way. It always does.",
             ("I'm going.", "@end")), ("End",),
-        ("@done",),
-        say("Ghost_Warden", "You've heard it now. Everybody who touches it does.\\The watch is yours, warm one. I think I'll rest.",
-            ("Rest well, Ysolde.", "@end")), ("End",),
+        ("@done",), ("Goto.Script", "Ysolde and the Wardens"),       # (What the Wardens Heard: build_glass_wardens.py)
         ("@idle",),
         say("Ghost_Warden", "Warm hands, warm feet. You don't belong down here. Go carefully.", ("I will.", "@end")),
         ("@end",), ("End",)])
@@ -1571,7 +1565,7 @@ def scripts(grotto_map):
                          ("Quest.Note.Done", "The Fallen Shard", "The Shardborn is broken."),
                          ("Display.Message", "Yellow", "The Shardborn comes apart into a thousand chiming pieces. Behind it, "
                           "the Fallen Shard's light steadies.", "-"),
-                         ("@end",), ("End",)])
+                         ("@end",), ("Goto.Script", "Shardborn's Remnant"), ("End",)])
     W("Touch Fallen_Shard", [
         (">Distance.From.Clicked.Entity", "72", "@far"),
         (">Conditional", "$Attr.%s=2" % FALLQ, "@not"),
@@ -1604,6 +1598,7 @@ def scripts(grotto_map):
         ("Update.Skill", "Shardcraft", "+0.6"),
         ("Play.Sound", "Absorb"),
         ("Display.Message", "Yellow", "..and $Shards.Shardfall.Draw Shards come away into you, warm, still singing."),
+        ("Goto.Script", "Shardsong Near"),                            # (the Shardsong: build_glass_wardens.py)
         ("End",),
         ("@dim",), ("Display.Message", "DarkRed", "The Shard's light is low: it has given what it will for now.", "Fail"),
         ("End",),
@@ -1620,20 +1615,9 @@ def scripts(grotto_map):
         ("Display.Message", "Cyan", "You put your ear to the stone. It sings four notes, over and over, and every crystal in "
                                     "the gallery sings them back.", "-"),
         ("End",),
-        ("@heard",),
-        ("Display.Message", "Cyan", "Four notes, over and over. You find you're humming them too.", "-"),
+        ("@heard",), ("Goto.Script", "Geode's Four Notes"),          # (the Four Notes: build_glass_wardens.py)
         ("End",)] + far)
-    pages = [
-        "WARDENS' JOURNAL: the hand of Ysolde\\Year 211 of the watch. The Shard is quiet. Marshal Corvane says it sleeps. "
-        "Brother Hale says it never sleeps, it only waits, and has been made to scrub the cistern for saying so.",
-        "WARDENS' JOURNAL: the hand of Brother Hale\\It grows. We have measured it every year since the first: a hair "
-        "a year, always. Marshal Corvane says it's the rock settling. Rock doesn't settle upwards.",
-        "WARDENS' JOURNAL: the hand of Marshal Corvane\\I have heard it now. It isn't asking to be used. It's asking "
-        "to be listened to, and nobody has, in four hundred years of standing guard over it with our ears stopped.\\"
-        "The others will understand. I'll make them listen."]
-    for i, text in enumerate(pages, 1):
-        W("Read Wardens_Journal_%d" % i, [(">Distance.From.Clicked.Entity", "64", "@far"),
-                                          ("Display.Conversation", "Notice", text, "Okay", "@end"), ("@end",), ("End",)] + far)
+    # (the Wardens' journals' Read scripts: build_glass_wardens.py, which has all nine and counts them)
 
     # ----- the chests (each player's own)
     loot = {"Prism_Grotto": [("Shard", 45), ("Gold_Coin(s)", 400), ("Storm_Shard", 1), ("Sapphire", 2)],

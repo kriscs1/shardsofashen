@@ -19,4 +19,4 @@ Scorched002:Scorched001:Scorched001:Scorched001:Scorched001:Scorched003:Scorched
 Scorched001+Decor(Dragon_Skull001):Scorched002:Scorched003:Scorched003:Scorched002:Scorched001:Scorched002:Scorched001:Scorched003:Scorched003:Scorched001:Scorched001:Scorched001:Scorched001:Scorched002:Scorched002:Scorched003:Scorched001:Scorched001:Scorched003:Scorched002:Scorched002:Scorched001:Scorched003:Scorched001
 Scorched003:Scorched002:Scorched002:Scorched002:Scorched003:Scorched001:Scorched003:Scorched002:Scorched001:Scorched002:Scorched003:Scorched003:Scorched001:Scorched002:Scorched003:Scorched001:Scorched001:Scorched002:Scorched003:Scorched002:Scorched002:Scorched001:Scorched001:Scorched001:Scorched003
 Scorched003:Scorched001:Scorched001:Scorched003:Scorched003:Scorched003:Scorched001:Scorched003:Scorched002:Scorched003:Scorched001:Scorched003:Scorched002:Scorched001:Scorched002:Scorched003:Scorched001:Scorched003:Scorched002:Scorched001:Scorched002:Scorched003:Scorched001:Scorched003:Scorched002
-StaticObject	Fire	250	158	Gone.After=GuardQuest:5
+StaticObject	Blaze	250	158	Gone.After=GuardQuest:5

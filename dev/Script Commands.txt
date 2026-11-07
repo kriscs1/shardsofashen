@@ -49,6 +49,14 @@ read it back as $Variable.n.
   $Map.Name                  The name of Map (X,Y,Z).
   $Time                      The current Time (in seconds).
   $Player.Form               The shape the player is in just now (a body swap, Turn.Into): Cat, Duck..., or - for their own.
+  $Player.Level              The level of the player.
+  $World.Season              The season: Spring, Summer, Autumn or Winter (dsengine/seasons.py).
+  $World.Night               Which night this is, counting up: what a ghost ship is known by (dsengine/wonders.py).
+  $World.Champion            The year's arena champion, or - (dsengine/wonders.py).
+  $Tax.Due                   What the Tax Collector would have of this player's gold just now.
+  $Player.Malaria            1 if the player has malaria just now (dsengine/disease.py), else 0.
+  $Player.Shardsong          1 if the Shardsong is in the player's head just now (dsengine/disease.py), else 0.
+  $Player.Stance             The stance the player is in: Fighting, Channelling, Sneaking, or - for none (dsengine/stances.py).
   $Shardstones.Active        How many shardstones the player has activated (the Shardgate needs Shards.ini Shardgate.Stones).
   $Player.Health             The player's hitpoints just now.
   $Player.Health.Max         The player's hitpoints when they're fully well (a doctor: >Conditional $Player.Health<$Player.Health.Max).
@@ -84,7 +92,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (72)
+COMMANDS (78)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -327,6 +335,10 @@ Boost.Skill    SKILL NAME | LEVELS (+ or -) | SECONDS
     2. LEVELS (+ or -): How many levels up (+2) or down (-3)
     3. SECONDS: For how many seconds
 
+Catch.Disease    DISEASE
+    COMMAND: A disease gets into the player's blood, as a bite gives it (dsengine/disease.py)
+    1. DISEASE: Which: a section of data\Diseases.ini (Malaria, Shardsong)
+
 Change.All.Tiles    CHANGE FROM TILE | CHANGE TO TILE
     COMMAND: Changes all similar tiles to another tile type
     1. CHANGE FROM TILE: The name of the tiles to change
@@ -446,6 +458,9 @@ Goto.Script    GOTO SCRIPT NAME
     1. GOTO SCRIPT NAME: The name of the script to run:
          (Located in the 'data\Scripts\' folder)
 
+Mimic.Caught    (no arguments)
+    COMMAND: The mimic villager clicked on stops pretending (dsengine/wonders.py)
+
 Move.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME | TARGET X,TARGET Y | SPEED
     COMMAND: Moves an Entity from its current position to the target position
     (An NPC walks back to its zone or patrol afterwards, like after a chase)
@@ -523,6 +538,9 @@ Reveal.BlackOut.Tile    BLACKOUT TILE ID
     1. BLACKOUT TILE ID: The fog of war cell to reveal: its number on the fog grid (counted row by row from the top left,
          10 x 9 on a 25 x 21 map) or its position as x,y
 
+Say.Legend    (no arguments)
+    COMMAND: Whoever was clicked says something the player has actually done (data\Legend.ini), if there is anything
+
 Set.NPC.Attitude    NPC ID | ATTITUDE
     COMMAND: Makes one NPC Good (friendly: Talk to) or Bad (a foe that attacks on sight)
     Kept in the save: it stays that way when its map is loaded again or it respawns
@@ -562,11 +580,21 @@ Take.Item    ITEM NAME | QUANTITY TO REMOVE
     1. ITEM NAME: The name of the item (from sprites\Entities, e.g. Gold_Coin(s))
     2. QUANTITY TO REMOVE: The quantity of the item to remove
 
+Take.Letters    (no arguments)
+    COMMAND: The courier hands over the letters waiting for the player (dsengine/wonders.py)
+
+Tax.Pay    (no arguments)
+    COMMAND: The player pays the Tax Collector what is due (dsengine/wonders.py)
+
 Teleport    X COORDINATE,Y COORDINATE | MAP NAME
     COMMAND: Teleports the player to a specific map and/or location
     1. X COORDINATE,Y COORDINATE: The X and Y coordinates, separated by a comma (e.g. 300,250 or $Player.X,$Player.Y).
          In PIXELS, except for Change.Tile and >Tile.In.Line.Of.Sight, which take TILE coordinates (1-25,1-21)
     2. MAP NAME: The name of the map (X,Y,Z, e.g. 1,1,0) or $Map.Name for the current map
+
+Tell.Rumour    NPC NAME
+    COMMAND: A rumour if one is due, in a conversation box; if none is, straight on
+    1. NPC NAME: The name of the NPC (or player) that is talking
 
 Toggle.Player.Visibility    ON/OFF
     COMMAND: Toggles Player's visibility ON or OFF

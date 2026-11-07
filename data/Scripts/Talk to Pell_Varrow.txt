@@ -15,5 +15,5 @@
 14	Display.Conversation	Scholar	Five! Look at it. A real map of a real place nobody's ever seen. The Crown will want it. The Crown will pay for it, which is better.\Here: your share.	Thank you, Pell.	18
 15	Display.Message	Yellow	Quest complete: Charting the Deep!	Quest
 16	End
-17	Display.Conversation	Scholar	The lake's north, the bones are west, the pit's north again. The mushrooms are everywhere. Mind the moths.	Goodbye, Pell.	18
+17	Goto.Script	Pell and the Wardens
 18	End

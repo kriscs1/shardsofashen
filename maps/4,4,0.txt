@@ -1,12 +1,12 @@
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Grass001+Decor(Tree001):Grass001+Decor(Tree001)
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001+Decor(Tree002):Grass001+Decor(Tree001)
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree001):Grass001+Decor(Tree002)
-Water001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001+Decor(Crate001):Plank001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Sand001:Sand001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree002)
-Water001:Plank001:Plank001:Plank001+Decor(Crate002):Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001+Decor(Barrel001):Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001)
-Water001:Plank001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Plank001:Plank001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001+Decor(Oak_Tree001)
-Water001:Plank001:Plank001:Plank001+Decor(Barrel001):Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Brick_Paving001:Brick_Paving001:Sand001+Decor(Barrel001):Sand001+Decor(Crate001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001+Decor(Bush001):Grass001:Grass001
-Water001:Plank001:Plank001:Plank001+Decor(Crate001):Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers002)
-Water001:Plank001:Plank001:Plank001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001
+Water001:Wood_Bridge_ES001:Wood_Bridge_ESW001:Wood_Bridge_SW001:Water001:Water001:Water001:Water001:Water001:Water001:Wood_Bridge_E001+Decor(Crate001):Wood_Bridge_ESW001:Wood_Bridge_ESW001:Wood_Bridge_EW001:Wood_Bridge_W001:Water001:Water001:Water001:Water001:Sand001:Sand001:Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree002):Grass001+Decor(Tree002)
+Water001:Wood_Bridge_NES001:Wood_Bridge_NESW001:Wood_Bridge_NSW001+Decor(Crate002):Water001:Water001:Water001:Water001:Water001:Water001:Water001:Wood_Bridge_NES001:Wood_Bridge_NSW001+Decor(Barrel001):Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001+Decor(Tree002):Grass001+Decor(Tree001)
+Water001:Wood_Bridge_NES001:Wood_Bridge_NESW001:Wood_Bridge_NSW001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Wood_Bridge_NES001:Wood_Bridge_NSW001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001+Decor(Oak_Tree001)
+Water001:Wood_Bridge_NES001:Wood_Bridge_NESW001:Wood_Bridge_NSW001+Decor(Barrel001):Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Brick_Paving001:Brick_Paving001:Sand001+Decor(Barrel001):Sand001+Decor(Crate001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001+Decor(Bush001):Grass001:Grass001
+Water001:Wood_Bridge_NES001:Wood_Bridge_NESW001:Wood_Bridge_NSW001+Decor(Crate001):Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001+Decor(Tall_Grass001):Grass001+Decor(Flowers002)
+Water001:Wood_Bridge_NES001:Wood_Bridge_NESW001:Wood_Bridge_NSW001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001
 Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001
 Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Brick_Paving001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002)
@@ -41,3 +41,10 @@ NPC	Villager	353	324	Attitude=Good Zone=10,8,15,13 Pause=4-12
 NPC	Black_Cat	384	504	Attitude=Good Id=Vincent Name=Vincent Zone=10,15,16,19 Pause=4-12
 StaticObject	Valuables	192	472
 StaticObject	Valuables	608	440
+Lock	19	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	20	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	21	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	22	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	24	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	25	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.

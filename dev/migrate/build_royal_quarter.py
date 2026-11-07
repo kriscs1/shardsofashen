@@ -68,6 +68,8 @@ def lay_rooms(m, floor, rooms, doors, south_wall):
                 continue
             if e == "S" and south_wall and n not in owner:
                 continue
+            if e in "NW" and n in owner:            # (a wall between two rooms is one strip, the one on its east/south side)
+                continue
             edges += e
         m.put(x, y, thin(floor, edges), {})
 

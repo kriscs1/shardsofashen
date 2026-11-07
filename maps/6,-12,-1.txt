@@ -20,3 +20,4 @@ Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001
 Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Brine001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Deep_Shingle001:Wet_Rock001:Black001:Black001:Black001:Black001:Black001:Black001:Fungal_Rock001:Fungal_Face002
 NPC	Deep_Lurker	32	280	Attitude=Bad Zone=1,7,5,13 Chase=1,3,9,17
+StaticObject	Wardens_Chime_Water	448	496	Id=Water_Chime

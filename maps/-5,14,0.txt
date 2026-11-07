@@ -23,4 +23,4 @@ NPC	Farmer	160	120	Attitude=Good Zone=6,2,7,5 Pause=5-15 Id=Galaith_Resident_428
 NPC	Guard	448	536	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	512	216	Attitude=Good Stand=1 Face=E Schedule=Always
 NPC	Guard	512	440	Attitude=Good Stand=1 Face=E Schedule=Always
-StaticObject	Fire	577	156	Gone.After=GuardQuest:5
+StaticObject	Blaze	577	156	Gone.After=GuardQuest:5

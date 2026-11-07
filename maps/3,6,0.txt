@@ -33,3 +33,28 @@ Id	Northport_Gardens_372	12	12
 StaticObject	Valuables	672	56
 StaticObject	Valuables	576	280
 StaticObject	Valuables	64	56
+Lock	1	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	2	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	4	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	5	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	6	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	7	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	8	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	9	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	10	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	11	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	12	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	13	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	14	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	15	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	16	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	17	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	18	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	19	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	20	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	21	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	22	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	24	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	25	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.

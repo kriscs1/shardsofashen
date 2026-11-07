@@ -50,3 +50,4 @@ StaticObject	Shard_Spire002	224	282
 StaticObject	Shard_Spire001	320	186
 StaticObject	Shard_Spire001	32	314
 StaticObject	Shard_Spire003	608	90
+StaticObject	Wardens_Journal	384	256	Id=Wardens_Journal_5

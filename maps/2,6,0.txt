@@ -23,3 +23,36 @@ NPC	Woman	640	344	Attitude=Good Zone=20,11,23,12 Pause=5-15 Id=Northport_Residen
 StaticObject	Notice	320	450	Id=Northport_Notice_310
 StaticObject	Valuables	448	248
 StaticObject	Willow_Tree001	32	256
+Lock	3	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	4	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	5	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	6	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	7	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	8	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	9	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	10	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	11	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	12	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	13	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	14	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	15	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	16	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	17	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	18	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	19	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	20	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	21	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	22	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	24	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	25	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	10	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	11	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	12	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	13	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	14	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	15	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	16	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	17	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	18	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+NPC	Port_Guard	96	384	Attitude=Good Stand=1 Face=W Id=Northport_West_Gate_Guard Name=Gate_Sergeant_Orr

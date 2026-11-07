@@ -3,4 +3,5 @@
 02	Update.Attribute	FallenShardQuest	=2
 03	Quest.Note.Done	The Fallen Shard	The Shardborn is broken.
 04	Display.Message	Yellow	The Shardborn comes apart into a thousand chiming pieces. Behind it, the Fallen Shard's light steadies.	-
-05	End
+05	Goto.Script	Shardborn's Remnant
+06	End

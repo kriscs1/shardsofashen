@@ -19,15 +19,15 @@ Scorched001:Scorched003:Scorched003:Scorched002:Scorched003:Scorched001+Decor(De
 Scorched002:Scorched003:Scorched003:Scorched001:Scorched003:Scorched003:Scorched002:Scorched001:Scorched003:Scorched003:Scorched001:Scorched001:Scorched001:Scorched003:Scorched003:Scorched003:Scorched002:Scorched002:Scorched002:Scorched003:Scorched002:Scorched002:Scorched003:Scorched003:Scorched002
 Scorched002:Scorched001:Scorched002:Scorched002:Scorched002:Scorched003:Scorched002:Scorched001:Scorched001:Scorched002:Scorched003:Scorched003:Scorched001:Scorched003+Decor(Dead_Tree001):Scorched003:Scorched003:Scorched002:Scorched002:Scorched003:Scorched002:Scorched002:Scorched003:Scorched003:Scorched003:Scorched002
 Scorched001:Scorched001:Scorched001:Scorched001:Scorched003:Scorched001:Scorched003:Scorched003:Scorched001:Scorched001:Scorched003:Scorched002+Decor(Dead_Tree002):Scorched001:Scorched003:Scorched002:Scorched003:Scorched003+Decor(Dead_Tree001):Scorched003:Scorched002:Scorched001:Scorched002+Decor(Dead_Tree002):Scorched002:Scorched001:Scorched001:Scorched001
-StaticObject	Fire	771	185	Gone.After=GuardQuest:5
-StaticObject	Fire	454	151	Gone.After=GuardQuest:5
-StaticObject	Fire	475	187	Gone.After=GuardQuest:5
-StaticObject	Fire	226	252	Gone.After=GuardQuest:5
-StaticObject	Fire	571	0	Gone.After=GuardQuest:5
-StaticObject	Fire	546	0	Gone.After=GuardQuest:5
-StaticObject	Fire	91	88	Gone.After=GuardQuest:5
-StaticObject	Fire	129	94	Gone.After=GuardQuest:5
-StaticObject	Fire	378	285	Gone.After=GuardQuest:5
-StaticObject	Fire	422	315	Gone.After=GuardQuest:5
-StaticObject	Fire	350	311	Gone.After=GuardQuest:5
-StaticObject	Fire	287	94	Gone.After=GuardQuest:5
+StaticObject	Blaze	771	185	Gone.After=GuardQuest:5
+StaticObject	Blaze	454	151	Gone.After=GuardQuest:5
+StaticObject	Blaze	475	187	Gone.After=GuardQuest:5
+StaticObject	Blaze	226	252	Gone.After=GuardQuest:5
+StaticObject	Blaze	571	0	Gone.After=GuardQuest:5
+StaticObject	Blaze	546	0	Gone.After=GuardQuest:5
+StaticObject	Blaze	91	88	Gone.After=GuardQuest:5
+StaticObject	Blaze	129	94	Gone.After=GuardQuest:5
+StaticObject	Blaze	378	285	Gone.After=GuardQuest:5
+StaticObject	Blaze	422	315	Gone.After=GuardQuest:5
+StaticObject	Blaze	350	311	Gone.After=GuardQuest:5
+StaticObject	Blaze	287	94	Gone.After=GuardQuest:5

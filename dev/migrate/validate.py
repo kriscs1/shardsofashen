@@ -1187,6 +1187,7 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Fear.Immune", "Gossip", "Swarm", "Shelf.Minutes", "Spoils.To", "Blink.Every", "Blink.Near", "Rank", "Level", "Swap",
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
+               "Carried.Light",                                                  # a lamp in the pack: how far it lights round you (sky.js)
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
                "Slain.By",                                                       # only that weapon gives its death blow
                "Base", "Enchanted", "Enchant",                                   # an enchanted kind's gear and word; a rare shard's word (shardcraft.py)

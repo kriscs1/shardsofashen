@@ -44,3 +44,4 @@ Trigger	Chart_Rest	25	14
 StaticObject	Chest	512	320	Id=Leviathans_Jaw
 NPC	Fossil_Horror	352	400	Attitude=Bad Zone=9,11,15,17 Chase=5,7,19,20
 NPC	Chalk_Wraith	672	600	Attitude=Bad Zone=19,17,25,20 Chase=15,13,25,20
+StaticObject	Wardens_Journal	512	480	Id=Wardens_Journal_7

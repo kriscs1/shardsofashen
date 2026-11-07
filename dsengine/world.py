@@ -627,9 +627,10 @@ class World(NPCMixin):
             return True
         return mover.lock_closed(m, lk)
 
-    def pixel_walkable(self, z, x, y, mover=None, swim=False):
+    def pixel_walkable(self, z, x, y, mover=None, swim=False, by=None):
         """Can the feet of mover (a Session, or None for an NPC) stand at global pixel x,y on level z? swim: a
-        swimmer's feet (Swims=1), at home in the water too."""
+        swimmer's feet (Swims=1), at home in the water too. by: the player an NPC follows (a lock is shut for it only if
+        it's shut for them: an escort goes where its charge may)."""
         m = self.map_at(z, x, y)
         if m is None:
             return False
@@ -645,7 +646,8 @@ class World(NPCMixin):
             if o is not None:
                 override = o[2]
         elif (tx, ty) in m.lock_at:
-            return False
+            if by is None or by.lock_closed(m, m.lock_at[(tx, ty)]):
+                return False
         if swim:
             return m.local_swimmable(lx, ly)
         return m.local_walkable(lx, ly, override)
@@ -683,16 +685,17 @@ class World(NPCMixin):
         if mover is not None and mover.flying:          # (an admin flying: anywhere there's a map)
             return self.map_at(z, x, y) is not None
         swim = e.type == NPC and e.ai is not None and e.ai.swims
-        if not self.pixel_walkable(z, x, y, mover, swim):
-            if self.pixel_walkable(z, old_x, old_y, mover, swim):
+        by = e.follow if e.type == NPC and mover is None else None
+        if not self.pixel_walkable(z, x, y, mover, swim, by):
+            if self.pixel_walkable(z, old_x, old_y, mover, swim, by):
                 return False                        # (stuck entities, e.g. after a tile change, may walk out)
         else:
             # (a step longer than a fence is thick: not over it)
             steps = int(max(abs(x - old_x), abs(y - old_y)) / 3)
-            if steps and self.pixel_walkable(z, old_x, old_y, mover, swim):
+            if steps and self.pixel_walkable(z, old_x, old_y, mover, swim, by):
                 for i in range(1, steps + 1):
                     if not self.pixel_walkable(z, old_x + (x - old_x) * i / (steps + 1),
-                                               old_y + (y - old_y) * i / (steps + 1), mover, swim):
+                                               old_y + (y - old_y) * i / (steps + 1), mover, swim, by):
                         return False
         if mover is not None:
             for n in self.npcs_near(z, x, y):           # (the NPCs on the maps round it, not every thing there is)

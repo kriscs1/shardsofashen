@@ -3,4 +3,5 @@
 02	Update.Attribute	BrineQuest	=2
 03	Quest.Note.Done	The Brine Mother	The Brine Mother is dead.
 04	Display.Message	Yellow	The Brine Mother sinks into her lake for the last time. Morrow will want to know.	-
-05	End
+05	Goto.Script	Brine Mother's Log
+06	End

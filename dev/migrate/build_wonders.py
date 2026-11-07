@@ -244,7 +244,7 @@ SEASONS = """; The seasons (dsengine/seasons.py): Year.Days real days, four seas
 [Seasons]
 Year.Days=28
 River.Most=900
-Ice=Ice001
+Ice=Thin_Ice001
 
 [Spring]
 Night.From=0.82

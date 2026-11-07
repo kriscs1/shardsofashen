@@ -71,7 +71,7 @@ Seventeen chapters, each unlocked by the one before it. Chapters 1 to 4 are the 
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 5 | **The Temporary Capital** | The guard at Northport's port says Northport is the temporary capital. The **Speaker**, in the City Hall (the Parliament), says only **Bert**, the great wizard of the Wizards' Court, can break the barrier, and gives you a letter for the Mayor of Ashford. |
+| 5 | **The Temporary Capital** | The guard at Northport's port says Northport is the temporary capital. The **Speaker**, in the City Hall (the Parliament), says only **Bert**, the great wizard of the Wizards' Court, can break the barrier, and gives you a letter for the Mayor of Ashford. Until then **Northport is shut**: the Parliament has the roads out closed (raiders), a ring of Lock lines round the city and a gate guard at each road out (`Talk to Northport_<Way>_Gate_Guard`) who says why; the Speaker's letter (`ParliamentQuest>=2`) opens them. |
 | 6 | **The Ashford Road** | The **Mayor of Ashford** (the Town Hall) wants the goblins raiding the farms east of town driven off (a wave at the farm crossroads). Reward: the Mayor's pass. |
 | 7 | **The Steward's Hunt** | The **King's Steward** at King Rupert's Keep wants **five hobgoblins** slain in the old iron mine. Reward: 100 gold, a ruby, and the causeway to the Royal Isle. |
 
@@ -325,9 +325,15 @@ the Fallen Shard gives Shards once a (real) day (Draw From).
 
 #### The Glass Wardens (a secondary storyline in the Deep)
 
-*Planned, not built yet. Written to be read by a twelve-year-old and still be worth an adult's time: plain words, one
-big idea, and the frightening parts kept gentle. It builds on the Deep as it stands (Ysolde, Corvane, Hale, the Brine
-Mother, Nell and Bryony, the five quests above) and changes none of their stages, rewards or attributes.*
+*Built by `dev/migrate/build_glass_wardens.py` (the hooks in the old Deep scripts by `build_shardfall.py`; Unmake at
+the Seam by `build_kings_seam.py`). Written to be read by a twelve-year-old and still be worth an adult's time: plain
+words, one big idea, and the frightening parts kept gentle. It builds on the Deep as it stands (Ysolde, Corvane, Hale,
+the Brine Mother, Nell and Bryony, the five quests above) and changes none of their stages, rewards or attributes.*
+
+**Where it differs from the first plan.** Mary's page in the Listening Room is gone: she couldn't have got past the
+sealed door, so the Voice says she asked its sparks instead (what she learnt, she learnt from the Shards outside). The
+Quiet Draught is glowfin and a **cave mushroom** (there's no shore salt in the game). Unmake gives the hammer-head and
+no statue or title yet.
 
 **The idea in one line.** The Shards are scraps of the dragon, and they're still a little bit of it: hungry, growing,
 and very good at telling you what you want to hear.
@@ -361,8 +367,8 @@ piece, and the last quest puts them together):
 
 **Why this fits the rest of the story.** Aldous's remnants lesson now means *take it in before it takes root in you*.
 The Sunken Grimoire and the Ember Ring are the king's side, the cutting told as a triumph. The Shardrealm chapter's
-core is the dragon's sleeping body. Mary's notes stop at the Pact's price; here is the part she learned in the Deep
-when she was young (see her eighth note below).
+core is the dragon's sleeping body. Mary's notes stop at the Pact's price; the Voice tells you the rest of her: she
+asked its sparks, outside, and they told her more than she wanted.
 
 **Tone rules for every line in this chain.** Short sentences. Say it with an image, not a lecture (a plant growing
 in the dark; a song you can't stop humming; a voice that knows your name). Nothing gory. Ghosts are sad and kind,
@@ -380,10 +386,10 @@ Glass in the Nets (the gate: the Seal)                         [exists]
 ├── Charting the Deep (Pell)                                   [exists]
 ├── The Brine Mother (Morrow)  + Odile's Log (new, one line)   [exists, one addition]
 ├── The Last Watch (Ysolde) ── The Fallen Shard                [exist, one addition: the vision]
-├── The Wardens' Words (Pell): six lost journals, nine in all  [new]
-└── The Four Notes (found by listening at the Singing Geode)   [new]
-        ↓  all of: nine journals, Four Notes, Odile's Log, The Last Watch
-What the Wardens Heard (Ysolde): the Listening Room            [new finale]
+├── The Wardens' Words (Pell): six lost journals, nine in all  [built]
+└── The Four Notes (found by listening at the Singing Geode)   [built]
+        ↓  The Fallen Shard done, and the Four Notes (the hatch opens to them)
+What the Wardens Heard (Ysolde): the Listening Room            [built: the finale]
 ```
 
 All `Type=Side`, `Requires.Level=20`; the new ones are named so they read as a set in the journal ("The Glass
@@ -420,9 +426,10 @@ Wardens: The Four Notes"). The new quests only read the old ones' attributes (`S
   in the **Channelling stance** and hold it while the voice speaks. It's charming, it knows your name, and it offers you
   things; it tells the truth because it believes you'll help it. Hold the stance and don't answer: the voice boasts of
   the cutting, of what the Pact feeds, and of the one thing it fears, the Seam being broken. (A player who doesn't use
-  stances is told, by Ysolde, to.) Ysolde rests (she fades, with the Shard's chime). **Mary's eighth note** lies in the
-  room: she was here young and unmarried, Ysolde let her by because she listened and didn't answer, and she copied
-  what she heard. Reward: the **Wardens' Lantern** (a light), 100 Shards, Shardcraft XP, and `WardensTruth`.
+  stances is told, by Ysolde, to.) Answer it, or let the stance drop, and it's over till you try again. Ysolde rests
+  (she fades, with the Shard's chime). The room is `12,-17,-2`, down the `Listening_Hatch` in the Reliquary (it opens
+  only once the Four Notes are rung); the horn is `Listen Listening_Horn`. Reward: the **Wardens' Lantern** (carried,
+  it lights you further: Entities.ini `Carried.Light`, `sky.js`), 100 Shards, Shardcraft XP, and `WardensTruth`.
 - **What changes above ground afterwards.** Nell's nets come up with ordinary fish again, and the glass stops
   glowing; Bryony says her mother was right; Pell redraws her chart; Ashford's rumours change. Quiet things.
 
@@ -430,7 +437,7 @@ Wardens: The Four Notes"). The new quests only read the old ones' attributes (`S
 the Geode or the Fallen Shard, the more a faint voice gets into your head. It stays through death and logging off,
 comes as a short *listening* bout now and again (you sway and stop; afterwards your eyes are sharper for a moment, so
 you see traps and secrets), and goes only for what says `Cures=Shardsong`: the **Quiet Draught**, brewed in Alchemy
-from glowfin and shore salt. Morrow knows it; he's had it for years. A cost with a bonus, never a death.
+from glowfin and a cave mushroom. Morrow knows it, and gives the first draught. A cost with a bonus, never a death.
 
 **At the King's Seam: the third answer, Unmake.** Needs `WardensTruth`, so it's found through this chain, never
 offered cold. The two old answers stand: the **Binding** (your blood the lock, the Seam gives the Crown Shards each day
@@ -439,7 +446,7 @@ breaks the Seam itself. It costs the daily Crown Shards and the crown, and it gi
 - **Calmer storms.** Shard storms are rarer, shorter and softer for you.
 - **Passive remnants.** The remnants of what you kill no longer hunt you; they lie where they fall to be absorbed.
 - the Shardrealm still there, thinner and quieter: a shadow that stays after the dragon is gone, going slowly dark.
-- a **statue** in Galaith's square, a title, and a trophy (a hammer-head from the Seam). No extra power.
+- a trophy, the Seam's **hammer-head** (`Seam_Hammerhead`). No extra power.
 Shards still exist and still work. The dragon's *hold* is what's gone. *(Personal to you, like every ending's
 epilogue: the world round you keeps its storms and remnants for everyone else.)*
 
@@ -449,11 +456,11 @@ reaches it too. The Shardborn and the Hollow Marshal get more health for each fi
 **Rumours and banter** (data only): Ashford's gossip about the glowing nets and the fisherwoman; Nell and Bryony's
 lines to each other; Pell talking to the mushrooms. No hints in any of it.
 
-**New things this needs.** Items: Odile's Log, six journals, the Warden's Chimes (four), the Quiet Draught, the
+**What it added.** Items: Odile's Log, six journals, Pell's book, the Warden's Chimes (four), the Quiet Draught, the
 Wardens' Lantern, the Singing Remnant, the Seam's hammer-head. A small Listening Room map (a free map, laid out by the
 new builder alone, never over the owner's edits). The Shardsong disease. Engine: a personal "Unmade" attribute that
 quiets storms (`wonders.py`) and makes the player's remnants passive (`remnants.py`). A chain name in the journal (or a
-naming prefix). Sounds: four chime notes, the vision's sound, Ysolde's rest. Everything in a new builder,
+naming prefix). Sounds: four chime notes, the Voice, the vision's sound, Ysolde's rest. Everything in a new builder,
 `dev/migrate/build_glass_wardens.py`, with the small additions to the Shardfall scripts made in `build_shardfall.py`.
 
 ---

@@ -25,3 +25,16 @@ StaticObject	Notice	768	610	Id=Northport_Notice_351
 Id	Northport_Gardens_370	10	17
 StaticObject	Fish_Spot	416	320
 StaticObject	Valuables	576	440
+Lock	1	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	2	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	3	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	4	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	5	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	6	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	7	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	8	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	9	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	10	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	11	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	12	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	13	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.

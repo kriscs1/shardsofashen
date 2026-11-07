@@ -23,8 +23,14 @@ EFFECTS = {
     # (a disease's bout, disease.py: it shakes you, drains you and wears you down, but never kills by itself)
     "Fever": dict(ms=45000, every=6000, dmg=(1, 2), skill=("Strength", -3), spares=True, shakes=True,
                   start="The fever's on you: you shake with cold, then burn.", end="The fever breaks, for now."),
+    # (the Shardsong's bout: you stop and listen to a voice that isn't there; after it, your eyes are sharp a while)
+    "Listening": dict(ms=6000, every=1500, dmg=(0, 0), held=True, shakes=True, after="Keen",
+                      start="A voice, very faint, says your name. You stop to listen.",
+                      end="The voice fades. Everything round you looks very sharp."),
+    "Keen": dict(ms=60000, every=0, dmg=(0, 0), good=True, start="", end="Your eyes are only your own again."),
 }
 CHILL_MOVE, CHILL_ATTACK = 0.6, 1.4
+LISTEN_MOVE = 0.15      # (held in a bout of the Shardsong: a shuffle, no more)
 MELEE_REACH = 36        # (a blow's reach between two a tile wide, centre to centre)
 
 
@@ -1061,14 +1067,17 @@ class CombatMixin:
 
     def status_start(self, name):
         fx = EFFECTS.get(name)
-        if fx is None or self.god_mode or self.resists(name):
+        if fx is None or (not fx.get("good") and (self.god_mode or self.resists(name))):
             return
-        if rnd() * 100 < self.stance_num("Resist.Status", 0):
+        if not fx.get("good") and rnd() * 100 < self.stance_num("Resist.Status", 0):
             return                                          # (Channelling: shrugged off)
         if name not in self.status:
-            self.display_message(fx["start"], "DAMAGE")
+            if fx["start"]:
+                self.display_message(fx["start"], "DAMAGE")
             if name == "Chill":
                 self.player.move_speed *= CHILL_MOVE
+            elif fx.get("held"):
+                self.player.move_speed *= LISTEN_MOVE
         self.status[name] = {"until": self.now + int(fx["ms"] * self.stance_num("Status.Hurt")),
                              "next": self.now + fx["every"]}
         self.dirty_me = True
@@ -1081,6 +1090,10 @@ class CombatMixin:
             return ""
         if name == "Chill":
             return "Slowed: you move and strike slower"
+        if name == "Listening":
+            return "Held: listening to a voice that isn't there"
+        if name == "Keen":
+            return "Sharp-eyed: traps and secrets noticed more surely"
         if "skill" in fx:
             return "%s %d" % (fx["skill"][0], fx["skill"][1])
         lo, hi = fx["dmg"]
@@ -1094,8 +1107,12 @@ class CombatMixin:
         del self.status[name]
         if name == "Chill":
             self.player.move_speed /= CHILL_MOVE
+        elif EFFECTS[name].get("held"):
+            self.player.move_speed /= LISTEN_MOVE
         if not quiet:
             self.display_message(EFFECTS[name]["end"], "INFO")
+            if EFFECTS[name].get("after"):              # (what a bout leaves behind it: never after a death)
+                self.status_start(EFFECTS[name]["after"])
         self.dirty_me = True
 
     def status_tick(self):

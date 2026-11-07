@@ -7,7 +7,7 @@ import time
 from ashen.lb import val, trim, distance
 
 COLD = "Cold.ini"
-FIRES = ("Fire", "Campfire", "Fireplace", "Brazier", "Forge", "Range", "Oven", "Stove")
+FIRES = ("Fire", "Blaze", "Campfire", "Fireplace", "Brazier", "Forge", "Range", "Oven", "Stove")
 
 
 class ColdMixin:

@@ -31,3 +31,25 @@ NPC	Goose	448	32	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
 NPC	Goose	512	96	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
 NPC	Goose	448	96	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
 NPC	Goose	512	32	Attitude=Bad Zone=15,2,17,4 Pause=2-6 Chase=11,1,21,5/12,6,21,8
+Lock	23	1	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	2	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	4	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	5	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	6	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	7	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	8	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	9	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	10	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	11	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	12	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	13	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	14	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	15	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	16	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	17	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	18	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	20	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+Lock	23	21	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
+NPC	Port_Guard	672	576	Attitude=Good Stand=1 Face=E Id=Northport_East_Gate_Guard Name=Gate_Sergeant_Ames

@@ -2,34 +2,33 @@
 01	Get.Value	ATTRIBUTE	WardenQuest	Variable.1$
 02	Get.Value	ATTRIBUTE	FallenShardQuest	Variable.2$
 03	>Conditional	$Variable.1=0	10
-04	>Quest.Can.Start	WardenQuest	33
+04	>Quest.Can.Start	WardenQuest	32
 05	Display.Conversation	Ghost_Warden	Another one come to listen to it? No. No, you're warm. I can feel it from here.\I am Ysolde, of the Glass Wardens. The first king set us to keep watch over the Shard that fell, so nobody would use it, and nothing would wake it. We kept the watch four hundred years.	What happened?	06
-06	Display.Conversation	Ghost_Warden	It sings. Did nobody tell you? It sings all the time, a long slow song with no end, and if you listen long enough you'll do anything it asks.\Marshal Corvane listened longest. He keeps the Great Hall still, and the others with him. End him, warm one. End the watch.	I will.	07	Not yet.	34
+06	Display.Conversation	Ghost_Warden	It sings. Did nobody tell you? It sings all the time, a long slow song with no end, and if you listen long enough you'll do anything it asks.\Marshal Corvane listened longest. He keeps the Great Hall still, and the others with him. End him, warm one. End the watch.	I will.	07	Not yet.	33
 07	Update.Attribute	WardenQuest	=1
 08	Display.Message	Yellow	Quest started: The Last Watch.	Quest
 09	End
 10	>Conditional	$Variable.1=1	13
-11	Display.Conversation	Ghost_Warden	He sits on the dais in the Great Hall, through the east passage. He was kind, once. Don't let that slow your hand.	I won't.	34
+11	Display.Conversation	Ghost_Warden	He sits on the dais in the Great Hall, through the east passage. He was kind, once. Don't let that slow your hand.	I won't.	33
 12	End
 13	>Conditional	$Variable.1=2	22
 14	>Got.Item	Marshals_Seal	1	20
 15	Take.Item	Marshals_Seal	1
 16	Update.Attribute	WardenQuest	=3
-17	Display.Conversation	Ghost_Warden	His seal. Then it's done, and he's quiet.\The Reliquary will open to you now, past the chapel. What the Order kept there was always meant for whoever finished the watch. I never thought it would be somebody alive.	Thank you, Ysolde.	34
+17	Display.Conversation	Ghost_Warden	His seal. Then it's done, and he's quiet.\The Reliquary will open to you now, past the chapel. What the Order kept there was always meant for whoever finished the watch. I never thought it would be somebody alive.	Thank you, Ysolde.	33
 18	Display.Message	Yellow	Quest complete: The Last Watch!	Quest
 19	End
-20	Display.Conversation	Ghost_Warden	He's gone; I felt it. But his seal: you left it with him? Then go back for it. I'll wait. I'm good at waiting.	I'll fetch it.	34
+20	Display.Conversation	Ghost_Warden	He's gone; I felt it. But his seal: you left it with him? Then go back for it. I'll wait. I'm good at waiting.	I'll fetch it.	33
 21	End
 22	>Conditional	$Variable.2=0	28
-23	>Quest.Can.Start	FallenShardQuest	33
-24	Display.Conversation	Ghost_Warden	There's one more thing, and I'm sorry for it. Corvane kept the Shard's guardian asleep, in his way. With him gone it's stirring: the Shardborn, crystal grown in the shape of a giant.\Go west through the Watch Gallery, past the cells. Put it down. Then lay your hand on the Shard, and you'll know what we knew.	I'll go.	25	Not yet.	34
+23	>Quest.Can.Start	FallenShardQuest	32
+24	Display.Conversation	Ghost_Warden	There's one more thing, and I'm sorry for it. Corvane kept the Shard's guardian asleep, in his way. With him gone it's stirring: the Shardborn, crystal grown in the shape of a giant.\Go west through the Watch Gallery, past the cells. Put it down. Then lay your hand on the Shard, and you'll know what we knew.	I'll go.	25	Not yet.	33
 25	Update.Attribute	FallenShardQuest	=1
 26	Display.Message	Yellow	Quest started: The Fallen Shard.	Quest
 27	End
 28	>Conditional	$Variable.2<3	31
-29	Display.Conversation	Ghost_Warden	West, through the Watch Gallery. The light will show you the way. It always does.	I'm going.	34
+29	Display.Conversation	Ghost_Warden	West, through the Watch Gallery. The light will show you the way. It always does.	I'm going.	33
 30	End
-31	Display.Conversation	Ghost_Warden	You've heard it now. Everybody who touches it does.\The watch is yours, warm one. I think I'll rest.	Rest well, Ysolde.	34
-32	End
-33	Display.Conversation	Ghost_Warden	Warm hands, warm feet. You don't belong down here. Go carefully.	I will.	34
-34	End
+31	Goto.Script	Ysolde and the Wardens
+32	Display.Conversation	Ghost_Warden	Warm hands, warm feet. You don't belong down here. Go carefully.	I will.	33
+33	End

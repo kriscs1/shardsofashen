@@ -308,6 +308,28 @@ def gravel_texture(rng, size, base, palette):
     return np.clip(col, 0, 255).astype(np.uint8)
 
 
+def marble_slabs(rng, size):
+    """Polished marble slabs: big flags cut in rows, each its own cream or grey-white, a soft sheen over the lot and long
+    veins that wander across (and over the joints, a little: the stone's, not the mason's)."""
+    col = rows_of_stones(rng, size, (14, 16, 18), (18, 22, 26, 30), [(236, 234, 228), (226, 224, 218), (242, 240, 236),
+                                                                    (230, 226, 218)], (170, 166, 160), bevel=9)
+    col = col.astype(np.float64)
+    joint = (col.sum(axis=2) < 3 * 176)
+    sheen = fractal(rng, size, 3)[..., None]
+    col *= (0.96 + 0.08 * sheen)
+    for _ in range(size // 5):
+        x, y = rng.randrange(size), rng.randrange(size)
+        dx, dy = rng.choice(((1, 1), (1, 0), (1, -1), (2, 1)))
+        for _ in range(rng.randint(14, 40)):
+            for k, (hx, hy) in ((0.88, (0, 0)), (0.96, (0, 1)), (0.96, (1, 0))):
+                px, py = (x + hx) % size, (y + hy) % size
+                if not joint[py, px]:
+                    col[py, px] *= k
+            x += dx
+            y += dy + (1 if rng.random() < 0.3 else 0) - (1 if rng.random() < 0.3 else 0)
+    return np.clip(col, 0, 255).astype(np.uint8)
+
+
 STREETS = {   # tile: (texture, how it's drawn)
     "Cobble001": ("Street_Cobble", lambda r: stones_voronoi(r, STREET_SIZE, 8, [(132, 130, 126), (118, 116, 112),
                                                                                   (146, 142, 136), (124, 120, 112)],
@@ -320,9 +342,7 @@ STREETS = {   # tile: (texture, how it's drawn)
     "Brick_Paving001": ("Street_Brick", lambda r: rows_of_stones(
         r, STREET_SIZE, (4, 4, 5), (8, 9, 10), [(150, 62, 46), (166, 74, 54), (132, 54, 40), (156, 84, 60)],
         (98, 82, 72), bevel=12)),
-    "Marble_Paving001": ("Street_Marble", lambda r: rows_of_stones(
-        r, STREET_SIZE, (12, 14, 16, 18), (12, 16, 18, 22, 26), [(232, 230, 224), (222, 220, 214), (240, 238, 232)],
-        (176, 172, 166), bevel=10, crack=0.15)),
+    "Marble_Paving001": ("Street_Marble", lambda r: marble_slabs(r, STREET_SIZE)),
     "Mage_Flag001": ("Street_Mage", lambda r: rows_of_stones(
         r, STREET_SIZE, (10, 12, 14, 16), (12, 14, 18, 22), [(112, 124, 146), (100, 112, 134), (124, 136, 158)],
         (62, 68, 84), crack=0.1)),

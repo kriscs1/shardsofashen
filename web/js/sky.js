@@ -62,6 +62,19 @@ function lightOf(name, isTile) {
   return lightCache.get(key);
 }
 
+// (a lamp in the pack, Entities.ini Carried.Light: the best one carried lights further round you than your own eyes)
+const carriedCache = new Map();
+function carriedLight() {
+  let best = 0;
+  for (const it of (S.me && S.me.inv) || []) {
+    if (!it) continue;
+    const name = it[1];
+    if (!carriedCache.has(name)) carriedCache.set(name, Math.max(0, Math.floor(val(entityIni(name, "Carried.Light", "0")))));
+    best = Math.max(best, carriedCache.get(name));
+  }
+  return best;
+}
+
 const layers = {};
 function layer(name, w, h) {
   let c = layers[name];
@@ -111,7 +124,7 @@ export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
     const sx = lx - cam.x, sy = ly - cam.y;
     if (sx > -rad && sx < ww + rad && sy > -rad && sy < wh + rad) hole(sx, sy, rad, 0.15);
   }
-  const pr = Math.max(0, val(dim ? configRead("Darkness", "Player.Light", "150")
+  const pr = Math.max(carriedLight(), val(dim ? configRead("Darkness", "Player.Light", "150")
     : configRead("Gameplay", "Night.Light.Radius", "130")));
   if (pr > 0 && playerC) hole(playerC[0] - cam.x, playerC[1] - cam.y, pr, 0.35);
   ctx.drawImage(L, 0, 0);

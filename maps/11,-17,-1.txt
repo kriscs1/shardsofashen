@@ -23,3 +23,5 @@ StaticObject	Wardens_Journal	128	544	Id=Wardens_Journal_3
 NPC	Warden_Spellbinder	96	344	Attitude=Bad Zone=1,8,7,19 Chase=1,5,10,20
 NPC	Warden_Spellbinder	576	312	Attitude=Bad Zone=13,8,25,19 Chase=10,5,25,20
 NPC	Hollow_Warden	704	376	Attitude=Bad Zone=13,8,25,19 Chase=10,5,25,20
+StaticObject	Wardens_Journal	704	480	Id=Wardens_Journal_6
+StaticObject	Wardens_Chime_Flame	448	240	Id=Flame_Chime

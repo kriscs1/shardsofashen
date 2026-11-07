@@ -14,5 +14,5 @@
 13	Display.Conversation	Fisherman	She's dead? She's really dead.\...Davey would have liked to see that. Here. This came out of her last time I put a hook in her, before she bit through the line. Take it. I don't want it near me.	Thank you, Morrow.	17
 14	Display.Message	Yellow	Quest complete: The Brine Mother!	Quest
 15	End
-16	Display.Conversation	Fisherman	Glowfin bite where the water lights up, off the shore. You'll want a good rod, good bait, and good fishing: twenty-two years of it, I'd say.	Thanks.	17
+16	Goto.Script	Morrow and the Log
 17	End

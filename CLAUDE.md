@@ -85,6 +85,9 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 5. **The Temporary Capital** (`ParliamentQuest`): the guard at Northport's port; the **Speaker** in Northport's City
    Hall, which is Ashen's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
    Court** (the old King's Castle, 21,5,0; Bert at the top of its tower, 21,5,1), can break the barrier.
+   **Northport is shut** (`dev/migrate/build_northport_blockade.py`, to keep the start directed): the Parliament has the roads
+   out closed (raiders), a ring of personal `Lock` lines round the city open once `ParliamentQuest>=2`, and a gate guard at
+   each road out (`Talk to Northport_<Way>_Gate_Guard`) says why. Leaving only: nothing inside changes.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.
@@ -124,7 +127,9 @@ dragon is a villain and killing it is right**; the rest of it stays asleep in th
 found the Pact's price at the Wizards' Court and ran to learn how it was made; her notes are found as you go. Each
 chapter gives a piece (Aldous: take it in before it takes root in you; the Sunken Grimoire and the Ember Ring: the
 king's side; the Shardrealm's core: the dragon's sleeping body; the dragon, dying: what it carried), still discovered,
-never laid out. The Glass Wardens' chain in the Shardfall Deep (a side storyline, level 20+) puts the rest together. At
+never laid out. The Glass Wardens' chain in the Shardfall Deep (a side storyline, level 20+,
+`dev/migrate/build_glass_wardens.py`: nine journals, four chimes rung in the season's order, the Shardsong and its
+Quiet Draught, the Listening Room heard out in the Channelling stance, never answered) puts the rest together. At
 the Seam you choose: the Binding, the Crown, or, only with the Wardens' truth, **Unmake** (break the Seam: storms calmer
 and remnants passive for you, no more Crown Shards); the game plays the same after any. You don't leave the
 Isle till you know what Shard Remnants are (Bess and Wim won't sail till you've absorbed some).
@@ -281,7 +286,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Requires=` keeps them off the Isle's first days. People walk in and walk off once their time's up; a monster nobody's
   fighting comes apart. Never saved. A script or the admin panel can send one: `Start.Encounter`. A new one is a
   section of Encounters.ini.
-- **The seasons** (`dsengine/seasons.py`, `data/Seasons.ini`): a year of `Year.Days` real days, from the clock. Longer days in summer, longer nights in winter; winter's snow instead of rain, rivers and lakes frozen to walk on (bodies of water under `River.Most`), `Season.Absent=Winter` kinds gone; the catch swaps (`[Swap.<Season>]`, on every script's Give.Item), crops grow by `Crop.Growth`. What's only seen is the page's (`ground.js` seasonal, snowPatches: worked out once for each picture, never a canvas filter). `$World.Season` for a script.
+- **The seasons** (`dsengine/seasons.py`, `data/Seasons.ini`): a year of `Year.Days` real days, from the clock. Longer days in summer, longer nights in winter; winter's snow instead of rain, rivers and lakes frozen over (bodies of water under `River.Most`) to **thin, cracked ice you can't walk on** (`Thin_Ice001`, a big seamless texture of long cracks: `dev/migrate/build_thin_ice.py`; the Rime's thick `Ice001` is the one that carries you), `Season.Absent=Winter` kinds gone; the catch swaps (`[Swap.<Season>]`, on every script's Give.Item), crops grow by `Crop.Growth`. What's only seen is the page's (`ground.js` seasonal, snowPatches: worked out once for each picture, never a canvas filter). `$World.Season` for a script.
 - **What happens on its own** (`dsengine/wonders.py`, `data/Wonders.ini`, `dev/migrate/build_wonders.py`): shard storms; ghost ships on foggy nights, gone by morning; the Wandering Inn (a different `Inn_Spot_<n>` each day); mimics (a misspelt name, a glint, `Glint=1`; accuse one and it stops pretending); grudges (what killed you or got away hurt comes back scarred and stronger, attributes `Grudge.*`); the Tax Collector, polite and unkillable, walking after anyone over `Tax.Gold`; the year's Champion (arena wins in winter, crowned in spring, a statue on the boulevard); letters by carrier (`/letter Name [+Item] text`, friends only, a courier finds them). Your own legend (`data/Legend.ini`) is told with the rumours (`legend_due`); a line's condition is any script condition.
 - **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Sallow Waste (it was the Dustlands, round Moorcross) 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks, yews and swordfish lie above ground only in these
   (`build_zone_sites.py --rare`). Each zone has places of its own (`dev/migrate/build_zone_sites.py` SITES: their own
@@ -773,6 +778,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   across the way where it runs east and west (`ground.js` paintRaised, `render.py`). The fancy bridge is two Stretch
   sets (`Fancy_Bridge_NS`, `Fancy_Bridge_EW`: dragged over the water, its balustrade not walked over, its corner lamps
   lit at night); Galaith's wall is drawn there too.
+- **Wooden bridges are one Join set** (`Wood_Bridge`, `dev/migrate/build_wood_bridge.py`, laid over every old plank pier by
+  `wood_bridges_swap.py`): sixteen pieces by the sides they join (`Joins=` NESW, `-` alone), the deck's boards across the way
+  you walk, a rail on posts with a toe-board and the support beams' ends on every open side (the outer row of the walk mask
+  is the rail), the landward end left open. Not `Raised=1` (that turns a picture on an east-west run: these are drawn the right way).
+- **Fires that aren't campfires**: the `Blaze` (`build_blaze.py`, 8 frames of wreckage burning) is Galaith's, on its field and
+  ramparts till The Royal Guard is done; it warms like any fire (`cold.py` FIRES). **Planks and marble are drawn nicer**
+  (`build_nicer_floors.py`: four boards a tile, nails and knots; polished veined marble and a big slab texture for the streets).
+  **The palace's inner walls are one thin strip like every house's** (`lay_rooms` draws a shared wall once).
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
   `dev/migrate/validate.py`.
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.
