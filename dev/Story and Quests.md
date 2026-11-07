@@ -71,7 +71,7 @@ Seventeen chapters, each unlocked by the one before it. Chapters 1 to 4 are the 
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 5 | **The Temporary Capital** | The guard at Northport's port says Northport is the temporary capital. The **Speaker**, in the City Hall (the Parliament), says only **Bert**, the great wizard of the Wizards' Court, can break the barrier, and gives you a letter for the Mayor of Ashford. Until then **Northport is shut**: the Parliament has the roads out closed (raiders), a ring of Lock lines round the city and a gate guard at each road out (`Talk to Northport_<Way>_Gate_Guard`) who says why; the Speaker's letter (`ParliamentQuest>=2`) opens them. |
+| 5 | **The Temporary Capital** | The guard at Northport's port says Northport is the temporary capital. The **Speaker**, in the City Hall (the Parliament), says only **Bert**, the great wizard of the Wizards' Court, can break the barrier, and gives you a letter for the Mayor of Ashford. |
 | 6 | **The Ashford Road** | The **Mayor of Ashford** (the Town Hall) wants the goblins raiding the farms east of town driven off (a wave at the farm crossroads). Reward: the Mayor's pass. |
 | 7 | **The Steward's Hunt** | The **King's Steward** at King Rupert's Keep wants **five hobgoblins** slain in the old iron mine. Reward: 100 gold, a ruby, and the causeway to the Royal Isle. |
 

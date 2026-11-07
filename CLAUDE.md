@@ -85,9 +85,6 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 5. **The Temporary Capital** (`ParliamentQuest`): the guard at Northport's port; the **Speaker** in Northport's City
    Hall, which is Ashen's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
    Court** (the old King's Castle, 21,5,0; Bert at the top of its tower, 21,5,1), can break the barrier.
-   **Northport is shut** (`dev/migrate/build_northport_blockade.py`, to keep the start directed): the Parliament has the roads
-   out closed (raiders), a ring of personal `Lock` lines round the city open once `ParliamentQuest>=2`, and a gate guard at
-   each road out (`Talk to Northport_<Way>_Gate_Guard`) says why. Leaving only: nothing inside changes.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.

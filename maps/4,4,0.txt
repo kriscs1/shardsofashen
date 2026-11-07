@@ -41,10 +41,3 @@ NPC	Villager	353	324	Attitude=Good Zone=10,8,15,13 Pause=4-12
 NPC	Black_Cat	384	504	Attitude=Good Id=Vincent Name=Vincent Zone=10,15,16,19 Pause=4-12
 StaticObject	Valuables	192	472
 StaticObject	Valuables	608	440
-Lock	19	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	20	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	21	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	22	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	23	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	24	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	25	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.

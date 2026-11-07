@@ -23,23 +23,3 @@ NPC	Villager	448	408	Attitude=Good Zone=15,11,16,14 Pause=5-15 Id=Northport_Resi
 StaticObject	Notice	384	450	Id=Northport_Notice_307
 Id	Hollow_Hill_Mouth	8	16
 StaticObject	Valuables	448	280
-Lock	9	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	10	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	11	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	12	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	13	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	14	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	15	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	16	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	17	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	18	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	19	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	20	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	21	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	22	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	23	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	24	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	25	3	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	3	19	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	3	20	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.
-Lock	3	21	$Attr.ParliamentQuest>=2	The city guard have the roads shut, by order of the Parliament.

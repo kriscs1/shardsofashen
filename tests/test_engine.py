@@ -2293,7 +2293,6 @@ def test_walking_granny_wren_to_her_daughter(world):
     s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northport's landing)
     s.connected = True
     s.update_attribute("Passage", "=5")                              # (over from the Isle: it can start)
-    s.update_attribute("ParliamentQuest", "=2")                      # (the Speaker's word: Northport's roads are open)
     for _ in range(10):
         world.tick(0.05)
     granny = world.placed_entity("Granny_Wren", s)
@@ -7408,18 +7407,3 @@ def test_wooden_bridges_are_a_set_with_rails_on_their_open_sides(world):
         assert (set(r[0] for r in rows) == {"0"}) == ("W" not in mask)
         assert (set(r[6] for r in rows) == {"0"}) == ("E" not in mask)
 
-
-def test_northport_is_shut_till_the_speaker_gives_her_word(world):
-    """build_northport_blockade.py: a ring of Lock lines round the city (open at ParliamentQuest>=2), a guard at each road
-    out who says why; the Speaker's word is the way through."""
-    locks = 0
-    for my in range(4, 7):
-        for mx in range(2, 6):
-            fn = os.path.join(ROOT, "maps", "%d,%d,0.txt" % (mx, my))
-            locks += sum(1 for ln in open(fn, encoding="cp1252").read().splitlines()
-                         if ln.startswith("Lock	") and "$Attr.ParliamentQuest>=2" in ln)
-    assert locks > 150
-    for way in ("East", "East_2", "South", "West"):
-        fn = os.path.join(ROOT, "data", "Scripts", "Talk to Northport_%s_Gate_Guard.txt" % way)
-        assert "ParliamentQuest" in open(fn, encoding="cp1252").read()
-    assert "Speaker" in open(os.path.join(ROOT, "data", "Quests.ini"), encoding="cp1252").read().split("[The Temporary Capital]")[1].split("Marker0")[0]

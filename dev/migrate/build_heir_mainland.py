@@ -605,7 +605,7 @@ def quests():
     ini.forget(Q)
     K.quest("The Temporary Capital", "Port_Guard", "ParliamentQuest", {
         0: "Speak to the city guard at Northport's port.",
-        1: "Speak to the Speaker in Northport's City Hall, where Ashen's Parliament sits until Galaith opens again: the roads out of the city are shut until it says who may pass.",
+        1: "Go to Northport's City Hall, where Ashen's Parliament sits until Galaith opens again.",
     }, 2, markers={0: "Northport_Port", 1: "Northport_City_Hall"}, chapter=5, requires="Passage to the Mainland",
         marker0="Northport_Port")
     K.quest("The Ashford Road", "Mayor", "AshfordQuest", {
@@ -758,7 +758,7 @@ def southport_and_ashford():
         ("@road",),
         say("Speaker", "East, through Ashford and King Rupert's Keep. The road's the Mayor of Ashford's to keep, and the "
                        "causeway to the Royal Isle is the King's Steward's.\\Take the Parliament's letter to the Mayor: "
-                       "it asks every friend of the crown to help you on your way, and the gate guards will let you through on my word.",
+                       "it asks every friend of the crown to help you on your way.",
             ("Thank you, Madam Speaker.", "@letter")),
         ("@letter",),
         ("Give.Item", "Parliament_Letter", "1"),
