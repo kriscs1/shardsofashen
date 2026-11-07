@@ -166,9 +166,8 @@ def cactus():
 
 def desert_rock():
     img = copy_tile("Sand001")
-    rng = random.Random(1108)
-    blob(img, rng, 16, 18, 11, 9, (168, 100, 70), (206, 140, 98), (120, 68, 46), outline=(84, 46, 32))
-    return img
+    import rock_art                                  # (a chipped, banded block of sandstone, not a ball)
+    return rock_art.desert_rock(img)
 
 
 # ---------------------------------------------------------------- shore corners on sand and snow

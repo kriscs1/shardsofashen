@@ -229,13 +229,21 @@ def write_see_through(name):
 
 def main():
     made = {}
+    only = [a for a in sys.argv[1:] if not a.startswith("-")]   # (names given: just those tiles)
     for name, make in NEW_TILES.items():
+        if only and name not in only:
+            continue
         made[name] = make()
         if name in SEE_THROUGH:
             changed = write_see_through(name)
         else:
             changed = write_sprite_bmp(p("sprites", "Tiles", name + ".png"), made[name])
         print(("wrote " if changed else "unchanged ") + name)
+    import rock_art                                  # the rocks (decor: see-through, drawn over any ground)
+    for name in rock_art.write_decor():
+        print("wrote " + name)
+    if only:
+        return
     for name, (side, v) in BLEND_MASKS.items():
         m = blend_mask(side, v)
         white = [[(255, 255, 255) if m[y][x] else (0, 0, 0) for x in range(S)] for y in range(S)]

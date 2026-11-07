@@ -4,7 +4,9 @@ client paints each cell with its part of the texture, as the forest canopy does:
 
   * Mountains: a range seen from above - ridges and gullies lit from the top left, scree low down, snow on the heights.
     Range_Rock (blue-grey: Peak..., Mountain...), Range_Snow (Snow_Peak...), Range_Cinder (black, lava glowing in
-    the cracks: Cinder_Peak...). Their Blend is over grass and forest, so a range's edge breaks up raggedly.
+    the cracks: Cinder_Peak...), Range_Desert (red sandstone, banded, mesas and buttes among the peaks:
+    Desert_Peak..., tiles of its own made here). Their Blend is over grass and forest, so a range's edge breaks up
+    raggedly.
   * Streets: uneven stones, never a grid - cobbles, setts, flags of all sizes, bricks in a wandering bond, gravel.
   * The marsh (Marsh001): wet grass and mud, murky pools, tussocks; slow to wade (Walk.Speed).
 
@@ -80,7 +82,10 @@ RANGES = {   # texture: (tiles, (unused), (unused), seed)
                                           (1.0, (150, 154, 164))], 0.86, 3),
     "Range_Snow": (("Snow_Peak",), [(0.0, (84, 90, 104)), (0.4, (116, 122, 136)), (1.0, (150, 156, 170))], 0.55, 5),
     "Range_Cinder": (("Cinder_Peak",), [(0.0, (34, 28, 28)), (0.5, (52, 46, 44)), (1.0, (78, 70, 66))], 9.0, 7),
+    "Range_Desert": (("Desert_Peak",), [], 0, 11),
 }
+# the ranges whose tiles are made here (the others' are drawn first by build_world_art.py): their words
+OWN_TILES = {"Range_Desert": ("Desert_Peak", "Red sandstone mountains, cliffs banded like a cut cake. There's no way over.")}
 RANGE_SIZE = 256
 
 
@@ -149,6 +154,85 @@ def range_texture(name):
         if lava and rng.random() < 0.6:                           # (lava glowing down a crack)
             lines.append(((240, 110, 30), jagged(rng, (apex[0] + 2, apex[1] + h * 0.25), (foot[0] + 3, by - 1), 6, 2)))
         lines.append((tuple(v * 0.6 for v in D), right))           # (the shadowed edge)
+        shapes.append((by, parts, lines))
+    shapes.sort(key=lambda p: p[0])
+    for _, parts, lines in shapes:
+        for ox in (-size, 0, size):
+            for oy in (-size, 0, size):
+                for col, pts in parts:
+                    pygame.draw.polygon(s, col, [(x + ox, y + oy) for x, y in pts])
+                for col, pts in lines:
+                    pygame.draw.lines(s, col, False, [(x + ox, y + oy) for x, y in pts], 1)
+    return pygame.surfarray.array3d(s).transpose(1, 0, 2)
+
+
+DESERT = dict(top=(224, 164, 108), scrub=(146, 124, 72), between=(120, 68, 46),
+              lit=[(212, 132, 82), (226, 152, 100), (200, 118, 74), (218, 142, 92)],
+              shade=[(146, 80, 54), (158, 92, 62), (134, 70, 48), (152, 86, 58)],
+              gully=(108, 56, 38), talus=(178, 114, 76))
+
+
+def desert_range_texture(name):
+    """Red sandstone: rugged peaks, mesas and buttes of every size, overlapping, the nearer in front. Each banded with
+    the layers it was laid down in (lit on the left, in shadow on the right), its sides stepped where a band juts or
+    is worn back, gullies down it, scree fanned out at its foot; a mesa's or butte's top flat and in the sun."""
+    import pygame
+    C = DESERT
+    rng = random.Random(name)
+    size = RANGE_SIZE
+    s = pygame.Surface((size, size))
+    s.fill(C["between"])
+    for _ in range(size * size // 26):                           # (scree and shadow between them)
+        c = tuple(max(0, min(255, v + rng.randint(-12, 12))) for v in C["between"])
+        s.set_at((rng.randrange(size), rng.randrange(size)), c)
+    shapes = []
+    for _ in range(84):
+        kind = rng.choices(("peak", "mesa", "butte"), (6, 3, 2))[0]
+        if kind == "peak":
+            w = rng.choice((28, 32, 36, 42, 48, 56, 64)); h = w * rng.uniform(0.75, 0.95); top_w = 0.0
+        elif kind == "mesa":
+            w = rng.choice((44, 52, 60, 70, 84)); h = w * rng.uniform(0.38, 0.5); top_w = w * rng.uniform(0.3, 0.38)
+        else:
+            w = rng.choice((20, 24, 28)); h = w * rng.uniform(0.85, 1.1); top_w = w * rng.uniform(0.26, 0.34)
+        base_w = w / 2 if kind == "peak" else top_w + w * rng.uniform(0.08, 0.14)   # (cliffs: nearly sheer)
+        cx, by = rng.uniform(0, size), rng.uniform(0, size)
+        tone = rng.uniform(-10, 10)
+        T = lambda c, k=1.0: tuple(max(0, min(255, v + tone * k)) for v in c)
+        depth = 0 if kind == "peak" else h * rng.uniform(0.25, 0.35)  # (how much of the top we see from above)
+        ax = cx + (rng.uniform(-w * 0.1, w * 0.1) if kind == "peak" else 0)
+        yt = by - h
+        ridge = ax + (rng.uniform(0.0, 0.16) * w if kind != "peak" else 0)
+        xl = lambda y: ax - top_w + (cx - base_w - (ax - top_w)) * (y - yt) / h
+        xr = lambda y: ax + top_w + (cx + base_w - (ax + top_w)) * (y - yt) / h
+        xm = lambda y: ridge + (cx + w * 0.06 - ridge) * (y - yt) / h
+        parts, lines = [], []
+        if kind != "peak":                                          # (scree fanned out at the foot)
+            parts.append((T(C["talus"], 0.5), [(cx - base_w - w * 0.16, by + 2), (xl(yt + h * 0.55), yt + h * 0.55),
+                                               (xr(yt + h * 0.55), yt + h * 0.55), (cx + base_w + w * 0.18, by + 2)]))
+        nb = rng.randint(4, 7)
+        cuts = sorted([yt] + [yt + h * rng.uniform(0.06, 0.94) for _ in range(nb - 1)] + [by])
+        start = rng.randrange(4)
+        for k in range(nb):                                         # (the bands, each its own colour, each its own
+            y0, y1 = cuts[k], cuts[k + 1]                           #  ledge: jutting out or worn back a little)
+            j = 2.5 if kind == "peak" else 1.5
+            jl, jr = (rng.uniform(-j, j), rng.uniform(-j, j)) if k else (0, 0)
+            L, D = T(C["lit"][(start + k) % 4]), T(C["shade"][(start + k) % 4], 0.6)
+            parts.append((L, [(xl(y0) - jl, y0), (xm(y0), y0), (xm(y1), y1), (xl(y1) - jl, y1)]))
+            parts.append((D, [(xm(y0), y0), (xr(y0) + jr, y0), (xr(y1) + jr, y1), (xm(y1), y1)]))
+        if kind != "peak":                                          # (the flat top, seen from above)
+            top = jagged(rng, (ax - top_w, yt), (ax - top_w * 0.8, yt - depth), 3, 1.5) + \
+                jagged(rng, (ax + top_w * 0.85, yt - depth), (ax + top_w, yt), 3, 1.5)
+            parts.append((T(C["top"]), top))
+            for _ in range(int(top_w * depth / 30)):                # (scrub on the top)
+                x = rng.uniform(ax - top_w * 0.7, ax + top_w * 0.7)
+                y = yt - rng.uniform(1, max(1.5, depth - 1))
+                lines.append((C["scrub"], [(x, y), (x + 1, y)]))
+            lines.append((tuple(v * 0.82 for v in T(C["top"])), [(ax - top_w, yt), (ax + top_w, yt)]))  # (its rim)
+        for _ in range(rng.randint(1, 3)):                          # (gullies down it)
+            t = rng.uniform(0.15, 0.85)
+            x0 = xl(yt + 2) + (xr(yt + 2) - xl(yt + 2)) * t
+            lines.append((T(C["gully"]), jagged(rng, (x0, yt + 2), (xl(by) + (xr(by) - xl(by)) * t, by - 1), 4, 1.2)))
+        lines.append((tuple(v * 0.6 for v in T(C["shade"][0])), [(xr(yt), yt), (xr(by), by)]))   # (the shadowed edge)
         shapes.append((by, parts, lines))
     shapes.sort(key=lambda p: p[0])
     for _, parts, lines in shapes:
@@ -436,14 +520,26 @@ def mountain_tiles(prefixes):
     return out
 
 
+def own_tiles(name):
+    """A range's tiles made here (as build_world_art.py makes the others): 6 peaks, 4 big, 9 huge, all solid."""
+    prefix, examine = OWN_TILES[name]
+    tiles = ["%s%03d" % (prefix, v) for v in range(1, 7)] + ["%s_Big%03d" % (prefix, v) for v in range(1, 5)] +         ["%s_Huge%03d" % (prefix, v) for v in range(1, 10)]
+    for t in tiles:
+        SK.section(SK.TILES, t, [("Walkable.Data", "0" * 49), ("Show.Name", "0"), ("Use.Words", ""),
+                                 ("Examine.Info", examine), ("Line.of.Sight", "0")])
+    return tiles
+
+
 def main():
     os.makedirs(TEX, exist_ok=True)
     for name, (prefixes, _, _, _) in RANGES.items():
-        arr = range_texture(name)
+        arr = desert_range_texture(name) if name == "Range_Desert" else range_texture(name)
         save_texture(name, arr)
-        tiles = mountain_tiles(prefixes)
+        tiles = own_tiles(name) if name in OWN_TILES else mountain_tiles(prefixes)
         for i, t in enumerate(tiles):
             K.save("Tiles", t, cell_of(arr, i * 3))
+            if name in OWN_TILES:
+                SK.minimap_colour(t, tuple(int(v) for v in arr.reshape(-1, 3).mean(axis=0)))
             SK.section(SK.TILES, t, [("Texture", name), ("Blend", "8"), ("Blend.Texture", tiles[0])])
         print("%s: %d tiles" % (name, len(tiles)))
     for tile, (name, draw) in STREETS.items():

@@ -47,10 +47,8 @@ def stone(img, rng, cx, cy, rx, ry, base, moss=0.0):
 
 
 def boulder():
-    rng = random.Random(8101)
-    img = grass()
-    stone(img, rng, 16, 17, 11.5, 9.5, GREYS[0], moss=0.55)
-    return to_rows(np.clip(img, 0, 255))
+    import rock_art                                  # (flat chipped faces and cracks, not a smooth egg)
+    return rock_art.boulder(to_rows(np.clip(grass(), 0, 255)))
 
 
 def cluster():
