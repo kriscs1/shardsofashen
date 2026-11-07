@@ -29,3 +29,6 @@ NPC	Royal_Guard	512	88	Attitude=Good Zone=15,2,24,6 Pause=2-6 Schedule=Always Na
 NPC	Royal_Guard	576	120	Attitude=Good Zone=15,2,24,6 Pause=2-6 Schedule=Always Name=Royal_Guard
 NPC	Royal_Guard	672	88	Attitude=Good Zone=15,2,24,6 Pause=2-6 Schedule=Always Name=Royal_Guard
 Id	Royal_Drill_Yard	20	5
+Lock	17	16			Pick=15
+MapItem	Sapphire	448	384	1	Once=1
+MapItem	Gold_Coin(s)	416	384	55	Once=1

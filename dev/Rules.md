@@ -437,9 +437,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   has an empty Condition and words that settle it ("Locked. Whoever lives here likes it that way."), never anything that
   reads as a puzzle; boarded ones wear `Door_Boards001`. A door that can be picked (`Pick=` on its Lock line) keeps the
   pickable message and has `Once=` loot behind it worth its level. Never lock a door of a room someone lives in
-  (`Home=`), or one with a ladder or hatch. Northport's and Ashford's fenced yards (railings, an `Iron_Gate001`
+  (`Home=`), and never lock for good one with a ladder or hatch (a picked one can have one, to an empty floor). Northport's and Ashford's fenced yards (railings, an `Iron_Gate001`
   chained at Pick=24) are for Grasp through the railings or a master thief.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
+- **The floors over and under the world are roofed dark** (`dev/migrate/build_level_roofs.py`, the owner's wish): on
+  levels 1 and -1 every building's rooms are under a black roof (`Hidden_Dark001`), each building its own group, so
+  from inside one you don't see into the next across the dark. Caves and mines are left open (a cave runs from map to
+  map and a roof only lifts on the map you're on). Run it again after adding an upper floor or a cellar.
 - On the world map, places with no map look the same as unexplored ones. A level under or over the world is drawn in
   the world's frame and scale (`ui.js` worldFrame), so a cellar lies just under its house; only the levels of their
   own fill the map.
@@ -766,6 +770,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   of the canvas on every level, and **going up or down keeps the view exactly** (the same scroll and zoom, every tile
   over the one below it), even where the other level has no map there. A slow job shows a banner over the window
   (`app.busy`) or a spinner in the header for one in the background (`app.working`): never a window that looks stuck.
+  **Wherever something is referenced, the editor shows exactly what** (`dsedit/refs.py`): under each script, quest or
+  file that points at it, the very lines (a script's, numbered, a click away). **A thing's "What it runs"** names the
+  script the game finds for each verb, as `find_action_script` does (its own by Id, or one shared by every one of its
+  name or kind), and for a shared one that the map decides (`>On.Map`), just the lines that can run where it stands.
   Right-click lets go of an area being pasted. Dragging an entity moves only its picture (the map is drawn once
   without it), and the palette makes only the pictures in view: keep both so.
 - **The map editor's Auto palette and brushes** (`dsedit/terrain.py`): a terrain (`data/TileSets.ini` `Kind=Terrain`,

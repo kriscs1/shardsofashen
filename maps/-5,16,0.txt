@@ -30,3 +30,6 @@ StaticObject	Blaze	677	478	Gone.After=GuardQuest:5
 StaticObject	Blaze	731	315	Gone.After=GuardQuest:5
 StaticObject	Blaze	764	318	Gone.After=GuardQuest:5
 StaticObject	Blaze	741	347	Gone.After=GuardQuest:5
+Lock	7	17			Pick=7
+MapItem	Gold_Coin(s)	224	448	15	Once=1
+MapItem	Minor_Healing_Draught	224	480	1	Once=1

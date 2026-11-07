@@ -4382,6 +4382,31 @@ def test_editor_knows_what_points_at_the_maps():
     assert ("script", "3,2,0") in r.of_map("3,2,0")                                      # (its arrival script)
     assert r.tiles and all(len(k) == 3 for k in r.tiles)                                 # (map, tile x, tile y)
     assert not r.fresh()                                                                 # (nothing changed since)
+    # and exactly what points: the lines themselves
+    assert "Marker1=Isle_Bank" in r.lines(("quest", "Dinner at Edwin's"), [("names", "Isle_Bank")])
+    said = r.lines(("script", "3,2,0"), [("names", "Isle_Ferry_Pier")])
+    assert said and said[0].startswith("01  Add.Entity  Isle_Ferry_Pier  Ferryman")       # (numbered as the game does)
+    assert r.lines(("quest", "Dinner at Edwin's"), [("givers", "Maren")]) == ["Giver=Maren"]
+
+
+def test_editor_shows_the_shared_script_a_thing_runs_and_its_lines_here():
+    """The map editor's "What it runs" (dsedit/refs.py): the script the game would find for each verb, and for a shared
+    one (every Trader's) just the lines that can run on this map, its >On.Map settled."""
+    from dsedit.project import Project, ScriptDoc
+    from dsedit.refs import script_for, lines_here
+    P = Project(ROOT)
+    names = P.scripts()
+    assert script_for(names, "Talk to", "Trader", "NPC") == ("Talk to Trader", "shared")
+    assert script_for(names, "Read", "Notice", "StaticObject", "Isle_Bank_Notice") == ("Read Isle_Bank_Notice", "own")
+    assert script_for(names, "Chop", "Tree002", "Tile") == ("Chop Tree", "shared")      # (its name without the number)
+    assert script_for(names, "Pickup", "Gold_Coin(s)", "MapItem") == ("Pickup [MapItem]", "shared")
+    assert script_for(names, "Attack", "Trader", "NPC") is None                         # (the game's own)
+    cmds = ScriptDoc(P, "Talk to Trader").commands()
+    here = [t for _, t in lines_here(cmds, "9,10,0")]                                   # (Oakhollow's market)
+    assert any("Welcome to Oakhollow!" in t for t in here) and any("SHOP-Oakhollow" in t for t in here)
+    assert not any("Greyford" in t for t in here)
+    away = [t for _, t in lines_here(cmds, "1,1,0")]                                    # (no Trader's town)
+    assert any("Nothing to sell here" in t for t in away) and not any("Welcome" in t for t in away)
 
 
 def test_scrolls_are_rare_and_only_teach(world):
@@ -5120,6 +5145,44 @@ def test_chests_are_locked_and_never_out_of_reach(world):
     finally:
         LK.rnd = was
     assert not s.chest_locked(chest) and s.chest_key(chest) in s.save_state()["unlocked_chests"]
+    leave(world, s)
+
+
+def test_galaiths_houses_are_locked_most_for_picking(world):
+    """build_locked_doors.py: Galaith's houses, most pickable (and easy, in the hovels), two locked for good."""
+    picks = [(m, xy) for m, xy in (("-10,15,0", (17, 16)), ("-7,12,0", (14, 21)), ("-5,17,0", (5, 18)),
+                                   ("-5,16,0", (7, 17)), ("-6,17,0", (7, 19)), ("-5,15,0", (9, 16)),
+                                   ("-6,16,0", (16, 13)), ("-6,13,0", (8, 16)), ("-6,17,0", (14, 6)),
+                                   ("-6,17,0", (22, 20)), ("-6,16,0", (10, 7)))]
+    for m, xy in picks:
+        lk = world.maps[m].lock_at[xy]
+        assert 3 <= lk.pick <= 15 and lk.message == lk.PICKABLE, (m, xy)
+    for m, xy in (("-10,16,0", (19, 15)), ("-8,17,0", (13, 8))):
+        lk = world.maps[m].lock_at[xy]
+        assert lk.pick == 0 and lk.message not in ("It's locked.", lk.PICKABLE), (m, xy)
+
+
+def test_the_floors_over_and_under_the_world_are_roofed_dark_each_building_its_own(world):
+    """build_level_roofs.py: on levels 1 and -1 every building is under a black roof, its own group (so you don't see
+    into the next across the dark); caves and mines are left open."""
+    up = world.maps["-11,16,1"]                                      # (two houses' upper floors on one map)
+    a, b = up.roof_group[up.cell(13, 1)], up.roof_group[up.cell(13, 3)]
+    assert up.roof[up.cell(13, 1)] and a and a == b
+    groups = {up.roof_group[i] for i in range(len(up.roof)) if up.roof[i]}
+    assert len(groups) == 2
+    cave = world.maps["-7,11,-1"]                                    # (the King's mine)
+    assert not any(cave.roof)
+
+
+def test_oakhollows_trader_stands_in_its_market_and_greets_you_so(world):
+    m = world.maps["9,10,0"]
+    t = next(e for e in world.ents if e.name == "Trader" and e.map == m.name)
+    s = join(world, "Haggler", m.name, t.x - m.ox, t.y - m.oy + 40)
+    s.out = []
+    s.choose_verb("Talk to", t, t.cx, t.cy)
+    run_for(world, 5)
+    assert "Welcome to Oakhollow!" in str(s.out)
+    assert not any(e.name == "Trader" and e.map == "8,11,0" for e in world.ents)
     leave(world, s)
 
 

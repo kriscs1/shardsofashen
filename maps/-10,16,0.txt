@@ -24,3 +24,4 @@ NPC	Woman	384	120	Attitude=Good Zone=11,2,15,5 Pause=5-15 Id=Galaith_Resident_44
 StaticObject	Valuables	384	0
 NPC	Man	352	408	Attitude=Good Zone=11,11,14,14 Pause=5-15 Id=Galaith_Resident_442 Name=Fred Home=10,10,10,10/12,10,12,10/15,10,15,10/10,11,15,14 Bed=14,10
 StaticObject	Valuables	352	280
+Lock	19	15		Locked. The family's at their country house, and their door's gone with them.

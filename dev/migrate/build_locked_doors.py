@@ -38,6 +38,9 @@ PRIVATE = [
     ("-7,16,0", (10, 13), "A noble's door, locked. Nobody here answers to strangers."),
     ("19,5,0", (7, 11), "The handle is cold as ice and won't turn. A wizard's house keeps its own door."),
     ("25,17,0", (8, 10), "Locked. A soldier's family lives here, and they keep to themselves."),
+    # Galaith (the owner's wish: more of its houses locked, most of them pickable)
+    ("-10,16,0", (19, 15), "Locked. The family's at their country house, and their door's gone with them."),
+    ("-8,17,0", (13, 8), "Locked tight. Whoever trades from here keeps the stock and the door shut."),
 ]
 # (map, door tile, what it says): long empty, boarded up
 BOARDED = [
@@ -54,6 +57,18 @@ PICKABLE = [
     ("17,21,0", (15, 16), 10, [("Emerald", 1), ("Gold_Coin(s)", 25)]),
     ("26,19,0", (19, 14), 12, [("Gold_Ring", 1), ("Gold_Coin(s)", 40)]),
     ("-8,16,0", (14, 5), 14, [("Ruby", 1), ("Gold_Coin(s)", 60)]),
+    # Galaith: a noble's, two in the Merchants' quarter, the rest the hovels (a little, and easy)
+    ("-10,15,0", (17, 16), 15, [("Sapphire", 1), ("Gold_Coin(s)", 55)]),
+    ("-7,12,0", (14, 21), 10, [("Silver_Ring", 1), ("Gold_Coin(s)", 30)]),
+    ("-5,17,0", (5, 18), 8, [("Gold_Coin(s)", 20), ("Healing_Draught", 1)]),
+    ("-5,16,0", (7, 17), 7, [("Gold_Coin(s)", 15), ("Minor_Healing_Draught", 1)]),
+    ("-6,17,0", (7, 19), 6, [("Gold_Coin(s)", 14)]),
+    ("-5,15,0", (9, 16), 5, [("Silver_Ring", 1)]),
+    ("-6,16,0", (16, 13), 5, [("Gold_Coin(s)", 10), ("Bread", 1)]),
+    ("-6,13,0", (8, 16), 4, [("Gold_Coin(s)", 8), ("Minor_Healing_Draught", 1)]),
+    ("-6,17,0", (14, 6), 4, [("Gold_Coin(s)", 4), ("Minor_Healing_Draught", 1)]),
+    ("-6,17,0", (22, 20), 3, [("Gold_Coin(s)", 6)]),
+    ("-6,16,0", (10, 7), 3, [("Gold_Coin(s)", 5), ("Bread", 1)]),
 ]
 YARD_PICK = 24
 YARD_MESSAGE = "The gate's chained shut. The lock looks as if you could pick it."

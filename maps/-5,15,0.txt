@@ -30,3 +30,5 @@ StaticObject	Blaze	506	342	Gone.After=GuardQuest:5
 StaticObject	Blaze	477	381	Gone.After=GuardQuest:5
 StaticObject	Blaze	733	602	Gone.After=GuardQuest:5
 StaticObject	Blaze	700	603	Gone.After=GuardQuest:5
+Lock	9	16			Pick=5
+MapItem	Silver_Ring	256	384	1	Once=1

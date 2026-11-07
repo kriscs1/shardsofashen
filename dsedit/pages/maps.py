@@ -20,9 +20,10 @@ from ashen import areas as AR
 from .. import theme as T
 from .. import world as WD
 from ..app import Page
-from ..project import MapDoc, Entity, parse_map_name, tile_family, TILE_FAMILIES, ENTITY_TYPES, HOMESTEAD_MAP
+from ..project import (MapDoc, Entity, ScriptDoc, parse_map_name, tile_family, TILE_FAMILIES, ENTITY_TYPES,
+                       HOMESTEAD_MAP)
 from ..render import render, walk_overlay, tile_image
-from ..refs import Refs, label as use_label
+from ..refs import Refs, label as use_label, script_for, lines_here
 from ..carts import CartRoutes
 from ..widgets import (PaletteGrid, HEADER, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
 from .iniform import IniFormPage
@@ -531,8 +532,15 @@ class MapPage(Page):
             return []
         return (R.of_name(e.opt("Id")) if e.opt("Id") else []) + (R.of_kind(e.name) if e.kind == "NPC" else [])
 
-    def refs_list(self, f, uses, what="it"):
-        """The inspector's list of what points at it: each a link to the script or quest."""
+    def ref_keys(self, e):
+        """What uses_of looks it up by, for the lines that point: [(table, key)]."""
+        if e.kind == "Id":
+            return [("names", e.name)]
+        return ([("names", e.opt("Id"))] if e.opt("Id") else []) + ([("givers", e.name)] if e.kind == "NPC" else [])
+
+    def refs_list(self, f, uses, what="it", keys=()):
+        """The inspector's list of what points at it: each a link to the script or quest, and under it the very lines
+        that point (a script's line, a click away)."""
         if not uses:
             return
         row = tk.Frame(f, bg=REF_LOOK[0])
@@ -546,8 +554,51 @@ class MapPage(Page):
                 self.link(f, use_label(use), lambda k=kind, n=name: self.app.goto(k, n))
             else:
                 ttk.Label(f, text=use_label(use), style="Panel.TLabel").pack(anchor="w", pady=1)
+            self.line_list(f, self.refs.lines(use, keys), name if kind == "script" else None, 4)
         if len(uses) > 20:
             ttk.Label(f, text="and %d more" % (len(uses) - 20), style="PanelMuted.TLabel").pack(anchor="w")
+
+    def line_list(self, f, lines, script=None, most=4):
+        """Lines shown as they're written, small and indented; a script's numbered ones open it at that line."""
+        for ln in lines[:most]:
+            text = ln if len(ln) <= 90 else ln[:88] + "…"
+            l = ttk.Label(f, text=text, style="PanelMuted.TLabel", font=T.MONO, wraplength=T.px(290), justify="left")
+            l.pack(anchor="w", padx=(T.px(14), 0))
+            num = ln.split(" ", 1)[0]
+            if script and num.isdigit():
+                l.configure(cursor="hand2")
+                l.bind("<Button-1>", lambda ev, s=script, n=int(num): self.app.goto("script", s, line=n))
+        if len(lines) > most:
+            ttk.Label(f, text="and %d more lines" % (len(lines) - most), style="PanelMuted.TLabel").pack(
+                anchor="w", padx=(T.px(14), 0))
+
+    def runs_list(self, f, verbs, name, kind, oid=""):
+        """What it runs, as the game finds it (refs.script_for): for each verb with a script, a link to it; a shared one
+        (every <name> or every <kind> runs it) says so, with exactly the lines that can run here (refs.lines_here:
+        a script's >On.Map settled by this map)."""
+        have = self.project.scripts()
+        found = [(v, script_for(have, v, name, kind, oid)) for v in verbs]
+        found = [(v, got) for v, got in found if got]
+        ttk.Label(f, text="What it runs", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(8, 0))
+        if not found:
+            ttk.Label(f, text="no script: the game's own (%s)" % ", ".join(verbs), style="PanelMuted.TLabel",
+                      wraplength=T.px(300)).pack(anchor="w")
+            return
+        for verb, (script, how) in found:
+            who = "its own" if how == "own" else "shared: every %s runs it" % (
+                script[len(verb) + 1:].strip("[]") if script.endswith("]") else script[len(verb) + 1:])
+            self.link(f, "%s  →  %s  (%s)" % (verb, script, who), lambda s=script: self.app.goto("script", s))
+            if how != "shared":
+                continue
+            cmds = ScriptDoc(self.project, script).commands()
+            lines = lines_here(cmds, self.doc.name)
+            if len(lines) == len(cmds) or not any(c.command.strip() in (">On.Map", ">Not.On.Map") for c in cmds):
+                ttk.Label(f, text="the same wherever it is (%d lines)" % len(cmds), style="PanelMuted.TLabel").pack(
+                    anchor="w", padx=(T.px(14), 0))
+                continue
+            ttk.Label(f, text="on this map, just these %d of its %d lines can run:" % (len(lines), len(cmds)),
+                      style="PanelMuted.TLabel").pack(anchor="w", padx=(T.px(14), 0))
+            self.line_list(f, [t for _, t in lines], script, 14)
 
     def draw_refs(self, doc, ox, oy, slot):
         """A pink badge, with how many, on everything something points at: the tiles named by their coordinates
@@ -4533,7 +4584,7 @@ class MapPage(Page):
         d = self.doc
         self.head(f, "Map %s" % d.name, "Click a tile or a thing to see it here. Esc lets go of the palette's pick. "
                   "A pink badge on the map: a script, a quest or a data file points at it.")
-        self.refs_list(f, self.refs.of_map(d.name), "the map")
+        self.refs_list(f, self.refs.of_map(d.name), "the map", [("maps", d.name)])
         n = {k: sum(1 for e in d.placed() if e.kind == k) for k in ("MapItem", "StaticObject", "NPC", "Trigger", "Lock",
                                                                     "Id")}
         ttk.Label(f, text="%d NPCs · %d objects · %d items · %d triggers · %d locks · %d places" % (
@@ -4575,7 +4626,8 @@ class MapPage(Page):
         x, y = self.sel_cell
         cell = self.doc.cells[y][x]
         self.head(f, "Tile %d,%d" % (x + 1, y + 1))
-        self.refs_list(f, self.refs.of_tile(self.doc.name, x + 1, y + 1), "what's here")
+        self.refs_list(f, self.refs.of_tile(self.doc.name, x + 1, y + 1), "what's here",
+                       [("tiles", (self.doc.name, x + 1, y + 1))])
         for label, name in (("Ground", cell.tile), ("Rug", cell.under), ("Decor", cell.decor), ("Roof", cell.roof),
                             ("Over", cell.infront)):
             row = ttk.Frame(f, style="Panel.TFrame")
@@ -4601,6 +4653,11 @@ class MapPage(Page):
                                      e.name if e.kind == "Id" else (e.cond or "always locked")),
                       lambda e=e: (setattr(self, "sel_ent", e), self.set_layer("things") if self.layer != "things"
                                    else None, self.redraw(), self.show_inspector()))
+        on = cell.decor or cell.tile                    # (what a click here finds: its own verbs, its scripts)
+        words = [w.strip() for w in self.project.tiles_ini.get(on, "Use.Words", "").split(",") if w.strip()] if on else []
+        if words:
+            place = next((e.name for e in things if e.kind == "Id"), "")
+            self.runs_list(f, words + ["Examine"], on, "Tile", place)
         b = ttk.Frame(f, style="Panel.TFrame")
         b.pack(fill="x", pady=4)
         ttk.Button(b, text="＋ Trigger", style="Small.TButton",
@@ -4614,7 +4671,8 @@ class MapPage(Page):
                   style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w", pady=(10, 0))
 
     def insp_common(self, f, e, title):
-        self.refs_list(f, self.uses_of(self.doc, e), "its Id, name or place" if e.opt("Id") else "it")
+        self.refs_list(f, self.uses_of(self.doc, e), "its Id, name or place" if e.opt("Id") else "it",
+                       self.ref_keys(e))
         img = self.project.sprite("Entities", e.name)
         row = ttk.Frame(f, style="Panel.TFrame")
         row.pack(fill="x")
@@ -4801,9 +4859,9 @@ class MapPage(Page):
             ent.bind("<FocusOut>", give)
         ttk.Label(f, text="Names this one (unique in the world): the game runs \"<Verb> <Id>\" before \"<Verb> %s\"."
                   % e.name, style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
-        if not oid:
-            return
-        self.script_links(f, oid, self.verbs_of(e))
+        self.runs_list(f, self.verbs_of(e), e.name, e.kind, oid)
+        if oid:
+            self.script_links(f, oid, self.verbs_of(e))
 
     def verbs_of(self, e):
         """What can be done to this thing (its left-click verb first, then its Use.Words, then Examine)."""
@@ -5125,10 +5183,12 @@ class MapPage(Page):
         words = [w.strip() for w in self.project.tiles_ini.get(on, "Use.Words", "").split(",") if w.strip()] if on else []
         ttk.Label(f, text="A click on this tile runs its own script first (\"<Verb> %s\"), before the %s's." % (
             e.name, on or "tile"), style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w", pady=(6, 0))
+        if on:
+            self.runs_list(f, words + ["Examine"], on, "Tile", e.name)
         self.script_links(f, e.name, words + ["Examine"])
         uses = self.uses_of(self.doc, e)
         if uses:
-            self.refs_list(f, uses, "its name")
+            self.refs_list(f, uses, "its name", self.ref_keys(e))
         else:
             ttk.Label(f, text="Used by", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(10, 0))
             ttk.Label(f, text="nothing yet (saved files)", style="PanelMuted.TLabel").pack(anchor="w")

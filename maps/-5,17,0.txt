@@ -27,3 +27,6 @@ NPC	Guard	448	536	Attitude=Good Stand=1 Face=E Schedule=Always
 StaticObject	Blaze	509	61	Gone.After=GuardQuest:5
 StaticObject	Blaze	545	406	Gone.After=GuardQuest:5
 StaticObject	Blaze	508	413	Gone.After=GuardQuest:5
+Lock	5	18			Pick=8
+MapItem	Gold_Coin(s)	96	480	20	Once=1
+MapItem	Healing_Draught	96	512	1	Once=1

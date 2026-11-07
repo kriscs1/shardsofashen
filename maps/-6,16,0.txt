@@ -23,3 +23,9 @@ StaticObject	Notice	0	162	Id=Galaith_Notice_321
 NPC	Villager	352	568	Attitude=Good Zone=11,18,14,19 Pause=5-15 Id=Galaith_Resident_456 Name=Hugh Zone.Levels=-1,0
 StaticObject	Notice	576	386	Id=Galaith_Notice_310
 StaticObject	Notice	352	194	Id=Galaith_Notice_313
+Lock	16	13			Pick=5
+MapItem	Gold_Coin(s)	480	320	10	Once=1
+MapItem	Bread	512	320	1	Once=1
+Lock	10	7			Pick=3
+MapItem	Gold_Coin(s)	288	96	5	Once=1
+MapItem	Bread	288	128	1	Once=1

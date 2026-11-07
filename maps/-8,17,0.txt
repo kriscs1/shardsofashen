@@ -26,3 +26,4 @@ StaticObject	Notice	768	226	Id=Galaith_Notice_459
 NPC	Greengrocer	384	376	Attitude=Good Stand=1 Face=S Id=Galaith_Greengrocer_354 Name=Greta
 NPC	Butcher	608	376	Attitude=Good Stand=1 Face=S Id=Galaith_Butcher_340 Name=Polly
 NPC	Dog	128	632	Attitude=Good  Pause=4-12 Zone=2,18,8,21
+Lock	13	8		Locked tight. Whoever trades from here keeps the stock and the door shut.

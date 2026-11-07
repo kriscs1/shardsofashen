@@ -28,3 +28,10 @@ NPC	Villager	704	88	Attitude=Good Zone=23,2,24,4 Pause=5-15 Id=Galaith_Resident_
 StaticObject	Notice	640	194	Id=Galaith_Notice_308
 StaticObject	Notice	352	162	Id=Galaith_Notice_309
 StaticObject	Valuables	416	56
+Lock	7	19			Pick=6
+MapItem	Gold_Coin(s)	160	480	14	Once=1
+Lock	14	6			Pick=4
+MapItem	Gold_Coin(s)	448	96	4	Once=1
+MapItem	Minor_Healing_Draught	448	128	1	Once=1
+Lock	22	20			Pick=3
+MapItem	Gold_Coin(s)	672	544	6	Once=1
