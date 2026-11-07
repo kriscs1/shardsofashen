@@ -70,6 +70,33 @@ def test_marys_grave_is_by_the_sea_and_galaith_has_no_way_in_from_it(world):
     assert sum(1 for e in world.ents if e.name == "Fire" and e.map in ("-6,18,0", "-5,18,0", "-4,18,0")) >= 5
 
 
+def test_the_chapel_graveyard_has_one_gate_and_you_walk_out_of_it_from_the_grave(world):
+    from collections import deque
+    m, chapel = world.maps["4,1,0"], world.maps["3,1,0"]
+    assert not any(t.startswith("Wood_Gate") for t in m.decor)      # (the one gate is on 3,1,0)
+
+    def reach(start, goal, x0, y0, x1, y1, step=2):
+        seen, q = {start}, deque([start])
+        while q:
+            x, y = q.popleft()
+            if abs(x - goal[0]) <= step and abs(y - goal[1]) <= step:
+                return True
+            for n in ((x + step, y), (x - step, y), (x, y + step), (x, y - step)):
+                if x0 <= n[0] < x1 and y0 <= n[1] < y1 and n not in seen and world.pixel_walkable(0, *n):
+                    seen.add(n)
+                    q.append(n)
+        return False
+    start = (m.ox + 48, m.oy + 5 * 32 + 16)                        # (below the grave)
+    out = (m.ox + 2 * 32 + 16, m.oy + 16)                           # (outside the fence, the cottage's way)
+    assert not reach(start, out, m.ox, m.oy, m.ox + 25 * 32, m.oy + 21 * 32)        # (no way out on its own map)
+    assert reach(start, out, chapel.ox, chapel.oy, m.ox + 25 * 32, m.oy + 21 * 32)  # (west, out of the chapel's gate)
+    script = open(os.path.join(ROOT, "data", "Scripts", "The Funeral.txt"), encoding="cp1252").read()
+    spots = {ln.split("\t")[4] for ln in script.splitlines() if "\tMove.Entity\t" in ln and "Edwin" not in ln}
+    for spot in spots:                                              # (the mourners walk somewhere they can get to)
+        x, y = (int(v) for v in spot.split(","))
+        assert reach(start, (m.ox + x + 16, m.oy + y + 24), m.ox, m.oy, m.ox + 25 * 32, m.oy + 21 * 32), spot
+
+
 def test_the_hard_zones_are_places_with_homes_and_no_ruin_outlines(world):
     import sys
     sys.path.insert(0, os.path.join(ROOT, "dev", "migrate"))

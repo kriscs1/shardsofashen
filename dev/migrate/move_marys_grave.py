@@ -1,6 +1,6 @@
 """Mary's grave moves to the chapel graveyard's east end, by the sea (4,1,0 tile 2,5: the owner's wish), and the
-graveyard's fence grows round it: its east side on 3,1,0 comes down, and the fence runs on along the top of 4,1,0, with
-a gate toward the cottage, and down to the sea. The funeral, its entry script and a new character's start follow
+graveyard's fence grows round it: its east side on 3,1,0 comes down, and the fence runs on along the top of 4,1,0
+and down to the sea (its one gate stays on 3,1,0). The funeral, its entry script and a new character's start follow
 (build_heir_isle.py GRAVE_MAP, GRAVE).
 
   python -I "dev\\migrate\\move_marys_grave.py"
@@ -47,7 +47,6 @@ def main():
                 new.set(x, y, decor="")
     for x in range(1, 6):
         new.set(x, 2, decor="Wood_Fence001")
-    new.set(H.GRAVE_GATE[0], 2, decor="Wood_Gate001")
     new.set(6, 2, decor="Wood_Fence004")                        # (the corner, then down to the sea)
     for y in range(3, 9):
         new.set(6, y, decor="Wood_Fence002")

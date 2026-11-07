@@ -10,11 +10,11 @@
 09	Display.Message	Cyan	The chapel bell tolls for Mary. The last of the mourners lay their flowers on her grave.	-
 10	Wait	3
 11	Display.Conversation	Mourner	She was a good woman, your mother. Kind to all of us, and never a word about herself.	Thank you.	12
-12	Move.Entity	0,152	Mourner	64,-8	3
+12	Move.Entity	0,152	Mourner	0,88	3
 13	Remove.Entity	0,152	Mourner
-14	Move.Entity	64,184	Villager	64,-8	3
+14	Move.Entity	64,184	Villager	0,88	3
 15	Remove.Entity	64,184	Villager
-16	Move.Entity	0,184	Farmer	64,-8	3
+16	Move.Entity	0,184	Farmer	0,88	3
 17	Remove.Entity	0,184	Farmer
 18	Display.Conversation	Edwin	I'm so sorry. Mary was a friend to all of us here.\Come: I'll walk you home. She left something for you, and it's to be given to you alone.	Lead the way.	19
 19	Remove.Entity	64,152	Edwin

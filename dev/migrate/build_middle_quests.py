@@ -261,9 +261,9 @@ BOSSES = {
     "Orrins_Shadow": ("Dark_Mage", (72, 66, 112), 1.5, 13, "magic", "Orrin's face, Orrin's coat, and nothing at all "
                       "behind the eyes. It hums the old sailing songs, wrong.", "Undead",
                       "Gold_Coin(s),40-70,100 Sapphire,1-1,30 Storm_Shard,1-1,30", "Daze 30"),
-    "Rime_Warden": ("Frost_Troll", (196, 226, 246), 1.5, 15, "melee", "The shrine's guardian, frozen into the job. "
+    "Rime_Warden": ("Frost_Troll", (196, 226, 246), 1.5, 14, "melee", "The shrine's guardian, frozen into the job. "
                     "Icicles hang off its brows like a fringe.", "Troll",
-                    "Gold_Coin(s),50-80,100 Mithril_Ore,1-2,40 Sapphire,1-1,30", "Chill 40"),
+                    "Gold_Coin(s),50-80,100 Mithril_Ore,1-2,40 Sapphire,1-1,30", "Chill 25"),
     "Forgemother": ("Cave_Troll", (222, 104, 40), 1.5, 17, "melee", "Slag and spite, poured into the shape of a smith. "
                     "Its hammer-hands are still hot.", "Troll",
                     "Gold_Coin(s),60-100,100 Mithril_Ore,1-2,50 Ember_Shard,1-1,40 Coal,2-4,100", "Burn 40"),
@@ -284,6 +284,11 @@ BOSSES = {
     "Sand_Mother": ("Scorpion", (224, 186, 104), 1.5, 20, "melee", "Every scorpion in the desert is her child, and "
                     "she's come about it.", "Bug", "Gold_Coin(s),70-120,100 Ruby,1-2,40 Antidote,1-1,100", "Poison 45"),
 }
+
+# (a boss whose numbers are its own, not its level's: the Rime Warden is fought in steel, the ones after it with
+#  the Sword of Valour, so it's gentler than its level would make it: fought at level 12, about as long as Orrin's
+#  Shadow at 10)
+TUNED = {"Rime_Warden": {"Hitpoints": "225", "Strength": "10", "Defence": "11", "Attack.Speed": "1.8"}}
 
 # name: base, tint, alpha, level, words, light
 PEOPLE = {
@@ -375,6 +380,8 @@ def entities():
                  "Hearing=1.2", "Kill.Sound=%s" % ksound, "Boss=1", "Fear.Immune=1"]
         lines += ["Weapon.Range=180", "Missile=Dark_Bolt_Missile", "Missile.Impact=Dark_Burst"] if kind == "magic" \
             else ["Weapon.Range=0"]
+        tuned = TUNED.get(name, {})
+        lines = [k + "=" + tuned[k] if k in tuned else ln for ln in lines for k in [ln.split("=", 1)[0]]]
         K.set_section(K.ENTS, name, lines)
     for name, (base, col, alpha, level, words, light) in PEOPLE.items():
         lines = ["Type=NPC", "Attitude=Good", "Use.Words=Talk to,Examine", "Examine.Info=%s" % words, "Roam.Radius=0",
@@ -416,8 +423,9 @@ def entities():
          "Value=200")
 
     # the dragon, plated in the Hand's Shards: harder, and its death blow the sword's, woken or not (asleep, it could
-    #  still finish what's left of an old save's fight)
-    K.section(K.ENTS, "Galaith_Dragon", [("Hitpoints", "520"), ("Strength", "16"), ("Defence", "17"),
+    #  still finish what's left of an old save's fight). The last fight is the longest: about 45 s and five or six
+    #  draughts at level 20 with the woken sword, never one blow from the end (a boss: more for each who fights it)
+    K.section(K.ENTS, "Galaith_Dragon", [("Hitpoints", "1300"), ("Strength", "20"), ("Defence", "20"),
                                          ("Slain.By", "Woken_Sword_of_Valour,Sword_of_Valour")])
 
     K.set_section(K.RACKS, "SHOP-Mirage", ["Type=Shop", "Buy.Rate=1.4", "Sell.Rate=0.7", "Specific=1",

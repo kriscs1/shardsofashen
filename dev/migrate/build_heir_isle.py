@@ -41,7 +41,7 @@ from story_kit import Map, obj_line, TW, say, ini  # noqa: E402
 MAKER = "build_heir_isle.py"
 GRAVE_MAP = "4,1,0"                              # Mary's grave: the graveyard's east end, by the sea (move_marys_grave.py)
 GRAVE = (2, 5)                                   # (you stand below it)
-GRAVE_GATE = (3, 1)                              # (just out of its gate, the cottage's way)
+GRAVE_WAY = (1, 4)                               # (the mourners go west, to the graveyard's gate on 3,1,0)
 COTTAGE = (5, 9, 12, 13)                         # the cottage, 4,0,0 (made wider: two beds)
 COTTAGE_DOOR = 8
 HOME = (12, 1, 21, 7)                            # Edwin and Maren's house, 2,1,0, their rooms upstairs on 2,1,1
@@ -842,8 +842,8 @@ def opening():
             ("Thank you.", "@go")),
         ("@go",),
     ]
-    for who, x, y, f in mourners:                                # (they go home, out of the graveyard's gate)
-        rows += [("Move.Entity", at(x, y, -8), who, at(*GRAVE_GATE, -8), "3"), ("Remove.Entity", at(x, y, -8), who)]
+    for who, x, y, f in mourners:                                # (they go home, toward the graveyard's gate)
+        rows += [("Move.Entity", at(x, y, -8), who, at(*GRAVE_WAY, -8), "3"), ("Remove.Entity", at(x, y, -8), who)]
     rows += [
         say("Edwin", "I'm so sorry. Mary was a friend to all of us here.\\Come: I'll walk you home. She left something "
                      "for you, and it's to be given to you alone.", ("Lead the way.", "@walk")),
