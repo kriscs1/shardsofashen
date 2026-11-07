@@ -1,6 +1,6 @@
-"""The Shifting Deep (dsengine/deep.py): an old Shard mine south of Moorcross whose tunnels rearrange themselves.
+"""The Shifting Deep (dsengine/deep.py): an old Shard mine south of Greyford whose tunnels rearrange themselves.
 
-  * Its entrance, by the road south of Moorcross (15,10,0), its place Id (Deep_Entrance_Site) and the world map's
+  * Its entrance, by the road south of Greyford (15,10,0), its place Id (Deep_Entrance_Site) and the world map's
     label; its floors are made by the game, not here.
   * Pictures: the entrance (a timbered mine mouth, violet light in the dark), the stairs up and down, the Deep's
     chest, its Heart (a great crystal), the cracked wall that hides a secret room, a sprung trap's plate.
@@ -149,7 +149,7 @@ def data():
     path = p("data", "Deep.ini")
     ini = Ini(path) if os.path.exists(path) else Ini()
     if not ini.header:
-        ini.header = ["; The Shifting Deep (dsengine/deep.py): an old Shard mine south of Moorcross whose floors are",
+        ini.header = ["; The Shifting Deep (dsengine/deep.py): an old Shard mine south of Greyford whose floors are",
                       "; made again every time it shifts. Written by dev\\migrate\\%s: edit the numbers here." % MAKER]
     if ini.section("Deep") is None:
         s = ini.section("Deep", create=True)

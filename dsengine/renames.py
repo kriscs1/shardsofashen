@@ -34,9 +34,13 @@ SKILL_NAMES = {                                      # (rename_skills.py: old na
 }
 RENAMED_QUESTS = {                                   # (build_heir_isle.py: the Isle's bank is Edwin and Maren's house)
     "Dinner at the Bank": "Dinner at Edwin's",
+    "Wolves of the Moor": "Wolves of the Greyflats",          # (rename_sallowcross.py)
 }
 RENAMED_WORDS = {                                    # (rename_northport.py: in an attribute's name, Waystone.Southport)
     "Southport": "Northport",
+    "Moorcross": "Greyford",                             # (rename_sallowcross.py, rename_greyford.py: Waystone.Moorcross,
+    "Sallowcross": "Greyford",                           # Secret_Moorcross, and what it was called for a day after)
+    "Dustlands": "Sallow_Waste",                         # (and Zone_Chest_Dustlands)
 }
 RENAMED_MAPS = {                                     # (move_levels.py: levels of their own, moved further off)
     "0,0,5": "0,0,10",

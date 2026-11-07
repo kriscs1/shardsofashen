@@ -1,4 +1,4 @@
-"""The Shifting Deep: an old Shard mine south of Moorcross whose tunnels rearrange themselves (data/Deep.ini).
+"""The Shifting Deep: an old Shard mine south of Greyford whose tunnels rearrange themselves (data/Deep.ini).
 
 Its floors are made, not drawn: rooms joined by tunnels, a way down, monsters (stronger the deeper), chests (now and
 then one bites: a mimic), hidden traps underfoot (darts, gas, a weakness rune, a pit that drops you a floor, an alarm),

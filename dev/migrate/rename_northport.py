@@ -24,7 +24,7 @@ def swap(b):
 
 
 def files():
-    for top, exts in (("data", (".ini", ".txt")), ("maps", (".txt",)), ("tests", (".py",)), ("saves", (".ini",)),
+    for top, exts in (("data", (".ini", ".txt")), ("maps", (".txt",)), ("tests", (".py",)),
                       (os.path.join("dev", "migrate"), (".py", ".txt", ".json")), ("dev", (".md", ".txt")),
                       ("web", (".js", ".html", ".css")), ("dsengine", (".py",)), ("server", (".py",))):
         root = p(top)

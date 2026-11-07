@@ -225,7 +225,7 @@ def references(project):
             add("\n".join(read_text_lines(project.script_path(s))), "script " + s)
         except OSError:
             pass
-    for folder, label in ((("data",), "Data"), (("saves",), "save")):
+    for folder, label in ((("data",), "Data"),):
         d = project.p(*folder)
         for f in sorted(os.listdir(d)) if os.path.isdir(d) else []:
             if f.lower().endswith(".ini") and f.lower() != "tiles.ini":

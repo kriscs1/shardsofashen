@@ -41,9 +41,19 @@ def say(npc, text, *answers):
     return tuple(r)
 
 
+# builders that took over scripts an earlier one wrote (Talk to Captain_Rook, the barrier): that one run again leaves
+#  them be
+TAKES_OVER = ("build_middle_quests.py",)
+
+
 def write_script(name, rows, maker):
     """data\\Scripts\\<name>.txt from rows: ("@label",) marks the next line; a field "@label" is that line's number.
     maker: the builder's file name, said on the first line. Written only when it changes."""
+    path = os.path.join(SCRIPTS, name + ".txt")
+    if os.path.exists(path):
+        first = open(path, "rb").readline().decode("cp1252").strip()
+        if any(t != maker and first.endswith("\\" + t) for t in TAKES_OVER):
+            return
     numbered, labels, n = [], {}, 0
     for r in rows:
         if len(r) == 1 and r[0].startswith("@"):
@@ -61,7 +71,7 @@ def write_script(name, rows, maker):
                 f = "%02d" % labels[f]
             fields.append(str(f) if str(f) != "" else " ")
         out.append("%02d\t%s" % (i, "\t".join(fields)))
-    write_text(os.path.join(SCRIPTS, name + ".txt"), out)
+    write_text(path, out)
 
 
 def remove_script(name):

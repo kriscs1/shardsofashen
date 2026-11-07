@@ -6,7 +6,7 @@ wildlife too), so `python -I "dev\\migrate\\build_world.py"` builds it. Determin
 How the maps are made
   * Every tile comes from functions of its WORLD tile (gx = map x * 25 + tile x, gy = map y * 21 + tile y), so the maps
     join up at every seam. Smooth value noise (fbm) warps the borders between the six lands:
-        north  (maps y 5-6):   the Wildwood (x 0-2)       Greymoor (x 3-5)
+        north  (maps y 5-6):   the Wildwood (x 0-2)       the Greyflats (x 3-5)
         middle (maps y 7-8):   the Saltmarsh (x 0-2)      the Redrock hills (x 3-5)
         south  (maps y 9-10):  the Sunscar Desert (x 0-2) Frostpeak (x 3-5)
   * The sea all round (sand or ice on the shore), except the north edge of maps x 1-3, which meets the Southlands'
@@ -32,13 +32,13 @@ GX1, GY0, GY1 = (MX1 + 1) * GW - 1, MY0 * GH, (MY1 + 1) * GH - 1
 # Towns: name -> (map x, map y, quest giver, its quest attribute, Trader's rack, notice text)
 TOWNS = {
     "Oakhollow": (1, 6, "Ranger", "SHOP-Oakhollow",
-                  "OAKHOLLOW\\A woodcutters' village in the Wildwood.\\North: Tyron's Keep. East: Moorcross. South: Fenwick."),
-    "Moorcross": (3, 6, "Shepherd", "SHOP-Moorcross",
-                  "MOORCROSS\\Sheep, wind and wolves on Greymoor.\\West: Oakhollow. South: Highwatch."),
+                  "OAKHOLLOW\\A woodcutters' village in the Wildwood.\\North: Tyron's Keep. East: Greyford. South: Fenwick."),
+    "Greyford": (3, 6, "Shepherd", "SHOP-Greyford",
+                  "GREYFORD\\Sheep, wind and wolves on the Greyflats.\\West: Oakhollow. South: Highwatch."),
     "Fenwick": (2, 8, "Witch", "SHOP-Fenwick",
                 "FENWICK\\On stilts above the Saltmarsh. Mind the bog lights.\\North: Oakhollow. East: Highwatch. South: Dunerest."),
     "Highwatch": (4, 8, "Captain", "SHOP-Highwatch",
-                  "HIGHWATCH\\The hill fort on the Redrock road. Bank inside.\\North: Moorcross. West: Fenwick. South: Frosthold."),
+                  "HIGHWATCH\\The hill fort on the Redrock road. Bank inside.\\North: Greyford. West: Fenwick. South: Frosthold."),
     "Dunerest": (1, 10, "Merchant", "SHOP-Dunerest",
                  "DUNEREST\\The last well before the Sunscar Desert.\\North: Fenwick. East: Frosthold."),
     "Frosthold": (4, 10, "Forgemaster", "SHOP-Frosthold",
@@ -46,7 +46,7 @@ TOWNS = {
 }
 TOWN_TILE = (13, 11)        # the square's centre tile in each town's map (1-based), unless TOWN_TILE_AT says
 # Each town somewhere different in its map, so no two line up; the southern towns sit back from the coast
-TOWN_TILE_AT = {"Oakhollow": (10, 12), "Moorcross": (16, 9), "Fenwick": (7, 9), "Highwatch": (11, 10),
+TOWN_TILE_AT = {"Oakhollow": (10, 12), "Greyford": (16, 9), "Fenwick": (7, 9), "Highwatch": (11, 10),
                 "Dunerest": (12, 6), "Frosthold": (16, 9)}
 VILLAGES = {}               # town -> villages.build()'s layout (its houses and streets), made by build_grid
 HOUSE_GROUND = {"Grass001", "Sand001", "Snow001", "Marsh001", "Weed001", "Tall_Grass001", "Plank001"}   # (Fenwick: on stilts)
@@ -54,8 +54,8 @@ HOUSE_GROUND = {"Grass001", "Sand001", "Snow001", "Marsh001", "Weed001", "Tall_G
 
 def town_tile(name):
     return TOWN_TILE_AT.get(name, TOWN_TILE)
-ROADS = [("Keep", "Oakhollow"), ("Keep", "Moorcross"), ("Oakhollow", "Moorcross"), ("Oakhollow", "Fenwick"),
-         ("Moorcross", "Highwatch"), ("Fenwick", "Highwatch"), ("Fenwick", "Dunerest"), ("Highwatch", "Frosthold"),
+ROADS = [("Keep", "Oakhollow"), ("Keep", "Greyford"), ("Oakhollow", "Greyford"), ("Oakhollow", "Fenwick"),
+         ("Greyford", "Highwatch"), ("Fenwick", "Highwatch"), ("Fenwick", "Dunerest"), ("Highwatch", "Frosthold"),
          ("Dunerest", "Frosthold")]
 KEEP_GATE = (2 * GW + 12, GY0)          # world tile where the road from Tyron's Keep comes in (column 13 of 2,5,0)
 
@@ -471,7 +471,7 @@ MONSTERS = {   # land -> list of (BadNPC name, how many per map)
 }
 SETTLER_LINES = {   # gossip in each town: quest hints
     "Oakhollow": "Ranger Ash keeps the old watch stones. Something's been nesting in the deep woods to the west...",
-    "Moorcross": "The wolves have been bold this year. The shepherd says there's a den out east, and a great black brute leading them.",
+    "Greyford": "The wolves have been bold this year. The shepherd says there's a den out east, and a great black brute leading them.",
     "Fenwick": "Old Morwen brews by the bog. Elder Pike's been poorly; maybe she can help.",
     "Highwatch": "Bandits on the Redrock road again. Captain Hale wants them gone. Their camp's somewhere in the eastern hills.",
     "Dunerest": "Qadir's caravan never arrived. Lost in the Sunscar, west of here, with the scorpions.",
@@ -547,7 +547,7 @@ def populate(maps, grid, busy):
     add(W.obj, "Notice", KEEP_GATE[0] + 2, KEEP_GATE[1] + 4)
     m, x, y = local(KEEP_GATE[0] + 2, KEEP_GATE[1] + 4)
     S[W.notice_script_name(m, x, y)] = [("Display.Conversation", "Notice",
-        "THE WILDLANDS\\Beyond the King's woods: Oakhollow (west) and Moorcross (east), and further south the Saltmarsh, "
+        "THE WILDLANDS\\Beyond the King's woods: Oakhollow (west) and Greyford (east), and further south the Saltmarsh, "
         "the Redrock hills, the Sunscar Desert and Frostpeak.\\Travellers, beware: wolves and worse.", "Okay", "@end"),
         "end:", ("End",)]
 
@@ -660,7 +660,7 @@ def data():
     C.ENTITIES.update({
         "Bear": C.bad("A brown bear, as big as a cart.", 30, 1.4, 5, 4, 70, 2.2, 1, 60, "Bones,1-1,100 Raw_Meat,1-2,100 Cowhide,1-1,60"),
         "Snow_Wolf": C.bad("A white wolf of the high snows.", 28, 1, 6, 5, 100, 2.6, 1, 45, "Bones,1-1,100 Raw_Meat,1-1,70"),
-        "Alpha_Wolf": C.bad("The leader of the moor pack: black as night, eyes like coals.", 55, 1.2, 6, 5, 120, 2.6, 1, 180,
+        "Alpha_Wolf": C.bad("The leader of the Greyflats pack: black as night, eyes like coals.", 55, 1.2, 6, 5, 120, 2.6, 1, 180,
                             "Bones,1-1,100 Raw_Meat,2-3,100 Gold_Coin(s),10-25,100"),
         "Scorpion": C.bad("A giant desert scorpion. Mind the tail.", 24, 1.1, 6, 6, 80, 1.8, 1, 40, "Gold_Coin(s),1-4,40"),
         "Bog_Troll": C.bad("A troll of the marshes, green with slime.", 45, 1.5, 6, 5, 70, 1.2, 1, 90,
@@ -695,7 +695,7 @@ def data():
     C.NEW_SHOPS.update({
         "SHOP-Oakhollow": ("1.2", "0.7", ["Oak_Bow,3", "Yew_Bow,1", "Arrows,500", "Bronze_Axe,3", "Axe,3", "Steel_Axe,1", "Tinderbox,3", "Fishing_Rod,2", "Bait,40",
                                           "Bucket,3", "Logs,10", "Oak_Logs,0", "Meat_Pie,4"]),
-        "SHOP-Moorcross": ("1.2", "0.7", ["Meat_Pie,5", "Stew,3", "Cooked_Herring,6", "Wool,10", "Leather,5", "Leather_Body,2",
+        "SHOP-Greyford": ("1.2", "0.7", ["Meat_Pie,5", "Stew,3", "Cooked_Herring,6", "Wool,10", "Leather,5", "Leather_Body,2",
                                           "Leather_Boots,2", "Shears,2", "Raw_Meat,0"]),
         "SHOP-Fenwick": ("1.2", "0.7", ["Empty_Vial,10", "Herb,8", "Basic_Potion,5", "Antidote,3", "Owl_Potion,2", "Defence_Potion,1",
                                         "Bog_Myrtle,0", "Fishing_Rod,2", "Bait,40"]),
@@ -724,12 +724,12 @@ QUESTS = [
         ("Stage2", "Report to Ranger Ash in Oakhollow."),
         ("Stage3", "Clear the spider nest in the deep woods west of Oakhollow: slay five giant spiders ($WildSpidersSlain of 5), then return to Ranger Ash."),
         ("Done", "4")]),
-    ("Wolves of the Moor", [
+    ("Wolves of the Greyflats", [
         ("Giver", "Shepherd"), ("Attribute", "WolfQuest"),
-        ("Stage0", "Speak to the shepherd in Moorcross, on Greymoor."),
-        ("Stage1", "Thin out the moor wolves: slay six wolves ($WolvesSlain of 6), then tell the shepherd."),
-        ("Stage2", "Find the wolf den on the eastern moor and slay the great Alpha Wolf."),
-        ("Stage3", "Return to the shepherd in Moorcross."),
+        ("Stage0", "Speak to the shepherd in Greyford, on the Greyflats."),
+        ("Stage1", "Thin out the Greyflats' wolves: slay six wolves ($WolvesSlain of 6), then tell the shepherd."),
+        ("Stage2", "Find the wolf den out east on the flats and slay the great Alpha Wolf."),
+        ("Stage3", "Return to the shepherd in Greyford."),
         ("Done", "4")]),
     ("Bog Lights", [
         ("Giver", "Witch"), ("Attribute", "BogQuest"),
@@ -843,28 +843,28 @@ def scripts():
     S["Kill Giant_Spider"] = kill_count("RangerQuest", 3, "WildSpidersSlain", 5, "Giant spiders slain for Ranger Ash",
                                         "Five spiders! Return to Ranger Ash in Oakhollow.")
 
-    # ----- Wolves of the Moor
+    # ----- Wolves of the Greyflats
     S["Talk to Shepherd"] = talk("Shepherd", "WolfQuest", [
         (0, [conv("Shepherd", "Wolves! Every night another lamb gone. I can't fight them with a crook.\\Thin them out for me? Six should make them think twice.",
                   ("I'll hunt them.", "@w_ok"), ("Not now.", "@bye")),
-             ("End",), "w_ok:", ("Update.Attribute", "WolfQuest", "=1"), ("Display.Message", "Yellow", "Quest started: Wolves of the Moor.")]),
+             ("End",), "w_ok:", ("Update.Attribute", "WolfQuest", "=1"), ("Display.Message", "Yellow", "Quest started: Wolves of the Greyflats.")]),
         (1, [("Get.Value", "ATTRIBUTE", "WolvesSlain", "Variable.2$"),
              (">Conditional", "$Variable.2>=6", "@w_more"),
              ("Update.Attribute", "WolfQuest", "=2"),
-             conv("Shepherd", "Six! But they'll be back while their leader lives: a great black brute with a den on the eastern moor.\\Kill the Alpha and the pack will scatter.", ("I'll find the den.", "@bye")),
-             ("End",), "w_more:", conv("Shepherd", "Six wolves, friend. They prowl the whole moor.", ("I'll keep hunting.", "@bye"))]),
-        (2, [conv("Shepherd", "The den is east, out on the open moor. Be careful: the Alpha is no ordinary wolf.", ("I'll be careful.", "@bye"))]),
+             conv("Shepherd", "Six! But they'll be back while their leader lives: a great black brute with a den out east on the flats.\\Kill the Alpha and the pack will scatter.", ("I'll find the den.", "@bye")),
+             ("End",), "w_more:", conv("Shepherd", "Six wolves, friend. They prowl the whole of the flats.", ("I'll keep hunting.", "@bye"))]),
+        (2, [conv("Shepherd", "The den is east, out on the open flats. Be careful: the Alpha is no ordinary wolf.", ("I'll be careful.", "@bye"))]),
         (3, [("Update.Attribute", "WolfQuest", "=4"),
              ("Give.Item", "Gold_Coin(s)", "150"), ("Give.Item", "Steel_Shield", "1"), ("Update.Skill", "Defence", "+2"),
              conv("Shepherd", "The Alpha's dead? Then my flock is safe. Take this shield; it was my father's. And the gold, all I've saved.", ("Thank you!", "@w_done")),
-             "w_done:", ("Display.Message", "Yellow", "Quest complete: Wolves of the Moor! You receive 150 gold, a steel shield and Defence experience.")]),
+             "w_done:", ("Display.Message", "Yellow", "Quest complete: Wolves of the Greyflats! You receive 150 gold, a steel shield and Defence experience.")]),
     ], "Not a wolf howl in a week. Bless you.")
-    S["Kill Wolf"] = kill_count("WolfQuest", 1, "WolvesSlain", 6, "Wolves slain for the shepherd", "Six wolves! Tell the shepherd in Moorcross.")
-    S["Kill Alpha_Wolf"] = ["// The Alpha Wolf dies (Wolves of the Moor). Generated by build_regions.py",
+    S["Kill Wolf"] = kill_count("WolfQuest", 1, "WolvesSlain", 6, "Wolves slain for the shepherd", "Six wolves! Tell the shepherd in Greyford.")
+    S["Kill Alpha_Wolf"] = ["// The Alpha Wolf dies (Wolves of the Greyflats). Generated by build_regions.py",
                             ("Get.Value", "ATTRIBUTE", "WolfQuest", "Variable.1$"),
                             (">Conditional", "$Variable.1=2", "@end"),
                             ("Update.Attribute", "WolfQuest", "=3"),
-                            ("Display.Message", "Yellow", "The Alpha Wolf is dead! Return to the shepherd in Moorcross."),
+                            ("Display.Message", "Yellow", "The Alpha Wolf is dead! Return to the shepherd in Greyford."),
                             "end:", ("End",)]
     S["Wolf Den"] = ["// The way into the wolf den. Generated by build_regions.py",
                      ("Get.Value", "ATTRIBUTE", "WolfQuest", "Variable.1$"),

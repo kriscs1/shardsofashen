@@ -4,7 +4,7 @@ of them (the rest as they were, so no street's all one), the same piece of each 
   Northport slate and brick; the Keep shingle and stone; the Wizards' Court copper and stone; Fenwick thatch and
   plaster; Ravensgate slate and stone; Ashford clay and brick; Highwatch shingle and stone; Frosthold slate and stone;
   Wardhaven clay and stone; Oakhollow thatch and timber; Thornwick thatch and plaster; Emberwatch slate and stone;
-  Moorcross shingle and stone; Wildwood and Saltmarsh thatch and timber; Dunerest clay and sandstone. Galaith by
+  Greyford shingle and stone; Wildwood and Saltmarsh thatch and timber; Dunerest clay and sandstone. Galaith by
   quarter: the nobles' slate and stone, the merchants' clay and brick, the commons' thatch and timber.
 
 Only houses (no shop, hall or tavern: their keepers' trades), never the Isle. Safe to run again (it's chosen by place).
@@ -28,7 +28,7 @@ STYLE = {"Northport": ("Slate", "Brick"), "Keep": ("Shingle", "Stone_Wall"), "Co
          "Fenwick": ("Thatch", "Plaster"), "Ravensgate": ("Slate", "Stone_Wall"), "Ashford": ("Clay", "Brick"),
          "Highwatch": ("Shingle", "Stone_Wall"), "Frosthold": ("Slate", "Stone_Wall"), "Wardhaven": ("Clay", "Stone_Wall"),
          "Oakhollow": ("Thatch", "Timber"), "Thornwick": ("Thatch", "Plaster"), "Emberwatch": ("Slate", "Stone_Wall"),
-         "Moorcross": ("Shingle", "Stone_Wall"), "Wildwood": ("Thatch", "Timber"), "Saltmarsh": ("Thatch", "Timber"),
+         "Greyford": ("Shingle", "Stone_Wall"), "Wildwood": ("Thatch", "Timber"), "Saltmarsh": ("Thatch", "Timber"),
          "Dunerest": ("Clay", "Sandstone")}
 GALAITH = [(304, ("Slate", "Stone_Wall")), (346, ("Clay", "Brick")), (999, ("Thatch", "Timber"))]   # (by row: quarters)
 ROOFS = "Thatch|Shingle|Slate|Clay|Copper"

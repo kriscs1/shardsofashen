@@ -1,7 +1,7 @@
 """Herblore becomes Potion Making: the skill (Config.ini [Skills], its icon, Gathering.ini, Spells.ini, the alchemy
 table's CRAFT-Potion_Making, the scripts that train or check it, "Potion_Making Skill"), what's said of it, the
 builders (and dev\\migrate\\generated.json, so a rebuild knows the new names are its own), the docs and the new
-character's start (saves\\TEMPLATE.ini). As a name it's Potion_Making (a script's word); in a sentence, Potion Making.
+character's start (data\\NewCharacter.ini). As a name it's Potion_Making (a script's word); in a sentence, Potion Making.
 Characters saved before load with theirs renamed (dsengine/renames.py).
 Safe to run again (a second run finds nothing to rename).
 Usage: python -I dev/migrate/rename_potion_making.py"""
@@ -38,8 +38,7 @@ def main():
     files += [os.path.join("dev", "migrate", f) for f in os.listdir(os.path.join(ROOT, "dev", "migrate"))
               if f.endswith((".py", ".json")) and f != os.path.basename(__file__)]
     files += [os.path.join("dev", f) for f in ("Data Formats.md", "Story and Quests.md")]
-    files += [os.path.join("dsengine", "player_items.py"), os.path.join("dsedit", "pages", "quests.py"),
-              os.path.join("saves", "TEMPLATE.ini")]
+    files += [os.path.join("dsengine", "player_items.py"), os.path.join("dsedit", "pages", "quests.py")]
     for f in files:
         if os.path.isfile(os.path.join(ROOT, f)):
             n += redo(os.path.join(ROOT, f))

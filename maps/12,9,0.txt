@@ -21,8 +21,9 @@ Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Tent002):Dust001:Dust001:Dust001:Dust001+Decor(Crate002):Dust001:Dust001:Dust001+Decor(Barrel002):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001
 NPC	Rabbit	96	120	Attitude=Passive Zone=2,2,9,9
 NPC	Rabbit	672	216	Attitude=Passive Zone=17,4,24,12
-StaticObject	Chest	416	416	Id=Zone_Chest_Dustlands
+StaticObject	Chest	416	416	Id=Zone_Chest_Sallow_Waste
 NPC	Scavenger	384	600	Attitude=Bad Zone=10,17,16,21 Chase=6,13,20,21 Group=Bonebreak_Mesa
 NPC	Scavenger	352	632	Attitude=Bad Zone=9,18,15,21 Chase=5,14,19,21 Group=Bonebreak_Mesa
 NPC	Scavenger	576	504	Attitude=Bad Zone=16,14,22,20 Chase=12,10,25,21 Group=Bonebreak_Mesa
 Id	Bonebreak_Mesa	17	18
+NPC	Scavenger_King	512	536	Id=Scavenger_King_Boss Group=Bonebreak_Mesa Zone=14,15,20,20 Chase=10,11,24,21

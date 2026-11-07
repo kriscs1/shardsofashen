@@ -109,6 +109,21 @@ class ItemsMixin:
         self.dirty_me = True
         self.check_locks(True)
 
+    def take_item_held_or_worn(self, name, quantity):
+        """A script's Take.Item: from the pack first, then what's still owed off your hands and body ($Item counts
+        both: a ring you wear given to Bert is gone from your finger)."""
+        quantity = int(quantity)
+        owed = quantity - (self.items_held(name) if name != SHARD else quantity)
+        self.remove_inventory_item(name, quantity)
+        for s in range(1, self.data.equip_slots + 1):
+            if owed <= 0:
+                break
+            if self.equipped[s] == name:
+                self.equipped[s] = ""
+                self.equip_wear[s] = 0
+                owed -= 1
+                self.equipment_changed()
+
     def drop_on_floor(self, name, quantity, wear=0):
         """Puts items on the ground at the player's feet; they despawn after a while. For the first seconds (Config
         [Gameplay] Drop.Private.Seconds, 10) only the one who dropped them sees them; then everyone does."""
@@ -131,6 +146,21 @@ class ItemsMixin:
             self.dirty_me = True
             self.check_locks(True)
         return wear
+
+    def replace_item(self, old, new):
+        """One OLD becomes a NEW where it is: in your hand (or worn) first, else in the pack, its wear kept (a sword
+        woken: a script's Replace.Item). False when you've none."""
+        for s in range(1, self.data.equip_slots + 1):
+            if self.equipped[s] == old:
+                self.equipped[s] = new
+                self.dirty_me = True
+                self.equipment_changed()
+                return True
+        e = next((e for e in self.inv if e.name == old), None)
+        if e is None:
+            return False
+        self.add_inventory_item(new, 1, self.take_inventory_entity(e), quiet=True)
+        return True
 
     # ----- tools (Durability, and no Slot: they work from your pack) wear with each use, and a broken one won't do
     def is_tool(self, name):

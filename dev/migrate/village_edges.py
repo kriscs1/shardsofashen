@@ -4,7 +4,7 @@
     where before they gave out into dirt and gravel by turns. A street is a run of path five long or more; a garden's
     path (by a fence or a hedge) and a patch of dirt are left as they are. (Galaith's quarters keep their own, and the
     Isle is left alone.)
-  * Fences round some villages: a wood fence round Oakhollow and Moorcross, a palisade round Thornwick, Emberwatch and
+  * Fences round some villages: a wood fence round Oakhollow and Greyford, a palisade round Thornwick, Emberwatch and
     Wildwood, a little way out from their houses; open where a road or a path goes through (the gate), pieces joining
     (TileSets.ini Kind=Join: dsedit/world.py lay_joins, the editor's own).
 
@@ -28,7 +28,7 @@ from dsedit import world as WD                          # noqa: E402
 
 PAVED = re.compile(r"(Pav|Cobble|Flag|Boardwalk)", re.I)
 PATH = re.compile(r"^(Dirt|Gravel)\d{3}$")
-FENCES = {"Oakhollow": "Wood_Fence001", "Moorcross": "Wood_Fence001", "Thornwick": "Palisade001",
+FENCES = {"Oakhollow": "Wood_Fence001", "Greyford": "Wood_Fence001", "Thornwick": "Palisade001",
           "Emberwatch": "Palisade001", "Wildwood": "Palisade001"}
 PLAIN = re.compile(r"^(Grass|Snow|Ash|Sand|Marsh|Moss|Heath)\d{3}$")
 

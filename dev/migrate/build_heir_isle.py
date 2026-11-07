@@ -492,7 +492,7 @@ def at(x, y, dy=0):
 
 def template():
     """A new character begins at the graveyard (dying still wakes you in the cottage: Config's Start.Map)."""
-    tpl = os.path.join(K.ROOT, "saves", "TEMPLATE.ini")
+    tpl = os.path.join(K.ROOT, "data", "NewCharacter.ini")
     for k, v in (("Map", GRAVE_MAP), ("X", str((GRAVE[0] - 1) * TW)), ("Y", str(GRAVE[1] * TW - 4)), ("Direction", "1")):
         if ini.read("Player", k, "<unset>", tpl) != v:
             ini.write("Player", k, v, tpl)
@@ -1448,29 +1448,7 @@ def ferry_scripts():
         ("Add.Entity", "Isle_Ferry_Pier", "Ferryman", "NPC", "Attitude=Good Stand=1 Name=Wim Schedule=Always"),
         ("End",),
     ])
-    w("Talk to Ferryman", [
-        (">On.Map", "3,2,0", "@southport"),
-        ("Get.Value", "ATTRIBUTE", "Passage", V1),
-        (">Conditional", "$Variable.1>=5", "@fog"),
-        say("Ferryman", "Northport, is it? A gold coin a crossing.", ("Yes, take me (1 gold).", "@pay"),
-            ("Not today.", "@end")),
-        ("@pay",), (">Got.Item", "Gold_Coin(s)", "1", "@nogold"),
-        ("Take.Item", "Gold_Coin(s)", "1"),
-        ("Goto.Script", "Ferry to Northport"),
-        ("@fog",),
-        say("Ferryman", "Cross the strait? Not in this fog, friend. Old Tobias was the only one who could find the way, "
-                        "with that compass of his, and nobody's seen him since the hobgoblins came. Bess would tell you "
-                        "the same: it's her boat.", ("I see.", "@end")),
-        ("End",),
-        ("@southport",), (">On.Map", "1,3,0", "@end"),
-        say("Ferryman", "Back to the Isle? A gold coin, then climb aboard.", ("Yes, back to the Isle (1 gold).", "@back"),
-            ("Not yet.", "@end")),
-        ("@back",), (">Got.Item", "Gold_Coin(s)", "1", "@nogold"),
-        ("Take.Item", "Gold_Coin(s)", "1"),
-        ("Goto.Script", "Ferry to the Isle"),
-        ("@nogold",), ("Display.Refusal", "You need 1 gold coin for the fare."),
-        ("@end",), ("End",),
-    ])
+    # (Talk to Ferryman is build_ferry.py's now: the ferries are boats you ride, and Wim only tells you of them)
 
 
 def old_scripts():

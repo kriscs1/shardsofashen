@@ -8,7 +8,7 @@ accounts, characters and the shared world (SQLite).
 | `dsengine/` | The game's rules without the window, for many players at once (taken from `ashen/`) |
 | `server/` | The web server: the page, the pictures, and the game over a WebSocket (20 ticks a second) |
 | `web/` | The browser game (HTML5 canvas, no build step). `web/assets` is made by `tools/export_web_assets.py` |
-| `tools/` | `export_web_assets.py`, `admin.py` (whose characters are, admins, backups), `import_saves.py`, `bot.py` (test players), `browser_check.py` |
+| `tools/` | `export_web_assets.py`, `admin.py` (whose characters are, admins, backups), `bot.py` (test players), `browser_check.py` |
 | `deploy/` | Docker, docker-compose with Caddy (HTTPS), a systemd unit |
 | `android/` | The Android app: hosts a game on the phone for the network, or joins one (`android/README.md`) |
 | `dsedit/` | The editor (`Shards of Ashen Editor.py`): F5 plays your changes in the browser, on a local server |
@@ -213,14 +213,6 @@ theirs is a friend in every game. A game server sees a player's friends only wit
 tells the central server where they're playing, so friends see it. A device's characters keep the world's own list.
 
 An admin can give a character to an account: `tools/admin.py owner <Name> <Account>`.
-
-## Bringing over old desktop characters
-
-```
-python tools/import_saves.py              # every saves\*.ini (their waiting respawns join the shared world)
-python tools/admin.py owner Kris Kris     # give it to a Hallisium account
-python tools/admin.py admin Kris on       # the Admin button (give items, set skills, god mode)
-```
 
 ## Changing the game and updating the server: one click
 

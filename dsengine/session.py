@@ -413,7 +413,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     # Saves: the same fields as the desktop game's saves\<Name>.ini, kept as a dict (JSON in the database)
     # =================================================================================================================
     def load_state(self, st):
-        """st: a saved character (a dict), or None for a new one (saves\\TEMPLATE.ini's start)."""
+        """st: a saved character (a dict), or None for a new one (data\\NewCharacter.ini's start)."""
         d = self.data
         p = self.player
         from .renames import renamed, renamed_map, merged_skills, RENAMED_QUESTS, RENAMED_WORDS
@@ -547,9 +547,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         return "PlayerF" if (self.look or {}).get("body") == "f" else "Player"
 
     def new_player_start(self):
-        """A new character: saves\\TEMPLATE.ini's skills, inventory, equipment and bank."""
+        """A new character: data\\NewCharacter.ini's skills, inventory, equipment and bank."""
         from ashen import ini
-        path = self.data.path("saves", "TEMPLATE.ini")
+        path = self.data.path("data", "NewCharacter.ini")
         d = self.data
         r = lambda s, k, default: ini.read(s, k, default, path)
         m = self.w.map_named(r("Player", "Map", d.start_map)) or self.w.map_named(d.start_map)

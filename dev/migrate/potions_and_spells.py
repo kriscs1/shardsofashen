@@ -89,7 +89,7 @@ def quests_and_scripts():
                 if k is not None else (k, v) for k, v in s[1]]
     q.save(p("data", "Quests.ini"))
     sd = p("data", "Scripts")
-    for f in os.listdir(sd) + [os.path.join("..", "..", "saves", "TEMPLATE.ini")]:     # (and a new character's kit)
+    for f in os.listdir(sd) + [os.path.join("..", "NewCharacter.ini")]:     # (and a new character's kit)
         path = os.path.join(sd, f)
         b = open(path, "rb").read().decode("cp1252")
         t = tokens(b)

@@ -27,3 +27,5 @@ NPC	Archmage_Shade	448	440	Attitude=Bad Zone=12,12,18,18 Chase=8,8,22,21
 NPC	Hexblade	128	216	Attitude=Bad Zone=2,5,8,11 Chase=1,1,12,15
 NPC	Hexblade	384	280	Attitude=Bad Zone=10,7,16,13 Chase=6,3,20,17
 Id	Sundered_Tower	8	15
+NPC	Orrin_Ghost	160	344	Id=Orrin Attitude=Good Stand=1 Face=S Schedule=Always Name=Orrin
+NPC	Orrins_Shadow	320	472	Id=Orrins_Shadow_Boss Zone=8,14,14,19 Chase=4,10,18,21

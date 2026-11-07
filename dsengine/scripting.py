@@ -543,7 +543,9 @@ class ScriptMixin:
                 self.add_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
                 self.sync_give(arg[1], parse_quantity(arg[2] or "1"))         # (a quest's thing: to the party too)
         elif c == "Take.Item":
-            self.remove_inventory_item(arg[1], parse_quantity(arg[2] or "1"))
+            self.take_item_held_or_worn(arg[1], parse_quantity(arg[2] or "1"))
+        elif c == "Replace.Item":                    # (the one in your hand or pack becomes another: a sword woken)
+            self.replace_item(arg[1], arg[2])
         elif c == "Remove.Entity":
             e = self.find_entity_here(arg[1], arg[2], pid)
             if e is not None:

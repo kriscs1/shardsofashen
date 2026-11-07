@@ -1,5 +1,5 @@
 """The Eastreach: 16 generated maps (6,5,0 to 9,8,0) east of the Wildlands, over the old bridge from the Wolf Den on
-Greymoor. Two lands, two towns, two quests.
+the Greyflats. Two lands, two towns, two quests.
 
 Not run on its own: build_content.extend() calls extend() here after build_regions (whose helpers it borrows) and before
 build_travel (so its towns get waystones) and the scenery pass (so its maps get scenery and wildlife), so
@@ -27,7 +27,7 @@ GX0, GX1, GY0, GY1 = MX0 * GW, (MX1 + 1) * GW - 1, MY0 * GH, (MY1 + 1) * GH - 1
 # Towns: name -> (map x, map y, quest giver, Trader's rack, notice text)
 TOWNS = {
     "Thornwick": (7, 6, "Druid", "SHOP-Thornwick",
-                  "THORNWICK\\A village of woodsfolk in the Elderwood.\\West: the old bridge to Greymoor. South: Ravensgate."),
+                  "THORNWICK\\A village of woodsfolk in the Elderwood.\\West: the old bridge to the Greyflats. South: Ravensgate."),
     "Ravensgate": (8, 8, "Gravekeeper", "SHOP-Ravensgate",
                    "RAVENSGATE\\The gravekeepers' town on the Barrowdowns.\\North: Thornwick. East: the old king's barrow."),
 }
@@ -404,7 +404,7 @@ def populate(maps, grid, busy):
 QUESTS = [
     ("The Withering Wood", [
         ("Giver", "Druid"), ("Attribute", "DruidQuest"),
-        ("Stage0", "Speak to the Druid in Thornwick, in the Elderwood over the old bridge east of Greymoor."),
+        ("Stage0", "Speak to the Druid in Thornwick, in the Elderwood over the old bridge east of the Greyflats."),
         ("Stage1", "Find the Heartwood, the old heart stone of the Elderwood, north-east of Thornwick, and touch it."),
         ("Stage2", "The blight has maddened the bears: slay four of them ($BlightBears of 4), then return to the Druid."),
         ("Stage3", "Return to the Druid in Thornwick."),

@@ -259,7 +259,7 @@ def lay_rime(world):
 # ----- zones
 ZONES = [
     # name, cells (predicate on tile in a box of maps), mobs per this many cells, its mobs, rocks, chest loot
-    dict(key="Dustlands", title="The Sallow Waste", box=None, mobs=["Dust_Rat", "Scorpion", "Dust_Wraith", "Scavenger"], per=160,
+    dict(key="Sallow_Waste", title="The Sallow Waste", box=None, mobs=["Dust_Rat", "Scorpion", "Dust_Wraith", "Scavenger"], per=160,
          rocks=[("Coal_Rock001", 8), ("Silver_Rock001", 6)], loot=[("Gold_Coin(s)", 120), ("Shard", 14)]),
     dict(key="Reach", title="The Shattered Reach", box=(21, 6, 23, 9), tile="Gravel", per=120,
          mobs=["Wild_Mage", "Arcane_Wisp", "Shard_Golem", "Hexblade", "Archmage_Shade"], rocks=[("Gem_Rock001", 6)],
@@ -387,10 +387,10 @@ def make_zone(world, z, cells, rng, taken):
 
 # ----- quests: a giver, N of a thing killed, back again
 QUESTS = [
-    ("Dustlands", "Rats of Unusual Size", "DustRatQuest", "Old_Sal", "Woman", "Dust_Rat", 6,
+    ("Sallow_Waste", "Rats of Unusual Size", "DustRatQuest", "Old_Sal", "Woman", "Dust_Rat", 6,
      "They ate my boots, stranger. While I was in them. Kill six of those rats, would you?", "Six rats. Good. I can hear myself think. Here.",
      "An old woman on the edge of the Sallow Waste is shouting about rats. Big ones.", [("Gold_Coin(s)", 90)], 12, "Strength 1"),
-    ("Dustlands", "Scavenger Season", "ScavengerQuest", "Prospector_Hale", "Man", "Scavenger", 5,
+    ("Sallow_Waste", "Scavenger Season", "ScavengerQuest", "Prospector_Hale", "Man", "Scavenger", 5,
      "Scavengers have my claim staked out. Five of them less and I might get back to it.", "That'll give them something to think about. Your share.",
      "A prospector out by the Sallow Waste has more claim than friends.", [("Gold_Coin(s)", 120)], 14, "Defence 1"),
     ("Reach", "What Went Wrong at the Reach", "ReachQuest", "Apprentice_Ione", "Woman", "Wild_Mage", 5,
@@ -432,13 +432,17 @@ def write_script(name, lines):
         f.write(HEADER + "\n" + "\n".join(filled(lines)) + "\n")
 
 
+# (givers whose talk build_middle_quests.py took over for the main quest: their own quest is their Odd Jobs)
+TAKEN = ("Surveyor_Nils", "Warden_Oska", "Nomad_Tarek", "Delver_Maud")
+
+
 def make_quest(world, q, spot, taken):
     zone, title, attr, who, sprite, mob, n, ask, thanks, rumour, items, shards, xp = q
     gx, gy = spot
     world.line(gx, gy, "NPC", sprite, "Attitude=Good Stand=1 Face=S Schedule=Always Id=%s Name=%s" % (who, who))
     taken.add((gx, gy))
     counter = attr + "_Count"
-    write_script("Talk to %s" % who, [
+    write_script(("Odd Jobs for %s" if who in TAKEN else "Talk to %s") % who, [
         "01\tGet.Value\tATTRIBUTE\t%s\tVariable.1$" % attr,
         "02\t>Conditional\t$Variable.1=0\t08",
         "03\t>Quest.Can.Start\t%s\t16" % attr,
@@ -714,7 +718,7 @@ def main():
     spots = {}
     labels = []
     for z in ZONES:
-        cells = dust if z["key"] == "Dustlands" else rime if z["key"] == "Rime" else zone_cells(world, z)
+        cells = dust if z["key"] == "Sallow_Waste" else rime if z["key"] == "Rime" else zone_cells(world, z)
         z["cells"] = cells
         spots[z["key"]] = make_zone(world, z, cells, rng, taken)
         if spots[z["key"]]:

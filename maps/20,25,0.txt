@@ -25,3 +25,5 @@ NPC	Ice_Wraith	352	152	Attitude=Bad Zone=9,3,15,9 Chase=5,1,19,13
 NPC	Ice_Wraith	608	120	Attitude=Bad Zone=17,2,23,8 Chase=13,1,25,12
 NPC	Ice_Wraith	608	280	Attitude=Bad Zone=17,7,23,13 Chase=13,3,25,17
 Id	Drowned_Shrine	15	12
+StaticObject	Lodestar_Altar	288	224	Id=Drowned_Shrine_Altar
+NPC	Rime_Warden	288	408	Id=Rime_Warden_Boss Zone=7,12,13,16 Chase=3,9,17,20

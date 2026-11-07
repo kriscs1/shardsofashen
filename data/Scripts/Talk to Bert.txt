@@ -5,8 +5,8 @@
 04	Give.Item	Fire_Bolt_Scroll	1
 05	Give.Item	Healing_Draught	2
 06	Update.Attribute	WizardGift	=1
-07	>Conditional	$Attr.ShardgateQuest=1 or $Attr.ShardgateQuest=4 or $Attr.GalaithQuest>=1 and $Attr.ShardgateQuest=0	09
-08	Goto.Script	Bert and the Shardgate
+07	>Conditional	$Attr.WakeQuest=1 or $Attr.ShardgateQuest=1 or $Attr.ShardgateQuest=4 or $Attr.GalaithQuest>=1 and $Attr.ShardgateQuest=0	09
+08	Goto.Script	Bert's Errands
 09	Get.Value	ATTRIBUTE	BertQuest	Variable.1$
 10	>Conditional	$Variable.1=0 and $Attr.HobgoblinQuest>=2	17
 11	>Quest.Can.Start	BertQuest	22
@@ -33,5 +33,5 @@
 32	Teleport	Northport_Port	-
 33	End
 34	End
-35	Display.Conversation	Bert	Has one? Then the Heart has been busy. When the first king broke it, every piece remembered the blood that broke it, and that blood has run in more veins than one since. The dragon only ever counted one of you; the Shards count you all. Between us, it's the only good news I've had in years.	Fancy that.	36
+35	Display.Conversation	Bert	Has one? Then the blood has been busy. When the first king cut the dragon down, it took royal blood to hold the cut, and that blood has run in more veins than one since. The dragon only ever counted one of you; the Shards count you all. Between us, it's the only good news I've had in years.	Fancy that.	36
 36	End

@@ -14,7 +14,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SEP = ";" if os.name == "nt" else ":"
 CARRIED = ["data", "maps", "sprites", "web", "server", "dsengine", "ashen", "VERSION",
-           os.path.join("saves", "TEMPLATE.ini"),
            os.path.join("android", "app", "src", "main", "python", "ds_host.py")]
 
 

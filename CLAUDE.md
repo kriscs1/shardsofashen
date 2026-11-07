@@ -63,8 +63,10 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
    Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
    a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
-   squeaks: stand on it, then Search it, for the compass. Bess sails you to Northport; **Wim** the ferryman crosses
-   for a coin after that.
+   squeaks: stand on it, then Search it, for the compass. Bess sails you to Northport; after that **the ferries**
+   cross (`dev/migrate/build_ferry.py`, the owner's wish): two boats, one from each pier, casting off together on the
+   bell and passing halfway, turning to the way they go (`Ferry_Boat`, sixteen headings: a route in Carts.ini with its
+   own vehicle, `carts.py`); you step aboard and pay Wim a coin, and ride it across.
 
 **The Isle** is maps 0..4 by -3..2: `dev/migrate/grow_isle.py` grew it north to twice its size (its old north coast's
 shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
@@ -85,6 +87,10 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
 5. **The Temporary Capital** (`ParliamentQuest`): the guard at Northport's port; the **Speaker** in Northport's City
    Hall, which is Ashen's Parliament while Galaith is lost. Only **Bert**, the great wizard of the **Wizards'
    Court** (the old King's Castle, 21,5,0; Bert at the top of its tower, 21,5,1), can break the barrier.
+   **Northport is shut** (`dev/migrate/build_northport_blockade.py`, the owner's wish, to keep the start directed): it has only
+   two roads out, the river bridge east (8,6,0) and the forest road south (2,10,0), each shut by oak gates (`City_Gate001`, a
+   `Lock` on each gate tile, open once `ParliamentQuest>=2`) with a gate guard who says why (`Talk to Northport_<Way>_Gate_Guard`).
+   Visible gates only, never invisible locks. Leaving only: nothing inside changes.
 6. **The Ashford Road** (`AshfordQuest`): the **Mayor** in Ashford's Town Hall; the goblins' raid on the farms.
 7. **The Steward's Hunt** (`HobgoblinQuest`): the **King's Steward** at **King Rupert's Keep** (the old Tyron's Keep;
    King Tyron is gone from the game), five hobgoblins in the old iron mine.
@@ -92,9 +98,14 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    stair in the keep); 10. **The Sunken Grimoire** (the scholar in Dunerest; a buried library under a mound in the
    desert, 3,18,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
-12. **A Ship for Dragon Island** (Captain Rook, on the shore below King Rupert's Keep, 27,20,0), 13. **The Island of
-   Dragons** (26,23,0: drakes, three Valour Seals), 14. **The Sword of Valour** (the Temple of Valour's guardian).
-15. **The Shardgate** (`ShardgateQuest`, `dev/migrate/build_shardgate.py`): with the sword, the staff at the barrier
+   **The middle leads you round the world** (`dev/migrate/build_middle_quests.py`: a zone at a time, a piece of gear at
+   each; each place's keeper names the next, never a letter): 12. **Orrin's Chart** (`OrrinQuest`, level 10): Captain
+   Rook (the shore below King Rupert's Keep, 27,20,0) won't sail the moving reefs without it; Orrin's ghost in the
+   Sundered Tower (the Shattered Reach, 22,8,0), his Shadow below. 13. **The Frozen Lodestar** (`LodestarQuest`, 12):
+   Nils at Frostwatch Lodge; the Drowned Shrine (20,25,0), the Rime Warden over its altar.
+14. **A Ship for Dragon Island** (Rook's hull), 15. **The Island of
+   Dragons** (26,23,0: drakes, three Valour Seals), 16. **The Sword of Valour** (the Temple of Valour's guardian).
+17. **The Shardgate** (`ShardgateQuest`, `dev/migrate/build_shardgate.py`): with the sword, the staff at the barrier
    fails, because the dragon anchored it in the **Shardrealm**, where all broken magic goes. Bert gives the plans; you
    build a Shardgate in the old ring of stones on the hill north of the Wizards' Court (21,4,0: silver, sapphires, a
    Remnant's core, Shards, Shardcraft 5, and at least 8 shardstones active to steady it: Shards.ini `Shardgate.Stones`).
@@ -102,13 +113,24 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    and only a great anchor like the ring can pierce it. It's on the world map once you've built yours. Through it, the
    realm's core (21,4,-10): past its Warden, the staff shatters the anchor. The gate stays, and you can go back (remnants roam the realm; its clusters
    give Shards).
-16. **The Dragon of Galaith** (`GalaithQuest`): the staff used on the barrier (in the pass, 0,14,0) breaks it; the dragon speaks;
-   it has `Slain.By=Sword_of_Valour` (any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
+18. **The Sleeping Sword** (`WakeQuest`, 14): with the anchor gone the barrier only thins; beyond it the dragon is
+   plated in Shards (the Ashen Hand has fed it through the wall: `build_shard_dragon.py` draws it) and laughs at a sword
+   that's asleep. Bert: it was made in three fires. 19. **The Ashen Foundry** (`FoundryQuest`, 15): Warden Oska at
+   Ashfall Outpost, the Forgemother, the bellows (`FoundryHeat` 3; past it the fire chokes), the hearth. 20. **The
+   Sun-Forge** (`SunforgeQuest`, 17): Nomad Tarek, the Sun Keeper (0,20,0), three mirrors turned to his grandmother's
+   song (`Mirror.Dawn` east, `Mirror.Noon` south, `Mirror.Dusk` west). 21. **The Deep Anvil** (`AnvilQuest`, 19):
+   Delver Maud, the Stone King (-7,10,0), four rune stones struck in the work-song's order (`AnvilRunes`); the anvil
+   makes it the **Woken Sword of Valour** (`Replace.Item`: in your hand, its wear kept). The four givers' own kill
+   quests (`build_zones.py`) are their "Odd Jobs for <who>" now, reached from their talk. Mithril helm, shield and
+   platebody, the Dragonscale helm and platebody on the way.
+22. **The Dragon of Galaith** (`GalaithQuest`, 20): the staff used on the barrier (in the pass, 0,14,0) breaks it once
+   the sword's awake; the dragon speaks;
+   it has `Slain.By=Woken_Sword_of_Valour,Sword_of_Valour` (a list: any other weapon leaves it at 1 hp). Its death opens Galaith's gate (its east gate,
    onto the field; its Id is still `Galaith_West_Gate`).
-17. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-10,14,0), the Lord Chancellor (Galaith's
+23. **The Royal Guard** (`GuardQuest`): the captain at the palace door (-10,14,0), the Lord Chancellor (Galaith's
    Parliament), the Royal Archivist (its City Hall) with the amulet, back to the Chancellor, the warrant to the
    captain.
-18. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
+24. **The True Heir** (`KingQuest`): King Rupert on his throne; the amulet, the will, the crown. Open play after;
    **Jimmy** sleeps on the throne and in your house on the Isle, and the mine behind Galaith opens: at its far wall
    the **King's Shard Seam** gives the Crown Shards once a (real) day (`dev/migrate/build_kings_seam.py`).
 
@@ -270,7 +292,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Trigger says so once). A chest each inside, by what lives there. A thief's eye may catch the draught first
   (`senses.py`). More can be drawn by hand from those two tiles.
 - **The Shifting Deep** (`dsengine/deep.py`, `data/Deep.ini`, `dev/migrate/build_deep.py`): an old Shard mine south
-  of Moorcross whose floors (40,40,-11 and down) are made in memory, never files, and made again every
+  of Greyford whose floors (40,40,-11 and down) are made in memory, never files, and made again every
   `Shift.Minutes` once nobody's inside: rooms and tunnels, monsters by depth, chests (once each a shift; now and then
   a mimic), hidden traps, a secret room behind a cracked wall, and the Deep's Heart at the bottom. Its things are the
   engine's (`deep_do`), not scripts.
@@ -285,11 +307,17 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   section of Encounters.ini.
 - **The seasons** (`dsengine/seasons.py`, `data/Seasons.ini`): a year of `Year.Days` real days, from the clock. Longer days in summer, longer nights in winter; winter's snow instead of rain, rivers and lakes frozen over (bodies of water under `River.Most`) to **thin, cracked ice you can't walk on** (`Thin_Ice001`, a big seamless texture of long cracks: `dev/migrate/build_thin_ice.py`; the Rime's thick `Ice001` is the one that carries you), `Season.Absent=Winter` kinds gone; the catch swaps (`[Swap.<Season>]`, on every script's Give.Item), crops grow by `Crop.Growth`. What's only seen is the page's (`ground.js` seasonal, snowPatches: worked out once for each picture, never a canvas filter). `$World.Season` for a script.
 - **What happens on its own** (`dsengine/wonders.py`, `data/Wonders.ini`, `dev/migrate/build_wonders.py`): shard storms; ghost ships on foggy nights, gone by morning; the Wandering Inn (a different `Inn_Spot_<n>` each day); mimics (a misspelt name, a glint, `Glint=1`; accuse one and it stops pretending); grudges (what killed you or got away hurt comes back scarred and stronger, attributes `Grudge.*`); the Tax Collector, polite and unkillable, walking after anyone over `Tax.Gold`; the year's Champion (arena wins in winter, crowned in spring, a statue on the boulevard); letters by carrier (`/letter Name [+Item] text`, friends only, a courier finds them). Your own legend (`data/Legend.ini`) is told with the rumours (`legend_due`); a line's condition is any script condition.
-- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Sallow Waste (it was the Dustlands, round Moorcross) 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks, yews and swordfish lie above ground only in these
+- **Zones by level** (`dev/migrate/build_zones.py` ZONES, MOBS: the one table of what's how hard): the Sallow Waste (it was the Dustlands, round Greyford, which was Moorcross, and the Greyflats, which were Greymoor: `rename_sallowcross.py`, `rename_greyford.py`) 6-9, the Mire and Emberwatch gates 10-12, the Shattered Reach 10-14 (only magic things), the Rime 12-16, the Ashfall 14-18, the Scar 16-20, the Stoneways 18-23. Mithril and gem rocks, yews and swordfish lie above ground only in these
   (`build_zone_sites.py --rare`). Each zone has places of its own (`dev/migrate/build_zone_sites.py` SITES: their own
   ground, real buildings, landmarks, monsters; the quest givers live in a few, with company, and no monster on their
   doorstep); never a ruin's outline: a few ruins, each its own shape (a corner, a tower's stump, a hall's wall,
   a wall with an arch, a foundation: `--ruins`), rubble round them and the odd thing to pick up.  You leave the Isle at level 3 (Bess and Wim won't sail before).
+- **The zones' points of interest** (`dev/migrate/build_middle_quests.py`, beside the main quest's places there): bosses
+  of their own (`Boss=1`, a trophy each: the Scavenger King on Bonebreak Mesa, Old Whitefang by Yeti Hollow, the Slag
+  Wyrm in the Lava Fields, the Sand-Mother at the Drakes' Bones), side quests (Cael the penitent at the Cinder Chapel
+  and his sister Oska; the Wandering Echo's riddles on Shardglass Field; Old Skadi's true-or-lie tales at Frostwatch
+  Lodge) and games and odd folk (Lucky Lem's rat races at Rustwater Halt, Vesna's fortunes at Ashfall Outpost, the
+  Mirage Trader, the Echo Pool's song in the Fungus Grotto, Fenn's mushrooms at the Delvers' Camp). Keep adding them.
 - **Mary's notes** (`dev/migrate/build_wonders.py` NOTES): seven notes where she went; all found make a map to her cache at the Mirror Tarn (`Mary's Notes`), the Seam Splinter. Found, never told.
 - **Banter** (`dsengine/banter.py`, `data/Banter.ini`, `dev/migrate/build_banter.py`): the world's people and animals carry
   on with each other where a player can see it. About every `Every.Seconds`, two near that player whom a scene fits stop,
@@ -472,7 +500,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - Settlements have a size, and what each size has (`estforlan/settlements.py` SIZES): Galaith a huge city; Northport a
   large city (its City Hall is the Parliament for now); King Rupert's Keep and the Wizards' Court medium cities;
   Ashford a small city; Frosthold and Wardhaven towns; Oakhollow, Thornwick and Emberwatch
-  villages; Moorcross, Dunerest, Wildwood, Saltmarsh and Mirefold (in the Mirefen, its huts on boardwalks) hamlets.
+  villages; Greyford, Dunerest, Wildwood, Saltmarsh and Mirefold (in the Mirefen, its huts on boardwalks) hamlets.
 - **At most two merchants of a trade in a settlement** (a trade is what's sold: a market stall's meat and a butcher's
   shop are both the butcher's; taverns too). SIZES keeps to it; `dev/migrate/cap_merchants.py` shut the shops past two
   that were built before (their keepers stay and say so; a tavern past two is an inn, rooms only), and a test holds it.
@@ -695,7 +723,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - Match the surrounding code: its naming, its comment density, and its comment voice (short plain-English
   asides in parentheses, e.g. `# (a rug: under whatever stands there)`).
-- The folders in the main folder are **lowercase** (`data`, `dev`, `maps`, `saves`, `sounds`, `sprites`), and paths
+- The folders in the main folder are **lowercase** (`data`, `dev`, `maps`, `sounds`, `sprites`), and paths
   to them are written lowercase: the server runs on Linux, where `Data` isn't `data`. (Folders inside them keep
   their names: `data/Scripts`, `sprites/Tiles`.)
 - Data files and maps are **cp1252 with CRLF**. Preserve both when editing; write them in binary mode from Python.
@@ -710,7 +738,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - `build_walk.py` deletes walking frames it didn't make (the cats', Brother Aldous's...): after running it, put the
   deleted ones back with `git checkout -- sprites/Walk`.
 - Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
-  same). A migration that is superseded refuses to run.
+  same). A migration that is superseded refuses to run. A builder that takes over a script an earlier one wrote is
+  named in `story_kit.TAKES_OVER`, so the earlier one run again leaves it be.
 - The map editor's map: the mouse wheel zooms (Shift+wheel, middle-drag or Space+drag move the view); an area is
   marked across as many maps as it likes and copied or cut with the inspector's buttons, then each click puts it down,
   across maps too (`dsedit/region.py` parts); after a change only the maps changed are drawn again, and nothing goes

@@ -7,7 +7,7 @@ character wakes - a bed, a range to cook on, a table. Run it once (again: it see
     and the sea still runs between the Isle and the walled town to the south-east. Its coast is rounded off
     afterwards (smooth_coasts.py).
   * The cottage (4,0,0): timber and thatch, thin walls inside, a bed (where you wake: Config Start.*, and
-    saves\\TEMPLATE.ini for new characters), a range (Cook), a table, a rug; a name board by its door; a path to the chapel; trees, flowers, rocks, rabbits.
+    data\\NewCharacter.ini for new characters), a range (Cook), a table, a rug; a name board by its door; a path to the chapel; trees, flowers, rocks, rabbits.
 """
 import math
 import os
@@ -154,7 +154,7 @@ def start_here():
     cfg = os.path.join(DATA, "Config.ini")
     for k, v in (("Start.Map", "4,0,0"), ("Start.X", str(x)), ("Start.Y", str(y))):
         ini.write("Gameplay", k, v, cfg) if ini.read("Gameplay", k, "", cfg) else None
-    tpl = os.path.join(ROOT, "saves", "TEMPLATE.ini")
+    tpl = os.path.join(ROOT, "data", "NewCharacter.ini")
     for k, v in (("Map", "4,0,0"), ("X", str(x)), ("Y", str(y))):
         ini.write("Player", k, v, tpl)
     for f in ("Music.ini", "Ambient.ini"):

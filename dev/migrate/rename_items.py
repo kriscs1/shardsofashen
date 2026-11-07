@@ -33,7 +33,7 @@ def main():
                                                       "Spells.ini", "Digging.ini", "Waves.ini", "Buildables.ini")]
     files += glob.glob(os.path.join(ROOT, "data", "Scripts", "*.txt"))
     files += glob.glob(os.path.join(ROOT, "maps", "**", "*.txt"), recursive=True)
-    files += glob.glob(os.path.join(ROOT, "saves", "*.ini"))
+    files += [os.path.join(ROOT, "data", "NewCharacter.ini")]
     files += [os.path.join(ROOT, "dev", "migrate", f) for f in ("build_content.py", "build_scenery.py", "build_world.py")]
     n = 0
     for path in files:

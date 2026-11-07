@@ -43,8 +43,8 @@ RUMOURS = {
     "The Dwarf's Grudge": ["Miners swear there's a dwarf deep under the hobgoblin warren, nursing a grudge as old as the "
                            "hills."],
     "The Wildwood Watch": ["Ranger Ash in Oakhollow is short of eyes in the Wildwood. Strange goings on, they say."],
-    "Wolves of the Moor": ["The shepherd in Moorcross is losing sheep to the wolves on Greymoor.",
-                           "Wolves on Greymoor again. The Moorcross shepherd's at his wits' end."],
+    "Wolves of the Greyflats": ["The shepherd in Greyford is losing sheep to the wolves on the Greyflats.",
+                           "Wolves on the Greyflats again. The Greyford shepherd's at his wits' end."],
     "Bog Lights": ["Old Morwen the witch in Saltmarsh wants bog myrtle, and someone daft enough to fetch it."],
     "Bandits on the Road": ["Captain Hale in Frosthold wants the bandits off the Redrock road, and he's paying."],
     "The Lost Caravan": ["Qadir the merchant in Dunerest has lost a whole caravan in the Sunscar. A whole one!"],

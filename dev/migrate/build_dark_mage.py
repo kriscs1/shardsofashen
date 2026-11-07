@@ -7,7 +7,7 @@ for its level: it's meant to take a while to pin down, not to kill quickly (play
   * The person: build_people.py PEOPLE (robes and a hood in violet, a staff with a glowing orb); here its pictures, for
     it alone (build_walk.py deletes frames it didn't make, so it isn't run for one more person).
   * Its bolt and burst: the ice bolt's, turned violet.
-  * Three, out in the wild, where there's room to jump about: by the Barrow, outside the Drowned Abbey, on Greymoor.
+  * Three, out in the wild, where there's room to jump about: by the Barrow, outside the Drowned Abbey, on the Greyflats.
 
 Safe to run again (they are laid out afresh, the same each time).
 

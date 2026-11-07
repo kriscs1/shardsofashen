@@ -7,7 +7,7 @@ again: it draws the same, and leaves the maps it has made alone.
     peaks) with a gap in it, the pass (10,6,0). Across the gap the dragon's barrier: violet light, a Lock on each of
     its cells (GalaithQuest>=1, Bert's spell cast with the staff); open, it's a faint shimmer (Unlocked.Tile).
   * Behind it the scorched ground before the city, skulls and burnt trees, and the dragon: Galaith_Dragon, black as
-    a coal, its death blow only the Sword of Valour's (Entities.ini Slain.By). The city's west wall, white stone
+    a coal, its death blow only the Sword of Valour's, woken or not (Slain.By). The city's west wall, white stone
     blackened by its fire, the gate in it shut (a Lock: GalaithQuest>=2, the dragon dead).
   * The city (11,5,0 to 14,7,0, a huge city: towns.py): walls round it, the mountains meeting again behind it, the
     mouth of the gold and Shards mine in them (14,6,-1, shut until you are king). The palace, the tallest building in
@@ -186,10 +186,8 @@ def draw_pictures():
     K.save("Tiles", "Barrier_Open001", barrier_open())
     K.save("Tiles", "Mine_Mouth001", mine_mouth())
     K.save("Entities", "Palace_Spire", spire())
-    K.save("Entities", "Galaith_Dragon", big_dragon(K.load("Entities", "Dragon")))
-    for d in "28":
-        for f in "abc":
-            K.save("Walk", "Galaith_Dragon%s%s" % (d, f), big_dragon(K.load("Walk", "Dragon%s%s" % (d, f))))
+    import build_shard_dragon                       # (the dragon, Shard-grown over big_dragon: its own builder)
+    build_shard_dragon.pictures()
     print("Pictures: the burnt white walls and gates, mountains, the barrier, the mine's mouth, the spires, the dragon")
 
 
@@ -230,13 +228,13 @@ def data():
         K.minimap_colour(t, rgb)
     K.section(K.ENTS, "Galaith_Dragon", [
         ("Type", "NPC"), ("Attitude", "Bad"), ("Use.Words", "Attack,Examine"),
-        ("Examine.Info", "The dragon of Galaith: black as a coal, eyes like a forge, the curse of your house."),
-        ("Hitpoints", "420"), ("Attack.Speed", "1.4"), ("Strength", "12"), ("Defence", "13"), ("Aggro.Range", "300"),
+        ("Examine.Info", __import__("build_shard_dragon").INFO),           # (Shard-grown now: its builder says)
+        ("Hitpoints", "520"), ("Attack.Speed", "1.4"), ("Strength", "16"), ("Defence", "17"), ("Aggro.Range", "300"),
         ("Weapon.Range", "190"), ("Movement.Speed", "1.6"), ("Aggressive", "1"), ("Respawn", "1800"),
         ("Drops", "Gold_Coin(s),300-500,100 Dragon_Scale,5-8,100 Ruby,1-2,100 Bones,1-1,100"),
         ("Roam.Radius", "3"), ("Chase.Radius", "6"), ("Walk.Speed", "0.4"), ("Pause", "3-8"),
         ("Missile", "Dragon_Fire_Missile"), ("Missile.Impact", "Fire_Burst"), ("Missile.Sound", "SpellFire"),
-        ("Kill.Sound", "Dragon"), ("On.Hit", "Burn 50"), ("Slain.By", "Sword_of_Valour")])
+        ("Kill.Sound", "Dragon"), ("On.Hit", "Burn 50"), ("Slain.By", "Woken_Sword_of_Valour,Sword_of_Valour")])
     K.section(K.ENTS, "Palace_Spire", [("Type", "StaticObject"), ("Use.Words", "Examine"), ("Layer", "Over"),
                                        ("Solid", "0"), ("Examine.Info", "A spire of the palace of Galaith.")])
     amb = os.path.join(K.DATA, "Ambient.ini")

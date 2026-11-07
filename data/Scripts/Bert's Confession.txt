@@ -8,7 +8,7 @@
 07	Display.Message	Cyan	Bert reads from the grimoire. The words slide into your memory and stay there, humming.	-
 08	Update.Attribute	BarrierSpell	=1
 09	Give.Item	Staff_of_Ashen	1
-10	Display.Conversation	Bert	Take the staff back: it's the King's, and the spell needs a king's staff. Hold it to the barrier and say the words, and it will fall.\But hear me. Behind the barrier waits the dragon, and no blade made by men will kill it. Only the Sword of Valour, driven into its heart. It lies on Dragon Island, far out in the eastern sea. Captain Rook, on the shore below the Keep, is the only sailor mad enough to take you there.	Thank you, Bert.	11
+10	Display.Conversation	Bert	Take the staff back: it's the King's, and the spell needs a king's staff. Hold it to the barrier and say the words, and it will fall.\But hear me. Behind the barrier waits the dragon, and no blade made by men will kill it. Only the Sword of Valour, driven into its heart. It lies on Dragon Island, out in the southern sea. Captain Rook, on the shore below the Keep, is the only sailor mad enough to take you there.	Thank you, Bert.	11
 11	Update.Attribute	BertQuest	=2
 12	Display.Message	Yellow	Quest complete: Bert's Three Treasures! You know the spell of Unbinding.	Quest
 13	End

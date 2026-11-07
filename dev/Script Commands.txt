@@ -519,6 +519,11 @@ Remove.Action.From.Queue    QUEUE ENTRY
          (e.g. REMOVE[TAB]Fire[TAB]StaticObject[TAB]-[TAB]$Map.Name[TAB]X,Y*)
          Use * at the end to match the rest of the entry
 
+Replace.Item    ITEM NAME | REPLACE WITH ITEM
+    COMMAND: One of an item becomes another where it is: in the player's hand (or worn), else in the pack, its wear kept
+    1. ITEM NAME: The name of the item (from sprites\Entities, e.g. Sword_of_Valour)
+    2. REPLACE WITH ITEM: The item it becomes (from sprites\Entities)
+
 Remove.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME
     COMMAND: Removes an entity from the map
     (Entities include items, objects and NPCs)

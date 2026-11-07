@@ -3,7 +3,7 @@
 02	>Conditional	$Variable.1=0 and $Item.Mayors_Pass>=1	12
 03	>Quest.Can.Start	HobgoblinQuest	32
 04	Take.Item	Mayors_Pass	1
-05	Display.Conversation	Steward	The Mayor's pass. So you want the causeway to the Wizards' Court.\I keep this keep for King Rupert, these eighteen years, and its roads. Hobgoblins have come up from the deep into the old iron mine, west of here. Slay five of them, and the causeway's yours.	I'll hunt them.	06
+05	Display.Conversation	Steward	The Mayor's pass. So you want Bert at the Wizards' Court.\I keep this keep for King Rupert, these eighteen years, and its roads. Hobgoblins have come up from the deep into the old iron mine, north of here. Slay five of them, and I'll vouch for you to the Court.	I'll hunt them.	06
 06	Update.Attribute	HobgoblinQuest	=1
 07	Update.Attribute	HobgoblinsSlain	=0
 08	Quest.Note	HobgoblinQuest	Hobgoblins: in the old iron mine, the mine depths and the warren.
@@ -12,7 +12,7 @@
 11	End
 12	>Conditional	$Variable.1=1	24
 13	>Conditional	$Attr.HobgoblinsSlain>=5	22
-14	Display.Conversation	Steward	Five hobgoblins! The King would thank you himself, if he could. Take this, and the causeway: the Wizards' Court is the walled island east of the goblin camp. Bert will see you; I'll send word.	Thank you, Steward.	15
+14	Display.Conversation	Steward	Five hobgoblins! The King would thank you himself, if he could. Take this. The Wizards' Court is north of here, past the Elderwood. Bert will see you; I'll send word.	Thank you, Steward.	15
 15	Give.Item	Gold_Coin(s)	100
 16	Give.Item	Ruby	1
 17	Update.Skill	Strength	+1

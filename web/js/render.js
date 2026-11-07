@@ -376,7 +376,9 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   for (const e of standing) {
     draw(e);
     for (const r of riders.get(e.u) || []) {
-      const seat = entityIni(e.n, "Seat." + (/([1248])[abc]$/.exec(e.i || "") || [0, "2"])[1], "").split(",");
+      // (a cart's seat by the way it faces; a boat, seen from above, has one Seat= for every heading)
+      const seat = (entityIni(e.n, "Seat." + (/([1248])[abc]$/.exec(e.i || "") || [0, "2"])[1], "") ||
+                    entityIni(e.n, "Seat", "")).split(",");
       const panel = Math.round(e.dy - cam.y + (val(seat[2]) || e.h));
       ctx.save();
       ctx.beginPath();

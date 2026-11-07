@@ -28,3 +28,4 @@ NPC	Cave_Horror	384	280	Attitude=Bad Zone=10,7,16,13 Chase=6,3,20,17
 NPC	Deep_Troll	640	344	Attitude=Bad Zone=18,9,24,15 Chase=14,5,25,19
 NPC	Deep_Troll	640	440	Attitude=Bad Zone=18,12,24,18 Chase=14,8,25,21
 Id	Fungus_Grotto	14	14
+StaticObject	Echo_Pool	448	448	Id=Grotto_Echo_Pool

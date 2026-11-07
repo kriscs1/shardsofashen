@@ -144,7 +144,7 @@ def scripts():
 
 
 def template():
-    path = p("saves", "TEMPLATE.ini")
+    path = p("data", "NewCharacter.ini")
     ini = Ini(path)
     for i, (k, v) in enumerate((ini.section("Skills") or [None, []])[1]):
         if k is not None and k.upper() != "HITPOINTS" and v.strip() not in ("", "0", "1"):

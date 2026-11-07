@@ -27,3 +27,6 @@ NPC	Ash_Golem	416	568	Attitude=Bad Zone=11,16,17,21 Chase=7,12,21,21
 NPC	Ash_Hound	672	536	Attitude=Bad Zone=19,15,25,21 Chase=15,11,25,21
 NPC	Ash_Hound	288	248	Attitude=Bad Zone=7,6,13,12 Chase=3,2,17,16
 Id	Ashen_Foundry	17	16
+StaticObject	Foundry_Hearth	384	320	Id=Ashen_Foundry_Hearth
+StaticObject	Foundry_Bellows	448	320	Id=Ashen_Foundry_Bellows
+NPC	Forgemother	384	504	Id=Forgemother_Boss Zone=10,16,17,19 Chase=6,14,21,19

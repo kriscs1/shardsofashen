@@ -191,7 +191,7 @@ SECRETS = [   # (town, kind, what's found: [(item, n)], the line)
                                                           "SQUIRRELS.' You're not a squirrel. Probably fine."),
     ("Fenwick", "Wishing_Well", [("Shard", 10)], "You fish about with a bucket and bring up a handful of wishes: coins "
                                                  "gone green, and Shards. Somebody wished very hard."),
-    ("Moorcross", "Loose_Cobble", [("Lucky_Sock", 1)], "Under the loose cobble: one sock. It's warm. It feels lucky. "
+    ("Greyford", "Loose_Cobble", [("Lucky_Sock", 1)], "Under the loose cobble: one sock. It's warm. It feels lucky. "
                                                        "It's definitely lucky."),
     ("Highwatch", "Old_Statue", [("Shard", 12)], "You press the statue's loose eye. Click: a little drawer slides out "
                                                  "of its plinth, full of Shards."),

@@ -5,7 +5,6 @@ web/assets
 **/__pycache__
 **/*.pyc
 .pytest_cache
-saves/*.png
 deploy/*.env
 deploy/**/.env
 .env

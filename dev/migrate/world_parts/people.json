@@ -71,7 +71,7 @@
   "NPC\tShepherd\t416\t192\tAttitude=Good",
   "NPC\tTrader\t736\t64\tAttitude=Good",
   "NPC\tSettler\t576\t320\tAttitude=Good Zone=13,7,20,11",
-  "StaticObject\tNotice\t545\t194\tId=Moorcross",
+  "StaticObject\tNotice\t545\t194\tId=Greyford",
   "NPC\tBanker\t320\t64\tAttitude=Good"
  ],
  "3,9,0": [

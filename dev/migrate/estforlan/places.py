@@ -18,7 +18,7 @@ OPEN_GROUND = ("Grass001", "Sand001", "Snow001", "Marsh001", "Ash001", "Cinder00
 OLD_TOWN = {"0,3,0": "Northport", "1,3,0": "Northport", "0,6,0": "Wildwood", "0,8,0": "Saltmarsh", "1,8,0": "Fenwick",
             "1,10,0": "Dunerest", "1,9,0": "Dunerest", "1,6,0": "Oakhollow", "1,7,0": "Oakhollow",
             "2,3,0": "Ashford", "3,4,0": "Ashford", "2,4,0": "Keep", "2,5,0": "Keep", "2,8,0": "Fenwick",
-            "3,8,0": "Fenwick", "3,6,0": "Moorcross", "4,8,0": "Highwatch", "4,9,0": "Frosthold",
+            "3,8,0": "Fenwick", "3,6,0": "Greyford", "4,8,0": "Highwatch", "4,9,0": "Frosthold",
             "4,10,0": "Frosthold", "5,4,0": "Court", "7,4,0": "Emberwatch", "8,4,0": "Emberwatch", "7,6,0": "Thornwick",
             "8,7,0": "Ravensgate", "8,8,0": "Ravensgate", "12,6,0": "Galaith", "13,6,0": "Galaith",
             "5,2,0": "Wardhaven", "5,3,0": "Wardhaven", "4,2,0": "Wardhaven", "4,3,0": "Wardhaven",

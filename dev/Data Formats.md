@@ -35,8 +35,7 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 | `data\Scripts\*.txt` | Scripts (see Scripts) |
 | `maps\X,Y,Z.txt` | One file per screen |
 | `maps\Test\` | The test maps that were in `maps\` before the old world was converted |
-| `saves\<PlayerName>.ini` | Player save games |
-| `saves\TEMPLATE.ini` | New-player defaults |
+| `data\NewCharacter.ini` | A new character's start (characters themselves are in the server's database) |
 | `sounds\*.wav`, `sounds\*.mid` | Sound effects / music |
 | `sprites\Tiles`, `sprites\Entities`, `sprites\Interface` | PNG sprites, one file each: the picture with transparency where it is see-through (the interface panels ChatBar, InfoBox, ResponseBox, SideBarBorder and StatBox, and `sprites\Textures`, are plain pictures). Old Liberty BASIC BMPs (twice as high: the top half the mask, black = drawn, white = see-through, the bottom half the picture) still load if there is no PNG of that name; the BMPs the game used to have are in `dev\Archive\BMP sprites.zip`. The builders in dev\migrate work on that two-half layout in memory (common.py `read_bmp` / `write_sprite`) and write PNGs. |
 | `sprites\Effects` | Combat and spell effects, made by `dev\migrate\build_effects.py` and loaded the first time each is needed: `Hit<N>`, `Crit<N>`, `Heal<N>` (N = 1..99) and `Miss` splats; four-frame animations `<Name>1..4` (Puff, Slash, Fire_Burst, Ice_Burst, Spark, Heal_Glow, Stone_Glow, Teleport_Glow); missiles; `Hurt_Top/Bottom/Left/Right` (the hurt flash, as wide/high as the map). The combat sounds in `sounds\` are made by `dev\migrate\build_sounds.py`. |
@@ -478,24 +477,18 @@ A quest that can't be started yet shows in the journal as Locked, with what it n
 quest's attribute from 0 while it still needs something is stopped there. dev\migrateuild_cinder.py (REQUIREMENTS)
 sets these for every quest and puts the check in every giver's script.
 
-## saves\<Name>.ini
+## data\NewCharacter.ini
+
+A new character's start (`Session.new_player_start`). Characters themselves are JSON in the server's database.
 
 ```
-[Player]       Name=Kris  Sprite=Player  Map=1,1,0  X=300  Y=300  Hitpoints=10  Direction=4
+[Player]       Map=4,1,0  X=32  Y=156  Hitpoints=20  Direction=1
 [Skills]       Strength=0  Cooking=33.34 ...    ; level units: level = int(value), fraction = progress to next level.
                                                 ; Hitpoints= is the Hitpoints LEVEL (0 or missing = 10); the current
                                                 ; hitpoints are [Player] Hitpoints
 [Inventory]    Slot1=Axe,1  Slot2=Logs,5 ...
 [Bank]         Slot1=Gold_Coin(s),1025 ...
 [Equipment]    Weapon=Iron_Sword  Shield=Iron_Shield  Feet=Leather_Boots ...   ; empty slots are left out
-[Attributes]   Door1Open=0 ...                  ; free-form script variables (Update.Attribute / Get.Value)
-[NPC.Attitudes] OldHob=Good  1,4,0@256,448=Bad  ; Set.NPC.Attitude, one NPC each: <its Id, or map@x,y of its map line>=Good|Bad
-[Quest.Notes]  Note1=The Withering Wood|0|Find the Heartwood...   ; the journal's quest notes (Quest.Note), in order:
-                                                ; <quest title>|<1 = crossed out (Quest.Note.Done), 0 = not>|<text>
-[Explored]     Grid=10x8  Maps=1,1,0 2,1,0 ...  ; a map in Maps= with no key of its own is fully revealed;
-               3,2,0=1 2 3 ...                  ; otherwise the key lists revealed fog cells (row-major, 80 x 84 cells from the map's top left).
-                                                ; No Grid = old 5x5 grid; a save from another grid (11x9 before v2.5) is converted
-[Action.Queue] Total=n  Entry1=<queue entry, tabs written as [TAB]>
 ```
 
 ## Engine conventions
@@ -702,7 +695,7 @@ egion_tiles.py, with the same Walkable.Data).
     stages are never shown), then Notes, the lines scripts wrote with `Quest.Note QUEST NAME | NOTE` (once each),
     crossed out by `Quest.Note.Done QUEST NAME | NOTE` (NOTE `*` = all of that quest's notes). QUEST NAME is the
     quest's title or its Attribute. A quest whose Stage0 is empty (hidden until started) shows up once it has a note.
-    Writing a note says so in the chat (Journal (quest): text). The notes are saved in the save's [Quest.Notes].
+    Writing a note says so in the chat (Journal (quest): text). The notes are saved with the character (`quest_notes`).
   * The generated quests' notes are one table, dev\migrate\quest_notes.py: notes put in after the script step where a
     quest reaches a stage (or after a given step of a given script), and all crossed out when it is done. A rule that
     no longer matches any script is a build problem.

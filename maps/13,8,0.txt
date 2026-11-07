@@ -24,3 +24,5 @@ NPC	Man	576	344	Attitude=Good   Schedule=Always Id=Prospector_Hale Name=Prospect
 NPC	Villager	544	312	Attitude=Good Schedule=Always Zone=15,9,21,13 Id=Wren_Dusk Name=Wren_Dusk
 NPC	Farmer	320	344	Attitude=Good Schedule=Always Zone=8,10,14,14 Id=Old_Tobb Name=Old_Tobb
 Id	Rustwater_Halt	13	18
+NPC	Man	384	472	Id=Lucky_Lem Attitude=Good Stand=1 Face=S Schedule=Always Name=Lucky_Lem
+StaticObject	Rat_Race_Track	384	416	Id=Lucky_Lems_Track

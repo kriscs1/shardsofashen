@@ -17,7 +17,7 @@ each settlement it has grown (an Id <Key>_Grown on its centre's map) and leaves 
                 office in a house, 5 streets, a Town Hall. (Highwatch, Frosthold.)
   Village       a pub, a market square, a sheriff's office, a doctor's office in a house, 5 streets, a village
                 hall. (Oakhollow, Thornwick, Emberwatch.)
-  Hamlet        a pub, 2 streets. (Wildwood and Saltmarsh, new; Moorcross on Greymoor; Dunerest.)
+  Hamlet        a pub, 2 streets. (Wildwood and Saltmarsh, new; Greyford on the Greyflats; Dunerest.)
 A bank a town has already isn't built twice. New land: Northport's west (0,3,0 and 0,4,0) and an island east of the
 Royal Isle for the Wizards' Court (5,4,0 and 5,5,0, over a bridge from the palace's south lawn).
 """
@@ -72,7 +72,7 @@ SETTLEMENTS = [
     ("Oakhollow", "Oakhollow", ["1,6,0"], ["1,7,0"], ("1,6,0", 13, 11), VILLAGE, "wood", False),
     ("Thornwick", "Thornwick", ["7,6,0"], ["8,6,0"], ("7,6,0", 13, 11), VILLAGE, "wood", False),
     ("Emberwatch", "Emberwatch", ["7,4,0"], ["8,4,0"], ("7,4,0", 13, 11), VILLAGE, "stone", False),
-    ("Moorcross", "Moorcross", ["3,6,0"], [], ("3,6,0", 13, 11), HAMLET, "stone", False),
+    ("Greyford", "Greyford", ["3,6,0"], [], ("3,6,0", 13, 11), HAMLET, "stone", False),
     ("Dunerest", "Dunerest", ["1,10,0"], [], ("1,10,0", 13, 11), HAMLET, "desert", False),
     ("Wildwood", "Wildwood", [], ["0,6,0"], ("0,6,0", 13, 11), HAMLET, "wood", False),
     ("Saltmarsh", "Saltmarsh", [], ["0,8,0"], ("0,8,0", 13, 11), HAMLET, "marsh", False),

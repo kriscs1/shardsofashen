@@ -122,7 +122,7 @@ def _code_text(t):
 
 
 def save_skills(t):
-    """A saves\\*.ini's [Skills] as they are now: renamed, merged (the better of two), Shardcraft from half its Magic."""
+    """A new character's start's [Skills] as they are now: renamed, merged (the better of two), Shardcraft from half its Magic."""
     m = re.search(r"(?ms)^\[Skills\]\r?\n(.*?)(?=^\[|\Z)", t)
     if not m:
         return t
@@ -143,7 +143,7 @@ def save_skills(t):
 
 
 def main():
-    for f in glob.glob(at("saves", "*.ini")):
+    for f in glob.glob(at("data", "NewCharacter.ini")):
         rewrite(f, save_skills)
     rewrite(at("data", "Config.ini"), config)
     rewrite(at("data", "Shards.ini"), shards_ini)

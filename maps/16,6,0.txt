@@ -22,4 +22,4 @@ Dust001:Dust001:Dust001+Decor(Desert_Rock001):Dust001+Decor(Desert_Rock001):Dust
 NPC	Butterfly	128	280	Attitude=Good Zone=2,6,10,14
 NPC	Dust_Wraith	288	568	Attitude=Bad Zone=7,16,13,21 Chase=3,12,17,21
 NPC	Scorpion	288	152	Attitude=Bad Zone=7,3,13,9 Chase=3,1,17,13
-Id	Zone_Dustlands	6	3
+Id	Zone_Sallow_Waste	6	3

@@ -534,6 +534,51 @@ def test_a_cart_goes_round_its_stops_and_takes_you_to_one(world):
     leave(world, s)
 
 
+def test_the_ferries_cross_together_and_carry_you_over(world):
+    carts = world.carts
+    east = next(c for c in carts.carts if c.key == "Isle_Ferry_East")
+    west = next(c for c in carts.carts if c.key == "Isle_Ferry_West")
+    assert east.e.name == west.e.name == "Ferry_Boat" and east.timetable and east.headings == 16
+    assert east.stops[east.i] == "the Isle" and west.stops[west.i] == "Northport"     # (one at each pier)
+    t = world.now + 1
+    east.wait_until, west.wait_until = carts.leave_time(east, t), carts.leave_time(west, t)
+    assert east.wait_until == west.wait_until and east.wait_until % 45000 == 0        # (they cast off together)
+    e = east.e
+    m = world.maps["3,2,0"]
+    s = join(world, "Passenger", "3,2,0", 14 * 32 + 16, 14 * 32)                     # (at the end of the Isle's pier)
+    s.connected = True
+    stock(s, **{"Gold_Coin(s)": 5})
+    s.choose_verb("Get In", e, e.cx, e.cy)
+    assert s.ab_mode != "Conversation" and s.ride is None                         # (in the fog, before Bess has sailed)
+    s.update_attribute("Passage", "=5")
+    s.update_attribute("RemnantsAbsorbed", "=1")
+    for k in range(len(s.skill_xp)):
+        s.skill_xp[k] = max(s.skill_xp[k], 6)
+    assert s.player_level() >= 3
+    s.choose_verb("Get In", e, e.cx, e.cy)
+    for _ in range(5):
+        world.tick(0.05)
+    assert s.ab_mode == "Conversation" and "To Northport." in s.responses
+    s.action_box_response_chosen(s.responses.index("To Northport.") + 1)
+    assert s.ride is east and s.items_held("Gold_Coin(s)") == 4
+    assert east.wait_until == west.wait_until                                     # (no hurrying a timetable)
+    heading = east.heading
+    s.keyboard_direction = 2
+    turned = False
+    for _ in range(int(400000 / 100)):
+        world.tick(0.1, now=world.now + 100)
+        turned = turned or abs(east.heading - heading) > 20
+        if s.ride is None:
+            break
+    s.keyboard_direction = 0
+    assert s.ride is None and east.stops[east.i] == "Northport" and turned        # (it turned as it went)
+    assert s.cur_map.name in ("4,4,0", "4,3,0")
+    t = s.cur_map
+    assert world.entity_can_stand(s.player, s.player.x, s.player.y, s.player.x, s.player.y, s)  # (on the pier, not the sea)
+    assert m is not t
+    leave(world, s)
+
+
 def test_at_most_two_merchants_of_a_trade_in_a_place():
     import sys
     sys.path.insert(0, os.path.join(ROOT, "dev", "migrate"))
@@ -1887,7 +1932,7 @@ def test_the_towns_are_the_size_they_were_asked_to_be(world):
     assert count("Northport", "Speaker") == 1 and count("Northport", "Constable") == 1     # (Parliament; police)
     for town in ("Frosthold", "Oakhollow", "Thornwick", "Emberwatch"):
         assert count(town, "Sheriff") == 1 and count(town, "Doctor") == 1, town
-    for town in ("Moorcross", "Dunerest", "Wildwood", "Saltmarsh"):
+    for town in ("Greyford", "Dunerest", "Wildwood", "Saltmarsh"):
         assert count(town, "Barkeep") == 1, town                       # (a hamlet: its pub)
 
 
@@ -1917,6 +1962,17 @@ def test_a_character_from_before_the_heirs_story(world):
     assert half.get_attribute("Passage") == "0" and half.quest_done("LastWill")      # (the Isle again, after the letter)
     assert not half.quest_done("Passage")
 
+
+
+def test_a_save_from_before_greyford_had_its_name(world):
+    s = Session(world, "Shepherdess")
+    s.load_state({"map": "15,9,0", "x": 300, "y": 300,
+                  "attributes": [["Passage", "12"], ["Waystone.Moorcross", "1"], ["Zone_Chest_Dustlands", "1"],
+                                         ["Secret_Sallowcross_2", "1"]],
+                  "quest_notes": [["Wolves of the Moor", 0, "Slay six wolves on Greymoor."]]})
+    assert s.get_attribute("Waystone.Greyford") == "1" and s.get_attribute("Zone_Chest_Sallow_Waste") == "1"
+    assert s.get_attribute("Secret_Greyford_2") == "1"
+    assert s.quest_notes[0][0] == "Wolves of the Greyflats" and "Wolves of the Greyflats" in [q for q, _ in world.data.quest_table()]
 
 def test_sneaking_past_the_smugglers(world):
     m = world.maps["-2,15,0"]
@@ -2016,7 +2072,7 @@ def test_closing_a_cutscenes_conversation_doesnt_leave_you_stuck(world):
 
 def test_a_new_character_starts_at_their_mothers_funeral(world):
     s = Session(world, "Newborn")
-    s.load_state(None)                                              # (a new character: saves\\TEMPLATE.ini)
+    s.load_state(None)                                              # (a new character: data\\NewCharacter.ini)
     world.sessions["Newborn"] = s
     s.connected = True
     s.enter_world()
@@ -2293,6 +2349,7 @@ def test_walking_granny_wren_to_her_daughter(world):
     s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northport's landing)
     s.connected = True
     s.update_attribute("Passage", "=5")                              # (over from the Isle: it can start)
+    s.update_attribute("ParliamentQuest", "=2")                      # (the Parliament has spoken: Northport's gates are open)
     for _ in range(10):
         world.tick(0.05)
     granny = world.placed_entity("Granny_Wren", s)
@@ -2730,13 +2787,46 @@ def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
     leave(world, s)
 
 
+def test_the_woken_sword_kills_galaiths_dragon_too(world):
+    s = join(world, "Waker", "-3,14,0", 10 * 32, 11 * 32)
+    s.god_mode = 1
+    for i, entry in enumerate(world.action_queue):                  # (back from the last test's death, now)
+        bits = entry.split("	")
+        if bits[1] == "Galaith_Dragon":
+            world.action_queue[i] = "	".join(bits[:7] + ["0"] + bits[8:])
+    world.run_action_queue()
+    dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
+    stock(s, Woken_Sword_of_Valour=1)
+    s.equipped[s.equip_slot_index("Weapon")] = "Woken_Sword_of_Valour"
+    s.damage_npc(dragon, dragon.hp + 100)
+    assert not dragon.alive                                          # (Slain.By: a list)
+    leave(world, s)
+
+
+def test_bert_takes_the_ring_off_your_finger_and_gives_back_one_staff(world):
+    """The three treasures brought worn and wielded ($Item counts both): Take.Item has them off your hands too."""
+    s = join(world, "Treasurer", "21,5,1", 300, 300)
+    run, npc, talk, use = isle_helpers(world, s)
+    for a in ("WizardGift", "BertQuest", "HobgoblinQuest", "StaffQuest", "GrimoireQuest", "RingQuest"):
+        s.update_attribute(a, "=" + {"WizardGift": "1", "BertQuest": "1"}.get(a, "2"))
+    stock(s, Grimoire_of_Unbinding=1)
+    s.equipped[s.equip_slot_index("Ring")] = "Ember_Ring"
+    s.equipped[s.equip_slot_index("Weapon")] = "Staff_of_Ashen"
+    talk(npc("Bert", "21,5,1"), 1, 1, 1)
+    assert s.get_attribute("BertQuest") == "2" and s.get_attribute("BarrierSpell") == "1"
+    assert s.items_held("Staff_of_Ashen") + s.items_equipped("Staff_of_Ashen") == 1
+    assert s.items_equipped("Ember_Ring") == 0 and s.items_held("Ember_Ring") == 0
+    assert s.items_held("Grimoire_of_Unbinding") == 0
+    leave(world, s)
+
+
 def test_berts_spell_and_the_staff_break_the_barrier(world):
     s = join(world, "Breaker", "0,14,0", 9 * 32, 10 * 32 - 8)
     run, npc, talk, use = isle_helpers(world, s)
     run(5)
     lights = lambda: [e for e in world.ents if e.name == "Barrier_Light" and e.alive and world.visible_to(e, s)]
     assert len(lights()) == 3
-    story_done_before(s, 15)                                        # (up to The Sword of Valour)
+    story_done_before(s, 17)                                        # (up to The Sword of Valour)
     stock(s, Staff_of_Ashen=1)
     m = s.cur_map
     gx, gy = m.ox + 7 * 32 + 16, m.oy + 10 * 32 + 16                 # (the barrier at 8,11, from beside it)
@@ -2750,6 +2840,12 @@ def test_berts_spell_and_the_staff_break_the_barrier(world):
     run(80)
     assert s.get_attribute("ShardgateQuest") == "1" and len(lights()) == 3   # (it holds: its anchor's in the realm)
     s.update_attribute("ShardgateQuest", "=5")                      # (The Shardgate: the anchor broken)
+    s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Ashen")
+    s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
+    run(160)
+    assert s.get_attribute("WakeQuest") == "1" and len(lights()) == 3     # (it thins: the dragon laughs at the sword)
+    assert int(float(s.get_attribute("GalaithQuest") or 0)) == 0
+    story_done_before(s, 22)                                        # (the sword woken in its three fires)
     s.item_in_use = next(e for e in s.inv if e.name == "Staff_of_Ashen")
     s.choose_verb("Use with", s.tile_entity_at(gx, gy), gx, gy)
     run(80)
@@ -2800,12 +2896,13 @@ def test_the_wyrmsmith_forges_a_helm_from_the_dragons_scales(world):
     attr = lambda: int(float(s.get_attribute("DragonforgeQuest") or 0))
     talk(wyrmsmith)
     assert attr() == 0                                               # (the dragon lives: no quest yet)
-    story_done_before(s, 17)                                         # (the dragon of Galaith slain)
+    story_done_before(s, 23)                                         # (the dragon of Galaith slain)
     talk(wyrmsmith, 1)
     assert attr() == 1
     stock(s, Dragon_Scale=3)
+    helms = s.items_held("Dragonscale_Helm")                         # (the Sun-Forge gave one already)
     talk(wyrmsmith, 1)
-    assert attr() == 2 and s.items_held("Dragonscale_Helm") == 1 and s.items_held("Dragon_Scale") == 0
+    assert attr() == 2 and s.items_held("Dragonscale_Helm") == helms + 1 and s.items_held("Dragon_Scale") == 0
     leave(world, s)
 
 
@@ -2818,7 +2915,7 @@ def test_the_royal_guard_and_the_king(world):
     s = join(world, "Heir", palace.name, (door.x - 1) * 32, (door.y + 3) * 32)
     run, npc, talk, use = isle_helpers(world, s)
     attr = lambda a: int(float(s.get_attribute(a) or 0))
-    story_done_before(s, 17)
+    story_done_before(s, 23)
     find = lambda pid: next(e for e in world.ents if e.alive and e.npc_id == pid)
     captain, king = find("Palace_Captain"), find("Rupert_On_Throne")
     talk(captain, 1)
@@ -3444,7 +3541,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
                  ("ShipQuest", 2), ("DragonIsleQuest", 2), ("ValourQuest", 3), ("WizardGift", 1)):
         s.update_attribute(q, "=%d" % v)
     assert s.quest_can_start("ShardgateQuest")
-    assert any("Shardgate" in n for n in s.quest_needs("GalaithQuest"))              # (the gate first)
+    assert any("Shardgate" in n for n in s.quest_needs("WakeQuest"))                 # (the gate first)
     s.update_attribute("ShardgateQuest", "=1")                     # (the barrier held: its script)
     near(world, s, bert, 0, 36)
     assert talk_to(world, s, bert)
@@ -3462,7 +3559,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     assert s.get_attribute("ShardgateQuest") == "2"                 # (no stones to steady it, nothing to build with)
     assert any("shardstones active" in str(e.get("text", "")) for e in s.out)
     stock(s, Silver_Bar=4, Sapphire=2, Remnant_Core=1, Shard=40)
-    for k in ("Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Dunerest", "Court"):
+    for k in ("Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Greyford", "Dunerest", "Court"):
         s.update_attribute("Waystone." + k, "=1")
     s.update_skill("Shardcraft", "=1")
     s.out = []
@@ -3500,7 +3597,7 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     s.action_box_response_chosen(1)
     run_for(world, 10)
     assert s.get_attribute("ShardgateQuest") == "5"
-    assert not any("Shardgate" in n for n in s.quest_needs("GalaithQuest"))          # (the barrier can break now)
+    assert not any("Shardgate" in n for n in s.quest_needs("WakeQuest"))             # (the barrier can thin now)
     leave(world, s)
 
 
@@ -7407,3 +7504,138 @@ def test_wooden_bridges_are_a_set_with_rails_on_their_open_sides(world):
         assert (set(r[0] for r in rows) == {"0"}) == ("W" not in mask)
         assert (set(r[6] for r in rows) == {"0"}) == ("E" not in mask)
 
+
+def test_northport_is_shut_on_its_two_roads_till_the_parliament_speaks(world):
+    for mapname, gate, side in ("8,6,0", (18, 2), (17, 2)), ("2,10,0", (20, 15), (20, 14)):
+        m = world.maps[mapname]
+        assert (gate[0], gate[1]) in m.lock_at
+        s = join(world, "Walker" + mapname[0], mapname, (side[0] - 1) * 32 + 16, (side[1] - 1) * 32 + 16)
+        lk = m.lock_at[gate]
+        assert world.lock_closed_for(m, lk, s)
+        s.update_attribute("ParliamentQuest", "=2")
+        assert not world.lock_closed_for(m, lk, s)
+        leave(world, s)
+
+
+def test_captain_rook_wants_orrins_chart_and_the_lodestar_before_his_hull(world):
+    rook = next(e for e in world.ents if e.npc_id == "Captain_Rook" and e.alive)
+    s = join(world, "Navigator", rook.map, 300, 300)
+    s.god_mode = 1                                                   # (out in the zones)
+    run, npc, talk, use = isle_helpers(world, s)
+    attr = lambda a: int(float(s.get_attribute(a) or 0))
+    story_done_before(s, 12)
+    talk(rook, 1)
+    assert attr("OrrinQuest") == 1 and attr("ShipQuest") == 0        # (the chart first)
+    orrin = next(e for e in world.ents if e.npc_id == "Orrin")
+    talk(orrin, 1)
+    assert attr("OrrinQuest") == 2
+    shadow = next(e for e in world.ents if e.name == "Orrins_Shadow" and e.alive)
+    s.kill_npc(shadow)
+    run(10)
+    assert attr("OrrinQuest") == 3
+    talk(orrin, 1)
+    assert attr("OrrinQuest") == 4 and s.items_held("Valour_Chart") == 1
+    talk(rook, 1, 1)                                                 # (the chart; then I'll find the Lodestar)
+    assert attr("OrrinQuest") == 5 and attr("LodestarQuest") == 1 and s.items_held("Mithril_Helm") == 1
+    altar = next(e for e in world.ents if e.npc_id == "Drowned_Shrine_Altar")
+    talk(next(e for e in world.ents if e.npc_id == "Surveyor_Nils"), 1)
+    assert attr("LodestarQuest") == 2
+    near(world, s, altar, 0, 36)
+    s.choose_verb("Reach In", altar, int(altar.cx), int(altar.cy))
+    run(30)
+    assert attr("LodestarQuest") == 2                                # (its Warden stands over it)
+    s.kill_npc(next(e for e in world.ents if e.name == "Rime_Warden" and e.alive))
+    run(10)
+    near(world, s, altar, 0, 36)
+    s.choose_verb("Reach In", altar, int(altar.cx), int(altar.cy))
+    run(30)
+    assert attr("LodestarQuest") == 3 and s.items_held("Frozen_Lodestar") == 1
+    talk(rook, 1, 1)                                                 # (the Lodestar; the hull; I'll bring them)
+    assert attr("LodestarQuest") == 4 and attr("ShipQuest") == 1 and s.items_held("Frozen_Lodestar") == 0
+    leave(world, s)
+
+
+def test_the_three_fires_wake_the_sword_of_valour(world):
+    find = lambda pid: next(e for e in world.ents if e.npc_id == pid and e.alive)
+    oska = find("Warden_Oska")
+    s = join(world, "Smith", oska.map, 300, 300)
+    s.god_mode = 1
+    run, npc, talk, use = isle_helpers(world, s)
+    attr = lambda a: int(float(s.get_attribute(a) or 0))
+    story_done_before(s, 19)                                         # (up to The Sleeping Sword)
+    s.equipped[s.equip_slot_index("Weapon")] = "Sword_of_Valour"     # (in your hand: none in the pack)
+
+    def do(verb, pid, ticks=60):
+        e = find(pid)
+        near(world, s, e, 0, 36)
+        s.choose_verb(verb, e, int(e.cx), int(e.cy))
+        run(ticks)
+
+    talk(oska, 1)
+    assert attr("FoundryQuest") == 1
+    s.kill_npc(next(e for e in world.ents if e.name == "Forgemother" and e.alive))
+    run(10)
+    assert attr("FoundryQuest") == 2
+    s.update_attribute("FoundryHeat", "=3")
+    do("Work", "Ashen_Foundry_Bellows")
+    assert attr("FoundryHeat") == 0                                  # (too hot: the fire chokes)
+    do("Temper", "Ashen_Foundry_Hearth")
+    assert attr("FoundryQuest") == 2                                 # (not hot enough)
+    s.update_attribute("FoundryHeat", "=3")
+    do("Temper", "Ashen_Foundry_Hearth", 120)
+    assert attr("FoundryQuest") == 3
+    talk(oska, 1)
+    assert attr("FoundryQuest") == 4 and s.items_held("Mithril_Platebody") == 1
+
+    tarek = find("Nomad_Tarek")
+    talk(tarek, 1)
+    assert attr("SunforgeQuest") == 1
+    s.kill_npc(next(e for e in world.ents if e.name == "Sun_Keeper" and e.alive))
+    run(10)
+    assert attr("SunforgeQuest") == 2
+    for _ in range(5):                                               # (round past west to north, and on to east)
+        do("Turn", "Dawn_Mirror", 10)
+    assert attr("Mirror.Dawn") == 1
+    for mirror, n in (("Noon_Mirror", 2), ("Dusk_Mirror", 3)):
+        for _ in range(n):
+            do("Turn", mirror, 10)
+    assert attr("SunforgeQuest") == 3                                # (east, south, west: the song)
+    do("Temper", "Sunken_Temple_Forge", 120)
+    assert attr("SunforgeQuest") == 4
+    talk(tarek, 1)
+    assert attr("SunforgeQuest") == 5
+
+    maud = find("Delver_Maud")
+    talk(maud, 1)
+    assert attr("AnvilQuest") == 1
+    s.kill_npc(next(e for e in world.ents if e.name == "Stone_King" and e.alive))
+    run(10)
+    assert attr("AnvilQuest") == 2
+    do("Strike", "Dwarf_Hall_Root", 10)
+    do("Strike", "Dwarf_Hall_Hammer", 10)
+    assert attr("AnvilRunes") == 0                                   # (out of the song's order: start again)
+    for rune in ("Root", "Rock", "Hammer", "Crown"):
+        do("Strike", "Dwarf_Hall_" + rune, 10)
+    assert attr("AnvilQuest") == 3
+    do("Temper", "Dwarf_Hall_Anvil", 160)
+    assert attr("AnvilQuest") == 4
+    assert s.equipped[s.equip_slot_index("Weapon")] == "Woken_Sword_of_Valour"          # (Replace.Item: in your hand)
+    assert s.items_held("Sword_of_Valour") == 0
+    talk(maud, 1)
+    assert attr("AnvilQuest") == 5 and s.items_held("Dragonscale_Platebody") == 1
+    assert not s.quest_needs("GalaithQuest")
+    leave(world, s)
+
+
+def test_the_wandering_echos_riddles(world):
+    echo = next(e for e in world.ents if e.npc_id == "Shardglass_Echo")
+    s = join(world, "Riddled", echo.map, 300, 300)
+    s.god_mode = 1                                                   # (out in the zones)
+    run, npc, talk, use = isle_helpers(world, s)
+    story_done_before(s, 6)
+    shards = s.shards()
+    talk(echo, 1, 1)                                                 # (a mirror: no)
+    assert s.get_attribute("EchoQuest") == "1" and s.shards() == shards
+    talk(echo, 1, 2, 1, 3, 1, 2, 1)                                  # (a Shard; the Shardrealm; under the world)
+    assert s.get_attribute("EchoQuest") == "2" and s.shards() == shards + 30 + 45
+    leave(world, s)

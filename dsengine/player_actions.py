@@ -313,7 +313,7 @@ class ActionsMixin:
         if verb != "Attack":
             self.player_attack_target = None
         if self.ride is not None and getattr(e, "cart", None) is not self.ride and verb != "Examine" and                 e.type not in (INVENTORYITEM, ACTIONBOXITEM):
-            self.display_message("Not from the cart!", "FAIL")
+            self.display_message("Not from the %s!" % self.ride.noun, "FAIL")
             return
         if verb == "Sit" and e.type == TILE and not self.ab_mode:
             front = self.seat_front(e)                  # (to the seat's front first: then sitting is a step, not a jump)

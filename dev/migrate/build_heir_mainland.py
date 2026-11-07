@@ -621,7 +621,7 @@ def quests():
     }, 2, markers={0: "Keep_Steward_Post", 1: "Iron_Mine_Entrance"}, chapter=7, requires="The Ashford Road",
         marker0="Keep_Steward_Post")
     K.quest("Bert's Three Treasures", "Bert", "BertQuest", {
-        0: "Find Bert, the great wizard, at the top of the Wizards' Court's tower, on the Royal Isle.",
+        0: "Find Bert, the great wizard, at the top of the Wizards' Court's tower.",
         1: "Bring Bert the Staff of Ashen, the Grimoire of Unbinding and the Ember Ring.",
     }, 2, markers={0: "Court_Wizard", 1: "Court_Wizard"}, chapter=8, requires="The Steward's Hunt",
         marker0="Court_Wizard")
@@ -661,7 +661,7 @@ def quests():
     }, 3, markers={0: "Temple_of_Valour", 1: "Temple_of_Valour", 2: "Temple_of_Valour"}, chapter=14,
         requires="The Island of Dragons", marker0="Temple_of_Valour")
     K.quest("The Dragon of Galaith", "Bert", "GalaithQuest", {
-        0: "Go east, over the causeway from the Elderwood, to the pass of Galaith. Break the barrier with Bert's spell "
+        0: "Go west to the pass of Galaith, in the West Range. Break the barrier with Bert's spell "
            "(use the Staff of Ashen on it).",
         1: "Kill the dragon before Galaith's walls. Only the Sword of Valour, wielded, can reach its heart.",
     }, 2, markers={0: "Galaith_Barrier", 1: "Dragons_Field"}, chapter=15, requires="The Sword of Valour",
@@ -753,11 +753,11 @@ def southport_and_ashford():
         say("Speaker", "You want to go to Galaith? Half this Parliament wants nothing else.\\The barrier is the "
                        "dragon's: violet light across the pass, hard as glass. No sword, no ram and no spell of ours "
                        "has so much as scratched it. Only one person living might break it: Bert, the great wizard of "
-                       "the Wizards' Court, on the Royal Isle.",
+                       "the Wizards' Court, far to the east.",
             ("How do I get to him?", "@road")),
         ("@road",),
-        say("Speaker", "East, through Ashford and King Rupert's Keep. The road's the Mayor of Ashford's to keep, and the "
-                       "causeway to the Royal Isle is the King's Steward's.\\Take the Parliament's letter to the Mayor: "
+        say("Speaker", "Through Ashford and King Rupert's Keep. Bert sees nobody the crown hasn't vouched for: the Mayor of "
+                       "Ashford can vouch for you to the King's Steward, and the Steward to Bert.\\Take the Parliament's letter to the Mayor: "
                        "it asks every friend of the crown to help you on your way.",
             ("Thank you, Madam Speaker.", "@letter")),
         ("@letter",),
@@ -819,9 +819,9 @@ def keep():
         (">Conditional", "$Variable.1=0 and $Item.Mayors_Pass>=1", "@s1"),
         (">Quest.Can.Start", "HobgoblinQuest", "@end"),
         ("Take.Item", "Mayors_Pass", "1"),
-        say("Steward", "The Mayor's pass. So you want the causeway to the Wizards' Court.\\I keep this keep for King "
+        say("Steward", "The Mayor's pass. So you want Bert at the Wizards' Court.\\I keep this keep for King "
                        "Rupert, these eighteen years, and its roads. Hobgoblins have come up from the deep into the old "
-                       "iron mine, west of here. Slay five of them, and the causeway's yours.",
+                       "iron mine, north of here. Slay five of them, and I'll vouch for you to the Court.",
             ("I'll hunt them.", "@start")),
         ("@start",),
         ("Update.Attribute", "HobgoblinQuest", "=1"),
@@ -833,8 +833,8 @@ def keep():
         ("End",),
         ("@s1",), (">Conditional", "$Variable.1=1", "@staff"),
         (">Conditional", "$Attr.HobgoblinsSlain>=5", "@hunting"),
-        say("Steward", "Five hobgoblins! The King would thank you himself, if he could. Take this, and the causeway: the "
-                       "Wizards' Court is the walled island east of the goblin camp. Bert will see you; I'll send word.",
+        say("Steward", "Five hobgoblins! The King would thank you himself, if he could. Take this. The Wizards' Court is "
+                       "north of here, past the Elderwood. Bert will see you; I'll send word.",
             ("Thank you, Steward.", "@reward")),
         ("@reward",),
         ("Give.Item", "Gold_Coin(s)", "100"),
@@ -914,9 +914,9 @@ def bert():
         ("Give.Item", "Healing_Draught", "2"),
         ("Update.Attribute", "WizardGift", "=1"),
         ("@quest",),                                              # (the barrier held, the anchor's broken, or the
-        (">Conditional", "$Attr.ShardgateQuest=1 or $Attr.ShardgateQuest=4 or $Attr.GalaithQuest>=1 and "
-                         "$Attr.ShardgateQuest=0", "@bert"),         #  barrier's gone already: build_shardgate.py)
-        ("Goto.Script", "Bert and the Shardgate"),
+        (">Conditional", "$Attr.WakeQuest=1 or $Attr.ShardgateQuest=1 or $Attr.ShardgateQuest=4 or "
+                         "$Attr.GalaithQuest>=1 and $Attr.ShardgateQuest=0", "@bert"),   #  barrier's gone already:
+        ("Goto.Script", "Bert's Errands"),                        #  build_shardgate.py, build_middle_quests.py)
         ("@bert",),
         ("Get.Value", "ATTRIBUTE", "BertQuest", V1),
         (">Conditional", "$Variable.1=0 and $Attr.HobgoblinQuest>=2", "@s1"),
@@ -987,7 +987,7 @@ def bert():
         say("Bert", "Take the staff back: it's the King's, and the spell needs a king's staff. Hold it to the barrier and "
                     "say the words, and it will fall.\\But hear me. Behind the barrier waits the dragon, and no blade "
                     "made by men will kill it. Only the Sword of Valour, driven into its heart. It lies on Dragon "
-                    "Island, far out in the eastern sea. Captain Rook, on the shore below the Keep, is the only sailor mad enough to "
+                    "Island, out in the southern sea. Captain Rook, on the shore below the Keep, is the only sailor mad enough to "
                     "take you there.", ("Thank you, Bert.", "@done")),
         ("@done",),
         ("Update.Attribute", "BertQuest", "=2"),
@@ -1085,8 +1085,8 @@ def grimoire_and_ring():
         (">Conditional", "$Variable.1=0 and $Attr.BertQuest>=1", "@s1"),
         (">Quest.Can.Start", "RingQuest", "@end"),
         say("Warden", "The Ember Ring? The Ashen Priest wears it, and he's welcome to it, as far as I'm concerned.\\He "
-                      "holds the Cinder Fort, high in the Cinder Peaks, with his cult and his chanting. If Bert wants "
-                      "that ring, you'll have to take it off his finger yourself.", ("Then I will.", "@start")),
+                      "holds the Cinder Fort, high in the Cinder Peaks, with the Ashen Hand: a cult that sings to the dragon, "
+                      "and sends it what it can. If Bert wants that ring, you'll have to take it off his finger yourself.", ("Then I will.", "@start")),
         ("@start",),
         ("Update.Attribute", "RingQuest", "=1"),
         ("Display.Message", "Yellow", "Quest started: The Ember Ring.", "Quest"),
@@ -1295,8 +1295,8 @@ def galaith():
         ("@saved",),
         say("Player", "My mother saved my life. The bargain ends today.", ("...", "@answer")),
         ("@answer",),
-        say("Galaith_Dragon", "Ends? It ends when I have you.\\...What is that at your side? That blade. Valour. So the old "
-                              "knights left a sting in the tale after all.\\Come, then, heir. Let us see whose debt is "
+        say("Galaith_Dragon", "Ends? It ends when I have you.\\...That blade. Awake now, is it? Three fires, and the old "
+                              "knights' sting woken after all. No matter: I am more than I was.\\Come, then, heir. Let us see whose debt is "
                               "paid.", ("Fight!", "@fight")),
         ("@fight",),
         ("Toggle.User.Input", "ON"),
@@ -1485,12 +1485,15 @@ REWORDS = {   # (file under Data: the old King Tyron's words, as they read now)
     "Scripts\\Read Royal_Treasury.txt": [("By order of King Tyron this door stays locked.",
                                           "The Wizards' Court's strongroom.")],
     "Scripts\\Read The_Royal_Isle.txt": [("King Tyron's palace. The gate is open to all honest folk. Its gate faces south.",
-                                          "The Wizards' Court and its tower.")],
+                                          "The Wizards' Court and its tower."),
+                                         ("THE ROYAL ISLE\\The Wizards' Court and its tower.",   # (it's no isle)
+                                          "THE WIZARDS' COURT\\The old King's Castle, and its tower.")],
     "Scripts\\Talk to Farmer.txt": [("King Tyron ought to do something.", "The King's Steward ought to do something."),
                                     ("I'll speak to the King.", "I'll speak to the Steward.")],
     "Scripts\\Talk to Guard.txt": [
         ("King Tyron holds court in the throne hall.\\Mind your manners before the throne, and keep your blade sheathed.",
          "The wizards hold court in the great hall.\\Mind your manners, and keep your blade sheathed."),
+        ("Welcome to the Royal Isle. The wizards", "Welcome to the Wizards' Court. The wizards"),
         ("closed by order of King Tyron", "closed by order of the King's Steward"),
         ("Unless the King himself sent you, of course.", "Unless the Steward sent you, of course."),
         ("the King pays well for hobgoblin ears.\\His palace is on the Royal Isle: south to his keep, east along the "

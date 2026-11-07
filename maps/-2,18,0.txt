@@ -26,3 +26,5 @@ NPC	Sand_Drake	704	248	Attitude=Bad Zone=20,6,25,12 Chase=16,2,25,16
 NPC	Sand_Scorpion	224	472	Attitude=Bad Zone=5,13,11,19 Chase=1,9,15,21
 NPC	Sand_Scorpion	512	312	Attitude=Bad Zone=14,8,20,14 Chase=10,4,24,18
 Id	Drakes_Bones	18	17
+NPC	Merchant	608	504	Id=Mirage_Trader Attitude=Good Stand=1 Face=S Schedule=Always Name=The_Mirage_Trader
+NPC	Sand_Mother	384	504	Id=Sand_Mother_Boss Zone=10,14,16,20 Chase=6,10,20,21

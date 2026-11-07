@@ -28,7 +28,7 @@ def swap(t):
 
 
 def files():
-    for top, exts in (("data", (".ini", ".txt")), ("maps", (".txt",)), ("tests", (".py",)), ("saves", (".ini",)),
+    for top, exts in (("data", (".ini", ".txt")), ("maps", (".txt",)), ("tests", (".py",)),
                       (os.path.join("dev", "migrate"), (".py",)), ("web", (".js",)), ("dsengine", (".py",))):
         for d, subs, fs in os.walk(p(top)):
             subs[:] = [s for s in subs if s not in ("__pycache__", "Archive", "assets")]

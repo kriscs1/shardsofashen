@@ -22,3 +22,4 @@ Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+
 NPC	Man	384	376	Attitude=Good   Schedule=Always Id=Surveyor_Nils Name=Surveyor_Nils Zone=10,11,16,15
 NPC	Villager	448	408	Attitude=Good Schedule=Always Zone=12,12,18,16 Id=Hilde_Frost Name=Hilde_Frost
 Id	Frostwatch_Lodge	12	10
+NPC	Old_Woman	256	312	Id=Old_Skadi Attitude=Good Stand=1 Face=S Schedule=Always Name=Old_Skadi

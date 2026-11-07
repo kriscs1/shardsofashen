@@ -93,7 +93,7 @@ QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Upd
     "A Ship for Dragon Island": "Woodcutting 2 Crafting 2", "The Island of Dragons": "Strength 5 Defence 5",
     "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Magic 4",
     "The Royal Guard": "Defence 4", "The True Heir": "Strength 5 Defence 5 Magic 5",
-    "Wolves of the Moor": "Strength 3", "Bandits on the Road": "Strength 3 Defence 2",
+    "Wolves of the Greyflats": "Strength 3", "Bandits on the Road": "Strength 3 Defence 2",
     "The Lost Caravan": "Defence 3", "The Wardhaven Bridge": "Homesteading 3", "Granny Wren's Walk": "Defence 1",
     "The Shard Scholar": "Magic 2",
 }
@@ -114,7 +114,7 @@ REWARDS = {  # Quests.ini Reward.Shards
     "The Staff of Ashen": 15, "The Sunken Grimoire": 20, "The Ember Ring": 25, "A Ship for Dragon Island": 15,
     "The Island of Dragons": 25, "The Sword of Valour": 30, "The Dragon of Galaith": 40, "The Royal Guard": 15,
     "The True Heir": 40,
-    "The Herbalist's Remedy": 8, "The Dwarf's Grudge": 12, "The Wildwood Watch": 10, "Wolves of the Moor": 10,
+    "The Herbalist's Remedy": 8, "The Dwarf's Grudge": 12, "The Wildwood Watch": 10, "Wolves of the Greyflats": 10,
     "Bog Lights": 15, "Bandits on the Road": 10, "The Lost Caravan": 12, "The Frozen Forge": 12,
     "The Hermit's Fire": 5, "The Withering Wood": 12, "The Barrow King": 25, "Old Hob": 10, "The Lost Patrol": 10,
     "A Place of Your Own": 8, "The Smugglers' Run": 12, "Granny Wren's Walk": 5, "A Portrait of Mo": 5,

@@ -40,7 +40,7 @@ y21     ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 I the Isle (untouched) · ~ sea · M the West Range · C the Cinder Peaks · N the Frostpeak range · G Galaith ·
 F the dragon's scorched field · P the pass (the barrier across its gap) · g fields and meadows · w the Wildwood ·
-o Greymoor · h the Redrock hills · s the Saltmarsh · d the Sunscar Desert · n the Frostpeak snowfields ·
+o the Greyflats · h the Redrock hills · s the Saltmarsh · d the Sunscar Desert · n the Frostpeak snowfields ·
 e the Elderwood · a the Ashwold · u the downs · v Wardhaven's island · D Dragon Island.
 
 ## Settlements (maps they take; their streets' material)
@@ -60,7 +60,7 @@ e the Elderwood · a the Ashwold · u the downs · v Wardhaven's island · D Dra
 | Oakhollow | village | 7-8, 8-9 | gravel | |
 | Thornwick | village | 17-18, 10-11 | gravel | |
 | Emberwatch | village | 22-23, 5-6 | black basalt | east: a dock |
-| Moorcross | hamlet | 12, 8 | dirt | |
+| Greyford | hamlet | 12, 8 | dirt | |
 | Wildwood | hamlet | 2, 8 | dirt | |
 | Dunerest | hamlet | 3, 18 | sandstone | |
 | Saltmarsh | hamlet | 9, 19 | boardwalk | south: a dock |

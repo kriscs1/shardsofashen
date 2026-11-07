@@ -11,7 +11,7 @@ PARTS = os.path.join(HERE, "world_parts")
 ISLE = {"0,0,0", "0,1,0", "1,0,0", "1,1,0", "1,2,0", "2,0,0", "2,1,0", "2,2,0", "3,0,0", "3,1,0", "3,2,0", "4,0,0",
         "4,1,0"}
 # I the Isle (left alone) ~ sea  M the West Range  C the Cinder Peaks  N the Frostpeak range  G Galaith  F the dragon's
-# field  P the pass  g fields  w the Wildwood  o Greymoor  h the Redrock hills  s the Saltmarsh  d the Sunscar Desert
+# field  P the pass  g fields  w the Wildwood  o the Greyflats  h the Redrock hills  s the Saltmarsh  d the Sunscar Desert
 # n the Frostpeak snowfields  e the Elderwood  a the Ashwold  u the downs  v Wardhaven's island  D Dragon Island
 GRID = [
     "IIIII~~~~~~~~~~~~~~~~~~~~",
@@ -106,7 +106,7 @@ SETTLEMENTS = {
     "Emberwatch": dict(title="Emberwatch", size="village", maps=(22, 5, 23, 6), street="Basalt_Paving001",
                        outer="Dirt001", walls=[("Stone_Wall001", 7), ("Plaster001", 3)], grand="Stone_Wall001",
                        coast="E", land="ash"),
-    "Moorcross": dict(title="Moorcross", size="hamlet", maps=(12, 8, 12, 8), street="Dirt001", outer="Dirt001",
+    "Greyford": dict(title="Greyford", size="hamlet", maps=(12, 8, 12, 8), street="Dirt001", outer="Dirt001",
                       walls=[("Stone_Wall001", 4), ("Plaster001", 3), ("Brick001", 3)], grand="Stone_Wall001",
                       coast=None, land="moor"),
     "Wildwood": dict(title="Wildwood", size="hamlet", forest=True, maps=(2, 8, 2, 8), street="Dirt001", outer="Dirt001",
@@ -184,15 +184,15 @@ POIS = {
 # The roads: settlement to settlement or place, the main ones first (they're laid first; the rest join them)
 ROADS = [
     ("Northport", "Ashford"), ("Ashford", "Farm"), ("Farm", "Wardhaven_Bridge"), ("Farm", "Hollow_Barrel"),
-    ("Hollow_Barrel", "Court"), ("Northport", "Oakhollow"), ("Oakhollow", "Wildwood"), ("Oakhollow", "Moorcross"),
-    ("Ashford", "Moorcross"), ("Moorcross", "Galaith_Pass"), ("Moorcross", "Thornwick"), ("Thornwick", "Keep"),
+    ("Hollow_Barrel", "Court"), ("Northport", "Oakhollow"), ("Oakhollow", "Wildwood"), ("Oakhollow", "Greyford"),
+    ("Ashford", "Greyford"), ("Greyford", "Galaith_Pass"), ("Greyford", "Thornwick"), ("Thornwick", "Keep"),
     ("Keep", "Iron_Mine"), ("Court", "Emberwatch"), ("Emberwatch", "Cinder_Fort"), ("Thornwick", "Emberwatch"),
-    ("Moorcross", "Highwatch"), ("Highwatch", "Frosthold"), ("Highwatch", "Fenwick"), ("Fenwick", "Saltmarsh"),
+    ("Greyford", "Highwatch"), ("Highwatch", "Frosthold"), ("Highwatch", "Fenwick"), ("Fenwick", "Saltmarsh"),
     ("Fenwick", "Dunerest"), ("Highwatch", "Ravensgate"), ("Keep", "Ravensgate"), ("Ravensgate", "Rooks_Pier"),
     ("Frosthold", "Ravensgate"),
     # footpaths out to the quest places
     ("Oakhollow", "Spider_Nest"), ("Dunerest", "Buried_Library"), ("Dunerest", "Caravan_Wreck"),
-    ("Frosthold", "Frost_Caverns"), ("Moorcross", "Wolf_Den"), ("Highwatch", "Bandit_Camp"),
+    ("Frosthold", "Frost_Caverns"), ("Greyford", "Wolf_Den"), ("Highwatch", "Bandit_Camp"),
     ("Frosthold", "Troll_Lair"), ("Emberwatch", "Shrine_1"), ("Emberwatch", "Shrine_3"), ("Emberwatch", "Shrine_2"),
     ("Thornwick", "Heartwood"), ("Ravensgate", "Barrow"), ("Ravensgate", "Downs_Graves"), ("Ravensgate", "Hill_Graves"),
     ("Court", "Smugglers_Cove"), ("Farm", "Herbalist"), ("Northport", "Watch_Stone_1"), ("Wildwood", "Watch_Stone_2"),

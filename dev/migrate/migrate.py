@@ -662,8 +662,8 @@ def convert_save(old_path, new_path, template=False):
 
 def migrate_saves():
     convert_save(o("saves", "Kris.txt"), p("saves", "Kris.ini"))
-    convert_save(o("saves", "TEMPLATE.txt"), p("saves", "TEMPLATE.ini"), template=True)
-    log("Saves: Kris.ini, TEMPLATE.ini")
+    convert_save(o("saves", "TEMPLATE.txt"), p("data", "NewCharacter.ini"), template=True)
+    log("Saves: Kris.ini, data\\NewCharacter.ini")
 
 
 # =====================================================================================

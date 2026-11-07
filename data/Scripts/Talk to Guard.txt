@@ -1,5 +1,5 @@
 01	>On.Map	21,5,0	04
-02	Display.Conversation	Guard	Welcome to the Royal Isle. The wizards hold court in the great hall.\Mind your manners, and keep your blade sheathed.	Goodbye.	21
+02	Display.Conversation	Guard	Welcome to the Wizards' Court. The wizards hold court in the great hall.\Mind your manners, and keep your blade sheathed.	Goodbye.	21
 03	End
 04	>On.Map	15,3,0	07
 05	Goto.Script	Wardhaven Guard

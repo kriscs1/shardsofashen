@@ -434,14 +434,15 @@ class CombatMixin:
         self.fought(e)
         self.w.waves.hit(e, self)
         hp = e.hp - damage
-        slayer = self.entity_ini(e.name, "Slain.By", "")         # (only one weapon gives it its death blow)
-        if hp <= 0 and slayer:
+        slayer = self.entity_ini(e.name, "Slain.By", "")         # (only that weapon gives it its death blow: or
+        if hp <= 0 and slayer:                                    #  one of a list, the first the one it names)
             s = self.equip_slot_index("Weapon")
-            if not (s > 0 and self.equipped[s] == slayer):
+            slayers = [t.strip() for t in slayer.split(",") if t.strip()]
+            if not (s > 0 and self.equipped[s] in slayers):
                 hp = 1
                 if self.now - getattr(self, "slayer_warned", -10 ** 9) > 6000:
                     self.slayer_warned = self.now
-                    self.display_message("Your blows can't reach its heart. Only the %s can." % pretty(slayer), "FAIL")
+                    self.display_message("Your blows can't reach its heart. Only the %s can." % pretty(slayers[0]), "FAIL")
         e.hp = max(0, hp)
         if hp <= 0:
             self.kill_npc(e)

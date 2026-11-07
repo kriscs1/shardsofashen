@@ -30,3 +30,4 @@ NPC	Rime_Drake	672	312	Attitude=Bad Zone=19,8,25,14 Chase=15,4,25,18
 NPC	Ice_Wraith	512	280	Attitude=Bad Zone=14,7,20,13 Chase=10,3,24,17
 NPC	Snow_Wolf	32	280	Attitude=Bad Zone=1,7,5,13 Chase=1,3,9,17
 NPC	Yeti	512	216	Attitude=Bad Zone=14,5,20,11 Chase=10,1,24,15
+NPC	Old_Whitefang	512	344	Id=Old_Whitefang_Boss Zone=14,9,20,15 Chase=10,5,24,19

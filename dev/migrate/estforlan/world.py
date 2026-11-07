@@ -13,7 +13,7 @@ import ways as W
 import life
 
 ORDER = ["Galaith", "Northport", "Keep", "Court", "Ravensgate", "Fenwick", "Ashford", "Highwatch", "Frosthold",
-         "Wardhaven", "Oakhollow", "Thornwick", "Emberwatch", "Moorcross", "Wildwood", "Dunerest", "Saltmarsh"]
+         "Wardhaven", "Oakhollow", "Thornwick", "Emberwatch", "Greyford", "Wildwood", "Dunerest", "Saltmarsh"]
 CITY = ("huge", "large", "medium", "small")
 
 

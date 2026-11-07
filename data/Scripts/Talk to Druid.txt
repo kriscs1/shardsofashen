@@ -27,5 +27,5 @@
 26	End
 27	Display.Conversation	Druid	The Elderwood is breathing easy again. Walk softly under the old trees.	Goodbye.	28
 28	End
-29	Display.Conversation	Druid	The wood is sick, and the sickness began with the wolves on the moor. Deal with them first, and grow strong. What waits in the Withering Wood is worse.	I'll see to the wolves.	30
+29	Display.Conversation	Druid	The wood is sick, and the sickness began with the wolves on the Greyflats. Deal with them first, and grow strong. What waits in the Withering Wood is worse.	I'll see to the wolves.	30
 30	End

@@ -222,7 +222,7 @@ def wardhaven_guard():
 
 
 # ------------------------------------------------------------------ shardstones
-WEST = ["Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Moorcross", "Galaith", "Fenwick", "Dunerest",
+WEST = ["Northport", "Ashford", "Wardhaven", "Oakhollow", "Wildwood", "Greyford", "Galaith", "Fenwick", "Dunerest",
         "Saltmarsh"]
 EAST = ["Court", "Emberwatch", "Thornwick", "Keep", "Ravensgate", "Highwatch", "Frosthold"]
 
@@ -358,13 +358,13 @@ def quests(table, rehoused):
 def world_map(plans):
     lines = read(K.WORLDMAP)
     towns = {"Northport": "Northport", "Ashford": "Ashford", "Oakhollow": "Oakhollow", "Fenwick": "Fenwick",
-             "Moorcross": "Moorcross", "Highwatch": "Highwatch", "Frosthold": "Frosthold", "Dunerest": "Dunerest",
+             "Greyford": "Greyford", "Highwatch": "Highwatch", "Frosthold": "Frosthold", "Dunerest": "Dunerest",
              "Emberwatch": "Emberwatch", "Thornwick": "Thornwick", "Ravensgate": "Ravensgate",
              "Wizards' Court": "Court", "King Rupert's Keep": "Keep", "Wildwood": "Wildwood",
              "Saltmarsh": "Saltmarsh", "Galaith": "Galaith", "Wardhaven": "Wardhaven"}
     regions = {"Sunscar Desert": "1,17,0 12 10", "Saltmarsh Fens": "6,18,0 12 10", "Cinder Peaks": "20,6,0 12 10",
                "Frostpeak": "13,19,0 12 6", "The Pass of Galaith": "0,12,0 12 4", "The Wildwood": "3,7,0 12 10",
-               "Greymoor": "12,9,0 12 10", "The Redrock Hills": "11,14,0 12 10", "The Elderwood": "17,8,0 12 10",
+               "The Greyflats": "12,9,0 12 10", "The Redrock Hills": "11,14,0 12 10", "The Elderwood": "17,8,0 12 10",
                "The Ashwold": "22,4,0 6 10", "The Downs": "19,15,0 12 10", "The West Range": "0,9,0 12 10"}
     regions = {k: "%s %s" % (L.tname(v.split()[0]), " ".join(v.split()[1:])) for k, v in regions.items()}
     out, section = [], None
@@ -484,7 +484,7 @@ def orphans():
             continue
         if not (TOWN_IDS.match(name) or name.startswith("Read ") or re.match(r"^Talk to Market_Vendor_\d+$", name)):
             continue
-        if "_" not in target and target not in ("Ashford", "Northport", "Oakhollow", "Fenwick", "Moorcross",
+        if "_" not in target and target not in ("Ashford", "Northport", "Oakhollow", "Fenwick", "Greyford",
                                                 "Highwatch", "Frosthold", "Dunerest", "Emberwatch", "Thornwick",
                                                 "Ravensgate", "Wardhaven"):
             continue

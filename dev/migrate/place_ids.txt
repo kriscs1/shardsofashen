@@ -29,7 +29,7 @@
 0,0,-9	Id	Lair_Arrival	14	17
 0,0,-9	Id	Lair_Portal	14	19
 2,0,0	Id	Milkmaid_Farm	9	9
-3,6,0	Id	Moorcross_Square	14	7
+3,6,0	Id	Greyford_Square	14	7
 1,6,0	Id	Oakhollow_Square	8	10
 8,8,0	Id	Ravensgate_Square	14	5
 1,3,0	Id	Northport_Port	12	11

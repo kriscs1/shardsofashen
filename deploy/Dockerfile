@@ -26,7 +26,6 @@ COPY VERSION VERSION
 COPY data data
 COPY maps maps
 COPY sprites sprites
-COPY saves/TEMPLATE.ini saves/TEMPLATE.ini
 COPY ashen ashen
 COPY dsengine dsengine
 COPY server server

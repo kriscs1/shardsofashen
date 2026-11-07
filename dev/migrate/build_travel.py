@@ -126,7 +126,7 @@ def quest_markers():
         "The Hermit's Fire": {1: PL.marker("Hermit_Hut", "0,1,0 17 4")},
         "The Wildwood Watch": {1: ";".join(site("WatchStone%d" % k) for k in (1, 2, 3)), 2: town("Oakhollow"),
                                3: site("SpiderNest")},
-        "Wolves of the Moor": {1: town("Moorcross"), 2: site("WolfDen"), 3: town("Moorcross")},
+        "Wolves of the Greyflats": {1: town("Greyford"), 2: site("WolfDen"), 3: town("Greyford")},
         "Bog Lights": {1: town("Fenwick"), 2: town("Fenwick", -7, 5, "Fenwick_Elder"), 3: town("Fenwick")},
         "Bandits on the Road": {1: town("Highwatch"), 2: site("BanditCamp"), 3: town("Highwatch")},
         "The Lost Caravan": {1: site("CaravanWreck"), 2: town("Dunerest")},

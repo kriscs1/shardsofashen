@@ -563,6 +563,7 @@ Hidden_Dark001	0 0 0
 Hidden_Ladder001	255 0 0
 Hob_Tent001	150 120 80
 Ice001	159 197 222
+Thin_Ice001	170 200 220
 Iron_Fence001	40 40 46
 Iron_Fence002	40 40 46
 Iron_Fence003	40 40 46

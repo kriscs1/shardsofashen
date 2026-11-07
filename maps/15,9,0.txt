@@ -21,25 +21,25 @@ Dust001:Dust001+Decor(Wood_Fence002):Dust001:Dust001:Dust001:Dust001:Dust001:Dus
 Dust001:Dust001+Decor(Wood_Fence005):Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Gravel001+Decor(Wood_Gate001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence001):Dust001+Decor(Wood_Fence006)
 StaticObject	Dice_Table	608	224	Id=Dice_Table_15_9_0_02
 NPC	Cat	352	600	Attitude=Good Zone=7,16,17,20 Pause=4-12
-NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Priest_303 Name=Ida Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
-NPC	Barkeep	512	184	Attitude=Good Stand=1 Face=S Id=Moorcross_Barkeep_305 Name=Hattie
-NPC	Barmaid	576	248	Attitude=Good Zone=15,9,20,9 Pause=3-9 Id=Moorcross_Barmaid_306 Name=Rosie
-NPC	Farmer	256	504	Attitude=Good Zone=7,14,11,17 Pause=5-15 Id=Moorcross_Resident_307 Name=Hattie Zone.Levels=-1,0
-NPC	Farmer	544	504	Attitude=Good Zone=16,16,20,17 Pause=5-15 Id=Moorcross_Resident_308 Name=Jane Zone.Levels=-1,0
-StaticObject	Notice	128	546	Id=Moorcross_Notice_301
+NPC	Villager	320	184	Attitude=Good Stand=1 Face=S Id=Greyford_Priest_303 Name=Ida Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
+NPC	Barkeep	512	184	Attitude=Good Stand=1 Face=S Id=Greyford_Barkeep_305 Name=Hattie
+NPC	Barmaid	576	248	Attitude=Good Zone=15,9,20,9 Pause=3-9 Id=Greyford_Barmaid_306 Name=Rosie
+NPC	Farmer	256	504	Attitude=Good Zone=7,14,11,17 Pause=5-15 Id=Greyford_Resident_307 Name=Hattie Zone.Levels=-1,0
+NPC	Farmer	544	504	Attitude=Good Zone=16,16,20,17 Pause=5-15 Id=Greyford_Resident_308 Name=Jane Zone.Levels=-1,0
+StaticObject	Notice	128	546	Id=Greyford_Notice_301
 StaticObject	Shardstone	448	352
-StaticObject	Notice	416	98	Id=Moorcross_Notice_302
+StaticObject	Notice	416	98	Id=Greyford_Notice_302
 StaticObject	Sign_Pub	480	304
-Id	Waystone_Moorcross	15	13
-Id	Moorcross_Square	13	12
-Id	Moorcross_Chapel	11	11
+Id	Waystone_Greyford	15	13
+Id	Greyford_Square	13	12
+Id	Greyford_Chapel	11	11
 NPC	Shepherd	352	344	Attitude=Good Zone=9,10,15,14 Pause=4-12
-Id	Moorcross_Shepherd	12	12
+Id	Greyford_Shepherd	12	12
 NPC	Trader	320	344	Attitude=Good Zone=8,10,14,14 Pause=4-12
 NPC	Settler	384	312	Attitude=Good Zone=10,9,16,13 Pause=4-12 Home=6,5,6,5/8,5,12,5/6,6,8,6/12,6,12,6/6,7,12,7/6,8,6,8/11,8,12,8/6,9,12,9
-StaticObject	Loose_Cobble	512	384	Id=Secret_Moorcross
+StaticObject	Loose_Cobble	512	384	Id=Secret_Greyford
 StaticObject	Valuables	544	152
 StaticObject	Valuables	256	376
-StaticObject	Hollow_Stump	96	416	Id=Secret_Moorcross_2
-StaticObject	Loose_Cobble	704	224	Id=Secret_Moorcross_3
+StaticObject	Hollow_Stump	96	416	Id=Secret_Greyford_2
+StaticObject	Loose_Cobble	704	224	Id=Secret_Greyford_3
 NPC	Dust_Rat	672	152	Attitude=Bad Zone=19,3,25,9 Chase=15,1,25,13

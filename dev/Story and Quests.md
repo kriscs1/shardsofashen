@@ -43,7 +43,7 @@ choice: the dragon should be a real villain, so killing it feels right.)
 - **The mainland**: **Northport** (a large city, where the ferry lands; Ashen's Parliament sits in its City Hall
   while Galaith is lost), **Ashford**, **King Rupert's Keep** (the old Tyron's Keep, held by the King's Steward), the
   **Wizards' Court** on the Royal Isle, Fenwick, Ravensgate, Highwatch, Frosthold, Oakhollow, Thornwick, Emberwatch,
-  Moorcross, Dunerest, Wildwood and Saltmarsh, each the size the owner set (see `CLAUDE.md`).
+  Greyford, Dunerest, Wildwood and Saltmarsh, each the size the owner set (see `CLAUDE.md`).
 - **The Cinderlands**: north of the Elderwood. Emberwatch, the Ashwold and the Cinder Peaks, where the Ashen Priest
   holds the Cinder Fort.
 - **Dragon Island**: south of Ravensgate, by Captain Rook's ship. Drakes, and the Temple of Valour.
@@ -55,8 +55,10 @@ choice: the dragon should be a real villain, so killing it feels right.)
 
 ## The main quest line
 
-Seventeen chapters, each unlocked by the one before it. Chapters 1 to 4 are the Isle (`build_heir_isle.py`); 5 to
-17 the mainland and Galaith (`build_heir_mainland.py`, with `build_galaith.py` for the city and its pass).
+Twenty-four chapters, each unlocked by the one before it. Chapters 1 to 4 are the Isle (`build_heir_isle.py`); 5 to
+24 the mainland and Galaith (`build_heir_mainland.py`, with `build_galaith.py` for the city and its pass). The middle
+(12, 13 and 18 to 21: `build_middle_quests.py`) leads you round the world a zone at a time, a piece of gear at each,
+and each place's keeper names the next: never a letter or a sign.
 
 ### On the Isle (the tutorial)
 
@@ -88,22 +90,33 @@ Bert only wanted the ring (it goes with his new robe, and he can't stand the Ash
 confession. He teaches you the spell of Unbinding, gives you the staff, and warns that only the **Sword of Valour**,
 driven into its heart, kills the dragon.
 
+### Orrin's chart and the Lodestar
+
+| Ch. | Quest | What you do |
+|---|---|---|
+| 12 | **Orrin's Chart** | (level 10) **Captain Rook**, on the shore below King Rupert's Keep, would sail to Dragon Island, but its reefs move and he won't try them without the chart of **Orrin**, a navigator who climbed the **Sundered Tower** in the Shattered Reach and never came down. Orrin's ghost is at the top: his **Shadow**, below, has the chart; kill it and he gives it you. Reward: a mithril helm, 40 Shards. |
+| 13 | **The Frozen Lodestar** | (level 12) The chart wants the **Lodestar** to read it by, and its shrine went under the ice in the Rime. **Nils** the surveyor at Frostwatch Lodge knows where: the **Drowned Shrine**. The **Rime Warden** stands over its altar; past it, Reach In for the Lodestar and take it to Rook. Reward: a mithril shield, 40 Shards. |
+
 ### The Sword of Valour
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 12 | **A Ship for Dragon Island** | (level 12) **Captain Rook**, on the shore east of Ravensgate, will sail if you bring 10 planks and 20 nails for his hull. |
-| 13 | **The Island of Dragons** | Sail to **Dragon Island**. Three **Valour Seals** from its drakes open the Temple of Valour. |
-| 14 | **The Sword of Valour** | Defeat the temple's **Guardian of Valour** and draw the sword from its stone. |
+| 14 | **A Ship for Dragon Island** | (level 13) With the chart and the Lodestar, Rook will sail if you bring 10 planks and 20 nails for his hull. |
+| 15 | **The Island of Dragons** | Sail to **Dragon Island**. Three **Valour Seals** from its drakes open the Temple of Valour. |
+| 16 | **The Sword of Valour** | Defeat the temple's **Guardian of Valour** and draw the sword from its stone. |
 
 ### Galaith
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 15 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. Shardstones reach only the realm's calm **rim** (where your homestead's pocket is, he says); the anchor is in its **core**, a storm, and only a great anchor can pierce it. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards, Shardcraft 5, and at least **8 shardstones active** to steady it). It shows on your world map once it's built. Through it, the realm's core: get past its **Warden** and shatter the barrier's **anchor** with the staff, then tell Bert. Reward: 30 Shards, Channeling and Shardcraft experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
-| 16 | **The Dragon of Galaith** | (level 16) West to the pass in the West Range. **Use the staff on the barrier** (with Bert's spell learnt) and it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour, wielded**, gives it its death blow. The city's gate onto the field opens. |
-| 17 | **The Royal Guard** | Explore the city to win the guard over: the **captain** at the palace door sends you to the **Lord Chancellor** (the Parliament), who sends you to the **Royal Archivist** (the City Hall) with your mother's amulet; her word to the Chancellor; his warrant to the captain. |
-| 18 | **The True Heir** | **King Rupert**, on his throne: show him the amulet, tell him the will. He holds you and weeps, and gives you the crown. From then the world is open play; **Jimmy** curls up on the throne, and in your house on the Isle. |
+| 17 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. Shardstones reach only the realm's calm **rim** (where your homestead's pocket is, he says); the anchor is in its **core**, a storm, and only a great anchor can pierce it. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards, Shardcraft 5, and at least **8 shardstones active** to steady it). It shows on your world map once it's built. Through it, the realm's core: get past its **Warden** and shatter the barrier's **anchor** with the staff, then tell Bert. Reward: 30 Shards, Channeling and Shardcraft experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
+| 18 | **The Sleeping Sword** | (level 14) With the anchor gone the staff only **thins** the barrier. Beyond it the dragon wears a hide of **Shards** (the Ashen Hand has fed it through the wall) and laughs at the Sword of Valour: it's asleep. **Bert**: it was made in three fires, and must be woken in them again. The first was the Ashen Foundry; ask the Warden at Ashfall Outpost. |
+| 19 | **The Ashen Foundry** | (level 15) **Warden Oska** at Ashfall Outpost: the **Forgemother** holds the Foundry. Break it, then work the **bellows** till the fire is hot enough (three pulls: a fourth and it chokes, and you start again) and Temper the sword at the **hearth**. Oska names the second fire: the Sun-Forge, and the nomad who knows it. Reward: a mithril platebody, 60 Shards. |
+| 20 | **The Sun-Forge** | (level 17) **Nomad Tarek** at the Sun-Forge's temple (south of the well): the **Sun Keeper** still holds it. Break it, then turn the three **mirrors** to his grandmother's song (dawn to the east, noon to the south, dusk to the west) and Temper the sword at the forge. Tarek names the third: the Deep Anvil, and the delver who keeps the old hall. Reward: a dragonscale helm, 70 Shards. |
+| 21 | **The Deep Anvil** | (level 19) **Delver Maud**: the **Stone King** sits the old dwarf hall's throne. Break it, strike the four **rune stones** in the work-song's order (Root, Rock, Hammer, Crown: a wrong one and they go quiet), and Temper the sword on the anvil: in your hand it's the **Woken Sword of Valour**, its wear kept. Reward: a dragonscale platebody, 90 Shards. |
+| 22 | **The Dragon of Galaith** | (level 20) West to the pass in the West Range. **Use the staff on the barrier** (with Bert's spell learnt) and, with the sword awake, it shatters. The dragon speaks (the bargain, your mother's flight) and the boss fight begins: nothing but the **Sword of Valour** (woken or not), **wielded**, gives it its death blow. The city's gate onto the field opens. |
+| 23 | **The Royal Guard** | Explore the city to win the guard over: the **captain** at the palace door sends you to the **Lord Chancellor** (the Parliament), who sends you to the **Royal Archivist** (the City Hall) with your mother's amulet; her word to the Chancellor; his warrant to the captain. |
+| 24 | **The True Heir** | **King Rupert**, on his throne: show him the amulet, tell him the will. He holds you and weeps, and gives you the crown. From then the world is open play; **Jimmy** curls up on the throne, and in your house on the Isle. |
 
 **Unlocks:** the mine behind Galaith (once you're king); the Wyrmsmith's Dragonforge in Wardhaven (The Dragonforge).
 
@@ -180,10 +193,10 @@ emptied):
 - if you took them, **give them back** (he rewards you 40 gold, keeps you as a friend) **or keep them** (the
   madness takes him again and he attacks, for good).
 
-### Greymoor, the Saltmarsh and the Redrock road
+### the Greyflats, the Saltmarsh and the Redrock road
 
-**Wolves of the Moor**: *level 3, after chapter 4*
-The shepherd in Moorcross: slay 6 moor wolves, then find the wolf den on the eastern moor and kill the Alpha Wolf.
+**Wolves of the Greyflats**: *level 3, after chapter 4*
+The shepherd in Greyford: slay 6 moor wolves, then find the wolf den out east on the flats and kill the Alpha Wolf.
 Reward: 150 gold, a steel shield, Defence experience.
 
 **Bog Lights**: *level 3, Potion Making 3, after chapter 4*
@@ -212,7 +225,7 @@ Brann the forgemaster in Frosthold: bring 5 coal to light his forge, slay the Fr
 waterwheel (on the frozen lake), then bring 2 mithril bars. Reward: 250 gold, a
 mithril sword, Smithing experience.
 
-**The Withering Wood**: *level 6, after Wolves of the Moor*
+**The Withering Wood**: *level 6, after Wolves of the Greyflats*
 The Druid in Thornwick: touch the Heartwood, the Elderwood's old heart stone, then slay 4 blight-maddened bears.
 Reward: 150 gold, an emerald ring, Potion Making and Woodcutting experience.
 
@@ -252,7 +265,7 @@ A hedge witch at Fenwick's market practises a hex on you: your Strength drains t
 wants the four market rats seen to. Your sword arm's no use: a spell, a potion, or someone else's body. Reward:
 Antidotes, 15 Shards, Magic experience.
 
-**The Shifting Deep**: an old Shard mine by the road south of Moorcross, its tunnels never where they were. Three
+**The Shifting Deep**: an old Shard mine by the road south of Greyford, its tunnels never where they were. Three
 floors of rooms and tunnels, monsters stronger the deeper you go, chests (once each, a shift; sometimes one bites),
 traps hidden underfoot (darts, gas, a weakness rune, a bell that brings remnants, a pit that drops you a floor), a
 secret room behind a cracked wall on each floor (Search it), and at the bottom, past its Warden, the Deep's Heart:
@@ -297,6 +310,23 @@ remnants and tell him how it felt. He teaches you to write a spell of your own a
 throne in the great hall: choose its effect (a bolt, a burst round you, a frost that holds foes, a ward), its power
 (as far as your Magic goes) and its reach; its Shards and rest are worked out to balance. Write it again whenever you
 like, for a few Shards. Reward: 20 Shards, Magic experience.
+
+### The zones' points of interest (`build_middle_quests.py`)
+
+Bosses of their own, each with a trophy, and side quests, games and odd folk round the main quest's places:
+
+- **Bosses**: the **Scavenger King** on Bonebreak Mesa, **Old Whitefang** by Yeti Hollow, the **Slag Wyrm** in the Lava
+  Fields, the **Sand-Mother** at the Drakes' Bones.
+- **The Brother in the Ash** (`CaelQuest`, level 14, after The Shardgate): **Cael**, a penitent of the Ashen Hand at the
+  Cinder Chapel, prays with his back to the others. He asks you to take his letter to his sister, **Warden Oska** of
+  Ashfall Outpost; her answer back to him; his confession (Read it). Reward: a Ward Shard, 30 Shards.
+- **The Wandering Echo** (`EchoQuest`, level 10): a voice on **Shardglass Field** asks three riddles nobody has stayed
+  to answer (a Shard; the Shardrealm; under the world). A wrong answer and it starts again; each one right rings out 10 Shards, the last the quest's 45.
+- **Old Skadi's Tall Tales** (`SkadiQuest`, level 12): at Frostwatch Lodge, three tales; say which are true and which
+  lies. Reward: wool mittens.
+- **Games and odd folk**: **Lucky Lem**'s rat races at Rustwater Halt (Bet on the track), **Vesna**'s fortunes at Ashfall
+  Outpost, the **Mirage Trader** (the desert's odd goods; every time you look away he's a little further off), the **Echo Pool** in the Fungus Grotto
+  (Listen, then sing its tune back), **Fenn**'s mushrooms at the Delvers' Camp.
 
 ### The Shardfall Deep (level 20 and up)
 
@@ -472,20 +502,24 @@ The Last Will (1) ── Dinner at Edwin's (2) ── The Amulet of Succession (
 Passage to the Mainland: every mainland quest needs it
 ├── The Temporary Capital (5) ── The Ashford Road (6) ── The Steward's Hunt (7)
 │   ├── Bert's Three Treasures (8): The Staff of Ashen (9), The Sunken Grimoire (10), The Ember Ring (11)
-│   │   └── A Ship for Dragon Island (12) ── The Island of Dragons (13) ── The Sword of Valour (14)
-│   │       └── The Dragon of Galaith (15) ── The Royal Guard (16) ── The True Heir (17)
+│   │   └── Orrin's Chart (12) ── The Frozen Lodestar (13) ── A Ship for Dragon Island (14)
+│   │       └── The Island of Dragons (15) ── The Sword of Valour (16) ── The Shardgate (17)
+│   │           └── The Sleeping Sword (18) ── The Ashen Foundry (19) ── The Sun-Forge (20) ── The Deep Anvil (21)
+│   │               └── The Dragon of Galaith (22) ── The Royal Guard (23) ── The True Heir (24)
+│   │   The Shardgate: The Brother in the Ash
 │   ├── The Dwarf's Grudge
 │   └── The Wildwood Watch
 ├── A Place of Your Own, The Herbalist's Remedy, The Smugglers' Run, The Frozen Forge, The Lost Patrol,
 │   Granny Wren's Walk, A Portrait of Mo
-├── Wolves of the Moor ── The Withering Wood ── The Barrow King
+├── Wolves of the Greyflats ── The Withering Wood ── The Barrow King
 ├── Bandits on the Road ── The Lost Caravan
+├── The Wandering Echo, Old Skadi's Tall Tales
 └── Bog Lights ── Old Hob
 On the Isle, any time: The Hermit's Fire
 ```
 
 Recurring characters worth keeping consistent: **Jimmy** the cat (the cottage, your house on the Isle, the throne),
-**Maren and Edwin** (their house by the chapel; Tobias lives with them after the lair), **Bert** (chapters 8 to 15), **the Steward**
+**Maren and Edwin** (their house by the chapel; Tobias lives with them after the lair), **Bert** (chapters 8 to 22), **the Steward**
 (chapters 7 and 9), **Morwen** the witch (Bog Lights, Old Hob), and **the Ashen Priest** (chapter 11; his cult's
 shrines stand quiet in the Ashwold).
 
@@ -525,6 +559,9 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | Bert's Three Treasures | BertQuest | Talk to Bert, Bert's Confession |
 | The Redrock Signet | RedrockSignetQuest | Talk to Redrock_Steward, Open Redrock_Manor_Vault (build_hush_and_dread.py) |
 | The Sunken Grimoire, The Ember Ring | GrimoireQuest, RingQuest | Talk to Dunerest_Scholar, 3,16,0, 3,16,-1, Talk to Warden, Kill Ashen_Priest |
+| Orrin's Chart, The Frozen Lodestar | OrrinQuest, LodestarQuest | Talk to Captain_Rook, Talk to Orrin_Ghost, Kill Orrins_Shadow, Talk to Surveyor_Nils, Reach In Lodestar_Altar, Kill Rime_Warden (build_middle_quests.py) |
+| The Sleeping Sword, The Ashen Foundry, The Sun-Forge, The Deep Anvil | WakeQuest, FoundryQuest, SunforgeQuest, AnvilQuest | Use Staff_of_Ashen With Barrier, Bert's Errands, Talk to Warden_Oska / Nomad_Tarek / Delver_Maud (their kill quests are Odd Jobs for <who>), Work Foundry_Bellows, Temper Foundry_Hearth / Sun_Forge / Deep_Anvil, Turn *_Mirror, Strike Rune_Stone_*, Kill Forgemother / Sun_Keeper / Stone_King |
+| The Brother in the Ash, The Wandering Echo, Old Skadi's Tall Tales | CaelQuest, EchoQuest, SkadiQuest | Talk to Cael, Read Cael_Confession, Talk to Wandering_Echo, Talk to Old_Skadi (build_middle_quests.py) |
 | A Ship for Dragon Island, The Island of Dragons, The Sword of Valour | ShipQuest, DragonIsleQuest, ValourQuest | Talk to Captain_Rook*, 22,20,0, Temple Door, Talk to Valour_Guardian_Knight |
 | The Dragon of Galaith | GalaithQuest | 9,12,0, Use Staff_of_Ashen With Barrier, The Dragon Speaks, Kill Galaith_Dragon |
 | The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, -9,14,0 |
@@ -538,7 +575,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |
 | The Wildwood Watch | RangerQuest | Talk to Ranger, Watch Stone 1-3, Kill Giant_Spider |
 | Old Hob | HobQuest | Read Hobs_Diary, Talk to Witch, Use Calming_Draught With Hob, Talk to Hob |
-| Wolves of the Moor | WolfQuest | Talk to Shepherd, Kill Wolf, Wolf Den, Kill Alpha_Wolf |
+| Wolves of the Greyflats | WolfQuest | Talk to Shepherd, Kill Wolf, Wolf Den, Kill Alpha_Wolf |
 | Bog Lights | BogQuest | Talk to Witch, Talk to Elder |
 | Bandits on the Road | BanditQuest | Talk to Captain, Kill Bandit, Open Strongbox |
 | The Lost Caravan | CaravanQuest | Talk to Merchant, Caravan Wreck, Kill Scorpion |

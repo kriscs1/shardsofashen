@@ -248,7 +248,7 @@ def main():
     racks.save(p("data", "ItemRacks.ini"))
 
     # ----- a new character: no scrolls
-    tpl = p("saves", "TEMPLATE.ini")
+    tpl = p("data", "NewCharacter.ini")
     lines = read_lines(tpl)
     keep = [ln for ln in lines if not (re.match(r"Slot\d+=", ln) and ln.split("=", 1)[1].split(",")[0] in sset)]
     if keep != lines:

@@ -497,6 +497,9 @@ def quest():
     SK.section(q, "The Royal Guard", [("Chapter", "17")])
     SK.section(q, "The True Heir", [("Chapter", "18")])
     SK.place_label("Places", "The Shardgate", "Shardgate_Site [if $Attr.ShardgateQuest>=3]")
+    import build_middle_quests                                    # (the chapters since: 12-13 and 18-21 among them)
+    if "Orrin's Chart" in open(q, "rb").read().decode("cp1252"):
+        build_middle_quests.renumber()
 
 
 def main():

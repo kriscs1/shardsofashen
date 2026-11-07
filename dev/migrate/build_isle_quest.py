@@ -166,7 +166,7 @@ def data():
         with open(colours, "a", encoding="cp1252", newline="\r\n") as f:
             f.write("Chapel_Stairs001\t255 0 0\n")
     # no sword to start with: you make your own
-    tpl = os.path.join(ROOT, "saves", "TEMPLATE.ini")
+    tpl = os.path.join(ROOT, "data", "NewCharacter.ini")
     text = open(tpl, "rb").read().decode("cp1252")
     text = text.replace("Weapon=Bronze_Sword\r\n", "").replace("Weapon=Bronze_Sword\n", "")
     open(tpl, "wb").write(text.encode("cp1252"))

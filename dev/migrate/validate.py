@@ -87,7 +87,7 @@ def check_ini_syntax(path):
         if k in keys:
             err(r, "line %d: duplicate key %s in [%s]" % (n, k, cur))
         keys.add(k)
-        if len(v.strip()) > 2047 and not r.lower().startswith("saves"):     # (the editor's limit; it never opens saves)
+        if len(v.strip()) > 2047:     # (the editor's limit)
             warn(r, "line %d: value is %d chars; Read.From.Ini$ only returns 2047 (the editor reads ini values into a 2048 byte buffer)" % (n, len(v.strip())))
 
 
@@ -665,7 +665,7 @@ def command_numbers():
     return {}
 
 
-ITEM_ARGS = {"ITEM NAME", "REQUIRED ITEM", "DISALLOWED ITEM"}
+ITEM_ARGS = {"ITEM NAME", "REQUIRED ITEM", "DISALLOWED ITEM", "REPLACE WITH ITEM"}
 ENTITY_ARGS = {"ENTITY NAME"}
 TILE_ARGS = {"CHANGE TO TILE", "CHANGE FROM TILE", "REQUIRED TILE NAME", "DISALLOWED TILE NAME"}
 NPC_ARGS = {"NPC NAME"}
@@ -1200,11 +1200,14 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Lock", "Key", "Sturdy",                                          # a chest's lock (locks.py), its key; 1: never broken open
                "Warm",                                                           # 1: it keeps the cold off (cold.py)
                "Boss",                                                           # 1: tougher for each fighter (together.py)
-               "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}                # a cart (carts.py): where its rider stands
+               "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8",               # a cart (carts.py): where its rider stands
+               "Seat", "Headings", "Vehicle.Noun",                              # a boat's one seat; how many ways it turns; "ferry"
+               "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image"}       # its sounds; its menu's words and picture
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Season.Absent", "Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Spoils.To", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
-                                     "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8"}
+                                     "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8",
+                                     "Seat", "Vehicle.Noun", "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1511,12 +1514,21 @@ def check_carts():
                 levels.add(pt[0].split(",")[2])
                 if pt[3]:
                     stops.add(pt[3])
-            elif k in ("Fare", "Wait"):
+            elif k in ("Fare", "Wait", "Speed", "Every"):
                 if not is_num(v):
                     err(r, "[%s] %s=%r should be a number" % (sec, k, v))
-            elif k == "Loop":
+            elif k in ("Loop", "Timetable"):
                 if v.strip() not in ("0", "1"):
-                    err(r, "[%s] Loop=%r should be 0 or 1" % (sec, v))
+                    err(r, "[%s] %s=%r should be 0 or 1" % (sec, k, v))
+            elif k == "Vehicle":                                             # (its own vehicle: an NPC with Vehicle=1)
+                if ENTITIES_INI is not None and (ENTITIES_INI.get(v.strip(), "Vehicle") or "") != "1":
+                    err(r, "[%s] Vehicle=%s isn't an Entities.ini vehicle (Vehicle=1)" % (sec, v))
+            elif k == "Start":
+                if not any(re.fullmatch(r"(Point|Node)\d+", k2 or "") and (parse_point(v2) or ("",) * 4)[3] == v.strip()
+                           for k2, v2 in items):
+                    err(r, "[%s] Start=%s isn't one of its stops" % (sec, v))
+            elif re.fullmatch(r"(Requires|Refused)(\.[1-9])?", k):
+                pass                                                         # (who may board: a condition; what's said)
             elif k != "Title":
                 warn(r, "[%s] %s: not a key of a cart's route" % (sec, k))
         if nodes and any(re.fullmatch(r"Point\d+", k or "") for k, v in items):
@@ -1679,13 +1691,9 @@ def check_itemracks(entities_ini, skills):
 
 
 def check_saves(skills):
-    d = p("saves")
-    if not os.path.isdir(d):
-        err("Saves", "missing")
-        return
-    for f in sorted(os.listdir(d)):
-        path = os.path.join(d, f)
-        if not f.lower().endswith(".ini"):
+    for path in (p("data", "NewCharacter.ini"),):     # (a new character's start)
+        if not os.path.exists(path):
+            err(rel(path), "missing")
             continue
         check_raw(path)
         check_ini_syntax(path)

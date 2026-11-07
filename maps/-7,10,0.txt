@@ -26,3 +26,9 @@ NPC	Stone_Golem	672	216	Attitude=Bad Zone=19,5,25,11 Chase=15,1,25,15
 NPC	Stone_Golem	672	344	Attitude=Bad Zone=19,9,25,15 Chase=15,5,25,19
 NPC	Stone_Golem	480	120	Attitude=Bad Zone=13,2,19,8 Chase=9,1,23,12
 Id	Dwarf_Hall	17	14
+StaticObject	Deep_Anvil	448	224	Id=Dwarf_Hall_Anvil
+StaticObject	Rune_Stone_Crown	320	480	Id=Dwarf_Hall_Crown
+StaticObject	Rune_Stone_Root	384	480	Id=Dwarf_Hall_Root
+StaticObject	Rune_Stone_Hammer	448	480	Id=Dwarf_Hall_Hammer
+StaticObject	Rune_Stone_Rock	512	480	Id=Dwarf_Hall_Rock
+NPC	Stone_King	640	408	Id=Stone_King_Boss Zone=18,13,24,16 Chase=10,9,25,16

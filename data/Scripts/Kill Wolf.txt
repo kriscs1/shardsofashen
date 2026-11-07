@@ -8,7 +8,7 @@
 07	>Conditional	$Variable.2<6	10
 08	Display.Message	Yellow	Wolves slain for the shepherd: $Variable.2 of 6.
 09	End
-10	Quest.Note.Done	WolfQuest	Slay six wolves on Greymoor.
-11	Quest.Note	WolfQuest	Tell the shepherd in Moorcross.
-12	Display.Message	Yellow	Six wolves! Tell the shepherd in Moorcross.
+10	Quest.Note.Done	WolfQuest	Slay six wolves on the Greyflats.
+11	Quest.Note	WolfQuest	Tell the shepherd in Greyford.
+12	Display.Message	Yellow	Six wolves! Tell the shepherd in Greyford.
 13	End

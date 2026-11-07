@@ -39,19 +39,19 @@ RENAMED = {"The Dustlands": "The Sallow Waste"}
 # its monsters; its people: a quest giver (Id) and company)
 SITES = [
     # ----- the Sallow Waste (the Dustlands): 6-9
-    dict(zone="Dustlands", id="Rustwater_Halt", label="Rustwater Halt", r=(10, 7), ground=[("Dirt001", 3), ("Dust001", 1)],
+    dict(zone="Sallow_Waste", id="Rustwater_Halt", label="Rustwater Halt", r=(10, 7), ground=[("Dirt001", 3), ("Dust001", 1)],
          houses=[(7, 5, "Timber001", "Shingle", "store"), (6, 5, "Sandstone001", "Clay", "home"), (5, 4, "Timber001", "Thatch", "home")],
          things=[("Well001", 1), ("Crate001", 3), ("Barrel001", 3), ("Campfire001", 1), ("Bench001", 2), ("Haystack001", 1)],
          giver="Prospector_Hale", folk=[("Villager", "Wren_Dusk"), ("Farmer", "Old_Tobb")]),
-    dict(zone="Dustlands", id="Salt_Pans", label="The Salt Pans", r=(12, 8), ground=[("Salt_Flat001", 1)],
+    dict(zone="Sallow_Waste", id="Salt_Pans", label="The Salt Pans", r=(12, 8), ground=[("Salt_Flat001", 1)],
          decor=[("Bones001", 3), ("Bones002", 2), ("Dead_Tree001", 2), ("Desert_Rock001", 2)], dens=6,
          things=[("Dragon_Skull001", 1), ("Grave_Slab001", 2)], mobs=[("Dust_Wraith", 4), ("Scorpion", 2)]),
-    dict(zone="Dustlands", id="Bonebreak_Mesa", label="Bonebreak Mesa", r=(10, 7), ground=[("Dust001", 1)], mesas=3,
+    dict(zone="Sallow_Waste", id="Bonebreak_Mesa", label="Bonebreak Mesa", r=(10, 7), ground=[("Dust001", 1)], mesas=3,
          decor=[("Desert_Rock001", 3), ("Dead_Tree002", 1)], dens=4,
          houses=[(6, 4, "Timber001", "Thatch", "store")], chest=True,
          things=[("Tent001", 2), ("Tent002", 1), ("Campfire001", 1), ("Crate002", 2), ("Barrel002", 1)],
          mobs=[("Scavenger", 5)], group=True),
-    dict(zone="Dustlands", id="Dry_Ford", label="The Dry Ford", r=(9, 6), ground=[("Gravel001", 2), ("Dust001", 1)],
+    dict(zone="Sallow_Waste", id="Dry_Ford", label="The Dry Ford", r=(9, 6), ground=[("Gravel001", 2), ("Dust001", 1)],
          decor=[("Dead_Tree001", 3), ("Dead_Tree002", 2), ("Bones001", 1), ("Desert_Rock001", 2)], dens=8,
          houses=[(5, 4, "Timber001", "Thatch", "home")], giver="Old_Sal", mobs=[("Dust_Rat", 4)], mobs_away=True),
     # ----- the Shattered Reach: magic only, 10-14
@@ -631,7 +631,7 @@ def more():
         todo = [s for s in SITES if s["zone"] == z["key"] and s["id"] not in have]
         if not todo:
             continue
-        if z["key"] == "Dustlands":
+        if z["key"] == "Sallow_Waste":
             cells = [(W.mxyz(n)[0] * XT + x, W.mxyz(n)[1] * YT + y) for n, m in world.maps.items()
                      for y in range(YT) for x in range(XT) if m.rows[y][x].split("+")[0] in ("Dust001", "Salt_Flat001")]
         elif z["key"] == "Rime":
@@ -799,7 +799,7 @@ def rare_in_zones():
           (yews, planted, fish, len(spots)))
 
 
-RUINS = {"Dustlands": 3, "Reach": 2, "Rime": 2, "Ashfall": 2, "Scar": 2, "Stoneways": 1}
+RUINS = {"Sallow_Waste": 3, "Reach": 2, "Rime": 2, "Ashfall": 2, "Scar": 2, "Stoneways": 1}
 FINDS = [("Gold_Coin(s)", "3-12", 30), ("Bones", "1", 14), ("Healing_Draught", "1", 10), ("Silver_Ring", "1", 8),
          ("Bronze_Shield", "1", 6), ("Iron_Shield", "1", 4), ("Silver_Bar", "1", 6), ("Gold_Ring", "1", 4), ("Sapphire", "1", 3),
          ("Emerald", "1", 2)]
@@ -861,7 +861,7 @@ def ruins_back():
     taken = Z.occupied(world)
     made = 0
     for z in Z.ZONES:
-        if z["key"] == "Dustlands":
+        if z["key"] == "Sallow_Waste":
             cells = [(W.mxyz(n)[0] * XT + x, W.mxyz(n)[1] * YT + y) for n, m in world.maps.items()
                      for y in range(YT) for x in range(XT) if m.rows[y][x].split("+")[0] in ("Dust001", "Dirt001", "Gravel001")]
         elif z["key"] == "Rime":
@@ -984,7 +984,7 @@ def main():
     labels = []
     sites = []
     for z in Z.ZONES:
-        if z["key"] == "Dustlands":
+        if z["key"] == "Sallow_Waste":
             cells = [(mx * XT + x, my * YT + y) for (mx, my), m in
                      ((W.mxyz(n)[:2], m) for n, m in world.maps.items()) for y in range(YT) for x in range(XT)
                      if m.rows[y][x].split("+")[0] == "Dust001"]

@@ -23,3 +23,4 @@ NPC	Woman	224	312	Attitude=Good   Schedule=Always Id=Warden_Oska Name=Warden_Osk
 NPC	Guard	512	600	Attitude=Good Schedule=Always Zone=14,18,20,21 Id=Sentry_Brann Name=Sentry_Brann
 NPC	Guard	416	632	Attitude=Good Schedule=Always Zone=11,19,17,21 Id=Sentry_Ilse Name=Sentry_Ilse
 Id	Ashfall_Outpost	13	18
+NPC	Old_Woman	256	504	Id=Vesna Attitude=Good Stand=1 Face=S Schedule=Always Name=Vesna_the_Seer

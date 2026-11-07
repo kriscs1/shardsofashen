@@ -43,6 +43,9 @@ class MinimapPage(Page):
         ttk.Spinbox(left, textvariable=self.ps, from_=1, to=4, width=6).pack(anchor="w")
         ttk.Label(left, text="(shared by every level: changing it rebuilds them all)", style="PanelMuted.TLabel",
                   wraplength=220).pack(anchor="w")
+        self.names = tk.BooleanVar(value=True)
+        ttk.Checkbutton(left, text="Place names (WorldMap.ini)", variable=self.names,
+                        command=lambda: self.draw()).pack(anchor="w", pady=(10, 0))
         ttk.Button(left, text="Build the selected levels", style="Accent.TButton",
                    command=lambda: self.build(False)).pack(fill="x", pady=(12, 4))
         ttk.Button(left, text="Build every level", command=lambda: self.build(True)).pack(fill="x")
@@ -80,6 +83,7 @@ class MinimapPage(Page):
         self.project.refresh("maps")
         lv = self.level_maps()
         sel = self.levels.selection()
+        self._labels = None                             # (read again: a place may have moved)
         self.levels.delete(*self.levels.get_children())
         names = {0: "Ground", 1: "Upstairs"}
         for z in sorted(lv, reverse=True):
@@ -90,6 +94,58 @@ class MinimapPage(Page):
         elif self.levels.exists("0"):
             self.levels.selection_set("0")
         self.show_unknown()
+
+    def labels(self):
+        """[(name, section, map, tile x, tile y)]: the world map's labels (data\WorldMap.ini), each where its place
+        Id or "map tx ty" puts it. Read once each time the page is shown (finding the Ids reads every map)."""
+        if getattr(self, "_labels", None) is not None:
+            return self._labels
+        out, places, section = [], None, "Places"
+        try:
+            lines = read_text_lines(self.project.p("data", "WorldMap.ini"))
+        except OSError:
+            lines = []
+        for l in lines:
+            l = l.strip()
+            if not l or l.startswith(";"):
+                continue
+            if l.startswith("[") and l.endswith("]"):
+                section = l[1:-1]
+                continue
+            name, _, where = l.partition("=")
+            where = where.split("[if")[0].strip()       # (shown to some players only: the editor shows it anyway)
+            f = where.split()
+            if len(f) == 3 and parse_map_name(f[0]):
+                try:
+                    out.append((name.strip(), section, f[0], int(f[1]), int(f[2])))
+                except ValueError:
+                    pass
+                continue
+            if places is None:
+                with self.app.busy("Finding the world map's places…"):
+                    places = self.project.places()
+            hit = places.get(where.upper())
+            if hit:
+                out.append((name.strip(), section, hit[1], hit[2], hit[3]))
+        self._labels = out
+        return out
+
+    def draw_labels(self, c, gx, gy, s, mw, mh):
+        """The world map's place names over the minimap, as the game's map sets them: towns largest, regions in gold
+        capitals, the rest smaller (once a map's square is big enough); a dark edge so they read over any ground."""
+        big = max(7, min(14, int(mw * s / 5)))
+        styles = {"Towns": (("Segoe UI", big, "bold"), "#fff4dc", False),
+                  "Regions": (("Segoe UI", max(7, big - 1), "bold"), "#f2c46d", True)}
+        for name, section, m, tx, ty in self.labels():
+            x, y, z = parse_map_name(m)
+            if z != self.level or section not in styles and mw * s < 30:
+                continue                                # (the small places only once there's room for them)
+            font, fill, caps = styles.get(section, (("Segoe UI", max(7, big - 3)), "#e8dcc4", False))
+            px, py = ((x - gx) * mw + tx - 0.5) * s, ((y - gy) * mh + ty - 0.5) * s
+            text = name.upper() if caps else name
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                c.create_text(px + dx, py + dy, text=text, fill="#120d09", font=font, tags=("label",))
+            c.create_text(px, py, text=text, fill=fill, font=font, tags=("label",))
 
     def picked(self):
         s = self.levels.selection()
@@ -151,6 +207,8 @@ class MinimapPage(Page):
             c.create_rectangle(x0, y0, x0 + mw * s, y0 + mh * s, outline="#f2c46d", dash=(2, 3))
             if mw * s > 40:
                 c.create_text(x0 + 4, y0 + 3, text="%d,%d" % (x, y), anchor="nw", fill="#fff4dc", font=T.FONT_SMALL)
+        if self.names.get():
+            self.draw_labels(c, gx, gy, s, mw, mh)
 
     def map_at(self, e):
         """The map name of the square under the mouse (one there or not), or None off the grid."""

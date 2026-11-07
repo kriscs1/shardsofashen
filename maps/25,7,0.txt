@@ -30,3 +30,4 @@ NPC	Flame_Cultist	224	88	Attitude=Bad Zone=5,1,11,7 Chase=1,1,15,11 Group=Cinder
 NPC	Flame_Cultist	480	312	Attitude=Bad Zone=13,8,19,14 Chase=9,4,23,18 Group=Cinder_Chapel
 NPC	Flame_Cultist	416	152	Attitude=Bad Zone=11,3,17,9 Chase=7,1,21,13 Group=Cinder_Chapel
 Id	Cinder_Chapel	10	12
+NPC	Penitent	32	376	Id=Cael Attitude=Good Stand=1 Face=S Schedule=Always Name=Cael

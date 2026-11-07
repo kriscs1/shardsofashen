@@ -28,3 +28,8 @@ NPC	Sun_Mummy	640	312	Attitude=Bad Zone=18,8,24,14 Chase=14,4,25,18
 NPC	Sun_Mummy	416	536	Attitude=Bad Zone=11,15,17,21 Chase=7,11,21,21
 NPC	Sun_Mummy	416	216	Attitude=Bad Zone=11,5,17,11 Chase=7,1,21,15
 Id	Sunken_Temple	11	13
+StaticObject	Sun_Forge	224	160	Id=Sunken_Temple_Forge
+StaticObject	Sun_Mirror	192	384	Id=Dawn_Mirror
+StaticObject	Sun_Mirror	384	384	Id=Noon_Mirror
+StaticObject	Sun_Mirror	288	448	Id=Dusk_Mirror
+NPC	Sun_Keeper	512	440	Id=Sun_Keeper_Boss Zone=14,12,20,18 Chase=10,9,22,21

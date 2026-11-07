@@ -97,7 +97,7 @@ tasks.register("packGame", Zip) {
     destinationDirectory = file(gameDir)
     archiveFileName = "game.zip"
     from(game) {
-        include "VERSION", "saves/TEMPLATE.ini"
+        include "VERSION"
         include "data/**", "maps/**", "sprites/**", "web/**"
         include "ashen/**", "dsengine/**", "server/**"
         exclude "**/__pycache__/**", "**/*.pyc", "**/*.db", "**/*.db-*", "data/backups/**"
