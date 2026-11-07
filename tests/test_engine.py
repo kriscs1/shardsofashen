@@ -567,7 +567,7 @@ def test_the_ferries_cross_together_and_carry_you_over(world):
     west = next(c for c in carts.carts if c.key == "Isle_Ferry_West")
     assert east.e.name == west.e.name == "Ferry_Boat" and east.timetable and east.headings == 16
     assert east.stops[east.i] == "the Isle" and west.stops[west.i] == "Northport"     # (one at each pier)
-    t = world.now + 1
+    t = world.now + 5000                                                              # (not cast off mid-test)
     east.wait_until, west.wait_until = carts.leave_time(east, t), carts.leave_time(west, t)
     assert east.wait_until == west.wait_until and east.wait_until % 45000 == 0        # (they cast off together)
     e = east.e
@@ -576,7 +576,7 @@ def test_the_ferries_cross_together_and_carry_you_over(world):
     s.connected = True
     stock(s, **{"Gold_Coin(s)": 5})
     s.choose_verb("Get In", e, e.cx, e.cy)
-    assert s.ab_mode != "Conversation" and s.ride is None                         # (in the fog, before Bess has sailed)
+    assert s.ab_mode != "Conversation" and s.ride is None                         # (no papers yet: not for you)
     s.update_attribute("Passage", "=5")
     s.update_attribute("RemnantsAbsorbed", "=1")
     for k in range(len(s.skill_xp)):
@@ -1678,9 +1678,9 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     talk(npc("Edwin", "0,-2,0", "Edwin_At_Desk"), 1, 1, 1)           # the egg to Edwin; Maren gives the key
     assert s.items_held("Healing_Draught") >= 2                     # (and draughts: herbs mend you, not Shards)
     assert attr("DinnerQuest") == 4 and s.items_held("Chapel_Cellar_Key") == 1
-    # The Amulet of Succession, and Bess's compass begun
+    # The Amulet of Succession, and the papers begun
     bess = npc("Milkmaid", "2,0,0")
-    talk(bess, 3, 1, 1)                                             # the mainland? Father's compass first; and Frank
+    talk(bess, 3, 1, 1)                                             # the mainland? Wim wants papers, Father wrote them; Frank
     assert attr("Passage") == 1 and attr("AmuletQuest") == 1
     frank = npc("Frank", "2,0,0", "Frank_At_Forge")
     talk(frank, 1)                                                  # his wood, his workbench
@@ -1740,7 +1740,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     run(30)
     assert s.items_held("Amulet_of_Succession") == 1 and s.items_held("Lair_Key") == 1 and attr("AmuletQuest") == 6
     assert not any(e.name == "Gravekeeper" and e.owner is s for e in world.ents)   # (he's gone back up)
-    # Passage to the Mainland: the lair, Tobias, the house key, the floorboard, the compass
+    # Passage to the Mainland: the lair, Tobias, the house key, the floorboard, the papers, Wim
     door = world.maps["2,1,-2"]
     lk = door.lock_at[(14, 19)]
     assert not s.lock_closed(door, lk)                              # (the lair's door, with Aldous's key)
@@ -1778,13 +1778,16 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
             break
     assert attr("Squeaked") == 1
     use("1,1,0", 21, 6, "Search")
-    assert s.items_held("Fathers_Compass") == 1 and attr("Passage") == 4
+    assert s.items_held("Marys_Papers") == 1 and attr("Passage") == 4
+    use("1,1,0", 21, 6, "Search")
+    assert s.items_held("Marys_Papers") == 1                        # (just the once)
     for k in range(len(s.skill_xp)):
-        s.skill_xp[k] = max(s.skill_xp[k], 6)                       # (Bess won't sail a green hand: level 3)
-    s.absorb_remnants(next(e for e in s.inv if e.name == "Shard_Remnant"))   # (Aldous's lesson: Bess won't sail before)
-    talk(bess, 3, 1)                                                # the compass to Bess: she sails you over
-    run(60, ms=200)
-    assert attr("Passage") == 5 and s.cur_map.name == "4,4,0"
+        s.skill_xp[k] = max(s.skill_xp[k], 6)                       # (Wim won't take a green hand: level 3)
+    s.absorb_remnants(next(e for e in s.inv if e.name == "Shard_Remnant"))   # (Aldous's lesson: nor before it)
+    s.teleport("3,2,0", 14 * 32, 15 * 32)
+    run(10)
+    talk(npc("Ferryman", "3,2,0"), 1, 1)                            # the papers to Wim: aboard when a boat's in
+    assert attr("Passage") == 5 and s.items_held("Marys_Papers") == 1
     world.set_day_fraction(day)
     leave(world, s)
 
@@ -2633,13 +2636,13 @@ def test_the_milkmaid_is_asked_about_the_mainland_only_once_its_time(world):
     m = world.maps[bess.map]
     s = join(world, "Asker", bess.map, int(bess.x - m.ox) - 28, int(bess.y - m.oy))
     s.connected = True
-    for will, passage, asked in ((1, 0, False), (2, 0, True), (2, 3, True), (2, 5, False)):
+    for will, passage, asked in ((1, 0, False), (2, 0, True), (2, 3, True), (2, 4, False)):     # (4: Wim's, now)
         s.update_attribute("LastWill", "=%d" % will)
         s.update_attribute("Passage", "=%d" % passage)
         s.choose_verb("Talk to", bess, int(bess.cx), int(bess.cy))
         for _ in range(20):
             world.tick(0.05)
-        assert any(r.startswith("Will you take me to the mainland") for r in s.responses) == asked, passage
+        assert any(r.startswith("How do I get to the mainland") for r in s.responses) == asked, passage
         s.close_action_box(-1)
         world.tick(0.05)
     leave(world, s)
@@ -2844,6 +2847,20 @@ def test_bert_takes_the_ring_off_your_finger_and_gives_back_one_staff(world):
     assert s.items_held("Staff_of_Ashen") + s.items_equipped("Staff_of_Ashen") == 1
     assert s.items_equipped("Ember_Ring") == 0 and s.items_held("Ember_Ring") == 0
     assert s.items_held("Grimoire_of_Unbinding") == 0
+    leave(world, s)
+
+
+def test_the_warden_sends_no_one_to_the_cinder_fort_before_level_10(world):
+    """The Ember Ring is for level 10: under it the Warden says not yet (no quest), at it she sends you."""
+    s = join(world, "Ringseeker", "27,5,0", 300, 300)
+    run, npc, talk, use = isle_helpers(world, s)
+    story_done_before(s, 11)                                        # (up to The Ember Ring)
+    s.player_level = lambda: 9
+    talk(npc("Warden", "27,5,0"))
+    assert s.get_attribute("RingQuest") in ("", "0")
+    s.player_level = lambda: 10
+    talk(npc("Warden", "27,5,0"), 1)
+    assert s.get_attribute("RingQuest") == "1"
     leave(world, s)
 
 
@@ -5106,26 +5123,55 @@ def test_chests_are_locked_and_never_out_of_reach(world):
     leave(world, s)
 
 
-def test_no_leaving_the_isle_without_knowing_shard_remnants(world):
-    s = join(world, "Islander", "3,2,0", 10 * 32, 10 * 32)
-    s.start_script("Bess Sails to Northport", False)
-    run_for(world, 20)
-    assert s.cur_map.name == "3,2,0"                                # (Bess sends them to Brother Aldous first)
-    s.close_action_box(-1) if s.ab_mode else None
-    run_for(world, 5)
+def test_no_leaving_the_isle_without_papers_or_knowing_shard_remnants(world):
+    """Wim's ferry runs for everyone, but not for you till he's seen your papers, you've absorbed remnants and you're
+    level 3; with the papers, Northport's port guard sends you to the Speaker."""
+    s = join(world, "Islander", "3,2,0", 14 * 32, 15 * 32)
+    s.connected = True
+    wim = next(e for e in world.ents if e.name == "Ferryman" and e.map == "3,2,0" and world.visible_to(e, s))
+    east = next(c for c in world.carts.carts if c.key == "Isle_Ferry_East")
+
+    def board():
+        return world.carts.refusal(s, east) or ""                                   # (what the boat says, wherever it is)
+
+    def ask(*answers):
+        s.close_action_box(-1) if s.ab_mode else None
+        s.teleport("3,2,0", int(wim.x - s.cur_map.ox), int(wim.y - s.cur_map.oy) + 30)
+        run_for(world, 5)
+        s.do_action("Talk to", wim)
+        run_for(world, 30)
+        said = s.ab_text
+        for n in answers:
+            s.action_box_response_chosen(n)
+            run_for(world, 30)
+        return said
+
+    assert "Papers first" in board()
+    s.update_attribute("LastWill", "=2")
+    assert "Papers first" in ask(1) and s.get_attribute("Passage") == "1"              # (his quest, if Bess didn't start it)
+    assert "no passage" in ask()
+    s.update_attribute("Passage", "=4")
+    stock(s, Marys_Papers=1)
+    assert "seal" in ask(1) and s.get_attribute("Passage") == "5"
+    assert "green as grass" in s.ab_text                                            # (no remnants absorbed: Aldous first)
+    assert "green as grass" in board()
     s.update_attribute("RemnantsAbsorbed", "=1")
-    s.start_script("Bess Sails to Northport", False)
-    run_for(world, 20)
-    assert s.cur_map.name == "3,2,0"                                # (nor a green hand: level 3)
-    s.close_action_box(-1) if s.ab_mode else None
-    run_for(world, 5)
+    assert "green as grass" in board()                                              # (nor a green hand: level 3)
     for k in range(len(s.skill_xp)):
         s.skill_xp[k] = max(s.skill_xp[k], 6)
-    s.start_script("Bess Sails to Northport", False)
-    run_for(world, 120)
-    if s.pending_map:
-        s.do_pending_map_change()
-    assert s.cur_map.name != "3,2,0"                                # (off across the strait)
+    assert "Northport, is it" in ask() and board() == ""
+    leave(world, s)
+    m = world.maps["4,4,0"]
+    guard = next(e for e in world.ents if e.name == "Port_Guard" and e.map == "4,4,0")
+    s = join(world, "Lander", "4,4,0", int(guard.x - m.ox), int(guard.y - m.oy) + 30)
+    s.update_attribute("Passage", "=5")
+    stock(s, Marys_Papers=1)
+    s.do_action("Talk to", guard)
+    run_for(world, 30)
+    assert "royal seal" in s.ab_text
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("ParliamentQuest") == "1"
     leave(world, s)
 
 

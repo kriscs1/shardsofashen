@@ -32,20 +32,24 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    night. There's no bank on the Isle. Three logs for her range (with the axe she
    lends you), an egg from Bess's coop fried on her range, the egg to Edwin. Maren gives the chapel trapdoor's key
    and makes you promise not to go down without a sword and shield.
-3. **The Amulet of Succession** (`AmuletQuest`). **Bess** the milkmaid won't sail without her father's compass; her
+3. **The Amulet of Succession** (`AmuletQuest`). **Bess** the milkmaid sends you to Frank before the hobgoblins; her
    husband **Frank** the blacksmith (his smithy by the dairy, smoke from its chimney by day) helps you make a wooden
    sword and shield. **Brother Aldous** opens the trapdoor to you once you wield both and Strength and Defence are
    level 2. The amulet lies behind bars at the back of the caves (1,1,-2); Aldous follows you down with a scroll of
    Grasp, and gives you the key of the hobgoblins' lair door.
-4. **Passage to the Mainland** (`Passage`, done at 5). Bess's father **Tobias** is missing; his house (the old brick
+4. **Passage to the Mainland** (`Passage`, done at 5). The ferries run from the start, for everyone, but **Wim**
+   won't carry you without papers: since the raids, Northport turns back anyone off the Isle without them, and Bess's
+   father **Tobias**, who kept the Isle's roll and wrote its papers, is missing; his house (the old brick
    house, 1,1,0, "Maren & Bess's Father's Home") is locked. The hobgoblins' lair (2,2,-2) is behind an iron door in the
    caves: four hobgoblins (killed ones come back when someone next comes in), the house key in the corner barrel,
    Tobias in a cage you pick the lock of (he gives you his house and moves in with Maren). A hidden ladder climbs into
    a tent in their palisaded camp (2,2,0): only a tent until you've climbed it from below. In his house a floorboard
-   squeaks: stand on it, then Search it, for the compass. Bess sails you to Northport; after that **the ferries**
-   cross (`dev/migrate/build_ferry.py`, the owner's wish): two boats, one from each pier, casting off together on the
+   squeaks: stand on it, then Search it: the papers Mary left with him for you, under a crowned seal (what the
+   hobgoblins were after; `Marys_Papers`, `PapersFound`). Wim reads them (and tells you of Northport's shardstone),
+   and **the ferries** carry you (`dev/migrate/build_ferry.py`, the owner's wish): two boats, one from each pier, casting off together on the
    bell and passing halfway, turning to the way they go (`Ferry_Boat`, sixteen headings: a route in Carts.ini with its
-   own vehicle, `carts.py`); you step aboard and pay Wim a coin, and ride it across.
+   own vehicle, `carts.py`), both tying up at Northport's berth by the harbour pier; you step aboard, pay a coin,
+   and ride it across. Northport's port guard reads your papers and sends you to the Speaker (The Temporary Capital).
 
 **The Isle** is maps 0..4 by -3..2: `dev/migrate/grow_isle.py` grew it north to twice its size (its old north coast's
 shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
@@ -59,7 +63,7 @@ isn't a box, and the tin that was out there lies nearer the Tin Braes.
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
 old dagger to break down for a Shard (Dismantle) and tells how to pick or force a lock (the Isle's chests have the
 easiest), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and the Grasp scroll (learnt for good, cast
-for Shards), and Bess points out Northport's shardstone. Anything new a player
+for Shards), and Wim points out Northport's shardstone. Anything new a player
 must learn early is taught the same way, on the Isle.
 
 On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts by `build_heir_mainland.py`):
@@ -130,7 +134,7 @@ never laid out. The Glass Wardens' chain in the Shardfall Deep (a side storyline
 Quiet Draught, the Listening Room heard out in the Channelling stance, never answered) puts the rest together. At
 the Seam you choose: the Binding, the Crown, or, only with the Wardens' truth, **Unmake** (break the Seam: storms calmer
 and remnants passive for you, no more Crown Shards); the game plays the same after any. You don't leave the
-Isle till you know what Shard Remnants are (Bess and Wim won't sail till you've absorbed some).
+Isle till you know what Shard Remnants are (Wim won't take you till you've absorbed some, and are level 3).
 
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
 The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.md` has every quest, step by step.
@@ -290,7 +294,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   (`build_zone_sites.py --rare`). Each zone has places of its own (`dev/migrate/build_zone_sites.py` SITES: their own
   ground, real buildings, landmarks, monsters; the quest givers live in a few, with company, and no monster on their
   doorstep); never a ruin's outline: a few ruins, each its own shape (a corner, a tower's stump, a hall's wall,
-  a wall with an arch, a foundation: `--ruins`), rubble round them and the odd thing to pick up.  You leave the Isle at level 3 (Bess and Wim won't sail before).
+  a wall with an arch, a foundation: `--ruins`), rubble round them and the odd thing to pick up.  You leave the Isle at level 3 (Wim won't take you before).
 - **The zones' points of interest** (`dev/migrate/build_middle_quests.py`, beside the main quest's places there): bosses
   of their own (`Boss=1`, a trophy each: the Scavenger King on Bonebreak Mesa, Old Whitefang by Yeti Hollow, the Slag
   Wyrm in the Lava Fields, the Sand-Mother at the Drakes' Bones), side quests (Cael the penitent at the Cinder Chapel
@@ -416,11 +420,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **All tools wear** (`Durability`, no `Slot`): a use each go, and a broken one doesn't count until it's mended.
 
 ### Places and furniture
+- The maps: `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory). The Shardfall Deep is on -1 under the sea north of Ashford (4..12, -17..-5)
 - Inside walls are `*_Thin_Plank*` floor tiles with the wall drawn along their edge (001-008 round a rectangle, 009-018
   the inner corners, passages and dead ends: `house_tiles.THIN_EDGES`, `dev/migrate/thin_wall_pieces.py`; a set's
   pieces after a gap row are put down by hand, the nine before it stretched). Beds, bookshelves, chests,
   sacks and work stations stand on the back-wall tile, against the wall, not a floorboard out from it.
-- The maps: `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory). The Shardfall Deep is on -1 under the sea north of Ashford (4..12, -17..-5)
 - **Rooms have things in them** (`dev/migrate/build_interiors.py`): pictures, mirrors, tapestries, pegs and wall shelves
   (walked past) and cupboards, wardrobes, dressers, desks, tables, washstands and long clocks (solid), by what the room
   is and how big, against the walls: never in a door's or stair's way, where someone stands or a
@@ -673,11 +677,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   account has an email, confirmed before it can join a game (no ticket till then; the app's own game needs none), and a
   forgotten password goes only to a confirmed one. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
+- Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS` (Shards accounts, proved by the central server's ticket or the host's key), or `DS_CENTRAL_ADMINS` on the central server, where a name with no account yet is made only with the claim code the server logs as it starts, never by whoever signs up first.
 
 ### Answering the player
 
 - **Prices show the game's coin, never a "g"**: `COIN` in `util.js` (drawText draws it, and writes "12 gold" so);
-- Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS` (Shards accounts, proved by the central server's ticket or the host's key), or `DS_CENTRAL_ADMINS` on the central server, where a name with no account yet is made only with the claim code the server logs as it starts, never by whoever signs up first.
   `coinHTML` for page text. The same coin everywhere a price or a sum of gold is shown.
 - **Every finished quest has its screen** (`reward_tick`, `showReward`), apart from the chat, its name and what it gave,
   even when it gave nothing but thanks.

@@ -28,8 +28,9 @@ choice: the dragon should be a real villain, so killing it feels right.)
   dragon's sleeping body); the dragon, dying (what it carried); a stealthy part in The Royal Guard (Mary's notes in the
   Archive's sealed vault, past its watchmen at night); the **Glass Wardens** (below) for the rest; the King's Seam
   (the choice: the Binding, the Crown, or, with the Wardens' truth, Unmake).
-- Before leaving the Isle you must know what Shard Remnants are: Bess, and Wim after her, won't sail till you've
-  absorbed some (`RemnantsAbsorbed`); they send you to Brother Aldous.
+- Before leaving the Isle you must know what Shard Remnants are: Wim won't take you till you've absorbed some
+  (`RemnantsAbsorbed`) and are level 3; he sends you to Brother Aldous. The ferries run for everyone else all along:
+  it's only you, without papers, they won't carry.
 
 ## The world in brief
 
@@ -66,8 +67,8 @@ and each place's keeper names the next: never a letter or a sign.
 |---|---|---|
 | 1 | **The Last Will** | You stand at your mother's fresh grave by the chapel. The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the table. The cottage door stays locked until you've **read the letter** (three pages, in the owner's words): you are the heir of Ashen. Jimmy sleeps on her empty bed. |
 | 2 | **Dinner at Edwin's** | Edwin the lawyer asks you to dinner. **Maren**, his wife, is the Isle's doctor (their house is two storeys of brick by the chapel, her surgery and his desk downstairs; it was the bank. They live upstairs, and go up at night). **Chop 3 logs** for her range (she lends an axe), **take an egg** from Bess's coop and **fry it** on her range, give it to Edwin. Reward: the key to the chapel's trapdoor, and a promise not to go down without a sword and shield. |
-| 3 | **The Amulet of Succession** | **Bess** the milkmaid has the only boat, but won't sail without her father's compass. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Strength and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
-| 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: the compass is under it. Bess sails you to Northport; after that **Wim** the ferryman crosses for a coin. |
+| 3 | **The Amulet of Succession** | **Bess** the milkmaid tells you Wim needs papers, and that her father wrote them. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Strength and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
+| 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: under it, the **papers** Mary left with him for you, under a crowned seal (what the hobgoblins were after). **Wim** reads them and lets you aboard, for a coin; at Northport the **port guard** reads them too and sends you to the Speaker. |
 
 ### The road to the Wizards' Court
 

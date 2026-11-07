@@ -23,8 +23,7 @@ StaticObject	Dice_Table	480	544	Id=Dice_Table_4_4_0_05
 NPC	Ferryman	448	96	Attitude=Good Stand=1 Name=Wim Schedule=Always
 StaticObject	Notice	324	194	Id=Northport
 NPC	Man	512	256	Attitude=Good Zone=14,7,24,9 Schedule=Night
-StaticObject	Boat001	384	48
-Id	Northport_Pier	3	5
+Id	Northport_Pier	12	4
 NPC	Port_Guard	448	184	Attitude=Good Stand=1 Face=W Id=Northport_Port_Guard Name=Sergeant_Brand
 NPC	Seal	416	120	Attitude=Passive Zone=14,2,24,8
 StaticObject	Salmon_Spot	64	64

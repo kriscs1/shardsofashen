@@ -17,18 +17,20 @@ save you from the dragon that takes the firstborn heir of every generation. You 
      dairy, 2,0,0): a wooden sword and shield at his workbench, then wield them. Brother Aldous opens the trapdoor
      to you when you're armed and Strength and Defence are level 2. The amulet is at the back of the caves (1,1,-2)
      behind bars; Aldous follows you down with a scroll of Grasp. He gives you the key of the hobgoblins' lair door.
-  4  Passage to the Mainland (Passage 0-4, done at 5; a save from before, at 12, has it done too). Bess won't sail without her father
-     Tobias's compass. His house (the old brick house, 1,1,0) is locked and the hobgoblins have the key. Their lair
+  4  Passage to the Mainland (Passage 0-4, done at 5; a save from before, at 12, has it done too). Wim's ferry takes
+     nobody off the Isle without papers (since the raids, Northport sends them back), and Tobias, Bess's father, who
+     wrote them, is missing. His house (the old brick house, 1,1,0) is locked and the hobgoblins have the key. Their lair
      (2,2,-2), behind a locked door in the caves (2,1,-2): four hobgoblins (the entry script puts back the ones
      killed, when someone comes in again), the key in the corner barrel, Tobias in a cage you pick the lock of. A
      ladder up to their camp (2,2,0), in a tent: only a tent until you've climbed it from below. In the house, a
-     floorboard squeaks: stand on it, search it, the compass. Bess sails you to Northport.
+     floorboard squeaks: stand on it, search it: the papers Mary left with him for you, under a crowned seal (what
+     the hobgoblins were after). Wim reads them and lets you aboard; Northport's port guard sends you to the Speaker.
 Characters made before this story keep what they had done (session.heir_story_from_old_save).
 
 The Isle teaches the world as you go, in what people say and give you: Edwin hands over Mary's jar of Shards (the
 world's magic: the count under your health); Maren gives healing draughts (herbs mend a body, Shards can't); Frank
 gives his old dagger to break down for its Shard (Dismantle); Brother Aldous, in the caves, shows you a dead beast's
-Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Bess, at Northport, the shardstone.
+Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Wim, at the pier, the shardstone.
 """
 import os
 import random
@@ -77,6 +79,24 @@ def letter():
     pg.draw.circle(s, (170, 26, 30), (17, 17), 4)                           # the wax seal
     pg.draw.circle(s, (210, 60, 60), (16, 16), 2)
     s.set_at((15, 15), (240, 140, 140))
+    return K.outlined(s)
+
+
+def papers():
+    pg = K.pg()
+    s = K.surface()
+    cloth, cloth_dark = (96, 104, 70), (64, 70, 46)
+    paper, shade, line = (238, 228, 198), (204, 188, 150), (150, 130, 96)
+    pg.draw.polygon(s, cloth_dark, [(3, 12), (25, 5), (30, 21), (8, 28)])           # the oilcloth, opened
+    pg.draw.polygon(s, cloth, [(4, 12), (24, 6), (29, 20), (9, 27)])
+    pg.draw.polygon(s, shade, [(8, 11), (24, 9), (25, 24), (9, 25)])                # the sheet under
+    pg.draw.polygon(s, paper, [(7, 9), (23, 8), (24, 23), (8, 24)])
+    for y in (12, 14, 16, 18):
+        pg.draw.line(s, line, (10, y), (21, y - 1))
+    pg.draw.circle(s, (170, 26, 30), (19, 20), 4)                                   # the seal, crowned
+    for x in (17, 19, 21):
+        s.set_at((x, 18), (240, 150, 140))
+    pg.draw.line(s, (240, 150, 140), (17, 19), (21, 19))
     return K.outlined(s)
 
 
@@ -322,7 +342,7 @@ def draw_pictures():
     for name, img in (("Last_Will", letter()), ("Amulet_of_Succession", amulet()),
                       ("Lair_Key", key((70, 70, 78), (140, 140, 150))),
                       ("Fathers_House_Key", key((184, 140, 52), (240, 206, 110))),
-                      ("Fathers_Compass", compass()), ("Barred_Niche", niche(True)),
+                      ("Fathers_Compass", compass()), ("Marys_Papers", papers()), ("Barred_Niche", niche(True)),
                       ("Barred_Niche_Empty", niche(False)),
                       ("Caged_Tobias", cage(K.load("Entities", "Tobias"))), ("Hob_Cage_Open", cage(None)),
                       ("Sleeping_Jimmy", sleeping_cat())):
@@ -393,11 +413,13 @@ def data():
          "hid it for you.", "Examine"),
         ("Lair_Key", "A heavy iron key: it opens the door the hobgoblins hold in the caves.", "Examine"),
         ("Fathers_House_Key", "Tobias's house key, brass and well worn.", "Examine"),
-        ("Fathers_Compass", "Tobias's compass: brass, its needle always true. Bess won't sail without it.", "Examine"),
+        ("Fathers_Compass", "Tobias's compass: brass, its needle always true.", "Examine"),        # (an old save's)
+        ("Marys_Papers", "Papers of passage in your mother's hand, kept in oilcloth, under a crowned seal.", "Examine"),
     ]
     for name, info, words in items:
         K.section(E, name, [("Type", "MapItem"), ("Use.Words", words), ("Examine.Info", info), ("Stackable", "1"),
                             ("Droppable", "0"), ("Value", "0")])
+    K.section(E, "Marys_Papers", [("Display.Name", "Mary's Papers")])
     objects = [
         ("Barred_Niche", "Reach In,Examine", "An alcove in the rock behind iron bars. Something gold glints inside."),
         ("Barred_Niche_Empty", "Examine", "An alcove in the rock behind iron bars. It's empty now."),
@@ -463,14 +485,15 @@ def data():
     }, 6, markers={0: "Milkmaid_Farm", 1: "Franks_Smithy", 2: "Franks_Smithy", 3: "Chapel_Door",
                    4: "Amulet_Niche", 5: "Amulet_Niche"}, chapter=3, requires="The Last Will")
     K.quest("Passage to the Mainland", "Milkmaid", "Passage", {
-        0: "Bess the milkmaid, on the farm in the north, has the only boat that crosses to the mainland.",
-        1: "Find Bess's father's compass. His house in the village is locked, and the hobgoblins have its key.",
+        0: "Bess the milkmaid, on the farm in the north, would know how to get across to the mainland.",
+        1: "Wim won't ferry anyone off the Isle without papers. Tobias, Bess's father, wrote them, but the hobgoblins "
+           "took him. His house in the village is locked, and they have its key.",
         2: "Bess's father, Tobias, is locked in a cage in the hobgoblins' lair. Pick its lock to free him. His house "
            "key must be in the lair somewhere.",
-        3: "Tobias has given you his house. Unlock it with his key and find the compass he hid there.",
-        4: "Give Tobias's compass to Bess, on the farm.",
+        3: "Tobias has given you his house. Unlock it with his key and find what he hid under its floor.",
+        4: "Show your papers to Wim the ferryman, on the Isle's pier.",
     }, 5, markers={0: "Milkmaid_Farm", 1: "Hobgoblin_Lair", 2: "Hobgoblin_Lair", 3: "Fathers_House",
-                    4: "Milkmaid_Farm"}, chapter=4, requires="The Last Will")
+                    4: "Isle_Ferry_Pier"}, chapter=4, requires="The Last Will")
     template()
     K.drop_label("Places", "The Isle Bank")
     K.place_label("Places", "Edwin & Maren's House", "Isle_Bank")
@@ -1042,74 +1065,41 @@ def bess_and_frank():
         say("Milkmaid", "Morning! Mind the cows, they're friendly but they tread on toes.\\Use a bucket on a cow for milk, "
                         "shears on a sheep for wool. The hens lay in their coop, by the barn.",
             ("What do you sell?", "@shop"), ("What's wool for?", "@wool"),
-            ("Will you take me to the mainland? [if $Attr.Passage<=4 and $Attr.LastWill>=2]", "@ask"),
+            ("How do I get to the mainland? [if $Attr.Passage<=3 and $Attr.LastWill>=2]", "@ask"),
             ("Goodbye.", "@end")),
         ("@shop",), ("Display.Item.Rack", "SPECIFIC", "Milkmaid", "SHOP-Dairy", "@end"),
         ("End",),
         ("@wool",), say("Milkmaid", "Spin it into balls of wool on a workbench, there's one in the barn. Cowhide can be "
                                     "tanned into leather there too.", ("Thanks!", "@end")),
         ("End",),
-        ("@ask",), (">Conditional", "$Attr.Passage=0", "@compass"),
+        ("@ask",), (">Conditional", "$Attr.Passage=0", "@hunting"),
         (">Quest.Can.Start", "Passage", "@end"),
-        say("Milkmaid", "To the mainland? Love, nobody's crossed the strait since Father went missing. The fog out there "
-                        "would swallow you whole. Father was the only one who could find the way through it, with his "
-                        "compass, and the compass went with him.\\Find Father's compass and I'll sail you over myself. "
-                        "His house is the old brick one in the village, locked up, and the hobgoblins took his keys when "
-                        "they took him. They've a lair in the caves under the chapel, they say.",
-            ("I'll find it.", "@start")),
+        say("Milkmaid", "The mainland? Wim's ferry crosses from the pier, love, but he'll not take you without papers: "
+                        "since the raids, Northport sends back anyone off the Isle who hasn't any.\\Father always "
+                        "wrote the Isle's papers. He's kept its roll since before I was born. But the hobgoblins took "
+                        "him, and nobody's seen him since. His house is the old brick one in the village, locked up, and "
+                        "they took his keys too. They've a lair in the caves under the chapel, they say.",
+            ("I'll find him.", "@start")),
         ("@start",),
         ("Update.Attribute", "Passage", "=1"),
         ("Display.Message", "Yellow", "Quest started: Passage to the Mainland.", "Quest"),
-        (">Conditional", "$Attr.AmuletQuest=0", "@end"),
+        ("@frank",), (">Conditional", "$Attr.AmuletQuest=0", "@end"),
         say("Milkmaid", "And you'll not go near hobgoblins with your bare hands! My Frank's the blacksmith: his smithy's "
                         "right by my hut. He'll help you make a sword and a shield.", ("Thank you, Bess.", "@amulet")),
         ("@amulet",), (">Quest.Can.Start", "AmuletQuest", "@end"),
         ("Update.Attribute", "AmuletQuest", "=1"),
         ("Display.Message", "Yellow", "Quest started: The Amulet of Succession.", "Quest"),
         ("End",),
-        ("@compass",), ("Get.Value", "ATTRIBUTE", "Passage", V1),
-        (">Conditional", "$Variable.1=4", "@hunting"),
-        (">Got.Item", "Fathers_Compass", "1", "@hunting"),
-        (">Conditional", "$Attr.FatherFreed>=1", "@nofather"),
-        ("Take.Item", "Fathers_Compass", "1"),
-        ("Update.Attribute", "Passage", "=5"),
-        ("Display.Message", "Yellow", "Quest complete: Passage to the Mainland!", "Quest"),
-        say("Milkmaid", "Father's compass! And Father home safe, all thanks to you. Oh, come here, love.\\I'll take you "
-                        "across to Northport myself, right now. After that Wim can ferry you back and forth: he'll steer "
-                        "by Father's compass now.", ("Take me to Northport.", "@sail"), ("Not yet.", "@later")),
-        ("@sail",), ("Goto.Script", "Bess Sails to Northport"),
-        ("@later",), say("Milkmaid", "Whenever you're ready, Wim's on the pier.", ("Thank you, Bess.", "@end")),
-        ("End",),
-        ("@nofather",),
-        say("Milkmaid", "You found his compass! But where's Father? You didn't leave him with those brutes? Bring him "
-                        "home, love, please.", ("I'll find him.", "@end")),
-        ("End",),
-        ("@hunting",),
-        say("Milkmaid", "Any sign of Father's compass? It'll be in his house, the old brick one in the village. The "
-                        "hobgoblins have his keys, down in their lair under the chapel.", ("I'm on it.", "@end")),
+        ("@hunting",), (">Conditional", "$Attr.FatherFreed<1", "@home"),
+        say("Milkmaid", "Any word of Father? The hobgoblins have him, down in their lair under the chapel. Bring him "
+                        "home, love, please.", ("I'm on it.", "@frank")),
+        ("@home",),
+        say("Milkmaid", "Father home safe, and all thanks to you! Maren's feeding him up something dreadful.\\He says "
+                        "he hid something at the house for you, years ago. He won't tell me what.",
+            ("Thank you, Bess.", "@end")),
         ("@end",), ("End",),
     ])
-    w("Bess Sails to Northport", [
-        # (not till you know what a dead beast's Shard Remnants are: Brother Aldous shows you)
-        (">Conditional", "$Attr.RemnantsAbsorbed<1 or $Player.Level<3", "@sail"),
-        say("Milkmaid", "Wait, love, before we go. I'll not take a green hand over to the mainland, not till you've grown into yourself a bit: level 5, Aldous would say. Out there the beasts run wild, and when one dies its magic doesn't: it leaves splinters behind, and sometimes worse. Has Brother Aldous shown you what to do with them? He showed me, once. Go and see him, then come back to me.", ("I'll go and see him.", "@stay")),
-        ("@stay",), ("End",),
-        ("@sail",),
-        ("Display.Message", "Cyan", "Bess takes the tiller, her father's compass in her hand, and the Isle slips away "
-                                    "into the fog..", "-"),
-        ("Play.Sound", "Boat"),
-        ("Toggle.User.Input", "OFF"),
-        ("Wait", "3"),
-        ("Toggle.User.Input", "ON"),
-        ("Teleport", "Northport_Pier", "-"),
-        ("Display.Message", "Yellow", "..and the fog lifts over Northport harbour.", "-"),
-        say("Milkmaid", "There's Northport. Its shardstone stands by the market: feed it a few Shards and it wakes, and "
-                        "after that it'll carry you to any other shardstone you've woken. Mind your Shards, love, and "
-                        "come home sometimes.", ("Goodbye, Bess.", "@off")),
-        ("@off",),
-        ("Display.Message", "Cyan", "Bess waves you off from the boat.", "-"),
-        ("End",),
-    ])
+    K.remove_script("Bess Sails to Northport")                 # (Wim takes you over now, once he's seen your papers)
     w("Talk to Frank", [
         ("Get.Value", "ATTRIBUTE", "AmuletQuest", V1),
         (">Conditional", "$Variable.1=1", "@s2"),
@@ -1356,8 +1346,10 @@ def lair_scripts():
         ("Display.Message", "Yellow", "..and the lock springs open!", "-"),
         say("Tobias", "Free! Bless you, child.\\Listen: the house is yours. I'll not go back, not with those brutes so "
                       "near it: I'll go and live with Maren and Edwin. Find my key in that corner barrel and keep "
-                      "it.\\And Bess's compass? I hid it under the floor at home before they took me. You'll hear the "
-                      "board.", ("Get home safe.", "@go")),
+                      "it.\\And you'll be wanting papers, to cross. Your mother left yours with me, the year she came, "
+                      "for the day you'd need them. I hid them under the floor at home before the brutes took me: that's "
+                      "what they were after, and they never got it out of me. You'll hear the board.",
+            ("Get home safe.", "@go")),
         ("@go",),
         ("Remove.Entity", at(cx - 1, cy + 1, -8), "Tobias"),
         ("Display.Message", "Cyan", "Tobias hobbles to the ladder and climbs up out of the lair, towards home.", "-"),
@@ -1392,7 +1384,7 @@ def lair_scripts():
 def fathers_house_scripts():
     sx, sy = SQUEAK
     w("Squeaky Floorboard", [
-        ("Get.Value", "ATTRIBUTE", "CompassFound", V1),
+        ("Get.Value", "ATTRIBUTE", "PapersFound", V1),
         (">Conditional", "$Variable.1=0", "@end"),
         ("Play.Sound", "Squeak"),
         ("Display.Message", "Cyan", "Someone should fix that floorboard; it sounds like it's about to fall through.", "-"),
@@ -1402,7 +1394,7 @@ def fathers_house_scripts():
     ])
     w("1,1,0", [                                                  # (a loose board they've stood on stays loose;
         ("Get.Value", "ATTRIBUTE", "Squeaked", V1),                 # and Jimmy, in this house of yours too, once
-        ("Get.Value", "ATTRIBUTE", "CompassFound", V2),             # you're king: build_heir_mainland.py)
+        ("Get.Value", "ATTRIBUTE", "PapersFound", V2),              # you're king: build_heir_mainland.py)
         (">Conditional", "$Variable.1>=1 and $Variable.2=0", "@jimmy"),
         ("Change.Tile", "%d,%d" % (sx, sy), "Loose_Floorboard001", "0", "0"),
         ("@jimmy",), (">Conditional", "$Attr.KingQuest>=1", "@end"),
@@ -1411,14 +1403,15 @@ def fathers_house_scripts():
     ])
     w("Search Loose_Floorboard", [
         (">Distance.From.Clicked.Tile", "48", "@far"),
-        ("Get.Value", "ATTRIBUTE", "CompassFound", V1),
+        ("Get.Value", "ATTRIBUTE", "PapersFound", V1),
         (">Conditional", "$Variable.1=0", "@done"),
         ("Display.Message", "Cyan", "You prise up the loose board..", "-"),
         ("Play.Sound", "Squeak"),
         ("Wait", "1"),
-        ("Give.Item", "Fathers_Compass", "1"),
-        ("Update.Attribute", "CompassFound", "=1"),
-        ("Display.Message", "Yellow", "..and underneath, wrapped in oilcloth: a brass compass. Tobias's!", "-"),
+        ("Give.Item", "Marys_Papers", "1"),
+        ("Update.Attribute", "PapersFound", "=1"),
+        ("Display.Message", "Yellow", "..and underneath, wrapped in oilcloth: papers in your mother's hand, under a "
+                                      "crowned seal.", "Paper"),
         ("Change.Tile", "%d,%d" % (sx, sy), "Plank001", "0", "0"),
         ("Get.Value", "ATTRIBUTE", "Passage", V2),
         (">Conditional", "$Variable.2>=1 and $Variable.2<4", "@end"),

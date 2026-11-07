@@ -285,10 +285,11 @@ BOSSES = {
                     "she's come about it.", "Bug", "Gold_Coin(s),70-120,100 Ruby,1-2,40 Antidote,1-1,100", "Poison 45"),
 }
 
-# (a boss whose numbers are its own, not its level's: the Rime Warden is fought in steel, the ones after it with
-#  the Sword of Valour, so it's gentler than its level would make it: fought at level 12, about as long as Orrin's
-#  Shadow at 10)
-TUNED = {"Rime_Warden": {"Hitpoints": "225", "Strength": "10", "Defence": "11", "Attack.Speed": "1.8"}}
+# (a boss whose numbers are its own, not its level's: Orrin's Shadow and the Rime Warden are fought in steel, the
+#  ones after them with the Sword of Valour, so they're gentler than their levels would make them: about a minute
+#  and three draughts each, at level 10 and level 12)
+TUNED = {"Orrins_Shadow": {"Hitpoints": "220", "Strength": "7", "Defence": "9"},
+         "Rime_Warden": {"Hitpoints": "225", "Strength": "7", "Defence": "10", "Attack.Speed": "2"}}
 
 # name: base, tint, alpha, level, words, light
 PEOPLE = {
@@ -423,9 +424,10 @@ def entities():
          "Value=200")
 
     # the dragon, plated in the Hand's Shards: harder, and its death blow the sword's, woken or not (asleep, it could
-    #  still finish what's left of an old save's fight). The last fight is the longest: about 45 s and five or six
-    #  draughts at level 20 with the woken sword, never one blow from the end (a boss: more for each who fights it)
-    K.section(K.ENTS, "Galaith_Dragon", [("Hitpoints", "1300"), ("Strength", "20"), ("Defence", "20"),
+    #  still finish what's left of an old save's fight). The last fight is the longest: about a minute and a half
+    #  and five or six draughts at level 20 with the woken sword (every other boss of the story is a minute or less),
+    #  never one blow from the end (a boss: more for each who fights it)
+    K.section(K.ENTS, "Galaith_Dragon", [("Hitpoints", "3000"), ("Strength", "16"), ("Defence", "20"),
                                          ("Slain.By", "Woken_Sword_of_Valour,Sword_of_Valour")])
 
     K.set_section(K.RACKS, "SHOP-Mirage", ["Type=Shop", "Buy.Rate=1.4", "Sell.Rate=0.7", "Specific=1",

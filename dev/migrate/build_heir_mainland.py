@@ -290,8 +290,8 @@ def data():
                                    ("Respawn", "300"), ("Drops", "Bones,1-1,100 Gold_Coin(s),5-15,60"),
                                    ("Roam.Radius", "2"), ("Chase.Radius", "4"), ("Walk.Speed", "0.4"),
                                    ("Pause", "2-6"), ("Kill.Sound", "Undead")])
-    K.section(E, "Valour_Guardian", [("Hitpoints", "160"), ("Attack.Speed", "1.3"), ("Strength", "10"),
-                                     ("Defence", "11"), ("Aggro.Range", "120"), ("Movement.Speed", "1.6"),
+    K.section(E, "Valour_Guardian", [("Hitpoints", "160"), ("Attack.Speed", "1.3"), ("Strength", "8"),
+                                     ("Defence", "10"), ("Aggro.Range", "120"), ("Movement.Speed", "1.6"),
                                      ("Aggressive", "1"), ("Respawn", "300"), ("Kill.Sound", "Undead"),
                                      ("Use.Words", "Talk to,Attack,Examine")])
     K.copy_tile("Sand_Mound001", "Sand001", Layer="Decor", Use_Words="Dig,Examine", Show_Name="1",
@@ -642,7 +642,7 @@ def quests():
         0: "Ask the Warden in Emberwatch about the Ashen Priest's ring.",
         1: "The Ashen Priest wears the Ember Ring, in the Cinder Fort high in the Cinder Peaks. Take it from him.",
     }, 2, markers={0: "Emberwatch_Square", 1: "Cinder_Fort"}, chapter=11, requires="The Steward's Hunt",
-        marker0="Emberwatch_Square")
+        marker0="Emberwatch_Square", level=10)
     K.quest("A Ship for Dragon Island", "Sea_Captain", "ShipQuest", {
         0: "Find Captain Rook, the only captain mad enough to sail to Dragon Island, on the shore below King Rupert's Keep.",
         1: "Bring Captain Rook 10 planks and 20 nails to mend his hull.",
@@ -732,6 +732,14 @@ def southport_and_ashford():
         ("Get.Value", "ATTRIBUTE", "ParliamentQuest", V1),
         (">Conditional", "$Variable.1=0", "@chat"),
         (">Quest.Can.Start", "ParliamentQuest", "@end"),
+        (">Conditional", "$Item.Marys_Papers>=1", "@old"),            # (a save from before the papers: as it was)
+        say("Port_Guard", "Off the Isle ferry? Papers, then.\\He unfolds them, and goes still at the seal.\\That's the "
+                          "old royal seal. I've not seen one since the Queen vanished, eighteen years back: the year "
+                          "Galaith was shut, a wall of light across the pass and a dragon behind it. Northport's City "
+                          "Hall is Ashen's Parliament now, till the barrier falls.\\This is no business for a sergeant on "
+                          "a pier. Take them to the Speaker, at the City Hall, and keep them close.",
+            ("I'll go to the City Hall.", "@start")),
+        ("@old",),
         say("Port_Guard", "Welcome to Northport, the capital of Ashen. For now, anyway.\\Galaith's been shut these "
                           "eighteen years: a wall of light across the pass, and a dragon behind it. So the city hall "
                           "here is the Parliament, till the barrier falls.\\Business in Galaith, you say? Then the City "
@@ -750,6 +758,11 @@ def southport_and_ashford():
     w("Talk to " + speaker, [
         ("Get.Value", "ATTRIBUTE", "ParliamentQuest", V1),
         (">Conditional", "$Variable.1=1", "@chat"),
+        (">Conditional", "$Item.Marys_Papers>=1", "@galaith"),
+        say("Speaker", "So you're the one with the old royal seal: Sergeant Brand sent word up from the pier.\\She reads "
+                       "your papers twice over, and hands them back as if they might break.\\Keep those close. Very "
+                       "close. Now: what is it you want of us?", ("To go to Galaith.", "@galaith")),
+        ("@galaith",),
         say("Speaker", "You want to go to Galaith? Half this Parliament wants nothing else.\\The barrier is the "
                        "dragon's: violet light across the pass, hard as glass. No sword, no ram and no spell of ours "
                        "has so much as scratched it. Only one person living might break it: Bert, the great wizard of "
@@ -1083,7 +1096,7 @@ def grimoire_and_ring():
     w("Talk to Warden", [
         ("Get.Value", "ATTRIBUTE", "RingQuest", V1),
         (">Conditional", "$Variable.1=0 and $Attr.BertQuest>=1", "@s1"),
-        (">Quest.Can.Start", "RingQuest", "@end"),
+        (">Quest.Can.Start", "RingQuest", "@young"),
         say("Warden", "The Ember Ring? The Ashen Priest wears it, and he's welcome to it, as far as I'm concerned.\\He "
                       "holds the Cinder Fort, high in the Cinder Peaks, with the Ashen Hand: a cult that sings to the dragon, "
                       "and sends it what it can. If Bert wants that ring, you'll have to take it off his finger yourself.", ("Then I will.", "@start")),
@@ -1098,6 +1111,11 @@ def grimoire_and_ring():
         ("@chat",),
         say("Warden", "Emberwatch: the last fort before the Cinderlands. Smoke on the wind, and ash on the bread.",
             ("Goodbye.", "@end")),
+        ("End",),
+        ("@young",),
+        say("Warden", "You? Into the Cinder Fort? The Ashen Hand would have you singing to the dragon by supper.\\"
+                      "Whatever Bert wants with that ring, it'll keep. Come back with a few more fights behind you.",
+            ("I'll be back.", "@end")),
         ("@end",), ("End",),
     ])
     w("Kill Ashen_Priest", [

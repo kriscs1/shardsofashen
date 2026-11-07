@@ -408,7 +408,7 @@ def data():
         "Ashen_Cultist": C.bad("A cultist of the Ashen Hand. The ash on his hands is still warm.", 40, 1.3, 6, 6, 90, 2, 1,
                                60, "Bones,1-1,100 Gold_Coin(s),10-25,100 Fire_Bolt_Scroll,1-1,15")
                          + [("On.Hit", "Burn 10")],
-        "Ashen_Priest": C.bad("The Ashen Priest, who sings to the dragon under Ashpeak. His robes smoulder.", 130, 1.4, 9,
+        "Ashen_Priest": C.bad("The Ashen Priest, who sings to the dragon under Ashpeak. His robes smoulder.", 130, 1.4, 7,
                               9, 120, 2, 1, 600, "Bones,1-1,100 Gold_Coin(s),60-120,100 Fire_Storm_Scroll,1-1,50")
                         + [("On.Hit", "Burn 25")],
         "Ember_Hound": C.bad("An ember hound: a wolf of the burnt heath, its mane smouldering.", 30, 1.0, 6, 4, 100, 3, 1,

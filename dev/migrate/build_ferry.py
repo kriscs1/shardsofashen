@@ -4,7 +4,8 @@ boat is drawn from above, turning through sixteen headings as it goes and coming
 (sprites\\Walk\\Ferry_Boat_H<nn><frame>: a, tied up; b and c, under way, its wake and the steering oar), with its
 ferryman at the stern and room amidships for whoever's aboard. Its Entities.ini section, its two routes in Carts.ini,
 the ship's bell it comes in on, and Wim's words on both piers (he tells you about them; you step aboard and pay there).
-Wim's old crossing (a fade and a teleport) is gone; Bess still sails you over the first time.
+Wim's old crossing (a fade and a teleport) is gone, and so is Bess's: the boats run for everyone, but Wim takes you
+only once he's seen your papers (Mary's, under the floorboard in Tobias's house) and you're no longer green.
 
   python -I "dev\\migrate\\build_ferry.py"      (then validate.py, export_web_assets.py)
 """
@@ -171,15 +172,17 @@ def data():
 
 
 # (the two lanes across the strait, a boat on each, so they pass and never meet: 1-based tiles; each boat ties up on
-# its own side of each pier)
+# its own side of the Isle's pier, and both at the one berth on the north of Northport's harbour pier, by Wim: they
+# leave together, so only one is ever in at Northport)
 LANES = {
-    "east": ["3,2,0,17,15,the Isle", "3,2,0,17,21", "4,3,0,2,8", "4,4,0,7,3", "4,4,0,6,6,Northport"],
-    "west": ["3,2,0,14,15,the Isle", "3,2,0,14,21", "3,3,0,23,8", "3,3,0,25,18", "3,4,0,25,3", "4,4,0,1,6,Northport"],
+    "east": ["3,2,0,17,15,the Isle", "3,2,0,17,21", "4,3,0,2,8", "4,4,0,7,3", "4,4,0,13,3,Northport"],
+    "west": ["3,2,0,14,15,the Isle", "3,2,0,14,21", "3,3,0,23,8", "3,3,0,25,18", "3,4,0,25,3", "4,4,0,13,3,Northport"],
 }
-NOT_YET = ("\"Not in this fog, friend,\" calls the ferryman. \"Only old Tobias ever found the way across, with that "
-           "compass of his. Ask Bess.\"")
-GREEN = ("The ferryman holds up a hand. \"You're green as grass yet, and Bess says you've never had a beast's leavings "
-         "in your hands. See Brother Aldous, and come back at level 3.\"")
+# (the boats cross for everyone; it's you they won't take: no papers, or too green yet)
+NOT_YET = ("The ferryman shakes his head. \"Papers first, friend. Since the raids, Northport sends back anyone off the "
+           "Isle without them. Wim on the pier will look them over.\"")      # (not begun with a quote: the ini drops it)
+GREEN = ("The ferryman holds up a hand. \"You're green as grass yet, and you've never had a beast's leavings in your "
+         "hands, by the look of you. See Brother Aldous, and come back at level 3.\"")
 
 
 def route(lane):
@@ -192,30 +195,55 @@ def route(lane):
 
 
 def wim():
-    """Wim on either pier: what the boats are, and the old fog before Bess has sailed you over."""
+    """Wim on either pier: what the boats are; on the Isle, nobody aboard without papers (Passage to the Mainland: he
+    reads yours, Mary's, and the quest's done), nor a green hand."""
     K.write_script("Talk to Ferryman", [
         ("Get.Value", "ATTRIBUTE", "Passage", "Variable.1$"),
-        (">Conditional", "$Variable.1>=5", "@fog"),
         (">On.Map", "4,4,0", "@isle"),
         K.say("Ferryman", "Back to the Isle? The boats cross together, one from each pier, whenever the bell goes. Step "
                           "aboard when one's tied up here, and a coin's the fare.\\They pass each other halfway. "
                           "Wave, if you like. Nobody does.", ("Thanks, Wim.", "@end")),
         ("End",),
         ("@isle",),
+        (">Conditional", "$Variable.1>=5", "@papers"),
         (">Conditional", "$Attr.RemnantsAbsorbed>=1 and $Player.Level>=3", "@green"),
         K.say("Ferryman", "Northport, is it? Step aboard when a boat's in, and pay a coin. They leave both piers on the "
-                          "bell and pass in the strait.\\I steer by Tobias's compass now. Nobody's lost a passenger "
-                          "since. Well. Nobody's lost one this year.", ("Thanks, Wim.", "@end")),
+                          "bell and pass in the strait.\\Nobody's lost a passenger in years. Well. Nobody's lost one "
+                          "this year.", ("Thanks, Wim.", "@end")),
         ("End",),
         ("@green",),
-        K.say("Ferryman", "Hold up, friend. You're green as grass yet, and Bess says you've never had a beast's leavings "
-                          "in your hands. The mainland eats the likes of you: see Brother Aldous first, and come back "
-                          "at level 3.", ("Fair enough.", "@end")),
+        K.say("Ferryman", "Hold up, friend. You're green as grass yet, and you've never had a beast's leavings in your "
+                          "hands, by the look of you. The mainland eats the likes of you: see Brother Aldous first, and "
+                          "come back at level 3.", ("Fair enough.", "@end")),
         ("End",),
-        ("@fog",),
-        K.say("Ferryman", "Cross the strait? Not in this fog, friend. Old Tobias was the only one who could find the way, "
-                          "with that compass of his, and nobody's seen him since the hobgoblins came. Bess would tell "
-                          "you the same: it's her boat.", ("I see.", "@end")),
+        ("@papers",),
+        (">Conditional", "$Variable.1=4 and $Item.Marys_Papers>=1", "@none"),
+        K.say("Ferryman", "Papers? Let's have a look, then.\\He unfolds them, and stops at the seal, and looks at you for "
+                          "a long while.\\Well. That's not my business, and I'll not make it mine. Those'll get you past "
+                          "any guard in Northport.\\And when you land: there's a shardstone by the market. Feed it a few "
+                          "Shards and it wakes, and after that it'll carry you to any other shardstone you've woken. Mind "
+                          "your Shards.", ("Thank you, Wim.", "@done")),
+        ("@done",),
+        ("Update.Attribute", "Passage", "=5"),
+        ("Display.Message", "Yellow", "Quest complete: Passage to the Mainland!", "Quest"),
+        (">Conditional", "$Attr.RemnantsAbsorbed>=1 and $Player.Level>=3", "@green"),
+        K.say("Ferryman", "Step aboard when a boat's in, and a coin's the fare. They leave both piers on the bell.",
+              ("Thanks, Wim.", "@end")),
+        ("End",),
+        ("@none",),
+        (">Conditional", "$Variable.1=0", "@nopapers"),
+        (">Quest.Can.Start", "Passage", "@nopapers"),
+        K.say("Ferryman", "Cross the strait? Papers first, friend. Since the raids, Northport's guards send back anyone "
+                          "off the Isle without papers, and I'm the one who has to bring them home again.\\Old Tobias "
+                          "always wrote them, him keeping the Isle's roll, but nobody's seen him since the hobgoblins "
+                          "came. Ask Bess, up at the farm: she's his daughter.", ("I will.", "@start")),
+        ("@start",),
+        ("Update.Attribute", "Passage", "=1"),
+        ("Display.Message", "Yellow", "Quest started: Passage to the Mainland.", "Quest"),
+        ("End",),
+        ("@nopapers",),
+        K.say("Ferryman", "Got your papers? No? Then no passage, friend. Northport would only send you back, and I'd "
+                          "be the one bringing you.", ("I see.", "@end")),
         ("@end",), ("End",),
     ], MAKER)
     for old in ("Ferry to Northport", "Ferry to the Isle"):
