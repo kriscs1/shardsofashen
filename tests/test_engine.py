@@ -5123,6 +5123,64 @@ def test_chests_are_locked_and_never_out_of_reach(world):
     leave(world, s)
 
 
+def test_doors_can_be_picked_and_some_are_locked_for_good(world, monkeypatch):
+    """build_locked_doors.py: a pickable door says so and opens for its picker alone; a private one never does; a
+    yard's loot is for Grasp through the railings (or very high Stealth at its gate)."""
+    a, b = join(world, "Pins"), join(world, "Bolt")
+    a.connected = b.connected = True
+    m = world.maps["26,19,0"]
+    lk = m.lock_at[(19, 14)]
+    assert lk.pick == 12 and lk.message == lk.PICKABLE
+    gx, gy = m.ox + 18 * 32 + 16, m.oy + 13 * 32 + 16
+
+    def at_door(s):
+        s.teleport(m.name, 18 * 32, 14 * 32 - 8)                  # (on the tile below it)
+        run_for(world, 5)
+        return s.tile_entity_at(gx, gy)
+
+    door = at_door(a)
+    assert "Pick Lock" in a.get_verbs(door) and "Pick Lock" in a.get_verbs(at_door(b))
+    a.out = []
+    a.choose_verb("Pick Lock", at_door(a), gx, gy)
+    run_for(world, 30)
+    assert a.game is None and any("beyond your picks" in str(ev.get("text", "")) for ev in a.out)
+    a.skill_xp[a.skill_index("Stealth")] = 8                        # (12 less the Reach of 4: just enough to try)
+    a.choose_verb("Pick Lock", at_door(a), gx, gy)
+    run_for(world, 30)
+    assert a.game is not None and a.game["game"] == "lock"
+    pick_the_lock(a)
+    assert not a.lock_closed(m, lk) and a.door_key(m, lk) in a.save_state()["unlocked_chests"]
+    assert b.lock_closed(m, lk)                                     # (picked for Pins, not for Bolt)
+    cx, cy = m.ox + 18 * 32 + 16, m.oy + 13 * 32 + 16
+    assert world.pixel_walkable(0, cx, cy, a) and not world.pixel_walkable(0, cx, cy, None)
+    # locked for good: no picking it, and its own words for why
+    home = world.maps["11,-1,0"]
+    shut = home.lock_at[(10, 7)]
+    assert shut.pick == 0 and shut.message not in ("It's locked.", shut.PICKABLE)
+    hx, hy = home.ox + 9 * 32 + 16, home.oy + 6 * 32 + 16
+    a.teleport(home.name, 9 * 32, 7 * 32 - 8)
+    run_for(world, 5)
+    assert "Pick Lock" not in a.get_verbs(a.tile_entity_at(hx, hy))
+    # Northport's yard: Stealth 20 to try its gate; its loot in Grasp's reach from the street
+    yard = world.maps["5,5,0"]
+    gate = yard.lock_at[(16, 17)]
+    assert gate.pick == 24 and "pick it" in gate.message
+    gem = next(e for e in world.ents if e.name == "Sapphire" and e.map == yard.name and e.once)
+    a.spells_known["Grasp"] = 1
+    a.add_shards(50)
+    a.teleport(yard.name, 15 * 32, 11 * 32 - 8)                    # (north of the railings, outside)
+    run_for(world, 5)
+    import dsengine.player_combat as pc
+    monkeypatch.setattr(pc, "rnd", lambda: 0.0)                    # (the spell takes, whatever's rolled)
+    a.out = []
+    a.cast_spell("Grasp", gem)
+    run_for(world, 40)
+    assert a.items_held("Sapphire") == 1, [ev.get("text") for ev in a.out if ev.get("t") == "msg"]
+    assert not world.visible_to(gem, a) and world.visible_to(gem, b)
+    leave(world, a)
+    leave(world, b)
+
+
 def test_no_leaving_the_isle_without_papers_or_knowing_shard_remnants(world):
     """Wim's ferry runs for everyone, but not for you till he's seen your papers, you've absorbed remnants and you're
     level 3; with the papers, Northport's port guard sends you to the Speaker."""
@@ -7354,6 +7412,27 @@ def test_the_lights_are_caught_on_the_third_try_and_only_once(world):
     assert s.shards() == before + 12
     reach()
     assert s.shards() == before + 12
+    leave(world, s)
+
+
+def test_the_stargazers_glass_winks_back_on_the_third_look_and_only_once(world):
+    glass = next(e for e in world.ents if e.name == "Star_Glass")
+    assert glass.map == "22,4,0"
+    s = join(world, "Stargazer", glass.map, 300, 300)
+    s.connected = True
+    near(world, s, glass, 0, 30)
+    before = s.shards()
+
+    def look():
+        s.choose_verb("Look Through", glass, int(glass.cx), int(glass.cy))
+        run_for(world, 20)
+    look()
+    look()
+    assert s.shards() == before and s.get_attribute("StarGlass") == "2"
+    look()
+    assert s.shards() == before + 8
+    look()
+    assert s.shards() == before + 8
     leave(world, s)
 
 

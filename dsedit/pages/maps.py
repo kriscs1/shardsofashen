@@ -5151,6 +5151,14 @@ class MapPage(Page):
         ttk.Entry(f, textvariable=msg).pack(fill="x")
         setter = self.changer(e, "msg")
         msg.trace_add("write", lambda *a: setter(msg.get()))
+        ttk.Label(f, text="Blank: \"It's locked.\" (or, if it can be picked, \"The lock looks as if you could pick "
+                          "it.\")", style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
+
+        def pick_field(v):          # (Pick=<Stealth level> after the message: locks.py; blank or 0: it can't be)
+            n = int(v) if str(v).strip().isdigit() else 0
+            return ["Pick=%d" % min(25, n)] if n > 0 else []
+        pick = "".join(w[5:] for w in " ".join(e.extra).split() if w.startswith("Pick="))
+        self.field(f, "Pick (Stealth)", pick, self.changer(e, "extra", pick_field), width=6)
         self.field(f, "Tile X", str(e.x), self.changer(e, "x", int), width=6)
         self.field(f, "Tile Y", str(e.y), self.changer(e, "y", int), width=6)
         ttk.Button(f, text="Delete", style="Danger.TButton", command=lambda: self.delete_ent(e)).pack(anchor="w",

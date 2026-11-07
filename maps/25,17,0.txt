@@ -32,3 +32,4 @@ StaticObject	Notice	192	642	Id=Keep_Notice_360
 StaticObject	Notice	256	610	Id=Keep_Notice_372
 StaticObject	Notice	768	322	Id=Keep_Notice_373
 StaticObject	Valuables	448	184
+Lock	8	10		Locked. A soldier's family lives here, and they keep to themselves.

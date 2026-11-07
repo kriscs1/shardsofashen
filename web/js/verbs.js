@@ -68,7 +68,7 @@ export function getVerbs(e) {
   const mode = S.box.mode;
   if (t === T.TILE || t === T.INFRONT) {
     addVerbs(v, e.uw);
-    if (e.lock !== undefined) { addVerb(v, "Open"); addVerb(v, "Unlock"); }
+    if (e.lock !== undefined) { addVerb(v, "Open"); addVerb(v, "Unlock"); if (e.lockPick) addVerb(v, "Pick Lock"); }
     if (canSteal(e)) addVerb(v, "Steal");
     if ((S.me.traps || []).some((k) => k[0] === e.map && k[1] === e.tx && k[2] === e.ty && !k[3])) addVerb(v, "Disarm");
     if (!v.length && examineFirst(e)) v = ["Examine"];

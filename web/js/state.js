@@ -13,6 +13,7 @@ export const S = {
   byPos: new Map(),           // "mx,my,mz" -> map
   cells: new Map(),           // "map,x,y" -> [tile, decor]: this player's own tiles
   locks: new Map(),           // "map,x,y" -> the message of a lock shut for this player
+  lockPicks: new Map(),       // "map,x,y" -> the Stealth level that picks it (a door that can be picked)
   ents: new Map(),            // uid -> entity (with its drawn position)
   pos: null,                  // the player: {x, y, z, i, d} and drawn position
   viewMaps: [],
@@ -39,7 +40,7 @@ export function setGeometry() {
 }
 
 export function resetWorld() {
-  S.maps.clear(); S.byPos.clear(); S.cells.clear(); S.locks.clear(); S.ents.clear();
+  S.maps.clear(); S.byPos.clear(); S.cells.clear(); S.locks.clear(); S.lockPicks.clear(); S.ents.clear();
   S.pos = null; S.box = { mode: "" };
 }
 

@@ -29,3 +29,6 @@ NPC	Fishmonger	608	280	Attitude=Good Stand=1 Face=S Id=Galaith_Fishmonger_348 Na
 NPC	Butcher	384	536	Attitude=Good Stand=1 Face=S Id=Galaith_Butcher_342 Name=Sybil
 NPC	Cat	512	632	Attitude=Good Zone=12,17,22,25 Pause=4-12
 NPC	Baker	608	536	Attitude=Good Stand=1 Face=S Id=Galaith_Baker_334 Name=Vera
+Lock	14	5			Pick=14
+MapItem	Ruby	352	64	1	Once=1
+MapItem	Gold_Coin(s)	416	32	60	Once=1

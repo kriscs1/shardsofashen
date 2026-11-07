@@ -28,3 +28,6 @@ StaticObject	Shardstone	96	224
 Id	Waystone_Frosthold	4	9
 StaticObject	Valuables	64	280
 StaticObject	Valuables	288	344
+Lock	15	16			Pick=10
+MapItem	Emerald	480	384	1	Once=1
+MapItem	Gold_Coin(s)	512	416	25	Once=1

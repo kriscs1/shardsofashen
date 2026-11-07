@@ -30,3 +30,4 @@ StaticObject	Wishing_Well	512	320	Id=Secret_Galaith_3
 NPC	Settler	640	184	Attitude=Good Stand=1 Face=S Id=Foreman_Galaith_Market Name=Foreman_Brannock
 StaticObject	Project_Plaque	672	216	Id=Plaque_Galaith_Market Project=Galaith_Market
 Id	Galaith_Gardeners_Cottage	2	12
+Lock	2	11		Locked. Somewhere inside a dog barks once, then thinks better of it.

@@ -433,6 +433,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **A house shows its levels** (`dev/migrate/build_house_levels.py`): rooms under and over the world have a south wall; a flagged room's walls are `*_Thin_Flag*`, stone right up to them; a building with an upstairs has the upper storey's front (`<Wall>_Upper001/002`) in its roof's group, never a church's.
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
+- **Locked doors** (`dev/migrate/build_locked_doors.py`): a door locked for good (a private home, a boarded-up house)
+  has an empty Condition and words that settle it ("Locked. Whoever lives here likes it that way."), never anything that
+  reads as a puzzle; boarded ones wear `Door_Boards001`. A door that can be picked (`Pick=` on its Lock line) keeps the
+  pickable message and has `Once=` loot behind it worth its level. Never lock a door of a room someone lives in
+  (`Home=`), or one with a ladder or hatch. Northport's and Ashford's fenced yards (railings, an `Iron_Gate001`
+  chained at Pick=24) are for Grasp through the railings or a master thief.
 - Ladders and hatches line up exactly with the ladder on the floor above or below.
 - On the world map, places with no map look the same as unexplored ones. A level under or over the world is drawn in
   the world's frame and scale (`ui.js` worldFrame), so a cellar lies just under its house; only the levels of their

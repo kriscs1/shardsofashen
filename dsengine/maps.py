@@ -11,12 +11,16 @@ ENTITY_LINE_TYPES = ("NPC", "GoodNPC", "BadNPC", "MapItem", "StaticObject", "Obj
 
 class Lock:
     """A map's Lock line: tile x,y is locked unless condition is true (for the player asking: it reads their
-    attributes and items). closed = the tile as the map has it, opened = Tiles.ini Unlocked.Tile ("" = the same)."""
-    __slots__ = ("n", "x", "y", "condition", "message", "closed", "opened")
+    attributes and items). closed = the tile as the map has it, opened = Tiles.ini Unlocked.Tile ("" = the same).
+    pick: the Stealth level that picks it (the line's Pick=; 0: it can't be picked, only its condition opens it)."""
+    __slots__ = ("n", "x", "y", "condition", "message", "closed", "opened", "pick")
 
-    def __init__(self, n, x, y, condition, message, closed, opened):
+    PICKABLE = "The lock looks as if you could pick it."
+
+    def __init__(self, n, x, y, condition, message, closed, opened, pick=0):
         self.n, self.x, self.y = n, x, y
-        self.condition, self.message = condition, message or "It's locked."
+        self.pick = max(0, int(pick))
+        self.condition, self.message = condition, message or (self.PICKABLE if self.pick else "It's locked.")
         self.closed, self.opened = closed, opened
 
 
@@ -107,8 +111,12 @@ class MapData:
                 x, y = int(val(ename)), int(val(field(line, 3, "\t")))
                 if 1 <= x <= xt and 1 <= y <= yt and len(self.locks) < 100:
                     closed = self.tile[(y - 1) * xt + x]
+                    pick = 0
+                    for opt in " ".join(line.split("\t")[5:]).split():       # (options after the message: Pick=)
+                        if opt.lower().startswith("pick="):
+                            pick = int(val(opt[5:]))
                     lk = Lock(len(self.locks) + 1, x, y, trim(field(line, 4, "\t")), trim(field(line, 5, "\t")),
-                              closed, d.unlocked_tile(closed))
+                              closed, d.unlocked_tile(closed), pick)
                     self.locks.append(lk)
                     self.lock_at[(x, y)] = lk
 

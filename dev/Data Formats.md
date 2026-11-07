@@ -355,7 +355,10 @@ The bank is not a rack: it's stored in the save file.
     the player bumps into it or clicks it (default "It's locked."). An empty Condition means it is always locked.
     Conditions are re-checked whenever an attribute, the inventory, a skill or the equipment changes, and on map load.
     If the tile's Tiles.ini section has `Unlocked.Tile`, that tile is drawn there while the lock is open (on the maps
-    round the current one too).
+    round the current one too). A sixth field holds options: `Pick=<Stealth level 1-25>` makes it a lock that can be
+    picked (the chests' game, `dsengine/locks.py`; tried from that level less `Locks.ini` Reach); picked, it stays
+    open for that player for good (saved with their opened chests), and its default message is "The lock looks as if
+    you could pick it." Without Pick= it opens only by its Condition.
 * Blank lines are ignored. Unknown entity types are logged and skipped.
 
 ### Conditions (Lock lines, and anywhere else a condition is written in data)

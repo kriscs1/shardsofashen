@@ -854,7 +854,11 @@ N.onMessage = (m) => {
         }
       }
       S.locks.clear();
-      for (const [map, x, y, msg] of m.locks || []) S.locks.set(map + "," + x + "," + y, msg);
+      S.lockPicks.clear();
+      for (const [map, x, y, msg, pick] of m.locks || []) {
+        S.locks.set(map + "," + x + "," + y, msg);
+        if (pick) S.lockPicks.set(map + "," + x + "," + y, pick);
+      }
       break;
     }
     case "stones":                                 // (a shardstone's travel map: the world map, its stones on it)

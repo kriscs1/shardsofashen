@@ -945,6 +945,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         v = self.lock_cache.get(key)
         if v is None:
             v = not (trim(lk.condition) != "" and self.condition_met(lk.condition))
+            if v and lk.pick and self.door_key(m, lk) in self.unlocked_chests:
+                v = False                                       # (picked: open for them for good, locks.py)
             self.lock_cache[key] = v
         return v
 
@@ -1044,10 +1046,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         return [[n, x, y, o[0], o[1]] for (n, x, y), o in self.cell_override.items() if n in names]
 
     def locks_for_view(self):
-        """[(map, x, y, message)] of the locks shut for this player on the maps round them."""
+        """[(map, x, y, message, pick)] of the locks shut for this player on the maps round them (pick: the Stealth
+        level that picks it, 0 if it can't be)."""
         if self.cur_map is None:
             return []
-        return [[m.name, lk.x, lk.y, lk.message] for m in self.w.neighbours(self.cur_map) for lk in m.locks
+        return [[m.name, lk.x, lk.y, lk.message, lk.pick] for m in self.w.neighbours(self.cur_map) for lk in m.locks
                 if self.lock_closed(m, lk)]
 
     def cell_names(self, m, x, y):

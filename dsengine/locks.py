@@ -6,12 +6,15 @@ learn to pick one), low on the mainland, harder underground, a little different 
 Open it with its key; or Pick Lock (Stealth: the lockpicking game, harder the higher the lock); or Break Open
 (Strength: loud, and it may take a few goes), unless it's sturdy (iron-bound: the high locks and some others, a map
 line's or kind's Sturdy=): those are picked or opened with their key, never forced. Unlocked is yours alone (chests
-are per player), and saved."""
+are per player), and saved.
+
+A door or gate (a map's Lock line) can be picked too when the line says Pick=<Stealth level>: picked, it stays open
+for you (and only you) for good, whatever its condition; one without Pick= opens only by its condition."""
 import zlib
 
 from ashen.lb import val, trim, lbstr, rnd, pretty
 
-from .entity import STATICOBJECT
+from .entity import STATICOBJECT, TILE
 
 LOCKS = "Locks.ini"
 
@@ -98,8 +101,33 @@ class LockMixin:
                 verbs = self.add_verb(verbs, "Break Open")
         return verbs
 
+    def door_key(self, m, lk):
+        """How a picked door is remembered (with the chests you've opened up: a chest's key never ends in |Lock)."""
+        return "%s|%d|%d|Lock" % (m.name, lk.x, lk.y)
+
+    def pick_door(self, e):
+        """Pick Lock on a door or gate that's shut for this player: True if it was one."""
+        m, tx, ty = self.w.tile_at(self.player.z, e.x + 1, e.y + 1)
+        lk = m.lock_at.get((tx, ty)) if m is not None else None
+        if lk is None or not self.lock_closed(m, lk):
+            return False
+        if not lk.pick:
+            self.refuse(lk.message)
+            self.act_done(False)
+            return True
+
+        def opened():
+            self.unlocked_chests.add(self.door_key(m, lk))
+            self.check_locks(False)
+            self.play_sound("Unlock")
+            self.display_message("The lock gives with a click.", "SUCCESS")
+        self.pick_lock(lk.pick, opened, e)
+        return True
+
     def lock_do(self, verb, e):
         """Open/Search on a locked chest, Pick Lock, Break Open: True if it was one of those (and dealt with)."""
+        if verb == "Pick Lock" and e is not None and e.type == TILE:
+            return self.pick_door(e)
         if not self.is_chest(e) or verb not in ("Open", "Search", "Pick Lock", "Break Open"):
             return False
         level, key = self.chest_lock(e)
@@ -113,7 +141,7 @@ class LockMixin:
             self.act_done(False)
             return True
         if verb == "Pick Lock":
-            self.pick_chest_lock(e, level)
+            self.pick_lock(level, lambda: e.alive and self.unlock_chest(e, "The lock gives with a click."), e)
         elif self.chest_sturdy(e):
             self.refuse("It's bound in iron. No forcing this one.")
             self.act_done(False)
@@ -121,7 +149,8 @@ class LockMixin:
             self.break_chest_open(e, level)
         return True
 
-    def pick_chest_lock(self, e, level):
+    def pick_lock(self, level, opened, at):
+        """The lockpicking game for a lock of this level on at (a chest, or a door's tile); opened() when it's won."""
         if self.stealth_level() < level - self.lock_num("Reach", 4):
             self.refuse("This lock is beyond your picks (Stealth %d)." % level)
             self.act_done(False)
@@ -133,15 +162,15 @@ class LockMixin:
                 for _ in range(2 + hard)]
 
         def done(won):
-            if won and e.alive:
-                self.unlock_chest(e, "The lock gives with a click.")
+            if won:
+                opened()
                 self.update_skill("Stealth", "+" + lbstr(self.lock_num("Pick.XP", 0.2) + level * 0.03))
                 self.act_done(True)
             elif not won:
                 self.display_message("Your pick slips out of the lock.", "FAIL", "Fail")
                 self.act_done(False)
-        self.game = {"game": "lock", "at": e, "phase": "pick", "pins": pins, "pin": 0, "slips": 0, "script": False,
-                     "won": False, "then": done}
+        self.game = {"game": "lock", "at": at, "phase": "pick", "pins": pins, "pin": 0, "slips": 0, "script": False,
+                     "won": False, "then": done, "pin_at": self.now}
         self.game_show(**self.lock_view())
 
     def break_chest_open(self, e, level):

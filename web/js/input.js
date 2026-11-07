@@ -43,7 +43,11 @@ function tileEntity(wx, wy, worldOnly) {
   const e = { k: T.TILE, n: name, x: t.m.ox + (t.tx - 1) * G.tw, y: t.m.oy + (t.ty - 1) * G.th, w: G.tw, h: G.th,
     misc: tileIni(name, "Show.Name", "0"), uw: tileIni(name, "Use.Words", ""), map: t.m.name, tx: t.tx, ty: t.ty,
     offMap: t.m.name !== S.mapName };
-  if (lock !== undefined) e.lock = lock;
+  if (lock !== undefined) {
+    e.lock = lock;
+    const pick = S.lockPicks.get(t.m.name + "," + t.tx + "," + t.ty);
+    if (pick) e.lockPick = pick;
+  }
   return e;
 }
 

@@ -90,9 +90,12 @@ class ActionsMixin:
                 m, tx, ty = self.w.tile_at(e.z, e.cx, e.cy)
                 if m is not None and self.trap_known(m, tx, ty) and (m.name, tx, ty) not in self.traps_disarmed:
                     verbs = self.add_verb(verbs, "Disarm")  # (a trap you've seen: senses.py)
-            if self.tile_lock_of(e) is not None:
+            lk = self.tile_lock_of(e)
+            if lk is not None:
                 verbs = self.add_verb(verbs, "Open")
                 verbs = self.add_verb(verbs, "Unlock")
+                if lk.pick:
+                    verbs = self.add_verb(verbs, "Pick Lock")    # (a door that can be picked: locks.py)
             if verbs == "" and self.examine_first(e):
                 verbs = "Examine"
             verbs = self.add_verb(verbs, "Walk here")

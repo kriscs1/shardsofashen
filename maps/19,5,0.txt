@@ -32,3 +32,4 @@ Id	Court_Cathedral	22	20
 StaticObject	Valuables	384	312
 StaticObject	Valuables	192	376
 StaticObject	Valuables	160	152
+Lock	7	11		The handle is cold as ice and won't turn. A wizard's house keeps its own door.

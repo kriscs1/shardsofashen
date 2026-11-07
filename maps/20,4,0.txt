@@ -30,3 +30,6 @@ Id	Court_Port	14	3
 Id	Court_City_Hall	16	21
 StaticObject	Valuables	704	184
 StaticObject	Valuables	352	184
+Lock	12	12			Pick=9
+MapItem	Gold_Coin(s)	320	256	30	Once=1
+MapItem	Healing_Draught	352	256	1	Once=1

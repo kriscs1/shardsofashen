@@ -26,3 +26,4 @@ StaticObject	Notice	96	450	Id=Frosthold_Notice_309
 StaticObject	Notice	768	194	Id=Frosthold_Notice_327
 StaticObject	Valuables	608	56
 StaticObject	Valuables	480	344
+Lock	9	15		Barred on the inside, against the cold and anyone in it.

@@ -1591,3 +1591,6 @@ Wood_Bridge_SW001	109 77 44
 Wood_Bridge_NSW001	120 82 45
 Wood_Bridge_ESW001	116 81 46
 Wood_Bridge_NESW001	129 88 48
+Iron_Gate001	40 40 46
+Iron_Gate002	40 40 46
+Door_Boards001	112 96 76

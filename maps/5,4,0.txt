@@ -26,3 +26,6 @@ StaticObject	Notice	621	391	Id=Northport_Notice_306
 StaticObject	Notice	640	610	Id=Northport_Notice_308
 NPC	Villager	512	344	Attitude=Good Zone=16,10,19,12 Pause=5-15 Id=Northport_Resident_384 Name=Walter Home=15,9,15,9/17,9,17,9/20,9,20,9/15,10,20,12
 StaticObject	Valuables	352	248
+Lock	9	13			Pick=7
+MapItem	Silver_Ring	288	288	1	Once=1
+MapItem	Gold_Coin(s)	320	288	18	Once=1

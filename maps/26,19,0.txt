@@ -33,3 +33,6 @@ StaticObject	Notice	0	450	Id=Keep_Notice_358
 StaticObject	Valuables	192	56
 StaticObject	Valuables	128	280
 StaticObject	Valuables	576	312
+Lock	19	14			Pick=12
+MapItem	Gold_Ring	640	352	1	Once=1
+MapItem	Gold_Coin(s)	608	352	40	Once=1

@@ -190,10 +190,15 @@ def check_map(path, entities_ini, tiles_ini, report):
             report(r, "line %d: unknown entity type %r" % (n, typ))
             continue
         if typ == "Lock":
-            # Lock<TAB>TileX<TAB>TileY<TAB>Condition<TAB>Message (the message may be left out: "It's locked.")
-            if len(f) not in (4, 5):
+            # Lock<TAB>TileX<TAB>TileY<TAB>Condition<TAB>Message[<TAB>Pick=<Stealth>] (the message may be left out:
+            # "It's locked."; Pick=: it can be picked, locks.py)
+            if len(f) not in (4, 5, 6):
                 report(r, "line %d: Lock needs TileX, TileY, Condition and Message (tab-separated), has %d fields" % (n, len(f)))
                 continue
+            for word in (f[5].split() if len(f) > 5 else []):
+                k, _, v = word.partition("=")
+                if k != "Pick" or not v.isdigit() or not 1 <= int(v) <= 25:
+                    report(r, "line %d: a Lock's options are Pick=<Stealth level 1-25>, not %r" % (n, word))
             xs, ys = f[1], f[2]
             if not (xs.isdigit() and ys.isdigit() and 1 <= int(xs) <= MAP_W and 1 <= int(ys) <= MAP_H):
                 report(r, "line %d: lock tile %s,%s is not a whole tile in 1..%d,1..%d" % (n, xs, ys, MAP_W, MAP_H))
@@ -206,8 +211,10 @@ def check_map(path, entities_ini, tiles_ini, report):
             if tile and tile_walk(tiles_ini, tile)[24] != "1":
                 report(r, "line %d: lock tile %s,%s is %s, which isn't walkable even when unlocked (use a door or a floor)"
                        % (n, xs, ys, tile))
-            if not f[3].strip():
-                warn(r, "line %d: lock at %s,%s has an empty condition, so it is locked for ever" % (n, xs, ys))
+            if not f[3].strip() and not (len(f) > 4 and f[4].strip()) and len(f) < 6:
+                # (one locked for good says so in its own words, or can be picked: build_locked_doors.py)
+                warn(r, "line %d: lock at %s,%s has an empty condition and no message, so it is locked for ever "
+                        "without a word why" % (n, xs, ys))
             if ";" in "\t".join(f[3:]):
                 warn(r, "line %d: ';' in a lock condition or message" % n)
             continue
@@ -1368,8 +1375,8 @@ def check_entities():
 SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
                "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Shardfall.Draw", "Shardfall.Draw.Hours",
-               "Shardfall.Seal", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Shardgate", "Realm.Cluster",
-               "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
+               "Shardfall.Seal", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Stargazers.Glass", "Shardgate",
+               "Realm.Cluster", "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
     "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost"},
     "Shardcraft": {"Dismantle.XP", "Dismantle.XP.Min", "Shardstone.XP", "Rare.Chance", "Rare.Chance.Per.Level",
                    "Rare.Min.Value"},
@@ -2304,7 +2311,8 @@ def check_world(tiles_ini, entities_ini, skills):
     a lock needs $Item.X and X is only found behind it (and can't be bought, crafted, dropped or given)."""
     writes = attribute_writes()
     for m, x, y, cond, msg, where in LOCKS:
-        check_condition(where, cond, skills, entities_ini, writes)
+        if cond.strip():                                # (none: shut for good, or only picked)
+            check_condition(where, cond, skills, entities_ini, writes)
     world = World(tiles_ini)
     cfg = Ini(p("data", "Config.ini"))
     seeds = []
@@ -2344,6 +2352,9 @@ def check_world(tiles_ini, entities_ini, skills):
     quests = quest_needs(Ini(p("data", "Quests.ini")), writes)
     sources = other_sources()
     for m, x, y, cond, msg, where in LOCKS:
+        if not cond.strip():                            # (shut for good, or only picked: no condition to look behind -
+            REPORT.append("%s: lock at %d,%d [] has no condition" % (m, x, y))      # a world's flood each, saved)
+            continue
         shut = world.flood(seeds, closed=frozenset({(m, x - 1, y - 1)}))
         behind = {n for n in open_reach - shut}
 
