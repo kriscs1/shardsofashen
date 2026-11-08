@@ -169,9 +169,11 @@ OPT_SPECS = {
               "below; its health, blows and guard go by it. A Shard Remnant: how strong it is."),
     "Look": ("Look", "choice", _looks, "Which of its trade's colourings it wears (0: as drawn; blank: by its Id)."),
     "Gone.After": ("Gone after", "text", None, "Gone for a player once a quest's attribute has reached a stage: "
-                   "Attribute:N (GalaithQuest:2, the dragon dead: the fires on its field go out for them)."),
+                   "Attribute:N (GalaithQuest:2, the dragon dead: the fires on its field go out for them). "
+                   "Several, with commas: gone after any one."),
     "Here.After": ("Here after", "text", None, "There only for a player once a quest's attribute has reached a "
-                   "stage: Attribute:N (SmugglerSide:2: Meg's men at the cove, for those who sided with her)."),
+                   "stage: Attribute:N (SmugglerSide:2: Meg's men at the cove, for those who sided with her). "
+                   "Several, with commas: there only after all of them."),
     "Spotted.Script": ("If it sees you", "text", None, "A watchman: when it sees a player, this script runs for "
                        "them (data\\Scripts: a name with no spaces) and it doesn't fight. Needs Attitude=Bad and a Cone."),
     "Side": ("Side", "text", None, "Its side (Smugglers, Watch...): a script's Set.Side.Attitude makes every NPC of "

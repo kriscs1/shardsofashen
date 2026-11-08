@@ -8859,3 +8859,287 @@ def test_a_boss_heals_by_the_remnants_near_it_unless_you_take_them_first(world):
             world.remove_entity(it)
         world.ents.extend(held)
         leave(world, s)
+
+
+# ----- the Mending (dev/migrate/build_mending.py)
+def mending_do(world, s, e, verb, *answers):
+    """s stands by e and does verb to it, choosing each answer in turn (Esc after, if it's still open)."""
+    assert e is not None
+    near(world, s, e, 26, 0)
+    s.choose_verb(verb, e, int(e.cx), int(e.cy))
+    run_for(world, 30)
+    past_a_lesson(world, s)
+    for n in answers:
+        s.action_box_response_chosen(n)
+        run_for(world, 30)
+    if s.ab_mode:
+        s.handle({"t": "close"})
+        run_for(world, 5)
+
+
+def mending_script(world, s, name, *answers):
+    """A trigger's (or a kill's, or an item's) script, run for s, choosing each answer in turn."""
+    s.start_script(name, False)
+    run_for(world, 30)
+    for n in answers:
+        s.action_box_response_chosen(n)
+        run_for(world, 30)
+    if s.ab_mode:
+        s.handle({"t": "close"})
+        run_for(world, 5)
+
+
+def test_cold_fire_three_blue_shrines_and_what_is_said_by_the_hands_fire(world):
+    s = join(world, "Ashwalker", "0,0,10", 12 * 32, 4 * 32)
+    s.connected = True
+    s.god_mode = 1                                                  # (whatever's about on the Ashwold's roads)
+    s.player_level = lambda: 20
+    attr = s.get_attribute
+    warden = next(e for e in world.ents if e.name == "Warden" and e.alive)
+    mending_do(world, s, warden, "Talk to")
+    assert attr("ColdFireQuest") == "0"                             # (the Ember Ring first)
+    s.update_attribute("RingQuest", "=2")
+    mending_do(world, s, warden, "Talk to", 1)
+    assert attr("ColdFireQuest") == "1"
+    for n in (1, 2, 1):                                             # (the same one twice counts once)
+        mending_script(world, s, "Ashen Shrine %d" % n)
+    assert attr("ColdShrines") == "2" and attr("ColdFireQuest") == "1"
+    mending_script(world, s, "Ashen Shrine 3")
+    assert attr("ColdFireQuest") == "2"
+    mending_script(world, s, "Hand Camp")                           # (walking up: too loud to hear a thing)
+    assert attr("ColdFireQuest") == "2" and attr("ColdCampNear") == "1"
+    s.handle({"t": "stance", "stance": "Sneaking"})
+    run_for(world, 25)
+    assert s.sneaking()
+    mending_script(world, s, "Hand Camp", 1)
+    assert attr("ColdFireQuest") == "3"
+    mending_do(world, s, warden, "Talk to", 1)
+    assert attr("ColdFireQuest") == "4"
+    leave(world, s)
+
+
+def test_the_kind_stranger_annis_goes_home_or_to_the_hall(world):
+    s = join(world, "Tamsfriend", "0,0,10", 12 * 32, 4 * 32)
+    other = join(world, "Letherbe", "0,0,10", 12 * 32, 5 * 32)
+    for p in (s, other):
+        p.connected = True
+        p.god_mode = 1                                              # (whatever's about on the Ashwold's roads)
+        p.player_level = lambda: 20
+        p.update_attribute("ColdFireQuest", "=4")
+    attr = s.get_attribute
+    seen = lambda pid, p=s: world.placed_entity(pid, p) is not None      # noqa: E731
+    mending_do(world, s, world.placed_entity("Tam_Cooper", s), "Talk to", 1)
+    assert attr("StrangerQuest") == "1"
+    mending_do(world, s, world.placed_entity("House_Annis", s), "Talk to", 1)
+    assert attr("StrangerQuest") == "2"
+    mending_do(world, s, world.placed_entity("Cael", s), "Talk to", 1)
+    assert attr("StrangerQuest") == "3" and s.items_held("Caels_Lines") == 1
+    mending_do(world, s, world.placed_entity("House_Annis", s), "Talk to", 1, 1)   # (Cael's lines read to her)
+    assert attr("StrangerQuest") == "4" and attr("StrangerEnd") == "1" and s.items_held("Caels_Lines") == 0
+    assert seen("Home_Annis") and not seen("House_Annis") and not seen("Hall_Annis")
+    other.update_attribute("StrangerQuest", "=3")
+    mending_do(world, other, world.placed_entity("House_Annis", other), "Talk to", 2)   # (left with her Shard)
+    assert other.get_attribute("StrangerEnd") == "2" and other.get_attribute("StrangerQuest") == "4"
+    assert seen("Hall_Annis", other) and not seen("House_Annis", other) and not seen("Home_Annis", other)
+    assert seen("House_Annis", join(world, "Passerby", "0,0,10", 12 * 32, 6 * 32))   # (hers to each their own)
+    leave(world, world.sessions["Passerby"])
+    other.update_attribute("EldestQuest", "=1")                     # (down under Wardhaven with the rest)
+    assert seen("Undercroft_Annis", other) and not seen("Hall_Annis", other)
+    leave(world, other)
+    leave(world, s)
+
+
+def test_in_grey_the_robe_the_sermon_the_tithe_and_the_great_shard(world):
+    s = join(world, "Greyrobe", "0,0,10", 12 * 32, 4 * 32)
+    s.connected = True
+    s.god_mode = 1
+    s.player_level = lambda: 20
+    s.update_attribute("ShardgateQuest", "=5")
+    s.update_attribute("ColdFireQuest", "=4")
+    attr = s.get_attribute
+    seen = lambda pid: world.placed_entity(pid, s) is not None      # noqa: E731
+    body = s.equip_slot_index("Body")
+    linnet = world.placed_entity("Sister_Linnet", s)
+    mending_do(world, s, linnet, "Talk to", 1, 1)                   # (where's the gathering? only for the Mending)
+    assert attr("GreyQuest") == "1"
+    s.equipped[body] = "Mending_Robe"
+    mending_do(world, s, linnet, "Talk to", 1)                      # (in grey: one of them)
+    assert attr("GreyQuest") == "2"
+    s.equipped[body] = ""
+    mending_script(world, s, "Mending Sermon")
+    assert attr("GreyQuest") == "2"                                 # (Ivo speaks only to those in grey)
+    s.equipped[body] = "Mending_Robe"
+    mending_script(world, s, "Mending Sermon", 1)
+    assert attr("GreyQuest") == "3" and attr("TitheQuest") == "1"
+    hall = world.maps["23,7,-1"]
+    gate = hall.lock_at[(15, 4)]
+    assert s.lock_closed(hall, gate)
+    held = [e for e in world.ents if e.type == NPC and e.map == hall.name and e.alive and e.hostile]
+    for e in held:
+        world.ents.remove(e)
+    try:
+        s.add_shards(100)
+        shards = s.shards()
+        mending_do(world, s, world.placed_entity("Hall_Font", s), "Pour Shards", 1)
+        assert s.shards() == shards - 40 and attr("TitheOpen") == "1" and attr("TitheWay") == "1"
+        s.check_locks(False)
+        assert not s.lock_closed(hall, gate)
+        mending_script(world, s, "Mending Sanctum")
+        assert attr("TitheQuest") == "2" and attr("TitheWay") == "1"    # (the way it was opened, kept)
+        mending_do(world, s, world.placed_entity("Hall_Great_Shard", s), "Listen", 1)
+        assert attr("GreyQuest") == "4"
+    finally:
+        world.ents.extend(held)
+    assert seen("Sister_Linnet") and seen("House_Shard")
+    mending_do(world, s, world.placed_entity("Ashford_Sheriff_325", s), "Talk to", 1, 1)
+    assert attr("GreyQuest") == "5" and attr("GreyEnd") == "1" and attr("MendingShut") == "1"
+    assert not seen("Sister_Linnet") and not seen("House_Shard") and seen("Home_Annis")   # (the house shut)
+    assert attr("StrangerQuest") == "0"                             # (and Annis taken home, never asked)
+    leave(world, s)
+
+
+def test_keeping_the_mendings_secret_and_the_tithes_other_ways(world):
+    s = join(world, "Keeper", "0,0,10", 12 * 32, 4 * 32)
+    s.connected = True
+    s.update_attribute("GreyQuest", "=4")
+    s.equipped[s.equip_slot_index("Body")] = "Mending_Robe"
+    linnet = world.placed_entity("Sister_Linnet", s)
+    mending_do(world, s, linnet, "Talk to", 1, 1)                   # (I won't tell a soul)
+    assert s.get_attribute("GreyQuest") == "5" and s.get_attribute("GreyEnd") == "2"
+    near(world, s, linnet, 26, 0)
+    s.choose_verb("Talk to", linnet, int(linnet.cx), int(linnet.cy))
+    run_for(world, 30)
+    assert "Channelling.Drinking" in s.forms_learnt and "Brother. Let it in" in s.ab_text   # (a form, first)
+    past_a_lesson(world, s)
+    assert s.responses[0] == "Show me what you have."
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert any(r["item"] == "Mending_Robe" for r in s.rack)         # (her shelf)
+    s.handle({"t": "close"})
+    run_for(world, 5)
+    s.update_attribute("TitheQuest", "=1")
+    mending_script(world, s, "Mending Sanctum")                     # (in past the gate, and nothing paid)
+    assert s.get_attribute("TitheWay") == "2" and s.get_attribute("TitheQuest") == "2"
+    other = join(world, "Breaker", "0,0,10", 12 * 32, 5 * 32)
+    other.update_attribute("TitheQuest", "=1")
+    mending_script(world, other, "Kill Font_Keeper")
+    assert other.get_attribute("TitheOpen") == "1" and other.get_attribute("TitheWay") == "3"
+    leave(world, other)
+    leave(world, s)
+
+
+def test_the_eldest_takes_a_tither_for_a_friend_and_never_sees_the_first_blow(world):
+    s = join(world, "Tither", "0,0,10", 12 * 32, 4 * 32)
+    s.connected = True
+    s.god_mode = 1                                                  # (he fights back, after)
+    s.player_level = lambda: 30
+    s.update_attribute("GalaithQuest", "=2")
+    s.update_attribute("GreyQuest", "=5")
+    attr = s.get_attribute
+    mending_do(world, s, world.placed_entity("Wardhaven_Priest_309", s), "Talk to", 1)
+    assert attr("EldestQuest") == "1" and world.placed_entity("Wardhaven_Undercroft_Stair", s) is not None
+    s.update_attribute("TitheWay", "=1")
+    s.teleport("17,1,-1", 7 * 32 + 8, 12 * 32 + 8)                  # (at the foot of the stair)
+    s.do_pending_map_change()
+    eldest = world.placed_entity("The_Eldest", s)
+    choir = [e for e in world.ents if e.map == "17,1,-1" and e.npc_id.startswith("Eldest_Choir")]
+    for e in choir:
+        world.ents.remove(e)
+    try:
+        mending_script(world, s, "Eldest Sanctum", 1)
+        assert attr("EldestMet") == "1"
+        assert not world.hostile_for(eldest, s) and s.unseen_by(eldest)  # (one of the faithful, he thinks)
+        other = join(world, "Stranger", "17,1,-1", 7 * 32 + 8, 11 * 32 + 8)
+        assert world.hostile_for(eldest, other)                     # (his trust is the tither's alone)
+        leave(world, other)
+        stealth = s.skill_xp[s.skill_index("Stealth")]
+        near(world, s, eldest, 20, 0)
+        s.player_attack_target = eldest
+        s.player_last_attack = 0
+        hp = eldest.hp
+        for _ in range(40):                                         # (a blow, as it's struck in play)
+            world.tick(0.05, now=world.now + 50)
+            if eldest.hp < hp:
+                break
+        assert eldest.hp < hp and s.skill_xp[s.skill_index("Stealth")] > stealth   # (a sneak attack's)
+        assert world.hostile_for(eldest, s) and eldest.uid not in s.ent_attitudes  # (and he knows you now)
+        s.player_attack_target = None
+        s.damage_npc(eldest, 10 ** 6)
+        run_for(world, 30)
+        assert attr("EldestQuest") == "2"                           # (Kill The_Eldest)
+    finally:
+        world.ents.extend(choir)
+    mending_do(world, s, world.placed_entity("Eldest_Great_Shard", s), "Listen", 2)   # (keep a splinter)
+    assert attr("EldestQuest") == "3" and attr("EldestEnd") == "2" and s.items_held("Marys_Whisper") == 1
+    leave(world, s)
+
+
+def test_marys_whisper_gives_shards_once_in_a_while_and_wont_let_the_seam_be_unmade(world):
+    s = join(world, "Whispered")
+    stock(s, Marys_Whisper=1, Pickaxe=1)
+    shards = s.shards()
+    mending_script(world, s, "Listen Marys_Whisper")
+    assert s.shards() == shards + 3
+    mending_script(world, s, "Listen Marys_Whisper")
+    assert s.shards() == shards + 3                                 # (soon, love: not yet)
+    s.update_attribute("WhisperAt", "=%d" % (int(float(s.get_attribute("WhisperAt"))) - 21 * 3600))
+    mending_script(world, s, "Listen Marys_Whisper")
+    assert s.shards() == shards + 6
+    s.update_attribute("KingQuest", "=1")
+    s.update_attribute("WardensTruth", "=1")
+    seam = next(e for e in world.ents if e.npc_id == "Kings_Shard_Seam")
+    near(world, s, seam, 0, 30)
+    s.choose_verb("Mine", seam, int(seam.cx), int(seam.cy))
+    run_for(world, 30)
+    s.action_box_response_chosen(3)                                 # (break it: the Whisper cries out)
+    run_for(world, 20)
+    assert s.get_attribute("HeartChoice") == "0" and s.get_attribute("Unmade") == "0"
+    leave(world, s)
+
+
+def test_the_mendings_brother_and_a_kinds_display_name_for_a_title(world):
+    s = join(world, "Brotherly")
+    assert s.parse_script_variables("Welcome, $Player.Brother.") == "Welcome, Brother."
+    s.handle({"t": "look", "look": {"body": "f"}})
+    assert s.parse_script_variables("Welcome, $Player.Brother.") == "Welcome, Sister."
+    s.clicked_ent = None
+    assert s.npc_title("Mending_Sister") == "Sister of the Mending"
+    leave(world, s)
+
+
+def test_the_mending_on_the_road_in_the_mine_and_after_it_all(world):
+    s = join(world, "Roadworn", "0,0,10", 12 * 32, 4 * 32)
+    s.connected = True
+    s.player_level = lambda: 20
+    enc = world.encounters
+    assert not enc.allowed("Mending_Wayfarer", s)                   # (not till Cold Fire's told you of them)
+    s.update_attribute("ColdFireQuest", "=3")
+    assert s.condition_met(enc.kinds["Mending_Wayfarer"]["requires"])
+    shards = s.shards()
+    mending_script(world, s, "Talk to Mending_Wayfarer", 1)         # (for nothing, friend)
+    assert s.get_attribute("MendingGift") == "1" and s.shards() == shards + 5
+    mending_script(world, s, "Talk to Mending_Wayfarer", 1)
+    assert s.shards() == shards + 5                                 # (once)
+    waves = world.waves
+    for k in waves.defs:
+        waves.next_random[k] = world.now + 10 ** 9
+    s.teleport(waves.defs["Mending_Raid"]["map"], 12 * 32, 10 * 32)
+    s.do_pending_map_change()
+    waves.next_random["Mending_Raid"] = world.now - 1
+    waves.random_attacks()
+    assert "Mending_Raid" not in waves.running                      # (not before The True Heir)
+    s.update_attribute("KingQuest", "=1")
+    waves.next_random["Mending_Raid"] = world.now - 1
+    waves.random_attacks()
+    assert "Mending_Raid" in waves.running
+    waves.finish("Mending_Raid", waves.running["Mending_Raid"], False)
+    seen = lambda pid: world.placed_entity(pid, s) is not None      # noqa: E731
+    assert seen("Hall_Sister_2") and not seen("Chapel_Penitent_1")
+    s.update_attribute("HeartChoice", "=3")                         # (the Seam unmade: some go home)
+    assert not seen("Hall_Sister_2") and seen("Hall_Sister_1")
+    assert not s.condition_met(waves.defs["Mending_Raid"]["requires"])
+    s.update_attribute("EldestEnd", "=1")                           # (the great Shard broken)
+    assert seen("Chapel_Penitent_1") and seen("Chapel_Penitent_2")
+    s.update_attribute("EldestEnd", "=2")                           # (or a splinter kept: they stay)
+    assert not seen("Chapel_Penitent_1")
+    leave(world, s)

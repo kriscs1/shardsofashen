@@ -42,8 +42,8 @@ def say(npc, text, *answers):
 
 
 # builders that took over scripts an earlier one wrote (Talk to Captain_Rook, the barrier): that one run again leaves
-#  them be
-TAKES_OVER = ("build_middle_quests.py", "build_smugglers_run.py", "build_choices.py")
+#  them be. In order: one later in the list may take over a script from one before it (Talk to Cael: build_mending.py)
+TAKES_OVER = ("build_middle_quests.py", "build_smugglers_run.py", "build_choices.py", "build_mending.py")
 
 
 def write_script(name, rows, maker):
@@ -52,7 +52,8 @@ def write_script(name, rows, maker):
     path = os.path.join(SCRIPTS, name + ".txt")
     if os.path.exists(path):
         first = open(path, "rb").readline().decode("cp1252").strip()
-        if any(t != maker and first.endswith("\\" + t) for t in TAKES_OVER):
+        later = TAKES_OVER[TAKES_OVER.index(maker) + 1:] if maker in TAKES_OVER else TAKES_OVER
+        if any(t != maker and first.endswith("\\" + t) for t in later):
             return
     numbered, labels, n = [], {}, 0
     for r in rows:

@@ -29,3 +29,7 @@ NPC	Arcane_Wisp	224	248	Attitude=Bad Zone=5,6,11,12 Chase=1,2,15,16
 NPC	Arcane_Wisp	672	280	Attitude=Bad Zone=19,7,25,13 Chase=15,3,25,17
 Id	Shardglass_Field	15	14
 NPC	Wandering_Echo	480	376	Id=Shardglass_Echo Attitude=Good Schedule=Always Name=The_Wandering_Echo Zone=13,10,19,16 Chase=13,10,19,16
+StaticObject	Glass_Slab	640	320	Id=Mending_Slab
+NPC	Mending_Acolyte	608	344	Attitude=Bad Stand=1 Face=W Id=Mending_Lookout_1
+NPC	Mending_Acolyte	576	280	Attitude=Bad Zone=18,9,21,12 Id=Mending_Lookout_2
+Id	Mending_Field	21	12

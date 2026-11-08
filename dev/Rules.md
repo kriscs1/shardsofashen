@@ -143,7 +143,12 @@ wound and want the scraps whole again, and their aim is the first cut, the King'
 the Mending" (an Acolyte of the Mending), never a one-word name for its people; townsfolk say "the Mending folk" or
 "them in grey". No joining it: the robe is a disguise only, and the Tithe the temptation. Its hall is under
 Shardglass Field, its end in Wardhaven. The great Shard speaks to the heir as Mary: a lie, and the player knows it.
-Kept gentle, like the Glass Wardens.
+Kept gentle, like the Glass Wardens. Five quests (Cold Fire, The Kind Stranger, In Grey, The Tithe, The Eldest of the
+Mending, all made by `dev/migrate/build_mending.py`), with three choices that each player keeps (Annis home or left,
+the secret told or kept, the great Shard broken or a splinter kept). Round them: one of the Mending on the road, the
+townsfolk's talk, a raid on the mine behind Galaith after The True Heir (till the Seam's unmade), the hall emptier
+after Unmake, and penitents in Wardhaven's chapel once the great Shard's broken. One of the Mending calls the player
+`$Player.Brother` (Sister for a woman).
 
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
 The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.md` has every quest, step by step.
@@ -158,7 +163,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   killer's for 10 s), shop stock, unlocked doors, the time and the weather, the horses and carts going round.
 - Personal: quest attributes, quest doors and `Lock` lines, `Once=` items, NPC attitudes set by quests, fog of war,
   each town's standing, the sides you took (`Set.Side.Attitude`) and the people there only for some (`Here.After=`,
-  `Gone.After=`). A quest that ends more than one way keeps the way it went in an attribute (`Ending=`), and the
+  `Gone.After=`; several with commas: gone once any of them is reached, there only once all are). A quest that ends more than one way keeps the way it went in an attribute (`Ending=`), and the
   journal shows that way's line.
 - **Chests are per player**: everyone finds a chest's loot, once each. A chest script tracks its loot with an
   attribute, never with shared state.
@@ -172,7 +177,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   its Kill script runs for each, each gets their own loot roll. A boss (`Boss=1`) has more health for each fighter
   (`[Together] Boss.Per.Player`); a raid sends more for each player there. One alone still wins at the base numbers.
   **Every town has a surprise raid** (`data/Waves.ini`, `dev/migrate/build_town_raids.py`: raiders to suit its land),
-  and it comes only while someone's there to meet it (`waves.py` random_attacks).
+  and it comes only while someone's there to meet it (`waves.py` random_attacks); with `Requires=`, only while
+  someone there has got that far in the story (the Mending's raid on the mine: after The True Heir).
 - **Parties** (right-click a player: Invite to party; `/p` talks to it, `/leave`): a quest stage one member reaches,
   the members near at that same stage reach too, with the quest's own things.
 - **Friends** (right-click a player, or `/friend Name`): two Hallisium accounts are friends **by account, on the
@@ -259,7 +265,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   cones shown; Pickpocket, Steal; slower). Each stance shows on whoever's in it (a red ring, a blue ring and motes, a
   crouch: `render.js` drawStance). A moment to change; a blow or a spell ends Sneaking. Monsters hear you
   (`noise_radius`): a lookout turns to look, but nothing sees or hears through a wall. A blow on one that never saw you
-  is a sneak attack. Feedback: a ? over one that heard you, a ! and a sound when you're seen, a sound slipping past.
+  is a sneak attack, and so is the first blow on one a script made friendly for you (`Edit.Entity ... ATTITUDE
+  Good`: the Eldest greeting one of the faithful never sees it coming). Feedback: a ? over one that heard you, a ! and a sound when you're seen, a sound slipping past.
   Slipping past pays Stealth only for walking past it yourself, in its roam or near its patrol's path, against one
   above your level or not far under it, once a monster a while: standing still near one teaches nothing. Loud thieving (a chest
   forced, a rattle) wakes sleepers near (`wake_sleepers`); asleep, nobody sees your hand. A standing lookout's map

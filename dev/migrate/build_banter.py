@@ -144,6 +144,22 @@ SCENES = {
                          "A:Funny what a new Chancellor does.", when="$Attr.GrainWay=2", town="Galaith"),
     "Bread_Dear": scene("Townsfolk", "Townsfolk", "A:The Chancellor's cellars are full, they say.",
                         "B:And the bakers' bins are empty.", when="$Attr.GrainWay=1", town="Galaith"),
+    # ----- them in grey (build_mending.py): talk, never a word of where they are
+    "Grey_Soup": scene("Townsfolk", "Townsfolk", "A:Them in grey were round again.", "B:With the soup?",
+                       "A:Good soup, mind.", when="$Attr.ColdFireQuest>=3"),
+    "Grey_Aunt": scene("Townsfolk", "Townsfolk", "A:My aunt's took up with the Mending folk.", "B:Is she happy?",
+                       "A:She says Uncle talks to her.", "B:Uncle's dead.", "A:That's what I said.",
+                       when="$Attr.ColdFireQuest>=3"),
+    "Grey_Kind": scene("Townsfolk", "Townsfolk", "A:Kind people, the Mending.", "B:Too kind.",
+                       "A:Is there such a thing?", "B:Ask my purse.", when="$Attr.ColdFireQuest>=3"),
+    "Grey_Robe": scene("Townsfolk", "Player", "A:Not today, thank you.", "A:We've got soup.",
+                       when="$Equipped.Body=Mending_Robe"),
+    "Grey_House_Shut": scene("Guards", "Guards", "A:Shut the grey house in Ashford.", "B:Any trouble?",
+                             "A:They offered us soup.", when="$Attr.MendingShut=1", town="Ashford"),
+    "Grey_Gone_Quiet": scene("Townsfolk", "Townsfolk", "A:Saw one of them in grey crying in the road.",
+                             "B:Whatever for?", "A:Said it had all gone quiet.", when="$Attr.HeartChoice=3"),
+    "Grey_Home": scene("Townsfolk", "Townsfolk", "A:My cousin's back from the Mending.", "B:Is she all right?",
+                       "A:She's hungry. That's a start.", when="$Attr.EldestEnd=1"),
 }
 
 

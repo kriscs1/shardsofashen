@@ -28,3 +28,9 @@ NPC	Butterfly	64	224	Attitude=Good
 NPC	Butterfly	64	64	Attitude=Good
 NPC	Rabbit	32	192	Attitude=Passive
 NPC	Butterfly	480	448	Attitude=Good
+StaticObject	Undercroft_Stair	224	480	Id=Wardhaven_Undercroft_Stair Here.After=EldestQuest:1
+NPC	Mending_Sister	128	504	Attitude=Good Stand=1 Face=N Id=Chapel_Sister_1 Here.After=GalaithQuest:2 Gone.After=EldestQuest:2
+NPC	Mending_Sister	224	536	Attitude=Good Stand=1 Face=N Id=Chapel_Sister_2 Here.After=GalaithQuest:2 Gone.After=EldestQuest:2
+NPC	Mending_Sister	128	504	Attitude=Good Stand=1 Face=N Id=Chapel_Penitent_1 Name=Sister_Hesper Here.After=EldestEnd:1 Gone.After=EldestEnd:2
+NPC	Mending_Sister	224	536	Attitude=Good Stand=1 Face=N Id=Chapel_Penitent_2 Name=Brother_Odo Here.After=EldestEnd:1 Gone.After=EldestEnd:2
+Id	Wardhaven_Undercroft	8	17

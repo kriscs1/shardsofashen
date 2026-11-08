@@ -26,7 +26,7 @@ PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "
 
 
 PLAYER_WORDS = [("$Player.Son", "son", "daughter"), ("$Player.Boy", "boy", "girl"), ("$Player.Lord", "lord", "lady"),
-                ("$Player.King", "King", "Queen")]
+                ("$Player.King", "King", "Queen"), ("$Player.Brother", "Brother", "Sister")]
 
 
 class ScriptMixin:

@@ -615,33 +615,66 @@ sight of one of them, ends it for that map, and those near come for you. The tem
 (the Shards tell you what you want to hear: Cael's confession, the Glass Wardens), which is what makes it sad rather
 than frightening. It never says anything Mary's letter didn't.
 
-**The quests** (each filled in step by step as it's built; attribute in brackets):
-1. **Cold Fire** (`ColdFireQuest`, level 12, after The Ember Ring). The Warden in Emberwatch: the Ashwold's shrines
-   are burning again, blue. The three shrines relit cold; sneak up on the Hand's camp and hear strangers in grey pay
-   it in Shards "for the one beyond the wall".
-2. **The Kind Stranger** (`StrangerQuest`, 13, after Cold Fire). Tam the cooper: his mother Annis has gone to the
-   Mending's house, where a Shard talks to her in her late husband's voice. Cael writes a few lines for her (what he
-   told Oska: the Shards tell you what you want to hear). Bring them and talk her home (Ashford's standing up), or
-   leave her be: she's in the hall later, and at the end.
-3. **In Grey** (`GreyQuest`, 15, after The Shardgate and Cold Fire). A robe of the Mending, picked from an Acolyte's
-   pocket or taken off the washing line behind their house. Worn, they take you for one of them, and Sister Linnet
-   sends you to the field. The sermon (one who took the road's gift is named and thanked); Listen to the great Shard
-   and it speaks in Mary's voice. Their aim: the first cut. **The choice**: tell the guards (Ashford's and Galaith's
-   standing up; the house raided and shut; Annis taken home by the watch, if she's still there), or keep their secret
-   (the house and its shop stay open to you in the robe).
-4. **The Tithe** (`TitheQuest`, the same visit). Into the sanctum by Shards poured into the Font, a picked lock
-   (Stealth), or a fight (the disguise gone). The way you chose is remembered: the Eldest greets one who tithed as one
-   of the faithful (your first blow is free), and doesn't know one who picked the lock.
-5. **The Eldest of the Mending** (`EldestQuest`, 20, after The Dragon of Galaith), in Wardhaven: a boss (`Boss=1`)
-   with a choir of Cantors, and he heals by their remnants unless you take them in first (`Absorbs.Remnants=1`).
-   **The choice**: break the great Shard (the Mending scatters; a few come home, penitents in the towns) or keep a
-   splinter, **Mary's Whisper** (a few Shards a day, in her voice; while you carry it, Unmake at the Seam is closed
-   to you). Breaking it teaches the Channelling form **Drinking** (Stance forms, below).
+**The quests** (attribute in brackets; the way one ended in its `Ending=` attribute):
+1. **Cold Fire** (`ColdFireQuest`, level 12, after The Ember Ring; the Warden in Emberwatch, `Talk to Warden`).
+   - 0 → 1: the Warden has had word: the Hand's burnt shrines on the Ashwold are lit again, and the fire's blue.
+   - 1 → 2: Listen at each of the three cold shrines (`Ashen Shrine 1-3`; `ColdShrine1-3`, counted in `ColdShrines`;
+     the third sends you on). Footprints lead to the Hand's camp (`Hand Camp`, a trigger).
+   - 2 → 3: come to the camp's fire Sneaking and hear two strangers in grey pay the Hand in Shards "for the one
+     beyond the wall". Come any other way and the voices are too low to make out (said once: `ColdCampNear`).
+   - 3 → 4: tell the Warden. 12 Shards, Stealth XP.
+2. **The Kind Stranger** (`StrangerQuest`, 13, after Cold Fire; Tam the cooper in Ashford).
+   - 0 → 1: Tam's mother Annis goes every day to the quiet house behind Rufus's yard.
+   - 1 → 2: Annis (`Talk to House_Annis`) won't hear a word against the Shard; it talks to her in Oswin's voice.
+   - 2 → 3: Cael at the Cinder Chapel writes her a few lines (`Caels_Lines`: what he told Oska).
+   - 3 → 4, **the choice** (`StrangerEnd`): read them to her and walk her home (1: `AnnisHome`, `AnnisAway`;
+     Ashford's standing +15; she's at Tam's after, `Talk to Home_Annis`), or leave her with her Shard (2:
+     `AnnisAway`; she's in the hall, `Talk to Hall_Annis`, and in the Eldest's sanctum at the end). If In Grey's
+     told before it's done, the watch takes her home (3).
+3. **In Grey** (`GreyQuest`, 15, after The Shardgate and Cold Fire; Sister Linnet at the Mending's house).
+   - 0 → 1: Linnet won't tell an outsider where they gather.
+   - 1 → 2: a robe of the Mending (`Mending_Robe`): picked from an Acolyte's pocket, or off the washing line behind
+     the house (`RobeTaken`). In it, Linnet takes you for one of them and tells you of the slab at Shardglass Field's
+     east end (`Climb Down Mending_Slab`; The Hall Under the Glass is on the world map from here).
+   - 2 → 3: the sermon (`Mending Sermon`, for one in the robe): Cantor Ivo names and thanks one who took the road's
+     gift (`MendingGift`), and The Tithe starts.
+   - 3 → 4: Listen to the great Shard in the sanctum (`Listen Hall_Great_Shard`): Mary's voice, her letter's words
+     given back out of order. Their aim: the King's Seam.
+   - 4 → 5, **the choice** (`GreyEnd`): tell Sheriff Flo (1: `MendingShut`; Ashford's and Galaith's standing +15;
+     Linnet, the house's Shard and its shop gone; Annis brought home if she was left), or tell Linnet you'll keep
+     their secret (2: the house and its shop stay open to you in the robe, and she teaches the Channelling form
+     Drinking).
+4. **The Tithe** (`TitheQuest`, started by the sermon). An iron gate shuts the sanctum (a `Lock`: `TitheOpen`).
+   - 1 → 2, three ways (`TitheWay`): pour $Shards.Mending.Tithe Shards into the Font (`Pour Shards Hall_Font`, 1),
+     pick the gate's lock (Stealth, 2), or kill the Font's keeper, a Glassbound, for its key (`Kill Font_Keeper`, 3:
+     a blow ends the disguise). Done just inside the gate (`Mending Sanctum`). Channelling XP.
+5. **The Eldest of the Mending** (`EldestQuest`, 20, after The Dragon of Galaith and In Grey; Amos, the priest of
+   Wardhaven). The two Sisters in grey in his chapel are there since the dragon died (`GalaithQuest>=2`).
+   - 0 → 1: Amos: singing under his chapel floor at night, and a stair he never knew of (`Climb Down
+     Wardhaven_Undercroft_Stair`). The hall's great Shard is gone from under the field: it's here now.
+   - 1 → 2: the Eldest (`Boss=1`, `Absorbs.Remnants=1`) and his choir of four Cantors. How he greets you
+     (`Eldest Sanctum`, once: `EldestMet`) is how you came to the Font: one who tithed is one of the faithful, and
+     he opens his arms (`Edit.Entity ATTITUDE Good`: your first blow is a sneak attack); one who picked the lock is a
+     stranger; one who broke the keeper is the one who'll not listen. Killed (`Kill The_Eldest`).
+   - 2 → 3, **the choice** (`EldestEnd`, `Listen Eldest_Great_Shard`): break the great Shard (1: the Mending
+     scatters; Annis comes home if she'd been left; Sister Hesper and Brother Odo, penitents, in Wardhaven's chapel)
+     or keep a splinter, **Mary's Whisper** (2: $Shards.Mending.Whisper Shards every Whisper.Hours real hours in her
+     voice, `WhisperAt`; while you carry it, choosing Unmake at the Seam fails: the Whisper cries out, and your hand
+     won't do it).
+   30 Shards, Channelling and Defence XP.
 
-**The world round it.** One of the Mending on the road (`MendingGift` if you take the Shards). The townsfolk's talk
-of them (no notice, sign or map text ever points to them). After The True Heir, the Mending raids the mine behind
-Galaith now and then, only while someone's there. After Unmake at the Seam their sermons change: the hope's gone,
-and some go home.
+**The world round it.**
+- **On the road** (`Encounters.ini` `[Mending_Wayfarer]`, out of doors, level 12 up, after Cold Fire's told you of
+  them, till the Seam's unmade or the great Shard's broken): a few Shards "for nothing, friend", once
+  (`MendingGift`); the sermon remembers it.
+- **The townsfolk's talk** (`build_banter.py`, `Grey_*`): soup, an aunt who hears her dead husband, "too kind";
+  the robe worn in town; the house shut (Ashford's guards); gone quiet after Unmake; a cousin home after the great
+  Shard's broken. No notice, sign or map text points to them.
+- **The mine** (`Waves.ini` `[Mending_Raid]`): after The True Heir and till the Seam's unmade, now and then, the
+  Mending comes down the tunnels behind Galaith for the King's Seam, only while someone there has got that far
+  (`Requires=`).
+- **After Unmake** (`HeartChoice=3`): Ivo's sermon says the Seam's closed for good, two of the hall's Sisters have
+  gone home, and the great Shard has nothing left to say.
 
 **With company.** All of it is each player's own: the disguise, the choices, Annis, the Whisper. A party at the same
 stage reaches a story moment together, and the Eldest gets more health for each fighter, as every boss does.
@@ -662,7 +695,7 @@ A form is shown you when you next talk to its teacher once you've earned it (`St
 | Channelling | Stormcaller | Bert | The Shardgate is done (`ShardgateQuest>=5`) |
 | | Wardkeeper | Warden Ysolde | The Last Watch (`WardenQuest>=3`) |
 | | Listening | Warden Ysolde | the Listening Room heard out (`WardensHeard>=2`) |
-| | Drinking | the Mending (to come) | their secret kept |
+| | Drinking | Sister Linnet, in Ashford | In Grey's secret kept (`GreyEnd=2`) |
 | Sneaking | Cutpurse | Red Meg | you took her side (`SmugglerSide=1`) |
 | | Shadow | Ambrose, at home | the signet given back (`RedrockWay=2`) |
 | | Ranger's Tread | Ranger Ash | the Old Grove kept (`GroveWay=2`) |

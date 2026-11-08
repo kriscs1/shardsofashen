@@ -32,7 +32,7 @@ class ActionsMixin:
         e = self.clicked_ent
         if e is not None and e.alive and getattr(e, "display", "") and strip_digits(e.name) == strip_digits(npc):
             return e.display
-        return pretty(npc)
+        return trim(self.data.entity_ini(npc, "Display.Name", "")) or pretty(npc)     # (Sister of the Mending)
 
     @staticmethod
     def add_verb(lst, verb):

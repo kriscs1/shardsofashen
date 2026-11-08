@@ -330,9 +330,9 @@ def data():
         "Type=MapItem", "Display.Name=Mary's Whisper",
         "Examine.Info=A splinter of the great Shard, no longer than a finger, on a cord. Hold it and it speaks in "
         "your mother's voice.",
-        "Value=0", "Keep.On.Death=1"], after="Penitent")
+        "Use.Words=Listen,Examine", "Value=0", "Keep.On.Death=1"], after="Penitent")
     SK.set_section(SK.ENTS, "Shard_Font", [
-        "Type=StaticObject", "Use.Words=Examine",
+        "Type=StaticObject", "Use.Words=Pour Shards,Examine",
         "Examine.Info=A stone basin of still water with a cold blue light in it. The water doesn't move when you "
         "breathe on it.",
         "Light=48", "Glow=30"], after="Penitent")
@@ -364,6 +364,18 @@ def data():
         "Type=StaticObject", "Use.Words=Listen,Examine", "Light=40", "Glow=30",
         "Examine.Info=A Shard the size of a loaf, on a cloth on the table. It's warm, and there's a hum in it, "
         "like someone about to speak."], after="Penitent")
+    SK.copy_sprite("Entities", "Cael_Confession", "Caels_Lines")
+    SK.set_section(SK.ENTS, "Caels_Lines", [
+        "Type=MapItem", "Display.Name=Cael's Lines", "Use.Words=Read,Examine", "Stackable=1", "Droppable=0",
+        "Value=0", "Examine.Info=A few lines in Cael's hand, for Annis of Ashford."], after="Penitent")
+    SK.copy_sprite("Entities", "Mending_Sister", "Mending_Wayfarer")     # (one of the Mending, met on the road)
+    SK.copy_walk("Mending_Sister", "Mending_Wayfarer")
+    SK.set_section(SK.ENTS, "Mending_Wayfarer", [
+        "Type=NPC", "Attitude=Good", "Display.Name=One of the Mending", "Use.Words=Talk to,Examine",
+        "Examine.Info=A traveller in a plain grey robe, a sliver of glass at the collar, smiling at you as if you'd "
+        "met before.",
+        "Roam.Radius=1", "Chase.Radius=0", "Walk.Speed=0.4", "Pause=4-10", "Respawn=300",
+        "Schedule=Always"], after="Penitent")
     SK.copy_tile("Cult_Shrine_Cold001", "Cult_Shrine001",
                  Examine_Info="An altar of the Ashen Hand, lit again: its candles burn blue, and give no warmth.",
                  Glow_Colour="140 190 255", Light="36")

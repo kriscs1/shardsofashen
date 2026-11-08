@@ -530,7 +530,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             report(where, "Attitude=%s on prey (Flees=1): prey is Passive (prey_passive.py)" % v)
         if k == "Id" and len(npc_ids().get(v, [])) > 1:
             report(where, "Id=%s is on more than one NPC (%s): an Id names one NPC" % (v, ", ".join(npc_ids()[v])))
-        if k in ("Gone.After", "Here.After") and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*(:\d+)?", v):
+        if k in ("Gone.After", "Here.After") and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*(:\d+)?(,[A-Za-z_][A-Za-z0-9_.]*(:\d+)?)*", v):
             report(where, "%s=%r should be Attribute:N (GalaithQuest:2)" % (k, v))
         if k == "Spotted.Script" and not exists(p("data", "Scripts", v + ".txt")):
             report(where, "Spotted.Script=%s: there's no such script in data\\Scripts" % v)
@@ -1734,6 +1734,7 @@ SHARDS_KEYS = {
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
                  "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.XP",
                  "Drawn.Reach", "Drawn.Heal"},
+    "Mending": {"Tithe", "Gift", "Whisper", "Whisper.Hours"},                     # (build_mending.py)
 }
 UPGRADE_RANGES = {"Damage", "Heal"}             # (min-max; Slow is percent,seconds; Scroll an item; the rest numbers)
 

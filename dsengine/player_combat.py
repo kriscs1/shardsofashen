@@ -298,6 +298,8 @@ class CombatMixin:
         """This player hit NPC t: it fights back (or runs) at them."""
         if t.type == PLAYER:
             return
+        if t.hostile and self.ent_attitudes.get(t.uid) is False:
+            self.ent_attitudes.pop(t.uid)               # (a foe that took you for a friend knows better now)
         t.in_combat = True
         t.last_combat = self.now
         if t.ai is not None and (t.target is None or not t.target.in_world() or t.ai.state not in (3, 4)):
@@ -343,6 +345,7 @@ class CombatMixin:
         self.player_last_attack = now
         self.player_last_combat = now
         self.emit({"t": "act", "ok": 1, "swing": t.uid})   # (each blow, hit or miss: the target's mark pulses)
+        self.strike_unseen = t.uid if self.unseen_by(t) else None     # (before it's provoked into seeing you)
         self.provoke(t)
         self.w.npc_face(p, p.cx, p.cy, t.cx, t.cy)
         if bow > 0 and self.player_distance_to(t) > self.melee_reach(t):
@@ -360,7 +363,8 @@ class CombatMixin:
             self.pvp_strike(t, ranged)
             return
         w = self.w
-        unseen = self.unseen_by(t)                      # (a blow it never saw coming: Stealth's)
+        unseen = getattr(self, "strike_unseen", None) == t.uid or self.unseen_by(t)   # (one it never saw coming)
+        self.strike_unseen = None
         self.end_sneaking()
         if not unseen and not self.combat_hits(self.player_attack_value(), 3 * w.stat_for(t, self, "defence"), 3):
             self.play_sound("Miss", (t.cx, t.cy))

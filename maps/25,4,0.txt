@@ -22,3 +22,4 @@ Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash
 NPC	Ashen_Cultist	320	320	Attitude=Bad
 Id	Burnt_Shrine_1	9	11
 Trigger	Ashen Shrine 1	9	11
+StaticObject	Cold_Shrine	256	288	Id=Cold_Shrine_1 Here.After=RingQuest:2

@@ -65,6 +65,7 @@ read it back as $Variable.n.
   $Player.Boy                boy, or girl for a woman.
   $Player.Lord               lord, or lady for a woman.
   $Player.King               King, or Queen for a woman.
+  $Player.Brother            Brother, or Sister for a woman (what the Mending calls one of its own).
   $Object.under.Cursor.X     The X Coordinate of the Object that the user clicked on.
   $Object.under.Cursor.Y     The Y Coordinate of the Object that the user clicked on.
   $Tile.under.Cursor.X       The X Coordinate of the Tile that the user clicked on.
@@ -424,7 +425,8 @@ Edit.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME | VALUE TO CHANGE | CHANG
          QUANTITY, HP, MAXHP, SPEED, STRENGTH, DEFENCE, AGGRESSIVE, ATTITUDE (an NPC: Good or Bad), AGGRO.RANGE, ORIGINAL.X, ORIGINAL.Y,
          STATE (an NPC: how it rests when it stops, '=Sit' shows <Name>_Sit<2/8>; '=' to stand)
     4. CHANGE TO: Numbers: '=N' (set), '+N' or '-N' (change). POSITION: '=X,Y' or '+X,Y'.
-         TYPE: MapItem, StaticObject or NPC. ATTITUDE: Good or Bad (this NPC, until its map is loaded again).
+         TYPE: MapItem, StaticObject or NPC. ATTITUDE: Good or Bad (this NPC, until its map is loaded again;
+         made Good, your first blow on it is a sneak attack: it took you for a friend).
          NAME: a sprite name
 
 Edit.View.Distance    VIEW DISTANCE

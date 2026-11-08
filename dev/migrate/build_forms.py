@@ -73,6 +73,10 @@ FORMS = [   # (section, [(key, value)])
         ("What", "Remnants on the ground near you are drunk straight off, and heal you; a very weak guard; the Shards "
                  "whisper to you."),
         ("Colour", "200,60,90"),
+        ("Taught.By", "Sister_Linnet"), ("Taught.If", "$Attr.GreyEnd=2"),       # (In Grey: their secret kept)
+        ("Taught.Words", "Sister Linnet takes your hands and closes them round a Shard. \"Don't fight it, "
+                         "$Player.Brother. Let it in. It only ever wanted to be part of you.\" It goes into your "
+                         "palms, warm, and something in you is thirstier than it was."),
         ("Drink.Reach", "96"), ("Drink.Heal", "2"), ("Defence", "0.6"),
         ("Whisper.1", "Something in the Shards says your name, very softly."),
         ("Whisper.2", "The Shards in you are warm. They like it here."),

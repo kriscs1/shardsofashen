@@ -312,6 +312,7 @@ VARIABLES = [
     ('$Player.Boy', 'boy, or girl for a woman.'),
     ('$Player.Lord', 'lord, or lady for a woman.'),
     ('$Player.King', 'King, or Queen for a woman.'),
+    ('$Player.Brother', 'Brother, or Sister for a woman (what the Mending calls one of its own).'),
     ('$Object.under.Cursor.X', 'The X Coordinate of the Object that the user clicked on.'),
     ('$Object.under.Cursor.Y', 'The Y Coordinate of the Object that the user clicked on.'),
     ('$Tile.under.Cursor.X', 'The X Coordinate of the Tile that the user clicked on.'),

@@ -221,7 +221,7 @@ class FormMixin:
                                                                                           f["title"]) for f in due)
         for f in due:
             self.learn_form(f["stance"], f["form"])
-        self.show_menu(self.display_name(e), e.name, text.replace("$Player.Name", self.player_name),
+        self.show_menu(self.display_name(e), e.name, self.parse_script_variables(text),     # ($Player.Brother...)
                        [("Thank you.", then)])
         return True
 

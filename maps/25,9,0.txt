@@ -6,11 +6,11 @@ Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash
 Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Coal_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
 Ash001:Ash001+Decor(Dead_Tree001):Ash001:Grass001:Grass001+Decor(Tree001):Grass001:Grass001+Decor(Flowers002):Grass001:Grass001:Ash001:Ash001:Ash001:Ash001+Decor(Ember_Vent001):Ash001+Decor(Dead_Tree001):Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
 Ash001:Grass001+Decor(Rock001):Grass001:Ash001:Ash001+Decor(Coal_Rock001):Ash001:Ash001:Grass001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001
-Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001
-Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001+Decor(Ember_Vent001):Ash001:Ash001:Ash001
+Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Tent001):Ash001:Ash001:Ash001:Ash001+Decor(Tent001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001
-Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002)
-Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Coal_Rock001):Ash001:Ash001+Decor(Dead_Tree002)
+Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Campfire001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002)
+Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001+Decor(Basalt_Rock001):Ash001:Ash001:Ash001:Ash001+Decor(Crate001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Crate001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Coal_Rock001):Ash001:Ash001+Decor(Dead_Tree002)
 Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
 Ash001:Ash001:Ash001+Decor(Dead_Tree001):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
 Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001+Decor(Dead_Tree002):Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001:Ash001
@@ -27,3 +27,38 @@ NPC	Cinder_Imp	160	504	Attitude=Bad Zone=3,14,9,20 Chase=1,10,13,21
 NPC	Ash_Hound	512	56	Attitude=Bad Zone=14,1,20,6 Chase=10,1,24,10
 NPC	Flame_Cultist	352	0	Attitude=Bad Zone=9,1,15,4 Chase=5,1,19,8
 NPC	Cinder_Imp	704	216	Attitude=Bad Zone=20,5,25,11 Chase=16,1,25,15
+Trigger	Hand Camp	9	8
+Trigger	Hand Camp	10	8
+Trigger	Hand Camp	11	8
+Trigger	Hand Camp	12	8
+Trigger	Hand Camp	13	8
+Trigger	Hand Camp	14	8
+Trigger	Hand Camp	15	8
+Trigger	Hand Camp	16	8
+Trigger	Hand Camp	17	8
+Trigger	Hand Camp	9	9
+Trigger	Hand Camp	17	9
+Trigger	Hand Camp	9	10
+Trigger	Hand Camp	17	10
+Trigger	Hand Camp	9	11
+Trigger	Hand Camp	17	11
+Trigger	Hand Camp	9	12
+Trigger	Hand Camp	17	12
+Trigger	Hand Camp	9	13
+Trigger	Hand Camp	17	13
+Trigger	Hand Camp	9	14
+Trigger	Hand Camp	17	14
+Trigger	Hand Camp	9	15
+Trigger	Hand Camp	10	15
+Trigger	Hand Camp	11	15
+Trigger	Hand Camp	12	15
+Trigger	Hand Camp	13	15
+Trigger	Hand Camp	14	15
+Trigger	Hand Camp	15	15
+Trigger	Hand Camp	16	15
+Trigger	Hand Camp	17	15
+NPC	Ashen_Cultist	320	376	Attitude=Bad Zone=10,10,16,14 Id=Hand_Camp_Cultist_1 Here.After=RingQuest:2
+NPC	Ashen_Cultist	448	312	Attitude=Bad Stand=1 Face=W Id=Hand_Camp_Cultist_2 Here.After=RingQuest:2
+NPC	Mending_Acolyte	416	376	Attitude=Good Stand=1 Face=W Id=Hand_Camp_Stranger_1 Name=Stranger_in_Grey Here.After=ColdFireQuest:2 Gone.After=ColdFireQuest:3
+NPC	Mending_Sister	416	344	Attitude=Good Stand=1 Face=W Id=Hand_Camp_Stranger_2 Name=Stranger_in_Grey Here.After=ColdFireQuest:2 Gone.After=ColdFireQuest:3
+Id	Hand_Camp	13	9

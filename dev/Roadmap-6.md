@@ -133,7 +133,7 @@ needs Sneaking and Channelling: the Smugglers' Run, The Royal Guard, the Listeni
       or unbound, for nothing and past the six if wanted).
 - [x] `validate.py` (the new keys and command), tests (stacking, the limits, six at most, binding paid, unbinding
       free, a form of another stance doing nothing).
-      (Drinking has no teacher yet: the Mending gives it, group 11.)
+      (Drinking: Sister Linnet teaches it, the Mending's secret kept: group 11.)
 
 ## 7. The Mending: what it is
 Shards tell you what you want to hear. The Mending are those who believed them: a widow hears her husband, a sick man
@@ -160,43 +160,43 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
 - [x] A low choir's chant and a whisper.
 
 ## 10. The Mending: places
-- [ ] The hall under Shardglass Field (its way in hidden, lookouts, the sermon hall, the Font, the locked sanctum
+- [x] The hall under Shardglass Field (its way in hidden, lookouts, the sermon hall, the Font, the locked sanctum
       with the great Shard), named in `WorldMap.ini`.
-- [ ] The Mending's house in a town (its shop of Shard goods, for those in the robe).
-- [ ] Wardhaven taken quietly by the Mending (the Eldest's sanctum).
-- [ ] The Ashwold's three shrines lit blue once The Ember Ring is done; the Hand's camp where the Mending pays it.
+- [x] The Mending's house in a town (its shop of Shard goods, for those in the robe).
+- [x] Wardhaven taken quietly by the Mending (the Eldest's sanctum).
+- [x] The Ashwold's three shrines lit blue once The Ember Ring is done; the Hand's camp where the Mending pays it.
 
 ## 11. The Mending: the quests (`dev/migrate/build_mending.py`; takes over the Ashen Shrine scripts: `story_kit.TAKES_OVER`)
-- [ ] **Cold Fire** (level 12, after The Ember Ring): the shrines relit cold and blue; sneak up on the Hand's camp
+- [x] **Cold Fire** (level 12, after The Ember Ring): the shrines relit cold and blue; sneak up on the Hand's camp
       and hear strangers in grey pay it in Shards "for the one beyond the wall".
-- [ ] **The Kind Stranger** (13): a townsman's mother has gone to the Mending's house; the Shard talks to her in her
+- [x] **The Kind Stranger** (13): a townsman's mother has gone to the Mending's house; the Shard talks to her in her
       late husband's voice. Bring proof (Cael's confession) and talk her home (the town's standing up), or leave her:
       she's in the hall later, and at the end.
-- [ ] **In Grey** (15, after The Shardgate): a robe (picked from a pocket, or off a washing line); worn, they take you
+- [x] **In Grey** (15, after The Shardgate): a robe (picked from a pocket, or off a washing line); worn, they take you
       for one of them. The sermon (the road's gift remembered by name); Listen to the great Shard and it speaks to you
       in Mary's voice (`$Player.Son`). Their aim: the first cut. **The choice**: tell the guards (Ashford's and
       Galaith's standing up; the Mending's house raided and shut; the mother taken, if she's still there), or keep
       their secret (the house and its shop stay open to you in the robe).
-- [ ] **The Tithe** (the same visit): into the sanctum by Shards poured into the Font (`Pay.Shards`), a picked lock
+- [x] **The Tithe** (the same visit): into the sanctum by Shards poured into the Font (`Pay.Shards`), a picked lock
       (Stealth), or a fight (the disguise gone). The way you chose is remembered: the Eldest greets one who tithed as
       faithful (your first blow free), and doesn't know one who picked the lock.
-- [ ] **The Eldest of the Mending** (20, after The Dragon of Galaith), in Wardhaven: a boss (`Boss=1`) with a choir
+- [x] **The Eldest of the Mending** (20, after The Dragon of Galaith), in Wardhaven: a boss (`Boss=1`) with a choir
       of Cantors; he heals by their remnants. **The choice**: break the great Shard (the Mending scatters; a few come
       home, penitents in the towns), or keep a splinter, **Mary's Whisper** (a few Shards a day, in her voice; while
       you carry it, Unmake at the Seam is closed to you).
-- [ ] Every number in `data/Shards.ini` `[Mending]`; stages, endings, markers and rumours in `Quests.ini`; tests.
+- [x] Every number in `data/Shards.ini` `[Mending]`; stages, endings, markers and rumours in `Quests.ini`; tests.
 
 ## 12. The Mending: the world round it
-- [ ] On the road (`Encounters.ini`): one of the Mending offers a few Shards "for nothing, friend"; taken, it's
+- [x] On the road (`Encounters.ini`): one of the Mending offers a few Shards "for nothing, friend"; taken, it's
       remembered (`MendingGift`).
-- [ ] The townsfolk's talk of them (`Banter.ini`); no notice, sign or map text points to them.
-- [ ] After The True Heir, the Mending raids the mine behind Galaith now and then (`Waves.ini`), only while someone's
+- [x] The townsfolk's talk of them (`Banter.ini`); no notice, sign or map text points to them.
+- [x] After The True Heir, the Mending raids the mine behind Galaith now and then (`Waves.ini`), only while someone's
       there.
-- [ ] After Unmake at the Seam, their sermons change: the hope's gone, and some go home.
+- [x] After Unmake at the Seam, their sermons change: the hope's gone, and some go home.
 
 ## 13. Finished
-- [ ] `dev/Rules.md` (Thieving, Creatures' stances, Shared vs personal, Writing: standing, sides, endings, fences, forms), `dev/Story and
+- [x] `dev/Rules.md` (Thieving, Creatures' stances, Shared vs personal, Writing: standing, sides, endings, fences, forms), `dev/Story and
       Quests.md` (every changed and new quest), `dev/Data Formats.md` (`Towns.ini`, the new keys),
       `dev/Script Commands.txt` (the new commands).
-- [ ] `validate.py` 0 errors, the full tests, `export_web_assets.py`, the minimaps, a look in the browser (desktop
+- [x] `validate.py` 0 errors, the full tests, `export_web_assets.py`, the minimaps, a look in the browser (desktop
       and phone), committed and pushed.

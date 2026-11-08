@@ -48,10 +48,14 @@ class ShardMixin:
         return self.shard_balance
 
     def shard_setting(self, key, default=0, section="Shards"):
-        """A number from Shards.ini [Shards]: key itself, else (Shardstone.Galaith) its first part (Shardstone)."""
+        """A number from Shards.ini [Shards]: key itself, else (Shardstone.Galaith) its first part (Shardstone), else
+        (Mending.Tithe) the key after the dot in the section named before it ([Mending] Tithe)."""
         v = trim(self.data.shards_ini(section, key, ""))
         if v == "" and "." in key:
             v = trim(self.data.shards_ini(section, key.split(".")[0], ""))
+        if v == "" and "." in key and section == "Shards":
+            head, _, rest = key.partition(".")
+            v = trim(self.data.shards_ini(head, rest, ""))
         return val(v) if v != "" else default
 
     def short_of_shards(self, n, what):

@@ -22,3 +22,4 @@ Dirt001:Dirt001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Ash001:Ash001:Ci
 NPC	Ashen_Cultist	480	256	Attitude=Bad
 Id	Burnt_Shrine_2	14	9
 Trigger	Ashen Shrine 2	14	9
+StaticObject	Cold_Shrine	416	224	Id=Cold_Shrine_2 Here.After=RingQuest:2

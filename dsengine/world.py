@@ -233,16 +233,20 @@ class World(NPCMixin):
             if e.uid in viewer.hidden_uids:
                 return False
             if e.gone_after:                            # (Gone.After=GalaithQuest:2: gone for whoever's got that far)
-                attr, _, at = e.gone_after.partition(":")
-                if val(viewer.get_attribute(attr)) >= val(at or "1"):
+                if any(self.got_to(viewer, c) for c in e.gone_after.split(",")):    # (A:1,B:2: gone after either)
                     return False
             if e.here_after:                            # (Here.After=SmugglerSide:2: there only for whoever has)
-                attr, _, at = e.here_after.partition(":")
-                if val(viewer.get_attribute(attr)) < val(at or "1"):
+                if not all(self.got_to(viewer, c) for c in e.here_after.split(",")):  # (A:1,B:2: after both)
                     return False
             if e.type == MAPITEM and e.once and viewer.once_taken(e):
                 return False
         return True
+
+    @staticmethod
+    def got_to(viewer, cond):
+        """Has viewer's attribute reached its stage (one of Here.After/Gone.After's Attribute:N)?"""
+        attr, _, at = cond.partition(":")
+        return val(viewer.get_attribute(attr)) >= val(at or "1")
 
     def add_map_item(self, name, z, x, y, quantity, owner=None, home=None):
         e = self.new_world_entity(MAPITEM, name, z, x, y, owner, home)

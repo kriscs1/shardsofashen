@@ -176,7 +176,7 @@ floor in the middle), rugs, fences and potted plants. Pointing at a tile in the 
 laid out with that piece marked, and its Tiles.ini `Piece=`. Only the editor reads it (and validate.py checks every tile
 in it has a sprite). Made by dev\migrate\decor_sets.py; your changes are kept.
 
-Terrains are in it too (`Kind=Terrain`, dev\migrateuild_terrains.py adds the missing ones): what the editor's big
+Terrains are in it too (`Kind=Terrain`, dev\migrate\build_terrains.py adds the missing ones): what the editor's big
 brushes, flood fills and outlines paint, and its palette's Auto view shows as one entry each.
 ```ini
 [Terrain_Woodland]
@@ -231,6 +231,10 @@ Swims=1                    ; optional: it swims (otters, seals, frogs): water is
                            ; of it, and in water it's drawn as <Name>_Swim2 / _Swim8
 Calls=Seal_Bark            ; optional: a sound it makes now and then (every 15-60 s) when not fighting, heard
                            ; within 8 tiles
+Friend.If.Wearing=Mending_Robe   ; optional: it takes you for one of its own while you wear that (your gear alone;
+                           ; dsengine\disguise.py); a blow or a spell in its sight gives you away on that map a while
+Absorbs.Remnants=1         ; optional (a boss): hurt, it goes to Shard Remnants near it and heals by them
+                           ; (Shards.ini [Remnants] Drawn.Reach, Drawn.Heal)
 ; StaticObject only:
 Walkable.Data=111...000    ; optional: its footprint, 0 = can't be walked through, over its sprite at 7 cells to 32
                            ; pixels each way (a 32 x 32 object: 49 cells, like a tile's; 64 x 32: 14 x 7). Blank =
@@ -322,8 +326,9 @@ The bank is not a rack: it's stored in the save file.
       NPC's own `Set.NPC.Attitude` comes before its side's; a town's guards come for an Outlaw (Towns.ini) whatever
       their side.
     * `Gone.After=<attribute>:<N>` / `Here.After=<attribute>:<N>`: gone for a player, or there only for a player, once
-      their attribute has reached N (a quest's way chosen: Meg at the cove only for those who sided with her). The same
-      on a StaticObject's line.
+      their attribute has reached N (a quest's way chosen: Meg at the cove only for those who sided with her). Several
+      are joined with commas: gone once any one is reached, there only once all are (`Gone.After=AnnisHome:1,EldestQuest:1`).
+      The same on a StaticObject's line.
     * `Spotted.Script=<script>`: a watchman. When it sees a player (Attitude=Bad and a Cone, as any foe sees), the
       script (data\Scripts\<script>.txt, a name with no spaces) runs for them, at most once in 8 seconds, and it
       doesn't fight: it goes on with its round (Watch_Search: the watch takes Meg's cask and puts you out).
@@ -502,7 +507,7 @@ Requires.If=$Attr.SmugglerSide=2   ; only for those who went a certain way: a co
 ```
 A quest that can't be started yet shows in the journal as Locked, with what it needs. Its giver's script asks
 `>Quest.Can.Start <quest or attribute> <goto>` before offering it (the chat says what's missing); a script that sets a
-quest's attribute from 0 while it still needs something is stopped there. dev\migrateuild_cinder.py (REQUIREMENTS)
+quest's attribute from 0 while it still needs something is stopped there. dev\migrate\build_cinder.py (REQUIREMENTS)
 sets these for every quest and puts the check in every giver's script.
 
 ## data\Towns.ini (standing in every town: dsengine\standing.py)
@@ -517,6 +522,15 @@ sell for that share of the price to a player the condition is true for (a quest'
 makes Galaith's bread cheaper). Each player's
 standing is a save attribute `Standing.<Town>`. Written by `dev\migrate\build_standing.py`, which only adds what's
 missing.
+
+## data\Stances.ini: stance forms (dsengine\forms.py)
+
+A form is a section `[<Stance>.<Form>]` (`[Fighting.Shieldwall]`): `Title=`, `What=` (a line for the journal),
+`Colour=r,g,b` (round the stance's ring), and its numbers, each times the stance's own (`Defence=1.4`, `Walk=0.8`;
+held within `[Limits]`). `Taught.By=` an Id or a kind, `Taught.If=` a condition and `Taught.Words=` what's said:
+the next talk to them once it's true shows you the form (`$Player.Son` and the like are filled in), then goes on
+into their own talk. A script can teach one too (`Learn.Stance Fighting Shieldwall`). How many can be bound and
+what binding costs are in `Shards.ini [Forms]`. Written by `dev\migrate\build_forms.py`.
 
 ## data\NewCharacter.ini
 

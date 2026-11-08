@@ -110,8 +110,8 @@ class StanceMixin:
         (a lookout) and you're behind it."""
         if t.type != NPC or t.ai is None or t.in_combat or getattr(t, "npc_foe", None) is not None:
             return False
-        if self.sneaking():
-            return True
+        if self.sneaking() or (t.hostile and self.ent_attitudes.get(t.uid) is False):
+            return True                             # (or it took you for a friend: Edit.Entity ATTITUDE Good, the Eldest)
         a = t.ai
         if getattr(a, "cone", 0) <= 0:
             return False

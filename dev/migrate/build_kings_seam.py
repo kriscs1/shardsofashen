@@ -89,6 +89,11 @@ def script():
          "Give your blood to hold the Cut shut: the Binding.", "@apart", "Set its piece in the Crown, and wear it.", "@whole",
          "Break the Seam. Unmake the Cut. [if $Attr.WardensTruth>=1]", "@unmake",
          "Not yet.", "@later"),
+        ("@unmake",),
+        (">Got.Item", "Marys_Whisper", "1", "@break"),   # (a splinter of the Mending's great Shard won't let you: build_mending.py)
+        ("Display.Message", "DarkRed", "You raise your hand to break it, and the Whisper at your neck cries out in "
+                                       "your mother's voice: don't, $Player.Son, don't. Your hand won't do it.", "Fail"),
+        ("End",),
         ("@apart",),
         ("Update.Attribute", "HeartChoice", "=1"),
         ("Give.Item", "Shard", "60"),
@@ -104,7 +109,7 @@ def script():
                                       "dragon, set in a ring. It hums, faintly, and it knows your name. It is the Crown's "
                                       "to keep now, and yours.", "-"),
         ("End",),
-        ("@unmake",),
+        ("@break",),
         ("Update.Attribute", "HeartChoice", "=3"),
         ("Update.Attribute", "Unmade", "=1"),
         ("Give.Item", "Seam_Hammerhead", "1"),
