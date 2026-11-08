@@ -8068,3 +8068,87 @@ def test_a_quests_standing_is_given_once_and_to_old_saves(world):
     assert old.standing("Court") == 10
     leave(world, old)
     leave(world, s)
+
+
+def test_the_admin_panel_sets_a_towns_standing(world):
+    s = join(world, "Steward")
+    s.admin_enabled = True
+    s.out = []
+    s.admin_command({"do": "standings"})
+    towns = next(ev["towns"] for ev in s.out if ev["t"] == "admin_standings")
+    assert ["Ashford", "Ashford", 0, "Stranger"] in towns and len(towns) >= 16
+    s.out = []
+    s.admin_command({"do": "standing", "town": "Ashford", "value": "80"})
+    assert s.standing("Ashford") == 80 and s.rank("Ashford") == "Honoured"
+    assert any("Ashford thinks better of you" in str(ev.get("text", "")) for ev in s.out)   # (as for any deed)
+    towns = [ev["towns"] for ev in s.out if ev["t"] == "admin_standings"][-1]
+    assert ["Ashford", "Ashford", 80, "Honoured"] in towns
+    s.admin_command({"do": "standing", "town": "Ashford", "value": "-900"})               # (held at the least)
+    assert s.standing("Ashford") == -100 and s.rank("Ashford") == "Outlaw"
+    s.out = []
+    s.admin_command({"do": "standing", "town": "Nowhere", "value": "5"})
+    assert s.out[-1] == {"t": "admin_status", "text": "Pick a town first."}
+    leave(world, s)
+
+
+def test_a_side_taken_makes_all_of_it_friends_or_foes_for_that_player_alone(world):
+    s, t = join(world, "Sider"), join(world, "Bystander")
+    m = s.cur_map
+    meg = world.add_npc("Villager", 0, m.ox + 200, m.oy + 200, "Side=Smugglers Attitude=Good")
+    mate = world.add_npc("Villager", 0, m.ox + 260, m.oy + 200, "Side=Smugglers Attitude=Good")
+    own = world.add_npc("Villager", 0, m.ox + 320, m.oy + 200, "Side=Smugglers Id=Test_Smuggler Attitude=Good")
+    assert meg.side == "SMUGGLERS" and not world.hostile_for(meg, s)
+    assert s.condition_met("$Side.Smugglers=none")
+    assert s.run_script_lines("(test)", ["01\tSet.Side.Attitude\tSmugglers\tBad", "02\tEnd"])
+    for _ in range(3):
+        world.tick(0.05)
+    assert world.hostile_for(meg, s) and world.hostile_for(mate, s)
+    assert not world.hostile_for(meg, t)                         # (your side, not everyone's)
+    assert s.condition_met("$Side.Smugglers=Bad") and t.condition_met("$Side.Smugglers=none")
+    s.set_npc_attitude("Test_Smuggler", "Good")                  # (one NPC's own word comes first)
+    assert not world.hostile_for(own, s) and world.hostile_for(mate, s)
+    st = s.save_state()
+    assert st["side_attitudes"] == {"SMUGGLERS": "Bad"}
+    s.side_attitudes = {}
+    s.load_state(st)
+    assert world.hostile_for(meg, s)
+    meg.target = s                                               # (made friends again: it stops fighting at once)
+    s.set_side_attitude("Smugglers", "Good")
+    assert not world.hostile_for(meg, s) and meg.target is not s
+    for e in (meg, mate, own):
+        world.remove_entity(e)
+    leave(world, s)
+    leave(world, t)
+
+
+def test_an_npc_there_only_for_some(world):
+    s, t = join(world, "Insider"), join(world, "Outsider")
+    m = s.cur_map
+    meg = world.add_npc("Villager", 0, m.ox + 200, m.oy + 200, "Here.After=SidedWithMeg:1 Attitude=Good")
+    holt = world.add_npc("Villager", 0, m.ox + 260, m.oy + 200, "Gone.After=SidedWithMeg:1 Attitude=Good")
+    assert not world.visible_to(meg, s) and world.visible_to(holt, s)
+    s.update_attribute("SidedWithMeg", "=1")
+    assert world.visible_to(meg, s) and not world.visible_to(holt, s)
+    assert not world.visible_to(meg, t) and world.visible_to(holt, t)    # (theirs is as it was)
+    for e in (meg, holt):
+        world.remove_entity(e)
+    leave(world, s)
+    leave(world, t)
+
+
+def test_a_quest_ending_is_kept_with_its_own_journal_line(world):
+    s = join(world, "Chooser")
+    quest = {"GIVER": "Villager", "ATTRIBUTE": "TestRunQuest", "STAGE0": "", "STAGE1": "Decide.", "DONE": "2",
+             "ENDING": "TestRunEnding", "ENDING1": "You sided with the watch.", "ENDING2": "You sided with Meg."}
+    s.help_read_ini = lambda f: [("The Test Run", quest)] if f == "Quests.ini" else []
+    s.update_attribute("TestRunQuest", "=1")
+    q = s.quest_list()[0]
+    assert q["status"] == 0 and q["text"] == "Decide."
+    s.update_attribute("TestRunEnding", "=2")
+    s.update_attribute("TestRunQuest", "=2")
+    q = s.quest_list()[0]
+    assert q["status"] == 2 and q["text"] == "You sided with Meg." and q["steps"][-1] == ["You sided with Meg.", 1]
+    s.update_attribute("TestRunEnding", "=0")                     # (no way kept: as any finished quest)
+    q = s.quest_list()[0]
+    assert q["text"] == "You have finished this quest." and q["steps"][-1] == ["Decide.", 1]
+    leave(world, s)

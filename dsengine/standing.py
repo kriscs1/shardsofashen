@@ -178,6 +178,11 @@ class StandingMixin:
         out.sort(key=lambda r: (-r[1], r[0]))
         return out
 
+    def admin_standings(self):
+        """For the admin panel: [[town key, name, standing, rank]] of every town, as Towns.ini has them."""
+        return [[t["key"], t["name"], round(self.standing(t["key"]), 2), self.rank(t["key"])]
+                for t in self.standing_towns().values()]
+
     # ----- what a town's people make of you
     def shop_rates(self, npc):
         """(buy times, sell times) at a shop in npc's town (or yours), or None: an Outlaw there isn't served (and is

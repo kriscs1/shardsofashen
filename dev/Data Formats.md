@@ -204,6 +204,8 @@ Type=MapItem|StaticObject|NPC      ; what the Map Editor places it as by default
 Attitude=Good|Bad         ; NPC only: what a new one is on a map. Good = friendly (Talk to; flees when hit),
                           ; Bad = a foe (Attack; chases and attacks on sight if Aggressive=1). Each map line says
                           ; its own (Attitude= in its Options), and scripts can change it (Set.NPC.Attitude)
+Side=Smugglers            ; NPC only: its side; a script's Set.Side.Attitude makes every NPC of it Good or Bad for
+                          ; one player, for good (a map line's Side= says its own)
 Use.Words=Eat,Examine     ; comma list; first is the default left-click action
 Examine.Info=text
 Stackable=1               ; max quantity per inventory slot (1 = not stackable)
@@ -312,6 +314,13 @@ The bank is not a rack: it's stored in the save file.
       when its map is loaded again or it respawns (in the save, [NPC.Attitudes], by its Id or else by map@x,y, its map
       line's place). Edit.Entity ATTITUDE changes one NPC until its map is loaded again. An NPC a script turns Bad
       also becomes Aggressive (it turns on you).
+    * `Side=<name>`: its side, over its kind's `Side=`. `Set.Side.Attitude SIDE Good|Bad` makes every NPC of that side
+      Good or Bad for the player whose script ran it, for good (in the save; `$Side.<name>` is Good, Bad or none). An
+      NPC's own `Set.NPC.Attitude` comes before its side's; a town's guards come for an Outlaw (Towns.ini) whatever
+      their side.
+    * `Gone.After=<attribute>:<N>` / `Here.After=<attribute>:<N>`: gone for a player, or there only for a player, once
+      their attribute has reached N (a quest's way chosen: Meg at the cove only for those who sided with her). The same
+      on a StaticObject's line.
     * The old `GoodNPC` / `BadNPC` lines still load, as an NPC with Attitude=Good / Bad (build_world.py converts them,
       the Map Editor saves them as NPC lines, validate.py warns about them).
     The other Options control how the NPC moves; tile coordinates are 1-based:
@@ -477,6 +486,9 @@ Requires.Quests=Passage to the Mainland; Bog Lights    ; the average of their be
 Requires.Skills=Woodcutting 10, Potion Making 5             ; quests finished, skill levels
 Reward.Standing=Ashford 10  ; town and amount pairs, given once when it's done (data\Towns.ini; build_standing.py
                             ; gives each side quest given in a town its town's 10)
+Ending=SmugglersRunEnding   ; a quest that ends more than one way: the attribute its script sets to say which way
+Ending1=You sided with Sergeant Holt: the cove was raided.   ; finished, the journal shows the line of that way
+Ending2=You sent Holt to the wrong cove.                     ; (none set: "You have finished this quest.")
 ```
 A quest that can't be started yet shows in the journal as Locked, with what it needs. Its giver's script asks
 `>Quest.Can.Start <quest or attribute> <goto>` before offering it (the chat says what's missing); a script that sets a

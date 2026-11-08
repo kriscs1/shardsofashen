@@ -52,13 +52,16 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
       you."), never on every point.
 - [x] Guards' and townsfolk's greetings by rank (`[if $Standing.Ashford>=40]`, `Banter.ini`).
 - [x] Old saves: the quests already done give their standing once, as the save loads.
+- [x] The admin panel's Town standing: each town with yours and its rank, set to any number.
 - [x] Tests for each.
 
 ## 2. Sides and endings (the engine)
-- [ ] `Side=<Name>` on a kind or a map line; a script's `Set.Side.Attitude <Name> Good|Bad`, each player's own.
-- [ ] A quest's endings: which way it went kept, and its own line in the journal; `validate.py`.
-- [ ] An NPC there only for some (`Gone.After` there already; its like the other way, if one's needed).
-- [ ] Tests.
+- [x] `Side=<Name>` on a kind or a map line; a script's `Set.Side.Attitude <Name> Good|Bad`, each player's own
+      (in the save; `$Side.<Name>` is Good, Bad or none).
+- [x] A quest's endings: which way it went kept (`Ending=<attribute>`), and its own line in the journal (`Ending1=`,
+      `Ending2=`...); `validate.py`.
+- [x] An NPC there only for some: `Here.After=<attribute>:<N>`, and `Gone.After=` now on NPCs too (both on objects).
+- [x] Tests.
 
 ## 3. Stolen goods (the engine)
 - [ ] What's pickpocketed, stolen from a shelf or taken from a house's Valuables is marked stolen, and keeps its
@@ -126,6 +129,8 @@ needs Sneaking and Channelling: the Smugglers' Run, The Royal Guard, the Listeni
 | | Shadow | Ambrose (the signet given back: forty years catching thieves, he knows how they're seen) | Harder to see; a harder sneak attack |
 | | Ranger's Tread* | Ranger Ash (the Old Grove kept) | Quicker than Sneaking is; quieter in woods and grass; animals don't run |
 
+- [ ] The admin panel's Stance forms: every form, ticked if you know it and bound or not (learnt or forgotten, bound
+      or unbound, for nothing and past the six if wanted).
 - [ ] `validate.py` (the new keys and command), tests (stacking, the limits, six at most, binding paid, unbinding
       free, a form of another stance doing nothing).
 

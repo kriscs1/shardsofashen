@@ -29,6 +29,9 @@ class Entity(_Entity):
         self.follow = None          # the Session it walks after (Follow.Player)
         self.frozen_until = None    # a spell's ice (or stun) holds it still till then (clock ms)
         self.frozen_word = ""       # "frozen" or "stunned": how it's held, and how it looks
+        self.gone_after = ""        # Gone.After=Attribute:N: gone for whoever's got that far
+        self.here_after = ""        # Here.After=Attribute:N: there only for whoever's got that far
+        self.side = ""              # an NPC's side (Side=, upper case): Set.Side.Attitude makes all of it Good or Bad
 
 
 class InvItem:

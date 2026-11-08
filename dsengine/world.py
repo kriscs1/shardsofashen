@@ -232,10 +232,13 @@ class World(NPCMixin):
         if viewer is not None:
             if e.uid in viewer.hidden_uids:
                 return False
-            gone = getattr(e, "gone_after", "")
-            if gone:                                    # (Gone.After=GalaithQuest:2: gone for whoever's got that far)
-                attr, _, at = gone.partition(":")
+            if e.gone_after:                            # (Gone.After=GalaithQuest:2: gone for whoever's got that far)
+                attr, _, at = e.gone_after.partition(":")
                 if val(viewer.get_attribute(attr)) >= val(at or "1"):
+                    return False
+            if e.here_after:                            # (Here.After=SmugglerSide:2: there only for whoever has)
+                attr, _, at = e.here_after.partition(":")
+                if val(viewer.get_attribute(attr)) < val(at or "1"):
                     return False
             if e.type == MAPITEM and e.once and viewer.once_taken(e):
                 return False
@@ -311,6 +314,9 @@ class World(NPCMixin):
         e.npc_id = self.option_value(options, "Id")
         e.display = self.option_value(options, "Name").replace("_", " ")
         e.project = self.option_value(options, "Project")    # (shown once a town's project is done: together.py)
+        e.gone_after = self.option_value(options, "Gone.After")
+        e.here_after = self.option_value(options, "Here.After")
+        e.side = trim(self.option_value(options, "Side") or self.data.entity_ini(name, "Side", "")).upper()
         e.hostile = self.npc_attitude(name, options, attitude)
         if e.hostile and Homes.is_home_map(e.map):         # (a pocket of the rim is always safe: homes.py)
             self.remove_entity(e)
@@ -442,6 +448,7 @@ class World(NPCMixin):
                 e.project = self.option_value(misc, "Project")    # (shown once a town's project is done: together.py)
                 e.display = self.option_value(misc, "Name").replace("_", " ")
                 e.gone_after = self.option_value(misc, "Gone.After")
+                e.here_after = self.option_value(misc, "Here.After")
             return e
         if t == "NPC":
             if misc == "":

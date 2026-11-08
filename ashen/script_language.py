@@ -72,6 +72,7 @@ COMMANDS = [
     ('Quest.Note', ['QUEST NAME', 'NOTE']),
     ('Quest.Note.Done', ['QUEST NAME', 'NOTE']),
     ('Set.NPC.Attitude', ['NPC ID', 'ATTITUDE']),
+    ('Set.Side.Attitude', ['SIDE', 'ATTITUDE']),
     ('Start.Wave', ['WAVE ATTACK']),
     ('Start.Encounter', ['ENCOUNTER']),
     ('Catch.Disease', ['DISEASE']),
@@ -259,6 +260,8 @@ HELP = {
     'Quest.Note.Done': "COMMAND: Crosses out a line in a quest's notes in the journal|(it is added crossed out if it isn't there yet)",
     'Set.NPC.Attitude': 'COMMAND: Makes one NPC Good (friendly: Talk to) or Bad (a foe that attacks on sight)|Kept in the save: it stays that way when its map is loaded again or it respawns',
     'ATTITUDE': 'Good or Bad',
+    'Set.Side.Attitude': "COMMAND: Makes every NPC of a side (Side= on its kind or its map line) Good or Bad for this player,|for good (kept in the save): the side they took, or turned on. One NPC's own Set.NPC.Attitude comes first",
+    'SIDE': 'A side: the Side= of some NPCs (Smugglers, Watch...)',
     'NPC ID': "Which NPC: the Id= in its map line's Options (Map Editor: Opts, e.g. Id=OldHob),|or CLICKED: the NPC the player clicked to start this script (talked to, attacked, used an item on)",
     'Show.Skill': "COMMAND: Shows a skill's picture over the player's head: the skill they're using now|(e.g. as they swing the axe, before any XP comes of it)",
     'Play.Animation': 'COMMAND: The work of the hands: an animation on what the player clicked, a lunge towards it|and a sound, TIMES over (a beat every 0.8 seconds), e.g. Wood_Chips 3 WoodChop for three swings of the axe',
@@ -331,6 +334,7 @@ VARIABLES = [
     ('$Skill.Name', "The player's level in the skill Name, e.g. $Skill.Mining>=10."),
     ('$Equipped.Slot', 'The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.'),
     ('$Standing.Town', "A town's standing with the player, -100 to 100 (data\\Towns.ini: Outlaw, Distrusted, Stranger, Welcome at 20, Trusted at 45, Honoured at 75), e.g. $Standing.Ashford>=45; $Standing.Here is where they are."),
+    ('$Side.Name', "Good or Bad, as this player's Set.Side.Attitude made the side Name, or none if it never did, e.g. $Side.Smugglers=Good."),
     ('[TAB]', 'The variable used to print a tab character.'),
 ]
 

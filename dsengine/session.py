@@ -146,6 +146,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.attributes = []
         self.quest_notes = []
         self.npc_attitudes = {}
+        self.side_attitudes = {}                    # {SIDE: "Good"/"Bad"}: Set.Side.Attitude, for good
         self.taken_once = set()
         self.explored = {}                  # map -> "all" or a set of fog cell numbers
         self.hotbar = [""] * HOTBAR_SLOTS
@@ -480,6 +481,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.heir_story_from_old_save()
         self.quest_notes = [[RENAMED_QUESTS.get(q, q), int(dn), t] for q, dn, t in st.get("quest_notes", [])][:400]
         self.npc_attitudes = dict(st.get("npc_attitudes", {}))
+        self.side_attitudes = {str(k).upper(): v for k, v in dict(st.get("side_attitudes", {})).items()
+                               if v in ("Good", "Bad")}
         self.taken_once = set(st.get("taken_once", []))
         self.unlocked_chests = set(st.get("unlocked_chests", []))
         for kind in ("thief_until", "banned_until"):  # (robbed lately, refused service: a relog doesn't clear them)
@@ -606,6 +609,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "attributes": [[n, v] for n, v in self.attributes],
             "quest_notes": [[q, dn, t] for q, dn, t in self.quest_notes],
             "npc_attitudes": dict(self.npc_attitudes),
+            "side_attitudes": dict(self.side_attitudes),
             "taken_once": sorted(self.taken_once),
             "unlocked_chests": sorted(self.unlocked_chests),
             "thief_until": {k: int(v) for k, v in self.thief_until.items() if v > self.now},
@@ -1071,6 +1075,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 return a == "Bad"
         if self.outlaw_towns and e.type == NPC and self.outlaw_foe(e):
             return True                             # (an Outlaw there: its guards come for you, standing.py)
+        if self.side_attitudes and e.side:
+            a = self.side_attitudes.get(e.side)     # (a side you took, or turned on: Set.Side.Attitude)
+            if a is not None:
+                return a == "Bad"
         return None
 
     def once_taken(self, e):

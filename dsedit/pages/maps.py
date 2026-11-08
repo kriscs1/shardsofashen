@@ -170,14 +170,18 @@ OPT_SPECS = {
     "Look": ("Look", "choice", _looks, "Which of its trade's colourings it wears (0: as drawn; blank: by its Id)."),
     "Gone.After": ("Gone after", "text", None, "Gone for a player once a quest's attribute has reached a stage: "
                    "Attribute:N (GalaithQuest:2, the dragon dead: the fires on its field go out for them)."),
+    "Here.After": ("Here after", "text", None, "There only for a player once a quest's attribute has reached a "
+                   "stage: Attribute:N (SmugglerSide:2: Meg's men at the cove, for those who sided with her)."),
+    "Side": ("Side", "text", None, "Its side (Smugglers, Watch...): a script's Set.Side.Attitude makes every NPC of "
+             "it Good or Bad for one player. Blank: its kind's (Entities.ini Side=)."),
     "Project": ("Project", "choice", _projects, "It's there only once this town project (data\\Projects.ini) is "
                 "finished."),
     "Lock": ("Lock level", "number", None, "This chest's lock (0: none). Blank: its kind's, else by where it is."),
     "Key": ("Key", "text", None, "The item that opens its lock."),
     "Sturdy": ("Iron-bound", "bool", None, "It can't be broken open: only picked, or opened with its key."),
 }
-NPC_FORM = ("Zone.Levels", "Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Turn", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look")
-OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy", "Gone.After")
+NPC_FORM = ("Zone.Levels", "Schedule", "Home", "Home.Level", "Bed", "Bed.Level", "Face", "Turn", "Cone", "Group", "Friendly.If", "State", "Nap", "Level", "Look", "Side", "Gone.After", "Here.After")
+OBJECT_FORM = ("Project", "Lock", "Key", "Sturdy", "Gone.After", "Here.After")
 ITEM_FORM = ("Project",)
 HANDLED_OPTS = {"Attitude", "Stand", "Id", "Name", "Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Once"}
 

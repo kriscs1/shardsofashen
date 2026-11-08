@@ -300,6 +300,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .admin .admin-tools input:not([type=checkbox]) { flex: 1; min-width: 0; }
 .admin .admin-tools select { flex: 1; min-width: 0; width: auto; margin: 0; }
 .admin .admin-tools input.admin-filter { flex: 0 1 9em; }
+.admin .admin-tools input.admin-num { flex: 0 1 4.5em; }
 .admin #admin-cmd-args { flex-wrap: wrap; }
 .admin #admin-cmd-args input { flex: 1 1 10em; }
 .admin label.inline { flex-direction: row; align-items: center; gap: 6px; margin: 0; }

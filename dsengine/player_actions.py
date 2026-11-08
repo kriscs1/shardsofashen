@@ -959,6 +959,20 @@ class ActionsMixin:
                 self.emit({"t": "admin_status", "text": "%s has begun." % name})
             else:
                 self.emit({"t": "admin_status", "text": "%s is on already." % name})
+        elif what == "standings":
+            self.emit({"t": "admin_standings", "towns": self.admin_standings()})
+        elif what == "standing":
+            # (yours in a town set outright: the rank's line and the journal follow, as for any deed)
+            town = self.town_named(str(msg.get("town", "")))
+            if not town:
+                self.emit({"t": "admin_status", "text": "Pick a town first."})
+                return
+            want = max(self.standing_num("Least", -100), min(self.standing_num("Most", 100), val(msg.get("value", 0))))
+            self.change_standing(town, want - self.standing(town))
+            self.emit({"t": "admin_standings", "towns": self.admin_standings()})
+            self.emit({"t": "admin_status", "text": "%s: %s, %s." % (self.town_title(town),
+                                                                    lbstr(round(self.standing(town), 2)),
+                                                                    self.rank(town))})
         elif what == "fly":
             self.flying = bool(msg.get("on"))
             self.display_message("Flying: walls, water and mountains don't stop you." if self.flying else

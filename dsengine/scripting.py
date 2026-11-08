@@ -265,7 +265,7 @@ class ScriptMixin:
                 break
             out.append(text[p:q])
             kind = ""
-            for prefix in ("$attr.", "$item.", "$skill.", "$equipped.", "$shards.", "$standing."):
+            for prefix in ("$attr.", "$item.", "$skill.", "$equipped.", "$shards.", "$standing.", "$side."):
                 if text[q:q + len(prefix)].lower() == prefix:
                     kind = prefix
                     break
@@ -283,6 +283,10 @@ class ScriptMixin:
                 value = lbstr(self.shard_setting(name))
             elif kind == "$standing.":                   # (a town's standing with you: standing.py)
                 value = lbstr(round(self.standing(self.town_named(name)), 2))
+                if self.script_running:
+                    self.script_personal = True
+            elif kind == "$side.":                       # (Good or Bad, as you made it; none if you never did)
+                value = self.side_attitudes.get(name.upper(), "none")
                 if self.script_running:
                     self.script_personal = True
             elif kind == "$attr.":
@@ -306,7 +310,7 @@ class ScriptMixin:
         if "$" not in text and "[TAB]" not in text:
             return text
         low = text.lower()
-        if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low or "$shards." in low or                 "$standing." in low:
+        if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low or "$shards." in low or                 "$standing." in low or "$side." in low:
             text = self.expand_data_variables(text)
         if "$" not in text:
             return text.replace("[TAB]", "\t")
@@ -659,6 +663,9 @@ class ScriptMixin:
             self.script_condition(self.quest_can_start(arg[1]), arg[2])
         elif c == "Set.NPC.Attitude":
             self.set_npc_attitude(arg[1], arg[2])
+        elif c == "Set.Side.Attitude":               # (a side taken, or turned on: every one of it, for you)
+            self.script_personal = True
+            self.set_side_attitude(arg[1], arg[2])
         elif c == "Follow.Player":
             self.set_follower(arg[1], arg[2])
         elif c == "Play.Minigame":
@@ -1037,8 +1044,23 @@ class ScriptMixin:
         else:
             key = which
         self.npc_attitudes[key] = "Bad" if hostile else "Good"
+        self.attitude_now(lambda e: self.w.npc_key(e) == key, hostile)
+
+    def set_side_attitude(self, side, attitude):
+        """Set.Side.Attitude: every NPC of a side (Side= on its kind or its map line) Good or Bad, for this player, for
+        good (their save). One NPC's own Set.NPC.Attitude still comes first."""
+        hostile = parse_attitude(attitude)
+        side = trim(side).upper()
+        if hostile is None or not side:
+            return
+        self.side_attitudes[side] = "Bad" if hostile else "Good"
+        self.attitude_now(lambda e: e.side == side, hostile)
+        self.dirty_me = True
+
+    def attitude_now(self, which, hostile):
+        """The NPCs which(e) picks out are now as this player made them: a friend stops fighting them at once."""
         for e in self.w.ents:
-            if e.type == NPC and e.alive and self.w.npc_key(e) == key:
+            if e.type == NPC and e.alive and which(e):
                 self.ent_attitudes.pop(e.uid, None)
                 if not hostile and e.target is self and e.ai is not None:
                     self.w.npc_give_up(e, e.ai)

@@ -359,6 +359,7 @@ function openAdmin() {
   send({ t: "admin", do: "items" });
   if (!adminPlaces.length) send({ t: "admin", do: "places" });
   if (!adminCommands.length) send({ t: "admin", do: "commands" });
+  send({ t: "admin", do: "standings" });
   const box = $("admin-skills");
   box.innerHTML = "";
   A.m.skills.forEach((name, i) => {
@@ -464,6 +465,28 @@ $("admin-save").onclick = () => {
   send({ t: "admin", do: "skills", on, levels });
 };
 $("admin-wave-go").onclick = () => send({ t: "admin", do: "wave", name: $("admin-wave").value.trim() });
+
+function fillAdminTowns(towns) {
+  // Town standing: each town with yours and its rank (the one picked stays picked; its number to change)
+  const sel = $("admin-town"), was = sel.value;
+  sel.innerHTML = "";
+  for (const [key, name, n, rank] of towns) {
+    const o = document.createElement("option");
+    o.value = key;
+    o.dataset.n = n;
+    o.textContent = `${name}: ${n} (${rank})`;
+    sel.append(o);
+  }
+  if (was && towns.some((t) => t[0] === was)) sel.value = was;
+  showAdminStanding();
+}
+function showAdminStanding() {
+  const o = $("admin-town").selectedOptions[0];
+  $("admin-standing").value = o ? o.dataset.n : "";
+}
+$("admin-town").addEventListener("change", showAdminStanding);
+$("admin-standing-go").onclick = () => send({ t: "admin", do: "standing", town: $("admin-town").value,
+  value: $("admin-standing").value.trim() });
 $("death-respawn").onclick = () => send({ t: "respawn" });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
@@ -972,6 +995,7 @@ N.onMessage = (m) => {
     case "admin_items": adminItems = m.items; fillAdminItems(); break;
     case "admin_places": adminPlaces = m.places; fillAdminPlaces(); break;
     case "admin_commands": adminCommands = m.commands; fillAdminCommands(); break;
+    case "admin_standings": fillAdminTowns(m.towns); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;
   }

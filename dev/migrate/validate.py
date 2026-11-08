@@ -398,7 +398,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
                "Face", "Turn", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed", "Bed.Level", "Home.Level", "Zone.Levels",
-               "State", "Nap", "Level", "Look", "Gone.After"}   # (Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Zone.Levels=0,1: its Zone on those levels too; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
+               "State", "Nap", "Level", "Look", "Gone.After", "Here.After", "Side"}   # (Here.After=, Gone.After=Attr:N: there only for some; Side=: its side, Set.Side.Attitude; Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Zone.Levels=0,1: its Zone on those levels too; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
 _npc_ids = None
 
 
@@ -530,6 +530,8 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             report(where, "Attitude=%s on prey (Flees=1): prey is Passive (prey_passive.py)" % v)
         if k == "Id" and len(npc_ids().get(v, [])) > 1:
             report(where, "Id=%s is on more than one NPC (%s): an Id names one NPC" % (v, ", ".join(npc_ids()[v])))
+        if k in ("Gone.After", "Here.After") and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*(:\d+)?", v):
+            report(where, "%s=%r should be Attribute:N (GalaithQuest:2)" % (k, v))
         opts[k] = v
     if ";" in field:
         report(where, "';' in the Options field")
@@ -773,6 +775,11 @@ def check_condition(where, cond, skills, entities_ini, writes):
                     elif kind == "Standing":
                         if name.upper() != "HERE" and name.upper() not in TOWN_KEYS():
                             err(where, "condition uses %s but there's no [%s] in data\\Towns.ini" % (v, name))
+                    elif kind == "Side":
+                        if name.upper() not in NPC_SIDES():
+                            err(where, "condition uses %s but no NPC is on the side %s (Side=)" % (v, name))
+                        elif side == lhs and op in ("=", "<>") and "$" not in rhs and rhs not in ("Good", "Bad", "none"):
+                            err(where, "condition compares %s with %r: it's Good, Bad or none" % (v, rhs))
                     elif v not in known:
                         err(where, "condition uses unknown variable %s" % v)
             if op in ("<", ">", "<=", ">=") and not (is_num(rhs) or "$" in rhs):
@@ -943,6 +950,9 @@ def check_scripts(skills, racks):
                 elif at == "ATTITUDE":
                     if a not in ("Good", "Bad"):
                         err(where, "attitude %r should be Good or Bad" % a)
+                elif at == "SIDE":
+                    if a.upper() not in NPC_SIDES():
+                        err(where, "no NPC is on the side %r (Side= on its kind in Entities.ini, or its map line)" % a)
                 elif at == "QUEST NAME":
                     if a.lower() not in quest_names():
                         err(where, "quest %r is not a quest's title or Attribute in data\\Quests.ini" % a)
@@ -987,6 +997,30 @@ def check_unique_ids():
         where = [w for w, _ in where]
         if oid in ENTITIES or oid in TILES:
             err("Maps", "Id=%s (%s) is also a sprite's name: pick another Id" % (oid, where[0]))
+
+
+_NPC_SIDES = None
+
+
+def NPC_SIDES():
+    """The sides NPCs are on (upper case): Side= on a kind in Entities.ini, or on an NPC's map line or Add.Entity."""
+    global _NPC_SIDES
+    if _NPC_SIDES is None:
+        _NPC_SIDES = set()
+        path = p("data", "Entities.ini")
+        for sec, items in Ini(path).sections:
+            for k, v in items:
+                if k is not None and k.lower() == "side" and v.strip():
+                    _NPC_SIDES.add(v.strip().upper())
+        lines = [l for f in sorted(os.listdir(p("maps"))) if f.endswith(".txt")
+                 for l in read_lines(p("maps", f))[MAP_H:]]
+        lines += [l for f in sorted(os.listdir(SCRIPT_DIR)) if f.lower().endswith(".txt")
+                  for l in read_lines(os.path.join(SCRIPT_DIR, f)) if "Side=" in l]
+        for line in lines:
+            for tok in line.replace("\t", " ").split():
+                if tok.startswith("Side=") and len(tok) > 5:
+                    _NPC_SIDES.add(tok[5:].upper())
+    return _NPC_SIDES
 
 
 def TOWN_KEYS():
@@ -1408,6 +1442,7 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Lock", "Key", "Sturdy",                                          # a chest's lock (locks.py), its key; 1: never broken open
                "Warm",                                                           # 1: it keeps the cold off (cold.py)
                "Boss",                                                           # 1: tougher for each fighter (together.py)
+               "Side",                                                           # its side (Set.Side.Attitude makes it Good or Bad, for one player)
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8",               # a cart (carts.py): where its rider stands
                "Seat", "Headings", "Vehicle.Noun",                              # a boat's one seat; how many ways it turns; "ferry"
                "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image"}       # its sounds; its menu's words and picture
@@ -2333,6 +2368,19 @@ def check_quests():
                 for item in bits[0::2]:
                     if item not in ENTITIES:
                         err(where, "Reward.Items: no such item %r" % item)
+            elif k == "Ending":                          # (the attribute that says which way it ended)
+                if v not in writes:
+                    err(where, "Ending=%s but no script sets attribute %s" % (v, v))
+                if not any(kk and re.fullmatch(r"Ending\d+", kk) for kk, _ in items):
+                    warn(where, "Ending=%s but no Ending1=, Ending2=... lines" % v)
+            elif re.fullmatch(r"Ending(\d+)", k):          # (its line in the journal, ended that way)
+                n, ending = k[6:], ini.get(sec, "Ending")
+                if not ending:
+                    err(where, "%s without Ending= (the attribute that says which way it ended)" % k)
+                elif ending in writes and n not in writes[ending] and "*" not in writes[ending]:
+                    err(where, "%s: no script sets %s to %s (=%s)" % (k, ending, n, n))
+                if not v.strip():
+                    err(where, "%s is empty" % k)
             elif k == "Rumour" or re.fullmatch(r"Rumour\.\d+", k):   # (what townsfolk say of it: rumours.py)
                 if not v.strip():
                     err(where, "%s is empty" % k)

@@ -147,7 +147,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 ### Shared vs personal
 - Shared, seen by everyone: chopped trees, mined rocks, fires, dropped items, NPC deaths and kill loot (the
   killer's for 10 s), shop stock, unlocked doors, the time and the weather, the horses and carts going round.
-- Personal: quest attributes, quest doors and `Lock` lines, `Once=` items, NPC attitudes set by quests, fog of war.
+- Personal: quest attributes, quest doors and `Lock` lines, `Once=` items, NPC attitudes set by quests, fog of war,
+  each town's standing, the sides you took (`Set.Side.Attitude`) and the people there only for some (`Here.After=`,
+  `Gone.After=`). A quest that ends more than one way keeps the way it went in an attribute (`Ending=`), and the
+  journal shows that way's line.
 - **Chests are per player**: everyone finds a chest's loot, once each. A chest script tracks its loot with an
   attribute, never with shared state.
 - The world keeps running while everyone is logged out.

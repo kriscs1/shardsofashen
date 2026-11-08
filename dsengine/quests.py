@@ -132,8 +132,10 @@ class QuestMixin:
             value = val(self.get_attribute(attribute)) if attribute else 0
             status = -1
             text = ""
+            ending = ""
             if done > 0 and value >= done:
-                status, text = 2, "You have finished this quest."
+                ending = self.quest_ending(d)
+                status, text = 2, ending or "You have finished this quest."
             elif value <= 0:
                 text = help_text(d.get("STAGE0", ""))
                 if text:
@@ -150,6 +152,8 @@ class QuestMixin:
                 t = help_text(d.get("STAGE%d" % n, ""))
                 if t:
                     steps.append([self.help_attributes(t), 1 if status == 2 or n < value else 0])
+            if ending:
+                steps.append([self.help_attributes(ending), 1])            # (the way it went, last)
             if status >= 0 and len(quests) < 300:
                 quests.append({"title": name, "giver": help_clean(d.get("GIVER", "")), "status": status,
                                "text": self.help_attributes(text), "steps": steps,
@@ -163,6 +167,12 @@ class QuestMixin:
         def order(q):
             return (bool(q["needs"]), not q["main"], q["chapter"] if q["main"] else 0)
         return [q for s in (0, 1, 2) for q in sorted((q for q in quests if q["status"] == s), key=order)]
+
+    def quest_ending(self, d):
+        """The journal's line for the way a finished quest went (Ending=<attribute>: Ending1=, Ending2=... by its
+        value), or "" if it has none."""
+        a = help_clean(d.get("ENDING", ""))
+        return help_text(d.get("ENDING%d" % int(val(self.get_attribute(a))), "")) if a else ""
 
     def quest_markers(self):
         marks = []
