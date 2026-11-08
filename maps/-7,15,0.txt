@@ -34,3 +34,4 @@ NPC	Baker	32	0	Attitude=Good Stand=1 Face=S Id=Galaith_Stall_304 Name=Ida
 NPC	Ginger_Cat	128	56	Attitude=Good Zone=0,-1,5,3 Pause=4-12
 NPC	Black_Cat	128	0	Attitude=Good Zone=0,-3,5,3 Pause=4-12
 StaticObject	Market_Stall_Open	32	32
+NPC	Man	704	216	Attitude=Good Stand=1 Face=W Schedule=Always Id=Galaith_Fence Name=Old_Sully Look=0

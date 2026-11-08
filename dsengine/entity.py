@@ -18,6 +18,7 @@ class Entity(_Entity):
         self.owner = None           # a Session: only that player sees it (made by their quest)
         self.target = None          # an NPC's foe in a fight (a Session)
         self.wear = 0
+        self.stolen = False         # (an item on the ground: stolen, and still marked so: thieving.py)
         self.sched_away = False
         self.sched_stuck = 0
         self.edits_done = set()     # (script, line): a quest's one-off edits already made to it
@@ -35,16 +36,17 @@ class Entity(_Entity):
 
 
 class InvItem:
-    """One inventory slot: an item, how many, how worn (weapons and armour)."""
-    __slots__ = ("uid", "name", "quantity", "wear", "alive", "type", "misc", "x", "y")
+    """One inventory slot: an item, how many, how worn (weapons and armour), and whether it's stolen (thieving.py)."""
+    __slots__ = ("uid", "name", "quantity", "wear", "stolen", "alive", "type", "misc", "x", "y")
     _next = [1]
 
-    def __init__(self, name, quantity=1, wear=0):
+    def __init__(self, name, quantity=1, wear=0, stolen=False):
         self.uid = InvItem._next[0]
         InvItem._next[0] += 1
         self.name = name
         self.quantity = quantity
         self.wear = wear
+        self.stolen = stolen
         self.alive = True
         self.type = INVENTORYITEM
         self.misc = ""

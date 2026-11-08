@@ -92,7 +92,7 @@ class ShardMixin:
         for i in range(1, self.data.bank_slots + 1):
             if self.bank_item[i] == SHARD:
                 self.add_shards(self.bank_qty[i])
-                self.bank_item[i], self.bank_qty[i], self.bank_wear[i] = "", 0, []
+                self.bank_item[i], self.bank_qty[i], self.bank_wear[i], self.bank_stolen[i] = "", 0, [], False
 
     def shard_start(self, new_character):
         """A new character's Shards (Shards.ini [Shards] Start), or, once, those for a character from before Shards."""

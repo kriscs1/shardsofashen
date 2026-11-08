@@ -1450,7 +1450,7 @@ NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Season.Absent", "Type", "Attitude", "Use.W
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
                                      "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8",
-                                     "Seat", "Vehicle.Noun", "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image"}
+                                     "Seat", "Vehicle.Noun", "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image", "Side"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1926,6 +1926,8 @@ def check_itemracks(entities_ini, skills):
             err(r, "[%s] Vary.Stock must be 0 or 1" % sec)
         if not (ini.get(sec, "Pick") or "0").strip().isdigit():
             err(r, "[%s] Pick must be how many of its goods a visit brings" % sec)
+        if (ini.get(sec, "Fence") or "0").strip() not in ("0", "1") or (ini.get(sec, "Fence") == "1" and typ != "Shop"):
+            err(r, "[%s] Fence=1 (it buys stolen goods: thieving.py) is for a shop, or 0" % sec)
         for k, v in items:
             if k is None or not re.fullmatch(r"Item\d+", k):
                 continue
@@ -1955,7 +1957,29 @@ def check_itemracks(entities_ini, skills):
             err(r, "[%s] Skill %r not in Config.ini [Skills] List" % (sec, ini.get(sec, "Skill")))
         if typ == "Craft" and not any(k and k.startswith("Item") for k, _ in items):
             warn(r, "[%s] has no recipes" % sec)
+    check_fences(ini)
     return {s[0] for s in ini.sections}
+
+
+def check_fences(racks):
+    """Thieving.ini [Fence] Rate, and [Fence.<rack>]: a shop with Fence=1, its Rate, and its Side (some NPC's)."""
+    path = p("data", "Thieving.ini")
+    if not exists(path):
+        return
+    ini, r = Ini(path), rel(path)
+    for sec, items in ini.sections:
+        if sec != "Fence" and not sec.startswith("Fence."):
+            continue
+        rack = sec[6:]
+        if rack and racks.get(rack, "Fence") != "1":
+            err(r, "[%s]: there's no [%s] with Fence=1 in data\ItemRacks.ini" % (sec, rack))
+        for k, v in items:
+            if k in ("Rate", "Side.Rate") and not (is_num(v) and 0 <= float(v) <= 1):
+                err(r, "[%s] %s=%r should be a share of an honest shop's price, 0 to 1" % (sec, k, v))
+            elif k == "Side" and v.strip().upper() not in NPC_SIDES():
+                err(r, "[%s] Side=%s: no NPC is on that side (Side= on its kind or its map line)" % (sec, v))
+            elif k is not None and k not in ("Rate", "Side", "Side.Rate"):
+                err(r, "[%s] %s: unknown (Rate, Side, Side.Rate)" % (sec, k))
 
 
 def check_saves(skills):

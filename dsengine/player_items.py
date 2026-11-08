@@ -31,29 +31,32 @@ class ItemsMixin:
     def stackable_quantity(self, name):
         return self.data.stackable_quantity(name)
 
-    def inventory_slots_available(self, name):
+    def inventory_slots_available(self, name, stolen=False):
         stack = self.stackable_quantity(name)
         room = max(0, self.inventory_capacity() - len(self.inv)) * stack
         for e in self.inv:
-            if e.name == name:
+            if e.name == name and e.stolen == stolen:
                 room += max(0, stack - e.quantity)
         return room
 
     def empty_inventory_slots(self):
         return max(0, self.inventory_capacity() - len(self.inv))
 
-    def items_held(self, name):
+    def items_held(self, name, stolen=None):
+        """How many you carry (stolen: only those marked stolen, or only those that aren't; None, all)."""
         if name == SHARD:
             return self.shard_balance                   # (Shards are a balance: shards.py)
-        return sum(e.quantity for e in self.inv if e.name == name)
+        return sum(e.quantity for e in self.inv if e.name == name and (stolen is None or e.stolen == stolen))
 
     def inv_item(self, uid):
         return next((e for e in self.inv if e.uid == uid), None)
 
-    def add_inventory_item(self, name, quantity, wear=0, quiet=False):
+    def add_inventory_item(self, name, quantity, wear=0, quiet=False, stolen=False):
+        """stolen: marked as stolen (thieving.py): it stacks only with others marked so, and only a fence buys it."""
         if name == "" or quantity <= 0:
             return
         quantity = int(quantity)
+        stolen = bool(stolen) and name != "Gold_Coin(s)"   # (a coin's a coin)
         self.act_done(True)                             # (what was clicked gave something: picked up, gathered)
         if name == SHARD:
             self.add_shards(quantity)                   # (onto the balance, never into the pack)
@@ -61,10 +64,10 @@ class ItemsMixin:
         if not wear and self.data.shelf_life(name):
             wear = int(self.now / 1000)                 # (new-made: its wear is the second it was made)
         self.reward_note(name, quantity)
-        room = self.inventory_slots_available(name)
+        room = self.inventory_slots_available(name, stolen)
         if room - quantity < 0:
             dropped = quantity - room
-            self.drop_on_floor(name, dropped)
+            self.drop_on_floor(name, dropped, stolen=stolen)
             if not quiet:
                 self.display_message("There is not enough room in your inventory (Dropping %d on the ground)." %
                                      dropped, "ERROR")
@@ -75,39 +78,61 @@ class ItemsMixin:
         for e in self.inv:
             if quantity <= 0:
                 break
-            if e.name == name and e.quantity < stack:
+            if e.name == name and e.stolen == stolen and e.quantity < stack:
                 added = min(quantity, stack - e.quantity)
                 quantity -= added
                 e.quantity += added
         while quantity > 0 and len(self.inv) < self.inventory_capacity():
             n = min(quantity, stack)
             quantity -= n
-            self.inv.append(InvItem(name, n, wear))
+            self.inv.append(InvItem(name, n, wear, stolen))
         self.dirty_me = True
         if not quiet:
             self.check_locks(True)
 
-    def remove_inventory_item(self, name, quantity):
+    def remove_inventory_item(self, name, quantity, stolen=None):
+        """Takes them out of the pack, the last first (stolen: only those marked stolen, or only those that aren't).
+        What went, as it was: [(quantity, wear, stolen)], for wherever it goes next (put_items)."""
         if name == SHARD:
             self.take_shards(quantity)
-            return
-        quantity = min(int(quantity), self.items_held(name))
+            return []
+        quantity = min(int(quantity), self.items_held(name, stolen))
         if quantity <= 0:
-            return
+            return []
         if self.item_in_use is not None and self.item_in_use.name == name:
             self.item_in_use = None
+        went = []
         for e in reversed(list(self.inv)):
             if quantity <= 0:
                 break
-            if e.name == name:
+            if e.name == name and (stolen is None or e.stolen == stolen):
                 removed = min(quantity, e.quantity)
                 quantity -= removed
                 e.quantity -= removed
+                went.append((removed, e.wear, e.stolen))
                 if e.quantity <= 0:
                     e.alive = False
                     self.inv.remove(e)
         self.dirty_me = True
         self.check_locks(True)
+        return went
+
+    def would_take(self, name, quantity):
+        """What remove_inventory_item(name, quantity) would take, without taking it: [(quantity, wear, stolen)]."""
+        out = []
+        for e in reversed(self.inv):
+            if quantity <= 0:
+                break
+            if e.name == name:
+                n = min(quantity, e.quantity)
+                quantity -= n
+                out.append((n, e.wear, e.stolen))
+        return out
+
+    def put_items(self, name, went, quiet=False):
+        """What remove_inventory_item took out of a pack, into this one: each keeps its wear and its stolen mark."""
+        for quantity, wear, stolen in went:
+            self.add_inventory_item(name, quantity, wear, quiet=quiet, stolen=stolen)
 
     def take_item_held_or_worn(self, name, quantity):
         """A script's Take.Item: from the pack first, then what's still owed off your hands and body ($Item counts
@@ -121,10 +146,11 @@ class ItemsMixin:
             if self.equipped[s] == name:
                 self.equipped[s] = ""
                 self.equip_wear[s] = 0
+                self.equip_stolen[s] = False
                 owed -= 1
                 self.equipment_changed()
 
-    def drop_on_floor(self, name, quantity, wear=0):
+    def drop_on_floor(self, name, quantity, wear=0, stolen=False):
         """Puts items on the ground at the player's feet; they despawn after a while. For the first seconds (Config
         [Gameplay] Drop.Private.Seconds, 10) only the one who dropped them sees them; then everyone does."""
         if quantity <= 0:
@@ -133,7 +159,7 @@ class ItemsMixin:
         w, h = self.data.sprite_size_of(MAPITEM, name)
         secs = val(self.data.config_read("Gameplay", "Drop.Private.Seconds", "10"))
         self.w.drop_item(name, p.z, int(p.fx - w / 2), int(p.fy - h + 4), quantity, first=self, first_secs=secs,
-                         wear=wear)
+                         wear=wear, stolen=stolen)
 
     def take_inventory_entity(self, e):
         """Takes one of this very item out of the inventory. Its wear."""
@@ -159,7 +185,8 @@ class ItemsMixin:
         e = next((e for e in self.inv if e.name == old), None)
         if e is None:
             return False
-        self.add_inventory_item(new, 1, self.take_inventory_entity(e), quiet=True)
+        stolen = e.stolen
+        self.add_inventory_item(new, 1, self.take_inventory_entity(e), quiet=True, stolen=stolen)
         return True
 
     # ----- tools (Durability, and no Slot: they work from your pack) wear with each use, and a broken one won't do
@@ -189,9 +216,6 @@ class ItemsMixin:
         self.dirty_me = True
         return True
 
-    def wears_of(self, name, quantity):
-        return [x.wear for x in reversed(self.inv) if x.name == name][:quantity]
-
     # ----- what doesn't keep (Entities.ini Shelf.Minutes, real time, wherever it is): its wear is when it was made, and
     # it goes with it through the pack, the bank, the ground, a trade and a grave. Past that it turns into Spoils.To
     def shelf_left(self, e):
@@ -204,6 +228,13 @@ class ItemsMixin:
     def shelf_shown(self, e):
         left = self.shelf_left(e)
         return [] if left is None else [round(left, 2)]
+
+    def inv_row(self, e):
+        """A pack slot as the browser draws it: [uid, name, quantity, wear, shelf life left or None, 1 if stolen]."""
+        row = [e.uid, e.name, e.quantity, e.wear] + self.shelf_shown(e)
+        if e.stolen:
+            row += [None, 1] if len(row) == 4 else [1]
+        return row
 
     def shelf_text(self, e):
         """How long it'll keep, in the world's days."""
@@ -238,11 +269,15 @@ class ItemsMixin:
         price = int(val(self.entity_ini(name, "Value", "0")) * rate + 0.5)
         return max(price, minimum)
 
-    def sell_price(self, name):
-        return self.item_price(name, self.rack_sell_rate * self.data.sell_price_factor, 1)
+    def sell_price(self, name, stolen=False):
+        """What this shop gives for one (stolen, at a fence: its share of that, Thieving.ini [Fence])."""
+        rate = self.rack_sell_rate * self.data.sell_price_factor
+        return self.item_price(name, rate * (self.fence_rate() if stolen else 1), 1)
 
-    def can_sell_here(self, name):
+    def can_sell_here(self, name, stolen=False):
         if name == "Gold_Coin(s)" or val(self.entity_ini(name, "Value", "0")) <= 0:
+            return False
+        if stolen and not self.rack_fence:                 # (only a fence buys what's stolen: thieving.py)
             return False
         return not (self.rack_specific == 1 and not any(r["item"] == name for r in self.rack))
 
@@ -313,8 +348,9 @@ class ItemsMixin:
         self.rack_filter, self.rack_ready = "", False
         self.rack_buy_rate = val(ini.read(rack, "Buy.Rate", "1.2", f))
         self.rack_sell_rate = val(ini.read(rack, "Sell.Rate", "0.8", f))
-        if self.rack_type == "Shop":                        # (the town's standing with you: standing.py)
-            rates = self.shop_rates(self.clicked_ent)
+        self.rack_fence = self.rack_type == "Shop" and val(ini.read(rack, "Fence", "0", f)) == 1
+        if self.rack_type == "Shop" and not self.rack_fence:    # (the town's standing with you: standing.py; a
+            rates = self.shop_rates(self.clicked_ent)          #  fence asks no questions, of an Outlaw either)
             if rates is None:
                 return False
             self.rack_buy_rate *= rates[0]
@@ -548,21 +584,24 @@ class ItemsMixin:
         return int(self.data.shop_restock_delay * quick * min(4, 1 + val(self.entity_ini(item, "Value", "0")) / 100))
 
     def rack_sell(self, e, quantity):
-        item = e.name
+        item, stolen = e.name, getattr(e, "stolen", False)
         if item == "Gold_Coin(s)":
             self.display_message("You can't sell gold!", "FAIL")
             return
-        price = self.sell_price(item)
+        price = self.sell_price(item, stolen)
         if val(self.entity_ini(item, "Value", "0")) <= 0:
             self.display_message("You can't sell that!", "FAIL")
             return
-        if not self.can_sell_here(item):
+        if stolen and not self.rack_fence:
+            self.refuse("No honest trader will buy that: it's stolen, and it shows. A fence might.")
+            return
+        if not self.can_sell_here(item, stolen):
             self.display_message("You can't sell that here!", "FAIL")
             return
-        quantity = min(max(1, quantity), self.items_held(item))
+        quantity = min(max(1, quantity), self.items_held(item, stolen))
         if quantity <= 0:
             return
-        self.remove_inventory_item(item, quantity)
+        self.remove_inventory_item(item, quantity, stolen)
         if price > 0:
             self.add_inventory_item("Gold_Coin(s)", price * quantity)
         self.change_rack_stock(item, quantity)
@@ -580,10 +619,13 @@ class ItemsMixin:
         if e.type == ACTIONBOXITEM:
             self.display_message("%s (buy for %d gold)" % (pretty(item), self.item_price(item, self.rack_buy_rate, 1)),
                                  "INFO")
-        elif not self.can_sell_here(item):
+        elif getattr(e, "stolen", False) and not self.rack_fence:
+            self.display_message("%s: stolen. No honest trader will buy it." % pretty(item), "INFO")
+        elif not self.can_sell_here(item, getattr(e, "stolen", False)):
             self.display_message("%s can't be sold here." % pretty(item), "INFO")
         else:
-            self.display_message("%s (sell for %d gold)" % (pretty(item), self.sell_price(item)), "INFO")
+            self.display_message("%s (sell for %d gold%s)" % (pretty(item), self.sell_price(item, e.stolen),
+                                                               ", stolen" if e.stolen else ""), "INFO")
 
     def bank_quantity_of(self, item):
         for i in range(1, self.data.bank_slots + 1):
@@ -592,12 +634,13 @@ class ItemsMixin:
         return 0
 
     def bank_deposit(self, e, quantity):
-        item = e.name
-        quantity = min(max(1, quantity), self.items_held(item))
+        item, stolen = e.name, getattr(e, "stolen", False)
+        quantity = min(max(1, quantity), self.items_held(item, stolen))
         if quantity <= 0:
             return
         slots = self.data.bank_slots
-        slot = next((i for i in range(1, slots + 1) if self.bank_item[i] == item), 0)
+        slot = next((i for i in range(1, slots + 1) if self.bank_item[i] == item and self.bank_stolen[i] == stolen),
+                    0)
         if slot == 0:
             slot = next((i for i in range(1, slots + 1) if self.bank_item[i] == ""), 0)
         if slot == 0:
@@ -605,9 +648,10 @@ class ItemsMixin:
             return
         self.bank_item[slot] = item
         self.bank_qty[slot] += quantity
+        self.bank_stolen[slot] = stolen
+        went = self.remove_inventory_item(item, quantity, stolen)
         if self.data.keeps_wear(item):
-            self.bank_wear[slot] += self.wears_of(item, quantity)
-        self.remove_inventory_item(item, quantity)
+            self.bank_wear[slot] += [wear for _, wear, _ in went]
         self.display_message("You bank (%d) %s." % (quantity, pretty(item)), "SUCCESS")
         self.show_rack_page(False)
 
@@ -619,7 +663,8 @@ class ItemsMixin:
         if quantity < 0:
             quantity = self.bank_qty[slot]
         quantity = min(quantity, self.bank_qty[slot])
-        room = self.inventory_slots_available(item)
+        stolen = self.bank_stolen[slot]
+        room = self.inventory_slots_available(item, stolen)
         if room <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             return
@@ -630,14 +675,15 @@ class ItemsMixin:
         if self.bank_qty[slot] <= 0:
             self.bank_item[slot] = ""
             self.bank_qty[slot] = 0
+            self.bank_stolen[slot] = False
         if self.data.keeps_wear(item):
             for _ in range(quantity):
                 wears = self.bank_wear[slot]
-                self.add_inventory_item(item, 1, wears.pop() if wears else 0)
+                self.add_inventory_item(item, 1, wears.pop() if wears else 0, stolen=stolen)
             if self.bank_qty[slot] <= 0:
                 self.bank_wear[slot] = []
         else:
-            self.add_inventory_item(item, quantity)
+            self.add_inventory_item(item, quantity, stolen=stolen)
         self.display_message("You take (%d) %s." % (quantity, pretty(item)), "SUCCESS")
         self.show_rack_page(False)
 
@@ -770,18 +816,20 @@ class ItemsMixin:
             return
         old = self.equipped[s]
         if old:
-            room = self.inventory_slots_available(old)
+            room = self.inventory_slots_available(old, self.equip_stolen[s])
             if e.quantity <= 1:
                 room += 1
             if room < 1:
                 self.display_message("You need room in your inventory to take off the %s." % pretty(old), "FAIL")
                 return
+        stolen, old_stolen = e.stolen, self.equip_stolen[s]
         wear = self.take_inventory_entity(e)
         old_wear = self.equip_wear[s]
         self.equipped[s] = item
         self.equip_wear[s] = wear
+        self.equip_stolen[s] = stolen                   # (worn, it's still stolen: taken off, still marked)
         if old:
-            self.add_inventory_item(old, 1, old_wear)
+            self.add_inventory_item(old, 1, old_wear, stolen=old_stolen)
         self.display_message("You %s the %s." % (verb, pretty(item)), "SUCCESS")
         self.equipment_changed()
 
@@ -791,12 +839,13 @@ class ItemsMixin:
         item = self.equipped[s]
         if not item:
             return
-        if self.inventory_slots_available(item) < 1:
+        if self.inventory_slots_available(item, self.equip_stolen[s]) < 1:
             self.display_message("You don't have room in your inventory for the %s." % pretty(item), "FAIL")
             return
         self.equipped[s] = ""
-        self.add_inventory_item(item, 1, self.equip_wear[s])
+        self.add_inventory_item(item, 1, self.equip_wear[s], stolen=self.equip_stolen[s])
         self.equip_wear[s] = 0
+        self.equip_stolen[s] = False
         self.display_message("You take off the %s." % pretty(item), "SUCCESS")
         self.equipment_changed()
 
@@ -993,7 +1042,7 @@ class ItemsMixin:
     def death_sort(self):
         """Dying: what you can't drop stays with you, and so do your most valuable things (Config [Gameplay]
         Death.Keep.Items, 5: single items, worn or carried; not gold), what's in your hands first (the sword you
-        made on the Isle is worth little, but it's yours). The rest goes in the grave: [(name, qty, wear)]."""
+        made on the Isle is worth little, but it's yours). The rest goes in the grave: [(name, qty, wear, stolen)]."""
         d = self.data
         keep_n = max(0, int(val(d.config_read("Gameplay", "Death.Keep.Items", "5"))))
         units = []                      # (value, order, where, index): one per single item
@@ -1026,7 +1075,7 @@ class ItemsMixin:
             if stay >= e.quantity:
                 kept_inv.append(e)
                 continue
-            grave.append((e.name, e.quantity - stay, e.wear))
+            grave.append((e.name, e.quantity - stay, e.wear, e.stolen))
             if stay:
                 e.quantity = stay
                 kept_inv.append(e)
@@ -1035,9 +1084,10 @@ class ItemsMixin:
         self.inv[:] = kept_inv
         for i in range(1, d.equip_slots + 1):
             if self.equipped[i] and i not in keep_eq:
-                grave.append((self.equipped[i], 1, self.equip_wear[i]))
+                grave.append((self.equipped[i], 1, self.equip_wear[i], self.equip_stolen[i]))
                 self.equipped[i] = ""
                 self.equip_wear[i] = 0
+                self.equip_stolen[i] = False
             elif self.equipped[i]:
                 kept_names.append(self.equipped[i])
         self.recalc_equipment()
@@ -1089,13 +1139,15 @@ class ItemsMixin:
             self.display_message("The grave is empty.", "INFO")
             return
         left = []
-        for name, qty, wear in g["items"]:
-            room = self.inventory_slots_available(name)
+        for it in g["items"]:
+            name, qty, wear = it[:3]
+            stolen = bool(it[3]) if len(it) > 3 else False
+            room = self.inventory_slots_available(name, stolen)
             take = min(qty, room)
             if take > 0:
-                self.add_inventory_item(name, take, wear)
+                self.add_inventory_item(name, take, wear, stolen=stolen)
             if qty - take > 0:
-                left.append((name, qty - take, wear))
+                left.append((name, qty - take, wear, stolen))
         if left:
             g["items"] = left
             self.display_message("You take what you can carry; the rest is still in the grave.", "INFO")

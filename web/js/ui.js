@@ -1033,12 +1033,21 @@ function qtyText(q) {
 }
 
 function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = false, wear = 0, inv = false,
-  badgeInk = null, shelf = null } = {}) {
+  badgeInk = null, shelf = null, stolen = false } = {}) {
   const broken = inv && durText(name, wear) === "broken!";
   const im = dim || broken ? greyed(name) : sprite(name);   // (not loaded yet: nothing, till it is)
   if (im) ctx.drawImage(im, x, y);
   if (inv) wearBar(ctx, name, wear, x, y, G.tw);
   if (shelf !== null) shelfBar(ctx, shelf, x, y, G.tw);
+  if (stolen) {                                     // (stolen: a red tag in its corner)
+    const x1 = x + G.tw - 1;
+    for (const [col, s] of [[[40, 8, 6], 11], [[196, 38, 30], 8]]) {
+      const o = s === 8 ? 1 : 0;
+      ctx.fillStyle = rgb(col);
+      ctx.beginPath(); ctx.moveTo(x1 - o, y + 1 + o); ctx.lineTo(x1 - o - s, y + 1 + o); ctx.lineTo(x1 - o, y + 1 + o + s);
+      ctx.closePath(); ctx.fill();
+    }
+  }
   if (x2) {
     const x0 = x + G.tw - 11, y0 = y + 1, s = 8;
     for (const [col, w] of [[[40, 8, 6], 4], [[214, 40, 32], 2]]) {
@@ -1079,9 +1088,10 @@ function drawInventory(ctx) {
     const [x, y] = invSlotPos(i);
     roundBox(ctx, x + 1, y + 1, G.tw - 2, G.th - 2, i < used ? [44, 28, 21] : [36, 23, 17], [24, 14, 10], 1, 5);
   }
-  S.me.inv.forEach(([uid, name, qty, wear, shelf = null], i) => {
+  S.me.inv.forEach(([uid, name, qty, wear, shelf = null, stolen = 0], i) => {
     const [x, y] = invSlotPos(i);
-    slotItem(ctx, name, x, y, qty, { dim: shop && !canSellHere(name), wear, inv: true, shelf });
+    slotItem(ctx, name, x, y, qty, { dim: shop && !canSellHere(name, !!stolen), wear, inv: true, shelf,
+      stolen: !!stolen });
     if (uid === S.itemInUse) {
       ctx.strokeStyle = rgb(TAB_TEXT); ctx.lineWidth = 1;
       ctx.strokeRect(x - 0.5, y - 0.5, G.tw + 1, G.th + 1);
@@ -1096,8 +1106,8 @@ export function invItemAt(x, y) {
     const [ix, iy] = invSlotPos(i);
     const [w, h] = size(inv[i][1]);
     if (x >= ix && x < ix + Math.max(w, 1) && y >= iy && y < iy + Math.max(h, 1)) {
-      const [u, n, q, wear] = inv[i];
-      return { k: T.INVITEM, u, n, q, wear, i };
+      const [u, n, q, wear, , stolen] = inv[i];
+      return { k: T.INVITEM, u, n, q, wear, i, stolen: !!stolen };
     }
   }
   return null;
@@ -1227,7 +1237,7 @@ function drawBox(ctx) {
     const price = b.mode === "Market" ? (b.prices || [])[it.i] :
       b.mode === "Shop" ? itemPrice(it.name, b.buy_rate || 1.2) : 0;
     slotItem(ctx, it.name, x, y, it.qty, { dim: it.short > 0, badge: it.short ? "Lv" + it.short : price ? price + COIN : "",
-      cross: !!(it.short || it.missing), badgeInk: price ? [255, 222, 90] : null });
+      cross: !!(it.short || it.missing), badgeInk: price ? [255, 222, 90] : null, stolen: !!it.stolen });
   });
   // the pages: up and down buttons, and which page this is
   const arrow = (y, up, on) => {
@@ -1252,7 +1262,7 @@ export function boxItemAt(x, y) {
     const ix = L.abX + 66 + gap * (n % cols), iy = L.abY + 45 + gap * Math.floor(n / cols);
     if (x >= ix && x < ix + G.tw && y >= iy && y < iy + G.th) {
       const it = b.items[n];
-      return { k: T.RACKITEM, n: it.name, q: it.qty, i: it.i, short: it.short, missing: it.missing,
+      return { k: T.RACKITEM, n: it.name, q: it.qty, i: it.i, short: it.short, missing: it.missing, stolen: !!it.stolen,
         price: (b.prices || [])[it.i], seller: (b.sellers || [])[it.i], mine: !!(b.mine || [])[it.i] };
     }
   }

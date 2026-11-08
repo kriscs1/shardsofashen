@@ -105,7 +105,7 @@ class ActionsMixin:
             verbs = "Pickup,Examine"
         elif t == INVENTORYITEM:
             if self.ab_mode == "Shop":
-                verbs = "Sell 1,Sell All,Value,Examine" if self.can_sell_here(e.name) else "Examine"
+                verbs = "Sell 1,Sell All,Value,Examine" if self.can_sell_here(e.name, e.stolen) else "Examine"
             elif self.ab_mode == "Bank":
                 verbs = "Deposit 1,Deposit All,Examine"
             else:
@@ -613,6 +613,8 @@ class ActionsMixin:
             text += " (Condition: %s)" % self.dur_text(e.name, e.wear)
         if e.type == INVENTORYITEM and self.shelf_text(e):
             text += " " + self.shelf_text(e)
+        if e.type in (INVENTORYITEM, MAPITEM) and e.stolen:
+            text += " It's stolen, and it shows: no honest trader will touch it."
         self.display_message(text, "EXAMINE")
 
     def pickup_map_item(self, e, reach=40):
@@ -624,7 +626,7 @@ class ActionsMixin:
             return
         name = e.name
         quantity = max(1, e.quantity)
-        space = self.inventory_slots_available(name)
+        space = self.inventory_slots_available(name, e.stolen)
         if space <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             return
@@ -633,7 +635,7 @@ class ActionsMixin:
         if once and taken < quantity:
             self.display_message("You need room for all %d %s." % (quantity, pretty(name)), "FAIL")
             return
-        self.add_inventory_item(name, taken, e.wear)
+        self.add_inventory_item(name, taken, e.wear, stolen=e.stolen)
         self.play_sound("Pickup")
         if taken > 1:
             self.display_message("You pick up %d %s." % (taken, pretty(name)), "SUCCESS")
@@ -686,11 +688,12 @@ class ActionsMixin:
             self.display_message("You can't drop that!", "FAIL")
             return
         quantity = min(max(1, quantity), max(1, e.quantity))
+        stolen = e.stolen
         if self.data.keeps_wear(name) and quantity == 1:
-            self.drop_on_floor(name, 1, self.take_inventory_entity(e))
+            self.drop_on_floor(name, 1, self.take_inventory_entity(e), stolen)
         else:
-            self.remove_inventory_item(name, quantity)
-            self.drop_on_floor(name, quantity)
+            self.remove_inventory_item(name, quantity, stolen)
+            self.drop_on_floor(name, quantity, stolen=stolen)
         self.play_sound("Drop", (self.player.cx, self.player.cy))
         if quantity > 1:
             self.display_message("You drop %d %s." % (quantity, pretty(name)), "SUCCESS")

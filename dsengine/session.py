@@ -139,10 +139,12 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.read_disabled_skills()
         self.equipped = [""] * (d.equip_slots + 1)
         self.equip_wear = [0] * 12
+        self.equip_stolen = [False] * 12            # (worn, and stolen: thieving.py)
         self.equip_attack_total = self.equip_defence_total = self.equip_magic_total = 0
         self.bank_item = [""] * (d.bank_slots + 2)
         self.bank_qty = [0] * (d.bank_slots + 2)
         self.bank_wear = [[] for _ in range(d.bank_slots + 2)]
+        self.bank_stolen = [False] * (d.bank_slots + 2)   # (a slot of stolen things: never with honest ones)
         self.attributes = []
         self.quest_notes = []
         self.npc_attitudes = {}
@@ -226,6 +228,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.rack_pages = 1
         self.rack_buy_rate, self.rack_sell_rate = 1.2, 0.8
         self.rack_specific = 0
+        self.rack_fence = False                     # (the shop's a fence: it buys what's stolen, for less)
         self.rack_skill = ""
         self.message_log_last = ("", 0)
         self.msg_seq = 0                    # (each message's id: a line that ends .. stays open for its outcome)
@@ -460,15 +463,18 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             if 0 < val(left) < 3600000:
                 self.cooldowns[str(spell)] = self.w.now + val(left)
         self.diseases_load(st.get("diseases"))
-        for name, qty, wear in st.get("inventory", []):
-            self.add_inventory_item(self.renamed(name), max(1, int(qty)), int(wear), quiet=True)
-        for i, (name, wear) in enumerate(st.get("equipped", [])[:d.equip_slots], 1):
+        for name, qty, wear, *stolen in st.get("inventory", []):     # (a 4th, 1: stolen)
+            self.add_inventory_item(self.renamed(name), max(1, int(qty)), int(wear), quiet=True,
+                                    stolen=bool(stolen and stolen[0]))
+        for i, (name, wear, *stolen) in enumerate(st.get("equipped", [])[:d.equip_slots], 1):
             self.equipped[i] = self.renamed(name)
             self.equip_wear[i] = int(wear)
-        for i, (name, qty, wears) in enumerate(st.get("bank", [])[:d.bank_slots], 1):
+            self.equip_stolen[i] = bool(stolen and stolen[0])
+        for i, (name, qty, wears, *stolen) in enumerate(st.get("bank", [])[:d.bank_slots], 1):
             self.bank_item[i] = self.renamed(name)
             self.bank_qty[i] = max(1, int(qty))
             self.bank_wear[i] = [int(w) for w in wears]
+            self.bank_stolen[i] = bool(stolen and stolen[0])
         self.shards_from_bank()                         # (banked when Shards were an item)
         self.attributes = [[k, v] for k, v in st.get("attributes", [])][:ATTRS_MOST]
         for a in self.attributes:                       # (named for a place that's been renamed: its new name)
@@ -602,10 +608,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "sprite": self.swap["body"] if self.swap else self.player_sprite_base,
             "skills": {d.skill_name[i]: self.skill_xp[i] for i in range(1, d.total_skills + 1)},
             "skills_of": d.skill_max_level, "level": self.player_level(),     # (the level: for the character list)
-            "inventory": [[e.name, e.quantity, e.wear] for e in self.inv],
-            "equipped": [[self.equipped[i], self.equip_wear[i]] for i in range(1, d.equip_slots + 1)],
-            "bank": [[self.bank_item[i], self.bank_qty[i], self.bank_wear[i][:self.bank_qty[i]]]
-                     for i in range(1, d.bank_slots + 1) if self.bank_item[i]],
+            "inventory": [[e.name, e.quantity, e.wear] + ([1] if e.stolen else []) for e in self.inv],
+            "equipped": [[self.equipped[i], self.equip_wear[i]] + ([1] if self.equip_stolen[i] else [])
+                         for i in range(1, d.equip_slots + 1)],
+            "bank": [[self.bank_item[i], self.bank_qty[i], self.bank_wear[i][:self.bank_qty[i]]] +
+                     ([1] if self.bank_stolen[i] else []) for i in range(1, d.bank_slots + 1) if self.bank_item[i]],
             "attributes": [[n, v] for n, v in self.attributes],
             "quest_notes": [[q, dn, t] for q, dn, t in self.quest_notes],
             "npc_attitudes": dict(self.npc_attitudes),
@@ -1193,7 +1200,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "fly": self.flying,
             "hp": p.hp, "max_hp": self.player_max_hp, "shards": self.shards(), "spells": dict(self.spells_known), "own": self.own_spell_state(),
             "xp": self.skill_xp[1:], "skill_off": self.skill_off[1:],
-            "inv": [[e.uid, e.name, e.quantity, e.wear] + self.shelf_shown(e) for e in self.inv],
+            "inv": [self.inv_row(e) for e in self.inv],
             "equipped": self.equipped[1:], "wear": self.equip_wear[1:d.equip_slots + 1],
             "totals": [self.equip_attack_total, self.equip_defence_total, self.equip_magic_total],
             "hotbar": self.hotbar[:self.hotbar_n], "status": sorted(self.status), "input": self.user_input_enabled,
@@ -1231,6 +1238,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         items = []
         for name, qty, misc in self.ab_item_defs:
             it = {"name": name, "qty": qty, "i": misc}
+            if self.ab_mode == "Bank" and isinstance(misc, int) and self.bank_stolen[misc]:
+                it["stolen"] = 1
             if self.ab_mode == "Craft":
                 e = self.rack_pseudo(misc)
                 it["short"] = self.rack_level_short(e)
@@ -1241,5 +1250,6 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 "text": self.ab_text, "items": items, "responses": self.responses, "page": self.rack_page,
                 "pages": self.rack_pages, "rack": self.rack_name, "buy_rate": self.rack_buy_rate,
                 "sell_rate": self.rack_sell_rate * self.data.sell_price_factor, "specific": self.rack_specific,
+                "fence": self.fence_rate() if self.rack_fence else 0,
                 "stock": [r["item"] for r in self.rack], "skill": self.rack_skill, "filter": self.rack_filter,
                 "ready": self.rack_ready}

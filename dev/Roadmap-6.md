@@ -64,13 +64,13 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
 - [x] Tests.
 
 ## 3. Stolen goods (the engine)
-- [ ] What's pickpocketed, stolen from a shelf or taken from a house's Valuables is marked stolen, and keeps its
+- [x] What's pickpocketed, stolen from a shelf or taken from a house's Valuables is marked stolen, and keeps its
       mark wherever it goes (the bank, the ground, a trade, a grave), like an item's wear; marked and unmarked don't
       stack. It shows when you look at it.
-- [ ] No shop buys it and the market won't list it; a **fence** does, for less (`Thieving.ini`). A fence or two in
+- [x] No shop buys it and the market won't list it; a **fence** does, for less (`Thieving.ini`). A fence or two in
       the back streets (Northport's docks, Galaith's lower town, the Keep's harbour...); Red Meg pays best, to those
       who sided with her.
-- [ ] Tests.
+- [x] Tests.
 
 ## 4. The Smugglers' Run, three ways
 - [ ] **Side with Holt**: lead his men into the cove and fight beside them. The Court's standing up a lot (Holt keeps its watch); the watch's

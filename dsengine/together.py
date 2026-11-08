@@ -441,41 +441,36 @@ class TogetherMixin:
             return False
         return name == "Gold_Coin(s)" or trim(self.data.entity_ini(name, "Droppable", "1")) != "0"
 
-    def fits_after(self, give, get):
-        """Would what's offered to you (get: {name: n}) fit in your pack once your own offer (give) has gone?"""
-        packs = [[e.name, e.quantity] for e in self.inv]
+    def fits_after(self, give, get, other):
+        """Would what other offers you (get: {name: n}, stolen or not as it is in their pack) fit in your pack once
+        your own offer (give) has gone?"""
+        packs = [[e.name, e.stolen, e.quantity] for e in self.inv]
         for name, q in give.items():
             for p in reversed(packs):
                 if q <= 0:
                     break
                 if p[0] == name:
-                    took = min(q, p[1])
-                    p[1] -= took
+                    took = min(q, p[2])
+                    p[2] -= took
                     q -= took
-        packs = [p for p in packs if p[1] > 0]
-        for name, q in get.items():
+        packs = [p for p in packs if p[2] > 0]
+        for name, n in get.items():
             stack = self.stackable_quantity(name)
-            for p in packs:
-                if p[0] == name and p[1] < stack and q > 0:
-                    put = min(q, stack - p[1])
-                    p[1] += put
-                    q -= put
-            while q > 0:
-                packs.append([name, min(q, stack)])
-                q -= stack
+            for q, _, stolen in other.would_take(name, n):
+                for p in packs:
+                    if p[0] == name and p[1] == stolen and p[2] < stack and q > 0:
+                        put = min(q, stack - p[2])
+                        p[2] += put
+                        q -= put
+                while q > 0:
+                    packs.append([name, stolen, min(q, stack)])
+                    q -= stack
         return len(packs) <= self.inventory_capacity()
 
     @staticmethod
     def hand_over(giver, taker, name, n):
-        """n of name from giver to taker, each with its own wear (a worn tool stays worn, a broken one broken)."""
-        wears = giver.wears_of(name, n)
-        giver.remove_inventory_item(name, n)
-        if any(wears):
-            for wear in wears:
-                taker.add_inventory_item(name, 1, wear=wear)
-            n -= len(wears)
-        if n > 0:
-            taker.add_inventory_item(name, n)
+        """n of name from giver to taker, each as it was (a worn tool stays worn, a stolen ring stolen)."""
+        taker.put_items(name, giver.remove_inventory_item(name, n))
 
     def trade_other(self):
         tr = getattr(self, "trade", None)
@@ -572,21 +567,14 @@ class TogetherMixin:
             if any(s.items_held(n) < q for n, q in give.items()):
                 self.trade_close("The trade is off: something offered isn't there now.")
                 return
-        for s, give, get in ((a, oa, ob), (b, ob, oa)):
-            if not s.fits_after(give, get):             # (all of it together: nothing left on the floor)
+        for s, give, get, other in ((a, oa, ob, b), (b, ob, oa, a)):
+            if not s.fits_after(give, get, other):      # (all of it together: nothing left on the floor)
                 self.trade_close("The trade is off: %s hasn't the room." % s.player_name)
                 return
-        moves = ([(a, b, n, q, a.wears_of(n, q)) for n, q in oa.items()] +
-                 [(b, a, n, q, b.wears_of(n, q)) for n, q in ob.items()])
-        for giver, _, n, q, _ in moves:                 # (both offers out first: a full pack makes room)
-            giver.remove_inventory_item(n, q)
-        for _, taker, n, q, wears in moves:
-            if any(wears):
-                for wear in wears:
-                    taker.add_inventory_item(n, 1, wear=wear)
-                q -= len(wears)
-            if q > 0:
-                taker.add_inventory_item(n, q)
+        moves = [(a, b, n, q) for n, q in oa.items()] + [(b, a, n, q) for n, q in ob.items()]
+        went = [giver.remove_inventory_item(n, q) for giver, _, n, q in moves]   # (both out first: room made)
+        for (_, taker, n, _), w in zip(moves, went):
+            taker.put_items(n, w)                       # (each as it was: its wear, and stolen or not)
         for s in (a, b):
             s.play_sound("Coins")
         self.w.save_soon = True                         # (both sides saved together: never in two packs, or none)

@@ -55,9 +55,10 @@ export function equipVerb(item) {
   return s <= 2 ? "Wield" : "Wear";
 }
 
-export function canSellHere(name) {
+export function canSellHere(name, stolen = false) {
   if (name === "Gold_Coin(s)" || val(entityIni(name, "Value", "0")) <= 0) return false;
   const b = S.box;
+  if (stolen && !b.fence) return false;           // (stolen: only a fence buys it)
   return !(b.specific === 1 && !(b.stock || []).includes(name));
 }
 
@@ -79,12 +80,12 @@ export function getVerbs(e) {
   } else if (mode === "Chest" && (t === T.INVITEM || t === T.RACKITEM)) {
     v = t === T.RACKITEM ? ["Take 1", "Take all", "Examine"] : ["Examine"];
   } else if (t === T.INVITEM && mode === "Market") {
-    const sellable = e.n !== "Gold_Coin(s)" && entityIni(e.n, "Droppable", "1").trim() !== "0";
+    const sellable = e.n !== "Gold_Coin(s)" && entityIni(e.n, "Droppable", "1").trim() !== "0" && !e.stolen;
     v = sellable ? ["Sell on the market", "Examine"] : ["Examine"];
   } else if (t === T.RACKITEM && mode === "Market") {
     v = e.mine ? ["Take back 1", "Take back all", "Set price", "Examine"] : ["Buy 1", "Buy 5", "Value", "Examine"];
   } else if (t === T.INVITEM) {
-    if (mode === "Shop") v = canSellHere(e.n) ? ["Sell 1", "Sell All", "Value", "Examine"] : ["Examine"];
+    if (mode === "Shop") v = canSellHere(e.n, e.stolen) ? ["Sell 1", "Sell All", "Value", "Examine"] : ["Examine"];
     else if (mode === "Bank") v = ["Deposit 1", "Deposit All", "Examine"];
     else {
       const words = entityIni(e.n, "Use.Words", "");

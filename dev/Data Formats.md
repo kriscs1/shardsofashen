@@ -270,6 +270,9 @@ Vary.Stock=0              ; (optional) this shop always has its full stock (1: i
 Pick=7                    ; (optional) a visitor's rack: it shows this many of its items, chosen as they arrive
                           ; (data\Encounters.ini Rack=), the same for everyone; new stock and new goods next visit
 Item2=Bucket,2
+Fence=1                   ; (optional) a fence: buys stolen goods (no other shop does), for data\Thieving.ini
+                          ; [Fence] Rate of the price ([Fence.<rack>] its own: Rate, Side, Side.Rate), and asks
+                          ; no questions of an Outlaw
 [CRAFT-Cooking]
 Type=Craft
 Skill=Cooking

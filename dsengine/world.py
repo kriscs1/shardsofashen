@@ -256,7 +256,7 @@ class World(NPCMixin):
         """a and b on one level, within a screen of each other (a kill's helpers, a party near, $Players.Near)."""
         return a.z == b.z and abs(a.cx - b.cx) < self.sw and abs(a.cy - b.cy) < self.sh
 
-    def drop_item(self, name, z, x, y, quantity, owner=None, first=None, first_secs=0, wear=0):
+    def drop_item(self, name, z, x, y, quantity, owner=None, first=None, first_secs=0, wear=0, stolen=False):
         """Something put down on the ground (dropped from a pack, a kill's loot): gone after Item.Despawn.Delay.
         first: the player whose it is to pick up for its first first_secs seconds, then anyone's. owner: only that
         player ever sees it (a quest's own creature's loot), and it doesn't go."""
@@ -264,6 +264,7 @@ class World(NPCMixin):
         if item is None:
             return None
         item.wear = wear
+        item.stolen = stolen
         item.source = "DROPPED"
         if first is not None and owner is None and first_secs > 0:
             item.private_to = first

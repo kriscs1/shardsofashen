@@ -183,7 +183,7 @@ class MarketMixin:
                 return "Take back 1,Take back all,Set price,Examine"
             return "Buy 1,Buy 5,Value,Examine"
         if e.type == INVENTORYITEM:
-            return "Sell on the market,Examine" if self.can_list(e.name) else "Examine"
+            return "Sell on the market,Examine" if self.can_list(e.name) and not e.stolen else "Examine"
         return ""
 
     def can_list(self, name):
@@ -237,11 +237,14 @@ class MarketMixin:
         if not self.can_list(name):
             self.display_message("You can't sell that.", "FAIL")
             return
+        if e.stolen:                                # (stolen: a fence might take it; the market won't)
+            self.refuse("The market won't list that: it's stolen, and everyone would know it. A fence might buy it.")
+            return
         price = int(val(price))
         if not 1 <= price <= MAX_PRICE:
             self.display_message("A price is 1 gold or more.", "FAIL")
             return
-        held = self.items_held(name)
+        held = self.items_held(name, False)
         qty = held if int(val(qty)) <= 0 else min(held, int(val(qty)))
         if qty <= 0:
             return
@@ -255,14 +258,14 @@ class MarketMixin:
         if worn:                                    # (worn things one at a time: each keeps its own wear)
             n = 0
             for _ in range(qty):
-                ent = next((x for x in self.inv if x.name == name), None)
+                ent = next((x for x in self.inv if x.name == name and not x.stolen), None)
                 if ent is None or len(self.market.of(self.player_name)) >= LISTINGS:
                     break
                 self.market.add(self.player_name, name, 1, price, self.take_inventory_entity(ent))
                 n += 1
             qty = n
         else:
-            self.remove_inventory_item(name, qty)
+            self.remove_inventory_item(name, qty, False)
             if same is not None:
                 same["qty"] += qty
             else:

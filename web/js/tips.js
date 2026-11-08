@@ -82,13 +82,16 @@ export function entityTip(e) {
     const q = val(e.q || 1);
     lines.push("#" + name + (q > 1 ? `  (${lbstr(q)})` : ""));
     lines.push(...itemLines(e.n));
+    if (e.stolen) lines.push("!Stolen: only a fence buys it");
     const mode = S.box.mode;
     if (e.k === T.RACKITEM && mode === "Shop") lines.push(`$Price: ${itemPrice(e.n, S.box.buy_rate || 1.2)} gold`);
     if (e.k === T.RACKITEM && mode === "Market" && e.price) {
       lines.push(`$${e.price} gold each, from ${e.mine ? "you" : e.seller}`);
     }
     if (e.k === T.INVITEM && mode === "Shop") {
-      lines.push(canSellHere(e.n) ? `$Sells for ${itemPrice(e.n, S.box.sell_rate || 0.2)} gold` : "!Can't be sold here");
+      const rate = (S.box.sell_rate || 0.2) * (e.stolen ? S.box.fence : 1);   // (a fence pays less for it)
+      if (canSellHere(e.n, e.stolen)) lines.push(`$Sells for ${itemPrice(e.n, rate)} gold`);
+      else if (!e.stolen) lines.push("!Can't be sold here");
     }
   } else if (e.k === T.NPC) {
     // (one you can fight: its name coloured by how it stands to you - %0 far below to %4 far above: ui.js DIFFICULTY)

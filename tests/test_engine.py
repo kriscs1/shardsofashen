@@ -4831,15 +4831,121 @@ def test_a_house_has_valuables_to_steal(world):
         TH.rnd = lambda: 0.0
         before = sum(s.items_held(n) for n in ("Gold_Coin(s)", "Silver_Ring", "Gold_Ring", "Sapphire", "Bread",
                                                "Minor_Healing_Draught", "Egg"))
+        had = {id(e) for e in s.inv}
         s.steal_from(box)
         after = sum(s.items_held(n) for n in ("Gold_Coin(s)", "Silver_Ring", "Gold_Ring", "Sapphire", "Bread",
                                               "Minor_Healing_Draught", "Egg"))
         assert after > before
+        got = [e for e in s.inv if id(e) not in had]
+        assert all(e.stolen == (e.name != "Gold_Coin(s)") for e in got)   # (marked; gold never is)
         s.out = []
         s.steal_from(box)                                          # (not twice in a row)
         assert sum(s.items_held(n) for n in ("Gold_Coin(s)",)) <= after
     finally:
         TH.rnd = was
+    leave(world, s)
+
+
+def test_stolen_goods_stay_marked_wherever_they_go(world):
+    s = join(world, "Fingers")
+    s.connected = True
+    stock(s, Silver_Ring=1, Logs=2)
+    s.add_inventory_item("Silver_Ring", 2, stolen=True, quiet=True)
+    s.add_inventory_item("Logs", 3, stolen=True, quiet=True)
+    s.add_inventory_item("Gold_Coin(s)", 5, stolen=True, quiet=True)
+    logs = [e for e in s.inv if e.name == "Logs"]
+    assert sorted((e.quantity, e.stolen) for e in logs) == [(2, False), (3, True)]    # (never one stack)
+    rings = [e for e in s.inv if e.name == "Silver_Ring"]
+    assert not any(e.stolen for e in s.inv if e.name == "Gold_Coin(s)")              # (gold is just gold)
+    hot = next(e for e in rings if e.stolen)
+    assert s.inv_row(hot)[-1] == 1 and s.inv_row(next(e for e in rings if not e.stolen))[-1] != 1
+    said = []
+    s.display_message = lambda text, kind="": said.append(text)
+    s.examine_entity(hot)
+    assert "stolen" in said[-1]
+    # (the bank: a slot of its own, and it comes back out stolen)
+    s.bank_deposit(hot, 2)
+    slot = next(i for i in range(1, s.data.bank_slots + 1) if s.bank_item[i] == "Silver_Ring")
+    assert s.bank_stolen[slot] and s.items_held("Silver_Ring", True) == 0 and s.items_held("Silver_Ring", False) == 1
+    s.bank_deposit(next(e for e in s.inv if e.name == "Silver_Ring"), 1)
+    assert sum(1 for i in range(1, s.data.bank_slots + 1) if s.bank_item[i] == "Silver_Ring") == 2
+    s.bank_withdraw(type("Slot", (), {"misc": slot})(), -1)
+    assert s.items_held("Silver_Ring", True) == 2 and not s.bank_stolen[slot]
+    # (saved and loaded)
+    st = s.save_state()
+    t = Session(world, "Fingers2")
+    t.load_state(st)
+    assert t.items_held("Silver_Ring", True) == 2
+    # (the ground, and back)
+    s.remove_inventory_item("Silver_Ring", 1, True)
+    s.drop_on_floor("Silver_Ring", 1, stolen=True)
+    lying = next(e for e in world.ents if e.name == "Silver_Ring" and e.alive and e.stolen)
+    s.pickup_map_item(lying, reach=9999)
+    assert s.items_held("Silver_Ring", True) == 2
+    # (worn and taken off)
+    hot = next(e for e in s.inv if e.name == "Silver_Ring" and e.stolen)
+    s.equip_item(hot)
+    ring = s.item_equip_slot("Silver_Ring")
+    if ring:
+        assert s.equip_stolen[ring]
+        s.unequip_slot(ring)
+        assert s.items_held("Silver_Ring", True) == 2 and not s.equip_stolen[ring]
+    # (given away)
+    b = join(world, "Receiver")
+    try:
+        s.remove_inventory_item("Silver_Ring", 1, False)
+        s.hand_over(s, b, "Silver_Ring", 2)
+        assert b.items_held("Silver_Ring", True) == 2 and b.items_held("Silver_Ring", False) == 0
+        # (and in the grave, after a death: kept things are the five worth most, so some gold rings first)
+        stock(b, Gold_Ring=5)
+        graved = b.death_sort()
+        assert sum(q for n, q, _, stolen in graved if n == "Silver_Ring" and stolen) == 2
+        b.grave = {"map": b.cur_map.name, "x": 0, "y": 0, "items": graved, "left": 60000}
+        b.grave_search()
+        assert b.items_held("Silver_Ring", True) == 2
+    finally:
+        leave(world, b)
+        leave(world, s)
+
+
+def test_only_a_fence_buys_stolen_goods(world):
+    s = join(world, "Fencer")
+    s.connected = True
+    s.clicked_ent = None
+    s.add_inventory_item("Silver_Ring", 3, stolen=True, quiet=True)
+    stock(s, Silver_Ring=1)
+    hot = next(e for e in s.inv if e.name == "Silver_Ring" and e.stolen)
+    assert s.open_item_rack("SHOP", "Man", "SHOP-Isle")
+    gold = s.items_held("Gold_Coin(s)")
+    assert not s.can_sell_here("Silver_Ring", True) and s.can_sell_here("Silver_Ring")
+    assert "Sell 1" not in s.get_verbs(hot)
+    s.rack_sell(hot, 1)
+    assert s.items_held("Silver_Ring", True) == 3 and s.items_held("Gold_Coin(s)") == gold
+    # (the market won't list it either)
+    said = []
+    real = s.display_message
+    s.display_message = lambda text, kind="": said.append(text)
+    s.market_list(hot, 10, 1)
+    assert "stolen" in said[-1] and s.items_held("Silver_Ring", True) == 3
+    s.display_message = real
+    # (a fence: half what an honest shop gives)
+    assert s.open_item_rack("SHOP", "Man", "SHOP-Fence_Northport") and s.rack_fence
+    assert s.fence_rate() == 0.5 and s.can_sell_here("Silver_Ring", True)
+    assert s.sell_price("Silver_Ring", True) == s.item_price("Silver_Ring", s.rack_sell_rate *
+                                                              s.data.sell_price_factor * 0.5, 1)
+    assert s.sell_price("Silver_Ring", True) < s.sell_price("Silver_Ring")
+    price = s.sell_price("Silver_Ring", True)
+    s.rack_sell(hot, 1)
+    assert s.items_held("Silver_Ring", True) == 2 and s.items_held("Gold_Coin(s)") == gold + price
+    assert s.items_held("Silver_Ring", False) == 1                   # (the honest one's still there)
+    # (Red Meg pays better, and best to those on her side)
+    assert s.open_item_rack("SHOP", "Captain", "SHOP-Smugglers") and s.fence_rate() == 0.6
+    s.set_side_attitude("Smugglers", "Good")
+    assert s.fence_rate() == 0.8
+    # (a fence asks no questions, of an Outlaw either)
+    s.shop_rates = lambda npc: None
+    assert not s.open_item_rack("SHOP", "Man", "SHOP-Isle")
+    assert s.open_item_rack("SHOP", "Man", "SHOP-Fence_Galaith")
     leave(world, s)
 
 

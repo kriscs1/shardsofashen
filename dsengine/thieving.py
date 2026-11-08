@@ -6,7 +6,10 @@
               Or a house's Valuables (a box of someone's precious things: [Valuables]), harder with anyone about.
 
 Caught, the one you robbed shouts for the guard: a guard comes for you (a few levels above you), seen by everyone
-but after you alone, gone after a while or when you're out of reach; and a shopkeeper won't serve you for a time."""
+but after you alone, gone after a while or when you're out of reach; and a shopkeeper won't serve you for a time.
+
+What's taken (not the gold) is marked stolen, and stays so wherever it goes (the bank, the ground, a trade, a grave):
+no shop buys it and the market won't list it, but a fence does (a shop whose rack has Fence=1), for less ([Fence])."""
 import random
 
 from ashen.lb import val, word, trim, lbstr, distance, rnd, parse_quantity, pretty, strip_digits
@@ -96,8 +99,8 @@ class ThiefMixin:
             name, amount, percent = word(entry, 1, ","), word(entry, 2, ",") or "1", word(entry, 3, ",") or "100"
             if name and rnd() * 100 < val(percent):
                 n = parse_quantity(amount)
-                if n > 0 and self.inventory_slots_available(name) > 0:
-                    self.add_inventory_item(name, n)
+                if n > 0 and self.inventory_slots_available(name, True) > 0:
+                    self.add_inventory_item(name, n, stolen=True)
                     got.append(pretty(name) if n == 1 else "%d %s" % (n, pretty(name)))
         self.play_sound("Coins" if gold else "Pickup")
         self.display_message("You lift %s from the %s, unseen." % (" and ".join(got) or "nothing worth having",
@@ -145,11 +148,11 @@ class ThiefMixin:
                 name, amount = n_, a_
                 break
         qty = max(1, parse_quantity(amount)) if "-" in amount else max(1, int(val(amount)))
-        if self.inventory_slots_available(name) <= 0:
+        if self.inventory_slots_available(name, name != "Gold_Coin(s)") <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             self.act_done(False)
             return
-        self.add_inventory_item(name, qty)
+        self.add_inventory_item(name, qty, stolen=True)
         self.play_sound("Coins" if name == "Gold_Coin(s)" else "Pickup")
         self.display_message("You lift %s from among someone's precious things." %
                              ("%d gold" % qty if name == "Gold_Coin(s)" else "the " + pretty(name)), "SUCCESS")
@@ -238,11 +241,11 @@ class ThiefMixin:
         if rnd() * 100 >= self.thief_chance(level, self.watching(keeper)):
             self.caught(keeper, "shop")
             return
-        if self.inventory_slots_available(name) <= 0:
+        if self.inventory_slots_available(name, True) <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             self.act_done(False)
             return
-        self.add_inventory_item(name, 1)
+        self.add_inventory_item(name, 1, stolen=True)
         self.play_sound("Pickup")
         self.display_message("You slip the %s off the shelf and into your pack." % pretty(name), "SUCCESS")
         self.update_skill("Stealth", "+" + lbstr(self.thief_num("Steal", "XP", 0.3) * max(1, level) ** 0.5))
@@ -303,6 +306,17 @@ class ThiefMixin:
             else:
                 keep.append(g)
         self.guards_after = keep
+
+    def fence_rate(self):
+        """What the fence whose shop is open gives for stolen goods: a share of what an honest shop would give for
+        them (Thieving.ini [Fence] Rate, or its own [Fence.<rack>]); better, to those on its side (Side=, Side.Rate:
+        Set.Side.Attitude made it Good for you)."""
+        own = "Fence." + (self.rack_name or "").split("#")[0]
+        rate = self.thief_num(own, "Rate", self.thief_num("Fence", "Rate", 0.5))
+        side = self.thief_text(own, "Side").upper()
+        if side and self.side_attitudes.get(side) == "Good":
+            rate = self.thief_num(own, "Side.Rate", rate)
+        return max(0.0, min(1.0, rate))
 
     def shop_refused(self, npc):
         """A shopkeeper who caught you stealing won't serve you for a while: True (and they say so)."""
