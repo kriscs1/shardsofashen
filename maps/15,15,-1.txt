@@ -22,7 +22,7 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 StaticObject	Odd_Barrel	320	448	Id=Redrock_Manor_Stash
 Trigger	Trap_Darts	9	7
 Trigger	Trap_Weakness	20	12
-NPC	Bandit	288	184	Attitude=Bad Group=REDROCK_MANOR Zone=8,4,13,9
+NPC	Bandit	288	184	Attitude=Bad Group=REDROCK_MANOR Zone=8,4,13,9 Side=Redrock_Bandits Gone.After=RedrockWay:2
 NPC	Rat	160	408	Attitude=Bad Zone=3,11,7,16
 NPC	Rat	448	408	Attitude=Bad Zone=14,9,16,16
-NPC	Bandit	640	408	Attitude=Bad Group=REDROCK_MANOR Zone=17,12,22,16 Look=1
+NPC	Bandit	640	408	Attitude=Bad Group=REDROCK_MANOR Zone=17,12,22,16 Look=1 Side=Redrock_Bandits Gone.After=RedrockWay:2

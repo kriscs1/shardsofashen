@@ -83,16 +83,16 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
       the gate guards, Sneaking). The guards' words for each.
 
 ## 5. Other choices
-- [ ] **Old Hob**: his savings given back or kept move Oakhollow's standing.
-- [ ] **Bandits on the Road**: the strongbox's goods back to Captain Hale (Frosthold's standing), or to Meg, if you
+- [x] **Old Hob**: his savings given back or kept move Oakhollow's standing.
+- [x] **Bandits on the Road**: the strongbox's goods back to Captain Hale (Frosthold's standing), or to Meg, if you
       sided with her.
-- [ ] **The Redrock Signet**: to Ambrose (the manor his again, a place to rest), or sold to the bandits (Ambrose
+- [x] **The Redrock Signet**: to Ambrose (the manor his again, a place to rest), or sold to the bandits (Ambrose
       gone; the bandits at Redrock friendly to you).
-- [ ] **The Chancellor's Grain** (new, Galaith, after The True Heir): the Archivist wants the ledger that shows the
+- [x] **The Chancellor's Grain** (new, Galaith, after The True Heir): the Archivist wants the ledger that shows the
       Chancellor hoarded grain while the city starved. To the captain: the Chancellor jailed, the Archivist in his
       place, bread cheaper, Galaith's standing up. Or his bribe: gold, his stores' shop, the treasury key, and the
       Archivist never trusts you again.
-- [ ] **The Old Grove** (new, Oakhollow): a timber merchant wants it felled, Ranger Ash wants it kept. Felled: a
+- [x] **The Old Grove** (new, Oakhollow): a timber merchant wants it felled, Ranger Ash wants it kept. Felled: a
       sawmill (cheap planks). Kept: rare herbs and the rangers' lodge. The village is split: each way pleases some.
 - [ ] More towns' choices as they're thought of: each town should have at least one quest that moves its standing.
 
@@ -101,19 +101,19 @@ Each stance (Fighting, Channelling, Sneaking) has forms, taught by people round 
 on one side of a choice. The four stances stay as they are, from the start, and their buttons stay four (the story
 needs Sneaking and Channelling: the Smugglers' Run, The Royal Guard, the Listening Room).
 
-- [ ] **They stack**: every bound form of the stance you're in works at once, its numbers times the stance's and the
+- [x] **They stack**: every bound form of the stance you're in works at once, its numbers times the stance's and the
       others' (`Stances.ini` `[Fighting.Shieldwall]`...; what a form doesn't say is the stance's). Every number held
       within limits (`Stances.ini` `[Limits]`) so a stack can't run away. A form of another stance does nothing till
       you're in that stance: six on one stance is a specialist, two on each is all-round.
-- [ ] **Six bound at most** (`Shards.ini` `[Forms]` `Most=6`). A form learnt is yours for good (`Learn.Stance
+- [x] **Six bound at most** (`Shards.ini` `[Forms]` `Most=6`). A form learnt is yours for good (`Learn.Stance
       <Stance> <Form>`, kept in the save); learnt with a place free, it's bound at once, for nothing.
-- [ ] **Binding costs Shards**: at any shardstone you've activated, Bind Forms opens your forms; tick up to six. Each
+- [x] **Binding costs Shards**: at any shardstone you've activated, Bind Forms opens your forms; tick up to six. Each
       form newly bound costs Shards (`[Forms]`; unbinding is free), through `Pay.Shards`, with Shardcraft xp. A form is
       a way of holding the Shards in you, so it's bound where the Shards run.
-- [ ] Shown: the Stats box (or the journal's Skills tab) lists the forms you know, which are bound and what each
+- [x] Shown: the Stats box (or the journal's Skills tab) lists the forms you know, which are bound and what each
       does; the stance's ring on you shows its bound forms' colours (`render.js` drawStance). The Bind Forms window
       works on a phone, both ways up.
-- [ ] The forms (most are only numbers; the four marked * need code of their own):
+- [x] The forms (most are only numbers; the four marked * need code of their own):
 
 | Stance | Form | Taught by | What it does |
 |---|---|---|---|
@@ -129,10 +129,11 @@ needs Sneaking and Channelling: the Smugglers' Run, The Royal Guard, the Listeni
 | | Shadow | Ambrose (the signet given back: forty years catching thieves, he knows how they're seen) | Harder to see; a harder sneak attack |
 | | Ranger's Tread* | Ranger Ash (the Old Grove kept) | Quicker than Sneaking is; quieter in woods and grass; animals don't run |
 
-- [ ] The admin panel's Stance forms: every form, ticked if you know it and bound or not (learnt or forgotten, bound
+- [x] The admin panel's Stance forms: every form, ticked if you know it and bound or not (learnt or forgotten, bound
       or unbound, for nothing and past the six if wanted).
-- [ ] `validate.py` (the new keys and command), tests (stacking, the limits, six at most, binding paid, unbinding
+- [x] `validate.py` (the new keys and command), tests (stacking, the limits, six at most, binding paid, unbinding
       free, a form of another stance doing nothing).
+      (Drinking has no teacher yet: the Mending gives it, group 11.)
 
 ## 7. The Mending: what it is
 Shards tell you what you want to hear. The Mending are those who believed them: a widow hears her husband, a sick man
@@ -141,22 +142,22 @@ say) that "whole" is the dragon. The Glass Wardens listened and never answered; 
 Ashen Hand the Shards it fed the dragon through the wall (chapter 18). Its aim is the first cut: the King's Seam.
 Kept gentle, for a twelve-year-old and still worth an adult's time, like the Glass Wardens.
 
-- [ ] A section for the Mending in `dev/Story and Quests.md` (its quests step by step as they're built), a line in
+- [x] A section for the Mending in `dev/Story and Quests.md` (its quests step by step as they're built), a line in
       `dev/Rules.md` The story, and the Ashen Hand's loose thread answered.
 
 ## 8. The Mending: the engine
-- [ ] The disguise: an `Entities.ini` key (`Friend.If.Wearing=Mending_Robe`) in the foe check (`world.py`), each
+- [x] The disguise: an `Entities.ini` key (`Friend.If.Wearing=Mending_Robe`) in the foe check (`world.py`), each
       player's own gear. A blow, or a spell in sight of one of them, ends it for the map, and those near come.
       `validate.py`; a test.
-- [ ] A boss that takes in remnants (`Absorbs.Remnants=1`): it goes to Shard Remnants near it and heals by them, unless
+- [x] A boss that takes in remnants (`Absorbs.Remnants=1`): it goes to Shard Remnants near it and heals by them, unless
       you absorb them first. `validate.py`; a test.
 
 ## 9. The Mending: art and sound (a builder)
-- [ ] Grey robes with glass growing through them: the Acolyte (blows), the Cantor (spells, the Channelling stance),
+- [x] Grey robes with glass growing through them: the Acolyte (blows), the Cantor (spells, the Channelling stance),
       the Glassbound (a brute, more remnants), the Eldest of the Mending (the boss, more glass than man).
-- [ ] The robe of the Mending, carried and worn.
-- [ ] Cold blue shrine fire, the Shard Font, the great Shard, Mary's Whisper (a splinter).
-- [ ] A low choir's chant and a whisper.
+- [x] The robe of the Mending, carried and worn.
+- [x] Cold blue shrine fire, the Shard Font, the great Shard, Mary's Whisper (a splinter).
+- [x] A low choir's chant and a whisper.
 
 ## 10. The Mending: places
 - [ ] The hall under Shardglass Field (its way in hidden, lookouts, the sermon hall, the Font, the locked sanctum

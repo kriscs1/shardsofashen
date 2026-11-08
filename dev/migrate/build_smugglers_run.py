@@ -268,7 +268,18 @@ def meg():
         get("SmugglerQuest", 1), get("SmugglerSide", 2),
         (">Conditional", "$Variable.1>=3", "@before"),
         (">Conditional", "$Variable.2=1", "@plain"),
-        get("UnderTideQuest", 3), (">Conditional", "$Variable.3=0", "@under1"),
+        get("BanditQuest", 4),                                         # (Hale's stolen goods: a friend's price)
+        (">Conditional", "$Variable.4=3 and $Item.Stolen_Goods>=1", "@job"),
+        say("What's that you're carrying? Frosthold's goods, off the Redrock road, unless I miss my guess.\\Hale will "
+            "give you a pat on the back for them. I'll give you 300 gold, and nobody in Frosthold need ever know "
+            "where they went.", ("Sell them to Meg.", "@goods"), ("They're going back to Hale.", "@end")),
+        ("End",),
+        ("@goods",), ("Take.Item", "Stolen_Goods", "1"), ("Give.Item", "Gold_Coin(s)", "300"),
+        ("Update.Attribute", "BanditWay", "=2"), ("Update.Attribute", "BanditQuest", "=4"),
+        ("Quest.Note.Done", "BanditQuest", "*"),
+        msg("Quest complete: Bandits on the Road... sold to Red Meg, for 300 gold. Frosthold won't thank you."),
+        ("End",),
+        ("@job",), get("UnderTideQuest", 3), (">Conditional", "$Variable.3=0", "@under1"),
         say("Holt's men had a lovely walk on the wrong beach, I hear. I owe you.\\And I've a job for a friend. A cask "
             "of my best for Pell, the castle's cellarer: he's in the Court's courtyard. The watch walks there now, "
             "and if they see a cask they'll have it off you.",

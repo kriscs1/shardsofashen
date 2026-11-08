@@ -43,7 +43,7 @@ def say(npc, text, *answers):
 
 # builders that took over scripts an earlier one wrote (Talk to Captain_Rook, the barrier): that one run again leaves
 #  them be
-TAKES_OVER = ("build_middle_quests.py", "build_smugglers_run.py")
+TAKES_OVER = ("build_middle_quests.py", "build_smugglers_run.py", "build_choices.py")
 
 
 def write_script(name, rows, maker):

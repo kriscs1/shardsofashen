@@ -22,7 +22,7 @@ Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:
 StaticObject	Old_Statue	64	224	Id=Secret_Highwatch
 StaticObject	Hollow_Stump	64	128	Id=Secret_Highwatch_2
 StaticObject	Loose_Cobble	192	128	Id=Secret_Highwatch_3
-NPC	Manor_Steward	64	576	Attitude=Good Stand=1 Face=W Id=Redrock_Steward Name=Ambrose
+NPC	Manor_Steward	64	576	Attitude=Good Stand=1 Face=W Id=Redrock_Steward Name=Ambrose Gone.After=RedrockWay:1
 NPC	Bandit	640	440	Attitude=Bad Zone=18,12,24,18 Chase=14,8,25,21 Group=Camp_418_323
 NPC	Skeleton	704	344	Attitude=Bad Zone=20,9,25,15 Chase=16,5,25,19 Group=Camp_418_323
 NPC	Skeleton	704	376	Attitude=Bad Zone=20,10,25,16 Chase=16,6,25,20 Group=Camp_418_323

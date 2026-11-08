@@ -119,7 +119,8 @@ export function mouseMove(x, y) {
   if (st !== undefined) {
     U.hover = "stance:" + st;
     const chosen = st === (S.me.stance_next || S.me.stance || "");
-    msg = `#${STANCE_WORDS[st]}|~${chosen ? "The stance you're in" : (M.on ? "Tap" : "Click") + " to take it"}${M.on ? "" : " (Q: the next one)"}`;
+    const forms = (S.me.forms || []).filter((f) => f[2] && f[0] === st).map((f) => f[1]);   // (its bound forms)
+    msg = `#${STANCE_WORDS[st]}${forms.length ? "|Forms: " + forms.join(", ") : ""}|~${chosen ? "The stance you're in" : (M.on ? "Tap" : "Click") + " to take it"}${M.on ? "" : " (Q: the next one)"}`;
   }
   const vit = !msg ? vitalsAt(x, y) : "";
   if (vit === "level") msg = "Your level|the best of your fighting skills";
@@ -267,6 +268,7 @@ export function mouseDown(button, x, y) {
       const k = U.worldMap === "stones" ? stoneAt(x, y) : "";   // (the travel map: a stone picked, or a way home)
       if (k === "home") send({ t: "stone_home" });
       else if (k === "visit") send({ t: "stone_visit" });
+      else if (k === "forms") send({ t: "stone_forms" });
       else if (k) send({ t: "stone_go", k });
       U.worldMap = false;
       return;

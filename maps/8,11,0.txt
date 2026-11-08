@@ -25,3 +25,5 @@ Id	Hobs_Window_Inside	19	8
 Id	Hobs_Window_Outside	19	10
 NPC	Ranger	385	317	Attitude=Good Zone=10,9,16,13 Pause=4-12
 StaticObject	Valuables	608	152
+NPC	Merchant	256	344	Attitude=Good Stand=1 Face=E Id=Timber_Merchant Name=Master_Bramble
+Id	Oakhollow_Grove_Talk	11	11

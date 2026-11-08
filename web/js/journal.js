@@ -172,7 +172,7 @@ export function hit(x, y) {
     }
   }
   if (J.tab === 7) {                              // (a skill in the list down the left: 500 + its row)
-    for (let n = 0; n < skillList().length; n++) if (within(x, y, skillRowRect(n))) return 500 + n;
+    for (let n = 0; n < skillRows(); n++) if (within(x, y, skillRowRect(n))) return 500 + n;
   }
   if (J.tab === 3) for (const b of [400, 401, 402]) if (within(x, y, BUTTON_RECTS[b])) return b;
   if (J.tab === 3 && !J.standing && x >= 48 && x <= 976) {
@@ -425,7 +425,12 @@ function spellCard(ctx, sp, slot) {
 // ----- skills: the list down the left (your level, how far to the next); the one picked, how it's levelled
 // (Skills.ini) and what each level opens up (worked out from the data by the server), paged if it runs long
 let skillPageN = 1;
-const skillRowRect = (n) => [48, 108 + n * 47, 292, 42];
+const FORMS_ROW = "~forms";                       // (the row under the skills: your stance forms - forms.py)
+const skillRows = () => skillList().length + (S.me?.forms?.length ? 1 : 0);
+const skillRowRect = (n) => {
+  const step = Math.min(47, Math.floor(576 / Math.max(1, skillRows())));     // (all of them fit down the page)
+  return [48, 108 + n * step, 292, step - 5];
+};
 const maxSkill = () => Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "25"))));
 
 function skillList() {
@@ -439,14 +444,17 @@ export function skillClick(h) {
   if (J.tab !== 7 || h < 500 || h >= 600) return false;
   const s = skillList()[h - 500];
   if (s) { J.skill = s.name; J.page = 1; }
+  else if (h - 500 === skillList().length && S.me?.forms?.length) { J.skill = FORMS_ROW; J.page = 1; }
   return true;
 }
 
 function skillsPage(ctx) {
   const list = skillList();
   if (!list.length) { skillPageN = 1; centreText(ctx, 512, 330, "No skills.", 14, true, INK); return; }
-  const sel = list.find((s) => s.name === J.skill) || list[0];
-  J.skill = sel.name;
+  const forms = S.me.forms || [];
+  const sel = J.skill === FORMS_ROW && forms.length ? null : list.find((s) => s.name === J.skill) || list[0];
+  J.skill = sel ? sel.name : FORMS_ROW;
+  if (forms.length) formsRow(ctx, list.length, !sel);
   list.forEach((s, n) => {
     const [x, y, w, h] = skillRowRect(n), xp = S.me.xp?.[s.i] || 0, lv = levelOfXp(xp);
     const picked = s === sel;
@@ -465,6 +473,7 @@ function skillsPage(ctx) {
     ctx.fillStyle = "rgb(120,210,110)";
     ctx.fillRect(x + 44, y + 28, Math.round((w - 54) * levelProgress(xp) / 100), 6);
   });
+  if (!sel) { formsPage(ctx, forms); return; }
   // (the one picked: how it's levelled, then what each level opens up, the levels you have green, the next one lit)
   const x = 364, w = 612, xp = S.me.xp?.[sel.i] || 0, lv = levelOfXp(xp), p = sel.page;
   drawText(ctx, pretty(sel.name), x, 108, 15, true, INK);
@@ -501,6 +510,66 @@ function skillsPage(ctx) {
     centreText(ctx, x + 26, y + 1, "Lv " + r.level, 9, true, ink);
     wrap(ctx, x + 64, y, w - 64, r.what, got ? [250, 240, 210] : soon ? PARCHMENT : DIM, 15, 4);
     y += r.lines * 15 + 9;
+  }
+}
+
+function formsRow(ctx, n, picked) {
+  // (the row under the skills: how many forms you hold, a dot of each one's colour)
+  const [x, y, w, h] = skillRowRect(n), forms = S.me.forms;
+  roundBox(ctx, x, y, w, h, picked ? [92, 60, 46] : J.hover === 500 + n ? [72, 47, 37] : [61, 40, 31],
+    picked ? [190, 140, 100] : [92, 60, 46], picked ? 2 : 1, 10);
+  drawText(ctx, "Stance forms", x + 44, y + 5, 11, true, picked ? INK : PARCHMENT);
+  const bound = forms.filter((f) => f[2]).length, lt = `${bound}/${S.me.forms_most || 6}`;
+  drawText(ctx, lt, x + w - 10 - textWidth(ctx, lt, 10, true), y + 6, 10, true, INK);
+  ringIcon(ctx, x + 22, y + 21, forms.filter((f) => f[2]).map((f) => f[4]));
+  forms.forEach((f, k) => {
+    ctx.fillStyle = f[2] ? `rgb(${f[4].join(",")})` : "rgb(92,60,46)";
+    ctx.fillRect(x + 44 + k * 12, y + 27, 8, 8);
+  });
+}
+
+function ringIcon(ctx, cx, cy, cols) {
+  // (a little stance ring, with a mark of each bound form's colour round it)
+  ctx.strokeStyle = "rgb(212,191,126)";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(cx, cy, 11, 5, 0, 0, Math.PI * 2); ctx.stroke();
+  cols.forEach((c, k) => {
+    const a = k * 6.283 / Math.max(1, cols.length) - 1.571;
+    ctx.fillStyle = `rgb(${c.join(",")})`;
+    ctx.fillRect(Math.round(cx + Math.cos(a) * 11) - 2, Math.round(cy + Math.sin(a) * 5) - 2, 4, 4);
+  });
+}
+
+function formsPage(ctx, forms) {
+  // (every form you know, each stance's together: bound or not, and what it does)
+  skillPageN = 1;
+  J.page = 1;
+  const x = 364, w = 612, bound = forms.filter((f) => f[2]).length;
+  drawText(ctx, "Stance forms", x, 108, 15, true, INK);
+  const tw = textWidth(ctx, "Stance forms", 15, true);
+  drawText(ctx, `${bound} of ${S.me.forms_most || 6} bound`, x + tw + 16, 113, 10, true, PARCHMENT);
+  let y = 140;
+  y += 16 * wrap(ctx, x, y, w, "A form is a way of holding the Shards in you, taught by people round the world. A bound " +
+    "form counts while you're in its stance. Bind or let go of them at any shardstone you've woken: Bind forms, on its " +
+    "travel map.", [250, 240, 210], 16, 4, 10) + 8;
+  for (const st of ["Fighting", "Channelling", "Sneaking"]) {
+    const mine = forms.filter((f) => f[0] === st);
+    if (!mine.length) continue;
+    drawText(ctx, st, x, y, 11, true, INK);
+    ctx.fillStyle = "rgb(126,77,63)";
+    ctx.fillRect(x, y + 20, w, 1);
+    y += 28;
+    for (const f of mine) {
+      ctx.fillStyle = `rgb(${f[4].join(",")})`;
+      ctx.globalAlpha = f[2] ? 1 : 0.35;
+      ctx.beginPath(); ctx.arc(x + 7, y + 7, 6, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = 1;
+      drawText(ctx, f[1], x + 20, y, 10, true, f[2] ? [150, 230, 140] : PARCHMENT);
+      const lw = textWidth(ctx, f[1], 10, true);
+      drawText(ctx, f[2] ? "bound" : "not bound", x + 28 + lw, y + 1, 9, false, f[2] ? [120, 210, 110] : DIM);
+      y += 16 + 15 * wrap(ctx, x + 20, y + 16, w - 20, f[3], f[2] ? [250, 240, 210] : DIM, 15, 2) + 6;
+    }
+    y += 6;
   }
 }
 

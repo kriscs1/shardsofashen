@@ -25,10 +25,12 @@ StaticObject	Chest	480	320	Id=Redrock_Manor_Vault Lock=9 Sturdy=1
 StaticObject	Chest	384	320	Id=Redrock_Manor_Strongbox Lock=7 Sturdy=1
 Trigger	Trap_Bucket	5	12
 Trigger	Trap_Pit	20	14
-NPC	Bandit	288	568	Attitude=Bad Group=REDROCK_MANOR Stand=1 Face=S Look=1
-NPC	Bandit	416	568	Attitude=Bad Group=REDROCK_MANOR Stand=1 Face=S Look=2
-NPC	Bandit	288	408	Attitude=Bad Group=REDROCK_MANOR Zone=7,11,12,16
-NPC	Bandit	128	440	Attitude=Bad Group=REDROCK_MANOR Zone=3,10,6,16 Look=3
-NPC	Bandit	480	120	Attitude=Bad Group=REDROCK_MANOR Zone=13,4,17,9
-NPC	Bandit	608	344	Attitude=Bad Group=REDROCK_MANOR Zone=18,12,22,16 Look=1
-NPC	Bandit	448	440	Attitude=Bad Group=REDROCK_MANOR Zone=13,10,17,16 Name=Redrock_Manor_Chief
+NPC	Bandit	288	568	Attitude=Bad Group=REDROCK_MANOR Stand=1 Face=S Look=1 Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	416	568	Attitude=Bad Group=REDROCK_MANOR Stand=1 Face=S Look=2 Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	288	408	Attitude=Bad Group=REDROCK_MANOR Zone=7,11,12,16 Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	128	440	Attitude=Bad Group=REDROCK_MANOR Zone=3,10,6,16 Look=3 Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	480	120	Attitude=Bad Group=REDROCK_MANOR Zone=13,4,17,9 Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	608	344	Attitude=Bad Group=REDROCK_MANOR Zone=18,12,22,16 Look=1 Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	448	440	Attitude=Bad Group=REDROCK_MANOR Zone=13,10,17,16 Name=Redrock_Manor_Chief Side=Redrock_Bandits Gone.After=RedrockWay:2
+NPC	Bandit	512	600	Attitude=Good Stand=1 Face=W Id=Spleen_Parley Name=Spleen Here.After=RedrockSignetQuest:1 Gone.After=RedrockWay:1
+NPC	Manor_Steward	320	440	Attitude=Good Stand=1 Face=S Id=Ambrose_At_Home Name=Ambrose Here.After=RedrockWay:2

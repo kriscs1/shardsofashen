@@ -19,11 +19,14 @@ Royal_Paving001:Royal_Paving001+Decor(Flower_Bed001):Royal_Paving001+Decor(Flowe
 Royal_Paving001:Royal_Paving001:Royal_Paving001+Decor(Flower_Urn001):Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001
 Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001+Decor(Bench001):Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001+Decor(Flower_Urn001):Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001+Decor(Bench001):Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001
 Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001+Decor(Flower_Urn001):Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001:Royal_Paving001
-NPC	Chancellor	256	120	Attitude=Good Stand=1 Face=S Id=Galaith_Speaker_70 Name=Lord_Chancellor_Vane
-NPC	Archivist	640	120	Attitude=Good Stand=1 Face=S Id=Galaith_Clerk_73 Name=Archivist_Sefton
+NPC	Chancellor	256	120	Attitude=Good Stand=1 Face=S Id=Galaith_Speaker_70 Name=Lord_Chancellor_Vane Gone.After=GrainWay:2
+NPC	Archivist	640	120	Attitude=Good Stand=1 Face=S Id=Galaith_Clerk_73 Name=Archivist_Sefton Gone.After=GrainWay:2
 Id	Galaith_City_Hall	24	10
 Id	Archive_Hatch	20	5
 StaticObject	Valuables	736	88
 StaticObject	Mary_Note	704	288	Id=Mary_Note_7
 NPC	Woman	192	568	Attitude=Good Zone=2,19,19,20 Pause=6-16 Schedule=Day Id=Lady_Ellery Name=Lady_Ellery Look=2
 NPC	Merchant	416	568	Attitude=Good Zone=2,19,19,20 Pause=6-16 Schedule=Day Id=Lord_Ashby Name=Lord_Ashby
+StaticObject	Chest	352	128	Id=Chancellors_Strongbox Lock=5 Sturdy=1
+StaticObject	Chest	128	128	Id=Galaith_Treasury Lock=8 Sturdy=1 Key=Galaith_Treasury_Key
+NPC	Archivist	256	120	Attitude=Good Stand=1 Face=S Id=Chancellor_Sefton Name=Chancellor_Sefton Here.After=GrainWay:2

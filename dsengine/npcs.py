@@ -5,9 +5,10 @@ import math
 
 from ashen.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits, parse_quantity
 
-from .entity import NPC, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, TYPE_NAMES
+from .entity import NPC, MAPITEM, NPCAI, AI_IDLE, AI_ROAM, AI_PATROL, AI_CHASE, AI_FLEE, AI_RETURN, TYPE_NAMES
 from .player_combat import CombatMixin
-from .remnants import death_remnants, make_remnant, LIVING
+from .remnants import death_remnants, make_remnant, LIVING, REMNANT
+from .disguise import disguise_of
 
 BLINK_HEARD = 256.0     # (a Dark Mage's jump: from as near as an animal's call)
 
@@ -46,6 +47,7 @@ class NPCMixin:
         self.pf_searches = 0
         players = [s for s in self.sessions.values() if s.in_world()]
         self.players_all = players
+        self.drawers = [s for s in players if s.draw_reach() > 0]      # (Shieldwall: monsters near come for them)
         pmap = {}                                       # (mx, my, z) -> the players on it (nearest_player looks round)
         for s in players:
             p = s.player
@@ -222,6 +224,9 @@ class NPCMixin:
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
         a.hearing = max(0.0, val(d.entity_ini(n, "Hearing", "1")))     # (how far your noise carries to it: build_senses.py)
         a.group = a.friendly_if = a.fixed_pose = a.spotted = ""
+        a.disguise = disguise_of(d, n)                 # (Friend.If.Wearing=: their robe fools them - disguise.py)
+        a.absorbs = val(d.entity_ini(n, "Absorbs.Remnants", "0")) != 0   # (it heals by remnants near it)
+        a.absorb_at = 0
         a.poses = [trim(p) for p in d.entity_ini(n, "States", "").split(",") if trim(p)]   # (Sit,Lie: when it stops)
         a.fidgets = [trim(p) for p in d.entity_ini(n, "Fidgets", "").split(",") if trim(p)]   # (Stretch: now and then)
         a.fidget_until, a.fidget_at, a.pose_back = 0, self.now + random_number(5000, 30000), ""
@@ -454,6 +459,8 @@ class NPCMixin:
             if e.frozen_until - 60000 <= now < e.frozen_until:
                 return                                  # (frozen, or stunned: it does nothing till it thaws)
             e.frozen_until = None
+        if a.absorbs and self.npc_absorb(e, a):
+            return                                      # (off to the remnants lying near it, to heal by them)
         # Its foe: the player it's fighting; else the nearest it's a foe of (to pick a fight with)
         foe = e.target if (e.in_combat and e.target is not None and e.target.in_world() and
                            e.target.player.z == e.z and e.target.player.hp > 0) else None
@@ -486,6 +493,10 @@ class NPCMixin:
             if self.npc_versus_npc(e, a):
                 return
             state = a.state
+        if state == AI_CHASE and self.drawers and foe is not None:
+            drawn = self.shieldwall_draw(e, a, foe)
+            if drawn is not None:
+                foe = e.target = drawn
         if state == AI_CHASE:
             s = foe
             p = s.player if s is not None else None
@@ -611,6 +622,36 @@ class NPCMixin:
                                        int(every * 1000 * (0.7 + rnd() * 0.6)))
             if now >= a.timer or now < a.timer - 600000:
                 self.npc_next_move(e, a)
+
+    def npc_absorb(self, e, a):
+        """Absorbs.Remnants=1: hurt, it goes to the Shard Remnants lying near it and heals by them (Shards.ini
+        [Remnants] Drawn.Reach, Drawn.Heal), unless someone picks them up first. True while it's at it."""
+        it = getattr(a, "absorb_to", None)
+        if e.hp >= e.max_hp:
+            a.absorb_to = None
+            return False
+        if it is None or not it.alive:
+            a.absorb_to = None
+            if self.now < a.absorb_at:
+                return False
+            a.absorb_at = self.now + 500
+            reach = val(trim(self.data.shards_ini("Remnants", "Drawn.Reach", "")) or "224")
+            piles = [m for m in self.ents if m.type == MAPITEM and m.alive and m.name == REMNANT and m.z == e.z and
+                     m.owner is e.owner and distance(e.cx, e.cy, m.cx, m.cy) <= reach]
+            if not piles:
+                return False
+            it = a.absorb_to = min(piles, key=lambda m: distance(e.cx, e.cy, m.cx, m.cy))
+        if distance(e.cx, e.cy, it.cx, it.cy) <= 20:
+            share = val(trim(self.data.shards_ini("Remnants", "Drawn.Heal", "")) or "0.04")
+            e.hp = min(e.max_hp, e.hp + max(1, int(e.max_hp * share * it.quantity)))
+            self.sound("Absorb", e.z, e.cx, e.cy)
+            self.fx_anim("Teleport_Glow", e.z, e.cx, e.cy, 500)
+            self.remove_entity(it)
+            a.absorb_to = None
+            self.animate_entity(e, False)
+            return True
+        self.npc_walk_to(e, it.cx, it.cy, e.move_speed, 2, True)
+        return True
 
     def npc_blink(self, e, a, s, d):
         """Entities.ini Blink.Every (seconds; a Dark Mage): in a fight it won't stand to be caught. Come within Blink.Near
@@ -738,9 +779,23 @@ class NPCMixin:
                     self.npc_start_fight(o, oa, s, distance(o.cx, o.cy, p.cx, p.cy), rouse=False)
                     self.fx({"t": "mark", "kind": "spotted", "u": o.uid}, o.z, o.cx, o.cy, s)
 
+    def shieldwall_draw(self, e, a, foe):
+        """A monster after someone: a Shieldwall (forms.py) near it, not who it's after, draws it to them."""
+        if foe in self.drawers:
+            return None
+        for s in self.drawers:
+            p = s.player
+            if p.z == e.z and p.hp > 0 and s.player_visible and distance(e.cx, e.cy, p.cx, p.cy) <= s.draw_reach() \
+                    and self.hostile_for(e, s) and self.visible_to(e, s) and self.in_chase_area(a, p.fx, p.fy):
+                s.fought(e)
+                return s
+        return None
+
     def npc_start_fight(self, e, a, foe, d, rouse=True):
         """foe: the player it fights (it chases them if it's their foe, else runs from them); rouse: and the others
         near it come too (npc_rouse)."""
+        if getattr(a, "flees", False) and foe.calms_animals():
+            return                                            # (Ranger's Tread: prey doesn't run from you)
         now = self.now
         if a.stand == 0:
             if a.state == AI_ROAM:

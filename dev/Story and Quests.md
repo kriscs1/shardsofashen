@@ -201,6 +201,15 @@ Ranger Ash in Oakhollow sends you to visit the three old watch stones (the north
 river), then to clear the spider nest west of Oakhollow (5 giant spiders). Reward: 120 gold, a yew staff,
 Strength and Woodcutting experience.
 
+**The Old Grove**: *after The Wildwood Watch*
+Master Bramble, a timber merchant in Oakhollow, wants the old oaks south-east of the village felled; Ranger Ash wants
+them kept. Side with one (`GroveQuest`, `GroveWay`):
+* **Felled** (1): cut Bramble's mark into the great oak in the grove. 150 gold. The oaks are stumps for you, and
+  Bramble's sawyer Tom sells cheap planks and logs there.
+* **Kept** (2): drive off Bramble's two woodcutters in the grove (`GroveCutters`). 80 gold and Woodcutting experience.
+  The rangers keep a lodge there: Warden Ivy sells rare herbs, arrows and an oak bow, and there's a cot to sleep on.
+Either way: 10 Shards and Oakhollow +5. The village is split, and says so.
+
 **Old Hob**: *after Bog Lights*
 Old Hob of Oakhollow is missing and his house is boarded up, but a shutter hangs loose. His diary says a giant
 spider bit him and he feels himself going wild. Ask Morwen for a cure, find the wild man in the Wildwood's western
@@ -209,6 +218,7 @@ emptied):
 - He offers his savings to you; or
 - if you took them, **give them back** (he rewards you 40 gold, keeps you as a friend) **or keep them** (the
   madness takes him again and he attacks, for good).
+Oakhollow hears which (`HobAngry`): +10 for the first two, -15 for keeping them.
 
 ### the Greyflats, the Saltmarsh and the Redrock road
 
@@ -222,14 +232,19 @@ her he drank it. Reward: 80 gold, 2 mega potions, Potion Making experience. (Mor
 
 **Bandits on the Road**: *level 5, after chapter 4*
 Captain Hale in Highwatch: slay 5 bandits, then find their camp in the eastern hills and take the stolen goods
-from their strongbox. Reward: 200 gold, a steel platebody, Strength experience.
+from their strongbox. Reward: 200 gold, a steel platebody, Strength experience, and Frosthold +10. Or, if you
+sided with Red Meg in The Smugglers' Run, she'll buy the goods: 300 gold, and Frosthold -10 (`BanditWay`: 1 Hale's,
+2 Meg's).
 
 **The Redrock Signet**: *level 6, after chapter 4*
 Ambrose, the last steward of Redrock Manor, thrown out by the bandits who hold it, waits on the road by its gate. The
 old lord built the house so no thief could find his way about it (rooms with no doors, stairs to nowhere), and the
 bandits have never found the vault. Bring him the family's signet from it. Beside the signet lies the old lord's scroll
 of Dread (a spell that sends a foe running), yours with his blessing. Reward: 120 gold, Shards, Stealth and Strength
-experience.
+experience. Once you've taken the quest, Spleen, the bandits' chief, waits outside the manor's door to buy the signet
+(`RedrockWay`):
+* **Sold** (1): 130 gold more. Ambrose is gone from the road, and the bandits at Redrock are your friends.
+* **Given back** (2): the bandits are thrown out, and Ambrose is home: a chair by his fire to rest in.
 
 ### The desert, the north and the downs
 
@@ -249,6 +264,18 @@ Reward: 150 gold, an emerald ring, Potion Making and Woodcutting experience.
 **The Barrow King**: *level 8, after The Withering Wood*
 The Gravekeeper in Ravensgate: find the old king's barrow on the downs and lay the Barrow King to rest. Reward:
 250 gold, a mithril helm, Defence experience.
+
+### Galaith
+
+**The Chancellor's Grain**: *Galaith, after The True Heir*
+The Royal Archivist believes the Chancellor hoarded the city's grain in the hungry years. His ledger is in the
+locked, iron-bound strongbox by his desk in the City Hall (pick it). Then (`GrainQuest`, `GrainWay`):
+* **His bribe** (1): give him the ledger back. 250 gold, the run of his stores (a shop), and the key to the City
+  Hall's treasury (300 gold and a sapphire, once). The Archivist never speaks to you again.
+* **The captain** (2): give it to Captain Hart at the palace door. 100 gold; the Chancellor is taken below and the
+  Archivist is Chancellor in his place; Galaith +20, and Galaith's bread is cheaper for you (Towns.ini
+  `Cheaper.If`).
+Either way: 15 Shards.
 
 ### The Cinderlands
 
@@ -543,7 +570,102 @@ quiets storms (`wonders.py`) and makes the player's remnants passive (`remnants.
 naming prefix). Sounds: four chime notes, the Voice, the vision's sound, Ysolde's rest. Everything in a new builder,
 `dev/migrate/build_glass_wardens.py`, with the small additions to the Shardfall scripts made in `build_shardfall.py`.
 
+#### The Mending (a secondary storyline, level 12 to 20)
+
+*Built by `dev/migrate/build_mending.py` (it takes over the Ashen Shrine scripts), its people and things drawn by
+`dev/migrate/build_mending_art.py`, every Shard number in `data/Shards.ini` `[Mending]`. Written like the Glass
+Wardens: for a twelve-year-old, and still worth an adult's time. Nobody of the Mending is cruel. They're sad people
+being kind to each other, and wrong. Nothing in the main quest needs it.*
+
+**The idea in one line.** Shards tell you what you want to hear, and the Mending are the people who believed them.
+
+**Who they are.** A widow hears her husband in a Shard; a sick man hears he'll be well; a lonely boy hears he's
+wanted. They found one another, and they say the same thing: the Cutting was a wound, the scraps want to be whole, and
+when they're whole the world will be mended. They don't know (or won't say) that "whole" is the dragon. The Glass
+Wardens listened to the Shards for a hundred years and never answered; the Mending answered.
+
+**What they've done.** The Mending paid the **Ashen Hand** in Shards to carry Shards up the pass and push them through
+the barrier, "for the one beyond the wall". The Hand thought it kept a fire for the dragon; the Mending was feeding
+it, a scrap at a time, so it would grow whole again (that's the hide of Shards on the dragon in The Sleeping Sword).
+Cael's "they said it would make the world warm again": *they* were the strangers in grey. With the dragon dead, their
+aim is the **first cut**: open the King's Shard Seam and let the rest of the dragon back into the world.
+
+**What they're called.** The Mending; its people are "of the Mending" (an Acolyte of the Mending, Sister Linnet of the
+Mending), never a one-word name. Townsfolk say "the Mending folk" or "them in grey". The Hand (fire, ash, the dragon)
+is their hired help; the Mending is the Shards' own (grey robes, glass growing through them, cold blue fire).
+
+**Its people.** **Acolytes** of the Mending (they fight with their hands and staves), **Cantors** (they sing, and
+fight in the Channelling stance), the **Glassbound** (more glass than cloth: slow, strong, and full of remnants) and
+the **Eldest of the Mending** (a boss, more glass than man, who heals by the remnants of his own). **Sister Linnet**
+keeps their house in Ashford. **Annis**, mother of **Tam** the cooper of Ashford, went to them to hear her husband.
+And now and then on the road, **one of the Mending** offers you a few Shards "for nothing, friend".
+
+**Where.** Their **house in Ashford** (a quiet door, a kind welcome, and a shop of Shard goods for those in the
+robe). Their **hall under Shardglass Field** (its way in hidden, lookouts above, the sermon hall, the **Shard Font**,
+and the locked **sanctum** with the **great Shard**). The **Ashwold's** three shrines, cold now, and the **Hand's
+camp** where the Mending pays it. **Wardhaven**, open once the dragon is dead and empty till now: the Mending takes
+it quietly, and the Eldest's sanctum is there at the end.
+
+**No joining.** You never become one of them. You can only look like one: the **robe of the Mending**, worn, and
+they take you for one of their own (`Friend.If.Wearing=Mending_Robe`, each player's own gear). A blow, or a spell in
+sight of one of them, ends it for that map, and those near come for you. The temptation is the Tithe.
+
+**Mary's voice.** In the sanctum the great Shard speaks to you as your mother: she's proud of you, her
+`$Player.Son`; she was wrong to run; come home and be whole with her. It's a lie, and by then the player knows it
+(the Shards tell you what you want to hear: Cael's confession, the Glass Wardens), which is what makes it sad rather
+than frightening. It never says anything Mary's letter didn't.
+
+**The quests** (each filled in step by step as it's built; attribute in brackets):
+1. **Cold Fire** (`ColdFireQuest`, level 12, after The Ember Ring). The Warden in Emberwatch: the Ashwold's shrines
+   are burning again, blue. The three shrines relit cold; sneak up on the Hand's camp and hear strangers in grey pay
+   it in Shards "for the one beyond the wall".
+2. **The Kind Stranger** (`StrangerQuest`, 13, after Cold Fire). Tam the cooper: his mother Annis has gone to the
+   Mending's house, where a Shard talks to her in her late husband's voice. Cael writes a few lines for her (what he
+   told Oska: the Shards tell you what you want to hear). Bring them and talk her home (Ashford's standing up), or
+   leave her be: she's in the hall later, and at the end.
+3. **In Grey** (`GreyQuest`, 15, after The Shardgate and Cold Fire). A robe of the Mending, picked from an Acolyte's
+   pocket or taken off the washing line behind their house. Worn, they take you for one of them, and Sister Linnet
+   sends you to the field. The sermon (one who took the road's gift is named and thanked); Listen to the great Shard
+   and it speaks in Mary's voice. Their aim: the first cut. **The choice**: tell the guards (Ashford's and Galaith's
+   standing up; the house raided and shut; Annis taken home by the watch, if she's still there), or keep their secret
+   (the house and its shop stay open to you in the robe).
+4. **The Tithe** (`TitheQuest`, the same visit). Into the sanctum by Shards poured into the Font, a picked lock
+   (Stealth), or a fight (the disguise gone). The way you chose is remembered: the Eldest greets one who tithed as one
+   of the faithful (your first blow is free), and doesn't know one who picked the lock.
+5. **The Eldest of the Mending** (`EldestQuest`, 20, after The Dragon of Galaith), in Wardhaven: a boss (`Boss=1`)
+   with a choir of Cantors, and he heals by their remnants unless you take them in first (`Absorbs.Remnants=1`).
+   **The choice**: break the great Shard (the Mending scatters; a few come home, penitents in the towns) or keep a
+   splinter, **Mary's Whisper** (a few Shards a day, in her voice; while you carry it, Unmake at the Seam is closed
+   to you). Breaking it teaches the Channelling form **Drinking** (Stance forms, below).
+
+**The world round it.** One of the Mending on the road (`MendingGift` if you take the Shards). The townsfolk's talk
+of them (no notice, sign or map text ever points to them). After The True Heir, the Mending raids the mine behind
+Galaith now and then, only while someone's there. After Unmake at the Seam their sermons change: the hope's gone,
+and some go home.
+
+**With company.** All of it is each player's own: the disguise, the choices, Annis, the Whisper. A party at the same
+stage reaches a story moment together, and the Eldest gets more health for each fighter, as every boss does.
+
 ---
+
+## Stance forms: who teaches them
+
+A form is shown you when you next talk to its teacher once you've earned it (`Stances.ini` `Taught.By`, `Taught.If`;
+`build_forms.py`). None is needed by the story.
+
+| Stance | Form | Taught by | Once |
+|---|---|---|---|
+| Fighting | Shieldwall | Sergeant Holt | you led his men into Red Meg's camp (`SmugglerSide=2`) |
+| | Reckless | the Arena Master | three arena wins, or 300 creatures slain |
+| | Duellist | Captain Hart, at the palace door | The Royal Guard is done (`GuardQuest>=5`) |
+| | Dirty Fighting | Spleen, outside Redrock Manor | you sell him the signet (his script: `Learn.Stance`) |
+| Channelling | Stormcaller | Bert | The Shardgate is done (`ShardgateQuest>=5`) |
+| | Wardkeeper | Warden Ysolde | The Last Watch (`WardenQuest>=3`) |
+| | Listening | Warden Ysolde | the Listening Room heard out (`WardensHeard>=2`) |
+| | Drinking | the Mending (to come) | their secret kept |
+| Sneaking | Cutpurse | Red Meg | you took her side (`SmugglerSide=1`) |
+| | Shadow | Ambrose, at home | the signet given back (`RedrockWay=2`) |
+| | Ranger's Tread | Ranger Ash | the Old Grove kept (`GroveWay=2`) |
 
 ## How the quests lead into one another
 
@@ -556,9 +678,10 @@ Passage to the Mainland: every mainland quest needs it
 │   │       └── The Island of Dragons (15) ── The Sword of Valour (16) ── The Shardgate (17)
 │   │           └── The Sleeping Sword (18) ── The Ashen Foundry (19) ── The Sun-Forge (20) ── The Deep Anvil (21)
 │   │               └── The Dragon of Galaith (22) ── The Royal Guard (23) ── The True Heir (24)
+│                   └── The Chancellor's Grain
 │   │   The Shardgate: The Brother in the Ash
 │   ├── The Dwarf's Grudge
-│   └── The Wildwood Watch
+│   └── The Wildwood Watch ── The Old Grove
 ├── A Place of Your Own, The Herbalist's Remedy, The Smugglers' Run, The Frozen Forge, The Lost Patrol,
 │   Granny Wren's Walk, A Portrait of Mo
 ├── Wolves of the Greyflats ── The Withering Wood ── The Barrow King
@@ -570,8 +693,8 @@ On the Isle, any time: The Hermit's Fire
 
 Recurring characters worth keeping consistent: **Jimmy** the cat (the cottage, your house on the Isle, the throne),
 **Maren and Edwin** (their house by the chapel; Tobias lives with them after the lair), **Bert** (chapters 8 to 22), **the Steward**
-(chapters 7 and 9), **Morwen** the witch (Bog Lights, Old Hob), and **the Ashen Priest** (chapter 11; his cult's
-shrines stand quiet in the Ashwold).
+(chapters 7 and 9), **Morwen** the witch (Bog Lights, Old Hob), **the Ashen Priest** (chapter 11; his cult's
+shrines in the Ashwold, relit blue by the Mending), and **Cael** (The Brother in the Ash, The Kind Stranger).
 
 ## Loose threads and hooks
 
@@ -579,14 +702,15 @@ shrines stand quiet in the Ashwold).
   (`data/Encounters.ini`). They aren't quests, and they don't say where anything is.
 - **The stones in Galaith's graveyard**: the royal firstborn have stones with nobody under them, and the last is small,
   new and blank (the King had it cut the year the city shut). The sexton won't say more; nothing needs it to.
-- **Wardhaven** opens once the dragon is dead, but nothing happens there yet.
+- **Wardhaven** opens once the dragon is dead: the Mending takes it quietly, and the Eldest of the Mending waits in
+  its sanctum (The Mending, above).
 - **The mine behind Galaith** opens to the King: the gold and Shard mines the bargain was made for. At its far
   wall the **King's Shard Seam** gives the Crown 12 Shards once every 20 hours (Shards.ini `Galaith.Seam`), with a
   pickaxe and some Mining.
 - A villager in the Isle village says her granny warned never to dig in the **stone circle** on the north-west
   headland. Nothing is buried there yet (its hidden chest is opened, not dug up).
-- The **Ashen Hand's** shrines and acolytes are still in the Cinderlands with nothing to do since the old chapters
-  went: room for a quest after the Ember Ring.
+- The **Ashen Hand's** shrines and acolytes in the Cinderlands: the Hand is the Mending's hired help, paid in Shards
+  to feed the dragon through the wall; Cold Fire (after the Ember Ring) finds them at it (The Mending, above).
 
 ## For editors: where each quest lives
 
@@ -614,6 +738,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Brother in the Ash, The Wandering Echo, Old Skadi's Tall Tales | CaelQuest, EchoQuest, SkadiQuest | Talk to Cael, Read Cael_Confession, Talk to Wandering_Echo, Talk to Old_Skadi (build_middle_quests.py) |
 | A Ship for Dragon Island, The Island of Dragons, The Sword of Valour | ShipQuest, DragonIsleQuest, ValourQuest | Talk to Captain_Rook*, 22,20,0, Temple Door, Talk to Valour_Guardian_Knight |
 | The Dragon of Galaith | GalaithQuest | 9,12,0, Use Staff_of_Ashen With Barrier, The Dragon Speaks, Kill Galaith_Dragon |
+| The Chancellor's Grain | GrainQuest, GrainWay, GalaithTreasury | Talk to Galaith_Clerk_73, Open Chancellors_Strongbox, Talk to Galaith_Speaker_70, Talk to Palace_Captain, Talk to Chancellor_Sefton, Open Galaith_Treasury (`build_choices.py`) |
 | The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, -9,14,0 |
 | The Hermit's Fire | HermitQuest | Talk to Hermit |
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
@@ -624,6 +749,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Smugglers' Run, The Tide Turns, Under the Tide | SmugglerQuest, SmugglerSide, SmugglerRaid, TideQuest, TideGuards, UnderTideQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg, Kill Smuggler, 17,4,0, 18,3,0, 21,5,0, Watch_Search, Talk to Castle_Cellarer, Talk to Meg_On_The_Sandbar (`build_smugglers_run.py`) |
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |
 | The Wildwood Watch | RangerQuest | Talk to Ranger, Watch Stone 1-3, Kill Giant_Spider |
+| The Old Grove | GroveQuest, GroveWay, GroveCutters | Talk to Ranger, Talk to Timber_Merchant, Blaze Old_Grove_Oak, 9,12,0, Kill Woodcutter, Talk to Grove_Sawyer, Talk to Grove_Warden (`build_choices.py`) |
 | Old Hob | HobQuest | Read Hobs_Diary, Talk to Witch, Use Calming_Draught With Hob, Talk to Hob |
 | Wolves of the Greyflats | WolfQuest | Talk to Shepherd, Kill Wolf, Wolf Den, Kill Alpha_Wolf |
 | Bog Lights | BogQuest | Talk to Witch, Talk to Elder |

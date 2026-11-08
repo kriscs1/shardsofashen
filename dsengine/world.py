@@ -412,6 +412,8 @@ class World(NPCMixin):
             cond = getattr(e.ai, "friendly_if", "") if e.ai is not None else ""
             if cond and e.hostile and s.condition_met(cond):     # (Friendly.If=: a quest made them friends, for you)
                 return False
+            if e.hostile and s.disguised_from(e):                # (Friend.If.Wearing=: their robe on you - disguise.py)
+                return False
         return e.hostile
 
     def stat_for(self, e, s, field_name):

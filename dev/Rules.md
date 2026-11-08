@@ -136,6 +136,15 @@ the Seam you choose: the Binding, the Crown, or, only with the Wardens' truth, *
 and remnants passive for you, no more Crown Shards); the game plays the same after any. You don't leave the
 Isle till you know what Shard Remnants are (Wim won't take you till you've absorbed some, and are level 3).
 
+**The Mending** (a secondary storyline, level 12 to 20; `dev/Story and Quests.md` "The Mending"): a new cult, the
+Shards' own (grey robes, glass, cold blue fire), never the Ashen Hand reworked: the Hand is its hired help, paid in
+Shards to feed the dragon through the wall. Its people believed what the Shards told them; they hold the Cutting was a
+wound and want the scraps whole again, and their aim is the first cut, the King's Seam. Always "the Mending" and "of
+the Mending" (an Acolyte of the Mending), never a one-word name for its people; townsfolk say "the Mending folk" or
+"them in grey". No joining it: the robe is a disguise only, and the Tithe the temptation. Its hall is under
+Shardglass Field, its end in Wardhaven. The great Shard speaks to the heir as Mary: a lie, and the player knows it.
+Kept gentle, like the Glass Wardens.
+
 The old chapters (The Ashen Hand, The Ashen Omens, The Dragon of Ashpeak and its lair 0,0,-9) and the side quest
 The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.md` has every quest, step by step.
 
@@ -255,6 +264,23 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   above your level or not far under it, once a monster a while: standing still near one teaches nothing. Loud thieving (a chest
   forced, a rattle) wakes sleepers near (`wake_sleepers`); asleep, nobody sees your hand. A standing lookout's map
   line can say how often it glances about (`Turn=` seconds; 0 never, but to a sound and back).
+- **Stance forms** (`dsengine/forms.py`, `dev/migrate/build_forms.py`): each stance has forms (`Stances.ini`
+  `[Fighting.Shieldwall]`...), taught by people as a quest's reward, some only on one side of a choice (`Taught.By=` an
+  NPC's Id or kind, `Taught.If=`: shown when you next talk to them; or `Learn.Stance` in a script). A form learnt is
+  yours for good; six bound at most (`Shards.ini [Forms]`), learnt with a place free it's bound at once for nothing,
+  else bound at any shardstone you've woken (Bind forms, on its travel map) for Shards and Shardcraft; letting one go
+  is free. Only the bound forms of the stance you're in count, their numbers times the stance's and each other's,
+  held within `[Limits]` so a stack can't run away. The four stances and their buttons never change: forms are how a
+  stance grows. Bound forms show as their colours round the stance's ring, in the stance button's words and in the
+  journal's Skills tab (Stance forms). Nothing in the story needs a form. A form shown you by its teacher goes
+  straight on into their talk ("Thank you.").
+- **A disguise** (`dsengine/disguise.py`): a kind with `Friend.If.Wearing=Mending_Robe` takes you for one of its own
+  while that's on you (your gear alone: a friend's robe fools nobody for you). You can still Attack one. A blow, or a
+  spell, in sight of one of them gives you away on that map for a while (`Thieving.ini [Disguise]`), and those of them
+  near come for you.
+- **A boss that drinks remnants** (`Absorbs.Remnants=1`, `npcs.py npc_absorb`): hurt, it goes to the Shard Remnants
+  lying near it and heals by them (`Shards.ini [Remnants]` `Drawn.Reach`, `Drawn.Heal`); pick them up first and
+  they're yours.
 - **Standing** (`dsengine/standing.py`, `data/Towns.ini`, `dev/Roadmap-6.md`): each town thinks of each player
   from Outlaw to Honoured, its own number for each; it sets their prices there, what its guards do when they're
   caught (a warning at Trusted, a fine at Honoured, more guards and sooner when Distrusted), and an Outlaw is

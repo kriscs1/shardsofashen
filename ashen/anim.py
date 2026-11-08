@@ -377,6 +377,8 @@ class AnimMixin:
         rgb = pygame.surfarray.pixels3d(img)
         r, g, b = (rgb[..., i].astype(int) for i in range(3))
         flame = (r > 215) & (g > 110) & (b < 150) & (r > b + 80) & (r + g > 370)   # (bright fire, not red brick)
+        cold = (b > 215) & (g > 150) & (b >= r + 40)        # (the Mending's cold blue fire)
+        flame |= cold
         if see_through:                                     # (the flame itself, not the see-through glow round it)
             flame &= pygame.surfarray.array_alpha(img) == 255
         if not flame.any():
@@ -390,12 +392,15 @@ class AnimMixin:
         for i in range(3):
             ch = rgb[..., i].astype(float)
             ch[flame] = np.clip(ch[flame] * noise[flame] * k2 + (18 if i == 0 else 0), 0, 255)
+            if i == 2:
+                ch[cold] = np.clip(ch[cold] + 18, 0, 255)  # (a cold flame keeps its blue)
             rgb[..., i] = ch.astype(np.uint8)
         if k % 2:                                           # the tips: a pixel above each flame column, lit
             tips = flame & ~np.roll(flame, 1, axis=1)
             tips[:, 0] = False
             up = np.roll(tips, -1, axis=1) & ~flame
-            rgb[up] = (255, 200, 90)
+            rgb[up & ~np.roll(cold, -1, axis=1)] = (255, 200, 90)
+            rgb[up & np.roll(cold, -1, axis=1)] = (160, 220, 255)
         del rgb
         if see_through and k % 2 and up.any():
             a = pygame.surfarray.pixels_alpha(img)

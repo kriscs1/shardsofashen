@@ -151,6 +151,8 @@ class ActionsMixin:
             verbs = self.add_verbs(verbs, uw)
             verbs = self.add_verb(verbs, "Examine")
         elif t == NPC:
+            if e.hostile and self.disguised_from(e):
+                verbs = self.add_verb(verbs, "Attack")          # (they take you for one of theirs: disguise.py)
             for i in range(1, 30):
                 v = trim(word(uw, i, ","))
                 if v == "":
@@ -361,6 +363,8 @@ class ActionsMixin:
         if verb == "Talk to" and t == NPC and getattr(e.ai, "asleep", False):
             self.display_message("%s is fast asleep." % self.display_name(e), "FAIL", "Denied")
             return                                      # (in bed at night: npcs.py npc_bedtime)
+        if verb == "Talk to" and t == NPC and self.form_teach(e, lambda: self.do_action("Talk to", e)):
+            return                                      # (a form you've earned, shown you first: forms.py)
         if verb == "Talk to" and t == NPC and self.rumour_first(e):
             return                                      # (a rumour first, now and then: rumours.py)
         if self.lock_do(verb, e):                       # (a locked chest: locks.py)
@@ -851,6 +855,9 @@ class ActionsMixin:
         elif t in ("stone_home", "stone_visit"):
             if self.user_input_enabled and not self.sleep_state:
                 self.stone_home(visit=t == "stone_visit")
+        elif t == "stone_forms":                      # (Bind forms, from the travel map: forms.py)
+            if self.user_input_enabled and not self.sleep_state:
+                self.forms_menu()
         elif t == "game":
             self.game_input(msg)
         elif t == "admin" and self.admin_enabled:
@@ -966,6 +973,13 @@ class ActionsMixin:
             self.emit({"t": "admin_standings", "towns": self.admin_standings()})
         elif what == "quests":
             self.emit({"t": "admin_quests", "quests": self.admin_quests()})
+        elif what == "forms":
+            self.emit({"t": "admin_forms", "forms": self.admin_forms()})
+        elif what == "form":
+            # (a stance form learnt or forgotten, bound or not: for nothing, past the six if wanted - forms.py)
+            said = self.admin_set_form(str(msg.get("form", "")), bool(msg.get("learnt")), bool(msg.get("bound")))
+            self.emit({"t": "admin_forms", "forms": self.admin_forms()})
+            self.emit({"t": "admin_status", "text": said})
         elif what == "quest":
             # (a quest done or not, a stage, or its variables: quests.py)
             vars_ = msg.get("vars") if isinstance(msg.get("vars"), dict) else None

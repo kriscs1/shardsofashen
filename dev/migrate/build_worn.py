@@ -44,6 +44,7 @@ MATERIALS = {   # light, mid, dark
     "Dragon": ((255, 130, 90), (200, 40, 30), (110, 16, 12)),     # the Dragon Sword (build_dragon.py)
     "Fur": ((172, 128, 88), (128, 86, 52), (92, 60, 34)),          # otter fur (build_water_animals.py)
     "Sealskin": ((172, 176, 184), (128, 132, 140), (88, 92, 102)),
+    "Mending": ((168, 170, 178), (132, 134, 142), (92, 94, 104)),   # the Mending's grey wool (build_mending_art.py)
 }
 GOLD = MATERIALS["Gold"]
 ORBS = {"Willow": ((90, 140, 240), (180, 210, 255), (30, 50, 150)), "Yew": ((220, 40, 50), (255, 150, 150), (120, 10, 20))}
@@ -63,7 +64,7 @@ def material(name):
 
 def kind(name, slot):
     for k in ("Platebody", "Platelegs", "Gauntlets", "Gloves", "Boots", "Helm", "Cap", "Hat", "Tiara", "Sword", "Bow",
-              "Dagger", "Staff", "Shield", "Body", "Legs"):
+              "Dagger", "Staff", "Shield", "Robe", "Body", "Legs"):
         if k in name:
             return k
     return None
@@ -163,6 +164,22 @@ def body(d, f, mat, plate):
         for x in range(CX - 4, CX + 4, 2):
             if img[16][x]:
                 img[16][x] = mat[2]
+    return img
+
+
+def robe(d, f, mat):
+    """A robe: the body and the legs in one cloth, a sliver of glass at the collar."""
+    img = legs(d, f, mat)
+    top = body(d, f, mat, False)
+    for y in range(32):
+        for x in range(32):
+            if top[y][x]:
+                img[y][x] = top[y][x]
+    if d != "1":                              # (not from behind: the glass is at the front)
+        for y in range(32):
+            if img[y][CX + 1]:
+                img[y][CX + 1] = (210, 236, 255)
+                break
     return img
 
 
@@ -310,7 +327,9 @@ def worn_frames(name, slot):
     frames = {}
     for d in "1248":
         for f in "abcs":                      # (s: sitting, Worn_<Item>_Sit<Dir>)
-            if slot == "Body":
+            if slot == "Body" and k == "Robe":
+                im = robe(d, f, mat)
+            elif slot == "Body":
                 im = body(d, f, mat, k == "Platebody")
             elif slot == "Legs":
                 im = legs(d, f, mat)
@@ -335,7 +354,7 @@ def items():
     out = []
     for name, _ in ini.sections:
         slot = (ini.get(name, "Slot") or "").strip()
-        if slot:
+        if slot and not (ini.get(name, "Base") or "").strip():     # (enchanted gear is drawn as its Base=)
             out.append((name, slot))
     return out
 

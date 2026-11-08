@@ -94,7 +94,7 @@ read it back as $Variable.n.
   $Side.Name                 Good or Bad, as this player's Set.Side.Attitude made the side Name, or none if it never did, e.g. $Side.Smugglers=Good.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (81)
+COMMANDS (82)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -465,6 +465,12 @@ Goto.Script    GOTO SCRIPT NAME
     COMMAND: Runs a new script
     1. GOTO SCRIPT NAME: The name of the script to run:
          (Located in the 'data\Scripts\' folder)
+
+Learn.Stance    STANCE | STANCE FORM
+    COMMAND: Teaches the player a form of a stance, for good (kept in the save): bound at once, for nothing,
+    if fewer than six are bound; else they bind it at a shardstone (data\Stances.ini [<Stance>.<Form>])
+    1. STANCE: Fighting, Channelling or Sneaking
+    2. STANCE FORM: One of its forms: a section [<Stance>.<Form>] in data\Stances.ini (e.g. Shieldwall)
 
 Mimic.Caught    (no arguments)
     COMMAND: The mimic villager clicked on stops pretending (dsengine/wonders.py)

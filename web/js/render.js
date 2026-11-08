@@ -141,7 +141,7 @@ export function addFx(ev, nowMs) {
   } else if (ev.t === "burst") {
     f.end = nowMs + 1400;
   } else if (ev.t === "mark") {                   // (stealth: a ! over one that's seen you, a ? over one that heard)
-    f.end = nowMs + (ev.kind === "spotted" ? 1400 : 1700);
+    f.end = nowMs + (ev.kind === "spotted" ? 1400 : ev.kind === "shard" ? 2800 : 1700);   // (shard: Listening)
   } else if (ev.t === "bubble") {                 // (a townsperson's word over their head: together.py greetings)
     f.end = nowMs + 2800;
   } else return;
@@ -499,6 +499,18 @@ function drawMark(ctx, f, now, cam) {
   const pop = Math.min(1, t * 6);
   const x = e.dx + e.w / 2 - cam.x, y = e.dy - 10 - 6 * pop - cam.y;
   ctx.globalAlpha = t > 0.75 ? (1 - t) * 4 : 1;
+  if (f.kind === "shard") {                       // (Listening: a violet diamond over a Shard you hear)
+    const bob = Math.sin(now / 240) * 2;
+    ctx.fillStyle = "rgb(150,120,255)";
+    ctx.strokeStyle = "rgb(30,20,60)"; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 8 + bob); ctx.lineTo(x + 6, y + bob); ctx.lineTo(x, y + 8 + bob); ctx.lineTo(x - 6, y + bob);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgb(225,215,255)";
+    ctx.fillRect(Math.round(x - 1), Math.round(y - 4 + bob), 2, 4);
+    ctx.globalAlpha = 1;
+    return;
+  }
   const spotted = f.kind === "spotted";
   ctx.fillStyle = spotted ? "rgb(220,60,40)" : "rgb(240,200,80)";
   ctx.beginPath(); ctx.arc(x, y, 7, 0, 6.283); ctx.fill();
@@ -690,6 +702,12 @@ function drawStance(ctx, e, x, y, now, under) {
     ctx.beginPath();
     ctx.ellipse(cx, fy, 11, 4, 0, 0, Math.PI * 2);
     ctx.stroke();
+    (e.sf || []).forEach((c, k) => {              // (its bound forms: a mark of each one's colour, turning slowly)
+      const a = now / 1800 + k * 6.283 / e.sf.length;
+      ctx.globalAlpha = Math.min(1, pulse + 0.4);
+      ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+      ctx.fillRect(Math.round(cx + Math.cos(a) * 11) - 1, Math.round(fy + Math.sin(a) * 4) - 1, 3, 3);
+    });
     ctx.restore();
     return;
   }

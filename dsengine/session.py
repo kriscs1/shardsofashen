@@ -35,6 +35,8 @@ from .tricks import TrickMixin
 from .deep import DeepMixin, MX as DEEP_X, MY as DEEP_Y
 from .shardcraft import ShardcraftMixin
 from .stances import StanceMixin
+from .forms import FormMixin
+from .disguise import DisguiseMixin
 from .thieving import ThiefMixin
 from .senses import SenseMixin
 from .locks import LockMixin
@@ -95,19 +97,23 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
-              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
-              ThiefMixin, SenseMixin, LockMixin, ColdMixin, DiseaseMixin, TogetherMixin, RumourMixin, StandingMixin):
+              MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin, FormMixin,
+              ThiefMixin, SenseMixin, LockMixin, ColdMixin, DiseaseMixin, TogetherMixin, RumourMixin, StandingMixin,
+              DisguiseMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
         self.account = ""                                               # (the Hallisium account it's part of, if any)
         self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
+        self.forms_learnt, self.forms_bound = [], []                    # (forms.py: "Fighting.Shieldwall"...)
+        self.forms_at = self.whisper_at = self.rush_until = 0
         self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
         self.trade = None
         self.asked_at = {}                                              # (player -> when you last asked them something)
         self.journal_wanted, self.journal_at = False, -JOURNAL_GAP      # (the journal: dear to make, so not too often)
         self.sneak_near = {}                                            # (monsters you're creeping past)
         self.thief_until, self.banned_until, self.guards_after = {}, {}, []   # (thieving.py: robbed lately, caught)
+        self.unmasked = {}                                              # (disguise.py: map -> seen through till then)
         self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
         self.sense_tried, self.sense_at = set(), 0
         self.unlocked_chests, self.break_at = set(), 0                  # (locks.py: the chests you've opened up)
@@ -490,6 +496,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.side_attitudes = {str(k).upper(): v for k, v in dict(st.get("side_attitudes", {})).items()
                                if v in ("Good", "Bad")}
         self.taken_once = set(st.get("taken_once", []))
+        forms = st.get("forms") if isinstance(st.get("forms"), dict) else {}
+        self.forms_learnt = [str(k) for k in forms.get("learnt", []) if self.form_def(k) is not None][:40]
+        self.forms_bound = [k for k in (str(k) for k in forms.get("bound", [])) if k in self.forms_learnt][:40]
         self.unlocked_chests = set(st.get("unlocked_chests", []))
         for kind in ("thief_until", "banned_until"):  # (robbed lately, refused service: a relog doesn't clear them)
             got = st.get(kind)
@@ -618,6 +627,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "npc_attitudes": dict(self.npc_attitudes),
             "side_attitudes": dict(self.side_attitudes),
             "taken_once": sorted(self.taken_once),
+            "forms": {"learnt": list(self.forms_learnt), "bound": list(self.forms_bound)},
             "unlocked_chests": sorted(self.unlocked_chests),
             "thief_until": {k: int(v) for k, v in self.thief_until.items() if v > self.now},
             "banned_until": {k: int(v) for k, v in self.banned_until.items() if v > self.now},
@@ -734,6 +744,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.sneak_tick()
         self.thief_tick()
         self.sense_tick()
+        self.forms_tick()
         self.together_tick()
         self.cold_tick()
         self.disease_tick()

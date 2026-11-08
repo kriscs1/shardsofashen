@@ -7,6 +7,7 @@ import pytest
 from dsengine import World, Session
 from dsengine.entity import MAPITEM, NPC, AI_FLEE, AI_IDLE
 from ashen.lb import distance, val
+from dsengine.forms import form_limits
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -2086,6 +2087,13 @@ def test_the_smugglers_run(world, monkeypatch):
     leave(world, s)
 
 
+def past_a_lesson(world, s):
+    """A stance form shown first (forms.py form_teach): Thank you, and on into their talk."""
+    while s.native_menu and s.responses == ["Thank you."]:
+        s.action_box_response_chosen(1)
+        run_for(world, 30)
+
+
 def smugglers_talk(world, s, npc_id, *answers):
     """Talk to npc_id (taken there), choosing each answer in turn."""
     e = world.placed_entity(npc_id, s)
@@ -2095,6 +2103,7 @@ def smugglers_talk(world, s, npc_id, *answers):
     run_for(world, 5)
     s.do_action("Talk to", e)
     run_for(world, 30)
+    past_a_lesson(world, s)
     for n in answers:
         s.action_box_response_chosen(n)
         run_for(world, 30)
@@ -8442,3 +8451,411 @@ def test_a_quest_ending_is_kept_with_its_own_journal_line(world):
     q = s.quest_list()[0]
     assert q["text"] == "You have finished this quest." and q["steps"][-1] == ["Decide.", 1]
     leave(world, s)
+
+
+# ---------------------------------------------------------------- other choices (build_choices.py)
+def choice_talk(world, s, who, *answers):
+    """Talk to who (an Id, or the entity), choosing each answer in turn."""
+    e = world.placed_entity(who, s) if isinstance(who, str) else who
+    assert e is not None, who
+    near(world, s, e, 26, 0)
+    s.do_action("Talk to", e)
+    run_for(world, 30)
+    past_a_lesson(world, s)
+    for n in answers:
+        s.action_box_response_chosen(n)
+        run_for(world, 30)
+    if s.ab_mode:
+        s.close_action_box(-1)
+        run_for(world, 5)
+
+
+def ending_of(s, title):
+    return next(q for q in s.quest_list() if q["title"] == title)["text"]
+
+
+def test_old_hobs_savings_given_back_or_kept_and_oakhollow_hears(world):
+    honest = join(world, "Honest", "3,11,0", 300, 300)
+    honest.connected = True
+    honest.update_attribute("HobQuest", "=3")
+    honest.update_attribute("HobsChest", "=1")                      # (his savings taken from his chest)
+    stock(honest, **{"Gold_Coin(s)": 150})
+    choice_talk(world, honest, "OldHob", 1)                         # "Here, take it back."
+    assert honest.get_attribute("HobQuest") == "4" and honest.get_attribute("HobAngry") == "0"
+    assert honest.standing("Oakhollow") == 10 and "himself again" in ending_of(honest, "Old Hob")
+    leave(world, honest)
+    thief = join(world, "Keeper", "3,11,0", 300, 300)
+    thief.connected = True
+    thief.update_attribute("HobQuest", "=3")
+    thief.update_attribute("HobsChest", "=1")
+    choice_talk(world, thief, "OldHob", 2)                          # "It's mine now."
+    assert thief.get_attribute("HobAngry") == "1" and thief.standing("Oakhollow") == -15
+    assert "madness" in ending_of(thief, "Old Hob")
+    leave(world, thief)
+
+
+def test_hales_goods_sold_to_meg_by_her_friends(world):
+    s = join(world, "Fencer", "17,4,0", 300, 300)
+    s.connected = True
+    s.update_attribute("SmugglerQuest", "=4")
+    s.update_attribute("SmugglerSide", "=1")
+    s.update_attribute("BanditQuest", "=3")
+    stock(s, Stolen_Goods=1)
+    gold = s.items_held("Gold_Coin(s)")
+    choice_talk(world, s, "Red_Meg", 1)                             # "Sell them to Meg."
+    assert s.get_attribute("BanditQuest") == "4" and s.get_attribute("BanditWay") == "2"
+    assert s.items_held("Gold_Coin(s)") == gold + 300 and s.items_held("Stolen_Goods") == 0
+    assert s.standing("Frosthold") == -10 and "Red Meg" in ending_of(s, "Bandits on the Road")
+    hale = next(e for e in world.ents if e.name == "Captain" and e.map == "17,20,0")
+    s.out = []
+    choice_talk(world, s, hale)
+    assert "smugglers" in str(s.out)                                # (he's heard where they went)
+    leave(world, s)
+    other = join(world, "Truce", "17,4,0", 300, 300)               # (the truce: Meg doesn't ask)
+    other.connected = True
+    other.update_attribute("SmugglerQuest", "=4")
+    other.update_attribute("BanditQuest", "=3")
+    stock(other, Stolen_Goods=1)
+    choice_talk(world, other, "Red_Meg", 1)
+    assert other.get_attribute("BanditQuest") == "3" and other.items_held("Stolen_Goods") == 1
+    leave(world, other)
+
+
+def test_the_redrock_signet_to_spleen_or_to_ambrose(world):
+    s = join(world, "Seller", "15,15,0", 300, 300)
+    s.connected = True
+    assert world.placed_entity("Spleen_Parley", s) is None          # (not till Ambrose has asked)
+    s.update_attribute("RedrockSignetQuest", "=1")
+    stock(s, Redrock_Signet=1)
+    choice_talk(world, s, "Spleen_Parley", 1)                       # "Sell it to Spleen."
+    assert s.get_attribute("RedrockSignetQuest") == "2" and s.get_attribute("RedrockWay") == "1"
+    assert s.side_attitudes.get("REDROCK_BANDITS") == "Good"
+    assert world.placed_entity("Redrock_Steward", s) is None and world.placed_entity("Spleen_Parley", s) is None
+    assert "Spleen" in ending_of(s, "The Redrock Signet")
+    leave(world, s)
+    g = join(world, "Giver", "16,15,0", 300, 300)
+    g.connected = True
+    g.update_attribute("RedrockSignetQuest", "=1")
+    stock(g, Redrock_Signet=1)
+    choice_talk(world, g, "Redrock_Steward", 1)
+    assert g.get_attribute("RedrockSignetQuest") == "2" and g.get_attribute("RedrockWay") == "2"
+    assert world.placed_entity("Ambrose_At_Home", g) is not None and world.placed_entity("Redrock_Steward", g) is None
+    assert "Ambrose" in ending_of(g, "The Redrock Signet")
+    leave(world, g)
+
+
+def test_the_chancellors_grain_bribe_or_the_captain(world):
+    def start(name):
+        s = join(world, name, "-10,13,0", 300, 300)
+        s.connected = True
+        s.update_attribute("KingQuest", "=1")                        # (The True Heir done)
+        s.update_attribute("GuardQuest", "=5")
+        choice_talk(world, s, "Galaith_Clerk_73", 1)                 # "I'll find his ledger."
+        assert s.get_attribute("GrainQuest") == "1"
+        box = world.placed_entity("Chancellors_Strongbox", s)
+        assert s.chest_locked(box) and s.chest_sturdy(box)
+        s.unlocked_chests.add(s.chest_key(box))                      # (picked)
+        near(world, s, box, 30, 0)
+        s.do_action("Open", box)
+        run_for(world, 10)
+        assert s.ab_mode == "Chest" and s.responses[0] == "Take everything"
+        s.action_box_response_chosen(1)
+        run_for(world, 5)
+        assert s.get_attribute("GrainQuest") == "2" and s.items_held("Grain_Ledger") == 1
+        return s
+    s = start("Briber")
+    gold = s.items_held("Gold_Coin(s)")
+    choice_talk(world, s, "Galaith_Speaker_70", 1)                  # "Give him the ledger, for his price."
+    assert s.get_attribute("GrainWay") == "1" and s.get_attribute("GrainQuest") == "3"
+    assert s.items_held("Gold_Coin(s)") == gold + 250 and s.items_held("Galaith_Treasury_Key") == 1
+    s.out = []
+    choice_talk(world, s, "Galaith_Clerk_73")
+    assert "nothing to say" in str(s.out)                           # (the Archivist won't speak to you)
+    gold = s.items_held("Gold_Coin(s)")
+    vault = world.placed_entity("Galaith_Treasury", s)
+    near(world, s, vault, 30, 0)
+    s.do_action("Open", vault)
+    run_for(world, 10)
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    s.do_action("Open", vault)                                      # (once)
+    run_for(world, 10)
+    if s.ab_mode:
+        s.close_action_box(-1)
+    assert s.items_held("Gold_Coin(s)") == gold + 300
+    leave(world, s)
+    h = start("Honest_Clerk")
+    choice_talk(world, h, "Palace_Captain", 1)                      # "Hand the ledger to Captain Hart."
+    assert h.get_attribute("GrainWay") == "2" and h.get_attribute("GrainQuest") == "3"
+    assert h.standing("Galaith") == 20 and "Archivist sits" in ending_of(h, "The Chancellor's Grain")
+    assert world.placed_entity("Galaith_Speaker_70", h) is None
+    assert world.placed_entity("Chancellor_Sefton", h) is not None
+    baker = world.placed_entity("Galaith_Baker_334", h)
+    h.clicked_ent = baker
+    assert h.open_item_rack("SHOP", baker.name, "SHOP-Bakery")
+    cheap = h.rack_buy_rate
+    h.update_attribute("GrainWay", "=0")
+    assert h.open_item_rack("SHOP", baker.name, "SHOP-Bakery")
+    assert abs(cheap - h.rack_buy_rate * 0.7) < 1e-9                # (bread's cheaper, for one who did it)
+    leave(world, h)
+
+
+def test_the_old_grove_felled_or_kept(world):
+    ash = next(e for e in world.ents if e.name == "Ranger" and e.map == "8,11,0" and not e.npc_id)
+    s = join(world, "Feller", "8,11,0", 300, 300)
+    s.connected = True
+    s.update_attribute("RangerQuest", "=4")
+    choice_talk(world, s, "Timber_Merchant", 1)                     # "I'll cut your mark: fell the grove."
+    assert s.get_attribute("GroveQuest") == "2"
+    oak = world.placed_entity("Old_Grove_Oak", s)
+    near(world, s, oak, 30, 0)
+    s.do_action("Blaze", oak)
+    run_for(world, 10)
+    assert s.get_attribute("GroveQuest") == "4"
+    gold = s.items_held("Gold_Coin(s)")
+    choice_talk(world, s, "Timber_Merchant", 1)
+    assert s.get_attribute("GroveWay") == "1" and s.get_attribute("GroveQuest") == "6"
+    assert s.items_held("Gold_Coin(s)") == gold + 150 and s.standing("Oakhollow") == 5
+    s.teleport("9,12,0", 16 * 32, 10 * 32)
+    s.do_pending_map_change()
+    run_for(world, 10)
+    assert any(v.startswith("Tree_Stump") for (m, x, y), v in s.personal_cells.items() if m == "9,12,0")
+    assert world.placed_entity("Old_Grove_Oak", s) is None and world.placed_entity("Grove_Sawyer", s) is not None
+    leave(world, s)
+    k = join(world, "Keeper", "8,11,0", 300, 300)
+    k.connected = True
+    k.update_attribute("RangerQuest", "=4")
+    choice_talk(world, k, ash, 1)                                   # "I'll stand with you: the grove stays."
+    assert k.get_attribute("GroveQuest") == "3"
+    k.teleport("9,12,0", 16 * 32, 10 * 32)
+    k.do_pending_map_change()
+    run_for(world, 10)
+    cutters = [e for e in world.ents if e.owner is k and e.name == "Woodcutter" and e.alive]
+    assert len(cutters) == 2
+    for e in cutters:
+        k.kill_npc(e)
+        run_for(world, 5)
+    assert k.get_attribute("GroveQuest") == "5" and k.get_attribute("GroveCutters") == "2"
+    choice_talk(world, k, ash, 1)
+    assert k.get_attribute("GroveWay") == "2" and k.get_attribute("GroveQuest") == "6"
+    assert world.placed_entity("Grove_Warden", k) is not None and world.placed_entity("Grove_Cot", k) is not None
+    assert world.placed_entity("Grove_Sawyer", k) is None and not k.personal_cells
+    leave(world, k)
+
+
+
+def by_stone(world, name):
+    """A player beside Northport's shardstone, woken, with its travel map lately opened (what binding needs)."""
+    m = world.maps["4,6,0"]
+    ws = next(e for e in world.ents if e.name == "Shardstone" and e.map == m.name)
+    s = join(world, name, m.name, int(ws.x - m.ox) + 40, int(ws.y - m.oy) + 8)
+    s.update_attribute("Waystone.Northport", "=1")
+    s.stone_here = ("Northport", world.now)
+    assert s.stone_near() is not None
+    return s
+
+
+def test_a_stance_form_counts_only_in_its_stance_and_within_its_limits(world):
+    s = join(world, "Formed", "0,0,10", 12 * 32, 4 * 32)
+    s.handle({"t": "stance", "stance": "Fighting"})
+    run_for(world, 30)
+    defence = s.stance_num("Defence")
+    assert s.learn_form("Fighting", "Shieldwall") and s.forms_bound == ["Fighting.Shieldwall"]   # (bound at once)
+    assert not s.learn_form("Fighting", "Shieldwall")                  # (known already)
+    assert abs(s.stance_num("Defence") - defence * 1.4) < 1e-6 and s.stance_walk() < 1
+    assert s.draw_reach() == 160 and s.form_colours() == [s.form_def("Fighting.Shieldwall")["colour"]]
+    s.learn_form("Fighting", "Reckless")                               # (Defence 0.8 more: they multiply)
+    assert abs(s.stance_num("Defence") - s.form_limit("Defence", defence * 1.4 * 0.8)) < 1e-6
+    s.learn_form("Sneaking", "Rangers_Tread")                          # (Walk 1.5: but only when sneaking)
+    assert s.form_product("Walk") == 0.8
+    s.learn_form("Fighting", "Duellist")                               # (bound too: four of six)
+    lo, hi = form_limits(world.data)["DEFENCE"]
+    s.forms_bound += ["Fighting.Shieldwall"] * 6                       # (stacked past sense: still within [Limits])
+    assert lo <= s.stance_num("Defence") <= hi
+    s.forms_bound = ["Fighting.Shieldwall"]
+    assert s.form_sum("Parry") == 0                                    # (Duellist's not bound)
+    st = s.stance_state()
+    assert st["forms_most"] == 6 and [f[:3] for f in st["forms"]] == [
+        ["Fighting", "Shieldwall", 1], ["Fighting", "Reckless", 0], ["Sneaking", "Ranger's Tread", 0],
+        ["Fighting", "Duellist", 0]] and all(f[3] for f in st["forms"])   # (bound or not, and what each does)
+    saved = s.save_state()
+    leave(world, s)
+    t = Session(world, "Formed")
+    t.load_state(saved)
+    assert t.forms_learnt == saved["forms"]["learnt"] and t.forms_bound == ["Fighting.Shieldwall"]
+
+
+def test_binding_a_form_is_paid_at_a_shardstone_and_six_at_most(world):
+    s = by_stone(world, "Binder")
+    for f in ("Fighting.Shieldwall", "Fighting.Reckless", "Fighting.Duellist", "Fighting.Dirty_Fighting",
+              "Channelling.Stormcaller", "Channelling.Wardkeeper", "Sneaking.Cutpurse"):
+        s.learn_form(f, quiet=True)
+    assert len(s.forms_bound) == 6 and "Sneaking.Cutpurse" not in s.forms_bound   # (the seventh waits)
+    stock(s, Shard=50)
+    had = s.shards()
+    s.bind_form("Sneaking.Cutpurse")
+    assert "Sneaking.Cutpurse" not in s.forms_bound and s.shards() == had         # (six held: one must go first)
+    s.unbind_form("Fighting.Reckless")
+    assert "Fighting.Reckless" in s.forms_learnt and s.shards() == had            # (letting go is free)
+    craft = s.skill_xp_of("Shardcraft")
+    s.bind_form("Sneaking.Cutpurse")
+    assert "Sneaking.Cutpurse" in s.forms_bound and s.shards() == had - 8 and s.skill_xp_of("Shardcraft") > craft
+    s.unbind_form("Sneaking.Cutpurse")
+    s.stone_here = None                                                # (away from the stone: no binding)
+    s.bind_form("Sneaking.Cutpurse")
+    assert "Sneaking.Cutpurse" not in s.forms_bound and s.shards() == had - 8
+    s.stone_here = ("Northport", world.now)
+    s.forms_menu()                                                     # (the Bind forms window: stances, then forms)
+    assert s.ab_mode == "Conversation" and s.responses[:3] == ["Fighting forms...", "Channelling forms...",
+                                                                "Sneaking forms..."]
+    s.action_box_response_chosen(3)
+    assert "Bind Cutpurse (8 Shards)." in s.responses and "Let Cutpurse go." not in s.responses
+    s.action_box_response_chosen(s.responses.index("Bind Cutpurse (8 Shards).") + 1)
+    assert "Sneaking.Cutpurse" in s.forms_bound and "Let Cutpurse go." in s.responses
+    leave(world, s)
+
+
+def test_forms_are_taught_by_people_and_scripts_and_set_by_the_admin_panel(world):
+    s = join(world, "Pupil")
+    meg = next(e for e in world.ents if e.type == NPC and e.npc_id == "Red_Meg")
+    assert not s.form_teach(meg)                                       # (not on her side: nothing)
+    s.update_attribute("SmugglerSide", "=1")
+    assert s.form_teach(meg) and "Sneaking.Cutpurse" in s.forms_learnt
+    assert s.ab_mode == "Conversation" and "Watch the eyes" in s.ab_text and s.responses == ["Thank you."]
+    s.action_box_response_chosen(1)
+    assert not s.form_teach(meg)                                       # (once)
+    assert s.run_script_lines("(test)", ["01\tLearn.Stance\tFighting\tDirty_Fighting", "02\tEnd"])
+    world.tick(0.05)
+    assert "Fighting.Dirty_Fighting" in s.forms_learnt
+    s.admin_enabled = True
+    s.out = []
+    s.handle({"t": "admin", "do": "form", "form": "Channelling.Drinking", "learnt": True, "bound": True})
+    assert "Channelling.Drinking" in s.forms_bound
+    forms = next(m for m in s.out if m.get("t") == "admin_forms")["forms"]
+    assert ["Channelling.Drinking", "Drinking", 1, 1] in forms and len(forms) == len(s.form_defs())
+    s.handle({"t": "admin", "do": "form", "form": "Sneaking.Cutpurse", "learnt": False, "bound": False})
+    assert "Sneaking.Cutpurse" not in s.forms_learnt + s.forms_bound
+    leave(world, s)
+
+
+def test_channelling_forms_hear_and_drink_remnants(world):
+    s = join(world, "Drinker", "0,0,10", 12 * 32, 4 * 32)
+    s.handle({"t": "stance", "stance": "Channelling"})
+    run_for(world, 30)
+    s.admin_set_form("Channelling.Listening", True, True)
+    p = s.player
+    r = world.drop_item("Shard_Remnant", p.z, p.x + 60, p.y, 3)
+    s.out = []
+    s.forms_at = 0
+    s.forms_tick()
+    assert any(m.get("t") == "mark" and m.get("kind") == "shard" and m.get("u") == r.uid for m in s.out)
+    s.admin_set_form("Channelling.Drinking", True, True)
+    before, drunk = s.shards(), val(s.get_attribute("RemnantsAbsorbed"))
+    s.forms_at = 0
+    s.forms_tick()
+    assert not r.alive or r not in world.ents
+    assert s.shards() > before and val(s.get_attribute("RemnantsAbsorbed")) == drunk + 3
+    leave(world, s)
+
+
+def test_fighting_forms_parry_daze_and_draw_monsters(world, monkeypatch):
+    import dsengine.player_combat as pc
+    s = join(world, "Brawler", "0,0,10", 12 * 32, 4 * 32)
+    friend = join(world, "Behind", "0,0,10", 12 * 32 + 40, 4 * 32)
+    s.handle({"t": "stance", "stance": "Fighting"})
+    run_for(world, 30)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    gob = world.add_npc("Goblin", m.mz, p.x + 30, p.y, "")
+    try:
+        s.admin_set_form("Fighting.Duellist", True, True)
+        s.admin_set_form("Fighting.Dirty_Fighting", True, True)
+        monkeypatch.setattr(pc, "rnd", lambda: 0.0)                    # (every chance comes up)
+        hp = p.hp
+        s.out = []
+        s.npc_attack_player(gob, False)
+        assert p.hp == hp and any(m.get("t") == "sound" and m.get("name") == "Block" for m in s.out)   # (parried)
+        s.player_strike(gob, False)
+        assert gob.frozen_until > world.now and gob.frozen_word == "stunned"                      # (dazed)
+        s.admin_set_form("Fighting.Shieldwall", True, True)
+        world.tick(0.05)
+        assert world.drawers == [s]
+        gob.frozen_until = 0
+        assert world.shieldwall_draw(gob, gob.ai, friend) is s                                    # (comes for them)
+        assert world.shieldwall_draw(gob, gob.ai, s) is None
+    finally:
+        world.remove_entity(gob)
+        world.ents.extend(held)
+        leave(world, friend)
+        leave(world, s)
+
+
+def test_a_robe_fools_them_till_a_blow_gives_you_away(world):
+    s = join(world, "Robed", "0,0,10", 12 * 32, 4 * 32)
+    other = join(world, "Plain", "0,0,10", 12 * 32 + 40, 4 * 32)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    gobs = [world.add_npc("Goblin", m.mz, p.x + 60 + 30 * k, p.y, "") for k in range(3)]
+    far = world.add_npc("Goblin", m.mz, m.ox + 24 * 32, m.oy + 20 * 32, "")
+    try:
+        for g in gobs + [far]:
+            g.ai.disguise = "LEATHER_BODY"                              # (as Friend.If.Wearing=Leather_Body)
+        assert all(world.hostile_for(g, s) for g in gobs)              # (no robe on yet)
+        s.equipped[s.equip_slot_index("Body")] = "Leather_Body"
+        assert not any(world.hostile_for(g, s) for g in gobs) and world.hostile_for(gobs[0], other)   # (your robe)
+        assert "Attack" in s.get_verbs(gobs[0]) and "Talk to" in s.get_verbs(gobs[0])
+        s.damage_npc(gobs[0], 1)                                        # (a blow, in their sight)
+        assert all(world.hostile_for(g, s) for g in gobs) and m.name in s.unmasked
+        assert all(g.in_combat and g.target is s for g in gobs) and not far.in_combat   # (those near come)
+        s.unmasked[m.name] = world.now - 1                              # (a while later, they've forgotten)
+        assert not world.hostile_for(gobs[1], s)
+        s.equipped[s.equip_slot_index("Body")] = ""
+        assert world.hostile_for(gobs[1], s)
+    finally:
+        for g in gobs + [far]:
+            world.remove_entity(g)
+        world.ents.extend(held)
+        leave(world, other)
+        leave(world, s)
+
+
+def test_a_boss_heals_by_the_remnants_near_it_unless_you_take_them_first(world):
+    s = join(world, "Drainer", "0,0,10", 12 * 32, 4 * 32)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    boss = world.add_npc("Goblin", m.mz, p.x + 200, p.y, "")
+    pile = world.add_map_item("Shard_Remnant", m.mz, p.x + 120, p.y, 3)
+    other = world.add_map_item("Shard_Remnant", m.mz, p.x + 260, p.y + 40, 2)
+    try:
+        boss.ai.absorbs = True
+        boss.aggressive = 0
+        boss.max_hp = 200
+        boss.hp = 100
+        for _ in range(120):                                            # (it goes to the nearest, and takes it in)
+            if not pile.alive or not other.alive:
+                break
+            run_for(world, 1)
+        assert pile.alive != other.alive
+        took = 3 if not pile.alive else 2
+        assert boss.hp == 100 + int(200 * 0.04 * took)
+        left = other if not pile.alive else pile
+        s.pickup_map_item(left, reach=10 ** 6)                          # (taken in first: none for it)
+        assert not left.alive and s.items_held("Shard_Remnant") >= 1
+        hp = boss.hp
+        run_for(world, 40)
+        assert boss.hp == hp
+    finally:
+        world.remove_entity(boss)
+        for it in (pile, other):
+            world.remove_entity(it)
+        world.ents.extend(held)
+        leave(world, s)

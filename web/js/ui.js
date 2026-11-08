@@ -659,6 +659,7 @@ function drawStones(ctx, toScreen, pulse, ox, oy, iw, ih) {
   const ways = [];
   if (U.stones.home) ways.push(["home", "Your homestead"]);
   if (U.stones.visit) ways.push(["visit", "Visit a homestead..."]);
+  if (U.stones.forms) ways.push(["forms", "Bind forms..."]);
   let bx = ox + 8;
   const bh = M.on ? 34 : 24, by = oy + ih - bh - 8;
   for (const [k, label] of ways) {

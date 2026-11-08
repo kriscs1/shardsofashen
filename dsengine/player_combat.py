@@ -369,7 +369,8 @@ class CombatMixin:
         max_hit = self.player_max_hit()
         damage = random_number(1, max_hit)
         if unseen:
-            damage = max(damage, int(max_hit * self.stance_setting("Sneak.Attack", 2.0)))
+            damage = max(damage, int(max_hit * self.form_limit("Sneak.Attack", self.stance_setting("Sneak.Attack", 2.0) *
+                                                                 self.form_product("Sneak.Attack"))))
             self.play_sound("Crit", (t.cx, t.cy))
             self.fx_splat("Crit", damage, t)
             self.update_skill("Stealth", "+" + lbstr(self.stance_setting("Sneak.Attack.XP", 0.3)))
@@ -385,6 +386,10 @@ class CombatMixin:
         self.fx_nudge(t, w.fx_away(self.player, t), w.fx_away_y(self.player, t), 130)
         self.update_skill("Strength", "+" + lbstr(damage * 0.01), pop=False)
         self.damage_npc(t, damage)
+        if t.alive and self.forms_bound and rnd() * 100 < self.form_sum("Daze") and \
+                val(self.entity_ini(t.name, "Boss", "0")) != 1 and val(self.entity_ini(t.name, "Freeze.Immune", "0")) != 1:
+            t.frozen_until = self.now + int(self.form_sum("Daze.Seconds") * 1000 or 1500)
+            t.frozen_word = "stunned"                   # (Dirty Fighting: a blow that dazes)
 
     def lands_crit(self):
         """Does this blow land hard (a crit)? Strength's chance: the same at a monster or another player (pvp.py)."""
@@ -431,6 +436,7 @@ class CombatMixin:
         if not e.alive:
             return                                          # (dead already: no second kill, nor a second respawn)
         self.break_invisibility()                           # (a blow struck: seen)
+        self.unmask()                                       # (and seen through, in a robe: disguise.py)
         self.fought(e)
         self.guard_struck(e)                                # (a hand raised to a town's guard: standing.py)
         self.w.waves.hit(e, self)
@@ -468,6 +474,8 @@ class CombatMixin:
             o.add_npc_drops(e)
         w.shard_fade(e)
         w.remove_entity(e)
+        if self.forms_bound and self.form_sum("Rush.Seconds") > 0:
+            self.rush_until = self.now + int(self.form_sum("Rush.Seconds") * 1000)      # (Reckless: a moment's rush)
         if script:
             self.start_script(script, False)
         for o in helpers:                               # (it's theirs too: their quest goes on, as if they'd struck it)
@@ -510,6 +518,10 @@ class CombatMixin:
             self.dirty_me = True
         if self.god_mode:
             self.fx_splat("Miss", 0, p)
+            return
+        if not ranged and self.forms_bound and rnd() * 100 < self.form_sum("Parry"):
+            self.fx_splat("Miss", 0, p)                  # (Duellist: a blow turned aside)
+            self.play_sound("Block", (p.cx, p.cy))
             return
         if not self.combat_hits(w.stat_for(e, self, "strength") * 3 + 2, self.player_defence_value(), 3):
             self.fx_splat("Miss", 0, p)
@@ -650,8 +662,12 @@ class CombatMixin:
         return min(98, max(20, 60 + (self.skill_level(self.spell_ini(spell, "Skill", "Channeling")) - level) * 14))
 
     def spell_cost(self, spell):
-        """A spell's Shards a cast: its Cost, less the saving your Channeling gives (channeled_cost)."""
-        return channeled_cost(val(self.spell_ini(spell, "Cost", "0")), self.skill_level("Channeling"), self.data)
+        """A spell's Shards a cast: its Cost, less the saving your Channeling gives (channeled_cost); times a bound
+        form's Spell.Cost (Stormcaller: dearer)."""
+        c = channeled_cost(val(self.spell_ini(spell, "Cost", "0")), self.skill_level("Channeling"), self.data)
+        if c > 0 and self.forms_bound and self.stance == "Channelling":
+            c = max(1, int(round(c * self.form_limit("Spell.Cost", self.form_product("Spell.Cost")))))
+        return c
 
     def spell_cooldown_left(self, spell):
         until = self.cooldowns.get(spell)
@@ -674,6 +690,7 @@ class CombatMixin:
         if not potion:
             self.break_invisibility()                       # (a spell cast: seen)
             self.end_sneaking()
+            self.unmask()
         if not potion:
             self.spell_start_cooldown(spell)
             self.player_last_cast = self.now

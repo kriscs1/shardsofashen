@@ -129,6 +129,21 @@ SCENES = {
     "Quiet_Market": scene("Guards", "Guards", "A:Not a smuggled keg in the market all week.", "B:Holt's happy.",
                           "A:Holt's never happy.", when="$Attr.SmugglerQuest>=4 and $Attr.SmugglerSide=0",
                           town="Court"),
+    # ----- the other choices (build_choices.py: which way the old grove, the grain and Hob went, for you)
+    "Grove_Felled": scene("Townsfolk", "Townsfolk", "A:My lad's at Bramble's mill now.", "B:Steady work?",
+                          "A:Steadier than mine.", when="$Attr.GroveWay=1", town="Oakhollow"),
+    "Grove_Felled_Sore": scene("Townsfolk", "Townsfolk", "A:Three hundred years, those oaks.", "B:And now planks.",
+                               "A:Good planks, mind.", when="$Attr.GroveWay=1", town="Oakhollow"),
+    "Grove_Kept": scene("Townsfolk", "Townsfolk", "A:Walked through the old grove today.", "B:Still there, then?",
+                        "A:Rangers everywhere.", when="$Attr.GroveWay=2", town="Oakhollow"),
+    "Grove_Kept_Sore": scene("Townsfolk", "Townsfolk", "A:Bramble was going to hire half the village.",
+                             "B:Was.", "A:Was.", when="$Attr.GroveWay=2", town="Oakhollow"),
+    "Hob_Wild": scene("Townsfolk", "Townsfolk", "A:Don't go near old Hob's.", "B:Still mad?", "A:Madder.",
+                      when="$Attr.HobAngry=1", town="Oakhollow"),
+    "Bread_Cheap": scene("Townsfolk", "Townsfolk", "A:Bread's cheaper this week.", "B:And last week.",
+                         "A:Funny what a new Chancellor does.", when="$Attr.GrainWay=2", town="Galaith"),
+    "Bread_Dear": scene("Townsfolk", "Townsfolk", "A:The Chancellor's cellars are full, they say.",
+                        "B:And the bakers' bins are empty.", when="$Attr.GrainWay=1", town="Galaith"),
 }
 
 

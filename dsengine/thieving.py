@@ -53,8 +53,8 @@ class ThiefMixin:
         c = self.thief_num("Pickpocket", "Chance", 55) + (self.stealth_level() - level) * \
             self.thief_num("Pickpocket", "Chance.Per.Level", 6)
         if watched:
-            c -= self.thief_num("Pickpocket", "Watched", 30)
-        return max(5, min(95, c))
+            c -= self.thief_num("Pickpocket", "Watched", 30) * self.form_limit("Watched", self.form_product("Watched"))
+        return max(5, min(95, c + self.form_sum("Thieving")))      # (Cutpurse: better hands, sneaking)
 
     def watching(self, e):
         """Does NPC e see you now (its line of sight, and the way it faces if it looks one way)? Asleep, never."""

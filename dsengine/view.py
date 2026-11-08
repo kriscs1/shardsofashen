@@ -96,6 +96,9 @@ def own_state(s):
         st["gh"] = 1                                    # (a shimmer: faint to you, all but nothing to others)
     if s.stance and not s.swap:
         st["sc"] = s.stance                             # (its look: a ring, motes, a crouch - render.js drawStance)
+        cols = s.form_colours()
+        if cols:
+            st["sf"] = cols                             # (its bound forms: their colours round the ring)
     return st
 
 

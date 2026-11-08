@@ -361,6 +361,7 @@ function openAdmin() {
   if (!adminCommands.length) send({ t: "admin", do: "commands" });
   send({ t: "admin", do: "standings" });
   send({ t: "admin", do: "quests" });
+  send({ t: "admin", do: "forms" });
   const box = $("admin-skills");
   box.innerHTML = "";
   A.m.skills.forEach((name, i) => {
@@ -521,6 +522,29 @@ function showAdminQuest() {
     i.addEventListener("change", () => send({ t: "admin", do: "quest", quest: q[0], vars: { [v]: i.value.trim() } }));
     l.append(v.replace(/_/g, " "), i);
     box.append(l);
+  }
+}
+function fillAdminForms(forms) {
+  // Stance forms: each one learnt or not, bound or not (for nothing, past the six if wanted - forms.py)
+  const box = $("admin-forms");
+  box.innerHTML = "";
+  for (const [key, title, learnt, bound] of forms) {
+    const row = document.createElement("div"), name = document.createElement("span");
+    name.textContent = `${title} (${key.split(".")[0]})`;
+    const tick = (words, on) => {
+      const l = document.createElement("label"), i = document.createElement("input");
+      i.type = "checkbox";
+      i.checked = !!on;
+      l.append(i, words);
+      return [l, i];
+    };
+    const [l1, knows] = tick("learnt", learnt), [l2, holds] = tick("bound", bound);
+    const set = () => send({ t: "admin", do: "form", form: key, learnt: knows.checked || holds.checked,
+      bound: holds.checked });
+    knows.addEventListener("input", () => { if (!knows.checked) holds.checked = false; set(); });
+    holds.addEventListener("input", set);
+    row.append(name, l1, l2);
+    box.append(row);
   }
 }
 $("admin-quest-filter").addEventListener("input", fillAdminQuests);
@@ -1039,6 +1063,7 @@ N.onMessage = (m) => {
     case "admin_commands": adminCommands = m.commands; fillAdminCommands(); break;
     case "admin_standings": fillAdminTowns(m.towns); break;
     case "admin_quests": adminQuests = m.quests; fillAdminQuests(); break;
+    case "admin_forms": fillAdminForms(m.forms || []); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;
   }

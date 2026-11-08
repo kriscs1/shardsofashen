@@ -952,6 +952,12 @@ def check_scripts(skills, racks):
                 elif at == "ATTITUDE":
                     if a not in ("Good", "Bad"):
                         err(where, "attitude %r should be Good or Bad" % a)
+                elif at == "STANCE":
+                    if a not in ("Fighting", "Channelling", "Sneaking"):
+                        err(where, "stance %r should be Fighting, Channelling or Sneaking" % a)
+                elif at == "STANCE FORM":
+                    if (args[0] + "." + a).upper() not in STANCE_FORMS():
+                        err(where, "no form [%s.%s] in data\Stances.ini" % (args[0], a))
                 elif at == "SIDE":
                     if a.upper() not in NPC_SIDES():
                         err(where, "no NPC is on the side %r (Side= on its kind in Entities.ini, or its map line)" % a)
@@ -1052,6 +1058,69 @@ TOWN_STANDING_KEYS = {"Least", "Most", "Guards", "Depth", "Quest", "Raid", "Boun
                       "Caught", "Caught.House", "Guard.Hit", "Guard.Hit.Minutes", "Guard.Killed", "Warn.Hours",
                       "Caught.Fine", "Distrusted.Guards", "Fine", "Fine.Per.Point", "Clear.To"}
 RANKS = ("Outlaw", "Distrusted", "Stranger", "Welcome", "Trusted", "Honoured")
+
+
+def STANCE_FORMS():
+    """The forms of data\\Stances.ini, upper case: {"FIGHTING.SHIELDWALL", ...}."""
+    global _STANCE_FORMS
+    if _STANCE_FORMS is None:
+        path = p("data", "Stances.ini")
+        _STANCE_FORMS = {s.upper() for s, _ in Ini(path).sections if s.split(".")[0] in FORM_STANCES and "." in s} \
+            if exists(path) else set()
+    return _STANCE_FORMS
+
+
+_STANCE_FORMS = None
+ENGINE_COUNTS = ("Kills", "ArenaWins", "ArenaLosses", "Thefts", "RemnantsAbsorbed")   # (counted by the engine itself)
+FORM_STANCES = ("Fighting", "Channelling", "Sneaking")
+# (a form's numbers: times the stance's own, or its own - forms.py; its words; who teaches it)
+FORM_KEYS = {"Title", "What", "Colour", "Taught.By", "Taught.If", "Taught.Words", "Attack", "Damage", "Defence",
+             "Walk", "Spell.Power", "Spell.Duration", "Spell.Cost", "Resist.Status", "Spell.Hurt", "Status.Hurt",
+             "Noise", "Sight", "Sneak.Attack", "Draw", "Rush.Seconds", "Rush.Damage", "Rush.Walk", "Parry", "Daze",
+             "Daze.Seconds", "Hear.Shards", "Drink.Reach", "Drink.Heal", "Thieving", "Watched", "Woods.Noise",
+             "Woods.Grounds", "Calm.Animals"}
+
+
+def check_stances():
+    """data\\Stances.ini's forms ([<Stance>.<Form>]): known keys, numbers, a colour, a teacher there is (an Id on
+    a map line, or a kind) and a condition that reads; [Limits]: least,most."""
+    path = p("data", "Stances.ini")
+    if not exists(path):
+        err(rel(path), "missing: run dev\\migrate\\build_stealth.py")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    r = rel(path)
+    for sec, items in ini.sections:
+        stance, _, form = sec.partition(".")
+        if sec == "Limits":
+            for k, v in items:
+                if k is not None and not (len(v.split(",")) == 2 and all(is_num(x) for x in v.split(",")) and
+                                          float(v.split(",")[0]) <= float(v.split(",")[1])):
+                    err(r, "[Limits] %s=%r should be least,most" % (k, v))
+            continue
+        if stance not in FORM_STANCES or not form:
+            continue
+        for k, v in items:
+            if k is None:
+                continue
+            if k not in FORM_KEYS and not (form == "Drinking" and re.fullmatch(r"Whisper\.\d+", k)):
+                err(r, "[%s] unknown key %s" % (sec, k))
+            elif k == "Colour":
+                if not (len(v.split(",")) == 3 and all(x.strip().isdigit() and int(x) <= 255 for x in v.split(","))):
+                    err(r, "[%s] Colour=%r should be r,g,b" % (sec, v))
+            elif k == "Taught.By":
+                if v not in npc_ids() and v not in ENTITIES:
+                    err(r, "[%s] Taught.By=%s: no NPC has that Id on its map line, and it's no kind" % (sec, v))
+            elif k == "Taught.If":
+                writes = dict(attribute_writes(), **{a: {"*"} for a in ENGINE_COUNTS})
+                check_condition("%s [%s] Taught.If" % (r, sec), v, set(), ENTITIES_INI, writes)
+            elif k not in ("Title", "What", "Taught.Words", "Woods.Grounds") and not k.startswith("Whisper.") and \
+                    not is_num(v):
+                err(r, "[%s] %s=%r is not a number" % (sec, k, v))
+        if not ini.get(sec, "What"):
+            warn(r, "[%s] has no What= (the journal and the Bind forms window say what it does)" % sec)
 
 
 def check_towns():
@@ -1476,6 +1545,8 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Lock", "Key", "Sturdy",                                          # a chest's lock (locks.py), its key; 1: never broken open
                "Warm",                                                           # 1: it keeps the cold off (cold.py)
                "Boss",                                                           # 1: tougher for each fighter (together.py)
+               "Friend.If.Wearing",                                              # a friend while you wear this (disguise.py)
+               "Absorbs.Remnants",                                               # 1: it heals by remnants near it (npcs.py)
                "Side",                                                           # its side (Set.Side.Attitude makes it Good or Bad, for one player)
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8",               # a cart (carts.py): where its rider stands
                "Seat", "Headings", "Vehicle.Noun",                              # a boat's one seat; how many ways it turns; "ferry"
@@ -1484,7 +1555,8 @@ NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Season.Absent", "Type", "Attitude", "Use.W
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
                                      "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8",
-                                     "Seat", "Vehicle.Noun", "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image", "Side"}
+                                     "Seat", "Vehicle.Noun", "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image", "Side",
+                                     "Friend.If.Wearing"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1623,6 +1695,8 @@ def check_entities():
                        "each way" % sec)
             elif k == "Layer" and v.strip().lower() not in ("over", "under"):
                 err(r, "[%s] Layer must be Over or Under" % sec)
+            elif k == "Friend.If.Wearing" and (ini.get(v.strip(), "Slot") or "") == "":
+                err(r, "[%s] Friend.If.Wearing=%s: that isn't something worn (an item with a Slot=)" % (sec, v))
             elif k == "Drops":
                 for d in v.split():
                     m = re.fullmatch(r"(.+),(\d+)-(\d+),(\d+(?:\.\d+)?)", d)
@@ -1655,9 +1729,11 @@ SHARDS_KEYS = {
     "Homestead": {"Bloom.Shards", "Bloom.Hours", "Bloom.Max", "Bloom.Per.Levels", "Bloom.Most"},
     "Spellwright": {"Bolt.Cost", "Burst.Cost", "Frost.Cost", "Slow.Cost", "Ward.Cost", "Power.Exponent", "Far", "Write"},
     "Dismantle": {"Weapon", "Armour", "Scroll", "Min.Value"},
+    "Forms": {"Most", "Bind", "Bind.XP", "Whisper.Least", "Whisper.Most"},      # (and Bind.<Form>: forms.py)
     "Remnants": {"Chance", "Count", "Count.Per.Level", "Mob.Chance", "Mob.Min.Level", "Mob.Hitpoints",
                  "Mob.Hitpoints.Per.Level", "Mob.Strength", "Mob.Strength.Per.Level", "Mob.Defence",
-                 "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.XP"},
+                 "Mob.Defence.Per.Level", "Mob.Count", "Mob.Lasts", "Absorb", "Absorb.XP",
+                 "Drawn.Reach", "Drawn.Heal"},
 }
 UPGRADE_RANGES = {"Damage", "Heal"}             # (min-max; Slow is percent,seconds; Scroll an item; the rest numbers)
 
@@ -1743,7 +1819,9 @@ def check_shards(entities_ini):
         for k, v in items:
             if k is None:
                 continue
-            if k not in known and not (sec == "Shards" and k.startswith("Shardstone.")):
+            if k not in known and not (sec == "Shards" and k.startswith("Shardstone.")) and \
+                    not (sec == "Forms" and k.startswith("Bind.") and k[5:].upper() in
+                         {f.split(".", 1)[1] for f in STANCE_FORMS()}):
                 err(where, "unknown key %s" % k)
             elif not (is_num(v) or (k in ("Chest", "Count", "Mob.Count") and rng(v))):
                 err(where, "%s=%r is not a number" % (k, v))
@@ -2922,6 +3000,7 @@ def main():
     check_unique_ids()
     check_place_refs()
     check_towns()
+    check_stances()
     check_saves(skills)
     check_minimap()
     check_gathering(entities_ini, tiles_ini, skills)

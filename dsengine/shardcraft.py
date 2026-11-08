@@ -126,7 +126,7 @@ class ShardcraftMixin:
         self.play_sound("SpellCast")
         self.emit({"t": "stones", "here": here["key"], "title": here["title"], "cost": int(self.shard_setting(
             "Shardstone.Travel", 2)), "stones": rows, "home": self.has_home_access() and self.homes.available,
-                   "visit": bool(self.homes.visitable_by(self.player_name))})
+                   "visit": bool(self.homes.visitable_by(self.player_name)), "forms": bool(self.forms_learnt)})
 
     def stone_near(self):
         """The active stone the player opened the map at, if they're still by it (and it was lately): its row."""

@@ -18,11 +18,15 @@ WORDS = {"": "You stand easy.", "Fighting": "You stand ready to fight.",
 
 class StanceMixin:
     def stance_num(self, key, default=1.0, stance=None):
-        """A number of the stance you're in (Stances.ini [<stance>] key; 1 or default when it says nothing)."""
+        """A number of the stance you're in (Stances.ini [<stance>] key; 1 or default when it says nothing): times
+        each of its bound forms' (forms.py), and Reckless's rush, held within [Limits]."""
         st = self.stance if stance is None else stance
         if not st:
             return default
-        return self.data.ini_num("Stances.ini", st, key, default)
+        v = self.data.ini_num("Stances.ini", st, key, default)
+        if st == self.stance and self.forms_bound:
+            v *= self.form_product(key) * self.rush_factor(key)
+        return self.form_limit(key, v)
 
     def stance_setting(self, key, default):
         return self.data.ini_num("Stances.ini", "Stances", key, default)
@@ -89,7 +93,7 @@ class StanceMixin:
         n = self.stance_setting("Noise.Walk", 110) if self.player_moved else self.stance_setting("Noise.Still", 24)
         if self.player_last_combat and 0 <= self.now - self.player_last_combat < 4000 and not self.silent():
             n = max(n, self.stance_setting("Noise.Fight", 220))
-        return n * self.stance_num("Noise", 1.0) * self.stealth_cut("Noise", 0.3)
+        return n * self.stance_num("Noise", 1.0) * self.stealth_cut("Noise", 0.3) * self.woods_quiet()
 
     def spotted_by(self, e):
         """A monster has seen you (sneaking): a ! over it and a sound, so you know."""
@@ -166,4 +170,5 @@ class StanceMixin:
 
     def stance_state(self):
         return {"stance": self.stance, "stance_next": "" if self.stance_next == "-" else self.stance_next,
-                "stance_ms": max(0, self.stance_at - self.now) if self.stance_next else 0}
+                "stance_ms": max(0, self.stance_at - self.now) if self.stance_next else 0, "forms": self.forms_state(),
+                "forms_most": self.forms_most()}

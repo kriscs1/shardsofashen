@@ -663,6 +663,9 @@ class ScriptMixin:
             self.script_condition(self.quest_can_start(arg[1]), arg[2])
         elif c == "Set.NPC.Attitude":
             self.set_npc_attitude(arg[1], arg[2])
+        elif c == "Learn.Stance":                    # (a form of a stance, for good: forms.py)
+            self.script_personal = True
+            self.learn_form(arg[1], arg[2])
         elif c == "Set.Side.Attitude":               # (a side taken, or turned on: every one of it, for you)
             self.script_personal = True
             self.set_side_attitude(arg[1], arg[2])
