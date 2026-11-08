@@ -28,7 +28,8 @@ class StandingMixin:
 
     # ----- the towns (worked out once, from the file)
     def standing_towns(self):
-        """{TOWN KEY: {"key", "name", "boxes", "captain", "guards_if"}} from Towns.ini."""
+        """{TOWN KEY: {"key", "name", "boxes", "captain", "guards_if", "cheaper_if", "cheaper_racks",
+        "cheaper_rate"}} from Towns.ini."""
         c = self.data.cache("standing")
         got = c.get("towns")
         if got is None:
@@ -43,7 +44,11 @@ class StandingMixin:
                     if len(b) == 4:
                         boxes.append((min(b[0], b[2]), min(b[1], b[3]), max(b[0], b[2]), max(b[1], b[3])))
                 got[sec.upper()] = {"key": sec, "name": d.get("NAME", sec), "boxes": boxes,
-                                    "captain": d.get("CAPTAIN", ""), "guards_if": d.get("GUARDS.IF", "")}
+                                    "captain": d.get("CAPTAIN", ""), "guards_if": d.get("GUARDS.IF", ""),
+                                    "cheaper_if": d.get("CHEAPER.IF", ""),
+                                    "cheaper_racks": {r.strip().upper() for r in d.get("CHEAPER.RACKS", "").split(",")
+                                                      if r.strip()},
+                                    "cheaper_rate": val(d.get("CHEAPER.RATE", "1")) or 1.0}
             c["towns"] = got
         return got
 
@@ -184,14 +189,19 @@ class StandingMixin:
                 for t in self.standing_towns().values()]
 
     # ----- what a town's people make of you
-    def shop_rates(self, npc):
+    def shop_rates(self, npc, rack=""):
         """(buy times, sell times) at a shop in npc's town (or yours), or None: an Outlaw there isn't served (and is
-        told)."""
+        told). Towns.ini Cheaper.If=<condition>: its Cheaper.Racks sell at Cheaper.Rate times the price, to those
+        it's true for."""
         where = npc.map if npc is not None and npc.type == NPC else (self.cur_map.name if self.cur_map else "")
         town = self.town_of_map(where)
         if not town:
             return 1.0, 1.0
         rank, buy, sell = self.rank_of(self.standing(town))
+        t = self.standing_towns().get(town.upper(), {})
+        if rack and rack.upper() in t.get("cheaper_racks", ()) and t["cheaper_if"] and \
+                self.condition_met(t["cheaper_if"]):
+            buy *= t["cheaper_rate"]                       # (a quest's way made the town's bread cheaper, for you)
         if rank == "Outlaw":
             who = self.display_name(npc) if npc is not None and npc.type == NPC else "shopkeeper"
             self.display_message("The %s won't serve you: you're an Outlaw in %s." % (who, self.town_title(town)),
@@ -320,14 +330,18 @@ class StandingMixin:
         """Quests finished before standing was kept: what they'd have given, given once now, quietly."""
         for name, d in self.help_read_ini("Quests.ini"):
             attr = trim(d.get("ATTRIBUTE", ""))
-            if not attr or not trim(d.get("REWARD.STANDING", "")):
+            if not attr or not any(k.startswith("REWARD.STANDING") and trim(v) for k, v in d.items()):
                 continue
             if val(self.get_attribute("ShardsPaid." + attr)) >= 1 and val(self.get_attribute("StandingPaid." + attr)) < 1:
                 self.quest_standing(d, attr)
 
     def quest_standing(self, d, attr):
-        """A quest done: its Reward.Standing (<Town> N ...), once (StandingPaid.<attribute> says it's given)."""
-        bits = trim(d.get("REWARD.STANDING", "")).split()
+        """A quest done: its Reward.Standing (<Town> N ...), once (StandingPaid.<attribute> says it's given); or
+        Reward.Standing<N>, for a quest that ended way N (its Ending= attribute's value), where it has one."""
+        key, ending = "REWARD.STANDING", trim(d.get("ENDING", ""))
+        if ending and trim(d.get("REWARD.STANDING%d" % int(val(self.get_attribute(ending))), "")):
+            key = "REWARD.STANDING%d" % int(val(self.get_attribute(ending)))
+        bits = trim(d.get(key, "")).split()
         if not bits or val(self.get_attribute("StandingPaid." + attr)) >= 1:
             return
         self.update_attribute("StandingPaid." + attr, "=1")

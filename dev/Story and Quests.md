@@ -159,8 +159,24 @@ The Herbalist in her cottage on the Ashford farmlands wants 3 cave mushrooms (th
 Sergeant Holt at the castle's south gate wants to know how smuggled goods reach the market. The fishermen mention
 an old barrel on the lake path that nobody moves. **Search it**: it hides a tunnel to a smugglers' camp on the
 cove. **Sneak to their leader, Red Meg, unseen.** The smugglers only see ahead of them, never through cargo,
-tents or walls. Meg offers a deal (her trade stays off Holt's streets if his men stay off her cove). Tell Holt.
-Reward: 60 gold; the smugglers become friendly, and Meg's shop is open to you.
+tents or walls. Meg offers a deal (her trade stays off Holt's streets if his men stay off her cove). It ends one
+of three ways (`SmugglerSide`, the journal says which):
+* **The truce** (0): carry her deal to Holt. 60 gold; the smugglers are friendly and Meg's shop is open to you.
+* **Meg's way** (1): tell her you'll send Holt to the wrong cove, and do. 60 gold, but the Court thinks less of you
+  (-15). The smugglers are your side; her camp has a cot and a stash (your bank) for you, and a trapdoor to her tunnel,
+  which comes up in a field outside Ashford.
+* **Holt's way** (2): take her truce, then tell Holt where the camp is. His men wait in the camp; four smugglers must
+  fall (your men's kills count: `SmugglerRaid`). Meg gets away by sea. 60 gold, the Court thinks more of you (+20), and
+  the watch's quartermaster outside the Court's gate sells to you.
+
+**The Tide Turns**: *Holt's way only*
+Holt has word of Meg on a sandbar off the coast. Row the watch's boat out from the cove's shore, beat her two lads
+(`TideGuards`), and she gives herself up. Reward: 80 gold. (`TideQuest`.)
+
+**Under the Tide**: *Meg's way only*
+Meg's job for a friend: a cask of brandy for Pell, the cellarer in the Wizards' Court's courtyard. Two watchmen walk
+the courtyard while you carry it; if one sees you, the cask's taken and you're put out of the gate (Meg gives you
+another). Reward: 90 gold and Stealth experience. (`UnderTideQuest`.)
 
 **The Wardhaven Bridge**: *after chapter 6*
 Mayor Hollis in Ashford's Town Hall: goblins have taken the bridge to Wardhaven, the walled town on its island north
@@ -605,7 +621,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | A Portrait of Mo | PortraitQuest | Talk to Ashford_Painter, Stroke Mo |
 | The Wardhaven Bridge, The Dragonforge | WardhavenQuest, DragonforgeQuest | Talk to Ashford_Clerk_13, Kill Goblin, the gate's map's entry script, Talk to Wyrmsmith, Forge Wyrmsmith (all `build_estforlan.py`: estforlan/quests.py) |
 | Granny Wren's Walk | EscortQuest | Talk to Granny_Wren, Granny Wren Home, Talk to Ashford_Resident_34, 4,4,0, 11,4,0 |
-| The Smugglers' Run | SmugglerQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg |
+| The Smugglers' Run, The Tide Turns, Under the Tide | SmugglerQuest, SmugglerSide, SmugglerRaid, TideQuest, TideGuards, UnderTideQuest | Talk to Smuggler_Sergeant, Search Suspicious_Barrel, Talk to Red_Meg, Kill Smuggler, 17,4,0, 18,3,0, 21,5,0, Watch_Search, Talk to Castle_Cellarer, Talk to Meg_On_The_Sandbar (`build_smugglers_run.py`) |
 | The Dwarf's Grudge | DwarfQuest | Talk to Dwarf, Kill Skeleton, Kill Cave_Troll |
 | The Wildwood Watch | RangerQuest | Talk to Ranger, Watch Stone 1-3, Kill Giant_Spider |
 | Old Hob | HobQuest | Read Hobs_Diary, Talk to Witch, Use Calming_Draught With Hob, Talk to Hob |

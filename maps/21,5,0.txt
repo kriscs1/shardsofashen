@@ -36,3 +36,6 @@ NPC	Guard	320	536	Attitude=Good Stand=1 Face=S Id=Smuggler_Sergeant Name=Sergean
 Id	Sergeant_Post	11	19
 StaticObject	Spellwright_Lectern	448	128	Id=Quill_Lectern
 NPC	Pip	320	256	Attitude=Good Stand=1 Id=Pip_The_Apprentice Name=Pip
+NPC	Barkeep	192	376	Attitude=Good Stand=1 Face=E Id=Castle_Cellarer Name=Pell
+NPC	Guard	416	568	Attitude=Good Stand=1 Face=N Id=Watch_Quartermaster Name=Quartermaster_Brand
+Id	Castle_Cellar	7	13

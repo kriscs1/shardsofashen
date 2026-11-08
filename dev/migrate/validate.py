@@ -398,7 +398,7 @@ def check_map(path, entities_ini, tiles_ini, report):
 TRAP_KINDS = ("Darts", "Gas", "Weakness", "Pit", "Alarm", "Bucket", "Pie")
 OPTION_KEYS = {"Zone", "Chase", "Patrol", "PatrolMode", "Pause", "Stand", "Attitude", "Id", "Name",
                "Face", "Turn", "Cone", "Group", "Friendly.If", "Schedule", "Home", "Bed", "Bed.Level", "Home.Level", "Zone.Levels",
-               "State", "Nap", "Level", "Look", "Gone.After", "Here.After", "Side"}   # (Here.After=, Gone.After=Attr:N: there only for some; Side=: its side, Set.Side.Attitude; Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Zone.Levels=0,1: its Zone on those levels too; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
+               "State", "Nap", "Level", "Look", "Gone.After", "Here.After", "Side", "Spotted.Script"}   # (Here.After=, Gone.After=Attr:N: there only for some; Side=: its side, Set.Side.Attitude; Home=: where it is while its hours keep it in; Bed=x,y: its bed; Bed.Level, Home.Level: the level they're on, up or down the stairs; Zone.Levels=0,1: its Zone on those levels too; Level=: a Shard Remnant's strength; State=Sit: how it rests; Nap=x,y: a spot it curls up on; Name=: its own name; Face, Cone, Group, Friendly.If: stealth; Look=N: which of its trade's colourings)
 _npc_ids = None
 
 
@@ -532,6 +532,8 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             report(where, "Id=%s is on more than one NPC (%s): an Id names one NPC" % (v, ", ".join(npc_ids()[v])))
         if k in ("Gone.After", "Here.After") and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*(:\d+)?", v):
             report(where, "%s=%r should be Attribute:N (GalaithQuest:2)" % (k, v))
+        if k == "Spotted.Script" and not exists(p("data", "Scripts", v + ".txt")):
+            report(where, "Spotted.Script=%s: there's no such script in data\\Scripts" % v)
         opts[k] = v
     if ";" in field:
         report(where, "';' in the Options field")
@@ -1034,6 +1036,18 @@ def TOWN_KEYS():
 
 
 _TOWN_KEYS = None
+
+
+def RACK_NAMES():
+    """The racks of data\ItemRacks.ini, as named there."""
+    global _RACK_NAMES
+    if _RACK_NAMES is None:
+        path = p("data", "ItemRacks.ini")
+        _RACK_NAMES = {s for s, _ in Ini(path).sections} if exists(path) else set()
+    return _RACK_NAMES
+
+
+_RACK_NAMES = None
 TOWN_STANDING_KEYS = {"Least", "Most", "Guards", "Depth", "Quest", "Raid", "Bounty", "Project.Per.Gold", "Project.Most",
                       "Caught", "Caught.House", "Guard.Hit", "Guard.Hit.Minutes", "Guard.Killed", "Warn.Hours",
                       "Caught.Fine", "Distrusted.Guards", "Fine", "Fine.Per.Point", "Clear.To"}
@@ -1073,7 +1087,8 @@ def check_towns():
         if sec.lower() in ("standing", "ranks"):
             continue
         for k, v in items:
-            if k is not None and k not in ("Name", "Maps", "Captain", "Guards.If"):
+            if k is not None and k not in ("Name", "Maps", "Captain", "Guards.If", "Cheaper.If", "Cheaper.Racks",
+                                           "Cheaper.Rate"):
                 warn(r, "[%s] unknown key %s" % (sec, k))
         mine = []
         for part in (ini.get(sec, "Maps") or "").split():
@@ -1101,6 +1116,18 @@ def check_towns():
         cond = ini.get(sec, "Guards.If")
         if cond:
             check_condition("%s [%s] Guards.If" % (r, sec), cond, set(), ENTITIES_INI, attribute_writes())
+        cond = ini.get(sec, "Cheaper.If")                  # (a quest's way: some of its shops cheaper, for you)
+        if cond:
+            check_condition("%s [%s] Cheaper.If" % (r, sec), cond, set(), ENTITIES_INI, attribute_writes())
+            racks = [x.strip() for x in (ini.get(sec, "Cheaper.Racks") or "").split(",") if x.strip()]
+            if not racks:
+                err(r, "[%s] Cheaper.If without Cheaper.Racks (the shops it makes cheaper)" % sec)
+            for x in racks:
+                if x not in RACK_NAMES():
+                    err(r, "[%s] Cheaper.Racks: no rack [%s] in ItemRacks.ini" % (sec, x))
+            rate = ini.get(sec, "Cheaper.Rate") or ""
+            if not is_num(rate) or not 0 < float(rate) <= 1:
+                err(r, "[%s] Cheaper.Rate=%r should be a price's share, more than 0 and at most 1" % (sec, rate))
 
 
 COORD_TYPES = {"X COORDINATE,Y COORDINATE", "TARGET X,TARGET Y", "REQUIRED TILE COORDINATES",
@@ -1147,6 +1174,7 @@ def check_script_reachability(references, triggers):
               "Count", "Climb Up", "Climb Down", "Bank", "Grasp"}      # (Grasp: the spell, cast at a thing)
     names = TILES | ENTITIES | {re.sub(r"\d{3}$", "", t) for t in TILES}
     with_id = set()                      # every Id= on a map line or added by a script ("Verb Id": e.g. Read Ashford)
+    spotted = set()                      # every Spotted.Script= (a watchman's: run when it sees you)
     for f in os.listdir(p("maps")):
         if f.endswith(".txt"):
             for l in read_lines(p("maps", f))[MAP_H:]:
@@ -1156,6 +1184,8 @@ def check_script_reachability(references, triggers):
                 for w in " ".join(fl[4:]).split():
                     if w.startswith("Id="):
                         with_id.add(w[3:])
+                    elif w.startswith("Spotted.Script="):
+                        spotted.add(w[15:])
     for sc in SCRIPTS:                   # ... and what scripts add (Add.Entity <x,y> <name> <type> Id=...)
         for l in read_lines(os.path.join(SCRIPT_DIR, sc + ".txt")):
             fl = l.split("	")
@@ -1163,6 +1193,8 @@ def check_script_reachability(references, triggers):
                 for w in fl[5].split():
                     if w.startswith("Id="):
                         with_id.add(w[3:])
+                    elif w.startswith("Spotted.Script="):
+                        spotted.add(w[15:])
     for s in sorted(SCRIPTS):
         if not script_nonempty(s):
             continue
@@ -1180,6 +1212,8 @@ def check_script_reachability(references, triggers):
             ok = True    # run when that skill is clicked in the stat box
         if s in WAVE_SCRIPTS:
             ok = True    # a monster attack's On.Win.Script / On.Lose.Script (data\Waves.ini)
+        if s in spotted:
+            ok = True    # a watchman's, when it sees you
         if s in triggers or ("name", s) in references or any(k == "re" and re.fullmatch(v, s) for k, v in references):
             ok = True
         if not ok:
@@ -2376,7 +2410,10 @@ def check_quests():
             elif k == "Reward.Shards":
                 if not v.strip().isdigit():
                     err(where, "Reward.Shards=%r should be a whole number of Shards" % v)
-            elif k == "Reward.Standing":                 # (town amount pairs: standing.py, once when it's done)
+            elif re.fullmatch(r"Reward\.Standing\d*", k):  # (town amount pairs: standing.py, once when it's done;
+                                                          #  Reward.Standing2: when it ended way 2, Ending=)
+                if k != "Reward.Standing" and not ini.get(sec, "Ending"):
+                    err(where, "%s without Ending= (the attribute that says which way it ended)" % k)
                 w = v.split()
                 if not w or len(w) % 2 or not all(is_num(x) for x in w[1::2]):
                     err(where, "Reward.Standing=%r should be pairs of town and amount, e.g. Ashford 10" % v)
@@ -2410,6 +2447,9 @@ def check_quests():
                     err(where, "%s: no script sets %s to %s (=%s)" % (k, ending, n, n))
                 if not v.strip():
                     err(where, "%s is empty" % k)
+            elif k == "Requires.If":                     # (only for those who went a certain way: a condition)
+                if not all(c.strip().startswith("$") for c in re.split(r" and | or ", v)):
+                    err(where, "Requires.If=%r should be a condition ($Attr.SmugglerSide=2)" % v)
             elif k == "Rumour" or re.fullmatch(r"Rumour\.\d+", k):   # (what townsfolk say of it: rumours.py)
                 if not v.strip():
                     err(where, "%s is empty" % k)

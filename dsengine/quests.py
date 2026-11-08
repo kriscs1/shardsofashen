@@ -60,7 +60,15 @@ class QuestMixin:
         for q in [trim(x) for x in d.get("REQUIRES.QUESTS", "").split(";") if trim(x)]:
             if not self.quest_done(q):
                 out.append("\"%s\" done" % q)
+        if not self.quest_for_you(d):
+            out.append("another way")
         return out
+
+    def quest_for_you(self, d):
+        """Requires.If=<condition>: a quest only for those who went a certain way (the Smugglers' Run's sides);
+        nobody else sees it at all."""
+        cond = trim(d.get("REQUIRES.IF", ""))
+        return not cond or self.condition_met(cond)
 
     def quest_can_start(self, name_or_attr):
         """Never says so when it can't: the NPC just talks as usual (no "Quest locked")."""
@@ -188,7 +196,7 @@ class QuestMixin:
                 ending = self.quest_ending(d)
                 status, text = 2, ending or "You have finished this quest."
             elif value <= 0:
-                text = help_text(d.get("STAGE0", ""))
+                text = help_text(d.get("STAGE0", "")) if self.quest_for_you(d) else ""
                 if text:
                     status = 1
             else:

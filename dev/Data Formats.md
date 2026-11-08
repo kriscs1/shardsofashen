@@ -324,6 +324,9 @@ The bank is not a rack: it's stored in the save file.
     * `Gone.After=<attribute>:<N>` / `Here.After=<attribute>:<N>`: gone for a player, or there only for a player, once
       their attribute has reached N (a quest's way chosen: Meg at the cove only for those who sided with her). The same
       on a StaticObject's line.
+    * `Spotted.Script=<script>`: a watchman. When it sees a player (Attitude=Bad and a Cone, as any foe sees), the
+      script (data\Scripts\<script>.txt, a name with no spaces) runs for them, at most once in 8 seconds, and it
+      doesn't fight: it goes on with its round (Watch_Search: the watch takes Meg's cask and puts you out).
     * The old `GoodNPC` / `BadNPC` lines still load, as an NPC with Attitude=Good / Bad (build_world.py converts them,
       the Map Editor saves them as NPC lines, validate.py warns about them).
     The other Options control how the NPC moves; tile coordinates are 1-based:
@@ -489,9 +492,13 @@ Requires.Quests=Passage to the Mainland; Bog Lights    ; the average of their be
 Requires.Skills=Woodcutting 10, Potion Making 5             ; quests finished, skill levels
 Reward.Standing=Ashford 10  ; town and amount pairs, given once when it's done (data\Towns.ini; build_standing.py
                             ; gives each side quest given in a town its town's 10)
+Reward.Standing2=Galaith 20 ; ...or, if it ended way 2 (its Ending= attribute is 2), this instead (an ending that
+                            ; costs standing: Reward.Standing1=Frosthold -10)
 Ending=SmugglersRunEnding   ; a quest that ends more than one way: the attribute its script sets to say which way
 Ending1=You sided with Sergeant Holt: the cove was raided.   ; finished, the journal shows the line of that way
 Ending2=You sent Holt to the wrong cove.                     ; (none set: "You have finished this quest.")
+Requires.If=$Attr.SmugglerSide=2   ; only for those who went a certain way: a condition (and/or); for anyone else
+                                   ; the quest isn't in the journal at all, and can't be started
 ```
 A quest that can't be started yet shows in the journal as Locked, with what it needs. Its giver's script asks
 `>Quest.Can.Start <quest or attribute> <goto>` before offering it (the chat says what's missing); a script that sets a
@@ -504,7 +511,10 @@ sets these for every quest and puts the check in every giver's script.
 `[Ranks]` each rank's least standing and its buy and sell times (Outlaw, Distrusted, Stranger, Welcome, Trusted,
 Honoured, in that order). Then a section for each town: `Name=` (as said), `Maps=x1,y1,x2,y2 ...` (boxes of map
 numbers, never overlapping; down to `[Standing] Depth` below ground still counts), `Captain=` (an Id on its maps, or
-a kind: who takes an Outlaw's fine) and `Guards.If=` (a condition before its guards turn on an Outlaw). Each player's
+a kind: who takes an Outlaw's fine) and `Guards.If=` (a condition before its guards turn on an Outlaw).
+`Cheaper.If=<condition>`, `Cheaper.Racks=SHOP-Bakery,SHOP-Baker` and `Cheaper.Rate=0.7`: those shops in the town
+sell for that share of the price to a player the condition is true for (a quest's way: the Chancellor's Grain
+makes Galaith's bread cheaper). Each player's
 standing is a save attribute `Standing.<Town>`. Written by `dev\migrate\build_standing.py`, which only adds what's
 missing.
 

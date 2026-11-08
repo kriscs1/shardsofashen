@@ -2078,8 +2078,146 @@ def test_the_smugglers_run(world, monkeypatch):
     talk("Red_Meg", 1)
     assert attr() == 3
     gold = s.items_held("Gold_Coin(s)")
-    talk("Smuggler_Sergeant", 1)
+    talk("Smuggler_Sergeant", 1, 1)                                 # (Meg's truce, carried)
     assert attr() == 4 and s.items_held("Gold_Coin(s)") == gold + 60
+    assert s.get_attribute("SmugglerSide") == "0"
+    run_q = next(q for q in s.quest_list() if q["title"] == "The Smugglers' Run")
+    assert "truce" in str(run_q)                                    # (the journal says which way it ended)
+    leave(world, s)
+
+
+def smugglers_talk(world, s, npc_id, *answers):
+    """Talk to npc_id (taken there), choosing each answer in turn."""
+    e = world.placed_entity(npc_id, s)
+    assert e is not None, npc_id
+    m = world.maps[e.map]
+    s.teleport(e.map, int(e.x - m.ox) + 26, int(e.y - m.oy))
+    run_for(world, 5)
+    s.do_action("Talk to", e)
+    run_for(world, 30)
+    for n in answers:
+        s.action_box_response_chosen(n)
+        run_for(world, 30)
+    if s.ab_mode:
+        s.handle({"t": "close"})                                    # (Esc, as the page sends it)
+        run_for(world, 5)
+
+
+def smugglers_go(world, s, map_name, tx, ty):
+    s.teleport(map_name, (tx - 1) * 32, (ty - 1) * 32)
+    run_for(world, 10)
+
+
+def test_sending_holt_to_the_wrong_cove_and_under_the_tide(world):
+    s = join(world, "Turncoat", "21,5,0", 10 * 32, 17 * 32)
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+    s.update_attribute("SmugglerQuest", "=2")
+    names = lambda: [q["title"] for q in s.quest_list()]
+    assert world.placed_entity("Meg_Cot", s) is None                # (no hideout till you've sided with her)
+    smugglers_talk(world, s, "Red_Meg", 2)                          # "I'll send Holt to the wrong cove."
+    assert s.get_attribute("SmugglerQuest") == "3" and s.get_attribute("SmugglerSide") == "1"
+    assert s.side_attitudes.get("SMUGGLERS") == "Good"
+    for pid in ("Meg_Cot", "Meg_Stash", "Meg_Tunnel_Cove", "Meg_Tunnel_Ashford"):
+        assert world.placed_entity(pid, s) is not None, pid
+    other = join(world, "Bystander", "21,5,0", 10 * 32, 17 * 32)
+    assert world.placed_entity("Meg_Cot", other) is None            # (hers to you alone)
+    leave(world, other)
+    gold = s.items_held("Gold_Coin(s)")
+    smugglers_talk(world, s, "Smuggler_Sergeant", 1)                # (only the wrong beach to tell him)
+    assert s.get_attribute("SmugglerQuest") == "4" and s.items_held("Gold_Coin(s)") == gold + 60
+    assert s.standing("Court") == -5                                # (-15, and the quest's own 10)
+    assert "Under the Tide" in names() and "The Tide Turns" not in names()
+    trap = world.placed_entity("Meg_Tunnel_Cove", s)                # Meg's tunnel, to Ashford's fields
+    m = world.maps[trap.map]
+    s.teleport(trap.map, int(trap.x - m.ox) + 20, int(trap.y - m.oy))
+    run_for(world, 5)
+    s.do_action("Climb Down", trap)
+    run_for(world, 30)
+    assert s.cur_map.name == "12,-1,0"
+    smugglers_talk(world, s, "Red_Meg", 1)                          # Under the Tide
+    assert s.get_attribute("UnderTideQuest") == "1" and s.items_held("Smuggled_Brandy") == 1
+    smugglers_go(world, s, "21,5,0", 12, 19)
+    watch = [e for e in world.ents if e.owner is s and e.name == "Guard" and e.map == "21,5,0"]
+    assert len(watch) == 2 and all(e.ai.spotted == "Watch_Search" for e in watch)
+    world.npc_spotted(watch[0], watch[0].ai, s)                     # (seen: the cask's taken, and you're put out)
+    run_for(world, 30)
+    assert s.items_held("Smuggled_Brandy") == 0 and s.get_attribute("UnderTideQuest") == "1"
+    assert s.player.fy - s.cur_map.oy > 18 * 32
+    smugglers_talk(world, s, "Red_Meg", 1)                          # (another cask)
+    assert s.items_held("Smuggled_Brandy") == 1
+    smugglers_talk(world, s, "Castle_Cellarer", 1)
+    assert s.get_attribute("UnderTideQuest") == "2" and s.items_held("Smuggled_Brandy") == 0
+    gold = s.items_held("Gold_Coin(s)")
+    smugglers_talk(world, s, "Red_Meg", 1)
+    assert s.get_attribute("UnderTideQuest") == "3" and s.items_held("Gold_Coin(s)") == gold + 90
+    leave(world, s)
+
+
+def test_leading_the_watch_into_the_camp_and_the_tide_turns(world):
+    s = join(world, "Lawman", "21,5,0", 10 * 32, 17 * 32)
+    s.connected = True
+    s.god_mode = True                                               # (Meg's lads: no dying in a test)
+    s.update_attribute("Passage", "=12")
+    s.update_attribute("SmugglerQuest", "=3")                       # (Meg's truce in hand)
+    smugglers_talk(world, s, "Smuggler_Sergeant", 2)                # "I'll lead your men in."
+    assert s.get_attribute("SmugglerSide") == "2" and s.get_attribute("SmugglerQuest") == "3"
+    assert s.side_attitudes.get("SMUGGLERS") == "Bad"
+    assert world.placed_entity("Red_Meg", s) is None                # (gone: away by sea)
+    smugglers_go(world, s, "17,4,0", 12, 20)
+    men = [e for e in world.ents if e.owner is s and e.name == "Guard" and e.map == "17,4,0"]
+    assert len(men) == 3
+    camp = [e for e in world.ents if e.name == "Smuggler" and e.map == "17,4,0" and e.owner is None and e.alive]
+    assert len(camp) >= 4
+    world.npc_killed_by_npc(camp[0], men[0])                        # (your men's kill counts as yours)
+    run_for(world, 5)
+    assert s.get_attribute("SmugglerRaid") == "1"
+    for e in camp[1:4]:
+        s.kill_npc(e)
+        run_for(world, 5)
+    assert s.get_attribute("SmugglerRaid") == "4"
+    gold = s.items_held("Gold_Coin(s)")
+    smugglers_talk(world, s, "Smuggler_Sergeant", 1)
+    assert s.get_attribute("SmugglerQuest") == "4" and s.items_held("Gold_Coin(s)") == gold + 60
+    assert s.standing("Court") == 30
+    smugglers_talk(world, s, "Smuggler_Sergeant", 1)                # The Tide Turns
+    assert s.get_attribute("TideQuest") == "1"
+    boat = world.placed_entity("Watch_Boat_Cove", s)
+    m = world.maps[boat.map]
+    s.teleport(boat.map, int(boat.x - m.ox), int(boat.y - m.oy) + 40)
+    run_for(world, 5)
+    s.do_action("Row", boat)
+    run_for(world, 30)
+    assert s.cur_map.name == "18,3,0"
+    lads = [e for e in world.ents if e.owner is s and e.name == "Smuggler" and e.map == "18,3,0"]
+    assert len(lads) == 2
+    smugglers_talk(world, s, "Meg_On_The_Sandbar")
+    assert s.get_attribute("TideQuest") == "1"                      # (not while her lads stand)
+    for e in lads:
+        s.kill_npc(e)
+        run_for(world, 5)
+    assert s.get_attribute("TideGuards") == "2"
+    smugglers_talk(world, s, "Meg_On_The_Sandbar", 1)
+    assert s.get_attribute("TideQuest") == "2" and world.placed_entity("Meg_On_The_Sandbar", s) is None
+    gold = s.items_held("Gold_Coin(s)")
+    smugglers_talk(world, s, "Smuggler_Sergeant", 1)
+    assert s.get_attribute("TideQuest") == "3" and s.items_held("Gold_Coin(s)") == gold + 80
+    s.out = []
+    smugglers_talk(world, s, "Watch_Quartermaster", 1)              # (the watch's stores, open to you)
+    assert "SHOP-Watch" in str(s.out) or "Steel_Platebody" in str(s.out)
+    leave(world, s)
+
+
+def test_quests_only_for_those_who_went_a_certain_way_and_banter_conditions(world):
+    s = join(world, "Neutral", "21,5,0", 300, 300)
+    s.update_attribute("SmugglerQuest", "=4")
+    names = [q["title"] for q in s.quest_list()]
+    assert "The Tide Turns" not in names and "Under the Tide" not in names     # (the truce: neither)
+    assert world.banter.applies("$Attr.SmugglerQuest>=4 and $Attr.SmugglerSide=0", s)
+    assert not world.banter.applies("$Attr.SmugglerSide=2", s)
+    s.update_attribute("SmugglerSide", "=2")
+    assert world.banter.applies("$Attr.SmugglerSide=2", s)
+    assert "The Tide Turns" in [q["title"] for q in s.quest_list()]
     leave(world, s)
 
 
@@ -4945,7 +5083,7 @@ def test_only_a_fence_buys_stolen_goods(world):
     s.set_side_attitude("Smugglers", "Good")
     assert s.fence_rate() == 0.8
     # (a fence asks no questions, of an Outlaw either)
-    s.shop_rates = lambda npc: None
+    s.shop_rates = lambda npc, rack="": None
     assert not s.open_item_rack("SHOP", "Man", "SHOP-Isle")
     assert s.open_item_rack("SHOP", "Man", "SHOP-Fence_Galaith")
     leave(world, s)

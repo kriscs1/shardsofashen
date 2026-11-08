@@ -32,3 +32,4 @@ MapItem	Emerald	352	352	1	Once=1
 MapItem	Gold_Coin(s)	320	320	60	Once=1
 MapItem	Healing_Draught	384	384	2	Once=1
 MapItem	Silver_Ring	288	320	1	Once=1
+StaticObject	Smugglers_Trapdoor	128	544	Id=Meg_Tunnel_Ashford Here.After=SmugglerSide:1

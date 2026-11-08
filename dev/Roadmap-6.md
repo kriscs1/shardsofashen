@@ -73,13 +73,13 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
 - [x] Tests.
 
 ## 4. The Smugglers' Run, three ways
-- [ ] **Side with Holt**: lead his men into the cove and fight beside them. The Court's standing up a lot (Holt keeps its watch); the watch's
+- [x] **Side with Holt**: lead his men into the cove and fight beside them. The Court's standing up a lot (Holt keeps its watch); the watch's
       quartermaster sells to you; the smugglers are foes; Meg is gone, for you.
-- [ ] **The truce** (as now): Meg's deal carried to Holt; a little standing; Meg's shop. Whoever finished it before
+- [x] **The truce** (as now): Meg's deal carried to Holt; a little standing; Meg's shop. Whoever finished it before
       has this.
-- [ ] **Side with Meg**: send Holt to the wrong cove. A little standing lost (Holt suspects); Meg's shop, the cove a
+- [x] **Side with Meg**: send Holt to the wrong cove. A little standing lost (Holt suspects); Meg's shop, the cove a
       hideout (a bed, a stash chest), her tunnel into Ashford (in even as an Outlaw), and Meg the best fence.
-- [ ] Later: **The Tide Turns** (Holt's: Meg got away; catch her for good) or **Under the Tide** (Meg's: a cargo past
+- [x] Later: **The Tide Turns** (Holt's: Meg got away; catch her for good) or **Under the Tide** (Meg's: a cargo past
       the gate guards, Sneaking). The guards' words for each.
 
 ## 5. Other choices

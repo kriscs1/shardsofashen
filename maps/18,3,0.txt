@@ -19,3 +19,6 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+StaticObject	Rowing_Boat	320	128	Id=Watch_Boat_Sandbar Here.After=TideQuest:1 Gone.After=TideQuest:3
+NPC	Captain	384	56	Attitude=Good Stand=1 Face=S Id=Meg_On_The_Sandbar Name=Red_Meg Here.After=TideQuest:1 Gone.After=TideQuest:2
+Id	Megs_Sandbar	13	4

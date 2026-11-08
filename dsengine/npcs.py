@@ -82,6 +82,17 @@ class NPCMixin:
     SEEN_CLOSE = 44         # (right beside it: it knows you're there, whichever way it looks)
     ROUSE_HEAR = 160        # (how far a fight's din carries to a monster of Hearing 1)
 
+    def npc_spotted(self, e, a, s):
+        """A watchman (Spotted.Script=) has seen s: its script runs for them (a cargo found and taken), once in a
+        while; it doesn't fight, and goes on with its round."""
+        rest = s.spotted_rest if hasattr(s, "spotted_rest") else {}
+        if self.now < rest.get(e.uid, 0):
+            return
+        rest[e.uid] = self.now + 8000
+        s.spotted_rest = rest
+        s.spotted_by(e)
+        s.start_script(a.spotted, False)
+
     def npc_listen(self, e, a, s, d):
         """A monster hears s (their noise, as far as its Hearing carries it, nothing solid between). One that looks
         one way turns to look (if they're in its sight now, it's seen them next time it looks); one that sees all round
@@ -210,7 +221,7 @@ class NPCMixin:
         # (stealth: which way it looks, how wide it sees, who it raises the alarm with, when it's a friend)
         a.cone = max(0, val(d.entity_ini(n, "Sight.Cone", "0")))
         a.hearing = max(0.0, val(d.entity_ini(n, "Hearing", "1")))     # (how far your noise carries to it: build_senses.py)
-        a.group = a.friendly_if = a.fixed_pose = ""
+        a.group = a.friendly_if = a.fixed_pose = a.spotted = ""
         a.poses = [trim(p) for p in d.entity_ini(n, "States", "").split(",") if trim(p)]   # (Sit,Lie: when it stops)
         a.fidgets = [trim(p) for p in d.entity_ini(n, "Fidgets", "").split(",") if trim(p)]   # (Stretch: now and then)
         a.fidget_until, a.fidget_at, a.pose_back = 0, self.now + random_number(5000, 30000), ""
@@ -255,6 +266,8 @@ class NPCMixin:
                     a.schedule = value
                 elif key == "FRIENDLY.IF":
                     a.friendly_if = value
+                elif key == "SPOTTED.SCRIPT":          # (a watchman: seeing you runs this, for you, and it doesn't fight)
+                    a.spotted = value
                 elif key in ("HOME", "ROOST"):         # (where it is while its hours keep it in: a house, a coop)
                     home_area = value
                 elif key == "BED":                     # (its own bed, x,y: asleep in it at night)
@@ -457,7 +470,9 @@ class NPCMixin:
                     s, d = cand
                     if self.stat_for(e, s, "aggressive") == 1 and d <= self.stat_for(e, s, "aggro_range") * s.sight_factor():
                         if self.in_chase_area(a, s.player.fx, s.player.fy):
-                            if self.npc_sees(e, a, s, d):
+                            if a.spotted and self.npc_sees(e, a, s, d):
+                                self.npc_spotted(e, a, s)
+                            elif not a.spotted and self.npc_sees(e, a, s, d):
                                 e.target = s
                                 self.npc_start_fight(e, a, s, d)
                                 state = a.state
@@ -881,6 +896,11 @@ class NPCMixin:
         self.shard_fade(e)
         self.waves.gone(e)                                    # (a raider the guards cut down)
         self.remove_entity(e)
+        s = getattr(killer, "owner", None) if killer is not None else None
+        if s is not None and e.owner is None and hasattr(s, "find_action_script"):
+            script = s.find_action_script("Kill", e.name, e.type, e.npc_id)
+            if script:                                        # (your own men's kill is yours: a quest's count)
+                s.start_script(script, False)
 
     def queue_respawn(self, e):
         """A map's own NPC that died (to a player or another NPC) comes back where its map line puts it, after its

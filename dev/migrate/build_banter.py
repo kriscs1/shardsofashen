@@ -117,6 +117,18 @@ SCENES = {
                            "A:Old Sully. The tavern's corner. Quietly.", when="Thief", town="Galaith"),
     "Fence_Galaith_Talk": scene("Townsfolk", "Townsfolk", "A:Old Sully had a duke's spoons last week.",
                                 "B:Sully buys anything.", "A:Anything stolen, anyhow.", when="Thief", town="Galaith"),
+    # ----- the Court's watch, after the Smugglers' Run (build_smugglers_run.py: which way you went)
+    "Cove_Taken": scene("Guards", "Player", "A:You're the one who cleared the cove.", "A:Drinks are on the watch.",
+                        when="$Attr.SmugglerSide=2", town="Court"),
+    "Cove_Taken_Talk": scene("Guards", "Guards", "A:Red Meg's camp. Gone, in one night.", "B:And Meg?",
+                             "A:Out to sea. She'll be back.", when="$Attr.SmugglerSide=2", town="Court"),
+    "Wrong_Beach": scene("Guards", "Player", "A:A cold night on an empty beach.", "A:Funny, that. Wasn't it?",
+                         when="$Attr.SmugglerSide=1", town="Court"),
+    "Wrong_Beach_Talk": scene("Guards", "Guards", "A:Holt's still fuming about that beach.",
+                              "B:Somebody had a word in Meg's ear.", when="$Attr.SmugglerSide=1", town="Court"),
+    "Quiet_Market": scene("Guards", "Guards", "A:Not a smuggled keg in the market all week.", "B:Holt's happy.",
+                          "A:Holt's never happy.", when="$Attr.SmugglerQuest>=4 and $Attr.SmugglerSide=0",
+                          town="Court"),
 }
 
 

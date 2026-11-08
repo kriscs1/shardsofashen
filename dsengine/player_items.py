@@ -350,7 +350,7 @@ class ItemsMixin:
         self.rack_sell_rate = val(ini.read(rack, "Sell.Rate", "0.8", f))
         self.rack_fence = self.rack_type == "Shop" and val(ini.read(rack, "Fence", "0", f)) == 1
         if self.rack_type == "Shop" and not self.rack_fence:    # (the town's standing with you: standing.py; a
-            rates = self.shop_rates(self.clicked_ent)          #  fence asks no questions, of an Outlaw either)
+            rates = self.shop_rates(self.clicked_ent, rack)    #  fence asks no questions, of an Outlaw either)
             if rates is None:
                 return False
             self.rack_buy_rate *= rates[0]

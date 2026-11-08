@@ -151,6 +151,8 @@ class Banter:
     def applies(self, when, s):
         """Is what this scene says about them true of player s just now?"""
         kind = when.lower()
+        if kind.startswith("$"):                                # (a condition: $Attr.SmugglerSide=2)
+            return s.condition_met(when)
         if kind == "thief":                                     # (something stolen, ever: thieving.py)
             return val(s.get_attribute("Thefts")) >= 1
         if kind == "sneaking":
