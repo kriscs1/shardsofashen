@@ -102,15 +102,22 @@ def bigger(im, scale):
 
 
 def kind_from(name, base, col, scale=1.0, alpha=1.0):
-    """name's pictures (its walking frames and its still one) from base's, tinted and scaled."""
+    """name's pictures (its walking frames and its still one) from base's, tinted (or, col a list of stops, along a ramp
+    of colours: build_zones.ramp_tint) and scaled."""
     walk = os.path.join(K.SPR, "Walk")
+    src = os.path.join(K.SPR, "Entities", base + ".png")
+    if isinstance(col, list):
+        from build_zones import lum_span, ramp_tint
+        span = lum_span(Image.open(src))
+        paint = lambda im: ramp_tint(im, col, span)       # noqa: E731
+    else:
+        paint = lambda im: tint(im, col, alpha)           # noqa: E731
     for d in "1248":
         for f in "abc":
-            src = os.path.join(walk, "%s%s%s.png" % (base, d, f))
-            if os.path.exists(src):
-                save_pil("Walk", "%s%s%s" % (name, d, f), bigger(tint(Image.open(src), col, alpha), scale))
-    src = os.path.join(K.SPR, "Entities", base + ".png")
-    save_pil("Entities", name, bigger(tint(Image.open(src), col, alpha), scale))
+            walk_src = os.path.join(walk, "%s%s%s.png" % (base, d, f))
+            if os.path.exists(walk_src):
+                save_pil("Walk", "%s%s%s" % (name, d, f), bigger(paint(Image.open(walk_src)), scale))
+    save_pil("Entities", name, bigger(paint(Image.open(src)), scale))
 
 
 def draw_objects():
@@ -281,7 +288,8 @@ BOSSES = {
     "Slag_Wyrm": ("Drake", (156, 52, 24), 1.5, 18, "melee", "A drake that went swimming in the lava and liked it. It "
                   "glows where it's cracked.", "Beast", "Gold_Coin(s),60-100,100 Ember_Shard,1-1,60 Ruby,1-1,30",
                   "Burn 40"),
-    "Sand_Mother": ("Scorpion", (224, 186, 104), 1.5, 20, "melee", "Every scorpion in the desert is her child, and "
+    "Sand_Mother": ("Scorpion", [(0.0, (48, 28, 14)), (0.35, (114, 72, 32)), (0.65, (190, 136, 52)), (1.0, (252, 222, 136))],
+                    1.5, 20, "melee", "Every scorpion in the desert is her child, and "
                     "she's come about it.", "Bug", "Gold_Coin(s),70-120,100 Ruby,1-2,40 Antidote,1-1,100", "Poison 45"),
 }
 

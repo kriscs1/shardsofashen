@@ -1371,6 +1371,54 @@ def giant_spider():
     return K.outline_img(img, (16, 12, 10))
 
 
+@sprite("Scorpion")
+def scorpion():
+    """The desert scorpion, seen from the front: pincers at you, eight legs, the tail curled over its back."""
+    img = K.new()
+    shell, light, dark = (184, 120, 50), (232, 176, 92), (112, 64, 24)
+    leg, legl, legd = (128, 76, 30), (176, 116, 54), (72, 40, 14)
+    for side in (-1, 1):                                         # eight legs, the back ones reaching back
+        for i, (ang, ln) in enumerate([(-62, 10), (-30, 10), (2, 10), (32, 9)]):
+            a = math.radians(ang)
+            x0, y0 = 16 + side * 3, 13 + i * 2.6
+            kx, ky = x0 + side * math.cos(a) * ln * 0.55, y0 + math.sin(a) * ln * 0.55 - 2
+            ex, ey = x0 + side * math.cos(a) * ln, y0 + math.sin(a) * ln + 1.5
+            seg(img, x0, y0, kx, ky, 1.2, legl, leg, legd)
+            seg(img, kx, ky, ex, ey, 1.0, legl, leg, legd)
+    for side in (-1, 1):                                         # the arms, out and forward to the claws
+        seg(img, 16 + side * 3, 22, 16 + side * 7, 23, 1.8, light, shell, dark)
+        seg(img, 16 + side * 7, 23, 16 + side * 9, 25.5, 1.8, light, shell, dark)
+    for side in (-1, 1):                                         # the claws: a fat hand and two fingers
+        cx = 16 + side * 9.3
+        K.shaded_ellipse(img, cx, 26.6, 2.7, 2.2, shell, light, dark)
+        seg(img, cx - 1.4, 27.5, cx - 1.1, 30.4, 1.4, light, shell, dark)
+        seg(img, cx + 1.4, 27.5, cx + 1.1, 30.4, 1.4, light, shell, dark)
+        K.put(img, int(cx), 29, None); K.put(img, int(cx), 30, None)
+    for i, cy in enumerate((12.5, 15, 17.5, 20)):               # the back: plates, widest in the middle
+        K.shaded_ellipse(img, 16, cy, (3.4, 4.1, 4.4, 4.2)[i], 1.8, shell, light, dark)
+    K.shaded_ellipse(img, 16, 22.4, 3.6, 2.0, shell, light, dark)   # the head
+    for y in (13, 16, 18):                                       # the seams between the plates
+        for x in range(11, 21):
+            if img[y][x] in (shell, light, dark):
+                img[y][x] = K.mul(img[y][x], 0.7)
+    for x in (14, 17):
+        K.put(img, x, 22, (24, 12, 6))                           # eyes
+    pts = [(16, 11.5), (16, 9), (16.3, 6.6), (17.4, 4.6), (19.2, 3.3), (21.3, 3.0)]
+    for (x0, y0), (x1, y1), w in zip(pts, pts[1:], (3.4, 3.2, 3.0, 2.8, 2.6)):    # the tail, up and over
+        seg(img, x0, y0, x1, y1, w, light, shell, dark)
+    for (x0, y0), (x1, y1) in zip(pts[1:], pts[2:]):             # the joints between its segments
+        vx, vy = x1 - x0, y1 - y0
+        ln = math.hypot(vx, vy)
+        for t in (-1.2, -0.4, 0.4, 1.2):
+            x, y = int(x0 - vy / ln * t + 0.5), int(y0 + vx / ln * t + 0.5)
+            if img[y][x] in (shell, light, dark):
+                img[y][x] = K.mul(img[y][x], 0.62)
+    K.shaded_ellipse(img, 22.6, 3.8, 1.7, 1.6, (196, 76, 40), (240, 130, 80), (120, 34, 18))   # the venom bulb
+    for x, y in ((24, 5), (24, 6), (23, 7)):                     # the sting, hooked down at you
+        K.put(img, x, y, (34, 16, 10))
+    return K.outline_img(img, (40, 22, 10))
+
+
 @sprite("Wolf")
 def wolf():
     rows = [
@@ -1764,12 +1812,11 @@ SPRITES["Magic_Potion"] = lambda: potion(0.72)
 SPRITES["Mega_Potion"] = lambda: potion(0.30)
 SPRITES["Owl_Potion"] = lambda: potion(0.58)
 
-# ----- the Wildlands (build_regions.py): monsters recoloured from the wolf, spider and troll (their walking frames come
-# from build_walk.py), and the quest items
+# ----- the Wildlands (build_regions.py): monsters recoloured from the wolf and troll (the scorpion's drawn above; their
+# walking frames come from build_walk.py), and the quest items
 SPRITES["Bear"] = lambda: gm("Wolf", [(0.0, (20, 12, 6)), (0.3, (70, 42, 22)), (0.6, (120, 78, 42)), (1.0, (180, 140, 100))])
 SPRITES["Snow_Wolf"] = lambda: gm("Wolf", [(0.0, (40, 46, 60)), (0.3, (150, 160, 176)), (0.6, (214, 220, 232)), (1.0, (250, 252, 255))])
 SPRITES["Alpha_Wolf"] = lambda: gm("Wolf", [(0.0, (10, 8, 8)), (0.3, (46, 40, 42)), (0.6, (84, 74, 76)), (0.85, (160, 40, 30)), (1.0, (230, 60, 40))])
-SPRITES["Scorpion"] = lambda: gm("Giant_Spider", [(0.0, (40, 20, 6)), (0.3, (140, 80, 30)), (0.6, (210, 140, 60)), (1.0, (250, 220, 140))])
 SPRITES["Bog_Troll"] = lambda: gm("Cave_Troll", [(0.0, (14, 22, 10)), (0.3, (50, 80, 40)), (0.6, (96, 130, 70)), (1.0, (180, 200, 140))])
 SPRITES["Frost_Troll"] = lambda: gm("Cave_Troll", [(0.0, (16, 24, 40)), (0.3, (80, 110, 150)), (0.6, (150, 190, 220)), (1.0, (240, 250, 255))])
 # (Bog_Myrtle, once the herb recoloured, is drawn by build_herbs.py now, with the other herbs)

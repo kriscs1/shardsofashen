@@ -587,6 +587,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Where two grounds of different `Blend` meet, a few flecks of each lie across on the other's side (`ground.js` flecksOf).
   A range's edge has no right angles: its corners are cut on the slant as the ground's painted (`ground.js`
   paintSlants), and a bay's inner corner filled with rock.
+- **A creature looks like what it is** (the owner's correction: the scorpions were the spider, recoloured): a recolour
+  (`gm`, `build_zones.py` MOBS, `build_middle_quests.py` BOSSES) only ever makes another of the same animal. A new kind
+  of animal is drawn (the scorpion in `build_sprites.py`: pincers, eight legs, the tail curled over with its sting). A
+  recolour keeps its parts apart: one colour over the whole picture (`tint`) turns wings, body and belly one mud, so a
+  creature that must stand out on its ground (the Sand Drake on sand) goes along a ramp of colours (`ramp_tint`).
 - Nothing shows as a placeholder ("?") while its picture loads: draw nothing till it has.
 - **Drawing stays cheap**: no canvas `filter` (blur...) or high-quality scaling of the whole view every frame. Work it
   out once when it changes (the fog is blurred on a small picture, then stretched).
@@ -839,6 +844,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `wood_bridges_swap.py`): sixteen pieces by the sides they join (`Joins=` NESW, `-` alone), the deck's boards across the way
   you walk, a rail on posts with a toe-board and the support beams' ends on every open side (the outer row of the walk mask
   is the rail), the landward end left open. Not `Raised=1` (that turns a picture on an east-west run: these are drawn the right way).
+- **Ruined walls are two Join sets** (the owner's wish: blocks side by side never made one wall): `Ruined_Wall` (tall,
+  no seeing past) and `Ruined_Wall_Low` (seen over), sixteen pieces each by the sides they join, decor on any ground,
+  `dev/migrate/build_ruined_walls.py`; one footprint down the middle of the tile, so a run is one wall, crumbling between
+  joins and at a broken end, and a tall run and a low one join each other. `Ruined_Wall001/002` are retired
+  (`ruined_walls_swap.py` turned every one on the maps into its piece): any wall that runs gets a Join set, never single blocks.
 - **Fires that aren't campfires**: the `Blaze` (`build_blaze.py`, 8 frames of wreckage burning) is Galaith's, on its field and
   ramparts till The Royal Guard is done; it warms like any fire (`cold.py` FIRES). **Planks and marble are drawn nicer**
   (`build_nicer_floors.py`: four boards a tile, nails and knots; polished veined marble and a big slab texture for the streets).
