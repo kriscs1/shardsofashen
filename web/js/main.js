@@ -951,6 +951,7 @@ N.onMessage = (m) => {
       break;
     case "sleep": S.sleep = { start: now, fade: m.fade, hold: m.hold, text: m.text }; break;
     case "journal": S.journal = m; break;
+    case "standing": if (S.journal) S.journal.standing = m.list; break;     // (a town thinks better or worse of you)
     case "buildables": onBuildables(m); break;
     case "died": {
       // (dead: the view goes dark and red; they wake when they choose to)

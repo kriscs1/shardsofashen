@@ -41,6 +41,7 @@ from .locks import LockMixin
 from .cold import ColdMixin
 from .disease import DiseaseMixin
 from .together import TogetherMixin
+from .standing import StandingMixin
 
 log = logging.getLogger("ashen.session")
 
@@ -95,7 +96,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
               MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin,
-              ThiefMixin, SenseMixin, LockMixin, ColdMixin, DiseaseMixin, TogetherMixin, RumourMixin):
+              ThiefMixin, SenseMixin, LockMixin, ColdMixin, DiseaseMixin, TogetherMixin, RumourMixin, StandingMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -110,6 +111,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.traps_seen, self.traps_disarmed, self.secrets_seen = set(), set(), set()   # (senses.py)
         self.sense_tried, self.sense_at = set(), 0
         self.unlocked_chests, self.break_at = set(), 0                  # (locks.py: the chests you've opened up)
+        self.standing_cache, self.outlaw_towns, self.outlaw_any = None, set(), False   # (standing.py)
         self.cold_at = self.cold_since = self.cold_next = 0               # (cold.py)
         self.player_name = name
         self.admin_enabled = admin
@@ -506,6 +508,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.new_player_start()
         self.shard_start(not st)
         self.cur_map = m
+        self.standing_attr_changed()
+        self.standing_catch_up()                                        # (quests done before standing was kept)
         self.player_tile = None
 
     # (the Isle's quests since the heir's story: their attributes and the values that finish them)
@@ -1061,10 +1065,13 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         v = self.ent_attitudes.get(e.uid)
         if v is not None:
             return v
-        if not self.npc_attitudes:                  # (most never change one: no key to work out, ~1000 times a tick)
-            return None
-        a = self.npc_attitudes.get(self.w.npc_key(e)) if e.type == NPC else None
-        return None if a is None else a == "Bad"
+        if self.npc_attitudes:                      # (most never change one: no key to work out, ~1000 times a tick)
+            a = self.npc_attitudes.get(self.w.npc_key(e)) if e.type == NPC else None
+            if a is not None:
+                return a == "Bad"
+        if self.outlaw_towns and e.type == NPC and self.outlaw_foe(e):
+            return True                             # (an Outlaw there: its guards come for you, standing.py)
+        return None
 
     def once_taken(self, e):
         key = self.w.once_key(e)

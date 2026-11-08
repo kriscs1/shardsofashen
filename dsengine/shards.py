@@ -117,6 +117,8 @@ class ShardMixin:
                 continue
             done = val(d.get("DONE", "0"))
             flag = "ShardsPaid." + attribute
+            if done > 0 and value >= done:
+                self.quest_standing(d, attribute)                   # (the town's thanks: standing.py, its own flag)
             if done <= 0 or value < done or val(self.get_attribute(flag)) >= 1:
                 return
             self.update_attribute(flag, "=1")

@@ -13,7 +13,8 @@ const INK = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
 const DIM = [190, 160, 110];
 
-export const J = { open: false, tab: 1, page: 1, hover: 0, focus: "", x0: 0, done: false, skill: "" };   // (done: Quests' Done tab)
+export const J = { open: false, tab: 1, page: 1, hover: 0, focus: "", x0: 0, done: false, standing: false, skill: "" };
+// (done: Quests' Done tab; standing: its Standing tab, what each town thinks of you)
 
 const CONTROLS = [
   ["M", "Left-click ground", "Walk there."],
@@ -68,7 +69,7 @@ export function pageSize() { return { 1: 14, 2: 7, 3: QUESTS_SHOWN, 4: 8, 6: FRI
 
 function count() {
   const d = S.journal || { crafts: [], gathers: [], quests: [], spells: [] };
-  return { 1: d.crafts.length, 2: d.gathers.length, 3: journalQuests().length, 4: (d.spells || []).length,
+  return { 1: d.crafts.length, 2: d.gathers.length, 3: J.standing ? 1 : journalQuests().length, 4: (d.spells || []).length,
     6: (d.friends || []).length }[J.tab] || 1;
 }
 
@@ -80,7 +81,7 @@ function friendRowY(n) { return 108 + n * 70; }
 
 // ----- each button's [x, y, w, h], said once: drawn by it and clicked by it (hit), so the two can't drift apart
 const BUTTON_RECTS = { 10: [942, 20, 40, 28], 11: [40, 696, 120, 28], 12: [864, 696, 120, 28],   // (close; the pages)
-  400: [48, 106, 180, 30], 401: [236, 106, 180, 30] };                                          // (Quests: In hand, Done)
+  400: [48, 106, 180, 30], 401: [236, 106, 180, 30], 402: [424, 106, 180, 30] };             // (Quests: In hand, Done, Standing)
 const tabRect = (t) => [40 + (t - 1) * TAB_STEP, 60, TAB_W, 32];
 const friendButtonRect = (n, k) => [976 - 316 + k * 104, friendRowY(n) + 15, 96, 32];
 function spellButtonRect(slot, k) {                 // (k 0: Cast, 1: Hotbar)
@@ -173,8 +174,8 @@ export function hit(x, y) {
   if (J.tab === 7) {                              // (a skill in the list down the left: 500 + its row)
     for (let n = 0; n < skillList().length; n++) if (within(x, y, skillRowRect(n))) return 500 + n;
   }
-  if (J.tab === 3) for (const b of [400, 401]) if (within(x, y, BUTTON_RECTS[b])) return b;
-  if (J.tab === 3 && x >= 48 && x <= 976) {
+  if (J.tab === 3) for (const b of [400, 401, 402]) if (within(x, y, BUTTON_RECTS[b])) return b;
+  if (J.tab === 3 && !J.standing && x >= 48 && x <= 976) {
     const n = Math.floor((y - QUEST_TOP) / 82);
     if (n >= 0 && n < QUESTS_SHOWN && y - QUEST_TOP - n * 82 <= 76 &&
         (J.page - 1) * QUESTS_SHOWN + n < journalQuests().length) return 100 + n;
@@ -188,6 +189,29 @@ function button(ctx, x, y, w, h, label, state) {
   roundBox(ctx, x, y, w, h, fill, border, 2, 10);
   const lb = fitText(ctx, label, w - 12, 10, true);
   drawTextMid(ctx, lb, x + Math.floor((w - textWidth(ctx, lb, 10, true)) / 2), y, h, 10, true, ink);
+}
+
+// ----- standing (standing.py): each town that knows you, its rank, and where you are between Outlaw and Honoured
+const RANK_COLOUR = { Outlaw: [235, 90, 70], Distrusted: [230, 150, 80], Stranger: DIM, Welcome: PARCHMENT,
+  Trusted: [140, 215, 120], Honoured: [250, 215, 110] };
+
+function standingPage(ctx, d) {
+  const rows = d.standing || [];
+  if (!rows.length) { centreText(ctx, 512, 330, "No town knows you yet. You're a stranger everywhere.", 14, true, INK); return; }
+  rows.slice(0, 16).forEach(([town, n, rank], i) => {
+    const x = 48 + (i % 2) * 466, y = 146 + Math.floor(i / 2) * 66;
+    const col = RANK_COLOUR[rank] || PARCHMENT;
+    card(ctx, x, y, 462, 60);
+    drawText(ctx, fitText(ctx, town, 250, 12), x + 16, y + 10, 12, true, INK);
+    drawText(ctx, rank, x + 446 - textWidth(ctx, rank, 12, true), y + 10, 12, true, col);
+    const bx = x + 16, bw = 430, by = y + 38, mid = bx + bw / 2;     // (a bar: Outlaw at the left, Honoured at the right)
+    roundBox(ctx, bx, by, bw, 8, [40, 26, 20], [92, 60, 46], 1, 4);
+    const end = mid + (Math.max(-100, Math.min(100, n)) / 100) * (bw / 2 - 2);
+    ctx.fillStyle = `rgb(${col.join(",")})`;
+    ctx.fillRect(Math.min(mid, end), by + 2, Math.max(2, Math.abs(end - mid)), 4);
+    ctx.fillStyle = "rgb(126,77,63)";
+    ctx.fillRect(mid, by - 2, 1, 12);
+  });
 }
 
 function card(ctx, x, y, w, h, border) {
@@ -534,13 +558,15 @@ export function drawJournal(ctx) {
     d.gathers.slice(first, first + 7).forEach((g, n) => gather(ctx, g, 48, 108 + n * 82, 928));
   } else if (J.tab === 3) {
     const quests = journalQuests(), all = allQuests(), done = all.filter((q) => q.status === 2).length;
-    button(ctx, ...BUTTON_RECTS[400], `In hand (${all.length - done})`, !J.done ? 3 : J.hover === 400 ? 2 : 1);
-    button(ctx, ...BUTTON_RECTS[401], `Done (${done})`, J.done ? 3 : J.hover === 401 ? 2 : 1);
-    if (!quests.length) centreText(ctx, 512, 330, J.done ? "No quests done yet." : "No quests in hand.", 14, true, INK);
+    button(ctx, ...BUTTON_RECTS[400], `In hand (${all.length - done})`, !J.done && !J.standing ? 3 : J.hover === 400 ? 2 : 1);
+    button(ctx, ...BUTTON_RECTS[401], `Done (${done})`, J.done && !J.standing ? 3 : J.hover === 401 ? 2 : 1);
+    button(ctx, ...BUTTON_RECTS[402], "Standing", J.standing ? 3 : J.hover === 402 ? 2 : 1);
+    if (J.standing) standingPage(ctx, d);
+    else if (!quests.length) centreText(ctx, 512, 330, J.done ? "No quests done yet." : "No quests in hand.", 14, true, INK);
     const first = (J.page - 1) * QUESTS_SHOWN;
-    quests.slice(first, first + QUESTS_SHOWN).forEach((q, n) => questCard(ctx, q, 48, QUEST_TOP + n * 82, 928));
+    if (!J.standing) quests.slice(first, first + QUESTS_SHOWN).forEach((q, n) => questCard(ctx, q, 48, QUEST_TOP + n * 82, 928));
     const n = J.hover - 100;
-    const q = quests[first + n];
+    const q = J.standing ? null : quests[first + n];
     if (n >= 0 && n < QUESTS_SHOWN && q) {
       const rows = questRows(ctx, q, 380, "");
       const h = 16 + rows.reduce((a, r) => a + ROW_H[r[0]], 0);
@@ -561,7 +587,8 @@ export function drawJournal(ctx) {
   let info;
   if (J.tab === 1) info = `${d.crafts.filter((c) => c.status === 0).length} of ${d.crafts.length} recipes ready to make`;
   else if (J.tab === 2) info = `${d.gathers.filter((g) => g.status === 0).length} of ${d.gathers.length} you can gather now`;
-  else if (J.tab === 3) info = J.done ? "The quests you've seen through" : "Click a quest to follow it on the map";
+  else if (J.tab === 3) info = J.standing ? "What each town thinks of you: its prices, its guards and its doors" :
+    J.done ? "The quests you've seen through" : "Click a quest to follow it on the map";
   else if (J.tab === 4) info = `You carry ${S.me.shards || 0} Shards`;
   else if (J.tab === 5) info = "Kept for everyone who's played here";
   else if (J.tab === 6) info = "Right-click a player, or /friend Name, to add a friend";

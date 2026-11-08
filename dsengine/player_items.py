@@ -313,6 +313,12 @@ class ItemsMixin:
         self.rack_filter, self.rack_ready = "", False
         self.rack_buy_rate = val(ini.read(rack, "Buy.Rate", "1.2", f))
         self.rack_sell_rate = val(ini.read(rack, "Sell.Rate", "0.8", f))
+        if self.rack_type == "Shop":                        # (the town's standing with you: standing.py)
+            rates = self.shop_rates(self.clicked_ent)
+            if rates is None:
+                return False
+            self.rack_buy_rate *= rates[0]
+            self.rack_sell_rate *= rates[1]
         self.rack_specific = val(ini.read(rack, "Specific", "0", f))
         if type_name.upper() == "SPECIFIC" and self.rack_type == "Shop":
             self.rack_specific = 1

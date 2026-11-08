@@ -432,6 +432,7 @@ class CombatMixin:
             return                                          # (dead already: no second kill, nor a second respawn)
         self.break_invisibility()                           # (a blow struck: seen)
         self.fought(e)
+        self.guard_struck(e)                                # (a hand raised to a town's guard: standing.py)
         self.w.waves.hit(e, self)
         hp = e.hp - damage
         slayer = self.entity_ini(e.name, "Slain.By", "")         # (only that weapon gives it its death blow: or
@@ -454,6 +455,7 @@ class CombatMixin:
         self.display_message("You have killed the %s!" % self.display_name(e), "ACHIEVEMENT")
         self.play_sound("Kill_" + (self.entity_ini(name, "Kill.Sound", "") or "Beast"), (e.cx, e.cy))
         self.add_npc_drops(e)
+        self.guard_struck(e, True)
         w.waves.killed(e, self)
         w.queue_respawn(e)
         self.w.wonders.grudge_settled(self, e)

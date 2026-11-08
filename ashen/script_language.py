@@ -34,6 +34,7 @@ COMMANDS = [
     ('Boost.Skill', ['SKILL NAME', 'LEVELS (+ or -)', 'SECONDS']),
     ('Turn.Into', ['FORM', 'SECONDS', 'MESSAGE']),
     ('Update.Attribute', ['ATTRIBUTE NAME', 'QUANTITY (+, - or =) ']),
+    ('Change.Standing', ['TOWN', 'STANDING CHANGE']),
     ('Edit.Entity', ['X COORDINATE,Y COORDINATE', 'ENTITY NAME', 'VALUE TO CHANGE', 'CHANGE TO']),
     ('Get.Value', ['VALUE TYPE', 'NAME / CALCULATION', 'SAVE AS']),
     ('>Conditional', ['REQUIREMENT', 'GOTO LINE IF NOT MET']),
@@ -173,6 +174,9 @@ HELP = {
     'SKILL NAME': 'The name of the skill to update|(From data\\Config.ini [Skills] List)',
     'QUANTITY (+, - or =)': "The quantity to update the skill to or by:|Use: '=Q' '+Q' or '-Q' to set the quantity",
     'Update.Attribute': 'COMMAND: Updates the value of a player attribute',
+    'Change.Standing': 'COMMAND: A town thinks better or worse of the player (dsengine/standing.py): a line and a sound|if their rank there changes',
+    'TOWN': 'A town: a section of data\\Towns.ini (Ashford, Court, Isle...), or Here for wherever the player is',
+    'STANDING CHANGE': 'How much: +10 better, -8 worse (standing runs from -100, an Outlaw, to 100, Honoured)',
     'ATTRIBUTE NAME': 'The name of the attribute to update:|(Attribute names are assigned by you and stored in the save file)',
     'Edit.Entity': "COMMAND: Edits an entity's parameters",
     'VALUE TO CHANGE': "The value to change: X, Y, POSITION (x,y), TYPE, NAME (sprite), MISC (an item's quantity),|QUANTITY, HP, MAXHP, SPEED, STRENGTH, DEFENCE, AGGRESSIVE, ATTITUDE (an NPC: Good or Bad), AGGRO.RANGE, ORIGINAL.X, ORIGINAL.Y,|STATE (an NPC: how it rests when it stops, '=Sit' shows <Name>_Sit<2/8>; '=' to stand)",
@@ -326,6 +330,7 @@ VARIABLES = [
     ('$Item.Name', 'How many of the item Name the player has (carried plus equipped), e.g. $Item.Key>=1.'),
     ('$Skill.Name', "The player's level in the skill Name, e.g. $Skill.Mining>=10."),
     ('$Equipped.Slot', 'The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.'),
+    ('$Standing.Town', "A town's standing with the player, -100 to 100 (data\\Towns.ini: Outlaw, Distrusted, Stranger, Welcome at 20, Trusted at 45, Honoured at 75), e.g. $Standing.Ashford>=45; $Standing.Here is where they are."),
     ('[TAB]', 'The variable used to print a tab character.'),
 ]
 

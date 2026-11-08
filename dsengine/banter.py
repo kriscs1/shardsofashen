@@ -148,6 +148,9 @@ class Banter:
             return s.stance == "Sneaking"
         if kind == "hurt":
             return s.player.hp < s.player_max_hp * 0.3
+        if kind in ("outlaw", "distrusted", "welcome", "trusted", "honoured"):    # (the town you're in: standing.py)
+            town = s.town_of_map(s.cur_map.name) if s.cur_map is not None else ""
+            return bool(town) and s.rank(town).lower() == kind
         form = s.player_form() or ""
         if kind == "form":
             return bool(form)

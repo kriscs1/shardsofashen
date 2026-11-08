@@ -710,7 +710,10 @@ class TogetherMixin:
         pr["have"][item] = pr["have"].get(item, 0) + n
         self.w.save_soon = True
         worth = n if item == "Gold_Coin(s)" else n * max(1, int(val(self.data.entity_ini(item, "Value", "1"))))
-        pr["givers"][self.player_name] = pr["givers"].get(self.player_name, 0) + worth
+        was = pr["givers"].get(self.player_name, 0)
+        pr["givers"][self.player_name] = was + worth
+        most, per = self.standing_num("Project.Most", 15), self.standing_num("Project.Per.Gold", 0.02)
+        self.change_standing(d.get("town", ""), int(min(most, (was + worth) * per)) - int(min(most, was * per)))
         self.play_sound("Coins" if item == "Gold_Coin(s)" else "Build" if self.data.loaded("Build") else "Pickup")
         self.display_message("You give %s to %s. Thank you!" % ("%d gold" % n if item == "Gold_Coin(s)" else
                                                                  "%d %s" % (n, pretty(item)), d["title"]), "SUCCESS")
@@ -781,6 +784,7 @@ class TogetherMixin:
             gold, shards = 40 + n * 6, 3 + n // 2
             self.update_attribute("Bounty.Paid", "=%d" % day)
             self.add_inventory_item("Gold_Coin(s)", gold)
+            self.change_standing("Here", self.standing_num("Bounty", 3))
             self.give_shards(shards, "the bounty")
             self.play_sound("Coins")
             self.show_menu("Bounties", "Clerk", "%d %s, as asked. Here's your bounty: %d gold and %d Shards." %
@@ -1056,6 +1060,8 @@ class TogetherMixin:
             return False
         nid = getattr(e, "npc_id", "") or ""
         if e.type == NPC and verb == "Talk to":
+            if self.fine_menu(e):                       # (an Outlaw and the town's captain: standing.py)
+                return True
             d = self.project_of_foreman(e)
             if d is not None:
                 self.foreman_menu(d)

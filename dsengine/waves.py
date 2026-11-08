@@ -241,6 +241,7 @@ class Waves:
             if won:
                 self.reward(s, d, r["kills"].get(who, 0))
                 s.update_attribute("Saved." + name, "=1")    # (the town remembers: together.py greetings)
+                s.change_standing(s.town_of_map(d.get("map", "")), s.standing_num("Raid", 8))
             if script and s.script_exists(script):
                 s.start_script(script, False)
         log.info("Wave attack %s %s (defenders: %s)", name, "won" if won else "lost", ", ".join(sorted(r["defenders"])))

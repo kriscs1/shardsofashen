@@ -372,6 +372,7 @@ The same syntax as the script `>Conditional` command: `a=b`, `a<>b`, `a<b`, `a>b
 | `$Item.<Name>` | how many `<Name>` the player has, carried plus equipped (e.g. `$Item.Key>=1`) |
 | `$Skill.<Name>` | the player's level in that skill (e.g. `$Skill.Mining>=20`) |
 | `$Equipped.<Slot>` | the item name in that equipment slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or `none` |
+| `$Standing.<Town>` | that town's standing with the player, -100 to 100 (`data\Towns.ini`; `$Standing.Here` is where they are): a lock with `$Standing.Ashford>=45` opens at Trusted |
 | all script variables | `$Player.X`, `$Map.Name`, ... (see Script Commands.txt) |
 
 Example: `Lock	20	7	$Attr.BeggarQuest>=2 or $Item.Key>=1	The door is locked. Maybe the beggar knows where the key is.`
@@ -474,11 +475,23 @@ Chapter=2                   ; the Quests tab), in Chapter order. Blank or Side: 
 Requires.Level=12           ; before it can be started: the player's level (Config [Gameplay] Level.Skills, Level.Best:
 Requires.Quests=Passage to the Mainland; Bog Lights    ; the average of their best two of Strength, Defence, Magic),
 Requires.Skills=Woodcutting 10, Potion Making 5             ; quests finished, skill levels
+Reward.Standing=Ashford 10  ; town and amount pairs, given once when it's done (data\Towns.ini; build_standing.py
+                            ; gives each side quest given in a town its town's 10)
 ```
 A quest that can't be started yet shows in the journal as Locked, with what it needs. Its giver's script asks
 `>Quest.Can.Start <quest or attribute> <goto>` before offering it (the chat says what's missing); a script that sets a
 quest's attribute from 0 while it still needs something is stopped there. dev\migrateuild_cinder.py (REQUIREMENTS)
 sets these for every quest and puts the check in every giver's script.
+
+## data\Towns.ini (standing in every town: dsengine\standing.py)
+
+`[Standing]` holds every number (the least and most, what each deed is worth, the guards' kinds, the fine);
+`[Ranks]` each rank's least standing and its buy and sell times (Outlaw, Distrusted, Stranger, Welcome, Trusted,
+Honoured, in that order). Then a section for each town: `Name=` (as said), `Maps=x1,y1,x2,y2 ...` (boxes of map
+numbers, never overlapping; down to `[Standing] Depth` below ground still counts), `Captain=` (an Id on its maps, or
+a kind: who takes an Outlaw's fine) and `Guards.If=` (a condition before its guards turn on an Outlaw). Each player's
+standing is a save attribute `Standing.<Town>`. Written by `dev\migrate\build_standing.py`, which only adds what's
+missing.
 
 ## data\NewCharacter.ini
 

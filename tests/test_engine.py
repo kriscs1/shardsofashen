@@ -2540,7 +2540,7 @@ def test_a_seal_swims_comes_ashore_barks_and_leaves_its_pelt(world):
         wx, wy = next((x, y) for y in range(2, 20) for x in range(2, 24) if m.tile_is_water(x, y) and
                       m.tile_is_water(x + 1, y) and m.tile_is_water(x, y + 1))
         world.set_entity_position(seal, m.ox + (wx - 0.5) * 32 - seal.w / 2, m.oy + (wy - 0.5) * 32 - seal.h + 1)
-        seal.ai.state = AI_IDLE
+    seal.ai.state = AI_IDLE                            # (and still: it may have been on its way ashore)
     assert world.in_water(seal)
     for _ in range(5):
         world.tick(0.05)
@@ -7945,4 +7945,126 @@ def test_the_wild_places(world):
     if s.pending_map:
         s.do_pending_map_change()
     assert s.cur_map.name == "10,1,0" and s.get_attribute("FairyRing2") == "1"
+    leave(world, s)
+
+
+# ------------------------------------------------------------------ standing (standing.py, data\Towns.ini)
+def test_standing_moves_a_towns_rank_and_its_prices(world):
+    s = join(world, "Wellknown", "12,-2,0", 300, 300)
+    s.connected = True
+    assert s.town_of_map("12,-2,0") == "Ashford" and s.town_of_map("-10,13,-1") == "Galaith"
+    assert s.town_of_map("7,7,-3") == "" and s.rank("Ashford") == "Stranger"
+    keeper = next(e for e in world.ents if e.type == NPC and e.alive and s.town_of_map(e.map) == "Ashford" and
+                  s.shop_rack_of(e))
+    s.clicked_ent = keeper
+    assert s.open_item_rack("SHOP", keeper.name, s.shop_rack_of(keeper))
+    base = s.rack_buy_rate, s.rack_sell_rate
+    s.out.clear()
+    s.change_standing("Ashford", 25)
+    said = [m["text"] for m in s.out if m.get("t") == "msg"]
+    assert any("Ashford thinks better of you" in t and "Welcome" in t for t in said)
+    assert any(m.get("t") == "standing" and m["list"] == [["Ashford", 25, "Welcome"]] for m in s.out)
+    s.out.clear()
+    s.change_standing("Ashford", 3)                                # (no new rank: nothing said)
+    assert not [m for m in s.out if m.get("t") == "msg"]
+    assert s.condition_met("$Standing.Ashford>=28") and s.condition_met("$Standing.Here=28")
+    assert s.open_item_rack("SHOP", keeper.name, s.shop_rack_of(keeper))
+    assert abs(s.rack_buy_rate - base[0] * 0.95) < 1e-9 and abs(s.rack_sell_rate - base[1] * 1.05) < 1e-9
+    s.change_standing("Ashford", -500)                             # (held at the least: an Outlaw)
+    assert s.standing("Ashford") == -100 and s.rank("Ashford") == "Outlaw"
+    assert not s.open_item_rack("SHOP", keeper.name, s.shop_rack_of(keeper))   # (not served)
+    s.change_standing("Ashford", 500)
+    assert s.standing("Ashford") == 100 and s.rank("Ashford") == "Honoured"
+    m = world.maps["11,-1,0"]                                      # (a house that opens to friends of the town)
+    door = next(lk for lk in m.locks if (lk.x, lk.y) == (10, 7))
+    s.lock_cache = {}
+    assert not s.lock_closed(m, door)
+    s.change_standing("Ashford", -60)                              # (40: Welcome, not Trusted)
+    s.lock_cache = {}
+    assert s.lock_closed(m, door)
+    leave(world, s)
+
+
+def test_an_outlaws_town_guards_come_for_them_till_the_fine_is_paid(world):
+    s = join(world, "Wanted", "12,-2,0", 300, 300)
+    other = join(world, "Honest", "12,-2,0", 340, 300)
+    s.connected = True
+    guard = next(e for e in world.ents if e.type == NPC and e.name == "Guard" and not e.npc_id and
+                 s.town_of_map(e.map) == "Ashford")
+    sheriff = next(e for e in world.ents if e.npc_id == "Ashford_Sheriff_325")
+    arena = next(e for e in world.ents if e.npc_id == "Arena_Master")
+    assert not world.hostile_for(guard, s)
+    s.out.clear()
+    s.change_standing("Ashford", -90)
+    assert any("Outlaw" in m["text"] for m in s.out if m.get("t") == "msg")
+    assert world.hostile_for(guard, s) and world.stat_for(guard, s, "aggressive")
+    assert not world.hostile_for(guard, other)                      # (yours alone)
+    assert not world.hostile_for(sheriff, s) and not world.hostile_for(arena, s)   # (the captain; a character)
+    gal = next(e for e in world.ents if e.type == NPC and e.name == "Guard" and s.town_of_map(e.map) == "Galaith")
+    s.change_standing("Galaith", -90)
+    assert not world.hostile_for(gal, s)                            # (Galaith's guards wait for The True Heir)
+    s.update_attribute("KingQuest", "=1")
+    assert world.hostile_for(gal, s)
+    s.update_attribute("KingQuest", "=0")
+    assert not world.hostile_for(gal, s)
+    owed = s.fine_owed("Ashford")
+    assert owed == 50 + 30 * 5
+    s.clicked_ent = sheriff
+    assert s.fine_menu(sheriff) and s.responses[0] != "Pay the fine."    # (too poor to pay)
+    s.native_menu_chosen(len(s.responses))
+    stock(s, **{"Gold_Coin(s)": owed})
+    assert s.fine_menu(sheriff) and s.responses[0] == "Pay the fine."
+    s.native_menu_chosen(1)
+    assert s.items_held("Gold_Coin(s)") == 0 and s.standing("Ashford") == -60 and s.rank("Ashford") == "Distrusted"
+    assert not world.hostile_for(guard, s) and not s.fine_menu(sheriff)  # (talks as ever now)
+    leave(world, other)
+    leave(world, s)
+
+
+def test_caught_thieving_as_the_town_thinks_of_you(world):
+    s = join(world, "Known_Face", "12,-2,0", 300, 300)
+    s.connected = True
+    shop = next(e for e in world.ents if e.type == NPC and e.alive and s.town_of_map(e.map) == "Ashford" and
+                s.shop_rack_of(e))
+    s.change_standing("Ashford", 50)                               # (Trusted)
+    assert s.caught_by_town(shop, "shop") == "warn" and s.standing("Ashford") == 50
+    assert s.caught_by_town(shop, "shop") == 1 and s.standing("Ashford") == 42   # (once a day: then the guard)
+    s.change_standing("Ashford", 40)                               # (Honoured)
+    stock(s, **{"Gold_Coin(s)": 30})
+    assert s.caught_by_town(shop, "shop") == "fine" and s.items_held("Gold_Coin(s)") == 5
+    assert s.caught_by_town(shop, "house") == 1 and s.standing("Ashford") == 62    # (too poor for the fine now)
+    s.change_standing("Ashford", -100)                             # (Distrusted)
+    assert s.caught_by_town(shop, "shop") == 2
+    wild = next(e for e in world.ents if e.type == NPC and e.alive and not e.hostile and e.map.endswith(",0") and
+                not s.town_of_map(e.map))
+    assert s.caught_by_town(wild, "pocket") == 1                   # (no town: nothing to lose)
+    leave(world, s)
+
+
+def test_a_blow_at_a_guard_costs_standing_once_in_a_while(world):
+    s = join(world, "Brawler", "12,-2,0", 300, 300)
+    guard = next(e for e in world.ents if e.type == NPC and e.name == "Guard" and not e.npc_id and
+                 s.town_of_map(e.map) == "Ashford")
+    hp = guard.hp
+    s.damage_npc(guard, 1)
+    s.damage_npc(guard, 1)
+    assert s.standing("Ashford") == -15
+    guard.hp = hp
+    guard.in_combat, guard.target = False, None
+    leave(world, s)
+
+
+def test_a_quests_standing_is_given_once_and_to_old_saves(world):
+    s = join(world, "Smuggled", "12,-2,0", 300, 300)
+    s.update_attribute("SmugglerQuest", "=4")
+    assert s.standing("Court") == 10
+    s.update_attribute("SmugglerQuest", "=4")
+    assert s.standing("Court") == 10                               # (once)
+    old = join(world, "Old_Timer", "12,-2,0", 300, 300)
+    old.attributes = [["SmugglerQuest", "4"], ["ShardsPaid.SmugglerQuest", "1"]]   # (done before standing was kept)
+    old.standing_attr_changed()
+    old.standing_catch_up()
+    old.standing_catch_up()
+    assert old.standing("Court") == 10
+    leave(world, old)
     leave(world, s)

@@ -252,6 +252,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   above your level or not far under it, once a monster a while: standing still near one teaches nothing. Loud thieving (a chest
   forced, a rattle) wakes sleepers near (`wake_sleepers`); asleep, nobody sees your hand. A standing lookout's map
   line can say how often it glances about (`Turn=` seconds; 0 never, but to a sound and back).
+- **Standing** (`dsengine/standing.py`, `data/Towns.ini`, `dev/Roadmap-6.md`): each town thinks of each player
+  from Outlaw to Honoured, its own number for each; it sets their prices there, what its guards do when they're
+  caught (a warning at Trusted, a fine at Honoured, more guards and sooner when Distrusted), and an Outlaw is
+  refused at its shops and hunted by its watch till they pay its captain's fine. A rank change says a line and a
+  sound; points alone say nothing. A theft nobody sees costs nothing. Never a main-quest door or NPC that asks for
+  standing, and Galaith's guards wait for The True Heir.
 - **Thieving** (`dsengine/thieving.py`, `data/Thieving.ini`): pockets by trade, shops' shelves, houses' Valuables
   (about half the houses: `build_stealth.py`); caught, a guard comes (levels above you), seen by everyone but after you
   alone, and that shopkeeper won't serve you a while. **Locks** (`dsengine/locks.py`, `data/Locks.ini`): chests have a

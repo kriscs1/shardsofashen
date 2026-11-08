@@ -657,6 +657,9 @@ def check_condition(where, cond, skills, entities_ini, writes):
                                 err(where, "condition compares %s with %r, which has no sprite" % (v, rhs))
                             elif (entities_ini.get(rhs, "Slot") or "") != name:
                                 err(where, "condition compares %s with %s, whose Slot is %r" % (v, rhs, entities_ini.get(rhs, "Slot")))
+                    elif kind == "Standing":
+                        if name.upper() != "HERE" and name.upper() not in TOWN_KEYS():
+                            err(where, "condition uses %s but there's no [%s] in data\\Towns.ini" % (v, name))
                     elif v not in known:
                         err(where, "condition uses unknown variable %s" % v)
             if op in ("<", ">", "<=", ">=") and not (is_num(rhs) or "$" in rhs):
@@ -764,7 +767,7 @@ def check_scripts(skills, racks):
                     at = "GOTO LINE" if k % 2 == 0 else "RESPONSE"
                 for v in re.findall(r"\$[A-Za-z][A-Za-z0-9.]*[A-Za-z0-9]", a):
                     # $Attr. $Item. $Skill. $Equipped. $Shards. are filled in in any script argument, as in conditions
-                    if v not in variables and not re.match(r"\$(Attr|Item|Skill|Equipped|Shards)\.", v, re.I):
+                    if v not in variables and not re.match(r"\$(Attr|Item|Skill|Equipped|Shards|Standing)\.", v, re.I):
                         err(where, "unknown variable %s" % v)
                 if "$" in a and at not in ("GOTO SCRIPT NAME",):
                     continue
@@ -783,6 +786,12 @@ def check_scripts(skills, racks):
                 elif at in NPC_ARGS:
                     if a not in ENTITIES and a != "$Player.Name":
                         warn(where, "NPC name %r has no sprite in sprites\\Entities" % a)
+                elif at == "TOWN":
+                    if a.upper() != "HERE" and a.upper() not in TOWN_KEYS():
+                        err(where, "no town %r in data\\Towns.ini" % a)
+                elif at == "STANDING CHANGE":
+                    if not is_num(a):
+                        err(where, "Change.Standing's amount %r should be a number (+10, -8)" % a)
                 elif at == "SOUND FILE":
                     if a not in SOUNDS:
                         err(where, "sound %r not found in sounds\\" % a)
@@ -865,6 +874,86 @@ def check_unique_ids():
         where = [w for w, _ in where]
         if oid in ENTITIES or oid in TILES:
             err("Maps", "Id=%s (%s) is also a sprite's name: pick another Id" % (oid, where[0]))
+
+
+def TOWN_KEYS():
+    """The towns of data\\Towns.ini (upper case): what standing is kept with."""
+    global _TOWN_KEYS
+    if _TOWN_KEYS is None:
+        path = p("data", "Towns.ini")
+        _TOWN_KEYS = {s.upper() for s, _ in Ini(path).sections if s.lower() not in ("standing", "ranks")} \
+            if os.path.exists(path) else set()
+    return _TOWN_KEYS
+
+
+_TOWN_KEYS = None
+TOWN_STANDING_KEYS = {"Least", "Most", "Guards", "Depth", "Quest", "Raid", "Bounty", "Project.Per.Gold", "Project.Most",
+                      "Caught", "Caught.House", "Guard.Hit", "Guard.Hit.Minutes", "Guard.Killed", "Warn.Hours",
+                      "Caught.Fine", "Distrusted.Guards", "Fine", "Fine.Per.Point", "Clear.To"}
+RANKS = ("Outlaw", "Distrusted", "Stranger", "Welcome", "Trusted", "Honoured")
+
+
+def check_towns():
+    """data\\Towns.ini: standing's numbers, the ranks (each of them, in order), and each town's maps (boxes that
+    don't overlap) and its captain (an Id on its maps, or a kind there)."""
+    path = p("data", "Towns.ini")
+    if not os.path.exists(path):
+        err(rel(path), "missing: run dev\\migrate\\build_standing.py")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    r = rel(path)
+    for k, v in (ini.section("Standing") or ["", []])[1]:
+        if k is None:
+            continue
+        if k not in TOWN_STANDING_KEYS:
+            warn(r, "[Standing] unknown key %s" % k)
+        elif k == "Guards":
+            for kind in [x.strip() for x in v.split(",") if x.strip()]:
+                if kind not in ENTITIES:
+                    err(r, "[Standing] Guards: no such kind %s" % kind)
+        elif not is_num(v):
+            err(r, "[Standing] %s=%r should be a number" % (k, v))
+    ranks = [(k, v.split()) for k, v in (ini.section("Ranks") or ["", []])[1] if k]
+    if [k for k, _ in ranks] != list(RANKS):
+        err(r, "[Ranks] should be %s, in that order" % ", ".join(RANKS))
+    least = [float(b[0]) for _, b in ranks if b and is_num(b[0])]
+    if least != sorted(least) or any(len(b) != 3 or not all(is_num(x) for x in b) for _, b in ranks):
+        err(r, "[Ranks]: each is the least standing, then buy and sell times, from the lowest up")
+    boxes = []
+    for sec, items in ini.sections:
+        if sec.lower() in ("standing", "ranks"):
+            continue
+        for k, v in items:
+            if k is not None and k not in ("Name", "Maps", "Captain", "Guards.If"):
+                warn(r, "[%s] unknown key %s" % (sec, k))
+        mine = []
+        for part in (ini.get(sec, "Maps") or "").split():
+            b = part.split(",")
+            if len(b) != 4 or not all(re.fullmatch(r"-?\d+", x) for x in b):
+                err(r, "[%s] Maps: %r isn't x1,y1,x2,y2" % (sec, part))
+                continue
+            x1, y1, x2, y2 = (int(x) for x in b)
+            box = (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+            for other, ob in boxes:
+                if box[0] <= ob[2] and ob[0] <= box[2] and box[1] <= ob[3] and ob[1] <= box[3]:
+                    err(r, "[%s] Maps %s overlaps [%s]'s" % (sec, part, other))
+            mine.append(box)
+        if not mine:
+            err(r, "[%s] needs Maps=" % sec)
+        boxes += [(sec, b) for b in mine]
+        cap = ini.get(sec, "Captain") or ""
+        pl = place_of(cap) if cap else None
+        if cap and pl is None and cap not in ENTITIES:
+            err(r, "[%s] Captain=%s is neither an Id on a map nor a kind" % (sec, cap))
+        elif pl is not None:
+            x, y, z = (int(v) for v in pl[1].split(","))
+            if not any(b[0] <= x <= b[2] and b[1] <= y <= b[3] for b in mine):
+                err(r, "[%s] Captain=%s stands on %s, outside the town's Maps" % (sec, cap, pl[1]))
+        cond = ini.get(sec, "Guards.If")
+        if cond:
+            check_condition("%s [%s] Guards.If" % (r, sec), cond, set(), ENTITIES_INI, attribute_writes())
 
 
 COORD_TYPES = {"X COORDINATE,Y COORDINATE", "TARGET X,TARGET Y", "REQUIRED TILE COORDINATES",
@@ -2111,6 +2200,13 @@ def check_quests():
             elif k == "Reward.Shards":
                 if not v.strip().isdigit():
                     err(where, "Reward.Shards=%r should be a whole number of Shards" % v)
+            elif k == "Reward.Standing":                 # (town amount pairs: standing.py, once when it's done)
+                w = v.split()
+                if not w or len(w) % 2 or not all(is_num(x) for x in w[1::2]):
+                    err(where, "Reward.Standing=%r should be pairs of town and amount, e.g. Ashford 10" % v)
+                for t in w[::2]:
+                    if t.upper() not in TOWN_KEYS():
+                        err(where, "Reward.Standing: no town %r in data\\Towns.ini" % t)
             elif k == "Reward.XP":                       # (skill xp pairs, given once when it's done)
                 w = v.replace(",", " ").split()
                 if not w or len(w) % 2 or not all(is_num(x) for x in w[1::2]):
@@ -2519,6 +2615,7 @@ def main():
     check_script_reachability(refs, triggers)
     check_unique_ids()
     check_place_refs()
+    check_towns()
     check_saves(skills)
     check_minimap()
     check_gathering(entities_ini, tiles_ini, skills)

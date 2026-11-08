@@ -4,7 +4,7 @@ The owner's plan of 2026-11-08, in groups. Work down it; tick a box when it's do
 sides and stolen goods come first: the Mending's choices and the other quests are built on them.
 
 ## The owner's decisions
-- **Standing in every town** (the Isle's village and the seventeen of `dev/World Plan.md`), each player's own.
+- **Standing in every town** (the Isle's village, Mirefold and the fourteen of `WorldMap.ini`), each player's own.
 - **An Outlaw can buy their way back**: a fine to the town's guard captain.
 - **Stolen things are marked**; only a fence buys them.
 - **Stance forms stack**: six bound at most, more learnt by quests and their choices; binding a different form
@@ -28,26 +28,31 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
   `[Mending]` for the cult's Shards.
 
 ## 1. Standing (the engine)
-- [ ] `data/Towns.ini`: each town's maps, its guard kind and captain, the ranks (Outlaw, Distrusted, Stranger,
+- [x] `data/Towns.ini`: each town's maps, its guard kind and captain, the ranks (Outlaw, Distrusted, Stranger,
       Welcome, Trusted, Honoured, from -100 to 100; everyone starts a Stranger), each rank's prices, and what each deed
       is worth.
-- [ ] A script's `Change.Standing TOWN AMOUNT` and `$Standing.<Town>`; `Reward.Standing=` in `Quests.ini`;
+- [x] A script's `Change.Standing TOWN AMOUNT` and `$Standing.<Town>`; `Reward.Standing=` in `Quests.ini`;
       `validate.py`.
-- [ ] Shops: a shopkeeper's town and your rank set your price (dearer to 25%, cheaper to 15%; selling the other way);
+- [x] Shops: a shopkeeper's town and your rank set your price (dearer to 25%, cheaper to 15%; selling the other way);
       an Outlaw isn't served.
-- [ ] Guards: Trusted, the first time you're caught in a day a guard warns you instead ("Put it back. I didn't see
+- [x] Guards: Trusted, the first time you're caught in a day a guard warns you instead ("Put it back. I didn't see
       that."); Honoured, a fine instead of a chase; Distrusted, two come, sooner; Outlaw, the town's guards come for
-      you on sight (the foe check, `world.py`), and its gates are shut to you at night.
-- [ ] The fine: the guard captain takes gold for your name, and you're Distrusted again.
-- [ ] Doors: a lock's `Standing=<Town> <at least>`, and a door or two in each town that opens at Trusted (Ashford's
-      guildhall, Oakhollow's rangers' lodge, Galaith's noble quarter after dark...).
-- [ ] What moves it: the town's quests, its raids fought off, its projects given to, its bounty hunts; caught
+      you on sight (the foe check, `world.py`). (A guard who's a character, with a Talk script of their own, isn't
+      the watch and doesn't turn.)
+- [ ] An Outlaw's town gates shut to them at night (left for later: a gate's Lock line with a `$Standing` and an
+      hour condition needs the hour in conditions first).
+- [x] The fine: the guard captain takes gold for your name, and you're Distrusted again.
+- [x] Doors: a lock's condition `$Standing.<Town>>=45` (no new option needed); Ashford's locked house
+      (11,-1,0) opens at Trusted.
+- [ ] More doors that open at Trusted, one in each town, each with something behind it worth the trust (Oakhollow's
+      rangers' lodge, Galaith's noble quarter...): with the towns' quests, groups 4 onwards.
+- [x] What moves it: the town's quests, its raids fought off, its projects given to, its bounty hunts; caught
       thieving, seen breaking in, a hand raised to its guards. A theft nobody sees costs nothing.
-- [ ] The journal's Standing list; a line and a sound in the log when a rank changes ("Ashford thinks better of
+- [x] The journal's Standing list; a line and a sound in the log when a rank changes ("Ashford thinks better of
       you."), never on every point.
-- [ ] Guards' and townsfolk's greetings by rank (`[if $Standing.Ashford>=40]`, `Banter.ini`).
-- [ ] Old saves: the quests already done give their standing once, as the save loads.
-- [ ] Tests for each.
+- [x] Guards' and townsfolk's greetings by rank (`[if $Standing.Ashford>=40]`, `Banter.ini`).
+- [x] Old saves: the quests already done give their standing once, as the save loads.
+- [x] Tests for each.
 
 ## 2. Sides and endings (the engine)
 - [ ] `Side=<Name>` on a kind or a map line; a script's `Set.Side.Attitude <Name> Good|Bad`, each player's own.
@@ -60,12 +65,12 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
       mark wherever it goes (the bank, the ground, a trade, a grave), like an item's wear; marked and unmarked don't
       stack. It shows when you look at it.
 - [ ] No shop buys it and the market won't list it; a **fence** does, for less (`Thieving.ini`). A fence or two in
-      the back streets (Northport's docks, Galaith's lower town, Ravensgate's harbour...); Red Meg pays best, to those
+      the back streets (Northport's docks, Galaith's lower town, the Keep's harbour...); Red Meg pays best, to those
       who sided with her.
 - [ ] Tests.
 
 ## 4. The Smugglers' Run, three ways
-- [ ] **Side with Holt**: lead his men into the cove and fight beside them. Ashford's standing up a lot; the watch's
+- [ ] **Side with Holt**: lead his men into the cove and fight beside them. The Court's standing up a lot (Holt keeps its watch); the watch's
       quartermaster sells to you; the smugglers are foes; Meg is gone, for you.
 - [ ] **The truce** (as now): Meg's deal carried to Holt; a little standing; Meg's shop. Whoever finished it before
       has this.
@@ -76,7 +81,7 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
 
 ## 5. Other choices
 - [ ] **Old Hob**: his savings given back or kept move Oakhollow's standing.
-- [ ] **Bandits on the Road**: the strongbox's goods back to Captain Hale (Highwatch's standing), or to Meg, if you
+- [ ] **Bandits on the Road**: the strongbox's goods back to Captain Hale (Frosthold's standing), or to Meg, if you
       sided with her.
 - [ ] **The Redrock Signet**: to Ambrose (the manor his again, a place to rest), or sold to the bandits (Ambrose
       gone; the bandits at Redrock friendly to you).

@@ -23,7 +23,7 @@ HEADER = """; Banter (dsengine/banter.py): who says what to whom, over their hea
 ; [Groups]: names for kinds of people (Entities.ini names, commas between).
 ; A scene: A, B (a group or kinds), Line1.. (A: or B: and the words, short: they're one line over a head), Sound1.. (played
 ;   with that line), After=Scatter (B runs off). B=Player: said about the player, When= Form (any other shape), a form's
-;   name (Chicken), Sneaking or Hurt.
+;   name (Chicken), Sneaking, Hurt, or their rank in the town they're in (Outlaw, Distrusted, Welcome, Trusted, Honoured).
 ; Never a hint, never a quest: these people don't know anything.
 """
 SETTINGS = [("On", "1"), ("Every.Seconds", "40"), ("Sight.Tiles", "6"), ("Near.Tiles", "5"), ("Beat.Seconds", "2.6"),
@@ -95,6 +95,18 @@ SCENES = {
     "You_Sneak_Trade": scene("Trades", "Player", "A:I'm watching those fingers.", when="Sneaking"),
     "You_Hurt": scene("Townsfolk", "Player", "A:You look dreadful. No offence.", when="Hurt"),
     "You_Hurt_Doctor": scene("Healers", "Player", "A:You want to see someone about that. Me, for instance.", when="Hurt"),
+    # ----- to you, as the town thinks of you (standing.py)
+    "You_Outlaw": scene("Townsfolk", "Player", "A:That's the one the guards want. Don't look!", when="Outlaw"),
+    "You_Outlaw_Trade": scene("Trades", "Player", "A:We're closed. To you, we're closed.", when="Outlaw"),
+    "You_Distrusted": scene("Townsfolk", "Player", "A:Keep your hands where I can see them.", when="Distrusted"),
+    "You_Distrusted_Guard": scene("Guards", "Player", "A:I've got my eye on you.", when="Distrusted"),
+    "You_Distrusted_Trade": scene("Trades", "Player", "A:Coin first, with you.", when="Distrusted"),
+    "You_Welcome": scene("Townsfolk", "Player", "A:Oh, it's you! Good day to you.", when="Welcome"),
+    "You_Trusted": scene("Townsfolk", "Player", "A:Good to have you back.", when="Trusted"),
+    "You_Trusted_Guard": scene("Guards", "Player", "A:All quiet, friend. Mind how you go.", when="Trusted"),
+    "You_Honoured": scene("Townsfolk", "Player", "A:Look who it is! Make way, make way.", when="Honoured"),
+    "You_Honoured_Guard": scene("Guards", "Player", "A:An honour. Go on through.", when="Honoured"),
+    "You_Honoured_Trade": scene("Trades", "Player", "A:For you? A little off, as ever.", when="Honoured"),
 }
 
 

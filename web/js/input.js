@@ -248,7 +248,8 @@ export function mouseDown(button, x, y) {
     if (spellClick(h)) return;
     if (friendClick(h)) return;
     if (skillClick(h)) return;
-    if (h === 400 || h === 401) { J.done = h === 401; J.page = 1; return; }   // (Quests: In hand, or Done)
+    if (h === 400 || h === 401) { J.done = h === 401; J.standing = false; J.page = 1; return; }   // (Quests: In hand, or Done)
+    if (h === 402) { J.standing = true; J.page = 1; return; }                     // (or what the towns think of you)
     if (h >= 100 && h < 100 + QUESTS_SHOWN) {      // (a quest: follow it, its place marked on the maps)
       const q = journalQuests()[(J.page - 1) * QUESTS_SHOWN + h - 100];
       if (q) toggleTracked(q.title);

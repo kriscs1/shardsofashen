@@ -249,22 +249,26 @@ class ThiefMixin:
         self.act_done(True)
 
     def caught(self, e, how):
-        """Caught in the act: they shout; a guard comes for you; a shopkeeper won't serve you a while."""
+        """Caught in the act: they shout; a guard comes for you (or, as the town thinks of you, only warns you, takes
+        a fine, or more come, sooner: standing.py); a shopkeeper won't serve you a while."""
         self.display_message("The %s catches your hand: \"Thief! Guard!\"" % self.display_name(e), "DAMAGE", "Spotted")
         self.end_sneaking()
         self.w.fx({"t": "mark", "kind": "spotted", "u": e.uid}, e.z, e.cx, e.cy, self)
         self.banned_until[self.w.npc_key(e)] = self.now + int(self.thief_num("Pickpocket", "Caught.Minutes", 15) * 60000)
-        self.summon_guard(e)
+        come = self.caught_by_town(e, how)
+        if isinstance(come, int):
+            for k in range(come):
+                self.summon_guard(e, come > 1, k)
         self.act_done(False)
 
-    def summon_guard(self, near):
-        """A guard comes from a little way off, a few levels above you: everyone sees them, and they're after you
-        alone (a foe to you, a guard like any other to the rest)."""
+    def summon_guard(self, near, sooner=False, nth=0):
+        """A guard comes from a little way off (sooner: nearer), a few levels above you: everyone sees them, and
+        they're after you alone (a foe to you, a guard like any other to the rest)."""
         w, p = self.w, self.player
         kind = self.thief_text("Pickpocket", "Guard", "Guard")
-        for r in (96, 128, 64, 160):
+        for r in ((64, 96, 128, 160) if sooner else (96, 128, 64, 160)):
             for k in range(8):
-                ang = k * 0.785
+                ang = (k + nth * 4) * 0.785          # (a second one from the other side)
                 import math
                 x, y = near.cx + math.cos(ang) * r, near.cy + math.sin(ang) * r
                 if w.pixel_walkable(p.z, x, y + 12, self):

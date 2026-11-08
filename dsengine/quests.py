@@ -266,7 +266,7 @@ class QuestMixin:
         gathers = [g for s in (0, 1, 2) for g in gathers if g["status"] == s]
         return {"t": "journal", "crafts": crafts, "gathers": gathers, "quests": self.quest_list(),
                 "spells": self.spellbook(), "friends": self.friends_rows(), "records": self.records_rows(),
-                "skills": self.skill_pages(), "level": self.player_level()}
+                "skills": self.skill_pages(), "level": self.player_level(), "standing": self.standing_list()}
 
     def skill_pages(self):
         """The journal's Skills: each skill (not Hitpoints, which Strength and Defence make), how it's levelled

@@ -25,4 +25,4 @@ NPC	Barmaid	672	152	Attitude=Good Zone=17,5,23,6 Pause=3-9 Id=Ashford_Barmaid_33
 StaticObject	Sign_Pub	736	208
 StaticObject	Notice	640	226	Id=Ashford_Notice_332
 NPC	Rabbit	384	88	Attitude=Passive Zone=8,2,15,3/8,4,8,6/13,4,15,6/8,7,18,8 Chase=8,2,15,3/8,4,8,6/13,4,15,6/8,7,18,8
-Lock	10	7		Locked. Whoever lives here likes it that way.
+Lock	10	7	$Standing.Ashford>=45	Locked. Whoever lives here likes it that way, and only opens it to friends of the town.

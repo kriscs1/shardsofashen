@@ -265,7 +265,7 @@ class ScriptMixin:
                 break
             out.append(text[p:q])
             kind = ""
-            for prefix in ("$attr.", "$item.", "$skill.", "$equipped.", "$shards."):
+            for prefix in ("$attr.", "$item.", "$skill.", "$equipped.", "$shards.", "$standing."):
                 if text[q:q + len(prefix)].lower() == prefix:
                     kind = prefix
                     break
@@ -281,6 +281,10 @@ class ScriptMixin:
                 name, e = name[:-1], e - 1          # (a full stop after it is the sentence's: "you carry $Item.Shard.")
             if kind == "$shards.":
                 value = lbstr(self.shard_setting(name))
+            elif kind == "$standing.":                   # (a town's standing with you: standing.py)
+                value = lbstr(round(self.standing(self.town_named(name)), 2))
+                if self.script_running:
+                    self.script_personal = True
             elif kind == "$attr.":
                 value = self.get_attribute(name) or "0"
                 if self.script_running:
@@ -302,7 +306,7 @@ class ScriptMixin:
         if "$" not in text and "[TAB]" not in text:
             return text
         low = text.lower()
-        if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low or "$shards." in low:
+        if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low or "$shards." in low or                 "$standing." in low:
             text = self.expand_data_variables(text)
         if "$" not in text:
             return text.replace("[TAB]", "\t")
@@ -635,6 +639,9 @@ class ScriptMixin:
             self.block_player()
         elif c == "Update.Skill":
             self.update_skill(arg[1], arg[2])
+        elif c == "Change.Standing":                 # (a town thinks better or worse of you: standing.py)
+            self.script_personal = True
+            self.change_standing(arg[1], val(arg[2]))
         elif c == "Turn.Into":                       # (a form for a while, no one to swap with: tricks.py)
             self.turn_into(trim(arg[1]), val(arg[2]) or 15, arg[3] if len(arg) > 3 else "")
         elif c == "Boost.Skill":                     # (for a while: player_combat.boost_skill)
@@ -1140,8 +1147,11 @@ class ScriptMixin:
             self.attributes[idx][1] = change[1:]
         else:
             self.attributes[idx][1] = lbstr(apply_change(val(self.attributes[idx][1]), change))
-        if not name.upper().startswith(("SHARDSPAID.", "SHARDSGIVEN")):
+        up = name.upper()
+        if not up.startswith(("SHARDSPAID.", "SHARDSGIVEN", "STANDING")):
             self.quest_reward(name, val(self.attributes[idx][1]))           # (a quest done: its rewards, once)
+        if up.startswith("STANDING.") or self.outlaw_any:
+            self.standing_attr_changed()                                    # (a town's guards: standing.py)
         if any(("$attr." + name).lower() in lb["c"].lower() for lb in self.w.map_labels() if lb["c"]):
             self.emit({"t": "labels", "labels": self.my_labels()})       # (a label it shows or hides: the Shardgate)
         self.dirty_me = True
