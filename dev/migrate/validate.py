@@ -1376,6 +1376,7 @@ SHARDS_KEYS = {
     "Shards": {"Start", "Old.Save.Grant", "Cast.Gap", "Shardstone", "Shardstone.Travel", "Chest.Chance", "Chest",
                "Scrolls.Rarer", "Galaith.Seam", "Galaith.Seam.Hours", "Shardfall.Draw", "Shardfall.Draw.Hours",
                "Shardfall.Seal", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Stargazers.Glass", "Shardgate",
+               "Wilds.Rocks", "Wilds.Coffer", "Wilds.Ward", "Wilds.Ice", "Wilds.Fairy",    # (build_wilds.py)
                "Realm.Cluster", "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
     "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost"},
     "Shardcraft": {"Dismantle.XP", "Dismantle.XP.Min", "Shardstone.XP", "Rare.Chance", "Rare.Chance.Per.Level",
@@ -2267,6 +2268,73 @@ class World:
                     todo.append(nb)
         return {(m, sx // R, sy // R) for m, sx, sy in seen}
 
+    def behind(self, lock, seeds, open_reach, most=150000, near=4000):
+        """open_reach - flood(seeds, closed={lock}) worked out from the lock's own doorstep (a house's door: the
+        house, not the world, is flooded). Its sides with the lock shut: a pocket is one that's flooded to its end
+        without a seed and has no way in but the lock (no ladder down into it from elsewhere); the rest must all be one
+        (walked between without ladders, close by), so the seeds that reach the lock reach all of them. None when
+        that can't be shown (a ladder in the lock, a pocket too big, sides apart): then the whole world's flood."""
+        if lock not in open_reach:
+            return set()                                   # (nothing reaches it: shut, it changes nothing)
+        m, tx, ty = lock
+        R = self.R
+        if self.ladder.get(self.tile(m, tx, ty)):
+            return None
+        seed_tiles = set(seeds)
+        inside = {(m, tx * R + cx, ty * R + cy) for cx in range(R) for cy in range(R)}
+        starts = []
+        for c in inside:
+            if self.ok(*c):
+                starts += [nb for nb in self.neighbours(*c) if nb not in inside and self.ok(*nb) and nb not in starts]
+        pockets, others, done = set(), [], set()
+        for s in starts:
+            if s in done:
+                continue
+            seen, todo, big = {s}, [s], False
+            while todo and not big:
+                for nb in self.neighbours(*todo.pop()):
+                    if nb not in seen and nb not in inside and self.ok(*nb):
+                        seen.add(nb)
+                        todo.append(nb)
+                big = len(seen) > most
+            done |= seen
+            tiles = {(a, x // R, y // R) for a, x, y in seen}
+            if big or tiles & seed_tiles or not self.sealed(seen, tiles):
+                others.append(s)
+            else:
+                pockets |= seen
+        if not others:
+            return None                                    # (the lock's a seed itself, or nothing but pockets)
+        rest = [s for s in starts if s not in pockets]
+        seen, todo = {rest[0]}, [rest[0]]                  # (the other sides: one, by plain steps, close by)
+        while todo and len(seen) < near:
+            n = todo.pop()
+            for nb in list(self.neighbours(*n))[:4]:       # (the four plain steps: no ladders)
+                if nb not in seen and nb not in inside and self.ok(*nb):
+                    seen.add(nb)
+                    todo.append(nb)
+        if any(s not in seen for s in rest):
+            return None
+        out = {(a, x // R, y // R) for a, x, y in pockets} & open_reach
+        return out | {lock}
+
+    def sealed(self, cells, tiles):
+        """No way into these tiles but from themselves: every walkable cell of each is in cells, and no ladder from
+        another level comes down (or up) into one of them from outside."""
+        R = self.R
+        for m, tx, ty in tiles:
+            for cx in range(R):
+                for cy in range(R):
+                    c = (m, tx * R + cx, ty * R + cy)
+                    if c not in cells and self.ok(*c):
+                        return False
+            mx, my, mz = (int(v) for v in m.split(","))
+            for dz in (1, -1):
+                other = "%d,%d,%d" % (mx, my, mz + dz)
+                if -dz in self.ladder.get(self.tile(other, tx, ty), ()) and (other, tx, ty) not in tiles:
+                    return False
+        return True
+
 
 ACROSS_THE_WATER = {"Grand_Fountain"}      # (it stands in its pool: its verb's used from the rim)
 
@@ -2379,8 +2447,12 @@ def check_world(tiles_ini, entities_ini, skills):
         if not cond.strip():                            # (shut for good, or only picked: no condition to look behind -
             REPORT.append("%s: lock at %d,%d [] has no condition" % (m, x, y))      # a world's flood each, saved)
             continue
-        shut = world.flood(seeds, closed=frozenset({(m, x - 1, y - 1)}))
-        behind = {n for n in open_reach - shut}
+        behind = world.behind((m, x - 1, y - 1), seeds, open_reach)    # (a house: from its doorstep)
+        if behind is None:
+            shut = world.flood(seeds, closed=frozenset({(m, x - 1, y - 1)}))
+            behind = open_reach - shut
+        else:
+            shut = open_reach - behind
 
         def only_behind(name):
             ps = placements.get(name, [])

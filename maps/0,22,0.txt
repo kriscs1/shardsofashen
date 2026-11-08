@@ -4,8 +4,8 @@ Water001:Desert_Peak006:Desert_Peak_Big001:Desert_Peak_Big002:Desert_Peak005:Des
 Water001:Water001:Desert_Peak_Big003:Desert_Peak_Big004:Desert_Peak006:Desert_Peak001:Desert_Peak001:Sand001:Sand001:Sand001:Sand001:Sand001:Desert_Peak006:Desert_Peak003:Desert_Peak003:Desert_Peak001:Desert_Peak005:Desert_Peak004:Desert_Peak_Big003:Desert_Peak_Big004:Desert_Peak_Big003:Desert_Peak_Big004:Desert_Peak005:Desert_Peak002:Desert_Peak_Big003
 Water001:Water001:Desert_Peak006:Desert_Peak005:Desert_Peak001:Desert_Peak002:Desert_Peak001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Desert_Peak002:Desert_Peak005:Desert_Peak003:Desert_Peak006:Desert_Peak002:Desert_Peak003:Desert_Peak006:Desert_Peak004:Desert_Peak004:Sand001
 Water001:Water001:Sand001:Desert_Peak001:Desert_Peak001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Desert_Peak004:Desert_Peak004:Desert_Peak004:Sand001:Desert_Peak001:Desert_Peak006:Desert_Peak006:Desert_Peak001:Sand001:Sand001
-Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Desert_Peak004:Desert_Peak002:Sand001:Desert_Peak004:Desert_Peak006:Sand001:Sand001:Sand001:Sand001
-Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Desert_Peak004:Desert_Peak002:Sand001:Desert_Peak004:Desert_Peak006:Dirt001:Dirt001:Dirt001:Dirt001
+Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Sand001:Sand001:Sand001
 Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
@@ -19,3 +19,7 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Water001:Water001+Decor(Sea_Rock002):Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Water001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+NPC	Beachcomber	352	184	Attitude=Good Zone=10,6,15,8 Pause=6-14 Id=Salt_Agnes Name=Salt_Agnes
+StaticObject	Message_Bottle	608	256	Id=Castaway_Bottle_1
+StaticObject	Message_Bottle	224	288	Id=Castaway_Bottle_2
+Id	Agnes_Cove	12	8

@@ -19,3 +19,5 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Grass001:Grass001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Grass001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001
+StaticObject	Message_Bottle	512	416	Id=Castaway_Bottle_3
+StaticObject	Castaway_Cairn	640	384

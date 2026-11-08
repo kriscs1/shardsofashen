@@ -7,6 +7,10 @@
   * Arm wrestling at the Green Dragon's arm-wrestling table (Arm_Table): against the innkeeper, or another player
     who's sat down at it, for a stake. Push (tap) to force the arms your way; Strength makes each push count for more.
     First to pin the other's hand down wins; at the bell (ARM_SECONDS), whoever's ahead.
+  * Ringing the rocks (Play.Minigame CHIMES <level> <line if lost>: the Ringing Rocks, build_wilds.py): five rocks,
+    each its own note. A tune is rung on them, a few notes; ring it back, note for note. Then it's rung again, a note
+    longer, until the whole tune (3 + level notes) has been rung back. A wrong note and the tune is rung again from
+    the start of that round; CHIME_SLIPS wrong notes and it's lost. The server picks the tune and judges each note.
 
 MinigameMixin is the player's side (Session); World.arms keeps the bouts."""
 import random
@@ -18,6 +22,9 @@ ARM_SECONDS = 25
 ARM_STAKES = (5, 20, 50)
 PUSH_MS = 70                            # (the fastest a push counts: a dozen a second)
 TAP_LAG = 400                           # (ms a tap may be said to have been made before the server had it: the trip)
+CHIMES = 5                              # (the rocks: notes 1..5, low to high)
+CHIME_FIRST = 3                         # (notes in the first round of a tune)
+CHIME_SLIPS = 3                         # (wrong notes before the tune's lost)
 HOUSE = "the innkeeper"
 
 
@@ -80,20 +87,25 @@ class MinigameMixin:
     def minigame_start(self, kind, level, lost_line):
         """Play.Minigame: the script waits (MINIGAME) till it's won (on to the next line) or lost (lost_line)."""
         kind = kind.strip().upper()
-        if kind != "LOCK":
+        if kind not in ("LOCK", "CHIMES"):
             self.log("ERROR - Script %s: Play.Minigame: no minigame %s" % (self.script_name, kind))
             return
         level = max(1, min(5, int(val(level) or 1)))
-        pins = [{"period": random.randint(1300, 1800) - level * 120, "phase": random.random(),
-                 "band": 0.25 + random.random() * 0.5, "width": max(0.06, 0.15 - level * 0.02)}
-                for _ in range(2 + level)]
         at = self.clicked_ent if self.clicked_ent is not None and self.clicked_ent.alive else self.player
-        self.game = {"game": "lock", "at": at, "phase": "pick", "pins": pins, "pin": 0, "slips": 0, "script": True,
-                     "won": False, "pin_at": self.now}
+        if kind == "CHIMES":
+            tune = [random.randint(1, CHIMES) for _ in range(CHIME_FIRST + level)]
+            self.game = {"game": "chimes", "at": at, "phase": "listen", "tune": tune, "heard": CHIME_FIRST, "got": 0,
+                         "slips": 0, "level": level, "script": True, "won": False}
+        else:
+            pins = [{"period": random.randint(1300, 1800) - level * 120, "phase": random.random(),
+                     "band": 0.25 + random.random() * 0.5, "width": max(0.06, 0.15 - level * 0.02)}
+                    for _ in range(2 + level)]
+            self.game = {"game": "lock", "at": at, "phase": "pick", "pins": pins, "pin": 0, "slips": 0, "script": True,
+                         "won": False, "pin_at": self.now}
         self.script_state = "MINIGAME"
         self.script_result = 0
         self.script_cancel_line = int(val(lost_line))
-        self.game_show(**self.lock_view())
+        self.game_show(**(self.chimes_view() if kind == "CHIMES" else self.lock_view()))
 
     def lock_view(self):
         g = self.game
@@ -127,6 +139,50 @@ class MinigameMixin:
                 self.game_close()
                 return
             self.game_show(slipped=True, **self.lock_view())
+
+    # ----- ringing the rocks
+    def chimes_view(self):
+        """What the browser rings (the tune so far: it rings it, then you ring it back) and how you're doing."""
+        g = self.game
+        return {"tune": g["tune"][:g["heard"]], "got": g["got"], "slips": g["slips"], "most": CHIME_SLIPS,
+                "rounds": len(g["tune"]) - CHIME_FIRST + 1, "round": g["heard"] - CHIME_FIRST + 1,
+                "pace": 640 - g["level"] * 50}
+
+    def chimes_input(self, do, msg):
+        g = self.game
+        if do == "heard" and g["phase"] == "listen":           # (the browser has rung it: over to you)
+            g["phase"] = "ring"
+            return
+        if do != "ring" or g["phase"] not in ("listen", "ring"):
+            return
+        n = int(val(msg.get("n", 0)))
+        if not 1 <= n <= CHIMES:
+            return
+        g["phase"] = "ring"
+        if n == g["tune"][g["got"]]:
+            g["got"] += 1
+            if g["got"] < g["heard"]:
+                return                                          # (right so far: the browser rang it already)
+            if g["heard"] >= len(g["tune"]):                    # (the whole tune, rung back)
+                g["phase"], g["won"] = "done", True
+                self.play_sound("Success")
+                self.game_show(rang=True, **self.chimes_view())
+                self.game_close()
+                return
+            g["heard"] += 1                                     # (a note longer, from the top)
+            g["got"], g["phase"] = 0, "listen"
+            self.game_show(next=True, **self.chimes_view())
+            return
+        g["slips"] += 1
+        g["got"] = 0
+        if g["slips"] >= CHIME_SLIPS:
+            g["phase"] = "done"
+            self.play_sound("Fail")
+            self.game_show(wrong=n, **self.chimes_view())
+            self.game_close()
+            return
+        g["phase"] = "listen"
+        self.game_show(wrong=n, **self.chimes_view())
 
     # ----- arm wrestling
     def arm_table(self, e):

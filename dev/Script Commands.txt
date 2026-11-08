@@ -92,7 +92,7 @@ read it back as $Variable.n.
   $Equipped.Slot             The item worn in Slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or none.
   [TAB]                      The variable used to print a tab character.
 
-COMMANDS (78)
+COMMANDS (79)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -487,8 +487,10 @@ Play.Animation    ANIMATION | TIMES | SOUND
 Play.Minigame    MINIGAME | LEVEL | GOTO LINE IF LOST
     COMMAND: A minigame on the game screen; the script waits for it. Won: on to the next line;
     lost (or walked away from): on at the line given
-    1. MINIGAME: Which: LOCK (picking a lock: set each pin as it crosses the line; three slips and it's lost)
-    2. LEVEL: How hard, 1 to 5 (a lock: 1 is three pins, wide; each level a pin more, and narrower)
+    1. MINIGAME: Which: LOCK (picking a lock: set each pin as it crosses the line; three slips and it's lost),
+         CHIMES (ringing the rocks: five rocks ring a tune, a note more each round; ring it back, three wrong notes and it's lost)
+    2. LEVEL: How hard, 1 to 5 (a lock: 1 is three pins, wide; each level a pin more, and narrower; the rocks: a tune
+         of 3 + LEVEL notes)
     3. GOTO LINE IF LOST: The line that the script continues at if the minigame is lost or left
 
 Play.Sound    SOUND FILE
@@ -519,11 +521,6 @@ Remove.Action.From.Queue    QUEUE ENTRY
          (e.g. REMOVE[TAB]Fire[TAB]StaticObject[TAB]-[TAB]$Map.Name[TAB]X,Y*)
          Use * at the end to match the rest of the entry
 
-Replace.Item    ITEM NAME | REPLACE WITH ITEM
-    COMMAND: One of an item becomes another where it is: in the player's hand (or worn), else in the pack, its wear kept
-    1. ITEM NAME: The name of the item (from sprites\Entities, e.g. Sword_of_Valour)
-    2. REPLACE WITH ITEM: The item it becomes (from sprites\Entities)
-
 Remove.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME
     COMMAND: Removes an entity from the map
     (Entities include items, objects and NPCs)
@@ -537,6 +534,11 @@ Remove.Line.From.File    FILE | LINE TO REMOVE
          (e.g. data\Quests.txt)
     2. LINE TO REMOVE: The line to remove from the file:
          (If part of the line is unknown, use *)
+
+Replace.Item    ITEM NAME | REPLACE WITH ITEM
+    COMMAND: One of an item becomes another where it is: in the player's hand (or worn), else in the pack, its wear kept
+    1. ITEM NAME: The name of the item (from sprites\Entities, e.g. Gold_Coin(s))
+    2. REPLACE WITH ITEM: The item it becomes (from sprites\Entities)
 
 Reveal.BlackOut.Tile    BLACKOUT TILE ID
     COMMAND: Reveals an area of the map (fog of war)

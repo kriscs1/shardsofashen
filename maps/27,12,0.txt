@@ -6,7 +6,7 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Water001:W
 Grass001:Grass001:Ash001:Grass001:Grass001:Grass001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Grass001:Ash001:Ash001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Ash001:Ash001:Ash001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-Ash001:Ash001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
@@ -19,3 +19,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tall_Grass001):Grass001:Sand001:Sand001:Sand001
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+StaticObject	Signal_Pyre	32	224
+Id	Smugglers_Signal	3	9

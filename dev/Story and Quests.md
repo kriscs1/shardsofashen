@@ -329,6 +329,39 @@ Bosses of their own, each with a trophy, and side quests, games and odd folk rou
   Outpost, the **Mirage Trader** (the desert's odd goods; every time you look away he's a little further off), the **Echo Pool** in the Fungus Grotto
   (Listen, then sing its tune back), **Fenn**'s mushrooms at the Delvers' Camp.
 
+### The wild places (`build_wilds.py`)
+
+Something in each of the mainland's empty corners and dead ends, none of it needed by the story:
+
+- **The Ringing Rocks** (1,7: a hollow in the mountains west of Northport): **Tamsin** and five veined stones, each a
+  note. She rings a tune, you ring it back (the CHIMES minigame), a note more each round: three tunes, longer each time
+  (`RingingRocks`: gold, then an emerald, then 8 Shards), then as many as you like for fun.
+- **Abel's Lambs** (`LambQuest`, 5,9): **Abel**'s three lambs got over the river. Catch them (two on the far bank, one
+  up by the bend). Reward: gold, wool, 4 Shards.
+- **The Collier's Clamp** (`CollierQuest`, 6,14): **Hode** wants 5 logs for his charcoal clamp. Coal and gold; after,
+  3 logs for a coal whenever you like.
+- **The Toll-Keeper's Riddles** (`TollRiddles`, 2,14: where the road stops in the woods): the toll-keeper's ghost
+  asks three riddles (a shirt; footsteps; himself). A wrong answer and he sulks a minute. Reward: gold, 6 Shards.
+- **Merrin's Mead** (`BeeQuest`, -9,10): bring **Merrin** 3 honeycombs. Smoke a skep (a tinderbox), then Take Honey
+  within half a minute, or the bees say so. Reward: mead, 4 Shards; honey whenever you like.
+- **The Fen Horn** (-7,8): Blow it, and a coffer comes up out of the black pool for a minute, for everyone (its loot
+  and 5 Shards once each).
+- **The Frog King's Pearl** (`FrogQuest`, -11,4): **Mother Natter** makes you a frog to talk to the Frog King; the heron
+  has his pearl, and a frog can't climb her nest; then a frog again to give it back. Reward: gold, 6 Shards, the
+  fish bite a while.
+- **Pell's Pick** (`DelverQuest`, level 14, -5,8): **Pell**'s ghost in the Stoneways; the wraith in its east tunnel
+  (`Kill Stoneways_Wraith`) has his pick. Reward: a steel pickaxe, gold, 6 Shards.
+- **The Castaway's Letters** (`CastawayQuest`, 0,22 and 1,23): **Salt Agnes** has seen three bottles; Tobin's letters
+  lead to his cairn on the grass by the shore (Dig, a spade). Reward: a ruby, gold, 8 Shards.
+- **The Smugglers' Signal** (27,12): Light the pyre (a tinderbox and 3 logs) and **Marro** rows in and trades for five
+  minutes, for everyone, then rows off.
+- **The Ward-Circle** (21,9): Wake the plinth and hold the circle against wisps and golems (the wave
+  `Ward_Circle_Trial`, once each half hour); 8 Shards the first time it holds.
+- **The Ice-Fishers' Camp** (18,23): **Ulla** and a salmon hole; Chip At the man frozen in the ice (a pickaxe, three
+  goes) for what he held: a sapphire ring, gold, 6 Shards.
+- **Three fairy rings** (19,10, 10,1 and -11,19; not on the world map): Step In one and out of the next; all three
+  and 10 Shards.
+
 ### The Shardfall Deep (level 20 and up)
 
 Under the sea north of Ashford, a great cave where a great Shard fell long ago, and the hold the first

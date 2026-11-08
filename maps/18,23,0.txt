@@ -1,13 +1,13 @@
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak_Big004:Snow_Peak_Big003:Snow_Peak_Big004:Snow_Peak004:Snow001:Snow001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak_Big001:Snow_Peak_Big002:Snow_Peak_Big001:Snow_Peak_Big002:Snow_Peak005:Snow_Peak002:Snow001:Snow001:Snow001
-Snow001:Snow001+Decor(Sea_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak_Big004:Snow_Peak_Big003:Snow_Peak_Big004:Snow_Peak_Big003:Snow_Peak_Big004:Snow_Peak001:Snow001:Snow001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow_Peak005:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001
-Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-Water001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Snow001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
-Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow_Peak_Big004:Snow_Peak_Big003:Snow_Peak_Big004:Snow_Peak004:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow_Peak_Big001:Snow_Peak_Big002:Snow_Peak_Big001:Snow_Peak_Big002:Snow_Peak005:Snow_Peak002:Snow001:Snow001:Snow001
+Snow001:Snow001+Decor(Sea_Rock001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow_Peak_Big004:Snow_Peak_Big003:Snow_Peak_Big004:Snow_Peak_Big003:Snow_Peak_Big004:Snow_Peak001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow_Peak005:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001
+Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Snow001:Snow001:Snow001:Snow001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Ice001:Snow001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Ice001:Ice001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Water001:Snow001:Snow001:Snow001:Snow001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Dirt001:Snow001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
+Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001+Decor(Ice_Hole001):Dirt001:Dirt001:Dirt001:Dirt001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Snow001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Rock001):Snow001:Snow001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Ice001:Ice001:Snow001:Snow001:Snow001:Snow001:Snow001:Snow001+Decor(Snow_Pine001):Water001:Water001:Snow001:Snow001
@@ -19,3 +19,7 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Ice001:Ice001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Ice001:Ice001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Ice001:Ice001:Ice001:Ice001:Ice001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
+StaticObject	Salmon_Spot	352	288
+NPC	Ice_Fisher	512	280	Attitude=Good Stand=1 Face=W Id=Ulla Name=Ulla
+StaticObject	Frozen_Wanderer	384	480
+Id	Ice_Fishers_Camp	16	10

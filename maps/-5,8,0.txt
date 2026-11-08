@@ -19,4 +19,6 @@ Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor
 Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Rubble001:Cave_Floor003
 Cave_Floor002:Cave_Floor003:Cave_Floor001:Cave_Floor001:Stalagmite001:Cave_Floor001:Cave_Floor001+Decor(Pebbles003):Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Puddle001
 Cave_Floor001:Cave_Floor003:Cave_Floor003:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor003:Cave_Floor002:Cave_Floor001:Cave_Floor001:Cave_Floor001:Cave_Floor002:Cave_Floor001
-NPC	Tunnel_Wraith	608	600	Attitude=Bad Zone=17,17,23,21 Chase=13,13,25,21
+NPC	Tunnel_Wraith	608	600	Attitude=Bad Zone=17,17,23,21 Chase=13,13,25,21 Id=Stoneways_Wraith
+NPC	Delver_Ghost	96	408	Attitude=Good Stand=1 Face=E Id=Pell Name=Pell
+Id	Pells_Rest	4	15

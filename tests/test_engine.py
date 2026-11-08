@@ -7875,3 +7875,74 @@ def test_the_wandering_echos_riddles(world):
     talk(echo, 1, 2, 1, 3, 1, 2, 1)                                  # (a Shard; the Shardrealm; under the world)
     assert s.get_attribute("EchoQuest") == "2" and s.shards() == shards + 30 + 45
     leave(world, s)
+
+
+def test_ringing_the_rocks_is_a_minigame(world):
+    s = join(world, "Ringer")
+    lines = ["01\tPlay.Minigame\tCHIMES\t1\t03", "02\tUpdate.Attribute\tRang\t=1", "03\tEnd"]
+    s.out = []
+    assert s.run_script_lines("Chimes Test", lines)
+    s.run_scripts()
+    shown = lambda: [ev for ev in s.out if ev["t"] == "game"][-1]
+    assert shown()["game"] == "chimes" and s.script_state == "MINIGAME"
+    tune = s.game["tune"]
+    assert len(tune) == 4 and s.game["heard"] == 3 and s.game["phase"] == "listen"
+    for heard in (3, 4):                                            # (rung back, then a note longer, from the top)
+        s.game_input({"do": "heard"})
+        for n in tune[:heard]:
+            s.game_input({"do": "ring", "n": n})
+    assert s.game is None
+    s.run_scripts()
+    assert s.get_attribute("Rang") == "1"                           # (won: on to the next line)
+    s.update_attribute("Rang", "0")
+    assert s.run_script_lines("Chimes Test", lines)
+    s.run_scripts()
+    for _ in range(3):                                              # (three wrong notes and the tune's lost)
+        s.game_input({"do": "heard"})
+        s.game_input({"do": "ring", "n": s.game["tune"][0] % 5 + 1})
+    assert s.game is None
+    s.run_scripts()
+    s.run_scripts()
+    assert s.get_attribute("Rang") == "0" and not s.script_running
+    leave(world, s)
+
+
+def test_the_wild_places(world):
+    """build_wilds.py: a lamb caught for Abel, the Fen Horn's coffer (everyone's, its Shards once each), a fairy ring."""
+    def click(s, verb, e):
+        near(world, s, e)
+        s.choose_verb(verb, e, int(e.cx), int(e.cy))
+        run_for(world, 10)
+
+    placed = {e.npc_id for e in world.ents}
+    for pid in ("Tamsin", "Shepherd_Abel", "Hode", "Toll_Keeper_Ghost", "Merrin", "Mother_Natter", "Marsh_Frog_King", "Pell",
+                "Salt_Agnes", "Stoneways_Wraith", "Ulla", "Fairy_Ring_1", "Castaway_Bottle_3"):
+        assert pid in placed, pid
+    s = join(world, "Wanderer")
+    s.connected = True
+    s.update_attribute("LambQuest", "=1")
+    lamb = next(e for e in world.ents if e.npc_id == "Stray_Lamb_1")
+    click(s, "Catch", lamb)
+    assert s.get_attribute("LambQuest") == "2" and s.get_attribute("Lamb1") == "1"
+    click(s, "Catch", lamb)
+    assert s.get_attribute("LambQuest") == "2"                     # (that one's home: not twice)
+    horn = next(e for e in world.ents if e.name == "Fen_Horn" and e.alive)
+    click(s, "Blow", horn)
+    assert not horn.alive or horn not in world.ents
+    coffer = next(e for e in world.ents if e.name == "Fen_Coffer" and e.alive)
+    assert coffer.owner is None                                     # (up for everyone, a minute)
+    shards = s.shards()
+    click(s, "Open", coffer)
+    assert s.ab_mode == "Chest" and s.responses[0] == "Take everything"
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    assert s.shards() > shards and s.get_attribute("FenCoffer") == "1"
+    shards = s.shards()
+    click(s, "Open", coffer)
+    assert s.shards() == shards
+    ring = next(e for e in world.ents if e.npc_id == "Fairy_Ring_1")
+    click(s, "Step In", ring)
+    if s.pending_map:
+        s.do_pending_map_change()
+    assert s.cur_map.name == "10,1,0" and s.get_attribute("FairyRing2") == "1"
+    leave(world, s)

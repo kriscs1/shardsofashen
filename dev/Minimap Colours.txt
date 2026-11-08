@@ -1616,3 +1616,7 @@ Door_Boards001	112 96 76
 Star_Stone001	94 108 70
 Star_Stone002	95 108 71
 Star_Stone003	95 109 69
+Ward_Stone001	99 91 83
+Ward_Stone002	99 90 83
+Ice_Hole001	182 201 211
+Toadstool001	100 98 55

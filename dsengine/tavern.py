@@ -23,7 +23,7 @@ MAX_PLAYERS = 6
 STAKES = (5, 20, 50, 100)
 HOUSE = "the innkeeper"
 GAMES = {"cups": "Three Cups", "highlow": "High or Low", "dice": "Dragon Dice", "lock": "Picking the Lock",
-         "arm": "Arm Wrestling"}                 # (the last two: minigames.py)
+         "arm": "Arm Wrestling", "chimes": "Ringing the Rocks"}       # (the last three: minigames.py)
 REACH = 96                              # (how far from the innkeeper or the table you can play)
 
 
@@ -255,6 +255,9 @@ class TavernMixin:
             return
         if game == "arm":
             self.arm_input(do, msg)
+            return
+        if game == "chimes":
+            self.chimes_input(do, msg)
             return
         if do == "stake" and phase in ("stake", "done"):
             stake = int(val(msg.get("stake", 0)))

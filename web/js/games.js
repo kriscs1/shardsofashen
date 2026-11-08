@@ -1,9 +1,10 @@
 // The game screen: the tavern's games at their own table (dsengine/tavern.py: Three Cups, High or Low, Dragon Dice),
-// picking a lock and arm wrestling (dsengine/minigames.py). The server hides the coin, rolls the dice, keeps the pins'
-// timing and the bout, and says what's on the table ({t: "game"}); this draws the baize, the cups, the coin, the dice,
-// the lock and the arms (sprites/Interface/Game_*), moves them, and sends back the stake, the cup picked, the guess,
-// the moment a pin was set, each push.
+// picking a lock, arm wrestling and ringing the rocks (dsengine/minigames.py). The server hides the coin, rolls the
+// dice, keeps the pins' timing, the bout and the tune, and says what's on the table ({t: "game"}); this draws the baize,
+// the cups, the coin, the dice, the lock, the arms and the rocks (sprites/Interface/Game_*), moves them, rings the tune,
+// and sends back the stake, the cup picked, the guess, the moment a pin was set, each push, each rock rung.
 import { sprite } from "./assets.js";
+import { playSound } from "./audio.js";
 import { send } from "./net.js";
 import { coinHTML } from "./util.js";
 
@@ -14,6 +15,9 @@ const SHUFFLE_MS = 1700, TUMBLE_MS = 900, LIFT_MS = 450;
 const CUP_NAMES = ["left", "middle", "right"];
 const T = { ev: null, at: 0, raf: 0, swaps: [], pinStart: 0, closing: 0, keys: "" };
 const LEAN = 38;                        // (how far the arms lean over, pushed all the way)
+const ROCKS = [[30, 66, 17], [65, 58, 15], [100, 52, 13], [135, 58, 11], [170, 66, 10]];   // (x, y, size: low to high)
+const ROCK_HUES = ["#8a6ad0", "#4f8fd8", "#3fb0a0", "#d0b040", "#e07858"];
+const CH = { ringAt: 0, notes: [], timers: [], lit: [], mine: 0, pace: 600 };   // (the tune being rung; each rock's last ring)
 
 function pinAt(pin, t) {
   // Where a pin is (0 down .. 1 up) t ms after it began (minigames.py pin_at)
@@ -27,7 +31,7 @@ export function onGame(m, now) {
   if (T.closing) { clearTimeout(T.closing); T.closing = 0; }
   if (!m.game) {
     const last = T.ev;                     // (a lock opened, or the pick out of it: a moment to see it, then go)
-    if (last && last.game === "lock") T.closing = setTimeout(() => close(false), 1300);
+    if (last && (last.game === "lock" || last.game === "chimes")) T.closing = setTimeout(() => close(false), 1500);
     else close(false);
     return;
   }
@@ -39,11 +43,12 @@ export function onGame(m, now) {
   }
   T.ev = m;
   T.at = now;
+  if (m.game === "chimes") chimesHeard(m, was, now);
   if (m.game === "cups" && m.phase === "pick") T.swaps = shuffleSwaps();
   if (m.game === "dice" && m.round) T.roundAt = now;
   $("tavern-game").hidden = false;
   $("game-title").textContent = m.title;
-  $("game-gold").innerHTML = coinHTML(`You have ${m.gold} gold.`);
+  $("game-gold").innerHTML = m.game === "lock" || m.game === "chimes" ? "" : coinHTML(`You have ${m.gold} gold.`);   // (no stakes)
   $("game-note").innerHTML = coinHTML(m.note || "");
   buttons(m);
   if (!was) $("game-leave").focus();
@@ -53,6 +58,7 @@ export function onGame(m, now) {
 
 function close(tell) {
   if (tell && T.ev) send({ t: "game", do: "leave" });
+  chimesStop();
   T.ev = null;
   T.keys = "";
   $("tavern-game").hidden = true;
@@ -69,6 +75,9 @@ $("tavern-game").addEventListener("keydown", (ev) => {
   else if (ev.key === " " && T.ev && (T.ev.game === "lock" || T.ev.game === "arm")) {
     ev.preventDefault();
     act();
+  } else if (T.ev && T.ev.game === "chimes" && ev.key >= "1" && ev.key <= "5") {
+    ev.preventDefault();
+    ringRock(+ev.key);
   }
 });
 
@@ -83,9 +92,15 @@ function act() {
 $("game-table").addEventListener("click", (ev) => {
   const m = T.ev;
   if (m && (m.game === "lock" || m.game === "arm")) { act(); return; }
-  if (!m || m.game !== "cups" || m.phase !== "pick" || performance.now() - T.at < SHUFFLE_MS) return;
   const r = ev.target.getBoundingClientRect();
   const x = (ev.clientX - r.left) * W / r.width;
+  if (m && m.game === "chimes") {                  // (the rock nearest the tap: they're a hand's width apart)
+    let best = 0;
+    ROCKS.forEach(([rx], i) => { if (Math.abs(x - rx) < Math.abs(x - ROCKS[best][0])) best = i; });
+    ringRock(best + 1);
+    return;
+  }
+  if (!m || m.game !== "cups" || m.phase !== "pick" || performance.now() - T.at < SHUFFLE_MS) return;
   const n = SLOTS.findIndex((s) => Math.abs(x - s) < 18);
   if (n >= 0) send({ t: "game", do: "pick", n: n + 1 });
 });
@@ -101,6 +116,7 @@ function stakeButtons(m, words) {
 }
 
 function buttons(m) {
+  $("game-leave").textContent = m.game === "lock" || m.game === "chimes" ? "Give up" : "Leave the table";
   wanted = [];
   chooseButtons(m);
   const keys = wanted.map((w) => w[0]).join("|");
@@ -116,7 +132,6 @@ function buttons(m) {
     b.onclick = act;
     box.append(b);
   }
-  $("game-leave").textContent = m.game === "lock" ? "Give up" : "Leave the table";
 }
 
 function chooseButtons(m) {
@@ -154,6 +169,15 @@ function say(m, now) {
     if (m.slipped) return `The pick slips! ${left} more and it's out. Pin ${m.pin + 1} of ${m.pins.length}.`;
     if (m.set) return `Click! A pin sets. Pin ${m.pin + 1} of ${m.pins.length}.`;
     return `Set each pin as it crosses the line (tap, click or Space). Pin ${m.pin + 1} of ${m.pins.length}.`;
+  }
+  if (m.game === "chimes") {
+    if (m.phase === "done") return m.rang ? "The last note hangs in the valley, and the rocks fall still." : "The tune's lost. The rocks hum on, out of step.";
+    const of = m.rounds > 1 ? ` (Round ${m.round} of ${m.rounds}.)` : "";
+    if (chimesRinging(now)) {
+      const left = m.most - m.slips;
+      return (m.wrong ? `A wrong note! ${left} more and the tune's lost. Listen again...` : m.next ? "Right! Now a note longer. Listen..." : "Listen...") + of;
+    }
+    return `Ring it back: tap the rocks (or 1 to 5). ${CH.mine} of ${m.tune.length} notes.` + of;
   }
   if (m.game === "arm") {
     const b = m.bout;
@@ -209,6 +233,7 @@ function frame() {
   else { x.fillStyle = "#26683a"; x.fillRect(0, 0, W, H); }
   if (m.game === "lock") drawLock(x, m, now);
   else if (m.game === "arm") drawArms(x, m, now);
+  else if (m.game === "chimes") drawRocks(x, m, now);
   else if (m.game === "cups") drawCups(x, m, now);
   else if (m.game === "highlow") drawHighLow(x, m, now);
   else drawDragonDice(x, m, now);
@@ -400,4 +425,77 @@ function drawArms(x, m, now) {
   x.fillStyle = "#efe6c8";
   x.fillRect(99, 6, 2, 6);
   label(x, `${b.secs}s`, 100, 15);
+}
+
+// ----- ringing the rocks: five rocks across a valley floor, low notes to high; each glows as it rings
+function chimesStop() {
+  CH.timers.forEach(clearTimeout);
+  CH.timers = [];
+  CH.notes = [];
+}
+
+function chimesRinging(now) {
+  return CH.notes.length > 0 && now < CH.ringAt + CH.notes.length * CH.pace;
+}
+
+function chimesHeard(m, was, now) {
+  // A new round (or the same again after a wrong note): ring the tune, then tell the server it's been heard
+  if (m.phase !== "listen") return;
+  chimesStop();
+  CH.mine = 0;
+  CH.pace = m.pace;
+  CH.notes = m.tune.slice();
+  CH.ringAt = now + (was && was.game === "chimes" ? 900 : 600);   // (a breath first: the last note's still ringing)
+  CH.notes.forEach((n, i) => {
+    CH.timers.push(setTimeout(() => { CH.lit[n] = performance.now(); playSound(`Rock_Chime${n}`); },
+      CH.ringAt - now + i * CH.pace));
+  });
+  CH.timers.push(setTimeout(() => send({ t: "game", do: "heard" }), CH.ringAt - now + CH.notes.length * CH.pace));
+}
+
+function ringRock(n) {
+  const m = T.ev;
+  const now = performance.now();
+  if (!m || m.game !== "chimes" || m.phase === "done" || chimesRinging(now) || CH.mine >= m.tune.length) return;
+  CH.lit[n] = now;
+  playSound(`Rock_Chime${n}`);
+  CH.mine += 1;
+  send({ t: "game", do: "ring", n });
+}
+
+function drawRocks(x, m, now) {
+  const sky = x.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, "#22303e");
+  sky.addColorStop(1, "#2f4a2c");
+  x.fillStyle = sky;
+  x.fillRect(0, 0, W, H);
+  x.fillStyle = "#3b3a44";                             // (the valley's sides)
+  x.beginPath(); x.moveTo(0, 40); x.lineTo(28, 12); x.lineTo(52, 30); x.lineTo(80, 8); x.lineTo(104, 26);
+  x.lineTo(130, 4); x.lineTo(160, 24); x.lineTo(184, 10); x.lineTo(W, 30); x.lineTo(W, 50); x.lineTo(0, 50); x.fill();
+  x.fillStyle = "#3d6a34";
+  x.fillRect(0, 46, W, H - 46);
+  ROCKS.forEach(([cx, cy, r], i) => {
+    const n = i + 1;
+    const glow = Math.max(0, 1 - (now - (CH.lit[n] || -1e9)) / 520);
+    const wrong = m.wrong === n && now - T.at < 700;
+    x.fillStyle = "rgba(0,0,0,0.35)";                  // (its shadow)
+    x.beginPath(); x.ellipse(cx + 2, cy + r * 0.7, r * 1.1, r * 0.35, 0, 0, Math.PI * 2); x.fill();
+    if (glow > 0 || wrong) {
+      x.fillStyle = wrong ? "rgba(230,60,60,0.55)" : ROCK_HUES[i];
+      x.globalAlpha = wrong ? 1 : glow * 0.6;
+      x.beginPath(); x.arc(cx, cy, r * 1.5, 0, Math.PI * 2); x.fill();
+      x.globalAlpha = 1;
+    }
+    x.fillStyle = "#77767e";                           // (the rock: lit from the top left)
+    x.beginPath(); x.ellipse(cx, cy, r, r * 0.8, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "#9897a0";
+    x.beginPath(); x.ellipse(cx - r * 0.3, cy - r * 0.3, r * 0.55, r * 0.4, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = ROCK_HUES[i];                        // (the vein that sings)
+    x.fillRect(cx - r * 0.5, cy + r * 0.1, r, 2);
+    label(x, String(n), cx, cy + r * 0.8 + 3, glow > 0 ? "#ffffff" : "#d8d2b8");
+  });
+  for (let k = 0; k < m.most; k++) {                   // (the wrong notes allowed: little stones, the used ones red)
+    x.fillStyle = k < m.slips ? "#d04040" : "#a0a0a8";
+    x.beginPath(); x.arc(8 + k * 9, 93, 3, 0, Math.PI * 2); x.fill();
+  }
 }
