@@ -8,10 +8,123 @@ import functools
 import os
 import re
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import (MAP_W, MAP_H, Ini, p, read_lines, sprite_names, script_commands,
+from common import (MAP_W, MAP_H, ENC, Ini as _Ini, p, sprite_names, script_commands,
                     script_command_arg_types, script_variables, SPEC_VARIABLES)
+
+
+class Ini(_Ini):
+    """common.Ini, only read here: a section found by its name at once (the maps ask Tiles.ini about every cell)."""
+
+    def section(self, name, create=False):
+        if self.__dict__.get("_n") != len(self.sections):
+            self._index, self._n = {}, len(self.sections)
+            for s in self.sections:
+                self._index.setdefault(s[0].lower(), s)
+        s = self._index.get(name.lower())
+        return s if s is not None or not create else _Ini.section(self, name, create)
+
+
+@functools.lru_cache(maxsize=None)
+def bytes_of(path):
+    """A file's bytes, read once a run (check_raw, then its lines)."""
+    with open(path, "rb") as f:
+        return f.read()
+
+
+@functools.lru_cache(maxsize=None)
+def _lines_of(path):
+    data = bytes_of(path)
+    if data.startswith(b"\xef\xbb\xbf"):
+        data = data[3:]
+    return tuple(data.decode(ENC, errors="replace").replace("\r\n", "\n").replace("\r", "\n").split("\n"))
+
+
+@functools.lru_cache(maxsize=None)
+def _listing(folder):
+    try:
+        return frozenset(os.path.normcase(f) for f in os.listdir(folder))
+    except OSError:
+        return None
+
+
+def exists(path):
+    """os.path.exists, from each folder's listing read once a run (Google Drive is slow asked file by file)."""
+    path = os.path.abspath(path)
+    names = _listing(os.path.dirname(path))
+    return names is not None and os.path.normcase(os.path.basename(path)) in names
+
+
+KEPT_DIR = os.path.join(tempfile.gettempdir(), "ShardsOfAshen-validate")     # (on this PC, not in the game's folder)
+
+
+class Kept:
+    """Answers kept between runs in KEPT_DIR/<name>.json: get(key, make) gives the last run's answer for the same key,
+    else make()'s (a key says everything the answer depends on); save() keeps the ones asked for this run."""
+
+    def __init__(self, name, version):
+        self.path, self.version = os.path.join(KEPT_DIR, name + ".json"), version
+        self.have, self.used, self.new = None, set(), 0
+
+    def get(self, key, make):
+        if self.have is None:
+            import json
+            try:
+                with open(self.path, encoding="utf-8") as f:
+                    old = json.load(f)
+                self.have = old["kept"] if old.get("version") == self.version else {}
+            except (OSError, ValueError, KeyError, TypeError, AttributeError):
+                self.have = {}
+        self.used.add(key)
+        got = self.have.get(key)
+        if got is None:
+            got = self.have[key] = make()
+            self.new += 1
+        return got
+
+    def save(self):
+        import json
+        if not self.new and len(self.have or ()) == len(self.used):
+            return
+        try:
+            os.makedirs(KEPT_DIR, exist_ok=True)
+            with open(self.path + ".tmp", "w", encoding="utf-8") as f:
+                json.dump({"version": self.version, "kept": {k: v for k, v in self.have.items() if k in self.used}},
+                          f, separators=(",", ":"))
+            os.replace(self.path + ".tmp", self.path)
+        except OSError:
+            pass                                           # (nothing kept: the next run works it all out again)
+
+
+PNGS = Kept("pngs", 1)
+
+
+@functools.lru_cache(maxsize=None)
+def _stats(folder):
+    try:
+        return {os.path.normcase(e.name): (e.stat().st_mtime_ns, e.stat().st_size) for e in os.scandir(folder)}
+    except OSError:
+        return {}
+
+
+def png_facts(path):
+    """[width, height, see-through (an RGBA png with a pixel under half opaque)] of a png, kept between runs while the
+    file's time and size are the same (from its folder's listing: opening every sprite on Google Drive is slow)."""
+    path = os.path.abspath(path)
+
+    def make():
+        from PIL import Image
+        with Image.open(path) as im:
+            return [im.width, im.height, im.mode == "RGBA" and im.getchannel("A").getextrema()[0] < 128]
+    st = _stats(os.path.dirname(path)).get(os.path.normcase(os.path.basename(path)))
+    return make() if st is None else PNGS.get("%s|%d|%d" % (os.path.normcase(path), st[0], st[1]), make)
+
+
+def read_lines(path):
+    """common.read_lines, each file read once a run (the maps are asked about again and again); a list of its own."""
+    return list(_lines_of(os.path.normcase(os.path.abspath(path))))
 
 ERRORS, WARNINGS = [], []
 
@@ -36,7 +149,7 @@ SCRIPTS = {f[:-4] for f in os.listdir(SCRIPT_DIR) if f.lower().endswith(".txt")}
 
 def script_nonempty(name):
     path = os.path.join(SCRIPT_DIR, name + ".txt")
-    return os.path.exists(path) and any(l.strip() for l in read_lines(path))
+    return exists(path) and any(l.strip() for l in read_lines(path))
 
 
 def rel(path):
@@ -45,8 +158,7 @@ def rel(path):
 
 # ------------------------------------------------------------------ raw file checks
 def check_raw(path):
-    with open(path, "rb") as f:
-        b = f.read()
+    b = bytes_of(os.path.normcase(os.path.abspath(path)))
     r = rel(path)
     if b.startswith(b"\xef\xbb\xbf"):
         err(r, "has a UTF-8 BOM (GetPrivateProfileString/LB won't read the first line correctly)")
@@ -119,12 +231,7 @@ def see_through_tiles():
     """Tiles whose mask has see-through (white) pixels: they only work as overlays (the ground is painted solid)."""
     global SEE_THROUGH
     if SEE_THROUGH is None:
-        from PIL import Image
-        SEE_THROUGH = set()
-        for t in TILES:
-            im = Image.open(p("sprites", "Tiles", t + ".png"))
-            if im.mode == "RGBA" and im.getchannel("A").getextrema()[0] < 128:
-                SEE_THROUGH.add(t)
+        SEE_THROUGH = {t for t in TILES if png_facts(p("sprites", "Tiles", t + ".png"))[2]}
     return SEE_THROUGH
 
 
@@ -344,7 +451,7 @@ def map_of_tile(home, tx, ty):
         return None if not (1 <= tx <= MAP_W and 1 <= ty <= MAP_H) else (home, tx, ty)
     dx, dy = (tx - 1) // MAP_W, (ty - 1) // MAP_H
     name = "%d,%d,%d" % (mx + dx, my + dy, mz)
-    if not os.path.exists(p("maps", name + ".txt")):
+    if not exists(p("maps", name + ".txt")):
         return None
     return name, tx - dx * MAP_W, ty - dy * MAP_H
 
@@ -369,45 +476,34 @@ def rect_in(inner, outer):
     return outer[0] <= inner[0] and outer[1] <= inner[1] and inner[2] <= outer[2] and inner[3] <= outer[3]
 
 
+_WALKERS = {}
+
+
 def map_walker(lines, tiles_ini):
     """(walk(tx, ty), flood(seed tiles) -> set of tiles), 0-based tiles, for one map: the walkable cells of
     Walkable.Data (7x7 per tile), staying inside the map, with every Lock tile shut (an NPC can't count on a door
-    being open)."""
-    R = 7
-    cells = [[ground_key(c) for c in row.split(":")] for row in lines[:MAP_H]]
+    being open). The map's areas (label_map) are worked out once, however many NPCs ask."""
     locks = set()
     for line in lines[MAP_H:]:
         f = line.split("\t")
         if f[0] == "Lock" and len(f) >= 3 and f[1].isdigit() and f[2].isdigit():
             locks.add((int(f[1]) - 1, int(f[2]) - 1))
-    data = {}
-
-    def sub(sx, sy):
-        tx, ty = sx // R, sy // R
-        if not (0 <= tx < MAP_W and 0 <= ty < MAP_H) or ty >= len(cells) or tx >= len(cells[ty]) or (tx, ty) in locks:
-            return False
-        t = cells[ty][tx]
-        if t not in data:
-            data[t] = tile_walk(tiles_ini, t)
-        return data[t][(sy % R) * R + sx % R] == "1"
+    key = (tuple(lines[:MAP_H]), frozenset(locks), id(tiles_ini))
+    if key in _WALKERS:
+        return _WALKERS[key]
+    masks = map_masks([[ground_key(c) for c in row.split(":")] for row in lines[:MAP_H]], tiles_ini)
+    tiles = areas_of(masks, locks)[1]
 
     def walk(tx, ty):
-        return sub(tx * R + 3, ty * R + 3)
+        return 0 <= tx < MAP_W and 0 <= ty < MAP_H and (tx, ty) not in locks and masks[ty][tx][24] == "1"
 
     def flood(seeds):
-        todo = [(tx * R + cx, ty * R + cy) for tx, ty in seeds for cx in range(R) for cy in range(R)]
-        todo = [c for c in todo if sub(*c)]
-        seen = set()
-        while todo:
-            c = todo.pop()
-            if c in seen:
-                continue
-            seen.add(c)
-            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                nb = (c[0] + dx, c[1] + dy)
-                if nb not in seen and sub(*nb):
-                    todo.append(nb)
-        return {(sx // R, sy // R) for sx, sy in seen}
+        got = set()
+        for tx, ty in seeds:
+            if 0 <= tx < MAP_W and 0 <= ty < MAP_H:
+                got.update(tiles[ty * MAP_W + tx])
+        return {(i % MAP_W, i // MAP_W) for i, here in enumerate(tiles) if here and not got.isdisjoint(here)}
+    _WALKERS[key] = walk, flood
     return walk, flood
 
 
@@ -469,7 +565,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
                 there = p("maps", "%d,%d,%s.txt" % (mx, my, opts[k]))
             except ValueError:
                 there = ""
-            if not there or not os.path.exists(there):
+            if not there or not exists(there):
                 report(where, "%s=%s: there's no map on that level here" % (k, opts[k]))
             elif k == "Bed.Level":
                 with open(there, encoding="cp1252", newline="") as f:
@@ -486,7 +582,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             except ValueError:
                 mx = None
             for v in lv:
-                if mx is None or not os.path.exists(p("maps", "%d,%d,%s.txt" % (mx, my, v.strip()))):
+                if mx is None or not exists(p("maps", "%d,%d,%s.txt" % (mx, my, v.strip()))):
                     report(where, "Zone.Levels=%s: there's no map on level %s here" % (opts["Zone.Levels"], v))
     if "Bed" in opts:                               # (its own bed: the head of a bed on its map, or its Bed.Level's)
         q = opts["Bed"].split(",")
@@ -598,8 +694,25 @@ def key_parts(key):
     return key.split("+")[0], (m.group(1) if m else "")
 
 
+_TILE_WALK = {}
+
+
 def tile_walk(tiles_ini, key):
     """Walkable.Data of a tile, or of a ground_key: the tile's and its decor's together (walkable where both are)."""
+    got = _TILE_WALK.get((id(tiles_ini), key))
+    if got is None:
+        got = _TILE_WALK[(id(tiles_ini), key)] = _tile_walk(tiles_ini, key)
+    return got
+
+
+def map_masks(cells, tiles_ini):
+    """A map's MAP_H rows of MAP_W tile masks, from its ground_keys (a missing cell walks as a wall)."""
+    wall = "0" * 49
+    return [[tile_walk(tiles_ini, row[tx]) if tx < len(row) else wall for tx in range(MAP_W)]
+            for row in (cells[ty] if ty < len(cells) else [] for ty in range(MAP_H))]
+
+
+def _tile_walk(tiles_ini, key):
     tile, decor = key_parts(key)
     d = tiles_ini.get(tile, "Walkable.Data", "1" * 49)
     d = d if re.fullmatch(r"[01]{49}", d or "") else "1" * 49
@@ -756,7 +869,7 @@ def check_scripts(skills, racks):
             elif cmd == "Display.Message":
                 if len(args) not in (2, 3):                    # (COLOUR, MESSAGE, and a sound to go with it if any)
                     err(where, "Display.Message takes a colour, a message and maybe a sound; has %d args" % len(args))
-                elif len(args) == 3 and args[2] not in ("", "-") and not os.path.exists(os.path.join(p("sounds"), args[2] + ".wav")):
+                elif len(args) == 3 and args[2] not in ("", "-") and not exists(os.path.join(p("sounds"), args[2] + ".wav")):
                     err(where, "Display.Message's sound %r is not in Sounds" % args[2])
             elif len(args) != want:
                 err(where, "%s takes %d args, has %d" % (cmd, want, len(args)))
@@ -882,7 +995,7 @@ def TOWN_KEYS():
     if _TOWN_KEYS is None:
         path = p("data", "Towns.ini")
         _TOWN_KEYS = {s.upper() for s, _ in Ini(path).sections if s.lower() not in ("standing", "ranks")} \
-            if os.path.exists(path) else set()
+            if exists(path) else set()
     return _TOWN_KEYS
 
 
@@ -897,7 +1010,7 @@ def check_towns():
     """data\\Towns.ini: standing's numbers, the ranks (each of them, in order), and each town's maps (boxes that
     don't overlap) and its captain (an Id on its maps, or a kind there)."""
     path = p("data", "Towns.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing: run dev\\migrate\\build_standing.py")
         return
     check_raw(path)
@@ -1027,7 +1140,7 @@ def check_script_reachability(references, triggers):
             if s.startswith(v + " ") and (s[len(v) + 1:] in names or re.fullmatch(r"\[[A-Za-z]+\]", s[len(v) + 1:])
                                           or s[len(v) + 1:] in with_id):
                 ok = True
-        if os.path.exists(p("maps", s + ".txt")):
+        if exists(p("maps", s + ".txt")):
             ok = True    # map-entry script
         if s.endswith(" Skill"):
             ok = True    # run when that skill is clicked in the stat box
@@ -1079,7 +1192,7 @@ def check_config(tiles_ini):
     if ini.get("Interface", "Map.X.Tiles", "25").strip() != str(MAP_W) or ini.get("Interface", "Map.Y.Tiles", "21").strip() != str(MAP_H):
         warn(r, "Map.X.Tiles/Map.Y.Tiles differ from the %dx%d the maps use" % (MAP_W, MAP_H))
     sm = ini.get("Gameplay", "Start.Map", "")
-    if not os.path.exists(p("maps", sm + ".txt")):
+    if not exists(p("maps", sm + ".txt")):
         err(r, "Start.Map %r has no map file" % sm)
     else:
         try:
@@ -1089,14 +1202,14 @@ def check_config(tiles_ini):
         except (TypeError, ValueError, IndexError) as e:
             err(r, "bad start position (%s)" % e)
     music = ini.get("Sounds", "Music", "")
-    if music and not os.path.exists(p("sounds", music)):
+    if music and not exists(p("sounds", music)):
         err(r, "music %r not in sounds\\" % music)
     skills = [s.strip() for s in ini.get("Skills", "List", "").split(",") if s.strip()]
     for sk in skills:                     # the StatBox tiles' icons (any sprite; none = the name in letters)
         icon = (ini.get("Skills", "Icon." + sk) or "").strip()
         if not icon:
             warn(r, "[Skills] Icon.%s missing: its StatBox tile shows letters" % sk)
-        elif not any(os.path.exists(p("sprites", f, icon + ".png")) for f in ("Entities", "Interface", "Tiles")):
+        elif not any(exists(p("sprites", f, icon + ".png")) for f in ("Entities", "Interface", "Tiles")):
             err(r, "[Skills] Icon.%s=%s has no sprite" % (sk, icon))
     return skills
 
@@ -1187,7 +1300,7 @@ def check_tile_sets():
     Small); every tile in one is there. And the terrains the editor paints (Kind=Terrain: its ground tiles, the decor
     and creatures scattered over it, each with a weight; build_terrains.py)."""
     path = p("data", "TileSets.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         return
     check_raw(path)
     check_ini_syntax(path)
@@ -1251,7 +1364,7 @@ def check_terrain(r, sec, keys):
             if w and not is_num(w):
                 err(r, "[%s] %s: %r - the weight after * should be a number" % (sec, k, part))
             if k == "Entities":
-                if not os.path.exists(p("sprites", "Entities", name + ".png")):
+                if not exists(p("sprites", "Entities", name + ".png")):
                     err(r, "[%s] Entities: %r has no sprite in sprites\\Entities" % (sec, name))
             elif name not in TILES:
                 err(r, "[%s] %s: %r has no sprite in sprites\\Tiles" % (sec, k, name))
@@ -1270,10 +1383,9 @@ def check_terrain(r, sec, keys):
 def footprint_fits(name, data):
     """An object's footprint is 7 cells to 32 pixels each way of its sprite."""
     path = p("sprites", "Entities", name + ".png")
-    if not os.path.exists(path):
+    if not exists(path):
         return True
-    from PIL import Image
-    w, h = Image.open(path).size
+    w, h = png_facts(path)[:2]
     return len(data) == max(1, round(w * 7 / 32)) * max(1, round(h * 7 / 32))
 
 
@@ -1488,7 +1600,7 @@ DEEP_KEYS = {"Floors", "Shift.Minutes", "Rooms", "Chests", "Secrets", "Traps", "
 def check_deep():
     """data\\Deep.ini (the Shifting Deep: dsengine/deep.py): known keys, numbers or lo-hi, loot of real items."""
     path = p("data", "Deep.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing (dev\\migrate\build_deep.py writes it)")
         return
     check_raw(path)
@@ -1515,7 +1627,7 @@ def check_shards(entities_ini):
     """data\\Shards.ini: every Shard number. Its keys are known ones and numbers (lo-hi where a range is meant); a
     spell's [Upgrade.<Spell>] is a spell there is, its Scroll.<rank> an item with Spell= and Rank= saying so."""
     path = p("data", "Shards.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing (dev\\migrate\\build_shards.py writes it)")
         return
     check_raw(path)
@@ -1576,7 +1688,7 @@ def check_carts():
     """data\Carts.ini: each route's points (or nodes, and the Order they're taken in) on maps there are, inside them,
     on one level; two stops at least."""
     path = p("data", "Carts.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         return
     check_raw(path)
     check_ini_syntax(path)
@@ -1604,7 +1716,7 @@ def check_carts():
                 if pt is None:
                     err(r, "[%s] %s=%r should be MAP,X,Y[,Stop name]" % (sec, k, v))
                     continue
-                if not os.path.exists(p("maps", pt[0] + ".txt")):
+                if not exists(p("maps", pt[0] + ".txt")):
                     err(r, "[%s] %s: there's no map %s" % (sec, k, pt[0]))
                 if not (1 <= pt[1] <= MAP_W and 1 <= pt[2] <= MAP_H):
                     err(r, "[%s] %s: tile %d,%d isn't on a map" % (sec, k, pt[1], pt[2]))
@@ -1639,7 +1751,7 @@ def check_carts():
 def check_digging():
     """data\\Digging.ini: its finds are items, their how many,weight right; a place's Maps= are maps there are."""
     path = p("data", "Digging.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         return
     check_raw(path)
     check_ini_syntax(path)
@@ -1676,7 +1788,7 @@ def check_digging():
 def check_encounters(racks):
     """data\\Encounters.ini: each kind an NPC there is, its rack, its sounds."""
     path = p("data", "Encounters.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing: run dev\\migrate\\build_encounters.py")
         return
     check_raw(path)
@@ -1696,14 +1808,14 @@ def check_encounters(racks):
             err(r, "[%s] Attitude must be Good or Bad" % sec)
         for key in ("Sound", "Message.Sound"):
             v = ini.get(sec, key)
-            if v and v != "-" and not os.path.exists(p("sounds", v + ".wav")):
+            if v and v != "-" and not exists(p("sounds", v + ".wav")):
                 err(r, "[%s] %s=%s: there's no sounds\\%s.wav" % (sec, key, v, v))
 
 
 def check_banter():
     """data\\Banter.ini: each scene's kinds there are (or its [Groups]), its lines' speakers and sounds."""
     path = p("data", "Banter.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing: run dev\\migrate\\build_banter.py")
         return
     check_raw(path)
@@ -1734,14 +1846,14 @@ def check_banter():
                     err(r, "[%s] %s=%r should be A: or B: and the words" % (sec, k, v))
                 elif len(v) > 62:
                     err(r, "[%s] %s is too long for one line over a head" % (sec, k))
-            elif k and re.fullmatch(r"Sound\d+", k) and not os.path.exists(p("sounds", v.strip() + ".wav")):
+            elif k and re.fullmatch(r"Sound\d+", k) and not exists(p("sounds", v.strip() + ".wav")):
                 err(r, "[%s] %s=%s: there's no such sound" % (sec, k, v))
 
 
 def check_skill_words(skills):
     """data\\Skills.ini: the journal's Skills page, how each skill is levelled (Trains=) and Opens.N=<level> <what>."""
     path = p("data", "Skills.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing: the journal's Skills page needs how each skill is levelled")
         return
     check_raw(path)
@@ -1764,7 +1876,7 @@ def check_skill_words(skills):
 
 def check_itemracks(entities_ini, skills):
     path = p("data", "ItemRacks.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         err(rel(path), "missing")
         return set()
     check_raw(path)
@@ -1813,7 +1925,7 @@ def check_itemracks(entities_ini, skills):
 
 def check_saves(skills):
     for path in (p("data", "NewCharacter.ini"),):     # (a new character's start)
-        if not os.path.exists(path):
+        if not exists(path):
             err(rel(path), "missing")
             continue
         check_raw(path)
@@ -1824,7 +1936,7 @@ def check_saves(skills):
             if ini.get("Player", k) is None:
                 err(r, "[Player] %s missing" % k)
         m = ini.get("Player", "Map", "")
-        if not os.path.exists(p("maps", m + ".txt")):
+        if not exists(p("maps", m + ".txt")):
             err(r, "map %r doesn't exist" % m)
         for s in skills:
             if ini.get("Skills", s) is None:
@@ -1854,7 +1966,7 @@ def check_saves(skills):
         for k, v in (ini.section("Explored") or ["", []])[1]:
             if k == "Maps":
                 for mm in v.split():
-                    if not os.path.exists(p("maps", mm + ".txt")):
+                    if not exists(p("maps", mm + ".txt")):
                         warn(r, "explored map %r doesn't exist" % mm)
 
 
@@ -1885,7 +1997,7 @@ def check_minimap():
 def script_lines(name):
     """[(command, [args])] of a script, or [] when missing (read once: every quest asks about every script)."""
     path = os.path.join(SCRIPT_DIR, name + ".txt")
-    if not os.path.exists(path):
+    if not exists(path):
         return []
     out = []
     for line in read_lines(path):
@@ -1946,7 +2058,7 @@ GATHER_KEYS = ["Gives", "Source", "Verb", "Tool", "Skill", "Level", "XP", "Where
 def check_gathering(entities_ini, tiles_ini, skills):
     """data\\Gathering.ini: items, sources, tools and skills exist, and the script for each source gives the items."""
     path = p("data", "Gathering.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         warn(rel(path), "missing (the Help screen lists gathering from it)")
         return
     check_raw(path)
@@ -2034,7 +2146,7 @@ def check_spells(entities_ini, skills):
     """data\\Spells.ini: every spell's scroll exists and points back to it (Spell=, Use.Words with Cast), the Effect is
     known, its numbers parse, and its missile / impact animation / sound files exist. Every item with Spell= has one."""
     path = p("data", "Spells.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         warn(rel(path), "missing (spell scrolls can't be cast)")
         return
     check_raw(path)
@@ -2102,7 +2214,7 @@ def check_spells(entities_ini, skills):
         if sound and sound not in SOUNDS:
             err(where, "Sound %r is not in Sounds" % sound)
         m = (ini.get(sec, "Map") or "").replace(" ", "")
-        if m and not os.path.exists(p("maps", m + ".txt")):
+        if m and not exists(p("maps", m + ".txt")):
             err(where, "Map %r doesn't exist" % m)
     for sec, items in entities_ini.sections:
         sp = (entities_ini.get(sec, "Spell") or "").strip()
@@ -2125,7 +2237,7 @@ def check_quests():
     """data\\Quests.ini: the giver exists, the attribute (and every $Attribute in the stage texts) is set by a
     script, there is a Stage for every value below Done, and scripts set each stage value and Done."""
     path = p("data", "Quests.ini")
-    if not os.path.exists(path):
+    if not exists(path):
         warn(rel(path), "missing (the Help screen lists quests from it)")
         return
     check_raw(path)
@@ -2177,7 +2289,7 @@ def check_quests():
                             err(where, "%s: %r is not a place ID (an Id line on a map, or an Id=)" % (k, bits[0]))
                     elif len(bits) != 3 or not re.fullmatch(r"-?\d+,-?\d+,-?\d+", bits[0]) or not all(b.isdigit() for b in bits[1:]):
                         err(where, "%s: %r is not '<map> <tile x> <tile y>'" % (k, part))
-                    elif not os.path.exists(p("maps", bits[0] + ".txt")):
+                    elif not exists(p("maps", bits[0] + ".txt")):
                         err(where, "%s: map %s doesn't exist" % (k, bits[0]))
                     elif not (1 <= int(bits[1]) <= MAP_W and 1 <= int(bits[2]) <= MAP_H):
                         err(where, "%s: tile %s,%s is off the map" % (k, bits[1], bits[2]))
@@ -2268,7 +2380,7 @@ _sprite_size = {}
 def sprite_size(name):
     if name not in _sprite_size:
         path = p("sprites", "Entities", name + ".png")
-        if os.path.exists(path):
+        if exists(path):
             from common import read_bmp
             w, h, _ = read_bmp(path)
             _sprite_size[name] = (w, h // 2)
@@ -2283,14 +2395,96 @@ def entity_tile(name, x, y):
     return int((x + w / 2) // 32), int((y + h - 1) // 32)
 
 
+RUN_RE = re.compile("1+")
+AREAS = Kept("areas", 1)    # (bump the number when label_map changes: every map's areas are worked out again)
+
+
+def areas_of(masks, shut=()):
+    """label_map(masks, shut), kept between runs for a map whose walking (and shut tiles) are the same as last time:
+    only the maps that changed are worked out again."""
+    import hashlib
+    h = hashlib.sha1(("".join(m for row in masks for m in row) + repr(sorted(shut))).encode("ascii")).hexdigest()
+    return AREAS.get(h, lambda: label_map(masks, shut))
+
+
+def save_kept():
+    """What was worked out this run, for the next."""
+    REPORT.append("areas: %d of %d maps' walking worked out, the rest as last run" % (AREAS.new, len(AREAS.used)))
+    for kept in (AREAS, PNGS):
+        kept.save()
+SIDES = {"E": (1, 0, "W"), "W": (-1, 0, "E"), "S": (0, 1, "N"), "N": (0, -1, "S")}
+
+
+def label_map(masks, shut=()):
+    """One map's walkable areas: its cells (7x7 a tile, each tile's Walkable.Data) that join by plain steps on the map.
+    masks are MAP_H rows of MAP_W tile masks; shut, tiles (x, y) walked as walls. Returns [n, tiles, border]: how
+    many areas; for each tile (y * MAP_W + x) the areas in it; and for each side (W and E a cell row each, N and S
+    a cell column each) the area at that edge cell, or -1. Rows of cells are taken as runs of walkable cells, and a
+    run joins the runs above it that it touches (a union-find), so it's quick."""
+    R, WC = World.R, MAP_W * World.R
+    zero = "0" * R
+    parent = []
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    rows, prev = [], []
+    for ty in range(MAP_H):
+        mrow = [zero * R if (tx, ty) in shut else masks[ty][tx] for tx in range(MAP_W)]
+        for cy in range(R):
+            line = "".join(m[cy * R:cy * R + R] for m in mrow)
+            cur = []
+            i = 0
+            for mt in RUN_RE.finditer(line):
+                s, e = mt.span()
+                rid = len(parent)
+                parent.append(rid)
+                while i < len(prev) and prev[i][1] <= s:
+                    i += 1
+                j = i
+                while j < len(prev) and prev[j][0] < e:
+                    a, b = find(rid), find(prev[j][2])
+                    if a != b:
+                        parent[a] = b
+                    j += 1
+                cur.append((s, e, rid))
+            rows.append(cur)
+            prev = cur
+    names = {}
+    tiles = [set() for _ in range(MAP_W * MAP_H)]
+    border = {"W": [-1] * (MAP_H * R), "E": [-1] * (MAP_H * R), "N": [-1] * WC, "S": [-1] * WC}
+    for sy, cur in enumerate(rows):
+        base = (sy // R) * MAP_W
+        for s, e, rid in cur:
+            a = names.setdefault(find(rid), len(names))
+            for tx in range(s // R, (e - 1) // R + 1):
+                tiles[base + tx].add(a)
+            if s == 0:
+                border["W"][sy] = a
+            if e == WC:
+                border["E"][sy] = a
+            if sy == 0:
+                border["N"][s:e] = [a] * (e - s)
+            if sy == len(rows) - 1:
+                border["S"][s:e] = [a] * (e - s)
+    return [len(names), [sorted(t) for t in tiles], border]
+
+
 class World:
     """Walking graph of every map at the resolution of Walkable.Data (7x7 cells per tile): walkable cells, map edges
-    and ladders (any walkable cell of a ladder tile leads to the same tile one level up/down). flood() starts from
-    tiles (the start position, fixed Teleport targets) and returns the set of (map, tile x, tile y) it reaches."""
+    and ladders (any walkable cell of a ladder tile leads to the same tile one level up/down). Each map's cells are
+    taken as areas (cells that join by plain steps on that map: label_map), kept between runs for each map whose
+    walking hasn't changed (AREAS); the world is then a small graph of areas, joined at the maps' edges and by
+    ladders. flood() starts from tiles (the start position, fixed Teleport targets) and returns the set of (map, tile
+    x, tile y) it reaches; behind() what a lock alone keeps (the world walked again with just its tile shut, which
+    only means that map's areas worked out again)."""
     R = 7
 
     def __init__(self, tiles_ini):
-        self.cells, self.ents = {}, {}
+        self.cells, self.ents, self.tiles_ini = {}, {}, tiles_ini
         for f in os.listdir(p("maps")):
             m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.txt", f)
             if not m:
@@ -2310,6 +2504,85 @@ class World:
                                  for w in (tiles_ini.get(n, "Use.Words") or "").split(",")]
                         dz = tuple(d for d, v in ((1, "Climb Up"), (-1, "Climb Down")) if v in words)
                         self.ladder[t] = dz or LADDER_FALLBACK.get(base, ())
+        self.ladders = {name: [(ty * MAP_W + tx, self.ladder[t]) for ty, row in enumerate(cells)
+                               for tx, t in enumerate(row[:MAP_W]) if self.ladder.get(t)]
+                        for name, cells in self.cells.items()}
+        self.areas = {name: areas_of(self.masks(name)) for name in self.cells}
+        self.adj = {}
+        for name in self.areas:
+            self.adj.update(self.out_edges(name, self.areas.get))
+        self.open_nodes = None
+
+    def masks(self, name):
+        return map_masks(self.cells[name], self.tiles_ini)
+
+    def out_edges(self, name, look):
+        """{(map, area): {(map, area)...}}: where each of the map's areas leads, its maps' areas as look gives them."""
+        A = look(name)
+        if A is None:
+            return {}
+        n, tiles, border = A
+        out = {(name, a): set() for a in range(n)}
+        mx, my, mz = (int(v) for v in name.split(","))
+        for side, (dx, dy, opp) in SIDES.items():
+            other = "%d,%d,%d" % (mx + dx, my + dy, mz)
+            B = look(other)
+            if B is None:
+                continue
+            theirs = B[2][opp]
+            for i, a in enumerate(border[side]):
+                if a >= 0 and theirs[i] >= 0:
+                    out[(name, a)].add((other, theirs[i]))
+        for idx, dzs in self.ladders.get(name, ()):
+            for dz in dzs:
+                other = "%d,%d,%d" % (mx, my, mz + dz)
+                B = look(other)
+                if B is None or not B[1][idx]:
+                    continue
+                for a in tiles[idx]:
+                    out[(name, a)].update((other, b) for b in B[1][idx])
+        return out
+
+    def walk_from(self, seeds, shut=None):
+        """The areas reached from the seed tiles, and the areas each map has: the world's own, or with the tile
+        shut (only its map's areas change, and only it and the maps beside it lead anywhere new)."""
+        look, override = self.areas.get, {}
+        if shut is not None and shut[0] in self.areas:
+            m0 = shut[0]
+            mine = areas_of(self.masks(m0), {(shut[1], shut[2])})
+
+            def look(name, _a=self.areas, _m=m0, _mine=mine):
+                return _mine if name == _m else _a.get(name)
+            mx, my, mz = (int(v) for v in m0.split(","))
+            for dx, dy, dz in ((0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+                override.update(self.out_edges("%d,%d,%d" % (mx + dx, my + dy, mz + dz), look))
+        seen, todo = set(), []
+        for m, tx, ty in seeds:
+            A = look(m)
+            if A is None or (m, tx, ty) == shut or not (0 <= tx < MAP_W and 0 <= ty < MAP_H):
+                continue
+            todo += [(m, a) for a in A[1][ty * MAP_W + tx]]
+        adj = self.adj
+        while todo:
+            node = todo.pop()
+            if node in seen:
+                continue
+            seen.add(node)
+            todo += [nb for nb in (override[node] if node in override else adj.get(node, ())) if nb not in seen]
+        return seen, look
+
+    @staticmethod
+    def tiles_of(nodes, look):
+        """The tiles of these areas (a tile is reached when any of its walkable cells is)."""
+        by = {}
+        for m, a in nodes:
+            by.setdefault(m, set()).add(a)
+        out = set()
+        for m, got in by.items():
+            for idx, here in enumerate(look(m)[1]):
+                if here and not got.isdisjoint(here):
+                    out.add((m, idx % MAP_W, idx // MAP_W))
+        return out
 
     def tile(self, m, tx, ty):
         cells = self.cells.get(m)
@@ -2317,119 +2590,39 @@ class World:
             return None
         return cells[ty][tx]
 
-    def ok(self, m, sx, sy):
-        t = self.tile(m, sx // self.R, sy // self.R)
-        return t is not None and self.walk.get(t, "1" * 49)[(sy % self.R) * self.R + sx % self.R] == "1"
-
-    def neighbours(self, m, sx, sy):
-        R, W, H = self.R, MAP_W * self.R, MAP_H * self.R
-        mx, my, mz = (int(v) for v in m.split(","))
-        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            nx, ny, nm = sx + dx, sy + dy, m
-            if nx < 0:
-                nm, nx = "%d,%d,%d" % (mx - 1, my, mz), W - 1
-            elif nx >= W:
-                nm, nx = "%d,%d,%d" % (mx + 1, my, mz), 0
-            elif ny < 0:
-                nm, ny = "%d,%d,%d" % (mx, my - 1, mz), H - 1
-            elif ny >= H:
-                nm, ny = "%d,%d,%d" % (mx, my + 1, mz), 0
-            yield nm, nx, ny
-        for dz in self.ladder.get(self.tile(m, sx // R, sy // R), ()):
-            for cx in range(R):
-                for cy in range(R):
-                    yield "%d,%d,%d" % (mx, my, mz + dz), (sx // R) * R + cx, (sy // R) * R + cy
-
     def tile_neighbours(self, m, tx, ty):
-        mx, my, mz = (int(v) for v in m.split(","))
         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             yield m, tx + dx, ty + dy
 
-    def flood(self, seeds, closed=frozenset()):
-        """seeds and closed are (map, tile x, tile y); returns the tiles reached."""
-        R = self.R
-        seen = set()
-        todo = []
-        for m, tx, ty in seeds:
-            if (m, tx, ty) in closed:
-                continue
-            todo += [(m, tx * R + cx, ty * R + cy) for cx in range(R) for cy in range(R) if self.ok(m, tx * R + cx, ty * R + cy)]
-        while todo:
-            n = todo.pop()
-            if n in seen:
-                continue
-            seen.add(n)
-            for nb in self.neighbours(*n):
-                if nb not in seen and (nb[0], nb[1] // R, nb[2] // R) not in closed and self.ok(*nb):
-                    todo.append(nb)
-        return {(m, sx // R, sy // R) for m, sx, sy in seen}
+    def flood(self, seeds, closed=None):
+        """seeds are (map, tile x, tile y), closed one such tile walked as a wall; returns the tiles reached."""
+        nodes, look = self.walk_from(seeds, closed)
+        if closed is None:
+            self.open_nodes = nodes
+        return self.tiles_of(nodes, look)
 
-    def behind(self, lock, seeds, open_reach, most=150000, near=4000):
-        """open_reach - flood(seeds, closed={lock}) worked out from the lock's own doorstep (a house's door: the
-        house, not the world, is flooded). Its sides with the lock shut: a pocket is one that's flooded to its end
-        without a seed and has no way in but the lock (no ladder down into it from elsewhere); the rest must all be one
-        (walked between without ladders, close by), so the seeds that reach the lock reach all of them. None when
-        that can't be shown (a ladder in the lock, a pocket too big, sides apart): then the whole world's flood."""
+    def behind(self, lock, seeds, open_reach):
+        """The tiles a lock alone keeps: reached with it open (open_reach, flood(seeds) just before), not with it
+        shut. Only the lock's map is told apart tile by tile; anywhere else, by areas lost."""
         if lock not in open_reach:
             return set()                                   # (nothing reaches it: shut, it changes nothing)
-        m, tx, ty = lock
-        R = self.R
-        if self.ladder.get(self.tile(m, tx, ty)):
-            return None
-        seed_tiles = set(seeds)
-        inside = {(m, tx * R + cx, ty * R + cy) for cx in range(R) for cy in range(R)}
-        starts = []
-        for c in inside:
-            if self.ok(*c):
-                starts += [nb for nb in self.neighbours(*c) if nb not in inside and self.ok(*nb) and nb not in starts]
-        pockets, others, done = set(), [], set()
-        for s in starts:
-            if s in done:
-                continue
-            seen, todo, big = {s}, [s], False
-            while todo and not big:
-                for nb in self.neighbours(*todo.pop()):
-                    if nb not in seen and nb not in inside and self.ok(*nb):
-                        seen.add(nb)
-                        todo.append(nb)
-                big = len(seen) > most
-            done |= seen
-            tiles = {(a, x // R, y // R) for a, x, y in seen}
-            if big or tiles & seed_tiles or not self.sealed(seen, tiles):
-                others.append(s)
-            else:
-                pockets |= seen
-        if not others:
-            return None                                    # (the lock's a seed itself, or nothing but pockets)
-        rest = [s for s in starts if s not in pockets]
-        seen, todo = {rest[0]}, [rest[0]]                  # (the other sides: one, by plain steps, close by)
-        while todo and len(seen) < near:
-            n = todo.pop()
-            for nb in list(self.neighbours(*n))[:4]:       # (the four plain steps: no ladders)
-                if nb not in seen and nb not in inside and self.ok(*nb):
-                    seen.add(nb)
-                    todo.append(nb)
-        if any(s not in seen for s in rest):
-            return None
-        out = {(a, x // R, y // R) for a, x, y in pockets} & open_reach
-        return out | {lock}
+        m0 = lock[0]
+        nodes, look = self.walk_from(seeds, lock)
+        lost = {nd for nd in self.open_nodes if nd[0] != m0 and nd not in nodes}
+        out = self.tiles_of(lost, self.areas.get)
+        here = {t for t in open_reach if t[0] == m0}
+        out |= here - self.tiles_of({nd for nd in nodes if nd[0] == m0}, look)
+        return out
 
-    def sealed(self, cells, tiles):
-        """No way into these tiles but from themselves: every walkable cell of each is in cells, and no ladder from
-        another level comes down (or up) into one of them from outside."""
-        R = self.R
-        for m, tx, ty in tiles:
-            for cx in range(R):
-                for cy in range(R):
-                    c = (m, tx * R + cx, ty * R + cy)
-                    if c not in cells and self.ok(*c):
-                        return False
-            mx, my, mz = (int(v) for v in m.split(","))
-            for dz in (1, -1):
-                other = "%d,%d,%d" % (mx, my, mz + dz)
-                if -dz in self.ladder.get(self.tile(other, tx, ty), ()) and (other, tx, ty) not in tiles:
-                    return False
-        return True
+
+class Without:
+    """open_reach less what's behind a lock, without making the set (only `in` is asked of it)."""
+
+    def __init__(self, reach, behind):
+        self.reach, self.behind = reach, behind
+
+    def __contains__(self, t):
+        return t in self.reach and t not in self.behind
 
 
 ACROSS_THE_WATER = {"Grand_Fountain"}      # (it stands in its pool: its verb's used from the rim)
@@ -2493,8 +2686,8 @@ def other_sources():
 
 def check_world(tiles_ini, entities_ini, skills):
     """Locks: their conditions, and reachability. With every lock open, every map entity should be reachable from
-    the start (or a fixed Teleport target). For each lock, what lies only behind it is worked out (flood fill with
-    just that lock shut); it's a problem when a quest's giver is only reachable through a lock that needs that
+    the start (or a fixed Teleport target). For each lock, what lies only behind it is worked out (the world walked
+    with just that lock shut: World.behind); it's a problem when a quest's giver is only reachable through a lock that needs that
     quest's attribute, when a lock needs a quest to be done and something the quest needs is only behind it, or when
     a lock needs $Item.X and X is only found behind it (and can't be bought, crafted, dropped or given)."""
     writes = attribute_writes()
@@ -2541,14 +2734,10 @@ def check_world(tiles_ini, entities_ini, skills):
     sources = other_sources()
     for m, x, y, cond, msg, where in LOCKS:
         if not cond.strip():                            # (shut for good, or only picked: no condition to look behind -
-            REPORT.append("%s: lock at %d,%d [] has no condition" % (m, x, y))      # a world's flood each, saved)
+            REPORT.append("%s: lock at %d,%d [] has no condition" % (m, x, y))      # the world walked again)
             continue
-        behind = world.behind((m, x - 1, y - 1), seeds, open_reach)    # (a house: from its doorstep)
-        if behind is None:
-            shut = world.flood(seeds, closed=frozenset({(m, x - 1, y - 1)}))
-            behind = open_reach - shut
-        else:
-            shut = open_reach - behind
+        behind = world.behind((m, x - 1, y - 1), seeds, open_reach)
+        shut = Without(open_reach, behind)
 
         def only_behind(name):
             ps = placements.get(name, [])
@@ -2630,6 +2819,7 @@ def main():
     check_banter()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)
+    save_kept()
     if not quiet:
         for line in REPORT:
             print("INFO    " + line)

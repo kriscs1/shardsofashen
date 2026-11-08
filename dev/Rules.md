@@ -864,6 +864,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - New `Entities.ini` or `Tiles.ini` keys, script commands or map options must be added to
   `dev/migrate/validate.py`.
+- **The validator stays quick** (under half a minute): each file is read once a run, and a file's existence comes
+  from its folder's listing. The world's walking is each map's areas (`label_map`) joined at map edges and ladders;
+  a lock is checked by working out only its own map again. Each map's areas and each sprite's size are kept between
+  runs (`Kept`, in the PC's temp folder, never the game's folder) while the map or file is unchanged. A change to
+  `label_map` bumps the number in `AREAS = Kept("areas", N)`.
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.
 - **The world's clock is UTC** (`clock_ms`, `clock_seconds`: from 1901, as LB's were), never local time: the clocks
   going back an hour must never make a wait an hour longer. A world saved before (no `"clock": "utc"`) is shifted once
