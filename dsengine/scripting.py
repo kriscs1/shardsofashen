@@ -351,6 +351,8 @@ class ScriptMixin:
             ("$Player.Level", lbstr(self.player_level())),
             ("$World.Season", self.w.seasons.current()),
             ("$World.Night", lbstr(self.w.wonders.night_number())),
+            ("$World.Dark", "1" if self.w.is_night() else "0"),                # (night now: DayNight.ini [Night])
+            ("$World.Hour", lbstr(self.w.hour())),                              # (0 to 23, the world's clock)
             ("$World.Champion", self.w.wonders.champion or "-"),
             ("$Tax.Due", lbstr(self.w.wonders.tax_due(self))),
             ("$Player.Malaria", "1" if "Malaria" in self.diseases else "0"),

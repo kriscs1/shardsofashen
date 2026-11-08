@@ -8685,6 +8685,26 @@ def test_a_stance_form_counts_only_in_its_stance_and_within_its_limits(world):
     assert t.forms_learnt == saved["forms"]["learnt"] and t.forms_bound == ["Fighting.Shieldwall"]
 
 
+def test_stance_and_form_tips_are_in_numbers_with_your_forms(world):
+    s = join(world, "Tipped", "0,0,10", 12 * 32, 4 * 32)
+    tips = s.stance_state()["stance_tips"]
+    assert tips["Fighting"] == ["accuracy +15%, damage +15%, defence +15%",
+                                "magic in a blow hurts +30%, drains and poisons last +50%"]
+    assert "50% to shrug off a drain or poison" in tips["Channelling"][0] and "pace -20%" in tips["Channelling"][1]
+    assert tips["Sneaking"][0].startswith("heard from ") and "pace -55%" in tips["Sneaking"][1]
+    s.learn_form("Fighting", "Shieldwall")
+    s.learn_form("Channelling", "Wardkeeper")
+    tips = s.stance_tips()                                     # (the stance's numbers times its bound forms)
+    assert "defence +61%" in tips["Fighting"][0] and "monsters within 5 tiles come for you first" in tips["Fighting"][0]
+    assert "pace -20%" in tips["Fighting"][1] and "80% to shrug off a drain or poison" in tips["Channelling"][0]
+    forms = {f[1]: f[3] for f in s.forms_state()}              # (a form alone: its own change, and what it makes)
+    assert forms["Shieldwall"] == "defence +40%, monsters within 5 tiles come for you first, pace -20%"
+    assert forms["Wardkeeper"] == "wards and boosts last +100%, 80% to shrug off a drain or poison"
+    r = s.form_figures(s.form_def("Fighting.Reckless"))
+    assert ("a kill: damage +20% and pace +30% for 4s", True) in r and ("defence -20%", False) in r
+    leave(world, s)
+
+
 def test_binding_a_form_is_paid_at_a_shardstone_and_six_at_most(world):
     s = by_stone(world, "Binder")
     for f in ("Fighting.Shieldwall", "Fighting.Reckless", "Fighting.Duellist", "Fighting.Dirty_Fighting",
@@ -9143,3 +9163,148 @@ def test_the_mending_on_the_road_in_the_mine_and_after_it_all(world):
     s.update_attribute("EldestEnd", "=2")                           # (or a splinter kept: they stay)
     assert not seen("Chapel_Penitent_1")
     leave(world, s)
+
+
+def test_an_outlaws_town_gate_is_barred_to_them_at_night(world):
+    s = join(world, "Night_Owl", "21,4,0", 300, 300)
+    s.connected = True
+    m = world.maps["21,5,0"]
+    gate = next(lk for lk in m.locks if (lk.x, lk.y) == (12, 17))
+    t0 = world.day_fraction()
+    try:
+        world.set_day_fraction(0.0)                                # (midnight)
+        assert s.condition_met("$World.Dark=1") and s.condition_met("$World.Hour=0")
+        s.lock_cache = {}
+        assert not s.lock_closed(m, gate)                          # (not an Outlaw: open by night)
+        s.change_standing("Court", -90)                            # (an Outlaw: shut at once)
+        assert s.lock_closed(m, gate) and "barred for the night" in s.lock_words(gate)
+        world.set_day_fraction(0.5)                                # (noon)
+        assert s.condition_met("$World.Dark=0") and s.condition_met("$World.Hour=12")
+        s.clock_locks()                                            # (a new hour: looked at again)
+        assert not s.lock_closed(m, gate)
+        ward = world.maps["16,3,0"]
+        wgate = next(lk for lk in ward.locks if (lk.x, lk.y) == (13, 3))
+        s.change_standing("Wardhaven", -90)
+        s.lock_cache = {}
+        assert s.lock_closed(ward, wgate) and "Nobody answers" in s.lock_words(wgate)   # (not let in yet)
+        s.update_attribute("WardhavenQuest", "=3")
+        s.lock_cache = {}
+        assert not s.lock_closed(ward, wgate)                      # (by day)
+        world.set_day_fraction(0.0)
+        s.lock_cache = {}
+        assert s.lock_closed(ward, wgate) and "barred for the night" in s.lock_words(wgate)
+    finally:
+        world.set_day_fraction(t0)
+    leave(world, s)
+
+
+def test_a_trusted_door_in_northport_and_its_chest_once(world):
+    m = world.maps["2,7,0"]
+    door = next(lk for lk in m.locks if (lk.x, lk.y) == (12, 7))
+    chest = next(e for e in world.ents if e.npc_id == "Trusted_Chest_Northport")
+    s = join(world, "Harbour_Friend", "2,7,0", 300, 300)
+    s.connected = True
+    s.lock_cache = {}
+    assert s.lock_closed(m, door)
+    s.change_standing("Northport", 45)                             # (Trusted: opens without being asked again)
+    assert not s.lock_closed(m, door)
+    near(world, s, chest, 0, 30)
+    s.do_action("Open", chest)
+    run_for(world, 10)
+    assert s.ab_mode == "Chest"                                    # (not locked: left for you)
+    s.action_box_response_chosen(1)                                # Take everything
+    assert s.items_held("Wardbound_Sealskin_Boots") == 1 and s.items_held("Teleport_Scroll") >= 2
+    gold = s.items_held("Gold_Coin(s)")
+    s.do_action("Open", chest)                                     # (once only)
+    run_for(world, 10)
+    assert s.items_held("Gold_Coin(s)") == gold and s.items_held("Wardbound_Sealskin_Boots") == 1
+    s.change_standing("Northport", -20)
+    assert s.lock_closed(m, door)
+    leave(world, s)
+
+
+def mainlander(world, name, map_name):
+    s = join(world, name, map_name, 300, 300)
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+    return s
+
+
+def test_the_deserter_told_or_let_go(world):
+    s = mainlander(world, "Teller", "26,19,0")
+    choice_talk(world, s, "Keep_Sergeant_Brask", 1)               # "I'll look."
+    assert s.get_attribute("DeserterQuest") == "1"
+    choice_talk(world, s, "Deserter_Pip", 2)                       # "Brask will hear of this."
+    choice_talk(world, s, "Keep_Sergeant_Brask")
+    assert s.get_attribute("DeserterQuest") == "3" and s.standing("Keep") == 15
+    assert "back in the levy" in ending_of(s, "The Deserter")
+    leave(world, s)
+    s = mainlander(world, "Kind_Heart", "26,19,0")
+    choice_talk(world, s, "Keep_Sergeant_Brask", 1)
+    stock(s, **{"Gold_Coin(s)": 40})
+    choice_talk(world, s, "Deserter_Pip", 1)                       # "Here's 40 gold. Go."
+    assert s.get_attribute("DeserterQuest") == "3" and s.items_held("Gold_Coin(s)") == 0
+    assert s.standing("Keep") == -10 and "carter's cart" in ending_of(s, "The Deserter")
+    assert world.placed_entity("Saltmarsh_Pip", s) is not None    # (he's in Saltmarsh now)
+    leave(world, s)
+
+
+def test_the_dry_spring_bribed_or_broken(world):
+    s = mainlander(world, "Bribed", "3,21,0")
+    choice_talk(world, s, "Dunerest_Elder_Sabra", 1)
+    dam = world.placed_entity("Dunerest_Dam", s)
+    near(world, s, dam, 0, 30)
+    s.do_action("Break", dam)                                      # (found: the spring's dammed)
+    run_for(world, 10)
+    assert s.get_attribute("WellQuest") == "2"
+    choice_talk(world, s, "Water_Seller_Corvin", 1)                # "Done. Give me the gold."
+    assert s.get_attribute("WellQuest") == "4" and s.standing("Dunerest") == -10
+    assert "by the cup" in ending_of(s, "The Dry Spring") and world.placed_entity("Dunerest_Dam", s) is not None
+    leave(world, s)
+    s = mainlander(world, "Breaker", "3,21,0")
+    choice_talk(world, s, "Dunerest_Elder_Sabra", 1)
+    dam = world.placed_entity("Dunerest_Dam", s)
+    near(world, s, dam, 0, 30)
+    s.do_action("Break", dam)
+    run_for(world, 10)
+    s.do_action("Break", dam)                                      # (pulled down)
+    run_for(world, 10)
+    assert s.get_attribute("WellQuest") == "3" and world.placed_entity("Dunerest_Dam", s) is None
+    choice_talk(world, s, "Dunerest_Elder_Sabra")
+    assert s.get_attribute("WellQuest") == "4" and s.standing("Dunerest") == 15
+    assert "runs to Dunerest's well" in ending_of(s, "The Dry Spring")
+    leave(world, s)
+
+
+def test_the_eel_traps_blamed_or_mended(world):
+    s = mainlander(world, "Blamer", "11,23,0")
+    choice_talk(world, s, "Eel_Catcher_Morwen", 1)
+    choice_talk(world, s, "Saltmarsh_Tobin", 1)
+    choice_talk(world, s, "Eel_Catcher_Morwen")
+    assert s.get_attribute("EelQuest") == "4" and s.standing("Saltmarsh") == 5
+    assert "uncle inland" in ending_of(s, "The Eel Traps")
+    leave(world, s)
+    s = mainlander(world, "Mender", "11,23,0")
+    choice_talk(world, s, "Eel_Catcher_Morwen", 1)
+    choice_talk(world, s, "Saltmarsh_Tobin", 2)
+    stock(s, Plank=3)
+    choice_talk(world, s, "Eel_Catcher_Morwen", 1)                 # "Share your catch with him."
+    assert s.get_attribute("EelQuest") == "4" and s.items_held("Plank") == 0 and s.standing("Saltmarsh") == 15
+    assert "shares her catch" in ending_of(s, "The Eel Traps")
+    leave(world, s)
+
+
+def test_marsh_fever_paid_off_or_run_out(world):
+    for name, answer, standing, words in (("Paid_Off", 1, -15, "still sells his cure"),
+                                          ("Run_Out", 2, 15, "real tonic")):
+        s = mainlander(world, name, "-6,4,0")
+        choice_talk(world, s, "Mirefold_Healer_Bryony", 1)
+        stock(s, **{"Gold_Coin(s)": 20})
+        choice_talk(world, s, "Doctor_Pallister", 1)               # (a cure, for 20 gold)
+        assert s.items_held("Pallisters_Cure") == 1 and s.items_held("Gold_Coin(s)") == 0
+        choice_talk(world, s, "Mirefold_Healer_Bryony")            # (she knows it for what it is)
+        assert s.get_attribute("FeverQuest") == "3" and s.items_held("Pallisters_Cure") == 0
+        choice_talk(world, s, "Doctor_Pallister", answer)
+        assert s.get_attribute("FeverQuest") == "4" and s.standing("Mirefold") == standing
+        assert words in ending_of(s, "Marsh Fever")
+        leave(world, s)

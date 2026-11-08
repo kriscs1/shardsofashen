@@ -39,13 +39,14 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
       that."); Honoured, a fine instead of a chase; Distrusted, two come, sooner; Outlaw, the town's guards come for
       you on sight (the foe check, `world.py`). (A guard who's a character, with a Talk script of their own, isn't
       the watch and doesn't turn.)
-- [ ] An Outlaw's town gates shut to them at night (left for later: a gate's Lock line with a `$Standing` and an
-      hour condition needs the hour in conditions first).
+- [x] An Outlaw's town gates shut to them at night: `$World.Dark` and `$World.Hour` in conditions, locks looked at
+      again each hour; the Court's and Wardhaven's gates (`build_town_choices.py`).
 - [x] The fine: the guard captain takes gold for your name, and you're Distrusted again.
 - [x] Doors: a lock's condition `$Standing.<Town>>=45` (no new option needed); Ashford's locked house
       (11,-1,0) opens at Trusted.
-- [ ] More doors that open at Trusted, one in each town, each with something behind it worth the trust (Oakhollow's
-      rangers' lodge, Galaith's noble quarter...): with the towns' quests, groups 4 onwards.
+- [x] More doors that open at Trusted, one in each town, each with a chest left for the town's friends behind it
+      (`build_town_choices.py`; the validator checks nothing behind one can be reached another way). Not on the
+      Isle: its houses are the tutorial's.
 - [x] What moves it: the town's quests, its raids fought off, its projects given to, its bounty hunts; caught
       thieving, seen breaking in, a hand raised to its guards. A theft nobody sees costs nothing.
 - [x] The journal's Standing list; a line and a sound in the log when a rank changes ("Ashford thinks better of
@@ -94,7 +95,8 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
       Archivist never trusts you again.
 - [x] **The Old Grove** (new, Oakhollow): a timber merchant wants it felled, Ranger Ash wants it kept. Felled: a
       sawmill (cheap planks). Kept: rare herbs and the rangers' lodge. The village is split: each way pleases some.
-- [ ] More towns' choices as they're thought of: each town should have at least one quest that moves its standing.
+- [x] More towns' choices: each town has at least one quest that moves its standing (the Keep's The Deserter,
+      Dunerest's The Dry Spring, Saltmarsh's The Eel Traps, Mirefold's Marsh Fever: `build_town_choices.py`).
 
 ## 6. Stance forms
 Each stance (Fighting, Channelling, Sneaking) has forms, taught by people round the world as quest rewards, some only

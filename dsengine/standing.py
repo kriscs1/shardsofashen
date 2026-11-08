@@ -159,6 +159,7 @@ class StandingMixin:
         was, now = self.rank_of(old)[0], self.rank_of(new)[0]
         self.update_attribute("Standing." + town, "=" + lbstr(round(new, 2)))
         self.emit({"t": "standing", "list": self.standing_list()})
+        self.check_locks(True)                          # (a Trusted door, an Outlaw's gate)
         if was == now:
             return
         name = self.town_title(town)

@@ -213,7 +213,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.lock_bump_time = 0
         self.lock_cache = {}
         self.lock_seen = {}
-        self.lock_cells = {}                # (map, x, y) -> the Unlocked.Tile this player sees there
+        self.lock_hour = None               # (the hour, and night or not, their locks were last looked at for)
+        self.lock_cells = {}              # (map, x, y) -> the Unlocked.Tile this player sees there
         self.personal_cells = {}            # (map, x, y) -> a cell spec: their quest's own Change.Tile
         self.cell_override = {}             # (map, x, y) -> (tile, decor, walk, los): the two above, worked out
         self.hidden_uids = set()            # world entities their quest took away (for them)
@@ -740,6 +741,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.sleep_state:
             return
         self.update_script_move()
+        self.clock_locks()
         self.stance_tick()
         self.sneak_tick()
         self.thief_tick()
@@ -884,10 +886,35 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         now = self.now
         key = (m.name, lk.n)
         if key != self.lock_bump_last or now - self.lock_bump_time > 1500 or now < self.lock_bump_time:
-            self.display_message(lk.message, "FAIL")
+            self.display_message(self.lock_words(lk), "FAIL")
             self.play_sound("Locked")
         self.lock_bump_last = key
         self.lock_bump_time = now
+
+    def lock_words(self, lk):
+        """What a shut lock says: its message, or the first of its messages (split by " | ") whose [if CONDITION] at
+        the end is true for you (one without a condition: always). An Outlaw at a town's gate after dark is told so."""
+        if " | " not in lk.message:
+            return lk.message
+        last = ""
+        for part in lk.message.split(" | "):
+            part = trim(part)
+            at = part.lower().rfind("[if ")
+            if at < 0 or not part.endswith("]"):
+                return part
+            last = trim(part[:at])
+            if self.condition_met(part[at + 4:-1]):
+                return last
+        return last
+
+    def clock_locks(self):
+        """A new hour (or dusk, or dawn): locks whose condition asks the time ($World.Dark, $World.Hour) looked at
+        again."""
+        h = (self.w.hour(), self.w.is_night())
+        if h != self.lock_hour:
+            if self.lock_hour is not None:
+                self.check_locks(True)
+            self.lock_hour = h
 
     def check_map(self):
         """Which map the player is on now: a new one has its entry script run and its locks looked at."""
@@ -1076,8 +1103,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         level that picks it, 0 if it can't be)."""
         if self.cur_map is None:
             return []
-        return [[m.name, lk.x, lk.y, lk.message, lk.pick] for m in self.w.neighbours(self.cur_map) for lk in m.locks
-                if self.lock_closed(m, lk)]
+        return [[m.name, lk.x, lk.y, self.lock_words(lk), lk.pick] for m in self.w.neighbours(self.cur_map)
+                for lk in m.locks if self.lock_closed(m, lk)]
 
     def cell_names(self, m, x, y):
         return self.w.cell_names(m, x, y, self)

@@ -679,6 +679,31 @@ than frightening. It never says anything Mary's letter didn't.
 **With company.** All of it is each player's own: the disguise, the choices, Annis, the Whisper. A party at the same
 stage reaches a story moment together, and the Eldest gets more health for each fighter, as every boss does.
 
+### The towns' own choices (`build_town_choices.py`)
+
+Each is after Passage to the Mainland, gives 8 Shards, and has two ways, each moving its town's standing (`Ending=`).
+
+**The Deserter** (King Rupert's Keep): Sergeant Brask, outside the Keep, wants Pip, a farm boy run from the levy.
+Pip hides in the woods south of the Keep (`Here.After=DeserterQuest:1`). `DeserterWay`:
+* **Told** (1): back to Brask, 60 gold; Keep +15.
+* **Let go** (2): give Pip 40 gold for a carter's cart south; Keep -10. He turns up in Saltmarsh, and gives you two
+  fish pies once.
+
+**The Dry Spring** (Dunerest): Elder Sabra's well has run low. North of the village, Corvin the water seller has dammed
+its spring (`Dunerest_Dam`, Break). `WellWay`:
+* **Bribed** (1): Corvin pays 100 gold to leave it; the dam stays; Dunerest -10.
+* **Broken** (2): pull the dam down (`WellDamDown`), back to Sabra, 50 gold; Dunerest +15.
+
+**The Eel Traps** (Saltmarsh): someone's been cutting Morwen the eel catcher's traps. It's Tobin, the boy next door,
+whose family's going hungry (`Saltmarsh_Tobin`). `EelWay`:
+* **Blamed** (1): tell Morwen, 60 gold; Tobin is sent inland; Saltmarsh +5.
+* **Mended** (2): bring Morwen 3 planks for the traps and ask her to share her catch; Saltmarsh +15.
+
+**Marsh Fever** (Mirefold): Bryony the healer asks what Doctor Pallister's cure is. Buy one from him (20 gold) and
+bring it her: coloured water. `FeverWay`:
+* **Paid off** (1): Pallister pays 80 gold for your silence and keeps selling it; Mirefold -15.
+* **Run out** (2): he's gone, and Bryony sells a real fever tonic (`SHOP-Mirefold_Healer`); Mirefold +15.
+
 ---
 
 ## Stance forms: who teaches them
@@ -797,6 +822,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Brine Mother | BrineQuest | Talk to Morrow_Angler, Kill Brine_Mother |
 | The Last Watch | WardenQuest | Talk to Warden_Ysolde, Kill Hollow_Marshal |
 | The Fallen Shard | FallenShardQuest | Talk to Warden_Ysolde, Kill Shardborn, Touch Fallen_Shard |
+| The Deserter, The Dry Spring, The Eel Traps, Marsh Fever | DeserterQuest, WellQuest, EelQuest, FeverQuest | Talk to Keep_Sergeant_Brask / Deserter_Pip, Talk to Dunerest_Elder_Sabra / Water_Seller_Corvin, Break Dunerest_Dam, Talk to Eel_Catcher_Morwen / Saltmarsh_Tobin, Talk to Mirefold_Healer_Bryony / Doctor_Pallister (build_town_choices.py) |
 
 House rules for new writing (from `CLAUDE.md`): notices and signs never give hints; a conversation answer that
 belongs to one stage of a quest shows only at that stage; each player's chest loot and quest progress are their

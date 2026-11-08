@@ -36,3 +36,4 @@ StaticObject	Valuables	576	312
 Lock	19	14			Pick=12
 MapItem	Gold_Ring	640	352	1	Once=1
 MapItem	Gold_Coin(s)	608	352	40	Once=1
+NPC	Constable	416	248	Attitude=Good Stand=1 Face=S Id=Keep_Sergeant_Brask Name=Sergeant_Brask

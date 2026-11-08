@@ -171,4 +171,4 @@ class StanceMixin:
     def stance_state(self):
         return {"stance": self.stance, "stance_next": "" if self.stance_next == "-" else self.stance_next,
                 "stance_ms": max(0, self.stance_at - self.now) if self.stance_next else 0, "forms": self.forms_state(),
-                "forms_most": self.forms_most()}
+                "forms_most": self.forms_most(), "stance_tips": self.stance_tips()}

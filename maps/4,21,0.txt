@@ -20,3 +20,4 @@ Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Sand001:Sand001:Sand001:Sand001:Sand001:
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001+Decor(Desert_Rock001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 StaticObject	Notice	224	546	Id=Dunerest_Notice_301
+Lock	3	18	$Standing.Dunerest>=45	A merchant's house. Dunerest opens it to those it trusts.

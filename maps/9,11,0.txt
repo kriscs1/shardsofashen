@@ -26,3 +26,5 @@ StaticObject	Notice	384	450	Id=Oakhollow_Notice_307
 StaticObject	Sign_Pub	128	208
 StaticObject	Valuables	192	56
 NPC	Settler	0	285	Attitude=Good Zone=1,8,4,12 Pause=4-12
+Lock	4	15	$Standing.Oakhollow>=45	The old forester's door. Oakhollow keeps it for those it trusts.
+StaticObject	Chest	160	384	Lock=0 Id=Trusted_Chest_Oakhollow

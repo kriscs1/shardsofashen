@@ -59,7 +59,7 @@ def hut(atlas, gx, gy, w, h, grp, door_side):
     roof = [["Thatch_Roof%03d" % (r * 3 + c + 1) for c in range(3)] for r in range(5)]
     for j in range(h):
         for i in range(w):
-            t = walls[pick(j, h, 3)][pick(i, w, 3)]
+            t = walls[min(1, pick(j, h, 3))][pick(i, w, 3)]     # (no wall along the bottom: the front's below it)
             atlas.put(gx + i, gy + j, "%s+Roof(%s.%02d)" % (t, roof[pick(j, h, 5)][pick(i, w, 3)], grp))
             atlas.taken.add((gx + i, gy + j))
     door = gx + (w // 2 if door_side == 0 else 1 if door_side < 0 else w - 2)

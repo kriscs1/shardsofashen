@@ -42,3 +42,5 @@ StaticObject	Valuables	256	120
 StaticObject	Wishing_Well	192	352	Id=Secret_Dunerest_2
 StaticObject	Hollow_Stump	64	352	Id=Secret_Dunerest_3
 StaticObject	Mary_Note	416	352	Id=Mary_Note_4
+NPC	Elder	256	344	Attitude=Good Stand=1 Face=S Id=Dunerest_Elder_Sabra Name=Elder_Sabra
+NPC	Merchant	512	344	Attitude=Good Stand=1 Face=S Id=Water_Seller_Corvin Name=Corvin

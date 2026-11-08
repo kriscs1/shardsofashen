@@ -25,3 +25,4 @@ NPC	Frog	64	248	Attitude=Passive Zone=2,5,8,13
 NPC	Duck	384	56	Attitude=Passive Zone=8,2,18,7
 NPC	Mosquito	256	320	Attitude=Bad Zone=5,7,13,15
 NPC	Mosquito	672	640	Attitude=Bad Zone=18,17,25,21
+NPC	Villager	128	344	Attitude=Good Stand=1 Face=S Id=Saltmarsh_Tobin Name=Tobin Here.After=EelQuest:1 Gone.After=EelWay:1

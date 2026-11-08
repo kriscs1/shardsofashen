@@ -2967,6 +2967,13 @@ def check_world(tiles_ini, entities_ini, skills):
             branch_problems.append(probs)
         if branch_problems and all(branch_problems):
             warn(where, "lock %d,%d (%s) can't be opened: %s" % (x, y, cond, "; or ".join("; ".join(b) for b in branch_problems)))
+        if re.search(r"\$Standing\.\w+>=?\d", cond) and " or " not in cond:   # (a door a town opens to its friends)
+            maps_behind = {b[0] for b in behind}
+            if not any(e[0] in ("MapItem", "StaticObject") + NPC_TYPES and len(e) >= 4 and is_num(e[2]) and
+                       is_num(e[3]) and not reachable_entity(shut, bm, entity_tile(e[1], float(e[2]), float(e[3])))
+                       for bm in maps_behind for e in world.ents.get(bm, ())):
+                err(where, "lock %d,%d (%s) opens at a town's standing, but nothing behind it can't be reached "
+                           "another way" % (x, y, cond))
         REPORT.append("%s: lock at %d,%d [%s] keeps %d tile(s) behind it" % (m, x, y, cond, len(behind)))
 
 

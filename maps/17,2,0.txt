@@ -24,7 +24,8 @@ NPC	Woman	128	408	Attitude=Good Zone=3,13,7,14 Pause=5-15 Id=Wardhaven_Resident_
 StaticObject	Notice	544	162	Id=Wardhaven_Notice_305
 StaticObject	Notice	32	162	Id=Wardhaven_Notice_333
 Id	Hilde_Hatch	10	4
-Lock	16	6	$Attr.LockedOutQuest>=3	The door is bolted from the inside.
 NPC	Man	480	192	Attitude=Good Stand=1 Face=N Schedule=Always Id=Osric Name=Osric
 NPC	Woman	320	96	Attitude=Good Stand=1 Face=S Schedule=Always Id=Hilde Name=Hilde
 StaticObject	Osric_Key_Hook	448	64
+Lock	3	15	$Standing.Wardhaven>=45	Barred. The folk of Wardhaven open their doors to friends, and you're not one yet.
+StaticObject	Chest	64	384	Lock=0 Id=Trusted_Chest_Wardhaven

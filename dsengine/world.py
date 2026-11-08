@@ -1504,6 +1504,7 @@ class World(NPCMixin):
     def set_day_fraction(self, t):
         self.day_time0 = t % 1.0
         self.day_start_ms = self.now
+        self.night_at = None                            # (is it night: asked again)
         for s in self.sessions.values():
             s.emit(self.clock_event())
 
@@ -1520,6 +1521,10 @@ class World(NPCMixin):
         if t is None:
             self.night_at, self.night_now = self.now, value
         return value
+
+    def hour(self):
+        """The hour of the world's day, 0 (midnight) to 23."""
+        return int(self.day_fraction() * 24) % 24
 
     def night_bounds(self):
         """(from, to) of the night (DayNight.ini [Night]), read again every few seconds."""

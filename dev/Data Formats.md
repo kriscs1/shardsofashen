@@ -373,7 +373,10 @@ The bank is not a rack: it's stored in the save file.
   * `Lock<TAB>TileX<TAB>TileY<TAB>Condition<TAB>Message`: the tile (1-based tile coords, usually a door) can't be
     walked onto, by the player or NPCs, and isn't used by pathfinding, until Condition is true. Message is shown when
     the player bumps into it or clicks it (default "It's locked."). An empty Condition means it is always locked.
-    Conditions are re-checked whenever an attribute, the inventory, a skill or the equipment changes, and on map load.
+    Message can be several, split by ` | `, each but the last ending `[if CONDITION]`: the first whose condition is
+    true is said (`The gates are barred. [if $Attr.WardhavenQuest<3] | The gate's barred for the night...`).
+    Conditions are re-checked whenever an attribute, the inventory, a skill, the equipment or a standing changes, on
+    map load, and every world hour (and at dusk and dawn) for a condition with `$World.Dark` or `$World.Hour`.
     If the tile's Tiles.ini section has `Unlocked.Tile`, that tile is drawn there while the lock is open (on the maps
     round the current one too). A sixth field holds options: `Pick=<Stealth level 1-25>` makes it a lock that can be
     picked (the chests' game, `dsengine/locks.py`; tried from that level less `Locks.ini` Reach); picked, it stays
@@ -393,6 +396,8 @@ The same syntax as the script `>Conditional` command: `a=b`, `a<>b`, `a<b`, `a>b
 | `$Skill.<Name>` | the player's level in that skill (e.g. `$Skill.Mining>=20`) |
 | `$Equipped.<Slot>` | the item name in that equipment slot (Weapon, Shield, Head, Body, Legs, Feet, Hands, Ring), or `none` |
 | `$Standing.<Town>` | that town's standing with the player, -100 to 100 (`data\Towns.ini`; `$Standing.Here` is where they are): a lock with `$Standing.Ashford>=45` opens at Trusted |
+| `$World.Dark` | 1 at night, 0 by day (`DayNight.ini [Night]`): an Outlaw's gate, `$Standing.Court>=-60 or $World.Dark=0` |
+| `$World.Hour` | the world's hour, 0 (midnight) to 23 |
 | all script variables | `$Player.X`, `$Map.Name`, ... (see Script Commands.txt) |
 
 Example: `Lock	20	7	$Attr.BeggarQuest>=2 or $Item.Key>=1	The door is locked. Maybe the beggar knows where the key is.`

@@ -38,3 +38,5 @@ StaticObject	Valuables	576	408
 StaticObject	Valuables	320	408
 StaticObject	Wishing_Well	288	352	Id=Secret_Wildwood_2
 StaticObject	Hollow_Stump	448	64	Id=Secret_Wildwood_3
+Lock	18	18	$Standing.Wildwood>=45	Shut. The woodsfolk here open their doors to friends, and you're not one yet.
+StaticObject	Chest	576	448	Lock=0 Id=Trusted_Chest_Wildwood

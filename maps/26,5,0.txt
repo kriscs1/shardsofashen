@@ -31,3 +31,5 @@ Id	Waystone_Emberwatch	22	21
 Id	Emberwatch_Village_Hall	21	15
 StaticObject	Valuables	640	248
 NPC	Cinder_Guard	352	312	Attitude=Bad Zone=9,8,15,14 Chase=5,4,19,18
+Lock	10	14	$Standing.Emberwatch>=45	The watch's house. Emberwatch opens it to friends of the wall.
+StaticObject	Chest	224	320	Lock=0 Id=Trusted_Chest_Emberwatch

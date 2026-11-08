@@ -19,8 +19,8 @@ Water001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Grass001:Gras
 Water001:Water001:Water001:Sand001:Sand001:Sand001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Cobble001:Cobble001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Water001
 Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001
 Sand001:Sand001:Sand001:Sand001:Sand001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Dirt001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Sand001:Sand001:Sand001:Sand001
-Lock	13	3	$Attr.WardhavenQuest>=3	The gates of Wardhaven are barred. Nobody answers from the wall.
-Lock	14	3	$Attr.WardhavenQuest>=3	The gates of Wardhaven are barred. Nobody answers from the wall.
 Id	Wardhaven_Gate	13	4
 Id	Wardhaven_Bridge_Span	14	9
 StaticObject	Trout_Spot	32	96
+Lock	13	3	$Attr.WardhavenQuest>=3 and $Standing.Wardhaven>=-60 or $Attr.WardhavenQuest>=3 and $World.Dark=0	The gates of Wardhaven are barred. Nobody answers from the wall. [if $Attr.WardhavenQuest<3] | The gate's barred for the night, and the watch on the wall knows your face. Come back by day.
+Lock	14	3	$Attr.WardhavenQuest>=3 and $Standing.Wardhaven>=-60 or $Attr.WardhavenQuest>=3 and $World.Dark=0	The gates of Wardhaven are barred. Nobody answers from the wall. [if $Attr.WardhavenQuest<3] | The gate's barred for the night, and the watch on the wall knows your face. Come back by day.

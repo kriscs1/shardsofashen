@@ -9,7 +9,7 @@ import { fogBlack } from "./sky.js";
 import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
   spellTileAt, spellHoverText, knownSpells, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
-  chatArrow, vitalsAt, stanceAt, nextStance, STANCE_WORDS, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
+  chatArrow, vitalsAt, stanceAt, nextStance, stanceTip, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
   wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
@@ -120,7 +120,7 @@ export function mouseMove(x, y) {
     U.hover = "stance:" + st;
     const chosen = st === (S.me.stance_next || S.me.stance || "");
     const forms = (S.me.forms || []).filter((f) => f[2] && f[0] === st).map((f) => f[1]);   // (its bound forms)
-    msg = `#${STANCE_WORDS[st]}${forms.length ? "|Forms: " + forms.join(", ") : ""}|~${chosen ? "The stance you're in" : (M.on ? "Tap" : "Click") + " to take it"}${M.on ? "" : " (Q: the next one)"}`;
+    msg = `${stanceTip(st)}${forms.length ? "|Forms: " + forms.join(", ") : ""}|~${chosen ? "The stance you're in" : (M.on ? "Tap" : "Click") + " to take it"}${M.on ? "" : " (Q: the next one)"}`;
   }
   const vit = !msg ? vitalsAt(x, y) : "";
   if (vit === "level") msg = "Your level|the best of your fighting skills";

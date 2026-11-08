@@ -299,6 +299,8 @@ VARIABLES = [
     ('$Player.Level', 'The level of the player.'),
     ('$World.Season', 'The season: Spring, Summer, Autumn or Winter (dsengine/seasons.py).'),
     ('$World.Night', 'Which night this is, counting up: what a ghost ship is known by (dsengine/wonders.py).'),
+    ('$World.Dark', '1 at night, else 0: a lock asking it is looked at again each hour (an Outlaw shut out after dark).'),
+    ('$World.Hour', "The hour of the world's day, 0 (midnight) to 23."),
     ('$World.Champion', "The year's arena champion, or - (dsengine/wonders.py)."),
     ('$Tax.Due', "What the Tax Collector would have of this player's gold just now."),
     ('$Player.Malaria', '1 if the player has malaria just now (dsengine/disease.py), else 0.'),

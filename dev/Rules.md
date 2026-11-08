@@ -280,7 +280,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   held within `[Limits]` so a stack can't run away. The four stances and their buttons never change: forms are how a
   stance grows. Bound forms show as their colours round the stance's ring, in the stance button's words and in the
   journal's Skills tab (Stance forms). Nothing in the story needs a form. A form shown you by its teacher goes
-  straight on into their talk ("Thank you.").
+  straight on into their talk ("Thank you."). **A stance's and a form's hover text is in numbers** ("+15% damage,
+  -10% defence", `forms.py` FIGURES): the stance's own with your bound forms in, never "stronger" or "a little".
 - **A disguise** (`dsengine/disguise.py`): a kind with `Friend.If.Wearing=Mending_Robe` takes you for one of its own
   while that's on you (your gear alone: a friend's robe fools nobody for you). You can still Attack one. A blow, or a
   spell, in sight of one of them gives you away on that map for a while (`Thieving.ini [Disguise]`), and those of them
@@ -293,7 +294,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   caught (a warning at Trusted, a fine at Honoured, more guards and sooner when Distrusted), and an Outlaw is
   refused at its shops and hunted by its watch till they pay its captain's fine. A rank change says a line and a
   sound; points alone say nothing. A theft nobody sees costs nothing. Never a main-quest door or NPC that asks for
-  standing, and Galaith's guards wait for The True Heir.
+  standing, and Galaith's guards wait for The True Heir. A town's gates are barred to its Outlaws at night
+  (`$Standing.<Town>>=-60 or $World.Dark=0`, with its own words for them: the Court's and Wardhaven's, the walled
+  towns). Every town has a door that opens at Trusted (`build_town_choices.py`), and behind it, out of reach any
+  other way (the validator checks), a chest left for the town's friends: unlocked, once each. Every town has a
+  quest whose ways move its standing (the Isle's houses are the tutorial's, so it has none).
 - **Thieving** (`dsengine/thieving.py`, `data/Thieving.ini`): pockets by trade, shops' shelves, houses' Valuables
   (about half the houses: `build_stealth.py`); caught, a guard comes (levels above you), seen by everyone but after you
   alone, and that shopkeeper won't serve you a while. What's taken (never the gold) is **marked stolen** for good,
@@ -911,6 +916,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   a lock is checked by working out only its own map again. Each map's areas and each sprite's size are kept between
   runs (`Kept`, in the PC's temp folder, never the game's folder) while the map or file is unchanged. A change to
   `label_map` bumps the number in `AREAS = Kept("areas", N)`.
+- A lock that opens at a town's standing (`$Standing.<Town>>=N`, no ` or `) must have something behind it that
+  can't be reached another way: a chest by a thin wall counts as reached from outside, so keep it two tiles in.
+  Mirefold's huts have no wall along their bottom row (the front with its door is below it: `build_mirefen.py`).
 - Don't use shell heredocs for edits with backslashes; write a patch script to the scratchpad, or use Edit.
 - **The world's clock is UTC** (`clock_ms`, `clock_seconds`: from 1901, as LB's were), never local time: the clocks
   going back an hour must never make a wait an hour longer. A world saved before (no `"clock": "utc"`) is shifted once

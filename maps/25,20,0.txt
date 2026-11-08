@@ -22,3 +22,5 @@ Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers002):Grass001:Grass001
 NPC	Butterfly	544	376	Attitude=Good Zone=13,9,23,17
 StaticObject	Notice	96	194	Id=Keep_Notice_309
 NPC	Blue_Butterfly	96	216	Attitude=Good Zone=2,4,5,5/2,6,9,12 Chase=2,4,5,5/2,6,9,12
+NPC	Villager	384	312	Attitude=Good Stand=1 Face=S Id=Deserter_Pip Name=Pip Here.After=DeserterQuest:1 Gone.After=DeserterQuest:3
+Lock	19	7	$Standing.Keep>=45	The King's men's house. They open it to friends of the Keep.

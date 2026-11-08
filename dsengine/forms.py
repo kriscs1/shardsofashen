@@ -23,6 +23,35 @@ from .shards import shard_words
 STANCES_INI = "Stances.ini"
 FORM_STANCES = ("Fighting", "Channelling", "Sneaking")
 TEXT_KEYS = {"TITLE", "WHAT", "COLOUR", "TAUGHT.BY", "TAUGHT.IF", "TAUGHT.WORDS", "WOODS.GROUNDS"}
+# The numbers in words, for the tips (the stance buttons, the journal, Bind forms), in the order they're shown: the key,
+# its words ({v}: the number), how it's shown (x: a change, +15%; of: a part, 45%; %: a chance; n: as it is; tiles: a
+# reach in pixels, in tiles; flag: on or not; rush: Reckless's) and 1 if more is better (-1 if less is). A key added
+# up over the forms (not multiplied) is in SUM_KEYS.
+FIGURES = (
+    ("ATTACK", "accuracy {v}", "x", 1), ("DAMAGE", "damage {v}", "x", 1), ("DEFENCE", "defence {v}", "x", 1),
+    ("SPELL.POWER", "spell power {v}", "x", 1), ("SPELL.DURATION", "wards and boosts last {v}", "x", 1),
+    ("RESIST.STATUS", "{v} to shrug off a drain or poison", "%", 1),
+    ("PARRY", "{v} to turn aside a melee blow", "%", 1), ("DAZE", "{v} for a blow to daze", "%", 1),
+    ("RUSH.SECONDS", "for {v}s", "rush", 1), ("SNEAK.ATTACK", "an unseen blow up to {v} times as hard", "n", 1),
+    ("NOISE", "heard {v}", "x", -1), ("SIGHT", "seen {v}", "x", -1),
+    ("WOODS.NOISE", "heard {v} on grass and in woods", "x", -1),
+    ("THIEVING", "+{v} in 100 to steal", "n", 1), ("WATCHED", "being watched costs {v} as much", "of", -1),
+    ("DRAW", "monsters within {v} come for you first", "tiles", 1),
+    ("HEAR.SHARDS", "Shards within {v} show", "tiles", 1),
+    ("DRINK.REACH", "remnants within {v} are drunk", "tiles", 1), ("DRINK.HEAL", "{v} hp a Shard drunk", "n", 1),
+    ("CALM.ANIMALS", "animals don't run from you", "flag", 1),
+    ("WALK", "pace {v}", "x", 1), ("SPELL.COST", "spells cost {v}", "x", -1),
+    ("SPELL.HURT", "magic in a blow hurts {v}", "x", -1), ("STATUS.HURT", "drains and poisons last {v}", "x", -1))
+SUM_KEYS = {"PARRY", "DAZE", "DAZE.SECONDS", "THIEVING", "DRAW", "HEAR.SHARDS", "DRINK.REACH", "DRINK.HEAL",
+            "CALM.ANIMALS", "RUSH.SECONDS"}
+
+
+def num_words(v):
+    return ("%.2f" % v).rstrip("0").rstrip(".")
+
+
+def pct_words(m):
+    return "%+d%%" % round((m - 1) * 100)
 
 
 def forms_of(data):
@@ -193,7 +222,8 @@ class FormMixin:
         lines, opts = [], []
         for f in mine:
             on = f["key"] in self.forms_bound
-            lines.append("%s%s: %s" % (f["title"], " (bound)" if on else "", f["what"]))
+            lines.append("%s%s: %s." % (f["title"], " (bound)" if on else "",
+                                        ", ".join(t for t, _ in self.form_figures(f)) or f["what"]))
             if on:
                 opts.append(("Let %s go." % f["title"], (lambda k=f["key"]: (self.unbind_form(k),
                                                                              self.forms_stance_menu(stance)))))
@@ -306,10 +336,112 @@ class FormMixin:
     def calms_animals(self):
         return self.forms_bound and self.form_sum("Calm.Animals") > 0
 
+    # ----- the numbers, in words (FIGURES): a form's, and a stance's with your bound forms
+    def figure_words(self, num):
+        """[(words, good)] for each number num(KEY) gives (None: not said), in FIGURES' order."""
+        out = []
+        for key, words, how, better in FIGURES:
+            v = num(key)
+            if v is None or (how == "x" and round(v, 2) == 1) or (how != "x" and v <= 0):
+                continue
+            good = better > 0
+            if how == "x":
+                s, good = pct_words(v), (v > 1) == (better > 0)
+            elif how == "of":
+                s, good = "%d%%" % round(v * 100), (v < 1) == (better < 0)
+            elif how == "%":
+                s = "%d%%" % round(v)
+            elif how == "tiles":
+                t = round(v / (self.w.tw or 32), 1)
+                s = "%s tile%s" % (num_words(t), "" if t == 1 else "s")
+            else:
+                s = num_words(v)
+            text = words.format(v=s)
+            if key == "DAZE":
+                text += " for %ss" % num_words(num("DAZE.SECONDS") or 1.5)
+            elif key == "RUSH.SECONDS":
+                text = "a kill: " + " and ".join(w.format(v=pct_words(num(k) or 1)) for k, w in (
+                    ("RUSH.DAMAGE", "damage {v}"), ("RUSH.WALK", "pace {v}")) if round(num(k) or 1, 2) != 1) + \
+                    " " + text
+            out.append((text, good))
+        return out
+
+    def stance_base(self, st, key, default=1.0):
+        """A stance's own number before its forms (a blow never seen coming is every stance's, [Stances])."""
+        if key == "SNEAK.ATTACK":
+            return self.stance_setting("Sneak.Attack", 2.0) if st == "Sneaking" else None
+        got = trim(self.data.ini_read(STANCES_INI, st, key, ""))
+        return val(got) if got else default
+
+    def form_figures(self, f):
+        """What a form does, in numbers: its own changes (+40%), its chances and reaches, and what it makes of the
+        stance's own chance (Wardkeeper: the 50 in 100 to shrug off a drain becomes 80)."""
+        nums = f["nums"]
+
+        def num(key):
+            if key not in nums or key in SUM_KEYS:
+                return nums.get(key)
+            if key in ("RESIST.STATUS", "SNEAK.ATTACK"):
+                b = self.stance_base(f["stance"], key, 0.0)
+                return None if not b else self.form_limit(key, b * nums[key])
+            return nums[key]
+        return self.figure_words(num)
+
+    def stance_figures(self, st):
+        """What a stance does for you, in numbers: its own, times your bound forms of it, within [Limits]; sneaking,
+        how far you're heard and seen with your Stealth. [good words, bad words]."""
+        if not st:
+            return ["nothing gained", "nothing given up"]
+        forms = self.forms_on(st)
+        said = {k for f in forms for k in f["nums"]}
+        sneak = st == "Sneaking"
+
+        def num(key):
+            if key in SUM_KEYS:
+                return self.form_limit(key, sum(f["nums"].get(key, 0.0) for f in forms)) if key in said else None
+            if sneak and key in ("NOISE", "SIGHT"):
+                return None                                 # (said below, with Stealth)
+            if key == "RUSH.DAMAGE" or key == "RUSH.WALK":
+                v = 1.0
+                for f in forms:
+                    v *= f["nums"].get(key, 1.0)
+                return v
+            base = self.stance_base(st, key, 0.0 if key == "RESIST.STATUS" else 1.0)
+            if base is None or (key not in said and not trim(self.data.ini_read(STANCES_INI, st, key, "")) and
+                                key != "SNEAK.ATTACK"):
+                return None
+            for f in forms:
+                base *= f["nums"].get(key, 1.0)
+            return self.form_limit(key, base)
+        lines = self.figure_words(num)
+        if sneak:
+            noise = self.form_limit("Noise", self.stance_base(st, "NOISE") * self.form_product_of(forms, "NOISE"))
+            least = self.stance_base(st, "SIGHT.LEAST", 0.3)
+            sight = self.form_limit("Sight", self.stance_base(st, "SIGHT") * self.form_product_of(forms, "SIGHT"))
+            lv = self.stealth_level()
+            lines[:0] = [("heard from %d%% as far, seen from %d%%%s" % (
+                round(noise * self.stealth_cut("Noise", 0.3) * 100),
+                round(max(least, sight * self.stealth_cut("Sight", least)) * 100),
+                " (Stealth %d)" % lv if lv else ""), True)]
+            lines.append(("a blow or a spell ends it", False))
+        good = ", ".join(t for t, g in lines if g)
+        bad = ", ".join(t for t, g in lines if not g)
+        return [good, bad]
+
+    @staticmethod
+    def form_product_of(forms, key):
+        v = 1.0
+        for f in forms:
+            v *= f["nums"].get(key, 1.0)
+        return v
+
     # ----- what the page shows: your forms (the stance buttons, the journal), the ring's colours
     def forms_state(self):
-        return [[f["stance"], f["title"], 1 if f["key"] in self.forms_bound else 0, f["what"], f["colour"]]
-                for f in self.forms_known()]
+        return [[f["stance"], f["title"], 1 if f["key"] in self.forms_bound else 0,
+                 ", ".join(t for t, _ in self.form_figures(f)) or f["what"], f["colour"]] for f in self.forms_known()]
+
+    def stance_tips(self):
+        return {st: self.stance_figures(st) for st in ("",) + FORM_STANCES}
 
     def form_colours(self):
         return [f["colour"] for f in self.forms_on()]

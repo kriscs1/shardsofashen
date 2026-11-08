@@ -26,3 +26,5 @@ NPC	Farmer	320	344	Attitude=Good Schedule=Always Zone=8,10,14,14 Id=Old_Tobb Nam
 Id	Rustwater_Halt	13	18
 NPC	Man	384	472	Id=Lucky_Lem Attitude=Good Stand=1 Face=S Schedule=Always Name=Lucky_Lem
 StaticObject	Rat_Race_Track	384	416	Id=Lucky_Lems_Track
+Lock	9	17	$Standing.Greyford>=45	The miners' strongroom. Greyford opens it to friends, and keeps the key close.
+StaticObject	Chest	192	416	Lock=0 Id=Trusted_Chest_Greyford

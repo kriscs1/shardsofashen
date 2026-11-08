@@ -1503,10 +1503,13 @@ function drawVitals(ctx) {
 // ----- your stance (stances.py): a round button for each, right of the bars (a phone: the one you're in, which opens
 // the others); the one you chose fills a ring round it as it takes hold
 export const STANCES = ["", "Fighting", "Channelling", "Sneaking"];
-export const STANCE_WORDS = { "": "No stance|You stand easy: nothing gained, nothing given up.",
-  Fighting: "Fighting|You hit harder and guard better.|Magic hurts you more.",
-  Channelling: "Channelling|Your spells are stronger and your wards last longer.|You walk slower and guard worse.",
-  Sneaking: "Sneaking|You're quieter and harder to see, and you see where lookouts look.|You walk slower; a blow or a spell ends it." };
+export const STANCE_WORDS = { "": "No stance", Fighting: "Fighting", Channelling: "Channelling", Sneaking: "Sneaking" };
+
+export function stanceTip(st) {
+  // (its name, then what it gives and what it costs you, in numbers with your bound forms: stance_tips, forms.py)
+  const [good, bad] = S.me.stance_tips?.[st] || [];
+  return `#${STANCE_WORDS[st]}${good ? "|+" + good : ""}${bad ? "|!" + bad : ""}`;
+}
 
 function stanceButtons() {
   // ([stance, cx, cy, r] for each button shown: a phone shows the one you're in, and the rest only once it's opened)
