@@ -7,6 +7,8 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
 - **Standing in every town** (the Isle's village and the seventeen of `dev/World Plan.md`), each player's own.
 - **An Outlaw can buy their way back**: a fine to the town's guard captain.
 - **Stolen things are marked**; only a fence buys them.
+- **Stance forms stack**: six bound at most, more learnt by quests and their choices; binding a different form
+  costs Shards.
 - **Choices are made in the conversation itself**, said plainly ("Hand them over to Holt." / "Keep Meg's secret."),
   no "are you sure?", and they can't be undone. The journal says which way a quest went.
 - **The Mending is a new cult**, not the Ashen Hand reworked. The Hand (fire, the dragon) is its hired help; the
@@ -86,7 +88,43 @@ sides and stolen goods come first: the Mending's choices and the other quests ar
       sawmill (cheap planks). Kept: rare herbs and the rangers' lodge. The village is split: each way pleases some.
 - [ ] More towns' choices as they're thought of: each town should have at least one quest that moves its standing.
 
-## 6. The Mending: what it is
+## 6. Stance forms
+Each stance (Fighting, Channelling, Sneaking) has forms, taught by people round the world as quest rewards, some only
+on one side of a choice. The four stances stay as they are, from the start, and their buttons stay four (the story
+needs Sneaking and Channelling: the Smugglers' Run, The Royal Guard, the Listening Room).
+
+- [ ] **They stack**: every bound form of the stance you're in works at once, its numbers times the stance's and the
+      others' (`Stances.ini` `[Fighting.Shieldwall]`...; what a form doesn't say is the stance's). Every number held
+      within limits (`Stances.ini` `[Limits]`) so a stack can't run away. A form of another stance does nothing till
+      you're in that stance: six on one stance is a specialist, two on each is all-round.
+- [ ] **Six bound at most** (`Shards.ini` `[Forms]` `Most=6`). A form learnt is yours for good (`Learn.Stance
+      <Stance> <Form>`, kept in the save); learnt with a place free, it's bound at once, for nothing.
+- [ ] **Binding costs Shards**: at any shardstone you've activated, Bind Forms opens your forms; tick up to six. Each
+      form newly bound costs Shards (`[Forms]`; unbinding is free), through `Pay.Shards`, with Shardcraft xp. A form is
+      a way of holding the Shards in you, so it's bound where the Shards run.
+- [ ] Shown: the Stats box (or the journal's Skills tab) lists the forms you know, which are bound and what each
+      does; the stance's ring on you shows its bound forms' colours (`render.js` drawStance). The Bind Forms window
+      works on a phone, both ways up.
+- [ ] The forms (most are only numbers; the four marked * need code of their own):
+
+| Stance | Form | Taught by | What it does |
+|---|---|---|---|
+| Fighting | Shieldwall* | Sergeant Holt (sided with him) | A much firmer guard, slower on foot; monsters near come for you before your friends |
+| | Reckless | the Arena Master (the arena's wins) | Harder blows, a weaker guard; a kill gives a moment's rush |
+| | Duellist | Galaith's captain (after The Royal Guard) | More blows land; a parry now and then |
+| | Dirty Fighting | the bandits' chief at Redrock (the signet sold to him) | Blows that daze; a weaker guard |
+| Channelling | Stormcaller | Bert (after The Shardgate) | Spells much stronger, dearer in Shards |
+| | Wardkeeper | Ysolde (after The Last Watch) | Wards twice as long; drains hardly touch you |
+| | Listening* | the Glass Wardens (the Listening Room) | You hear Shards: remnants, clusters and Shard secrets near you show |
+| | Drinking* | the Mending (their secret kept) | Remnants absorbed from further off, and they heal you; a very weak guard; the Shards whisper |
+| Sneaking | Cutpurse | Red Meg (sided with her) | Better hands for pockets, and guards look the other way more |
+| | Shadow | Ambrose (the signet given back: forty years catching thieves, he knows how they're seen) | Harder to see; a harder sneak attack |
+| | Ranger's Tread* | Ranger Ash (the Old Grove kept) | Quicker than Sneaking is; quieter in woods and grass; animals don't run |
+
+- [ ] `validate.py` (the new keys and command), tests (stacking, the limits, six at most, binding paid, unbinding
+      free, a form of another stance doing nothing).
+
+## 7. The Mending: what it is
 Shards tell you what you want to hear. The Mending are those who believed them: a widow hears her husband, a sick man
 hears he'll be well. They hold the Cutting was a wound and the scraps want to be whole; they don't know (or won't
 say) that "whole" is the dragon. The Glass Wardens listened and never answered; the Mending answered. It sold the
@@ -96,28 +134,28 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
 - [ ] A section for the Mending in `dev/Story and Quests.md` (its quests step by step as they're built), a line in
       `dev/Rules.md` The story, and the Ashen Hand's loose thread answered.
 
-## 7. The Mending: the engine
+## 8. The Mending: the engine
 - [ ] The disguise: an `Entities.ini` key (`Friend.If.Wearing=Mending_Robe`) in the foe check (`world.py`), each
       player's own gear. A blow, or a spell in sight of one of them, ends it for the map, and those near come.
       `validate.py`; a test.
 - [ ] A boss that takes in remnants (`Absorbs.Remnants=1`): it goes to Shard Remnants near it and heals by them, unless
       you absorb them first. `validate.py`; a test.
 
-## 8. The Mending: art and sound (a builder)
+## 9. The Mending: art and sound (a builder)
 - [ ] Grey robes with glass growing through them: the Acolyte (blows), the Cantor (spells, the Channelling stance),
       the Glassbound (a brute, more remnants), the Eldest of the Mending (the boss, more glass than man).
 - [ ] The robe of the Mending, carried and worn.
 - [ ] Cold blue shrine fire, the Shard Font, the great Shard, Mary's Whisper (a splinter).
 - [ ] A low choir's chant and a whisper.
 
-## 9. The Mending: places
+## 10. The Mending: places
 - [ ] The hall under Shardglass Field (its way in hidden, lookouts, the sermon hall, the Font, the locked sanctum
       with the great Shard), named in `WorldMap.ini`.
 - [ ] The Mending's house in a town (its shop of Shard goods, for those in the robe).
 - [ ] Wardhaven taken quietly by the Mending (the Eldest's sanctum).
 - [ ] The Ashwold's three shrines lit blue once The Ember Ring is done; the Hand's camp where the Mending pays it.
 
-## 10. The Mending: the quests (`dev/migrate/build_mending.py`; takes over the Ashen Shrine scripts: `story_kit.TAKES_OVER`)
+## 11. The Mending: the quests (`dev/migrate/build_mending.py`; takes over the Ashen Shrine scripts: `story_kit.TAKES_OVER`)
 - [ ] **Cold Fire** (level 12, after The Ember Ring): the shrines relit cold and blue; sneak up on the Hand's camp
       and hear strangers in grey pay it in Shards "for the one beyond the wall".
 - [ ] **The Kind Stranger** (13): a townsman's mother has gone to the Mending's house; the Shard talks to her in her
@@ -137,7 +175,7 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
       you carry it, Unmake at the Seam is closed to you).
 - [ ] Every number in `data/Shards.ini` `[Mending]`; stages, endings, markers and rumours in `Quests.ini`; tests.
 
-## 11. The Mending: the world round it
+## 12. The Mending: the world round it
 - [ ] On the road (`Encounters.ini`): one of the Mending offers a few Shards "for nothing, friend"; taken, it's
       remembered (`MendingGift`).
 - [ ] The townsfolk's talk of them (`Banter.ini`); no notice, sign or map text points to them.
@@ -145,8 +183,8 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
       there.
 - [ ] After Unmake at the Seam, their sermons change: the hope's gone, and some go home.
 
-## 12. Finished
-- [ ] `dev/Rules.md` (Thieving, Shared vs personal, Writing: standing, sides, endings, fences), `dev/Story and
+## 13. Finished
+- [ ] `dev/Rules.md` (Thieving, Creatures' stances, Shared vs personal, Writing: standing, sides, endings, fences, forms), `dev/Story and
       Quests.md` (every changed and new quest), `dev/Data Formats.md` (`Towns.ini`, the new keys),
       `dev/Script Commands.txt` (the new commands).
 - [ ] `validate.py` 0 errors, the full tests, `export_web_assets.py`, the minimaps, a look in the browser (desktop
