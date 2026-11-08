@@ -266,4 +266,94 @@ class QuestMixin:
         gathers = [g for s in (0, 1, 2) for g in gathers if g["status"] == s]
         return {"t": "journal", "crafts": crafts, "gathers": gathers, "quests": self.quest_list(),
                 "spells": self.spellbook(), "friends": self.friends_rows(), "records": self.records_rows(),
-                "level": self.player_level()}
+                "skills": self.skill_pages(), "level": self.player_level()}
+
+    def skill_pages(self):
+        """The journal's Skills: each skill (not Hitpoints, which Strength and Defence make), how it's levelled
+        (Skills.ini Trains=) and what each level opens up, read from where it's set: [{skill, trains, opens: [[level,
+        "Gather Coal; make Iron Bar"], ...]}]. The same for everyone (worked out once; your levels are the page's)."""
+        known = self.data.cache("skill_pages")
+        if "all" not in known:
+            known["all"] = self.work_out_skill_pages()
+        return known["all"]
+
+    def work_out_skill_pages(self):
+        opens = {}                                      # skill (upper) -> level -> verb -> [what]
+
+        def add(skill, level, verb, what):
+            skill, level = trim(skill).upper(), max(1, int(val(level)))
+            if skill and what:
+                got = opens.setdefault(skill, {}).setdefault(level, {}).setdefault(verb, [])
+                if what not in got:
+                    got.append(what)
+
+        for rack, d in self.help_read_ini("ItemRacks.ini"):           # (crafting lists: as journal_data reads them)
+            skill = help_clean(d.get("SKILL", ""))
+            if not skill or not (rack.upper().startswith("CRAFT-") or
+                                 help_clean(d.get("TYPE", "")).upper() in ("CRAFT", "CRAFTING", "CREATABLES")):
+                continue
+            for n in range(1, 201):
+                item = help_clean(d.get("ITEM%d" % n, ""))
+                if not item:
+                    break
+                add(skill, word(item, 4, ","), "Make", pretty(trim(word(item, 1, ","))))
+        for name, d in self.help_read_ini("Gathering.ini"):
+            if help_clean(d.get("SKILL", "")):
+                add(help_clean(d["SKILL"]), help_clean(d.get("LEVEL", "1")), "Gather", name)
+        for name, d in self.help_read_ini("Spells.ini"):
+            if not trim(d.get("SCROLL", "")) or trim(d.get("KIND", "")).upper() == "POTION":
+                continue
+            skill = trim(d.get("SKILL", "")) or "Channeling"
+            add(skill, d.get("LEVEL", "1"), "Cast", self.spell_title(name, 1))
+            rank = 2
+            while self.upgrade_scroll(name, rank) and rank < 10:
+                add(skill, self.spell_ini_at(name, "Level", "1", rank), "Cast", self.spell_title(name, rank))
+                rank += 1
+        for name, d in self.help_read_ini("Buildables.ini"):
+            what = trim(d.get("NAME", "")) or pretty(name)
+            note = what[what.find("("):] if "(" in what else ""
+            if note and (":" in note or len(note) > 18):                # (the thing, not a long note on it)
+                what = trim(what[:what.index("(")])
+            what = trim(what.split(",")[0])                             # (a bed lying sideways is a bed)
+            if trim(d.get("CATEGORY", "")).upper() == "TERRAFORM":       # (Shardcraft's: on your homestead)
+                add(trim(d.get("SKILL", "")) or "Homesteading", d.get("LEVEL", "1"), "On your homestead:",
+                    what[0].lower() + what[1:])
+            else:
+                add(trim(d.get("SKILL", "")) or "Homesteading", d.get("LEVEL", "1"), "Build", what)
+        for name, d in self.help_read_ini("Entities.ini"):
+            req = trim(d.get("REQUIRES", "").replace(",", " "))
+            verb = "Wield" if trim(d.get("SLOT", "")).upper() == "WEAPON" else "Wear"
+            for j in range(1, 20, 2):
+                if not word(req, j):
+                    break
+                add(word(req, j), word(req, j + 1), verb, pretty(name))
+        for name, d in self.help_read_ini("Thieving.ini"):
+            if name.upper().startswith("PICKPOCKET.") and name.upper() != "PICKPOCKET.RESIDENT":
+                trade = pretty(name[11:]).lower()
+                add("Stealth", d.get("LEVEL", "1"), "Pick the pocket of", ("an " if trade[:1] in "aeiou" else "a ") + trade)
+            elif name.upper() == "VALUABLES":
+                add("Stealth", d.get("LEVEL", "1"), "Lift", "a house's valuables")
+        add("Shardcraft", self.data.shards_ini("Enchant", "Level", "4"), "Enchant", "gear with a rare shard")
+        words = dict(self.help_read_ini("Skills.ini"))
+        out = []
+        for skill in self.data.skill_name[1:]:
+            if skill.upper() == "HITPOINTS":
+                continue
+            d = words.get(skill, {})
+            for k, v in d.items():                      # (Opens.N=<level> <what>: what no other file says)
+                if k.startswith("OPENS.") and word(v, 1).isdigit():
+                    add(skill, word(v, 1), "", trim(v[len(word(v, 1)):]))
+            rows = []
+            for level, verbs in sorted(opens.get(skill.upper(), {}).items()):
+                said = []
+                for verb, things in verbs.items():
+                    base = lambda t: t.split(" (")[0]               # (a gate each way at one level: just "Gate")
+                    folded = []
+                    for t in things:
+                        t = base(t) if sum(base(o) == base(t) for o in things) > 1 else t
+                        if t not in folded:
+                            folded.append(t)
+                    said.append((verb + " " if verb else "") + ", ".join(folded))
+                rows.append([level, "; ".join(said)])
+            out.append({"skill": skill, "trains": help_text(d.get("TRAINS", "")), "opens": rows})
+        return out

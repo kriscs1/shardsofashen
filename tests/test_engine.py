@@ -5627,6 +5627,27 @@ def test_the_journal_is_sent_at_most_once_a_second(world):
     leave(world, s)
 
 
+def test_the_journals_skills_page_says_how_each_skill_is_levelled_and_what_each_level_opens(world):
+    """The journal's Skills tab: every skill but Hitpoints, in Config's order, its words from Skills.ini and what each
+    level opens read from where it's set (gathering, crafting, spells, gear, building, thieving)."""
+    s = join(world, "Reader")
+    pages = {p["skill"]: p for p in s.journal_data()["skills"]}
+    assert [p for p in world.data.skill_name[1:] if p.upper() != "HITPOINTS"] == list(pages)
+    assert "Hit things in a fight" in pages["Strength"]["trains"]
+    opens = lambda skill: dict(pages[skill]["opens"])
+    assert opens("Mining")[3] == "Gather Coal" and "Mithril ore" in opens("Mining")[13]
+    assert "Wield Steel Sword" in opens("Strength")[5]
+    assert "Wear" in opens("Defence")[3] and "Iron Helm" in opens("Defence")[3]
+    assert "Cast Fire Bolt" in opens("Channeling")[1]
+    assert opens("Crafting")[1].startswith("Make ") and "Copper Bar" in opens("Crafting")[1]
+    assert "an armourer" in opens("Stealth")[8] and "a house's valuables" in opens("Stealth")[4]
+    assert "Enchant gear" in opens("Shardcraft")[4] and "still the mist" in opens("Shardcraft")[1]
+    assert "Build" in opens("Homesteading")[1] and "Bed (" not in " ".join(opens("Homesteading").values())
+    assert all(a[0] < b[0] for p in pages.values() for a, b in zip(p["opens"], p["opens"][1:]))   # (level by level)
+    assert s.skill_pages() is s.skill_pages()                       # (worked out once)
+    leave(world, s)
+
+
 def test_an_npc_roams_a_zone_of_any_shape(world):
     """Zone= (and Chase=) can be several rectangles joined by / (the map editor paints them tile by tile): it roams
     only in them, not in the gap their corners leave."""

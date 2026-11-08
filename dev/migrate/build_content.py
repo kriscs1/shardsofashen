@@ -1175,7 +1175,7 @@ def scripts():
     for skill, text in (
             ("Crafting", "Crafting: smelt ore and forge tools at a furnace or anvil (the Ashford smithy, Brokk's hall); "
                          "shear sheep, then tan, spin and make jewellery at a workbench."),
-            ("Mining", "Mining: use a pickaxe on rocks in the mines. Copper and iron at level 1, coal 5, gold 15, gems 20."),
+            ("Mining", "Mining: use a pickaxe on rocks in the mines. Copper, tin and iron at level 1, coal 3, silver 6, gold 8, gems 10, and mithril at 13 (with a steel pickaxe or better)."),
             ("Fishing", "Fishing: use a rod on water, with bait in your pack (one per catch). Trout need level 10, cave eels level 15."),
             ("Woodcutting", "Woodcutting: chop trees with an axe."),
             ("Alchemy", "Alchemy: pick herbs, berries and mushrooms, and brew potions at an alchemy table."),

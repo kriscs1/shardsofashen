@@ -1,10 +1,11 @@
 // The journal (H, F1 or the ? Help button): what you can make, what you can gather, your quests, your spells (learnt
-// from scrolls, cast from here or the hotbar for Shards), the controls.
+// from scrolls, cast from here or the hotbar for Shards), your skills (how each is levelled, what it opens), the controls.
 // The server sends the lists when it opens; drawn as the desktop game's screens.py drew it, on a 1024 x 768 page.
 import { S } from "./state.js";
 import { sprite } from "./assets.js";
 import { val, word, lbstr, pretty, drawText, drawTextMid, centreText, textWidth, fitText, wrapLines, roundBox } from "./util.js";
-import { questLook, questRows, drawChecklist, badge, padlock, ROW_H, trackedQuest } from "./ui.js";
+import { questLook, questRows, drawChecklist, badge, padlock, ROW_H, trackedQuest, skillShown, levelOfXp, levelProgress } from "./ui.js";
+import { A, configRead } from "./assets.js";
 import { skillLevel, held, knowsSpell, cooldownLeft } from "./verbs.js";
 import { send } from "./net.js";
 
@@ -12,7 +13,7 @@ const INK = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
 const DIM = [190, 160, 110];
 
-export const J = { open: false, tab: 1, page: 1, hover: 0, focus: "", x0: 0, done: false };   // (done: Quests' Done tab)
+export const J = { open: false, tab: 1, page: 1, hover: 0, focus: "", x0: 0, done: false, skill: "" };   // (done: Quests' Done tab)
 
 const CONTROLS = [
   ["M", "Left-click ground", "Walk there."],
@@ -21,7 +22,7 @@ const CONTROLS = [
   ["M", "Use, then click", "Pick Use on an item you carry, then click what to use it with. Right-click to stop."],
   ["M", "Shops, bank, crafting", "Left-click buys, sells, banks or makes one. Right-click for more (Buy 5, Sell All, Value, Inspect...)."],
   ["M", "Box arrows, wheel", "Next or previous page of a shop, bank or crafting list (or turn the mouse wheel over it)."],
-  ["M", "Skills (Stats)", "Point at a skill for its level. Right-click: progress to the next level. Left-click: the skill's guide, if it has one."],
+  ["M", "Skills (Stats)", "Point at one: its level. Right-click: progress to the next. Left-click: its guide. How to level each, and what it opens: the journal's Skills tab."],
   ["M", "Stats / Gear / Spells", "The tabs at the top of the Stats box: your skills, your 8 equipment slots, and the spells you know (click one to cast it; right-click: on or off the hotbar). Your quests are here in the journal: click one to follow it on the map."],
   ["M", "Wield, Wear", "Left-click a weapon, shield or armour in your inventory to put it on. Click it in the Gear tab to take it off."],
   ["M", "Hotbar", "The slots at the bottom of the view (five, or as many as ten: Options). Right-click an item: Put it on the hotbar. Click a slot (or press its number; 0 is the tenth) to use it; right-click a slot to take it off."],
@@ -51,16 +52,16 @@ const CONTROLS = [
   ["K", "B", "Build mode, on your own homestead (Esc or right-click to stop)."],
   ["K", "Esc", "Close a menu, box or this journal, or stop using an item. With nothing open: leave the game."],
   ["K", "1 - 9, 0", "Use what's in that hotbar slot."],
-  ["K", "1 - 5", "Journal: pick a tab (Left and Right also work)."],
+  ["K", "1 - 8", "Journal: pick a tab (Left and Right also work)."],
   ["K", "Up / Down", "Journal: previous or next page (PgUp and PgDn too)."],
   ["K", "F11", "Full screen (or the button at the top left of the view)."],
   ["K", "+ / -", "Zoom the map in and out."],
   ["K", "Saving", "Automatic: the server keeps your game."],
 ];
 
-// (the tabs: 1 Crafting, 2 Gathering, 3 Quests, 4 Spells, 5 Records, 6 Friends, 7 Controls)
-export const TABS = 7;
-const TAB_W = 132, TAB_STEP = 136;
+// (the tabs: 1 Crafting, 2 Gathering, 3 Quests, 4 Spells, 5 Records, 6 Friends, 7 Skills, 8 Controls)
+export const TABS = 8;
+const TAB_W = 114, TAB_STEP = 119;
 const FRIENDS_SHOWN = 8;
 export const QUESTS_SHOWN = 6, QUEST_TOP = 146;          // (Quests: In hand and Done tabs over the cards)
 export function pageSize() { return { 1: 14, 2: 7, 3: QUESTS_SHOWN, 4: 8, 6: FRIENDS_SHOWN }[J.tab] || 1; }
@@ -154,7 +155,7 @@ function recordsPage(ctx, d) {
   });
 }
 
-export function pages() { return Math.max(1, Math.ceil(count() / pageSize())); }
+export function pages() { return J.tab === 7 ? skillPageN : Math.max(1, Math.ceil(count() / pageSize())); }
 
 export function hit(x, y) {
   for (let t = 1; t <= TABS; t++) if (within(x, y, tabRect(t))) return t;
@@ -168,6 +169,9 @@ export function hit(x, y) {
     for (let slot = 0; slot < 8; slot++) {
       for (const k of [0, 1]) if (within(x, y, spellButtonRect(slot, k))) return 200 + slot * 2 + k;
     }
+  }
+  if (J.tab === 7) {                              // (a skill in the list down the left: 500 + its row)
+    for (let n = 0; n < skillList().length; n++) if (within(x, y, skillRowRect(n))) return 500 + n;
   }
   if (J.tab === 3) for (const b of [400, 401]) if (within(x, y, BUTTON_RECTS[b])) return b;
   if (J.tab === 3 && x >= 48 && x <= 976) {
@@ -394,6 +398,88 @@ function spellCard(ctx, sp, slot) {
   }
 }
 
+// ----- skills: the list down the left (your level, how far to the next); the one picked, how it's levelled
+// (Skills.ini) and what each level opens up (worked out from the data by the server), paged if it runs long
+let skillPageN = 1;
+const skillRowRect = (n) => [48, 108 + n * 47, 292, 42];
+const maxSkill = () => Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "25"))));
+
+function skillList() {
+  // (the skills you see in Stats, in their order: each with its page from the server)
+  const pages = S.journal?.skills || [];
+  return A.m.skills.map((name, i) => ({ name, i, page: pages.find((p) => p.skill === name) }))
+    .filter((s) => skillShown(s.i + 1) && s.page);
+}
+
+export function skillClick(h) {
+  if (J.tab !== 7 || h < 500 || h >= 600) return false;
+  const s = skillList()[h - 500];
+  if (s) { J.skill = s.name; J.page = 1; }
+  return true;
+}
+
+function skillsPage(ctx) {
+  const list = skillList();
+  if (!list.length) { skillPageN = 1; centreText(ctx, 512, 330, "No skills.", 14, true, INK); return; }
+  const sel = list.find((s) => s.name === J.skill) || list[0];
+  J.skill = sel.name;
+  list.forEach((s, n) => {
+    const [x, y, w, h] = skillRowRect(n), xp = S.me.xp?.[s.i] || 0, lv = levelOfXp(xp);
+    const picked = s === sel;
+    roundBox(ctx, x, y, w, h, picked ? [92, 60, 46] : J.hover === 500 + n ? [72, 47, 37] : [61, 40, 31],
+      picked ? [190, 140, 100] : [92, 60, 46], picked ? 2 : 1, 10);
+    const ic = sprite(configRead("Skills", "Icon." + s.name, "").trim());
+    if (ic) {
+      const k = Math.min(28 / ic.width, 28 / ic.height);
+      ctx.drawImage(ic, x + 8 + (28 - ic.width * k) / 2, y + 7 + (28 - ic.height * k) / 2, ic.width * k, ic.height * k);
+    }
+    drawText(ctx, pretty(s.name), x + 44, y + 5, 11, true, picked ? INK : PARCHMENT);
+    const lt = `${lv}/${maxSkill()}`;
+    drawText(ctx, lt, x + w - 10 - textWidth(ctx, lt, 10, true), y + 6, 10, true, lv >= maxSkill() ? [255, 215, 60] : INK);
+    ctx.fillStyle = "rgb(40,26,20)";
+    ctx.fillRect(x + 44, y + 28, w - 54, 6);
+    ctx.fillStyle = "rgb(120,210,110)";
+    ctx.fillRect(x + 44, y + 28, Math.round((w - 54) * levelProgress(xp) / 100), 6);
+  });
+  // (the one picked: how it's levelled, then what each level opens up, the levels you have green, the next one lit)
+  const x = 364, w = 612, xp = S.me.xp?.[sel.i] || 0, lv = levelOfXp(xp), p = sel.page;
+  drawText(ctx, pretty(sel.name), x, 108, 15, true, INK);
+  const tw = textWidth(ctx, pretty(sel.name), 15, true);
+  const where = lv >= maxSkill() ? `Level ${lv}: mastered` : `Level ${lv}   ·   ${levelProgress(xp)}% of the way to ${lv + 1}`;
+  drawText(ctx, where, x + tw + 16, 113, 10, true, lv >= maxSkill() ? [255, 215, 60] : PARCHMENT);
+  let y = 140;
+  drawText(ctx, "How to level it", x, y, 11, true, INK);
+  y += 20 + 16 * wrap(ctx, x, y + 20, w, p.trains || "-", [250, 240, 210], 16, 4, 10);
+  drawText(ctx, "What opens up", x, y + 10, 11, true, INK);
+  ctx.fillStyle = "rgb(126,77,63)";
+  ctx.fillRect(x, y + 32, w, 1);
+  const top = y + 42, bottom = 684;
+  // (each level a row of up to four lines; as many rows to a page as fit, the rest on the next)
+  const rows = (p.opens || []).map(([level, what]) => ({ level, what, lines: Math.max(1, Math.min(4, wrapLines(ctx, what, w - 64, 9).length)) }));
+  const pg = [[]];
+  let room = bottom - top;
+  for (const r of rows) {
+    const h = r.lines * 15 + 9;
+    if (h > room && pg[pg.length - 1].length) { pg.push([]); room = bottom - top; }
+    pg[pg.length - 1].push(r);
+    room -= h;
+  }
+  skillPageN = pg.length;
+  J.page = Math.min(J.page, skillPageN);
+  if (!rows.length) drawText(ctx, "Nothing more than getting better at it.", x, top, 10, false, DIM);
+  const next = rows.find((r) => r.level > lv);
+  y = top;
+  for (const r of pg[J.page - 1] || []) {
+    const got = r.level <= lv, soon = r === next;
+    const [fill, border, ink] = got ? [[30, 70, 35], [80, 160, 80], [150, 230, 140]] :
+      soon ? [[92, 60, 46], [190, 140, 100], INK] : [[51, 34, 27], [92, 60, 46], DIM];
+    roundBox(ctx, x, y - 2, 52, 20, fill, border, 1, 8);
+    centreText(ctx, x + 26, y + 1, "Lv " + r.level, 9, true, ink);
+    wrap(ctx, x + 64, y, w - 64, r.what, got ? [250, 240, 210] : soon ? PARCHMENT : DIM, 15, 4);
+    y += r.lines * 15 + 9;
+  }
+}
+
 function controls(ctx) {
   const heading = (x, y, t) => {
     drawText(ctx, t, x, y, 12, true, INK);
@@ -433,7 +519,7 @@ export function drawJournal(ctx) {
     const mine = (d.friends || []).filter((f) => !f.asks && !f.asked), on = mine.filter((f) => f.on).length;
     const label = { 1: `Crafting (${d.crafts.length})`, 2: `Gathering (${d.gathers.length})`, 3: `Quests (${allQuests().length})`,
       4: `Spells (${spells.filter((s) => knowsSpell(s.spell)).length}/${spells.length})`, 5: "Records",
-      6: `Friends (${on}/${mine.length})` }[t] || "Controls";
+      6: `Friends (${on}/${mine.length})`, 7: "Skills" }[t] || "Controls";
     button(ctx, ...tabRect(t), label, J.tab === t ? 3 : J.hover === t ? 2 : 1);
   }
   roundBox(ctx, 36, 98, 952, 590, [40, 26, 20], [126, 77, 63], 2, 12);
@@ -468,6 +554,7 @@ export function drawJournal(ctx) {
     spells.slice(first, first + 8).forEach((sp, slot) => spellCard(ctx, sp, slot));
   } else if (J.tab === 5) recordsPage(ctx, d);
   else if (J.tab === 6) friendsPage(ctx, d);
+  else if (J.tab === 7) skillsPage(ctx);
   else controls(ctx);
   button(ctx, ...BUTTON_RECTS[11], "< Previous", J.page > 1 ? (J.hover === 11 ? 2 : 1) : 0);
   button(ctx, ...BUTTON_RECTS[12], "Next >", J.page < pages() ? (J.hover === 12 ? 2 : 1) : 0);
@@ -478,8 +565,9 @@ export function drawJournal(ctx) {
   else if (J.tab === 4) info = `You carry ${S.me.shards || 0} Shards`;
   else if (J.tab === 5) info = "Kept for everyone who's played here";
   else if (J.tab === 6) info = "Right-click a player, or /friend Name, to add a friend";
+  else if (J.tab === 7) info = "Click a skill: how to level it, and what each level opens up";
   else info = "The world carries on while the journal is open";
   if (pages() > 1) info = `Page ${J.page} of ${pages()}     ${info}`;
   centreText(ctx, 512, 700, info, 10, true, INK);
-  centreText(ctx, 512, 730, "H, F1 or Esc: close      1-7 or Left/Right: tabs      Up/Down or PgUp/PgDn: pages", 9, false, DIM);
+  centreText(ctx, 512, 730, "H, F1 or Esc: close      1-8 or Left/Right: tabs      Up/Down or PgUp/PgDn: pages", 9, false, DIM);
 }

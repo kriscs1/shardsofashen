@@ -1648,6 +1648,30 @@ def check_banter():
                 err(r, "[%s] %s=%s: there's no such sound" % (sec, k, v))
 
 
+def check_skill_words(skills):
+    """data\\Skills.ini: the journal's Skills page, how each skill is levelled (Trains=) and Opens.N=<level> <what>."""
+    path = p("data", "Skills.ini")
+    if not os.path.exists(path):
+        err(rel(path), "missing: the journal's Skills page needs how each skill is levelled")
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    r = rel(path)
+    known = {s.lower() for s in skills}
+    for sec, items in ini.sections:
+        if sec and sec.lower() not in known:
+            err(r, "[%s]: no such skill (Config.ini [Skills] List)" % sec)
+        for k, v in items:
+            if k and k.lower() not in ("trains",) and not re.fullmatch(r"Opens\.\d+", k, re.I):
+                err(r, "[%s] %s=: only Trains= and Opens.N= are read" % (sec, k))
+            elif k and k.lower() != "trains" and not re.match(r"\d+ \S", v.strip()):
+                err(r, "[%s] %s=%r should be a level and what it opens" % (sec, k, v))
+    for s in skills:
+        if s.lower() != "hitpoints" and not (ini.get(s, "Trains") or "").strip():
+            err(r, "[%s] needs Trains= (how the skill is levelled, for the journal)" % s)
+
+
 def check_itemracks(entities_ini, skills):
     path = p("data", "ItemRacks.ini")
     if not os.path.exists(path):
@@ -2426,6 +2450,7 @@ def main():
     check_saves(skills)
     check_minimap()
     check_gathering(entities_ini, tiles_ini, skills)
+    check_skill_words(skills)
     check_quests()
     check_spells(entities_ini, skills)
     check_shards(entities_ini)

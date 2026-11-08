@@ -170,7 +170,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   keep the world's own list. The journal's Friends page (who's about,
   where; Whisper, Invite, Remove); told when one comes or goes; your homestead's friends are yours. **Trading**
   (right-click a player: Trade): a window with both offers, gold too; both accept and it changes hands at once, any
-  change undoing both accepts. The journal's tabs: Crafting, Gathering, Quests, Spells, Records, Friends, Controls.
+  change undoing both accepts. The journal's tabs: Crafting, Gathering, Quests, Spells, Records, Friends, Skills, Controls.
 - **Gifts**: use an item on a player; they take it or not. **Town projects** (`data/Projects.ini`): anyone gives to
   the foreman; finished, what has `Project=<Key>` on its map line appears and the perk holds, for everyone. The town
   crier tells the news, the bounty clerk sets a hunt a day, the record keeper keeps the records (`/records`), the
@@ -412,6 +412,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   - **Crafting** is Smithing and Crafting made one; **Homesteading** is Construction and Farming made one; **Alchemy**
     is herbs and potions (was Potion Making, before that Herblore). A merged skill in an old save keeps the better.
 - A skill's name is one word in data (`Shardcraft`), and shown with spaces wherever a player reads it (`pretty`).
+- The journal's **Skills** tab: each skill (not Hitpoints), how it's levelled (`data/Skills.ini` `Trains=`, in the
+  player's words) and what each level opens up. That list is worked out from where each thing is set (crafting lists,
+  `Gathering.ini`, `Spells.ini` and upgrades, `Requires=` on gear, `Buildables.ini`, `Thieving.ini`, `[Enchant]`), so
+  it's never out of date: never write it out by hand. Only what no file says goes in `Opens.N=<level> <what>`
+  (`skill_pages` in `dsengine/quests.py`). A skill's guide script (left-click it in Stats) agrees with the data too.
 
 ### Doing things
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays

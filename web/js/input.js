@@ -13,7 +13,7 @@ import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, b
   wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
 import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
-import { J, hit as journalHit, pages as journalPages, spellClick, friendClick, journalQuests, TABS, QUESTS_SHOWN } from "./journal.js";
+import { J, hit as journalHit, pages as journalPages, spellClick, friendClick, skillClick, journalQuests, TABS, QUESTS_SHOWN } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
 import { unlock, playSound } from "./audio.js";
 import { pretty, val } from "./util.js";
@@ -247,6 +247,7 @@ export function mouseDown(button, x, y) {
     if (h >= 1 && h <= TABS) { J.tab = h; J.page = 1; J.focus = ""; }
     if (spellClick(h)) return;
     if (friendClick(h)) return;
+    if (skillClick(h)) return;
     if (h === 400 || h === 401) { J.done = h === 401; J.page = 1; return; }   // (Quests: In hand, or Done)
     if (h >= 100 && h < 100 + QUESTS_SHOWN) {      // (a quest: follow it, its place marked on the maps)
       const q = journalQuests()[(J.page - 1) * QUESTS_SHOWN + h - 100];
@@ -461,8 +462,8 @@ export function keyDown(ev) {
   if (code === "F11") { ev.preventDefault(); window.dsUI.toggleFullscreen(); return; }
   if (J.open) {
     if (code === "Escape" || code === "KeyH" || code === "F1") { ev.preventDefault(); closeJournal(); return; }
-    const n = { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Numpad1: 1, Numpad2: 2,
-      Numpad3: 3, Numpad4: 4, Numpad5: 5, Numpad6: 6, Numpad7: 7 }[code];
+    const n = { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8, Numpad1: 1, Numpad2: 2,
+      Numpad3: 3, Numpad4: 4, Numpad5: 5, Numpad6: 6, Numpad7: 7, Numpad8: 8 }[code];
     if (n) { J.tab = n; J.page = 1; J.focus = ""; }
     if (code === "ArrowLeft") { J.tab = J.tab === 1 ? TABS : J.tab - 1; J.page = 1; }
     if (code === "ArrowRight") { J.tab = J.tab === TABS ? 1 : J.tab + 1; J.page = 1; }
