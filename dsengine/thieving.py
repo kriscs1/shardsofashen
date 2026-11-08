@@ -100,7 +100,7 @@ class ThiefMixin:
             if name and rnd() * 100 < val(percent):
                 n = parse_quantity(amount)
                 if n > 0 and self.inventory_slots_available(name, True) > 0:
-                    self.add_inventory_item(name, n, stolen=True)
+                    self.got_stolen(name, n)
                     got.append(pretty(name) if n == 1 else "%d %s" % (n, pretty(name)))
         self.play_sound("Coins" if gold else "Pickup")
         self.display_message("You lift %s from the %s, unseen." % (" and ".join(got) or "nothing worth having",
@@ -152,7 +152,7 @@ class ThiefMixin:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             self.act_done(False)
             return
-        self.add_inventory_item(name, qty, stolen=True)
+        self.got_stolen(name, qty)
         self.play_sound("Coins" if name == "Gold_Coin(s)" else "Pickup")
         self.display_message("You lift %s from among someone's precious things." %
                              ("%d gold" % qty if name == "Gold_Coin(s)" else "the " + pretty(name)), "SUCCESS")
@@ -245,7 +245,7 @@ class ThiefMixin:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             self.act_done(False)
             return
-        self.add_inventory_item(name, 1, stolen=True)
+        self.got_stolen(name, 1)
         self.play_sound("Pickup")
         self.display_message("You slip the %s off the shelf and into your pack." % pretty(name), "SUCCESS")
         self.update_skill("Stealth", "+" + lbstr(self.thief_num("Steal", "XP", 0.3) * max(1, level) ** 0.5))
@@ -306,6 +306,19 @@ class ThiefMixin:
             else:
                 keep.append(g)
         self.guards_after = keep
+
+    def got_stolen(self, name, n):
+        """n of name into your pack, marked stolen; counted (Thefts: townsfolk's talk of fences is for thieves)."""
+        self.add_inventory_item(name, n, stolen=True)
+        if name != "Gold_Coin(s)":
+            self.update_attribute("Thefts", "+1")
+
+    def fence_hint(self):
+        """What an honest shopkeeper says of where stolen goods would sell (Thieving.ini [Fence] Hint.<Town>, or
+        Hint)."""
+        town = self.town_of_map(self.cur_map.name) if self.cur_map is not None else ""
+        return self.thief_text("Fence", "Hint." + town) if town and self.thief_text("Fence", "Hint." + town) else \
+            self.thief_text("Fence", "Hint")
 
     def fence_rate(self):
         """What the fence whose shop is open gives for stolen goods: a share of what an honest shop would give for

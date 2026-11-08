@@ -1883,6 +1883,8 @@ def check_banter():
                     err(r, "[%s] %s is too long for one line over a head" % (sec, k))
             elif k and re.fullmatch(r"Sound\d+", k) and not exists(p("sounds", v.strip() + ".wav")):
                 err(r, "[%s] %s=%s: there's no such sound" % (sec, k, v))
+            elif k == "Town" and v.strip().upper() not in TOWN_KEYS():
+                err(r, "[%s] Town=%s: no such town in data\\Towns.ini" % (sec, v))
 
 
 def check_skill_words(skills):
@@ -1972,14 +1974,17 @@ def check_fences(racks):
             continue
         rack = sec[6:]
         if rack and racks.get(rack, "Fence") != "1":
-            err(r, "[%s]: there's no [%s] with Fence=1 in data\ItemRacks.ini" % (sec, rack))
+            err(r, "[%s]: there's no [%s] with Fence=1 in data\\ItemRacks.ini" % (sec, rack))
         for k, v in items:
             if k in ("Rate", "Side.Rate") and not (is_num(v) and 0 <= float(v) <= 1):
                 err(r, "[%s] %s=%r should be a share of an honest shop's price, 0 to 1" % (sec, k, v))
             elif k == "Side" and v.strip().upper() not in NPC_SIDES():
                 err(r, "[%s] Side=%s: no NPC is on that side (Side= on its kind or its map line)" % (sec, v))
-            elif k is not None and k not in ("Rate", "Side", "Side.Rate"):
-                err(r, "[%s] %s: unknown (Rate, Side, Side.Rate)" % (sec, k))
+            elif not rack and k is not None and k.startswith("Hint."):
+                if k[5:].upper() not in TOWN_KEYS():
+                    err(r, "[%s] %s: no such town in data\\Towns.ini" % (sec, k))
+            elif k is not None and k not in ("Rate", "Side", "Side.Rate") and not (not rack and k == "Hint"):
+                err(r, "[%s] %s: unknown (Rate, Side, Side.Rate; [Fence] Hint, Hint.<Town>)" % (sec, k))
 
 
 def check_saves(skills):

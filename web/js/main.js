@@ -360,6 +360,7 @@ function openAdmin() {
   if (!adminPlaces.length) send({ t: "admin", do: "places" });
   if (!adminCommands.length) send({ t: "admin", do: "commands" });
   send({ t: "admin", do: "standings" });
+  send({ t: "admin", do: "quests" });
   const box = $("admin-skills");
   box.innerHTML = "";
   A.m.skills.forEach((name, i) => {
@@ -487,6 +488,47 @@ function showAdminStanding() {
 $("admin-town").addEventListener("change", showAdminStanding);
 $("admin-standing-go").onclick = () => send({ t: "admin", do: "standing", town: $("admin-town").value,
   value: $("admin-standing").value.trim() });
+
+let adminQuests = [];
+function fillAdminQuests() {
+  // Quests: each with its stage (done ticked when it's finished); the one picked stays picked
+  const sel = $("admin-quest"), was = sel.value;
+  const f = $("admin-quest-filter").value.toLowerCase();
+  sel.innerHTML = "";
+  for (const [name, attr, stage, done] of adminQuests) {
+    if (f && !name.toLowerCase().includes(f) && !attr.toLowerCase().includes(f)) continue;
+    const o = document.createElement("option");
+    o.value = name;
+    o.textContent = `${name}: ${done > 0 && +stage >= done ? "done" : +stage > 0 ? "stage " + stage : "not begun"}`;
+    sel.append(o);
+  }
+  if (was && [...sel.options].some((o) => o.value === was)) sel.value = was;
+  showAdminQuest();
+}
+function showAdminQuest() {
+  // the picked quest's stage, and each of its variables to change (Enter in one sets it)
+  const q = adminQuests.find((x) => x[0] === $("admin-quest").value);
+  const box = $("admin-quest-vars");
+  box.innerHTML = "";
+  $("admin-quest-stage").value = q ? q[2] : "";
+  $("admin-quest-done").checked = !!q && q[3] > 0 && +q[2] >= q[3];
+  $("admin-quest-stage").title = q ? `${q[1]}: 0 (not begun) to ${q[3]} (done)` : "";
+  for (const [v, value] of q ? q[4] : []) {
+    const l = document.createElement("label"), i = document.createElement("input");
+    i.value = value;
+    i.maxLength = 40;
+    i.dataset.v = v;
+    i.addEventListener("change", () => send({ t: "admin", do: "quest", quest: q[0], vars: { [v]: i.value.trim() } }));
+    l.append(v.replace(/_/g, " "), i);
+    box.append(l);
+  }
+}
+$("admin-quest-filter").addEventListener("input", fillAdminQuests);
+$("admin-quest").addEventListener("change", showAdminQuest);
+$("admin-quest-done").addEventListener("input", (ev) => send({ t: "admin", do: "quest", quest: $("admin-quest").value,
+  done: ev.target.checked }));
+$("admin-quest-go").onclick = () => send({ t: "admin", do: "quest", quest: $("admin-quest").value,
+  stage: $("admin-quest-stage").value.trim() });
 $("death-respawn").onclick = () => send({ t: "respawn" });
 $("admin-goto").onclick = () => send({ t: "admin", do: "goto", place: $("admin-place").value });
 $("admin-god").addEventListener("input", (ev) => send({ t: "admin", do: "god", on: ev.target.checked }));
@@ -996,6 +1038,7 @@ N.onMessage = (m) => {
     case "admin_places": adminPlaces = m.places; fillAdminPlaces(); break;
     case "admin_commands": adminCommands = m.commands; fillAdminCommands(); break;
     case "admin_standings": fillAdminTowns(m.towns); break;
+    case "admin_quests": adminQuests = m.quests; fillAdminQuests(); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;
   }

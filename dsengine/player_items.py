@@ -593,7 +593,7 @@ class ItemsMixin:
             self.display_message("You can't sell that!", "FAIL")
             return
         if stolen and not self.rack_fence:
-            self.refuse("No honest trader will buy that: it's stolen, and it shows. A fence might.")
+            self.refuse(("No honest trader will buy that: it's stolen, and it shows. " + self.fence_hint()).strip())
             return
         if not self.can_sell_here(item, stolen):
             self.display_message("You can't sell that here!", "FAIL")

@@ -123,13 +123,14 @@ class Banter:
             return None
         self.rng.shuffle(near)
         about = [d for d in self.scenes.values() if d["b"].lower() == "player" and not self.resting(d["key"]) and
-                 self.applies(d.get("when", ""), s)]
+                 self.applies(d.get("when", ""), s) and self.in_town(d, s)]
         self.rng.shuffle(about)
         for d in about:
             a = next((e for e in near if e.name in d["a_kinds"]), None)
             if a is not None:
                 return self.start(d, a, None, s)
-        scenes = [d for d in self.scenes.values() if d["b"].lower() != "player" and not self.resting(d["key"])]
+        scenes = [d for d in self.scenes.values() if d["b"].lower() != "player" and not self.resting(d["key"]) and
+                  (not d.get("when") or self.applies(d["when"], s)) and self.in_town(d, s)]
         self.rng.shuffle(scenes)
         close = self.setting("Near.Tiles", 5) * self.w.tw
         for d in scenes:
@@ -141,9 +142,17 @@ class Banter:
                         return self.start(d, a, b, s)
         return None
 
+    @staticmethod
+    def in_town(d, s):
+        """A scene with Town= is only played in that town (Towns.ini: standing.py)."""
+        want = d.get("town", "")
+        return not want or (s.cur_map is not None and s.town_of_map(s.cur_map.name).lower() == want.lower())
+
     def applies(self, when, s):
         """Is what this scene says about them true of player s just now?"""
         kind = when.lower()
+        if kind == "thief":                                     # (something stolen, ever: thieving.py)
+            return val(s.get_attribute("Thefts")) >= 1
         if kind == "sneaking":
             return s.stance == "Sneaking"
         if kind == "hurt":

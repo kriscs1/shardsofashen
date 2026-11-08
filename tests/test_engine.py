@@ -6,7 +6,7 @@ import pytest
 
 from dsengine import World, Session
 from dsengine.entity import MAPITEM, NPC, AI_FLEE, AI_IDLE
-from ashen.lb import distance
+from ashen.lb import distance, val
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -2502,6 +2502,8 @@ def test_mo_sits_for_a_portrait_only_when_sitting(world):
     def stroke(state, pose=""):
         world.set_entity_position(mo, s.player.x + 26, s.player.y)
         mo.ai.state, mo.pose, mo.ai.timer = state, pose, world.now + 60000
+        mo.ai.fidget_at = mo.ai.turn_at = world.now + 60000              # (no stretch or glance about meanwhile)
+        mo.ai.pose_next, mo.ai.fidget_until, mo.ai.pose_back = "", 0, ""
         s.out = []
         s.choose_verb("Stroke", mo, int(mo.cx), int(mo.cy))
         for _ in range(5):
@@ -4947,6 +4949,50 @@ def test_only_a_fence_buys_stolen_goods(world):
     assert not s.open_item_rack("SHOP", "Man", "SHOP-Isle")
     assert s.open_item_rack("SHOP", "Man", "SHOP-Fence_Galaith")
     leave(world, s)
+
+
+def test_a_thief_hears_where_the_fences_are(world):
+    s = join(world, "Tipped", "4,4,0", 300, 300)                     # (Northport)
+    s.connected = True
+    s.clicked_ent = None
+    try:
+        scene = world.banter.scenes["Scene.Fence_Northport"]
+        assert not world.banter.applies("Thief", s)                 # (an honest soul hears nothing of it)
+        s.got_stolen("Silver_Ring", 1)
+        assert world.banter.applies("Thief", s) and world.banter.in_town(scene, s)
+        assert not world.banter.in_town(world.banter.scenes["Scene.Fence_Galaith"], s)
+        assert s.open_item_rack("SHOP", "Man", "SHOP-Isle")
+        said = []
+        s.display_message = lambda text, kind="": said.append(text)
+        s.rack_sell(next(e for e in s.inv if e.stolen), 1)
+        assert "docks after dark" in said[-1]                       # (the shopkeeper says where it'd sell)
+    finally:
+        leave(world, s)
+
+
+def test_the_admin_panel_sets_a_quest_and_its_variables(world):
+    s = join(world, "Questmaster")
+    s.connected = True
+    s.admin_enabled = True
+    try:
+        row = next(q for q in s.admin_quests() if q[0] == "The Dwarf's Grudge")
+        assert row[1] == "DwarfQuest" and [v for v, _ in row[4]] == ["SkeletonsSlain", "TrollSlain"]
+        shards = s.shard_balance
+        s.handle({"t": "admin", "do": "quest", "quest": "The Dwarf's Grudge", "done": True})
+        assert s.quest_done("DwarfQuest") and s.shard_balance == shards          # (ticked: no reward for it)
+        assert s.get_attribute("ShardsPaid.DwarfQuest") == "1"
+        s.handle({"t": "admin", "do": "quest", "quest": "DwarfQuest", "vars": {"SkeletonsSlain": "3", "Gold": "9"}})
+        assert s.get_attribute("SkeletonsSlain") == "3" and val(s.get_attribute("Gold")) == 0   # (only the quest's own)
+        s.handle({"t": "admin", "do": "quest", "quest": "The Dwarf's Grudge", "stage": 1})
+        assert val(s.get_attribute("DwarfQuest")) == 1 and not s.quest_done("DwarfQuest")
+        s.handle({"t": "admin", "do": "quest", "quest": "The Dwarf's Grudge", "done": False})
+        assert val(s.get_attribute("DwarfQuest")) == 0 and val(s.get_attribute("SkeletonsSlain")) == 0
+        assert val(s.get_attribute("ShardsPaid.DwarfQuest")) == 0                  # (to be played again, in full)
+        s.admin_enabled = False
+        s.handle({"t": "admin", "do": "quest", "quest": "The Dwarf's Grudge", "done": True})
+        assert not s.quest_done("DwarfQuest")                       # (only an admin)
+    finally:
+        leave(world, s)
 
 
 def test_a_creature_comes_back_out_of_shard_essence(world):

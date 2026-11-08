@@ -1,7 +1,7 @@
 """A player's quests (data\\Quests.ini, their attributes and journal notes), the journal's lists of what they can
 make and gather (as the desktop game's quests.py and screens.py worked them out) and the quest markers on the minimap."""
 from ashen import ini
-from ashen.lb import val, word, trim, lbstr, pretty
+from ashen.lb import val, word, trim, lbstr, pretty, is_number
 from .shards import quest_xp
 
 
@@ -122,6 +122,57 @@ class QuestMixin:
                 out.append(c)
                 i += 1
         return "".join(out)
+
+    # ----- the admin panel's quests
+    def admin_quests(self):
+        """[[name, attribute, stage, done, [[variable, value], ...]]] of every quest with an attribute."""
+        out = []
+        found = self.data.quest_vars()
+        for name, d in self.data.quest_table():
+            a = d.get("ATTRIBUTE", "")
+            if a:
+                out.append([name, a, lbstr(val(self.get_attribute(a))), int(val(d.get("DONE", "0"))),
+                            [[v, self.get_attribute(v) or "0"] for v in found.get(a.upper(), [])]])
+        return out
+
+    def admin_set_quest(self, quest, stage=None, done=None, variables=None):
+        """The admin panel: a quest's stage set outright (done: its last; not done: back to the start, its rewards and
+        its variables cleared, to play it again), and any of its variables. Nothing's given for it, and no reward
+        screen; reaching Done here marks the rewards given. Returns what was done, to say."""
+        name, d = self.data.quest_named(quest)
+        if d is None or not d.get("ATTRIBUTE"):
+            return "No such quest."
+        a, last = d["ATTRIBUTE"], int(val(d.get("DONE", "0")))
+        mine = {v.upper(): v for v in self.data.quest_vars().get(a.upper(), [])}
+
+        def put(attr, value):
+            idx = next((i for i, (n, _) in enumerate(self.attributes) if n.upper() == attr.upper()), -1)
+            if idx >= 0:
+                self.attributes[idx][1] = value
+            elif value not in ("0", ""):
+                self.attributes.append([attr, value])
+        if done is not None:
+            stage = last if done else 0
+        if done is False:
+            for attr in ("ShardsPaid." + a, "StandingPaid." + a):
+                put(attr, "0")
+            for v in mine.values():
+                put(v, "0")
+        if stage is not None:
+            stage = max(0, int(val(stage)))
+            put(a, lbstr(stage))
+            if last > 0 and stage >= last:
+                put("ShardsPaid." + a, "1")               # (no reward for an admin's tick)
+        for k, value in (variables or {}).items():
+            if str(k).upper() in mine:
+                value = trim(str(value))[:60]
+                put(mine[str(k).upper()], lbstr(val(value)) if is_number(value) else value)
+        self.dirty_me = True
+        self.dirty_quests = True
+        self.save_requested = True
+        self.check_locks(True)
+        now = val(self.get_attribute(a))
+        return "%s: stage %s%s." % (name, lbstr(now), " (done)" if last > 0 and now >= last else "")
 
     # ----- the quest list (the sidebar's Quests tab and the journal)
     def quest_list(self):

@@ -1,6 +1,6 @@
 """Banter's words (dsengine/banter.py, data\\Banter.ini): what the world's people and animals say to each other as you
 pass, and to you when you've given them cause; and a dog's bark and a cat's hiss. Never a hint: nobody here knows
-anything about a quest, and nobody says where a thing is.
+anything about a quest, and nobody says where a thing is (but a thief hears where the fences are: When=Thief).
 
 A scene already in Banter.ini is left as it is: edit them there, and add more there.
 
@@ -23,8 +23,9 @@ HEADER = """; Banter (dsengine/banter.py): who says what to whom, over their hea
 ; [Groups]: names for kinds of people (Entities.ini names, commas between).
 ; A scene: A, B (a group or kinds), Line1.. (A: or B: and the words, short: they're one line over a head), Sound1.. (played
 ;   with that line), After=Scatter (B runs off). B=Player: said about the player, When= Form (any other shape), a form's
-;   name (Chicken), Sneaking, Hurt, or their rank in the town they're in (Outlaw, Distrusted, Welcome, Trusted, Honoured).
-; Never a hint, never a quest: these people don't know anything.
+;   name (Chicken), Sneaking, Hurt, or their rank in the town they're in (Outlaw, Distrusted, Welcome, Trusted, Honoured);
+;   Thief (they've stolen something: any scene). Town= (a Towns.ini town): only there.
+; Never a hint, never a quest: these people don't know anything (save where a thief might sell what they took).
 """
 SETTINGS = [("On", "1"), ("Every.Seconds", "40"), ("Sight.Tiles", "6"), ("Near.Tiles", "5"), ("Beat.Seconds", "2.6"),
             ("Scene.Rest.Minutes", "10"), ("Speaker.Rest.Minutes", "5"), ("Most.At.Once", "3"), ("Scatter.Tiles", "4")]
@@ -37,9 +38,9 @@ GROUPS = [("Townsfolk", "Villager,Man,Woman,Settler,Farmer,Fisherman,Shepherd,Ol
           ("Cats", "Cat,Black_Cat,Ginger_Cat")]
 
 
-def scene(a, b, *lines, after="", when="", sounds=None):
+def scene(a, b, *lines, after="", when="", sounds=None, town=""):
     """(A, B, lines): each line "A:words" or "B:words"."""
-    return a, b, lines, after, when, sounds or {}
+    return a, b, lines, after, when, sounds or {}, town
 
 
 SCENES = {
@@ -107,6 +108,15 @@ SCENES = {
     "You_Honoured": scene("Townsfolk", "Player", "A:Look who it is! Make way, make way.", when="Honoured"),
     "You_Honoured_Guard": scene("Guards", "Player", "A:An honour. Go on through.", when="Honoured"),
     "You_Honoured_Trade": scene("Trades", "Player", "A:For you? A little off, as ever.", when="Honoured"),
+    # ----- where a thief sells (thieving.py: only to those who've stolen, only in the fence's own town)
+    "Fence_Northport": scene("Townsfolk", "Player", "A:Got things you can't sell? The docks, after dark.",
+                             "A:Ask for Wick. You didn't hear it from me.", when="Thief", town="Northport"),
+    "Fence_Northport_Talk": scene("Townsfolk", "Townsfolk", "A:Wick bought my cousin's \"found\" silver.",
+                                  "B:Didn't ask where from?", "A:Wick never asks.", when="Thief", town="Northport"),
+    "Fence_Galaith": scene("Townsfolk", "Player", "A:Looking to sell what isn't yours?",
+                           "A:Old Sully. The tavern's corner. Quietly.", when="Thief", town="Galaith"),
+    "Fence_Galaith_Talk": scene("Townsfolk", "Townsfolk", "A:Old Sully had a duke's spoons last week.",
+                                "B:Sully buys anything.", "A:Anything stolen, anyhow.", when="Thief", town="Galaith"),
 }
 
 
@@ -130,7 +140,7 @@ def main():
         conf.set("Banter", k, v, overwrite=False)
     for k, v in GROUPS:
         conf.set("Groups", k, v, overwrite=False)
-    for key, (a, b, lines, after, when, sounds) in SCENES.items():
+    for key, (a, b, lines, after, when, sounds, town) in SCENES.items():
         sec = "Scene." + key
         if conf.section(sec) is not None:
             continue
@@ -143,6 +153,8 @@ def main():
             items.append(("After", after))
         if when:
             items.append(("When", when))
+        if town:
+            items.append(("Town", town))
         for k, v in items:
             conf.set(sec, k, v)
     conf.save(p("data", "Banter.ini"))

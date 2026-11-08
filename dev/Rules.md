@@ -267,7 +267,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   like wear, wherever it goes (pack, bank, ground, worn, a trade or gift, a grave, the save), never stacks with
   honest goods and shows a red tag; no shop buys it and the market won't list it, only a **fence** (a shop rack with
   `Fence=1`: Wick on Northport's docks by night, Old Sully in Galaith, Red Meg), for `[Fence] Rate` of the price (its
-  own `[Fence.<rack>]`; Meg's `Side.Rate` to those on the smugglers' side); a fence serves an Outlaw (`build_fences.py`). **Locks** (`dsengine/locks.py`, `data/Locks.ini`): chests have a
+  own `[Fence.<rack>]`; Meg's `Side.Rate` to those on the smugglers' side); a fence serves an Outlaw (`build_fences.py`). Where they are is
+  passed on, never signed: the honest shopkeeper who won't buy it says (`[Fence] Hint.<Town>`), and townsfolk in a
+  fence's town tell those who've stolen (`Banter.ini` `When=Thief`, `Town=`). **Locks** (`dsengine/locks.py`, `data/Locks.ini`): chests have a
   lock by place (the easiest on the Isle, to learn on; never on a chest a quest needs); key, Pick Lock (Stealth) or
   Break Open (Strength), but an iron-bound chest (`Sturdy`: the high locks and a share of the rest, never the Isle's)
   is only picked or keyed; unlocked is yours, saved. Secrets (51, by every settlement) and traps (every monster-held

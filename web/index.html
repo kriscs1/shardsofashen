@@ -207,6 +207,15 @@
         <div class="row"><select id="admin-town"></select>
           <input id="admin-standing" class="admin-num" inputmode="numeric" maxlength="5" title="-100 (Outlaw) to 100 (Honoured)">
           <button type="button" id="admin-standing-go">Set</button></div>
+        <span>Quest</span>
+        <div class="row"><input id="admin-quest-filter" class="admin-filter" placeholder="search..." maxlength="40">
+          <select id="admin-quest"></select></div>
+        <span></span>
+        <div class="row snug"><label class="inline"><input type="checkbox" id="admin-quest-done"> done</label>
+          stage <input id="admin-quest-stage" class="admin-num" inputmode="numeric" maxlength="4">
+          <button type="button" id="admin-quest-go">Set</button></div>
+        <span></span>
+        <div id="admin-quest-vars"></div>
         <span>God mode</span>
         <div class="row"><label class="inline"><input type="checkbox" id="admin-god"> nothing can hurt you</label></div>
         <span>Fly</span>

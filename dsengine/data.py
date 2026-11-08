@@ -2,6 +2,7 @@
 footprints and positions of things; the pictures themselves are the browser's), named places and the quests.
 Everything that doesn't change while the game runs; the INI files are read again when they change on disk."""
 import os
+import re
 import time
 
 from ashen import ini
@@ -505,6 +506,45 @@ class GameData:
             table = [(name, {k.upper(): trim(v) for k, v in items}) for name, items in ini.sections(path)]
             cache = self._caches["quest_table"] = (stamp, table)
         return cache[1]
+
+    def quest_vars(self):
+        """{quest attribute (upper): [attribute, ...]}: the other saved values a quest's scripts keep (for the admin
+        panel). Those its stages show ($Name), its Ending=, and every attribute set or read by a script that sets the
+        quest's own (never another quest's, nor the reward and standing flags). Worked out once a run."""
+        cache = self._caches.get("quest_vars")
+        if cache is not None:
+            return cache
+        quests = {d.get("ATTRIBUTE", "").upper(): d for _, d in self.quest_table() if d.get("ATTRIBUTE")}
+        found = {a: [] for a in quests}
+
+        def add(q, name):
+            u = name.upper()
+            if u and u not in quests and name not in found[q] and len(found[q]) < 40 and \
+                    not u.startswith(("SHARDSPAID.", "STANDINGPAID.", "STANDING.", "SIDE.")):
+                found[q].append(name)
+        for q, d in quests.items():
+            for k, v in d.items():
+                if k.startswith("STAGE"):
+                    for m in re.finditer(r"\$([A-Za-z_][A-Za-z0-9_.]*)", v):
+                        add(q, m.group(1))
+            if d.get("ENDING"):
+                add(q, d["ENDING"])
+        folder = os.path.join(self.root, "data", "Scripts")
+        for fn in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+            if not fn.lower().endswith(".txt"):
+                continue
+            try:
+                with open(os.path.join(folder, fn), encoding="cp1252", errors="replace") as f:
+                    rows = [ln.rstrip("\r\n").split("\t") for ln in f]
+            except OSError:
+                continue
+            sets = [r[2].strip() for r in rows if len(r) > 2 and r[1] == "Update.Attribute"]
+            reads = [r[3].strip() for r in rows if len(r) > 3 and r[1] == "Get.Value" and r[2].upper() == "ATTRIBUTE"]
+            for q in {s.upper() for s in sets} & set(found):
+                for name in sets + reads:
+                    add(q, name)
+        self._caches["quest_vars"] = found
+        return found
 
     def quest_named(self, name_or_attr):
         want = trim(name_or_attr).lower()

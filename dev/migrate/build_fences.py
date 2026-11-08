@@ -5,7 +5,8 @@
   * data\\ItemRacks.ini: Fence=1 on Red Meg's goods, and the two new fences' own.
   * The smugglers' side (Side=Smugglers: the Smuggler kind and Red Meg), for Red Meg's best price.
   * The fences: Wick, who walks Northport's docks at night (the man who was already there), and Old Sully in the corner
-    of a Galaith tavern (-7,15,0), each with their Talk script.
+    of a Galaith tavern (-7,15,0), each with their Talk script. An honest shopkeeper who won't buy stolen goods says
+    where they'd sell ([Fence] Hint, Hint.<Town>); townsfolk's talk of them is build_banter.py's.
 
 Safe to run again.
 
@@ -24,6 +25,10 @@ MAKER = "build_fences.py"
 FENCE = [   # data\Thieving.ini: (section, key, value, what it means)
     ("Fence", "Rate", "0.5", "What a fence gives for stolen goods (its rack has Fence=1): this share of an honest "
                              "shop's price; its own, [Fence.<rack>] (Side.Rate: to those on its side)"),
+    ("Fence", "Hint", "Folk say there's a man on Northport's docks after dark who doesn't ask questions.",
+     "What an honest shopkeeper says of where it would sell; Hint.<Town>, in that town"),
+    ("Fence", "Hint.Northport", "Try the docks after dark, if you must. Not here.", None),
+    ("Fence", "Hint.Galaith", "Old Sully, in the tavern's corner, if you must. Not here.", None),
     ("Fence.SHOP-Smugglers", "Rate", "0.6", "Red Meg"),
     ("Fence.SHOP-Smugglers", "Side", "Smugglers", None),
     ("Fence.SHOP-Smugglers", "Side.Rate", "0.8", None),

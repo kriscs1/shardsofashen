@@ -165,7 +165,9 @@ the **Stillwater**. A pocket is always safe: nothing hostile can be in one.
   - Admins can start one from the Admin panel.
 - **Chat.** A chime plays when another player says something (a softer one for a whisper); Options can turn it off.
 - **Admins** can jump to any named place (Admin > *Go to a place*): `Ashford_Market`, `The_Green_Dragon`,
-  `Waystone_Highwatch`...
+  `Waystone_Highwatch`...; set their standing in any town; and set any quest done, not begun or at a stage, and the
+  values its scripts keep (Admin > *Quest*: ticking it done gives no reward; unticking it clears its rewards and values,
+  to play it again).
 - `dev/migrate/build_market.py` (signs) and `dev/migrate/build_town_life.py` (boards, vendors, tavern, digging,
   raids) make all of this.
 

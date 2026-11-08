@@ -964,6 +964,16 @@ class ActionsMixin:
                 self.emit({"t": "admin_status", "text": "%s is on already." % name})
         elif what == "standings":
             self.emit({"t": "admin_standings", "towns": self.admin_standings()})
+        elif what == "quests":
+            self.emit({"t": "admin_quests", "quests": self.admin_quests()})
+        elif what == "quest":
+            # (a quest done or not, a stage, or its variables: quests.py)
+            vars_ = msg.get("vars") if isinstance(msg.get("vars"), dict) else None
+            done = msg.get("done")
+            said = self.admin_set_quest(str(msg.get("quest", "")), msg.get("stage"),
+                                        None if done is None else bool(done), vars_)
+            self.emit({"t": "admin_quests", "quests": self.admin_quests()})
+            self.emit({"t": "admin_status", "text": said})
         elif what == "standing":
             # (yours in a town set outright: the rank's line and the journal follow, as for any deed)
             town = self.town_named(str(msg.get("town", "")))
