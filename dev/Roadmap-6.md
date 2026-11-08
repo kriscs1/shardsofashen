@@ -24,7 +24,7 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
       `dev/Rules.md` The story, and the Ashen Hand's loose thread answered.
 
 ## 2. The engine
-- [ ] The disguise: an `Entities.ini` key (`Friend.If.Wearing=Mender_Robe`) in the foe check (`world.py`), each
+- [ ] The disguise: an `Entities.ini` key (`Friend.If.Wearing=Mending_Robe`) in the foe check (`world.py`), each
       player's own gear. A blow, or a spell in sight of one of them, ends it for the map, and those near come.
       `validate.py`; a test.
 - [ ] A boss that takes in remnants (`Absorbs.Remnants=1`): it goes to Shard Remnants near it and heals by them, unless
@@ -32,15 +32,15 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
 
 ## 3. Art and sound (a builder)
 - [ ] Grey robes with glass growing through them: the Acolyte (blows), the Cantor (spells, the Channelling stance),
-      the Glassbound (a brute, more remnants), the First Mender (the boss, more glass than man).
-- [ ] The Mender robe, carried and worn.
+      the Glassbound (a brute, more remnants), the Eldest (the boss, more glass than man).
+- [ ] The robe of the Mending, carried and worn.
 - [ ] Cold blue shrine fire, the Shard Font, the great Shard.
 - [ ] A low choir's chant and a whisper.
 
 ## 4. Places
 - [ ] The hall under Shardglass Field (its way in hidden, lookouts, the sermon hall, the Font, the locked sanctum
       with the great Shard), named in `WorldMap.ini`.
-- [ ] Wardhaven taken quietly by the Mending (the First Mender's sanctum).
+- [ ] Wardhaven taken quietly by the Mending (the Eldest's sanctum).
 - [ ] The Ashwold's three shrines lit blue once The Ember Ring is done; the Hand's camp where the Mending pays it.
 
 ## 5. The quests (`dev/migrate/build_mending.py`; takes over the Ashen Shrine scripts: `story_kit.TAKES_OVER`)
@@ -53,7 +53,7 @@ Kept gentle, for a twelve-year-old and still worth an adult's time, like the Gla
       in Mary's voice (`$Player.Son`). Their aim: the first cut.
 - [ ] **The Tithe** (the same visit): into the sanctum by Shards poured into the Font (`Pay.Shards`), a picked lock
       (Stealth), or a fight (the disguise gone).
-- [ ] **The First Mender** (20, after The Dragon of Galaith), in Wardhaven: a boss (`Boss=1`) with a choir of
+- [ ] **The Eldest of the Mending** (20, after The Dragon of Galaith), in Wardhaven: a boss (`Boss=1`) with a choir of
       Cantors; he heals by their remnants.
 - [ ] Every number in `data/Shards.ini` `[Mending]`; stages, markers and rumours in `Quests.ini`; tests.
 
