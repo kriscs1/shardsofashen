@@ -13,6 +13,8 @@ game comes first: the demo, the Friend Pass and the time pass are all built on i
   demo player to the mainland.
 - **A time pass, on a phone, for those who haven't paid**: watch a rewarded ad on the start screen for a while of the
   full game. Only in the Android app, only on the start screen, never in a game.
+- **The browser follows the account**: the full game if it's owned, the demo if not, the Friend Pass on a friend's
+  link.
 - **The Friend Pass**: a demo player in a game whose host owns the full game has the full game there, the whole world
   and no level cap, while someone who owns it is in the game. Their progress is kept; back in a game of their own
   they're in the demo again; buying the game keeps everything they've done.
@@ -82,12 +84,14 @@ game comes first: the demo, the Friend Pass and the time pass are all built on i
       desktop app shows only how to get it (no demo).
 - [ ] Tests (`tests/test_desktop.py`).
 
-## 7. The browser
-- [ ] To decide (the owner): the browser is the website, `https://shardsofashen.hallisium.com`: sign in, the Public
-      servers, and a friend's link (`/play/<id>/`, a friend's app game opened to the internet). There's no Single
-      player in it. With no demo on PC, a browser on a computer would be a free way in, so either it follows the
-      account (the full game if owned; the demo if not; the Friend Pass on a friend's link), or it's only for those
-      who own the game, and Friend Pass guests.
+## 7. The browser (the website, `https://shardsofashen.hallisium.com`)
+- [ ] It follows the account (the owner's decision): the full game if the account owns it (or a pass is running),
+      the demo if not, and the Friend Pass on a friend's link (`/play/<id>/`). On a public server (no host) the
+      Friend Pass is a friend's: a demo player has the full game while one of their Hallisium friends who owns it is in
+      that game (not just any owner, or a busy server would be the full game for everyone). The website has no Single
+      player, so a browser's demo is played on a public server.
+- [ ] No time pass in a browser (its ads are AdSense on the start screen, as now).
+- [ ] Tests (`tests/test_server.py`): a demo account and an owning one on a remote server, by ticket.
 
 ## 8. Finished
 - [ ] `dev/Rules.md` (Servers, apps and accounts: the ads paragraph rewritten, owning the game, the demo, the
@@ -97,7 +101,6 @@ game comes first: the demo, the Friend Pass and the time pass are all built on i
       committed and pushed.
 
 ## Still to decide
-- The browser (group 7).
 - Whether buying the full game on a phone also removes the ads (the plan's default: yes, and Remove ads stays for
   those who only want that).
 - The time pass: how long one ad gives (the plan's default: 2 hours) and how many a day (3).
