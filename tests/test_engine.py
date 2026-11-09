@@ -6560,6 +6560,23 @@ def test_loud_thieving_wakes_sleepers(world):
     leave(world, s)
 
 
+def test_a_noise_wakes_every_sleeper_in_earshot_though_the_first_shouts(world, monkeypatch):
+    m = world.maps["-2,15,0"]
+    s = join(world, "Clatter", "-2,15,0", 2 * 32, 2 * 32)
+    pair = [world.add_npc("Villager", 0, m.ox + (10 + k) * 32, m.oy + 10 * 32, "Attitude=Good Stand=1") for k in (0, 1)]
+    run_for(world, 1)                                                # (on the world's map of who's where)
+    for n in pair:
+        n.ai.asleep = True
+    shouted = []
+    monkeypatch.setattr(s, "watching", lambda e: True)
+    monkeypatch.setattr(s, "caught", lambda e, how: shouted.append(e))
+    s.wake_sleepers(pair[0], 224)
+    assert not any(n.ai.asleep for n in pair) and len(shouted) == 1
+    for n in pair:
+        world.remove_entity(n)
+    leave(world, s)
+
+
 def test_a_lookout_can_be_set_never_to_turn(world, monkeypatch):
     """Turn= on a map line: how often it glances about (seconds); 0, never, but back the way it faces after a sound."""
     monkeypatch.setattr(world, "npc_sees", lambda e, a, s, d: False)
@@ -9404,7 +9421,9 @@ def test_the_herbalists_remedy_wants_mushrooms_and_silk(world):
     if herbalist.ai is not None:
         herbalist.ai.asleep = False
     near(world, s, herbalist)
-    for answers in ((3, 1), (3,)):                                  # (taken on; then back with nothing)
+
+    def ask(*answers):
+        s.update_attribute("Rumour.At", "=%d" % int(world.now / 1000))   # (no rumour first: one was just heard)
         assert talk_to(world, s, herbalist)
         for n in answers:
             s.action_box_response_chosen(n)
@@ -9412,14 +9431,13 @@ def test_the_herbalists_remedy_wants_mushrooms_and_silk(world):
         if s.ab_mode:
             s.close_action_box(-1)
         run_for(world, 5)
-        assert s.get_attribute("RemedyQuest") == "1"
+    ask(3, 1)                                                       # (Can I help you? I'll gather them.)
+    assert s.get_attribute("RemedyQuest") == "1"
+    ask(3)                                                          # (back with nothing)
+    assert s.get_attribute("RemedyQuest") == "1"
     s.add_inventory_item("Cave_Mushroom", 3)
     s.add_inventory_item("Spider_Silk", 2)
-    assert talk_to(world, s, herbalist)
-    s.action_box_response_chosen(3)
-    run_for(world, 5)
-    s.action_box_response_chosen(1)                                 # (Thank you!)
-    run_for(world, 5)
+    ask(3, 1)                                                       # (Thank you!)
     assert s.get_attribute("RemedyQuest") == "2" and s.items_held("Cave_Mushroom") == 0
     world.set_day_fraction(day)
     leave(world, s)

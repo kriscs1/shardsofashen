@@ -163,17 +163,20 @@ class ThiefMixin:
         """Thieving made a noise at thing at: whoever's asleep that near wakes and gets up (and stays up a while);
         one who then sees you shouts for the guard."""
         w = self.w
+        shouts = None
         for n in list(w.npcs_near(at.z, at.cx, at.cy)):
             a = n.ai
-            if n.type != NPC or not n.alive or a is None or not getattr(a, "asleep", False) or                     distance(n.cx, n.cy, at.cx, at.cy) > radius:
+            if n.type != NPC or not n.alive or a is None or not getattr(a, "asleep", False) or \
+                    distance(n.cx, n.cy, at.cx, at.cy) > radius:
                 continue
             w.npc_get_up(n, a)
             a.woken_until = self.now + int(self.thief_num("Wake", "Minutes", 2) * 60000)
             w.npc_face(n, n.cx, n.cy, self.player.cx, self.player.cy)
             w.fx({"t": "mark", "kind": "heard", "u": n.uid}, n.z, n.cx, n.cy, self)
-            if "Talk to" in (n.use_words or "") and not w.hostile_for(n, self) and self.watching(n):
-                self.caught(n, "house")
-                return
+            if shouts is None and "Talk to" in (n.use_words or "") and not w.hostile_for(n, self) and self.watching(n):
+                shouts = n                              # (everyone in earshot wakes; the first who sees you shouts)
+        if shouts is not None:
+            self.caught(shouts, "house")
 
     def shopkeeper_near(self, e):
         """(the shopkeeper NPC, its rack) nearest shelf e, on its map: someone whose Talk to shows a shop."""
