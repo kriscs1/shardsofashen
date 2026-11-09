@@ -2107,6 +2107,9 @@ def check_itemracks(entities_ini, skills):
                     err(r, "[%s] %s item %r has no sprite" % (sec, k, parts[0]))
                 elif not entities_ini.get(parts[0], "Value"):
                     warn(r, "[%s] %s has no Value in Entities.ini (can't be priced)" % (sec, parts[0]))
+                elif is_num(entities_ini.get(parts[0], "Value")) and float(entities_ini.get(parts[0], "Value")) <= 0:
+                    err(r, "[%s] %s is Value=0, a quest's or a chest's: never for sale (it'd go for 1 gold)" %
+                        (sec, parts[0]))
             else:
                 if len(parts) not in (3, 4, 5) or not is_num(parts[2]) or                         any(not parts[n].strip().isdigit() for n in range(3, len(parts))):
                     err(r, "[%s] %s=%r should be Product,ingredients,xp[,level[,makes]]" % (sec, k, v))

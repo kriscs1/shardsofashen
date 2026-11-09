@@ -244,8 +244,10 @@ def entities():
                                              "for two minutes.")    # (herbs can't make Shards: potions_and_spells.py)
     for sec, items in ents.sections:
         info = ents.get(sec, "Examine.Info") or ""
-        if (ents.get(sec, "Spell") or "") and SCROLL_TAIL in info:
-            ents.set(sec, "Examine.Info", info.replace(SCROLL_TAIL, SCROLL_NEW))
+        for tail in (SCROLL_TAIL, "Right-click it and Cast."):        # (Homestead's said only that)
+            if (ents.get(sec, "Spell") or "") and info.endswith(tail):
+                info = info[:-len(tail)] + SCROLL_NEW
+                ents.set(sec, "Examine.Info", info)
     shards = Ini(SHARDS_INI)
     spells_ini = Ini(p("data", "Spells.ini"))
     ranks(ents, spells_ini, shards)

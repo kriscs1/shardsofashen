@@ -1486,7 +1486,7 @@ def quests():
     SK.set_section(SK.RACKS, "SHOP-Smuggler", [
         "Type=Shop", "Buy.Rate=0.85", "Sell.Rate=0.8", "Specific=1",
         "Item1=Healing_Draught,4", "Item2=Super_Potion,2", "Item3=Warming_Draught,3", "Item4=Sapphire,1",
-        "Item5=Emerald,1", "Item6=Silver_Ring,1", "Item7=Sealskin_Boots,1", "Item8=Fire_Bolt_Scroll_II,1"])
+        "Item5=Emerald,1", "Item6=Silver_Ring,1", "Item7=Sealskin_Boots,1"])   # (no Fire Bolt II: a quest's, never sold)
 
 
 def scripts():

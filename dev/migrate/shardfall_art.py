@@ -742,7 +742,7 @@ def gear():
     for src, dst, col in (("Mithril_Sword", "Shardglass_Blade", (176, 140, 255)), ("Mithril_Shield", "Wardens_Aegis", (170, 200, 220))):
         made += save("Entities", dst, tint(Image.open(p("sprites", "Entities", src + ".png")), col))
         for path in glob.glob(p("sprites", "Worn", "Worn_%s*.png" % src)):        # (drawn on whoever wears it)
-            rest = os.path.basename(path)[len("Worn_" + src):]
+            rest = os.path.basename(path)[len("Worn_" + src):-len(".png")]
             made += save("Worn", "Worn_%s%s" % (dst, rest), tint(Image.open(path), col))
     return made
 

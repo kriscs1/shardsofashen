@@ -466,7 +466,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   scrolls sold since off the shelves; `build_shards.py` writes the scrolls as they are now): one at a time (`Stackable=1`), none at the start, none from
   beasts or ordinary chests, and nobody writes them. They come from quests, a few chests in places of their own (the
   standing stones', the cinder cache's), the Shifting Deep's Heart, and the wizards' shops, dearly (Value 100 + 40 a
-  level). A scroll a quest gives or a chest holds is never for sale (`Value=0`, `Droppable=0`). Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
+  level). A scroll a quest gives or a chest holds is never for sale (`Value=0`, `Droppable=0`; `validate.py` refuses one on a shelf). `dev/Spells.md` lists every
+  spell, where it's learnt and what it costs: update it when a spell, its scroll or where it's found changes. Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
   spell a rank; each rank's values are `Key.<rank>` in Shards.ini `[Upgrade.<Spell>]`. Quests give items with
   `Reward.Items` and skill xp with `Reward.XP` (`Strength 3 Defence 3`), and a finished quest shows its reward
   screen. Set by `dev/migrate/build_shards.py`.

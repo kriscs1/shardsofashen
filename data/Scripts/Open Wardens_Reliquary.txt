@@ -4,8 +4,8 @@
 03	Update.Attribute	Wardens_Reliquary	=1
 04	Play.Sound	Chest
 05	Give.Item	Wardens_Aegis	1
-06	Give.Item	Lightning_Scroll_II	1
-07	Give.Item	Shard	60
+06	Give.Item	Mega_Potion	2
+07	Give.Item	Shard	150
 08	End
 09	Display.Message	Cyan	The chest is empty.	Empty
 10	End

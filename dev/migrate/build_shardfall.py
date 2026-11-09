@@ -1252,6 +1252,8 @@ DIM_TOO = ("12,-17,-2",)   # (maps of the Deep's made by other builders: build_g
 def config_data(names):
     """The Deep is dim (sky.js): its maps, the dark's colour and the glow of what's lit in it."""
     names = list(names) + [n for n in DIM_TOO if SK.map_exists(n)]  # (the Listening Room under the Reliquary)
+    names += [n for n in (SK.ini.read("Darkness", "Maps", "", SK.CONFIG) or "").split() if n not in names]   # (and
+    # the other builders' dim maps, kept: build_glass_wardens.py, build_mending.py)
     SK.section(SK.CONFIG, "Darkness", [("Maps", " ".join(names)),("Colour", "8 6 22 205"), ("Glow.Colour", "34 18 60"),
                                        ("Player.Light", "150")])
 
@@ -1625,7 +1627,8 @@ def scripts(grotto_map):
             "Wardens_Footlocker": [("Gold_Coin(s)", 300), ("Major_Healing_Draught", 2), ("Shard", 30)],
             "Wardens_Ossuary": [("Gold_Coin(s)", 450), ("Shard", 40), ("Ember_Shard", 1)],
             "Wardens_Armoury": [("Gold_Coin(s)", 350), ("Mithril_Bar", 3), ("Shard", 30)],
-            "Wardens_Reliquary": [("Wardens_Aegis", 1), ("Lightning_Scroll_II", 1), ("Shard", 60)]}
+            "Wardens_Reliquary": [("Wardens_Aegis", 1), ("Mega_Potion", 2), ("Shard", 150)]}   # (not Lightning II:
+    # The Ember Ring gives that, and a second is a scroll that can't be dropped or sold)
     for cid, items in loot.items():
         rows = [(">Distance.From.Clicked.Entity", "48", "@far"),
                 (">Conditional", "$Attr.%s=0" % cid, "@empty"),
