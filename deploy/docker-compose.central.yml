@@ -42,6 +42,18 @@ services:
       DS_ADSENSE_CLIENT: ${DS_ADSENSE_CLIENT:-}        # (ca-pub-...: AdSense on the start screen in a browser)
       DS_ADSENSE_SLOT: ${DS_ADSENSE_SLOT:-}
       DS_ADMOB_APP: ${DS_ADMOB_APP:-}                  # (ca-app-pub-...~...: the Android app's, for /app-ads.txt and the privacy policy)
+      DS_DEMO: ${DS_DEMO:-}                            # (1: an account without the full game plays the demo; README-Server.md "Owning the game")
+      DS_PLAY_SERVICE_ACCOUNT: ${DS_PLAY_SERVICE_ACCOUNT:-}   # (/data/play.json: Google Play's service account key, for purchases and Play Integrity)
+      DS_PLAY_PACKAGE: ${DS_PLAY_PACKAGE:-io.github.kriscs1.shardsofashen}
+      DS_FULL_PRODUCT: ${DS_FULL_PRODUCT:-full_game}
+      DS_PLAY_INTEGRITY: ${DS_PLAY_INTEGRITY:-}        # (1: a time pass only for the real app from Google Play, on a real phone)
+      DS_STEAM_APP: ${DS_STEAM_APP:-}                  # (Steam: the app's id, and a publisher Web API key)
+      DS_STEAM_KEY: ${DS_STEAM_KEY:-}
+      DS_ITCH_GAME: ${DS_ITCH_GAME:-}                  # (itch.io: the game's id, and an API key)
+      DS_ITCH_KEY: ${DS_ITCH_KEY:-}
+      DS_ADMOB_REWARDED: ${DS_ADMOB_REWARDED:-}        # (the time pass's rewarded ad unit, ca-app-pub-.../...; none, no time pass)
+      DS_PASS_MINUTES: ${DS_PASS_MINUTES:-60}
+      DS_PASSES_A_DAY: ${DS_PASSES_A_DAY:-3}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:
