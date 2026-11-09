@@ -9,6 +9,7 @@ from ashen.lb import val, word, trim, lbstr, distance, strip_digits, pretty, ran
 from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE, ROOF,
                      ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES)
 from .world import HEAR_CALL
+from .tricks import ANIMAL_TALK, ANIMAL_VOICE
 
 STAND_MS = 300          # (getting up: state.js SIT_MS, and a moment)
 SEAT_FACES = {"N": 1, "E": 2, "S": 4, "W": 8}    # (Seat= in Tiles.ini: the way you face, sitting on it)
@@ -48,6 +49,8 @@ class ActionsMixin:
             key = self.player_name
         else:
             kind = trim(self.data.entity_ini(npc, "Voice", ""))
+            if not kind and self.swap:
+                kind = ANIMAL_VOICE.get(npc, "")            # (in an animal's body, an animal speaks: tricks.py)
             e = self.clicked_ent
             if e is not None and e.alive and strip_digits(e.name) == strip_digits(npc):
                 key = self.w.npc_key(e)
@@ -168,6 +171,9 @@ class ActionsMixin:
         elif t == NPC and getattr(e, "cart", None) is not None:
             verbs = self.w.carts.verbs(self, e)             # (a horse and cart: carts.py)
         elif t == NPC and self.w.hostile_for(e, self):
+            if self.swap and not e.aggressive and (e.name in ANIMAL_TALK or
+                                                   self.script_exists("Talk to %s" % e.npc_id)):
+                verbs = self.add_verb(verbs, "Talk to")     # (a hen you might eat; in a hen's body, it talks)
             verbs = self.add_verb(verbs, "Attack")
             verbs = self.add_verbs(verbs, uw)
             verbs = self.add_verb(verbs, "Examine")
@@ -361,15 +367,19 @@ class ActionsMixin:
         self.do_action(verb, e)
 
     def animal_noise(self, verb, e):
-        """Stroke a cow, feed a hen, milk it, talk to it in a goose's body: it makes its noise (Calls=, the same as it
-        makes on its own now and then: build_voices.py CALLS), heard by whoever's near. Not when its script opens with
-        a sound of its own (a cat's purr), nor for a person with a call (the Jester's bells: they greet you)."""
+        """Stroke a cow, feed a hen, milk it: it makes its noise (Calls=, the same as it makes on its own now and
+        then: build_voices.py CALLS), heard by whoever's near. Not when its script opens with a sound of its own (a
+        cat's purr), nor for a person with a call (the Jester's bells: they greet you), nor as it talks to you in an
+        animal's body (a human voice then: tricks.py ANIMAL_VOICE)."""
         a = getattr(e, "ai", None)
         if e.type != NPC or a is None or not getattr(a, "call", "") or e.in_combat or verb in QUIET_VERBS:
             return
         if self.entity_ini(e.name, "Voice", ""):
             return
-        if not (verb == "Talk to" and self.swap):                # (in its body, it answers you itself: animal_chat)
+        if verb == "Talk to" and self.swap:
+            if e.name in ANIMAL_TALK:
+                return                                          # (in an animal's body, it talks: a human voice)
+        else:
             script = self.find_action_script(verb, e.name, e.type, e.npc_id) if verb != "Use with" else ""
             first = next((ln for ln in self.data.read_lines(self.script_path(script)) if trim(ln) and
                           not trim(ln).startswith("//")), "") if script else ""
@@ -398,8 +408,10 @@ class ActionsMixin:
             return
         if self.shardcraft_do(verb, e):                # (shardstones, enchanting: shardcraft.py)
             return
-        if verb == "Talk to" and self.swap and t == NPC and self.animal_chat(e):
-            return                                      # (in an animal's body, the animals talk: tricks.py)
+        if (verb == "Talk to" and self.swap and t == NPC and
+                (self.swap["npc"] is e or not self.script_exists("Talk to %s" % e.npc_id)) and self.animal_chat(e)):
+            return                                      # (in an animal's body, the animals talk: tricks.py; one with a
+            #                                             script of its own says that: Pip's Spectacles)
         if verb == "Talk to" and t == NPC and getattr(e.ai, "asleep", False):
             self.display_message("%s is fast asleep." % self.display_name(e), "FAIL", "Denied")
             return                                      # (in bed at night: npcs.py npc_bedtime)

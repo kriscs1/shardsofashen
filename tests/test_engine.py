@@ -4198,7 +4198,74 @@ def test_in_an_animals_body_the_animals_talk(world):
     from dsengine.tricks import ANIMAL_TALK
     said = " ".join(str(e) for e in s.out)
     assert any(line.split(".")[0] in said for line in ANIMAL_TALK["Cow"])
+    box = s.box_state()                                              # (a human voice, not its moo)
+    assert box["voice"] == "Woman" and 93 <= box["pitch"] <= 107
+    assert "Moo" not in [ev["name"] for ev in s.out if ev.get("t") == "sound"]
     world.remove_entity(cow)
+    leave(world, s)
+
+
+def test_pips_spectacles_are_found_by_asking_the_animals(world):
+    def court(npc_id):
+        return next(e for e in world.ents if e.npc_id == npc_id)
+
+    def ask(npc_id, then=None):
+        e = court(npc_id)
+        near(world, s, e, 30, 0)
+        assert talk_to(world, s, e)
+        said = " ".join(str(ev) for ev in s.out)
+        s.action_box_response_chosen(1)
+        run_for(world, 10)
+        if then is not None:
+            assert s.get_attribute("SpectaclesQuest") == then, npc_id
+        return said
+
+    pip = court("Pip_The_Apprentice")
+    s = join(world, "Squinty", pip.map, 300, 300)
+    s.connected = True
+    s.god_mode = True
+    s.update_attribute("Passage", "=12")
+    s.update_attribute("PipQuest", "=2")
+    ask("Pip_The_Apprentice")
+    s.action_box_response_chosen(1)
+    run_for(world, 10)
+    assert s.get_attribute("SpectaclesQuest") == "1" and s.items_held("Swap_Scroll") >= 1
+    q = dict(world.data.quest_table())["Pip's Spectacles"]
+    assert all(world.data.place(q["MARKER%d" % n]).map == "21,5,0" for n in range(8))    # (each step's spot)
+    cat = court("Court_Cat")
+    near(world, s, cat, 30, 0)
+    s.choose_verb("Talk to", cat, int(cat.cx), int(cat.cy))                     # (as yourself: she sleeps)
+    run_for(world, 10)
+    assert s.ab_mode != "Conversation" and s.get_attribute("SpectaclesQuest") == "1"
+    s.turn_into("Chicken", 300, "")
+    s.out = []
+    ask("Court_Cat")                                                            # (a fish first)
+    assert s.box_state().get("voice", "Woman") == "Woman" and s.get_attribute("SpectaclesQuest") == "2"
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    s.end_swap()
+    stock(s, Raw_Herring=1)
+    near(world, s, cat, 30, 0)
+    s.choose_verb("Feed", cat, int(cat.cx), int(cat.cy))
+    run_for(world, 10)
+    assert s.get_attribute("SpectaclesQuest") == "3" and s.items_held("Raw_Herring") == 0
+    s.turn_into("Chicken", 300, "")
+    assert "Biscuit" in ask("Court_Cat", "4")
+    assert "Henrietta" in ask("Court_Dog", "5")
+    ask("Court_Hen", "6")
+    s.end_swap()
+    dog = court("Court_Dog")                                                    # (in the dog's body, the dog in
+    s.swap_with(dog, 30, "You cast Swap")                                       # yours has nothing to say)
+    s.out = []
+    ask("Court_Dog", "6")
+    s.end_swap()
+    nest = court("Court_Hen_Nest")
+    near(world, s, nest, 20, 0)
+    s.choose_verb("Rummage", nest, int(nest.cx), int(nest.cy))
+    run_for(world, 20)
+    assert s.get_attribute("SpectaclesQuest") == "7" and s.items_held("Pips_Spectacles") == 1
+    ask("Pip_The_Apprentice", "8")
+    assert s.items_held("Pips_Spectacles") == 0
     leave(world, s)
 
 

@@ -41,3 +41,9 @@ NPC	Guard	416	568	Attitude=Good Stand=1 Face=N Id=Watch_Quartermaster Name=Quart
 Id	Castle_Cellar	7	13
 Lock	12	16	$Standing.Court>=-60 or $World.Dark=0	The gate's barred for the night, and the watch on the wall knows your face. Come back by day.
 Lock	12	17	$Standing.Court>=-60 or $World.Dark=0	The gate's barred for the night, and the watch on the wall knows your face. Come back by day.
+NPC	Cat	288	384	Attitude=Good Zone=8,11,15,15 Pause=4-12 Id=Court_Cat Name=Inkwell
+NPC	Dog	448	576	Attitude=Good Zone=13,18,18,21 Pause=3-8 Id=Court_Dog Name=Biscuit
+NPC	Chicken	576	608	Attitude=Passive Zone=18,19,21,21 Pause=4-10 Id=Court_Hen Name=Henrietta
+StaticObject	Hen_Nest	576	576	Id=Court_Hen_Nest
+NPC	Chicken	672	608	Attitude=Passive Zone=17,19,23,21 Pause=3-8
+NPC	Chicken	512	640	Attitude=Passive Zone=17,19,23,21 Pause=3-8

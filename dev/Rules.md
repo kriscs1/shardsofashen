@@ -168,6 +168,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Chests are per player**: everyone finds a chest's loot, once each. A chest script tracks its loot with an
   attribute, never with shared state.
 - The world keeps running while everyone is logged out.
+- **The demo's border is each player's own** (`dsengine/demo.py`): a demo player is held at the Isle's edge (a step
+  back, the ferry refusing them, a scroll or portal bringing them back) while one who owns the full game, in the same
+  game, goes on. Nothing shared changes for it: the ferry still sails for the others.
 
 ### Playing together (`dsengine/together.py`, `dev/migrate/build_together.py`; the plan: `dev/Roadmap.md` group 15)
 - **Every story moment is yours; the world round it is everyone's.** Nothing in the story ever needs a second player;
@@ -677,8 +680,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **An animal makes its own noise** (`Calls=`: a cow's moo, a hen's cluck, a cat's meow, recorded, CC0:
   `build_voices.py` CALLS), now and then on its own and, the same noise, as you do something with it (stroke it,
   feed it, milk it: `animal_noise`), unless its script starts with a sound of its own (a cat's purr). Never a made-up
-  one. In an animal's body (the Swap scroll) the animals still only make their noises: what they say is the words on
-  screen, never a human voice.
+  one. In an animal's body (the Swap scroll) an animal that talks to you greets you in a human voice, one that
+  suits it (a cow a woman's, a goose a gruff one, a frog the Frog King's croak: tricks.py `ANIMAL_VOICE`), not its
+  noise. One with a `Talk to <Id>` script of its own (Pip's Spectacles: Inkwell, Biscuit, Henrietta) says that
+  instead, in the same voice; the script tells you and an animal apart by `$Player.Form` (`-` is yourself).
 - **A quest taken on and a quest finished each have their jingle** (`Quest_Start`, `Quest_Done`: `quest_jingle`),
   once however many things say so at once; a script's "Quest complete" message brings it, not `Quest` as well.
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
@@ -757,8 +762,25 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Ads, and paying once to remove them** (the owner's wish): the start screen shows AdMob in the Android app, AdSense in a
   browser (`DS_ADSENSE_CLIENT`, `DS_ADSENSE_SLOT`; `/ads.txt` from the central server), else the central server's own.
   The Android app sells **Remove ads**, a one-time Google Play product (`android/.../Billing.java`, `DS_ADFREE_PRODUCT`,
-  `remove_ads` unless set): bought, its start screen shows no ads at all, and Google Play restores it on a reinstall. Never
-  an ad in a game.
+  `remove_ads` unless set), and the full game removes them too: bought, its start screen shows no ads at all, and Google
+  Play restores it on a reinstall. Never an ad in a game, and never one in the PC build.
+- **Owning the game** (the owner's decisions, `dev/Roadmap-7.md`): the PC build is $7.99, paid once, with no demo (not
+  owned, it shows only how to get it: `desktop/owning.py`, Steam's word, or the store's download for itch.io and Epic).
+  The Android app is free to try, and $3.99 buys the full game (`full_game`, `DS_FULL_PRODUCT`). A purchase is the
+  Hallisium account's once the central server has checked it with its store (`central/bought.py`), never on an app's
+  word, and one purchase is one account's; a browser follows the account. Prices are set in the stores, not the game.
+- **The demo** (once the central server has `DS_DEMO=1`; till then everyone has the full game): an account without
+  the full game plays the Isle (`data/Config.ini` `[Demo]`: its maps, upstairs and caves), its skills held at level 5,
+  the XP still counted (it counts once it's owned). The border and the level each say so once a time in; a demo
+  character found outside (a pass run out) comes back to the Isle's pier. An app's own game knows from the device
+  (`demo`, `full` in the join link); a game server from the ticket.
+- **The Friend Pass**: a demo player has the full game in a game while someone who owns it is there: the host's own
+  game if the host owns it, or, on a public server, while a Hallisium friend of theirs who owns it is in it (never any
+  owner, or a busy server would be the full game for everyone). When the last owner leaves, a demo player outside the
+  Isle is told and has a minute before the pier.
+- **The time pass**: in the Android app only, an account in the demo can watch a rewarded ad (AdMob) for an hour of
+  the full game (`DS_PASS_MINUTES`), a few a day (`DS_PASSES_A_DAY`, 3). Google tells the central server
+  (`central/admob.py`, its signature checked), never the app. No time pass in a browser or on PC.
 - **Open to the internet goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
   connects out (no router port, any network) with the key the host's ticket brought; friends open
   `<central>/play/<game id>/` and the central server passes the page, its files (kept there per version) and the game

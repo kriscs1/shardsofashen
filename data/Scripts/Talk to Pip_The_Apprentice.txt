@@ -2,7 +2,7 @@
 01	Get.Value	ATTRIBUTE	PipQuest	Variable.1$
 02	>Conditional	$Variable.1=0	09
 03	>Quest.Can.Start	PipQuest	24
-04	Display.Conversation	Pip	Hello! No, here. HERE. You're looking at a hat stand.\I'm Pip, apprentice to the Court, and I may have drunk my own invisibility potion. All of it. Three days ago. I keep getting sat on.	Can I help?	05	Good luck with that.	25
+04	Display.Conversation	Pip	Hello! No, here. HERE. You're looking at a hat stand.\I'm Pip, apprentice to the Court, and I may have drunk my own invisibility potion. All of it. Three days ago. I keep getting sat on.	Can I help?	05	Good luck with that.	49
 05	Display.Conversation	Pip	Would you? The cure's simple: an egg (for the shell: it's the seeing kind of thing), a feather (to tickle the potion out of me, don't ask), and two cave mushrooms. The Magister says I'm not to leave the hall in case someone steps on me.	I'll fetch them.	06
 06	Update.Attribute	PipQuest	=1
 07	Display.Message	Yellow	Quest started: The Invisible Apprentice.	Quest
@@ -17,10 +17,34 @@
 16	Play.Sound	Appear
 17	Display.Message	Cyan	Pip mixes it all in his hat, drinks it, sneezes three times..	-
 18	Update.Attribute	PipQuest	=2
-19	Display.Conversation	Pip	..and? Can you see me? You can see my SPECTACLES? Oh, that's the spectacles. Well. Progress!\Take the rest of my potions, I'm off them. And this: a scroll of Swap. I spent last Tuesday as a cat by mistake. Honestly, best day of the week.	Thank you, Pip. I think.	25
+19	Display.Conversation	Pip	..and? Can you see me? You can see my SPECTACLES? Oh, that's the spectacles. Well. Progress!\Take the rest of my potions, I'm off them. And this: a scroll of Swap. I spent last Tuesday as a cat by mistake. Honestly, best day of the week.	Thank you, Pip. I think.	49
 20	Display.Message	Yellow	Quest complete: The Invisible Apprentice!	Quest
 21	End
-22	Display.Conversation	Pip	An egg, a feather and two cave mushrooms. I'd fetch them myself, but people keep walking into me.	I'll keep looking.	25
+22	Display.Conversation	Pip	An egg, a feather and two cave mushrooms. I'd fetch them myself, but people keep walking into me.	I'll keep looking.	49
 23	End
-24	Display.Conversation	Pip	Still mostly invisible. The Magister says it suits me. I think that was rude.	Goodbye, Pip.	25
-25	End
+24	Get.Value	ATTRIBUTE	SpectaclesQuest	Variable.1$
+25	>Conditional	$Variable.1=0	33
+26	>Quest.Can.Start	SpectaclesQuest	48
+27	Display.Conversation	Pip	Is that you? Or another hat stand? These aren't my spectacles: they're the Magister's spare pair, and everything past my nose is soup.\My good ones went missing last Tuesday. The day I was a cat. Well: the day the cat was me. It had my body all afternoon, and when I got it back, no spectacles.	What did the cat do with them?	28	Good luck, Pip.	49
+28	Display.Conversation	Pip	Ask her! Oh. You can't: Inkwell won't talk to people, only to other animals. She's the Court's cat, she's in the courtyard, and she was me.\You've had a Swap scroll from me. Here's another, in case you've used it. Be something with whiskers and ask nicely.	I'll ask her.	29
+29	Update.Attribute	SpectaclesQuest	=1
+30	Give.Item	Swap_Scroll	1
+31	Display.Message	Yellow	Quest started: Pip's Spectacles.	Quest
+32	End
+33	>Conditional	$Variable.1=7	43
+34	>Got.Item	Pips_Spectacles	1	41
+35	Take.Item	Pips_Spectacles	1
+36	Update.Attribute	SpectaclesQuest	=8
+37	Play.Sound	Appear
+38	Display.Conversation	Pip	My SPECTACLES! In a hen's nest? They're warm. ...Oh. Oh, I can see. You've got a face! Everyone's got faces! I'd quite forgotten.	Glad to help, Pip.	39
+39	Display.Message	Yellow	Quest complete: Pip's Spectacles!	Quest
+40	End
+41	Display.Conversation	Pip	You found them and you've lost them again? Have another look in that nest.	I will.	49
+42	End
+43	>Conditional	$Variable.1=8	46
+44	Display.Conversation	Pip	Everything's so SHARP. I keep looking at things. The Magister says I can stop now.	Goodbye, Pip.	49
+45	End
+46	Display.Conversation	Pip	Any luck? Remember: the animals only talk to another animal. Inkwell's in the courtyard, usually asleep on something important.	I'm on it.	49
+47	End
+48	Display.Conversation	Pip	Still mostly invisible. The Magister says it suits me. I think that was rude.	Goodbye, Pip.	49
+49	End

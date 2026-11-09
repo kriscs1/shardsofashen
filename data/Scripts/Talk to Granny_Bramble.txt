@@ -19,10 +19,10 @@
 18	Display.Message	Yellow	Quest complete: Granny Bramble's Practice Hex!	Quest
 19	End
 20	Display.Conversation	Old_Woman	Four rats, dearie, and you've seen to $Attr.HexRats. Ran off, did they? Here they come again.	I'm on it.	21
-21	Remove.Entity	64,408	Rat
-22	Remove.Entity	704,408	Rat
-23	Remove.Entity	32,120	Rat
-24	Remove.Entity	608,120	Rat
+21	Remove.Entity	96,408	Rat
+22	Remove.Entity	32,376	Rat
+23	Remove.Entity	96,344	Rat
+24	Remove.Entity	32,312	Rat
 25	Add.Entity	96,408	Rat	NPC	Attitude=Bad Id=Hex_Rat Name=Market_Rat
 26	Add.Entity	32,376	Rat	NPC	Attitude=Bad Id=Hex_Rat Name=Market_Rat
 27	Add.Entity	96,344	Rat	NPC	Attitude=Bad Id=Hex_Rat Name=Market_Rat

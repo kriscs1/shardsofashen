@@ -58,6 +58,7 @@ def write_script(name, rows, maker):
     numbered, labels, n = [], {}, 0
     for r in rows:
         if len(r) == 1 and r[0].startswith("@"):
+            assert r[0] not in labels, "%s: label %s twice" % (name, r[0])
             labels[r[0]] = n + 1
             continue
         n += 1

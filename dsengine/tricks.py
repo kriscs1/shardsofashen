@@ -11,6 +11,12 @@
 from ashen.lb import val, pretty
 from .entity import NPC
 
+# (in an animal's body, an animal greets you in a human voice as it talks: build_voices.py GREETINGS; its own noise
+# is for when you're yourself)
+ANIMAL_VOICE = {"Cow": "Woman", "Sheep": "Old_Woman", "Chicken": "Woman", "Duck": "Man", "Goose": "Gruff",
+                "Rabbit": "Man", "Cat": "Woman", "Strawberry_Cat": "Woman", "Dog": "Man", "Frog": "Croak",
+                "Seal": "Deep"}
+
 ANIMAL_TALK = {   # (in an animal's body, the animals talk to you)
     "Cow": ["Moo. ...Oh, you're new. The grass by the fence is better. Don't tell the others.",
             "Have you ever really looked at a cloud? I have. All day. Every day.",
@@ -154,14 +160,22 @@ class TrickMixin:
         self.dirty_me = True
 
     def animal_chat(self, e):
-        """In an animal's body, an animal talks to you (ANIMAL_TALK): a line, now and then a different one."""
+        """In an animal's body, an animal talks to you (ANIMAL_TALK): a line, now and then a different one. Your own
+        body, with it inside, has only your voice and nothing to say."""
         import random
+        if self.swap and self.swap["npc"] is e:
+            self.ab_voice = self.npc_voice("You")
+            self.show_menu(e.display, self.player_sprite_base, "It's you: your own body, with a very confused %s in it, "
+                           "looking at you out of your own eyes." % pretty(self.swap["form"]).lower(),
+                           [("...", None)])
+            return True
         lines = ANIMAL_TALK.get(e.name)
         if not lines:
             return False
         line = random.choice(lines)
         if self.swap and self.swap["form"] == e.name:
             line += " (It's very nice to meet another %s.)" % pretty(e.name).lower()
+        self.ab_voice = self.npc_voice(e.name)          # (a human voice, its own pitch: ANIMAL_VOICE)
         self.show_menu(pretty(e.name), e.name, line, [("...", None)])
         return True
 

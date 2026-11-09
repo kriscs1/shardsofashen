@@ -68,7 +68,7 @@ and each place's keeper names the next: never a letter or a sign.
 | 1 | **The Last Will** | You stand at your mother's fresh grave by the chapel. The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the table. The cottage door stays locked until you've **read the letter** (three pages, in the owner's words): you are the heir of Ashen. Jimmy sleeps on her empty bed. |
 | 2 | **Dinner at Edwin's** | Edwin the lawyer asks you to dinner. **Maren**, his wife, is the Isle's doctor (their house is two storeys of brick by the chapel, her surgery and his desk downstairs; it was the bank. They live upstairs, and go up at night). **Chop 3 logs** for her range (she lends an axe), **take an egg** from Bess's coop and **fry it** on her range, give it to Edwin. Reward: the key to the chapel's trapdoor, and a promise not to go down without a sword and shield. |
 | 3 | **The Amulet of Succession** | **Bess** the milkmaid tells you Wim needs papers, and that her father wrote them. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Strength and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
-| 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: under it, the **papers** Mary left with him for you, under a crowned seal (what the hobgoblins were after). **Wim** reads them and lets you aboard, for a coin; at Northport the **port guard** reads them too and sends you to the Speaker. |
+| 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: under it, the **papers** Mary left with him for you, under a crowned seal (what the hobgoblins were after). **Wim** reads them and lets you aboard, for a coin; at Northport the **port guard** reads them too and sends you to the Speaker. In the demo, the ferry goes no further: the full game goes on from there. |
 
 ### The road to the Wizards' Court
 
@@ -298,6 +298,19 @@ Pip, apprentice to the Wizards' Court, drank his own invisibility potion three d
 Bring him an egg, a feather and two cave mushrooms for the cure. It cures everything but his spectacles. Reward: two
 Invisibility Potions (and the recipe, at the alchemy table), a scroll of **Swap** ("I spent last Tuesday as a cat"),
 10 Shards.
+
+**Pip's Spectacles**: *after The Invisible Apprentice*
+Pip squints through the Magister's spare spectacles: his good ones went missing the afternoon a cat had his body. Only
+the animals know, and they talk only to another animal. He gives you another Swap scroll.
+1. In an animal's body, ask **Inkwell**, the Court's cat (in the courtyard): she remembers better with a fish inside
+   her.
+2. As yourself (no hands as an animal), feed her a fish (poultry won't do), then ask her again as an animal: she took
+   the spectacles off because they made everything wobbly and dropped them; **Biscuit**, the dog outside the gate, ran
+   off with them.
+3. As an animal, ask Biscuit: he gave the "shiny stick" to his friend **Henrietta**, a hen by the pond.
+4. As an animal, ask Henrietta: she's been sitting on them, hoping they'd hatch. They haven't.
+5. Rummage in her nest (as yourself) for **Pip's Spectacles**, and take them back to Pip. Reward: 40 gold, 15 Shards,
+   Channeling experience. Pip can see faces again.
 
 **Lady Pettigrew's Hat**: *after The Invisible Apprentice*
 On Goose Green, east of Northport, the geese have Lady Pettigrew's hat on their nest, and they are not reasonable
