@@ -17,6 +17,7 @@ import { messageColour, clamp, val, pretty, coinHTML } from "./util.js";
 import { buildPicker, DEFAULT_LOOK, lookImage, bodyFrame } from "./look.js";
 import { preload, entityIni, sprite } from "./assets.js";
 import { onGame } from "./games.js";
+import { greet } from "./voice.js";
 import { B, onBuildables, updateBuild, toggleBuild, setBuild, initBuildUI, buildMouseDown, buildMouseMove, drawBuild } from "./build.js";
 
 const $ = (id) => document.getElementById(id);
@@ -982,13 +983,14 @@ N.onMessage = (m) => {
       // (a new speech, or the same one sent again: its words come again only when it's new - voice.js)
       m.fresh = m.mode === "Conversation" && S.box.mode === m.mode && S.box.text === m.text && S.box.title === m.title ?
         S.box.fresh : performance.now();
+      greet(S.box, m);                             // (a conversation opening: its speaker's "Hello!")
       S.box = m;
       m.answers = m.responses;                     // (a long speech's pages: the answers wait for its last - ui.js)
       m.tpage = 0;
       if (m.mode) { U.rcm = null; releaseKeys(); }
       break;
     case "msg": addMessage(m.text, messageColour(m.kind), m.id || 0, m.of || 0); break;
-    case "reward": showReward(m); playSound("Quest"); break;
+    case "reward": showReward(m); break;          // (its jingle came as the quest finished: quests.py)
     case "chat":
       if (m.whisper === "from") addMessage(`${m.from} whispers: ${m.text}`, "140 40 140");
       else if (m.whisper === "to") addMessage(`You whisper to ${m.to}: ${m.text}`, "140 40 140");

@@ -20,15 +20,27 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/MakeFire.wav` | lighting a fire | [Fire Crackling](https://opengameart.org/content/fire-crackling) | AntumDeluge | CC0 |
 | `sounds/PutFireOut.wav` | putting a fire out (`Marker #1`, faded) | [Steam release sounds](https://opengameart.org/content/steam-release-sounds) | bart | CC0 |
 | `sounds/StrikeFlint.wav` | striking a flint | [Flare ignition](https://opengameart.org/content/flare-ignition) | qubodup | CC0 |
-| `sounds/Voice_Man`, `Voice_Old_Man*.wav` | a man's murmur, and an old man's (syllables) | [15 seconds of "blah blah blah"](https://freesound.org/s/165539/) | unfa (freesound.org) | CC0 |
-| `sounds/Voice_Deep*.wav` | a deep voice's murmur | [Indistinct deep male mumble](https://freesound.org/s/536967/) | dynamique (freesound.org) | CC0 |
-| `sounds/Voice_Woman`, `Voice_Old_Woman*.wav` | a woman's murmur, and an old woman's | [Female Gibberish](https://freesound.org/s/800349/) | cloyen (freesound.org) | CC0 |
-| `sounds/Voice_Gruff*.wav` | a gruff murmur | [Human_Male_Crazy Mumbles_1](https://freesound.org/s/389642/) | SilentStrikeZ (freesound.org) | CC0 |
-| `sounds/Voice_Ghost*.wav` | a ghost's whisper (with an echo) | [indistinctwhispering](https://freesound.org/s/377743/) | BlueSiren (freesound.org) | CC0 |
-| `sounds/Voice_Croak`, `Voice_Beast*.wav` | the Frog King's croak and the dragon's rumble (slowed) | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
+| `sounds/Voice_Man*.wav`, `sounds/Voice_Old_Man*.wav`, `sounds/Voice_Gruff*.wav` | a greeting | [Thirty-Eight Greetings.](https://freesound.org/s/431176/) | envirOmaniac2 (freesound.org) | CC0 |
+| `sounds/Voice_Woman*.wav`, `sounds/Voice_Ghost*.wav` | a greeting | [Female greetings.wav](https://freesound.org/s/351611/) | bectec (freesound.org) | CC0 |
+| `sounds/Voice_Deep*.wav` | a greeting | [Greetings (NPC, British Male)](https://freesound.org/s/429038/) | theuncertainman (freesound.org) | CC0 |
+| `sounds/Voice_Deep*.wav` | a greeting | [How can I help? (NPC, British Male)](https://freesound.org/s/429037/) | theuncertainman (freesound.org) | CC0 |
+| `sounds/Voice_Deep*.wav` | a greeting | [What can I do for you? (NPC, British Male)](https://freesound.org/s/458074/) | theuncertainman (freesound.org) | CC0 |
+| `sounds/Voice_Deep*.wav` | a greeting | [Welcome Traveler.mp3](https://freesound.org/s/501882/) | Nchamp13 (freesound.org) | CC0 |
+| `sounds/Voice_Deep*.wav`, `sounds/Voice_Gruff*.wav` | a greeting | [hello](https://freesound.org/s/449481/) | 12125065 (freesound.org) | CC0 |
+| `sounds/Voice_Gruff*.wav` | a greeting | [man saying hello](https://freesound.org/s/447392/) | florianreichelt (freesound.org) | CC0 |
+| `sounds/Voice_Old_Man*.wav` | a greeting | [Nervous Old Man or Middle-aged Man](https://freesound.org/s/711358/) | sickfin (freesound.org) | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | [hello, can I help you - Australian female voice.wav](https://freesound.org/s/546058/) | FunnyVoices (freesound.org) | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | [good morning - Australian female voice.wav](https://freesound.org/s/546061/) | FunnyVoices (freesound.org) | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | [hello.wav](https://freesound.org/s/123346/) | MatteusNova (freesound.org) | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | [Hello-female friendly professional.wav](https://freesound.org/s/213282/) | AderuMoro (freesound.org) | CC0 |
+| `sounds/Voice_Ghost*.wav` | a greeting | [Fearing Hello](https://freesound.org/s/50940/) | qubodup (freesound.org) | CC0 |
+| `sounds/Voice_Croak*.wav`, `sounds/Growl_Goblin*.wav`, `sounds/Growl_Troll*.wav`, `sounds/Growl_Wraith*.wav` | a greeting and a monster's growl | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
+| `sounds/Voice_Beast*.wav`, `sounds/Growl_Dragon*.wav` | a greeting and a monster's growl | [Creature Gibberish Language\Dialogue - Monster\Alien](https://freesound.org/s/669913/) | SnowFightStudios (freesound.org) | CC0 |
+| `sounds/Quest_Start.wav` | a quest taken on | [harp glissando](https://freesound.org/s/490831/) | PhonosUPF (freesound.org) | CC0 |
+| `sounds/Quest_Done.wav` | a quest finished | [WinHarpsichord.wav](https://freesound.org/s/521642/) | Fupicat (freesound.org) | CC0 |
 
-Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The voices are syllables cut from
-the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.
+Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The greetings, growls and quest
+jingles are cut from the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.
 
 The server and the Android app run on open-source software: Python (PSF licence), aiohttp (Apache 2.0) and
 Chaquopy (MIT).

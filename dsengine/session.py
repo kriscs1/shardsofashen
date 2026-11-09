@@ -326,8 +326,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if message == last and 0 <= self.now - at < 500:
             return
         self.message_log_last = (message, self.now)
-        if message[:14].upper() == "QUEST COMPLETE":
-            self.play_sound("Quest")
+        if "QUEST COMPLETE" in message.upper():
+            self.quest_jingle("Quest_Done")             # (its own, not the script's Quest as well)
+            if sound == "Quest":
+                sound = "-"
         self.msg_seq += 1
         ev = {"t": "msg", "text": message, "kind": str(mtype), "id": self.msg_seq}
         # (one that starts .. finishes this player's last line that ended .. - "You place the poultry on the

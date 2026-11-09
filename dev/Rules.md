@@ -663,12 +663,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   tone or anything shrill (a chime above C6 goes down an octave). The yes/no, magic and small creatures' sounds are
   `dev/migrate/build_soundscape.py`'s (`build_sounds.arpeggio` plucks a harp); a sound with takes (`Fail`, `Fail_2`,
   `Fail_3`) is played at random among them.
-- **People murmur as they speak**: a conversation's words come a few at a time (a click shows the rest), with a
-  syllable of the speaker's voice as each word starts (`web/js/voice.js`). Voices are real people mumbling, never
-  words: syllables cut from CC0 recordings, never synthesised (that sounded like a machine): `build_voices.py`,
-  which also gives each speaker its `Voice=` (a new speaker gets one there too). Each person placed has a pitch of
-  their own, the same every time (`npc_voice`). Notices, signs and letters are silent.
-  Options can turn it off: the words then come all at once.
+- **People greet you as you talk to them**: a real person's "Hello!", "Well met." or "How can I help?" as a
+  conversation opens, never a made-up voice (synthesised sounded like a machine, mumbling sounded awful) and never
+  the words of the text; its words come a few at a time, silently (a click shows the rest; `web/js/voice.js`). The
+  greetings are cut from CC0 recordings by `build_voices.py`, which also gives each speaker its `Voice=` (a new
+  speaker gets one there too). Each person placed has a pitch of their own, the same every time (`npc_voice`), and
+  greets you again only after a while. Notices, signs and letters are silent. Options can turn the greetings off.
+- **A monster growls as it comes for you** (`Growl=`, from a creature's recorded mutterings: `build_voices.py`
+  GROWLERS): the one that saw you, heard from close by; people, animals and things of stone or glass don't.
+- **A quest taken on and a quest finished each have their jingle** (`Quest_Start`, `Quest_Done`: `quest_jingle`),
+  once however many things say so at once; a script's "Quest complete" message brings it, not `Quest` as well.
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
 

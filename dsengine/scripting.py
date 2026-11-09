@@ -1171,12 +1171,14 @@ class ScriptMixin:
                             ATTRS_MOST)
             self.attributes.append([name, "0"])
             idx = len(self.attributes) - 1
+        old = val(self.attributes[idx][1])
         if change[:1] == "=" and not is_number(change[1:]):
             self.attributes[idx][1] = change[1:]
         else:
             self.attributes[idx][1] = lbstr(apply_change(val(self.attributes[idx][1]), change))
         up = name.upper()
         if not up.startswith(("SHARDSPAID.", "SHARDSGIVEN", "STANDING")):
+            self.quest_begun(name, old, val(self.attributes[idx][1]))       # (a quest taken on: its jingle)
             self.quest_reward(name, val(self.attributes[idx][1]))           # (a quest done: its rewards, once)
         if up.startswith("STANDING.") or self.outlaw_any:
             self.standing_attr_changed()                                    # (a town's guards: standing.py)

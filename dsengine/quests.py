@@ -88,6 +88,24 @@ class QuestMixin:
             return False
         return not self.quest_can_start(name)
 
+    # ----- a quest taken on, a quest done: their jingles (build_voices.py)
+    def quest_jingle(self, name):
+        """Quest_Start or Quest_Done, once however many things say so at once (its last stage, its reward and
+        its "Quest complete!" all come together)."""
+        last, at = getattr(self, "jingle_last", ("", 0))
+        if last == name and 0 <= self.now - at < 4000:
+            return
+        self.jingle_last = (name, self.now)
+        self.play_sound(name)
+
+    def quest_begun(self, attr, old, new):
+        """A quest's attribute gone from nothing to a stage short of Done: it's taken on."""
+        if old > 0 or new <= 0:
+            return
+        d = self.data.quest_of_attribute(attr)[1]
+        if d is not None and (val(d.get("DONE", "0")) <= 0 or new < val(d.get("DONE", "0"))):
+            self.quest_jingle("Quest_Start")
+
     # ----- the journal's notes
     def quest_title(self, quest):
         q = trim(quest)

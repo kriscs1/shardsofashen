@@ -235,6 +235,7 @@ class NPCMixin:
         a.hunt_at = self.now + random_number(2000, 8000)
         a.call = trim(d.entity_ini(n, "Calls", ""))                   # (a frog's croak, a seal's bark, now and then)
         a.call_at = self.now + random_number(5000, 40000)
+        a.growl, a.growl_at = trim(d.entity_ini(n, "Growl", "")), 0     # (a goblin's snarl as it comes for you)
         e.npc_foe = None
         k = 1
         while word(options, k) != "":
@@ -797,6 +798,7 @@ class NPCMixin:
         if getattr(a, "flees", False) and foe.calms_animals():
             return                                            # (Ranger's Tread: prey doesn't run from you)
         now = self.now
+        fresh = not e.in_combat
         if a.stand == 0:
             if a.state == AI_ROAM:
                 a.back_x, a.back_y = a.goal_x, a.goal_y
@@ -816,6 +818,9 @@ class NPCMixin:
             a.state = AI_CHASE
             a.progress_time = now
             a.best_d = d
+            if fresh and rouse and getattr(a, "growl", "") and not 0 <= a.growl_at - now:
+                a.growl_at = now + 8000                       # (the one that saw you, and not every time it turns)
+                self.sound("Growl_" + a.growl, e.z, e.cx, e.cy, radius=256.0)
             if rouse:
                 self.npc_rouse(e, foe)
 

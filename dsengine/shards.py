@@ -126,6 +126,7 @@ class ShardMixin:
         if done <= 0 or value < done or val(self.get_attribute(flag)) >= 1:
             return
         self.update_attribute(flag, "=1")
+        self.quest_jingle("Quest_Done")
         self.reward_begin(name)
         n = int(val(d.get("REWARD.SHARDS", "0")))
         if n > 0:

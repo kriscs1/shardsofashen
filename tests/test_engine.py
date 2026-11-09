@@ -8043,6 +8043,34 @@ def test_people_speak_in_their_own_voice_and_notices_are_silent(world):
     leave(world, s)
 
 
+def test_a_quest_taken_on_and_done_has_its_jingle_and_a_goblin_growls_as_it_comes(world):
+    """Quest_Start as a quest's attribute first moves, Quest_Done once as it's done (its reward and its "Quest
+    complete!" together: once, and not the script's Quest as well); a monster with a Growl= snarls as it comes for you
+    (build_voices.py)."""
+    s = join(world, "Jingler", "0,0,10", 12 * 32, 12 * 32)             # (the arena's sand)
+    s.connected = True
+    s.god_mode = True
+
+    def heard():
+        return [ev["name"] for ev in s.out if ev.get("t") == "sound"]
+    s.out = []
+    s.update_attribute("RemedyQuest", "=1")
+    assert heard().count("Quest_Start") == 1
+    s.out = []
+    s.update_attribute("RemedyQuest", "=2")
+    s.display_message("Quest complete: The Herbalist's Remedy!", "Yellow", "Quest")
+    assert heard().count("Quest_Done") == 1 and "Quest" not in heard() and "Quest_Start" not in heard()
+    m = s.cur_map
+    goblin = world.add_npc("Goblin", m.mz, m.ox + 14 * 32, m.oy + 12 * 32, "Attitude=Bad Zone=6,10,18,14")
+    goblin.direction = 8                                             # (looking your way)
+    s.out = []
+    for _ in range(40):
+        world.tick(0.05, now=world.now + 50)
+    assert goblin.in_combat and heard().count("Growl_Goblin") == 1
+    world.remove_entity(goblin)
+    leave(world, s)
+
+
 def test_the_shardfall_deep_opens_only_to_a_woken_signet_and_its_shard_gives_once_a_day(world):
     """The Shardfall Deep (dev/migrate/build_shardfall.py): down the sea cave on Gull Point; the Wardens' Seal shut till
     Bryony's signet is woken there with Shards and Shardcraft 15; the Fallen Shard's Shards once a day to whoever
