@@ -197,7 +197,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   real player in your party is near. Townsfolk greet the crowned heir (a speech bubble, now and then: never the
   chat log). The arena: talk to the Arena Master (in Ashford) once and the arena's shardstone knows you.
 - **Open PvP is a server's setting, the owner's rule** (`DS_PVP=1`, or `/pvp on|off` by an admin or the host, kept
-  with the world; `dsengine/pvp.py`, Config `[PvP] Open.*`; README-Server.md "The arena"). Never in a town
+  with the world; `dsengine/pvp.py`, Config `[PvP] Open.*`; README-Server.md "The arena"; while it's on, a badge
+  under the Online line says "PvP here" or "Safe here", never shown in the arena, whose banner says it). Never in a town
   (Towns.ini's maps, the Isle's too), a homestead or the Shardrealm; never a party; never more than `Open.Level.Gap`
   levels apart. **Who strikes an unmarked player first is marked** for 5 minutes, each blow while marked starting it
   again: a red name, every town's guards after them, no shardstone, home or teleport, and it doesn't fade where

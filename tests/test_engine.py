@@ -707,6 +707,30 @@ def open_pair(world, *names):
     return out
 
 
+def test_the_pvp_badge_says_open_ground_or_safe_and_only_while_its_on(world):
+    (a,) = open_pair(world, "Wren")
+    try:
+        assert a.me_state()["pvp"] == 2                             # (out in the wild: you can be fought)
+        for safe in ("1,1,0", "21,4,-10"):                         # (the Isle's a town; the Shardrealm)
+            a.dirty_me = False
+            a.teleport(safe, 300, 300)
+            a.do_pending_map_change()
+            world.tick(0.05)
+            assert a.me_state()["pvp"] == 1, safe
+        a.teleport(wild_map(world, a), 300, 300)
+        a.do_pending_map_change()
+        world.tick(0.05)
+        assert a.me_state()["pvp"] == 2
+        a.dirty_me = False
+        a.teleport("1,1,0", 300, 300)
+        a.do_pending_map_change()
+        a.check_map()
+        assert a.dirty_me                                           # (crossing into a town tells the browser)
+    finally:
+        world.open_pvp = False
+    assert a.me_state()["pvp"] == 0                                 # (off: no badge)
+
+
 def test_open_pvp_is_outside_towns_within_a_level_gap_and_never_a_party(world):
     a, b = join(world, "Rook"), join(world, "Sable")
     wild = wild_map(world, a)

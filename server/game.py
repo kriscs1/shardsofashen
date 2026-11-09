@@ -362,6 +362,7 @@ class GameServer:
         log.info("%s turned open PvP %s", s.player_name, "on" if on else "off")
         for o in list(self.world.sessions.values()):
             o.open_seen = None
+            o.dirty_me = True                               # (the PvP badge shows, or goes)
             if on:
                 o.pvp_open_told()
             else:

@@ -69,7 +69,8 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - `Respawn.Map`, `Respawn.X`, `Respawn.Y`: where the beaten wake.
   - Anywhere else, players can't fight each other, unless the server has open PvP (below).
 - **Open PvP** (a server's choice: `DS_PVP=1`, or an admin or the host types `/pvp on`; `/pvp off` ends it, and the
-  choice is kept with the world; `/pvp` says which it is). Players may then fight anywhere but:
+  choice is kept with the world; `/pvp` says which it is). While it's on, a badge under the Online line says where
+  you stand: red crossed swords, "PvP here", or a grey "Safe here". Players may then fight anywhere but:
   - a town (the maps in `data/Towns.ini`, the Isle's too), a homestead or the Shardrealm (`Open.Safe.Maps`);
   - each other in a party;
   - more than `Open.Level.Gap` levels apart (5; `0`: any).

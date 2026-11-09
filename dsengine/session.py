@@ -940,7 +940,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         elif home_before:
             self.fog_view_distance = self.data.fog_view_distance
             self.dirty_me = True
+        badge = self.pvp_badge()
         self.cur_map = m
+        if self.pvp_badge() != badge:
+            self.dirty_me = True                        # (the PvP badge: open ground or safe, pvp.py)
         self.player_tile = None
         self.add_explored_map(m.name)
         self.check_locks(False)
@@ -1255,6 +1258,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "view": self.fog_view_distance + self.spell_sight_bonus,
             "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,
             "level": self.player_level(), "arena": self.on_arena_ground(),
+            "pvp": self.pvp_badge(),
             "marked": max(0, int(self.pvp_mark_until - self.now)), "marked_still": self.pvp_mark_still(), "home": self.home_state(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
             "boosts": {"attack": self.spell_attack_bonus, "defence": self.spell_defence_bonus,
                        "magic": self.spell_magic_bonus, "sight": self.spell_sight_bonus},

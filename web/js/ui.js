@@ -173,6 +173,7 @@ function drawViewOverlays(ctx, now) {
   drawBanner(ctx, now);
   drawVitals(ctx);
   drawOnline(ctx, now);
+  drawPvpBadge(ctx);
   drawHoverTop(ctx);
   drawArena(ctx, now);
   drawWave(ctx, now);
@@ -1777,6 +1778,26 @@ function drawOnline(ctx, now) {
     [3, 9, 3, 13], [3, 13, 7, 13]]) { ctx.moveTo(fx + a, oy + b); ctx.lineTo(fx + c, oy + d); }
   ctx.stroke();
   U.fullscreenRect = [fx, oy, 16, 16];
+}
+
+function drawPvpBadge(ctx) {
+  // The server's open PvP (pvp.py): under the Online line, red crossed swords where players may fight you, grey
+  // where nobody may (a town, a homestead, the Shardrealm). Not shown when it's off, nor in the arena (its banner)
+  const kind = S.me?.pvp;
+  if (!kind) return;
+  const open = kind === 2;
+  const text = open ? "PvP here" : "Safe here";
+  const col = open ? [255, 120, 96] : [190, 186, 170];
+  const oy = 72, w = textWidth(ctx, text, 8, true) + 30;
+  ctx.fillStyle = open ? "rgba(90,8,6,0.75)" : "rgba(24,14,8,0.55)";
+  ctx.fillRect(4, oy, w, 16);
+  ctx.strokeStyle = `rgb(${col.join(",")})`; ctx.lineWidth = 1.5;
+  ctx.beginPath();                                // (two blades crossed, each with its guard)
+  for (const [a, b, c, d] of [[7, 3, 18, 13], [18, 3, 7, 13], [7, 10, 10, 13], [18, 10, 15, 13]]) {
+    ctx.moveTo(4 + a, oy + b); ctx.lineTo(4 + c, oy + d);
+  }
+  ctx.stroke();
+  drawText(ctx, text, 26, oy + 2, 8, true, col);
 }
 
 function markLeft(now) {

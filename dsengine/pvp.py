@@ -57,6 +57,13 @@ class PvPMixin:
         self.open_seen = (name, here)
         return here
 
+    def pvp_badge(self):
+        """The badge under the Online line (ui.js drawPvpBadge): 2 open ground, 1 safe, 0 open PvP's off or this is
+        the arena (its banner says it)."""
+        if not self.w.open_pvp or self.cur_map is None or self.in_arena():
+            return 0
+        return 2 if self.open_ground() else 1
+
     def in_arena(self):
         maps, _ = self.pvp_rules()
         return self.in_world() and self.cur_map is not None and self.cur_map.name in maps
