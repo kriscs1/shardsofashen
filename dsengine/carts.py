@@ -389,7 +389,10 @@ class Carts:
         if s.demo():                    # (a stop outside the demo: the ferry's far side, dsengine/demo.py)
             m = w.map_at(c.z, *c.pts[j])
             if m is None or not s.demo_map(m.name):
-                s.demo_say("border")
+                if val(s.get_attribute("PapersFound")) >= 1:
+                    s.demo_end()            # (the Isle done: its end card, not a refusal)
+                else:
+                    s.demo_say("border")
                 return
         if c.fare and s.items_held("Gold_Coin(s)") < c.fare:
             s.display_message(self.word(c, "You need %d gold for the cart.") % c.fare, "FAIL", "Denied")

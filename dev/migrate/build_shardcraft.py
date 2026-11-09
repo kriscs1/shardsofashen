@@ -51,6 +51,9 @@ SHARDS = [   # (section, key, value, what it means)
                                               "Min.Cost (and a spell that costs nothing still costs nothing)."),
     ("Channeling", "Saving.Max", "30", ""),
     ("Channeling", "Min.Cost", "1", ""),
+    ("Channeling", "Power.Per.Level", "5", "Higher Channeling, harder spells: Power.Per.Level percent more of a "
+                                           "spell's damage for each level past the first (a percentage, so a "
+                                           "stronger spell gains more from it than a weak one)."),
     ("Shardcraft", "Dismantle.XP", "0.04", "Shardcraft xp for each Shard a dismantling gives (at least "
                                             "Dismantle.XP.Min); for activating a shardstone (Shardstone.XP)."),
     ("Shardcraft", "Dismantle.XP.Min", "0.05", ""),
@@ -70,7 +73,8 @@ SKILL_TEXT = {
     "Crafting": "Crafting: smelt ore and forge tools at a furnace or anvil (the Ashford smithy, Brokk's hall); shear "
                 "sheep, then tan, spin and make jewellery at a workbench.",
     "Alchemy": "Alchemy: pick herbs, berries and mushrooms, and brew potions at an alchemy table.",
-    "Channeling": "Channeling: cast spells. The better you are, the fewer Shards each cast drinks.",
+    "Channeling": "Channeling: cast spells. The better you are, the harder they hit and the fewer Shards each "
+                  "cast drinks.",
     "Shardcraft": "Shardcraft: work Shard magic. Wake shardstones, break gear down for its Shards, write scrolls, "
                   "enchant gear with rare shards and shape your pocket of the Shardrealm.",
     "Homesteading": "Homesteading: build on your homestead, and sow and harvest crops.",

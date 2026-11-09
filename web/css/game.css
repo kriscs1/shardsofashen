@@ -53,6 +53,14 @@ html, body {
 #reward-list li { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-bottom: 1px solid rgba(126, 77, 63, 0.6); }
 #reward-list canvas { width: 32px; height: 32px; image-rendering: pixelated; flex: none; }
 #reward-list .shards { color: #d6c8ff; font-weight: bold; }
+/* the demo's end (demo.py demo_end): what the Isle gave you, what's left to ask; a phone on its side scrolls it */
+#demo-end .panel { max-width: 500px; max-height: 100%; overflow-y: auto; text-align: center; }
+#demo-end h3 { margin: 12px 0 4px; color: #ffe68c; font-size: 16px; }
+#demo-end ul { list-style: none; margin: 0; padding: 0; text-align: left; }
+#demo-end li { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-bottom: 1px solid rgba(126, 77, 63, 0.6); }
+#demo-end canvas { width: 32px; height: 32px; image-rendering: pixelated; flex: none; }
+#demo-end-ask li { font-style: italic; }
+#demo-end-ahead { margin: 12px 0 4px; font-weight: bold; }
 #tavern-game:focus { outline: none; }
 
 #loading {

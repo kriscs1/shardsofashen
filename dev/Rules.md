@@ -469,6 +469,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   spell a rank; each rank's values are `Key.<rank>` in Shards.ini `[Upgrade.<Spell>]`. Quests give items with
   `Reward.Items` and skill xp with `Reward.XP` (`Strength 3 Defence 3`), and a finished quest shows its reward
   screen. Set by `dev/migrate/build_shards.py`.
+- **A higher rank is plainly better** (`test_every_spell_rank_is_plainly_better`): never less damage, reach, radius,
+  freeze or slow, never a longer cooldown, more damage for each Shard (it may cost more a cast), and each spell's
+  own kind of better (Lightning II reaches 12 tiles, Fire Storm II a wider ring, Grasp II 10 tiles, from the Court's
+  wizard). The bolts in the order they're learnt (Fire Bolt I to III, then Lightning I and II) each do more damage a
+  second than the one before, counting Shards.ini `Cast.Gap` as the shortest cooldown. A rank's `Level` is only what
+  learning it needs: casting, and the chance it takes, go by the first rank's (`spell_level`), so a rank-up is
+  never less sure.
 
 ### Skills
 - Skills go to **25** (Config `Skill.Max.Level`). A level asked for anywhere is on that scale; a script's success
@@ -480,7 +487,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   - **Stealth** is going unseen and light-fingered: sneaking past, sneak attacks, pickpocketing and stealing, picking
     locks, spotting and disarming traps, noticing secrets (`dev/migrate/build_stealth.py`).
   - **Channeling** (was Magic) is using magic: casting. Each level past the first takes Shards.ini `[Channeling]`
-    percent off a spell's Shards, to a limit, never under a Shard (`channeled_cost`, and `castCost` in the page).
+    percent off a spell's Shards, to a limit, never under a Shard (`channeled_cost`, and `castCost` in the page),
+    and adds `Power.Per.Level` percent to a spell's damage roll (`channeled_power`: a share, not a flat few, so a
+    cheap spell never outdoes a stronger one at any level). The spellbook shows the damage with your Channeling.
   - **Shardcraft** is making and working Shard magic: activating shardstones and the Shardgate, dismantling, absorbing
     remnants, writing your own spell, enchanting, shaping your pocket of the realm.
   - **Crafting** is Smithing and Crafting made one; **Homesteading** is Construction and Farming made one; **Alchemy**
@@ -781,7 +790,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The demo** (once the central server has `DS_DEMO=1`; till then everyone has the full game): an account without
   the full game plays the Isle (`data/Config.ini` `[Demo]`: its maps, upstairs and caves), its skills held at level 5,
   the XP still counted (it counts once it's owned). The border and the level each say so once a time in; a demo
-  character found outside (a pass run out) comes back to the Isle's pier. An app's own game knows from the device
+  character found outside (a pass run out) comes back to the Isle's pier. At the ferry with Mary's papers
+  (`PapersFound`) the demo ends: a line with its own sound, not Denied, and once a time in the end card (`demo_end`):
+  what the Isle gave you (the papers, the order in ash, Jimmy's miniature, each only if found), what's left to ask
+  (only questions the player has the clue for), what's across the strait, and how to buy it. An app's own game knows from the device
   (`demo`, `full` in the join link); a game server from the ticket.
 - **The Friend Pass**: a demo player has the full game in a game while someone who owns it is there: the host's own
   game if the host owns it, or, on a public server, while a Hallisium friend of theirs who owns it is in it (never any

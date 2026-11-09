@@ -4,7 +4,7 @@ from ashen.lb import val, word, trim, lbstr, distance, random_number, rnd, apply
 
 from .entity import NPC, PLAYER, MAPITEM, AI_FLEE
 from .renames import SKILL_NAMES
-from .shards import shard_words, SHARD, channeled_cost
+from .shards import shard_words, SHARD, channeled_cost, channeled_power
 
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
@@ -677,8 +677,13 @@ class CombatMixin:
     def spell_is_potion(self, spell):
         return self.spell_ini(spell, "Kind", "Scroll").upper() == "POTION"
 
+    def spell_level(self, spell):
+        """The Channeling a spell needs to cast, and its chance is counted from: its first rank's, whatever rank it's
+        at (a rank's Level is only what learning it needs: a higher rank is never less sure, nor shut by a daze)."""
+        return val(self.spell_ini_at(spell, "Level", "1", 1))
+
     def spell_chance(self, spell):
-        level = val(self.spell_ini(spell, "Level", "1"))
+        level = self.spell_level(spell)
         return min(98, max(20, 60 + (self.skill_level(self.spell_ini(spell, "Skill", "Channeling")) - level) * 14))
 
     def spell_cost(self, spell):
@@ -815,7 +820,7 @@ class CombatMixin:
             return
         w = self.w
         name = self.spell_title(spell) if not self.spell_is_potion(spell) else pretty(spell)
-        level = val(self.spell_ini(spell, "Level", "1"))
+        level = self.spell_level(spell)
         skill = self.spell_ini(spell, "Skill", "Channeling")
         potion = self.spell_is_potion(spell)
         if not potion and self.skill_level(skill) < level:
@@ -1051,7 +1056,8 @@ class CombatMixin:
         if not self.spell_target_ok(e):
             return
         w = self.w
-        damage = int((self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) + int(self.skill_level("Channeling") / 2) +
+        power = channeled_power(self.skill_level("Channeling"), self.data)    # (Channeling: a share more, shards.py)
+        damage = int((self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) * power +
                       self.equip_magic_total + self.spell_magic_bonus) * self.stance_num("Spell.Power"))
         if e.type == PLAYER:
             self.pvp_spell_hit(spell, e, damage)

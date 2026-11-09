@@ -57,9 +57,9 @@ HEADER = ["; Shards of Ashen: every Shard number in one place (dsengine/shards.p
           "; Reward.Shards. dev\\migrate\\build_shards.py and build_remnants.py only add what's missing: edit them here."]
 
 SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ideas of the brief, mapped onto these
-    "Fire_Bolt": ("3", "0.8"),                 # (Magic Bolt)
+    "Fire_Bolt": ("3", "1.5"),                 # (Magic Bolt: no faster, or it outdoes Lightning all game)
     "Ice_Bolt": ("6", "3"),
-    "Lightning": ("10", "4"),                  # (Fireball)
+    "Lightning": ("10", "2", {"Damage": "10-20"}),   # (Fireball: the bolt above Fire Bolt III, a second a hit)
     "Grasp": ("2", "2"),
     "Shard_Ward": ("10", "60"),
     "Teleport_Home": ("12", "60"),             # (Blink: the one that moves you)
@@ -69,14 +69,20 @@ SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ide
     "Fire_Storm": ("30", "18", {"Damage": "9-18", "Radius": "160"}),   # (Meteor: the most damage, no ice)
 }
 RANKS = {   # spell: {rank: (its scroll, value, {its Spells.ini values at that rank})}
-    "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "4", "Damage": "4-9", "Cost": "4"}),
-                  3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "7-13", "Cost": "5"})},
+    # (a rank is never worse at anything but its Shards and the Channeling to learn it; more of what the spell is for;
+    # more damage a Shard than the rank below; and never better than the next spell at its own job:
+    # tests/test_engine.py test_every_spell_rank_is_plainly_better)
+    "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "4", "Damage": "4-9", "Cost": "4", "Cooldown": "1.4"}),
+                  3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "6-12", "Cost": "5", "Cooldown": "1.3"})},
     "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "9", "Damage": "4-10", "Slow": "35,10", "Cost": "8"})},
-    "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "14", "Damage": "10-22", "Cost": "14"})},
+    "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "14", "Damage": "14-28", "Cost": "13", "Cooldown": "1.5",
+                                                   "Range": "384"})},
     "Frost_Nova": {2: ("Frost_Nova_Scroll_II", 180, {"Level": "11", "Damage": "3-8", "Radius": "128", "Freeze": "7",
                                                      "Cost": "18"})},
-    "Fire_Storm": {2: ("Fire_Storm_Scroll_II", 400, {"Level": "20", "Damage": "14-28", "Cost": "36"})},
+    "Fire_Storm": {2: ("Fire_Storm_Scroll_II", 400, {"Level": "20", "Damage": "14-28", "Radius": "192", "Cost": "36"})},
+    "Grasp": {2: ("Grasp_Scroll_II", 340, {"Level": "6", "Range": "320", "Cost": "3"})},   # (the Court's wizard sells it)
 }
+RANK_SHOPS = {"Grasp_Scroll_II": "SHOP-Wizard"}   # (an upgrade no quest gives: ItemRacks.ini, one in stock)
 ROMAN = {2: "II", 3: "III"}
 QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder quests
     "The Herbalist's Remedy": "Mega_Potion 3", "The Steward's Hunt": "Fire_Bolt_Scroll_II 1",
@@ -154,6 +160,10 @@ def rank_words(spell, keys):
         bits.append("over %d tiles" % (int(keys["Radius"]) // 32))
     if "Slow" in keys:
         bits.append("slowed to %s%% for %s s" % tuple(keys["Slow"].split(",")))
+    if "Range" in keys:
+        bits.append("reaching %d tiles" % (int(keys["Range"]) // 32))
+    if "Cooldown" in keys:
+        bits.append("ready again after %s s" % keys["Cooldown"])
     return ", ".join(bits)
 
 
@@ -229,6 +239,11 @@ def entities():
     spells_ini.save(p("data", "Spells.ini"))
     racks = Ini(p("data", "ItemRacks.ini"))
     rarer(ents, racks, shards)
+    for scroll, shop in RANK_SHOPS.items():           # (an upgrade sold, not given: one in stock)
+        sec = racks.section(shop)
+        if sec is not None and not any(k and k.startswith("Item") and v.split(",")[0] == scroll for k, v in sec[1]):
+            n = 1 + max([int(k[4:]) for k, v in sec[1] if k and k.startswith("Item") and k[4:].isdigit()] or [0])
+            racks.set(shop, "Item%d" % n, scroll + ",1")
     racks.save(p("data", "ItemRacks.ini"))
     ents.save(p("data", "Entities.ini"))
     shards.save(SHARDS_INI)

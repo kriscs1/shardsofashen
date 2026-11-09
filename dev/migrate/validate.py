@@ -1772,7 +1772,7 @@ SHARDS_KEYS = {
                "Shardfall.Seal", "Marsh.Wisp", "Marsh.Peat.Man", "Marsh.Bell", "Stargazers.Glass", "Shardgate",
                "Wilds.Rocks", "Wilds.Coffer", "Wilds.Ward", "Wilds.Ice", "Wilds.Fairy",    # (build_wilds.py)
                "Realm.Cluster", "Realm.Cluster.Hours", "Shardgate.Stones", "Shardgate.Level"},
-    "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost"},
+    "Channeling": {"Saving.Per.Level", "Saving.Max", "Min.Cost", "Power.Per.Level"},
     "Shardcraft": {"Dismantle.XP", "Dismantle.XP.Min", "Shardstone.XP", "Rare.Chance", "Rare.Chance.Per.Level",
                    "Rare.Min.Value"},
     "Enchant": {"Level", "Shards", "Shards.Per.Value", "XP"},

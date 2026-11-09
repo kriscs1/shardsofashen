@@ -3641,7 +3641,7 @@ def test_shard_numbers_come_from_shards_ini(world):
     assert a.shard_setting("Shardstone.Galaith") == 20 and a.shard_setting("Shardstone.Northport") == 5
     assert a.shard_setting("Weapon", 0, "Dismantle") == 25 and a.shard_setting("Scroll", 0, "Dismantle") == 10
     assert a.upgrade_scroll("Fire_Bolt", 2) == "Fire_Bolt_Scroll_II"
-    assert a.spell_ini_at("Fire_Bolt", "Damage", "", 3) == "7-13" and a.spell_ini_at("Fire_Bolt", "Range", "", 3) == "256"
+    assert a.spell_ini_at("Fire_Bolt", "Damage", "", 3) == "6-12" and a.spell_ini_at("Fire_Bolt", "Range", "", 3) == "256"
     leave(world, a)
 
 
@@ -10043,4 +10043,126 @@ def test_the_ashen_priest_drops_his_ledger_with_the_ring(world):
     s.do_action("Read", next(e for e in s.inv if e.name == "Ashen_Ledger"))
     run_for(world, 5)
     assert s.ab_mode == "Conversation" and "beyond the wall" in s.ab_text
+    leave(world, s)
+
+
+def test_every_spell_rank_is_plainly_better(world):
+    """Each rank does more of what its spell does and never less (dev/Rules.md, Magic and Shards): no less damage,
+    reach, radius, freeze or slow, never a longer cooldown, more damage for each Shard, and the bolts in the order
+    they're learnt each hit harder over time than the one before (Cast.Gap: no spell is cast faster than that)."""
+    import re
+    d = world.data
+    text = open(os.path.join(os.path.dirname(__file__), "..", "data", "Shards.ini"), encoding="cp1252").read()
+    spells = re.findall(r"^\[Upgrade\.(\w+)\]", text, re.M)
+    assert {"Fire_Bolt", "Lightning", "Grasp"} <= set(spells)
+    gap = val(d.shards_ini("Cast", "Gap", "0.8"))
+
+    def at(spell, key, rank, dflt=""):
+        for r in range(rank, 1, -1):
+            v = d.shards_ini("Upgrade." + spell, "%s.%d" % (key, r), "").strip()
+            if v:
+                return v
+        return d.spell_ini(spell, key, dflt).strip()
+
+    def lohi(t):
+        lo, _, hi = t.partition("-")
+        return val(lo), val(hi or lo)
+
+    def per_second(spell, rank):
+        lo, hi = lohi(at(spell, "Damage", rank, "0"))
+        return (lo + hi) / 2 / max(val(at(spell, "Cooldown", rank, "0")), gap)
+
+    for spell in spells:
+        top = max(int(n) for n in re.findall(r"^Scroll\.(\d+)=", text.split("[Upgrade.%s]" % spell, 1)[1].split("\n[", 1)[0], re.M))
+        for r in range(2, top + 1):
+            why = "%s rank %d" % (spell, r)
+            assert val(at(spell, "Level", r, "1")) >= val(at(spell, "Level", r - 1, "1")), why
+            for key in ("Range", "Radius", "Freeze"):
+                assert val(at(spell, key, r, "0")) >= val(at(spell, key, r - 1, "0")), why + " " + key
+            assert val(at(spell, "Cooldown", r, "0")) <= val(at(spell, "Cooldown", r - 1, "0")), why
+            if at(spell, "Slow", r - 1):
+                (p0, s0), (p1, s1) = [[val(x) for x in at(spell, "Slow", k).split(",")[:2]] for k in (r - 1, r)]
+                assert p1 <= p0 and s1 >= s0, why + " Slow"
+            if at(spell, "Damage", r - 1):
+                (a0, b0), (a1, b1) = lohi(at(spell, "Damage", r - 1)), lohi(at(spell, "Damage", r))
+                assert a1 >= a0 and b1 >= b0 and (a1, b1) != (a0, b0), why + " Damage"
+                assert (a1 + b1) / val(at(spell, "Cost", r)) > (a0 + b0) / val(at(spell, "Cost", r - 1)), why + " per Shard"
+    ladder = [per_second("Fire_Bolt", r) for r in (1, 2, 3)] + [per_second("Lightning", r) for r in (1, 2)]
+    assert ladder == sorted(ladder) and len(set(ladder)) == len(ladder), ladder
+
+
+def test_channeling_makes_a_spell_hit_harder_by_a_share(world):
+    from dsengine.shards import channeled_power
+    assert channeled_power(1, world.data) == 1 and channeled_power(21, world.data) == 2.0
+    a = join(world, "Channeler", "11,-3,0", 384, 300)
+    a.spells_known["Fire_Bolt"] = 1
+    a.skill_level = lambda skill: 4
+    first = a.spell_chance("Fire_Bolt")
+    a.spells_known["Fire_Bolt"] = 2                                # (Fire Bolt II needs Channeling 4: no less sure)
+    assert a.spell_chance("Fire_Bolt") == first
+    a.skill_level = lambda skill: 11
+    assert "(6-13 with your Channeling)" in a.spell_what("Fire_Bolt", 2)    # (4-9, and half as much again)
+    a.skill_level = lambda skill: 1
+    assert "with your Channeling" not in a.spell_what("Fire_Bolt", 2)
+    wolf = next(e for e in world.ents if e.name == "Wolf" and e.alive)
+    hits = []
+    for level in (1, 11):
+        a.skill_level = lambda skill, level=level: level
+        a.spell_roll = lambda text: 10
+        a.spell_target_ok = lambda e: True
+        wolf.hp = 1000
+        a.spell_hit("Fire_Bolt", wolf)
+        hits.append(1000 - wolf.hp)
+    assert hits[1] - hits[0] == 5                                   # (a roll of 10: 15 at Channeling 11)
+    wolf.hp = 1
+    leave(world, a)
+
+
+def test_grasp_ii_reaches_further_and_the_court_wizard_sells_it(world):
+    a = join(world, "Reacher", "11,-3,0", 384, 300)
+    a.spells_known["Grasp"] = 1
+    assert a.spell_ini("Grasp", "Range", "") != "320"
+    stock(a, Grasp_Scroll_II=1)
+    two = next(e for e in a.inv if e.name == "Grasp_Scroll_II")
+    a.skill_level = lambda skill: 5
+    a.do_action("Learn", two)                                      # (rank 2 needs Channeling 6)
+    assert a.spell_rank("Grasp") == 1 and a.items_held("Grasp_Scroll_II") == 1
+    a.skill_level = lambda skill: 6
+    a.do_action("Learn", two)
+    assert a.spell_rank("Grasp") == 2 and a.items_held("Grasp_Scroll_II") == 0
+    assert a.spell_ini("Grasp", "Range", "") == "320" and "10 tiles" in a.spell_what("Grasp", 2)
+    shop = open(os.path.join(os.path.dirname(__file__), "..", "data", "ItemRacks.ini"), encoding="cp1252").read()
+    assert "Grasp_Scroll_II,1" in shop.split("[SHOP-Wizard]", 1)[1].split("\n[", 1)[0]
+    leave(world, a)
+
+
+def test_the_demo_ends_at_the_ferry_with_what_the_isle_gave_you(world):
+    s = join(world, "Ender", "3,2,0", 14 * 32 + 16, 14 * 32)
+    s.connected = True
+    s.skill_xp[s.skill_index("Strength")] = 8                      # (level 3, for the ferryman)
+    s.set_full(False)
+    p = s.player
+    east = next(c for c in world.carts.carts if c.key == "Isle_Ferry_East")
+    to = next(j for j in east.stops if east.stops[j] == "Northport")
+
+    def try_the_boat():
+        p.x, p.y = east.e.x, east.e.y
+        east.wait_until = world.now + 5000
+        s.out = []
+        s.demo_said = -10 ** 9                                     # (past the throttle)
+        world.carts.choose(s, east, to)
+        return [ev for ev in s.out if ev.get("t") == "demo"]
+    for k, v in (("Passage", 5), ("RemnantsAbsorbed", 1), ("AshenOrder", 1)):
+        s.update_attribute(k, "=%d" % v)
+    stock(s, **{"Gold_Coin(s)": 5})
+    assert [ev.get("why") for ev in try_the_boat()] == ["border"]  # (the papers not found: the Isle's not done)
+    s.update_attribute("PapersFound", "=1")
+    ends = try_the_boat()
+    assert [ev.get("why") for ev in ends] == ["end"] and s.ride is None
+    end = ends[0]
+    assert [f[0] for f in end["found"]] == ["Marys_Papers", "Ashen_Order"]
+    assert any("signs in ash" in q for q in end["ask"]) and not any("crowned man" in q for q in end["ask"])
+    assert "Northport" in end["ahead"]
+    assert not any(ev.get("sound") == "Denied" for ev in s.out)
+    assert try_the_boat() == []                                    # (the card once a time in; the words again)
     leave(world, s)

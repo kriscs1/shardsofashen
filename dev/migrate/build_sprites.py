@@ -1732,9 +1732,10 @@ def upgrade_scroll(seal, rune, rank):
     return K.outline_img(img, (70, 52, 30))
 
 
+UPGRADE_RUNES = {"Grasp": ((60, 150, 70), ((150, 230, 150), (50, 130, 60)))}   # (its own scroll: build_isle_quest.py)
 for _name, _rank in (("Fire_Bolt", 2), ("Fire_Bolt", 3), ("Ice_Bolt", 2), ("Lightning", 2),
-                     ("Frost_Nova", 2), ("Fire_Storm", 2)):
-    _seal, _rune = SCROLLS[_name + "_Scroll"]
+                     ("Frost_Nova", 2), ("Fire_Storm", 2), ("Grasp", 2)):
+    _seal, _rune = SCROLLS.get(_name + "_Scroll") or UPGRADE_RUNES[_name]
     SPRITES["%s_Scroll_%s" % (_name, "I" * _rank)] = (lambda seal=_seal, rune=_rune, r=_rank: upgrade_scroll(seal, rune, r))
 
 

@@ -36,6 +36,14 @@ def channeled_cost(cost, channeling, data):
     return max(min(cost, num("Min.Cost", 1)), int(round(cost * (1 - saving))))
 
 
+def channeled_power(channeling, data):
+    """What a spell's damage roll is multiplied by at a Channeling level: Shards.ini [Channeling] Power.Per.Level
+    percent more for each level past the first (a percentage, not a flat few: a stronger spell gains more, so a
+    cheap one never outdoes it)."""
+    per = val(trim(data.shards_ini("Channeling", "Power.Per.Level", "")) or 5)
+    return 1 + max(0, int(channeling) - 1) * per / 100.0
+
+
 def quest_xp(d):
     """A quest's Reward.XP ("Strength 3 Defence 3"): [(skill, xp)]."""
     w = trim(d.get("REWARD.XP", "")).replace(",", " ").split()
@@ -221,6 +229,11 @@ class ShardMixin:
         eff = trim(at("Effect", "Bolt")).upper()
         if eff in ("BOLT", "AREA"):
             words = "%s damage" % at("Damage")
+            power = channeled_power(self.skill_level("Channeling"), self.data)
+            if power > 1:                               # (what it does in your hands)
+                d = at("Damage")
+                lo, hi = d.split("-", 1) if "-" in d else (d, d)
+                words += " (%d-%d with your Channeling)" % (int(val(lo) * power), int(val(hi) * power))
             if eff == "AREA":
                 words += " to every foe within %s tiles" % lbstr(round(val(at("Radius", "128")) / 32))
             if val(at("Freeze", "0")) > 0:
@@ -228,9 +241,13 @@ class ShardMixin:
             slow = at("Slow")
             if slow:
                 words += ", slowed to %s%% for %s s" % tuple(slow.split(",")[:2])
+            if eff == "BOLT" and val(at("Range", "256")) > 256:
+                words += ", reaching %d tiles" % round(val(at("Range")) / 32)
             if val(at("Fear", "0")) > 0:
                 words += ", and it flees from you for %s s" % at("Fear")
             return words
+        if eff == "GRASP":
+            return "an unseen hand brings you a thing up to %d tiles away" % round(val(at("Range", "192")) / 32)
         if eff == "SILENCE":
             return "a hush round you for %s s: whatever you fight makes no sound" % at("Duration", "30")
         if eff == "HEAL":

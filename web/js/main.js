@@ -563,7 +563,7 @@ for (const id of ["admin-noblack", "admin-nofog"]) {
   $(id).addEventListener("input", () => setFogAdmin($("admin-noblack").checked, $("admin-nofog").checked));
 }
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
-for (const id of ["admin", "options", "quit", "message", "appearance"]) {
+for (const id of ["admin", "options", "quit", "message", "appearance", "demo-end"]) {
   $(id).addEventListener("keydown", (ev) => {
     ev.stopPropagation();
     if (ev.key === "Escape") { $(id).hidden = true; canvas.focus(); }
@@ -604,6 +604,7 @@ $("reward-ok").onclick = () => { $("reward").hidden = true; canvas.focus(); };
 const BUY_WORDS = "The full game is bought once, from the start screen, for your Hallisium account: then it's yours " +
   "on every device, and your character keeps everything they've done.";
 function showDemo(m) {
+  if (m.why === "end") { showDemoEnd(m); return; }
   if (m.why === "border") {
     releaseKeys();
     showMessage("The demo", "That's as far as the demo goes: the full game goes on from here, past the Isle to the " +
@@ -614,6 +615,40 @@ function showDemo(m) {
       "and counts as soon as you have the full game. " + BUY_WORDS);
   }
 }
+
+// the ferry, papers in hand (demo.py demo_end): the Isle's story done, as far as the demo goes
+function showDemoEnd(m) {
+  const fill = (id, rows) => {
+    const list = $(id);
+    list.textContent = "";
+    for (const [icon, text] of rows) {
+      const li = document.createElement("li");
+      if (icon) {
+        const c = document.createElement("canvas");
+        c.width = c.height = 32;
+        preload([icon]).then(() => {
+          const im = sprite(icon);
+          if (im) c.getContext("2d").drawImage(im, 0, 0, 32, 32);
+        });
+        li.append(c);
+      }
+      const span = document.createElement("span");
+      span.textContent = text;
+      li.append(span);
+      list.append(li);
+    }
+    list.previousElementSibling.hidden = list.hidden = !rows.length;
+  };
+  fill("demo-end-found", m.found || []);
+  fill("demo-end-ask", (m.ask || []).map((q) => ["", q]));
+  $("demo-end-ahead").textContent = m.ahead || "";
+  $("demo-end-buy").textContent = BUY_WORDS;
+  releaseKeys();
+  $("demo-end").hidden = false;
+  $("demo-end").querySelector(".panel").scrollTop = 0;   // (from the top, on a phone too)
+  $("demo-end-ok").focus({ preventScroll: true });
+}
+$("demo-end-ok").onclick = () => { $("demo-end").hidden = true; canvas.focus(); };
 
 function showMessage(title, text, then) {
   $("message-title").textContent = title;
@@ -654,7 +689,8 @@ window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, as
 // (then the app goes back to its start screen)
 window.dsBack = () => {
   const shut = { options: "options-done", quit: "quit-no", admin: "admin-close", price: "price-cancel",
-                 appearance: "appearance-cancel", message: "message-ok", reward: "reward-ok" };
+                 appearance: "appearance-cancel", message: "message-ok", reward: "reward-ok",
+                 "demo-end": "demo-end-ok" };
   for (const [id, button] of Object.entries(shut)) if (!$(id).hidden) { $(button).click(); return true; }
   if (!$("chat-entry").hidden) { $("chat-input").value = ""; $("chat-entry").hidden = true; return true; }
   if (J.open) { closeJournal(); return true; }
