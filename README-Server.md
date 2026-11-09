@@ -480,6 +480,36 @@ lists the remote game servers (each announces itself to it), and it serves the a
   `[{"text": "...", "link": "https://...", "image": "banner.png"}]`, the pictures in `DS_CENTRAL_ADS_DIR`
   (`/data/ads/`). One is shown on the start screen each time it opens. Without the file, a few of the game's own
   notes. (House ads, chosen by you, shown wherever AdSense and AdMob aren't.)
+- **Owning the game** (`central/bought.py`; `dev/Roadmap-7.md`): an account has the full game once a purchase is
+  checked with the store it came from, never on an app's word, and one purchase counts for one account (only its hash
+  is kept). The admin page's Accounts shows each one's (bought where and when, a time pass, or Demo), and **Give the
+  full game** / **Take it back** (a refund, a gift). A game server is told with the ticket (`full`, `pass_until`) and
+  asks `/api/game/owns` again only when a pass runs out. The demo (the Isle, level 5: `data/Config.ini` `[Demo]`) is
+  only for accounts without it once `DS_DEMO=1`; till then everyone has the full game. Each store is set up by its
+  own settings; one that isn't refuses its purchases:
+  - **Google Play**: in the Play Console, Setup > API access, link a Google Cloud project and make a service account
+    there with a JSON key; give the account "View financial data" and "Manage orders" for the app. Put the key file
+    where the central server can read it and set `DS_PLAY_SERVICE_ACCOUNT` to its path (`DS_PLAY_PACKAGE`,
+    `io.github.kriscs1.shardsofashen`, and `DS_FULL_PRODUCT`, `full_game`, unless yours differ). A purchase that
+    hasn't been acknowledged is acknowledged here, so Google doesn't refund it.
+  - **Steam**: `DS_STEAM_APP` (the app's id) and `DS_STEAM_KEY` (a publisher Web API key, from Users & Permissions >
+    Manage Groups in Steamworks). The desktop app sends a Web API ticket for the identity `shardsofashen`; a copy lent by
+    Family Sharing doesn't count. The Steam build is made with `DS_STORE=steam DS_STEAM_APP=<id>
+    DS_STEAM_SDK=<the Steamworks SDK's folder> python desktop/build_desktop.py` (`DS_STORE=itch` or `epic` for theirs:
+    the store's download is the purchase there).
+  - **itch.io**: `DS_ITCH_KEY` (an API key, from your account's API keys) and `DS_ITCH_GAME` (the game's id). The
+    player pastes the link from their purchase's download page.
+- **The time pass** (`central/admob.py`): in the Android app, an account in the demo can watch a rewarded ad for an
+  hour of the full game (`DS_PASS_MINUTES`, 60), a few a day (`DS_PASSES_A_DAY`, 3). Google tells the central server
+  itself, never the app: in AdMob, the rewarded ad unit's **Server-side verification** callback URL is
+  `https://<central>/api/pass/reward`, and `DS_ADMOB_REWARDED` is that ad unit's id (`ca-app-pub-.../...`), so another
+  game's rewards are refused. Each reward is checked against Google's signature (its keys from gstatic.com, kept a
+  day) and is no older than an hour; the app's one-off key is its custom data, so one ad is one pass. Without
+  `DS_ADMOB_REWARDED`, or with the demo off, there's no time pass. **`DS_PLAY_INTEGRITY=1`** asks Google Play first
+  that it's the real app from Google Play on a real phone (Play Integrity), so an emulator or a tampered app can't
+  farm passes (and AdMob doesn't see machine-made views): in the Play Console, Test and release > App integrity, link
+  the Google Cloud project your Play service account (above) is in and turn on the Play Integrity API there; the
+  central server has Google decode each verdict with that account.
 - **Its settings**: `DS_CENTRAL_DB`, `DS_CENTRAL_PORT` (8490), `DS_CENTRAL_NAME`, `DS_CENTRAL_MOTD`,
   `DS_REGISTRATION`, `DS_PASSWORD_MIN` (8), `DS_REGISTER_PER_DAY` (3), `DS_TRUST_PROXY`.
 

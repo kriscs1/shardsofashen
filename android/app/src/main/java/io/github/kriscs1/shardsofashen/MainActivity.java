@@ -25,6 +25,9 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.window.OnBackInvokedDispatcher;
 
+import com.google.android.play.core.integrity.IntegrityManagerFactory;
+import com.google.android.play.core.integrity.IntegrityTokenRequest;
+
 import org.json.JSONObject;
 
 /** The app's one screen: a WebView, full screen and sideways. It starts on the start screen (assets/home: host a
@@ -47,9 +50,11 @@ public class MainActivity extends Activity {
         frame.addView(web);
         setContentView(frame);
         ads = new Ads(this, frame, (shown) -> web.evaluateJavascript(
-            "window.onBanner && window.onBanner(" + shown + ")", null));
+            "window.onBanner && window.onBanner(" + shown + ")", null),
+            (how) -> runOnUiThread(() -> web.evaluateJavascript(
+                "window.onWatched && window.onWatched('" + how + "')", null)));
         billing = new Billing(this, (what) -> runOnUiThread(() -> {
-            if ("bought".equals(what)) ads.show(false);
+            if ("bought".equals(what) || "full".equals(what)) ads.show(false);
             web.evaluateJavascript("window.onAdFree && window.onAdFree('" + what + "')", null);
         }));
         WebSettings s = web.getSettings();
@@ -95,6 +100,11 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("!!(window.dsBack && window.dsBack())", (shut) -> {
             if (!"true".equals(shut)) web.loadUrl(HOME);
         });
+    }
+
+    void integrityCame(String token) {
+        runOnUiThread(() -> web.evaluateJavascript(
+            "window.onIntegrity && window.onIntegrity(" + JSONObject.quote(token == null ? "" : token) + ")", null));
     }
 
     @Override
@@ -264,12 +274,63 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String adFreePrice() {
-            return home() && Billing.on() ? billing.price() : "";
+            return home() ? billing.price(Billing.ADFREE) : "";
         }
 
         @JavascriptInterface
         public void buyAdFree() {
-            if (home()) billing.buy();
+            if (home()) billing.buy(Billing.ADFREE);
+        }
+
+        /** The full game (dev/Roadmap-7.md): bought on this device (through Google Play), its price ("" while it isn't
+         *  known, once it's bought, or in a build without it), Google Play's payment sheet, and the purchase's token for
+         *  the central server to check for the account. */
+        @JavascriptInterface
+        public boolean fullGame() {
+            return home() && billing.full();
+        }
+
+        @JavascriptInterface
+        public String fullPrice() {
+            return home() ? billing.price(Billing.FULL) : "";
+        }
+
+        @JavascriptInterface
+        public void buyFull() {
+            if (home()) billing.buy(Billing.FULL);
+        }
+
+        @JavascriptInterface
+        public String fullToken() {
+            return home() ? billing.fullToken() : "";
+        }
+
+        /** The time pass: whether this build has its ad (and the game isn't bought here), and the ad itself, carrying
+         *  the central server's key (window.onWatched says how it went). */
+        @JavascriptInterface
+        public boolean timePass() {
+            return home() && Ads.rewarded() && !billing.full();
+        }
+
+        @JavascriptInterface
+        public void watchForPass(String user, String key) {
+            if (home() && !billing.full()) ads.watch(user, key);
+        }
+
+        /** Play Integrity's verdict on this app and this phone, asked with the central server's nonce, before a time
+         *  pass (the central server has Google decode it): window.onIntegrity gets its token, or "" if none came. */
+        @JavascriptInterface
+        public void integrity(String nonce) {
+            if (!home()) return;
+            try {
+                IntegrityTokenRequest.Builder ask = IntegrityTokenRequest.builder().setNonce(nonce);
+                if (BuildConfig.CLOUD_PROJECT != 0) ask.setCloudProjectNumber(BuildConfig.CLOUD_PROJECT);
+                IntegrityManagerFactory.create(getApplicationContext()).requestIntegrityToken(ask.build())
+                    .addOnSuccessListener((r) -> integrityCame(r.token()))
+                    .addOnFailureListener((e) -> integrityCame(""));
+            } catch (RuntimeException e) {          // (a nonce it won't take, or no Google Play on this phone)
+                integrityCame("");
+            }
         }
 
         @JavascriptInterface

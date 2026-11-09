@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
@@ -19,39 +22,58 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
 
-/** "Remove ads": one payment through Google Play (the owner's wish), a one-time product (BuildConfig.ADFREE_PRODUCT,
- *  made in the Play Console). Bought, the start screen shows no ads again, on this device, and Google Play gives it back
- *  after a reinstall or on another phone with the same Google account (its purchases are asked for each time the app
- *  opens). The payment is Google's: the app never sees a card. The start screen is told when it's bought (or pending). */
+/** What's bought through Google Play, each a one-time product made in the Play Console: the full game
+ *  (BuildConfig.FULL_PRODUCT: the whole world and no level cap, and no ads either) and "Remove ads" on its own
+ *  (BuildConfig.ADFREE_PRODUCT). Bought, it's this device's at once (Single player needs no account), and Google Play
+ *  gives it back after a reinstall or on another phone with the same Google account (its purchases are asked for each
+ *  time the app opens). The full game's purchase token is kept for the start screen to send the central server, which
+ *  checks it with Google Play before it's the Hallisium account's too (central/bought.py). The payment is Google's: the
+ *  app never sees a card. The start screen is told when one's bought ("full", "bought"), pending, or failed. */
 class Billing {
+    static final String FULL = BuildConfig.FULL_PRODUCT, ADFREE = BuildConfig.ADFREE_PRODUCT;
+
     private final Activity activity;
-    private final Consumer<String> told;              // ("bought", "pending", or "failed")
+    private final Consumer<String> told;              // ("full", "bought" (no ads), "pending", or "failed")
     private BillingClient client;
-    private ProductDetails product;
-    private volatile String price = "";
-    private volatile boolean bought;
+    private final Map<String, ProductDetails> products = new ConcurrentHashMap<>();
+    private final Map<String, String> prices = new ConcurrentHashMap<>();
+    private volatile boolean adFree, full;
 
     Billing(Activity activity, Consumer<String> told) {
         this.activity = activity;
         this.told = told;
-        bought = prefs().getBoolean("ad_free", false);  // (known at once, before Google Play answers)
+        adFree = prefs().getBoolean("ad_free", false);  // (known at once, before Google Play answers)
+        full = prefs().getBoolean("full_game", false);
     }
 
     static boolean on() {
-        return !BuildConfig.ADFREE_PRODUCT.isEmpty();
+        return !FULL.isEmpty() || !ADFREE.isEmpty();
     }
 
     private SharedPreferences prefs() {
         return activity.getSharedPreferences("start", Context.MODE_PRIVATE);
     }
 
+    /** No ads: either bought. */
     boolean adFree() {
-        return bought;
+        return adFree || full;
     }
 
-    /** The price as Google Play shows it here ("£1.99"), or "" until it's known (or there's nothing to buy). */
-    String price() {
-        return bought ? "" : price;
+    boolean full() {
+        return full;
+    }
+
+    /** The full game's purchase token, for the central server ("" if it isn't bought here). */
+    String fullToken() {
+        return full ? prefs().getString("full_token", "") : "";
+    }
+
+    /** A product's price as Google Play shows it here ("£3.49"), or "" until it's known (or it's had already, or there
+     *  isn't one in this build). */
+    String price(String id) {
+        if (id.isEmpty() || full || (id.equals(ADFREE) && adFree)) return "";
+        String p = prices.get(id);
+        return p == null ? "" : p;
     }
 
     void start() {
@@ -82,7 +104,7 @@ class Billing {
 
             @Override
             public void onBillingServiceDisconnected() {
-                // (asked again the next time the button's pressed)
+                // (asked again the next time a button's pressed)
             }
         });
     }
@@ -92,33 +114,39 @@ class Billing {
         client.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
             (result, purchases) -> {
                 if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) return;
-                boolean has = false;
+                boolean hasFull = false, hasAdFree = false;
                 for (Purchase p : purchases) {
-                    if (p.getProducts().contains(BuildConfig.ADFREE_PRODUCT)
-                            && p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-                        has = true;
-                        took(p);
-                    }
+                    if (p.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
+                    hasFull |= !FULL.isEmpty() && p.getProducts().contains(FULL);
+                    hasAdFree |= !ADFREE.isEmpty() && p.getProducts().contains(ADFREE);
+                    took(p);
                 }
-                if (!has && bought) set(false);
+                if (!hasFull && full) setFull(false, "");
+                if (!hasAdFree && adFree) setAdFree(false);
             });
     }
 
     private void details() {
-        QueryProductDetailsParams.Product want = QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(BuildConfig.ADFREE_PRODUCT).setProductType(BillingClient.ProductType.INAPP).build();
-        client.queryProductDetailsAsync(QueryProductDetailsParams.newBuilder().setProductList(Collections.singletonList(want)).build(),
+        List<QueryProductDetailsParams.Product> want = new ArrayList<>();
+        for (String id : new String[] {FULL, ADFREE}) {
+            if (!id.isEmpty()) want.add(QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(id).setProductType(BillingClient.ProductType.INAPP).build());
+        }
+        client.queryProductDetailsAsync(QueryProductDetailsParams.newBuilder().setProductList(want).build(),
             (result, list) -> {
-                if (result.getResponseCode() != BillingClient.BillingResponseCode.OK || list == null || list.isEmpty()) return;
-                product = list.get(0);
-                ProductDetails.OneTimePurchaseOfferDetails offer = product.getOneTimePurchaseOfferDetails();
-                price = offer != null ? offer.getFormattedPrice() : "";
+                if (result.getResponseCode() != BillingClient.BillingResponseCode.OK || list == null) return;
+                for (ProductDetails d : list) {
+                    products.put(d.getProductId(), d);
+                    ProductDetails.OneTimePurchaseOfferDetails offer = d.getOneTimePurchaseOfferDetails();
+                    if (offer != null) prices.put(d.getProductId(), offer.getFormattedPrice());
+                }
             });
     }
 
-    /** The button: Google Play's own payment sheet. */
-    void buy() {
-        if (!on() || bought) return;
+    /** A button: Google Play's own payment sheet, for the full game or Remove ads. */
+    void buy(String id) {
+        if (id.isEmpty() || full || (id.equals(ADFREE) && adFree)) return;
+        ProductDetails product = products.get(id);
         if (client == null || !client.isReady() || product == null) {
             if (client != null && !client.isReady()) connect();
             told.accept("failed");
@@ -131,7 +159,9 @@ class Billing {
     }
 
     private void took(Purchase p) {
-        if (!p.getProducts().contains(BuildConfig.ADFREE_PRODUCT)) return;
+        boolean isFull = !FULL.isEmpty() && p.getProducts().contains(FULL);
+        boolean isAdFree = !ADFREE.isEmpty() && p.getProducts().contains(ADFREE);
+        if (!isFull && !isAdFree) return;
         if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
             told.accept("pending");
             return;
@@ -141,14 +171,24 @@ class Billing {
             client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(p.getPurchaseToken()).build(),
                 (result) -> { });
         }
-        if (!bought) {
-            set(true);
-            told.accept("bought");
+        if (isFull && (!full || !p.getPurchaseToken().equals(fullToken()))) {
+            boolean was = full;
+            setFull(true, p.getPurchaseToken());
+            if (!was) told.accept("full");
+        }
+        if (isAdFree && !adFree) {
+            setAdFree(true);
+            if (!full) told.accept("bought");
         }
     }
 
-    private void set(boolean yes) {
-        bought = yes;
+    private void setFull(boolean yes, String token) {
+        full = yes;
+        prefs().edit().putBoolean("full_game", yes).putString("full_token", yes ? token : "").apply();
+    }
+
+    private void setAdFree(boolean yes) {
+        adFree = yes;
         prefs().edit().putBoolean("ad_free", yes).apply();
     }
 

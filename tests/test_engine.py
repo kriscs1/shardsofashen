@@ -9714,3 +9714,109 @@ def test_the_herbalists_remedy_wants_mushrooms_and_silk(world):
     assert s.get_attribute("RemedyQuest") == "2" and s.items_held("Cave_Mushroom") == 0
     world.set_day_fraction(day)
     leave(world, s)
+
+
+def test_the_demo_keeps_to_the_isle_and_level_5(world):
+    s = join(world, "Tryer", "3,2,0", 14 * 32 + 16, 14 * 32)                       # (on the Isle's pier)
+    s.connected = True
+    assert not s.demo()                                                             # (the engine's own: the full game)
+    st = s.skill_index("Strength")
+    s.skill_xp[st] = 8
+    s.update_max_hp()
+    hp = s.player_max_hp
+    s.out = []
+    s.set_full(False)
+    assert s.demo() and s.base_skill_level("Strength") == 5 and s.player_max_hp < hp     # (level 5 at most)
+    assert s.demo_map("1,1,0") and s.demo_map("1,-2,1") and s.demo_map("2,1,-2")
+    assert not s.demo_map("4,4,0") and not s.demo_map("0,0,10") and not s.demo_map("Deep")
+    s.skill_xp[st] = 8.999
+    s.update_skill("Strength", "+5")
+    assert s.skill_xp[st] > 9 and s.base_skill_level("Strength") == 5                  # (the XP kept, not the level)
+    assert any(ev.get("t") == "demo" and ev.get("why") == "level" for ev in s.out)
+    assert not any("LEVEL UP" in str(ev.get("text", "")) for ev in s.out)
+    s.out = []
+    s.teleport("4,4,0", 300, 300)                                                   # (a scroll, a spell, a portal)
+    world.tick(0.05)
+    assert s.cur_map.name == "3,2,0" and any(ev.get("t") == "demo" and ev.get("why") == "border" for ev in s.out)
+    s.teleport("1,1,0", 300, 300)                                                   # (but anywhere on the Isle)
+    world.tick(0.05)
+    assert s.cur_map.name == "1,1,0"
+    s.teleport("3,2,0", 14 * 32 + 16, 14 * 32)
+    world.tick(0.05)
+    p, here = s.player, s.player.y
+    s.player_prev_x, s.player_prev_y = p.x, p.y
+    p.y = world.maps["3,3,0"].oy + 8                                                # (walked off its south edge)
+    s.check_map()
+    assert s.cur_map.name == "3,2,0" and p.y == here                                # (a step back)
+    east = next(c for c in world.carts.carts if c.key == "Isle_Ferry_East")
+
+    def at_the_boat():                                  # (wherever the other tests left it: beside it, and it waiting)
+        p.x, p.y = east.e.x, east.e.y
+        east.wait_until = world.now + 5000
+    s.update_attribute("Passage", "=5")
+    s.update_attribute("RemnantsAbsorbed", "=1")
+    stock(s, **{"Gold_Coin(s)": 5})
+    to = next(j for j in east.stops if east.stops[j] == "Northport")
+    at_the_boat()
+    world.carts.choose(s, east, to)
+    assert s.ride is None and s.items_held("Gold_Coin(s)") == 5                     # (no crossing, and no fare)
+    s.set_full(True)
+    assert s.base_skill_level("Strength") == int(s.skill_xp[st]) > 8 and s.player_max_hp > hp   # (bought: it counts)
+    at_the_boat()
+    world.carts.choose(s, east, to)
+    assert s.ride is east
+    world.carts.leaving(s)
+    s.teleport("4,4,0", 300, 300)
+    world.tick(0.05)
+    assert s.cur_map.name == "4,4,0"
+    s.set_full(False)                                                               # (a pass run out, over there)
+    world.tick(0.05)
+    assert s.cur_map.name == "3,2,0" and s.items_held("Gold_Coin(s)") == 5 - east.fare
+    leave(world, s)
+
+
+def test_a_demo_character_found_outside_the_isle_comes_in_on_its_pier(world):
+    s = Session(world, "Lapsed")
+    s.full = False
+    s.load_state({"map": "4,4,0", "x": 300, "y": 300})
+    world.sessions["Lapsed"] = s
+    s.enter_world()
+    world.tick(0.05)
+    back, x, y = world.data.demo["back"]
+    m = world.maps[back]
+    assert s.cur_map is m and (s.player.x, s.player.y) == (m.ox + x, m.oy + y)
+    leave(world, s)
+
+
+def test_a_friend_pass_is_the_full_game_while_an_owner_is_there(world):
+    s = join(world, "Guest", "3,2,0", 14 * 32 + 16, 14 * 32)
+    s.connected = True
+    st = s.skill_index("Strength")
+    s.skill_xp[st] = 9
+    s.set_full(False)
+    assert s.demo() and s.base_skill_level("Strength") == 5
+    s.want_friend_pass(True)                                                    # (an owner's in the game)
+    assert s.friend_pass and not s.demo() and s.base_skill_level("Strength") == 9
+    s.teleport("4,4,0", 300, 300)
+    world.tick(0.05)
+    assert s.cur_map.name == "4,4,0"                                            # (the whole world)
+    s.out = []
+    s.want_friend_pass(False)                                                   # (they've gone: a while to get back)
+    assert s.friend_pass and s.pass_ends and s.cur_map.name == "4,4,0"
+    assert any("back to the Isle in" in str(ev.get("text", "")) for ev in s.out)
+    s.want_friend_pass(True)                                                    # (come back in the while: as before)
+    assert s.friend_pass and not s.pass_ends
+    s.want_friend_pass(False)
+    s.want_friend_pass(False)
+    assert s.friend_pass and s.cur_map.name == "4,4,0"                          # (not yet)
+    s.pass_ends = s.now - 1                                                     # (the while gone by)
+    s.want_friend_pass(False)
+    world.tick(0.05)
+    assert not s.friend_pass and s.demo() and s.cur_map.name == "3,2,0" and s.base_skill_level("Strength") == 5
+    s.want_friend_pass(True)
+    s.want_friend_pass(False)                                                   # (on the Isle: the demo at once)
+    assert not s.friend_pass and not s.pass_ends
+    s.set_full(True)
+    s.want_friend_pass(True)
+    assert not s.friend_pass and s.base_skill_level("Strength") == 9           # (their own: no pass needed)
+    leave(world, s)

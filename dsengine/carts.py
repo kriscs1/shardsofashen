@@ -386,6 +386,11 @@ class Carts:
         if no:
             s.display_message(no, "FAIL", "Denied")
             return
+        if s.demo():                    # (a stop outside the demo: the ferry's far side, dsengine/demo.py)
+            m = w.map_at(c.z, *c.pts[j])
+            if m is None or not s.demo_map(m.name):
+                s.demo_say("border")
+                return
         if c.fare and s.items_held("Gold_Coin(s)") < c.fare:
             s.display_message(self.word(c, "You need %d gold for the cart.") % c.fare, "FAIL", "Denied")
             return

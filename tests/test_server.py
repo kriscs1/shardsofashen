@@ -3,6 +3,7 @@ import asyncio
 import json
 import os
 import socket
+import time
 from types import SimpleNamespace
 
 import aiohttp
@@ -751,3 +752,112 @@ def test_a_servers_name_is_what_its_given_and_never_a_containers_number(monkeypa
     assert name() == "The Ashen Inn"                              # (the Unraid template's Server name)
     saved["name"] = "Kris's World"
     assert name() == "Kris's World"                               # (an admin's, in Options)
+
+
+def test_the_ticket_says_whether_a_player_has_the_full_game(tmp_path, monkeypatch):
+    """The central server's word, with the ticket (dsengine/demo.py): no demo till it says there is one; then an account
+    without the full game plays the Isle, one with it everything, and a friend of one who has it while they're both
+    in the game (the Friend Pass); a time pass run out is asked about again."""
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
+        owns, demo, until, asked = {"Buyer": True, "Trier": False}, [False], [0], []
+
+        async def central(path, body, packed=False):
+            if path == "/api/verify":
+                n = body["ticket"]
+                return {"ok": True, "name": n, "grant": "g-" + n, "demo": demo[0], "pass_until": until[0],
+                        "full": owns[n] or not demo[0] or until[0] > time.time() - 60,
+                        "friends": {"Trier": ["Buyer"], "Buyer": ["Trier"]}[n]}
+            if path == "/api/game/owns":
+                asked.append(body["grant"])
+                return {"ok": True, "name": body["grant"][2:], "full": owns[body["grant"][2:]], "pass_until": 0}
+            return {"ok": True, "same": True}
+        monkeypatch.setattr(game, "central_post", central)
+        try:
+            async with aiohttp.ClientSession() as http:
+                async def come(name, mode="login"):
+                    ws, m = await login(http, url, name, mode=mode, auth_with={"ticket": name})
+                    assert m["t"] == "welcome"
+                    return ws, game.world.sessions[name]
+                ws, s = await come("Trier", "register")
+                assert s.full and not s.demo()                              # (no demo yet: all of it)
+                await ws.close()
+                demo[0] = True
+                ws, s = await come("Trier")
+                assert not s.full and s.demo() and game.store.setting("full:trier") == ""
+                await ws.close()
+                ws, s = await come("Trier")
+                game.friend_passes()
+                assert not s.friend_pass                                    # (no friend of theirs who owns it here)
+                wb, b = await come("Buyer", "register")
+                assert b.full and not b.demo()
+                game.friend_passes()
+                assert s.friend_pass and not s.demo()                       # (a friend's here: the Friend Pass)
+                await wb.close()
+                for _ in range(50):
+                    if not b.connected:
+                        break
+                    await asyncio.sleep(0.05)
+                game.friend_passes()
+                assert not s.friend_pass and s.demo()                       # (gone: on the Isle, the demo at once)
+                await ws.close()
+                until[0] = int(time.time()) - 1                             # (a time pass, just run out)
+                ws, s = await come("Trier")
+                assert s.full and s.pass_until
+                game.passes_ran_out()
+                for _ in range(50):
+                    if asked:
+                        break
+                    await asyncio.sleep(0.05)
+                await asyncio.sleep(0.1)
+                assert asked == ["g-Trier"] and not s.full and s.demo() and not s.pass_until
+                await ws.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
+def test_an_apps_own_game_is_the_full_game_for_its_guests_while_its_host_owns_it(tmp_path, monkeypatch):
+    """An app's own game (no central server needed): its app says whether there's a demo and whether the device
+    has the full game; a guest has the Friend Pass while someone who owns it is in a game whose host owns it."""
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "o.db"), own=True)
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                def host(full):
+                    return {"host": "the-hosts-own-key", "account": "", "demo": True, "full": full}
+                wh, m = await login(http, url, "Hosty", auth_with=host(False))
+                h = game.world.sessions["Hosty"]
+                assert m["t"] == "welcome" and h.demo()                     # (not bought on the device: the demo)
+                wg, m = await login(http, url, "Guesty")
+                g = game.world.sessions["Guesty"]
+                game.friend_passes()
+                assert g.demo() and not g.friend_pass                       # (nobody here owns it)
+                await wh.close()
+                wh, m = await login(http, url, "Hosty", mode="login", auth_with=host(True))
+                h = game.world.sessions["Hosty"]
+                assert h.full and not h.demo()                              # (bought: the full game)
+                game.friend_passes()
+                assert g.friend_pass and not g.demo()                       # (the host owns it, and is here)
+                game.clients[g].addr = "relay:203.0.113.9"
+                game.friend_passes()
+                assert not g.friend_pass                    # (through the relay: the device's word isn't enough)
+                game.clients[g].addr = "127.0.0.1"
+                game.friend_passes()
+                assert g.friend_pass
+                await wh.close()
+                for _ in range(50):
+                    if not h.connected:
+                        break
+                    await asyncio.sleep(0.05)
+                game.friend_passes()
+                assert not g.friend_pass and g.demo()                       # (gone: the demo again, on the Isle)
+                await wg.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())

@@ -34,6 +34,7 @@ the start screen) and the game servers it lists.</p>
     removes it.</li>
   <li><b>Your IP address</b>, briefly, to stop password guessing and too many accounts from one place, and in the
     server's logs.</li>
+  <li><b>Whether you have the full game</b>: see "Buying the game" below.</li>
   <li><b>Game servers</b> that are listed: their name, address and how many are playing.</li>
   <li><b>How characters are getting on</b>: see below.</li>
 </ul>
@@ -55,11 +56,25 @@ name.</p>
 <p>Servers you join may keep what you do in their world, and what you say in their chat, for as long as they run.
 Each is run by its owner: the central server lists only servers its admins have approved, but it doesn't run them.</p>
 
+<h2>Buying the game</h2>
+<p>The store you buy the full game from (Google Play, Steam or itch.io) takes the payment: we never see your card or
+your account there. We ask that store whether the purchase is real (for Steam, whether your Steam account owns the
+game), and keep on your Hallisium account that it has the full game, where it was bought and when, and a one-way hash of
+the store's id for the purchase (Google Play's purchase token, your Steam account's id, or your itch.io download key's
+id), so that one purchase counts for one account only. If you watch an ad in the Android app for a time pass, we keep
+when the pass ends, and when you watched each ad for a day (there's a limit a day). All of it goes if your account is
+deleted. Game servers you join are told whether you have the full game, and when a pass ends.</p>
+
 <h2>Ads</h2>
 <p><b>Removing the ads.</b> In the Android app you can pay once, through Google Play, to remove the ads. Google Play takes
 the payment: we never see your card or your Google account's details, only that the app's "Remove ads" has been bought on
 this device. The app remembers it, and Google Play gives it back if you reinstall the app or use another phone with the
-same Google account.</p>
+same Google account. Buying the full game in the app removes the ads as well.</p>
+<p><b>A time pass.</b> In the Android app, while you have the demo, you can choose to watch a rewarded ad (Google AdMob)
+for an hour of the full game. Google tells our central server that the ad was watched, with your Hallisium account's
+name and a one-off number the app was given for it, and nothing else of yours; we keep when the pass ends. First,
+the app asks Google Play (Play Integrity) whether it's the real app from Google Play on a phone that passes Google's
+checks, and we have Google read us its answer; we keep nothing of it.</p>
 <p>The start screen shows {{ADS}}. When it's Google AdSense (in a web browser), Google and its partners may use
 cookies to show ads based on your visits to this and other sites: see
 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">how Google uses data from sites
@@ -70,8 +85,8 @@ and what it knows of the device to choose and count ads: see
 <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses
 information from apps that use its services</a>. In the EEA and the UK the app asks first, and "Ad choices" on its
 start screen changes your answer; anywhere, you can reset or delete the advertising ID in your phone's settings
-(Google > Ads, or Privacy > Ads). There are never ads in a game, only on the start screen. The desktop app's ads are
-our own and use no cookies.</p>
+(Google > Ads, or Privacy > Ads). There are never ads in a game, only on the start screen. The desktop app is bought
+once and never shows an ad.</p>
 
 <h2>What we don't do</h2>
 <ul>

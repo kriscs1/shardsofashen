@@ -44,6 +44,7 @@ from .cold import ColdMixin
 from .disease import DiseaseMixin
 from .together import TogetherMixin
 from .standing import StandingMixin
+from .demo import DemoMixin
 
 log = logging.getLogger("ashen.session")
 
@@ -99,7 +100,7 @@ BODIES = ("Player", "PlayerF")      # (the sprites a look chooses between: a man
 class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, PvPMixin, HomeMixin, FarmMixin, MarketMixin, DigMixin, TavernMixin, ChestMixin,
               MinigameMixin, ShardMixin, RemnantMixin, OwnSpellMixin, TrickMixin, DeepMixin, ShardcraftMixin, StanceMixin, FormMixin,
               ThiefMixin, SenseMixin, LockMixin, ColdMixin, DiseaseMixin, TogetherMixin, RumourMixin, StandingMixin,
-              DisguiseMixin):
+              DisguiseMixin, DemoMixin):
     def __init__(self, world, name, admin=False):
         self.w = world
         self.data = world.data
@@ -932,6 +933,15 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         m = self.w.map_at(p.z, p.fx, p.fy) or self.cur_map
         if m is None or m is self.cur_map:
             return
+        if self.demo() and not self.demo_map(m.name):     # (the demo's edge: demo.py)
+            if self.cur_map is not None and self.demo_map(self.cur_map.name) and self.ride is None:
+                self.stop_player_walk()
+                p.x, p.y = self.player_prev_x, self.player_prev_y     # (walked to it: a step back)
+                self.demo_say("border")
+                return
+            m = self.demo_dock()                          # (found outside it: on the Isle's pier)
+            if m is self.cur_map:
+                return
         arenas = self.pvp_rules()[0]
         if self.cur_map is not None and self.cur_map.name in arenas and m.name not in arenas:
             self.fog_view_distance = self.data.fog_view_distance      # (the arena lifts the fog; out of it, it's back)
@@ -991,6 +1001,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         m = self.w.map_named(map_name)
         if m is None:
             self.display_message("That leads nowhere!", "FAIL")
+            return
+        if self.demo() and not self.demo_map(m.name):     # (a scroll, a spell, a shardstone, a portal: demo.py)
+            self.demo_say("border")
             return
         if self.ab_mode:
             self.close_action_box(-1)
@@ -1280,6 +1293,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "dead": bool(self.dead_wait),
             "lit": self.stones_lit(),                   # (the shardstones you've activated: the rest look dormant)
             "ride": self.ride.e.uid if self.ride is not None and self.ride.e is not None else 0,
+            "demo": self.demo_state(),                  # (the demo, or a Friend Pass: demo.py)
         }
 
     def quests_state(self):

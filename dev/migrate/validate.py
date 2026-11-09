@@ -1312,6 +1312,45 @@ CONFIG_REQUIRED = {
 }
 
 
+DEMO_KEYS = {"Area", "Level", "Return", "FriendGrace"}
+
+
+def check_demo(ini, r, tiles_ini):
+    """Config.ini [Demo] (dsengine/demo.py): its maps' corners, the level, a walkable place to be put back."""
+    where = r + " [Demo]"
+    for k, _ in (ini.section("Demo") or [None, []])[1]:
+        if k is not None and k not in DEMO_KEYS:
+            err(where, "unknown key %s" % k)
+    area = (ini.get("Demo", "Area", "") or "").strip()
+    if not area:
+        return
+    boxes = []
+    for part in area.split(";"):
+        ends = part.split()
+        try:
+            a, b = (tuple(int(v) for v in e.split(",")) for e in ends)
+            assert len(ends) == 2 and len(a) == len(b) == 3
+            boxes.append((a, b))
+        except (ValueError, AssertionError):
+            err(where, "Area: %r should be X,Y,Z X,Y,Z" % part.strip())
+    for k in ("Level", "FriendGrace"):
+        if not (ini.get("Demo", k, "") or "").strip().isdigit():
+            err(where, "%s should be a whole number" % k)
+    back = (ini.get("Demo", "Return", "") or "").split()
+    if len(back) != 3 or not exists(p("maps", back[0] + ".txt")):
+        err(where, "Return should be a map there is and a pixel x and y")
+        return
+    try:
+        x, y, z = (int(v) for v in back[0].split(","))
+        if not any(all(min(a[i], b[i]) <= (x, y, z)[i] <= max(a[i], b[i]) for i in range(3)) for a, b in boxes):
+            err(where, "Return: %s isn't in the demo's Area" % back[0])
+        ok, tile = walkable_at(back[0], float(back[1]), float(back[2]), tiles_ini)
+        if not ok:
+            err(where, "Return is on an unwalkable part of %s" % tile)
+    except (TypeError, ValueError, IndexError) as e:
+        err(where, "bad Return (%s)" % e)
+
+
 def check_config(tiles_ini):
     path = p("data", "Config.ini")
     check_raw(path)
@@ -1341,6 +1380,7 @@ def check_config(tiles_ini):
                 err(r, "start position is on an unwalkable part of %s" % tile)
         except (TypeError, ValueError, IndexError) as e:
             err(r, "bad start position (%s)" % e)
+    check_demo(ini, r, tiles_ini)
     music = ini.get("Sounds", "Music", "")
     if music and not exists(p("sounds", music)):
         err(r, "music %r not in sounds\\" % music)

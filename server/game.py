@@ -60,6 +60,9 @@ class Client:
         self.host = False           # (the host, by the key its app started the server with)
         self.grant = ""             # (the central server's key to their friends, from their ticket)
         self.friends_got = None     # (their friends, as the ticket's check said)
+        self.full = True            # (the full game, or the demo: Game.full_of)
+        self.pass_until = 0         # (a time pass's end, when that's all it is: asked again then)
+        self.device_full = False    # (the host's app says it's bought on the device)
         self.msg_times = []
         self.closed = False
         self.queue = asyncio.Queue()
@@ -219,6 +222,8 @@ class GameServer:
                 self.save_all()
             if time.time() - self.last_where >= WHERE_EVERY:
                 self.last_where = time.time()
+                self.passes_ran_out()
+                self.friend_passes()
                 where = self.where_message()
                 if where != self.last_where_sent:       # (nobody's moved: nothing to send everyone)
                     self.last_where_sent = where
@@ -833,16 +838,86 @@ class GameServer:
             self.store.set_setting("dev:" + device[2:], owner)    # (a reload, or the central server away: still you)
         c.owner, c.account = owner, owner[2:] if owner.startswith("a:") else ""
         c.grant, c.friends_got = (got.get("grant") or "", got) if got else ("", None)
+        c.full, c.pass_until = self.full_of(c, data, got), int((got or {}).get("pass_until") or 0)
         if c.host and c.grant and c.account and c.grant != self.host_grant:
             self.hosted_by(c.account, c.grant)          # (the host's key: the relay opens with it, for friends)
         await self.send_characters(c)
+
+    def full_of(self, c, data, got):
+        """Whether they have the full game, or play the demo (dsengine/demo.py). The central server says, with their
+        ticket (what they've bought; whether there's a demo yet at all); without one, the last it said for their
+        account here (a linked device, the central server away). The host of an app's own game: its app says too
+        (bought on the device; and whether there's a demo, signed in or not). No demo yet, or a server of its own
+        with no central server: everyone has it."""
+        if got is not None:
+            self.store.set_setting("demo", "1" if got.get("demo") else "")
+        if c.host and "demo" in data:                   # (an app's own game, signed in or not: its app says)
+            self.store.set_setting("demo", "1" if data.get("demo") else "")
+        if self.store.setting("demo", "") != "1" or not (self.central_url() or self.own):
+            return True
+        key = "full:" + c.account.lower() if c.account else ""
+        full = bool(got.get("full", True)) if got is not None else (self.store.setting(key, "") == "1" if key else False)
+        if got is not None and key:
+            self.store.set_setting(key, "1" if full else "")
+        c.device_full = c.host and bool(data.get("full")) and not full
+        if c.host:
+            self.store.set_setting("host_full", "1" if full or c.device_full else "")   # (its Friend Pass: the host's)
+        return full or c.device_full
+
+    def friend_passes(self):
+        """The Friend Pass (dsengine/demo.py): a demo player has the full game while someone who owns it is in a game
+        whose host owns it (an app's own game: its host's device or account), or, on a public server (no host),
+        while one of their Hallisium friends who owns it is in the game (not any owner: a busy server would be the
+        full game for everyone)."""
+        w = self.world
+        here = [s for s in w.sessions.values() if s.ready and s.connected]
+        owners = {s.account.lower(): s for s in here if s.full and s.account}
+        host = ""
+        if self.store.setting("host_full", "") == "1":
+            host = self.host_account or next((s.player_name for s in here if s.full), "")
+        for s in here:
+            if s.full:
+                s.want_friend_pass(False)
+            elif self.own and self.relayed(getattr(self.clients.get(s), "addr", "")):
+                # (a friend through the relay: only an owner by account, never an app's word for its device, which a
+                # tampered app could give: the central server's what counts out on the internet)
+                s.want_friend_pass(any(o.full and not getattr(self.clients.get(o), "device_full", False)
+                                       for o in here), host)
+            elif self.own:
+                s.want_friend_pass(any(o.full for o in here), host)
+            else:
+                mates = w.together.account_friends.get(s.account.lower(), []) if s.account else []
+                mate = next((owners[a.lower()] for a in mates if a.lower() in owners), None)
+                s.want_friend_pass(mate is not None, mate.account if mate is not None else "")
+
+    async def owns_now(self, s):
+        """A time pass run out: whether they have the full game still (bought since?), asked of the central server."""
+        s.pass_until = 0
+        got = await self.central_post("/api/game/owns", {"grant": s.grant})
+        if got and got.get("ok") and s.connected:
+            self.store.set_setting("full:" + s.account.lower(), "1" if got.get("full") else "")
+            s.pass_until = int(got.get("pass_until") or 0)
+            c = self.clients.get(s)
+            if c is not None and got.get("full"):
+                c.device_full = False                   # (the account's now: no longer only the device's word)
+            s.set_full(bool(got.get("full")) or getattr(c, "device_full", False))
+        elif got and got.get("banned"):
+            await self.turn_away(s)
+
+    def passes_ran_out(self):
+        now = time.time()
+        for s in list(self.world.sessions.values()):
+            if s.connected and getattr(s, "pass_until", 0) and now >= s.pass_until and getattr(s, "grant", ""):
+                asyncio.ensure_future(self.owns_now(s))
 
     async def send_characters(self, c, text=""):
         mine = []
         for name in self.store.characters_of(c.owner):
             st = self.store.load_character(name) or {}
             mine.append({"name": name, "level": st.get("level") or 1, "look": st.get("look")})
+        demo = self.world.data.demo
         await self.send(c, {"t": "characters", "list": mine, "account": c.account, "most": MOST_CHARACTERS,
+                            "demo": demo["level"] if demo["area"] and not getattr(c, "full", True) else 0,
                             "make": self.registration == "open", "invite": bool(self.invite_code), "text": text,
                             "place": self.place_of(c), "joined": self.joined_token() if self.remote() else ""})
 
@@ -953,6 +1028,7 @@ class GameServer:
                 s.respawn()
         else:
             s = Session(w, name, admin=bool(admin) or c.account.lower() in self.admins)
+            s.full = c.full                             # (the demo, or not, before they're anywhere: demo.py)
             saved = self.store.load_character(name)
             s.load_state(saved)
             if saved is None and data.get("t") == "create":
@@ -963,6 +1039,8 @@ class GameServer:
             self.broadcast({"t": "chat", "from": "", "text": "%s has joined the game." % name}, exclude=s)
             s.friends_hear("Your friend %s has come into Ashen." % name)
         s.account = c.account
+        s.pass_until = c.pass_until
+        s.set_full(c.full)
         if c.account:
             w.together.accounts[name] = c.account
         if c.grant:

@@ -10,6 +10,7 @@ from ashen.entity import PLAYER, NPC, TILE, INFRONTTILE, ROOF, TYPE_NAMES, DEFAU
 from ashen.lb import val, trim, lbstr, strip_digits
 from ashen.places import read_places
 
+from .demo import read_demo
 from .imgsize import sprite_size
 
 # The order the desktop game loaded its sprite folders in (the first one loaded keeps a name)
@@ -148,6 +149,7 @@ class GameData:
         self.hp_regen_delay = max(0, val(c("Gameplay", "HP.Regen.Delay", "6")))
         self.hp_regen_every = max(0.2, val(c("Gameplay", "HP.Regen.Every", "3")))
         self.skill_max_level = max(2, int(val(c("Gameplay", "Skill.Max.Level", "25"))))
+        self.demo = read_demo(c)     # (the demo: dsengine/demo.py)
         self.xp_slowdown = max(0.0, val(c("Gameplay", "XP.Slowdown", "10")))
         self.xp_scale = max(0.0, val(c("Gameplay", "XP.Scale", "1") or "1"))
         self.monster_damage = max(0.1, val(c("Gameplay", "Monster.Damage", "2")))

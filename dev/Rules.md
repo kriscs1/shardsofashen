@@ -780,7 +780,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Isle is told and has a minute before the pier.
 - **The time pass**: in the Android app only, an account in the demo can watch a rewarded ad (AdMob) for an hour of
   the full game (`DS_PASS_MINUTES`), a few a day (`DS_PASSES_A_DAY`, 3). Google tells the central server
-  (`central/admob.py`, its signature checked), never the app. No time pass in a browser or on PC.
+  (`central/admob.py`, its signature checked), never the app; with `DS_PLAY_INTEGRITY=1`, only after Play
+  Integrity's word that it's the real app on a real phone (`bought.integrity`). No time pass in a browser or on PC.
+- **The client is never trusted for owning it online**: an app's word that its device bought the game counts only in
+  its own game, for those on its own machine or network; a friend through the relay has the Friend Pass only from an
+  owner whose account has it (`friend_passes`). Offline play can always be cracked: what's worth paying for is
+  online, and the central server decides it.
 - **Open to the internet goes through the central server** (`server/relay.py`, `central/relay.py`): the host's game
   connects out (no router port, any network) with the key the host's ticket brought; friends open
   `<central>/play/<game id>/` and the central server passes the page, its files (kept there per version) and the game

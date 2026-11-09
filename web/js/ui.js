@@ -175,6 +175,7 @@ function drawViewOverlays(ctx, now) {
   drawVitals(ctx);
   drawOnline(ctx, now);
   drawPvpBadge(ctx);
+  drawDemoBadge(ctx, now);
   drawHoverTop(ctx);
   drawArena(ctx, now);
   drawWave(ctx, now);
@@ -791,7 +792,11 @@ export function statTileAt(px, py) {
   return -1;
 }
 
-const maxLevel = () => Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "25"))));
+const maxLevel = () => {
+  // (the demo's level, while it's the demo: dsengine/demo.py)
+  const top = Math.max(2, Math.floor(val(configRead("Gameplay", "Skill.Max.Level", "25"))));
+  return S.me?.demo?.on ? Math.min(top, S.me.demo.level) : top;
+};
 export const levelOfXp = (xp) => Math.min(maxLevel(), Math.max(1, Math.floor(xp)));
 
 export function levelProgress(xp) {
@@ -1802,6 +1807,21 @@ function drawPvpBadge(ctx) {
   }
   ctx.stroke();
   drawText(ctx, text, 26, oy + 2, 8, true, col);
+}
+
+function drawDemoBadge(ctx, now) {
+  // The demo, or a Friend Pass (dsengine/demo.py): under the Online line (and the PvP badge), what this character
+  // plays just now. A pass ending outside the Isle counts down to going back
+  const d = S.me?.demo;
+  if (!d || (!d.on && !d.pass)) return;
+  const left = d.ends ? Math.max(0, Math.ceil((d.ends - (now - (S.boostAt || now))) / 1000)) : 0;
+  const text = d.on ? `Demo: the Isle, level ${d.level}` : left ? `Friend Pass: back to the Isle in ${left}s` :
+    d.from ? `Friend Pass: ${d.from}'s game` : "Friend Pass";
+  const col = d.on ? [212, 191, 126] : left ? [255, 150, 120] : [255, 215, 90];
+  const oy = S.me.pvp ? 92 : 72, w = textWidth(ctx, text, 8, true) + 12;
+  ctx.fillStyle = "rgba(24,14,8,0.55)";
+  ctx.fillRect(4, oy, w, 16);
+  drawText(ctx, text, 10, oy + 2, 8, true, col);
 }
 
 function markLeft(now) {

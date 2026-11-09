@@ -7,12 +7,17 @@ import android.widget.FrameLayout;
 
 import java.util.function.Consumer;
 
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.gms.ads.rewarded.ServerSideVerificationOptions;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.UserMessagingPlatform;
@@ -21,28 +26,40 @@ import com.google.android.ump.UserMessagingPlatform;
  *  it (the EEA, the UK) Google's consent form is asked first, and the start screen offers "Ad choices" to change it.
  *  The banner's unit is the build's (BuildConfig.ADMOB_BANNER): Google's test ads in a debug build, and none at all
  *  in a release built without one. The start screen is told when an ad's come (it makes room) or none could be had
- *  (it shows our own). */
+ *  (it shows our own).
+ *
+ *  The time pass (dev/Roadmap-7.md): a rewarded ad (BuildConfig.ADMOB_REWARDED), shown only when the start screen asks,
+ *  for one who hasn't bought the game. It carries the central server's one-off key (custom_data), and once it's watched
+ *  to its end Google tells the central server itself (server-side verification: central/admob.py): the app's word
+ *  counts for nothing. The start screen is told how it went ("earned", "left", "none", "failed"). */
 class Ads {
     private final Activity activity;
     private final FrameLayout frame;
     private final Consumer<Boolean> told;
+    private final Consumer<String> watched;
     private ConsentInformation consent;
     private AdView banner;
-    private boolean started, ready, wanted;
+    private boolean started, ready, wanted, watching;
 
-    Ads(Activity activity, FrameLayout frame, Consumer<Boolean> told) {
+    Ads(Activity activity, FrameLayout frame, Consumer<Boolean> told, Consumer<String> watched) {
         this.activity = activity;
         this.frame = frame;
         this.told = told;
+        this.watched = watched;
     }
 
     static boolean on() {
         return !BuildConfig.ADMOB_BANNER.isEmpty();
     }
 
+    /** A time pass's ad in this build. */
+    static boolean rewarded() {
+        return !BuildConfig.ADMOB_REWARDED.isEmpty();
+    }
+
     /** As the app opens: consent (if it's needed and not given yet), then the SDK. */
     void start() {
-        if (!on()) return;
+        if (!on() && !rewarded()) return;
         consent = UserMessagingPlatform.getConsentInformation(activity);
         consent.requestConsentInfoUpdate(activity, new ConsentRequestParameters.Builder().build(),
             () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity, (err) -> begin()),
@@ -69,7 +86,7 @@ class Ads {
 
     private void apply() {
         if (!ready) return;
-        if (wanted && banner == null) {
+        if (wanted && banner == null && on()) {
             banner = new AdView(activity);
             banner.setAdSize(AdSize.BANNER);            // (320 x 50: the start screen leaves room for it)
             banner.setAdUnitId(BuildConfig.ADMOB_BANNER);
@@ -97,6 +114,46 @@ class Ads {
             if (wanted) banner.resume();
             else banner.pause();
         }
+    }
+
+    /** A time pass's ad, for user (their Hallisium account) with the central server's key. */
+    void watch(String user, String key) {
+        activity.runOnUiThread(() -> {
+            if (!ready || !rewarded() || watching) {
+                watched.accept(watching ? "busy" : "none");
+                return;
+            }
+            watching = true;
+            RewardedAd.load(activity, BuildConfig.ADMOB_REWARDED, new AdRequest.Builder().build(),
+                new RewardedAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(RewardedAd ad) {
+                        ad.setServerSideVerificationOptions(new ServerSideVerificationOptions.Builder()
+                            .setUserId(user).setCustomData(key).build());
+                        final boolean[] earned = {false};
+                        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+                            @Override
+                            public void onAdDismissedFullScreenContent() {
+                                watching = false;
+                                watched.accept(earned[0] ? "earned" : "left");
+                            }
+
+                            @Override
+                            public void onAdFailedToShowFullScreenContent(AdError err) {
+                                watching = false;
+                                watched.accept("failed");
+                            }
+                        });
+                        ad.show(activity, (reward) -> earned[0] = true);
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(LoadAdError err) {
+                        watching = false;
+                        watched.accept("none");
+                    }
+                });
+        });
     }
 
     /** Whether the start screen should offer "Ad choices" (consent can be changed: the EEA and UK). */

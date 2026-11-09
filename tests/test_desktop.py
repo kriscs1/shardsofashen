@@ -94,3 +94,77 @@ def test_the_desktop_app_hosts_finds_and_stops(tmp_path, monkeypatch):
                 break
             time.sleep(0.1)
     assert json.loads(b.state())["status"] == "off"
+
+
+def pretend_steam(running=True, owns=True, restart=False, ticket=b"\x01\x02\xab"):
+    """Steam's library as desktop/owning.py calls it (ctypes), pretended."""
+    import ctypes
+    import struct
+    from types import SimpleNamespace
+    kept = []
+
+    def next_callback(pipe, ref):
+        if lib.sent:
+            return False
+        lib.sent = True
+        data = struct.pack("<Iii", 77, 1, len(ticket)) + ticket
+        buf = ctypes.create_string_buffer(data, len(data))
+        kept.append(buf)
+        msg = ref._obj
+        msg.callback, msg.size = 168, len(data)
+        msg.param = ctypes.cast(buf, ctypes.POINTER(ctypes.c_uint8))
+        return True
+    lib = SimpleNamespace(
+        sent=False,
+        SteamAPI_RestartAppIfNecessary=lambda app: restart,
+        SteamAPI_InitFlat=lambda err: 0 if running else 1,
+        SteamAPI_SteamApps_v008=lambda: 1234,
+        SteamAPI_ISteamApps_BIsSubscribed=lambda apps: owns,
+        SteamAPI_SteamUser_v023=lambda: 5678,
+        SteamAPI_ManualDispatch_Init=lambda: None,
+        SteamAPI_GetHSteamPipe=lambda: 1,
+        SteamAPI_ISteamUser_GetAuthTicketForWebApi=lambda user, who: 77 if who.value == b"shardsofashen" else 0,
+        SteamAPI_ManualDispatch_RunFrame=lambda pipe: None,
+        SteamAPI_ManualDispatch_GetNextCallback=next_callback,
+        SteamAPI_ManualDispatch_FreeLastCallback=lambda pipe: None)
+    return lib
+
+
+def test_the_pc_build_is_owned_from_its_store_or_shows_how_to_get_it(tmp_path, monkeypatch):
+    """The PC build has no demo (desktop/owning.py): a build of one's own, itch.io's or Epic's is owned (the store's
+    download is the purchase); Steam's is owned once Steam says this account owns it, and its Web API ticket goes to the
+    central server for the account. The start screen's app knows (fullGame, steamTicket) and never shows an ad."""
+    monkeypatch.setenv("DS_DESKTOP_DATA", str(tmp_path))
+    import importlib
+    import app as desktop
+    import owning
+    importlib.reload(desktop)
+
+    def made(**store):
+        root = tmp_path / ("r%d" % len(list(tmp_path.iterdir())))
+        root.mkdir()
+        if store:
+            (root / "store.json").write_text(json.dumps(store))
+        return str(root)
+    o = owning.Owning(made())
+    assert o.ask() == "yes" and o.state()["full"] is True
+    assert owning.Owning(made(store="itch")).state()["full"] is True
+    o = owning.Owning(made(store="steam", steam_app="480"))
+    assert o.state()["full"] is None                    # (Steam's asked as the app opens)
+    assert o.ask() == "no" and o.owned is False and "missing" in o.why
+    root = made(store="steam", steam_app="480")
+    assert owning.Owning(root, pretend_steam(restart=True)).ask() == "restart"
+    o = owning.Owning(root, pretend_steam(running=False))
+    assert o.ask() == "no" and "isn't running" in o.why
+    o = owning.Owning(root, pretend_steam(owns=False))
+    assert o.ask() == "no" and "doesn't own" in o.why
+    o = owning.Owning(root, pretend_steam())
+    assert o.ask() == "yes" and o.owned is True and o.ticket == ""
+    o.ticket_later()
+    assert o.ticket == "0102ab"
+    b = desktop.Bridge(o)
+    st = json.loads(b.state())
+    assert st["full"] is True and st["store"] == "steam" and st["steam_ticket"] == "0102ab"
+    page = desktop.home_page(b)
+    assert "fullGame:" in page and "steamTicket:" in page
+    assert 'KIND === "desktop"' in page and "never has an ad" in page

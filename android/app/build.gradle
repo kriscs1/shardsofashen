@@ -10,10 +10,17 @@ def game = file(project.findProperty("dsGame") ?: "../..")   // (the game's fold
 // (AdMob: the app's id and the start screen's banner unit, from gradle.properties or the workflow; without them a debug
 //  build shows Google's test ads and a release build none)
 def TEST_APP = "ca-app-pub-3940256099942544~3347511713", TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
+def TEST_REWARDED = "ca-app-pub-3940256099942544/5224354917"
 def admobApp = (env.DS_ADMOB_APP ?: project.findProperty("dsAdmobApp") ?: "").trim()
 def admobBanner = (env.DS_ADMOB_BANNER ?: project.findProperty("dsAdmobBanner") ?: "").trim()
-// ("Remove ads": the one-time product's id in the Play Console; "none" for a build without it)
+// (the time pass's rewarded ad unit: dev/Roadmap-7.md; its callback URL in AdMob is the central server's /api/pass/reward)
+def admobRewarded = (env.DS_ADMOB_REWARDED ?: project.findProperty("dsAdmobRewarded") ?: "").trim()
+// ("Remove ads" and the full game: the one-time products' ids in the Play Console; "none" for a build without one)
 def adFree = (env.DS_ADFREE_PRODUCT ?: project.findProperty("dsAdFreeProduct") ?: "remove_ads").trim()
+def fullGame = (env.DS_FULL_PRODUCT ?: project.findProperty("dsFullProduct") ?: "full_game").trim()
+// (Play Integrity's Google Cloud project number, for the time pass's check: the Play Console's App integrity page;
+//  not needed while the app's only had from Google Play)
+def cloudProject = (env.DS_CLOUD_PROJECT ?: project.findProperty("dsCloudProject") ?: "0").trim()
 
 android {
     namespace "io.github.kriscs1.shardsofashen"
@@ -31,7 +38,10 @@ android {
         }
         manifestPlaceholders = [admobApp: admobApp ?: TEST_APP]     // (the SDK won't start without an app id)
         buildConfigField "String", "ADMOB_BANNER", "\"${admobApp && admobBanner ? admobBanner : ""}\""
+        buildConfigField "String", "ADMOB_REWARDED", "\"${admobApp && admobRewarded ? admobRewarded : ""}\""
         buildConfigField "String", "ADFREE_PRODUCT", "\"${adFree == "none" ? "" : adFree}\""
+        buildConfigField "String", "FULL_PRODUCT", "\"${fullGame == "none" ? "" : fullGame}\""
+        buildConfigField "long", "CLOUD_PROJECT", "${cloudProject.isLong() ? cloudProject : "0"}L"
     }
 
     signingConfigs {
@@ -49,6 +59,7 @@ android {
     buildTypes {
         debug {
             if (!(admobApp && admobBanner)) buildConfigField "String", "ADMOB_BANNER", "\"$TEST_BANNER\""
+            if (!(admobApp && admobRewarded)) buildConfigField "String", "ADMOB_REWARDED", "\"$TEST_REWARDED\""
         }
         release {
             minifyEnabled false
@@ -77,7 +88,8 @@ android {
 dependencies {
     implementation "com.google.android.gms:play-services-ads:24.4.0"
     implementation "com.google.android.ump:user-messaging-platform:3.2.0"   // (the consent form, in the EEA and UK)
-    implementation "com.android.billingclient:billing:7.1.1"                // ("Remove ads", through Google Play)
+    implementation "com.android.billingclient:billing:7.1.1"                // (the full game and "Remove ads", through Google Play)
+    implementation "com.google.android.play:integrity:1.4.0"                // (the time pass: this app, from Google Play, on a real phone)
 }
 
 chaquopy {

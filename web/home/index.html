@@ -117,6 +117,8 @@ label.agree a { color: var(--ink); }
   border: 2px solid #4a3027; font-size: 14px; }
 .running { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; border-color: var(--ok-edge); }
 .running p { flex: 1; min-width: 200px; }
+.owning { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; border-color: #6b4426; }
+.owning p { flex: 1; min-width: 200px; }
 .address { color: var(--ink); font-weight: bold; user-select: all; }
 footer { margin-top: auto; padding-top: 18px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; align-items: baseline;
   font-size: 13px; color: var(--dim); }
@@ -200,6 +202,11 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
     <p><span id="running-name" class="address"></span> <span id="running-what" class="dim small"></span>
 </p>
     <button id="resume" class="go">Play</button><button id="running-stop">Stop</button>
+  </section>
+
+  <section id="owning" class="panel owning" hidden>
+    <p id="owning-words"></p>
+    <button id="buy-full" class="go" hidden>Buy the full game</button><button id="watch-pass" hidden>Watch an ad: an hour of it</button>
   </section>
 
   <div id="menu" class="tiles fade">
@@ -316,6 +323,7 @@ async function connect() {
   try {
     hello = await api("/api/hello");
     canMail = !!hello.mail;
+    store.set("demo", hello.demo ? String(hello.demo_level || 5) : "");     // (kept: your own game needs no network)
     $("google").hidden = !hello.google;
     setStatus(true, `Connected · ${hello.servers} game${hello.servers === 1 ? "" : "s"} listed`);
     $("send-row").hidden = !canMail;
@@ -356,6 +364,7 @@ function signedIn(name) {
   $("friends-open").classList.toggle("locked", !name);
   $("welcome").hidden = true; $("main").hidden = false;
   showAds();
+  checkOwning();
   show("menu");
   if (name && linkedGame) {                        // (came by a friend's link: on in, now you've signed in)
     const key = linkedGame;
@@ -470,15 +479,22 @@ $("in-name").value = store.get("name");
 // ----- the account chip
 $("chip").onclick = async () => {
   if (!myName) { showWelcome(); return; }
-  let email = "", pending = "";
-  try { ({ email = "", pending = "" } = await api("/api/account", { token })); } catch (e) { /* */ }
+  let email = "", pending = "", me = {};
+  try { me = await api("/api/account", { token }); ({ email = "", pending = "" } = me); } catch (e) { /* */ }
+  const left = me.pass_until ? me.pass_until * 1000 - Date.now() : 0;
+  const own = me.bought ? `The full game: yours (${esc(BOUGHT_AT[me.bought] || me.bought)}).` :
+    left > 0 ? `The full game: ${minutesLeft(left)} left of a time pass.` :
+    me.demo ? `The demo: the Isle, up to level ${demoLevel() || 5}.` : "";
   const standing = pending ? `Waiting for you to confirm ${esc(pending)}: the link's in that inbox.` +
     (email ? ` Until then a code goes to ${esc(email)}.` : " You can join games once it's confirmed.") : email ? "Confirmed." :
     "Your account needs an email: it's the only way back in if you forget your password.";
   dialog(`<h2>${esc(myName)}</h2><p class="small dim">Your Hallisium account: the same on every game. Each game keeps your
     characters there, and only there.</p>
     <label class="field">Email (for a forgotten password)<input id="acct-email" type="email" value="${esc(pending || email)}"></label>
-    <p class="small dim">${standing}</p>`,
+    <p class="small dim">${standing}</p>
+    ${own ? `<p class="small">${own}</p>` : ""}
+    ${me.demo && !me.bought ? `<label class="field">Bought it on itch.io? The link from your purchase's page
+      <input id="acct-itch" autocomplete="off" autocapitalize="off" spellcheck="false"></label>` : ""}`,
     [...(pending && canMail ? [["Send the link again", "", () => {
        account("/api/email/again", { token }, (r) => toast(r.text)); return false; }]] : []),
      ["Sign out", "", () => {
@@ -491,12 +507,19 @@ $("chip").onclick = async () => {
      ["Save", "go", () => {
        const typed = $("acct-email").value.trim();
        if (typed !== (pending || email)) account("/api/email", { token, email: typed }, (r) => toast(r.text || "Saved."));
+       const itch = $("acct-itch") ? $("acct-itch").value.trim() : "";
+       if (itch) account("/api/buy", { token, where: "itch", proof: { key: itch } }, () => {
+         toast("Thank you! The full game is yours, on every device."); checkOwning(); });
      }]]);
 };
 
 // ----- ads: AdMob in the Android app (when it was built with it), AdSense in a browser (when the central server has
 // it), else the central server's own
 function showAds() {
+  if (KIND === "desktop") {                              // (the PC build never has an ad: it's bought up front)
+    for (const id of ["ad", "adsense", "remove-ads", "ad-choices"]) $(id).hidden = true;
+    return;
+  }
   if (app && app.adFree && app.adFree()) {                // (ads removed, bought through Google Play: none at all)
     $("ad").hidden = true; $("adsense").hidden = true; $("remove-ads").hidden = true;
     return;
@@ -530,7 +553,8 @@ function offerAdFree() {                                // (the app: "Remove ads
   else if (app && app.adFreePrice && !offerAdFree.again) { offerAdFree.again = 1; setTimeout(offerAdFree, 3000); }
 }
 window.onAdFree = (what) => {                             // (Google Play's answer)
-  if (what === "bought") { toast("Thank you! The ads are gone for good."); showAds(); }
+  if (what === "full") { toast("Thank you! The full game is yours, and the ads are gone."); showAds(); checkOwning(); }
+  else if (what === "bought") { toast("Thank you! The ads are gone for good."); showAds(); }
   else if (what === "pending") toast("Your payment's on its way: the ads go once Google Play has it.");
   else toast("Google Play couldn't take the payment just now. Try again in a moment.");
 };
@@ -538,6 +562,108 @@ window.onBanner = (shown) => {                            // (the app: its banne
   document.body.classList.toggle("banner", !!shown);
   if (shown) $("ad").hidden = true; else houseAd();
 };
+// ----- owning the game (dev/Roadmap-7.md): once the central server has a demo, an account without the full game plays
+// the Isle, up to its level. It's bought once, in the Android app through Google Play (or on PC), for the account, and
+// the phone has it for Single player too; an ad's time pass is an hour of it, a few a day, in the Android app only.
+// The PC build has no demo: it's bought up front, and played once its store says so (desktop/owning.py).
+let owning = {};
+const BOUGHT_AT = { play: "Google Play", steam: "Steam", itch: "itch.io", epic: "Epic", admin: "given" };
+function demoLevel() { return Number(store.get("demo")) || 0; }    // (0: no demo yet: everyone has all of it)
+function deviceFull() { return !!(app && app.fullGame && app.fullGame() === true); }   // (bought on this device)
+function ownProof() {                                    // (what this device's purchase was, for the account)
+  const play = app && app.fullToken ? app.fullToken() : "", steam = app && app.steamTicket ? app.steamTicket() : "";
+  return play ? { where: "play", proof: { token: play } } : steam ? { where: "steam", proof: { ticket: steam } } : null;
+}
+async function checkOwning() {
+  owning = {};
+  if (token && myName && centralUp) {
+    try { const r = await api("/api/account", { token }); if (r.ok) owning = r; } catch (e) { /* */ }
+    const proof = ownProof();
+    if (proof && owning.ok && !owning.bought) {   // (bought on this device: the account's too, once its store says so)
+      try {
+        const r = await api("/api/buy", { token, ...proof });
+        if (r.ok) owning = { ...owning, ...r };
+      } catch (e) { /* */ }
+    } else if (!proof && deviceFull() && app.pcStore && app.pcStore() === "steam" && !owning.bought &&
+               (checkOwning.tries = (checkOwning.tries || 0) + 1) < 20) {
+      setTimeout(checkOwning, 1000);              // (Steam's ticket comes a moment after the app opens)
+    }
+  }
+  showOwning();
+}
+function showPcOwning() {
+  const has = app.fullGame ? app.fullGame() : true, box = $("owning");
+  clearTimeout(showOwning.timer);
+  $("buy-full").hidden = true; $("watch-pass").hidden = true;
+  box.hidden = has === true;
+  if (has === null) {
+    $("owning-words").textContent = "Asking Steam...";
+    showOwning.timer = setTimeout(showOwning, 500);
+  } else if (has === false) {
+    $("owning-words").textContent = (app.notOwned ? app.notOwned() + " " : "") + "Shards of Ashen is bought once, " +
+      "on Steam, itch.io or Epic, and played from there: start it from Steam, signed in to the account that bought it.";
+  }
+  const was = showOwning.locked;
+  showOwning.locked = has !== true;
+  if (has !== true) { for (const id of ["menu", "local", "remote", "friends"]) $(id).hidden = true; }
+  else if (was) show("menu");
+}
+function minutesLeft(ms) {
+  const m = Math.max(1, Math.ceil(ms / 60000));
+  return m >= 60 ? `${Math.floor(m / 60)} h ${m % 60 ? `${m % 60} min` : ""}`.trim() : `${m} min`;
+}
+function showOwning() {
+  if (KIND === "desktop") { showPcOwning(); return; }
+  const level = demoLevel(), box = $("owning");
+  clearTimeout(showOwning.timer);
+  if (!level || deviceFull() || owning.bought) { box.hidden = true; return; }
+  const left = owning.pass_until ? owning.pass_until * 1000 - Date.now() : 0;
+  const price = app && app.fullPrice ? app.fullPrice() : "";
+  $("owning-words").textContent = (left > 0 ? `The full game: ${minutesLeft(left)} left of your time pass.` :
+    `The demo: the Isle, up to level ${level}. The full game goes on to the mainland and the rest of the story.`) +
+    (app ? "" : " It's bought once, in the Android app or on PC, for your Hallisium account: then it's yours here too.");
+  $("buy-full").hidden = !price;
+  if (price) $("buy-full").textContent = `Buy the full game (${price})`;
+  $("watch-pass").hidden = !(app && app.timePass && app.timePass() && myName && owning.passes > 0);
+  box.hidden = false;
+  if (left > 0) showOwning.timer = setTimeout(left > 60000 ? showOwning : checkOwning, Math.min(left, 60000));
+  else if (app && app.fullPrice && !price && !showOwning.again) { showOwning.again = 1; setTimeout(showOwning, 3000); }
+}
+$("buy-full").onclick = () => app && app.buyFull && app.buyFull();
+function integrity(nonce) {                              // (Play Integrity's verdict, from the app: "" if none came)
+  return new Promise((answer) => {
+    const late = setTimeout(() => { window.onIntegrity = null; answer(""); }, 20000);
+    window.onIntegrity = (got) => { clearTimeout(late); window.onIntegrity = null; answer(got || ""); };
+    if (app.integrity) app.integrity(nonce); else window.onIntegrity("");
+  });
+}
+$("watch-pass").onclick = async () => {
+  let r;
+  try {
+    r = await api("/api/pass/start", { token });
+    if (!r.ok && r.integrity) {                     // (the central server asks for Google Play's word on the app first)
+      busy("Checking with Google Play...");
+      const verdict = await integrity(r.integrity);
+      done();
+      r = await api("/api/pass/start", { token, integrity: verdict });
+    }
+  } catch (e) { done(); r = { text: "The central server didn't answer." }; }
+  if (!r.ok) { toast(r.text, true); checkOwning(); return; }
+  busy("The ad's on its way...");
+  app.watchForPass(myName, r.key);
+};
+window.onWatched = (how) => {                             // (the app: how the time pass's ad went)
+  if (how === "busy") return;
+  done();
+  if (how === "earned") { toast(`Thank you! An hour of the full game.`); passCame(owning.pass_until || 0, 0); }
+  else if (how === "left") toast("The ad was shut before its end: no time pass that time.", true);
+  else toast("No ad could be had just now: try again in a while.", true);
+};
+async function passCame(before, tries) {                 // (Google tells the central server itself, a moment after)
+  await checkOwning();
+  if ((owning.pass_until || 0) <= before && tries < 8) setTimeout(() => passCame(before, tries + 1), 2500);
+}
+
 function houseAd() {
   const ad = hello.ad;
   if (!ad || !ad.text) { $("ad").hidden = true; return; }
@@ -596,6 +722,8 @@ async function join(address, id, name, mine, given) {
   if (mine) {                                      // (this app's own game: in as its host, no network needed)
     h.set("host", hostKey());
     if (myName) h.set("account", myName);
+    if (demoLevel()) h.set("demo", "1");           // (its own game: the demo, or the full game bought on this device)
+    if (deviceFull()) h.set("full", "1");
   }
   if (given) q.set("ticket", given);               // (from the list: the ticket brought the address)
   else if (token && id && centralUp) {             // (and a ticket when there's one to be had: your friends with it)
@@ -611,6 +739,7 @@ async function join(address, id, name, mine, given) {
 
 // ----- the screens
 function show(which) {
+  if (showOwning.locked) which = "";                 // (a PC that doesn't own it: only how to get it)
   $("menu").hidden = which !== "menu";
   for (const s of ["local", "remote", "friends"]) $(s).hidden = which !== s;
   if (which === "local") find();

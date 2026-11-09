@@ -36,70 +36,86 @@ game comes first: the demo, the Friend Pass and the time pass are all built on i
   how many a day on the central server.
 
 ## 1. Owning the game (the central server)
-- [ ] `accounts.full_game` (when, and where it was bought); a time pass's end (`pass_until`). The admin page shows and
-      sets them (Characters' account rows).
-- [ ] The ticket says whether its player has the full game (owned, or a pass running) and whether the host of the game
-      it's made out to owns it (for the Friend Pass). A game asks again every so often only while someone in it is
-      on a pass (no polling for everyone).
-- [ ] A purchase is checked by the central server before it counts, never taken on the app's word: Google Play's
-      purchase token (the Play Developer API), Steam's ownership (Sign in with Steam linking the Steam id; the Web
-      API's `CheckAppOwnership`), an itch.io download key claimed on the account; Epic later.
-- [ ] The privacy policy (`central/pages/privacy.html`) says what's kept; `README-Server.md` the new settings.
-- [ ] Tests (`tests/test_central.py`).
+- [x] `accounts.full` (where it was bought: play, steam, itch, epic, or admin), `full_at`, `pass_until`; `purchases`
+      (one purchase, one account: only its hash kept) and `passes` (a day's, for the limit). The admin page's Accounts
+      shows each one's (bought where and when, a pass, or Demo), with Give the full game / Take it back.
+- [x] `/api/verify` says whether the player has the full game (`full`, and `pass_until` while a pass runs); a game
+      asks `/api/game/owns` with a player's key again only when a pass runs out, and with its host's key for the
+      Friend Pass. `/api/account` says it to the start screen.
+- [x] `/api/buy`: a purchase checked by the central server before it counts (`central/bought.py`), never on the
+      app's word: Google Play's purchase token (the Play Developer API as a service account, its JWT signed here;
+      acknowledged so Google doesn't refund it), Steam's Web API ticket and `CheckAppOwnership` (not a copy lent by
+      Family Sharing), an itch.io download key. Epic later.
+- [x] The privacy policy ("Buying the game"); `README-Server.md` ("Owning the game": each store's settings).
+- [x] Tests (`tests/test_central.py`): every store against a pretend one, one purchase one account, a pass and its
+      limit, the admin page, a deleted account.
 
 ## 2. The demo (the engine)
-- [ ] `data/Config.ini` `[Demo]`: its maps (the Isle, maps 0..4 by -3..2, with its upstairs and its caves) and
-      `Level=5`; `validate.py`.
-- [ ] A session knows whether its player has the full game (the ticket; the app's own game, the device); a player
-      without it: their level stops at 5 (the XP kept), and they can't go to a map outside `[Demo]` Maps by any way
-      (Wim's passage, a ferry, a scroll, a shardstone, a portal, a summons).
-- [ ] At the border, the game says so once (`Denied`): "The full game goes on from here." with where to get it.
-- [ ] A demo character found outside the demo (a pass run out, a Friend Pass game left) is put at the Isle's dock as it
-      comes in; nothing of theirs is taken.
-- [ ] Tests (`tests/test_engine.py`): the cap, every way off the Isle, the dock, XP kept and counted once owned.
+- [x] `data/Config.ini` `[Demo]`: its maps (`Area`: the Isle, maps 0..4 by -3..2, with its upstairs and its caves),
+      `Level=5`, `Return` (the Isle's pier) and `FriendGrace`; `validate.py` (`check_demo`).
+- [x] A session knows whether its player has the full game (`dsengine/demo.py`: the ticket says, `server/game.py`
+      `full_of`; the app's own game, its device too); a player without it: their level stops at 5 (the XP kept), and
+      they can't go to a map outside `[Demo] Area` by any way (a ferry's far stop, any teleport, walking off the edge).
+      Nobody plays the demo till the central server says there is one (`DS_DEMO=1`): before the game can be bought,
+      everyone has all of it.
+- [x] At the border, the game says so (`Denied`, not more than every 5 s): "The full game goes on from here.", and the
+      page is told once (`{"t": "demo"}`: where to get it is group 4's box).
+- [x] A demo character found outside the demo (a pass run out, a Friend Pass game left) is put at the Isle's pier as
+      it comes in; nothing of theirs is taken. A time pass run out is asked about again (`/api/game/owns`).
+- [x] Tests: `test_engine.py` (the cap, every way off the Isle, the pier, XP kept and counted once owned),
+      `test_server.py` (the ticket's word, no demo till there is one, a pass run out).
 
 ## 3. The Friend Pass (the engine and server)
-- [ ] In a game whose host owns the full game, while someone who owns it is in it, a demo player has the full game
-      (no border, no cap). A local network game an app opens counts by its host's device or account.
-- [ ] When the last owner leaves: the demo players outside the Isle are told, and after a minute (`[Demo]
-      FriendGrace`) are taken back to the Isle's dock; their level shows as 5 again (the XP kept).
-- [ ] Tests: joining, the owner leaving and coming back, two demo players, a relayed game (`/play/<id>/`).
+- [x] In a game whose host owns the full game, while someone who owns it is in it, a demo player has the full game
+      (no border, no cap). A local network game an app opens counts by its host's device or account (`server/game.py`
+      `friend_passes`, each second; the host's app says whether there's a demo and whether it's bought there). On a
+      public server, while one of their Hallisium friends who owns it is in the game.
+- [x] When the last owner leaves: the demo players outside the Isle are told, and after a minute (`[Demo]
+      FriendGrace`) are taken back to the Isle's pier (an owner back in the while: it goes on); one on the Isle is in
+      the demo at once; their level shows as 5 again (the XP kept).
+- [x] Tests: `test_engine.py` (the pass, the grace, an owner back, the pier), `test_server.py` (a friend on a public
+      server coming and going; an app's own game, its host bought or not).
 
 ## 4. The page and the start screen (`web/js`, `web/home/`)
-- [ ] The character list and the Stats tab say "Demo: the Isle, level 5" for a demo character; a Friend Pass badge
-      under the Online line (like the PvP one): "Friend Pass: <host>'s game".
-- [ ] The border's box: what's held back, and Buy (the apps' own store) or where to buy it (a browser).
-- [ ] The start screen: the full game's price and Buy in the Android app (once bought, gone); a time pass's time left.
-- [ ] A look in the browser, on a desktop and on a phone (915 x 412, `?app=android`).
+- [x] The character list and the view say "Demo: the Isle, level 5" for a demo character (a badge under the Online
+      line, like the PvP one; the Stats tab's levels stop at 5, gold); a Friend Pass's badge: "Friend Pass: <host>'s
+      game", counting down when it's ending outside the Isle (`ui.js` `drawDemoBadge`, the `me` message's `demo`).
+- [x] The border's box, and the level's, once each time in: what's held back, and that the full game is bought once
+      from the start screen for the account (`main.js` `showDemo`). Buy itself is on the start screen (below).
+- [x] The start screen: the full game's price and Buy in the Android app (once bought, gone); a time pass's time left
+      and Watch (`web/home/index.html` `showOwning`); the PC build not owned: only how to get it.
+- [x] A look in the browser, on a desktop and on a phone (915 x 412, `?app=android`).
 
 ## 5. Android
-- [ ] `Billing.java`: a second one-time product, the full game (`DS_FULL_PRODUCT`, `full_game` unless set), bought,
+- [x] `Billing.java`: a second one-time product, the full game (`DS_FULL_PRODUCT`, `full_game` unless set), bought,
       sent to the central server for the account and kept on the device; Google Play restores it on a reinstall.
       It removes the ads as Remove ads does (`adFree` is true for either).
-- [ ] The time pass: an AdMob rewarded ad, offered on the start screen only to those who haven't bought the game;
+- [x] The time pass: an AdMob rewarded ad, offered on the start screen only to those who haven't bought the game;
       the reward checked by the central server (AdMob's server-side verification), never the app's word; a few a day
       at most; an hour each (the central server's setting). Nothing of it on a device that's bought the game.
 
 ## 6. PC (the desktop app)
-- [ ] No ads at all on the desktop start screen (`desktop/app.py`'s `DSApp` says it's the PC build).
-- [ ] Owning it: the Steam build checks with Steam; the itch.io and Epic builds by their own keys. Not owned, the
+- [x] No ads at all on the desktop start screen (`desktop/app.py`'s `DSApp` says it's the PC build).
+- [x] Owning it: the Steam build checks with Steam; the itch.io and Epic builds by their own keys. Not owned, the
       desktop app shows only how to get it (no demo).
-- [ ] Tests (`tests/test_desktop.py`).
+- [x] Tests (`tests/test_desktop.py`).
 
 ## 7. The browser (the website, `https://shardsofashen.hallisium.com`)
-- [ ] It follows the account (the owner's decision): the full game if the account owns it (or a pass is running),
+- [x] It follows the account (the owner's decision): the full game if the account owns it (or a pass is running),
       the demo if not, and the Friend Pass on a friend's link (`/play/<id>/`). On a public server (no host) the
       Friend Pass is a friend's: a demo player has the full game while one of their Hallisium friends who owns it is in
       that game (not just any owner, or a busy server would be the full game for everyone). The website has no Single
       player, so a browser's demo is played on a public server.
-- [ ] No time pass in a browser (its ads are AdSense on the start screen, as now).
-- [ ] Tests (`tests/test_server.py`): a demo account and an owning one on a remote server, by ticket.
+- [x] No time pass in a browser (its ads are AdSense on the start screen, as now).
+- [x] Tests (`tests/test_server.py`): a demo account and an owning one on a remote server, by ticket.
 
 ## 8. Finished
-- [ ] `dev/Rules.md` (Servers, apps and accounts: the ads paragraph rewritten, owning the game, the demo, the
+- [x] `dev/Rules.md` (Servers, apps and accounts: the ads paragraph rewritten, owning the game, the demo, the
       Friend Pass, the time pass; Shared vs personal: the border), `dev/Story and Quests.md` (Passage to the Mainland
       for a demo player), `README-Server.md`, the privacy policy, `CREDITS.md` if anything new is used.
-- [ ] `validate.py` 0 errors, the full tests, `export_web_assets.py`, a look in the browser (desktop and phone),
+- [x] Against piracy (the owner's ask): Play Integrity before a time pass (`DS_PLAY_INTEGRITY`, `bought.integrity`,
+      the app's `integrity`), and the relay's Friend Pass only from an owner's account, never a device's word.
+- [x] `validate.py` 0 errors, the full tests, `export_web_assets.py`, a look in the browser (desktop and phone),
       committed and pushed.
 
 ## Still to decide

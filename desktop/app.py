@@ -113,15 +113,18 @@ class Prefs:
 class Bridge:
     """What the start screen and the game page may ask of the app (window.pywebview.api.<name>)."""
 
-    def __init__(self):                                   # (private: pywebview hands the page every public attribute)
+    def __init__(self, owning=None):                      # (private: pywebview hands the page every public attribute)
+        from owning import Owning
         self._host = Host()
         self._prefs = Prefs()
+        self._owning = owning or Owning(ROOT)
         self._window = None
 
     def state(self):
+        # (full: the PC build's owned, or None while Steam's asked; no demo on a PC: owning.py)
         return json.dumps({"status": self._host.status, "error": self._host.error, "name": self._host.name,
                            "mode": self._host.mode, "port": PORT, "addresses": addresses(), "device": platform.node(),
-                           "version": version()})
+                           "version": version(), **self._owning.state()})
 
     def hostAs(self, name, mode, central, host_key=""):   # noqa: N802 (the start screen's names, as Android's)
         self._host.start(str(name or "").strip(), str(mode or "local"), str(central or ""), str(host_key or ""))
@@ -174,6 +177,10 @@ SHIM = """<script>
   window.DSApp = {
     kind: () => "desktop",
     state: () => state,
+    fullGame: () => { try { return JSON.parse(state).full; } catch (e) { return null; } },   // (owning.py)
+    steamTicket: () => { try { return JSON.parse(state).steam_ticket || ""; } catch (e) { return ""; } },
+    pcStore: () => { try { return JSON.parse(state).store || ""; } catch (e) { return ""; } },
+    notOwned: () => { try { return JSON.parse(state).why || ""; } catch (e) { return ""; } },
     get: (k) => prefs[k] || "",
     set: (k, v) => { prefs[k] = String(v); later((api) => api.set(k, String(v))); },
     hostAs: (name, mode, central, key) => later((api) => api.hostAs(name, mode, central, key || "")),
@@ -216,6 +223,9 @@ def home_page(bridge):
 def main():
     import webview
     bridge = Bridge()
+    if bridge._owning.ask() == "restart":               # (the Steam build, started outside Steam: Steam starts it)
+        return
+    threading.Thread(target=bridge._owning.ticket_later, name="steam-ticket", daemon=True).start()
     window = webview.create_window("Shards of Ashen", html=home_page(bridge), js_api=bridge, width=1280, height=800,
                                    min_size=(800, 560))
     bridge._window = window

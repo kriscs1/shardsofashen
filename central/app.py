@@ -12,7 +12,7 @@ its own accounts too, for a network with no way to reach here.
   python -m central                    (DS_CENTRAL_DB, DS_CENTRAL_PORT 8490, DS_CENTRAL_NAME, DS_CENTRAL_ADS, ...)
 
   POST /api/register  {name, password, email}     -> {ok, token, name, confirm}
-  POST /api/account   {token}                     -> {ok, name, email, pending, admin}
+  POST /api/account   {token}                     -> {ok, name, email, pending, admin, full, bought, pass_until}
   POST /api/email     {token, email}              -> {ok, email, pending, text}   (it counts once a link's confirmed it)
   POST /api/email/again {token}                   -> {ok, text}          (the link again, for the one waiting)
   POST /api/forgot    {who}                       -> {ok}                (a code by email, if it has a confirmed one)
@@ -25,7 +25,14 @@ its own accounts too, for a network with no way to reach here.
   POST /api/logout    {token}
   POST /api/ticket    {token, server}             -> {ok, ticket}        (server: the game server's id; refused: banned,
                                                   or no confirmed email: the join stops there and says why)
-  POST /api/verify    {ticket, server}            -> {ok, name}          (a game server asking)
+  POST /api/buy       {token, where, proof}       -> {ok, full, bought}  (where: play, steam or itch; proof: what that
+                                                  store gives a purchase, checked with it: bought.py)
+  POST /api/verify    {ticket, server}            -> {ok, name, full, pass_until, ...}   (a game server asking)
+  POST /api/pass/start {token}                   -> {ok, key, minutes, left}  (before a time pass's ad, in the Android app:
+                                                  the key it gives the ad, for the reward to be this account's)
+  GET  /api/pass/reward ?...&signature=&key_id=   (AdMob's server-side verification of a rewarded ad: admob.py)
+  POST /api/game/owns {grant}                     -> {ok, name, full, pass_until}   (a game server, again: a time pass
+                                                  run out, or its host's account)
   POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
   POST /api/game/report {secret, kind, name?, version, server?, proof?, characters: [...]}  -> {ok, took}  (a game server:
                                                   what its characters have got to, for the admin page: server/progress.py)
@@ -57,9 +64,9 @@ from aiohttp import web
 from server import auth
 from server.version import version_info
 from ashen import ini
-from . import google, mail
+from . import admob, bought, google, mail
 from .relay import Relays
-from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS, digest
+from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS, digest, new_secret
 
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,6 +81,8 @@ GOOGLE_COOKIE = "ds_google"
 GOOGLE_PENDING = 2000           # (sign-ins under way at once: past this the oldest go)
 HOUSEKEEPING = 600              # (seconds between clearing out what's had its day)
 HELLO_SECONDS = 30              # (the start screen's counts are worked out this often)
+BUYS = 10                       # (tries at a purchase from one address or account in ten minutes)
+PASS_KEYS = 2000                # (time passes' ads under way at once: past this the oldest go)
 RESERVED = {"admin", "administrator", "moderator", "mod", "server", "system", "gm", "staff", "support", "owner"}
 DEFAULT_ADS = [
     {"text": "Host your own world: friends on your Wi-Fi join it from their phones.", "link": ""},
@@ -101,6 +110,11 @@ def env_int(name, default):
         return default
 
 
+def demo_on():
+    """Whether there's a demo (DS_DEMO=1): till the game is sold, everyone has all of it."""
+    return os.environ.get("DS_DEMO", "").strip() == "1"
+
+
 class Central:
     def __init__(self, db_path):
         self.store = CentralStore(db_path)
@@ -114,6 +128,8 @@ class Central:
         self.new_reporters = {}         # address -> [days] a new game server reported
         self.google_flows = {}          # state -> a sign-in on its way to Google and back
         self.google_results = {}        # code -> who came back from Google: {name} or {sub, email}, and when
+        self.pass_keys = {}             # key -> (account, when): a time pass's ad under way (admob.py)
+        self.integrity_asked = {}       # account -> (nonce, when): Play Integrity's check under way (bought.py)
         self.hello_cache = (0.0, {})    # (when, the start screen's counts)
         self.ads_cache = (0.0, None)    # (when, the ads)
         self.quests_cache = (None, [])  # (Quests.ini's time, what's in it)
@@ -168,6 +184,79 @@ class Central:
         names = {n.strip().lower() for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(",") if n.strip()}
         acct = self.store.account(name)
         return bool(acct) and (bool(acct[5]) or name.lower() in names)
+
+    def owns(self, name):
+        """Whether name has the full game: bought (bought: where), or a time pass running (pass_until: when it ends,
+        what a game goes by till it asks again), or the demo isn't on yet (DS_DEMO)."""
+        where, _, until = self.store.owned(name)
+        now = time.time()
+        demo = demo_on()
+        left = max(0, self.passes_a_day() - self.store.passes_today(name)) if demo and admob.ready() and not where else 0
+        return {"full": bool(where) or until > now or not demo, "bought": where, "demo": demo,
+                "pass_until": int(until) if until > now else 0, "passes": left}
+
+    @staticmethod
+    def passes_a_day():
+        return max(0, env_int("DS_PASSES_A_DAY", 3))
+
+    async def pass_start(self, request):
+        """Before a time pass's ad (the Android app's start screen): a key for it, which AdMob gives back with its reward
+        (pass_reward), so the reward is this account's and counts once. With DS_PLAY_INTEGRITY=1, first Play
+        Integrity's verdict (asked with the nonce this gives, `integrity`): the real app, on a real phone (an emulator
+        farming ads, or a tampered app, gets no pass)."""
+        d = await self.body(request)
+        name = self.store.token_name(d.get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        o = self.owns(name)
+        if not admob.ready() or not o["demo"]:
+            return no("There's no time pass here.")
+        if o["bought"]:
+            return no("You have the full game already.")
+        if o["passes"] <= 0:
+            return no("That's all the time passes for today: there are more tomorrow.")
+        now = time.monotonic()
+        if bought.integrity_on():
+            asked = self.integrity_asked.pop(name.lower(), None)
+            if not d.get("integrity") or not asked or now - asked[1] > bought.INTEGRITY_OLDEST:
+                for k in [k for k, v in self.integrity_asked.items() if now - v[1] > bought.INTEGRITY_OLDEST]:
+                    del self.integrity_asked[k]
+                while len(self.integrity_asked) >= PASS_KEYS:
+                    del self.integrity_asked[next(iter(self.integrity_asked))]
+                nonce = new_secret()
+                self.integrity_asked[name.lower()] = (nonce, now)
+                return no("", integrity=nonce)          # (the app asks Google Play for its verdict on this, and comes back)
+            try:
+                await bought.integrity(d.get("integrity"), asked[0])
+            except bought.Refused as e:
+                log.info("No time pass for %s: %s", name, e)
+                return no(str(e))
+        for k in [k for k, v in self.pass_keys.items() if now - v[1] > 3600]:
+            del self.pass_keys[k]
+        while len(self.pass_keys) >= PASS_KEYS:
+            del self.pass_keys[next(iter(self.pass_keys))]
+        key = new_secret()
+        self.pass_keys[key] = (name, now)
+        return yes(key=key, minutes=self.pass_minutes(), left=o["passes"])
+
+    @staticmethod
+    def pass_minutes():
+        return max(1, env_int("DS_PASS_MINUTES", 60))
+
+    async def pass_reward(self, request):
+        """AdMob's server-side verification: a rewarded ad watched to its end, signed by Google (admob.py). Its key
+        (custom_data) says whose; a key used already (Google trying again) or unknown is thanked and forgotten."""
+        try:
+            got = await admob.check(request.query_string)
+        except admob.Refused as e:
+            log.warning("An AdMob reward was refused: %s", e)
+            return web.Response(status=400, text=str(e))
+        held = self.pass_keys.pop(str(got.get("custom_data", "")), None)
+        if held is None:
+            return web.Response(text="ok")
+        until = self.store.add_pass(held[0], self.pass_minutes() * 60, self.passes_a_day())
+        log.info("%s watched an ad for a time pass%s", held[0], "" if until else " (but had today's already)")
+        return web.Response(text="ok")
 
     def ads(self):
         now = time.monotonic()
@@ -431,7 +520,34 @@ class Central:
             return no("Not logged in.")
         acct = self.store.account(name)
         return yes(name=name, email=acct[4] if acct else "", pending=self.store.pending_email(name),
-                   admin=self.is_admin(name), mail=mail.ready())
+                   admin=self.is_admin(name), mail=mail.ready(), **self.owns(name))
+
+    async def buy(self, request):
+        """A purchase of the full game, checked with its store (bought.py), made the account's: one purchase is only
+        ever one account's (bought on another device of theirs, or again after a reinstall: theirs already)."""
+        d, addr = await self.body(request), self.addr(request)
+        name = self.store.token_name(d.get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        now = time.monotonic()
+        for key in (("buy", name.lower()), ("buy", addr)):
+            tries = [t for t in self.fails.get(key, []) if now - t < 600]
+            if len(tries) >= BUYS:
+                return no("Too many tries: wait a few minutes.")
+            self.fails[key] = tries + [now]
+        where = str(d.get("where", ""))[:10]
+        try:
+            ref = await bought.check(where, d.get("proof"))
+        except bought.Refused as e:
+            return no(str(e))
+        other = self.store.claim(name, where, ref)
+        if other:
+            log.info("%s tried a purchase that's %s's", name, other)
+            return no("That purchase is another account's already.")
+        if not self.store.owned(name)[0]:
+            self.store.set_full(name, where)
+            log.info("%s has the full game (%s)", name, where)
+        return yes(**self.owns(name))
 
     async def set_email(self, request):
         d = await self.body(request)
@@ -538,7 +654,17 @@ class Central:
             return no("That ticket isn't good here.")
         if self.is_banned(name):                        # (banned since the ticket was made)
             return no("%s is banned: %s" % (name, self.store.account(name)[3]), banned=True)
-        return yes(name=name, grant=self.store.new_grant(name, server), **self.friends_of(name))
+        return yes(name=name, grant=self.store.new_grant(name, server), **self.owns(name), **self.friends_of(name))
+
+    async def game_owns(self, request):
+        """A game server asking again whether a player there has the full game (their key from their ticket): a time
+        pass run out, or its host's own account (the Friend Pass)."""
+        got = self.store.grant_name((await self.body(request)).get("grant", ""))
+        if not got:
+            return no("Come in again from the start screen.")
+        if self.is_banned(got[0]):
+            return no("%s is banned." % got[0], banned=True)
+        return yes(name=got[0], **self.owns(got[0]))
 
     def is_banned(self, name):
         """Kept out: banned, or the account's been deleted (a device it came in by doesn't go on being let in)."""
@@ -690,6 +816,8 @@ class Central:
         if not self.hello_cache[1] or now - self.hello_cache[0] > HELLO_SECONDS:
             self.hello_cache = (now, {"servers": self.store.count_servers(), "players": self.store.count_accounts()})
         return yes(name=self.name, motd=self.motd, ad=random.choice(self.ads()), mail=mail.ready(),
+                   demo=demo_on(), demo_level=whole(ini.read("Demo", "Level", "5", os.path.join(ROOT, "data", "Config.ini")),
+                                                    1, 99, 5),
                    google=google.ready(), **self.hello_cache[1],
                    adsense={"client": client, "slot": os.environ.get("DS_ADSENSE_SLOT", "").strip()} if client else None)
 
@@ -758,9 +886,11 @@ class Central:
         if what == "accounts":
             rows = self.store.find_accounts(str(d.get("q", ""))[:60], PAGE, whole(d.get("skip"), 0, 10 ** 9))
             names = {n.strip().lower() for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(",") if n.strip()}
+            now = time.time()
             return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b, "deleted": int(x), "google": bool(g),
-                                  "admin": bool(a) or n.lower() in names, "made": int(m)}
-                                 for n, e, b, a, m, p, x, g in rows], page=PAGE)
+                                  "admin": bool(a) or n.lower() in names, "made": int(m), "bought": f, "bought_at": int(fa),
+                                  "pass_until": int(pu) if pu > now else 0}
+                                 for n, e, b, a, m, p, x, g, f, fa, pu in rows], page=PAGE)
         server = str(d.get("server", ""))[:64]
         if what == "characters":
             return yes(characters=self.store.find_characters(str(d.get("q", ""))[:60], server, PAGE,
@@ -812,6 +942,13 @@ class Central:
             if acct is None or acct[6]:
                 return no("No such account.")
             self.store.set_banned(acct[0], str(d.get("why", ""))[:100])
+            return yes()
+        if what == "full":                              # (given by an admin, or taken back: a refund, a mistake)
+            acct = self.store.account(str(d.get("name", "")))
+            if acct is None or acct[6]:
+                return no("No such account.")
+            self.store.set_full(acct[0], "admin" if d.get("on") else "")
+            log.info("%s %s %s the full game", name, "gave" if d.get("on") else "took back from", acct[0])
             return yes()
         if what == "make_admin":
             acct = self.store.account(str(d.get("name", "")))
@@ -1060,7 +1197,8 @@ def make_central(db_path):
     app.on_startup.append(start_cleaning)
     app.on_shutdown.append(stop_cleaning)
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
-                     ("logout", c.logout), ("ticket", c.ticket), ("verify", c.verify),
+                     ("logout", c.logout), ("ticket", c.ticket), ("verify", c.verify), ("buy", c.buy),
+                     ("game/owns", c.game_owns), ("pass/start", c.pass_start),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
                      ("email", c.set_email), ("email/again", c.email_again), ("forgot", c.forgot),
                      ("friends", c.friends), ("friend", c.friend),
@@ -1069,6 +1207,7 @@ def make_central(db_path):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, nothing_to_say)
     app.router.add_get("/api/servers", c.servers)
+    app.router.add_get("/api/pass/reward", c.pass_reward)
     app.router.add_get("/api/relay", c.relays.host)
     async def to_game(request):                     # (a friend's game's page is a folder: its files beside it)
         raise web.HTTPFound("/play/%s/" % request.match_info["key"])

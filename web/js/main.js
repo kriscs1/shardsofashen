@@ -600,6 +600,21 @@ function showReward(m) {
 }
 $("reward-ok").onclick = () => { $("reward").hidden = true; canvas.focus(); };
 
+// ----- the demo's edge (dsengine/demo.py): said once each time in, in the game's own words, never a character's
+const BUY_WORDS = "The full game is bought once, from the start screen, for your Hallisium account: then it's yours " +
+  "on every device, and your character keeps everything they've done.";
+function showDemo(m) {
+  if (m.why === "border") {
+    releaseKeys();
+    showMessage("The demo", "That's as far as the demo goes: the full game goes on from here, past the Isle to the " +
+      "mainland, its towns and the rest of the story. " + BUY_WORDS);
+  } else if (m.why === "level") {
+    releaseKeys();
+    showMessage("The demo", `That's level ${m.level}, as far as the demo goes. What you learn from here is kept, ` +
+      "and counts as soon as you have the full game. " + BUY_WORDS);
+  }
+}
+
 function showMessage(title, text, then) {
   $("message-title").textContent = title;
   $("message-text").textContent = text;
@@ -682,7 +697,8 @@ function busyLogin(on) {
 }
 
 function authenticate() {
-  send({ t: "auth", ticket, device: deviceKey(), host: joinArgs.get("host") || "", account: joinArgs.get("account") || "" });
+  send({ t: "auth", ticket, device: deviceKey(), host: joinArgs.get("host") || "", account: joinArgs.get("account") || "",
+         full: joinArgs.get("full") === "1", demo: joinArgs.get("demo") === "1" });   // (the last two: an app's own game's)
   if (ticket) {
     ticket = "";
     const q = new URLSearchParams(location.search);
@@ -811,7 +827,8 @@ function showCharacters(m) {
     const name = document.createElement("b");
     name.textContent = ch.name;
     const level = document.createElement("small");
-    level.textContent = `Level ${ch.level || 1}`;
+    level.textContent = m.demo ? `Level ${Math.min(ch.level || 1, m.demo)} · Demo: the Isle, level ${m.demo}` :
+      `Level ${ch.level || 1}`;
     words.append(name, level);
     b.append(portrait(ch.look || DEFAULT_LOOK), words);
     b.onclick = () => { unlock(); setLoginError(""); busyLogin(true); send({ t: "play", name: ch.name }); };
@@ -1021,6 +1038,7 @@ N.onMessage = (m) => {
     case "hurt": S.hurtUntil = now + 240; break;
     case "act": if (m.swing) markSwing(m.swing, now); else markOutcome(!!m.ok, now); break;   // (how a click went)
     case "levelup": showBanner(m.skill, m.level, now); break;
+    case "demo": showDemo(m); break;
     case "clock":
       S.clock = { day: m.day, secs: m.secs, on: m.on, at: now };
       if (m.night) S.night = m.night;

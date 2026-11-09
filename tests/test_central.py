@@ -1,5 +1,6 @@
 """The central server: accounts, tickets into a game server, the remote servers list."""
 import asyncio
+import base64
 import html
 import json
 import os
@@ -1832,3 +1833,401 @@ def test_looking_for_games_survives_a_shut_port(monkeypatch):
             return got
     monkeypatch.setattr(lan.socket, "socket", Sock)
     assert [a["name"] for _, a in lan.find(0.05, to=("127.0.0.1",))] == ["Found"]
+
+
+def rsa_test_key(bits=640):
+    """A small RSA key in a service account's PEM (PKCS#8), made here: bought.py signs Google's JWT with it."""
+    import base64
+    import random as rnd
+
+    def prime(b):
+        while True:
+            p = rnd.getrandbits(b) | (1 << (b - 1)) | 1
+            if all(pow(a, p - 1, p) == 1 for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)):
+                return p
+    e = 65537
+    while True:
+        p, q = prime(bits // 2), prime(bits // 2)
+        phi = (p - 1) * (q - 1)
+        if p != q and phi % e:
+            break
+    n, d = p * q, pow(e, -1, phi)
+
+    def item(tag, body):
+        size = len(body)
+        if size < 128:
+            head = bytes([size])
+        else:
+            k = (size.bit_length() + 7) // 8
+            head = bytes([0x80 | k]) + size.to_bytes(k, "big")
+        return bytes([tag]) + head + body
+
+    def integer(v):
+        return item(0x02, v.to_bytes(v.bit_length() // 8 + 1, "big"))
+    pkcs1 = item(0x30, b"".join(integer(v) for v in (0, n, e, d, p, q, d % (p - 1), d % (q - 1), pow(q, -1, p))))
+    algo = item(0x30, item(0x06, bytes.fromhex("2a864886f70d010101")) + item(0x05, b""))
+    pkcs8 = item(0x30, integer(0) + algo + item(0x04, pkcs1))
+    pem = "-----BEGIN PRIVATE KEY-----\n%s\n-----END PRIVATE KEY-----\n" % base64.encodebytes(pkcs8).decode().strip()
+    return n, e, d, pem
+
+
+def rsa_signed(n, e, sig, data):
+    """Whether sig is RS256's signature of data by the key (n, e)."""
+    import hashlib
+    from central import bought
+    em = pow(int.from_bytes(sig, "big"), e, n).to_bytes(len(sig), "big")
+    return em.startswith(b"\x00\x01\xff") and em.endswith(bought.SHA256_INFO + hashlib.sha256(data).digest())
+
+
+def test_the_central_server_signs_googles_jwt_itself():
+    from central import bought
+    n, e, d, pem = rsa_test_key()
+    assert bought.rsa_key(pem) == (n, d)
+    assert rsa_signed(n, e, bought.rsa_sign((n, d), b"hello"), b"hello")
+    assert not rsa_signed(n, e, bought.rsa_sign((n, d), b"hello"), b"hullo")
+
+
+class PretendStores:
+    """Google's token endpoint and Play's purchases, Steam's Web API and itch.io's: what each says of a purchase."""
+
+    def __init__(self, n, e):
+        self.n, self.e = n, e
+        self.acknowledged = []
+        self.play = {"good": {"purchaseState": 0, "acknowledgementState": 0},
+                     "refunded": {"purchaseState": 1, "acknowledgementState": 1}}
+        self.steam = {"aa11": ("765", "765", True), "bb22": ("766", "765", True), "cc33": ("767", "767", False)}
+        self.itch = {"AbC123": {"id": 42, "game_id": 9}}
+
+    def app(self):
+        app = web.Application()
+        app.router.add_post("/token", self.token)
+        app.router.add_route("*", "/play/applications/{pkg}/purchases/products/{product}/tokens/{token}", self.purchase)
+        app.router.add_get("/steam/ISteamUserAuth/AuthenticateUserTicket/v1/", self.steam_who)
+        app.router.add_get("/steam/ISteamUser/CheckAppOwnership/v4/", self.steam_owns)
+        app.router.add_get("/itch/{key}/game/{game}/download_keys", self.itch_key)
+        return app
+
+    async def token(self, request):
+        import base64
+        form = await request.post()
+        head, claims, sig = form["assertion"].split(".")
+
+        def unb(t):
+            return base64.urlsafe_b64decode(t + "=" * (-len(t) % 4))
+        c = json.loads(unb(claims))
+        if (not rsa_signed(self.n, self.e, unb(sig), (head + "." + claims).encode())
+                or c["iss"] != "play@example.iam.gserviceaccount.com" or "androidpublisher" not in c["scope"]):
+            return web.json_response({"error": "invalid_grant"}, status=400)
+        return web.json_response({"access_token": "the-access", "expires_in": 3600})
+
+    async def purchase(self, request):
+        assert request.headers["Authorization"] == "Bearer the-access"
+        token = request.match_info["token"]
+        if request.method == "POST" and token.endswith(":acknowledge"):
+            self.acknowledged.append(token.split(":")[0])
+            return web.json_response({})
+        assert request.match_info["product"] == "full_game"
+        assert request.match_info["pkg"] == "io.github.kriscs1.shardsofashen"
+        if token not in self.play:
+            return web.json_response({"error": {"code": 400}}, status=400)
+        return web.json_response(self.play[token])
+
+    async def steam_who(self, request):
+        q = request.query
+        assert q["key"] == "steam-key" and q["appid"] == "480" and q["identity"] == "shardsofashen"
+        if q["ticket"] not in self.steam:
+            return web.json_response({"response": {"error": {"errorcode": 101}}})
+        me, owner, _ = self.steam[q["ticket"]]
+        return web.json_response({"response": {"params": {"result": "OK", "steamid": me, "ownersteamid": owner}}})
+
+    async def steam_owns(self, request):
+        owns = {me: has for me, _, has in self.steam.values()}
+        me = request.query["steamid"]
+        return web.json_response({"appownership": {"ownsapp": owns.get(me, False), "ownersteamid": me}})
+
+    async def itch_key(self, request):
+        assert request.match_info["key"] == "itch-key" and request.match_info["game"] == "9"
+        found = self.itch.get(request.query.get("download_key", ""))
+        return web.json_response({"download_key": found} if found else {"errors": ["invalid download key"]})
+
+
+def test_owning_the_game_is_checked_with_its_store_and_kept_on_the_account(tmp_path, monkeypatch, confirmed):
+    """An account is in the demo till a purchase is checked with its store (Google Play as a service account, Steam's
+    ticket and ownership, itch.io's download key): then it has the full game, said with its ticket to a game server.
+    One purchase is one account's; a refund or a lent copy doesn't count; a time pass counts while it runs, a few a
+    day; an admin can give it or take it back; deleting the account frees its purchases."""
+    from central import bought
+    admin_of(monkeypatch)
+    n, e, _, pem = rsa_test_key()
+    key_file = tmp_path / "play.json"
+    key_file.write_text(json.dumps({"client_email": "play@example.iam.gserviceaccount.com", "private_key": pem}))
+    monkeypatch.setattr(bought, "_play_token", {})
+    for name in ("DS_PLAY_SERVICE_ACCOUNT", "DS_STEAM_KEY", "DS_STEAM_APP", "DS_ITCH_KEY", "DS_ITCH_GAME"):
+        monkeypatch.delenv(name, raising=False)
+
+    async def go():
+        fake = PretendStores(n, e)
+        srunner, sport = await run(fake.app())
+        s = "http://127.0.0.1:%d" % sport
+        monkeypatch.setattr(bought, "TOKEN_URL", s + "/token")
+        monkeypatch.setattr(bought, "PLAY_API", s + "/play")
+        monkeypatch.setattr(bought, "STEAM_API", s + "/steam")
+        monkeypatch.setattr(bought, "ITCH_API", s + "/itch")
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        central = capp[CENTRAL]
+        try:
+            async with aiohttp.ClientSession() as http:
+                async def signup(name, **more):
+                    central.signups.clear()
+                    return (await post(http, c + "/api/register", {"name": name, **SIGNUP, **more}))["token"]
+                boss = await signup("Boss", claim=central.claims["boss"])
+                pal, kit, lee = await signup("Pal"), await signup("Kit"), await signup("Lee")
+
+                async def buy(tok, where, **proof):
+                    central.fails.clear()
+                    return await post(http, c + "/api/buy", {"token": tok, "where": where, "proof": proof})
+
+                monkeypatch.delenv("DS_DEMO", raising=False)
+                me = await post(http, c + "/api/account", {"token": pal})
+                assert me["full"] is True and me["demo"] is False         # (no demo yet: everyone has all of it)
+                monkeypatch.setenv("DS_DEMO", "1")
+                me = await post(http, c + "/api/account", {"token": pal})
+                assert me["full"] is False and me["bought"] == "" and me["pass_until"] == 0
+                # (a store not set up refuses; nothing's taken on the app's word)
+                m = await buy(pal, "play", token="good")
+                assert not m["ok"] and "can't check" in m["text"]
+                assert not (await buy(pal, "nowhere"))["ok"]
+                assert not (await post(http, c + "/api/buy", {"token": "nobody", "where": "play"}))["ok"]
+
+                monkeypatch.setenv("DS_PLAY_SERVICE_ACCOUNT", str(key_file))
+                m = await buy(pal, "play", token="refunded")
+                assert not m["ok"] and "cancelled" in m["text"]
+                assert not (await buy(pal, "play", token="made-up"))["ok"]
+                m = await buy(pal, "play", token="good")
+                assert m["ok"] and m["full"] and m["bought"] == "play"
+                assert fake.acknowledged == ["good"]            # (acknowledged: Google doesn't refund it)
+                assert (await buy(pal, "play", token="good"))["ok"]                 # (again, a reinstall: still theirs)
+                m = await buy(kit, "play", token="good")
+                assert not m["ok"] and "another account" in m["text"]
+                assert (await post(http, c + "/api/account", {"token": kit}))["full"] is False
+                assert not central.store.db.execute("SELECT 1 FROM purchases WHERE ref LIKE '%good%'").fetchone()
+
+                # (Steam: their own copy only)
+                monkeypatch.setenv("DS_STEAM_KEY", "steam-key")
+                monkeypatch.setenv("DS_STEAM_APP", "480")
+                assert "Family Sharing" in (await buy(kit, "steam", ticket="bb22"))["text"]
+                assert "doesn't own" in (await buy(kit, "steam", ticket="cc33"))["text"]
+                assert not (await buy(kit, "steam", ticket="not hex!"))["ok"]
+                assert not (await buy(kit, "steam", ticket="dd44"))["ok"]
+                m = await buy(kit, "steam", ticket="aa11")
+                assert m["ok"] and m["bought"] == "steam"
+
+                # (itch.io: the purchase page's link, or its key)
+                monkeypatch.setenv("DS_ITCH_KEY", "itch-key")
+                monkeypatch.setenv("DS_ITCH_GAME", "9")
+                assert not (await buy(lee, "itch", key="https://maker.itch.io/ashen/download/Wrong1"))["ok"]
+                m = await buy(lee, "itch", key="https://maker.itch.io/ashen/download/AbC123")
+                assert m["ok"] and m["bought"] == "itch"
+                assert not (await buy(kit, "itch", key="AbC123"))["ok"]     # (Lee's)
+
+                # (a game server is told with the ticket, and can ask again by the key it was given)
+                async def told(tok):
+                    t = (await post(http, c + "/api/ticket", {"token": tok, "server": "abc"}))["ticket"]
+                    return await post(http, c + "/api/verify", {"ticket": t, "server": "abc"})
+                v = await told(pal)
+                assert v["ok"] and v["full"] is True and v["pass_until"] == 0
+                v = await told(boss)
+                assert v["full"] is False
+                o = await post(http, c + "/api/game/owns", {"grant": v["grant"]})
+                assert o["ok"] and o["name"] == "Boss" and o["full"] is False
+                assert not (await post(http, c + "/api/game/owns", {"grant": "made-up"}))["ok"]
+
+                # (a time pass: while it runs, a few a day)
+                ends = [central.store.add_pass("Boss", 3600, 3) for _ in range(4)]
+                assert ends[3] is None and ends[2] - ends[0] == 7200 and ends[0] > time.time() + 3500
+                o = await post(http, c + "/api/game/owns", {"grant": v["grant"]})
+                assert o["full"] is True and o["pass_until"] == int(ends[2])
+                central.store.db.execute("UPDATE accounts SET pass_until = ? WHERE name = 'Boss'", (time.time() - 1,))
+                assert (await post(http, c + "/api/game/owns", {"grant": v["grant"]}))["full"] is False
+
+                # (the admin page: each account's, given or taken back)
+                assert not (await post(http, c + "/api/admin/full", {"token": pal, "name": "Pal", "on": True}))["ok"]
+                rows = {a["name"]: a for a in (await post(http, c + "/api/admin/accounts", {"token": boss}))["accounts"]}
+                assert rows["Pal"]["bought"] == "play" and rows["Kit"]["bought"] == "steam" and rows["Boss"]["bought"] == ""
+                assert (await post(http, c + "/api/admin/full", {"token": boss, "name": "Boss", "on": True}))["ok"]
+                assert (await post(http, c + "/api/account", {"token": boss}))["bought"] == "admin"
+                await post(http, c + "/api/admin/full", {"token": boss, "name": "Pal", "on": False})
+                assert (await post(http, c + "/api/account", {"token": pal}))["full"] is False
+
+                # (deleted: its purchases go with it)
+                await post(http, c + "/api/admin/delete", {"token": boss, "name": "Lee"})
+                assert not central.store.db.execute("SELECT 1 FROM purchases WHERE name = 'Lee'").fetchone()
+                assert central.store.owned("Lee") == ("", 0.0, 0.0)
+        finally:
+            await runner.cleanup()
+            await srunner.cleanup()
+    asyncio.run(go())
+
+
+def test_a_time_pass_is_an_ads_reward_signed_by_google(tmp_path, monkeypatch, confirmed):
+    """A time pass (the Android app's rewarded ad): the app asks for a key, gives it to the ad, and Google calls back
+    once it's watched, signed with one of its keys. Only a reward Google signed counts, once, for that key's account;
+    a few a day, an hour each; nothing for one who's bought the game, or with no demo."""
+    import secrets
+    from urllib.parse import urlencode
+    from central import admob
+    d = secrets.randbelow(admob.N - 1) + 1
+    q = admob.times(d, admob.G)
+    monkeypatch.setattr(admob, "_keys", {"keys": {}, "at": 0.0, "tried": 0.0})
+    monkeypatch.setenv("DS_DEMO", "1")
+    monkeypatch.delenv("DS_ADMOB_REWARDED", raising=False)
+    monkeypatch.setenv("DS_PASSES_A_DAY", "2")
+
+    def callback(key, signer=d, key_id="7", unit="5224354917", when=None):
+        fields = [("ad_network", "5450213213286189855"), ("ad_unit", unit), ("custom_data", key),
+                  ("reward_amount", "1"), ("reward_item", "Hour"),
+                  ("timestamp", str(int((when or time.time()) * 1000))), ("transaction_id", secrets.token_hex(8)),
+                  ("user_id", "")]
+        signed = urlencode(fields)
+        sig = admob.sign(signer, signed.encode(), secrets.randbelow(admob.N - 1) + 1)
+        return signed + "&signature=" + sig + "&key_id=" + key_id
+
+    async def keys(request):
+        pem = "-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----" % admob.spki(q)
+        return web.json_response({"keys": [{"keyId": 7, "pem": pem, "base64": admob.spki(q)}]})
+
+    async def go():
+        gapp = web.Application()
+        gapp.router.add_get("/keys.json", keys)
+        grunner, gport = await run(gapp)
+        monkeypatch.setattr(admob, "KEYS_URL", "http://127.0.0.1:%d/keys.json" % gport)
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        central = capp[CENTRAL]
+        try:
+            async with aiohttp.ClientSession() as http:
+                central.signups.clear()
+                tok = (await post(http, c + "/api/register", {"name": "Tess", **SIGNUP}))["token"]
+                assert "no time pass" in (await post(http, c + "/api/pass/start", {"token": tok}))["text"]
+                monkeypatch.setenv("DS_ADMOB_REWARDED", "ca-app-pub-3940256099942544/5224354917")
+                async with http.get(c + "/api/hello") as r:
+                    hi = await r.json()
+                    assert hi["demo"] is True and hi["demo_level"] == 5
+                me = await post(http, c + "/api/account", {"token": tok})
+                assert me["full"] is False and me["passes"] == 2
+                got = await post(http, c + "/api/pass/start", {"token": tok})
+                assert got["ok"] and got["minutes"] == 60 and got["left"] == 2
+
+                async def reward(query):
+                    async with http.get(c + "/api/pass/reward?" + query) as r:
+                        return r.status
+                # (not Google's: a key it doesn't have, another key's signature, an old reward, another game's ad)
+                assert await reward(callback(got["key"], key_id="8")) == 400
+                assert await reward(callback(got["key"], signer=d + 1)) == 400
+                assert await reward(callback(got["key"], when=time.time() - 7200)) == 400
+                assert await reward(callback(got["key"], unit="1111")) == 400
+                assert await reward(callback(got["key"]).replace("custom_data=", "custom_data=x")) == 400
+                assert (await post(http, c + "/api/account", {"token": tok}))["full"] is False
+                # (Google's: an hour, and only once for its key)
+                assert await reward(callback(got["key"])) == 200
+                me = await post(http, c + "/api/account", {"token": tok})
+                assert me["full"] is True and me["pass_until"] > time.time() + 3500 and me["passes"] == 1
+                assert await reward(callback(got["key"])) == 200        # (Google trying again: thanked, not counted)
+                assert central.store.passes_today("Tess") == 1
+                assert await reward(callback("made-up")) == 200
+                # (a few a day)
+                again = await post(http, c + "/api/pass/start", {"token": tok})
+                assert await reward(callback(again["key"])) == 200
+                me = await post(http, c + "/api/account", {"token": tok})
+                assert me["passes"] == 0 and me["pass_until"] > time.time() + 7100
+                assert "tomorrow" in (await post(http, c + "/api/pass/start", {"token": tok}))["text"]
+                # (bought: none)
+                central.store.set_full("Tess", "play")
+                assert "already" in (await post(http, c + "/api/pass/start", {"token": tok}))["text"]
+                assert (await post(http, c + "/api/account", {"token": tok}))["passes"] == 0
+                assert not (await post(http, c + "/api/pass/start", {"token": "nobody"}))["ok"]
+        finally:
+            await runner.cleanup()
+            await grunner.cleanup()
+    asyncio.run(go())
+
+
+def test_a_time_pass_needs_play_integritys_word_that_its_the_real_app_on_a_real_phone(tmp_path, monkeypatch, confirmed):
+    """With DS_PLAY_INTEGRITY=1, a time pass's key comes only after Play Integrity's verdict, decoded by Google with
+    the service account: the nonce it was given, just now, this game from Google Play on a phone that passes. An
+    emulator, a rooted phone or a tampered app gets none (ads farmed by a machine would cost the AdMob account)."""
+    from central import bought
+    n, e, _, pem = rsa_test_key()
+    key_file = tmp_path / "play.json"
+    key_file.write_text(json.dumps({"client_email": "play@example.iam.gserviceaccount.com", "private_key": pem}))
+    monkeypatch.setattr(bought, "_play_token", {})
+    monkeypatch.setenv("DS_PLAY_SERVICE_ACCOUNT", str(key_file))
+    monkeypatch.setenv("DS_PLAY_INTEGRITY", "1")
+    monkeypatch.setenv("DS_DEMO", "1")
+    monkeypatch.setenv("DS_ADMOB_REWARDED", "ca-app-pub-3940256099942544/5224354917")
+    scopes = []
+
+    async def token(request):
+        scopes.append(json.loads(base64.urlsafe_b64decode((await request.post())["assertion"].split(".")[1] + "=="))
+                      ["scope"])
+        return web.json_response({"access_token": "t", "expires_in": 3600})
+
+    async def decode(request):
+        if request.headers.get("Authorization") != "Bearer t" or                 request.match_info["rest"] != "io.github.kriscs1.shardsofashen:decodeIntegrityToken":
+            return web.json_response({}, status=403)
+        made = (await request.json())["integrity_token"]
+        return web.json_response({"tokenPayloadExternal": json.loads(made)} if made.startswith("{") else {},
+                                 status=200 if made.startswith("{") else 400)
+
+    def verdict(nonce, app="PLAY_RECOGNIZED", device=("MEETS_DEVICE_INTEGRITY",), when=None, package=None):
+        return json.dumps({
+            "requestDetails": {"requestPackageName": package or "io.github.kriscs1.shardsofashen", "nonce": nonce,
+                               "timestampMillis": str(int((when or time.time()) * 1000))},
+            "appIntegrity": {"appRecognitionVerdict": app}, "deviceIntegrity": {"deviceRecognitionVerdict": list(device)}})
+
+    async def go():
+        gapp = web.Application()
+        gapp.router.add_post("/token", token)
+        gapp.router.add_post("/integrity/{rest}", decode)
+        grunner, gport = await run(gapp)
+        g = "http://127.0.0.1:%d" % gport
+        monkeypatch.setattr(bought, "TOKEN_URL", g + "/token")
+        monkeypatch.setattr(bought, "INTEGRITY_API", g + "/integrity")
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        central = capp[CENTRAL]
+        try:
+            async with aiohttp.ClientSession() as http:
+                central.signups.clear()
+                tok = (await post(http, c + "/api/register", {"name": "Tess", **SIGNUP}))["token"]
+
+                async def start(**more):
+                    return await post(http, c + "/api/pass/start", {"token": tok, **more})
+                asked = await start()
+                assert not asked["ok"] and asked["integrity"] and "key" not in asked      # (first, the verdict)
+                for bad, words in ((verdict("another"), "wasn't this one"),
+                                   (verdict(None, package="com.someone.else"), "wasn't this one"),
+                                   (verdict(None, when=time.time() - 3600), "wasn't this one"),
+                                   (verdict(None, app="UNRECOGNIZED_VERSION"), "isn't the one from Google Play"),
+                                   (verdict(None, device=()), "passes Google Play's checks"),
+                                   (verdict(None, device=("MEETS_BASIC_INTEGRITY",)), "passes Google Play's checks"),
+                                   ("not-a-token", "couldn't show")):
+                    nonce = (await start())["integrity"]
+                    got = await start(integrity=bad.replace("null", json.dumps(nonce)))
+                    assert not got["ok"] and words in got["text"] and "key" not in got, (bad, got)
+                nonce = (await start())["integrity"]
+                got = await start(integrity=verdict(nonce))
+                assert got["ok"] and got["key"] and got["left"] == 3                # (the real app, on a real phone)
+                again = await start(integrity=verdict(nonce))
+                assert not again["ok"] and again["integrity"]                       # (a verdict's good once)
+                assert set(scopes) == {bought.INTEGRITY_SCOPE}
+                monkeypatch.setenv("DS_PLAY_INTEGRITY", "")
+                assert (await start())["ok"]                                        # (off: as before)
+        finally:
+            await runner.cleanup()
+            await grunner.cleanup()
+    asyncio.run(go())

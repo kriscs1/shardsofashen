@@ -47,8 +47,9 @@ class CombatMixin:
         new = next((n for o, n in SKILL_NAMES.items() if o.upper() == s), None)   # (an old name: the skill now)
         return self.skill_index(new) if new else 0
 
-    def level_of_xp(self, xp):
-        return min(self.data.skill_max_level, max(1, int(xp)))
+    def level_of_xp(self, xp, capped=True):
+        """A skill's level from its XP: no higher than the demo's (dsengine/demo.py), unless capped is False."""
+        return min(self.demo_cap() if capped else self.data.skill_max_level, max(1, int(xp)))
 
     def skill_level(self, skill):
         """A skill as it is now: its usual level, and whatever drains or boosts it for a while (what anything asking
@@ -145,17 +146,20 @@ class CombatMixin:
         if pop and trim(str(amount))[:1] == "+":
             self.fx_skill_pop(d.skill_name[i])
         old = self.level_of_xp(self.skill_xp[i])
+        was = self.level_of_xp(self.skill_xp[i], False)      # (the slowdown goes by the XP, the demo's cap aside)
         amount = trim(str(amount))
         if amount[:1] == "+":                    # (Config XP.Scale: every gain, and slower as you go)
             gain = val(amount[1:]) * d.xp_scale
             if d.xp_slowdown > 0:
-                gain *= d.xp_slowdown / (d.xp_slowdown + old)
+                gain *= d.xp_slowdown / (d.xp_slowdown + was)
             amount = "+" + lbstr(round(gain, 5))
         self.skill_xp[i] = min(d.skill_max_level, max(0, apply_change(self.skill_xp[i], amount)))
         if amount[:1] == "+":
             self.reward_xp(d.skill_name[i], val(amount[1:]))     # (a quest's reward screen lists it)
         new = self.level_of_xp(self.skill_xp[i])
         self.dirty_me = True
+        if new == old and self.level_of_xp(self.skill_xp[i], False) > max(was, new) and "level" not in self.demo_told:
+            self.demo_say("level")      # (the XP is kept for the full game)
         if new > old:
             self.display_message("LEVEL UP! Your %s level is now %d." % (pretty(d.skill_name[i]), new), "LEVELUP")
             self.play_sound("LevelUp")

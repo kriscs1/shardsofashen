@@ -1,7 +1,9 @@
 """The central server's database (SQLite): accounts, their log-in tokens, the one-time tickets that take a player into
 a game server, the remote servers that announce themselves, and friends: who asked whom (both ways: friends), the
 keys a game server is given to a player's friends while they play there, and where each account is playing; and what
-every game server says its characters have got to (level, skills, quests), for the admin page.
+every game server says its characters have got to (level, skills, quests), for the admin page; and owning the game:
+whether each account has the full game (and where it was bought), the purchases that gave it (one purchase, one
+account), and a time pass's end.
 
 Every value in every query here goes in as a ? parameter, never into the query's text: only this file's own table and
 column names are ever put in with %s (a test holds it). And once it's opened, the connection may only read and write
@@ -116,11 +118,22 @@ CREATE TABLE IF NOT EXISTS character_quests (
     finished REAL NOT NULL DEFAULT 0,
     PRIMARY KEY (server, name, quest)
 ) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS purchases (
+    ref TEXT PRIMARY KEY,
+    name TEXT NOT NULL COLLATE NOCASE,
+    made REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS passes (
+    name TEXT NOT NULL COLLATE NOCASE,
+    made REAL NOT NULL
+);
 """
 # (columns added since: put on an older database as it opens)
 COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admin", "INTEGER NOT NULL DEFAULT 0"),
            ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0"),
-           ("accounts", "deleted", "REAL NOT NULL DEFAULT 0"), ("accounts", "google", "TEXT NOT NULL DEFAULT ''")]
+           ("accounts", "deleted", "REAL NOT NULL DEFAULT 0"), ("accounts", "google", "TEXT NOT NULL DEFAULT ''"),
+           ("accounts", "full", "TEXT NOT NULL DEFAULT ''"), ("accounts", "full_at", "REAL NOT NULL DEFAULT 0"),
+           ("accounts", "pass_until", "REAL NOT NULL DEFAULT 0")]
 # (what's looked up by something other than its key: after the columns, as some are on those)
 INDEXES = """
 CREATE INDEX IF NOT EXISTS accounts_email ON accounts (email COLLATE NOCASE);
@@ -138,6 +151,8 @@ CREATE INDEX IF NOT EXISTS characters_seen ON characters (seen);
 CREATE INDEX IF NOT EXISTS characters_account ON characters (account);
 CREATE INDEX IF NOT EXISTS character_skills_skill ON character_skills (skill, level);
 CREATE INDEX IF NOT EXISTS character_quests_quest ON character_quests (quest, done, stage);
+CREATE INDEX IF NOT EXISTS purchases_name ON purchases (name);
+CREATE INDEX IF NOT EXISTS passes_name ON passes (name, made);
 """
 MAIL_CODE_MINUTES = 30
 CONFIRM_DAYS = 3                # (a link to confirm an email works this long)
@@ -227,7 +242,8 @@ class CentralStore:
     def find_accounts(self, q, limit=50, skip=0):
         found = like(q)
         waiting = "(SELECT email FROM mailchecks WHERE mailchecks.name = accounts.name)"
-        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, ''), deleted, google != '' "
+        return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, ''), deleted, google != '', full, "
+                               "full_at, pass_until "
                                "FROM accounts WHERE name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR %s LIKE ? "
                                "ESCAPE '\\' ORDER BY made DESC LIMIT ? OFFSET ?"
                                % (waiting, waiting), (found, found, found, limit, skip)).fetchall()
@@ -237,7 +253,7 @@ class CentralStore:
         nobody else can take the name (and the characters that go by it); else the name's free for anyone."""
         self.db.execute("BEGIN")
         try:
-            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing"):
+            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing", "purchases", "passes"):
                 self.db.execute("DELETE FROM %s WHERE name = ? COLLATE NOCASE" % table, (name,))
             self.db.execute("DELETE FROM friends WHERE who = ? OR whom = ?", (name, name))
             for table in ("character_skills", "character_quests"):      # (what their characters got to: theirs too)
@@ -246,7 +262,8 @@ class CentralStore:
             self.db.execute("DELETE FROM characters WHERE account = ?", (name,))
             if keep_name:
                 self.db.execute("UPDATE accounts SET password = '', recover = '', email = '', banned = '', admin = 0, "
-                                "google = '', deleted = ? WHERE name = ?", (time.time(), name))
+                                "google = '', full = '', full_at = 0, pass_until = 0, deleted = ? WHERE name = ?",
+                                (time.time(), name))
             else:
                 self.db.execute("DELETE FROM accounts WHERE name = ?", (name,))
             self.db.execute("COMMIT")
@@ -312,6 +329,42 @@ class CentralStore:
 
     def count_accounts(self):
         return self.db.execute("SELECT COUNT(*) FROM accounts WHERE deleted = 0").fetchone()[0]
+
+    # ----- owning the game (bought.py checks a purchase with its store before it gets here)
+    def owned(self, name):
+        """(where the full game was bought: "play", "steam", "itch", "epic", "admin" or "" for not, when, a time pass's
+        end)."""
+        row = self.db.execute("SELECT full, full_at, pass_until FROM accounts WHERE name = ?", (name,)).fetchone()
+        return tuple(row) if row else ("", 0.0, 0.0)
+
+    def set_full(self, name, where):
+        """The full game is name's (bought at where), or no longer ("": an admin taking it back)."""
+        self.db.execute("UPDATE accounts SET full = ?, full_at = ? WHERE name = ?",
+                        (where, time.time() if where else 0, name))
+
+    def claim(self, name, where, ref):
+        """A checked purchase (its store's own id for it) for name: "" if it's theirs now (or was already), else the
+        account that has it. Only its hash is kept."""
+        key = digest(where + ":" + str(ref))
+        self.db.execute("INSERT OR IGNORE INTO purchases (ref, name, made) VALUES (?, ?, ?)", (key, name, time.time()))
+        row = self.db.execute("SELECT name FROM purchases WHERE ref = ?", (key,)).fetchone()
+        return "" if row and row[0].lower() == name.lower() else (row[0] if row else "?")
+
+    def passes_today(self, name):
+        """How many time passes name has had in the last day."""
+        return self.db.execute("SELECT COUNT(*) FROM passes WHERE name = ? AND made > ?",
+                               (name, time.time() - 86400)).fetchone()[0]
+
+    def add_pass(self, name, seconds, most_a_day):
+        """A time pass for name: its new end (from now, or from the end of one running), or None if they've had
+        most_a_day of them in the last day."""
+        now = time.time()
+        if self.passes_today(name) >= most_a_day:
+            return None
+        until = max(now, self.owned(name)[2]) + seconds
+        self.db.execute("INSERT INTO passes (name, made) VALUES (?, ?)", (name, now))
+        self.db.execute("UPDATE accounts SET pass_until = ? WHERE name = ?", (until, name))
+        return until
 
     # ----- log-in tokens (kept by the app or browser: no password each time)
     def new_token(self, name):
@@ -434,6 +487,7 @@ class CentralStore:
         self.db.execute("DELETE FROM mailchecks WHERE made < ?", (now - UNCONFIRMED_DAYS * 86400,))
         self.db.execute("DELETE FROM playing WHERE seen < ?", (now - PLAYING_SECONDS,))
         self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
+        self.db.execute("DELETE FROM passes WHERE made < ?", (now - 86400,))
         old = now - PROGRESS_DAYS * 86400
         for table in ("character_skills", "character_quests"):
             self.db.execute("DELETE FROM %s WHERE (server, name) IN (SELECT server, name FROM characters WHERE seen < ?)"

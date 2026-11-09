@@ -169,12 +169,14 @@ const TABS = {
   accounts: { filter: true, search: "Find a name or an email", load: () => list("accounts", { q: $("q").value }, (a) => a.accounts, [
     { l: "Name", v: (a) => `${esc(a.name)}<div class="dim">since ${esc(day(a.made))}</div>` },
     { l: "State", v: (a) => [a.deleted ? `Deleted ${esc(day(a.deleted))}: name kept` : a.banned ? `<b>Banned</b>: ${esc(a.banned)}` : "Fine",
-      a.admin ? "admin" : "", a.google ? "Google" : ""].filter(Boolean).join(", ") },
+      a.admin ? "admin" : "", a.google ? "Google" : ""].filter(Boolean).join(", ") +
+      (a.bought ? `<div>Full game: ${esc(BOUGHT[a.bought] || a.bought)}, ${esc(day(a.bought_at))}</div>` : a.pass_until ? `<div>Time pass till ${esc(when(a.pass_until))}</div>` : '<div class="dim">Demo</div>') },
     { l: "Email", v: (a) => (esc(a.email) || '<span class="dim">none</span>') + (a.pending ? `<div class="dim">${esc(a.pending)} (not confirmed)</div>` : "") },
     { l: "", v: (a) => {
       const n = esc(a.name);
       return `<button data-act="characters" data-n="${n}">Characters</button>` + (a.deleted ? "" : (a.banned ? `<button data-act="ban" data-n="${n}" data-on="">Unban</button>` : `<button data-act="ban" data-n="${n}" data-on="1">Ban</button>`) +
-        `<button data-act="make_admin" data-n="${n}" data-on="${a.admin ? "" : "1"}">${a.admin ? "Not admin" : "Make admin"}</button>`) +
+        `<button data-act="make_admin" data-n="${n}" data-on="${a.admin ? "" : "1"}">${a.admin ? "Not admin" : "Make admin"}</button>` +
+        `<button data-act="full" data-n="${n}" data-on="${a.bought ? "" : "1"}">${a.bought ? "Take the full game back" : "Give the full game"}</button>`) +
         (a.admin ? "" : (a.deleted ? "" : `<button data-act="delete" data-n="${n}">Delete</button>`) +
         `<button data-act="erase" data-n="${n}">${a.deleted ? "Free the name" : "Delete and free the name"}</button>`);
     } },
@@ -283,6 +285,8 @@ async function showQuest(quest) {
   $("detail").scrollIntoView();
 }
 
+const BOUGHT = { play: "Google Play", steam: "Steam", itch: "itch.io", epic: "Epic", admin: "given by an admin" };
+
 const ACTS = {
   approve: async (d) => { await admin("approve", { key: d.k, on: !!d.on }); return true; },
   remove: async (d) => { if (!confirm("Remove this server from the list? (It's added again, waiting, if it calls.)")) return; await admin("remove", { key: d.k }); return true; },
@@ -296,6 +300,10 @@ const ACTS = {
     await admin("ban", { name: d.n, why }); return true;
   },
   make_admin: async (d) => { await admin("make_admin", { name: d.n, on: !!d.on }); return true; },
+  full: async (d) => {
+    if (!d.on && !confirm(`Take the full game back from ${d.n}? They're in the demo again (their characters keep everything), till they buy it or are given it.`)) return;
+    await admin("full", { name: d.n, on: !!d.on }); return true;
+  },
   delete: async (d) => {
     if (!confirm(`Delete ${d.n}? Their email, password, friends and what's known of their characters go for good, and they can't sign in. The name stays taken, so nobody else can have it or their characters on game servers.`)) return;
     await admin("delete", { name: d.n }); return true;

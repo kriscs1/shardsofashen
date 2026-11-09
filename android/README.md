@@ -70,6 +70,28 @@ consent form comes first, and "Ad choices" in the start screen's footer changes 
 Without the ids, a debug build shows Google's test ads (so it can be tried) and a release build shows none; the
 start screen then shows the central server's own ads. Never click your own real ads.
 
+**The time pass** (an hour of the full game for a demo account, for watching an ad): make a **Rewarded** ad unit too,
+and in its settings turn on **Server-side verification** with the callback URL `https://<central>/api/pass/reward`.
+Its id goes in the GitHub variable `ADMOB_REWARDED_ID` (or `dsAdmobRewarded`), and on the central server as
+`DS_ADMOB_REWARDED` (`README-Server.md`, "The time pass"). A debug build uses Google's test rewarded ad; a release
+build without the id offers no time pass. With the central server's `DS_PLAY_INTEGRITY=1`, the app first asks Play
+Integrity for its verdict: set the GitHub variable `PLAY_CLOUD_PROJECT` (or `dsCloudProject`) to the Google Cloud
+project's number if the app is ever had from anywhere but Google Play. A build installed by hand (not from Google
+Play) gets no time pass then: try it from an internal testing track.
+
+## Buying (Google Play)
+
+Two one-time products, made in the Play Console (Monetize > In-app products), each active with its price:
+
+| Product id | What it is |
+|---|---|
+| `full_game` | The full game, $3.99: for the Hallisium account (checked by the central server), and it removes the ads |
+| `remove_ads` | Remove ads only (as before) |
+
+A different id for the full game is `DS_FULL_PRODUCT` (or `dsFullProduct`) when building, and the same on the central
+server; `none` builds an app without it. Google Play restores both on a reinstall. The central server checks each
+purchase with Google Play (its service account: `README-Server.md`, "Owning the game") before the account has it.
+
 ## Publishing
 
 1. In the Play Console (a Google Play developer account, a one-off fee): Create app. Upload `app-release.aab` to a
