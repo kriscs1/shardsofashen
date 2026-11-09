@@ -14,6 +14,7 @@ import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
+import { revealed } from "./voice.js";
 
 export const TAB_TEXT = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -1208,8 +1209,11 @@ function drawBox(ctx) {
       drawText(ctx, heading, x0 + titleX, y0 + y, 11, true, [255, 214, 110]);
       y += lineH + 8;
     }
+    // (the words come a few at a time, in the speaker's voice: voice.js)
+    let left = revealed(b, shown.map(([ln]) => ln).join("\n"), performance.now());
     for (const [ln, ink] of shown) {
-      drawText(ctx, ln, x0 + titleX, y0 + y, sz, true, ink);
+      if (left > 0) drawText(ctx, left >= ln.length ? ln : ln.slice(0, left), x0 + titleX, y0 + y, sz, true, ink);
+      left -= ln.length + 1;
       y += lineH;
     }
     if (pages > 1) {

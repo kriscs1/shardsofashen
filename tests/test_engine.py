@@ -8021,6 +8021,28 @@ def test_old_silt_talks_and_gives_one_eel(world):
     leave(world, s)
 
 
+def test_people_speak_in_their_own_voice_and_notices_are_silent(world):
+    """A conversation's box says whose voice to murmur it in (Entities.ini Voice=: build_voices.py) and a pitch that
+    one person always has; a notice, a sign or a letter has none; you speak in your own."""
+    keeper = next(e for e in world.ents if e.name == "Gravekeeper" and e.alive)      # (no hours kept: there by night)
+    s = join(world, "Listener", keeper.map, 300, 300)
+    s.connected = True
+    near(world, s, keeper, 32, 0)
+    heard = []
+    for _ in range(2):
+        assert talk_to(world, s, keeper)
+        box = s.box_state()
+        assert box["voice"] == "Old_Man" and 93 <= box["pitch"] <= 107
+        heard.append(box["pitch"])
+        s.close_action_box(-1)
+        run_for(world, 5)
+    assert heard[0] == heard[1]                                    # (the same person sounds the same every time)
+    assert s.npc_voice("Notice") == ("", 100) and s.npc_voice("Signpost") == ("", 100)
+    s.player_sprite_base = "PlayerF"
+    assert s.npc_voice("Player")[0] == "Woman"
+    leave(world, s)
+
+
 def test_the_shardfall_deep_opens_only_to_a_woken_signet_and_its_shard_gives_once_a_day(world):
     """The Shardfall Deep (dev/migrate/build_shardfall.py): down the sea cave on Gull Point; the Wardens' Seal shut till
     Bryony's signet is woken there with Shards and Shardcraft 15; the Fallen Shard's Shards once a day to whoever

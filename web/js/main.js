@@ -233,6 +233,7 @@ window.addEventListener("dsapp", () => homeRow());
 function openOptions() {
   releaseKeys();
   $("opt-sound").checked = O.sound; $("opt-volume").value = O.volume; $("opt-chat-sound").checked = O.chatSound;
+  $("opt-voices").checked = O.voices;
   $("opt-music").checked = O.music; $("opt-music-volume").value = O.musicVolume;
   $("opt-ambient").checked = O.ambient; $("opt-ambient-volume").value = O.ambientVolume;
   $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing;
@@ -241,7 +242,7 @@ function openOptions() {
   $("opt-hotbar").value = String((S.me && S.me.hotbar || []).length || 5);
   $("options").hidden = false;
 }
-for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"], ["opt-chat-sound", "chatSound"],
+for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1], ["opt-music", "music"], ["opt-chat-sound", "chatSound"], ["opt-voices", "voices"],
   ["opt-music-volume", "musicVolume", 1], ["opt-ambient", "ambient"], ["opt-ambient-volume", "ambientVolume", 1]]) {
   $(id).addEventListener("input", (ev) => {
     O[key] = num ? +ev.target.value : ev.target.checked;
@@ -978,6 +979,9 @@ N.onMessage = (m) => {
       applySnap(m, now);
       break;
     case "box":
+      // (a new speech, or the same one sent again: its words come again only when it's new - voice.js)
+      m.fresh = m.mode === "Conversation" && S.box.mode === m.mode && S.box.text === m.text && S.box.title === m.title ?
+        S.box.fresh : performance.now();
       S.box = m;
       m.answers = m.responses;                     // (a long speech's pages: the answers wait for its last - ui.js)
       m.tpage = 0;

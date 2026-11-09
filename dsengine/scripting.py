@@ -887,6 +887,7 @@ class ScriptMixin:
         self.ab_title = self.npc_title(npc)
         if npc in ("You", "Player"):
             self.ab_title = self.player_name
+        self.ab_voice = self.npc_voice(npc)
         self.ab_text = arg[2].replace("\\", "|")
         self.ab_item_defs = []
         self.show_action_box("Conversation")

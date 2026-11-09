@@ -2,6 +2,7 @@
 their browser sends. The browser works out the verbs to show; the server works them out again and only does a verb
 the player really has."""
 import math
+import zlib
 
 from ashen.lb import val, word, trim, lbstr, distance, strip_digits, pretty
 
@@ -33,6 +34,24 @@ class ActionsMixin:
         if e is not None and e.alive and getattr(e, "display", "") and strip_digits(e.name) == strip_digits(npc):
             return e.display
         return trim(self.data.entity_ini(npc, "Display.Name", "")) or pretty(npc)     # (Sister of the Mending)
+
+    def npc_voice(self, npc):
+        """Who's speaking, as the browser murmurs it (web/js/voice.js): their kind's Voice= (build_voices.py) and a
+        pitch of their own, in hundredths: the same every time for the one you clicked (by its Id, or its spot).
+        ("", 100) for a notice, a sign or a letter: they're silent."""
+        key = npc
+        if npc in ("You", "Player", self.player_name):
+            npc = key = self.player_sprite_base
+            kind = trim(self.data.entity_ini(npc, "Voice", "")) or ("Woman" if npc == "PlayerF" else "Man")
+            key = self.player_name
+        else:
+            kind = trim(self.data.entity_ini(npc, "Voice", ""))
+            e = self.clicked_ent
+            if e is not None and e.alive and strip_digits(e.name) == strip_digits(npc):
+                key = self.w.npc_key(e)
+        if not kind:
+            return "", 100
+        return kind, 93 + zlib.crc32(key.encode()) % 15         # (93-107: two Villagers don't sound alike)
 
     @staticmethod
     def add_verb(lst, verb):

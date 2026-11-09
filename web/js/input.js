@@ -16,6 +16,7 @@ import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
 import { J, hit as journalHit, pages as journalPages, spellClick, friendClick, skillClick, journalQuests, TABS, QUESTS_SHOWN } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
 import { unlock, playSound } from "./audio.js";
+import { revealing, showAll } from "./voice.js";
 import { pretty, val } from "./util.js";
 
 export const I = { mx: -1, my: -1, keys: new Set(), dir: 0, cursor: "pointer", clickAt: 0, clickKind: "", ui: null,
@@ -332,6 +333,7 @@ export function mouseDown(button, x, y) {
   }
   if (S.box.mode && left) {
     if (boxCloseAt(x, y)) { send({ t: "close" }); return; }
+    if (revealing(S.box)) { showAll(); return; }   // (still speaking: a click shows the rest of the page first)
     const arrow = boxArrow(x, y);
     if (arrow) { send({ t: "page", page: S.box.page + arrow }); return; }
     if (U.rbHover) {

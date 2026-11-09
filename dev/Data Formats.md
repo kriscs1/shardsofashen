@@ -231,6 +231,9 @@ Swims=1                    ; optional: it swims (otters, seals, frogs): water is
                            ; of it, and in water it's drawn as <Name>_Swim2 / _Swim8
 Calls=Seal_Bark            ; optional: a sound it makes now and then (every 15-60 s) when not fighting, heard
                            ; within 8 tiles
+Voice=Woman                ; optional: the murmur its words come with in a conversation (sounds\Voice_<Kind>.wav,
+                           ; dev\migrate\build_voices.py KINDS: Man Deep Woman Old_Man Old_Woman Gruff Ghost Croak
+                           ; Beast); each one placed has a pitch of its own. None: silent (a notice, a sign, a letter)
 Friend.If.Wearing=Mending_Robe   ; optional: it takes you for one of its own while you wear that (your gear alone;
                            ; dsengine\disguise.py); a blow or a spell in its sight gives you away on that map a while
 Absorbs.Remnants=1         ; optional (a boss): hurt, it goes to Shard Remnants near it and heals by them

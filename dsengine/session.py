@@ -225,6 +225,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.sleep_state = None
         self.ab_mode = ""
         self.ab_image = self.ab_title = self.ab_text = ""
+        self.ab_voice = ("", 100)           # (a conversation's speaker's voice and pitch: npc_voice)
         self.ab_item_defs = []
         self.responses = []
         self.response_actions = []
@@ -1298,6 +1299,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 it["missing"] = self.rack_missing(e)
             items.append(it)
         extra = self.market_box_extra() if self.ab_mode == "Market" else {}
+        if self.ab_mode == "Conversation" and self.ab_voice[0]:
+            extra["voice"], extra["pitch"] = self.ab_voice
         return {"t": "box", "mode": self.ab_mode, "image": self.ab_image, "title": self.ab_title, **extra,
                 "text": self.ab_text, "items": items, "responses": self.responses, "page": self.rack_page,
                 "pages": self.rack_pages, "rack": self.rack_name, "buy_rate": self.rack_buy_rate,

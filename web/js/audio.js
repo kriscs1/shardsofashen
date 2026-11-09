@@ -7,6 +7,7 @@ import { weatherAmbient } from "./sky.js";
 
 export const O = {               // the options (kept in the browser)
   sound: true, volume: 100, music: true, musicVolume: 30, ambient: true, ambientVolume: 70, chatSound: true,
+  voices: true,                  // (people murmur as their words appear: voice.js)
   musicChosen: false,            // (the player has moved the music slider: their level is kept)
 };
 
@@ -98,6 +99,29 @@ export async function playSound(name, at = null, loud = 1) {
   }
   src.connect(gain);
   node.connect(AU.master);
+  src.start();
+}
+
+// (one syllable of a speaker's murmur - Voice_Man, Voice_Man_2 ... _6: build_voices.py - never the one just played,
+// at their own pitch and a shade either side of it)
+let lastVoice = "";
+export async function playVoice(kind, pitch = 1) {
+  if (!O.sound || !O.voices || !AU.ctx || !kind) return;
+  const s = A.m.sounds || {};
+  const takes = [1, 2, 3, 4, 5, 6].map((n) => `Voice_${kind}${n > 1 ? "_" + n : ""}.wav`).filter((t) => s[t]);
+  if (!takes.length) return;
+  const others = takes.length > 1 ? takes.filter((t) => t !== lastVoice) : takes;
+  const take = others[Math.floor(Math.random() * others.length)];
+  lastVoice = take;
+  const b = await buffer(s[take]);
+  if (!b) return;
+  const src = AU.ctx.createBufferSource();
+  src.buffer = b;
+  src.playbackRate.value = pitch * (0.96 + Math.random() * 0.08);
+  const gain = AU.ctx.createGain();
+  gain.gain.value = 0.6 * O.volume / 100;
+  src.connect(gain);
+  gain.connect(AU.master);
   src.start();
 }
 

@@ -1553,13 +1553,14 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Side",                                                           # its side (Set.Side.Attitude makes it Good or Bad, for one player)
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8",               # a cart (carts.py): where its rider stands
                "Seat", "Headings", "Vehicle.Noun",                              # a boat's one seat; how many ways it turns; "ferry"
-               "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image"}       # its sounds; its menu's words and picture
+               "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image",      # its sounds; its menu's words and picture
+               "Voice"}                                                          # how it murmurs as it speaks (build_voices.py)
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Season.Absent", "Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Spoils.To", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
                                      "Look.Parts", "Looks", "Display.Name", "Sleeper.Of", "Key", "Seat.1", "Seat.2", "Seat.4", "Seat.8",
                                      "Seat", "Vehicle.Noun", "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image", "Side",
-                                     "Friend.If.Wearing"}
+                                     "Friend.If.Wearing", "Voice"}
 MOVEMENT_KEYS = ("Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause")
 ENTITIES_INI = None
 
@@ -1666,6 +1667,9 @@ def check_entities():
         loop = (ini.get(sec, "Sound.Loop") or "").strip()
         if loop and loop not in SOUNDS:
             err(r, "[%s] Sound.Loop=%s: there's no sounds\\%s.wav" % (sec, loop, loop))
+        voice = (ini.get(sec, "Voice") or "").strip()
+        if voice and "Voice_" + voice not in SOUNDS:
+            err(r, "[%s] Voice=%s: there's no sounds\\Voice_%s.wav (build_voices.py KINDS)" % (sec, voice, voice))
         call = (ini.get(sec, "Calls") or "").strip()
         if call and call not in SOUNDS:
             err(r, "[%s] Calls=%s: there's no sounds\\%s.wav" % (sec, call, call))
