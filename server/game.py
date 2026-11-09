@@ -122,6 +122,8 @@ class GameServer:
                  time.time() - t0)
         self.clients = {}                   # Session -> Client
         self.signups = {}                   # address -> the days it made characters on (DS_REGISTER_PER_DAY)
+        self.conns = {}                     # address -> how many connections it has open (DS_CONNECTIONS_PER_ADDRESS)
+        self.turned_away = set()            # (addresses at their limit, told of in the log once)
         self.running = False
         self.last_save = time.time()
         self.last_where = 0.0
@@ -424,14 +426,39 @@ class GameServer:
         more = [o.strip().lower() for o in os.environ.get("DS_ORIGINS", "").split(",") if o.strip()]
         return host == (request.host or "").lower() or origin.lower() in more
 
+    def conns_ok(self, addr):
+        """One address may hold only so many connections open (DS_CONNECTIONS_PER_ADDRESS; 0: no limit): enough for a
+        family behind one router, not thousands left idle to use up the memory. This machine's own and a relay's
+        visitors aren't counted (each relayed visit is an address of its own)."""
+        most = self.setting_int("DS_CONNECTIONS_PER_ADDRESS", 10)
+        return most <= 0 or self.is_local(addr) or self.relayed(addr) or self.conns.get(addr, 0) < most
+
     async def handle_ws(self, request):
         if not self.origin_ok(request):
             log.warning("A page from %s tried to join from %s", request.headers.get("Origin"), request.remote)
             return web.Response(status=403, text="Only this game's own page may join it.")
+        addr = self.client_addr(request)
+        if not self.conns_ok(addr):
+            if addr not in self.turned_away:
+                self.turned_away.add(addr)
+                log.warning("Too many connections from %s: turning more away", addr)     # (once, not each try)
+            return web.Response(status=429, text="Too many connections from here.")
+        self.conns[addr] = self.conns.get(addr, 0) + 1
+        try:
+            return await self.serve_ws(request, addr)
+        finally:
+            left = self.conns.get(addr, 1) - 1
+            if left > 0:
+                self.conns[addr] = left
+            else:
+                self.conns.pop(addr, None)                      # (all gone: the table doesn't grow for ever)
+                self.turned_away.discard(addr)
+
+    async def serve_ws(self, request, addr):
         # (a closed browser: gone in seconds; an app's own game takes a character brought from a public server)
         ws = web.WebSocketResponse(heartbeat=5, max_msg_size=8 * 1024 * 1024 if self.own else 65536)
         await ws.prepare(request)
-        c = Client(ws, self.client_addr(request))
+        c = Client(ws, addr)
         c.writer = asyncio.ensure_future(c.write())
         if self.own and not self.lan_open and not self.is_local(c.addr) and not self.relayed(c.addr):
             await self.send(c, {"t": "closed", "text": "This game isn't open to the network just now."})

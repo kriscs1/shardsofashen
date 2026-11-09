@@ -30,6 +30,49 @@ if command -v ufw >/dev/null 2>&1; then
     ufw --force enable >/dev/null
 fi
 
+# (the internet tries SSH passwords within minutes of a VM starting: a key only, a ban for those who keep trying, and
+# the system's security fixes put in by themselves)
+echo "== SSH: a key to come in by, never a password"
+keys=""
+for f in /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys; do
+    if [ -s "$f" ]; then keys=1; fi
+done
+conf=/etc/ssh/sshd_config.d/01-shards-of-ashen.conf
+if [ -z "$keys" ]; then
+    echo "   (left as it was: there's no SSH key on this VM yet, and you'd be locked out. Add yours to"
+    echo "   ~/.ssh/authorized_keys and run this again.)"
+elif [ -d /etc/ssh/sshd_config.d ] && grep -qi "^Include /etc/ssh/sshd_config.d" /etc/ssh/sshd_config; then
+    # (01-: before the cloud's own 50-cloud-init.conf, since the first setting sshd reads is the one it keeps)
+    printf "%s\n" "# From the Shards of Ashen setup (delete this file to undo): keys only, root only with a key" \
+        "PasswordAuthentication no" "KbdInteractiveAuthentication no" "PermitRootLogin prohibit-password" > "$conf"
+    mkdir -p /run/sshd
+    if sshd -t 2>/dev/null; then
+        systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true
+    else
+        rm -f "$conf"
+        echo "   (left as it was: this sshd didn't take the settings)"
+    fi
+else
+    echo "   (left as it was: this sshd has no sshd_config.d to add to)"
+fi
+
+if command -v apt-get >/dev/null 2>&1; then
+    echo "== fail2ban (an address that keeps failing at SSH is shut out for a while) and automatic security updates"
+    export DEBIAN_FRONTEND=noninteractive
+    if apt-get update -qq >/dev/null && apt-get install -y -qq fail2ban python3-systemd unattended-upgrades >/dev/null
+    then
+        # (from the journal: Debian 12 keeps no auth.log for fail2ban to read)
+        printf "%s\n" "[sshd]" "enabled = true" "backend = systemd" "maxretry = 5" "bantime = 1h" \
+            > /etc/fail2ban/jail.d/shards-of-ashen.local
+        systemctl enable fail2ban >/dev/null 2>&1 || true
+        systemctl restart fail2ban || true
+        printf "%s\n" 'APT::Periodic::Update-Package-Lists "1";' 'APT::Periodic::Unattended-Upgrade "1";' \
+            > /etc/apt/apt.conf.d/20auto-upgrades
+    else
+        echo "   (couldn't install them just now: run this again later; the rest goes on being set up)"
+    fi
+fi
+
 # (a little swap on a small VM: the game's memory is steady, but updates pull a new image beside the old one)
 if [ ! -f /swapfile ] && [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 2500000 ]; then
     echo "== A 1 GB swap file"

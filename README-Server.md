@@ -391,7 +391,8 @@ lists the remote game servers (each announces itself to it), and it serves the a
   curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/central-setup.sh | sudo sh
   ```
 
-  It installs Docker, opens only SSH, HTTP and HTTPS, asks for the domain (`-` for none: the VM's address as
+  It installs Docker, opens only SSH, HTTP and HTTPS, makes SSH take a key and never a password (once the VM has your
+  key), shuts out an address that keeps failing at SSH (fail2ban), puts in security updates by itself, asks for the domain (`-` for none: the VM's address as
   `1-2-3-4.sslip.io`, still with a real certificate) and your Hallisium account's name (the admin), and starts it all in
   `/opt/shards-of-ashen-central`. Run it again to bring it up to date; your `.env` and the accounts are kept. The rest
   of its settings are in that `.env` (`deploy/central.env.example`), then `docker compose up -d` in that folder.
@@ -490,8 +491,10 @@ Debian 12 on it, and a domain name you can add a DNS record to.
 
 1. **Point the domain at the VM.** Add an A record (`play.example.com` -> the VM's public IPv4 address), and an AAAA
    record if it has IPv6. Wait until `ping play.example.com` answers from the VM's address.
-2. **Run the setup on the VM** (it installs Docker, opens only SSH, HTTP and HTTPS, adds a little swap on a small VM,
-   asks for the domain and your admin character's name, and starts everything in `/opt/shards-of-ashen`):
+2. **Run the setup on the VM** (it installs Docker, opens only SSH, HTTP and HTTPS, makes SSH take a key and never a
+   password (once the VM has your key: otherwise it leaves SSH as it was and says so), shuts out an address that keeps
+   failing at SSH (fail2ban), puts in security updates by itself, adds a little swap on a small VM, asks for the domain
+   and your admin character's name, and starts everything in `/opt/shards-of-ashen`):
 
    ```
    curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/cloud-setup.sh | sudo sh
@@ -523,7 +526,13 @@ above.
 - Logs: `docker compose logs -f game`. Health: `https://play.example.com/health` (who's on, the tick time).
 - Backups: one a day in the `gamedata` volume's `backups` folder (14 kept). Copy them off the VM now and then, for
   example `docker compose cp game:/data/backups ./backups`, or turn on your provider's VM snapshots.
-- Updating the VM itself: `sudo apt update && sudo apt upgrade` now and then (the game updates itself).
+- Updating the VM itself: security updates put themselves in; `sudo apt update && sudo apt upgrade` now and then for
+  the rest (the game updates itself).
+- Attacks: SSH is a key only (to undo, delete `/etc/ssh/sshd_config.d/01-shards-of-ashen.conf`); safer still, let SSH
+  in only from your own address (`ufw delete allow OpenSSH && ufw allow from <your IP> to any port 22`) or over
+  Tailscale. The game turns away a flood of connections from one address (`DS_CONNECTIONS_PER_ADDRESS`), but no VM
+  outlasts a real DDoS: put the domain behind Cloudflare (its proxy, free; the game's WebSocket goes through it) and
+  let ports 80 and 443 take only Cloudflare's addresses, so nobody goes round it.
 - More players than one VM keeps smooth: start a second server (another VM, another domain) rather than a bigger one:
   each server is a world of its own.
 
@@ -539,13 +548,14 @@ above.
 | `DS_INVITE_CODE` | (none) | needed to make a character, if set |
 | `DS_ADMINS` | (none) | Hallisium accounts whose characters get the Admin button, comma-separated (besides `tools/admin.py admin <Name> on`): the central server's ticket proves the account, so nobody can take the name. |
 | `DS_NAME` | `Shards of Ashen on <computer>` (a public server: `A Shards of Ashen server`) | what players see the server called: the start screen's Public servers list (40 letters at most), its login screen, the Android app's "Games on this network". Changing it takes a listed server off the list till it's approved again. An admin's name in Options wins over it |
-| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the wrong-password wait and the sign-up limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
+| `DS_TRUST_PROXY` | (off) | `1` behind a reverse proxy (Caddy): each player's own address from `X-Forwarded-For`, for the wrong-password wait, the sign-up limit and the connections limit. Only the last address in it counts (the one the proxy put there), and only from a proxy on this machine or a private network |
 | `DS_ORIGINS` | (none) | other pages allowed to open the game's connection, comma-separated (e.g. `https://play.example.com`). The game's own page always may; any other site's page is turned away |
 | `DS_CENTRAL` | (none) | the central server's address: players come in by its tickets |
 | `DS_PROGRESS` | `1` | `0`: this server doesn't tell the central server how its characters are getting on |
 | `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |
 | `DS_PUBLIC_PORT` | `DS_PORT` | the port it's listed by, when it has no `DS_PUBLIC_URL` |
 | `DS_REGISTER_PER_DAY` | 5 | characters one address may make in a day (`0`: no limit) |
+| `DS_CONNECTIONS_PER_ADDRESS` | 10 | connections one address may hold open at once (more are turned away; `0`: no limit). This machine's own and the friends' relay aren't counted |
 | `DS_PVP` | (off) | `1`: open PvP, players may fight each other outside the arena too (see The arena). An admin's `/pvp on` or `/pvp off` wins over it |
 
 ## Checking it works

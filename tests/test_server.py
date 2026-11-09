@@ -528,6 +528,43 @@ def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch)
     asyncio.run(go())
 
 
+def test_one_address_may_hold_only_so_many_connections(tmp_path, monkeypatch):
+    """DS_CONNECTIONS_PER_ADDRESS: past it an address is turned away (429) until one of its own closes; another
+    address, and this machine's own, aren't held back."""
+    monkeypatch.setenv("DS_TRUST_PROXY", "1")
+    monkeypatch.setenv("DS_CONNECTIONS_PER_ADDRESS", "2")
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                def at(addr):
+                    return http.ws_connect(url, headers={"X-Forwarded-For": addr})
+                a, b = await at("1.1.1.1"), await at("1.1.1.1")
+                with pytest.raises(aiohttp.WSServerHandshakeError) as e:
+                    await at("1.1.1.1")
+                assert e.value.status == 429
+                other = await at("2.2.2.2")                         # (someone else: let in)
+                mine = [await http.ws_connect(url) for _ in range(3)]   # (this machine's own: no limit)
+                await a.close()
+                for _ in range(50):                                 # (the server notices the close)
+                    if game.conns.get("1.1.1.1") == 1:
+                        break
+                    await asyncio.sleep(0.05)
+                c = await at("1.1.1.1")                             # (one closed: room again)
+                for ws in (b, c, other, *mine):
+                    await ws.close()
+                for _ in range(50):
+                    if not game.conns:
+                        break
+                    await asyncio.sleep(0.05)
+                assert game.conns == {} and game.turned_away == set()   # (forgotten once all are gone)
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
 def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
     """A ban is on the character and whose it is: not a new character away."""
     monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
