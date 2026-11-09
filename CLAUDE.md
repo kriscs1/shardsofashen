@@ -27,7 +27,7 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `tests/` | `test_engine.py`, `test_server.py`, `test_central.py`, `test_desktop.py` (pytest) |
 
 References: `dev/Rules.md` (every rule), `dev/Story and Quests.md` (every quest, step by step), `dev/World Plan.md`
-(the mainland), `README-Server.md` (running, deploying, who's who), `dev/Data Formats.md`, `dev/Script Commands.txt`.
+(the mainland), `README-Server.md` (running, deploying, who's who), `dev/Selling the Game.md` (the stores), `dev/Data Formats.md`, `dev/Script Commands.txt`.
 
 ## What to read for a task
 
