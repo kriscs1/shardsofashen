@@ -10,6 +10,7 @@ from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, 
                      ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES)
 from .world import HEAR_CALL
 from .tricks import ANIMAL_TALK, ANIMAL_VOICE
+from .ownspell import OWN
 
 STAND_MS = 300          # (getting up: state.js SIT_MS, and a moment)
 SEAT_FACES = {"N": 1, "E": 2, "S": 4, "W": 8}    # (Seat= in Tiles.ini: the way you face, sitting on it)
@@ -938,6 +939,67 @@ class ActionsMixin:
             out.append([groups.get(pl.kind, "Things"), "%s (%s)" % (pl.name, pl.map), pl.name])
         return out
 
+    def admin_spells(self):
+        """[[spell, title, rank known (0: not), its top rank]] for every spell a scroll teaches (not your own)."""
+        out = []
+        for r in self.spellbook():
+            spell = r["spell"]
+            if spell == OWN:
+                continue
+            top = 1
+            while self.upgrade_scroll(spell, top + 1):
+                top += 1
+            out.append([spell, pretty(spell), r["rank"], top])
+        return out
+
+    def admin_set_spell(self, spell, rank):
+        """Known to a rank, or forgotten (0): for nothing, whatever your Channeling."""
+        row = next((r for r in self.admin_spells() if r[0] == spell), None)
+        if row is None:
+            return "No such spell."
+        rank = max(0, min(row[3], int(val(rank))))
+        if rank:
+            self.spells_known[spell] = rank
+        else:
+            self.spells_known.pop(spell, None)
+        self.dirty_me = True
+        self.dirty_quests = True                         # (the journal's Spells)
+        return "%s: %s." % (row[1], "known as %s" % self.spell_title(spell, rank) if rank else "not known")
+
+    def admin_mobs(self):
+        """[[name, 1 if it's a foe]] for every NPC in Entities.ini, for Spawn."""
+        from ashen import ini
+        names = [sec for sec, kv in ini.sections(self.data.data_file("Entities.ini"))
+                 if any(k.upper() == "TYPE" and v.replace(" ", "").upper() == "NPC" for k, v in kv)]
+        return [[n, 1 if self.w.npc_attitude(n, "") else 0] for n in sorted(names, key=str.lower)]
+
+    def admin_spawn(self, name, count):
+        """count of NPC name, a few steps round you: never respawned, as a map's own would be."""
+        w, p = self.w, self.player
+        if not any(n == name for n, _ in self.admin_mobs()):
+            return "Pick a creature first."
+        made = 0
+        spots = [(dx, dy) for r in (2, 3, 4) for dx in range(-r, r + 1) for dy in range(-r, r + 1)
+                 if max(abs(dx), abs(dy)) == r]
+        for dx, dy in spots:
+            if made >= count:
+                break
+            x, y = p.fx + dx * w.tw, p.fy + dy * w.th
+            m, tx, ty = w.tile_at(p.z, x, y)
+            if m is None or not w.pixel_walkable(p.z, x, y) or m.roof[m.cell(tx, ty)]:
+                continue
+            hostile = w.npc_attitude(name, "")
+            opts = "Attitude=%s Zone=%d,%d,%d,%d" % ("Bad" if hostile else "Good", tx - 2, ty - 2, tx + 2, ty + 2)
+            opts += " Chase=%d,%d,%d,%d Pause=0-1" % (tx - 24, ty - 21, tx + 24, ty + 21) if hostile else                 " Schedule=Always"
+            e = w.add_npc(name, p.z, m.ox + (tx - 1) * w.tw, m.oy + (ty - 1) * w.th - 8, opts, home=m.name)
+            if e is None:
+                continue
+            e.source = "ADMIN"
+            made += 1
+        if not made:
+            return "There's no room for %s round you." % pretty(name)
+        return "Spawned %s%s." % ("%d x " % made if made > 1 else "", pretty(name))
+
     def admin_command(self, msg):
         from ashen import ini
         what = msg.get("do")
@@ -1032,6 +1094,18 @@ class ActionsMixin:
             said = self.admin_set_form(str(msg.get("form", "")), bool(msg.get("learnt")), bool(msg.get("bound")))
             self.emit({"t": "admin_forms", "forms": self.admin_forms()})
             self.emit({"t": "admin_status", "text": said})
+        elif what == "spells":
+            self.emit({"t": "admin_spells", "spells": self.admin_spells()})
+        elif what == "spell":
+            # (a spell known to any of its ranks, or forgotten: for nothing)
+            said = self.admin_set_spell(str(msg.get("spell", "")), msg.get("rank", 0))
+            self.emit({"t": "admin_spells", "spells": self.admin_spells()})
+            self.emit({"t": "admin_status", "text": said})
+        elif what == "mobs":
+            self.emit({"t": "admin_mobs", "mobs": self.admin_mobs()})
+        elif what == "spawn":
+            n = max(1, min(10, int(val(msg.get("count", 1)))))
+            self.emit({"t": "admin_status", "text": self.admin_spawn(str(msg.get("name", "")), n)})
         elif what == "quest":
             # (a quest done or not, a stage, or its variables: quests.py)
             vars_ = msg.get("vars") if isinstance(msg.get("vars"), dict) else None

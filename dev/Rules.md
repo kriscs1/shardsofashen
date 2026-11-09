@@ -480,6 +480,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Lightning leaps** (Spells.ini `Chain=`, `Chain.Range=`, `Chain.Share=`; `spell_chain`): from the foe it hits on
   to the nearest other foe within 3 tiles in sight of it, at half a hit, never one it's struck already: one leap at
   rank I, two at rank II. A leap flies as its own missile from the foe it left, and only to a foe you could cast at.
+- **A bolt's higher rank looks its own**: Shards.ini `Missile.<rank>` (set in `build_shards.py` RANKS, drawn in
+  `build_effects.py`): Fire Bolt II a bigger ball with flame tongues, III white-hot with a comet's tail, Ice Bolt II a
+  shard with two beside it, Lightning II a forked, jagged bolt. A new bolt rank gets its own missile too.
 
 ### Skills
 - Skills go to **25** (Config `Skill.Max.Level`). A level asked for anywhere is on that scale; a script's success
@@ -737,6 +740,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the minimap with the pack below it, and the bag puts the Stats box over the pack (`L.upright` in `layout`).
   Anything new on screen must work in both layouts, and on a phone both ways up, with finger-sized targets; nothing for the app goes in `android/` that the page
   could do.
+- **The admin panel** (`openAdmin`, `admin_command` in `player_actions.py`) gives items, sets skills, goes anywhere,
+  runs any script command, starts an attack, sets town standing, quests, stance forms, and **every spell at any of
+  its ranks or not known** (for nothing, whatever your Channeling), and **spawns any NPC** in Entities.ini, 1 to 10, a
+  few steps round you (a foe with a Chase zone; never respawned, `source` ADMIN). Only for admins (below).
 
 ### Servers, apps and accounts
 

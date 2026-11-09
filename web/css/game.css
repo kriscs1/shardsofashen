@@ -319,6 +319,11 @@ button:disabled { opacity: 0.5; cursor: default; }
   font-size: 13px; overflow-wrap: anywhere; }
 .admin #admin-quest-vars input { flex: 0 0 5em; min-height: 32px; }
 /* stance forms: each its name, learnt and bound (forms.py) */
+.admin #admin-spells { display: grid; grid-template-columns: repeat(auto-fill, minmax(14em, 1fr)); gap: 2px 10px; }
+.admin #admin-spells label { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0; font-size: 13px;
+  min-height: 34px; }
+.admin #admin-spells label > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.admin #admin-spells select { flex: 0 0 auto; width: auto; margin: 0; min-height: 32px; }
 .admin #admin-forms { display: grid; grid-template-columns: repeat(auto-fill, minmax(17em, 1fr)); gap: 2px 10px; }
 .admin #admin-forms > div { display: flex; align-items: center; gap: 8px; font-size: 13px; min-height: 34px; }
 .admin #admin-forms > div > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }

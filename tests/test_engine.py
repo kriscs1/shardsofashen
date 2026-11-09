@@ -2705,6 +2705,51 @@ def test_the_admin_panel_goes_anywhere_and_runs_any_command(world):
     leave(world, s)
 
 
+def test_the_admin_panel_sets_any_spell_to_any_rank_and_spawns_any_creature(world):
+    s = join(world, "Conjurer", "0,0,0", 300, 300)                  # (open ground)
+    s.admin_enabled = True
+    s.out = []
+    s.admin_command({"do": "spells"})
+    spells = {r[0]: r for r in next(ev["spells"] for ev in s.out if ev["t"] == "admin_spells")}
+    assert spells["Fire_Bolt"][3] == 3 and spells["Lightning"][3] == 2 and spells["Teleport_Home"][3] == 1
+    assert "Mega_Potion" not in spells                              # (a potion's herbs, not a spell)
+    assert "Own_Spell" not in spells
+    s.admin_command({"do": "spell", "spell": "Fire_Bolt", "rank": 3})
+    assert s.spell_rank("Fire_Bolt") == 3 and s.spell_ini("Fire_Bolt", "Missile", "") == "Fire_Bolt_Missile_III"
+    s.admin_command({"do": "spell", "spell": "Lightning", "rank": 9})    # (no higher than its top rank)
+    assert s.spell_rank("Lightning") == 2
+    s.admin_command({"do": "spell", "spell": "Fire_Bolt", "rank": 0})
+    assert "Fire_Bolt" not in s.spells_known
+    assert next(ev["text"] for ev in reversed(s.out) if ev["t"] == "admin_status") == "Fire Bolt: not known."
+    s.out = []
+    s.admin_command({"do": "mobs"})
+    mobs = dict(next(ev["mobs"] for ev in s.out if ev["t"] == "admin_mobs"))
+    assert mobs["Wolf"] == 1 and "Logs" not in mobs
+    s.admin_command({"do": "spawn", "name": "Wolf", "count": 3})
+    assert next(ev["text"] for ev in reversed(s.out) if ev["t"] == "admin_status") == "Spawned 3 x Wolf."
+    p = s.player
+    wolves = [e for e in world.ents if e.name == "Wolf" and e.source == "ADMIN"]
+    assert len(wolves) == 3 and all(e.z == p.z and distance(e.cx, e.cy, p.cx, p.cy) < 6 * 32 for e in wolves)
+    assert all(e.hostile for e in wolves)
+    s.admin_command({"do": "spawn", "name": "Nobody_At_All"})
+    assert next(ev["text"] for ev in reversed(s.out) if ev["t"] == "admin_status") == "Pick a creature first."
+    for e in wolves:
+        world.remove_entity(e)
+    leave(world, s)
+
+
+def test_a_bolts_higher_ranks_look_their_own(world):
+    a = join(world, "Bolter", "0,0,0", 300, 300)
+    for spell, ranks in (("Fire_Bolt", ["Fire_Bolt_Missile", "Fire_Bolt_Missile_II", "Fire_Bolt_Missile_III"]),
+                         ("Ice_Bolt", ["Ice_Bolt_Missile", "Ice_Bolt_Missile_II"]),
+                         ("Lightning", ["Lightning_Missile", "Lightning_Missile_II"])):
+        for r, missile in enumerate(ranks, 1):
+            a.spells_known[spell] = r
+            assert a.spell_ini(spell, "Missile", "") == missile
+            assert os.path.exists(os.path.join(os.path.dirname(__file__), "..", "sprites", "Effects", missile + ".png"))
+    leave(world, a)
+
+
 def test_walking_granny_wren_to_her_daughter(world):
     s = join(world, "Guide", "4,4,0", 13 * 32, 9 * 32)              # (Northport's landing)
     s.connected = True

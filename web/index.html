@@ -201,6 +201,11 @@
           <button type="button" id="admin-cmd-go">Run</button></div>
         <span></span>
         <div class="row" id="admin-cmd-args"></div>
+        <span>Spawn a creature</span>
+        <div class="row"><input id="admin-mob-filter" class="admin-filter" placeholder="search..." maxlength="40">
+          <select id="admin-mob"></select>
+          <input id="admin-mob-count" class="admin-num" inputmode="numeric" value="1" maxlength="2" title="1 to 10">
+          <button type="button" id="admin-spawn">Spawn</button></div>
         <span>Start a monster attack</span>
         <div class="row"><input id="admin-wave" value="Ashford_Raid" maxlength="40">
           <button type="button" id="admin-wave-go">Start</button></div>
@@ -217,6 +222,8 @@
           <button type="button" id="admin-quest-go">Set</button></div>
         <span></span>
         <div id="admin-quest-vars"></div>
+        <span>Spells</span>
+        <div id="admin-spells"></div>
         <span>Stance forms</span>
         <div id="admin-forms"></div>
         <span>God mode</span>

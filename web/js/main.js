@@ -354,7 +354,7 @@ function loadView() {
 }
 
 // ----- the admin panel
-let adminItems = [], adminPlaces = [], adminCommands = [];
+let adminItems = [], adminPlaces = [], adminCommands = [], adminMobs = [];
 function openAdmin() {
   releaseKeys();
   $("admin").hidden = false;
@@ -364,6 +364,8 @@ function openAdmin() {
   send({ t: "admin", do: "standings" });
   send({ t: "admin", do: "quests" });
   send({ t: "admin", do: "forms" });
+  send({ t: "admin", do: "spells" });
+  if (!adminMobs.length) send({ t: "admin", do: "mobs" });
   const box = $("admin-skills");
   box.innerHTML = "";
   A.m.skills.forEach((name, i) => {
@@ -549,6 +551,43 @@ function fillAdminForms(forms) {
     box.append(row);
   }
 }
+function fillAdminSpells(spells) {
+  // Spells: each known to a rank, or not at all (for nothing, whatever your Channeling)
+  const box = $("admin-spells");
+  box.innerHTML = "";
+  const roman = ["", "I", "II", "III", "IV", "V"];
+  for (const [spell, title, rank, top] of spells) {
+    const l = document.createElement("label"), name = document.createElement("span"), sel = document.createElement("select");
+    name.textContent = title;
+    for (let r = 0; r <= top; r++) {
+      const o = document.createElement("option");
+      o.value = r;
+      o.textContent = r ? (top > 1 ? "rank " + (roman[r] || r) : "known") : "not known";
+      sel.append(o);
+    }
+    sel.value = rank;
+    sel.addEventListener("change", () => send({ t: "admin", do: "spell", spell, rank: +sel.value }));
+    l.append(name, sel);
+    box.append(l);
+  }
+}
+function fillAdminMobs() {
+  // Spawn: every creature and person, foes first marked (the filter narrows them; the one picked stays picked)
+  const f = $("admin-mob-filter").value.toLowerCase().replace(/_/g, " ");
+  const sel = $("admin-mob"), was = sel.value;
+  sel.innerHTML = "";
+  for (const [name, foe] of adminMobs) {
+    if (f && !name.toLowerCase().replace(/_/g, " ").includes(f)) continue;
+    const o = document.createElement("option");
+    o.value = name;
+    o.textContent = pretty(name) + (foe ? " (foe)" : "");
+    sel.append(o);
+  }
+  if (was && [...sel.options].some((o) => o.value === was)) sel.value = was;
+}
+$("admin-mob-filter").addEventListener("input", fillAdminMobs);
+$("admin-spawn").onclick = () => send({ t: "admin", do: "spawn", name: $("admin-mob").value,
+  count: $("admin-mob-count").value.trim() });
 $("admin-quest-filter").addEventListener("input", fillAdminQuests);
 $("admin-quest").addEventListener("change", showAdminQuest);
 $("admin-quest-done").addEventListener("input", (ev) => send({ t: "admin", do: "quest", quest: $("admin-quest").value,
@@ -1124,6 +1163,8 @@ N.onMessage = (m) => {
     case "admin_standings": fillAdminTowns(m.towns); break;
     case "admin_quests": adminQuests = m.quests; fillAdminQuests(); break;
     case "admin_forms": fillAdminForms(m.forms || []); break;
+    case "admin_spells": fillAdminSpells(m.spells || []); break;
+    case "admin_mobs": adminMobs = m.mobs || []; fillAdminMobs(); break;
     case "admin_status": $("admin-status").textContent = m.text; break;
     default: break;
   }

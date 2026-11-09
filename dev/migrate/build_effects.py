@@ -10,12 +10,15 @@ The game loads these the first time each one is needed (fx_load in ashen\\combat
                            Fire_Burst, Ice_Burst, Spark (lightning), Heal_Glow, Stone_Glow, Teleport_Glow; 32 x 40:
                            Shard_Form, Shard_Fade (a creature drawn together from Shard essence, and let go); and
                            for work: Wood_Chips, Rock_Chips, Splash, Dirt_Clods, Wool_Tufts
-  <Spell>_Missile          16 x 16 projectiles: Fire_Bolt_Missile, Ice_Bolt_Missile, Lightning_Missile
+  <Spell>_Missile          16 x 16 projectiles: Fire_Bolt_Missile, Ice_Bolt_Missile, Lightning_Missile; and a
+                           spell's higher ranks (Shards.ini Missile.<rank>): Fire_Bolt_Missile_II and _III,
+                           Ice_Bolt_Missile_II, Lightning_Missile_II
   Hurt_Top, Hurt_Side      the red flash round the edge of the map when the player is hurt (screen width x 8, 8 x height)
 """
 import math
 import os
 import random
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -320,6 +323,72 @@ def ice_missile():
     return K.outline_img(img, (20, 50, 110))
 
 
+def fire_missile_ii():
+    """Fire Bolt II: a bigger, hotter ball with flame tongues licking back from it and an ember or two."""
+    img = K.new(16, 16)
+    for k in range(6):                            # two tongues of flame behind, wavering apart
+        for side in (-1, 1):
+            K.shaded_ellipse(img, 1.5 + k * 1.5, 8 + side * (2.2 - k * 0.35), 0.8 + k * 0.35, 0.8 + k * 0.3,
+                             (240, 90, 20), (255, 160, 50), (170, 40, 10))
+    K.shaded_ellipse(img, 10, 8, 5.4, 5.4, (255, 150, 30), (255, 220, 90), (180, 40, 10))
+    K.shaded_ellipse(img, 10.5, 7.5, 2.6, 2.6, (255, 245, 190), (255, 255, 255), (255, 200, 90))
+    for x, y in ((2, 3), (4, 12), (1, 10)):      # embers thrown off
+        K.put(img, x, y, (255, 200, 60))
+    return img
+
+
+def fire_missile_iii():
+    """Fire Bolt III: fire burnt white-blue at its heart, a long ragged comet's tail and a spray of sparks."""
+    img = K.new(16, 16)
+    for k in range(9):                            # the long tail, narrowing and reddening away from the head
+        r = 0.6 + k * 0.42
+        tail = K.mix((150, 30, 10), (250, 120, 20), k / 8.0)
+        K.shaded_ellipse(img, 0.5 + k * 1.15, 8 + (0.7 if k % 2 else -0.7) * (1 - k / 9.0), r, r,
+                         tail, K.mix(tail, (255, 230, 120), 0.4), K.mix(tail, (60, 0, 0), 0.4))
+    K.shaded_ellipse(img, 10.5, 8, 5.4, 5.4, (255, 120, 20), (255, 200, 70), (160, 30, 10))
+    K.shaded_ellipse(img, 11, 8, 3.4, 3.4, (255, 240, 170), (255, 255, 230), (255, 190, 80))
+    K.shaded_ellipse(img, 11.3, 7.7, 1.8, 1.8, (180, 220, 255), (240, 250, 255), (120, 180, 255))
+    for x, y in ((3, 2), (6, 1), (2, 13), (5, 14), (8, 3), (0, 6)):   # sparks
+        K.put(img, x, y, (255, 240, 150) if (x + y) % 2 else (255, 150, 40))
+    return img
+
+
+def ice_missile_ii():
+    """Ice Bolt II: a longer shard with two smaller ones flying beside it and frost glittering in its wake."""
+    img = K.new(16, 16)
+
+    def shard(cx, cy, rx, ry, light):
+        for y in range(16):
+            for x in range(16):
+                dx, dy = abs(x - cx) / rx, abs(y - cy) / ry
+                if dx + dy <= 1 and img[y][x] is None:
+                    img[y][x] = (240, 252, 255) if (y < cy and x < cx + 1 and light) else                         (140, 210, 255) if dx + dy < 0.65 else (70, 140, 230)
+    shard(9, 8, 6.5, 3.2, True)
+    shard(5, 2, 4, 1.8, False)
+    shard(5, 13, 4, 1.8, False)
+    img = K.outline_img(img, (20, 50, 110))
+    for x, y in ((0, 8), (1, 6), (1, 10), (0, 4), (0, 12)):   # the frost left behind
+        K.put(img, x, y, (220, 245, 255))
+    return img
+
+
+def lightning_missile_ii():
+    """Lightning II: a forked, jagged bolt (not a ball): white at its heart, a yellow glow round it."""
+    img = K.new(16, 16)
+    path = [(1, 9), (3, 6), (5, 10), (7, 6), (9, 9), (11, 7)]
+    forks = [[(7, 6), (8, 3), (10, 2)], [(5, 10), (6, 13), (8, 13)]]
+    K.shaded_ellipse(img, 12.5, 7.5, 2.4, 2.4, (250, 225, 70), (255, 250, 190), (200, 160, 20))
+    for pts in [path] + forks:                    # the glow first, then the bolt over it
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            for oy in (-1, 1):
+                K.line(img, x0, y0 + oy, x1, y1 + oy, (245, 210, 50))
+    for pts in [path] + forks:
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            K.line(img, x0, y0, x1, y1, (255, 255, 255))
+    K.put(img, 12, 7, (255, 255, 255))
+    return K.outline_img(img, (110, 80, 10))
+
+
 def arrow_missile():
     """An arrow in flight, pointing right (the game mirrors it when it flies left)."""
     img = K.new(16, 16)
@@ -350,6 +419,10 @@ MISSILES = {
     "Fire_Bolt_Missile": lambda: missile((255, 250, 200), (255, 170, 40), (190, 50, 10), (250, 110, 20)),
     "Ice_Bolt_Missile": ice_missile,
     "Lightning_Missile": lambda: missile((255, 255, 255), (250, 240, 120), (200, 170, 30), (240, 230, 150)),
+    "Fire_Bolt_Missile_II": fire_missile_ii,       # (the higher ranks: build_shards.py sets Missile.<rank>)
+    "Fire_Bolt_Missile_III": fire_missile_iii,
+    "Ice_Bolt_Missile_II": ice_missile_ii,
+    "Lightning_Missile_II": lightning_missile_ii,
 }
 
 
@@ -400,13 +473,16 @@ def main():
     os.makedirs(p("sprites", OUT), exist_ok=True)
     made = build()
     written = sum(1 for name, im in made.items() if K.save(OUT, name, im))
-    stale = [f for f in os.listdir(p("sprites", OUT)) if f.lower().endswith(".png") and f[:-4] not in made]
+    mine = re.compile(r"^(Hit|Crit|Heal)\d+$|^(%s)\d+$" % "|".join(ANIMS))   # (only its own kinds: other builders
+    # draw into Effects too - Dark_Bolt_Missile, Dread_Missile, Dark_Burst)
+    stale = [f for f in os.listdir(p("sprites", OUT)) if f.lower().endswith(".png") and f[:-4] not in made
+             and mine.match(f[:-4])]
     for f in stale:
         os.remove(p("sprites", OUT, f))
     print("%d effect sprites, %d written, %d stale removed" % (len(made), written, len(stale)))
     if "--preview" in sys.argv:
         show = ["Hit1", "Hit7", "Hit23", "Hit99", "Crit12", "Crit45", "Heal5", "Heal40", "Miss",
-                "Fire_Bolt_Missile", "Ice_Bolt_Missile", "Lightning_Missile"]
+                "Fire_Bolt_Missile", "Ice_Bolt_Missile", "Lightning_Missile"] + [m for m in MISSILES if "_II" in m]
         for name in ANIMS:
             show += ["%s%d" % (name, i) for i in range(1, 5)]
         K.sheet(p("dev", "Renders", "Effects preview.png"), [made[s] for s in show], scale=3, cols=12)

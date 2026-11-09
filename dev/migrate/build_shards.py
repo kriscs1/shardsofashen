@@ -73,12 +73,16 @@ SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ide
 RANKS = {   # spell: {rank: (its scroll, value, {its Spells.ini values at that rank})}
     # (a rank is never worse at anything but its Shards and the Channeling to learn it; more of what the spell is for;
     # more damage a Shard than the rank below; and never better than the next spell at its own job:
-    # tests/test_engine.py test_every_spell_rank_is_plainly_better)
-    "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "4", "Damage": "4-9", "Cost": "4", "Cooldown": "1.4"}),
-                  3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "6-12", "Cost": "5", "Cooldown": "1.3"})},
-    "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "9", "Damage": "4-10", "Slow": "35,10", "Cost": "8"})},
+    # tests/test_engine.py test_every_spell_rank_is_plainly_better; a bolt's rank looks its own: Missile, drawn by
+    # build_effects.py)
+    "Fire_Bolt": {2: ("Fire_Bolt_Scroll_II", 60, {"Level": "4", "Damage": "4-9", "Cost": "4", "Cooldown": "1.4",
+                                                     "Missile": "Fire_Bolt_Missile_II"}),
+                  3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "6-12", "Cost": "5", "Cooldown": "1.3",
+                                                       "Missile": "Fire_Bolt_Missile_III"})},
+    "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "9", "Damage": "4-10", "Slow": "35,10", "Cost": "8",
+                                                   "Missile": "Ice_Bolt_Missile_II"})},
     "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "14", "Damage": "14-28", "Cost": "13", "Cooldown": "1.5",
-                                                   "Range": "384", "Chain": "2"})},
+                                                   "Range": "384", "Chain": "2", "Missile": "Lightning_Missile_II"})},
     "Frost_Nova": {2: ("Frost_Nova_Scroll_II", 180, {"Level": "11", "Damage": "3-8", "Radius": "128", "Freeze": "7",
                                                      "Cost": "18"})},
     "Fire_Storm": {2: ("Fire_Storm_Scroll_II", 400, {"Level": "20", "Damage": "14-28", "Radius": "192", "Cost": "36"})},

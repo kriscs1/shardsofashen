@@ -1852,6 +1852,9 @@ def check_shards(entities_ini):
                     err(where, "%s=%r is not min-max" % (k, v))
                 elif key == "Slow" and not (len(v.split(",")) == 2 and all(is_num(x) for x in v.split(","))):
                     err(where, "%s=%r is not percent,seconds" % (k, v))
+                elif key == "Missile":                 # (a rank's own bolt: build_effects.py)
+                    if not exists(p("sprites", "Effects", v.strip() + ".png")):
+                        err(where, "%s %r is not in sprites\Effects" % (k, v))
                 elif key not in UPGRADE_RANGES and key not in ("Slow", "Freeze.Word") and not is_num(v):
                     err(where, "%s=%r is not a number" % (k, v))
             continue
