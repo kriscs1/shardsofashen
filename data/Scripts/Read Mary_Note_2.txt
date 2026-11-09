@@ -2,12 +2,12 @@
 01	>Distance.From.Clicked.Entity	64	13
 02	Play.Sound	Paper
 03	Display.Conversation	Last_Will	Every Shard I've weighed here leans the same way, a hair's breadth, if you hang it on a thread. North and west. They all lean to the same place.	Fold it away.	04
-04	>Conditional	$Attr.Mary_Note_2=0	12
+04	>Conditional	$Attr.Mary_Note_2=0	07
 05	Update.Attribute	Mary_Note_2	=1
 06	Update.Attribute	MaryNotes	+1
 07	>Conditional	$Attr.MaryNotesQuest=0	09
 08	Update.Attribute	MaryNotesQuest	=1
-09	>Conditional	$Attr.MaryNotes>=7	12
+09	>Conditional	$Attr.MaryNotes>=7 and $Attr.MaryNotesQuest=1	12
 10	Give.Item	Marys_Map	1
 11	Update.Attribute	MaryNotesQuest	=2
 12	End

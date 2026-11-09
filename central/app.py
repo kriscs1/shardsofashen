@@ -899,6 +899,13 @@ def behind(theirs, ours):
     return bool(a and b and a < b)
 
 
+CENTRAL = web.AppKey("central", Central)
+
+
+async def nothing_to_say(request):
+    return web.Response()
+
+
 def make_central(db_path):
     c = Central(db_path)
     c.version = version_info(ROOT)
@@ -1041,7 +1048,7 @@ def make_central(db_path):
         return web.json_response({"ok": True, "servers": c.store.count_servers(), **c.version}, dumps=compact)
 
     app = web.Application(middlewares=[cors])
-    app["central"] = c
+    app[CENTRAL] = c
     cleaning = web.AppKey("cleaning", asyncio.Task)
 
     async def start_cleaning(app):
@@ -1060,7 +1067,7 @@ def make_central(db_path):
                      ("game/friends", c.game_friends), ("game/standing", c.game_standing),
                      ("game/report", c.game_report), ("google", c.google_result)):
         app.router.add_post("/api/" + path, fn)
-        app.router.add_route("OPTIONS", "/api/" + path, lambda r: web.Response())
+        app.router.add_route("OPTIONS", "/api/" + path, nothing_to_say)
     app.router.add_get("/api/servers", c.servers)
     app.router.add_get("/api/relay", c.relays.host)
     async def to_game(request):                     # (a friend's game's page is a folder: its files beside it)
@@ -1079,11 +1086,16 @@ def make_central(db_path):
     app.router.add_get("/api/hello", c.hello)
     app.router.add_get("/health", health)
     app.router.add_get("/", index)
-    app.router.add_get("/config.js", lambda r: web.FileResponse(os.path.join(home, "config.js"),
-                                                               headers={"Cache-Control": "no-cache"}))
+    async def config_js(request):
+        return web.FileResponse(os.path.join(home, "config.js"), headers={"Cache-Control": "no-cache"})
+    app.router.add_get("/config.js", config_js)
+
+    def picture(pic):
+        async def send(request):                        # (not asked for again each time the start screen opens)
+            return web.FileResponse(os.path.join(home, pic), headers={"Cache-Control": "public, max-age=86400"})
+        return send
     for pic in ("logo.png", "bg.jpg", "favicon.png"):   # (the start screen's pictures, beside it)
-        app.router.add_get("/" + pic, lambda r, pic=pic: web.FileResponse(os.path.join(home, pic), headers={
-            "Cache-Control": "public, max-age=86400"}))     # (not asked for again each time the start screen opens)
+        app.router.add_get("/" + pic, picture(pic))
     if os.path.isdir(home):
         app.router.add_static("/home/", home)
     ads = os.environ.get("DS_CENTRAL_ADS_DIR", "")

@@ -628,10 +628,8 @@ class ItemsMixin:
                                                                ", stolen" if e.stolen else ""), "INFO")
 
     def bank_quantity_of(self, item):
-        for i in range(1, self.data.bank_slots + 1):
-            if self.bank_item[i] == item:
-                return self.bank_qty[i]
-        return 0
+        """All of item in the bank (a stolen lot and an honest one are two slots)."""
+        return sum(self.bank_qty[i] for i in range(1, self.data.bank_slots + 1) if self.bank_item[i] == item)
 
     def bank_deposit(self, e, quantity):
         item, stolen = e.name, getattr(e, "stolen", False)

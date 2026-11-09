@@ -12,9 +12,10 @@
 11	Update.Attribute	ShardgateQuest	=2
 12	Display.Message	Yellow	Bert gave you his plans for a Shardgate (Read them).	-
 13	End
-14	>Quest.Can.Start	ShardgateQuest	19
-15	Display.Conversation	Bert	The barrier's gone, yes, yes. But its anchor isn't: it still hums in the core of the Shardrealm, where all broken magic pools. I can feel it from here.\Build a Shardgate in the old ring of stones on the hill north of the Court: here are my plans. Wake eight of Ashen's shardstones to steady it, pierce the core, break the anchor with the staff, and the realm's yours to wander.	I'll build it.	16
-16	Give.Item	Shardgate_Plans	1
-17	Update.Attribute	ShardgateQuest	=2
-18	Display.Message	Yellow	Quest started: The Shardgate. Bert gave you his plans (Read them).	Quest
-19	End
+14	>Conditional	$Variable.1=0	20
+15	>Quest.Can.Start	ShardgateQuest	20
+16	Display.Conversation	Bert	The barrier's gone, yes, yes. But its anchor isn't: it still hums in the core of the Shardrealm, where all broken magic pools. I can feel it from here.\Build a Shardgate in the old ring of stones on the hill north of the Court: here are my plans. Wake eight of Ashen's shardstones to steady it, pierce the core, break the anchor with the staff, and the realm's yours to wander.	I'll build it.	17
+17	Give.Item	Shardgate_Plans	1
+18	Update.Attribute	ShardgateQuest	=2
+19	Display.Message	Yellow	Quest started: The Shardgate. Bert gave you his plans (Read them).	Quest
+20	End

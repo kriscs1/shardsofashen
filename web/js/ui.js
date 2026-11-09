@@ -10,7 +10,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
-  cooldownLeft, spellAt, spellTitle, castCost, spellSummary } from "./verbs.js";
+  cooldownLeft, spellAt, spellTitle, castCost, spellSummary, held } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
@@ -1660,10 +1660,6 @@ export function hotbarAt(x, y) {
     if (x >= hx && x < hx + w && y >= hy && y < hy + h) return k;
   }
   return -1;
-}
-
-function held(name) {
-  return S.me.inv.filter((i) => i[1] === name).reduce((a, i) => a + i[2], 0);
 }
 
 function drawHotbar(ctx) {

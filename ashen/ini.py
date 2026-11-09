@@ -122,6 +122,12 @@ def sections(path):
     return list(_parsed(path).order)
 
 
+def kept(path):
+    """The file's sections as kept: the same list (not a copy) till the file changes, so a cache built from it can
+    tell it's still good without looking at the file again ([] if there's no such file)."""
+    return _parsed(path).order if path else []
+
+
 def forget(path=None):
     if path is None:
         _cache.clear()

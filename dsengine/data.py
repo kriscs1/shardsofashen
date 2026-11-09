@@ -495,17 +495,20 @@ class GameData:
         return self.places().get(name.upper())
 
     def quest_table(self):
-        """[(name, {KEY: value})] of every quest, in file order."""
-        path = self.data_file("Quests.ini")
-        try:
-            stamp = os.path.getmtime(path)
-        except OSError:
-            return []
+        """[(name, {KEY: value})] of every quest, in file order (read again when Quests.ini changes)."""
+        return self._quests()[1]
+
+    def _quests(self):
+        kept = ini.kept(self.data_file("Quests.ini"))       # (ini looks at the file twice a second at most)
         cache = self._caches.get("quest_table")
-        if cache is None or cache[0] != stamp:
-            table = [(name, {k.upper(): trim(v) for k, v in items}) for name, items in ini.sections(path)]
-            cache = self._caches["quest_table"] = (stamp, table)
-        return cache[1]
+        if cache is None or cache[0] is not kept:
+            table = [(name, {k.upper(): trim(v) for k, v in items}) for name, items in kept]
+            by_attr = {}
+            for name, d in table:
+                if d.get("ATTRIBUTE"):
+                    by_attr.setdefault(d["ATTRIBUTE"].upper(), (name, d))
+            cache = self._caches["quest_table"] = (kept, table, by_attr)
+        return cache
 
     def quest_vars(self):
         """{quest attribute (upper): [attribute, ...]}: the other saved values a quest's scripts keep (for the admin
@@ -554,8 +557,4 @@ class GameData:
         return None, None
 
     def quest_of_attribute(self, attr):
-        want = trim(attr).lower()
-        for name, d in self.quest_table():
-            if d.get("ATTRIBUTE", "").lower() == want:
-                return name, d
-        return None, None
+        return self._quests()[2].get(trim(attr).upper(), (None, None))

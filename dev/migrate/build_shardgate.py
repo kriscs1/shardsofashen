@@ -465,7 +465,8 @@ def scripts():
         ("Update.Attribute", "ShardgateQuest", "=2"),
         ("Display.Message", "Yellow", "Bert gave you his plans for a Shardgate (Read them).", "-"),
         ("End",),
-        ("@late",), (">Quest.Can.Start", "ShardgateQuest", "@end"),
+        ("@late",), (">Conditional", "$Variable.1=0", "@end"),         # (begun already: no second set of plans)
+        (">Quest.Can.Start", "ShardgateQuest", "@end"),
         SK.say("Bert", "The barrier's gone, yes, yes. But its anchor isn't: it still hums in the core of the "
                        "Shardrealm, where all broken magic pools. I can feel it from here.\\Build a Shardgate in the "
                        "old ring of stones on the hill north of the Court: here are my plans. Wake eight of Ashen's "

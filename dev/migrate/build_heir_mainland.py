@@ -1085,12 +1085,15 @@ def grimoire_and_ring():
     w("Take Grimoire_Lectern", [
         (">Distance.From.Clicked.Entity", "48", "@far"),
         ("Get.Value", "ATTRIBUTE", "GrimoireQuest", V1),
+        (">Conditional", "$Variable.1>=1 and $Variable.1<3", "@not_yet"),   # (only once you've come for it, and once)
         ("Remove.Entity", "$Object.under.Cursor.X,$Object.under.Cursor.Y", "Grimoire_Lectern"),
         ("Add.Entity", at(14, 5), "Empty_Lectern", "StaticObject", "-"),
         ("Give.Item", "Grimoire_of_Unbinding", "1"),
         ("Play.Sound", "Quest"),
         ("Update.Attribute", "GrimoireQuest", "=3"),
         ("Display.Message", "Yellow", "Quest complete: The Sunken Grimoire! Take it to Bert.", "Quest"),
+        ("End",),
+        ("@not_yet",), ("Display.Refusal", "The book won't lift from the lectern.", "Fail"),
         ("End",),
     ] + FAR)
     w("Talk to Warden", [

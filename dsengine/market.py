@@ -11,7 +11,7 @@ sale, and puts their own things up at their own price.
 World.market (Market) keeps the listings and the purses (saved with the world); MarketMixin is the player's side."""
 import logging
 
-from ashen.lb import val, lbstr
+from ashen.lb import val, lbstr, pretty
 
 from .entity import ACTIONBOXITEM, INVENTORYITEM
 
@@ -20,10 +20,6 @@ log = logging.getLogger("ashen.market")
 LISTINGS = 18                       # listings a player can have up at once
 MAX_PRICE = 1000000
 BOARD = "Market_Board"
-
-
-def pretty(name):
-    return name.replace("_", " ").replace("(s)", "s")
 
 
 class Market:

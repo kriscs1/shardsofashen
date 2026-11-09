@@ -25,7 +25,7 @@ import logging
 import time
 
 from ashen import ini
-from ashen.lb import val, trim, lbstr, strip_digits
+from ashen.lb import val, trim, lbstr, strip_digits, pretty as pretty_item
 
 from .entity import STATICOBJECT
 from .fences import is_fence, fence_piece, join_around
@@ -935,10 +935,6 @@ class HomeMixin:
             h["cells"][key] = cell
         self.play_sound("Pickup")
         return True
-
-
-def pretty_item(name):
-    return name.replace("_", " ").replace("(s)", "s")
 
 
 def pretty_tile(name):

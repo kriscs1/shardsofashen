@@ -280,11 +280,12 @@ def meg():
         msg("Quest complete: Bandits on the Road... sold to Red Meg, for 300 gold. Frosthold won't thank you."),
         ("End",),
         ("@job",), get("UnderTideQuest", 3), (">Conditional", "$Variable.3=0", "@under1"),
+        (">Quest.Can.Start", "UnderTideQuest", "@plain"),               # (not till Holt's been sent the wrong way)
         say("Holt's men had a lovely walk on the wrong beach, I hear. I owe you.\\And I've a job for a friend. A cask "
             "of my best for Pell, the castle's cellarer: he's in the Court's courtyard. The watch walks there now, "
             "and if they see a cask they'll have it off you.",
             ("I'll carry it.", "@under"), ("Show me your goods.", "@shop"), ("Not now.", "@end")),
-        ("@under",), ("Give.Item", "Smuggled_Brandy", "1"), ("Update.Attribute", "UnderTideQuest", "=1"),
+        ("@under",), ("Update.Attribute", "UnderTideQuest", "=1"), ("Give.Item", "Smuggled_Brandy", "1"),
         msg("Quest started: Under the Tide."), ("End",),
         ("@under1",), (">Conditional", "$Variable.3=1", "@under2"),
         (">Got.Item", "Smuggled_Brandy", "1", "@lost"),

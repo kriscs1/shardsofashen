@@ -7,7 +7,7 @@ import { send } from "./net.js";
 import { V, screenToWorld } from "./render.js";
 import { L } from "./ui.js";
 import { pretty } from "./util.js";
-import { skillLevel } from "./verbs.js";
+import { skillLevel, held } from "./verbs.js";
 
 export const B = { on: false, pieces: [], byId: new Map(), cat: "", piece: "", remove: false,
   last: "", drag: false };
@@ -22,12 +22,6 @@ export function onBuildables(m) {
 }
 
 const onOwnHome = () => !!(S.me && S.me.home && S.me.home.own);
-
-function held(name) {
-  let n = 0;
-  for (const it of (S.me && S.me.inv) || []) if (it[1] === name) n += it[2];
-  return n;
-}
 
 function canAfford(p) { return p.needs.every(([item, q]) => held(item) >= q) && (S.me.shards || 0) >= (p.shards || 0); }
 

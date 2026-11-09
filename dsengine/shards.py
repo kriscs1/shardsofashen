@@ -116,26 +116,25 @@ class ShardMixin:
         """A quest just reached Done: its Quests.ini Reward.Shards, Reward.Items and Reward.XP (skill and xp pairs,
         given as a script's Update.Skill +n is), once (a flag says they've been given); the reward screen opens,
         listing them and whatever the quest's script gives as it finishes."""
-        for name, d in self.help_read_ini("Quests.ini"):
-            if trim(d.get("ATTRIBUTE", "")).upper() != attribute.upper():
-                continue
-            done = val(d.get("DONE", "0"))
-            flag = "ShardsPaid." + attribute
-            if done > 0 and value >= done:
-                self.quest_standing(d, attribute)                   # (the town's thanks: standing.py, its own flag)
-            if done <= 0 or value < done or val(self.get_attribute(flag)) >= 1:
-                return
-            self.update_attribute(flag, "=1")
-            self.reward_begin(name)
-            n = int(val(d.get("REWARD.SHARDS", "0")))
-            if n > 0:
-                self.give_shards(n, "%s: your reward" % name)
-            items = trim(d.get("REWARD.ITEMS", "")).split()
-            for k in range(0, len(items) - 1, 2):
-                self.add_inventory_item(items[k], max(1, int(val(items[k + 1]))))
-            for skill, xp in quest_xp(d):
-                self.update_skill(skill, "+" + lbstr(xp), pop=False)
+        name, d = self.data.quest_of_attribute(attribute)
+        if not d:
             return
+        done = val(d.get("DONE", "0"))
+        flag = "ShardsPaid." + attribute
+        if done > 0 and value >= done:
+            self.quest_standing(d, attribute)                   # (the town's thanks: standing.py, its own flag)
+        if done <= 0 or value < done or val(self.get_attribute(flag)) >= 1:
+            return
+        self.update_attribute(flag, "=1")
+        self.reward_begin(name)
+        n = int(val(d.get("REWARD.SHARDS", "0")))
+        if n > 0:
+            self.give_shards(n, "%s: your reward" % name)
+        items = trim(d.get("REWARD.ITEMS", "")).split()
+        for k in range(0, len(items) - 1, 2):
+            self.add_inventory_item(items[k], max(1, int(val(items[k + 1]))))
+        for skill, xp in quest_xp(d):
+            self.update_skill(skill, "+" + lbstr(xp), pop=False)
 
     def reward_begin(self, quest):
         self.reward = {"quest": quest, "got": {}, "xp": {}, "at": self.now}

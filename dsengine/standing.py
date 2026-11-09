@@ -329,7 +329,7 @@ class StandingMixin:
     # ----- old saves
     def standing_catch_up(self):
         """Quests finished before standing was kept: what they'd have given, given once now, quietly."""
-        for name, d in self.help_read_ini("Quests.ini"):
+        for name, d in self.data.quest_table():
             attr = trim(d.get("ATTRIBUTE", ""))
             if not attr or not any(k.startswith("REWARD.STANDING") and trim(v) for k, v in d.items()):
                 continue

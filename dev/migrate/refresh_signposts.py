@@ -45,6 +45,7 @@ def main():
     w = W.World(0)
     places = towns(w)
     n = 0
+    read = set()
     for m, ln, c in w.lines():
         p = ln.split("\t")
         if p[0] != "StaticObject" or p[1] != "Signpost":
@@ -60,7 +61,14 @@ def main():
             ("Display.Conversation", "Signpost", text, "Okay", "@end"),
             ("@end",), ("End",),
             ("@far",), ("Display.Message", "DarkRed", "You can't read that from here!", "Denied"), ("End",)], MAKER)
+        read.add("Read " + pid)
         n += 1
+    for f in sorted(os.listdir(SK.SCRIPTS)):                 # (a signpost taken up: its words go with it)
+        name = f[:-4]
+        if name.startswith("Read Signpost_") and f.endswith(".txt") and name not in read:
+            first = open(os.path.join(SK.SCRIPTS, f), "rb").readline().decode("cp1252").strip()
+            if first.endswith("\\" + MAKER):
+                SK.remove_script(name)
     print("Signposts: %d read again" % n)
 
 

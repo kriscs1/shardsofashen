@@ -15,6 +15,14 @@ def help_clean(value):
     return value
 
 
+def is_craft_rack(rack, d):
+    """An ItemRacks.ini rack that's a crafting list (CRAFT-..., or Type=Craft), not a shop or a bank."""
+    rtype = help_clean(d.get("TYPE", "")).upper()
+    if rtype in ("SHOP", "GENERAL", "SPECIFIC", "BANK"):
+        return False
+    return rack.upper().startswith("CRAFT-") or rtype in ("CRAFT", "CRAFTING", "CREATABLES")
+
+
 def help_text(value):
     p = value.find("  ;")
     if p >= 0:
@@ -83,10 +91,7 @@ class QuestMixin:
     # ----- the journal's notes
     def quest_title(self, quest):
         q = trim(quest)
-        for name, d in self.help_read_ini("Quests.ini"):
-            if name.lower() == q.lower() or help_clean(d.get("ATTRIBUTE", "")).lower() == q.lower():
-                return name
-        return q
+        return self.data.quest_named(q)[0] or q
 
     def quest_note(self, quest, text, done):
         quest, text = self.quest_title(quest), trim(text)
@@ -185,7 +190,7 @@ class QuestMixin:
     # ----- the quest list (the sidebar's Quests tab and the journal)
     def quest_list(self):
         quests = []
-        for name, d in self.help_read_ini("Quests.ini"):
+        for name, d in self.data.quest_table():
             attribute = help_clean(d.get("ATTRIBUTE", ""))
             done = val(help_clean(d.get("DONE", "")))
             value = val(self.get_attribute(attribute)) if attribute else 0
@@ -235,7 +240,7 @@ class QuestMixin:
 
     def quest_markers(self):
         marks = []
-        for name, d in self.help_read_ini("Quests.ini"):
+        for name, d in self.data.quest_table():
             attribute = help_clean(d.get("ATTRIBUTE", ""))
             done = val(help_clean(d.get("DONE", "")))
             value = val(self.get_attribute(attribute)) if attribute else 0
@@ -289,11 +294,7 @@ class QuestMixin:
     def journal_data(self):
         crafts = []
         for rack, d in self.help_read_ini("ItemRacks.ini"):
-            rtype = help_clean(d.get("TYPE", "")).upper()
-            is_craft = rack.upper().startswith("CRAFT-") or rtype in ("CRAFT", "CRAFTING", "CREATABLES")
-            if rtype in ("SHOP", "GENERAL", "SPECIFIC", "BANK"):
-                is_craft = False
-            if not is_craft:
+            if not is_craft_rack(rack, d):
                 continue
             skill = help_clean(d.get("SKILL", ""))
             name = trim((rack[6:] if rack.upper().startswith("CRAFT-") else rack).replace("_", " "))
@@ -358,8 +359,7 @@ class QuestMixin:
 
         for rack, d in self.help_read_ini("ItemRacks.ini"):           # (crafting lists: as journal_data reads them)
             skill = help_clean(d.get("SKILL", ""))
-            if not skill or not (rack.upper().startswith("CRAFT-") or
-                                 help_clean(d.get("TYPE", "")).upper() in ("CRAFT", "CRAFTING", "CREATABLES")):
+            if not skill or not is_craft_rack(rack, d):
                 continue
             for n in range(1, 201):
                 item = help_clean(d.get("ITEM%d" % n, ""))

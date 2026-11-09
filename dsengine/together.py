@@ -231,14 +231,7 @@ class TogetherMixin:
 
     # ----- quest sync: a stage you reach, reached by your party near you at that same stage
     def quest_attribute(self, name):
-        cache = self.data.cache("quest_attrs")
-        if not cache:
-            for key, items in ini.sections(self.data.data_file("Quests.ini")):
-                a = trim(dict((k.upper(), v) for k, v in items).get("ATTRIBUTE", ""))
-                if a:
-                    cache[a.upper()] = True
-            cache["_"] = True
-        return name.upper() in cache
+        return self.data.quest_of_attribute(name)[0] is not None
 
     def quest_sync(self, name, change, old):
         """After this player's script changed a quest's attribute from old: the same for each party member near who
@@ -259,11 +252,7 @@ class TogetherMixin:
         return moved
 
     def quest_title_of(self, attr):
-        for key, items in ini.sections(self.data.data_file("Quests.ini")):
-            d = {k.upper(): v for k, v in items}
-            if trim(d.get("ATTRIBUTE", "")).upper() == attr.upper():
-                return trim(d.get("TITLE", "")) or pretty(key)
-        return pretty(attr)
+        return self.data.quest_of_attribute(attr)[0] or pretty(attr)
 
     def sync_give(self, item, n):
         """A quest's own thing given in this script (one that can't be dropped): to the party who moved on with you."""

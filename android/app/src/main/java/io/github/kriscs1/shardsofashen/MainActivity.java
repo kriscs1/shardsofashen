@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.view.autofill.AutofillManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -231,6 +232,18 @@ public class MainActivity extends Activity {
                 } catch (android.content.ActivityNotFoundException e) {
                     web.evaluateJavascript("window.onLinkFailed && window.onLinkFailed()", null);
                 }
+            });
+        }
+
+        /** A sign-in (or a new account) went through: the phone's password manager (Android's autofill) may now offer to
+         *  keep the name and password typed into the start screen. */
+        @JavascriptInterface
+        public void signedIn() {
+            if (!home()) return;
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT < 26) return;    // (no autofill before Android 8)
+                AutofillManager af = getSystemService(AutofillManager.class);
+                if (af != null) af.commit();
             });
         }
 

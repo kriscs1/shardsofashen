@@ -719,6 +719,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Every version has the same start screen** (`web/home/`): sign in to your Hallisium account first (or make one, or a
   forgotten password by email; in the apps, or play without one), then what's above.
   Signing out forgets the keys games know your account by; a guest's keys stay, so its characters are still there.
+  **Password managers can keep the sign-in** (the owner's wish): the forms' fields keep their `name`s and `autocomplete`
+  hints, and a sign-in or new account that works goes through `remember()` (Chrome's and Edge's `PasswordCredential`,
+  the Android app's `DSApp.signedIn` for its autofill, and the form taken off the page, never its password emptied
+  first, which is how Firefox, Safari and the rest know it worked).
   Joining takes a ticket from the central server made out to that server's id. **The central server is
   `https://shardsofashen.hallisium.com`** (`web/home/config.js`, a cloud server's `DS_CENTRAL`); `deploy/central-setup.sh`
   sets one up on a VM in one line.

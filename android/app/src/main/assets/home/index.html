@@ -152,16 +152,16 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
       <button id="google" type="button" class="google" hidden>Continue with Google</button>
       <div class="tabs" role="tablist"><button data-tab="in" class="on">Sign in</button><button data-tab="new">Create account</button>
         <button data-tab="lost">Forgotten?</button></div>
-      <form id="form-in" class="stack" autocomplete="on">
-        <label class="field">Name<input id="in-name" maxlength="20" autocomplete="username" required></label>
-        <label class="field">Password<input id="in-password" type="password" maxlength="200" autocomplete="current-password" required></label>
+      <form id="form-in" class="stack" method="post" autocomplete="on">
+        <label class="field">Name<input id="in-name" name="username" maxlength="20" autocomplete="username" required></label>
+        <label class="field">Password<input id="in-password" name="password" type="password" maxlength="200" autocomplete="current-password" required></label>
         <button type="submit" class="go">Sign in</button>
         <p class="note">One Hallisium account for every game: the characters you make need no password of their own.</p>
       </form>
-      <form id="form-new" class="stack" hidden>
-        <label class="field">Name (what everyone sees)<input id="new-name" maxlength="20" autocomplete="username" required></label>
+      <form id="form-new" class="stack" method="post" hidden>
+        <label class="field">Name (what everyone sees)<input id="new-name" name="username" maxlength="20" autocomplete="username" required></label>
         <label class="field">Email (the only way back in if you forget your password; we'll send a link to confirm it)<input id="new-email" type="email" maxlength="254" autocomplete="email" required></label>
-        <label class="field">Password<input id="new-password" type="password" maxlength="200" autocomplete="new-password" required></label>
+        <label class="field">Password<input id="new-password" name="password" type="password" maxlength="200" autocomplete="new-password" required></label>
         <label class="field" id="claim-row" hidden>Admin code (from the server's log)<input id="new-claim" maxlength="40" autocomplete="off"></label>
         <label class="agree"><input id="new-agree" type="checkbox" required><span>I've read and agree to the
           <a href="#" class="privacy-link">privacy policy</a>.</span></label>
@@ -340,6 +340,7 @@ function offline(words) {
 
 // ----- 1. signing in
 function showWelcome() {
+  unpark();
   $("welcome").hidden = false; $("main").hidden = true; setTimeout(() => $("in-name").focus(), 50);
   if (app && app.banner) { app.banner(false); document.body.classList.remove("banner"); }
 }
@@ -378,10 +379,26 @@ async function account(path, body, then) {
     then(r);
   } catch (e) { done(); toast("The central server didn't answer.", true); }
 }
+// (a password manager keeps the sign-in: told so outright where it can be (Chrome and Edge; the Android app's autofill),
+//  and the form's taken off the page once it's worked, which is how Firefox, Safari and the rest know it went through;
+//  it's put back, its password emptied, for the next sign-in)
+const parked = [];
+function remember(form, name, password) {
+  if (window.PasswordCredential && navigator.credentials)
+    navigator.credentials.store(new PasswordCredential({ id: name, password, name })).catch(() => {});
+  if (app && app.signedIn) app.signedIn();
+  const f = $(form);
+  parked.push([f, f.parentNode, f.nextSibling]);
+  f.remove();
+}
+function unpark() {
+  while (parked.length) { const [f, parent, next] = parked.pop(); parent.insertBefore(f, next); }
+  $("in-password").value = ""; $("new-password").value = "";
+}
 $("form-in").onsubmit = (ev) => {
   ev.preventDefault();
   account("/api/login", { name: $("in-name").value, password: $("in-password").value }, (r) => {
-    token = r.token; store.set("token", token); $("in-password").value = ""; signedIn(r.name);
+    token = r.token; store.set("token", token); remember("form-in", r.name, $("in-password").value); signedIn(r.name);
     toast(`Welcome back, ${r.name}.`);
     if (r.needs_email) $("chip").onclick();
   });
@@ -390,7 +407,7 @@ $("form-new").onsubmit = (ev) => {
   ev.preventDefault();
   account("/api/register", { name: $("new-name").value, email: $("new-email").value, password: $("new-password").value,
     claim: $("new-claim").value }, (r) => {
-    token = r.token; store.set("token", token); $("new-password").value = ""; signedIn(r.name);
+    token = r.token; store.set("token", token); remember("form-new", r.name, $("new-password").value); signedIn(r.name);
     dialog(`<h2>Welcome to Ashen, ${esc(r.name)}!</h2><p>` + (canMail ?
       "We've emailed you a link. Confirm your email with it to join a game: it's also the only way back in if you forget your password." :
       "This server can't send email just now. Confirm your email from your account once it can, to join a game: it's also the only way back in if you forget your password.") +

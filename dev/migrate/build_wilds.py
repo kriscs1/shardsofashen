@@ -1050,6 +1050,7 @@ def frog_scripts():
     talk("Mother_Natter", [
         ("Get.Value", "ATTRIBUTE", "FrogQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@one"),
+        (">Quest.Can.Start", "FrogQuest", "@not_yet"),
         SK.say("Marsh_Witch", "Mind my frogs. They're all somebody. (She looks you up and down.) You've the look of "
                               "someone who'll do a thing for an old woman. The king's lost his pearl, and he's "
                               "sulking, and when he sulks nobody sings.",
@@ -1080,6 +1081,8 @@ def frog_scripts():
         ("@three",),
         SK.say("Marsh_Witch", "He's singing again: hear him? The whole marsh is. Thank you, dear. Come and be a frog "
                               "whenever you like.", ("Make me a frog.", "@again"), ("Goodbye.", "@end")),
+        ("@not_yet",),
+        SK.say("Marsh_Witch", "Mind my frogs. They're all somebody.", ("Goodbye.", "@end")),
         ("@end",),
         ("End",)])
     talk("Frog_King", [
@@ -1137,6 +1140,7 @@ def pell_scripts():
     talk("Pell", [
         ("Get.Value", "ATTRIBUTE", "DelverQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@asked"),
+        (">Quest.Can.Start", "DelverQuest", "@young"),                  # (level 14: the wraith's no job for less)
         SK.say("Delver_Ghost", "Ah. Another one with a lamp. Don't worry, I'm not the one to worry about down here. I'm "
                                "Pell. I worked this vein forty years, and I'd still be working it, if it wasn't for "
                                "that thing in the east tunnel.",
@@ -1161,6 +1165,9 @@ def pell_scripts():
                                "for me. It wants a living hand.", ("Rest well, Pell.", "@end")),
         ("@nopick",),
         SK.say("Delver_Ghost", "East tunnel. It knows these halls. Don't let it get behind you.", ("I'll go.", "@end")),
+        ("@young",),
+        SK.say("Delver_Ghost", "(A miner, grey and see-through, works at the rock with his bare hands. He doesn't look "
+                               "up.)", ("Goodbye.", "@end")),
         ("@rest",),
         SK.say("Delver_Ghost", "(He's working the rock with his old pick, very slowly, making no sound at all. He "
                                "nods to you, and goes on.)", ("Goodbye, Pell.", "@end")),

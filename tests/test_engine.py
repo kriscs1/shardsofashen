@@ -2132,6 +2132,8 @@ def test_sending_holt_to_the_wrong_cove_and_under_the_tide(world):
     other = join(world, "Bystander", "21,5,0", 10 * 32, 17 * 32)
     assert world.placed_entity("Meg_Cot", other) is None            # (hers to you alone)
     leave(world, other)
+    smugglers_talk(world, s, "Red_Meg", 2)                          # (no job till Holt's been sent the wrong way)
+    assert s.items_held("Smuggled_Brandy") == 0 and s.get_attribute("UnderTideQuest") == "0"
     gold = s.items_held("Gold_Coin(s)")
     smugglers_talk(world, s, "Smuggler_Sergeant", 1)                # (only the wrong beach to tell him)
     assert s.get_attribute("SmugglerQuest") == "4" and s.items_held("Gold_Coin(s)") == gold + 60
@@ -5018,6 +5020,7 @@ def test_stolen_goods_stay_marked_wherever_they_go(world):
     assert s.bank_stolen[slot] and s.items_held("Silver_Ring", True) == 0 and s.items_held("Silver_Ring", False) == 1
     s.bank_deposit(next(e for e in s.inv if e.name == "Silver_Ring"), 1)
     assert sum(1 for i in range(1, s.data.bank_slots + 1) if s.bank_item[i] == "Silver_Ring") == 2
+    assert s.get_script_value("BANK", "Silver_Ring") == "3"         # (a script counts both slots)
     s.bank_withdraw(type("Slot", (), {"misc": slot})(), -1)
     assert s.items_held("Silver_Ring", True) == 2 and not s.bank_stolen[slot]
     # (saved and loaded)
@@ -8435,11 +8438,12 @@ def test_an_npc_there_only_for_some(world):
     leave(world, t)
 
 
-def test_a_quest_ending_is_kept_with_its_own_journal_line(world):
+def test_a_quest_ending_is_kept_with_its_own_journal_line(world, monkeypatch):
     s = join(world, "Chooser")
     quest = {"GIVER": "Villager", "ATTRIBUTE": "TestRunQuest", "STAGE0": "", "STAGE1": "Decide.", "DONE": "2",
              "ENDING": "TestRunEnding", "ENDING1": "You sided with the watch.", "ENDING2": "You sided with Meg."}
-    s.help_read_ini = lambda f: [("The Test Run", quest)] if f == "Quests.ini" else []
+    monkeypatch.setattr(world.data, "_quests", lambda: (None, [("The Test Run", quest)],
+                                                        {"TESTRUNQUEST": ("The Test Run", quest)}))
     s.update_attribute("TestRunQuest", "=1")
     q = s.quest_list()[0]
     assert q["status"] == 0 and q["text"] == "Decide."
@@ -9308,3 +9312,114 @@ def test_marsh_fever_paid_off_or_run_out(world):
         assert s.get_attribute("FeverQuest") == "4" and s.standing("Mirefold") == standing
         assert words in ending_of(s, "Marsh Fever")
         leave(world, s)
+
+
+# ---------------------------------------------------------------- quests that wait for their stage
+def test_the_grimoire_stays_on_its_lectern_till_you_come_for_it(world):
+    s = join(world, "Reader", "3,18,-1", 13 * 32, 8 * 32)
+    s.connected = True
+    run_for(world, 10)
+    lectern = next(e for e in world.ents if e.name == "Grimoire_Lectern" and e.map == "3,18,-1" and e.alive
+                   and world.visible_to(e, s))
+    near(world, s, lectern, 0, 40)
+    s.choose_verb("Take", lectern, int(lectern.cx), int(lectern.cy))
+    run_for(world, 10)
+    assert s.items_held("Grimoire_of_Unbinding") == 0 and s.get_attribute("GrimoireQuest") == "0"
+    s.update_attribute("GrimoireQuest", "=2")                       # (the scholar's sent you, and you've dug in)
+    s.choose_verb("Take", lectern, int(lectern.cx), int(lectern.cy))
+    run_for(world, 10)
+    assert s.items_held("Grimoire_of_Unbinding") == 1 and s.get_attribute("GrimoireQuest") == "3"
+    leave(world, s)
+
+
+def test_pell_has_no_job_for_a_beginner(world):
+    s = join(world, "Lamp")
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+    pell = world.placed_entity("Pell", s)
+    assert pell is not None
+    near(world, s, pell, 26, 0)
+    assert talk_to(world, s, pell)
+    assert "Pell" not in s.ab_text and len(s.responses) == 1        # (a miner at work, no more)
+    s.close_action_box(-1)
+    run_for(world, 5)
+    s.player_level = lambda: 20
+    assert talk_to(world, s, pell)
+    assert "I'm Pell" in s.ab_text
+    s.close_action_box(-1)
+    leave(world, s)
+
+
+def test_the_barrow_king_falling_before_you_were_sent_moves_nothing(world):
+    s = join(world, "Grave")
+    s.start_script("Kill Barrow_King", True)
+    run_for(world, 5)
+    assert s.get_attribute("BarrowQuest") == "0"
+    s.update_attribute("BarrowQuest", "=2")
+    s.start_script("Kill Barrow_King", True)
+    run_for(world, 5)
+    assert s.get_attribute("BarrowQuest") == "3"
+    leave(world, s)
+
+
+
+def test_the_frog_kings_pearl_from_the_witch_to_the_throne(world):
+    s = join(world, "Croaky")
+    s.connected = True
+    smugglers_talk(world, s, "Mother_Natter", 1)
+    assert s.get_attribute("FrogQuest") == "0" and s.player_form() == ""    # (not before the mainland)
+    s.update_attribute("Passage", "=5")
+    smugglers_talk(world, s, "Mother_Natter", 1, 1)
+    assert s.get_attribute("FrogQuest") == "1" and s.player_form() == "Frog"
+    smugglers_talk(world, s, "Marsh_Frog_King", 1, 1)
+    assert s.get_attribute("FrogQuest") == "2"
+    nest = next(e for e in world.ents if e.name == "Heron_Nest" and e.alive)
+    near(world, s, nest, 0, 40)
+    s.do_action("Search", nest)
+    run_for(world, 10)
+    assert s.get_attribute("FrogQuest") == "2"                     # (a frog can't climb)
+    s.end_swap()
+    s.do_action("Search", nest)
+    run_for(world, 10)
+    assert s.get_attribute("FrogQuest") == "3" and s.rack_type == "Chest"     # (shown in the nest, to take)
+    s.action_box_response_chosen(1)                                 # (Take everything)
+    assert s.items_held("Frog_Pearl") == 1
+    smugglers_talk(world, s, "Marsh_Frog_King")
+    assert s.get_attribute("FrogQuest") == "3"                     # (he won't talk to anything with ears)
+    smugglers_talk(world, s, "Mother_Natter", 1)
+    assert s.player_form() == "Frog"
+    smugglers_talk(world, s, "Marsh_Frog_King", 1)
+    assert s.get_attribute("FrogQuest") == "4" and s.items_held("Frog_Pearl") == 0
+    leave(world, s)
+
+
+def test_the_herbalists_remedy_wants_mushrooms_and_silk(world):
+    herbalist = next(e for e in world.ents if e.name == "Herbalist" and e.alive)
+    s = join(world, "Poultice", herbalist.map, 300, 300)
+    s.connected = True
+    s.player_level = lambda: 2
+    s.update_attribute("Passage", "=5")
+    day = world.day_fraction()
+    world.set_day_fraction(0.5)                                     # (she's up and about at noon)
+    if herbalist.ai is not None:
+        herbalist.ai.asleep = False
+    near(world, s, herbalist)
+    for answers in ((3, 1), (3,)):                                  # (taken on; then back with nothing)
+        assert talk_to(world, s, herbalist)
+        for n in answers:
+            s.action_box_response_chosen(n)
+            run_for(world, 5)
+        if s.ab_mode:
+            s.close_action_box(-1)
+        run_for(world, 5)
+        assert s.get_attribute("RemedyQuest") == "1"
+    s.add_inventory_item("Cave_Mushroom", 3)
+    s.add_inventory_item("Spider_Silk", 2)
+    assert talk_to(world, s, herbalist)
+    s.action_box_response_chosen(3)
+    run_for(world, 5)
+    s.action_box_response_chosen(1)                                 # (Thank you!)
+    run_for(world, 5)
+    assert s.get_attribute("RemedyQuest") == "2" and s.items_held("Cave_Mushroom") == 0
+    world.set_day_fraction(day)
+    leave(world, s)

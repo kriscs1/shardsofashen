@@ -11,7 +11,7 @@ import aiohttp
 import pytest
 from aiohttp import web
 
-from central.app import make_central
+from central.app import make_central, CENTRAL
 from central.store import CentralStore
 from server.app import make_app, GAME, PROGRESS
 from tests.test_server import ROOT, come_in, device_of, replies
@@ -97,7 +97,7 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
         capp = make_central(str(tmp_path / "central.db"))
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        db = capp["central"].store
+        db = capp[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 async def forgot(who):
@@ -156,7 +156,7 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
                 assert (await post(http, c + "/api/account", {"token": token}))["email"] == "new@example.com"
 
                 mail.SENT.clear()                                                              # (no flooding an address)
-                capp["central"].confirms = {}                                                  # (a new day's count)
+                capp[CENTRAL].confirms = {}                                                  # (a new day's count)
                 await post(http, c + "/api/email", {"token": other["token"], "email": "flood@example.com"})
                 tries = [await post(http, c + "/api/email/again", {"token": other["token"]}) for _ in range(8)]
                 assert len([m for m in mail.SENT if m[0] == "flood@example.com"]) == 5
@@ -190,7 +190,7 @@ def test_no_recovery_codes_and_every_account_has_an_email(tmp_path, monkeypatch)
         capp = make_central(path)
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        store = capp["central"].store
+        store = capp[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 assert store.account("Oldie")[2] == ""                                         # (wiped)
@@ -234,7 +234,7 @@ def test_a_bans_reason_shows_where_they_have_proved_who_they_are(tmp_path, monke
         crunner, cport = await run(make_central(str(tmp_path / "central.db")))
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL_ADMINS", "Boss")
-        store = crunner.app["central"].store
+        store = crunner.app[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 tok = (await post(http, central + "/api/register", {"name": "Rogue", **SIGNUP}))["token"]
@@ -263,15 +263,15 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
         quiet(gapp)
         grunner, gport = await run(gapp)
         game, url = gapp[GAME], "ws://127.0.0.1:%d/ws" % gport
-        store = capp["central"].store
+        store = capp[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 boss = (await post(http, c + "/api/register", {"name": "Boss", **SIGNUP,
-                                                               "claim": capp["central"].claims.get("boss", "")}))["token"]
+                                                               "claim": capp[CENTRAL].claims.get("boss", "")}))["token"]
                 pal = (await post(http, c + "/api/register", {"name": "Pal", **SIGNUP}))["token"]
 
                 async def signup(name):
-                    capp["central"].signups.clear()
+                    capp[CENTRAL].signups.clear()
                     return (await post(http, c + "/api/register", {"name": name, **SIGNUP,
                                                                    "email": name + "@example.com"}))["token"]
 
@@ -303,13 +303,13 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
                 grant = store.new_grant("Kept", "hostgame1")
                 host = await http.ws_connect("http://127.0.0.1:%d/api/relay?grant=%s&key=hostgame1" % (cport, grant))
                 await asyncio.sleep(0.1)
-                assert "hostgame1" in capp["central"].relays.tunnels
+                assert "hostgame1" in capp[CENTRAL].relays.tunnels
                 count = store.count_accounts()
 
                 assert (await post(http, c + "/api/admin/delete", {"token": boss, "name": "Kept"}))["ok"]
                 await gone_from_everywhere("Kept", tok)
                 await host.receive()
-                assert host.closed and "hostgame1" not in capp["central"].relays.tunnels
+                assert host.closed and "hostgame1" not in capp[CENTRAL].relays.tunnels
                 await game.keep_friends()                                       # (the minute's check, in play)
                 assert (await replies(ws, ("kicked",)))["t"] == "kicked"
                 await ws.close()
@@ -325,7 +325,7 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
                 assert not m["ok"] and "deleted" in m["text"]
                 m = await post(http, c + "/api/reset", {"name": "Kept", "code": "", "password": "anotherpassword"})
                 assert not m["ok"]
-                capp["central"].signups.clear()
+                capp[CENTRAL].signups.clear()
                 m = await post(http, c + "/api/register", {"name": "kept", **SIGNUP})
                 assert not m["ok"] and "taken" in m["text"]                     # (nor by another case of it)
                 assert not (await post(http, c + "/api/friend", {"token": pal, "name": "Kept"}))["ok"]
@@ -603,7 +603,7 @@ def test_email_reset_privacy_admin_and_ads(tmp_path, monkeypatch):
                 squat = await post(http, c + "/api/register", {"name": "Boss", **SIGNUP})
                 assert not squat["ok"] and squat["claim"]       # (an admin's name: only with the code from the log)
                 boss = (await post(http, c + "/api/register", {"name": "Boss", **SIGNUP,
-                                                               "claim": capp["central"].claims["boss"]}))["token"]
+                                                               "claim": capp[CENTRAL].claims["boss"]}))["token"]
                 mine = (await post(http, c + "/api/login", {"name": "Mail", "password": "newpassword1"}))["token"]
                 assert not (await post(http, c + "/api/admin/stats", {"token": mine}))["ok"]    # (not an admin)
                 found = (await post(http, c + "/api/admin/accounts", {"token": boss, "q": "mail"}))["accounts"]
@@ -632,7 +632,7 @@ def test_a_listed_game_is_approved_again_when_it_changes_and_calls_are_limited(t
         capp = make_central(str(tmp_path / "central.db"))
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        store = capp["central"].store
+        store = capp[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 r = await post(http, c + "/api/announce", {"name": "Good Game", "url": "https://good.example",
@@ -1092,7 +1092,7 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
         game.central_post = spying
         try:
             async with aiohttp.ClientSession() as http:
-                boss = (await post(http, central + "/api/register", {"name": "Boss", "claim": capp["central"].claims["boss"], **SIGNUP}))["token"]
+                boss = (await post(http, central + "/api/register", {"name": "Boss", "claim": capp[CENTRAL].claims["boss"], **SIGNUP}))["token"]
                 ann = (await post(http, central + "/api/register", {"name": "Ann", **SIGNUP}))["token"]
                 t = await post(http, central + "/api/ticket", {"token": ann, "server": game.server_id()})
                 ws, m = await ticket_in(http, wsurl, t["ticket"], name="Annika")
@@ -1206,7 +1206,7 @@ def test_a_report_is_taken_only_as_far_as_it_should_be(tmp_path, monkeypatch, co
         capp = make_central(str(tmp_path / "central.db"))
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        db = capp["central"].store
+        db = capp[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 await post(http, c + "/api/register", {"name": "Real", **SIGNUP})
@@ -1229,7 +1229,7 @@ def test_a_report_is_taken_only_as_far_as_it_should_be(tmp_path, monkeypatch, co
                     assert (await post(http, url, {"secret": mine, "characters": bad}))["took"] == 0
                 many = [{"name": "N%d" % i} for i in range(200)]
                 assert (await post(http, url, {"secret": mine, "characters": many}))["took"] == 50
-                capp["central"].reports.clear()
+                capp[CENTRAL].reports.clear()
                 import gzip
                 async with http.post(url, data=gzip.compress(json.dumps({"secret": "c" * 32, "characters": [{"name": "Zip"}]}).encode()),
                                      headers={"Content-Type": "application/json", "Content-Encoding": "gzip"}) as z:
@@ -1245,13 +1245,13 @@ def test_a_report_is_taken_only_as_far_as_it_should_be(tmp_path, monkeypatch, co
                 assert (await post(http, url, {"secret": mine, "characters": [{"name": "After"}]}))["took"] == 1
                 assert db.find_characters("After") and not db.find_characters("Broken")
                 # (too many from one address)
-                capp["central"].reports.clear()
+                capp[CENTRAL].reports.clear()
                 for _ in range(90):
                     await post(http, url, {"secret": mine, "characters": []})
                 assert not (await post(http, url, {"secret": mine, "characters": []}))["ok"]
                 # (nor new games without end)
-                capp["central"].reports.clear()
-                capp["central"].new_reporters.clear()
+                capp[CENTRAL].reports.clear()
+                capp[CENTRAL].new_reporters.clear()
                 for i in range(20):
                     assert (await post(http, url, {"secret": ("%02d" % i) * 16, "characters": []}))["ok"]
                 assert not (await post(http, url, {"secret": "d" * 32, "characters": []}))["ok"]
@@ -1348,7 +1348,7 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
         capp = make_central(str(tmp_path / "central.db"))
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        central = capp["central"]
+        central = capp[CENTRAL]
         db = central.store
         jar = aiohttp.CookieJar(unsafe=True)
         try:
@@ -1543,7 +1543,7 @@ def test_sql_injection_on_every_way_in(tmp_path, monkeypatch, confirmed):
         capp = make_central(str(tmp_path / "central.db"))
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        central = capp["central"]
+        central = capp[CENTRAL]
         db = central.store
         try:
             async with aiohttp.ClientSession() as http:
@@ -1669,7 +1669,7 @@ def test_the_central_server_answers_in_as_few_bytes_as_it_can(tmp_path, confirme
         capp = make_central(str(tmp_path / "central.db"))
         runner, port = await run(capp)
         c = "http://127.0.0.1:%d" % port
-        db = capp["central"].store
+        db = capp[CENTRAL].store
         try:
             async with aiohttp.ClientSession() as http:
                 # (the list as a browser has it: a few bytes)
@@ -1715,10 +1715,10 @@ def test_the_central_server_answers_in_as_few_bytes_as_it_can(tmp_path, confirme
 
                 # (old rows and the counts kept in memory are cleared without a game having to call)
                 # (long ago by the monotonic clock: 0.0 isn't, on a machine only just started)
-                capp["central"].fails[("addr", "1.2.3.4")] = [time.monotonic() - 9999]
-                capp["central"].signups["1.2.3.4"] = ["19990101"]
-                capp["central"].housekeeping()
-                assert ("addr", "1.2.3.4") not in capp["central"].fails and "1.2.3.4" not in capp["central"].signups
+                capp[CENTRAL].fails[("addr", "1.2.3.4")] = [time.monotonic() - 9999]
+                capp[CENTRAL].signups["1.2.3.4"] = ["19990101"]
+                capp[CENTRAL].housekeeping()
+                assert ("addr", "1.2.3.4") not in capp[CENTRAL].fails and "1.2.3.4" not in capp[CENTRAL].signups
         finally:
             await runner.cleanup()
     asyncio.run(go())
