@@ -106,23 +106,25 @@ export async function playSound(name, at = null, loud = 1) {
 // at their own pitch and a shade either side of it)
 let lastVoice = "";
 export async function playVoice(kind, pitch = 1) {
-  if (!O.sound || !O.voices || !AU.ctx || !kind) return;
+  if (!O.sound || !O.voices || !AU.ctx || !kind) return 0;
   const s = A.m.sounds || {};
-  const takes = [1, 2, 3, 4, 5, 6].map((n) => `Voice_${kind}${n > 1 ? "_" + n : ""}.wav`).filter((t) => s[t]);
-  if (!takes.length) return;
+  const takes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `Voice_${kind}${n > 1 ? "_" + n : ""}.wav`).filter((t) => s[t]);
+  if (!takes.length) return 0;
   const others = takes.length > 1 ? takes.filter((t) => t !== lastVoice) : takes;
   const take = others[Math.floor(Math.random() * others.length)];
   lastVoice = take;
   const b = await buffer(s[take]);
-  if (!b) return;
+  if (!b) return 0;
   const src = AU.ctx.createBufferSource();
   src.buffer = b;
-  src.playbackRate.value = pitch * (0.96 + Math.random() * 0.08);
+  const rate = pitch * (0.96 + Math.random() * 0.08);
+  src.playbackRate.value = rate;
   const gain = AU.ctx.createGain();
   gain.gain.value = 0.6 * O.volume / 100;
   src.connect(gain);
   gain.connect(AU.master);
   src.start();
+  return b.duration / rate * 1000;                      // (how long it sounds, ms: the next waits for it)
 }
 
 // ----- the music: the place's theme (data\Music.ini), Hearth indoors; a tune carries on where it left off

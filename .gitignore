@@ -25,3 +25,4 @@ dev/Redo List.txt
 *.keystore
 /dist/
 /build/
+/dev/Voices/

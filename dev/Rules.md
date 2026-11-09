@@ -664,9 +664,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `dev/migrate/build_soundscape.py`'s (`build_sounds.arpeggio` plucks a harp); a sound with takes (`Fail`, `Fail_2`,
   `Fail_3`) is played at random among them.
 - **People murmur as they speak**: a conversation's words come a few at a time (a click shows the rest), with a
-  syllable of the speaker's voice as each word starts (`web/js/voice.js`). Voices are breath through vowel shapes,
-  never words (`build_voices.py`, which gives each speaker its `Voice=`; a new speaker gets one there too). Each
-  person placed has a pitch of their own, the same every time (`npc_voice`). Notices, signs and letters are silent.
+  syllable of the speaker's voice as each word starts (`web/js/voice.js`). Voices are real people mumbling, never
+  words: syllables cut from CC0 recordings, never synthesised (that sounded like a machine): `build_voices.py`,
+  which also gives each speaker its `Voice=` (a new speaker gets one there too). Each person placed has a pitch of
+  their own, the same every time (`npc_voice`). Notices, signs and letters are silent.
   Options can turn it off: the words then come all at once.
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.

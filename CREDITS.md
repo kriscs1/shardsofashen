@@ -20,8 +20,15 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/MakeFire.wav` | lighting a fire | [Fire Crackling](https://opengameart.org/content/fire-crackling) | AntumDeluge | CC0 |
 | `sounds/PutFireOut.wav` | putting a fire out (`Marker #1`, faded) | [Steam release sounds](https://opengameart.org/content/steam-release-sounds) | bart | CC0 |
 | `sounds/StrikeFlint.wav` | striking a flint | [Flare ignition](https://opengameart.org/content/flare-ignition) | qubodup | CC0 |
+| `sounds/Voice_Man`, `Voice_Old_Man*.wav` | a man's murmur, and an old man's (syllables) | [15 seconds of "blah blah blah"](https://freesound.org/s/165539/) | unfa (freesound.org) | CC0 |
+| `sounds/Voice_Deep*.wav` | a deep voice's murmur | [Indistinct deep male mumble](https://freesound.org/s/536967/) | dynamique (freesound.org) | CC0 |
+| `sounds/Voice_Woman`, `Voice_Old_Woman*.wav` | a woman's murmur, and an old woman's | [Female Gibberish](https://freesound.org/s/800349/) | cloyen (freesound.org) | CC0 |
+| `sounds/Voice_Gruff*.wav` | a gruff murmur | [Human_Male_Crazy Mumbles_1](https://freesound.org/s/389642/) | SilentStrikeZ (freesound.org) | CC0 |
+| `sounds/Voice_Ghost*.wav` | a ghost's whisper (with an echo) | [indistinctwhispering](https://freesound.org/s/377743/) | BlueSiren (freesound.org) | CC0 |
+| `sounds/Voice_Croak`, `Voice_Beast*.wav` | the Frog King's croak and the dragon's rumble (slowed) | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
 
-Each was made mono 22050 Hz and its loudness matched to the game's own sounds.
+Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The voices are syllables cut from
+the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.
 
 The server and the Android app run on open-source software: Python (PSF licence), aiohttp (Apache 2.0) and
 Chaquopy (MIT).
