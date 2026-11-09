@@ -2404,7 +2404,7 @@ def check_spells(entities_ini, skills):
             if verb not in [w.strip().lower() for w in (entities_ini.get(scroll, "Use.Words") or "").split(",")]:
                 warn(where, "[%s] has no %s in its Use.Words" % (scroll, verb.title()))
         for k in ("Level", "XP", "Range", "Radius", "Attack", "Defence", "Magic", "Sight", "Duration", "Cost", "Cooldown", "Shards",
-                  "Freeze", "Fear"):
+                  "Freeze", "Fear", "Chain", "Chain.Range", "Chain.Share"):
             v = ini.get(sec, k)
             if v is not None and not is_num(v):
                 err(where, "%s=%r is not a number" % (k, v))

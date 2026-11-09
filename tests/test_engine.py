@@ -618,7 +618,7 @@ def test_the_ferries_cross_together_and_carry_you_over(world):
     west = next(c for c in carts.carts if c.key == "Isle_Ferry_West")
     assert east.e.name == west.e.name == "Ferry_Boat" and east.timetable and east.headings == 16
     assert east.stops[east.i] == "the Isle" and west.stops[west.i] == "Northport"     # (one at each pier)
-    t = world.now + 5000                                                              # (not cast off mid-test)
+    t = world.now + 60000                         # (not cast off mid-test: a minute's room, the world's clock being real time)
     east.wait_until, west.wait_until = carts.leave_time(east, t), carts.leave_time(west, t)
     assert east.wait_until == west.wait_until and east.wait_until % 45000 == 0        # (they cast off together)
     e = east.e
@@ -10077,7 +10077,7 @@ def test_every_spell_rank_is_plainly_better(world):
         for r in range(2, top + 1):
             why = "%s rank %d" % (spell, r)
             assert val(at(spell, "Level", r, "1")) >= val(at(spell, "Level", r - 1, "1")), why
-            for key in ("Range", "Radius", "Freeze"):
+            for key in ("Range", "Radius", "Freeze", "Chain"):
                 assert val(at(spell, key, r, "0")) >= val(at(spell, key, r - 1, "0")), why + " " + key
             assert val(at(spell, "Cooldown", r, "0")) <= val(at(spell, "Cooldown", r - 1, "0")), why
             if at(spell, "Slow", r - 1):
@@ -10166,3 +10166,35 @@ def test_the_demo_ends_at_the_ferry_with_what_the_isle_gave_you(world):
     assert not any(ev.get("sound") == "Denied" for ev in s.out)
     assert try_the_boat() == []                                    # (the card once a time in; the words again)
     leave(world, s)
+
+
+def test_lightning_leaps_on_to_the_foes_near_the_one_it_hits(world):
+    a = join(world, "Stormy", "0,0,0", 300, 300)                    # (open ground: in sight of each other)
+    m = a.cur_map
+    p = a.player
+    wolves = [world.add_npc("Wolf", m.mz, p.x + 64 + 64 * k, p.y, "") for k in range(3)]   # (two tiles apart)
+    a.skill_level = lambda skill: 1
+    a.spell_roll = lambda text: 10
+    a.equip_magic_total = a.spell_magic_bonus = 0
+
+    def cast(rank):
+        a.spells_known["Lightning"] = rank
+        for w in wolves:
+            w.hp = w.max_hp = 1000
+            w.x, w.y = w.home_x, w.home_y = w.x, p.y
+        a.spell_hit("Lightning", wolves[0])
+        for _ in range(40):
+            world.tick(0.05, now=world.now + 50)
+        return [min(10, 1000 - w.hp) if w is wolves[0] else 1000 - w.hp for w in wolves]   # (a swing too, maybe)
+    assert cast(1) == [10, 5, 0]                    # (one leap, at half a hit: never back to the first)
+    assert cast(2) == [10, 5, 5]                    # (Lightning II: two)
+    assert "leaping on to one more foe" in a.spell_what("Lightning", 1)
+    a.spells_known["Fire_Bolt"] = 1
+    wolves[1].hp = 1000
+    a.spell_hit("Fire_Bolt", wolves[0])
+    for _ in range(40):
+        world.tick(0.05, now=world.now + 50)
+    assert wolves[1].hp == 1000                     # (a bolt without Chain= stays where it lands)
+    for w in wolves:
+        world.remove_entity(w)
+    leave(world, a)

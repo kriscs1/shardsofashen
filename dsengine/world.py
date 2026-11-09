@@ -1341,6 +1341,8 @@ class World(NPCMixin):
         elif shooter is not None and shooter.in_world():
             if tag == "ARROW":
                 shooter.player_strike(target, True)
+            elif isinstance(tag, tuple):                # (a spell leaping on: player_combat.py spell_chain)
+                shooter.spell_hit(tag[0], target, *tag[1:])
             else:
                 shooter.spell_hit(tag, target)
 

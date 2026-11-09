@@ -243,6 +243,10 @@ class ShardMixin:
                 words += ", slowed to %s%% for %s s" % tuple(slow.split(",")[:2])
             if eff == "BOLT" and val(at("Range", "256")) > 256:
                 words += ", reaching %d tiles" % round(val(at("Range")) / 32)
+            chain = int(val(at("Chain", "0"))) if eff == "BOLT" else 0
+            if chain > 0:
+                words += ", leaping on to %s more %s near it (%s%% of a hit each)" % (
+                    "one" if chain == 1 else chain, "foe" if chain == 1 else "foes", at("Chain.Share", "50"))
             if val(at("Fear", "0")) > 0:
                 words += ", and it flees from you for %s s" % at("Fear")
             return words

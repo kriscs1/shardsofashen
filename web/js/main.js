@@ -602,7 +602,7 @@ $("reward-ok").onclick = () => { $("reward").hidden = true; canvas.focus(); };
 
 // ----- the demo's edge (dsengine/demo.py): said once each time in, in the game's own words, never a character's
 const BUY_WORDS = "The full game is bought once, from the start screen, for your Hallisium account: then it's yours " +
-  "on every device, and your character keeps everything they've done.";
+  "in the app and in a browser too, and your character keeps everything they've done.";
 function showDemo(m) {
   if (m.why === "end") { showDemoEnd(m); return; }
   if (m.why === "border") {

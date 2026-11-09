@@ -462,7 +462,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   enough; else it's kept); a scroll for a spell you know says "You already know this" (dismantle it for Shards).
   Spells are cast from **Spells**, the Stats box's third tab (click: cast; right-click: on or off the hotbar), or
   the hotbar; a spell that needs a target and has none is held ready for the next click. Never "Cast" on a scroll.
-- **Scrolls are rare** (`dev/migrate/rare_scrolls.py`): one at a time (`Stackable=1`), none at the start, none from
+- **Scrolls are rare** (`dev/migrate/rare_scrolls.py` did it once and is superseded: run again, it would take the
+  scrolls sold since off the shelves; `build_shards.py` writes the scrolls as they are now): one at a time (`Stackable=1`), none at the start, none from
   beasts or ordinary chests, and nobody writes them. They come from quests, a few chests in places of their own (the
   standing stones', the cinder cache's), the Shifting Deep's Heart, and the wizards' shops, dearly (Value 100 + 40 a
   level). A scroll a quest gives or a chest holds is never for sale (`Value=0`, `Droppable=0`). Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
@@ -471,11 +472,14 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   screen. Set by `dev/migrate/build_shards.py`.
 - **A higher rank is plainly better** (`test_every_spell_rank_is_plainly_better`): never less damage, reach, radius,
   freeze or slow, never a longer cooldown, more damage for each Shard (it may cost more a cast), and each spell's
-  own kind of better (Lightning II reaches 12 tiles, Fire Storm II a wider ring, Grasp II 10 tiles, from the Court's
-  wizard). The bolts in the order they're learnt (Fire Bolt I to III, then Lightning I and II) each do more damage a
+  own kind of better (Lightning II reaches 12 tiles and leaps to two more foes, Fire Storm II a wider ring, Grasp II
+  10 tiles, from the Court's wizard). The bolts in the order they're learnt (Fire Bolt I to III, then Lightning I and II) each do more damage a
   second than the one before, counting Shards.ini `Cast.Gap` as the shortest cooldown. A rank's `Level` is only what
   learning it needs: casting, and the chance it takes, go by the first rank's (`spell_level`), so a rank-up is
   never less sure.
+- **Lightning leaps** (Spells.ini `Chain=`, `Chain.Range=`, `Chain.Share=`; `spell_chain`): from the foe it hits on
+  to the nearest other foe within 3 tiles in sight of it, at half a hit, never one it's struck already: one leap at
+  rank I, two at rank II. A leap flies as its own missile from the foe it left, and only to a foe you could cast at.
 
 ### Skills
 - Skills go to **25** (Config `Skill.Max.Level`). A level asked for anywhere is on that scale; a script's success

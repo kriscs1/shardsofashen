@@ -59,7 +59,9 @@ HEADER = ["; Shards of Ashen: every Shard number in one place (dsengine/shards.p
 SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ideas of the brief, mapped onto these
     "Fire_Bolt": ("3", "1.5"),                 # (Magic Bolt: no faster, or it outdoes Lightning all game)
     "Ice_Bolt": ("6", "3"),
-    "Lightning": ("10", "2", {"Damage": "10-20"}),   # (Fireball: the bolt above Fire Bolt III, a second a hit)
+    "Lightning": ("10", "2", {"Damage": "10-20", "Chain": "1", "Chain.Range": "96", "Chain.Share": "50"}),
+    # (Fireball: the bolt above Fire Bolt III; it leaps on to Chain more foes within Chain.Range, each hit at
+    # Chain.Share percent: player_combat.py spell_hit)
     "Grasp": ("2", "2"),
     "Shard_Ward": ("10", "60"),
     "Teleport_Home": ("12", "60"),             # (Blink: the one that moves you)
@@ -76,7 +78,7 @@ RANKS = {   # spell: {rank: (its scroll, value, {its Spells.ini values at that r
                   3: ("Fire_Bolt_Scroll_III", 140, {"Level": "8", "Damage": "6-12", "Cost": "5", "Cooldown": "1.3"})},
     "Ice_Bolt": {2: ("Ice_Bolt_Scroll_II", 110, {"Level": "9", "Damage": "4-10", "Slow": "35,10", "Cost": "8"})},
     "Lightning": {2: ("Lightning_Scroll_II", 220, {"Level": "14", "Damage": "14-28", "Cost": "13", "Cooldown": "1.5",
-                                                   "Range": "384"})},
+                                                   "Range": "384", "Chain": "2"})},
     "Frost_Nova": {2: ("Frost_Nova_Scroll_II", 180, {"Level": "11", "Damage": "3-8", "Radius": "128", "Freeze": "7",
                                                      "Cost": "18"})},
     "Fire_Storm": {2: ("Fire_Storm_Scroll_II", 400, {"Level": "20", "Damage": "14-28", "Radius": "192", "Cost": "36"})},
@@ -93,19 +95,20 @@ QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder ques
 QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Update.Skill +n), for the quests whose
     # scripts give none of their own
     "Dinner at Edwin's": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Strength 2 Defence 2 Crafting 1",
-    "Passage to the Mainland": "Strength 2 Defence 2", "The Temporary Capital": "Magic 1",
-    "The Ashford Road": "Strength 3 Defence 3", "The Staff of Ashen": "Magic 3",
-    "The Sunken Grimoire": "Magic 4", "The Ember Ring": "Magic 4 Defence 3", "Bert's Three Treasures": "Magic 6",
+    "Passage to the Mainland": "Strength 2 Defence 2", "The Temporary Capital": "Channeling 1",
+    "The Ashford Road": "Strength 3 Defence 3", "The Staff of Ashen": "Channeling 3",
+    "The Sunken Grimoire": "Channeling 4", "The Ember Ring": "Channeling 4 Defence 3", "Bert's Three Treasures": "Channeling 6",
     "A Ship for Dragon Island": "Woodcutting 2 Crafting 2", "The Island of Dragons": "Strength 5 Defence 5",
-    "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Magic 4",
-    "The Royal Guard": "Defence 4", "The True Heir": "Strength 5 Defence 5 Magic 5",
+    "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Channeling 4",
+    "The Royal Guard": "Defence 4", "The True Heir": "Strength 5 Defence 5 Channeling 5",
     "Wolves of the Greyflats": "Strength 3", "Bandits on the Road": "Strength 3 Defence 2",
     "The Lost Caravan": "Defence 3", "The Wardhaven Bridge": "Homesteading 3", "Granny Wren's Walk": "Defence 1",
-    "The Shard Scholar": "Magic 2",
+    "The Shard Scholar": "Channeling 2",
 }
 RARER = "Scrolls.Rarer"          # (Shards.ini [Shards]: set once they've been made rarer, so a second run doesn't again)
 SCROLL_TAIL = "Right-click it and Cast, or use it on a monster."
-SCROLL_NEW = "Read it to learn the spell for good; casting it then costs Shards (the journal's Spells)."
+SCROLL_NEW = "Learn it, and the spell is yours for good (the scroll is used up); cast it from Channeling."   # (as
+# rare_scrolls.py left it: a scroll only teaches, one at a time, and an upgrade a quest gives is never for sale)
 
 DIG = [("Shards.Chance", "5"), ("Shards", "1-3"), ("Shards.Underground.Chance", "15"), ("Shards.Underground", "1-5"),
        ("Cache.Chance", "0.5"), ("Cache", "6-12")]
@@ -162,6 +165,8 @@ def rank_words(spell, keys):
         bits.append("slowed to %s%% for %s s" % tuple(keys["Slow"].split(",")))
     if "Range" in keys:
         bits.append("reaching %d tiles" % (int(keys["Range"]) // 32))
+    if "Chain" in keys:
+        bits.append("leaping on to %s more foes" % keys["Chain"])
     if "Cooldown" in keys:
         bits.append("ready again after %s s" % keys["Cooldown"])
     return ", ".join(bits)
@@ -184,12 +189,16 @@ def ranks(ents, spells_ini, shards):
                 shards.set(sec, key, old if old is not None else v, overwrite=False)
                 spells_ini.remove(spell, key)
             keys = {k: shards.get(sec, "%s.%d" % (k, rank)) for k in keys}            # (as they are now)
-            for k, v in (("Type", "MapItem"), ("Use.Words", "Cast"),
+            sold = scroll in RANK_SHOPS                 # (else a quest's: never for sale)
+            for k, v in (("Type", "MapItem"), ("Use.Words", "Learn"),
                          ("Examine.Info", "A scroll of %s: it raises %s, once you know it, to rank %d (%s). Channeling %s. "
-                                          "Read it to learn it for good." % (name, spell.replace("_", " "), rank,
+                                          "Learn it to know it for good." % (name, spell.replace("_", " "), rank,
                                                                               rank_words(spell, keys), keys["Level"])),
-                         ("Stackable", "10"), ("Value", str(value)), ("Spell", spell), ("Rank", str(rank))):
+                         ("Stackable", "1"), ("Value", str(value) if sold else "0"), ("Spell", spell),
+                         ("Rank", str(rank))):
                 ents.set(scroll, k, v)
+            if not sold:
+                ents.set(scroll, "Droppable", "0")
 
 
 def rarer(ents, racks, shards):
@@ -316,11 +325,15 @@ def quests():
         if ini.section(name) is not None:
             ini.set(name, "Reward.XP", xp, overwrite=False)
     ini.save(p("data", "Quests.ini"))
+    own = ("Giver", "Attribute", "Stage", "Done", "Marker", "Type", "Chapter", "Requires.")   # (what SK.quest writes)
+    later = [(k, v) for k, v in (ini.section("The Shard Scholar") or (None, []))[1]
+             if k and not k.startswith(own)]
     SK.quest("The Shard Scholar", WIZARD, "ShardQuest", {
         0: "Magister Quill, in the Wizards' Court's great hall, studies the Shards.",
         1: "Bring Magister Quill fifteen Shards for the Court's study (talk to him to give them)."}, 2,
         markers={0: "Court_Magister", 1: "Court_Magister"}, kind="Side", requires="Passage to the Mainland")
-    SK.section(p("data", "Quests.ini"), "The Shard Scholar", [("Reward.XP", QUEST_XP["The Shard Scholar"])])
+    SK.section(p("data", "Quests.ini"), "The Shard Scholar", [("Reward.XP", QUEST_XP["The Shard Scholar"])] +
+               [kv for kv in later if kv[0] != "Reward.XP"])     # (what later builders added: its rumour, standing)
     lore = [("What are Shards?", "@what"), ("Why do the shardstones need them?", "@ways"),
             ("Why do beasts carry them?", "@beasts"), ("Spells or potions?", "@potions")]   # (the mountain: after what)
     rows = [

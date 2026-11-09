@@ -9,8 +9,11 @@ Shards; Writing).
   * Opening a chest says nothing: what's in it shows in its box.
   * Healing draughts: a Minor (8-12), the Healing Draught (15-20, was 28-36) and a Major (26-32), brewed at the
     alchemy rack from more herbs as they get stronger.
-Safe to run again (what's done already is left as it is).
-Usage: python -I dev/migrate/rare_scrolls.py"""
+Usage: python -I dev/migrate/rare_scrolls.py
+
+Superseded (2026-11-10): it did its work once, and the shops and scrolls have moved on since (a scroll a quest gives
+sold too, at the Shard shops and the fences; upgrades sold, like Grasp II; the alchemy rack's own order). Run again, it
+would take those off the shelves and price them at 0: build_shards.py writes the scrolls as they are now."""
 import os
 import re
 import sys
@@ -123,6 +126,10 @@ def bert(project):
 
 
 def main():
+    sys.exit("Superseded: scrolls were made rare once; build_shards.py and the shops' own builders keep them now.")
+
+
+def old_main():
     project = Project(p())
     ents, spells = Ini(p("data", "Entities.ini")), Ini(p("data", "Spells.ini"))
     racks, quests, deep = Ini(p("data", "ItemRacks.ini")), Ini(p("data", "Quests.ini")), Ini(p("data", "Deep.ini"))
@@ -273,5 +280,5 @@ def main():
     print("Scrolls: %d (%d never sold); draughts in three strengths" % (len(scrolls), len(found)))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # (superseded: see main)
     main()

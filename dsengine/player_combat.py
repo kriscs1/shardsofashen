@@ -1052,13 +1052,17 @@ class CombatMixin:
             self.fx_anim(impact, p.cx, p.cy, 600)
         self.play_sound(self.spell_ini(spell, "Sound", ""), (p.cx, p.cy))
 
-    def spell_hit(self, spell, e):
+    def spell_hit(self, spell, e, share=100, struck=(), left=None):
+        """A spell landing on e. A bolt with Chain= leaps on from it (spell_chain): each leap a hit at share percent,
+        struck the ones it's hit already, left the leaps still to come."""
         if not self.spell_target_ok(e):
             return
         w = self.w
         power = channeled_power(self.skill_level("Channeling"), self.data)    # (Channeling: a share more, shards.py)
         damage = int((self.spell_roll(self.spell_ini(spell, "Damage", "1-3")) * power +
                       self.equip_magic_total + self.spell_magic_bonus) * self.stance_num("Spell.Power"))
+        if share != 100:
+            damage = max(1, int(damage * share / 100))
         if e.type == PLAYER:
             self.pvp_spell_hit(spell, e, damage)
             return
@@ -1087,7 +1091,36 @@ class CombatMixin:
         fear = val(self.spell_ini(spell, "Fear", "0"))
         if fear > 0 and e.alive:
             self.frighten(e, fear)
+        self.spell_chain(spell, e, struck, left)
         return held
+
+    def spell_chain(self, spell, e, struck, left):
+        """Lightning's leap (Spells.ini Chain=: how many more foes; Chain.Range px from the one it hit; Chain.Share
+        percent of a hit): on to the nearest foe it hasn't struck, that you could cast at, in sight of where it hit.
+        Its missile flies from there and lands as a hit of its own (world.py missile_arrive)."""
+        if left is None:
+            if self.spell_ini(spell, "Effect", "Bolt").upper() != "BOLT":
+                return
+            left = int(val(self.spell_ini(spell, "Chain", "0")))
+        if left <= 0:
+            return
+        w = self.w
+        struck = tuple(struck) + (e.uid,)
+        reach = val(self.spell_ini(spell, "Chain.Range", "96"))
+        best, found = reach + 1, None
+        for o in w.ents:
+            if o.type == NPC and o.z == e.z and o.uid not in struck and w.hostile_for(o, self) and self.spell_target_ok(o):
+                dd = distance(e.cx, e.cy, o.cx, o.cy)
+                if dd < best and w.in_line_of_sight(e.z, e.cx, e.cy, o.cx, o.cy):
+                    best, found = dd, o
+        if found is None:
+            return
+        share = val(self.spell_ini(spell, "Chain.Share", "50"))
+        missile = self.spell_ini(spell, "Missile", "")
+        if missile:
+            w.fx_shot(e, missile, found, (spell, share, struck, left - 1), self)
+        else:
+            self.spell_hit(spell, found, share, struck, left - 1)
 
     def frighten(self, e, seconds):
         """Fear (Spells.ini Fear=seconds): it runs from you till then, and a blow doesn't turn it (provoke leaves a
