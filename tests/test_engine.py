@@ -8,6 +8,7 @@ from dsengine import World, Session
 from dsengine.entity import MAPITEM, NPC, AI_FLEE, AI_IDLE
 from ashen.lb import distance, val
 from dsengine.forms import form_limits
+from dsengine import scripting
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -392,6 +393,55 @@ def join(w, name, map_name="1,1,0", x=300, y=300):
 def leave(w, s):
     s.leave_world()
     w.sessions.pop(s.player_name, None)
+
+
+def test_dying_breaks_off_a_script(world):
+    """Dying mid-talk ends the talk: no waking at home with someone far away still waiting on an answer."""
+    s = join(world, "MidTalk", "1,1,0", 300, 300)
+    assert s.run_script_lines("(test)", ["01\tDisplay.Conversation\tYou\tHello\tOk\t02",
+                                         "02\tGive.Item\tGold_Coin(s)\t500", "03\tEnd"])
+    world.tick(0.05)
+    assert s.script_state == "CONVERSATION" and s.ab_mode == "Conversation"
+    gold = s.items_held("Gold_Coin(s)")
+    s.player_dies()
+    assert not s.script_running and s.ab_mode == ""
+    s.respawn()                                     # (where they wake has its own entry script: that one's fine)
+    world.tick(0.05)
+    s.action_box_response_chosen(1)                 # (an answer sent after all: nothing comes of it)
+    for _ in range(5):
+        world.tick(0.05)
+    assert s.script_name != "(test)" and s.items_held("Gold_Coin(s)") <= gold
+    leave(world, s)
+
+
+def test_a_script_that_loops_forever_is_stopped(world):
+    """A loop that never waits on anything is ended (and logged), or the player could never talk to anyone again."""
+    s = join(world, "Looper", "1,1,0", 300, 300)
+    assert s.run_script_lines("(test)", ["01\tGoto.Line\t02", "02\tGoto.Line\t01"])
+    for _ in range(int(scripting.SCRIPT_RUNAWAY / 50) + 5):
+        world.tick(0.05)
+    assert not s.script_running
+    assert s.run_script_lines("(test)", ["01\tWait\t0", "02\tGoto.Line\t01"])    # (one that waits each time is fine)
+    for _ in range(int(scripting.SCRIPT_RUNAWAY / 50) + 5):
+        world.tick(0.05)
+    assert s.script_running
+    s.end_script()
+    leave(world, s)
+
+
+def test_a_script_is_read_once_and_again_when_it_changes(world, tmp_path, monkeypatch):
+    s = join(world, "Reader", "1,1,0", 300, 300)
+    path = str(tmp_path / "Talk to Someone.txt")
+    with open(path, "wb") as f:
+        f.write(b"// a comment\r\n01\tDisplay.Message\tCyan\tHello\t-\r\n03\tEnd\r\n")
+    a = s.parsed_script(path)
+    assert a[1].endswith("Hello\t-") and a[2] == "" and a[3] == "03\tEnd" and s.parsed_script(path) is a
+    monkeypatch.setattr(scripting, "SCRIPT_RECHECK", 0)
+    assert s.parsed_script(path) is a                                   # (looked at again: unchanged)
+    with open(path, "wb") as f:
+        f.write(b"01\tDisplay.Message\tCyan\tGoodbye then\t-\r\n02\tEnd\r\n")
+    assert s.parsed_script(path)[1].endswith("Goodbye then\t-")         # (changed: read again)
+    leave(world, s)
 
 
 def test_world_loads(world):

@@ -42,9 +42,22 @@ def clean_code(entered):
 
 
 def clean_name(entered):
-    """A character's name as the desktop game allowed them: letters, digits, space, _ and -, at most 20."""
+    """A character's name as the desktop game allowed them: letters, digits, space, _ and -, at most 20. (A new name
+    has no spaces: new_name_refused. Old ones with a space still sign in, so this keeps them.)"""
     name = "".join(c for c in str(entered) if c in NAME_CHARS).strip(" ")[:20]
     return "" if name.upper() == "TEMPLATE" else name
+
+
+NAME_HINT = "Pick a name: letters, numbers, _ and -."
+
+
+def new_name_refused(name):
+    """Why a new account or character can't be called this (clean_name's), or "": no spaces in a new name."""
+    if not name:
+        return NAME_HINT
+    if " " in name:
+        return "A name can't have spaces: join the words with _ or - (%s)." % name.replace(" ", "_")[:20]
+    return ""
 
 
 RELAY_KEY = os.urandom(16).hex()    # (relay.py's mark on a friend's connection it passes on: this run's own)

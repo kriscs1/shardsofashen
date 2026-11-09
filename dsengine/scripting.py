@@ -21,6 +21,7 @@ log = logging.getLogger("ashen.scripting")
 
 ATTRS_MOST = 2000               # (a player's attributes at most: quests' progress; about 250 are used)
 SCRIPT_RECHECK = 2.0            # (seconds a script's being there, or not, is taken as known: the tick asks often)
+SCRIPT_RUNAWAY = 1000           # (lines a script may run without waiting on anything: more is a loop that never ends)
 PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "aggressive",
                    "AGGRO.RANGE": "aggro_range"}
 
@@ -41,6 +42,7 @@ class ScriptMixin:
         self.script_cancel_line = 0
         self.script_move_ent = None
         self.script_queue = []
+        self.script_steps = 0               # (lines run since it last waited on something: SCRIPT_RUNAWAY)
         self.script_vars = [""] * 10
         self.script_args = [""] * 34
         self.script_response_line = {}
@@ -105,6 +107,7 @@ class ScriptMixin:
         self.script_entry = entry
         self.script_personal = False
         self.script_forced = None
+        self.script_steps = 0
         self.script_line_no = self.first_script_line(1)
 
     def run_script_lines(self, title, lines):
@@ -122,6 +125,27 @@ class ScriptMixin:
         path = self.script_path(name)
         if not self.script_exists(name):
             return False
+        self.script_lines = list(self.parsed_script(path))
+        self.script_name = name
+        self.script_tools_used = set()             # (a tool wears once a go: a swing of the axe, a cast of the line)
+        return True
+
+    def parsed_script(self, path):
+        """The script's lines by number (a tuple, shared by everyone running it): read again only when the file has
+        changed, looked at no more often than SCRIPT_RECHECK (the editor's saves clear the cache: forget_caches)."""
+        known = self.data.cache("script_lines")
+        now = time.monotonic()
+        got = known.get(path)
+        if got is not None and now - got[0] < SCRIPT_RECHECK:
+            return got[2]
+        try:
+            st = os.stat(path)
+            stamp = (st.st_mtime_ns, st.st_size)
+        except OSError:
+            stamp = None
+        if got is not None and got[1] == stamp:
+            known[path] = (now, stamp, got[2])
+            return got[2]
         lines = {}
         last = 0
         for text in self.data.read_lines(path):
@@ -131,12 +155,11 @@ class ScriptMixin:
                     n = last + 1
                 lines[n] = text
                 last = n
-        self.script_lines = [""] * (max(lines, default=0) + 2)
+        out = [""] * (max(lines, default=0) + 2)
         for n, text in lines.items():
-            self.script_lines[n] = text
-        self.script_name = name
-        self.script_tools_used = set()             # (a tool wears once a go: a swing of the axe, a cast of the line)
-        return True
+            out[n] = text
+        known[path] = (now, stamp, tuple(out))
+        return known[path][2]
 
     def first_script_line(self, n):
         for i in range(max(1, int(n)), len(self.script_lines)):
@@ -240,8 +263,18 @@ class ScriptMixin:
         for _ in range(50):
             if not self.script_running:
                 break
+            line = self.script_line_no
             self.execute_script_line()
-            if self.script_state != "" or self.pending_map is not None:
+            if self.script_state != "":
+                self.script_steps = 0
+                break
+            self.script_steps += 1
+            if self.script_running and self.script_steps > SCRIPT_RUNAWAY:
+                self.log("ERROR - Script %s line %d: %d lines without waiting on anything: a loop that never ends, "
+                         "stopped" % (self.script_name, line, SCRIPT_RUNAWAY))
+                self.end_script()                   # (or they could never talk to anyone again till they left)
+                break
+            if self.pending_map is not None:
                 break
 
     def personal_now(self):
@@ -509,11 +542,11 @@ class ScriptMixin:
         if n <= 0 or n >= len(self.script_lines):
             self.end_script()
             return
-        text = self.script_lines[n]
-        command = trim(field(text, 2, "\t"))
+        parts = self.script_lines[n].split("\t")       # (number, command, then its arguments)
+        command = trim(parts[1]) if len(parts) > 1 else ""
         arg = [""] * 34
-        for i in range(1, 33):
-            arg[i] = trim(self.parse_script_variables(field(text, i + 2, "\t")))
+        for i, a in enumerate(parts[2:34], 1):
+            arg[i] = trim(self.parse_script_variables(a))
         named = self.place_args(command, arg)
         pid = named.name if named is not None else ""
         self.script_args = arg
@@ -602,7 +635,7 @@ class ScriptMixin:
             if self.disease_known(trim(arg[1])):
                 self.catch_disease(trim(arg[1]))
             else:
-                self.log("ERROR - Catch.Disease: no [%s] in data\Diseases.ini" % trim(arg[1]))
+                self.log("ERROR - Catch.Disease: no [%s] in data\\Diseases.ini" % trim(arg[1]))
         elif c == "Start.Encounter":                 # (one of data\Encounters.ini's turns up near them: encounters.py)
             if trim(arg[1]) in self.w.encounters.kinds:
                 self.w.encounters.start(trim(arg[1]), self)
@@ -631,6 +664,7 @@ class ScriptMixin:
             self.script_jump(arg[1])
         elif c == "Goto.Script":
             personal, forced, entry = self.script_personal, self.script_forced, self.script_entry
+            steps = self.script_steps                   # (two scripts sending each other back and forth: one loop)
             held = self.user_input_enabled              # (a scene going on in another file: still the same scene)
             self.loot_hold = True                       # (a chest's script going on in another file: same chest)
             self.end_script()
@@ -641,6 +675,7 @@ class ScriptMixin:
                 self.loot_finish()
             if self.script_running:
                 self.script_personal, self.script_forced = personal, forced
+                self.script_steps = steps
         elif c == "Block.Player":
             self.block_player()
         elif c == "Update.Skill":

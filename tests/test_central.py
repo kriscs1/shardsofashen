@@ -1371,7 +1371,7 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
                 r = await post(http, api, {"code": code})
                 assert r["ok"] and r["choose"] and r["email"] == "new@gmail.com" and "token" not in r
                 # (a sign-up's checks)
-                for bad, word in (("admin", "kept back"), ("", "Pick a name")):
+                for bad, word in (("admin", "kept back"), ("", "Pick a name"), ("Two Words", "spaces")):
                     r = await post(http, api, {"code": code, "name": bad})
                     assert not r["ok"] and r["choose"] and word in r["text"]
                 r = await post(http, api, {"code": code, "name": "Boss"})

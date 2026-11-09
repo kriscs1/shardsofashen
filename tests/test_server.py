@@ -69,7 +69,9 @@ def test_passwords():
     h = auth.hash_password("secret")
     assert auth.check_password("secret", h)
     assert not auth.check_password("wrong", h)
-    assert auth.clean_name("Bob <script>") == "Bob script"
+    assert auth.clean_name("Bob <script>") == "Bob script"           # (an old name, with its space: still theirs)
+    assert auth.new_name_refused("Bob script") and auth.new_name_refused("")
+    assert auth.new_name_refused("Bob_script") == ""
 
 
 def test_the_player_limit_and_whose_characters(tmp_path):
@@ -187,7 +189,9 @@ def test_chat_and_whispers(tmp_path):
     async def run():
         runner, app, url = await start(str(tmp_path / "c.db"))
         async with aiohttp.ClientSession() as http:
-            a, _ = await login(http, url, "Anna Lee", "pw12")
+            game = app[GAME]                            # (an old character, from before names lost their spaces)
+            game.store.create_account("Anna Lee", "", False, game.device_owner(device_of("Anna Lee")))
+            a, _ = await login(http, url, "Anna Lee", "pw12", mode="login")
             b, _ = await login(http, url, "Bo", "pw12")
             c, _ = await login(http, url, "Cy", "pw12")
             await chats(a, 0.3), await chats(b, 0.3), await chats(c, 0.3)
@@ -351,7 +355,7 @@ def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
                     w, m = await login(http, url, "Many%d" % k, device=device_of("Many"))
                     assert m["t"] == "welcome"
                     await w.close()
-                _, m = await login(http, url, "Too Many", device=device_of("Many"))
+                _, m = await login(http, url, "Too_Many", device=device_of("Many"))
                 assert m["t"] == "login_fail" and "the most" in m["reason"]
                 _, m = await come_in(http, url, "short")
                 assert m["t"] == "login_fail" and "Sign in" in m["reason"]
@@ -588,7 +592,7 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
                 assert why["t"] == "login_fail" and why["reason"] == "You're banned from this server: spamming"
                 again, m = await login(http, url, "Pest", mode="login")
                 assert m["t"] == "login_fail" and "banned" in m["reason"]
-                fresh, m = await login(http, url, "Pest Two", device=device_of("Pest"))
+                fresh, m = await login(http, url, "Pest_Two", device=device_of("Pest"))
                 assert m["t"] == "login_fail" and "banned" in m["reason"]      # (the same device: still them)
                 await boss.send_json({"t": "chat", "text": "/unban Pest"})
                 await asyncio.sleep(0.3)
@@ -652,7 +656,10 @@ def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
         try:
             async with aiohttp.ClientSession() as http:
                 boss, _ = await login(http, url, "Boss", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
-                pest, _ = await login(http, url, "Old Pest")
+                _, no = await login(http, url, "New Pest")
+                assert no["t"] == "login_fail" and "spaces" in no["reason"] and "New_Pest" in no["reason"]
+                game.store.create_account("Old Pest", "", False, game.device_owner(device_of("Old Pest")))
+                pest, _ = await login(http, url, "Old Pest", mode="login")     # (made before names lost their spaces)
                 await boss.send_json({"t": "chat", "text": "/mute Old Pest 5"})
                 await asyncio.sleep(0.3)
                 assert game.world.sessions["Old Pest"].muted_until > 0          # (a name with a space)

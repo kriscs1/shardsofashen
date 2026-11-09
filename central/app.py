@@ -336,8 +336,8 @@ class Central:
 
     def name_refused(self, name, claim):
         """Why a new account can't have this name, or nothing: (no's words)."""
-        if not name:
-            return {"text": "Pick a name: letters, numbers, spaces, _ and -."}
+        if auth.new_name_refused(name):
+            return {"text": auth.new_name_refused(name)}
         if os.environ.get("DS_REGISTRATION", "open") != "open":
             return {"text": "New accounts can't be made just now."}
         if name.lower() in RESERVED:

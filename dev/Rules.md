@@ -822,6 +822,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   account has an email, confirmed before it can join a game (no ticket till then; the app's own game needs none), and a
   forgotten password goes only to a confirmed one. The logo is pixel art made by
   `dev/migrate/build_logo.py` (web/img/logo.png, web/home/logo.png).
+- **A new name has no spaces** (the owner's rule): a Hallisium account or a character is letters, digits, `_` and `-`
+  (`auth.new_name_refused`, which suggests the name joined with `_`). A name made before that keeps its space and still
+  signs in, so `clean_name` (every lookup) keeps spaces; a character copied to a device that needs a new name gets a
+  number on the end, never a space (`Ash2`).
 - Never commit `.env`, tokens or `server-data/`. Admin rights come only from the DB flag or `DS_ADMINS` (Shards accounts, proved by the central server's ticket or the host's key), or `DS_CENTRAL_ADMINS` on the central server, where a name with no account yet is made only with the claim code the server logs as it starts, never by whoever signs up first.
 
 ### Answering the player

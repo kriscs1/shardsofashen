@@ -580,6 +580,12 @@ class CombatMixin:
             self.arena_defeat()
             return
         self.death_remembered()
+        self.native_menu = None                             # (a talk or a job broken off by dying stays broken off:
+        self.hide_action_box()                              #  no waking at home to answer someone far away)
+        self.script_queue = []
+        if self.work_from is not None:
+            self.emit({"t": "work_stop"})
+        self.end_script()
         d = self.data
         marked = self.pvp_marked()                          # (struck a player first, lately: everything's lost, pvp.py)
         self.display_message("Oh dear, you are dead!", "ERROR")

@@ -949,7 +949,7 @@ class GameServer:
         name, n = base, 1
         while self.store.account(name) is not None or name.lower() in self.RESERVED:
             n += 1
-            name = "%s %d" % (base[:17], n)
+            name = "%s%d" % (base[:18], n)              # (Ash2: a new name never has a space)
         try:
             Session(self.world, name).load_state(save)  # (one that won't load never gets a place on the list)
         except Exception:
@@ -974,8 +974,8 @@ class GameServer:
         """A new character: its name one of a kind here."""
         fail = lambda text, **more: self.send(c, {"t": "login_fail", "reason": text, **more})     # noqa: E731
         name = auth.clean_name(data.get("name", ""))
-        if not name:
-            return await fail("Pick a name: letters, numbers, spaces, _ and -.")
+        if auth.new_name_refused(name):
+            return await fail(auth.new_name_refused(name))
         if self.registration != "open":
             return await fail("New characters can't be made on this server.")
         if self.invite_code and str(data.get("invite", "")) != self.invite_code:
