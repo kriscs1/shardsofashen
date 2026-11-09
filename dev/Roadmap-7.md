@@ -4,15 +4,16 @@ The owner's plan of 2026-11-09, in groups. Work down it; tick a box when it's do
 game comes first: the demo, the Friend Pass and the time pass are all built on it.
 
 ## The owner's decisions
-- **On PC (Steam, Epic, itch.io) the game is paid for once, up front, with no demo**: the desktop app plays only once
-  it's owned. **The PC build never has an ad**: none in a game and none on its start screen (today it shows the
+- **On PC (Steam, Epic, itch.io) the game is paid for once, up front, $7.99, with no demo**: the desktop app plays only
+  once it's owned. **The PC build never has an ad**: none in a game and none on its start screen (today it shows the
   central server's own).
 - **On a phone (Android) it's free to try**, and one purchase unlocks the full game (and LAN and online play beyond
-  the demo). **Remove ads** stays a purchase of its own.
+  the demo), $3.99; **it removes the ads too**. **Remove ads** stays a purchase of its own, for those who want only
+  that.
 - **The demo is the Isle, and level 5 at most.** It ends where the Isle ends: Wim's passage and the ferries don't carry a
   demo player to the mainland.
 - **A time pass, on a phone, for those who haven't paid**: watch a rewarded ad on the start screen for a while of the
-  full game. Only in the Android app, only on the start screen, never in a game.
+  full game: **an hour** each. Only in the Android app, only on the start screen, never in a game.
 - **The browser follows the account**: the full game if it's owned, the demo if not, the Friend Pass on a friend's
   link.
 - **The Friend Pass**: a demo player in a game whose host owns the full game has the full game there, the whole world
@@ -74,9 +75,10 @@ game comes first: the demo, the Friend Pass and the time pass are all built on i
 ## 5. Android
 - [ ] `Billing.java`: a second one-time product, the full game (`DS_FULL_PRODUCT`, `full_game` unless set), bought,
       sent to the central server for the account and kept on the device; Google Play restores it on a reinstall.
+      It removes the ads as Remove ads does (`adFree` is true for either).
 - [ ] The time pass: an AdMob rewarded ad, offered on the start screen only to those who haven't bought the game;
       the reward checked by the central server (AdMob's server-side verification), never the app's word; a few a day
-      at most. Nothing of it on a device that's bought the game.
+      at most; an hour each (the central server's setting). Nothing of it on a device that's bought the game.
 
 ## 6. PC (the desktop app)
 - [ ] No ads at all on the desktop start screen (`desktop/app.py`'s `DSApp` says it's the PC build).
@@ -101,7 +103,6 @@ game comes first: the demo, the Friend Pass and the time pass are all built on i
       committed and pushed.
 
 ## Still to decide
-- Whether buying the full game on a phone also removes the ads (the plan's default: yes, and Remove ads stays for
-  those who only want that).
-- The time pass: how long one ad gives (the plan's default: 2 hours) and how many a day (3).
-- The prices: the PC build ($10-20) and the phone's unlock ($5-10).
+- How many time passes a day (the plan's default: 3).
+
+(The prices are set in each store, not in the game: Google Play's full-game product at $3.99, the PC build at $7.99.)
