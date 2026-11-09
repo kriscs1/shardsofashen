@@ -31,13 +31,15 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/Voice_Old_Man*.wav` | a greeting | [Nervous Old Man or Middle-aged Man](https://freesound.org/s/711358/) | sickfin (freesound.org) | CC0 |
 | `sounds/Voice_Old_Woman*.wav` | a greeting | [hello, can I help you - Australian female voice.wav](https://freesound.org/s/546058/) | FunnyVoices (freesound.org) | CC0 |
 | `sounds/Voice_Old_Woman*.wav` | a greeting | [good morning - Australian female voice.wav](https://freesound.org/s/546061/) | FunnyVoices (freesound.org) | CC0 |
-| `sounds/Voice_Old_Woman*.wav` | a greeting | [hello.wav](https://freesound.org/s/123346/) | MatteusNova (freesound.org) | CC0 |
-| `sounds/Voice_Old_Woman*.wav` | a greeting | [Hello-female friendly professional.wav](https://freesound.org/s/213282/) | AderuMoro (freesound.org) | CC0 |
 | `sounds/Voice_Ghost*.wav` | a greeting | [Fearing Hello](https://freesound.org/s/50940/) | qubodup (freesound.org) | CC0 |
 | `sounds/Voice_Croak*.wav`, `sounds/Growl_Goblin*.wav`, `sounds/Growl_Troll*.wav`, `sounds/Growl_Wraith*.wav` | a greeting and a monster's growl | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
 | `sounds/Voice_Beast*.wav`, `sounds/Growl_Dragon*.wav` | a greeting and a monster's growl | [Creature Gibberish Language\Dialogue - Monster\Alien](https://freesound.org/s/669913/) | SnowFightStudios (freesound.org) | CC0 |
 | `sounds/Quest_Start.wav` | a quest taken on | [harp glissando](https://freesound.org/s/490831/) | PhonosUPF (freesound.org) | CC0 |
 | `sounds/Quest_Done.wav` | a quest finished | [WinHarpsichord.wav](https://freesound.org/s/521642/) | Fupicat (freesound.org) | CC0 |
+| `sounds/Voice_Sigh*.wav` | a mourner's sigh | [heavy sigh.wav](https://freesound.org/s/242625/) | Reitanna (freesound.org) | CC0 |
+| `sounds/Voice_Sigh*.wav` | a mourner's sigh | [long sigh.wav](https://freesound.org/s/242690/) | Reitanna (freesound.org) | CC0 |
+| `sounds/Voice_Sigh*.wav` | a mourner's sigh | [05. Suspiro madre.wav](https://freesound.org/s/427722/) | lemigoga (freesound.org) | CC0 |
+| `sounds/Voice_Sigh*.wav` | a mourner's sigh | [49-suspiro mujer.wav](https://freesound.org/s/429321/) | Tomycatts (freesound.org) | CC0 |
 
 Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The greetings, growls and quest
 jingles are cut from the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.

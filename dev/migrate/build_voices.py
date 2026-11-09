@@ -8,7 +8,8 @@ in SOURCES and CREDITS.md):
   sounds\\Quest_Done.wav              a quest finished (a harpsichord's flourish)
 
 Real people's words, never made up from tones (that sounded like a machine) or mumbled (that sounded awful). The
-deeper and older voices are the same recordings made lower (the pitch moved, the pace kept: stretch) with a tremble;
+deeper and older voices are the same recordings made lower (the pitch moved, the pace kept: stretch) with a tremble
+(an old woman's also with her pitch wavering); a mourner only sighs;
 a ghost's echo; the beasts are a creature's mutterings slowed, with a rattle for a troll's or a frog's throat.
 
 The recordings are fetched the first time (the previews: ffmpeg makes them WAVs) and kept in dev\\Voices (not in git).
@@ -46,13 +47,15 @@ SOURCES = {
     711358: ("711358_14604432", "sickfin", "Nervous Old Man or Middle-aged Man"),
     546058: ("546058_12187251", "FunnyVoices", "hello, can I help you - Australian female voice.wav"),
     546061: ("546061_12187251", "FunnyVoices", "good morning - Australian female voice.wav"),
-    123346: ("123346_495253", "MatteusNova", "hello.wav"),
-    213282: ("213282_1118942", "AderuMoro", "Hello-female friendly professional.wav"),
     50940: ("50940_71257", "qubodup", "Fearing Hello"),
     677407: ("677407_12064174", "SnowFightStudios", "Monster or Creature Mutterings and Gibberish"),
     669913: ("669913_12064174", "SnowFightStudios", "Creature Gibberish Language\\Dialogue - Monster\\Alien"),
     490831: ("490831_10350281", "PhonosUPF", "harp glissando"),
     521642: ("521642_7724198", "Fupicat", "WinHarpsichord.wav"),
+    242625: ("242625_950925", "Reitanna", "heavy sigh.wav"),
+    242690: ("242690_950925", "Reitanna", "long sigh.wav"),
+    427722: ("427722_8295394", "lemigoga", "05. Suspiro madre.wav"),
+    429321: ("429321_8649084", "Tomycatts", "49-suspiro mujer.wav"),
 }
 
 # what each kind of speaker says: (recording, from s, to s) each, what it says in the comment; then how it's made:
@@ -90,12 +93,11 @@ GREETINGS = {
                            (MAN, 33.11, 34.02),    # Friend!
                            (711358, 1.08, 2.05)],  # Oh, hi.
                     pitch=0.84, pace=0.9, tremble=0.16),
-    "Old_Woman": dict(clips=[(546058, 0.41, 2.03),  # Hello, can I help you?
-                             (546058, 0.41, 0.92),  # Hello.
-                             (546061, 0.29, 0.99),  # Good morning.
-                             (123346, 0.37, 0.86),  # Hello.
-                             (213282, 0.13, 0.62)],  # Hello!
-                      pitch=0.88, pace=0.9, tremble=0.2),
+    "Old_Woman": dict(clips=[(546058, 0.41, 2.03),  # Hello, can I help you?   (one woman's, every take: the
+                             (546058, 0.41, 0.92),  # Hello.                    same voice each time)
+                             (546058, 1.38, 2.03),  # Can I help you?
+                             (546061, 0.29, 0.99)],  # Good morning.
+                      pitch=0.9, pace=0.82, tremble=0.3, quaver=0.05),
     "Gruff": dict(clips=[(449481, 0.11, 1.48),      # Hello.
                          (447392, 1.05, 1.48),      # Hello.
                          (MAN, 23.54, 24.01),       # Hey there.
@@ -113,6 +115,9 @@ GREETINGS = {
     "Beast": dict(clips=[(669913, a, b) for a, b in ((24.43, 25.23), (31.05, 32.35), (33.18, 34.78),
                                                      (40.12, 41.17))],
                   speed=0.8),
+    # (a mourner doesn't say hello at a funeral: she sighs, softly)
+    "Sigh": dict(clips=[(242625, 0.08, 1.40), (242690, 0.08, 1.25), (427722, 0.30, 1.95), (429321, 1.08, 2.50)],
+                 rms=0.06),
 }
 
 # a monster's growl as it comes for you: a creature's mutterings (its parts: a goblin's, a troll's, a wraith's)
@@ -145,12 +150,13 @@ VOICES = {
            "Mending_Wayfarer Ferryman Bert Pip",
     "Deep": "Guard Port_Guard Guard_Captain Royal_Guard Captain Butcher Armourer Frank Dwarf Forgemaster Sea_Captain "
             "King_Rupert King_Tyron",
-    "Woman": "Woman Settler Painter Mourner Barmaid Blacksmith Herbalist Maren Milkmaid Nurse Tailor Scout Warden "
+    "Woman": "Woman Settler Painter Barmaid Blacksmith Herbalist Maren Milkmaid Nurse Tailor Scout Warden "
              "Wyrmsmith Ice_Fisher Mending_Sister Mending_Cantor Duchess",
     "Old_Man": "Beggar Elder Eldest_of_the_Mending Fisherman Gravekeeper Hermit Manor_Steward Miner Tobias Wizard "
                "Steward Speaker Archivist",
     "Old_Woman": "Old_Woman Beachcomber Marsh_Witch Witch Stone_Ringer",
     "Gruff": "Hob Bandit Talking_Scarecrow",
+    "Sigh": "Mourner",
     "Ghost": "Delver_Ghost Ghost_Warden Orrin_Ghost Toll_Keeper Valour_Guardian Wandering_Echo Ysolde Singing_Remnant "
              "The_Voice Great_Shard Echo_Pool",
     "Croak": "Frog_King",
@@ -255,6 +261,11 @@ def make(x, a, b, k, rms_to=0.1):
     y = resample(y, k.get("speed", 1.0))
     y = highpass(y)
     t = np.arange(len(y)) / RATE
+    if k.get("quaver"):                                           # (an old voice's pitch, unsteady: a wobble)
+        rng = np.random.default_rng(len(y))
+        hz = 5.5                                                  # (the same wobble in every take)
+        d = k["quaver"] * RATE / (2 * np.pi * hz) * (1 + np.sin(2 * np.pi * hz * t + 6.28 * rng.random()))
+        y = np.interp(np.arange(len(y)) - d, np.arange(len(y)), y, left=0.0)
     if k.get("tremble"):
         y *= 1 - k["tremble"] * (0.5 + 0.5 * np.sin(2 * np.pi * 6.0 * t))
     if k.get("rattle"):
@@ -269,6 +280,7 @@ def make(x, a, b, k, rms_to=0.1):
     fade_in, fade_out = int(0.008 * RATE), int(0.06 * RATE)
     y[:fade_in] *= np.linspace(0, 1, fade_in)
     y[-fade_out:] *= np.linspace(1, 0, fade_out)
+    rms_to = k.get("rms", rms_to)                                 # (a sigh is quieter than a hello)
     if rms_to:
         loud = y[np.abs(y) > 0.02 * np.max(np.abs(y))]            # (as loud as each other, by the words, not the gaps)
         y *= rms_to / max(np.sqrt(np.mean(loud ** 2)) if len(loud) else 1e-6, 1e-6)

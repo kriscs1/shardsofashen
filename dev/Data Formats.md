@@ -233,7 +233,7 @@ Calls=Seal_Bark            ; optional: a sound it makes now and then (every 15-6
                            ; within 8 tiles
 Voice=Woman                ; optional: its greeting as you start talking to it (sounds\Voice_<Kind>.wav,
                            ; dev\migrate\build_voices.py GREETINGS: Man Deep Woman Old_Man Old_Woman Gruff Ghost
-                           ; Croak Beast); each one placed has a pitch of its own. None: silent (a notice, a sign)
+                           ; Croak Beast Sigh); each one placed has a pitch of its own. None: silent (a notice, a sign)
 Growl=Goblin               ; optional: a monster's growl as it comes for you, heard close by (sounds\Growl_<Kind>.wav,
                            ; build_voices.py GROWLS: Goblin Troll Wraith Dragon)
 Friend.If.Wearing=Mending_Robe   ; optional: it takes you for one of its own while you wear that (your gear alone;

@@ -669,6 +669,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   greetings are cut from CC0 recordings by `build_voices.py`, which also gives each speaker its `Voice=` (a new
   speaker gets one there too). Each person placed has a pitch of their own, the same every time (`npc_voice`), and
   greets you again only after a while. Notices, signs and letters are silent. Options can turn the greetings off.
+  A greeting suits who says it: a mourner at a funeral only sighs (`Sigh`), and an old woman's voice wavers
+  (`quaver`), not just a younger one made lower; every take of a kind is one person's voice. No added noise for a
+  breathy voice: it sounds like static.
 - **A monster growls as it comes for you** (`Growl=`, from a creature's recorded mutterings: `build_voices.py`
   GROWLERS): the one that saw you, heard from close by; people, animals and things of stone or glass don't.
 - **A quest taken on and a quest finished each have their jingle** (`Quest_Start`, `Quest_Done`: `quest_jingle`),
