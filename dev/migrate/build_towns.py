@@ -182,9 +182,8 @@ def data():
         lines += ["Item%d=%s,%d" % (i, n, q) for i, (n, q) in enumerate(
             [(n, q) for n, q in items if ini.section(n, E)], 1)]
         K.set_section(K.RACKS, rack, lines)
-    K.write_script("Stroke Horse", [("Play.Sound", "Pickup"), ("Display.Message", "Cyan",
-                                                             "The horse snorts softly and noses your hand."),
-                                    ("End",)], T.MAKER)
+    K.write_script("Stroke Horse", [("Display.Message", "Cyan", "The horse snorts softly and noses your hand.", "-"),
+                                    ("End",)], T.MAKER)                 # (its snort: Calls=, animal_noise)
     K.minimap_colour("Paving001", (170, 170, 164))
 
 

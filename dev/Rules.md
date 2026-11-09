@@ -669,11 +669,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   greetings are cut from CC0 recordings by `build_voices.py`, which also gives each speaker its `Voice=` (a new
   speaker gets one there too). Each person placed has a pitch of their own, the same every time (`npc_voice`), and
   greets you again only after a while. Notices, signs and letters are silent. Options can turn the greetings off.
-  A greeting suits who says it: a mourner at a funeral only sighs (`Sigh`), and an old woman's voice wavers
-  (`quaver`), not just a younger one made lower; every take of a kind is one person's voice. No added noise for a
-  breathy voice: it sounds like static.
+  A greeting suits who says it: a mourner at a funeral only sighs (`Sigh`); an old man or an old woman is
+  a real old person's voice (Mozilla Common Voice, CC0), never a younger one's made old; every take of a kind is
+  one person's voice. No added noise for a breathy voice: it sounds like static.
 - **A monster growls as it comes for you** (`Growl=`, from a creature's recorded mutterings: `build_voices.py`
   GROWLERS): the one that saw you, heard from close by; people, animals and things of stone or glass don't.
+- **An animal makes its own noise** (`Calls=`: a cow's moo, a hen's cluck, a cat's meow, recorded, CC0:
+  `build_voices.py` CALLS), now and then on its own and, the same noise, as you do something with it (stroke it,
+  feed it, milk it: `animal_noise`), unless its script starts with a sound of its own (a cat's purr). Never a made-up
+  one. In an animal's body (the Swap scroll) the animals still only make their noises: what they say is the words on
+  screen, never a human voice.
 - **A quest taken on and a quest finished each have their jingle** (`Quest_Start`, `Quest_Done`: `quest_jingle`),
   once however many things say so at once; a script's "Quest complete" message brings it, not `Quest` as well.
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from

@@ -230,7 +230,9 @@ Hunts=Rabbit,Sheep         ; optional: NPCs it goes for when it sees one (within
 Swims=1                    ; optional: it swims (otters, seals, frogs): water is ground to it, it roams in and out
                            ; of it, and in water it's drawn as <Name>_Swim2 / _Swim8
 Calls=Seal_Bark            ; optional: a sound it makes now and then (every 15-60 s) when not fighting, heard
-                           ; within 8 tiles
+                           ; within 8 tiles, and as you do something with it (stroke it, feed it, milk it) unless its
+                           ; script starts with a sound of its own; an animal's is a recording with takes (Moo, Moo_2
+                           ; ...: dev\migrate\build_voices.py CALLS, which gives each animal its Calls=: CALLERS)
 Voice=Woman                ; optional: its greeting as you start talking to it (sounds\Voice_<Kind>.wav,
                            ; dev\migrate\build_voices.py GREETINGS: Man Deep Woman Old_Man Old_Woman Gruff Ghost
                            ; Croak Beast Sigh); each one placed has a pitch of its own. None: silent (a notice, a sign)

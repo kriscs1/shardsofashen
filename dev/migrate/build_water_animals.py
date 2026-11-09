@@ -8,7 +8,7 @@ out onto the bank, a beach or a rock for a while, then slip back in.
   * Frog (Ashford's lily pond, the Isle's pond, the Saltmarsh): hops, croaks (Calls=Croak). Drops Frog_Legs: cook them
     on a fire, a fireplace or a range (Cooked_Frog_Legs).
 Sprites: <Name>.png, the walk frames <Name>2a-c / 8a-c, <Name>_Swim2 / 8 (in the water: head and back above it),
-the resting pose (Otter_Sit, Seal_Lie); the items; sounds\\Croak.wav and Seal_Bark.wav.
+the resting pose (Otter_Sit, Seal_Lie); the items. (Croak.wav and Seal_Bark.wav: build_voices.py CALLS.)
 Run it again to draw and make them again; the animals are only placed once.
 
   python -I "dev\\migrate\\build_water_animals.py"
@@ -16,9 +16,7 @@ Run it again to draw and make them again; the animals are only placed once.
 import math
 import os
 import random
-import struct
 import sys
-import wave
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -32,7 +30,6 @@ from build_isle import Map, DATA, obj_line  # noqa: E402
 
 OUTLINE = (34, 30, 30)
 WATER_LINE = (200, 232, 248)
-RATE = 22050
 
 
 def outlined(s):
@@ -267,53 +264,6 @@ def pictures():
     print("Drew the otter, the seal and the frog (walking, swimming, resting) and what they leave")
 
 
-# ---------------------------------------------------------------- their calls
-def write_wav(name, samples):
-    with wave.open(os.path.join(ROOT, "sounds", name + ".wav"), "wb") as w:
-        w.setnchannels(1)
-        w.setsampwidth(2)
-        w.setframerate(RATE)
-        w.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v)) * 30000)) for v in samples))
-
-
-def croak():
-    """Ribbit: two quick throaty buzzes, the second a little higher."""
-    out = []
-    for k, (f, length) in enumerate(((150, 0.13), (185, 0.11))):
-        n = int(RATE * length)
-        for i in range(n):
-            t = i / RATE
-            env = math.sin(math.pi * i / n) ** 0.6
-            buzz = 1 if math.sin(2 * math.pi * f * t) > 0 else -1                             # (a reedy square)
-            pulse = 0.55 + 0.45 * math.sin(2 * math.pi * 38 * t)                              # (its throat's rattle)
-            out.append(buzz * pulse * env * 0.38)
-        out += [0.0] * int(RATE * 0.06)
-    return out
-
-
-def bark():
-    """A seal's bark: two short honks, falling, rough."""
-    rng = random.Random(9)
-    out = []
-    for f0 in (420, 380):
-        n = int(RATE * 0.18)
-        phase = 0.0
-        for i in range(n):
-            t = i / n
-            f = f0 * (1 - 0.3 * t)
-            phase += f / RATE
-            saw = 2 * (phase % 1) - 1
-            env = (min(1, t * 12)) * (1 - t) ** 1.5
-            out.append((saw * 0.7 + (rng.random() * 2 - 1) * 0.3) * env * 0.5)
-        out += [0.0] * int(RATE * 0.09)
-    return out
-
-
-def sounds():
-    write_wav("Seal_Bark", bark())                     # (Croak, a real ribbit: build_soundscape.py)
-    print("Made sounds\\Seal_Bark.wav")
-
-
 # ---------------------------------------------------------------- the data
 ANIMALS = {
     "Otter": [("Type", "NPC"), ("Attitude", "Passive"), ("Examine.Info", "An otter, sleek and wet, never still for long."),
@@ -498,7 +448,6 @@ def place():
 
 def main():
     pictures()
-    sounds()
     data()
     scripts()
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

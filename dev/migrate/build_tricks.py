@@ -12,7 +12,7 @@
     a spell, a potion, or someone else's body.
   * Secrets in Bert's tower: a cat flap to his secret biscuit tin (only a cat fits), and a big red button.
   * Pictures (the potion, the scroll, Pip, the goose - the duck's frames, whitened - its nest, the hat, the button,
-    the flap) and sounds (Vanish, Appear, Swap, Honk, Splosh).
+    the flap) and sounds (Vanish, Appear, Swap, Splosh).
 
 Safe to run again.
 
@@ -146,9 +146,7 @@ def art():
 
 SOUNDS = {
     # (Vanish, Appear, Swap and Click: build_soundscape.py)
-    # HONK
-    "Honk": lambda: SND.mix((SND.shaped(SND.tone(330, SND.n(0.25), glide=-0.15, shape="square"), 0.01, 6), 0.45),
-                            (SND.shaped(SND.noise(62, SND.n(0.25), 0.5, high=0.3), 0.01, 6), 0.15)),
+    # (Honk is a goose's recorded honk: build_voices.py CALLS)
     # a bucket of water, all at once
     "Splosh": lambda: SND.mix((SND.shaped(SND.noise(63, SND.n(0.7), 0.6, high=0.5), 0.005, 4), 0.7),),
 }

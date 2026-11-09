@@ -50,8 +50,10 @@ function file(name) {
   name = trim(name);
   const s = A.m.sounds || {};
   if (name.includes(".")) return s[name] || null;
-  // (a sound with takes - Fail, Fail_2, Fail_3: build_soundscape.py - one at random, so a repeat doesn't grate)
-  const takes = [name, name + "_2", name + "_3"].filter((t) => s[t + ".wav"]);
+  // (a sound with takes - Fail, Fail_2, Fail_3: build_soundscape.py; Moo .. Moo_5: build_voices.py - one at random,
+  // so a repeat doesn't grate)
+  const takes = [];
+  for (let k = 1; k <= 8 && s[(k > 1 ? `${name}_${k}` : name) + ".wav"]; k++) takes.push(k > 1 ? `${name}_${k}` : name);
   if (takes.length > 1) return s[takes[Math.floor(Math.random() * takes.length)] + ".wav"];
   return s[name + ".wav"] || s[name + ".mid"] || null;
 }

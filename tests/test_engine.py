@@ -8071,6 +8071,31 @@ def test_a_quest_taken_on_and_done_has_its_jingle_and_a_goblin_growls_as_it_come
     leave(world, s)
 
 
+def test_an_animal_makes_its_noise_as_you_do_something_with_it(world):
+    """A cow you talk to moos, a cat you feed meows (its Calls=, the same as it makes on its own: build_voices.py
+    CALLS); a cat you stroke only purrs (its script's own sound); nothing as you look at it or attack it."""
+    s = join(world, "Herder", "0,0,10", 12 * 32, 12 * 32)
+    s.connected = True
+    m = s.cur_map
+    cow = world.add_npc("Cow", m.mz, m.ox + 13 * 32, m.oy + 12 * 32, "")
+    cat = world.add_npc("Cat", m.mz, m.ox + 12 * 32, m.oy + 13 * 32, "")
+    assert cow.ai.call == "Moo" and cat.ai.call == "Meow"
+
+    def heard(verb, e):
+        s.out = []
+        s.do_action(verb, e)
+        run_for(world, 3)
+        return [ev["name"] for ev in s.out if ev.get("t") == "sound" and ev["name"] in ("Moo", "Meow", "Purr")]
+    assert heard("Talk to", cow) == ["Moo"]
+    assert cow.ai.call_at - world.now >= 14000                       # (and not again on its own straight after)
+    assert heard("Feed", cat) == ["Meow"]
+    assert heard("Stroke", cat) == ["Purr"]
+    assert heard("Examine", cow) == [] and heard("Attack", cow) == []
+    for e in (cow, cat):
+        world.remove_entity(e)
+    leave(world, s)
+
+
 def test_the_shardfall_deep_opens_only_to_a_woken_signet_and_its_shard_gives_once_a_day(world):
     """The Shardfall Deep (dev/migrate/build_shardfall.py): down the sea cave on Gull Point; the Wardens' Seal shut till
     Bryony's signet is woken there with Shards and Shardcraft 15; the Fallen Shard's Shards once a day to whoever

@@ -11,7 +11,7 @@ few takes (Fail, Fail_2, Fail_3) are picked among at random as they play (audio.
                   Freeze, Stone_Wake, Enchant, Portal, Gate_Built, Anchor_Shatter (harps for the old sine chimes),
                   Hush, Dread, Buzz (a mosquito), Mage_Blink (a Dark Mage gone and back)
   A fever:        Fever_Shiver (teeth chattering, a shaky breath), Fever_Cured (a long breath out, a low harp)
-  Creatures:      Croak (a frog's ribbit: a pulsed call, as a real frog makes it), Kill_Small (a rat's squeal)
+  Creatures:      Kill_Small (a rat's squeal)
   Traps:          Darts (a soft hiss of darts)
 
 These were made by build_denied_sound, build_fail_sound, build_empty_sound, build_fizzle_sound, build_sounds,
@@ -271,7 +271,6 @@ SOUNDS = {
                                     (delay(bell(262, 1.0, 4), 0.62), 0.35)), 0.3), 0.45),
     "Shard_Fade": (lambda: room(mix((breath(191, 0.7, 0.04, 0.2), 0.5),
                                     (delay(harp_run((392, 330, 262), 0.1, 0.7), 0.05), 0.35)), 0.3), 0.35),
-    "Croak": (lambda: ribbit(121), 0.6),
     "Kill_Small": (lambda: lowpass(mix((voice(1150, 0.2, glide=-0.4, vibrato=0.06, rate=28, rough=0.05, seed=122,
                                               shape="sine"), 0.8),
                                        (delay(voice(950, 0.16, glide=-0.5, vibrato=0.05, rate=26, seed=123, shape="sine"), 0.08),

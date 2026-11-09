@@ -28,9 +28,6 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/Voice_Deep*.wav` | a greeting | [Welcome Traveler.mp3](https://freesound.org/s/501882/) | Nchamp13 (freesound.org) | CC0 |
 | `sounds/Voice_Deep*.wav`, `sounds/Voice_Gruff*.wav` | a greeting | [hello](https://freesound.org/s/449481/) | 12125065 (freesound.org) | CC0 |
 | `sounds/Voice_Gruff*.wav` | a greeting | [man saying hello](https://freesound.org/s/447392/) | florianreichelt (freesound.org) | CC0 |
-| `sounds/Voice_Old_Man*.wav` | a greeting | [Nervous Old Man or Middle-aged Man](https://freesound.org/s/711358/) | sickfin (freesound.org) | CC0 |
-| `sounds/Voice_Old_Woman*.wav` | a greeting | [hello, can I help you - Australian female voice.wav](https://freesound.org/s/546058/) | FunnyVoices (freesound.org) | CC0 |
-| `sounds/Voice_Old_Woman*.wav` | a greeting | [good morning - Australian female voice.wav](https://freesound.org/s/546061/) | FunnyVoices (freesound.org) | CC0 |
 | `sounds/Voice_Ghost*.wav` | a greeting | [Fearing Hello](https://freesound.org/s/50940/) | qubodup (freesound.org) | CC0 |
 | `sounds/Voice_Croak*.wav`, `sounds/Growl_Goblin*.wav`, `sounds/Growl_Troll*.wav`, `sounds/Growl_Wraith*.wav` | a greeting and a monster's growl | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
 | `sounds/Voice_Beast*.wav`, `sounds/Growl_Dragon*.wav` | a greeting and a monster's growl | [Creature Gibberish Language\Dialogue - Monster\Alien](https://freesound.org/s/669913/) | SnowFightStudios (freesound.org) | CC0 |
@@ -40,9 +37,46 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/Voice_Sigh*.wav` | a mourner's sigh | [long sigh.wav](https://freesound.org/s/242690/) | Reitanna (freesound.org) | CC0 |
 | `sounds/Voice_Sigh*.wav` | a mourner's sigh | [05. Suspiro madre.wav](https://freesound.org/s/427722/) | lemigoga (freesound.org) | CC0 |
 | `sounds/Voice_Sigh*.wav` | a mourner's sigh | [49-suspiro mujer.wav](https://freesound.org/s/429321/) | Tomycatts (freesound.org) | CC0 |
+| `sounds/Voice_Old_Man*.wav` | a greeting | common_voice_en_18078830.mp3 ("Good afternoon sir, how may I be of service?", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Man*.wav` | a greeting | common_voice_en_18139265.mp3 ("Hello, my name is Brenda.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Man*.wav` | a greeting | common_voice_en_18105147.mp3 ("Hello! It is great to see you!", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Man*.wav` | a greeting | common_voice_en_18105271.mp3 ("Good evening.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Man*.wav` | a greeting | common_voice_en_18090744.mp3 ("Good morning.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | common_voice_en_21913523.mp3 ("'Good Morning, Mister Echo' was a popular song.", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | common_voice_en_21901890.mp3 ("Hey", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Voice_Old_Woman*.wav` | a greeting | common_voice_en_147943.mp3 ("Good evening", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/Moo*.wav` | a cow's moo | [Cow moos](https://freesound.org/s/177253/) | JosephSardin (freesound.org) | CC0 |
+| `sounds/Baa*.wav` | a sheep's baa | [Sheep Baa](https://freesound.org/s/414541/) | emilyws (freesound.org) | CC0 |
+| `sounds/Baa*.wav` | a sheep's baa | [Ewe Shetland Sheep Baa](https://freesound.org/s/692900/) | satoristudios3 (freesound.org) | CC0 |
+| `sounds/Bleat*.wav` | a lamb's bleat | [Lambs bleating](https://freesound.org/s/692899/) | satoristudios3 (freesound.org) | CC0 |
+| `sounds/Bleat*.wav` | a lamb's bleat | [Twin Lambs Baa-ing](https://freesound.org/s/692898/) | satoristudios3 (freesound.org) | CC0 |
+| `sounds/Cluck*.wav` | a hen's cluck | [chicken sound - clucking.wav](https://freesound.org/s/424076/) | chanyatenn (freesound.org) | CC0 |
+| `sounds/Quack*.wav` | a duck's quack | [single quack from a duck](https://freesound.org/s/418509/) | Mikes-MultiMedia (freesound.org) | CC0 |
+| `sounds/Quack*.wav` | a duck's quack | [duck.wav](https://freesound.org/s/53258/) | stomachache (freesound.org) | CC0 |
+| `sounds/Quack*.wav` | a duck's quack | [Duck quacking.mp3](https://freesound.org/s/558858/) | DigPro120 (freesound.org) | CC0 |
+| `sounds/Quack*.wav` | a duck's quack | [duck.wav](https://freesound.org/s/187261/) | Jonnyhoff91 (freesound.org) | CC0 |
+| `sounds/Honk*.wav` | a goose's honk | [goose honk](https://freesound.org/s/805297/) | jahjahjahjah (freesound.org) | CC0 |
+| `sounds/Honk*.wav` | a goose's honk | [geese honking honk](https://freesound.org/s/583856/) | mycompasstv (freesound.org) | CC0 |
+| `sounds/Snort*.wav` | a horse's snort | [Horse(snort)_3.wav](https://freesound.org/s/475483/) | o_ciz (freesound.org) | CC0 |
+| `sounds/Snort*.wav` | a horse's snort | [Horse Snort.wav](https://freesound.org/s/397236/) | black_trillium (freesound.org) | CC0 |
+| `sounds/Snort*.wav` | a horse's snort | [horse snort.wav](https://freesound.org/s/538697/) | bruno.auzet (freesound.org) | CC0 |
+| `sounds/Snort*.wav` | a horse's snort | [Horse_Whinny.wav](https://freesound.org/s/149024/) | foxen10 (freesound.org) | CC0 |
+| `sounds/Dog_Bark*.wav` | a dog's bark | [Dog barking](https://freesound.org/s/832435/) | felix.blume (freesound.org) | CC0 |
+| `sounds/Dog_Bark*.wav` | a dog's bark | [Single Dog Bark](https://freesound.org/s/277058/) | kwahmah_02 (freesound.org) | CC0 |
+| `sounds/Meow*.wav` | a cat's meow | [Cat meow](https://freesound.org/s/362652/) | TRNGLE (freesound.org) | CC0 |
+| `sounds/Meow*.wav` | a cat's meow | [cat meow short](https://freesound.org/s/412017/) | skymary (freesound.org) | CC0 |
+| `sounds/Meow*.wav` | a cat's meow | [Cat Meowing](https://freesound.org/s/333916/) | lextrack (freesound.org) | CC0 |
+| `sounds/Meow*.wav` | a cat's meow | [Cat Meow](https://freesound.org/s/436541/) | Mafon2 (freesound.org) | CC0 |
+| `sounds/Purr*.wav` | a cat's purr | [Cat purr](https://freesound.org/s/656500/) | druulian (freesound.org) | CC0 |
+| `sounds/Purr*.wav` | a cat's purr | [Cat's short purr](https://freesound.org/s/528949/) | fthgurdy (freesound.org) | CC0 |
+| `sounds/Croak*.wav` | a frog's croak | [Green frog, croaking.wav](https://freesound.org/s/188195/) | SpliceSound (freesound.org) | CC0 |
+| `sounds/Croak*.wav` | a frog's croak | [Frog croaking sound effect](https://freesound.org/s/354132/) | betterchinese (freesound.org) | CC0 |
+| `sounds/Seal_Bark*.wav` | a seal's bark | [G12-28-Seal Bark.wav](https://freesound.org/s/437960/) | craigsmith (freesound.org) | CC0 |
+| `sounds/Rabbit_Grunt*.wav` | a rabbit's grunt | [Rabbit oinks and squeaks](https://freesound.org/s/372075/) | kessir (freesound.org) | CC0 |
+| `sounds/Otter_Chirp*.wav` | an otter's chirp | [river otter or weasel 2006-09-17.mp3](https://freesound.org/s/23142/) | stackpool (freesound.org) | CC0 |
 
-Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The greetings, growls and quest
-jingles are cut from the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.
+Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The greetings, growls, quest
+jingles and animals' noises are cut from the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.
 
 The server and the Android app run on open-source software: Python (PSF licence), aiohttp (Apache 2.0) and
 Chaquopy (MIT).

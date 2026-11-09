@@ -14,7 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from common import Ini, p                               # noqa: E402
-from build_sounds import n, mix, shaped, delay, voice, noise, lowpass    # noqa: E402
+from build_sounds import shaped                          # noqa: E402
 from build_soundscape import breath, wav_bytes          # noqa: E402
 
 HEADER = """; Banter (dsengine/banter.py): who says what to whom, over their heads, where a player can see it.
@@ -164,13 +164,6 @@ SCENES = {
 
 
 # ================================================================== the animals' sounds
-def dog_bark():
-    """Two barks: a rough voice, up and off, in a chest."""
-    one = voice(290, 0.13, glide=-0.45, rough=0.6, seed=2)
-    return mix((shaped(one, 0.003, 11), 1.0), (delay(shaped(voice(320, 0.12, glide=-0.5, rough=0.6, seed=3), 0.003, 12), 0.2), 0.9),
-               (lowpass(shaped(noise(4, n(0.34), 0.2), 0.002, 18), 0.25), 0.25))
-
-
 def cat_hiss():
     """Breath through teeth, rising and then cut off."""
     return shaped(breath(5, 0.6, 0.45, 0.25), 0.02, 2)
@@ -201,7 +194,7 @@ def main():
         for k, v in items:
             conf.set(sec, k, v)
     conf.save(p("data", "Banter.ini"))
-    for name, sig, level in (("Dog_Bark", dog_bark(), 0.55), ("Cat_Hiss", cat_hiss(), 0.45)):
+    for name, sig, level in (("Cat_Hiss", cat_hiss(), 0.45),):           # (Dog_Bark is a recording: build_voices.py)
         path = p("sounds", name + ".wav")
         blob = wav_bytes(sig, level)
         if not os.path.exists(path) or open(path, "rb").read() != blob:

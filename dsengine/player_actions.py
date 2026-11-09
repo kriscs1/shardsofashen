@@ -4,15 +4,17 @@ the player really has."""
 import math
 import zlib
 
-from ashen.lb import val, word, trim, lbstr, distance, strip_digits, pretty
+from ashen.lb import val, word, trim, lbstr, distance, strip_digits, pretty, random_number
 
 from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, TEMPORARY, INFRONTTILE, ROOF,
                      ACTIONBOXITEM, INVENTORYITEM, TYPE_NAMES)
+from .world import HEAR_CALL
 
 STAND_MS = 300          # (getting up: state.js SIT_MS, and a moment)
 SEAT_FACES = {"N": 1, "E": 2, "S": 4, "W": 8}    # (Seat= in Tiles.ini: the way you face, sitting on it)
 WALK_FIRST_WORDS = ("Wall", "Forest", "Hedge", "Pond", "Pool", "_Window", "Water", "Timber0", "Plaster0", "Sandstone0",
                     "Brick0")
+QUIET_VERBS = ("Attack", "Examine", "Walk here", "Cancel")    # (an animal's noise comes with the rest: animal_noise)
 
 
 class ActionsMixin:
@@ -358,12 +360,31 @@ class ActionsMixin:
         self.stop_player_walk()
         self.do_action(verb, e)
 
+    def animal_noise(self, verb, e):
+        """Stroke a cow, feed a hen, milk it, talk to it in a goose's body: it makes its noise (Calls=, the same as it
+        makes on its own now and then: build_voices.py CALLS), heard by whoever's near. Not when its script opens with
+        a sound of its own (a cat's purr), nor for a person with a call (the Jester's bells: they greet you)."""
+        a = getattr(e, "ai", None)
+        if e.type != NPC or a is None or not getattr(a, "call", "") or e.in_combat or verb in QUIET_VERBS:
+            return
+        if self.entity_ini(e.name, "Voice", ""):
+            return
+        if not (verb == "Talk to" and self.swap):                # (in its body, it answers you itself: animal_chat)
+            script = self.find_action_script(verb, e.name, e.type, e.npc_id) if verb != "Use with" else ""
+            first = next((ln for ln in self.data.read_lines(self.script_path(script)) if trim(ln) and
+                          not trim(ln).startswith("//")), "") if script else ""
+            if trim(word(first, 2, "\t")) == "Play.Sound":
+                return
+        a.call_at = self.now + random_number(15000, 60000)        # (and not again on its own straight after)
+        self.w.sound(a.call, e.z, e.cx, e.cy, radius=HEAR_CALL)
+
     def do_action(self, verb, e):
         """Runs the script for verb on entity e, or the engine's built-in default."""
         if e is None or not e.alive:
             return
         name, t = e.name, e.type
         self.clicked_ent = e
+        self.animal_noise(verb, e)
         if self.together_do(verb, e):                  # (parties, gifts, projects, the crier...: together.py)
             return
         if verb == "Use with":

@@ -10,16 +10,12 @@ Run it again to draw and make the sounds again; the cats are only placed once.
   * sprites\\Walk\\<Cat>2a-c / 8a-c (trotting, right and left), sprites\\Entities\\<Cat>.png, and <Cat>_Sit2 / _Sit8
     (sitting: States=Sit, its pose when it stops a while), _Curl2 / 8 (curled up asleep, also on its Nap= spot), _Stretch2 / 8 and _Butt2 / 8 (Fidgets=: for a moment,
     now and then, a stretch or its back to you).
-  * sounds\\Meow.wav (a "mrrow?": its pitch up, then down) and Purr.wav (a rumble, in and out).
+  * (Meow.wav and Purr.wav are recordings now: build_voices.py CALLS.)
   * Entities.ini: friendly (Attitude=Good), not solid (they don't block a doorway), Talk to (a meow), Stroke (a purr).
   * A cat by each of a few towns' squares; the named cats (Id= and Name=, with a meow and a purr of their own).
 """
-import math
 import os
-import random
-import struct
 import sys
-import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
@@ -53,7 +49,6 @@ LOOKS = {   # face, legs, paws (socks), fat?
 LEGS = [(12, (0, 1, -1), True), (14, (0, -1, 1), False), (18, (0, -1, 1), True), (20, (0, 1, -1), False)]
 SCALE = 0.7         # (every pose drawn as below, then made this much smaller: a cat about a third of a person's height)
 GROUND = 28         # (the row under its paws, kept where it is as it shrinks: every pose stands on the same line)
-RATE = 22050
 
 
 # ---------------------------------------------------------------- the pictures
@@ -274,52 +269,6 @@ def pictures():
     print("Drew the cats, walking, sitting, stretching and turned away: %s" % ", ".join(CATS))
 
 
-# ---------------------------------------------------------------- the sounds
-def write_wav(name, samples):
-    with wave.open(os.path.join(ROOT, "sounds", name + ".wav"), "wb") as w:
-        w.setnchannels(1)
-        w.setsampwidth(2)
-        w.setframerate(RATE)
-        w.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v)) * 30000)) for v in samples))
-
-
-def meow():
-    """A "mrrow?": a voice whose pitch climbs, then falls away, its vowel opening from "mm" to "ow"."""
-    secs = 0.6
-    out, phase = [], 0.0
-    for i in range(int(RATE * secs)):
-        t = i / RATE
-        u = t / secs
-        f = 420 + 380 * math.sin(math.pi * min(1.0, u * 1.6)) - 120 * max(0.0, u - 0.6)
-        phase += 2 * math.pi * f / RATE
-        bright = 0.2 + 0.8 * math.sin(math.pi * u)                        # ("mm" - "ee" - "ow")
-        v = sum(math.sin(phase * h) * (bright ** (h - 1)) / h for h in range(1, 9))
-        env = min(1.0, t / 0.05) * min(1.0, (secs - t) / 0.15)
-        out.append(v * env * 0.45)
-    write_wav("Meow", out)
-
-
-def purr():
-    """A purr: a low rumble, pulsing some twenty-five times a second, breathed in and out."""
-    rng = random.Random(3)
-    secs = 1.8
-    out, low = [], 0.0
-    for i in range(int(RATE * secs)):
-        t = i / RATE
-        low += (rng.uniform(-1, 1) - low) * 0.05                            # (noise, its highs taken off)
-        pulse = 0.5 + 0.5 * math.sin(2 * math.pi * 26 * t)
-        breath = 0.55 + 0.45 * math.sin(2 * math.pi * t / 0.9 - 1.2)
-        env = min(1.0, t / 0.1) * min(1.0, (secs - t) / 0.3)
-        out.append((low * 3.5 + 0.25 * math.sin(2 * math.pi * 52 * t)) * pulse ** 2 * breath * env)
-    write_wav("Purr", out)
-
-
-def sounds():
-    meow()
-    purr()
-    print("Made sounds\\Meow.wav and Purr.wav")
-
-
 # ---------------------------------------------------------------- the data, and where they live
 NAMED = {   # a cat of its own: its kind, the place it lives by, a meow and a purr of its own
     "Jimmy": ("Strawberry_Cat", None, "Jimmy looks up at you and gives a little chirp, very pleased with himself.",
@@ -425,7 +374,6 @@ def all_maps():
 
 def main():
     pictures()
-    sounds()
     data()
     place()
 
