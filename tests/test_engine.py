@@ -1895,7 +1895,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("FatherFreed") == 1 and attr("Passage") == 3
     assert any(e.name == "Hob_Cage_Open" and e.owner is s for e in world.ents)
     use("2,2,-2", 5, 15, "Search")                                  # the corner barrel
-    assert s.items_held("Fathers_House_Key") == 1
+    assert s.items_held("Fathers_House_Key") == 1 and s.items_held("Ashen_Order") == 1   # (and who sent them)
     use("2,2,-2", 17, 10, "Climb Up")                               # the hidden ladder, up into the camp
     assert s.cur_map.name == "2,2,0" and attr("LairLadder") == 1
     house = world.maps["1,1,0"]
@@ -9819,4 +9819,178 @@ def test_a_friend_pass_is_the_full_game_while_an_owner_is_there(world):
     s.set_full(True)
     s.want_friend_pass(True)
     assert not s.friend_pass and s.base_skill_level("Strength") == 9           # (their own: no pass needed)
+    leave(world, s)
+
+
+def test_the_lair_barrel_has_an_order_signed_in_ash(world):
+    s = join(world, "Finder", "2,2,-2", 5 * 32, 14 * 32)
+    s.god_mode = 1
+    for e in [e for e in world.ents if e.name == "Hobgoblin" and e.map == "2,2,-2"]:
+        world.remove_entity(e)                                      # (no fighting in this test)
+    m = world.maps["2,2,-2"]
+    gx, gy = m.ox + 4 * 32 + 16, m.oy + 14 * 32 + 16
+
+    def search():
+        s.out = []
+        s.choose_verb("Search", s.tile_entity_at(gx, gy), gx, gy)
+        run_for(world, 40)
+        return " ".join(str(o.get("text", "")) for o in s.out if o.get("t") == "msg")
+
+    stock(s, Fathers_House_Key=1)                                   # (found it before the order was there)
+    assert "folded small" in search() and s.items_held("Ashen_Order") == 1
+    assert "nothing more" in search() and s.items_held("Ashen_Order") == 1     # (just the once)
+    s.do_action("Read", next(e for e in s.inv if e.name == "Ashen_Order"))
+    run_for(world, 5)
+    assert s.ab_mode == "Conversation" and "pressed in ash" in s.ab_text
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    leave(world, s)
+
+
+def test_what_jimmy_kept_is_found_as_a_cat(world):
+    day = world.day_fraction() if hasattr(world, "day_fraction") else None
+    world.set_day_fraction(0.5)                                      # (by day: Jimmy keeps Schedule=Day)
+    aldous = next(e for e in world.ents if e.npc_id == "Chapel_Verger")
+    s = join(world, "Kitten", aldous.map, 300, 300)
+    s.connected = True
+    s.update_attribute("AmuletQuest", "=6")
+    near(world, s, aldous, 30, 0)
+    assert talk_to(world, s, aldous)
+    s.action_box_response_chosen(1)                                 # "Did my mother leave anything else?"
+    run_for(world, 10)
+    s.action_box_response_chosen(1)                                 # "I'll try it."
+    run_for(world, 10)
+    assert s.get_attribute("JimmyQuest") == "1" and s.items_held("Marys_Charm") == 1
+    gap = next(e for e in world.ents if e.npc_id == "Cottage_Cat_Gap")
+    jimmy = next(e for e in world.ents if e.npc_id == "Jimmy" and e.map == "4,0,0")
+
+    def squeeze():
+        near(world, s, gap, 0, 34)
+        s.choose_verb("Squeeze Through", gap, int(gap.cx), int(gap.cy))
+        run_for(world, 20)
+
+    squeeze()                                                       # (far too small for you)
+    assert s.get_attribute("JimmyQuest") == "1" and s.items_held("Royal_Miniature") == 0
+    s.do_action("Read", next(e for e in s.inv if e.name == "Marys_Charm"))
+    run_for(world, 5)
+    s.action_box_response_chosen(1)                                 # "Read it aloud."
+    run_for(world, 5)
+    assert s.player_form() == "Cat"
+    near(world, s, jimmy, 30, 0)
+    assert talk_to(world, s, jimmy)
+    assert s.ab_title == "Jimmy" and "under the house" in s.ab_text
+    assert s.get_attribute("JimmyQuest") == "2"
+    s.action_box_response_chosen(1)
+    run_for(world, 5)
+    squeeze()
+    assert s.get_attribute("JimmyQuest") == "3" and s.items_held("Royal_Miniature") == 1
+    assert s.items_held("Marys_Charm") == 0
+    s.end_swap()
+    if day is not None:
+        world.set_day_fraction(day)
+    leave(world, s)
+
+
+def test_sneaking_into_the_hobgoblins_camp_for_tobias(world):
+    looks = [e for e in world.ents if e.npc_id in ("Hob_Camp_Lookout_1", "Hob_Camp_Lookout_2")]
+    assert len(looks) == 2 and all(e.map == "2,2,0" and e.ai.cone > 0 and e.ai.group == "HOB_CAMP" for e in looks)
+    m = world.maps["2,2,0"]
+    home = [(e.x, e.y) for e in looks]
+
+    def ready():
+        for e, (x, y) in zip(looks, home):
+            if e.in_combat:
+                world.npc_give_up(e, e.ai)
+            world.set_entity_position(e, x, y)
+            e.direction = e.ai.face
+            e.ai.turn_at = world.now + 10 ** 9                      # (no glancing about, for the test)
+
+    def walk(s, route):
+        """Along route's tiles; False as soon as a lookout's after you."""
+        for tx, ty in route:
+            gx, gy = m.ox + (tx - 1) * 32 + 16, m.oy + (ty - 1) * 32 + 16
+            for _ in range(200):
+                p = s.player
+                dx, dy = gx - p.cx, gy - p.cy
+                if abs(dx) < 3 and abs(dy) < 3:
+                    break
+                s.keyboard_direction = (1 if dy < -2 else 0) | (4 if dy > 2 else 0) | (2 if dx > 2 else 0) | (
+                    8 if dx < -2 else 0)
+                world.tick(0.05)
+                if any(e.in_combat for e in looks):
+                    s.keyboard_direction = 0
+                    return False
+        s.keyboard_direction = 0
+        return True
+
+    ready()
+    s = join(world, "Creeper", "2,2,0", 12 * 32, 0)
+    s.god_mode = 1
+    s.stance = "Sneaking"
+    s.update_attribute("Passage", "=3")
+    s.update_attribute("TobiasTin", "=1")
+    # in at the gate, east behind the tents, round behind the fire, and up to the chest from the west
+    assert walk(s, [(13, 3), (13, 4), (17, 4), (17, 8), (16, 8), (16, 10), (12, 10), (12, 7)])
+    chest = next(e for e in world.ents if e.npc_id == "Hob_Camp_Chest")
+    s.unlocked_chests.add(s.chest_key(chest))                       # (the Isle's chests are locked: picked already)
+    s.do_action("Open", chest)
+    run_for(world, 10)
+    assert s.get_attribute("TobiasTin") == "2" and not any(e.in_combat for e in looks)
+    assert "Tobias_Tin" in [it["name"] for it in s.box_state()["items"]]
+    s.close_action_box(-1)
+    leave(world, s)
+    ready()
+    s = join(world, "Stomper", "2,2,0", 12 * 32, 0)                  # walking in by the gate: seen
+    s.god_mode = 1
+    assert not walk(s, [(13, 3), (13, 4), (13, 6)])
+    run_for(world, 10)
+    assert all(e.in_combat and e.target is s for e in looks)        # (one shouts, and the other comes)
+    leave(world, s)
+    ready()
+
+
+def test_tobias_teaches_sneaking_and_knows_the_hand_in_ash(world):
+    s = join(world, "Grandchild", "1,1,0", 300, 300)
+    s.connected = True
+    s.update_attribute("FatherFreed", "=1")
+    s.update_attribute("Passage", "=3")
+    s.teleport("0,-2,1", 300, 300)                                   # (upstairs at Edwin and Maren's)
+    s.do_pending_map_change()
+    run_for(world, 10)
+    tobias = next(e for e in world.ents if e.name == "Tobias" and e.map == "0,-2,1" and e.owner in (s, None))
+
+    def talk(*answers):
+        near(world, s, tobias, 30, 0)
+        assert talk_to(world, s, tobias)
+        said = s.ab_text
+        for a in answers:
+            s.action_box_response_chosen(a)
+            run_for(world, 10)
+            said += " " + (s.ab_text or "")
+        if s.ab_mode:
+            s.close_action_box(-1)
+        return said
+
+    assert "sneaking" in talk(1, 1) and s.get_attribute("TobiasTin") == "1"     # (the tin; then how)
+    assert "Low and soft" in talk()                                 # (not found yet)
+    stock(s, Tobias_Tin=1, Ashen_Order=1)
+    s.update_attribute("TobiasTin", "=2")
+    gold = s.items_held("Gold_Coin(s)")
+    talk(1)
+    assert s.get_attribute("TobiasTin") == "3" and s.items_held("Tobias_Tin") == 0
+    assert s.items_held("Gold_Coin(s)") == gold + 25
+    assert "Ashen Hand" in talk(2)                                  # (the order: why they took him, and who signs so)
+    leave(world, s)
+
+
+def test_the_ashen_priest_drops_his_ledger_with_the_ring(world):
+    s = join(world, "Ringer", "1,1,0", 300, 300)
+    s.update_attribute("RingQuest", "=1")
+    s.start_script("Kill Ashen_Priest", True)
+    run_for(world, 10)
+    assert s.items_held("Ember_Ring") == 1 and s.items_held("Ashen_Ledger") == 1
+    assert s.get_attribute("RingQuest") == "2"
+    s.do_action("Read", next(e for e in s.inv if e.name == "Ashen_Ledger"))
+    run_for(world, 5)
+    assert s.ab_mode == "Conversation" and "beyond the wall" in s.ab_text
     leave(world, s)

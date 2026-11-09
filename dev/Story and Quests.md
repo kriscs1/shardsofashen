@@ -130,6 +130,18 @@ driven into its heart, kills the dragon.
 **The Hermit's Fire**: *Woodcutting 5*
 The hermit in the Isle's western woods wants 5 oak logs. Reward: 25 gold, an oak staff, Woodcutting experience.
 
+**What Jimmy Kept**: *after The Amulet of Succession* (`build_isle_secrets.py`)
+Brother Aldous kept one more thing of Mary's: a charm, a scrap of verse ("Velvet paw and whisker-wise, see the house
+with Jimmy's eyes") and "Jimmy knows where." Read it aloud and you're a cat for two minutes (`Turn.Into`, the Isle's
+body swap). As a cat, Jimmy talks to you: there's a gap behind the cottage, too small for anyone with hands.
+Squeeze through it: a miniature of a crowned man, a baby in his arms. Reward: 10 Shards, Channeling experience.
+
+**Tobias's Tin**: *after Passage to the Mainland's lair* (`build_isle_secrets.py`)
+Tobias, safe at the bank, asks you to fetch his savings tin from the hobgoblins' chest in their camp, and teaches you
+to sneak: two lookouts at the camp (2,2,0) stand facing the gate and turn now and then; walk in and the whole camp
+comes for you, sneak round the east side behind them and they never know. Show him the order from the lair and he
+tells you what it means. Reward: 25 gold, 5 Shards, Stealth experience.
+
 ### Ashford and King Rupert's Keep
 
 **A Place of Your Own**: *after chapter 4*
@@ -759,7 +771,7 @@ Passage to the Mainland: every mainland quest needs it
 ├── Bandits on the Road ── The Lost Caravan
 ├── The Wandering Echo, Old Skadi's Tall Tales
 └── Bog Lights ── Old Hob
-On the Isle, any time: The Hermit's Fire
+On the Isle, any time: The Hermit's Fire; after the amulet, What Jimmy Kept; after the lair, Tobias's Tin
 ```
 
 Recurring characters worth keeping consistent: **Jimmy** the cat (the cottage, your house on the Isle, the throne),
@@ -780,6 +792,11 @@ shrines in the Ashwold, relit blue by the Mending), and **Cael** (The Brother in
   pickaxe and some Mining.
 - A villager in the Isle village says her granny warned never to dig in the **stone circle** on the north-west
   headland. Nothing is buried there yet (its hidden chest is opened, not dug up).
+- **The order in ash** (`build_isle_secrets.py`): the lair's corner barrel holds, beside the key, an order to the
+  hobgoblins: bring the papers of the woman from Galaith and her child's name, for Shards; no name under it, only a
+  hand pressed in ash. Tobias (who writes the Isle's papers, why they took him) names the Ashen Hand. The demo ends
+  with that question; chapter 11 answers it: the Ashen Priest drops his **ledger**, which paid for the raid, says
+  the child has crossed the strait, and "the one beyond the wall is waiting" (the dragon, through the Mending).
 - The **Ashen Hand's** shrines and acolytes in the Cinderlands: the Hand is the Mending's hired help, paid in Shards
   to feed the dragon through the wall; Cold Fire (after the Ember Ring) finds them at it (The Mending, above).
 
@@ -812,6 +829,8 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Chancellor's Grain | GrainQuest, GrainWay, GalaithTreasury | Talk to Galaith_Clerk_73, Open Chancellors_Strongbox, Talk to Galaith_Speaker_70, Talk to Palace_Captain, Talk to Chancellor_Sefton, Open Galaith_Treasury (`build_choices.py`) |
 | The Royal Guard, The True Heir | GuardQuest, KingQuest | Talk to Palace_Captain, the Chancellor and the Archivist, Talk to Rupert_On_Throne, -9,14,0 |
 | The Hermit's Fire | HermitQuest | Talk to Hermit |
+| What Jimmy Kept | JimmyQuest | Talk to Chapel_Verger, Read Marys_Charm, Talk to Jimmy, Squeeze Through Cat_Gap (`build_isle_secrets.py`) |
+| Tobias's Tin (and the order in ash) | TobiasTin, AshenOrder | Talk to Tobias, Open Hob_Camp_Chest, Search Lair_Corner_Barrel, Kill Ashen_Priest (`build_isle_secrets.py`) |
 | A Place of Your Own | HomeQuest | Talk to Homestead_Settler |
 | The Herbalist's Remedy | RemedyQuest | Talk to Herbalist |
 | A Portrait of Mo | PortraitQuest | Talk to Ashford_Painter, Stroke Mo |
