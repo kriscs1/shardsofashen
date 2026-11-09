@@ -90,6 +90,8 @@ def own_state(s):
         st["look"] = s.look
     if s.sleeping():
         st["zz"] = 1
+    if s.pvp_mark_until > s.now:
+        st["mk"] = 1                                    # (marked for striking a player first: a red name, pvp.py)
     if s.ride is not None and s.ride.e is not None:
         st["rd"] = s.ride.e.uid                         # (in a cart: drawn standing in it, carts.py)
     if s.invisible():

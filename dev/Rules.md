@@ -196,6 +196,15 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Companions**: Jimmy follows the crowned heir (he finds secrets), a sellsword can be hired; they step aside when a
   real player in your party is near. Townsfolk greet the crowned heir (a speech bubble, now and then: never the
   chat log). The arena: talk to the Arena Master (in Ashford) once and the arena's shardstone knows you.
+- **Open PvP is a server's setting, the owner's rule** (`DS_PVP=1`, or `/pvp on|off` by an admin or the host, kept
+  with the world; `dsengine/pvp.py`, Config `[PvP] Open.*`; README-Server.md "The arena"). Never in a town
+  (Towns.ini's maps, the Isle's too), a homestead or the Shardrealm; never a party; never more than `Open.Level.Gap`
+  levels apart. **Who strikes an unmarked player first is marked** for 5 minutes, each blow while marked starting it
+  again: a red name, every town's guards after them, no shardstone, home or teleport, and it doesn't fade where
+  nobody can reach them (the arena, the Shardrealm, a homestead) nor while they're away. **Die marked and you lose
+  everything** but what's never lost (Keep.On.Death), on the ground where you fell, your killer's alone to see for
+  `Loot.Private.Seconds`, then anyone's; no grave. **Whoever was struck keeps their 5 things and their grave**, as
+  ever. Area spells only hit players who are marked or the one you're fighting.
 
 ### Writing
 - **Notices and signs never give hints or instructions.** They name or describe a place (and a signpost says which

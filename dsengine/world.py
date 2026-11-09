@@ -55,6 +55,7 @@ class World(NPCMixin):
         self.ents = []
         self.by_uid = {}
         self.sessions = {}              # player name -> Session
+        self.open_pvp = False           # (the server's setting: players may fight outside the arena - pvp.py)
         self.action_queue = []
         self.save_soon = False          # (something changed hands: the server saves everyone, and the world, soon)
         self.map_npcs = {}              # map -> [(name, x, y, options)] its NPC lines (for respawns)

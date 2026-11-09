@@ -525,6 +525,8 @@ class HomeMixin:
         return (ax - 1) * self.tw, (ay - 1) * self.th - 8
 
     def go_home(self):
+        if self.pvp_held():                             # (marked for striking a player: pvp.py)
+            return
         if not self.has_home_access():
             self.refuse("You need your Hearth Anchor to go home.")
             return
@@ -537,6 +539,8 @@ class HomeMixin:
         self.teleport(self.homes.map_name(h["n"]), x, y)
 
     def visit_home(self, owner):
+        if self.pvp_held():
+            return
         if not self.homes.may_visit(owner, self.player_name):
             self.display_message("%s's homestead is closed to you." % owner, "FAIL")
             return

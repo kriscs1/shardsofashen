@@ -690,6 +690,113 @@ def test_pvp_fight_to_the_end_costs_nothing(world):
     leave(world, b)
 
 
+def wild_map(world, s):
+    """A map out in the wild (no town's), on the surface."""
+    return next(n for n, m in sorted(world.maps.items()) if m.mz == 0 and not s.town_of_map(n) and n != "0,0,10")
+
+
+def open_pair(world, *names):
+    """Players side by side out in the wild, open PvP on (the caller turns it off again)."""
+    world.open_pvp = True
+    out = [join(world, n) for n in names]
+    wild = wild_map(world, out[0])
+    for k, s in enumerate(out):
+        s.teleport(wild, 300 + 26 * k, 300)
+        s.do_pending_map_change()
+    world.tick(0.05)
+    return out
+
+
+def test_open_pvp_is_outside_towns_within_a_level_gap_and_never_a_party(world):
+    a, b = join(world, "Rook"), join(world, "Sable")
+    wild = wild_map(world, a)
+    for s, x in ((a, 300), (b, 326)):
+        s.teleport(wild, x, 300)
+        s.do_pending_map_change()
+    world.tick(0.05)
+    assert not a.pvp_ok(b)                                          # (the server's setting is off)
+    world.open_pvp = True
+    try:
+        assert a.pvp_ok(b) and b.pvp_ok(a) and "Attack" in a.get_verbs(b.player)
+        for safe in ("1,1,0", "21,4,-10"):                         # (the Isle's a town; the Shardrealm)
+            b.teleport(safe, 300, 300)
+            b.do_pending_map_change()
+            a.teleport(safe, 326, 300)
+            a.do_pending_map_change()
+            world.tick(0.05)
+            assert not a.pvp_ok(b), safe
+        for s, x in ((a, 300), (b, 326)):
+            s.teleport(wild, x, 300)
+            s.do_pending_map_change()
+        world.tick(0.05)
+        a.player_level = lambda: b.player_level() + 6              # (more than Open.Level.Gap apart)
+        assert not a.pvp_ok(b) and "too far from your level" in a.pvp_why_not(b)
+        del a.player_level
+        a.party_id = b.party_id = 987
+        assert not a.pvp_ok(b)
+        a.party_id = b.party_id = 0
+        assert a.pvp_ok(b)
+    finally:
+        world.open_pvp = False
+        leave(world, a)
+        leave(world, b)
+
+
+def test_striking_first_marks_you_the_guards_come_and_you_cant_slip_away(world):
+    a, b = open_pair(world, "Tarn", "Ula")
+    try:
+        a.pvp_strike(b.player, False)
+        assert a.pvp_marked() and not b.pvp_marked()
+        b.pvp_strike(a.player, False)                               # (fighting back: no mark on them)
+        assert not b.pvp_marked()
+        guard = next(e for e in world.ents if e.type == NPC and a.guard_town(e) and e.owner is None and
+                     not world.hostile_for(e, b))                   # (a town's watch, friendly to the unmarked)
+        assert world.hostile_for(guard, a) and world.stat_for(guard, a, "aggressive") == 1
+        stock(a, Hearth_Anchor=1)
+        here = a.cur_map.name
+        a.go_home()
+        world.tick(0.05)
+        assert a.cur_map.name == here                               # (marked: not home)
+        assert 0 < a.save_state()["pvp_mark"] <= 5 * 60000          # (the rest of it, kept with the save)
+        a.player_attack_target = b.player_attack_target = None      # (the fight over: each blow would start it again)
+        world.tick(0.05, now=world.now + 5 * 60000 + 1000)
+        assert not a.pvp_marked() and not world.hostile_for(guard, a)
+    finally:
+        world.open_pvp = False
+        leave(world, a)
+        leave(world, b)
+
+
+def test_dying_marked_loses_everything_for_the_killer_and_the_struck_keep_theirs(world):
+    a, b, c = open_pair(world, "Vex", "Wynn", "Yarrow")
+    try:
+        stock(a, **{"Gold_Coin(s)": 100, "Hearth_Anchor": 1, "Bronze_Sword": 1})
+        a.equipped[1] = "Bronze_Sword"
+        a.recalc_equipment()
+        stock(b, **{"Gold_Coin(s)": 40})
+        a.pvp_strike(b.player, False)
+        assert a.pvp_marked()
+        a.player.hp = 1
+        a.pvp_take_hit(b, 50, "Hit")
+        assert a.dead_wait and a.grave is None and not a.pvp_marked()
+        assert [e.name for e in a.inv] == ["Hearth_Anchor"] and not any(a.equipped[1:])   # (all but what's kept)
+        loot = [e for e in world.ents if e.type == MAPITEM and e.alive and e.private_to is b]
+        names = {e.name for e in loot}
+        assert {"Gold_Coin(s)", "Bronze_Sword"} <= names
+        gold = next(e for e in loot if e.name == "Gold_Coin(s)")
+        assert gold.quantity == 100
+        assert world.visible_to(gold, b) and not world.visible_to(gold, c)
+        world.tick(0.05, now=world.now + 11000)                     # (Loot.Private.Seconds on: anyone's)
+        assert world.visible_to(gold, c)
+        b.player.hp = 1                                             # (b, never marked, dies as ever: a grave)
+        b.pvp_take_hit(c, 50, "Hit")
+        assert b.dead_wait and b.grave is not None
+    finally:
+        world.open_pvp = False
+        for s in (a, b, c):
+            leave(world, s)
+
+
 def stock(s, **items):
     for name, q in items.items():
         s.add_inventory_item(name, q, quiet=True)

@@ -67,7 +67,24 @@ view) goes full screen. Press **Enter** to chat with the other players.
   - `Maps`: the arena maps (several are separated by `;`).
   - `Ground`: the tiles you must both stand on.
   - `Respawn.Map`, `Respawn.X`, `Respawn.Y`: where the beaten wake.
-  - Anywhere else, players can't fight each other.
+  - Anywhere else, players can't fight each other, unless the server has open PvP (below).
+- **Open PvP** (a server's choice: `DS_PVP=1`, or an admin or the host types `/pvp on`; `/pvp off` ends it, and the
+  choice is kept with the world; `/pvp` says which it is). Players may then fight anywhere but:
+  - a town (the maps in `data/Towns.ini`, the Isle's too), a homestead or the Shardrealm (`Open.Safe.Maps`);
+  - each other in a party;
+  - more than `Open.Level.Gap` levels apart (5; `0`: any).
+
+  **Strike a player who isn't marked and you're marked** for `Open.Mark.Minutes` (5), shown by a red name. Each blow
+  you give or take while marked starts it again. Whoever you struck isn't marked for fighting back, nor is anyone
+  for striking someone marked. While you're marked:
+  - every town's guards come for you;
+  - you can't travel by shardstone, go home or teleport;
+  - the mark doesn't fade in the arena, the Shardrealm or a homestead, and it waits while you're away.
+
+  **Die marked**, at anyone's hands or a monster's, and you lose everything you carry and wear, gold too (only what's
+  never lost, like the Hearth Anchor, stays). It lies where you fell, seen only by the player who killed you for
+  `[Gameplay] Loot.Private.Seconds`, then by anyone. There's no grave. Whoever you struck dies as ever: they keep their
+  5 most valuable things and the rest waits in their grave. The numbers are Config `[PvP]` `Open.*`.
 - **Rebuilding.** `dev/migrate/build_arena.py` makes the arena: `maps/0,0,10.txt`, a level of its own, plus its
   scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
   missing.
@@ -528,6 +545,7 @@ above.
 | `DS_PUBLIC_URL` | (where it calls from) | the address it's listed by, e.g. `https://play.example.com` |
 | `DS_PUBLIC_PORT` | `DS_PORT` | the port it's listed by, when it has no `DS_PUBLIC_URL` |
 | `DS_REGISTER_PER_DAY` | 5 | characters one address may make in a day (`0`: no limit) |
+| `DS_PVP` | (off) | `1`: open PvP, players may fight each other outside the arena too (see The arena). An admin's `/pvp on` or `/pvp off` wins over it |
 
 ## Checking it works
 

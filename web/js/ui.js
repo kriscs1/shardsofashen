@@ -1779,15 +1779,40 @@ function drawOnline(ctx, now) {
   U.fullscreenRect = [fx, oy, 16, 16];
 }
 
+function markLeft(now) {
+  // Marked for striking a player first (the server's pvp.py): ms left, counting down from when it was told (0: not)
+  const me = S.me;
+  if (!me || !me.marked) return 0;
+  return me.marked_still ? me.marked : Math.max(0, me.marked - (now - (S.boostAt || now)));
+}
+
+function bannersAbove(now) {
+  // (how many of the arena's and the mark's banners are showing: what's under them goes below)
+  return (S.me.arena ? 1 : 0) + (markLeft(now) > 0 ? 1 : 0);
+}
+
 function drawArena(ctx, now) {
-  // On the arena's sand: you can fight other players here, and they can fight you
-  if (!S.me.arena) return;
-  const text = "ARENA  -  other players can fight you here";
-  const w = textWidth(ctx, text, 10, true) + 28;
-  const x = Math.floor((L.VW - w) / 2), y = U.topY;
+  // On the arena's sand: you can fight other players here, and they can fight you. Marked: how long, and what for
   const pulse = 0.75 + 0.25 * Math.sin(now / 300);
-  roundBox(ctx, x, y, w, 24, `rgba(70,10,8,${0.82 * pulse})`, [214, 90, 60], 2, 10);
-  drawTextMid(ctx, text, x + 14, y, 24, 10, true, [255, 220, 170]);
+  let y = U.topY;
+  if (S.me.arena) {
+    const text = "ARENA  -  other players can fight you here";
+    const w = textWidth(ctx, text, 10, true) + 28;
+    const x = Math.floor((L.VW - w) / 2);
+    roundBox(ctx, x, y, w, 24, `rgba(70,10,8,${0.82 * pulse})`, [214, 90, 60], 2, 10);
+    drawTextMid(ctx, text, x + 14, y, 24, 10, true, [255, 220, 170]);
+    y += 30;
+  }
+  const left = markLeft(now);
+  if (left > 0) {
+    const secs = Math.ceil(left / 1000);
+    const clock = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+    const text = S.me.marked_still ? `MARKED  -  ${clock}, not fading here` : `MARKED  -  ${clock}  -  die now, lose everything`;
+    const w = textWidth(ctx, text, 10, true) + 28;
+    const x = Math.floor((L.VW - w) / 2);
+    roundBox(ctx, x, y, w, 24, `rgba(90,6,6,${0.85 * pulse})`, [240, 70, 50], 2, 10);
+    drawTextMid(ctx, text, x + 14, y, 24, 10, true, [255, 200, 180]);
+  }
 }
 
 function drawWave(ctx, now) {
@@ -1800,7 +1825,7 @@ function drawWave(ctx, now) {
   const line2 = next ? `Wave ${v.wave} beaten! Wave ${v.wave + 1} of ${v.waves} in ${next}s`
     : `Wave ${v.wave} of ${v.waves}  -  ${v.left} left  -  ${clock} to hold them off`;
   const w = Math.max(textWidth(ctx, v.name.toUpperCase(), 11, true), textWidth(ctx, line2, 9, true)) + 32;
-  const x = Math.floor((L.VW - w) / 2), y = U.topY + (S.me.arena ? 30 : 0);
+  const x = Math.floor((L.VW - w) / 2), y = U.topY + 30 * bannersAbove(now);
   const pulse = 0.8 + 0.2 * Math.sin(now / 220);
   roundBox(ctx, x, y, w, 40, `rgba(60,12,6,${0.85 * pulse})`, [230, 120, 40], 2, 10);
   centreText(ctx, x + w / 2, y + 4, v.name.toUpperCase(), 11, true, [255, 200, 120]);

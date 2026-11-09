@@ -562,6 +562,30 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
     asyncio.run(go())
 
 
+def test_open_pvp_is_the_servers_setting_and_an_admin_turns_it(tmp_path, monkeypatch):
+    """DS_PVP=1 opens it; an admin's /pvp off closes it, and that's kept with the world (over DS_PVP)."""
+    monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
+    monkeypatch.setenv("DS_PVP", "1")
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"), admins="Boss")
+        game = app[GAME]
+        try:
+            assert game.world.open_pvp
+            async with aiohttp.ClientSession() as http:
+                boss, _ = await login(http, url, "Bossy", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
+                await boss.send_json({"t": "chat", "text": "/pvp off"})
+                await asyncio.sleep(0.3)
+                assert not game.world.open_pvp and not game.pvp_open()
+                await boss.send_json({"t": "chat", "text": "/pvp on"})
+                await asyncio.sleep(0.3)
+                assert game.world.open_pvp and game.store.setting("pvp") == "1"
+                await boss.close()
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
 async def chats(ws, seconds=0.6):
     """The chat lines that come in a moment."""
     out = []

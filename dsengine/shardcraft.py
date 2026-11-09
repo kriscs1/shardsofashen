@@ -146,7 +146,7 @@ class ShardcraftMixin:
             self.refuse("You need to stand by an active shardstone to travel.")
             return
         to = next((s for s in self.stones_active() if s["key"] == key), None)
-        if to is None or to["key"] == here["key"]:
+        if to is None or to["key"] == here["key"] or self.pvp_held():     # (marked: no slipping away, pvp.py)
             return
         free = self.w.together.perk("FREETRAVEL", to["map"])      # (a town's project done: free to come to)
         if not free and not self.spend_shards(int(self.shard_setting("Shardstone.Travel", 2)), "Travelling"):

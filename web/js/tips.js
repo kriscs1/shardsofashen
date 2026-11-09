@@ -104,7 +104,10 @@ export function entityTip(e) {
   } else if (e.k === T.TILE && e.lockPick) {
     lines.push("#" + name, `!Locked  -  Stealth ${e.lockPick} to pick it`);     // (a door that can be picked)
   } else if (e.k === T.PLAYER) {
-    lines.push("#" + name, e.pvp ? "!In the arena: you can fight" : "Another adventurer", "~Right-click: Whisper");
+    lines.push("#" + name, e.pvp ? (S.me?.arena ? "!In the arena: you can fight" : "!You can fight them here")
+      : "Another adventurer");
+    if (e.mk) lines.push("!Marked: struck another player first");
+    lines.push("~Right-click: Whisper");
     return lines.join("|");
   } else {
     if (first === "Walk here") return val(e.misc) === 1 ? "#" + name : "";

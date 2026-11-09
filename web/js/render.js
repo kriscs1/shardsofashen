@@ -740,9 +740,10 @@ function drawWorn(ctx, e, x, y) {
 function drawNameTag(ctx, e, cam) {
   const x = e.dx + e.w / 2 - cam.x, y = e.dy - (e.b ? 24 : 14) - cam.y;
   const w = textWidth(ctx, e.n, 7, true) + 8;
-  ctx.fillStyle = "rgba(24,14,8,0.65)";
+  ctx.fillStyle = e.mk ? "rgba(90,8,6,0.8)" : "rgba(24,14,8,0.65)";      // (marked: struck a player first, pvp.py)
   ctx.fillRect(Math.round(x - w / 2), Math.round(y), Math.round(w), 12);
-  drawText(ctx, e.n, Math.round(x - w / 2 + 4), Math.round(y + 1), 7, true, e.zz ? [160, 160, 200] : [255, 236, 170]);
+  drawText(ctx, e.n, Math.round(x - w / 2 + 4), Math.round(y + 1), 7, true,
+    e.mk ? [255, 120, 96] : e.zz ? [160, 160, 200] : [255, 236, 170]);
 }
 
 const overhead = new Map();      // tile -> drawn over people too (Overhead=1: a gatehouse's arch)

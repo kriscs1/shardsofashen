@@ -1326,6 +1326,9 @@ def check_config(tiles_ini):
                              ("Interface", "Screen.X.Tiles"), ("Interface", "Screen.Y.Tiles")):
         if ini.get(bad_sec, bad_key) is not None:
             err(r, "[%s] %s should not exist" % (bad_sec, bad_key))
+    for name in (ini.get("PvP", "Open.Safe.Maps", "") or "").replace(";", " ").split():
+        if not os.path.exists(p("maps", name + ".txt")):     # (open PvP's safe places: dsengine/pvp.py)
+            err(r, "[PvP] Open.Safe.Maps: there's no map %s" % name)
     if ini.get("Interface", "Map.X.Tiles", "25").strip() != str(MAP_W) or ini.get("Interface", "Map.Y.Tiles", "21").strip() != str(MAP_H):
         warn(r, "Map.X.Tiles/Map.Y.Tiles differ from the %dx%d the maps use" % (MAP_W, MAP_H))
     sm = ini.get("Gameplay", "Start.Map", "")

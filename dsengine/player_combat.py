@@ -317,7 +317,7 @@ class CombatMixin:
         if t.type == PLAYER and not self.pvp_ok(self.session_of(t)):
             self.player_attack_target = None
             self.dirty_me = True
-            self.display_message("You can only fight other players on the arena's sand.", "FAIL")
+            self.display_message(self.pvp_why_not(self.session_of(t)), "FAIL")
             return
         p = self.player
         rng = self.melee_reach(t)
@@ -514,6 +514,7 @@ class CombatMixin:
         p = self.player
         w = self.w
         self.player_last_combat = now
+        self.last_hit_by = None                             # (the last blow a creature's, not a player's: pvp.py)
         self.fought(e)
         if not ranged:
             w.fx_nudge(e, -w.fx_away(p, e), -w.fx_away_y(p, e), 110)
@@ -576,18 +577,23 @@ class CombatMixin:
             return
         self.death_remembered()
         d = self.data
+        marked = self.pvp_marked()                          # (struck a player first, lately: everything's lost, pvp.py)
         self.display_message("Oh dear, you are dead!", "ERROR")
         self.play_sound("Death", (self.player.cx, self.player.cy))
         self.play_sound("Death")                            # (to them, whatever the distance)
         gold = self.items_held("Gold_Coin(s)")
-        lost = int(gold * d.death_gold_loss / 100)
+        lost = 0 if marked else int(gold * d.death_gold_loss / 100)
         if lost > 0:
             self.remove_inventory_item("Gold_Coin(s)", lost)
             self.display_message("You lost %d gold coins." % lost, "DAMAGE")
         self.fx_anim("Puff", self.player.cx, self.player.cy, 500)
         self.clear_boosts()
         self.status_reset()
-        self.grave_leave()
+        if marked:
+            lost = self.pvp_lose_all()
+        else:
+            self.grave_leave()
+        self.last_hit_by = None
         self.player.hp = self.player_max_hp
         self.player_attack_target = None
         self.stop_player_walk()
@@ -885,6 +891,7 @@ class CombatMixin:
                        self.spell_target_ok(e) and distance(pcx, pcy, e.cx, e.cy) <= radius and
                        w.in_line_of_sight(p.z, pcx, pcy, e.cx, e.cy)]
             targets += [s.player for s in w.sessions.values() if self.pvp_ok(s) and
+                        (s.on_arena_ground() or s.pvp_marked() or s.player is self.player_attack_target) and
                         distance(pcx, pcy, s.player.cx, s.player.cy) <= radius and
                         w.in_line_of_sight(p.z, pcx, pcy, s.player.cx, s.player.cy)]
             if not targets:
@@ -950,6 +957,8 @@ class CombatMixin:
             if not self.data.map_exists(m):
                 self.display_message("The spell fizzles: it has nowhere to take you.", "FAIL")
                 return
+            if self.pvp_held():
+                return
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:
                 return
@@ -993,7 +1002,7 @@ class CombatMixin:
                 return
             self.swap_with(target, max(1, val(self.spell_ini(spell, "Duration", "30"))), "You cast %s" % name)
         elif effect == "HOME":
-            if not self.home_spell_ok():
+            if self.pvp_held() or not self.home_spell_ok():
                 return
             self.spell_begin(scroll, spell)
             if self.spell_fizzled:

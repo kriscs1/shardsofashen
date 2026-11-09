@@ -114,6 +114,7 @@ class GameServer:
         t0 = time.time()
         self.world = World(root)
         self.world.central_friend = self.central_friend     # (friends by account: together.py asks)
+        self.world.open_pvp = self.pvp_open()
         self.load_world()
         self.world.data.places()                        # (read now, not on the first player's login: they'd wait)
         self.world.data.quest_table()
@@ -338,6 +339,35 @@ class GameServer:
         if self.remote():
             return UNNAMED
         return "Shards of Ashen on " + socket.gethostname()
+
+    def pvp_open(self):
+        """Open PvP: players may fight outside the arena (dsengine/pvp.py). An admin's /pvp, else DS_PVP (off)."""
+        v = self.store.setting("pvp", "") or os.environ.get("DS_PVP", "")
+        return v.strip().lower() in ("1", "yes", "on", "true")
+
+    def pvp_command(self, s, text):
+        """/pvp on|off (an admin or the host): open PvP for this server, kept with the world. /pvp: which it is."""
+        words = text.split()
+        c = self.clients.get(s)
+        if len(words) < 2 or words[1].lower() not in ("on", "off"):
+            s.emit({"t": "chat", "from": "", "text": "Players %s fight outside the arena here. (/pvp on or /pvp off)" %
+                    ("may" if self.world.open_pvp else "can't")})
+            return
+        if not (s.admin_enabled or (c is not None and (c.host or self.is_local(c.addr)))):
+            s.emit({"t": "chat", "from": "", "text": "Only an admin or the host can change that."})
+            return
+        on = words[1].lower() == "on"
+        self.store.set_setting("pvp", "1" if on else "0")
+        self.world.open_pvp = on
+        log.info("%s turned open PvP %s", s.player_name, "on" if on else "off")
+        for o in list(self.world.sessions.values()):
+            o.open_seen = None
+            if on:
+                o.pvp_open_told()
+            else:
+                o.display_message("Players can no longer fight each other outside the arena.", "INFO")
+                if o.pvp_mark_until:
+                    o.pvp_mark_until = o.now                # (no mark lasts: it fades next tick)
 
     @property
     def lan_open(self):
@@ -1000,6 +1030,9 @@ class GameServer:
             return
         if low.strip() in ("/leave", "/leaveparty"):
             s.leave_party()
+            return
+        if low.split(" ", 1)[0] == "/pvp":
+            self.pvp_command(s, text)
             return
         if low.strip() == "/records":
             s.records_menu()

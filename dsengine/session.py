@@ -505,6 +505,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             got = st.get(kind)
             setattr(self, kind, {str(k): int(v) for k, v in got.items() if isinstance(v, (int, float))}
                     if isinstance(got, dict) else {})
+        left = val(st.get("pvp_mark", 0))               # (marked when they left: the rest of it, from now)
+        self.pvp_mark_until = self.w.now + left if 0 < left <= 3600000 else 0
         self.traps_disarmed = {(t[0], int(t[1]), int(t[2])) for t in st.get("traps_disarmed", [])
                                if isinstance(t, list) and len(t) == 3}
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
@@ -631,6 +633,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "forms": {"learnt": list(self.forms_learnt), "bound": list(self.forms_bound)},
             "unlocked_chests": sorted(self.unlocked_chests),
             "thief_until": {k: int(v) for k, v in self.thief_until.items() if v > self.now},
+            "pvp_mark": int(self.pvp_mark_until - self.now) if self.pvp_marked() else 0,   # (what's left of it)
             "banned_until": {k: int(v) for k, v in self.banned_until.items() if v > self.now},
             "traps_disarmed": sorted([list(t) for t in self.traps_disarmed      # (not the Deep's: made anew)
                                       if not t[0].startswith("%d,%d," % (DEEP_X, DEEP_Y))]),
@@ -675,6 +678,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.display_message("Welcome to Shards of Ashen, %s!" % self.player_name, "INFORMATION")
         self.display_message("Press H (or F1) for your journal: what you can make and gather, quests and controls.",
                              "INFO")
+        if self.w.open_pvp:
+            self.pvp_open_told()
         self.welcome_back(self.last_seen_before)       # (a day or more away: what happened - together.py)
 
     def leave_world(self):
@@ -722,6 +727,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             return
         self.status_tick()
         self.grave_tick(self.w.dt * 1000)
+        if self.pvp_mark_until:
+            self.pvp_mark_tick()
         if self.sleep_state:
             self.sleep_tick()
             return
@@ -1120,6 +1127,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 return a == "Bad"
         if self.outlaw_towns and e.type == NPC and self.outlaw_foe(e):
             return True                             # (an Outlaw there: its guards come for you, standing.py)
+        if self.pvp_mark_until > self.now and e.type == NPC and self.pvp_guard_foe(e):
+            return True                             # (marked for striking a player: every town's guards, pvp.py)
         if self.side_attitudes and e.side:
             a = self.side_attitudes.get(e.side)     # (a side you took, or turned on: Set.Side.Attitude)
             if a is not None:
@@ -1245,7 +1254,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(), "look": self.look,
             "view": self.fog_view_distance + self.spell_sight_bonus,
             "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,
-            "level": self.player_level(), "arena": self.on_arena_ground(), "home": self.home_state(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
+            "level": self.player_level(), "arena": self.on_arena_ground(),
+            "marked": max(0, int(self.pvp_mark_until - self.now)), "marked_still": self.pvp_mark_still(), "home": self.home_state(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},
             "boosts": {"attack": self.spell_attack_bonus, "defence": self.spell_defence_bonus,
                        "magic": self.spell_magic_bonus, "sight": self.spell_sight_bonus},
             "boost_left": {k: max(0, getattr(self, "spell_%s_until" % k) - self.now)
