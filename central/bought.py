@@ -6,8 +6,9 @@ on an app's word. Each store is set up by its settings (README-Server.md "Owning
       a JWT signed with the account's RSA key, signed here (standard library: no crypto package on a phone or a VM).
   Steam (the desktop app's session ticket for the Web API): who it is, then that they own the app themselves (a game
       lent by Family Sharing isn't theirs). DS_STEAM_KEY (a publisher Web API key), DS_STEAM_APP.
-  itch.io: the download key on their purchase's page (the link, or the key), asked of itch.io's API. DS_ITCH_KEY (an
-      API key), DS_ITCH_GAME (the game's id).
+  itch.io: the download key on their purchase's page (the link, or the key), asked of itch.io's API; or, bought from
+      the website's Buy (DS_BUY_URL), the purchase made with the account's confirmed email (never an email the player
+      gives: app.py puts it in). DS_ITCH_KEY (an API key), DS_ITCH_GAME (the game's id).
 
 Play Integrity (integrity()): that the Android app asking is the one from Google Play, untouched, on a real device that
 passes Google's checks, decoded by Google with the same service account (README-Server.md "Owning the game").
@@ -229,12 +230,26 @@ async def steam(proof):
 
 # ----- itch.io
 async def itch(proof):
-    key = str(proof.get("key", "")).strip().rstrip("/").rsplit("/", 1)[-1].split("?")[0][:100]
-    if not key or not all(ch.isalnum() or ch in "-_" for ch in key):
-        raise Refused("That isn't an itch.io download key: paste the link from your purchase's page.")
+    email = str(proof.get("email", "")).strip()[:200]
+    if email:                                   # (the same download key a pasted link gives: one purchase, one account)
+        params, unknown = {"email": email}, ("itch.io has no purchase made with your account's email (%s): paste the "
+                                             "link from your purchase's page in Account instead." % email)
+    else:
+        key = str(proof.get("key", "")).strip().rstrip("/").rsplit("/", 1)[-1].split("?")[0][:100]
+        if not key or not all(ch.isalnum() or ch in "-_" for ch in key):
+            raise Refused("That isn't an itch.io download key: paste the link from your purchase's page.")
+        params, unknown = {"download_key": key}, "itch.io doesn't know that download key."
     status, got = await ask("GET", "%s/%s/game/%s/download_keys" % (ITCH_API, env("DS_ITCH_KEY"), env("DS_ITCH_GAME")),
-                            params={"download_key": key})
+                            params=params)
     found = got.get("download_key") or {}
     if status != 200 or not found.get("id") or str(found.get("game_id", env("DS_ITCH_GAME"))) != env("DS_ITCH_GAME"):
-        raise Refused("itch.io doesn't know that download key.")
+        raise Refused(unknown)
     return str(found["id"])
+
+
+def buy_page():
+    """The website's Buy: the game's page on itch.io (DS_BUY_URL) and its price as shown (DS_BUY_PRICE), or None."""
+    url = env("DS_BUY_URL")
+    if not (url.startswith("https://") and ready()["itch"]):
+        return None
+    return {"url": url, "price": env("DS_BUY_PRICE")[:20]}

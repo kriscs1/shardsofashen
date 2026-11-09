@@ -206,7 +206,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
 
   <section id="owning" class="panel owning" hidden>
     <p id="owning-words"></p>
-    <button id="buy-full" class="go" hidden>Buy the full game</button><button id="watch-pass" hidden>Watch an ad: an hour of it</button>
+    <button id="buy-full" class="go" hidden>Buy the full game</button><button id="watch-pass" hidden>Watch an ad: an hour of it</button><button id="bought-it" hidden>I've bought it</button>
   </section>
 
   <div id="menu" class="tiles fade">
@@ -618,18 +618,34 @@ function showOwning() {
   clearTimeout(showOwning.timer);
   if (!level || deviceFull() || owning.bought) { box.hidden = true; return; }
   const left = owning.pass_until ? owning.pass_until * 1000 - Date.now() : 0;
-  const price = app && app.fullPrice ? app.fullPrice() : "";
+  const web = !app && hello.buy && hello.buy.url ? hello.buy : null;    // (a browser: bought on itch.io, for the account)
+  const price = app && app.fullPrice ? app.fullPrice() : web ? web.price || "" : "";
   $("owning-words").textContent = (left > 0 ? `The full game: ${minutesLeft(left)} left of your time pass.` :
     `The demo: the Isle, up to level ${level}. The full game goes on to the mainland and the rest of the story.`) +
-    (app ? "" : " It's bought once, in the Android app or on PC, for your Hallisium account: then it's yours here too.");
-  $("buy-full").hidden = !price;
-  if (price) $("buy-full").textContent = `Buy the full game (${price})`;
+    (app ? "" : web ? " It's bought once, for your Hallisium account: then it's yours everywhere, the Android app too." +
+      (myName ? " Buy it with your account's email, then come back here." : " Log in first, to have it on your account.") :
+      " It's bought once, in the Android app or on PC, for your Hallisium account: then it's yours here too.");
+  $("buy-full").hidden = !(app ? price : web);
+  $("buy-full").textContent = price ? `Buy the full game (${price})` : "Buy the full game";
+  $("bought-it").hidden = !(web && myName);
   $("watch-pass").hidden = !(app && app.timePass && app.timePass() && myName && owning.passes > 0);
   box.hidden = false;
   if (left > 0) showOwning.timer = setTimeout(left > 60000 ? showOwning : checkOwning, Math.min(left, 60000));
   else if (app && app.fullPrice && !price && !showOwning.again) { showOwning.again = 1; setTimeout(showOwning, 3000); }
 }
-$("buy-full").onclick = () => app && app.buyFull && app.buyFull();
+$("buy-full").onclick = () => {
+  if (app) { if (app.buyFull) app.buyFull(); return; }
+  if (hello.buy && hello.buy.url) window.open(hello.buy.url, "_blank", "noopener");   // (itch.io takes the payment)
+};
+$("bought-it").onclick = async () => {                    // (the central server asks itch.io, by the account's email)
+  let r;
+  busy("Asking itch.io...");
+  try { r = await api("/api/buy", { token, where: "itch", proof: { by_email: true } }); }
+  catch (e) { r = { text: "The central server didn't answer." }; }
+  done();
+  if (!r.ok) { toast(r.text, true); return; }
+  toast("Thank you! The full game is yours, on every device."); checkOwning();
+};
 function integrity(nonce) {                              // (Play Integrity's verdict, from the app: "" if none came)
   return new Promise((answer) => {
     const late = setTimeout(() => { window.onIntegrity = null; answer(""); }, 20000);

@@ -51,6 +51,14 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    own vehicle, `carts.py`), both tying up at Northport's berth by the harbour pier; you step aboard, pay a coin,
    and ride it across. Northport's port guard reads your papers and sends you to the Speaker (The Temporary Capital).
 
+**The Isle's secrets** (`dev/migrate/build_isle_secrets.py`; the Isle is the demo, so it shows off the game's tricks
+and ends on a question): the lair barrel also holds **the order in ash** (who wants Mary's papers and her child's
+name; the Ashen Priest's ledger answers it in chapter 11). The camp (2,2,0) has two standing **lookouts** facing
+the gate (`Stand=1 Face=N Turn=`, one `Group=Hob_Camp`): a walker is seen, a sneaker on the east side isn't, and
+**Tobias's Tin** sends you there after Tobias teaches sneaking. **What Jimmy Kept** is the Isle's body swap: Mary's
+charm turns you into a cat (`Turn.Into Cat 120`) to talk to Jimmy and squeeze through the gap behind the cottage
+(`Cat_Gap`, 4,0,0). The Grasp at the amulet niche is the Isle's telekinesis.
+
 **The Isle** is maps 0..4 by -3..2: `dev/migrate/grow_isle.py` grew it north to twice its size (its old north coast's
 shape three maps further north, new land between), with Hollow Wood, Mirror Tarn, the Tin Braes and the Old Beacon in
 the new land, and the ring of standing stones by its south-east shore. `move_lawyers_house.py` then put the
@@ -768,7 +776,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   owned, it shows only how to get it: `desktop/owning.py`, Steam's word, or the store's download for itch.io and Epic).
   The Android app is free to try, and $3.99 buys the full game (`full_game`, `DS_FULL_PRODUCT`). A purchase is the
   Hallisium account's once the central server has checked it with its store (`central/bought.py`), never on an app's
-  word, and one purchase is one account's; a browser follows the account. Prices are set in the stores, not the game.
+  word, and one purchase is one account's; a browser follows the account, and its Buy (`DS_BUY_URL`) is itch.io's,
+  claimed by the account's confirmed email (never one the player types). Prices are set in the stores, not the game.
 - **The demo** (once the central server has `DS_DEMO=1`; till then everyone has the full game): an account without
   the full game plays the Isle (`data/Config.ini` `[Demo]`: its maps, upstairs and caves), its skills held at level 5,
   the XP still counted (it counts once it's owned). The border and the level each say so once a time in; a demo

@@ -536,8 +536,15 @@ class Central:
                 return no("Too many tries: wait a few minutes.")
             self.fails[key] = tries + [now]
         where = str(d.get("where", ""))[:10]
+        proof = {k: v for k, v in d.get("proof").items() if k != "email"} if isinstance(d.get("proof"), dict) else {}
+        if where == "itch" and proof.get("by_email"):  # (bought from the website's Buy: found by the confirmed email)
+            email = (self.store.account(name) or [""] * 5)[4]
+            if not email:
+                return no("Confirm your account's email first (Account), or paste the link from your purchase's page "
+                          "there.")
+            proof = {"email": email}
         try:
-            ref = await bought.check(where, d.get("proof"))
+            ref = await bought.check(where, proof)
         except bought.Refused as e:
             return no(str(e))
         other = self.store.claim(name, where, ref)
@@ -818,7 +825,7 @@ class Central:
         return yes(name=self.name, motd=self.motd, ad=random.choice(self.ads()), mail=mail.ready(),
                    demo=demo_on(), demo_level=whole(ini.read("Demo", "Level", "5", os.path.join(ROOT, "data", "Config.ini")),
                                                     1, 99, 5),
-                   google=google.ready(), **self.hello_cache[1],
+                   google=google.ready(), buy=bought.buy_page() if demo_on() else None, **self.hello_cache[1],
                    adsense={"client": client, "slot": os.environ.get("DS_ADSENSE_SLOT", "").strip()} if client else None)
 
     # ----- clearing out what's had its day: the database's, and the counts kept here

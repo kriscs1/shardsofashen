@@ -1947,7 +1947,8 @@ class PretendStores:
 
     async def itch_key(self, request):
         assert request.match_info["key"] == "itch-key" and request.match_info["game"] == "9"
-        found = self.itch.get(request.query.get("download_key", ""))
+        by_email = {"lee@example.com": {"id": 42, "game_id": 9}, "pal@example.com": {"id": 42, "game_id": 9}}
+        found = self.itch.get(request.query.get("download_key", "")) or by_email.get(request.query.get("email", ""))
         return web.json_response({"download_key": found} if found else {"errors": ["invalid download key"]})
 
 
@@ -2031,6 +2032,18 @@ def test_owning_the_game_is_checked_with_its_store_and_kept_on_the_account(tmp_p
                 m = await buy(lee, "itch", key="https://maker.itch.io/ashen/download/AbC123")
                 assert m["ok"] and m["bought"] == "itch"
                 assert not (await buy(kit, "itch", key="AbC123"))["ok"]     # (Lee's)
+                # (bought from the website's Buy: found by the account's confirmed email, never one it sends)
+                m = await buy(kit, "itch", by_email=True)
+                assert not m["ok"] and "kit@example.com" in m["text"]
+                assert not (await buy(kit, "itch", email="lee@example.com"))["ok"]
+                assert (await buy(lee, "itch", by_email=True, email="kit@example.com"))["ok"]   # (Lee's own, again)
+                assert "another account's" in (await buy(pal, "itch", by_email=True))["text"]  # (the same purchase)
+                async with http.get(c + "/api/hello") as r:
+                    assert (await r.json())["buy"] is None                  # (no website Buy till it's set)
+                monkeypatch.setenv("DS_BUY_URL", "https://maker.itch.io/ashen/purchase")
+                monkeypatch.setenv("DS_BUY_PRICE", "$7.99")
+                async with http.get(c + "/api/hello") as r:
+                    assert (await r.json())["buy"] == {"url": "https://maker.itch.io/ashen/purchase", "price": "$7.99"}
 
                 # (a game server is told with the ticket, and can ask again by the key it was given)
                 async def told(tok):

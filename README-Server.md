@@ -498,7 +498,10 @@ lists the remote game servers (each announces itself to it), and it serves the a
     DS_STEAM_SDK=<the Steamworks SDK's folder> python desktop/build_desktop.py` (`DS_STORE=itch` or `epic` for theirs:
     the store's download is the purchase there).
   - **itch.io**: `DS_ITCH_KEY` (an API key, from your account's API keys) and `DS_ITCH_GAME` (the game's id). The
-    player pastes the link from their purchase's download page.
+    player pastes the link from their purchase's download page. **The website's Buy**: with `DS_BUY_URL` (the game's
+    itch.io page, `https://...`) and `DS_BUY_PRICE` (its price as shown, `$7.99`), a browser's start screen in the demo
+    has Buy the full game (it opens that page) and I've bought it, which asks itch.io for a purchase made with the
+    account's confirmed email (never an email the player types).
 - **The time pass** (`central/admob.py`): in the Android app, an account in the demo can watch a rewarded ad for an
   hour of the full game (`DS_PASS_MINUTES`, 60), a few a day (`DS_PASSES_A_DAY`, 3). Google tells the central server
   itself, never the app: in AdMob, the rewarded ad unit's **Server-side verification** callback URL is

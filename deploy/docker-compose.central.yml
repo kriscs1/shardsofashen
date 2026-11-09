@@ -51,6 +51,8 @@ services:
       DS_STEAM_KEY: ${DS_STEAM_KEY:-}
       DS_ITCH_GAME: ${DS_ITCH_GAME:-}                  # (itch.io: the game's id, and an API key)
       DS_ITCH_KEY: ${DS_ITCH_KEY:-}
+      DS_BUY_URL: ${DS_BUY_URL:-}                      # (the website's Buy: the game's itch.io page, and its price as shown)
+      DS_BUY_PRICE: ${DS_BUY_PRICE:-}
       DS_ADMOB_REWARDED: ${DS_ADMOB_REWARDED:-}        # (the time pass's rewarded ad unit, ca-app-pub-.../...; none, no time pass)
       DS_PASS_MINUTES: ${DS_PASS_MINUTES:-60}
       DS_PASSES_A_DAY: ${DS_PASSES_A_DAY:-3}

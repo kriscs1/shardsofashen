@@ -10,7 +10,7 @@ without `DS_ADMOB_REWARDED`.
 | Android (Google Play) | $3.99 | Free to try (the demo); one purchase, for the Hallisium account; it removes the ads too |
 | PC on Steam | $7.99 | Steam says the Steam account owns it; its ticket gives the Hallisium account the full game |
 | PC on itch.io | $7.99 | The download is the purchase; the itch.io link, pasted in the account popup, gives the account the full game |
-| A browser | - | Follows the account |
+| A browser | $7.99 | Follows the account; its Buy is itch.io's, claimed by the account's confirmed email |
 
 ## 1. Google Play: the product
 
@@ -61,7 +61,9 @@ There's no Greenlight (Valve closed it in 2017): it's **Steam Direct**, open to 
 3. Build and upload: `DS_STORE=itch python desktop/build_desktop.py`, then `dist/ShardsOfAshen/` zipped (or with
    itch.io's butler).
 
-itch.io takes the payment and the sales tax, and its buy button can go on your own website too.
+itch.io takes the payment and the sales tax. The browser's start screen has a Buy button too (step 6's `DS_BUY_URL`):
+it opens the game's itch.io page, and "I've bought it" finds the purchase by the account's confirmed email, so a
+player buys with the same email as their Hallisium account (or pastes the link from their purchase's page in Account).
 
 ## 6. The central server's settings
 
@@ -78,6 +80,8 @@ On the VM, in `/opt/shards-of-ashen-central`:
        DS_STEAM_KEY=...
        DS_ITCH_GAME=...
        DS_ITCH_KEY=...
+       DS_BUY_URL=https://<you>.itch.io/<game>   (the browser's Buy)
+       DS_BUY_PRICE=$7.99
        DS_DEMO=                 (empty till step 8)
 
 4. `docker compose up -d`

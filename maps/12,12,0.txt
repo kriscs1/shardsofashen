@@ -1,6 +1,6 @@
-Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Water001:Water001:Dust001:Sand001:Water001:Water001:Water001:Sand001:Sand001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001
-Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Dust001:Dust001:Dust001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Water001:Water001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
-Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Water001:Water001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Lake001:Lake001:Lake001:Lake001:Dust001:Sand001:Lake001:Lake001:Lake001:Sand001:Sand001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Dust001:Dust001:Dust001:Lake001:Lake001:Sand001:Sand001:Sand001:Sand001:Lake001:Lake001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
+Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Lake001:Lake001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Dead_Tree001):Dust001:Dust001:Dust001:Dust001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Dust001:Sand001+Decor(Cactus001):Sand001:Sand001:Sand001:Sand001:Sand001:Sand001
 Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001:Dust001+Decor(Dead_Tree001):Dust001:Dust001:Dust001:Dust001:Dust001:Sand001:Dust001:Dust001
