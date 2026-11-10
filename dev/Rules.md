@@ -216,7 +216,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   nobody can reach them (the arena, the Shardrealm, a homestead) nor while they're away. **Die marked and you lose
   everything** but what's never lost (Keep.On.Death), on the ground where you fell, your killer's alone to see for
   `Loot.Private.Seconds`, then anyone's; no grave. **Whoever was struck keeps their 5 things and their grave**, as
-  ever. Area spells only hit players who are marked or the one you're fighting.
+  ever. Area spells only hit players who are marked or the one you're fighting. **Leave the game marked, out where
+  players fight, and you stay there** (`server/game.py` `LINGER`, 30 seconds) to be fought as you stand: back in time,
+  you carry on; a kick or a ban takes you at once.
 
 ### Writing
 - **Notices and signs never give hints or instructions.** They name or describe a place (and a signpost says which
@@ -224,6 +226,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **No hint text on the world map.**
 - **Conversation answers that belong to a quest stage show only at that stage**: append `[if CONDITION]` to the
   answer, e.g. `About a ferry ticket... [if $Attr.Passage>=1 and $Attr.Passage<=10]`.
+- **A stage is set with what it gives or takes**, before any line the player can close (Escape, the X, a phone's back
+  or bag all close it): closed between the two, the thing's lost or had again (`validate.py` `check_closed_midway`).
 - Refusals are plain: "The chest is empty." (with the `Empty` sound), not hints.
 - **Opening a chest says nothing**: what's in it shows in its box (no "Grave goods: ..." line).
 - NPCs can have their own names through the map option `Name=` (underscores become spaces).
@@ -824,7 +828,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `<central>/play/<game id>/` and the central server passes the page, its files (kept there per version) and the game
   both ways. A relayed connection is "relay:<address>" (`auth.RELAY_KEY`): never this machine or its network, and let
   in only as the host's account or a friend's. So the game page's paths are relative (`assets/...`, `ws` beside the
-  page): keep them so. Change the start
+  page): keep them so. **What the relay passes is sandboxed** (`central/relay.py` `SANDBOX`: it's on the central
+  server's own address, where the start screen keeps its sign-in), so the game page's origin is no one's: storage only
+  inside a `try`, images asked for `crossOrigin`. A game proves its id with a secret of its own (`id_proof`; the first
+  to prove an id keeps it), and a ticket asked for the link is good only through the link, one for an address only
+  straight there. Change the start
   screen in `web/home/` only, then run `tools/sync_home.py`; anything the apps do for it goes through `window.DSApp`
   (Android's Bridge, the desktop's `desktop/app.py`), the same names in both. Remote servers are listed only once
   approved on the central server's admin page (`/admin`), and players are told everywhere that a character lives on

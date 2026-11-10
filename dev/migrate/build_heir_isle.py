@@ -1030,18 +1030,19 @@ def home_scripts():
     w("Use Egg With Marens_Range", [
         (">Distance.From.Clicked.Entity", "48", "@far"),
         (">Got.Item", "Egg", "1", "@none"),
-        ("Take.Item", "Egg", "1"),
+        ("Take.Item", "Egg", "1"),                                # (the egg, the fried one and the stage all at
+        ("Give.Item", "Fried_Egg", "1"),                          #  once: gone in the wait, nothing's lost)
+        ("Update.Skill", "Cooking", "+0.05"),
+        ("Get.Value", "ATTRIBUTE", "DinnerQuest", V1),
+        (">Conditional", "$Variable.1=2", "@fry"),
+        ("Update.Attribute", "DinnerQuest", "=3"),
+        ("@fry",),
         ("Show.Skill", "Cooking"),
         ("Display.Message", "Cyan", "You crack the egg onto Maren's hot range..", "-"),
         ("Play.Sound", "CookingFood"),
         ("Wait", "2"),
         ("Display.Message", "Yellow", "..and fry it to a turn!", "-"),
-        ("Update.Skill", "Cooking", "+0.05"),
-        ("Give.Item", "Fried_Egg", "1"),
-        ("Get.Value", "ATTRIBUTE", "DinnerQuest", V1),
-        (">Conditional", "$Variable.1=2", "@end"),
-        ("Update.Attribute", "DinnerQuest", "=3"),
-        ("@end",), ("End",),
+        ("End",),
         ("@none",), ("Display.Message", "DarkRed", "You don't have an egg.", "Denied"),
         ("End",),
     ] + FAR)
@@ -1236,6 +1237,7 @@ def chapel_and_caves():
         ("Display.Refusal", "Iron bars, set deep in the rock, too close for your hand. Behind them: a gold amulet!"),
         ("Wait", "1"),
         ("Display.Message", "Cyan", "Footsteps echo behind you: Brother Aldous, a lantern in his hand.", "-"),
+        ("Remove.Entity", aldous, "Gravekeeper"),                 # (one Aldous, if his words were closed before)
         ("Add.Entity", aldous, "Gravekeeper", "NPC", "Attitude=Good Stand=1 Face=W Name=Brother_Aldous"),
         say("Gravekeeper", "I said I'd not be far behind. Look here first.\\He stoops, and picks dull grey splinters "
                            "from the floor.\\Something died here, a rat or a bat, and left its magic behind: Shard "
@@ -1244,14 +1246,14 @@ def chapel_and_caves():
                            "still. The old books say every Shard is a scrap of something far greater, cut down long ago, "
                            "and that scraps like that are hungry: take them in before they take root in you.", ("I'll remember.", "@remnants")),
         ("@remnants",),
+        ("Update.Attribute", "AmuletQuest", "=5"),                # (the stage with the gifts: closed, never twice)
         ("Give.Item", "Shard_Remnant", "3"),
+        ("Give.Item", "Grasp_Scroll", "1"),
         say("Gravekeeper", "Now, the amulet. Your mother put it there, and the bars after it, so that no "
                            "thief could ever take it. But a hand that isn't a hand can.\\Here: a scroll of Grasp. Read it, "
                            "and the spell is yours for good; each casting drinks a couple of Shards. Cast it at the "
                            "bars, and an unseen hand will bring the amulet to you.", ("Thank you, Brother.", "@give")),
         ("@give",),
-        ("Give.Item", "Grasp_Scroll", "1"),
-        ("Update.Attribute", "AmuletQuest", "=5"),
         ("Display.Message", "Yellow", "Learn Grasp from the scroll, then cast it from Channeling at what you want "
                                       "brought to you.", "-"),
         ("End",),
@@ -1448,7 +1450,7 @@ def old_scripts():
     """What the old Passage to the Mainland and The Beggar's Lost Key had, and nothing does now."""
     for name in ("Open Barred_Niche", "Talk to Woman", "Open Goblin_Cage", "Grasp Goblin_Cage", "Beggar House", "Unlock Door001",
                  "Read The_Old_Brick_House", "Use Beggars_House_Key With Door", "Use Beggars_House_Key With Door001"):
-        K.remove_script(name)
+        K.remove_script(name, MAKER)                              # (Talk to Woman is build_whimsy.py's now)
 
 
 def scripts():

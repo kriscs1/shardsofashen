@@ -661,7 +661,7 @@ class TogetherMixin:
         opts = []
         for item, need in d["needs"].items():
             left = need - pr["have"].get(item, 0)
-            mine = self.items_held(item)
+            mine = self.items_held(item, False)          # (nothing stolen: a town won't build with it)
             if left > 0 and mine > 0:
                 if item == "Gold_Coin(s)":
                     for amt in (10, 100):
@@ -680,10 +680,10 @@ class TogetherMixin:
         t = self.w.together
         pr = t.project(d["key"])
         left = d["needs"].get(item, 0) - pr["have"].get(item, 0)
-        n = min(n, left, self.items_held(item))
+        n = min(n, left, self.items_held(item, False))
         if n <= 0 or t.done(d["key"]):
             return
-        self.remove_inventory_item(item, n)
+        self.remove_inventory_item(item, n, False)
         pr["have"][item] = pr["have"].get(item, 0) + n
         self.w.save_soon = True
         worth = n if item == "Gold_Coin(s)" else n * max(1, int(val(self.data.entity_ini(item, "Value", "1"))))
@@ -837,9 +837,10 @@ class TogetherMixin:
                 self.show_menu("Gift box", "Pocket_Anchor", "Nothing in the gift box.", [("Close it.", None)])
                 return
             for gift in list(gifts):                     # (a copy: taking one mustn't skip the next)
-                frm, item, n = gift
-                if self.inventory_slots_available(item) >= n:
-                    self.add_inventory_item(item, n)
+                frm, item, n = gift[:3]
+                went = [tuple(p) for p in gift[3]] if len(gift) > 3 else [(n, 0, False)]   # (each as it was left)
+                if self.room_for(item, went):
+                    self.put_items(item, went)
                     self.display_message("A gift from %s: %s." % (frm, ("%d gold" % n) if item == "Gold_Coin(s)" else
                                                                    "%d %s" % (n, pretty(item))), "SUCCESS")
                     gifts.remove(gift)
@@ -864,8 +865,7 @@ class TogetherMixin:
         if self.data.shelf_life(item):
             self.refuse("That wouldn't keep in a box.")
             return
-        self.remove_inventory_item(item, n)
-        box.append([self.player_name, item, n])
+        box.append([self.player_name, item, n, self.remove_inventory_item(item, n)])    # (its wear, stolen or not)
         self.w.save_soon = True
         self.display_message("You leave it in %s's gift box." % owner, "SUCCESS")
         o = self.w.sessions.get(owner)

@@ -51,6 +51,7 @@ log = logging.getLogger("ashen.session")
 HOTBAR_SLOTS = 10                                   # (the most a hotbar has; how many show is each player's)
 HOTBAR_SHOWN = 5
 FOG_ALL = 0.97                      # (a map this much seen is kept as all of it: its corners are the same to anyone)
+FOG_TRAIL, FOG_TRAIL_MS = 40, 250   # (where a player's been, these last ten seconds: what they say they've seen is near)
 JOURNAL_GAP = 1000                  # (ms between journals sent: one costs the server a good part of a tick)
 LOOK_PARTS = ("skin", "hair", "shirt", "legs")
 
@@ -158,6 +159,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.side_attitudes = {}                    # {SIDE: "Good"/"Bad"}: Set.Side.Attitude, for good
         self.taken_once = set()
         self.explored = {}                  # map -> "all" or a set of fog cell numbers
+        self.fog_trail, self.fog_trail_at = [], 0   # [(z, x, y)] lately (note_explored)
         self.hotbar = [""] * HOTBAR_SLOTS
         self.hotbar_n = HOTBAR_SHOWN
         self.grave = None
@@ -252,7 +254,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.init_market()
         self.init_digging()
         self.init_chests()
-        self.verb_price = self.verb_qty = 0   # (the market's Sell / Set price: what the player typed)
+        self.verb_price = self.verb_qty = 0   # (the market's Sell / Set price: what the player typed; Buy: what they saw)
         self.init_scripts()
 
     def clear_boosts_values(self):
@@ -707,6 +709,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
 
     def leave_world(self):
         """Gone: their own things go with them, NPCs fighting them give up."""
+        self.game_close()                               # (up from a table: a stake left waiting comes back)
         if self.swap:
             self.end_swap("")                           # (the creature gets its own body back)
         self.ready = False
@@ -768,6 +771,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def tick_after_npcs(self):
         if not self.in_world() or self.dead_wait:
             return
+        if self.now - self.fog_trail_at >= FOG_TRAIL_MS:
+            self.fog_trail_at = self.now
+            p = self.player
+            self.fog_trail = self.fog_trail[1 - FOG_TRAIL:] + [(p.z, p.fx, p.fy)]
         if self.sleep_state:
             return
         self.update_script_move()
@@ -1186,20 +1193,48 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.dirty_me = True
 
     def note_explored(self, name, cells):
-        if name not in self.w.maps:
+        """The fog cells the page has seen (it says every few seconds): only those within sight of where this player
+        has lately been (fog_trail), so no page can say it's seen a map it hasn't."""
+        m = self.w.maps.get(name)
+        cur = self.explored.get(name, set())
+        if m is None or cur == "all":
             return
+        size = self.fog_size()
+        fxt = math.ceil(self.sw / size)
+        reach = self.fog_view_distance + self.spell_sight_bonus + 2 * size
+        near = [(x, y) for z, x, y in self.fog_trail if z == m.mz]
+        got = set()
+        for c in cells[:2000]:
+            if isinstance(c, int) and 0 < c < 10000 and c not in cur:
+                x, y = m.ox + ((c - 1) % fxt + 0.5) * size, m.oy + ((c - 1) // fxt + 0.5) * size
+                if any(abs(x - px) <= reach and abs(y - py) <= reach for px, py in near):
+                    got.add(c)
+        if got:
+            self.explored[name] = cur = cur | got
+            if len(cur) >= FOG_ALL * self.fog_cells():
+                self.explored[name] = "all"
+
+    def reveal_fog(self, name, cell):
+        """Reveal.BlackOut.Tile: a fog cell ("x,y" from 1, or its number) seen, wherever the player is."""
         cur = self.explored.setdefault(name, set())
         if cur == "all":
             return
-        for c in cells[:2000]:
-            if isinstance(c, int) and 0 < c < 10000:
-                cur.add(c)
-        if len(cur) >= FOG_ALL * self.fog_cells():
-            self.explored[name] = "all"
+        fxt = math.ceil(self.sw / self.fog_size())
+        if "," in str(cell):
+            x, y = (int(val(v)) for v in str(cell).split(",")[:2])
+        else:
+            c = int(val(cell))
+            x, y = (c - 1) % fxt + 1, (c - 1) // fxt + 1
+        if 1 <= x <= fxt and y >= 1 and 0 < (y - 1) * fxt + x < 10000:
+            cur.add((y - 1) * fxt + x)
+
+    def fog_size(self):
+        """A fog cell's size (the page's fogCell: FogOfWar.Cell.Size pixels, 4 to 128)."""
+        return max(4, min(128, int(val(self.data.config_read("Interface", "FogOfWar.Cell.Size", "16"))) or 16))
 
     def fog_cells(self):
-        """How many fog cells a map has (the page's fogCell: FogOfWar.Cell.Size pixels, 4 to 128)."""
-        size = max(4, min(128, int(val(self.data.config_read("Interface", "FogOfWar.Cell.Size", "16"))) or 16))
+        """How many fog cells a map has."""
+        size = self.fog_size()
         return math.ceil(self.sw / size) * math.ceil(self.sh / size)
 
     def explored_for_client(self):

@@ -27,6 +27,7 @@ TICK = 0.05
 SAVE_EVERY = 60
 SAVE_SOON = 1.0             # (seconds: the soonest everyone is saved again when something's changed hands)
 WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other players)
+LINGER = 30                 # (seconds a player marked in open PvP stays in the world once they've gone: pvp.py)
 CHAT_MAX = 200
 CHAT_LINES, CHAT_SECONDS = 6, 5.0   # (the most lines anyone can say in those seconds: no flooding everyone's chat)
 TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/msg ")    # (commands that talk)
@@ -215,6 +216,7 @@ class GameServer:
             try:
                 self.world.tick(dt)
                 await self.send_updates()
+                self.lingered()
             except Exception:
                 log.exception("Tick failed")
             wanted = self.world.save_soon or any(s.save_requested for s in self.world.sessions.values())
@@ -522,6 +524,15 @@ class GameServer:
             self.store.set_setting("server_id", sid)
         return sid
 
+    def id_proof(self):
+        """What proves the id is this server's (made once, kept with the world): the central server keeps the id for
+        the first to bring it, so another game that gave this one's id can't use its players' tickets."""
+        got = self.store.setting("id_proof", "")
+        if not got:
+            got = os.urandom(24).hex()
+            self.store.set_setting("id_proof", got)
+        return got
+
     async def central_post(self, path, body, packed=False):
         """A question for the central server, on one connection kept open (a new one is a new TLS handshake: several
         KB, each player each minute). packed: it's big enough to be worth zipping."""
@@ -647,7 +658,7 @@ class GameServer:
         self.save_session(s)
         await self.send(c, {"t": "kicked", "reason": "Your Hallisium account is banned."})
         await c.flush()                                 # (said before it's closed: a closed one sends nothing)
-        c.closed = True
+        c.closed = c.sent_away = True
         try:
             await c.ws.close()
         except Exception:
@@ -679,7 +690,7 @@ class GameServer:
             await self.central_post("/api/goodbye", {"key": key, "secret": secret})
             return
         got = await self.central_post("/api/announce", {
-            "key": key, "secret": secret, "name": self.server_name(), "url": os.environ.get("DS_PUBLIC_URL", ""),
+            "key": key, "secret": secret, "proof": self.id_proof(), "name": self.server_name(), "url": os.environ.get("DS_PUBLIC_URL", ""),
             "port": int(os.environ.get("DS_PUBLIC_PORT", os.environ.get("DS_PORT", "8484"))),
             "online": len([s for s in self.world.sessions.values() if s.ready]), "max": self.max_players,
             "version": self.version.get("version", "")})
@@ -769,12 +780,17 @@ class GameServer:
         """Why they can't come in, with the admin's reason if they gave one (/ban with none keeps the word "banned")."""
         return "%s: %s" % (start, why) if why and why != "banned" else start + "."
 
-    async def ticket_name(self, ticket):
+    async def ticket_name(self, ticket, relayed=False):
         """The Hallisium account a ticket from the central server is for, why not, and what else it said (their friends
-        and a key to them): (name, "", got) or ("", why, None)."""
+        and a key to them): (name, "", got) or ("", why, None). relayed: it came through a friend's link."""
         if not self.central_url():
             return "", "This game isn't joined to the central server.", None
-        got = await self.central_post("/api/verify", {"ticket": str(ticket)[:100], "server": self.server_id()})
+        got = await self.central_post("/api/verify", {"ticket": str(ticket)[:100], "server": self.server_id(),
+                                                      "proof": self.id_proof(), "relayed": bool(relayed)})
+        if got and got.get("taken"):
+            # (another game had this one's id first: a new one, and the player comes in again by it)
+            self.store.set_setting("server_id", os.urandom(8).hex())
+            log.warning("This game's id was another's on the central server: it's %s now", self.server_id())
         if not got or not got.get("ok"):
             return "", (got or {}).get("text") or "The central server couldn't be reached just now.", None
         return auth.clean_name(got.get("name", "")), "", got
@@ -805,7 +821,7 @@ class GameServer:
         linked = self.store.setting("dev:" + device[2:], "") if device else ""
         owner, why, got = "", "", None
         if data.get("ticket"):
-            name, why, got = await self.ticket_name(data["ticket"])
+            name, why, got = await self.ticket_name(data["ticket"], self.relayed(c.addr))
             owner = "a:" + name if name else ""
         key = os.environ.get("DS_HOST_KEY", "")
         if key and self.is_local(c.addr) and hmac.compare_digest(str(data.get("host", "")), key):
@@ -1006,6 +1022,7 @@ class GameServer:
                                 self.max_players})
             return
         if old is not None:                     # logged in again (another tab, a lost connection): this one takes over
+            old.linger_until = 0                # (left while marked, and back in time)
             oc = self.clients.pop(old, None)
             if oc is not None:
                 oc.session = None
@@ -1115,7 +1132,7 @@ class GameServer:
                 self.save_session(o)
                 asyncio.ensure_future(self.send(c, {"t": "kicked", "reason": "An admin has %s you." %
                                                     ("banned" if cmd == "/ban" else "removed")}))
-                c.closed = True
+                c.closed = c.sent_away = True                   # (gone at once, marked or not)
                 asyncio.ensure_future(c.ws.close())
             say("%s is %s." % (name, "banned" if cmd == "/ban" else "kicked"))
             log.info("%s %sed %s", s.player_name, cmd[1:], name)
@@ -1265,11 +1282,31 @@ class GameServer:
         if s is None or self.clients.get(s) is not c:
             return
         del self.clients[s]
-        self.save_session(s)
+        if s.pvp_lingers() and not getattr(c, "sent_away", False):
+            # (marked, out where players fight: they stay a while, to be fought; back in time, they carry on)
+            s.game_close()
+            self.save_session(s)
+            s.linger_until = time.time() + LINGER
+            s.stop_player_walk()
+            s.player_attack_target = None
+            log.info("%s left while marked: in the world %ds more", s.player_name, LINGER)
+            return
+        self.gone(s)
+
+    def lingered(self):
+        """Those who left while marked (disconnect): gone once their time's up, they've died, or the mark's faded."""
+        for s in list(self.world.sessions.values()):
+            if getattr(s, "linger_until", 0) and s not in self.clients:
+                s.out = []                              # (nobody to send it to)
+                if time.time() >= s.linger_until or s.dead_wait or not s.pvp_marked():
+                    self.gone(s)
+
+    def gone(self, s):
+        s.linger_until = 0
         s.leave_world()
         s.connected = False
         self.world.sessions.pop(s.player_name, None)
-        self.store.save_world(self.world_state())
+        self.save_session(s)                            # (as they left it: a stake given back, kept)
         log.info("%s left (%d online)", s.player_name, len(self.world.sessions))
         self.broadcast({"t": "chat", "from": "", "text": "%s has left the game." % s.player_name})
         s.friends_hear("Your friend %s has left Ashen." % s.player_name)

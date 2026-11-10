@@ -225,6 +225,12 @@ class MarketMixin:
             self.display_message("%s: now %d gold each." % (pretty(it["item"]), price), "INFO")
             self.market.changed()
         elif verb in ("Buy 1", "Buy 5") and not mine:
+            seen = int(val(price))                  # (the price the buyer saw: changed since, they're asked again)
+            if seen and seen != it["price"]:
+                self.refuse("The price has just changed: %s is %d gold each now." % (pretty(it["item"]), it["price"]),
+                            "Fail")
+                self.show_market()
+                return True
             self.market_buy(it, 1 if verb == "Buy 1" else 5)
         return True
 

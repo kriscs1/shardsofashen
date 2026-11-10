@@ -580,13 +580,14 @@ def house_annis():
         say("\"Back again? Oswin says you're a good sort.\"", ("Cael, of the Cinder Chapel, wrote you this. Let me "
                                                                 "read it to you.", "@read"),
             ("Leave her be. She's happy here.", "@leave")),
-        ("@read",), ("Take.Item", "Caels_Lines", "1"),
+        ("@read",),
         say("You read it to her.\\\"I heard my mother in the fire, and she told me to feed it. It said what I wanted "
             "to hear, because that's all it can do. It doesn't know you. It only knows what you miss.\"\\Annis is "
             "quiet a long while. Then she turns the Shard over, face down.\\\"He never once said the roof wanted "
             "mending. He'd have done it himself.\" She takes your arm. \"Walk me home, love. Tam'll want his tea.\"",
             ("Come on, then.", "@walk")),
-        ("@walk",), ("Update.Attribute", "StrangerEnd", "=1"), ("Update.Attribute", "AnnisHome", "=1"),
+        ("@walk",), ("Take.Item", "Caels_Lines", "1"),            # (taken once it's read: closed, it's kept)
+        ("Update.Attribute", "StrangerEnd", "=1"), ("Update.Attribute", "AnnisHome", "=1"),
         ("Update.Attribute", "AnnisAway", "=1"), ("Update.Attribute", "StrangerQuest", "=4"),
         msg("Quest complete: The Kind Stranger!"), ("End",),
         ("@leave",), ("Update.Attribute", "StrangerEnd", "=2"), ("Update.Attribute", "AnnisAway", "=1"),

@@ -382,16 +382,17 @@ class Wonders:
         if len(box) >= MOST_MAIL:
             s.refuse("%s's letters are piling up as it is." % who)
             return False
-        item, n, words = "", 0, text.strip()
+        item, n, went, words = "", 0, [], text.strip()
         if words.startswith("+"):
             first, _, words = words.partition(" ")
             item = first[1:]
-            if s.items_held(item) < 1 or val(s.entity_ini(item, "Droppable", "1")) == 0:
+            # (only something in the pack: Shards are a balance, never sent)
+            if not any(e.name == item for e in s.inv) or val(s.entity_ini(item, "Droppable", "1")) == 0:
                 s.refuse("You haven't got that to send.")
                 return False
             n = 1
-            s.remove_inventory_item(item, 1)
-        box.append({"from": s.player_name, "text": words[:300], "item": item, "n": n})
+            went = s.remove_inventory_item(item, 1)     # (as it was: its wear, stolen or not)
+        box.append({"from": s.player_name, "text": words[:300], "item": item, "n": n, "went": went})
         s.display_message("Your letter to %s is on its way." % who, "SUCCESS")
         return True
 
@@ -421,7 +422,7 @@ class Wonders:
         for m in box:
             s.display_message("A letter from %s: %s" % (m.get("from", "someone"), m.get("text", "")), "INFO")
             if m.get("item"):
-                s.add_inventory_item(m["item"], int(val(m.get("n", 1))) or 1)
+                s.put_items(m["item"], [tuple(p) for p in m.get("went") or [(int(val(m.get("n", 1))) or 1, 0, False)]])
         return len(box)
 
     # ----- the Champion

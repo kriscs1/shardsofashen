@@ -87,6 +87,8 @@ function image(key, url) {
   A.imgs.set(key, e);
   A.pending++;
   e.img.decoding = "async";
+  e.img.crossOrigin = "anonymous";       // (a friend's game, through the central server, is a sandboxed page of its own:
+                                         // asked this way, its pictures can still be read back from a canvas)
   e.img.onload = () => {
     e.ok = true;
     A.pending--;

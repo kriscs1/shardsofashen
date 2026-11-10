@@ -13,9 +13,9 @@
 12	>Conditional	$Variable.1=1	27
 13	>Got.Item	Plank	10	25
 14	>Got.Item	Stone_Block	4	25
-15	Take.Item	Plank	10
-16	Take.Item	Stone_Block	4
-17	Display.Conversation	Settler	Good, square work! You'll do. Here: my Hearth Anchor. Touch any shardstone you've woken while you carry it and it'll take you to your own pocket of the Stillwater. It's raw at first: glass and mist. Shape it with Shards, build what you like; nobody comes in unless you let them.\Once you know a little magic I can sell you scrolls that take you home from anywhere.	Thank you!	18
+15	Display.Conversation	Settler	Good, square work! You'll do. Here: my Hearth Anchor. Touch any shardstone you've woken while you carry it and it'll take you to your own pocket of the Stillwater. It's raw at first: glass and mist. Shape it with Shards, build what you like; nobody comes in unless you let them.\Once you know a little magic I can sell you scrolls that take you home from anywhere.	Thank you!	16
+16	Take.Item	Plank	10
+17	Take.Item	Stone_Block	4
 18	Give.Item	Hearth_Anchor	1
 19	Give.Item	Nails	40
 20	Update.Skill	Homesteading	+3

@@ -9,8 +9,8 @@
 08	End
 09	>Conditional	$Variable.1=3	24
 10	Display.Conversation	Old_Woman	"Back again? Oswin says you're a good sort."	Cael, of the Cinder Chapel, wrote you this. Let me read it to you.	11	Leave her be. She's happy here.	19
-11	Take.Item	Caels_Lines	1
-12	Display.Conversation	Old_Woman	You read it to her.\"I heard my mother in the fire, and she told me to feed it. It said what I wanted to hear, because that's all it can do. It doesn't know you. It only knows what you miss."\Annis is quiet a long while. Then she turns the Shard over, face down.\"He never once said the roof wanted mending. He'd have done it himself." She takes your arm. "Walk me home, love. Tam'll want his tea."	Come on, then.	13
+11	Display.Conversation	Old_Woman	You read it to her.\"I heard my mother in the fire, and she told me to feed it. It said what I wanted to hear, because that's all it can do. It doesn't know you. It only knows what you miss."\Annis is quiet a long while. Then she turns the Shard over, face down.\"He never once said the roof wanted mending. He'd have done it himself." She takes your arm. "Walk me home, love. Tam'll want his tea."	Come on, then.	12
+12	Take.Item	Caels_Lines	1
 13	Update.Attribute	StrangerEnd	=1
 14	Update.Attribute	AnnisHome	=1
 15	Update.Attribute	AnnisAway	=1

@@ -8,24 +8,24 @@
 07	Display.Message	Yellow	Quest started: The Scarecrow's Hat.	Quest
 08	End
 09	>Conditional	$Variable.1=1	32
-10	>Got.Item	Chefs_Hat	1	13
-11	Take.Item	Chefs_Hat	1
-12	Goto.Line	27
-13	>Got.Item	Fur_Cap	1	16
-14	Take.Item	Fur_Cap	1
-15	Goto.Line	28
-16	>Got.Item	Leather_Cap	1	19
-17	Take.Item	Leather_Cap	1
-18	Goto.Line	28
-19	>Got.Item	Bronze_Helm	1	22
-20	Take.Item	Bronze_Helm	1
-21	Goto.Line	28
-22	>Got.Item	Iron_Helm	1	25
-23	Take.Item	Iron_Helm	1
-24	Goto.Line	28
-25	Display.Conversation	Talking_Scarecrow	No hat? That's all right. I'll just stand here. Thinking. Coldly.	I'll keep looking.	33
-26	End
-27	Display.Conversation	Talking_Scarecrow	A chef's hat! I shall finally cook! ...I have no hands. Or a kitchen. Or a mouth. But the THOUGHT of it.	Enjoy it.	28
+10	>Got.Item	Chefs_Hat	1	12
+11	Goto.Line	26
+12	>Got.Item	Fur_Cap	1	15
+13	Take.Item	Fur_Cap	1
+14	Goto.Line	28
+15	>Got.Item	Leather_Cap	1	18
+16	Take.Item	Leather_Cap	1
+17	Goto.Line	28
+18	>Got.Item	Bronze_Helm	1	21
+19	Take.Item	Bronze_Helm	1
+20	Goto.Line	28
+21	>Got.Item	Iron_Helm	1	24
+22	Take.Item	Iron_Helm	1
+23	Goto.Line	28
+24	Display.Conversation	Talking_Scarecrow	No hat? That's all right. I'll just stand here. Thinking. Coldly.	I'll keep looking.	33
+25	End
+26	Display.Conversation	Talking_Scarecrow	A chef's hat! I shall finally cook! ...I have no hands. Or a kitchen. Or a mouth. But the THOUGHT of it.	Enjoy it.	27
+27	Take.Item	Chefs_Hat	1
 28	Update.Attribute	ScarecrowQuest	=2
 29	Display.Conversation	Talking_Scarecrow	Warm at last. I feel... profound. Here's a thought to take with you: the crows were never afraid of me. They just liked the company.	That's... nice.	30
 30	Display.Message	Yellow	Quest complete: The Scarecrow's Hat!	Quest

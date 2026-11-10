@@ -127,13 +127,18 @@ CREATE TABLE IF NOT EXISTS passes (
     name TEXT NOT NULL COLLATE NOCASE,
     made REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS game_keys (
+    key TEXT PRIMARY KEY,
+    proof TEXT NOT NULL,
+    seen REAL NOT NULL
+);
 """
 # (columns added since: put on an older database as it opens)
 COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admin", "INTEGER NOT NULL DEFAULT 0"),
            ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0"),
            ("accounts", "deleted", "REAL NOT NULL DEFAULT 0"), ("accounts", "google", "TEXT NOT NULL DEFAULT ''"),
            ("accounts", "full", "TEXT NOT NULL DEFAULT ''"), ("accounts", "full_at", "REAL NOT NULL DEFAULT 0"),
-           ("accounts", "pass_until", "REAL NOT NULL DEFAULT 0")]
+           ("accounts", "pass_until", "REAL NOT NULL DEFAULT 0"), ("tickets", "relay", "INTEGER NOT NULL DEFAULT 0")]
 # (what's looked up by something other than its key: after the columns, as some are on those)
 INDEXES = """
 CREATE INDEX IF NOT EXISTS accounts_email ON accounts (email COLLATE NOCASE);
@@ -160,6 +165,7 @@ UNCONFIRMED_DAYS = 30           # (an email nobody confirmed is forgotten after 
 TOKEN_DAYS = 30
 TICKET_SECONDS = 120
 SERVER_SECONDS = 180            # (a remote server not heard from for this long isn't listed)
+GAME_KEY_DAYS = 365             # (a game's id, proved: kept a year after it's last come in)
 GRANT_DAYS = 2                  # (a game server's key to a player's friends: while they play there, and a while after)
 PLAYING_SECONDS = 300           # (playing somewhere: as long as their game says so this often)
 MOST_FRIENDS = 200
@@ -382,18 +388,22 @@ class CentralStore:
         self.db.execute("DELETE FROM tokens WHERE token = ?", (digest(str(token)),))
 
     # ----- tickets: one game server, once, soon
-    def new_ticket(self, name, server):
+    def new_ticket(self, name, server, relay=False):
+        """relay: for a friend's link through here (else for an address, or from the list)."""
         ticket = new_secret()
-        self.db.execute("INSERT INTO tickets (ticket, name, server, made) VALUES (?, ?, ?, ?)",
-                        (digest(ticket), name, server, time.time()))
+        self.db.execute("INSERT INTO tickets (ticket, name, server, made, relay) VALUES (?, ?, ?, ?, ?)",
+                        (digest(ticket), name, server, time.time(), 1 if relay else 0))
         return ticket
 
-    def use_ticket(self, ticket, server):
-        """The player's name if ticket is good for this server (it's used up either way), else None."""
+    def use_ticket(self, ticket, server, relayed=None):
+        """The player's name if ticket is good for this server (it's used up either way), else None. relayed: whether
+        it came to the game through a friend's link here (None: a game from before, that doesn't say)."""
         key = digest(str(ticket))
-        row = self.db.execute("SELECT name, server, made FROM tickets WHERE ticket = ?", (key,)).fetchone()
+        row = self.db.execute("SELECT name, server, made, relay FROM tickets WHERE ticket = ?", (key,)).fetchone()
         self.db.execute("DELETE FROM tickets WHERE ticket = ? OR made < ?", (key, time.time() - TICKET_SECONDS))
         if not row or row[1] != server or time.time() - row[2] > TICKET_SECONDS:
+            return None
+        if relayed is not None and bool(row[3]) != relayed:     # (asked for one way in, and brought by another)
             return None
         return row[0]
 
@@ -431,6 +441,21 @@ class CentralStore:
                         (digest(token), name, server, time.time()))
         return token
 
+    def proves_game(self, key, proof):
+        """Is proof this game id's own? The first game to bring one with the id keeps it: a ticket is made out to an id,
+        and a game that gave another's can't use it there. (A game from before ids were proved brings none: let be,
+        till the id's own game has proved it.)"""
+        row = self.db.execute("SELECT proof FROM game_keys WHERE key = ?", (key,)).fetchone()
+        if row is None:
+            if proof:
+                self.db.execute("INSERT INTO game_keys (key, proof, seen) VALUES (?, ?, ?)",
+                                (key, digest(proof), time.time()))
+            return True
+        if not proof or row[0] != digest(proof):
+            return False
+        self.db.execute("UPDATE game_keys SET seen = ? WHERE key = ?", (time.time(), key))
+        return True
+
     def grant_name(self, token):
         """(name, server) for a game server's key, or None. Each use keeps it good a while longer."""
         key = digest(str(token))
@@ -461,12 +486,13 @@ class CentralStore:
                 for r in rows if r[0].lower() in asked}
 
     # ----- remote servers
-    def announce(self, key, secret, name, url, online, most, version):
-        """A remote server says it's there (key and secret: its own, from the first time). Returns (key, secret)."""
+    def announce(self, key, secret, name, url, online, most, version, proof=""):
+        """A remote server says it's there (key and secret: its own, from the first time; proof: its id's, as tickets
+        are checked by). Returns (key, secret)."""
         row = self.db.execute("SELECT secret, name, url FROM servers WHERE key = ?", (key,)).fetchone() if key else None
         if row is None or row[0] != digest(secret or ""):
             # (new: its own id if it has one nobody holds - what tickets are made out to - else one given it)
-            fresh = key and row is None and len(key) == 16 and all(ch in "0123456789abcdef" for ch in key)
+            fresh = key and row is None and len(key) == 16 and all(ch in "0123456789abcdef" for ch in key) and                 self.proves_game(key, proof)
             key, secret = (key if fresh else new_secret()[:16]), new_secret()
             self.db.execute("INSERT INTO servers (key, secret, name, url, online, max, version, seen, made) "
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -488,6 +514,7 @@ class CentralStore:
         self.db.execute("DELETE FROM playing WHERE seen < ?", (now - PLAYING_SECONDS,))
         self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
         self.db.execute("DELETE FROM passes WHERE made < ?", (now - 86400,))
+        self.db.execute("DELETE FROM game_keys WHERE seen < ?", (now - GAME_KEY_DAYS * 86400,))
         old = now - PROGRESS_DAYS * 86400
         for table in ("character_skills", "character_quests"):
             self.db.execute("DELETE FROM %s WHERE (server, name) IN (SELECT server, name FROM characters WHERE seen < ?)"

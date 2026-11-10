@@ -1,8 +1,9 @@
 """Games hosted for friends, passed through here (server/relay.py is the host's end). A host's game connects to
 /api/relay with the key its host's ticket brought; while it's connected, its host's friends see it ("hosting") and
 open it at /play/<its id>/: the page and its pictures are asked of the host ("get", "res"; what's the same for every
-game of a version is kept here, so it's sent through once), and a friend's game connection is passed both ways
-("open", "m", "close"). Only the host's friends get in: the host's game checks each one's ticket."""
+friend of a version is kept here, so it's sent through once), and a friend's game connection is passed both ways
+("open", "m", "close"). Only the host's friends get in: the host's game checks each one's ticket. What a host sends is
+sandboxed (SANDBOX): it's shown on this server's address, but it's never this server's own page."""
 import asyncio
 import base64
 import hashlib
@@ -23,6 +24,10 @@ ASK_SECONDS = 30                  # (a page or picture the host hasn't sent by t
 CONNS_MOST = 12                   # (friends' connections at once through one game: its 5 players and some to spare)
 KEPT_MOST = 200 * 1024 * 1024     # (the pictures kept here, every version's: past this, the oldest go)
 KEPT_PATHS = ("assets/", "img/", "js/", "css/")
+# (everything a host sends is shown on this server's address, where the start screen keeps its sign-in: sandboxed, a
+# page from a host is a place of its own, and can't read what's kept here or ask anything here as the player)
+SANDBOX = ("sandbox allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads "
+           "allow-pointer-lock allow-orientation-lock allow-top-navigation-by-user-activation")
 
 
 class Tunnel:
@@ -42,7 +47,7 @@ class Relays:
         self.store = store
         self.tunnels = {}             # game id -> Tunnel
         self.ids = itertools.count(1)
-        self.kept = {}                # (version, path) -> (status, content type, cache control, body)
+        self.kept = {}                # (host account, version, path) -> (status, content type, cache control, body)
         self.kept_bytes = 0
 
     def hosting(self, accounts):
@@ -63,10 +68,14 @@ class Relays:
         key = str(q.get("key", ""))[:64]
         if not got or got[1] != key:
             return web.Response(status=403, text="That key isn't good for this game.")
+        old = self.tunnels.get(key)
+        if old is not None and old.account.lower() != got[0].lower():
+            # (another account's game open to friends by this id: it stays theirs while it's open)
+            return web.Response(status=409, text="That game is open to friends by another account.")
         ws = web.WebSocketResponse(heartbeat=20, max_msg_size=TUNNEL_MAX)
         await ws.prepare(request)
         t = Tunnel(ws, got[0], key, str(q.get("place", ""))[:60], str(q.get("version", ""))[:40])
-        old = self.tunnels.get(key)
+        old = self.tunnels.get(key)               # (the same host, come back before its last connection was missed)
         self.tunnels[key] = t
         if old is not None:
             await old.ws.close()
@@ -117,18 +126,25 @@ class Relays:
                                 "<p style='font:18px serif;padding:2em'>That game isn't open to friends just now.</p>")
         if path == "ws":
             return await self.friend(request, t)
+        resp = await self.page(request, t, path)
+        resp.headers["Content-Security-Policy"] = SANDBOX
+        resp.headers["X-Content-Type-Options"] = "nosniff"     # (what it says it is, or nothing: never run as a page)
+        return resp
+
+    async def page(self, request, t, path):
         if not path and not {"ticket", "joined", "app"} & set(request.query):     # (the link as it was given: sign in, and on in)
-            raise web.HTTPFound("/?join=" + quote(key, safe=""))
+            raise web.HTTPFound("/?join=" + quote(request.match_info["key"], safe=""))
         if request.method != "GET":
             return web.Response(status=405)
         ask = path + ("?" + request.query_string if request.query_string else "")
         # (a game's version says what its files are, so a browser that has one needs no more than this: nothing is
-        # asked of the host, and nothing's sent)
+        # asked of the host, and nothing's sent. Kept by host too: a host can't send another's friends its own files)
         tag = '"%s"' % hashlib.md5(("%s|%s" % (t.version, ask)).encode("utf-8")).hexdigest()[:20] \
             if t.version and path.startswith(KEPT_PATHS) else ""
         if tag and request.headers.get("If-None-Match") == tag:
             return web.Response(status=304, headers={"ETag": tag})
-        kept = self.kept.get((t.version, ask)) if t.version else None
+        mark = (t.account.lower(), t.version, ask)
+        kept = self.kept.get(mark) if t.version else None
         if kept is None:
             rid = next(self.ids)
             f = asyncio.get_running_loop().create_future()
@@ -144,7 +160,7 @@ class Relays:
             kept = (int(got.get("s", 502)), str(got.get("ct", "")), str(got.get("cc", "")),
                     base64.b64decode(got.get("b", "")))
             if t.version and kept[0] == 200 and path.startswith(KEPT_PATHS):
-                self.keep((t.version, ask), kept)
+                self.keep(mark, kept)
         status, ctype, cache, body = kept
         resp = web.Response(status=status, body=body)
         if ctype:

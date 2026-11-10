@@ -628,6 +628,47 @@ def test_open_pvp_is_the_servers_setting_and_an_admin_turns_it(tmp_path, monkeyp
     asyncio.run(go())
 
 
+def test_leaving_while_marked_out_where_players_fight_leaves_you_there_a_while(tmp_path, monkeypatch):
+    """Marked in open PvP, a player who goes stays in the world (to be fought) for LINGER seconds: back in time, they
+    carry on as they were; unmarked, or in a town, they go at once."""
+    from server import game as game_mod
+    monkeypatch.setenv("DS_PVP", "1")
+    monkeypatch.setattr(game_mod, "LINGER", 1.0)
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, m = await login(http, url, "Rook")
+                assert m["t"] == "welcome"
+                s = game.world.sessions["Rook"]
+                wild = next(n for n, mp in sorted(game.world.maps.items())
+                            if mp.mz == 0 and not s.town_of_map(n) and n != "0,0,10")
+                s.teleport(wild, 300, 300)
+                s.do_pending_map_change()
+                s.pvp_mark_until = s.now + 60000                        # (struck first)
+                await ws.close()
+                await asyncio.sleep(0.3)
+                assert game.world.sessions.get("Rook") is s and s.in_world() and s not in game.clients
+                ws, m = await login(http, url, "Rook", mode="login")      # (back in time: the same, carrying on)
+                assert m["t"] == "welcome" and game.world.sessions["Rook"] is s and not s.linger_until
+                await asyncio.sleep(1.3)
+                assert game.world.sessions.get("Rook") is s               # (here, it never runs out)
+                await ws.close()
+                await asyncio.sleep(1.6)
+                assert "Rook" not in game.world.sessions and not s.connected   # (its time up: gone)
+                assert game.store.load_character("Rook")["pvp_mark"] > 0       # (and saved, still marked)
+
+                ws, m = await login(http, url, "Wren")                    # (not marked: gone at once)
+                await ws.close()
+                await asyncio.sleep(0.3)
+                assert "Wren" not in game.world.sessions
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
 async def chats(ws, seconds=0.6):
     """The chat lines that come in a moment."""
     out = []

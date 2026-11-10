@@ -535,6 +535,22 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch, c
     asyncio.run(go())
 
 
+def test_a_stranger_guessing_a_password_doesnt_keep_its_owner_out(tmp_path):
+    """Wrong passwords count against the name from that address and that address: its owner, elsewhere, still signs
+    in. Only a great many from all over hold the name for everyone; a mailbox is kept to a few from anywhere."""
+    from central.app import FAILS, NAME_FAILS
+    central = make_central(str(tmp_path / "c.db"))[CENTRAL]
+    for _ in range(FAILS):
+        central.failed("Victim", "6.6.6.6")
+    assert central.wait("Victim", "6.6.6.6") and central.wait("Someone", "6.6.6.6")      # (that place: held)
+    assert not central.wait("Victim", "1.2.3.4") and not central.wait("victim@example.com", "1.2.3.4", FAILS)
+    central.failed("victim@example.com", "6.6.6.6")
+    assert central.wait("victim@example.com", "1.2.3.4", FAILS) == 0
+    for k in range(NAME_FAILS):
+        central.failed("Victim", "7.7.%d.1" % k)                        # (from all over at once)
+    assert central.wait("Victim", "1.2.3.4") and not central.wait("Other", "1.2.3.4")
+
+
 def test_every_version_has_the_same_start_screen():
     """The Android app's start screen is web/home's (tools/sync_home.py copies it)."""
     import os
@@ -862,8 +878,8 @@ def test_an_apps_game_is_opened_from_inside_it(tmp_path, monkeypatch, confirmed)
                 # (the link as it's given: to the start screen to sign in; with a ticket, the page)
                 async with http.get("%s/play/%s/" % (central, key), allow_redirects=False) as r:
                     assert r.status == 302 and r.headers["Location"] == "/?join=" + key
-                t = await post(http, central + "/api/ticket", {"token": tok["Pal"], "server": key})
-                async with http.get("%s/play/%s/?ticket=%s" % (central, key, t["ticket"])) as r:
+                t = await post(http, central + "/api/ticket", {"token": tok["Pal"], "server": key, "url": central})
+                async with http.get("%s/play/%s/?ticket=%s" % (central, key, t["ticket"])) as r:   # (as the start screen asks)
                     assert r.status == 200
                 pal, m = await come_in(http, "ws://127.0.0.1:%d/play/%s/ws" % (cport, key), device_of("pal"), ticket=t["ticket"])
                 assert m["t"] == "characters"
@@ -989,9 +1005,12 @@ def test_a_hosted_games_files_are_kept_by_its_code_too(tmp_path, monkeypatch):
 def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypatch, confirmed):
     """Hosting for friends: the game connects out to the central server with its host's key (from the ticket the host
     came in with), its host's friends see it and come in through <central>/play/<id>/ (the page, its files, the game);
-    anyone else, or a device with no account, is turned away."""
+    anyone else, or a device with no account, is turned away. What the host sends is sandboxed (it's on the central
+    server's address, where the start screen keeps its sign-in); nobody else's game can take its id, and a ticket asked
+    for one way in can't be used by another."""
     async def go():
-        crunner, cport = await run(make_central(str(tmp_path / "central.db")))
+        capp = make_central(str(tmp_path / "central.db"))
+        crunner, cport = await run(capp)
         central = "http://127.0.0.1:%d" % cport
         monkeypatch.setenv("DS_CENTRAL", central)
         monkeypatch.setenv("DS_HOST_KEY", "the-hosts-own-key")
@@ -1028,8 +1047,13 @@ def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypa
                 via = central + "/play/%s/" % key
                 async with http.get(via + "?joined=1") as page:        # (the game's page, through the central server)
                     assert page.status == 200 and "js/main.js" in await page.text()
+                    csp = page.headers["Content-Security-Policy"]
+                    assert csp.startswith("sandbox ") and "allow-scripts" in csp and "allow-same-origin" not in csp
+                    assert page.headers["X-Content-Type-Options"] == "nosniff"
+                    assert page.headers["Access-Control-Allow-Origin"] == "*"   # (its own files, from a place of its own)
                 async with http.get(via + "js/net.js") as js:
                     assert js.status == 200 and "location.pathname" in await js.text()
+                    assert js.headers["Content-Security-Policy"].startswith("sandbox ")
                 async with http.get(central + "/play/0123456789abcdef/") as gone:
                     assert gone.status == 404
 
@@ -1048,6 +1072,32 @@ def test_a_game_hosted_for_friends_through_the_central_server(tmp_path, monkeypa
                 ws, m = await come_in(http, wsvia, device_of("nobody"))
                 assert m["t"] == "login_fail"                            # (a device alone: not through here)
                 await ws.close()
+
+                # (a ticket asked for the game's address, brought through the link, and the other way: no good)
+                direct = "http://127.0.0.1:%d" % gport
+                t = await post(http, central + "/api/ticket", {"token": tok["Pal"], "server": key, "url": direct})
+                ws, m = await come_in(http, wsvia, device_of("pal's other"), ticket=t["ticket"])
+                assert m["t"] == "login_fail" and "ticket" in m["reason"]
+                await ws.close()
+                t = await post(http, central + "/api/ticket", {"token": tok["Pal"], "server": key, "url": via})
+                ws, m = await come_in(http, "ws://127.0.0.1:%d/ws" % gport, device_of("pal's third"), ticket=t["ticket"])
+                assert not m.get("account")                     # (on this machine: only as the device it is)
+                await ws.close()
+
+                # (another game giving this one's id: its tickets get it no key to take the game's link with)
+                store = capp[CENTRAL].store
+                assert store.db.execute("SELECT 1 FROM game_keys WHERE key = ?", (key,)).fetchone()
+                for proof in ("", "a guess"):
+                    t = await post(http, central + "/api/ticket", {"token": tok["Stranger"], "server": key, "url": via})
+                    got = await post(http, central + "/api/verify", {"ticket": t["ticket"], "server": key,
+                                                                      "proof": proof, "relayed": True})
+                    assert not got["ok"] and got["taken"] and "grant" not in got
+                # (and a key to it that isn't the host's can't take its link while it's open)
+                grant = store.new_grant("Stranger", key)
+                with pytest.raises(aiohttp.WSServerHandshakeError) as refused:
+                    await http.ws_connect("ws://127.0.0.1:%d/api/relay?grant=%s&key=%s" % (cport, grant, key))
+                assert refused.value.status == 409
+                assert capp[CENTRAL].relays.tunnels[key].account == "Hostess" and game.relay.up
         finally:
             await grunner.cleanup()
             await crunner.cleanup()
@@ -1723,6 +1773,40 @@ def test_the_central_server_answers_in_as_few_bytes_as_it_can(tmp_path, confirme
         finally:
             await runner.cleanup()
     asyncio.run(go())
+
+
+def test_a_game_id_is_kept_by_the_first_game_to_prove_it(tmp_path):
+    """A game proves its id with a secret of its own as its players' tickets are checked: the first to do so keeps the
+    id, and no other game (one that gave its id, to be given its players' tickets) can use it, nor announce itself by
+    it. A game from before ids were proved brings none: let be, till its id is proved."""
+    store = CentralStore(str(tmp_path / "c.db"))
+    assert store.proves_game("0123456789abcdef", "")                    # (an old game's: nothing kept)
+    assert store.proves_game("0123456789abcdef", "ours") and store.proves_game("0123456789abcdef", "ours")
+    assert not store.proves_game("0123456789abcdef", "theirs") and not store.proves_game("0123456789abcdef", "")
+    key, _ = store.announce("0123456789abcdef", "", "Impostor", "http://elsewhere:8484", 0, 5, "v", proof="theirs")
+    assert key != "0123456789abcdef"                                    # (another's id: it's given one of its own)
+    key, _ = store.announce("fedcba9876543210", "", "New", "http://new:8484", 0, 5, "v", proof="new")
+    assert key == "fedcba9876543210" and store.proves_game(key, "new") and not store.proves_game(key, "")
+    store.db.execute("UPDATE game_keys SET seen = 0")
+    store.prune()                                                       # (a year unseen: forgotten)
+    assert not store.db.execute("SELECT 1 FROM game_keys").fetchone()
+
+
+def test_a_game_given_another_games_id_takes_a_new_one(tmp_path, monkeypatch):
+    """The central server says the id was another game's first: this game takes a new one (its players come in again)."""
+    game = make_app(ROOT, str(tmp_path / "g.db"), 5, own=True)[GAME]
+    monkeypatch.setenv("DS_CENTRAL", "http://central.invalid")
+    first, proof = game.server_id(), game.id_proof()
+    asked = []
+
+    async def central_post(path, body, packed=False):
+        asked.append(body)
+        return {"ok": False, "text": "That game's id is another game's.", "taken": True}
+    game.central_post = central_post
+    name, why, got = asyncio.run(game.ticket_name("a ticket", relayed=True))
+    assert not name and "another" in why
+    assert asked[0]["proof"] == proof and asked[0]["relayed"] is True and asked[0]["server"] == first
+    assert game.server_id() != first and game.id_proof() == proof
 
 
 def test_a_friends_browser_is_not_sent_a_file_it_has(tmp_path):

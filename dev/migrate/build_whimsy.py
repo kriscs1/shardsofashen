@@ -485,15 +485,16 @@ def scarecrow():
             ("Display.Message", "Yellow", "Quest started: The Scarecrow's Hat.", "Quest"),
             ("End",),
             ("@s1",), (">Conditional", "$Variable.1=1", "@chat")]
-    for i, h in enumerate(hats):
-        rows += [(">Got.Item", h, "1", "@h%d" % (i + 1) if i + 1 < len(hats) else "@nohat"),
-                 ("Take.Item", h, "1"), ("Goto.Line", "@chef" if h == "Chefs_Hat" else "@done"),
-                 ("@h%d" % (i + 1),)]
+    for i, h in enumerate(hats):                                  # (the chef's hat is taken after his words on it)
+        rows += [(">Got.Item", h, "1", "@h%d" % (i + 1) if i + 1 < len(hats) else "@nohat")]
+        rows += [("Goto.Line", "@chef")] if h == "Chefs_Hat" else [("Take.Item", h, "1"), ("Goto.Line", "@done")]
+        rows += [("@h%d" % (i + 1),)]
     rows += [("@nohat",), SK.say("Talking_Scarecrow", "No hat? That's all right. I'll just stand here. Thinking. Coldly.",
                                  ("I'll keep looking.", "@end")),
              ("End",),
              ("@chef",), SK.say("Talking_Scarecrow", "A chef's hat! I shall finally cook! ...I have no hands. Or a kitchen. Or "
-                                             "a mouth. But the THOUGHT of it.", ("Enjoy it.", "@done")),
+                                             "a mouth. But the THOUGHT of it.", ("Enjoy it.", "@chefs")),
+             ("@chefs",), ("Take.Item", "Chefs_Hat", "1"),
              ("@done",), ("Update.Attribute", "ScarecrowQuest", "=2"),
              SK.say("Talking_Scarecrow", "Warm at last. I feel... profound. Here's a thought to take with you: the crows were "
                                  "never afraid of me. They just liked the company.", ("That's... nice.", "@fin")),

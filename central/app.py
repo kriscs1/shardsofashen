@@ -23,11 +23,13 @@ its own accounts too, for a network with no way to reach here.
   POST /api/reset     {name, code, password}      -> {ok, name}          (code: the emailed one)
   POST /api/me        {token}                     -> {ok, name, needs_email}
   POST /api/logout    {token}
-  POST /api/ticket    {token, server}             -> {ok, ticket}        (server: the game server's id; refused: banned,
+  POST /api/ticket    {token, server, url?}       -> {ok, ticket}        (server: the game server's id; refused: banned,
                                                   or no confirmed email: the join stops there and says why)
   POST /api/buy       {token, where, proof}       -> {ok, full, bought}  (where: play, steam or itch; proof: what that
                                                   store gives a purchase, checked with it: bought.py)
-  POST /api/verify    {ticket, server}            -> {ok, name, full, pass_until, ...}   (a game server asking)
+  POST /api/verify    {ticket, server, proof, relayed}  -> {ok, name, full, pass_until, ...}   (a game server asking;
+                                                  proof: its id's own, kept by the first to bring it: taken, if it
+                                                  isn't; relayed: the ticket came through a friend's link here)
   POST /api/pass/start {token}                   -> {ok, key, minutes, left}  (before a time pass's ad, in the Android app:
                                                   the key it gives the ad, for the reward to be this account's)
   GET  /api/pass/reward ?...&signature=&key_id=   (AdMob's server-side verification of a rewarded ad: admob.py)
@@ -36,7 +38,7 @@ its own accounts too, for a network with no way to reach here.
   POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
   POST /api/game/report {secret, kind, name?, version, server?, proof?, characters: [...]}  -> {ok, took}  (a game server:
                                                   what its characters have got to, for the admin page: server/progress.py)
-  POST /api/announce  {key, secret, name, url?, port, online, max, version}  -> {key, secret}
+  POST /api/announce  {key, secret, proof, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
   POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, deleting, ads, stats)
@@ -71,6 +73,7 @@ from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS, digest, new_secret
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FAILS, FAIL_WINDOW, FAIL_WAIT = 6, 300, 60
+NAME_FAILS = 30                 # (wrong tries at one name from anywhere: one guesser can't keep its owner out)
 ANNOUNCES = 30                  # (calls from one address in ten minutes: a game announces itself once a minute)
 REPORTS = 90                    # (reports from one address in ten minutes: every five, more while it catches up)
 REPORTERS_A_DAY = 20            # (new game servers reporting from one address in a day)
@@ -152,28 +155,36 @@ class Central:
     def addr(request):
         return auth.client_address(request)
 
-    def wait(self, name, addr):
+    @staticmethod
+    def fail_keys(name, addr, anywhere=NAME_FAILS):
+        """What a wrong try counts against, and how many each may have in FAIL_WINDOW: this name from this address,
+        this address at any name, and this name from anywhere (more of those: a stranger's tries keep out only the
+        stranger, unless they come from all over)."""
+        n = name.lower()
+        return (("name", n, addr), FAILS), (("addr", addr), FAILS), (("name", n), anywhere)
+
+    def wait(self, name, addr, anywhere=NAME_FAILS):
         now = time.monotonic()
         waits = []
-        for key in (("name", name.lower()), ("addr", addr)):
+        for key, most in self.fail_keys(name, addr, anywhere):
             times = [t for t in self.fails.get(key, []) if now - t < FAIL_WINDOW]
             if times:
                 self.fails[key] = times
             else:
                 self.fails.pop(key, None)
-            if len(times) >= FAILS:
+            if len(times) >= most:
                 waits.append(int(FAIL_WAIT - (now - times[-1])) + 1)
         return max([w for w in waits if w > 0], default=0)
 
     def failed(self, name, addr):
         """Counted as a wrong try (before it's checked, so tries at once can't all slip by): when, for forgiven."""
         now = time.monotonic()
-        for key in (("name", name.lower()), ("addr", addr)):
+        for key, _ in self.fail_keys(name, addr):
             self.fails.setdefault(key, []).append(now)
         return now
 
     def forgiven(self, name, addr, at):
-        for key in (("name", name.lower()), ("addr", addr)):
+        for key, _ in self.fail_keys(name, addr):
             if at in self.fails.get(key, []):
                 self.fails[key].remove(at)
 
@@ -594,7 +605,7 @@ class Central:
         to an address its owner has confirmed. An account made with Google has no password to set: it's told so, no code."""
         d, addr = await self.body(request), self.addr(request)
         who = str(d.get("who", "")).strip()[:254]
-        w = self.wait(who, addr)
+        w = self.wait(who, addr, FAILS)                 # (a mailbox: as few from anywhere as from one place)
         if w:
             return no("Too many tries: wait %d seconds." % w)
         if not mail.ready():
@@ -650,15 +661,22 @@ class Central:
         if known and not same_place(known, url):
             # (a listed game is where it said it was: a game that gave another's id gets no ticket to pass on)
             return no("That server is joined at its public address, from the list.", refused=True)
-        return yes(ticket=self.store.new_ticket(name, server))
+        # (for a friend's link through here, or for an address: a game at an address that gave the id of one open to
+        # friends here can't pass its ticket on through the link, nor the other way)
+        return yes(ticket=self.store.new_ticket(name, server, relay=bool(url) and here(request, url)))
 
     async def verify(self, request):
         """A game server checks a ticket: whose it is, their friends, and a key to them while they play there."""
         d = await self.body(request)
         server = str(d.get("server", ""))[:64]
-        name = self.store.use_ticket(d.get("ticket", ""), server)
+        relayed = d.get("relayed")                      # (how it came: through here, or not; a game from before says neither)
+        name = self.store.use_ticket(d.get("ticket", ""), server, None if relayed is None else bool(relayed))
         if not name:
             return no("That ticket isn't good here.")
+        if not self.store.proves_game(server, str(d.get("proof", ""))[:128]):
+            # (another game's id: its tickets, and the key to their friends, are only ever for that game)
+            log.warning("A game that isn't %s brought a ticket for it", server)
+            return no("That game's id is another game's: it has a new one now, so come in again.", taken=True)
         if self.is_banned(name):                        # (banned since the ticket was made)
             return no("%s is banned: %s" % (name, self.store.account(name)[3]), banned=True)
         return yes(name=name, grant=self.store.new_grant(name, server), **self.owns(name), **self.friends_of(name))
@@ -797,7 +815,8 @@ class Central:
             return no("A server's address starts http:// or https://.")
         most = whole(d.get("max"), 0, 500)
         key, secret = self.store.announce(str(d.get("key", ""))[:32], str(d.get("secret", ""))[:64], name, url,
-                                          whole(d.get("online"), 0, most), most, str(d.get("version", ""))[:40])
+                                          whole(d.get("online"), 0, most), most, str(d.get("version", ""))[:40],
+                                          str(d.get("proof", ""))[:128])
         pre = {k.strip() for k in os.environ.get("DS_CENTRAL_APPROVED", "").split(",") if k.strip()}
         if key in pre and not self.store.approved(key):
             self.store.set_approved(key, True)          # (approved in the settings, before it ever called)
@@ -1013,6 +1032,15 @@ def whole(v, lo, hi, default=0):
         return max(lo, min(hi, int(v)))
     except (TypeError, ValueError, OverflowError):      # (OverflowError: 1e999 is infinity, in JSON)
         return max(lo, min(hi, default))
+
+
+def here(request, url):
+    """Is url this server's own address (its host and port), as the one asking reached it?"""
+    from urllib.parse import urlsplit
+    try:
+        return bool(request.host) and urlsplit(url).netloc.lower() == request.host.lower()
+    except ValueError:
+        return False
 
 
 def same_place(a, b):

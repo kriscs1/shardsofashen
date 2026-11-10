@@ -5,7 +5,8 @@
     server keeps each pin's timing and judges the tap at the moment the browser says it was made, but only within
     TAP_LAG of what its own clock says (the browser can't name any moment it likes).
   * Arm wrestling at the Green Dragon's arm-wrestling table (Arm_Table): against the innkeeper, or another player
-    who's sat down at it, for a stake. Push (tap) to force the arms your way; Strength makes each push count for more.
+    who's sat down at it, for a stake. Push (tap) to force the arms your way; Strength makes each push count for more,
+    and pushing faster than FULL_PUSH_MS gets you no further (a machine's taps are no better than a quick hand's).
     First to pin the other's hand down wins; at the bell (ARM_SECONDS), whoever's ahead.
   * Ringing the rocks (Play.Minigame CHIMES <level> <line if lost>: the Ringing Rocks, build_wilds.py): five rocks,
     each its own note. A tune is rung on them, a few notes; ring it back, note for note. Then it's rung again, a note
@@ -20,7 +21,8 @@ from ashen.lb import val
 SLIPS = 3                               # (slips of the pick before it slides out)
 ARM_SECONDS = 25
 ARM_STAKES = (5, 20, 50)
-PUSH_MS = 70                            # (the fastest a push counts: a dozen a second)
+PUSH_MS = 70                            # (the fastest a push is heard at all)
+FULL_PUSH_MS = 125                      # (a push sooner than this after the last counts for that much less)
 TAP_LAG = 400                           # (ms a tap may be said to have been made before the server had it: the trip)
 CHIMES = 5                              # (the rocks: notes 1..5, low to high)
 CHIME_FIRST = 3                         # (notes in the first round of a tune)
@@ -199,12 +201,13 @@ class MinigameMixin:
         tid = self.table_id(g["at"])
         bout = arms.bouts.get(tid)
         if do == "push":
-            if bout is None or self.player_name not in bout["players"] or self.now - g.get("pushed", 0) < PUSH_MS:
+            gap = self.now - g.get("pushed", 0)
+            if bout is None or self.player_name not in bout["players"] or gap < PUSH_MS:
                 return
             g["pushed"] = self.now
             side = -1 if bout["players"][0] == self.player_name else 1
             strength = self.skill_level("Strength")
-            bout["at"] += side * (2.2 + strength * 0.16)
+            bout["at"] += side * (2.2 + strength * 0.16) * min(1.0, gap / FULL_PUSH_MS)
             return
         if bout is not None or g["phase"] not in ("stake", "done", "wait"):
             return

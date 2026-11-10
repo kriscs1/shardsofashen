@@ -80,12 +80,12 @@ def mayor():
         ("Get.Value", "ATTRIBUTE", "AshfordQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0 and $Item.Parliament_Letter>=1", "@a1"),
         (">Quest.Can.Start", "AshfordQuest", "@end"),
-        ("Take.Item", "Parliament_Letter", "1"),
         K.say("Mayor", "A letter from the Parliament? \"Every friend of the crown...\" Well, I'm a friend of the crown, "
                        "and I'd be a better one if the goblins would leave my farms alone.\\They come out of the hedges "
                        "east of town and carry off the hens. Drive them off for me, at the farm crossroads, and I'll "
                        "give you my pass for the Steward.", ("I'll deal with the goblins.", "@a0")),
-        ("@a0",), ("Update.Attribute", "AshfordQuest", "=1"),
+        ("@a0",), ("Take.Item", "Parliament_Letter", "1"),        # (taken only once it's read: closed, it's kept)
+        ("Update.Attribute", "AshfordQuest", "=1"),
         ("Display.Message", "Yellow", "Quest started: The Ashford Road.", "Quest"),
         ("Start.Wave", "Farm_Raid"),
         ("End",),

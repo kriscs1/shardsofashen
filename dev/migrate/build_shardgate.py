@@ -330,6 +330,8 @@ def scripts():
         ("Take.Item", "Silver_Bar", "4"),
         ("Take.Item", "Sapphire", "2"),
         ("Take.Item", "Remnant_Core", "1"),
+        ("Update.Attribute", "ShardgateQuest", "=3"),             # (the stage with the taking: gone in the wait,
+        ("Update.Skill", "Shardcraft", "+2"),                     #  the map's entry script puts the gate up)
         ("Toggle.User.Input", "OFF"),
         ("Show.Skill", "Shardcraft"),
         ("Display.Message", "Cyan", "You bind the stones with silver, set the sapphires in their runes, and lay the "
@@ -339,8 +341,6 @@ def scripts():
         ("Wait", "3"),
         ("Add.Entity", px(RING, 1), "Shardgate", "StaticObject", "-"),
         ("Play.Sound", "Portal"),
-        ("Update.Attribute", "ShardgateQuest", "=3"),
-        ("Update.Skill", "Shardcraft", "+2"),
         ("Toggle.User.Input", "ON"),
         ("Display.Message", "Yellow", "..and the Shards drain out of you into the stones, and light drives down "
                                       "between them, through the calm rim of the Shardrealm and into the storm at "

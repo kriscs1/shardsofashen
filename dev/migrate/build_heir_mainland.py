@@ -789,12 +789,12 @@ def southport_and_ashford():
         ("Get.Value", "ATTRIBUTE", "AshfordQuest", V1),
         (">Conditional", "$Variable.1=0 and $Item.Parliament_Letter>=1", "@s1"),
         (">Quest.Can.Start", "AshfordQuest", "@end"),
-        ("Take.Item", "Parliament_Letter", "1"),
         say("Mayor", "A letter from the Parliament? \"Every friend of the crown...\" Well, I'm a friend of the crown, "
                      "and I'd be a better one if the goblins would leave my farms alone.\\They come out of the hedges "
                      "east of town and carry off the hens. Drive them off for me, at the farm crossroads, and I'll give "
                      "you my pass for the Steward.", ("I'll deal with the goblins.", "@start")),
-        ("@start",),
+        ("@start",),                                              # (taken only once it's read: closed, it's kept)
+        ("Take.Item", "Parliament_Letter", "1"),
         ("Update.Attribute", "AshfordQuest", "=1"),
         ("Display.Message", "Yellow", "Quest started: The Ashford Road.", "Quest"),
         ("Start.Wave", "Farm_Raid"),
@@ -831,12 +831,12 @@ def keep():
         ("Get.Value", "ATTRIBUTE", "HobgoblinQuest", V1),
         (">Conditional", "$Variable.1=0 and $Item.Mayors_Pass>=1", "@s1"),
         (">Quest.Can.Start", "HobgoblinQuest", "@end"),
-        ("Take.Item", "Mayors_Pass", "1"),
         say("Steward", "The Mayor's pass. So you want Bert at the Wizards' Court.\\I keep this keep for King "
                        "Rupert, these eighteen years, and its roads. Hobgoblins have come up from the deep into the old "
                        "iron mine, north of here. Slay five of them, and I'll vouch for you to the Court.",
             ("I'll hunt them.", "@start")),
-        ("@start",),
+        ("@start",),                                              # (taken only once it's read: closed, it's kept)
+        ("Take.Item", "Mayors_Pass", "1"),
         ("Update.Attribute", "HobgoblinQuest", "=1"),
         ("Update.Attribute", "HobgoblinsSlain", "=0"),
         ("Quest.Note", "HobgoblinQuest", "Hobgoblins: in the old iron mine, the mine depths and the warren."),
@@ -979,10 +979,9 @@ def bert():
         ("End",),
         ("@end",), ("End",),
     ])
+    # (nothing's taken till the words are read, and the spell and the stage come with the taking: closed anywhere,
+    #  nothing's lost. The staff is only held up, never taken, so its wear stays)
     w("Bert's Confession", [
-        ("Take.Item", "Grimoire_of_Unbinding", "1"),
-        ("Take.Item", "Ember_Ring", "1"),
-        ("Take.Item", "Staff_of_Ashen", "1"),
         say("Bert", "The staff! The grimoire! And the ring... oh, look at it. Look at that glow.\\He slips the Ember Ring "
                     "on his finger and holds it up against his sleeve.\\Purple and ember. I knew it. It goes with the "
                     "robe perfectly.", ("And the spell?", "@spell")),
@@ -992,18 +991,19 @@ def bert():
                     "grimoire's what matters. Listen, and remember: these are the words of Unbinding.",
             ("I'm listening.", "@words")),
         ("@words",),
+        ("Take.Item", "Grimoire_of_Unbinding", "1"),
+        ("Take.Item", "Ember_Ring", "1"),
+        ("Update.Attribute", "BarrierSpell", "=1"),
+        ("Update.Attribute", "BertQuest", "=2"),
         ("Play.Sound", "SpellCast"),
         ("Display.Message", "Cyan", "Bert reads from the grimoire. The words slide into your memory and stay there, "
                                     "humming.", "-"),
-        ("Update.Attribute", "BarrierSpell", "=1"),
-        ("Give.Item", "Staff_of_Ashen", "1"),
         say("Bert", "Take the staff back: it's the King's, and the spell needs a king's staff. Hold it to the barrier and "
                     "say the words, and it will fall.\\But hear me. Behind the barrier waits the dragon, and no blade "
                     "made by men will kill it. Only the Sword of Valour, driven into its heart. It lies on Dragon "
                     "Island, out in the southern sea. Captain Rook, on the shore below the Keep, is the only sailor mad enough to "
                     "take you there.", ("Thank you, Bert.", "@done")),
         ("@done",),
-        ("Update.Attribute", "BertQuest", "=2"),
         ("Display.Message", "Yellow", "Quest complete: Bert's Three Treasures! You know the spell of Unbinding.",
          "Quest"),
         ("End",),

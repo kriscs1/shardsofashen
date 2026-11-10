@@ -11,7 +11,9 @@ marked for Open.Mark.Minutes (each blow you give or take while marked starts it 
 you, you can't travel away (shardstones, home, a teleport), and die before it fades and you lose everything you
 carry but what's never lost (Keep.On.Death): it lies where you fell, your killer's alone to see for
 [Gameplay] Loot.Private.Seconds, then anyone's. Whoever you struck keeps their 5 things and their grave, as ever.
-The mark's time runs only while you're playing (a save keeps what's left)."""
+The mark's time runs only while you're playing (a save keeps what's left), and leave the game while you're marked out
+where players fight and you stay there a while (server/game.py LINGER): come back to carry on, or be fought as you
+stand."""
 import time
 
 from ashen.lb import val, lbstr, random_number, trim
@@ -184,6 +186,10 @@ class PvPMixin:
         if e.owner is not None or getattr(e, "comp_of", None) is not None or getattr(e, "summoned_until", 0):
             return False
         return bool(self.guard_town(e))
+
+    def pvp_lingers(self):
+        """Marked, alive, out where players fight: gone from the game, they stay in the world a while (server/game.py)."""
+        return self.pvp_marked() and not self.dead_wait and self.open_ground()
 
     def pvp_held(self):
         """Marked, you can't slip away (shardstones, home, a teleport): True (and said) if so."""

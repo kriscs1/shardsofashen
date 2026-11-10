@@ -727,6 +727,7 @@ class ScriptMixin:
                 self.script_personal = True
             self.set_script_variable(arg[3], self.get_script_value(arg[1], arg[2]))
         elif c == "Reveal.BlackOut.Tile":
+            self.reveal_fog(self.screen_name, arg[1])
             self.emit({"t": "reveal", "map": self.screen_name, "cell": arg[1]})
         elif c == "Edit.View.Distance":
             self.fog_view_distance = val(arg[1])

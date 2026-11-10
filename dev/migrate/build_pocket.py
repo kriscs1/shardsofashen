@@ -233,14 +233,14 @@ def settler():
         ("@begun",), (">Conditional", "$Variable.1=1", "@after"),
         (">Got.Item", "Plank", "10", "@need"),
         (">Got.Item", "Stone_Block", "4", "@need"),
-        ("Take.Item", "Plank", "10"),
-        ("Take.Item", "Stone_Block", "4"),
         say("Settler", "Good, square work! You'll do. Here: my Hearth Anchor. Touch any shardstone you've woken while "
                        "you carry it and it'll take you to your own pocket of the Stillwater. It's raw at first: "
                        "glass and mist. Shape it with Shards, build what you like; nobody comes in unless you let "
                        "them.\\Once you know a little magic I can sell you scrolls that take you home from anywhere.",
             ("Thank you!", "@give")),
-        ("@give",),
+        ("@give",),                                               # (taken and given together, once it's read)
+        ("Take.Item", "Plank", "10"),
+        ("Take.Item", "Stone_Block", "4"),
         ("Give.Item", "Hearth_Anchor", "1"),
         ("Give.Item", "Nails", "40"),
         ("Update.Skill", "Homesteading", "+3"),

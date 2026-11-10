@@ -231,6 +231,7 @@ export function chooseVerb(verb, e, wx, wy) {
   }
   const msg = { t: "verb", verb, target: targetOf(e), x: wx, y: wy };
   if (verb === "Use with") msg.item = S.itemInUse;
+  if (verb.startsWith("Buy ") && e && e.price) msg.price = e.price;     // (the market: at the price you saw, or not at all)
   if (verb === "Use with" || verb !== "Use") S.itemInUse = verb === "Use with" ? 0 : S.itemInUse;
   send(msg);
 }

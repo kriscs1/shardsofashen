@@ -2,8 +2,8 @@
 01	Get.Value	ATTRIBUTE	HobgoblinQuest	Variable.1$
 02	>Conditional	$Variable.1=0 and $Item.Mayors_Pass>=1	12
 03	>Quest.Can.Start	HobgoblinQuest	32
-04	Take.Item	Mayors_Pass	1
-05	Display.Conversation	Steward	The Mayor's pass. So you want Bert at the Wizards' Court.\I keep this keep for King Rupert, these eighteen years, and its roads. Hobgoblins have come up from the deep into the old iron mine, north of here. Slay five of them, and I'll vouch for you to the Court.	I'll hunt them.	06
+04	Display.Conversation	Steward	The Mayor's pass. So you want Bert at the Wizards' Court.\I keep this keep for King Rupert, these eighteen years, and its roads. Hobgoblins have come up from the deep into the old iron mine, north of here. Slay five of them, and I'll vouch for you to the Court.	I'll hunt them.	05
+05	Take.Item	Mayors_Pass	1
 06	Update.Attribute	HobgoblinQuest	=1
 07	Update.Attribute	HobgoblinsSlain	=0
 08	Quest.Note	HobgoblinQuest	Hobgoblins: in the old iron mine, the mine depths and the warren.

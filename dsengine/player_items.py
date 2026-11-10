@@ -134,6 +134,17 @@ class ItemsMixin:
         for quantity, wear, stolen in went:
             self.add_inventory_item(name, quantity, wear, quiet=quiet, stolen=stolen)
 
+    def room_for(self, name, went):
+        """Would all of what remove_inventory_item took fit in this pack (stolen and not, each stacked with its own)?"""
+        stack, free = self.stackable_quantity(name), self.empty_inventory_slots()
+        for stolen in (False, True):
+            q = sum(int(p[0]) for p in went if (bool(p[2]) and name != "Gold_Coin(s)") == stolen)    # (a coin's a coin)
+            q -= sum(max(0, stack - e.quantity) for e in self.inv if e.name == name and e.stolen == stolen)
+            while q > 0:
+                free -= 1
+                q -= stack
+        return free >= 0
+
     def take_item_held_or_worn(self, name, quantity):
         """A script's Take.Item: from the pack first, then what's still owed off your hands and body ($Item counts
         both: a ring you wear given to Bert is gone from your finger)."""

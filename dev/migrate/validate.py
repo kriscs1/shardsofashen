@@ -825,6 +825,52 @@ def quest_names():
     return _quest_names
 
 
+def check_closed_midway(r, parsed):
+    """Something given or taken, then a conversation the player can close (or a Wait they can leave in), and only
+    then the stage set: closed there, the gift's had again or the take's lost for good (a script isn't saved).
+    Every path is followed; a jump back up (a menu again) starts afresh."""
+    lines = [(int(no), cmd, args) for _i, no, cmd, args in parsed if no.isdigit()]
+    at = {n: k for k, (n, _c, _a) in enumerate(lines)}
+    seen, said = set(), set()
+    todo = [(0, (), None, True)]           # (line, what's moved since the stage, the step it waits on, user input on)
+    while todo and len(seen) < 50000:
+        k, moved, held, user = todo.pop()
+        if (k, moved, held, user) in seen or k >= len(lines):
+            continue
+        seen.add((k, moved, held, user))
+        n, cmd, args = lines[k]
+
+        def go(line, moved=moved, held=held):
+            if line in at:
+                todo.append((at[line], moved, held, user) if line > n else (at[line], (), None, user))
+        if cmd in ("End", "Goto.Script", "Teleport"):
+            continue
+        if cmd in ("Update.Attribute", "Quest.Note.Done"):
+            if held and moved and (held, moved[0]) not in said:
+                said.add((held, moved[0]))
+                err("%s line %02d" % (r, moved[0]), "given or taken before line %02d (a %s), and the stage only set at "
+                    "line %02d: closed there, it's had again or lost. Set the stage with it, or move it after"
+                    % (held[1], held[0], n))
+            todo.append((k + 1, (), None, user))
+        elif cmd in ("Give.Item", "Take.Item") or cmd == "Update.Skill" and args[:1] != ["Hits"]:
+            todo.append((k + 1, moved + (n,), held, user))
+        elif cmd == "Toggle.User.Input":
+            todo.append((k + 1, moved, held, (args[:1] or [""])[0].strip().upper() != "OFF"))
+        elif cmd == "Goto.Line":
+            go(int(args[0]) if args and args[0].isdigit() else -1)
+        elif cmd.startswith(">"):
+            go(int(args[-1]) if args and args[-1].isdigit() else -1)
+            todo.append((k + 1, moved, held, user))
+        else:
+            if moved and held is None and (cmd == "Display.Conversation" and user or cmd == "Wait"):
+                held = ("conversation" if cmd == "Display.Conversation" else "Wait", n)
+            answers = [int(a) for a in args[3::2] if a.isdigit()] if cmd == "Display.Conversation" else []
+            for a in answers:
+                go(a, held=held)
+            if not answers:
+                todo.append((k + 1, moved, held, user))
+
+
 def check_scripts(skills, racks):
     cmds = script_commands()
     types = script_command_arg_types()
@@ -858,6 +904,7 @@ def check_scripts(skills, racks):
         expected = ["%02d" % k for k in range(1, len(parsed) + 1)]
         if [x[1] for x in parsed] != expected:
             err(r, "line numbers are not consecutive from 01")
+        check_closed_midway(r, parsed)
         for i, no, cmd, args in parsed:
             where = "%s line %s" % (r, no)
             if cmd not in cmds:

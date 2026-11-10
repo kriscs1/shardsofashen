@@ -21,7 +21,9 @@ export function loadOptions() {
     if (!o.musicChosen) delete o.musicVolume;        // (the old default, 80, was too loud: the new one instead)
     Object.assign(O, o);
   } catch (e) { /* (private window) */ }
-  if (localStorage.getItem("ds.audio") === null) {
+  let kept = null;
+  try { kept = localStorage.getItem("ds.audio"); } catch (e) { /* (a friend's game: nothing kept) */ }
+  if (kept === null) {
     O.sound = val(configRead("Sounds", "Enabled", "1")) === 1;
     O.music = val(configRead("Sounds", "Music.On", "1")) === 1;
     O.ambient = val(configRead("Sounds", "Ambient", "1")) === 1;

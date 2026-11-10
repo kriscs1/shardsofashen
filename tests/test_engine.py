@@ -414,6 +414,50 @@ def test_dying_breaks_off_a_script(world):
     leave(world, s)
 
 
+def test_closing_a_quest_talk_never_loses_or_repeats_what_it_gives(world):
+    """Escape at any line of Bert's confession keeps the treasures till the spell's taught; the Barred Niche's
+    Remnants come once, however often Aldous's words are closed (validate.py check_closed_midway holds the rest)."""
+    s = join(world, "Closer", "1,1,0", 300, 300)
+    for a, v in (("BertQuest", "=1"), ("StaffQuest", "=2"), ("HobgoblinQuest", "=2")):
+        s.update_attribute(a, v)
+    stock(s, Staff_of_Ashen=1, Grimoire_of_Unbinding=1, Ember_Ring=1)
+    treasures = ("Staff_of_Ashen", "Grimoire_of_Unbinding", "Ember_Ring")
+    for answers in ((), (1,)):                     # (closed on the first words, then on the second)
+        s.start_script("Bert's Confession", True)
+        run_for(world, 5)
+        for n in answers:
+            s.action_box_response_chosen(n)
+            run_for(world, 5)
+        assert s.ab_mode == "Conversation"
+        s.handle({"t": "close"})
+        run_for(world, 5)
+        assert [s.items_held(i) for i in treasures] == [1, 1, 1] and s.get_attribute("BertQuest") == "1"
+    s.start_script("Bert's Confession", True)
+    for n in (1, 1):
+        run_for(world, 5)
+        s.action_box_response_chosen(n)
+    run_for(world, 5)
+    s.handle({"t": "close"})                       # (his last words, closed: it's done all the same)
+    run_for(world, 5)
+    assert [s.items_held(i) for i in treasures] == [1, 0, 0]
+    assert s.get_attribute("BertQuest") == "2" and s.get_attribute("BarrierSpell") == "1"
+    s.update_attribute("AmuletQuest", "=4")
+    lines = [ln for ln in open(os.path.join(ROOT, "data", "Scripts", "Reach In Barred_Niche.txt"),
+                                 "rb").read().decode("cp1252").split("\r\n") if ln[:2].isdigit()]
+    lines[0] = "01\tGoto.Line\t02"                 # (no niche clicked here: past the reach)
+    for _ in range(3):
+        assert s.run_script_lines("(niche)", lines)
+        run_for(world, 40)
+        if s.ab_mode == "Conversation":
+            s.action_box_response_chosen(1)
+            run_for(world, 5)
+            s.handle({"t": "close"})
+            run_for(world, 5)
+    assert s.items_held("Shard_Remnant") == 3 and s.items_held("Grasp_Scroll") == 1
+    assert s.get_attribute("AmuletQuest") == "5"
+    leave(world, s)
+
+
 def test_a_script_that_loops_forever_is_stopped(world):
     """A loop that never waits on anything is ended (and logged), or the player could never talk to anyone again."""
     s = join(world, "Looper", "1,1,0", 300, 300)
@@ -1131,6 +1175,11 @@ def test_the_market_is_one_for_everyone(world):
     box = buyer.box_state()
     assert box["prices"] == [7] and box["sellers"] == ["Seller"] and box["mine"] == [False]
     assert "Buy 5" in buyer.get_verbs(buyer.rack_pseudo(0))
+    world.market.listings[0]["price"] = 20                        # (the seller's put it up as the buyer clicks)
+    buyer.verb_price = 7
+    buyer.do_action("Buy 5", buyer.rack_pseudo(0))
+    assert buyer.items_held("Bread") == 0 and buyer.items_held("Gold_Coin(s)") == 100   # (not at a price never seen)
+    world.market.listings[0]["price"] = 7
     buyer.do_action("Buy 5", buyer.rack_pseudo(0))
     assert buyer.items_held("Bread") == 4 and buyer.items_held("Gold_Coin(s)") == 100 - 28
     assert world.market.listings == [] and world.market.purses["Seller"] == 28
@@ -1442,10 +1491,20 @@ def test_arm_wrestling(world, monkeypatch):
     assert shown(a)["game"] == "arm" and shown(a)["stakes"] == [5, 20, 50]
     a.game_input({"do": "house", "stake": 20})                     # the innkeeper, for 20
     assert a.items_held("Gold_Coin(s)") == 80 and shown(a)["bout"]["players"] == ["Brawn", "the innkeeper"]
+    bout = next(iter(world.arms.bouts.values()))
+    pushed = []
+    for gap in (70, 125):                                          # (a machine's pace, a quick hand's: no further)
+        bout["at"], a.game["pushed"], t = 0.0, world.now - gap, world.now
+        while world.now < t + 5000:
+            a.game_input({"do": "push"})
+            world.now += gap
+        pushed.append(-bout["at"])
+    assert pushed[0] <= pushed[1] * 1.05, pushed
+    bout["at"], bout["house_push"] = 0.0, 1.0                      # (a tired innkeeper tonight)
     t = world.now
     while a.game["phase"] == "bout" and world.now < t + 30000:
         a.game_input({"do": "push"})
-        world.tick(0.05, now=world.now + 80)
+        world.tick(0.05, now=world.now + 125)
     assert shown(a)["winner"] == "Brawn" and a.items_held("Gold_Coin(s)") == 120   # (pushed hard: the pot)
     a.game_input({"do": "sit", "stake": 5})                       # then wait for a challenger
     assert a.items_held("Gold_Coin(s)") == 115
@@ -1460,7 +1519,9 @@ def test_arm_wrestling(world, monkeypatch):
     a.game_input({"do": "sit", "stake": 50})
     a.game_input({"do": "leave"})                                  # (up from the table: the stake back)
     assert a.items_held("Gold_Coin(s)") == 115 and not world.arms.waiting
-    leave(world, a)
+    a.game_input({"do": "sit", "stake": 50})
+    leave(world, a)                                                # (gone from the game: the stake back, too)
+    assert a.items_held("Gold_Coin(s)") == 115 and not world.arms.waiting and a.game is None
     leave(world, b)
 
 
@@ -6208,14 +6269,22 @@ def test_what_a_player_has_seen_is_kept_small(world):
     cells = {1, 2, 9, 2100}
     assert unpack_cells(pack_cells(cells)) == cells
     assert unpack_cells([3, 4]) == {3, 4} and unpack_cells("all") == "all"     # (an older save's list)
-    s = join(world, "Mapper")
-    s.note_explored("1,1,0", list(range(1, 1001)))
+    s = join(world, "Mapper", "1,1,0", 300, 300)
+    m, far = world.maps["1,1,0"], world.maps["1,0,0"]
+    world.tick(0.05)
+    s.note_explored("1,0,0", [5, 6])                                 # (the top of the map north: never in sight)
+    assert "1,0,0" not in s.explored
+    s.fog_trail = [(0, m.ox + x, m.oy + y) for x in range(0, s.sw + 1, 150) for y in range(0, s.sh + 1, 150)]
+    s.note_explored("1,1,0", list(range(1, 1001)))                   # (walked all over it)
     assert isinstance(s.explored["1,1,0"], set)
     s.note_explored("1,1,0", list(range(1001, s.fog_cells() + 1)))
     assert s.explored["1,1,0"] == "all"                              # (all of it seen: kept as all)
+    s.fog_trail.append((0, far.ox + 100, far.oy + 40))
     s.note_explored("1,0,0", [5, 6])
+    s.reveal_fog("1,0,0", "40,30")                                   # (a script's Reveal.BlackOut.Tile: wherever)
+    fxt = -(-s.sw // s.fog_size())
     st = s.save_state()
-    assert st["explored"]["1,1,0"] == "all" and unpack_cells(st["explored"]["1,0,0"]) == {5, 6}
+    assert st["explored"]["1,1,0"] == "all" and unpack_cells(st["explored"]["1,0,0"]) == {5, 6, 29 * fxt + 40}
     leave(world, s)
 
 
@@ -6703,6 +6772,46 @@ def test_the_gift_box_gives_every_gift(world):
     finally:
         world.together.gifts.pop("Giftee", None)
         leave(world, s)
+
+
+def test_a_gift_letter_or_town_project_keeps_wear_and_the_stolen_mark(world):
+    """What's given in the gift box or by letter comes out as it went in (its wear, stolen or not); Shards are a
+    balance, never sent; and a town won't build with stolen goods."""
+    wd, t = world.wonders, world.together
+    a, b = join(world, "Giver", "4,6,0", 300, 300), join(world, "Getter", "4,6,0", 300, 340)
+    world.together.friends[a.player_name] = ["Getter"]
+    world.together.friends[b.player_name] = ["Giver"]
+    try:
+        a.add_inventory_item("Iron_Sword", 1, 37, quiet=True)
+        a.add_inventory_item("Bread", 2, quiet=True, stolen=True)
+        a.leave_gift("Getter", "Iron_Sword", 1)
+        a.leave_gift("Getter", "Bread", 2)
+        b.gift_box_menu("Getter")
+        sword = next(e for e in b.inv if e.name == "Iron_Sword")
+        assert sword.wear == 37 and b.items_held("Bread", True) == 2 and b.items_held("Bread", False) == 0
+        b.add_inventory_item("Iron_Sword", 1, 12, quiet=True)
+        b.inv = [e for e in b.inv if e is not sword]                  # (the gift's gone: the other's posted)
+        assert wd.send_letter(b, "Giver", "+Iron_Sword Back to you.")
+        b.give_shards(50)
+        had = b.shards()
+        assert not wd.send_letter(b, "Giver", "+Shard Some Shards.") and b.shards() == had
+        assert wd.send_letter(b, "Giver", "+Bread Stolen bread.")
+        a.inv = []
+        assert wd.take_letters(a) == 2
+        assert [e.wear for e in a.inv if e.name == "Iron_Sword"] == [12] and a.items_held("Bread", True) == 1
+        key = "Mirefold_Boardwalks"
+        t.projects.pop(key, None)
+        a.add_inventory_item("Logs", 5, quiet=True, stolen=True)
+        a.donate(t.defs()[key], "Logs", 5)
+        assert a.items_held("Logs", True) == 5 and not t.project(key)["have"].get("Logs")   # (stolen: kept)
+    finally:
+        t.projects.pop("Mirefold_Boardwalks", None)
+        world.together.friends.pop(a.player_name, None)
+        world.together.friends.pop(b.player_name, None)
+        world.together.gifts.pop("Getter", None)
+        wd.mail.pop("giver", None)
+        leave(world, a)
+        leave(world, b)
 
 
 def test_work_stops_when_someone_else_gets_there_first(world):

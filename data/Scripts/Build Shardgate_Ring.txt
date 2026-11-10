@@ -11,15 +11,15 @@
 10	Take.Item	Silver_Bar	4
 11	Take.Item	Sapphire	2
 12	Take.Item	Remnant_Core	1
-13	Toggle.User.Input	OFF
-14	Show.Skill	Shardcraft
-15	Display.Message	Cyan	You bind the stones with silver, set the sapphires in their runes, and lay the Remnant's core at the ring's heart. Far off, the shardstones you woke answer, and the ring takes hold of them..	-
-16	Play.Sound	Gate_Built
-17	Wait	3
-18	Add.Entity	576,193	Shardgate	StaticObject	-
-19	Play.Sound	Portal
-20	Update.Attribute	ShardgateQuest	=3
-21	Update.Skill	Shardcraft	+2
+13	Update.Attribute	ShardgateQuest	=3
+14	Update.Skill	Shardcraft	+2
+15	Toggle.User.Input	OFF
+16	Show.Skill	Shardcraft
+17	Display.Message	Cyan	You bind the stones with silver, set the sapphires in their runes, and lay the Remnant's core at the ring's heart. Far off, the shardstones you woke answer, and the ring takes hold of them..	-
+18	Play.Sound	Gate_Built
+19	Wait	3
+20	Add.Entity	576,193	Shardgate	StaticObject	-
+21	Play.Sound	Portal
 22	Toggle.User.Input	ON
 23	Display.Message	Yellow	..and the Shards drain out of you into the stones, and light drives down between them, through the calm rim of the Shardrealm and into the storm at its core: a Shardgate.	-
 24	End
