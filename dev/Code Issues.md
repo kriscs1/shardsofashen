@@ -164,6 +164,44 @@ Issues found by reading the code (2026-11-10), not yet fixed. Tick a box when it
   read as cp1252 and saved back garbled. `ScriptDoc.load` takes a line with no tabs as an empty command (its text is
   gone on save), and `Entity.parse` makes a coordinate that isn't a number 0. (`ashen/ini.py` `write` writes in place
   too.)
+- [ ] **36. The editor's Move map leaves saved characters and the engine behind.** (Read, not run.) `move`
+  (`dsedit/mapops.py`) renames the file and its arrival script and rewrites the name in the data files and scripts,
+  but puts nothing in `RENAMED_MAPS` (`dsengine/renames.py`): a character saved on the map, and whatever a save keeps
+  by map name, still names the old one (the dialog says players "will be where the map was"; the rule is that every
+  rename goes in `renames.py`). The rewrite also takes the name wherever those three numbers stand in any data file
+  or script (`name_re`: not after a digit or `-`, not before a digit), so a colour or a list such as `0,0,0`, or the
+  end of `5,1,1,0`, would be changed too (today's files had only real uses for the names tried: a risk, not a fault
+  yet). And the file is moved first and the text files rewritten one by one, so a failure partway leaves it half
+  done. Fix: add the old name to `RENAMED_MAPS`, rename only in the keys and arguments known to hold a map (as
+  `region.py` does for places), and move the file last.
+- [ ] **37. Carts.ini in the editor** (`dsedit/carts.py`). A comment line inside a route's section is dropped on save
+  (the docstring says comments are kept; today's file has none inside a section). The text is split on CRLF only, so
+  a file saved with LF ends is read as one line and its routes are lost at the next save. `save` writes in place and
+  never looks at the file's stamp (34 and 35 again). `region.py` `update_refs` (moving an area) writes Quests.ini,
+  WorldMap.ini and scripts in place too, under whatever the Quests and Scripts pages hold unsaved.
+- [ ] **38. Tall grass that flowers stands still all through its season.** `seasonal` (`web/js/ground.js`) keeps the
+  recoloured picture by season, name and width, and every sway frame comes under the tile's one name: the first frame
+  made is drawn for all of them. `Tall_Grass001` (6 sway frames, flowers in Spring) is one. Fix: the frame in the
+  key (or a WeakMap on the picture itself).
+- [ ] **39. A redrawn sprite can go on showing as it was** (`tools/export_web_assets.py`, `server/app.py`). A swaying
+  or flaming tile's frames are made again only when `Tiles.ini` or `Config.ini` is newer than they are, not when the
+  sprite is (or `ashen/anim.py`): run a builder that redraws the plant and the still tile is new, its sway the old
+  drawing. A sprite deleted or renamed leaves its files in `web/assets` for good. And `/assets/` is served with
+  `max-age=3600` at an address with no version in it, while the manifest (the sizes) is always fresh: for an hour
+  after an update a browser can draw the old picture at the new size. Fix: frames compared with the sprite's stamp
+  too; files not in the manifest removed; the manifest's `version` in each asset's address (and then a long
+  `max-age`).
+- [ ] **40. The page gives up for good on two things that fail once.** A picture that fails to load is marked `bad`
+  and never asked for again until the page is loaded anew (`web/js/assets.js` `image`): one dropped request on a
+  phone and that sprite is missing all session. A tune played as a sound (`web/js/audio.js` `playEffectTune`) holds
+  the music off until its `ended`; if it stalls or errors, the music never comes back. Fix: forget a bad picture
+  after a while; clear `AU.effect` on `error` too, and after the tune's length at most.
+- [ ] **41. Smaller things in the editor and the page.** Renaming a script (`dsedit/pages/scripts.py` `rename`) warns
+  of the triggers that name it, not of `Goto.Script` lines in other scripts, which go on naming the old one. F5
+  (`dsedit/app.py` `play`) saves every changed page without asking. In the page, `cache.blend` (`ground.js`) and
+  `greyCache` (`ui.js`) are never emptied (held in check only by how many combinations there are), `hatchPattern`
+  (`ui.js`) makes a new canvas and pattern every frame the world map is open, and `drawBoosts` would throw each frame
+  on a boost kind it has no words for (the engine's four are all it's sent today).
 
 ## Checked and sound
 
@@ -194,17 +232,34 @@ Issues found by reading the code (2026-11-10), not yet fixed. Tick a box when it
 - On Android a purchase is given back on a new install and taken back on a refund, on the device (`Billing.java`).
 - `ashen/lb.py` `safe_eval` only ever runs its own arithmetic (no `eval`), and an overflow comes back as the text.
 - `tools/admin.py` makes an admin only through the DB flag.
+- The rest of the page: the build panel, the game tables and the journal put text into the page through `esc` or
+  `coinHTML`, or draw it on the canvas; the interface (`ui.js`) keeps no truth of its own. The lock's timing is
+  clamped by the server, and the cups, dice and tune are the server's. `V.fx` stops at 60, and the look caches are
+  cleared past 2,000 and 3,000.
+- The editor: the decor split keeps a copy of everything it changes in `dev/Archive` and records it for the builders;
+  copying a map or an area leaves off Ids and place names; a map job asks before saving and forgets undo; a page that
+  isn't changed reloads a map changed on disk when it's shown; the minimap is built in the background, one build at
+  a time.
+- `tools/`: nothing runs through a shell, `sync_home.py` copies only what differs, `bot.py` and `browser_check.py`
+  only play. `desktop/owning.py` asks Steam through its own library and `build_desktop.py` carries no secrets (data,
+  maps, sprites, the page, the server and engine). `ashen/places.py` and `areas.py` read without changing anything.
+- The builders, sampled: none writes a data file or map in text mode (the text-mode writes are their "done" marks and
+  JSON), none runs a shell, and their randomness is seeded. The tests skip only where the data has no shop to test
+  (two `pytest.skip` in `test_engine.py`), and nothing is marked to fail.
 
 ## Not yet read
 
-Read in full: `dsengine/`, `server/`, `central/` (the relays with it), `desktop/app.py`, the Android app's Java and
-`ds_host.py`, the start screen, `web/js` `main.js`, `input.js`, `state.js` and `net.js`, `ashen/ini.py`, `ashen/lb.py`
-and `tools/admin.py`.
+Read in full: `dsengine/`, `server/`, `central/` (the relays with it), `desktop/` (`app.py`, `owning.py`,
+`build_desktop.py`), the Android app's Java and `ds_host.py`, the start screen, all of `web/js`, `ashen/ini.py`,
+`lb.py`, `places.py` and `areas.py`, `tools/` but for the three below, and of the editor `project.py`, `mapops.py`,
+`region.py`, `world.py`, `terrain.py`, `refs.py`, `carts.py`, `scriptlang.py`, `render.py`, `decor.py` and `app.py`.
 
-Checked only in part: the rest of `web/js` (`render`, `ground`, `sky`, `ui`, `journal`, `games`, `audio`, `look`,
-`build`, `verbs`, `mobile`, `voice` and the small ones) was searched for what it puts into HTML and for caches that
-grow, not read for wrong behaviour. Of the editor, `project.py` and each page's saving were read; `pages/maps.py`'s
-drawing and tools, `widgets.py`, `decor.py`, `world.py`, `mapops.py` and the other pages weren't.
+Checked only in part: the editor's pages. `pages/maps.py` (5,200 lines) was read for its saving, undo, map jobs, cut
+and paste and what it writes to files, not its drawing and tools; each other page for its saving, renaming and
+deleting, not its layout; `widgets.py` not at all. The builders in `dev/migrate/` (275 files) were searched, not
+read: how they write files, shells, randomness, their run-again marks. The tests were searched for skips and tests
+marked to fail, not read for what each proves.
 
-Not read: `tools/` (but `admin.py`), `ashen/places.py` and `areas.py`, `desktop/build_desktop.py`, the builders in
-`dev/migrate/`, and the tests.
+Not read: `tools/midisynth.py`, `make_login_video.py` and `make_login_background.py`; `ashen/anim.py`, `cursor.py`,
+`assets.py`, `entity.py`, `midi.py` and `script_language.py` (what's left of the old desktop game, used now only to
+make the page's pictures and sounds); `theme.py` and `icons.py` of the editor.
