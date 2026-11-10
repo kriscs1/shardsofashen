@@ -11,12 +11,13 @@ spell, its scroll, or where it's found changes. The numbers come from `data/Spel
 - **Prices** are a shop's `Value` × `Buy.Rate` (Bert and the Mending sisters charge 1.2), before standing changes it.
   A scroll that a quest gives or a chest holds is never for sale (`Value=0`, and `validate.py` checks that).
 - Bert's shop is upstairs in the Wizards' Court (map 21,5,1).
+- Teleport Home is gone (`dev/migrate/remove_teleport_home.py`): whoever knew it or held its scroll was paid 264
+  gold for each.
 
 | Spell | Level | Where to learn it (cost) | Effect | Cooldown | Shards |
 |---|---|---|---|---|---|
 | Fire Bolt | 1 | Bert, Wizards' Court: free the first time you talk to him | 2–5 damage, 8 tiles | 1.5 s | 3 |
 | Grasp | 1 | Brother Aldous, the Isle's catacombs (Amulet of Succession): free, and you keep the scroll | Fetches a thing within 6 tiles | 2 s | 2 |
-| Teleport Home | 3 | Bert, 264 gold; 2 in each of the Northport and Galaith Trusted chests | Home to the Isle | 60 s | 12 |
 | Fire Bolt II | 4 | The Steward's Hunt (the Steward, King Rupert's Keep) | 4–9 damage | 1.4 s | 4 |
 | Ice Bolt | 5 | On the floor of a cave under the Redrock Hills (map 15,18,-1) | 2–6 damage, slowed to 50% for 8 s, 8 tiles | 3 s | 6 |
 | Swap | 5 | Pip, Wizards' Court: The Invisible Apprentice (after Passage to the Mainland), and again in his spectacles errand | Swap bodies with a creature or person within 5 tiles for 30 s | 90 s | 8 |

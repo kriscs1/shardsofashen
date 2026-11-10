@@ -516,6 +516,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.bets = [val(t) for t in st.get("bets", [])][-100:]
         self.hotbar = (list(st.get("hotbar", [])) + [""] * HOTBAR_SLOTS)[:HOTBAR_SLOTS]
         self.hotbar = [self.renamed(h) for h in self.hotbar]
+        self.spells_gone()
         self.hotbar_n = max(1, min(HOTBAR_SLOTS, int(val(st.get("hotbar_n", HOTBAR_SHOWN)))))
         self.explored = {k: unpack_cells(v) for k, v in st.get("explored", {}).items()}
         g = st.get("grave")
@@ -571,6 +572,24 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 self.display_message("%s is a brewer's art now, not a spell: Shards can't mend a body or sharpen "
                                      "an eye. You have %d %ss instead." % (pretty(spell), n, pretty(potion)),
                                      "INFORMATION")
+
+    GONE_SPELLS = {"Teleport_Home": ("Teleport_Scroll", 264)}   # (spell: its scroll, the gold it's refunded at)
+
+    def spells_gone(self):
+        """Spells taken out of the game: whoever knew one, or held or banked its scroll, has what Bert sold it for."""
+        for spell, (scroll, gold) in self.GONE_SPELLS.items():
+            n = 1 if self.spells_known.pop(spell, None) is not None else 0
+            n += self.items_held(scroll)
+            self.remove_inventory_item(scroll, n)
+            for i in range(1, self.data.bank_slots + 1):
+                if self.bank_item[i] == scroll:
+                    n += self.bank_qty[i]
+                    self.bank_item[i], self.bank_qty[i], self.bank_wear[i], self.bank_stolen[i] = "", 0, [], False
+            self.hotbar = [h if h != scroll else "" for h in self.hotbar]
+            if n:
+                self.add_inventory_item("Gold_Coin(s)", gold * n, quiet=True)
+                self.display_message("%s is no longer a spell. You have %d gold for it instead." %
+                                     (pretty(spell), gold * n), "INFORMATION")
 
     def body_sprite(self):
         return "PlayerF" if (self.look or {}).get("body") == "f" else "Player"

@@ -2711,7 +2711,7 @@ def test_the_admin_panel_sets_any_spell_to_any_rank_and_spawns_any_creature(worl
     s.out = []
     s.admin_command({"do": "spells"})
     spells = {r[0]: r for r in next(ev["spells"] for ev in s.out if ev["t"] == "admin_spells")}
-    assert spells["Fire_Bolt"][3] == 3 and spells["Lightning"][3] == 2 and spells["Teleport_Home"][3] == 1
+    assert spells["Fire_Bolt"][3] == 3 and spells["Lightning"][3] == 2 and spells["Silence"][3] == 1
     assert "Mega_Potion" not in spells                              # (a potion's herbs, not a spell)
     assert "Own_Spell" not in spells
     s.admin_command({"do": "spell", "spell": "Fire_Bolt", "rank": 3})
@@ -3430,6 +3430,19 @@ def test_healing_and_farsight_are_potions_now_and_stone_skin_a_ward(world):
     assert set(s.spells_known) == {"Shard_Ward", "Fire_Bolt"}
     assert s.items_held("Healing_Draught") == 5 and s.items_held("Owl_Potion") == 2      # (3 for the spell, 2 scrolls)
     assert s.items_held("Shard_Ward_Scroll") == 1 and s.data.spell_ini("Healing", "Effect", "") == ""
+
+
+def test_teleport_home_is_gone_and_paid_back_in_gold(world):
+    """dev/migrate/remove_teleport_home.py: whoever knew it, or held or banked its scroll, has 264 gold for each."""
+    assert world.data.spell_ini("Teleport_Home", "Effect", "") == "" and world.data.entity_ini("Teleport_Scroll", "Spell", "") == ""
+    racks = open(os.path.join(ROOT, "data", "ItemRacks.ini"), encoding="cp1252").read()
+    assert "Teleport_Scroll" not in racks
+    s = Session(world, "Homebody")
+    s.load_state({"spells": {"Teleport_Home": 1, "Fire_Bolt": 1}, "inventory": [["Teleport_Scroll", 2, 0]],
+                  "bank": [["Teleport_Scroll", 1, [0]]], "hotbar": ["Teleport_Scroll", "Fire_Bolt_Scroll"]})
+    assert set(s.spells_known) == {"Fire_Bolt"} and s.items_held("Teleport_Scroll") == 0
+    assert s.items_held("Gold_Coin(s)") == 264 * 4 and "Teleport_Scroll" not in s.bank_item
+    assert "Teleport_Scroll" not in s.hotbar and "Fire_Bolt_Scroll" in s.hotbar
 
 
 def test_a_scroll_too_hard_to_learn_is_kept(world):
@@ -4858,7 +4871,7 @@ def test_scrolls_are_rare_and_only_teach(world):
     d = world.data
     s = join(world, "Apprentice")
     assert not any(e.name.endswith("_Scroll") for e in s.inv)                     # (a new character: none)
-    found, sold = "Fire_Bolt_Scroll", "Teleport_Scroll"                           # (Bert gives one; the other is sold)
+    found, sold = "Fire_Bolt_Scroll", "Silence_Scroll"                            # (Bert gives one; the other is sold)
     assert d.entity_ini(found, "Value", "") == "0" and float(d.entity_ini(sold, "Value", "0")) >= 100
     assert d.entity_ini(found, "Stackable", "") == "1"
     assert not s.can_sell_here(found)                                            # (no shop takes it, to sell it on)
@@ -9602,7 +9615,7 @@ def test_a_trusted_door_in_northport_and_its_chest_once(world):
     run_for(world, 10)
     assert s.ab_mode == "Chest"                                    # (not locked: left for you)
     s.action_box_response_chosen(1)                                # Take everything
-    assert s.items_held("Wardbound_Sealskin_Boots") == 1 and s.items_held("Teleport_Scroll") >= 2
+    assert s.items_held("Wardbound_Sealskin_Boots") == 1 and s.items_held("Mega_Potion") >= 2
     gold = s.items_held("Gold_Coin(s)")
     s.do_action("Open", chest)                                     # (once only)
     run_for(world, 10)

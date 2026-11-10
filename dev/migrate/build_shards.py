@@ -64,7 +64,6 @@ SPELLS = {   # spell: (Shards a cast, cooldown seconds[, other keys]) - five ide
     # Chain.Share percent: player_combat.py spell_hit)
     "Grasp": ("2", "2"),
     "Shard_Ward": ("10", "60"),
-    "Teleport_Home": ("12", "60"),             # (Blink: the one that moves you)
     "Frost_Nova": ("15", "8"),                 # (Frost Nova)
     "Thunderclap": ("18", "10"),
     "Blizzard": ("25", "15"),

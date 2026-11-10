@@ -4,7 +4,7 @@
 03	>Conditional	$Variable.1=0	11
 04	Update.Attribute	TrustedChestGalaith	=1
 05	Play.Sound	Chest
-06	Give.Item	Teleport_Scroll	2
+06	Give.Item	Major_Healing_Draught	3
 07	Give.Item	Ruby	1
 08	Give.Item	Gold_Coin(s)	250
 09	Display.Message	Yellow	A noble's chest, and in it a gift for a friend of the city.

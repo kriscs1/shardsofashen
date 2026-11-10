@@ -4,7 +4,7 @@
 03	>Conditional	$Variable.1=0	11
 04	Update.Attribute	TrustedChestNorthport	=1
 05	Play.Sound	Chest
-06	Give.Item	Teleport_Scroll	2
+06	Give.Item	Mega_Potion	2
 07	Give.Item	Wardbound_Sealskin_Boots	1
 08	Give.Item	Gold_Coin(s)	150
 09	Display.Message	Yellow	The pilots' chest, and a note on top: "For a friend of the harbour."

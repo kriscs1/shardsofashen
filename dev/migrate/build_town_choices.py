@@ -66,7 +66,7 @@ GATES = {   # map: [(x, y, the closed tile, its condition, its message)]
 TRUSTED = [  # (town, map, the door, the chest (its map if not the door's: a cellar), what the lock says, what the chest
              #  gives, what's said). The chest stands where it can't be reached through a wall (validate.py).
     ("Northport", "2,7,0", (12, 7), (13, 5), "The harbour pilots' house. They open it to friends of Northport, and "
-     "nobody else.", [("Teleport_Scroll", 2), ("Wardbound_Sealskin_Boots", 1), ("Gold_Coin(s)", 150)],
+     "nobody else.", [("Mega_Potion", 2), ("Wardbound_Sealskin_Boots", 1), ("Gold_Coin(s)", 150)],
      "The pilots' chest, and a note on top: \"For a friend of the harbour.\""),
     ("Ashford", "11,-1,0", (10, 7), (11, 5), "Locked. Whoever lives here likes it that way, and only opens it to "
      "friends of the town.", [("Major_Healing_Draught", 2), ("Emerald_Ring", 1), ("Gold_Coin(s)", 120)],
@@ -105,7 +105,7 @@ TRUSTED = [  # (town, map, the door, the chest (its map if not the door's: a cel
      [("Fever_Tonic", 3), ("Major_Healing_Draught", 2), ("Gold_Coin(s)", 100)],
      "A chest, and in it tonics against the marsh fever, and more."),
     ("Galaith", "-10,16,0", (20, 6), ("-10,16,-1", 20, 3), "A noble's door. It opens to those Galaith trusts.",
-     [("Teleport_Scroll", 2), ("Ruby", 1), ("Gold_Coin(s)", 250)],
+     [("Major_Healing_Draught", 3), ("Ruby", 1), ("Gold_Coin(s)", 250)],
      "A noble's chest, and in it a gift for a friend of the city."),
 ]
 
