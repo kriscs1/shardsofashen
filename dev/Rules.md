@@ -756,7 +756,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   aiohttp) so others on the same network can join; `server/lan.py` lets the app find games on the network. A public server on a cloud VM:
   `deploy/docker-compose.cloud.yml` and `deploy/cloud-setup.sh` (Caddy for HTTPS, `DS_TRUST_PROXY=1` so the limits
   go by each player's own address, sign-ups limited by `DS_REGISTER_PER_DAY`, admins' `/kick`,
-  `/ban`, `/mute`): README-Server.md says how. Every game has a name
+  `/ban`, `/mute`): README-Server.md says how. Several worlds on one VM are each a server of their own (their own data, id and domain, in containers of their own), never several in one process: `deploy/docker-compose.worlds.yml` and `cloud-setup.sh worlds`. Every game has a name
   (the host's, in Options; else `DS_NAME`: on Unraid, "Server name"), on the login screen, in the app's list and in the start screen's Public servers. The app opens on Single player
   (`solo.db`, this device only: 127.0.0.1) or joining a game. So
   `server/` and `dsengine/` stay standard library plus aiohttp: no pygame, numpy or anything that needs a shell.

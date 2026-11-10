@@ -6,10 +6,21 @@
 #   curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/cloud-setup.sh | sudo sh
 #   (or copy this file to the VM and run: sudo sh cloud-setup.sh)
 #
-# Running it again is safe: it keeps your .env and the game's data, and brings everything up to date.
+# Several worlds on the one VM, each at a domain of its own, in /opt/shards-of-ashen-worlds (docker-compose.worlds.yml):
+#
+#   curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/cloud-setup.sh | sudo sh -s worlds
+#
+# Running it again is safe: it keeps your .env and the game's data, and brings everything up to date. (With worlds it
+# keeps your docker-compose.yml and Caddyfile too: they're yours to add a world to.)
 set -e
 IMAGE="${DS_IMAGE:-ghcr.io/kriscs1/shardsofashen:latest}"
-DIR="${DS_DIR:-/opt/shards-of-ashen}"
+if [ "${1:-}" = "worlds" ]; then
+    WORLDS=1 SRC=cloud/worlds EXAMPLE=worlds.env.example OTHER=shards-of-ashen
+    DIR="${DS_DIR:-/opt/shards-of-ashen-worlds}"
+else
+    WORLDS="" SRC=cloud EXAMPLE=cloud.env.example OTHER=shards-of-ashen-worlds
+    DIR="${DS_DIR:-/opt/shards-of-ashen}"
+fi
 
 if [ "$(id -u)" != "0" ]; then
     echo "Run this as root (sudo sh cloud-setup.sh)." >&2
@@ -84,27 +95,55 @@ echo "== The game's files in $DIR"
 mkdir -p "$DIR"
 cd "$DIR"
 docker pull "$IMAGE"
-docker run --rm --entrypoint cat "$IMAGE" cloud/docker-compose.yml > docker-compose.yml
-docker run --rm --entrypoint cat "$IMAGE" cloud/Caddyfile > Caddyfile
+if [ -z "$WORLDS" ] || [ ! -f docker-compose.yml ]; then
+    docker run --rm --entrypoint cat "$IMAGE" "$SRC/docker-compose.yml" > docker-compose.yml
+fi
+if [ -z "$WORLDS" ] || [ ! -f Caddyfile ]; then
+    docker run --rm --entrypoint cat "$IMAGE" "$SRC/Caddyfile" > Caddyfile
+fi
 if [ ! -f .env ]; then
-    docker run --rm --entrypoint cat "$IMAGE" cloud/cloud.env.example > .env
+    docker run --rm --entrypoint cat "$IMAGE" "$SRC/$EXAMPLE" > .env
     if [ -t 0 ] || [ -e /dev/tty ]; then
-        printf "Your server's domain (its DNS must point here already): " > /dev/tty
-        read -r domain < /dev/tty
+        if [ -n "$WORLDS" ]; then
+            for n in 1 2 3; do
+                printf "World %s's domain (its DNS must point here already): " "$n" > /dev/tty
+                read -r domain < /dev/tty
+                sed -i "s|^DS_DOMAIN_$n=.*|DS_DOMAIN_$n=$domain|" .env
+            done
+        else
+            printf "Your server's domain (its DNS must point here already): " > /dev/tty
+            read -r domain < /dev/tty
+            sed -i "s|^DS_DOMAIN=.*|DS_DOMAIN=$domain|" .env
+        fi
         printf "Your Hallisium account's name (its characters get the Admin button): " > /dev/tty
         read -r admin < /dev/tty
-        sed -i "s|^DS_DOMAIN=.*|DS_DOMAIN=$domain|; s|^DS_ADMINS=.*|DS_ADMINS=$admin|" .env
+        sed -i "s|^DS_ADMINS=.*|DS_ADMINS=$admin|" .env
     fi
 fi
-if grep -q "^DS_DOMAIN=play.example.com" .env; then
-    echo "Set DS_DOMAIN in $DIR/.env, then run: cd $DIR && docker compose up -d" >&2
+# (a domain still the example's, or left empty)
+if grep -Eq '^DS_DOMAIN(_[0-9]+)?=([a-z]+\.example\.com)?[[:space:]]*$' .env; then
+    echo "Set each DS_DOMAIN in $DIR/.env, then run: cd $DIR && docker compose up -d" >&2
+    exit 1
+fi
+# (one world and several both want ports 80 and 443)
+if [ -n "$(docker ps -q --filter "label=com.docker.compose.project=$OTHER")" ]; then
+    echo "The $OTHER setup is running on this VM, and only one can have ports 80 and 443. Stop it first (in its" >&2
+    echo "folder: docker compose down; its data is kept), then run this again." >&2
     exit 1
 fi
 
 echo "== Starting"
 docker compose up -d
-domain=$(grep "^DS_DOMAIN=" .env | cut -d= -f2)
 echo
-echo "Done. In a minute or two (while Caddy gets its certificate) the game is at https://$domain"
-echo "Settings: $DIR/.env (then: cd $DIR && docker compose up -d)."
-echo "Logs: cd $DIR && docker compose logs -f game        Accounts: docker compose exec game python tools/admin.py list"
+if [ -n "$WORLDS" ]; then
+    echo "Done. In a minute or two (while Caddy gets their certificates) the worlds are at:"
+    grep "^DS_DOMAIN_" .env | cut -d= -f2 | sed "s|^|  https://|"
+    echo "Each is listed for everyone once it's approved on the central server's admin page."
+    echo "Settings: $DIR/.env (then: cd $DIR && docker compose up -d). Another world: see docker-compose.yml's top."
+    echo "Logs: cd $DIR && docker compose logs -f game1       Accounts: docker compose exec game1 python tools/admin.py list"
+else
+    domain=$(grep "^DS_DOMAIN=" .env | cut -d= -f2)
+    echo "Done. In a minute or two (while Caddy gets its certificate) the game is at https://$domain"
+    echo "Settings: $DIR/.env (then: cd $DIR && docker compose up -d)."
+    echo "Logs: cd $DIR && docker compose logs -f game        Accounts: docker compose exec game python tools/admin.py list"
+fi

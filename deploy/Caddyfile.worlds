@@ -1,0 +1,15 @@
+# Each world at its own domain (docker-compose.worlds.yml): Caddy gets each one's certificate by itself.
+{$DS_DOMAIN_1} {
+	encode zstd gzip
+	reverse_proxy game1:8484
+}
+
+{$DS_DOMAIN_2} {
+	encode zstd gzip
+	reverse_proxy game2:8484
+}
+
+{$DS_DOMAIN_3} {
+	encode zstd gzip
+	reverse_proxy game3:8484
+}

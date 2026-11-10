@@ -40,6 +40,10 @@ COPY deploy/docker-compose.cloud.yml cloud/docker-compose.yml
 COPY deploy/Caddyfile cloud/Caddyfile
 COPY deploy/cloud.env.example cloud/cloud.env.example
 COPY deploy/cloud-setup.sh cloud/cloud-setup.sh
+# (several worlds on one VM: cloud-setup.sh worlds)
+COPY deploy/docker-compose.worlds.yml cloud/worlds/docker-compose.yml
+COPY deploy/Caddyfile.worlds cloud/worlds/Caddyfile
+COPY deploy/worlds.env.example cloud/worlds/worlds.env.example
 # (and the central server's: accounts, the remote servers list, the ads - the same image, "python -m central")
 COPY deploy/docker-compose.central.yml central-deploy/docker-compose.yml
 COPY deploy/Caddyfile.central central-deploy/Caddyfile

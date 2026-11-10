@@ -67,7 +67,7 @@ async def ticket_in(http, url, ticket, name="Wanderer", device="a phone"):
 def test_every_self_hosted_template_offers_the_central_server():
     """A setting a template leaves out can't be turned on there (Unraid's had none of them)."""
     for name in ("unraid/shards-of-ashen.xml", "docker-compose.yml", "docker-compose.server.yml",
-                 "docker-compose.cloud.yml"):
+                 "docker-compose.cloud.yml", "docker-compose.worlds.yml"):
         with open(os.path.join(ROOT, "deploy", name), encoding="utf-8") as f:
             text = f.read()
         for var in ("DS_CENTRAL", "DS_PUBLIC_URL", "DS_TRUST_PROXY"):

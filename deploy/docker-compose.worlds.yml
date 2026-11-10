@@ -1,0 +1,113 @@
+# Several public worlds on one cloud VM: each its own game (its own data, its own id on the central server, its own
+# name and settings, its own process), each at a domain of its own through one Caddy (HTTPS, its certificates from
+# Let's Encrypt by itself), and one updater that restarts them all whenever a newer image is out. A world that stops
+# or is restarted leaves the others playing. (One world: docker-compose.cloud.yml.)
+#
+# deploy/cloud-setup.sh sets it all up on a fresh Ubuntu or Debian VM: "sudo sh cloud-setup.sh worlds". By hand: put
+# this file, Caddyfile.worlds (as Caddyfile) and a .env (from worlds.env.example) in one folder, then
+# "docker compose up -d".
+#
+# Another world: copy game3's block below as game4 (DS_..._4 in it), add a world4data volume at the bottom and
+# DS_DOMAIN_4 to caddy's environment, copy a site in the Caddyfile (game4:8484), and copy the _3 lines in .env as _4.
+# One fewer: take its block, its site and its DS_DOMAIN out of each. The updater finds them by themselves.
+name: shards-of-ashen-worlds
+
+x-game: &game
+  image: ${DS_IMAGE:-ghcr.io/kriscs1/shardsofashen:latest}
+  restart: unless-stopped
+  stop_grace_period: 30s
+
+x-env: &env                         # (the same in every world)
+  DS_ADMINS: ${DS_ADMINS:-}
+  DS_PASSWORD_MIN: ${DS_PASSWORD_MIN:-8}
+  DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
+  DS_TRUST_PROXY: "1"               # (Caddy passes on each player's own address: the limits go by it)
+  DS_CENTRAL: ${DS_CENTRAL:-}       # (players come in with its tickets, and it lists each world once it's approved)
+  PUID: ${PUID:-1000}
+  PGID: ${PGID:-1000}
+
+services:
+  game1:
+    <<: *game
+    environment:
+      <<: *env
+      DS_NAME: ${DS_NAME_1:-}
+      DS_PUBLIC_URL: https://${DS_DOMAIN_1:?set DS_DOMAIN_1 in .env}
+      DS_MAX_PLAYERS: ${DS_MAX_PLAYERS_1:-20}
+      DS_REGISTRATION: ${DS_REGISTRATION_1:-open}
+      DS_INVITE_CODE: ${DS_INVITE_CODE_1:-}
+      DS_PVP: ${DS_PVP_1:-}
+    volumes:
+      - ${DS_DATA_1:-world1data}:/data
+
+  game2:
+    <<: *game
+    environment:
+      <<: *env
+      DS_NAME: ${DS_NAME_2:-}
+      DS_PUBLIC_URL: https://${DS_DOMAIN_2:?set DS_DOMAIN_2 in .env}
+      DS_MAX_PLAYERS: ${DS_MAX_PLAYERS_2:-20}
+      DS_REGISTRATION: ${DS_REGISTRATION_2:-open}
+      DS_INVITE_CODE: ${DS_INVITE_CODE_2:-}
+      DS_PVP: ${DS_PVP_2:-}
+    volumes:
+      - ${DS_DATA_2:-world2data}:/data
+
+  game3:
+    <<: *game
+    environment:
+      <<: *env
+      DS_NAME: ${DS_NAME_3:-}
+      DS_PUBLIC_URL: https://${DS_DOMAIN_3:?set DS_DOMAIN_3 in .env}
+      DS_MAX_PLAYERS: ${DS_MAX_PLAYERS_3:-20}
+      DS_REGISTRATION: ${DS_REGISTRATION_3:-open}
+      DS_INVITE_CODE: ${DS_INVITE_CODE_3:-}
+      DS_PVP: ${DS_PVP_3:-}
+    volumes:
+      - ${DS_DATA_3:-world3data}:/data
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DS_DOMAIN_1: ${DS_DOMAIN_1}
+      DS_DOMAIN_2: ${DS_DOMAIN_2}
+      DS_DOMAIN_3: ${DS_DOMAIN_3}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  updater:
+    image: docker:28-cli
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/deploy:ro
+    working_dir: /deploy
+    environment:
+      GHCR_USER: ${GHCR_USER:-}
+      GHCR_TOKEN: ${GHCR_TOKEN:-}
+      DS_UPDATE_SECONDS: ${DS_UPDATE_SECONDS:-300}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      # (every world: each service whose name starts "game", so one added or taken out needs nothing here)
+      - >-
+        if [ -n "$$GHCR_TOKEN" ]; then echo "$$GHCR_TOKEN" | docker login ghcr.io -u "$$GHCR_USER" --password-stdin; fi;
+        echo "Checking for updates every $$DS_UPDATE_SECONDS seconds";
+        while true; do
+          sleep "$$DS_UPDATE_SECONDS";
+          games=$$(docker compose -p shards-of-ashen-worlds config --services | grep '^game');
+          if [ -n "$$games" ] && docker compose -p shards-of-ashen-worlds pull -q $$games; then docker compose -p shards-of-ashen-worlds up -d $$games; fi;
+        done
+
+volumes:
+  world1data:
+  world2data:
+  world3data:
+  caddy_data:
+  caddy_config:

@@ -578,8 +578,46 @@ above.
   Tailscale. The game turns away a flood of connections from one address (`DS_CONNECTIONS_PER_ADDRESS`), but no VM
   outlasts a real DDoS: put the domain behind Cloudflare (its proxy, free; the game's WebSocket goes through it) and
   let ports 80 and 443 take only Cloudflare's addresses, so nobody goes round it.
-- More players than one VM keeps smooth: start a second server (another VM, another domain) rather than a bigger one:
-  each server is a world of its own.
+- More players than one world holds: start a second world, on this VM (below) or another, rather than raising
+  `DS_MAX_PLAYERS`: each server is a world of its own.
+
+### Several worlds on one VM
+
+Each world is a server of its own (its characters, its name and settings, its own place in the Public servers list),
+and several can share a VM, each at a domain of its own: `deploy/docker-compose.worlds.yml` runs three (`game1` to
+`game3`) behind one Caddy, with one updater for them all. A world that stops or restarts leaves the others playing.
+
+1. **Point a domain at the VM for each world** (A records: `one.example.com`, `two.example.com`,
+   `three.example.com` -> the VM's address).
+2. **Run the setup with `worlds`**: all the same as above, but it asks for each world's domain and sets up in
+   `/opt/shards-of-ashen-worlds`:
+
+   ```
+   curl -fsSL https://raw.githubusercontent.com/kriscs1/shardsofashen/main/deploy/cloud-setup.sh | sudo sh -s worlds
+   ```
+
+3. **Approve each world** on the central server's admin page: each announces itself with its own id and waits there,
+   unlisted, like any other server.
+
+- Size: a world takes about 150 MB with nobody in it, and a tick with five players about 1.5 ms of its 50: 2 CPUs and
+  4 GB are plenty for three.
+- Settings: `/opt/shards-of-ashen-worlds/.env` (`deploy/worlds.env.example`). Each world's own end in `_1`, `_2`, `_3`
+  (its domain, name, most players, registration, invite code, PvP, where its data is); the admins, the central server
+  and the rest are the same for all.
+- Another world, or one fewer: the top of `docker-compose.yml` says what to copy or take out (the updater finds them
+  by itself). Running the setup again keeps your `docker-compose.yml` and `Caddyfile`.
+- Each world by its name: `docker compose logs -f game2`, `docker compose exec game2 python tools/admin.py list`,
+  `docker compose restart game3`, `docker compose cp game1:/data/backups ./backups1`.
+- One world or several on a VM, not both: each wants ports 80 and 443 (the setup says so and stops). To bring a
+  one-world server's characters into world 1, before running the setup with `worlds`:
+
+  ```sh
+  cd /opt/shards-of-ashen && docker compose down     # (its data is kept, in the gamedata volume)
+  docker run --rm -v shards-of-ashen_gamedata:/from -v shards-of-ashen-worlds_world1data:/to alpine cp -a /from/. /to/
+  ```
+
+  Its id comes with it, so give world 1 the old domain and the central server has it listed still (a new domain or
+  name is approved again).
 
 ## Settings (environment)
 
