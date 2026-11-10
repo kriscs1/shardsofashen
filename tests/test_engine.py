@@ -16,6 +16,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 @pytest.fixture(scope="module")
 def world():
     random.seed(1)
+    return new_world()
+
+
+def new_world():
     w = World(ROOT)
     w.encounters.settings["on"] = w.banter.settings["on"] = "0"   # (nobody turning up in other tests: they ask for them)
     w.wonders.on = False
@@ -656,7 +660,8 @@ def test_a_cart_goes_round_its_stops_and_takes_you_to_one(world):
     leave(world, s)
 
 
-def test_the_ferries_cross_together_and_carry_you_over(world):
+def test_the_ferries_cross_together_and_carry_you_over():
+    world = new_world()             # (its own: they keep the real clock's time, so the module's may be out on the water)
     carts = world.carts
     east = next(c for c in carts.carts if c.key == "Isle_Ferry_East")
     west = next(c for c in carts.carts if c.key == "Isle_Ferry_West")

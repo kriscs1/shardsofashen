@@ -881,6 +881,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   first-run notice on the start screen says so). Something new
   worth counting is added there, and to the privacy policy (`central/pages/privacy.html`) in the same commit. Anyone can
   send a report, so what's in one is cleaned (`clean_characters`), and written to the admin page only through `esc`.
+- **The central server keeps a copy of itself every day** (`Central.nightly_backup`, `CentralStore.backup`: SQLite's
+  own backup, the last 14, in `backups` beside it or `DS_CENTRAL_BACKUPS`), as a game server does its own: it's every
+  account, purchase and friend, and nothing else has them.
 - **The admin page stays plain** (`central/pages/admin.html`, the owner's wish): the browser's own font and colours, no
   pictures, gradients, shadows or rounded corners, nothing from anywhere else, nothing loaded till its tab's opened,
   lists a page at a time, and it works on a phone (each row a few lines, no sideways scrolling).

@@ -513,7 +513,19 @@ lists the remote game servers (each announces itself to it), and it serves the a
   farm passes (and AdMob doesn't see machine-made views): in the Play Console, Test and release > App integrity, link
   the Google Cloud project your Play service account (above) is in and turn on the Play Integrity API there; the
   central server has Google decode each verdict with that account.
-- **Its settings**: `DS_CENTRAL_DB`, `DS_CENTRAL_PORT` (8490), `DS_CENTRAL_NAME`, `DS_CENTRAL_MOTD`,
+- **Backups**: a whole copy of the database once a day (UTC; the first as it starts), the last 14 kept, in `backups`
+  beside it (`/data/backups` in the compose file, or wherever `DS_CENTRAL_BACKUPS` says). It's every account, purchase
+  and friend, so copy them off the VM now and then: `docker compose cp central:/data/backups ./backups` in
+  `/opt/shards-of-ashen-central`, or turn on your provider's VM snapshots. To go back to one, with the copy in that
+  folder (its journal files go too, or SQLite would play the old changes over it):
+
+  ```sh
+  docker compose stop central
+  docker compose run --rm --no-deps -v "$PWD:/restore" --entrypoint sh central -c \
+    'cp /restore/central-YYYYMMDD-HHMM.db /data/central.db && rm -f /data/central.db-wal /data/central.db-shm'
+  docker compose start central
+  ```
+- **Its settings**: `DS_CENTRAL_DB`, `DS_CENTRAL_BACKUPS`, `DS_CENTRAL_PORT` (8490), `DS_CENTRAL_NAME`, `DS_CENTRAL_MOTD`,
   `DS_REGISTRATION`, `DS_PASSWORD_MIN` (8), `DS_REGISTER_PER_DAY` (3), `DS_TRUST_PROXY`.
 
 ## A public server on a cloud VM (anyone can sign up)

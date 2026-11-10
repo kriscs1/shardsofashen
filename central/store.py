@@ -504,6 +504,24 @@ class CentralStore:
                             "WHERE key = ?", (name, url, online, most, version, time.time(), key))
         return key, secret
 
+    def backup(self, folder, keep=14):
+        """A copy of the database in folder (central-YYYYMMDD-HHMM.db, UTC), keeping the newest keep. (SQLite's own
+        backup: a whole, consistent copy even while it's in use, through no query.)"""
+        os.makedirs(folder, exist_ok=True)
+        out = os.path.join(folder, time.strftime("central-%Y%m%d-%H%M.db", time.gmtime()))
+        dest = sqlite3.connect(out)
+        try:
+            self.db.backup(dest)
+        finally:
+            dest.close()
+        files = sorted(f for f in os.listdir(folder) if f.startswith("central-") and f.endswith(".db"))
+        for f in files[:-keep]:
+            try:
+                os.remove(os.path.join(folder, f))
+            except OSError:
+                pass
+        return out
+
     def prune(self):
         """What's had its day: used-up tickets, old tokens, games never approved and not heard from in a week."""
         now = time.time()

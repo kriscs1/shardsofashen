@@ -551,6 +551,32 @@ def test_a_stranger_guessing_a_password_doesnt_keep_its_owner_out(tmp_path):
     assert central.wait("Victim", "1.2.3.4") and not central.wait("Other", "1.2.3.4")
 
 
+def test_the_central_server_keeps_a_copy_of_itself_each_day(tmp_path, monkeypatch):
+    """Once a UTC day (the first on starting) a whole copy of the database goes in backups beside it, the newest 14
+    kept: everything's in it, and it opens as a database of its own."""
+    from central.app import BACKUPS_KEPT
+    from central.store import CentralStore
+    monkeypatch.delenv("DS_CENTRAL_BACKUPS", raising=False)
+    central = make_central(str(tmp_path / "c.db"))[CENTRAL]
+    central.store.set_setting("kept", "every account")
+    folder = tmp_path / "backups"
+    folder.mkdir()
+    for d in range(1, BACKUPS_KEPT + 2):                            # (two weeks and more of them already)
+        (folder / ("central-200001%02d-0300.db" % d)).write_bytes(b"")
+    (folder / "notes.txt").write_text("mine")
+    central.nightly_backup()
+    central.nightly_backup()                                        # (the same day: no second copy)
+    copies = sorted(f.name for f in folder.iterdir() if f.name.startswith("central-"))
+    assert len(copies) == BACKUPS_KEPT and copies[-1].startswith("central-" + time.strftime("%Y%m%d", time.gmtime()))
+    assert "central-20000101-0300.db" not in copies and "central-20000102-0300.db" not in copies
+    assert (folder / "notes.txt").exists()                         # (only its own copies are cleared out)
+    assert CentralStore(str(folder / copies[-1])).setting("kept") == "every account"
+    monkeypatch.setenv("DS_CENTRAL_BACKUPS", str(tmp_path / "elsewhere"))
+    elsewhere = make_central(str(tmp_path / "c2.db"))[CENTRAL]
+    elsewhere.nightly_backup()
+    assert len(os.listdir(tmp_path / "elsewhere")) == 1
+
+
 def test_every_version_has_the_same_start_screen():
     """The Android app's start screen is web/home's (tools/sync_home.py copies it)."""
     import os

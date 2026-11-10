@@ -83,6 +83,7 @@ PAGE = 50                       # (rows the admin page gets at a time)
 GOOGLE_COOKIE = "ds_google"
 GOOGLE_PENDING = 2000           # (sign-ins under way at once: past this the oldest go)
 HOUSEKEEPING = 600              # (seconds between clearing out what's had its day)
+BACKUPS_KEPT = 14               # (a copy of the database a day: DS_CENTRAL_BACKUPS, else backups beside it)
 HELLO_SECONDS = 30              # (the start screen's counts are worked out this often)
 BUYS = 10                       # (tries at a purchase from one address or account in ten minutes)
 PASS_KEYS = 2000                # (time passes' ads under way at once: past this the oldest go)
@@ -121,6 +122,9 @@ def demo_on():
 class Central:
     def __init__(self, db_path):
         self.store = CentralStore(db_path)
+        self.backup_dir = os.environ.get("DS_CENTRAL_BACKUPS", "") or \
+            os.path.join(os.path.dirname(os.path.abspath(db_path)), "backups")
+        self.backed_up = ""             # (the UTC day of the last copy: nightly_backup)
         self.relays = Relays(self.store)            # (games hosted for friends, passed through here)
         self.fails = {}                 # (kind, which) -> [times]
         self.signups = {}               # address -> [days]
@@ -861,8 +865,20 @@ class Central:
             for k in [k for k, v in days.items() if day not in v]:
                 del days[k]
 
+    def nightly_backup(self):
+        """A copy of the database once a UTC day (the first on starting), the last BACKUPS_KEPT kept."""
+        day = time.strftime("%Y%m%d", time.gmtime())
+        if self.backed_up == day:
+            return
+        self.backed_up = day
+        try:
+            log.info("Backup: %s", self.store.backup(self.backup_dir, BACKUPS_KEPT))
+        except Exception:
+            log.exception("Backup failed")
+
     async def keep_clean(self):
         while True:
+            self.nightly_backup()
             await asyncio.sleep(HOUSEKEEPING)
             try:
                 self.housekeeping()
