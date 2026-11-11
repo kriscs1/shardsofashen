@@ -80,10 +80,14 @@ export function dictIni(file, section, key, dflt = "") {
 // ----- pictures
 export function onLoaded(fn) { A.listeners.push(fn); }
 
+// (an asset's address with the manifest's version: a browser keeps it long, and a new version is a new address)
+export const at = (path) => path + (A.m && A.m.version ? "?v=" + A.m.version : "");
+
 function image(key, url) {
   let e = A.imgs.get(key);
-  if (e) return e;
-  e = { img: new Image(), ok: false, bad: false };
+  if (e && !(e.bad && performance.now() >= e.retry)) return e;
+  const tries = e ? e.tries + 1 : 0;              // (one that failed: asked for again after a while, longer each time)
+  e = { img: new Image(), ok: false, bad: false, tries, retry: 0 };
   A.imgs.set(key, e);
   A.pending++;
   e.img.decoding = "async";
@@ -94,8 +98,8 @@ function image(key, url) {
     A.pending--;
     for (const f of A.listeners) f(key);
   };
-  e.img.onerror = () => { e.bad = true; A.pending--; };
-  e.img.src = url;
+  e.img.onerror = () => { e.bad = true; e.retry = performance.now() + Math.min(300000, 15000 * 2 ** e.tries); A.pending--; };
+  e.img.src = at(url);
   return e;
 }
 

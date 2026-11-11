@@ -867,8 +867,10 @@ class ItemsMixin:
             item = self.equipped[i]
             if item and self.item_equip_slot(item) != i:
                 self.equipped[i] = ""
+                wear, stolen = self.equip_wear[i], self.equip_stolen[i]
+                self.equip_wear[i], self.equip_stolen[i] = 0, False
                 if self.inventory_slots_available(item) >= 1:
-                    self.add_inventory_item(item, 1, quiet=True)
+                    self.add_inventory_item(item, 1, wear, quiet=True, stolen=stolen)   # (as worn as it was)
 
     def worn_items(self):
         """What is drawn over the player, lowest first."""

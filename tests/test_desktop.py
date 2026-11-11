@@ -168,3 +168,37 @@ def test_the_pc_build_is_owned_from_its_store_or_shows_how_to_get_it(tmp_path, m
     page = desktop.home_page(b)
     assert "fullGame:" in page and "steamTicket:" in page
     assert 'KIND === "desktop"' in page and "never has an ad" in page
+
+
+def test_a_games_page_in_the_window_gets_only_the_carried_character(tmp_path, monkeypatch):
+    """The bridge answers the start screen; a game's page (a remote server's, a friend's relayed one) may keep and read
+    the carried character and go home, and nothing else: not the Steam ticket, the sign-in, hosting or links."""
+    from types import SimpleNamespace
+    monkeypatch.setenv("DS_DESKTOP_DATA", str(tmp_path))
+    import importlib
+    import app as desktop
+    importlib.reload(desktop)
+    monkeypatch.setitem(sys.modules, "ds_host", SimpleNamespace(start=lambda *a: None, stop=lambda: None))
+    b = desktop.Bridge()
+    shown, loaded = [""], []
+    b._window = SimpleNamespace(get_current_url=lambda: shown[0], load_url=loaded.append)
+    b.set("token", "the sign-in")
+    assert b.get("token") == "the sign-in" and json.loads(b.state())["status"] == "off"   # (the start screen: all of it)
+    shown[0] = "https://evil.example/play/"
+    assert b.state() == "{}" and b.get("token") == "" and b.find() == []
+    b.set("token", "someone else's")
+    b.set("central", "https://evil.example")
+    b.play("https://evil.example/2")
+    b.hostAs("Theirs", "local", "")
+    assert b._prefs.get("token") == "the sign-in" and b._prefs.get("central") == "" and not loaded
+    assert b._host.status == "off"
+    b.set("carried", "a character")
+    assert b.get("carried") == "a character"                        # (Copy to device, from the game's page)
+    assert desktop.Prefs().get("carried") == "a character"          # (kept on disk)
+    shown[0] = ""
+    b.hostAs("Mine", "local", "")
+    for _ in range(50):
+        if b._host.status == "on":
+            break
+        time.sleep(0.05)
+    assert b._host.mode == "local" and b._host.status == "on"      # (the mode it was given, not always "solo")

@@ -89,7 +89,7 @@ if len(sys.argv) > 2:
     w('read it back as $Variable.n.')
     for i in sorted(var_n):
         nm, d = var_n[i]
-        w('  %-26s %s' % (nm, d))
+        w('  %-26s %s' % (nm, d.replace('\n', '\n' + ' ' * 29)))     # (a long one goes on under itself)
     w('')
     w('COMMANDS (%d)' % len(cmds))
     w('------------')

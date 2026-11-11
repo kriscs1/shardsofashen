@@ -129,14 +129,16 @@ export function repaintAll() { for (const c of chunks.values()) repaint(c); }
 const LEAFY = /^(Tree|Oak_Tree|Birch|Willow_Tree|Yew_Tree|Apple_Tree|Pear_Tree)\d/;
 const FLOWERING = /^(Tall_Grass|Grass_Tuft)\d/;
 const AUTUMN = [[196, 110, 40], [214, 150, 50], [170, 70, 40], [190, 130, 60]];
+const seasonPics = new WeakMap();       // (a picture: {season: its copy}; each sway frame a picture of its own)
 
 function seasonal(name, pic) {
   // (worked out once for each picture and season, then kept: never a filter on the canvas)
   const season = S.season;
   if (!pic || !season || (season !== "Autumn" && season !== "Spring")) return pic;
   if (season === "Autumn" ? !LEAFY.test(name) : !FLOWERING.test(name)) return pic;
-  const key = season + "|" + name + "|" + (pic.width || 0);
-  let out = cache.blend.get(key);
+  let kept = seasonPics.get(pic);
+  if (!kept) seasonPics.set(pic, kept = {});
+  let out = kept[season];
   if (out) return out;
   out = document.createElement("canvas");
   out.width = pic.width; out.height = pic.height;
@@ -157,7 +159,7 @@ function seasonal(name, pic) {
     }
   }
   x.putImageData(im, 0, 0);
-  cache.blend.set(key, out);
+  kept[season] = out;
   return out;
 }
 
@@ -248,6 +250,7 @@ function blendSurface(texName, maskName, gx, gy, taper = "") {
   }
   let c = cache.blend.get(key);
   if (c) return c;
+  if (cache.blend.size > 6000) cache.blend.clear();     // (made again as they're needed: never without end)
   const t = big || sprite(texName);
   const mk = mask(maskName);
   if (!t || !mk) return null;

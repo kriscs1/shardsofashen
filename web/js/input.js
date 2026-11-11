@@ -207,7 +207,7 @@ function targetOf(e) {
   if (e.k === T.TILE) return { k: "tile" };
   if (e.k === T.INFRONT) return { k: "infront" };
   if (e.k === T.INVITEM) return { k: "inv", uid: e.u };
-  if (e.k === T.RACKITEM) return { k: "rack", i: e.i };
+  if (e.k === T.RACKITEM) return e.id === undefined ? { k: "rack", i: e.i } : { k: "rack", i: e.i, id: e.id };   // (the market: which listing, by its id)
   if (e.k === T.PLAYER) return { k: "player", uid: e.u };
   return { k: "ent", uid: e.u };
 }

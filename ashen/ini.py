@@ -172,6 +172,8 @@ def write(section_name, key, value, path):
                     break
         if not done:
             lines.insert(last_key + 1, key + "=" + value)
-    with open(path, "w", encoding="cp1252", errors="replace", newline="\r\n") as f:
+    part = path + ".part"                   # (written whole, then put in its place: never left cut short)
+    with open(part, "w", encoding="cp1252", errors="replace", newline="\r\n") as f:
         f.write("\n".join(lines) + "\n")
+    os.replace(part, path)
     forget(path)

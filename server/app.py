@@ -69,7 +69,9 @@ def make_app(root, db_path, max_players=5, registration="open", invite_code="", 
     @web.middleware
     async def caching(request, handler):
         resp = await handler(request)
-        if request.path.startswith(("/assets/", "/img/")):
+        if request.path.startswith("/assets/") and request.query.get("v"):
+            resp.headers.setdefault("Cache-Control", "public, max-age=31536000, immutable")   # (a new version: new address)
+        elif request.path.startswith(("/assets/", "/img/")):
             resp.headers.setdefault("Cache-Control", "public, max-age=3600")
         elif request.path.startswith(("/js/", "/css/")):
             resp.headers.setdefault("Cache-Control", "no-cache")

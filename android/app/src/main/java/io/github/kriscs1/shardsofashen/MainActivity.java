@@ -345,12 +345,13 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String get(String key) {
-            return home() ? prefs().getString(key, "") : "";
+            return home() || "carried".equals(key) ? prefs().getString(key, "") : "";
         }
 
         @JavascriptInterface
         public void set(String key, String value) {
-            if (home()) prefs().edit().putString(key, value).apply();
+            // (a game's page keeps only the character on its way here: never the sign-in, the device keys or the host's)
+            if (home() || "carried".equals(key)) prefs().edit().putString(key, value).apply();
         }
     }
 }

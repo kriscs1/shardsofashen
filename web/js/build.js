@@ -2,7 +2,7 @@
 // (data/Buildables.ini, sent as "buildables"), a ghost of it on the tile under the mouse, click or drag to build,
 // and a tool that takes things down again (the top thing first: the roof, an object, what's on the ground, the ground).
 import { G, S, tileAt } from "./state.js";
-import { sprite } from "./assets.js";
+import { sprite, at } from "./assets.js";
 import { send } from "./net.js";
 import { V, screenToWorld } from "./render.js";
 import { L } from "./ui.js";
@@ -74,7 +74,7 @@ function fillGrid() {
     b.title = p.name;
     b.className = (p.id === B.piece && !B.remove ? "on " : "") + (level < p.level ? "locked" : canAfford(p) ? "" : "short");
     const img = document.createElement("img");
-    img.src = "assets/sprites/" + encodeURIComponent(p.image) + ".png";
+    img.src = at("assets/sprites/" + encodeURIComponent(p.image) + ".png");
     img.alt = p.name;
     b.appendChild(img);
     if (level < p.level) {

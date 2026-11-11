@@ -1,6 +1,6 @@
 // Sounds, music and the background sounds (the desktop game's save.py, its second half), in Web Audio. Browsers only
 // let a page make sound after a click or a key, so it all starts then.
-import { A, configRead, dictIni, entityIni } from "./assets.js";
+import { A, at, configRead, dictIni, entityIni } from "./assets.js";
 import { S } from "./state.js";
 import { val, trim, clamp } from "./util.js";
 import { weatherAmbient } from "./sky.js";
@@ -62,7 +62,7 @@ function file(name) {
 
 async function buffer(f) {
   if (AU.buffers.has(f)) return AU.buffers.get(f);
-  const p = fetch("assets/sounds/" + encodeURIComponent(f)).then((r) => r.arrayBuffer())
+  const p = fetch(at("assets/sounds/" + encodeURIComponent(f))).then((r) => r.arrayBuffer())
     .then((b) => AU.ctx.decodeAudioData(b)).catch(() => null);
   AU.buffers.set(f, p);
   return p;
@@ -166,7 +166,7 @@ function startMusic(theme, fadeIn) {
   }
   const f = file(name);
   if (!f) return;
-  const el = new Audio("assets/sounds/" + encodeURIComponent(f));
+  const el = new Audio(at("assets/sounds/" + encodeURIComponent(f)));
   el.preload = "auto";
   el.volume = fadeIn ? 0 : musicLevel();
   el.addEventListener("ended", () => { if (AU.music === el) { AU.music = null; startMusic(AU.musicTheme, false); } });
@@ -187,11 +187,15 @@ function playEffectTune(f) {
     AU.resume[AU.musicTheme] = [AU.musicFile, AU.music.currentTime];
     stopMusicNow();
   }
-  const el = new Audio("assets/sounds/" + encodeURIComponent(f));
+  const el = new Audio(at("assets/sounds/" + encodeURIComponent(f)));
   el.volume = O.volume / 100;
-  AU.effect = true;
-  el.addEventListener("ended", () => { AU.effect = false; AU.musicTheme = null; });
-  el.play().catch(() => { AU.effect = false; });
+  AU.effect = el;
+  const over = () => { if (AU.effect === el) { AU.effect = false; AU.musicTheme = null; } };   // (the music back)
+  el.addEventListener("ended", over);
+  el.addEventListener("error", over);
+  el.addEventListener("loadedmetadata", () => setTimeout(over, (el.duration || 0) * 1000 + 3000));
+  setTimeout(() => { if (!el.duration) over(); }, 15000);     // (never started: not held off for good)
+  el.play().catch(over);
 }
 
 export function stopMusic() {

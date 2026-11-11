@@ -195,7 +195,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.player_walk_stuck = self.player_walk_replans = 0
         self.pending_verb = ""
         self.pending_ent = None
-        self.pending_map = None             # (map, x, y): a teleport waiting for the end of the tick
+        self.pending_at = None              # (where that verb's click was: the live cursor can move meanwhile)
+        self.pending_map = None            # (map, x, y): a teleport waiting for the end of the tick
         self.player_moved = False
         self.seat = None                    # sitting: (where they stood, where they sit), till they move again
         self.walk_hold = 0                  # (stepping off a seat: no walking till then)
@@ -254,6 +255,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.init_market()
         self.init_digging()
         self.init_chests()
+        self.verb_listing = None    # (the market: the listing the player clicked, by its id, whatever the box shows now)
         self.verb_price = self.verb_qty = 0   # (the market's Sell / Set price: what the player typed; Buy: what they saw)
         self.init_scripts()
 
@@ -438,6 +440,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         from .renames import renamed, renamed_map, merged_skills, RENAMED_QUESTS, RENAMED_WORDS
         st = renamed(st) or {}                          # (items renamed since it was saved: their new names)
         self.last_seen_before = int(st.get("last_seen", 0) or 0)
+        self.deep_seed = int(st.get("deep_seed", 0) or 0)     # (the Deep as they left it in: deep.py)
+        self.god_saved = st.get("god")                  # (an admin's own god mode: None, never switched, Config.ini's)
         if st.get("skills"):
             st = dict(st, skills=merged_skills(st["skills"]))    # (skills renamed or made one since: rename_skills)
         m = self.w.map_named(renamed_map(st.get("map", d.start_map))) or self.w.map_named(d.start_map)
@@ -671,6 +675,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "home_return": list(self.home_return) if self.home_return else None,
             "chests": self.chests_state(),
             "last_seen": int(time.time()),
+            "god": self.god_mode if self.admin_enabled else getattr(self, "god_saved", None),
+            "deep_seed": self.deep.seed if self.cur_map is not None and self.deep.floor_of(self.cur_map.name) else 0,
         }
         self.note_records()                             # (the hall of records: together.py)
         if self.dead_wait:                  # (dead and gone: they come back where they'd have woken)
@@ -694,18 +700,21 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     # =================================================================================================================
     def enter_world(self):
         self.ready = True
-        self.god_mode = self.data.god_mode_setting() if self.admin_enabled else 0
+        god = getattr(self, "god_saved", None)
+        self.god_mode = (int(god) if god is not None else self.data.god_mode_setting()) if self.admin_enabled else 0
         self.cur_map = None
         self.emit(self.w.clock_event())
         self.check_map()
         self.emit({"t": "buildables", "pieces": self.homes.catalog_for_client()})
         self.check_home_entry()
+        self.check_deep_entry()                         # (it shifted while they were away: deep.py)
         self.display_message("Welcome to Shards of Ashen, %s!" % self.player_name, "INFORMATION")
         self.display_message("Press H (or F1) for your journal: what you can make and gather, quests and controls.",
                              "INFO")
         if self.w.open_pvp:
             self.pvp_open_told()
         self.welcome_back(self.last_seen_before)       # (a day or more away: what happened - together.py)
+        self.collect_owed()                             # (winnings kept while they were away - together.py)
 
     def leave_world(self):
         """Gone: their own things go with them, NPCs fighting them give up."""
@@ -865,6 +874,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.player_walk_active = False
         self.pending_verb = ""
         self.pending_ent = None
+        self.pending_at = None
         self.player.path = []
 
     def block_player(self):
@@ -880,8 +890,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 self.stop_player_walk()
                 return
             self.player_walk_x, self.player_walk_y = self.pending_ent.cx, self.pending_ent.cy
-            if self.pending_ent.type == TILE:
-                self.player_walk_x, self.player_walk_y = self.script_cursor_x, self.script_cursor_y
+            if self.pending_ent.type == TILE and self.pending_at is not None:
+                self.player_walk_x, self.player_walk_y = self.pending_at
         d = distance(p.cx, p.cy, self.player_walk_x, self.player_walk_y)
         if d <= self.player_walk_range:
             self.finish_player_walk()
@@ -913,9 +923,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 self.finish_player_walk()
 
     def finish_player_walk(self):
-        verb, e = self.pending_verb, self.pending_ent
+        verb, e, at = self.pending_verb, self.pending_ent, self.pending_at
         self.stop_player_walk()
         if verb and e is not None:
+            if at is not None:
+                self.script_cursor_x, self.script_cursor_y = at     # (the script sees the click it was queued with)
             self.do_action(verb, e)
 
     def lock_bump(self, bumped):

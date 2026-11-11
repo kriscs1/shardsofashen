@@ -19,6 +19,8 @@ CART = "Horse_Cart"
 HAIL_RANGE = 288            # (how far off a cart hears you hail it)
 BOARD_RANGE = 80            # (close enough to climb in)
 HAIL_WAIT = 20000           # (how long a hailed cart waits for you, ms)
+HAIL_REST = 30000           # (after a hail's wait, it can't be waved down again so soon, ms)
+CART_BACK = 30000           # (a cart or a ferry somehow gone is back at its last stop this soon, ms)
 BOARDED_WAIT = 2500         # (once someone's in: off it goes, this soon)
 RIDE_SPEED = 3              # (with anyone aboard: this many times a walk)
 TURN_RATE = 150.0           # (a vehicle with headings turns this many degrees a second)
@@ -183,6 +185,21 @@ class Carts:
         for c in self.carts:
             if c.e is not None and c.e.alive:
                 self.move(c)
+            elif not getattr(c, "back_at", 0):          # (gone some other way: its riders set down, back in a while)
+                c.back_at = self.w.now + CART_BACK
+                for name in list(c.riders):
+                    s = self.w.sessions.get(name)
+                    if s is not None and s.ride is c and c.e is not None:
+                        self.get_out(s, True)
+                c.riders = {}
+            elif self.w.now >= c.back_at:
+                c.back_at = 0
+                if c.e is not None:
+                    self.by_uid.pop(c.e.uid, None)
+                    if c.e in self.w.ents:
+                        self.w.remove_entity(c.e)
+                c.t = 0.0
+                self.spawn(c)
 
     def move(self, c):
         w, e = self.w, c.e
@@ -316,10 +333,13 @@ class Carts:
             return
         s.play_sound("Hail", at=(s.player.cx, s.player.cy))
         if w.now < c.wait_until:
-            c.wait_until = max(c.wait_until, w.now + HAIL_WAIT)
-            s.act_done(True)
+            s.act_done(True)                                 # (stopped already: it waits as long as it would)
+            return
+        if w.now < getattr(c, "hail_rest", 0):               # (once a while: never held at one spot for ever)
+            s.display_message(self.word(c, "The cart rolls on: it stopped for a wave only just now."), "FAIL", "Denied")
             return
         c.wait_until = w.now + HAIL_WAIT                     # (it pulls up where it is, and waits for you)
+        c.hail_rest = c.wait_until + HAIL_REST
         s.display_message("You wave the cart down. The horse snorts and stops.", "INFO")
         s.act_done(True)
 

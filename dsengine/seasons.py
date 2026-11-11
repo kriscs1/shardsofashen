@@ -83,9 +83,20 @@ class Seasons:
     def tick(self):
         w = self.w
         if self.todo:
+            stood = set()                                   # (the cells players stand on: no thaw under their feet)
+            for s in w.sessions.values():
+                if s.in_world():
+                    pm, ptx, pty = w.tile_at(s.player.z, s.player.fx, s.player.fy)
+                    if pm is not None:
+                        stood.add((pm.name, ptx, pty))
+            later = []
             for m, x, y, spec in self.todo[:FREEZE_PER_TICK]:
-                w.change_tile(m, x, y, spec)
+                if (m.name, x, y) in stood and w.data.spec_blocks(spec):
+                    later.append((m, x, y, spec))           # (once they've stepped off it)
+                else:
+                    w.change_tile(m, x, y, spec)
             del self.todo[:FREEZE_PER_TICK]
+            self.todo += later
         if 0 <= w.now - self.checked < EVERY:
             return
         self.checked = w.now

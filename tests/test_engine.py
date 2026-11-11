@@ -6,7 +6,7 @@ import pytest
 
 from dsengine import World, Session
 from dsengine.entity import MAPITEM, NPC, AI_FLEE, AI_IDLE
-from ashen.lb import distance, val
+from ashen.lb import distance, val, lbstr
 from dsengine.forms import form_limits
 from dsengine import scripting
 
@@ -208,6 +208,34 @@ def test_a_river_freezes_in_winter_but_never_the_sea(world):
     m, x, y = s.rivers[0]
     before = m.tile[m.cell(x, y)]
     assert before.startswith("Water0")
+    rivers, was, frozen = s.rivers, s.now_is, s.frozen
+    p = None
+    try:
+        s.rivers = [(m, x, y)]                          # (just the one cell: the rest of the world as it was)
+        s.frozen, s.now_is = False, "Winter"
+        s.changed()
+        s.checked = world.now
+        s.tick()
+        ice = m.tile[m.cell(x, y)]
+        assert ice != before and world.data.spec_blocks(before)   # (frozen over)
+        p = join(world, "Skater", m.name, (x - 1) * 32 + 4, (y - 1) * 32 - 12)
+        pm, ptx, pty = world.tile_at(p.player.z, p.player.fx, p.player.fy)
+        assert (pm, ptx, pty) == (m, x, y)
+        s.now_is = "Spring"
+        s.changed()
+        s.checked = world.now
+        s.tick()
+        assert m.tile[m.cell(x, y)] == ice and s.todo   # (no thaw under the feet of one standing on it)
+        leave(world, p)
+        p = None
+        s.tick()
+        assert m.tile[m.cell(x, y)] == before and not s.todo   # (stepped off: water again)
+    finally:
+        if p is not None:
+            leave(world, p)
+        if m.tile[m.cell(x, y)] != before:
+            world.change_tile(m, x, y, before)
+        s.rivers, s.now_is, s.frozen, s.todo = rivers, was, frozen, []
 
 
 def test_a_shard_storm_rains_on_those_out_in_it(world):
@@ -300,7 +328,7 @@ def test_what_killed_you_holds_a_grudge_and_comes_back_stronger(world):
 
 def test_your_legend_gets_about(world):
     s = join(world, "Goosed", "4,6,0", 300, 300)
-    assert s.legend_due() is None or True
+    assert s.legend_due() is None                                   # (nothing done yet: nothing said of them)
     s.update_attribute("Legend.Died.Goose", "=1")
     line = s.legend_due()
     assert line and "Goosed" in line[2] and "goose" in line[2]
@@ -344,10 +372,16 @@ def test_the_wandering_inn_is_somewhere_today(world):
 
 def test_a_ghost_ship_comes_and_is_gone_by_morning(world):
     wd = world.wonders
-    wd.ship_comes(1)
-    assert wd.ship and any(e.name == "Ghost_Ship" for e in wd.ship["ents"])
+    was = wd.rng
+    wd.rng = random.Random(5)                                       # (where its dead stand: the same each run)
+    try:
+        wd.ship_comes(1)
+    finally:
+        wd.rng = was
+    assert wd.ship
     ents = wd.ship["ents"]
-    assert any(e.name == "Drowned_Sailor" for e in ents) or len(ents) >= 2
+    names = [e.name for e in ents]
+    assert names[:2] == ["Ghost_Ship", "Ghost_Chest"] and "Drowned_Sailor" in names
     world.is_night = lambda t=None: False
     try:
         wd.ship_tick()
@@ -475,6 +509,75 @@ def test_a_script_that_loops_forever_is_stopped(world):
     assert s.script_running
     s.end_script()
     leave(world, s)
+
+
+def test_a_script_line_works_out_only_the_variables_it_names(world, monkeypatch):
+    """Each $ variable is worked out only when a line names it (Hello $Player.Name never counts the shardstones),
+    and every one the language lists still comes out."""
+    from ashen import script_language as L
+    s = join(world, "Varis", "1,1,0", 300, 300)
+    try:
+        table = [a for a, _ in scripting.FIRST_VARIABLES] + [a for a, _, _ in scripting.PLAYER_WORDS] + \
+                [a for a, _ in scripting.SCRIPT_VARIABLES]
+        for i, a in enumerate(table):               # (one whose name starts with another's comes first)
+            assert not any(a.startswith(b) for b in table[:i]), a
+        for a, _ in L.VARIABLES:
+            if a.startswith("$Variable.") or a.endswith(".") or a.split(".")[0] in (
+                    "$Attr", "$Item", "$Skill", "$Equipped", "$Standing", "$Side"):
+                continue                                # (worked out from the data, or the script's own)
+            assert a in table, a
+            assert "$" not in s.parse_script_variables("[%s]" % a), a
+        stones = s.stones_active
+        monkeypatch.setattr(s, "stones_active", lambda: 1 / 0)       # (the costly one: never asked for here)
+        s.script_vars[1] = "seven"
+        assert s.parse_script_variables("Hello $Player.Name, $Variable.1 of $Player.Health.Max at $Map.Name") == \
+            "Hello Varis, seven of %s at 1,1,0" % lbstr(s.player_max_hp)
+        assert s.parse_script_variables("$Player.Health/$Player.Health.Max") == "%d/%s" % (
+            int(s.player.hp), lbstr(s.player_max_hp))
+        s.look = {"body": "f"}
+        assert s.parse_script_variables("my $Player.Son, at level $Player.Level") == \
+            "my daughter, at level %s" % lbstr(s.player_level())
+        monkeypatch.setattr(s, "stones_active", stones)
+        assert s.parse_script_variables("$Shardstones.Active") == lbstr(len(stones()))
+    finally:
+        leave(world, s)
+
+
+def test_a_queued_action_is_cancelled_by_its_own_fields_and_a_fire_put_out_takes_its_burning_out(world):
+    s = join(world, "Queuer", "1,1,0", 300, 300)
+    was = list(world.action_queue)
+
+    def run(*lines):
+        assert s.run_script_lines("(test)", list(lines) + ["%02d\tEnd" % (len(lines) + 1)])
+        world.tick(0.05)
+
+    def queued():
+        return [tuple(entry.split("\t")[:6]) for entry in world.action_queue]
+    try:
+        world.action_queue = []
+        world.add_action_to_queue("REMOVE", "Fire", "StaticObject", "-", "1,1,0", "100,100", 30)
+        world.add_action_to_queue("REMOVE", "Fire", "StaticObject", "-", "2,1,0", "100,100", 30)
+        world.add_action_to_queue("ADD", "Ripe_Wheat", "MapItem", "1", "1,1,0", "64,64", 30)
+        world.add_action_to_queue("ADD", "Ripe_Corn", "MapItem", "1", "1,1,0", "96,64", 30)
+        world.remove_action_from_queue("Fire")                  # (a name alone is an action: no longer every Fire)
+        assert len(queued()) == 4
+        run("01\tRemove.Action.From.Queue\tREMOVE\tFire\tStaticObject\t-\t-\t100,100")    # (- is this map)
+        assert ("REMOVE", "Fire", "StaticObject", "-", "1,1,0", "100,100") not in queued()
+        assert ("REMOVE", "Fire", "StaticObject", "-", "2,1,0", "100,100") in queued()
+        run("01\tRemove.Action.From.Queue\tadd\tRipe_*")         # (the rest left off: any)
+        assert queued() == [("REMOVE", "Fire", "StaticObject", "-", "2,1,0", "100,100")]
+        run("01\tRemove.Action.From.Queue\tREMOVE[TAB]Fire[TAB]StaticObject[TAB]-[TAB]2,1,0[TAB]100,100*")  # (the old way)
+        assert queued() == []
+        run("01\tAdd.Entity\t$Player.X,$Player.Y\tFire\tStaticObject\t-",
+            "02\tAdd.Action.To.Queue\tREMOVE\tFire\tStaticObject\t-\t$Map.Name\t$Player.X,$Player.Y\t30",
+            "03\tAdd.Action.To.Queue\tADD\tFire\tStaticObject\t-\t$Map.Name\t$Player.X,$Player.Y\t60")
+        fire = world.find_entity_at(s.player.z, s.player.x, s.player.y, "Fire")
+        assert fire is not None and len(queued()) == 2
+        run("01\tRemove.Entity\t$Player.X,$Player.Y\tFire")        # (the bucket of water)
+        assert not fire.alive and [q[0] for q in queued()] == ["ADD"]     # (its burning out gone; a respawn stays)
+    finally:
+        world.action_queue = was
+        leave(world, s)
 
 
 def test_a_script_is_read_once_and_again_when_it_changes(world, tmp_path, monkeypatch):
@@ -660,6 +763,39 @@ def test_a_cart_goes_round_its_stops_and_takes_you_to_one(world):
     leave(world, s)
 
 
+def test_no_spell_strikes_a_friend_or_a_cart_and_a_cart_waits_for_one_wave(world):
+    """A bolt held ready isn't for a villager, a cat or the cart; a cart somehow gone comes back; a hail holds it once
+    a while, never for ever."""
+    carts = world.carts
+    c = next(c for c in carts.carts if c.key == "Northport")
+    m = world.map_at(c.z, c.e.cx, c.e.cy)
+    s = join(world, "Bolter", m.name, int(c.e.cx - m.ox), int(c.e.y + c.e.h - m.oy) + 4)
+    villager = world.add_npc("Villager", s.player.z, s.player.x + 40, s.player.y, "")
+    wolf = world.add_npc("Wolf", s.player.z, s.player.x - 40, s.player.y, "")
+    try:
+        assert not s.spell_target_ok(villager) and not s.spell_target_ok(c.e) and s.spell_target_ok(wolf)
+        e = c.e
+        s.player.x, s.player.y = e.cx - s.player.w / 2, e.y + e.h - s.player.h + 6
+        c.wait_until = c.hail_rest = 0
+        carts.hail(s, e)
+        first = c.wait_until
+        assert first > world.now
+        carts.hail(s, e)
+        assert c.wait_until == first                                 # (waving again doesn't hold it longer)
+        c.wait_until = world.now - 1                                 # (its wait over)
+        carts.hail(s, e)
+        assert c.wait_until < world.now                              # (it rolls on: no second stop straight after)
+        c.hail_rest = 0
+        e.alive = False                                              # (gone, somehow)
+        world.tick(0.05)
+        world.tick(0.05, now=world.now + 31000)
+        assert c.e is not e and c.e.alive and c.e.source == "CART"   # (back again at its stop)
+    finally:
+        world.remove_entity(villager)
+        world.remove_entity(wolf)
+        leave(world, s)
+
+
 def test_the_ferries_cross_together_and_carry_you_over():
     world = new_world()             # (its own: they keep the real clock's time, so the module's may be out on the water)
     carts = world.carts
@@ -825,9 +961,11 @@ def test_the_pvp_badge_says_open_ground_or_safe_and_only_while_its_on(world):
         a.do_pending_map_change()
         a.check_map()
         assert a.dirty_me                                           # (crossing into a town tells the browser)
+        world.open_pvp = False
+        assert a.me_state()["pvp"] == 0                             # (off: no badge)
     finally:
         world.open_pvp = False
-    assert a.me_state()["pvp"] == 0                                 # (off: no badge)
+        leave(world, a)
 
 
 def test_open_pvp_is_outside_towns_within_a_level_gap_and_never_a_party(world):
@@ -971,8 +1109,13 @@ def test_building_uses_materials_and_is_shared(world):
     m = a.cur_map
     assert not a.build(6, 6, "Plank001")                          # no planks
     stock(a, Plank=30, Nails=60)
+    xp = a.skill_xp_of("Homesteading")
     assert a.build(6, 6, "Plank001")
     assert a.items_held("Plank") == 29 and m.tile[m.cell(6, 6)] == "Plank001"
+    plank, xp = a.skill_xp_of("Homesteading") - xp, a.skill_xp_of("Homesteading")
+    for piece in ("Grass001", "Dirt001", "Grass001", "Plank001"):
+        assert a.build(6, 6, piece)                               # (grass over the planks, dirt over it...)
+    assert abs(a.skill_xp_of("Homesteading") - xp - plank) < 1e-9  # (only the planks taught anything)
     assert not a.build(6, 6, "Stone_Wall001")                     # Homesteading too low
     assert not b.build(7, 6, "Plank001")                          # not their home
     assert not a.build(*world.homes.arrival, "Plank001")          # where the anchor puts you down
@@ -1001,11 +1144,13 @@ def test_homes_are_saved_and_come_back(world):
     hold_pocket(world, a)
     assert a.build(8, 8, "Home_Chest") and a.build(9, 8, "Timber001")
     saved = world.homes.state()
+    saved["Keeper"]["cells"]["10,9"] = {"under": "Rug001"}         # (a rug, laid under the furniture)
     leave(world, a)
     w2 = World(ROOT)
     w2.homes.load(saved)
     m = w2.homes.map_of("Keeper")
     assert m.tile[m.cell(9, 8)] == "Timber001"
+    assert m.under[m.cell(10, 9)] == "Rug001" and w2.homes.state()["Keeper"]["cells"]["10,9"] == {"under": "Rug001"}
     assert w2.homes.object_at(m, 8, 8).name == "Home_Chest"
     s = Session(w2, "Other")
     s.load_state({"map": m.name, "x": 384, "y": 536})             # logged out in a home that's closed to them
@@ -1199,6 +1344,34 @@ def test_the_market_is_one_for_everyone(world):
     assert seller.items_held("Gold_Coin(s)") == gold + 28 and world.market.purses["Seller"] == 0
     leave(world, seller)
     leave(world, buyer)
+
+
+def test_a_market_click_buys_the_listing_clicked_though_the_board_changed_under_it(world):
+    board = next(e for e in world.ents if e.name == "Market_Board")
+    m = world.maps[board.map]
+    keep = list(world.market.listings)
+    world.market.listings[:] = []
+    world.market.add("Stallholder", "Apple", 3, 4, 0)
+    world.market.add("Stallholder", "Bread", 3, 4, 0)
+    buyer = join(world, "Clicker", m.name, int(board.x - m.ox), int(board.y - m.oy + 40))
+    try:
+        stock(buyer, **{"Gold_Coin(s)": 100})
+        buyer.do_action("Trade", board)
+        box = buyer.box_state()
+        apple = box["ids"][0]
+        assert [world.market.listing(i)["item"] for i in box["ids"]] == ["Apple", "Bread"]
+        world.market.remove(world.market.listing(apple))            # (bought up by another as this one clicks)
+        buyer.show_market()                                         # (the board re-sent: Bread is first now)
+        buyer.handle({"t": "verb", "verb": "Buy 1", "target": {"k": "rack", "i": 0, "id": apple}, "price": 4,
+                      "x": buyer.player.cx, "y": buyer.player.cy})
+        assert buyer.items_held("Bread") == 0 and buyer.items_held("Gold_Coin(s)") == 100   # (not the Bread)
+        bread = buyer.box_state()["ids"][0]
+        buyer.handle({"t": "verb", "verb": "Buy 1", "target": {"k": "rack", "i": 0, "id": bread}, "price": 4,
+                      "x": buyer.player.cx, "y": buyer.player.cy})
+        assert buyer.items_held("Bread") == 1
+    finally:
+        leave(world, buyer)
+        world.market.listings[:] = keep
 
 
 def test_old_stalls_become_listings():
@@ -1686,27 +1859,32 @@ def test_frost_nova_freezes_the_foes_round_you_but_not_a_boss(world):
     far = world.add_npc("Wolf", 0, m.ox + 22 * 32, m.oy + 18 * 32, "Attitude=Bad")
     for e in wolves + [boss, far]:
         e.hp = e.max_hp = 500                                      # (alive after the blast)
-    a.out = []
-    shards = a.shards()
-    a.handle({"t": "cast", "spell": "Frost_Nova"})                 # (from Channeling)
-    assert a.shards() == shards - a.spell_cost("Frost_Nova")
-    assert all(w.hp < 500 and w.frozen_until for w in wolves)       # (hurt, and held in the ice)
-    assert boss.hp < 500 and boss.frozen_until is None              # (hurt, but no ice holds it)
-    assert far.hp == 500 and far.frozen_until is None               # (too far off)
-    assert any("2 foes are frozen" in str(e.get("text", "")) for e in a.out)
-    w = wolves[0]
-    where = (w.x, w.y)
-    for _ in range(40):                                             # (two seconds: it neither moves nor fights)
-        world.tick(0.05, now=world.now + 50)
-    assert (w.x, w.y) == where and a.player.hp == a.player_max_hp
-    from dsengine.view import entity_state
-    assert entity_state(world, w, a)["fz"] == 1
-    for _ in range(80):                                             # (five seconds on, it thaws)
-        world.tick(0.05, now=world.now + 50)
-    assert w.frozen_until is None and entity_state(world, w, a)["fz"] == 0
-    for e in wolves + [boss, far]:
-        world.remove_entity(e)
-    leave(world, a)
+    try:
+        a.out = []
+        shards = a.shards()
+        a.handle({"t": "cast", "spell": "Frost_Nova"})                 # (from Channeling)
+        assert a.shards() == shards - a.spell_cost("Frost_Nova")
+        assert all(w.hp < 500 and w.frozen_until for w in wolves)       # (hurt, and held in the ice)
+        assert boss.hp < 500 and boss.frozen_until is None              # (hurt, but no ice holds it)
+        assert far.hp == 500 and far.frozen_until is None               # (too far off)
+        assert any("2 foes are frozen" in str(e.get("text", "")) for e in a.out)
+        for e in (boss, far):                                           # (unfrozen, they'd come at you: only the ice is watched)
+            world.remove_entity(e)
+        w = wolves[0]
+        where = (w.x, w.y)
+        for _ in range(40):                                             # (two seconds: it neither moves nor fights)
+            world.tick(0.05, now=world.now + 50)
+        assert (w.x, w.y) == where and a.player.hp == a.player_max_hp
+        from dsengine.view import entity_state
+        assert entity_state(world, w, a)["fz"] == 1
+        for _ in range(80):                                             # (five seconds on, it thaws)
+            world.tick(0.05, now=world.now + 50)
+        assert w.frozen_until is None and entity_state(world, w, a)["fz"] == 0
+    finally:                                                        # (none left behind for the tests after, on this map)
+        for e in wolves + [boss, far]:
+            if e in world.ents:
+                world.remove_entity(e)
+        leave(world, a)
 
 
 def test_arrows_need_feathers_and_hens_drop_them(world):
@@ -2170,6 +2348,8 @@ def test_townsfolk_climb_ladders_and_roam_a_zone_on_two_floors(world):
     went_up = came_down = False
     try:
         for _ in range(8000):
+            if went_up and e.z == 1:                  # (beside it as it roams up there: never out of sight, so never just put down)
+                world.set_entity_position(s.player, e.x, e.y + e.h - s.player.h)
             world.tick(0.05, now=world.now + 50)
             if e.z == 1:
                 if not went_up:                       # (up after it: by the hatch, to see it come back down)
@@ -2462,7 +2642,7 @@ def test_leading_the_watch_into_the_camp_and_the_tide_turns(world):
     assert s.get_attribute("TideQuest") == "3" and s.items_held("Gold_Coin(s)") == gold + 80
     s.out = []
     smugglers_talk(world, s, "Watch_Quartermaster", 1)              # (the watch's stores, open to you)
-    assert "SHOP-Watch" in str(s.out) or "Steel_Platebody" in str(s.out)
+    assert "SHOP-Watch" in str(s.out)
     leave(world, s)
 
 
@@ -3250,30 +3430,42 @@ def story_done_before(s, chapter):
 def test_only_the_sword_of_valour_kills_galaiths_dragon(world):
     s = join(world, "Slayer", "-3,14,0", 10 * 32, 11 * 32)
     s.god_mode = 1
-    dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
-    s.damage_npc(dragon, dragon.hp + 100)
-    assert dragon.alive and dragon.hp == 1                          # (any other blade can't reach its heart)
-    stock(s, Sword_of_Valour=1)
-    s.equipped[s.equip_slot_index("Weapon")] = "Sword_of_Valour"
-    s.damage_npc(dragon, 100)
-    assert not dragon.alive
-    leave(world, s)
+    dragon_back(world)
+    try:
+        dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
+        s.damage_npc(dragon, dragon.hp + 100)
+        assert dragon.alive and dragon.hp == 1                      # (any other blade can't reach its heart)
+        stock(s, Sword_of_Valour=1)
+        s.equipped[s.equip_slot_index("Weapon")] = "Sword_of_Valour"
+        s.damage_npc(dragon, 100)
+        assert not dragon.alive
+    finally:
+        dragon_back(world)
+        leave(world, s)
 
 
 def test_the_woken_sword_kills_galaiths_dragon_too(world):
     s = join(world, "Waker", "-3,14,0", 10 * 32, 11 * 32)
     s.god_mode = 1
-    for i, entry in enumerate(world.action_queue):                  # (back from the last test's death, now)
-        bits = entry.split("	")
-        if bits[1] == "Galaith_Dragon":
-            world.action_queue[i] = "	".join(bits[:7] + ["0"] + bits[8:])
+    dragon_back(world)                                              # (if a test before killed it)
+    try:
+        dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
+        stock(s, Woken_Sword_of_Valour=1)
+        s.equipped[s.equip_slot_index("Weapon")] = "Woken_Sword_of_Valour"
+        s.damage_npc(dragon, dragon.hp + 100)
+        assert not dragon.alive                                      # (Slain.By: a list)
+    finally:
+        dragon_back(world)                                          # (alive again for the tests after)
+        leave(world, s)
+
+
+def dragon_back(world):
+    """Galaith's dragon back now, if it's dead and waiting to come back."""
+    for i, entry in enumerate(world.action_queue):
+        bits = entry.split("\t")
+        if len(bits) > 7 and bits[1] == "Galaith_Dragon":
+            world.action_queue[i] = "\t".join(bits[:7] + ["0"] + bits[8:])
     world.run_action_queue()
-    dragon = next(e for e in world.ents if e.name == "Galaith_Dragon" and e.alive)
-    stock(s, Woken_Sword_of_Valour=1)
-    s.equipped[s.equip_slot_index("Weapon")] = "Woken_Sword_of_Valour"
-    s.damage_npc(dragon, dragon.hp + 100)
-    assert not dragon.alive                                          # (Slain.By: a list)
-    leave(world, s)
 
 
 def test_bert_takes_the_ring_off_your_finger_and_gives_back_one_staff(world):
@@ -4356,8 +4548,10 @@ def test_an_old_dungeons_trap_springs_then_rests(world):
     s.world_trap("Darts", m, 5, 5)
     assert s.player.hp == hp                                        # (resting)
     world.tick(0.05, now=world.now + 601000)
+    s.update_skill("Channeling", "=5")
     s.world_trap("Pie", m, 5, 5)
-    assert s.skill_level("Magic") == max(0, s.base_skill_level("Magic") - 1) or s.skill_boosts
+    assert s.skill_boosts["CHANNELING"]["n"] == -1                  # (custard in the eyes: Channeling down a while)
+    assert s.skill_level("Channeling") == 4
     leave(world, s)
 
 
@@ -4638,8 +4832,9 @@ def test_enchanting_binds_a_rare_shard_into_gear(world):
     a.action_box_response_chosen(1)
     assert a.items_held("Iron_Sword") == 1 and any(e.get("name") == "Denied" for e in a.out)   # (Shardcraft 4)
     a.update_skill("Shardcraft", "=4")
+    a.out = []
     a.do_action("Enchant", next(e for e in a.inv if e.name == "Ward_Shard"))
-    assert not a.ab_mode or not any("Sword" in r for r in a.responses)   # (a ward shard won't take to a blade)
+    assert not a.ab_mode and "nothing in your pack the ward shard will bind to" in str(a.out)  # (not to a blade)
     a.close_action_box(-1)
     shards = a.shards()
     a.do_action("Enchant", ember)
@@ -4651,7 +4846,7 @@ def test_enchanting_binds_a_rare_shard_into_gear(world):
     base = int(a.entity_ini("Iron_Sword", "Attack", "0"))
     assert int(a.entity_ini(it.name, "Attack", "0")) == base + 2
     a.equip_item(it)
-    assert a.worn_items() == [] or "Iron_Sword" in a.worn_items()   # (drawn as the sword it was)
+    assert "Iron_Sword" in a.worn_items() and it.name not in a.worn_items()     # (drawn as the sword it was)
     assert a.dismantle_worth("Emberbound_Iron_Sword") > 0 and a.rare_shard_for("Emberbound_Iron_Sword") == ""
     leave(world, a)
 
@@ -5268,9 +5463,9 @@ def test_a_lookout_turns_to_what_it_hears_and_a_sneak_attack_hits_hard(world):
     s.handle({"t": "stance", "stance": "Sneaking"})
     run_for(world, 25)
     s.player_moved = True
-    if s.noise_radius() < 70:                                       # (sneaking: too soft to hear)
-        world.npc_listen(guard, guard.ai, s, 70)
-        assert guard.direction == 2
+    assert s.noise_radius() < 70                                    # (sneaking: too soft to hear)
+    world.npc_listen(guard, guard.ai, s, 70)
+    assert guard.direction == 2
     assert s.unseen_by(guard)
     hp = guard.hp
     s.player_strike(guard, False)
@@ -5410,10 +5605,9 @@ def test_stolen_goods_stay_marked_wherever_they_go(world):
     hot = next(e for e in s.inv if e.name == "Silver_Ring" and e.stolen)
     s.equip_item(hot)
     ring = s.item_equip_slot("Silver_Ring")
-    if ring:
-        assert s.equip_stolen[ring]
-        s.unequip_slot(ring)
-        assert s.items_held("Silver_Ring", True) == 2 and not s.equip_stolen[ring]
+    assert ring and s.equip_stolen[ring]
+    s.unequip_slot(ring)
+    assert s.items_held("Silver_Ring", True) == 2 and not s.equip_stolen[ring]
     # (given away)
     b = join(world, "Receiver")
     try:
@@ -5678,6 +5872,10 @@ def test_jimmy_comes_along_and_a_sellsword_can_be_hired(world):
         stock(s, **{"Gold_Coin(s)": 30})
         s.do_action("Hire", sword)
         assert any(getattr(e, "comp_kind", "") == "Sellsword" for e in s.companions())
+        gold = s.items_held("Gold_Coin(s)")
+        s.do_action("Hire", sword)                                  # (one's with you: the gold stays yours)
+        assert s.items_held("Gold_Coin(s)") == gold
+        assert sum(getattr(e, "comp_kind", "") == "Sellsword" for e in s.companions()) == 1
         world.remove_entity(jimmy)
     finally:
         leave(world, s)
@@ -5758,7 +5956,14 @@ def test_a_trade_changes_hands_when_both_accept(world):
         assert not a.trade["ok"]["Trader_A"]
         b.trade_msg({"do": "accept"})
         assert a.trade                                              # (only b has accepted)
-        a.trade_msg({"do": "accept"})
+        seen = a.trade["v"]
+        b.trade_msg({"do": "back", "item": "Gold_Coin(s)"})         # (b takes the gold back as a's accept is sent...)
+        b.trade_msg({"do": "accept"})
+        a.trade_msg({"do": "accept", "v": seen})                    # (...and that accept was for the gold: nothing)
+        assert a.trade and not a.trade["ok"]["Trader_A"]
+        b.trade_msg({"do": "add", "item": "Gold_Coin(s)", "n": 25})
+        b.trade_msg({"do": "accept"})
+        a.trade_msg({"do": "accept", "v": a.trade["v"]})
         assert a.trade is None and b.trade is None
         assert a.items_held("Bread") == 0 and b.items_held("Bread") == bread_b + 2
         assert a.items_held("Gold_Coin(s)") == gold_a + 25
@@ -6140,6 +6345,14 @@ def test_the_cold_bites_unless_youre_warm(world):
     m, tx, ty = spot
     s = join(world, "Shiverer", m.name, (tx - 1) * 32, (ty - 1) * 32 - 12)
     assert s.cold_ground() and not s.warm()
+    s.drop_on_floor("Fire_Bolt_Scroll", 1)                         # (a scroll's name isn't a fire)
+    scroll = next(e for e in world.ents if e.name == "Fire_Bolt_Scroll" and e.z == s.player.z and
+                  abs(e.cx - s.player.cx) < 64 and abs(e.cy - s.player.cy) < 64)
+    assert not s.warm()
+    world.remove_entity(scroll)
+    fire = world.add_entity_of_type("StaticObject", "Fire", s.player.z, s.player.x + 40, s.player.y, "")
+    assert s.warm()                                                # (a fire is)
+    world.remove_entity(fire)
     hp = s.player.hp = s.player_max_hp
     s.cold_since = world.now - 60000                               # (out in it a while)
     s.cold_at = s.cold_next = 0
@@ -6731,11 +6944,10 @@ def test_no_shards_from_gear_too_cheap_to_hold_magic(world):
 def test_a_dead_creature_isnt_killed_twice(world):
     s = join(world, "Twice")
     g = world.add_npc("Goblin", 0, s.player.x + 40, s.player.y, "Attitude=Bad", "Bad")
-    queued = len(world.action_queue)
     s.damage_npc(g, 999)
-    after = len(world.action_queue)
+    after = list(world.action_queue)
     s.damage_npc(g, 999)
-    assert len(world.action_queue) == after and after >= queued    # (one death, one respawn)
+    assert not g.alive and world.action_queue == after             # (one death: what it dropped is cleared once)
     leave(world, s)
 
 
@@ -7626,7 +7838,6 @@ def test_more_kills_leave_or_raise_a_shard_remnant(world):
 
 def test_an_encounter_comes_round_on_its_own(world):
     enc = world.encounters
-    enc.settings["on"] = "1"
     m = wild_spot(world)
     s = join(world, "Wanderer", m.name, 13 * 32, 11 * 32)
     s.update_attribute("Passage", "=5")
@@ -7634,8 +7845,12 @@ def test_an_encounter_comes_round_on_its_own(world):
     before = set(enc.running)
     enc.next_for[s.player_name] = world.now - 1
     enc.last_check = world.now - 5000
-    enc.tick()
-    enc.settings["on"] = "0"
+    was = enc.settings.get("on")
+    enc.settings["on"] = "1"
+    try:
+        enc.tick()
+    finally:
+        enc.settings["on"] = was if was is not None else "0"     # (a throw mustn't leave them on for every later test)
     new = set(enc.running) - before
     assert len(new) == 1
     for u in new:
@@ -7783,7 +7998,7 @@ def test_galaiths_gardener_and_sexton_go_home_at_night(world):
     m = world.maps[gardener.map]
     bx, by = gardener.ai.bed
     assert m.decor[m.cell(int((bx - m.ox) // 32) + 1, int((by - m.oy) // 32) + 1)] == "Bed001"
-    assert not sexton.active or sexton.ai.home is None         # (his house is elsewhere now: off by the nearest door)
+    assert not sexton.active                                   # (his house is elsewhere now: off by the nearest door)
     world.set_day_fraction(0.4)
     run_for(world, 2400)
     assert not gardener.ai.asleep and gardener.active
@@ -7904,7 +8119,9 @@ def test_townsfolk_have_something_to_say_about_a_chicken_in_boots(world):
     assert s.player_form() == "Chicken" and ban.applies("Chicken", s) and ban.applies("Form", s)
     r = ban.roll(s)
     assert r is not None and r["b"] is None and r["d"]["b"] == "Player"
-    assert "chicken" in r["d"]["lines"][0][1].lower() or "Bird" in r["d"]["lines"][0][1] or "different" in r["d"]["lines"][0][1]
+    assert r["d"]["lines"][0][1] in ("Is that chicken wearing boots?",            # (Banter.ini's You_Chicken,
+                                     "You. Bird. Move along.",                    # You_Chicken_Guard, by a guard,
+                                     "You look different today. Have you done something?")   # or You_Form)
     ban.running.remove(r)
     world.remove_entity(a)
     world.remove_entity(b)
@@ -8052,6 +8269,8 @@ def dark_mage(world, s, dist=40):
     """A Dark Mage in the open on the Barrow's field, fighting s, dist from them."""
     e = next(x for x in world.ents if x.name == "Dark_Mage" and x.map == "21,19,0")
     p = s.player
+    if not hasattr(e, "test_home"):
+        e.test_home = (e.x, e.y)                                # (mage_back puts it there again)
     world.set_entity_position(e, p.cx + dist - e.w / 2, p.cy - e.h / 2)
     world.npc_start_fight(e, e.ai, s, dist)
     e.frozen_until = None
@@ -8061,9 +8280,24 @@ def dark_mage(world, s, dist=40):
     return e
 
 
+def mage_back(world, e, s):
+    """The Dark Mage dark_mage moved, back where it stood and out of the fight, and s gone."""
+    e.frozen_until = None
+    world.npc_give_up(e, e.ai)
+    world.set_entity_position(e, *e.test_home)
+    leave(world, s)
+
+
 def test_a_dark_mage_jumps_away_when_you_come_near_and_is_held_by_ice(world):
     s = join(world, "MageHunter", "21,19,0", 18 * 32, 8 * 32)
     e = dark_mage(world, s)
+    try:
+        held_by_ice(world, s, e)
+    finally:
+        mage_back(world, e, s)
+
+
+def held_by_ice(world, s, e):
     a = e.ai
     old = (e.cx, e.cy)
     assert world.npc_blink(e, a, s, 40)                         # (too close: gone)
@@ -8086,24 +8320,22 @@ def test_a_dark_mage_jumps_away_when_you_come_near_and_is_held_by_ice(world):
     at = (e.x, e.y)
     world.tick(0.05)
     assert (e.x, e.y) == at
-    e.frozen_until = None
-    world.npc_give_up(e, a)
-    leave(world, s)
 
 
 def test_a_dark_mage_never_lands_where_it_cant_be_reached(world):
     s = join(world, "MageHunter2", "21,19,0", 18 * 32, 8 * 32)
     e = dark_mage(world, s)
-    a, p = e.ai, s.player
-    here = world.grid_region_at(e.z, e.fx, e.fy)
-    for _ in range(60):
-        spot = world.npc_blink_spot(e, a, p)
-        if spot is None:
-            continue
-        assert world.pixel_walkable(e.z, *spot) and world.in_chase_area(a, *spot)
-        assert world.grid_region_at(e.z, *spot) == here
-    world.npc_give_up(e, a)
-    leave(world, s)
+    try:
+        a, p = e.ai, s.player
+        here = world.grid_region_at(e.z, e.fx, e.fy)
+        for _ in range(60):
+            spot = world.npc_blink_spot(e, a, p)
+            if spot is None:
+                continue
+            assert world.pixel_walkable(e.z, *spot) and world.in_chase_area(a, *spot)
+            assert world.grid_region_at(e.z, *spot) == here
+    finally:
+        mage_back(world, e, s)
 
 
 def test_every_dark_mage_stands_on_open_ground(world):
@@ -8531,8 +8763,9 @@ def test_winter_ice_is_thin_and_cracked_and_never_walked_on(world):
 
 
 def test_a_blaze_warms_you_like_any_fire(world):
-    from dsengine.cold import FIRES
-    assert "Blaze" in FIRES
+    s = join(world, "Warmed")
+    assert s.is_fire("Blaze") and s.is_fire("Campfire001", True) and not s.is_fire("Ranger")
+    leave(world, s)
     f = [ln for ln in open(os.path.join(ROOT, "maps", "-4,14,0.txt"), encoding="cp1252").read().splitlines() if "\tBlaze\t" in ln]
     assert all("Gone.After=GuardQuest:5" in ln for ln in f)            # (a player's own to see go out)
 
@@ -10370,3 +10603,392 @@ def test_lightning_leaps_on_to_the_foes_near_the_one_it_hits(world):
     for w in wolves:
         world.remove_entity(w)
     leave(world, a)
+
+
+def test_a_verb_queued_on_a_far_tile_waits_for_the_walk_there(world):
+    """A second click with nothing to act on moves the cursor, never the queued verb's tile (no hatch from afar)."""
+    m = world.maps["-10,13,0"]
+    hx, hy = m.ox + 19 * 32 + 16, m.oy + 4 * 32 + 16                  # (the hatch at 20,5)
+    s = join(world, "FarHatch", "-10,13,0", 4 * 32, 16 * 32)
+    try:
+        done = []
+        s.do_action = lambda verb, e: done.append(verb)
+        e = s.tile_entity_at(hx, hy)
+        assert "Climb Down" in s.get_verbs(e)
+        s.choose_verb("Climb Down", e, hx, hy)
+        assert s.pending_verb == "Climb Down" and not done
+        s.handle({"t": "verb", "verb": "Climb Down"})                # (no target: the cursor on the player)
+        world.tick(0.05)
+        assert not done and s.pending_verb == "Climb Down"           # (still walking there)
+        assert (s.player_walk_x, s.player_walk_y) == (hx, hy)
+        s.spells_known["Fire_Bolt"] = 1
+        cast = []
+        s.cast_spell = lambda spell, target: cast.append(target)
+        s.handle({"t": "cast", "spell": "Fire_Bolt", "target": {"k": "tile"}, "x": s.player.cx + 10 * s.sw,
+                  "y": s.player.cy})
+        assert not cast and abs(s.script_cursor_x - s.player.cx) <= 3 * s.sw     # (a cast's click is bounded too)
+    finally:
+        leave(world, s)
+
+
+def test_a_monster_comes_back_though_one_of_its_kind_is_passing_its_spot(world):
+    m = world.maps["0,0,0"]
+    gx, gy = m.ox + 200, m.oy + 200
+    passer = world.add_npc("Wolf", m.mz, gx + 300, gy, "")          # (from elsewhere...)
+    try:
+        passer.x, passer.y = gx + 4, gy                              # (...standing on the dead one's spot)
+        world.action_queue.append("ADD\tWolf\tNPC\t-\t0,0,0\t200,200\t1\t0")
+        world.run_action_queue()
+        back = [e for e in world.ents if e.name == "Wolf" and e.alive and e.orig_x == gx and e.orig_y == gy]
+        assert len(back) == 1 and not any(q.startswith("ADD\tWolf\tNPC\t-\t0,0,0\t200,200\t") for q in world.action_queue)
+        world.action_queue.append("ADD\tWolf\tNPC\t-\t0,0,0\t200,200\t1\t0")
+        world.run_action_queue()                                     # (one already there, from its own spot: no twin)
+        assert len([e for e in world.ents if e.name == "Wolf" and e.alive and e.orig_x == gx]) == 1
+    finally:
+        for e in [e for e in world.ents if e.name == "Wolf" and (e is passer or e.orig_x == gx)]:
+            world.remove_entity(e)
+
+
+def test_a_monster_shot_from_beyond_its_chase_area_comes_for_you_anyway(world):
+    s = join(world, "Kiter", "0,0,0", 300, 300)
+    p = s.player
+    bear = world.add_npc("Bear", p.z, p.x + 230, p.y, "")
+    try:
+        a = bear.ai
+        a.chase = (bear.fx - 60, bear.fy - 60, bear.fx + 60, bear.fy + 60)     # (a small chase area: you're outside it)
+        bear.hp = bear.max_hp = 10 ** 6
+        s.update_attribute("Kiter_Test", "=1")
+        s.spells_known["Fire_Bolt"] = 1
+        s.spell_roll = lambda text: 1
+        s.spell_hit("Fire_Bolt", bear)
+        assert bear.in_combat and bear.target is s
+        far = distance(p.cx, p.cy, bear.cx, bear.cy)
+        for _ in range(60):
+            world.tick(0.05, now=world.now + 50)
+        assert bear.in_combat and distance(p.cx, p.cy, bear.cx, bear.cy) < far - 60    # (on its way: no free kill)
+        for _ in range(int(16000 / 50)):                             # (no more blows, and the player far off...)
+            p.x, p.y = bear.x - 230, bear.y
+            world.tick(0.05, now=world.now + 50)
+            if not bear.in_combat:
+                break
+        assert not bear.in_combat                                    # (...it gives up in the end, as before)
+    finally:
+        world.remove_entity(bear)
+        leave(world, s)
+
+
+def test_dice_winnings_wait_for_a_winner_who_left_before_the_roll(world, monkeypatch):
+    from dsengine import tavern
+    s = join(world, "Gambler", "1,1,0", 300, 300)
+    try:
+        monkeypatch.setattr(tavern.random, "randint", lambda a, b: 6)   # (everyone throws sixes: a tie, pot shared)
+        r = {"stake": 10, "players": ["Gambler", "Gone_Gambler"], "ends": 0, "map": "1,1,0", "table": "t"}
+        gold = s.items_held("Gold_Coin(s)")
+        world.tavern.roll(r)
+        assert s.items_held("Gold_Coin(s)") == gold + 10 and world.together.owed["Gone_Gambler"] == 10
+        assert world.together.state()["owed"] == {"Gone_Gambler": 10}
+        back = join(world, "Gone_Gambler", "1,1,0", 320, 300)          # (back again: paid)
+        assert back.items_held("Gold_Coin(s)") >= 10 and "Gone_Gambler" not in world.together.owed
+        leave(world, back)
+    finally:
+        world.together.owed.pop("Gone_Gambler", None)
+        leave(world, s)
+
+
+def test_the_bounty_day_turns_at_midnight_utc(monkeypatch):
+    import time as time_mod
+    from dsengine import together
+    monkeypatch.setattr(together.time, "time", lambda: 1767225599.0)     # (2025-12-31 23:59:59 UTC)
+    real = time_mod.localtime
+    monkeypatch.setattr(together.time, "localtime", lambda t=None: real(1767225599.0 + 6 * 3600))  # (a clock ahead)
+    assert together.today() == 20251231
+
+
+def test_a_dropped_thing_keeps_its_wear_and_its_mark_through_a_restart(world):
+    s = join(world, "Dropper", "0,0,0", 300, 300)
+    try:
+        s.add_inventory_item("Iron_Sword", 1, 7, quiet=True, stolen=True)
+        e = next(i for i in s.inv if i.name == "Iron_Sword")
+        s.drop_inventory_item(e, 1)
+        entry = next(q for q in world.action_queue if q.startswith("REMOVE\tIron_Sword\t"))
+        assert "Wear=7" in entry and "Stolen=1" in entry
+        item = next(i for i in world.ents if i.name == "Iron_Sword" and i.source == "DROPPED" and i.alive)
+        world.remove_entity(item)                                   # (as after a restart: back from the queue)
+        world.apply_saved_queue()
+        back = next(i for i in world.ents if i.name == "Iron_Sword" and i.source == "DROPPED" and i.alive)
+        assert back.wear == 7 and back.stolen
+        world.remove_entity(back)
+        world.action_queue.remove(entry)
+        k = next(i for i in range(1, world.data.equip_slots + 1) if s.item_equip_slot("Iron_Sword") != i)
+        s.equipped[k], s.equip_wear[k], s.equip_stolen[k] = "Iron_Sword", 5, True     # (saved in a slot it can't go)
+        s.check_saved_equipment()
+        got = next(i for i in s.inv if i.name == "Iron_Sword")
+        assert got.wear == 5 and got.stolen and s.equip_wear[k] == 0 and not s.equipped[k]
+    finally:
+        leave(world, s)
+
+
+def test_back_in_the_deep_after_it_shifted_you_are_by_the_stairs_not_in_rock(world):
+    world.deep.make(5150)
+    fl = world.deep.floors[1]
+    m = world.maps[fl["map"]]
+    s = join(world, "Delver3", fl["map"], *fl["up"])
+    st = s.save_state()
+    assert st["deep_seed"] == 5150
+    leave(world, s)
+    world.deep.make(5151)                                           # (shifted while they were away)
+    back = Session(world, "Delver3")
+    back.load_state(dict(st, x=4, y=4))                             # (the old spot: rock now, maybe)
+    world.sessions["Delver3"] = back
+    try:
+        back.enter_world()
+        f1 = world.deep.floors[0]
+        assert back.cur_map.name == f1["map"]
+        assert abs(back.player.x - (world.maps[f1["map"]].ox + f1["up"][0])) < 2
+        st = back.save_state()
+        assert any("shifted" in str(ev) for ev in back.out)
+        leave(world, back)
+        again = Session(world, "Delver3")                            # (not shifted since: where they were)
+        again.load_state(dict(st))
+        world.sessions["Delver3"] = again
+        again.enter_world()
+        assert again.cur_map.name == st["map"] and not any("shifted" in str(ev) for ev in again.out)
+        leave(world, again)
+    finally:
+        world.sessions.pop("Delver3", None)
+    assert m.name == fl["map"]
+
+
+def test_god_mode_is_one_admins_own_and_never_written_to_the_data(world):
+    cfg = open(world.data.config_path, "rb").read()
+    a = join(world, "Overseer2")
+    a.admin_enabled = True
+    b = join(world, "Overseer3")
+    b.admin_enabled = True
+    try:
+        for s in (a, b):
+            s.enter_world()                                             # (as admins come in: Config.ini's to start)
+            assert s.god_mode == world.data.god_mode_setting()
+        a.admin_command({"do": "god", "on": not a.god_mode})
+        assert a.god_mode != b.god_mode                                 # (one admin's switch is theirs alone)
+        assert open(world.data.config_path, "rb").read() == cfg         # (and nothing written to the data)
+        st = a.save_state()
+        leave(world, a)
+        a = Session(world, "Overseer2", admin=True)
+        a.load_state(st)
+        world.sessions["Overseer2"] = a
+        a.enter_world()
+        assert a.god_mode == st["god"] != b.god_mode                    # (kept with the character)
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_editor_never_writes_over_a_file_changed_on_disk(tmp_path):
+    """Code Issues 34, 35 and 37: an ini changed on disk since the editor read it is read again and the editor's changes
+    made to it (a New, Rename or Delete too); a map or script changed so isn't written over unless asked; files are
+    written whole and then put in place; a character cp1252 hasn't is said, never saved as "?"; a UTF-8 file with a BOM
+    reads as itself; a script line with no tabs and a coordinate that isn't a number are kept as they were; Carts.ini
+    keeps a comment in a route and reads LF ends."""
+    import types
+    from dsedit.project import IniDoc, ScriptDoc, MapDoc, Entity, ChangedOnDisk, Unsavable, write_text_lines
+    from dsedit.carts import CartRoutes
+
+    def disk(path, text):
+        open(path, "wb").write(text.encode("cp1252"))
+        st = os.stat(path)
+        os.utime(path, ns=(st.st_atime_ns, st.st_mtime_ns + 5 * 10 ** 9))     # (a stamp of its own, however quick)
+
+    ini = str(tmp_path / "Things.ini")
+    disk(ini, "[A]\r\nX=1\r\n")
+    doc = IniDoc(ini)
+    doc.set("A", "Y", "2")
+    doc.add_section("New")
+    doc.set("New", "Z", "3")
+    disk(ini, "[A]\r\nX=1\r\nFrom=the builder\r\n[B]\r\nW=4\r\n")                # (a builder ran meanwhile)
+    doc.save()
+    back = IniDoc(ini)
+    assert back.get("A", "From") == "the builder" and back.get("B", "W") == "4"    # (theirs kept)
+    assert back.get("A", "Y") == "2" and back.get("New", "Z") == "3"               # (and ours made to it)
+    disk(ini, open(ini, "rb").read().decode("cp1252") + "[C]\r\nV=5\r\n")
+    doc.remove_section("B")                                                         # (a Delete, the page's own save)
+    doc.save()
+    assert IniDoc(ini).get("C", "V") == "5" and not IniDoc(ini).has_section("B")
+    doc.restore(doc.snapshot())                                                     # (an undo: what changed isn't known)
+    disk(ini, "[A]\r\nX=9\r\n")
+    with pytest.raises(ChangedOnDisk):
+        doc.save()
+    doc.save(over=True)
+    assert IniDoc(ini).get("C", "V") == "5"
+    assert not os.path.exists(ini + ".part")                                        # (written whole, then put in place)
+    doc.set("A", "Name", "Łódź")
+    with pytest.raises(Unsavable):
+        doc.save()
+    assert IniDoc(ini).get("A", "Name") == ""
+    bom = str(tmp_path / "Bom.ini")
+    open(bom, "wb").write(b"\xef\xbb\xbf[A]\r\nWord=caf\xc3\xa9\r\n")
+    b = IniDoc(bom)
+    assert b.get("A", "Word") == "café"
+    b.set("A", "More", "1")
+    b.save()
+    assert open(bom, "rb").read() == b"[A]\r\nWord=caf\xe9\r\nMore=1\r\n"             # (cp1252 now, nothing garbled)
+
+    project = types.SimpleNamespace(map_w=2, map_h=1, map_path=lambda n: str(tmp_path / ("%s.txt" % n)),
+                                    script_path=lambda n: str(tmp_path / ("Script %s.txt" % n)),
+                                    p=lambda *a: str(tmp_path.joinpath(*a)))
+    script = project.script_path("x")
+    disk(script, "01\tSay\tHello\r\nAn old note\r\n02\tSay\tBye\r\n")
+    s = ScriptDoc(project, "x")
+    assert [l.comment for l in s.lines] == [None, " An old note", None]            # (kept, as a comment)
+    s.lines[0].args = ["Hi"]
+    disk(script, "01\tSay\tChanged elsewhere\r\n")
+    with pytest.raises(ChangedOnDisk):
+        s.save()
+    assert "elsewhere" in open(script, "rb").read().decode("cp1252")
+    s.save(over=True)
+    assert open(script, "rb").read() == b"01\tSay\tHi\r\n// An old note\r\n02\tSay\tBye\r\n"
+    mp = project.map_path("1,1,0")
+    disk(mp, "Grass001:Grass001\r\nNPC\tCat\tsixty\t32\t\r\n")
+    m = MapDoc(project, "1,1,0")
+    assert m.entities[0].raw == "NPC\tCat\tsixty\t32\t"                                # (not a number: kept, never 0)
+    assert Entity.parse("NPC\tCat\t64\t32\t").x == 64
+    m.save()                                                                         # (unchanged on disk: fine)
+    disk(mp, "Water001:Water001\r\n")
+    with pytest.raises(ChangedOnDisk):
+        m.save()
+
+    os.makedirs(tmp_path / "data")
+    carts = str(tmp_path / "data" / "Carts.ini")
+    open(carts, "wb").write(b"; carts\n\n[Road]\n; the old road\nTitle=Road\nPoint1=1,1,0,3,4,Inn\nPoint2=1,1,0,5,4\n")
+    cr = CartRoutes(project)
+    road = cr.named("Road")
+    assert road and len(road.points) == 2 and road.notes == ["; the old road"]       # (LF ends read; its comment kept)
+    road.set("Fare", "3")
+    cr.dirty = True
+    cr.save()
+    text = open(carts, "rb").read()
+    assert b"; the old road\r\n" in text and b"Fare=3\r\n" in text
+    disk(carts, text.decode("cp1252") + "[Other]\r\nTitle=Other\r\n")
+    cr.dirty = True
+    with pytest.raises(ChangedOnDisk):
+        cr.save()
+    write_text_lines(str(tmp_path / "plain.txt"), ["a"])
+    assert open(tmp_path / "plain.txt", "rb").read() == b"a\r\n"
+
+
+def test_editor_moves_a_map_only_where_a_map_is_named(tmp_path):
+    """Code Issue 36: Move map renames it only in the keys and script arguments that hold a map (a colour that reads the
+    same is left), puts the old name in RENAMED_MAPS so a character saved there follows it, and moves the file last."""
+    import shutil
+    import types
+    from dsedit import mapops
+    from dsedit.project import IniDoc
+    for d in ("data/Scripts", "maps", "dsengine"):
+        os.makedirs(tmp_path / d)
+    shutil.copy(os.path.join(ROOT, "dsengine", "renames.py"), tmp_path / "dsengine" / "renames.py")
+    w = lambda rel, text: open(tmp_path / rel, "wb").write(text.replace("\n", "\r\n").encode("cp1252"))
+    w("data/Config.ini", "[Gameplay]\nStart.Map=4,0,0\n[Look]\nShade=4,0,0\nTint=14,0,0\n")
+    w("data/Music.ini", "[Maps]\n4,0,0=Forest\n")
+    w("data/Carts.ini", "[Road]\nPoint1=4,0,0,3,4,Inn\nPoint2=5,0,0,1,1\n")
+    w("data/Quests.ini", "[Q]\nMarker1=4,0,0 15 13\n")
+    w("data/Scripts/Go.txt", "01\tTeleport\t32,32\t4,0,0\n02\tSay\t4,0,0 is a fine place\n")
+    w("maps/4,0,0.txt", "Grass001\n")
+    w("data/Scripts/4,0,0.txt", "01\tSay\tHello\n")
+    project = types.SimpleNamespace(root=str(tmp_path), p=lambda *a: str(tmp_path.joinpath(*a)),
+                                    map_path=lambda n: str(tmp_path / "maps" / ("%s.txt" % n)),
+                                    script_path=lambda n: str(tmp_path / "data" / "Scripts" / ("%s.txt" % n)),
+                                    refresh=lambda *a: None)
+    for k in ("config", "quests_ini", "tiles_ini", "entities_ini"):
+        setattr(project, k, IniDoc(str(tmp_path / "data" / "Config.ini")))
+    assert sorted(lab for lab, _, _ in mapops.uses(project, "4,0,0")) == [
+        "Carts.ini", "Config.ini", "Music.ini", "Quests.ini", "Script Go"]           # (not the shade, nor what's said)
+    mapops.move(project, "4,0,0", "9,0,0")
+    cfg = IniDoc(str(tmp_path / "data" / "Config.ini"))
+    assert cfg.get("Gameplay", "Start.Map") == "9,0,0" and cfg.get("Look", "Shade") == "4,0,0"
+    assert cfg.get("Look", "Tint") == "14,0,0"
+    assert IniDoc(str(tmp_path / "data" / "Music.ini")).get("Maps", "9,0,0") == "Forest"
+    carts = IniDoc(str(tmp_path / "data" / "Carts.ini"))
+    assert carts.get("Road", "Point1") == "9,0,0,3,4,Inn" and carts.get("Road", "Point2") == "5,0,0,1,1"
+    assert IniDoc(str(tmp_path / "data" / "Quests.ini")).get("Q", "Marker1") == "9,0,0 15 13"
+    go = open(tmp_path / "data" / "Scripts" / "Go.txt", "rb").read().decode("cp1252")
+    assert "\t32,32\t9,0,0\r\n" in go and "4,0,0 is a fine place" in go
+    assert os.path.exists(project.map_path("9,0,0")) and not os.path.exists(project.map_path("4,0,0"))
+    assert os.path.exists(project.script_path("9,0,0"))
+
+    def renamed_maps():
+        ns = {}
+        exec(compile(open(tmp_path / "dsengine" / "renames.py", encoding="utf-8").read(), "renames", "exec"), ns)
+        return ns["RENAMED_MAPS"]
+    assert renamed_maps()["4,0,0"] == "9,0,0" and renamed_maps()["0,0,5"] == "0,0,10"
+    mapops.move(project, "9,0,0", "4,0,0")                                         # (and back: no loop)
+    assert "4,0,0" not in renamed_maps() and renamed_maps()["9,0,0"] == "4,0,0"
+
+
+def test_editor_says_what_still_names_a_thing_and_renames_a_rack_in_scripts(tmp_path):
+    """Code Issue 42: deleting or renaming in the editor first finds what still names the thing (its scripts' arguments,
+    the data files' values, not its own section); a rack renamed is opened by its new name in the scripts that opened
+    it; and keys typed into one field a moment apart are a single undo step."""
+    import types
+    from dsedit.project import IniDoc, naming, rename_rack_in_scripts, read_text_lines
+    from dsedit.app import Page
+    for d in ("data/Scripts", "maps"):
+        os.makedirs(tmp_path / d)
+    w = lambda rel, text: open(tmp_path / rel, "wb").write(text.replace("\n", "\r\n").encode("cp1252"))
+    w("data/Spells.ini", "[Fire Bolt]\nCost=3\n")
+    w("data/Entities.ini", "[Fire_Bolt_Scroll]\nSpell=Fire Bolt\n[Wolf]\nDrops=Bone,1\n")
+    w("data/Scripts/Read.txt", "01\tCast.Spell\tFire_Bolt\n02\tSay\tA Fire Bolt hits\n")
+    w("data/Scripts/Shop.txt", "01\tDisplay.Item.Rack\tGENERAL\tTom\tSHOP-Old\t02\n")
+    names = sorted(p[:-4] for p in os.listdir(tmp_path / "data" / "Scripts"))
+    project = types.SimpleNamespace(
+        p=lambda *a: str(tmp_path.joinpath(*a)), scripts=lambda: names,
+        script_path=lambda n: str(tmp_path / "data" / "Scripts" / ("%s.txt" % n)),
+        index=lambda: {"entity": {}}, parsed=lambda path, parse: parse(read_text_lines(path)))
+    spells = str(tmp_path / "data" / "Spells.ini")
+    assert naming(project, "Fire Bolt", own=(spells, "Fire Bolt")) == [
+        "script Read", "Entities.ini [Fire_Bolt_Scroll] Spell"]       # (not the words said, nor its own section)
+    assert naming(project, "Cost", own=(spells, "Fire Bolt")) == []
+    rename_rack_in_scripts(project, "SHOP-Old", "SHOP-New", ["Shop"])
+    assert read_text_lines(project.script_path("Shop")) == ["01\tDisplay.Item.Rack\tGENERAL\tTom\tSHOP-New\t02"]
+    assert open(project.script_path("Shop"), "rb").read().endswith(b"\r\n")
+    page = types.SimpleNamespace(undo_stack=[], redo_stack=[], state=0, app=types.SimpleNamespace(
+        refresh_chrome=lambda: None))
+    page.snapshot = lambda: page.state
+    page.remember = lambda: Page.remember(page)
+    for v in (1, 2, 3):                                     # (three keys typed into one field: one step back)
+        Page.remember_typing(page, "Item")
+        page.state = v
+    Page.remember_typing(page, "Stock")                     # (another field: a step of its own)
+    assert page.undo_stack == [0, 3]
+    ini = IniDoc(spells)
+    assert ini.get("Fire Bolt", "Cost") == "3"
+
+
+def test_bryony_says_her_words_about_the_wardens_once_youve_their_truth(world):
+    """Code Issue 44: from stage 5 of Glass in the Nets she asks whether it opened, till you've the Wardens' truth;
+    then her words about them; and before Nell sends you, a stranger's welcome."""
+    e = world.placed_entity("Bryony_Tarrow")
+    m = world.maps[e.map]
+    s = join(world, "Listener", e.map, int(e.x - m.ox) + 26, int(e.y - m.oy))
+    try:
+        said = []
+        for gate, truth in ((5, 0), (5, 1), (1, 0)):
+            s.update_attribute("ShardfallGate", "=%d" % gate)
+            s.update_attribute("WardensTruth", "=%d" % truth)
+            said.append(jester_box(world, s, e))
+            jester_done(world, s)
+        assert said[0].startswith("It opened, did it?")
+        assert said[1].startswith("My mother said the Wardens listened")
+        assert said[2].startswith("Sit down, sit down. Nell's out on the rocks")
+    finally:
+        leave(world, s)
+
+
+def test_a_flames_frames_are_the_same_every_export():
+    """Code Issue 44: the flicker's noise is seeded from the tile's name, never hash() (which Python changes each run)."""
+    import subprocess
+    import sys
+    code = "from ashen.anim import flame_seed; print(flame_seed('Torch001'), flame_seed('Fire_Pit002'))"
+    runs = {subprocess.run([sys.executable, "-c", code], cwd=ROOT, capture_output=True, text=True,
+                           env=dict(os.environ, PYTHONHASHSEED=str(n))).stdout.strip().splitlines()[-1]
+            for n in (1, 2, 3)}             # (the last line: pygame says hello first)
+    assert len(runs) == 1 and runs.pop().split()[0].isdigit()

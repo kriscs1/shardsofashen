@@ -25,7 +25,8 @@ from ..project import (MapDoc, Entity, ScriptDoc, parse_map_name, tile_family, T
 from ..render import render, walk_overlay, tile_image
 from ..refs import Refs, label as use_label, script_for, lines_here
 from ..carts import CartRoutes
-from ..widgets import (PaletteGrid, HEADER, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented)
+from ..widgets import (PaletteGrid, HEADER, photo, ConditionBuilder, PickerDialog, Tooltip, ask_text, Dialog, Segmented,
+                       save_over)
 from .iniform import IniFormPage
 from .. import terrain as TR
 
@@ -750,29 +751,38 @@ class MapPage(Page):
     def save(self):
         if not self.doc:
             return True
-        self.routes.save()
+        if not save_over(self, self.app, self.routes.save):
+            return False
         names = sorted(n for n in self.touched if self.dirty(n))
         with self.app.busy("Saving %d maps…" % len(names)) if len(names) > 3 else contextlib.nullcontext():
-            for n in names:
-                self.save_doc(n, minimap=False)
+            for i, n in enumerate(names):
+                if not self.save_doc(n, minimap=False):
+                    names = names[:i]                   # (what was saved before it still is)
+                    break
+            else:
+                i = None
         self.project.refresh("maps")
         self._slots = None
         self.map_box.configure(values=self.project.maps())
-        self.app.status("Saved map%s %s." % ("s" if len(names) > 1 else "", ", ".join(names) or self.doc.name), "ok")
+        if i is None:
+            self.app.status("Saved map%s %s." % ("s" if len(names) > 1 else "", ", ".join(names) or self.doc.name),
+                            "ok")
         self.app.refresh_chrome()
         for z in sorted({parse_map_name(n)[2] for n in names if n != HOMESTEAD_MAP}):
             self.rebuild_minimap(z)
-        return True
+        return i is None
 
     def save_doc(self, name, minimap=True):
         """One map written to its file (and its level's minimap built again, unless minimap is False)."""
         doc = self.get_doc(name)
-        doc.save()
+        if not save_over(self, self.app, doc.save):
+            return False
         self.loaded[name] = doc.snapshot()
         if minimap and name != HOMESTEAD_MAP:
             self.project.refresh("maps")
             self._slots = None
             self.rebuild_minimap(parse_map_name(name)[2])
+        return True
 
     # ----- the minimap of a saved map's level, built again (the game's minimap and world map, and the editor's
     # world view, show it): in the background, so saving isn't held up; saves while it builds go into one more build
@@ -1031,8 +1041,7 @@ class MapPage(Page):
             return True
         if not messagebox.askyesno(what, "There are changes not saved yet: they're saved first. Go on?", parent=self):
             return False
-        self.save()
-        return True
+        return self.save()
 
     def after_map_job(self, open_name, levels):
         """The maps as they are now on disk: read again, undo forgotten (it would bring back maps by their old
@@ -1045,7 +1054,11 @@ class MapPage(Page):
         self.map_box.configure(values=self.project.maps())
         self.doc = None
         self.refs.forget()
-        self.load(open_name)
+        if open_name:
+            self.load(open_name)
+        else:                                           # (no map left at all: an empty page)
+            self.sel_ent = None
+            self.show_inspector()
         for z in sorted(levels):
             self.rebuild_minimap(z)
         self.app.refresh_chrome()
@@ -1070,7 +1083,8 @@ class MapPage(Page):
         if code:
             text += "\n\nThe game's code or a builder names it too (not changed - look at these):\n  " + "\n  ".join(
                 "%s line %d" % c for c in code[:12]) + ("\n  and %d more" % (len(code) - 12) if len(code) > 12 else "")
-        text += "\n\nPlayers standing on it in a saved world will be where the map was. Go on?"
+        text += ("\n\nA character saved on it comes back on %s (dsengine/renames.py remembers the move). Go on?"
+                 % new)
         if not messagebox.askyesno("Move %s to %s" % (name, new), text, parent=self):
             return
         with self.app.busy("Moving map %s to %s…" % (name, new)):
@@ -1113,7 +1127,8 @@ class MapPage(Page):
         with self.app.busy("Deleting map %s…" % name):
             mapops.delete(self.project, name, with_script=script)
             others = [m for m in self.project.maps() if parse_map_name(m)[2] == parse_map_name(name)[2]]
-            self.after_map_job(near if near in others else (others or self.project.maps())[0],
+            left = others or self.project.maps()
+            self.after_map_job(near if near in others else (left[0] if left else None),   # (the last map: none open)
                                {parse_map_name(name)[2]})
         self.app.status("Deleted map %s." % name, "ok")
 
@@ -4244,8 +4259,11 @@ class MapPage(Page):
         there.entities.append(moved)
         self.doc.entities.remove(ent)
         self.sel_ent = None
-        self.save()
-        self.app.status("Moved the %s to map %s, tile %d,%d (both maps saved)." % (what, name, tx, ty), "ok")
+        if not self.save():
+            return
+        self.clear_history()                            # (both saved: an undo would bring it back on this map as well)
+        self.app.status("Moved the %s to map %s, tile %d,%d (both maps saved; Undo can't take it back: move it "
+                        "again)." % (what, name, tx, ty), "ok")
         if messagebox.askyesno("Moved", "Open map %s to see it there?" % name, parent=self):
             self.open(name)
             self.sel_ent = next((x for x in self.doc.entities if x.line() == moved.line()), None)
@@ -4388,7 +4406,8 @@ class MapPage(Page):
             R.clear(d, part, fill)
         already = len(self.area_ents(dests))
         R.put(self.at, fresh, tx, ty, self.ent_tile, shift)
-        self.save()
+        if not self.save():
+            return
         changed, check = R.update_refs(self.project, R.moves(sources, rect, dests, tx, ty), own)
         self.project.refresh("scripts")
         self.app.clip_region = None
@@ -4793,7 +4812,8 @@ class MapPage(Page):
             if line.args[1] == words and line.args[2] == label:
                 return
             line.args[1], line.args[2] = words, label
-            doc.save()
+            if not save_over(self, self.app, doc.save):
+                return
             self.app.status("Saved what %s says (%s)." % (oid, doc.name), "ok")
 
         def later(*_a):
@@ -5043,9 +5063,13 @@ class MapPage(Page):
         """A hidden trap on tile tx, ty (0-based): a Trigger the engine springs, noticed with Stealth, disarmable."""
         if self.doc is None:
             return
+        there = [e for e in self.doc.entities if e.kind == "Trigger" and (e.x, e.y) == (tx + 1, ty + 1)]
+        if there and not messagebox.askyesno(
+                "Trap", "Tile %d,%d has a trigger already (it runs %s): a trap takes its place. Go on?"
+                % (tx + 1, ty + 1, there[0].script or "nothing"), parent=self):
+            return
         self.remember()
-        self.doc.entities = [e for e in self.doc.entities
-                             if not (e.kind == "Trigger" and (e.x, e.y) == (tx + 1, ty + 1))]     # (one to a tile)
+        self.doc.entities = [e for e in self.doc.entities if not any(e is t for t in there)]     # (one to a tile)
         ent = Entity("Trigger", x=tx + 1, y=ty + 1, script="Trap_" + kind)
         self.doc.entities.append(ent)
         self.sel_ent, self.sel_cell = ent, (tx, ty)
@@ -5159,6 +5183,7 @@ class MapPage(Page):
         own = self.project.rename_own_scripts(old, new)
         if clean:
             self.save_doc(doc.name)
+        self.clear_history()                    # (the scripts and quests are changed on disk: an undo here can't be)
         qp = self.app.page_of("quest", build=False)         # (its form shows the markers as they are now)
         if qp is not None and getattr(qp, "key", None) and not qp.is_dirty():
             qp.load(qp.key)
@@ -5166,7 +5191,8 @@ class MapPage(Page):
         self.show_inspector()
         self.app.status("Renamed %s to %s: on map %s%s, in %d script%s or quest%s that use%s it%s." % (
             old, new, doc.name, " (saved)" if clean else " (save it)", n, "" if n == 1 else "s", "" if n == 1 else "s",
-            "s" if n == 1 else "", (", and its own scripts (%s)" % ", ".join(own)) if own else ""), "ok")
+            "s" if n == 1 else "", (", and its own scripts (%s)" % ", ".join(own)) if own else "") +
+            " Undo can't take it back: rename it again.", "ok")
         return True
 
     def insp_place(self, f, e):
@@ -5224,7 +5250,9 @@ class MapPage(Page):
 
         def pick_field(v):          # (Pick=<Stealth level> after the message: locks.py; blank or 0: it can't be)
             n = int(v) if str(v).strip().isdigit() else 0
-            return ["Pick=%d" % min(25, n)] if n > 0 else []
+            rest = [w for w in " ".join(e.extra).split() if not w.startswith("Pick=")]   # (its other options kept)
+            words = rest + (["Pick=%d" % min(25, n)] if n > 0 else [])
+            return [" ".join(words)] if words else []
         pick = "".join(w[5:] for w in " ".join(e.extra).split() if w.startswith("Pick="))
         self.field(f, "Pick (Stealth)", pick, self.changer(e, "extra", pick_field), width=6)
         self.field(f, "Tile X", str(e.x), self.changer(e, "x", int), width=6)

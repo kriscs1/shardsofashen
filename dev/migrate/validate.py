@@ -803,6 +803,8 @@ TILE_ARGS = {"CHANGE TO TILE", "CHANGE FROM TILE", "REQUIRED TILE NAME", "DISALL
 NPC_ARGS = {"NPC NAME"}
 ENTITY_TYPES = {"MapItem", "StaticObject", "NPC", "GoodNPC", "BadNPC", "Missile"}
 RACK_TYPES = {"BANK", "GENERAL", "SPECIFIC"}
+QUEUE_ACTIONS = {"ADD", "REMOVE", "ADD.ENTITY", "REMOVE.ENTITY", "CHANGE.TILE", "SET.QUANTITY", "ADD.SHOP.ITEM",
+                 "REMOVE.SHOP.ITEM"}
 VALUE_TYPES = {"ATTRIBUTE", "BANK", "CALCULATION", "EQUIPPED", "HITPOINTS", "INVENTORY", "SKILL", "XP"}
 COLOURS = {"Black", "Blue", "Brown", "Cyan", "DarkBlue", "DarkCyan", "DarkGray", "DarkGreen", "DarkPink",
            "DarkRed", "Green", "LightGray", "Pink", "Red", "White", "Yellow"}
@@ -987,6 +989,12 @@ def check_scripts(skills, racks):
                 elif at == "ENTITY TYPE":
                     if a not in ENTITY_TYPES:
                         err(where, "entity type %r not one of %s" % (a, "/".join(sorted(ENTITY_TYPES))))
+                elif at == "QUEUED ACTION":
+                    if a != "*" and a.upper() not in QUEUE_ACTIONS:
+                        err(where, "queued action %r not one of %s (or *)" % (a, "/".join(sorted(QUEUE_ACTIONS))))
+                elif at == "QUEUED TYPE":
+                    if a != "*" and a not in ENTITY_TYPES | {"Tile"}:
+                        err(where, "queued type %r not one of %s/Tile (or *)" % (a, "/".join(sorted(ENTITY_TYPES))))
                 elif at == "VALUE TYPE":
                     if a.upper() not in VALUE_TYPES:
                         err(where, "value type %r not one of %s" % (a, "/".join(sorted(VALUE_TYPES))))
@@ -1492,12 +1500,13 @@ def check_tiles():
                            "Corner.Base", "Corner.Land", "Corner.Mask", "Corner.Leg",   # (two grounds on the slant:
                                                                                     #  build_ground_pieces.py)
                            "Raised",                                                # (a boardwalk: its shadow cast)
+                           "Warm",                                                  # (a fire: it keeps the cold off, cold.py)
                            "Round"):                                                # (natural ground: rounded where
                                                                                     #  it meets another: round_world.py)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
             elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
-            elif k in ("Flame", "Water", "Overhead", "Retired", "Climb", "Shelter", "Round", "Raised") and v not in ("0", "1"):
+            elif k in ("Flame", "Water", "Overhead", "Retired", "Climb", "Shelter", "Round", "Raised", "Warm") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
             elif k == "Climb" and v == "1" and not re.search(r"Climb (Up|Down)", dict(items).get("Use.Words") or ""):
                 err(r, "[%s] Climb=1 but its Use.Words have no Climb Up or Climb Down (the way it goes)" % sec)
@@ -1633,7 +1642,7 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Display.Name",                                                   # what the player sees it called
                "Sleeper.Of",                                                     # the NPC (its Id) a sleeping thing is
                "Lock", "Key", "Sturdy",                                          # a chest's lock (locks.py), its key; 1: never broken open
-               "Warm",                                                           # 1: it keeps the cold off (cold.py)
+               "Warm",                                                           # 1: it keeps the cold off, worn or near (cold.py)
                "Boss",                                                           # 1: tougher for each fighter (together.py)
                "Friend.If.Wearing",                                              # a friend while you wear this (disguise.py)
                "Absorbs.Remnants",                                               # 1: it heals by remnants near it (npcs.py)

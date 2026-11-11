@@ -11,7 +11,9 @@
   web/assets/sounds/<name>.wav      the sound effects; the music as .ogg (or .wav without ffmpeg); an .ogg as it is
   web/assets/manifest.json          sprite sizes, the data files the browser reads, what was made
 
-Run it again whenever sprites, sounds or data change (the editor). Only what changed is made again."""
+Run it again whenever sprites, sounds or data change (the editor). Only what changed is made again, and what's no
+longer made (a sprite deleted or renamed) is taken away. The manifest's version comes from every file made, so the
+page asks for each at an address with it in (?v=), and a browser keeps them long: a new version, and they're new."""
 import hashlib
 import json
 import os
@@ -35,6 +37,8 @@ from ashen import cursor as cursors  # noqa: E402
 from dsengine.data import GameData, SPRITE_FOLDERS  # noqa: E402
 
 OUT = os.path.join(ROOT, "web", "assets")
+KEPT = set()                    # (every file this run made or found up to date: anything else in OUT is left over)
+FOLDERS = ("sprites", "masks", "anim", "textures", "cursors", "sounds")
 
 
 def newer(src, dst):
@@ -42,6 +46,37 @@ def newer(src, dst):
         return os.path.getmtime(src) > os.path.getmtime(dst)
     except OSError:
         return True
+
+
+def tidy():
+    """What's no longer made (a sprite deleted or renamed, a frame fewer) taken out of web/assets."""
+    gone = 0
+    for folder in FOLDERS:
+        where = os.path.join(OUT, folder)
+        for f in os.listdir(where) if os.path.isdir(where) else []:
+            path = os.path.join(where, f)
+            if not f.startswith(".") and os.path.isfile(path) and os.path.normcase(path) not in KEPT:
+                os.remove(path)
+                gone += 1
+    if gone:
+        print("left over: %d files taken away" % gone)
+
+
+def fingerprint():
+    """Every file made, by its name, size and time: the manifest's version changes when any picture or sound does."""
+    h = hashlib.sha1()
+    for path in sorted(KEPT):
+        try:
+            st = os.stat(path)
+        except OSError:
+            continue
+        h.update(("%s|%d|%d\n" % (os.path.relpath(path, OUT), st.st_size, st.st_mtime_ns)).encode())
+    return h.hexdigest()
+
+
+def keep(path):
+    KEPT.add(os.path.normcase(path))
+    return path
 
 
 def ini_dict(path):
@@ -92,7 +127,7 @@ def export_sprites(d, manifest):
     sizes = {}
     made = 0
     for name, (folder, path) in d.sprites.items():
-        dst = os.path.join(out, name + ".png")
+        dst = keep(os.path.join(out, name + ".png"))
         sizes[name] = list(d.size_of(name))
         if not newer(path, dst):
             continue
@@ -116,7 +151,7 @@ def export_masks(d):
     for name, (folder, path) in d.sprites.items():
         if not name.startswith("Blend_"):
             continue
-        dst = os.path.join(out, name + ".png")
+        dst = keep(os.path.join(out, name + ".png"))
         if not newer(path, dst):
             continue
         img = pygame.image.load(path)
@@ -143,7 +178,7 @@ def export_textures(d, manifest):
             n, ext = os.path.splitext(f)
             if ext.lower() == ".png":
                 names.append(n)
-                if newer(os.path.join(src, f), os.path.join(out, f)):
+                if newer(os.path.join(src, f), keep(os.path.join(out, f))):
                     shutil.copyfile(os.path.join(src, f), os.path.join(out, f))
     manifest["textures"] = names
 
@@ -156,7 +191,8 @@ def export_anim(d, manifest):
     tiles = ini_dict(d.data_file("Tiles.ini"))
     info = {}
     land = []
-    stamp = max(os.path.getmtime(d.data_file("Tiles.ini")), os.path.getmtime(d.config_path))
+    stamp = max(os.path.getmtime(d.data_file("Tiles.ini")), os.path.getmtime(d.config_path),
+                os.path.getmtime(sys.modules[AnimMixin.__module__].__file__))
     made = 0
     for name in tiles:
         if not d.loaded(name):
@@ -178,9 +214,12 @@ def export_anim(d, manifest):
         elif kind == "water" and b.tile_has_land(name):
             land.append(name)
         if frames:
+            drawn = stamp                                   # (and the sprite itself redrawn: its frames with it)
+            if name in d.sprites:
+                drawn = max(drawn, os.path.getmtime(d.sprites[name][1]))
             for k, f in enumerate(frames):
-                dst = os.path.join(out, "%s~%s%d.png" % (name, prefix, k))
-                if not os.path.exists(dst) or os.path.getmtime(dst) < stamp:
+                dst = keep(os.path.join(out, "%s~%s%d.png" % (name, prefix, k)))
+                if not os.path.exists(dst) or os.path.getmtime(dst) < drawn:
                     pygame.image.save(f, dst)
                     made += 1
             entry[prefix] = len(frames)
@@ -206,7 +245,7 @@ def export_cursors(manifest):
     for kind, (_, hot) in cursors.KINDS.items():
         for step in range(-1, 7):
             for px in sorted({s for s in sizes} | {2 * s for s in sizes}):
-                dst = os.path.join(out, "%s_%d@%d.png" % (kind, step + 1, px))
+                dst = keep(os.path.join(out, "%s_%d@%d.png" % (kind, step + 1, px)))
                 if fresh or not os.path.exists(dst):
                     pygame.image.save(c._frame(kind, step, px), dst)
         info[kind] = list(hot)
@@ -228,7 +267,7 @@ def export_sounds(manifest):
         n, ext = os.path.splitext(f)
         path = os.path.join(src, f)
         if ext.lower() in (".wav", ".ogg"):                  # (an .ogg: music from elsewhere, ready to play)
-            if newer(path, os.path.join(out, f)):
+            if newer(path, keep(os.path.join(out, f))):
                 shutil.copyfile(path, os.path.join(out, f))
             sounds[f] = f
         elif ext.lower() == ".mid":
@@ -246,6 +285,7 @@ def export_sounds(manifest):
                         target = n + ".wav"
                 print("  music %s: %.0f s (%.1fs)" % (f, secs, time.time() - t0))
             sounds[f] = target
+            keep(os.path.join(out, target))
     manifest["sounds"] = sounds
     print("sounds: %d" % len(sounds))
 
@@ -280,8 +320,9 @@ def main():
     export_anim(d, manifest)
     export_cursors(manifest)
     export_sounds(manifest)
+    tidy()
     body = json.dumps(manifest, separators=(",", ":"), sort_keys=True)
-    manifest["version"] = hashlib.sha1(body.encode()).hexdigest()[:12]
+    manifest["version"] = hashlib.sha1((body + fingerprint()).encode()).hexdigest()[:12]
     with open(os.path.join(OUT, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, separators=(",", ":"))
     print("manifest: %d KB, version %s (%.1fs)" % (len(body) // 1024, manifest["version"], time.time() - t0))

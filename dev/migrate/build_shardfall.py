@@ -1407,7 +1407,9 @@ def scripts(grotto_map):
         ("@after",), (">Conditional", "$Variable.1=4", "@later"),
         say("Old_Woman", "The ring wants waking, my mother said. Shards, and somebody who knows how to give them. Not me. I "
                          "only know how to give advice, and nobody takes that.", ("Thank you, Bryony.", "@end")), ("End",),
-        ("@later",), (">Conditional", "$Variable.1>=5", "@idle"),
+        ("@later",), (">Conditional", "$Attr.WardensTruth=1", "@opened"),     # (they've the Wardens' truth: her
+        ("Goto.Script", "Bryony and the Wardens"),                           # words for it, build_glass_wardens.py)
+        ("@opened",), (">Conditional", "$Variable.1>=5", "@idle"),
         say("Old_Woman", "It opened, did it? Then the Wardens are still down there, in a manner of speaking. Be careful how you "
                          "talk to them. They'll have been alone a long time.", ("I will.", "@end")), ("End",),
         ("@idle",), ("Goto.Script", "Bryony and the Wardens"),       # (and after the Wardens: build_glass_wardens.py)

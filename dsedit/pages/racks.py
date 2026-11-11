@@ -4,7 +4,7 @@ from tkinter import ttk
 
 from .. import theme as T
 from ..app import Page
-from ..widgets import FilterList, photo, ask_text, confirm, Tooltip
+from ..widgets import FilterList, photo, ask_text, confirm, Tooltip, save_over
 
 SETTINGS = ("Type", "Buy.Rate", "Sell.Rate", "Specific", "Skill")
 
@@ -304,7 +304,7 @@ class RackPage(Page):
     def editor_changed(self):
         if self._quiet or self.sel is None or self.sel >= len(self.rows):
             return
-        self.remember()
+        self.remember_typing(("row", self.rack, self.sel))
         r = self.rows[self.sel]
         r["item"] = self.e_item.get().strip()
         if self.rack_kind() == "Shop":
@@ -369,7 +369,7 @@ class RackPage(Page):
     def settings_changed(self):
         if self._quiet or not self.rack:
             return
-        self.remember()
+        self.remember_typing(("settings", self.rack))
         for k, v in self.v.items():
             self.settings[k] = v.get().strip()
         self.settings["Specific"] = "1" if self.specific.get() else ""
@@ -418,7 +418,8 @@ class RackPage(Page):
         if self.ini.changed_on_disk():
             self.ini.load()
         self.ini.set_items(self.rack, self.serialize())
-        self.ini.save()
+        if not save_over(self, self.app, self.ini.save):
+            return False
         self.loaded = self.serialize()
         self.project.refresh()
         self.app.status("Saved %s." % self.rack, "ok")
@@ -453,7 +454,7 @@ class RackPage(Page):
             self.ini.set_items(sec, [("Type", "Shop"), ("Buy.Rate", "1.2"), ("Sell.Rate", "0.8")])
         else:
             self.ini.set_items(sec, [("Type", "Craft"), ("Skill", self.project.skills[0] if self.project.skills else "")])
-        self.ini.save()
+        save_over(self, self.app, self.ini.save)
         self.refresh_list()
         self.open(sec)
 
@@ -463,17 +464,38 @@ class RackPage(Page):
         name = ask_text(self, "Rename", "New name:", self.rack)
         if not name or name.strip() == self.rack:
             return
-        self.ini.rename_section(self.rack, name.strip())
-        self.ini.save()
+        old, name = self.rack, name.strip()
+        if self.ini.has_section(name):
+            self.app.status("There's already a rack called %s." % name, "error")
+            return
+        users = sorted(set(self.project.index()["rack"].get(old, [])))
+        also = None
+        if users:                       # (the scripts that open it: Display.Item.Rack's RACK ID)
+            also = messagebox.askyesnocancel(
+                "Rename", "%d script(s) open %s: %s.\n\nOpen %s in them instead?" % (
+                    len(users), old, ", ".join(users[:8]) + (" and more" if len(users) > 8 else ""), name),
+                parent=self)
+            if also is None:
+                return
+        self.ini.rename_section(old, name)
+        if not save_over(self, self.app, self.ini.save):
+            self.ini.rename_section(name, old)
+            return
+        if also:
+            rename_rack_in_scripts(self.project, old, name, users)
+            self.project.refresh("scripts")
         self.rack = None
         self.refresh_list()
-        self.open(name.strip())
-        self.app.status("Renamed. Scripts that open it by its old name still use the old name.", "warn")
+        self.open(name)
+        if users and not also:
+            self.app.status("Renamed. %d script(s) still open it as %s." % (len(users), old), "warn")
+        else:
+            self.app.status("Renamed to %s%s." % (name, " (and in the scripts that open it)" if users else ""), "ok")
 
     def delete_rack(self):
         if not self.rack or not confirm(self, "Delete", "Delete the rack %s?" % self.rack):
             return
         self.ini.remove_section(self.rack)
-        self.ini.save()
+        save_over(self, self.app, self.ini.save)
         self.refresh_list()
         self.load(None)

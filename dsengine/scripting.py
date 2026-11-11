@@ -30,6 +30,61 @@ PLAYER_WORDS = [("$Player.Son", "son", "daughter"), ("$Player.Boy", "boy", "girl
                 ("$Player.King", "King", "Queen"), ("$Player.Brother", "Brother", "Sister")]
 
 
+def _clicked(s):
+    e = s.clicked_ent
+    return e if e is not None and e.alive else None
+
+
+def _players(s, near=False):
+    """Other heirs: on the server, and (near) within a map of you."""
+    return lbstr(sum(1 for o in s.w.sessions.values() if o is not s and o.in_world() and
+                     (not near or s.w.within_view(o.player, s.player))))
+
+
+# The $ variables: each one's value worked out only when a line names it, in this order (one whose name starts with
+# another's goes first: $Player.Health.Max before $Player.Health), these before the woman's words and the rest after.
+FIRST_VARIABLES = (
+    ("$Entity.under.Cursor.ID", lambda s: lbstr(_clicked(s).uid if _clicked(s) else 0)),
+    ("$Object.under.Cursor.X", lambda s: lbstr(int(_clicked(s).x - s.map_ox()) if _clicked(s) else 0)),
+    ("$Object.under.Cursor.Y", lambda s: lbstr(int(_clicked(s).y - s.map_oy()) if _clicked(s) else 0)),
+    ("$Tile.under.Cursor.X", lambda s: lbstr(s.clicked_tile_x)),
+    ("$Tile.under.Cursor.Y", lambda s: lbstr(s.clicked_tile_y)),
+    ("$Tile.under.Player.X", lambda s: lbstr(s.tile_of_x(s.player.fx))),
+    ("$Tile.under.Player.Y", lambda s: lbstr(s.tile_of_y(s.player.fy))),
+    ("$Random.Percent", lambda s: lbstr(random_number(1, 100))),
+    ("$Players.Online", lambda s: _players(s)),
+    ("$Players.Near", lambda s: _players(s, near=True)),
+)
+SCRIPT_VARIABLES = (
+    ("$Inventory.Slots", lambda s: lbstr(s.empty_inventory_slots())),
+    ("$Player.Name", lambda s: s.player_name),
+    ("$Player.X", lambda s: lbstr(int(s.player.x - s.map_ox()))),
+    ("$Player.Y", lambda s: lbstr(int(s.player.y - s.map_oy()))),
+    ("$Map.Name", lambda s: s.screen_name),
+    ("$Map.X", lambda s: lbstr(s.map_x())),
+    ("$Map.Y", lambda s: lbstr(s.map_y())),
+    ("$Map.Z", lambda s: lbstr(s.map_z())),
+    ("$Cursor.X", lambda s: lbstr(int(s.script_cursor_x - s.map_ox()))),
+    ("$Cursor.Y", lambda s: lbstr(int(s.script_cursor_y - s.map_oy()))),
+    ("$Time", lambda s: lbstr(seconds_today())),
+    ("$Clock", lambda s: lbstr(int(time.time()))),
+    ("$Player.Form", lambda s: s.player_form() or "-"),
+    ("$Player.Level", lambda s: lbstr(s.player_level())),
+    ("$World.Season", lambda s: s.w.seasons.current()),
+    ("$World.Night", lambda s: lbstr(s.w.wonders.night_number())),
+    ("$World.Dark", lambda s: "1" if s.w.is_night() else "0"),            # (night now: DayNight.ini [Night])
+    ("$World.Hour", lambda s: lbstr(s.w.hour())),                          # (0 to 23, the world's clock)
+    ("$World.Champion", lambda s: s.w.wonders.champion or "-"),
+    ("$Tax.Due", lambda s: lbstr(s.w.wonders.tax_due(s))),
+    ("$Player.Malaria", lambda s: "1" if "Malaria" in s.diseases else "0"),
+    ("$Player.Shardsong", lambda s: "1" if "Shardsong" in s.diseases else "0"),
+    ("$Player.Stance", lambda s: s.stance or "-"),     # (the one you're in: Fighting, Channelling, Sneaking)
+    ("$Shardstones.Active", lambda s: lbstr(len(s.stones_active()))),
+    ("$Player.Health.Max", lambda s: lbstr(s.player_max_hp)),      # (before $Player.Health, which it starts with)
+    ("$Player.Health", lambda s: lbstr(int(s.player.hp))),
+)
+
+
 class ScriptMixin:
     def init_scripts(self):
         self.script_running = False
@@ -340,70 +395,27 @@ class ScriptMixin:
         return "".join(out)
 
     def parse_script_variables(self, text):
-        if "$" not in text and "[TAB]" not in text:
+        if "$" not in text:
             return text
         low = text.lower()
         if "$attr." in low or "$item." in low or "$skill." in low or "$equipped." in low or "$shards." in low or                 "$standing." in low or "$side." in low:
             text = self.expand_data_variables(text)
         if "$" not in text:
-            return text.replace("[TAB]", "\t")
-        clicked = self.clicked_ent if (self.clicked_ent is not None and self.clicked_ent.alive) else None
-        p = self.player
-        ox, oy = self.map_ox(), self.map_oy()
-        reps = [
-            ("$Entity.under.Cursor.ID", lbstr(clicked.uid if clicked else 0)),
-            ("$Object.under.Cursor.X", lbstr(int(clicked.x - ox) if clicked else 0)),
-            ("$Object.under.Cursor.Y", lbstr(int(clicked.y - oy) if clicked else 0)),
-            ("$Tile.under.Cursor.X", lbstr(self.clicked_tile_x)),
-            ("$Tile.under.Cursor.Y", lbstr(self.clicked_tile_y)),
-            ("$Tile.under.Player.X", lbstr(self.tile_of_x(p.fx))),
-            ("$Tile.under.Player.Y", lbstr(self.tile_of_y(p.fy))),
-        ]
-        for a, b in reps:
-            text = text.replace(a, b)
-        if "$Random.Percent" in text:
-            text = text.replace("$Random.Percent", lbstr(random_number(1, 100)))
-        if "$Players." in text:                          # (other heirs: on the server, and within a map of you)
-            others = [o for o in self.w.sessions.values() if o is not self and o.in_world()]
-            near = [o for o in others if self.w.within_view(o.player, p)]
-            text = text.replace("$Players.Online", lbstr(len(others))).replace("$Players.Near", lbstr(len(near)))
-        reps = [
-            ("$Inventory.Slots", lbstr(self.empty_inventory_slots())),
-            ("$Player.Name", self.player_name),
-            ("$Player.X", lbstr(int(p.x - ox))),
-            ("$Player.Y", lbstr(int(p.y - oy))),
-            ("$Map.Name", self.screen_name),
-            ("$Map.X", lbstr(self.map_x())),
-            ("$Map.Y", lbstr(self.map_y())),
-            ("$Map.Z", lbstr(self.map_z())),
-            ("$Cursor.X", lbstr(int(self.script_cursor_x - ox))),
-            ("$Cursor.Y", lbstr(int(self.script_cursor_y - oy))),
-            ("$Time", lbstr(seconds_today())),
-            ("$Clock", lbstr(int(time.time()))),
-            ("$Player.Form", self.player_form() or "-"),
-            ("$Player.Level", lbstr(self.player_level())),
-            ("$World.Season", self.w.seasons.current()),
-            ("$World.Night", lbstr(self.w.wonders.night_number())),
-            ("$World.Dark", "1" if self.w.is_night() else "0"),                # (night now: DayNight.ini [Night])
-            ("$World.Hour", lbstr(self.w.hour())),                              # (0 to 23, the world's clock)
-            ("$World.Champion", self.w.wonders.champion or "-"),
-            ("$Tax.Due", lbstr(self.w.wonders.tax_due(self))),
-            ("$Player.Malaria", "1" if "Malaria" in self.diseases else "0"),
-            ("$Player.Shardsong", "1" if "Shardsong" in self.diseases else "0"),
-            ("$Player.Stance", self.stance or "-"),             # (the one you're in: Fighting, Channelling, Sneaking)
-            ("$Shardstones.Active", lbstr(len(self.stones_active()))),
-            ("$Player.Health.Max", lbstr(self.player_max_hp)),       # (before $Player.Health, which it starts with)
-            ("$Player.Health", lbstr(int(self.player.hp))),
-        ]
+            return text
+        for a, value in FIRST_VARIABLES:
+            if a in text:
+                text = text.replace(a, value(self))
         if "$Player." in text:                      # (a woman's words for her: daughter, girl, lady, Queen)
             f = (self.look or {}).get("body") == "f"
             for a, man, woman in PLAYER_WORDS:
                 text = text.replace(a, woman if f else man)
-        for a, b in reps:
-            text = text.replace(a, b)
-        for i in range(1, 10):
-            text = text.replace("$Variable.%d" % i, self.script_vars[i])
-        return text.replace("[TAB]", "\t")
+        for a, value in SCRIPT_VARIABLES:
+            if a in text:
+                text = text.replace(a, value(self))
+        if "$Variable." in text:
+            for i in range(1, 10):
+                text = text.replace("$Variable.%d" % i, self.script_vars[i])
+        return text
 
     def set_script_variable(self, variable, value):
         n = val(variable.replace("$", "").replace("Variable.", "").replace("variable.", ""))
@@ -596,6 +608,7 @@ class ScriptMixin:
                     self.hidden_uids.add(e.uid)
                 else:
                     w.remove_entity(e)
+                    w.unqueue_removal(e)         # (a fire put out: its burning out goes with it)
         elif c == "Remove.Line.From.File":
             self.remove_line_from_file(arg[1], arg[2])
         elif c == "Sleep":
@@ -621,7 +634,13 @@ class ScriptMixin:
             map_name = arg[5] if arg[5] not in ("", "-") or arg[1].upper().endswith("SHOP.ITEM") else self.screen_name
             w.add_action_to_queue(arg[1], arg[2], arg[3], arg[4], map_name, arg[6], val(arg[7]))
         elif c == "Remove.Action.From.Queue":
-            w.remove_action_from_queue(arg[1])
+            fields = arg[1:7]
+            if "[TAB]" in arg[1]:                # (the old way: one argument glued with [TAB], * at its end)
+                fields = arg[1].split("[TAB]")
+                fields[-1] = fields[-1].rstrip("*")
+            if fields[4:5] == ["-"]:             # (- for this map, as Add.Action.To.Queue has it)
+                fields[4] = self.screen_name
+            w.remove_action_from_queue(*fields)
         elif c == "Wait":
             self.script_wait_until = self.now + val(arg[1]) * 1000
             self.script_state = "WAIT"

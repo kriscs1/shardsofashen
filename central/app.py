@@ -83,6 +83,7 @@ PAGE = 50                       # (rows the admin page gets at a time)
 GOOGLE_COOKIE = "ds_google"
 GOOGLE_PENDING = 2000           # (sign-ins under way at once: past this the oldest go)
 HOUSEKEEPING = 600              # (seconds between clearing out what's had its day)
+REFUNDS_EVERY = 86400           # (seconds between asking Google Play what it's refunded)
 BACKUPS_KEPT = 14               # (a copy of the database a day: DS_CENTRAL_BACKUPS, else backups beside it)
 HELLO_SECONDS = 30              # (the start screen's counts are worked out this often)
 BUYS = 10                       # (tries at a purchase from one address or account in ten minutes)
@@ -388,8 +389,9 @@ class Central:
         return "%s://%s" % (proto, request.host)
 
     def counted_confirm(self, name, email):
-        """So many confirmation emails a day, to an account or to an address: nobody's mailbox flooded."""
-        day = time.strftime("%Y%m%d")
+        """So many confirmation emails a day (or "forgot" codes: their keys say so), to an account or to an address:
+        nobody's mailbox flooded."""
+        day = time.strftime("%Y%m%d", time.gmtime(time.time()))
         if day != self.confirm_day:
             self.confirm_day, self.confirms = day, {}
         keys = (name.lower(), email.lower())
@@ -428,13 +430,11 @@ class Central:
         if w:
             return no("Too many tries: wait %d seconds." % w)
         acct = self.store.account(name)
-        if acct and acct[6]:
-            return no("%s has been deleted." % acct[0])
         at = self.failed(name, addr)
-        if acct is None or not await self.matches(str(d.get("password", ""))[:200], acct[1]):
-            if acct and self.store.google_of(acct[0]):
-                return no("%s signs in with Google: it has no password." % acct[0])
-            return no("That name and password don't go together.")
+        if acct is None or acct[6] or not await self.matches(str(d.get("password", ""))[:200], acct[1]):
+            # (the same words whoever it is, deleted or made with Google: nothing said of an account by its name alone)
+            return no("That name and password don't go together. (An account made with Google signs in with Google: "
+                      "it has no password.)")
         self.forgiven(name, addr, at)
         if acct[3]:
             return no("%s is banned: %s" % (acct[0], acct[3]))
@@ -522,10 +522,10 @@ class Central:
         if acct is None or not await self.matches(code, self.store.mail_code(acct[0])):
             return no("That name and code don't go together.")
         self.forgiven(name, addr, at)
-        self.store.drop_mail_code(acct[0])
         new = str(d.get("password", ""))[:200]
-        if len(new) < max(4, env_int("DS_PASSWORD_MIN", 8)):
+        if len(new) < max(4, env_int("DS_PASSWORD_MIN", 8)):         # (the code kept: tried again with a longer one)
             return no("Use a new password of at least %d characters." % max(4, env_int("DS_PASSWORD_MIN", 8)))
+        self.store.drop_mail_code(acct[0])
         self.store.set_password(acct[0], await self.hashed(new))
         return yes(name=acct[0])
 
@@ -609,13 +609,16 @@ class Central:
         to an address its owner has confirmed. An account made with Google has no password to set: it's told so, no code."""
         d, addr = await self.body(request), self.addr(request)
         who = str(d.get("who", "")).strip()[:254]
-        w = self.wait(who, addr, FAILS)                 # (a mailbox: as few from anywhere as from one place)
+        key = "forgot:" + (who.lower() if "@" in who else auth.clean_name(who).lower())   # ("Bob" and "Bob!": one)
+        w = self.wait(key, addr, FAILS)                 # (a mailbox: as few from anywhere as from one place)
         if w:
             return no("Too many tries: wait %d seconds." % w)
         if not mail.ready():
             return no("This server can't send email just now: try again later.")
         acct = self.store.account(auth.clean_name(who)) if "@" not in who else self.store.account_by_email(who)
-        self.failed(who, addr)                          # (counted: nobody's mailbox flooded)
+        self.failed(key, addr)                          # (counted: nobody's mailbox flooded)
+        if acct and acct[4] and not self.counted_confirm("forgot:" + acct[0], "forgot:" + acct[4]):
+            acct = None                                 # (as many as a day may have: the same answer, no email)
         if acct and acct[4]:
             if self.store.google_of(acct[0]):
                 subject = "%s: signing in" % self.name
@@ -884,6 +887,29 @@ class Central:
                 self.housekeeping()
             except Exception:
                 log.exception("Clearing out failed")
+            try:
+                await self.recheck_refunds()
+            except Exception:
+                log.exception("Asking after refunds failed")
+
+    async def recheck_refunds(self, now=None):
+        """Once a day, what Google Play has refunded since it last asked: the full game goes back with it. (Steam's
+        and itch.io's are only ever asked as they're claimed: Steam's own app checks its library each start, and an
+        admin can take one back by hand.)"""
+        now = time.time() if now is None else now
+        last = float(self.store.setting("voided_at", "0") or 0)
+        if not bought.ready()["play"] or now - last < REFUNDS_EVERY:
+            return
+        try:
+            tokens = await bought.play_voided(max(last, now - 30 * 86400) - 86400)   # (a day over: none missed)
+        except bought.Refused as e:
+            log.warning("%s", e)
+            return
+        for token in tokens:
+            who = self.store.unclaim("play", token)
+            if who:
+                log.info("%s's Google Play purchase was refunded: the full game is taken back", who)
+        self.store.set_setting("voided_at", str(now))
 
     # ----- the quests as the game has them (data/Quests.ini: this server is the same image), for the admin page
     def quest_list(self):

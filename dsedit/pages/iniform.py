@@ -7,7 +7,7 @@ from tkinter import ttk
 
 from .. import theme as T
 from ..app import Page
-from ..widgets import FilterList, ScrollFrame, Tooltip, ask_text, confirm
+from ..widgets import FilterList, ScrollFrame, Tooltip, ask_text, confirm, save_over
 
 
 class IniFormPage(Page):
@@ -194,14 +194,15 @@ class IniFormPage(Page):
             snap = self.form_values()
             self.ini.load()
             self.restore(snap)
+        before = (list(self.ini.lines), None if self.ini.journal is None else list(self.ini.journal))
         for k, v in self.form_values().items():
             if self.vars[k]._ini_kind == "bool" and v == self.vars[k]._ini_default and \
                     self.ini.get(self.key, k, "") == "":
                 continue                                    # (a default tick box needn't be written)
             self.ini.set(self.key, k, v)
-        if not self.extra_save():
+        if not self.extra_save() or not save_over(self, self.app, self.ini.save):
+            self.ini.lines, self.ini.journal = before       # (not saved: memory as the file is, the form kept)
             return False
-        self.ini.save()
         self.loaded = self.form_values()
         self.project.refresh("verbs", "attributes")
         self.app.status("Saved %s." % self.key, "ok")
@@ -236,7 +237,7 @@ class IniFormPage(Page):
             return
         self.ini.add_section(name)
         self.init_new(name)
-        self.ini.save()
+        save_over(self, self.app, self.ini.save)        # (a change on disk since: read again, and this made to it)
         self.refresh_list()
         self.open(name)
 
@@ -253,23 +254,44 @@ class IniFormPage(Page):
         if self.ini.has_section(name):
             self.app.status("%s already exists." % name, "error")
             return
-        self.ini.rename_section(self.key, name)
-        self.ini.save()
+        uses = self.still_named(self.key)
+        if uses and not confirm(self, "Rename", "%s is still named in:\n\n%s\n\nThey'll go on naming %s. Rename it?"
+                                % (self.key, uses, self.key)):
+            return
+        old = self.key
+        self.ini.rename_section(old, name)
+        if not save_over(self, self.app, self.ini.save):
+            self.ini.rename_section(name, old)
+            return
         self.key = None
         self.refresh_list()
         self.open(name)
-        self.app.status("Renamed to %s. (Anything that names it by its old name still does.)" % name, "warn")
+        if uses:
+            self.app.status("Renamed to %s. (What names %s still does: change it there.)" % (name, old), "warn")
+        else:
+            self.app.status("Renamed to %s (nothing else named it)." % name, "ok")
 
     def delete_item(self):
         if not self.key:
             return
-        if not confirm(self, "Delete", "Delete %s from %s?" % (self.key, self.ini.path.split("\\")[-1])):
+        uses = self.still_named(self.key)
+        if not confirm(self, "Delete", "Delete %s from %s?%s" % (self.key, os.path.basename(self.ini.path),
+                       ("\n\nIt's still named in:\n\n%s" % uses) if uses else "")):
             return
+        snap = self.ini.snapshot()
         self.ini.remove_section(self.key)
-        self.ini.save()
+        if not save_over(self, self.app, self.ini.save):
+            self.ini.lines = list(snap)
+            return
         self.key = None
         self.refresh_list()
         self.load(None)
+
+    def still_named(self, key):
+        """The places that name key, a line each ("" if none; a dozen at most)."""
+        from ..project import naming
+        found = naming(self.project, key, own=(self.ini.path, key))
+        return "\n".join(found[:11]) + ("\n... and more" if len(found) > 11 else "")
 
     # --- helpers for building forms
     def section_label(self, parent, row, text):

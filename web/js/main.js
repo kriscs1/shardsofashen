@@ -288,9 +288,11 @@ function tradeRow(name, n, buttons) {
   return row;
 }
 
+let tradeV = 0;     // (the offer as last shown: an accept is for that one, not one changed on its way)
 function showTrade(m) {
   $("trade").hidden = !m.open;
   if (!m.open) return;
+  tradeV = m.v || 0;
   $("trade-title").textContent = `Trading with ${m.with}`;
   $("trade-their-head").textContent = `${m.with} offers`;
   const fill = (id, rows) => { const el = $(id); el.replaceChildren(...rows); };
@@ -303,7 +305,7 @@ function showTrade(m) {
     m.their_ok ? `${m.with} has accepted: accept too, and it's done.` : "When you're both happy, both accept.";
   $("trade-accept").disabled = !!m.ok;
 }
-$("trade-accept").addEventListener("click", () => send({ t: "trade", do: "accept" }));
+$("trade-accept").addEventListener("click", () => send({ t: "trade", do: "accept", v: tradeV }));
 $("trade-cancel").addEventListener("click", () => send({ t: "trade", do: "cancel" }));
 $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checked; saveView(); });
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });

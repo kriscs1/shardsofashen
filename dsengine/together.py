@@ -37,7 +37,7 @@ BOUNTIES = ["Wolf", "Goblin", "Bandit", "Skeleton", "Giant_Spider", "Bear", "Hob
 
 
 def today():
-    return int(time.strftime("%Y%m%d"))
+    return int(time.strftime("%Y%m%d", time.gmtime(time.time())))      # (the world's clock is UTC: one day for everyone)
 
 
 class Together:
@@ -49,6 +49,7 @@ class Together:
         self.records = {}           # name -> {"Kills": n, "SecretsFound": n, "ArenaWins": n, "Deep": n}
         self.guests = {}            # owner -> [[name, seconds]] (the newest last)
         self.gifts = {}             # owner -> [[from, item, n]]
+        self.owed = {}              # name -> the gold won while they were away (Dragon Dice: tavern.py)
         self.friends = {}           # name -> [names] (kept with the world: a homestead knows them while you're away)
         self.accounts = {}          # character -> its Hallisium account (as it last came in)
         self.account_friends = {}   # account (lower case) -> [accounts]: its friends, as the central server last said
@@ -90,7 +91,7 @@ class Together:
 
     def state(self):
         return {"projects": self.projects, "records": self.records, "guests": self.guests, "gifts": self.gifts,
-                "friends": self.friends, "accounts": self.accounts, "account_friends": self.account_friends}
+                "owed": self.owed, "friends": self.friends, "accounts": self.accounts, "account_friends": self.account_friends}
 
     def load(self, st):
         st = st or {}
@@ -98,6 +99,7 @@ class Together:
         self.records = dict(st.get("records", {}))
         self.guests = dict(st.get("guests", {}))
         self.gifts = dict(st.get("gifts", {}))
+        self.owed = {str(k): int(v) for k, v in (st.get("owed") or {}).items() if int(v) > 0}
         self.friends = {k: list(v) for k, v in st.get("friends", {}).items()}
         self.accounts = {str(k): str(v) for k, v in (st.get("accounts") or {}).items()}
         self.account_friends = {str(k): [str(a) for a in v] for k, v in (st.get("account_friends") or {}).items()}
@@ -486,7 +488,7 @@ class TogetherMixin:
         if not asker.in_world() or getattr(self, "trade", None) or getattr(asker, "trade", None):
             return
         tr = {"a": asker, "b": self, "offer": {asker.player_name: {}, self.player_name: {}},
-              "ok": {asker.player_name: False, self.player_name: False}}
+              "ok": {asker.player_name: False, self.player_name: False}, "v": 0}
         self.trade = asker.trade = tr
         self.trade_send()
 
@@ -503,7 +505,7 @@ class TogetherMixin:
                     stock[it.name] = stock.get(it.name, 0) + max(1, it.quantity)
             s.emit({"t": "trade", "open": True, "with": o.player_name,
                     "mine": sorted(mine.items()), "theirs": sorted(theirs.items()),
-                    "ok": tr["ok"][s.player_name], "their_ok": tr["ok"][o.player_name],
+                    "ok": tr["ok"][s.player_name], "their_ok": tr["ok"][o.player_name], "v": tr["v"],
                     "stock": sorted([n, q - mine.get(n, 0)] for n, q in stock.items() if q - mine.get(n, 0) > 0)})
 
     def trade_close(self, words=""):
@@ -517,7 +519,8 @@ class TogetherMixin:
                 s.display_message(words, "INFO")
 
     def trade_msg(self, msg):
-        """The trade window: add (item, n), take back (item), accept, cancel. Any change undoes both accepts."""
+        """The trade window: add (item, n), take back (item), accept (v: the offer seen), cancel. Any change undoes
+        both accepts, and an accept sent before it (for the offer as it was) counts for nothing."""
         tr = getattr(self, "trade", None)
         if not tr:
             return
@@ -536,6 +539,9 @@ class TogetherMixin:
         elif do == "back":
             mine.pop(str(msg.get("item", "")), None)
         elif do == "accept":
+            if "v" in msg and msg.get("v") != tr["v"]:
+                self.trade_send()                       # (it changed on its way: look again)
+                return
             tr["ok"][self.player_name] = True
             if all(tr["ok"].values()):
                 self.trade_finish()
@@ -546,6 +552,7 @@ class TogetherMixin:
             return
         for k in tr["ok"]:
             tr["ok"][k] = False                         # (changed: both look again)
+        tr["v"] += 1
         self.trade_send()
 
     def trade_finish(self):
@@ -892,17 +899,31 @@ class TogetherMixin:
         lines.append("The shops have had their deliveries, and the Shard Blooms have grown.")
         self.display_message("While you were away: " + " ".join(lines), "INFO")
 
+    def collect_owed(self):
+        """Gold won while they were away (they left as the dice were rolling): theirs now."""
+        gold = self.w.together.owed.pop(self.player_name, 0)
+        if gold <= 0:
+            return
+        if self.inventory_slots_available("Gold_Coin(s)") > 0:
+            self.add_inventory_item("Gold_Coin(s)", gold, quiet=True)
+        else:
+            self.drop_on_floor("Gold_Coin(s)", gold)
+        self.w.save_soon = True
+        self.play_sound("Coins")
+        self.display_message("The barkeep kept your Dragon Dice winnings for you: %d gold." % gold, "SUCCESS")
+
     # ================================================================================================= companions
     def companions(self):
         return [e for e in getattr(self, "followers", []) if e.alive]
 
     def companion_call(self, kind, name, minutes, fights):
-        if any(getattr(e, "comp_kind", "") == name for e in self.companions()):
-            return
+        """The companion, come along; None if one of its kind is along already (or it couldn't be made)."""
+        if self.companion_along(name):
+            return None
         p = self.player
         e = self.w.add_npc(kind, p.z, p.x + 24, p.y, "Attitude=Good Name=%s Pause=0-2" % name.replace(" ", "_"), "Good")
         if e is None:
-            return
+            return None
         e.comp_kind, e.comp_of = name, self
         e.comp_until = self.now + int(minutes * 60000) if minutes else 0
         if not fights and e.ai is not None:
@@ -911,6 +932,10 @@ class TogetherMixin:
             e.ai.hunts = {"FOES"}
         self.followers = self.companions() + [e]
         self.w.shard_form(e) if kind != "Strawberry_Cat" else None
+        return e
+
+    def companion_along(self, name):
+        return any(getattr(e, "comp_kind", "") == name for e in self.companions())
 
     def companion_dismiss(self, e):
         self.followers = [f for f in self.companions() if f is not e]
@@ -1058,16 +1083,20 @@ class TogetherMixin:
                                [("Hire them.", lambda: self.do_action("Hire", e)), ("Not now.", None)])
                 return True
         if e.type == NPC and verb == "Come along" and nid in ("Jimmy", "Throne_Jimmy"):
-            self.companion_call("Strawberry_Cat", "Jimmy", 0, False)
-            self.display_message("Jimmy stretches, considers it, and pads after you.", "INFO")
+            if self.companion_call("Strawberry_Cat", "Jimmy", 0, False) is not None:
+                self.display_message("Jimmy stretches, considers it, and pads after you.", "INFO")
             return True
         if e.type == NPC and verb == "Hire" and nid.startswith("Sellsword"):
             cost = int(self.tg_num("Hire.Gold", 25))
+            if self.companion_along("Sellsword"):
+                self.refuse("You've a sellsword with you already.")      # (no gold taken for nothing)
+                return True
             if self.items_held("Gold_Coin(s)") < cost:
                 self.refuse("You need %d gold for that." % cost)
                 return True
+            if self.companion_call("Guard", "Sellsword", self.tg_num("Hire.Minutes", 10), True) is None:
+                return True
             self.remove_inventory_item("Gold_Coin(s)", cost)
-            self.companion_call("Guard", "Sellsword", self.tg_num("Hire.Minutes", 10), True)
             self.display_message("The sellsword pockets the gold and falls in beside you.", "SUCCESS")
             return True
         if e.type == NPC and verb == "Send away" and getattr(e, "comp_of", None) is self:

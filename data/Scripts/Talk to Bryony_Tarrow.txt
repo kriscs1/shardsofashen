@@ -8,10 +8,12 @@
 07	Display.Message	Yellow	Bryony gives you a Warden's Signet.	Quest
 08	End
 09	>Conditional	$Variable.1=4	12
-10	Display.Conversation	Old_Woman	The ring wants waking, my mother said. Shards, and somebody who knows how to give them. Not me. I only know how to give advice, and nobody takes that.	Thank you, Bryony.	16
+10	Display.Conversation	Old_Woman	The ring wants waking, my mother said. Shards, and somebody who knows how to give them. Not me. I only know how to give advice, and nobody takes that.	Thank you, Bryony.	18
 11	End
-12	>Conditional	$Variable.1>=5	15
-13	Display.Conversation	Old_Woman	It opened, did it? Then the Wardens are still down there, in a manner of speaking. Be careful how you talk to them. They'll have been alone a long time.	I will.	16
-14	End
-15	Goto.Script	Bryony and the Wardens
+12	>Conditional	$Attr.WardensTruth=1	14
+13	Goto.Script	Bryony and the Wardens
+14	>Conditional	$Variable.1>=5	17
+15	Display.Conversation	Old_Woman	It opened, did it? Then the Wardens are still down there, in a manner of speaking. Be careful how you talk to them. They'll have been alone a long time.	I will.	18
 16	End
+17	Goto.Script	Bryony and the Wardens
+18	End

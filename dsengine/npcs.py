@@ -1,6 +1,7 @@
 """NPC movement, as the desktop game's npc.py (see there for the states), for many players: an NPC is a foe or a friend
 of each player (their own Set.NPC.Attitude), picks a fight with the nearest player it's a foe of, chases its foe (the
 player it's fighting), faces whoever is near. Only NPCs on maps near a player think."""
+import logging
 import math
 
 from ashen.lb import val, word, trim, distance, random_number, rnd, is_number, strip_digits, parse_quantity
@@ -10,9 +11,12 @@ from .player_combat import CombatMixin
 from .remnants import death_remnants, make_remnant, LIVING, REMNANT
 from .disguise import disguise_of
 
+log = logging.getLogger("ashen.npcs")
+
 BLINK_HEARD = 256.0     # (a Dark Mage's jump: from as near as an animal's call)
 
 PF_NPC_BUDGET = 400
+PROVOKED = 12000            # (ms: a monster hurt by a foe out of its chase area comes for them so long after the blow)
 FLOOR_ROAM = 0.3            # (one roaming a Zone on more than one level: how often its next spot is up or down)
 
 
@@ -71,15 +75,22 @@ class NPCMixin:
                     a.skip_delta += self.dt
                     if a.skip_delta < 0.06:
                         now_turn = False
-            if now_turn:
-                was = self.dt
-                if a.skip_delta > 0:
-                    self.dt = min(0.1, a.skip_delta)
-                    a.skip_delta = 0
-                if not getattr(e, "script_moving", False):
-                    self.update_npc(e, players, near)
+            was = self.dt
+            try:
+                if now_turn:
+                    if a.skip_delta > 0:
+                        self.dt = min(0.1, a.skip_delta)
+                        a.skip_delta = 0
+                    if not getattr(e, "script_moving", False):
+                        self.update_npc(e, players, near)
+                    self.dt = was
+                self.update_npc_healthbar(e)
+            except Exception:                           # (one NPC gone wrong: the others, and the tick, go on)
+                if ("", "NPC " + e.name) not in self.failed:
+                    self.failed.add(("", "NPC " + e.name))
+                    log.exception("%s's think failed", e.name)
+            finally:
                 self.dt = was
-            self.update_npc_healthbar(e)
 
     SEEN_CLOSE = 44         # (right beside it: it knows you're there, whichever way it looks)
     ROUSE_HEAR = 160        # (how far a fight's din carries to a monster of Hearing 1)
@@ -524,10 +535,13 @@ class NPCMixin:
                     else:
                         s.npc_attack_player(e)
                 return
+            # (hurt by them only now: it comes for them wherever they stand, a while, never left to be shot at)
+            struck = (getattr(e, "fought_by", None) or {}).get(s.player_name) if s is not None else None
+            provoked = struck is not None and 0 <= now - struck < PROVOKED
             if not give_up:
-                if not self.in_chase_area(a, p.fx, p.fy):
+                if not provoked and not self.in_chase_area(a, p.fx, p.fy):
                     give_up = True
-                if d > max(self.stat_for(e, s, "aggro_range"), 100) * 3:
+                if d > max(self.stat_for(e, s, "aggro_range"), 100) * (4 if provoked else 3):
                     give_up = True
             if not give_up:
                 if d < a.best_d - 4:
@@ -539,7 +553,7 @@ class NPCMixin:
                 old_x, old_y = e.x, e.y
                 was_inside = self.in_chase_area(a, e.fx, e.fy)
                 self.npc_walk_to(e, p.cx, p.cy, e.move_speed, 32 + e.weapon_range, False)
-                if was_inside and not self.in_chase_area(a, e.fx, e.fy):
+                if was_inside and not provoked and not self.in_chase_area(a, e.fx, e.fy):
                     self.set_entity_position(e, old_x, old_y)
                     give_up = True
             if give_up:

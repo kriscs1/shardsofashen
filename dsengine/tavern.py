@@ -90,11 +90,16 @@ class Tavern:
             s = self.w.sessions.get(who)
             won = share + (spare if i == 0 else 0)
             paid[who] = won
-            if s is not None and who != HOUSE:
-                if s.inventory_slots_available("Gold_Coin(s)") > 0:
-                    s.add_inventory_item("Gold_Coin(s)", won, quiet=True)
-                else:
-                    s.drop_on_floor("Gold_Coin(s)", won)
+            if who == HOUSE:
+                continue
+            if s is None or not s.in_world():           # (gone while the cups were down: kept for them)
+                owed = self.w.together.owed
+                owed[who] = owed.get(who, 0) + won
+                self.w.save_soon = True
+            elif s.inventory_slots_available("Gold_Coin(s)") > 0:
+                s.add_inventory_item("Gold_Coin(s)", won, quiet=True)
+            else:
+                s.drop_on_floor("Gold_Coin(s)", won)
         for s in self.watchers(r["table"]):
             s.game["phase"] = "done"
             s.play_sound("Dice_Roll")

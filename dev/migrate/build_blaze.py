@@ -102,7 +102,8 @@ def main():
     pygame.image.save(frames[0], os.path.join(ents, "Blaze.png"))
     path = os.path.join(ROOT, "data", "Entities.ini")
     for k, v in (("Type", "StaticObject"), ("Examine.Info", "Wreckage burning. The heat is fierce."), ("Light", "110"),
-                 ("Anim.Frames", str(FRAMES)), ("Anim.Speed", "95"), ("Light.Flicker", "1"), ("Glow", "42")):
+                 ("Anim.Frames", str(FRAMES)), ("Anim.Speed", "95"), ("Light.Flicker", "1"), ("Glow", "42"),
+                 ("Warm", "1")):
         ini.write("Blaze", k, v, path)
     print("Drew the blaze: %d frames" % FRAMES)
 

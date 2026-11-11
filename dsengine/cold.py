@@ -1,5 +1,6 @@
 """The cold (data\\Cold.ini): out on snow or ice and not warm, it bites, a little at a time. Warm is: indoors (under a
-roof), near a fire, wearing something warm (Entities.ini Warm=1: a fur cap, a wool hood, wool mittens), or a Warming
+roof), near a fire (Warm=1 on its Entities.ini or Tiles.ini section: a fire, a hearth, a range; never a Fire Bolt Scroll
+on the ground, or a Ranger), wearing something warm (Entities.ini Warm=1: a fur cap, a wool hood, wool mittens), or a Warming
 Draught drunk lately (herbs: WarmUntil, a real time). It gives a moment's grace first, says so once, and shows as Cold
 by your health."""
 import time
@@ -7,10 +8,19 @@ import time
 from ashen.lb import val, trim, distance
 
 COLD = "Cold.ini"
-FIRES = ("Fire", "Blaze", "Campfire", "Fireplace", "Brazier", "Forge", "Range", "Oven", "Stove")
 
 
 class ColdMixin:
+    def is_fire(self, name, tile=False):
+        """Warm=1: a thing (or a tile) that keeps the cold off those near it."""
+        if not name:
+            return False
+        known = self.data.cache("fires")
+        key = (tile, name)
+        if key not in known:
+            known[key] = trim((self.data.tile_ini if tile else self.data.entity_ini)(name, "Warm", "0")) == "1"
+        return known[key]
+
     def cold_num(self, key, default):
         return self.data.ini_num(COLD, "Cold", key, default)
 
@@ -34,7 +44,7 @@ class ColdMixin:
         p, w = self.player, self.w
         reach = self.cold_num("Fire.Range", 96)
         for e in w.ents:
-            if e.z == p.z and e.alive and e.name.startswith(FIRES) and distance(e.cx, e.cy, p.cx, p.cy) <= reach:
+            if e.z == p.z and e.alive and self.is_fire(e.name) and distance(e.cx, e.cy, p.cx, p.cy) <= reach:
                 return True
         m, tx, ty = w.tile_at(p.z, p.fx, p.fy)
         if m is not None:
@@ -42,8 +52,8 @@ class ColdMixin:
             for dy in range(-r, r + 1):
                 for dx in range(-r, r + 1):
                     x, y = tx + dx, ty + dy
-                    if m.inside(x, y) and (m.tile[m.cell(x, y)].startswith(FIRES) or
-                                           (m.decor[m.cell(x, y)] or "").startswith(FIRES)):
+                    if m.inside(x, y) and (self.is_fire(m.tile[m.cell(x, y)], True) or
+                                           self.is_fire(m.decor[m.cell(x, y)], True)):
                         return True
         return False
 

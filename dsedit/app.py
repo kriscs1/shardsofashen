@@ -74,7 +74,16 @@ class Page(ttk.Frame):
         self.redo_stack.clear()
         self.app.refresh_chrome()
 
+    def remember_typing(self, what):
+        """remember(), but keys typed into the same thing (what) a moment apart are one undo step, not one a key."""
+        now, last = time.monotonic(), self.__dict__.get("_typing")
+        self._typing = (what, now)
+        if last and last[0] == what and now - last[1] < 1.5:
+            return
+        self.remember()
+
     def undo(self):
+        self._typing = None
         if not self.undo_stack:
             return
         self.redo_stack.append(self.snapshot())
@@ -82,6 +91,7 @@ class Page(ttk.Frame):
         self.app.refresh_chrome()
 
     def redo(self):
+        self._typing = None
         if not self.redo_stack:
             return
         self.undo_stack.append(self.snapshot())
@@ -151,6 +161,7 @@ class App:
         self.root = tk.Tk()
         self.root.withdraw()
         self.root.title("Shards of Ashen Editor")
+        self.root.report_callback_exception = self.callback_failed
         T.setup(self.root)
         self.project = Project(root_dir)
         self.root.geometry("1440x900")
@@ -378,6 +389,16 @@ class App:
     def quick_open(self):
         QuickOpen(self).run()
 
+    def callback_failed(self, kind, value, tb):
+        """A save that couldn't be (the file changed on disk, or a character it can't hold) is said; anything else is
+        Tk's own report."""
+        from .project import ChangedOnDisk, Unsavable
+        if isinstance(value, (ChangedOnDisk, Unsavable)):
+            messagebox.showwarning("Not saved", "%s\n\nNothing was written to it: open it again to see what's there "
+                                   "now." % value, parent=self.root)
+            return
+        tk.Tk.report_callback_exception(self.root, kind, value, tb)
+
     def status(self, text, kind="info"):
         colours = {"info": T.TEXT, "ok": T.OK, "warn": T.WARN, "error": T.DANGER}
         self.status_var.set(text)
@@ -401,9 +422,15 @@ class App:
         Its players and world are kept in server-data\\ (not the real server's)."""
         if getattr(self, "_playing", False):
             return
-        for p in self.pages:
-            if p.is_dirty():
-                p.save()
+        dirty = [p for p in self.pages if p.is_dirty()]
+        if dirty:                                       # (the game plays what's saved: asked first, never just done)
+            r = messagebox.askyesnocancel("Play", "Save your changes first?\n\n" + "\n".join(
+                "%s: %s" % (p.title, p.current() or "") for p in dirty) + "\n\n(No plays what's saved now.)",
+                parent=self.root)
+            if r is None:
+                return
+            if r and not all(p.save() for p in dirty):
+                return
         self._playing = True
         self.status("Getting the game ready: making the pictures...", "info")
         threading.Thread(target=self._play_thread, daemon=True).start()

@@ -491,7 +491,8 @@ lists the remote game servers (each announces itself to it), and it serves the a
     there with a JSON key; give the account "View financial data" and "Manage orders" for the app. Put the key file
     where the central server can read it and set `DS_PLAY_SERVICE_ACCOUNT` to its path (`DS_PLAY_PACKAGE`,
     `io.github.kriscs1.shardsofashen`, and `DS_FULL_PRODUCT`, `full_game`, unless yours differ). A purchase that
-    hasn't been acknowledged is acknowledged here, so Google doesn't refund it.
+    hasn't been acknowledged is acknowledged here, so Google doesn't refund it. Once a day Play's voided purchases are
+    read ("View financial data" again), and a refunded one takes the full game back.
   - **Steam**: `DS_STEAM_APP` (the app's id) and `DS_STEAM_KEY` (a publisher Web API key, from Users & Permissions >
     Manage Groups in Steamworks). The desktop app sends a Web API ticket for the identity `shardsofashen`; a copy lent by
     Family Sharing doesn't count. The Steam build is made with `DS_STORE=steam DS_STEAM_APP=<id>

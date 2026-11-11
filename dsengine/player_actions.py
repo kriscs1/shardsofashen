@@ -355,6 +355,7 @@ class ActionsMixin:
                 self.walk_player_to(front[0], front[1], 0, 6)
                 self.pending_verb = verb
                 self.pending_ent = e
+                self.pending_at = front
                 return
         rng = self.verb_range(verb, e)
         if rng > 0 and self.player_distance_to(e) > rng:
@@ -363,6 +364,7 @@ class ActionsMixin:
             self.walk_player_to(e.cx, e.cy, 0, rng)
             self.pending_verb = verb
             self.pending_ent = e
+            self.pending_at = (vx, vy)
             return
         self.stop_player_walk()
         self.do_action(verb, e)
@@ -717,19 +719,19 @@ class ActionsMixin:
             e.quantity = quantity - taken
             self.display_message("You don't have room for the rest.", "FAIL")
             if e.source == "MAP":
-                w.remove_action_from_queue("\t".join(["SET.QUANTITY", name, "MapItem", "*", m.name, coords, "*"]))
+                w.remove_action_from_queue("SET.QUANTITY", name, "MapItem", "*", m.name, coords)
                 w.add_action_to_queue("SET.QUANTITY", name, "MapItem", lbstr(quantity - taken), m.name, coords,
                                       self.item_respawn_seconds(name))
             else:
                 w.set_queue_quantity("REMOVE", name, m.name, coords, quantity - taken)
             return
         if e.source == "MAP":
-            w.remove_action_from_queue("\t".join(["SET.QUANTITY", name, "MapItem", "*", m.name, coords, "*"]))
+            w.remove_action_from_queue("SET.QUANTITY", name, "MapItem", "*", m.name, coords)
             w.add_action_to_queue("ADD", name, "MapItem", lbstr(e.orig_quantity) + (
                 " Id=" + e.npc_id if e.npc_id else ""), m.name, w.local_coords(m, e.orig_x, e.orig_y),
                                   self.item_respawn_seconds(name))
         else:
-            w.remove_action_from_queue("\t".join(["REMOVE", name, "MapItem", "*", m.name, coords, "*"]))
+            w.remove_action_from_queue("REMOVE", name, "MapItem", "*", m.name, coords)
         w.remove_entity(e)
 
     def item_respawn_seconds(self, name):
@@ -749,8 +751,8 @@ class ActionsMixin:
         if self.data.keeps_wear(name) and quantity == 1:
             self.drop_on_floor(name, 1, self.take_inventory_entity(e), stolen)
         else:
-            self.remove_inventory_item(name, quantity, stolen)
-            self.drop_on_floor(name, quantity, stolen=stolen)
+            for q, wear, st in self.remove_inventory_item(name, quantity, stolen):
+                self.drop_on_floor(name, q, wear, stolen=st)        # (each as it was: its wear, its mark)
         self.play_sound("Drop", (self.player.cx, self.player.cy))
         if quantity > 1:
             self.display_message("You drop %d %s." % (quantity, pretty(name)), "SUCCESS")
@@ -810,6 +812,8 @@ class ActionsMixin:
             self.script_cursor_x, self.script_cursor_y = vx, vy
             verb = str(msg.get("verb", ""))
             self.verb_price, self.verb_qty = msg.get("price", 0), msg.get("qty", 0)
+            lid = (msg.get("target") or {}).get("id") if isinstance(msg.get("target"), dict) else None
+            self.verb_listing = lid if isinstance(lid, int) and not isinstance(lid, bool) else None
             if verb == "Use with":
                 item = self.inv_item(msg.get("item"))
                 if item is None:
@@ -858,8 +862,10 @@ class ActionsMixin:
             elif self.user_input_enabled and not self.ab_mode:
                 target = None
                 if msg.get("target") is not None:       # (cast at what was clicked, the spell held ready)
-                    self.script_cursor_x = float(msg.get("x", self.player.cx))
-                    self.script_cursor_y = float(msg.get("y", self.player.cy))
+                    vx, vy = float(msg.get("x", self.player.cx)), float(msg.get("y", self.player.cy))
+                    if abs(vx - self.player.cx) > 3 * self.sw or abs(vy - self.player.cy) > 3 * self.sh:
+                        return
+                    self.script_cursor_x, self.script_cursor_y = vx, vy
                     target = self.resolve_target(msg.get("target"))
                     if target is None:
                         return
@@ -1132,8 +1138,7 @@ class ActionsMixin:
                                  "You're on your feet again.", "INFO")
             self.dirty_me = True
         elif what == "god":
-            self.god_mode = 1 if msg.get("on") else 0
-            ini.write("Admin", "GodMode", lbstr(self.god_mode), d.config_path)
+            self.god_mode = self.god_saved = 1 if msg.get("on") else 0     # (theirs alone, kept with the character)
             if self.god_mode:
                 self.player.hp = self.player_max_hp
                 self.display_message("God mode is on: nothing can hurt you.", "INFO")

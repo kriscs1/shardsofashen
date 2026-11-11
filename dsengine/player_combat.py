@@ -613,7 +613,7 @@ class CombatMixin:
         # Dead: they stay where they fell (unseen, nothing can touch them) until they choose to wake (Respawn).
         # Nothing carries on: no walking (a key held down when they fell), no fighting, no bleeding
         self.keyboard_direction = 0
-        self.pending_verb, self.pending_ent = "", None
+        self.pending_verb, self.pending_ent, self.pending_at = "", None, None
         self.item_in_use = None
         bed = self.home_respawn()
         if bed is not None:
@@ -658,7 +658,15 @@ class CombatMixin:
     def spell_target_ok(self, e):
         if e is not None and e.type == PLAYER:
             return self.pvp_ok(self.session_of(e))
-        return e is not None and e.alive and e.type == NPC and e.active and self.w.visible_to(e, self)
+        return (e is not None and e.alive and e.type == NPC and e.active and self.w.visible_to(e, self) and
+                self.may_attack_npc(e))
+
+    def may_attack_npc(self, e):
+        """What has an Attack verb (player_actions.py get_verbs): a foe, or one fooled by your disguise. Never a
+        shopkeeper, a cat, a hired sword, a cart or a ferry, by spell or by blade."""
+        if getattr(e, "cart", None) is not None:
+            return False
+        return self.w.hostile_for(e, self) or (e.hostile and self.disguised_from(e))
 
     def spell_auto_target(self, rng):
         p = self.player

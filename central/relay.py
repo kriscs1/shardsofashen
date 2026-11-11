@@ -110,7 +110,11 @@ class Relays:
         elif kind == "m":
             c = t.conns.get(data.get("c"))
             if c is not None and not c.closed:
-                await c.send_str(str(data.get("d", "")))
+                try:
+                    await c.send_str(str(data.get("d", "")))
+                except (ConnectionError, RuntimeError):       # (that friend's just dropped: only theirs closes)
+                    if t.conns.pop(data.get("c"), None) is not None:
+                        await t.send({"t": "close", "c": data.get("c")})
         elif kind == "close":
             c = t.conns.pop(data.get("c"), None)
             if c is not None:
@@ -136,7 +140,11 @@ class Relays:
             raise web.HTTPFound("/?join=" + quote(request.match_info["key"], safe=""))
         if request.method != "GET":
             return web.Response(status=405)
-        ask = path + ("?" + request.query_string if request.query_string else "")
+        if path.startswith(KEPT_PATHS):     # (a file's the same whatever's after its "?", but its ?v=: kept so, and asked so)
+            v = request.query.get("v", "")[:40]
+            ask = path + ("?v=" + quote(v, safe="") if v else "")
+        else:
+            ask = path + ("?" + request.query_string if request.query_string else "")
         # (a game's version says what its files are, so a browser that has one needs no more than this: nothing is
         # asked of the host, and nothing's sent. Kept by host too: a host can't send another's friends its own files)
         tag = '"%s"' % hashlib.md5(("%s|%s" % (t.version, ask)).encode("utf-8")).hexdigest()[:20] \

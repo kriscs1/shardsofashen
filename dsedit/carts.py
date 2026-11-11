@@ -4,7 +4,7 @@ square, on to the port), read, changed and written back (cp1252, CRLF), its comm
 just its nodes one after another is written as PointN= (as it always was); any other as NodeN= and Order=."""
 import os
 
-from .project import parse_map_name
+from .project import parse_map_name, write_text_lines, ChangedOnDisk
 
 
 class Route:
@@ -13,6 +13,7 @@ class Route:
         self.keys = []                  # [(key, value)]: Title, Fare, Wait, Loop (and anything else, kept)
         self.points = []                # its nodes: [[map, x, y, stop name]] (x, y 1-based)
         self.order = []                 # [node index (from 0)]: its way, a node maybe more than once
+        self.notes = []                 # its comment lines (and any line not understood), kept at its top
 
     def way(self):
         """The nodes' indices in the order the cart takes them (all of them, one after another, if no order)."""
@@ -67,8 +68,13 @@ class CartRoutes:
         self.path = project.p("data", "Carts.ini")
         self.load()
 
+    def on_disk(self):
+        return open(self.path, "rb").read().decode("cp1252", errors="surrogateescape") \
+            if os.path.exists(self.path) else None
+
     def load(self):
-        self.load_text(open(self.path, "rb").read().decode("cp1252") if os.path.exists(self.path) else None)
+        self.disk = self.on_disk()
+        self.load_text(self.disk)
         self.dirty = False
 
     def load_text(self, text):
@@ -79,7 +85,7 @@ class CartRoutes:
                          "stop. Title=, Fare=, Wait= (seconds at a stop), Loop=1 (round and round).", ""]
             return
         r = None
-        for line in text.split("\r\n"):
+        for line in text.splitlines():
             s = line.strip()
             if s.startswith("[") and s.endswith("]"):
                 r = Route(s[1:-1])
@@ -97,6 +103,8 @@ class CartRoutes:
                     r.order = [int(t) - 1 for t in v.replace(" ", "").split(",") if t.isdigit()]
                 else:
                     r.keys.append((k, v))
+            elif s:
+                r.notes.append(line)
         while self.head and not self.head[-1].strip():
             self.head.pop()
         self.head.append("")
@@ -105,6 +113,7 @@ class CartRoutes:
         out = list(self.head)
         for r in self.routes:
             out.append("[%s]" % r.key)
+            out += r.notes
             out += ["%s=%s" % kv for kv in r.keys]
             word = "Point" if r.plain() else "Node"
             out += ["%s%d=%s,%d,%d%s" % (word, n, m, x, y, "," + name if name else "")
@@ -114,10 +123,14 @@ class CartRoutes:
             out.append("")
         return "\r\n".join(out)
 
-    def save(self):
+    def save(self, over=False):
+        """Written (whole, then put in its place); ChangedOnDisk if the file changed since it was read, unless over."""
         if self.dirty:
-            open(self.path, "wb").write(self.text().encode("cp1252"))
-            self.dirty = False
+            if not over and self.on_disk() != self.disk:
+                raise ChangedOnDisk(self.path)
+            text = self.text()
+            write_text_lines(self.path, text[:-2].split("\r\n") if text.endswith("\r\n") else text.split("\r\n"))
+            self.disk, self.dirty = self.on_disk(), False
 
     def snapshot(self):
         return self.text()

@@ -27,6 +27,14 @@ def check_password(password, stored):
         return False
 
 
+def same(a, b):
+    """A secret compared in a constant time, whatever it's written in (compare_digest refuses a str with anything
+    beyond ASCII: an odd header or token would be a 500)."""
+    def raw(s):
+        return s if isinstance(s, bytes) else str(s).encode("utf-8", "surrogateescape")
+    return hmac.compare_digest(raw(a), raw(b))
+
+
 CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"     # (no 0/O, 1/I: easy to copy down)
 
 
@@ -80,7 +88,7 @@ def client_address(request):
     connection's own address."""
     remote = request.remote or ""
     mark = request.headers.get("X-DS-Relay", "")
-    if mark and hmac.compare_digest(mark, RELAY_KEY):
+    if mark and same(mark, RELAY_KEY):
         return "relay:" + request.headers.get("X-DS-Relay-IP", "")[:64]
     told = next((request.headers[h] for h in ("X-Forwarded-For", "X-Real-IP", "Forwarded") if request.headers.get(h)), "")
     try:

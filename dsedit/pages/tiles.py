@@ -321,11 +321,7 @@ class TilePage(IniFormPage):
         if not self.key:
             self.draw()
             return
-        if not self.walk.get().strip():
-            self._loading = True
-            self.walk.set("1" * 49)
-            self._loading = False
-            self.loaded = self.form_values()
+        # (no Walkable.Data: it's walked on everywhere, drawn as all ones, and left out on save unless it's changed)
         self.family_label.configure(text="%s  ·  %s" % (tile_family(self.key),
                                                         "in Tiles.ini" if self.ini.has_section(self.key) else
                                                         "no data yet: saving adds it"))

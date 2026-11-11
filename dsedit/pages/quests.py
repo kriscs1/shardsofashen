@@ -104,15 +104,31 @@ class QuestPage(IniFormPage):
         attr = self.attr.get().strip()
         scripts = []
         if attr:
-            from ..project import read_text_lines
-            for s in self.project.scripts():
-                try:
-                    if any(("\t%s\t" % attr) in l or ("$Attr.%s" % attr) in l for l in
-                           read_text_lines(self.project.script_path(s))):
-                        scripts.append(s)
-                except OSError:
-                    pass
+            for s, text in self.script_texts():
+                if ("\t%s\t" % attr) in text or ("$Attr.%s" % attr) in text:
+                    scripts.append(s)
         self.fill_links(self.scripts_box, [(s, lambda s=s: self.app.goto("script", s)) for s in scripts], "none")
+
+    def script_texts(self):
+        """(name, text) of every script, each read again only when its file has changed (a quest opened doesn't read
+        all 1,300 of them each time)."""
+        import os
+        from ..project import read_text_lines
+        cache = self.__dict__.setdefault("_texts", {})
+        out, names = [], self.project.scripts()
+        for s in names:
+            path = self.project.script_path(s)
+            try:
+                st = os.stat(path)
+                stamp = (st.st_mtime_ns, st.st_size)
+                if cache.get(s, (None,))[0] != stamp:
+                    cache[s] = (stamp, "\n".join(read_text_lines(path)) + "\n")
+            except OSError:
+                continue
+            out.append((s, cache[s][1]))
+        for s in set(cache) - set(names):
+            del cache[s]
+        return out
 
     def on_change(self, key):
         if key == "Giver":
@@ -173,7 +189,11 @@ class QuestPage(IniFormPage):
         if not old:
             return
         if self.is_dirty():
-            self.save()
+            from ..widgets import confirm
+            if not confirm(self, "Rename", "Renaming the place saves this quest's changes first. Go on?"):
+                return
+            if not self.save():
+                return
         mp = self.app.page_of("map")
         if mp.doc is None:
             self.app.status("Open Maps once first.", "warn")

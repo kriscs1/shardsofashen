@@ -576,7 +576,7 @@ A new character's start (`Session.new_player_start`). Characters themselves are 
     target reels back, a red flash round the map when the player is hurt, a puff of smoke when something dies.
     Sounds: Fight1-3, Crit, Miss, Block, Hurt, Death.
 * Queue entries are the Add.Action.To.Queue arguments joined by tabs plus a due time. Engine commands are
-  ADD, REMOVE, CHANGE.TILE, SET.QUANTITY (what is left of a partly-picked-up map stack), ADD.SHOP.ITEM and REMOVE.SHOP.ITEM. Remove.Action.From.Queue removes every match; a trailing `*` is a wildcard.
+  ADD, REMOVE, CHANGE.TILE, SET.QUANTITY (what is left of a partly-picked-up map stack), ADD.SHOP.ITEM and REMOVE.SHOP.ITEM. Remove.Action.From.Queue removes every match of its fields (action, name, type, misc, map, X,Y), each matched on its own: `*` for any, or at the start or end of one; those left off match anything. A thing taken away by Remove.Entity takes a queued REMOVE of it on that spot with it.
 * ItemRacks: optional `Specific=1` (the shop only buys listed items); craft rows may have a 4th field, the required level; stock `+` = unlimited.
 * Built-in verbs: Walk here, Pickup, Drop, Drop 1, Examine, Eat, Use, Use X with Y, Talk to, Attack, Count, Climb Up (Z+1), Climb Down (Z-1), Bank.
 * Optional config: `[Debugging] Debug=1` enables the debug hotkeys; `[Minimap] Blackout=1` hides unexplored maps.

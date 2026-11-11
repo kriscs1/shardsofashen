@@ -165,12 +165,16 @@ def options(project, t, line_args, all_lines, line_summary):
         return ["$Player.Name"] + project.npcs()
     if n == "ENTITY MISC":
         return ["-"] + [str(i) for i in range(1, 31)]
-    if n == "QUEUE ENTRY":
-        out = []
+    if n.startswith("QUEUED "):              # (what this script's Add.Action.To.Queue lines put there, or any)
+        i = ["QUEUED ACTION", "QUEUED NAME", "QUEUED TYPE", "QUEUED MISC", "QUEUED MAP", "QUEUED X,Y"].index(n)
+        out = {"*"}
         for cmd, args in all_lines:
-            if cmd == "Add.Action.To.Queue":
-                out.append("[TAB]".join(x.strip() for x in args[:6]) + "*")
-        return out + ["REMOVE[TAB]Name[TAB]StaticObject[TAB]-[TAB]$Map.Name[TAB]X,Y*"]
+            if cmd == "Add.Action.To.Queue" and len(args) > i:
+                out.add(args[i].strip())
+        out |= {"QUEUED ACTION": {"ADD", "REMOVE", "CHANGE.TILE", "SET.QUANTITY"},
+                "QUEUED TYPE": {"MapItem", "StaticObject", "NPC", "Tile"}, "QUEUED MAP": {"$Map.Name", "-"},
+                "QUEUED X,Y": {"$Player.X,$Player.Y", "$Object.under.Cursor.X,$Object.under.Cursor.Y"}}.get(n, set())
+        return sorted(out - {""}, key=lambda v: (v != "*", v.lower()))
     if n in ("QUANTITY TO REMOVE", "QUANTITY TO ADD", "QUANTITY REQUIRED", "DISALLOWED QUANTITY", "DISALLOWED LEVEL"):
         return [str(i) for i in range(1, 31)]
     if n == "QUANTITY (+, - or =)":

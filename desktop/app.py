@@ -19,6 +19,8 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "android", "app", "src", "main", "python"))
 
 PORT = int(os.environ.get("DS_DESKTOP_PORT", "8484"))
+GAME_KEYS = ("carried",)    # (all a game's page may keep or read here: a character on its way to this device)
+MODES = ("solo", "local", "remote")
 
 
 def data_dir():
@@ -62,7 +64,7 @@ class Host:
     def start(self, name, mode, central, host_key=""):
         if self.status not in ("off", "error"):
             return
-        self.mode = "solo"
+        self.mode = mode if mode in MODES else "local"
         self.name = name or "Shards of Ashen on " + platform.node()
         self.status, self.error = "starting", ""
 
@@ -104,6 +106,9 @@ class Prefs:
         except (OSError, ValueError):
             self.values = {}
 
+    def get(self, key):
+        return self.values.get(str(key), "")
+
     def set(self, key, value):
         self.values[str(key)] = str(value)
         with open(self.path, "w", encoding="utf-8") as f:
@@ -120,19 +125,32 @@ class Bridge:
         self._owning = owning or Owning(ROOT)
         self._window = None
 
+    def _home(self):
+        """Is the start screen what's showing (not a game's page, a remote server's or a friend's relayed one)? Only
+        it may ask what the app knows (the Steam ticket, the sign-in) or have it host, play or open links."""
+        w = self._window
+        url = (w.get_current_url() or "") if w is not None else ""
+        return not url.startswith(("http://", "https://"))
+
     def state(self):
+        if not self._home():
+            return "{}"
         # (full: the PC build's owned, or None while Steam's asked; no demo on a PC: owning.py)
         return json.dumps({"status": self._host.status, "error": self._host.error, "name": self._host.name,
                            "mode": self._host.mode, "port": PORT, "addresses": addresses(), "device": platform.node(),
                            "version": version(), **self._owning.state()})
 
     def hostAs(self, name, mode, central, host_key=""):   # noqa: N802 (the start screen's names, as Android's)
-        self._host.start(str(name or "").strip(), str(mode or "local"), str(central or ""), str(host_key or ""))
+        if self._home():
+            self._host.start(str(name or "").strip(), str(mode or "local"), str(central or ""), str(host_key or ""))
 
     def stopHosting(self):                                # noqa: N802
-        self._host.stop()
+        if self._home():
+            self._host.stop()
 
     def find(self):
+        if not self._home():
+            return []
         from server import lan
         mine = set(addresses())
         out, seen = [], set()
@@ -146,23 +164,25 @@ class Bridge:
         return out
 
     def play(self, url):
-        self._window.load_url(str(url))
+        if self._home():
+            self._window.load_url(str(url))
 
     def openLink(self, url):                              # noqa: N802
         """Out to the PC's own browser (Google won't sign in inside an app's window)."""
         url = str(url)
-        if url.startswith(("https://", "http://")):
+        if self._home() and url.startswith(("https://", "http://")):
             import webbrowser
             webbrowser.open(url)
 
     def get(self, key):
-        return self._prefs.get(key)
+        return self._prefs.get(key) if self._home() or key in GAME_KEYS else ""
 
     def goHome(self):                                     # noqa: N802
         self._window.load_html(home_page(self))
 
     def set(self, key, value):
-        self._prefs.set(key, value)
+        if self._home() or key in GAME_KEYS:
+            self._prefs.set(key, value)
 
 
 SHIM = """<script>

@@ -138,7 +138,7 @@ class MarketMixin:
 
     def market_box_extra(self):
         shown = [self.market.listing(i) for i in self.market_ids]
-        return {"prices": [it["price"] if it else 0 for it in shown],
+        return {"ids": list(self.market_ids), "prices": [it["price"] if it else 0 for it in shown],
                 "sellers": [it["seller"] if it else "" for it in shown],
                 "mine": [bool(it and it["seller"] == self.player_name) for it in shown],
                 "purse": self.market.purses.get(self.player_name, 0), "only_mine": self.market_mine}
@@ -164,7 +164,11 @@ class MarketMixin:
             self.show_market()
 
     # ----- verbs in the box (and on the pack while it's open)
-    def box_listing(self, e):
+    def box_listing(self, e, lid=None):
+        """The listing clicked: by its id when the page says (the board re-sent since, a box's place is another's
+        listing now), else by its place in the box."""
+        if lid is not None:
+            return self.market.listing(lid)
         i = val(e.misc)
         if not isinstance(i, int) or not 0 <= i < len(self.market_ids):
             return None
@@ -195,7 +199,7 @@ class MarketMixin:
         if e.type != ACTIONBOXITEM or verb not in ("Take back 1", "Take back all", "Set price", "Buy 1", "Buy 5",
                                                    "Value"):
             return False
-        it = self.box_listing(e)
+        it = self.box_listing(e, getattr(self, "verb_listing", None))
         if it is None:
             self.display_message("That's gone: someone else was quicker.", "FAIL")
             self.show_market()

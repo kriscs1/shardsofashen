@@ -26,11 +26,14 @@ log = logging.getLogger("ashen.server")
 TICK = 0.05
 SAVE_EVERY = 60
 SAVE_SOON = 1.0             # (seconds: the soonest everyone is saved again when something's changed hands)
+SAVE_RETRY = 10             # (seconds: a save that failed is tried again so soon, whatever was asked)
+SIGN_IN_SECONDS = 30        # (a friend's connection through the relay that hasn't signed in by then: closed)
+PASS_RETRY, PASS_TRIES = 60, 5  # (a time pass run out, the central server not answering: asked again so often, so many times)
 WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other players)
 LINGER = 30                 # (seconds a player marked in open PvP stays in the world once they've gone: pvp.py)
 CHAT_MAX = 200
 CHAT_LINES, CHAT_SECONDS = 6, 5.0   # (the most lines anyone can say in those seconds: no flooding everyone's chat)
-TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/msg ")    # (commands that talk)
+TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/msg ", "/letter ")  # (commands that talk)
 
 
 BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
@@ -130,6 +133,8 @@ class GameServer:
         self.turned_away = set()            # (addresses at their limit, told of in the log once)
         self.running = False
         self.last_save = time.time()
+        self.unsaved = {}                   # name -> the save of one who left when saving failed (save_all)
+        self.tick_failed = set()            # (the tick's parts that have gone wrong: logged once)
         self.last_where = 0.0
         self.last_where_sent = None     # (the minimap's dots as last sent: again only when they move)
         self.last_backup_day = None
@@ -179,14 +184,30 @@ class GameServer:
         ss = [s for s in self.world.sessions.values() if s.ready]
         if also is not None and also not in ss:
             ss.append(also)
+        rows = {s.player_name: s.save_state() for s in ss}
+        for name, st in self.unsaved.items():           # (one who left while saving failed: kept till it's saved)
+            rows.setdefault(name, st)
         try:
-            self.store.save_characters([(s.player_name, s.save_state()) for s in ss], self.world_state())
+            self.store.save_characters(list(rows.items()), self.world_state())
         except Exception:
-            log.exception("Saving failed")
+            log.exception("Saving failed (tried again in %d seconds)", SAVE_RETRY)
+            live = {s.player_name for s in self.world.sessions.values()}
+            self.unsaved.update((name, st) for name, st in rows.items() if name not in live)
+            self.world.save_soon = True                 # (nothing is cleared: it's all still to save)
+            self.last_save = time.time() + SAVE_RETRY - SAVE_SOON
+            return False
+        self.unsaved = {}
         self.last_save = time.time()
         self.world.save_soon = False
         for s in ss:
             s.save_requested = False
+        return True
+
+    def failed_once(self, what):
+        """The tick's part what went wrong: logged the first time, not 20 times a second."""
+        if what not in self.tick_failed:
+            self.tick_failed.add(what)
+            log.exception("%s failed", what)
 
     def save_session(self, s):
         self.save_all(also=s)
@@ -215,10 +236,16 @@ class GameServer:
             last = start
             try:
                 self.world.tick(dt)
+            except Exception:
+                self.failed_once("Tick")
+            try:                                        # (the world went wrong: everyone's still sent what there is)
                 await self.send_updates()
+            except Exception:
+                self.failed_once("Sending")
+            try:
                 self.lingered()
             except Exception:
-                log.exception("Tick failed")
+                self.failed_once("Lingering")
             wanted = self.world.save_soon or any(s.save_requested for s in self.world.sessions.values())
             if wanted and time.time() - self.last_save >= SAVE_SOON:
                 self.save_all()
@@ -472,6 +499,8 @@ class GameServer:
             await asyncio.sleep(0.2)
             await ws.close()
             return ws
+        if self.relayed(c.addr):           # (through the relay, a few at once: one that never signs in is put out)
+            asyncio.get_running_loop().call_later(SIGN_IN_SECONDS, self.signed_in_yet, c)
         await self.send(c, {"t": "hello", "online": len(self.world.sessions), "max": self.max_players,
                             "name": self.server_name(), "id": self.server_id(), "central": bool(self.central_url()),
                             "registration": self.registration, "invite": bool(self.invite_code),
@@ -501,6 +530,11 @@ class GameServer:
                 c.writer.cancel()
             self.disconnect(c)
         return ws
+
+    @staticmethod
+    def signed_in_yet(c):
+        if not c.closed and c.owner is None and not c.ws.closed:
+            asyncio.ensure_future(c.ws.close())
 
     @staticmethod
     def rate_ok(c):
@@ -725,7 +759,7 @@ class GameServer:
         return hmac.new(key.encode("utf-8"), b"joined", hashlib.sha256).hexdigest()[:32]
 
     def joined_ok(self, token):
-        return bool(token) and hmac.compare_digest(str(token), self.joined_token())
+        return bool(token) and auth.same(token, self.joined_token())
 
     def place_of(self, c):
         """What kind of place this is to c, for what the character screen tells them about where a character lives."""
@@ -824,12 +858,17 @@ class GameServer:
             name, why, got = await self.ticket_name(data["ticket"], self.relayed(c.addr))
             owner = "a:" + name if name else ""
         key = os.environ.get("DS_HOST_KEY", "")
-        if key and self.is_local(c.addr) and hmac.compare_digest(str(data.get("host", "")), key):
+        if key and self.is_local(c.addr) and auth.same(data.get("host", ""), key):
             name = auth.clean_name(data.get("account", ""))
             mine = "a:" + name if name else linked or device
             if mine.lower() != owner.lower():
                 got = None                              # (a ticket for someone else: the host's say goes)
             owner, c.host = mine, True
+        came_from = self.store.setting("devat:" + device[2:], "") if linked else ""
+        if not owner and linked and came_from and came_from != c.addr:
+            # (a device's key only ever given to one place: from somewhere new, the start screen's ticket again, so a
+            # game that took another's id, and was handed the key for it, can't come in here as you)
+            linked, why = "", why or "You've come from somewhere new: join from the start screen to sign in again."
         if not owner and linked:
             if await self.central_banned(linked[2:]):   # (come straight back: a central ban still counts)
                 await self.send(c, {"t": "login_fail", "reason": "Your Hallisium account is banned. Sign in on the start "
@@ -852,9 +891,12 @@ class GameServer:
             return
         if device and owner.startswith("a:") and linked.lower() != owner.lower():
             self.store.set_setting("dev:" + device[2:], owner)    # (a reload, or the central server away: still you)
+        if device and owner.startswith("a:") and (got is not None or not came_from):
+            self.store.set_setting("devat:" + device[2:], c.addr)  # (from where: a ticket says so again, from anywhere)
         c.owner, c.account = owner, owner[2:] if owner.startswith("a:") else ""
         c.grant, c.friends_got = (got.get("grant") or "", got) if got else ("", None)
-        c.full, c.pass_until = self.full_of(c, data, got), int((got or {}).get("pass_until") or 0)
+        c.pass_until = int((got or {}).get("pass_until") or 0)
+        c.full = self.full_of(c, data, got)
         if c.host and c.grant and c.account and c.grant != self.host_grant:
             self.hosted_by(c.account, c.grant)          # (the host's key: the relay opens with it, for friends)
         await self.send_characters(c)
@@ -872,9 +914,12 @@ class GameServer:
         if self.store.setting("demo", "") != "1" or not (self.central_url() or self.own):
             return True
         key = "full:" + c.account.lower() if c.account else ""
-        full = bool(got.get("full", True)) if got is not None else (self.store.setting(key, "") == "1" if key else False)
-        if got is not None and key:
-            self.store.set_setting(key, "1" if full else "")
+        if got is not None:
+            full = bool(got.get("full", True))
+            if key:
+                self.remember_full(c.account, full, c.pass_until)
+        else:
+            full, c.pass_until = self.full_remembered(c.account) if key else (False, 0)
         c.device_full = c.host and bool(data.get("full")) and not full
         if c.host:
             self.store.set_setting("host_full", "1" if full or c.device_full else "")   # (its Friend Pass: the host's)
@@ -906,13 +951,33 @@ class GameServer:
                 mate = next((owners[a.lower()] for a in mates if a.lower() in owners), None)
                 s.want_friend_pass(mate is not None, mate.account if mate is not None else "")
 
+    def remember_full(self, account, full, until):
+        """What the central server last said of an account's full game, for coming in without a ticket: bought ("1"),
+        a time pass ("until:<its end>": over when it's over, asked or not) or neither ("")."""
+        self.store.set_setting("full:" + account.lower(), ("until:%d" % until if until else "1") if full else "")
+
+    def full_remembered(self, account):
+        said = self.store.setting("full:" + account.lower(), "")
+        if said.startswith("until:"):
+            until = int(said[6:] or 0) if said[6:].isdigit() else 0
+            return time.time() < until, until
+        return said == "1", 0
+
     async def owns_now(self, s):
-        """A time pass run out: whether they have the full game still (bought since?), asked of the central server."""
+        """A time pass run out: whether they have the full game still (bought since?), asked of the central server.
+        No answer: asked again in a minute, and after a few the pass is over (till it says otherwise)."""
         s.pass_until = 0
         got = await self.central_post("/api/game/owns", {"grant": s.grant})
+        if not (got and (got.get("ok") or got.get("banned"))) and s.connected:
+            s.pass_tries = getattr(s, "pass_tries", 0) + 1
+            s.pass_until = int(time.time()) + PASS_RETRY
+            if s.pass_tries >= PASS_TRIES and s.full:
+                s.set_full(getattr(self.clients.get(s), "device_full", False))
+            return
+        s.pass_tries = 0
         if got and got.get("ok") and s.connected:
-            self.store.set_setting("full:" + s.account.lower(), "1" if got.get("full") else "")
             s.pass_until = int(got.get("pass_until") or 0)
+            self.remember_full(s.account, bool(got.get("full")), s.pass_until)
             c = self.clients.get(s)
             if c is not None and got.get("full"):
                 c.device_full = False                   # (the account's now: no longer only the device's word)
@@ -923,8 +988,12 @@ class GameServer:
     def passes_ran_out(self):
         now = time.time()
         for s in list(self.world.sessions.values()):
-            if s.connected and getattr(s, "pass_until", 0) and now >= s.pass_until and getattr(s, "grant", ""):
-                asyncio.ensure_future(self.owns_now(s))
+            if s.connected and getattr(s, "pass_until", 0) and now >= s.pass_until:
+                if getattr(s, "grant", ""):
+                    asyncio.ensure_future(self.owns_now(s))
+                else:                                   # (come in without a ticket: nobody to ask, so it's over)
+                    s.pass_until = 0
+                    s.set_full(getattr(self.clients.get(s), "device_full", False))
 
     async def send_characters(self, c, text=""):
         mine = []
@@ -1046,8 +1115,9 @@ class GameServer:
         else:
             s = Session(w, name, admin=bool(admin) or c.account.lower() in self.admins)
             s.full = c.full                             # (the demo, or not, before they're anywhere: demo.py)
-            saved = self.store.load_character(name)
+            saved = self.unsaved.pop(name, None) or self.store.load_character(name)   # (left while saves failed)
             s.load_state(saved)
+            s.muted_until = float(self.store.setting("mute:" + name.lower(), "0") or 0)   # (a mute outlasts a reload)
             if saved is None and data.get("t") == "create":
                 s.set_look(data.get("look"))
             w.sessions[name] = s
@@ -1110,11 +1180,13 @@ class GameServer:
                 self.store.drop_setting("banowner:" + own.lower())
             say("%s may play again." % name)
         elif cmd == "/unmute":
+            self.store.drop_setting("mute:" + name.lower())
             if o is not None:
                 o.muted_until = 0
             say("%s may talk again." % name)
         elif cmd == "/mute":
             minutes = int(extra) if extra.strip().isdigit() else 30
+            self.store.set_setting("mute:" + name.lower(), str(int(time.time() + minutes * 60)))   # (kept past a reload)
             if o is not None:
                 o.muted_until = time.time() + minutes * 60
                 o.emit({"t": "chat", "from": "", "text": "An admin has muted you for %d minutes." % minutes})

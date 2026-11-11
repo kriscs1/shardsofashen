@@ -7,7 +7,7 @@ from tkinter import ttk, simpledialog, messagebox
 from PIL import Image, ImageTk
 
 from . import theme as T
-from .project import SLOTS
+from .project import SLOTS, ChangedOnDisk, Unsavable
 
 _photos = {}
 
@@ -543,6 +543,29 @@ def ask_text(parent, title, prompt, initial=""):
 
 def confirm(parent, title, text):
     return messagebox.askyesno(title, text, parent=parent)
+
+
+def save_over(parent, app, save):
+    """save(over) done (a doc's or an ini's save): a file changed on disk since it was read (a builder run, the other
+    synced PC) asks before it's written over; a character the files can't hold is said. True if it's saved."""
+    try:
+        save(False)
+        return True
+    except Unsavable as e:
+        app.status(str(e), "error")
+        return False
+    except ChangedOnDisk as e:
+        if not messagebox.askyesno("Changed on disk", "%s (a builder, or the other PC?)\n\nSave yours over it? No "
+                                   "leaves it as it is now: Discard shows what's there." % e, icon="warning",
+                                   parent=parent):
+            app.status("Not saved: %s" % e, "warn")
+            return False
+    try:
+        save(True)
+        return True
+    except Unsavable as e:
+        app.status(str(e), "error")
+        return False
 
 
 def ask_save(parent, what):

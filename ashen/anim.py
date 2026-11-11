@@ -21,6 +21,11 @@ ANIM_DEFAULTS = {"Water.Frames": 6, "Water.Speed": 260, "Flame.Frames": 4, "Flam
                  "Sway.Speed": 230, "Foam.Colour": "234 244 250"}
 
 
+def flame_seed(tile):
+    """A number of the tile's name for its flames' flicker, the same every run (hash() isn't: Python salts it)."""
+    return sum((i + 1) * ord(c) for i, c in enumerate(tile))
+
+
 class AnimMixin:
     def anim_setting(self, key):
         """Config.ini [Animation] key (ANIM_DEFAULTS has the defaults): a whole number, or a colour (r, g, b)."""
@@ -385,7 +390,7 @@ class AnimMixin:
             del rgb
             cache[key] = None
             return None
-        rng = random.Random(hash(tile) % 1000 + k * 7919)
+        rng = random.Random(flame_seed(tile) % 1000 + k * 7919)
         w, h = flame.shape
         noise = np.array([[rng.uniform(0.72, 1.22) for _ in range(h)] for _ in range(w)])
         k2 = 0.88 + 0.16 * math.sin(k * 2 * math.pi / self.anim_setting("Flame.Frames"))

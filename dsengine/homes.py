@@ -42,6 +42,7 @@ BLOOM = "Shard_Bloom"
 VISIT = ("closed", "friends", "open")
 VISIT_WORDS = {"closed": "only you", "friends": "you and your friends", "open": "anyone"}
 REFUND = 0.5
+CELL_KEYS = ("tile", "decor", "roof", "under")    # (what a cell of a home keeps: "under", a rug under the furniture)
 # a bed's head: (its foot, and where it lies from the head): below, or beside it for a bed lying sideways
 BED_FEET = {"Bed001": ("Bed002", 0, 1), "Bed003": ("Bed004", 1, 0), "Bed006": ("Bed005", -1, 0)}
 
@@ -264,7 +265,7 @@ class Homes:
             try:
                 rec = {"n": int(h["n"]), "visit": h.get("visit") if h.get("visit") in VISIT else "closed",
                        "friends": [str(f) for f in h.get("friends", [])][:50],
-                       "cells": {str(k): {kk: str(vv) for kk, vv in v.items() if kk in ("tile", "decor", "roof")}
+                       "cells": {str(k): {kk: str(vv) for kk, vv in v.items() if kk in CELL_KEYS}
                                  for k, v in h.get("cells", {}).items()},
                        "cleared": [str(k) for k in h.get("cleared", [])],
                        "objects": {str(k): str(v) for k, v in h.get("objects", {}).items()},
@@ -796,7 +797,7 @@ class HomeMixin:
             homes.spawn_object(m, lay, x, y)
             if lay == BLOOM:
                 h.setdefault("blooms", {})[key] = time.time()       # (it fills from now)
-        if p["xp"] > 0:
+        if p["xp"] > 0 and (p["needs"] or p["shards"]):  # (what costs nothing teaches nothing: grass laid over dirt for ever)
             self.update_skill(p["skill"], "+" + lbstr(p["xp"]))
         self.play_sound("Terraform" if p["shards"] else "Build" if d.loaded("Build") else "Pickup")
         return True

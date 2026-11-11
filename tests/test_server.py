@@ -11,6 +11,7 @@ import pytest
 from aiohttp import web
 
 from server.app import make_app, GAME
+from server.game import PASS_TRIES
 from server.store import Store
 from server import auth
 
@@ -23,10 +24,28 @@ def free_port():
         return s.getsockname()[1]
 
 
+RUNNERS = []                    # (every server a test started: served() stops any it left running)
+
+
+def served(coro):
+    """asyncio.run(coro), and every server it started stopped at the end, even when an assert threw before its own
+    runner.cleanup (so a failure never leaves a server on its port, its world ticking, for the tests after)."""
+    async def go():
+        try:
+            return await coro
+        finally:
+            while RUNNERS:
+                r = RUNNERS.pop()
+                if r.server is not None:                        # (not cleaned up already)
+                    await r.cleanup()
+    return asyncio.run(go())
+
+
 async def start(db, max_players=5, admins="", own=False):
     app = make_app(ROOT, db, max_players, admins=admins, own=own)
     runner = web.AppRunner(app)
     await runner.setup()
+    RUNNERS.append(runner)
     port = free_port()
     site = web.TCPSite(runner, "127.0.0.1", port)
     await site.start()
@@ -58,6 +77,33 @@ async def login(http, url, name, password="", mode="register", device=None, head
     return ws, await replies(ws, ("welcome", "login_fail"))
 
 
+async def chats(ws, seconds=0.6):
+    """The chat lines that come in a moment."""
+    out = []
+    end = asyncio.get_event_loop().time() + seconds
+    while True:
+        left = end - asyncio.get_event_loop().time()
+        if left <= 0:
+            return out
+        try:
+            msg = await asyncio.wait_for(ws.receive(), left)
+        except asyncio.TimeoutError:
+            return out
+        if msg.type != aiohttp.WSMsgType.TEXT:
+            return out
+        data = json.loads(msg.data)
+        out += [m for m in (data if isinstance(data, list) else [data]) if m.get("t") == "chat"]
+
+
+async def until(test, seconds=10.0):
+    """Waits till test() is true (a save, a command, a leaving done): no longer than it takes, and as long as a slow
+    disk needs. Fails if it never is."""
+    end = time.monotonic() + seconds
+    while not test():
+        assert time.monotonic() < end, "never came true"
+        await asyncio.sleep(0.02)
+
+
 async def come_in(http, url, device, **more):
     """In as someone, no further: their characters (or why not)."""
     ws = await http.ws_connect(url, headers=more.pop("headers", {}))
@@ -72,6 +118,9 @@ def test_passwords():
     assert auth.clean_name("Bob <script>") == "Bob script"           # (an old name, with its space: still theirs)
     assert auth.new_name_refused("Bob script") and auth.new_name_refused("")
     assert auth.new_name_refused("Bob_script") == ""
+    assert not auth.same("café", "cafe") and auth.same("café", "café") and auth.same(b"k", "k")
+    odd = SimpleNamespace(remote="203.0.113.9", headers={"X-DS-Relay": "ÿþ"})
+    assert auth.client_address(odd) == "203.0.113.9"                  # (an odd header: not the relay, and no 500)
 
 
 def test_the_player_limit_and_whose_characters(tmp_path):
@@ -87,7 +136,7 @@ def test_the_player_limit_and_whose_characters(tmp_path):
                 assert m3["t"] == "login_fail" and "full" in m3["reason"]
                 await w3.close()
                 await w2.close()
-                await asyncio.sleep(0.3)
+                await until(lambda: "Two" not in app[GAME].world.sessions)
                 w4, m4 = await login(http, url, "One", mode="login", device=device_of("Two"))
                 assert m4["t"] == "login_fail" and "isn't one of your" in m4["reason"]    # (someone else's)
                 await w4.close()
@@ -97,7 +146,7 @@ def test_the_player_limit_and_whose_characters(tmp_path):
                     await w.close()
         finally:
             await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_everyone_and_the_world_are_saved_together(tmp_path):
@@ -114,14 +163,68 @@ def test_everyone_and_the_world_are_saved_together(tmp_path):
                 game.world.sessions["Taker"].add_inventory_item("Logs", 7, quiet=True)
                 game.world.add_action_to_queue("ADD", "Joint_Thing", "MapItem", "1", "1,1,0", "100,100", 3600)
                 await a.close()                     # (one leaves: the other, and the world, are saved with them)
-                await asyncio.sleep(0.3)
+                await until(lambda: any(i[0] == "Logs" and i[1] >= 7 for i in
+                                        Store(db).load_character("Taker")["inventory"]))
                 st = Store(db)
-                assert any(i[0] == "Logs" and i[1] >= 7 for i in st.load_character("Taker")["inventory"])
                 assert any("Joint_Thing" in q for q in st.load_world()["queue"])
                 await b.close()
         finally:
             await runner.cleanup()
-    asyncio.run(run())
+    served(run())
+
+
+def test_a_failed_save_is_tried_again_and_a_leaver_kept_till_then(tmp_path, monkeypatch):
+    """The disk says no: nothing is marked saved, one who left meanwhile is saved at the next try (and comes back as
+    they left, not as the disk last had them)."""
+    db = str(tmp_path / "f.db")
+
+    async def run():
+        runner, app, url = await start(db)
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                a, _ = await login(http, url, "Leaver")
+                b, _ = await login(http, url, "Stayer")
+                real = game.store.save_characters
+                game.store.save_characters = lambda *a, **k: (_ for _ in ()).throw(OSError("disk full"))
+                game.world.sessions["Leaver"].add_inventory_item("Logs", 9, quiet=True)
+                await a.close()
+                await until(lambda: "Leaver" in game.unsaved)
+                assert "Leaver" in game.unsaved and game.world.save_soon      # (not saved: still to do)
+                assert not any(i[0] == "Logs" for i in Store(db).load_character("Leaver")["inventory"])
+                game.store.save_characters = real
+                game.last_save = 0                                           # (the retry's time come)
+                await until(lambda: not game.unsaved)
+                assert any(i[0] == "Logs" and i[1] >= 9 for i in Store(db).load_character("Leaver")["inventory"])
+                await b.close()
+        finally:
+            await runner.cleanup()
+    served(run())
+
+
+def test_one_part_of_the_world_going_wrong_never_stops_the_tick(tmp_path):
+    """A broken NPC (or the farms, or a missile) is logged once; everyone else's world goes on, and is sent."""
+    async def run():
+        runner, app, url = await start(str(tmp_path / "g.db"))
+        game = app[GAME]
+        try:
+            async with aiohttp.ClientSession() as http:
+                ws, _ = await login(http, url, "Watcher")
+                w = game.world
+                w.farms.tick = lambda: 1 / 0
+                s = w.sessions["Watcher"]
+                bad = w.add_npc("Wolf", s.player.z, s.player.x + 40, s.player.y, "")
+                w.update_npc = lambda e, *a: (1 / 0) if e is bad else None
+                was = w.now
+                await until(lambda: ("", "NPC Wolf") in w.failed and ("", "farms") in w.failed)
+                assert w.now > was and ("", "farms") in w.failed and ("", "NPC Wolf") in w.failed
+                assert w.dt <= 0.1                                           # (its time step put back)
+                s.out.append({"t": "chat", "from": "", "text": "still here"})
+                assert any(m["text"] == "still here" for m in await chats(ws, 0.5))
+                await ws.close()
+        finally:
+            await runner.cleanup()
+    served(run())
 
 
 def test_world_survives_a_restart(tmp_path):
@@ -145,7 +248,7 @@ def test_world_survives_a_restart(tmp_path):
             farm = game.world.maps["3,3,0"]
             game.world.farms.sow(farm, 5, 14, "Potato", "Saver")
             await ws.close()
-            await asyncio.sleep(0.3)
+            await until(lambda: "Saver" not in game.world.sessions)
         await runner.cleanup()
 
     async def second():
@@ -164,25 +267,8 @@ def test_world_survives_a_restart(tmp_path):
         assert farm.decor[farm.cell(5, 14)].startswith("Potato_Crop")
         await runner.cleanup()
 
-    asyncio.run(first())
-    asyncio.run(second())
-
-
-async def chats(ws, seconds=1.0):
-    out = []
-    end = asyncio.get_event_loop().time() + seconds
-    while True:
-        left = end - asyncio.get_event_loop().time()
-        if left <= 0:
-            return out
-        try:
-            msg = await asyncio.wait_for(ws.receive(), left)
-        except asyncio.TimeoutError:
-            return out
-        if msg.type != aiohttp.WSMsgType.TEXT:
-            return out
-        data = json.loads(msg.data)
-        out += [m for m in (data if isinstance(data, list) else [data]) if m.get("t") == "chat"]
+    served(first())
+    served(second())
 
 
 def test_chat_and_whispers(tmp_path):
@@ -207,7 +293,7 @@ def test_chat_and_whispers(tmp_path):
             await c.send_json({"t": "chat", "text": "hello all"})
             assert any(m.get("text") == "hello all" and not m.get("whisper") for m in await chats(b))
         await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_admins_from_the_server_settings(tmp_path, monkeypatch):
@@ -227,7 +313,7 @@ def test_admins_from_the_server_settings(tmp_path, monkeypatch):
             _, m = await login(http, url, "Sly", auth_with={"host": "a-guess", "account": "Kris"})
             assert m["admin"] is False and m["account"] == ""                  # (the wrong key: only a device)
         await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_the_version_is_on_the_login_screen(tmp_path, monkeypatch):
@@ -256,7 +342,7 @@ def test_the_version_is_on_the_login_screen(tmp_path, monkeypatch):
                 assert (await r.json())["version"] == base + ".57"
             await ws.close()
         await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 async def wait_for(ws, kind, seconds=5.0):
@@ -306,7 +392,7 @@ def test_an_unknown_proxy_is_not_the_local_network(tmp_path, monkeypatch):
                 assert m["t"] == "login_fail" and "Sign in" in m["reason"]
         finally:
             await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_a_page_is_told_the_code_it_should_be_running(tmp_path, monkeypatch):
@@ -324,7 +410,24 @@ def test_a_page_is_told_the_code_it_should_be_running(tmp_path, monkeypatch):
                 await ws.close()
         finally:
             await runner.cleanup()
-    asyncio.run(run())
+    served(run())
+
+
+def test_an_asset_at_its_version_is_kept_long(tmp_path):
+    """Code Issue 39: the page asks for every picture and sound with the manifest's version in its address, so those
+    are kept for good (a new version is a new address); asked for without one, an hour."""
+    async def run():
+        runner, app, url = await start(str(tmp_path / "t.db"))
+        base = url[:-len("/ws")]
+        try:
+            async with aiohttp.ClientSession() as http:
+                async with http.get(base + "/assets/manifest.json?v=abc") as r:
+                    assert r.status == 200 and "immutable" in r.headers["Cache-Control"]
+                async with http.get(base + "/assets/manifest.json") as r:
+                    assert r.status == 200 and r.headers["Cache-Control"] == "public, max-age=3600"
+        finally:
+            await runner.cleanup()
+    served(run())
 
 
 def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
@@ -341,7 +444,7 @@ def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
                 ws, m = await login(http, url, "Keeper")
                 assert m["t"] == "welcome" and m["account"] == ""
                 await ws.close()
-                await asyncio.sleep(0.3)
+                await until(lambda: "Keeper" not in app[GAME].world.sessions)
                 ws, m = await come_in(http, url, device_of("Keeper"))           # (again, a reload: still theirs)
                 assert [(c["name"], c["level"]) for c in m["list"]] == [("Keeper", 1)] and "look" in m["list"][0]
                 await ws.close()
@@ -361,7 +464,7 @@ def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
                 assert m["t"] == "login_fail" and "Sign in" in m["reason"]
         finally:
             await runner.cleanup()
-    asyncio.run(run())
+    served(run())
     game_addr = __import__("server.game", fromlist=["GameServer"]).GameServer
     g = game_addr.__new__(game_addr)
     assert g.devices_welcome("8.8.8.8")                                         # (no central server: no other way)
@@ -375,7 +478,7 @@ def test_a_device_keeps_its_own_characters(tmp_path, monkeypatch):
 def test_the_host_and_an_account_need_no_network(tmp_path, monkeypatch):
     """The app's own game lets its host in by the key it was started with, as their account, no central server; the
     device that came in by an account (a ticket, or the host's key) is that account's here from then on, so a reload,
-    or the central server away, is still them."""
+    or the central server away, is still them; but from another address, it asks for a ticket again (issue 32)."""
     db = str(tmp_path / "h.db")
     st = Store(db)
     st.create_account("Wanderer", "", owner="a:Wanderer")
@@ -404,9 +507,15 @@ def test_the_host_and_an_account_need_no_network(tmp_path, monkeypatch):
                 ws, m = await come_in(http, url, device_of("laptop"), ticket="anything")
                 assert m["t"] == "characters" and m["account"] == ""              # (another device: its own)
                 await ws.close()
+                phone = game.device_owner(device_of("phone"))[2:]
+                assert game.store.setting("devat:" + phone, "") == "127.0.0.1"    # (where it was linked from)
+                game.store.set_setting("devat:" + phone, "198.51.100.7")
+                ws, m = await come_in(http, url, device_of("phone"))              # (from somewhere new: not theirs)
+                assert m["t"] == "characters" and m["account"] == ""              # (not as Wanderer: its own here)
+                await ws.close()
         finally:
             await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_everyone_sees_where_the_others_are(tmp_path):
@@ -425,7 +534,7 @@ def test_everyone_sees_where_the_others_are(tmp_path):
             await one.close()
             await two.close()
         await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_a_game_on_the_network_answers_who_is_there(tmp_path, monkeypatch):
@@ -452,7 +561,7 @@ def test_a_game_on_the_network_answers_who_is_there(tmp_path, monkeypatch):
             async with http.get(base + "/manifest.webmanifest") as r:
                 assert r.status == 200 and json.loads(await r.text())["display"] == "fullscreen"
         await runner.cleanup()
-    asyncio.run(run())
+    served(run())
 
 
 def test_a_database_under_the_old_name_carries_on_under_the_new_one(tmp_path):
@@ -488,13 +597,13 @@ def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
                 ws2, m2 = await login(http, url, "Neighbour", "secret2")    # (still this machine: let in)
                 assert m2["t"] == "welcome"
                 await ws2.send_json({"t": "server_name", "name": "Kris's World"})
-                await asyncio.sleep(0.3)
+                await until(lambda: game.server_name() == "Kris's World")
                 assert game.server_name() == "Kris's World"                 # (the host names the game)
                 await ws.close()
                 await ws2.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch):
@@ -530,7 +639,7 @@ def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch)
                 assert (await reg("Elsewhere", "2.2.2.2", "Other"))["t"] == "welcome"       # (another player)
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_one_address_may_hold_only_so_many_connections(tmp_path, monkeypatch):
@@ -567,7 +676,7 @@ def test_one_address_may_hold_only_so_many_connections(tmp_path, monkeypatch):
                 assert game.conns == {} and game.turned_away == set()   # (forgotten once all are gone)
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
@@ -582,10 +691,15 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
                 boss, _ = await login(http, url, "Bossy", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
                 pest, _ = await login(http, url, "Pest")
                 await boss.send_json({"t": "chat", "text": "/mute Pest 5"})
-                await asyncio.sleep(0.3)
-                assert game.world.sessions["Pest"].muted_until > 0
+                await until(lambda: game.world.sessions["Pest"].muted_until > 0)
+                await pest.close()
+                await until(lambda: "Pest" not in game.world.sessions)
+                pest, _ = await login(http, url, "Pest", mode="login")           # (a reload: still muted)
+                assert game.world.sessions["Pest"].muted_until > time.time()
+                await pest.send_json({"t": "chat", "text": "/letter Bossy hello there"})
+                assert any("muted" in m["text"] for m in await chats(pest))      # (nor any letters)
                 await boss.send_json({"t": "chat", "text": "/ban Pest spamming"})
-                await asyncio.sleep(0.5)
+                await until(lambda: game.banned("Pest"))
                 assert game.banned("Pest") == "spamming"
                 assert game.ban_words("Out", "spamming") == "Out: spamming" and game.ban_words("Out", "banned") == "Out."
                 _, why = await come_in(http, url, device_of("Pest"))
@@ -595,13 +709,13 @@ def test_an_admin_can_ban_kick_and_mute(tmp_path, monkeypatch):
                 fresh, m = await login(http, url, "Pest_Two", device=device_of("Pest"))
                 assert m["t"] == "login_fail" and "banned" in m["reason"]      # (the same device: still them)
                 await boss.send_json({"t": "chat", "text": "/unban Pest"})
-                await asyncio.sleep(0.3)
+                await until(lambda: not game.banned("Pest"))
                 assert not game.banned("Pest") and not game.banned_owner(game.store.owner("Pest"))
                 for ws in (boss, pest, again, fresh):
                     await ws.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_open_pvp_is_the_servers_setting_and_an_admin_turns_it(tmp_path, monkeypatch):
@@ -617,15 +731,15 @@ def test_open_pvp_is_the_servers_setting_and_an_admin_turns_it(tmp_path, monkeyp
             async with aiohttp.ClientSession() as http:
                 boss, _ = await login(http, url, "Bossy", auth_with={"host": "the-hosts-own-key", "account": "Boss"})
                 await boss.send_json({"t": "chat", "text": "/pvp off"})
-                await asyncio.sleep(0.3)
+                await until(lambda: not game.world.open_pvp)
                 assert not game.world.open_pvp and not game.pvp_open()
                 await boss.send_json({"t": "chat", "text": "/pvp on"})
-                await asyncio.sleep(0.3)
+                await until(lambda: game.world.open_pvp)
                 assert game.world.open_pvp and game.store.setting("pvp") == "1"
                 await boss.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_leaving_while_marked_out_where_players_fight_leaves_you_there_a_while(tmp_path, monkeypatch):
@@ -649,7 +763,7 @@ def test_leaving_while_marked_out_where_players_fight_leaves_you_there_a_while(t
                 s.do_pending_map_change()
                 s.pvp_mark_until = s.now + 60000                        # (struck first)
                 await ws.close()
-                await asyncio.sleep(0.3)
+                await until(lambda: s not in game.clients)
                 assert game.world.sessions.get("Rook") is s and s.in_world() and s not in game.clients
                 ws, m = await login(http, url, "Rook", mode="login")      # (back in time: the same, carrying on)
                 assert m["t"] == "welcome" and game.world.sessions["Rook"] is s and not s.linger_until
@@ -662,29 +776,11 @@ def test_leaving_while_marked_out_where_players_fight_leaves_you_there_a_while(t
 
                 ws, m = await login(http, url, "Wren")                    # (not marked: gone at once)
                 await ws.close()
-                await asyncio.sleep(0.3)
+                await until(lambda: "Wren" not in game.world.sessions, 2.0)
                 assert "Wren" not in game.world.sessions
         finally:
             await runner.cleanup()
-    asyncio.run(go())
-
-
-async def chats(ws, seconds=0.6):
-    """The chat lines that come in a moment."""
-    out = []
-    end = asyncio.get_event_loop().time() + seconds
-    while True:
-        left = end - asyncio.get_event_loop().time()
-        if left <= 0:
-            return out
-        try:
-            msg = await asyncio.wait_for(ws.receive(), left)
-        except asyncio.TimeoutError:
-            return out
-        if msg.type != aiohttp.WSMsgType.TEXT:
-            return out
-        data = json.loads(msg.data)
-        out += [m for m in (data if isinstance(data, list) else [data]) if m.get("t") == "chat"]
+    served(go())
 
 
 def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
@@ -702,7 +798,7 @@ def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
                 game.store.create_account("Old Pest", "", False, game.device_owner(device_of("Old Pest")))
                 pest, _ = await login(http, url, "Old Pest", mode="login")     # (made before names lost their spaces)
                 await boss.send_json({"t": "chat", "text": "/mute Old Pest 5"})
-                await asyncio.sleep(0.3)
+                await until(lambda: game.world.sessions["Old Pest"].muted_until > 0)
                 assert game.world.sessions["Old Pest"].muted_until > 0          # (a name with a space)
                 await pest.send_json({"t": "chat", "text": "/w Boss hello"})
                 said = await chats(pest)
@@ -713,16 +809,16 @@ def test_moderation_holds_and_chat_isnt_a_flood(tmp_path, monkeypatch):
                 heard = await chats(boss, 1.0)
                 assert len([m for m in heard if m.get("from") == "Old Pest"]) <= 6        # (no more than six at once)
                 await boss.send_json({"t": "chat", "text": "/ban Old Pest being a pest"})
-                await asyncio.sleep(0.5)
+                await until(lambda: game.banned("Old Pest"))
                 assert game.banned("Old Pest") == "being a pest"
                 await boss.send_json({"t": "chat", "text": "/unban Old Pest"})
-                await asyncio.sleep(0.3)
+                await until(lambda: not game.banned("Old Pest"))
                 await boss.send_json({"t": "chat", "text": "/bans"})
                 assert any("nobody" in m["text"] for m in await chats(boss))
                 await boss.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_only_the_games_own_page_may_join(tmp_path):
@@ -737,7 +833,7 @@ def test_only_the_games_own_page_may_join(tmp_path):
                 await ws.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_an_older_world_save_is_put_on_utc(tmp_path):
@@ -757,7 +853,7 @@ def test_an_older_world_save_is_put_on_utc(tmp_path):
             assert abs(float(entry.split("\t")[-1]) - (clock_seconds() + 3600)) < 60
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_a_closed_server_makes_no_character_for_a_ticket(tmp_path, monkeypatch):
@@ -780,7 +876,7 @@ def test_a_closed_server_makes_no_character_for_a_ticket(tmp_path, monkeypatch):
                 await ws.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 
@@ -862,9 +958,36 @@ def test_the_ticket_says_whether_a_player_has_the_full_game(tmp_path, monkeypatc
                 await asyncio.sleep(0.1)
                 assert asked == ["g-Trier"] and not s.full and s.demo() and not s.pass_until
                 await ws.close()
+                until[0] = int(time.time()) + 2                             # (a pass with two seconds left)
+                ws, s = await come("Trier")
+                assert s.full and game.store.setting("full:trier") == "until:%d" % until[0]
+                await ws.close()
+                ws, m = await login(http, url, "Trier", mode="login")       # (a reload by the device: no ticket)
+                s = game.world.sessions["Trier"]
+                assert m["t"] == "welcome" and s.full and s.pass_until == until[0] and not getattr(s, "grant", "")
+                real = time.time
+                monkeypatch.setattr(time, "time", lambda: real() + 5)
+                game.passes_ran_out()
+                monkeypatch.setattr(time, "time", real)
+                assert not s.full and s.demo() and not s.pass_until        # (nobody to ask: the pass is over)
+                await ws.close()
+                until[0] = int(time.time()) + 1
+                ws, s = await come("Trier")
+                assert s.full and s.grant
+
+                async def away(path, body, packed=False):
+                    asked.append("away")
+                    return None
+                monkeypatch.setattr(game, "central_post", away)
+                for n in range(PASS_TRIES):
+                    s.pass_until = 1                                        # (run out: asked, and no answer)
+                    await game.owns_now(s)
+                    assert s.pass_until > time.time() and s.full == (n < PASS_TRIES - 1)
+                assert asked.count("away") == PASS_TRIES and s.demo()     # (asked again, then over)
+                await ws.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
 
 
 def test_an_apps_own_game_is_the_full_game_for_its_guests_while_its_host_owns_it(tmp_path, monkeypatch):
@@ -908,4 +1031,28 @@ def test_an_apps_own_game_is_the_full_game_for_its_guests_while_its_host_owns_it
                 await wg.close()
         finally:
             await runner.cleanup()
-    asyncio.run(go())
+    served(go())
+
+
+def test_a_connection_through_the_relay_that_never_signs_in_is_put_out(tmp_path, monkeypatch):
+    from server import game as game_mod
+    monkeypatch.setattr(game_mod, "SIGN_IN_SECONDS", 0.3)
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"), own=True)
+        try:
+            async with aiohttp.ClientSession() as http:
+                relayed = {"X-DS-Relay": auth.RELAY_KEY, "X-DS-Relay-IP": "203.0.113.5"}
+                idle = await http.ws_connect(url, headers=relayed)
+                await replies(idle, ("hello",))
+                msg = await idle.receive(timeout=5)
+                assert msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING)
+                here = await http.ws_connect(url)                       # (this machine's own: no hurry)
+                await replies(here, ("hello",))
+                await asyncio.sleep(0.6)
+                await here.send_json({"t": "ping", "c": 1})
+                assert not here.closed
+                await here.close()
+        finally:
+            await runner.cleanup()
+    served(go())

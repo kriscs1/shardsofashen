@@ -245,6 +245,19 @@ class DeepMixin:
             return False
         return True
 
+    def check_deep_entry(self):
+        """Coming into the world inside the Deep: if it has shifted since (or the server started again), the spot
+        they left is rock now: they're at floor 1's stairs up."""
+        m = self.cur_map
+        f = self.deep.floor_of(m.name) if m is not None else 0
+        if not f or getattr(self, "deep_seed", 0) == self.deep.seed:
+            return
+        fl = self.deep.floors[0]
+        self.display_message("The Deep has shifted since you were down here: you find yourself by the stairs up.",
+                             "INFO")
+        self.teleport(fl["map"], *fl["up"])
+        self.do_pending_map_change()                    # (at once: not a step taken inside the rock)
+
     def deep_enter(self, e):
         if self.too_far(e, 64):
             return

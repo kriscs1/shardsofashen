@@ -195,6 +195,8 @@ class DecorSplitDialog(Dialog):
         for n in names:
             forget_photos(("tile", n))
             forget_photos(("tilebig", n))
+            forget_photos(("pal", n))                   # (the Maps palette's pictures of it, made again)
+            self.project.forget_sprite("Tiles", n)
         forget_tiles()
         return backup, report
 

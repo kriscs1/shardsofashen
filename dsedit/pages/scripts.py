@@ -10,9 +10,9 @@ from PIL import Image
 from .. import theme as T
 from .. import scriptlang as SL
 from ..app import Page
-from ..project import ScriptDoc, ScriptLine, parse_map_name, MapDoc
+from ..project import ScriptDoc, ScriptLine, parse_map_name, MapDoc, goto_lines, rename_gotos
 from ..render import render
-from ..widgets import (FilterList, PickerDialog, ConditionBuilder, Dialog, Tooltip, photo, ask_text, confirm)
+from ..widgets import (FilterList, PickerDialog, ConditionBuilder, Dialog, Tooltip, photo, ask_text, confirm, save_over)
 from .iniform import IniFormPage
 
 
@@ -703,7 +703,8 @@ class ScriptPage(Page):
         if not self.doc:
             return True
         errors = [p for p in SL.check(self.project, self.doc) if p[1] == "error"]
-        self.doc.save()
+        if not save_over(self, self.app, self.doc.save):
+            return False
         self.loaded = self.doc.text_lines()
         self.project.refresh("scripts", "attributes")
         self.refresh_list()
@@ -778,15 +779,25 @@ class ScriptPage(Page):
         if name in self.project.scripts():
             self.app.status("There's already a script called %s." % name, "error")
             return
+        old = self.doc.name
+        gotos = goto_lines(self.project, old)               # (the scripts that go on to it: named anew with it)
+        if gotos and not confirm(self, "Rename", "%s goes on to it (Goto.Script), in %d line(s): they'll go on to %s."
+                                 "\n\nRename it?" % (", ".join(sorted(gotos)[:8]) + (" and more" if len(gotos) > 8
+                                                                                  else ""),
+                                                      sum(map(len, gotos.values())), name)):
+            return
         os.replace(self.doc.path, self.project.script_path(name))
-        trig = self.project.index()["script_trigger"].get(self.doc.name, [])
+        rename_gotos(self.project, old, name, gotos)
+        trig = self.project.index()["script_trigger"].get(old, [])
+        self.project.refresh("scripts")
         self.refresh_list()
         self.load(name)
         self.list.select(name, notify=False)
         if trig:
             self.app.status("Renamed. %d trigger(s) still name the old script: update them in Maps." % len(trig), "warn")
         else:
-            self.app.status("Renamed to %s." % name, "ok")
+            self.app.status("Renamed to %s%s." % (name, " (and the scripts that go on to it)" if gotos else ""),
+                            "ok")
 
     def delete(self):
         if not self.doc:

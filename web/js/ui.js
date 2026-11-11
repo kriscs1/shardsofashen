@@ -152,6 +152,7 @@ function greyed(name) {
   if (c) return c;
   const im = sprite(name);
   if (!im) return null;
+  if (greyCache.size > 400) greyCache.clear();    // (made again as they're needed: never without end)
   c = document.createElement("canvas");
   c.width = im.width; c.height = im.height;
   const x = c.getContext("2d");
@@ -246,8 +247,11 @@ function minimapGeometry() {
 const mmCacheMini = { key: "", canvas: null, at: 0 };
 const wmCache = { key: "", canvas: null, at: 0 };     // (the world map's copy: the unexplored hatched, not black)
 
+let hatched = null;
 function hatchPattern(ctx) {
-  // (the world map's "not yet seen": dark brown, hatched like an old map's unknown parts - no land is ever this)
+  // (the world map's "not yet seen": dark brown, hatched like an old map's unknown parts - no land is ever this;
+  // made once for the canvas it's drawn on)
+  if (hatched && hatched.ctx === ctx) return hatched.pattern;
   const t = document.createElement("canvas");
   t.width = t.height = 6;
   const c = t.getContext("2d");
@@ -255,7 +259,8 @@ function hatchPattern(ctx) {
   c.fillRect(0, 0, 6, 6);
   c.fillStyle = "rgb(72,56,38)";
   for (let i = 0; i < 6; i++) c.fillRect(i, 5 - i, 1, 1);
-  return ctx.createPattern(t, "repeat");
+  hatched = { ctx, pattern: ctx.createPattern(t, "repeat") };
+  return hatched.pattern;
 }
 const liveCache = { key: "", canvas: null, at: 0 };
 function liveMinimap(g) {
@@ -1274,7 +1279,7 @@ export function boxItemAt(x, y) {
     if (x >= ix && x < ix + G.tw && y >= iy && y < iy + G.th) {
       const it = b.items[n];
       return { k: T.RACKITEM, n: it.name, q: it.qty, i: it.i, short: it.short, missing: it.missing, stolen: !!it.stolen,
-        price: (b.prices || [])[it.i], seller: (b.sellers || [])[it.i], mine: !!(b.mine || [])[it.i] };
+        id: (b.ids || [])[it.i], price: (b.prices || [])[it.i], seller: (b.sellers || [])[it.i], mine: !!(b.mine || [])[it.i] };
     }
   }
   return null;
@@ -1963,7 +1968,8 @@ export function drawBoosts(ctx, now, mx, my) {
     groups.set(from, g);
   }
   for (const [from, g] of groups) {
-    shown.push(["buff", from, g.left, [`#${pretty(from)}`, "+" + g.kinds.map((k) => BOOST_WORDS[k](me.boosts[k])).join(", ")]]);
+    const said = g.kinds.map((k) => BOOST_WORDS[k] ? BOOST_WORDS[k](me.boosts[k]) : pretty(k));   // (a kind with no words: its name)
+    shown.push(["buff", from, g.left, [`#${pretty(from)}`, "+" + said.join(", ")]]);
   }
   for (const [name, ms] of Object.entries(me.status_left || {})) {
     const left = ms - since;

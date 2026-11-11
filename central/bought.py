@@ -154,21 +154,40 @@ async def play_token(scope=PLAY_SCOPE):
 
 async def play(proof):
     token = str(proof.get("token", ""))[:600]
-    if not token:
-        raise Refused("That isn't a Google Play purchase.")
+    if not token or any(not (ch.isascii() and (ch.isalnum() or ch in "._-")) for ch in token):
+        raise Refused("That isn't a Google Play purchase.")    # (nothing that would make another address: "../")
     package = env("DS_PLAY_PACKAGE", "io.github.kriscs1.shardsofashen")
     url = "%s/applications/%s/purchases/products/%s/tokens/%s" % (PLAY_API, package, env("DS_FULL_PRODUCT", "full_game"),
                                                                   token)
     auth = {"Authorization": "Bearer " + await play_token()}
     status, got = await ask("GET", url, headers=auth)
-    if status != 200:
-        raise Refused("Google Play doesn't know that purchase.")
-    if got.get("purchaseState", 0) != 0:        # (0 bought; 1 cancelled or refunded; 2 still being paid for)
+    if status != 200 or got.get("kind") != "androidpublisher#productPurchase" or "purchaseState" not in got:
+        raise Refused("Google Play doesn't know that purchase.")   # (a purchase's answer, saying so: nothing else counts)
+    if got.get("purchaseState") != 0:        # (0 bought; 1 cancelled or refunded; 2 still being paid for)
         raise Refused("That purchase isn't paid for yet." if got.get("purchaseState") == 2
                       else "That purchase was cancelled.")
     if got.get("acknowledgementState", 1) == 0:     # (Google refunds one not acknowledged within three days)
         await ask("POST", url + ":acknowledge", headers=auth, json={})
     return token
+
+
+async def play_voided(since):
+    """The purchase tokens Google Play has voided (refunded, charged back, cancelled) since then (seconds), every page
+    of them: a refund takes the full game back (app.py recheck_refunds). Refused if Play can't be asked."""
+    package = env("DS_PLAY_PACKAGE", "io.github.kriscs1.shardsofashen")
+    url = "%s/applications/%s/purchases/voidedpurchases" % (PLAY_API, package)
+    auth = {"Authorization": "Bearer " + await play_token()}
+    params, out = {"startTime": str(int(since * 1000)), "maxResults": "1000"}, []
+    for _ in range(100):                            # (pages: never for ever)
+        status, got = await ask("GET", url, headers=auth, params=params)
+        if status != 200:
+            raise Refused("Google Play's voided purchases couldn't be read (%s)." % status)
+        out += [str(v["purchaseToken"]) for v in got.get("voidedPurchases") or [] if v.get("purchaseToken")]
+        more = (got.get("tokenPagination") or {}).get("nextPageToken")
+        if not more:
+            break
+        params["token"] = more
+    return out
 
 
 def integrity_on():

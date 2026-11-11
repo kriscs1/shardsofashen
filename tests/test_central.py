@@ -35,6 +35,14 @@ def quiet(gapp):
     gapp[GAME].announce = nothing
 
 
+async def until(test, seconds=10.0):
+    """Waits till test() is true (central told, a friend added): no longer than it takes. Fails if it never is."""
+    end = time.monotonic() + seconds
+    while not test():
+        assert time.monotonic() < end, "never came true"
+        await asyncio.sleep(0.02)
+
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -91,6 +99,7 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
     button confirms it. Till then no code goes to it and the one before it still counts."""
     from central import mail
     from central import store as central_store
+    from central import app as central_app
     monkeypatch.setenv("DS_SMTP_HOST", "test")
     mail.SENT.clear()
 
@@ -126,6 +135,26 @@ def test_an_email_counts_only_once_its_owner_confirms_it(tmp_path, monkeypatch):
                 assert "Email confirmed" in await confirm(first)
                 me = await post(http, c + "/api/account", {"token": token})
                 assert me["email"] == "ann@example.com" and me["pending"] == ""
+                assert await forgot("Ann") == ["ann@example.com"]
+                code = [w for w in mail.SENT[0][2].split() if "-" in w and len(w) == 9][0]
+                r = await post(http, c + "/api/reset", {"name": "Ann", "code": code, "password": "short"})
+                assert not r["ok"] and "at least" in r["text"]
+                grant = db.new_grant("Ann", "a game")
+                assert db.grant_name(grant) == ("Ann", "a game")
+                r = await post(http, c + "/api/reset", {"name": "Ann", "code": code, "password": "longer password"})
+                assert r["ok"]                                                                 # (the code kept for it)
+                assert db.grant_name(grant) is None                                            # (no game server's key outlasts it)
+                token = (await post(http, c + "/api/login", {"name": "Ann", "password": "longer password"}))["token"]
+                central = capp[CENTRAL]
+                central.fails.clear()
+                assert await forgot("Ann!") == ["ann@example.com"]                             # ("Ann!" is Ann)
+                assert {k[1] for k in central.fails if k[0] == "name"} == {"forgot:ann"}       # (counted as one name)
+                for _ in range(central_app.CONFIRMS_A_DAY):
+                    central.fails.clear()
+                    await forgot("ann@example.com")
+                central.fails.clear()
+                assert await forgot("Ann") == []                                               # (enough for one day)
+                central.confirm_day = ""                                                       # (the next day)
                 assert await forgot("Ann") == ["ann@example.com"]
                 assert "run out" in await confirm(first)                                       # (once)
                 assert "run out" in await (await http.get(c + "/confirm?code=" + first)).text()
@@ -323,7 +352,8 @@ def test_an_admin_deletes_an_account_keeping_its_name_or_freeing_it(tmp_path, mo
                 assert acct[1:5] == ("", "", "", "") and not acct[5] and acct[6]    # (the name, and nothing else of theirs)
                 assert store.count_accounts() == count - 1
                 m = await post(http, c + "/api/login", {"name": "Kept", "password": "longpassword"})
-                assert not m["ok"] and "deleted" in m["text"]
+                nobody = await post(http, c + "/api/login", {"name": "Nobody At All", "password": "longpassword"})
+                assert not m["ok"] and m["text"] == nobody["text"]             # (nothing said of whose it was)
                 m = await post(http, c + "/api/reset", {"name": "Kept", "code": "", "password": "anotherpassword"})
                 assert not m["ok"]
                 capp[CENTRAL].signups.clear()
@@ -527,11 +557,12 @@ def test_one_account_for_every_game_and_the_remote_list(tmp_path, monkeypatch, c
                 assert not bad["ok"]
                 hello = await (await http.get(central + "/api/hello")).json()
                 assert hello["ok"] and hello["ad"]["text"] and hello["servers"] == 1
+                await grunner.cleanup()                              # (stopped: it says goodbye, and isn't listed)
+                assert await (await http.get(central + "/api/servers")).json() == []
         finally:
-            await grunner.cleanup()
+            if grunner.server is not None:
+                await grunner.cleanup()
             await crunner.cleanup()
-        async with aiohttp.ClientSession() as http:                   # (stopped: it said goodbye)
-            pass
     asyncio.run(go())
 
 
@@ -978,7 +1009,8 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
                 a, m = await come("Alpha", "Ace")
                 assert m["t"] == "welcome"
                 b, m = await come("Beta", "Bee")
-                await asyncio.sleep(1.0)
+                await until(lambda: (game.world.sessions.get("Bee") and
+                                     game.world.sessions["Bee"].central_friends.get("asked")))
                 sa, sb = game.world.sessions["Ace"], game.world.sessions["Bee"]
                 assert sb.central_friends["asked"] == ["Alpha"]           # (Bee's old friend Ace: asked by account)
                 assert "Bee" not in game.world.together.friends or not game.world.together.friends["Bee"]
@@ -988,7 +1020,7 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
                 rows = sa.friends_rows()
                 assert rows[0]["asks"] and rows[0]["account"] == "Beta"
                 sa.add_friend_named("Beta", True)                         # (the journal's Accept)
-                await asyncio.sleep(1.0)
+                await until(lambda: "Beta" in sa.central_friends["friends"] and "Ace" in sb.friend_names())
                 assert "Beta" in sa.central_friends["friends"] and "Bee" in sa.friend_names()
                 assert "Ace" in sb.friend_names()
                 row = next(r for r in sa.friends_rows() if r.get("char") == "Bee")
@@ -998,12 +1030,16 @@ def test_friends_are_by_account_in_every_game(tmp_path, monkeypatch, confirmed):
                 r = await post(http, central + "/api/friends", {"token": tok["Gamma"]})
                 assert r["playing"]["Alpha"]["character"] == "Ace" and r["playing"]["Alpha"]["place"] == "Kris's World"
                 await a.close()
-                await asyncio.sleep(1.0)
-                r = await post(http, central + "/api/friends", {"token": tok["Gamma"]})
+                await until(lambda: "Ace" not in game.world.sessions)
+                for _ in range(100):                                     # (central told: a moment after)
+                    r = await post(http, central + "/api/friends", {"token": tok["Gamma"]})
+                    if "Alpha" not in r["playing"]:
+                        break
+                    await asyncio.sleep(0.05)
                 assert "Alpha" not in r["playing"]                        # (gone from the game)
 
                 sb.remove_friend_named("Ace")                             # (right-click: Remove friend)
-                await asyncio.sleep(1.0)
+                await until(lambda: "Alpha" not in sb.central_friends["friends"])
                 assert "Alpha" not in sb.central_friends["friends"] and "Ace" not in sb.friend_names()
                 await b.close()
         finally:
@@ -1299,7 +1335,7 @@ def test_a_report_is_taken_only_as_far_as_it_should_be(tmp_path, monkeypatch, co
                 rows = {x["name"]: x for x in db.find_characters()}
                 assert set(rows) == {"bBoldb", "Fine"} and rows["bBoldb"]["level"] == 1000 and len(rows["bBoldb"]["map"]) == 24
                 assert rows["bBoldb"]["kind"] == "local"
-                assert await post(http, url, {"secret": other, "characters": [{"name": "Fine", "level": 2}]})
+                assert (await post(http, url, {"secret": other, "characters": [{"name": "Fine", "level": 2}]}))["ok"]
                 assert sum(1 for x in db.find_characters() if x["name"] == "Fine") == 2     # (each game's its own)
                 assert db.find_characters("Fine", rows["Fine"]["server"])[0]["level"] == 1  # (the other didn't touch it)
                 for bad in ([], "x", None, 5, {"a": 1}):
@@ -1534,7 +1570,6 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
                 back = await fake.sign_in(http, c, sub="g-9", email="x@gmail.com", code="refused")
                 assert "didn't accept" in await words(back)
                 # (its nonce must be this sign-in's)
-                orig = fake.token
 
                 async def wrong_nonce(request):
                     await request.post()
@@ -1547,7 +1582,6 @@ def test_signing_in_with_google(tmp_path, monkeypatch):
                 assert "wasn't for this game" in await words(back)
                 await g2.cleanup()
                 monkeypatch.setattr(google, "TOKEN_URL", "http://127.0.0.1:%d/token" % gport)
-                assert orig
 
                 # (the browser that set off: another's answer, or another browser, is nothing)
                 async with http.get(c + "/auth/google", allow_redirects=False) as off:
@@ -1866,9 +1900,15 @@ def test_a_friends_browser_is_not_sent_a_file_it_has(tmp_path):
                 assert len(sends) == 1
                 async with http.get(url) as r:
                     assert r.status == 200 and await r.read() == b"hello" and len(sends) == 1      # (kept here)
+                for q in ("?1", "?2", "?x=3"):
+                    async with http.get(url + q) as r:
+                        assert r.status == 200 and len(sends) == 1                                 # (one file, whatever's after it)
+                async with http.get(url + "?v=7&junk=1") as r:
+                    assert r.status == 200 and len(sends) == 2 and sends[-1]["p"] == "assets/a.png?v=7"
+                assert len(relays.kept) == 2
                 relays.kept.clear()
                 async with http.get(url, headers={"If-None-Match": tag}) as r:
-                    assert r.status == 304 and len(sends) == 1                                     # (the host's not asked)
+                    assert r.status == 304 and len(sends) == 2                                     # (the host's not asked)
                 tunnel.version = "v2"
                 async with http.get(url, headers={"If-None-Match": tag}) as r:
                     assert r.status == 200                                                         # (a new version: new files)
@@ -1883,8 +1923,33 @@ def test_a_friends_browser_is_not_sent_a_file_it_has(tmp_path):
     assert relays.kept_bytes == len(big[3])
     relays.keep(("v", "b"), big)
     relays.keep(("v", "c"), big)
-    assert list(relays.kept) == [("v", "c")] or list(relays.kept) == [("v", "b"), ("v", "c")]
+    assert list(relays.kept) == [("v", "c")]                       # (b and c together are more than it keeps)
     assert relays.kept_bytes <= relay.KEPT_MOST
+
+
+def test_one_friends_dropped_connection_never_closes_the_hosts_game():
+    from central.relay import Relays, Tunnel
+
+    class Gone:
+        closed = False
+
+        async def send_str(self, text):
+            raise ConnectionResetError("dropped")
+
+        async def close(self):
+            self.closed = True
+
+    class Host:
+        closed = False
+
+        async def send_str(self, text):
+            told.append(json.loads(text))
+    told = []
+    relays = Relays(None)
+    t = Tunnel(Host(), "Host", "gamekey", "A game", "v1")
+    t.conns = {1: Gone(), 2: Gone()}
+    asyncio.run(relays.from_host(t, {"t": "m", "c": 1, "d": "hello"}))      # (no error out to the host's read loop)
+    assert list(t.conns) == [2] and told == [{"t": "close", "c": 1}]        # (just that one gone, the host told)
 
 
 def test_the_admin_page_is_plain_and_light():
@@ -2003,15 +2068,21 @@ class PretendStores:
     def __init__(self, n, e):
         self.n, self.e = n, e
         self.acknowledged = []
-        self.play = {"good": {"purchaseState": 0, "acknowledgementState": 0},
-                     "refunded": {"purchaseState": 1, "acknowledgementState": 1}}
+        kind = {"kind": "androidpublisher#productPurchase"}
+        self.play = {"good": {"purchaseState": 0, "acknowledgementState": 0, **kind},
+                     "refunded": {"purchaseState": 1, "acknowledgementState": 1, **kind},
+                     "good2": {"purchaseState": 0, "acknowledgementState": 1, **kind},
+                     "unsaid": {"acknowledgementState": 1, **kind},     # (no purchaseState: not taken as bought)
+                     "other": {"purchaseState": 0, "kind": "androidpublisher#voidedPurchaseListResponse"}}
         self.steam = {"aa11": ("765", "765", True), "bb22": ("766", "765", True), "cc33": ("767", "767", False)}
         self.itch = {"AbC123": {"id": 42, "game_id": 9}}
+        self.voided, self.voided_asked = [], []
 
     def app(self):
         app = web.Application()
         app.router.add_post("/token", self.token)
         app.router.add_route("*", "/play/applications/{pkg}/purchases/products/{product}/tokens/{token}", self.purchase)
+        app.router.add_get("/play/applications/{pkg}/purchases/voidedpurchases", self.voided_list)
         app.router.add_get("/steam/ISteamUserAuth/AuthenticateUserTicket/v1/", self.steam_who)
         app.router.add_get("/steam/ISteamUser/CheckAppOwnership/v4/", self.steam_owns)
         app.router.add_get("/itch/{key}/game/{game}/download_keys", self.itch_key)
@@ -2041,6 +2112,14 @@ class PretendStores:
         if token not in self.play:
             return web.json_response({"error": {"code": 400}}, status=400)
         return web.json_response(self.play[token])
+
+    async def voided_list(self, request):
+        assert request.headers["Authorization"] == "Bearer the-access"
+        self.voided_asked.append(dict(request.query))
+        if request.query.get("token") != "page2":                   # (two pages of them)
+            return web.json_response({"voidedPurchases": [{"purchaseToken": "nobody's"}],
+                                      "tokenPagination": {"nextPageToken": "page2"}})
+        return web.json_response({"voidedPurchases": [{"purchaseToken": v} for v in self.voided]})
 
     async def steam_who(self, request):
         q = request.query
@@ -2116,6 +2195,8 @@ def test_owning_the_game_is_checked_with_its_store_and_kept_on_the_account(tmp_p
                 m = await buy(pal, "play", token="refunded")
                 assert not m["ok"] and "cancelled" in m["text"]
                 assert not (await buy(pal, "play", token="made-up"))["ok"]
+                for odd in ("unsaid", "other", "../../../voidedpurchases?maxResults=3", "good/../good", "good%2F"):
+                    assert not (await buy(pal, "play", token=odd))["ok"], odd
                 m = await buy(pal, "play", token="good")
                 assert m["ok"] and m["full"] and m["bought"] == "play"
                 assert fake.acknowledged == ["good"]            # (acknowledged: Google doesn't refund it)
@@ -2124,6 +2205,16 @@ def test_owning_the_game_is_checked_with_its_store_and_kept_on_the_account(tmp_p
                 assert not m["ok"] and "another account" in m["text"]
                 assert (await post(http, c + "/api/account", {"token": kit}))["full"] is False
                 assert not central.store.db.execute("SELECT 1 FROM purchases WHERE ref LIKE '%good%'").fetchone()
+
+                # (refunded on Google Play: asked once a day, and the full game goes back with it)
+                assert (await buy(lee, "play", token="good2"))["bought"] == "play"
+                fake.voided = ["good2"]
+                await central.recheck_refunds()
+                assert (await post(http, c + "/api/account", {"token": lee}))["full"] is False
+                assert len(fake.voided_asked) == 2 and fake.voided_asked[1]["token"] == "page2"
+                await central.recheck_refunds()
+                assert len(fake.voided_asked) == 2                           # (not again till tomorrow)
+                assert (await buy(pal, "play", token="good"))["bought"] == "play"   # (Pal's not refunded: still theirs)
 
                 # (Steam: their own copy only)
                 monkeypatch.setenv("DS_STEAM_KEY", "steam-key")

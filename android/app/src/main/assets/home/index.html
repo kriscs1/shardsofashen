@@ -271,7 +271,9 @@ let skipped = false;
 let linkedGame = new URLSearchParams(location.search).get("join") || "";      // (a friend's link, as central/relay.py sends it)
 if (!token && store.get("devices") && !store.get("guests")) {      // (from before a guest's keys were kept apart)
   store.set("guests", store.get("devices"));
+  store.set("guestsAt", store.get("devicesAt") || "");
   store.set("devices", "");
+  store.set("devicesAt", "");
 }
 const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -501,6 +503,7 @@ $("chip").onclick = async () => {
        api("/api/logout", { token }).catch(() => {});
        token = ""; store.set("token", ""); myName = "";
        store.set("devices", "");                  // (the games knew this device as yours: a new key for each from now on)
+       store.set("devicesAt", "");
        if (app) app.stopHosting();                // (your game: saved, and shut to whoever you'd let in)
        showWelcome();
      }],
@@ -694,12 +697,16 @@ function houseAd() {
 // device's own for each game (it learns only its own: a reload, or the central server away, and it still knows you).
 // The games this app runs itself let you in as their host by its key: as your account, or this device, no network.
 const randomKey = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, "0")).join("");
-function deviceKey(game) {
+function deviceKey(game, origin) {
   // (signing out forgets your account's keys, the games knowing them as you; a guest's stay, its characters with them)
+  // (a key goes only to the address it was first given to: a game elsewhere saying it's that one gets a key of its own)
   const which = token ? "devices" : "guests";
-  let keys = {};
+  let keys = {}, at = {};
   try { keys = JSON.parse(store.get(which) || "{}") || {}; } catch (e) { keys = {}; }
+  try { at = JSON.parse(store.get(which + "At") || "{}") || {}; } catch (e) { at = {}; }
+  if (at[game] && at[game] !== origin) game += "@" + origin;
   if (!keys[game]) { keys[game] = randomKey(); store.set(which, JSON.stringify(keys)); }
+  if (!at[game]) { at[game] = origin; store.set(which + "At", JSON.stringify(at)); }
   return keys[game];
 }
 function hostKey() {
@@ -747,7 +754,7 @@ async function join(address, id, name, mine, given) {
     try { t = await api("/api/ticket", { token, server: id, url: u.origin }); if (t.ok) q.set("ticket", t.ticket); } catch (e) { /* */ }
     if (t && t.refused && !mine) { done(); toast(t.text, true); return; }     // (banned, or no confirmed email; your own game needs neither)
   }
-  h.set("device", deviceKey(id || u.host));
+  h.set("device", deviceKey(id || u.host, u.origin));
   u.search = q.toString();
   u.hash = h.toString();                           // (never sent to the server's log: the page reads it)
   if (app) app.play(u.toString()); else location.href = u.toString();

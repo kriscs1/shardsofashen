@@ -30,29 +30,67 @@ def tile_family(name):
     return "Other"
 
 
+class ChangedOnDisk(Exception):
+    """A file changed on disk since the editor read it (a builder run, the other synced PC): it isn't written over
+    without asking."""
+
+    def __init__(self, path):
+        super().__init__("%s changed on disk since it was opened." % os.path.basename(path))
+        self.path = path
+
+
+class Unsavable(Exception):
+    """Text with a character the game's files can't hold (they're cp1252): said, never saved as "?"."""
+
+
 def read_text_lines(path):
     with open(path, "rb") as f:
         data = f.read()
     if data.startswith(b"\xef\xbb\xbf"):
-        data = data[3:]
-    text = data.decode(ENC, errors="replace")
+        text = data[3:].decode("utf-8", errors="surrogateescape")       # (UTF-8 with a BOM: saved back as cp1252)
+    else:
+        text = data.decode(ENC, errors="surrogateescape")               # (a byte cp1252 hasn't: kept as it was)
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     if lines and lines[-1] == "":
         lines.pop()
     return lines
 
 
+def encoded(lines, path=""):
+    """The file's bytes: ANSI, CRLF after every line (Unsavable for a character cp1252 hasn't)."""
+    text = "".join(l + "\r\n" for l in lines)
+    try:
+        return text.encode(ENC, errors="surrogateescape")
+    except UnicodeEncodeError as e:
+        n = text.count("\n", 0, e.start) + 1
+        raise Unsavable("%s, line %d: %r can't be saved in the game's files (cp1252). Change it and save again."
+                        % (os.path.basename(path), n, text[e.start])) from None
+
+
 def write_text_lines(path, lines):
-    """ANSI, CRLF after every line. Only writes when something changed. Returns True if written."""
-    data = "".join(l + "\r\n" for l in lines).encode(ENC, errors="replace")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    """ANSI, CRLF after every line. Only writes when something changed. Returns True if written. Written to a file
+    beside it and then put in its place, so a crash or a sync partway never leaves it cut short."""
+    data = encoded(lines, path)
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     if os.path.exists(path):
         with open(path, "rb") as f:
             if f.read() == data:
                 return False
-    with open(path, "wb") as f:
-        f.write(data)
+    write_whole(path, data)
     return True
+
+
+def write_whole(path, data):
+    """bytes written to a file beside path, then put in its place (a crash or a sync partway never cuts it short)."""
+    part = path + ".part"
+    with open(part, "wb") as f:
+        f.write(data)
+    os.replace(part, path)
+
+
+def on_disk(path):
+    """What a file says now (None: no file), to tell a real change from a stamp's."""
+    return read_text_lines(path) if os.path.exists(path) else None
 
 
 def mtime(path):
@@ -66,10 +104,26 @@ def mtime(path):
 # =================================================================================================================
 # Ini files, edited in place: every comment, blank line and key you don't touch stays as it was
 # =================================================================================================================
+def journalled(change):
+    """An IniDoc change kept in its journal (only the outermost: set's own add_section isn't kept twice), so a save
+    over a file changed on disk can read it again and make the same changes to it."""
+    def run(self, *args):
+        if self._depth == 0 and self.journal is not None:
+            self.journal.append((change.__name__, args))
+        self._depth += 1
+        try:
+            return change(self, *args)
+        finally:
+            self._depth -= 1
+    run.__name__, run.__doc__ = change.__name__, change.__doc__
+    return run
+
+
 class IniDoc:
     def __init__(self, path):
         self.path = path
         self.version = 0
+        self._depth = 0
         self.load()
 
     @property
@@ -88,10 +142,15 @@ class IniDoc:
 
     def load(self):
         self.lines = read_text_lines(self.path) if os.path.exists(self.path) else []
-        self.stamp = mtime(self.path)
+        self.stamp, self.disk, self.journal = mtime(self.path), list(self.lines), []
 
     def changed_on_disk(self):
-        return mtime(self.path) != self.stamp
+        if mtime(self.path) == self.stamp:
+            return False
+        if on_disk(self.path) == (self.disk if self.stamp else None):
+            self.stamp = mtime(self.path)                   # (only its stamp: Drive touching it)
+            return False
+        return True
 
     # --- where things are
     def _bounds(self, sec):
@@ -155,6 +214,7 @@ class IniDoc:
         return default
 
     # --- changes
+    @journalled
     def add_section(self, sec):
         if self.has_section(sec):
             return
@@ -165,6 +225,7 @@ class IniDoc:
         self.lines.append("[%s]" % sec)
         self.changed()
 
+    @journalled
     def set(self, sec, key, value):
         """Sets key (its first line in the section), or adds it after the section's last key. "" removes it."""
         value = str(value)
@@ -189,6 +250,7 @@ class IniDoc:
         self.lines.insert(last + 1, "%s=%s" % (key, value))
         self.changed()
 
+    @journalled
     def remove(self, sec, key):
         b = self._bounds(sec)
         if not b:
@@ -200,6 +262,7 @@ class IniDoc:
                 keep.append(l)
         self.lines = keep + self.lines[b[2]:]
 
+    @journalled
     def set_items(self, sec, items):
         """The section's keys become items [(key, value)] (comments in it stay at the top)."""
         b = self._bounds(sec)
@@ -212,6 +275,7 @@ class IniDoc:
         new = comments + ["%s=%s" % (k, v) for k, v in items if str(v) != ""] + trailing
         self.lines = self.lines[:b[1]] + new + self.lines[b[2]:]
 
+    @journalled
     def remove_section(self, sec):
         b = self._bounds(sec)
         if not b:
@@ -224,6 +288,7 @@ class IniDoc:
             self.lines.pop()
         self.changed()
 
+    @journalled
     def rename_section(self, old, new):
         b = self._bounds(old)
         if b:
@@ -235,10 +300,20 @@ class IniDoc:
 
     def restore(self, snap):
         self.lines = list(snap)
+        self.journal = None                                 # (what changed isn't known now)
 
-    def save(self):
+    def save(self, over=False):
+        """Written; when the file changed on disk since it was read, it's read again and this editor's changes made to
+        it (ChangedOnDisk if they can't be, after an undo's lines, unless over)."""
+        if not over and self.changed_on_disk():
+            if self.journal is None:
+                raise ChangedOnDisk(self.path)
+            todo = self.journal
+            self.load()
+            for name, args in todo:
+                getattr(self, name)(*args)
         written = write_text_lines(self.path, self.lines)
-        self.stamp = mtime(self.path)
+        self.stamp, self.disk, self.journal = mtime(self.path), list(self.lines), []
         return written
 
 
@@ -342,7 +417,10 @@ class Entity:
     def parse(cls, line):
         f = line.split("\t")
         kind = f[0].strip()
-        num = lambda s: int(float(s)) if re.fullmatch(r"\s*-?\d+(\.\d+)?\s*", s or "") else 0
+        def num(s):                                 # (not a number: the line's kept as it is, never made 0)
+            if not re.fullmatch(r"\s*-?\d+(\.\d+)?\s*", s or ""):
+                raise ValueError(s)
+            return int(float(s))
         try:
             if kind == "MapItem":
                 return cls(kind, f[1], num(f[2]), num(f[3]), qty=(f[4].strip() if len(f) > 4 else "1") or "1",
@@ -433,7 +511,10 @@ class MapDoc:
             self.cells.append([Cell(parts[x]) if x < len(parts) else Cell("Black001") for x in range(W)])
         # (blank and unknown lines are kept as raw entries, written back where they were)
         self.entities = [Entity.parse(l) if l.strip() else Entity("", raw=l) for l in lines[H:]]
-        self.stamp = mtime(self.path)
+        self.stamp, self.disk = mtime(self.path), (lines if self.exists else None)
+
+    def changed_on_disk(self):
+        return mtime(self.path) != self.stamp and on_disk(self.path) != self.disk
 
     def placed(self):
         """The entities the editor works with (not the raw lines)."""
@@ -455,10 +536,13 @@ class MapDoc:
         self.cells = [[Cell(t) for t in lines[y].split(":")] for y in range(H)]
         self.entities = [Entity.parse(l) if l.strip() else Entity("", raw=l) for l in lines[H:]]
 
-    def save(self):
+    def save(self, over=False):
+        """ChangedOnDisk if the file changed since it was read, unless over (the page asks)."""
+        if not over and self.changed_on_disk():
+            raise ChangedOnDisk(self.path)
         written = write_text_lines(self.path, self.lines())
         self.exists = True
-        self.stamp = mtime(self.path)
+        self.stamp, self.disk = mtime(self.path), self.lines()
         return written
 
 
@@ -517,8 +601,14 @@ class ScriptDoc:
                 self.lines.append(ScriptLine(comment=s[2:]))           # (exactly what follows the //)
                 continue
             f = l.split("\t")
+            if len(f) < 2 and not s.isdigit():
+                self.lines.append(ScriptLine(comment=" " + s))   # (no tabs: the game skips it; kept, as a comment)
+                continue
             self.lines.append(ScriptLine(f[1].strip() if len(f) > 1 else "", f[2:]))
-        self.stamp = mtime(self.path)
+        self.stamp, self.disk = mtime(self.path), (read_text_lines(self.path) if self.exists else None)
+
+    def changed_on_disk(self):
+        return mtime(self.path) != self.stamp and on_disk(self.path) != self.disk
 
     def commands(self):
         return [l for l in self.lines if not l.is_comment]
@@ -539,11 +629,112 @@ class ScriptDoc:
     def restore(self, snap):
         self.lines = [ScriptLine(c, a, m) for c, a, m in snap]
 
-    def save(self):
+    def save(self, over=False):
+        """ChangedOnDisk if the file changed since it was read, unless over (the page asks)."""
+        if not over and self.changed_on_disk():
+            raise ChangedOnDisk(self.path)
         written = write_text_lines(self.path, self.text_lines())
         self.exists = True
-        self.stamp = mtime(self.path)
+        self.stamp, self.disk = mtime(self.path), self.text_lines()
         return written
+
+
+def naming(project, name, own=None, limit=12):
+    """Where name is still named, as words to show ("script Talk to Nell", "Entities.ini [Wolf] Drops"): the
+    scripts with an argument that is it, and the data files' values that are it (or one of a ;/, list), but not
+    own (the (path, section) it's in itself). Read when something is renamed or deleted, never on a page's opening."""
+    import glob
+    names = {name, name.replace(" ", "_")}
+    found = []
+    on = sorted(project.index()["entity"].get(name, {}))
+    if on:
+        found.append("on the map%s %s" % ("s" if len(on) > 1 else "", ", ".join(on[:6]) + (" ..." if len(on) > 6
+                                                                                          else "")))
+    for s in project.scripts():
+        try:
+            args = project.parsed(project.script_path(s), _script_args)     # (kept till the file changes)
+        except OSError:
+            continue
+        if names & args:
+            found.append("script " + s)
+            if len(found) >= limit:
+                return found
+    for path in sorted(glob.glob(project.p("data", "*.ini"))):
+        sec = None
+        try:
+            lines = read_text_lines(path)
+        except OSError:
+            continue
+        for ln in lines:
+            t = ln.strip()
+            if t.startswith("[") and t.endswith("]"):
+                sec = t[1:-1]
+                continue
+            if "=" not in t or t.startswith(";") or (own and os.path.normcase(path) == os.path.normcase(own[0])
+                                                    and sec == own[1]):
+                continue
+            k, v = t.split("=", 1)
+            if names & {w.strip() for w in re.split(r"[;,]", v)}:
+                found.append("%s [%s] %s" % (os.path.basename(path), sec, k.strip()))
+                if len(found) >= limit:
+                    return found
+    return found
+
+
+def _script_args(lines):
+    """Every argument a script's lines give (a field after the command), stripped."""
+    return {f.strip() for ln in lines for f in ln.split("\t")[2:]}
+
+
+def rename_rack_in_scripts(project, old, new, scripts):
+    """The scripts that open rack old (Display.Item.Rack's RACK ID, its third argument) open new."""
+    for s in scripts:
+        path = project.script_path(s)
+        lines = read_text_lines(path)
+        changed = False
+        for i, ln in enumerate(lines):
+            f = ln.split("\t")
+            if len(f) > 4 and f[1].strip() == "Display.Item.Rack" and f[4].strip() == old:
+                f[4] = new
+                lines[i] = "\t".join(f)
+                changed = True
+        if changed:
+            write_text_lines(path, lines)
+
+
+def goto_lines(project, name):
+    """{script: [line numbers]} of the scripts that go on to script name (an argument that names a script:
+    Goto.Script's), to rename it in them too."""
+    from . import scriptlang as SL
+    out = {}
+    for s in project.scripts():
+        try:
+            lines = read_text_lines(project.script_path(s))
+        except OSError:
+            continue
+        for i, ln in enumerate(lines):
+            f = ln.split("\t")
+            types = SL.COMMANDS.get(f[1].strip()) if len(f) > 2 else None
+            if types and any(SL.norm(t) == "GOTO SCRIPT NAME" and j + 2 < len(f) and f[j + 2].strip() == name
+                             for j, t in enumerate(types)):
+                out.setdefault(s, []).append(i)
+    return out
+
+
+def rename_gotos(project, old, new, where):
+    """Script old called new in the lines goto_lines found."""
+    from . import scriptlang as SL
+    for s, rows in where.items():
+        path = project.script_path(new if s == old else s)
+        lines = read_text_lines(path)
+        for i in rows:
+            f = lines[i].split("\t")
+            types = SL.COMMANDS.get(f[1].strip()) or []
+            for j, t in enumerate(types):
+                if SL.norm(t) == "GOTO SCRIPT NAME" and j + 2 < len(f) and f[j + 2].strip() == old:
+                    f[j + 2] = new
+            lines[i] = "\t".join(f)
+        write_text_lines(path, lines)
 
 
 # =================================================================================================================

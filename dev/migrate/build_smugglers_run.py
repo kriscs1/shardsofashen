@@ -360,8 +360,7 @@ def scripts():
     ], MAKER)
     watch = "Attitude=Bad Name=Watchman Cone=100 PatrolMode=PingPong Pause=2-4 Spotted.Script=Watch_Search " \
             "Chase=6,11,18,15 Patrol="
-    K.write_script(COURT, [
-        msg("The Wizards' Court.", "Cyan"),
+    K.write_script(COURT, [                 # (no name said: 20,5,0 beside it says it, and walking between them it was twice)
         get("UnderTideQuest", 1), (">Conditional", "$Variable.1=1", "@end"),
         (">Got.Item", "Smuggled_Brandy", "1", "@end"),
         ("Add.Entity", px(9, 12), "Guard", "NPC", watch + "9,12/17,12"),

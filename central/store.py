@@ -328,7 +328,8 @@ class CentralStore:
 
     def set_password(self, name, pw_hash):
         self.db.execute("UPDATE accounts SET password = ? WHERE name = ?", (pw_hash, name))
-        self.db.execute("DELETE FROM tokens WHERE name = ?", (name,))      # (logged out everywhere)
+        for table in ("tokens", "tickets", "grants"):  # (logged out everywhere: every game server's key with it)
+            self.db.execute("DELETE FROM %s WHERE name = ? COLLATE NOCASE" % table, (name,))
 
     def set_banned(self, name, why):
         self.db.execute("UPDATE accounts SET banned = ? WHERE name = ?", (why, name))
@@ -355,6 +356,18 @@ class CentralStore:
         self.db.execute("INSERT OR IGNORE INTO purchases (ref, name, made) VALUES (?, ?, ?)", (key, name, time.time()))
         row = self.db.execute("SELECT name FROM purchases WHERE ref = ?", (key,)).fetchone()
         return "" if row and row[0].lower() == name.lower() else (row[0] if row else "?")
+
+    def unclaim(self, where, ref):
+        """A purchase the store has taken back (a refund): no longer anyone's, and its account loses the full game if
+        that's where it had it from. The account it was, or ""."""
+        key = digest(where + ":" + str(ref))
+        row = self.db.execute("SELECT name FROM purchases WHERE ref = ?", (key,)).fetchone()
+        if not row:
+            return ""
+        self.db.execute("DELETE FROM purchases WHERE ref = ?", (key,))
+        if self.owned(row[0])[0] == where:
+            self.set_full(row[0], "")
+        return row[0]
 
     def passes_today(self, name):
         """How many time passes name has had in the last day."""

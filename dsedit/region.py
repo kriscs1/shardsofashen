@@ -15,6 +15,8 @@ from collections import Counter
 
 from ashen import script_language as L
 
+from .project import write_whole
+
 TILE_KINDS = ("Trigger", "Lock", "Id")
 LAYER_PARTS = ("Under", "Decor", "Roof", "Infront")
 # script arguments that are coordinates: (command, argument number from 1, in tiles?)
@@ -211,7 +213,7 @@ def update_refs(project, all_moves, own_scripts):
                         hit = True
             lines[i] = key + "=" + ";".join(parts)
         if hit:
-            open(path, "wb").write(nl.join(lines).encode("cp1252"))
+            write_whole(path, nl.join(lines).encode("cp1252"))
 
     fix_markers(project.p("data", "Quests.ini"), "Quests.ini")
     fix_markers(project.p("data", "WorldMap.ini"), "WorldMap.ini")
@@ -265,7 +267,7 @@ def update_refs(project, all_moves, own_scripts):
                         check.append("%s line %s: %s %s" % (name, f[0], cmd, f[ai + 1]))
                     break
         if hit:
-            open(path, "wb").write(nl.join(lines).encode("cp1252"))
+            write_whole(path, nl.join(lines).encode("cp1252"))
     return changed, check
 
 

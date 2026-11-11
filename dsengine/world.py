@@ -275,8 +275,9 @@ class World(NPCMixin):
             item.private_to = first
             item.public_at = self.now + first_secs * 1000
         m = self.maps.get(item.map)
-        if m is not None and owner is None:
-            self.add_action_to_queue("REMOVE", name, "MapItem", lbstr(quantity), m.name, self.local_coords(m, x, y),
+        if m is not None and owner is None:            # (its wear and its mark kept too: put back so after a restart)
+            misc = lbstr(quantity) + (" Wear=%s" % lbstr(wear) if wear else "") + (" Stolen=1" if stolen else "")
+            self.add_action_to_queue("REMOVE", name, "MapItem", misc, m.name, self.local_coords(m, x, y),
                                      self.data.item_despawn_delay)
         return item
 
@@ -1320,15 +1321,17 @@ class World(NPCMixin):
     def update_missiles(self):
         for f in list(self.missiles):
             t = f["target"]
-            if t is None or not t.alive or self.now >= f["until"]:
-                self.missiles.remove(f)
+            if t is None or not t.alive or self.now >= f["until"] or t.z != f["z"]:
+                self.missiles.remove(f)                 # (gone, or up a ladder: a shot never follows to another level)
                 continue
             tx, ty = t.cx - f["w"] / 2, t.cy - f["h"] / 2
             dd = distance(f["x"], f["y"], tx, ty)
             travel = 420 * self.dt
             if dd <= travel + 4:
                 self.missiles.remove(f)
-                self.missile_arrive(f["tag"], t, f["shooter"])
+                tag = f["tag"]
+                self.world_guarded("missile %s" % (tag.name if isinstance(tag, Entity) else str(tag),),
+                                   self.missile_arrive, tag, t, f["shooter"])
                 continue
             f["x"] += (tx - f["x"]) * travel / dd
             f["y"] += (ty - f["y"]) * travel / dd
@@ -1381,14 +1384,40 @@ class World(NPCMixin):
                 parts[3] = lbstr(quantity)
                 self.action_queue[i] = "\t".join(parts[:8])
 
-    def remove_action_from_queue(self, pattern):
+    def remove_action_from_queue(self, *fields):
+        """Cancels the queued entries that match: the fields of Add.Action.To.Queue (action, name, type, misc, map,
+        X,Y), each matched on its own, * for any or at the start or end of one (Ripe_*), and those left off (or "")
+        counting as *. (An old entry glued with tabs is split into its fields.)"""
+        if len(fields) == 1 and "\t" in fields[0]:
+            fields = fields[0].split("\t")
+        want = [f.strip() for f in fields[:6]]
+        if want and want[0]:
+            want[0] = want[0].upper()
+
+        def matches(entry):
+            parts = entry.split("\t")
+            for i, f in enumerate(want):
+                if f in ("", "*"):
+                    continue
+                got = parts[i] if i < len(parts) else ""
+                if not wildcard_match(got.upper() if i == 0 else got, f):
+                    return False
+            return True
+        self.action_queue = [entry for entry in self.action_queue if not matches(entry)]
+
+    def unqueue_removal(self, e):
+        """A queued REMOVE of e (a fire's burning out) goes when a script takes e away first: there's nothing left for
+        it to remove, and it would take one put there later. (A queued ADD, a respawn, stays.)"""
         keep = []
         for entry in self.action_queue:
-            due = field(entry, 8, "\t")
-            arguments = entry[:len(entry) - len(due) - 1]
-            if (wildcard_match(arguments, pattern) or wildcard_match(entry, pattern) or
-                    wildcard_match(field(entry, 2, "\t"), pattern)):
-                continue
+            parts = entry.split("\t")
+            if len(parts) >= 6 and parts[0].upper() in ("REMOVE", "REMOVE.ENTITY") and parts[1] == e.name:
+                m = self.map_named(parts[4])
+                if m is not None and m.mz == e.z:
+                    gx = val(word(parts[5], 1, ",")) + m.ox
+                    gy = val(word(parts[5], 2, ",")) + m.oy
+                    if min(distance(gx, gy, e.x, e.y), distance(gx, gy, e.orig_x, e.orig_y)) < 25:
+                        continue
             keep.append(entry)
         self.action_queue = keep
 
@@ -1397,7 +1426,16 @@ class World(NPCMixin):
         i = 0
         while i < len(self.action_queue):
             if val(field(self.action_queue[i], 8, "\t")) <= now:
-                if self.do_queue_entry(i):
+                try:
+                    done = self.do_queue_entry(i)
+                except Exception:
+                    entry = self.action_queue[i]
+                    if ("", "queue " + entry) not in self.failed:
+                        self.failed.add(("", "queue " + entry))
+                        log.exception("The queue's entry %r failed", entry)
+                    self.postpone_queue_entry(i, 60)    # (tried again in a minute, never each tick)
+                    done = False
+                if done:
                     del self.action_queue[i]
                     continue
             i += 1
@@ -1447,7 +1485,12 @@ class World(NPCMixin):
                     if s.in_world() and p.z == m.mz and distance(p.cx, p.cy, gx + 16, gy + 16) < 32:
                         self.postpone_queue_entry(n, 3)
                         return False
-            if self.find_entity_at(m.mz, gx, gy, name) is None or normalise_type(type_name) == "Tile":
+            if normalise_type(type_name) == "NPC":           # (one of its kind only passing over its spot: no matter)
+                there = next((e for e in self.ents if e.type == NPC and e.alive and e.z == m.mz and e.name == name and
+                              distance(gx, gy, e.orig_x, e.orig_y) < 25), None)
+            else:
+                there = self.find_entity_at(m.mz, gx, gy, name)
+            if there is None or normalise_type(type_name) == "Tile":
                 e = self.add_entity_of_type(type_name, name, m.mz, gx, gy, misc, home=m.name)
                 if e is not None:
                     e.source = "MAP"
@@ -1491,6 +1534,8 @@ class World(NPCMixin):
                     e = self.add_entity_of_type(type_name, name, m.mz, gx, gy, misc, home=m.name)
                     if e is not None:
                         e.source = "DROPPED"
+                        e.wear = val(self.option_value(misc, "Wear"))
+                        e.stolen = self.option_value(misc, "Stolen") == "1"
             elif action == "SET.QUANTITY":
                 e = self.find_entity_at(m.mz, gx, gy, name)
                 if e is not None:
@@ -1740,32 +1785,38 @@ class World(NPCMixin):
                 log.exception("%s's %s failed", s.player_name, what)
             return None
 
+    def world_guarded(self, what, fn, *args):
+        """fn for the whole world (the carts, a missile, the farms...): if it goes wrong, the rest of the tick goes on
+        (and it's logged once, not 20 times a second)."""
+        try:
+            return fn(*args)
+        except Exception:
+            if ("", what) not in self.failed:
+                self.failed.add(("", what))
+                log.exception("The world's %s failed", what)
+            return None
+
     def tick(self, dt, now=None):
         """now: the time in clock_ms (tests run the world faster than the clock)."""
         self.now = clock_ms() if now is None else now
         self.dt = max(0.0, min(0.1, dt))
-        self.update_active()
-        self.update_object_blocks()
-        self.carts.tick()                       # (before the players: its riders go with it)
+        g = self.world_guarded
+        g("active", self.update_active)
+        g("blocks", self.update_object_blocks)
+        g("carts", self.carts.tick)             # (before the players: its riders go with it)
         for s in list(self.sessions.values()):
             self.guarded(s, "tick", s.tick_before_npcs)
-        self.update_npcs()
-        self.update_missiles()
+        g("NPCs", self.update_npcs)             # (each NPC is guarded too: npcs.py)
+        g("missiles", self.update_missiles)
         for s in list(self.sessions.values()):
             self.guarded(s, "tick", s.tick_after_npcs)
         if self.now - self.last_queue_check >= 250 or self.now < self.last_queue_check:
             self.last_queue_check = self.now
-            self.run_action_queue()
-            fade_remnants(self)
-            self.deep.tick()
-        self.update_doors()
-        self.update_object_hours()
-        self.farms.tick()
-        self.waves.tick()
-        self.encounters.tick()
-        self.seasons.tick()
-        self.wonders.tick()
-        self.banter.tick()
-        self.tavern.tick()
-        self.arms.tick()
-        self.weather_tick()
+            g("action queue", self.run_action_queue)
+            g("remnants", fade_remnants, self)
+            g("Deep", self.deep.tick)
+        for what, fn in (("doors", self.update_doors), ("hours", self.update_object_hours), ("farms", self.farms.tick),
+                         ("waves", self.waves.tick), ("encounters", self.encounters.tick),
+                         ("seasons", self.seasons.tick), ("wonders", self.wonders.tick), ("banter", self.banter.tick),
+                         ("tavern", self.tavern.tick), ("arms", self.arms.tick), ("weather", self.weather_tick)):
+            g(what, fn)

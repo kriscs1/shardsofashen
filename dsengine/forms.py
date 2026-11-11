@@ -298,8 +298,7 @@ class FormMixin:
             got += max(1, e.quantity)
             m = w.maps.get(e.map)
             if e.owner is None and m is not None:
-                w.remove_action_from_queue("\t".join(["REMOVE", e.name, "MapItem", "*", m.name,
-                                                      w.local_coords(m, e.x, e.y), "*"]))
+                w.remove_action_from_queue("REMOVE", e.name, "MapItem", "*", m.name, w.local_coords(m, e.x, e.y))
             w.fx_anim("Teleport_Glow", e.z, e.cx, e.cy, 400)
             w.remove_entity(e)
         if not got:

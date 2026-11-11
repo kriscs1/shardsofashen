@@ -7,7 +7,7 @@ from tkinter import ttk
 from .. import theme as T
 from .. import terrain as TR
 from ..render import tile_image
-from ..widgets import PickerDialog, photo, ask_text
+from ..widgets import PickerDialog, photo, ask_text, save_over
 from .iniform import IniFormPage
 
 FIELDS = (("Title", "Title", "What it's called (the palette's name for it)."),
@@ -96,6 +96,6 @@ class TerrainPage(IniFormPage):
             return
         for k, v in (("Title", name.replace("_", " ").lower()), ("Kind", "Terrain"), ("Tiles", "Grass001")):
             self.ini.set(sec, k, v)
-        self.ini.save()
+        save_over(self, self.app, self.ini.save)
         self.refresh_list()
         self.open(sec)

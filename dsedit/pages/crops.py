@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from .. import theme as T
-from ..widgets import photo
+from ..widgets import photo, save_over
 from .iniform import IniFormPage
 
 STAGES = ("sprouting", "growing", "ripe")
@@ -122,9 +122,14 @@ class CropPage(IniFormPage):
         """The seed knows its crop; the stages have their Tiles.ini sections."""
         ents = self.project.entities_ini
         seed = self.vars["Seed"].get().strip()
-        if ents.get(seed, "Crop", "") != self.key:
-            ents.set(seed, "Crop", self.key)
-            ents.save()
+        was = [s for s in ents.sections() if s != seed and ents.get(s, "Crop", "") == self.key]
+        if was or ents.get(seed, "Crop", "") != self.key:
+            for s in was:                                   # (the seed it was on sows nothing now)
+                ents.remove(s, "Crop")
+            if seed:
+                ents.set(seed, "Crop", self.key)
+            if not save_over(self, self.app, ents.save):
+                return False
         tiles = self.project.tiles_ini
         made = False
         for n in (1, 2, 3):
@@ -138,7 +143,8 @@ class CropPage(IniFormPage):
                     tiles.set(t, k, v)
                 made = True
         if made:
-            tiles.save()
+            if not save_over(self, self.app, tiles.save):
+                return False
             self.project.refresh("tiles")
         return True
 
