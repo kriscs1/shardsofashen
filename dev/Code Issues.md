@@ -237,6 +237,20 @@ Issues found by reading the code (2026-11-10), not yet fixed. Tick a box when it
   stranger's words kept for the stages before 3. Also small: `data/Scripts/21,5,0.txt` shows "The Wizards' Court."
   each time the map is entered, and `ashen/anim.py` `flame_frame` seeds from `hash(tile)`, which Python changes each
   run, so the flames' exported frames differ from one export to the next (never wrong, never the same).
+- [ ] **45. `Remove.Action.From.Queue` takes one string joined with `[TAB]`, and matches too loosely.** Its one
+  argument is the whole queue entry glued with `[TAB]` (`dsengine/scripting.py` turns that into tabs), and
+  `remove_action_from_queue` (`dsengine/world.py`) drops an entry if the pattern matches the whole entry, the entry
+  less its due time, or just its name: so `Remove.Action.From.Queue Fire` would cancel every queued Fire on every
+  map. Only `data/Scripts/Use Bucket_of_Water With Fire.txt` uses it (to cancel the burning out of a fire it puts out
+  early), and it's the only use of `[TAB]`. Better: the same fields as `Add.Action.To.Queue` (action, name, type,
+  misc, map, X,Y), each matched on its own, `*` for any or at the end of one (`Ripe_*`), and fields left off the end
+  counting as `*`; the engine's own cancels (`player_actions.py` for stacks, `forms.py`) can use the same match
+  instead of joining their own patterns. Then `[TAB]` goes: its two replacements in `scripting.py`, its line in
+  `dev/Script Commands.txt`, and the editor's suggestion that builds it (`dsedit/scriptlang.py` line 172), with the
+  bucket script changed and an old lone `[TAB]` argument split into fields when it's read. Also: when
+  `Remove.Entity` takes a thing away, a queued REMOVE of that thing on that spot could go with it (there's nothing
+  left for it to remove, and it would take a fire lit there later), so the bucket script wouldn't need the line at
+  all; a queued ADD (a respawn) stays.
 
 ## Checked and sound
 
