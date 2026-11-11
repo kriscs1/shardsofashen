@@ -14,7 +14,8 @@ Play Integrity (integrity()): that the Android app asking is the one from Google
 passes Google's checks, decoded by Google with the same service account (README-Server.md "Owning the game").
 
 check() gives the store's own id for the purchase (Play's purchase token, the Steam id, the itch.io key's id): the
-account keeps only its hash (store.claim), so one purchase is only ever one account's."""
+account keeps only its hash (store.claim), so one purchase is only ever one account's. A Steam id is kept as well for
+the refund window (STEAM_REFUND_DAYS, app.py), so Steam can be asked again; then only its hash."""
 import base64
 import hashlib
 import json
@@ -239,12 +240,20 @@ async def steam(proof):
         raise Refused("Steam didn't know that ticket: start the game from Steam and try again.")
     if who.get("ownersteamid") and who["ownersteamid"] != who["steamid"]:
         raise Refused("That copy is lent through Family Sharing: it's its owner's.")
-    status, got = await ask("GET", STEAM_API + "/ISteamUser/CheckAppOwnership/v4/",
-                            params={"key": key, "steamid": who["steamid"], "appid": app})
-    owns = got.get("appownership") or {}
-    if status != 200 or not owns.get("ownsapp") or (owns.get("ownersteamid") or who["steamid"]) != who["steamid"]:
+    if not await steam_owns(who["steamid"]):
         raise Refused("That Steam account doesn't own the game.")
     return str(who["steamid"])
+
+
+async def steam_owns(steamid):
+    """Does that Steam id own the game itself (not refunded, not lent)? Asked as it's claimed, and again each day of
+    the refund window (app.py recheck_refunds). Refused if Steam couldn't be reached."""
+    status, got = await ask("GET", STEAM_API + "/ISteamUser/CheckAppOwnership/v4/",
+                            params={"key": env("DS_STEAM_KEY"), "steamid": str(steamid), "appid": env("DS_STEAM_APP")})
+    if status != 200:
+        raise Refused("Steam didn't answer (%s)." % status)
+    owns = got.get("appownership") or {}
+    return bool(owns.get("ownsapp")) and str(owns.get("ownersteamid") or steamid) == str(steamid)
 
 
 # ----- itch.io

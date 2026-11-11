@@ -123,6 +123,13 @@ CREATE TABLE IF NOT EXISTS purchases (
     name TEXT NOT NULL COLLATE NOCASE,
     made REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS rechecks (
+    store TEXT NOT NULL,
+    ref TEXT NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE,
+    until REAL NOT NULL,
+    PRIMARY KEY (store, ref)
+) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS passes (
     name TEXT NOT NULL COLLATE NOCASE,
     made REAL NOT NULL
@@ -259,7 +266,8 @@ class CentralStore:
         nobody else can take the name (and the characters that go by it); else the name's free for anyone."""
         self.db.execute("BEGIN")
         try:
-            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing", "purchases", "passes"):
+            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing", "purchases", "rechecks",
+                          "passes"):
                 self.db.execute("DELETE FROM %s WHERE name = ? COLLATE NOCASE" % table, (name,))
             self.db.execute("DELETE FROM friends WHERE who = ? OR whom = ?", (name, name))
             for table in ("character_skills", "character_quests"):      # (what their characters got to: theirs too)
@@ -361,6 +369,7 @@ class CentralStore:
         """A purchase the store has taken back (a refund): no longer anyone's, and its account loses the full game if
         that's where it had it from. The account it was, or ""."""
         key = digest(where + ":" + str(ref))
+        self.db.execute("DELETE FROM rechecks WHERE store = ? AND ref = ?", (where, str(ref)))
         row = self.db.execute("SELECT name FROM purchases WHERE ref = ?", (key,)).fetchone()
         if not row:
             return ""
@@ -368,6 +377,18 @@ class CentralStore:
         if self.owned(row[0])[0] == where:
             self.set_full(row[0], "")
         return row[0]
+
+    def recheck_later(self, name, where, ref, days):
+        """A claimed purchase the store is asked after for days (from its first claim: a refund can come in that long).
+        Its own id is kept for that, plainly: to_recheck forgets it after."""
+        self.db.execute("INSERT OR IGNORE INTO rechecks (store, ref, name, until) VALUES (?, ?, ?, ?)",
+                        (where, str(ref), name, time.time() + days * 86400))
+
+    def to_recheck(self, where, now=None):
+        """The purchases from where still to be asked after (those whose time is up forgotten first)."""
+        now = time.time() if now is None else now
+        self.db.execute("DELETE FROM rechecks WHERE until < ?", (now,))
+        return [r[0] for r in self.db.execute("SELECT ref FROM rechecks WHERE store = ? ORDER BY until", (where,))]
 
     def passes_today(self, name):
         """How many time passes name has had in the last day."""

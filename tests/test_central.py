@@ -2074,7 +2074,8 @@ class PretendStores:
                      "good2": {"purchaseState": 0, "acknowledgementState": 1, **kind},
                      "unsaid": {"acknowledgementState": 1, **kind},     # (no purchaseState: not taken as bought)
                      "other": {"purchaseState": 0, "kind": "androidpublisher#voidedPurchaseListResponse"}}
-        self.steam = {"aa11": ("765", "765", True), "bb22": ("766", "765", True), "cc33": ("767", "767", False)}
+        self.steam = {"aa11": ("765", "765", True), "bb22": ("766", "765", True), "cc33": ("767", "767", False),
+                      "ee55": ("768", "768", True)}
         self.itch = {"AbC123": {"id": 42, "game_id": 9}}
         self.voided, self.voided_asked = [], []
 
@@ -2225,6 +2226,21 @@ def test_owning_the_game_is_checked_with_its_store_and_kept_on_the_account(tmp_p
                 assert not (await buy(kit, "steam", ticket="dd44"))["ok"]
                 m = await buy(kit, "steam", ticket="aa11")
                 assert m["ok"] and m["bought"] == "steam"
+                # (refunded on Steam: each Steam purchase asked after once a day, for as long as a refund can come in)
+                assert (await buy(lee, "steam", ticket="ee55"))["bought"] == "steam"
+                kept = "SELECT name FROM rechecks WHERE store = 'steam' AND ref = ?"
+                assert central.store.db.execute(kept, ("768",)).fetchone()[0] == "Lee"
+                await central.recheck_refunds()
+                assert (await post(http, c + "/api/account", {"token": lee}))["bought"] == "steam"     # (still owned)
+                fake.steam["ee55"] = ("768", "768", False)
+                await central.recheck_refunds()
+                assert (await post(http, c + "/api/account", {"token": lee}))["bought"] == "steam"     # (not till tomorrow)
+                await central.recheck_refunds(now=time.time() + 86401)
+                assert (await post(http, c + "/api/account", {"token": lee}))["full"] is False
+                assert not central.store.db.execute(kept, ("768",)).fetchone()
+                assert central.store.to_recheck("steam") == ["765"]                 # (Kit's, still owned)
+                assert central.store.to_recheck("steam", time.time() + 16 * 86400) == []      # (then only its hash)
+                assert central.store.db.execute("SELECT name FROM purchases WHERE name = 'Kit'").fetchone()
 
                 # (itch.io: the purchase page's link, or its key)
                 monkeypatch.setenv("DS_ITCH_KEY", "itch-key")

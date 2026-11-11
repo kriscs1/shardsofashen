@@ -202,7 +202,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   change undoing both accepts. The journal's tabs: Crafting, Gathering, Quests, Spells, Records, Friends, Skills, Controls.
 - **Gifts**: use an item on a player; they take it or not. **Town projects** (`data/Projects.ini`): anyone gives to
   the foreman; finished, what has `Project=<Key>` on its map line appears and the perk holds, for everyone. The town
-  crier tells the news, the bounty clerk sets a hunt a day, the record keeper keeps the records (`/records`), the
+  crier tells the news; in Northport the bounty board sets a hunt a day and the hall of records keeps the records
+  (`/records`), each read beside its clerk, who has words of their own; the
   Pocket Anchor has a guestbook and a gift box, and a day away ends with what happened while you were gone.
 - **Companions**: Jimmy follows the crowned heir (he finds secrets), a sellsword can be hired; they step aside when a
   real player in your party is near. Townsfolk greet the crowned heir (a speech bubble, now and then: never the

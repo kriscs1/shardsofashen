@@ -5855,6 +5855,36 @@ def test_the_bounty_clerk_sets_a_hunt_a_day(world):
         leave(world, s)
 
 
+def test_northports_clerks_talk_and_their_boards_hold_the_bounty_and_the_records(world):
+    s = join(world, "Reader", "4,5,0", 192, 448)                   # (on the square, below the two boards)
+
+    def click(verb, e):                                             # (walked up to first, then done)
+        s.ab_title = s.ab_text = ""
+        s.choose_verb(verb, e, int(e.cx), int(e.cy))
+        for _ in range(80):
+            if s.ab_text:
+                break
+            world.tick(0.05)
+
+    try:
+        bounty = next(e for e in world.ents if e.npc_id == "Bounty_Board_Northport")
+        records = next(e for e in world.ents if e.npc_id == "Records_Board_Northport")
+        click("Read", bounty)
+        assert s.ab_title == "Bounties" and s.ab_image == "Bounty_Board"
+        s.close_action_box(-1)
+        click("Read", records)
+        assert s.ab_title == "The hall of records" and "Yours:" in s.ab_text
+        s.close_action_box(-1)
+        for pid, words in (("Bounty_Clerk", "Every beast"), ("Record_Keeper", "Ink doesn't lie")):
+            clerk = next(e for e in world.ents if e.npc_id == pid)
+            assert not s.gossips(clerk)                             # (a character: words of their own)
+            click("Talk to", clerk)
+            assert words in s.ab_text, pid
+            s.close_action_box(-1)
+    finally:
+        leave(world, s)
+
+
 def test_jimmy_comes_along_and_a_sellsword_can_be_hired(world):
     s = join(world, "Crowned2", "11,-3,0", 300, 300)
     try:
@@ -7180,6 +7210,7 @@ def test_loud_thieving_wakes_sleepers(world):
         world.tick(0.05, now=world.now + 50)
         if sleeper.ai.asleep:
             break
+    world.tick(0.05, now=world.now + 50)        # (one put to bed unseen is listed by map where it stood till a tick)
     assert sleeper.ai.asleep
     s.player.x, s.player.y = sleeper.x, sleeper.y + 40
     assert not s.watching(sleeper)

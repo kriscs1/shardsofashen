@@ -9,9 +9,10 @@
   Projects    data\\Projects.ini: a town's foreman takes donations (materials and gold) from anyone; when it's full
               the town changes for everyone (what has Project=<Key> on its map line appears; a perk). The plaque names
               who gave most.
-  The crier   tells what's going on (raids, projects, the arena's champion); the bounty clerk sets a hunt a day; the
-              record keeper keeps the records (kills, secrets, arena wins); a homestead's Pocket Anchor keeps a
-              guestbook and a gift box; and on a return after a day away, what happened while you were gone.
+  The crier   tells what's going on (raids, projects, the arena's champion); the bounty board sets a hunt a day; the
+              hall of records' board keeps the records (kills, secrets, arena wins), each by its clerk in Northport;
+              a homestead's Pocket Anchor keeps a guestbook and a gift box; and on a return after a day away, what
+              happened while you were gone.
   Friends     Add a player as a friend (right-click them, or /friend Name): the journal's Friends page shows who's
               about and where, with Whisper and Invite; you're told when a friend comes or goes; and your homestead's
               "friends" are yours (kept with the world, so it knows them while you're away). Two Hallisium accounts are
@@ -34,6 +35,7 @@ from .shards import SHARD
 PROJECTS = "Projects.ini"
 ASK_GAP = 10000                         # (ms before you can ask the same player again: no flood of boxes)
 BOUNTIES = ["Wolf", "Goblin", "Bandit", "Skeleton", "Giant_Spider", "Bear", "Hobgoblin", "Scorpion", "Rat", "Bat"]
+BOARDS = {"Bounty_Board": "clerk_menu", "Records_Board": "records_menu"}   # (Read: what each shows)
 
 
 def today():
@@ -762,7 +764,7 @@ class TogetherMixin:
         got_day = int(val(self.get_attribute("Bounty.Day")))
         got = int(val(self.get_attribute("Bounty.Got")))
         if int(val(self.get_attribute("Bounty.Paid"))) == day:
-            self.show_menu("Bounties", "Clerk", "You've had today's bounty. Come back tomorrow: there's always "
+            self.show_menu("Bounties", "Bounty_Board", "You've had today's bounty. Come back tomorrow: there's always "
                            "something with too many teeth.", [("Goodbye.", None)])
         elif got_day == day and got >= n:
             gold, shards = 40 + n * 6, 3 + n // 2
@@ -771,13 +773,13 @@ class TogetherMixin:
             self.change_standing("Here", self.standing_num("Bounty", 3))
             self.give_shards(shards, "the bounty")
             self.play_sound("Coins")
-            self.show_menu("Bounties", "Clerk", "%d %s, as asked. Here's your bounty: %d gold and %d Shards." %
+            self.show_menu("Bounties", "Bounty_Board", "%d %s, as asked. Here's your bounty: %d gold and %d Shards." %
                            (n, pretty(kind).lower() + "s", gold, shards), [("Thank you.", None)])
         elif got_day == day:
-            self.show_menu("Bounties", "Clerk", "%s: %d of %d so far. Keep at it." % (pretty(kind) + "s", got, n),
+            self.show_menu("Bounties", "Bounty_Board", "%s: %d of %d so far. Keep at it." % (pretty(kind) + "s", got, n),
                            [("I will.", None)])
         else:
-            self.show_menu("Bounties", "Clerk", "Today's bounty: %d %s, anywhere in Ashen. Gold and Shards when "
+            self.show_menu("Bounties", "Bounty_Board", "Today's bounty: %d %s, anywhere in Ashen. Gold and Shards when "
                            "it's done. One a day." % (n, pretty(kind).lower() + "s"),
                            [("I'll take it.", lambda: self.take_bounty(day)), ("Not today.", None)])
 
@@ -817,7 +819,7 @@ class TogetherMixin:
                 lines.append("Most %s: %s." % (words, ", ".join("%s (%d)" % (n, v) for v, n in top)))
         mine = recs.get(self.player_name, {})
         lines.append("Yours: %s." % ", ".join("%d %s" % (mine.get(k, 0), words) for k, words in self.RECORDS))
-        self.show_menu("The hall of records", "Clerk", " ".join(lines), [("Thank you.", None)])
+        self.show_menu("The hall of records", "Records_Board", " ".join(lines), [("Close.", None)])
 
     # ================================================================================================= homesteads
     def guestbook_sign(self, owner):
@@ -1071,12 +1073,6 @@ class TogetherMixin:
             if nid.startswith("Town_Crier"):
                 self.crier_menu()
                 return True
-            if nid == "Bounty_Clerk":
-                self.clerk_menu()
-                return True
-            if nid == "Record_Keeper":
-                self.records_menu()
-                return True
             if nid.startswith("Sellsword"):
                 self.show_menu("Sellsword", "Guard", "A sword for hire. %d gold and I'm yours for %d minutes." %
                                (self.tg_num("Hire.Gold", 25), self.tg_num("Hire.Minutes", 10)),
@@ -1101,6 +1097,10 @@ class TogetherMixin:
             return True
         if e.type == NPC and verb == "Send away" and getattr(e, "comp_of", None) is self:
             self.companion_dismiss(e)
+            return True
+        if e.type == STATICOBJECT and e.name in BOARDS and verb == "Read":
+            if not self.too_far(e):                     # (the clerks beside them have words of their own)
+                getattr(self, BOARDS[e.name])()
             return True
         if e.type == STATICOBJECT and e.name == "Project_Plaque" and verb in ("Read", "Examine"):
             self.display_message(self.plaque_text(nid.replace("Plaque_", "")), "EXAMINE")

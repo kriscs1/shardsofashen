@@ -83,7 +83,8 @@ PAGE = 50                       # (rows the admin page gets at a time)
 GOOGLE_COOKIE = "ds_google"
 GOOGLE_PENDING = 2000           # (sign-ins under way at once: past this the oldest go)
 HOUSEKEEPING = 600              # (seconds between clearing out what's had its day)
-REFUNDS_EVERY = 86400           # (seconds between asking Google Play what it's refunded)
+REFUNDS_EVERY = 86400           # (seconds between asking Google Play what it's refunded, and Steam again)
+STEAM_REFUND_DAYS = 15          # (Steam refunds within 14 days of buying: a Steam purchase is asked after this long)
 BACKUPS_KEPT = 14               # (a copy of the database a day: DS_CENTRAL_BACKUPS, else backups beside it)
 HELLO_SECONDS = 30              # (the start screen's counts are worked out this often)
 BUYS = 10                       # (tries at a purchase from one address or account in ten minutes)
@@ -566,6 +567,8 @@ class Central:
         if other:
             log.info("%s tried a purchase that's %s's", name, other)
             return no("That purchase is another account's already.")
+        if where == "steam":                           # (refunded in its first 14 days: asked again each day)
+            self.store.recheck_later(name, where, ref, STEAM_REFUND_DAYS)
         if not self.store.owned(name)[0]:
             self.store.set_full(name, where)
             log.info("%s has the full game (%s)", name, where)
@@ -893,13 +896,17 @@ class Central:
                 log.exception("Asking after refunds failed")
 
     async def recheck_refunds(self, now=None):
-        """Once a day, what Google Play has refunded since it last asked: the full game goes back with it. (Steam's
-        and itch.io's are only ever asked as they're claimed: Steam's own app checks its library each start, and an
-        admin can take one back by hand.)"""
+        """Once a day, what Google Play has refunded since it last asked, and whether each Steam purchase of the last
+        STEAM_REFUND_DAYS is still owned: a refund takes the full game back. (itch.io's are only asked as they're
+        claimed: a refund there is the seller's own doing, and an admin takes the full game back by hand.)"""
         now = time.time() if now is None else now
+        if bought.ready()["play"] and now - float(self.store.setting("voided_at", "0") or 0) >= REFUNDS_EVERY:
+            await self.play_refunds(now)
+        if bought.ready()["steam"] and now - float(self.store.setting("steam_asked_at", "0") or 0) >= REFUNDS_EVERY:
+            await self.steam_refunds(now)
+
+    async def play_refunds(self, now):
         last = float(self.store.setting("voided_at", "0") or 0)
-        if not bought.ready()["play"] or now - last < REFUNDS_EVERY:
-            return
         try:
             tokens = await bought.play_voided(max(last, now - 30 * 86400) - 86400)   # (a day over: none missed)
         except bought.Refused as e:
@@ -910,6 +917,19 @@ class Central:
             if who:
                 log.info("%s's Google Play purchase was refunded: the full game is taken back", who)
         self.store.set_setting("voided_at", str(now))
+
+    async def steam_refunds(self, now):
+        for steamid in self.store.to_recheck("steam", now):
+            try:
+                owns = await bought.steam_owns(steamid)
+            except bought.Refused as e:
+                log.warning("%s", e)
+                return                                  # (tried again at the next housekeeping)
+            if not owns:
+                who = self.store.unclaim("steam", steamid)
+                if who:
+                    log.info("%s's Steam purchase was refunded: the full game is taken back", who)
+        self.store.set_setting("steam_asked_at", str(now))
 
     # ----- the quests as the game has them (data/Quests.ini: this server is the same image), for the admin page
     def quest_list(self):

@@ -1,7 +1,7 @@
 # Code issues found by review
 
 Issues found by reading the code (2026-11-10). Tick a box when its fix is committed, with a test. All are fixed
-(2026-11-12) but 29, in part.
+(2026-11-12).
 "Reproduced" means it was run against the real engine; the rest come from reading the code.
 
 ## Worth fixing
@@ -142,11 +142,14 @@ Issues found by reading the code (2026-11-10). Tick a box when its fix is commit
 - [x] **28. The desktop app can't give back what a game page kept.** `Bridge.get` (`desktop/app.py`) calls
   `self._prefs.get(key)`, and `Prefs` has only `set`: the page's `DSApp.get` (the character carried between servers,
   `web/js/main.js`) raises AttributeError there. `Host.start` also sets `mode` to "solo" whatever it's given.
-- [ ] **29. A refunded purchase keeps the full game.** `central/bought.py` asks the store once, when it's claimed;
+- [x] **29. A refunded purchase keeps the full game.** `central/bought.py` asks the store once, when it's claimed;
   nothing asks again (Play's voided purchases, Steam, itch). The Android app does take it back on the device
   (`Billing.restore`), but the account keeps `full`. An admin can take it back by hand.
   *Part fixed:* once a day central asks Google Play what it has voided, and a voided purchase takes `full` back.
-  Steam and itch.io aren't asked again: central keeps only a hash of their ids, so there's nothing to ask them with.
+  *Fixed* (2026-11-12): for 15 days after it's claimed a Steam purchase's Steam id is kept (`rechecks`), and once a
+  day Steam is asked whether it's still owned (`bought.steam_owns`): a refund takes `full` back, and after the 15 days
+  only the hash is kept. itch.io isn't asked again: a refund there is the seller's own, and the admin page takes it
+  back.
 - [x] **30. A game open to friends can be pestered by anyone with its id.** `/play/<id>/...` (`central/relay.py`)
   needs no sign-in. Twelve connections that never sign in fill `CONNS_MOST` and the game is "busy" to real friends
   (the game's own end has a 5-second heartbeat but no time limit for signing in: `server/game.py` `serve_ws`). And
