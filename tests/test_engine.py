@@ -7540,6 +7540,48 @@ def test_townsfolk_mention_a_quest_you_could_start_now_and_then(world, monkeypat
         leave(world, s)
 
 
+def test_a_barmaid_who_says_what_every_barmaid_says_passes_on_rumours(world, monkeypatch):
+    # Townsfolk of a kind who all said the same thing share one script (dev/migrate/share_npc_words.py): Talk to
+    # Barmaid, found for any barmaid without words of her own. With none of her own, a barmaid gossips (Gossip=1)
+    import dsengine.rumours as R
+    monkeypatch.setattr(R.random, "random", lambda: 0.0)
+    s = join(world, "Regular", "11,-3,0", 384, 300)
+    s.connected = True
+    s.update_attribute("Passage", "=12")
+    shared = [e for e in world.ents if e.type == NPC and e.name == "Barmaid" and e.npc_id and
+              not s.script_exists("Talk to " + e.npc_id)]
+    own = next(e for e in world.ents if e.npc_id == "Ashford_Barmaid_17")
+    assert len(shared) >= 30 and all(s.find_action_script("Talk to", e.name, NPC, e.npc_id) == "Talk to Barmaid"
+                                     for e in shared)
+    assert s.gossips(shared[0]) and not s.gossips(own)          # (words of her own: never a rumour first)
+    maid = world.add_npc("Barmaid", s.player.z, s.player.x + 30, s.player.y, "Attitude=Good Stand=1 Id=Test_Barmaid",
+                         "Good")
+    rumours = {v for _, d in world.data.quest_table() for k, v in d.items() if k.startswith("RUMOUR")}
+    try:
+        assert talk_to(world, s, maid) and s.ab_text in rumours
+        s.action_box_response_chosen(1)                         # (thanks: and now what every barmaid says)
+        run_for(world, 10)
+        assert s.ab_mode == "Conversation" and s.ab_text.startswith("Sit anywhere you like, love.")
+    finally:
+        world.remove_entity(maid)
+        leave(world, s)
+
+
+def test_the_editor_begins_a_barmaids_own_words_from_every_barmaids():
+    """A barmaid given words of her own in the editor (the map's "＋ Talk to <Id>", dsedit/pages/scripts.py
+    start_from) begins with Talk to Barmaid's lines, without the builder's line: they're the owner's now."""
+    from types import SimpleNamespace as NS
+    from dsedit.project import Project
+    from dsedit.pages.scripts import ScriptPage
+    said = []
+    pg = NS(project=Project(ROOT), leave_ok=lambda: True, clear_history=lambda: None, show=lambda: None,
+            app=NS(status=lambda text, *a: said.append(text)))
+    ScriptPage.start_from(pg, "Talk to Barmaid", "Talk to Ashford_Barmaid_331")
+    assert pg.doc.name == "Talk to Ashford_Barmaid_331" and not pg.doc.exists      # (not saved till Save)
+    assert [l.command for l in pg.doc.lines] == ["Display.Conversation", "End"]
+    assert pg.doc.lines[0].args[1].startswith("Sit anywhere you like") and "Talk to Barmaid" in said[-1]
+
+
 def test_two_corner_pieces_meeting_round_into_each_other():
     # Where one piece's corner runs on into its neighbour's (a two-tile inlet: a NE corner over a SE one), the land is
     # thickened at that tip and curved between, not a point (dsedit/render.py, as ground.js draws it)

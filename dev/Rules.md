@@ -917,6 +917,11 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `NPC|StaticObject|MapItem Name x y options`. In builders, use `build_isle.Map` and `obj_line` (1-based tiles).
 - Scripts: `NN<TAB>Command<TAB>args`. `>Conditional COND LINE` goes on when COND is true and jumps to LINE when
   it's false. Generated scripts say which builder made them in their first line; edit the builder too.
+- **Words a whole kind says are written once**, as `Talk to <Kind>` (`Talk to Barmaid`), not a copy under every
+  one's Id: the game finds the Id's script first, then the kind's. Only one with words of its own gets a
+  `Talk to <Id>`, and with one it's a character: it never passes on rumours (`Gossip=1`), its town's guards don't
+  count it as one of theirs, and it talks as itself to an animal. (`share_npc_words.py` shared the copies
+  `build_estforlan.py` wrote.)
 - What a quest puts down for one player (Add.Entity after `$Attr` / `Get.Value ATTRIBUTE`) goes when they leave the
   game: a map's entry script puts back what must still be there (the letter on the table, Tobias in his cage).
 - Open and Search on a StaticObject make it a chest (its script's Give.Items fill a loot box): a quest object that

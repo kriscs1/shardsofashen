@@ -4889,7 +4889,7 @@ class MapPage(Page):
                   % e.name, style="PanelMuted.TLabel", wraplength=T.px(300)).pack(anchor="w")
         self.runs_list(f, self.verbs_of(e), e.name, e.kind, oid)
         if oid:
-            self.script_links(f, oid, self.verbs_of(e))
+            self.script_links(f, oid, self.verbs_of(e), e.name, e.kind)
 
     def verbs_of(self, e):
         """What can be done to this thing (its left-click verb first, then its Use.Words, then Examine)."""
@@ -4904,8 +4904,9 @@ class MapPage(Page):
                 out.append(w)
         return out
 
-    def script_links(self, f, oid, verbs):
-        """Its own scripts, one click away: "Edit <Verb> <Id>" for each it has, "＋ <Verb> <Id>" to make the rest."""
+    def script_links(self, f, oid, verbs, name="", kind=""):
+        """Its own scripts, one click away: "Edit <Verb> <Id>" for each it has, "＋ <Verb> <Id>" to make the rest
+        (begun from the words its kind shares, when it says those: Talk to Barmaid)."""
         ttk.Label(f, text="Its own scripts", style="Panel.TLabel", font=T.FONT_BOLD).pack(anchor="w", pady=(8, 0))
         have = self.project.scripts()
         mine = sorted(s for s in have if s.endswith(" " + oid))
@@ -4913,10 +4914,17 @@ class MapPage(Page):
             self.link(f, "Edit " + s, lambda s=s: self.app.goto("script", s))
         for verb in verbs:
             script = "%s %s" % (verb, oid)
-            if script not in have:
-                self.link(f, "＋ " + script, lambda s=script: (self.app.show(self.app.page_of("script")),
-                                                              self.app.page_of("script").new_script(
-                                                                  preset={"kind": "A trigger (any name)", "name": s})))
+            if script in have:
+                continue
+            got = script_for(have, verb, name, kind) if name and kind == "NPC" else None
+            if got and not got[0].endswith("]"):
+                self.link(f, "＋ %s  (from %s)" % (script, got[0]),
+                          lambda s=script, src=got[0]: (self.app.show(self.app.page_of("script")),
+                                                        self.app.page_of("script").start_from(src, s)))
+                continue
+            self.link(f, "＋ " + script, lambda s=script: (self.app.show(self.app.page_of("script")),
+                                                          self.app.page_of("script").new_script(
+                                                              preset={"kind": "A trigger (any name)", "name": s})))
 
     def insp_npc(self, f, e):
         self.insp_common(f, e, "NPC")

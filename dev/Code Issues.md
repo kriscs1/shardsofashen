@@ -1,7 +1,7 @@
 # Code issues found by review
 
 Issues found by reading the code (2026-11-10). Tick a box when its fix is committed, with a test. All are fixed
-(2026-11-12) but 29, in part, and 47, which waits on a choice of the owner's.
+(2026-11-12) but 29, in part.
 "Reproduced" means it was run against the real engine; the rest come from reading the code.
 
 ## Worth fixing
@@ -264,7 +264,7 @@ Issues found by reading the code (2026-11-10). Tick a box when its fix is commit
   tick of 50 ms, but it's waste on a phone hosting. Better: each variable a name and a function, called only when
   its name is in the text, keeping `$Player.Health.Max` before `$Player.Health` and the woman's words
   (`PLAYER_WORDS`) before the other `$Player.` ones; a test that every variable still comes out as before.
-- [ ] **47. 367 of the 1,372 scripts are word for word another's.** 82 sets, all written by builders, one script
+- [x] **47. 367 of the 1,372 scripts are word for word another's.** 82 sets, all written by builders, one script
   per NPC's Id whether it differs or not: 37 of the 39 barmaids say "Sit anywhere you like, love" from
   `dev/migrate/towns.py` (line 603, a `Talk to <Id>` each), and the stalls, smiths, bakers and butchers are the same
   in up to 10 towns (`build_estforlan.py`, never run again). They cost nothing running, only clutter. The engine
@@ -273,14 +273,15 @@ Issues found by reading the code (2026-11-10). Tick a box when its fix is commit
   more to say keeps hers by her Id. Every Barmaid on the maps has an Id script today, so none would start saying it
   who doesn't now. The `build_estforlan.py` sets would need a migration (delete the copies, write the shared one)
   rather than that builder.
-  *Not done: it would change who passes on rumours.* `gossips` (`dsengine/rumours.py`) lets a kind with `Gossip=1`
-  pass on rumours only when the NPC has no `Talk to <Id>` of its own, and the guards' captain (`standing.py`) and
-  talking in an animal's body (`player_actions.py`) ask for that file too. Barmaid, Butcher, Fishmonger,
-  Greengrocer, Doctor, Nurse, Tailor, Cobbler, Carter, Barkeep and Old_Woman all have `Gossip=1`, but every one of
-  them on the maps has an Id script (most of them these copies), so none of them gossips today. Sharing their words
-  by name would have them all pass on rumours before their usual words. If they should (their `Gossip=1` says so),
-  the share by name does both at once; if not, the copies can still go if the shared script is found under each Id
-  (a list of Ids for one script), with the editor's Id scripts and its renames taught it too.
+  *Fixed:* `dev/migrate/share_npc_words.py` wrote one `Talk to <Kind>` for Barmaid, Greengrocer, Fishmonger,
+  Butcher, Sheriff, Doctor, Nurse, Tailor and Armourer (the words most of them said) and took away the 84 copies;
+  one whose words differ keeps them. A kind is shared only when every one of it had words of its own, so nobody
+  started talking who didn't. With none of their own, the ones whose kind has `Gossip=1` now pass on rumours and
+  join in the town's banter, as the trades should. The guards' captain and talking in an animal's body still mean
+  a character by a `Talk to <Id>`, as before. `cap_merchants.py` finds a shared stall keeper's shop by their kind,
+  and the editor's "＋ Talk to <Id>" begins from the kind's words. The rest of the copies are left: the Villagers',
+  Farmers', Bakers' and others' kinds have their own `Talk to <Kind>` already, the notices' words differ, and the
+  tools' and cats' copies are each a short `Goto.Script` or written by a builder still run.
 
 ## Checked and sound
 

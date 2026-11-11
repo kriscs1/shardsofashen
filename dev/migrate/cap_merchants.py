@@ -13,6 +13,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import story_kit as K  # noqa: E402
 from story_kit import say  # noqa: E402
+from share_npc_words import KINDS as SHARED  # noqa: E402   (a stall keeper's words, shared by their kind since)
 
 CAP = 2
 MAKER = "cap_merchants.py"
@@ -47,9 +48,10 @@ def read(path):
 def merchants():
     """{(settlement, trade): [(its kept order, Id, rack, script text)]} of everyone who sells (a Display.Item.Rack in
     their Talk to script) on a map."""
-    racks = {}
+    racks, own = {}, set()
     for fn in os.listdir(SCRIPTS):
         if fn.startswith("Talk to ") and fn.endswith(".txt"):
+            own.add(fn[8:-4])
             text = read(os.path.join(SCRIPTS, fn))
             found = re.findall(r"Display\.Item\.Rack\t\S+\t\S+\t(SHOP-\S+)", text)
             if found:
@@ -61,10 +63,16 @@ def merchants():
         for line in read(os.path.join(MAPS, fn)).split("\r\n"):
             p = line.split("\t")
             m = re.search(r"\bId=(\S+)", p[4]) if p[0] == "NPC" and len(p) > 4 else None
-            if not m or m.group(1) not in racks:
+            if not m:
                 continue
             pid = m.group(1)
-            rack, text = racks[pid]
+            if pid not in own and p[1] in SHARED:
+                pid_words = p[1]                                # (none of its own: the words its kind shares now)
+            else:
+                pid_words = pid
+            if pid_words not in racks:
+                continue
+            rack, text = racks[pid_words]
             place, n = pid.split("_")[0], re.search(r"_(\d+)$", pid)
             key = (0 if rack.startswith(STALLS) else 1, int(n.group(1)) if n else 0, pid)
             out.setdefault((place, TRADES.get(rack, rack)), []).append((key, pid, rack, text))
