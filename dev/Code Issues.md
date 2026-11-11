@@ -202,6 +202,41 @@ Issues found by reading the code (2026-11-10), not yet fixed. Tick a box when it
   `greyCache` (`ui.js`) are never emptied (held in check only by how many combinations there are), `hatchPattern`
   (`ui.js`) makes a new canvas and pattern every frame the world map is open, and `drawBoosts` would throw each frame
   on a boost kind it has no words for (the engine's four are all it's sent today).
+- [ ] **42. The editor's pages, read through.** In `dsedit/pages/maps.py`: a notice's words typed in the inspector
+  are saved to its script file 0.7 s after the last key, apart from the Scripts page (so with 34, a script open there
+  can go back to the older words); `map_delete` ends with `(others or self.project.maps())[0]`, which throws when the
+  last map goes; `_check_refs` runs `refs.fresh()` on a thread while the window reads `self.refs`; `add_trap` replaces
+  a trigger already on the tile without saying so; the lock inspector's Pick field replaces all of the lock's other
+  options; `rename_everywhere` and `move_to_map` save maps as part of the action, with no undo. Quests:
+  `rename_marker` saves without asking, and every script is read again each time a quest is opened. Deleting or
+  renaming a quest, spell, crop or buildable doesn't say what still uses it. Racks: `rename_rack` leaves scripts
+  opening the old name (it warns only afterwards), and each key typed is an undo step. `iniform`'s save sets the keys
+  in memory before `extra_save`, so a save that fails leaves memory changed and the file not; the Crops page writes
+  `Crop=` on the new seed without clearing it from the seed it was on. Tiles: a tile with no `Walkable.Data` loads as
+  49 ones and saving writes that grid out; after Split, the palette's pictures of the tile aren't made again.
+- [ ] **43. Tests that can't fail, and tests that lean on each other.** `tests/test_engine.py` shares one world
+  across the file, and before about line 9300 most tests put things back only at their end, not in a `finally`:
+  players (`leave`), the time of day, the season, NPCs taken out of `world.ents`, `farms.clock`, a tile of 1,1,0, and
+  at 7627 `enc.settings["on"]` (a throw there leaves encounters on for every later test). So one failure can set off
+  others that have no fault. Some change the shared world for good: 809 never leaves "Wren", 10050 removes every
+  Hobgoblin on 2,2,-2, `dark_mage()` (8051) moves a Dark Mage and doesn't move it back; 3263 leans on the test before
+  it having killed the dragon. Asserts that can't fail or may not run: 303 (`... is None or True`), 5271 and 5413
+  (inside an `if`), and loose `or`s at 350, 2465, 4360, 4642, 4654, 6738, 7786 and 7907;
+  `test_a_river_freezes_in_winter_but_never_the_sea` freezes nothing (it checks only which waters count as rivers).
+  `tests/test_server.py` defines `chats` twice (171 and 672; the second, waiting 0.6 s, is the one every test gets),
+  waits by fixed sleeps in many places (0.3 s for a save, 0.5 s after `/ban`) where a poll would hold on a slow
+  disk, and several tests have no `finally` round `runner.cleanup`. `tests/test_central.py`: `assert await post(...)`
+  near 1302 asserts a dict (wants `["ok"]`), `assert orig` near 1550 and the `or` near 1886 are loose, the block near
+  533 checks nothing, and the friends test sleeps 4 x 1 s. The editor's logic is tested only inside
+  `test_engine.py`.
+- [ ] **44. Bryony Tarrow never says her words about the Wardens.** In `data/Scripts/Talk to Bryony_Tarrow.txt`
+  line 12 is `>Conditional $Variable.1>=5 15`: from stage 5 of `ShardfallGate` on she says "It opened, did it?" for
+  good, and line 15 (`Goto.Script Bryony and the Wardens`) is reached only before stage 3, by someone Nell hasn't
+  sent yet. So that script's line for a player who has the Wardens' truth (`$Attr.WardensTruth=1`) is never said.
+  Line 12 should send stage 5 and later to line 15 (and say "It opened" once, or leave it to that script), with the
+  stranger's words kept for the stages before 3. Also small: `data/Scripts/21,5,0.txt` shows "The Wizards' Court."
+  each time the map is entered, and `ashen/anim.py` `flame_frame` seeds from `hash(tile)`, which Python changes each
+  run, so the flames' exported frames differ from one export to the next (never wrong, never the same).
 
 ## Checked and sound
 
@@ -243,23 +278,23 @@ Issues found by reading the code (2026-11-10), not yet fixed. Tick a box when it
 - `tools/`: nothing runs through a shell, `sync_home.py` copies only what differs, `bot.py` and `browser_check.py`
   only play. `desktop/owning.py` asks Steam through its own library and `build_desktop.py` carries no secrets (data,
   maps, sprites, the page, the server and engine). `ashen/places.py` and `areas.py` read without changing anything.
-- The builders, sampled: none writes a data file or map in text mode (the text-mode writes are their "done" marks and
-  JSON), none runs a shell, and their randomness is seeded. The tests skip only where the data has no shop to test
-  (two `pytest.skip` in `test_engine.py`), and nothing is marked to fail.
+- The editor's other files (`widgets.py`, `theme.py`, `icons.py`, and the pages' drawing and tools): dialogs are
+  modal, the condition builder falls back to plain text for what it can't show, the decor split refuses while Maps or
+  Tiles have unsaved changes and backs up first, Buildables, Crops, Spells and Quests check their fields before
+  saving, and renumbering a script keeps its jumps right. A craft row in `ItemRacks.ini` that makes 1 is saved
+  without its `,1` (it reads the same).
+- `tools/midisynth.py`, `make_login_video.py` and `make_login_background.py`, and `ashen/anim.py`, `assets.py`,
+  `cursor.py`, `entity.py`, `midi.py` and `script_language.py`: nothing but the flame seed in 44.
+- The tests, read in full: most are whole play-throughs with exact numbers (gold, Shards, quest stages), and from
+  about line 9300 of `test_engine.py` they put back what they change in a `finally`. `test_desktop.py` polls and
+  cleans up. The test that every query keeps its values out of its text walks `central/store.py` and
+  `server/store.py`; the one query made elsewhere (`server/game.py`, a fixed text with no values) is sound. They skip
+  only where the data has no shop to test (two `pytest.skip`), and nothing is marked to fail.
 
 ## Not yet read
 
-Read in full: `dsengine/`, `server/`, `central/` (the relays with it), `desktop/` (`app.py`, `owning.py`,
-`build_desktop.py`), the Android app's Java and `ds_host.py`, the start screen, all of `web/js`, `ashen/ini.py`,
-`lb.py`, `places.py` and `areas.py`, `tools/` but for the three below, and of the editor `project.py`, `mapops.py`,
-`region.py`, `world.py`, `terrain.py`, `refs.py`, `carts.py`, `scriptlang.py`, `render.py`, `decor.py` and `app.py`.
+Everything the game runs is read in full: `dsengine/`, `server/`, `central/`, `desktop/`, the Android app's Java and
+`ds_host.py`, the start screen, `web/js`, `ashen/`, `tools/`, `dsedit/` and `tests/`.
 
-Checked only in part: the editor's pages. `pages/maps.py` (5,200 lines) was read for its saving, undo, map jobs, cut
-and paste and what it writes to files, not its drawing and tools; each other page for its saving, renaming and
-deleting, not its layout; `widgets.py` not at all. The builders in `dev/migrate/` (275 files) were searched, not
-read: how they write files, shells, randomness, their run-again marks. The tests were searched for skips and tests
-marked to fail, not read for what each proves.
-
-Not read: `tools/midisynth.py`, `make_login_video.py` and `make_login_background.py`; `ashen/anim.py`, `cursor.py`,
-`assets.py`, `entity.py`, `midi.py` and `script_language.py` (what's left of the old desktop game, used now only to
-make the page's pictures and sounds); `theme.py` and `icons.py` of the editor.
+Left out, at the owner's word: the scripts in `dev/` (the builders and migrations of `dev/migrate/`), as no longer
+relevant. Nothing about them is logged here.
