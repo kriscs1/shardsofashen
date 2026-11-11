@@ -252,6 +252,24 @@ Issues found by reading the code (2026-11-10), not yet fixed. Tick a box when it
   left for it to remove, and it would take a fire lit there later), so the bucket script wouldn't need the line at
   all; a queued ADD (a respawn) stays.
 
+- [ ] **46. A script line with any `$` works out every variable, whether it names it or not.** (Timed.)
+  `parse_script_variables` (`dsengine/scripting.py`) builds its list of 27 replacements (shardstones active, the
+  player's level, the tax due, the free slots...) with each value worked out before it looks at the text, so
+  `Hello $Player.Name` takes about 31 us where plain text takes 0.1 us and `$Item.Gold >= 10` 2 us; `stones_active`
+  is most of it. Every line of every script run through it once took 232 ms (18 us a line), so it's never felt in a
+  tick of 50 ms, but it's waste on a phone hosting. Better: each variable a name and a function, called only when
+  its name is in the text, keeping `$Player.Health.Max` before `$Player.Health` and the woman's words
+  (`PLAYER_WORDS`) before the other `$Player.` ones; a test that every variable still comes out as before.
+- [ ] **47. 367 of the 1,372 scripts are word for word another's.** 82 sets, all written by builders, one script
+  per NPC's Id whether it differs or not: 37 of the 39 barmaids say "Sit anywhere you like, love" from
+  `dev/migrate/towns.py` (line 603, a `Talk to <Id>` each), and the stalls, smiths, bakers and butchers are the same
+  in up to 10 towns (`build_estforlan.py`, never run again). They cost nothing running, only clutter. The engine
+  already lets them share: `find_action_script` tries `Talk to <Id>`, then `Talk to <name>` (the map's NPC name,
+  `Barmaid`), so `towns.py` could write one `Talk to Barmaid.txt` and leave out the barmaids' own, and a barmaid with
+  more to say keeps hers by her Id. Every Barmaid on the maps has an Id script today, so none would start saying it
+  who doesn't now. The `build_estforlan.py` sets would need a migration (delete the copies, write the shared one)
+  rather than that builder.
+
 ## Checked and sound
 
 - NaN, infinity and wrong-typed fields in client messages fail inside the per-player guard.
