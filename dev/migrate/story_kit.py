@@ -150,7 +150,8 @@ def set_section(path, name, lines, after=None):
 
 def quest(name, giver, attribute, stages, done, markers=None, kind="Main", chapter=None, requires=None,
           level=None, after=None, marker0=None):
-    """Quests.ini [name]: stages {n: text} (n = the attribute's value), markers {n: place IDs ';'-joined}."""
+    """Quests.ini [name]: stages {n: text} (n = the attribute's value), markers {n: place IDs ';'-joined}. Keys it
+    doesn't write (Reward.Shards, Reward.XP... from build_shards.py and others) stay as they were."""
     lines = ["Giver=%s" % giver, "Attribute=%s" % attribute]
     lines += ["Stage%d=%s" % (n, t) for n, t in sorted(stages.items())]
     lines += ["Done=%d" % done]
@@ -165,6 +166,10 @@ def quest(name, giver, attribute, stages, done, markers=None, kind="Main", chapt
         lines.append("Requires.Level=%d" % level)
     if requires:
         lines.append("Requires.Quests=%s" % requires)
+    ours = re.compile(r"(Giver|Attribute|Stage\d+|Done|Marker\d+|Type|Chapter|Requires\.Level|Requires\.Quests)=")
+    for b in _blocks(QUESTS):
+        if b.startswith("[%s]\n" % name):
+            lines += [ln for ln in b.split("\n")[1:] if "=" in ln and not ours.match(ln)]
     set_section(QUESTS, name, lines, after)
 
 
@@ -238,7 +243,7 @@ PEOPLE = {   # sprite: (what Examine says, its verbs)
     "Guard_Captain": ("The captain of the Royal Guard.", "Talk to,Examine"),
     "Chancellor": ("The Lord Chancellor of Galaith, sharp-eyed in black and gold.", "Talk to,Examine"),
     "Archivist": ("The Royal Archivist, who knows every seal ever pressed in Galaith.", "Talk to,Examine"),
-    "Barkeep": ("A barkeep, polishing a tankard.", "Talk to,Examine"),
+    "Barkeep": ("A barkeep, polishing a tankard.", "Talk to,Play,Examine"),            # (dice: build_pub_dice.py)
     "Barmaid": ("A barmaid, a tray of tankards on her hip.", "Talk to,Examine"),
     "Butcher": ("A butcher in a bloodied apron.", "Talk to,Examine"),
     "Fishmonger": ("A fishmonger. You can smell the catch from here.", "Talk to,Examine"),

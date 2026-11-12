@@ -9,8 +9,8 @@ save you from the dragon that takes the firstborn heir of every generation. You 
      character stands at her grave in the chapel's graveyard (3,1,0's entry script runs The Funeral): the mourners
      go, Edwin the lawyer walks you home and leaves her letter on the table.
      The cottage door (a Lock) stays shut until it's read: the letter (Last_Will, Read) tells you who you are.
-  2  Dinner at Edwin's (DinnerQuest 0-4). Maren, Edwin's wife and the Isle's doctor, at their brick house by the
-     chapel (2,1,0: her surgery and his desk downstairs; their rooms upstairs, 2,1,1; it was the bank): three logs
+  2  Dinner at Edwin's (DinnerQuest 0-4). Maren, Edwin's wife and the Isle's doctor, at their brick house in the
+     north-west (0,-2,0: her surgery and his desk downstairs; their rooms upstairs, 0,-2,1; it was the bank): three logs
      for her range (with an axe she lends you), an egg from Bess's coop fried on her range, the egg to Edwin.
      Maren gives you the key to the chapel's trapdoor (Chapel_Cellar_Key).
   3  The Amulet of Succession (AmuletQuest 0-6). Bess sends you to her husband Frank, the blacksmith (his hut by the
@@ -46,7 +46,8 @@ GRAVE = (2, 5)                                   # (you stand below it)
 GRAVE_WAY = (-9, 13)                             # (the mourners go west, in at the chapel's door on 3,1,0)
 COTTAGE = (5, 9, 12, 13)                         # the cottage, 4,0,0 (made wider: two beds)
 COTTAGE_DOOR = 8
-HOME = (12, 1, 21, 7)                            # Edwin and Maren's house, 2,1,0, their rooms upstairs on 2,1,1
+HOUSE = "0,-2"                                   # Edwin and Maren's house: by the chapel on 2,1 till move_lawyers_house.py
+HOME = (12, 1, 21, 7)                            # (where on its map: moved by whole maps, it's where it was)
 HOME_DOOR = 16
 SMITHY = (8, 3, 12, 7)                           # Frank's smithy, 2,0,0
 FATHERS = (18, 3, 22, 7)                         # Tobias's house, 1,1,0 (the old brick house)
@@ -596,13 +597,13 @@ def front_room(m):
 
 
 def home():
-    m, up = Map("2,1,0"), K.black_map("2,1,1")
+    m, up = Map(HOUSE + ",0"), K.black_map(HOUSE + ",1")
     x1, y1, x2, y2 = HOME
     if K.has_id(m, "Isle_Bank"):
         if m.parts(14, 1)[1].get("Decor") != "Bed001":
             front_room(m)
             m.save()
-            print("2,1,0: the bank is Edwin and Maren's house now")
+            print(HOUSE + ",0: the bank is Edwin and Maren's house now")
         return
     K.building(m, x1, y1, x2, y2, HOME_DOOR, wall="Brick001", roof="Slate", chimney=19, upper=up)
     front_room(m)
@@ -632,8 +633,8 @@ def home():
         obj_line("StaticObject", "Range", 18, 1, "Id=Marens_Range"),
     ]
     up.save()
-    print("2,1,0 and 2,1,1: Edwin and Maren's house, two storeys of brick: her surgery and his desk, their rooms "
-          "upstairs")
+    print("%s,0 and %s,1: Edwin and Maren's house, two storeys of brick: her surgery and his desk, their rooms "
+          "upstairs" % (HOUSE, HOUSE))
 
 
 def smithy():
@@ -679,19 +680,22 @@ def fathers_house():
         for x in (19, 21):
             m.set(x, y2, decor="Brick_Window001")
         K.place_id(m, "Fathers_House", x1 + 2, y2 + 1)
-    ents = []                                                    # (its notice, lock and floorboard: made so each run)
+    want = {"floorboard": "Trigger\tSqueaky Floorboard\t%d\t%d" % SQUEAK,
+            "lock": "Lock\t%d\t%d\t$Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1\tThe door is locked."
+                    % (x1 + 2, y2)}
+    ents = []                                    # (its notice, lock and floorboard: made so each run, where they were)
     for ln in m.ents:
         f = ln.split("\t")
-        if f[0] == "Trigger" and f[1] in ("Beggar House", "Squeaky Floorboard"):
-            continue
-        if f[0] == "Lock" and f[1:3] == [str(x1 + 2), str(y2)]:
+        what = ("floorboard" if f[0] == "Trigger" and f[1] in ("Beggar House", "Squeaky Floorboard") else
+                "lock" if f[0] == "Lock" and f[1:3] == [str(x1 + 2), str(y2)] else None)
+        if what:
+            if what in want:
+                ents.append(want.pop(what))
             continue
         if f[:2] == ["StaticObject", "Notice"] and "Id=The_Old_Brick_House" in ln:
             ln = ln.replace("Id=The_Old_Brick_House", "Id=Fathers_Home")
         ents.append(ln)
-    ents += ["Trigger\tSqueaky Floorboard\t%d\t%d" % SQUEAK,
-             "Lock\t%d\t%d\t$Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1\tThe door is locked." % (x1 + 2, y2)]
-    m.ents = ents
+    m.ents = ents + list(want.values())
     if (m.ents, m.rows) != before:
         m.save()
         print("1,1,0: Maren and Bess's father's home, the old brick house: brick again, locked, a squeaky floorboard")
@@ -797,8 +801,8 @@ def niche_and_pier():
                   if ln.startswith("NPC\tWoman\t") and "Name=Maren" in ln else ln for ln in s.ents]
         s.save()
         print("1,3,0: Wim the ferryman on Northport's pier")
-    k = Map("2,4,-2")
-    if K.ents_without(k, lambda f: f[:2] == ["MapItem", "Beggars_House_Key"]):
+    k = Map("2,4,-2") if K.map_exists("2,4,-2") else None              # (gone with the old mainland)
+    if k and K.ents_without(k, lambda f: f[:2] == ["MapItem", "Beggars_House_Key"]):
         k.save()
         print("2,4,-2: the beggar's key is gone (his quest with it)")
 
@@ -813,7 +817,7 @@ def maps():
     lair()
     niche_and_pier()
     amb = os.path.join(K.DATA, "Ambient.ini")
-    for name, sound in (("2,2,-2", "Cave"), ("2,1,1", "Indoors")):
+    for name, sound in (("2,2,-2", "Cave"), (HOUSE + ",1", "Indoors")):
         if ini.read("Maps", name, "<unset>", amb) != sound:
             ini.write("Maps", name, sound, amb)
 
@@ -1046,7 +1050,7 @@ def home_scripts():
         ("@none",), ("Display.Message", "DarkRed", "You don't have an egg.", "Denied"),
         ("End",),
     ] + FAR)
-    w("2,1,1", [                                                  # (upstairs at Edwin's: Tobias, once he's free)
+    w(HOUSE + ",1", [                                             # (upstairs at Edwin's: Tobias, once he's free)
         ("Get.Value", "ATTRIBUTE", "FatherFreed", V1),
         (">Conditional", "$Variable.1>=1", "@end"),
         ("Add.Entity", at(19, 3, -8), "Tobias", "NPC", "Attitude=Good Stand=1 Face=S"),
@@ -1203,6 +1207,7 @@ def chapel_and_caves():
         (">Conditional", "$Variable.1>=4", "@wait"),
         ("Play.Sound", "Ladder"),
         ("Display.Message", "Cyan", "You climb down the ladder, into the caves under the Isle."),
+        ("Wait", "0.4"),
         ("Teleport", "416,280", "3,1,-2"),
         ("End",),
         ("@wait",), ("Display.Refusal", "You promised Maren: not until Brother Aldous says you're ready."),
@@ -1314,11 +1319,12 @@ def lair_scripts():
         ("End",),
     ] + FAR)
     w("Climb Up Hidden_Ladder", [
-        (">Distance.From.Clicked.Tile", "48", "@far"),
+        (">Distance.From.Clicked.Tile", "49", "@far"),
         ("Play.Sound", "Ladder"),
         ("Update.Attribute", "LairLadder", "=1"),
         ("Display.Message", "Cyan", "You climb the ladder and come up under a bedroll, inside a tent in the hobgoblins' "
                                     "camp.", "-"),
+        ("Wait", "0.4"),
         ("Teleport", at(tx, ty + 1, -8), "2,2,0"),
         ("End",),
     ] + FAR)

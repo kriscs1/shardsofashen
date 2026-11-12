@@ -299,9 +299,21 @@ def entities():
 HOUSE_TOWNS = [(-12, 11, -4, 18), (-8, 4, -6, 6)]               # (Galaith, redrawn; Mirefold: not in the plan's list)
 
 
+VALUABLES_DONE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "valuables_done.txt")
+
+
+def valuables_done():
+    """The maps valuables have been set down in once (valuables_done.txt): left alone after, so a box taken out since
+    (a house rebuilt, Galaith's) stays out."""
+    if not os.path.exists(VALUABLES_DONE):
+        return set()
+    with open(VALUABLES_DONE, encoding="utf-8") as f:
+        return {ln.strip() for ln in f if ln.strip()}
+
+
 def place_valuables():
     """In about half the houses of every settlement (not a shop: no shelves of goods), a box of precious things on a
-    back-wall tile, against the wall (sneak in and Steal from it). Never twice in a house."""
+    back-wall tile, against the wall (sneak in and Steal from it). Never twice in a house, and only once in a map."""
     import zlib
     from build_isle import Map
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "estforlan"))
@@ -313,10 +325,12 @@ def place_valuables():
     for x1, y1, x2, y2 in HOUSE_TOWNS:
         names |= {"%d,%d,0" % (x, y) for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)}
     names -= set(ISLE.split())
+    done = valuables_done()
     n = 0
     for name in sorted(names):
-        if not os.path.exists(p("maps", name + ".txt")):
+        if not os.path.exists(p("maps", name + ".txt")) or name in done:
             continue
+        done.add(name)
         m = Map(name)
         taken = set()
         for ln in m.ents:
@@ -360,6 +374,8 @@ def place_valuables():
             n += 1
         if changed:
             m.save()
+    with open(VALUABLES_DONE, "w", encoding="utf-8") as f:
+        f.write("".join(name + "\n" for name in sorted(done)))
     print("Valuables: %d set down in houses" % n)
 
 

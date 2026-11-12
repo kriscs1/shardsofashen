@@ -123,8 +123,8 @@ export function entityTip(e) {
     if (info) lines.push("=" + info);
     if (e.f === 2) lines.push(`Passive | ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
     else if (e.f) lines.push(`!Hostile | ${lbstr(e.hp)}/${lbstr(e.mh)} hitpoints`);
-  } else if (e.k === T.STATICOBJECT && e.lk) {
-    lines.push("#" + name, `!${e.ib ? "Iron-bound" : "Locked"} | ${lockWord(e.lk)}`);
+  } else if (e.k === T.STATICOBJECT && e.lc) {
+    lines.push("#" + name, `!${e.ib ? "Iron-bound" : "Locked"} | ${lockWord(e.lc)}`);
   } else if (e.k === T.TILE && e.lockPick) {
     lines.push("#" + name, `!Locked | ${lockWord(e.lockPick)}`);               // (a door that can be picked)
   } else if (e.k === T.PLAYER) {

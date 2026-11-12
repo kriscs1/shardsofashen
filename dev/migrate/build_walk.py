@@ -2,6 +2,7 @@
 
 Run:  python -I "dev\\migrate\\build_walk.py" [--preview]
 Deterministic and re-runnable: only frames that change are written. --preview writes dev\\Renders\\Walk preview.png.
+The creatures in DRAWN_LATER are left alone: a later builder draws over their frames (build_wolf.py and others).
 Re-run it after changing an NPC's sprite in sprites\\Entities (build_sprites.py, or by hand).
 
 Each sprite in sprites\\Entities is the standing pose; the frames are made from it:
@@ -33,6 +34,11 @@ FRONT = ["Cave_Troll", "Bog_Troll", "Frost_Troll"]          # the people and gob
 SIDE = ["Wolf", "Rat", "Cow", "Sheep", "Chicken", "Dog", "Rabbit", "Duck", "Bear", "Snow_Wolf"]          # all drawn facing west
 HOP = {"Rabbit"}               # side-on, but hopping: off the ground in frames b and c, not stepping
 FLAP = ["Bat", "Giant_Spider", "Butterfly", "Scorpion", "Dragon"]
+DRAWN_LATER = {             # (their frames are drawn again, or changed, by a later builder: left alone here)
+    "Wolf": "build_wolf.py", "Snow_Wolf": "build_wolf.py", "Dog": "build_wolf.py",
+    "Cow": "build_isle_art.py", "Butterfly": "build_butterflies.py",
+    "Sheep": "shrink_sheep.py", "Chicken": "small_chickens.py (a one-off, made them smaller)",
+}
 OUT = "Walk"
 BALD = {"Skeleton"}            # the back of the head is shaded skin (or bone), whatever frames the face
 HEAD = {"Cave_Troll": (6, 15), "Bog_Troll": (6, 15), "Frost_Troll": (6, 15)}  # (first row, neck row) where finding them by shape fails (the troll has no neck)
@@ -360,17 +366,20 @@ def main():
     wanted = set()
     written = 0
     for name, (frames, _) in made.items():
+        if name in DRAWN_LATER:
+            continue
         for key, im in frames.items():
             wanted.add(name + key)
             if K.save(OUT, name + key, im):
                 written += 1
-    dirs = {name: {k[0] for k in frames} for name, (frames, _) in made.items()}
+    dirs = {name: {k[0] for k in frames} for name, (frames, _) in made.items() if name not in DRAWN_LATER}
     stale = [f for f in os.listdir(p("sprites", OUT)) if f.lower().endswith(".png") and f[:-4] not in wanted and
              f[-6:-5] in dirs.get(f[:-6], ())]      # (only its own: other builders draw frames here too, build_wolf.py
                                                     # the bear's facings towards you and away)
     for f in stale:
         os.remove(p("sprites", OUT, f))
-    print("%d frame(s) for %d sprites, %d written, %d stale removed" % (len(wanted), len(made), written, len(stale)))
+    print("%d frame(s) for %d sprites, %d written, %d stale removed; %s left to the builders that draw them later"
+          % (len(wanted), len(made) - len(DRAWN_LATER), written, len(stale), ", ".join(sorted(DRAWN_LATER))))
     if "--preview" in sys.argv:
         items = []
         for name, (frames, _) in made.items():

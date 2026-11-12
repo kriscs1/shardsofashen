@@ -1010,12 +1010,16 @@ that isn't in the game.
   game: a map's entry script puts back what must still be there (the letter on the table, Tobias in his cage).
 - Open and Search on a StaticObject make it a chest (its script's Give.Items fill a loot box): a quest object that
   gives something uses its own verb (Reach In, Pick Lock).
-- `build_walk.py` deletes only stale frames of the creatures it draws itself, but it draws over frames other builders
-  draw later (the wolf's, the dog's, the farm animals', the butterfly's...): after running it, put back what it
-  changed that isn't yours (`git checkout --` those files), or run those builders again.
+- `build_walk.py` deletes only stale frames of the creatures it draws itself, and leaves alone the creatures a later
+  builder draws over (its `DRAWN_LATER`: the wolves', the dog's, the cow's, the sheep's, the chicken's, the
+  butterfly's). A creature's frames redrawn by another builder go in it.
 - Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run. A builder that takes over a script an earlier one wrote is
-  named in `story_kit.TAKES_OVER`, so the earlier one run again leaves it be.
+  named in `story_kit.TAKES_OVER`, so the earlier one run again leaves it be. When a later builder moves or changes
+  what an earlier one made, the earlier one is brought up to date too (`build_heir_isle.py` builds Edwin's house on
+  0,-2 since `move_lawyers_house.py`). `story_kit.quest()` keeps the keys other builders add to a quest (the rewards).
+  `build_stealth.py` sets Valuables down only once in a map (`dev/migrate/valuables_done.txt`), so one taken out
+  stays out.
 
 ### The map editor
 

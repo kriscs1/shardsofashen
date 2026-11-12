@@ -38,7 +38,7 @@ StaticObject	Odd_Barrel	64	480	Id=Secret_Saltmarsh_3
 NPC	Elder	320	280	Attitude=Good Pause=4-12 Zone=8,7,14,13
 Id	Saltmarsh_Elder	11	10
 NPC	Witch	384	280	Attitude=Good Pause=4-12 Zone=10,7,16,13
-NPC	Woman	480	312	Attitude=Good Stand=1 Face=W Id=Eel_Catcher_Morwen Name=Morwen
+NPC	Woman	480	312	Attitude=Good Stand=1 Face=W Id=Eel_Catcher_Wenna Name=Wenna
 NPC	Villager	96	344	Attitude=Good Stand=1 Face=S Id=Saltmarsh_Pip Name=Pip Here.After=DeserterWay:2
 Lock	17	19	$Standing.Saltmarsh>=45	The fishers' house. Saltmarsh opens it to friends.
 StaticObject	Chest	544	512	Lock=0 Id=Trusted_Chest_Saltmarsh

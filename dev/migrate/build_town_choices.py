@@ -10,7 +10,7 @@ town that opens to those it trusts, and a choice in the towns that had none.
     +15), or pay Pip's way south on a carter's cart (the Keep -10; Pip turns up in Saltmarsh). (DeserterWay: 1, 2.)
   * The Dry Spring (Dunerest): Elder Sabra's spring has failed; Corvin the water-seller dammed it. Pull the dam down
     (Dunerest +15) or take Corvin's 100 gold to leave it (Dunerest -10). (WellWay: 1 the bribe, 2 the dam down.)
-  * The Eel Traps (Saltmarsh): someone cuts Morwen's traps. It's Tobin, whose father's sick. Tell her (Saltmarsh +5,
+  * The Eel Traps (Saltmarsh): someone cuts Wenna's traps. It's Tobin, whose father's sick. Tell her (Saltmarsh +5,
     and her gold), or keep his secret, mend the traps and talk her into sharing her catch (Saltmarsh +15).
     (EelWay: 1 told, 2 kept.)
   * Marsh Fever (Mirefold): Bryony the healer wants to know what's in Doctor Pallister's cure. Swamp water. Take his
@@ -181,17 +181,17 @@ WELL = ["Giver=Elder", "Attribute=WellQuest",
         "Rumour=Dunerest's well is low, they say, and Corvin the water-seller has never been richer."]
 
 EELS = ["Giver=Woman", "Attribute=EelQuest",
-        "Stage0=Morwen, an eel-catcher in Saltmarsh, has trouble with her traps.",
-        "Stage1=Someone's been cutting Morwen's eel traps in the night. Find out who: the reeds east of the "
+        "Stage0=Wenna, an eel-catcher in Saltmarsh, has trouble with her traps.",
+        "Stage1=Someone's been cutting Wenna's eel traps in the night. Find out who: the reeds east of the "
         "village are the place to look.",
-        "Stage2=It's Tobin cutting Morwen's traps: his father's sick, and she took his trapping place. Tell Morwen.",
-        "Stage3=You'll keep Tobin's secret. Bring Morwen 3 planks to mend her traps, and talk to her about Tobin's "
+        "Stage2=It's Tobin cutting Wenna's traps: his father's sick, and she took his trapping place. Tell Wenna.",
+        "Stage3=You'll keep Tobin's secret. Bring Wenna 3 planks to mend her traps, and talk to her about Tobin's "
         "father.",
-        "Done=4", "Marker0=Eel_Catcher_Morwen", "Marker1=Saltmarsh_Tobin", "Marker2=Eel_Catcher_Morwen",
-        "Marker3=Eel_Catcher_Morwen", "Type=Side", "Requires.Quests=" + MAINLAND, "Reward.Shards=8",
+        "Done=4", "Marker0=Eel_Catcher_Wenna", "Marker1=Saltmarsh_Tobin", "Marker2=Eel_Catcher_Wenna",
+        "Marker3=Eel_Catcher_Wenna", "Type=Side", "Requires.Quests=" + MAINLAND, "Reward.Shards=8",
         "Ending=EelWay",
-        "Ending1=You told Morwen it was Tobin. His mother's sent him to an uncle inland.",
-        "Ending2=You mended Morwen's traps, and she shares her catch with Tobin's father now.",
+        "Ending1=You told Wenna it was Tobin. His mother's sent him to an uncle inland.",
+        "Ending2=You mended Wenna's traps, and she shares her catch with Tobin's father now.",
         "Reward.Standing1=Saltmarsh 5", "Reward.Standing2=Saltmarsh 15",
         "Rumour=Somebody's cutting the eel traps at Saltmarsh, they say."]
 
@@ -231,7 +231,7 @@ PLACES = {   # map: [(Id, the line)]
     KEEP: [npc("Constable", 14, 9, "Keep_Sergeant_Brask", "Sergeant_Brask")],
     KEEP_WOODS: [npc("Villager", 13, 11, "Deserter_Pip", "Pip", "Here.After=DeserterQuest:1 "
                                                                  "Gone.After=DeserterQuest:3")],
-    SALTMARSH: [npc("Woman", 16, 11, "Eel_Catcher_Morwen", "Morwen", face="W"),
+    SALTMARSH: [npc("Woman", 16, 11, "Eel_Catcher_Wenna", "Wenna", face="W"),
                 npc("Villager", 4, 12, "Saltmarsh_Pip", "Pip", "Here.After=DeserterWay:2")],
     SALT_EDGE: [npc("Villager", 5, 12, "Saltmarsh_Tobin", "Tobin", "Here.After=EelQuest:1 Gone.After=EelWay:1")],
     DUNEREST: [npc("Elder", 9, 12, "Dunerest_Elder_Sabra", "Elder_Sabra"),
@@ -466,8 +466,8 @@ def dam():
     ] + FAR
 
 
-# ================================================================== the Eel Traps: Morwen, and Tobin
-def morwen():
+# ================================================================== the Eel Traps: Wenna, and Tobin
+def wenna():
     say = lambda text, *a: K.say("Woman", text, *a)
     return [
         get("EelQuest", 1), (">Conditional", "$Variable.1=0", "@begun"),
@@ -476,7 +476,7 @@ def morwen():
             "doing it. The reeds east of the village, that's where they'd hide.", ("I'll find out.", "@start"),
             ("Not now.", "@end")), ("End",),
         ("@start",), ("Update.Attribute", "EelQuest", "=1"),
-        ("Quest.Note", "EelQuest", "Someone's been cutting Morwen's eel traps in the night. The reeds east of "
+        ("Quest.Note", "EelQuest", "Someone's been cutting Wenna's eel traps in the night. The reeds east of "
                                    "Saltmarsh are the place to look."),
         msg("Quest started: The Eel Traps."), ("End",),
         ("@begun",), (">Conditional", "$Variable.1<=3", "@done"),
@@ -484,7 +484,7 @@ def morwen():
         (">Conditional", "$Variable.1=2", "@mend"),
         ("Update.Attribute", "EelWay", "=1"), ("Update.Attribute", "EelQuest", "=4"),
         ("Quest.Note.Done", "EelQuest", "*"), ("Give.Item", "Gold_Coin(s)", "60"),
-        ("Quest.Note", "EelQuest", "You told Morwen it was Tobin cutting her traps. She paid you 60 gold."),
+        ("Quest.Note", "EelQuest", "You told Wenna it was Tobin cutting her traps. She paid you 60 gold."),
         say("Tobin? That little... His mother will hear of this, and so will the whole village.\\Here, 60 gold. "
             "You've earned it.", ("Thank you.", "@paid")),
         ("@paid",), msg("Quest complete: The Eel Traps! You receive 60 gold."), ("End",),
@@ -494,10 +494,10 @@ def morwen():
         ("End",),
         ("@share",), ("Take.Item", "Plank", "3"), ("Update.Attribute", "EelWay", "=2"),
         ("Update.Attribute", "EelQuest", "=4"), ("Quest.Note.Done", "EelQuest", "*"),
-        ("Quest.Note", "EelQuest", "You mended Morwen's traps, and she'll share her catch with Tobin's father."),
+        ("Quest.Note", "EelQuest", "You mended Wenna's traps, and she'll share her catch with Tobin's father."),
         say("Half the catch, till he's on his feet. And whoever was cutting my traps can stop now, can't they?",
             ("I think they will.", "@kind")),
-        ("@kind",), msg("Quest complete: The Eel Traps! Morwen's traps are mended, and Tobin's father eats tonight."),
+        ("@kind",), msg("Quest complete: The Eel Traps! Wenna's traps are mended, and Tobin's father eats tonight."),
         ("End",),
         ("@noplanks",), say("Planks for the traps: three of them. You'll find them at any sawmill or carpenter's.",
                             ("I'll bring them.", "@end")), ("End",),
@@ -514,20 +514,20 @@ def tobin():
     say = lambda text, *a: K.say("Villager", text, *a)
     return [
         get("EelQuest", 1), (">Conditional", "$Variable.1=1", "@after"),
-        say("All right! It was me! I cut her traps.\\Da had this spot for twenty years. He took sick, and Morwen moved "
+        say("All right! It was me! I cut her traps.\\Da had this spot for twenty years. He took sick, and Wenna moved "
             "in before he was cold in his bed. He's not dead, but he might as well be, for all she cares.",
-            ("I'll have to tell Morwen.", "@tell"), ("Your secret's safe. I'll talk to her.", "@keep")), ("End",),
+            ("I'll have to tell Wenna.", "@tell"), ("Your secret's safe. I'll talk to her.", "@keep")), ("End",),
         ("@tell",), ("Update.Attribute", "EelQuest", "=2"),
-        ("Quest.Note", "EelQuest", "It's Tobin cutting Morwen's traps: his father's sick, and she took his trapping "
-                                   "place. Tell Morwen."),
+        ("Quest.Note", "EelQuest", "It's Tobin cutting Wenna's traps: his father's sick, and she took his trapping "
+                                   "place. Tell Wenna."),
         msg("Tobin stares at you, then runs off into the reeds.", "Red", "-"), ("End",),
         ("@keep",), ("Update.Attribute", "EelQuest", "=3"),
-        ("Quest.Note", "EelQuest", "You'll keep Tobin's secret. Bring Morwen 3 planks to mend her traps, and talk "
+        ("Quest.Note", "EelQuest", "You'll keep Tobin's secret. Bring Wenna 3 planks to mend her traps, and talk "
                                    "to her about Tobin's father."),
         say("You'd do that? I won't cut them again. I swear it.", ("See that you don't.", "@end")), ("End",),
         ("@after",), get("EelWay", 2), (">Conditional", "$Variable.2<2", "@thanks"),
-        say("Well? Have you been to Morwen?", ("Soon.", "@end")), ("End",),
-        ("@thanks",), say("Morwen brought Da eels last night! Half her catch. I don't know what you said to her.",
+        say("Well? Have you been to Wenna?", ("Soon.", "@end")), ("End",),
+        ("@thanks",), say("Wenna brought Da eels last night! Half her catch. I don't know what you said to her.",
                           ("Look after him.", "@end")),
         ("@end",), ("End",),
     ]
@@ -612,7 +612,7 @@ def scripts():
     K.write_script("Talk to Dunerest_Elder_Sabra", sabra(), MAKER)
     K.write_script("Talk to Water_Seller_Corvin", corvin(), MAKER)
     K.write_script("Break Dunerest_Dam", dam(), MAKER)
-    K.write_script("Talk to Eel_Catcher_Morwen", morwen(), MAKER)
+    K.write_script("Talk to Eel_Catcher_Wenna", wenna(), MAKER)
     K.write_script("Talk to Saltmarsh_Tobin", tobin(), MAKER)
     K.write_script("Talk to Mirefold_Healer_Bryony", bryony(), MAKER)
     K.write_script("Talk to Doctor_Pallister", pallister(), MAKER)

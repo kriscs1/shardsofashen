@@ -719,10 +719,10 @@ its spring (`Dunerest_Dam`, Break). `WellWay`:
 * **Bribed** (1): Corvin pays 100 gold to leave it; the dam stays; Dunerest -10.
 * **Broken** (2): pull the dam down (`WellDamDown`), back to Sabra, 50 gold; Dunerest +15.
 
-**The Eel Traps** (Saltmarsh): someone's been cutting Morwen the eel catcher's traps. It's Tobin, the boy next door,
+**The Eel Traps** (Saltmarsh): someone's been cutting Wenna the eel catcher's traps. It's Tobin, the boy next door,
 whose family's going hungry (`Saltmarsh_Tobin`). `EelWay`:
-* **Blamed** (1): tell Morwen, 60 gold; Tobin is sent inland; Saltmarsh +5.
-* **Mended** (2): bring Morwen 3 planks for the traps and ask her to share her catch; Saltmarsh +15.
+* **Blamed** (1): tell Wenna, 60 gold; Tobin is sent inland; Saltmarsh +5.
+* **Mended** (2): bring Wenna 3 planks for the traps and ask her to share her catch; Saltmarsh +15.
 
 **Marsh Fever** (Mirefold): Bryony the healer asks what Doctor Pallister's cure is. Buy one from him (20 gold) and
 bring it her: coloured water. `FeverWay`:
@@ -854,7 +854,7 @@ by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`
 | The Brine Mother | BrineQuest | Talk to Morrow_Angler, Kill Brine_Mother |
 | The Last Watch | WardenQuest | Talk to Warden_Ysolde, Kill Hollow_Marshal |
 | The Fallen Shard | FallenShardQuest | Talk to Warden_Ysolde, Kill Shardborn, Touch Fallen_Shard |
-| The Deserter, The Dry Spring, The Eel Traps, Marsh Fever | DeserterQuest, WellQuest, EelQuest, FeverQuest | Talk to Keep_Sergeant_Brask / Deserter_Pip, Talk to Dunerest_Elder_Sabra / Water_Seller_Corvin, Break Dunerest_Dam, Talk to Eel_Catcher_Morwen / Saltmarsh_Tobin, Talk to Mirefold_Healer_Bryony / Doctor_Pallister (build_town_choices.py) |
+| The Deserter, The Dry Spring, The Eel Traps, Marsh Fever | DeserterQuest, WellQuest, EelQuest, FeverQuest | Talk to Keep_Sergeant_Brask / Deserter_Pip, Talk to Dunerest_Elder_Sabra / Water_Seller_Corvin, Break Dunerest_Dam, Talk to Eel_Catcher_Wenna / Saltmarsh_Tobin, Talk to Mirefold_Healer_Bryony / Doctor_Pallister (build_town_choices.py) |
 
 House rules for new writing (from `CLAUDE.md`): notices and signs never give hints; a conversation answer that
 belongs to one stage of a quest shows only at that stage; each player's chest loot and quest progress are their

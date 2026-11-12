@@ -5,7 +5,7 @@
 04	Display.Conversation	Woman	Three nights now, and every morning my eel traps are cut. Not torn: cut, with a knife.\Find out who's doing it. The reeds east of the village, that's where they'd hide.	I'll find out.	06	Not now.	39
 05	End
 06	Update.Attribute	EelQuest	=1
-07	Quest.Note	EelQuest	Someone's been cutting Morwen's eel traps in the night. The reeds east of Saltmarsh are the place to look.
+07	Quest.Note	EelQuest	Someone's been cutting Wenna's eel traps in the night. The reeds east of Saltmarsh are the place to look.
 08	Display.Message	Yellow	Quest started: The Eel Traps.
 09	End
 10	>Conditional	$Variable.1<=3	36
@@ -15,7 +15,7 @@
 14	Update.Attribute	EelQuest	=4
 15	Quest.Note.Done	EelQuest	*
 16	Give.Item	Gold_Coin(s)	60
-17	Quest.Note	EelQuest	You told Morwen it was Tobin cutting her traps. She paid you 60 gold.
+17	Quest.Note	EelQuest	You told Wenna it was Tobin cutting her traps. She paid you 60 gold.
 18	Display.Conversation	Woman	Tobin? That little... His mother will hear of this, and so will the whole village.\Here, 60 gold. You've earned it.	Thank you.	19
 19	Display.Message	Yellow	Quest complete: The Eel Traps! You receive 60 gold.
 20	End
@@ -26,9 +26,9 @@
 25	Update.Attribute	EelWay	=2
 26	Update.Attribute	EelQuest	=4
 27	Quest.Note.Done	EelQuest	*
-28	Quest.Note	EelQuest	You mended Morwen's traps, and she'll share her catch with Tobin's father.
+28	Quest.Note	EelQuest	You mended Wenna's traps, and she'll share her catch with Tobin's father.
 29	Display.Conversation	Woman	Half the catch, till he's on his feet. And whoever was cutting my traps can stop now, can't they?	I think they will.	30
-30	Display.Message	Yellow	Quest complete: The Eel Traps! Morwen's traps are mended, and Tobin's father eats tonight.
+30	Display.Message	Yellow	Quest complete: The Eel Traps! Wenna's traps are mended, and Tobin's father eats tonight.
 31	End
 32	Display.Conversation	Woman	Planks for the traps: three of them. You'll find them at any sawmill or carpenter's.	I'll bring them.	39
 33	End

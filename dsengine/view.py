@@ -51,8 +51,7 @@ def entity_state(w, e, viewer, shared=None):
     st = dict(base)
     if e.type == STATICOBJECT and viewer.is_chest(e):
         lock = viewer.chest_lock(e)[0] if viewer.chest_locked(e) else 0     # (locked for you: its level)
-        if "lk" not in base:
-            st["lk"] = lock
+        st["lc"] = lock                                 # (not "lk": that's a look, a chest can have one)
         if lock and viewer.chest_sturdy(e):
             st["ib"] = 1                                # (iron-bound: no Break Open)
     if e.type == NPC:

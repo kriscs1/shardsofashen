@@ -108,7 +108,7 @@ export function getVerbs(e) {
   } else if (t === T.STATICOBJECT || t === T.TEMPORARY || t === T.MISSILE) {
     addVerbs(v, e.uw);
     if (!v.length) v = ["Use"];
-    if (e.lk) { addVerb(v, "Pick Lock"); if (!e.ib) addVerb(v, "Break Open"); }   // (a chest locked for you: locks.py)
+    if (e.lc) { addVerb(v, "Pick Lock"); if (!e.ib) addVerb(v, "Break Open"); }   // (a chest locked for you: locks.py)
     if (canSteal(e)) addVerb(v, "Steal");
     addVerb(v, "Examine");
   } else if (t === T.NPC && entityIni(e.n, "Vehicle", "0").trim() === "1") {

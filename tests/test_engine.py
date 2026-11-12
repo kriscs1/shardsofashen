@@ -6224,6 +6224,12 @@ def test_chests_are_locked_and_never_out_of_reach(world):
     assert "Pick Lock" in s.get_verbs(chest) and "Break Open" in s.get_verbs(chest)
     isle = next(e for e in world.ents if s.is_chest(e) and e.map == "3,1,0")
     assert s.chest_lock(isle)[0] == 1 and not s.chest_sturdy(isle)  # (the Isle's: the easiest, to learn on)
+    from dsengine.view import entity_state
+    was = getattr(isle, "look", 0), getattr(isle, "look_of", None)
+    isle.look, isle.look_of = 2, isle.name                         # (a chest in another colouring still shows its lock)
+    st = entity_state(world, isle, s)
+    assert st["lc"] == 1 and st["lk"] == 2
+    isle.look, isle.look_of = was
     iron = next(e for e in chests if s.chest_sturdy(e))              # (iron-bound: picked or keyed, never forced)
     assert "Pick Lock" in s.get_verbs(iron) and "Break Open" not in s.get_verbs(iron)
     near(world, s, iron, 30, 0)
@@ -10611,17 +10617,17 @@ def test_the_dry_spring_bribed_or_broken(world):
 
 def test_the_eel_traps_blamed_or_mended(world):
     s = mainlander(world, "Blamer", "11,23,0")
-    choice_talk(world, s, "Eel_Catcher_Morwen", 1)
+    choice_talk(world, s, "Eel_Catcher_Wenna", 1)
     choice_talk(world, s, "Saltmarsh_Tobin", 1)
-    choice_talk(world, s, "Eel_Catcher_Morwen")
+    choice_talk(world, s, "Eel_Catcher_Wenna")
     assert s.get_attribute("EelQuest") == "4" and s.standing("Saltmarsh") == 5
     assert "uncle inland" in ending_of(s, "The Eel Traps")
     leave(world, s)
     s = mainlander(world, "Mender", "11,23,0")
-    choice_talk(world, s, "Eel_Catcher_Morwen", 1)
+    choice_talk(world, s, "Eel_Catcher_Wenna", 1)
     choice_talk(world, s, "Saltmarsh_Tobin", 2)
     stock(s, Plank=3)
-    choice_talk(world, s, "Eel_Catcher_Morwen", 1)                 # "Share your catch with him."
+    choice_talk(world, s, "Eel_Catcher_Wenna", 1)                 # "Share your catch with him."
     assert s.get_attribute("EelQuest") == "4" and s.items_held("Plank") == 0 and s.standing("Saltmarsh") == 15
     assert "shares her catch" in ending_of(s, "The Eel Traps")
     leave(world, s)
