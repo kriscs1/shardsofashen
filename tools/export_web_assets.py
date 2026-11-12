@@ -8,7 +8,8 @@
   web/assets/textures/<name>.png    big textures (Tiles.ini Texture=)
   web/assets/cursors/<kind>_<n>@<px>.png the mouse cursors (and their click animation), at each pointer size the
                                     Options offer (18 22 28 32), and twice that for sharp high-DPI screens
-  web/assets/sounds/<name>.wav      the sound effects; the music as .ogg (or .wav without ffmpeg); an .ogg as it is
+  web/assets/sounds/<name>.wav      the sound effects (from sounds/<kind>/, in one folder); the music as .ogg (or .wav
+                                    without ffmpeg); an .ogg or .mp3 as it is
   web/assets/manifest.json          sprite sizes, the data files the browser reads, what was made
 
 Run it again whenever sprites, sounds or data change (the editor). Only what changed is made again, and what's no
@@ -34,6 +35,7 @@ from ashen import ini  # noqa: E402
 from ashen.anim import AnimMixin  # noqa: E402
 from ashen.assets import Assets  # noqa: E402
 from ashen import cursor as cursors  # noqa: E402
+from ashen import sounds as sound_folders  # noqa: E402
 from dsengine.data import GameData, SPRITE_FOLDERS  # noqa: E402
 
 OUT = os.path.join(ROOT, "web", "assets")
@@ -258,15 +260,15 @@ def export_cursors(manifest):
 
 def export_sounds(manifest):
     from tools import midisynth
-    src = os.path.join(ROOT, "sounds")
     out = os.path.join(OUT, "sounds")
     os.makedirs(out, exist_ok=True)
     ffmpeg = shutil.which("ffmpeg")
     sounds = {}
-    for f in sorted(os.listdir(src)):
+    found = sound_folders.index(ROOT)                       # (sounds\<kind>\..., all in one folder here: no two share a name)
+    for f in sorted(found, key=str.lower):
         n, ext = os.path.splitext(f)
-        path = os.path.join(src, f)
-        if ext.lower() in (".wav", ".ogg"):                  # (an .ogg: music from elsewhere, ready to play)
+        path = found[f]
+        if ext.lower() in (".wav", ".ogg", ".mp3"):          # (an .ogg or .mp3: music from elsewhere, ready to play)
             if newer(path, keep(os.path.join(out, f))):
                 shutil.copyfile(path, os.path.join(out, f))
             sounds[f] = f

@@ -81,8 +81,8 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 [Admin]       Players=Admin       ; the characters (comma list, any case) with an Admin button on the sidebar: give
                                   ; yourself items, set skill levels, switch skills off. Everyone else: no button
               GodMode=0           ; 1 = nothing can hurt those characters (the panel's God mode tick box sets it)
-[Sounds]      Enabled=1  Music=TownTheme.ogg (the music everywhere outside)  Music.By.Place=0 (1: each map's
-              theme from data\Music.ini instead)
+[Sounds]      Enabled=1  Music=TownTheme.ogg (the music everywhere outside)  Music.By.Place=1 (each map's
+              theme from data\Music.ini; 0: Music everywhere)
               Volume=100  Music.Volume=80  Ambient.Volume=70 (the Options sliders; background sounds play at a quarter
               of Volume x Ambient.Volume)  Music.On=1  Ambient=1
 [Animation]   Water.Frames=6  Water.Speed=260  Flame.Frames=4  Flame.Speed=140  Sway.Frames=6  Sway.Speed=230
@@ -641,17 +641,22 @@ egion_tiles.py, with the same Walkable.Data).
   a table (and chairs), a rug, a shelf and a plant: villages.lay_house, and build_content.furnish_old_houses for the
   hand-drawn ones.
 * Shardstones: only four (build_travel.SHARDSTONES): Ashford, Highwatch, Dunerest, Thornwick. None on the Isle.
-* Music: outside, Config [Sounds] Music (TownTheme.ogg: cynicmusic, CC0) plays everywhere, without a break between maps. Inside a
-  building (under a roof) it fades over to Hearth, and back out again it fades back in where it had got to (the
-  game plays a copy of the MIDI that starts there: ashen\midi.py). Every change fades out (1.1 s) and in
-  (1.6 s). data\Music.ini (build_music.py): [Themes] <Theme>=its tracks (sounds\Music_<Theme><n>.mid, original
-  pieces composed by build_music.py; run it to remake them), [Maps] <map>=<Theme>: used only with Config [Sounds]
-  Music.By.Place=1, when each map plays its own theme (changing 2.5 s after you reach a place with different music;
-  the palace and the dragon's lair keep theirs indoors too).
+* Music: by place (Config [Sounds] Music.By.Place=1). data\Music.ini (build_music.py): [Themes] <Theme>=its tracks,
+  taking turns (sounds\music: the owner's .mp3s, made small by shrink_music.py from dev\Music, and the pieces
+  composed by build_music.py as Music_<Theme><n>.mid), [Maps] <map>=<Theme>, every map, worked out from the maps as
+  they are: a town's maps (Towns.ini, a level below too) its own tune (build_music.TOWN_TUNES: the Isle, Northport,
+  Galaith, Emberwatch, King Rupert's Keep, Dunerest) or Town; out of town, Danger or Dread where the strongest foe is
+  level 10 or more (Dread when most are undead or spiders), Cave underground, else Outside (exploration and
+  exploration2 in turn). Under a roof out of town Hearth plays. Fighting a foe (one that comes for you: never a
+  rabbit, nor a sparring partner), Combat plays, held 5 s after the last blow (the snapshot's `cb`), then the place's
+  tune comes back where it left off. Every change fades out (1.1 s) and in (1.6 s), 2.5 s after you reach a place
+  with different music (a door or a fight at once).
   The theme `Title` plays on the login and loading screens (its pieces taking turns), until the game starts.
-  Background sounds (data\Ambient.ini, build_travel.py): none on maps by the sea (over 100 water tiles). Where the
-  monsters are the music turns: Danger (urgent: a boss, or aggressive monsters worth 100 hitpoints on the map, the
-  goblin camp, the warren) or Dread (eerie: three or more skeletons or giant spiders, the Barrow King).
+  Background sounds (data\Ambient.ini, build_travel.py): none on maps by the sea (over 100 water tiles).
+* Sounds: sounds\<kind>\<Name>.wav (ui, creatures, voices, ambient, skills, combat, magic, world, music:
+  ashen/sounds.py), found by name wherever they are, so data and scripts name them bare (Play.Sound Door); no two
+  share a name (validate.py). A builder writes a sound with common.sound_file(name): where it is, or its kind's
+  folder if new. The page gets them in one folder (web/assets/sounds).
 * The fog of war is painted by the game (world.fog_paint): blue-grey clouds anchored to the ground, a pale rim where
   it thins.
 * Item respawns: an item picked up off a map comes back after its Entities.ini Respawn= seconds, else Config

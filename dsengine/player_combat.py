@@ -6,6 +6,8 @@ from .entity import NPC, PLAYER, MAPITEM, AI_FLEE
 from .renames import SKILL_NAMES
 from .shards import shard_words, SHARD, channeled_cost, channeled_power
 
+FIGHT_MUSIC_MS = 5000      # (the fighting music plays this long after the last blow with a foe: view.py)
+
 EFFECTS = {
     "Poison": dict(ms=14000, every=2000, dmg=(1, 1), start="You've been poisoned!", end="The poison wears off."),
     "Burn": dict(ms=5000, every=1000, dmg=(1, 2), start="You're on fire!", end="The flames go out."),
@@ -426,6 +428,9 @@ class CombatMixin:
             f = e.fought_by = {}
         f[self.player_name] = self.now
         self.boss_scale(e)                              # (a boss: tougher for each fighter - together.py)
+        w = self.w
+        if w.hostile_for(e, self) and w.stat_for(e, self, "aggressive") == 1:
+            self.foe_fight_at = self.now                # (a foe, not a rabbit nor a sparring partner: the fighting music)
 
     def helpers_of(self, e):
         """The others who fought e in the last minute, still near (and the party members by them: parties): each has

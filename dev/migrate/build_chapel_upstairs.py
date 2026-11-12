@@ -24,6 +24,8 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import pygame  # noqa: E402
 from ashen import ini  # noqa: E402
 from build_isle import Map, TW, DATA, TILES_INI, write_script  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 
 CHAPEL = (13, 7, 19, 12)
 STAIRS = (14, 8)
@@ -49,7 +51,7 @@ def bell_sound():
             v += (rng.random() * 2 - 1) * 0.6 * (1 - t / 0.02)
         attack = min(1.0, t / 0.004)
         out.append(max(-1.0, min(1.0, v * 0.28 * attack)))
-    path = os.path.join(ROOT, "sounds", "Bell.wav")
+    path = sound_file("Bell")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)

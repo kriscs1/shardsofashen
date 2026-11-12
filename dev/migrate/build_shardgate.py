@@ -27,7 +27,7 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Ini, p                      # noqa: E402
+from common import Ini, p, sound_file                      # noqa: E402
 import build_remnants as BR                    # noqa: E402
 import build_sounds as SND                     # noqa: E402
 import sprite_kit as K                         # noqa: E402
@@ -202,7 +202,7 @@ SOUNDS = {
 def sounds():
     for name, fn in SOUNDS.items():
         blob = SND.wav_bytes(fn())
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         if not (os.path.exists(path) and open(path, "rb").read() == blob):
             with open(path, "wb") as fh:
                 fh.write(blob)
@@ -238,7 +238,7 @@ def data():
                               ("Aggro.Range", "200"), ("Weapon.Range", "0"), ("Movement.Speed", "2"),
                               ("Aggressive", "1"), ("Respawn", "900"), ("Chase.Radius", "10"), ("Walk.Speed", "0.6"),
                               ("Kill.Sound", "Undead"), ("Level", "16"), ("Freeze.Immune", "1"), ("Light", "50"),
-                              ("Drops", "Remnant_Core,1-1,100 Shard_Remnant,8-12,100")])):
+                              ("Drops", "Remnant_Core,1-1,100 Shard,8-12,100")])):
         for k, v in keys:
             ents.set(name, k, v)
     ents.save(p("data", "Entities.ini"))

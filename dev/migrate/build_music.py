@@ -1,6 +1,7 @@
 """The background music: original pieces, one theme for each kind of place, written as General MIDI files.
 
-Run:  python -I "dev\\migrate\\build_music.py"      (writes sounds\\Music_<Theme><n>.mid; deterministic)
+Run:  python -I "dev\\migrate\\build_music.py"      (writes sounds\\music\\Music_<Theme><n>.mid, deterministic, and
+                                                    data\\Music.ini)
 
 Each theme (THEMES) has its key and mode, tempo and metre, two chord progressions (A and B sections), its instruments
 and a percussion style. A piece is: intro (pad and arpeggio), A, A' (the A motifs on, a second voice joins), B (the
@@ -9,7 +10,12 @@ of two-bar motifs that come back (so it has a tune, not a wander): strong beats 
 step through the scale, and each section ends on the tonic. Two variations of each theme (different melodies, leads
 swapped) so a place doesn't play the same thing over and over: the game alternates them (data\\Music.ini).
 
-Which theme plays where: data\\Music.ini [Maps], written by extend() below as part of build_world.py.
+The owner's own tracks (sounds\\music\\*.mp3, made small by shrink_music.py) play in the towns and outside; these
+pieces play where they don't: caves, the dangerous and the dreadful places, a cottage out in the wilds, the title.
+
+Which theme plays where: data\\Music.ini, written by write_music_ini() below from the maps as they are (each town its
+own tune, TOWN_TUNES, the rest of the towns Town; outside, Outside's two tracks in turn; a map whose foes are strong a
+darker one). Combat plays while you fight a foe (web/js/audio.js).
 """
 import os
 import random
@@ -17,7 +23,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import p, read_lines  # noqa: E402
+from common import p, read_lines, sound_file  # noqa: E402
 
 TPB = 480                       # ticks per beat
 MAJOR = [0, 2, 4, 5, 7, 9, 11]
@@ -355,95 +361,116 @@ def track_file(theme, variant):
 def main():
     for name, spec in THEMES.items():
         for v in range(VARIANTS):
-            path = p("sounds", track_file(name, v))
+            path = sound_file(track_file(name, v))
             print(("wrote " if Composer(name, spec, v).compose().write(path) else "unchanged ") + os.path.basename(path))
+    for f in write_music_ini():
+        print("wrote " + f)
 
 
 # ------------------------------------------------------------------------------------------- where each plays
-W = R = None
-PALACE_MAPS = {"4,4,0", "4,4,1", "2,4,0"}
-TOWN_MAPS = {"1,3,0", "2,3,0", "1,1,0", "3,4,0"}   # (3,4,0: Ashford's market square, once the goblin camp)
+# The owner's tracks (sounds\music): a theme of one or more, taking turns
+OWN = {
+    "Isle": ["isle.mp3"],
+    "Northport": ["northport.mp3"],
+    "Galaith": ["galaith.mp3"],
+    "Emberwatch": ["emberwatch.mp3"],
+    "Keep": ["rupertskeep.mp3"],
+    "Dunerest": ["sandtown.mp3"],          # (the desert's town)
+    "Town": ["town.mp3"],
+    "Outside": ["exploration.mp3", "exploration2.mp3"],
+    "Combat": ["combat.mp3"],
+}
+# A town's tune by its key in data\Towns.ini; any other town plays Town
+TOWN_TUNES = {"ISLE": "Isle", "NORTHPORT": "Northport", "GALAITH": "Galaith", "EMBERWATCH": "Emberwatch",
+              "KEEP": "Keep", "DUNEREST": "Dunerest"}
+DANGER_LEVEL = 10          # a map out of town whose strongest foe is this level or more sounds dangerous
+DREAD_WORDS = ("Skeleton", "Wraith", "Mummy", "Ghost", "Spider", "Barrow", "Shade", "Horror", "Ghoul", "Zombie",
+               "Lich", "Revenant", "Drowned", "Wight", "Spectre", "Banshee")
+DEPTH = 1                  # (how far below a town still counts as the town: Towns.ini Depth)
 
 
-BOSSES = {"Bog_Troll", "Cave_Troll", "Frost_Troll", "Alpha_Wolf", "Hob", "Barrow_King"}
-DREADFUL = {"Skeleton", "Barrow_King", "Giant_Spider"}
-DANGER_HP = 100             # the hitpoints of the aggressive monsters on a map that make it dangerous
-DANGER_MAPS = {"2,4,-2"}   # and always: the hobgoblin warren
-
-
-def danger_of(name):
-    """'Dread', 'Danger' or '' for a map, from the monsters in its file: the undead or a spiders' nest is dread;
-    a boss, or aggressive monsters with DANGER_HP hitpoints between them, is danger."""
+def town_boxes():
+    """{town key: [(x1, y1, x2, y2)]} from data\\Towns.ini (its Maps=)."""
     from common import Ini
-    ents = Ini(p("data", "Entities.ini"))
-    path = p("maps", name + ".txt")
-    if name in DANGER_MAPS:
-        return "Danger"
-    if not os.path.exists(path):
-        return ""
-    lines = read_lines(path)[21:]
-    names = [l.split("	")[1] for l in lines if l.startswith("NPC	") and "Attitude=Bad" in l]
-    foes = [n for n in names if (ents.get(n, "Aggressive") or "0").strip() == "1"]
-    if sum(1 for n in foes if n in DREADFUL) >= 3 or "Barrow_King" in foes:
-        return "Dread"
-    hp = sum(float(ents.get(n, "Hitpoints") or 0) for n in foes)
-    if hp >= DANGER_HP or any(n in BOSSES for n in foes):
-        return "Danger"
-    return ""
-
-
-def theme_for(name, ambient):
-    x, y, z = (int(v) for v in name.split(","))
-    if name in PALACE_MAPS:
-        return "Palace"
-    if name == "0,0,-9":
-        return "Lair"
-    if name not in TOWN_MAPS and name not in town_maps():
-        danger = danger_of(name)
-        if danger:
-            return danger
-    if z < 0:
-        return "Cave"
-    if z > 0:
-        return "Hearth"
-    if name in TOWN_MAPS or name in town_maps():
-        return "Town"
-    return {"Forest": "Forest", "Wind": "Fields", "Desert": "Desert", "Snow": "Snow", "Marsh": "Marsh",
-            "Cave": "Cave", "": "Sea"}.get(ambient, "Fields")
-
-
-def town_maps():
-    import build_eastreach as E
-    import build_walled as WL
-    import build_cinder as CI
-    out = set()
-    for mod in (R, E, WL, CI):
-        for town in mod.TOWNS:
-            m, _, _ = mod.local(*mod.town_centre(town))
-            out.add(m)
-    for m in ("4,2,0", "5,2,0", "4,3,0", "5,3,0"):        # Wardhaven, inside its walls
-        out.add(m)
+    ini = Ini(p("data", "Towns.ini"))
+    out = {}
+    for sec, items in ini.sections:
+        boxes = []
+        for k, v in items:
+            if k and k.upper() == "MAPS":
+                for part in v.split():
+                    b = [int(float(x)) for x in part.split(",")]
+                    if len(b) == 4:
+                        boxes.append((min(b[0], b[2]), min(b[1], b[3]), max(b[0], b[2]), max(b[1], b[3])))
+        if boxes:
+            out[sec.upper()] = boxes
     return out
 
 
+def foes_level(name, ents):
+    """(the strongest aggressive foe's level on a map, how many of its foes are dreadful: the undead, spiders)."""
+    best, dread, foes = 0, 0, 0
+    for line in read_lines(p("maps", name + ".txt"))[21:]:
+        bits = line.split("\t")
+        if bits[0] != "NPC" or len(bits) < 2:
+            continue
+        kind = bits[1]
+        opts = bits[4] if len(bits) > 4 else ""
+        bad = "Attitude=Bad" in opts or ("Attitude=" not in opts and (ents.get(kind, "Attitude") or "") == "Bad")
+        if not bad or (ents.get(kind, "Aggressive") or "0").strip() != "1":
+            continue
+        foes += 1
+        try:
+            best = max(best, int(float(ents.get(kind, "Level") or 1)))
+        except ValueError:
+            pass
+        if any(w in kind for w in DREAD_WORDS):
+            dread += 1
+    return best, dread, foes
+
+
+def theme_for(name, towns, ents):
+    x, y, z = (int(v) for v in name.split(","))
+    for key, boxes in towns.items():
+        if z >= -DEPTH and any(a <= x <= c and b <= y <= d for a, b, c, d in boxes):
+            return TOWN_TUNES.get(key, "Town")
+    best, dread, foes = foes_level(name, ents)
+    if best >= DANGER_LEVEL:
+        return "Dread" if dread * 2 >= foes else "Danger"
+    if z < 0:
+        return "Cave"
+    return "Outside"
+
+
 def write_music_ini():
-    from common import write_lines
-    import build_travel
-    lines = ["; The music for each map: sounds\\Music_<Theme><n>.mid, the theme's variations taking turns (Config",
-             "; [Sounds] Music.On=0 turns it off). Generated by dev\\migrate\\build_music.py: edit it there.", "",
-             "[Themes]"]
+    from common import Ini, write_lines
+    ents = Ini(p("data", "Entities.ini"))
+    towns = town_boxes()
+    lines = ["; The music: each theme's tracks, taking turns (sounds\\music: the owner's .mp3s, made small by",
+             "; shrink_music.py, and the pieces composed by build_music.py), and each map's theme. Under a roof out of",
+             "; town Hearth plays; fighting a foe, Combat (held a moment after), then the place's tune where it left",
+             "; off. Config [Sounds] Music.On=0 turns it off. Generated by dev\\migrate\\build_music.py: edit it there.",
+             "", "[Themes]"]
+    for name, files in OWN.items():
+        lines.append("%s=%s" % (name, ",".join(files)))
     for name in THEMES:
-        lines.append("%s=%s" % (name, ",".join(track_file(name, v) for v in range(VARIANTS))))
+        if name not in OWN:
+            lines.append("%s=%s" % (name, ",".join(track_file(name, v) for v in range(VARIANTS))))
     lines += ["", "[Maps]"]
-    for name in W.all_maps():
-        lines.append("%s=%s" % (name, theme_for(name, build_travel.ambient_for(name))))
+    names = []
+    for f in os.listdir(p("maps")):
+        bits = f[:-4].split(",") if f.endswith(".txt") else []
+        if len(bits) == 3 and all(b.lstrip("-").isdigit() for b in bits):
+            names.append(tuple(int(b) for b in bits))
+    for x, y, z in sorted(names, key=lambda t: (t[2], t[1], t[0])):
+        name = "%d,%d,%d" % (x, y, z)
+        lines.append("%s=%s" % (name, theme_for(name, towns, ents)))
     return ["data\\Music.ini"] if write_lines(p("data", "Music.ini"), lines) else []
 
 
 def extend(world, regions):
-    global W, R
-    W, R = world, regions
-    W.EXTRA_STEPS.append(write_music_ini)
+    """(build_content.py: the music written with the world, from its maps as they are then)"""
+    world.EXTRA_STEPS.append(write_music_ini)
 
 
 if __name__ == "__main__":

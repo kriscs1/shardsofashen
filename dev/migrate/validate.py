@@ -140,9 +140,15 @@ def warn(where, msg):
 TILES = set(sprite_names("Tiles"))
 ENTITIES = set(sprite_names("Entities"))
 NON_PLACEABLE = {"Trigger", "Placeholder"} | {e for e in ENTITIES if e.startswith("Player")}
-SOUNDS = set()
-if os.path.isdir(p("sounds")):
-    SOUNDS = {os.path.splitext(f)[0] for f in os.listdir(p("sounds"))}
+sys.path.insert(0, p())
+from ashen import sounds as sound_folders  # noqa: E402
+SOUND_FILES = set(sound_folders.index(p()))            # (every sound by its file name, in whichever folder: sounds\<kind>)
+SOUNDS = {os.path.splitext(f)[0] for f in SOUND_FILES}
+
+
+def sound_exists(name):
+    """A sound called name (bare: a .wav) is in one of the sounds folders."""
+    return sound_folders.file_name(name) in SOUND_FILES
 SCRIPT_DIR = p("data", "Scripts")
 SCRIPTS = {f[:-4] for f in os.listdir(SCRIPT_DIR) if f.lower().endswith(".txt")}
 
@@ -927,7 +933,7 @@ def check_scripts(skills, racks):
             elif cmd == "Display.Message":
                 if len(args) not in (2, 3):                    # (COLOUR, MESSAGE, and a sound to go with it if any)
                     err(where, "Display.Message takes a colour, a message and maybe a sound; has %d args" % len(args))
-                elif len(args) == 3 and args[2] not in ("", "-") and not exists(os.path.join(p("sounds"), args[2] + ".wav")):
+                elif len(args) == 3 and args[2] not in ("", "-") and not sound_exists(args[2]):
                     err(where, "Display.Message's sound %r is not in Sounds" % args[2])
             elif len(args) != want:
                 err(where, "%s takes %d args, has %d" % (cmd, want, len(args)))
@@ -1437,7 +1443,7 @@ def check_config(tiles_ini):
             err(r, "bad start position (%s)" % e)
     check_demo(ini, r, tiles_ini)
     music = ini.get("Sounds", "Music", "")
-    if music and not exists(p("sounds", music)):
+    if music and not sound_exists(music):
         err(r, "music %r not in sounds\\" % music)
     skills = [s.strip() for s in ini.get("Skills", "List", "").split(",") if s.strip()]
     for sk in skills:                     # the StatBox tiles' icons (any sprite; none = the name in letters)
@@ -2065,7 +2071,7 @@ def check_encounters(racks):
             err(r, "[%s] Attitude must be Good or Bad" % sec)
         for key in ("Sound", "Message.Sound"):
             v = ini.get(sec, key)
-            if v and v != "-" and not exists(p("sounds", v + ".wav")):
+            if v and v != "-" and not sound_exists(v):
                 err(r, "[%s] %s=%s: there's no sounds\\%s.wav" % (sec, key, v, v))
 
 
@@ -2103,7 +2109,7 @@ def check_banter():
                     err(r, "[%s] %s=%r should be A: or B: and the words" % (sec, k, v))
                 elif len(v) > 62:
                     err(r, "[%s] %s is too long for one line over a head" % (sec, k))
-            elif k and re.fullmatch(r"Sound\d+", k) and not exists(p("sounds", v.strip() + ".wav")):
+            elif k and re.fullmatch(r"Sound\d+", k) and not sound_exists(v.strip()):
                 err(r, "[%s] %s=%s: there's no such sound" % (sec, k, v))
             elif k == "Town" and v.strip().upper() not in TOWN_KEYS():
                 err(r, "[%s] Town=%s: no such town in data\\Towns.ini" % (sec, v))
@@ -3089,6 +3095,35 @@ def check_world(tiles_ini, entities_ini, skills):
         REPORT.append("%s: lock at %d,%d [%s] keeps %d tile(s) behind it" % (m, x, y, cond, len(behind)))
 
 
+def check_sounds():
+    """The sounds' folders (sounds\\<kind>, ashen/sounds.py): no two sounds share a name, none loose in sounds\\
+    itself; and data\\Music.ini: each theme's tunes are there, and each map's theme is one of them."""
+    for name, paths in sound_folders.duplicates(p()):
+        err("sounds", "%s is the name of more than one sound: %s" % (name, ", ".join(paths)))
+    top = p("sounds")
+    for f in sorted(os.listdir(top)) if os.path.isdir(top) else []:
+        if os.path.isfile(os.path.join(top, f)):
+            err("sounds", "%s is loose in sounds\\: it goes in the folder for its kind (%s)" % (f, sound_folders.kind_of(f)))
+    path = p("data", "Music.ini")
+    if not exists(path):
+        return
+    check_raw(path)
+    check_ini_syntax(path)
+    ini = Ini(path)
+    r = rel(path)
+    themes = set()
+    for k, v in (ini.section("Themes") or ["", []])[1]:
+        if k:
+            themes.add(k)
+            for f in [x.strip() for x in v.split(",") if x.strip()]:
+                if not sound_exists(f):
+                    err(r, "[Themes] %s: no tune %s in sounds\\" % (k, f))
+    for sec in ("Maps", "Zones", "Places"):
+        for k, v in (ini.section(sec) or ["", []])[1]:
+            if k and v.strip() and v.strip() not in themes:
+                err(r, "[%s] %s=%s: no such theme in [Themes]" % (sec, k, v.strip()))
+
+
 REPORT = []
 
 
@@ -3135,6 +3170,7 @@ def main():
     check_banter()
     check_rack_use(racks)
     check_world(tiles_ini, entities_ini, skills)
+    check_sounds()
     save_kept()
     if not quiet:
         for line in REPORT:

@@ -4,11 +4,14 @@ filtered down to the low end) that rolls - swelling and dying in waves - for a f
   python -I "dev\\migrate\\build_thunder.py"          (it overwrites Thunder.wav)
 """
 import os
+import sys
 import wave
 
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 RATE = 22050
 SECONDS = 5.5
 
@@ -46,7 +49,7 @@ def main():
     mix *= np.clip((SECONDS - t) / 0.6, 0, 1)                  # (no click at the end)
     mix = np.tanh(1.6 * mix)                                    # (a little warmth, and no clipping)
     mix = (mix / np.abs(mix).max() * 0.9 * 32767).astype("<i2")
-    path = os.path.join(ROOT, "sounds", "Thunder.wav")
+    path = sound_file("Thunder")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)

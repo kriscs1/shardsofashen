@@ -26,6 +26,15 @@ def o(*parts):
     return os.path.join(OLD, *parts)
 
 
+def sound_file(name):
+    """Where the sound called name is, or goes if it's new: sounds/<kind>/<name>.wav (ashen/sounds.py)."""
+    import sys
+    if NEW not in sys.path:
+        sys.path.insert(0, NEW)
+    from ashen.sounds import place
+    return place(NEW, name)
+
+
 # ---------------------------------------------------------------- file io
 def read_lines(path):
     """Read a text file as a list of lines without line endings."""

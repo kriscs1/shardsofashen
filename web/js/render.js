@@ -314,7 +314,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   const pick = [];
   const shown = [];
   for (const e of S.ents.values()) {
-    if (!e.a) continue;
+    if (!e.a || e.hideUntil > now) continue;
     const cx = e.dx + e.w / 2, cy = e.dy + e.h / 2;
     if (e.dx - cam.x > V.ww + 64 || e.dy - cam.y > V.wh + 64 || e.dx + e.w - cam.x < -64 || e.dy + e.h - cam.y < -64) continue;
     if ((onRoof(e) ? roofHides(cx, e.dy + e.h - 1) : roofCovers(cx, cy)) ||

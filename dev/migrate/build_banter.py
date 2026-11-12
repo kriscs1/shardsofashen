@@ -13,7 +13,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from common import Ini, p                               # noqa: E402
+from common import Ini, p, sound_file                               # noqa: E402
 from build_sounds import shaped                          # noqa: E402
 from build_soundscape import breath, wav_bytes          # noqa: E402
 
@@ -195,7 +195,7 @@ def main():
             conf.set(sec, k, v)
     conf.save(p("data", "Banter.ini"))
     for name, sig, level in (("Cat_Hiss", cat_hiss(), 0.45),):           # (Dog_Bark is a recording: build_voices.py)
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         blob = wav_bytes(sig, level)
         if not os.path.exists(path) or open(path, "rb").read() != blob:
             with open(path, "wb") as f:

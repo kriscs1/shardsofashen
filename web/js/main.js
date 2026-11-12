@@ -7,7 +7,7 @@ import { N, connect, send } from "./net.js";
 import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom, markOutcome, markSwing } from "./render.js";
 import { invalidateMap, invalidateCell, mapCells, repaintAll } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
-  JOY, wmPan, wmZoomAt, wmInBox } from "./ui.js";
+  JOY, wmPan, wmZoomAt, wmInBox, shardFly } from "./ui.js";
 import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
 import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
@@ -743,7 +743,7 @@ window.dsBack = () => {
   if (M.bag || M.chat) { M.bag = M.chat = false; return true; }
   return false;
 };
-window.dsDebug = { S, V, send, layout: () => ({ ...L, k: screen.k / screen.dpr }) };   // (for tools/browser_check.py, and scripted play-throughs)
+window.dsDebug = { S, V, N, send, layout: () => ({ ...L, k: screen.k / screen.dpr }) };   // (for tools/browser_check.py, and scripted play-throughs)
 
 // ================================================================================================================
 // Who you are, then which of your characters: the server keeps them by your Hallisium account (the start screen's
@@ -1113,6 +1113,7 @@ N.onMessage = (m) => {
       if (!behind()) addFx(m, now);
       break;
     case "hurt": S.hurtUntil = now + 240; break;
+    case "shardfly": if (!behind()) shardFly(m, now); break;          // (Shards off the ground, to the Shard bar)
     case "act": if (m.swing) markSwing(m.swing, now); else markOutcome(!!m.ok, now); break;   // (how a click went)
     case "levelup": showBanner(m.skill, m.level, now); break;
     case "demo": showDemo(m); break;

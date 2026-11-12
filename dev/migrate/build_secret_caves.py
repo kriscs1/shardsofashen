@@ -26,7 +26,7 @@ import wave
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "estforlan"))
-from common import Ini, p, read_lines, write_image, write_lines          # noqa: E402
+from common import Ini, p, read_lines, write_image, write_lines, sound_file          # noqa: E402
 import world_edit as W                           # noqa: E402
 from world_edit import XT, YT, h01               # noqa: E402
 
@@ -123,7 +123,7 @@ def bedroll():
 
 def sound():
     """Stone that isn't there: a low breath of cold air and a soft scrape."""
-    path = p("sounds", "Hidden_Way.wav")
+    path = sound_file("Hidden_Way")
     rate = 22050
     rng = random.Random("hidden way")
     n = int(rate * 0.7)

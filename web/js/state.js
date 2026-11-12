@@ -101,6 +101,7 @@ function glideFrom(e, ni, now) {
 export function applySnap(msg, now) {
   for (const e of msg.add) {
     e.dx = e.x; e.dy = e.y; e.fx = e.x; e.fy = e.y; e.t0 = now;
+    if (e.rz) e.hideUntil = now + e.rz;             // (a Shard Remnant forming: its Shards fly into it first)
     S.ents.set(e.u, e);
   }
   for (const c of msg.chg) {
@@ -122,6 +123,7 @@ export function applySnap(msg, now) {
     if (me.x !== S.pos.x || me.y !== S.pos.y) glideFrom(S.pos, me.i, now);
     Object.assign(S.pos, me);
   }
+  S.pos.cb = me.cb ? 1 : 0;                       // (fighting a foe, or just done: audio.js plays Combat)
   S.viewMaps = msg.maps;
 }
 

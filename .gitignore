@@ -26,3 +26,5 @@ dev/Redo List.txt
 /dist/
 /build/
 /dev/Voices/
+# the owner's music as it came (dev/migrate/shrink_music.py makes sounds/music from it)
+/dev/Music/

@@ -6,10 +6,13 @@ its end). A second run does nothing.
 """
 import array
 import os
+import sys
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PATH = os.path.join(ROOT, "sounds", "WoodChop.wav")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
+PATH = sound_file("WoodChop")
 KEEP = 0.6          # seconds from the chop
 FADE = 0.15
 

@@ -7,9 +7,9 @@
 06	Display.Message	Cyan	Footsteps echo behind you: Brother Aldous, a lantern in his hand.	-
 07	Remove.Entity	224,376	Gravekeeper
 08	Add.Entity	224,376	Gravekeeper	NPC	Attitude=Good Stand=1 Face=W Name=Brother_Aldous
-09	Display.Conversation	Gravekeeper	I said I'd not be far behind. Look here first.\He stoops, and picks dull grey splinters from the floor.\Something died here, a rat or a bat, and left its magic behind: Shard Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie still. The old books say every Shard is a scrap of something far greater, cut down long ago, and that scraps like that are hungry: take them in before they take root in you.	I'll remember.	10
-10	Update.Attribute	AmuletQuest	=5
-11	Give.Item	Shard_Remnant	3
+09	Add.Entity	160,384	Shard	MapItem	3
+10	Display.Conversation	Gravekeeper	I said I'd not be far behind. Look here first.\He holds his lantern low: three bright splinters on the floor.\Something died here, a rat or a bat, and left its magic behind: Shards. Pick them up, and they're yours to spend. Every beast leaves its magic where it falls. And now and then, the magic won't lie still. The old books say every Shard is a scrap of something far greater, cut down long ago, and that scraps like that are hungry: take them in before they take root in you.	I'll remember.	11
+11	Update.Attribute	AmuletQuest	=5
 12	Give.Item	Grasp_Scroll	1
 13	Display.Conversation	Gravekeeper	Now, the amulet. Your mother put it there, and the bars after it, so that no thief could ever take it. But a hand that isn't a hand can.\Here: a scroll of Grasp. Read it, and the spell is yours for good; each casting drinks a couple of Shards. Cast it at the bars, and an unseen hand will bring the amulet to you.	Thank you, Brother.	14
 14	Display.Message	Yellow	Learn Grasp from the scroll, then cast it from Channeling at what you want brought to you.	-

@@ -21,8 +21,8 @@
 20	Play.Animation	Rock_Chips	4	Mine
 21	Wait	3
 22	>Conditional	($Variable.1*2+$Variable.2)>$Random.Percent	28
-23	Display.Message	Yellow	...and Shard Remnants come loose from it, glowing.	Gather_Ore
-24	Give.Item	Shard_Remnant	2
+23	Display.Message	Yellow	...and two Shards come loose from it, glowing.	Gather_Ore
+24	Give.Item	Shard	2
 25	Update.Skill	Mining	+0.8
 26	Change.Tile	$Variable.5,$Variable.6	Shardglass_Rock002	0	900
 27	End

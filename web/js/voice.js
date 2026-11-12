@@ -1,6 +1,6 @@
 // A conversation's words appearing a few at a time, and the speaker's greeting as it opens ("Hello!", "Well met.",
 // "How can I help?"): one of their kind's, at a pitch of their own. The server says whose voice (Entities.ini
-// Voice=, npc_voice); build_voices.py cuts them from recordings of people. A notice, a sign or a letter has none,
+// Voice=, npc_voice), and only with the first page of a talk you started; build_voices.py cuts them from recordings. A notice, a sign or a letter has none,
 // and is silent. Options can turn the greetings off; the words still come a few at a time (a click shows the rest).
 import { playVoice } from "./audio.js";
 

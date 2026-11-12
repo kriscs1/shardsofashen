@@ -11,6 +11,8 @@ import struct
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 RATE = 22050
 
 
@@ -36,7 +38,7 @@ def old_main():
         whine = 0.18 * math.sin(phase) * (1 - u)
         env = min(1.0, t / 0.01) * (1 - u) ** 1.6
         out.append((low * 0.55 * sputter + crackle * 0.6 + whine) * env)
-    path = os.path.join(ROOT, "sounds", "Fizzle.wav")
+    path = sound_file("Fizzle")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)

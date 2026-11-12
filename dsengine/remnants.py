@@ -1,13 +1,16 @@
-"""Shard Remnants: what a monster's magic leaves when it dies (Shards.ini [Remnants]). Killing a monster gives no
-Shards of itself: it may leave Shard Remnants on the ground (an item: pick them up, then Absorb them for Shards), or,
-less often, its magic rises as a Shard Remnant (a monster of its own, as strong as the one that died: Entities.ini
-Level=) and goes for whoever killed it. Killed, a Shard Remnant leaves more remnants, and never rises again.
+"""What a monster's magic leaves when it dies (Shards.ini [Remnants]). Killing a monster gives no Shards of itself:
+it may leave Shards on the ground where it fell (picked up, they fly to your Shard bar and are counted there, never
+in the bag), or, less often, its magic rises as a Shard Remnant (a monster of its own, as strong as the one that
+died: Entities.ini Level=) and goes for whoever killed it. Killed, a Shard Remnant leaves more Shards, and never
+rises again. (Shard Remnants were an item once, to Absorb from the pack: renames.py makes an old save's Shards.)
 
 Only monsters with a Level= leave them (the hostile ones: dev/migrate/build_shards.py gives them theirs)."""
 from ashen.lb import val, trim, rnd, parse_quantity
+from .shards import SHARD
 
-REMNANT = "Shard_Remnant"           # (the item on the ground)
+REMNANT = SHARD                     # (what's left on the ground: Shards, picked up straight onto the balance)
 LIVING = "Living_Remnant"           # (the monster: "Shard Remnant" over its head)
+RISE_MS = 1100                      # (risen, it's unseen this long: its Shards fly off for the bar, and turn back to it)
 
 
 def make_remnant(data, e, level):
@@ -68,8 +71,12 @@ class RemnantMixin:
             return
         make_remnant(self.data, e, level)
         e.fades_at = w.now + int(self.remnant_num("Mob.Lasts", 120) * 1000)
+        e.rises_at = w.now + RISE_MS                             # (view.py "rz": the page shows it once it's formed)
         w.sound("Remnant_Rise", e.z, e.cx, e.cy)
-        w.fx_anim("Shard_Form", e.z, e.cx, e.fy - 20, 700)
+        w.fx_anim("Shard_Form", e.z, e.cx, e.fy - 20, 700, delay=RISE_MS - 300)
+        # (to its killer, its Shards set off for the Shard bar as if picked up, then turn and fly back into it)
+        self.emit({"t": "shardfly", "x": int(dead.cx), "y": int(dead.cy), "n": 5, "back": [int(e.cx), int(e.fy - 20)],
+                   "ms": RISE_MS})
         if self.get_attribute("Unmade") == "1":                  # (the Seam unmade: its scraps hunt no more)
             e.aggressive = 0                                     # (passive: it only fights back)
             self.display_message("The %s's magic rises from it, and drifts, and does not come for you." % self.display_name(dead),
@@ -79,19 +86,19 @@ class RemnantMixin:
         if e.ai is not None:
             w.npc_start_fight(e, e.ai, self, 0)
 
-    # ----- absorbing them, from the pack
-    def absorb_remnants(self, item):
-        """All the remnants in the pack, into Shards (Shards.ini [Remnants] Absorb each), and a little Shardcraft."""
-        n = self.items_held(item.name)
+    # ----- Shards off the ground
+    def gather_shards(self, n, x, y):
+        """n Shards picked up (or drunk) off the ground at x,y: onto the balance, flying there on the page (the
+        bar counts them as they land, with their sound), a little Shardcraft, and counted (RemnantsAbsorbed: Wim's
+        check, The Spellwright)."""
+        n = int(n)
         if n <= 0:
             return
-        each = self.remnant_num("Absorb", 1)
-        shards = int(n * each)
-        self.remove_inventory_item(item.name, n)
-        self.play_sound("Absorb")
-        self.fx_anim("Teleport_Glow", self.player.cx, self.player.cy, 500)
-        self.give_shards(shards, "You absorb %d Shard Remnant%s" % (n, "" if n == 1 else "s"))
-        self.update_attribute("RemnantsAbsorbed", "+%d" % n)          # (counted: The Spellwright)
+        self.add_shards(n)
+        p = self.player
+        self.emit({"t": "shardfly", "x": int(x), "y": int(y), "n": n, "to": self.shard_balance,
+                   "px": int(p.cx), "py": int(p.cy)})
+        self.update_attribute("RemnantsAbsorbed", "+%d" % n)
         xp = self.remnant_num("Absorb.XP", self.remnant_num("Absorb.Magic.XP", 0.05)) * n
         if xp > 0:
             self.update_skill("Shardcraft", "+%s" % round(xp, 3), pop=False)

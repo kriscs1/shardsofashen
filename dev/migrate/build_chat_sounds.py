@@ -5,10 +5,13 @@ sounds\\Whisper.wav (a softer, lower one when someone whispers to you). Makes th
 """
 import math
 import os
+import sys
 import struct
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 RATE = 22050
 
 
@@ -27,7 +30,7 @@ def bell(freq, start, length, volume, n):
 
 
 def write(name, notes, seconds, breath=0.0):
-    path = os.path.join(ROOT, "sounds", name + ".wav")
+    path = sound_file(name)
     if os.path.exists(path):
         print("sounds\\%s.wav is there already" % name)
         return

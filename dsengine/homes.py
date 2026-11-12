@@ -389,14 +389,15 @@ class HomeMixin:
         return self.items_held(ANCHOR) > 0
 
     # ----- menus the engine shows itself (a conversation whose answers call back here)
-    def show_menu(self, title, image, text, options):
-        """options: [(words, callable)]."""
+    def show_menu(self, title, image, text, options, voice=("", 100)):
+        """options: [(words, callable)]. voice: a greeting with it (npc_voice), else silent."""
         if self.ab_mode:
             self.close_action_box(-1)       # (a script waiting on the box under it goes on, as if it were closed)
         self.responses = [o[0] for o in options]
         self.response_actions = [""] * len(options)
         self.native_menu = [o[1] for o in options]
         self.ab_image, self.ab_title, self.ab_text = image, title, text
+        self.ab_voice = voice
         self.ab_item_defs = []
         self.show_action_box("Conversation")
 

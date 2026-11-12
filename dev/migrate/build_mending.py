@@ -389,7 +389,7 @@ QUESTS = [
 SHOP = ["Type=Shop", "Buy.Rate=1.2", "Sell.Rate=0.5", "Specific=0", "Item1=Ward_Shard,2", "Item2=Shard_Ward_Scroll,1",
         "Item3=Silence_Scroll,1", "Item4=Healing_Draught,4", "Item5=Mending_Robe,1"]
 POCKET = ["; The Mending's Sisters (build_mending.py): a spare robe, now and then", "Level=10", "Gold=4-10",
-          "Loot=Mending_Robe,1,25 Shard_Remnant,1-2,30"]
+          "Loot=Mending_Robe,1,25 Shard,1-2,30"]
 NUMBERS = ["; The Mending (build_mending.py). Tithe: Shards poured into the Font to open its sanctum; Gift: what one",
            "; of them gives you on the road; Whisper: Mary's Whisper's Shards, once every Whisper.Hours (real) hours.",
            "Tithe=40", "Gift=5", "Whisper=3", "Whisper.Hours=20"]

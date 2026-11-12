@@ -1,7 +1,8 @@
 """Shard Remnants: what a monster's magic leaves when it dies, in place of Shards straight to the killer and the bones
 (dsengine/remnants.py).
 
-  * Shard_Remnant: dull splinters on the ground where a monster died. Picked up, Absorb turns them into Shards.
+  * Shards on the ground where a monster died (the item Shard: picked up, they fly to the Shard bar). They were Shard
+    Remnants once, an item to Absorb from the pack: it's taken out of Entities.ini, and its picture (renames.py).
   * Living_Remnant ("Shard Remnant"): now and then a monster's magic rises as a monster of its own, a knot of jagged
     crystal round a violet light, as strong as the one that died, and goes for its killer; killed, it leaves more
     remnants. Its walking frames (Living_Remnant2a-c, 8a-c: it drifts), drawn here.
@@ -21,13 +22,13 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Ini, p                      # noqa: E402
+from common import Ini, p, sound_file                      # noqa: E402
 import build_sounds as SND                     # noqa: E402
 import sprite_kit as K                         # noqa: E402
 
 MAKER = "build_remnants.py"
 REMNANTS = [   # Shards.ini [Remnants] (key, value, what it means: written as the comment above it)
-    ("Chance", "53", "In 100: a monster that dies leaves Shard Remnants on the ground"),
+    ("Chance", "53", "In 100: a monster that dies leaves Shards on the ground"),
     ("Count", "1-2", "How many"),
     ("Count.Per.Level", "0.25", "And this many more for each level of the monster (Entities.ini Level=)"),
     ("Mob.Chance", "15", "In 100: instead, its magic rises as a Shard Remnant and attacks its killer"),
@@ -38,31 +39,12 @@ REMNANTS = [   # Shards.ini [Remnants] (key, value, what it means: written as th
     ("Mob.Strength.Per.Level", "0.5", None),
     ("Mob.Defence", "1", None),
     ("Mob.Defence.Per.Level", "0.5", None),
-    ("Mob.Count", "3-6", "The remnants it leaves when it's killed (and Count.Per.Level more for each level)"),
+    ("Mob.Count", "3-6", "The Shards it leaves when it's killed (and Count.Per.Level more for each level)"),
     ("Mob.Lasts", "120", "Seconds it lingers if nobody fights it"),
-    ("Absorb", "1", "Shards from each remnant absorbed"),
-    ("Absorb.XP", "0.05", "Shardcraft xp for each"),
+    ("Absorb.XP", "0.05", "Shardcraft xp for each Shard picked up off the ground"),
 ]
 
 VIOLET, PALE, DARK, DULL = (150, 90, 220), (210, 190, 255), (70, 40, 110), (120, 110, 140)
-
-
-def remnant_item():
-    """Three small splinters, grey and dull, a faint violet light still in them."""
-    img = K.new()
-    for (cx, base, top, lean) in ((12, 27, 17, 1), (18, 27, 13, -1), (23, 27, 20, 0)):
-        for y in range(top, base + 1):
-            t = (y - top) / max(1, base - top)
-            half = int(round(2.2 * t + 0.4))
-            x0 = cx + int(lean * (1 - t) * 2)
-            for x in range(x0 - half, x0 + half + 1):
-                d = abs(x - x0) / max(1, half)
-                img[y][x] = K.mix(DULL, VIOLET, 0.55 if d < 0.4 else 0.15) if y > top + 1 else PALE
-    for y in range(26, 29):                               # (grit at their feet)
-        for x in (9, 15, 21, 26):
-            if (x + y) % 3:
-                K.put(img, x, y, (96, 90, 104))
-    return K.outline_img(img, (34, 26, 48))
 
 
 def living_remnant(frame, flip=False):
@@ -110,10 +92,8 @@ def level_of(ents, sec):
 
 def entities():
     ents = Ini(p("data", "Entities.ini"))
-    for k, v in (("Type", "MapItem"), ("Use.Words", "Absorb"), ("Stackable", "9999"), ("Value", "1"),
-                 ("Examine.Info", "Shard Remnants: dull splinters of the magic a monster carried. Absorb them for "
-                                  "Shards.")):
-        ents.set("Shard_Remnant", k, v)
+    if ents.section("Shard_Remnant") is not None:                 # (Shards on the ground now, never an item)
+        ents.sections = [s for s in ents.sections if s[0] != "Shard_Remnant"]
     for k, v in (("Type", "NPC"), ("Examine.Info", "A Shard Remnant: a dead beast's magic, risen in a knot of jagged "
                                                    "crystal. It hates the living."),
                  ("Hitpoints", "10"), ("Attack.Speed", "1"), ("Strength", "1"), ("Defence", "1"), ("Aggro.Range", "160"),
@@ -155,14 +135,17 @@ def shards_ini():
 
 
 def main():
-    print(("wrote " if K.save("Entities", "Shard_Remnant", remnant_item()) else "unchanged ") + "Shard_Remnant")
+    old = p("sprites", "Entities", "Shard_Remnant.png")
+    if os.path.exists(old):
+        os.remove(old)
+        print("removed sprites\\Entities\\Shard_Remnant.png")
     print(("wrote " if K.save("Entities", "Living_Remnant", living_remnant(0)) else "unchanged ") + "Living_Remnant")
     for f, letter in enumerate("abc"):
         for d, flip in (("2", False), ("8", True)):
             K.save("Walk", "Living_Remnant%s%s" % (d, letter), living_remnant(f, flip))
     for name, fn in SOUNDS.items():
         blob = SND.wav_bytes(fn())
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         if not (os.path.exists(path) and open(path, "rb").read() == blob):
             with open(path, "wb") as fh:
                 fh.write(blob)

@@ -28,6 +28,8 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import pygame  # noqa: E402
 
 from ashen import ini  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 
 DATA = os.path.join(ROOT, "data")
 ENTS = os.path.join(ROOT, "sprites", "Entities")
@@ -142,7 +144,7 @@ def make_sprites():
 
 def make_horn():
     """sounds\\Horn.wav: a raid horn, two long low blasts."""
-    path = os.path.join(ROOT, "sounds", "Horn.wav")
+    path = sound_file("Horn")
     if os.path.exists(path):
         return
     rate = 22050

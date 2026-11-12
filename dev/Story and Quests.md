@@ -23,13 +23,13 @@ choice: the dragon should be a real villain, so killing it feels right.)
   that stays after the dragon dies.
 - **Mary** found the Pact's price while she studied at the Wizards' Court, and ran to learn how it was made. Her notes
   are found as you go.
-- **Through the chapters**: Aldous's lesson on remnants (take it in before it takes root in you); the Sunken Grimoire
+- **Through the chapters**: Aldous's lesson on the Shards a dead beast leaves (take it in before it takes root in you); the Sunken Grimoire
   and the Ember Ring (the king's side: the Cutting told as a triumph; the Pact's seal); the Shardrealm's core (the
   dragon's sleeping body); the dragon, dying (what it carried); a stealthy part in The Royal Guard (Mary's notes in the
   Archive's sealed vault, past its watchmen at night); the **Glass Wardens** (below) for the rest; the King's Seam
   (the choice: the Binding, the Crown, or, with the Wardens' truth, Unmake).
-- Before leaving the Isle you must know what Shard Remnants are: Wim won't take you till you've absorbed some
-  (`RemnantsAbsorbed`) and are level 3; he sends you to Brother Aldous. The ferries run for everyone else all along:
+- Before leaving the Isle you must know where Shards come from: Wim won't take you till you've picked some up off
+  the ground (`RemnantsAbsorbed`: Aldous leaves three on the cave floor by the niche, and beasts drop them) and are level 3; he sends you to Brother Aldous. The ferries run for everyone else all along:
   it's only you, without papers, they won't carry.
 
 ## The world in brief
@@ -374,8 +374,8 @@ In an animal's body (Swap, or the red button), animals talk to you: cows, sheep,
 dogs, frogs and seals each have something to say. Ordinary townsfolk have more to say, too.
 
 **The Spellwright**: *after The Shard Scholar*
-How does a Shard know what shape a spell is? Bring Quill the core of a risen Shard Remnant, then absorb twenty more
-remnants and tell him how it felt. He teaches you to write a spell of your own at the **Spellwright's Lectern** by the
+How does a Shard know what shape a spell is? Bring Quill the core of a risen Shard Remnant, then pick up twenty more
+Shards where beasts fall and tell him how it felt. He teaches you to write a spell of your own at the **Spellwright's Lectern** by the
 throne in the great hall: choose its effect (a bolt, a burst round you, a frost that holds foes, a ward), its power
 (as far as your Magic goes) and its reach; its Shards and rest are worked out to balance. Write it again whenever you
 like, for a few Shards. Reward: 20 Shards, Magic experience.

@@ -15,7 +15,7 @@ from ashen.lb import val, word, trim, lbstr, distance, pretty
 
 from .entity import Entity, InvItem, PLAYER, TILE, NPC, MAPITEM
 from .player_items import ItemsMixin
-from .player_combat import CombatMixin
+from .player_combat import CombatMixin, FIGHT_MUSIC_MS
 from .player_actions import ActionsMixin
 from .scripting import ScriptMixin, ATTRS_MOST
 from .quests import QuestMixin
@@ -187,6 +187,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.low_hp_warned = 0
         self.ammo_warned = 0
         self.player_last_attack = self.player_last_combat = self.player_last_cast = 0
+        self.foe_fight_at = -FIGHT_MUSIC_MS             # (the last blow given or taken with a foe: view.py "cb")
         self.player_attack_target = None
         self.keyboard_direction = 0
         self.player_walk_active = False
@@ -230,6 +231,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.ab_mode = ""
         self.ab_image = self.ab_title = self.ab_text = ""
         self.ab_voice = ("", 100)           # (a conversation's speaker's voice and pitch: npc_voice)
+        self.voice_due = False              # (a Talk to script you started: its first page has the greeting)
         self.ab_item_defs = []
         self.responses = []
         self.response_actions = []

@@ -28,33 +28,33 @@ tested and committed.
   ("a blow ends it"). Every entity has a hover line of its own, separate from its examine text.
 
 ## 1. Shards
-- [ ] A dropped Shard (on the ground, its own sprite) where a Shard Remnant dropped; picked up, it goes straight to the
+- [x] A dropped Shard (on the ground, its own sprite) where a Shard Remnant dropped; picked up, it goes straight to the
       balance, never the bag. The Shard Remnant item goes (`renames.py`: one carried in an old save is absorbed as it
       loads). `Remnant_Core` looked at too.
-- [ ] The animation: the Shard flies from where it was to the Shard bar, which counts up as it lands (desktop and
+- [x] The animation: the Shard flies from where it was to the Shard bar, which counts up as it lands (desktop and
       phone layouts).
-- [ ] Wim's check (`RemnantsAbsorbed`) and Brother Aldous's lesson follow: Shards picked up, said the new way (`dev/Story
+- [x] Wim's check (`RemnantsAbsorbed`) and Brother Aldous's lesson follow: Shards picked up, said the new way (`dev/Story
       and Quests.md`).
-- [ ] The Isle's creatures (the NPCs) drop them as everywhere else (checked: the owner saw none from them).
-- [ ] A better sound as a Shard reaches the bar (`Absorb.wav`'s builder).
-- [ ] Tests: a Shard picked up adds to the balance and nothing to the bag; an old save's remnants; Wim's check.
+- [x] The Isle's creatures (the NPCs) drop them as everywhere else (checked: the owner saw none from them).
+- [x] A better sound as a Shard reaches the bar (`Absorb.wav`'s builder).
+- [x] Tests: a Shard picked up adds to the balance and nothing to the bag; an old save's remnants; Wim's check.
 
 ## 2. Sound and music
-- [ ] The sounds in folders by kind (`sounds/ui`, `creatures`, `voices`, `ambient`, `skills`, `combat`, `music`...),
+- [x] The sounds in folders by kind (`sounds/ui`, `creatures`, `voices`, `ambient`, `skills`, `combat`, `music`...),
       found by name wherever they are, so `Entities.ini` and scripts keep their bare names. The builders, the editor,
       `export_web_assets.py` and the client all follow; `validate.py` checks no two share a name.
-- [ ] The owner's music (`sounds/music/*.mp3`, royalty free): in `CREDITS.md`, made smaller (about 60 MB today: mono
+- [x] The owner's music (`sounds/music/*.mp3`, royalty free): in `CREDITS.md`, made smaller (about 60 MB today: mono
       or a low bitrate, a loop rather than a long track, as a phone and the page download it), and the client
       playing mp3.
-- [ ] Our own music too (`dev/migrate/build_music.py`): the places the owner's tracks don't cover, and the darker
+- [x] Our own music too (`dev/migrate/build_music.py`): the places the owner's tracks don't cover, and the darker
       zones.
-- [ ] `data/Music.ini` by place: the Isle, each town with its own tune, the rest of the towns `town.mp3`, outside
+- [x] `data/Music.ini` by place: the Isle, each town with its own tune, the rest of the towns `town.mp3`, outside
       `exploration` and `exploration2` in turn; a zone's danger picks a darker one (a new tune, or the outside one
       changed).
-- [ ] Combat music (`combat.mp3`) while fighting an Attitude=Bad creature, held 5 s after; then back to the place's
+- [x] Combat music (`combat.mp3`) while fighting an Attitude=Bad creature, held 5 s after; then back to the place's
       tune where it left off.
-- [ ] A quieter, less triumphant quest-complete sound.
-- [ ] Speech: a voice only on the first page of a conversation, and only when the player started it (not when an NPC
+- [x] A quieter, less triumphant quest-complete sound.
+- [x] Speech: a voice only on the first page of a conversation, and only when the player started it (not when an NPC
       speaks up or a script opens one). Slower, and better sounding (find what plays and why it's fast).
 
 ## 3. Levels and XP

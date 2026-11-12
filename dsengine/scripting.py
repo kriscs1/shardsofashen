@@ -153,6 +153,7 @@ class ScriptMixin:
             return
         if self.load_script(name):
             self.begin_script(entry)
+            self.voice_due = user_initiated and name.lower().startswith("talk to")   # (you spoke first: a greeting)
 
     def begin_script(self, entry=False):
         self.synced_now = []                            # (the party who moved on with this script: together.py)
@@ -942,7 +943,8 @@ class ScriptMixin:
         self.ab_title = self.npc_title(npc)
         if npc in ("You", "Player"):
             self.ab_title = self.player_name
-        self.ab_voice = self.npc_voice(npc)
+        self.ab_voice = self.npc_voice(npc) if self.voice_due else ("", 100)   # (its first page only, and only when
+        self.voice_due = False                                                  #  you started it: not an NPC calling out)
         self.ab_text = arg[2].replace("\\", "|")
         self.ab_item_defs = []
         self.show_action_box("Conversation")

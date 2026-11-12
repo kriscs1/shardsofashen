@@ -245,10 +245,10 @@ def test_a_shard_storm_rains_on_those_out_in_it(world):
     wd.storm_start()
     assert wd.in_storm() and world.weather["kind"] == "shardstorm"
     assert world.weather_kind("4,6,0", 0)[0] == "shardstorm"
-    before = sum(1 for e in world.ents if e.name in ("Shard_Remnant", "Living_Remnant"))
+    before = sum(1 for e in world.ents if e.name in ("Shard", "Living_Remnant"))
     for _ in range(40):
         wd.storm_rains_on(s)
-    assert sum(1 for e in world.ents if e.name in ("Shard_Remnant", "Living_Remnant")) > before
+    assert sum(1 for e in world.ents if e.name in ("Shard", "Living_Remnant")) > before
     wd.storm_until = 0
     world.weather["kind"] = "clear"
     for e in [e for e in world.ents if e.name == "Living_Remnant" and e.source == "ENCOUNTER"]:
@@ -433,6 +433,21 @@ def leave(w, s):
     w.sessions.pop(s.player_name, None)
 
 
+def test_a_greeting_comes_only_with_the_first_page_of_a_talk_you_started(world):
+    s = join(world, "Chatty", "1,1,0", 300, 300)
+    s.voice_due = True                                            # (as a Talk to script you started sets it)
+    assert s.run_script_lines("(test)", ["01\tDisplay.Conversation\tGravekeeper\tHello\tOk\t02",
+                                         "02\tDisplay.Conversation\tGravekeeper\tAnd more\tOk\t03", "03\tEnd"])
+    world.tick(0.05)
+    assert s.box_state()["voice"] == "Old_Man"
+    s.action_box_response_chosen(1)
+    world.tick(0.05)
+    assert s.ab_text == "And more" and "voice" not in s.box_state()   # (the next page: just its words)
+    s.action_box_response_chosen(1)
+    world.tick(0.05)
+    leave(world, s)
+
+
 def test_dying_breaks_off_a_script(world):
     """Dying mid-talk ends the talk: no waking at home with someone far away still waiting on an answer."""
     s = join(world, "MidTalk", "1,1,0", 300, 300)
@@ -454,7 +469,7 @@ def test_dying_breaks_off_a_script(world):
 
 def test_closing_a_quest_talk_never_loses_or_repeats_what_it_gives(world):
     """Escape at any line of Bert's confession keeps the treasures till the spell's taught; the Barred Niche's
-    Remnants come once, however often Aldous's words are closed (validate.py check_closed_midway holds the rest)."""
+    Shards come once, however often Aldous's words are closed (validate.py check_closed_midway holds the rest)."""
     s = join(world, "Closer", "1,1,0", 300, 300)
     for a, v in (("BertQuest", "=1"), ("StaffQuest", "=2"), ("HobgoblinQuest", "=2")):
         s.update_attribute(a, v)
@@ -491,7 +506,8 @@ def test_closing_a_quest_talk_never_loses_or_repeats_what_it_gives(world):
             run_for(world, 5)
             s.handle({"t": "close"})
             run_for(world, 5)
-    assert s.items_held("Shard_Remnant") == 3 and s.items_held("Grasp_Scroll") == 1
+    shards = [e for e in world.ents if e.name == "Shard" and e.owner is s and e.alive]
+    assert sum(e.quantity for e in shards) == 3 and s.items_held("Grasp_Scroll") == 1
     assert s.get_attribute("AmuletQuest") == "5"
     leave(world, s)
 
@@ -2149,15 +2165,20 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
         run(1)
         if s.ab_mode == "Conversation":
             break
-    s.action_box_response_chosen(1)                                 # (the remnants first: Absorb them)
+    shard = next(e for e in world.ents if e.name == "Shard" and e.owner is s)   # (on the floor: his lesson)
+    s.action_box_response_chosen(1)
     for _ in range(200):
         run(1)
         if s.ab_mode == "Conversation":
             break
-    assert s.items_held("Shard_Remnant") == 3, [m.get("text") for m in s.out if m.get("t") == "msg"]
     s.action_box_response_chosen(1)
     run(30)
     assert attr("AmuletQuest") == 5 and s.items_held("Grasp_Scroll") == 1
+    m = world.maps["1,1,-2"]
+    s.teleport("1,1,-2", shard.x - m.ox, shard.y - m.oy)            # (Aldous's lesson: Wim won't take you before it)
+    s.pickup_map_item(shard)
+    assert attr("RemnantsAbsorbed") == 3 and not shard.alive
+    s.teleport("1,1,-2", 5 * 32, 11 * 32 - 8)
     s.cast_scroll(next(e for e in s.inv if e.name == "Grasp_Scroll"), None)       # (learnt: the scroll is used up)
     assert "Grasp" in s.spells_known and s.items_held("Grasp_Scroll") == 0
     s.cast_spell("Grasp", niche)                                                  # (cast, as from Channeling)
@@ -2209,7 +2230,6 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert s.items_held("Marys_Papers") == 1                        # (just the once)
     for k in range(len(s.skill_xp)):
         s.skill_xp[k] = max(s.skill_xp[k], 6)                       # (Wim won't take a green hand: level 3)
-    s.absorb_remnants(next(e for e in s.inv if e.name == "Shard_Remnant"))   # (Aldous's lesson: nor before it)
     s.teleport("3,2,0", 14 * 32, 15 * 32)
     run(10)
     talk(npc("Ferryman", "3,2,0"), 1, 1)                            # the papers to Wim: aboard when a boat's in
@@ -3889,7 +3909,7 @@ def test_shards_are_a_balance_not_an_item(world):
     assert "Shard" not in old.bank_item
 
 
-def test_a_beast_leaves_shard_remnants_not_shards(world, monkeypatch):
+def test_a_beast_leaves_shards_that_fly_to_the_balance_never_the_bag(world, monkeypatch):
     import dsengine.remnants as RM
     a = join(world, "Hunter", "11,-3,0", 384, 300)
     m = a.cur_map
@@ -3899,14 +3919,22 @@ def test_a_beast_leaves_shard_remnants_not_shards(world, monkeypatch):
     a.add_npc_drops(wolf)
     assert a.shards() == before                                    # (no Shards for the kill itself)
     left = [e for e in world.ents if e.uid not in uids]
-    remnants = [e for e in left if e.name == "Shard_Remnant" and e.type == MAPITEM]
-    assert remnants and all(e.private_to is a for e in remnants)
-    assert not any(e.name in ("Bones", "Shard", "Living_Remnant") for e in left)
+    shards = [e for e in left if e.name == "Shard" and e.type == MAPITEM]
+    assert shards and all(e.private_to is a for e in shards)
+    assert not any(e.name in ("Bones", "Living_Remnant") for e in left)
+    stock(a, Wooden_Sword=a.inventory_capacity() - len(a.inv))     # (a full bag: a Shard still goes, on the balance)
+    bag, counted, n = len(a.inv), val(a.get_attribute("RemnantsAbsorbed")), sum(e.quantity for e in shards)
+    a.connected, a.out = True, []
+    for e in shards:
+        a.teleport(m.name, e.x - m.ox, e.y - m.oy)
+        a.pickup_map_item(e)
+    assert a.shards() == before + n and len(a.inv) == bag and not any(e.alive and e in world.ents for e in shards)
+    assert val(a.get_attribute("RemnantsAbsorbed")) == counted + n             # (Wim's check, the Spellwright's)
+    flew = [ev for ev in a.out if ev.get("t") == "shardfly"]
+    assert sum(ev["n"] for ev in flew) == n and flew[-1]["to"] == a.shards()   # (to the Shard bar, on the page)
+    assert not any(ev.get("t") == "msg" and "Shard" in ev.get("text", "") for ev in a.out)   # (the bar says it)
     for e in left:
         world.remove_entity(e)
-    stock(a, Shard_Remnant=5)
-    a.do_action("Absorb", next(e for e in a.inv if e.name == "Shard_Remnant"))
-    assert a.items_held("Shard_Remnant") == 0 and a.shards() == before + 5
     world.remove_entity(wolf)
     leave(world, a)
 
@@ -3923,18 +3951,53 @@ def test_a_shard_remnant_rises_as_strong_as_the_beast_and_leaves_more(world, mon
     a.add_npc_drops(bear)
     world.remove_entity(bear)
     risen = [e for e in world.ents if e.uid not in uids and e.name == "Living_Remnant"]
-    assert len(risen) == 1 and not any(e.uid not in uids and e.name == "Shard_Remnant" for e in world.ents)
+    assert len(risen) == 1 and not any(e.uid not in uids and e.name == "Shard" for e in world.ents)
     rem = risen[0]
     assert rem.max_hp == 5 + 5 * level and rem.target is a and world.hostile_for(rem, a)
     assert a.display_name(rem) == "Shard Remnant" and a.monster_level(rem) == level
+    from dsengine.view import shared_state
+    flew = [ev for ev in a.out if ev.get("t") == "shardfly" and ev.get("back")]
+    assert len(flew) == 1 and flew[0]["back"] == [int(rem.cx), int(rem.fy - 20)]   # (out towards the bar, then back)
+    assert 0 < shared_state(world, rem)["rz"] <= RM.RISE_MS        # (hidden on the page till the Shards are back)
+    world.now += RM.RISE_MS
+    assert "rz" not in shared_state(world, rem)
     uids = {e.uid for e in world.ents}
-    a.kill_npc(rem)                                                # (killed: more remnants, and it never rises again)
+    a.kill_npc(rem)                                              # (killed: more remnants, and it never rises again)
     left = [e for e in world.ents if e.uid not in uids]
-    assert sum(e.quantity for e in left if e.name == "Shard_Remnant") >= 3
+    assert sum(e.quantity for e in left if e.name == "Shard") >= 3
     assert not any(e.name == "Living_Remnant" for e in left)
     for e in left:
         world.remove_entity(e)
     leave(world, a)
+
+
+def test_fighting_a_foe_plays_the_fighting_music_but_a_rabbit_does_not(world):
+    from dsengine.player_combat import FIGHT_MUSIC_MS
+    from dsengine.view import snapshot
+    a = join(world, "Brawler", "11,-3,0", 384, 300)
+    m = a.cur_map
+
+    def me():
+        return [ev for ev in snapshot(world, a) if ev.get("t") == "snap"][-1]["me"]
+    rabbit = world.add_npc("Rabbit", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Passive")
+    a.damage_npc(rabbit, 1)
+    assert "cb" not in me()                                       # (a rabbit: the place's own tune)
+    wolf = world.add_npc("Wolf", 0, m.ox + 12 * 32, m.oy + 10 * 32, "Attitude=Bad")
+    a.damage_npc(wolf, 1)
+    assert me().get("cb") == 1                                    # (a foe that comes for you: Combat)
+    world.now += FIGHT_MUSIC_MS
+    assert "cb" not in me()                                       # (5 s after the last blow, back again)
+    for e in (rabbit, wolf):
+        world.remove_entity(e)
+    leave(world, a)
+
+
+def test_sounds_are_found_by_name_in_their_folders():
+    from ashen import sounds
+    assert sounds.find(ROOT, "Denied").replace("\\", "/").endswith("sounds/ui/Denied.wav")
+    assert sounds.find(ROOT, "combat.mp3").replace("\\", "/").endswith("sounds/music/combat.mp3")
+    assert not sounds.duplicates(ROOT)                            # (one name, one sound)
+    assert not [f for f in os.listdir(os.path.join(ROOT, "sounds")) if os.path.isfile(os.path.join(ROOT, "sounds", f))]
 
 
 def test_a_shard_remnant_nobody_fights_fades(world):
@@ -3978,6 +4041,16 @@ def test_a_woman_has_her_own_body_and_keeps_it(world):
     c.load_state(saved)
     assert c.player_sprite_base == "PlayerF" and c.look["body"] == "f"
     leave(world, b)
+
+
+def test_an_old_saves_shard_remnants_are_shards_on_the_balance(world):
+    s = Session(world, "Hoarder")
+    s.load_state({"shards": 4, "inventory": [["Shard_Remnant", 6, 0], ["Bread", 1, 0]],
+                  "bank": [["Shard_Remnant", 3, []]], "attributes": [["ShardsGiven", "1"]]})
+    assert s.shards() == 13 and [e.name for e in s.inv] == ["Bread"] and not any(s.bank_item[1:])
+    from dsengine.renames import renamed
+    q = renamed({"queue": ["ADD	Living_Remnant	NPC	Level=4 Name=Shard_Remnant", "REMOVE	Shard_Remnant	MapItem	2"]})
+    assert q["queue"] == ["ADD	Living_Remnant	NPC	Level=4 Name=Shard_Remnant", "REMOVE	Shard	MapItem	2"]
 
 
 def test_an_old_save_has_its_skills_out_of_25(world):
@@ -4217,8 +4290,8 @@ def test_the_spellwright_quest_from_core_to_lectern(world):
     stock(s, Remnant_Core=1)
     talk(2, 1)
     assert s.get_attribute("SpellwrightQuest") == "2" and s.items_held("Remnant_Core") == 0
-    stock(s, Shard_Remnant=20)
-    s.do_action("Absorb", next(e for e in s.inv if e.name == "Shard_Remnant"))
+    p = s.player
+    s.pickup_map_item(world.drop_item("Shard", p.z, p.x, p.y, 20))   # (twenty off the ground)
     talk(2, 1)
     assert s.get_attribute("SpellwrightQuest") == "3"
     leave(world, s)
@@ -4567,7 +4640,7 @@ def test_in_an_animals_body_the_animals_talk(world):
     said = " ".join(str(e) for e in s.out)
     assert any(line.split(".")[0] in said for line in ANIMAL_TALK["Cow"])
     box = s.box_state()                                              # (a human voice, not its moo)
-    assert box["voice"] == "Woman" and 93 <= box["pitch"] <= 107
+    assert box["voice"] == "Woman" and 90 <= box["pitch"] <= 100
     assert "Moo" not in [ev["name"] for ev in s.out if ev.get("t") == "sound"]
     world.remove_entity(cow)
     leave(world, s)
@@ -5343,7 +5416,7 @@ def test_a_kill_by_a_player_or_an_npc_comes_back_and_its_loot_goes_alike(world, 
         new = world.action_queue[before:]
         assert any(q.startswith("ADD\t%s\tNPC\t" % foe.name) and world.local_coords(m, foe.orig_x, foe.orig_y) in q
                    for q in new)                                   # (it comes back where its map puts it)
-        loot = [e for e in world.ents if e.uid not in uids and e.type == MAPITEM and e.name != "Shard_Remnant"]
+        loot = [e for e in world.ents if e.uid not in uids and e.type == MAPITEM and e.name != "Shard"]
         assert loot and all(e.source == "DROPPED" for e in loot)
         assert all(any(q.startswith("REMOVE\t%s\tMapItem\t" % e.name) for q in new) for e in loot)   # (and it goes)
         assert all((e.private_to is a) == (kill == a.kill_npc) for e in loot)       # (a player's kill: theirs first)
@@ -5374,7 +5447,7 @@ def test_success_is_heard(world):
     import glob
     chop = open(os.path.join(ROOT, "data", "Scripts", "Chop Tree.txt"), "rb").read().decode("cp1252")
     assert any(ln.split("\t")[1:2] == ["Display.Message"] and ln.endswith("\tGather_Wood") for ln in chop.split("\r\n"))
-    sounds = {os.path.basename(f)[:-4] for f in glob.glob(os.path.join(ROOT, "sounds", "*.wav"))}
+    sounds = {os.path.basename(f)[:-4] for f in glob.glob(os.path.join(ROOT, "sounds", "*", "*.wav"))}
     for s in ("Gather_Wood", "Gather_Ore", "Gather_Fish", "Harvest", "Cooked", "Crafted", "Unlock", "Learn",
               "Fail_2", "Fail_3", "Denied_2"):
         assert s in sounds
@@ -7880,7 +7953,7 @@ def test_the_abomination_is_as_strong_as_who_it_found_and_leaves_plenty(world, m
     uids = {x.uid for x in world.ents}
     s.kill_npc(e2)
     left = [x for x in world.ents if x.uid not in uids]
-    assert sum(x.quantity for x in left if x.name == "Shard_Remnant") >= 6
+    assert sum(x.quantity for x in left if x.name == "Shard") >= 6
     assert not any(x.alive and x.name == "Shard_Abomination" for x in world.ents)
     for x in left:
         world.remove_entity(x)
@@ -8085,7 +8158,7 @@ def test_galaiths_gardener_and_sexton_go_home_at_night(world):
 def test_the_fountain_is_heard_near_it_not_over_whole_maps(world):
     d = world.data
     assert d.entity_ini("Grand_Fountain", "Sound.Loop", "") == "Ambient_Fountain"
-    assert os.path.exists(os.path.join(ROOT, "sounds", "Ambient_Fountain.wav"))
+    assert os.path.exists(os.path.join(ROOT, "sounds", "ambient", "Ambient_Fountain.wav"))
     amb = open(os.path.join(ROOT, "data", "Ambient.ini"), "rb").read().decode("cp1252")
     assert "=Fountain" not in amb
 
@@ -8626,11 +8699,16 @@ def test_people_speak_in_their_own_voice_and_notices_are_silent(world):
     for _ in range(2):
         assert talk_to(world, s, keeper)
         box = s.box_state()
-        assert box["voice"] == "Old_Man" and 93 <= box["pitch"] <= 107
+        assert box["voice"] == "Old_Man" and 90 <= box["pitch"] <= 100     # (never quicker than it was said)
         heard.append(box["pitch"])
         s.close_action_box(-1)
         run_for(world, 5)
     assert heard[0] == heard[1]                                    # (the same person sounds the same every time)
+    s.start_script("Talk to Gravekeeper", False)                   # (a script calling them up: no greeting)
+    run_for(world, 2)
+    assert s.ab_mode == "Conversation" and "voice" not in s.box_state()
+    s.close_action_box(-1)
+    run_for(world, 5)
     assert s.npc_voice("Notice") == ("", 100) and s.npc_voice("Signpost") == ("", 100)
     s.player_sprite_base = "PlayerF"
     assert s.npc_voice("Player")[0] == "Woman"
@@ -9586,7 +9664,7 @@ def test_channelling_forms_hear_and_drink_remnants(world):
     run_for(world, 30)
     s.admin_set_form("Channelling.Listening", True, True)
     p = s.player
-    r = world.drop_item("Shard_Remnant", p.z, p.x + 60, p.y, 3)
+    r = world.drop_item("Shard", p.z, p.x + 60, p.y, 3)
     s.out = []
     s.forms_at = 0
     s.forms_tick()
@@ -9675,8 +9753,8 @@ def test_a_boss_heals_by_the_remnants_near_it_unless_you_take_them_first(world):
         world.ents.remove(e)
     p = s.player
     boss = world.add_npc("Goblin", m.mz, p.x + 200, p.y, "")
-    pile = world.add_map_item("Shard_Remnant", m.mz, p.x + 120, p.y, 3)
-    other = world.add_map_item("Shard_Remnant", m.mz, p.x + 260, p.y + 40, 2)
+    pile = world.add_map_item("Shard", m.mz, p.x + 120, p.y, 3)
+    other = world.add_map_item("Shard", m.mz, p.x + 260, p.y + 40, 2)
     try:
         boss.ai.absorbs = True
         boss.aggressive = 0
@@ -9690,8 +9768,9 @@ def test_a_boss_heals_by_the_remnants_near_it_unless_you_take_them_first(world):
         took = 3 if not pile.alive else 2
         assert boss.hp == 100 + int(200 * 0.04 * took)
         left = other if not pile.alive else pile
+        before = s.shards()
         s.pickup_map_item(left, reach=10 ** 6)                          # (taken in first: none for it)
-        assert not left.alive and s.items_held("Shard_Remnant") >= 1
+        assert not left.alive and s.shards() > before
         hp = boss.hp
         run_for(world, 40)
         assert boss.hp == hp

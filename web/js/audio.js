@@ -84,7 +84,7 @@ export async function playSound(name, at = null, loud = 1) {
   if (g < 0.03) return;
   const f = file(name);
   if (!f) return;
-  if (/\.(ogg|mid)$/i.test(f) && !/\.wav$/i.test(f)) {    // a tune as a sound: it takes the music's place for a while
+  if (/\.(ogg|mid|mp3)$/i.test(f) && !/\.wav$/i.test(f)) {    // a tune as a sound: it takes the music's place for a while
     playEffectTune(f);
     return;
   }
@@ -129,16 +129,19 @@ export async function playVoice(kind, pitch = 1) {
   src.start();
 }
 
-// ----- the music: the place's theme (data\Music.ini), Hearth indoors; a tune carries on where it left off
+// ----- the music: the place's theme (data\Music.ini: a town's own, Outside's two in turn, a darker one where the
+// foes are strong), Hearth under a roof out of town, Combat while you fight a foe (the server's "cb", held 5 s after);
+// a tune carries on where it left off
 const FADE_OUT = 1100, FADE_IN = 1600;
 
 function musicLevel() { return O.volume / 100 * O.musicVolume / 100; }
 
 export function musicTheme(underRoof, override) {
   if (override) return override;
+  if (S.pos && S.pos.cb && dictIni("music", "Themes", "Combat", "")) return "Combat";
   let theme = "";
-  if (configRead("Sounds", "Music.By.Place", "0") === "1") theme = trim(dictIni("music", "Maps", S.mapName, ""));
-  if (underRoof && !["Palace", "Lair"].includes(theme)) return "Hearth";
+  if (configRead("Sounds", "Music.By.Place", "1") === "1") theme = trim(dictIni("music", "Maps", S.mapName, ""));
+  if (underRoof && (!theme || theme === "Outside")) return "Hearth";     // (a cottage out in the wilds; in town, its tune)
   return theme;
 }
 
@@ -223,7 +226,8 @@ export function musicTick(underRoof, override) {
   if (!O.music || !O.sound) { if (AU.music) stopMusic(); return; }
   if (AU.musicTheme === null || (!AU.music && !AU.fade)) { startMusic(want, true); return; }
   if (want !== AU.musicTheme) {
-    if (AU.want !== want) { AU.want = want; AU.wantAt = now; } else if (now - AU.wantAt >= (want === "Hearth" || AU.musicTheme === "Hearth" ? 300 : 2500)) {
+    const quick = ["Hearth", "Combat"].includes(want) || ["Hearth", "Combat"].includes(AU.musicTheme);   // (a door, a fight)
+    if (AU.want !== want) { AU.want = want; AU.wantAt = now; } else if (now - AU.wantAt >= (quick ? 300 : 2500)) {
       AU.want = null;
       if (AU.music) AU.resume[AU.musicTheme] = [AU.musicFile, AU.music.currentTime];
       AU.fade = { stage: "out", t0: now, next: want };

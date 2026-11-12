@@ -11,6 +11,7 @@ from .entity import (Entity, PLAYER, TILE, MAPITEM, STATICOBJECT, NPC, MISSILE, 
 from .world import HEAR_CALL
 from .tricks import ANIMAL_TALK, ANIMAL_VOICE
 from .ownspell import OWN
+from .shards import SHARD
 
 STAND_MS = 300          # (getting up: state.js SIT_MS, and a moment)
 SEAT_FACES = {"N": 1, "E": 2, "S": 4, "W": 8}    # (Seat= in Tiles.ini: the way you face, sitting on it)
@@ -57,7 +58,8 @@ class ActionsMixin:
                 key = self.w.npc_key(e)
         if not kind:
             return "", 100
-        return kind, 93 + zlib.crc32(key.encode()) % 15         # (93-107: two Villagers don't sound alike)
+        return kind, 90 + zlib.crc32(key.encode()) % 11         # (90-100: two Villagers don't sound alike, and
+                                                                #  none is quicker than the recording: it's played slower)
 
     @staticmethod
     def add_verb(lst, verb):
@@ -502,8 +504,6 @@ class ActionsMixin:
             self.eat_inventory_item(e)
         elif verb == "Dismantle" and t == INVENTORYITEM:
             self.dismantle(e)
-        elif verb == "Absorb" and t == INVENTORYITEM:
-            self.absorb_remnants(e)
         elif verb == "Write" and name == "Spellwright_Lectern":
             self.lectern_write(e)
         elif verb in ("Cast", "Drink", "Learn"):
@@ -685,7 +685,7 @@ class ActionsMixin:
             return
         name = e.name
         quantity = max(1, e.quantity)
-        space = self.inventory_slots_available(name, e.stolen)
+        space = quantity if name == SHARD else self.inventory_slots_available(name, e.stolen)   # (a balance: always room)
         if space <= 0:
             self.display_message("You don't have enough room in your inventory!", "FAIL")
             return
@@ -694,12 +694,16 @@ class ActionsMixin:
         if once and taken < quantity:
             self.display_message("You need room for all %d %s." % (quantity, pretty(name)), "FAIL")
             return
-        self.add_inventory_item(name, taken, e.wear, stolen=e.stolen)
-        self.play_sound("Pickup")
-        if taken > 1:
-            self.display_message("You pick up %d %s." % (taken, pretty(name)), "SUCCESS")
+        if name == SHARD:
+            self.act_done(True)
+            self.gather_shards(taken, e.cx, e.cy)       # (to the Shard bar, flying: never the bag, no line in the chat)
         else:
-            self.display_message("You pick up the %s." % pretty(name), "SUCCESS")
+            self.add_inventory_item(name, taken, e.wear, stolen=e.stolen)
+            self.play_sound("Pickup")
+            if taken > 1:
+                self.display_message("You pick up %d %s." % (taken, pretty(name)), "SUCCESS")
+            else:
+                self.display_message("You pick up the %s." % pretty(name), "SUCCESS")
         if once:
             key = w.once_key(e)
             if key:

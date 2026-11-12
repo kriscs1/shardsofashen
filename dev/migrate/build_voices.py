@@ -1,11 +1,11 @@
-"""People's greetings, monsters' growls and the quest jingles, all cut from CC0 recordings (freesound.org; each is
+"""People's greetings, monsters' growls and the quest-taken jingle, all cut from CC0 recordings (freesound.org; each is
 in SOURCES and CREDITS.md):
 
   sounds\\Voice_<Kind>.wav, _2 ...   what someone says as you start talking to them ("Hello", "Well met", "How can
                                      I help?"): one of their kind's, at the speaker's own pitch (web/js/voice.js)
   sounds\\Growl_<Kind>.wav, _2 ...   a monster that's seen you and comes for you (npcs.py npc_growl)
-  sounds\\Quest_Start.wav             a quest taken on (a harp's run up)
-  sounds\\Quest_Done.wav              a quest finished (a harpsichord's flourish)
+  sounds\\Quest_Start.wav             a quest taken on (a harp's run up; a quest finished, Quest_Done, is
+                                     build_soundscape's: quieter)
   sounds\\Moo.wav, Baa, Cluck ...     an animal's noise (CALLS): now and then on its own, and as you do something
                                      with it (stroke it, feed it, milk it, talk to it in an animal's body)
 
@@ -29,12 +29,15 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import urllib.request
 import wave
 
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 CACHE = os.path.join(ROOT, "dev", "Voices")
 RATE = 22050
 
@@ -52,7 +55,6 @@ SOURCES = {
     677407: ("677407_12064174", "SnowFightStudios", "Monster or Creature Mutterings and Gibberish"),
     669913: ("669913_12064174", "SnowFightStudios", "Creature Gibberish Language\\Dialogue - Monster\\Alien"),
     490831: ("490831_10350281", "PhonosUPF", "harp glissando"),
-    521642: ("521642_7724198", "Fupicat", "WinHarpsichord.wav"),
     242625: ("242625_950925", "Reitanna", "heavy sigh.wav"),
     242690: ("242690_950925", "Reitanna", "long sigh.wav"),
     427722: ("427722_8295394", "lemigoga", "05. Suspiro madre.wav"),
@@ -183,7 +185,6 @@ GROWLS = {
 
 JINGLES = {
     "Quest_Start": (490831, 0.0, None),
-    "Quest_Done": (521642, 0.0, None),
 }
 
 # who speaks how (Entities.ini sections); anyone who speaks and isn't here gets none until it's given one
@@ -437,7 +438,7 @@ def make(x, a, b, k, rms_to=0.1):
 
 
 def write(name, data):
-    path = os.path.join(ROOT, "sounds", name + ".wav")
+    path = sound_file(name)
     if os.path.exists(path):
         with wave.open(path, "rb") as w:
             if w.getframerate() == RATE and w.readframes(w.getnframes()) == data:
@@ -484,15 +485,21 @@ def take_name(prefix, kind, n):
     return prefix + kind + ("" if n == 1 else "_%d" % n)
 
 
+SPOKEN = ("Man", "Deep", "Woman", "Old_Man", "Old_Woman", "Gruff")
+SPOKEN_PACE = 0.9                       # (people's greetings a little slower than recorded: they sounded hurried)
+
+
 def build(prefix, table):
     made = total = 0
     for kind, k in table.items():
+        if prefix == "Voice_" and kind in SPOKEN:
+            k = dict(k, pace=k.get("pace", SPOKEN_PACE))
         for n, (sid, a, b) in enumerate(k["clips"], 1):
             made += write(take_name(prefix, kind, n), make(recording(sid), a, b, k))
         total += len(k["clips"])
         n = len(k["clips"]) + 1                                   # (fewer takes than before: the rest go)
-        while os.path.exists(os.path.join(ROOT, "sounds", take_name(prefix, kind, n) + ".wav")):
-            os.remove(os.path.join(ROOT, "sounds", take_name(prefix, kind, n) + ".wav"))
+        while os.path.exists(sound_file(take_name(prefix, kind, n))):
+            os.remove(sound_file(take_name(prefix, kind, n)))
             n += 1
     return made, total
 

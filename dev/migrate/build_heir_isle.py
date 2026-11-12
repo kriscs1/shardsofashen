@@ -30,7 +30,7 @@ Characters made before this story keep what they had done (session.heir_story_fr
 The Isle teaches the world as you go, in what people say and give you: Edwin hands over Mary's jar of Shards (the
 world's magic: the count under your health); Maren gives healing draughts (herbs mend a body, Shards can't); Frank
 gives his old dagger to break down for its Shard (Dismantle); Brother Aldous, in the caves, shows you a dead beast's
-Shard Remnants (Absorb) and the scroll of Grasp (learnt for good, cast for Shards); Wim, at the pier, the shardstone.
+Shards on the floor (picked up) and the scroll of Grasp (learnt for good, cast for Shards); Wim, at the pier, the shardstone.
 """
 import os
 import random
@@ -1239,15 +1239,14 @@ def chapel_and_caves():
         ("Display.Message", "Cyan", "Footsteps echo behind you: Brother Aldous, a lantern in his hand.", "-"),
         ("Remove.Entity", aldous, "Gravekeeper"),                 # (one Aldous, if his words were closed before)
         ("Add.Entity", aldous, "Gravekeeper", "NPC", "Attitude=Good Stand=1 Face=W Name=Brother_Aldous"),
-        say("Gravekeeper", "I said I'd not be far behind. Look here first.\\He stoops, and picks dull grey splinters "
-                           "from the floor.\\Something died here, a rat or a bat, and left its magic behind: Shard "
-                           "Remnants. Hold them and draw the magic out (Absorb, in your pack), and they're Shards. "
-                           "Every beast leaves its magic somewhere when it dies. And now and then, the magic won't lie "
-                           "still. The old books say every Shard is a scrap of something far greater, cut down long ago, "
+        ("Add.Entity", at(nx + 1, ny + 1), "Shard", "MapItem", "3"),    # (his to show you: yours to pick up)
+        say("Gravekeeper", "I said I'd not be far behind. Look here first.\\He holds his lantern low: three bright "
+                           "splinters on the floor.\\Something died here, a rat or a bat, and left its magic behind: "
+                           "Shards. Pick them up, and they're yours to spend. Every beast leaves its magic where it "
+                           "falls. And now and then, the magic won't lie still. The old books say every Shard is a scrap of something far greater, cut down long ago, "
                            "and that scraps like that are hungry: take them in before they take root in you.", ("I'll remember.", "@remnants")),
         ("@remnants",),
         ("Update.Attribute", "AmuletQuest", "=5"),                # (the stage with the gifts: closed, never twice)
-        ("Give.Item", "Shard_Remnant", "3"),
         ("Give.Item", "Grasp_Scroll", "1"),
         say("Gravekeeper", "Now, the amulet. Your mother put it there, and the bars after it, so that no "
                            "thief could ever take it. But a hand that isn't a hand can.\\Here: a scroll of Grasp. Read it, "

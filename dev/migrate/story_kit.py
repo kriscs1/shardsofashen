@@ -19,6 +19,8 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 from ashen import ini  # noqa: E402
 from build_isle import Map, obj_line, TW, XT, YT  # noqa: E402
 import villages as V  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 
 DATA = os.path.join(ROOT, "data")
 SPR = os.path.join(ROOT, "sprites")
@@ -425,7 +427,7 @@ def wav(name, samples, gain=0.9):
     peak = max(1e-6, max(abs(s) for s in samples))
     k = gain / peak if peak > gain else 1.0
     data = b"".join(struct.pack("<h", int(max(-1, min(1, s * k)) * 30000)) for s in samples)
-    path = os.path.join(ROOT, "sounds", name + ".wav")
+    path = sound_file(name)
     tmp = path + ".new"
     with wave.open(tmp, "wb") as w:
         w.setnchannels(1)

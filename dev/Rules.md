@@ -70,7 +70,7 @@ isn't a box, and the tin that was out there lies nearer the Tin Braes.
 **The Isle teaches the game through play**, in what people say and give you, never in signs: Edwin hands over Mary's
 jar of Shards (the bar under your health), Maren gives healing draughts (herbs mend you; Shards can't), Frank gives his
 old dagger to break down for a Shard (Dismantle) and tells how to pick or force a lock (the Isle's chests have the
-easiest), Brother Aldous shows you a dead beast's Shard Remnants (Absorb) and the Grasp scroll (learnt for good, cast
+easiest), Brother Aldous shows you the Shards a dead beast left (picked up) and the Grasp scroll (learnt for good, cast
 for Shards), and Wim points out Northport's shardstone. Anything new a player
 must learn early is taught the same way, on the Isle.
 
@@ -142,7 +142,7 @@ never laid out. The Glass Wardens' chain in the Shardfall Deep (a side storyline
 Quiet Draught, the Listening Room heard out in the Channelling stance, never answered) puts the rest together. At
 the Seam you choose: the Binding, the Crown, or, only with the Wardens' truth, **Unmake** (break the Seam: storms calmer
 and remnants passive for you, no more Crown Shards); the game plays the same after any. You don't leave the
-Isle till you know what Shard Remnants are (Wim won't take you till you've absorbed some, and are level 3).
+Isle till you know where Shards come from (Wim won't take you till you've picked some up off the ground, and are level 3).
 
 **The Mending** (a secondary storyline, level 12 to 20; `dev/Story and Quests.md` "The Mending"): a new cult, the
 Shards' own (grey robes, glass, cold blue fire), never the Ashen Hand reworked: the Hand is its hired help, paid in
@@ -312,7 +312,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   while that's on you (your gear alone: a friend's robe fools nobody for you). You can still Attack one. A blow, or a
   spell, in sight of one of them gives you away on that map for a while (`Thieving.ini [Disguise]`), and those of them
   near come for you.
-- **A boss that drinks remnants** (`Absorbs.Remnants=1`, `npcs.py npc_absorb`): hurt, it goes to the Shard Remnants
+- **A boss that drinks remnants** (`Absorbs.Remnants=1`, `npcs.py npc_absorb`): hurt, it goes to the Shards
   lying near it and heals by them (`Shards.ini [Remnants]` `Drawn.Reach`, `Drawn.Heal`); pick them up first and
   they're yours.
 - **Standing** (`dsengine/standing.py`, `data/Towns.ini`, `dev/Roadmap-6.md`): each town thinks of each player
@@ -428,10 +428,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   a creature you can fight shows it on hover, its name coloured by how it stands to yours (grey far below, green, yellow
   about yours, orange, red far above: `tips.js` difficulty).
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
-  Shards and no bones**: it may leave Shard Remnants on the ground (Absorb them, in the pack, for Shards), or, less
-  often, its magic rises as a **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for
-  the killer and leaves more remnants when it's killed (`dsengine/remnants.py`; the numbers: Shards.ini
-  `[Remnants]`).
+  Shards and no bones**: it may leave Shards on the ground (the item `Shard`), or, less often, its magic rises as a
+  **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for the killer and leaves more
+  Shards when it's killed (`dsengine/remnants.py`; the numbers: Shards.ini `[Remnants]`).
+- **A Shard on the ground, picked up, flies to the Shard bar** (`gather_shards`: the page's `shardfly`, the bar
+  counting each as it lands, with `Shard_Land`), never the bag, and no line in the chat. A flying Shard is just its
+  picture, no circle round it. When a kill's magic rises as a Shard Remnant instead, its Shards set off for your bar,
+  turn, and fly back into where the Remnant forms (`remnant_rise`: `shardfly` with `back`; the Remnant is hidden till
+  they land, `RISE_MS`, and its `Shard_Form` waits for them). It counts towards
+  `RemnantsAbsorbed` (Wim's check, the Spellwright). There's no Shard Remnant item any more (an old save's are Shards
+  as it loads: `renames.py RENAMED_WHOLE`).
 
 ### Magic and Shards
 - **What a potion is and what a spell is.** A potion is herbs: it works only inside whoever drinks it (mends,
@@ -445,7 +451,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Own_Spell`, known like any other.
 - Magic runs on **Shards**, a balance each player has, shown on the bar under their health: **never an item in the
   pack** (`dsengine/shards.py`; a script's `Give.Item Shard` or an old save's Shards go on the balance). They never
-  come back by themselves. Shard Remnants, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells,
+  come back by themselves. Shards on the ground, chests, digging, dismantling and quests (`Reward.Shards`) give them; spells,
   enchanting and shardstones (a price to activate one, then a few Shards a journey) spend them, through `spend_shards` or
   `>Pay.Shards`: never below nothing, nothing taken unless the thing goes ahead, and a Denied word when you're short.
   No mana, anywhere: a quest or text that would need it uses Shards.
@@ -503,8 +509,8 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
     percent off a spell's Shards, to a limit, never under a Shard (`channeled_cost`, and `castCost` in the page),
     and adds `Power.Per.Level` percent to a spell's damage roll (`channeled_power`: a share, not a flat few, so a
     cheap spell never outdoes a stronger one at any level). The spellbook shows the damage with your Channeling.
-  - **Shardcraft** is making and working Shard magic: activating shardstones and the Shardgate, dismantling, absorbing
-    remnants, writing your own spell, enchanting, shaping your pocket of the realm.
+  - **Shardcraft** is making and working Shard magic: activating shardstones and the Shardgate, dismantling, picking up
+    Shards, writing your own spell, enchanting, shaping your pocket of the realm.
   - **Crafting** is Smithing and Crafting made one; **Homesteading** is Construction and Farming made one; **Alchemy**
     is herbs and potions (was Potion Making, before that Herblore). A merged skill in an old save keeps the better.
 - A skill's name is one word in data (`Shardcraft`), and shown with spaces wherever a player reads it (`pretty`).
@@ -697,10 +703,12 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `dev/migrate/build_soundscape.py`'s (`build_sounds.arpeggio` plucks a harp); a sound with takes (`Fail`, `Fail_2`,
   `Fail_3`) is played at random among them.
 - **People greet you as you talk to them**: a real person's "Hello!", "Well met." or "How can I help?" as a
-  conversation opens, never a made-up voice (synthesised sounded like a machine, mumbling sounded awful) and never
+  conversation you started opens (its first page only, a `Talk to` you clicked: never someone calling out to you
+  or a script opening one), never a made-up voice (synthesised sounded like a machine, mumbling sounded awful) and never
   the words of the text; its words come a few at a time, silently (a click shows the rest; `web/js/voice.js`). The
   greetings are cut from CC0 recordings by `build_voices.py`, which also gives each speaker its `Voice=` (a new
-  speaker gets one there too). Each person placed has a pitch of their own, the same every time (`npc_voice`), and
+  speaker gets one there too). Each person placed has a pitch of their own, the same every time (`npc_voice`: never above the
+  recording's, which plays it faster; the greetings are a little slower than recorded, `SPOKEN_PACE`), and
   greets you again only after a while. Notices, signs and letters are silent. Options can turn the greetings off.
   A greeting suits who says it: a mourner at a funeral only sighs (`Sigh`); an old man or an old woman is
   a real old person's voice (Mozilla Common Voice, CC0), never a younger one's made old; every take of a kind is
@@ -715,7 +723,17 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   noise. One with a `Talk to <Id>` script of its own (Pip's Spectacles: Inkwell, Biscuit, Henrietta) says that
   instead, in the same voice; the script tells you and an animal apart by `$Player.Form` (`-` is yourself).
 - **A quest taken on and a quest finished each have their jingle** (`Quest_Start`, `Quest_Done`: `quest_jingle`),
-  once however many things say so at once; a script's "Quest complete" message brings it, not `Quest` as well.
+  once however many things say so at once (the finishing one quiet, a few notes coming to rest, never a fanfare:
+  `build_soundscape.py`); a script's "Quest complete" message brings it, not `Quest` as well.
+- **Sounds are kept by kind** in `sounds/<kind>/` (ui, creatures, voices, ambient, skills, combat, magic, world,
+  music: `ashen/sounds.py`, which also says where a new one goes) and found everywhere by name alone (`Door`, never a
+  folder): no two sounds share a name, and none lie loose in `sounds/` (`validate.py`). Builders write through
+  `common.sound_file`.
+- **Music goes by place** (`data/Music.ini`, written by `build_music.py` from the maps as they are; never edited by
+  hand): a town its own tune, the wilds exploration music, caves, danger and dread their own, under a roof the hearth.
+  Fighting a foe (one that comes for you, never a rabbit or a sparring partner) plays the combat music till 5 s after
+  the last blow, then the place's tune comes back where it left off. The owner's tracks are made small by
+  `shrink_music.py` (mono, 64 kbit/s, three minutes at most); the originals stay in `dev/Music`, never committed.
 - A sound carries only as far as it should: `world.sound(..., radius=)`. Doors and animals' calls are heard from
   close by only (`HEAR_DOOR`, `HEAR_CALL`), never from a building or a pond you can't see.
 

@@ -316,7 +316,7 @@ def data():
         "Drops=Gold_Coin(s),30-60,100 Sapphire,1-1,10"])
     fighter("Glassbound", 17, 170, 14, 15, 2.2, [
         "Friend.If.Wearing=Mending_Robe", "Weapon.Range=0", "Movement.Speed=1.3",
-        "Drops=Gold_Coin(s),34-68,100 Shard_Remnant,2-4,100"])
+        "Drops=Gold_Coin(s),34-68,100 Shard,2-4,100"])
     fighter("Eldest_of_the_Mending", 20, 320, 15, 16, 1.6, [
         "Boss=1", "Absorbs.Remnants=1", "Weapon.Range=170", "Missile=Ice_Bolt_Missile",
         "Missile.Impact=Ice_Burst", "Missile.Sound=SpellIce", "Respawn=900", "Chase.Radius=6",

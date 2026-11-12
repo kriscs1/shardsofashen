@@ -10,6 +10,8 @@ import struct
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 RATE = 22050
 
 
@@ -35,7 +37,7 @@ def main():
 def old_main():
     gap = [0.0] * int(RATE * 0.05)
     samples = note(220.0, 0.22) + gap + note(165.0, 0.62, sag=0.12, vibrato=0.012)
-    path = os.path.join(ROOT, "sounds", "Empty.wav")
+    path = sound_file("Empty")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)

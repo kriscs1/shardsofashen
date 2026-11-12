@@ -3,6 +3,7 @@ and people on them (in full when first seen, then only what changed), their own 
 import math
 
 from .entity import PLAYER, NPC, MAPITEM, STATICOBJECT
+from .player_combat import FIGHT_MUSIC_MS
 
 VIEW_MAPS = 1           # the maps this far round the player's are sent (1 = the 3 x 3 the desktop game kept)
 
@@ -34,6 +35,8 @@ def shared_state(w, e):
         st["dn"] = e.display
     if getattr(e, "npc_level", 0):
         st["lv"] = e.npc_level
+    if getattr(e, "rises_at", 0) > w.now:
+        st["rz"] = int(e.rises_at - w.now)             # (a Shard Remnant still forming: unseen that long, remnants.py)
     return st
 
 
@@ -198,6 +201,8 @@ def snapshot(w, s, shared=None):
     s.view_known = seen
     p = s.player
     me = {"x": round(p.x, 1), "y": round(p.y, 1), "z": p.z, "i": p.image, "d": p.direction}
+    if w.now - s.foe_fight_at < FIGHT_MUSIC_MS:
+        me["cb"] = 1                                    # (fighting a foe, or just done: the page's fighting music)
     if add or change or gone or me != getattr(s, "last_me_pos", None):
         s.last_me_pos = me
         out.append({"t": "snap", "add": add, "chg": change, "del": gone, "me": me, "maps": sorted(names),

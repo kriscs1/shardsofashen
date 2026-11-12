@@ -18,7 +18,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import p
+from common import p, sound_file
 
 RATE = 22050
 
@@ -419,7 +419,7 @@ def main():
     written = 0
     for name, fn in SOUNDS.items():
         blob = wav_bytes(fn())
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         if os.path.exists(path):
             with open(path, "rb") as f:
                 if f.read() == blob:

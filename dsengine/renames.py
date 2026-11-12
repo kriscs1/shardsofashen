@@ -2,6 +2,7 @@
 what a character or the world was saved with is put right as it loads - inventories, banks, hotbars, gear, market
 listings, the action queue, skills."""
 import json
+import re
 
 RENAMED_ITEMS = {
     "Raw_Chicken": "Raw_Poultry",
@@ -21,6 +22,9 @@ RENAMED_ITEMS = {
     "Burnt_Herring": "Burnt_Food",
     "Burnt_Meat": "Burnt_Food",
 }
+RENAMED_WHOLE = {                                    # (only the item's own name, never inside another's: Name=Shard_Remnant
+    "Shard_Remnant": "Shard",                        # is a risen one's, and stays. Shards in a pack or a bank go onto
+}                                                    # the balance as it loads: shards.py; on the ground, picked up so)
 RENAMED_SKILLS = {
     "Herblore": "Alchemy",
 }
@@ -54,11 +58,25 @@ def renamed(state):
         return state
     text = json.dumps(state)
     renames = dict(RENAMED_ITEMS, **RENAMED_SKILLS)
-    if not any(old in text for old in renames):
+    if not any(old in text for old in list(renames) + list(RENAMED_WHOLE)):
         return state
     for old, new in renames.items():
         text = text.replace(old, new)
-    return json.loads(text)
+    return renamed_whole(json.loads(text))
+
+
+WHOLE = re.compile(r"(?<![\w=])(%s)(?!\w)" % "|".join(map(re.escape, RENAMED_WHOLE)))
+
+
+def renamed_whole(v):
+    """RENAMED_WHOLE in every string of v, as a word of its own (a queue line's tab-parted name, an inventory's)."""
+    if isinstance(v, str):
+        return WHOLE.sub(lambda m: RENAMED_WHOLE[m.group(1)], v)
+    if isinstance(v, list):
+        return [renamed_whole(x) for x in v]
+    if isinstance(v, dict):
+        return {k: renamed_whole(x) for k, x in v.items()}
+    return v
 
 
 def renamed_map(name):

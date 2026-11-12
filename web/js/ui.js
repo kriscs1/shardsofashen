@@ -15,6 +15,8 @@ import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
 import { revealed } from "./voice.js";
+import { V } from "./render.js";
+import { playSound } from "./audio.js";
 
 export const TAB_TEXT = [243, 232, 136];
 const PARCHMENT = [212, 191, 126];
@@ -1489,10 +1491,84 @@ function vitalBar(ctx, y, frac, fill, icon_, text) {
   drawTextMid(ctx, text, barX + barW - 6 - tw, y, barH, 8, true, [255, 246, 222]);
 }
 
+// ----- Shards picked up off the ground (remnants.py gather_shards): each flies from where it lay to the Shard bar,
+// which counts it as it lands, with its sound. A pickup of many sends a few, each carrying its share. A Shard
+// Remnant rising (remnant_rise, "back"): its Shards set off for the bar, then turn and fly back into it, uncounted.
+const FLY_MS = 700, FLY_GAP = 90;
+const SF = { flights: [], base: 0, landed: 0, glowUntil: 0, backs: [] };
+
+export function shardFly(m, now) {
+  if (m.back) {
+    const k = Math.max(1, Math.min(6, m.n || 5)), gap = 70, ms = Math.max(500, (m.ms || 1100) - (k - 1) * gap);
+    for (let i = 0; i < k; i++) SF.backs.push({ x: m.x, y: m.y, bx: m.back[0], by: m.back[1], start: now + i * gap, ms });
+    return;
+  }
+  if (!SF.flights.length) { SF.base = Math.max(0, (m.to || 0) - m.n); SF.landed = 0; }
+  const k = Math.min(5, Math.max(1, m.n));
+  for (let i = 0; i < k; i++) {
+    const n = Math.floor(m.n / k) + (i < m.n % k ? 1 : 0);
+    SF.flights.push({ x: m.x, y: m.y, n, start: now + i * FLY_GAP, sound: i === k - 1 });
+  }
+}
+
+function shownShards() {
+  // (while some are in the air, the count is what's landed: never more than the balance, spent meanwhile or not)
+  return SF.flights.length ? Math.min(S.me.shards || 0, SF.base + SF.landed) : (S.me.shards || 0);
+}
+
+function bez(a, c, b, e) { return (1 - e) * (1 - e) * a + 2 * (1 - e) * e * c + e * e * b; }
+
+function drawShardBacks(ctx, now, im, tx, ty) {
+  // (out towards the bar for the first part, then a turn, and back down into where the Remnant forms)
+  const OUT = 0.42;
+  SF.backs = SF.backs.filter((f) => {
+    const t = (now - f.start) / f.ms;
+    if (t >= 1) return false;
+    if (t < 0 || !im) return true;
+    const sx = (f.x - V.cam.x) * V.zoom, sy = (f.y - V.cam.y) * V.zoom;
+    const bx = (f.bx - V.cam.x) * V.zoom, by = (f.by - V.cam.y) * V.zoom;
+    const px = sx + (tx - sx) * 0.38, py = Math.min(sy, ty) - 30 + (ty - sy) * 0.2;      // (the turn: a way to the bar)
+    let x, y, s;
+    if (t < OUT) {
+      const e = t / OUT, k = e * (2 - e);                                                 // (eased out: slowing to turn)
+      x = bez(sx, (sx + px) / 2, px, k); y = bez(sy, Math.min(sy, py) - 40, py, k); s = 20;
+    } else {
+      const e = (t - OUT) / (1 - OUT), k = e * e;                                         // (and falling back, faster)
+      x = bez(px, px + (tx - sx) * 0.12, bx, k); y = bez(py, py - 30, by, k); s = 20 - 6 * k;
+    }
+    ctx.drawImage(im, x - s / 2, y - s / 2, s, s);
+    return true;
+  });
+}
+
+function drawShardFlights(ctx, now, rowY) {
+  const im = sprite("Shard"), tx = VITALS.barX, ty = rowY + VITALS.barH / 2;
+  if (SF.backs.length) drawShardBacks(ctx, now, im, tx, ty);
+  if (!SF.flights.length) return;
+  SF.flights = SF.flights.filter((f) => {
+    const t = (now - f.start) / FLY_MS;
+    if (t >= 1) {
+      SF.landed += f.n;
+      SF.glowUntil = now + 220;
+      if (f.sound) playSound("Shard_Land");
+      return false;
+    }
+    if (t < 0) return true;
+    const sx = (f.x - V.cam.x) * V.zoom, sy = (f.y - V.cam.y) * V.zoom;
+    const e = t * t * (3 - 2 * t), cx = (sx + tx) / 2, cy = Math.min(sy, ty) - 60;   // (an arc, up and over)
+    const x = (1 - e) * (1 - e) * sx + 2 * (1 - e) * e * cx + e * e * tx;
+    const y = (1 - e) * (1 - e) * sy + 2 * (1 - e) * e * cy + e * e * ty;
+    const s = 22 - 8 * e;
+    if (im) ctx.drawImage(im, x - s / 2, y - s / 2, s, s);
+    return true;
+  });
+}
+
 function shardRow(ctx, y, n) {
   // (your Shards: what magic is spent from - a count, not a bar: they don't come back by themselves)
   const { barX, barW, barH } = VITALS;
-  roundBox(ctx, barX, y, barW, barH, "rgba(24,14,8,0.85)", [126, 77, 63], 1, 6);
+  const glow = performance.now() < SF.glowUntil;
+  roundBox(ctx, barX, y, barW, barH, "rgba(24,14,8,0.85)", glow ? [214, 190, 255] : [126, 77, 63], 1, 6);
   const im = sprite("Shard");
   if (im) ctx.drawImage(im, barX - 10, y - 4, 20, 20);
   const text = `${n} Shard${n === 1 ? "" : "s"}`;
@@ -1511,8 +1587,9 @@ function drawVitals(ctx) {
   const hp = me.hp, mhp = Math.max(1, me.max_hp);
   const hpFill = hp < mhp * 0.33 ? "rgb(210,50,36)" : hp < mhp * 0.66 ? "rgb(214,130,36)" : "rgb(196,40,40)";
   vitalBar(ctx, y + 4, hp / mhp, hpFill, configRead("Skills", "Icon.Hitpoints", "Heart") || "Heart", `${hp}/${me.max_hp}`);
-  shardRow(ctx, y + 21, me.shards || 0);
+  shardRow(ctx, y + 21, shownShards());
   drawStance(ctx);
+  drawShardFlights(ctx, performance.now(), y + 21);
 }
 
 // ----- your stance (stances.py): a round button for each, right of the bars (a phone: the one you're in, which opens

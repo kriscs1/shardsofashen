@@ -11,6 +11,8 @@ import struct
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 RATE = 44100
 
 
@@ -58,7 +60,7 @@ def old_main():
     fade = int(0.04 * RATE)
     for i in range(fade):                                        # (no click at the end)
         out[n - 1 - i] *= i / fade
-    path = os.path.join(ROOT, "sounds", "Denied.wav")
+    path = sound_file("Denied")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)

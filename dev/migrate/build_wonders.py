@@ -67,7 +67,7 @@ def people():
                 ("Aggressive", "1"), ("Level", str(level)), ("Hitpoints", str(round(8.3 * level))), ("Strength", str(round(0.68 * level))),
                 ("Defence", str(round(0.75 * level))), ("Attack.Speed", "1.7"), ("Movement.Speed", "1.3"), ("Aggro.Range", "220"),
                 ("Sight.Cone", "360"), ("Hearing", "1"), ("Weapon.Range", "0"), ("Kill.Sound", "Beast"),
-                ("Drops", "Gold_Coin(s),15-40,100 Shard_Remnant,2-4,100")]
+                ("Drops", "Gold_Coin(s),15-40,100 Shard,2-4,100")]
         for k, v in vals:
             ents.set(name, k, v, overwrite=False)
     for k, v in (("Glint", "1"),):

@@ -142,7 +142,7 @@ LORE = {
     "ways": "A shardstone is an Old One's door, and its rune sleeps until it's fed. A few Shards wake it, and once it "
             "knows you it remembers you: that's why you pay only the once. The far ones are hungrier.",
     "beasts": "Magic draws them, the way a fire draws moths. A wolf that's swallowed a Shard runs faster and bites "
-              "harder, and when it dies the Shard breaks: dull remnants you can draw the magic back out of. The "
+              "harder, and when it dies the Shard falls out of it, for whoever picks it up. The "
               "worse the beast, the more it's eaten. And sometimes the magic won't die with it: it rises, all "
               "splinters and spite, and goes for whoever killed it.",
     "mountain": "And Galaith's mountain was the deepest seam of all. Your forefathers dug its gold, and its Shards, "

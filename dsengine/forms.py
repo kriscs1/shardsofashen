@@ -288,14 +288,16 @@ class FormMixin:
             self.shards_heard = {k: v for k, v in heard.items() if v > self.now}
 
     def drink_remnants(self, reach):
-        """Drinking: Shard Remnants on the ground within reach, drunk straight off (as absorbed, and healing you)."""
+        """Drinking: Shards on the ground within reach, drunk straight off (as picked up, and healing you)."""
         p, w = self.player, self.w
         got = 0
+        flown = []
         for e in w.ents_near(p.z, p.cx, p.cy, reach):
             if e.type != MAPITEM or e.name != REMNANT or not e.alive or getattr(e, "once", False) or \
                     getattr(e, "source", "") == "MAP" or not w.visible_to(e, self):
                 continue
             got += max(1, e.quantity)
+            flown.append((max(1, e.quantity), e.cx, e.cy))
             m = w.maps.get(e.map)
             if e.owner is None and m is not None:
                 w.remove_action_from_queue("REMOVE", e.name, "MapItem", "*", m.name, w.local_coords(m, e.x, e.y))
@@ -303,13 +305,8 @@ class FormMixin:
             w.remove_entity(e)
         if not got:
             return
-        self.play_sound("Absorb")
-        self.give_shards(int(got * self.remnant_num("Absorb", 1)), "You drink %d Shard Remnant%s" % (
-            got, "" if got == 1 else "s"))
-        self.update_attribute("RemnantsAbsorbed", "+%d" % got)
-        xp = self.remnant_num("Absorb.XP", self.remnant_num("Absorb.Magic.XP", 0.05)) * got
-        if xp > 0:
-            self.update_skill("Shardcraft", "+%s" % round(xp, 3), pop=False)
+        for n, x, y in flown:
+            self.gather_shards(n, x, y)
         heal = int(got * self.form_sum("Drink.Heal"))
         if heal > 0 and self.player.hp < self.player_max_hp:
             self.update_skill("Hitpoints", "+%d" % heal)

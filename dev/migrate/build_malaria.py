@@ -19,7 +19,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Ini, p                      # noqa: E402
+from common import Ini, p, sound_file                      # noqa: E402
 import sprite_kit as K                         # noqa: E402
 import story_kit as SK                         # noqa: E402
 
@@ -97,7 +97,7 @@ def pictures():
 def scripts():
     SK.write_script("Pour Out Spoiled_Tonic", [
         ("Take.Item", "Spoiled_Tonic", "1"),
-        ("Play.Sound", "Water_Pour" if os.path.exists(p("sounds", "Water_Pour.wav")) else "Drop"),
+        ("Play.Sound", "Water_Pour" if os.path.exists(sound_file("Water_Pour")) else "Drop"),
         ("Give.Item", "Empty_Vial", "1"),
         ("End",)], MAKER)
     witch()

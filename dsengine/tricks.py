@@ -164,10 +164,9 @@ class TrickMixin:
         body, with it inside, has only your voice and nothing to say."""
         import random
         if self.swap and self.swap["npc"] is e:
-            self.ab_voice = self.npc_voice("You")
             self.show_menu(e.display, self.player_sprite_base, "It's you: your own body, with a very confused %s in it, "
                            "looking at you out of your own eyes." % pretty(self.swap["form"]).lower(),
-                           [("...", None)])
+                           [("...", None)], self.npc_voice("You"))
             return True
         lines = ANIMAL_TALK.get(e.name)
         if not lines:
@@ -175,8 +174,8 @@ class TrickMixin:
         line = random.choice(lines)
         if self.swap and self.swap["form"] == e.name:
             line += " (It's very nice to meet another %s.)" % pretty(e.name).lower()
-        self.ab_voice = self.npc_voice(e.name)          # (a human voice, its own pitch: ANIMAL_VOICE)
-        self.show_menu(pretty(e.name), e.name, line, [("...", None)])
+        self.show_menu(pretty(e.name), e.name, line, [("...", None)],
+                       self.npc_voice(e.name))          # (a human voice, its own pitch: ANIMAL_VOICE)
         return True
 
     def swap_allows(self, verb):

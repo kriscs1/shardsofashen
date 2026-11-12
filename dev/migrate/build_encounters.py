@@ -14,7 +14,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from common import Ini, p, write_image                  # noqa: E402
+from common import Ini, p, write_image, sound_file                  # noqa: E402
 import build_people as BP                               # noqa: E402
 import sprite_kit as K                                  # noqa: E402
 from build_sounds import n, noise, mix, shaped, delay, lowpass, voice   # noqa: E402
@@ -205,7 +205,7 @@ def abomination_groan():
 def write_sounds():
     for name, sig, level in (("Jester_Bells", jester_bells(), 0.55), ("Salesman_Bell", salesman_bell(), 0.6),
                              ("Abomination_Rise", abomination_rise(), 0.8), ("Abomination_Groan", abomination_groan(), 0.6)):
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         blob = wav_bytes(sig, level)
         if not os.path.exists(path) or open(path, "rb").read() != blob:
             with open(path, "wb") as f:
@@ -231,7 +231,7 @@ def write_data():
                              "which way up they went."),
             ("Hitpoints", "60"), ("Attack.Speed", "1.5"), ("Strength", "6"), ("Defence", "5"), ("Aggro.Range", "320"),
             ("Weapon.Range", "0"), ("Movement.Speed", "1.4"), ("Aggressive", "1"), ("Respawn", "600"),
-            ("Drops", "Shard_Remnant,6-10,100 Remnant_Core,1-1,100 Ember_Shard,1-1,20 Storm_Shard,1-1,20 Ward_Shard,1-1,20"),
+            ("Drops", "Shard,6-10,100 Remnant_Core,1-1,100 Ember_Shard,1-1,20 Storm_Shard,1-1,20 Ward_Shard,1-1,20"),
             ("Roam.Radius", "3"), ("Chase.Radius", "14"), ("Walk.Speed", "0.5"), ("Pause", "0-2"), ("Kill.Sound", "Beast"),
             ("Attitude", "Bad"), ("Light", "70"), ("Level", "8"), ("Boss", "1"), ("Fear.Immune", "1"),
             ("On.Hit", "Daze 20"), ("Sight.Cone", "360"), ("Hearing", "1.2"), ("Calls", "Abomination_Groan")]}

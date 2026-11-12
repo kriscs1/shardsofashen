@@ -111,7 +111,7 @@ def quest():
         0: "Magister Quill wonders how a Shard holds the shape of a spell.",
         1: "Bring Magister Quill the core of a Shard Remnant. They rise, now and then, from a beast's magic when it "
            "dies; killed, one leaves its core.",
-        2: "Absorb twenty more Shard Remnants (in your pack), then tell Magister Quill how it felt."}, 3,
+        2: "Pick up twenty more Shards where beasts fall, then tell Magister Quill how it felt."}, 3,
         markers={0: "Court_Magister", 1: "Court_Magister", 2: "Court_Magister"}, kind="Side",
         requires="The Shard Scholar")
     SK.section(p("data", "Quests.ini"), "The Spellwright", [("Reward.Shards", "20"), ("Reward.XP", "Magic 4")])
@@ -133,8 +133,8 @@ def quest():
         ("Update.Attribute", "SpellwrightQuest", "=2"),
         ("Play.Sound", "SpellCast"),
         SK.say(WIZARD, "Look at it: it's still holding the shape of the beast it was. Shape is the whole secret.\\Now "
-                       "you. Absorb twenty more remnants, and pay attention as you do: what the magic feels like as it "
-                       "comes into you. Then tell me.", ("I will.", "@end")),
+                       "you. Pick up twenty more Shards where beasts fall, and pay attention as you do: what the magic "
+                       "feels like as it comes into you. Then tell me.", ("I will.", "@end")),
         ("End",),
         ("@nocore",), SK.say(WIZARD, "A Remnant's core: they rise from a beast's magic, now and then, when it dies. "
                                      "Kill one and it leaves its core behind.", ("I'll find one.", "@end")),
@@ -151,8 +151,8 @@ def quest():
         ("Display.Message", "Yellow", "Quest complete: The Spellwright! Write a spell of your own at the Spellwright's "
                                       "Lectern.", "Quest"),
         ("End",),
-        ("@notyet",), SK.say(WIZARD, "Twenty remnants, absorbed, and mind how they feel. You've absorbed "
-                                     "$Attr.RemnantsAbsorbed in all.", ("I'll keep at it.", "@end")),
+        ("@notyet",), SK.say(WIZARD, "Twenty Shards from fallen beasts, and mind how they feel. You've "
+                                     "gathered $Attr.RemnantsAbsorbed in all.", ("I'll keep at it.", "@end")),
         ("End",),
         ("@done",), SK.say(WIZARD, "The lectern's there whenever you want to write your spell again. Change it as "
                                    "you grow: a spell's a living thing.", ("Thank you.", "@end")),

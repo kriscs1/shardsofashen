@@ -909,8 +909,19 @@ class Project:
         return self._files("scripts", ("data", "Scripts"), ".txt")
 
     def sounds(self):
-        return sorted(set(self._files("sounds", ("sounds",), ".wav")) |
-                      {s + ".mid" for s in self._files("midis", ("sounds",), ".mid")}, key=str.lower)
+        """Every sound by its name, whichever folder of sounds it's in (sounds/<kind>: ashen/sounds.py); a tune with its
+        extension."""
+        if "sounds" not in self._lists:
+            names = set()
+            for d, _dirs, files in os.walk(self.p("sounds")):
+                for f in files:
+                    stem, ext = os.path.splitext(f)
+                    if ext.lower() == ".wav":
+                        names.add(stem)
+                    elif ext.lower() in (".mid", ".ogg", ".mp3"):
+                        names.add(f)
+            self._lists["sounds"] = sorted(names, key=str.lower)
+        return self._lists["sounds"]
 
     def maps(self):
         if "maps" not in self._lists:

@@ -23,7 +23,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Ini, p                      # noqa: E402
+from common import Ini, p, sound_file                      # noqa: E402
 import build_sounds as SND                     # noqa: E402
 import sprite_kit as K                         # noqa: E402
 import story_kit as SK                         # noqa: E402
@@ -220,7 +220,7 @@ SOUNDS = {
 def sounds():
     for name, fn in SOUNDS.items():
         blob = SND.wav_bytes(fn())
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         if not (os.path.exists(path) and open(path, "rb").read() == blob):
             with open(path, "wb") as fh:
                 fh.write(blob)

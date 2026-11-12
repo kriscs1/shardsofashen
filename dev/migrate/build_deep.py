@@ -17,7 +17,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import Ini, p                      # noqa: E402
+from common import Ini, p, sound_file                      # noqa: E402
 import build_sounds as SND                     # noqa: E402
 import sprite_kit as K                         # noqa: E402
 import story_kit as SK                         # noqa: E402
@@ -33,7 +33,7 @@ DEEP = [   # Deep.ini [Deep] (key, value, note)
     ("Level.Base", "4", "Its Shard Remnants' level on floor 1, and Level.Per.Floor more each floor down."),
     ("Level.Per.Floor", "3", None),
     ("Mimic.Chance", "12", "In 100: a chest that bites."),
-    ("Loot", "Gold_Coin(s),10-30,100 Shard,2-6,60 Shard_Remnant,2-5,40 Healing_Draught,1-2,35 "
+    ("Loot", "Gold_Coin(s),10-30,100 Shard,2-6,60 Shard,2-5,40 Healing_Draught,1-2,35 "
              "Invisibility_Potion,1-1,8",
      "What a chest holds (item,lo-hi,chance in 100; more the deeper), a secret room's, and the Heart's."),
     ("Secret.Loot", "Gold_Coin(s),40-80,100 Shard,8-15,100 Invisibility_Potion,1-2,40", None),   # (no scrolls)
@@ -116,7 +116,7 @@ SOUNDS = {
 def sounds():
     for name, fn in SOUNDS.items():
         blob = SND.wav_bytes(fn())
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         if not (os.path.exists(path) and open(path, "rb").read() == blob):
             with open(path, "wb") as fh:
                 fh.write(blob)

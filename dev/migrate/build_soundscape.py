@@ -7,7 +7,8 @@ few takes (Fail, Fail_2, Fail_3) are picked among at random as they play (audio.
                   a low string), Fizzle (a spell's breath going out)
   The interface:  Click (a soft tick of parchment), Chat (a soft harp pluck), Hail (a carter's "hoy!")
   Doing well:     Gather_Wood, Gather_Ore, Gather_Fish, Harvest, Cooked, Crafted, Unlock, Learn, Success
-  Magic:          Rare_Shard, Appear, Vanish, Swap, SpellHeal, LevelUp, Quest, Remnant_Rise, Absorb, Bloom_Harvest,
+  Magic:          Rare_Shard, Appear, Vanish, Swap, SpellHeal, LevelUp, Quest, Quest_Done (a quest finished: three
+                  quiet notes down to rest, not a fanfare), Remnant_Rise, Absorb, Shard_Land, Bloom_Harvest,
                   Freeze, Stone_Wake, Enchant, Portal, Gate_Built, Anchor_Shatter (harps for the old sine chimes),
                   Hush, Dread, Buzz (a mosquito), Mage_Blink (a Dark Mage gone and back)
   A fever:        Fever_Shiver (teeth chattering, a shaky breath), Fever_Cured (a long breath out, a low harp)
@@ -28,7 +29,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import p                                                    # noqa: E402
+from common import p, sound_file                                                    # noqa: E402
 from build_sounds import RATE, n, noise, tone, mix, shaped, delay, lowpass, voice, crackle  # noqa: E402
 
 
@@ -204,10 +205,15 @@ SOUNDS = {
     "Quest": (lambda: room(mix(*[(delay(lute(NOTE[nt], 1.0, 100 + k, 0.996), k * 0.13), 0.5)
                                  for k, nt in enumerate(("G3", "C4", "E4", "G4"))],
                                (delay(bell(196, 1.5, 1.8), 0.5), 0.3)), 0.35), 0.7),
+    "Quest_Done": (lambda: room(mix((lute(NOTE["E4"], 0.6, 104), 0.5), (delay(lute(NOTE["D4"], 0.6, 105), 0.16), 0.45),
+                                    (delay(lute(NOTE["C4"], 1.3, 106, 0.996), 0.34), 0.5),
+                                    (delay(lute(NOTE["G3"], 1.3, 107, 0.996), 0.36), 0.3)), 0.3), 0.42),
     "Remnant_Rise": (lambda: room(mix((lowpass(voice(70, 0.9, glide=0.4, vibrato=0.04, rate=5, rough=0.08, seed=110,
                                                      shape="square"), 0.12), 1.0),
                                       (sparkle(111, 659, 5, 0.6), 0.8), (breath(112, 0.9, 0.04, 0.4), 0.4)), 0.3), 0.7),
     "Absorb": (lambda: room(mix((breath(140, 0.7, 0.05, 0.8), 0.6), (harp_run((330, 392, 523), 0.06, 0.6), 0.8)), 0.25), 0.55),
+    "Shard_Land": (lambda: room(mix((bell(1318.5, 0.5, 7), 0.45), (delay(bell(1975.5, 0.4, 8), 0.035), 0.3),   # (a Shard
+                                    (sparkle(150, 2637, 3, 0.35), 0.3), (knock(880, 0.05, 151, 0.7), 0.25)), 0.2), 0.5),  # reaching the bar)
     "Bloom_Harvest": (lambda: room(mix((harp_run((659, 880, 1109, 1319), 0.07, 0.8), 0.9),
                                        (breath(141, 0.6, 0.12, 0.3), 0.3)), 0.3), 0.6),
     "Freeze": (lambda: room(mix((harp_run((784, 1047, 1319, 1568), 0.06, 0.9), 0.7), (breath(142, 0.9, 0.2, 0.3), 0.3),
@@ -299,7 +305,7 @@ def main():
     written = 0
     for name in SOUNDS:
         blob = make(name)
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         if os.path.exists(path):
             with open(path, "rb") as f:
                 if f.read() == blob:

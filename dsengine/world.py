@@ -1280,8 +1280,11 @@ class World(NPCMixin):
         self.fx({"t": "splat", "kind": kind, "n": int(amount), "uid": e.uid, "x": int(e.cx),
                  "y": int(e.y + e.h * 0.25) + random_number(-3, 3), "dx": random_number(-5, 5)}, e.z, e.cx, e.cy, owner)
 
-    def fx_anim(self, base, z, x, y, ms, owner=None):
-        self.fx({"t": "anim", "base": base, "x": int(x), "y": int(y), "ms": int(ms)}, z, x, y, owner)
+    def fx_anim(self, base, z, x, y, ms, owner=None, delay=0):
+        ev = {"t": "anim", "base": base, "x": int(x), "y": int(y), "ms": int(ms)}
+        if delay:
+            ev["delay"] = int(delay)                    # (render.js addFx: it plays that much later)
+        self.fx(ev, z, x, y, owner)
 
     def shard_form(self, e):
         """A creature drawn together out of Shard essence (come back after it was killed, or risen): motes and a sound."""

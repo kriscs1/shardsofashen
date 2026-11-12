@@ -26,7 +26,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "estforlan"))
-from common import Ini, p, write_image                  # noqa: E402
+from common import Ini, p, write_image, sound_file                  # noqa: E402
 import story_kit as SK                                  # noqa: E402
 import sprite_kit as K                                  # noqa: E402
 from build_isle import Map, XT, YT, house               # noqa: E402
@@ -632,7 +632,7 @@ def coin_splash():
 
 def sounds():
     for name, sig, level in (("Ambient_Fountain", loop_of(fountain_water), 0.32), ("Coin_Splash", coin_splash(), 0.7)):
-        path = p("sounds", name + ".wav")
+        path = sound_file(name)
         blob = wav_bytes(sig, level)
         if not os.path.exists(path) or open(path, "rb").read() != blob:
             with open(path, "wb") as f:

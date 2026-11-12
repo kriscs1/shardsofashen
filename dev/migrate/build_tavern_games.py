@@ -21,6 +21,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 import pygame  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import sound_file  # noqa: E402
 
 OUT = os.path.join(ROOT, "sprites", "Interface")
 OUTLINE = (34, 30, 30)
@@ -142,7 +144,7 @@ def pictures():
 
 # ---------------------------------------------------------------- the sounds
 def write_wav(name, samples):
-    with wave.open(os.path.join(ROOT, "sounds", name + ".wav"), "wb") as w:
+    with wave.open(sound_file(name), "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(RATE)
