@@ -286,6 +286,25 @@ Issues found by reading the code (2026-11-10). Tick a box when its fix is commit
   Farmers', Bakers' and others' kinds have their own `Talk to <Kind>` already, the notices' words differ, and the
   tools' and cats' copies are each a short `Goto.Script` or written by a builder still run.
 
+## Left for later
+
+Found by the break test of 2026-11-12 (`dev/Break Test 2026-11-12.md`, section B) and left on purpose, with the
+reason. Not boxes: none of them is a bug.
+
+- **PERF-06. Finding things by map.** Each tick goes through every thing in the world (about 3,750) to sort them
+  by map: `npcs.py` `by_map`, `view.py` `ents_by_map`, and `world.py` `update_object_blocks`, once for each map whose
+  blocks changed. That's about 1.7 ms a tick on a PC, the same with 1 player or 5. The fix is an index kept as things
+  move. It waits because every way something changes map would have to keep it right (stairs, doors, ferries,
+  respawns, spawns, deaths, summons, teleports), and a missed one leaves a creature invisible, or impossible to hit, on
+  its new map. Do it, with cheaper creature path-finding (`entity_can_stand`, `npc_walk_to`: 45% of a tick with 50
+  players on separate maps), if a phone host's ticks run late or the world grows a lot.
+- **Lock picking can't be bot-proof.** The pin being picked has to be drawn, so the page knows its timing. Pins still
+  to come are hidden and the server's clock judges each tap; a bot can still time the pin it sees.
+- **No lower rate for clicks.** One walk plan at a time (`WALK_PLAN_GAP`) already takes away what a storm of clicks
+  cost.
+- **Compressed messages cost CPU** (PERF-13): about 11% more at 50 players. They stay: they take a player's
+  17.9 KB/s down to 3.5.
+
 ## Checked and sound
 
 - (Fixing 42 and 43.) The editor's `_check_refs` thread builds its references on its own and swaps them in whole.
