@@ -142,9 +142,9 @@ tested and committed.
 - [ ] The same on the store pages, when they're written.
 
 ## 12. Finished
-- [ ] `dev/Rules.md` (Writing: short messages, hover lines; Art and sound: the sound folders, music by place, combat
+- [x] `dev/Rules.md` (Writing: short messages, hover lines; Art and sound: the sound folders, music by place, combat
       music; Creatures: stances; Skills: the curve), `dev/Story and Quests.md`, `CREDITS.md`.
-- [ ] `validate.py` 0 errors, the full tests, `export_web_assets.py`, `build_minimaps.py` if maps changed, a look in
+- [x] `validate.py` 0 errors, the full tests, `export_web_assets.py`, `build_minimaps.py` if maps changed, a look in
       the browser (desktop and phone), committed and pushed.
 
 ## Still to decide

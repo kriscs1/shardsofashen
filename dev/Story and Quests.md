@@ -67,7 +67,7 @@ and each place's keeper names the next: never a letter or a sign.
 |---|---|---|
 | 1 | **The Last Will** | You stand at your mother's fresh grave by the chapel. The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the table. The cottage door stays locked until you've **read the letter** (three pages, in the owner's words): you are the heir of Ashen. Jimmy sleeps on her empty bed. |
 | 2 | **Dinner at Edwin's** | Edwin the lawyer asks you to dinner. **Maren**, his wife, is the Isle's doctor (their house is two storeys of brick by the chapel, her surgery and his desk downstairs; it was the bank. They live upstairs, and go up at night). **Chop 3 logs** for her range (she lends an axe), **take an egg** from Bess's coop and **fry it** on her range, give it to Edwin. Reward: the key to the chapel's trapdoor, and a promise not to go down without a sword and shield. |
-| 3 | **The Amulet of Succession** | **Bess** the milkmaid tells you Wim needs papers, and that her father wrote them. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Strength and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
+| 3 | **The Amulet of Succession** | **Bess** the milkmaid tells you Wim needs papers, and that her father wrote them. Her husband **Frank** the blacksmith (smoke from his chimney by day) helps you **make a wooden sword and shield**. **Brother Aldous** lets you down once you wield both and Attack and Defence are level 2. The amulet lies **behind bars** at the back of the caves: Aldous brings a **Grasp** scroll. Reward: the amulet and the key of the hobgoblins' lair. |
 | 4 | **Passage to the Mainland** | Bess's father **Tobias** is missing and his house (Maren & Bess's Father's Home) is locked. The **hobgoblins' lair**: four hobgoblins (no new ones until you leave), the house key in the corner barrel, Tobias in a cage you **pick the lock** of (the lock minigame: set each pin as it crosses the line; three slips and you start again). He gives you his house and moves in with Maren at the bank. A hidden ladder climbs into a tent in their camp on the surface (only a tent until it's been climbed from below). In the house a **floorboard squeaks**: under it, the **papers** Mary left with him for you, under a crowned seal (what the hobgoblins were after). **Wim** reads them and lets you aboard, for a coin; at Northport the **port guard** reads them too and sends you to the Speaker. In the demo, the ferry goes no further: with the papers, the demo's end card shows what the Isle gave you and what's left to ask (the order in ash, the miniature, if found), and the full game goes on from there. |
 
 ### The road to the Wizards' Court
@@ -165,7 +165,7 @@ painting (Portrait of Mo) and 25 gold. (The scripts check what Mo is doing: >Ent
 
 **The Herbalist's Remedy**: *level 2, after chapter 4*
 The Herbalist in her cottage on the Ashford farmlands wants 3 cave mushrooms (the old iron mine) and 2 spider silk
-(giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Potion Making experience.
+(giant spiders in the mine depths). Reward: 60 gold, 2 super potions, Alchemy experience.
 
 **The Smugglers' Run**: *after chapter 4*
 Sergeant Holt at the castle's south gate wants to know how smuggled goods reach the market. The fishermen mention
@@ -240,7 +240,7 @@ Reward: 150 gold, a steel shield, Defence experience.
 
 **Bog Lights**: *level 3, Potion Making 3, after chapter 4*
 Old Morwen the witch in Fenwick wants 4 bog myrtle. She brews something for Elder Pike; take it to him, then tell
-her he drank it. Reward: 80 gold, 2 mega potions, Potion Making experience. (Morwen returns in *Old Hob*.)
+her he drank it. Reward: 80 gold, 2 mega potions, Alchemy experience. (Morwen returns in *Old Hob*.)
 
 **Bandits on the Road**: *level 5, after chapter 4*
 Captain Hale in Highwatch: slay 5 bandits, then find their camp in the eastern hills and take the stolen goods
@@ -271,7 +271,7 @@ mithril sword, Smithing experience.
 
 **The Withering Wood**: *level 6, after Wolves of the Greyflats*
 The Druid in Thornwick: touch the Heartwood, the Elderwood's old heart stone, then slay 4 blight-maddened bears.
-Reward: 150 gold, an emerald ring, Potion Making and Woodcutting experience.
+Reward: 150 gold, an emerald ring, Alchemy and Woodcutting experience.
 
 **The Barrow King**: *level 8, after The Withering Wood*
 The Gravekeeper in Ravensgate: find the old king's barrow on the downs and lay the Barrow King to rest. Reward:
@@ -302,7 +302,7 @@ Magister Quill, in the great hall of the Wizards' Court, has spent forty years o
 hand them over only when you say so). He tells you what they are: the Old Ones bound the land's magic into the
 shardstones; the dragon drank Galaith's mountain's down and shattered what it couldn't hold. That's why shardstones
 must be fed, why beasts that swallow Shards carry them, and why the mountain behind Galaith was the richest seam of
-all. Reward: a scroll of Frost Nova and Magic experience. His answers about the Shards are there to ask any time,
+all. Reward: a scroll of Frost Nova and Channeling experience. His answers about the Shards are there to ask any time,
 and why a potion isn't a spell: Shards reach out of you, herbs work within; Shards can't mend a body.
 
 **The Invisible Apprentice**: *after chapter 4*
@@ -332,7 +332,7 @@ gold, 12 Shards. Gerald does not apologise.
 **Granny Bramble's Practice Hex**: *after The Invisible Apprentice*
 A hedge witch at Fenwick's market practises a hex on you: your Attack drains to nothing for ten minutes. Then she
 wants the four market rats seen to. Your sword arm's no use: a spell, a potion, or someone else's body. Reward:
-Antidotes, 15 Shards, Magic experience.
+Antidotes, 15 Shards, Channeling experience.
 
 **The Shifting Deep**: an old Shard mine by the road south of Greyford, its tunnels never where they were. Three
 floors of rooms and tunnels, monsters stronger the deeper you go, chests (once each, a shift; sometimes one bites),
@@ -359,11 +359,11 @@ of icy water, a custard pie. Each rests ten minutes after it springs.
 
 **The Scarecrow's Hat**: *after chapter 4*
 A scarecrow in the fields outside Oakhollow has been thinking for twenty years, out loud, and his head's cold. Bring
-him a hat, any hat (a chef's hat makes him want to cook). Reward: 8 Shards, Farming experience, and a thought.
+him a hat, any hat (a chef's hat makes him want to cook). Reward: 8 Shards, Homesteading experience, and a thought.
 
 **Duchess Has Opinions**: *after chapter 4*
 A cow outside Ashford can talk, and nobody's noticed. The grass is terrible: bring her three bunches of herbs. Reward:
-a bucket of milk, 8 Shards, Farming experience.
+a bucket of milk, 8 Shards, Homesteading experience.
 
 **The Mayor's Missing Trousers**: *after The Ashford Road*
 Constable Dobbs, in Ashford's square, needs it kept quiet: the Mayor's trousers went off the washing line. Search the
@@ -377,8 +377,8 @@ dogs, frogs and seals each have something to say. Ordinary townsfolk have more t
 How does a Shard know what shape a spell is? Bring Quill the core of a risen Shard Remnant, then pick up twenty more
 Shards where beasts fall and tell him how it felt. He teaches you to write a spell of your own at the **Spellwright's Lectern** by the
 throne in the great hall: choose its effect (a bolt, a burst round you, a frost that holds foes, a ward), its power
-(as far as your Magic goes) and its reach; its Shards and rest are worked out to balance. Write it again whenever you
-like, for a few Shards. Reward: 20 Shards, Magic experience.
+(as far as your Channeling goes) and its reach; its Shards and rest are worked out to balance. Write it again whenever you
+like, for a few Shards. Reward: 20 Shards, Channeling experience.
 
 ### The zones' points of interest (`build_middle_quests.py`)
 

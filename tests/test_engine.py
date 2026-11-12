@@ -7197,10 +7197,13 @@ def test_walk_away_walks_off_while_the_scene_goes_on(world):
     leave(world, s)
 
 
-def test_an_npc_stands_still_while_you_talk(world):
+def test_an_npc_stands_still_while_you_talk():
     """Someone you're talking with (their words open in your window) stops where they are and looks at you, and
     goes on their way a moment after you're done."""
     from dsengine.entity import AI_ROAM
+    random.seed(1)
+    world = new_world()                                 # (its own: in the module's, the NPC may be on a walk an
+                                                        #  earlier test began, as far along as the machine's speed let it)
     e = next(e for e in world.ents if e.type == NPC and e.alive and e.ai is not None and e.ai.stand == 0 and
              not e.ai.fixed_pose and world.data.entity_ini(e.name, "Aggressive", "0") != "1" and e.map in world.maps)
     m = world.maps[e.map]
@@ -7220,7 +7223,6 @@ def test_an_npc_stands_still_while_you_talk(world):
     s.ab_mode = ""
     ticks(world, 20)                                    # (a moment after: still there, then off it may go)
     assert (e.x, e.y) == (x, y)
-    leave(world, s)
 
 
 def test_each_death_leaves_a_grave_of_its_own(world):

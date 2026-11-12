@@ -36,7 +36,9 @@ jobs:
 
       - name: The tests first (nothing broken gets published)
         run: |
-          pip install aiohttp pytest pillow numpy       # (pillow: the map editor's tests; numpy: the builders they import)
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+          pip install aiohttp pytest pillow numpy pygame   # (pillow: the map editor's tests; numpy, pygame: the builders and the export)
+          python -I tools/export_web_assets.py             # (web/assets, which the server's tests fetch from)
           python -m pytest tests -q
 
       - uses: docker/setup-buildx-action@v3
