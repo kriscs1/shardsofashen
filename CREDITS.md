@@ -1,5 +1,7 @@
 # Credits
 
+Shards of Ashen © 2026 Hallisium. All rights reserved.
+
 Almost everything in Shards of Ashen is made for it: the art and most sounds are drawn and synthesised in code by
 `dev/migrate/build_*.py`, and the place music is composed by `dev/migrate/build_music.py`.
 
