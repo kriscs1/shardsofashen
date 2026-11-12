@@ -20,7 +20,7 @@ RED = ("DARKRED", "RED")
 
 def main():
     files = lines_done = 0
-    for path in sorted(glob.glob(os.path.join(ROOT, "data", "Scripts", "*.txt"))):
+    for path in sorted(glob.glob(os.path.join(ROOT, "data", "Scripts", "*.script"))):
         if re.fullmatch(r"-?\d+,-?\d+,-?\d+", os.path.splitext(os.path.basename(path))[0]):
             continue                                      # (a map's own script: what you find on arriving)
         raw = open(path, "rb").read().decode("cp1252")

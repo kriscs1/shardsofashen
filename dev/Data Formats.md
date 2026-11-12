@@ -32,8 +32,8 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 | `data\ItemRacks.ini` | Shops, crafting lists |
 | `data\DayNight.ini` | The sky through the day, night, the times' names, sleeping |
 | `data\Weather.ini` | The kinds of weather and where they come |
-| `data\Scripts\*.txt` | Scripts (see Scripts) |
-| `maps\X,Y,Z.txt` | One file per screen |
+| `data\Scripts\*.script` | Scripts (see Scripts) |
+| `maps\X,Y,Z.map` | One file per screen |
 | `maps\Test\` | The test maps that were in `maps\` before the old world was converted |
 | `data\NewCharacter.ini` | A new character's start (characters themselves are in the server's database) |
 | `sounds\*.wav`, `sounds\*.mid` | Sound effects / music |
@@ -296,7 +296,7 @@ Item2=Arrows,Logs 1 Bronze_Bar 1,0.2,3,25        ; ...,level needed,how many one
 ```
 The bank is not a rack: it's stored in the save file.
 
-## maps\X,Y,Z.txt
+## maps\X,Y,Z.map
 
 * X = east (+), Y = south (+), Z = level (0 ground, -1 underground, +1 upstairs).
 * The first `Map.Y.Tiles` (21) lines are tile rows, each with `Map.X.Tiles` (25) tile cells separated by `:`.
@@ -319,9 +319,9 @@ The bank is not a rack: it's stored in the save file.
     like any object, with its tile's picture, verbs, examine text, footprint (Walkable.Data), Light, sway and flicker.
   * **Ids**: any NPC, MapItem or StaticObject line may have `Id=<name>` in its Options: it names that one thing in
     the world (unique, and not a sprite's name: validate.py checks). Scripts named `<Verb> <Id>` are tried before
-    `<Verb> <Name>` (e.g. `Pickup CellarKey.txt`, `Talk to OldHob.txt`, `Kill <Id>.txt`, `Use Key With <Id>.txt`). A
+    `<Verb> <Name>` (e.g. `Pickup CellarKey.script`, `Talk to OldHob.script`, `Kill <Id>.script`, `Use Key With <Id>.script`). A
     picked-up item respawns with its Id. Add.Entity's misc can give one too (`3 Id=CellarKey`, `Id=Ferry_To_Northport`).
-    Every notice has one, from its title (build_content.notice_ids): its text is `Read <Id>.txt` (e.g. `Read Ashford`).
+    Every notice has one, from its title (build_content.notice_ids): its text is `Read <Id>.script` (e.g. `Read Ashford`).
   * `NPC<TAB>Name<TAB>X<TAB>Y<TAB>Options`: a person or a monster. Options are space-separated `Key=Value` pairs:
     * `Attitude=Good|Bad`: friendly or a foe (every NPC line has it; missing = its Entities.ini Attitude). The game
       treats a Bad NPC as the old BadNPC (Attack is its left click, it chases and attacks on sight if Aggressive, spells
@@ -341,7 +341,7 @@ The bank is not a rack: it's stored in the save file.
       are joined with commas: gone once any one is reached, there only once all are (`Gone.After=AnnisHome:1,EldestQuest:1`).
       The same on a StaticObject's line.
     * `Spotted.Script=<script>`: a watchman. When it sees a player (Attitude=Bad and a Cone, as any foe sees), the
-      script (data\Scripts\<script>.txt, a name with no spaces) runs for them, at most once in 8 seconds, and it
+      script (data\Scripts\<script>.script, a name with no spaces) runs for them, at most once in 8 seconds, and it
       doesn't fight: it goes on with its round (Watch_Search: the watch takes Meg's cask and puts you out).
     * The old `GoodNPC` / `BadNPC` lines still load, as an NPC with Attitude=Good / Bad (build_world.py converts them,
       the Map Editor saves them as NPC lines, validate.py warns about them).
@@ -413,7 +413,7 @@ The same syntax as the script `>Conditional` command: `a=b`, `a<>b`, `a<b`, `a>b
 
 Example: `Lock	20	7	$Attr.BeggarQuest>=2 or $Item.Key>=1	The door is locked. Maybe the beggar knows where the key is.`
 
-## Scripts (data\Scripts\*.txt)
+## Scripts (data\Scripts\*.script)
 
 * One command per line: `NN<TAB>Command<TAB>arg1<TAB>arg2...`, where NN is the 2-digit line number.
   Lines starting with `//` are comments.
@@ -425,17 +425,17 @@ Example: `Lock	20	7	$Attr.BeggarQuest>=2 or $Item.Key>=1	The door is locked. May
   `$Tile.under.Cursor.X`, `$Tile.under.Cursor.Y`, `$Entity.under.Cursor.ID`, `$Variable.1`..`$Variable.9`.
   `Variable.n$` (no `$` prefix) as an argument names the variable to store into.
 * **Script lookup** when the player does `Verb` on an entity/tile `Name` of type `Type`:
-  0. for something with an Id= on its map line: `Verb Id.txt` (e.g. `Read Ashford.txt`, `Pickup CellarKey.txt`)
-  1. `Verb Name.txt` (e.g. `Chop Tree001.txt`, then without the digits, `Chop Tree.txt`)
-  2. `Verb [Type].txt` (e.g. `Pickup [MapItem].txt`, `Drop [InventoryItem].txt`)
+  0. for something with an Id= on its map line: `Verb Id.script` (e.g. `Read Ashford.script`, `Pickup CellarKey.script`)
+  1. `Verb Name.script` (e.g. `Chop Tree001.script`, then without the digits, `Chop Tree.script`)
+  2. `Verb [Type].script` (e.g. `Pickup [MapItem].script`, `Drop [InventoryItem].script`)
   3. the engine's built-in default for that verb (Pickup, Drop, Examine, Eat, Talk to, Attack, Walk here)
-  * Using one item on another: `Use A With B.txt`, then `Use B With A.txt`.
+  * Using one item on another: `Use A With B.script`, then `Use B With A.script`.
   * Triggers: the script name stored in the map. Read map entity lines with `line input`,
     because script names can contain commas (e.g. map-entry scripts such as `1,1,0`).
-  * Using one item on another also tries the names without their 3-digit variant (`Use Axe With Tree001` finds `Use Axe With Tree.txt`).
-  * NPC death: `Kill <Name>.txt` (e.g. `Kill Hobgoblin.txt`) runs whenever that NPC is killed.
-  * Skills: `<Skill> Skill.txt` (e.g. `Cooking Skill.txt`) runs when that skill is clicked in the stat box.
-  * Map entry: `<MapName>.txt` (e.g. `1,1,0.txt`) runs each time that map is loaded, if it exists.
+  * Using one item on another also tries the names without their 3-digit variant (`Use Axe With Tree001` finds `Use Axe With Tree.script`).
+  * NPC death: `Kill <Name>.script` (e.g. `Kill Hobgoblin.script`) runs whenever that NPC is killed.
+  * Skills: `<Skill> Skill.script` (e.g. `Cooking Skill.script`) runs when that skill is clicked in the stat box.
+  * Map entry: `<MapName>.script` (e.g. `1,1,0.script`) runs each time that map is loaded, if it exists.
   * Variables are expanded in every argument, including script names in Goto.Script.
   * Item quantities may be a range `min-max` (random within the range).
   * Empty script files count as "not found".
@@ -443,7 +443,7 @@ Example: `Lock	20	7	$Attr.BeggarQuest>=2 or $Item.Key>=1	The door is locked. May
 ## data\Gathering.ini (read by the in-game Help screen)
 
 One section per kind of thing the player can gather. The actual gathering is done by scripts
-(e.g. `Chop Tree.txt`); this file describes it so the Help screen can list it.
+(e.g. `Chop Tree.script`); this file describes it so the Help screen can list it.
 
 ```
 [Logs from trees]          ; section name = how the entry is titled in the Help screen
@@ -587,7 +587,7 @@ A new character's start (`Session.new_player_start`). Characters themselves are 
 * ItemRacks: optional `Specific=1` (the shop only buys listed items); craft rows may have a 4th field, the required level; stock `+` = unlimited.
 * Built-in verbs: Walk here, Pickup, Drop, Drop 1, Examine, Eat, Use, Use X with Y, Talk to, Attack, Count, Climb Up (Z+1), Climb Down (Z-1), Bank.
 * Optional config: `[Debugging] Debug=1` enables the debug hotkeys; `[Minimap] Blackout=1` hides unexplored maps.
-* Clicking a skill in the stat box runs `<Skill> Skill.txt` if it exists.
+* Clicking a skill in the stat box runs `<Skill> Skill.script` if it exists.
 * INI values can't have inline `;` comments (Windows doesn't strip them); put comments on their own line.
 * Ladders: Ladder001/Ladder004/Ladder008 and Stairs001 = Climb Up (Z+1), Ladder002/005/006/007/009 and Stairs002 = Climb
   Down (Z-1), Ladder003 = both. A ladder's other end is at the same tile X,Y on the level above/below, on walkable

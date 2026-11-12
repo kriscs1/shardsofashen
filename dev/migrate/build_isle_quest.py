@@ -237,7 +237,7 @@ def write(name, rows):
     for i, r in enumerate(numbered, 1):
         fields = [("%02d" % labels[f]) if isinstance(f, str) and f.startswith("@") else str(f) for f in r]
         out.append("%02d\t%s" % (i, "\t".join(fields)))
-    with open(os.path.join(DATA, "Scripts", name + ".txt"), "w", encoding="cp1252", newline="\r\n") as f:
+    with open(os.path.join(DATA, "Scripts", name + ".script"), "w", encoding="cp1252", newline="\r\n") as f:
         f.write("\n".join(out) + "\n")
 
 

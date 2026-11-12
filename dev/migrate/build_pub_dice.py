@@ -20,7 +20,7 @@ PLAIN = ("Plank001", "Tile001", "Marble001", "Flagstone001")
 
 def main():
     placed, kept, none = 0, 0, []
-    for path in glob.glob(p("maps", "*,0.txt")):
+    for path in glob.glob(p("maps", "*,0.map")):
         name = os.path.basename(path)[:-4]
         lines = open(path, "rb").read().decode("cp1252").split("\r\n")
         ents = [ln for ln in lines if "\t" in ln]

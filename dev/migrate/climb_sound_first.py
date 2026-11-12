@@ -44,12 +44,12 @@ def compile_steps(steps):
 
 
 def read(name):
-    path = os.path.join(SCRIPTS, name + ".txt")
+    path = os.path.join(SCRIPTS, name + ".script")
     return open(path, "rb").read().decode("cp1252").split("\r\n")
 
 
 def write(name, lines):
-    with open(os.path.join(SCRIPTS, name + ".txt"), "wb") as f:
+    with open(os.path.join(SCRIPTS, name + ".script"), "wb") as f:
         f.write("\r\n".join(lines).encode("cp1252"))
 
 
@@ -108,8 +108,8 @@ def main():
             write(name, new)
             n += 1
     for f in sorted(os.listdir(SCRIPTS)):
-        name = f[:-4]
-        if f.startswith("Climb ") and f.endswith(".txt") and name not in dict((g[0], 1) for g in GENERIC):
+        name = f[:-7]
+        if f.startswith("Climb ") and f.endswith(".script") and name not in dict((g[0], 1) for g in GENERIC):
             n += fix_fixed(name)
     print("Climbs: %d scripts heard first, then moved" % n)
 

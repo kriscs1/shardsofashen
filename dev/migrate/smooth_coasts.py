@@ -47,7 +47,7 @@ def diagonal(tile):
 class World:
     def __init__(self):
         self.maps = {}
-        for path in glob.glob(os.path.join(ROOT, "maps", "*,0.txt")):
+        for path in glob.glob(os.path.join(ROOT, "maps", "*,0.map")):
             name = os.path.basename(path)[:-4]
             bits = name.split(",")
             if len(bits) == 3 and all(b.lstrip("-").isdigit() for b in bits):

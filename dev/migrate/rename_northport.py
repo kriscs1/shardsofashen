@@ -24,7 +24,7 @@ def swap(b):
 
 
 def files():
-    for top, exts in (("data", (".ini", ".txt")), ("maps", (".txt",)), ("tests", (".py",)),
+    for top, exts in (("data", (".ini", ".script", ".map")), ("maps", (".map",)), ("tests", (".py",)),
                       (os.path.join("dev", "migrate"), (".py", ".txt", ".json")), ("dev", (".md", ".txt")),
                       ("web", (".js", ".html", ".css")), ("dsengine", (".py",)), ("server", (".py",))):
         root = p(top)
@@ -44,7 +44,7 @@ def main():
     if not hit:
         print("Nothing says Southport or Northgate: done already.")
         return
-    lm = p("maps", "4,4,0.txt")                            # (the landing's own Id line goes: the port's stays)
+    lm = p("maps", "4,4,0.map")                            # (the landing's own Id line goes: the port's stays)
     b = open(lm, "rb").read()
     open(lm, "wb").write(re.sub(rb"Id\tSouthport_Landing\t[^\r\n]*\r?\n", b"", b))
     for f in hit:

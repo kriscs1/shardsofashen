@@ -390,7 +390,7 @@ def mine():
         ("Teleport", "%d,%d" % ((MINE[0] - 2) * TW, MINE[1] * TW - 8), "14,6,0"),
         ("End",),
         ("@far",), ("Display.Message", "DarkRed", "You are too far away!", "Denied"), ("End",)], MAKER)
-    print("Made maps\\14,6,-1.txt: Galaith's mine")
+    print("Made maps\\14,6,-1.map: Galaith's mine")
 
 
 # ================================================================== the city

@@ -36,7 +36,7 @@ def main():
     ents.save(p("data", "Entities.ini"))
     files = [p("data", f) for f in ("ItemRacks.ini", "Gathering.ini", "Crops.ini", "Digging.ini", "Waves.ini",
                                     "Buildables.ini", "Quests.ini")]
-    files += glob.glob(p("data", "Scripts", "*.txt")) + glob.glob(p("maps", "*.txt")) + [p("data", "NewCharacter.ini")]
+    files += glob.glob(p("data", "Scripts", "*.script")) + glob.glob(p("maps", "*.map")) + [p("data", "NewCharacter.ini")]
     files += [p("dev", "migrate", f) for f in ("build_content.py", "build_world.py", "build_water_animals.py")]
     n = 0
     for path in files:

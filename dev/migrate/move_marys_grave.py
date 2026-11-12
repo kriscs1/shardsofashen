@@ -54,7 +54,7 @@ def main():
     H.grave()
     H.opening()
     H.template()
-    gone = p("data", "Scripts", OLD + ".txt")                   # (the funeral's no longer 3,1,0's entry script)
+    gone = p("data", "Scripts", OLD + ".script")                   # (the funeral's no longer 3,1,0's entry script)
     if os.path.exists(gone) and "The Funeral" in open(gone, encoding="cp1252").read():
         os.remove(gone)
     print("Mary's grave: %s tile %d,%d" % ((H.GRAVE_MAP,) + H.GRAVE))

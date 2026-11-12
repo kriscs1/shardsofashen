@@ -163,7 +163,7 @@ def pictures():
 
 
 def write_script(name, lines):
-    with open(p("data", "Scripts", name + ".txt"), "w", encoding="cp1252", newline="\r\n") as f:
+    with open(p("data", "Scripts", name + ".script"), "w", encoding="cp1252", newline="\r\n") as f:
         f.write(HEADER + "\n" + "\n".join(filled(lines)) + "\n")
 
 
@@ -370,7 +370,7 @@ def data_files():
 
 
 def find_place(name):
-    for path in glob.glob(p("maps", "*.txt")):
+    for path in glob.glob(p("maps", "*.map")):
         for ln in open(path, "rb").read().decode("cp1252").split("\r\n"):
             if ln.startswith("Id\t%s\t" % name):
                 f = ln.split("\t")
@@ -431,7 +431,7 @@ def place_things():
     if not find_place("Inn_Spot_1"):
         rng = random.Random(5150)
         n = 0
-        maps = sorted(glob.glob(p("maps", "*,0.txt")))
+        maps = sorted(glob.glob(p("maps", "*,0.map")))
         rng.shuffle(maps)
         for path in maps:
             name = os.path.basename(path)[:-4]

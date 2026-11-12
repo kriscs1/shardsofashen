@@ -140,13 +140,13 @@ TILES_INI = os.path.join(DATA, "Tiles.ini")
 
 
 def map_lines(name):
-    return ini.read_text(os.path.join(ROOT, "maps", name + ".txt")).replace("\r", "").split("\n")
+    return ini.read_text(os.path.join(ROOT, "maps", name + ".map")).replace("\r", "").split("\n")
 
 
 def write_map(name, lines):
     while lines and lines[-1] == "":
         lines.pop()
-    with open(os.path.join(ROOT, "maps", name + ".txt"), "w", encoding="cp1252", newline="\r\n") as f:
+    with open(os.path.join(ROOT, "maps", name + ".map"), "w", encoding="cp1252", newline="\r\n") as f:
         f.write("\n".join(lines) + "\n")
 
 
@@ -217,7 +217,7 @@ def sign_spot(lines, npc_x, npc_y, taken):
 
 
 def place_signs():
-    for path in sorted(glob.glob(os.path.join(ROOT, "maps", "*.txt"))):
+    for path in sorted(glob.glob(os.path.join(ROOT, "maps", "*.map"))):
         name = os.path.basename(path)[:-4]
         if len(name.split(",")) != 3:
             continue

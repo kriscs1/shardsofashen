@@ -74,7 +74,7 @@ def settlement_maps():
 def main():
     n = kept = 0
     for name, key in settlement_maps().items():
-        if not os.path.exists(os.path.join(ROOT, "maps", name + ".txt")):
+        if not os.path.exists(os.path.join(ROOT, "maps", name + ".map")):
             continue
         m = Map(name)
         mx, my = (int(v) for v in name.split(",")[:2])

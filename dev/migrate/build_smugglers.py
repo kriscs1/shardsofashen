@@ -184,7 +184,7 @@ def cave(m, floor_cells, rng):
 
 def tunnels():
     rng = random.Random(77)
-    if not os.path.exists(os.path.join(ROOT, "maps", "3,5,-1.txt")):
+    if not os.path.exists(os.path.join(ROOT, "maps", "3,5,-1.map")):
         w = Map("3,5,-1", new=True)
         bx, by = BARREL
         cells = {(bx, by), (bx, by + 1)}
@@ -198,7 +198,7 @@ def tunnels():
         w.set(bx, by, decor="Tunnel_Ladder001")
         w.ents = [obj_line("NPC", "Rat", 18, by + 2, "Attitude=Bad Zone=15,%d,22,%d" % (by + 1, by + 2))]
         w.save()
-    if not os.path.exists(os.path.join(ROOT, "maps", "4,5,-1.txt")):
+    if not os.path.exists(os.path.join(ROOT, "maps", "4,5,-1.map")):
         e = Map("4,5,-1", new=True)
         hx, hy = HATCH
         by = BARREL[1] + 1

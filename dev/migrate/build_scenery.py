@@ -335,7 +335,7 @@ def isle_patches():
     for name in sorted(W.PROTECTED_MAPS):
         if not name.endswith(",0"):
             continue
-        lines = C.read_lines(C.p("maps", name + ".txt"))
+        lines = C.read_lines(C.p("maps", name + ".map"))
         rows = [r.split(":") for r in lines[:21]]
         grid = [[C.built_base(c) for c in r] for r in rows]          # (decor: as the old tiles)
         for x, y, old, new in LOGGED.get(name, []):          # undo our own earlier patches: plan from the original

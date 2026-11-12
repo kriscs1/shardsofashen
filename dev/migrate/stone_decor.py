@@ -108,7 +108,7 @@ def ground_of(rows, x, y, cells_of):
 
 def convert_maps(NAME=NAME):
     changed = 0
-    for path in glob.glob(p("maps", "*.txt")):
+    for path in glob.glob(p("maps", "*.map")):
         raw = open(path, "rb").read()
         if NAME.encode() not in raw:
             continue

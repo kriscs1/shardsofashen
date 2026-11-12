@@ -1,5 +1,5 @@
 """Every grave has its own name and its own inscription: a place ID on its tile (Id <name> x y, as the editor's Place
-ID puts down) and a script, data\\Scripts\\Examine <name>.txt, that reads it out. (A tile with a place ID looks for
+ID puts down) and a script, data\\Scripts\\Examine <name>.script, that reads it out. (A tile with a place ID looks for
 its own scripts first: dsengine/data.py tile_place.) The graves are taken in each map's order, row by row; a map
 whose graves have their names already is left alone. Inscriptions say who lies there - never a hint.
 
@@ -90,7 +90,7 @@ def main():
                 m.ents.append("Id\t%s\t%d\t%d" % (pid, x, y))
                 added = True
                 named += 1
-            path = os.path.join(ROOT, "data", "Scripts", "Examine %s.txt" % pid)
+            path = os.path.join(ROOT, "data", "Scripts", "Examine %s.script" % pid)
             if not os.path.exists(path):
                 lines = ["// The grave %s on %s (dev\\migrate\\name_graves.py)" % (pid, map_name),
                          "01\tDisplay.Message\tBlack\t%s" % text, "02\tEnd"]

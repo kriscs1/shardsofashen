@@ -89,7 +89,7 @@ def bell_picture():
 
 
 def upstairs():
-    if os.path.exists(os.path.join(ROOT, "maps", "3,1,1.txt")):
+    if os.path.exists(os.path.join(ROOT, "maps", "3,1,1.map")):
         print("The chapel's upper floor is there already")
         return
     m = Map("3,1,1", new=True)

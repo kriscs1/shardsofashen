@@ -106,7 +106,7 @@ def scripts():
 def witch():
     """Morwen, before her quests, when she sees you shaking (lines added after build_regions.py's; its first line goes
     round by them, so its numbers stay)."""
-    path = p("data", "Scripts", WITCH + ".txt")
+    path = p("data", "Scripts", WITCH + ".script")
     text = open(path, "rb").read().decode("cp1252")
     if "$Player.Malaria" in text:
         return

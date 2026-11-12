@@ -101,10 +101,10 @@ class Banter:
         return not (e.npc_id and e.npc_id in self.scripted(s))
 
     def scripted(self, s):
-        """The Ids with a script of their own (<Verb> <Id>.txt): read the once."""
+        """The Ids with a script of their own (<Verb> <Id>.script): read the once."""
         if self.has_scripts is None:
             folder = os.path.dirname(s.script_path("x"))
-            self.has_scripts = {f[:-4].rsplit(" ", 1)[-1] for f in os.listdir(folder) if f.endswith(".txt") and " " in f}
+            self.has_scripts = {f[:-7].rsplit(" ", 1)[-1] for f in os.listdir(folder) if f.endswith(".script") and " " in f}
         return self.has_scripts
 
     def people_near(self, s):

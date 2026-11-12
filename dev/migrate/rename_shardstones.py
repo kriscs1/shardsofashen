@@ -47,7 +47,7 @@ def main():
             n += 1
     md = os.path.join(ROOT, "maps")
     for f in os.listdir(md):
-        if f.endswith(".txt"):
+        if f.endswith(".map"):
             n += redo(os.path.join(md, f))
     ed = os.path.join(ROOT, "sprites", "Entities")
     for f in os.listdir(ed):

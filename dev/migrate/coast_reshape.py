@@ -48,7 +48,7 @@ GUARD = 3                                     # (tiles kept clear round anything
 def global_maps():
     out = {}
     for f in os.listdir(os.path.join(ROOT, "maps")):
-        m = re.match(r"^(-?\d+),(-?\d+),0\.txt$", f)
+        m = re.match(r"^(-?\d+),(-?\d+),0\.map$", f)
         if m:
             out[(int(m.group(1)), int(m.group(2)))] = f[:-4]
     return out

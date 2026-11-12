@@ -86,7 +86,7 @@ def data():
 
 def place():
     n = 0
-    for path in glob.glob(os.path.join(ROOT, "maps", "*.txt")):
+    for path in glob.glob(os.path.join(ROOT, "maps", "*.map")):
         name = os.path.splitext(os.path.basename(path))[0]
         if name.count(",") != 2:
             continue

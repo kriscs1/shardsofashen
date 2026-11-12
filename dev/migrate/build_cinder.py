@@ -726,7 +726,7 @@ def ground(cell):
 def bridge_patch():
     """The Heartwood bridge on 8,5,0: a path north from the clearing to the shore, planks over the water."""
     from common import p
-    path = p("maps", BRIDGE_MAP + ".txt")
+    path = p("maps", BRIDGE_MAP + ".map")
     cells, ents = cells_of(path)
     x = BRIDGE_COL - 1
     for y in range(BRIDGE_FROM_ROW - 1, -1, -1):
@@ -739,7 +739,7 @@ def bridge_patch():
         else:
             new = "Dirt001" + "".join("+" + q for q in ground(c).split("+")[1:])
         cells[y][x] = new
-    return ["maps\\%s.txt" % BRIDGE_MAP] if save_cells(path, cells, ents) else []
+    return ["maps\\%s.map" % BRIDGE_MAP] if save_cells(path, cells, ents) else []
 
 
 def bank_houses(cells, ents):
@@ -809,7 +809,7 @@ def dress_banks():
     from common import p
     out = []
     for f in sorted(os.listdir(p("maps"))):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         path = p("maps", f)
         cells, ents = cells_of(path)
@@ -917,7 +917,7 @@ def isle_bank_house():
     import re
     from common import p
     m, (fx, fy), (tx, ty), (w, h) = ISLE_BANK
-    path = p("maps", m + ".txt")
+    path = p("maps", m + ".map")
     cells, ents = cells_of(path)
     if has_overlay(cells[ty + 1][tx + 1], "Roof"):
         return []
@@ -928,7 +928,7 @@ def isle_bank_house():
             src = cells[fy + j][fx + i]
             parts = [q for q in src.split("+") if not q.startswith("Decor(")]
             cells[ty + j][tx + i] = re.sub(r"(Roof\(\w+?\.)\d+\)", r"\g<1>%s)" % group, "+".join(parts))
-    return ["maps\\%s.txt" % m] if save_cells(path, cells, ents) else []
+    return ["maps\\%s.map" % m] if save_cells(path, cells, ents) else []
 
 
 def stalls_indoors():
@@ -938,7 +938,7 @@ def stalls_indoors():
     from common import p
     out = []
     for m, (nx, ny) in STALLS:
-        path = p("maps", m + ".txt")
+        path = p("maps", m + ".map")
         cells, ents = cells_of(path)
         changed = False
         for y, row in enumerate(cells):                     # the stall: its counter and its Banker out of doors
@@ -982,7 +982,7 @@ def stalls_indoors():
                 ents.append("NPC\tBanker\t%d\t%d\tAttitude=Good Stand=1" % (x * 32, y * 32))
                 changed = True
         if changed and save_cells(path, cells, ents):
-            out.append("maps\\%s.txt" % m)
+            out.append("maps\\%s.map" % m)
     return out
 
 
@@ -991,7 +991,7 @@ def wardhaven_patch():
     from common import p
     import build_walled as WL
     m, sx, sy = WL.local(WL.CX, WL.CY)
-    path = p("maps", m + ".txt")
+    path = p("maps", m + ".map")
     cells, ents = cells_of(path)
     out = []
     if not any("\tWyrmsmith\t" in e for e in ents):
@@ -1017,7 +1017,7 @@ def wardhaven_patch():
                 ents.append("NPC\tWyrmsmith\t%d\t%d\tAttitude=Good Stand=1" % ((x + 1) * 32, y * 32))
                 break
         if save_cells(path, cells, ents):
-            out.append("maps\\%s.txt" % m)
+            out.append("maps\\%s.map" % m)
     return out
 
 

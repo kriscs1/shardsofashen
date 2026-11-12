@@ -23,7 +23,7 @@ def towns():
     """[[(map, line no, fields)]] of the plain townsfolk, grouped by town (maps no more than 2 apart, on level 0)."""
     folk = []
     for f in sorted(os.listdir(MAPS)):
-        m = re.match(r"^(-?\d+),(-?\d+),0\.txt$", f)
+        m = re.match(r"^(-?\d+),(-?\d+),0\.map$", f)
         if not m or f[:-4] in ISLE:
             continue
         lines = open(os.path.join(MAPS, f), "rb").read().decode("cp1252").split("\r\n")
@@ -54,14 +54,14 @@ def main():
         for name, i, b in sorted(town, key=lambda t: (t[0], t[1])):
             o = opts_of(b)
             if o.get("Schedule") or o.get("Patrol") or (o.get("Id") and (os.path.exists(
-                    os.path.join(SCRIPTS, "Talk to %s.txt" % o["Id"])) or not PLAIN.search(o["Id"]))):
+                    os.path.join(SCRIPTS, "Talk to %s.script" % o["Id"])) or not PLAIN.search(o["Id"]))):
                 continue                             # (a crier, a foreman, anyone with a part to play: never)
             pick = (name, i, b)
             break
         if pick is None:
             continue
         name, i, b = pick
-        path = os.path.join(MAPS, name + ".txt")
+        path = os.path.join(MAPS, name + ".map")
         lines = open(path, "rb").read().decode("cp1252").split("\r\n")
         b = lines[i].split("\t")
         while len(b) < 5:

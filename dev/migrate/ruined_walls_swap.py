@@ -22,7 +22,7 @@ def decor(w, gx, gy):
 
 def main():
     n = 0
-    for z in sorted({int(f[:-4].split(",")[2]) for f in os.listdir(W.MAPS) if f.endswith(".txt") and f.count(",") == 2}):
+    for z in sorted({int(f[:-4].split(",")[2]) for f in os.listdir(W.MAPS) if f.endswith(".map") and f.count(",") == 2}):
         w = W.World(z)
         old = {}
         for (mx, my), m in w.maps.items():

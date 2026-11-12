@@ -170,12 +170,12 @@ def data():
         text = text.rstrip("\r\n") + "\r\n\r\n" + QUEST_TEXT.replace("\n", "\r\n")
         open(path, "wb").write(text.encode("cp1252"))
     for name, lines in SCRIPTS.items():
-        with open(p("data", "Scripts", name + ".txt"), "w", encoding="cp1252", newline="\r\n") as f:
+        with open(p("data", "Scripts", name + ".script"), "w", encoding="cp1252", newline="\r\n") as f:
             f.write(HEADER + "\n" + "\n".join(filled(lines)) + "\n")
 
 
 def maps():
-    if os.path.exists(p("maps", "17,2,-1.txt")):
+    if os.path.exists(p("maps", "17,2,-1.map")):
         return False
     up = Map("17,2,0")
     up.set(*HILDE_LADDER, decor="Ladder002")

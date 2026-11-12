@@ -380,7 +380,7 @@ def quests():
 
 
 def dragon():
-    path = p("data", "Scripts", "The Dragon Speaks.txt")
+    path = p("data", "Scripts", "The Dragon Speaks.script")
     text = open(path, "rb").read().decode("cp1252")
     old = "wanted the mountain's gold and its mana, and I let them have it"
     if old in text:

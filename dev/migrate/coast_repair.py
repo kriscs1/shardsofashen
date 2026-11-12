@@ -65,11 +65,11 @@ def main():
         print("The coast's been mended already (delete %s to do it again)." % DONE)
         return
     # (the maps east of Galaith: west of it, the Galaith and Mirefen passes made their own sea since)
-    names = sorted(f[:-4] for f in os.listdir(os.path.join(ROOT, "maps")) if re.match(r"^\d+,-?\d+,0\.txt$", f))
+    names = sorted(f[:-4] for f in os.listdir(os.path.join(ROOT, "maps")) if re.match(r"^\d+,-?\d+,0\.map$", f))
     old = old_maps(names)
     now, rest, placed = {}, {}, set()
     for n in names:
-        raw = open(os.path.join(ROOT, "maps", n + ".txt"), "rb").read().decode("cp1252")
+        raw = open(os.path.join(ROOT, "maps", n + ".map"), "rb").read().decode("cp1252")
         now[n], rest[n] = read_cells(raw)
         mx, my = (int(v) for v in n.split(",")[:2])
         for ln in rest[n]:
@@ -199,7 +199,7 @@ def main():
         touched.add(n)
     for n in touched:
         text = "\r\n".join([":".join(r) for r in now[n]] + rest[n])
-        open(os.path.join(ROOT, "maps", n + ".txt"), "wb").write(text.encode("cp1252"))
+        open(os.path.join(ROOT, "maps", n + ".map"), "wb").write(text.encode("cp1252"))
     open(DONE, "w").write("mended\n")
     print("The coast mended: %d tiles of land back by the roads, %d specks sunk; %d maps changed" %
           (len(back), len(sunk), len(touched)))

@@ -180,7 +180,7 @@ def leftovers():
                                                      "work dragon scale.")])
     K.section(K.ENTS, "Dragon_Scale", [("Examine.Info", "A scale from the hide of Galaith's dragon, still warm. "
                                                         "No ordinary fire will touch it.")])
-    path = os.path.join(K.SCRIPTS, "Talk to Settler.txt")
+    path = os.path.join(K.SCRIPTS, "Talk to Settler.script")
     text = open(path, "rb").read().decode("cp1252")
     old = ("Twelve years behind these walls, and now Ignaroth is dead! They say it was you. Drinks are on the house "
            "at every table in Wardhaven.")
@@ -188,6 +188,6 @@ def leftovers():
            "cleared them. Drinks are on the house at every table in Wardhaven!")
     if old in text:
         open(path, "wb").write(text.replace(old, new).encode("cp1252"))
-    statue = os.path.join(K.SCRIPTS, "Examine Hero_Statue.txt")
+    statue = os.path.join(K.SCRIPTS, "Examine Hero_Statue.script")
     if os.path.exists(statue):
         os.remove(statue)                                  # (Ignaroth's slayer's statue: not in the new world)

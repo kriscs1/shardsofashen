@@ -1,4 +1,4 @@
-"""The script language (data\\Scripts\\*.txt): its commands, what their arguments are, the help shown for each,
+"""The script language (data\\Scripts\\*.script): its commands, what their arguments are, the help shown for each,
 and the $ variables. The game, the editor (dsedit) and the dev tools (dev\\migrate) all read it from here.
 (It used to be [SE.Get.Commands] in the Liberty BASIC Dragon Sword Editor.bas.)
 

@@ -144,13 +144,13 @@ def old_main():
         found |= {w for w in (quests.get(sec, "Reward.Items") or "").split() if w in sset}
     folder = p("data", "Scripts")
     for f in os.listdir(folder):
-        if f.endswith(".txt"):
+        if f.endswith(".script"):
             for ln in read_lines(os.path.join(folder, f)):
                 c = ln.split("\t")
                 if len(c) > 2 and c[1] == "Give.Item" and c[2].strip() in sset:
                     found.add(c[2].strip())
     for f in os.listdir(p("maps")):
-        if f.endswith(".txt"):
+        if f.endswith(".map"):
             path = p("maps", f)
             lines = read_lines(path)
             hit = False

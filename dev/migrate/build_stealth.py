@@ -328,7 +328,7 @@ def place_valuables():
     done = valuables_done()
     n = 0
     for name in sorted(names):
-        if not os.path.exists(p("maps", name + ".txt")) or name in done:
+        if not os.path.exists(p("maps", name + ".map")) or name in done:
             continue
         done.add(name)
         m = Map(name)

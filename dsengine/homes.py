@@ -2,7 +2,7 @@
 them (dev\\migrate\\build_pocket.py). A pocket is always safe: nothing hostile is ever in one.
 
   * Each home is a map "0,0,<1000+n>" (a level of its own, so nothing joins it). When it's made it gets its own copy
-    of data\\Homestead.txt (the land a home starts as: raw rim, a little still glass in the mist; changing that file
+    of data\\Homestead.map (the land a home starts as: raw rim, a little still glass in the mist; changing that file
     later only changes new homes); what its owner builds is kept on top of that copy. It's part of the shared world:
     visitors see it as it is.
   * A shardstone takes you home (its travel map: shardcraft.py), if you carry a Hearth Anchor (the quest "A Place of
@@ -82,7 +82,7 @@ class Homes:
         self.homes = {}                 # owner -> {"n", "visit", "friends", "cells", "cleared", "objects", "bed"}
         self.by_map = {}                # map name -> owner
         cfg = lambda k, default: d.config_read("Homestead", k, default)
-        self.template_lines = d.read_lines(d.data_file(trim(cfg("Template", "Homestead.txt"))))
+        self.template_lines = d.read_lines(d.data_file(trim(cfg("Template", "Homestead.map"))))
         self.arrival = (int(val(cfg("Arrival.X", "13"))), int(val(cfg("Arrival.Y", "18"))))
         self.return_map = trim(cfg("Return.Map", d.start_map))
         self.catalog = self.read_catalog()

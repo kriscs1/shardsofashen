@@ -369,7 +369,7 @@ def place():
 
 
 def all_maps():
-    return [f[:-4] for f in os.listdir(os.path.join(ROOT, "maps")) if f.endswith(".txt")]
+    return [f[:-4] for f in os.listdir(os.path.join(ROOT, "maps")) if f.endswith(".map")]
 
 
 def main():

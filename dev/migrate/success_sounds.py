@@ -34,8 +34,8 @@ def sound_for(script, given):
 
 def main():
     changed = 0
-    for path in glob.glob(p("data", "Scripts", "*.txt")):
-        script = os.path.basename(path)[:-4]
+    for path in glob.glob(p("data", "Scripts", "*.script")):
+        script = os.path.basename(path)[:-7]
         text = open(path, "rb").read().decode("cp1252")
         lines = text.split("\r\n")
         out = False

@@ -34,11 +34,11 @@ def main():
         n += len(m.ents) - len(kept)
         m.ents = kept
         m.save()
-    sign = os.path.join(DATA, "Scripts", "Read Goblin_Camp_Sign.txt")
+    sign = os.path.join(DATA, "Scripts", "Read Goblin_Camp_Sign.script")
     if os.path.exists(sign):
         os.remove(sign)
         n += 1
-    n += rewrite(os.path.join(DATA, "Scripts", "3,4,0.txt"),
+    n += rewrite(os.path.join(DATA, "Scripts", "3,4,0.script"),
                  "01\tDisplay.Message\tDarkRed\tSmoke and the stink of goblins... this is their camp!\t-",
                  "01\tDisplay.Message\tCyan\tAshford's market square. Stallholders cry their wares.\t-")
     n += rewrite(os.path.join(DATA, "Music.ini"), "3,4,0=Danger", "3,4,0=Town")

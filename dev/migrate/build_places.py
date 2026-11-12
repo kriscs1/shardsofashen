@@ -66,7 +66,7 @@ def write_ids():
         want.setdefault(PLACES[name][0], []).append(id_line(name))
     changed, problems = [], []
     for m in sorted(set(old) | set(want)):
-        path = p("maps", m + ".txt")
+        path = p("maps", m + ".map")
         if not os.path.exists(path):
             problems.append("place IDs for map %s, which doesn't exist: %s" % (m, ", ".join(want.get(m, []))))
             continue
@@ -86,7 +86,7 @@ def write_ids():
             elif line not in ents:
                 add.append(line)
         if (drop or add) and write_lines(path, rows + ents + add):   # (a map already right isn't written again: the
-            changed.append("maps\\%s.txt" % m)                       # build's own maps stay as it wrote them)
+            changed.append("maps\\%s.map" % m)                       # build's own maps stay as it wrote them)
     log = ["// Id lines dev\\migrate\\build_places.py wrote into the maps (map<TAB>line): a rebuild only changes these"]
     log += ["%s\t%s" % (PLACES[n][0], id_line(n)) for n in sorted(PLACES)]
     if write_lines(LOG, log):

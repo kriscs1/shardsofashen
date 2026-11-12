@@ -47,7 +47,7 @@ def main():
     ents = Ini(p("data", "Entities.ini"))
     area = isle_area()
     n, files = 0, 0
-    for path in sorted(glob.glob(os.path.join(ROOT, "maps", "*.txt"))):
+    for path in sorted(glob.glob(os.path.join(ROOT, "maps", "*.map"))):
         name = os.path.basename(path)
         try:
             at = tuple(int(v) for v in name[:-4].split(","))

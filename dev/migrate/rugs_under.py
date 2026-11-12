@@ -28,7 +28,7 @@ def main():
     names = "|".join(re.escape(r) for r in rugs)
     pat = re.compile(r"\+Decor\((%s)\)" % names)
     maps = 0
-    for path in glob.glob(os.path.join(ROOT, "maps", "**", "*.txt"), recursive=True):
+    for path in glob.glob(os.path.join(ROOT, "maps", "**", "*.map"), recursive=True):
         raw = open(path, "rb").read().decode("cp1252")
         new = pat.sub(lambda m: "+Under(%s)" % m.group(1), raw)
         if new != raw:

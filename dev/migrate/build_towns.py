@@ -209,7 +209,7 @@ def land_west_of_southport():
                     t = "Grass001"
                 m.put(x, y, t, {})
         m.save()
-        print("Made maps\\%s.txt: Northport's west" % name)
+        print("Made maps\\%s.map: Northport's west" % name)
     if Map("0,2,0").tile(12, 15) == "Water001":                # (and the sea north of them, land now too)
         m = Map("0,2,0")
         for y in range(1, YT + 1):
@@ -263,7 +263,7 @@ def wizards_island():
 
 # ================================================================== names: the Keep and the Court
 def renames():
-    path = os.path.join(K.SCRIPTS, "Read Tyrons_Keep.txt")
+    path = os.path.join(K.SCRIPTS, "Read Tyrons_Keep.script")
     if os.path.exists(path):
         K.write_script("Read Tyrons_Keep", [
             (">Distance.From.Clicked.Entity", "64", "@far"),

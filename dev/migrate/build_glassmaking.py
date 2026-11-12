@@ -2,7 +2,7 @@
 
 The chain: Dig a sand tile with a Spade -> Sand; smelt Sand at a Furnace (CRAFT-Smelting) -> Glass; make Glass into an
 Empty_Vial at a Workbench (CRAFT-Crafting). The data (Entities.ini, Tiles.ini Sand001 Use.Words, ItemRacks.ini,
-Gathering.ini, data\\Scripts\\Dig Sand.txt) was added by hand. Run: python dev\\migrate\\build_glassmaking.py
+Gathering.ini, data\\Scripts\\Dig Sand.script) was added by hand. Run: python dev\\migrate\\build_glassmaking.py
 """
 import os
 import random

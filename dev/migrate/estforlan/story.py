@@ -58,7 +58,7 @@ def squares():
     out = {}
     maps = os.path.join(K.ROOT, "maps")
     for f in os.listdir(maps):
-        if f.endswith(",0.txt"):
+        if f.endswith(",0.map"):
             for ln in read(os.path.join(maps, f)):
                 p = ln.split("\t")
                 if p[0] == "Id" and len(p) > 1 and p[1].endswith("_Square") and p[1].count("_") == 1:
@@ -75,7 +75,7 @@ def people_branches(strays):
     """Talk to Settler / Trader / Guard: a branch for a map its people were on and aren't now (strays: {that map:
     theirs}) asks for theirs."""
     for name in ("Talk to Settler", "Talk to Trader", "Talk to Guard"):
-        path = os.path.join(K.SCRIPTS, name + ".txt")
+        path = os.path.join(K.SCRIPTS, name + ".script")
         lines = read(path)
         new = []
         for ln in lines:
@@ -97,7 +97,7 @@ def remap_scripts(table, chests):
         if f.startswith("Open Chest"):
             use.update(chests)
         new = [MAP.sub(lambda mm: use.get(mm.group(1), mm.group(1)), ln) for ln in lines]
-        if f == "Climb Up Mine_Ladder.txt":
+        if f == "Climb Up Mine_Ladder.script":
             new = [ln.replace("672,344\t0,12,0", "%d,344\t0,12,0" % ((G.MINE[0] % XT + 1) * TW)) for ln in new]
         if new != lines:
             write(path, new)
@@ -122,7 +122,7 @@ def entry_scripts(plans, first, extra=None):
     if first:
         old_ones = {}
         for old in ENTRY:
-            src = os.path.join(K.SCRIPTS, old + ".txt")
+            src = os.path.join(K.SCRIPTS, old + ".script")
             if os.path.exists(src):
                 old_ones[old] = read(src)
                 os.remove(src)
@@ -130,16 +130,16 @@ def entry_scripts(plans, first, extra=None):
             if ENTRY[old]:
                 for a, b in ENTRY_WORDS.items():
                     lines = [ln.replace(a, b) for ln in lines]
-                write(os.path.join(K.SCRIPTS, L.tname(ENTRY[old]) + ".txt"), lines)
+                write(os.path.join(K.SCRIPTS, L.tname(ENTRY[old]) + ".script"), lines)
     for f in os.listdir(K.SCRIPTS):                        # (old mainland maps' entry scripts left over)
-        name = f[:-4]
+        name = os.path.splitext(f)[0]
         if MAP.fullmatch(name) and name not in keep and name not in (extra or {}) and name.split(",")[0:2] != ["0", "0"] and not isle(name) and \
                 name not in (G.PASS,) and name not in ISLE_LEVELS and name not in {L.tname(v) for v in ENTRY.values() if v}:
             os.remove(os.path.join(K.SCRIPTS, f))
     arrive = {}
     for key, plan in plans.items():                        # a word on arriving in each settlement
         name = plan.home_map()
-        if not os.path.exists(os.path.join(K.SCRIPTS, name + ".txt")) or name in (extra or {}):
+        if not os.path.exists(os.path.join(K.SCRIPTS, name + ".script")) or name in (extra or {}):
             arrive[name] = [("Display.Message", "Cyan", ARRIVE.get(key, "%s." % plan.title), "-")]
     for name, rows in (extra or {}).items():               # (a quest's lines on a map: after its arrival words)
         K.write_script(name, arrive.pop(name, []) + rows, MAKER)
@@ -271,14 +271,14 @@ def stretch_names():
     tests = os.path.join(K.ROOT, "tests", "test_engine.py")
     read_all = {p: read(p) for p in files}
     for p in files:
-        if MAP.fullmatch(files[p][:-4]):
+        if MAP.fullmatch(os.path.splitext(files[p])[0]):
             os.remove(p)                                   # (a map's own script: written again under its new name)
     changed = 0
     for p, lines in read_all.items():
         new = [MAP.sub(name, ln) for ln in lines]
         f = files[p]
-        if MAP.fullmatch(f[:-4]):
-            p = os.path.join(K.SCRIPTS, MAP.sub(name, f[:-4]) + ".txt")
+        if MAP.fullmatch(os.path.splitext(f)[0]):
+            p = os.path.join(K.SCRIPTS, MAP.sub(name, os.path.splitext(f)[0]) + ".script")
         if new != lines or not os.path.exists(p):
             write(p, new)
             changed += 1
@@ -306,14 +306,14 @@ def galaith_west_names():
     files.update({os.path.join(K.DATA, f): f for f in STRETCH_FILES})
     read_all = {p: read(p) for p in files}
     for p in files:
-        if files[p][:-4] in GALAITH_NAMES:
+        if os.path.splitext(files[p])[0] in GALAITH_NAMES:
             os.remove(p)
     changed = 0
     for p, lines in read_all.items():
         new = [MAP.sub(swap, ln) for ln in lines]
-        name = files[p][:-4]
+        name = os.path.splitext(files[p])[0]
         if name in GALAITH_NAMES:
-            p = os.path.join(K.SCRIPTS, GALAITH_NAMES[name] + ".txt")
+            p = os.path.join(K.SCRIPTS, GALAITH_NAMES[name] + ".script")
         if new != lines or not os.path.exists(p):
             write(p, new)
             changed += 1
@@ -456,7 +456,7 @@ def ambient(sounds, levels):
 def present_ids():
     ids = set()
     for f in os.listdir(os.path.join(K.ROOT, "maps")):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         for ln in read(os.path.join(K.ROOT, "maps", f)):
             if "Id=" in ln:
@@ -473,7 +473,7 @@ def orphans():
     ids = present_ids()
     gone = []
     for f in sorted(os.listdir(K.SCRIPTS)):
-        name = f[:-4]
+        name = f[:-7]
         if not name.startswith(("Talk to ", "Read ")):
             continue
         target = name.split(" ", 2)[2] if name.startswith("Talk to ") else name.split(" ", 1)[1]

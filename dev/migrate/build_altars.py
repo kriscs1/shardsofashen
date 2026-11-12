@@ -72,7 +72,7 @@ def place():
     """Each priest's hall: the altar at the middle of its back wall's row (the row under it), on bare floor."""
     n = 0
     for f in sorted(os.listdir(os.path.join(ROOT, "maps"))):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         text = open(os.path.join(ROOT, "maps", f), "rb").read().decode("cp1252")
         if "\tPriest\t" not in text and "Priest_" not in text:

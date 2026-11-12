@@ -147,7 +147,7 @@ def main():
         rewrite(f, save_skills)
     rewrite(at("data", "Config.ini"), config)
     rewrite(at("data", "Shards.ini"), shards_ini)
-    for f in glob.glob(at("data", "*.ini")) + glob.glob(at("data", "Scripts", "*.txt")):
+    for f in glob.glob(at("data", "*.ini")) + glob.glob(at("data", "Scripts", "*.script")):
         if not f.endswith("Config.ini"):
             rewrite(f, data_text)
     builders = glob.glob(at("dev", "migrate", "*.py")) + glob.glob(at("dev", "migrate", "estforlan", "*.py"))

@@ -26,7 +26,7 @@ class Atlas:
     def map_of(self, gx, gy):
         n = "%d,%d,0" % (gx // XT, gy // YT)
         if n not in self.maps:
-            if not os.path.exists(os.path.join(os.path.dirname(__file__), "..", "..", "maps", n + ".txt")):
+            if not os.path.exists(os.path.join(os.path.dirname(__file__), "..", "..", "maps", n + ".map")):
                 return None
             self.maps[n] = Map(n)
         return self.maps[n]

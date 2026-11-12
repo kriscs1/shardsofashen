@@ -40,7 +40,7 @@ def climbs():
 
 
 def edwin_and_maren():
-    down, up = os.path.join(ROOT, "maps", "2,1,0.txt"), os.path.join(ROOT, "maps", "2,1,1.txt")
+    down, up = os.path.join(ROOT, "maps", "2,1,0.map"), os.path.join(ROOT, "maps", "2,1,1.map")
     if not os.path.exists(up):                         # (their house is on 0,-2 now: move_lawyers_house.py)
         print("Edwin and Maren's house has moved (move_lawyers_house.py): nothing to do here.")
         return

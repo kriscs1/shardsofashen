@@ -184,7 +184,7 @@ def granny_rats(w, spot):
         taken |= {(q[0] + dx, q[1] + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
         out.append(((q[0] % XT) * TW, (q[1] % YT) * TW - 8))
         tiles.append((q[0] % XT + 1, q[1] % YT + 1))
-    path = os.path.join(W.SCRIPTS, "Talk to Granny_Bramble.txt")
+    path = os.path.join(W.SCRIPTS, "Talk to Granny_Bramble.script")
     s = W.read(path)
     old = re.findall(r"\tAdd\.Entity\t(-?\d+,-?\d+)\tRat\t", s)
     for (a, (px, py)) in zip(old, out):
@@ -232,38 +232,38 @@ WORDS = [   # (file, old, new): every line that named them
     ("Entities.ini", "A sack of goods the bandits stole from Highwatch.", "A sack of goods the bandits stole on the "
                                                                           "Redrock road."),
     ("Entities.ini", "The Gravekeeper of Ravensgate.", "The Gravekeeper of the Barrowdowns."),
-    ("Scripts/Barrow Door.txt", "out on the downs east of Ravensgate", "out on the downs west of King Rupert's Keep"),
-    ("Scripts/Talk to Gravekeeper.txt", "out on the downs east of Ravensgate", "out on the downs west of King "
+    ("Scripts/Barrow Door.script", "out on the downs east of Ravensgate", "out on the downs west of King Rupert's Keep"),
+    ("Scripts/Talk to Gravekeeper.script", "out on the downs east of Ravensgate", "out on the downs west of King "
                                                                                "Rupert's Keep"),
-    ("Scripts/Talk to Gravekeeper.txt", "His barrow is out on the downs, east of Ravensgate.",
+    ("Scripts/Talk to Gravekeeper.script", "His barrow is out on the downs, east of Ravensgate.",
      "His barrow is out on the downs, west of the Keep."),
-    ("Scripts/Talk to Gravekeeper.txt", "East, on the open downs.", "West, on the open downs."),
-    ("Scripts/Talk to Gravekeeper.txt", "Ravensgate will sleep tonight.", "The Keep will sleep tonight."),
-    ("Scripts/Examine Grave_Osric_Raven.txt", "first gravekeeper of Ravensgate", "first gravekeeper of the "
+    ("Scripts/Talk to Gravekeeper.script", "East, on the open downs.", "West, on the open downs."),
+    ("Scripts/Talk to Gravekeeper.script", "Ravensgate will sleep tonight.", "The Keep will sleep tonight."),
+    ("Scripts/Examine Grave_Osric_Raven.script", "first gravekeeper of Ravensgate", "first gravekeeper of the "
                                                                                   "Barrowdowns"),
-    ("Scripts/Examine Grave_Raven_Mark.txt", "Ravensgate's mark, very old.", "the mark of Ravensgate, a town "
+    ("Scripts/Examine Grave_Raven_Mark.script", "Ravensgate's mark, very old.", "the mark of Ravensgate, a town "
                                                                              "long gone."),
-    ("Scripts/Kill Bandit.txt", "Report to Captain Hale in Highwatch.", "Report to Captain Hale in Frosthold."),
-    ("Scripts/Kill Barrow_King.txt", "Return to the Gravekeeper in Ravensgate.", "Return to the Gravekeeper at "
+    ("Scripts/Kill Bandit.script", "Report to Captain Hale in Highwatch.", "Report to Captain Hale in Frosthold."),
+    ("Scripts/Kill Barrow_King.script", "Return to the Gravekeeper in Ravensgate.", "Return to the Gravekeeper at "
                                                                                  "King Rupert's Keep."),
-    ("Scripts/Read Hobs_Diary.txt", "fetch Morwen in Fenwick.", "fetch Morwen in Saltmarsh."),
-    ("Scripts/Read Hobs_Diary.txt", "Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow.",
+    ("Scripts/Read Hobs_Diary.script", "fetch Morwen in Fenwick.", "fetch Morwen in Saltmarsh."),
+    ("Scripts/Read Hobs_Diary.script", "Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow.",
      "Morwen the witch lives in Saltmarsh, in the fens on the south coast."),
-    ("Scripts/Talk to Witch.txt", "Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow.",
+    ("Scripts/Talk to Witch.script", "Morwen the witch lives in Fenwick, in the Saltmarsh south of Oakhollow.",
      "Morwen the witch lives in Saltmarsh, in the fens on the south coast."),
-    ("Scripts/Talk to Witch.txt", "Bog myrtle grows in the Saltmarsh round Fenwick", "Bog myrtle grows in the fens "
+    ("Scripts/Talk to Witch.script", "Bog myrtle grows in the Saltmarsh round Fenwick", "Bog myrtle grows in the fens "
                                                                                      "round Saltmarsh"),
-    ("Scripts/Talk to Witch.txt", "The Elder's house is in the south-west of the village.",
+    ("Scripts/Talk to Witch.script", "The Elder's house is in the south-west of the village.",
      "The Elder's never far from the inn."),
-    ("Scripts/Talk to Elder.txt", "Welcome to Fenwick, traveller. Keep to the boardwalks.",
+    ("Scripts/Talk to Elder.script", "Welcome to Fenwick, traveller. Keep to the boardwalks.",
      "Welcome to Saltmarsh, traveller. Keep to the dry ground."),
-    ("Scripts/Talk to Captain.txt", "Report to Captain Hale in Highwatch.", "Report to Captain Hale in Frosthold."),
-    ("Scripts/Talk to Captain.txt", "You've done Highwatch a great service.", "You've done the Redrock road a great "
+    ("Scripts/Talk to Captain.script", "Report to Captain Hale in Highwatch.", "Report to Captain Hale in Frosthold."),
+    ("Scripts/Talk to Captain.script", "You've done Highwatch a great service.", "You've done the Redrock road a great "
                                                                               "service."),
-    ("Scripts/Talk to Captain.txt", "Highwatch salutes you.", "Frosthold salutes you."),
-    ("Scripts/Talk to Captain_Rook_Island.txt", "..and you step ashore by Ravensgate.",
+    ("Scripts/Talk to Captain.script", "Highwatch salutes you.", "Frosthold salutes you."),
+    ("Scripts/Talk to Captain_Rook_Island.script", "..and you step ashore by Ravensgate.",
      "..and you step ashore below King Rupert's Keep."),
-    ("Scripts/Bert's Confession.txt", "Captain Rook, by Ravensgate,", "Captain Rook, on the shore below the Keep,"),
+    ("Scripts/Bert's Confession.script", "Captain Rook, by Ravensgate,", "Captain Rook, on the shore below the Keep,"),
 ]
 BUILDERS = [   # (the builders that wrote those words, so a run again says the same)
     "build_regions.py", "build_tricks.py", "build_hob.py", "build_heir_mainland.py", "name_graves.py",
@@ -296,7 +296,7 @@ def words():
 
 def traders():
     """The traders' script without the three towns' wares (and their racks gone)."""
-    path = os.path.join(W.SCRIPTS, "Talk to Trader.txt")
+    path = os.path.join(W.SCRIPTS, "Talk to Trader.script")
     lines = W.read(path).split("\r\n")
     rows, cur = [], None
     for ln in lines[1:]:
@@ -341,7 +341,7 @@ def data(removed_ids):
     W.write(wm, s)
     gone = 0
     for f in os.listdir(W.SCRIPTS):
-        name = f[:-4]
+        name = f[:-7]
         if name in ("8,16,0", "16,15,0", "26,17,0"):            # (the towns' arrival words)
             os.remove(os.path.join(W.SCRIPTS, f))
             gone += 1
@@ -352,7 +352,7 @@ def data(removed_ids):
             gone += 1
     for a, b in RENAMED_IDS.items():
         for f in os.listdir(W.SCRIPTS):
-            if f.endswith(" %s.txt" % a):
+            if f.endswith(" %s.script" % a):
                 os.rename(os.path.join(W.SCRIPTS, f), os.path.join(W.SCRIPTS, f.replace(a, b)))
     return gone
 

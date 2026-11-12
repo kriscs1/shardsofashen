@@ -55,7 +55,7 @@ def new_map(name):
 
 def raise_land():
     for name in ("4,0,0", "4,1,0"):
-        if not os.path.exists(os.path.join(ROOT, "maps", name + ".txt")):
+        if not os.path.exists(os.path.join(ROOT, "maps", name + ".map")):
             new_map(name)
     cache, get = maps_cache()
     n = 0

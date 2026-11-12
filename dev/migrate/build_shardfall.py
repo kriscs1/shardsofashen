@@ -1751,7 +1751,7 @@ def main():
         print("The Shardfall Deep's maps are laid out already (--maps to lay them out again)")
     if names is None:
         names = sorted({tuple(map(int, f[:-4].split(",")[:2])) for f in os.listdir(p("maps"))
-                        if f.endswith(",-1.txt") and MX0 <= int(f.split(",")[0]) <= MX1 and MY0 <= int(f.split(",")[1]) <= MY1})
+                        if f.endswith(",-1.map") and MX0 <= int(f.split(",")[0]) <= MX1 and MY0 <= int(f.split(",")[1]) <= MY1})
     config_data([map_name(mx, my) for mx, my in names])
     scripts(grotto)
     print("The Shardfall Deep: done")

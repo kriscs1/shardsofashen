@@ -150,7 +150,7 @@ def cave():
     SK.place_id(m, "Hollow_Hill_Steps", STEPS[0], STEPS[1])
     SK.place_id(m, "Hollow_Hill_Floor", ARRIVE[0], ARRIVE[1])
     m.save()
-    print("Made maps\\%s.txt: the Hollow Hill's cave" % BELOW)
+    print("Made maps\\%s.map: the Hollow Hill's cave" % BELOW)
     return True
 
 

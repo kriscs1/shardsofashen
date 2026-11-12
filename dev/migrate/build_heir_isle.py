@@ -779,7 +779,7 @@ def lair():
     K.place_id(m, "Lair_Corner_Barrel", *KEY_BARREL)
     K.place_id(m, "Lair_Ladder", *TENT)
     m.save()
-    print("Made maps\\2,2,-2.txt: the hobgoblins' lair")
+    print("Made maps\\2,2,-2.map: the hobgoblins' lair")
 
 
 def niche_and_pier():

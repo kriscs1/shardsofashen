@@ -43,7 +43,7 @@ def groups(m):
 
 
 def blank(name):
-    path = os.path.join(ROOT, "maps", name + ".txt")
+    path = os.path.join(ROOT, "maps", name + ".map")
     return Map(name) if os.path.exists(path) else Map(name, new=True)
 
 
@@ -94,7 +94,7 @@ def dormer(m, cells):
 def main():
     counts = {"upstairs": 0, "cellar": 0, "both": 0, "skipped": 0}
     for f in sorted(os.listdir(os.path.join(ROOT, "maps"))):
-        mm = re.match(r"^(-?\d+),(-?\d+),0\.txt$", f)
+        mm = re.match(r"^(-?\d+),(-?\d+),0\.map$", f)
         if not mm or f[:-4] in ISLE:
             continue
         name = f[:-4]

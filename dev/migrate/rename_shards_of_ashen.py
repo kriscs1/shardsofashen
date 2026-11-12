@@ -29,7 +29,7 @@ MOVES = [("dragonsword", "ashen"), ("Dragon Sword Editor.py", "Shards of Ashen E
          (JAVA + "dragonsword", JAVA + "shardsofashen")]
 SKIP = ("dev/Archive/", "dev/Log.txt", "dev/migrate/generated.json", "dev/migrate/rename_shards_of_ashen.py",
         "maps/", "saves/", "web/assets/", "android/app/build/")
-TEXT = (".py", ".md", ".txt", ".ini", ".js", ".html", ".css", ".yml", ".yaml", ".xml", ".java", ".gradle",
+TEXT = (".py", ".md", ".txt", ".script", ".map", ".ini", ".js", ".html", ".css", ".yml", ".yaml", ".xml", ".java", ".gradle",
         ".properties", ".bat", ".service", ".env", ".json", ".toml", ".cfg")
 SUBS = [   # (pattern, replacement), in order: the specific first
     (r"images: ghcr\.io/\$\{\{ github\.repository_owner \}\}/dragonsword\n",           # (the old name too, for now)

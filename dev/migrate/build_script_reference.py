@@ -29,7 +29,7 @@ print('commands', len(cmds), 'Number.Of.Commands', ncmd)
 for p in problems: print('PROBLEM', p)
 
 # check the scripts
-for f in sorted(glob.glob(os.path.join(root, 'data', 'Scripts', '*.txt'))):
+for f in sorted(glob.glob(os.path.join(root, 'data', 'Scripts', '*.script'))):
     lines = [l for l in open(f, encoding='latin-1').read().splitlines() if l.strip() and not l.strip().startswith('//')]
     n = len(lines)
     for idx, l in enumerate(lines, 1):
@@ -57,8 +57,8 @@ if len(sys.argv) > 2:
     w('')
     w('FILE FORMAT')
     w('-----------')
-    w('* Scripts are data\\Scripts\\<Name>.txt. File names may contain spaces, commas and brackets,')
-    w('  e.g. "Chop Tree.txt", "1,1,0.txt", "Pickup [MapItem].txt".')
+    w('* Scripts are data\\Scripts\\<Name>.script. File names may contain spaces, commas and brackets,')
+    w('  e.g. "Chop Tree.script", "1,1,0.script", "Pickup [MapItem].script".')
     w('* One command per line:  NN<TAB>Command<TAB>arg1<TAB>arg2...   (NN = 2-digit line number, 01, 02...)')
     w('* An empty argument is written as a single space so the tabs don\'t run together.')
     w('  Some arguments use "-" for "none" (ENTITY MISC, RACK ID for the BANK).')
@@ -74,12 +74,12 @@ if len(sys.argv) > 2:
     w('SCRIPT LOOKUP (from dev\\Data Formats.md)')
     w('---------------------------------------')
     w('When the player does Verb on an entity/tile Name of type Type, the game runs the first that exists:')
-    w('  1. "Verb Name.txt" (e.g. "Chop Tree001.txt", then without the digits, "Chop Tree.txt")')
-    w('  2. "Verb [Type].txt" (e.g. "Pickup [MapItem].txt", "Drop [InventoryItem].txt")')
+    w('  1. "Verb Name.script" (e.g. "Chop Tree001.script", then without the digits, "Chop Tree.script")')
+    w('  2. "Verb [Type].script" (e.g. "Pickup [MapItem].script", "Drop [InventoryItem].script")')
     w('  3. the engine\'s built-in default for that verb (Pickup, Drop, Examine, Eat, Talk to, Attack, Walk here)')
-    w('* Using one item on another: "Use A With B.txt", then "Use B With A.txt".')
+    w('* Using one item on another: "Use A With B.script", then "Use B With A.script".')
     w('* Triggers: the script name stored in the map (Trigger<TAB>ScriptName<TAB>TileX<TAB>TileY).')
-    w('* Map entry: a script named after the map, e.g. "1,1,0.txt".')
+    w('* Map entry: a script named after the map, e.g. "1,1,0.script".')
     w('* Empty script files count as "not found".')
     w('')
     w('VARIABLES')

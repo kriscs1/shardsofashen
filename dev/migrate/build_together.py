@@ -283,7 +283,7 @@ def npc_line(m, pid):
 def map_of(pid):
     """The map NPC pid stands on, or None."""
     for f in sorted(os.listdir(p("maps"))):
-        if f.endswith(".txt") and npc_line(Map(f[:-4]), pid)[1] is not None:
+        if f.endswith(".map") and npc_line(Map(f[:-4]), pid)[1] is not None:
             return f[:-4]
     return None
 

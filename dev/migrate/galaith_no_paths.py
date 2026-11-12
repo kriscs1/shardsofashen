@@ -34,7 +34,7 @@ def main(dry=False):
     total = changed = 0
     for mx in range(-13, 0):
         for my in range(9, 21):
-            path = p("maps", "%d,%d,0.txt" % (mx, my))
+            path = p("maps", "%d,%d,0.map" % (mx, my))
             if not os.path.exists(path):
                 continue
             with open(path, "rb") as f:

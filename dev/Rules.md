@@ -569,7 +569,7 @@ that isn't in the game.
 - **All tools wear** (`Durability`, no `Slot`): a use each go, and a broken one doesn't count until it's mended.
 
 ### Places and furniture
-- The maps: `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory). The Shardfall Deep is on -1 under the sea north of Ashford (4..12, -17..-5)
+- The maps: `X,Y,Z.map`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs. Levels of their own (nothing joins them): the arena 0,0,10, the Shardrealm 21,4,-10, the Shifting Deep 40,40,-11 and down (in memory), homesteads 0,0,1000+n (in memory). The Shardfall Deep is on -1 under the sea north of Ashford (4..12, -17..-5)
 - Inside walls are `*_Thin_Plank*` floor tiles with the wall drawn along their edge (001-008 round a rectangle, 009-018
   the inner corners, passages and dead ends: `house_tiles.THIN_EDGES`, `dev/migrate/thin_wall_pieces.py`; a set's
   pieces after a gap row are put down by hand, the nine before it stretched). Beds, bookshelves, chests,
@@ -1006,6 +1006,10 @@ that isn't in the game.
   to them are written lowercase: the server runs on Linux, where `Data` isn't `data`. (Folders inside them keep
   their names: `data/Scripts`, `sprites/Tiles`.)
 - Data files and maps are **cp1252 with CRLF**. Preserve both when editing; write them in binary mode from Python.
+- Maps are **`.map`** (`maps/X,Y,Z.map`, `data/Homestead.map`) and scripts **`.script`** (`data/Scripts/*.script`),
+  never `.txt`: the game and the editor read only those, and `validate.py` warns about a `.txt` left in their
+  folders. (A script's name is 7 letters longer than its stem: `f[:-7]`, or `os.path.splitext`.) Old commits still
+  hold `.txt`, so a builder reading `git show` of one keeps that name.
 - Map cells: `Tile+Under(Rug)+Decor(Name)+Roof(Piece.Group)+Infront(...)`. Entity lines are tab-separated:
   `NPC|StaticObject|MapItem Name x y options`. In builders, use `build_isle.Map` and `obj_line` (1-based tiles).
 - Scripts: `NN<TAB>Command<TAB>args`. `>Conditional COND LINE` goes on when COND is true and jumps to LINE when

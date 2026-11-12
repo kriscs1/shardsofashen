@@ -293,7 +293,7 @@ def realm():
     SK.place_id(m, "Realm_Gate", REALM_GATE[0], REALM_GATE[1])
     SK.place_id(m, "Barrier_Anchor_Site", ANCHOR_SITE[0], ANCHOR_SITE[1])
     m.save()
-    print("Made maps\\%s.txt: the Shardrealm" % REALM)
+    print("Made maps\\%s.map: the Shardrealm" % REALM)
 
 
 # ================================================================== the scripts

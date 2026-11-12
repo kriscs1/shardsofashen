@@ -353,7 +353,7 @@ def numbered(lines):
 
 def write_scripts():
     for name, lines in SCRIPTS.items():
-        with open(p("data", "Scripts", name + ".txt"), "wb") as f:
+        with open(p("data", "Scripts", name + ".script"), "wb") as f:
             f.write(("\r\n".join([MAKER] + numbered(lines)) + "\r\n").encode("cp1252"))
 
 

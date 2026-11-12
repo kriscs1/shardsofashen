@@ -307,7 +307,7 @@ def shardstones():
     if not os.path.exists(path):
         rows = []
         for name in ("Travel Shardstone", "Travel Shardstone 2"):
-            f = p("data", "Scripts", name + ".txt")
+            f = p("data", "Scripts", name + ".script")
             if os.path.exists(f):
                 text = open(f, "rb").read().decode("cp1252")
                 rows += re.findall(r"The (.+?) shardstone's rune is dark\..*?Shardstone\.([A-Za-z]+) Shards", text)

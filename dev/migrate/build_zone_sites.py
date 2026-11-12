@@ -156,7 +156,7 @@ def neighbours_ground(world, gx, gy, skip=re.compile(r"^(Ruined_Wall|Standing_St
 def clean_ruins(world):
     """The ruin outlines the zones and keeps were given: gone, the ground round them under them again."""
     n = 0
-    for path in glob.glob(p("maps", "*,0.txt")):
+    for path in glob.glob(p("maps", "*,0.map")):
         if b"Ruined_Wall00" not in open(path, "rb").read():
             continue
         name = os.path.basename(path)[:-4]
@@ -528,7 +528,7 @@ def move_line(world, marker, gx, gy, extra=""):
                     opts = re.sub(r"\b(Stand|Zone|Face)=\S*", "", opts).strip() + " " + extra
                 world.line(gx, gy, f[0], f[1], opts.strip())
                 return True
-    for path in glob.glob(p("maps", "*,0.txt")):              # (on a map not read yet)
+    for path in glob.glob(p("maps", "*,0.map")):              # (on a map not read yet)
         if marker.encode() in open(path, "rb").read():
             mx, my, _ = W.mxyz(os.path.basename(path)[:-4])
             world.get_map(mx, my)
@@ -548,7 +548,7 @@ FOLK_WORDS = {
 
 def write_folk(name, sprite, site):
     words = FOLK_WORDS.get(site["id"], "Keep your wits about you out here.")
-    path = p("data", "Scripts", "Talk to %s.txt" % name)
+    path = p("data", "Scripts", "Talk to %s.script" % name)
     with open(path, "w", encoding="cp1252", newline="\r\n") as f:
         f.write("\n".join([HEADER, "01\tDisplay.Conversation\t%s\t%s\tGood to know.\t02" % (sprite, words),
                            "02\tEnd"]) + "\n")
@@ -558,7 +558,7 @@ def write_folk(name, sprite, site):
 def keeps(world, rng, taken):
     """Each old keep a keep: a stone hall, roofed, with its yard; whoever holds it still holds it."""
     n = 0
-    for path in glob.glob(p("maps", "*,0.txt")):
+    for path in glob.glob(p("maps", "*,0.map")):
         b = open(path, "rb").read()
         if b"Old_Keep_" not in b:
             continue
@@ -613,7 +613,7 @@ def more():
     """The places a run before found no room for (its zone's ground broken up): somewhere looser."""
     rng = random.Random(6262)
     world = Z.World()
-    for n in glob.glob(p("maps", "*,0.txt")):
+    for n in glob.glob(p("maps", "*,0.map")):
         mx, my, _ = W.mxyz(os.path.basename(n)[:-4])
         if -14 <= mx <= 30 and -8 <= my <= 31:
             world.get_map(mx, my)
@@ -740,7 +740,7 @@ def rare_in_zones():
     rng = random.Random(8080)
     world = Z.World()
     yews = fish = 0
-    for path in glob.glob(p("maps", "*,0.txt")):
+    for path in glob.glob(p("maps", "*,0.map")):
         b = open(path, "rb").read()
         if b"Yew_Tree001" not in b and b"Swordfish_Spot" not in b:
             continue
@@ -847,7 +847,7 @@ def ruins_back():
         return
     rng = random.Random(9191)
     world = Z.World()
-    for n in glob.glob(p("maps", "*,0.txt")):
+    for n in glob.glob(p("maps", "*,0.map")):
         mx, my, _ = W.mxyz(os.path.basename(n)[:-4])
         if -14 <= mx <= 30 and -8 <= my <= 31:
             world.get_map(mx, my)
@@ -925,7 +925,7 @@ def calm_homes(near=14):
     without a name within near tiles of one is taken off."""
     world = Z.World()
     homes, gone = [], 0
-    for path in glob.glob(p("maps", "*,0.txt")):
+    for path in glob.glob(p("maps", "*,0.map")):
         b = open(path, "rb").read().decode("cp1252")
         for h in HOMES:
             if "Id\t%s\t" % h in b:
@@ -976,7 +976,7 @@ def main():
     print("Ruin outlines gone: %d cells" % clean_ruins(world))
     land = relay_rime(world, rng)
     print("The Rime laid again: %d cells" % len(land))
-    for n in glob.glob(p("maps", "*,0.txt")):
+    for n in glob.glob(p("maps", "*,0.map")):
         mx, my, _ = W.mxyz(os.path.basename(n)[:-4])
         if -14 <= mx <= 30 and -8 <= my <= 31:
             world.get_map(mx, my)

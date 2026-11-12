@@ -41,7 +41,7 @@ def drop_sections(text, names):
 def main():
     n = 0
     for f in sorted(os.listdir(os.path.join(ROOT, "maps"))):
-        if f.endswith(".txt") and rewrite(os.path.join(ROOT, "maps", f), lambda t: DECOR.sub("", t)):
+        if f.endswith(".map") and rewrite(os.path.join(ROOT, "maps", f), lambda t: DECOR.sub("", t)):
             print("maps\\%s: the hanging signs taken down" % f)
             n += 1
     for name in SIGNS:

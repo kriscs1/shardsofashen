@@ -99,7 +99,7 @@ def drop_sections(path, names):
 
 def maps():
     n = 0
-    for path in glob.glob(os.path.join(ROOT, "maps", "**", "*.txt"), recursive=True):
+    for path in glob.glob(os.path.join(ROOT, "maps", "**", "*.map"), recursive=True):
         name = os.path.splitext(os.path.relpath(path, os.path.join(ROOT, "maps")))[0]
         if name.count(",") != 2 or os.sep in name:
             continue

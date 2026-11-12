@@ -42,7 +42,7 @@ def read_places(maps_dir, map_h=21, tile=32):
     """{UPPER name: Place} for every map in maps_dir, and [(name, map, other map)] for names used twice."""
     found, twice = {}, []
     try:
-        files = sorted(f for f in os.listdir(maps_dir) if f.lower().endswith(".txt"))
+        files = sorted(f for f in os.listdir(maps_dir) if f.lower().endswith(".map"))
     except OSError:
         return found, twice
     for f in files:

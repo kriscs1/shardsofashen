@@ -54,7 +54,7 @@ def at(x, y, dy=0):
 
 # ================================================================== finding things the other builders put down
 def all_maps():
-    return [f[:-4] for f in os.listdir(os.path.join(K.ROOT, "maps")) if f.endswith(".txt")]
+    return [f[:-4] for f in os.listdir(os.path.join(K.ROOT, "maps")) if f.endswith(".map")]
 
 
 def find_npc(prefix, sprite=None):
@@ -438,7 +438,7 @@ def dragon_island():
     amb = os.path.join(K.DATA, "Ambient.ini")
     ini.write("Maps", "8,10,0", "Waves", amb)
     K.place_label("Places", "Dragon Island", "Dragon_Island_Landing")
-    print("Made maps\\8,10,0.txt: Dragon Island, its drakes and the Temple of Valour")
+    print("Made maps\\8,10,0.map: Dragon Island, its drakes and the Temple of Valour")
 
 
 def court():
@@ -551,7 +551,7 @@ def open_hall(key, title, sprite, place, extra):
             text = open(os.path.join(K.SCRIPTS, f), "rb").read().decode("cp1252")
             if "\t%s\\" % title.upper() not in text:
                 continue
-            pid = f[5:-4]
+            pid = f[5:-7]
             hit = find_place(pid)
             if hit is None:
                 continue
@@ -1449,7 +1449,7 @@ def retired():
     ])
     w("Kill Ashen_Acolyte", [("Display.Message", "Cyan", "The acolyte crumples into the ash.", "-"), ("End",)])
     cut_lines("Talk to Witch", "OmenQuest", "OmenWitchTold")     # (Morwen's part in the Ashen Omens; her own goes on)
-    lair = os.path.join(K.ROOT, "maps", "0,0,-9.txt")         # (Ignaroth's lair under Ashpeak: the dragon is Galaith's)
+    lair = os.path.join(K.ROOT, "maps", "0,0,-9.map")         # (Ignaroth's lair under Ashpeak: the dragon is Galaith's)
     if os.path.exists(lair):
         os.remove(lair)
         for name in ("Ambient.ini", "Music.ini"):
@@ -1458,13 +1458,13 @@ def retired():
                 text = fh.read()
             with open(path, "wb") as fh:
                 fh.write(b"".join(ln for ln in text.splitlines(True) if not ln.startswith(b"0,0,-9=")))
-        print("Removed maps\\0,0,-9.txt (the old dragon's lair)")
+        print("Removed maps\\0,0,-9.map (the old dragon's lair)")
 
 
 def cut_lines(name, first, last):
     """Takes out of a numbered script the lines from the first naming `first` to the last naming `last`, its jumps
     renumbered (a jump into the cut goes on to the line after it)."""
-    path = os.path.join(K.SCRIPTS, name + ".txt")
+    path = os.path.join(K.SCRIPTS, name + ".script")
     with open(path, "rb") as fh:
         lines = fh.read().decode("cp1252").split("\r\n")
     body = [ln.split("\t") for ln in lines if ln[:2].isdigit()]
@@ -1499,19 +1499,19 @@ def cut_lines(name, first, last):
 
 
 REWORDS = {   # (file under Data: the old King Tyron's words, as they read now)
-    "Scripts\\2,4,0.txt": [("Tyron's Keep, the King's garrison.", "King Rupert's Keep, held by his Steward.")],
-    "Scripts\\4,4,0.txt": [("The Royal Isle: King Tyron's palace.", "The Royal Isle: the Wizards' Court.")],
-    "Scripts\\Read Ashford_Iron_Mine.txt": [("Closed by order of King Tyron. Hobgoblins below!",
+    "Scripts\\2,4,0.script": [("Tyron's Keep, the King's garrison.", "King Rupert's Keep, held by his Steward.")],
+    "Scripts\\4,4,0.script": [("The Royal Isle: King Tyron's palace.", "The Royal Isle: the Wizards' Court.")],
+    "Scripts\\Read Ashford_Iron_Mine.script": [("Closed by order of King Tyron. Hobgoblins below!",
                                              "Closed by order of the King's Steward.")],
-    "Scripts\\Read Royal_Treasury.txt": [("By order of King Tyron this door stays locked.",
+    "Scripts\\Read Royal_Treasury.script": [("By order of King Tyron this door stays locked.",
                                           "The Wizards' Court's strongroom.")],
-    "Scripts\\Read The_Royal_Isle.txt": [("King Tyron's palace. The gate is open to all honest folk. Its gate faces south.",
+    "Scripts\\Read The_Royal_Isle.script": [("King Tyron's palace. The gate is open to all honest folk. Its gate faces south.",
                                           "The Wizards' Court and its tower."),
                                          ("THE ROYAL ISLE\\The Wizards' Court and its tower.",   # (it's no isle)
                                           "THE WIZARDS' COURT\\The old King's Castle, and its tower.")],
-    "Scripts\\Talk to Farmer.txt": [("King Tyron ought to do something.", "The King's Steward ought to do something."),
+    "Scripts\\Talk to Farmer.script": [("King Tyron ought to do something.", "The King's Steward ought to do something."),
                                     ("I'll speak to the King.", "I'll speak to the Steward.")],
-    "Scripts\\Talk to Guard.txt": [
+    "Scripts\\Talk to Guard.script": [
         ("King Tyron holds court in the throne hall.\\Mind your manners before the throne, and keep your blade sheathed.",
          "The wizards hold court in the great hall.\\Mind your manners, and keep your blade sheathed."),
         ("Welcome to the Royal Isle. The wizards", "Welcome to the Wizards' Court. The wizards"),
@@ -1523,8 +1523,8 @@ REWORDS = {   # (file under Data: the old King Tyron's words, as they read now)
         ("The King holds court in the great hall.", "The Steward holds the hall while the King is away.")],
     "Entities.ini": [("A guard of King Tyron, spear in hand.", "A guard of the King's, spear in hand.")],
 }
-KEEP_NAMED = ("Scripts\\Read Ashford.txt", "Scripts\\Read Oakhollow.txt", "Scripts\\Talk to Ranger.txt",
-              "Scripts\\Watch Stone 1.txt", "Quests.ini")   # (where "Tyron's Keep" is only the place's old name)
+KEEP_NAMED = ("Scripts\\Read Ashford.script", "Scripts\\Read Oakhollow.script", "Scripts\\Talk to Ranger.script",
+              "Scripts\\Watch Stone 1.script", "Quests.ini")   # (where "Tyron's Keep" is only the place's old name)
 
 
 def reword():

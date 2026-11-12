@@ -33,7 +33,7 @@ def main():
     tiles.save(p("data", "Tiles.ini"))
     cells = maps = 0
     for f in sorted(os.listdir(p("maps"))):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         with open(p("maps", f), "rb") as fh:
             old = fh.read()

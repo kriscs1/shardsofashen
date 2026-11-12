@@ -58,7 +58,7 @@ def main():
     data = os.path.join(ROOT, "data")
     fix(os.path.join(data, "Config.ini"), CONFIG + WORDS, "cp1252")
     fix(os.path.join(data, "Stances.ini"), STANCES, "cp1252")
-    for path in glob.glob(os.path.join(data, "*.ini")) + glob.glob(os.path.join(data, "Scripts", "*.txt")):
+    for path in glob.glob(os.path.join(data, "*.ini")) + glob.glob(os.path.join(data, "Scripts", "*.script")):
         if os.path.basename(path) not in ("Config.ini", "Stances.ini"):
             fix(path, WORDS, "cp1252")
     for path in glob.glob(os.path.join(ROOT, "dev", "migrate", "*.py")):

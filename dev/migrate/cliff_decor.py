@@ -97,7 +97,7 @@ def convert_maps():
     """Every cell on a cliff or a stone: its neighbours' ground, the cliff or stone as its decor (a cell with a decor
     already, a pine on a stone, keeps its own and loses the stone)."""
     changed = 0
-    for path in glob.glob(p("maps", "**", "*.txt"), recursive=True):     # (and the test maps, maps\Test)
+    for path in glob.glob(p("maps", "**", "*.map"), recursive=True):     # (and the test maps, maps\Test)
         raw = open(path, "rb").read()
         if not any(n.encode() in raw for n in NAMES):
             continue

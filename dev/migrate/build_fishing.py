@@ -346,7 +346,7 @@ def protected_spots(world, content):
     ok = walk_ok_fn()
     out = {}
     for name in sorted(W.PROTECTED_MAPS):
-        path = p("maps", name + ".txt")
+        path = p("maps", name + ".map")
         if not os.path.exists(path):
             continue
         lines = read_lines(path)

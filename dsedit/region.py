@@ -219,9 +219,9 @@ def update_refs(project, all_moves, own_scripts):
     fix_markers(project.p("data", "WorldMap.ini"), "WorldMap.ini")
     folder = project.p("data", "Scripts")
     for fname in sorted(os.listdir(folder)):
-        if not fname.lower().endswith(".txt"):
+        if not fname.lower().endswith(".script"):
             continue
-        name = fname[:-4]
+        name = fname[:-7]
         path = os.path.join(folder, fname)
         raw = open(path, "rb").read().decode("cp1252")
         nl = "\r\n" if "\r\n" in raw else "\n"

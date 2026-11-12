@@ -222,7 +222,7 @@ def blank(W, H, col=(40, 0, 40)):
 def map_names():
     out = []
     for f in os.listdir(p("maps")):
-        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.txt", f)
+        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.map", f)
         if m:
             out.append(tuple(int(v) for v in m.groups()))
     return out
@@ -245,7 +245,7 @@ def main():
         names.append(args[i]); i += 1
     MW, MH = MAP_W * TW, MAP_H * TH
     for n in names:
-        path = p("maps", n + ".txt")
+        path = p("maps", n + ".map")
         img = blank(MW, MH)
         has_roof = draw_map(img, MW, MH, 0, 0, path)
         write_png(os.path.join(out, n + ".png"), img)
@@ -267,7 +267,7 @@ def main():
         W, H = (x1 - x0 + 1) * MW, (y1 - y0 + 1) * MH
         img = blank(W, H)
         for (x, y, _) in lv:
-            draw_map(img, W, H, (x - x0) * MW, (y - y0) * MH, p("maps", "%d,%d,%d.txt" % (x, y, z)), triggers=False)
+            draw_map(img, W, H, (x - x0) * MW, (y - y0) * MH, p("maps", "%d,%d,%d.map" % (x, y, z)), triggers=False)
         for gx in range(0, W, MW):
             for yy in range(H):
                 img[yy][gx] = (255, 255, 0)

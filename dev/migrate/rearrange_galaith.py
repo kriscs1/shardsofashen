@@ -587,13 +587,13 @@ def main(dry=False):
     hdx, hdy = next((x - b.x1, y - b.y1) for b, x, y in placed if b is hall)
     old_palace = "%d,%d,0" % (palace.x1 // XT, palace.y1 // YT)
     new_palace = "%d,%d,0" % (pal_x // XT, pal_y // YT)
-    for name in (old_palace + ".txt", "Talk to Rupert_On_Throne.txt", "Climb Down Archive_Hatch.txt"):   # (as committed)
-        open(os.path.join(ROOT, "data", "Scripts", name), "wb").write(committed("data/Scripts/" + name))
-    for stale in glob.glob(os.path.join(ROOT, "data", "Scripts", "-1[01],1[34],0.txt")):
-        if os.path.basename(stale) != old_palace + ".txt":
+    for name in (old_palace, "Talk to Rupert_On_Throne", "Climb Down Archive_Hatch"):   # (as committed: .txt then)
+        open(os.path.join(ROOT, "data", "Scripts", name + ".script"), "wb").write(committed("data/Scripts/" + name + ".txt"))
+    for stale in glob.glob(os.path.join(ROOT, "data", "Scripts", "-1[01],1[34],0.script")):
+        if os.path.basename(stale) != old_palace + ".script":
             os.remove(stale)
     G.palace_script(pdx, pdy, old_palace, new_palace)
-    path = os.path.join(ROOT, "data", "Scripts", "Climb Down Archive_Hatch.txt")
+    path = os.path.join(ROOT, "data", "Scripts", "Climb Down Archive_Hatch.script")
     s = open(path, "rb").read().decode("cp1252")
 
     def hatch(m):
@@ -606,7 +606,7 @@ def main(dry=False):
              (-206, 305, "the fountain"), (ROYAL[2] - 2, 305, "the palace")])
 
     for lv in others:                                   # (rooms a run before left where no building is now)
-        for path in glob.glob(os.path.join(ROOT, "maps", "*,%d.txt" % lv.z)):
+        for path in glob.glob(os.path.join(ROOT, "maps", "*,%d.map" % lv.z)):
             n = os.path.basename(path)[:-4]
             mx, my, _ = mxy(n)
             if -11 <= mx <= -4 and 12 <= my <= 17 and n not in lv.maps:

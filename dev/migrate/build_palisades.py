@@ -132,7 +132,7 @@ def join_maps():
     import re
     done = 0
     for f in sorted(os.listdir(p("maps"))):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         path = p("maps", f)
         lines = read_lines(path)

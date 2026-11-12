@@ -25,8 +25,8 @@ def prey():
 
 def main():
     kinds = prey()
-    paths = [os.path.join(ROOT, "maps", f) for f in sorted(os.listdir(os.path.join(ROOT, "maps"))) if f.endswith(".txt")]
-    paths.append(os.path.join(ROOT, "data", "Homestead.txt"))
+    paths = [os.path.join(ROOT, "maps", f) for f in sorted(os.listdir(os.path.join(ROOT, "maps"))) if f.endswith(".map")]
+    paths.append(os.path.join(ROOT, "data", "Homestead.map"))
     n, maps = 0, 0
     for path in paths:
         if not os.path.exists(path):

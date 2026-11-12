@@ -75,7 +75,7 @@ def beats(body, i):
 
 def main():
     n = 0
-    for path in sorted(glob.glob(os.path.join(SCRIPTS, "*.txt"))):
+    for path in sorted(glob.glob(os.path.join(SCRIPTS, "*.script"))):
         name = os.path.splitext(os.path.basename(path))[0]
         rule = next((r for r in WORK if re.fullmatch(r[0], name)), None)
         if rule is None:

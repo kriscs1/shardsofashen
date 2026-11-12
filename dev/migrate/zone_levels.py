@@ -55,7 +55,7 @@ def main():
                 str(z) for z in sorted(up | {e.z}))
     n, maps = 0, 0
     for name in sorted({k[0] for k in wants}):
-        path = os.path.join(ROOT, "maps", name + ".txt")
+        path = os.path.join(ROOT, "maps", name + ".map")
         lines = read_text_lines(path)
         out = list(lines)
         for i in range(H, len(lines)):

@@ -740,7 +740,7 @@ def rename_gotos(project, old, new, where):
 # =================================================================================================================
 # The project
 # =================================================================================================================
-HOMESTEAD_MAP = "Homestead"    # the land a new homestead starts as (data\Homestead.txt), on a level of its own
+HOMESTEAD_MAP = "Homestead"    # the land a new homestead starts as (data\Homestead.map), on a level of its own
 
 
 class Project:
@@ -772,11 +772,11 @@ class Project:
 
     def map_path(self, name):
         if name == HOMESTEAD_MAP:
-            return self.p("data", self.config.get("Homestead", "Template", "Homestead.txt") or "Homestead.txt")
-        return self.p("maps", name + ".txt")
+            return self.p("data", self.config.get("Homestead", "Template", "Homestead.map") or "Homestead.map")
+        return self.p("maps", name + ".map")
 
     def script_path(self, name):
-        return self.p("data", "Scripts", name + ".txt")
+        return self.p("data", "Scripts", name + ".script")
 
     @property
     def skills(self):
@@ -906,7 +906,7 @@ class Project:
         return self._files("entities", ("sprites", "Entities"), (".png", ".bmp"))
 
     def scripts(self):
-        return self._files("scripts", ("data", "Scripts"), ".txt")
+        return self._files("scripts", ("data", "Scripts"), ".script")
 
     def sounds(self):
         """Every sound by its name, whichever folder of sounds it's in (sounds/<kind>: ashen/sounds.py); a tune with its
@@ -926,7 +926,7 @@ class Project:
     def maps(self):
         if "maps" not in self._lists:
             d = self.p("maps")
-            names = [f[:-4] for f in os.listdir(d) if f.endswith(".txt") and parse_map_name(f[:-4])]
+            names = [f[:-4] for f in os.listdir(d) if f.endswith(".map") and parse_map_name(f[:-4])]
             if os.path.exists(self.map_path(HOMESTEAD_MAP)) and HOMESTEAD_MAP not in names:
                 names.append(HOMESTEAD_MAP)
             self._lists["maps"] = sorted(names, key=lambda n: (parse_map_name(n)[2], parse_map_name(n)[1],

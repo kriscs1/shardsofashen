@@ -410,7 +410,7 @@ def town_boxes():
 def foes_level(name, ents):
     """(the strongest aggressive foe's level on a map, how many of its foes are dreadful: the undead, spiders)."""
     best, dread, foes = 0, 0, 0
-    for line in read_lines(p("maps", name + ".txt"))[21:]:
+    for line in read_lines(p("maps", name + ".map"))[21:]:
         bits = line.split("\t")
         if bits[0] != "NPC" or len(bits) < 2:
             continue
@@ -459,7 +459,7 @@ def write_music_ini():
     lines += ["", "[Maps]"]
     names = []
     for f in os.listdir(p("maps")):
-        bits = f[:-4].split(",") if f.endswith(".txt") else []
+        bits = f[:-4].split(",") if f.endswith(".map") else []
         if len(bits) == 3 and all(b.lstrip("-").isdigit() for b in bits):
             names.append(tuple(int(b) for b in bits))
     for x, y, z in sorted(names, key=lambda t: (t[2], t[1], t[0])):

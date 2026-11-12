@@ -150,11 +150,11 @@ def sound_exists(name):
     """A sound called name (bare: a .wav) is in one of the sounds folders."""
     return sound_folders.file_name(name) in SOUND_FILES
 SCRIPT_DIR = p("data", "Scripts")
-SCRIPTS = {f[:-4] for f in os.listdir(SCRIPT_DIR) if f.lower().endswith(".txt")}
+SCRIPTS = {f[:-7] for f in os.listdir(SCRIPT_DIR) if f.lower().endswith(".script")}
 
 
 def script_nonempty(name):
-    path = os.path.join(SCRIPT_DIR, name + ".txt")
+    path = os.path.join(SCRIPT_DIR, name + ".script")
     return exists(path) and any(l.strip() for l in read_lines(path))
 
 
@@ -355,7 +355,7 @@ def check_map(path, entities_ini, tiles_ini, report):
                 warn(r, "line %d: StaticObject options should be Key=Value: %s" % (n, " ".join(bad)))
             oid = next((w[3:] for w in f[4].split() if w.startswith("Id=")), "")
             if oid and name_of(f) == "Notice" and not script_nonempty("Read " + oid):
-                report(r, "line %d: notice Id=%s has no script data\\Scripts\\Read %s.txt" % (n, oid, oid))
+                report(r, "line %d: notice Id=%s has no script data\\Scripts\\Read %s.script" % (n, oid, oid))
         elif len(f) != ENTITY_FIELDS[typ]:
             report(r, "line %d: %s needs %d tab-separated fields%s, has %d"
                    % (n, typ, ENTITY_FIELDS[typ], " (plus Options)" if typ in NPC_TYPES else "", len(f)))
@@ -372,7 +372,7 @@ def check_map(path, entities_ini, tiles_ini, report):
                 if name[5:] not in TRAP_KINDS:
                     report(r, "line %d: no trap kind %s (%s)" % (n, name[5:], ", ".join(TRAP_KINDS)))
             elif not script_nonempty(name):
-                report(r, "line %d: trigger script data\\Scripts\\%s.txt missing or empty" % (n, name))
+                report(r, "line %d: trigger script data\\Scripts\\%s.script missing or empty" % (n, name))
             if "," in name:
                 warn(r, "line %d: trigger name %r contains commas; the game must read map lines with "
                         "'line input' (plain 'input' splits at commas)" % (n, name))
@@ -414,7 +414,7 @@ def npc_ids():
     if _npc_ids is None:
         _npc_ids = {}
         for f in sorted(os.listdir(p("maps"))):
-            if f.endswith(".txt"):
+            if f.endswith(".map"):
                 for line in read_lines(p("maps", f))[MAP_H:]:
                     fl = line.split("	")
                     if fl[0] in ("NPC", "GoodNPC", "BadNPC") and len(fl) > 4:
@@ -422,13 +422,13 @@ def npc_ids():
                             if tok.startswith("Id="):
                                 _npc_ids.setdefault(tok[3:], []).append(f[:-4])
         for f in sorted(os.listdir(SCRIPT_DIR)):          # (and one a script puts down: Add.Entity ... NPC Id=)
-            if f.lower().endswith(".txt"):
+            if f.lower().endswith(".script"):
                 for line in read_lines(os.path.join(SCRIPT_DIR, f)):
                     fl = line.split("\t")
                     if len(fl) > 5 and fl[1].strip() == "Add.Entity" and fl[4].strip() == "NPC":
                         for tok in fl[5].split():
                             if tok.startswith("Id="):
-                                _npc_ids.setdefault(tok[3:], []).append(f[:-4])
+                                _npc_ids.setdefault(tok[3:], []).append(f[:-7])
     return _npc_ids
 PATROL_MODES = {"PingPong", "Loop"}
 PAUSE_RE = re.compile(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$")
@@ -457,7 +457,7 @@ def map_of_tile(home, tx, ty):
         return None if not (1 <= tx <= MAP_W and 1 <= ty <= MAP_H) else (home, tx, ty)
     dx, dy = (tx - 1) // MAP_W, (ty - 1) // MAP_H
     name = "%d,%d,%d" % (mx + dx, my + dy, mz)
-    if not exists(p("maps", name + ".txt")):
+    if not exists(p("maps", name + ".map")):
         return None
     return name, tx - dx * MAP_W, ty - dy * MAP_H
 
@@ -538,7 +538,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             report(where, "Id=%s is on more than one NPC (%s): an Id names one NPC" % (v, ", ".join(npc_ids()[v])))
         if k in ("Gone.After", "Here.After") and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*(:\d+)?(,[A-Za-z_][A-Za-z0-9_.]*(:\d+)?)*", v):
             report(where, "%s=%r should be Attribute:N (GalaithQuest:2)" % (k, v))
-        if k == "Spotted.Script" and not exists(p("data", "Scripts", v + ".txt")):
+        if k == "Spotted.Script" and not exists(p("data", "Scripts", v + ".script")):
             report(where, "Spotted.Script=%s: there's no such script in data\\Scripts" % v)
         opts[k] = v
     if ";" in field:
@@ -572,7 +572,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
         else:
             try:
                 mx, my, _ = (int(v) for v in home.split(","))
-                there = p("maps", "%d,%d,%s.txt" % (mx, my, opts[k]))
+                there = p("maps", "%d,%d,%s.map" % (mx, my, opts[k]))
             except ValueError:
                 there = ""
             if not there or not exists(there):
@@ -592,7 +592,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
             except ValueError:
                 mx = None
             for v in lv:
-                if mx is None or not exists(p("maps", "%d,%d,%s.txt" % (mx, my, v.strip()))):
+                if mx is None or not exists(p("maps", "%d,%d,%s.map" % (mx, my, v.strip()))):
                     report(where, "Zone.Levels=%s: there's no map on level %s here" % (opts["Zone.Levels"], v))
     if "Bed" in opts:                               # (its own bed: the head of a bed on its map, or its Bed.Level's)
         q = opts["Bed"].split(",")
@@ -640,7 +640,7 @@ def check_npc_options(r, n, name, x, y, field, lines, entities_ini, tiles_ini, r
                 there = map_of_tile(home, px, py) if (1 - MAP_W <= px <= 2 * MAP_W and 1 - MAP_H <= py <= 2 * MAP_H) else None
                 if there is None:
                     report(where, "patrol waypoint %d,%d is off the map, and not on a map next to it" % (px, py))
-                elif not map_walker(read_lines(p("maps", there[0] + ".txt")), tiles_ini)[0](there[1] - 1, there[2] - 1):
+                elif not map_walker(read_lines(p("maps", there[0] + ".map")), tiles_ini)[0](there[1] - 1, there[2] - 1):
                     report(where, "patrol waypoint %d,%d (tile %d,%d of %s) is not walkable" % (px, py, there[1], there[2], there[0]))
                 continue
             if not walk(px - 1, py - 1):
@@ -888,7 +888,7 @@ def check_scripts(skills, racks):
     used_cmds = set()
     references = set()
     for f in sorted(os.listdir(SCRIPT_DIR)):
-        if not f.lower().endswith(".txt"):
+        if not f.lower().endswith(".script"):
             continue
         path = os.path.join(SCRIPT_DIR, f)
         check_raw(path)
@@ -1044,7 +1044,7 @@ def check_unique_ids():
     the name of an item, object or tile (that would be "<Verb> <Name>")."""
     seen = {}
     for f in sorted(os.listdir(p("maps"))):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         for line in read_lines(p("maps", f))[MAP_H:]:
             fl = line.split("	")
@@ -1081,9 +1081,9 @@ def NPC_SIDES():
             for k, v in items:
                 if k is not None and k.lower() == "side" and v.strip():
                     _NPC_SIDES.add(v.strip().upper())
-        lines = [l for f in sorted(os.listdir(p("maps"))) if f.endswith(".txt")
+        lines = [l for f in sorted(os.listdir(p("maps"))) if f.endswith(".map")
                  for l in read_lines(p("maps", f))[MAP_H:]]
-        lines += [l for f in sorted(os.listdir(SCRIPT_DIR)) if f.lower().endswith(".txt")
+        lines += [l for f in sorted(os.listdir(SCRIPT_DIR)) if f.lower().endswith(".script")
                   for l in read_lines(os.path.join(SCRIPT_DIR, f)) if "Side=" in l]
         for line in lines:
             for tok in line.replace("\t", " ").split():
@@ -1286,9 +1286,9 @@ def check_place_refs():
                         continue
                     pl = place_of(v)
                     if pl is None:
-                        err("data\\Scripts\\%s.txt" % s, "%s: %r is neither coordinates nor a place ID" % (cmd, v))
+                        err("data\\Scripts\\%s.script" % s, "%s: %r is neither coordinates nor a place ID" % (cmd, v))
                     elif cmd != "Teleport" and own_map and pl[1] != own_map:
-                        err("data\\Scripts\\%s.txt" % s, "%s: place %s is on map %s, not this one" % (cmd, pl[0], pl[1]))
+                        err("data\\Scripts\\%s.script" % s, "%s: place %s is on map %s, not this one" % (cmd, pl[0], pl[1]))
 
 
 def check_script_reachability(references, triggers):
@@ -1306,7 +1306,7 @@ def check_script_reachability(references, triggers):
     with_id = set()                      # every Id= on a map line or added by a script ("Verb Id": e.g. Read Ashford)
     spotted = set()                      # every Spotted.Script= (a watchman's: run when it sees you)
     for f in os.listdir(p("maps")):
-        if f.endswith(".txt"):
+        if f.endswith(".map"):
             for l in read_lines(p("maps", f))[MAP_H:]:
                 fl = l.split("	")
                 if fl[0] == "Id" and len(fl) > 1:      # (a tile's place ID: its own scripts - Examine Grave_Tom_Barrow)
@@ -1317,7 +1317,7 @@ def check_script_reachability(references, triggers):
                     elif w.startswith("Spotted.Script="):
                         spotted.add(w[15:])
     for sc in SCRIPTS:                   # ... and what scripts add (Add.Entity <x,y> <name> <type> Id=...)
-        for l in read_lines(os.path.join(SCRIPT_DIR, sc + ".txt")):
+        for l in read_lines(os.path.join(SCRIPT_DIR, sc + ".script")):
             fl = l.split("	")
             if len(fl) > 5 and fl[1] == "Add.Entity":
                 for w in fl[5].split():
@@ -1336,7 +1336,7 @@ def check_script_reachability(references, triggers):
             if s.startswith(v + " ") and (s[len(v) + 1:] in names or re.fullmatch(r"\[[A-Za-z]+\]", s[len(v) + 1:])
                                           or s[len(v) + 1:] in with_id):
                 ok = True
-        if exists(p("maps", s + ".txt")):
+        if exists(p("maps", s + ".map")):
             ok = True    # map-entry script
         if s.endswith(" Skill"):
             ok = True    # run when that skill is clicked in the stat box
@@ -1347,14 +1347,14 @@ def check_script_reachability(references, triggers):
         if s in triggers or ("name", s) in references or any(k == "re" and re.fullmatch(v, s) for k, v in references):
             ok = True
         if not ok:
-            warn(rel(os.path.join(SCRIPT_DIR, s + ".txt")), "not reachable by any lookup rule, trigger or Goto.Script")
+            warn(rel(os.path.join(SCRIPT_DIR, s + ".script")), "not reachable by any lookup rule, trigger or Goto.Script")
 
 
 # ------------------------------------------------------------------ ini files
 def walkable_at(map_name, px, py, tiles_ini):
     fx, fy = px + 15, py + 28
     col, row = int(fx // 32), int(fy // 32)
-    lines = read_lines(p("maps", map_name + ".txt"))
+    lines = read_lines(p("maps", map_name + ".map"))
     tile = ground_key(lines[row].split(":")[col])
     data = tile_walk(tiles_ini, tile)
     sx, sy = int((fx % 32) * 7 // 32), int((fy % 32) * 7 // 32)
@@ -1398,7 +1398,7 @@ def check_demo(ini, r, tiles_ini):
         if not (ini.get("Demo", k, "") or "").strip().isdigit():
             err(where, "%s should be a whole number" % k)
     back = (ini.get("Demo", "Return", "") or "").split()
-    if len(back) != 3 or not exists(p("maps", back[0] + ".txt")):
+    if len(back) != 3 or not exists(p("maps", back[0] + ".map")):
         err(where, "Return should be a map there is and a pixel x and y")
         return
     try:
@@ -1427,12 +1427,12 @@ def check_config(tiles_ini):
         if ini.get(bad_sec, bad_key) is not None:
             err(r, "[%s] %s should not exist" % (bad_sec, bad_key))
     for name in (ini.get("PvP", "Open.Safe.Maps", "") or "").replace(";", " ").split():
-        if not os.path.exists(p("maps", name + ".txt")):     # (open PvP's safe places: dsengine/pvp.py)
+        if not os.path.exists(p("maps", name + ".map")):     # (open PvP's safe places: dsengine/pvp.py)
             err(r, "[PvP] Open.Safe.Maps: there's no map %s" % name)
     if ini.get("Interface", "Map.X.Tiles", "25").strip() != str(MAP_W) or ini.get("Interface", "Map.Y.Tiles", "21").strip() != str(MAP_H):
         warn(r, "Map.X.Tiles/Map.Y.Tiles differ from the %dx%d the maps use" % (MAP_W, MAP_H))
     sm = ini.get("Gameplay", "Start.Map", "")
-    if not exists(p("maps", sm + ".txt")):
+    if not exists(p("maps", sm + ".map")):
         err(r, "Start.Map %r has no map file" % sm)
     else:
         try:
@@ -1985,7 +1985,7 @@ def check_carts():
                 if pt is None:
                     err(r, "[%s] %s=%r should be MAP,X,Y[,Stop name]" % (sec, k, v))
                     continue
-                if not exists(p("maps", pt[0] + ".txt")):
+                if not exists(p("maps", pt[0] + ".map")):
                     err(r, "[%s] %s: there's no map %s" % (sec, k, pt[0]))
                 if not (1 <= pt[1] <= MAP_W and 1 <= pt[2] <= MAP_H):
                     err(r, "[%s] %s: tile %d,%d isn't on a map" % (sec, k, pt[1], pt[2]))
@@ -2028,7 +2028,7 @@ def check_digging():
     from dsengine.digging import parse_maps
     ini = Ini(path)
     r = rel(path)
-    maps = {tuple(int(n) for n in f[:-4].split(",")) for f in os.listdir(p("maps")) if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", f)}
+    maps = {tuple(int(n) for n in f[:-4].split(",")) for f in os.listdir(p("maps")) if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.map", f)}
     shard_keys = ("Shards.Chance", "Shards", "Shards.Underground.Chance", "Shards.Underground", "Cache.Chance", "Cache")
     for sec, items in ini.sections:
         for k, v in items:                       # (Shards in a dug hole: chances in 100, how many lo-hi)
@@ -2237,7 +2237,7 @@ def check_saves(skills):
             if ini.get("Player", k) is None:
                 err(r, "[Player] %s missing" % k)
         m = ini.get("Player", "Map", "")
-        if not exists(p("maps", m + ".txt")):
+        if not exists(p("maps", m + ".map")):
             err(r, "map %r doesn't exist" % m)
         for s in skills:
             if ini.get("Skills", s) is None:
@@ -2267,7 +2267,7 @@ def check_saves(skills):
         for k, v in (ini.section("Explored") or ["", []])[1]:
             if k == "Maps":
                 for mm in v.split():
-                    if not exists(p("maps", mm + ".txt")):
+                    if not exists(p("maps", mm + ".map")):
                         warn(r, "explored map %r doesn't exist" % mm)
 
 
@@ -2297,7 +2297,7 @@ def check_minimap():
 @functools.lru_cache(maxsize=None)
 def script_lines(name):
     """[(command, [args])] of a script, or [] when missing (read once: every quest asks about every script)."""
-    path = os.path.join(SCRIPT_DIR, name + ".txt")
+    path = os.path.join(SCRIPT_DIR, name + ".script")
     if not exists(path):
         return []
     out = []
@@ -2515,7 +2515,7 @@ def check_spells(entities_ini, skills):
         if sound and sound not in SOUNDS:
             err(where, "Sound %r is not in Sounds" % sound)
         m = (ini.get(sec, "Map") or "").replace(" ", "")
-        if m and not exists(p("maps", m + ".txt")):
+        if m and not exists(p("maps", m + ".map")):
             err(where, "Map %r doesn't exist" % m)
     for sec, items in entities_ini.sections:
         sp = (entities_ini.get(sec, "Spell") or "").strip()
@@ -2591,7 +2591,7 @@ def check_quests():
                             err(where, "%s: %r is not a place ID (an Id line on a map, or an Id=)" % (k, bits[0]))
                     elif len(bits) != 3 or not re.fullmatch(r"-?\d+,-?\d+,-?\d+", bits[0]) or not all(b.isdigit() for b in bits[1:]):
                         err(where, "%s: %r is not '<map> <tile x> <tile y>'" % (k, part))
-                    elif not exists(p("maps", bits[0] + ".txt")):
+                    elif not exists(p("maps", bits[0] + ".map")):
                         err(where, "%s: map %s doesn't exist" % (k, bits[0]))
                     elif not (1 <= int(bits[1]) <= MAP_W and 1 <= int(bits[2]) <= MAP_H):
                         err(where, "%s: tile %s,%s is off the map" % (k, bits[1], bits[2]))
@@ -2807,7 +2807,7 @@ class World:
     def __init__(self, tiles_ini):
         self.cells, self.ents, self.tiles_ini = {}, {}, tiles_ini
         for f in os.listdir(p("maps")):
-            m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.txt", f)
+            m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.map", f)
             if not m:
                 continue
             name = f[:-4]
@@ -3046,7 +3046,7 @@ def check_world(tiles_ini, entities_ini, skills):
     for name, where in sorted(placements.items()):
         for m, t in where:
             if name not in swimmers and name not in ACROSS_THE_WATER and not reachable_entity(open_reach, m, t):   # (a swimmer comes ashore)
-                warn("maps\\%s.txt" % m, "%s at tile %d,%d can't be reached from the start (even with every lock open)"
+                warn("maps\\%s.map" % m, "%s at tile %d,%d can't be reached from the start (even with every lock open)"
                      % (name, t[0] + 1, t[1] + 1))
     for m, x, y, cond, msg, where in LOCKS:
         if not any(nb in open_reach for nb in world.tile_neighbours(m, x - 1, y - 1)):
@@ -3102,6 +3102,17 @@ def check_world(tiles_ini, entities_ini, skills):
         REPORT.append("%s: lock at %d,%d [%s] keeps %d tile(s) behind it" % (m, x, y, cond, len(behind)))
 
 
+def check_old_extensions():
+    """Maps are .map and scripts .script now: a .txt left in their folders (an old copy, or one synced from a PC
+    not yet updated) is never read by the game or the editor."""
+    for folder, new in ((p("maps"), ".map"), (p("maps", "Test"), ".map"), (SCRIPT_DIR, ".script")):
+        for f in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
+            if f.lower().endswith(".txt"):
+                warn(rel(os.path.join(folder, f)), "is a .txt: the game reads only %s here (rename it, or delete it)" % new)
+    if exists(p("data", "Homestead.txt")):
+        warn("data/Homestead.txt", "is a .txt: the homestead template is data/Homestead.map now")
+
+
 def check_sounds():
     """The sounds' folders (sounds\\<kind>, ashen/sounds.py): no two sounds share a name, none loose in sounds\\
     itself; and data\\Music.ini: each theme's tunes are there, and each map's theme is one of them."""
@@ -3146,7 +3157,7 @@ def main():
     racks = check_itemracks(entities_ini, skills)
     triggers = set()
     for f in sorted(os.listdir(p("maps"))):
-        if f.lower().endswith(".txt"):
+        if f.lower().endswith(".map"):
             check_map(p("maps", f), entities_ini, tiles_ini, err)
             for line in read_lines(p("maps", f))[MAP_H:]:
                 if line.startswith("Trigger\t"):
@@ -3154,9 +3165,10 @@ def main():
     test_dir = p("maps", "Test")
     if os.path.isdir(test_dir):
         for f in sorted(os.listdir(test_dir)):
-            if f.lower().endswith(".txt"):
+            if f.lower().endswith(".map"):
                 # test maps are hand-made engine tests, so their problems are warnings only
                 check_map(os.path.join(test_dir, f), entities_ini, tiles_ini, warn)
+    check_old_extensions()
     refs = check_scripts(skills, racks)
     check_script_reachability(refs, triggers)
     check_unique_ids()

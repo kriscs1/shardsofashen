@@ -6,7 +6,7 @@
   * no homestones: a shardstone takes you home ("Your homestead" on its travel map, dsengine/shardcraft.py), and the
     Pocket Anchor in your pocket (it was its homestone) takes you back and says who may visit. A pocket is always
     safe: nothing hostile is ever in one;
-  * a new pocket (data\\Homestead.txt) is raw rim, a little still glass in pale mist; you terraform it with Shards
+  * a new pocket (data\\Homestead.map) is raw rim, a little still glass in pale mist; you terraform it with Shards
     (Shards.ini [Terraform]) and Shardcraft: still the mist into glass, turn glass to soil, soil to grass, lay water,
     set rocks, plant saplings, and grow Shard Blooms, which give Shards every few hours (Shards.ini [Homestead]):
     no source of Shards gives more, but each costs Shards to plant and you must be there to harvest it;
@@ -176,7 +176,7 @@ def data():
 
 
 def template():
-    """data\\Homestead.txt: a new pocket, raw rim: still glass round where you arrive, mist all round it."""
+    """data\\Homestead.map: a new pocket, raw rim: still glass round where you arrive, mist all round it."""
     rows = []
     for y in range(1, 22):
         row = []
@@ -188,14 +188,14 @@ def template():
     rows += ["StaticObject\tPocket_Anchor\t%d\t%d" % ((ANCHOR_AT[0] - 1) * tw, (ANCHOR_AT[1] - 1) * tw),
              "StaticObject\tCarpenters_Bench\t%d\t%d" % ((BENCH_AT[0] - 1) * tw, (BENCH_AT[1] - 1) * tw),
              "Id\tHome_Arrival\t%d\t%d" % ARRIVAL]
-    SK.write_text(p("data", "Homestead.txt"), rows)
+    SK.write_text(p("data", "Homestead.map"), rows)
 
 
 def no_homestones():
     """Every town's homestone off its map: the shardstone beside it takes you home now."""
     n = 0
     for f in sorted(os.listdir(p("maps"))):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         path = p("maps", f)
         raw = open(path, "rb").read()

@@ -38,7 +38,7 @@ NOTES = ("Mary's Notes\\Folded small, in your mother's hand:\\They told me at th
 def find_hall():
     """(map, x, y of the Archivist, the hall's roof cells) on whichever map she stands."""
     for f in os.listdir(os.path.join(ROOT, "maps")):
-        if not f.endswith(",0.txt"):
+        if not f.endswith(",0.map"):
             continue
         text = open(os.path.join(ROOT, "maps", f), "rb").read().decode("cp1252")
         if "Id=%s" % ARCHIVIST not in text:
@@ -153,7 +153,7 @@ def main():
         hx, hy = int(ln.split("\t")[2]), int(ln.split("\t")[3])
     mx, my = (int(v) for v in hall.name.split(",")[:2])
     vault_name = "%d,%d,-1" % (mx, my)
-    if not os.path.exists(os.path.join(ROOT, "maps", vault_name + ".txt")):
+    if not os.path.exists(os.path.join(ROOT, "maps", vault_name + ".map")):
         vault(vault_name, hx, hy)
     scripts(hall, hx, hy, vault_name)
     data()

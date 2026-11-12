@@ -46,7 +46,7 @@ def data():
 
 def maps():
     n = 0
-    for path in glob.glob(os.path.join(ROOT, "maps", "*.txt")):
+    for path in glob.glob(os.path.join(ROOT, "maps", "*.map")):
         name = os.path.splitext(os.path.basename(path))[0]
         if name.count(",") != 2 or "Wood_Gate" not in open(path, "rb").read().decode("cp1252"):
             continue

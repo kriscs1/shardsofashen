@@ -102,7 +102,7 @@ def test_the_chapel_graveyard_has_one_gate_and_you_walk_out_of_it_from_the_grave
     out = (m.ox + 2 * 32 + 16, m.oy + 16)                           # (outside the fence, the cottage's way)
     assert not reach(start, out, m.ox, m.oy, m.ox + 25 * 32, m.oy + 21 * 32)        # (no way out on its own map)
     assert reach(start, out, chapel.ox, chapel.oy, m.ox + 25 * 32, m.oy + 21 * 32)  # (west, out of the chapel's gate)
-    script = open(os.path.join(ROOT, "data", "Scripts", "The Funeral.txt"), encoding="cp1252").read()
+    script = open(os.path.join(ROOT, "data", "Scripts", "The Funeral.script"), encoding="cp1252").read()
     spots = {ln.split("\t")[4] for ln in script.splitlines() if "\tWalk.Away\t" in ln}
     assert spots and "Remove.Entity\t0,152\tMourner" not in script   # (they walk away, not vanish where they stand)
     for spot in spots:                                              # (the mourners walk somewhere they can get to)
@@ -368,7 +368,7 @@ def test_marys_notes_make_a_map(world):
     for k in range(1, 8):
         assert world.data.place("Mary_Note_%d" % k) is not None or any(
             e.npc_id == "Mary_Note_%d" % k for e in world.ents), k
-        assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Read Mary_Note_%d.txt" % k))
+        assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Read Mary_Note_%d.script" % k))
     assert world.data.place("Marys_Cache") is not None
     leave(world, s)
 
@@ -601,7 +601,7 @@ def test_closing_a_quest_talk_never_loses_or_repeats_what_it_gives(world):
     assert [s.items_held(i) for i in treasures] == [1, 0, 0]
     assert s.get_attribute("BertQuest") == "2" and s.get_attribute("BarrierSpell") == "1"
     s.update_attribute("AmuletQuest", "=4")
-    lines = [ln for ln in open(os.path.join(ROOT, "data", "Scripts", "Reach In Barred_Niche.txt"),
+    lines = [ln for ln in open(os.path.join(ROOT, "data", "Scripts", "Reach In Barred_Niche.script"),
                                  "rb").read().decode("cp1252").split("\r\n") if ln[:2].isdigit()]
     lines[0] = "01\tGoto.Line\t02"                 # (no niche clicked here: past the reach)
     for _ in range(3):
@@ -704,7 +704,7 @@ def test_a_queued_action_is_cancelled_by_its_own_fields_and_a_fire_put_out_takes
 
 def test_a_script_is_read_once_and_again_when_it_changes(world, tmp_path, monkeypatch):
     s = join(world, "Reader", "1,1,0", 300, 300)
-    path = str(tmp_path / "Talk to Someone.txt")
+    path = str(tmp_path / "Talk to Someone.script")
     with open(path, "wb") as f:
         f.write(b"// a comment\r\n01\tDisplay.Message\tCyan\tHello\t-\r\n03\tEnd\r\n")
     a = s.parsed_script(path)
@@ -747,7 +747,7 @@ def test_tile_changes_are_shared(world):
 
 
 def test_quest_lock_is_per_player(world):
-    # maps/1,1,0.txt: Lock 20,7  $Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1 (Tobias's house)
+    # maps/1,1,0.map: Lock 20,7  $Item.Fathers_House_Key>=1 or $Item.Beggars_House_Key>=1 (Tobias's house)
     a, b = join(world, "Ann"), join(world, "Ben")
     m = world.maps["1,1,0"]
     lk = m.lock_at[(20, 7)]
@@ -793,11 +793,11 @@ def test_npc_attitude_is_per_player(world):
 
 
 def test_quest_scripts_change_things_for_their_player_only(world, tmp_path, monkeypatch):
-    script = tmp_path / "Quest Test.txt"
+    script = tmp_path / "Quest Test.script"
     script.write_text("01\tGet.Value\tATTRIBUTE\tSomeQuest\tVariable.1$\n"
                       "02\tChange.Tile\t5,5\tTree_Stump001\t0\t0\n03\tEnd\n", encoding="cp1252")
     a, b = join(world, "Gil"), join(world, "Hal")
-    monkeypatch.setattr(type(a), "script_path", lambda self, name: str(tmp_path / (name + ".txt")))
+    monkeypatch.setattr(type(a), "script_path", lambda self, name: str(tmp_path / (name + ".script")))
     m = world.maps["1,1,0"]
     before = (m.version, m.cell_text(5, 5))
     a.start_script("Quest Test", True)
@@ -1023,7 +1023,7 @@ def test_the_ferry_comes_back_to_where_it_left(world):
     assert isle(east) == isle(west) and port(east) == port(west)
     assert east.pts[0] == isle(east) and east.pts[-1] == port(east)          # (there, and back the same way)
     assert not any(ln.startswith("StaticObject	Boat002	") for ln in open(
-        os.path.join(ROOT, "maps", "3,2,0.txt"), encoding="cp1252").read().splitlines())
+        os.path.join(ROOT, "maps", "3,2,0.map"), encoding="cp1252").read().splitlines())
 
 
 def test_at_most_two_merchants_of_a_trade_in_a_place():
@@ -1717,8 +1717,8 @@ def test_the_mire_tunnel_leads_under_the_range_and_up_again(world):
     """reshape_west.py: the Mirefen's only way in, a cave mouth each side of the range and steps up from the tunnel."""
     import re as _re
     for side in ("East", "West"):
-        down = open(os.path.join(world.data.root, "data", "Scripts", "Enter Mire_Tunnel_%s.txt" % side)).read()
-        up = open(os.path.join(world.data.root, "data", "Scripts", "Climb Up Mire_Tunnel_%s_Steps.txt" % side)).read()
+        down = open(os.path.join(world.data.root, "data", "Scripts", "Enter Mire_Tunnel_%s.script" % side)).read()
+        up = open(os.path.join(world.data.root, "data", "Scripts", "Climb Up Mire_Tunnel_%s_Steps.script" % side)).read()
         below = _re.search(r"Teleport\t\d+,\d+\t(\S+)", down).group(1)
         above = _re.search(r"Teleport\t\d+,\d+\t(\S+)", up).group(1)
         assert below.endswith(",-1") and below in world.maps
@@ -5416,7 +5416,7 @@ def test_animals_keep_out_of_houses_by_where_they_roam():
     assert w.entity_can_stand(sheep, fx, fy - 8, fx, fy) and w.entity_can_stand(cat, fx, fy - 8, fx, fy)
     yard = w.maps["3,1,0"]                            # (the churchyard's sheep: its zone goes round the chapel)
     flock = [e for e in w.ents if e.name == "Sheep" and e.map == "3,1,0"]
-    lines = open(os.path.join(ROOT, "maps", "3,1,0.txt"), encoding="cp1252").read().splitlines()
+    lines = open(os.path.join(ROOT, "maps", "3,1,0.map"), encoding="cp1252").read().splitlines()
     assert flock and all("Attitude=Passive" in ln for ln in lines if ln.startswith("NPC\tSheep\t"))
     for e in flock:
         z = e.ai.zone
@@ -5484,7 +5484,7 @@ def test_scrolls_are_rare_and_only_teach(world):
 
 
 def test_chests_say_nothing_and_draughts_come_in_three_strengths(world):
-    lines = open(os.path.join(ROOT, "data", "Scripts", "Open Chest 2.txt"), encoding="cp1252").read()
+    lines = open(os.path.join(ROOT, "data", "Scripts", "Open Chest 2.script"), encoding="cp1252").read()
     assert "Grave goods" not in lines and "\tYellow\t" not in lines
     heal = lambda n: world.data.spell_ini(n, "Heal", "")
     assert (heal("Minor_Healing_Draught"), heal("Healing_Draught"), heal("Major_Healing_Draught")) == \
@@ -5713,7 +5713,7 @@ def test_burnt_food_is_one_stack(world):
 
 def test_success_is_heard(world):
     import glob
-    chop = open(os.path.join(ROOT, "data", "Scripts", "Chop Tree.txt"), "rb").read().decode("cp1252")
+    chop = open(os.path.join(ROOT, "data", "Scripts", "Chop Tree.script"), "rb").read().decode("cp1252")
     assert any(ln.split("\t")[1:2] == ["Display.Message"] and ln.endswith("\tGather_Wood") for ln in chop.split("\r\n"))
     sounds = {os.path.basename(f)[:-4] for f in glob.glob(os.path.join(ROOT, "sounds", "*", "*.wav"))}
     for s in ("Gather_Wood", "Gather_Ore", "Gather_Fish", "Harvest", "Cooked", "Crafted", "Unlock", "Learn",
@@ -7686,7 +7686,7 @@ def test_prey_is_passive_everywhere():
     prey = {s for s, _ in ini.sections(path) if s and (ini.read(s, "Flees", "", path) or "").strip() == "1"}
     assert {"Rabbit", "Duck", "Chicken", "Sheep"} <= prey
     for f in os.listdir(os.path.join(ROOT, "maps")):
-        if f.endswith(".txt"):
+        if f.endswith(".map"):
             for ln in open(os.path.join(ROOT, "maps", f), encoding="cp1252").read().splitlines():
                 fl = ln.split("	")
                 if fl[0] == "NPC" and len(fl) > 1 and fl[1] in prey:
@@ -8297,7 +8297,7 @@ def test_every_stone_in_galaiths_graveyard_says_its_own(world):
                                                                            "Royal_Cenotaph"))) >= 8
     for pid in ("Grave_Tobin_Lamps", "Grave_Hobb_Vintner", "Stone_Prince_Alaric", "Stone_The_Empty_One"):
         assert world.data.place(pid) is not None
-        assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Examine %s.txt" % pid))
+        assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Examine %s.script" % pid))
     assert next(e for e in world.ents if e.npc_id == "Galaith_Sexton").display == "Sexton"
 
 
@@ -8732,7 +8732,7 @@ def test_banter_leaves_out_those_with_words_of_their_own_and_foes(world):
     assert ban.free_to_talk(a, s)
     a.npc_id = "Galaith_Sexton"                                   # (it has its own Talk to script)
     assert not ban.free_to_talk(a, s)
-    mo = next(e for e in world.ents if e.npc_id and os.path.exists(os.path.join(ROOT, "data", "Scripts", "Stroke %s.txt" % e.npc_id)))
+    mo = next(e for e in world.ents if e.npc_id and os.path.exists(os.path.join(ROOT, "data", "Scripts", "Stroke %s.script" % e.npc_id)))
     assert not ban.free_to_talk(mo, s)                            # (any verb of its own: a scene would stop what it's doing)
     a.npc_id = ""
     a.in_combat = True
@@ -9414,7 +9414,7 @@ def test_the_palace_has_cellars_below_and_the_royal_floor_above(world):
     leave(world, s)
     for name in ("-11,14,0", "-10,14,0", "-10,15,0", "-10,14,-1", "-10,14,1", "-11,15,0"):
         mm = world.maps[name]
-        for ln in open(os.path.join(ROOT, "maps", name + ".txt"), encoding="cp1252").read().splitlines():
+        for ln in open(os.path.join(ROOT, "maps", name + ".map"), encoding="cp1252").read().splitlines():
             f = ln.split("	")
             if f[0] != "NPC" or len(f) < 5:
                 continue
@@ -9423,7 +9423,7 @@ def test_the_palace_has_cellars_below_and_the_royal_floor_above(world):
             if pid.startswith(("Royal_", "Palace_", "Court_", "Nurse_")) and pid not in ("Palace_Guard_1", "Palace_Guard_2",
                                                                                           "Palace_Captain"):
                 assert " Bed=" in opts or "Schedule=Always" in opts, pid   # (a bed, or a watch that never sleeps)
-                assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Talk to %s.txt" % pid)), pid
+                assert os.path.exists(os.path.join(ROOT, "data", "Scripts", "Talk to %s.script" % pid)), pid
             if " Bed=" in opts:
                 bx, by = (int(v) for v in opts.split(" Bed=")[1].split()[0].split(","))
                 assert mm.decor[mm.cell(bx, by)] in ("Bed001", "Bed003", "Double_Bed001"), (pid, name, bx, by)
@@ -9460,7 +9460,7 @@ def test_a_blaze_warms_you_like_any_fire(world):
     s = join(world, "Warmed")
     assert s.is_fire("Blaze") and s.is_fire("Campfire001", True) and not s.is_fire("Ranger")
     leave(world, s)
-    f = [ln for ln in open(os.path.join(ROOT, "maps", "-4,14,0.txt"), encoding="cp1252").read().splitlines() if "\tBlaze\t" in ln]
+    f = [ln for ln in open(os.path.join(ROOT, "maps", "-4,14,0.map"), encoding="cp1252").read().splitlines() if "\tBlaze\t" in ln]
     assert all("Gone.After=GuardQuest:5" in ln for ln in f)            # (a player's own to see go out)
 
 
@@ -11687,8 +11687,8 @@ def test_editor_never_writes_over_a_file_changed_on_disk(tmp_path):
     b.save()
     assert open(bom, "rb").read() == b"[A]\r\nWord=caf\xe9\r\nMore=1\r\n"             # (cp1252 now, nothing garbled)
 
-    project = types.SimpleNamespace(map_w=2, map_h=1, map_path=lambda n: str(tmp_path / ("%s.txt" % n)),
-                                    script_path=lambda n: str(tmp_path / ("Script %s.txt" % n)),
+    project = types.SimpleNamespace(map_w=2, map_h=1, map_path=lambda n: str(tmp_path / ("%s.map" % n)),
+                                    script_path=lambda n: str(tmp_path / ("Script %s.script" % n)),
                                     p=lambda *a: str(tmp_path.joinpath(*a)))
     script = project.script_path("x")
     disk(script, "01\tSay\tHello\r\nAn old note\r\n02\tSay\tBye\r\n")
@@ -11745,12 +11745,12 @@ def test_editor_moves_a_map_only_where_a_map_is_named(tmp_path):
     w("data/Music.ini", "[Maps]\n4,0,0=Forest\n")
     w("data/Carts.ini", "[Road]\nPoint1=4,0,0,3,4,Inn\nPoint2=5,0,0,1,1\n")
     w("data/Quests.ini", "[Q]\nMarker1=4,0,0 15 13\n")
-    w("data/Scripts/Go.txt", "01\tTeleport\t32,32\t4,0,0\n02\tSay\t4,0,0 is a fine place\n")
-    w("maps/4,0,0.txt", "Grass001\n")
-    w("data/Scripts/4,0,0.txt", "01\tSay\tHello\n")
+    w("data/Scripts/Go.script", "01\tTeleport\t32,32\t4,0,0\n02\tSay\t4,0,0 is a fine place\n")
+    w("maps/4,0,0.map", "Grass001\n")
+    w("data/Scripts/4,0,0.script", "01\tSay\tHello\n")
     project = types.SimpleNamespace(root=str(tmp_path), p=lambda *a: str(tmp_path.joinpath(*a)),
-                                    map_path=lambda n: str(tmp_path / "maps" / ("%s.txt" % n)),
-                                    script_path=lambda n: str(tmp_path / "data" / "Scripts" / ("%s.txt" % n)),
+                                    map_path=lambda n: str(tmp_path / "maps" / ("%s.map" % n)),
+                                    script_path=lambda n: str(tmp_path / "data" / "Scripts" / ("%s.script" % n)),
                                     refresh=lambda *a: None)
     for k in ("config", "quests_ini", "tiles_ini", "entities_ini"):
         setattr(project, k, IniDoc(str(tmp_path / "data" / "Config.ini")))
@@ -11764,7 +11764,7 @@ def test_editor_moves_a_map_only_where_a_map_is_named(tmp_path):
     carts = IniDoc(str(tmp_path / "data" / "Carts.ini"))
     assert carts.get("Road", "Point1") == "9,0,0,3,4,Inn" and carts.get("Road", "Point2") == "5,0,0,1,1"
     assert IniDoc(str(tmp_path / "data" / "Quests.ini")).get("Q", "Marker1") == "9,0,0 15 13"
-    go = open(tmp_path / "data" / "Scripts" / "Go.txt", "rb").read().decode("cp1252")
+    go = open(tmp_path / "data" / "Scripts" / "Go.script", "rb").read().decode("cp1252")
     assert "\t32,32\t9,0,0\r\n" in go and "4,0,0 is a fine place" in go
     assert os.path.exists(project.map_path("9,0,0")) and not os.path.exists(project.map_path("4,0,0"))
     assert os.path.exists(project.script_path("9,0,0"))
@@ -11790,12 +11790,12 @@ def test_editor_says_what_still_names_a_thing_and_renames_a_rack_in_scripts(tmp_
     w = lambda rel, text: open(tmp_path / rel, "wb").write(text.replace("\n", "\r\n").encode("cp1252"))
     w("data/Spells.ini", "[Fire Bolt]\nCost=3\n")
     w("data/Entities.ini", "[Fire_Bolt_Scroll]\nSpell=Fire Bolt\n[Wolf]\nDrops=Bone,1\n")
-    w("data/Scripts/Read.txt", "01\tCast.Spell\tFire_Bolt\n02\tSay\tA Fire Bolt hits\n")
-    w("data/Scripts/Shop.txt", "01\tDisplay.Item.Rack\tGENERAL\tTom\tSHOP-Old\t02\n")
-    names = sorted(p[:-4] for p in os.listdir(tmp_path / "data" / "Scripts"))
+    w("data/Scripts/Read.script", "01\tCast.Spell\tFire_Bolt\n02\tSay\tA Fire Bolt hits\n")
+    w("data/Scripts/Shop.script", "01\tDisplay.Item.Rack\tGENERAL\tTom\tSHOP-Old\t02\n")
+    names = sorted(p[:-7] for p in os.listdir(tmp_path / "data" / "Scripts"))
     project = types.SimpleNamespace(
         p=lambda *a: str(tmp_path.joinpath(*a)), scripts=lambda: names,
-        script_path=lambda n: str(tmp_path / "data" / "Scripts" / ("%s.txt" % n)),
+        script_path=lambda n: str(tmp_path / "data" / "Scripts" / ("%s.script" % n)),
         index=lambda: {"entity": {}}, parsed=lambda path, parse: parse(read_text_lines(path)))
     spells = str(tmp_path / "data" / "Spells.ini")
     assert naming(project, "Fire Bolt", own=(spells, "Fire Bolt")) == [

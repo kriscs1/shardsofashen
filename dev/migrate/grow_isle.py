@@ -349,12 +349,12 @@ def scripts():
                                 "and a little pouch of Shards. Somebody meant to light it again.",
            [("Tinderbox", 1), ("Shard", 6)])
     old, new = "on the north-west headland", "by the south-east shore"
-    for path in (os.path.join(DATA, "Scripts", "Talk to Hermit.txt"), os.path.join(DATA, "Scripts", "Talk to Villager.txt"),
+    for path in (os.path.join(DATA, "Scripts", "Talk to Hermit.script"), os.path.join(DATA, "Scripts", "Talk to Villager.script"),
                  os.path.join(HERE, "build_scenery.py")):
-        text = W.read(path) if path.endswith(".txt") else open(path, encoding="utf-8").read()
+        text = W.read(path) if path.endswith(".script") else open(path, encoding="utf-8").read()
         if old in text:
             text = text.replace(old, new)
-            if path.endswith(".txt"):
+            if path.endswith(".script"):
                 W.write(path, text)
             else:
                 open(path, "w", encoding="utf-8", newline="").write(text)

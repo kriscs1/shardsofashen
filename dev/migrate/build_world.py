@@ -4,13 +4,13 @@ Run:  python -I "dev\\migrate\\build_world.py"            (then validate.py, bui
 Re-runnable: every file is rewritten from the definitions below, and only when its content changes.
 
 It never touches the original 13 maps (PROTECTED_MAPS). It adds:
-  * maps\\X,Y,Z.txt for every map in MAPS (hand-drawn ASCII layouts, LEGEND below)
-  * data\\Scripts\\*.txt from SCRIPTS (labels instead of hand-numbered gotos)
+  * maps\\X,Y,Z.map for every map in MAPS (hand-drawn ASCII layouts, LEGEND below)
+  * data\\Scripts\\*.script from SCRIPTS (labels instead of hand-numbered gotos)
   * sections/keys in data\\Tiles.ini, data\\Entities.ini, data\\ItemRacks.ini and lines in dev\\Minimap Colours.txt
 New tile sprites come from build_tiles.py (run it first).
 
 How the Southlands connect to the original island (whose edges are all sea, so nothing can be walked to):
-  * A ferry. "1,2,0.txt" (the entry script of the island's pier map) puts the ferrywoman (Woman) at the
+  * A ferry. "1,2,0.script" (the entry script of the island's pier map) puts the ferrywoman (Woman) at the
     end of the pier and a notice by it; talking to her sails to the Northport pier (1,3,0) and back.
   * The Wizard in the palace tower on the Royal Isle (4,4,1) can also send you back to the island.
 Ladders: Ladder001/Ladder004 = Climb Up (Z+1), Ladder002/005/006/007 = Climb Down (Z-1), always to the
@@ -990,7 +990,7 @@ def write_map(name, spec):
         lines.append("\t".join(["Trigger"] + [str(v) for v in t]))
     for lk in spec.get("locks", []):
         lines.append("\t".join(["Lock"] + [str(v) for v in lk]))
-    return write_generated(p("maps", name + ".txt"), lines)    # (not if you've edited the map since: common.GEN)
+    return write_generated(p("maps", name + ".map"), lines)    # (not if you've edited the map since: common.GEN)
 
 
 def convert_old_npc_lines():
@@ -999,7 +999,7 @@ def convert_old_npc_lines():
     changed = []
     for folder, _, files in os.walk(p("maps")):
         for f in sorted(files):
-            if not f.endswith(".txt") or (os.path.samefile(folder, p("maps")) and f[:-4] in MAPS):
+            if not f.endswith(".map") or (os.path.samefile(folder, p("maps")) and f[:-4] in MAPS):
                 continue
             path = os.path.join(folder, f)
             lines = read_lines(path)
@@ -1087,7 +1087,7 @@ def walk_data(tile):
 
 def load_cells(name):
     if name not in _map_cache:
-        path = p("maps", name + ".txt")
+        path = p("maps", name + ".map")
         if not os.path.exists(path):
             _map_cache[name] = None
         else:
@@ -1111,12 +1111,12 @@ def parse_name(n):
 
 
 def all_maps():
-    return sorted(f[:-4] for f in os.listdir(p("maps")) if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", f))
+    return sorted(f[:-4] for f in os.listdir(p("maps")) if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.map", f))
 
 
 def check_entities(problems):
     for name in NEW_MAPS:
-        if not GEN.untouched(p("maps", name + ".txt")):
+        if not GEN.untouched(p("maps", name + ".map")):
             continue                    # (a map you've edited: the build didn't write it, its own things are checked by validate.py)
         for e in MAPS[name]["entities"]:
             kind, ent, x, y = e[:4]
@@ -1232,9 +1232,9 @@ def check_scripts_exist(problems):
             if e[1] == "Notice":
                 nid = e[4][3:] if len(e) > 4 and str(e[4]).startswith("Id=") else ""
                 sn = ("Read " + nid) if nid else "Read Notice%s-%d,%d" % (name, e[2], e[3])
-                if not os.path.exists(os.path.join(sdir, sn + ".txt")):
+                if not os.path.exists(os.path.join(sdir, sn + ".script")):
                     problems.append("missing notice script " + sn)
-            if e[0] in ("GoodNPC", "NPC") and not os.path.exists(os.path.join(sdir, "Talk to %s.txt" % e[1])):
+            if e[0] in ("GoodNPC", "NPC") and not os.path.exists(os.path.join(sdir, "Talk to %s.script" % e[1])):
                 problems.append("missing Talk to %s" % e[1])
 
 
@@ -1297,27 +1297,27 @@ def main():
             MAPS[m]["entities"].append(("Id", pid, tx, ty))
     for name in NEW_MAPS:
         if write_map(name, MAPS[name]):
-            changed.append("maps\\%s.txt" % name)
+            changed.append("maps\\%s.map" % name)
     # upper floors (level 1) a rebuild no longer makes (the village houses moved), unless you've edited them since
     for f in os.listdir(p("maps")):
-        if re.fullmatch(r"-?\d+,-?\d+,1\.txt", f) and f[:-4] not in MAPS and GEN.untouched(p("maps", f)):
+        if re.fullmatch(r"-?\d+,-?\d+,1\.map", f) and f[:-4] not in MAPS and GEN.untouched(p("maps", f)):
             os.remove(p("maps", f))
             GEN.forget(p("maps", f))
             changed.append("removed maps\\" + f)
     # notice scripts from an earlier run whose notice has since moved
     for f in os.listdir(p("data", "Scripts")):
-        if f.startswith("Read ") and f[:-4] not in S and GEN.untouched(p("data", "Scripts", f)):
+        if f.startswith("Read ") and f[:-7] not in S and GEN.untouched(p("data", "Scripts", f)):
             os.remove(p("data", "Scripts", f))          # a notice's script the build no longer makes (an old name)
             changed.append("removed data\\Scripts\\" + f)
             continue
-        m = re.fullmatch(r"Read Notice(-?\d+,-?\d+,-?\d+)-\d+,\d+\.txt", f)
-        if m and f[:-4] not in S and (m.group(1) in MAPS or m.group(1) == "1,2,0" or
+        m = re.fullmatch(r"Read Notice(-?\d+,-?\d+,-?\d+)-\d+,\d+\.script", f)
+        if m and f[:-7] not in S and (m.group(1) in MAPS or m.group(1) == "1,2,0" or
                                       GEN.untouched(p("data", "Scripts", f))):
             os.remove(p("data", "Scripts", f))
             changed.append("removed data\\Scripts\\" + f)
     for sname, steps in S.items():
-        if write_generated(p("data", "Scripts", sname + ".txt"), script_lines(steps)):
-            changed.append("data\\Scripts\\%s.txt" % sname)
+        if write_generated(p("data", "Scripts", sname + ".script"), script_lines(steps)):
+            changed.append("data\\Scripts\\%s.script" % sname)
     changed += update_data()
     for step in EXTRA_STEPS:
         changed += step()

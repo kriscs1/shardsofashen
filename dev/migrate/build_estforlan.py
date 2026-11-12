@@ -32,7 +32,7 @@ OLD_LEVELS_GONE = ("1,10,1", "2,8,1", "4,10,1", "4,3,1", "4,8,1", "5,3,1", "7,4,
 
 def old_world():
     """Is the old mainland still there (the first run moves its scripts over)?"""
-    path = os.path.join(MAPS, "1,4,0.txt")
+    path = os.path.join(MAPS, "1,4,0.map")
     return os.path.exists(path) and "Ashford_Iron_Mine" in open(path, encoding="cp1252").read()
 
 
@@ -48,18 +48,18 @@ def main():
     keep = set(atlas.maps) | set(L.ISLE)
     for f in os.listdir(MAPS):                                     # the old mainland's maps go
         name = f[:-4]
-        if not f.endswith(".txt") or story.isle(name) or name in story.ISLE_LEVELS:
+        if not f.endswith(".map") or story.isle(name) or name in story.ISLE_LEVELS:
             continue
         if name.endswith(",0") and name not in keep or name in OLD_LEVELS_GONE:
             os.remove(os.path.join(MAPS, f))
     atlas.save()
     levels = P.levels()
     for new, src in levels.items():
-        shutil.copyfile(src, os.path.join(MAPS, new + ".txt"))
+        shutil.copyfile(src, os.path.join(MAPS, new + ".map"))
     print("Saved %d maps and %d levels under them" % (len(atlas.maps), len(levels)))
     for f in os.listdir(MAPS):                                     # (levels under places that have moved on)
         name = f[:-4]
-        if f.endswith(".txt") and not name.endswith(",0") and not story.isle(name) and                 name not in story.ISLE_LEVELS and name not in levels:
+        if f.endswith(".map") and not name.endswith(",0") and not story.isle(name) and                 name not in story.ISLE_LEVELS and name not in levels:
             os.remove(os.path.join(MAPS, f))
     table = story.renames(homes, gate_map)
     if first:

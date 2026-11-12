@@ -43,7 +43,7 @@ def main():
         if os.path.isfile(os.path.join(ROOT, f)):
             n += redo(os.path.join(ROOT, f))
     sd = os.path.join(ROOT, "data", "Scripts")
-    old, new = os.path.join(sd, "Herblore Skill.txt"), os.path.join(sd, "Potion_Making Skill.txt")
+    old, new = os.path.join(sd, "Herblore Skill.script"), os.path.join(sd, "Potion_Making Skill.script")
     if os.path.exists(old):
         os.replace(old, new)
         n += 1

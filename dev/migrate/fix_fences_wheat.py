@@ -70,7 +70,7 @@ def wheat_plants(cells, rng):
 def fix_maps():
     rng = random.Random(4242)
     fences = fields = 0
-    for path in glob.glob(os.path.join(ROOT, "maps", "*.txt")):
+    for path in glob.glob(os.path.join(ROOT, "maps", "*.map")):
         name = os.path.basename(path)[:-4]
         if name.count(",") != 2:
             continue
@@ -119,7 +119,7 @@ def fix_data():
     text = read(colours)
     write(colours, re.sub(r"(?m)^Wheat00[12]\t[^\r\n]*\r?\n", "", text))
     for f in [os.path.join(ROOT, "sprites", "Tiles", w + ".png") for w in WHEAT] + \
-             [os.path.join(DATA, "Scripts", "Harvest Wheat.txt")]:
+             [os.path.join(DATA, "Scripts", "Harvest Wheat.script")]:
         if os.path.exists(f):
             os.remove(f)
             n += 1

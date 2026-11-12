@@ -75,7 +75,7 @@ def fix(path):
 
 def main():
     n = 0
-    for path in sorted(glob.glob(os.path.join(ROOT, "maps", "*.txt"))):
+    for path in sorted(glob.glob(os.path.join(ROOT, "maps", "*.map"))):
         k = fix(path)
         if k:
             n += 1

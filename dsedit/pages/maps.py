@@ -1,4 +1,4 @@
-"""Maps: maps\\X,Y,Z.txt. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
+"""Maps: maps\\X,Y,Z.map. Paint the ground, decor (see-through tiles over any ground: chairs, trees, flowers), roofs
 and the Over layer (tree tops); place the entities (items, objects, NPCs), triggers and locks; edit NPCs' zones, chase areas and patrols on the map.
 A level is one big map: every map on it shows, joined, and painting, filling and dragging carry on from one map into
 the next. The map last clicked is the one that's open (its frame in the layer's colour): selecting and the inspector
@@ -659,7 +659,7 @@ class MapPage(Page):
         self.activate(name)
         self.redraw(full=True, center=True)
         if name == HOMESTEAD_MAP:
-            self.app.status("Homestead: the land a new home starts as (data\\Homestead.txt). Each home gets its own "
+            self.app.status("Homestead: the land a new home starts as (data\\Homestead.map). Each home gets its own "
                             "copy when it's made, so changes here are for new homes only. Keep the Homestone and "
                             "Home_Arrival.", "warn")
 

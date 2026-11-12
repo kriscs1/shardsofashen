@@ -15,7 +15,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 PROTECT = ["Ferry to Southport", "Bess Sails to Southport", "Read Southport", "Id=Southport", "Id\tSouthport\t"]
 TOWN_TEXT = re.compile(r"(?<![A-Za-z0-9_.$=])Southport(?![A-Za-z0-9_])")
 SKIP_DIRS = {".git", "Archive", "__pycache__", "build", ".gradle", "node_modules", "server-data", "saves"}
-TEXT = (".ini", ".txt", ".md", ".py", ".js", ".html", ".css", ".json", ".xml", ".java", ".kt", ".gradle")
+TEXT = (".ini", ".txt", ".script", ".map", ".md", ".py", ".js", ".html", ".css", ".json", ".xml", ".java", ".kt", ".gradle")
 
 
 def rename_text(s, code):

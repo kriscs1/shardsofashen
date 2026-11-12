@@ -2,7 +2,7 @@
 
 Run:  python -I "dev\\migrate\\build_minimaps.py" [--pixel-size N] [--levels Z,Z...]
 
-For every level Z that has maps (maps\\X,Y,Z.txt, not sub-folders) it writes sprites\\Interface\\Minimap<Z>.png:
+For every level Z that has maps (maps\\X,Y,Z.map, not sub-folders) it writes sprites\\Interface\\Minimap<Z>.png:
   * one Pixel.Size square per map tile; the cell colour is that of the top-most layer
     (+Roof(...), then +Infront(...), then +Decor(...) if dev\\Minimap Colours.txt has a colour for it, then the
     tile), from dev\\Minimap Colours.txt ("R G B" or an LB colour name);
@@ -207,7 +207,7 @@ def main():
     colours = tile_colours()
     maps = []
     for f in os.listdir(p("maps")):
-        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.txt", f)
+        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.map", f)
         if m and os.path.isfile(p("maps", f)):
             maps.append(tuple(int(v) for v in m.groups()))
     only = None
@@ -222,7 +222,7 @@ def main():
         wide, high = (ex - sx + 1) * mw, (ey - sy + 1) * mh
         cells = [[None] * wide for _ in range(high)]
         for (x, y, _) in lv:
-            lines = read_lines(p("maps", "%d,%d,%d.txt" % (x, y, z)))
+            lines = read_lines(p("maps", "%d,%d,%d.map" % (x, y, z)))
             ox, oy = (x - sx) * mw, (y - sy) * mh
             for ty in range(mh):
                 line = lines[ty] if ty < len(lines) else ""
@@ -235,7 +235,7 @@ def main():
                         c = colours[name]
                     else:
                         c = (255, 0, 255)
-                        print("Unknown tile '%s' in %d,%d,%d.txt (drawn magenta)" % (name, x, y, z))
+                        print("Unknown tile '%s' in %d,%d,%d.map (drawn magenta)" % (name, x, y, z))
                     cells[oy + ty][ox + tx] = c
         out = p("sprites", "Interface", "Minimap%d.png" % z)
         write_minimap(out, cells, wide, high, ps)

@@ -143,7 +143,7 @@ def fix_rooms(rows):
 
 def do_rooms():
     done = 0
-    for path in glob.glob(p("maps", "*.txt")):
+    for path in glob.glob(p("maps", "*.map")):
         name = os.path.basename(path)[:-4]
         if name.endswith(",0") or name in LEVELS_OF_THEIR_OWN:
             continue
@@ -214,10 +214,10 @@ def upper_front(rows, group):
 
 def do_uppers():
     done = 0
-    for path in glob.glob(p("maps", "*,1.txt")):
+    for path in glob.glob(p("maps", "*,1.map")):
         name = os.path.basename(path)[:-4]
         mx, my, _ = name.split(",")
-        ground = p("maps", "%s,%s,0.txt" % (mx, my))
+        ground = p("maps", "%s,%s,0.map" % (mx, my))
         if not os.path.exists(ground):
             continue
         upstairs = [ln.split(":") for ln in (read(path)[i] for i in grid_lines(read(path)))]

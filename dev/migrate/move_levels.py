@@ -46,15 +46,15 @@ def names(text):
 
 def main():
     for old, new in MOVES.items():
-        mv("maps/%s.txt" % old, "maps/%s.txt" % new)
-        mv("data/Scripts/%s.txt" % old, "data/Scripts/%s.txt" % new)
+        mv("maps/%s.map" % old, "maps/%s.map" % new)
+        mv("data/Scripts/%s.script" % old, "data/Scripts/%s.script" % new)
     for old, new in ZS.items():
         mv("sprites/Interface/Minimap%s.png" % old, "sprites/Interface/Minimap%s.png" % new)
     rewrite(at("data", "Config.ini"), lambda t: names(re.sub(
         r"(?m)^Origin\.(5|-7)=", lambda m: "Origin.%s=" % ZS[m.group(1)], t)))
     files = [at("data", f) for f in os.listdir(at("data")) if f.lower().endswith(".ini")]
-    files += [at("data", "Scripts", f) for f in os.listdir(at("data", "Scripts")) if f.endswith(".txt")]
-    files += [at("maps", f) for f in os.listdir(at("maps")) if f.endswith(".txt")]
+    files += [at("data", "Scripts", f) for f in os.listdir(at("data", "Scripts")) if f.endswith(".script")]
+    files += [at("maps", f) for f in os.listdir(at("maps")) if f.endswith(".map")]
     for d in ("dev/migrate", "dev/migrate/estforlan", "tests", "dsengine", "server"):
         files += [at(d, f) for f in os.listdir(at(d)) if f.endswith(".py") and f != "move_levels.py"]
     files += [at("CLAUDE.md"), at("dev", "Rules.md"), at("README-Server.md"), at("dev", "Story and Quests.md"), at("dev", "World Plan.md")]

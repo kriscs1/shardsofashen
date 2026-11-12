@@ -146,7 +146,7 @@ def words():
             W.write(path, t)
     pairs = [("live in the brick house by the chapel.", "live in the brick house in the Isle's north-west, by the sea."),
              ("at our house, by the chapel.", "at our house, up in the north-west, by the sea.")]
-    W.replace_in_files([os.path.join(DATA, "Quests.ini"), os.path.join(DATA, "Scripts", "The Funeral.txt")], pairs)
+    W.replace_in_files([os.path.join(DATA, "Quests.ini"), os.path.join(DATA, "Scripts", "The Funeral.script")], pairs)
     path = os.path.join(HERE, "build_heir_isle.py")
     s = open(path, encoding="utf-8").read()
     t = s.replace('"by the chapel.",', '"in the Isle\'s north-west, by the sea.",').replace(
@@ -156,7 +156,7 @@ def words():
 
 
 def main():
-    if os.path.exists(os.path.join(ROOT, "maps", W.mname(*NEW, 1) + ".txt")):
+    if os.path.exists(os.path.join(ROOT, "maps", W.mname(*NEW, 1) + ".map")):
         print("Edwin and Maren's house is in the north-west already.")
         return
     w = W.World(0)

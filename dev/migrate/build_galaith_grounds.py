@@ -746,10 +746,10 @@ def numbered(lines):
 
 def write_scripts():
     for name, lines in SCRIPTS.items():
-        with open(p("data", "Scripts", name + ".txt"), "wb") as f:
+        with open(p("data", "Scripts", name + ".script"), "wb") as f:
             f.write(("\r\n".join([MAKER] + numbered(lines)) + "\r\n").encode("cp1252"))
     for pid, text in ROYAL_STONES + GRAVES:
-        with open(p("data", "Scripts", "Examine %s.txt" % pid), "wb") as f:
+        with open(p("data", "Scripts", "Examine %s.script" % pid), "wb") as f:
             f.write(("\r\n".join([MAKER, "01\tDisplay.Message\tBlack\t%s" % text, "02\tEnd"]) + "\r\n").encode("cp1252"))
 
 
@@ -759,7 +759,7 @@ def load_city():
     for mx in range(WEST // XT, EAST // XT + 1):
         for my in range(NORTH // YT, SOUTH // YT + 1):
             name = "%d,%d,0" % (mx, my)
-            if os.path.exists(p("maps", name + ".txt")):
+            if os.path.exists(p("maps", name + ".map")):
                 atlas.maps[name] = Map(name)
     return atlas
 

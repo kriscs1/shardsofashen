@@ -290,7 +290,7 @@ def write_data():
 
 def write_farm():
     """The farmer's furrows become tilled soil anyone may sow (the cabbages lying on them go)."""
-    path = os.path.join(ROOT, "maps", FARM_MAP + ".txt")
+    path = os.path.join(ROOT, "maps", FARM_MAP + ".map")
     lines = ini.read_text(path).replace("\r", "").split("\n")
     if "Soil001" in "\n".join(lines[:21]):
         print("The farm by Ashford has its allotment already")
@@ -313,8 +313,8 @@ def write_farm():
         keep.pop()
     with open(path, "w", encoding="cp1252", newline="\r\n") as f:
         f.write("\n".join(keep) + "\n")
-    print("The farmer's furrows (maps\\%s.txt) are tilled soil now" % FARM_MAP)
-    script = os.path.join(DATA, "Scripts", "Talk to Farmer.txt")
+    print("The farmer's furrows (maps\\%s.map) are tilled soil now" % FARM_MAP)
+    script = os.path.join(DATA, "Scripts", "Talk to Farmer.script")
     text = ini.read_text(script)
     if "furrows" not in text:
         text = text.replace("Help yourself to a cabbage or two, there's plenty.",

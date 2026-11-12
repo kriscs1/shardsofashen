@@ -70,7 +70,7 @@ def bound_chases(ents):
     from build_isle import XT, YT
     n = 0
     for f in sorted(os.listdir(p("maps"))):
-        if not re.match(r"^-?\d+,-?\d+,-?\d+\.txt$", f):
+        if not re.match(r"^-?\d+,-?\d+,-?\d+\.map$", f):
             continue
         path = p("maps", f)
         lines = open(path, "rb").read().decode("cp1252").split("\r\n")

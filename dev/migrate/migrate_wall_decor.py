@@ -184,7 +184,7 @@ def main():
     covered = []
     for folder, _, names in os.walk(p("maps")):
         for fn in sorted(names):
-            if not re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", fn):
+            if not re.fullmatch(r"-?\d+,-?\d+,-?\d+\.map", fn):
                 continue
             path = os.path.join(folder, fn)
             if GEN.untouched(path):

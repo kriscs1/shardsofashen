@@ -8,8 +8,8 @@ a "|" in a help text is a line break.)
 
 FILE FORMAT
 -----------
-* Scripts are data\Scripts\<Name>.txt. File names may contain spaces, commas and brackets,
-  e.g. "Chop Tree.txt", "1,1,0.txt", "Pickup [MapItem].txt".
+* Scripts are data\Scripts\<Name>.script. File names may contain spaces, commas and brackets,
+  e.g. "Chop Tree.script", "1,1,0.script", "Pickup [MapItem].script".
 * One command per line:  NN<TAB>Command<TAB>arg1<TAB>arg2...   (NN = 2-digit line number, 01, 02...)
 * An empty argument is written as a single space so the tabs don't run together.
   Some arguments use "-" for "none" (ENTITY MISC, RACK ID for the BANK).
@@ -25,12 +25,12 @@ FILE FORMAT
 SCRIPT LOOKUP (from dev\Data Formats.md)
 ---------------------------------------
 When the player does Verb on an entity/tile Name of type Type, the game runs the first that exists:
-  1. "Verb Name.txt" (e.g. "Chop Tree001.txt", then without the digits, "Chop Tree.txt")
-  2. "Verb [Type].txt" (e.g. "Pickup [MapItem].txt", "Drop [InventoryItem].txt")
+  1. "Verb Name.script" (e.g. "Chop Tree001.script", then without the digits, "Chop Tree.script")
+  2. "Verb [Type].script" (e.g. "Pickup [MapItem].script", "Drop [InventoryItem].script")
   3. the engine's built-in default for that verb (Pickup, Drop, Examine, Eat, Talk to, Attack, Walk here)
-* Using one item on another: "Use A With B.txt", then "Use B With A.txt".
+* Using one item on another: "Use A With B.script", then "Use B With A.script".
 * Triggers: the script name stored in the map (Trigger<TAB>ScriptName<TAB>TileX<TAB>TileY).
-* Map entry: a script named after the map, e.g. "1,1,0.txt".
+* Map entry: a script named after the map, e.g. "1,1,0.script".
 * Empty script files count as "not found".
 
 VARIABLES
@@ -59,7 +59,7 @@ read it back as $Variable.n.
   $Tax.Due                   What the Tax Collector would have of this player's gold just now.
   $Player.Malaria            1 if the player has malaria just now (dsengine/disease.py), else 0.
   $Player.Shardsong          1 if the Shardsong is in the player's head just now (dsengine/disease.py), else 0.
-  $Player.Stance             The stance the player is in: Cautious, Fighting, Channelling or Sneaking (dsengine/stances.py).
+  $Player.Stance             The stance the player is in: Fighting, Channelling, Sneaking, or - for none (dsengine/stances.py).
   $Shardstones.Active        How many shardstones the player has activated (the Shardgate needs Shards.ini Shardgate.Stones).
   $Player.Health             The player's hitpoints just now.
   $Player.Health.Max         The player's hitpoints when they're fully well (a doctor: >Conditional $Player.Health<$Player.Health.Max).
@@ -97,7 +97,7 @@ read it back as $Variable.n.
   $Standing.Town             A town's standing with the player, -100 to 100 (data\Towns.ini: Outlaw, Distrusted, Stranger, Welcome at 20, Trusted at 45, Honoured at 75), e.g. $Standing.Ashford>=45; $Standing.Here is where they are.
   $Side.Name                 Good or Bad, as this player's Set.Side.Attitude made the side Name, or none if it never did, e.g. $Side.Smugglers=Good.
 
-COMMANDS (82)
+COMMANDS (83)
 ------------
 Format:  Command  ARG 1 | ARG 2 | ...
 
@@ -407,7 +407,7 @@ Display.Message    COLOUR | MESSAGE | SOUND
          White, LightGray and Pink are hard to read there
     2. MESSAGE: The message that is displayed in the chat box. One that starts .. finishes the line before it
          (if that ended ..): "You swing your axe.." then "..and get some logs!" make one line, in the colour of the second
-    3. SOUND: A sound from the '\sounds\' folder to play with it, e.g. Denied (a no), Empty, Quest
+    3. SOUND: A sound (by its name) to play with it, e.g. Denied (a no), Empty, Quest
          (Display.Refusal: Denied if none is given; Display.Message, Play.Animation: none)
 
 Display.Refusal    MESSAGE | SOUND
@@ -415,7 +415,7 @@ Display.Refusal    MESSAGE | SOUND
     (a locked door, an empty chest)
     1. MESSAGE: The message that is displayed in the chat box. One that starts .. finishes the line before it
          (if that ended ..): "You swing your axe.." then "..and get some logs!" make one line, in the colour of the second
-    2. SOUND: A sound from the '\sounds\' folder to play with it, e.g. Denied (a no), Empty, Quest
+    2. SOUND: A sound (by its name) to play with it, e.g. Denied (a no), Empty, Quest
          (Display.Refusal: Denied if none is given; Display.Message, Play.Animation: none)
 
 Edit.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME | VALUE TO CHANGE | CHANGE TO
@@ -488,14 +488,6 @@ Move.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME | TARGET X,TARGET Y | SPE
     3. TARGET X,TARGET Y: The point to move to, in PIXELS (TargetX,TargetY), e.g. $Player.X,$Player.Y
     4. SPEED: The speed at which to move (1 = slow, 5 = fast)
 
-Walk.Away    X COORDINATE,Y COORDINATE | ENTITY NAME | TARGET X,TARGET Y | SPEED
-    COMMAND: An NPC walks off to the target position while the script goes on (it doesn't wait), and is gone once
-    it's there (in at a door, round a corner: a mourner going home); stuck on the way, it goes after a while
-    1. X COORDINATE,Y COORDINATE: Where it is, in PIXELS
-    2. ENTITY NAME: The name of the entity (from sprites\Entities)
-    3. TARGET X,TARGET Y: Where it goes, in PIXELS (its top-left there, as Move.Entity)
-    4. SPEED: The speed at which it walks (1 = slow, 5 = fast)
-
 Move.Player    TARGET X,TARGET Y | SPEED
     COMMAND: Moves the Player from their current position to the target position
     1. TARGET X,TARGET Y: The point to move to, in PIXELS (TargetX,TargetY), e.g. $Player.X,$Player.Y
@@ -507,7 +499,7 @@ Play.Animation    ANIMATION | TIMES | SOUND
     1. ANIMATION: An animation from sprites\Effects (<Name>1..4): Wood_Chips, Rock_Chips, Splash, Dirt_Clods,
          Wool_Tufts, Slash, Puff, Fire_Burst...
     2. TIMES: How many beats (1-8): one each 0.8 seconds
-    3. SOUND: A sound from the '\sounds\' folder to play with it, e.g. Denied (a no), Empty, Quest
+    3. SOUND: A sound (by its name) to play with it, e.g. Denied (a no), Empty, Quest
          (Display.Refusal: Denied if none is given; Display.Message, Play.Animation: none)
 
 Play.Minigame    MINIGAME | LEVEL | GOTO LINE IF LOST
@@ -520,8 +512,8 @@ Play.Minigame    MINIGAME | LEVEL | GOTO LINE IF LOST
     3. GOTO LINE IF LOST: The line that the script continues at if the minigame is lost or left
 
 Play.Sound    SOUND FILE
-    COMMAND: Plays a sound file stored in the '\sounds\' folder
-    1. SOUND FILE: A sound from the '\sounds\' folder (.wav, or .mid which briefly replaces the music).
+    COMMAND: Plays a sound, found by its name in the sounds folders (sounds\<kind>\)
+    1. SOUND FILE: A sound by its name, from any of the sounds folders (.wav, or .mid which briefly replaces the music).
          Without an extension the game looks for a .wav, then a .mid
 
 Quest.Note    QUEST NAME | NOTE
@@ -673,4 +665,13 @@ Update.Skill    SKILL NAME | QUANTITY (+, - or =)
 Wait    DELAY
     COMMAND: Waits a number of seconds before the script continues
     1. DELAY: The number of seconds to wait
+
+Walk.Away    X COORDINATE,Y COORDINATE | ENTITY NAME | TARGET X,TARGET Y | SPEED
+    COMMAND: An NPC walks off to the target position while the script goes on (it doesn't wait), and is gone once it's there
+    (in at a door, round a corner: a mourner going home)
+    1. X COORDINATE,Y COORDINATE: The X and Y coordinates, separated by a comma (e.g. 300,250 or $Player.X,$Player.Y).
+         In PIXELS, except for Change.Tile and >Tile.In.Line.Of.Sight, which take TILE coordinates (1-25,1-21)
+    2. ENTITY NAME: The name of the entity (from sprites\Entities)
+    3. TARGET X,TARGET Y: The point to move to, in PIXELS (TargetX,TargetY), e.g. $Player.X,$Player.Y
+    4. SPEED: The speed at which to move (1 = slow, 5 = fast)
 

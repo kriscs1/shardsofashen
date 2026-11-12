@@ -125,7 +125,7 @@ class MapData:
     @staticmethod
     def script_name(s):
         s = trim(s)
-        return s[:-4] if s.lower().endswith(".txt") else s
+        return s[:-7] if s.lower().endswith(".script") else s
 
     # ----- cells
     def cell(self, x, y):

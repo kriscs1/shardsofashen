@@ -1,4 +1,4 @@
-"""Scripts: data\\Scripts\\*.txt. Each line is a command and its arguments; the editor knows every command's arguments
+"""Scripts: data\\Scripts\\*.script. Each line is a command and its arguments; the editor knows every command's arguments
 (ashen/script_language.py) and gives each the right choices and builders. Goto lines renumber themselves."""
 import os
 import time

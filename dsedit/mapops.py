@@ -73,8 +73,8 @@ def _text_files(project):
             out.append((os.path.join(data, f), f))
     folder = project.p("data", "Scripts")
     for f in sorted(os.listdir(folder)):
-        if f.lower().endswith(".txt"):
-            out.append((os.path.join(folder, f), "Script " + f[:-4]))
+        if f.lower().endswith(".script"):
+            out.append((os.path.join(folder, f), "Script " + f[:-7]))
     return out
 
 
@@ -137,7 +137,7 @@ def move(project, old, new):
         os.replace(project.script_path(old), project.script_path(new))
         changed.append("Script %s -> %s (its arrival script)" % (old, new))
     os.replace(project.map_path(old), project.map_path(new))      # (last: a failure before it leaves the map be)
-    changed.insert(0, "maps\\%s.txt -> %s.txt" % (old, new))
+    changed.insert(0, "maps\\%s.map -> %s.map" % (old, new))
     project.refresh()
     for ini in (project.config, project.quests_ini, project.tiles_ini, project.entities_ini):
         ini.load()                                       # (the editor's own copies: as they are now)

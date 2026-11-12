@@ -319,7 +319,7 @@ def scripts(slug, name, finds, rng):
            "04\tUpdate.Skill\tStealth\t+0.5",
            "05\tEnd",
            "06\tEnd"]
-    W.write(os.path.join(W.ROOT, "data", "Scripts", "Hidden_Way_%s.txt" % slug), "\r\n".join(way) + "\r\n")
+    W.write(os.path.join(W.ROOT, "data", "Scripts", "Hidden_Way_%s.script" % slug), "\r\n".join(way) + "\r\n")
     n = len(finds) + 5                                   # (the line after what it gives)
     rows = [head,
             "01\t>Distance.From.Clicked.Entity\t48\t%02d" % (n + 3),
@@ -331,7 +331,7 @@ def scripts(slug, name, finds, rng):
     rows += ["%02d\tEnd" % n,
              "%02d\tDisplay.Message\tCyan\tThe chest is empty.\tEmpty" % (n + 1), "%02d\tEnd" % (n + 2),
              "%02d\tDisplay.Message\tDarkRed\tYou are too far away!\tDenied" % (n + 3), "%02d\tEnd" % (n + 4)]
-    W.write(os.path.join(W.ROOT, "data", "Scripts", "Open Hidden_Cache_%s.txt" % slug), "\r\n".join(rows) + "\r\n")
+    W.write(os.path.join(W.ROOT, "data", "Scripts", "Open Hidden_Cache_%s.script" % slug), "\r\n".join(rows) + "\r\n")
 
 
 def slug_of(name):

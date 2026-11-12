@@ -188,14 +188,14 @@ class GameData:
     # Maps
     # =================================================================================================================
     def map_path(self, name):
-        return os.path.join(self.root, "maps", name + ".txt")
+        return os.path.join(self.root, "maps", name + ".map")
 
     def map_exists(self, name):
         return bool(name) and os.path.exists(self.map_path(name))
 
     def map_names(self):
         try:
-            files = sorted(f for f in os.listdir(os.path.join(self.root, "maps")) if f.lower().endswith(".txt"))
+            files = sorted(f for f in os.listdir(os.path.join(self.root, "maps")) if f.lower().endswith(".map"))
         except OSError:
             return []
         return [f[:-4] for f in files if os.path.isfile(os.path.join(self.root, "maps", f))]
@@ -487,7 +487,7 @@ class GameData:
             return cache[1]                 # (the maps folder looked at a moment ago: a thousand files to stat)
         folder = os.path.join(self.root, "maps")
         try:
-            stamp = max((e.stat().st_mtime for e in os.scandir(folder) if e.name.lower().endswith(".txt")), default=0)
+            stamp = max((e.stat().st_mtime for e in os.scandir(folder) if e.name.lower().endswith(".map")), default=0)
         except OSError:
             stamp = 0
         if cache is None or cache[0] != stamp:
@@ -561,7 +561,7 @@ class GameData:
                 add(q, d["ENDING"])
         folder = os.path.join(self.root, "data", "Scripts")
         for fn in sorted(os.listdir(folder)) if os.path.isdir(folder) else []:
-            if not fn.lower().endswith(".txt"):
+            if not fn.lower().endswith(".script"):
                 continue
             try:
                 with open(os.path.join(folder, fn), encoding="cp1252", errors="replace") as f:

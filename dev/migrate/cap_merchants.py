@@ -50,15 +50,15 @@ def merchants():
     their Talk to script) on a map."""
     racks, own = {}, set()
     for fn in os.listdir(SCRIPTS):
-        if fn.startswith("Talk to ") and fn.endswith(".txt"):
-            own.add(fn[8:-4])
+        if fn.startswith("Talk to ") and fn.endswith(".script"):
+            own.add(fn[8:-7])
             text = read(os.path.join(SCRIPTS, fn))
             found = re.findall(r"Display\.Item\.Rack\t\S+\t\S+\t(SHOP-\S+)", text)
             if found:
-                racks[fn[8:-4]] = (found[0], text)
+                racks[fn[8:-7]] = (found[0], text)
     out = {}
     for fn in os.listdir(MAPS):
-        if not fn.endswith(".txt"):
+        if not fn.endswith(".map"):
             continue
         for line in read(os.path.join(MAPS, fn)).split("\r\n"):
             p = line.split("\t")

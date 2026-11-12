@@ -184,7 +184,7 @@ def data():
 
 # ================================================================== the routes, from the old carts' stops
 def read_map(name):
-    return open(os.path.join(MAPS, name + ".txt"), "rb").read().decode("cp1252").split("\r\n")
+    return open(os.path.join(MAPS, name + ".map"), "rb").read().decode("cp1252").split("\r\n")
 
 
 def old_stops(town):
@@ -199,7 +199,7 @@ def old_stops(town):
                 names[pid] = w
     out = []
     for fn in os.listdir(MAPS):
-        if not fn.endswith(".txt"):
+        if not fn.endswith(".map"):
             continue
         name = fn[:-4]
         for line in read_map(name):
@@ -225,7 +225,7 @@ class Ground:
         key = (mx, my)
         if key not in self.maps:
             name = "%d,%d,0" % (mx, my)
-            self.maps[key] = self.MapData(self.d, name) if os.path.exists(os.path.join(MAPS, name + ".txt")) else None
+            self.maps[key] = self.MapData(self.d, name) if os.path.exists(os.path.join(MAPS, name + ".map")) else None
         return self.maps[key]
 
     def cost(self, gx, gy):
@@ -353,11 +353,11 @@ def clear_old(town):
             if not gone:
                 keep.append(line)
         if keep != lines:
-            open(os.path.join(MAPS, name + ".txt"), "wb").write("\r\n".join(keep).encode("cp1252"))
+            open(os.path.join(MAPS, name + ".map"), "wb").write("\r\n".join(keep).encode("cp1252"))
             print("%s: its old cart stop cleared" % name)
     for fn in os.listdir(SCRIPTS):
         if fn.startswith("Talk to %s_Carter_" % town):
-            K.remove_script(fn[:-4])
+            K.remove_script(fn[:-7])
 
 
 def main():

@@ -525,7 +525,7 @@ def data():
 def script_spots():
     """Cells (on any map) that a script sends someone or puts something: furniture never stands there."""
     out = set()
-    for f in glob.glob(p("data", "Scripts", "*.txt")):
+    for f in glob.glob(p("data", "Scripts", "*.script")):
         for ln in W.read(f).split("\n"):
             q = ln.split("\t")
             if len(q) > 2 and q[1] in ("Teleport", "Add.Entity"):

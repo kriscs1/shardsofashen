@@ -37,7 +37,7 @@ class World:
     """The settlement's maps as one grid of world cells (load once, save what changed)."""
 
     def __init__(self, names):
-        self.maps = {n: Map(n) for n in names if os.path.exists(os.path.join(ROOT, "maps", n + ".txt"))}
+        self.maps = {n: Map(n) for n in names if os.path.exists(os.path.join(ROOT, "maps", n + ".map"))}
         self.dirty = set()
 
     def at(self, gx, gy):

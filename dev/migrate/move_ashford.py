@@ -187,7 +187,7 @@ def words(levels_moved):
         for pre, post in (("\t", "\t"), ("\t", "\r\n"), ("=", "\r\n"), ("=", " "), (" on ", " "), ("\t", " ")):
             pairs.append((pre + a + post, pre + b + post))
     for a, b in names_moved(levels_moved).items():             # (the maps' arrival words)
-        sa, sb = os.path.join(W.SCRIPTS, a + ".txt"), os.path.join(W.SCRIPTS, b + ".txt")
+        sa, sb = os.path.join(W.SCRIPTS, a + ".script"), os.path.join(W.SCRIPTS, b + ".script")
         if a.endswith(",0") and os.path.exists(sa) and not os.path.exists(sb):
             os.rename(sa, sb)
     n = len(W.replace_in_files(W.scripts(), pairs))

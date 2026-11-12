@@ -588,7 +588,7 @@ def near_free(m, x, y, roofed=False):
 def place_of(pid):
     """(map name, x, y) of a place Id, on the world (Z=0)."""
     for f in sorted(os.listdir(os.path.join(K.ROOT, "maps"))):
-        if not f.endswith(",0.txt"):
+        if not f.endswith(",0.map"):
             continue
         for ln in ini.read_text(os.path.join(K.ROOT, "maps", f)).replace("\r", "").split("\n"):
             bits = ln.split("\t")
@@ -685,7 +685,7 @@ def places():
     for name, (m, before) in _maps.items():
         if m.ents != before:
             m.save()
-            print("Placed on maps\\%s.txt" % name)
+            print("Placed on maps\\%s.map" % name)
 
 
 # ================================================================== the scripts
@@ -695,7 +695,7 @@ def w(name, rows):
 
 def barrier_lights():
     """The barrier's Remove.Entity lines, as the old script had them (estforlan/story.py lays the lights)."""
-    path = os.path.join(K.SCRIPTS, "Use Staff_of_Ashen With Barrier.txt")
+    path = os.path.join(K.SCRIPTS, "Use Staff_of_Ashen With Barrier.script")
     out = []
     for ln in ini.read_text(path).replace("\r", "").split("\n"):
         bits = ln.split("\t")
@@ -926,7 +926,7 @@ def bert():
         complete("The Sleeping Sword"),
         ("End",),
         ("@shardgate",), ("Goto.Script", "Bert and the Shardgate")])
-    path = os.path.join(K.SCRIPTS, "Talk to Bert.txt")                 # (its seventh line sends you here first)
+    path = os.path.join(K.SCRIPTS, "Talk to Bert.script")                 # (its seventh line sends you here first)
     text = ini.read_text(path).replace("\r", "")
     new = text.replace("\t>Conditional\t$Attr.ShardgateQuest=1 or", "\t>Conditional\t$Attr.WakeQuest=1 or "
                        "$Attr.ShardgateQuest=1 or", 1) if "$Attr.WakeQuest=1" not in text else text
@@ -1391,8 +1391,8 @@ def curiosities():
 def takeover():
     """The four givers' own kill quests carry on as Odd Jobs for <who> (build_zones.py writes them so after)."""
     for who in ("Surveyor_Nils", "Warden_Oska", "Nomad_Tarek", "Delver_Maud"):
-        old = os.path.join(K.SCRIPTS, "Talk to %s.txt" % who)
-        new = os.path.join(K.SCRIPTS, "Odd Jobs for %s.txt" % who)
+        old = os.path.join(K.SCRIPTS, "Talk to %s.script" % who)
+        new = os.path.join(K.SCRIPTS, "Odd Jobs for %s.script" % who)
         if not os.path.exists(new):
             first = open(old, "rb").readline().decode("cp1252")
             assert MAKER not in first, "%s is this builder's already, with no Odd Jobs" % old

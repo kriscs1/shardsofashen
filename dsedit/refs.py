@@ -83,7 +83,7 @@ class Refs:
             try:
                 with os.scandir(folder) as it:
                     for d in it:
-                        if d.is_file() and d.name.lower().endswith((".txt", ".ini")):
+                        if d.is_file() and d.name.lower().endswith((".script", ".map", ".ini")):
                             st = d.stat()
                             out.append((d.name, st.st_mtime_ns, st.st_size))
             except OSError:
@@ -115,9 +115,9 @@ class Refs:
         try:
             with os.scandir(self.project.p("data", "Scripts")) as it:
                 for d in it:
-                    if not d.name.lower().endswith(".txt"):
+                    if not d.name.lower().endswith(".script"):
                         continue
-                    s, st = d.name[:-4], d.stat()
+                    s, st = d.name[:-7], d.stat()
                     stamp = (st.st_mtime_ns, st.st_size)
                     old = self._scripts.get(s)
                     kept[s] = old if old is not None and old[0] == stamp else (stamp, self._script_refs(s, d.path))

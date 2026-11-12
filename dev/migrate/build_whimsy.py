@@ -39,7 +39,7 @@ def place_ids():
     if _ids is None:
         _ids = {}
         for f in os.listdir(p("maps")):
-            if f.endswith(".txt"):
+            if f.endswith(".map"):
                 for ln in open(p("maps", f), "rb").read().decode("cp1252").split("\r\n"):
                     bits = ln.split("\t")
                     if bits[0] == "Id" and len(bits) >= 4:
@@ -95,7 +95,7 @@ def put(map_name, line):
 
 
 def placed(pid):
-    return any(("Id=%s" % pid) in ln for f in os.listdir(p("maps")) if f.endswith(".txt")
+    return any(("Id=%s" % pid) in ln for f in os.listdir(p("maps")) if f.endswith(".map")
                for ln in open(p("maps", f), "rb").read().decode("cp1252").split("\r\n")[21:])
 
 
@@ -331,7 +331,7 @@ def dungeons():
             if (ents.get(sec, "Type") or "") == "NPC" and (ents.get(sec, "Attitude") or "") == "Bad"}
     out = [("3,18,-1", PER_LEVEL)]                              # (the buried library: its own, foes or none)
     for f in sorted(os.listdir(p("maps"))):
-        mm = re.match(r"^(-?\d+),(-?\d+),(-?\d+)\.txt$", f)
+        mm = re.match(r"^(-?\d+),(-?\d+),(-?\d+)\.map$", f)
         if not mm or f[:-4] in NO_TRAPS or f[:-4] == "3,18,-1":
             continue
         mx, my, mz = (int(v) for v in mm.groups())

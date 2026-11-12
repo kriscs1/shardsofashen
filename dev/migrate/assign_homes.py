@@ -56,7 +56,7 @@ def walkable(tile):
 
 
 def read_map(name):
-    lines = read_text_lines(os.path.join(MAPS, name + ".txt"))
+    lines = read_text_lines(os.path.join(MAPS, name + ".map"))
     grid = []
     for row in lines[:H]:
         cells = []
@@ -141,7 +141,7 @@ def roofed_part(grid, start):
 def main():
     news = {"home": 0, "bed": 0, "dog": 0, "zone": 0, "chase": 0, "passive": 0, "roost": 0, "moved": 0}
     for f in sorted(os.listdir(MAPS)):
-        if not f.endswith(".txt"):
+        if not f.endswith(".map"):
             continue
         name = f[:-4]
         p = name.split(",")

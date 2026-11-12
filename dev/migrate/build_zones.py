@@ -168,7 +168,7 @@ class World:
     def get_map(self, mx, my, make=None):
         n = "%d,%d,0" % (mx, my)
         if n not in self.maps:
-            if os.path.exists(p("maps", n + ".txt")):
+            if os.path.exists(p("maps", n + ".map")):
                 self.maps[n] = Map(n)
             elif make:
                 self.maps[n] = Map(n, new=True)
@@ -395,7 +395,7 @@ def make_zone(world, z, cells, rng, taken):
     lines.append("%02d\tEnd" % (5 + len(z["loot"])))
     lines.append("%02d\tDisplay.Message\tCyan\tThe chest is empty.\tEmpty" % (5 + len(z["loot"]) + 1))
     lines.append("%02d\tEnd" % (5 + len(z["loot"]) + 2))
-    with open(p("data", "Scripts", "Open %s.txt" % name), "w", encoding="cp1252", newline="\r\n") as f:
+    with open(p("data", "Scripts", "Open %s.script" % name), "w", encoding="cp1252", newline="\r\n") as f:
         f.write("\n".join(lines) + "\n")
     free = free_cells(world, cells, taken)
     rng.shuffle(free)
@@ -463,7 +463,7 @@ def filled(lines):
 
 
 def write_script(name, lines):
-    with open(p("data", "Scripts", name + ".txt"), "w", encoding="cp1252", newline="\r\n") as f:
+    with open(p("data", "Scripts", name + ".script"), "w", encoding="cp1252", newline="\r\n") as f:
         f.write(HEADER + "\n" + "\n".join(filled(lines)) + "\n")
 
 
@@ -521,7 +521,7 @@ def gates(world, taken):
     done = 0
     for name, mob, count in (("Emberwatch_Square", "Cinder_Guard", 8),):
         hit = None
-        for path in glob.glob(p("maps", "*,0.txt")):
+        for path in glob.glob(p("maps", "*,0.map")):
             if "Id\t%s\t" % name in open(path, "rb").read().decode("cp1252"):
                 hit = os.path.basename(path)[:-4]
                 break
@@ -540,7 +540,7 @@ def gates(world, taken):
                     done += 1
                     break
     # (the Mire Tunnel, its mouths' own maps)
-    for name in glob.glob(p("maps", "*,-1.txt")):
+    for name in glob.glob(p("maps", "*,-1.map")):
         n = os.path.basename(name)[:-4]
         if n not in ("-6,5,-1", "-1,5,-1", "0,5,-1", "1,5,-1", "2,4,-1", "2,6,-1"):
             continue
@@ -709,7 +709,7 @@ def add_labels(names):
 def mineral_moves(world):
     """Mithril and gems lie only in the hard zones above ground now."""
     n = 0
-    for path in glob.glob(p("maps", "*,0.txt")):
+    for path in glob.glob(p("maps", "*,0.map")):
         name = os.path.basename(path)[:-4]
         if name in world.maps:
             m = world.maps[name]
@@ -736,7 +736,7 @@ def main():
     dust_tile()
     world = World()
     print("Rocks moved: %d" % mineral_moves(world))
-    for n in glob.glob(p("maps", "*,0.txt")):       # (every map of the world: all of it is looked at)
+    for n in glob.glob(p("maps", "*,0.map")):       # (every map of the world: all of it is looked at)
         mx, my, _ = W.mxyz(os.path.basename(n)[:-4])
         if -14 <= mx <= 30 and -8 <= my <= 31:
             world.get_map(mx, my)

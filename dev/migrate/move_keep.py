@@ -204,7 +204,7 @@ def scripts_and_data(levels):
     for a, b in levels:
         names[a] = b
     for a, b in names.items():                                  # (the maps' arrival words: the keep's, the town's)
-        sa, sb = os.path.join(W.SCRIPTS, a + ".txt"), os.path.join(W.SCRIPTS, b + ".txt")
+        sa, sb = os.path.join(W.SCRIPTS, a + ".script"), os.path.join(W.SCRIPTS, b + ".script")
         if os.path.exists(sa) and not os.path.exists(sb):
             os.rename(sa, sb)
     pairs = [("\t%s\t" % a, "\t%s\t" % b) for a, b in names.items()] + \

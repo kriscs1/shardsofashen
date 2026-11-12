@@ -1,4 +1,4 @@
-"""Scripts (data\\Scripts\\*.txt), as the desktop game's script.py runs them, one per player at a time: each player has
+"""Scripts (data\\Scripts\\*.script), as the desktop game's script.py runs them, one per player at a time: each player has
 their own script running, its variables, its waits and conversations.
 
 What a script changes in the world is shared, except quest business: once a script has looked at the player's quest
@@ -123,7 +123,7 @@ class ScriptMixin:
     # Starting, stopping
     # =================================================================================================================
     def script_path(self, name):
-        return os.path.join(self.data.root, "data", "Scripts", name + ".txt")
+        return os.path.join(self.data.root, "data", "Scripts", name + ".script")
 
     def script_exists(self, name):
         if not name:
@@ -153,8 +153,8 @@ class ScriptMixin:
 
     def start_script(self, name, user_initiated, entry=False):
         name = trim(name)
-        if name.lower().endswith(".txt"):
-            name = name[:-4]
+        if name.lower().endswith(".script"):
+            name = name[:-7]
         if name == "":
             return
         if self.script_running:

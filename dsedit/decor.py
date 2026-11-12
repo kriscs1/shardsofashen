@@ -443,7 +443,7 @@ def apply(project, splits, chosen):
     files = []                                          # (every map, and the old ones in maps\Test and the like)
     for folder, _, names in os.walk(P.p("maps")):
         for f in sorted(names):
-            if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.txt", f):
+            if re.fullmatch(r"-?\d+,-?\d+,-?\d+\.map", f):
                 files.append(os.path.relpath(os.path.join(folder, f), P.p("maps")))
     for rel in files:
         m = rel[:-4]

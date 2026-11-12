@@ -21,14 +21,14 @@ def at(*p):
 def unused():
     """The <Place>_<Kind> Ids, Kind an Entities.ini thing, that nothing in the data or the code names."""
     ids = set()
-    for f in glob.glob(at("maps", "*.txt")):
+    for f in glob.glob(at("maps", "*.map")):
         with open(f, "rb") as fh:
             for ln in fh.read().decode("cp1252").splitlines():
                 p = ln.split("\t")
                 if p[0] == "Id" and len(p) > 1:
                     ids.add(p[1])
     text = " ".join(os.listdir(at("data", "Scripts")))
-    for pat in ("data/*.ini", "data/Scripts/*.txt", "dsengine/*.py", "server/*.py", "web/js/*.js"):
+    for pat in ("data/*.ini", "data/Scripts/*.script", "dsengine/*.py", "server/*.py", "web/js/*.js"):
         for f in glob.glob(at(*pat.split("/"))):
             with open(f, "rb") as fh:
                 text += "\n" + fh.read().decode("latin-1")
@@ -48,7 +48,7 @@ def drop(text, gone):
 
 def main():
     gone = unused()
-    for f in sorted(glob.glob(at("maps", "*.txt"))):
+    for f in sorted(glob.glob(at("maps", "*.map"))):
         with open(f, "rb") as fh:
             raw = fh.read()
         new = drop(raw.decode("cp1252"), gone).encode("cp1252")

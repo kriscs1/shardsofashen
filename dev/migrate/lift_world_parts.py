@@ -72,7 +72,7 @@ LEVELS = {"1,4,-1": "20,10,-1", "2,4,-1": "21,10,-1", "2,4,-2": "21,10,-2", "2,4
 
 
 def read_map(name):
-    lines = ini.read_text(os.path.join(ROOT, "maps", name + ".txt")).replace("\r", "").split("\n")
+    lines = ini.read_text(os.path.join(ROOT, "maps", name + ".map")).replace("\r", "").split("\n")
     rows = [[c.strip() for c in lines[y].split(":")][:XT] for y in range(YT)]
     return rows, [ln for ln in lines[YT:] if ln.strip()]
 
@@ -103,7 +103,7 @@ GENERIC = {"Wolf", "Bear", "Giant_Spider", "Scorpion", "Skeleton", "Bandit", "Bu
 def lift_people():
     """The people (and the odd thing) that a script is written for, wherever they stood on the old mainland: their map
     lines, to be put in the matching place of the new world (world_parts\\people.json)."""
-    scripts = {f[:-4] for f in os.listdir(os.path.join(ROOT, "data", "Scripts"))}
+    scripts = {os.path.splitext(f)[0] for f in os.listdir(os.path.join(ROOT, "data", "Scripts"))}
     targets = {s.split(" ", 2)[-1] for s in scripts if s.startswith(("Talk to ", "Forge ", "Read "))}
     lifted = {ln for p in json.load(open(os.path.join(OUT, "parts.json"), encoding="utf-8"))["parts"].values()
               for ln in p["lines"]}
@@ -132,13 +132,13 @@ ISLE = {"0,0,0", "0,1,0", "1,0,0", "1,1,0", "1,2,0", "2,0,0", "2,1,0", "2,2,0", 
 
 def main():
     if os.path.exists(os.path.join(OUT, "parts.json")):
-        if not os.path.exists(os.path.join(OUT, "people.json")) and os.path.exists(os.path.join(ROOT, "maps", "1,4,0.txt")):
+        if not os.path.exists(os.path.join(OUT, "people.json")) and os.path.exists(os.path.join(ROOT, "maps", "1,4,0.map")):
             lift_people()
         else:
             print("The parts are lifted already (dev\\migrate\\world_parts): nothing to do.")
         return
     rows, _ = read_map("1,4,0")
-    if "Ashford_Iron_Mine" not in open(os.path.join(ROOT, "maps", "1,4,0.txt"), encoding="cp1252").read():
+    if "Ashford_Iron_Mine" not in open(os.path.join(ROOT, "maps", "1,4,0.map"), encoding="cp1252").read():
         sys.exit("The old mainland isn't there to lift from (has build_estforlan.py rebuilt it?).")
     os.makedirs(os.path.join(OUT, "levels"), exist_ok=True)
     parts = {}
@@ -155,7 +155,7 @@ def main():
         parts[name] = {"old": old, "new": new, "rects": rects, "cells": cells, "lines": kept}
         print("%-16s %s -> %s: %d tiles, %d lines" % (name, old, new, len(cells), len(kept)))
     for old, new in LEVELS.items():
-        shutil.copyfile(os.path.join(ROOT, "maps", old + ".txt"), os.path.join(OUT, "levels", new + ".txt"))
+        shutil.copyfile(os.path.join(ROOT, "maps", old + ".map"), os.path.join(OUT, "levels", new + ".txt"))
         print("level %s -> %s" % (old, new))
     with open(os.path.join(OUT, "parts.json"), "w", encoding="utf-8") as f:
         json.dump({"parts": parts, "levels": LEVELS}, f, indent=1, sort_keys=True)

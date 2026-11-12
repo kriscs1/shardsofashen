@@ -47,7 +47,7 @@ def mxyz(name):
 def maps_on(z):
     out = []
     for f in os.listdir(MAPS):
-        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.txt", f)
+        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.map", f)
         if m and int(m.group(3)) == z:
             out.append((int(m.group(1)), int(m.group(2))))
     return out
@@ -56,7 +56,7 @@ def maps_on(z):
 def all_levels():
     out = []
     for f in os.listdir(MAPS):
-        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.txt", f)
+        m = re.fullmatch(r"(-?\d+),(-?\d+),(-?\d+)\.map", f)
         if m:
             out.append(tuple(int(v) for v in m.groups()))
     return out
@@ -448,11 +448,11 @@ def road_ends(w, box, gone):
 
 
 def rename_level_map(old, new):
-    """maps\\old.txt -> new.txt, and the map's entry script with it."""
-    a, b = os.path.join(MAPS, old + ".txt"), os.path.join(MAPS, new + ".txt")
+    """maps\\old.map -> new.map, and the map's entry script with it."""
+    a, b = os.path.join(MAPS, old + ".map"), os.path.join(MAPS, new + ".map")
     assert not os.path.exists(b), "%s is there already" % new
     shutil.move(a, b)
-    sa, sb = os.path.join(SCRIPTS, old + ".txt"), os.path.join(SCRIPTS, new + ".txt")
+    sa, sb = os.path.join(SCRIPTS, old + ".script"), os.path.join(SCRIPTS, new + ".script")
     if os.path.exists(sa):
         shutil.move(sa, sb)
 
@@ -480,4 +480,4 @@ def replace_in_files(paths, pairs):
 
 
 def scripts():
-    return [os.path.join(SCRIPTS, f) for f in os.listdir(SCRIPTS) if f.endswith(".txt")]
+    return [os.path.join(SCRIPTS, f) for f in os.listdir(SCRIPTS) if f.endswith(".script")]

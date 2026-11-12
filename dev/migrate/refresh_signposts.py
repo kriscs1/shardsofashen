@@ -64,8 +64,8 @@ def main():
         read.add("Read " + pid)
         n += 1
     for f in sorted(os.listdir(SK.SCRIPTS)):                 # (a signpost taken up: its words go with it)
-        name = f[:-4]
-        if name.startswith("Read Signpost_") and f.endswith(".txt") and name not in read:
+        name = f[:-7]
+        if name.startswith("Read Signpost_") and f.endswith(".script") and name not in read:
             first = open(os.path.join(SK.SCRIPTS, f), "rb").readline().decode("cp1252").strip()
             if first.endswith("\\" + MAKER):
                 SK.remove_script(name)

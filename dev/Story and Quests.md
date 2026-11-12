@@ -804,8 +804,8 @@ shrines in the Ashwold, relit blue by the Mending), and **Cael** (The Brother in
 
 Every quest is a section of `data/Quests.ini`: its giver, its stages (the journal text for each), its markers on the
 map, its type and chapter, what it requires, and the Shards it gives (`Reward.Shards`, paid once when it's done). Its progress is a number kept per player (the `Attribute`), set
-by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.txt`, `Kill Hobgoblin.txt`,
-`Search Cellar_Crate.txt`...).
+by the scripts in `data/Scripts/` (named for what you do: `Talk to Milkmaid.script`, `Kill Hobgoblin.script`,
+`Search Cellar_Crate.script`...).
 
 | Quest | Attribute | Main scripts |
 |---|---|---|

@@ -31,8 +31,8 @@ def swap(text, words=True):
 def main():
     files = [os.path.join(ROOT, "data", f) for f in ("Entities.ini", "ItemRacks.ini", "Gathering.ini", "Crops.ini",
                                                       "Spells.ini", "Digging.ini", "Waves.ini", "Buildables.ini")]
-    files += glob.glob(os.path.join(ROOT, "data", "Scripts", "*.txt"))
-    files += glob.glob(os.path.join(ROOT, "maps", "**", "*.txt"), recursive=True)
+    files += glob.glob(os.path.join(ROOT, "data", "Scripts", "*.script"))
+    files += glob.glob(os.path.join(ROOT, "maps", "**", "*.map"), recursive=True)
     files += [os.path.join(ROOT, "data", "NewCharacter.ini")]
     files += [os.path.join(ROOT, "dev", "migrate", f) for f in ("build_content.py", "build_scenery.py", "build_world.py")]
     n = 0

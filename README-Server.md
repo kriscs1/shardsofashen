@@ -86,7 +86,7 @@ view) goes full screen. Press **Enter** to chat with the other players.
   never lost, like the Hearth Anchor, stays). It lies where you fell, seen only by the player who killed you for
   `[Gameplay] Loot.Private.Seconds`, then by anyone. There's no grave. Whoever you struck dies as ever: they keep their
   5 most valuable things and the rest waits in their grave. The numbers are Config `[PvP]` `Open.*`.
-- **Rebuilding.** `dev/migrate/build_arena.py` makes the arena: `maps/0,0,10.txt`, a level of its own, plus its
+- **Rebuilding.** `dev/migrate/build_arena.py` makes the arena: `maps/0,0,10.map`, a level of its own, plus its
   scripts and the Arena Master. Run it again after rebuilding the world with `build_world.py`; it only adds what's
   missing.
 
@@ -132,7 +132,7 @@ the **Stillwater**. A pocket is always safe: nothing hostile can be in one.
 - **Changing it.**
   - `data/Buildables.ini`: what can be built, of what, at which level. Kinds: `Tile`, `Decor`, `Roof`, `Object`.
     `Tile=` is what a piece lays (the Terraform pieces), `Skill=` the skill it goes by (Homesteading if not said).
-  - `data/Homestead.txt`: the land a new home starts as (in the editor: the map **Homestead**). Each home gets its
+  - `data/Homestead.map`: the land a new home starts as (in the editor: the map **Homestead**). Each home gets its
     own copy when it's made, so changing it only changes homes made after that.
   - Config `[Homestead]`: where you arrive, and the town a pocket sends you back to by default.
   - `dev/migrate/build_pocket.py` makes it (it superseded `build_homestead.py`).

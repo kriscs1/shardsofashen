@@ -19,8 +19,8 @@ A top-down pixel-art RPG, played in the browser by up to 5 players sharing one w
 | `desktop/` | The desktop app (pywebview, built by PyInstaller): the same start screen and choices as the Android app |
 | `central/` | The central server: accounts, the remote servers' list, every character's progress, the start screen's ads |
 | `web/home/` | The start screen, the same in every version (`tools/sync_home.py` copies it into the Android app) |
-| `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.txt` |
-| `maps/` | `X,Y,Z.txt`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs; levels of their own in `dev/Rules.md` |
+| `data/` | `Entities.ini`, `Tiles.ini`, `Quests.ini`, `Config.ini`, `WorldMap.ini`... and `data/Scripts/*.script` |
+| `maps/` | `X,Y,Z.map`: 25x21 tiles of 32 px. Z<0 underground, Z>0 upstairs; levels of their own in `dev/Rules.md` |
 | `dev/migrate/` | Builders and migrations that draw sprites, make sounds and place content |
 | `dsedit/` | The map/data editor |
 | `ashen/` | Shared helpers (`ini`, `lb`); the old desktop game is retired |
