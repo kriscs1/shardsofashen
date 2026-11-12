@@ -31,16 +31,22 @@ class ItemsMixin:
     def stackable_quantity(self, name):
         return self.data.stackable_quantity(name)
 
+    def pack_used(self):
+        """The pack's slots taken: what's in the Quest pouch takes none (data.is_quest_item)."""
+        return sum(1 for e in self.inv if not self.data.is_quest_item(e.name))
+
     def inventory_slots_available(self, name, stolen=False):
+        if self.data.is_quest_item(name):
+            return 10 ** 9                              # (the Quest pouch is never full)
         stack = self.stackable_quantity(name)
-        room = max(0, self.inventory_capacity() - len(self.inv)) * stack
+        room = max(0, self.inventory_capacity() - self.pack_used()) * stack
         for e in self.inv:
             if e.name == name and e.stolen == stolen:
                 room += max(0, stack - e.quantity)
         return room
 
     def empty_inventory_slots(self):
-        return max(0, self.inventory_capacity() - len(self.inv))
+        return max(0, self.inventory_capacity() - self.pack_used())
 
     def items_held(self, name, stolen=None):
         """How many you carry (stolen: only those marked stolen, or only those that aren't; None, all)."""
@@ -82,7 +88,8 @@ class ItemsMixin:
                 added = min(quantity, stack - e.quantity)
                 quantity -= added
                 e.quantity += added
-        while quantity > 0 and len(self.inv) < self.inventory_capacity():
+        pouch = self.data.is_quest_item(name)
+        while quantity > 0 and (pouch or self.pack_used() < self.inventory_capacity()):
             n = min(quantity, stack)
             quantity -= n
             self.inv.append(InvItem(name, n, wear, stolen))
@@ -647,6 +654,9 @@ class ItemsMixin:
         quantity = min(max(1, quantity), self.items_held(item, stolen))
         if quantity <= 0:
             return
+        if self.data.is_quest_item(item):
+            self.refuse("Quest things stay with you, in your Quest pouch.")
+            return
         slots = self.data.bank_slots
         slot = next((i for i in range(1, slots + 1) if self.bank_item[i] == item and self.bank_stolen[i] == stolen),
                     0)
@@ -1156,7 +1166,7 @@ class ItemsMixin:
             self.grave_ents[g["id"]] = e
 
     def grave_remove_entity(self):
-        for e in self.grave_ents.values():
+        for e in list(self.grave_ents.values()):        # (a stone's going may forget it: entity_gone)
             self.w.remove_entity(e)
         self.grave_ents = {}
 

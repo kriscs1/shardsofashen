@@ -3,6 +3,7 @@ import base64
 import hashlib
 import hmac
 import ipaddress
+import json
 import os
 
 N, R, P = 2 ** 14, 8, 1
@@ -78,14 +79,28 @@ def _is_loopback(addr):
         return addr.lower() == "localhost"
 
 
+def _no_constant(word):
+    raise ValueError("no " + word)
+
+
+def read_message(text):
+    """A message from a page, or None: JSON as a browser writes it (never NaN or Infinity, which pass every
+    is-it-near check and so would go anywhere) and not nested so deep that reading it runs out of stack."""
+    try:
+        return json.loads(text, parse_constant=_no_constant)
+    except (ValueError, RecursionError):
+        return None
+
+
 def client_address(request):
     """Who's connecting. A friend's game connection through the central server (relay.py, marked with RELAY_KEY):
     "relay:<their address>", never this machine or its network. Behind a reverse proxy (Caddy on a cloud server, DS_TRUST_PROXY=1): the last address in
     X-Forwarded-For, the one the proxy put there (the ones before it are anyone's to write), and only when the
     connection itself is from the proxy (this machine or a private network: a port published straight to the world
     gets no say). A proxy nobody said was there (no DS_TRUST_PROXY), or one saying it's passing on this machine:
-    "proxied:<that address>", never this machine or its network, whatever the connection looks like. Otherwise the
-    connection's own address."""
+    "proxied:<the connection's own address>", never this machine or its network, whatever the connection looks like
+    (and not the address the header names: anyone may write one, a new one for each try at the limits). Otherwise
+    the connection's own address."""
     remote = request.remote or ""
     mark = request.headers.get("X-DS-Relay", "")
     if mark and same(mark, RELAY_KEY):
@@ -102,4 +117,4 @@ def client_address(request):
     trusted = os.environ.get("DS_TRUST_PROXY", "").strip() in ("1", "yes", "on", "true")
     if trusted and request.headers.get("X-Forwarded-For") and not _is_loopback(last):
         return last
-    return "proxied:" + last
+    return "proxied:" + remote[:64]

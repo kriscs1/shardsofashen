@@ -75,6 +75,7 @@ class Deep:
         for s in w.sessions.values():                       # (new tunnels: nobody's seen them yet)
             for fl in self.floors:
                 s.explored.pop(fl["map"], None)
+                s.fog_packed.pop(fl["map"], None)
 
     def generate(self, f, n, rng):
         """One floor: (its map's text lines, {up, down, heart})."""

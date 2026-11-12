@@ -110,9 +110,18 @@ class MinigameMixin:
         self.game_show(**(self.chimes_view() if kind == "CHIMES" else self.lock_view()))
 
     def lock_view(self):
+        """The pins as the page draws them: those set (at their line), the one bobbing now, and the rest only
+        counted (how the pins still to come will bob isn't the page's to know before it gets to them)."""
         g = self.game
-        return {"pins": [{"period": p["period"], "phase": p["phase"], "band": p["band"], "width": p["width"]}
-                         for p in g["pins"]], "pin": g["pin"], "slips": g["slips"], "most": SLIPS}
+
+        def shown(i, p):
+            if i < g["pin"]:
+                return {"band": p["band"]}
+            if i == g["pin"]:
+                return {"period": p["period"], "phase": p["phase"], "band": p["band"], "width": p["width"]}
+            return {}
+        return {"pins": [shown(i, p) for i, p in enumerate(g["pins"])], "pin": g["pin"], "slips": g["slips"],
+                "most": SLIPS}
 
     def lock_input(self, do, msg):
         g = self.game

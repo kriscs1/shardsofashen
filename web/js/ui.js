@@ -10,7 +10,7 @@ import { val, word, trim, lbstr, pretty, clamp, colour, rgb, drawText, drawTextM
 import { dayFraction, isNight, timeText, fogEnabled, fogSeeAll } from "./sky.js";
 import { fogCell } from "./state.js";
 import { T, getVerbs, verbLabel, canSellHere, displayName, skillLevel, itemPrice, spellTaught, knowsSpell,
-  cooldownLeft, spellAt, spellTitle, castCost, spellSummary, held } from "./verbs.js";
+  cooldownLeft, spellAt, spellTitle, castCost, spellSummary, held, isQuestItem } from "./verbs.js";
 import { lookImage } from "./look.js";
 import { entityTip, itemLines } from "./tips.js";
 import { M } from "./mobile.js";
@@ -765,7 +765,16 @@ function drawClock(ctx, now) {
   }
 }
 
-// ----- the Stats box: Stats, Gear, Quests
+// ----- the Stats box: Stats, Gear, Spells, Quest
+export const STAT_TABS = [[31, 70, "Stats", "your skills"], [73, 112, "Gear", "what you are wearing"],
+  [115, 154, "Spells", "the spells you know: cast them from here"],
+  [157, 194, "Quest", "your Quest pouch: keys, letters and the like, which take no room in your pack"]];
+
+export function statTabAt(smx, smy) {           // (which tab is at this point of the Stats box, or -1)
+  if (smy < 15 || smy > 36) return -1;
+  return STAT_TABS.findIndex(([x1, x2]) => smx >= x1 && smx <= x2);
+}
+
 function drawStats(ctx) {
   const x0 = L.statX, y0 = L.statY;
   ctx.save();
@@ -775,11 +784,12 @@ function drawStats(ctx) {
   else { ctx.fillStyle = "rgb(51,34,27)"; ctx.fillRect(0, 0, 224, STAT_H); }
   if (U.statsView === 1) drawGear(ctx);
   else if (U.statsView === 2) drawChannelTab(ctx);
+  else if (U.statsView === 3) drawQuestTab(ctx);
   else drawSkillsTab(ctx);
   // (the tabs: a dark strip over the old painted heading, each tab a rounded plate, the one you're on lit, with a
   // gold rule under it)
   roundBox(ctx, 28, 12, 170, 28, [34, 21, 16], [92, 60, 44], 1, 8);
-  [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Spells"]].forEach(([x1, x2, label], t) => {
+  STAT_TABS.forEach(([x1, x2, label], t) => {
     const on = t === U.statsView, hot = U.hover === "tab" + t;
     roundBox(ctx, x1, 15, x2 - x1 + 1, 22, on ? [150, 92, 62] : hot ? [112, 72, 52] : [84, 54, 40],
       on ? [236, 196, 92] : [160, 112, 74], on ? 2 : 1, 6);
@@ -1047,6 +1057,54 @@ export function padlock(ctx, cx, cy, col) {
   roundBox(ctx, cx - 4, cy - 1, 9, 7, col, null, 0, 2);
 }
 
+// ----- the Quest pouch: a quest's own things, which take no room in the pack (data.is_quest_item)
+const QUEST_COLS = 6, QUEST_ROWS = 5, QUEST_X = 16, QUEST_Y = 48;
+
+export function questItems() { return (S.me?.inv || []).filter((it) => isQuestItem(it[1])); }
+export function packItems() { return (S.me?.inv || []).filter((it) => !isQuestItem(it[1])); }
+
+function questSlotPos(i) {                     // (in the Stats box's own coordinates)
+  return [QUEST_X + G.tw * (i % QUEST_COLS), QUEST_Y + G.tw * Math.floor(i / QUEST_COLS)];
+}
+
+function drawQuestTab(ctx) {
+  const items = questItems();
+  if (!items.length) {
+    centreText(ctx, 112, 90, "Nothing in your Quest pouch.", 7, true, [212, 191, 126]);
+    centreText(ctx, 112, 104, "Keys, letters and the like go here,", 7, true, [170, 150, 120]);
+    centreText(ctx, 112, 116, "and take no room in your pack.", 7, true, [170, 150, 120]);
+    return;
+  }
+  const n = Math.min(items.length, QUEST_COLS * QUEST_ROWS);
+  for (let i = 0; i < QUEST_COLS * Math.max(1, Math.ceil(n / QUEST_COLS)); i++) {
+    const [x, y] = questSlotPos(i);
+    roundBox(ctx, x + 1, y + 1, G.tw - 2, G.th - 2, i < n ? [44, 28, 21] : [36, 23, 17], [24, 14, 10], 1, 5);
+  }
+  items.slice(0, n).forEach(([uid, name, qty], i) => {
+    const [x, y] = questSlotPos(i);
+    slotItem(ctx, name, x, y, qty);
+    if (uid === S.itemInUse) {
+      ctx.strokeStyle = rgb(TAB_TEXT); ctx.lineWidth = 1;
+      ctx.strokeRect(x - 0.5, y - 0.5, G.tw + 1, G.th + 1);
+    }
+  });
+  if (items.length > n) centreText(ctx, 112, STAT_H - 18, `and ${items.length - n} more`, 7, true, [170, 150, 120]);
+}
+
+function questItemAt(x, y) {
+  if (!S.me || !statsShown() || U.statsView !== 3) return null;
+  const sx = x - L.statX, sy = y - L.statY;
+  const items = questItems().slice(0, QUEST_COLS * QUEST_ROWS);
+  for (let i = 0; i < items.length; i++) {
+    const [ix, iy] = questSlotPos(i);
+    if (sx >= ix && sx < ix + G.tw && sy >= iy && sy < iy + G.th) {
+      const [u, n, q, wear, , stolen] = items[i];
+      return { k: T.INVITEM, u, n, q, wear, i, stolen: !!stolen, quest: true };
+    }
+  }
+  return null;
+}
+
 // ----- the inventory
 export function invSlotPos(i) {
   const cols = packCols();
@@ -1105,7 +1163,7 @@ function slotItem(ctx, name, x, y, qty, { dim = false, badge = "", cross: x2 = f
 function drawInventory(ctx) {
   if (!packShown()) return;
   const shop = S.box.mode === "Shop";
-  const room = packCols() * packRows(), used = S.me.inv.length;
+  const pack = packItems(), room = packCols() * packRows(), used = pack.length;
   if (!M.on) {
     // (the heading: the pack's name in the game's lettering, how full it is at the right, a gold rule under both)
     const y = L.invY - 20, x1 = L.invX + packCols() * G.tw;
@@ -1124,7 +1182,7 @@ function drawInventory(ctx) {
     const [x, y] = invSlotPos(i);
     roundBox(ctx, x + 1, y + 1, G.tw - 2, G.th - 2, i < used ? [44, 28, 21] : [36, 23, 17], [24, 14, 10], 1, 5);
   }
-  S.me.inv.forEach(([uid, name, qty, wear, shelf = null, stolen = 0], i) => {
+  pack.forEach(([uid, name, qty, wear, shelf = null, stolen = 0], i) => {
     const [x, y] = invSlotPos(i);
     slotItem(ctx, name, x, y, qty, { dim: shop && !canSellHere(name, !!stolen), wear, inv: true, shelf,
       stolen: !!stolen });
@@ -1136,8 +1194,10 @@ function drawInventory(ctx) {
 }
 
 export function invItemAt(x, y) {
+  const quest = questItemAt(x, y);
+  if (quest) return quest;
   if (!packShown()) return null;
-  const inv = S.me?.inv || [];
+  const inv = packItems();
   for (let i = 0; i < inv.length; i++) {
     const [ix, iy] = invSlotPos(i);
     const [w, h] = size(inv[i][1]);

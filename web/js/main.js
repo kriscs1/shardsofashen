@@ -1148,7 +1148,11 @@ N.onMessage = (m) => {
       updateBuild();
       if (S.itemInUse && !m.inv.some((i) => i[0] === S.itemInUse)) S.itemInUse = 0;
       break;
-    case "quests": S.quests = m.quests; S.marks = m.marks; S.level = m.level; break;
+    case "quests":                                    // (only what's changed: the list, its markers, your level)
+      if (m.quests) S.quests = m.quests;
+      if (m.marks) S.marks = m.marks;
+      if (m.level !== undefined) S.level = m.level;
+      break;
     case "weather": setWeather(m); break;
     case "snap":
       if ("st" in m) {

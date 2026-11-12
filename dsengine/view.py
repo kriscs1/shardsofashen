@@ -49,11 +49,15 @@ def entity_state(w, e, viewer, shared=None):
         if base is None:
             base = shared[e.uid] = shared_state(w, e)
     st = dict(base)
-    if e.type == STATICOBJECT and viewer.is_chest(e):
-        lock = viewer.chest_lock(e)[0] if viewer.chest_locked(e) else 0     # (locked for you: its level)
-        st["lc"] = lock                                 # (not "lk": that's a look, a chest can have one)
-        if lock and viewer.chest_sturdy(e):
-            st["ib"] = 1                                # (iron-bound: no Break Open)
+    if e.type == STATICOBJECT:
+        lock = chest_state(viewer, e, shared)
+        if lock is not None:
+            level, sturdy = lock
+            if level and viewer.chest_key(e) in viewer.unlocked_chests:
+                level = 0                               # (locked, but not for you: you've opened it)
+            st["lc"] = level                            # (not "lk": that's a look, a chest can have one)
+            if level and sturdy:
+                st["ib"] = 1                            # (iron-bound: no Break Open)
     if e.type == NPC:
         # (1: a foe; 2: can be attacked but won't come for you, a rabbit or a hen)
         st["f"] = (1 if w.stat_for(e, viewer, "aggressive") == 1 else 2) if w.hostile_for(e, viewer) else 0
@@ -68,15 +72,42 @@ def entity_state(w, e, viewer, shared=None):
     return st
 
 
+def chest_state(viewer, e, shared):
+    """(lock level, iron-bound) of chest e, or None (not a chest): the same for everyone (only whether you've opened
+    it is your own), so worked out once a tick, not once a viewer."""
+    key = ("lock", e.uid)
+    if shared is not None and key in shared:
+        return shared[key]
+    got = None
+    if viewer.is_chest(e):
+        level = viewer.chest_lock(e)[0]
+        got = (level, bool(level and viewer.chest_sturdy(e)))
+    if shared is not None:
+        shared[key] = got
+    return got
+
+
+def may_fight(s, shared):
+    """Is player s where anyone might fight them (the arena's sand, open PvP's ground)? Once a tick, for every view
+    (pvp_ok, for every viewer and every player, was a good part of a full world's tick)."""
+    key = ("pvp", s.player.uid)
+    got = shared.get(key)
+    if got is None:
+        got = shared[key] = bool(s.on_arena_ground() or s.open_ground())
+    return got
+
+
 def player_state(s, viewer, shared=None):
     if shared is None:
         st = own_state(s)
+        fight = viewer.pvp_ok(s)
     else:
         base = shared.get(s.player.uid)
         if base is None:
             base = shared[s.player.uid] = own_state(s)
         st = dict(base)
-    if viewer.pvp_ok(s):
+        fight = may_fight(viewer, shared) and may_fight(s, shared) and viewer.pvp_ok(s)
+    if fight:
         st["pvp"] = 1
     return st
 
@@ -159,7 +190,9 @@ def snapshot(w, s, shared=None):
         out.append(s.me_state())
     if s.dirty_quests:
         s.dirty_quests = False
-        out.append(s.quests_state())
+        quests = s.quests_state()
+        if quests:
+            out.append(quests)
     if s.weather_dirty:
         s.weather_dirty = False
         out.append(w.weather_state_for(s))

@@ -22,6 +22,14 @@ log = logging.getLogger("ashen.scripting")
 ATTRS_MOST = 2000               # (a player's attributes at most: quests' progress; about 250 are used)
 SCRIPT_RECHECK = 2.0            # (seconds a script's being there, or not, is taken as known: the tick asks often)
 SCRIPT_RUNAWAY = 1000           # (lines a script may run without waiting on anything: more is a loop that never ends)
+# What a script does that lasts (a thing given or taken, a stage set, the world changed): once it's done one, the
+# script is all or nothing, and broken off (its talk closed, its player dead or gone, the server stopped) it runs on to
+# its end at once (finish_script) rather than leave a stage set and the key that goes with it never given
+COMMITS = frozenset(("Give.Item", "Take.Item", "Replace.Item", "Remove.Entity", "Add.Entity", "Change.Tile",
+                     "Change.All.Tiles", "Update.Attribute", "Update.Skill", "Change.Standing", "Learn.Stance",
+                     "Set.Side.Attitude", "Set.NPC.Attitude", "Tax.Pay", "Take.Letters", "Mimic.Caught",
+                     "Add.Line.To.File", "Remove.Line.From.File", "Quest.Note", "Quest.Note.Done", "Edit.Entity",
+                     ">Pay.Shards", "Boost.Skill", "Catch.Disease"))
 PERSONAL_FIELDS = {"STRENGTH": "strength", "DEFENCE": "defence", "AGGRESSIVE": "aggressive",
                    "AGGRO.RANGE": "aggro_range"}
 
@@ -104,7 +112,11 @@ class ScriptMixin:
         self.script_entry = False           # the map's entry script
         self.script_personal = False        # what it changes now is this player's own
         self.script_forced = None           # Personal / Shared said so
-        self.work_from = None               # (x, y) the player stood at when its Play.Animation began (they stay put)
+        self.script_committed = False       # it's done something that lasts (COMMITS): all or nothing now
+        self.script_hurry = False           # finishing at once: no talks shown, no waits (finish_script)
+        self.script_at = 0                  # the line it's on (waiting on its talk, its wait...)
+        self.unfinished = None              # (saved part way, the server stopped: finished as they come back)
+        self.work_from = None              # (x, y) the player stood at when its Play.Animation began (they stay put)
         self.work_cell = None               # (map, x, y, what was there) the work is at: a tree, a rock
 
     # =================================================================================================================
@@ -150,6 +162,8 @@ class ScriptMixin:
                 self.display_message("You cannot do that right now!", "FAIL")
             elif len(self.script_queue) < 20:
                 self.script_queue.append((name, entry))
+            else:                                       # (twenty waiting: something's starting them over and over)
+                self.log("ERROR - Script %s: twenty scripts wait already, this one isn't run" % name)
             return
         if self.load_script(name):
             self.begin_script(entry)
@@ -157,12 +171,14 @@ class ScriptMixin:
 
     def begin_script(self, entry=False):
         self.synced_now = []                            # (the party who moved on with this script: together.py)
+        self.synced_later = []                          # (and those who will, once their own script's done)
         self.script_running = True
         self.script_state = ""
         self.script_result = 0
         self.script_entry = entry
         self.script_personal = False
         self.script_forced = None
+        self.script_committed = False
         self.script_steps = 0
         self.script_line_no = self.first_script_line(1)
 
@@ -236,6 +252,74 @@ class ScriptMixin:
         if self.script_move_ent is not None:
             self.script_move_ent.script_moving = False
             self.script_move_ent = None
+        if getattr(self, "sync_later", None):
+            self.sync_after_script()                    # (the party moved on while this ran: with them now)
+
+    def finish_script(self):
+        """The script is broken off (its talk closed, its player dead or leaving): one that's done nothing lasting yet
+        just stops (it runs again next time, from its start); one that has (COMMITS) runs on to its end now, so it's
+        never left half done. Its talks take their last answer (Goodbye, No: what closing a talk means), waits, walks
+        and sleeps are skipped, a minigame is lost and a rack closed, and nobody's sent anywhere."""
+        if not self.script_running or not self.script_committed:
+            self.end_script()
+            return
+        self.script_hurry = True
+        try:
+            for _ in range(SCRIPT_RUNAWAY):
+                if not self.script_running:
+                    break
+                st = self.script_state
+                self.script_state = ""
+                self.script_result = 0
+                if st == "CONVERSATION":
+                    self.script_jump(lbstr(self.script_response_line.get(len(self.responses), 0)))
+                elif st in ("RACK", "MINIGAME"):
+                    self.script_jump(lbstr(self.script_cancel_line))
+                elif st == "MOVE.ENTITY":
+                    e = self.script_move_ent
+                    if e is not None and e.alive:
+                        self.w.set_entity_position(e, e.target_x - e.w / 2, e.target_y - e.h / 2)
+                        e.script_moving = False
+                    self.script_move_ent = None
+                if self.script_running and self.script_state == "":
+                    self.execute_script_line()
+            else:
+                self.log("ERROR - Script %s: finishing it never came to its end, stopped" % self.script_name)
+        finally:
+            self.script_hurry = False
+        if self.script_running:
+            self.end_script()
+
+    def unfinished_state(self):
+        """What's kept with the character of a script that's done something lasting and isn't finished (the server
+        saving, or stopping, part way through): it's finished as they come back (finish_unfinished)."""
+        if not self.script_running or not self.script_committed or not self.script_name:
+            return None
+        at = self.script_at if self.script_state else self.script_line_no   # (waiting on a line: that line again)
+        u = {"script": self.script_name, "line": at, "vars": list(self.script_vars),
+             "personal": self.script_personal, "forced": self.script_forced}
+        if not self.script_exists(self.script_name):     # (lines run from the admin panel: no file to read again)
+            u["lines"] = [t for t in self.script_lines if t]
+        return u
+
+    def finish_unfinished(self):
+        u, self.unfinished = self.unfinished, None
+        if not isinstance(u, dict) or self.script_running:
+            return
+        if isinstance(u.get("lines"), list):
+            self.run_script_lines(str(u.get("script", "")), [str(t) for t in u["lines"]][:2000])
+        elif not self.load_script(str(u.get("script", ""))):
+            return
+        self.begin_script()
+        self.script_line_no = self.first_script_line(max(1, int(val(u.get("line", 1)))))
+        self.script_vars = ([str(v) for v in u.get("vars", [])] + [""] * 10)[:10]
+        self.script_personal = bool(u.get("personal"))
+        self.script_forced = u.get("forced") if u.get("forced") in (True, False) else None
+        self.script_committed = True
+        if self.script_line_no:
+            self.finish_script()
+        else:
+            self.end_script()
 
     def script_jump(self, goto):
         n = val(goto)
@@ -262,12 +346,12 @@ class ScriptMixin:
         st = self.script_state
         if st == "WAIT":
             if self.work_from is not None and distance(self.player.x, self.player.y, *self.work_from) > 8:
-                self.end_script()                   # (walked off from a tree, a rock, the water: no logs for that)
                 self.emit({"t": "work_stop"})
-                return
+                self.finish_script()                # (walked off from a tree, a rock, the water: no logs for that;
+                return                              #  the meat already on the fire is cooked, though)
             if self.work_cell is not None and self.work_cell[0].cell_text(*self.work_cell[1:3]) != self.work_cell[3]:
-                self.end_script()                   # (someone else felled the tree first: nothing left to chop)
                 self.emit({"t": "work_stop"})
+                self.finish_script()                # (someone else felled the tree first: nothing left to chop)
                 self.display_message("..but someone else has got there first.", "FAIL")
                 self.play_sound("Fail")
                 return
@@ -290,7 +374,8 @@ class ScriptMixin:
                 elif not self.user_input_enabled and self.script_response_line.get(1, 0) > 0:
                     self.script_jump(lbstr(self.script_response_line[1]))   # (a cutscene closed: it goes on)
                 else:
-                    self.end_script()
+                    self.script_state = "CONVERSATION"
+                    self.finish_script()            # (closed: it stops, or, once it's given or set something, ends)
                     return
         elif st == "RACK":
             if self.script_result == 0:
@@ -557,6 +642,9 @@ class ScriptMixin:
             return
         parts = self.script_lines[n].split("\t")       # (number, command, then its arguments)
         command = trim(parts[1]) if len(parts) > 1 else ""
+        self.script_at = n
+        if command in COMMITS:
+            self.script_committed = True
         arg = [""] * 34
         for i, a in enumerate(parts[2:34], 1):
             arg[i] = trim(self.parse_script_variables(a))
@@ -580,7 +668,8 @@ class ScriptMixin:
         elif c == "Show.Skill":
             self.show_skill(arg[1])
         elif c == "Play.Animation":
-            self.play_work(arg[1], arg[2], arg[3])
+            if not self.script_hurry:
+                self.play_work(arg[1], arg[2], arg[3])
         elif c == "Display.Message":
             self.display_message(arg[2], arg[1], sound=trim(arg[3]))   # (the script says what's heard: maybe nothing)
         elif c == "Mimic.Caught":
@@ -613,7 +702,7 @@ class ScriptMixin:
         elif c == "Remove.Line.From.File":
             self.remove_line_from_file(arg[1], arg[2])
         elif c == "Sleep":
-            if self.start_sleep(arg[1] or "Next"):
+            if not self.script_hurry and self.start_sleep(arg[1] or "Next"):
                 self.script_state = "SLEEP"
         elif c == "Change.Tile":
             self.script_change_tile(arg[1], arg[2], val(arg[3]), val(arg[4]))
@@ -643,8 +732,9 @@ class ScriptMixin:
                 fields[4] = self.screen_name
             w.remove_action_from_queue(*fields)
         elif c == "Wait":
-            self.script_wait_until = self.now + val(arg[1]) * 1000
-            self.script_state = "WAIT"
+            if not self.script_hurry:
+                self.script_wait_until = self.now + val(arg[1]) * 1000
+                self.script_state = "WAIT"
         elif c == "Display.Refusal":
             # Display.Refusal <message> [sound]: a no (a locked door; an empty chest's "duh-derr"): in red, with a sound
             self.refuse(arg[1], trim(arg[2]) if len(arg) > 2 and trim(arg[2]) else "Denied")
@@ -661,6 +751,8 @@ class ScriptMixin:
                 self.w.encounters.start(trim(arg[1]), self)
             else:
                 self.log("ERROR - Start.Encounter: no [%s] in data\\Encounters.ini" % trim(arg[1]))
+        elif c == "Teleport" and self.script_hurry:
+            pass                                    # (finishing as they die or leave: they wake, or come back, there)
         elif c == "Teleport":
             target = arg[2] if arg[2] not in ("", "-") else self.screen_name
             x, y = p.x - self.map_ox(), p.y - self.map_oy()
@@ -672,7 +764,9 @@ class ScriptMixin:
         elif c == "Tell.Rumour":                     # (a rumour, if one's due; else straight on: rumours.py)
             self.tell_rumour(trim(arg[1]))
         elif c == "Display.Item.Rack":
-            if self.open_item_rack(arg[1], arg[2], arg[3]):
+            if self.script_hurry:
+                self.script_jump(arg[4])
+            elif self.open_item_rack(arg[1], arg[2], arg[3]):
                 self.script_state = "RACK"
                 self.script_result = 0
                 self.script_cancel_line = val(arg[4])
@@ -684,6 +778,7 @@ class ScriptMixin:
             self.script_jump(arg[1])
         elif c == "Goto.Script":
             personal, forced, entry = self.script_personal, self.script_forced, self.script_entry
+            committed = self.script_committed
             steps = self.script_steps                   # (two scripts sending each other back and forth: one loop)
             held = self.user_input_enabled              # (a scene going on in another file: still the same scene)
             self.loot_hold = True                       # (a chest's script going on in another file: same chest)
@@ -695,6 +790,7 @@ class ScriptMixin:
                 self.loot_finish()
             if self.script_running:
                 self.script_personal, self.script_forced = personal, forced
+                self.script_committed = committed
                 self.script_steps = steps
         elif c == "Block.Player":
             self.block_player()
@@ -729,7 +825,10 @@ class ScriptMixin:
         elif c == "Follow.Player":
             self.set_follower(arg[1], arg[2])
         elif c == "Play.Minigame":
-            self.minigame_start(arg[1], arg[2], arg[3])
+            if self.script_hurry:
+                self.script_jump(arg[3])             # (no time for it: lost)
+            else:
+                self.minigame_start(arg[1], arg[2], arg[3])
         elif c == "Set.NPC.State":
             e = self.npc_by_id(arg[1])
             if e is not None and e.type == NPC:
@@ -762,13 +861,18 @@ class ScriptMixin:
         elif c == "Toggle.Player.Visibility":
             self.player_visible = self.on_off(arg[1])
             self.dirty_me = True
+        elif c == "Move.Player" and self.script_hurry:
+            pass
         elif c == "Move.Player":
             x, y = self.global_xy(arg[1])
             self.walk_player_to(x + p.w / 2, y + p.h / 2, self.data.speed_to_pixels(max(0.1, val(arg[2]))), 1)
             self.script_state = "MOVE.PLAYER"
         elif c == "Move.Entity":
             e = self.find_entity_here(arg[1], arg[2], pid)
-            if e is not None and not getattr(e, "script_moving", False):
+            if e is not None and self.script_hurry:
+                x, y = self.global_xy(arg[3])
+                self.w.set_entity_position(e, x, y)     # (there at once)
+            elif e is not None and not getattr(e, "script_moving", False):
                 x, y = self.global_xy(arg[3])
                 e.target_x = x + e.w / 2
                 e.target_y = y + e.h / 2
@@ -943,6 +1047,9 @@ class ScriptMixin:
         if not self.responses:
             self.responses = ["Continue"]
             self.script_response_line = {1: 0}
+        if self.script_hurry:                       # (finishing: unseen, its last answer taken)
+            self.script_jump(lbstr(self.script_response_line.get(len(self.responses), 0)))
+            return
         npc = arg[1]
         self.ab_image = self.npc_image(npc)
         self.ab_title = self.npc_title(npc)

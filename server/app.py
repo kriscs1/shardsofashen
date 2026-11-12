@@ -21,6 +21,14 @@ ANNOUNCE = web.AppKey("announce", object)
 PROGRESS = web.AppKey("progress", object)
 
 
+def settle():
+    """Once the world's loaded (a server's, not a test's: each test's world would stay for ever): what's there now is
+    there for good, so the collector's full sweeps leave it be (36 ms each, every few seconds, became under 1)."""
+    import gc
+    gc.collect()
+    gc.freeze()
+
+
 def make_app(root, db_path, max_players=5, registration="open", invite_code="", admins="", name="", port=8484, own=False):
     game = GameServer(root, db_path, max_players, registration, invite_code, admins=admins)
     game.port, game.own = port, own
@@ -178,6 +186,7 @@ def main():
     logging.getLogger("aiohttp.access").setLevel(logging.WARNING)   # (not a line for every picture and health check)
     app = make_app(args.root, args.db, args.max_players, args.registration, args.invite, args.admins,
                    name=os.environ.get("DS_NAME", ""), port=args.port)
+    settle()
     log.info("Shards of Ashen %s on http://%s:%d (up to %d players)", app[GAME].version["version"], args.host, args.port,
              args.max_players)
     if app[GAME].remote() and app[GAME].server_name() == UNNAMED:

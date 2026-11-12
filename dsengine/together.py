@@ -244,10 +244,16 @@ class TogetherMixin:
             return []
         moved = []
         for o in self.party_members(near=True):
-            if o.get_attribute(name) == old and not o.script_running:
-                o.update_attribute(name, change)
-                o.display_message("Your party moves on together: %s." % self.quest_title_of(name), "SUCCESS")
-                moved.append(o)
+            if o.get_attribute(name) != old:
+                continue
+            if o.script_running:                        # (busy with a script of their own: it first, then this, if
+                rec = {"name": name, "change": change, "old": old, "items": [], "done": False}   # it left them there)
+                o.sync_later = (getattr(o, "sync_later", None) or []) + [rec]
+                self.synced_later = (getattr(self, "synced_later", None) or []) + [(o, rec)]
+                continue
+            o.update_attribute(name, change)
+            o.display_message("Your party moves on together: %s." % self.quest_title_of(name), "SUCCESS")
+            moved.append(o)
         if moved:
             synced = getattr(self, "synced_now", None)
             if synced is None:
@@ -265,6 +271,26 @@ class TogetherMixin:
         for o in getattr(self, "synced_now", None) or []:
             if o.in_world() and o.items_held(item) <= 0:
                 o.add_inventory_item(item, n)
+        for o, rec in getattr(self, "synced_later", None) or []:
+            if not rec["done"]:
+                rec["items"].append((item, n))          # (theirs as they move on)
+            elif rec.get("moved") and o.in_world() and o.items_held(item) <= 0:
+                o.add_inventory_item(item, n)
+
+    def sync_after_script(self):
+        """A party's move on that waited for this player's own script (quest_sync): now, if they still stand where
+        it found them (their script may have moved them on itself), with the quest's things it gave."""
+        later, self.sync_later = getattr(self, "sync_later", None) or [], []
+        for rec in later:
+            rec["done"] = True
+            if not self.in_world() or self.get_attribute(rec["name"]) != rec["old"]:
+                continue
+            rec["moved"] = True
+            self.update_attribute(rec["name"], rec["change"])
+            self.display_message("Your party moves on together: %s." % self.quest_title_of(rec["name"]), "SUCCESS")
+            for item, n in rec["items"]:
+                if self.items_held(item) <= 0:
+                    self.add_inventory_item(item, n)
 
     # ================================================================================================= friends
     def account_friends(self):
@@ -458,7 +484,7 @@ class TogetherMixin:
                 while q > 0:
                     packs.append([name, stolen, min(q, stack)])
                     q -= stack
-        return len(packs) <= self.inventory_capacity()
+        return sum(1 for p in packs if not self.data.is_quest_item(p[0])) <= self.inventory_capacity()
 
     @staticmethod
     def hand_over(giver, taker, name, n):
@@ -640,9 +666,19 @@ class TogetherMixin:
         if distance(self.player.cx, self.player.cy, giver.player.cx, giver.player.cy) > 128:
             self.refuse("They've walked off.")
             return
-        if self.inventory_slots_available(name) <= 0:
+        lo, hi = 0, n                                   # (as many as fit, as a trade counts it: never on the floor)
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if self.fits_after({}, {name: mid}, giver):
+                lo = mid
+            else:
+                hi = mid - 1
+        if lo <= 0:
             self.refuse("You don't have enough room in your inventory!")
             return
+        if lo < n:
+            self.display_message("You take %d: there's no room for the rest." % lo, "INFO")
+            n = lo
         self.hand_over(giver, self, name, n)
         self.w.save_soon = True
         self.play_sound("Coins" if name == "Gold_Coin(s)" else "Pickup")

@@ -226,6 +226,8 @@ def test_a_river_freezes_in_winter_but_never_the_sea(world):
         ice = m.tile[m.cell(x, y)]
         assert ice != before and world.data.spec_blocks(before)   # (frozen over)
         p = join(world, "Skater", m.name, (x - 1) * 32 + 4, (y - 1) * 32 - 12)
+        p.player.x, p.player.y = m.ox + (x - 1) * 32 + 4, m.oy + (y - 1) * 32 - 12   # (out on it: coming in, they'd
+                                                                                      #  be moved off: unstick)
         pm, ptx, pty = world.tile_at(p.player.z, p.player.fx, p.player.fy)
         assert (pm, ptx, pty) == (m, x, y)
         s.now_is = "Spring"
@@ -438,6 +440,103 @@ def join(w, name, map_name="1,1,0", x=300, y=300):
 def leave(w, s):
     s.leave_world()
     w.sessions.pop(s.player_name, None)
+
+
+HALF_DONE = ["01\tDisplay.Conversation\tGravekeeper\tFirst a word.\tOk\t02",
+             "02\tUpdate.Attribute\tHalfDone\t=6",
+             "03\tDisplay.Conversation\tGravekeeper\tAnd take this.\tI will.\t04",
+             "04\tWait\t3",
+             "05\tGive.Item\tLair_Key\t1",
+             "06\tDisplay.Conversation\tGravekeeper\tWill you go?\tYes.\t07\tNo.\t09",
+             "07\tUpdate.Attribute\tHalfGoes\t=1",
+             "08\tEnd",
+             "09\tUpdate.Attribute\tHalfGoes\t=2",
+             "10\tEnd"]
+
+
+@pytest.mark.parametrize("how", ["closed", "died", "left", "server stopped"])
+def test_a_script_that_has_set_something_always_finishes(world, how):
+    s = join(world, "Half" + how.split()[0].title(), "1,1,0", 300, 300)
+    assert s.run_script_lines("(test)", HALF_DONE)
+    world.tick(0.05)
+    s.close_action_box(1)                                         # (the first word: nothing set yet)
+    world.tick(0.05)
+    assert s.get_attribute("HalfDone") == "6" and s.ab_mode == "Conversation"
+    if how == "closed":
+        s.close_action_box(-1)                                    # (Escape, the X, the phone's back button)
+        world.tick(0.05)
+    elif how == "died":
+        s.player_dies()
+    elif how == "left":
+        leave(world, s)
+    else:                                                         # (saved part way, and the server stopped)
+        st = s.save_state()
+        assert st["unfinished"]["line"] == 3
+        world.sessions.pop(s.player_name)
+        s = Session(world, s.player_name)
+        s.load_state(st)
+        world.sessions[s.player_name] = s
+        s.enter_world()
+    assert s.items_held("Lair_Key") == 1 and not (s.script_running and s.script_name == "(test)")
+    assert s.get_attribute("HalfGoes") == "2"                  # (a question closed: its last answer, No)
+    if how != "left":
+        assert s.save_state()["unfinished"] is None
+        leave(world, s)
+
+
+def test_a_script_closed_before_it_has_set_anything_just_stops(world):
+    s = join(world, "HalfNot", "1,1,0", 300, 300)
+    assert s.run_script_lines("(test)", HALF_DONE)
+    world.tick(0.05)
+    s.close_action_box(-1)
+    world.tick(0.05)
+    assert not s.script_running and s.get_attribute("HalfDone") in ("", "0") and not s.items_held("Lair_Key")
+    leave(world, s)
+
+
+def test_the_meat_on_the_fire_is_cooked_if_you_walk_off(world):
+    s = join(world, "HalfCook", "1,1,0", 300, 300)
+    assert s.run_script_lines("(test)", ["01\tTake.Item\tRaw_Meat\t1", "02\tWait\t5", "03\tGive.Item\tCooked_Meat\t1",
+                                         "04\tEnd"])
+    s.add_inventory_item("Raw_Meat", 1, quiet=True)
+    world.tick(0.05)
+    s.player_dies()
+    assert s.items_held("Cooked_Meat") == 1 and not s.items_held("Raw_Meat")
+    leave(world, s)
+
+
+def test_a_quest_thing_goes_in_the_quest_pouch_however_full_the_pack(world):
+    s = join(world, "Pouch", "1,1,0", 300, 300)
+    stock(s, Wooden_Sword=s.inventory_capacity() - s.pack_used())
+    assert s.empty_inventory_slots() == 0
+    before = {e.uid for e in world.ents}
+    s.add_inventory_item("Lair_Key", 1, quiet=True)
+    assert s.items_held("Lair_Key") == 1 and s.empty_inventory_slots() == 0
+    assert not any(e.name == "Lair_Key" for e in world.ents if e.uid not in before)   # (none dropped at your feet)
+    s.add_inventory_item("Wooden_Sword", 1, quiet=True)                               # (the pack is still full)
+    assert s.items_held("Wooden_Sword") == s.inventory_capacity()
+    s.bank_deposit(next(e for e in s.inv if e.name == "Lair_Key"), 1)                 # (and it can't be banked)
+    assert s.items_held("Lair_Key") == 1
+    leave(world, s)
+
+
+@pytest.mark.parametrize("how", ["closed", "left"])
+def test_edwin_gives_the_cellar_key_however_his_talk_ends(world, how):
+    s = join(world, "Egg" + how.title(), "1,1,0", 300, 300)
+    s.update_attribute("DinnerQuest", "=3")
+    s.add_inventory_item("Fried_Egg", 1, quiet=True)
+    s.start_script("Talk to Edwin", True)
+    world.tick(0.05)
+    assert s.ab_mode == "Conversation"
+    if how == "closed":
+        s.close_action_box(-1)
+        world.tick(0.05)
+    else:
+        leave(world, s)
+    assert s.items_held("Chapel_Cellar_Key") == 1 and s.items_held("Healing_Draught") == 2
+    assert s.get_attribute("DinnerQuest") == "4" and not s.script_running
+    if how == "closed":
+        leave(world, s)
 
 
 def test_a_greeting_comes_only_with_the_first_page_of_a_talk_you_started(world):
@@ -671,6 +770,9 @@ def test_one_time_items_are_per_player(world):
     b = join(world, "Dan", m.name, int(item.x - m.ox), int(item.y - m.oy))
     a.pickup_map_item(item)
     assert a.items_held(item.name) >= 1
+    held = a.items_held(item.name)
+    a.pickup_map_item(item)                                         # (asked for again: it's had)
+    assert a.items_held(item.name) == held
     assert not world.visible_to(item, a)
     assert world.visible_to(item, b)
     assert item.alive
@@ -831,7 +933,7 @@ def test_the_ferries_cross_together_and_carry_you_over():
     assert east.wait_until == west.wait_until and east.wait_until % 45000 == 0        # (they cast off together)
     e = east.e
     m = world.maps["3,2,0"]
-    s = join(world, "Passenger", "3,2,0", 14 * 32 + 16, 14 * 32)                     # (at the end of the Isle's pier)
+    s = join(world, "Passenger", "3,2,0", 14 * 32, 13 * 32 + 24)                   # (at the end of the Isle's pier)
     s.connected = True
     stock(s, **{"Gold_Coin(s)": 5})
     s.out = []
@@ -869,6 +971,45 @@ def test_the_ferries_cross_together_and_carry_you_over():
     assert world.entity_can_stand(s.player, s.player.x, s.player.y, s.player.x, s.player.y, s)  # (on the pier, not the sea)
     assert m is not t
     leave(world, s)
+
+
+def test_a_connection_lost_at_sea_comes_back_on_the_pier():
+    world = new_world()
+    east = next(c for c in world.carts.carts if c.key == "Isle_Ferry_East")
+    east.wait_until = world.carts.leave_time(east, world.now + 60000)
+    e = east.e
+    s = join(world, "AtSea", "3,2,0", 14 * 32, 13 * 32 + 24)
+    s.connected = True
+    stock(s, **{"Gold_Coin(s)": 5})
+    s.update_attribute("Passage", "=5")
+    s.update_attribute("RemnantsAbsorbed", "=1")
+    for k in range(len(s.skill_xp)):
+        s.skill_xp[k] = max(s.skill_xp[k], 6)
+    s.choose_verb("Get In", e, e.cx, e.cy)
+    for _ in range(5):
+        world.tick(0.05)
+    s.action_box_response_chosen(s.responses.index("To Northport.") + 1)
+    assert s.ride is east
+    stood = lambda p: world.pixel_walkable(p.z, p.fx, p.fy, s)
+    for _ in range(4000):                                   # (out in the strait, the water all round)
+        world.tick(0.1, now=world.now + 100)
+        if east.t and not stood(s.player):
+            break
+    assert s.ride is east and not stood(s.player)
+    st = s.save_state()                                     # (saved as it sails: at Northport's pier)
+    assert st["map"] in ("4,4,0", "4,3,0")
+    leave(world, s)                                         # (gone mid-crossing: set down there too)
+    assert s.ride is None and stood(s.player) and s.cur_map.name in ("4,4,0", "4,3,0")
+    assert "AtSea" not in east.riders
+    old = dict(st, map="3,3,0", x=12 * 32, y=4 * 32)        # (an older save, out on the water: moved off it)
+    b = Session(world, "AtSea")
+    b.load_state(old)
+    world.sessions["AtSea"] = b
+    m = world.maps["3,3,0"]
+    assert not world.pixel_walkable(0, m.ox + 12 * 32 + b.player.w / 2, m.oy + 4 * 32 + b.player.h - 1, b)
+    b.enter_world()
+    assert world.pixel_walkable(b.player.z, b.player.fx, b.player.fy, b)
+    leave(world, b)
 
 
 def test_the_ferry_comes_back_to_where_it_left(world):
@@ -1665,6 +1806,7 @@ def test_picking_a_lock_is_a_minigame(world):
     s.run_scripts()
     shown = lambda: [ev for ev in s.out if ev["t"] == "game"][-1]
     assert shown()["game"] == "lock" and len(shown()["pins"]) == 3 and s.script_state == "MINIGAME"
+    assert "period" in shown()["pins"][0] and shown()["pins"][1] == {}   # (the pins to come aren't told)
     pin = s.game["pins"][0]
     tap(s, ((pin["band"] / 2 + 0.5 - pin["phase"]) % 1) * pin["period"])   # (at the bottom)
     assert shown()["slipped"] and s.game["slips"] == 1 and s.game["pin"] == 0
@@ -1870,6 +2012,7 @@ def test_a_bolt_waits_for_you_to_choose_its_target(world):
     wolf = next(e for e in world.ents if e.name == "Wolf" and e.alive)
     m = world.maps[wolf.map]
     a = join(world, "Caster", m.name, int(wolf.x - m.ox), int(wolf.y - m.oy + 40))
+    a.player.x, a.player.y = wolf.x, wolf.y + 40                  # (just there, wherever that is: unstick aside)
     stock(a, Fire_Bolt_Scroll=2)
     a.spell_chance = lambda spell: 100                            # (no fizzling, for this)
     scroll = next(e for e in a.inv if e.name == "Fire_Bolt_Scroll")
@@ -4082,6 +4225,18 @@ def test_an_old_saves_shard_remnants_are_shards_on_the_balance(world):
     assert q["queue"] == ["ADD	Living_Remnant	NPC	Level=4 Name=Shard_Remnant", "REMOVE	Shard	MapItem	2"]
 
 
+def test_a_skill_worked_long_enough_gets_to_25(world):
+    s = join(world, "Toiler", "1,1,0", 300, 300)
+    for skill in ("Woodcutting", "Crafting"):
+        i = s.skill_index(skill)
+        for _ in range(200000):
+            if s.skill_xp[i] >= s.data.skill_max_level:
+                break
+            s.update_skill(skill, "+5")
+        assert s.skill_xp[i] == s.data.skill_max_level and s.level_of_xp(s.skill_xp[i]) == 25
+    leave(world, s)
+
+
 def test_an_old_save_has_its_skills_out_of_25(world):
     s = Session(world, "Elder")
     s.load_state({"skills": {"Strength": 40, "Herblore": 10.5, "Magic": 1.4, "Hitpoints": 20}})
@@ -5977,6 +6132,16 @@ def test_a_party_shares_kills_and_quest_stages(world):
         a.start_script("Kill Goblin", False)                        # (a's fourth: the quest's stage moves on)
         run_for(world, 5)
         assert a.get_attribute("WardhavenQuest") == "2" and b.get_attribute("WardhavenQuest") == "2"
+        for s in (a, b):                                            # (again, b busy with a script of their own)
+            s.update_attribute("WardhavenQuest", "=1")
+            s.update_attribute("BridgeGoblins", "=3")
+        assert b.run_script_lines("Busy", ["01\tPlay.Minigame\tLOCK\t1\t02", "02\tEnd"])
+        b.run_scripts()
+        a.start_script("Kill Goblin", False)
+        run_for(world, 5)
+        assert a.get_attribute("WardhavenQuest") == "2" and b.get_attribute("WardhavenQuest") == "1"
+        b.finish_script()                                           # (done: on with the party now)
+        assert b.get_attribute("WardhavenQuest") == "2"
         b.leave_party()
         assert not a.party_id and not b.party_id                    # (one left: no party)
     finally:
@@ -5996,6 +6161,54 @@ def test_a_gift_is_offered_and_taken(world):
         a.native_menu_chosen(1)                                     # (All 3)
         b.native_menu_chosen(1)                                     # (Take it)
         assert a.items_held("Bread") == 0 and b.items_held("Bread") == before + 3
+    finally:
+        leave(world, a)
+        leave(world, b)
+
+
+def test_a_storm_of_clicks_plans_one_walk_at_a_time(world, monkeypatch):
+    """Clicking to walk a hundred times at once plans one way there, then (a moment on) the way to the last place
+    clicked: each plan is a good part of a tick, and one page mustn't stop the world."""
+    s = join(world, "Clicker", "11,-3,0", 300, 300)
+    planned = []
+    real = world.plan_path
+    monkeypatch.setattr(world, "plan_path", lambda e, x, y, *a, **k: (e is s.player and planned.append((x, y)),
+                                                                real(e, x, y, *a, **k))[1])
+    try:
+        for i in range(100):
+            s.walk_player_to(s.player.cx + 60 + i % 7, s.player.cy, 0, 4)
+        assert len(planned) == 1
+        ticks(world, 8)
+        assert len(planned) == 2 and planned[-1][0] == s.player_walk_x
+    finally:
+        leave(world, s)
+
+
+def test_a_click_at_no_real_place_is_ignored(world):
+    """A page saying it clicked at "nan" (or an infinity) gets nowhere: such a number passes every is-it-near check."""
+    s = join(world, "Nowhere", "11,-3,0", 300, 300)
+    try:
+        before = (s.script_cursor_x, s.script_cursor_y)
+        for x in ("nan", "inf", "1e999", None, [1]):
+            s.handle({"t": "verb", "verb": "Walk here", "x": x, "y": 300})
+            s.handle({"t": "cast", "spell": next(iter(s.spells_known), ""), "target": {}, "x": x, "y": 300})
+        assert (s.script_cursor_x, s.script_cursor_y) == before
+    finally:
+        leave(world, s)
+
+
+def test_a_gift_too_big_for_your_pack_gives_what_fits(world):
+    """Ten swords offered with room for one: you take the one, the giver keeps the other nine (none on the floor)."""
+    a = join(world, "BigGiver", "11,-3,0", 300, 300)
+    b = join(world, "FullTaker", "11,-3,0", 330, 300)
+    try:
+        stock(a, Bronze_Sword=10)
+        while b.empty_inventory_slots() > 1:
+            stock(b, Bronze_Sword=1)
+        before = b.items_held("Bronze_Sword")
+        b.take_gift(a, "Bronze_Sword", 10)
+        assert b.items_held("Bronze_Sword") == before + 1 and a.items_held("Bronze_Sword") == 9
+        assert b.empty_inventory_slots() == 0
     finally:
         leave(world, a)
         leave(world, b)
@@ -6725,6 +6938,26 @@ def test_what_a_player_has_seen_is_kept_small(world):
     fxt = -(-s.sw // s.fog_size())
     st = s.save_state()
     assert st["explored"]["1,1,0"] == "all" and unpack_cells(st["explored"]["1,0,0"]) == {5, 6, 29 * fxt + 40}
+    s.fog_checks = 0                                                 # (a page saying it over and over: not checked)
+    s.note_explored("1,0,0", [7, 8])
+    assert unpack_cells(s.save_state()["explored"]["1,0,0"]) == {5, 6, 29 * fxt + 40}
+    leave(world, s)
+
+
+def test_the_quests_are_sent_again_only_as_they_change(world):
+    """An attribute set marks the quests to be sent, but only what's different goes (the list is a good few KB)."""
+    s = join(world, "Questy")
+    first = s.quests_state()
+    assert first["t"] == "quests" and "quests" in first and "marks" in first and "level" in first
+    s.update_attribute("NothingQuesty", "=1")
+    assert s.quests_state() is None                                 # (no quest uses it: nothing to tell)
+    name, d = next((n, d) for n, d in world.data.quest_table() if d.get("ATTRIBUTE"))
+    from dsengine.quests import help_clean
+    s.update_attribute(help_clean(d["ATTRIBUTE"]), "=1")
+    got = s.quests_state()
+    assert got is not None and any(q["title"] == name for q in got["quests"])
+    s.quests_sent = None                                            # (a new page: all of it again)
+    assert set(s.quests_state()) == {"t", "quests", "marks", "level"}
     leave(world, s)
 
 
@@ -7223,6 +7456,35 @@ def test_an_npc_stands_still_while_you_talk():
     s.ab_mode = ""
     ticks(world, 20)                                    # (a moment after: still there, then off it may go)
     assert (e.x, e.y) == (x, y)
+
+
+def test_looking_at_your_bag_mid_talk_keeps_the_one_you_talk_with(world):
+    """Examining something in your bag while a talk is open leaves the talk as it was: the one you talk with is
+    still the one clicked (a shop's prices and a script's "Clicked" go on meaning them)."""
+    e = next(e for e in world.ents if e.type == NPC and e.alive and e.map in world.maps)
+    m = world.maps[e.map]
+    s = join(world, "Glancer", m.name, int(e.cx - m.ox) + 40, int(e.cy - m.oy))
+    s.connected = True
+    stock(s, Bread=1)
+    s.clicked_ent = e
+    s.ab_mode = "Conversation"
+    item = next(i for i in s.inv if i.name == "Bread")
+    s.choose_verb("Examine", item, 0, 0)
+    assert s.clicked_ent is e
+    leave(world, s)
+
+
+def test_a_grave_on_the_map_you_wake_on_is_there_at_once(world):
+    d = world.data
+    s = join(world, "WakeHere", d.start_map, d.start_x, d.start_y)
+    s.connected = True
+    stock(s, Logs=6, Iron_Bar=1, Sapphire=1, Ruby=1, Gold_Ring=1, Silver_Ring=1, Bones=2)
+    s.player.hp = 0
+    s.player_dies()
+    s.respawn()
+    assert s.cur_map.name == d.start_map and len(s.graves) == 1
+    assert any(e.name == "Gravestone" and e.owner is s and e.alive for e in world.ents)
+    leave(world, s)
 
 
 def test_each_death_leaves_a_grave_of_its_own(world):

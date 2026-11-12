@@ -60,10 +60,7 @@ class Relay:
                         async for msg in tunnel:
                             if msg.type != aiohttp.WSMsgType.TEXT:
                                 break
-                            try:
-                                data = json.loads(msg.data)
-                            except ValueError:
-                                continue
+                            data = auth.read_message(msg.data)
                             if isinstance(data, dict):
                                 self.handle(http, data)
             except asyncio.CancelledError:

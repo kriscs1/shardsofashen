@@ -29,7 +29,7 @@ def start(root, db, name, port, build, central="", host_key=""):
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     logging.getLogger("aiohttp.access").setLevel(logging.WARNING)   # (not a line for every picture fetched)
     from aiohttp import web
-    from server.app import make_app, GAME
+    from server.app import make_app, settle, GAME
 
     ready, failed = threading.Event(), []
 
@@ -38,6 +38,7 @@ def start(root, db, name, port, build, central="", host_key=""):
         asyncio.set_event_loop(loop)
         try:
             app = make_app(root, db, 5, "open", "", name=name, port=port, own=True)
+            settle()
             runner = web.AppRunner(app)
             loop.run_until_complete(runner.setup())
             site = [web.TCPSite(runner, "127.0.0.1", port)]

@@ -10,8 +10,10 @@ _NUM = re.compile(r"\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)")
 
 
 def val(text):
-    """LB val(): the number at the start of text (0 if there is none)."""
-    if isinstance(text, (int, float)):
+    """LB val(): the number at the start of text (0 if there is none, and for NaN or an infinity: no real number)."""
+    if isinstance(text, float):
+        return text if text - text == 0 else 0
+    if isinstance(text, int):
         return text
     if text is None:
         return 0
@@ -22,6 +24,8 @@ def val(text):
     try:
         if "." in s or "e" in s or "E" in s:
             f = float(s)
+            if f - f != 0:
+                return 0
             return int(f) if f.is_integer() and abs(f) < 1e15 else f
         return int(s)
     except ValueError:

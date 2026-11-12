@@ -88,7 +88,7 @@ export function getVerbs(e) {
     v = e.mine ? ["Take back 1", "Take back all", "Set price", "Examine"] : ["Buy 1", "Buy 5", "Value", "Examine"];
   } else if (t === T.INVITEM) {
     if (mode === "Shop") v = canSellHere(e.n, e.stolen) ? ["Sell 1", "Sell All", "Value", "Examine"] : ["Examine"];
-    else if (mode === "Bank") v = [...amountVerbs("Deposit", held(e.n, e.stolen)), "Examine"];
+    else if (mode === "Bank") v = isQuestItem(e.n) ? ["Examine"] : [...amountVerbs("Deposit", held(e.n, e.stolen)), "Examine"];
     else {
       const words = entityIni(e.n, "Use.Words", "");
       const sp = spellTaught(e.n);                // (a scroll that would teach you something: Learn, not Cast)
@@ -255,6 +255,10 @@ export function cooldownLeft(spell) {
   // (ms till it's ready: as the server last said, less the time since - "me" isn't sent while it counts down)
   const cd = (S.me?.cooldowns || {})[spell] || 0;
   return Math.max(0, cd - (performance.now() - (S.boostAt || 0)));
+}
+
+export function isQuestItem(name) {             // (Quest=1: in the Quest pouch, never the pack: data.is_quest_item)
+  return val(entityIni(name, "Quest", "0")) === 1;
 }
 
 export function held(name, stolen) {             // (stolen: only those marked stolen, or only those not; none, all)

@@ -53,6 +53,10 @@ HOTBAR_SHOWN = 5
 FOG_ALL = 0.97                      # (a map this much seen is kept as all of it: its corners are the same to anyone)
 FOG_TRAIL, FOG_TRAIL_MS = 40, 250   # (where a player's been, these last ten seconds: what they say they've seen is near)
 JOURNAL_GAP = 1000                  # (ms between journals sent: one costs the server a good part of a tick)
+FOG_CHECKS = (1000, 6000)           # (fog cells a page's word is checked for, a second and saved up at most: it says
+                                    #  every 3 s, and a page saying more would slow the tick for everyone)
+WALK_PLAN_GAP = 250                 # (ms between a player's walks planned: a long one is a good part of a tick, and a
+                                    #  page sending a click a message would otherwise stop the world)
 LOOK_PARTS = ("skin", "hair", "shirt", "legs")
 
 
@@ -159,6 +163,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.side_attitudes = {}                    # {SIDE: "Good"/"Bad"}: Set.Side.Attitude, for good
         self.taken_once = set()
         self.explored = {}                  # map -> "all" or a set of fog cell numbers
+        self.fog_packed = {}                # map -> (cells, pack_cells' string): a set only grows, so its size says
+                                            # when it's to pack again (every save packed them all)
         self.fog_trail, self.fog_trail_at = [], 0   # [(z, x, y)] lately (note_explored)
         self.hotbar = [""] * HOTBAR_SLOTS
         self.hotbar_n = HOTBAR_SHOWN
@@ -196,6 +202,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.player_walk_x = self.player_walk_y = 0
         self.player_walk_speed = self.player_walk_range = 0
         self.player_walk_stuck = self.player_walk_replans = 0
+        self.fog_checks, self.fog_checks_at = FOG_CHECKS[1], 0     # (note_explored's allowance, and when it was)
+        self.walk_plan_at = 0                       # (when the next walk may be planned: WALK_PLAN_GAP)
+        self.walk_plan_due = False                  # (clicked sooner: planned then, to the last place clicked)
         self.pending_verb = ""
         self.pending_ent = None
         self.pending_at = None              # (where that verb's click was: the live cursor can move meanwhile)
@@ -251,6 +260,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.msg_open = None                # (id, when) of the last line that ended ..
         self.dirty_me = True                # inventory, skills... changed: the browser is sent them again
         self.dirty_quests = True
+        self.quests_sent = None             # (what the page has of them: quests_state sends what's changed)
         self.weather_dirty = True
         self.cells_dirty = True
         self.sent_maps = {}                 # map -> version the browser has
@@ -511,7 +521,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.side_attitudes = {str(k).upper(): v for k, v in dict(st.get("side_attitudes", {})).items()
                                if v in ("Good", "Bad")}
         self.taken_once = set(st.get("taken_once", []))
-        forms = st.get("forms") if isinstance(st.get("forms"), dict) else {}
+        self.unfinished = st.get("unfinished")
+        forms =st.get("forms") if isinstance(st.get("forms"), dict) else {}
         self.forms_learnt = [str(k) for k in forms.get("learnt", []) if self.form_def(k) is not None][:40]
         self.forms_bound = [k for k in (str(k) for k in forms.get("bound", [])) if k in self.forms_learnt][:40]
         self.unlocked_chests = set(st.get("unlocked_chests", []))
@@ -529,6 +540,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.spells_gone()
         self.hotbar_n = max(1, min(HOTBAR_SLOTS, int(val(st.get("hotbar_n", HOTBAR_SHOWN)))))
         self.explored = {k: unpack_cells(v) for k, v in st.get("explored", {}).items()}
+        saved = st.get("explored", {})
+        self.fog_packed = {k: (len(self.explored[k]), v) for k, v in saved.items()   # (as saved: not packed again)
+                           if isinstance(v, str) and v.startswith("b:") and self.explored[k] not in ("all", set())}
         graves = st.get("graves") or ([st["grave"]] if st.get("grave") else [])   # (saved before there were many)
         self.set_look(st.get("look"))
         self.load_chests(st.get("chests"))
@@ -645,10 +659,14 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if self.swap and self.swap["npc"] is not None and self.swap["npc"].alive:
             p = self.swap["npc"]                        # (in another body: saved where your own one is)
         m = (self.cur_map if p is self.player else None) or self.w.map_at(p.z, p.fx, p.fy)
+        sx, sy = (self.stand_x(), self.stand_y()) if p is self.player else (p.x, p.y)
+        if p is self.player and self.ride is not None:  # (aboard: saved at their stop, never out at sea: carts.py)
+            sx, sy = self.w.carts.landing(self)
+            m = self.w.map_at(p.z, sx + p.w / 2, sy + p.h - 1) or m
         st = {
             "map": m.name if m else d.start_map,
-            "x": int((self.stand_x() if p is self.player else p.x) - m.ox) if m else d.start_x,
-            "y": int((self.stand_y() if p is self.player else p.y) - m.oy) if m else d.start_y,
+            "x": int(sx - m.ox) if m else d.start_x,
+            "y": int(sy - m.oy) if m else d.start_y,
             "hp": p.hp, "direction": max(1, int(p.direction)),
             "spells": dict(self.spells_known), "shards": self.shard_balance, "own_spell": self.own_spell,
             "cooldowns": {k: int(v - self.now) for k, v in self.cooldowns.items() if 0 < v - self.now < 3600000},
@@ -684,6 +702,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "last_seen": int(time.time()),
             "god": self.god_mode if self.admin_enabled else getattr(self, "god_saved", None),
             "deep_seed": self.deep.seed if self.cur_map is not None and self.deep.floor_of(self.cur_map.name) else 0,
+            "unfinished": self.unfinished_state(),     # (a script part done: finished when they're back)
         }
         self.note_records()                             # (the hall of records: together.py)
         if self.dead_wait:                  # (dead and gone: they come back where they'd have woken)
@@ -709,7 +728,9 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.ready = True
         god = getattr(self, "god_saved", None)
         self.god_mode = (int(god) if god is not None else self.data.god_mode_setting()) if self.admin_enabled else 0
+        self.finish_unfinished()                        # (the server stopped part way through a script: it ends now)
         self.cur_map = None
+        self.unstick()
         self.emit(self.w.clock_event())
         self.check_map()
         self.emit({"t": "buildables", "pieces": self.homes.catalog_for_client()})
@@ -723,8 +744,28 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.welcome_back(self.last_seen_before)       # (a day or more away: what happened - together.py)
         self.collect_owed()                             # (winnings kept while they were away - together.py)
 
+    def unstick(self):
+        """Come in where they can't stand (water a lost connection left them on, a wall built since): the nearest
+        spot they can, a tile further each ring, up to ten tiles away."""
+        p, w = self.player, self.w
+        if self.flying or self.seat is not None or w.map_at(p.z, p.fx, p.fy) is None:
+            return
+        if w.pixel_walkable(p.z, p.fx, p.fy, self):
+            return
+        step = w.tw
+        for r in range(1, 11):
+            ring = [(dx, dy) for dx in range(-r, r + 1) for dy in range(-r, r + 1) if max(abs(dx), abs(dy)) == r]
+            for dx, dy in sorted(ring, key=lambda d: math.hypot(*d)):
+                fx, fy = p.fx + dx * step, p.fy + dy * step
+                if w.pixel_walkable(p.z, fx, fy, self) and w.entity_can_stand(p, fx, fy, fx, fy, self):
+                    p.x, p.y = p.x + dx * step, p.y + dy * step
+                    self.log("Came in where they couldn't stand: moved %d tiles" % r)
+                    return
+
     def leave_world(self):
         """Gone: their own things go with them, NPCs fighting them give up."""
+        self.script_queue = []
+        self.finish_script()                            # (a talk left open: what it had begun giving, it gives)
         self.game_close()                               # (up from a table: a stake left waiting comes back)
         if self.swap:
             self.end_swap("")                           # (the creature gets its own body back)
@@ -740,7 +781,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             elif e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
         self.grave_ents = {}
-        self.w.carts.leaving(self)
+        self.w.carts.leaving(self, land=True)
+        name = self.player_name                         # (what the world kept by their name: forgotten, not kept
+        self.w.encounters.next_for.pop(name, None)      #  for every character that ever came; back, it starts again)
+        self.w.banter.next_for.pop(name, None)
+        self.w.failed = {f for f in self.w.failed if f[0] != name}
 
     def entity_gone(self, e):
         """A world entity has gone: forget it wherever this player was using it."""
@@ -875,7 +920,16 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p.path_best = None
         p.path_stuck = 0
         p.path_goal = self.w.path_goal_key(x, y, rng)
-        self.w.plan_path(p, x, y, rng, 2200, self)
+        self.plan_walk()
+
+    def plan_walk(self):
+        """The way to where you're walking: now, or (clicked again within WALK_PLAN_GAP) as soon as that's up."""
+        if self.now < self.walk_plan_at and self.walk_plan_at - self.now <= WALK_PLAN_GAP:
+            self.walk_plan_due = True
+            return
+        self.walk_plan_due = False
+        self.walk_plan_at = self.now + WALK_PLAN_GAP
+        self.w.plan_path(self.player, self.player_walk_x, self.player_walk_y, self.player_walk_range, 2200, self)
 
     def target_sent(self):
         """The foe you're fighting, as the browser's told it (its red ring): kept, so a fight dropped anywhere is told."""
@@ -888,6 +942,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.pending_ent = None
         self.pending_at = None
         self.player.path = []
+        self.walk_plan_due = False
 
     def block_player(self):
         self.stop_player_walk()
@@ -897,6 +952,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
     def update_player_walk(self):
         p = self.player
         w = self.w
+        if self.walk_plan_due:
+            self.plan_walk()
         if self.pending_ent is not None:
             if not self.pending_ent.alive:
                 self.stop_player_walk()
@@ -1223,12 +1280,20 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         cur = self.explored.get(name, set())
         if m is None or cur == "all":
             return
+        per, most = FOG_CHECKS
+        self.fog_checks = min(most, self.fog_checks + max(0, self.now - self.fog_checks_at) * per / 1000)
+        self.fog_checks_at = self.now
+        cells = cells[:min(2000, int(self.fog_checks))]
+        self.fog_checks -= len(cells)
         size = self.fog_size()
         fxt = math.ceil(self.sw / size)
         reach = self.fog_view_distance + self.spell_sight_bonus + 2 * size
-        near = [(x, y) for z, x, y in self.fog_trail if z == m.mz]
+        near = [(x, y) for z, x, y in self.fog_trail if z == m.mz and m.ox - reach <= x <= m.ox + self.sw + reach and
+                m.oy - reach <= y <= m.oy + self.sh + reach]     # (where you've been near this map)
+        if not near:
+            return
         got = set()
-        for c in cells[:2000]:
+        for c in cells:
             if isinstance(c, int) and 0 < c < 10000 and c not in cur:
                 x, y = m.ox + ((c - 1) % fxt + 0.5) * size, m.oy + ((c - 1) // fxt + 0.5) * size
                 if any(abs(x - px) <= reach and abs(y - py) <= reach for px, py in near):
@@ -1262,7 +1327,16 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         return math.ceil(self.sw / size) * math.ceil(self.sh / size)
 
     def explored_for_client(self):
-        return {k: ("all" if v == "all" else pack_cells(v)) for k, v in self.explored.items()}
+        out = {}
+        for k, v in self.explored.items():
+            if v == "all":
+                out[k] = "all"
+                continue
+            had = self.fog_packed.get(k)
+            if had is None or had[0] != len(v):
+                had = self.fog_packed[k] = (len(v), pack_cells(v))
+            out[k] = had[1]
+        return out
 
     # =================================================================================================================
     # Sleeping (DayNight.ini [Sleep]): the screen goes dark and you're healed. The time only jumps on when everyone
@@ -1374,8 +1448,13 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         }
 
     def quests_state(self):
-        return {"t": "quests", "quests": self.quest_list(), "marks": self.quest_markers(),
-                "level": self.player_level()}
+        """What's changed of the quests since the page was last told (the list, its markers, your level), or None:
+        the list is a good few KB, and an attribute set needn't mean any of it's different."""
+        now = {"quests": self.quest_list(), "marks": self.quest_markers(), "level": self.player_level()}
+        was = self.quests_sent or {}
+        self.quests_sent = now
+        changed = {k: v for k, v in now.items() if was.get(k) != v}
+        return dict(t="quests", **changed) if changed else None
 
     def box_state(self):
         """The ActionBox (a conversation, a shop, the bank, crafting) as the browser draws it, or closed."""

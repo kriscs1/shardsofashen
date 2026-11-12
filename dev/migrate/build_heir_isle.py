@@ -1413,6 +1413,7 @@ def fathers_house_scripts():
         (">Distance.From.Clicked.Tile", "48", "@far"),
         ("Get.Value", "ATTRIBUTE", "PapersFound", V1),
         (">Conditional", "$Variable.1=0", "@done"),
+        (">Conditional", "$Attr.FatherFreed>=1", "@not_yours"),     # (his house till he's freed and gives it you)
         ("Display.Message", "Cyan", "You prise up the loose board..", "-"),
         ("Play.Sound", "Squeak"),
         ("Wait", "1"),
@@ -1426,6 +1427,9 @@ def fathers_house_scripts():
         ("Update.Attribute", "Passage", "=4"),
         ("@end",), ("End",),
         ("@done",), ("Display.Message", "Cyan", "Just a floorboard, nailed down firm.", "-"),
+        ("End",),
+        ("@not_yours",), ("Display.Message", "Cyan", "The board's loose, but this is still Tobias's house: not yours to "
+                                                     "go prising up its floor.", "-"),
         ("End",),
     ] + FAR)
     notice("Fathers_Home", "MAREN & BESS'S FATHER'S HOME",

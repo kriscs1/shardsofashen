@@ -464,6 +464,11 @@ class GameData:
     def stackable_quantity(self, name):
         return max(1, val(self.entity_ini(name, "Stackable", "1")))
 
+    def is_quest_item(self, name):
+        """Quest=1: a quest's own thing (a key, a letter, papers): it goes in the Quest pouch, never the pack, so a
+        full pack can't lose it."""
+        return val(self.entity_ini(name, "Quest", "0")) == 1
+
     def examine_text(self, name, etype):
         if etype in (TILE, INFRONTTILE, ROOF):
             t = self.tile_ini(name, "Examine.Info", "")

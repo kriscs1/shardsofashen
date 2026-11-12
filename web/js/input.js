@@ -6,7 +6,7 @@ import { A, tileIni, entityIni, size } from "./assets.js";
 import { send } from "./net.js";
 import { V, screenToWorld, entitiesUnder, changeZoom, roofCovers, markClick } from "./render.js";
 import { fogBlack } from "./sky.js";
-import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
+import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, STAT_TABS, statTabAt, boxItemAt, boxRect, boxArrow, boxCloseAt,
   responseAt, responseBoxRect, clockRect, statTileAt, skillOfRow, skillInfo, equipX, equipY, EQUIP_BOX, equipSlotInfo,
   spellTileAt, spellHoverText, knownSpells, scrollChat, changeMinimapZoom, hoverText, chatTrack, toggleTracked, minimapHit,
   chatArrow, vitalsAt, stanceAt, nextStance, stanceTip, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
@@ -139,11 +139,8 @@ export function mouseMove(x, y) {
   // the Stats box
   const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
   U.equipHover = 0; U.skillHover = 0; U.spellHover = 0;
-  if (!msg && smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
-    if (smx <= 81) { msg = "Stats|your skills"; U.hover = "tab0"; }
-    else if (smx >= 84 && smx <= 135) { msg = "Gear|what you are wearing"; U.hover = "tab1"; }
-    else if (smx >= 138) { msg = "Spells|the spells you know: cast them from here"; U.hover = "tab2"; }
-  }
+  const tab = msg ? -1 : statTabAt(smx, smy);
+  if (tab >= 0) { msg = STAT_TABS[tab][2] + "|" + STAT_TABS[tab][3]; U.hover = "tab" + tab; }
   if (!msg && U.statsView === 2) {
     const i = spellTileAt(smx, smy);
     if (i) { U.spellHover = i; msg = spellHoverText(knownSpells()[i - 1]); }
@@ -355,8 +352,8 @@ export function mouseDown(button, x, y) {
     const arrow = desk || M.chat ? chatArrow(x, y) : 0;
     if (arrow) { scrollChat(arrow); return; }
     const smx = statsShown() ? x - L.statX : -999, smy = y - L.statY;
-    if (smx >= 31 && smx <= 194 && smy >= 15 && smy <= 36) {
-      U.statsView = smx <= 81 ? 0 : smx <= 135 ? 1 : 2;
+    if (statTabAt(smx, smy) >= 0) {
+      U.statsView = statTabAt(smx, smy);
       U.equipHover = U.spellHover = 0;
       return;
     }

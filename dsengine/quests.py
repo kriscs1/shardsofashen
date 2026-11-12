@@ -321,8 +321,10 @@ class QuestMixin:
         """ "map tx ty" of the NPC that gives a quest (by its Id, else its name), or "" if there's none."""
         if not giver:
             return ""
-        e = self.w.placed_entity(giver) or next(
-            (e for e in self.w.ents if e.name.upper() == giver.upper() and e.alive and e.map), None)
+        e = self.w.placed_entity(giver)
+        if e is None or not self.w.visible_to(e, self):    # (one you see: never another player's own, from their quest)
+            e = next((e for e in self.w.ents if e.name.upper() == giver.upper() and e.alive and e.map and
+                      self.w.visible_to(e, self)), None)
         m = self.w.maps.get(e.map) if e is not None else None
         if m is None:
             return ""

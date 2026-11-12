@@ -154,7 +154,10 @@ class CombatMixin:
         if amount[:1] == "+":                    # (Config XP.Scale and the skill's own: every gain, along the curve)
             gain = val(amount[1:]) * d.xp_scale * (d.xp_skill.get(d.skill_name[i].upper(), 1.0) if weigh else 1.0)
             amount = "+" + lbstr(round(self.xp_along(self.skill_xp[i], gain) - self.skill_xp[i], 5))
-        self.skill_xp[i] = min(d.skill_max_level, max(0, apply_change(self.skill_xp[i], amount)))
+        xp = min(d.skill_max_level, max(0, apply_change(self.skill_xp[i], amount)))
+        if abs(xp - round(xp)) < 1e-6:                  # (24.9999999999994 is 25: the curve's last gains round to
+            xp = round(xp)                              #  nothing, and it would never get there)
+        self.skill_xp[i] = xp
         if amount[:1] == "+":
             self.reward_xp(d.skill_name[i], val(amount[1:]))     # (a quest's reward screen lists it)
         new = self.level_of_xp(self.skill_xp[i])
@@ -643,7 +646,7 @@ class CombatMixin:
         self.script_queue = []
         if self.work_from is not None:
             self.emit({"t": "work_stop"})
-        self.end_script()
+        self.finish_script()                                # (what it had begun giving or setting, it ends)
         d = self.data
         marked = self.pvp_marked()                          # (struck a player first, lately: everything's lost, pvp.py)
         self.display_message("You died.", "ERROR")
@@ -697,6 +700,7 @@ class CombatMixin:
         self.player.hp = self.player_max_hp
         if self.w.map_named(m) is not None:
             self.teleport(m, x, y)
+        self.grave_place()                              # (woken on the map you died on: no map change to lay it)
         self.display_message("You wake in your own bed." if bed else "You wake up, alive again.", "INFO")
         self.emit({"t": "respawned"})
         self.dirty_me = True

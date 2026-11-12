@@ -271,6 +271,34 @@ def test_world_survives_a_restart(tmp_path):
     served(second())
 
 
+def test_two_tabs_coming_in_at_once_leave_no_ghost(tmp_path):
+    async def run():
+        runner, app, url = await start(str(tmp_path / "g.db"))
+        async with aiohttp.ClientSession() as http:
+            game = app[GAME]
+            first, _ = await login(http, url, "Gil")
+            cy, _ = await login(http, url, "Cy")
+            tabs = []
+            for _ in range(2):
+                ws = await http.ws_connect(url)
+                await ws.send_json({"t": "auth", "device": device_of("Gil")})
+                await replies(ws, ("characters",))
+                tabs.append(ws)
+            await asyncio.gather(*(ws.send_json({"t": "play", "name": "Gil"}) for ws in tabs))
+            s = game.world.sessions["Gil"]
+            await until(lambda: s in game.clients and sum(1 for c in game.clients.values() if c.session is s) == 1)
+            await asyncio.gather(*(chats(ws, 1.0) for ws in [first] + tabs))   # (read: a close is seen)
+            assert first.closed and sum(1 for ws in tabs if ws.closed) == 1       # (put out: the first, and one tab)
+            live = next(ws for ws in tabs if not ws.closed)
+            assert game.clients[s].session is s and all(c.session is not s for c in game.clients.values()
+                                                         if c is not game.clients[s])
+            await chats(cy, 0.3)
+            await live.send_json({"t": "chat", "text": "the one tab"})
+            assert any(m.get("text") == "the one tab" for m in await chats(cy))
+        await runner.cleanup()
+    served(run())
+
+
 def test_chat_and_whispers(tmp_path):
     async def run():
         runner, app, url = await start(str(tmp_path / "c.db"))
@@ -363,6 +391,14 @@ async def wait_for(ws, kind, seconds=5.0):
                 return m
 
 
+def test_a_message_is_json_as_a_browser_writes_it():
+    """NaN and Infinity aren't JSON a browser writes (and pass every is-it-near check); nesting deep enough to run
+    out of stack is no message either."""
+    assert auth.read_message('{"t": "verb", "x": 1.5}') == {"t": "verb", "x": 1.5}
+    for bad in ('{"x": NaN}', '{"x": Infinity}', '{"x": -Infinity}', "[" * 200000, "{", ""):
+        assert auth.read_message(bad) is None
+
+
 def test_an_unknown_proxy_is_not_the_local_network(tmp_path, monkeypatch):
     """Coming through a reverse proxy nobody declared looks like the local network (the connection's from the proxy):
     it mustn't count as that. Declared, the proxy's word goes, but never that it's passing on this machine."""
@@ -370,14 +406,15 @@ def test_an_unknown_proxy_is_not_the_local_network(tmp_path, monkeypatch):
         return auth.client_address(SimpleNamespace(remote=remote, headers=headers))
     outside = {"X-Forwarded-For": "8.8.8.8"}
     assert addr("192.168.1.5") == "192.168.1.5"
-    assert addr("192.168.1.5", **outside) == "proxied:8.8.8.8"
-    assert addr("192.168.1.5", **{"X-Real-IP": "8.8.8.8"}) == "proxied:8.8.8.8"
+    assert addr("192.168.1.5", **outside) == "proxied:192.168.1.5"
+    assert addr("192.168.1.5", **{"X-Real-IP": "8.8.8.8"}) == "proxied:192.168.1.5"
+    assert addr("192.168.1.5", **{"X-Forwarded-For": "1.1.1.1"}) == addr("192.168.1.5", **outside)  # (one to the limits)
     assert addr("8.8.4.4", **outside) == "8.8.4.4"                              # (straight from the world: no say)
     monkeypatch.setenv("DS_TRUST_PROXY", "1")
     assert addr("172.18.0.2", **outside) == "8.8.8.8"
     assert addr("172.18.0.2", **{"X-Forwarded-For": "1.2.3.4, 192.168.1.9"}) == "192.168.1.9"
-    assert addr("172.18.0.2", **{"X-Forwarded-For": "127.0.0.1"}) == "proxied:127.0.0.1"   # (nobody is this machine)
-    assert addr("172.18.0.2", **{"X-Real-IP": "8.8.8.8"}) == "proxied:8.8.8.8"
+    assert addr("172.18.0.2", **{"X-Forwarded-For": "127.0.0.1"}) == "proxied:172.18.0.2"  # (nobody is this machine)
+    assert addr("172.18.0.2", **{"X-Real-IP": "8.8.8.8"}) == "proxied:172.18.0.2"
     monkeypatch.delenv("DS_TRUST_PROXY")
 
     async def run():

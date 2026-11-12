@@ -20,6 +20,16 @@ WALK_FIRST_WORDS = ("Wall", "Forest", "Hedge", "Pond", "Pool", "_Window", "Water
 QUIET_VERBS = ("Attack", "Examine", "Walk here", "Cancel")    # (an animal's noise comes with the rest: animal_noise)
 
 
+def page_xy(msg, x, y):
+    """Where the page says it clicked (x, y if it doesn't say), or None for what isn't a real number ("nan" passes
+    every is-it-near check)."""
+    try:
+        vx, vy = float(msg.get("x", x)), float(msg.get("y", y))
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return (vx, vy) if math.isfinite(vx) and math.isfinite(vy) else None
+
+
 def amount_verbs(verb, n):
     """Drop, Deposit or Withdraw, as the stack has them: 1, 5 and 10 (when there are more), All, and X (typed)."""
     if n <= 1:
@@ -150,6 +160,8 @@ class ActionsMixin:
         elif t == INVENTORYITEM:
             if self.ab_mode == "Shop":
                 verbs = "Sell 1,Sell All,Value,Examine" if self.can_sell_here(e.name, e.stolen) else "Examine"
+            elif self.ab_mode == "Bank" and self.data.is_quest_item(e.name):
+                verbs = "Examine"                       # (quest things stay with you: bank_deposit)
             elif self.ab_mode == "Bank":
                 verbs = self.add_verbs(amount_verbs("Deposit", self.items_held(e.name, e.stolen)), "Examine")
             else:
@@ -329,8 +341,9 @@ class ActionsMixin:
         """The player picked verb on entity e (vx,vy: where they clicked, global): walk there if needed, then act."""
         if not self.user_input_enabled and e is not None and e.type not in (INVENTORYITEM, ACTIONBOXITEM):
             return
-        self.clicked_ent = e
-        self.script_cursor_x, self.script_cursor_y = vx, vy
+        if not (e is not None and e.type in (INVENTORYITEM, ACTIONBOXITEM) and (self.ab_mode or self.script_running)):
+            self.clicked_ent = e                        # (a thing in the bag looked at mid-talk, or sold: the one
+        self.script_cursor_x, self.script_cursor_y = vx, vy   # you're talking to is still the one clicked)
         self.clicked_tile_x = self.tile_of_x(vx)
         self.clicked_tile_y = self.tile_of_y(vy)
         if verb in ("Cancel", ""):
@@ -413,7 +426,8 @@ class ActionsMixin:
         if e is None or not e.alive:
             return
         name, t = e.name, e.type
-        self.clicked_ent = e
+        if not (t in (INVENTORYITEM, ACTIONBOXITEM) and (self.ab_mode or self.script_running)):
+            self.clicked_ent = e                        # (as choose_verb: mid-talk, still the one you talk to)
         self.animal_noise(verb, e)
         if self.together_do(verb, e):                  # (parties, gifts, projects, the crier...: together.py)
             return
@@ -694,6 +708,8 @@ class ActionsMixin:
         """Picks up an item off the map (it's gone for everyone till it respawns; a one-time item is only gone for
         whoever took it: everyone gets their own). reach: how far off it can be (further with a Grasp spell)."""
         w = self.w
+        if not e.alive or not w.visible_to(e, self):    # (gone, or a one-time item you've had: never twice, however
+            return                                      #  it was asked for)
         if self.player_distance_to(e) > reach:
             self.display_message("You are too far away to reach that!", "FAIL")
             return
@@ -824,9 +840,10 @@ class ActionsMixin:
         elif t == "verb":
             if self.sleep_state:
                 return
-            vx, vy = float(msg.get("x", self.player.cx)), float(msg.get("y", self.player.cy))
-            if abs(vx - self.player.cx) > 3 * self.sw or abs(vy - self.player.cy) > 3 * self.sh:
+            at = page_xy(msg, self.player.cx, self.player.cy)
+            if at is None or abs(at[0] - self.player.cx) > 3 * self.sw or abs(at[1] - self.player.cy) > 3 * self.sh:
                 return
+            vx, vy = at
             self.script_cursor_x, self.script_cursor_y = vx, vy
             verb = str(msg.get("verb", ""))
             self.verb_price, self.verb_qty = msg.get("price", 0), msg.get("qty", 0)
@@ -880,10 +897,10 @@ class ActionsMixin:
             elif self.user_input_enabled and not self.ab_mode:
                 target = None
                 if msg.get("target") is not None:       # (cast at what was clicked, the spell held ready)
-                    vx, vy = float(msg.get("x", self.player.cx)), float(msg.get("y", self.player.cy))
-                    if abs(vx - self.player.cx) > 3 * self.sw or abs(vy - self.player.cy) > 3 * self.sh:
+                    at = page_xy(msg, self.player.cx, self.player.cy)
+                    if at is None or abs(at[0] - self.player.cx) > 3 * self.sw or abs(at[1] - self.player.cy) > 3 * self.sh:
                         return
-                    self.script_cursor_x, self.script_cursor_y = vx, vy
+                    self.script_cursor_x, self.script_cursor_y = at
                     target = self.resolve_target(msg.get("target"))
                     if target is None:
                         return

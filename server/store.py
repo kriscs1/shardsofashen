@@ -64,6 +64,7 @@ class Store:
         os.makedirs(folder, exist_ok=True)
         moved_from_old_name(path)
         self.db = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
+        self.written = {}               # (name -> the state last written: one that hasn't changed isn't written again)
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("PRAGMA synchronous=NORMAL")
         self.db.executescript(SCHEMA)
@@ -117,10 +118,12 @@ class Store:
         row = self.db.execute("SELECT state FROM characters WHERE name = ?", (name,)).fetchone()
         return json.loads(row[0]) if row else None
 
-    def save_character(self, name, state):
+    def save_character(self, name, state, text=None):
+        text = text if text is not None else json.dumps(state, separators=(",", ":"))
         self.db.execute("INSERT INTO characters (name, state, updated) VALUES (?, ?, ?) "
                         "ON CONFLICT(name) DO UPDATE SET state = excluded.state, updated = excluded.updated",
-                        (name, json.dumps(state, separators=(",", ":")), time.time()))
+                        (name, text, time.time()))
+        self.written.pop(name, None)
 
     def characters_since(self, mark, limit):
         """[(name, state, when, owner)] of those saved at or since mark (a clock can read the same for two saves: the last
@@ -131,16 +134,21 @@ class Store:
 
     def save_characters(self, items, world=None):
         """[(name, state)] in one transaction, and the world's state with them if it's given."""
+        done = {}
         self.db.execute("BEGIN")
         try:
             for name, state in items:
-                self.save_character(name, state)
+                text = json.dumps(state, separators=(",", ":"))
+                if self.written.get(name) != text:      # (the same as last time: nothing to write)
+                    self.save_character(name, state, text)
+                    done[name] = text
             if world is not None:
                 self.save_world(world)
             self.db.execute("COMMIT")
         except Exception:
             self.db.execute("ROLLBACK")
             raise
+        self.written.update(done)                       # (only once it's in: a save that failed is tried again whole)
 
     # ----- the world
     def load_world(self):

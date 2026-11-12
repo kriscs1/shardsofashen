@@ -1631,7 +1631,7 @@ def footprint_fits(name, data):
     return len(data) == max(1, round(w * 7 / 32)) * max(1, round(h * 7 / 32))
 
 
-ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Examine.Info", "Hover.Info", "Stackable", "Droppable", "Value", "Food.Value",
+ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Examine.Info", "Hover.Info", "Stackable", "Droppable", "Quest", "Value", "Food.Value",
                "Hitpoints", "Attack.Speed", "Strength", "Defence", "Aggro.Range", "Sight.Cone", "Hearing", "Weapon.Range",
                "Movement.Speed", "Aggressive", "Respawn", "Drops", "Slot", "Attack", "Requires",
                "Roam.Radius", "Chase.Radius", "Walk.Speed", "Pause", "Spell", "Magic", "Solid", "Flees", "Flap", "Light.Flicker", "Glow", "Layer", "Anim.Frames", "Anim.Speed", "Once", "On.Hit", "Cures", "Schedule", "Durability", "Resists", "Freeze.Immune", "Fear.Immune", "Gossip", "Swarm", "Shelf.Minutes", "Spoils.To", "Blink.Every", "Blink.Near", "Rank", "Level", "Swap",
@@ -1801,6 +1801,11 @@ def check_entities():
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
             elif k == "Droppable" and v not in ("0", "1"):
                 err(r, "[%s] Droppable must be 0 or 1" % sec)
+            elif k == "Quest" and v not in ("0", "1"):
+                err(r, "[%s] Quest must be 0 or 1" % sec)
+            elif k == "Quest" and v == "1" and (ini.get(sec, "Droppable") != "0" or ini.get(sec, "Slot")):
+                err(r, "[%s] Quest=1 (the Quest pouch) is for things that can't be dropped (Droppable=0) and aren't "
+                       "worn (no Slot=)" % sec)
             elif k == "Solid" and v not in ("0", "1"):
                 err(r, "[%s] Solid must be 0 or 1" % sec)
             elif k == "Walkable.Data" and (set(v) - {"0", "1"} or not footprint_fits(sec, v)):

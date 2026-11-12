@@ -562,6 +562,7 @@ that isn't in the game.
   (`skill_pages` in `dsengine/quests.py`). A skill's guide script (left-click it in Stats) agrees with the data too.
 
 ### Doing things
+- **A script that has given or set something always finishes** (the owner's wish, 2026-11-12): once a line of `scripting.COMMITS` has run (Give.Item, Take.Item, Update.Attribute...), closing the talk, walking off, dying or leaving the game runs the rest at once (`finish_script`: a question takes its last answer, Goodbye or No; waits, walks and animations are skipped; a minigame is lost). A server stopped part way finishes it at the next login (`unfinished` in the save). Before such a line, a closed script just stops.
 - Work is seen: a gathering script shows the skill over the player's head as it starts (`Show.Skill`) and plays
   its work with `Play.Animation <Anim> <Times> <Sound>` (chips, sparks, splashes; a lunge each beat).
   `dev/migrate/work_animations.py` adds them to new Chop/Mine/Fish/Pick scripts.
@@ -688,6 +689,7 @@ that isn't in the game.
 - Chicken meat is Poultry (`Raw_Poultry`, `Cooked_Poultry`, `Burnt_Poultry`). For any rename, add the old name to
   `dsengine/renames.py` so old saves load.
 - New characters start with no sword.
+- **The Quest pouch**: a quest's own things (keys, letters, papers) are `Quest=1` in `Entities.ini`: they take no room in the pack, so a full pack never loses one, can't be dropped or banked, and show in the Stats box's Quest tab, not the pack (`data.is_quest_item`, `player_items.pack_used`). `Quest=1` needs `Droppable=0` and no `Slot=` (`validate.py`); a builder that makes a new quest thing gives it `Quest=1` (`dev/migrate/quest_pouch.py` marked the first 52).
 
 ## Look and sound
 
@@ -933,7 +935,8 @@ that isn't in the game.
   server's admin page deletes an account two ways, its email, password, friends and keys gone either way, never an
   admin's: **Delete** keeps the name back (`accounts.deleted`, so nobody gets its characters), **Delete and free the
   name** takes the row too; an account the central server doesn't have counts as banned on a game server.
-  A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:...`, never this machine or its network.
+  A connection through a proxy nobody declared (`DS_TRUST_PROXY`) is `proxied:<the connection's own address>`, never
+  this machine or its network, and never the address its header names (anyone may write a new one for each try).
   Never add a password or a recovery code to a game server again. A Hallisium account has no recovery code either: every
   account has an email, confirmed before it can join a game (no ticket till then; the app's own game needs none), and a
   forgotten password goes only to a confirmed one. The logo is pixel art made by

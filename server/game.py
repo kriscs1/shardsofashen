@@ -42,9 +42,11 @@ BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) b
 UNNAMED = "A Shards of Ashen server"    # (a remote server nobody's named: DS_NAME, or Options)
 MOST_CHARACTERS = 5     # (an account's, or a device's, on one server)
 LOG_LINES = 2000        # (the log's last lines kept in memory: Options' Send log)
+LOG_LINE = 4000         # (characters of a line kept: a traceback, whole; a header someone made long, not)
 LOG_SENT = 150000       # (characters of it that go: the end, if there's more)
 LOG_CLIENT = 60000      # (characters of the player's own side that go with it: what the page saw, its end)
-LOG_EVERY = 3600        # (seconds between logs sent from one server: the central server holds to it too)
+LOG_SHOW_GAP = 5        # (seconds before the log is shown again to the same page)
+LOG_EVERY = 3600       # (seconds between logs sent from one server: the central server holds to it too)
 
 
 class RecentLog(logging.Handler):
@@ -62,7 +64,7 @@ class RecentLog(logging.Handler):
         if record.name == "asyncio" and record.exc_info and isinstance(record.exc_info[1], ConnectionResetError):
             return                                      # (Windows, when a browser goes: asyncio's noise, nothing wrong)
         try:
-            self.lines.append(self.format(record))
+            self.lines.append(self.format(record)[:LOG_LINE])
         except Exception:                               # (a line that won't format is no reason to stop)
             pass
 
@@ -169,6 +171,7 @@ class GameServer:
         self.signups = {}                   # address -> the days it made characters on (DS_REGISTER_PER_DAY)
         self.conns = {}                     # address -> how many connections it has open (DS_CONNECTIONS_PER_ADDRESS)
         self.turned_away = set()            # (addresses at their limit, told of in the log once)
+        self.bad_origins = set()            # (addresses another site's page came from, told of in the log once)
         self.running = False
         self.last_save = time.time()
         self.unsaved = {}                   # name -> the save of one who left when saving failed (save_all)
@@ -221,8 +224,8 @@ class GameServer:
         """Everyone in the world, and the world, in one go: what's changed hands between them (a trade, a gift, the
         market) is never saved in two places, or in none, whenever the server stops. also: one leaving, saved too."""
         ss = [s for s in self.world.sessions.values() if s.ready]
-        if also is not None and also not in ss:
-            ss.append(also)
+        if also is not None and also not in ss and self.world.sessions.get(also.player_name) in (None, also):
+            ss.append(also)                             # (never one that's left over a newer self come back in)
         rows = {s.player_name: s.save_state() for s in ss}
         for name, st in self.unsaved.items():           # (one who left while saving failed: kept till it's saved)
             rows.setdefault(name, st)
@@ -508,7 +511,12 @@ class GameServer:
 
     async def handle_ws(self, request):
         if not self.origin_ok(request):
-            log.warning("A page from %s tried to join from %s", request.headers.get("Origin"), request.remote)
+            if request.remote not in self.bad_origins:          # (once: not a line for each of a thousand tries)
+                if len(self.bad_origins) > 1000:
+                    self.bad_origins.clear()
+                self.bad_origins.add(request.remote)
+                log.warning("A page from %s tried to join from %s", request.headers.get("Origin", "")[:100],
+                            request.remote)
             return web.Response(status=403, text="Only this game's own page may join it.")
         addr = self.client_addr(request)
         if not self.conns_ok(addr):
@@ -528,8 +536,10 @@ class GameServer:
                 self.turned_away.discard(addr)
 
     async def serve_ws(self, request, addr):
-        # (a closed browser: gone in seconds; an app's own game takes a character brought from a public server)
-        ws = web.WebSocketResponse(heartbeat=5, max_msg_size=8 * 1024 * 1024 if self.own else 65536)
+        # (a closed browser: gone in seconds; an app's own game takes a character brought from a public server, from
+        #  its host, on this device: anyone else's messages are small, and 8 MB of JSON is a long read on a phone)
+        big = self.own and self.is_local(addr)
+        ws = web.WebSocketResponse(heartbeat=5, max_msg_size=8 * 1024 * 1024 if big else 65536)
         await ws.prepare(request)
         c = Client(ws, addr)
         c.writer = asyncio.ensure_future(c.write())
@@ -553,10 +563,7 @@ class GameServer:
                     continue
                 if not self.rate_ok(c):
                     continue
-                try:
-                    data = json.loads(msg.data)
-                except ValueError:
-                    continue
+                data = auth.read_message(msg.data)
                 if not isinstance(data, dict):
                     continue
                 if c.session is None:
@@ -635,6 +642,10 @@ class GameServer:
             s.emit({"t": "log", "error": "There's no central server to send it through."})
             return
         if data.get("do") != "send":
+            now = time.monotonic()
+            if c.log_shown and now - getattr(c, "log_shown_at", 0) < LOG_SHOW_GAP:
+                return                                  # (shown a moment ago: up to 150 KB a time, not again yet)
+            c.log_shown_at = now
             c.log_shown = self.log_header(s) + "\n\n" + (RECENT_LOG.text() or "(nothing written down yet)")
             s.emit({"t": "log", "text": c.log_shown})
             return
@@ -1186,17 +1197,22 @@ class GameServer:
         if old is not None:                     # logged in again (another tab, a lost connection): this one takes over
             old.linger_until = 0                # (left while marked, and back in time)
             oc = self.clients.pop(old, None)
+            c.session = old                     # (theirs now, before any wait: one in at the same moment takes it
+            self.clients[old] = c               # from this one in turn, and nobody's left steering it unseen)
             if oc is not None:
                 oc.session = None
                 await self.send(oc, {"t": "kicked", "reason": "You logged in somewhere else."})
                 await oc.flush()
                 await oc.ws.close()
+            if self.clients.get(old) is not c:  # (another came in while that one was put out: theirs, not this)
+                return
             s = old
             s.connected = True
             s.out = []
             s.sent_maps = {}
             s.view_known = {}
             s.dirty_me = s.dirty_quests = s.cells_dirty = s.weather_dirty = True
+            s.quests_sent = None
             if getattr(s, "trade", None):           # (the new page never saw it: off, rather than open unseen)
                 s.trade_close("The trade is off.")
             if s.ab_mode:
@@ -1376,6 +1392,8 @@ class GameServer:
 
     def handle_game(self, c, data):
         s = c.session
+        if s is None or self.clients.get(s) is not c:   # (a page that's been taken over, or has left: nothing it
+            return                                      # sends counts)
         t = data.get("t")
         if t == "chat":
             text = " ".join(str(data.get("text", "")).split())[:CHAT_MAX]
@@ -1412,8 +1430,10 @@ class GameServer:
             if s.admin_enabled or c.host or self.is_local(c.addr):
                 asyncio.ensure_future(self.send_log(s, c, data))
             return
-        if t == "ping":
-            s.emit({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)})
+        if t == "ping":                                 # (answered now, not with the next tick's view: the ping
+            if not c.closed and c.queue.qsize() < BACKLOG:  #  shown is the trip, not the trip and a tick's wait)
+                c.queue.put_nowait(json.dumps({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)},
+                                              separators=(",", ":")))
             return
         if t == "lan":                                  # (open to the network or not: an app's own game's host)
             if self.own and (s.admin_enabled or self.is_local(c.addr)):

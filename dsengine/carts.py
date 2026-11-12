@@ -474,7 +474,7 @@ class Carts:
         c = s.ride
         if c is None:
             return
-        w, e = self.w, c.e
+        e = c.e
         if not arrived and not self.waiting(c):
             s.display_message("Not while it's moving!", "FAIL")
             return
@@ -485,13 +485,7 @@ class Carts:
         x, y = c.pts[c.i] if c.t == 0 else (e.x + self.anchor(e)[0], e.y + self.anchor(e)[1])
         if c.headings:
             x, y = e.x + self.anchor(e)[0], e.y + self.anchor(e)[1]
-        nx, ny = x - p.w / 2, y - p.h + 4
-        for dx, dy in self.OUT_SPOTS:
-            tx, ty = x + dx - p.w / 2, y + dy - p.h + 4
-            if w.entity_can_stand(p, tx, ty, tx, ty, s):
-                nx, ny = tx, ty
-                break
-        p.x, p.y = nx, ny
+        p.x, p.y = self.set_down(s, x, y)
         s.player_tile = None
         if arrived:
             s.display_message(self.word(c, "..and the cart pulls up at %s.") % c.stops.get(c.i, "the stop")
@@ -502,7 +496,29 @@ class Carts:
                               "You step off the %s." % c.noun, "INFO")
         s.act_done(True)
 
-    def leaving(self, s):
+    def set_down(self, s, x, y):
+        """Where a player gets down by x, y (the nearest spot they can stand: OUT_SPOTS), their top left."""
+        p, w = s.player, self.w
+        for dx, dy in self.OUT_SPOTS:
+            tx, ty = x + dx - p.w / 2, y + dy - p.h + 4
+            fx, fy = tx + p.w / 2, ty + p.h - 1         # (their feet, as walking tests them)
+            if w.pixel_walkable(p.z, fx, fy, s) and w.entity_can_stand(p, fx, fy, fx, fy, s):
+                return tx, ty
+        return x - p.w / 2, y - p.h + 4
+
+    def landing(self, s):
+        """Where a rider would get down at the stop they're going to: what's saved while they ride (never out in the
+        strait, where a lost connection would leave them standing on the water)."""
+        c = s.ride
+        j = c.riders.get(s.player_name)
+        return self.set_down(s, *c.pts[j if j in range(len(c.pts)) else c.i])
+
+    def leaving(self, s, land=False):
+        """Out of any cart (land: they've left the game, so they're set down at their stop, as the save has them)."""
         if s.ride is not None:
+            if land:
+                p = s.player
+                p.x, p.y = self.landing(s)
+                s.cur_map = self.w.map_at(p.z, p.fx, p.fy) or s.cur_map
             s.ride.riders.pop(s.player_name, None)
             s.ride = None

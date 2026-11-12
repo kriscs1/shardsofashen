@@ -4,6 +4,8 @@ the lines that place its NPCs, items and objects, and its walk grid.
 Maps sit side by side on a grid per level: map "X,Y,Z" covers global pixels X*sw .. X*sw+sw-1 and Y*sh .. on level Z,
 so a point anywhere in the world is (z, x, y) and nothing moves when you walk over a seam. Cells are numbered as in the
 desktop game: tile x,y (1-based) is cell (y-1)*xt+x."""
+from array import array
+
 from ashen.lb import val, word, field, trim
 
 ENTITY_LINE_TYPES = ("NPC", "GoodNPC", "BadNPC", "MapItem", "StaticObject", "Object", "Static")
@@ -330,7 +332,8 @@ class MapData:
         w = self.gw
         cr, cd = self.cross_r, self.cross_d
         total = len(grid)
-        region = [0] * total
+        region = array("H" if total < 65535 else "I", bytes(total * (2 if total < 65535 else 4)))
+                                                # (two bytes a cell, not a list's eight: kept for every map walked)
         n = 0
         for i in range(total):
             if grid[i] == 1 and region[i] == 0:
