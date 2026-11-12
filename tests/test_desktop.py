@@ -180,8 +180,9 @@ def test_a_games_page_in_the_window_gets_only_the_carried_character(tmp_path, mo
     importlib.reload(desktop)
     monkeypatch.setitem(sys.modules, "ds_host", SimpleNamespace(start=lambda *a: None, stop=lambda: None))
     b = desktop.Bridge()
-    shown, loaded = [""], []
-    b._window = SimpleNamespace(get_current_url=lambda: shown[0], load_url=loaded.append)
+    shown, loaded, full = [""], [], []
+    b._window = SimpleNamespace(get_current_url=lambda: shown[0], load_url=loaded.append,
+                                toggle_fullscreen=lambda: full.append(1))
     b.set("token", "the sign-in")
     assert b.get("token") == "the sign-in" and json.loads(b.state())["status"] == "off"   # (the start screen: all of it)
     shown[0] = "https://evil.example/play/"
@@ -192,6 +193,8 @@ def test_a_games_page_in_the_window_gets_only_the_carried_character(tmp_path, mo
     b.hostAs("Theirs", "local", "")
     assert b._prefs.get("token") == "the sign-in" and b._prefs.get("central") == "" and not loaded
     assert b._host.status == "off"
+    b.fullscreen()                                        # (the game's full-screen button: the whole window)
+    assert full == [1] and "fullscreen: () => window.pywebview.api.fullscreen()" in desktop.GAME_SHIM
     b.set("carried", "a character")
     assert b.get("carried") == "a character"                        # (Copy to device, from the game's page)
     assert desktop.Prefs().get("carried") == "a character"          # (kept on disk)

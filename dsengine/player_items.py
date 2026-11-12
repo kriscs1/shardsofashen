@@ -1042,28 +1042,36 @@ class ItemsMixin:
             self.do_action(verbs[0], e)
 
     # =================================================================================================================
-    # The gravestone (only its owner sees it)
+    # The graves (only their owner sees them): each death leaves its own, kept till it's emptied or its time's up
     # =================================================================================================================
+    GRAVES_MOST = 5                     # (more deaths than that: the oldest crumbles)
+
+    @property
+    def grave(self):
+        """The newest grave, or None."""
+        return self.graves[-1] if self.graves else None
+
     def grave_minutes(self):
         return max(0.5, val(self.data.config_read("Gameplay", "Grave.Minutes", "10")))
 
     def grave_leave(self):
-        old = self.grave
-        if old and old.get("items"):
-            self.display_message("Your old grave crumbles away, and what was in it with it.", "DAMAGE")
-        self.grave_remove_entity()
+        """Dying: what's not kept goes in a new grave where you fell. True if there was anything to bury."""
         items = self.death_sort()
         self.dirty_me = True
         self.check_locks(True)
         if not items:
-            self.grave = None
-            return
+            return False
+        while len(self.graves) >= self.GRAVES_MOST:
+            self.grave_gone(self.graves[0])
+            self.display_message("Your oldest grave crumbles away, and what was in it with it.", "DAMAGE")
         p = self.player
         m = self.cur_map
-        self.grave = {"map": m.name, "x": int(p.fx - m.ox) - 16, "y": int(p.fy - m.oy) - 28, "items": items,
-                      "left": self.grave_minutes() * 60000}
+        self.grave_n += 1
+        self.graves.append({"id": self.grave_n, "map": m.name, "x": int(p.fx - m.ox) - 16, "y": int(p.fy - m.oy) - 28,
+                            "items": items, "left": self.grave_minutes() * 60000})
         self.display_message("Everything else you carried lies in a grave where you fell: it's marked on your "
                              "minimap. Get back to it within %s minutes!" % lbstr(self.grave_minutes()), "DAMAGE")
+        return True
 
     def death_sort(self):
         """Dying: what you can't drop stays with you, and so do your most valuable things (Config [Gameplay]
@@ -1132,35 +1140,45 @@ class ItemsMixin:
         return val(self.entity_ini(name, "Keep.On.Death", "1" if undroppable else "0")) == 1
 
     def grave_place(self):
-        g = self.grave
-        if not g or self.cur_map is None:
+        """Each grave on a map next to yours gets its stone (the world's entity, gone when you leave)."""
+        if self.cur_map is None:
             return
-        if self.grave_ent is not None and self.grave_ent.alive:
-            return
-        m = self.w.map_named(g["map"])
-        if m is None or m not in self.w.neighbours(self.cur_map):
-            return
-        self.grave_ent = self.w.add_static_object("Gravestone", m.mz, m.ox + g["x"], m.oy + g["y"], owner=self,
-                                                  home=m.name)
+        near = self.w.neighbours(self.cur_map)
+        for g in self.graves:
+            e = self.grave_ents.get(g["id"])
+            if e is not None and e.alive:
+                continue
+            m = self.w.map_named(g["map"])
+            if m is None or m not in near:
+                continue
+            e = self.w.add_static_object("Gravestone", m.mz, m.ox + g["x"], m.oy + g["y"], owner=self, home=m.name)
+            e.grave_id = g["id"]
+            self.grave_ents[g["id"]] = e
 
     def grave_remove_entity(self):
-        if self.grave_ent is not None:
-            self.w.remove_entity(self.grave_ent)
-        self.grave_ent = None
+        for e in self.grave_ents.values():
+            self.w.remove_entity(e)
+        self.grave_ents = {}
+
+    def grave_gone(self, g):
+        """One grave gone: emptied, or crumbled."""
+        e = self.grave_ents.pop(g["id"], None)
+        if e is not None:
+            self.w.remove_entity(e)
+        self.graves.remove(g)
+        self.dirty_me = True
 
     def grave_tick(self, delta_ms):
-        g = self.grave
-        if not g:
-            return
-        g["left"] -= delta_ms
-        if g["left"] <= 0:
-            self.grave_remove_entity()
-            self.grave = None
-            self.dirty_me = True
-            self.display_message("Your grave has crumbled away: what you left in it is lost.", "DAMAGE")
+        for g in list(self.graves):
+            g["left"] -= delta_ms
+            if g["left"] <= 0:
+                self.grave_gone(g)
+                self.display_message("A grave of yours has crumbled away: what you left in it is lost.", "DAMAGE")
 
-    def grave_search(self):
-        g = self.grave
+    def grave_search(self, e=None):
+        """Search a gravestone (e; without one, the newest grave): what fits in your pack comes back."""
+        gid = getattr(e, "grave_id", None)
+        g = next((g for g in self.graves if g["id"] == gid), None) if e is not None else self.grave
         if not g:
             self.display_message("The grave is empty.", "INFO")
             return
@@ -1178,8 +1196,6 @@ class ItemsMixin:
             g["items"] = left
             self.display_message("You take what you can carry; the rest is still in the grave.", "INFO")
             return
-        self.grave_remove_entity()
-        self.grave = None
-        self.dirty_me = True
+        self.grave_gone(g)
         self.play_sound("Pickup")
         self.display_message("You take back everything from your grave.", "SUCCESS")

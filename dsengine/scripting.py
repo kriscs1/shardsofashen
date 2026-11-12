@@ -777,6 +777,11 @@ class ScriptMixin:
                 e.script_moving = True
                 self.script_move_ent = e
                 self.script_state = "MOVE.ENTITY"
+        elif c == "Walk.Away":                      # (off it goes while the scene goes on: gone once it's there)
+            e = self.find_entity_here(arg[1], arg[2], pid)
+            if e is not None and e.type == NPC:
+                x, y = self.global_xy(arg[3])
+                w.npc_walk_away(e, x + e.w / 2, y + e.h / 2, self.data.speed_to_pixels(max(0.1, val(arg[4]))))
         elif c == "Change.Player.Sprite":
             self.change_player_sprite(arg[1])
         # CONDITIONS (the last argument is the line to go to if the condition is NOT met)

@@ -74,7 +74,13 @@ function toLogical(ev) {
   return [(ev.clientX * screen.dpr - screen.ox) / screen.k, (ev.clientY * screen.dpr - screen.oy) / screen.k];
 }
 
+// (full screen: the desktop app's whole window, as a page's own full screen there fills only the window; in a
+//  browser the page's, which the button, Esc and F11 leave - the browser's own F11 one only F11 leaves)
+const browserFull = () => !document.fullscreenElement && !document.webkitFullscreenElement && !window.DSApp?.fullscreen &&
+  innerWidth >= screen.width - 1 && innerHeight >= screen.height - 1;
 function toggleFullscreen() {
+  if (window.DSApp?.fullscreen) { window.DSApp.fullscreen(); return; }
+  if (browserFull()) return;                             // (the hover tip says: F11)
   const d = document;
   if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
   else {
@@ -314,7 +320,9 @@ $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.va
 $("opt-hotbar").addEventListener("input", (ev) => send({ t: "hotbar_slots", n: +ev.target.value }));   // (kept with the character)
 $("opt-fullscreen").onclick = toggleFullscreen;
 $("login-full").onclick = toggleFullscreen;
-$("login-full").hidden = M.app || !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const loginFull = () => { $("login-full").hidden = M.app || !(window.DSApp?.fullscreen || document.fullscreenEnabled || document.webkitFullscreenEnabled); };
+loginFull();
+window.addEventListener("dsapp", loginFull);
 for (const b of document.querySelectorAll("#options .tabs button")) {
   b.onclick = () => {                                    // (Options in tabs: short enough for a phone's screen)
     for (const t of document.querySelectorAll("#options .tabs button")) t.classList.toggle("on", t === b);
@@ -748,7 +756,7 @@ $("count-form").addEventListener("submit", (ev) => {
 });
 $("count-cancel").addEventListener("click", () => { $("count").hidden = true; countDone = null; canvas.focus(); });
 
-window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice, askCount };
+window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, browserFull, askPrice, askCount };
 
 // The phone's Back button (the app asks the page first): shuts what's open, the topmost first; false when nothing was
 // (then the app goes back to its start screen)
@@ -836,13 +844,13 @@ function portrait(look) {
   return c;
 }
 
-// (what a character is tied to, said where it's made and where it's chosen)
+// (what a character is tied to, said where it's made - a line a sentence, #make-warn - and where it's chosen)
 const PLACE_WORDS = {
-  public: ["This character will live on this server only, saved online here and not on your device. It can never join another server. " +
+  public: ["This character will live on this server only, saved online here, not on your device.\nIt can never join another server.\n" +
     "You can copy it to your own device later, but a copy can never come back.", "Characters here live on this server, saved online here and not on your device."],
-  own: ["This character will be saved on this device only, with no copy online. It can only be played in your own game: " +
-    "it can never join a public server.", "Characters here are saved on this device only."],
-  theirs: ["This character will live in your host's game, saved on their device, and can never move to another game.",
+  own: ["This character will be saved on this device only, with no copy online.\nIt can only be played in your own game.\n" +
+    "It can never join a public server.", "Characters here are saved on this device only."],
+  theirs: ["This character will live in your host's game, saved on their device.\nIt can never move to another game.",
     "Characters here live in your host's game, saved on their device."],
   server: ["This character will live on this server only.", "Characters here live on this server only."],
 };
@@ -1147,12 +1155,13 @@ N.onMessage = (m) => {
       if (m.season && m.season !== S.season) { S.season = m.season; repaintAll(); }
       break;
     case "map":
-      if (m.z !== S.mapZ) V.cam.snap = true;
+      if (m.z !== S.mapZ) { V.cam.snap = true; V.mark = null; }   // (up or down: the stair's ring stays behind)
       S.mapName = m.name;
       S.mapZ = m.z;
       break;
     case "teleport":
       V.cam.snap = true;
+      V.mark = null;
       if (m.fade) startTeleportFade(now);
       break;
     case "use": S.itemInUse = m.uid; break;
@@ -1171,11 +1180,11 @@ N.onMessage = (m) => {
     case "died": {
       // (dead: the view goes dark and red; they wake when they choose to)
       const bits = [];
+      // (short: what happened, what to do - dev/Rules.md, Writing)
       if (m.lost) bits.push(`You lost ${m.lost} gold.`);
-      bits.push("You kept your most valuable things, and anything you can't drop.");
-      if (m.grave) bits.push(`Everything else is in your grave, marked on the minimap: get back to it within ${m.minutes} minutes.`);
-      bits.push(m.bed ? "You'll wake in your bed at home." : "You'll wake at the start.");
-      $("death-text").innerHTML = coinHTML(bits.join(" "));
+      if (m.grave) bits.push(`Your grave (on the minimap) holds the rest of your pack for ${m.minutes} minutes.`);
+      bits.push(m.bed ? "You'll wake in your bed." : "You'll wake at the start.");
+      $("death-text").innerHTML = bits.map(coinHTML).join("<br>");
       releaseKeys();
       $("death").hidden = false;
       setTimeout(() => $("death-respawn").focus(), 50);

@@ -4,9 +4,9 @@ Each function returns a 32x32 opaque image (rows of (r, g, b)), like the other t
   * Wheat001 / Wheat002: a field of ripe wheat / stubble after harvesting, drawn wrap-around so fields tile seamlessly.
   * Haystack001: a round, layered stack of straw on grass.
   * Door002 / Door003: the house door (Door001, on red brick) set in the grey castle stone / in cave rock.
-  * Cliff001-005: rock faces. Their shapes come from the original sprites (kept in dev\\Archive\\Sprites), so the pieces
-    still join up and match their Walkable.Data: a grassy lip along the top, cracked stone lit from the top left,
-    and a shadow at the foot.
+  * Cliff001-005: rock faces, decor (write_cliff_decor: see-through round them, so they stand on any ground). Their
+    shapes come from the original sprites (kept in dev\\Archive\\Sprites), so the pieces still join up and match
+    their Walkable.Data: cracked stone lit from the top left, a sunlit top edge, and a shadow at the foot.
 """
 import math
 import os
@@ -219,7 +219,8 @@ def soften(m, n=2):
     return a
 
 
-def cliff(name, seed):
+def cliff(name, seed, clear=False):
+    """A cliff piece on grass (rows), or clear: see-through round it, its shadow half see-through (an RGBA array)."""
     rng = random.Random(seed)
     img = grass()
     m = cliff_shape(name)
@@ -279,6 +280,19 @@ def cliff(name, seed):
     above = (m > 0) & (np.pad(m, ((1, 0), (0, 0)), mode="edge")[:-1] == 0)
     rim = (m > 0) & np.roll(above, 1, 0) & ~above
     rock[rim] = np.minimum(255, rock[rim] * 1.35)
+    if clear:                                                   # (no grass: the top edge is rock, in the sun)
+        rock[above] = np.minimum(255, rock[above] * 1.2)
+        below = (m > 0) & (np.pad(m, ((0, 1), (0, 0)), mode="edge")[1:] == 0)
+        rock[below] *= 0.55
+        shadow = np.pad(m, ((2, 0), (2, 0)), mode="edge")[:-2, :-2]
+        shade = 0.5 * soften(np.clip(shadow - m, 0, 1), 1)
+        a = np.clip((soften(m, 1) - 0.25) * 2.0, 0, 1)
+        alpha = a + (1 - a) * shade
+        dark = np.array((16, 14, 10), dtype=np.float32)
+        rgb = (rock * a[:, :, None] + dark * ((1 - a) * shade)[:, :, None]) / np.maximum(alpha, 1e-6)[:, :, None]
+        out = np.dstack([rgb, alpha * 255])
+        out[alpha * 255 < 1] = 0
+        return np.clip(np.round(out), 0, 255).astype(np.uint8)
     rock[above] = rock[above] * 0.2 + np.array((96, 132, 48)) * 0.8
     for x in range(S):
         for y in range(S - 2):
@@ -408,9 +422,13 @@ TILES = {
     "Haystack001": haystack,
     "Door002": lambda: door("Stone_Wall001", (176, 172, 164), (112, 108, 102)),
     "Door003": lambda: door("Cave_Wall002", (104, 76, 46), (66, 46, 28)),
-    "Cliff001": lambda: cliff("Cliff001", 941),
-    "Cliff002": lambda: cliff("Cliff002", 942),
-    "Cliff003": lambda: cliff("Cliff003", 943),
-    "Cliff004": lambda: cliff("Cliff004", 944),
-    "Cliff005": lambda: cliff("Cliff005", 945),
 }
+CLIFFS = {"Cliff%03d" % k: 940 + k for k in range(1, 6)}       # (each piece and its seed)
+
+
+def write_cliff_decor():
+    """The cliffs, decor: see-through round them, so they stand on grass, sand or snow alike. Returns those written."""
+    from PIL import Image
+    from common import write_image
+    return [n for n, seed in CLIFFS.items()
+            if write_image(p("sprites", "Tiles", n + ".png"), Image.fromarray(cliff(n, seed, True), "RGBA"), decor=True)]

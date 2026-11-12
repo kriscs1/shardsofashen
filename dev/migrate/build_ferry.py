@@ -171,11 +171,11 @@ def data():
     K.set_section(CARTS, "Isle_Ferry_West", route("west"))
 
 
-# (the two lanes across the strait, a boat on each, so they pass and never meet: 1-based tiles; each boat ties up on
-# its own side of the Isle's pier, and both at the one berth on the north of Northport's harbour pier, by Wim: they
-# leave together, so only one is ever in at Northport)
+# (the two lanes across the strait, a boat on each, so they pass and never meet: 1-based tiles; both tie up at the one
+# berth by the Isle's pier stem, and at the one on the north of Northport's harbour pier, by Wim: they leave together,
+# so only one is ever in at either, and the boat you watched go comes back to where it left)
 LANES = {
-    "east": ["3,2,0,17,15,the Isle", "3,2,0,17,21", "4,3,0,2,8", "4,4,0,7,3", "4,4,0,13,3,Northport"],
+    "east": ["3,2,0,14,15,the Isle", "3,2,0,14,21", "4,3,0,2,8", "4,4,0,7,3", "4,4,0,13,3,Northport"],
     "west": ["3,2,0,14,15,the Isle", "3,2,0,14,21", "3,3,0,23,8", "3,3,0,25,18", "3,4,0,25,3", "4,4,0,13,3,Northport"],
 }
 # (the boats cross for everyone; it's you they won't take: no papers, or too green yet)
@@ -189,9 +189,23 @@ def route(lane):
     lines = ["Title=The strait ferry", "Vehicle=%s" % NAME, "Fare=1", "Wait=15", "Loop=0", "Timetable=1", "Speed=1.2",
              "Every=45", "Start=%s" % ("the Isle" if lane == "east" else "Northport"),
              "Requires=$Attr.Passage>=5", "Refused=%s" % NOT_YET,
-             "Requires.2=$Attr.RemnantsAbsorbed>=1 and $Player.Level>=3", "Refused.2=%s" % GREEN]
+             "Requires.2=$Attr.RemnantsAbsorbed>=1 and $Player.Level>=3", "Refused.2=%s" % GREEN,
+             "Refused.Script=Talk to Ferryman"]          # (not yet: Wim says why, in a talk, not a chat line)
     lines += ["Point%d=%s" % (n, pt) for n, pt in enumerate(LANES[lane], 1)]
     return lines
+
+
+def moored_boats_gone():
+    """The boats tied up at the piers that never went anywhere (build_boats.py's): the ferries are the boats now."""
+    for name, boat in (("3,2,0", "Boat002"), ("1,3,0", "Boat001")):
+        if not K.map_exists(name):
+            continue
+        m = K.Map(name)
+        kept = [ln for ln in m.ents if not ln.startswith("StaticObject\t%s\t" % boat)]
+        if kept != m.ents:
+            m.ents = kept
+            m.save()
+            print("%s: the moored %s taken away" % (name, boat))
 
 
 def wim():
@@ -254,6 +268,7 @@ def main():
     pictures()
     K.wav("Ferry_Bell", bell(), 0.6)
     data()
+    moored_boats_gone()
     wim()
     print("The strait ferries: %d pictures, two routes, Wim's words" % (HEADINGS * 3 + 1))
 

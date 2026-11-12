@@ -7,7 +7,7 @@ stopping at the stops between. It goes at a walk with nobody aboard and three ti
 A route can name its own vehicle (Vehicle=, an Entities.ini NPC with Vehicle=1: the ferry's Ferry_Boat), and keep to a
 timetable (Timetable=1: never hailed, never hurried, always at its Speed=, leaving a stop only on the clock's marks of
 its Every= seconds, so two boats that leave opposite piers together always leave together), start at a stop of its own (Start=), and ask something of whoever boards (Requires=, a
-condition as a Lock's; Refused= what's said). A vehicle with Headings=N turns as it goes, through N headings
+condition as a Lock's; Refused= what's said, or Refused.Script= a talk that says it: Wim's). A vehicle with Headings=N turns as it goes, through N headings
 (<Name>_H<n><frame>: n from 0, north, clockwise), and comes about at a stop before it leaves. The vehicle is
 everyone's (they all see it go by); who rides it, and where to, is each rider's own."""
 import math
@@ -42,6 +42,7 @@ class Cart:
         self.every = 0                                       # (a timetable's: it leaves only on these marks of the clock, ms)
         self.speed = 0.0                                     # (times a walk; 0: a walk empty, RIDE_SPEED with riders)
         self.requires = []                                   # [(condition, what's said if it isn't met)]
+        self.refused_script = ""                             # (a talk instead, if it isn't: the ferry's Wim)
         self.headings = 0                                    # (how many ways its picture turns; 0: the four of a walk)
         self.heading = 0.0                                   # (where it points, degrees clockwise from north)
         self.noun = "cart"
@@ -115,6 +116,7 @@ class Carts:
                 cond = trim(kv.get("REQUIRES" + n, ""))
                 if cond:
                     c.requires.append((cond, trim(kv.get("REFUSED" + n, "")) or "You can't go aboard yet."))
+            c.refused_script = trim(kv.get("REFUSED.SCRIPT", ""))
             c.i = min(stops)
             start = trim(kv.get("START", "")).lower()
             for j, name in sorted(stops.items()):
@@ -358,10 +360,13 @@ class Carts:
         if distance(s.player.cx, s.player.cy, e.cx, e.cy) > BOARD_RANGE:
             s.display_message(self.word(c, "You can't reach the cart from here!"), "FAIL", "Denied")
             return
+        no = self.refusal(s, c)
+        if no and c.refused_script:                         # (not yet: the ferryman says why, himself, in a talk)
+            s.start_script(c.refused_script, True)
+            return
         if c.timetable and not self.waiting(c):
             s.display_message("The %s has cast off." % c.noun, "FAIL", "Denied")
             return
-        no = self.refusal(s, c)
         if no:
             s.display_message(no, "FAIL", "Denied")
             return

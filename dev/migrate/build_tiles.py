@@ -242,6 +242,9 @@ def main():
     import rock_art                                  # the rocks (decor: see-through, drawn over any ground)
     for name in rock_art.write_decor():
         print("wrote " + name)
+    import farm_tiles                                # the cliffs (decor too)
+    for name in farm_tiles.write_cliff_decor():
+        print("wrote " + name)
     if only:
         return
     for name, (side, v) in BLEND_MASKS.items():

@@ -20,7 +20,7 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
 `dev/migrate/build_heir_isle.py`):
 
 1. **The Last Will** (`LastWill`). A new character stands at Mary's fresh grave at the chapel graveyard's east end, by the
-   sea (4,1,0's entry script runs `The Funeral`). The mourners go; **Edwin** the lawyer walks you home and leaves her letter on the
+   sea (4,1,0's entry script runs `The Funeral`). The mourners walk off, in at the chapel's door (`Walk.Away`); **Edwin** the lawyer walks you home and leaves her letter on the
    table. The cottage door stays locked (a Lock) until you've read it: the letter (`Last_Will`, Read) tells you who
    you are, and little else: that she hid something, that the Isle kept her secrets, that your father waits in
    Galaith. **The main quest is discovered, not laid out**: no letter or stage text says where a thing is hidden or
@@ -48,7 +48,8 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    hobgoblins were after; `Marys_Papers`, `PapersFound`). Wim reads them (and tells you of Northport's shardstone),
    and **the ferries** carry you (`dev/migrate/build_ferry.py`, the owner's wish): two boats, one from each pier, casting off together on the
    bell and passing halfway, turning to the way they go (`Ferry_Boat`, sixteen headings: a route in Carts.ini with its
-   own vehicle, `carts.py`), both tying up at Northport's berth by the harbour pier; you step aboard, pay a coin,
+   own vehicle, `carts.py`), both tying up at one berth on either side (the Isle's by its pier's stem, Northport's on
+   the harbour pier), so the boat you watched go comes back to where it left, and no boat lies moored that never sails; you step aboard, pay a coin,
    and ride it across. Northport's port guard reads your papers and sends you to the Speaker (The Temporary Capital).
 
 **The Isle's secrets** (`dev/migrate/build_isle_secrets.py`; the Isle is the demo, so it shows off the game's tricks
@@ -237,6 +238,17 @@ that isn't in the game.
 - **A stage is set with what it gives or takes**, before any line the player can close (Escape, the X, a phone's back
   or bag all close it): closed between the two, the thing's lost or had again (`validate.py` `check_closed_midway`).
 - Refusals are plain: "The chest is empty." (with the `Empty` sound), not hints.
+- **Messages are short**: a message says what happened and what to do, no more ("You died." and, on its card, what
+  you lost, where your grave is and where you'll wake: a line each). Notices and cards a sentence a line.
+- **A hover line is one line, of its own**: every entity has one, separate from its examine text, `Hover.Info` in
+  `Entities.ini` (`dev/migrate/build_hover.py`: what it is or what it's for, never where it leads or what's in it);
+  gear, food, seeds and spells have theirs worked out from their numbers (`web/js/tips.js`). Its parts go between
+  ` | ` with the number first: `+25% Spell Power | +50% Debuff Resistance` (stances and forms: `dsengine/forms.py`
+  `FIGURES`). No "blow", no flourishes ("a blow ends it"). A bare `|` starts a new line of the hover box.
+- **A lock says Easy, Medium or Hard on hover** (`Locks.ini` `Easy=`, `Medium=`): its level only when you try one
+  beyond your picks. A level shows on hover only on a creature you can fight (never the ferry, never a shopkeeper).
+- **A ferryman says no in a talk**: a route's `Refused.Script=` (Carts.ini) runs instead of the refusal line, so Wim
+  tells you why when you try to board before you may sail.
 - **Opening a chest says nothing**: what's in it shows in its box (no "Grave goods: ..." line).
 - NPCs can have their own names through the map option `Name=` (underscores become spaces).
 - **One of a kind gets its own script**: a thing's `Id=`, or a tile's place ID (an `Id` line; in the editor,
@@ -292,7 +304,9 @@ that isn't in the game.
   together out of motes (`Shard_Form`, and its sound), and one that dies lets them go (`Shard_Fade`): `world.shard_form`
   and `shard_fade`, never a puff of smoke.
 - Buffs and debuffs end on death (a disease doesn't: below). Dying keeps what's in your hands first (weapon, shield), then the dearest things
-  (`Death.Keep.Items`); the grave's time starts once you're up again, not on the death screen.
+  (`Death.Keep.Items`); the grave's time starts once you're up again, not on the death screen. **Each death leaves its
+  own grave** (`player_items.py` graves: up to `GRAVES_MOST`, 5, the oldest crumbling for a sixth), each with its own
+  time and things.
 - **The Isle's hard fights stay as they are** (the owner's choice): the Skeleton walking the chapel graveyard (3,1,0)
   and the hobgoblins' lair's four. Don't take them out or soften them to make the start easier.
 - A skill can be **drained or boosted for a while** (status effects Weaken, Daze, Frailty on monsters' blows; a script's
@@ -565,6 +579,11 @@ that isn't in the game.
   script puts someone, and a room's floor stays all one. The side walls have theirs too, seen side on (`Side_*_W` against
   a west wall, `Side_*_E` the same mirrored for an east one). Redrock Manor has its own.
 - **A house shows its levels** (`dev/migrate/build_house_levels.py`): rooms under and over the world have a south wall; a flagged room's walls are `*_Thin_Flag*`, stone right up to them; a building with an upstairs has the upper storey's front (`<Wall>_Upper001/002`) in its roof's group, never a church's.
+- **What you'd walk on is walked on first; what hangs on a wall is looked at**: a wooden bridge's first choice is Walk
+  here, and a picture, mirror or banner (decor on a tile you can't walk) is Examine first (`verbs.js` examineFirst).
+- **NPCs stand still while you talk with them** (their words or their shop open in your window, and you near them: `npcs.py`
+  npc_hold_for_talk): they face you, and go on their way a moment after. A scene's walker goes off with `Walk.Away`
+  (the script goes on; gone once it's there, or stuck, after a while), never a Remove.Entity where they stand.
 - Beds are 1.5 tiles: `Bed001` (the head) with `Bed002` (the foot) in the tile below. Never place one without
   the other.
 - **Locked doors** (`dev/migrate/build_locked_doors.py`): a door locked for good (a private home, a boarded-up house)
@@ -794,6 +813,15 @@ that isn't in the game.
   those you can start now, never the ones still locked) and Done; no rewards, and a click on one follows it.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top
   left of the view, not in the sidebar.
+- **The sidebar's buttons are plain to see**: the Journal and the Stats, Gear and Spells tabs are lit plates with
+  bright words, the one you're on edged in gold.
+- **Full screen** (the button by Online, F11, Options): in the desktop app the window's own (`Bridge.fullscreen`, a
+  page's full screen there fills only the window); in a browser the page's, which the button, Esc or F11 leaves. The
+  browser's own F11 full screen is left alone: only F11 leaves it, and the button's tip says so.
+- **The cursor says what a click does to that thing**, not just its verb (`cursorOfVerb(verb, e)`): a chest, box or
+  coffer opened is the chest, a door the door; a grave is the hand (you take your things back), never the eye.
+- **A window never changes size while it's open**: a lock or the chimes hold room for their words and a button that's
+  gone (an unseen one in its place), with Give up at the top right, in red.
 - **One client, two layouts.** The same `web/js` is the desktop game and the phone's (`mobile.js`: `M.on` on touch
   screens and in the Android app). The phone's has no sidebar or chat bar: a round minimap top right (tap: the world
   map), the Bag, Chat, Journal and Menu buttons, a stick, tap and hold. No Talk or Map buttons. The phone turns
@@ -1075,6 +1103,11 @@ that isn't in the game.
   ramparts till The Royal Guard is done; it warms like any fire (`cold.py` FIRES). **Planks and marble are drawn nicer**
   (`build_nicer_floors.py`: four boards a tile, nails and knots; polished veined marble and a big slab texture for the streets).
   **The palace's inner walls are one thin strip like every house's** (`lay_rooms` draws a shared wall once).
+
+- **Cliffs and loose stones are decor** (`dev/migrate/cliff_decor.py`, the owner's wish): `Cliff001-005` (drawn
+  see-through by `farm_tiles.py` write_cliff_decor, no grass lip) and `Stone001/002` (a stone or two) stand on any
+  ground, grass, sand or snow, as `Ground+Decor(Cliff004)`; their Walkable.Data still stops you. A floor of stone is
+  `Flagstone001` (a home's Flagstones, the editor's stone floor), never Stone001.
 
 ### The validator, the clock and the tick
 

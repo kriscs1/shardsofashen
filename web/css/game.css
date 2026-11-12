@@ -338,10 +338,16 @@ button:disabled { opacity: 0.5; cursor: default; }
 .panel.game { width: min(460px, 100%); }
 .game #game-table { display: block; width: 100%; max-width: 400px; aspect-ratio: 2 / 1; margin: 0 auto;
   image-rendering: pixelated; cursor: pointer; }
-.game .game-say { min-height: 2.6em; margin: 10px 0 4px; color: var(--ink); text-align: center; }
+.game .game-say { line-height: 1.3; min-height: 2.6em; margin: 10px 0 4px; color: var(--ink); text-align: center; }
 .game #game-note { min-height: 1.2em; margin: 0 0 6px; text-align: center; }
 .game #game-buttons { flex-wrap: wrap; justify-content: center; }
 .game button.main { background: #5a3a22; }
+.panel.game { position: relative; }
+/* (a lock or the chimes, played alone: Give up at the top right, in red) */
+.game.solo > h2 { padding-right: 100px; }
+.game.solo #game-leave { position: absolute; top: 16px; right: 16px; background: #8a2a1e; border-color: #c0503a; color: #fff; }
+.game.solo #game-leave:hover, .game.solo #game-leave:focus-visible { background: #c0392b; border-color: #e06a55; }
+.game.solo .buttons:last-child { margin: 0; }
 .game .buttons span { margin-right: auto; align-self: center; }
 .admin #admin-skills { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 .admin #admin-skills label { flex-direction: row; align-items: center; gap: 6px; margin: 2px 0; font-size: 14px; }
@@ -456,6 +462,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .touch .panel.game > #game-table { grid-column: 1; grid-row: 2 / span 4; }
 .touch .panel.game > :not(h2):not(#game-table) { grid-column: 2; }
 .touch .game .game-say { margin-top: 0; }
+.touch .game.solo .game-say { min-height: 5.2em; }                   /* (four lines, held: the window keeps its size) */
 .touch .game .buttons button { padding: 6px 10px; font-size: 14px; }
 
 /* the game's coin, by every price on the page (util.js coinHTML; the canvas draws the same one) */
@@ -463,3 +470,4 @@ button:disabled { opacity: 0.5; cursor: default; }
   border-radius: 50%; background: radial-gradient(circle at 35% 34%, #ffec96 0 14%, #e8b028 16% 52%, #ac7414 54% 62%,
   #e8b028 64% 86%, #54320a 88%); }
 #make:not([hidden]) ~ #login-place { display: none; }
+#make-warn { white-space: pre-line; }                 /* (a line a sentence: main.js PLACE_WORDS) */

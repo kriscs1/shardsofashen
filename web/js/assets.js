@@ -3,7 +3,7 @@
 import { val, trim, DISPLAY_NAMES } from "./util.js";
 
 export const A = { m: null, imgs: new Map(), pending: 0, listeners: [] };
-const lower = { tiles: null, entities: null, config: null, spells: null, shards: null };
+const lower = { tiles: null, entities: null, config: null, spells: null, shards: null, locks: null };
 // (the spell you wrote at the Spellwright's Lectern: its values come from the server, not Spells.ini - main.js sets it)
 export const OWN = { spell: "Own_Spell", v: null };
 
@@ -46,6 +46,7 @@ export const spellIni = (spell, key, dflt = "") => {
   return iniRead("spells", spell, key, dflt);
 };
 export const shardsIni = (section, key, dflt = "") => iniRead("shards", section, key, dflt);
+export const locksIni = (key, dflt = "") => iniRead("locks", "Locks", key, dflt);
 
 export function isDecorTile(name) {
   return !!name && tileIni(name, "Layer", "").trim().toLowerCase() === "decor";

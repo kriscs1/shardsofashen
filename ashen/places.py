@@ -12,13 +12,13 @@ import os
 
 from .lb import field, trim, val
 
-PIXEL_ARGS = {"Remove.Entity": (1,), "Add.Entity": (1,), "Teleport": (1,), "Edit.Entity": (1,), "Move.Entity": (1, 3),
+PIXEL_ARGS = {"Remove.Entity": (1,), "Add.Entity": (1,), "Teleport": (1,), "Edit.Entity": (1,), "Move.Entity": (1, 3), "Walk.Away": (1, 3),
               "Move.Player": (1,), ">Distance.From.Coordinates": (1,), ">Entity.In.Line.Of.Sight": (1,),
               "Add.Action.To.Queue": (6,)}
 TILE_ARGS = {"Change.Tile": (1,), ">Tile.In.Line.Of.Sight": (1,), ">On.Tile.Coordinates": (1,),
              ">Not.On.Tile.Coordinates": (1,)}
 MAP_ARGS = {"Teleport": 2, "Add.Action.To.Queue": 5}
-ENTITY_COMMANDS = ("Remove.Entity", "Edit.Entity", "Move.Entity")
+ENTITY_COMMANDS = ("Remove.Entity", "Edit.Entity", "Move.Entity", "Walk.Away")
 ENTITY_TYPES = ("NPC", "GoodNPC", "BadNPC", "MapItem", "StaticObject", "Object", "Static")
 
 

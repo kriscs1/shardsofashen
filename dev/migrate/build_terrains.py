@@ -52,7 +52,7 @@ TERRAINS = [
     ("Gravel", "gravel road", "Gravel001", "", 0, "", 0, 0),
     ("Flagstones", "flagstones", "Flagstone001", "", 0, "", 0, 0),
     ("Sandstone_Paving", "sandstone paving", "Sandstone_Paving001", "", 0, "", 0, 0),
-    ("Stone_Floor", "stone floor (a dungeon's)", "Stone001*2,Stone002*1", "Pebbles001*1", 2, "", 0, 0),
+    ("Stone_Floor", "stone floor (a dungeon's)", "Flagstone001", "Pebbles001*1", 2, "", 0, 0),
     ("Realm_Ground", "the Shardrealm's ground", "Realm_Ground001*3,Realm_Ground002*1,Realm_Ground003*1", "", 0, "",
      0, 0),
     ("Realm_Void", "the Shardrealm's void", "Realm_Void001", "", 0, "", 0, 0),

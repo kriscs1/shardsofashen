@@ -52,6 +52,8 @@ class NPCMixin:
         players = [s for s in self.sessions.values() if s.in_world()]
         self.players_all = players
         self.drawers = [s for s in players if s.draw_reach() > 0]      # (Shieldwall: monsters near come for them)
+        self.talk_held = {id(s.clicked_ent): s for s in players       # (who's talking with whom: npc_hold_for_talk)
+                          if s.ab_mode and getattr(s, "clicked_ent", None) is not None}
         pmap = {}                                       # (mx, my, z) -> the players on it (nearest_player looks round)
         for s in players:
             p = s.player
@@ -81,7 +83,9 @@ class NPCMixin:
                     if a.skip_delta > 0:
                         self.dt = min(0.1, a.skip_delta)
                         a.skip_delta = 0
-                    if not getattr(e, "script_moving", False):
+                    if getattr(e, "walk_away", None):
+                        self.npc_walking_away(e)
+                    elif not getattr(e, "script_moving", False):
                         self.update_npc(e, players, near)
                     self.dt = was
                 self.update_npc_healthbar(e)
@@ -457,6 +461,11 @@ class NPCMixin:
         if e.follow is not None:
             self.npc_follow(e, a)
             return
+        talker = self.talk_held.get(id(e)) if getattr(self, "talk_held", None) else None
+        if talker is not None and not e.in_combat and talker.player.z == e.z and \
+                distance(talker.player.cx, talker.player.cy, e.cx, e.cy) < 6 * 32:   # (still there, not gone off)
+            self.npc_hold_for_talk(e, a, talker)
+            return
         if self.schedule_npc(e, near):
             return
         now = self.now
@@ -743,6 +752,34 @@ class NPCMixin:
             e.ai.fixed_pose = pose
             e.ai.fidget_until = 0
         self.animate_entity(e, False)
+
+    def npc_walk_away(self, e, tx, ty, speed):
+        """Walk.Away: it walks off to tx,ty (its middle) on its own, and is gone once it's there (in at a door, round a
+        corner); stuck on the way, it goes after a while."""
+        self.forget_path(e)
+        e.walk_away = (tx, ty, speed, self.now + 30000)
+
+    def npc_walking_away(self, e):
+        tx, ty, speed, until = e.walk_away
+        self.npc_walk_to(e, tx, ty, speed, 1, True)
+        if distance(e.cx, e.cy, tx, ty) < 3 or e.path_stuck > 60 or self.now > until or self.now < until - 600000:
+            e.walk_away = None
+            self.remove_entity(e)
+
+    def npc_hold_for_talk(self, e, a, s):
+        """Someone's talking with it (its words, or its shop, open in their window): it stands where it is and looks at
+        them, and waits a moment after before it goes on its way (a walk it was on: picked up again then)."""
+        if e.path or a.state in (AI_ROAM, AI_PATROL, AI_RETURN):
+            self.forget_path(e)
+            a.state = AI_IDLE
+        a.timer = max(a.timer, self.now + 2000)
+        a.turn_at = a.timer + 1
+        a.fidget_until = 0
+        p = s.player
+        if e.pose not in LYING and not getattr(a, "napping", False):
+            self.npc_face(e, e.cx, e.cy, p.cx, p.cy)
+        else:
+            self.animate_entity(e, False)
 
     def npc_follow(self, e, a):
         """Follow.Player: it walks after the player leading it, a step or two behind; if they're gone up a ladder,

@@ -102,33 +102,33 @@ tested and committed.
 - [x] Tests: banking and dropping a typed amount, more than the stack, nothing.
 
 ## 7. Words on screen
-- [ ] Every entity: a hover line (one line) and examine text, separate (`Hover.Info`? in `validate.py`).
-- [ ] Every hover line to the rules above (`+25% Spell Power | +50% Debuff Resistance`; no "blow").
-- [ ] A shorter death notice, and the Writing rule.
-- [ ] Locks and chests say Easy, Medium or Hard on hover; the level needed only when you try and can't.
-- [ ] The ferry shows no level; clicking it before you may sail opens Wim's conversation, not a chat line.
-- [ ] Character creation: "This character will be saved..." on several lines.
+- [x] Every entity: a hover line (one line) and examine text, separate (`Hover.Info`? in `validate.py`).
+- [x] Every hover line to the rules above (`+25% Spell Power | +50% Debuff Resistance`; no "blow").
+- [x] A shorter death notice, and the Writing rule.
+- [x] Locks and chests say Easy, Medium or Hard on hover; the level needed only when you try and can't.
+- [x] The ferry shows no level; clicking it before you may sail opens Wim's conversation, not a chat line.
+- [x] Character creation: "This character will be saved..." on several lines.
 
 ## 8. The screen
-- [ ] The Journal, Stats, Gear and Spells buttons easier to see.
-- [ ] Full screen on a desktop works (the browser and the desktop app).
-- [ ] The lock-picking window never changes size when a button goes; Give Up at its top right, in red.
-- [ ] Cursors: a gravestone isn't the eye; the cheat cursor isn't the door.
-- [ ] Meat drawn smaller.
-- [ ] Checked in the browser, desktop and phone (915 x 412, both ways up).
+- [x] The Journal, Stats, Gear and Spells buttons easier to see.
+- [x] Full screen on a desktop works (the browser and the desktop app).
+- [x] The lock-picking window never changes size when a button goes; Give Up at its top right, in red.
+- [x] Cursors: a gravestone isn't the eye; the chest cursor isn't the door.
+- [x] Meat drawn smaller (the drumsticks, Raw_ and Cooked_Poultry: about the steak's size).
+- [x] Checked in the browser, desktop and phone (915 x 412, both ways up).
 
 ## 9. The world
-- [ ] More than one grave: each death leaves its own.
-- [ ] A wooden bridge's first choice is Walk, not Examine.
-- [ ] Examine on wall decor (mirrors, pictures...).
-- [ ] The yellow circle doesn't flash on the stairs after you go up or down.
-- [ ] The Isle chapel's downstairs drawn with proper walls, not the thick ones.
-- [ ] Cliffs as decor, drawn on a clear background so they stand on any ground (grass, sand, snow...), and the stone
+- [x] More than one grave: each death leaves its own.
+- [x] A wooden bridge's first choice is Walk, not Examine.
+- [x] Examine on wall decor (mirrors, pictures...).
+- [x] The yellow circle doesn't flash on the stairs after you go up or down.
+- [x] The Isle chapel's downstairs drawn with proper walls, not the thick ones.
+- [x] Cliffs as decor, drawn on a clear background so they stand on any ground (grass, sand, snow...), and the stone
       that doesn't match the same; the maps that use them moved over (`build_minimaps.py` after).
-- [ ] The ferry comes back to the same spot; the boats that never move are taken away.
-- [ ] NPCs stand still while they talk to you.
-- [ ] At the start (the funeral), the mourners walk away instead of vanishing.
-- [ ] Tests: two graves, an NPC still while talking, the ferry's stop.
+- [x] The ferry comes back to the same spot; the boats that never move are taken away.
+- [x] NPCs stand still while they talk to you.
+- [x] At the start (the funeral), the mourners walk away instead of vanishing.
+- [x] Tests: two graves, an NPC still while talking, the ferry's stop.
 
 ## 10. Sending the server's log
 - [ ] A Send log button (on the admin page, and the app's server screen) sends the server's recent log to

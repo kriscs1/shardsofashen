@@ -350,19 +350,22 @@ def bones():
 # ---------------------------------------------------------------- poultry
 def poultry(base, light, dark, hi, speck=None):
     """A drumstick (it was a whole bird on its back, whose legs looked like ears): the plump meat low on the left,
-    narrowing up to the right into its bone and the knuckle at the end."""
+    narrowing up to the right into its bone and the knuckle at the end. Drawn at Z of its first size, about the
+    middle (it was bigger than a loaf)."""
     img = K.new()
     import build_sprites as B
+    Z = 0.74
+    X, Y = (lambda v: 16 + (v - 16) * Z), (lambda v: 17 + (v - 17) * Z)
     bone = ((236, 228, 210), (252, 248, 236), (196, 186, 166))
-    B.seg(img, 17, 15, 24.5, 7.5, 2.4, *bone)                      # the bone, out of the meat
+    B.seg(img, X(17), Y(15), X(24.5), Y(7.5), 2.4 * Z, *bone)      # the bone, out of the meat
     for x, y in ((24, 5.6), (26.4, 8)):                             # the knuckle: two knobs
-        K.shaded_ellipse(img, x, y, 2.0, 2.0, bone[0], bone[1], bone[2])
-    B.seg(img, 12.5, 19.5, 18.5, 13.5, 5.6, light, base, dark)      # the meat narrowing to the bone
-    K.shaded_ellipse(img, 11.5, 20.5, 7.4, 6.6, base, light, dark, hi=hi)
+        K.shaded_ellipse(img, X(x), Y(y), 2.0 * Z, 2.0 * Z, bone[0], bone[1], bone[2])
+    B.seg(img, X(12.5), Y(19.5), X(18.5), Y(13.5), 5.6 * Z, light, base, dark)   # the meat narrowing to the bone
+    K.shaded_ellipse(img, X(11.5), Y(20.5), 7.4 * Z, 6.6 * Z, base, light, dark, hi=hi)
     if speck:
         rng = random.Random(7)
-        for _ in range(10):
-            x, y = rng.randrange(6, 19), rng.randrange(15, 26)
+        for _ in range(8):
+            x, y = rng.randrange(8, 18), rng.randrange(16, 24)
             if img[y][x] is not None:
                 img[y][x] = speck
     return done(img)

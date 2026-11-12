@@ -184,6 +184,10 @@ class Bridge:
         if self._home() or key in GAME_KEYS:
             self._prefs.set(key, value)
 
+    def fullscreen(self):
+        """The window full screen, or back (F11 or the game's button: a page's own full screen fills only the window)."""
+        self._window.toggle_fullscreen()
+
 
 SHIM = """<script>
 // (the desktop app, as the start screen and the game page know an app: window.DSApp, answering at once - pywebview's
@@ -211,6 +215,7 @@ SHIM = """<script>
     play: (url) => later((api) => api.play(url)),
     openLink: (url) => later((api) => api.openLink(url)),
     goHome: () => later((api) => api.goHome()),
+    fullscreen: () => later((api) => api.fullscreen()),
   };
 })();
 </script>"""
@@ -218,7 +223,8 @@ SHIM = """<script>
 GAME_SHIM = """(function () {
   // (the game page in the desktop app: Quit takes you back to the start screen - main.js listens for "dsapp")
   window.DSApp = window.DSApp || { kind: () => "desktop", goHome: () => window.pywebview.api.goHome(),
-    get: (k) => window.pywebview.api.get(k), set: (k, v) => window.pywebview.api.set(k, v) };
+    get: (k) => window.pywebview.api.get(k), set: (k, v) => window.pywebview.api.set(k, v),
+    fullscreen: () => window.pywebview.api.fullscreen() };
   window.dispatchEvent(new Event("dsapp"));
 })();"""
 

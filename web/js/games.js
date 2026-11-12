@@ -48,6 +48,8 @@ export function onGame(m, now) {
   if (m.game === "dice" && m.round) T.roundAt = now;
   $("tavern-game").hidden = false;
   $("game-title").textContent = m.title;
+  // (a lock or the chimes, played alone: Give up at the top right, in red - game.css .solo)
+  $("tavern-game").querySelector(".panel").classList.toggle("solo", m.game === "lock" || m.game === "chimes");
   $("game-gold").innerHTML = m.game === "lock" || m.game === "chimes" ? "" : coinHTML(`You have ${m.gold} gold.`);   // (no stakes)
   $("game-note").innerHTML = coinHTML(m.note || "");
   buttons(m);
@@ -124,11 +126,13 @@ function buttons(m) {
   T.keys = keys;
   const box = $("game-buttons");
   box.innerHTML = "";
+  if (!wanted.length) wanted.push(["\u00a0", null, false]);   // (none to press: an unseen one keeps the window's size)
   for (const [text, act, main] of wanted) {
     const b = document.createElement("button");
     b.type = "button";
     b.innerHTML = coinHTML(text);
     if (main) b.className = "main";
+    if (!act) { b.style.visibility = "hidden"; b.tabIndex = -1; }
     b.onclick = act;
     box.append(b);
   }

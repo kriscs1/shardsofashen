@@ -44,6 +44,7 @@ function tileEntity(wx, wy, worldOnly) {
   const e = { k: T.TILE, n: name, x: t.m.ox + (t.tx - 1) * G.tw, y: t.m.oy + (t.ty - 1) * G.th, w: G.tw, h: G.th,
     misc: tileIni(name, "Show.Name", "0"), uw: tileIni(name, "Use.Words", ""), map: t.m.name, tx: t.tx, ty: t.ty,
     offMap: t.m.name !== S.mapName };
+  if (decor) e.base = tile;                      // (what it stands on, or hangs on: verbs.js examineFirst)
   if (lock !== undefined) {
     e.lock = lock;
     const pick = S.lockPicks.get(t.m.name + "," + t.tx + "," + t.ty);
@@ -130,7 +131,7 @@ export function mouseMove(x, y) {
   const [cx, cy, cw, ch] = clockRect();
   if (!msg && S.clock.on && x >= cx && x < cx + cw && y >= cy && y < cy + ch) msg = timeText(dayFraction(performance.now()));
   const fr = U.fullscreenRect;
-  if (inRect(x, y, fr)) { msg = "Full screen (F11)"; U.hover = "fullscreen"; }
+  if (inRect(x, y, fr)) { msg = window.dsUI.browserFull() ? "The browser's full screen: F11 leaves it" : "Full screen (F11)"; U.hover = "fullscreen"; }
   if (!msg && minimapHit(x, y)) msg = M.on ? "#World map|~Tap: the whole map, its places named" : "#World map|~Click (or M): the whole map, its places named";
   const arrow = desk || M.chat ? chatArrow(x, y) : 0;
   if (arrow === 1) msg = U.chatLine + 4 < S.messages.length ? "Scroll Up" : "<No More>";
@@ -171,7 +172,7 @@ export function mouseMove(x, y) {
     U.rcm.hi = menuRowAt(x, y);
     if (U.rcm.hi) {
       msg = U.rcm.labels[U.rcm.hi - 1];
-      I.cursor = cursorOfVerb(U.rcm.verbs[U.rcm.hi - 1]);
+      I.cursor = cursorOfVerb(U.rcm.verbs[U.rcm.hi - 1], U.rcm.targets[U.rcm.hi - 1]);
     }
     setQuick(msg, "ENTITY");
     return;
@@ -192,7 +193,7 @@ export function mouseMove(x, y) {
       msg = hoverText(e || { k: T.INVITEM, u: S.itemInUse });
     } else if (e) {
       const first = getVerbs(e)[0] || "";
-      if (first && first !== "Walk here") I.cursor = cursorOfVerb(first);
+      if (first && first !== "Walk here") I.cursor = cursorOfVerb(first, e);
       msg = hoverText(e);
     }
   }
@@ -512,7 +513,8 @@ export function closeJournal() { J.open = false; }
 export function keyDown(ev) {
   unlock();
   const code = ev.code;
-  if (code === "F11") { ev.preventDefault(); window.dsUI.toggleFullscreen(); return; }
+  // (F11: in a browser its own full screen, which only it can leave; in the desktop app the window's)
+  if (code === "F11" && window.DSApp?.fullscreen) { ev.preventDefault(); window.dsUI.toggleFullscreen(); return; }
   if (J.open) {
     if (code === "Escape" || code === "KeyH" || code === "F1") { ev.preventDefault(); closeJournal(); return; }
     const n = { Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8, Numpad1: 1, Numpad2: 2,

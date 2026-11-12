@@ -202,8 +202,8 @@ export function drawUI(ctx, now) {
   const mm = sprite("MinimapMarker");
   if (mm) ctx.drawImage(mm, L.mmX - 4, L.mmY - 4);
   drawClock(ctx, now);
-  sidebarButton(ctx, L.helpX, L.helpY, "Journal", U.hover === "help", [[126, 77, 63], [160, 104, 80]],
-    [[243, 232, 136], [255, 255, 255]], [77, 43, 33]);
+  sidebarButton(ctx, L.helpX, L.helpY, "Journal", U.hover === "help", [[150, 92, 62], [186, 120, 82]],
+    [[255, 240, 170], [255, 255, 255]], [226, 182, 84]);
   if (S.admin) sidebarButton(ctx, L.helpX, L.helpY + 26, "Admin", U.hover === "admin", [[48, 76, 104], [70, 110, 150]],
     [[210, 230, 250], [255, 255, 255]], [30, 40, 60]);
   const border = sprite("SideBarBorder");
@@ -219,8 +219,8 @@ export function drawUI(ctx, now) {
 
 function sidebarButton(ctx, x, y, label, hot, fills, inks, edge) {
   roundBox(ctx, x, y, 52, 22, fills[hot ? 1 : 0], edge, 2, 10);
-  const w = textWidth(ctx, label, 9, true);
-  drawTextMid(ctx, label, x + Math.floor((52 - w) / 2), y, 22, 9, true, inks[hot ? 1 : 0]);
+  const w = textWidth(ctx, label, 10, true);
+  drawTextMid(ctx, label, x + Math.floor((52 - w) / 2), y, 22, 10, true, inks[hot ? 1 : 0]);
 }
 
 // ----- the minimap (sprites\Interface\Minimap<Z>, Config [Minimap])
@@ -421,8 +421,7 @@ function drawMinimap(ctx) {
     ctx.fillStyle = mate ? "rgb(240,200,70)" : far > edge ? "rgb(120,170,220)" : "rgb(90,190,255)";
     ctx.beginPath(); ctx.arc(Math.round(px), Math.round(py), 3.2, 0, 6.283); ctx.fill();
   }
-  const gr = S.me.grave;                          // your grave: a gravestone on the minimap (at its edge, if far off)
-  if (gr && gr.map) {
+  for (const gr of S.me.graves || []) {           // your graves: each a gravestone on the minimap (at its edge, if far off)
     const [mx, my, mz] = String(gr.map).split(",").map(Number);
     if (mz === S.mapZ) {
       let px = L.mmX - u + ((mx - g.ox) * G.xt + (gr.x + 16) / G.tw) * k;
@@ -782,14 +781,14 @@ function drawStats(ctx) {
   roundBox(ctx, 28, 12, 170, 28, [34, 21, 16], [92, 60, 44], 1, 8);
   [[31, 81, "Stats"], [84, 135, "Gear"], [138, 194, "Spells"]].forEach(([x1, x2, label], t) => {
     const on = t === U.statsView, hot = U.hover === "tab" + t;
-    roundBox(ctx, x1, 15, x2 - x1 + 1, 22, on ? [104, 64, 48] : hot ? [64, 42, 32] : [46, 30, 23],
-      on ? [214, 170, 70] : [92, 60, 44], 1, 6);
+    roundBox(ctx, x1, 15, x2 - x1 + 1, 22, on ? [150, 92, 62] : hot ? [112, 72, 52] : [84, 54, 40],
+      on ? [236, 196, 92] : [160, 112, 74], on ? 2 : 1, 6);
     if (on) { ctx.fillStyle = "rgb(250,220,140)"; ctx.fillRect(x1 + 8, 34, x2 - x1 - 15, 1); }
-    let size = 9;
+    let size = 10;
     while (size > 7 && textWidth(ctx, label, size, true) > x2 - x1 - 4) size--;
     const w = textWidth(ctx, label, size, true);
     drawTextMid(ctx, label, x1 + Math.floor((x2 - x1 + 1 - w) / 2), 15, 21, size, true,
-      on ? [255, 236, 170] : hot ? [230, 200, 140] : [170, 140, 100]);
+      on ? [255, 244, 190] : hot ? [255, 230, 170] : [232, 204, 150]);
   });
   ctx.restore();
 }
@@ -957,7 +956,7 @@ export function equipSlotInfo(s) {
   const lines = ["#" + pretty(item), SLOT_NAMES[s]];
   const bonus = ["Attack", "Defence", "Magic"].map((k) => [k, val(entityIni(item, k, "0"))]).filter(([, v]) => v)
     .map(([k, v]) => `+${lbstr(v)} ${k}`);
-  if (bonus.length) lines.push(bonus.join(", "));
+  if (bonus.length) lines.push("=" + bonus.join(" | "));                 // (= plain: not a need met)
   const d = durText(item, S.me.wear[s - 1]);
   if (d) lines.push((d === "broken!" ? "!" : "") + "Condition: " + d);
   return lines.join("|");
@@ -999,7 +998,7 @@ export function spellHoverText(spell) {
   const cd = cooldownLeft(spell);
   const lines = [`#${spellTitle(spell, rank)}`];
   const what = spellSummary(spell, rank);
-  if (what) lines.push(what.charAt(0).toUpperCase() + what.slice(1));
+  if (what) lines.push("=" + what.charAt(0).toUpperCase() + what.slice(1));
   lines.push(cd > 0 ? `!Ready in ${Math.ceil(cd / 1000)} s` : (S.me.shards || 0) < cost ?
     `!Needs ${lbstr(cost)} Shards (you have ${S.me.shards || 0})` : `+${lbstr(cost)} Shards a cast`);
   lines.push(M.on ? "~Tap: cast it · Hold: on or off the hotbar" : "~Click: cast it · Right-click: on or off the hotbar");
@@ -1428,7 +1427,8 @@ export function scrollChat(n) {
 
 // What's under the mouse (or the finger), at the top of the view where the eye already is: a heading, then lines in
 // their own sizes and colours. A line's first character says how it looks (tips.js): # the name, ~ a hint, ! a need
-// not met, + a need met, $ a price. Plain text (the interface's own hover messages) has its first line as the heading.
+// not met, + a need met, $ a price, = plain (a line that starts "+3 Attack"). Plain text (the interface's own hover
+// messages) has its first line as the heading.
 // A line's parts go between " | " (dev/Rules.md, Writing: a hover line).
 const QUICK_STYLES = {
   "#": { size: 11, bold: true, col: [255, 230, 140] },
@@ -1455,9 +1455,9 @@ function drawHoverTop(ctx) {
       const text = trim(part.slice(2));
       return [{ ...QUICK_STYLES["#"], col: DIFFICULTY[+part[1]] }, text.charAt(0).toUpperCase() + text.slice(1)];
     }
-    const mark = "#~!+$".includes(part[0]) ? part[0] : "";
+    const mark = "#~!+$=".includes(part[0]) ? part[0] : "";
     const text = mark ? trim(part.slice(1)) : part;     // (every line starts with a capital)
-    return [QUICK_STYLES[mark || (i === 0 ? "#" : "")], text.charAt(0).toUpperCase() + text.slice(1)];
+    return [QUICK_STYLES[mark === "=" ? "" : mark || (i === 0 ? "#" : "")], text.charAt(0).toUpperCase() + text.slice(1)];
   });
   if (U.qmKind === "ERROR" || U.qmKind === "WARNING") styled[0][0] = QUICK_STYLES["!"];
   // (between your health top left and the effects or minimap top right)

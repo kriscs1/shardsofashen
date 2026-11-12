@@ -22,7 +22,6 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 NPC	Rabbit	480	320	Attitude=Passive Level=1
 NPC	Rabbit	576	192	Attitude=Passive Level=1
 NPC	Blue_Butterfly	160	160	Attitude=Good
-StaticObject	Boat002	416	400
 Id	Isle_Ferry_Notice	17	12
 Id	Isle_Ferry_Pier	15	15
 Id	Isle_Pier	15	14

@@ -488,6 +488,14 @@ Move.Entity    X COORDINATE,Y COORDINATE | ENTITY NAME | TARGET X,TARGET Y | SPE
     3. TARGET X,TARGET Y: The point to move to, in PIXELS (TargetX,TargetY), e.g. $Player.X,$Player.Y
     4. SPEED: The speed at which to move (1 = slow, 5 = fast)
 
+Walk.Away    X COORDINATE,Y COORDINATE | ENTITY NAME | TARGET X,TARGET Y | SPEED
+    COMMAND: An NPC walks off to the target position while the script goes on (it doesn't wait), and is gone once
+    it's there (in at a door, round a corner: a mourner going home); stuck on the way, it goes after a while
+    1. X COORDINATE,Y COORDINATE: Where it is, in PIXELS
+    2. ENTITY NAME: The name of the entity (from sprites\Entities)
+    3. TARGET X,TARGET Y: Where it goes, in PIXELS (its top-left there, as Move.Entity)
+    4. SPEED: The speed at which it walks (1 = slow, 5 = fast)
+
 Move.Player    TARGET X,TARGET Y | SPEED
     COMMAND: Moves the Player from their current position to the target position
     1. TARGET X,TARGET Y: The point to move to, in PIXELS (TargetX,TargetY), e.g. $Player.X,$Player.Y

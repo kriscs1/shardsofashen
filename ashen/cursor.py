@@ -169,6 +169,17 @@ def draw_door(s):
     circle(s, GOLD, (21.5, 19), 1.8)
 
 
+def draw_chest(s):
+    """A chest, shut: a wooden box under a rounded lid, banded in gold, its lock on the front."""
+    rect(s, WOOD, 4, 14, 24, 14, 1)                                     # the box
+    poly(s, WOOD_LT, [(4, 15), (4, 10), (8, 6), (24, 6), (28, 10), (28, 15)])   # the lid
+    line(s, WOOD_DK, (4, 15), (28, 15), 0.8)
+    for x in (8.5, 23.5):
+        line(s, GOLD_DK, (x, 7), (x, 27), 1.6)                          # the bands
+    rect(s, GOLD, 13.5, 12, 5, 7, 1)                                    # the lock
+    circle(s, OUTLINE, (16, 15.5), 0.9)
+
+
 def draw_coin(s):
     for i, (x, y) in enumerate(((8, 20), (8, 16), (8, 12))):           # a stack, and one coin in front
         ellipse(s, GOLD_DK, x, y + 2, 16, 7)
@@ -252,7 +263,8 @@ KINDS = {
     "talk": (draw_talk, (16, 13)), "attack": (draw_attack, (2, 2)), "look": (draw_look, (16, 16)),
     "axe": (draw_axe, (3, 6)), "pick": (draw_pick, (2, 2)), "rod": (draw_rod, (16, 16)),
     "climb_up": (lambda s: draw_ladder(s, True), (16, 16)), "climb_down": (lambda s: draw_ladder(s, False), (16, 16)),
-    "key": (draw_key, (9, 9)), "door": (draw_door, (16, 16)), "coin": (draw_coin, (16, 16)),
+    "key": (draw_key, (9, 9)), "door": (draw_door, (16, 16)), "chest": (draw_chest, (16, 16)),
+    "coin": (draw_coin, (16, 16)),
     "eat": (draw_eat, (16, 16)), "drink": (draw_drink, (16, 16)), "hammer": (draw_hammer, (6, 6)),
     "magic": (draw_magic, (16, 16)), "target": (draw_target, (16, 16)), "sleep": (draw_sleep, (16, 16)),
     "sit": (draw_sit, (16, 16)),

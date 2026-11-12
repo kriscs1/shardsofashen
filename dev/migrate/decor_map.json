@@ -231,6 +231,26 @@
   "Marble001",
   "Chair004"
  ],
+ "Cliff001": [
+  "Grass001",
+  "Cliff001"
+ ],
+ "Cliff002": [
+  "Grass001",
+  "Cliff002"
+ ],
+ "Cliff003": [
+  "Grass001",
+  "Cliff003"
+ ],
+ "Cliff004": [
+  "Grass001",
+  "Cliff004"
+ ],
+ "Cliff005": [
+  "Grass001",
+  "Cliff005"
+ ],
  "Coal_Rock001": [
   "Cave_Floor001",
   "Coal_Rock001"
@@ -758,6 +778,14 @@
  "Statue002": [
   "Paving001",
   "Statue002"
+ ],
+ "Stone001": [
+  "Grass001",
+  "Stone001"
+ ],
+ "Stone002": [
+  "Grass001",
+  "Stone002"
  ],
  "Stone_Wall_Ivy001": [
   "Stone_Wall001",

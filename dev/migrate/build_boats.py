@@ -17,8 +17,9 @@ HULL, HULL_DK, RIM, RIM_LT = (104, 66, 38), (70, 42, 24), (158, 112, 66), (196, 
 INSIDE, SEAT, MAST, SAIL, SAIL_DK = (128, 86, 50), (176, 128, 78), (66, 44, 28), (232, 222, 196), (186, 172, 140)
 FOAM, ROPE = (226, 240, 250), (204, 182, 128)
 
-# where they go: map -> (sprite, pixel x, pixel y)
-PLACES = {"1,3,0": ("Boat001", 12 * 32, 2 * 32 - 16), "3,2,0": ("Boat002", 13 * 32, 13 * 32 - 16)}
+# where they go: map -> (sprite, pixel x, pixel y); none now (the ferries sail from the piers: build_ferry.py, which
+# takes the old ones off; Boat001 is still Captain Rook's, tied up at his piers)
+PLACES = {}
 EXAMINE = "The ferry's boat, tied up at the pier. Its sail is furled and it rocks gently on the swell."
 
 

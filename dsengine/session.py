@@ -162,9 +162,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.fog_trail, self.fog_trail_at = [], 0   # [(z, x, y)] lately (note_explored)
         self.hotbar = [""] * HOTBAR_SLOTS
         self.hotbar_n = HOTBAR_SHOWN
-        self.grave = None
+        self.graves = []                    # [{id, map, x, y, items, left}], oldest first (player_items.py)
+        self.grave_n = 0
         self.look = None                    # their colours (skin, hair, shirt, legs), or None
-        self.grave_ent = None
+        self.grave_ents = {}                # grave id -> its gravestone in the world
         self.status = {}
         self.skill_boosts = {}                  # SKILL: {n, until, skill}: a script's Boost.Skill, for a while
         self.diseases = {}                      # name -> when its next bout comes (ms): disease.py
@@ -528,15 +529,18 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.spells_gone()
         self.hotbar_n = max(1, min(HOTBAR_SLOTS, int(val(st.get("hotbar_n", HOTBAR_SHOWN)))))
         self.explored = {k: unpack_cells(v) for k, v in st.get("explored", {}).items()}
-        g = st.get("grave")
+        graves = st.get("graves") or ([st["grave"]] if st.get("grave") else [])   # (saved before there were many)
         self.set_look(st.get("look"))
         self.load_chests(st.get("chests"))
         r = st.get("home_return")
         if isinstance(r, list) and len(r) == 3:
             self.home_return = (renamed_map(str(r[0])), val(r[1]), val(r[2]))
-        if g and g.get("items"):
-            self.grave = {"map": renamed_map(g["map"]), "x": val(g["x"]), "y": val(g["y"]), "left": val(g["left"]),
-                          "items": [tuple(i) for i in g["items"]]}
+        self.graves = []
+        for g in graves:
+            if g and g.get("items"):
+                self.grave_n += 1
+                self.graves.append({"id": self.grave_n, "map": renamed_map(g["map"]), "x": val(g["x"]), "y": val(g["y"]),
+                                    "left": val(g["left"]), "items": [tuple(i) for i in g["items"]]})
         self.check_saved_equipment()
         self.recalc_equipment()
         if not st:
@@ -673,7 +677,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "hotbar_n": self.hotbar_n,
             "bets": [int(t) for t in self.bets],
             "explored": self.explored_for_client(),
-            "grave": self.grave,
+            "graves": self.graves,
             "look": self.look,
             "home_return": list(self.home_return) if self.home_return else None,
             "chests": self.chests_state(),
@@ -735,7 +739,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                 self.w.remove_entity(e)
             elif e.type == NPC and e.target is self and e.ai is not None:
                 self.w.npc_give_up(e, e.ai)
-        self.grave_ent = None
+        self.grave_ents = {}
         self.w.carts.leaving(self)
 
     def entity_gone(self, e):
@@ -749,8 +753,8 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             self.script_move_ent = None
         if self.item_in_use is e:
             self.item_in_use = None
-        if self.grave_ent is e:
-            self.grave_ent = None
+        if getattr(e, "grave_id", None) is not None and self.grave_ents.get(e.grave_id) is e:
+            del self.grave_ents[e.grave_id]
 
     # =================================================================================================================
     # Every tick
@@ -1362,8 +1366,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
                              for b in self.skill_boosts.values()},
             "status_info": {k: self.status_words(k) for k in self.status},
             "diseases": self.diseases_state(),
-            "grave": ({"map": self.grave["map"], "left": int(self.grave["left"]), "x": int(self.grave["x"]),
-                       "y": int(self.grave["y"])} if self.grave else None),
+            "graves": [{"map": g["map"], "left": int(g["left"]), "x": int(g["x"]), "y": int(g["y"])} for g in self.graves],
             "dead": bool(self.dead_wait),
             "lit": self.stones_lit(),                   # (the shardstones you've activated: the rest look dormant)
             "ride": self.ride.e.uid if self.ride is not None and self.ride.e is not None else 0,

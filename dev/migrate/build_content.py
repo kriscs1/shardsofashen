@@ -2438,7 +2438,7 @@ CAVE_WALL_BLEND = 4
 def blend_terrains():
     """{tile: (priority, texture tile)} for every tile sprite whose border matches a terrain."""
     import glob
-    from common import read_bmp
+    from common import read_bmp, DECOR_MAP
 
     def border(name):
         w, h, rows = read_bmp(p("sprites", "Tiles", name + ".png"))
@@ -2461,8 +2461,8 @@ def blend_terrains():
         import villages
         if name in villages.WALL_DOORS or name in villages.WALL_DOORS.values() or "_Roof" in name or "_Upper" in name \
                 or (name in villages.HOUSE_TILES and name != "Plank001") or name.startswith(("City_", "Door", "Fireplace")) or "_Window" in name or name in PALACE_TILES \
-                or "_Thin_" in name:
-            continue                                # walls, doors, windows, furniture and roofs keep their edges
+                or "_Thin_" in name or name in DECOR_MAP:
+            continue                                # walls, doors, windows, furniture, roofs and decor keep their edges
         px = border(name)
         if not px:
             continue
@@ -2473,8 +2473,6 @@ def blend_terrains():
                 best = (close, tex, pri)
         if best:
             out[name] = (best[2], best[1])
-    for k in range(1, 6):           # the cliff pieces stand on grass: blended alike, so they meet without a gap
-        out["Cliff%03d" % k] = (6, "Grass001")
     for k in range(1, 4):
         out["Cave_Wall%03d" % k] = (CAVE_WALL_BLEND, "Cave_Wall001")
     return out

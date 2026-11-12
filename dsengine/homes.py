@@ -30,6 +30,7 @@ from ashen.lb import val, trim, lbstr, strip_digits, pretty as pretty_item
 from .entity import STATICOBJECT
 from .fences import is_fence, fence_piece, join_around
 from .maps import MapData
+from .renames import RENAMED_HOME_TILES
 
 log = logging.getLogger("ashen.homes")
 
@@ -273,6 +274,9 @@ class Homes:
                        "blooms": {str(k): float(v) for k, v in h.get("blooms", {}).items()},
                        # (a home saved before homes had their own land gets the land as it is now, once)
                        "land": [str(ln) for ln in h["land"]] if h.get("land") else list(self.template_lines)}
+                for c in rec["cells"].values():
+                    if c.get("tile") in RENAMED_HOME_TILES:
+                        c["tile"] = RENAMED_HOME_TILES[c["tile"]]
                 # (a home from before pockets: its homestone is its Pocket Anchor now - build_pocket.py)
                 rec["land"] = [ln.replace("StaticObject\tHomestone\t", "StaticObject\t%s\t" % POCKET)
                                for ln in rec["land"]]

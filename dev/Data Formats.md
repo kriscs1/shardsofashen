@@ -208,6 +208,8 @@ Side=Smugglers            ; NPC only: its side; a script's Set.Side.Attitude mak
                           ; one player, for good (a map line's Side= says its own)
 Use.Words=Eat,Examine     ; comma list; first is the default left-click action
 Examine.Info=text
+Hover.Info=text           ; the one line under its name on hover, parts between " | " (dev/migrate/build_hover.py);
+                          ; gear, food, seeds and spells may leave it out: theirs is worked out (web/js/tips.js)
 Stackable=1               ; max quantity per inventory slot (1 = not stackable)
 Droppable=1               ; 0 = can't be dropped
 Value=5                   ; shop price in Gold_Coin(s)

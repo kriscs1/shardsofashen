@@ -276,16 +276,11 @@ class PvPMixin:
 
     def pvp_lose_all(self):
         """Dying marked: everything goes but what's never lost (Keep.On.Death), on the ground where you fell, the
-        killer's alone to see a while (Loot.Private.Seconds), then anyone's. No grave (an old one crumbles). The
+        killer's alone to see a while (Loot.Private.Seconds), then anyone's. No grave (older ones stay). The
         gold lost."""
         killer = self.pvp_killer()
         self.last_hit_by = None
         self.pvp_mark_until = 0
-        if self.grave:
-            if self.grave.get("items"):
-                self.display_message("Your old grave crumbles away, and what was in it with it.", "DAMAGE")
-            self.grave_remove_entity()
-            self.grave = None
         d, w, p = self.data, self.w, self.player
         lost = []
         for e in self.inv:

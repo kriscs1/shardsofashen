@@ -25,25 +25,25 @@ STANCES_INI = "Stances.ini"
 FORM_STANCES = ("Cautious", "Fighting", "Channelling", "Sneaking")
 TEXT_KEYS = {"TITLE", "WHAT", "COLOUR", "TAUGHT.BY", "TAUGHT.IF", "TAUGHT.WORDS", "WOODS.GROUNDS"}
 # The numbers in words, for the tips (the stance buttons, the journal, Bind forms), in the order they're shown: the key,
-# its words ({v}: the number), how it's shown (x: a change, +15%; of: a part, 45%; %: a chance; n: as it is; tiles: a
-# reach in pixels, in tiles; flag: on or not; rush: Reckless's) and 1 if more is better (-1 if less is). A key added
-# up over the forms (not multiplied) is in SUM_KEYS.
+# its words ({v}: the number), how it's shown (x: a change, +15%; %: a chance, +12%; n: as it is; tiles: a reach in
+# pixels, in tiles; flag: on or not; rush: Reckless's) and 1 if more is better (-1 if less is). A key added up over the
+# forms (not multiplied) is in SUM_KEYS. Each is short, its number first (dev/Rules.md, Writing: a hover line).
 FIGURES = (
-    ("ATTACK", "accuracy {v}", "x", 1), ("DAMAGE", "damage {v}", "x", 1), ("DEFENCE", "defence {v}", "x", 1),
-    ("SPELL.POWER", "spell power {v}", "x", 1), ("SPELL.DURATION", "wards and boosts last {v}", "x", 1),
-    ("RESIST.STATUS", "{v} to shrug off a drain or poison", "%", 1),
-    ("PARRY", "{v} to turn aside a melee blow", "%", 1), ("DAZE", "{v} for a blow to daze", "%", 1),
-    ("RIPOSTE", "{v} to answer a blocked blow", "%", 1),
-    ("RUSH.SECONDS", "for {v}s", "rush", 1), ("SNEAK.ATTACK", "an unseen blow up to {v} times as hard", "n", 1),
-    ("NOISE", "heard {v}", "x", -1), ("SIGHT", "seen {v}", "x", -1),
-    ("WOODS.NOISE", "heard {v} on grass and in woods", "x", -1),
-    ("THIEVING", "+{v} in 100 to steal", "n", 1), ("WATCHED", "being watched costs {v} as much", "of", -1),
-    ("DRAW", "monsters within {v} come for you first", "tiles", 1),
-    ("HEAR.SHARDS", "Shards within {v} show", "tiles", 1),
-    ("DRINK.REACH", "remnants within {v} are drunk", "tiles", 1), ("DRINK.HEAL", "{v} hp a Shard drunk", "n", 1),
-    ("CALM.ANIMALS", "animals don't run from you", "flag", 1),
-    ("WALK", "pace {v}", "x", 1), ("CALM", "out of a fight in {v} the time", "of", -1), ("SPELL.COST", "spells cost {v}", "x", -1),
-    ("SPELL.HURT", "magic in a blow hurts {v}", "x", -1), ("STATUS.HURT", "drains and poisons last {v}", "x", -1))
+    ("ATTACK", "{v} Accuracy", "x", 1), ("DAMAGE", "{v} Damage", "x", 1), ("DEFENCE", "{v} Defence", "x", 1),
+    ("SPELL.POWER", "{v} Spell Power", "x", 1), ("SPELL.DURATION", "{v} Ward and Boost Time", "x", 1),
+    ("RESIST.STATUS", "{v} Debuff Resistance", "%", 1),
+    ("PARRY", "{v} Parry", "%", 1), ("DAZE", "{v} Daze", "%", 1), ("RIPOSTE", "{v} Riposte", "%", 1),
+    ("RUSH.SECONDS", "{v} s", "rush", 1), ("SNEAK.ATTACK", "x{v} Unseen Damage", "n", 1),
+    ("NOISE", "{v} Noise", "x", -1), ("SIGHT", "{v} Seen", "x", -1),
+    ("WOODS.NOISE", "{v} Noise in Woods", "x", -1),
+    ("THIEVING", "+{v} Thieving", "n", 1), ("WATCHED", "{v} Noticed When Watched", "x", -1),
+    ("DRAW", "Draws Foes within {v}", "tiles", 1),
+    ("HEAR.SHARDS", "Hears Shards within {v}", "tiles", 1),
+    ("DRINK.REACH", "Drinks Remnants within {v}", "tiles", 1), ("DRINK.HEAL", "+{v} HP a Shard Drunk", "n", 1),
+    ("CALM.ANIMALS", "Animals Stay Calm", "flag", 1),
+    ("WALK", "{v} Speed", "x", 1), ("CALM", "{v} Time to Leave a Fight", "x", -1),
+    ("SPELL.COST", "{v} Spell Cost", "x", -1),
+    ("SPELL.HURT", "{v} Magic Damage Taken", "x", -1), ("STATUS.HURT", "{v} Debuff Time", "x", -1))
 SUM_KEYS = {"PARRY", "DAZE", "RIPOSTE", "DAZE.SECONDS", "THIEVING", "DRAW", "HEAR.SHARDS", "DRINK.REACH", "DRINK.HEAL",
             "CALM.ANIMALS", "RUSH.SECONDS"}
 
@@ -350,10 +350,8 @@ class FormMixin:
             good = better > 0
             if how == "x":
                 s, good = pct_words(v), (v > 1) == (better > 0)
-            elif how == "of":
-                s, good = "%d%%" % round(v * 100), (v < 1) == (better < 0)
             elif how == "%":
-                s = "%d%%" % round(v)
+                s = "+%d%%" % round(v)
             elif how == "tiles":
                 t = round(v / (self.w.tw or 32), 1)
                 s = "%s tile%s" % (num_words(t), "" if t == 1 else "s")
@@ -361,11 +359,11 @@ class FormMixin:
                 s = num_words(v)
             text = words.format(v=s)
             if key == "DAZE":
-                text += " for %ss" % num_words(num("DAZE.SECONDS") or 1.5)
+                text += " (%s s)" % num_words(num("DAZE.SECONDS") or 1.5)
             elif key == "RUSH.SECONDS":
-                text = "a kill: " + " and ".join(w.format(v=pct_words(num(k) or 1)) for k, w in (
-                    ("RUSH.DAMAGE", "damage {v}"), ("RUSH.WALK", "pace {v}")) if round(num(k) or 1, 2) != 1) + \
-                    " " + text
+                text = "On a Kill: " + ", ".join(w.format(v=pct_words(num(k) or 1)) for k, w in (
+                    ("RUSH.DAMAGE", "{v} Damage"), ("RUSH.WALK", "{v} Speed")) if round(num(k) or 1, 2) != 1) + \
+                    " for " + text
             out.append((text, good))
         return out
 
@@ -420,13 +418,13 @@ class FormMixin:
             least = self.stance_base(st, "SIGHT.LEAST", 0.3)
             sight = self.form_limit("Sight", self.stance_base(st, "SIGHT") * self.form_product_of(forms, "SIGHT"))
             lv = self.stealth_level()
-            lines[:0] = [("heard from %d%% as far, seen from %d%%%s" % (
+            lines[:0] = [("Heard at %d%% | Seen at %d%%%s" % (
                 round(noise * self.stealth_cut("Noise", 0.3) * 100),
                 round(max(least, sight * self.stealth_cut("Sight", least)) * 100),
                 " (Stealth %d)" % lv if lv else ""), True)]
-            lines.append(("a blow or a spell ends it", False))
-        good = ", ".join(t for t, g in lines if g)
-        bad = ", ".join(t for t, g in lines if not g)
+            lines.append(("Ends When You Attack or Cast", False))
+        good = " | ".join(t for t, g in lines if g)
+        bad = " | ".join(t for t, g in lines if not g)
         return [good, bad]
 
     @staticmethod
@@ -439,7 +437,7 @@ class FormMixin:
     # ----- what the page shows: your forms (the stance buttons, the journal), the ring's colours
     def forms_state(self):
         return [[f["stance"], f["title"], 1 if f["key"] in self.forms_bound else 0,
-                 ", ".join(t for t, _ in self.form_figures(f)) or f["what"], f["colour"]] for f in self.forms_known()]
+                 " | ".join(t for t, _ in self.form_figures(f)) or f["what"], f["colour"]] for f in self.forms_known()]
 
     def stance_tips(self):
         return {st: self.stance_figures(st) for st in FORM_STANCES}

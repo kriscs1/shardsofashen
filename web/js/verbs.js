@@ -8,7 +8,7 @@ export const T = { PLAYER: 1, TILE: 2, MAPITEM: 3, STATICOBJECT: 4, NPC: 5, MISS
   RACKITEM: 13, INVITEM: 14 };
 
 const WALK_FIRST = ["Wall", "Forest", "Hedge", "Pond", "Pool", "_Window", "Water", "Timber0", "Plaster0", "Sandstone0",
-  "Brick0"];
+  "Brick0", "Bridge"];
 
 function addVerb(lst, verb) {
   verb = trim(verb);
@@ -37,6 +37,8 @@ export function examineText(e) {
 }
 
 function examineFirst(e) {
+  // (a picture, a mirror, a banner hung on a wall: nowhere to walk, so a look)
+  if (e.base && examineText(e) && tileIni(e.base, "Walkable.Data", "1").includes("0")) return true;
   if (val(e.misc) !== 1 || examineText(e) === "" || WALK_FIRST.some((w) => e.n.includes(w))) return false;
   const all = "1".repeat((A.m.geometry.walk_res || 7) ** 2);
   return tileIni(e.n, "Walkable.Data", all).includes("0");
@@ -153,18 +155,18 @@ export function spellSummary(spell, rank = 0) {
   if (eff === "BOOST" || eff === "SHIELD") {
     if (n("Attack")) parts.push(`+${n("Attack")} Attack`);
     if (n("Defence")) parts.push(`+${n("Defence")} Defence`);
-    if (n("Magic")) parts.push(`+${n("Magic")} spell damage`);
-    if (n("Sight")) parts.push("far sight");
+    if (n("Magic")) parts.push(`+${n("Magic")} Spell Damage`);
+    if (n("Sight")) parts.push("Far Sight");
     const s = n("Duration") || 60;
     parts.push(s % 60 === 0 ? `${s / 60} min` : `${s} s`);
-  } else if (eff === "HEAL") parts.push(`heals ${spellAt(spell, "Heal", "", rank)}`);
-  else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellAt(spell, "Damage", "", rank)} damage`);
-  else if (eff === "TELEPORT" || eff === "HOME") parts.push("teleports you");
-  else if (eff === "GRASP") parts.push("pulls a thing to you, from afar");
-  else if (eff === "SILENCE") parts.push(`a hush round you, ${n("Duration") || 30} s`);
-  if (n("Fear")) parts.push(`sends it fleeing, ${n("Fear")} s`);
+  } else if (eff === "HEAL") parts.push(`Heals ${spellAt(spell, "Heal", "", rank)}`);
+  else if (eff === "BOLT" || eff === "AREA") parts.push(`${spellAt(spell, "Damage", "", rank)} Damage` + (eff === "AREA" ? " | Everything near" : ""));
+  else if (eff === "TELEPORT" || eff === "HOME") parts.push("Teleports you");
+  else if (eff === "GRASP") parts.push("Pulls a thing to you, from afar");
+  else if (eff === "SILENCE") parts.push(`Hushes you | ${n("Duration") || 30} s`);
+  if (n("Fear")) parts.push(`Fear ${n("Fear")} s`);
   if (n("Shards")) parts.push(`+${n("Shards")} Shards`);
-  return parts.join(", ");
+  return parts.join(" | ");                   // (a hover line: dev/Rules.md, Writing)
 }
 
 export function verbLabel(verb, e) {
@@ -281,9 +283,14 @@ export function canSteal(e) {
   return sneaking() && ((e.k === T.TILE && /^Shelf_Goods/.test(e.n || "")) || (e.k === T.STATICOBJECT && /^Valuables/.test(e.n || "")));
 }
 
-export function cursorOfVerb(verb) {
+export function cursorOfVerb(verb, e) {
   const verbs = A.m.cursors?.verbs || {};
-  return verbs[String(verb).trim().toUpperCase()] || "hand";
+  const v = String(verb).trim().toUpperCase();
+  if (e && e.k === T.STATICOBJECT) {               // (a thing, not a door: a chest is opened, a grave dug into)
+    if (e.n === "Gravestone") return "hand";
+    if (v === "OPEN") return /chest|box|coffer/i.test(e.n) ? "chest" : "hand";
+  }
+  return verbs[v] || "hand";
 }
 
 // Skills renamed or made one (dsengine/renames.py SKILL_NAMES): an old name means the skill it's part of now

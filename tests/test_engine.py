@@ -65,6 +65,12 @@ def test_standing_stones_are_decor_and_lava_runs_over_its_neighbours(world):
     assert d.tile_ini("Standing_Stone001", "Layer", "") == "Decor"
     assert not any(t == "Standing_Stone001" for m in world.maps.values() for t in m.tile)
     assert int(d.tile_ini("Lava001", "Blend", "0")) == 9
+    loose = ["Cliff%03d" % k for k in range(1, 6)] + ["Stone001", "Stone002"]   # (the cliffs too, and a stone or two)
+    assert all(d.tile_ini(n, "Layer", "") == "Decor" and not d.tile_ini(n, "Blend", "") for n in loose)
+    assert not any(t in loose for m in world.maps.values() for t in m.tile)
+    m = world.maps["2,1,0"]
+    c = m.cell(19, 8)                                                         # (a cliff still stops you)
+    assert m.tile[c] == "Grass001" and m.decor[c] == "Cliff004" and "0" in m.walk[c]
 
 
 def test_marys_grave_is_by_the_sea_and_galaith_has_no_way_in_from_it(world):
@@ -97,10 +103,11 @@ def test_the_chapel_graveyard_has_one_gate_and_you_walk_out_of_it_from_the_grave
     assert not reach(start, out, m.ox, m.oy, m.ox + 25 * 32, m.oy + 21 * 32)        # (no way out on its own map)
     assert reach(start, out, chapel.ox, chapel.oy, m.ox + 25 * 32, m.oy + 21 * 32)  # (west, out of the chapel's gate)
     script = open(os.path.join(ROOT, "data", "Scripts", "The Funeral.txt"), encoding="cp1252").read()
-    spots = {ln.split("\t")[4] for ln in script.splitlines() if "\tMove.Entity\t" in ln and "Edwin" not in ln}
+    spots = {ln.split("\t")[4] for ln in script.splitlines() if "\tWalk.Away\t" in ln}
+    assert spots and "Remove.Entity\t0,152\tMourner" not in script   # (they walk away, not vanish where they stand)
     for spot in spots:                                              # (the mourners walk somewhere they can get to)
         x, y = (int(v) for v in spot.split(","))
-        assert reach(start, (m.ox + x + 16, m.oy + y + 24), m.ox, m.oy, m.ox + 25 * 32, m.oy + 21 * 32), spot
+        assert reach(start, (m.ox + x + 16, m.oy + y + 24), chapel.ox, chapel.oy, m.ox + 25 * 32, m.oy + 21 * 32), spot
 
 
 def test_the_hard_zones_are_places_with_homes_and_no_ruin_outlines(world):
@@ -827,8 +834,14 @@ def test_the_ferries_cross_together_and_carry_you_over():
     s = join(world, "Passenger", "3,2,0", 14 * 32 + 16, 14 * 32)                     # (at the end of the Isle's pier)
     s.connected = True
     stock(s, **{"Gold_Coin(s)": 5})
+    s.out = []
     s.choose_verb("Get In", e, e.cx, e.cy)
-    assert s.ab_mode != "Conversation" and s.ride is None                         # (no papers yet: not for you)
+    for _ in range(5):
+        world.tick(0.05)
+    assert s.ride is None and "To Northport." not in s.responses                  # (no papers yet: not for you,
+    assert s.ab_mode == "Conversation" and "papers" in s.ab_text.lower()          #  and Wim says why, in a talk)
+    assert not any(ev.get("t") == "msg" and "Papers first" in ev.get("text", "") for ev in s.out)
+    s.close_action_box(-1)
     s.update_attribute("Passage", "=5")
     s.update_attribute("RemnantsAbsorbed", "=1")
     for k in range(len(s.skill_xp)):
@@ -856,6 +869,20 @@ def test_the_ferries_cross_together_and_carry_you_over():
     assert world.entity_can_stand(s.player, s.player.x, s.player.y, s.player.x, s.player.y, s)  # (on the pier, not the sea)
     assert m is not t
     leave(world, s)
+
+
+def test_the_ferry_comes_back_to_where_it_left(world):
+    """Both strait ferries tie up at the one berth on each pier (they're never in at the same one together), so the
+    boat you watched go comes back to the same spot; the boat moored there that never went anywhere is gone."""
+    carts = world.carts
+    east = next(c for c in carts.carts if c.key == "Isle_Ferry_East")
+    west = next(c for c in carts.carts if c.key == "Isle_Ferry_West")
+    isle = lambda c: next(c.pts[i] for i, n in c.stops.items() if n == "the Isle")
+    port = lambda c: next(c.pts[i] for i, n in c.stops.items() if n == "Northport")
+    assert isle(east) == isle(west) and port(east) == port(west)
+    assert east.pts[0] == isle(east) and east.pts[-1] == port(east)          # (there, and back the same way)
+    assert not any(ln.startswith("StaticObject	Boat002	") for ln in open(
+        os.path.join(ROOT, "maps", "3,2,0.txt"), encoding="cp1252").read().splitlines())
 
 
 def test_at_most_two_merchants_of_a_trade_in_a_place():
@@ -1161,11 +1188,12 @@ def test_homes_are_saved_and_come_back(world):
     assert a.build(8, 8, "Home_Chest") and a.build(9, 8, "Timber001")
     saved = world.homes.state()
     saved["Keeper"]["cells"]["10,9"] = {"under": "Rug001"}         # (a rug, laid under the furniture)
+    saved["Keeper"]["cells"]["11,9"] = {"tile": "Stone001"}        # (Flagstones laid when they were Stone001)
     leave(world, a)
     w2 = World(ROOT)
     w2.homes.load(saved)
     m = w2.homes.map_of("Keeper")
-    assert m.tile[m.cell(9, 8)] == "Timber001"
+    assert m.tile[m.cell(9, 8)] == "Timber001" and m.tile[m.cell(11, 9)] == "Flagstone001"
     assert m.under[m.cell(10, 9)] == "Rug001" and w2.homes.state()["Keeper"]["cells"]["10,9"] == {"under": "Rug001"}
     assert w2.homes.object_at(m, 8, 8).name == "Home_Chest"
     s = Session(w2, "Other")
@@ -5776,7 +5804,7 @@ def test_stolen_goods_stay_marked_wherever_they_go(world):
         stock(b, Gold_Ring=5)
         graved = b.death_sort()
         assert sum(q for n, q, _, stolen in graved if n == "Silver_Ring" and stolen) == 2
-        b.grave = {"map": b.cur_map.name, "x": 0, "y": 0, "items": graved, "left": 60000}
+        b.graves = [{"id": 1, "map": b.cur_map.name, "x": 0, "y": 0, "items": graved, "left": 60000}]
         b.grave_search()
         assert b.items_held("Silver_Ring", True) == 2
     finally:
@@ -7136,6 +7164,87 @@ def test_a_dead_creature_isnt_killed_twice(world):
     after = list(world.action_queue)
     s.damage_npc(g, 999)
     assert not g.alive and world.action_queue == after             # (one death: what it dropped is cleared once)
+    leave(world, s)
+
+
+def test_walk_away_walks_off_while_the_scene_goes_on(world):
+    """Walk.Away: the mourners at the funeral walk off in at the chapel's door while Edwin talks, not vanish."""
+    s = join(world, "Mourned", "4,1,0", 40, 170)
+    s.connected = True
+    s.god_mode = True
+    assert s.run_script_lines("(test)", ["01	Add.Entity	0,152	Villager	NPC	Attitude=Good Stand=1 Face=N",
+                                         "02	Walk.Away	0,152	Villager	-320,376	2",
+                                         "03	Display.Conversation	You	There they go.	Ok	04", "04	End"])
+    world.tick(0.05)
+    v = s.find_entity_here("0,152", "Villager")
+    assert s.ab_mode == "Conversation"                  # (the script didn't wait for the walk)
+    x0, walked = v.cx, False
+    for _ in range(600):
+        world.tick(0.05, now=world.now + 50)
+        if not v.alive:
+            break
+        if v.cx < x0 - 40:
+            walked = True
+    assert walked and not v.alive                       # (off it walked, and is gone once it got there)
+    s.action_box_response_chosen(1)
+    world.tick(0.05)
+    leave(world, s)
+
+
+def test_an_npc_stands_still_while_you_talk(world):
+    """Someone you're talking with (their words open in your window) stops where they are and looks at you, and
+    goes on their way a moment after you're done."""
+    from dsengine.entity import AI_ROAM
+    e = next(e for e in world.ents if e.type == NPC and e.alive and e.ai is not None and e.ai.stand == 0 and
+             not e.ai.fixed_pose and world.data.entity_ini(e.name, "Aggressive", "0") != "1" and e.map in world.maps)
+    m = world.maps[e.map]
+    s = join(world, "Chatter", m.name, int(e.cx - m.ox) + 40, int(e.cy - m.oy))
+    s.connected = True
+    s.god_mode = True
+    a = e.ai
+    e.follow = None
+    a.goal_x, a.goal_y = e.cx - 200, e.cy
+    world.npc_walk_started(e, a, AI_ROAM)
+    s.clicked_ent = e
+    s.ab_mode = "Conversation"                          # (its words open: what Display.Conversation leaves)
+    x, y = e.x, e.y
+    ticks(world, 40)
+    assert (e.x, e.y) == (x, y) and a.state == AI_IDLE
+    assert e.direction & 2                              # (it looks at you: you're to its east)
+    s.ab_mode = ""
+    ticks(world, 20)                                    # (a moment after: still there, then off it may go)
+    assert (e.x, e.y) == (x, y)
+    leave(world, s)
+
+
+def test_each_death_leaves_a_grave_of_its_own(world):
+    """Two deaths, two graves: each its own stone on the minimap and in the world, searched on its own; kept over a
+    relog (and a save from before, with one grave, still loads)."""
+    s = join(world, "Twice")
+    s.connected = True
+    for n in (1, 2):
+        stock(s, Logs=n * 3, Iron_Bar=1, Sapphire=1, Ruby=1, Gold_Ring=1, Silver_Ring=1, Bones=n)
+        s.player.hp = 0
+        s.player_dies()
+        s.respawn()
+    assert len(s.graves) == 2 and len(s.me_state()["graves"]) == 2
+    s.grave_remove_entity()
+    for g in s.graves:
+        g["map"] = s.cur_map.name                                   # (both on this map, to search them)
+    s.grave_place()
+    stones = [e for e in world.ents if e.name == "Gravestone" and e.owner is s]
+    assert len(stones) == 2
+    second = next(e for e in stones if e.grave_id == s.graves[1]["id"])
+    s.inv[:] = []
+    s.grave_search(second)
+    assert s.items_held("Logs") == 6 and len(s.graves) == 1 and not second.alive
+    st = s.save_state()
+    s.load_state(st)
+    assert len(s.graves) == 1 and any(i[0] == "Logs" for i in s.graves[0]["items"])
+    old = dict(st, grave=st["graves"][0])
+    del old["graves"]
+    s.load_state(old)
+    assert len(s.graves) == 1
     leave(world, s)
 
 
@@ -9753,20 +9862,23 @@ def test_a_stance_form_counts_only_in_its_stance_and_within_its_limits(world):
 def test_stance_and_form_tips_are_in_numbers_with_your_forms(world):
     s = join(world, "Tipped", "0,0,10", 12 * 32, 4 * 32)
     tips = s.stance_state()["stance_tips"]
-    assert tips["Fighting"] == ["accuracy +15%, damage +15%, defence +15%",
-                                "magic in a blow hurts +30%, drains and poisons last +50%"]
-    assert "50% to shrug off a drain or poison" in tips["Channelling"][0] and "pace -20%" in tips["Channelling"][1]
-    assert tips["Sneaking"][0].startswith("heard from ") and "pace -55%" in tips["Sneaking"][1]
+    # (the owner's form: the number first, parts of a line between " | ", never a "blow")
+    assert tips["Fighting"] == ["+15% Accuracy | +15% Damage | +15% Defence",
+                                "+30% Magic Damage Taken | +50% Debuff Time"]
+    assert tips["Channelling"][0] == "+25% Spell Power | +40% Ward and Boost Time | +50% Debuff Resistance"
+    assert "-20% Speed" in tips["Channelling"][1]
+    assert tips["Sneaking"][0].startswith("Heard at ") and "-55% Speed" in tips["Sneaking"][1]
+    assert not any("blow" in t.lower() for pair in tips.values() for t in pair)
     s.learn_form("Fighting", "Shieldwall")
     s.learn_form("Channelling", "Wardkeeper")
     tips = s.stance_tips()                                     # (the stance's numbers times its bound forms)
-    assert "defence +61%" in tips["Fighting"][0] and "monsters within 5 tiles come for you first" in tips["Fighting"][0]
-    assert "pace -20%" in tips["Fighting"][1] and "80% to shrug off a drain or poison" in tips["Channelling"][0]
+    assert "+61% Defence" in tips["Fighting"][0] and "Draws Foes within 5 tiles" in tips["Fighting"][0]
+    assert "-20% Speed" in tips["Fighting"][1] and "+80% Debuff Resistance" in tips["Channelling"][0]
     forms = {f[1]: f[3] for f in s.forms_state()}              # (a form alone: its own change, and what it makes)
-    assert forms["Hold the Line"] == "defence +40%, monsters within 5 tiles come for you first, pace -20%"
-    assert forms["Wardkeeper"] == "wards and boosts last +100%, 80% to shrug off a drain or poison"
+    assert forms["Hold the Line"] == "+40% Defence | Draws Foes within 5 tiles | -20% Speed"
+    assert forms["Wardkeeper"] == "+100% Ward and Boost Time | +80% Debuff Resistance"
     r = s.form_figures(s.form_def("Fighting.Reckless"))
-    assert ("a kill: damage +20% and pace +30% for 4s", True) in r and ("defence -20%", False) in r
+    assert ("On a Kill: +20% Damage, +30% Speed for 4 s", True) in r and ("-20% Defence", False) in r
     leave(world, s)
 
 
@@ -9885,7 +9997,7 @@ def test_cautious_is_the_stance_youre_in_till_you_choose_another(world):
     assert abs(s.stance_num("Attack") - 0.9) < 1e-6 and abs(s.stance_num("Damage") - 0.9) < 1e-6
     assert s.parse_script_variables("$Player.Stance") == "Cautious"
     tips = s.stance_tips()
-    assert "" not in tips and "defence +15%" in tips["Cautious"][0] and "damage -10%" in tips["Cautious"][1]
+    assert "" not in tips and "+15% Defence" in tips["Cautious"][0] and "-10% Damage" in tips["Cautious"][1]
     s.handle({"t": "stance", "stance": "Fighting"})
     run_for(world, 30)
     s.handle({"t": "stance", "stance": ""})                          # (none: Cautious)
@@ -11525,3 +11637,19 @@ def test_the_hotbar_is_dragged_to_swapped_and_cleared(world):
     assert s.hotbar[:5] == ["", "", "Logs", "", "Bread"]
     s.handle({"t": "hotbar_remove", "k": 2})                            # (dragged off the bar)
     assert s.hotbar[:5] == ["", "", "", "", "Bread"]
+
+
+def test_every_entity_has_a_one_line_hover_line_of_its_own(world):
+    """Pointing at a thing shows one short line under its name, not its examine text: its own Hover.Info
+    (build_hover.py), or for gear, food, seeds and spells one worked out from its numbers (tips.js)."""
+    from ashen import ini
+    import re
+    path = world.data.data_file("Entities.ini")
+    for name, items in ini.sections(path):
+        d = {k.upper(): v.strip() for k, v in items}
+        hover = d.get("HOVER.INFO", "")
+        worked_out = d.get("SLOT") or d.get("SPELL") or d.get("CROP") or val(d.get("FOOD.VALUE", "0")) > 0
+        assert hover or worked_out, "%s has no hover line (dev/migrate/build_hover.py)" % name
+        if hover:
+            assert len(hover) <= 60 and "\\" not in hover and hover != d.get("EXAMINE.INFO"), name
+            assert not re.search(r"\bblows?\b", hover, re.I), name          # (the owner's rule: no "blow")

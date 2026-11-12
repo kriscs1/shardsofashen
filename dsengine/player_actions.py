@@ -509,7 +509,7 @@ class ActionsMixin:
         elif verb == "Repair" and t == NPC:
             self.repair_by_smith(e)
         elif verb == "Search" and name == "Gravestone":
-            self.grave_search()
+            self.grave_search(e)
         elif verb == "Drink" and t == INVENTORYITEM and self.entity_ini(name, "Cures", ""):
             self.drink_cure(e)
         elif verb == "Drink" and t == INVENTORYITEM and val(self.entity_ini(name, "Food.Value", "0")) > 0:

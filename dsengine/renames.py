@@ -47,6 +47,10 @@ RENAMED_WORDS = {                                    # (rename_northport.py: in 
     "Sallowcross": "Greyford",                           # Secret_Moorcross, and what it was called for a day after)
     "Dustlands": "Sallow_Waste",                         # (and Zone_Chest_Dustlands)
 }
+RENAMED_HOME_TILES = {                               # (cliff_decor.py: Stone001 is a stone or two on any ground now,
+    "Stone001": "Flagstone001",                      # and a home's Flagstones floor is the flagstones)
+    "Stone002": "Flagstone001",
+}
 RENAMED_MAPS = {                                     # (move_levels.py: levels of their own, moved further off)
     "0,0,5": "0,0,10",
     "21,4,-7": "21,4,-10",

@@ -646,21 +646,22 @@ class CombatMixin:
         self.end_script()
         d = self.data
         marked = self.pvp_marked()                          # (struck a player first, lately: everything's lost, pvp.py)
-        self.display_message("Oh dear, you are dead!", "ERROR")
+        self.display_message("You died.", "ERROR")
         self.play_sound("Death", (self.player.cx, self.player.cy))
         self.play_sound("Death")                            # (to them, whatever the distance)
         gold = self.items_held("Gold_Coin(s)")
         lost = 0 if marked else int(gold * d.death_gold_loss / 100)
         if lost > 0:
             self.remove_inventory_item("Gold_Coin(s)", lost)
-            self.display_message("You lost %d gold coins." % lost, "DAMAGE")
+            self.display_message("You lost %d gold." % lost, "DAMAGE")
         self.fx_anim("Puff", self.player.cx, self.player.cy, 500)
         self.clear_boosts()
         self.status_reset()
+        buried = False
         if marked:
             lost = self.pvp_lose_all()
         else:
-            self.grave_leave()
+            buried = self.grave_leave()
         self.last_hit_by = None
         self.player.hp = self.player_max_hp
         self.player_attack_target = None
@@ -679,7 +680,7 @@ class CombatMixin:
         else:
             self.dead_wait = (d.start_map, d.start_x, d.start_y, False)
         self.player_visible = False
-        self.emit({"t": "died", "lost": lost, "grave": bool(self.grave), "minutes": self.grave_minutes(),
+        self.emit({"t": "died", "lost": lost, "grave": buried, "minutes": self.grave_minutes(),
                    "bed": bed is not None})
         self.dirty_me = True
 
