@@ -3,7 +3,7 @@
   * The Stealth skill, after Homesteading (Config [Skills] List, Icon.Stealth: a hooded face, eyes in the shadow).
   * data\\Stances.ini: every number of the stances (Fighting, Channelling, Sneaking) and of being seen and heard,
     sneak attacks, slipping past (only the keys missing are added: edit them there).
-  * The stances' pictures for the button by your health (Stance_None, _Fighting, _Channelling, _Sneaking).
+  * The stances' pictures for the button by your health (Stance_Cautious, _Fighting, _Channelling, _Sneaking).
 
 Their sounds are build_soundscape.py's. Safe to run again.
 
@@ -37,6 +37,10 @@ STANCES = [   # (section, key, value, what it means: the comment above it)
     ("Fighting", "XP.Share", "0.25", None),
     ("Cautious", "XP.To", "Defence", "The stance you're in when you've chosen none: a part of a fight's xp to Defence"),
     ("Cautious", "XP.Share", "0.25", None),
+    ("Cautious", "Walk", "1.1", "A little quicker on foot and better guarded, your blows a little weaker (times)"),
+    ("Cautious", "Defence", "1.15", None),
+    ("Cautious", "Attack", "0.9", None),
+    ("Cautious", "Damage", "0.9", None),
     ("Channelling", "Spell.Power", "1.25", "Spells stronger, wards and spell boosts longer, drains shrugged off (in 100);"),
     ("Channelling", "Spell.Duration", "1.4", "slower on foot, a weaker guard (potions are herbs: never touched)"),
     ("Channelling", "Resist.Status", "50", None),
@@ -207,13 +211,19 @@ def ring(img, col):
                 img[y][x] = col
 
 
-def stance_none():
+def stance_cautious():
     img = K.new()
-    ring(img, (150, 120, 80))
-    for y in range(9, 24):                                                      # a figure standing easy
-        for x in range(14, 18):
-            img[y][x] = (210, 190, 150)
-    K.shaded_ellipse(img, 16, 8, 2.6, 2.6, (230, 210, 170), (250, 236, 200), (190, 160, 120))
+    ring(img, (130, 160, 100))
+    for y in range(8, 26):                                                      # a round shield, held up
+        for x in range(8, 25):
+            d = math.hypot(x + 0.5 - 16, (y + 0.5 - 16) * (0.9 if y > 16 else 1.0))
+            if d < 8:
+                img[y][x] = (196, 170, 120) if d >= 6.6 else (150, 112, 70) if (x + y) % 5 else (134, 98, 60)
+    for x in range(12, 21):                                                     # (an eye on it, watching)
+        w = 2.2 * (1 - ((x - 16) / 4.6) ** 2)
+        for y in range(int(16 - w + 0.5), int(16 + w + 0.5) + 1):
+            img[y][x] = (236, 228, 204)
+    K.shaded_ellipse(img, 16, 16, 1.6, 1.6, (70, 110, 60), (110, 160, 90), (40, 70, 36))
     return K.outline_img(img, (30, 22, 16))
 
 
@@ -270,7 +280,7 @@ def valuables():
 
 
 def art():
-    out = [("Interface", "Skill_Stealth", hood()), ("Interface", "Stance_None", stance_none()),
+    out = [("Interface", "Skill_Stealth", hood()), ("Interface", "Stance_Cautious", stance_cautious()),
            ("Interface", "Stance_Fighting", stance_fighting()), ("Interface", "Stance_Channelling", stance_channelling()),
            ("Interface", "Stance_Sneaking", stance_sneaking()), ("Entities", "Valuables", valuables())]
     n = sum(1 for kind, name, img in out if K.save(kind, name, img))

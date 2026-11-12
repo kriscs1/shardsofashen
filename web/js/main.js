@@ -1109,7 +1109,7 @@ N.onMessage = (m) => {
       workBeats.clear();
       stopWorkFx(now);
       break;
-    case "splat": case "anim": case "shot": case "nudge": case "skillpop": case "burst": case "mark": case "bubble":
+    case "splat": case "anim": case "shot": case "nudge": case "swing": case "skillpop": case "burst": case "mark": case "bubble":
       if (!behind()) addFx(m, now);
       break;
     case "hurt": S.hurtUntil = now + 240; break;

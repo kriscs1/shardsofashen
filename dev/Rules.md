@@ -263,6 +263,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **The Dark Mage** (`build_dark_mage.py`; Entities.ini `Blink.Every`, `Blink.Near`; `npcs.py` npc_blink): in a fight it
   jumps away when you come near, when it's hit, or when it's stood long enough, always somewhere in sight of you on the
   same ground. It's beaten in the moment after a jump, before it can throw again, or held still by ice or a stun.
+- **A fight never traps you**: a creature blocks only a step that takes you nearer it from outside (`world.py`
+  blocks, `OVERLAP`), so standing in one you can always walk out; the path round others ignores those you're touching.
+  **Nor do trees**: feet in a gap the path grid can't see (`grid_cell` 16) walk out by the walk masks first
+  (`feet_way_out`), then on by the grid. A click elsewhere before you reach a foe or a thing cancels the attack or the
+  verb on its way, and the foe's red ring goes at once (`target_sent`).
+- **A blow is a swing**: the weapon in your hand is hidden and a sweep drawn towards the foe (`fx_swing`, the `swing`
+  effect: `render.js` drawSwing), then it's shown again; bare-handed, a shorter sweep of the fist.
 - Prey (hens, cows, sheep, rabbits, ducks, frogs, seals, otters) has `Flees=1` and is **Passive**, its kind and every
   map line (`dev/migrate/prey_passive.py`; validate.py holds it): it can be hunted, runs from whoever hits it and never
   fights back.
@@ -285,7 +292,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   `Boost.Skill`): what asks for a level goes by it as it is now, the Stats tab always shows it out of its usual level
   (20/20; drained 18/20, red; boosted 23/20, green, a potion's or spell's boost to your blows counted in), and hitpoints and your level go by the usual one.
 - **Stances** (`dsengine/stances.py`, `data/Stances.ini`; a round button for each by your health, never one that cycles
-  (a phone: the one you're in, which opens the others; the chosen one fills a ring as it takes hold), or Q): none, Fighting
+  (a phone: the one you're in, which opens the others; the chosen one fills a ring as it takes hold), or Q): Cautious
+  (where you start, and where choosing the one you're in again takes you: a better guard, a little quicker, weaker
+  blows; a save from before it loads in it; its sound is still `Stance_None`), Fighting
   (blows and guard up, magic hurts more), Channelling (spells stronger, wards and spell boosts longer, drains shrugged
   off; slower, a weaker guard; never potions: herbs), Sneaking (heard and seen less, more with Stealth; lookouts' sight
   cones shown; Pickpocket, Steal; slower). Each stance shows on whoever's in it (a red ring, a blue ring and motes, a
@@ -298,7 +307,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   forced, a rattle) wakes sleepers near (`wake_sleepers`); asleep, nobody sees your hand. A standing lookout's map
   line can say how often it glances about (`Turn=` seconds; 0 never, but to a sound and back).
 - **Stance forms** (`dsengine/forms.py`, `dev/migrate/build_forms.py`): each stance has forms (`Stances.ini`
-  `[Fighting.Shieldwall]`...), taught by people as a quest's reward, some only on one side of a choice (`Taught.By=` an
+  `[Fighting.Shieldwall]`, "Hold the Line"...; Cautious's: Shield Wall, Sure Step (quicker, and out of a fight sooner:
+  `Calm`), Riposte (a blocked blow sometimes answered: `Riposte`)), taught by people as a quest's reward, some only on
+  one side of a choice (`Taught.By=` an
   NPC's Id or kind, `Taught.If=`: shown when you next talk to them; or `Learn.Stance` in a script). A form learnt is
   yours for good; six bound at most (`Shards.ini [Forms]`), learnt with a place free it's bound at once for nothing,
   else bound at any shardstone you've woken (Bind forms, on its travel map) for Shards and Shardcraft; letting one go
@@ -674,6 +685,10 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 - Tiles and sprites are 32x32 pixel art. Creatures and objects have a 1 px dark outline (the mask-silhouette method
   in `build_wolf.py` and `build_cats.py`), and walk in frames `<Name>2a-c` (right) and `<Name>8a-c` (mirrored).
+  **What comes at you faces four ways**: people, goblins and the like, and the wolves, hounds, dog and bear
+  (`build_wolf.py` draws them towards you, `4a-c`, and away, `1a-c`; their recoloured kin are made again from them);
+  small animals stay side-on. Rabbits hop (`build_walk.py` `HOP`: off the ground in frames b and c). Four facings
+  don't make a creature a person (`data.is_person`, `FOUR_LEGS`).
 - Art and sounds are made in code by `dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
   Change the builder and run it again; don't hand-edit its output. Nothing from another game or a commercial
   library: anything not made here is CC0 (or as free) and listed in `CREDITS.md`.
@@ -954,8 +969,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   game: a map's entry script puts back what must still be there (the letter on the table, Tobias in his cage).
 - Open and Search on a StaticObject make it a chest (its script's Give.Items fill a loot box): a quest object that
   gives something uses its own verb (Reach In, Pick Lock).
-- `build_walk.py` deletes walking frames it didn't make (the cats', Brother Aldous's...): after running it, put the
-  deleted ones back with `git checkout -- sprites/Walk`.
+- `build_walk.py` deletes only stale frames of the creatures it draws itself, but it draws over frames other builders
+  draw later (the wolf's, the dog's, the farm animals', the butterfly's...): after running it, put back what it
+  changed that isn't yours (`git checkout --` those files), or run those builders again.
 - Builders and migrations in `dev/migrate/` are safe to run again (a second run does nothing, or redraws the
   same). A migration that is superseded refuses to run. A builder that takes over a script an earlier one wrote is
   named in `story_kit.TAKES_OVER`, so the earlier one run again leaves it be.

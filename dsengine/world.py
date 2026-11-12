@@ -36,6 +36,7 @@ log = logging.getLogger("ashen.world")
 
 PF_DIRS = ((0, -1, 10), (1, 0, 10), (0, 1, 10), (-1, 0, 10), (1, -1, 14), (1, 1, 14), (-1, 1, 14), (-1, -1, 14))
 DOOR_REACH = 34
+OVERLAP = 14                            # (feet nearer than this: one already in another - world.blocks)
 SHOP_ACTIONS = ("ADD.SHOP.ITEM", "REMOVE.SHOP.ITEM")
 SHOP_QUEUE_MOST = 3000                  # (shops' restocks waiting at most: past it a sale just isn't remembered)
 DOOR_SHUT_MS = 1500
@@ -691,10 +692,15 @@ class World(NPCMixin):
 
     @staticmethod
     def blocks(bx, by, x, y, old_x, old_y):
+        """Does one standing at bx,by stop a step from old to x,y? Only a step nearer, from outside it: one already
+        in it (it walked into you) walks out whichever way, through it too, and is never trapped."""
         if abs(x - bx) >= 14 or abs(y - by) >= 14:
             return False
+        od = math.hypot(old_x - bx, old_y - by)
+        if od < OVERLAP:
+            return False
         nd = math.hypot(x - bx, y - by)
-        return nd < 14 and nd < math.hypot(old_x - bx, old_y - by)
+        return nd < 14 and nd < od
 
     def entity_can_stand(self, e, x, y, old_x, old_y, mover=None):
         """mover: the Session whose player e is (None for NPCs)."""
@@ -743,7 +749,8 @@ class World(NPCMixin):
         out = set()
         for n in self.npcs_near(e.z, e.fx, e.fy):
             if (n.active and self.npc_is_solid(n) and self.visible_to(n, mover) and
-                    abs(n.fx - e.fx) < reach and abs(n.fy - e.fy) < reach):
+                    abs(n.fx - e.fx) < reach and abs(n.fy - e.fy) < reach and
+                    math.hypot(n.fx - e.fx, n.fy - e.fy) >= 24):     # (one you're in: not walled round you)
                 for dx in (-10, 0, 10):
                     for dy in (-10, 0, 10):
                         out.add((math.floor((n.fx + dx) / cell), math.floor((n.fy + dy) / cell)))
@@ -909,6 +916,7 @@ class World(NPCMixin):
         z = e.z
         feet_offset = e.fy - e.cy
         sx, sy = e.fx, e.fy
+        lead = []                                       # (feet_way_out: the steps out of a gap first)
         tx, ty = target_x, target_y + feet_offset
         d = distance(sx, sy, tx, ty)
         if d <= rng:
@@ -959,9 +967,14 @@ class World(NPCMixin):
                     dd = abs(mx * cell + cell / 2 - sx) + abs(my * cell + cell / 2 - sy)
                     if dd < best_d:
                         best_d, new_start = dd, (mx, my)
-            if new_start is None:
-                e.path_time = self.now + 2000
-                return False
+            if new_start is None:                       # (in a gap between trees the grid can't see: out by the feet)
+                way = self.feet_way_out(z, sx, sy, mover, swim, gwk)
+                if not way:
+                    e.path_time = self.now + 2000
+                    return False
+                lead = way
+                sx, sy = way[-1]
+                new_start = (math.floor(sx / cell), math.floor(sy / cell))
             scx, scy = new_start
         gcx, gcy = math.floor(tx / cell), math.floor(ty / cell)
 
@@ -1031,7 +1044,7 @@ class World(NPCMixin):
                     heapq.heappush(heap, (ng + max(0, octile(mx, my) - range_cost) * 1.2, counter, m))
         if found is None:
             e.path_time = self.now + 2000
-            if best_node == start:
+            if best_node == start and not lead:
                 return False
             found = best_node
         cells = []
@@ -1061,8 +1074,39 @@ class World(NPCMixin):
             path.append((corners[k][0], corners[k][1] - feet_offset))
             ax, ay = corners[k]
             j = k + 1
-        e.path = path
+        e.path = [(x, y - feet_offset) for x, y in lead] + path
         return True
+
+    def feet_way_out(self, z, sx, sy, mover, swim, gwk, reach=128):
+        """Feet at sx,sy in a gap the path grid can't use (among trees, say: walkable where the feet are, but no cell
+        round them the grid calls clear): the way out, by the walk masks themselves, to the nearest point in a cell
+        the grid can walk from. [(x, y)] for the feet, its turns only; [] if there's none within reach."""
+        cell, step = self.data.grid_cell, 3
+        ok = (lambda x, y: self.pixel_walkable(z, x, y, mover, swim))
+        parent = {(0, 0): None}
+        todo = [(0, 0)]
+        most = int(reach / step)
+        for n in todo:
+            x, y = sx + n[0] * step, sy + n[1] * step
+            if n != (0, 0) and gwk(z, math.floor(x / cell), math.floor(y / cell), mover) == 1:
+                way = []
+                while n is not None:
+                    way.append(n)
+                    n = parent[n]
+                way.reverse()
+                turns = [way[i] for i in range(1, len(way)) if i == len(way) - 1 or
+                         (way[i][0] - way[i - 1][0], way[i][1] - way[i - 1][1]) !=
+                         (way[i + 1][0] - way[i][0], way[i + 1][1] - way[i][1])]
+                return [(sx + a * step, sy + b * step) for a, b in turns]
+            for dx, dy, _ in PF_DIRS:
+                k = (n[0] + dx, n[1] + dy)
+                if k in parent or abs(k[0]) > most or abs(k[1]) > most:
+                    continue
+                kx, ky = sx + k[0] * step, sy + k[1] * step
+                if ok(kx, ky) and ok((x + kx) / 2, (y + ky) / 2):
+                    parent[k] = n
+                    todo.append(k)
+        return []
 
     @staticmethod
     def path_steer(e, target_x, target_y):

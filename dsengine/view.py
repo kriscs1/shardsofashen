@@ -153,6 +153,8 @@ def snapshot(w, s, shared=None):
     if s.cells_dirty:
         s.cells_dirty = False
         out.append({"t": "cells", "cells": s.cells_for_view(), "locks": s.locks_for_view()})
+    if s.target_shown != (s.player_attack_target.uid if s.player_attack_target is not None else 0):
+        s.dirty_me = True                               # (a fight begun or dropped: its ring, at once)
     if s.dirty_me:
         s.dirty_me = False
         out.append(s.me_state())

@@ -177,7 +177,7 @@ class CombatMixin:
         """A fight's XP (Attack for a blow landed, Defence for one taken or turned aside): the stance you're in sends
         a share of it to the skill it trains more (Stances.ini [<stance>] XP.To and XP.Share: Fighting Attack,
         Cautious, the stance you're in having chosen none, Defence)."""
-        st = self.stance or "Cautious"
+        st = self.stance or "Cautious"                  # (stances.py BASE)
         to = trim(self.data.ini_read("Stances.ini", st, "XP.To", ""))
         share = min(1.0, max(0.0, self.data.ini_num("Stances.ini", st, "XP.Share", 0.0))) if to else 0.0
         if share and self.skill_index(to) and to.upper() != skill.upper():
@@ -243,7 +243,7 @@ class CombatMixin:
         if hp <= 0 or hp >= self.player_max_hp:
             self.hp_regen_last = now
             return
-        if now - self.player_last_combat < d.hp_regen_delay * 1000 and now >= self.player_last_combat:
+        if now - self.player_last_combat < self.calm_ms(d.hp_regen_delay * 1000) and now >= self.player_last_combat:
             self.hp_regen_last = now
             return
         if now - self.hp_regen_last < d.hp_regen_every * 1000:
@@ -390,7 +390,17 @@ class CombatMixin:
             self.w.fx_shot(p, "Arrow_Missile", t, "ARROW", self)
             return
         self.fx_nudge(p, -self.w.fx_away(t, p), -self.w.fx_away_y(t, p), 110)
+        self.fx_swing(t)
         self.player_strike(t, False)
+
+    def fx_swing(self, t):
+        """A blow swung at t, for everyone near: the sword in your hand hidden and a sweep drawn (render.js
+        drawSwing); wpn is the weapon as it's drawn on you, if it is."""
+        p = self.player
+        it = self.equipped[1]
+        it = (trim(self.entity_ini(it, "Base", "")) or it) if it else ""
+        self.w.fx({"t": "swing", "uid": p.uid, "to": t.uid, "ms": 240,
+                   "wpn": it if it and self.data.gear_has_art(it) else ""}, p.z, p.cx, p.cy)
 
     def player_strike(self, t, ranged):
         if not t.alive:
@@ -572,6 +582,7 @@ class CombatMixin:
             if self.equip_defence_total + self.spell_defence_bonus > 0:
                 self.play_sound("Block", (p.cx, p.cy))
             self.fight_xp("Defence", 0.03)
+            self.riposte(e, ranged)
             return
         self.wear_armour()
         damage = self.resist_damage(e, random_number(1, self.npc_max_hit(e))) - self.armour_soak()
@@ -582,6 +593,7 @@ class CombatMixin:
             self.play_sound("Block", (p.cx, p.cy))
             self.fight_xp("Defence", 0.03)
             self.disease_on_blocked_hit(e)
+            self.riposte(e, ranged)
             return
         self.play_sound("Hurt", (p.cx, p.cy))
         self.fx_splat("Hit", damage, p)
@@ -595,6 +607,17 @@ class CombatMixin:
         if 0 < hp <= self.player_max_hp / 4 and (now - self.low_hp_warned > 10000 or now < self.low_hp_warned):
             self.low_hp_warned = now
             self.display_message("You are badly hurt! Eat something, drink a potion or run!", "ERROR")
+
+    def riposte(self, e, ranged):
+        """Riposte (a form of Cautious): a melee blow you blocked, now and then answered at once with one of yours."""
+        if ranged or not self.forms_bound or not e.alive or rnd() * 100 >= self.form_sum("Riposte"):
+            return
+        if self.player_distance_to(e) > self.melee_reach(e) + 8:
+            return
+        self.provoke(e)
+        self.w.npc_face(self.player, self.player.cx, self.player.cy, e.cx, e.cy)
+        self.fx_swing(e)
+        self.player_strike(e, False)
 
     def death_remembered(self):
         """What killed them keeps a grudge, and the town keeps count (rumours.py legend_due)."""

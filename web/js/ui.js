@@ -1594,8 +1594,8 @@ function drawVitals(ctx) {
 
 // ----- your stance (stances.py): a round button for each, right of the bars (a phone: the one you're in, which opens
 // the others); the one you chose fills a ring round it as it takes hold
-export const STANCES = ["", "Fighting", "Channelling", "Sneaking"];
-export const STANCE_WORDS = { "": "No stance", Fighting: "Fighting", Channelling: "Channelling", Sneaking: "Sneaking" };
+export const STANCES = ["Cautious", "Fighting", "Channelling", "Sneaking"];   // (Cautious: the one you're in till you choose)
+export const STANCE_WORDS = { Cautious: "Cautious", Fighting: "Fighting", Channelling: "Channelling", Sneaking: "Sneaking" };
 
 export function stanceTip(st) {
   // (its name, then what it gives and what it costs you, in numbers with your bound forms: stance_tips, forms.py)
@@ -1606,13 +1606,13 @@ export function stanceTip(st) {
 function stanceButtons() {
   // ([stance, cx, cy, r] for each button shown: a phone shows the one you're in, and the rest only once it's opened)
   const r = M.on ? 18 : 12, gap = M.on ? 6 : 4, y = VITALS.y + 18, x0 = VITALS.barX + VITALS.barW + 10 + r;
-  const now = S.me.stance_next || S.me.stance || "";
+  const now = S.me.stance_next || S.me.stance || "Cautious";
   const order = M.on ? [now, ...(U.stanceOpen ? STANCES.filter((st) => st !== now) : [])] : STANCES;
   return order.map((st, i) => [st, x0 + i * (2 * r + gap), y, r]);
 }
 
 function drawStance(ctx) {
-  const me = S.me, now = me.stance || "", next = me.stance_next;
+  const me = S.me, now = me.stance || "Cautious", next = me.stance_next;
   const changing = next !== undefined && (next || me.stance_ms);
   // (the ring runs on this page's own clock, from when the change began: the server only says it now and then)
   const going = changing ? String(next) : null;
@@ -1625,7 +1625,7 @@ function drawStance(ctx) {
     const hot = U.hover === "stance:" + st, held = st === now && !changing;
     ctx.fillStyle = hot ? "rgba(126,77,63,0.95)" : "rgba(40,27,20,0.92)";
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283); ctx.fill();
-    const im = sprite("Stance_" + (st || "None"));
+    const im = sprite("Stance_" + st);
     if (im) {
       ctx.save(); ctx.imageSmoothingEnabled = false;
       if (!held && !(changing && st === next)) ctx.globalAlpha = 0.6;
@@ -1657,7 +1657,7 @@ export function stanceAt(x, y) {
 }
 
 export function nextStance() {
-  const now = S.me.stance_next || S.me.stance || "";
+  const now = S.me.stance_next || S.me.stance || "Cautious";
   return STANCES[(STANCES.indexOf(now) + 1) % STANCES.length];
 }
 

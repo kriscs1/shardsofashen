@@ -78,7 +78,7 @@ SCRIPT_VARIABLES = (
     ("$Tax.Due", lambda s: lbstr(s.w.wonders.tax_due(s))),
     ("$Player.Malaria", lambda s: "1" if "Malaria" in s.diseases else "0"),
     ("$Player.Shardsong", lambda s: "1" if "Shardsong" in s.diseases else "0"),
-    ("$Player.Stance", lambda s: s.stance or "-"),     # (the one you're in: Fighting, Channelling, Sneaking)
+    ("$Player.Stance", lambda s: s.stance or "Cautious"),   # (the one you're in: Cautious, Fighting, Channelling...)
     ("$Shardstones.Active", lambda s: lbstr(len(s.stones_active()))),
     ("$Player.Health.Max", lambda s: lbstr(s.player_max_hp)),      # (before $Player.Health, which it starts with)
     ("$Player.Health", lambda s: lbstr(int(s.player.hp))),

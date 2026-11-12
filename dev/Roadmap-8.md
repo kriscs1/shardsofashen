@@ -70,18 +70,18 @@ tested and committed.
 - [x] Tests: the curve, each stance's XP, the rename read from an old save.
 
 ## 4. Combat
-- [ ] **Cautious** in place of no stance (`Stances.ini` `[Cautious]`, to start: Walk 1.1, Defence 1.15, Attack and
+- [x] **Cautious** in place of no stance (`Stances.ini` `[Cautious]`, to start: Walk 1.1, Defence 1.15, Attack and
       Damage 0.9), its button and ring, and a save in no stance loads in Cautious.
-- [ ] Its forms (`build_forms.py`), taught like the others: **Sure Step** (faster still, and away from a fight
+- [x] Its forms (`build_forms.py`), taught like the others: **Sure Step** (faster still, and away from a fight
       sooner), **Shield Wall** (more Defence, slower), **Riposte** (a blocked blow sometimes answered, less Defence).
-- [ ] The attack looks like a sword swung: the held sword hidden, a sweep drawn, then shown again.
-- [ ] Never trapped in a creature: you can always walk out of a fight (an overlapping sprite never blocks you).
-- [ ] Never stuck among trees (find the places and fix the paths, or the trees).
-- [ ] Clicking elsewhere before you get there cancels an attack or a verb on its way.
-- [ ] Rabbits hop.
-- [ ] Creatures that walk towards you (wolves, goblins, people...) face up and down as well as left and right; small
+- [x] The attack looks like a sword swung: the held sword hidden, a sweep drawn, then shown again.
+- [x] Never trapped in a creature: you can always walk out of a fight (an overlapping sprite never blocks you).
+- [x] Never stuck among trees (find the places and fix the paths, or the trees).
+- [x] Clicking elsewhere before you get there cancels an attack or a verb on its way.
+- [x] Rabbits hop.
+- [x] Creatures that walk towards you (wolves, goblins, people...) face up and down as well as left and right; small
       animals (rabbits, rats...) stay two-way. Their builders draw the two new facings.
-- [ ] Tests: cancelling a walk-to-attack, leaving a fight from inside a creature.
+- [x] Tests: cancelling a walk-to-attack, leaving a fight from inside a creature.
 
 ## 5. Quests and the journal
 - [ ] "Quest objective met." in the chat when a step is done (short, with its sound, once).

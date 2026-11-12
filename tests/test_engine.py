@@ -3617,6 +3617,7 @@ def test_the_royal_guard_and_the_king(world):
     story_done_before(s, 23)
     find = lambda pid: next(e for e in world.ents if e.alive and e.npc_id == pid)
     captain, king = find("Palace_Captain"), find("Rupert_On_Throne")
+    s.learn_form("Cautious", "Shield_Wall", quiet=True)                # (his Cautious form, shown already)
     talk(captain, 1)
     assert attr("GuardQuest") == 1
     talk(find("Galaith_Speaker_70"), 1, 1)
@@ -5584,9 +5585,9 @@ def test_stances_take_a_moment_and_change_what_you_do(world):
     base_attack, base_def = s.player_attack_value(), s.player_defence_value()
     s.handle({"t": "stance", "stance": "Fighting"})
     world.tick(0.05, now=world.now + 50)
-    assert s.stance == ""                                            # (it takes a moment)
+    assert s.stance == "Cautious"                                    # (it takes a moment)
     run_for(world, 30)
-    assert s.stance == "Fighting" and s.player_attack_value() > base_attack and s.player_defence_value() > base_def
+    assert s.stance == "Fighting" and s.player_attack_value() > base_attack and s.player_defence_value() >= base_def
     s.handle({"t": "stance", "stance": "Channelling"})
     run_for(world, 30)
     assert s.stance == "Channelling" and s.stance_walk() < 1 and s.player_defence_value() < base_def
@@ -5595,9 +5596,9 @@ def test_stances_take_a_moment_and_change_what_you_do(world):
     assert s.sneaking() and s.sight_factor() < 1 and s.stance_walk() < 1
     s.skill_xp[s.skill_index("Stealth")] = 20                       # (more Stealth: harder still to see)
     assert s.sight_factor() < 0.6 and s.cone_factor() < 1
-    s.handle({"t": "stance", "stance": "Sneaking"})                 # (the same again: back to none)
+    s.handle({"t": "stance", "stance": "Sneaking"})                 # (the same again: back to Cautious)
     run_for(world, 30)
-    assert s.stance == ""
+    assert s.stance == "Cautious"
     leave(world, s)
 
 
@@ -5626,7 +5627,7 @@ def test_a_lookout_turns_to_what_it_hears_and_a_sneak_attack_hits_hard(world):
     assert s.unseen_by(guard)
     hp = guard.hp
     s.player_strike(guard, False)
-    assert guard.hp < hp and s.stance == ""                         # (a blow it never saw coming; seen now)
+    assert guard.hp < hp and s.stance == "Cautious"                 # (a blow it never saw coming; seen now)
     world.remove_entity(guard)
     world.ents.extend(held)
     leave(world, s)
@@ -6174,7 +6175,7 @@ def test_a_thief_spots_disarms_and_steps_over_traps(world):
         assert s.trap_known(m, tx, ty) and "Disarm" in s.get_verbs(s.tile_entity_at(m.ox + tx * 32 - 16, m.oy + ty * 32 - 16))
         s.stance = "Sneaking"
         assert s.trap_spared(m, tx, ty)                            # (seen, and stepped over softly)
-        s.stance = ""
+        s.stance = "Cautious"
         hp = s.player.hp
         s.disarm_trap(m, tx, ty)
         assert (m.name, tx, ty) in s.traps_disarmed and s.trap_spared(m, tx, ty)
@@ -6470,7 +6471,7 @@ def test_the_glass_wardens_journals_chimes_shardsong_and_the_listening_room(worl
     # ----- the Listening Room: the horn, only in the Channelling stance, and never answered
     s.update_attribute("WardensHeard", "=1")
     horn = next(e for e in world.ents if e.npc_id == "Wardens_Horn")
-    s.stance = ""
+    s.stance = "Cautious"
     use("Listen", horn, [1])                                         # (Ysolde: stand as if to cast)
     assert s.get_attribute("WardensTruth") == "0"
     assert any(e.name == "Ysolde" and e.map == horn.map for e in world.ents)   # (she's there for you)
@@ -6661,10 +6662,10 @@ def test_what_ends_is_forgotten_by_the_others(world):
     a, b = join(world, "Seer"), join(world, "Sneak", x=330, y=300)
     b.stance = "Sneaking"
     snapshot(world, a)
-    b.stance = ""
+    b.stance = "Cautious"
     out = snapshot(world, a)
     chg = [c for m in out if m["t"] == "snap" for c in m["chg"] if c["u"] == b.player.uid]
-    assert chg and "sc" in chg[0]["rm"]                             # (the page is told the crouch is over)
+    assert chg and chg[0].get("sc") == "Cautious"                   # (the page is told the crouch is over)
     leave(world, a)
     leave(world, b)
 
@@ -8202,6 +8203,34 @@ def test_the_jesters_trick_does_something_and_then_he_makes_you_wait(world):
     leave(world, s)
 
 
+def test_wolves_face_you_coming_and_rabbits_hop_side_on(world):
+    d = world.data
+    for name in ("Wolf", "Snow_Wolf", "Alpha_Wolf", "Ember_Hound", "Ash_Hound", "Old_Whitefang", "Bear", "Dog",
+                 "Goblin", "Guard"):
+        assert d.animation_available(name) == 4, name                 # (towards you and away as well)
+    for name in ("Rabbit", "Rat", "Chicken"):
+        assert d.animation_available(name) == 2, name                 # (small animals: side-on)
+    assert d.is_person("Guard") and not d.is_person("Dog") and not d.is_person("Wolf")
+    s = join(world, "Wolfwatch", "0,0,0", 400, 300)
+    p = s.player
+    wolf = world.add_npc("Wolf", p.z, p.x + 120, p.y, "")
+    wolf.direction = 4
+    world.animate_entity(wolf, True)
+    assert wolf.image == "Wolf4a"
+    wolf.direction = 1
+    wolf.anim_dist = 99
+    world.animate_entity(wolf, True)
+    assert wolf.image == "Wolf1b"
+    rabbit = world.add_npc("Rabbit", p.z, p.x - 120, p.y, "")
+    rabbit.direction = 4                                               # (coming at you: still side-on, mid-hop)
+    rabbit.anim_dist = 99
+    world.animate_entity(rabbit, True)
+    assert rabbit.image[:-1] in ("Rabbit2", "Rabbit8") and rabbit.image[-1] == "b"
+    for e in (wolf, rabbit):
+        world.remove_entity(e)
+    leave(world, s)
+
+
 def test_the_jester_juggles_whichever_way_he_faces(world):
     s, e = met(world, "Jester", "Crowd")
     for direction, d in ((1, "1"), (2, "2"), (4, "4"), (8, "8")):
@@ -8393,7 +8422,7 @@ def test_status_effects_last_longer_in_fighting_stance_not_shorter(world):
     s.status_tick()
     assert "Poison" in s.status                                 # (... and isn't taken for a clock gone wrong)
     s.status_reset()
-    s.stance = ""
+    s.stance = "Cautious"
     leave(world, s)
 
 
@@ -9042,6 +9071,7 @@ def test_captain_rook_wants_orrins_chart_and_the_lodestar_before_his_hull(world)
     run, npc, talk, use = isle_helpers(world, s)
     attr = lambda a: int(float(s.get_attribute(a) or 0))
     story_done_before(s, 12)
+    s.learn_form("Cautious", "Sure_Step", quiet=True)                  # (his form, shown already: his talk as ever)
     talk(rook, 1)
     assert attr("OrrinQuest") == 1 and attr("ShipQuest") == 0        # (the chart first)
     orrin = next(e for e in world.ents if e.npc_id == "Orrin")
@@ -9660,7 +9690,7 @@ def test_a_stance_form_counts_only_in_its_stance_and_within_its_limits(world):
     assert s.form_sum("Parry") == 0                                    # (Duellist's not bound)
     st = s.stance_state()
     assert st["forms_most"] == 6 and [f[:3] for f in st["forms"]] == [
-        ["Fighting", "Shieldwall", 1], ["Fighting", "Reckless", 0], ["Sneaking", "Ranger's Tread", 0],
+        ["Fighting", "Hold the Line", 1], ["Fighting", "Reckless", 0], ["Sneaking", "Ranger's Tread", 0],
         ["Fighting", "Duellist", 0]] and all(f[3] for f in st["forms"])   # (bound or not, and what each does)
     saved = s.save_state()
     leave(world, s)
@@ -9682,7 +9712,7 @@ def test_stance_and_form_tips_are_in_numbers_with_your_forms(world):
     assert "defence +61%" in tips["Fighting"][0] and "monsters within 5 tiles come for you first" in tips["Fighting"][0]
     assert "pace -20%" in tips["Fighting"][1] and "80% to shrug off a drain or poison" in tips["Channelling"][0]
     forms = {f[1]: f[3] for f in s.forms_state()}              # (a form alone: its own change, and what it makes)
-    assert forms["Shieldwall"] == "defence +40%, monsters within 5 tiles come for you first, pace -20%"
+    assert forms["Hold the Line"] == "defence +40%, monsters within 5 tiles come for you first, pace -20%"
     assert forms["Wardkeeper"] == "wards and boosts last +100%, 80% to shrug off a drain or poison"
     r = s.form_figures(s.form_def("Fighting.Reckless"))
     assert ("a kill: damage +20% and pace +30% for 4s", True) in r and ("defence -20%", False) in r
@@ -9795,6 +9825,161 @@ def test_fighting_forms_parry_daze_and_draw_monsters(world, monkeypatch):
         world.ents.extend(held)
         leave(world, friend)
         leave(world, s)
+
+
+def test_cautious_is_the_stance_youre_in_till_you_choose_another(world):
+    s = join(world, "Wary", "0,0,10", 12 * 32, 4 * 32)
+    assert s.stance == "Cautious" and s.stance_state()["stance"] == "Cautious"   # (a new player, or an old save)
+    assert abs(s.stance_walk() - 1.1) < 1e-6 and abs(s.stance_num("Defence") - 1.15) < 1e-6
+    assert abs(s.stance_num("Attack") - 0.9) < 1e-6 and abs(s.stance_num("Damage") - 0.9) < 1e-6
+    assert s.parse_script_variables("$Player.Stance") == "Cautious"
+    tips = s.stance_tips()
+    assert "" not in tips and "defence +15%" in tips["Cautious"][0] and "damage -10%" in tips["Cautious"][1]
+    s.handle({"t": "stance", "stance": "Fighting"})
+    run_for(world, 30)
+    s.handle({"t": "stance", "stance": ""})                          # (none: Cautious)
+    run_for(world, 30)
+    assert s.stance == "Cautious"
+    t = Session(world, "Wary")
+    t.load_state(s.save_state())
+    assert t.stance == "Cautious"
+    leave(world, s)
+
+
+def test_cautious_forms_shield_wall_sure_step_and_riposte(world, monkeypatch):
+    import dsengine.player_combat as pc
+    s = join(world, "Steady", "0,0,10", 12 * 32, 4 * 32)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    gob = world.add_npc("Goblin", m.mz, p.x + 30, p.y, "")
+    try:
+        cap = next(e for e in world.ents if e.type == NPC and e.npc_id == "Palace_Captain")
+        assert not s.form_teach(cap)                                   # (Defence 10 first)
+        s.skill_xp[s.skill_index("Defence")] = 10
+        assert s.form_teach(cap) and "Cautious.Shield_Wall" in s.forms_bound
+        assert abs(s.stance_num("Defence") - 1.15 * 1.3) < 1e-6 and s.stance_walk() < 1.1
+        s.admin_set_form("Cautious.Shield_Wall", True, False)
+        s.admin_set_form("Cautious.Sure_Step", True, True)
+        assert s.stance_walk() > 1.1 and s.calm_ms(6000) == 3000      # (out of a fight in half the time)
+        s.handle({"t": "stance", "stance": "Fighting"})
+        run_for(world, 30)
+        assert s.calm_ms(6000) == 6000                                 # (only in Cautious)
+        s.handle({"t": "stance", "stance": "Cautious"})
+        run_for(world, 30)
+        s.admin_set_form("Cautious.Riposte", True, True)
+        monkeypatch.setattr(pc, "rnd", lambda: 0.0)                    # (every chance comes up)
+        rolls = iter([False])
+        monkeypatch.setattr(s, "combat_hits", lambda *a: next(rolls, True))   # (their blow blocked, yours lands)
+        hp, ghp = p.hp, gob.hp
+        s.npc_attack_player(gob, False)
+        assert p.hp == hp and gob.hp < ghp                             # (blocked, and answered)
+        rolls, ghp = iter([False]), gob.hp
+        s.npc_attack_player(gob, True)                                 # (a shot from afar: never)
+        assert gob.hp == ghp
+    finally:
+        world.remove_entity(gob)
+        world.ents.extend(held)
+        leave(world, s)
+
+
+def test_clicking_elsewhere_cancels_an_attack_or_a_verb_on_its_way(world):
+    from dsengine.view import snapshot
+    s = join(world, "Changed_Mind", "0,0,10", 12 * 32, 4 * 32)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    gob = world.add_npc("Goblin", m.mz, p.x + 200, p.y, "")
+    try:
+        s.choose_verb("Attack", gob, gob.cx, gob.cy)                   # (on its way to it)
+        run_for(world, 3)
+        assert s.pending_verb == "Attack" and s.pending_ent is gob and s.player_walk_active
+        s.choose_verb("Walk here", None, p.cx - 100, p.cy)             # (clicked elsewhere first)
+        assert s.pending_ent is None and not s.pending_verb and s.player_walk_x < p.cx
+        run_for(world, 10)
+        assert s.player_attack_target is None and p.cx < gob.cx - 200
+        world.set_entity_position(gob, p.x + 24, p.y)                  # (fighting it, beside it: a blow, swung)
+        s.player_attack_target = gob
+        s.player_last_attack = -10 ** 9
+        s.out = []
+        s.update_player_combat()
+        assert any(ev.get("t") == "swing" and ev.get("to") == gob.uid and ev.get("uid") == p.uid for ev in s.out)
+        assert any(ev.get("target") == gob.uid for ev in snapshot(world, s))     # (its red ring)
+        s.choose_verb("Walk here", None, p.cx - 100, p.cy)
+        assert s.player_attack_target is None
+        assert any(ev.get("target") == 0 for ev in snapshot(world, s))           # (and gone, at once)
+    finally:
+        world.remove_entity(gob)
+        world.ents.extend(held)
+        leave(world, s)
+
+
+def test_a_creature_you_stand_in_never_traps_you(world):
+    s = join(world, "Squashed", "0,0,10", 12 * 32, 4 * 32)
+    m = s.cur_map
+    held = [e for e in world.ents if e.type == NPC and e.map == m.name and e.alive]
+    for e in held:
+        world.ents.remove(e)
+    p = s.player
+    gob = world.add_npc("Goblin", m.mz, p.x, p.y, "")
+    world.tick(0.05)                                                   # (in the world's list of who's where)
+    try:
+        assert gob in world.npcs_near(p.z, p.fx, p.fy)
+        world.set_entity_position(gob, gob.x + (p.fx - gob.fx) + 6, gob.y + (p.fy - gob.fy))   # (its feet in yours)
+        assert world.npc_is_solid(gob) and abs(gob.fx - p.fx - 6) < 1
+        assert world.try_move_entity(p, 3, 0, s)                       # (through it, towards its middle)
+        assert world.try_move_entity(p, -3, 0, s)                      # (and back out)
+        assert not any(abs(c[0] * world.data.grid_cell - gob.fx) < 12 for c in world.solid_cells_near(p, s))
+        world.set_entity_position(gob, gob.x + (p.fx - gob.fx) + 16, gob.y + (p.fy - gob.fy))   # (beside you: solid)
+        for _ in range(4):
+            world.try_move_entity(p, 3, 0, s)
+        assert gob.fx - p.fx >= 14                                     # (up to it, not into it)
+        s.choose_verb("Walk here", None, p.cx - 64, p.cy)              # (walking away from a fight)
+        x = p.cx
+        run_for(world, 10)
+        assert p.cx < x - 20
+    finally:
+        world.remove_entity(gob)
+        world.ents.extend(held)
+        leave(world, s)
+
+
+def test_a_walk_from_a_gap_between_trees_finds_its_way_out(world):
+    import math
+    from dsengine.world import PF_DIRS
+    cell = world.data.grid_cell
+    spot = None
+    for name in ("5,13,0", "6,9,0", "5,12,0", "5,11,0", "19,13,0"):
+        m = world.maps[name]
+        grid = m.get_grid()
+        for cy in range(3, m.gh - 3):
+            for cx in range(3, m.gw - 3):
+                lx, ly = cx * cell + cell / 2, cy * cell + cell / 2
+                if (spot is None and not grid[cy * m.gw + cx] and m.local_walkable(lx, ly) and
+                        not any(grid[(cy + dy) * m.gw + cx + dx] for dx, dy, _ in PF_DIRS) and
+                        world.feet_way_out(m.mz, m.ox + lx, m.oy + ly, None, False, world.grid_walkable)):
+                    spot = (name, m.ox + lx, m.oy + ly)
+        if spot:
+            break
+    assert spot                                                        # (a gap the path grid can't see, among trees)
+    name, fx, fy = spot
+    s = join(world, "Lost_In_Trees", name, 400, 300)
+    p = s.player
+    world.set_entity_position(p, p.x + fx - p.fx, p.y + fy - p.fy)
+    m = world.maps[name]
+    grid = m.get_grid()
+    gx, gy = min(((x, y) for y in range(m.gh) for x in range(m.gw) if grid[y * m.gw + x]),
+                 key=lambda c: abs(c[0] * cell - (fx - m.ox) - 160) + abs(c[1] * cell - (fy - m.oy)))
+    s.walk_player_to(m.ox + gx * cell + cell / 2, m.oy + gy * cell + cell / 2 - (p.fy - p.cy), 0, 4)
+    assert p.path                                                      # (a way, beginning with the way out)
+    run_for(world, 120)
+    assert grid[math.floor((p.fy - m.oy) / cell) * m.gw + math.floor((p.fx - m.ox) / cell)] or \
+        math.hypot(p.fx - fx, p.fy - fy) > 48                          # (out of the gap)
+    leave(world, s)
 
 
 def test_a_robe_fools_them_till_a_blow_gives_you_away(world):

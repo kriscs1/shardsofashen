@@ -1,7 +1,8 @@
 """Stances: how you hold yourself (data\\Stances.ini has every number). One at a time; changing takes a moment
 (Change.Seconds), and nothing changes in the middle of a blow.
 
-  (none)       travelling: as you are.
+  Cautious     the one you're in till you choose another: a little quicker on foot and better guarded, your blows a
+               little weaker; a share of a fight's XP goes to Defence (as Fighting's goes to Attack).
   Fighting     harder blows and a firmer guard, but magic and what it brings (a monster's poison, a drain) hurt more.
   Channelling  your spells stronger and your wards and spell boosts longer, and you shrug off drains and the like;
                but you walk slowly and your guard drops. (Not potions: they're herbs, and Shards can't touch them.)
@@ -11,18 +12,18 @@ from ashen.lb import trim, lbstr, distance
 from .entity import NPC
 from .remnants import monster_level
 
-STANCES = ("", "Fighting", "Channelling", "Sneaking")
-WORDS = {"": "You stand easy.", "Fighting": "You stand ready to fight.",
+BASE = "Cautious"                               # (no stance chosen: this one. A save from before it: in it)
+STANCES = (BASE, "Fighting", "Channelling", "Sneaking")
+WORDS = {BASE: "You go carefully, watching all round.", "Fighting": "You stand ready to fight.",
          "Channelling": "You gather the Shards about you.", "Sneaking": "You move softly, keeping low."}
+SOUNDS = {BASE: "Stance_None"}
 
 
 class StanceMixin:
     def stance_num(self, key, default=1.0, stance=None):
         """A number of the stance you're in (Stances.ini [<stance>] key; 1 or default when it says nothing): times
         each of its bound forms' (forms.py), and Reckless's rush, held within [Limits]."""
-        st = self.stance if stance is None else stance
-        if not st:
-            return default
+        st = (self.stance if stance is None else stance) or BASE
         v = self.data.ini_num("Stances.ini", st, key, default)
         if st == self.stance and self.forms_bound:
             v *= self.form_product(key) * self.rush_factor(key)
@@ -32,33 +33,36 @@ class StanceMixin:
         return self.data.ini_num("Stances.ini", "Stances", key, default)
 
     def choose_stance(self, name):
-        """The player picked a stance (the same again: back to none). It takes hold after Change.Seconds."""
-        name = trim(name).capitalize()
+        """The player picked a stance (the same again, or none: back to Cautious). It takes hold after
+        Change.Seconds."""
+        name = trim(name).capitalize() or BASE
+        if name in ("None", "-"):
+            name = BASE
         if name not in STANCES:
             return
         if name == self.stance and not self.stance_next:
-            name = ""
+            name = BASE
         if name == (self.stance_next or self.stance):
             return
-        self.stance_next = name or "-"
+        self.stance_next = name
         self.stance_at = self.now + int(self.stance_setting("Change.Seconds", 1) * 1000)
         self.dirty_me = True
 
     def stance_tick(self):
         if self.stance_next and self.now >= self.stance_at:
-            name = "" if self.stance_next == "-" else self.stance_next
+            name = self.stance_next if self.stance_next in STANCES else BASE
             self.stance_next = ""
             if name == self.stance:
                 return
             self.stance = name
             self.display_message(WORDS[name], "INFO")
-            self.play_sound("Stance_" + (name or "None"))
+            self.play_sound(SOUNDS.get(name, "Stance_" + name))
             self.dirty_me = True
 
     def end_sneaking(self):
         """A blow struck or a spell cast: you're seen for what you are."""
         if self.stance == "Sneaking" or self.stance_next == "Sneaking":
-            self.stance, self.stance_next = "", ""
+            self.stance, self.stance_next = BASE, ""
             self.dirty_me = True
 
     def stance_walk(self):
@@ -169,6 +173,6 @@ class StanceMixin:
         return False
 
     def stance_state(self):
-        return {"stance": self.stance, "stance_next": "" if self.stance_next == "-" else self.stance_next,
+        return {"stance": self.stance or BASE, "stance_next": self.stance_next,
                 "stance_ms": max(0, self.stance_at - self.now) if self.stance_next else 0, "forms": self.forms_state(),
                 "forms_most": self.forms_most(), "stance_tips": self.stance_tips()}

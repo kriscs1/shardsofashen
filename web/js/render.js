@@ -135,6 +135,9 @@ export function addFx(ev, nowMs) {
     f.end = nowMs + 3000;
   } else if (ev.t === "nudge") {
     f.end = nowMs + ev.ms;
+  } else if (ev.t === "swing") {                  // (a blow: drawSwing, the sword out of the hand for it)
+    f.end = nowMs + Math.max(120, +ev.ms || 240);
+    V.fx = V.fx.filter((o) => !(o.t === "swing" && o.uid === ev.uid));
   } else if (ev.t === "skillpop") {
     f.end = nowMs + 1600;
     V.fx = V.fx.filter((o) => !(o.t === "skillpop" && o.uid === ev.uid));
@@ -151,6 +154,11 @@ export function addFx(ev, nowMs) {
 function entityAt(uid) {
   if (uid === S.uid) return myPlayer();
   return S.ents.get(uid) || null;
+}
+
+function swingOf(uid, now) {
+  for (const f of V.fx) if (f.t === "swing" && f.uid === uid && now >= f.start && now < f.end) return f;
+  return null;
 }
 
 function nudgeOf(uid, now) {
@@ -347,8 +355,10 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
         if (!e.gh) ctx.globalAlpha = 0.72;
       }
       ctx.drawImage(e.fz ? held(im, e.fz) : im, x, y);
-      if (e.k === T.PLAYER) drawWorn(ctx, e, x, y);
+      const sw = e.k === T.PLAYER ? swingOf(e.u, now) : null;
+      if (e.k === T.PLAYER) drawWorn(ctx, e, x, y, sw);
       if (crouch) ctx.restore();
+      if (sw) drawSwing(ctx, e, x, y, sw, now);
       if (e.sc && !e.gh) drawStance(ctx, e, x, y, now, false);
     }
     ctx.globalAlpha = 1;
@@ -688,13 +698,13 @@ function drawGlows(ctx, shown, cam) {
 
 // ----- a stance shown on whoever's in it (stances.py): Fighting a red ring at the feet; Channelling a blue one and Shard
 // motes going round; Sneaking a dark one (and the crouch, in draw). under: the ring, drawn before the body
-const STANCE_RING = { Fighting: [200, 60, 40], Channelling: [90, 150, 255], Sneaking: [20, 20, 30] };
+const STANCE_RING = { Cautious: [130, 160, 100], Fighting: [200, 60, 40], Channelling: [90, 150, 255], Sneaking: [20, 20, 30] };
 function drawStance(ctx, e, x, y, now, under) {
   const col = STANCE_RING[e.sc];
   if (!col) return;
   const cx = x + e.w / 2, fy = y + e.h - 2;
   if (under) {
-    const pulse = e.sc === "Sneaking" ? 0.35 : 0.42 + 0.14 * Math.sin(now / 260);
+    const pulse = e.sc === "Cautious" ? 0.22 : e.sc === "Sneaking" ? 0.35 : 0.42 + 0.14 * Math.sin(now / 260);   // (Cautious: faint)
     ctx.save();
     ctx.globalAlpha = pulse;
     ctx.strokeStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
@@ -724,8 +734,38 @@ function drawStance(ctx, e, x, y, now, under) {
   ctx.globalAlpha = 1;
 }
 
-function drawWorn(ctx, e, x, y) {
-  const worn = e.worn || [];
+function drawSwing(ctx, e, x, y, f, now) {
+  // (a blow: the blade swept in an arc towards what it's aimed at, a bright edge and a fading trail behind it)
+  const t = entityAt(f.to);
+  const cx = x + e.w / 2, cy = y + e.h * 0.58;
+  const facing = { 1: -Math.PI / 2, 2: 0, 4: Math.PI / 2, 8: Math.PI }[(e.i || "").slice(-2, -1)] ?? 0;   // (gone: the way you face)
+  const aim = t ? Math.atan2(t.dy + t.h / 2 - (e.dy + e.h * 0.58), t.dx + t.w / 2 - (e.dx + e.w / 2)) : facing;
+  const k = clamp((now - f.start) / (f.end - f.start), 0, 1), ease = 1 - (1 - k) * (1 - k);
+  const side = Math.cos(aim) >= 0 ? 1 : -1, from = aim - 1.25 * side, to = aim + 1.05 * side;
+  const at = from + (to - from) * ease, len = f.wpn ? 20 : 12, r0 = f.wpn ? 6 : 4;
+  ctx.save();
+  ctx.lineCap = "round";
+  for (let j = 5; j >= 1; j--) {                 // (the trail: the blade where it was, fading)
+    const a = from + (to - from) * Math.max(0, ease - j * 0.07);
+    ctx.globalAlpha = (1 - k) * 0.5 * (1 - j / 6);
+    ctx.strokeStyle = "rgb(230,236,246)"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * (r0 + 4), cy + Math.sin(a) * (r0 + 4));
+    ctx.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
+    ctx.stroke();
+  }
+  ctx.globalAlpha = k < 0.85 ? 1 : (1 - k) / 0.15;
+  ctx.strokeStyle = "rgb(70,62,56)"; ctx.lineWidth = 4;                     // (the blade: outlined, then steel)
+  ctx.beginPath(); ctx.moveTo(cx + Math.cos(at) * r0, cy + Math.sin(at) * r0);
+  ctx.lineTo(cx + Math.cos(at) * (r0 + len), cy + Math.sin(at) * (r0 + len)); ctx.stroke();
+  ctx.strokeStyle = f.wpn ? "rgb(214,222,234)" : "rgb(232,200,160)"; ctx.lineWidth = 2;   // (no sword: a fist's sweep)
+  ctx.beginPath(); ctx.moveTo(cx + Math.cos(at) * r0, cy + Math.sin(at) * r0);
+  ctx.lineTo(cx + Math.cos(at) * (r0 + len), cy + Math.sin(at) * (r0 + len)); ctx.stroke();
+  ctx.restore();
+}
+
+function drawWorn(ctx, e, x, y, sw) {
+  const worn = (e.worn || []).filter((it) => !(sw && sw.wpn && it === sw.wpn));   // (swinging: the sword's in the sweep)
   if (!worn.length) return;
   const sit = /_Sit[1248]$/.test(e.i || "");                // (sitting: Worn_<Item>_Sit<Dir>)
   let suffix = sit ? (e.i || "").slice(-5) : (e.i || "").slice(-2);

@@ -1,4 +1,4 @@
-"""Stance forms: ways of holding the Shards in you, each of one stance (Fighting, Channelling, Sneaking), taught by
+"""Stance forms: ways of holding the Shards in you, each of one stance (Cautious, Fighting, Channelling, Sneaking), taught by
 people round the world. Every number is data\\Stances.ini: a form is a section [<Stance>.<Form>] and its numbers
 multiply the stance's own (what it doesn't say is the stance's); [Limits] holds every number within reach, so a stack
 can't run away. Only the bound forms of the stance you're in count: six on one stance is a specialist, two on each
@@ -11,8 +11,9 @@ activated (Bind forms, on its travel map), for Shards (Shards.ini [Forms]); unbi
 The four with code of their own: Shieldwall (Draw: monsters near come for you before your friends - npcs.py),
 Listening (Hear.Shards: remnants, clusters and Shard secrets near you show), Drinking (Drink.*: remnants on the
 ground near you drunk straight off, healing you; the Shards whisper), Ranger's Tread (Woods.Noise: quieter on grass
-and in woods; Calm.Animals: prey doesn't run from you). Reckless's rush, Duellist's parry and Dirty Fighting's daze
-are numbers read where the blow is (player_combat.py)."""
+and in woods; Calm.Animals: prey doesn't run from you). Reckless's rush, Duellist's parry, Dirty Fighting's daze and
+Riposte's answer are numbers read where the blow is (player_combat.py); Sure Step's Calm, how long a fight lasts after
+a blow (calm_ms)."""
 from ashen import ini
 from ashen.lb import val, trim, lbstr, pretty, random_number
 
@@ -21,7 +22,7 @@ from .remnants import REMNANT, LIVING
 from .shards import shard_words
 
 STANCES_INI = "Stances.ini"
-FORM_STANCES = ("Fighting", "Channelling", "Sneaking")
+FORM_STANCES = ("Cautious", "Fighting", "Channelling", "Sneaking")
 TEXT_KEYS = {"TITLE", "WHAT", "COLOUR", "TAUGHT.BY", "TAUGHT.IF", "TAUGHT.WORDS", "WOODS.GROUNDS"}
 # The numbers in words, for the tips (the stance buttons, the journal, Bind forms), in the order they're shown: the key,
 # its words ({v}: the number), how it's shown (x: a change, +15%; of: a part, 45%; %: a chance; n: as it is; tiles: a
@@ -32,6 +33,7 @@ FIGURES = (
     ("SPELL.POWER", "spell power {v}", "x", 1), ("SPELL.DURATION", "wards and boosts last {v}", "x", 1),
     ("RESIST.STATUS", "{v} to shrug off a drain or poison", "%", 1),
     ("PARRY", "{v} to turn aside a melee blow", "%", 1), ("DAZE", "{v} for a blow to daze", "%", 1),
+    ("RIPOSTE", "{v} to answer a blocked blow", "%", 1),
     ("RUSH.SECONDS", "for {v}s", "rush", 1), ("SNEAK.ATTACK", "an unseen blow up to {v} times as hard", "n", 1),
     ("NOISE", "heard {v}", "x", -1), ("SIGHT", "seen {v}", "x", -1),
     ("WOODS.NOISE", "heard {v} on grass and in woods", "x", -1),
@@ -40,9 +42,9 @@ FIGURES = (
     ("HEAR.SHARDS", "Shards within {v} show", "tiles", 1),
     ("DRINK.REACH", "remnants within {v} are drunk", "tiles", 1), ("DRINK.HEAL", "{v} hp a Shard drunk", "n", 1),
     ("CALM.ANIMALS", "animals don't run from you", "flag", 1),
-    ("WALK", "pace {v}", "x", 1), ("SPELL.COST", "spells cost {v}", "x", -1),
+    ("WALK", "pace {v}", "x", 1), ("CALM", "out of a fight in {v} the time", "of", -1), ("SPELL.COST", "spells cost {v}", "x", -1),
     ("SPELL.HURT", "magic in a blow hurts {v}", "x", -1), ("STATUS.HURT", "drains and poisons last {v}", "x", -1))
-SUM_KEYS = {"PARRY", "DAZE", "DAZE.SECONDS", "THIEVING", "DRAW", "HEAR.SHARDS", "DRINK.REACH", "DRINK.HEAL",
+SUM_KEYS = {"PARRY", "DAZE", "RIPOSTE", "DAZE.SECONDS", "THIEVING", "DRAW", "HEAR.SHARDS", "DRINK.REACH", "DRINK.HEAL",
             "CALM.ANIMALS", "RUSH.SECONDS"}
 
 
@@ -141,6 +143,11 @@ class FormMixin:
         if key.upper() not in ("DAMAGE", "WALK") or self.now >= self.rush_until:
             return 1.0
         return self.form_product("Rush." + key)
+
+    def calm_ms(self, ms):
+        """How long after a blow you're still in a fight (hp waits to mend, sleep and encounters wait): Sure Step's
+        Calm cuts it."""
+        return ms * self.form_limit("Calm", self.form_product("Calm")) if self.forms_bound else ms
 
     def draw_reach(self):
         """Shieldwall: how near a monster must be to come for you first (0: it doesn't)."""
@@ -386,8 +393,6 @@ class FormMixin:
     def stance_figures(self, st):
         """What a stance does for you, in numbers: its own, times your bound forms of it, within [Limits]; sneaking,
         how far you're heard and seen with your Stealth. [good words, bad words]."""
-        if not st:
-            return ["nothing gained", "nothing given up"]
         forms = self.forms_on(st)
         said = {k for f in forms for k in f["nums"]}
         sneak = st == "Sneaking"
@@ -437,7 +442,7 @@ class FormMixin:
                  ", ".join(t for t, _ in self.form_figures(f)) or f["what"], f["colour"]] for f in self.forms_known()]
 
     def stance_tips(self):
-        return {st: self.stance_figures(st) for st in ("",) + FORM_STANCES}
+        return {st: self.stance_figures(st) for st in FORM_STANCES}
 
     def form_colours(self):
         return [f["colour"] for f in self.forms_on()]

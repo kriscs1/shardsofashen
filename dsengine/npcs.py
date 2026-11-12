@@ -1276,7 +1276,7 @@ class NPCMixin:
         away_now = (sched == "Day" and night) or (sched == "Night" and not night)
         far = near is None or near[1] > 380 or indoors_own   # (upstairs at home: gone at once, downstairs the while)
         if away_now and not e.sched_away:
-            person = self.data.animation_available(e.name) == 4
+            person = self.data.is_person(e.name)
             tent = self.nearest_shelter(e) if sched == "Day" and person and self.nearest_door(e) is None else None
             if sched == "Day" and not far:
                 door = self.bed_of(e)                                # (a cat to its bed: Sleeping_Jimmy is it, abed)

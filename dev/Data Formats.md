@@ -539,7 +539,9 @@ missing.
 
 A form is a section `[<Stance>.<Form>]` (`[Fighting.Shieldwall]`): `Title=`, `What=` (a line for the journal),
 `Colour=r,g,b` (round the stance's ring), and its numbers, each times the stance's own (`Defence=1.4`, `Walk=0.8`;
-held within `[Limits]`). `Taught.By=` an Id or a kind, `Taught.If=` a condition and `Taught.Words=` what's said:
+held within `[Limits]`), or added up (`Riposte=15`: the per cent chance a blocked blow is answered with one of yours), and
+`Calm=0.5` (out of a fight in that share of the time: health back, sleep and encounters sooner). The stances are
+`[Cautious]` (where everyone starts), `[Fighting]`, `[Channelling]` and `[Sneaking]`. `Taught.By=` an Id or a kind, `Taught.If=` a condition and `Taught.Words=` what's said:
 the next talk to them once it's true shows you the form (`$Player.Son` and the like are filled in), then goes on
 into their own talk. A script can teach one too (`Learn.Stance Fighting Shieldwall`). How many can be bound and
 what binding costs are in `Shards.ini [Forms]`. Written by `dev\migrate\build_forms.py`.

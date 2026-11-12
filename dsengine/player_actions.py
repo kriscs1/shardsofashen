@@ -328,7 +328,8 @@ class ActionsMixin:
         if verb == "Walk here":
             if not self.user_input_enabled or self.ab_mode or self.ride is not None:
                 return
-            self.player_attack_target = None
+            self.player_attack_target = None            # (clicked elsewhere: the fight or the errand on its way, off)
+            self.stop_player_walk()
             m, tx, ty = self.w.tile_at(self.player.z, vx, vy)
             if m is not None:
                 lk = m.lock_at.get((tx, ty))

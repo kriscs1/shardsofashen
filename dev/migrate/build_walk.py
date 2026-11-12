@@ -14,7 +14,8 @@ Each sprite in sprites\\Entities is the standing pose; the frames are made from 
       east   the face slides towards the east and the back of the head shows hair: a three-quarter view
       west   the east frames mirrored
   * SIDE (animals: drawn side-on, all facing west). Two directions, east (mirrored) and west; walking going north or
-    south keeps the way it last faced. Frames b and c bob the body and move the legs apart and together.
+    south keeps the way it last faced. Frames b and c bob the body and move the legs apart and together; a HOP
+    animal's (the rabbit's) are hops instead, the whole of it off the ground, stretched out and then tucked in.
   * FLAP (the bat and the giant spider: symmetric, seen from the front). Two directions; the frames bob.
 The game (animation_available in ashen\\entities.py) loads sprites\\Walk\\<Name>1a.png ... the first time an entity of
 that name is shown: all 12 frames = four directions, <Name>2a..c and <Name>8a..c only = side-on.
@@ -29,7 +30,8 @@ import build_people as BPEOPLE
 from common import p
 
 FRONT = ["Cave_Troll", "Bog_Troll", "Frost_Troll"]          # the people and goblins come from build_people.py
-SIDE = ["Wolf", "Rat", "Cow", "Sheep", "Chicken", "Dog", "Rabbit", "Duck", "Bear", "Snow_Wolf", "Alpha_Wolf"]          # all drawn facing west
+SIDE = ["Wolf", "Rat", "Cow", "Sheep", "Chicken", "Dog", "Rabbit", "Duck", "Bear", "Snow_Wolf"]          # all drawn facing west
+HOP = {"Rabbit"}               # side-on, but hopping: off the ground in frames b and c, not stepping
 FLAP = ["Bat", "Giant_Spider", "Butterfly", "Scorpion", "Dragon"]
 OUT = "Walk"
 BALD = {"Skeleton"}            # the back of the head is shaded skin (or bone), whatever frames the face
@@ -298,6 +300,29 @@ def animal_frames(img):
     return frames, dict(top=top, bottom=bottom, leg_top=leg_top)
 
 
+def hop_frames(img):
+    """The walk is a run of hops: a = on the ground, b = high in the air and stretched out (the head forward, the
+    hind legs kicked back), c = lower, tucked in for the landing. Drawn facing west, as the standing pose is."""
+    top, bottom = opaque_rows(img)
+    lift = min(3, top)
+
+    def hop(up, stretch):
+        out = shift_rows(img, top, bottom, -up)
+        if stretch:
+            for y in range(top - up, top - up + (bottom - top) // 2):          # (the head and ears forward)
+                out[y] = out[y][1:] + [None]
+            y = bottom - up                                                 # (the hind feet back)
+            out[y] = [None] + out[y][:-1]
+        return out
+
+    west = {"a": img, "b": hop(lift, True), "c": hop(max(1, lift - 2), False)}
+    frames = {}
+    for f, im in west.items():
+        frames["8" + f] = im
+        frames["2" + f] = mirror(im)
+    return frames, {}
+
+
 def flap_frames(img):
     top, bottom = opaque_rows(img)
     up = shift_rows(img, top, bottom, -1)
@@ -316,7 +341,8 @@ def frames_for(name):
     if name in BPEOPLE.PEOPLE:                      # drawn on the player's body: real side and back views
         return BPEOPLE.frames(name), {}
     img = K.load("Entities", name)
-    fn = front_frames if name in FRONT else animal_frames if name in SIDE else flap_frames
+    fn = (front_frames if name in FRONT else hop_frames if name in HOP else animal_frames if name in SIDE
+          else flap_frames)
     return fn(img)
 
 
@@ -338,7 +364,10 @@ def main():
             wanted.add(name + key)
             if K.save(OUT, name + key, im):
                 written += 1
-    stale = [f for f in os.listdir(p("sprites", OUT)) if f.lower().endswith(".png") and f[:-4] not in wanted]
+    dirs = {name: {k[0] for k in frames} for name, (frames, _) in made.items()}
+    stale = [f for f in os.listdir(p("sprites", OUT)) if f.lower().endswith(".png") and f[:-4] not in wanted and
+             f[-6:-5] in dirs.get(f[:-6], ())]      # (only its own: other builders draw frames here too, build_wolf.py
+                                                    # the bear's facings towards you and away)
     for f in stale:
         os.remove(p("sprites", OUT, f))
     print("%d frame(s) for %d sprites, %d written, %d stale removed" % (len(wanted), len(made), written, len(stale)))

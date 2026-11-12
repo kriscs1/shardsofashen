@@ -148,7 +148,7 @@ export function myPlayer() {
   return { u: S.uid, k: 1, n: S.name, i: p.gstand || p.i, x: p.x, y: p.y, dx: p.dx, dy: p.dy, w, h,
     a: me.visible || me.invisible_left || me.swap ? 1 : 0, gh: me.invisible_left ? 1 : 0,
     hp: me.hp, mh: me.max_hp, b: me.hp < me.max_hp ? 1 : 0, worn: me.worn || [], look: me.look, self: true,
-    sc: me.swap ? "" : me.stance || "",
+    sc: me.swap ? "" : me.stance || "Cautious",
     sf: me.swap ? null : (me.forms || []).filter((f) => f[2] && f[0] === me.stance).map((f) => f[4]) };
 }
 

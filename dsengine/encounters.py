@@ -80,7 +80,7 @@ class Encounters:
         w, p = self.w, s.player
         if p.z != 0 or s.cur_map is None or not p.alive or s.script_running:
             return False
-        if s.now - s.player_last_combat < CALM_MS:
+        if s.now - s.player_last_combat < s.calm_ms(CALM_MS):
             return False
         m, tx, ty = w.tile_at(p.z, p.cx, p.fy)
         if m is None or m.roof[m.cell(tx, ty)]:

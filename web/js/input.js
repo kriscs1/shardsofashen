@@ -119,7 +119,7 @@ export function mouseMove(x, y) {
   const st = !msg && S.me ? stanceAt(x, y) : undefined;
   if (st !== undefined) {
     U.hover = "stance:" + st;
-    const chosen = st === (S.me.stance_next || S.me.stance || "");
+    const chosen = st === (S.me.stance_next || S.me.stance || "Cautious");
     const forms = (S.me.forms || []).filter((f) => f[2] && f[0] === st).map((f) => f[1]);   // (its bound forms)
     msg = `${stanceTip(st)}${forms.length ? "|Forms: " + forms.join(", ") : ""}|~${chosen ? "The stance you're in" : (M.on ? "Tap" : "Click") + " to take it"}${M.on ? "" : " (Q: the next one)"}`;
   }
@@ -279,7 +279,7 @@ export function mouseDown(button, x, y) {
   if (left && !U.rcm && (desk || M.chat) && scrollBarClick(x, y)) return;
   const st = left && !U.rcm && S.me ? stanceAt(x, y) : undefined;
   if (st !== undefined) {
-    const chosen = st === (S.me.stance_next || S.me.stance || "");
+    const chosen = st === (S.me.stance_next || S.me.stance || "Cautious");
     if (M.on && chosen) { U.stanceOpen = !U.stanceOpen; return; }   // (a phone: the one you're in opens the rest)
     U.stanceOpen = false;
     if (!chosen) send({ t: "stance", stance: st });

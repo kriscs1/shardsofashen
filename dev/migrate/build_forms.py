@@ -1,4 +1,4 @@
-"""Stance forms (dsengine/forms.py): each stance's forms, taught by people round the world.
+"""Stance forms (dsengine/forms.py): each stance's forms (Cautious too), taught by people round the world.
   * data\\Stances.ini: a section for each form ([Fighting.Shieldwall]...): its title, what it does, its colour round
     the stance's ring, who teaches it and when (Taught.By= an NPC's Id, or its kind; Taught.If= a condition;
     Taught.Words= what they say), and its numbers, times the stance's own. [Limits]: every number's least and most.
@@ -13,8 +13,32 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import Ini, p                      # noqa: E402
 
 FORMS = [   # (section, [(key, value)])
+    ("Cautious.Shield_Wall", [
+        ("Title", "Shield Wall"),
+        ("What", "A firmer guard still; slower on foot."),
+        ("Colour", "120,150,190"),
+        ("Taught.By", "Palace_Captain"), ("Taught.If", "$Skill.Defence>=10"),
+        ("Taught.Words", "Captain Hart watches you square up, and nods. \"Good: you don't charge in. Now hold it "
+                         "properly. Shield high, chin down, and let them break on you.\""),
+        ("Defence", "1.3"), ("Walk", "0.85")]),
+    ("Cautious.Sure_Step", [
+        ("Title", "Sure Step"),
+        ("What", "Quicker on foot, and out of a fight sooner (you start to heal sooner after one)."),
+        ("Colour", "190,200,120"),
+        ("Taught.By", "Captain_Rook"), ("Taught.If", "$Skill.Defence>=5"),
+        ("Taught.Words", "\"You walk like a landsman, matey,\" Rook says. \"Light on the feet: a deck pitches, and so "
+                         "does a fight. Step back, breathe, and it's behind you.\""),
+        ("Walk", "1.12"), ("Calm", "0.5")]),
+    ("Cautious.Riposte", [
+        ("Title", "Riposte"),
+        ("What", "A blow you block is sometimes answered with one of yours; a weaker guard."),
+        ("Colour", "220,150,110"),
+        ("Taught.By", "Captain"), ("Taught.If", "$Attr.BanditWay=1"),
+        ("Taught.Words", "\"You held off those bandits better than my own lads,\" Hale says. \"Here's one more "
+                         "thing: when you turn a blow, don't wait. Answer it, while they're still open.\""),
+        ("Riposte", "15"), ("Defence", "0.9")]),
     ("Fighting.Shieldwall", [
-        ("Title", "Shieldwall"),
+        ("Title", "Hold the Line"),
         ("What", "A much firmer guard, slower on foot; monsters near come for you before your friends."),
         ("Colour", "170,180,200"),
         ("Taught.By", "Smuggler_Sergeant"), ("Taught.If", "$Attr.SmugglerSide=2"),
@@ -110,11 +134,11 @@ FORMS = [   # (section, [(key, value)])
 ]
 
 LIMITS = [  # (key, least,most): every stance number, however the forms stack
-    ("Attack", "0.5,2"), ("Damage", "0.5,2"), ("Defence", "0.4,2"), ("Walk", "0.35,1.2"), ("Spell.Power", "0.5,2"),
+    ("Attack", "0.5,2"), ("Damage", "0.5,2"), ("Defence", "0.4,2"), ("Walk", "0.35,1.25"), ("Spell.Power", "0.5,2"),
     ("Spell.Duration", "0.5,3"), ("Spell.Cost", "0.5,2.5"), ("Resist.Status", "0,90"), ("Spell.Hurt", "0.5,2"),
     ("Status.Hurt", "0.5,2"), ("Noise", "0.2,2"), ("Sight", "0.2,1.5"), ("Sneak.Attack", "1,4"), ("Parry", "0,40"),
     ("Daze", "0,40"), ("Thieving", "0,40"), ("Watched", "0.2,1"), ("Draw", "0,320"), ("Hear.Shards", "0,480"),
-    ("Drink.Reach", "0,160")]
+    ("Drink.Reach", "0,160"), ("Riposte", "0,40"), ("Calm", "0.25,1")]
 
 SHARDS = [  # Shards.ini [Forms]
     ("Most", "6", "Most: forms bound at once. Bind: Shards to bind one (Bind.<Form>: one that costs more or less);"),

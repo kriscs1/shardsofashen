@@ -59,7 +59,7 @@ read it back as $Variable.n.
   $Tax.Due                   What the Tax Collector would have of this player's gold just now.
   $Player.Malaria            1 if the player has malaria just now (dsengine/disease.py), else 0.
   $Player.Shardsong          1 if the Shardsong is in the player's head just now (dsengine/disease.py), else 0.
-  $Player.Stance             The stance the player is in: Fighting, Channelling, Sneaking, or - for none (dsengine/stances.py).
+  $Player.Stance             The stance the player is in: Cautious, Fighting, Channelling or Sneaking (dsengine/stances.py).
   $Shardstones.Active        How many shardstones the player has activated (the Shardgate needs Shards.ini Shardgate.Stones).
   $Player.Health             The player's hitpoints just now.
   $Player.Health.Max         The player's hitpoints when they're fully well (a doctor: >Conditional $Player.Health<$Player.Health.Max).

@@ -106,7 +106,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.w = world
         self.data = world.data
         self.account = ""                                               # (the Hallisium account it's part of, if any)
-        self.stance, self.stance_next, self.stance_at = "", "", 0      # (stances.py: how you hold yourself)
+        self.stance, self.stance_next, self.stance_at = "Cautious", "", 0   # (stances.py: how you hold yourself)
         self.forms_learnt, self.forms_bound = [], []                    # (forms.py: "Fighting.Shieldwall"...)
         self.forms_at = self.whisper_at = self.rush_until = 0
         self.party_id, self.followers, self.greet_at, self.last_seen_before = 0, [], 0, 0   # (together.py)
@@ -189,6 +189,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         self.player_last_attack = self.player_last_combat = self.player_last_cast = 0
         self.foe_fight_at = -FIGHT_MUSIC_MS             # (the last blow given or taken with a foe: view.py "cb")
         self.player_attack_target = None
+        self.target_shown = 0                           # (the foe the browser was last told of: view.py)
         self.keyboard_direction = 0
         self.player_walk_active = False
         self.player_walk_x = self.player_walk_y = 0
@@ -872,6 +873,11 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         p.path_goal = self.w.path_goal_key(x, y, rng)
         self.w.plan_path(p, x, y, rng, 2200, self)
 
+    def target_sent(self):
+        """The foe you're fighting, as the browser's told it (its red ring): kept, so a fight dropped anywhere is told."""
+        self.target_shown = self.player_attack_target.uid if self.player_attack_target is not None else 0
+        return self.target_shown
+
     def stop_player_walk(self):
         self.player_walk_active = False
         self.pending_verb = ""
@@ -1264,7 +1270,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             return w.dn("Sleep", "No.Day", "There's no day or night to sleep through.")
         p = self.player
         secs = val(w.dn("Sleep", "Fight.Seconds", "10"))
-        if self.player_last_combat and 0 <= self.now - self.player_last_combat < secs * 1000:
+        if self.player_last_combat and 0 <= self.now - self.player_last_combat < self.calm_ms(secs * 1000):
             return w.dn("Sleep", "Fighting", "You're too wound up to sleep after that fight.")
         reach = val(w.dn("Sleep", "Foe.Range", "320"))
         for e in w.ents:
@@ -1340,7 +1346,7 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
             "hotbar": self.hotbar[:self.hotbar_n], "status": sorted(self.status), "input": self.user_input_enabled,
             "visible": self.player_visible, "sprite": self.player_sprite_base, "worn": self.worn_items(), "look": self.look,
             "view": self.fog_view_distance + self.spell_sight_bonus,
-            "target": self.player_attack_target.uid if self.player_attack_target is not None else 0,
+            "target": self.target_sent(),
             "level": self.player_level(), "arena": self.on_arena_ground(),
             "pvp": self.pvp_badge(),
             "marked": max(0, int(self.pvp_mark_until - self.now)), "marked_still": self.pvp_mark_still(), "home": self.home_state(), "cooldowns": {k: max(0, v - self.now) for k, v in self.cooldowns.items() if v > self.now},

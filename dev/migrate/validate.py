@@ -1133,16 +1133,16 @@ def STANCE_FORMS():
 
 _STANCE_FORMS = None
 ENGINE_COUNTS = ("Kills", "ArenaWins", "ArenaLosses", "Thefts", "RemnantsAbsorbed")   # (counted by the engine itself)
-FORM_STANCES = ("Fighting", "Channelling", "Sneaking")
+FORM_STANCES = ("Cautious", "Fighting", "Channelling", "Sneaking")
 # (a form's numbers: times the stance's own, or its own - forms.py; its words; who teaches it)
 FORM_KEYS = {"Title", "What", "Colour", "Taught.By", "Taught.If", "Taught.Words", "Attack", "Damage", "Defence",
              "Walk", "Spell.Power", "Spell.Duration", "Spell.Cost", "Resist.Status", "Spell.Hurt", "Status.Hurt",
-             "Noise", "Sight", "Sneak.Attack", "Draw", "Rush.Seconds", "Rush.Damage", "Rush.Walk", "Parry", "Daze",
+             "Noise", "Sight", "Sneak.Attack", "Draw", "Rush.Seconds", "Rush.Damage", "Rush.Walk", "Parry", "Daze", "Riposte", "Calm",
              "Daze.Seconds", "Hear.Shards", "Drink.Reach", "Drink.Heal", "Thieving", "Watched", "Woods.Noise",
              "Woods.Grounds", "Calm.Animals"}
 
 
-def check_stances():
+def check_stances(skills=()):
     """data\\Stances.ini's forms ([<Stance>.<Form>]): known keys, numbers, a colour, a teacher there is (an Id on
     a map line, or a kind) and a condition that reads; [Limits]: least,most."""
     path = p("data", "Stances.ini")
@@ -1176,7 +1176,7 @@ def check_stances():
                     err(r, "[%s] Taught.By=%s: no NPC has that Id on its map line, and it's no kind" % (sec, v))
             elif k == "Taught.If":
                 writes = dict(attribute_writes(), **{a: {"*"} for a in ENGINE_COUNTS})
-                check_condition("%s [%s] Taught.If" % (r, sec), v, set(), ENTITIES_INI, writes)
+                check_condition("%s [%s] Taught.If" % (r, sec), v, set(skills), ENTITIES_INI, writes)
             elif k not in ("Title", "What", "Taught.Words", "Woods.Grounds") and not k.startswith("Whisper.") and \
                     not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
@@ -3155,7 +3155,7 @@ def main():
     check_unique_ids()
     check_place_refs()
     check_towns()
-    check_stances()
+    check_stances(skills)
     check_saves(skills)
     check_minimap()
     check_gathering(entities_ini, tiles_ini, skills)

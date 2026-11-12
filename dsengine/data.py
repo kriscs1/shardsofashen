@@ -252,6 +252,12 @@ class GameData:
             cache[base] = k
         return k
 
+    FOUR_LEGS = ("Wolf", "Hound", "Dog", "Bear", "Whitefang")     # (four facings too, but animals: build_wolf.py)
+
+    def is_person(self, name):
+        """Drawn as a person: walking frames all four ways, and not one of the animals that come at you that way."""
+        return self.animation_available(name) == 4 and name.split("_")[-1] not in self.FOUR_LEGS
+
     def first_image(self, etype, name):
         """The picture an entity of etype called name starts with, and whether it is animated."""
         if etype in (PLAYER, NPC) and self.animation_available(name) > 0:
