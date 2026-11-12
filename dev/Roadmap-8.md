@@ -84,22 +84,22 @@ tested and committed.
 - [x] Tests: cancelling a walk-to-attack, leaving a fight from inside a creature.
 
 ## 5. Quests and the journal
-- [ ] "Quest objective met." in the chat when a step is done (short, with its sound, once).
-- [ ] The tracked quest's arrow points the way for every step, handing in included; every quest checked for one.
-- [ ] Followed quests highlighted in the journal.
-- [ ] Quest complete: no "the thanks of those you helped", no "splendid"; its rewards shown with their pictures (or
+- [x] "Quest objective met." in the chat when a step is done (short, with its sound, once).
+- [x] The tracked quest's arrow points the way for every step, handing in included; every quest checked for one.
+- [x] Followed quests highlighted in the journal.
+- [x] Quest complete: no "the thanks of those you helped", no "splendid"; its rewards shown with their pictures (or
       "None").
-- [ ] Mary's notes rewritten to be interesting (`build_wonders.py` `NOTES`): each tells something about her, the
+- [x] Mary's notes rewritten to be interesting (`build_wonders.py` `NOTES`): each tells something about her, the
       Pact or the place it's found in, and none points at a thing that isn't in the game (the first, "I told him the jar
       was for the child", goes).
-- [ ] Tests: the objective message, an arrow for each step of each quest.
+- [x] Tests: the objective message, an arrow for each step of each quest.
 
 ## 6. The bag, the bank and the hotbar
-- [ ] Bank X: type how many. The choices follow the stack (1, 5, 10, All, X; only those it has).
-- [ ] Drop X, the same way.
-- [ ] No [Add to hotbar] in the right-click menu: drag to the hotbar, drag to rearrange it, drag out of the bag to drop.
-- [ ] Desktop and phone (a finger's drag; a long press where a drag won't do).
-- [ ] Tests: banking and dropping a typed amount, more than the stack, nothing.
+- [x] Bank X: type how many. The choices follow the stack (1, 5, 10, All, X; only those it has).
+- [x] Drop X, the same way.
+- [x] No [Add to hotbar] in the right-click menu: drag to the hotbar, drag to rearrange it, drag out of the bag to drop.
+- [x] Desktop and phone (a finger's drag; a long press where a drag won't do).
+- [x] Tests: banking and dropping a typed amount, more than the stack, nothing.
 
 ## 7. Words on screen
 - [ ] Every entity: a hover line (one line) and examine text, separate (`Hover.Info`? in `validate.py`).

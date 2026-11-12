@@ -238,6 +238,8 @@ Voice=Woman                ; optional: its greeting as you start talking to it (
                            ; Croak Beast Sigh); each one placed has a pitch of its own. None: silent (a notice, a sign)
 Growl=Goblin               ; optional: a monster's growl as it comes for you, heard close by (sounds\Growl_<Kind>.wav,
                            ; build_voices.py GROWLS: Goblin Troll Wraith Dragon)
+Animal=1                   ; optional: an animal, not a person, however it's drawn (a wolf facing four ways: it slips
+                           ; away at night rather than going indoors; build_wolf.py sets it)
 Friend.If.Wearing=Mending_Robe   ; optional: it takes you for one of its own while you wear that (your gear alone;
                            ; dsengine\disguise.py); a blow or a spell in its sight gives you away on that map a while
 Absorbs.Remnants=1         ; optional (a boss): hurt, it goes to Shard Remnants near it and heals by them
@@ -607,7 +609,10 @@ A new character's start (`Session.new_player_start`). Characters themselves are 
   sand and snow (made from the grass ones by dev\migrate
 egion_tiles.py, with the same Walkable.Data).
 * Quests.ini Marker<N>=<map> <tile x> <tile y>[;<map> <x> <y>...]: while the quest's attribute is N (in progress), a
-  yellow cross on the minimap at each place (only for maps on the level you're on). Made by dev\migrate\build_travel.py.
+  yellow cross on the minimap at each place (only for maps on the level you're on; off the minimap, an arrow at its rim
+  points to the nearest). A place Id does as well. A step with no marker points at the quest's giver. Once every count
+  its stage shows is full ("slay five ($BanditsSlain of 5)"), the marks move to `Met<N>=` (the same form), else to
+  the giver: where it's handed in. Made by dev\migrate\build_travel.py.
 * data\Ambient.ini [Maps] <map>=<name>: the background sound looped on that map, sounds\Ambient_<name>.wav (Forest,
   Waves, Wind, Marsh, Desert, Snow, Cave, Lair, Indoors: 10 s loops made by build_sounds.py). Made by build_travel.py.
 * Config.ini settings changed in the game's Options screen (Esc, Options): [Sounds] Enabled, Volume (25-100, %),

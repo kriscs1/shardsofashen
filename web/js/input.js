@@ -12,7 +12,7 @@ import { L, U, stoneAt, openMenu, menuRowAt, hotbarAt, hotbarLabel, invItemAt, b
   chatArrow, vitalsAt, stanceAt, nextStance, stanceTip, statsShown, touchButtonAt, bagRect, journalOrigin, joyCentre, JOY, wmZoomAt, wmButtonAt,
   wmInBox } from "./ui.js";
 import { M } from "./mobile.js";
-import { T, getVerbs, verbLabel, cursorOfVerb, displayName } from "./verbs.js";
+import { T, getVerbs, verbLabel, cursorOfVerb, displayName, held } from "./verbs.js";
 import { J, hit as journalHit, pages as journalPages, spellClick, friendClick, skillClick, journalQuests, TABS, QUESTS_SHOWN } from "./journal.js";
 import { dayFraction, timeText } from "./sky.js";
 import { unlock, playSound } from "./audio.js";
@@ -229,11 +229,58 @@ export function chooseVerb(verb, e, wx, wy) {
     window.dsUI.askPrice(e, verb === "Sell on the market", (price, qty) => send({ t: "verb", verb, target, x: wx, y: wy, price, qty }));
     return;
   }
+  if (/^(Drop|Deposit|Withdraw) X$/.test(verb)) { askHowMany(verb, e, "", wx, wy); return; }   // (X: typed)
   const msg = { t: "verb", verb, target: targetOf(e), x: wx, y: wy };
   if (verb === "Use with") msg.item = S.itemInUse;
   if (verb.startsWith("Buy ") && e && e.price) msg.price = e.price;     // (the market: at the price you saw, or not at all)
   if (verb === "Use with" || verb !== "Use") S.itemInUse = verb === "Use with" ? 0 : S.itemInUse;
   send(msg);
+}
+
+function askHowMany(verb, e, start, wx, wy) {
+  const word = verb.slice(0, -2), target = targetOf(e);
+  const have = word === "Deposit" ? held(e.n, e.stolen) : e.q;
+  window.dsUI.askCount(`${word} how many ${displayName(e)}?`, `${word === "Withdraw" ? "In the bank" : "You have"}: ${have}.`,
+    start, (qty) => send({ t: "verb", verb, target, x: wx, y: wy, qty }));
+}
+
+// ----- dragging: a thing in the bag to the hotbar (or out of the bag onto the ground: dropped), a hotbar slot to
+// another (the two change places) or off the bar. A press that doesn't move far is still a click (main.js).
+export function dragStart(x, y, slop) {
+  U.drag = null;
+  if (!S.me || J.open || U.worldMap || U.rcm || S.spellReady || S.itemInUse) return false;
+  const k = hotbarAt(x, y), name = k >= 0 ? (S.me.hotbar || [])[k] : "";
+  if (name) U.drag = { from: "hot", k, name };
+  else if (!S.box.mode && S.me.input) {
+    const e = invItemAt(x, y);
+    if (e) U.drag = { from: "inv", e, name: e.n };
+  }
+  if (U.drag) Object.assign(U.drag, { sx: x, sy: y, x, y, slop, moved: false });
+  return !!U.drag;
+}
+
+export function dragMove(x, y) {
+  const d = U.drag;
+  if (!d || U.rcm) return false;                 // (held still on a phone: the menu, not a drag)
+  d.x = x; d.y = y;
+  if (Math.hypot(x - d.sx, y - d.sy) > d.slop) d.moved = true;
+  return d.moved;
+}
+
+export function dragEnd(x, y, cancel = false) {   // (true: it was a drag, and it's done; false: a click after all)
+  const d = U.drag, k = d && d.moved ? hotbarAt(x, y) : -1;
+  U.drag = null;
+  if (!d || !d.moved || cancel || U.rcm) return false;
+  if (k >= 0) {
+    if (d.from !== "hot" || k !== d.k) send({ t: "hotbar_put", k, name: d.name });
+  } else if (d.from === "hot") send({ t: "hotbar_remove", k: d.k });
+  else if (inPlayfield(x, y) && !S.box.mode) {    // (out of the bag onto the ground: dropped; a stack, how many)
+    const [wx, wy] = screenToWorld(x, y), v = getVerbs(d.e);
+    if (v.includes("Drop")) chooseVerb("Drop", d.e, wx, wy);
+    else if (v.includes("Drop X")) askHowMany("Drop X", d.e, d.e.q, wx, wy);
+    else { S.addLocal("You can't drop that!", "red"); playSound("Denied"); }
+  }
+  return true;
 }
 
 export function mouseDown(button, x, y) {

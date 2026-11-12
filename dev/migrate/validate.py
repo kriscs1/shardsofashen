@@ -1656,7 +1656,8 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Vehicle", "Seat.1", "Seat.2", "Seat.4", "Seat.8",               # a cart (carts.py): where its rider stands
                "Seat", "Headings", "Vehicle.Noun",                              # a boat's one seat; how many ways it turns; "ferry"
                "Arrive.Sound", "Board.Sound", "Board.Words", "Menu.Image",      # its sounds; its menu's words and picture
-               "Voice", "Growl"}                                                 # its greeting; a monster's snarl (build_voices.py)
+               "Voice", "Growl",                                                 # its greeting; a monster's snarl (build_voices.py)
+               "Animal"}                                                         # an animal, whatever its pictures (build_wolf.py)
 NUMERIC_ENTITY_KEYS = ENTITY_KEYS - {"Season.Absent", "Type", "Attitude", "Use.Words", "Examine.Info", "Drops", "Slot", "Spoils.To", "Requires", "Pause", "Spell", "Layer", "Walkable.Data",
                                      "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound", "On.Hit", "Cures", "Schedule", "Resists", "Crop", "Slain.By", "States", "Fidgets", "Hunts", "Calls", "Sound.Loop",
                                      "Base", "Enchanted", "Enchant",
@@ -2575,8 +2576,9 @@ def check_quests():
                 for var in re.findall(r"\$([A-Za-z_][A-Za-z0-9_.]*[A-Za-z0-9_])", v):
                     if var not in writes:
                         err(where, "%s uses $%s but no script sets attribute %s" % (k, var, var))
-            elif re.fullmatch(r"Marker(\d+)", k):
+            elif re.fullmatch(r"(Marker|Met)(\d+)", k):
                 # Marker<N>=<place ID> or <map> <tile x> <tile y>[;...]: minimap marks while the attribute is N
+                # (Met<N>: where once the stage's counts are full; quests.py quest_markers)
                 for part in v.split(";"):
                     bits = part.split()
                     if len(bits) == 1:

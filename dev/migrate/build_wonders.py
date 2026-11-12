@@ -30,14 +30,25 @@ PEOPLE = {   # name: base, tint, what it is
     "Courier": ("Farmer", (70, 110, 150), "Good", 0, "Satchel, boots, no time to talk."),
     "Mimic_Thing": ("Living_Remnant", (170, 90, 220), "Bad", 8, "It's stopped pretending."),
 }
-NOTES = [   # place Id (near it), what she wrote
-    ("Isle_Bank", "Edwin won't ask me again. Good. I told him the jar was for the child. So it is, but not the way he thinks."),
-    ("Northport_Square", "Every Shard I've weighed here leans the same way, a hair's breadth, if you hang it on a thread. North and west. They all lean to the same place."),
-    ("Court_Square", "The Court's oldest book has the Pact's price in it, and someone has torn out the page after. I've seen the stub. A firstborn each generation, and the dragon keeps its peace. Keeps it from doing what?"),
-    ("Dunerest_Square", "The scholar here calls it the Cutting. The dragon was once far bigger than the world, and the first king cut it down to something he could bind. He thought that would be the end of it."),
-    ("Emberwatch_Square", "The seal on the Pact is older than the keep that guards it. I held it for as long as I dared. It's warm. It knows when you're afraid."),
-    ("Frosthold_Square", "They'll come for my child. So I'll run, and I'll keep running, and what I took from the Seam will stay where no king ever thinks to look: somewhere small, and still, and full of sky."),
-    ("Galaith_City_Hall", "If you've found this, you've been inside the walls and I haven't. Forgive me. Look for still water, on the Isle, where the sky looks up at itself."),
+NOTES = [   # place Id (near it), what she wrote: each tells of her, the Pact or the place, and points at nothing that isn't there
+    ("Isle_Bank", "Edwin writes the Isle's wills and deeds, and he's never once asked to see mine. Maren checks the "
+                  "baby's breathing whenever she passes, as if she can tell something's been promised. Nobody here "
+                  "bows to me. I could stay for ever."),
+    ("Northport_Square", "The old men on the quay say the first king set a watch under the sea north of Ashford: the "
+                         "Glass Wardens, keeping something asleep. Nobody's seen one in a hundred years. What did a king "
+                         "need watched as badly as that?"),
+    ("Court_Square", "I found the Pact in the Court's oldest book, in the first king's own hand: a firstborn of his line "
+                     "each generation, and the dragon keeps its peace. I read it three times. Then I went home and held "
+                     "my baby till morning."),
+    ("Dunerest_Square", "The sun priests sang it as a triumph: the first king cut the dragon down to something small "
+                        "enough to bind. Down, they sing. Never dead. So where did the rest of it go?"),
+    ("Emberwatch_Square", "I held the Pact's seal tonight, for as long as I dared. It's a ring, and it's warm, like "
+                          "something asleep. It knows when you're afraid."),
+    ("Frosthold_Square", "They'll come for my child. So I'll run, and I'll keep running, and what I took from the Seam "
+                         "will stay where no king ever thinks to look: somewhere small, and still, and full of sky."),
+    ("Galaith_City_Hall", "I was crowned in this hall, and I left it by the kitchen door with you asleep in a basket of "
+                          "washing. If you're reading this, the wall is down and you came home. Forgive me. Look for "
+                          "still water on the Isle, where the sky looks up at itself."),
 ]
 
 

@@ -21,7 +21,9 @@ QUEST = ("Old Hob", [
     ("Stage1", "Old Hob's diary: a giant spider bit him and he feels himself going wild. Ask Morwen the witch in Saltmarsh for a cure."),
     ("Stage2", "Find the wild man in the western woods of the Wildwood and use Morwen's calming draught on him."),
     ("Stage3", "Hob is himself again! Talk to him."),
-    ("Done", "4")])
+    ("Done", "4"),
+    ("Marker0", "Hobs_Window_Outside"), ("Marker1", "11,23,0 13 10"),   # (his house, Morwen the witch, then Hob)
+    ("Marker2", "OldHob"), ("Marker3", "OldHob")])
 WOODS = (0, 6)              # the map Hob roams (the western woods, round the second watch stone)
 HOB_ID = "OldHob"           # his map line's Id=: the one NPC Set.NPC.Attitude changes
 

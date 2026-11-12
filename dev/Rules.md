@@ -163,6 +163,13 @@ The Beggar's Lost Key are gone; their places stay, quiet. `dev/Story and Quests.
 
 Side quests hang off these by `Requires.Quests` and `Requires.Level`. A new quest must fit this world: its places
 named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.ini` with `Marker<N>` place Ids.
+**Every step points somewhere** (the followed quest's marks on the minimap and the world map, an arrow at the
+minimap's rim when they're off it): its `Marker<N>`, else its giver; once a stage's counts are full, where it's
+handed in (`Met<N>`, else the giver). `test_every_step_of_every_quest_has_somewhere_to_point` checks them all. A
+step done (the stage on, short of Done, or the last count filled) says "Quest objective met." once, with
+`Quest_Step`. The quest-complete window lists its rewards with their pictures, or "None". **Mary's notes**
+(`build_wonders.py` `NOTES`) each tell of her, the Pact or the place they're found in, and point at nothing
+that isn't in the game.
 
 ## Game rules to keep
 
@@ -688,7 +695,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   **What comes at you faces four ways**: people, goblins and the like, and the wolves, hounds, dog and bear
   (`build_wolf.py` draws them towards you, `4a-c`, and away, `1a-c`; their recoloured kin are made again from them);
   small animals stay side-on. Rabbits hop (`build_walk.py` `HOP`: off the ground in frames b and c). Four facings
-  don't make a creature a person (`data.is_person`, `FOUR_LEGS`).
+  don't make a creature a person (`data.is_person`): an animal drawn four ways has `Animal=1` in Entities.ini.
 - Art and sounds are made in code by `dev/migrate/build_*.py` (pygame drawing; synthesized 22050 Hz mono WAVs).
   Change the builder and run it again; don't hand-edit its output. Nothing from another game or a commercial
   library: anything not made here is CC0 (or as free) and listed in `CREDITS.md`.
@@ -776,7 +783,13 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   the page (Inventory, and how full it is). The pack is Config `InventoryItems.Rows` by `Columns` (9 by 5), read the
   same by the server and both layouts.
 - **The hotbar has as many slots as each player chooses**, 1 to 10 (Options; kept with the character: `hotbar_n`),
-  keys 1-9 and 0; on a phone it goes in two rows when one would run under the stick.
+  keys 1-9 and 0; on a phone it goes in two rows when one would run under the stick. **Things go on it by dragging**,
+  never a word in the menu: from the pack onto a slot, slot to slot (the two change places), off the bar to take it
+  off (or right-click it); a spell from Spells by right-click (a phone: hold). On a phone the hotbar comes up over the
+  bag while something's dragged. Dragged out of the pack onto the ground, a thing is dropped (a stack: how many).
+- **How many follows the stack**: Drop, Deposit and Withdraw offer 1, 5 and 10 only when there are more, All, and X
+  (typed: the stack at most; nothing or 0 does nothing). The browser's `amountVerbs` and the server's `amount_verbs`
+  are the same list.
 - The Stats box's tabs are Stats, Gear and Spells. Quests live in the journal (H), in two tabs: In hand (begun, and
   those you can start now, never the ones still locked) and Done; no rewards, and a click on one follows it.
 - Hover text is at most 4 lines, at the top middle of the view (both layouts). Your level, health and Shards are top

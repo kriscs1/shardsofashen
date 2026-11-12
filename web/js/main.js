@@ -8,7 +8,8 @@ import { V, drawWorld, addFx, stopWorkFx, setZoom, changeZoom, markOutcome, mark
 import { invalidateMap, invalidateCell, mapCells, repaintAll } from "./ground.js";
 import { L, U, layout, drawUI, drawBoosts, drawWorldMap, preloadInterface, showBanner, levelOfXp, journalOrigin, joyCentre,
   JOY, wmPan, wmZoomAt, wmInBox, shardFly } from "./ui.js";
-import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick } from "./input.js";
+import { I, mouseMove, mouseDown, mouseDrag, wheel, keyDown, keyUp, releaseKeys, updateCursor, closeJournal, stick, dragStart,
+  dragMove, dragEnd } from "./input.js";
 import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, nearLoopTick, unlock, stopMusic } from "./audio.js";
@@ -200,7 +201,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 
 function overlayOpen() {
   // (not the chat line: you can walk, click and fight with it open)
-  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "death", "tavern-game"].some((id) => !$(id).hidden);
+  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "count", "death", "tavern-game"].some((id) => !$(id).hidden);
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -604,7 +605,7 @@ for (const id of ["admin-noblack", "admin-nofog"]) {
   $(id).addEventListener("input", () => setFogAdmin($("admin-noblack").checked, $("admin-nofog").checked));
 }
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
-for (const id of ["admin", "options", "quit", "message", "appearance", "demo-end"]) {
+for (const id of ["admin", "options", "quit", "message", "appearance", "demo-end", "count"]) {
   $(id).addEventListener("keydown", (ev) => {
     ev.stopPropagation();
     if (ev.key === "Escape") { $(id).hidden = true; canvas.focus(); }
@@ -617,13 +618,15 @@ function showReward(m) {
   list.textContent = "";
   const row = (icon, text, cls) => {
     const li = document.createElement("li");
-    const c = document.createElement("canvas");
-    c.width = c.height = 32;
-    if (icon) preload([icon]).then(() => {           // (a picture not seen yet: drawn once it's arrived)
-      const im = sprite(icon);
-      if (im) c.getContext("2d").drawImage(im, 0, 0, 32, 32);
-    });
-    li.append(c);
+    if (icon) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 32;
+      preload([icon]).then(() => {                   // (a picture not seen yet: drawn once it's arrived)
+        const im = sprite(icon);
+        if (im) c.getContext("2d").drawImage(im, 0, 0, 32, 32);
+      });
+      li.append(c);
+    }
     const span = document.createElement("span");
     span.textContent = text;
     if (cls) span.className = cls;
@@ -633,7 +636,7 @@ function showReward(m) {
   if (m.shards) row("Shard", `${m.shards} Shards`, "shards");
   for (const [item, n] of m.items || []) row(item, `${n > 1 ? n + " x " : ""}${pretty(item)}`);
   for (const [skill, xp] of m.xp || []) row(configRead("Skills", "Icon." + skill, ""), `${xp} ${pretty(skill)} experience`);
-  if (!list.children.length) row("", "The thanks of those you helped");
+  if (!list.children.length) row("", "None", "none");
   $("reward-quest").textContent = m.quest;
   releaseKeys();
   $("reward").hidden = false;
@@ -724,7 +727,28 @@ $("price-form").addEventListener("submit", (ev) => {
 });
 $("price-cancel").addEventListener("click", () => { $("price").hidden = true; priceDone = null; canvas.focus(); });
 
-window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice };
+// ----- how many (Drop X, Deposit X, Withdraw X; a stack dragged out of the bag)
+let countDone = null;
+function askCount(title, hint, start, done) {
+  releaseKeys();
+  $("count-title").textContent = title;
+  $("count-hint").textContent = hint;
+  $("count-qty").value = start ? String(start) : "";
+  countDone = done;
+  $("count").hidden = false;
+  $("count-qty").focus(); $("count-qty").select();
+}
+$("count-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const qty = Math.floor(+$("count-qty").value || 0);
+  $("count").hidden = true;
+  canvas.focus();
+  if (countDone && qty >= 1) countDone(qty);     // (nothing typed, or 0: nothing done)
+  countDone = null;
+});
+$("count-cancel").addEventListener("click", () => { $("count").hidden = true; countDone = null; canvas.focus(); });
+
+window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, askPrice, askCount };
 
 // The phone's Back button (the app asks the page first): shuts what's open, the topmost first; false when nothing was
 // (then the app goes back to its start screen)
@@ -1311,6 +1335,7 @@ canvas.addEventListener("mousemove", (ev) => {
     }
   }
   mouseDrag(y, ev.buttons & 1);
+  if (dragMove(x, y)) return;                    // (a thing dragged: to the hotbar, or out of the bag)
   if (running && !overlayOpen()) buildMouseMove(x, y, ev.buttons & 1);
 });
 canvas.addEventListener("mousedown", (ev) => {
@@ -1319,9 +1344,15 @@ canvas.addEventListener("mousedown", (ev) => {
   const [x, y] = toLogical(ev);
   if (U.worldMap && ev.button === 0 && wmInBox(x, y)) { wmDrag = { sx: x, sy: y, x, y, moved: false }; return; }
   if (buildMouseDown(ev.button, x, y)) return;
+  if (ev.button === 0 && dragStart(x, y, 5)) return;   // (the bag or the hotbar: a click or a drag, told on letting go)
   mouseDown(ev.button, x, y);
 });
 window.addEventListener("mouseup", (ev) => {
+  if (ev.button === 0 && U.drag) {
+    const [x, y] = toLogical(ev), d = U.drag;
+    if (!dragEnd(x, y) && running && !overlayOpen()) mouseDown(0, d.sx, d.sy);
+    return;
+  }
   if (!wmDrag || ev.button !== 0) return;
   const d = wmDrag;
   wmDrag = null;
@@ -1360,6 +1391,7 @@ canvas.addEventListener("pointerdown", (ev) => {
   I.mx = x; I.my = y;
   M.hoverUntil = performance.now() + 60000;      // (named while the finger's down)
   if (t.kind === "tap") {
+    dragStart(x, y, SLOP);                       // (the bag or the hotbar: a finger's drag)
     t.timer = setTimeout(() => {                 // (held: everything you can do with it)
       if (t.moved || !touches.has(ev.pointerId)) return;
       t.held = true;
@@ -1390,6 +1422,7 @@ canvas.addEventListener("pointermove", (ev) => {
   }
   t.x = x; t.y = y;
   if (Math.hypot(x - t.sx, y - t.sy) > SLOP) t.moved = true;
+  if (dragMove(x, y)) { I.mx = x; I.my = y; return; }
   if (t.kind === "pan") {
     M.panX = clamp(t.panX - (x - t.sx), 0, Math.max(0, 1024 - L.W));
     M.panY = clamp(t.panY - (y - t.sy), 0, Math.max(0, 768 - L.H));
@@ -1412,7 +1445,9 @@ function touchEnd(ev, cancelled) {
     return;
   }
   M.hoverUntil = performance.now() + 2500;
-  if (cancelled || t.held || (t.moved && t.kind === "pan")) return;
+  if (cancelled || t.held) { dragEnd(-1, -1, true); return; }
+  if (t.kind === "tap" && dragEnd(t.x, t.y)) return;
+  if (t.moved && t.kind === "pan") return;
   if (t.moved && (M.chat && t.sy >= L.chatY)) return;
   if (!running || overlayOpen()) return;
   const x = t.moved ? t.x : t.sx, y = t.moved ? t.y : t.sy;

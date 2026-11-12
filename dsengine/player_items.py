@@ -998,6 +998,21 @@ class ItemsMixin:
         self.dirty_me = True
         self.display_message("%s is on your hotbar: press %d to use it." % (pretty(name), (k + 1) % 10), "INFO")
 
+    def hotbar_put(self, name, k):
+        """name dragged to hotbar slot k: from the bag, or from another slot (what was in k goes where it came from)."""
+        shown = self.hotbar[:self.hotbar_n]
+        if not (0 <= k < self.hotbar_n) or not name or shown[k] == name:
+            return
+        if name in shown:
+            j = shown.index(name)
+            self.hotbar[j], self.hotbar[k] = self.hotbar[k], name
+        elif self.items_held(name) > 0 or self.spell_learnable(name) in self.spells_known:
+            self.hotbar = [n if n != name else "" for n in self.hotbar]
+            self.hotbar[k] = name
+        else:
+            return                                      # (not yours to put there)
+        self.dirty_me = True
+
     def hotbar_set_slots(self, n):
         n = max(1, min(len(self.hotbar), int(n)))
         if n != self.hotbar_n:
@@ -1022,7 +1037,7 @@ class ItemsMixin:
         if e is None:
             self.display_message("You have no %s left." % pretty(name), "FAIL")
             return
-        verbs = [v for v in self.get_verbs(e).split(",") if v and v not in ("Hotbar", "Off hotbar")]
+        verbs = [v for v in self.get_verbs(e).split(",") if v]
         if verbs:
             self.do_action(verbs[0], e)
 

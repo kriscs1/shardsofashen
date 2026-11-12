@@ -1236,6 +1236,7 @@ class ScriptMixin:
         up = name.upper()
         if not up.startswith(("SHARDSPAID.", "SHARDSGIVEN", "STANDING")):
             self.quest_begun(name, old, val(self.attributes[idx][1]))       # (a quest taken on: its jingle)
+            self.quest_progress(name, old, val(self.attributes[idx][1]))    # (a step done: "Quest objective met.")
             self.quest_reward(name, val(self.attributes[idx][1]))           # (a quest done: its rewards, once)
         if up.startswith("STANDING.") or self.outlaw_any:
             self.standing_attr_changed()                                    # (a town's guards: standing.py)

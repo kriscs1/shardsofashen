@@ -19,6 +19,11 @@ EXTS = (".png", ".bmp")
 PLACES_RECHECK = 3.0          # (seconds between looks at the maps folder for changed place Ids)
 
 
+def stage_counts(text):
+    """[(attribute, how many)] a quest's stage counts up to: "slay five ($BanditsSlain of 5)"."""
+    return [(m.group(1), int(m.group(2))) for m in re.finditer(r"\$([A-Za-z_][A-Za-z0-9_.]*) of (\d+)", text)]
+
+
 class GameData:
     def __init__(self, root):
         self._data_files = {}
@@ -252,11 +257,10 @@ class GameData:
             cache[base] = k
         return k
 
-    FOUR_LEGS = ("Wolf", "Hound", "Dog", "Bear", "Whitefang")     # (four facings too, but animals: build_wolf.py)
-
     def is_person(self, name):
-        """Drawn as a person: walking frames all four ways, and not one of the animals that come at you that way."""
-        return self.animation_available(name) == 4 and name.split("_")[-1] not in self.FOUR_LEGS
+        """Drawn as a person: walking frames all four ways, and not an animal (Entities.ini Animal=1: the wolves and
+        the bear face you coming too)."""
+        return self.animation_available(name) == 4 and ini.read(name, "Animal", "0", self.data_file("Entities.ini")).strip() != "1"
 
     def first_image(self, etype, name):
         """The picture an entity of etype called name starts with, and whether it is animated."""
@@ -513,12 +517,20 @@ class GameData:
         cache = self._caches.get("quest_table")
         if cache is None or cache[0] is not kept:
             table = [(name, {k.upper(): trim(v) for k, v in items}) for name, items in kept]
-            by_attr = {}
+            by_attr, counted = {}, {}
             for name, d in table:
                 if d.get("ATTRIBUTE"):
                     by_attr.setdefault(d["ATTRIBUTE"].upper(), (name, d))
-            cache = self._caches["quest_table"] = (kept, table, by_attr)
+                for k, v in d.items():
+                    if k.startswith("STAGE") and k[5:].isdigit():
+                        for attr, _ in stage_counts(v):
+                            counted.setdefault(attr.upper(), []).append((name, int(k[5:])))
+            cache = self._caches["quest_table"] = (kept, table, by_attr, counted)
         return cache
+
+    def quest_counted(self, attr):
+        """[(quest, stage)] whose stage counts this attribute ("$SkeletonsSlain of 4")."""
+        return self._quests()[3].get(trim(attr).upper(), [])
 
     def quest_vars(self):
         """{quest attribute (upper): [attribute, ...]}: the other saved values a quest's scripts keep (for the admin

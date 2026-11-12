@@ -8210,7 +8210,7 @@ def test_wolves_face_you_coming_and_rabbits_hop_side_on(world):
         assert d.animation_available(name) == 4, name                 # (towards you and away as well)
     for name in ("Rabbit", "Rat", "Chicken"):
         assert d.animation_available(name) == 2, name                 # (small animals: side-on)
-    assert d.is_person("Guard") and not d.is_person("Dog") and not d.is_person("Wolf")
+    assert d.is_person("Guard") and not d.is_person("Dog") and not d.is_person("Wolf")    # (Animal=1)
     s = join(world, "Wolfwatch", "0,0,0", 400, 300)
     p = s.player
     wolf = world.add_npc("Wolf", p.z, p.x + 120, p.y, "")
@@ -8825,6 +8825,57 @@ def test_people_speak_in_their_own_voice_and_notices_are_silent(world):
     assert s.npc_voice("Notice") == ("", 100) and s.npc_voice("Signpost") == ("", 100)
     s.player_sprite_base = "PlayerF"
     assert s.npc_voice("Player")[0] == "Woman"
+    leave(world, s)
+
+
+def test_a_step_done_says_quest_objective_met_once_with_its_sound(world):
+    s = join(world, "Stepper", "1,1,0", 300, 300)
+    s.connected = True
+
+    def said():
+        return [ev["text"] for ev in s.out if ev.get("t") == "msg" and ev["text"] == "Quest objective met."]
+
+    def heard():
+        return [ev["name"] for ev in s.out if ev.get("t") == "sound" and ev["name"] == "Quest_Step"]
+    s.update_attribute("RangerQuest", "=1")                          # (taken on: its own jingle, no objective)
+    assert not said()
+    world.now += 5000
+    s.out = []
+    s.update_attribute("RangerQuest", "=2")                          # (a step on, short of Done)
+    s.update_attribute("RangerQuest", "=3")                          # (and another at once: said once)
+    assert len(said()) == 1 and len(heard()) == 1
+    world.now += 5000
+    s.out = []
+    for _ in range(4):
+        s.update_attribute("WildSpidersSlain", "+1")                 # (counting: nothing yet)
+    assert not said()
+    s.update_attribute("WildSpidersSlain", "+1")                     # (the fifth of five: done)
+    assert len(said()) == 1 and len(heard()) == 1
+    m, tx, ty = s.quest_giver_at("Ranger").split()
+    assert [tuple(mk[:3]) for mk in s.quest_markers() if mk[3] == "The Wildwood Watch"] == [(m, val(tx), val(ty))]
+                                                                     # (the counting done: the arrow back to Ranger Ash)
+    world.now += 5000
+    s.out = []
+    s.update_attribute("WildSpidersSlain", "+1")                     # (more than wanted: nothing more)
+    s.update_attribute("RangerQuest", "=4")                          # (done: Quest_Done, not an objective)
+    assert not said()
+    leave(world, s)
+
+
+def test_every_step_of_every_quest_has_somewhere_to_point(world):
+    s = join(world, "Pointer", "1,1,0", 300, 300)
+    missing = []
+    for name, d in world.data.quest_table():
+        attr, done = d.get("ATTRIBUTE", ""), int(val(d.get("DONE", "0")))
+        if not attr or done <= 0:
+            continue
+        for st in range(done):
+            s.attributes = [a for a in s.attributes if a[0].upper() != attr.upper()] + [[attr, str(st)]]
+            if st == 0 and not s.quest_for_you(d):
+                continue                                             # (not one this player can see)
+            if not any(mk[3] == name for mk in s.quest_markers()):
+                missing.append("%s, step %d" % (name, st))
+    assert not missing, missing
     leave(world, s)
 
 
@@ -9453,7 +9504,7 @@ def test_a_quest_ending_is_kept_with_its_own_journal_line(world, monkeypatch):
     quest = {"GIVER": "Villager", "ATTRIBUTE": "TestRunQuest", "STAGE0": "", "STAGE1": "Decide.", "DONE": "2",
              "ENDING": "TestRunEnding", "ENDING1": "You sided with the watch.", "ENDING2": "You sided with Meg."}
     monkeypatch.setattr(world.data, "_quests", lambda: (None, [("The Test Run", quest)],
-                                                        {"TESTRUNQUEST": ("The Test Run", quest)}))
+                                                        {"TESTRUNQUEST": ("The Test Run", quest)}, {}))
     s.update_attribute("TestRunQuest", "=1")
     q = s.quest_list()[0]
     assert q["status"] == 0 and q["text"] == "Decide."
@@ -11413,3 +11464,64 @@ def test_a_flames_frames_are_the_same_every_export():
                            env=dict(os.environ, PYTHONHASHSEED=str(n))).stdout.strip().splitlines()[-1]
             for n in (1, 2, 3)}             # (the last line: pygame says hello first)
     assert len(runs) == 1 and runs.pop().split()[0].isdigit()
+
+
+def test_bank_and_drop_take_a_typed_amount_held_to_the_stack(world):
+    s = join(world, "Counter")
+    stock(s, Logs=37, Bread=1)
+    logs = next(e for e in s.inv if e.name == "Logs")
+    verbs = s.get_verbs(logs).split(",")
+    assert ["Drop 1", "Drop 5", "Drop 10", "Drop All", "Drop X"] == [v for v in verbs if v.startswith("Drop")]
+    assert "Hotbar" not in verbs and "Off hotbar" not in verbs          # (the hotbar: dragged to, not in the menu)
+    assert [v for v in s.get_verbs(next(e for e in s.inv if e.name == "Bread")).split(",") if v.startswith("Drop")] == ["Drop"]
+
+    def verb(v, target, **more):
+        s.handle(dict({"t": "verb", "verb": v, "target": target, "x": s.player.cx, "y": s.player.cy}, **more))
+    s.ab_mode = s.rack_type = "Bank"
+    assert [v for v in s.get_verbs(logs).split(",")] == ["Deposit 1", "Deposit 5", "Deposit 10", "Deposit All",
+                                                         "Deposit X", "Examine"]
+    verb("Deposit X", {"k": "inv", "uid": logs.uid}, qty=12)
+    slot = next(i for i in range(1, s.data.bank_slots + 1) if s.bank_item[i] == "Logs")
+    assert s.bank_qty[slot] == 12 and s.items_held("Logs") == 25
+    for qty in (0, -3, "7", True, None, float("inf")):                   # (nothing, or nonsense: nothing done)
+        verb("Deposit X", {"k": "inv", "uid": logs.uid}, qty=qty)
+    assert s.bank_qty[slot] == 12 and s.items_held("Logs") == 25
+    verb("Withdraw X", {"k": "rack", "i": slot}, qty=500)                # (more than there is: all of it)
+    assert s.items_held("Logs") == 37 and not any(s.bank_item[1:])
+    logs = next(e for e in s.inv if e.name == "Logs")
+    verb("Deposit 10", {"k": "inv", "uid": logs.uid})
+    assert s.bank_qty[slot] == 10 and "Withdraw 5" in s.get_verbs(s.rack_pseudo(slot)).split(",")
+    verb("Deposit 5", {"k": "inv", "uid": logs.uid}, qty=99)            # (a number in the verb: that, not the typed one)
+    assert s.bank_qty[slot] == 15 and s.items_held("Logs") == 22
+    verb("Deposit X", {"k": "inv", "uid": logs.uid}, qty=1000)           # (more than you have: all you have)
+    assert s.bank_qty[slot] == 37 and s.items_held("Logs") == 0
+
+    s.ab_mode = s.rack_type = ""
+    stock(s, Feather=20)
+    f = next(e for e in s.inv if e.name == "Feather")
+    verb("Drop X", {"k": "inv", "uid": f.uid}, qty=0)
+    assert s.items_held("Feather") == 20
+    verb("Drop X", {"k": "inv", "uid": f.uid}, qty=7)
+    assert s.items_held("Feather") == 13
+    verb("Drop X", {"k": "inv", "uid": f.uid}, qty=50)                   # (the stack at most)
+    assert s.items_held("Feather") == 0
+    verb("Deposit X", {"k": "inv", "uid": next(e for e in s.inv).uid}, qty=1)   # (not at a bank: not a verb you have)
+    assert s.bank_qty[slot] == 37 and sum(1 for i in s.bank_item[1:] if i) == 1
+
+
+def test_the_hotbar_is_dragged_to_swapped_and_cleared(world):
+    s = join(world, "Dragger")
+    stock(s, Bread=3, Logs=2)
+    s.hotbar_set_slots(5)
+    s.handle({"t": "hotbar_put", "k": 2, "name": "Bread"})
+    s.handle({"t": "hotbar_put", "k": 0, "name": "Logs"})
+    assert s.hotbar[:5] == ["Logs", "", "Bread", "", ""]
+    s.handle({"t": "hotbar_put", "k": 0, "name": "Bread"})              # (slot to slot: the two change places)
+    assert s.hotbar[:5] == ["Bread", "", "Logs", "", ""]
+    s.handle({"t": "hotbar_put", "k": 4, "name": "Bread"})              # (to an empty one: moved)
+    assert s.hotbar[:5] == ["", "", "Logs", "", "Bread"]
+    s.handle({"t": "hotbar_put", "k": 1, "name": "Iron_Sword"})         # (not yours: nothing)
+    s.handle({"t": "hotbar_put", "k": 9, "name": "Logs"})               # (past the slots shown: nothing)
+    assert s.hotbar[:5] == ["", "", "Logs", "", "Bread"]
+    s.handle({"t": "hotbar_remove", "k": 2})                            # (dragged off the bar)
+    assert s.hotbar[:5] == ["", "", "", "", "Bread"]

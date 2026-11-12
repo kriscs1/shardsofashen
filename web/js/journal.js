@@ -26,7 +26,8 @@ const CONTROLS = [
   ["M", "Skills (Stats)", "Point at one: its level. Right-click: progress to the next. Left-click: its guide. How to level each, and what it opens: the journal's Skills tab."],
   ["M", "Stats / Gear / Spells", "The tabs at the top of the Stats box: your skills, your 8 equipment slots, and the spells you know (click one to cast it; right-click: on or off the hotbar). Your quests are here in the journal: click one to follow it on the map."],
   ["M", "Wield, Wear", "Left-click a weapon, shield or armour in your inventory to put it on. Click it in the Gear tab to take it off."],
-  ["M", "Hotbar", "The slots at the bottom of the view (five, or as many as ten: Options). Right-click an item: Put it on the hotbar. Click a slot (or press its number; 0 is the tenth) to use it; right-click a slot to take it off."],
+  ["M", "Hotbar", "The slots at the bottom of the view (five, or as many as ten: Options). Drag an item from your pack onto a slot (a spell: right-click it in Spells). Click a slot (or press its number; 0 is the tenth) to use it; drag a slot onto another to swap them, or off the bar (or right-click it) to take it off."],
+  ["M", "How many", "Banking, taking out or dropping a stack: 1, 5, 10, All, or X to type how many. Drag something out of your pack onto the ground to drop it."],
   ["M", "Dying", "You lose a quarter of your gold, and press Respawn to wake at the start (or in your bed at home). You keep your 5 most valuable things (worn or carried) and anything you can't drop; the rest is in a grave where you fell, marked on the minimap: Search it within 2 minutes."],
   ["M", "Sun and moon", "Above the minimap: point at it for the time of day. Everyone shares the same sky."],
   ["M", "Sleep", "Click a bed: you wake healed. The night only passes when everyone playing is asleep."],
@@ -345,12 +346,16 @@ function questCard(ctx, q, x, y, w) {
   const locked = q.status === 1 && q.needs && q.needs.length;
   const [border, tc] = q.status === 0 ? [[200, 150, 60], [250, 240, 210]] : locked ? [null, [150, 132, 114]] :
     q.status === 1 ? [sc, [220, 210, 180]] : [[21, 171, 75], [150, 140, 120]];
+  const following = q.title === trackedQuest() && q.status !== 2;
   if (q.title === J.focus) {
     roundBox(ctx, x - 4, y - 4, w + 8, 84, null, [255, 214, 90], 2, 13);
     roundBox(ctx, x, y, w, 76, [92, 66, 40], [255, 214, 90], 2, 10);
+  } else if (following) {                         // (the one you follow: warmer, edged in gold, a gold bar at its side)
+    roundBox(ctx, x, y, w, 76, [86, 62, 32], [255, 214, 90], 2, 10);
   } else card(ctx, x, y, w, 76, border);
+  if (following) { ctx.fillStyle = "rgb(255,214,90)"; ctx.fillRect(x + 5, y + 8, 3, 60); }
   let bw = badge(ctx, x + w - 10, y + 8, label, sc, !!locked);
-  if (q.title === trackedQuest() && q.status !== 2) bw += 8 + badge(ctx, x + w - 18 - bw, y + 8, "Following", [255, 214, 90]);
+  if (following) bw += 8 + badge(ctx, x + w - 18 - bw, y + 8, "Following", [255, 214, 90]);
   if (q.main) bw += 8 + badge(ctx, x + w - 18 - bw, y + 8, "Main story" + (q.chapter ? " " + q.chapter : ""), [240, 200, 90]);
   const tw = drawText(ctx, fitText(ctx, q.title, w - 36 - bw, 10, true), x + 16, y + 6, 10, true, sc);
   if (q.status === 2) {

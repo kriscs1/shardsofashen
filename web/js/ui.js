@@ -214,6 +214,7 @@ export function drawUI(ctx, now) {
   if (S.box.mode) drawResponses(ctx);
   drawChat(ctx);
   if (U.rcm) drawMenu(ctx);
+  drawDragged(ctx);
 }
 
 function sidebarButton(ctx, x, y, label, hot, fills, inks, edge) {
@@ -389,15 +390,23 @@ function drawMinimap(ctx) {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(im, Math.round(L.mmX - u), Math.round(L.mmY - v), im.width * g.zoom, im.height * g.zoom);
   if (U.markers) {
+    let far = null;                               // (the nearest mark off the minimap: an arrow at its rim points to it)
     for (const [m, qx, qy] of trackedMarks()) {
       const [mx, my, mz] = String(m).split(",").map(Number);
       if (mz !== S.mapZ) continue;
       const px = Math.round(L.mmX - u + ((mx - g.ox) * G.xt + qx - 0.5) * k);
       const py = Math.round(L.mmY - v + ((my - g.oy) * G.yt + qy - 0.5) * k);
-      if (px < vx + 5 || px > vx + L.mmSize - 6 || py < vy + 5 || py > vy + L.mmSize - 6) continue;
+      const off = M.on ? Math.hypot(px - L.mmX, py - L.mmY) > half - 6 :
+        px < vx + 5 || px > vx + L.mmSize - 6 || py < vy + 5 || py > vy + L.mmSize - 6;
+      if (off) {
+        const d = Math.hypot(px - L.mmX, py - L.mmY);
+        if (!far || d < far.d) far = { d, a: Math.atan2(py - L.mmY, px - L.mmX) };
+        continue;
+      }
       cross(ctx, [0, 0, 0], px, py, 5, 2);
       cross(ctx, [255, 220, 40], px, py, 4, 1);
     }
+    if (far) drawMarkArrow(ctx, far.a, half);
   }
   const myParty = (S.me && S.me.party_id) || 0;
   for (const p of S.where || []) {                // the other players: a blue dot each (gold for your party)
@@ -697,6 +706,19 @@ export function stoneAt(x, y) {
 export function minimapHit(x, y) {
   // (on the minimap's face, not its + and - buttons: it opens the world map)
   return Math.hypot(x - L.mmX, y - L.mmY) < L.mmSize / 2 - 8;
+}
+
+function drawMarkArrow(ctx, a, half) {
+  // (a gold arrowhead just inside the minimap's rim, towards the quest you're following: a square map's edge is
+  // further out at its corners, so the arrow sits on the circle that fits inside it either way)
+  const r = half - 11, x = L.mmX + Math.cos(a) * r, y = L.mmY + Math.sin(a) * r;
+  ctx.save();
+  ctx.translate(Math.round(x), Math.round(y));
+  ctx.rotate(a);
+  ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-6, -8); ctx.lineTo(-2, 0); ctx.lineTo(-6, 8); ctx.closePath();
+  ctx.fillStyle = "rgb(255,220,40)"; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = "#000"; ctx.stroke();
+  ctx.restore();
 }
 
 function cross(ctx, col, px, py, arm, half) {
@@ -1407,6 +1429,7 @@ export function scrollChat(n) {
 // What's under the mouse (or the finger), at the top of the view where the eye already is: a heading, then lines in
 // their own sizes and colours. A line's first character says how it looks (tips.js): # the name, ~ a hint, ! a need
 // not met, + a need met, $ a price. Plain text (the interface's own hover messages) has its first line as the heading.
+// A line's parts go between " | " (dev/Rules.md, Writing: a hover line).
 const QUICK_STYLES = {
   "#": { size: 11, bold: true, col: [255, 230, 140] },
   "~": { size: 8, bold: false, col: [212, 191, 126] },
@@ -1424,7 +1447,8 @@ const QUICK_MAX = 4;
 function drawHoverTop(ctx) {
   U.topY = 8;
   if (!U.qm || U.rcm) return;
-  const raw = U.qm.split("|").map((part) => trim(part)).filter(Boolean);
+  // (a bare "|" starts a line; " | ", with spaces, parts one line: "+25% Spell Power | +50% Debuff Resistance")
+  const raw = U.qm.split(/(?<! )\|(?! )/).map((part) => trim(part)).filter(Boolean);
   if (!raw.length) return;
   const styled = raw.map((part, i) => {
     if (part[0] === "%" && DIFFICULTY[+part[1]]) {
@@ -1746,7 +1770,7 @@ export function hotbarRect(k) {
 export function hotbarTop() { return hotbarSlots() ? hotbarRect(0)[1] : L.VH; }
 
 export function hotbarAt(x, y) {
-  if (S.box.mode || (M.on && (M.chat || M.bag))) return -1;
+  if (S.box.mode || (M.on && (M.chat || (M.bag && !dragging())))) return -1;
   for (let k = 0; k < hotbarSlots(); k++) {
     const [hx, hy, w, h] = hotbarRect(k);
     if (x >= hx && x < hx + w && y >= hy && y < hy + h) return k;
@@ -1754,8 +1778,10 @@ export function hotbarAt(x, y) {
   return -1;
 }
 
+const dragging = () => !!(U.drag && U.drag.moved);      // (a thing dragged: input.js dragStart)
+
 function drawHotbar(ctx) {
-  if (S.box.mode || (M.on && (M.chat || M.bag))) return;
+  if (S.box.mode || (M.on && (M.chat || (M.bag && !dragging())))) return;
   for (let k = 0; k < hotbarSlots(); k++) {
     const [x, y, w, h] = hotbarRect(k);
     ctx.fillStyle = "rgba(24,14,8,0.67)";
@@ -1763,7 +1789,7 @@ function drawHotbar(ctx) {
     ctx.strokeStyle = U.hotHover === k ? "rgba(255,240,180,1)" : "rgba(214,170,70,0.9)";
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-    const name = (S.me.hotbar || [])[k];
+    const name = dragging() && U.drag.from === "hot" && U.drag.k === k ? "" : (S.me.hotbar || [])[k];
     if (name) {
       const n = held(name);
       const sp = spellTaught(name), known = sp && knowsSpell(sp);
@@ -1792,10 +1818,20 @@ function drawHotbar(ctx) {
 export function hotbarLabel(k) {
   const name = (S.me.hotbar || [])[k];
   const key = (k + 1) % 10;
-  if (!name) return `#Hotbar slot ${key}|~Right-click an item in your pack: Hotbar (Options: how many slots)`;
+  if (!name) return `#Hotbar slot ${key}|~Drag something here from your pack (Options: how many slots)`;
   const sp = spellTaught(name);
   if (sp && knowsSpell(sp)) return [`#${spellTitle(sp)}  (a spell you know)`, ...itemLines(name), `~Press ${key} or click to cast it`].join("|");
   return [`#${pretty(name)}  (${held(name)})`, ...itemLines(name), `~Press ${key} or click to use it`].join("|");
+}
+
+function drawDragged(ctx) {                       // (a thing dragged: by the pointer, or above the finger; and on a
+  if (!dragging()) return;                        // phone the hotbar over the bag, to drop it on)
+  if (M.on && M.bag) drawHotbar(ctx);
+  const im = sprite(U.drag.name);
+  if (!im) return;
+  ctx.globalAlpha = 0.85;
+  ctx.drawImage(im, Math.round(U.drag.x - im.width / 2), Math.round(U.drag.y - im.height / 2 - (M.on ? 34 : 0)));
+  ctx.globalAlpha = 1;
 }
 
 // ----- the hurt flash, the level-up banner, who's online, sleeping
@@ -2357,4 +2393,5 @@ function drawTouchUI(ctx, now) {
   if (S.box.mode) drawResponses(ctx);
   if (M.chat) drawChat(ctx);
   if (U.rcm) drawMenu(ctx);
+  drawDragged(ctx);
 }

@@ -85,6 +85,18 @@
   </form>
 </div>
 
+<div id="count" class="overlay" hidden>
+  <form id="count-form" class="panel">
+    <h2 id="count-title">How many?</h2>
+    <label>How many <input id="count-qty" type="number" min="0" step="1" inputmode="numeric"></label>
+    <p id="count-hint" class="dim small"></p>
+    <div class="buttons">
+      <button type="submit">OK</button>
+      <button type="button" id="count-cancel">Cancel</button>
+    </div>
+  </form>
+</div>
+
 <div id="death" class="overlay" hidden>
   <div class="panel death">
     <h2>You have died</h2>
@@ -252,8 +264,8 @@
 
 <div id="reward" class="overlay" hidden>
   <div class="panel"><h2>Quest complete!</h2><p id="reward-quest"></p>
-    <ul id="reward-list"></ul>
-    <div class="buttons"><button type="button" id="reward-ok">Splendid</button></div></div>
+    <p class="reward-head">Rewards</p><ul id="reward-list"></ul>
+    <div class="buttons"><button type="button" id="reward-ok">OK</button></div></div>
 </div>
 
 <div id="demo-end" class="overlay" hidden>

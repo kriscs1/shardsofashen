@@ -206,6 +206,20 @@ def save4(name, frame, img):
     pygame.image.save(img[1], os.path.join(WALK, "%s1%s.png" % (name, "abc"[frame])))
 
 
+FOUR_WAYS = ["Wolf", "Snow_Wolf", "Alpha_Wolf", "Dog", "Bear", "Ember_Hound", "Ash_Hound", "Old_Whitefang"]
+
+
+def mark_animals():
+    """Entities.ini Animal=1 on each kind drawn four ways here: an animal still, not a person (data.is_person), however
+    it faces."""
+    from common import Ini, p
+    ents = Ini(p("data", "Entities.ini"))
+    for name in FOUR_WAYS:
+        if ents.section(name) is not None:
+            ents.set(name, "Animal", "1")
+    ents.save(p("data", "Entities.ini"))
+
+
 def kin():
     """The wolves' kin, recoloured from the frames just drawn, so every facing reaches them."""
     import cinder_art
@@ -284,6 +298,7 @@ def main():
         save4("Bear", i, [bear_end_on(*BEAR, frame=i, back=bk) for bk in (False, True)])
     print("Drew sprites\\Walk\\Dog1a-c, 2a-c, 4a-c and 8a-c, and Bear1a-c and 4a-c")
     kin()
+    mark_animals()
 
 
 if __name__ == "__main__":

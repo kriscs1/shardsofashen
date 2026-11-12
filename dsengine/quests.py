@@ -2,6 +2,7 @@
 make and gather (as the desktop game's quests.py and screens.py worked them out) and the quest markers on the minimap."""
 from ashen import ini
 from ashen.lb import val, word, trim, lbstr, pretty, is_number
+from .data import stage_counts
 from .shards import quest_xp
 
 
@@ -105,6 +106,39 @@ class QuestMixin:
         d = self.data.quest_of_attribute(attr)[1]
         if d is not None and (val(d.get("DONE", "0")) <= 0 or new < val(d.get("DONE", "0"))):
             self.quest_jingle("Quest_Start")
+
+    # ----- a step done: "Quest objective met." (its own sound, Quest_Step: build_soundscape.py)
+    def quest_progress(self, attr, old, new):
+        """A quest's stage gone on to another short of Done, or the last of a stage's counts filled ("slay five
+        ($BanditsSlain of 5)"): a step done, said once."""
+        if new <= old:
+            return
+        d = self.data.quest_of_attribute(attr)[1]
+        if d is not None:
+            done = val(d.get("DONE", "0"))
+            if old > 0 and (done <= 0 or new < done):
+                self.quest_objective_met()
+            return
+        for quest, stage in self.data.quest_counted(attr):
+            d = self.data.quest_named(quest)[1]
+            if d is None or self.quest_stage(d) != stage:
+                continue
+            want = {a.upper(): n for a, n in stage_counts(d.get("STAGE%d" % stage, ""))}.get(attr.upper(), 0)
+            if old < want <= new and self.quest_counts_met(d, stage):
+                self.quest_objective_met()
+                return
+
+    def quest_counts_met(self, d, stage):
+        """Every count the stage shows is full (and it has one)."""
+        counts = stage_counts(d.get("STAGE%d" % stage, ""))
+        return bool(counts) and all(val(self.get_attribute(a)) >= n for a, n in counts)
+
+    def quest_objective_met(self):
+        last, at = getattr(self, "jingle_last", ("", -99999))
+        if 0 <= self.now - getattr(self, "objective_at", -99999) < 4000 or 0 <= self.now - at < 4000:
+            return                                          # (a quest just taken on or done says so itself)
+        self.objective_at = self.now
+        self.display_message("Quest objective met.", "darkgreen", "Quest_Step")
 
     # ----- the journal's notes
     def quest_title(self, quest):
@@ -262,9 +296,13 @@ class QuestMixin:
             attribute = help_clean(d.get("ATTRIBUTE", ""))
             done = val(help_clean(d.get("DONE", "")))
             value = val(self.get_attribute(attribute)) if attribute else 0
-            if done == 0 or value < done:
-                where = help_text(d.get("MARKER" + lbstr(int(max(0, value))), ""))
-                if value <= 0 and not where:                       # (not begun: where its giver is)
+            if (done == 0 or value < done) and (value > 0 or self.quest_for_you(d)):
+                stage = int(max(0, value))
+                where = help_text(d.get("MARKER%d" % stage, ""))
+                if self.quest_counts_met(d, stage):                # (the counting done: back to whoever you tell)
+                    where = help_text(d.get("MET%d" % stage, "")) or self.quest_giver_at(
+                        help_clean(d.get("GIVER", ""))) or where
+                if not where:                                      # (not begun, or nowhere of its own: its giver)
                     where = self.quest_giver_at(help_clean(d.get("GIVER", "")))
                 for part in where.split(";"):
                     part = trim(part)
@@ -275,7 +313,7 @@ class QuestMixin:
                     else:
                         pl = self.data.place(part)
                         mark = (pl.map, pl.tx, pl.ty) if pl else None
-                    if mark and len(marks) < 80:
+                    if mark and len(marks) < 400:
                         marks.append(list(mark) + [name])          # (whose it is: one quest is tracked at a time)
         return marks
 

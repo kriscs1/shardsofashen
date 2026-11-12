@@ -20,6 +20,13 @@ WALK_FIRST_WORDS = ("Wall", "Forest", "Hedge", "Pond", "Pool", "_Window", "Water
 QUIET_VERBS = ("Attack", "Examine", "Walk here", "Cancel")    # (an animal's noise comes with the rest: animal_noise)
 
 
+def amount_verbs(verb, n):
+    """Drop, Deposit or Withdraw, as the stack has them: 1, 5 and 10 (when there are more), All, and X (typed)."""
+    if n <= 1:
+        return verb if verb == "Drop" else verb + " 1"
+    return ",".join([verb + " 1"] + [verb + " %d" % k for k in (5, 10) if n > k] + [verb + " All", verb + " X"])
+
+
 class ActionsMixin:
     # =================================================================================================================
     # Names and verbs
@@ -72,6 +79,16 @@ class ActionsMixin:
                 return lst
             i += 1
         return verb if lst == "" else lst + "," + verb
+
+    def amount_of(self, verb):
+        """How many a Drop, Deposit or Withdraw is for: its number, or for X what was typed (0: nothing)."""
+        last = verb.rsplit(" ", 1)[-1]
+        if last.isdigit():
+            return int(last)
+        q = self.verb_qty
+        if last != "X" or isinstance(q, bool) or not isinstance(q, (int, float)) or not 0 < q < 1e9:
+            return 0
+        return int(q)
 
     def add_verbs(self, lst, verbs):
         i = 1
@@ -134,7 +151,7 @@ class ActionsMixin:
             if self.ab_mode == "Shop":
                 verbs = "Sell 1,Sell All,Value,Examine" if self.can_sell_here(e.name, e.stolen) else "Examine"
             elif self.ab_mode == "Bank":
-                verbs = "Deposit 1,Deposit All,Examine"
+                verbs = self.add_verbs(amount_verbs("Deposit", self.items_held(e.name, e.stolen)), "Examine")
             else:
                 words = self.entity_ini(e.name, "Use.Words", "")
                 spell = self.spell_learnable(e.name)
@@ -147,18 +164,15 @@ class ActionsMixin:
                 verbs = self.add_verb(verbs, "Use")
                 if self.dismantle_worth(e.name):
                     verbs = self.add_verb(verbs, "Dismantle")       # (its magic, for Shards: shards.py)
-                if e.quantity > 1:
-                    verbs = self.add_verb(verbs, "Drop All")
-                    verbs = self.add_verb(verbs, "Drop 1")
-                else:
-                    verbs = self.add_verb(verbs, "Drop")
-                verbs = self.add_verb(verbs, "Examine")
-                verbs = self.add_verb(verbs, "Off hotbar" if e.name in self.hotbar else "Hotbar")
+                verbs = self.add_verbs(verbs, amount_verbs("Drop", e.quantity))
+                verbs = self.add_verb(verbs, "Examine")   # (the hotbar: dragged to, not a word in the menu)
         elif t == ACTIONBOXITEM:
             if self.ab_mode == "Shop":
                 verbs = "Buy 1,Buy 5,Value,Examine"
             elif self.ab_mode == "Bank":
-                verbs = "Withdraw 1,Withdraw All,Examine"
+                slot = val(e.misc)
+                n = self.bank_qty[slot] if isinstance(slot, int) and 0 < slot < len(self.bank_qty) else 1
+                verbs = self.add_verbs(amount_verbs("Withdraw", n), "Examine")
             elif self.ab_mode == "Craft":
                 verbs = "Make,Inspect,Examine"
             else:
@@ -473,8 +487,9 @@ class ActionsMixin:
             self.pickup_map_item(e)
         elif verb in ("Drop", "Drop All"):
             self.drop_inventory_item(e, e.quantity)
-        elif verb == "Drop 1":
-            self.drop_inventory_item(e, 1)
+        elif verb.startswith("Drop "):                  # (Drop 1, 5, 10, or X: as many as typed, the stack at most)
+            if self.amount_of(verb) > 0:
+                self.drop_inventory_item(e, self.amount_of(verb))
         elif verb == "Eat" and t == INVENTORYITEM and self.entity_ini(name, "Cures", ""):
             self.drink_cure(e)
         elif verb == "Eat":
@@ -493,10 +508,6 @@ class ActionsMixin:
             self.display_message("You have %d %s." % (self.items_held(name), pretty(name)), "INFO")
         elif verb == "Repair" and t == NPC:
             self.repair_by_smith(e)
-        elif verb == "Hotbar":
-            self.hotbar_add(name)
-        elif verb == "Off hotbar":
-            self.hotbar_remove(self.hotbar.index(name) if name in self.hotbar else -1)
         elif verb == "Search" and name == "Gravestone":
             self.grave_search()
         elif verb == "Drink" and t == INVENTORYITEM and self.entity_ini(name, "Cures", ""):
@@ -543,14 +554,16 @@ class ActionsMixin:
             self.rack_sell(e, 1)
         elif verb == "Sell All":
             self.rack_sell(e, self.items_held(name))
-        elif verb == "Deposit 1":
-            self.bank_deposit(e, 1)
         elif verb == "Deposit All":
             self.bank_deposit(e, self.items_held(name))
-        elif verb == "Withdraw 1":
-            self.bank_withdraw(e, 1)
+        elif verb.startswith("Deposit "):               # (1, 5, 10, or X: what was typed, what you have at most)
+            if self.amount_of(verb) > 0:
+                self.bank_deposit(e, self.amount_of(verb))
         elif verb == "Withdraw All":
             self.bank_withdraw(e, -1)
+        elif verb.startswith("Withdraw "):
+            if self.amount_of(verb) > 0:
+                self.bank_withdraw(e, self.amount_of(verb))
         elif verb == "Make":
             self.craft_make(e)
         elif verb == "Inspect":
@@ -879,6 +892,8 @@ class ActionsMixin:
             self.hotbar_use(int(msg.get("k", -1)))
         elif t == "hotbar_remove":
             self.hotbar_remove(int(msg.get("k", -1)))
+        elif t == "hotbar_put":                         # (dragged there: from the bag, or from another slot)
+            self.hotbar_put(str(msg.get("name", "")), int(msg.get("k", -1)))
         elif t == "hotbar_slots":
             self.hotbar_set_slots(int(msg.get("n", 5)))
         elif t == "unequip":

@@ -1421,6 +1421,10 @@ def fairy_scripts():
             ("End",)] + list(FAR), MAKER)
 
 
+LAMBS = "Stray_Lamb_1;Stray_Lamb_2;Stray_Lamb_3"                  # (the arrow: every step points somewhere)
+BOTTLES = "Castaway_Bottle_1;Castaway_Bottle_2;Castaway_Bottle_3"
+
+
 def quests():
     def side(name, giver, attr, stages, done, markers, shards, items="", xp="", level=None, rumour=""):
         lines = ["Giver=%s" % giver, "Attribute=%s" % attr]
@@ -1443,7 +1447,8 @@ def quests():
         1: "Abel's three lambs got over the river. Find them (blue on the rump) and catch them. None caught yet.",
         2: "One of Abel's lambs is home. Two to find.",
         3: "Two of Abel's lambs are home. One to find.",
-        4: "All three lambs are home: tell Abel."}, 5, {0: "Abels_Pasture", 4: "Abels_Pasture"}, 4,
+        4: "All three lambs are home: tell Abel."}, 5, {0: "Abels_Pasture", 1: LAMBS, 2: LAMBS, 3: LAMBS,
+                                                      4: "Abels_Pasture"}, 4,
         "Gold_Coin(s) 30 Wool 3", rumour="A shepherd out on the river meadows has been counting his flock over and over. "
                                          "It keeps coming out short.")
     side("The Collier's Clamp", "Collier", "CollierQuest", {
@@ -1465,13 +1470,13 @@ def quests():
         1: "Mother Natter made you a frog. Talk to the Frog King while you're one.",
         2: "The heron took the Frog King's pearl to her nest. A frog can't climb: search the nest as yourself.",
         3: "You have the pearl. Mother Natter can make you a frog again, to give it back."}, 4,
-        {0: "Natters_Corner", 1: "Natters_Corner", 3: "Natters_Corner"}, 6, "Gold_Coin(s) 30",
+        {0: "Natters_Corner", 1: "Marsh_Frog_King", 2: "-11,4,0 24 20", 3: "Natters_Corner"}, 6, "Gold_Coin(s) 30",
         rumour="A woman out at the end of the Mirefen keeps frogs the way other folk keep hens. Some say they were "
                "people once.")
     side("Pell's Pick", "Delver_Ghost", "DelverQuest", {
         0: "Somebody is working the rock in the Stoneways, without a sound.",
         1: "Pell the miner's ghost wants his pick: the wraith in the Stoneways' east tunnel has it.",
-        2: "You have Pell's pick. Take it back to him."}, 3, {0: "Pells_Rest", 2: "Pells_Rest"}, 6,
+        2: "You have Pell's pick. Take it back to him."}, 3, {0: "Pells_Rest", 1: "Stoneways_Wraith", 2: "Pells_Rest"}, 6,
         "Steel_Pickaxe 1 Gold_Coin(s) 60", "Mining 2", level=14)
     side("The Castaway's Letters", "Beachcomber", "CastawayQuest", {
         0: "An old beachcomber walks the sand in the far south of the desert coast.",
@@ -1480,7 +1485,8 @@ def quests():
         2: "One of the castaway's letters found. Two to go.",
         3: "Two of the castaway's letters found. One to go.",
         4: "The castaway buried his strongbox under a cairn on the grass by the shore. Dig it up (a spade).",
-        5: "You dug up the castaway's strongbox. Tell Salt Agnes."}, 6, {0: "Agnes_Cove", 1: "Agnes_Cove",
+        5: "You dug up the castaway's strongbox. Tell Salt Agnes."}, 6, {0: "Agnes_Cove", 1: BOTTLES, 2: BOTTLES,
+                                                                         3: BOTTLES, 4: "1,23,0 21 13",
                                                                          5: "Agnes_Cove"}, 8, "Gold_Coin(s) 20",
         rumour="An old woman down on the desert's south shore says the sea's been sending her letters.")
     SK.set_section(SK.RACKS, "SHOP-Smuggler", [

@@ -7,8 +7,8 @@ few takes (Fail, Fail_2, Fail_3) are picked among at random as they play (audio.
                   a low string), Fizzle (a spell's breath going out)
   The interface:  Click (a soft tick of parchment), Chat (a soft harp pluck), Hail (a carter's "hoy!")
   Doing well:     Gather_Wood, Gather_Ore, Gather_Fish, Harvest, Cooked, Crafted, Unlock, Learn, Success
-  Magic:          Rare_Shard, Appear, Vanish, Swap, SpellHeal, LevelUp, Quest, Quest_Done (a quest finished: three
-                  quiet notes down to rest, not a fanfare), Remnant_Rise, Absorb, Shard_Land, Bloom_Harvest,
+  Magic:          Rare_Shard, Appear, Vanish, Swap, SpellHeal, LevelUp, Quest, Quest_Step (a step done: two quiet
+                  notes up), Quest_Done (a quest finished: three quiet notes down to rest, not a fanfare), Remnant_Rise, Absorb, Shard_Land, Bloom_Harvest,
                   Freeze, Stone_Wake, Enchant, Portal, Gate_Built, Anchor_Shatter (harps for the old sine chimes),
                   Hush, Dread, Buzz (a mosquito), Mage_Blink (a Dark Mage gone and back)
   A fever:        Fever_Shiver (teeth chattering, a shaky breath), Fever_Cured (a long breath out, a low harp)
@@ -205,6 +205,8 @@ SOUNDS = {
     "Quest": (lambda: room(mix(*[(delay(lute(NOTE[nt], 1.0, 100 + k, 0.996), k * 0.13), 0.5)
                                  for k, nt in enumerate(("G3", "C4", "E4", "G4"))],
                                (delay(bell(196, 1.5, 1.8), 0.5), 0.3)), 0.35), 0.7),
+    "Quest_Step": (lambda: room(mix((lute(NOTE["C4"], 0.5, 108), 0.45),             # (a step of a quest done: two
+                                    (delay(lute(NOTE["G4"], 0.9, 109, 0.996), 0.14), 0.4)), 0.25), 0.36),  # notes up)
     "Quest_Done": (lambda: room(mix((lute(NOTE["E4"], 0.6, 104), 0.5), (delay(lute(NOTE["D4"], 0.6, 105), 0.16), 0.45),
                                     (delay(lute(NOTE["C4"], 1.3, 106, 0.996), 0.34), 0.5),
                                     (delay(lute(NOTE["G3"], 1.3, 107, 0.996), 0.36), 0.3)), 0.3), 0.42),

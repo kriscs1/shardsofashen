@@ -86,7 +86,7 @@ export function getVerbs(e) {
     v = e.mine ? ["Take back 1", "Take back all", "Set price", "Examine"] : ["Buy 1", "Buy 5", "Value", "Examine"];
   } else if (t === T.INVITEM) {
     if (mode === "Shop") v = canSellHere(e.n, e.stolen) ? ["Sell 1", "Sell All", "Value", "Examine"] : ["Examine"];
-    else if (mode === "Bank") v = ["Deposit 1", "Deposit All", "Examine"];
+    else if (mode === "Bank") v = [...amountVerbs("Deposit", held(e.n, e.stolen)), "Examine"];
     else {
       const words = entityIni(e.n, "Use.Words", "");
       const sp = spellTaught(e.n);                // (a scroll that would teach you something: Learn, not Cast)
@@ -95,13 +95,12 @@ export function getVerbs(e) {
       addVerb(v, "Use");
       if (dismantleWorth(e.n)) addVerb(v, "Dismantle");
       if (entityIni(e.n, "Droppable", "1").trim() === "0") { /* (kept: quest things, the Access Crystal) */ }
-      else if (e.q > 1) { addVerb(v, "Drop All"); addVerb(v, "Drop 1"); } else addVerb(v, "Drop");
-      addVerb(v, "Examine");
-      addVerb(v, (S.me.hotbar || []).includes(e.n) ? "Off hotbar" : "Hotbar");
+      else amountVerbs("Drop", e.q).forEach((w) => addVerb(v, w));
+      addVerb(v, "Examine");                      // (the hotbar: dragged to, not a word in the menu)
     }
   } else if (t === T.RACKITEM) {
     if (mode === "Shop") v = ["Buy 1", "Buy 5", "Value", "Examine"];
-    else if (mode === "Bank") v = ["Withdraw 1", "Withdraw All", "Examine"];
+    else if (mode === "Bank") v = [...amountVerbs("Withdraw", e.q), "Examine"];
     else if (mode === "Craft") v = ["Make", "Inspect", "Examine"];
     else v = ["Examine"];
   } else if (t === T.STATICOBJECT || t === T.TEMPORARY || t === T.MISSILE) {
@@ -188,10 +187,16 @@ export function verbLabel(verb, e) {
   if (verb === "Make" && e.short) return `Make ${name} (needs ${pretty(S.box.skill)} level ${e.short})`;
   if (verb === "Make" && e.missing) return `Make ${name} (not enough ${e.missing})`;
   if (verb === "Pickup") return "Pick up " + name;
-  if (verb === "Hotbar") return `Put ${name} on the hotbar`;
-  if (verb === "Off hotbar") return `Take ${name} off the hotbar`;
+  if (/^(Drop|Deposit|Withdraw) X$/.test(verb)) return `${verb.slice(0, -2)} how many ${name}?...`;
   if (verb === "Use") return e.k === T.INVITEM ? `Use ${name}...` : "Use " + name;
   return verb + " " + name;
+}
+
+// (Drop, Deposit or Withdraw, as the stack has them: 1, 5 and 10 when there are more, All, and X typed; the
+// server's amount_verbs)
+export function amountVerbs(verb, n) {
+  if (n <= 1) return [verb === "Drop" ? verb : verb + " 1"];
+  return [verb + " 1", ...[5, 10].filter((k) => n > k).map((k) => `${verb} ${k}`), verb + " All", verb + " X"];
 }
 
 // ----- spells, learnt from their scrolls (S.me.spells), cast for Shards
@@ -250,8 +255,9 @@ export function cooldownLeft(spell) {
   return Math.max(0, cd - (performance.now() - (S.boostAt || 0)));
 }
 
-export function held(name) {
-  return (S.me?.inv || []).filter((i) => i[1] === name).reduce((a, i) => a + i[2], 0);
+export function held(name, stolen) {             // (stolen: only those marked stolen, or only those not; none, all)
+  return (S.me?.inv || []).filter((i) => i[1] === name && (stolen === undefined || !!i[5] === !!stolen))
+    .reduce((a, i) => a + i[2], 0);
 }
 
 export function verbRange(verb, e) {
