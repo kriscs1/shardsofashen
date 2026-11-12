@@ -131,11 +131,11 @@ tested and committed.
 - [x] Tests: two graves, an NPC still while talking, the ferry's stop.
 
 ## 10. Sending the server's log
-- [ ] A Send log button (on the admin page, and the app's server screen) sends the server's recent log to
+- [x] A Send log button (on the admin page, and the app's server screen) sends the server's recent log to
       `support@hallisium.com` through the central server (`central/mail.py`; the address its setting
       `DS_SUPPORT_EMAIL`, that one by default), with what's sent shown first and a line in the
       privacy policy (a log has names and addresses in it).
-- [ ] Not more than one in a while from one server; tests (`test_central.py`, `test_server.py`).
+- [x] Not more than one in a while from one server; tests (`test_central.py`, `test_server.py`).
 
 ## 11. Copyright
 - [x] `© 2026 Hallisium. All rights reserved.` at the foot of the start screen (every version) and in `CREDITS.md`.

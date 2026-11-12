@@ -1,6 +1,7 @@
 """The game server: one shared World, up to MAX_PLAYERS players connected over WebSockets, the world ticking 20 times
 a second, and everything saved to the database (every minute, when someone leaves, and when the server stops)."""
 import asyncio
+import collections
 import hashlib
 import hmac
 import ipaddress
@@ -8,6 +9,7 @@ import gzip
 import json
 import logging
 import os
+import platform
 import socket
 import sqlite3
 import time
@@ -39,6 +41,39 @@ TALKING = ("/p ", "/party ", "/r ", "/reply ", "/w ", "/whisper ", "/tell ", "/m
 BACKLOG = 100           # messages a connection may fall behind (5 s of ticks) before it's let go: a slow one
 UNNAMED = "A Shards of Ashen server"    # (a remote server nobody's named: DS_NAME, or Options)
 MOST_CHARACTERS = 5     # (an account's, or a device's, on one server)
+LOG_LINES = 2000        # (the log's last lines kept in memory: Options' Send log)
+LOG_SENT = 150000       # (characters of it that go: the end, if there's more)
+LOG_CLIENT = 60000      # (characters of the player's own side that go with it: what the page saw, its end)
+LOG_EVERY = 3600        # (seconds between logs sent from one server: the central server holds to it too)
+
+
+class RecentLog(logging.Handler):
+    """The log's last lines, kept in memory as they're written: what the host or an admin sends to support (Options'
+    Send log), shown to them first."""
+
+    def __init__(self):
+        super().__init__(logging.INFO)
+        self.lines = collections.deque(maxlen=LOG_LINES)
+        self.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+
+    def emit(self, record):
+        if record.name.startswith("aiohttp.access"):   # (a line for every picture fetched: no help to anyone)
+            return
+        if record.name == "asyncio" and record.exc_info and isinstance(record.exc_info[1], ConnectionResetError):
+            return                                      # (Windows, when a browser goes: asyncio's noise, nothing wrong)
+        try:
+            self.lines.append(self.format(record))
+        except Exception:                               # (a line that won't format is no reason to stop)
+            pass
+
+    def text(self):
+        text = "\n".join(self.lines)
+        if len(text) > LOG_SENT:                        # (its end, from a whole line)
+            text = text[-LOG_SENT:].partition("\n")[2]
+        return text
+
+
+RECENT_LOG = RecentLog()
 
 
 def shift_due(entry, seconds):
@@ -68,6 +103,7 @@ class Client:
         self.pass_until = 0         # (a time pass's end, when that's all it is: asked again then)
         self.device_full = False    # (the host's app says it's bought on the device)
         self.msg_times = []
+        self.log_shown = ""         # (the log as it was shown to them: what Send sends)
         self.closed = False
         self.queue = asyncio.Queue()
         self.writer = None
@@ -102,6 +138,8 @@ class GameServer:
         self.admins = {a.strip().lower() for a in str(admins or "").split(",") if a.strip()}
         from .version import version_info
         self.version = version_info(root)
+        if RECENT_LOG not in logging.getLogger().handlers:
+            logging.getLogger().addHandler(RECENT_LOG)  # (from now on: Options' Send log)
         self.assets_seen = (None, "")                   # (web/assets' manifest: when it was written, its version)
         self.code_seen = None                           # (the page's own code: its version, worked out once)
         self.store = Store(db_path)
@@ -139,6 +177,7 @@ class GameServer:
         self.last_where_sent = None     # (the minimap's dots as last sent: again only when they move)
         self.last_backup_day = None
         self.tick_ms = 0.0
+        self.up_since = time.time()
 
     # =================================================================================================================
     # Saving
@@ -588,6 +627,60 @@ class GameServer:
                 log.warning("The central server didn't answer %s: %s", path, e)
             self.central_away = True
             return None
+
+    async def send_log(self, s, c, data):
+        """The host's or an admin's Send log: first the log as it is (what will go: it has players' names and
+        addresses), then that same text to the central server, which emails it to support. One an hour from a server."""
+        if not self.central_url():
+            s.emit({"t": "log", "error": "There's no central server to send it through."})
+            return
+        if data.get("do") != "send":
+            c.log_shown = self.log_header(s) + "\n\n" + (RECENT_LOG.text() or "(nothing written down yet)")
+            s.emit({"t": "log", "text": c.log_shown})
+            return
+        if not c.log_shown:
+            return
+        try:
+            left = LOG_EVERY - (time.time() - float(self.store.setting("log_sent", "0") or 0))
+        except ValueError:
+            left = 0
+        if left > 0:
+            s.emit({"t": "log", "error": "A log went from this server not long ago: try again in %d minutes."
+                    % max(1, round(left / 60))})
+            return
+        note = " ".join(str(data.get("note", "")).split())[:1000]
+        mine = data.get("client")                       # (the page's own side, which it showed beside this)
+        mine = mine[-LOG_CLIENT:] if isinstance(mine, str) else ""
+        got = await self.central_post("/api/game/log", {**self.reporter.about(), "log": c.log_shown, "note": note,
+                                                        "client": mine}, packed=True)
+        if got and got.get("ok"):
+            self.store.set_setting("log_sent", str(int(time.time())))
+            log.info("%s sent the log to support", s.player_name)
+            c.log_shown = ""
+            s.emit({"t": "log", "sent": True})
+        else:
+            s.emit({"t": "log", "error": str((got or {}).get("text") or
+                                            "The central server didn't answer: try again later.")[:200]})
+
+    def log_header(self, s):
+        """The game as it is now, at the top of a log sent to support: what it's running, how it's keeping up, who's
+        where (a problem's often about a place)."""
+        up = int(time.time() - self.up_since)
+        lines = ["Shards of Ashen %s, Python %s on %s" % (self.version.get("version", "?"), platform.python_version(),
+                                                           platform.platform(terse=True)),
+                 "Kind: %s; up %dh %02dm; a tick takes %.1f ms (of %d); saved %d s ago" % (
+                     self.reporter.about()["kind"], up // 3600, up % 3600 // 60, self.tick_ms, TICK * 1000,
+                     time.time() - self.last_save),
+                 "Sent by: %s" % s.player_name,
+                 "Playing (%d of %d):" % (len(self.world.sessions), self.max_players)]
+        for o in self.world.sessions.values():
+            p = o.player
+            where = "%s %d,%d" % (o.screen_name, o.tile_of_x(p.cx), o.tile_of_y(p.cy)) if p is not None else "not in yet"
+            lines.append("  %s at %s%s%s" % (o.player_name, where, "" if o.connected else " (connection lost)",
+                                             " (dead)" if o.dead_wait else ""))
+        if self.tick_failed:
+            lines.append("Gone wrong in the tick (logged once): %s" % ", ".join(sorted(self.tick_failed)))
+        return "\n".join(lines)
 
     async def close_central(self):
         if self.central_http is not None:
@@ -1142,6 +1235,7 @@ class GameServer:
         await self.send(c, {"t": "welcome", "name": name, "admin": s.admin_enabled, "uid": s.player.uid,
                             "account": c.account, "server": self.server_name(),
                             "host": s.admin_enabled or c.host or self.is_local(c.addr), "lan": self.lan_open,
+                            "logs": bool(self.central_url()),
                             "reach": self.reach_of(c),
                             "explored": s.explored_for_client(), "time": w.clock_event(), "labels": s.my_labels()})
         self.broadcast(self.players_message())
@@ -1313,6 +1407,10 @@ class GameServer:
                 if name:
                     self.store.set_setting("name", name)
                     self.broadcast({"t": "server_name", "name": name})
+            return
+        if t == "log":                                  # (Options: the server's log, shown, then sent to support)
+            if s.admin_enabled or c.host or self.is_local(c.addr):
+                asyncio.ensure_future(self.send_log(s, c, data))
             return
         if t == "ping":
             s.emit({"t": "pong", "c": data.get("c"), "tick": round(self.tick_ms, 1)})

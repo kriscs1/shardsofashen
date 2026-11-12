@@ -965,6 +965,12 @@ that isn't in the game.
   first-run notice on the start screen says so). Something new
   worth counting is added there, and to the privacy policy (`central/pages/privacy.html`) in the same commit. Anyone can
   send a report, so what's in one is cleaned (`clean_characters`), and written to the admin page only through `esc`.
+- **Send log goes to support, seen first** (Options' Game tab for the host, and the Admin window: `RecentLog` in
+  `server/game.py`, `Central.game_log`): the game as it is (version, tick, who's where), its last lines kept in memory
+  (never `aiohttp.access`), and the device's own side (`web/js/clientlog.js`: browser, screen, the connection, the
+  page's errors with their stacks) are shown in full, and only that text goes, by email through the central server, to `DS_SUPPORT_EMAIL` (support@hallisium.com by default). One an hour
+  from a server, held to by both (and a few an hour from one address); none without `DS_CENTRAL` or SMTP. A log has
+  players' names and addresses: the privacy policy says so.
 - **The central server keeps a copy of itself every day** (`Central.nightly_backup`, `CentralStore.backup`: SQLite's
   own backup, the last 14, in `backups` beside it or `DS_CENTRAL_BACKUPS`), as a game server does its own: it's every
   account, purchase and friend, and nothing else has them.

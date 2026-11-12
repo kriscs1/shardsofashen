@@ -163,8 +163,26 @@
     <div class="row" id="opt-lan-at-row" hidden><span id="opt-lan-at" class="small"></span></div>
     <div class="row" id="opt-net-row" hidden><span id="opt-net-words"></span><input type="checkbox" id="opt-net"></div>
     <div class="row" id="opt-net-link-row" hidden><span>Their link</span><input id="opt-net-link" readonly></div>
+    <div class="row" id="opt-log-row" hidden><span>Something wrong? Send the game's log to support</span>
+      <button type="button" id="opt-log">Send log</button></div>
     </div>
     <div class="buttons"><button type="button" id="options-done">Done</button></div>
+  </div>
+</div>
+
+<div id="sendlog" class="overlay" hidden>
+  <div class="panel wide">
+    <h2>Send the log</h2>
+    <p class="small">What this game has written down lately goes to Hallisium's support, through the central server,
+      to help put right what went wrong. It has players' names and the addresses they came from. This is all of it:</p>
+    <textarea id="sendlog-text" readonly rows="9" spellcheck="false"></textarea>
+    <label class="small">What went wrong? (if you'd like to say)
+      <textarea id="sendlog-note" rows="2" maxlength="1000"></textarea></label>
+    <p id="sendlog-said" class="small" hidden></p>
+    <div class="buttons">
+      <button type="button" id="sendlog-send">Send</button>
+      <button type="button" id="sendlog-cancel">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -249,6 +267,7 @@
     </div>
     <p id="admin-status" class="dim"></p>
     <div class="buttons"><button type="button" id="admin-save">Save skills</button>
+      <button type="button" id="admin-log" hidden>Send log</button>
       <button type="button" id="admin-close">Close</button></div>
   </div>
 </div>

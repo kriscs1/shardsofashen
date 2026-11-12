@@ -183,6 +183,33 @@ html, body {
 
 .panel input:focus, .panel select:focus { border-color: #c08a5c; }
 
+/* (Send log: the log itself, small and scrolling; the note to support under it) */
+.panel textarea {
+  font: inherit;
+  font-size: 15px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  border: 2px solid var(--edge);
+  background: #241510;
+  color: #fff3cf;
+  outline: none;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+.panel textarea:focus { border-color: #c08a5c; }
+#sendlog-text { font-family: ui-monospace, Consolas, monospace; font-size: 12px; white-space: pre; overflow: auto;
+                height: 34vh; min-height: 90px; resize: none; }
+#sendlog-said.bad { color: #ff9a8a; }
+@media (max-height: 500px) {     /* (a phone on its side: the buttons still on screen) */
+  #sendlog .panel { padding: 12px 18px; }
+  #sendlog h2 { margin-bottom: 4px; }
+  #sendlog p.small { margin: 2px 0 6px; }
+  #sendlog-text { height: 24vh; min-height: 70px; }
+  #sendlog label { margin: 6px 0; }
+  #sendlog-note { height: 2.6em; }
+}
+
 /* (ticks in the game's own look: a dark wooden box, a copper edge, a gold tick; big enough for a finger) */
 input[type=checkbox] {
   appearance: none;

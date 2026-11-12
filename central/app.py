@@ -38,6 +38,8 @@ its own accounts too, for a network with no way to reach here.
   POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
   POST /api/game/report {secret, kind, name?, version, server?, proof?, characters: [...]}  -> {ok, took}  (a game server:
                                                   what its characters have got to, for the admin page: server/progress.py)
+  POST /api/game/log {secret, kind, name?, version, server?, proof?, log, client?, note?}  -> {ok}  (a game server's host or
+                                                  admin sending its log to support, by email: one an hour a server)
   POST /api/announce  {key, secret, proof, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
@@ -80,6 +82,11 @@ REPORTERS_A_DAY = 20            # (new game servers reporting from one address i
 REPORT_CHARACTERS = 50          # (characters in one report: more wait for the next)
 REPORTER_MOST = 20000           # (characters a game server may have here)
 PAGE = 50                       # (rows the admin page gets at a time)
+LOG_EVERY = 3600                # (seconds between logs from one game server: Send log)
+LOGS_FROM_HERE = 5              # (logs from one address in that time, whichever servers they say they're from)
+LOG_MOST = 200000               # (characters of a log that go: its end, if it's longer)
+LOG_CLIENT = 80000              # (and of the player's own side, what their page saw)
+SUPPORT = "support@hallisium.com"   # (where logs go: DS_SUPPORT_EMAIL, else this)
 GOOGLE_COOKIE = "ds_google"
 GOOGLE_PENDING = 2000           # (sign-ins under way at once: past this the oldest go)
 HOUSEKEEPING = 600              # (seconds between clearing out what's had its day)
@@ -135,6 +142,8 @@ class Central:
         self.announces = {}             # address -> [times] a game server called
         self.reports = {}               # address -> [times] a game server reported
         self.new_reporters = {}         # address -> [days] a new game server reported
+        self.logs_from = {}             # a game server's key -> [times] it sent its log
+        self.logs_here = {}             # address -> [times] a log came from it
         self.google_flows = {}          # state -> a sign-in on its way to Google and back
         self.google_results = {}        # code -> who came back from Google: {name} or {sub, email}, and when
         self.pass_keys = {}             # key -> (account, when): a time pass's ad under way (admob.py)
@@ -807,6 +816,63 @@ class Central:
                                str(d.get("version", ""))[:40], listed, rows)
         return yes(took=len(rows))
 
+    async def game_log(self, request):
+        """A game server's log, sent by its host or an admin (who saw it first: it has players' names and addresses),
+        emailed to support. Known by its secret's hash, like its reports; one an hour from a server, a few from an
+        address. Only as honest as the server: what it says goes in the email as text, nothing more."""
+        d, addr = await self.body(request), self.addr(request)
+        secret = str(d.get("secret", ""))
+        if not 16 <= len(secret) <= 128:
+            return no("A log needs its server's secret.")
+        if not mail.ready():
+            return no("The central server can't send email just now.")
+        key = digest(secret)[:32]
+        known = self.store.reporter(key)
+        if known and known["blocked"]:
+            return no("This server has been blocked.")
+        now = time.monotonic()
+        mine = [t for t in self.logs_from.get(key, []) if now - t < LOG_EVERY]
+        here = [t for t in self.logs_here.get(addr, []) if now - t < LOG_EVERY]
+        if mine:
+            return no("A log came from this server not long ago: try again in %d minutes."
+                      % max(1, round((LOG_EVERY - (now - mine[-1])) / 60)))
+        if len(here) >= LOGS_FROM_HERE:
+            return no("Too many logs from here: wait a while.")
+        self.logs_from[key], self.logs_here[addr] = [now], here + [now]
+        kind = str(d.get("kind", ""))
+        kind = kind if kind in ("solo", "local", "friends", "public") else "local"
+        version = " ".join(str(d.get("version", "")).split())[:40]
+        server = str(d.get("server", ""))[:64]
+        listed = self.store.proves_server(server, str(d.get("proof", ""))[:128])
+        text = "\n".join([
+            "A game's log, sent by its host or an admin.",
+            "",
+            "Name: %s" % (" ".join(str(d.get("name", "")).split())[:40] or "(none given)"),
+            "Kind: %s" % {"solo": "an app's own game, alone", "local": "an app's own game, open to its network",
+                          "friends": "an app's own game, open to friends", "public": "a server of its own"}[kind],
+            "Version: %s" % (version or "(none given)"),
+            "Listed server: %s" % (server if listed else "no"),
+            "Its reports' key: %s" % key,
+            "Sent from: %s" % addr,
+            "What went wrong: %s" % (clean_log(d.get("note"))[:1000] or "(not said)"),
+            "",
+            "---- the game (its server) ----",
+            clean_log(d.get("log"))[-LOG_MOST:] or "(empty)",
+            "",
+            "---- the player's side (what their page saw) ----",
+            clean_log(d.get("client"))[-LOG_CLIENT:] or "(none sent)",
+        ])
+        to = os.environ.get("DS_SUPPORT_EMAIL", "").strip() or SUPPORT
+        try:
+            await asyncio.get_running_loop().run_in_executor(
+                None, mail.send, to, "Shards of Ashen: a game's log (%s, %s)" % (kind, version or "?"), text)
+        except Exception as e:
+            log.warning("A game's log didn't go to %s: %s: %s", to, type(e).__name__, e)
+            self.logs_from[key] = []                    # (it didn't go: it can be tried again)
+            return no("The email didn't go: try again later.")
+        log.info("A game's log went to %s (%s, from %s)", to, kind, addr)
+        return yes()
+
     async def announce(self, request):
         d, addr = await self.body(request), self.addr(request)
         now = time.monotonic()
@@ -862,7 +928,8 @@ class Central:
         self.store.prune()
         self.trim_google()
         now, day = time.monotonic(), time.strftime("%Y%m%d")
-        for times, seconds in ((self.announces, 600), (self.reports, 600)):
+        for times, seconds in ((self.announces, 600), (self.reports, 600), (self.logs_from, LOG_EVERY),
+                               (self.logs_here, LOG_EVERY)):
             for k in [k for k, v in times.items() if not v or now - v[-1] > seconds]:
                 del times[k]
         for key in [k for k, v in self.fails.items() if not v or now - v[-1] > FAIL_WINDOW]:
@@ -1117,6 +1184,13 @@ def same_place(a, b):
     return bool(ua.hostname) and ua.hostname == ub.hostname and pa == pb
 
 
+def clean_log(text):
+    """A log or a note as plain text: lines and tabs kept, no other control characters."""
+    if not isinstance(text, str):
+        return ""
+    return "".join(ch for ch in text if ch in "\n\t" or ord(ch) >= 32).strip()
+
+
 def no(text, **more):
     return web.json_response({"ok": False, "text": text, **more}, dumps=compact)
 
@@ -1300,7 +1374,7 @@ def make_central(db_path):
                      ("email", c.set_email), ("email/again", c.email_again), ("forgot", c.forgot),
                      ("friends", c.friends), ("friend", c.friend),
                      ("game/friends", c.game_friends), ("game/standing", c.game_standing),
-                     ("game/report", c.game_report), ("google", c.google_result)):
+                     ("game/report", c.game_report), ("game/log", c.game_log), ("google", c.google_result)):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, nothing_to_say)
     app.router.add_get("/api/servers", c.servers)

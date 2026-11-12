@@ -1,6 +1,7 @@
 // Shards of Ashen in the browser: logging in, the server's messages, the screen (full screen, any size: the game is laid
 // out 768 high and scaled to fit, drawn at the screen's own resolution so text stays sharp; a phone's is laid out
 // lower, so everything's bigger: mobile.js) and the frame loop.
+import { CL, note, clientText } from "./clientlog.js";
 import { A, loadManifest, configRead, onLoaded, OWN } from "./assets.js";
 import { G, S, setGeometry, resetWorld, addMap, applySnap, glide, addMessage, myPlayer, unpackCells } from "./state.js";
 import { N, connect, send } from "./net.js";
@@ -207,7 +208,7 @@ $("chat-input").addEventListener("keydown", (ev) => {
 
 function overlayOpen() {
   // (not the chat line: you can walk, click and fight with it open)
-  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "count", "death", "tavern-game"].some((id) => !$(id).hidden);
+  return ["options", "quit", "admin", "message", "reward", "login", "loading", "appearance", "price", "count", "death", "tavern-game", "sendlog"].some((id) => !$(id).hidden);
 }
 
 function openQuit() { releaseKeys(); $("quit").hidden = false; $("quit-no").focus(); }
@@ -277,6 +278,57 @@ function showReach(m) {
   $("opt-lan-at").textContent = `Others join from Join a local game, or at ${reach.address || ""}`;
 }
 $("opt-server-name-save").addEventListener("click", () => send({ t: "server_name", name: $("opt-server-name").value }));
+
+// ----- Send log (the host's or an admin's): the server shows the log first, and only what was shown goes to support
+function sendLogSaid(text, bad) {
+  $("sendlog-said").textContent = text;
+  $("sendlog-said").classList.toggle("bad", !!bad);
+  $("sendlog-said").hidden = !text;
+}
+let logShown = false;                            // (the server sent the log: Send may go)
+let logClient = "";                              // (this device's side of it, as shown)
+function openSendLog() {
+  $("options").hidden = $("admin").hidden = true;
+  $("sendlog-text").value = "Getting the log...";
+  $("sendlog-note").value = "";
+  logShown = false;
+  $("sendlog-send").disabled = true;
+  $("sendlog-send").hidden = false;
+  $("sendlog-cancel").textContent = "Cancel";
+  sendLogSaid("");
+  $("sendlog").hidden = false;
+  send({ t: "ping", c: performance.now() });       // (how quick the connection is, for the device's side)
+  send({ t: "log" });
+}
+$("opt-log").addEventListener("click", openSendLog);
+$("admin-log").addEventListener("click", openSendLog);
+$("sendlog-send").addEventListener("click", () => {
+  $("sendlog-send").disabled = true;
+  sendLogSaid("Sending...");
+  send({ t: "log", do: "send", note: $("sendlog-note").value, client: logClient });
+});
+$("sendlog-cancel").addEventListener("click", () => { $("sendlog").hidden = true; canvas.focus(); });
+
+function gotLog(m) {
+  if (m.text !== undefined) {
+    const p = S.pos;
+    logClient = clientText([`Playing ${S.name} on ${S.mapName || "?"}` + (p ? ` at pixel ${Math.round(p.x)},${Math.round(p.y)}` : "")]);
+    $("sendlog-text").value = "---- The game (its server) ----\n" + m.text + "\n\n---- This device ----\n" + logClient;
+    logShown = true;
+    sendLogSaid("");
+  }
+  if (m.error) {
+    sendLogSaid(m.error, true);
+    if (!logShown) $("sendlog-text").value = "";
+  }
+  $("sendlog-send").disabled = !logShown;
+  if (m.sent) {
+    sendLogSaid("Sent. Thank you: support will look at it.");
+    logShown = false;
+    $("sendlog-send").hidden = true;
+    $("sendlog-cancel").textContent = "Close";
+  }
+}
 
 // ----- the trade window (together.py): your pack's things to put in, your offer to take back, theirs; both accept
 function tradeRow(name, n, buttons) {
@@ -613,7 +665,7 @@ for (const id of ["admin-noblack", "admin-nofog"]) {
   $(id).addEventListener("input", () => setFogAdmin($("admin-noblack").checked, $("admin-nofog").checked));
 }
 $("admin-close").onclick = () => { $("admin").hidden = true; canvas.focus(); };
-for (const id of ["admin", "options", "quit", "message", "appearance", "demo-end", "count"]) {
+for (const id of ["admin", "options", "quit", "message", "appearance", "demo-end", "count", "sendlog"]) {
   $(id).addEventListener("keydown", (ev) => {
     ev.stopPropagation();
     if (ev.key === "Escape") { $(id).hidden = true; canvas.focus(); }
@@ -763,7 +815,7 @@ window.dsUI = { openQuit, openOptions, openAdmin, openChat, toggleFullscreen, br
 window.dsBack = () => {
   const shut = { options: "options-done", quit: "quit-no", admin: "admin-close", price: "price-cancel",
                  appearance: "appearance-cancel", message: "message-ok", reward: "reward-ok",
-                 "demo-end": "demo-end-ok" };
+                 "demo-end": "demo-end-ok", sendlog: "sendlog-cancel" };
   for (const [id, button] of Object.entries(shut)) if (!$(id).hidden) { $(button).click(); return true; }
   if (!$("chat-entry").hidden) { $("chat-input").value = ""; $("chat-entry").hidden = true; return true; }
   if (J.open) { closeJournal(); return true; }
@@ -1038,6 +1090,8 @@ N.onMessage = (m) => {
       break;
     case "internet": showReach({ internet: m.internet }); break;
     case "server_name": $("opt-server-name").value = m.name || ""; break;
+    case "log": gotLog(m); break;
+    case "pong": if (m.c) { CL.ping = performance.now() - m.c; CL.tick = m.tick; } break;
     case "trade": showTrade(m); break;
     case "characters": showCharacters(m); break;
     case "exported": exported(m); break;
@@ -1156,6 +1210,7 @@ N.onMessage = (m) => {
       break;
     case "map":
       if (m.z !== S.mapZ) { V.cam.snap = true; V.mark = null; }   // (up or down: the stair's ring stays behind)
+      if (m.name !== S.mapName) note("On " + m.name);
       S.mapName = m.name;
       S.mapZ = m.z;
       break;
@@ -1211,7 +1266,10 @@ async function startGame(m) {
   S.name = m.name;
   S.uid = m.uid;
   S.admin = m.admin;
+  note(`In the game as ${m.name}${m.host ? " (the host)" : ""}${m.admin ? " (an admin)" : ""}`);
   $("opt-name-row").hidden = !m.host;              // (the game's name: the host's say, or an admin's)
+  $("opt-log-row").hidden = !(m.host && m.logs);   // (Send log: only where there's a central server to send it through)
+  $("admin-log").hidden = !m.logs;
   $("opt-whose").textContent = (m.account ? `Part of your Hallisium account, ${m.account}` : "This device's") +
     ": it lives on this server only.";
   $("opt-server-name").value = m.server || "";
@@ -1278,6 +1336,7 @@ function drawTeleportFade(c, now) {
 function frame(now) {
   requestAnimationFrame(frame);
   if (now - lastFrame < FRAME_MS && now >= lastFrame) return;
+  CL.frames++;
   if (running && S.catchUpUntil) {
     if (now > S.catchUpUntil) S.catchUpUntil = 0;
     else return;

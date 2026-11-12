@@ -606,6 +606,85 @@ def test_the_host_can_close_the_game_to_the_network(tmp_path, monkeypatch):
     served(go())
 
 
+def test_the_host_sends_the_log_they_were_shown(tmp_path, monkeypatch):
+    """Send log: the host (or an admin) is shown the log first, and just that goes to the central server, with what
+    the game is; once an hour from a server. Not without a central server, and nothing for a player who isn't the host."""
+    import logging
+    from server import game as server_game
+
+    async def go():
+        runner, app, url = await start(str(tmp_path / "t.db"), own=True)
+        game = app[GAME]
+        told, answer = [], [{"ok": True}]
+
+        async def central(path, body, packed=False):
+            if path == "/api/game/log":
+                told.append((body, packed))
+                return answer[0]
+            return None
+        monkeypatch.setattr(game, "central_post", central)
+        try:
+            async with aiohttp.ClientSession() as http:
+                monkeypatch.setattr(game, "central_url", lambda: "")
+                ws, m = await login(http, url, "Hostess")
+                assert m["t"] == "welcome" and m["host"] and not m["logs"]  # (no central server: no Send log)
+                await ws.send_json({"t": "log"})
+                assert "no central server" in (await replies(ws, ("log",)))["error"]
+                await ws.close()
+
+                monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
+                ws, m = await login(http, url, "Hostess", mode="login")
+                assert m["t"] == "welcome" and m["host"] and m["logs"]
+                logging.getLogger("dsengine").warning("Something odd at 2,1,0")
+                logging.getLogger("aiohttp.access").warning("127.0.0.1 GET /assets/sprites/Rabbit.png 200")
+                await ws.send_json({"t": "log"})
+                shown = (await replies(ws, ("log",)))["text"]
+                assert "Something odd at 2,1,0" in shown and "Rabbit.png" not in shown     # (not a line a picture)
+                head = shown.split("\n\n")[0]                       # (the game as it is, at the top)
+                assert head.startswith("Shards of Ashen ") and "Sent by: Hostess" in head
+                assert "Playing (1 of 5):\n  Hostess at " in head
+                long = server_game.RecentLog()                      # (a long one: its end, from a whole line)
+                long.lines.extend("line %d %s" % (n, "x" * 100) for n in range(server_game.LOG_LINES))
+                assert len(long.text()) <= server_game.LOG_SENT and long.text().startswith("line ")
+                logging.getLogger("dsengine").warning("Written after it was shown")
+                await ws.send_json({"t": "log", "do": "send", "note": "The ferry\n  won't sail",
+                                    "client": "y" * 10 + "z" * server_game.LOG_CLIENT})
+                assert (await replies(ws, ("log",)))["sent"]
+                body, packed = told[-1]
+                assert body["log"] == shown and body["note"] == "The ferry won't sail" and packed
+                assert body["client"] == "z" * server_game.LOG_CLIENT        # (the page's own side: its end)
+                assert body["secret"] == game.reporter.secret() and body["kind"] in ("solo", "local")
+                assert "Written after" not in body["log"]
+
+                # (once an hour: the server holds to it before the central server's asked)
+                await ws.send_json({"t": "log"})
+                await replies(ws, ("log",))
+                await ws.send_json({"t": "log", "do": "send"})
+                assert "minutes" in (await replies(ws, ("log",)))["error"] and len(told) == 1
+                game.store.set_setting("log_sent", "0")
+                answer[0] = {"ok": False, "text": "Too many logs from here: wait a while."}
+                await ws.send_json({"t": "log", "do": "send"})
+                assert (await replies(ws, ("log",)))["error"].startswith("Too many")    # (the central server's word)
+                answer[0] = None
+                await ws.send_json({"t": "log", "do": "send"})
+                assert "didn't answer" in (await replies(ws, ("log",)))["error"]
+                assert game.store.setting("log_sent") == "0"                # (none went: it can be tried again)
+                await ws.close()
+
+                # (not the host, nor an admin: nothing)
+                game.store.set_setting("lan_open", "1")
+                monkeypatch.setattr(game, "is_local", lambda addr: False)
+                ws, m = await login(http, url, "Guest", device=device_of("Guest"))
+                assert m["t"] == "welcome" and not m["host"]
+                await ws.send_json({"t": "log"})
+                await ws.send_json({"t": "ping", "c": 1})
+                assert (await replies(ws, ("log", "pong")))["t"] == "pong"
+                await ws.close()
+        finally:
+            await runner.cleanup()
+    served(go())
+
+
 def test_a_public_server_limits_sign_ups_behind_its_proxy(tmp_path, monkeypatch):
     """Behind Caddy (DS_TRUST_PROXY=1) each player's own address counts: two new characters a day from one, names
     kept back; and from the internet, a Hallisium account (a ticket) or nothing."""

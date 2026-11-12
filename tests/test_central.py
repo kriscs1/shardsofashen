@@ -1309,6 +1309,71 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
     asyncio.run(go())
 
 
+def test_a_games_log_is_emailed_to_support_once_an_hour(tmp_path, monkeypatch):
+    """Send log: to DS_SUPPORT_EMAIL (support@hallisium.com when it isn't set), as plain text with what the game said of
+    itself; one an hour from a server and a few from an address; not without a secret or a way to send email, nor from
+    a blocked server. One that didn't go can be tried again."""
+    from central import mail
+    from central import app as central_app
+
+    async def go():
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        url = "http://127.0.0.1:%d/api/game/log" % port
+        central = capp[CENTRAL]
+        mail.SENT.clear()
+        try:
+            async with aiohttp.ClientSession() as http:
+                body = {"secret": "a" * 32, "kind": "friends", "name": "Ann's game", "version": "1.2",
+                        "log": "10:00 INFO game: Ann came in from 10.0.0.2\x1b[31m\n10:01 WARNING game: oops",
+                        "note": "The ferry\nwon't sail", "client": "12:00:01.500 ERROR TypeError: x is null\n    at main.js:10"}
+                monkeypatch.delenv("DS_SMTP_HOST", raising=False)
+                assert "email" in (await post(http, url, body))["text"]      # (no way to send it: nothing's counted)
+                monkeypatch.setenv("DS_SMTP_HOST", "test")
+                assert not (await post(http, url, {**body, "secret": "short"}))["ok"]
+                monkeypatch.delenv("DS_SUPPORT_EMAIL", raising=False)
+                assert (await post(http, url, body))["ok"]
+                to, subject, text = mail.SENT[-1]
+                assert to == "support@hallisium.com" and "friends" in subject and "1.2" in subject
+                assert "Name: Ann's game" in text and "open to friends" in text and "Listed server: no" in text
+                assert "The ferry\nwon't sail" in text and "\x1b" not in text
+                its, mine = text.split("---- the game (its server) ----\n")[1].split("\n\n---- the player's side")
+                assert its == "10:00 INFO game: Ann came in from 10.0.0.2[31m\n10:01 WARNING game: oops"
+                assert text.endswith("ERROR TypeError: x is null\n    at main.js:10")     # (the page's own, under it)
+                again = await post(http, url, body)
+                assert not again["ok"] and "minutes" in again["text"] and len(mail.SENT) == 1
+
+                # (another server's goes, to the address set; a few from one address, then no more for a while)
+                monkeypatch.setenv("DS_SUPPORT_EMAIL", "help@example.com")
+                assert (await post(http, url, {**body, "secret": "b" * 32}))["ok"]
+                assert mail.SENT[-1][0] == "help@example.com"
+                for n in range(central_app.LOGS_FROM_HERE - 2):
+                    assert (await post(http, url, {**body, "secret": "%02d" % n * 16}))["ok"]
+                assert "Too many" in (await post(http, url, {**body, "secret": "c" * 32}))["text"]
+
+                # (a blocked server's isn't sent; nor one so long it's only its end that goes)
+                central.logs_here.clear()
+                central.store.block_reporter(central_app.digest("d" * 32)[:32], True)
+                assert "blocked" in (await post(http, url, {**body, "secret": "d" * 32}))["text"]
+                n = len(mail.SENT)
+                assert (await post(http, url, {**body, "secret": "e" * 32,
+                                               "log": "x" * 10 + "y" * central_app.LOG_MOST}))["ok"]
+                its = mail.SENT[-1][2].split("---- the game (its server) ----\n")[1].split("\n\n---- the player's side")[0]
+                assert len(mail.SENT) == n + 1 and its == "y" * central_app.LOG_MOST
+
+                # (an email that doesn't go can be tried again at once)
+                def broken(*a):
+                    raise OSError("no route")
+                monkeypatch.setattr(mail, "send", broken)
+                assert "didn't go" in (await post(http, url, {**body, "secret": "f" * 32}))["text"]
+                monkeypatch.undo()
+                monkeypatch.setenv("DS_SMTP_HOST", "test")
+                assert (await post(http, url, {**body, "secret": "f" * 32}))["ok"]
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
 def test_a_report_is_taken_only_as_far_as_it_should_be(tmp_path, monkeypatch, confirmed):
     """Anyone can send one: a secret too short, things out of range or of the wrong kind, an account that isn't there;
     nobody writes under another's key; zipped comes through; and the DS_PROGRESS off switch."""
@@ -1663,7 +1728,8 @@ def test_sql_injection_on_every_way_in(tmp_path, monkeypatch, confirmed):
                 assert victim["ok"]
                 tables = [r[0] for r in sqlite_tables(tmp_path / "central.db")]
                 paths = ["register", "login", "reset", "forgot", "me", "logout", "account", "email", "ticket", "verify", "friends",
-                         "friend", "game/friends", "game/standing", "game/report", "goodbye", "announce", "google", "admin/accounts"]
+                         "friend", "game/friends", "game/standing", "game/report", "game/log", "goodbye", "announce", "google",
+                         "admin/accounts"]
                 fields = ("name", "password", "email", "who", "code", "token", "ticket", "server", "grant", "key", "secret", "q",
                           "claim", "url", "remove", "characters")
 
@@ -1672,6 +1738,8 @@ def test_sql_injection_on_every_way_in(tmp_path, monkeypatch, confirmed):
                     central.signups.clear()
                     central.announces.clear()
                     central.reports.clear()
+                    central.logs_from.clear()
+                    central.logs_here.clear()
                     async with http.post(c + "/api/" + path, data=json.dumps({f: value for f in fields}),
                                          headers={"Content-Type": "application/json"}) as r:
                         assert r.status < 500, (path, value, r.status)

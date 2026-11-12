@@ -466,6 +466,9 @@ lists the remote game servers (each announces itself to it), and it serves the a
   minutes. Without SMTP a forgotten password can't be reset and nobody new can confirm an email, and there's no other
   way: there are no recovery codes, and an account's email must be confirmed before it can join a game (the central
   server gives it no ticket till then; an account from before with none is asked for one). Playing alone needs none.
+- **Send log**: a game's host (Options, Game) or an admin (the Admin window) can send its recent log, after seeing
+  all of it, to support by email through the central server: to `DS_SUPPORT_EMAIL` (support@hallisium.com when it
+  isn't set). It needs SMTP; one an hour from a game server.
 - **The privacy policy** is at `/privacy`: set `DS_CENTRAL_OPERATOR` (who runs it) and `DS_CENTRAL_CONTACT` (an email
   to write to) for its blanks. Read it through before going public: it's written for this game, but it's yours.
 - **AdSense** (browsers only: Google's rules put apps on AdMob instead): set `DS_ADSENSE_CLIENT` (`ca-pub-...`) and
