@@ -1158,7 +1158,7 @@ def scripts():
 
     # ----- drinks
     S["Drink Super_Potion"] = drink_script("Super_Potion", heal=40, msg="You drink the potion. It fizzes and glows!")
-    S["Drink Strength_Potion"] = drink_script("Strength_Potion", heal=5, skill="Strength", xp="0.5",
+    S["Drink Strength_Potion"] = drink_script("Strength_Potion", heal=5, skill="Attack", xp="0.5",
                                               msg="You drink the potion. Your arms tingle with strength!")
     S["Drink Bucket_of_Milk"] = [("Take.Item", "Bucket_of_Milk", "1"),
                                  ("Display.Message", "Cyan", "You drink the milk. Delicious!"),
@@ -1816,7 +1816,7 @@ EQUIPMENT = {
     # weapons
     "Copper_Dagger": (10, "A short copper dagger. Better than your fists.", "Weapon", 1, 0, ""),
     "Iron_Sword": (30, "A plain iron sword. Heavy and honest.", "Weapon", 3, 0, ""),
-    "Steel_Sword": (70, "A fine steel sword with a gilded guard.", "Weapon", 5, 0, "Strength 10"),
+    "Steel_Sword": (70, "A fine steel sword with a gilded guard.", "Weapon", 5, 0, "Attack 10"),
     # shields
     "Iron_Shield": (35, "A round iron shield with a red cross.", "Shield", 0, 2, "Defence 5"),
     "Steel_Shield": (80, "A steel kite shield with a gold chevron.", "Shield", 0, 4, "Defence 10"),
@@ -1846,7 +1846,7 @@ EQUIPMENT = {
     "Steel_Boots": (45, "Steel boots with gilded toes.", "Feet", 0, 3, "Defence 10"),
     "Steel_Gauntlets": (45, "Steel gauntlets with gilded cuffs.", "Hands", 1, 2, "Defence 10"),
     # mithril (Smithing, anvil): the best armour there is
-    "Mithril_Sword": (220, "A mithril sword. It weighs nothing and cuts like the wind.", "Weapon", 7, 0, "Strength 20"),
+    "Mithril_Sword": (220, "A mithril sword. It weighs nothing and cuts like the wind.", "Weapon", 7, 0, "Attack 20"),
     "Mithril_Helm": (160, "A mithril helm, shimmering blue-green.", "Head", 0, 4, "Defence 20"),
     "Mithril_Shield": (240, "A mithril kite shield.", "Shield", 0, 6, "Defence 20"),
     "Mithril_Platebody": (400, "A mithril breastplate. Light as linen, hard as dragon scale.", "Body", 0, 7, "Defence 25"),
@@ -1878,7 +1878,7 @@ def equip(value, examine, slot, attack, defence, requires):
 ENTITIES.update({
     "Arrows": item(1, "Arrows with grey goose feathers. A bow uses one a shot.", 999),
     "Oak_Bow": equip(60, "An oak shortbow. Carry arrows and attack from a distance.", "Weapon", 2, 0, "") + [("Range", "160"), ("Ammo", "Arrows")],
-    "Yew_Bow": equip(260, "A yew longbow: it shoots further and hits harder than oak.", "Weapon", 5, 0, "Strength 15") + [("Range", "224"), ("Ammo", "Arrows")],
+    "Yew_Bow": equip(260, "A yew longbow: it shoots further and hits harder than oak.", "Weapon", 5, 0, "Attack 15") + [("Range", "224"), ("Ammo", "Arrows")],
 })
 
 

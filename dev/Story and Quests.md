@@ -211,7 +211,7 @@ cave troll slain. Reward: 150 gold, 2 sapphires, a steel sword, Mining experienc
 **The Wildwood Watch**: *level 3, after chapter 7*
 Ranger Ash in Oakhollow sends you to visit the three old watch stones (the north road, the western woods, the
 river), then to clear the spider nest west of Oakhollow (5 giant spiders). Reward: 120 gold, a yew staff,
-Strength and Woodcutting experience.
+Attack and Woodcutting experience.
 
 **The Old Grove**: *after The Wildwood Watch*
 Master Bramble, a timber merchant in Oakhollow, wants the old oaks south-east of the village felled; Ranger Ash wants
@@ -244,7 +244,7 @@ her he drank it. Reward: 80 gold, 2 mega potions, Potion Making experience. (Mor
 
 **Bandits on the Road**: *level 5, after chapter 4*
 Captain Hale in Highwatch: slay 5 bandits, then find their camp in the eastern hills and take the stolen goods
-from their strongbox. Reward: 200 gold, a steel platebody, Strength experience, and Frosthold +10. Or, if you
+from their strongbox. Reward: 200 gold, a steel platebody, Attack experience, and Frosthold +10. Or, if you
 sided with Red Meg in The Smugglers' Run, she'll buy the goods: 300 gold, and Frosthold -10 (`BanditWay`: 1 Hale's,
 2 Meg's).
 
@@ -252,7 +252,7 @@ sided with Red Meg in The Smugglers' Run, she'll buy the goods: 300 gold, and Fr
 Ambrose, the last steward of Redrock Manor, thrown out by the bandits who hold it, waits on the road by its gate. The
 old lord built the house so no thief could find his way about it (rooms with no doors, stairs to nowhere), and the
 bandits have never found the vault. Bring him the family's signet from it. Beside the signet lies the old lord's scroll
-of Dread (a spell that sends a foe running), yours with his blessing. Reward: 120 gold, Shards, Stealth and Strength
+of Dread (a spell that sends a foe running), yours with his blessing. Reward: 120 gold, Shards, Stealth and Attack
 experience. Once you've taken the quest, Spleen, the bandits' chief, waits outside the manor's door to buy the signet
 (`RedrockWay`):
 * **Sold** (1): 130 gold more. Ambrose is gone from the road, and the bandits at Redrock are your friends.
@@ -330,7 +330,7 @@ geese. Go unseen (an Invisibility Potion), or swap bodies with her goose Gerald 
 gold, 12 Shards. Gerald does not apologise.
 
 **Granny Bramble's Practice Hex**: *after The Invisible Apprentice*
-A hedge witch at Fenwick's market practises a hex on you: your Strength drains to nothing for ten minutes. Then she
+A hedge witch at Fenwick's market practises a hex on you: your Attack drains to nothing for ten minutes. Then she
 wants the four market rats seen to. Your sword arm's no use: a spell, a potion, or someone else's body. Reward:
 Antidotes, 15 Shards, Magic experience.
 

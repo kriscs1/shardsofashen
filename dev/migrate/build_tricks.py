@@ -8,7 +8,7 @@
   * Lady Pettigrew's Hat (HatQuest 0-2): the geese of Goose Green, east of Northport (5,5,0), have her hat on their
     nest, and they are not reasonable geese. Go unseen, or swap with her own tame goose, and fetch it.
   * Granny Bramble's Practice Hex (HexQuest 0-2): a hedge witch at Fenwick's market practises a hex on you (your
-    Strength drained to nothing: Boost.Skill) and then wants the rats round the market cleared. Your sword's no use:
+    Attack drained to nothing: Boost.Skill) and then wants the rats round the market cleared. Your sword's no use:
     a spell, a potion, or someone else's body.
   * Pip's Spectacles (SpectaclesQuest 0-8): Pip's good spectacles went missing the afternoon a cat had his body.
     Only the animals know, and they only talk to another animal: swap, and ask Inkwell, the Court's cat (a fish
@@ -602,15 +602,15 @@ def granny():
         ("Update.Attribute", "HexQuest", "=1"),
         ("Update.Attribute", "HexRats", "=0"),
         ("Play.Sound", "Fizzle"),
-        ("Boost.Skill", "Strength", "-24", "600"),
+        ("Boost.Skill", "Attack", "-24", "600"),
         ("Display.Message", "DarkRed", "Granny Bramble waggles her fingers at you. Your arms go like wet string: your "
-                                       "Strength drains to nothing!", "Denied"),
+                                       "Attack drains to nothing!", "Denied"),
         ("Display.Message", "Yellow", "Quest started: Granny Bramble's Practice Hex.", "Quest"),
         ("Goto.Line", "@rats"),
         ("@s1",), (">Conditional", "$Variable.1=1", "@chat"),
         (">Conditional", "$Attr.HexRats>=4", "@more"),
         ("Update.Attribute", "HexQuest", "=2"),
-        ("Boost.Skill", "Strength", "0", "1"),
+        ("Boost.Skill", "Attack", "0", "1"),
         SK.say("Old_Woman", "All four, and you couldn't lift a teaspoon! Clever. Here, I'll take the hex off. "
                             "It was ten minutes, wasn't it? Close enough.", ("Thank you. I think.", "@done")),
         ("@done",),

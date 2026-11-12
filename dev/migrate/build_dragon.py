@@ -108,27 +108,27 @@ def wizard_steps(quests):
         ("End",),
         "dqsword:",
         ("Update.Attribute", "DragonQuest", "=4"),
-        ("Update.Skill", "Strength", "+3"),
+        ("Update.Skill", "Attack", "+3"),
         ("Update.Skill", "Defence", "+3"),
         ("Give.Item", "Dragon_Sword", "1"),
         ("Quest.Note", "DragonQuest", "You chose the Dragon Sword."),
-        ("Display.Message", "Yellow", "Quest complete: The Dragon of Ashpeak! You receive the Dragon Sword and Strength and Defence experience."),
+        ("Display.Message", "Yellow", "Quest complete: The Dragon of Ashpeak! You receive the Dragon Sword and Attack and Defence experience."),
         ("Goto.Line", "@dqdone"),
         "dqgold:",
         ("Update.Attribute", "DragonQuest", "=4"),
-        ("Update.Skill", "Strength", "+3"),
+        ("Update.Skill", "Attack", "+3"),
         ("Update.Skill", "Defence", "+3"),
         ("Give.Item", "Gold_Coin(s)", "2500"),
         ("Quest.Note", "DragonQuest", "You chose Ignaroth's hoard: 2500 gold."),
-        ("Display.Message", "Yellow", "Quest complete: The Dragon of Ashpeak! You receive 2500 gold and Strength and Defence experience."),
+        ("Display.Message", "Yellow", "Quest complete: The Dragon of Ashpeak! You receive 2500 gold and Attack and Defence experience."),
         ("Goto.Line", "@dqdone"),
         "dqgold_s:",
         ("Update.Attribute", "DragonQuest", "=4"),
-        ("Update.Skill", "Strength", "+3"),
+        ("Update.Skill", "Attack", "+3"),
         ("Update.Skill", "Defence", "+3"),
         ("Give.Item", "Gold_Coin(s)", "1500"),
         ("Quest.Note", "DragonQuest", "You chose a share of the hoard: 1500 gold. (The king remembers your oath to the Ashen Hand.)"),
-        ("Display.Message", "Yellow", "Quest complete: The Dragon of Ashpeak! You receive 1500 gold and Strength and Defence experience."),
+        ("Display.Message", "Yellow", "Quest complete: The Dragon of Ashpeak! You receive 1500 gold and Attack and Defence experience."),
         "dqdone:",
         ("Display.Message", "Cyan", "Word travels fast: the gates of Wardhaven, over the bridge east of Ashford's farms, are open to you at last."),
         ("End",),
@@ -156,7 +156,7 @@ def extend(world, content):
     C.ENTITIES["Dragon"] += [("Weapon.Range", "180"), ("Missile", "Dragon_Fire_Missile"), ("Missile.Impact", "Fire_Burst"),
                              ("Missile.Sound", "SpellFire")]
     C.ENTITIES["Dragon_Sword"] = C.equip(2000, "The Dragon Sword, forged in dragonfire: its red blade is warm to the touch.",
-                                         "Weapon", 11, 2, "Strength 20")
+                                         "Weapon", 11, 2, "Attack 20")
     C.MOVEMENT["Dragon"] = (2, 5, "0.4", "3-8")
     others = [q for q in C.QUESTS if q[0] != QUEST[0]]
     if QUEST not in C.QUESTS:

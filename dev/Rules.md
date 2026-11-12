@@ -34,7 +34,7 @@ The main quest line (`Type=Main` in `data/Quests.ini`, in chapters; the Isle's a
    and makes you promise not to go down without a sword and shield.
 3. **The Amulet of Succession** (`AmuletQuest`). **Bess** the milkmaid sends you to Frank before the hobgoblins; her
    husband **Frank** the blacksmith (his smithy by the dairy, smoke from its chimney by day) helps you make a wooden
-   sword and shield. **Brother Aldous** opens the trapdoor to you once you wield both and Strength and Defence are
+   sword and shield. **Brother Aldous** opens the trapdoor to you once you wield both and Attack and Defence are
    level 2. The amulet lies behind bars at the back of the caves (1,1,-2); Aldous follows you down with a scroll of
    Grasp, and gives you the key of the hobgoblins' lair door.
 4. **Passage to the Mainland** (`Passage`, done at 5). The ferries run from the start, for everyone, but **Wim**
@@ -254,7 +254,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   Marsh and Bog terrains scatter them.
 - **Malaria** (`dsengine/disease.py`, `data/Diseases.ini`, `dev/migrate/build_malaria.py`): a mosquito's bite may give it
   (`On.Hit=Malaria 5`; armour's no help). A disease has no end of its own: it stays through death and logging off, comes
-  on as a bout of Fever now and again (Strength down, health down, the player shaking; a fever never kills by itself),
+  on as a bout of Fever now and again (Attack down, health down, the player shaking; a fever never kills by itself),
   and goes only for what says `Cures=Malaria` (the Fever Tonic: not the Antidote, nothing else). Morwen, in Saltmarsh,
   tells what it is and gives the first tonic; it's brewed of bog myrtle and mangrove bark (`dev/migrate/build_mangroves.py`: mangroves stand in the mud where marshland meets the sea; Strip Bark).
 - **What doesn't keep** (Entities.ini `Shelf.Minutes`, `Spoils.To`; `player_items.py` shelf_*): real time, wherever it is;
@@ -335,7 +335,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   passed on, never signed: the honest shopkeeper who won't buy it says (`[Fence] Hint.<Town>`), and townsfolk in a
   fence's town tell those who've stolen (`Banter.ini` `When=Thief`, `Town=`). **Locks** (`dsengine/locks.py`, `data/Locks.ini`): chests have a
   lock by place (the easiest on the Isle, to learn on; never on a chest a quest needs); key, Pick Lock (Stealth) or
-  Break Open (Strength), but an iron-bound chest (`Sturdy`: the high locks and a share of the rest, never the Isle's)
+  Break Open (Attack), but an iron-bound chest (`Sturdy`: the high locks and a share of the rest, never the Isle's)
   is only picked or keyed; unlocked is yours, saved. Secrets (51, by every settlement) and traps (every monster-held
   level under the world, and the wild camps) are scattered by `build_whimsy.py`. **A thief's eye**
   (`dsengine/senses.py`): hidden traps and secrets noticed as you come near; a seen trap is marked, can be disarmed,
@@ -427,6 +427,9 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 - **Every NPC has a level** (its kind's, a little above or below; a map line's `Level=`: `world.py` set_npc_level), and
   a creature you can fight shows it on hover, its name coloured by how it stands to yours (grey far below, green, yellow
   about yours, orange, red far above: `tips.js` difficulty).
+  **The Isle's creatures** are a level under their kind's (two from level 4), the same each time
+  (`dev/migrate/isle_levels.py` puts `Level=` on their map lines: run it again after placing one there); a creature
+  a level down never has under half its kind's health.
 - Every hostile monster has a `Level=` (1-25, from its stats: `dev/migrate/build_remnants.py`). **A kill gives no
   Shards and no bones**: it may leave Shards on the ground (the item `Shard`), or, less often, its magic rises as a
   **Shard Remnant** (`Living_Remnant`), as strong as the monster's level, that goes for the killer and leaves more
@@ -480,7 +483,7 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
   level). A scroll a quest gives or a chest holds is never for sale (`Value=0`, `Droppable=0`; `validate.py` refuses one on a shelf). `dev/Spells.md` lists every
   spell, where it's learnt and what it costs: update it when a spell, its scroll or where it's found changes. Upgrade scrolls (`Rank=2`, Fire_Bolt_Scroll_II) raise a known
   spell a rank; each rank's values are `Key.<rank>` in Shards.ini `[Upgrade.<Spell>]`. Quests give items with
-  `Reward.Items` and skill xp with `Reward.XP` (`Strength 3 Defence 3`), and a finished quest shows its reward
+  `Reward.Items` and skill xp with `Reward.XP` (`Attack 3 Defence 3`), and a finished quest shows its reward
   screen. Set by `dev/migrate/build_shards.py`.
 - **A higher rank is plainly better** (`test_every_spell_rank_is_plainly_better`): never less damage, reach, radius,
   freeze or slow, never a longer cooldown, more damage for each Shard (it may cost more a cast), and each spell's
@@ -498,10 +501,16 @@ named in `WorldMap.ini`, its giver a placed NPC, its stages written in `Quests.i
 
 ### Skills
 - Skills go to **25** (Config `Skill.Max.Level`). A level asked for anywhere is on that scale; a script's success
-  roll counts the skill twice (`($Variable.1*2+34)>$Random.Percent`). Gains are `XP.Scale` times what's given.
+  roll counts the skill twice (`($Variable.1*2+34)>$Random.Percent`). Gains are `XP.Scale` times what's given, and
+  the skill's own `XP.<Skill>` (Config [Skills]: what doing it earns; a quest's `Reward.XP` is as written); each level costs `XP.Growth` times the last (`XP.First` the first),
+  so the early ones are quick. The skills are kept even by a minute's work: a craft at a range or an anvil is
+  instant, so its XP is weighed by what gathering its ingredients took (Cooking and Woodcutting slower, fighting
+  quicker). A fight's XP goes to Attack (a blow landed) or Defence (one taken or turned aside), and the stance you're
+  in sends a share of it to the skill it trains (`Stances.ini` `XP.To`, `XP.Share`: Fighting a quarter to Attack,
+  Cautious to Defence).
   Old saves are scaled as they load (`skills_of` in a save). `dev/migrate/scale_skills.py` did it, once.
-- The skills, in this order: Strength, Defence, **Channeling**, **Shardcraft**, Hitpoints, Cooking, Crafting, Fishing,
-  Mining, Woodcutting, **Alchemy**, **Homesteading**, **Stealth** (`dev/migrate/rename_skills.py`; an old name in a
+- The skills, in this order: **Attack** (was Strength: `rename_attack.py`), Defence, **Channeling**, **Shardcraft**,
+  Hitpoints, Cooking, Crafting, Fishing, Mining, Woodcutting, **Alchemy**, **Homesteading**, **Stealth** (`dev/migrate/rename_skills.py`; an old name in a
   save or a script means the skill it's part of now: `renames.py SKILL_NAMES`).
   - **Stealth** is going unseen and light-fingered: sneaking past, sneak attacks, pickpocketing and stealing, picking
     locks, spotting and disarming traps, noticing secrets (`dev/migrate/build_stealth.py`).

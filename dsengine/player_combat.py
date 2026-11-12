@@ -15,7 +15,7 @@ EFFECTS = {
     "Chill": dict(ms=7000, every=0, dmg=(0, 0), start="You're chilled to the bone: slowed!", end="You warm up again."),
     "Cold": dict(ms=3000, every=0, dmg=(0, 0), start="", end="You're warm again."),     # (cold.py: the snow's bite)
     # (drains: a skill lower for a while - the Stats tab shows it, 18/20)
-    "Weaken": dict(ms=30000, every=0, dmg=(0, 0), skill=("Strength", -3), start="You feel weak: your Strength drains!",
+    "Weaken": dict(ms=30000, every=0, dmg=(0, 0), skill=("Attack", -3), start="You feel weak: your Attack drains!",
                    end="Your strength comes back."),
     "Daze": dict(ms=25000, every=0, dmg=(0, 0), skill=("Channeling", -3), start="Your head spins: your Channeling "
                                                                                  "drains!",
@@ -23,7 +23,7 @@ EFFECTS = {
     "Frailty": dict(ms=30000, every=0, dmg=(0, 0), skill=("Defence", -3), start="Your guard falters: your Defence "
                                                                              "drains!", end="Your guard steadies."),
     # (a disease's bout, disease.py: it shakes you, drains you and wears you down, but never kills by itself)
-    "Fever": dict(ms=45000, every=6000, dmg=(1, 2), skill=("Strength", -3), spares=True, shakes=True,
+    "Fever": dict(ms=45000, every=6000, dmg=(1, 2), skill=("Attack", -3), spares=True, shakes=True,
                   start="The fever's on you: you shake with cold, then burn.", end="The fever breaks, for now."),
     # (the Shardsong's bout: you stop and listen to a voice that isn't there; after it, your eyes are sharp a while)
     "Listening": dict(ms=6000, every=1500, dmg=(0, 0), held=True, shakes=True, after="Keen",
@@ -108,7 +108,7 @@ class CombatMixin:
 
     def update_max_hp(self):
         d = self.data
-        levels = self.base_skill_level("Strength") + self.base_skill_level("Defence")
+        levels = self.base_skill_level("Attack") + self.base_skill_level("Defence")
         self.player_max_hp = max(1, int(d.hp_base + levels * d.hp_per_level))
         self.player.max_hp = self.player_max_hp
 
@@ -121,8 +121,9 @@ class CombatMixin:
         elif gain < 0:
             self.player.hp = min(self.player.hp, self.player_max_hp)
 
-    def update_skill(self, skill, amount, pop=True):
-        """amount = +Q, -Q or =Q. "Hitpoints" changes the player's current hitpoints."""
+    def update_skill(self, skill, amount, pop=True, weigh=True):
+        """amount = +Q, -Q or =Q. "Hitpoints" changes the player's current hitpoints. weigh: a gain is times the
+        skill's own XP.<Skill> (what doing it earns; a quest's Reward.XP is as written)."""
         d = self.data
         if trim(skill).upper() in ("HITPOINTS", "HITS", "HP"):
             if self.dead_wait:              # (dead: nothing hurts or heals until they respawn)
@@ -148,13 +149,11 @@ class CombatMixin:
         if pop and trim(str(amount))[:1] == "+":
             self.fx_skill_pop(d.skill_name[i])
         old = self.level_of_xp(self.skill_xp[i])
-        was = self.level_of_xp(self.skill_xp[i], False)      # (the slowdown goes by the XP, the demo's cap aside)
+        was = self.level_of_xp(self.skill_xp[i], False)      # (the demo's cap aside: does it hold a level back?)
         amount = trim(str(amount))
-        if amount[:1] == "+":                    # (Config XP.Scale: every gain, and slower as you go)
-            gain = val(amount[1:]) * d.xp_scale
-            if d.xp_slowdown > 0:
-                gain *= d.xp_slowdown / (d.xp_slowdown + was)
-            amount = "+" + lbstr(round(gain, 5))
+        if amount[:1] == "+":                    # (Config XP.Scale and the skill's own: every gain, along the curve)
+            gain = val(amount[1:]) * d.xp_scale * (d.xp_skill.get(d.skill_name[i].upper(), 1.0) if weigh else 1.0)
+            amount = "+" + lbstr(round(self.xp_along(self.skill_xp[i], gain) - self.skill_xp[i], 5))
         self.skill_xp[i] = min(d.skill_max_level, max(0, apply_change(self.skill_xp[i], amount)))
         if amount[:1] == "+":
             self.reward_xp(d.skill_name[i], val(amount[1:]))     # (a quest's reward screen lists it)
@@ -168,14 +167,45 @@ class CombatMixin:
             self.level_up_show(d.skill_name[i], new)
         if new < old:
             self.display_message("Your %s level has dropped to %d." % (pretty(d.skill_name[i]), new), "FAIL")
-        if new != old and d.skill_name[i].upper() in ("STRENGTH", "DEFENCE"):
+        if new != old and d.skill_name[i].upper() in ("ATTACK", "DEFENCE"):
             self.max_hp_changed(self.player_max_hp)
         if new != old:
             self.dirty_quests = True
             self.check_locks(True)
 
+    def fight_xp(self, skill, gain):
+        """A fight's XP (Attack for a blow landed, Defence for one taken or turned aside): the stance you're in sends
+        a share of it to the skill it trains more (Stances.ini [<stance>] XP.To and XP.Share: Fighting Attack,
+        Cautious, the stance you're in having chosen none, Defence)."""
+        st = self.stance or "Cautious"
+        to = trim(self.data.ini_read("Stances.ini", st, "XP.To", ""))
+        share = min(1.0, max(0.0, self.data.ini_num("Stances.ini", st, "XP.Share", 0.0))) if to else 0.0
+        if share and self.skill_index(to) and to.upper() != skill.upper():
+            self.update_skill(to, "+" + lbstr(round(gain * share, 5)), pop=False)
+            gain *= 1 - share
+        self.update_skill(skill, "+" + lbstr(round(gain, 5)), pop=False)
+
+    def xp_needed(self, level):
+        """What it takes to go from level to the next (Config XP.First, each level after XP.Growth times the last:
+        the early ones quick)."""
+        d = self.data
+        return d.xp_first * d.xp_growth ** (max(1, int(level)) - 1)
+
+    def xp_along(self, xp, gain):
+        """A skill's XP (its level and how far into the next) after gain: a level at a time, each at its own cost."""
+        top = self.data.skill_max_level
+        while gain > 0 and xp < top:
+            lv = max(1, int(xp))
+            per = self.xp_needed(lv) / (lv + 1 - (lv if xp >= 1 else 0))   # (a skill never trained: level 1 is 0
+            room = (lv + 1 - xp) * per                                       # to 2, as the page's bar shows it)
+            if gain < room:
+                return xp + gain / per
+            gain -= room
+            xp = float(lv + 1)
+        return min(xp, top)
+
     def player_level(self):
-        names = [s.strip() for s in self.data.config_read("Gameplay", "Level.Skills", "Strength,Defence,Channeling").split(",")
+        names = [s.strip() for s in self.data.config_read("Gameplay", "Level.Skills", "Attack,Defence,Channeling").split(",")
                  if s.strip()]
         levels = sorted((self.base_skill_level(s) for s in names if self.skill_index(s) > 0), reverse=True)
         best = max(1, int(val(self.data.config_read("Gameplay", "Level.Best", "2")) or 2))
@@ -255,7 +285,7 @@ class CombatMixin:
         return rnd() * 100 < chance
 
     def player_attack_value(self):
-        return (self.skill_level("Strength") * 2 / 3 + 3 * (self.equip_attack_total + self.spell_attack_bonus)) * \
+        return (self.skill_level("Attack") * 2 / 3 + 3 * (self.equip_attack_total + self.spell_attack_bonus)) * \
             self.stance_num("Attack")
 
     def player_defence_value(self):
@@ -266,7 +296,7 @@ class CombatMixin:
         return max(0, int((self.equip_defence_total + self.spell_defence_bonus) / 6))
 
     def player_max_hit(self):
-        return max(1, int((1 + int(self.skill_level("Strength") / 4) + 2 * (max(0, self.equip_attack_total) +
+        return max(1, int((1 + int(self.skill_level("Attack") / 4) + 2 * (max(0, self.equip_attack_total) +
                                                                            self.spell_attack_bonus)) *
                           self.stance_num("Damage")))
 
@@ -394,7 +424,7 @@ class CombatMixin:
         self.wear_weapon()
         self.fx_anim("Slash", t.cx, t.cy, 240)
         self.fx_nudge(t, w.fx_away(self.player, t), w.fx_away_y(self.player, t), 130)
-        self.update_skill("Strength", "+" + lbstr(damage * 0.01), pop=False)
+        self.fight_xp("Attack", damage * 0.01)
         self.damage_npc(t, damage)
         if t.alive and self.forms_bound and rnd() * 100 < self.form_sum("Daze") and \
                 val(self.entity_ini(t.name, "Boss", "0")) != 1 and val(self.entity_ini(t.name, "Freeze.Immune", "0")) != 1:
@@ -402,8 +432,8 @@ class CombatMixin:
             t.frozen_word = "stunned"                   # (Dirty Fighting: a blow that dazes)
 
     def lands_crit(self):
-        """Does this blow land hard (a crit)? Strength's chance: the same at a monster or another player (pvp.py)."""
-        return rnd() * 100 < 5 + self.skill_level("Strength") * 2 / 15
+        """Does this blow land hard (a crit)? Attack's chance: the same at a monster or another player (pvp.py)."""
+        return rnd() * 100 < 5 + self.skill_level("Attack") * 2 / 15
 
     def player_bow_range(self):
         weapon = self.equipped[1]
@@ -541,7 +571,7 @@ class CombatMixin:
             self.fx_splat("Miss", 0, p)
             if self.equip_defence_total + self.spell_defence_bonus > 0:
                 self.play_sound("Block", (p.cx, p.cy))
-            self.update_skill("Defence", "+0.03", pop=False)
+            self.fight_xp("Defence", 0.03)
             return
         self.wear_armour()
         damage = self.resist_damage(e, random_number(1, self.npc_max_hit(e))) - self.armour_soak()
@@ -550,14 +580,14 @@ class CombatMixin:
         if damage <= 0:
             self.fx_splat("Miss", 0, p)
             self.play_sound("Block", (p.cx, p.cy))
-            self.update_skill("Defence", "+0.03", pop=False)
+            self.fight_xp("Defence", 0.03)
             self.disease_on_blocked_hit(e)
             return
         self.play_sound("Hurt", (p.cx, p.cy))
         self.fx_splat("Hit", damage, p)
         w.fx_nudge(p, w.fx_away(e, p), w.fx_away_y(e, p), 130)
         self.fx_hurt_flash()
-        self.update_skill("Defence", "+" + lbstr(damage * 0.01), pop=False)
+        self.fight_xp("Defence", damage * 0.01)
         self.update_skill("Hitpoints", "-%d" % damage)
         if p.hp > 0:
             self.status_on_hit(e)

@@ -2620,7 +2620,7 @@ def check_quests():
             elif k == "Reward.XP":                       # (skill xp pairs, given once when it's done)
                 w = v.replace(",", " ").split()
                 if not w or len(w) % 2 or not all(is_num(x) for x in w[1::2]):
-                    err(where, "Reward.XP=%r should be pairs of skill and xp, e.g. Strength 3 Defence 3" % v)
+                    err(where, "Reward.XP=%r should be pairs of skill and xp, e.g. Attack 3 Defence 3" % v)
                 for sk in w[::2]:
                     if sk.lower() not in {s.lower() for s in QUEST_SKILLS()}:
                         err(where, "Reward.XP: no skill %r in Config.ini [Skills] List" % sk)

@@ -97,14 +97,14 @@ QUEST_ITEMS = {   # Quests.ini Reward.Items: upgrade scrolls for the harder ques
 }
 QUEST_XP = {   # Quests.ini Reward.XP: skill xp for finishing (as a script's Update.Skill +n), for the quests whose
     # scripts give none of their own
-    "Dinner at Edwin's": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Strength 2 Defence 2 Crafting 1",
-    "Passage to the Mainland": "Strength 2 Defence 2", "The Temporary Capital": "Channeling 1",
-    "The Ashford Road": "Strength 3 Defence 3", "The Staff of Ashen": "Channeling 3",
+    "Dinner at Edwin's": "Cooking 2 Woodcutting 1", "The Amulet of Succession": "Attack 2 Defence 2 Crafting 1",
+    "Passage to the Mainland": "Attack 2 Defence 2", "The Temporary Capital": "Channeling 1",
+    "The Ashford Road": "Attack 3 Defence 3", "The Staff of Ashen": "Channeling 3",
     "The Sunken Grimoire": "Channeling 4", "The Ember Ring": "Channeling 4 Defence 3", "Bert's Three Treasures": "Channeling 6",
-    "A Ship for Dragon Island": "Woodcutting 2 Crafting 2", "The Island of Dragons": "Strength 5 Defence 5",
-    "The Sword of Valour": "Strength 6", "The Dragon of Galaith": "Strength 8 Defence 8 Channeling 4",
-    "The Royal Guard": "Defence 4", "The True Heir": "Strength 5 Defence 5 Channeling 5",
-    "Wolves of the Greyflats": "Strength 3", "Bandits on the Road": "Strength 3 Defence 2",
+    "A Ship for Dragon Island": "Woodcutting 2 Crafting 2", "The Island of Dragons": "Attack 5 Defence 5",
+    "The Sword of Valour": "Attack 6", "The Dragon of Galaith": "Attack 8 Defence 8 Channeling 4",
+    "The Royal Guard": "Defence 4", "The True Heir": "Attack 5 Defence 5 Channeling 5",
+    "Wolves of the Greyflats": "Attack 3", "Bandits on the Road": "Attack 3 Defence 2",
     "The Lost Caravan": "Defence 3", "The Wardhaven Bridge": "Homesteading 3", "Granny Wren's Walk": "Defence 1",
     "The Shard Scholar": "Channeling 2",
 }

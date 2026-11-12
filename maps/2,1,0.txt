@@ -20,10 +20,10 @@ Grass001+Decor(Flowers002):Grass001+Decor(Tall_Grass001):Grass001+Decor(Pebbles0
 Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers001):Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Tree001):Grass001+Decor(Flowers002):Grass001:Grass001+Decor(Rock003):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Standing_Stone001)
 Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Flowers003):Grass001+Decor(Tall_Grass001):Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001:Grass001+Decor(Standing_Stone001):Grass001:Grass001:Grass001
 NPC	Villager	224	384	Attitude=Good Zone=5,11,12,16
-NPC	Rabbit	160	224	Attitude=Passive
-NPC	Rabbit	512	256	Attitude=Passive Zone=14,7,20,12
+NPC	Rabbit	160	224	Attitude=Passive Level=1
+NPC	Rabbit	512	256	Attitude=Passive Zone=14,7,20,12 Level=1
 NPC	Butterfly	288	288	Attitude=Good
 NPC	Blue_Butterfly	160	576	Attitude=Good
 Id	Isle_Pond	13	12
-NPC	Frog	480	408	Attitude=Passive Zone=10,9,16,15
-NPC	Frog	320	408	Attitude=Passive Zone=10,9,16,15
+NPC	Frog	480	408	Attitude=Passive Zone=10,9,16,15 Level=1
+NPC	Frog	320	408	Attitude=Passive Zone=10,9,16,15 Level=1

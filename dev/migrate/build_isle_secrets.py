@@ -278,7 +278,7 @@ def aldous():
         ("Get.Value", "ATTRIBUTE", "AmuletQuest", V1),
         (">Conditional", "$Variable.1=3", "@not3"),
         (">Conditional", "$Equipped.Weapon<>none and $Equipped.Shield<>none", "@unarmed"),
-        (">Conditional", "$Skill.Strength>=2 and $Skill.Defence>=2", "@untrained"),
+        (">Conditional", "$Skill.Attack>=2 and $Skill.Defence>=2", "@untrained"),
         (">Conditional", "$Item.Chapel_Cellar_Key>=1", "@nokey"),
         ("Update.Attribute", "AmuletQuest", "=4"),
         say("Gravekeeper", "Mary's $Player.Boy. So the time has come.\\She came to me years ago with something to hide: an amulet. "
@@ -293,7 +293,7 @@ def aldous():
         ("End",),
         ("@untrained",),
         say("Gravekeeper", "Wooden swords and good intentions. Practise first: the goblins in the woods to the west, until "
-                           "your Strength and Defence are level 2. Then come back.", ("I will.", "@end")),
+                           "your Attack and Defence are level 2. Then come back.", ("I will.", "@end")),
         ("End",),
         ("@unarmed",),
         say("Gravekeeper", "Down there, with your sword and shield in your pack? Wield them both, then we'll talk.",

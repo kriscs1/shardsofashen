@@ -19,12 +19,12 @@ Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001+Decor(Sea_Rock002):Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
 Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001:Water001
-NPC	Rabbit	160	416	Attitude=Passive
+NPC	Rabbit	160	416	Attitude=Passive Level=1
 Id	Hob_Camp_Tent	17	10
 StaticObject	Chest	768	32	Id=Stone_Circle_Chest
 Id	Standing_Stones	25	6
 StaticObject	Fire	385	258
 StaticObject	Chest	384	192	Id=Hob_Camp_Chest
 Id	Hobgoblin_Camp	13	8
-NPC	Hobgoblin	288	152	Attitude=Bad Stand=1 Face=N Turn=8 Group=Hob_Camp Id=Hob_Camp_Lookout_1
-NPC	Hobgoblin	416	216	Attitude=Bad Stand=1 Face=N Turn=6 Group=Hob_Camp Id=Hob_Camp_Lookout_2
+NPC	Hobgoblin	288	152	Attitude=Bad Stand=1 Face=N Turn=8 Group=Hob_Camp Id=Hob_Camp_Lookout_1 Level=1
+NPC	Hobgoblin	416	216	Attitude=Bad Stand=1 Face=N Turn=6 Group=Hob_Camp Id=Hob_Camp_Lookout_2 Level=1

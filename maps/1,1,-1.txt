@@ -20,4 +20,4 @@ Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 MapItem	Axe	580	158	1
-NPC	Goblin	580	160	Attitude=Bad Zone=19,4,21,6 Chase=17,4,22,10
+NPC	Goblin	580	160	Attitude=Bad Zone=19,4,21,6 Chase=17,4,22,10 Level=1

@@ -45,7 +45,7 @@ def channeled_power(channeling, data):
 
 
 def quest_xp(d):
-    """A quest's Reward.XP ("Strength 3 Defence 3"): [(skill, xp)]."""
+    """A quest's Reward.XP ("Attack 3 Defence 3"): [(skill, xp)]."""
     w = trim(d.get("REWARD.XP", "")).replace(",", " ").split()
     return [(w[k], val(w[k + 1])) for k in range(0, len(w) - 1, 2) if val(w[k + 1]) > 0]
 
@@ -143,7 +143,7 @@ class ShardMixin:
         for k in range(0, len(items) - 1, 2):
             self.add_inventory_item(items[k], max(1, int(val(items[k + 1]))))
         for skill, xp in quest_xp(d):
-            self.update_skill(skill, "+" + lbstr(xp), pop=False)
+            self.update_skill(skill, "+" + lbstr(xp), pop=False, weigh=False)
 
     def reward_begin(self, quest):
         self.reward = {"quest": quest, "got": {}, "xp": {}, "at": self.now}

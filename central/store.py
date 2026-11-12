@@ -219,6 +219,9 @@ class CentralStore:
                 self.db.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, col, kind))
         self.db.executescript(INDEXES)
         self.db.execute("UPDATE accounts SET recover = '' WHERE recover != ''")     # (recovery codes are gone: none kept)
+        self.db.execute("UPDATE OR IGNORE character_skills SET skill = ? WHERE skill = ?", ("Attack", "Strength"))
+        self.db.execute("DELETE FROM character_skills WHERE skill = ?", ("Strength",))   # (Strength is Attack now:
+        # a character not seen since keeps its level under the new name)
         self.db.set_authorizer(no_schema_changes)
 
     # ----- accounts

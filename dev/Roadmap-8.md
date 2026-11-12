@@ -58,14 +58,16 @@ tested and committed.
       speaks up or a script opens one). Slower, and better sounding (find what plays and why it's fast).
 
 ## 3. Levels and XP
-- [ ] A new XP curve: each level needs more than the last, the early ones quick (every number in a data file; skills
+- [x] A new XP curve: each level needs more than the last, the early ones quick (every number in a data file; skills
       still go to 25). Existing characters keep their levels (their XP worked out again, never a level taken away).
-- [ ] Each skill's XP looked at side by side (XP per minute of play); cooking and woodcutting slowed, combat raised.
-- [ ] Stances: in Cautious a share of a fight's XP goes to Defence, in Fighting to Attack (the share in
+- [x] Each skill's XP looked at side by side (XP per minute of play); cooking and woodcutting slowed, combat raised.
+      (Config [Skills] `XP.<Skill>`: Cooking 0.5, Woodcutting 0.6, Attack and Defence 1.6.)
+- [x] Stances: in Cautious a share of a fight's XP goes to Defence, in Fighting to Attack (the share in
       `Stances.ini`).
-- [ ] Strength renamed Attack (data, scripts, the page, `renames.py`).
-- [ ] The Isle's creatures a level or two lower.
-- [ ] Tests: the curve, each stance's XP, the rename read from an old save.
+- [x] Strength renamed Attack (data, scripts, the page, `renames.py`).
+- [x] The Isle's creatures a level or two lower (`isle_levels.py`: `Level=` on their map lines; a creature a level
+      down keeps at least half its kind's health).
+- [x] Tests: the curve, each stance's XP, the rename read from an old save.
 
 ## 4. Combat
 - [ ] **Cautious** in place of no stance (`Stances.ini` `[Cautious]`, to start: Walk 1.1, Defence 1.15, Attack and

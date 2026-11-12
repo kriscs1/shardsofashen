@@ -19,12 +19,12 @@ Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Cave_Wall001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
 Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001:Black001
-NPC	Rat	256	256	Attitude=Bad Zone=7,8,12,11
-NPC	Rat	224	416	Attitude=Bad Zone=4,12,11,17
-NPC	Rat	512	448	Attitude=Bad Zone=14,13,21,17
-NPC	Bat	384	480	Attitude=Bad Zone=9,14,18,17
+NPC	Rat	256	256	Attitude=Bad Zone=7,8,12,11 Level=1
+NPC	Rat	224	416	Attitude=Bad Zone=4,12,11,17 Level=1
+NPC	Rat	512	448	Attitude=Bad Zone=14,13,21,17 Level=1
+NPC	Bat	384	480	Attitude=Bad Zone=9,14,18,17 Level=1
 MapItem	Bones	353	450	1
 MapItem	Bones	609	386	1
 MapItem	Empty_Vial	544	256	1
-NPC	Goblin	224	376	Attitude=Bad Zone=6,11,10,15 Chase=4,10,12,17
+NPC	Goblin	224	376	Attitude=Bad Zone=6,11,10,15 Chase=4,10,12,17 Level=1
 Id	Amulet_Niche	6	12

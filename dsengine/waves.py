@@ -265,7 +265,7 @@ class Waves:
                 got.append("%d %s" % (n, item.replace("_", " ").lower()))
         xp = float(val(d.get("reward.xp", "0")))
         if xp > 0:
-            s.update_skill("Strength", "+%s" % xp)
+            s.update_skill("Attack", "+%s" % xp)
             s.update_skill("Defence", "+%s" % xp)
         if got:
             s.display_message("For defending: %s%s." % (", ".join(got), " (and %d kill%s)" % (kills, "" if kills == 1

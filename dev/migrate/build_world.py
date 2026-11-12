@@ -719,7 +719,7 @@ S["Talk to King_Tyron"] = [
     "reward:",
     ("Give.Item", "Gold_Coin(s)", "100"),
     ("Give.Item", "Ruby", "1"),
-    ("Update.Skill", "Strength", "+1"),
+    ("Update.Skill", "Attack", "+1"),
     ("Update.Attribute", "HobgoblinQuest", "=2"),
     ("Display.Message", "Yellow", "Quest complete! You receive 100 gold and a ruby. The royal treasury is open to you."),
     ("End",),

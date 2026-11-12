@@ -1213,7 +1213,7 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
                 s = game.world.sessions["Annika"]
                 s.update_attribute("Passage", "=5")     # (a quest done, one under way, a skill raised)
                 s.update_attribute("AmuletQuest", "=2")
-                s.skill_xp[s.skill_index("Strength")] = 7.5
+                s.skill_xp[s.skill_index("Attack")] = 7.5
                 await ws.close()
                 await left(game, "Annika")
                 # (a device's character, no account, played long ago)
@@ -1243,7 +1243,7 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
                 assert sorted(c["name"] for c in (await ask("characters"))["characters"]) == ["Annika", "Loner"]
                 assert (await ask("characters", q="nobody"))["characters"] == []
                 c = (await ask("character", server=found[0]["server"], name="annika"))["character"]
-                assert {x["skill"]: x["level"] for x in c["skills"]}["Strength"] == 7
+                assert {x["skill"]: x["level"] for x in c["skills"]}["Attack"] == 7
                 quests = {q["quest"]: q for q in c["quests"]}
                 assert quests["Passage to the Mainland"]["done"] and quests["Passage to the Mainland"]["finished"]
                 assert quests["The Amulet of Succession"]["stage"] == 2 and not quests["The Amulet of Succession"]["done"]
@@ -1255,7 +1255,7 @@ def test_every_character_is_told_to_the_central_server_and_found_on_the_admin_pa
                 r = await ask("quest", quest="The Amulet of Succession")
                 assert [(x["stage"], x["count"]) for x in r["stages"]] == [(2, 1)] and r["stages"][0]["doing"]
                 skills = {x["skill"]: x for x in (await ask("skills"))["skills"]}
-                assert skills["Strength"]["highest"] == 7 and skills["Strength"]["characters"] == 2
+                assert skills["Attack"]["highest"] == 7 and skills["Attack"]["characters"] == 2
                 stats = await ask("stats")
                 assert stats["characters"] == 2 and stats["with_account"] == 1 and stats["reporting"] == 1
 
@@ -1390,7 +1390,7 @@ def test_progress_is_read_right_from_an_old_save():
                      "inventory": [["Gold_Coin(s)", 7, 0], ["Log", 3, 0]], "bank": [["Gold_Coin(s)", 5, []]], "shards": 4},
                     quests, 25)
     assert c["skills"]["Channeling"] == [20, 20.0] and c["skills"]["Crafting"] == [10, 10.0]    # (out of 50, then)
-    assert c["skills"]["Strength"][0] == 1 and "Magic" not in c["skills"]
+    assert c["skills"]["Attack"][0] == 1 and "Magic" not in c["skills"] and "Strength" not in c["skills"]
     assert c["quests"] == {"One": [3, 1], "Two": [1, 0], "Three": [4, 0]}
     assert c["gold"] == 12 and c["shards"] == 4 and c["level"] == 9 and c["map"] == "1,2,0"
     assert progress_of({}, quests, 25) == {"level": 1, "shards": 0, "gold": 0, "map": "", "skills": {}, "quests": {}}
@@ -1771,6 +1771,17 @@ def test_the_central_database_can_only_read_and_write_rows(tmp_path):
     db.db.close()
     again = CentralStore(str(tmp_path / "c.db"))        # (opened again, its columns and indexes checked: no trouble)
     assert again.account("Ann")
+    again.db.close()
+
+
+def test_a_characters_strength_on_the_central_server_is_attack(tmp_path):
+    db = CentralStore(str(tmp_path / "c.db"))
+    db.db.executemany("INSERT INTO character_skills (server, name, skill, level, xp) VALUES (?, ?, ?, ?, ?)",
+                      [("k", "Old", "Strength", 9, 9.5), ("k", "Both", "Strength", 2, 2.0), ("k", "Both", "Attack", 4, 4.0)])
+    db.db.close()
+    again = CentralStore(str(tmp_path / "c.db"))        # (a character not seen since the rename: its level kept)
+    rows = sorted(again.db.execute("SELECT name, skill, level FROM character_skills").fetchall())
+    assert rows == [("Both", "Attack", 4), ("Old", "Attack", 9)]
     again.db.close()
 
 

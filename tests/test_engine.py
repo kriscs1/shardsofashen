@@ -2139,7 +2139,7 @@ def test_the_heirs_isle_from_start_to_finish(world, monkeypatch):
     assert attr("AmuletQuest") == 3
     for name in ("Wooden_Sword", "Wooden_Shield"):
         s.do_action("Wield", next(e for e in s.inv if e.name == name))
-    s.update_skill("Strength", "=2")
+    s.update_skill("Attack", "=2")
     s.update_skill("Defence", "=2")
     talk(aldous, 1)                                                 # armed and trained: the way down
     assert attr("AmuletQuest") == 4
@@ -4377,12 +4377,12 @@ def test_the_shardrealms_remnants_are_as_strong_as_their_level_and_stay(world):
 
 def test_drains_and_boosts_show_a_skill_as_it_is_now(world):
     s = join(world, "Sapped", "11,-3,0", 384, 300)
-    s.update_skill("Strength", "=10")
+    s.update_skill("Attack", "=10")
     hp = s.player_max_hp
     s.status_start("Weaken")
-    assert s.skill_level("Strength") == 7 and s.base_skill_level("Strength") == 10 and s.player_max_hp == hp
+    assert s.skill_level("Attack") == 7 and s.base_skill_level("Attack") == 10 and s.player_max_hp == hp
     st = s.me_state()
-    i = [n.upper() for n in s.data.skill_name[1:]].index("STRENGTH")
+    i = [n.upper() for n in s.data.skill_name[1:]].index("ATTACK")
     assert st["skill_now"][i] == 7 and "Weaken" in st["status_left"]
     s.run_script_lines("test", ["01	Boost.Skill	Magic	+2	5", "02	End"])  # (its old name: Channeling now)
     world.tick(0.05, now=world.now + 50)
@@ -4392,7 +4392,7 @@ def test_drains_and_boosts_show_a_skill_as_it_is_now(world):
     assert s.skill_level("Channeling") == s.base_skill_level("Channeling")     # (a while, and back)
     s.boost_skill("Defence", -4, 60)
     s.player_dies()
-    assert s.skill_level("Strength") == 10 and s.skill_change("Defence") == 0   # (death ends them, as it ends buffs)
+    assert s.skill_level("Attack") == 10 and s.skill_change("Defence") == 0   # (death ends them, as it ends buffs)
     leave(world, s)
 
 
@@ -4458,14 +4458,14 @@ def test_granny_brambles_hex_leaves_you_weak_for_her_rats(world):
     s.god_mode = True
     for q, v in (("Passage", 12), ("PipQuest", 2)):
         s.update_attribute(q, "=%d" % v)
-    s.update_skill("Strength", "=20")
+    s.update_skill("Attack", "=20")
     near(world, s, granny, 36, 0)
     assert talk_to(world, s, granny)
     s.action_box_response_chosen(1)
     run_for(world, 10)
     s.action_box_response_chosen(1)
     run_for(world, 20)
-    assert s.get_attribute("HexQuest") == "1" and s.skill_level("Strength") == 1    # (weak as a kitten)
+    assert s.get_attribute("HexQuest") == "1" and s.skill_level("Attack") == 1    # (weak as a kitten)
     rats = [e for e in world.ents if e.npc_id == "Hex_Rat" and e.owner is s]
     assert len(rats) == 4
     for r in rats:
@@ -4475,7 +4475,7 @@ def test_granny_brambles_hex_leaves_you_weak_for_her_rats(world):
     assert talk_to(world, s, granny)
     s.action_box_response_chosen(1)
     run_for(world, 10)
-    assert s.get_attribute("HexQuest") == "2" and s.skill_level("Strength") == 20
+    assert s.get_attribute("HexQuest") == "2" and s.skill_level("Attack") == 20
     leave(world, s)
 
 
@@ -4842,13 +4842,97 @@ def test_skills_renamed_or_made_one_come_back_as_they_are_now(world):
     assert s.skill_level("Shardcraft") == 4                       # (new: half their Magic, to begin with)
     assert s.skill_level("Magic") == 9 and s.skill_level("Smithing") == 8           # (an old name: the skill now)
     names = s.data.skill_name[1:]
-    assert names[:4] == ["Strength", "Defence", "Channeling", "Shardcraft"]
+    assert names[:4] == ["Attack", "Defence", "Channeling", "Shardcraft"]
     assert not {"Magic", "Smithing", "Construction", "Farming", "Potion_Making"} & set(names)
     saved = s.save_state()["skills"]
     assert "Magic" not in saved and saved["Channeling"] == 9
     fresh = Session(world, "Newcomer")
     fresh.load_state(None)
     assert fresh.skill_level("Shardcraft") == 1
+
+
+def test_each_level_takes_more_than_the_last_and_an_old_xp_keeps_its_level(world):
+    s = join(world, "Climber", "11,-3,0", 384, 300)
+    d = world.data
+    needs = [s.xp_needed(lv) for lv in range(1, d.skill_max_level)]
+    assert needs[0] == pytest.approx(d.xp_first) and all(a < b for a, b in zip(needs, needs[1:]))
+    assert s.xp_along(1.0, needs[0]) == pytest.approx(2.0)                      # (a level at a time, each at its cost)
+    assert s.xp_along(1.5, needs[0] / 2 + needs[1] / 2) == pytest.approx(2.5)
+    assert s.xp_along(24.5, 1000) == d.skill_max_level                         # (never past 25)
+    assert s.xp_along(0.0, needs[0] / 2) == pytest.approx(1.0)                 # (never trained: level 1 is 0 to 2)
+    assert s.xp_along(0.0, needs[0]) == pytest.approx(2.0)
+    i = s.skill_index("Fishing")
+    s.skill_xp[i] = 7.5                                                         # (an old save's XP: the same level)
+    assert s.base_skill_level("Fishing") == 7
+    s.update_skill("Fishing", "+%s" % (needs[6] / (d.xp_scale * d.xp_skill.get("FISHING", 1.0)) / 4), pop=False)
+    assert s.skill_xp[i] == pytest.approx(7.75, abs=1e-4)
+    cook, wood = d.xp_skill.get("COOKING", 1.0), d.xp_skill.get("WOODCUTTING", 1.0)
+    assert cook < 1 and wood < 1 and d.xp_skill.get("ATTACK", 1.0) > 1 and d.xp_skill.get("DEFENCE", 1.0) > 1
+    leave(world, s)
+
+
+def test_the_stance_youre_in_sends_a_share_of_a_fights_xp_to_attack_or_defence(world):
+    s = join(world, "Brawler", "11,-3,0", 384, 300)
+    d = world.data
+    share = d.ini_num("Stances.ini", "Fighting", "XP.Share", 0)
+    assert 0 < share < 1 and d.ini_num("Stances.ini", "Cautious", "XP.Share", 0) == share
+
+    def gained(stance, skill):
+        s.stance = stance
+        for k in ("Attack", "Defence"):
+            s.skill_xp[s.skill_index(k)] = 5.0
+        s.fight_xp(skill, 0.4)
+        return tuple(round(s.skill_xp[s.skill_index(k)] - 5.0, 4) for k in ("Attack", "Defence"))
+
+    def along(skill, g):
+        return round(s.xp_along(5.0, g * d.xp_scale * d.xp_skill.get(skill.upper(), 1.0)) - 5.0, 4) if g else 0
+
+    assert gained("Fighting", "Defence") == (along("Attack", 0.4 * share), along("Defence", 0.4 * (1 - share)))
+    assert gained("", "Attack") == (along("Attack", 0.4 * (1 - share)), along("Defence", 0.4 * share))   # (Cautious)
+    assert gained("Fighting", "Attack") == (along("Attack", 0.4), 0)          # (already its own: all of it)
+    assert gained("Sneaking", "Defence") == (0, along("Defence", 0.4))        # (no share)
+    assert gained("Channelling", "Attack") == (along("Attack", 0.4), 0)
+    leave(world, s)
+
+
+def test_strength_is_attack_and_an_old_save_or_script_saying_strength_means_it(world):
+    s = Session(world, "Oldsword")
+    s.load_state({"skills": {"Strength": 7.5, "Defence": 3}, "skills_of": 25})
+    assert s.skill_xp_of("Attack") == 7.5 and "Strength" not in s.data.skill_name[1:]
+    assert s.base_skill_level("Strength") == 7                                  # (the old name: Attack)
+    s.update_skill("Strength", "+0.1", pop=False)                              # (a script's Update.Skill Strength)
+    assert s.skill_xp_of("Attack") > 7.5
+    saved = s.save_state()["skills"]
+    assert "Strength" not in saved and saved["Attack"] > 7.5
+    s.update_max_hp()
+    hp = s.player_max_hp
+    s.update_skill("Attack", "=12", pop=False)
+    assert s.player_max_hp > hp                                                 # (Attack and Defence make your health)
+    fresh = Session(world, "Newsword")
+    fresh.load_state(None)
+    assert fresh.skill_level("Attack") == 1
+
+
+def test_the_isles_creatures_are_a_level_or_two_under_their_kinds(world):
+    from dsengine.entity import NPC
+    d = world.data
+    inside = lambda m: any(a[0] <= m[0] <= b[0] and a[1] <= m[1] <= b[1] and a[2] <= m[2] <= b[2]
+                           for a, b in d.demo["area"])
+    isle = []
+    for e in world.ents:
+        if e.type != NPC or not e.hostile or not getattr(e, "map", None):
+            continue
+        try:
+            at = tuple(int(v) for v in e.map.split(","))
+        except ValueError:
+            continue
+        kind = int(val(d.entity_ini(e.name, "Level", "0")))
+        if kind and inside(at):
+            isle.append((e, kind))
+    assert {e.name for e, _ in isle} >= {"Goblin", "Wolf"}
+    for e, kind in isle:
+        assert e.npc_level == max(1, kind - (2 if kind >= 4 else 1)), (e.name, e.map)
+        assert e.max_hp >= int(val(d.entity_ini(e.name, "Hitpoints", "1"))) // 2      # (never under half its kind's)
 
 
 def test_channeling_makes_spells_cheaper_but_never_free(world):
@@ -6123,7 +6207,7 @@ def test_chests_are_locked_and_never_out_of_reach(world):
     was = LK.rnd
     try:
         LK.rnd = lambda: 0.0
-        s.do_action("Break Open", chest)                            # (Strength: loud, but it gives)
+        s.do_action("Break Open", chest)                            # (Attack: loud, but it gives)
     finally:
         LK.rnd = was
     assert not s.chest_locked(chest) and s.chest_key(chest) in s.save_state()["unlocked_chests"]
@@ -6631,10 +6715,10 @@ def test_the_journals_skills_page_says_how_each_skill_is_levelled_and_what_each_
     s = join(world, "Reader")
     pages = {p["skill"]: p for p in s.journal_data()["skills"]}
     assert [p for p in world.data.skill_name[1:] if p.upper() != "HITPOINTS"] == list(pages)
-    assert "Hit things in a fight" in pages["Strength"]["trains"]
+    assert "Hit things in a fight" in pages["Attack"]["trains"]
     opens = lambda skill: dict(pages[skill]["opens"])
     assert opens("Mining")[3] == "Gather Coal" and "Mithril ore" in opens("Mining")[13]
-    assert "Wield Steel Sword" in opens("Strength")[5]
+    assert "Wield Steel Sword" in opens("Attack")[5]
     assert "Wear" in opens("Defence")[3] and "Iron Helm" in opens("Defence")[3]
     assert "Cast Fire Bolt" in opens("Channeling")[1]
     assert opens("Crafting")[1].startswith("Make ") and "Copper Bar" in opens("Crafting")[1]
@@ -8318,12 +8402,12 @@ def test_malaria_stays_until_the_fever_tonic(world):
     s.diseases.clear()
     s.catch_disease("Malaria")
     assert "Fever Tonic" in s.me_state()["diseases"]["Malaria"]
-    # (a bout comes when it's due: Strength down, and it never kills)
-    strength = s.skill_level("Strength")
+    # (a bout comes when it's due: Attack down, and it never kills)
+    strength = s.skill_level("Attack")
     s.diseases["Malaria"] = s.now
     s.disease_at = 0
     s.disease_tick()
-    assert "Fever" in s.status and s.skill_level("Strength") == max(1, strength - 3)
+    assert "Fever" in s.status and s.skill_level("Attack") == max(1, strength - 3)
     s.player.hp = 1
     s.status["Fever"]["next"] = s.now
     s.status_tick()
@@ -10327,18 +10411,18 @@ def test_the_demo_keeps_to_the_isle_and_level_5(world):
     s = join(world, "Tryer", "3,2,0", 14 * 32 + 16, 14 * 32)                       # (on the Isle's pier)
     s.connected = True
     assert not s.demo()                                                             # (the engine's own: the full game)
-    st = s.skill_index("Strength")
+    st = s.skill_index("Attack")
     s.skill_xp[st] = 8
     s.update_max_hp()
     hp = s.player_max_hp
     s.out = []
     s.set_full(False)
-    assert s.demo() and s.base_skill_level("Strength") == 5 and s.player_max_hp < hp     # (level 5 at most)
+    assert s.demo() and s.base_skill_level("Attack") == 5 and s.player_max_hp < hp     # (level 5 at most)
     assert s.demo_map("1,1,0") and s.demo_map("1,-2,1") and s.demo_map("2,1,-2")
     assert not s.demo_map("4,4,0") and not s.demo_map("0,0,10") and not s.demo_map("Deep")
     s.skill_xp[st] = 8.999
-    s.update_skill("Strength", "+5")
-    assert s.skill_xp[st] > 9 and s.base_skill_level("Strength") == 5                  # (the XP kept, not the level)
+    s.update_skill("Attack", "+5")
+    assert s.skill_xp[st] > 9 and s.base_skill_level("Attack") == 5                  # (the XP kept, not the level)
     assert any(ev.get("t") == "demo" and ev.get("why") == "level" for ev in s.out)
     assert not any("LEVEL UP" in str(ev.get("text", "")) for ev in s.out)
     s.out = []
@@ -10368,7 +10452,7 @@ def test_the_demo_keeps_to_the_isle_and_level_5(world):
     world.carts.choose(s, east, to)
     assert s.ride is None and s.items_held("Gold_Coin(s)") == 5                     # (no crossing, and no fare)
     s.set_full(True)
-    assert s.base_skill_level("Strength") == int(s.skill_xp[st]) > 8 and s.player_max_hp > hp   # (bought: it counts)
+    assert s.base_skill_level("Attack") == int(s.skill_xp[st]) > 8 and s.player_max_hp > hp   # (bought: it counts)
     at_the_boat()
     world.carts.choose(s, east, to)
     assert s.ride is east
@@ -10398,12 +10482,12 @@ def test_a_demo_character_found_outside_the_isle_comes_in_on_its_pier(world):
 def test_a_friend_pass_is_the_full_game_while_an_owner_is_there(world):
     s = join(world, "Guest", "3,2,0", 14 * 32 + 16, 14 * 32)
     s.connected = True
-    st = s.skill_index("Strength")
+    st = s.skill_index("Attack")
     s.skill_xp[st] = 9
     s.set_full(False)
-    assert s.demo() and s.base_skill_level("Strength") == 5
+    assert s.demo() and s.base_skill_level("Attack") == 5
     s.want_friend_pass(True)                                                    # (an owner's in the game)
-    assert s.friend_pass and not s.demo() and s.base_skill_level("Strength") == 9
+    assert s.friend_pass and not s.demo() and s.base_skill_level("Attack") == 9
     s.teleport("4,4,0", 300, 300)
     world.tick(0.05)
     assert s.cur_map.name == "4,4,0"                                            # (the whole world)
@@ -10419,13 +10503,13 @@ def test_a_friend_pass_is_the_full_game_while_an_owner_is_there(world):
     s.pass_ends = s.now - 1                                                     # (the while gone by)
     s.want_friend_pass(False)
     world.tick(0.05)
-    assert not s.friend_pass and s.demo() and s.cur_map.name == "3,2,0" and s.base_skill_level("Strength") == 5
+    assert not s.friend_pass and s.demo() and s.cur_map.name == "3,2,0" and s.base_skill_level("Attack") == 5
     s.want_friend_pass(True)
     s.want_friend_pass(False)                                                   # (on the Isle: the demo at once)
     assert not s.friend_pass and not s.pass_ends
     s.set_full(True)
     s.want_friend_pass(True)
-    assert not s.friend_pass and s.base_skill_level("Strength") == 9           # (their own: no pass needed)
+    assert not s.friend_pass and s.base_skill_level("Attack") == 9           # (their own: no pass needed)
     leave(world, s)
 
 
@@ -10696,7 +10780,7 @@ def test_grasp_ii_reaches_further_and_the_court_wizard_sells_it(world):
 def test_the_demo_ends_at_the_ferry_with_what_the_isle_gave_you(world):
     s = join(world, "Ender", "3,2,0", 14 * 32 + 16, 14 * 32)
     s.connected = True
-    s.skill_xp[s.skill_index("Strength")] = 8                      # (level 3, for the ferryman)
+    s.skill_xp[s.skill_index("Attack")] = 8                      # (level 3, for the ferryman)
     s.set_full(False)
     p = s.player
     east = next(c for c in world.carts.carts if c.key == "Isle_Ferry_East")

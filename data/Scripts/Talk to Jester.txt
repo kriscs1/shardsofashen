@@ -62,7 +62,7 @@
 61	End
 62	>Random	50	68
 63	Display.Message	Yellow	He claps you on the shoulder and looks you up and down. 'You've been working out.' You feel, for a moment, that you have.
-64	Boost.Skill	Strength	2	120
+64	Boost.Skill	Attack	2	120
 65	End
 66	End
 67	End

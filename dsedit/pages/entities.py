@@ -179,7 +179,7 @@ class EntityPage(IniFormPage):
         self.requires = self.var("Requires")
         ttk.Entry(req, textvariable=self.requires, width=20).pack(side="left")
         ttk.Button(req, text="…", width=3, style="Small.TButton", command=self.pick_requires).pack(side="left", padx=3)
-        self.row(g, 0, "Needs", req, "Skill and level to equip it, e.g. Strength 5 Defence 10.", col=2)
+        self.row(g, 0, "Needs", req, "Skill and level to equip it, e.g. Attack 5 Defence 10.", col=2)
         self.row(g, 1, "Attack +", ttk.Spinbox(g, textvariable=self.var("Attack"), from_=0, to=100, width=8))
         self.defence = self.var("Defence")
         self.row(g, 1, "Defence +", ttk.Spinbox(g, textvariable=self.defence, from_=0, to=100, width=8), col=2)

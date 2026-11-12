@@ -35,6 +35,7 @@ SKILL_NAMES = {                                      # (rename_skills.py: old na
     "Farming": "Homesteading",
     "Potion_Making": "Alchemy",
     "Herblore": "Alchemy",
+    "Strength": "Attack",                            # (rename_attack.py)
 }
 RENAMED_QUESTS = {                                   # (build_heir_isle.py: the Isle's bank is Edwin and Maren's house)
     "Dinner at the Bank": "Dinner at Edwin's",

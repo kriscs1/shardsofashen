@@ -15,7 +15,7 @@
 14	Display.Conversation	Steward	Five hobgoblins! The King would thank you himself, if he could. Take this. The Wizards' Court is north of here, past the Elderwood. Bert will see you; I'll send word.	Thank you, Steward.	15
 15	Give.Item	Gold_Coin(s)	100
 16	Give.Item	Ruby	1
-17	Update.Skill	Strength	+1
+17	Update.Skill	Attack	+1
 18	Update.Attribute	HobgoblinQuest	=2
 19	Quest.Note.Done	HobgoblinQuest	*
 20	Display.Message	Yellow	Quest complete: The Steward's Hunt! 100 gold and a ruby.	Quest

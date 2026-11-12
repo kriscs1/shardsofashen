@@ -52,7 +52,7 @@ class QuestPage(IniFormPage):
                  "Its place in the main story (1, 2, 3...).", col=2)
         r += 1
         self.row(f, r, "Needs level", ttk.Spinbox(f, textvariable=self.var("Requires.Level"), from_=0, to=50, width=6),
-                 "The player's level (the average of their best two of Strength, Defence and Magic: Config.ini "
+                 "The player's level (the average of their best two of Attack, Defence and Channeling: Config.ini "
                  "Level.Skills, Level.Best) before the giver will offer it. Blank or 0: any.")
         self.row(f, r, "Needs skills", ttk.Entry(f, textvariable=self.var("Requires.Skills"), width=26),
                  "Skill levels, e.g. Woodcutting 10, Potion Making 5.", col=2)

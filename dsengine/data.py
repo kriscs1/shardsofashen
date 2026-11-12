@@ -139,7 +139,7 @@ class GameData:
         self.day_night_enabled = val(c("Gameplay", "DayNight", "1"))
         self.day_seconds = 60 * max(0.1, val(c("Gameplay", "Day.Minutes", "24")))   # (0 would stop the clock dead)
         self.pathfinding_enabled = val(c("Gameplay", "Pathfinding", "1")) == 1
-        skills = c("Skills", "List", "Strength,Defence,Hitpoints,Cooking,Smithing,Fishing,Mining,Woodcutting")
+        skills = c("Skills", "List", "Attack,Defence,Hitpoints,Cooking,Smithing,Fishing,Mining,Woodcutting")
         names = [trim(s) for s in skills.split(",") if s != ""][:30]
         self.total_skills = len(names)
         self.skill_name = [""] + names
@@ -150,8 +150,10 @@ class GameData:
         self.hp_regen_every = max(0.2, val(c("Gameplay", "HP.Regen.Every", "3")))
         self.skill_max_level = max(2, int(val(c("Gameplay", "Skill.Max.Level", "25"))))
         self.demo = read_demo(c)     # (the demo: dsengine/demo.py)
-        self.xp_slowdown = max(0.0, val(c("Gameplay", "XP.Slowdown", "10")))
+        self.xp_first = max(0.01, val(c("Gameplay", "XP.First", "0.6") or "0.6"))     # (level 1 to 2: what it takes)
+        self.xp_growth = max(1.0, val(c("Gameplay", "XP.Growth", "1.13") or "1.13"))  # (each level after: times this)
         self.xp_scale = max(0.0, val(c("Gameplay", "XP.Scale", "1") or "1"))
+        self.xp_skill = {n.upper(): max(0.0, val(c("Skills", "XP." + n, "1") or "1")) for n in names}
         self.monster_damage = max(0.1, val(c("Gameplay", "Monster.Damage", "2")))
         self.death_gold_loss = min(100, max(0, val(c("Gameplay", "Death.Gold.Loss", "25"))))
         self.player_attack_speed = max(0.1, val(c("Gameplay", "Player.Attack.Speed", "0.8")))

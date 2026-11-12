@@ -330,7 +330,7 @@ SCRIPTS = {
         "62\t>Random\t50\t68",
         "63\tDisplay.Message\tYellow\tHe claps you on the shoulder and looks you up and down. 'You've been working out.' "
         "You feel, for a moment, that you have.",
-        "64\tBoost.Skill\tStrength\t2\t120",
+        "64\tBoost.Skill\tAttack\t2\t120",
         "65\tEnd",
         "68\t>Got.Item\tGold_Coin(s)\t1\t72",
         "69\tTake.Item\tGold_Coin(s)\t1",

@@ -15,7 +15,7 @@ save you from the dragon that takes the firstborn heir of every generation. You 
      Maren gives you the key to the chapel's trapdoor (Chapel_Cellar_Key).
   3  The Amulet of Succession (AmuletQuest 0-6). Bess sends you to her husband Frank, the blacksmith (his hut by the
      dairy, 2,0,0): a wooden sword and shield at his workbench, then wield them. Brother Aldous opens the trapdoor
-     to you when you're armed and Strength and Defence are level 2. The amulet is at the back of the caves (1,1,-2)
+     to you when you're armed and Attack and Defence are level 2. The amulet is at the back of the caves (1,1,-2)
      behind bars; Aldous follows you down with a scroll of Grasp. He gives you the key of the hobgoblins' lair door.
   4  Passage to the Mainland (Passage 0-4, done at 5; a save from before, at 12, has it done too). Wim's ferry takes
      nobody off the Isle without papers (since the raids, Northport sends them back), and Tobias, Bess's father, who
@@ -478,7 +478,7 @@ def data():
         0: "Bess the milkmaid, on the farm in the north, knew your mother well.",
         1: "Bess's husband Frank, the blacksmith, will help you make a sword and a shield. His smithy is by the dairy.",
         2: "Make a wooden sword and a wooden shield at Frank's workbench, then show them to him.",
-        3: "Wield your sword and shield, and train until your Strength and Defence are level 2. Then ask Brother "
+        3: "Wield your sword and shield, and train until your Attack and Defence are level 2. Then ask Brother "
            "Aldous, at the chapel, about the trapdoor in its cellar.",
         4: "Something of your mother's lies in the caves under the chapel.",
         5: "Something gold glints behind iron bars, out of reach of any hand.",
@@ -1116,7 +1116,7 @@ def bess_and_frank():
         (">Conditional", "$Item.Wooden_Sword>=1 and $Item.Wooden_Shield>=1", "@notyet"),
         ("Update.Attribute", "AmuletQuest", "=3"),
         say("Frank", "Not bad at all! Now wield them: sword in your hand, shield on your arm, and get used to the weight. "
-                     "Practise on the goblins in the woods west of the village till your arm's strong (Strength 2) and "
+                     "Practise on the goblins in the woods west of the village till your arm's strong (Attack 2) and "
                      "you can take a knock "
                      "(Defence 2).\\Then go and see Brother Aldous at the chapel. He keeps the way down.",
             ("I will.", "@dagger")),
@@ -1150,7 +1150,7 @@ def chapel_and_caves():
         ("Get.Value", "ATTRIBUTE", "AmuletQuest", V1),
         (">Conditional", "$Variable.1=3", "@not3"),
         (">Conditional", "$Equipped.Weapon<>none and $Equipped.Shield<>none", "@unarmed"),
-        (">Conditional", "$Skill.Strength>=2 and $Skill.Defence>=2", "@untrained"),
+        (">Conditional", "$Skill.Attack>=2 and $Skill.Defence>=2", "@untrained"),
         (">Conditional", "$Item.Chapel_Cellar_Key>=1", "@nokey"),
         ("Update.Attribute", "AmuletQuest", "=4"),
         say("Gravekeeper", "Mary's $Player.Boy. So the time has come.\\She came to me years ago with something to hide: an amulet. "
@@ -1165,7 +1165,7 @@ def chapel_and_caves():
         ("End",),
         ("@untrained",),
         say("Gravekeeper", "Wooden swords and good intentions. Practise first: the goblins in the woods to the west, until "
-                           "your Strength and Defence are level 2. Then come back.", ("I will.", "@end")),
+                           "your Attack and Defence are level 2. Then come back.", ("I will.", "@end")),
         ("End",),
         ("@unarmed",),
         say("Gravekeeper", "Down there, with your sword and shield in your pack? Wield them both, then we'll talk.",
@@ -1289,7 +1289,8 @@ def lair_scripts():
     rows = [("Display.Message", "Red", "Torchlight, bones and the stink of hobgoblin: their lair!", "-")]
     zones = ("6,6,14,12", "12,11,19,16", "4,10,11,16", "15,5,21,10")
     for (x, y), z in zip(LAIR_HOBS, zones):                       # (the ones killed come back when someone comes in)
-        rows.append(("Add.Entity", at(x, y, -8), "Hobgoblin", "NPC", "Attitude=Bad Zone=" + z))
+        rows.append(("Add.Entity", at(x, y, -8), "Hobgoblin", "NPC", "Attitude=Bad Level=1 Zone=" + z))   # (the Isle's: a level
+        # under their kind's, isle_levels.py)
     rows += [
         ("Get.Value", "ATTRIBUTE", "FatherFreed", V1),
         (">Conditional", "$Variable.1=0", "@freed"),

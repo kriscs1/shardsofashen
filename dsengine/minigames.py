@@ -5,7 +5,7 @@
     server keeps each pin's timing and judges the tap at the moment the browser says it was made, but only within
     TAP_LAG of what its own clock says (the browser can't name any moment it likes).
   * Arm wrestling at the Green Dragon's arm-wrestling table (Arm_Table): against the innkeeper, or another player
-    who's sat down at it, for a stake. Push (tap) to force the arms your way; Strength makes each push count for more,
+    who's sat down at it, for a stake. Push (tap) to force the arms your way; Attack makes each push count for more,
     and pushing faster than FULL_PUSH_MS gets you no further (a machine's taps are no better than a quick hand's).
     First to pin the other's hand down wins; at the bell (ARM_SECONDS), whoever's ahead.
   * Ringing the rocks (Play.Minigame CHIMES <level> <line if lost>: the Ringing Rocks, build_wilds.py): five rocks,
@@ -206,7 +206,7 @@ class MinigameMixin:
                 return
             g["pushed"] = self.now
             side = -1 if bout["players"][0] == self.player_name else 1
-            strength = self.skill_level("Strength")
+            strength = self.skill_level("Attack")
             bout["at"] += side * (2.2 + strength * 0.16) * min(1.0, gap / FULL_PUSH_MS)
             return
         if bout is not None or g["phase"] not in ("stake", "done", "wait"):
@@ -238,7 +238,7 @@ class MinigameMixin:
         arms = self.w.arms
         strength = 0
         if HOUSE in players:                                   # (the innkeeper's arm: about as strong as yours)
-            strength = self.skill_level("Strength")
+            strength = self.skill_level("Attack")
         arms.bouts[tid] = {"players": players, "stake": stake, "at": 0.0, "ends": self.w.now + ARM_SECONDS * 1000,
                            "house": HOUSE in players, "house_at": self.w.now + 900,
                            "house_push": 2.4 + strength * 0.12, "shown": 0}

@@ -7,14 +7,14 @@
 06	Update.Attribute	HexQuest	=1
 07	Update.Attribute	HexRats	=0
 08	Play.Sound	Fizzle
-09	Boost.Skill	Strength	-24	600
-10	Display.Message	DarkRed	Granny Bramble waggles her fingers at you. Your arms go like wet string: your Strength drains to nothing!	Denied
+09	Boost.Skill	Attack	-24	600
+10	Display.Message	DarkRed	Granny Bramble waggles her fingers at you. Your arms go like wet string: your Attack drains to nothing!	Denied
 11	Display.Message	Yellow	Quest started: Granny Bramble's Practice Hex.	Quest
 12	Goto.Line	21
 13	>Conditional	$Variable.1=1	30
 14	>Conditional	$Attr.HexRats>=4	20
 15	Update.Attribute	HexQuest	=2
-16	Boost.Skill	Strength	0	1
+16	Boost.Skill	Attack	0	1
 17	Display.Conversation	Old_Woman	All four, and you couldn't lift a teaspoon! Clever. Here, I'll take the hex off. It was ten minutes, wasn't it? Close enough.	Thank you. I think.	18
 18	Display.Message	Yellow	Quest complete: Granny Bramble's Practice Hex!	Quest
 19	End

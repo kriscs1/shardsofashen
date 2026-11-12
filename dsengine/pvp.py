@@ -222,12 +222,12 @@ class PvPMixin:
         if damage <= 0:
             self.fx_splat("Miss", 0, t)
             self.play_sound("Block", (t.cx, t.cy))
-            v.update_skill("Defence", "+0.03", pop=False)
+            v.fight_xp("Defence", 0.03)
             v.pvp_fight_back(self)
             return
         self.play_sound("Crit" if crit else "Fight%d" % random_number(1, 3), (t.cx, t.cy))
         self.fx_anim("Slash", t.cx, t.cy, 240)
-        self.update_skill("Strength", "+" + lbstr(damage * 0.005), pop=False)
+        self.fight_xp("Attack", damage * 0.005)
         v.pvp_take_hit(self, damage, "Crit" if crit else "Hit")
 
     def pvp_spell_hit(self, spell, t, damage):
@@ -255,7 +255,7 @@ class PvPMixin:
         w = self.w
         w.fx_nudge(p, w.fx_away(attacker.player, p), w.fx_away_y(attacker.player, p), 130)
         self.fx_hurt_flash()
-        self.update_skill("Defence", "+" + lbstr(damage * 0.005), pop=False)
+        self.fight_xp("Defence", damage * 0.005)
         self.update_skill("Hitpoints", "-%d" % damage)
 
     def pvp_fight_back(self, attacker):

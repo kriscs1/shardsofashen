@@ -116,7 +116,7 @@ def quest():
            "built the house so that no thief could find his way about it."}, 2,
         markers={0: "Redrock_Steward", 1: "Redrock_Manor"}, kind="Side", requires="Passage to the Mainland", level=6)
     SK.section(p("data", "Quests.ini"), "The Redrock Signet",
-               [("Reward.Items", "Gold_Coin(s) 120"), ("Reward.Shards", "15"), ("Reward.XP", "Stealth 2 Strength 2")])
+               [("Reward.Items", "Gold_Coin(s) 120"), ("Reward.Shards", "15"), ("Reward.XP", "Stealth 2 Attack 2")])
     SK.write_script("Talk to Redrock_Steward", [
         ("Get.Value", "ATTRIBUTE", "RedrockSignetQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=0", "@s1"),

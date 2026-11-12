@@ -266,7 +266,7 @@ def data():
     K.section(E, "Sword_of_Valour", [("Type", "MapItem"), ("Examine.Info", "The Sword of Valour. Its edge hums. Only it "
                                      "can reach a dragon's heart."), ("Slot", "Weapon"), ("Attack", "14"),
                                      ("Defence", "2"), ("Droppable", "0"), ("Value", "0"), ("Durability", "900"),
-                                     ("Requires", "Strength 10")])
+                                     ("Requires", "Attack 10")])
     objects = [
         ("Grimoire_Lectern", "Take,Examine", "A stone lectern. On it, a book bound in violet: the Grimoire."),
         ("Empty_Lectern", "Examine", "A stone lectern, bare."),
@@ -852,7 +852,7 @@ def keep():
         ("@reward",),
         ("Give.Item", "Gold_Coin(s)", "100"),
         ("Give.Item", "Ruby", "1"),
-        ("Update.Skill", "Strength", "+1"),
+        ("Update.Skill", "Attack", "+1"),
         ("Update.Attribute", "HobgoblinQuest", "=2"),
         ("Quest.Note.Done", "HobgoblinQuest", "*"),
         ("Display.Message", "Yellow", "Quest complete: The Steward's Hunt! 100 gold and a ruby.", "Quest"),

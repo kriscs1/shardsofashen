@@ -62,7 +62,7 @@
 61	Give.Item	Gold_Coin(s)	120
 62	Give.Item	Yew_Staff	1
 63	Update.Skill	Woodcutting	+2
-64	Update.Skill	Strength	+1
+64	Update.Skill	Attack	+1
 65	Display.Conversation	Ranger	The nest is gone? The woods will breathe easier. Take my old yew staff, and this gold. You've earned them.	Thank you!	66
 66	Display.Message	Yellow	Quest complete: The Wildwood Watch! You receive 120 gold, a yew staff and experience.
 67	End

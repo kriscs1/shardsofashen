@@ -827,7 +827,7 @@ function drawSkillsTab(ctx) {
     const now = (me.skill_now || [])[i] ?? lv;
     // (always as it is now out of its usual level, 20/20: drained red, 18/20, or boosted green, 23/20, a potion
     //  or spell boosting your blows counted in)
-    const boost = (me.boosts || {})[{ Strength: "attack", Defence: "defence", Channeling: "magic" }[name]] || 0;
+    const boost = (me.boosts || {})[{ Attack: "attack", Defence: "defence", Channeling: "magic" }[name]] || 0;
     const shown = now + boost;
     const text = `${shown}/${lv}`;
     const colour = shown < lv ? [240, 110, 100] : shown > lv ? [120, 235, 120] : lv >= maxLevel() ? [255, 215, 60] : TAB_TEXT;

@@ -30,9 +30,9 @@
 29	Quest.Note.Done	BanditQuest	*
 30	Give.Item	Gold_Coin(s)	200
 31	Give.Item	Steel_Platebody	1
-32	Update.Skill	Strength	+2
+32	Update.Skill	Attack	+2
 33	Display.Conversation	Captain	The town's goods! You've done the Redrock road a great service. Take this armour, and the reward.	Thank you!	34
-34	Display.Message	Yellow	Quest complete: Bandits on the Road! You receive 200 gold, a steel platebody and Strength experience.
+34	Display.Message	Yellow	Quest complete: Bandits on the Road! You receive 200 gold, a steel platebody and Attack experience.
 35	End
 36	Display.Conversation	Captain	Where are the goods? Did you lose them?	I'll get them.	45
 37	End

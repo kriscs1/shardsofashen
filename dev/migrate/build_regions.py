@@ -818,7 +818,7 @@ def scripts():
              (">Conditional", "$Variable.2>=5", "@r_notyet"),
              ("Update.Attribute", "RangerQuest", "=4"),
              ("Give.Item", "Gold_Coin(s)", "120"), ("Give.Item", "Yew_Staff", "1"),
-             ("Update.Skill", "Woodcutting", "+2"), ("Update.Skill", "Strength", "+1"),
+             ("Update.Skill", "Woodcutting", "+2"), ("Update.Skill", "Attack", "+1"),
              conv("Ranger", "The nest is gone? The woods will breathe easier. Take my old yew staff, and this gold. You've earned them.", ("Thank you!", "@r_done")),
              "r_done:", ("Display.Message", "Yellow", "Quest complete: The Wildwood Watch! You receive 120 gold, a yew staff and experience."),
              ("End",), "r_notyet:", conv("Ranger", "Five spiders, friend. The nest is west of the village, deep in the trees.", ("I'll keep at it.", "@bye"))]),
@@ -919,9 +919,9 @@ def scripts():
         (3, [(">Got.Item", "Stolen_Goods", "1", "@c_nogoods"),
              ("Take.Item", "Stolen_Goods", "1"),
              ("Update.Attribute", "BanditQuest", "=4"),
-             ("Give.Item", "Gold_Coin(s)", "200"), ("Give.Item", "Steel_Platebody", "1"), ("Update.Skill", "Strength", "+2"),
+             ("Give.Item", "Gold_Coin(s)", "200"), ("Give.Item", "Steel_Platebody", "1"), ("Update.Skill", "Attack", "+2"),
              conv("Captain", "The town's goods! You've done the Redrock road a great service. Take this armour, and the reward.", ("Thank you!", "@c_done")),
-             "c_done:", ("Display.Message", "Yellow", "Quest complete: Bandits on the Road! You receive 200 gold, a steel platebody and Strength experience."),
+             "c_done:", ("Display.Message", "Yellow", "Quest complete: Bandits on the Road! You receive 200 gold, a steel platebody and Attack experience."),
              ("End",), "c_nogoods:", conv("Captain", "Where are the goods? Did you lose them?", ("I'll get them.", "@bye"))]),
     ], "The road is safe again. Frosthold salutes you.")
     S["Kill Bandit"] = kill_count("BanditQuest", 1, "BanditsSlain", 5, "Bandits slain for Captain Hale", "Five bandits! Report to Captain Hale in Frosthold.")

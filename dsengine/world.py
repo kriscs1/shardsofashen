@@ -396,7 +396,8 @@ class World(NPCMixin):
         k = level - base
         if k:
             num = lambda key, dflt: val(trim(d.shards_ini("Remnants", key, "")) or str(dflt))
-            e.hp = e.max_hp = max(1, int(e.max_hp + k * num("Mob.Hitpoints.Per.Level", 5)))
+            e.hp = e.max_hp = max(1, e.max_hp // 2, int(e.max_hp + k * num("Mob.Hitpoints.Per.Level", 5)))  # (lower:
+            # never under half its kind's, so a bat a level down still takes a blow or two)
             e.strength = max(1, round(e.strength + k * num("Mob.Strength.Per.Level", 0.5)))
             e.defence = max(1, round(e.defence + k * num("Mob.Defence.Per.Level", 0.5)))
 

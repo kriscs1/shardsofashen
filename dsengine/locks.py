@@ -4,7 +4,7 @@ learn to pick one), low on the mainland, harder underground, a little different 
 (its script gives a quest's own item or says quest news) is never locked.
 
 Open it with its key; or Pick Lock (Stealth: the lockpicking game, harder the higher the lock); or Break Open
-(Strength: loud, and it may take a few goes), unless it's sturdy (iron-bound: the high locks and some others, a map
+(Attack: loud, and it may take a few goes), unless it's sturdy (iron-bound: the high locks and some others, a map
 line's or kind's Sturdy=): those are picked or opened with their key, never forced. Unlocked is yours alone (chests
 are per player), and saved.
 
@@ -181,8 +181,8 @@ class LockMixin:
         self.wake_sleepers(e, self.thief_num("Wake", "Break", 224))
         self.play_sound("Block", (e.cx, e.cy))
         self.fx_nudge(e, 0, 2, 120)
-        chance = max(5, min(90, self.lock_num("Break.Chance", 40) + (self.skill_level("Strength") - level) * 4))
-        self.update_skill("Strength", "+0.02", pop=False)
+        chance = max(5, min(90, self.lock_num("Break.Chance", 40) + (self.skill_level("Attack") - level) * 4))
+        self.update_skill("Attack", "+0.02", pop=False)
         if rnd() * 100 < chance:
             self.unlock_chest(e, "The lock bursts with a crack of wood.")
             self.act_done(True)

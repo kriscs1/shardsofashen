@@ -1215,7 +1215,7 @@ def thing_data():
         ("Cooked_Glowfin", [("Use.Words", "Eat"), ("Examine.Info", "Glowfin, cooked: rich and strange, and it warms you to "
                              "your toes. Heals 20."), ("Stackable", "0"), ("Value", "90"), ("Food.Value", "20")]),
         ("Shardglass_Blade", [("Display.Name", "Shardglass Blade"), ("Slot", "Weapon"), ("Attack", "12"), ("Defence", "1"),
-                              ("Magic", "2"), ("Requires", "Strength 20"), ("Durability", "720"), ("Stackable", "1"),
+                              ("Magic", "2"), ("Requires", "Attack 20"), ("Durability", "720"), ("Stackable", "1"),
                               ("Value", "0"), ("Droppable", "0"),
                               ("Examine.Info", "A blade of the Fallen Shard's own glass, grown, not forged. It hums when you "
                                "swing it.")]),
@@ -1316,7 +1316,7 @@ def quests():
     }, 3, markers={0: "Morrow_Angler", 1: "Brinewater_Deep", 2: "Morrow_Angler"}, kind="Side", requires="Glass in the Nets",
         level=LEVEL)
     SK.section(SK.QUESTS, "The Brine Mother", [("Reward.Items", "Brine_Pearl_Ring 1 Gold_Coin(s) 500"), ("Reward.Shards", "30"),
-                                               ("Reward.XP", "Strength 3 Fishing 2"),
+                                               ("Reward.XP", "Attack 3 Fishing 2"),
                                                ("Rumour", "An angler fishes a lake under the sea, below Gull Point. He wants "
                                                 "something in it dead.")])
     SK.quest("The Last Watch", "Ghost_Warden", WARD, {
@@ -1326,7 +1326,7 @@ def quests():
         2: "The Hollow Marshal is dead. Take his seal to Ysolde.",
     }, 3, markers={0: "Warden_Ysolde", 1: "Hold_Great_Hall", 2: "Warden_Ysolde"}, kind="Side", requires="Glass in the Nets",
         level=LEVEL)
-    SK.section(SK.QUESTS, "The Last Watch", [("Reward.Shards", "60"), ("Reward.XP", "Strength 4 Defence 4"),
+    SK.section(SK.QUESTS, "The Last Watch", [("Reward.Shards", "60"), ("Reward.XP", "Attack 4 Defence 4"),
                                              ("Rumour", "Fishermen off Gull Point tell of a light under the water, and a "
                                               "woman's voice calling the watch.")])
     SK.quest("The Fallen Shard", "Ghost_Warden", FALLQ, {
@@ -1337,7 +1337,7 @@ def quests():
     }, 3, markers={0: "Warden_Ysolde", 1: "Shardfall_Crater", 2: "Shardfall_Crater"}, kind="Side", requires="The Last Watch",
         level=LEVEL)
     SK.section(SK.QUESTS, "The Fallen Shard", [("Reward.Items", "Shardglass_Blade 1"), ("Reward.Shards", "80"),
-                                               ("Reward.XP", "Shardcraft 5 Strength 3"),
+                                               ("Reward.XP", "Shardcraft 5 Attack 3"),
                                                ("Rumour", "The ghost at the Wardens' Hold still has a watch to finish, they "
                                                 "say, and nobody left to finish it.")])
 

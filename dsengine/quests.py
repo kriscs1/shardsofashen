@@ -357,7 +357,7 @@ class QuestMixin:
                 "skills": self.skill_pages(), "level": self.player_level(), "standing": self.standing_list()}
 
     def skill_pages(self):
-        """The journal's Skills: each skill (not Hitpoints, which Strength and Defence make), how it's levelled
+        """The journal's Skills: each skill (not Hitpoints, which Attack and Defence make), how it's levelled
         (Skills.ini Trains=) and what each level opens up, read from where it's set: [{skill, trains, opens: [[level,
         "Gather Coal; make Iron Bar"], ...]}]. The same for everyone (worked out once; your levels are the page's)."""
         known = self.data.cache("skill_pages")

@@ -58,7 +58,7 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
 ```
 [Debugging]   Logging.Enabled=1
 [Gameplay]    Player.Movement.Speed, Player.Attack.Speed, Player.Visible,
-              Hitpoints.Base, Hitpoints.Per.Level (max HP = base + per level x (Strength + Defence levels)),
+              Hitpoints.Base, Hitpoints.Per.Level (max HP = base + per level x (Attack + Defence levels)),
               HP.Regen.Delay (seconds out of combat before HP comes back, default 6), HP.Regen.Every (seconds per HP, 3),
               Skill.Max.Level (the highest level of every skill, default 25: XP stops there),
               NPC.Respawn.Delay, Item.Respawn.Delay (map items respawn after pickup),
@@ -72,11 +72,11 @@ All paths are relative to `DefaultDir$` (the `New (converted)` folder).
               Zoom=1 (0.75/1/1.5/2/3, set by the mouse wheel and + / -), Camera.Smooth=8 (0 = no easing), Smooth.Scaling=1 (0 = sharp pixels)
               [Gameplay] Night.Light.Radius=130 (Python game: light round the player at night, 0 = none)
               InventoryItems.Columns=5  InventoryItems.Rows=7  ActionBox.Columns=11  ActionBox.Rows=3
-[Skills]      List=Strength,Defence,Hitpoints,Cooking,Smithing,Fishing,Mining,Woodcutting,Firemaking,Potion_Making,Crafting,Magic
+[Skills]      List=Attack,Defence,Channeling,Shardcraft,Hitpoints,Cooking,Crafting,Fishing,Mining,Woodcutting,Alchemy,Homesteading,Stealth
               Icon.<Skill>=<sprite> ; the picture on the skill's tile in the Stats tab, e.g. Icon.Mining=Pickaxe
                                     ; (also shown over the player's head for a moment when the skill gains XP)
               Disabled=Name,Name  ; skills switched off: no Stats tile, no XP (Hitpoints can't be). Set by the Admin panel
-              Level.Skills=Strength,Defence,Magic  Level.Best=2 (the player's level: the average of their
+              Level.Skills=Attack,Defence,Channeling  Level.Best=2 (the player's level: the average of their
               best Level.Best of these; quests' Requires.Level, shown on the Quests tab)
 [Admin]       Players=Admin       ; the characters (comma list, any case) with an Admin button on the sidebar: give
                                   ; yourself items, set skill levels, switch skills off. Everyone else: no button
@@ -256,7 +256,7 @@ Slot=Weapon                ; Weapon | Shield | Head | Body | Legs | Feet | Hands
 Attack=4                   ; bonus to hit chance and damage while worn
 Defence=2                  ; bonus to defence while worn
 Magic=4                    ; optional (staffs): added to every spell's damage and healing while worn
-Requires=Strength 5        ; optional: skill and level needed to equip (space separated pairs, e.g. "Defence 10 Strength 5")
+Requires=Attack 5          ; optional: skill and level needed to equip (space separated pairs, e.g. "Defence 10 Attack 5")
 ; Spell scrolls only:
 Spell=Fire_Bolt            ; the data\Spells.ini section it casts (give it Use.Words=Cast); reading it uses it up
 ```
@@ -505,7 +505,7 @@ Done=3                      ; the attribute value that means finished (shown as 
 Type=Main                   ; part of the main story: first in the journal (a gold "Main story" badge, a diamond on
 Chapter=2                   ; the Quests tab), in Chapter order. Blank or Side: a side quest
 Requires.Level=12           ; before it can be started: the player's level (Config [Gameplay] Level.Skills, Level.Best:
-Requires.Quests=Passage to the Mainland; Bog Lights    ; the average of their best two of Strength, Defence, Magic),
+Requires.Quests=Passage to the Mainland; Bog Lights    ; the average of their best two of Attack, Defence, Channeling),
 Requires.Skills=Woodcutting 10, Potion Making 5             ; quests finished, skill levels
 Reward.Standing=Ashford 10  ; town and amount pairs, given once when it's done (data\Towns.ini; build_standing.py
                             ; gives each side quest given in a town its town's 10)
@@ -550,7 +550,7 @@ A new character's start (`Session.new_player_start`). Characters themselves are 
 
 ```
 [Player]       Map=4,1,0  X=32  Y=156  Hitpoints=20  Direction=1
-[Skills]       Strength=0  Cooking=33.34 ...    ; level units: level = int(value), fraction = progress to next level.
+[Skills]       Attack=0    Cooking=33.34 ...    ; level units: level = int(value), fraction = progress to next level.
                                                 ; Hitpoints= is the Hitpoints LEVEL (0 or missing = 10); the current
                                                 ; hitpoints are [Player] Hitpoints
 [Inventory]    Slot1=Axe,1  Slot2=Logs,5 ...
@@ -561,13 +561,14 @@ A new character's start (`Session.new_player_start`). Characters themselves are 
 ## Engine conventions
 
 * Speeds (Player.Movement.Speed, NPC Movement.Speed) under 10 are tiles per second; 10 or more are pixels per second.
-* Max hitpoints = Config [Gameplay] `Hitpoints.Base` (19) + `Hitpoints.Per.Level` (0.5) x (Strength
+* Max hitpoints = Config [Gameplay] `Hitpoints.Base` (19) + `Hitpoints.Per.Level` (0.5) x (Attack
   level + Defence level); the Hitpoints skill isn't trained or used. In scripts and conditions the skill "Hitpoints"
   means the current HP (Update.Skill Hitpoints +10 heals 10).
 * Combat. A blow lands with a 60% chance, +-4% per point of attack over defence (10% to 95%).
-  * The player: attack = Strength + the Attack bonus of everything worn, against the NPC's Defence. Damage 1 to
-    Player.Max.Hit = 1 + Strength/3 + Attack bonus; 5% + Strength/15% of hits are critical (max hit + up to half again).
-    Each hit trains Strength (damage x 0.01); being hit trains Defence.
+  * The player: attack = the Attack skill + the Attack bonus of everything worn, against the NPC's Defence. Damage 1 to
+    Player.Max.Hit = 1 + Attack/3 + Attack bonus; 5% + Attack/15% of hits are critical (max hit + up to half again).
+    Each hit trains Attack (damage x 0.01); being hit trains Defence. The stance you're in sends a share of
+    either to the skill it trains (Stances.ini `XP.To`, `XP.Share`: Fighting a quarter to Attack, Cautious to Defence).
   * An NPC: attack = its Strength x 3 + 2, against a third of the Defence level + the armour's Defence (+ Stone Skin).
     Damage 1 to 1 + its Strength. A miss (or a blow armour turns) trains Defence 0.03, a hit damage x 0.01.
   * Attacked while standing about, the player fights back. Out of combat, hitpoints come back (HP.Regen.*).
@@ -712,8 +713,11 @@ egion_tiles.py, with the same Walkable.Data).
 * Spells.ini Level: the Magic (or Skill=) level needed to read the scroll (skills go to 25). A scroll works 60% of
   the time at that level, 14% more for each level above it (at most 98%); when it fizzles no Shards are spent, for
   half the experience.
-* Skills: Config.ini [Gameplay] `Skill.Max.Level` (25), `XP.Slowdown` (at level L a skill learns
-  XP.Slowdown/(XP.Slowdown+L) as fast) and `XP.Scale` (every gain is that times what a script or the game gives). A
+* Skills: Config.ini [Gameplay] `Skill.Max.Level` (25), `XP.First` and `XP.Growth` (level L to L+1 takes
+  XP.First x XP.Growth^(L-1): each level more than the last, the early ones quick) and `XP.Scale` (every gain is that
+  times what a script or the game gives); [Skills] `XP.<Skill>` (that skill's gains times this, 1 if not given; never a quest's Reward.XP: how
+  quickly it rises beside the others). A skill's XP is its level and how far it is to the next, so a new curve never
+  changes a level anyone has. A
   save says what its skills were out of (`skills_of`; one that doesn't was out of 50, and is scaled as it loads).
 * **Shards** (dsengine/shards.py): a balance each player has (saved as `shards`), magic's only resource; never an
   item in the pack (`Give.Item Shard` or a chest's Shards go on it; `>Got.Item Shard`, `$Item.Shard` read it); they

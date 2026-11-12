@@ -423,7 +423,7 @@ def entities():
          "Droppable=0", "Value=0")
     item("Woken_Sword_of_Valour", "The Sword of Valour, awake: Shard-light runs along its edge, and it hums like a "
          "hive. It pulls, gently, towards Galaith.", "Slot=Weapon", "Attack=20", "Defence=3", "Droppable=0", "Value=0",
-         "Durability=900", "Requires=Strength 15", "Base=Sword_of_Valour")
+         "Durability=900", "Requires=Attack 15", "Base=Sword_of_Valour")
     item("Cael_Confession", "A letter from Cael, of the Cinder Chapel, to his sister Oska.", "Use.Words=Read,Examine",
          "Stackable=1", "Droppable=0", "Value=0")
     item("Scavenger_Crown", "A crown of bent spoons, bottle tops and one real ruby. Mostly spoons.", "Stackable=1",
@@ -481,7 +481,7 @@ def quests():
     }, 4, markers={0: "Rooks_Pier", 1: "Surveyor_Nils", 2: "Drowned_Shrine", 3: "Rooks_Pier"}, chapter=13,
         requires="Orrin's Chart", level=12, after="Orrin's Chart")
     K.section(q, "The Frozen Lodestar", [("Reward.Items", "Mithril_Shield 1"), ("Reward.Shards", "40"),
-                                          ("Reward.XP", "Defence 4 Strength 2")])
+                                          ("Reward.XP", "Defence 4 Attack 2")])
     K.quest("The Sleeping Sword", BERT, "WakeQuest", {
         0: "The barrier at the pass only thins now its anchor's gone.",
         1: "Beyond the thinning barrier the dragon wears a hide of Shards, and laughed at the Sword of Valour. Ask Bert "
@@ -499,7 +499,7 @@ def quests():
     }, 4, markers={0: "Warden_Oska", 1: "Forgemother_Boss", 2: "Ashen_Foundry", 3: "Warden_Oska"}, chapter=19,
         requires="The Sleeping Sword", level=15, after="The Sleeping Sword")
     K.section(q, "The Ashen Foundry", [("Reward.Items", "Mithril_Platebody 1"), ("Reward.Shards", "60"),
-                                        ("Reward.XP", "Crafting 5 Strength 4")])
+                                        ("Reward.XP", "Crafting 5 Attack 4")])
     K.quest("The Sun-Forge", "Man", "SunforgeQuest", {
         0: "Warden Oska says the sword's second fire was the Sun-Forge, under the sands; the nomads at their well "
            "still sing about it.",
@@ -523,7 +523,7 @@ def quests():
     }, 5, markers={0: "Delver_Maud", 1: "Stone_King_Boss", 2: "Dwarf_Hall", 3: "Dwarf_Hall", 4: "Delver_Maud"}, chapter=21,
         requires="The Sun-Forge", level=19, after="The Sun-Forge")
     K.section(q, "The Deep Anvil", [("Reward.Items", "Dragonscale_Platebody 1"), ("Reward.Shards", "90"),
-                                     ("Reward.XP", "Strength 6 Defence 6")])
+                                     ("Reward.XP", "Attack 6 Defence 6")])
 
     # ----- the side quests on the way
     K.quest("The Brother in the Ash", "Penitent", "CaelQuest", {

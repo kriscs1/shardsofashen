@@ -228,7 +228,7 @@ def write_data():
             "; Random.Every: about how many minutes between surprise attacks (0 = only when a script starts it:",
             ";   Start.Wave <name>). Random.Players: how many must be playing for a surprise one.",
             "; Gold.Per.Kill: for each raider killed, to whoever killed it. Reward.Gold / Reward.Items: for everyone who",
-            ";   held out to the end (Items: \"Super_Potion 1 Ale 2\"). Reward.XP: Strength and Defence experience.",
+            ";   held out to the end (Items: \"Super_Potion 1 Ale 2\"). Reward.XP: Attack and Defence experience.",
             "; On.Win.Script / On.Lose.Script: a script run for each defender at the end (a quest's next step).",
             "", "[Ashford_Raid]", "Name=Goblin raid on Ashford", "Map=2,3,0", "Centre=Ashford_Market",
             "Waves=Goblin*3;Goblin*4,Goblin_Archer*1;Hobgoblin*2,Goblin*3,Goblin_Shaman*1", "Gap=12", "Minutes=8",

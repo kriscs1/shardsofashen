@@ -518,7 +518,7 @@ def scripts():
              ("Take.Item", "Ashen_Codex", "1"),
              ("Update.Attribute", "AshenHandQuest", "=5"),
              ("Give.Item", "Gold_Coin(s)", "300"), ("Give.Item", "Super_Potion", "3"),
-             ("Update.Skill", "Strength", "+2"), ("Update.Skill", "Defence", "+2"),
+             ("Update.Skill", "Attack", "+2"), ("Update.Skill", "Defence", "+2"),
              conv("Warden", "The priest is dead? And this is his codex...\\A song, page after page, to wake a dragon. "
                             "Ignaroth, under Ashpeak. They mean to wake it, and they're nearly there.\\This is beyond "
                             "Emberwatch. Take it to the court wizard on the Royal Isle, and quickly. And take this gold: "
