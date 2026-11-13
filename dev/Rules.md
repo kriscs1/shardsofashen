@@ -768,7 +768,7 @@ that isn't in the game.
   greetings are cut from CC0 recordings by `build_voices.py`, which also gives each speaker its `Voice=` (a new
   speaker gets one there too). Each person placed has a pitch of their own, the same every time (`npc_voice`: never above the
   recording's, which plays it faster; the greetings are a little slower than recorded, `SPOKEN_PACE`), and
-  greets you again only after a while. Notices, signs and letters are silent. Options can turn the greetings off.
+  greets you again only after a while. As a talk you started closes (or the shop it opened), they say goodbye in the same voice (`Bye_`: `build_voices.py` FAREWELLS), never another speaker's: a kind whose speaker recorded no goodbye says none. Notices, signs and letters are silent. Options can turn the voices off.
   A greeting suits who says it: a mourner at a funeral only sighs (`Sigh`); an old man or an old woman is
   a real old person's voice (Mozilla Common Voice, CC0), never a younger one's made old; every take of a kind is
   one person's voice. No added noise for a breathy voice: it sounds like static.

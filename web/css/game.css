@@ -104,7 +104,15 @@ html, body {
 .char { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 4px 12px 4px 4px; text-align: left;
   border-radius: 10px; border: 2px solid var(--edge); background: #3a2418; color: var(--ink); cursor: pointer; }
 .char:hover, .char:focus-visible { background: #5a3624; }
-.char.new { justify-content: center; padding: 4px 12px; color: var(--parchment); }
+/* (making or bringing one isn't a character: a dashed outline in a row of their own, under a line) */
+.chars:empty { display: none; }
+.char-acts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; padding-top: 8px; border-top: 1px solid rgba(126, 77, 63, 0.6); }
+.chars:empty + .char-acts { border-top: none; padding-top: 0; }
+.char-acts:empty { display: none; }
+.char-act { flex: 1 1 140px; min-height: 44px; padding: 6px 12px; border-radius: 10px; border: 2px dashed var(--edge);
+  background: transparent; color: var(--parchment); font-size: 15px; cursor: pointer; }
+.char-act:hover, .char-act:focus-visible { background: rgba(90, 54, 36, 0.5); color: var(--ink); border-style: solid; }
+.char-act b { color: var(--ink); font-size: 18px; margin-right: 6px; }
 .char-face { width: 48px; height: 48px; flex: none; image-rendering: pixelated; border-radius: 8px;
   background: radial-gradient(circle at 50% 60%, #5b7a3c 0%, #3b5226 70%); }
 .char-words { display: flex; flex-direction: column; min-width: 0; }

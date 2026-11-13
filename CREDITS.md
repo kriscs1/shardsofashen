@@ -24,6 +24,8 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/skills/StrikeFlint.wav` | striking a flint | [Flare ignition](https://opengameart.org/content/flare-ignition) | qubodup | CC0 |
 | `sounds/voices/Voice_Man*.wav`, `sounds/voices/Voice_Old_Man*.wav`, `sounds/voices/Voice_Gruff*.wav` | a greeting | [Thirty-Eight Greetings.](https://freesound.org/s/431176/) | envirOmaniac2 (freesound.org) | CC0 |
 | `sounds/voices/Voice_Woman*.wav`, `sounds/voices/Voice_Ghost*.wav` | a greeting | [Female greetings.wav](https://freesound.org/s/351611/) | bectec (freesound.org) | CC0 |
+| `sounds/voices/Bye_Woman*.wav` | a goodbye | [female alto goodby.wav](https://freesound.org/s/352220/) | bectec (freesound.org) | CC0 |
+| `sounds/voices/Bye_Deep.wav` | a goodbye | [Thank you (NPC, British Male)](https://freesound.org/s/429036/) | theuncertainman (freesound.org) | CC0 |
 | `sounds/voices/Voice_Deep*.wav` | a greeting | [Greetings (NPC, British Male)](https://freesound.org/s/429038/) | theuncertainman (freesound.org) | CC0 |
 | `sounds/voices/Voice_Deep*.wav` | a greeting | [How can I help? (NPC, British Male)](https://freesound.org/s/429037/) | theuncertainman (freesound.org) | CC0 |
 | `sounds/voices/Voice_Deep*.wav` | a greeting | [What can I do for you? (NPC, British Male)](https://freesound.org/s/458074/) | theuncertainman (freesound.org) | CC0 |
@@ -31,13 +33,13 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/voices/Voice_Deep*.wav`, `sounds/voices/Voice_Gruff*.wav` | a greeting | [hello](https://freesound.org/s/449481/) | 12125065 (freesound.org) | CC0 |
 | `sounds/voices/Voice_Gruff*.wav` | a greeting | [man saying hello](https://freesound.org/s/447392/) | florianreichelt (freesound.org) | CC0 |
 | `sounds/voices/Voice_Ghost*.wav` | a greeting | [Fearing Hello](https://freesound.org/s/50940/) | qubodup (freesound.org) | CC0 |
-| `sounds/voices/Voice_Croak*.wav`, `sounds/creatures/Growl_Goblin*.wav`, `sounds/creatures/Growl_Troll*.wav`, `sounds/creatures/Growl_Wraith*.wav` | a greeting and a monster's growl | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
-| `sounds/voices/Voice_Beast*.wav`, `sounds/creatures/Growl_Dragon*.wav` | a greeting and a monster's growl | [Creature Gibberish Language\Dialogue - Monster\Alien](https://freesound.org/s/669913/) | SnowFightStudios (freesound.org) | CC0 |
+| `sounds/voices/Voice_Croak*.wav`, `sounds/voices/Bye_Croak*.wav`, `sounds/creatures/Growl_Goblin*.wav`, `sounds/creatures/Growl_Troll*.wav`, `sounds/creatures/Growl_Wraith*.wav` | a greeting and a monster's growl | [Monster or Creature Mutterings and Gibberish](https://freesound.org/s/677407/) | SnowFightStudios (freesound.org) | CC0 |
+| `sounds/voices/Voice_Beast*.wav`, `sounds/voices/Bye_Beast*.wav`, `sounds/creatures/Growl_Dragon*.wav` | a greeting and a monster's growl | [Creature Gibberish Language\Dialogue - Monster\Alien](https://freesound.org/s/669913/) | SnowFightStudios (freesound.org) | CC0 |
 | `sounds/ui/Quest_Start.wav` | a quest taken on | [harp glissando](https://freesound.org/s/490831/) | PhonosUPF (freesound.org) | CC0 |
-| `sounds/voices/Voice_Sigh*.wav` | a mourner's sigh | [heavy sigh.wav](https://freesound.org/s/242625/) | Reitanna (freesound.org) | CC0 |
-| `sounds/voices/Voice_Sigh*.wav` | a mourner's sigh | [long sigh.wav](https://freesound.org/s/242690/) | Reitanna (freesound.org) | CC0 |
-| `sounds/voices/Voice_Sigh*.wav` | a mourner's sigh | [05. Suspiro madre.wav](https://freesound.org/s/427722/) | lemigoga (freesound.org) | CC0 |
-| `sounds/voices/Voice_Sigh*.wav` | a mourner's sigh | [49-suspiro mujer.wav](https://freesound.org/s/429321/) | Tomycatts (freesound.org) | CC0 |
+| `sounds/voices/Voice_Sigh*.wav`, `sounds/voices/Bye_Sigh*.wav` | a mourner's sigh | [heavy sigh.wav](https://freesound.org/s/242625/) | Reitanna (freesound.org) | CC0 |
+| `sounds/voices/Voice_Sigh*.wav`, `sounds/voices/Bye_Sigh*.wav` | a mourner's sigh | [long sigh.wav](https://freesound.org/s/242690/) | Reitanna (freesound.org) | CC0 |
+| `sounds/voices/Voice_Sigh*.wav`, `sounds/voices/Bye_Sigh*.wav` | a mourner's sigh | [05. Suspiro madre.wav](https://freesound.org/s/427722/) | lemigoga (freesound.org) | CC0 |
+| `sounds/voices/Voice_Sigh*.wav`, `sounds/voices/Bye_Sigh*.wav` | a mourner's sigh | [49-suspiro mujer.wav](https://freesound.org/s/429321/) | Tomycatts (freesound.org) | CC0 |
 | `sounds/voices/Voice_Old_Man*.wav` | a greeting | common_voice_en_18078830.mp3 ("Good afternoon sir, how may I be of service?", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Man*.wav` | a greeting | common_voice_en_18139265.mp3 ("Hello, my name is Brenda.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Man*.wav` | a greeting | common_voice_en_18105147.mp3 ("Hello! It is great to see you!", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
@@ -76,7 +78,7 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/creatures/Rabbit_Grunt*.wav` | a rabbit's grunt | [Rabbit oinks and squeaks](https://freesound.org/s/372075/) | kessir (freesound.org) | CC0 |
 | `sounds/creatures/Otter_Chirp*.wav` | an otter's chirp | [river otter or weasel 2006-09-17.mp3](https://freesound.org/s/23142/) | stackpool (freesound.org) | CC0 |
 
-Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The greetings, growls, quest
+Each was made mono 22050 Hz and its loudness matched to the game's own sounds. The greetings, goodbyes, growls, quest
 jingles and animals' noises are cut from the recordings by `dev/migrate/build_voices.py`, which fetches them the first time.
 
 The music of the towns, the Isle, the open road and the fights is royalty-free music licensed for the game:

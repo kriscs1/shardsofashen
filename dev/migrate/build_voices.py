@@ -3,6 +3,8 @@ in SOURCES and CREDITS.md):
 
   sounds\\Voice_<Kind>.wav, _2 ...   what someone says as you start talking to them ("Hello", "Well met", "How can
                                      I help?"): one of their kind's, at the speaker's own pitch (web/js/voice.js)
+  sounds\Bye_<Kind>.wav, _2 ...     what they say as the talk ends ("Goodbye", "Thank you"), in the same voice as
+                                     their greeting: only a kind whose speaker recorded one has any (FAREWELLS)
   sounds\\Growl_<Kind>.wav, _2 ...   a monster that's seen you and comes for you (npcs.py npc_growl)
   sounds\\Quest_Start.wav             a quest taken on (a harp's run up; a quest finished, Quest_Done, is
                                      build_soundscape's: quieter)
@@ -45,9 +47,11 @@ RATE = 22050
 SOURCES = {
     431176: ("431176_3082984", "envirOmaniac2", "Thirty-Eight Greetings."),
     351611: ("351611_6325950", "bectec", "Female greetings.wav"),
+    352220: ("352220_6325950", "bectec", "female alto goodby.wav"),
     429038: ("429038_6492957", "theuncertainman", "Greetings (NPC, British Male)"),
     429037: ("429037_6492957", "theuncertainman", "How can I help? (NPC, British Male)"),
     458074: ("458074_6492957", "theuncertainman", "What can I do for you? (NPC, British Male)"),
+    429036: ("429036_6492957", "theuncertainman", "Thank you (NPC, British Male)"),
     501882: ("501882_7076647", "Nchamp13", "Welcome Traveler.mp3"),
     449481: ("449481_9288538", "12125065", "hello"),
     447392: ("447392_6253486", "florianreichelt", "man saying hello"),
@@ -164,6 +168,21 @@ GREETINGS = {
     # (a mourner doesn't say hello at a funeral: she sighs, softly)
     "Sigh": dict(clips=[(242625, 0.08, 1.40), (242690, 0.08, 1.25), (427722, 0.30, 1.95), (429321, 1.08, 2.50)],
                  rms=0.06),
+}
+
+# what each kind says as you part (Bye_: voice.js), the same speaker as its greeting and made the same way: the
+# woman's goodbyes, the deep voice's thank-you; the mourner sighs again and the beasts mutter. The man's, the old
+# people's, the gruff's and the ghost's speakers recorded no goodbye, so they say none (another's voice would jar)
+BYE = 352220
+FAREWELLS = {
+    "Woman": dict(clips=[(BYE, a, b) for a, b in ((1.02, 1.42), (1.87, 2.31), (2.67, 3.19), (3.47, 4.25),
+                                                  (4.62, 5.37), (6.74, 7.26), (10.02, 10.53), (12.45, 12.89),
+                                                  (13.53, 14.08), (14.42, 14.99))]),
+    "Deep": dict(clips=[(429036, 0.37, 0.81)],      # Thank you.
+                 pitch=0.88),
+    "Sigh": GREETINGS["Sigh"],
+    "Croak": GREETINGS["Croak"],
+    "Beast": GREETINGS["Beast"],
 }
 
 # a monster's growl as it comes for you: a creature's mutterings (its parts: a goblin's, a troll's, a wraith's)
@@ -492,7 +511,7 @@ SPOKEN_PACE = 0.9                       # (people's greetings a little slower th
 def build(prefix, table):
     made = total = 0
     for kind, k in table.items():
-        if prefix == "Voice_" and kind in SPOKEN:
+        if prefix in ("Voice_", "Bye_") and kind in SPOKEN:
             k = dict(k, pace=k.get("pace", SPOKEN_PACE))
         for n, (sid, a, b) in enumerate(k["clips"], 1):
             made += write(take_name(prefix, kind, n), make(recording(sid), a, b, k))
@@ -507,6 +526,8 @@ def build(prefix, table):
 def main():
     made, total = build("Voice_", GREETINGS)
     print("Greetings: %d of %d sounds made or redrawn" % (made, total))
+    made, total = build("Bye_", FAREWELLS)
+    print("Goodbyes: %d of %d sounds made or redrawn" % (made, total))
     made, total = build("Growl_", GROWLS)
     print("Growls: %d of %d sounds made or redrawn" % (made, total))
     made = 0

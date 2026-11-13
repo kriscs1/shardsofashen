@@ -107,12 +107,12 @@ export async function playSound(name, at = null, loud = 1) {
 }
 
 // (a speaker's greeting - Voice_Man, Voice_Man_2 ... _10: build_voices.py - never the one just said, at their own
-// pitch)
+// pitch; or, said "Bye_", their goodbye)
 let lastVoice = "";
-export async function playVoice(kind, pitch = 1) {
+export async function playVoice(kind, pitch = 1, said = "Voice_") {
   if (!O.sound || !O.voices || !AU.ctx || !kind) return;
   const s = A.m.sounds || {};
-  const takes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `Voice_${kind}${n > 1 ? "_" + n : ""}.wav`).filter((t) => s[t]);
+  const takes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `${said}${kind}${n > 1 ? "_" + n : ""}.wav`).filter((t) => s[t]);
   if (!takes.length) return;
   const others = takes.length > 1 ? takes.filter((t) => t !== lastVoice) : takes;
   const take = others[Math.floor(Math.random() * others.length)];

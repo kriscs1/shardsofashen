@@ -16,7 +16,7 @@ _PREFIX = {
     "creatures": ("Abomination", "Baa", "Bleat", "Buzz", "Cat", "Cluck", "Croak", "Dog", "Growl", "Honk", "Meow",
                   "Moo", "Otter", "Purr", "Quack", "Rabbit", "Seal_Bark", "Snort", "Squeak", "Kill", "Remnant_Rise",
                   "Hooves"),
-    "voices": ("Voice", "Whisper"),
+    "voices": ("Voice", "Bye", "Whisper"),
     "ambient": ("Ambient", "Thunder", "Thunderclap", "Hail", "Rumble"),
     "skills": ("Anvil", "Bellows", "Brew", "Cooked", "CookingFood", "Craft", "Crafted", "DigHole", "EmptyBucket", "FillBucket",
                "Gather", "Harvest", "Bloom_Harvest", "MakeFire", "Mine", "PutFireOut", "Rock_Chime", "Smelt",

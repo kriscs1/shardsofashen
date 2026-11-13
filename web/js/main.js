@@ -978,27 +978,27 @@ function bring(text, fromApp) {
   send({ t: "import", name: got.name, save: got.save });
   if (fromApp) window.DSApp.set(CARRIED, "");
 }
-async function offerCarried(box) {
+// (a button under the characters, not one of them: making one, or bringing one here)
+function charAct(sign, words, onclick) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "char-act";
+  const s = document.createElement("b");
+  s.textContent = sign;
+  b.append(s, words);
+  b.onclick = onclick;
+  return b;
+}
+async function offerCarried(acts) {
   let text = "";
   try { text = (window.DSApp && window.DSApp.get && await window.DSApp.get(CARRIED)) || ""; } catch (e) { text = ""; }
   if (text) {
     let name = "";
     try { name = JSON.parse(text).name; } catch (e) { name = ""; }
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "char new";
-    b.textContent = `Bring ${name} here (copied from a public server)`;
-    b.onclick = () => bring(text, true);
-    box.prepend(b);
+    acts.prepend(charAct("⤓", `Bring ${name} here (copied from a public server)`, () => bring(text, true)));
   }
-  if (!(window.DSApp && window.DSApp.kind && window.DSApp.kind() === "android")) {   // (Android's window can't pick a file)
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "char new";
-    b.textContent = "Bring a character from a file";
-    b.onclick = () => $("bring-file").click();
-    box.append(b);
-  }
+  if (!(window.DSApp && window.DSApp.kind && window.DSApp.kind() === "android"))    // (Android's window can't pick a file)
+    acts.append(charAct("⤓", "Bring a character from a file", () => $("bring-file").click()));
 }
 $("bring-file").onchange = async () => {
   const f = $("bring-file").files[0];
@@ -1020,8 +1020,9 @@ function showCharacters(m) {
   homeRow();
   $("login-who").textContent = m.account ? `Signed in as ${m.account}` :
     "Playing without a Hallisium account: your characters here are this device's.";
-  const box = $("chars");
+  const box = $("char-list"), acts = $("char-acts");
   box.textContent = "";
+  acts.textContent = "";
   for (const ch of m.list) {
     const b = document.createElement("button");
     b.type = "button";
@@ -1050,15 +1051,9 @@ function showCharacters(m) {
       box.append(row);
     } else box.append(b);
   }
-  if (m.make && m.list.length < m.most) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "char new";
-    b.textContent = "+ New character";
-    b.onclick = () => { unlock(); setLoginError(""); loginShow("make"); };
-    box.append(b);
-  }
-  if (m.place === "own") offerCarried(box);
+  if (m.make && m.list.length < m.most)
+    acts.append(charAct("+", "New character", () => { unlock(); setLoginError(""); loginShow("make"); }));
+  if (m.place === "own") offerCarried(acts);
   if (!m.list.length && !m.make) setLoginError("New characters can't be made on this server.");
   else setLoginError(m.text, true);
   loginShow(!m.list.length && m.make ? "make" : "chars");
@@ -1211,7 +1206,7 @@ N.onMessage = (m) => {
       // (a new speech, or the same one sent again: its words come again only when it's new - voice.js)
       m.fresh = m.mode === "Conversation" && S.box.mode === m.mode && S.box.text === m.text && S.box.title === m.title ?
         S.box.fresh : performance.now();
-      greet(S.box, m);                             // (a conversation opening: its speaker's "Hello!")
+      greet(S.box, m);                             // (a conversation opening: "Hello!"; closing: "Goodbye")
       S.box = m;
       m.answers = m.responses;                     // (a long speech's pages: the answers wait for its last - ui.js)
       m.tpage = 0;
