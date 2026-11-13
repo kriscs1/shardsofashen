@@ -749,6 +749,13 @@ that isn't in the game.
 - Nothing shows as a placeholder ("?") while its picture loads: draw nothing till it has.
 - **Drawing stays cheap**: no canvas `filter` (blur...) or high-quality scaling of the whole view every frame. Work it
   out once when it changes (the fog is blurred on a small picture, then stretched).
+- **The small things on the ground are the page's alone** (`web/js/effects.js`, the data `build_ground_fx.py`'s): a
+  soft oval shadow under every person, creature and dropped thing, fainter at night, under cloud, indoors and in the
+  dark; prints left in snow, sand, mud, ash and dust (Tiles.ini `Prints=R G B A Seconds`); rings round a swimmer or a
+  boat; a faint upside-down likeness of whoever stands at the water's edge, only on the water; sparks over a fire, a
+  forge or a hearth (`Embers=N`, on a thing or a tile); and rain splashing on the ground (`sky.js`). A ghost, a wisp
+  or a thing whose shadow is in its picture has `Shadow=0`; a flier `Shadow.Lift=N`. They're drawn under whatever
+  stands on the ground, never over a sprite, from pictures made once; Options (Screen) turns them all off.
 - Every distinct event deserves its own fitting sound (fizzle for a failed spell, "duh-derr" for an empty chest).
 - **Sounds belong to the old world**: plucked strings, wood, low bells, breath, voices, never a clean electronic
   tone or anything shrill (a chime above C6 goes down an octave). The yes/no, magic and small creatures' sounds are

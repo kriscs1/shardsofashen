@@ -15,6 +15,7 @@ import { M, layoutChoice, chooseLayout } from "./mobile.js";
 import { J, drawJournal } from "./journal.js";
 import { O, loadOptions, saveOptions, playSound, musicTick, ambientTick, nearLoopTick, unlock, stopMusic } from "./audio.js";
 import { setWeather, fogInit, revealCell, fogAdmin, setFogAdmin } from "./sky.js";
+import { FX, setEffects } from "./effects.js";
 import { messageColour, clamp, val, pretty, coinHTML } from "./util.js";
 import { buildPicker, DEFAULT_LOOK, lookImage, bodyFrame } from "./look.js";
 import { preload, entityIni, sprite } from "./assets.js";
@@ -245,7 +246,7 @@ function openOptions() {
   $("opt-voices").checked = O.voices;
   $("opt-music").checked = O.music; $("opt-music-volume").value = O.musicVolume;
   $("opt-ambient").checked = O.ambient; $("opt-ambient-volume").value = O.ambientVolume;
-  $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing;
+  $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing; $("opt-effects").checked = FX.on;
   $("opt-camera").value = V.smooth;
   $("opt-cursor").value = String(U.cursorSize || 22);
   $("opt-hotbar").value = String((S.me && S.me.hotbar || []).length || 5);
@@ -260,6 +261,7 @@ for (const [id, key, num] of [["opt-sound", "sound"], ["opt-volume", "volume", 1
   });
 }
 $("opt-markers").addEventListener("input", (ev) => { U.markers = ev.target.checked; saveView(); });
+$("opt-effects").addEventListener("input", (ev) => { setEffects(ev.target.checked); saveView(); });
 $("opt-lan").addEventListener("input", (ev) => send({ t: "lan", open: ev.target.checked }));
 $("opt-net").addEventListener("input", (ev) => send({ t: "internet", open: ev.target.checked }));
 // (who can reach an app's own game: its host's say. The network's stays on it; the internet's goes through the central
@@ -399,13 +401,15 @@ $("appearance-cancel").onclick = () => { $("appearance").hidden = true; canvas.f
 $("options-done").onclick = () => { $("options").hidden = true; canvas.focus(); playSound("Coins"); };
 
 function saveView() {
-  try { localStorage.setItem("ds.view", JSON.stringify({ markers: U.markers, smooth: smoothing, camera: V.smooth, cursor: U.cursorSize })); } catch (e) { /* */ }
+  try { localStorage.setItem("ds.view", JSON.stringify({ markers: U.markers, smooth: smoothing, camera: V.smooth, cursor: U.cursorSize,
+    effects: FX.on })); } catch (e) { /* */ }
 }
 
 function loadView() {
   try {
     const v = JSON.parse(localStorage.getItem("ds.view") || "{}");
     if ("markers" in v) U.markers = v.markers;
+    if ("effects" in v) setEffects(v.effects);
     if ("smooth" in v) smoothing = v.smooth;
     if ("camera" in v) V.smooth = v.camera;
     if ("cursor" in v) U.cursorSize = +v.cursor;

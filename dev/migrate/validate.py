@@ -1507,10 +1507,14 @@ def check_tiles():
                                                                                     #  build_ground_pieces.py)
                            "Raised",                                                # (a boardwalk: its shadow cast)
                            "Warm",                                                  # (a fire: it keeps the cold off, cold.py)
-                           "Round"):                                                # (natural ground: rounded where
+                           "Prints", "Embers",                                      # (footprints in it; its sparks:
+                                                                                    #  effects.js)
+                           "Round"):                                              # (natural ground: rounded where
                                                                                     #  it meets another: round_world.py)
                 warn(r, "[%s] unknown key %s" % (sec, k))       # (Layer=Decor; the rest: what moves and gives light)
-            elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed") and not is_num(v):
+            elif k == "Prints" and not (len(v.split()) == 5 and all(is_num(q) for q in v.split())):
+                err(r, "[%s] Prints must be R G B A Seconds (the print's colour, how dark, how long it lasts)" % sec)
+            elif k in ("Sway", "Light", "Anim.Frames", "Anim.Speed", "Embers") and not is_num(v):
                 err(r, "[%s] %s=%r is not a number" % (sec, k, v))
             elif k in ("Flame", "Water", "Overhead", "Retired", "Climb", "Shelter", "Round", "Raised", "Warm") and v not in ("0", "1"):
                 err(r, "[%s] %s must be 0 or 1" % (sec, k))
@@ -1638,6 +1642,7 @@ ENTITY_KEYS = {"Season.Absent", "Glint", "Type", "Attitude", "Use.Words", "Exami
                "Range", "Ammo", "Missile", "Missile.Impact", "Missile.Sound", "Kill.Sound",   # bows (Range, Ammo), NPCs that shoot (Missile...)
                "Light", "Walkable.Data",                                          # what lights the dark; an object's footprint
                "Carried.Light",                                                  # a lamp in the pack: how far it lights round you (sky.js)
+               "Shadow", "Shadow.Lift", "Embers",                                # 0: no shadow; one that flies; its sparks (effects.js)
                "Crop", "Keep.On.Death",                                          # a seed's crop (Crops.ini); kept on death
                "Slain.By",                                                       # only that weapon gives its death blow
                "Base", "Enchanted", "Enchant",                                   # an enchanted kind's gear and word; a rare shard's word (shardcraft.py)

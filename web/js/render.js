@@ -8,6 +8,7 @@ import { val, clamp, drawText, textWidth, setFont } from "./util.js";
 import { T } from "./verbs.js";
 import { lookImage, npcImage } from "./look.js";
 import { playSound } from "./audio.js";
+import { drawShadows, drawGroundMarks, drawReflections, drawEmbers, trackGround } from "./effects.js";
 
 export const V = {
   zoom: 1, zooms: [0.75, 1, 1.5, 2, 3],
@@ -366,6 +367,13 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   };
   if (S.me && S.me.stance === "Sneaking") drawCones(ctx, shown, cam);
   drawTraps(ctx, cam);
+  // (on the ground, under everything that stands on it: likenesses in the water, prints, rings, shadows; effects.js)
+  const rideOf = (e) => (e === me ? S.me && S.me.ride : e.rd) || 0;
+  const near = me && me.a ? [...shown, me] : shown;
+  trackGround(near, now, rideOf);
+  drawReflections(ctx, near, cam, (e) => lastImage.get(e.u), rideOf);
+  drawGroundMarks(ctx, cam, now, V.ww, V.wh);
+  drawShadows(ctx, near, cam, now, V.underRoof, rideOf);
   for (const e of shown) if (e.k === T.NPC && e.un) draw(e);
   for (const e of shown) if (e.k === T.MAPITEM) draw(e);
   drawMarks(ctx, cam, now, false);
@@ -373,7 +381,6 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
   if (me && me.a) standing.push(me);
   // (in a cart, carts.py: drawn with it, standing in its box - over it above its front panel, hidden below)
   const riders = new Map();
-  const rideOf = (e) => (e === me ? S.me && S.me.ride : e.rd) || 0;
   const cartUids = new Set(shown.filter((e) => e.k === T.NPC).map((e) => e.u));
   standing = standing.filter((e) => {
     const c = rideOf(e);
@@ -399,6 +406,7 @@ export function drawWorld(ctx, viewW, viewH, now, dt, smoothing) {
     }
   }
   drawGlows(ctx, shown, cam);
+  drawEmbers(ctx, shown, cam, now, V.ww, V.wh, pc, roofHides);
   drawMarks(ctx, cam, now, true);
   for (const e of shown) if (e.k === T.MISSILE || e.k === T.TEMPORARY) draw(e);
   // tree tops over everyone

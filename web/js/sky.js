@@ -148,6 +148,22 @@ export function drawSky(ctx, cam, ww, wh, now, underRoof, playerC) {
   }
 }
 
+// ----- how strong the shadows are (effects.js): the sun's, full by day, faint at night, under cloud and indoors, and
+// soft in a cave or upstairs (the light of lamps all round)
+export function shadowLight(now, underRoof) {
+  if (dimHere()) return 0.3;
+  if (S.mapZ !== 0 && S.mapZ < 1000) return 0.7;
+  let k = 1;
+  if (S.clock.on) {
+    let a = sky(dayFraction(now))[3];
+    if (underRoof) a = Math.floor(a * val(iniValue("daynight", "Night", "Indoors", "0.55")));
+    k = 1 - clamp(a / 210, 0, 0.75);
+  }
+  if (underRoof) k *= 0.75;
+  else if (S.mapZ === 0 && W.kind !== "clear") k *= 1 - 0.45 * W.level;
+  return k;
+}
+
 function skyLights(cam, ww, wh, underRoof, pc) {
   // The lights in view (a fire, a lamp, a lit window), not one under the fog of war: you don't see its glow there
   const out = [];
@@ -236,7 +252,7 @@ export function drawWeather(ctx, cam, w, h, dt, nowMs, underRoof) {
   if (underRoof) return;
   const draw = kindVal(W.kind, "Draw", "").trim().toLowerCase();
   const amount = level * (val(kindVal(W.kind, "Amount", "1")) || 1);
-  if (draw === "rain") drawRain(ctx, w, h, amount, colour(kindVal(W.kind, "Colour", ""), [168, 182, 206]), dt);
+  if (draw === "rain") drawRain(ctx, w, h, amount, colour(kindVal(W.kind, "Colour", ""), [168, 182, 206]), dt, nowMs);
   else if (draw === "snow") drawSnow(ctx, w, h, amount, val(kindVal(W.kind, "Wind", "18")), dt, nowMs);
   else if (draw === "fog") drawFogWeather(ctx, cam, w, h, level, nowMs);
 }
@@ -247,7 +263,34 @@ function particles(list, n, make) {
   return list;
 }
 
-function drawRain(ctx, w, h, amount, col, dt) {
+// (where the rain lands: a little splash, here and there, gone in a moment. Effects off: none)
+const SPLASH_MS = 200;
+export const SPLASH = { on: true };
+function drawSplashes(ctx, w, h, amount, col, dt, nowMs) {
+  const list = W.splash || (W.splash = []);
+  let born = 70 * amount * dt;
+  while (born > 0 && list.length < 60) {
+    if (born >= 1 || Math.random() < born) list.push([Math.random() * w, Math.random() * h, nowMs]);
+    born -= 1;
+  }
+  ctx.fillStyle = `rgb(${Math.min(255, col[0] + 50)},${Math.min(255, col[1] + 50)},${Math.min(255, col[2] + 40)})`;
+  let keep = 0;
+  for (const s of list) {
+    const t = (nowMs - s[2]) / SPLASH_MS;
+    if (t >= 1 || t < 0) continue;
+    list[keep++] = s;
+    const x = Math.round(s[0]), y = Math.round(s[1]), o = t < 0.5 ? 1 : 2;
+    ctx.globalAlpha = 0.85 * (1 - t);
+    ctx.fillRect(x - o, y, 1, 1);
+    ctx.fillRect(x + o, y, 1, 1);
+    if (t < 0.5) ctx.fillRect(x, y - 1, 1, 1);
+  }
+  list.length = keep;
+  ctx.globalAlpha = 1;
+}
+
+function drawRain(ctx, w, h, amount, col, dt, nowMs) {
+  if (SPLASH.on) drawSplashes(ctx, w, h, amount, col, dt, nowMs);
   const make = (anywhere) => [Math.random() * (w + 80) - 40, anywhere ? Math.random() * h : -5 - Math.random() * 55,
     520 + Math.random() * 240, 9 + Math.floor(Math.random() * 7)];
   const ps = particles(W.rain, Math.floor(150 * amount), make);
