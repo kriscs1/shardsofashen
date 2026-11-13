@@ -850,6 +850,34 @@ function deviceKey() {
   return k;
 }
 let ticket = new URLSearchParams(location.search).get("ticket") || "";    // (the central server's: once)
+
+// The start screen's Options, taken when they've changed there since this game last had them (so one changed in
+// this game's own Options stays). And its full screen: a browser ends it with that page, so the first click or key
+// here takes it up again (a browser lets only those ask for it).
+function menuOptions() {
+  const t = joinArgs.get("opts");
+  if (!t) return;
+  let last = null;
+  try { last = localStorage.getItem("ds.menuOpts"); } catch (e) { /* (a friend's game: taken each time) */ }
+  if (t === last) return;
+  let o = {};
+  try { o = JSON.parse(t) || {}; } catch (e) { return; }
+  for (const k of ["sound", "music", "ambient"]) if (k in o) O[k] = !!o[k];
+  for (const k of ["volume", "musicVolume", "ambientVolume"]) if (k in o) O[k] = clamp(+o[k] || 0, 0, 100);
+  if ("musicVolume" in o) O.musicChosen = true;
+  saveOptions();
+  if ("effects" in o) setEffects(!!o.effects);
+  if ("smooth" in o) smoothing = !!o.smooth;
+  saveView();
+  try { localStorage.setItem("ds.menuOpts", t); } catch (e) { /* */ }
+}
+if (joinArgs.get("screen") === "full" && !window.DSApp?.fullscreen) {
+  const evs = ["keydown", "mousedown", "touchend"];
+  const again = () => { if (!document.fullscreenElement && !document.webkitFullscreenElement) toggleFullscreen(); };
+  const stop = () => { for (const e of evs) removeEventListener(e, again, true); };
+  for (const e of evs) addEventListener(e, again, true);
+  document.addEventListener("fullscreenchange", stop, { once: true });
+}
 let mine = null, pickLook = null;
 let homeUrl = "", pageCode = "";      // (the start screen's address; the page's code as this page was loaded)
 
@@ -1590,8 +1618,9 @@ async function boot() {
   resize();
   fogInit();
   loadOptions();
-  loginMusicButton();
   loadView();
+  menuOptions();
+  loginMusicButton();
   initBuildUI();
   onLoaded(() => {});
   connect();

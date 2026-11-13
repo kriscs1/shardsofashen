@@ -826,7 +826,12 @@ that isn't in the game.
   bright words, the one you're on edged in gold.
 - **Full screen** (the button by Online, F11, Options): in the desktop app the window's own (`Bridge.fullscreen`, a
   page's full screen there fills only the window); in a browser the page's, which the button, Esc or F11 leaves. The
-  browser's own F11 full screen is left alone: only F11 leaves it, and the button's tip says so.
+  browser's own F11 full screen is left alone: only F11 leaves it, and the button's tip says so. The start screen's
+  Options has it too, before you're in a game: a browser's ends with that page, so the game takes it up again at your
+  first click or key (`screen=full` in the join).
+- **The start screen has Options** (the owner's wish): full screen, the ground effects, smooth scaling and the sounds'
+  and their volumes, what every game you join starts with. They go with the join (`opts`), and a game takes them only
+  when they've changed there since it last had them (`ds.menuOpts`), so one changed in a game's own Options stays.
 - **The cursor says what a click does to that thing**, not just its verb (`cursorOfVerb(verb, e)`): a chest, box or
   coffer opened is the chest, a door the door; a grave is the hand (you take your things back), never the eye.
 - **A window never changes size while it's open**: a lock or the chimes hold room for their words and a button that's

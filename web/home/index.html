@@ -78,6 +78,14 @@ label.agree a { color: var(--ink); }
   background: rgba(36,23,15,0.9); border: 2px solid var(--edge); color: var(--parchment); font-size: 15px; min-height: 42px; }
 .chip .face { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: bold;
   background: var(--shard); color: #22113a; }
+.chip .face.gear { background: var(--edge); color: var(--ink); }
+.chip .face.gear svg { width: 20px; height: 20px; shape-rendering: crispEdges; }
+/* ----- Options: what every game you join starts with */
+.opts h3 { margin: 6px 0 0; font-size: 15px; color: var(--ink); border-bottom: 1px solid var(--edge); padding-bottom: 3px; }
+.opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 15px; }
+.opt input[type=checkbox] { width: 24px; height: 24px; flex: none; margin: 0; padding: 0; accent-color: var(--ok-edge); }
+.opt input[type=range] { width: min(190px, 45vw); flex: none; padding: 0; border: none; background: none; accent-color: var(--edge-light); }
+.opt button { min-width: 130px; }
 .ad { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 12px; border-radius: 12px;
   background: rgba(28,18,12,0.92); border: 2px dashed var(--edge); font-size: 15px; color: var(--parchment); text-decoration: none; }
 .ad img { max-height: 54px; max-width: 140px; border-radius: 6px; }
@@ -126,7 +134,7 @@ footer a, footer button.link { color: var(--dim); font-size: 13px; }
 body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 high, over the foot of the page) */
 /* ----- popups, toasts, joining */
 .veil { position: fixed; inset: 0; background: rgba(8,4,2,0.72); display: grid; place-items: center; padding: 16px; z-index: 10; }
-.dialog { width: min(460px, 100%); }
+.dialog { width: min(460px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; }   /* (a phone on its side: it scrolls) */
 .dialog.wide { width: min(780px, 100%); }
 .dialog iframe { display: block; width: 100%; height: min(calc(100vh - 140px), 640px); border: 0; border-radius: 8px; }
 .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 20; max-width: min(560px, 92vw);
@@ -193,6 +201,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
     <img class="logo small" src="logo.png" alt="Shards of Ashen" width="496" height="212">
     <span class="grow"></span>
     <span id="menu-status" class="status"><span class="dot"></span><span id="menu-status-words"></span></span>
+    <button id="options-open" class="chip" type="button"><span class="face gear"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M7 1h2v2h1V2h2v2h-1v1h2v2h1v2h-1v2h-2v1h1v2h-2v-1H9v2H7v-2H6v1H4v-2h1v-1H3V9H1V7h2V5h2V4H4V2h2v1h1zM7 6v4h2V6z"/></svg></span>Options</button>
     <button id="chip" class="chip" type="button"><span class="face" id="chip-face">?</span><span id="chip-name">Not signed in</span></button>
   </div>
   <div id="adsense" class="adsense" hidden></div>
@@ -478,6 +487,56 @@ $("skip").onclick = () => { skipped = true; signedIn(""); };
 $("retry").onclick = connect;
 $("in-name").value = store.get("name");
 
+// ----- Options: what every game you join starts with (they go to it with the join, and it takes them when they've
+// changed here since it last had them: one changed in a game's own Options stays there). Full screen at once: the
+// desktop app's window, a browser's page (which ends with the page, so the game takes it up again); the Android app
+// is always full screen.
+const OPT_DEFAULT = { sound: true, volume: 100, music: true, musicVolume: 30, ambient: true, ambientVolume: 70,
+  effects: true, smooth: true };
+function myOptions() {
+  let o = {};
+  try { o = JSON.parse(store.get("options") || "{}"); } catch (e) { o = {}; }
+  return { ...OPT_DEFAULT, ...o };
+}
+const appFull = !!(app && app.fullscreen);
+const pageFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const canFull = appFull || (KIND === "browser" && !!(document.fullscreenEnabled || document.webkitFullscreenEnabled));
+const fullWords = () => appFull ? "On or off" : pageFull() ? "Leave full screen" : "Full screen";
+function toggleFull() {
+  if (appFull) { app.fullscreen(); return; }
+  const d = document;
+  if (pageFull()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+  else {
+    const el = d.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) Promise.resolve(req.call(el, { navigationUI: "hide" })).catch(() => toast("The browser wouldn't go full screen.", true));
+  }
+}
+document.addEventListener("fullscreenchange", () => { const b = $("opt-full"); if (b) b.textContent = fullWords(); });
+$("options-open").onclick = () => {
+  const o = myOptions();
+  const box = (key, words) => `<label class="opt"><span>${words}</span><input type="checkbox" data-key="${key}"${o[key] ? " checked" : ""}></label>`;
+  const slide = (key, words) => `<label class="opt"><span>${words}</span><input type="range" min="0" max="100" step="5" data-key="${key}" value="${+o[key]}"></label>`;
+  dialog(`<h2>Options</h2><p class="small dim">What every game you join starts with. A game's own Options change them there.</p>
+    <div class="opts stack">
+      <h3>Screen</h3>
+      ${canFull ? `<div class="opt"><span>Full screen</span><button type="button" id="opt-full">${fullWords()}</button></div>` : ""}
+      ${box("effects", "Shadows, footprints, ripples and sparks")}
+      ${box("smooth", "Smooth scaling (easier text; off: sharp pixels)")}
+      <h3>Sound</h3>
+      ${box("sound", "Sound effects")}${slide("volume", "Volume")}
+      ${box("music", "Music")}${slide("musicVolume", "Music volume")}
+      ${box("ambient", "Background sounds")}${slide("ambientVolume", "Background volume")}
+    </div>`, [["Done", "go"]]);
+  for (const el of $("dialog").querySelectorAll("[data-key]")) {
+    el.addEventListener("input", () => {
+      const now = myOptions();
+      now[el.dataset.key] = el.type === "checkbox" ? el.checked : +el.value;
+      store.set("options", JSON.stringify(now));
+    });
+  }
+  if (canFull) $("opt-full").onclick = toggleFull;
+};
+
 // ----- the account chip
 $("chip").onclick = async () => {
   if (!myName) { showWelcome(); return; }
@@ -755,6 +814,8 @@ async function join(address, id, name, mine, given) {
     if (t && t.refused && !mine) { done(); toast(t.text, true); return; }     // (banned, or no confirmed email; your own game needs neither)
   }
   h.set("device", deviceKey(id || u.host, u.origin));
+  if (store.get("options")) h.set("opts", store.get("options"));     // (Options, once you've changed any)
+  if (!appFull && pageFull()) h.set("screen", "full");               // (a browser's full screen ends with this page)
   u.search = q.toString();
   u.hash = h.toString();                           // (never sent to the server's log: the page reads it)
   if (app) app.play(u.toString()); else location.href = u.toString();
