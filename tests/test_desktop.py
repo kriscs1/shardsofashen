@@ -194,7 +194,11 @@ def test_a_games_page_in_the_window_gets_only_the_carried_character(tmp_path, mo
     assert b._prefs.get("token") == "the sign-in" and b._prefs.get("central") == "" and not loaded
     assert b._host.status == "off"
     b.fullscreen()                                        # (the game's full-screen button: the whole window)
-    assert full == [1] and "fullscreen: () => window.pywebview.api.fullscreen()" in desktop.GAME_SHIM
+    assert full == [1] and b._full and "window.pywebview.api.fullscreen()" in desktop.GAME_SHIM
+    assert (desktop.GAME_SHIM % "true").endswith("})(true);")       # (the pages' Full screen tick: it's on)
+    assert "let full = true;" in desktop.home_page(b)
+    b.fullscreen()
+    assert full == [1, 1] and not b._full
     b.set("carried", "a character")
     assert b.get("carried") == "a character"                        # (Copy to device, from the game's page)
     assert desktop.Prefs().get("carried") == "a character"          # (kept on disk)
@@ -205,3 +209,11 @@ def test_a_games_page_in_the_window_gets_only_the_carried_character(tmp_path, mo
             break
         time.sleep(0.05)
     assert b._host.mode == "local" and b._host.status == "on"      # (the mode it was given, not always "solo")
+    gone = []
+    b._window.destroy = lambda: gone.append(b._host.status)
+    shown[0] = "https://evil.example/play/"
+    b.quit()
+    assert not gone and b._host.status == "on"                      # (a game's page can't close the app)
+    shown[0] = ""
+    b.quit()                                                        # (the start screen's Exit: saved, stopped, closed)
+    assert gone == ["off"]

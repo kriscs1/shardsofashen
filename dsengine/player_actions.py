@@ -388,6 +388,9 @@ class ActionsMixin:
                 self.pending_at = front
                 return
         rng = self.verb_range(verb, e)
+        if e.type == TILE and rng > 0 and self.cur_map is not None and getattr(e, "map", "") not in ("", self.cur_map.name):
+            rng = 10                                    # (a tile over the next map's edge: onto it first, then it's
+            #                                             its own map's tile - finish_player_walk)
         if rng > 0 and self.player_distance_to(e) > rng:
             if self.ab_mode:
                 return

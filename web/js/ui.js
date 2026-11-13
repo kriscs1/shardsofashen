@@ -1058,7 +1058,7 @@ export function padlock(ctx, cx, cy, col) {
 }
 
 // ----- the Quest pouch: a quest's own things, which take no room in the pack (data.is_quest_item)
-const QUEST_COLS = 6, QUEST_ROWS = 5, QUEST_X = 16, QUEST_Y = 48;
+const QUEST_COLS = 5, QUEST_ROWS = 5, QUEST_X = 33, QUEST_Y = 46;   // (inside the box's frame: x 29-197, y 40-212)
 
 export function questItems() { return (S.me?.inv || []).filter((it) => isQuestItem(it[1])); }
 export function packItems() { return (S.me?.inv || []).filter((it) => !isQuestItem(it[1])); }

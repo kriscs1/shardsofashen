@@ -137,7 +137,7 @@ export function addFx(ev, nowMs) {
   } else if (ev.t === "nudge") {
     f.end = nowMs + ev.ms;
   } else if (ev.t === "swing") {                  // (a blow: drawSwing, the sword out of the hand for it)
-    f.end = nowMs + Math.max(120, +ev.ms || 240);
+    f.end = nowMs + Math.max(200, (+ev.ms || 240) * 1.25);     // (the draw back, the cut, the follow-through)
     V.fx = V.fx.filter((o) => !(o.t === "swing" && o.uid === ev.uid));
   } else if (ev.t === "skillpop") {
     f.end = nowMs + 1600;
@@ -607,7 +607,7 @@ export function footsteps() {
   if (tileIni(tile, "Water", "0") === "1") return;
   step.n++;
   const sneaking = S.me.stance === "Sneaking";
-  playSound("Step_" + groundKind(tile), null, sneaking ? 0.3 : 0.6);
+  playSound("Step_" + groundKind(tile), null, sneaking ? 0.16 : 0.32);   // (quiet: under everything else)
 }
 
 // ----- what was clicked, marked the moment it's clicked (registered: a gold ring closing in on it); the server says
@@ -742,33 +742,76 @@ function drawStance(ctx, e, x, y, now, under) {
   ctx.globalAlpha = 1;
 }
 
+// (the weapon a blow swings: its own worn picture upright, Worn_<wpn>1a, cut to its pixels, with where the hand
+//  holds it - the very sword in the hand, its size and its colours)
+const BLADES = new Map();
+function bladeOf(wpn) {
+  if (BLADES.has(wpn)) return BLADES.get(wpn);
+  const img = sprite("Worn_" + wpn + "1a");
+  if (!img) return null;                          // (still loading: a fist's blow till it has)
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0);
+  const d = g.getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+    if (d[(yy * w + xx) * 4 + 3] < 40) continue;
+    x0 = Math.min(x0, xx); x1 = Math.max(x1, xx); y0 = Math.min(y0, yy); y1 = Math.max(y1, yy);
+  }
+  let b = null;
+  if (x1 >= 0) {
+    const out = document.createElement("canvas");
+    out.width = x1 - x0 + 1; out.height = y1 - y0 + 1;
+    out.getContext("2d").drawImage(c, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+    b = { c: out, gx: out.width / 2, gy: out.height - 2 };          // (gripped just above the pommel)
+  }
+  BLADES.set(wpn, b);
+  return b;
+}
+
 function drawSwing(ctx, e, x, y, f, now) {
-  // (a blow: the blade swept in an arc towards what it's aimed at, a bright edge and a fading trail behind it)
+  // (a blow: a short draw back, a quick cut across what it's aimed at, and the follow-through, the weapon turning
+  //  about the hand, with a faint smear where the edge passed; no weapon: a jab of the fist)
   const t = entityAt(f.to);
-  const cx = x + e.w / 2, cy = y + e.h * 0.58;
   const facing = { 1: -Math.PI / 2, 2: 0, 4: Math.PI / 2, 8: Math.PI }[(e.i || "").slice(-2, -1)] ?? 0;   // (gone: the way you face)
-  const aim = t ? Math.atan2(t.dy + t.h / 2 - (e.dy + e.h * 0.58), t.dx + t.w / 2 - (e.dx + e.w / 2)) : facing;
-  const k = clamp((now - f.start) / (f.end - f.start), 0, 1), ease = 1 - (1 - k) * (1 - k);
-  const side = Math.cos(aim) >= 0 ? 1 : -1, from = aim - 1.25 * side, to = aim + 1.05 * side;
-  const at = from + (to - from) * ease, len = f.wpn ? 20 : 12, r0 = f.wpn ? 6 : 4;
+  const aim = t ? Math.atan2(t.dy + t.h / 2 - (e.dy + e.h * 0.6), t.dx + t.w / 2 - (e.dx + e.w / 2)) : facing;
+  const k = clamp((now - f.start) / (f.end - f.start), 0, 1);
+  const hx = x + e.w / 2 + Math.cos(aim) * 4, hy = y + e.h * 0.62 + Math.sin(aim) * 3;   // (the hand, a little out)
+  const blade = f.wpn ? bladeOf(f.wpn) : null;
   ctx.save();
-  ctx.lineCap = "round";
-  for (let j = 5; j >= 1; j--) {                 // (the trail: the blade where it was, fading)
-    const a = from + (to - from) * Math.max(0, ease - j * 0.07);
-    ctx.globalAlpha = (1 - k) * 0.5 * (1 - j / 6);
-    ctx.strokeStyle = "rgb(230,236,246)"; ctx.lineWidth = 3;
+  if (!blade) {                                   // (the fist: out and back)
+    const reach = Math.sin(Math.min(1, k / 0.7) * Math.PI) * 5;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "rgb(70,52,40)";
+    ctx.fillRect(Math.round(hx + Math.cos(aim) * reach) - 2, Math.round(hy + Math.sin(aim) * reach) - 2, 4, 4);
+    ctx.fillStyle = "rgb(232,196,156)";
+    ctx.fillRect(Math.round(hx + Math.cos(aim) * reach) - 1, Math.round(hy + Math.sin(aim) * reach) - 1, 2, 2);
+    ctx.restore();
+    return;
+  }
+  const side = Math.cos(aim) >= 0 ? 1 : -1;
+  const back = aim - 1.15 * side, through = aim + 0.85 * side;
+  // (the draw back, a fifth of it; the cut, quick, two fifths; the rest the follow-through, slowing)
+  const at = k < 0.2 ? aim - (0.6 + 0.55 * (k / 0.2)) * side :
+    k < 0.6 ? back + (through - back) * (1 - Math.pow(1 - (k - 0.2) / 0.4, 3)) :
+    through + 0.12 * side * Math.sin(((k - 0.6) / 0.4) * Math.PI / 2);
+  const len = blade.gy;
+  if (k > 0.2 && k < 0.85) {                      // (the smear: the edge's path, fading behind it)
+    const a0 = Math.max(back, Math.min(at, back + (at - back) * 0.4)), lo = Math.min(a0, at), hi = Math.max(a0, at);
+    ctx.globalAlpha = 0.28 * (1 - (k - 0.2) / 0.65);
+    ctx.strokeStyle = "rgb(236,240,248)";
+    ctx.lineWidth = len * 0.45;
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * (r0 + 4), cy + Math.sin(a) * (r0 + 4));
-    ctx.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
+    ctx.arc(hx, hy, len * 0.72, lo, hi);
     ctx.stroke();
   }
-  ctx.globalAlpha = k < 0.85 ? 1 : (1 - k) / 0.15;
-  ctx.strokeStyle = "rgb(70,62,56)"; ctx.lineWidth = 4;                     // (the blade: outlined, then steel)
-  ctx.beginPath(); ctx.moveTo(cx + Math.cos(at) * r0, cy + Math.sin(at) * r0);
-  ctx.lineTo(cx + Math.cos(at) * (r0 + len), cy + Math.sin(at) * (r0 + len)); ctx.stroke();
-  ctx.strokeStyle = f.wpn ? "rgb(214,222,234)" : "rgb(232,200,160)"; ctx.lineWidth = 2;   // (no sword: a fist's sweep)
-  ctx.beginPath(); ctx.moveTo(cx + Math.cos(at) * r0, cy + Math.sin(at) * r0);
-  ctx.lineTo(cx + Math.cos(at) * (r0 + len), cy + Math.sin(at) * (r0 + len)); ctx.stroke();
+  ctx.globalAlpha = k < 0.88 ? 1 : (1 - k) / 0.12;
+  ctx.imageSmoothingEnabled = false;
+  ctx.translate(Math.round(hx), Math.round(hy));
+  ctx.rotate(at + Math.PI / 2);                   // (the picture points up: turned to point along at)
+  ctx.drawImage(blade.c, -Math.round(blade.gx), -blade.gy);
   ctx.restore();
 }
 

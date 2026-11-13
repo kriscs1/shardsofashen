@@ -77,7 +77,8 @@ class Host:
                 self.error, self.status = str(e), "error"
         threading.Thread(target=run, name="host", daemon=True).start()
 
-    def stop(self):
+    def stop(self, wait=False):
+        """wait: the app's closing, so the world's saved before it goes (a thread of its own would die with it)."""
         if self.status != "on":
             return
         self.status = "stopping"
@@ -86,6 +87,9 @@ class Host:
             import ds_host
             ds_host.stop()
             self.status = "off"
+        if wait:
+            run()
+            return
         threading.Thread(target=run, name="unhost", daemon=True).start()
 
 
@@ -124,6 +128,7 @@ class Bridge:
         self._prefs = Prefs()
         self._owning = owning or Owning(ROOT)
         self._window = None
+        self._full = False                                # (the window full screen: the pages' Full screen tick)
 
     def _home(self):
         """Is the start screen what's showing (not a game's page, a remote server's or a friend's relayed one)? Only
@@ -186,7 +191,14 @@ class Bridge:
 
     def fullscreen(self):
         """The window full screen, or back (F11 or the game's button: a page's own full screen fills only the window)."""
+        self._full = not self._full
         self._window.toggle_fullscreen()
+
+    def quit(self):
+        """The start screen's Exit: the window closed, a game hosted here saved and stopped first."""
+        if self._home():
+            self._host.stop(wait=True)
+            self._window.destroy()
 
 
 SHIM = """<script>
@@ -195,6 +207,7 @@ SHIM = """<script>
 (function () {
   const prefs = %s;
   let state = %s;
+  let full = %s;
   const later = (fn) => { if (window.pywebview && window.pywebview.api) fn(window.pywebview.api);
                           else window.addEventListener("pywebviewready", () => fn(window.pywebview.api)); };
   later((api) => setInterval(() => api.state().then((s) => { state = s; }), 500));
@@ -215,18 +228,20 @@ SHIM = """<script>
     play: (url) => later((api) => api.play(url)),
     openLink: (url) => later((api) => api.openLink(url)),
     goHome: () => later((api) => api.goHome()),
-    fullscreen: () => later((api) => api.fullscreen()),
+    fullscreen: () => { full = !full; later((api) => api.fullscreen()); },
+    isFullscreen: () => full,
+    quit: () => later((api) => api.quit()),
   };
 })();
 </script>"""
 
-GAME_SHIM = """(function () {
+GAME_SHIM = """(function (full) {
   // (the game page in the desktop app: Quit takes you back to the start screen - main.js listens for "dsapp")
   window.DSApp = window.DSApp || { kind: () => "desktop", goHome: () => window.pywebview.api.goHome(),
     get: (k) => window.pywebview.api.get(k), set: (k, v) => window.pywebview.api.set(k, v),
-    fullscreen: () => window.pywebview.api.fullscreen() };
+    fullscreen: () => { full = !full; window.pywebview.api.fullscreen(); }, isFullscreen: () => full };
   window.dispatchEvent(new Event("dsapp"));
-})();"""
+})(%s);"""
 
 
 def home_page(bridge):
@@ -235,7 +250,7 @@ def home_page(bridge):
         page = f.read()
     with open(os.path.join(ROOT, "web", "home", "config.js"), encoding="utf-8") as f:
         config = f.read()
-    shim = SHIM % (json.dumps(bridge._prefs.values), json.dumps(bridge.state()))
+    shim = SHIM % (json.dumps(bridge._prefs.values), json.dumps(bridge.state()), json.dumps(bridge._full))
     page = page.replace('<script src="config.js"></script>', "<script>%s</script>%s" % (config, shim), 1)
     import base64
     for pic, kind in (("logo.png", "image/png"), ("bg.jpg", "image/jpeg"), ("favicon.png", "image/png")):    # (no folder behind the page: in it)
@@ -259,11 +274,18 @@ def main():
     def loaded():
         url = window.get_current_url() or ""
         if url.startswith("http"):                      # (a game: its Quit comes back here)
-            window.evaluate_js(GAME_SHIM)
+            window.evaluate_js(GAME_SHIM % json.dumps(bridge._full))
 
     window.events.loaded += loaded
-    window.events.closing += lambda: bridge._host.stop()
-    webview.start()
+    window.events.closing += lambda: bridge._host.stop(wait=True)
+    icon = os.path.join(ROOT, "web", "img", "icon.ico")
+    if sys.platform == "win32":                         # (the taskbar groups it as itself, with its own icon, not Python's)
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Hallisium.ShardsOfAshen")
+        except Exception:
+            pass
+    webview.start(icon=icon if os.path.exists(icon) else None)
 
 
 if __name__ == "__main__":

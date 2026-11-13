@@ -214,10 +214,6 @@ export function chooseVerb(verb, e, wx, wy) {
   if (verb === "Cancel" || !verb) return;
   if (!e || (e.k !== T.INVITEM && e.k !== T.RACKITEM)) markClick(verb, e, wx, wy);   // (seen at once: render.js)
   if (verb === "Walk here") {
-    if (e && e.lock !== undefined && e.k === T.TILE && !e.offMap) {
-      send({ t: "verb", verb, x: wx, y: wy });
-      return;
-    }
     send({ t: "verb", verb, x: wx, y: wy });
     return;
   }
@@ -410,8 +406,7 @@ export function mouseDown(button, x, y) {
     return;
   }
   if (!S.me.input) return;
-  let clicked = I.hoverEnt;
-  if (clicked && clicked.k === T.TILE && clicked.offMap) clicked = null;
+  const clicked = I.hoverEnt;                       // (a tile over the next map's edge too: the server walks you there)
   const [wx, wy] = screenToWorld(x, y);
   if (right) {
     if (S.spellReady) { S.spellReady = ""; return; }

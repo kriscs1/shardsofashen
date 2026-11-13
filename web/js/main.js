@@ -88,9 +88,13 @@ function toggleFullscreen() {
   else {
     const el = d.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) req.call(el, { navigationUI: "hide" }).catch?.(() => {});
+    if (req) req.call(el, { navigationUI: "hide" }).catch?.(() => { $("opt-fullscreen").checked = isFull(); });
   }
 }
+// (whether it's full screen now: Options' tick; the desktop app keeps its window's own)
+const isFull = () => window.DSApp?.isFullscreen ? !!window.DSApp.isFullscreen() :
+  !!(document.fullscreenElement || document.webkitFullscreenElement) || browserFull();
+document.addEventListener("fullscreenchange", () => { $("opt-fullscreen").checked = isFull(); });
 
 let wakeLock = null;
 async function keepAwake() {
@@ -247,6 +251,7 @@ function openOptions() {
   $("opt-music").checked = O.music; $("opt-music-volume").value = O.musicVolume;
   $("opt-ambient").checked = O.ambient; $("opt-ambient-volume").value = O.ambientVolume;
   $("opt-markers").checked = U.markers; $("opt-smooth").checked = smoothing; $("opt-effects").checked = FX.on;
+  $("opt-fullscreen").checked = isFull();
   $("opt-camera").value = V.smooth;
   $("opt-cursor").value = String(U.cursorSize || 22);
   $("opt-hotbar").value = String((S.me && S.me.hotbar || []).length || 5);
@@ -372,9 +377,16 @@ $("opt-smooth").addEventListener("input", (ev) => { smoothing = ev.target.checke
 $("opt-camera").addEventListener("input", (ev) => { V.smooth = +ev.target.value; saveView(); });
 $("opt-cursor").addEventListener("input", (ev) => { U.cursorSize = +ev.target.value; saveView(); });
 $("opt-hotbar").addEventListener("input", (ev) => send({ t: "hotbar_slots", n: +ev.target.value }));   // (kept with the character)
-$("opt-fullscreen").onclick = toggleFullscreen;
+$("opt-fullscreen").onchange = () => {
+  toggleFullscreen();
+  setTimeout(() => { $("opt-fullscreen").checked = isFull(); }, 400);     // (the browser's F11 one only F11 leaves)
+};
 $("login-full").onclick = toggleFullscreen;
-const loginFull = () => { $("login-full").hidden = M.app || !(window.DSApp?.fullscreen || document.fullscreenEnabled || document.webkitFullscreenEnabled); };
+const loginFull = () => {
+  const no = M.app || !(window.DSApp?.fullscreen || document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  $("login-full").hidden = no;
+  $("opt-fullscreen").closest(".row").hidden = no;          // (the Android app: always full screen)
+};
 loginFull();
 window.addEventListener("dsapp", loginFull);
 for (const b of document.querySelectorAll("#options .tabs button")) {

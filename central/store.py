@@ -145,7 +145,8 @@ COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admi
            ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0"),
            ("accounts", "deleted", "REAL NOT NULL DEFAULT 0"), ("accounts", "google", "TEXT NOT NULL DEFAULT ''"),
            ("accounts", "full", "TEXT NOT NULL DEFAULT ''"), ("accounts", "full_at", "REAL NOT NULL DEFAULT 0"),
-           ("accounts", "pass_until", "REAL NOT NULL DEFAULT 0"), ("tickets", "relay", "INTEGER NOT NULL DEFAULT 0")]
+           ("accounts", "pass_until", "REAL NOT NULL DEFAULT 0"), ("tickets", "relay", "INTEGER NOT NULL DEFAULT 0"),
+           ("reporters", "listing", "TEXT NOT NULL DEFAULT ''")]   # (the listed server it proved it is)
 # (what's looked up by something other than its key: after the columns, as some are on those)
 INDEXES = """
 CREATE INDEX IF NOT EXISTS accounts_email ON accounts (email COLLATE NOCASE);
@@ -630,23 +631,35 @@ class CentralStore:
     def find_total(self, server=""):
         return self.db.execute("SELECT COUNT(*) FROM characters WHERE ? = '' OR server = ?", (server, server)).fetchone()[0]
 
+    def characters_listed(self, account):
+        """{listed server's key: [[character, level], ...]} of an account's characters on the listed servers (as their
+        last reports had them; none from a blocked one)."""
+        out = {}
+        for server, name, level in self.db.execute(
+                "SELECT r.listing, c.name, c.level FROM characters c JOIN reporters r ON r.key = c.server "
+                "WHERE c.account = ? AND r.listing != '' AND r.blocked = 0 ORDER BY c.level DESC, c.name", (account,)):
+            out.setdefault(server, []).append([name, level])
+        return out
+
     def account_standing(self, names):
         """{lower name: is it there, and not deleted?} of the accounts named."""
         rows = self.db.execute("SELECT name, deleted FROM accounts WHERE name IN (SELECT value FROM json_each(?))",
                                (json.dumps(list(names)),)).fetchall()
         return {r[0].lower(): not r[1] for r in rows}
 
-    def take_report(self, key, name, kind, version, listed, characters):
+    def take_report(self, key, name, kind, version, listed, characters, listing=""):
         """One game server's report, in one transaction. characters: [{name, account, level, shards, gold, map, played,
         skills: {skill: (level, xp)}, quests: {quest: (stage, done)}}], each the whole of what that character has: only
-        what's changed is written (a quest keeps when it began and when it was finished)."""
+        what's changed is written (a quest keeps when it began and when it was finished). listing: the listed server's
+        key, when it proved it's that one (the start screen's list says who has a character on it: characters_listed)."""
         now = time.time()
         self.db.execute("BEGIN")
         try:
-            self.db.execute("INSERT INTO reporters (key, name, kind, version, listed, made, seen) VALUES (?, ?, ?, ?, ?, ?, ?) "
-                            "ON CONFLICT(key) DO UPDATE SET name = excluded.name, kind = excluded.kind, "
-                            "version = excluded.version, listed = excluded.listed, seen = excluded.seen",
-                            (key, name, kind, version, 1 if listed else 0, now, now))
+            self.db.execute("INSERT INTO reporters (key, name, kind, version, listed, listing, made, seen) "
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET name = excluded.name, "
+                            "kind = excluded.kind, version = excluded.version, listed = excluded.listed, "
+                            "listing = excluded.listing, seen = excluded.seen",
+                            (key, name, kind, version, 1 if listed else 0, listing if listed else "", now, now))
             for c in characters:
                 self.db.execute("INSERT INTO characters (server, name, account, level, shards, gold, map, played, made, seen) "
                                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(server, name) DO UPDATE SET "

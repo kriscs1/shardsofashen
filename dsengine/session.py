@@ -997,6 +997,10 @@ class Session(ItemsMixin, CombatMixin, ActionsMixin, ScriptMixin, QuestMixin, Pv
         if verb and e is not None:
             if at is not None:
                 self.script_cursor_x, self.script_cursor_y = at     # (the script sees the click it was queued with)
+            if e.type == TILE and at is not None and verb != "Sit":
+                if getattr(e, "map", "") not in ("", self.cur_map.name):
+                    return                              # (a tile over a map's edge you didn't get to)
+                self.clicked_tile_x, self.clicked_tile_y = self.tile_of_x(at[0]), self.tile_of_y(at[1])
             self.do_action(verb, e)
 
     def lock_bump(self, bumped):

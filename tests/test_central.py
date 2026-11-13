@@ -1445,6 +1445,38 @@ def test_a_report_is_taken_only_as_far_as_it_should_be(tmp_path, monkeypatch, co
     assert Reporter(G).on()
 
 
+def test_the_public_list_says_who_has_a_character_on_each(tmp_path, confirmed):
+    """A listed server's report, proved to be it, tells the start screen whose characters are there (/api/mine): only
+    yours, only on the listed one it proved it is, and none from one that didn't prove it, or a blocked one."""
+    async def go():
+        capp = make_central(str(tmp_path / "central.db"))
+        runner, port = await run(capp)
+        c = "http://127.0.0.1:%d" % port
+        db = capp[CENTRAL].store
+        try:
+            async with aiohttp.ClientSession() as http:
+                game = await post(http, c + "/api/announce", {"name": "Tower", "url": "https://play.example.com"})
+                db.set_approved(game["key"], True)
+                token = (await post(http, c + "/api/register", {"name": "Wanderer", **SIGNUP}))["token"]
+                await post(http, c + "/api/register", {"name": "Other", **SIGNUP})
+                url = c + "/api/game/report"
+                r = await post(http, url, {"secret": "r" * 32, "server": game["key"], "proof": game["secret"],
+                                           "characters": [{"name": "Wren", "account": "Wanderer", "level": 7},
+                                                          {"name": "Bryn", "account": "Wanderer", "level": 2},
+                                                          {"name": "Notmine", "account": "Other", "level": 9}]})
+                assert r["ok"] and r["took"] == 3
+                await post(http, url, {"secret": "s" * 32, "server": game["key"], "proof": "a guess",   # (not it)
+                                       "characters": [{"name": "Liar", "account": "Wanderer", "level": 30}]})
+                mine = await post(http, c + "/api/mine", {"token": token})
+                assert mine["ok"] and mine["servers"] == {game["key"]: [["Wren", 7], ["Bryn", 2]]}
+                assert not (await post(http, c + "/api/mine", {"token": "nobody's"}))["ok"]
+                db.db.execute("UPDATE reporters SET blocked = 1")
+                assert (await post(http, c + "/api/mine", {"token": token}))["servers"] == {}
+        finally:
+            await runner.cleanup()
+    asyncio.run(go())
+
+
 def test_progress_is_read_right_from_an_old_save():
     """Skills from before they went to 25, and under old names; gold in the pack and the bank; what's not begun isn't told."""
     from server.progress import progress_of

@@ -81,11 +81,14 @@ label.agree a { color: var(--ink); }
 .chip .face.gear { background: var(--edge); color: var(--ink); }
 .chip .face.gear svg { width: 20px; height: 20px; shape-rendering: crispEdges; }
 /* ----- Options: what every game you join starts with */
-.opts h3 { margin: 6px 0 0; font-size: 15px; color: var(--ink); border-bottom: 1px solid var(--edge); padding-bottom: 3px; }
-.opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 15px; }
+.opts.stack { gap: 0; margin-top: 4px; }
+.opts h3 { margin: 10px 0 2px; font-size: 15px; color: var(--ink); border-bottom: 1px solid var(--edge); padding-bottom: 3px; }
+.opts h3:first-child { margin-top: 0; }
+.opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; font-size: 15px;
+  cursor: pointer; }
+@media (pointer: coarse) { .opt { min-height: 42px; } }    /* (finger-sized on a phone) */
 .opt input[type=checkbox] { width: 24px; height: 24px; flex: none; margin: 0; padding: 0; accent-color: var(--ok-edge); }
 .opt input[type=range] { width: min(190px, 45vw); flex: none; padding: 0; border: none; background: none; accent-color: var(--edge-light); }
-.opt button { min-width: 130px; }
 .ad { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 12px; border-radius: 12px;
   background: rgba(28,18,12,0.92); border: 2px dashed var(--edge); font-size: 15px; color: var(--parchment); text-decoration: none; }
 .ad img { max-height: 54px; max-width: 140px; border-radius: 6px; }
@@ -116,6 +119,7 @@ label.agree a { color: var(--ink); }
   border: 2px solid #4a3027; }
 .server .what { flex: 1; min-width: 0; }
 .server .name { color: var(--ink); font-weight: bold; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.server .mine { color: var(--ink); }
 .server .meta { font-size: 13px; color: var(--dim); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 3px; }
 .badge { white-space: nowrap; font-size: 11px; padding: 2px 8px; border-radius: 9px; background: #4a3027; color: var(--parchment); }
 .badge.here { background: var(--ok); color: #fff; } .badge.remote { background: #4b3a85; color: #fff; }
@@ -135,6 +139,14 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
 /* ----- popups, toasts, joining */
 .veil { position: fixed; inset: 0; background: rgba(8,4,2,0.72); display: grid; place-items: center; padding: 16px; z-index: 10; }
 .dialog { width: min(460px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; }   /* (a phone on its side: it scrolls) */
+/* (its scrollbar thin and in the wood's colours, off the rounded corners; Firefox has only the plain thin one) */
+.dialog::-webkit-scrollbar { width: 12px; }
+.dialog::-webkit-scrollbar-track { background: transparent; margin: 14px 0; }
+.dialog::-webkit-scrollbar-thumb { background: var(--edge); border: 4px solid transparent; border-radius: 8px;
+  background-clip: padding-box; }
+.dialog::-webkit-scrollbar-thumb:hover { background-color: var(--edge-light); }
+.dialog::-webkit-scrollbar-button { display: none; }
+@supports not selector(::-webkit-scrollbar) { .dialog { scrollbar-width: thin; scrollbar-color: var(--edge) transparent; } }
 .dialog.wide { width: min(780px, 100%); }
 .dialog iframe { display: block; width: 100%; height: min(calc(100vh - 140px), 640px); border: 0; border-radius: 8px; }
 .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 20; max-width: min(560px, 92vw);
@@ -203,6 +215,7 @@ body.banner .page { padding-bottom: 66px; }    /* (the app's AdMob banner, 50 hi
     <span id="menu-status" class="status"><span class="dot"></span><span id="menu-status-words"></span></span>
     <button id="options-open" class="chip" type="button"><span class="face gear"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M7 1h2v2h1V2h2v2h-1v1h2v2h1v2h-1v2h-2v1h1v2h-2v-1H9v2H7v-2H6v1H4v-2h1v-1H3V9H1V7h2V5h2V4H4V2h2v1h1zM7 6v4h2V6z"/></svg></span>Options</button>
     <button id="chip" class="chip" type="button"><span class="face" id="chip-face">?</span><span id="chip-name">Not signed in</span></button>
+    <button id="exit" class="chip app-only" type="button"><span class="face gear"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 1h9v4H9V3H4v10h5v-2h2v4H2zM10 6h2V4h1v2h1v1h1v2h-1v1h-1v2h-1v-2h-2H6V6z"/></svg></span>Exit</button>
   </div>
   <div id="adsense" class="adsense" hidden></div>
   <a id="ad" class="ad" hidden target="_blank" rel="noopener"><span class="tag">Ad</span><img id="ad-img" alt="" hidden><span id="ad-text"></span></a>
@@ -501,17 +514,21 @@ function myOptions() {
 const appFull = !!(app && app.fullscreen);
 const pageFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
 const canFull = appFull || (KIND === "browser" && !!(document.fullscreenEnabled || document.webkitFullscreenEnabled));
-const fullWords = () => appFull ? "On or off" : pageFull() ? "Leave full screen" : "Full screen";
+const isFull = () => appFull ? !!(app.isFullscreen && app.isFullscreen()) : pageFull();    // (Options' tick)
+const fullTick = () => { const b = $("opt-full"); if (b) b.checked = isFull(); };
 function toggleFull() {
   if (appFull) { app.fullscreen(); return; }
   const d = document;
   if (pageFull()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
   else {
     const el = d.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) Promise.resolve(req.call(el, { navigationUI: "hide" })).catch(() => toast("The browser wouldn't go full screen.", true));
+    if (req) Promise.resolve(req.call(el, { navigationUI: "hide" })).catch(() => {
+      fullTick();
+      toast("The browser wouldn't go full screen.", true);
+    });
   }
 }
-document.addEventListener("fullscreenchange", () => { const b = $("opt-full"); if (b) b.textContent = fullWords(); });
+document.addEventListener("fullscreenchange", fullTick);
 $("options-open").onclick = () => {
   const o = myOptions();
   const box = (key, words) => `<label class="opt"><span>${words}</span><input type="checkbox" data-key="${key}"${o[key] ? " checked" : ""}></label>`;
@@ -519,7 +536,7 @@ $("options-open").onclick = () => {
   dialog(`<h2>Options</h2><p class="small dim">What every game you join starts with. A game's own Options change them there.</p>
     <div class="opts stack">
       <h3>Screen</h3>
-      ${canFull ? `<div class="opt"><span>Full screen</span><button type="button" id="opt-full">${fullWords()}</button></div>` : ""}
+      ${canFull ? `<label class="opt"><span>Full screen</span><input type="checkbox" id="opt-full"${isFull() ? " checked" : ""}></label>` : ""}
       ${box("effects", "Shadows, footprints, ripples and sparks")}
       ${box("smooth", "Smooth scaling (easier text; off: sharp pixels)")}
       <h3>Sound</h3>
@@ -534,7 +551,7 @@ $("options-open").onclick = () => {
       store.set("options", JSON.stringify(now));
     });
   }
-  if (canFull) $("opt-full").onclick = toggleFull;
+  if (canFull) $("opt-full").onchange = toggleFull;
 };
 
 // ----- the account chip
@@ -914,8 +931,14 @@ function serverCard(g, badge, action) {
   card.innerHTML = `<div class="what"><div class="name"></div><div class="meta">
     <span class="badge ${badge[1]}">${esc(badge[0])}</span><span class="meter"><i style="width:${pct}%"></i></span>
     <span>${online} of ${most} playing</span><span class="where"></span></div>
-    <div class="small dim" style="margin-top:3px">Characters made here live on this server only.</div></div>`;
+    <div class="small dim held" style="margin-top:3px">Characters made here live on this server only.</div></div>`;
   card.querySelector(".name").textContent = g.name;
+  if (g.mine && g.mine.length) {                    // (yours there: the central server's word, from its last report)
+    const note = card.querySelector(".held");
+    note.className = "small mine"; note.style.marginTop = "3px";
+    note.textContent = (g.mine.length === 1 ? "Your character here: " : "Your characters here: ") +
+      g.mine.map(([n, lv]) => `${n} (level ${Math.max(1, Math.floor(Number(lv)) || 1)})`).join(", ");
+  }
   card.querySelector(".where").textContent = g.where || "";
   const b = document.createElement("button");
   b.className = "go"; b.textContent = online >= most ? "Full" : "Join"; b.disabled = online >= most; b.onclick = action;
@@ -936,7 +959,9 @@ async function listRemote() {
   const box = $("servers");
   box.innerHTML = '<div class="empty"><div class="spinner"></div>Asking the central server...</div>';
   try {
-    const list = await api("/api/servers");
+    const [list, mine] = await Promise.all([api("/api/servers"),
+      token ? api("/api/mine", { token }).catch(() => null) : null]);
+    for (const g of list) g.mine = (mine && mine.ok && mine.servers && mine.servers[g.key]) || [];
     box.innerHTML = "";
     if (!list.length) { box.innerHTML = '<div class="empty">No public servers just now.</div>'; return; }
     for (const g of list) box.append(serverCard(g, ["Listed", "remote"], () => joinListed(g)));
@@ -985,16 +1010,29 @@ $("alone").onclick = () => {
 };
 $("resume").onclick = () => { const st = current(); join("127.0.0.1:" + (st.port || 8484), "", st.name, true); };
 $("running-stop").onclick = () => app.stopHosting();
+$("exit").hidden = !(app && app.quit);
+$("exit").onclick = () => {                         // (out of the app: a game it hosts saved and stopped first)
+  const st = current();
+  if (st.status === "on" && st.mode !== "solo") {
+    dialog(`<h2>Exit</h2><p>${esc(st.name)} is running on this device: it stops for everyone in it when you go. The
+      world's saved first.</p>`, [["Cancel", ""], ["Exit", "go", () => app.quit()]]);
+    return;
+  }
+  app.quit();
+};
 
 function refresh() {
   if (!app) return;
   const st = current();
   $("version").textContent = st.version ? "Version " + st.version : "";
   const on = st.status === "on", busyNow = ["unpacking", "starting", "stopping"].includes(st.status);
-  $("running").hidden = !on && !busyNow;
+  const doing = busyNow ? { unpacking: "Unpacking the game (the first time takes a while)...", starting: "Starting...",
+    stopping: "Saving the world..." }[st.status] : "";
+  $("running").hidden = (!on && !busyNow) || (busyNow && wantPlay);   // (starting to play: the popup says it, alone)
   $("resume").hidden = $("running-stop").hidden = !on;
-  $("running-name").textContent = busyNow ? ({ unpacking: "Unpacking the game (the first time takes a while)...",
-    starting: "Starting...", stopping: "Saving the world..." }[st.status]) : st.name;
+  $("running-name").textContent = busyNow ? doing : st.name;
+  const said = $("dialog").querySelector(".spinner + p");
+  if (wantPlay && st.status === "unpacking" && said && said.textContent !== doing) said.textContent = doing;
   $("running-what").textContent = on ? "is running on this device." : "";
   if (st.status === "error" && st.error && st.error !== lastErr) { lastErr = st.error; done(); toast("The game couldn't start: " + st.error, true); }
   if (on && wantPlay) { wantPlay = false; join("127.0.0.1:" + (st.port || 8484), "", st.name, true); }

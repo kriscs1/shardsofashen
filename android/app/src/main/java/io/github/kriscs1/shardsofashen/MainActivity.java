@@ -218,6 +218,15 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void quit() {
+            // (the start screen's Exit: a game hosted here saved and stopped by its service, then out of the app)
+            if (!home()) return;
+            if (!HostService.status.equals("off") && !HostService.status.equals("error"))
+                startService(new Intent(MainActivity.this, HostService.class).setAction(HostService.STOP));
+            runOnUiThread(MainActivity.this::finishAndRemoveTask);
+        }
+
+        @JavascriptInterface
         public void find() {
             if (!home()) return;
             new Thread(() -> {

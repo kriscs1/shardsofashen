@@ -73,6 +73,21 @@ def test_standing_stones_are_decor_and_lava_runs_over_its_neighbours(world):
     assert m.tile[c] == "Grass001" and m.decor[c] == "Cliff004" and "0" in m.walk[c]
 
 
+def test_marys_grave_is_examined_from_over_the_next_maps_edge(world):
+    s = join(world, "Mourner", "4,0,0", 48, 600)                   # (at home, the grave a few steps south)
+    s.connected = True
+    m = world.maps["4,1,0"]
+    gx, gy = m.ox + 32 + 16, m.oy + 4 * 32 + 16
+    e = s.tile_entity_at(gx, gy)
+    assert e.name == "Fresh_Grave001" and e.map == "4,1,0" and s.cur_map.name == "4,0,0"
+    s.out = []
+    s.choose_verb("Examine", e, gx, gy)
+    ticks(world, 5)
+    assert any(ev.get("t") == "msg" and "Beloved mother" in ev.get("text", "") for ev in s.out), s.out
+    assert not s.player_walk_active                                  # (looked at from where you stand)
+    leave(world, s)
+
+
 def test_marys_grave_is_by_the_sea_and_galaith_has_no_way_in_from_it(world):
     m = world.maps["4,1,0"]
     assert ("Mothers_Grave", 2, 5) in m.ids

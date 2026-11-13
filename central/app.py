@@ -43,6 +43,7 @@ its own accounts too, for a network with no way to reach here.
   POST /api/announce  {key, secret, proof, name, url?, port, online, max, version}  -> {key, secret}
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
+  POST /api/mine      {token}                     -> {ok, servers: {key: [[character, level], ...]}}  (yours on them)
   POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, deleting, ads, stats)
   GET  /confirm?code=, POST /confirm {code}       a link's page, and its button (a mail scanner opens links: only the
                                                   button confirms)
@@ -810,10 +811,11 @@ class Central:
         standing = self.store.account_standing({c["account"] for c in rows if c["account"]})
         rows = [c for c in rows if not c["account"] or standing.get(c["account"].lower())]
         kind = str(d.get("kind", ""))
-        listed = self.store.proves_server(str(d.get("server", ""))[:64], str(d.get("proof", ""))[:128])
+        server = str(d.get("server", ""))[:64]
+        listed = self.store.proves_server(server, str(d.get("proof", ""))[:128])
         self.store.take_report(key, " ".join(str(d.get("name", "")).split())[:40],
                                kind if kind in ("solo", "local", "friends", "public") else "local",
-                               str(d.get("version", ""))[:40], listed, rows)
+                               str(d.get("version", ""))[:40], listed, rows, server)
         return yes(took=len(rows))
 
     async def game_log(self, request):
@@ -911,6 +913,14 @@ class Central:
         if request.headers.get("If-None-Match") == tag:
             return web.Response(status=304, headers={"ETag": tag, "Cache-Control": "no-cache"})
         return web.Response(text=text, content_type="application/json", headers={"ETag": tag, "Cache-Control": "no-cache"})
+
+    async def mine(self, request):
+        """Your characters on the listed servers (the start screen's list says so on each)."""
+        d = await self.body(request)
+        name = self.store.token_name(d.get("token", ""))
+        if not name:
+            return no("Not logged in.")
+        return yes(servers=self.store.characters_listed(name))
 
     async def hello(self, request):
         client = os.environ.get("DS_ADSENSE_CLIENT", "").strip()
@@ -1380,6 +1390,7 @@ def make_central(db_path):
         app.router.add_post("/api/" + path, fn)
         app.router.add_route("OPTIONS", "/api/" + path, nothing_to_say)
     app.router.add_get("/api/servers", c.servers)
+    app.router.add_post("/api/mine", c.mine)
     app.router.add_get("/api/pass/reward", c.pass_reward)
     app.router.add_get("/api/relay", c.relays.host)
     async def to_game(request):                     # (a friend's game's page is a folder: its files beside it)
