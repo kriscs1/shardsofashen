@@ -23,6 +23,10 @@ services:
       DS_TRUST_PROXY: "1"           # (Caddy passes on each player's own address: the limits go by it)
       DS_CENTRAL: ${DS_CENTRAL:-}   # (the central server: players come in with its tickets, and it lists this server)
       DS_PUBLIC_URL: ${DS_PUBLIC_URL:-https://${DS_DOMAIN}}
+      DS_BACKUP_S3: ${DS_BACKUP_S3:-}                  # (each day's backup off the machine too: README-Server.md "Backups off the machine")
+      DS_BACKUP_S3_KEY: ${DS_BACKUP_S3_KEY:-}
+      DS_BACKUP_S3_SECRET: ${DS_BACKUP_S3_SECRET:-}
+      DS_BACKUP_S3_REGION: ${DS_BACKUP_S3_REGION:-}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:

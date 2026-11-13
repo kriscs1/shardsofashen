@@ -989,6 +989,12 @@ that isn't in the game.
 - **The central server keeps a copy of itself every day** (`Central.nightly_backup`, `CentralStore.backup`: SQLite's
   own backup, the last 14, in `backups` beside it or `DS_CENTRAL_BACKUPS`), as a game server does its own: it's every
   account, purchase and friend, and nothing else has them.
+- **Each day's backup can go off the machine** (the owner's wish: a dead disk or a break-in mustn't take the copies
+  with the database): `server/offsite.py`, for game servers and the central server alike. A folder (`DS_BACKUP_COPY`,
+  or whatever's mapped to `/backup-copy`) and a bucket at any S3-style store (`DS_BACKUP_S3`, signed here, standard
+  library only), once a UTC day, from a thread of its own, tried again on failure. It never deletes anything in the
+  bucket (a write-only key and the bucket's lifecycle rule, so a break-in can't empty it); it's set up in
+  README-Server.md, Backups off the machine. A new deploy file passes the `DS_BACKUP_*` settings on.
 - **The admin page stays plain** (`central/pages/admin.html`, the owner's wish): the browser's own font and colours, no
   pictures, gradients, shadows or rounded corners, nothing from anywhere else, nothing loaded till its tab's opened,
   lists a page at a time, and it works on a phone (each row a few lines, no sideways scrolling).

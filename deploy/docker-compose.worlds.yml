@@ -23,6 +23,10 @@ x-env: &env                         # (the same in every world)
   DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
   DS_TRUST_PROXY: "1"               # (Caddy passes on each player's own address: the limits go by it)
   DS_CENTRAL: ${DS_CENTRAL:-}       # (players come in with its tickets, and it lists each world once it's approved)
+  DS_BACKUP_S3: ${DS_BACKUP_S3:-}   # (each day's backup off the machine too, each world in a folder of its own)
+  DS_BACKUP_S3_KEY: ${DS_BACKUP_S3_KEY:-}
+  DS_BACKUP_S3_SECRET: ${DS_BACKUP_S3_SECRET:-}
+  DS_BACKUP_S3_REGION: ${DS_BACKUP_S3_REGION:-}
   PUID: ${PUID:-1000}
   PGID: ${PGID:-1000}
 
@@ -37,6 +41,7 @@ services:
       DS_REGISTRATION: ${DS_REGISTRATION_1:-open}
       DS_INVITE_CODE: ${DS_INVITE_CODE_1:-}
       DS_PVP: ${DS_PVP_1:-}
+      DS_BACKUP_SUBFOLDER: world1
     volumes:
       - ${DS_DATA_1:-world1data}:/data
 
@@ -50,6 +55,7 @@ services:
       DS_REGISTRATION: ${DS_REGISTRATION_2:-open}
       DS_INVITE_CODE: ${DS_INVITE_CODE_2:-}
       DS_PVP: ${DS_PVP_2:-}
+      DS_BACKUP_SUBFOLDER: world2
     volumes:
       - ${DS_DATA_2:-world2data}:/data
 
@@ -63,6 +69,7 @@ services:
       DS_REGISTRATION: ${DS_REGISTRATION_3:-open}
       DS_INVITE_CODE: ${DS_INVITE_CODE_3:-}
       DS_PVP: ${DS_PVP_3:-}
+      DS_BACKUP_SUBFOLDER: world3
     volumes:
       - ${DS_DATA_3:-world3data}:/data
 

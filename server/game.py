@@ -20,7 +20,7 @@ from ashen.lb import local_offset
 from dsengine import World, Session
 from dsengine.view import snapshot
 
-from . import auth
+from . import auth, offsite
 from .store import Store
 
 log = logging.getLogger("ashen.server")
@@ -262,6 +262,7 @@ class GameServer:
         try:
             out = self.store.backup(self.backup_dir)
             log.info("Backup: %s", out)
+            offsite.send_off(out)               # (and off the machine, if DS_BACKUP_COPY or DS_BACKUP_S3 says where)
         except Exception:
             log.exception("Backup failed")
 

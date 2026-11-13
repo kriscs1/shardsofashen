@@ -283,6 +283,8 @@ it renames `dragonsword.db` there to `ashen.db` by itself. Then remove the old c
    - **Behind a reverse proxy** (0): 1 if players come through one on your network, so those on your own network still
      count as on it. Without it, anyone coming through the proxy needs a Hallisium account.
    - **Invite code**: if set, making a character needs it.
+   - **Backup copy** and **Backup bucket**: each day's backup off the cache disk, or off the machine altogether (see
+     Backups off the machine). Worth setting: appdata backups made by the same server go if the server does.
    - It runs as nobody:users.
 3. **Keep it up to date by itself.** On the **Apps** tab, install **Auto Update Applications**. Then
    **Settings > Auto Update Applications > Docker Auto Update Settings**:
@@ -367,7 +369,8 @@ docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admi
 
 - **The database.** It lives in the `gamedata` volume (`/data/ashen.db`). It is saved every minute, whenever
   someone leaves, and when the server stops.
-- **Backups.** A copy goes to `/data/backups` once a day; the last 14 are kept.
+- **Backups.** A copy goes to `/data/backups` once a day; the last 14 are kept. Send them off the machine too:
+  Backups off the machine.
 - **Data files the game edits.** The admin panel's switched-off skills and god mode, and anything scripts write with
   `Add.Line.To.File`, live in the container's `data/` folder. They reset when the image is rebuilt.
 
@@ -522,8 +525,9 @@ lists the remote game servers (each announces itself to it), and it serves the a
   central server has Google decode each verdict with that account.
 - **Backups**: a whole copy of the database once a day (UTC; the first as it starts), the last 14 kept, in `backups`
   beside it (`/data/backups` in the compose file, or wherever `DS_CENTRAL_BACKUPS` says). It's every account, purchase
-  and friend, so copy them off the VM now and then: `docker compose cp central:/data/backups ./backups` in
-  `/opt/shards-of-ashen-central`, or turn on your provider's VM snapshots. To go back to one, with the copy in that
+  and friend, so send them off the VM: `DS_BACKUP_S3` in its `.env` (Backups off the machine), or by hand now and
+  then, `docker compose cp central:/data/backups ./backups` in `/opt/shards-of-ashen-central`, or your provider's VM
+  snapshots. To go back to one, with the copy in that
   folder (its journal files go too, or SQLite would play the old changes over it):
 
   ```sh
@@ -576,8 +580,9 @@ above.
   `/mute Name minutes`, `/unmute Name`. A ban is on the character and on whose it is (the account, or the device).
 - Characters: `docker compose exec game python tools/admin.py list` (and `owner <Name> <Account>`, `admin <Name> on`).
 - Logs: `docker compose logs -f game`. Health: `https://play.example.com/health` (who's on, the tick time).
-- Backups: one a day in the `gamedata` volume's `backups` folder (14 kept). Copy them off the VM now and then, for
-  example `docker compose cp game:/data/backups ./backups`, or turn on your provider's VM snapshots.
+- Backups: one a day in the `gamedata` volume's `backups` folder (14 kept). Send them off the VM: `DS_BACKUP_S3` in
+  `.env` (Backups off the machine), or by hand now and then, `docker compose cp game:/data/backups ./backups`, or your
+  provider's VM snapshots.
 - Updating the VM itself: security updates put themselves in; `sudo apt update && sudo apt upgrade` now and then for
   the rest (the game updates itself).
 - Attacks: SSH is a key only (to undo, delete `/etc/ssh/sshd_config.d/01-shards-of-ashen.conf`); safer still, let SSH
@@ -626,6 +631,47 @@ and several can share a VM, each at a domain of its own: `deploy/docker-compose.
   Its id comes with it, so give world 1 the old domain and the central server has it listed still (a new domain or
   name is approved again).
 
+## Backups off the machine
+
+Every server keeps a copy of its database a day, the last 14, in `backups` beside it. Those are on the same disk as
+the database, so a dead disk, or someone who gets into the machine, takes them too. Each day's copy can go off the
+machine as well (`server/offsite.py`), once a UTC day (a restart doesn't send another), without the game waiting on
+it; a failure is in the log (`Sending the backup off ... failed`) and is tried again twice. Either or both:
+
+- **A folder on another disk or machine.** In Docker, map any folder to `/backup-copy` and it's used by itself (on
+  Unraid, the template's **Backup copy**: a share on the array, say, when appdata is on the cache, or a share mounted
+  from another PC with Unassigned Devices; in a compose file, the commented line under `volumes`). The last 14 are kept
+  there. Without Docker: `DS_BACKUP_COPY=<folder>`.
+- **A bucket at an S3-style store** (the safer, as it's somewhere else altogether): Backblaze B2 (10 GB free, then
+  about $6 a TB a month), Cloudflare R2, Amazon S3, Wasabi, or MinIO of your own. It gets each copy gzipped
+  (`ashen-YYYYMMDD-HHMM.db.gz`, `central-...` from the central server). With Backblaze B2:
+  1. **Buckets > Create a Bucket**: a name of your own, **Private**. Its page shows its **Endpoint**, e.g.
+     `s3.us-west-004.backblazeb2.com`.
+  2. **Lifecycle Settings** on it: **Use custom lifecycle rules**, hide files after **30** days and delete them a day
+     after (the game never deletes anything there itself).
+  3. **Application Keys > Add a New Application Key**: only that bucket, **Type of Access: Write Only**. A key that
+     can't delete or read means whoever got into the server can't empty the bucket or read your players' data from it.
+  4. Set `DS_BACKUP_S3=https://s3.us-west-004.backblazeb2.com/<bucket>`, `DS_BACKUP_S3_KEY=<keyID>` and
+     `DS_BACKUP_S3_SECRET=<applicationKey>` (Unraid: **Backup bucket**, **Backup bucket key**, **Backup bucket
+     secret**; a cloud VM: its `.env`, then `docker compose up -d`). Several servers can share one bucket: add a folder,
+     `.../<bucket>/home`; each of the worlds on one VM goes in a folder of its own (`world1`, `world2`...) by itself.
+  5. The log says `Backup sent off: https://...` when it's there; the bucket's **Browse Files** shows it.
+
+  Other stores take the same three settings: Cloudflare R2's endpoint is `https://<account id>.r2.cloudflarestorage.com`,
+  Amazon's `https://s3.<region>.amazonaws.com`. `DS_BACKUP_S3_REGION` only when the endpoint's name doesn't say it.
+
+**Going back to one**: download it (the bucket's Browse Files) and unzip it (`gunzip ashen-YYYYMMDD-HHMM.db.gz`; on
+Windows, 7-Zip). Stop the game, put it in place of the database (`/data/ashen.db`, the central server's
+`/data/central.db`), delete the `-wal` and `-shm` files beside it (or SQLite plays the old changes over it), and start
+the game again. In Docker, from the folder with the copy in it:
+
+```sh
+docker compose stop game
+docker compose run --rm --no-deps -v "$PWD:/restore" --entrypoint sh game -c \
+  'cp /restore/ashen-YYYYMMDD-HHMM.db /data/ashen.db && rm -f /data/ashen.db-wal /data/ashen.db-shm'
+docker compose start game
+```
+
 ## Settings (environment)
 
 | Variable | Default | |
@@ -647,6 +693,9 @@ and several can share a VM, each at a domain of its own: `deploy/docker-compose.
 | `DS_REGISTER_PER_DAY` | 5 | characters one address may make in a day (`0`: no limit) |
 | `DS_CONNECTIONS_PER_ADDRESS` | 10 | connections one address may hold open at once (more are turned away; `0`: no limit). This machine's own and the friends' relay aren't counted |
 | `DS_PVP` | (off) | `1`: open PvP, players may fight each other outside the arena too (see The arena). An admin's `/pvp on` or `/pvp off` wins over it |
+| `DS_BACKUP_COPY` | `/backup-copy` if a folder's mapped there | a folder for a second copy of each day's backup (Backups off the machine) |
+| `DS_BACKUP_S3` | (none) | a bucket for each day's backup, `https://<endpoint>/<bucket>[/<folder>]`, with `DS_BACKUP_S3_KEY` and `DS_BACKUP_S3_SECRET` (and `DS_BACKUP_S3_REGION` if the endpoint's name doesn't say it) |
+| `DS_BACKUP_SUBFOLDER` | (none) | a folder of this server's own in both, when several share one |
 
 ## Checking it works
 

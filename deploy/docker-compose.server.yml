@@ -20,6 +20,9 @@
 #   DS_REGISTRATION   open (anyone can make a character) or closed (only accounts made with tools/admin.py)
 #   DS_MAX_PLAYERS    how many can play at once (5)
 #   DS_UPDATE_SECONDS how often to look for a new version (300)
+#   DS_BACKUP_S3      each day's backup sent off the machine too, to a bucket (Backblaze B2, Cloudflare R2, Amazon S3),
+#                     with DS_BACKUP_S3_KEY and DS_BACKUP_S3_SECRET: README-Server.md "Backups off the machine". Or a
+#                     folder on another disk or machine: map it to /backup-copy under volumes below
 #   GHCR_USER / GHCR_TOKEN   only if the image is private
 name: shards-of-ashen
 
@@ -38,10 +41,15 @@ services:
       DS_CENTRAL: ${DS_CENTRAL:-}
       DS_PUBLIC_URL: ${DS_PUBLIC_URL:-}
       DS_TRUST_PROXY: ${DS_TRUST_PROXY:-0}
+      DS_BACKUP_S3: ${DS_BACKUP_S3:-}                  # (each day's backup off the machine too: README-Server.md "Backups off the machine")
+      DS_BACKUP_S3_KEY: ${DS_BACKUP_S3_KEY:-}
+      DS_BACKUP_S3_SECRET: ${DS_BACKUP_S3_SECRET:-}
+      DS_BACKUP_S3_REGION: ${DS_BACKUP_S3_REGION:-}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:
       - ${DS_DATA:-gamedata}:/data
+      # - /a/folder/on/another/disk:/backup-copy      (a second copy of each day's backup there)
     stop_grace_period: 30s
 
   # Docker's own command line (the official image), checking GitHub's registry for a new version of the game.

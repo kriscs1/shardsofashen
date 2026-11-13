@@ -1172,3 +1172,87 @@ def test_a_connection_through_the_relay_that_never_signs_in_is_put_out(tmp_path,
         finally:
             await runner.cleanup()
     served(go())
+
+
+# ----- backups off the machine (server/offsite.py)
+def test_offsite_signature_is_amazons():
+    """S3's signature, made here, gives Amazon's own published answers (its GET and PUT examples), and the region
+    comes from the endpoint's name."""
+    import datetime
+    import hashlib
+    from server.offsite import sign, region_of
+    now = datetime.datetime(2013, 5, 24, tzinfo=datetime.timezone.utc)
+    key, secret = "AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    got = sign("GET", "examplebucket.s3.amazonaws.com", "/test.txt", {"Range": "bytes=0-9"},
+               hashlib.sha256(b"").hexdigest(), key, secret, "us-east-1", now)["Authorization"]
+    assert got.endswith("Signature=f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41")
+    got = sign("PUT", "examplebucket.s3.amazonaws.com", "/test%24file.text",
+               {"Date": "Fri, 24 May 2013 00:00:00 GMT", "x-amz-storage-class": "REDUCED_REDUNDANCY"},
+               hashlib.sha256(b"Welcome to Amazon S3.").hexdigest(), key, secret, "us-east-1", now)["Authorization"]
+    assert got.endswith("Signature=98ad721746da40c64f1a55b78f14c238d841ea1380cd77a1b5971af0ece108bd")
+    assert region_of("s3.us-west-004.backblazeb2.com") == "us-west-004"
+    assert region_of("bucket.s3.eu-west-2.amazonaws.com") == "eu-west-2"
+    assert region_of("abc.r2.cloudflarestorage.com") == "us-east-1"
+
+
+def test_offsite_sends_once_a_day(tmp_path):
+    """A day's backup goes to the copy folder (the oldest beyond keep cleared) and, gzipped and signed, to the bucket,
+    in a folder of its own; a second backup the same day sends nothing; and a bucket that says no is tried again,
+    with nothing marked sent."""
+    import datetime
+    import gzip
+    import hashlib
+    import http.server
+    import threading
+    from server import offsite
+    got, answer = [], [200]
+
+    class Bucket(http.server.BaseHTTPRequestHandler):
+        def do_PUT(self):
+            body = self.rfile.read(int(self.headers["Content-Length"]))
+            got.append((self.path, {k.lower(): v for k, v in self.headers.items()}, body))
+            self.send_response(answer[0])
+            self.end_headers()
+            if answer[0] != 200:
+                self.wfile.write(b"<Error><Code>AccessDenied</Code></Error>")
+
+        def log_message(self, *a):
+            pass
+
+    httpd = http.server.HTTPServer(("127.0.0.1", 0), Bucket)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    try:
+        backups, copies = tmp_path / "backups", tmp_path / "copies"
+        backups.mkdir()
+        (copies / "world1").mkdir(parents=True)
+        for old in ("ashen-20260101-0000.db", "ashen-20260102-0000.db", "central-20260101-0000.db"):
+            (copies / "world1" / old).write_bytes(b"old")
+        db = backups / "ashen-20261113-0100.db"
+        db.write_bytes(b"SQLite format 3\0" + os.urandom(3000))
+        env = {"DS_BACKUP_COPY": str(copies), "DS_BACKUP_S3": "http://127.0.0.1:%d/bk/" % httpd.server_port,
+               "DS_BACKUP_S3_KEY": "id", "DS_BACKUP_S3_SECRET": "sh", "DS_BACKUP_SUBFOLDER": "world1"}
+        offsite.send_off(str(db), keep=2, env=env, wait=0).join(10)
+        assert sorted(os.listdir(copies / "world1")) == ["ashen-20260102-0000.db", "ashen-20261113-0100.db",
+                                                       "central-20260101-0000.db"]
+        assert (copies / "world1" / db.name).read_bytes() == db.read_bytes()
+        (path, headers, body), = got
+        assert path == "/bk/world1/ashen-20261113-0100.db.gz" and gzip.decompress(body) == db.read_bytes()
+        when = datetime.datetime.strptime(headers["x-amz-date"], "%Y%m%dT%H%M%SZ").replace(
+            tzinfo=datetime.timezone.utc)
+        assert headers["authorization"] == offsite.sign(
+            "PUT", "127.0.0.1:%d" % httpd.server_port, path,
+            {"Content-Type": "application/gzip", "Content-Length": str(len(body))},
+            hashlib.sha256(body).hexdigest(), "id", "sh", "us-east-1", when)["Authorization"]
+        assert (backups / offsite.MARK).read_text() == time.strftime("%Y%m%d", time.gmtime())
+        assert offsite.send_off(str(db), env=env, wait=0) is None and len(got) == 1     # (once a day)
+
+        (backups / offsite.MARK).unlink()
+        answer[0] = 403
+        del env["DS_BACKUP_COPY"]
+        offsite.send_off(str(db), env=env, wait=0).join(10)
+        assert len(got) == 1 + offsite.TRIES and not (backups / offsite.MARK).exists()
+        assert offsite.send_off(str(db), env={}) is None                                 # (nowhere set: nothing)
+        assert offsite.settings({"DS_BACKUP_S3": "https://x/y"}) is None                # (no key: nothing)
+    finally:
+        httpd.shutdown()
+        httpd.server_close()

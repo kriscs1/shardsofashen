@@ -57,6 +57,10 @@ services:
       DS_ADMOB_REWARDED: ${DS_ADMOB_REWARDED:-}        # (the time pass's rewarded ad unit, ca-app-pub-.../...; none, no time pass)
       DS_PASS_MINUTES: ${DS_PASS_MINUTES:-60}
       DS_PASSES_A_DAY: ${DS_PASSES_A_DAY:-3}
+      DS_BACKUP_S3: ${DS_BACKUP_S3:-}                  # (each day's backup off the machine too: README-Server.md "Backups off the machine")
+      DS_BACKUP_S3_KEY: ${DS_BACKUP_S3_KEY:-}
+      DS_BACKUP_S3_SECRET: ${DS_BACKUP_S3_SECRET:-}
+      DS_BACKUP_S3_REGION: ${DS_BACKUP_S3_REGION:-}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     volumes:

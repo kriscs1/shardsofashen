@@ -65,7 +65,7 @@ import time
 
 from aiohttp import web
 
-from server import auth
+from server import auth, offsite
 from server.version import version_info
 from ashen import ini
 from . import admob, bought, google, mail
@@ -945,7 +945,9 @@ class Central:
             return
         self.backed_up = day
         try:
-            log.info("Backup: %s", self.store.backup(self.backup_dir, BACKUPS_KEPT))
+            out = self.store.backup(self.backup_dir, BACKUPS_KEPT)
+            log.info("Backup: %s", out)
+            offsite.send_off(out, BACKUPS_KEPT)     # (and off the machine: DS_BACKUP_COPY, DS_BACKUP_S3)
         except Exception:
             log.exception("Backup failed")
 
