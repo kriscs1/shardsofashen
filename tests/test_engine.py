@@ -4551,17 +4551,23 @@ def test_the_shardgate_from_bert_to_the_broken_anchor(world):
     assert s.get_attribute("ShardgateQuest") == "3"                 # (the Warden stands over it)
     s.kill_npc(warden)
     s.choose_verb("Shatter", anchor, int(anchor.cx), int(anchor.cy))
-    run_for(world, 80)
+    run_for(world, 200)
     assert s.get_attribute("ShardgateQuest") == "4"
     assert any(e.name == "Barrier_Anchor_Broken" and e.owner is s for e in world.ents)
+    assert any("fast asleep" in str(e.get("text", "")) for e in s.out)   # (the dragon's laugh, seen from here: no
+    s.player_level = lambda: 30                                          # second walk to the pass and back)
     s.teleport(bert.map, 300, 300)
     s.do_pending_map_change()
     near(world, s, bert, 0, 36)
     assert talk_to(world, s, bert)
+    s.action_box_response_chosen(1)                                 # (what you saw: the gate's done..)
+    run_for(world, 10)
+    assert s.get_attribute("ShardgateQuest") == "5" and s.get_attribute("WakeQuest") == "1"
+    s.action_box_response_chosen(1)                                 # (..and Bert on the three fires, in one visit)
+    run_for(world, 10)
     s.action_box_response_chosen(1)
     run_for(world, 10)
-    assert s.get_attribute("ShardgateQuest") == "5"
-    assert not any("Shardgate" in n for n in s.quest_needs("WakeQuest"))             # (the barrier can thin now)
+    assert s.get_attribute("WakeQuest") == "2"
     leave(world, s)
 
 
@@ -9533,8 +9539,7 @@ def test_captain_rook_wants_orrins_chart_and_the_lodestar_before_his_hull(world)
     assert attr("OrrinQuest") == 3
     talk(orrin, 1)
     assert attr("OrrinQuest") == 4 and s.items_held("Valour_Chart") == 1
-    talk(rook, 1, 1)                                                 # (the chart; then I'll find the Lodestar)
-    assert attr("OrrinQuest") == 5 and attr("LodestarQuest") == 1 and s.items_held("Mithril_Helm") == 1
+    assert attr("LodestarQuest") == 1                                # (Orrin names the Lodestar: on to the Rime)
     altar = next(e for e in world.ents if e.npc_id == "Drowned_Shrine_Altar")
     talk(next(e for e in world.ents if e.npc_id == "Surveyor_Nils"), 1)
     assert attr("LodestarQuest") == 2
@@ -9548,8 +9553,22 @@ def test_captain_rook_wants_orrins_chart_and_the_lodestar_before_his_hull(world)
     s.choose_verb("Reach In", altar, int(altar.cx), int(altar.cy))
     run(30)
     assert attr("LodestarQuest") == 3 and s.items_held("Frozen_Lodestar") == 1
-    talk(rook, 1, 1)                                                 # (the Lodestar; the hull; I'll bring them)
-    assert attr("LodestarQuest") == 4 and attr("ShipQuest") == 1 and s.items_held("Frozen_Lodestar") == 0
+    stock(s, Plank=10, Nails=20)                                     # (Rook said what his hull wants at the start)
+    talk(rook, 1, 1, 1, 2)                                           # (one visit: the chart, the Lodestar, the hull)
+    assert attr("OrrinQuest") == 5 and s.items_held("Mithril_Helm") == 1
+    assert attr("LodestarQuest") == 4 and s.items_held("Frozen_Lodestar") == 0
+    assert attr("ShipQuest") == 2 and s.items_held("Plank") == 0
+    leave(world, s)
+
+
+def test_the_last_watch_stone_sends_you_on_to_the_spiders_nest(world):
+    s = join(world, "Watcher", "9,10,0", 300, 300)
+    s.update_attribute("RangerQuest", "=1")
+    for k in (1, 2, 3):
+        assert s.get_attribute("RangerQuest") == "1"
+        s.start_script("Watch Stone %d" % k, False)
+        run_for(world, 5)
+    assert s.get_attribute("RangerQuest") == "3"                     # (no walk back to Ash between: the webs say it)
     leave(world, s)
 
 

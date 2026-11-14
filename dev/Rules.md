@@ -91,9 +91,15 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    desert, 3,18,-1); 11. **The Ember Ring** (the Warden in Emberwatch; the Ashen Priest wears it). Bert only wanted
    the ring: he teaches the spell (`BarrierSpell`), gives you the staff and warns of the **Sword of Valour**.
    **The middle leads you round the world** (`dev/migrate/build_middle_quests.py`: a zone at a time, a piece of gear at
-   each; each place's keeper names the next, never a letter): 12. **Orrin's Chart** (`OrrinQuest`, level 10): Captain
+   each; each place's keeper names the next, never a letter).
+   **No quest sends you back only to be sent on**: whoever you're with says what comes next (Orrin names the Lodestar
+   and the Rime; the last watch stone shows the way to the nest), a giver says everything they'll want at the start
+   (Rook's planks and nails) and takes all of it in one visit, and a thing that fails is seen to fail once (the
+   barrier holds once, at the pass; that it only thins after is seen from the broken anchor, not by walking there
+   again). Going back to a giver is for the reward, or for a choice. 12. **Orrin's Chart** (`OrrinQuest`, level 10): Captain
    Rook (the shore below King Rupert's Keep, 27,20,0) won't sail the moving reefs without it; Orrin's ghost in the
-   Sundered Tower (the Shattered Reach, 22,8,0), his Shadow below. 13. **The Frozen Lodestar** (`LodestarQuest`, 12):
+   Sundered Tower (the Shattered Reach, 22,8,0), his Shadow below. 13. **The Frozen Lodestar** (`LodestarQuest`, 12;
+   Orrin starts it with the chart, `Requires.If=$Attr.OrrinQuest>=4`, or Rook if you were under 12 then):
    Nils at Frostwatch Lodge; the Drowned Shrine (20,25,0), the Rime Warden over its altar.
 14. **A Ship for Dragon Island** (Rook's hull), 15. **The Island of
    Dragons** (26,23,0: drakes, three Valour Seals), 16. **The Sword of Valour** (the Temple of Valour's guardian).
@@ -107,7 +113,8 @@ On the mainland (built by `dev/migrate/build_estforlan.py`; the quests' scripts 
    give Shards).
 18. **The Sleeping Sword** (`WakeQuest`, 14): with the anchor gone the barrier only thins; beyond it the dragon is
    plated in Shards (the Ashen Hand has fed it through the wall: `build_shard_dragon.py` draws it) and laughs at a sword
-   that's asleep. Bert: it was made in three fires. 19. **The Ashen Foundry** (`FoundryQuest`, 15): Warden Oska at
+   that's asleep. You see it through the hole the anchor leaves (`Shatter Barrier_Anchor`), and Bert, told of the
+   anchor, goes straight on to it (one under 14 then finds it at the pass, as before). Bert: it was made in three fires. 19. **The Ashen Foundry** (`FoundryQuest`, 15): Warden Oska at
    Ashfall Outpost, the Forgemother, the bellows (`FoundryHeat` 3; past it the fire chokes), the hearth. 20. **The
    Sun-Forge** (`SunforgeQuest`, 17): Nomad Tarek, the Sun Keeper (0,20,0), three mirrors turned to his grandmother's
    song (`Mirror.Dawn` east, `Mirror.Noon` south, `Mirror.Dusk` west). 21. **The Deep Anvil** (`AnvilQuest`, 19):

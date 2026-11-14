@@ -643,6 +643,33 @@ def ash():
     ]
 
 
+STONE_NOTES = ("Watch stone by the north road, between King Rupert's Keep and Oakhollow.",
+               "Watch stone in the western woods.", "Watch stone east of the river.")
+
+
+def watch_stone(k):
+    """A watch stone of the Wildwood. The last one touched shows the webs and sends you on to the nest: no walk back
+    to Ash between (one who'd reported to him before this still hears it from him: RangerQuest 2)."""
+    return [
+        get("RangerQuest", 1), (">Conditional", "$Variable.1=1", "@end"),
+        get("Watch%d" % k, 2), (">Conditional", "$Variable.2=0", "@end"),
+        ("Update.Attribute", "Watch%d" % k, "=1"),
+        ("Quest.Note.Done", "RangerQuest", STONE_NOTES[k - 1]),
+        ("Update.Attribute", "WatchStones", "+1"),
+        get("WatchStones", 3), (">Conditional", "$Variable.3>=3", "@more"),
+        ("Update.Attribute", "RangerQuest", "=2"),                    # (the stones done: where an older save waits
+        ("Update.Attribute", "RangerQuest", "=3"),                    # for Ash's word; now it's straight on)
+        ("Quest.Note", "RangerQuest", "The spider nest is in the deep woods west of Oakhollow."),
+        ("Quest.Note", "RangerQuest", "Slay five giant spiders there."),
+        msg("The last watch stone! Its moss is torn and there are webs everywhere, strung off into the deep woods "
+            "west of Oakhollow. Spiders have nested there: clear them out, five at least, before you go back to "
+            "Ranger Ash."),
+        ("End",),
+        ("@more",), msg("You touch the old watch stone. Watch stones visited: $Variable.3 of 3."),
+        ("@end",), ("End",),
+    ]
+
+
 def bramble():
     say = lambda text, *a: K.say("Merchant", text, *a)
     return [
@@ -739,6 +766,8 @@ def scripts():
     K.write_script("Open Chancellors_Strongbox", strongbox(), MAKER)
     K.write_script("Open Galaith_Treasury", treasury(), MAKER)
     K.write_script("Talk to Ranger", ash(), MAKER)
+    for k in (1, 2, 3):
+        K.write_script("Watch Stone %d" % k, watch_stone(k), MAKER)
     K.write_script("Talk to Timber_Merchant", bramble(), MAKER)
     K.write_script(GROVE, grove_entry(), MAKER)
     K.write_script("Kill Woodcutter", kill_woodcutter(), MAKER)

@@ -399,11 +399,22 @@ def scripts():
         ("Add.Entity", px(ANCHOR), "Barrier_Anchor_Broken", "StaticObject", "-"),
         ("Play.Sound", "Anchor_Shatter"),
         ("Update.Attribute", "ShardgateQuest", "=4"),
-        ("Toggle.User.Input", "ON"),
         ("Display.Message", "Yellow", "..and it shatters. Under it the realm's floor falls away into a hollow, "
                                       "vast and warm, where something huge lies sleeping: every splinter of "
                                       "magic here leans toward it, and it breathes. Far away, in the pass of Galaith, something gives. "
                                       "Tell Bert.", "-"),
+        (">Conditional", "$Attr.GalaithQuest=0", "@seen"),           # (the dragon dead already: nothing to see)
+        ("Wait", "3"),                                               # (seen from here: no second walk to the pass)
+        ("Play.Sound", "Shard_Voice"),
+        ("Display.Message", "Cyan", "Through the hole where the anchor stood you see the pass, small and far, as if "
+                                    "through ice. The barrier thins, and beyond it the dragon lifts its head: its "
+                                    "hide is grown over with Shards, plates of them, glittering.", "-"),
+        ("Wait", "3"),
+        ("Display.Message", "Red", "A voice like a landslide, inside your head: 'The little heir, in my own cellar. "
+                                   "Break what you like. My faithful Hand has fed me Shards through that wall, crumb "
+                                   "by crumb, since the day it went up, and the sword you won is fast asleep.'", "-"),
+        ("@seen",),
+        ("Toggle.User.Input", "ON"),
         ("End",),
         ("@nostaff",), ("Display.Message", "DarkRed", "Your bare hands won't break it: it needs the Staff of "
                                                       "Ashen.", "Denied"),
@@ -437,12 +448,21 @@ def scripts():
         ("Get.Value", "ATTRIBUTE", "ShardgateQuest", "Variable.1$"),
         (">Conditional", "$Variable.1=4", "@s1"),
         SK.say("Bert", "Broken? You broke the anchor? In the Shardrealm? Ha! I said you were good. Did I say that? "
-                       "I meant to.\\The barrier's nothing now but light and spite. Go to the pass: the staff will "
-                       "break it for good this time.", ("I'm on my way.", "@done")),
+                       "I meant to.\\But you've a face like a wet week. What did you see down there?",
+               ("The dragon. It laughed at my sword. [if $Attr.GalaithQuest=0]", "@done"),
+               ("Something huge, asleep under the anchor. [if $Attr.GalaithQuest>=1]", "@done")),
         ("@done",),
         ("Update.Attribute", "ShardgateQuest", "=5"),
         ("Display.Message", "Yellow", "Quest complete: The Shardgate! The barrier's anchor is broken; the Shardgate "
                                       "stays open to you.", "Quest"),
+        (">Conditional", "$Attr.GalaithQuest=0", "@end"),
+        (">Quest.Can.Start", "WakeQuest", "@notyet"),                 # (The Sleeping Sword: build_middle_quests.py)
+        ("Update.Attribute", "WakeQuest", "=1"),
+        ("Goto.Script", "Bert's Errands"),                            # (he says why, in the same breath)
+        ("@notyet",),
+        SK.say("Bert", "Laughed, did it? Then the barrier's only light and spite now, and what's behind it isn't. "
+                       "You're not ready for it, heir, and nor's that sword. Grow into it, then take the staff to "
+                       "the pass and look it in the eye.", ("I will.", "@end")),
         ("End",),
         ("@s1",), (">Conditional", "$Variable.1=1", "@late"),
         SK.say("Bert", "It held? Of course it held. Oh, don't look at me like that: I only half thought it would.\\"

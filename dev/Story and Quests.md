@@ -95,14 +95,14 @@ driven into its heart, kills the dragon.
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 12 | **Orrin's Chart** | (level 10) **Captain Rook**, on the shore below King Rupert's Keep, would sail to Dragon Island, but its reefs move and he won't try them without the chart of **Orrin**, a navigator who climbed the **Sundered Tower** in the Shattered Reach and never came down. Orrin's ghost is at the top: his **Shadow**, below, has the chart; kill it and he gives it you. Reward: a mithril helm, 40 Shards. |
-| 13 | **The Frozen Lodestar** | (level 12) The chart wants the **Lodestar** to read it by, and its shrine went under the ice in the Rime. **Nils** the surveyor at Frostwatch Lodge knows where: the **Drowned Shrine**. The **Rime Warden** stands over its altar; past it, Reach In for the Lodestar and take it to Rook. Reward: a mithril shield, 40 Shards. |
+| 12 | **Orrin's Chart** | (level 10) **Captain Rook**, on the shore below King Rupert's Keep, would sail to Dragon Island, but its reefs move and he won't try them without the chart of **Orrin**, a navigator who climbed the **Sundered Tower** in the Shattered Reach and never came down. Orrin's ghost is at the top: his **Shadow**, below, has the chart; kill it and he gives it you, and names the Lodestar it's read by and the Rime (the next chapter starts there, with no walk back to Rook between). Rook says at the start that his hull wants 10 planks and 20 nails. Reward: a mithril helm, 40 Shards. |
+| 13 | **The Frozen Lodestar** | (level 12; from Orrin, or from Rook if you were under 12 at the tower) The chart wants the **Lodestar** to read it by, and its shrine went under the ice in the Rime. **Nils** the surveyor at Frostwatch Lodge knows where: the **Drowned Shrine**. The **Rime Warden** stands over its altar; past it, Reach In for the Lodestar and take it to Rook, with the chart. Reward: a mithril shield, 40 Shards. |
 
 ### The Sword of Valour
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 14 | **A Ship for Dragon Island** | (level 13) With the chart and the Lodestar, Rook will sail if you bring 10 planks and 20 nails for his hull. |
+| 14 | **A Ship for Dragon Island** | (level 13) With the chart and the Lodestar, Rook will sail if you bring 10 planks and 20 nails for his hull. Bring them with the Lodestar and one visit does all three. |
 | 15 | **The Island of Dragons** | Sail to **Dragon Island**. Three **Valour Seals** from its drakes open the Temple of Valour. |
 | 16 | **The Sword of Valour** | Defeat the temple's **Guardian of Valour** and draw the sword from its stone. |
 
@@ -110,8 +110,8 @@ driven into its heart, kills the dragon.
 
 | Ch. | Quest | What you do |
 |---|---|---|
-| 17 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. Shardstones reach only the realm's calm **rim** (where your homestead's pocket is, he says); the anchor is in its **core**, a storm, and only a great anchor can pierce it. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards, Shardcraft 5, and at least **8 shardstones active** to steady it). It shows on your world map once it's built. Through it, the realm's core: get past its **Warden** and shatter the barrier's **anchor** with the staff, then tell Bert. Reward: 30 Shards, Channeling and Shardcraft experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
-| 18 | **The Sleeping Sword** | (level 14) With the anchor gone the staff only **thins** the barrier. Beyond it the dragon wears a hide of **Shards** (the Ashen Hand has fed it through the wall) and laughs at the Sword of Valour: it's asleep. **Bert**: it was made in three fires, and must be woken in them again. The first was the Ashen Foundry; ask the Warden at Ashfall Outpost. |
+| 17 | **The Shardgate** | Raise the staff at the barrier and it **holds**: something beyond the world feeds it. **Bert**: the dragon anchored it in the **Shardrealm**, where all broken magic goes. Shardstones reach only the realm's calm **rim** (where your homestead's pocket is, he says); the anchor is in its **core**, a storm, and only a great anchor can pierce it. He gives you his plans: build a **Shardgate** in the old ring of standing stones on the hill north of the Wizards' Court (4 silver bars, 2 sapphires, a Remnant's core, 30 Shards, Shardcraft 5, and at least **8 shardstones active** to steady it). It shows on your world map once it's built. Through it, the realm's core: get past its **Warden** and shatter the barrier's **anchor** with the staff. Through the hole it leaves you see the pass: the barrier thins, and the dragon beyond it, in a hide of **Shards**, laughs at your sleeping sword. Tell Bert. Reward: 30 Shards, Channeling and Shardcraft experience. The gate stays: go back for the realm's Shard Remnants and its clusters (a few Shards every 8 hours). (A character who broke the barrier before this chapter was written gets it from Bert.) |
+| 18 | **The Sleeping Sword** | (level 14) Told of the anchor and the laugh, **Bert** goes straight on (no second walk to the pass: one who was under 14 then finds the barrier only **thins**, and the dragon laughing, at the pass). The dragon wears a hide of Shards (the Ashen Hand has fed it through the wall) and the Sword of Valour is asleep. **Bert**: it was made in three fires, and must be woken in them again. The first was the Ashen Foundry; ask the Warden at Ashfall Outpost. |
 | 19 | **The Ashen Foundry** | (level 15) **Warden Oska** at Ashfall Outpost: the **Forgemother** holds the Foundry. Break it, then work the **bellows** till the fire is hot enough (three pulls: a fourth and it chokes, and you start again) and Temper the sword at the **hearth**. Oska names the second fire: the Sun-Forge, and the nomad who knows it. Reward: a mithril platebody, 60 Shards. |
 | 20 | **The Sun-Forge** | (level 17) **Nomad Tarek** at the Sun-Forge's temple (south of the well): the **Sun Keeper** still holds it. Break it, then turn the three **mirrors** to his grandmother's song (dawn to the east, noon to the south, dusk to the west) and Temper the sword at the forge. Tarek names the third: the Deep Anvil, and the delver who keeps the old hall. Reward: a dragonscale helm, 70 Shards. |
 | 21 | **The Deep Anvil** | (level 19) **Delver Maud**: the **Stone King** sits the old dwarf hall's throne. Break it, strike the four **rune stones** in the work-song's order (Root, Rock, Hammer, Crown: a wrong one and they go quiet), and Temper the sword on the anvil: in your hand it's the **Woken Sword of Valour**, its wear kept. Reward: a dragonscale platebody, 90 Shards. |
@@ -210,7 +210,8 @@ cave troll slain. Reward: 150 gold, 2 sapphires, a steel sword, Mining experienc
 
 **The Wildwood Watch**: *level 3, after chapter 7*
 Ranger Ash in Oakhollow sends you to visit the three old watch stones (the north road, the western woods, the
-river), then to clear the spider nest west of Oakhollow (5 giant spiders). Reward: 120 gold, a yew staff,
+river). The last one's webs lead on to the spider nest west of Oakhollow (5 giant spiders): no walk back to Ash
+between. Reward: 120 gold, a yew staff,
 Attack and Woodcutting experience.
 
 **The Old Grove**: *after The Wildwood Watch*

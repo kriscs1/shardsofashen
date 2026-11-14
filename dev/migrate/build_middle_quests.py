@@ -473,19 +473,19 @@ def quests():
                                     ("Reward.XP", "Channeling 3 Defence 3")])
     K.quest("The Frozen Lodestar", ROOK, "LodestarQuest", {
         0: "Orrin steered by the Lodestar, and Captain Rook won't sail without it.",
-        1: "The Lodestar's shrine went under the ice somewhere in the Rime. Ask Nils, the surveyor at Frostwatch "
-           "Lodge.",
+        1: "Orrin's chart is read by the Lodestar, and its shrine is somewhere in the Rime. Ask the surveyor at "
+           "Frostwatch Lodge.",
         2: "Nils says the Drowned Shrine lies frozen north-east of the lodge, past the ridge, with something big and "
            "white on guard. Bring back the Lodestar.",
-        3: "Take the Lodestar to Captain Rook.",
+        3: "Take the Lodestar to Captain Rook. (His hull wants 10 planks and 20 nails before he'll sail.)",
     }, 4, markers={0: "Rooks_Pier", 1: "Surveyor_Nils", 2: "Drowned_Shrine", 3: "Rooks_Pier"}, chapter=13,
-        requires="Orrin's Chart", level=12, after="Orrin's Chart")
-    K.section(q, "The Frozen Lodestar", [("Reward.Items", "Mithril_Shield 1"), ("Reward.Shards", "40"),
+        requires="Bert's Three Treasures", level=12, after="Orrin's Chart")
+    K.section(q, "The Frozen Lodestar", [("Requires.If", "$Attr.OrrinQuest>=4"),     # (the chart in hand: Orrin's word)
+                                          ("Reward.Items", "Mithril_Shield 1"), ("Reward.Shards", "40"),
                                           ("Reward.XP", "Defence 4 Attack 2")])
     K.quest("The Sleeping Sword", BERT, "WakeQuest", {
         0: "The barrier at the pass only thins now its anchor's gone.",
-        1: "Beyond the thinning barrier the dragon wears a hide of Shards, and laughed at the Sword of Valour. Ask Bert "
-           "why.",
+        1: "The dragon wears a hide of Shards now, and it laughed at the Sword of Valour. Ask Bert why.",
     }, 2, markers={0: "Galaith_Barrier", 1: "Court_Wizard"}, chapter=18, requires="The Shardgate", level=14,
         after="The Shardgate")
     K.section(q, "The Sleeping Sword", [("Reward.Shards", "30"), ("Reward.XP", "Channeling 3")])
@@ -713,7 +713,9 @@ def rook():
         say(ROOK, "Dragon Island? Ha! Nobody sails there and comes back, and I've done it twice. The reefs round it "
                   "move, matey. Not with the tide: they move.\\There was a chart that knew the way, once: Orrin's. "
                   "Best navigator Ashen ever had. He went up the Sundered Tower, south of the Wizards' Court, to read "
-                  "the sky, and he never came down. Bring me Orrin's chart and I'll find your island.",
+                  "the sky, and he never came down. Bring me Orrin's chart and I'll find your island.\\And she'll "
+                  "want her hull mended before she goes anywhere: ten planks and twenty nails, if you pass a "
+                  "carpenter's bench on your way back.",
             ("I'll find it.", "@o_go"), ("Not now.", "@end")),
         ("@o_go",), ("Update.Attribute", "OrrinQuest", "=1"), started("Orrin's Chart"), ("End",),
         ("@o1",), (">Conditional", "$Variable.1<=3", "@o4"),
@@ -724,6 +726,11 @@ def rook():
         ("Take.Item", "Valour_Chart", "1"),
         ("Update.Attribute", "OrrinQuest", "=5"),
         complete("Orrin's Chart"),
+        (">Got.Item", "Frozen_Lodestar", "1", "@chartonly"),       # (Orrin sent you on to the Rime: both at once)
+        say(ROOK, "Orrin's own hand! See here: the reefs, the currents, the safe water, and every mark of it set by a "
+                  "star. He steered by the Lodestar.\\And what's that in your pack, shining through the canvas? You "
+                  "never!", ("I've been to the Rime.", "@lode"), ("Later.", "@end")),
+        ("@chartonly",),
         say(ROOK, "Orrin's own hand! See here: the reefs, the currents, the safe water, and every mark of it set by a "
                   "star. He steered by the Lodestar.\\Ah. There's the rub. The Lodestar's lost: the shrine that kept "
                   "it went under the ice, up in the Rime. Without it this is only a pretty picture.",
@@ -757,9 +764,12 @@ def rook():
         (">Quest.Can.Start", "ShipQuest", "@calm"),
         say(ROOK, "Ten planks and twenty nails, and I'll take you to Dragon Island and back, dragons or no dragons.",
             ("I'll bring them.", "@s_go"), ("Not now.", "@end")),
-        ("@s_go",), ("Update.Attribute", "ShipQuest", "=1"), started("A Ship for Dragon Island"), ("End",),
+        ("@s_go",), ("Update.Attribute", "ShipQuest", "=1"), started("A Ship for Dragon Island"),
+        (">Conditional", "$Item.Plank>=10 and $Item.Nails>=20", "@end"),     # (brought already: he said so at the start)
+        ("Goto.Line", "@mend"),
         ("@s1",), (">Conditional", "$Variable.1=1", "@s2"),
         (">Conditional", "$Item.Plank>=10 and $Item.Nails>=20", "@need"),
+        ("@mend",),
         ("Take.Item", "Plank", "10"), ("Take.Item", "Nails", "20"),
         ("Update.Attribute", "ShipQuest", "=2"),
         ("Display.Message", "Yellow", "Quest complete: A Ship for Dragon Island! Captain Rook's hull is whole.",
@@ -797,9 +807,16 @@ def orrin():
         ("Give.Item", "Valour_Chart", "1"),
         ("Update.Attribute", "OrrinQuest", "=4"),
         say(ORRIN, "It's gone. I can feel the sky again, every star of it.\\Here: my chart. Rook will know what to do "
-                   "with it.\\And listen, heir. When the Shards were in my eyes I saw the dragon, over the mountains, "
-                   "plain as I see you. It isn't sleeping, whatever they say in the pass. It's eating. And a sword "
-                   "that's slept as long as the one you're after cuts like a stick.", ("I'll remember.", "@end")),
+                   "with it. Not that it'll steer him anywhere alone: every mark on it is set by the Lodestar, and "
+                   "that was never mine. Its shrine is up in the Rime, by the lake. There's a surveyors' lodge at "
+                   "Frostwatch: they'll point you to it.\\And listen, heir. When the Shards were in my eyes I saw the "
+                   "dragon, over the mountains, plain as I see you. It isn't sleeping, whatever they say in the pass. "
+                   "It's eating. And a sword that's slept as long as the one you're after cuts like a stick.",
+            ("I'll remember.", "@a3lode")),
+        ("@a3lode",), (">Conditional", "$Attr.LodestarQuest=0", "@end"),
+        (">Quest.Can.Start", "LodestarQuest", "@end"),                # (too green for the Rime: Rook says so, later)
+        ("Update.Attribute", "LodestarQuest", "=1"), started("The Frozen Lodestar"),
+        ("End",),
         ("@a4",),
         say(ORRIN, "Steer by the Lodestar, if you can find it. I never could again.", ("Goodbye.", "@end")),
         ("@end",), ("End",)])
