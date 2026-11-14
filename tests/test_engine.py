@@ -9220,6 +9220,11 @@ def test_people_speak_in_their_own_voice_and_notices_are_silent(world):
     s.player_sprite_base = "PlayerF"
     assert s.npc_voice("Player")[0] == "Woman"
     leave(world, s)
+    voices = os.path.join(ROOT, "sounds", "voices")                 # (a goodbye only in its greeting's own voice)
+    for kind in ("Man", "Woman", "Deep", "Old_Man", "Old_Woman"):
+        assert os.path.exists(os.path.join(voices, "Bye_%s.wav" % kind)), kind
+    for kind in ("Gruff", "Ghost"):
+        assert not os.path.exists(os.path.join(voices, "Bye_%s.wav" % kind)), kind
 
 
 def test_a_step_done_says_quest_objective_met_once_with_its_sound(world):

@@ -22,7 +22,7 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/skills/MakeFire.wav` | lighting a fire | [Fire Crackling](https://opengameart.org/content/fire-crackling) | AntumDeluge | CC0 |
 | `sounds/skills/PutFireOut.wav` | putting a fire out (`Marker #1`, faded) | [Steam release sounds](https://opengameart.org/content/steam-release-sounds) | bart | CC0 |
 | `sounds/skills/StrikeFlint.wav` | striking a flint | [Flare ignition](https://opengameart.org/content/flare-ignition) | qubodup | CC0 |
-| `sounds/voices/Voice_Man*.wav`, `sounds/voices/Voice_Old_Man*.wav`, `sounds/voices/Voice_Gruff*.wav` | a greeting | [Thirty-Eight Greetings.](https://freesound.org/s/431176/) | envirOmaniac2 (freesound.org) | CC0 |
+| `sounds/voices/Voice_Gruff*.wav` | a greeting | [Thirty-Eight Greetings.](https://freesound.org/s/431176/) | envirOmaniac2 (freesound.org) | CC0 |
 | `sounds/voices/Voice_Woman*.wav`, `sounds/voices/Voice_Ghost*.wav` | a greeting | [Female greetings.wav](https://freesound.org/s/351611/) | bectec (freesound.org) | CC0 |
 | `sounds/voices/Bye_Woman*.wav` | a goodbye | [female alto goodby.wav](https://freesound.org/s/352220/) | bectec (freesound.org) | CC0 |
 | `sounds/voices/Bye_Deep.wav` | a goodbye | [Thank you (NPC, British Male)](https://freesound.org/s/429036/) | theuncertainman (freesound.org) | CC0 |
@@ -45,9 +45,27 @@ These come from elsewhere, all under CC0 (public domain: free to use, credit not
 | `sounds/voices/Voice_Old_Man*.wav` | a greeting | common_voice_en_18105147.mp3 ("Hello! It is great to see you!", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Man*.wav` | a greeting | common_voice_en_18105271.mp3 ("Good evening.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Man*.wav` | a greeting | common_voice_en_18090744.mp3 ("Good morning.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Old_Man*.wav` | a goodbye | common_voice_en_18144228.mp3 ("Take care of yourself.", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Old_Man*.wav` | a goodbye | common_voice_en_18094841.mp3 ("Good luck!", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Old_Man*.wav` | a goodbye | common_voice_en_18094826.mp3 ("Bye for now!", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Old_Man*.wav` | a goodbye | common_voice_en_18129643.mp3 ("See you later!", read by a man in his seventies) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Woman*.wav` | a greeting | common_voice_en_21913523.mp3 ("'Good Morning, Mister Echo' was a popular song.", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Woman*.wav` | a greeting | common_voice_en_21901890.mp3 ("Hey", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/voices/Voice_Old_Woman*.wav` | a greeting | common_voice_en_147943.mp3 ("Good evening", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Old_Woman*.wav` | a goodbye | common_voice_en_22956524.mp3 ("But it will turn out well.", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Old_Woman*.wav` | a goodbye | common_voice_en_147977.mp3 ("I have no more to say.", read by a woman in her sixties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_480414.mp3 ("Good morning", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_17835199.mp3 ("What can I do for you?", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_481241.mp3 ("It's good to see you.", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_480778.mp3 ("Hello! It is great to see you!", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_17847095.mp3 ("How can I help you madam?", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_18487132.mp3 ("Welcome, dear friends.", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Voice_Man*.wav` | a greeting | common_voice_en_21903213.mp3 ("Hey", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Man*.wav` | a goodbye | common_voice_en_480944.mp3 ("Bye for now!", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Man*.wav` | a goodbye | common_voice_en_481575.mp3 ("Good luck !", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Man*.wav` | a goodbye | common_voice_en_18500291.mp3 ("Have a good trip back.", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Man*.wav` | a goodbye | common_voice_en_17803281.mp3 ("Good luck on the way.", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
+| `sounds/voices/Bye_Man*.wav` | a goodbye | common_voice_en_18409840.mp3 ("Thank you very much, sir.", read by a man in his thirties) | [Mozilla Common Voice](https://commonvoice.mozilla.org/) 17.0, English | CC0 |
 | `sounds/creatures/Moo*.wav` | a cow's moo | [Cow moos](https://freesound.org/s/177253/) | JosephSardin (freesound.org) | CC0 |
 | `sounds/creatures/Baa*.wav` | a sheep's baa | [Sheep Baa](https://freesound.org/s/414541/) | emilyws (freesound.org) | CC0 |
 | `sounds/creatures/Baa*.wav` | a sheep's baa | [Ewe Shetland Sheep Baa](https://freesound.org/s/692900/) | satoristudios3 (freesound.org) | CC0 |

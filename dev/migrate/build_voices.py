@@ -95,7 +95,8 @@ SOURCES = {
     362652: ("362652_5966858", "TRNGLE", "Cat meow"),
 }
 
-# real old people's voices, never a younger one's made old: Mozilla Common Voice 17.0 (CC0), its clip -> the parquet
+# real old people's voices, never a younger one's made old, and a man who said his goodbyes as well as his hellos:
+# Mozilla Common Voice 17.0 (CC0), its clip -> the parquet
 # file of the en "validated" split it's in (fixie-ai/common_voice_17_0 on Hugging Face), the row group and the row,
 # the speaker (each kind is one person's every take) and what they read out
 CV_BASE = "https://huggingface.co/datasets/fixie-ai/common_voice_17_0/resolve/main/en/validated-%s-of-00138.parquet"
@@ -110,6 +111,24 @@ CV_SOURCES = {
                                  "\"Good Morning, Mister Echo\" was a popular song."),
     "common_voice_en_21901890": ("00045", 102, 25, "a woman in her sixties", "Hey"),
     "common_voice_en_147943": ("00055", 119, 8, "a woman in her sixties", "Good evening"),
+    "common_voice_en_480414": ("00009", 69, 4, "a man in his thirties", "Good morning"),
+    "common_voice_en_17835199": ("00035", 43, 91, "a man in his thirties", "What can I do for you?"),
+    "common_voice_en_481241": ("00031", 57, 22, "a man in his thirties", "It's good to see you."),
+    "common_voice_en_480778": ("00048", 70, 71, "a man in his thirties", "Hello! It is great to see you!"),
+    "common_voice_en_17847095": ("00011", 108, 98, "a man in his thirties", "How can I help you madam?"),
+    "common_voice_en_18487132": ("00136", 24, 53, "a man in his thirties", "Welcome, dear friends."),
+    "common_voice_en_21903213": ("00098", 34, 21, "a man in his thirties", "Hey"),
+    "common_voice_en_480944": ("00037", 125, 20, "a man in his thirties", "Bye for now!"),
+    "common_voice_en_481575": ("00040", 15, 10, "a man in his thirties", "Good luck !"),
+    "common_voice_en_18500291": ("00039", 97, 69, "a man in his thirties", "Have a good trip back."),
+    "common_voice_en_17803281": ("00023", 31, 30, "a man in his thirties", "Good luck on the way."),
+    "common_voice_en_18409840": ("00026", 99, 50, "a man in his thirties", "Thank you very much, sir."),
+    "common_voice_en_18144228": ("00115", 91, 35, "a man in his seventies", "Take care of yourself."),
+    "common_voice_en_18094841": ("00077", 90, 98, "a man in his seventies", "Good luck!"),
+    "common_voice_en_18094826": ("00063", 9, 42, "a man in his seventies", "Bye for now!"),
+    "common_voice_en_18129643": ("00046", 105, 46, "a man in his seventies", "See you later!"),
+    "common_voice_en_22956524": ("00005", 19, 89, "a woman in her sixties", "But it will turn out well."),
+    "common_voice_en_147977": ("00136", 43, 72, "a woman in her sixties", "I have no more to say."),
 }
 
 # what each kind of speaker says: (recording, from s, to s) each, what it says in the comment; then how it's made:
@@ -117,16 +136,14 @@ CV_SOURCES = {
 # second: a frog's throat)
 MAN = 431176
 GREETINGS = {
-    "Man": dict(clips=[(MAN, 5.71, 6.06),          # Hello!
-                       (MAN, 8.13, 8.67),          # How are you?
-                       (MAN, 20.44, 21.02),        # Welcome!
-                       (MAN, 21.91, 22.79),        # How may I help you?
-                       (MAN, 23.54, 24.01),        # Hey there!
-                       (MAN, 25.02, 25.80),        # Why hello there.
-                       (MAN, 36.12, 36.71),        # It's a pleasure.
-                       (MAN, 39.44, 40.14),        # Nice to meet you.
-                       (MAN, 41.19, 41.92),        # How are you today?
-                       (MAN, 42.83, 43.79)]),      # How are things with you?
+    "Man": dict(clips=[("common_voice_en_480778", 0.65, 1.02),     # Hello!   (one man in his thirties, who said his
+                       ("common_voice_en_21903213", 0.47, 0.82),   # Hey.      goodbyes too: Common Voice)
+                       ("common_voice_en_480414", 0.43, 1.00),     # Good morning.
+                       ("common_voice_en_18487132", 0.45, 0.92),   # Welcome.
+                       ("common_voice_en_481241", 0.76, 1.72),     # It's good to see you.
+                       ("common_voice_en_480778", 0.65, 2.42),     # Hello! It is great to see you!
+                       ("common_voice_en_17835199", 0.84, 1.85),   # What can I do for you?
+                       ("common_voice_en_17847095", 0.64, 1.22)]), # How can I help you?
     "Deep": dict(clips=[(429038, 0.15, 0.77),      # Greetings.
                         (429037, 0.16, 0.88),      # How can I help?
                         (458074, 0.31, 1.15),      # What can I do for you?
@@ -171,10 +188,21 @@ GREETINGS = {
 }
 
 # what each kind says as you part (Bye_: voice.js), the same speaker as its greeting and made the same way: the
-# woman's goodbyes, the deep voice's thank-you; the mourner sighs again and the beasts mutter. The man's, the old
-# people's, the gruff's and the ghost's speakers recorded no goodbye, so they say none (another's voice would jar)
+# man's, the woman's and the old people's goodbyes, the deep voice's thank-you; the mourner sighs again and the beasts
+# mutter. The gruff's and the ghost's speakers recorded no goodbye, so they say none (another's voice would jar)
 BYE = 352220
 FAREWELLS = {
+    "Man": dict(clips=[("common_voice_en_480944", 0.45, 1.28),     # Bye for now!
+                       ("common_voice_en_481575", 0.62, 1.02),     # Good luck!
+                       ("common_voice_en_18500291", 0.48, 1.62),   # Have a good trip back.
+                       ("common_voice_en_17803281", 0.82, 1.83),   # Good luck on the way.
+                       ("common_voice_en_18409840", 0.53, 1.23)]), # Thank you very much.
+    "Old_Man": dict(clips=[("common_voice_en_18144228", 0.78, 1.72),   # Take care of yourself.
+                           ("common_voice_en_18094841", 0.40, 0.99),   # Good luck!
+                           ("common_voice_en_18094826", 0.40, 1.15),   # Bye for now!
+                           ("common_voice_en_18129643", 0.50, 1.62)]), # See you later!
+    "Old_Woman": dict(clips=[("common_voice_en_22956524", 1.15, 2.52),  # It will turn out well.
+                             ("common_voice_en_147977", 2.45, 3.93)]),  # I have no more to say.
     "Woman": dict(clips=[(BYE, a, b) for a, b in ((1.02, 1.42), (1.87, 2.31), (2.67, 3.19), (3.47, 4.25),
                                                   (4.62, 5.37), (6.74, 7.26), (10.02, 10.53), (12.45, 12.89),
                                                   (13.53, 14.08), (14.42, 14.99))]),
