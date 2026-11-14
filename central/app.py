@@ -1,6 +1,6 @@
 """The central server: every player's account (one name and password for every game, or Google), the list of remote game
 servers (each announces itself: its name, address and how many are playing), what every game's characters have got to
-(for the admin page), the ads on the start screen, and the start screen itself for a browser. Standard library plus
+(for the admin page), and the start screen itself for a browser. Standard library plus
 aiohttp, like the game server.
 
 The apps (Android, desktop) and a browser open the start screen, log in here, and then: play alone, host a game (local:
@@ -9,10 +9,10 @@ by address; remote: from the list here). Joining, the start screen asks here for
 game server asks here whether the ticket's good (the player's name, once, for that server only). A game server keeps
 its own accounts too, for a network with no way to reach here.
 
-  python -m central                    (DS_CENTRAL_DB, DS_CENTRAL_PORT 8490, DS_CENTRAL_NAME, DS_CENTRAL_ADS, ...)
+  python -m central                    (DS_CENTRAL_DB, DS_CENTRAL_PORT 8490, DS_CENTRAL_NAME, ...)
 
   POST /api/register  {name, password, email}     -> {ok, token, name, confirm}
-  POST /api/account   {token}                     -> {ok, name, email, pending, admin, full, bought, pass_until}
+  POST /api/account   {token}                     -> {ok, name, email, pending, admin, full, bought}
   POST /api/email     {token, email}              -> {ok, email, pending, text}   (it counts once a link's confirmed it)
   POST /api/email/again {token}                   -> {ok, text}          (the link again, for the one waiting)
   POST /api/forgot    {who}                       -> {ok}                (a code by email, if it has a confirmed one)
@@ -27,14 +27,10 @@ its own accounts too, for a network with no way to reach here.
                                                   or no confirmed email: the join stops there and says why)
   POST /api/buy       {token, where, proof}       -> {ok, full, bought}  (where: play, steam or itch; proof: what that
                                                   store gives a purchase, checked with it: bought.py)
-  POST /api/verify    {ticket, server, proof, relayed}  -> {ok, name, full, pass_until, ...}   (a game server asking;
+  POST /api/verify    {ticket, server, proof, relayed}  -> {ok, name, full, ...}   (a game server asking;
                                                   proof: its id's own, kept by the first to bring it: taken, if it
                                                   isn't; relayed: the ticket came through a friend's link here)
-  POST /api/pass/start {token}                   -> {ok, key, minutes, left}  (before a time pass's ad, in the Android app:
-                                                  the key it gives the ad, for the reward to be this account's)
-  GET  /api/pass/reward ?...&signature=&key_id=   (AdMob's server-side verification of a rewarded ad: admob.py)
-  POST /api/game/owns {grant}                     -> {ok, name, full, pass_until}   (a game server, again: a time pass
-                                                  run out, or its host's account)
+  POST /api/game/owns {grant}                     -> {ok, name, full}   (a game server, again: its host's account)
   POST /api/game/standing {name}                  -> {ok, banned}        (a game server, for one come straight back)
   POST /api/game/report {secret, kind, name?, version, server?, proof?, characters: [...]}  -> {ok, took}  (a game server:
                                                   what its characters have got to, for the admin page: server/progress.py)
@@ -44,11 +40,11 @@ its own accounts too, for a network with no way to reach here.
   POST /api/goodbye   {key, secret}
   GET  /api/servers                               -> [{key, name, url, online, max, version}]   (approved only)
   POST /api/mine      {token}                     -> {ok, servers: {key: [[character, level], ...]}}  (yours on them)
-  POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, deleting, ads, stats)
+  POST /api/admin/... {token, ...}                the admin page's (servers, approving, accounts, bans, deleting, stats)
   GET  /confirm?code=, POST /confirm {code}       a link's page, and its button (a mail scanner opens links: only the
                                                   button confirms)
-  GET  /admin, /privacy, /ads.txt, /app-ads.txt   the admin page, the privacy policy, AdSense's and AdMob's lines
-  GET  /api/hello                                 -> {name, motd, ad, players, servers}
+  GET  /admin, /privacy                          the admin page, the privacy policy
+  GET  /api/hello                                 -> {name, motd, players, servers}
   GET  /health                                    -> {ok, servers, version, commit, date}
   GET  /                                          the start screen (a browser's: join a game, local or remote)"""
 import asyncio
@@ -59,7 +55,6 @@ import html
 import json
 import logging
 import os
-import random
 import re
 import sqlite3
 import time
@@ -69,9 +64,9 @@ from aiohttp import web
 from server import auth, offsite
 from server.version import version_info
 from ashen import ini
-from . import admob, bought, google, mail
+from . import bought, google, mail
 from .relay import Relays
-from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS, digest, new_secret
+from .store import CentralStore, CONFIRM_DAYS, MOST_FRIENDS, digest
 
 log = logging.getLogger("ashen.central")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -96,12 +91,7 @@ STEAM_REFUND_DAYS = 15          # (Steam refunds within 14 days of buying: a Ste
 BACKUPS_KEPT = 14               # (a copy of the database a day: DS_CENTRAL_BACKUPS, else backups beside it)
 HELLO_SECONDS = 30              # (the start screen's counts are worked out this often)
 BUYS = 10                       # (tries at a purchase from one address or account in ten minutes)
-PASS_KEYS = 2000                # (time passes' ads under way at once: past this the oldest go)
 RESERVED = {"admin", "administrator", "moderator", "mod", "server", "system", "gm", "staff", "support", "owner"}
-DEFAULT_ADS = [
-    {"text": "Host your own world: friends on your Wi-Fi join it from their phones.", "link": ""},
-    {"text": "Run a server on a cloud VM and it's listed here for everyone: see README-Server.md.", "link": ""},
-]
 
 
 CONFIRMS_A_DAY = 5
@@ -147,10 +137,7 @@ class Central:
         self.logs_here = {}             # address -> [times] a log came from it
         self.google_flows = {}          # state -> a sign-in on its way to Google and back
         self.google_results = {}        # code -> who came back from Google: {name} or {sub, email}, and when
-        self.pass_keys = {}             # key -> (account, when): a time pass's ad under way (admob.py)
-        self.integrity_asked = {}       # account -> (nonce, when): Play Integrity's check under way (bought.py)
         self.hello_cache = (0.0, {})    # (when, the start screen's counts)
-        self.ads_cache = (0.0, None)    # (when, the ads)
         self.quests_cache = (None, [])  # (Quests.ini's time, what's in it)
         self.name = os.environ.get("DS_CENTRAL_NAME", "Shards of Ashen")
         self.motd = os.environ.get("DS_CENTRAL_MOTD", "")
@@ -213,103 +200,11 @@ class Central:
         return bool(acct) and (bool(acct[5]) or name.lower() in names)
 
     def owns(self, name):
-        """Whether name has the full game: bought (bought: where), or a time pass running (pass_until: when it ends,
-        what a game goes by till it asks again), or the demo isn't on yet (DS_DEMO)."""
-        where, _, until = self.store.owned(name)
-        now = time.time()
+        """Whether name has the full game: bought (bought: where), or the demo isn't on yet (DS_DEMO). (pass_until
+        and passes: always none now, for a game server from when there were time passes.)"""
+        where = self.store.owned(name)[0]
         demo = demo_on()
-        left = max(0, self.passes_a_day() - self.store.passes_today(name)) if demo and admob.ready() and not where else 0
-        return {"full": bool(where) or until > now or not demo, "bought": where, "demo": demo,
-                "pass_until": int(until) if until > now else 0, "passes": left}
-
-    @staticmethod
-    def passes_a_day():
-        return max(0, env_int("DS_PASSES_A_DAY", 3))
-
-    async def pass_start(self, request):
-        """Before a time pass's ad (the Android app's start screen): a key for it, which AdMob gives back with its reward
-        (pass_reward), so the reward is this account's and counts once. With DS_PLAY_INTEGRITY=1, first Play
-        Integrity's verdict (asked with the nonce this gives, `integrity`): the real app, on a real phone (an emulator
-        farming ads, or a tampered app, gets no pass)."""
-        d = await self.body(request)
-        name = self.store.token_name(d.get("token", ""))
-        if not name:
-            return no("Not logged in.")
-        o = self.owns(name)
-        if not admob.ready() or not o["demo"]:
-            return no("There's no time pass here.")
-        if o["bought"]:
-            return no("You have the full game already.")
-        if o["passes"] <= 0:
-            return no("That's all the time passes for today: there are more tomorrow.")
-        now = time.monotonic()
-        if bought.integrity_on():
-            asked = self.integrity_asked.pop(name.lower(), None)
-            if not d.get("integrity") or not asked or now - asked[1] > bought.INTEGRITY_OLDEST:
-                for k in [k for k, v in self.integrity_asked.items() if now - v[1] > bought.INTEGRITY_OLDEST]:
-                    del self.integrity_asked[k]
-                while len(self.integrity_asked) >= PASS_KEYS:
-                    del self.integrity_asked[next(iter(self.integrity_asked))]
-                nonce = new_secret()
-                self.integrity_asked[name.lower()] = (nonce, now)
-                return no("", integrity=nonce)          # (the app asks Google Play for its verdict on this, and comes back)
-            try:
-                await bought.integrity(d.get("integrity"), asked[0])
-            except bought.Refused as e:
-                log.info("No time pass for %s: %s", name, e)
-                return no(str(e))
-        for k in [k for k, v in self.pass_keys.items() if now - v[1] > 3600]:
-            del self.pass_keys[k]
-        while len(self.pass_keys) >= PASS_KEYS:
-            del self.pass_keys[next(iter(self.pass_keys))]
-        key = new_secret()
-        self.pass_keys[key] = (name, now)
-        return yes(key=key, minutes=self.pass_minutes(), left=o["passes"])
-
-    @staticmethod
-    def pass_minutes():
-        return max(1, env_int("DS_PASS_MINUTES", 60))
-
-    async def pass_reward(self, request):
-        """AdMob's server-side verification: a rewarded ad watched to its end, signed by Google (admob.py). Its key
-        (custom_data) says whose; a key used already (Google trying again) or unknown is thanked and forgotten."""
-        try:
-            got = await admob.check(request.query_string)
-        except admob.Refused as e:
-            log.warning("An AdMob reward was refused: %s", e)
-            return web.Response(status=400, text=str(e))
-        held = self.pass_keys.pop(str(got.get("custom_data", "")), None)
-        if held is None:
-            return web.Response(text="ok")
-        until = self.store.add_pass(held[0], self.pass_minutes() * 60, self.passes_a_day())
-        log.info("%s watched an ad for a time pass%s", held[0], "" if until else " (but had today's already)")
-        return web.Response(text="ok")
-
-    def ads(self):
-        now = time.monotonic()
-        if self.ads_cache[1] is None or now - self.ads_cache[0] > HELLO_SECONDS:
-            self.ads_cache = (now, self.read_ads())
-        return self.ads_cache[1]
-
-    def read_ads(self):
-        own = self.store.setting("ads", "")
-        if own:                                         # (set on the admin page)
-            try:
-                got = json.loads(own)
-                if isinstance(got, list) and got:
-                    return got
-            except ValueError:
-                pass
-        path = os.environ.get("DS_CENTRAL_ADS", "")
-        if path and os.path.exists(path):
-            try:
-                with open(path, encoding="utf-8") as f:
-                    got = json.load(f)
-                if isinstance(got, list) and got:
-                    return got
-            except (OSError, ValueError):
-                log.warning("The ads file %s couldn't be read", path)
-        return DEFAULT_ADS
+        return {"full": bool(where) or not demo, "bought": where, "demo": demo, "pass_until": 0, "passes": 0}
 
     @staticmethod
     async def hashed(text):
@@ -702,8 +597,8 @@ class Central:
         return yes(name=name, grant=self.store.new_grant(name, server), **self.owns(name), **self.friends_of(name))
 
     async def game_owns(self, request):
-        """A game server asking again whether a player there has the full game (their key from their ticket): a time
-        pass run out, or its host's own account (the Friend Pass)."""
+        """A game server asking again whether a player there has the full game (their key from their ticket): its
+        host's own account (the Friend Pass)."""
         got = self.store.grant_name((await self.body(request)).get("grant", ""))
         if not got:
             return no("Come in again from the start screen.")
@@ -923,15 +818,13 @@ class Central:
         return yes(servers=self.store.characters_listed(name))
 
     async def hello(self, request):
-        client = os.environ.get("DS_ADSENSE_CLIENT", "").strip()
         now = time.monotonic()
         if not self.hello_cache[1] or now - self.hello_cache[0] > HELLO_SECONDS:
             self.hello_cache = (now, {"servers": self.store.count_servers(), "players": self.store.count_accounts()})
-        return yes(name=self.name, motd=self.motd, ad=random.choice(self.ads()), mail=mail.ready(),
+        return yes(name=self.name, motd=self.motd, mail=mail.ready(),
                    demo=demo_on(), demo_level=whole(ini.read("Demo", "Level", "5", os.path.join(ROOT, "data", "Config.ini")),
                                                     1, 99, 5),
-                   google=google.ready(), buy=bought.buy_page() if demo_on() else None, **self.hello_cache[1],
-                   adsense={"client": client, "slot": os.environ.get("DS_ADSENSE_SLOT", "").strip()} if client else None)
+                   google=google.ready(), buy=bought.buy_page() if demo_on() else None, **self.hello_cache[1])
 
     # ----- clearing out what's had its day: the database's, and the counts kept here
     def housekeeping(self):
@@ -1037,7 +930,7 @@ class Central:
             every, approved, up = self.store.server_stats()
             chars, accounted, today, week, reporting = self.store.progress_totals()
             return yes(accounts=self.store.count_accounts(), servers=every, approved=approved, up=up, mail=mail.ready(),
-                       adsense=bool(os.environ.get("DS_ADSENSE_CLIENT")), google=google.ready(), characters=chars,
+                       google=google.ready(), characters=chars,
                        with_account=accounted, today=today, week=week, reporting=reporting)
         if what == "servers":
             mine = self.version["version"]
@@ -1053,11 +946,9 @@ class Central:
         if what == "accounts":
             rows = self.store.find_accounts(str(d.get("q", ""))[:60], PAGE, whole(d.get("skip"), 0, 10 ** 9))
             names = {n.strip().lower() for n in os.environ.get("DS_CENTRAL_ADMINS", "").split(",") if n.strip()}
-            now = time.time()
             return yes(accounts=[{"name": n, "email": e, "pending": p, "banned": b, "deleted": int(x), "google": bool(g),
-                                  "admin": bool(a) or n.lower() in names, "made": int(m), "bought": f, "bought_at": int(fa),
-                                  "pass_until": int(pu) if pu > now else 0}
-                                 for n, e, b, a, m, p, x, g, f, fa, pu in rows], page=PAGE)
+                                  "admin": bool(a) or n.lower() in names, "made": int(m), "bought": f, "bought_at": int(fa)}
+                                 for n, e, b, a, m, p, x, g, f, fa in rows], page=PAGE)
         server = str(d.get("server", ""))[:64]
         if what == "characters":
             return yes(characters=self.store.find_characters(str(d.get("q", ""))[:60], server, PAGE,
@@ -1123,13 +1014,6 @@ class Central:
                 return no("No such account.")
             self.store.set_admin(acct[0], bool(d.get("on")))
             return yes()
-        if what == "ads":
-            if "ads" in d:
-                ads = [a for a in d["ads"] if isinstance(a, dict) and str(a.get("text", "")).strip()][:50] \
-                    if isinstance(d["ads"], list) else []
-                self.store.set_setting("ads", json.dumps(ads))
-                self.ads_cache = (0.0, None)
-            return yes(ads=self.ads())
         return no("Unknown.")
 
 
@@ -1264,9 +1148,7 @@ def make_central(db_path):
         with open(os.path.join(pages, "privacy.html"), encoding="utf-8") as f:
             text = f.read()
         for key, value in (("{{NAME}}", c.name), ("{{OPERATOR}}", os.environ.get("DS_CENTRAL_OPERATOR", c.name)),
-                           ("{{CONTACT}}", os.environ.get("DS_CENTRAL_CONTACT", "the address on the game's page")),
-                           ("{{ADS}}", "Google AdSense" if os.environ.get("DS_ADSENSE_CLIENT") else "our own notes"),
-                           ("{{APPADS}}", "Google AdMob" if os.environ.get("DS_ADMOB_APP") else "our own notes")):
+                           ("{{CONTACT}}", os.environ.get("DS_CENTRAL_CONTACT", "the address on the game's page"))):
             text = text.replace(key, value.replace("<", "&lt;"))
         return web.Response(text=text, content_type="text/html", headers={"Cache-Control": "public, max-age=3600"})
 
@@ -1354,16 +1236,6 @@ def make_central(db_path):
         resp.headers["Cache-Control"] = "no-store"
         raise resp
 
-    async def ads_txt(request):
-        # (Google's line for each publisher: AdSense's ca-pub-123..., AdMob's app ca-app-pub-123...~456, often the same)
-        pubs = []
-        for key, cut in (("DS_ADSENSE_CLIENT", "ca-"), ("DS_ADMOB_APP", "ca-app-")):
-            pub = os.environ.get(key, "").strip().split("~")[0].replace(cut, "", 1)
-            if pub and pub not in pubs:
-                pubs.append(pub)
-        return web.Response(text="".join("google.com, %s, DIRECT, f08c47fec0942fa0\n" % p for p in pubs),
-                            content_type="text/plain")
-
     async def health(request):
         return web.json_response({"ok": True, "servers": c.store.count_servers(), **c.version}, dumps=compact)
 
@@ -1381,7 +1253,7 @@ def make_central(db_path):
     app.on_shutdown.append(stop_cleaning)
     for path, fn in (("register", c.register), ("login", c.login), ("reset", c.reset), ("me", c.me),
                      ("logout", c.logout), ("ticket", c.ticket), ("verify", c.verify), ("buy", c.buy),
-                     ("game/owns", c.game_owns), ("pass/start", c.pass_start),
+                     ("game/owns", c.game_owns),
                      ("announce", c.announce), ("goodbye", c.goodbye), ("account", c.account),
                      ("email", c.set_email), ("email/again", c.email_again), ("forgot", c.forgot),
                      ("friends", c.friends), ("friend", c.friend),
@@ -1391,7 +1263,6 @@ def make_central(db_path):
         app.router.add_route("OPTIONS", "/api/" + path, nothing_to_say)
     app.router.add_get("/api/servers", c.servers)
     app.router.add_post("/api/mine", c.mine)
-    app.router.add_get("/api/pass/reward", c.pass_reward)
     app.router.add_get("/api/relay", c.relays.host)
     async def to_game(request):                     # (a friend's game's page is a folder: its files beside it)
         raise web.HTTPFound("/play/%s/" % request.match_info["key"])
@@ -1404,8 +1275,6 @@ def make_central(db_path):
     app.router.add_get("/privacy", privacy)
     app.router.add_get("/confirm", confirm_ask)
     app.router.add_post("/confirm", confirm_done)
-    app.router.add_get("/ads.txt", ads_txt)
-    app.router.add_get("/app-ads.txt", ads_txt)        # (AdMob reads it on the developer's site the Play Store names)
     app.router.add_get("/api/hello", c.hello)
     app.router.add_get("/health", health)
     app.router.add_get("/", index)
@@ -1421,15 +1290,12 @@ def make_central(db_path):
         app.router.add_get("/" + pic, picture(pic))
     if os.path.isdir(home):
         app.router.add_static("/home/", home)
-    ads = os.environ.get("DS_CENTRAL_ADS_DIR", "")
-    if ads and os.path.isdir(ads):
-        app.router.add_static("/ads/", ads)            # (the ads' pictures)
     return app
 
 
 def main():
     import argparse
-    p = argparse.ArgumentParser(description="Shards of Ashen central server: accounts, the server list, ads")
+    p = argparse.ArgumentParser(description="Shards of Ashen central server: accounts, the server list")
     p.add_argument("--db", default=os.environ.get("DS_CENTRAL_DB", os.path.join(ROOT, "server-data", "central.db")))
     p.add_argument("--host", default=os.environ.get("DS_HOST", "0.0.0.0"))
     p.add_argument("--port", type=int, default=env_int("DS_CENTRAL_PORT", 8490))

@@ -11,7 +11,6 @@ import pytest
 from aiohttp import web
 
 from server.app import make_app, GAME
-from server.game import PASS_TRIES
 from server.store import Store
 from server import auth
 
@@ -1017,22 +1016,18 @@ def test_a_servers_name_is_what_its_given_and_never_a_containers_number(monkeypa
 def test_the_ticket_says_whether_a_player_has_the_full_game(tmp_path, monkeypatch):
     """The central server's word, with the ticket (dsengine/demo.py): no demo till it says there is one; then an account
     without the full game plays the Isle, one with it everything, and a friend of one who has it while they're both
-    in the game (the Friend Pass); a time pass run out is asked about again."""
+    in the game (the Friend Pass); the last it said counts for a reload without a ticket."""
     async def go():
         runner, app, url = await start(str(tmp_path / "t.db"))
         game = app[GAME]
         monkeypatch.setattr(game, "central_url", lambda: "http://central.invalid")
-        owns, demo, until, asked = {"Buyer": True, "Trier": False}, [False], [0], []
+        owns, demo = {"Buyer": True, "Trier": False}, [False]
 
         async def central(path, body, packed=False):
             if path == "/api/verify":
                 n = body["ticket"]
-                return {"ok": True, "name": n, "grant": "g-" + n, "demo": demo[0], "pass_until": until[0],
-                        "full": owns[n] or not demo[0] or until[0] > time.time() - 60,
+                return {"ok": True, "name": n, "grant": "g-" + n, "demo": demo[0], "full": owns[n] or not demo[0],
                         "friends": {"Trier": ["Buyer"], "Buyer": ["Trier"]}[n]}
-            if path == "/api/game/owns":
-                asked.append(body["grant"])
-                return {"ok": True, "name": body["grant"][2:], "full": owns[body["grant"][2:]], "pass_until": 0}
             return {"ok": True, "same": True}
         monkeypatch.setattr(game, "central_post", central)
         try:
@@ -1063,43 +1058,13 @@ def test_the_ticket_says_whether_a_player_has_the_full_game(tmp_path, monkeypatc
                 game.friend_passes()
                 assert not s.friend_pass and s.demo()                       # (gone: on the Isle, the demo at once)
                 await ws.close()
-                until[0] = int(time.time()) - 1                             # (a time pass, just run out)
-                ws, s = await come("Trier")
-                assert s.full and s.pass_until
-                game.passes_ran_out()
-                for _ in range(50):
-                    if asked:
-                        break
-                    await asyncio.sleep(0.05)
-                await asyncio.sleep(0.1)
-                assert asked == ["g-Trier"] and not s.full and s.demo() and not s.pass_until
+                assert game.store.setting("full:buyer") == "1"
+                ws, m = await login(http, url, "Buyer", mode="login")       # (a reload by the device: no ticket)
+                assert m["t"] == "welcome" and game.world.sessions["Buyer"].full
                 await ws.close()
-                until[0] = int(time.time()) + 2                             # (a pass with two seconds left)
-                ws, s = await come("Trier")
-                assert s.full and game.store.setting("full:trier") == "until:%d" % until[0]
-                await ws.close()
-                ws, m = await login(http, url, "Trier", mode="login")       # (a reload by the device: no ticket)
-                s = game.world.sessions["Trier"]
-                assert m["t"] == "welcome" and s.full and s.pass_until == until[0] and not getattr(s, "grant", "")
-                real = time.time
-                monkeypatch.setattr(time, "time", lambda: real() + 5)
-                game.passes_ran_out()
-                monkeypatch.setattr(time, "time", real)
-                assert not s.full and s.demo() and not s.pass_until        # (nobody to ask: the pass is over)
-                await ws.close()
-                until[0] = int(time.time()) + 1
-                ws, s = await come("Trier")
-                assert s.full and s.grant
-
-                async def away(path, body, packed=False):
-                    asked.append("away")
-                    return None
-                monkeypatch.setattr(game, "central_post", away)
-                for n in range(PASS_TRIES):
-                    s.pass_until = 1                                        # (run out: asked, and no answer)
-                    await game.owns_now(s)
-                    assert s.pass_until > time.time() and s.full == (n < PASS_TRIES - 1)
-                assert asked.count("away") == PASS_TRIES and s.demo()     # (asked again, then over)
+                game.store.set_setting("full:trier", "until:%d" % (time.time() + 3600))   # (a time pass, from before)
+                ws, m = await login(http, url, "Trier", mode="login")
+                assert m["t"] == "welcome" and game.world.sessions["Trier"].demo()
                 await ws.close()
         finally:
             await runner.cleanup()

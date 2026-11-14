@@ -890,11 +890,9 @@ that isn't in the game.
   Joining takes a ticket from the central server made out to that server's id. **The central server is
   `https://shardsofashen.hallisium.com`** (`web/home/config.js`, a cloud server's `DS_CENTRAL`); `deploy/central-setup.sh`
   sets one up on a VM in one line.
-- **Ads, and paying once to remove them** (the owner's wish): the start screen shows AdMob in the Android app, AdSense in a
-  browser (`DS_ADSENSE_CLIENT`, `DS_ADSENSE_SLOT`; `/ads.txt` from the central server), else the central server's own.
-  The Android app sells **Remove ads**, a one-time Google Play product (`android/.../Billing.java`, `DS_ADFREE_PRODUCT`,
-  `remove_ads` unless set), and the full game removes them too: bought, its start screen shows no ads at all, and Google
-  Play restores it on a reinstall. Never an ad in a game, and never one in the PC build.
+- **No ads, anywhere** (the owner's decision, 14 November 2026): not on the start screen, in a game, in a browser or
+  in either app; no ad SDK in the Android app (no AdMob, no advertising ID), no AdSense, no house ads, nothing paid
+  for by watching one. The game is paid for by buying it (Owning the game), and the Friend Pass.
 - **Owning the game** (the owner's decisions, `dev/Roadmap-7.md`): the PC build is $7.99, paid once, with no demo (not
   owned, it shows only how to get it: `desktop/owning.py`, Steam's word, or the store's download for itch.io and Epic).
   The Android app is free to try, and $3.99 buys the full game (`full_game`, `DS_FULL_PRODUCT`). A purchase is the
@@ -904,7 +902,7 @@ that isn't in the game.
 - **The demo** (once the central server has `DS_DEMO=1`; till then everyone has the full game): an account without
   the full game plays the Isle (`data/Config.ini` `[Demo]`: its maps, upstairs and caves), its skills held at level 5,
   the XP still counted (it counts once it's owned). The border and the level each say so once a time in; a demo
-  character found outside (a pass run out) comes back to the Isle's pier. At the ferry with Mary's papers
+  character found outside (its Friend Pass over) comes back to the Isle's pier. At the ferry with Mary's papers
   (`PapersFound`) the demo ends: a line with its own sound, not Denied, and once a time in the end card (`demo_end`):
   what the Isle gave you (the papers, the order in ash, Jimmy's miniature, each only if found), what's left to ask
   (only questions the player has the clue for), what's across the strait, and how to buy it. An app's own game knows from the device
@@ -913,10 +911,6 @@ that isn't in the game.
   game if the host owns it, or, on a public server, while a Hallisium friend of theirs who owns it is in it (never any
   owner, or a busy server would be the full game for everyone). When the last owner leaves, a demo player outside the
   Isle is told and has a minute before the pier.
-- **The time pass**: in the Android app only, an account in the demo can watch a rewarded ad (AdMob) for an hour of
-  the full game (`DS_PASS_MINUTES`), a few a day (`DS_PASSES_A_DAY`, 3). Google tells the central server
-  (`central/admob.py`, its signature checked), never the app; with `DS_PLAY_INTEGRITY=1`, only after Play
-  Integrity's word that it's the real app on a real phone (`bought.integrity`). No time pass in a browser or on PC.
 - **The client is never trusted for owning it online**: an app's word that its device bought the game counts only in
   its own game, for those on its own machine or network; a friend through the relay has the Friend Pass only from an
   owner whose account has it (`friend_passes`). Offline play can always be cracked: what's worth paying for is

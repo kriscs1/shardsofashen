@@ -167,7 +167,7 @@ def test_the_pc_build_is_owned_from_its_store_or_shows_how_to_get_it(tmp_path, m
     assert st["full"] is True and st["store"] == "steam" and st["steam_ticket"] == "0102ab"
     page = desktop.home_page(b)
     assert "fullGame:" in page and "steamTicket:" in page
-    assert 'KIND === "desktop"' in page and "never has an ad" in page
+    assert 'KIND === "desktop"' in page and "showPcOwning" in page
 
 
 def test_a_games_page_in_the_window_gets_only_the_carried_character(tmp_path, monkeypatch):

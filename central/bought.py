@@ -10,9 +10,6 @@ on an app's word. Each store is set up by its settings (README-Server.md "Owning
       the website's Buy (DS_BUY_URL), the purchase made with the account's confirmed email (never an email the player
       gives: app.py puts it in). DS_ITCH_KEY (an API key), DS_ITCH_GAME (the game's id).
 
-Play Integrity (integrity()): that the Android app asking is the one from Google Play, untouched, on a real device that
-passes Google's checks, decoded by Google with the same service account (README-Server.md "Owning the game").
-
 check() gives the store's own id for the purchase (Play's purchase token, the Steam id, the itch.io key's id): the
 account keeps only its hash (store.claim), so one purchase is only ever one account's. A Steam id is kept as well for
 the refund window (STEAM_REFUND_DAYS, app.py), so Steam can be asked again; then only its hash."""
@@ -27,9 +24,6 @@ log = logging.getLogger("ashen.central")
 
 PLAY_API = "https://androidpublisher.googleapis.com/androidpublisher/v3"
 PLAY_SCOPE = "https://www.googleapis.com/auth/androidpublisher"
-INTEGRITY_API = "https://playintegrity.googleapis.com/v1"
-INTEGRITY_SCOPE = "https://www.googleapis.com/auth/playintegrity"
-INTEGRITY_OLDEST = 600              # (seconds a verdict is good for after it was asked for)
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 STEAM_API = "https://partner.steam-api.com"
 STEAM_IDENTITY = "shardsofashen"    # (what the desktop app's ticket is asked for: GetAuthTicketForWebApi's identity)
@@ -125,7 +119,7 @@ def b64(data):
 
 
 def assertion(account, now, scope=PLAY_SCOPE):
-    """The service account's signed JWT, asking for a Google API (the Play Developer API, or Play Integrity's)."""
+    """The service account's signed JWT, asking for a Google API (the Play Developer API)."""
     head = b64(json.dumps({"alg": "RS256", "typ": "JWT"}).encode())
     claims = b64(json.dumps({"iss": account["client_email"], "scope": scope, "aud": TOKEN_URL, "iat": int(now),
                              "exp": int(now) + 3600}).encode())
@@ -191,43 +185,6 @@ async def play_voided(since):
     return out
 
 
-def integrity_on():
-    """Whether the Android app must show Play Integrity's verdict (for a time pass): DS_PLAY_INTEGRITY=1, and the
-    service account to decode it with."""
-    return env("DS_PLAY_INTEGRITY") == "1" and bool(env("DS_PLAY_SERVICE_ACCOUNT"))
-
-
-async def integrity(token, nonce):
-    """Play Integrity's verdict (the app's token, asked for with this nonce), decoded by Google: Refused unless it's
-    this game from Google Play, untouched, on a device that meets Google's integrity, asked for just now."""
-    token = str(token or "")[:8000]
-    if not token or not nonce:
-        raise Refused("The app couldn't show it's the real one from Google Play: update it from there.")
-    package = env("DS_PLAY_PACKAGE", "io.github.kriscs1.shardsofashen")
-    auth = {"Authorization": "Bearer " + await play_token(INTEGRITY_SCOPE)}
-    status, got = await ask("POST", "%s/%s:decodeIntegrityToken" % (INTEGRITY_API, package), headers=auth,
-                            json={"integrity_token": token})
-    v = got.get("tokenPayloadExternal") if status == 200 else None
-    if not isinstance(v, dict):
-        log.warning("Play Integrity didn't decode a token: %s", status)
-        raise Refused("The app couldn't show it's the real one from Google Play: update it from there.")
-    asked = v.get("requestDetails") or {}
-    app = (v.get("appIntegrity") or {}).get("appRecognitionVerdict", "")
-    device = (v.get("deviceIntegrity") or {}).get("deviceRecognitionVerdict") or []
-    try:
-        age = time.time() - int(asked.get("timestampMillis", 0)) / 1000
-    except (TypeError, ValueError):
-        age = INTEGRITY_OLDEST + 1
-    if asked.get("requestPackageName") != package or asked.get("nonce") != nonce or not -60 < age < INTEGRITY_OLDEST:
-        raise Refused("That check wasn't this one: try again.")
-    if app != "PLAY_RECOGNIZED":                    # (UNRECOGNIZED_VERSION: changed, or not from Google Play)
-        raise Refused("This copy of the app isn't the one from Google Play: install it from there.")
-    if "MEETS_DEVICE_INTEGRITY" not in device:      # (an emulator, a rooted phone, a tampered one)
-        raise Refused("A time pass needs a phone that passes Google Play's checks (not an emulator or a rooted one).")
-    return v
-
-
-# ----- Steam
 async def steam(proof):
     ticket = str(proof.get("ticket", ""))[:2048]
     if not ticket or any(ch not in "0123456789abcdefABCDEF" for ch in ticket):

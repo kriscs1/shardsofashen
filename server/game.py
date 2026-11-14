@@ -30,7 +30,6 @@ SAVE_EVERY = 60
 SAVE_SOON = 1.0             # (seconds: the soonest everyone is saved again when something's changed hands)
 SAVE_RETRY = 10             # (seconds: a save that failed is tried again so soon, whatever was asked)
 SIGN_IN_SECONDS = 30        # (a friend's connection through the relay that hasn't signed in by then: closed)
-PASS_RETRY, PASS_TRIES = 60, 5  # (a time pass run out, the central server not answering: asked again so often, so many times)
 WHERE_EVERY = 1.0           # (seconds between the minimap's dots for the other players)
 LINGER = 30                 # (seconds a player marked in open PvP stays in the world once they've gone: pvp.py)
 CHAT_MAX = 200
@@ -102,7 +101,6 @@ class Client:
         self.grant = ""             # (the central server's key to their friends, from their ticket)
         self.friends_got = None     # (their friends, as the ticket's check said)
         self.full = True            # (the full game, or the demo: Game.full_of)
-        self.pass_until = 0         # (a time pass's end, when that's all it is: asked again then)
         self.device_full = False    # (the host's app says it's bought on the device)
         self.msg_times = []
         self.log_shown = ""         # (the log as it was shown to them: what Send sends)
@@ -294,7 +292,6 @@ class GameServer:
                 self.save_all()
             if time.time() - self.last_where >= WHERE_EVERY:
                 self.last_where = time.time()
-                self.passes_ran_out()
                 self.friend_passes()
                 where = self.where_message()
                 if where != self.last_where_sent:       # (nobody's moved: nothing to send everyone)
@@ -1000,7 +997,6 @@ class GameServer:
             self.store.set_setting("devat:" + device[2:], c.addr)  # (from where: a ticket says so again, from anywhere)
         c.owner, c.account = owner, owner[2:] if owner.startswith("a:") else ""
         c.grant, c.friends_got = (got.get("grant") or "", got) if got else ("", None)
-        c.pass_until = int((got or {}).get("pass_until") or 0)
         c.full = self.full_of(c, data, got)
         if c.host and c.grant and c.account and c.grant != self.host_grant:
             self.hosted_by(c.account, c.grant)          # (the host's key: the relay opens with it, for friends)
@@ -1022,9 +1018,9 @@ class GameServer:
         if got is not None:
             full = bool(got.get("full", True))
             if key:
-                self.remember_full(c.account, full, c.pass_until)
+                self.remember_full(c.account, full)
         else:
-            full, c.pass_until = self.full_remembered(c.account) if key else (False, 0)
+            full = self.full_remembered(c.account) if key else False
         c.device_full = c.host and bool(data.get("full")) and not full
         if c.host:
             self.store.set_setting("host_full", "1" if full or c.device_full else "")   # (its Friend Pass: the host's)
@@ -1056,49 +1052,12 @@ class GameServer:
                 mate = next((owners[a.lower()] for a in mates if a.lower() in owners), None)
                 s.want_friend_pass(mate is not None, mate.account if mate is not None else "")
 
-    def remember_full(self, account, full, until):
-        """What the central server last said of an account's full game, for coming in without a ticket: bought ("1"),
-        a time pass ("until:<its end>": over when it's over, asked or not) or neither ("")."""
-        self.store.set_setting("full:" + account.lower(), ("until:%d" % until if until else "1") if full else "")
+    def remember_full(self, account, full):
+        """What the central server last said of an account's full game, for coming in without a ticket."""
+        self.store.set_setting("full:" + account.lower(), "1" if full else "")
 
     def full_remembered(self, account):
-        said = self.store.setting("full:" + account.lower(), "")
-        if said.startswith("until:"):
-            until = int(said[6:] or 0) if said[6:].isdigit() else 0
-            return time.time() < until, until
-        return said == "1", 0
-
-    async def owns_now(self, s):
-        """A time pass run out: whether they have the full game still (bought since?), asked of the central server.
-        No answer: asked again in a minute, and after a few the pass is over (till it says otherwise)."""
-        s.pass_until = 0
-        got = await self.central_post("/api/game/owns", {"grant": s.grant})
-        if not (got and (got.get("ok") or got.get("banned"))) and s.connected:
-            s.pass_tries = getattr(s, "pass_tries", 0) + 1
-            s.pass_until = int(time.time()) + PASS_RETRY
-            if s.pass_tries >= PASS_TRIES and s.full:
-                s.set_full(getattr(self.clients.get(s), "device_full", False))
-            return
-        s.pass_tries = 0
-        if got and got.get("ok") and s.connected:
-            s.pass_until = int(got.get("pass_until") or 0)
-            self.remember_full(s.account, bool(got.get("full")), s.pass_until)
-            c = self.clients.get(s)
-            if c is not None and got.get("full"):
-                c.device_full = False                   # (the account's now: no longer only the device's word)
-            s.set_full(bool(got.get("full")) or getattr(c, "device_full", False))
-        elif got and got.get("banned"):
-            await self.turn_away(s)
-
-    def passes_ran_out(self):
-        now = time.time()
-        for s in list(self.world.sessions.values()):
-            if s.connected and getattr(s, "pass_until", 0) and now >= s.pass_until:
-                if getattr(s, "grant", ""):
-                    asyncio.ensure_future(self.owns_now(s))
-                else:                                   # (come in without a ticket: nobody to ask, so it's over)
-                    s.pass_until = 0
-                    s.set_full(getattr(self.clients.get(s), "device_full", False))
+        return self.store.setting("full:" + account.lower(), "") == "1"     # (a time pass's "until:", from before: over)
 
     async def send_characters(self, c, text=""):
         mine = []
@@ -1236,7 +1195,6 @@ class GameServer:
             self.broadcast({"t": "chat", "from": "", "text": "%s has joined the game." % name}, exclude=s)
             s.friends_hear("Your friend %s has come into Ashen." % name)
         s.account = c.account
-        s.pass_until = c.pass_until
         s.set_full(c.full)
         if c.account:
             w.together.accounts[name] = c.account

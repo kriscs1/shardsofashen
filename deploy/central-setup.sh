@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sets up the central server (every player's account, friends, the remote games list, the ads) on a fresh Ubuntu or
+# Sets up the central server (every player's account, friends, the remote games list) on a fresh Ubuntu or
 # Debian VM: Docker, the firewall, the central server, Caddy (HTTPS) and the updater, in /opt/shards-of-ashen-central.
 # Run it as root (or with sudo), after pointing the domain's DNS at the VM (or with no domain: it offers sslip.io):
 #

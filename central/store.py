@@ -2,8 +2,8 @@
 a game server, the remote servers that announce themselves, and friends: who asked whom (both ways: friends), the
 keys a game server is given to a player's friends while they play there, and where each account is playing; and what
 every game server says its characters have got to (level, skills, quests), for the admin page; and owning the game:
-whether each account has the full game (and where it was bought), the purchases that gave it (one purchase, one
-account), and a time pass's end.
+whether each account has the full game (and where it was bought), and the purchases that gave it (one purchase,
+one account).
 
 Every value in every query here goes in as a ? parameter, never into the query's text: only this file's own table and
 column names are ever put in with %s (a test holds it). And once it's opened, the connection may only read and write
@@ -130,10 +130,7 @@ CREATE TABLE IF NOT EXISTS rechecks (
     until REAL NOT NULL,
     PRIMARY KEY (store, ref)
 ) WITHOUT ROWID;
-CREATE TABLE IF NOT EXISTS passes (
-    name TEXT NOT NULL COLLATE NOCASE,
-    made REAL NOT NULL
-);
+DROP TABLE IF EXISTS passes;  -- (the time passes, gone with the ads)
 CREATE TABLE IF NOT EXISTS game_keys (
     key TEXT PRIMARY KEY,
     proof TEXT NOT NULL,
@@ -145,7 +142,7 @@ COLUMNS = [("accounts", "email", "TEXT NOT NULL DEFAULT ''"), ("accounts", "admi
            ("servers", "approved", "INTEGER NOT NULL DEFAULT 0"), ("servers", "made", "REAL NOT NULL DEFAULT 0"),
            ("accounts", "deleted", "REAL NOT NULL DEFAULT 0"), ("accounts", "google", "TEXT NOT NULL DEFAULT ''"),
            ("accounts", "full", "TEXT NOT NULL DEFAULT ''"), ("accounts", "full_at", "REAL NOT NULL DEFAULT 0"),
-           ("accounts", "pass_until", "REAL NOT NULL DEFAULT 0"), ("tickets", "relay", "INTEGER NOT NULL DEFAULT 0"),
+           ("tickets", "relay", "INTEGER NOT NULL DEFAULT 0"),
            ("reporters", "listing", "TEXT NOT NULL DEFAULT ''")]   # (the listed server it proved it is)
 # (what's looked up by something other than its key: after the columns, as some are on those)
 INDEXES = """
@@ -165,7 +162,6 @@ CREATE INDEX IF NOT EXISTS characters_account ON characters (account);
 CREATE INDEX IF NOT EXISTS character_skills_skill ON character_skills (skill, level);
 CREATE INDEX IF NOT EXISTS character_quests_quest ON character_quests (quest, done, stage);
 CREATE INDEX IF NOT EXISTS purchases_name ON purchases (name);
-CREATE INDEX IF NOT EXISTS passes_name ON passes (name, made);
 """
 MAIL_CODE_MINUTES = 30
 CONFIRM_DAYS = 3                # (a link to confirm an email works this long)
@@ -260,7 +256,7 @@ class CentralStore:
         found = like(q)
         waiting = "(SELECT email FROM mailchecks WHERE mailchecks.name = accounts.name)"
         return self.db.execute("SELECT name, email, banned, admin, made, COALESCE(%s, ''), deleted, google != '', full, "
-                               "full_at, pass_until "
+                               "full_at "
                                "FROM accounts WHERE name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR %s LIKE ? "
                                "ESCAPE '\\' ORDER BY made DESC LIMIT ? OFFSET ?"
                                % (waiting, waiting), (found, found, found, limit, skip)).fetchall()
@@ -270,8 +266,7 @@ class CentralStore:
         nobody else can take the name (and the characters that go by it); else the name's free for anyone."""
         self.db.execute("BEGIN")
         try:
-            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing", "purchases", "rechecks",
-                          "passes"):
+            for table in ("tokens", "tickets", "grants", "mailcodes", "mailchecks", "playing", "purchases", "rechecks"):
                 self.db.execute("DELETE FROM %s WHERE name = ? COLLATE NOCASE" % table, (name,))
             self.db.execute("DELETE FROM friends WHERE who = ? OR whom = ?", (name, name))
             for table in ("character_skills", "character_quests"):      # (what their characters got to: theirs too)
@@ -280,7 +275,7 @@ class CentralStore:
             self.db.execute("DELETE FROM characters WHERE account = ?", (name,))
             if keep_name:
                 self.db.execute("UPDATE accounts SET password = '', recover = '', email = '', banned = '', admin = 0, "
-                                "google = '', full = '', full_at = 0, pass_until = 0, deleted = ? WHERE name = ?",
+                                "google = '', full = '', full_at = 0, deleted = ? WHERE name = ?",
                                 (time.time(), name))
             else:
                 self.db.execute("DELETE FROM accounts WHERE name = ?", (name,))
@@ -330,7 +325,7 @@ class CentralStore:
     def drop_mail_code(self, name):
         self.db.execute("DELETE FROM mailcodes WHERE name = ?", (name,))
 
-    # ----- settings (the ads, set on the admin page)
+    # ----- settings
     def setting(self, key, default=""):
         row = self.db.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
         return row[0] if row else default
@@ -351,10 +346,9 @@ class CentralStore:
 
     # ----- owning the game (bought.py checks a purchase with its store before it gets here)
     def owned(self, name):
-        """(where the full game was bought: "play", "steam", "itch", "epic", "admin" or "" for not, when, a time pass's
-        end)."""
-        row = self.db.execute("SELECT full, full_at, pass_until FROM accounts WHERE name = ?", (name,)).fetchone()
-        return tuple(row) if row else ("", 0.0, 0.0)
+        """(where the full game was bought: "play", "steam", "itch", "epic", "admin" or "" for not, when)."""
+        row = self.db.execute("SELECT full, full_at FROM accounts WHERE name = ?", (name,)).fetchone()
+        return tuple(row) if row else ("", 0.0)
 
     def set_full(self, name, where):
         """The full game is name's (bought at where), or no longer ("": an admin taking it back)."""
@@ -393,22 +387,6 @@ class CentralStore:
         now = time.time() if now is None else now
         self.db.execute("DELETE FROM rechecks WHERE until < ?", (now,))
         return [r[0] for r in self.db.execute("SELECT ref FROM rechecks WHERE store = ? ORDER BY until", (where,))]
-
-    def passes_today(self, name):
-        """How many time passes name has had in the last day."""
-        return self.db.execute("SELECT COUNT(*) FROM passes WHERE name = ? AND made > ?",
-                               (name, time.time() - 86400)).fetchone()[0]
-
-    def add_pass(self, name, seconds, most_a_day):
-        """A time pass for name: its new end (from now, or from the end of one running), or None if they've had
-        most_a_day of them in the last day."""
-        now = time.time()
-        if self.passes_today(name) >= most_a_day:
-            return None
-        until = max(now, self.owned(name)[2]) + seconds
-        self.db.execute("INSERT INTO passes (name, made) VALUES (?, ?)", (name, now))
-        self.db.execute("UPDATE accounts SET pass_until = ? WHERE name = ?", (until, name))
-        return until
 
     # ----- log-in tokens (kept by the app or browser: no password each time)
     def new_token(self, name):
@@ -569,7 +547,6 @@ class CentralStore:
         self.db.execute("DELETE FROM mailchecks WHERE made < ?", (now - UNCONFIRMED_DAYS * 86400,))
         self.db.execute("DELETE FROM playing WHERE seen < ?", (now - PLAYING_SECONDS,))
         self.db.execute("DELETE FROM servers WHERE approved = 0 AND seen < ?", (now - 7 * 86400,))
-        self.db.execute("DELETE FROM passes WHERE made < ?", (now - 86400,))
         self.db.execute("DELETE FROM game_keys WHERE seen < ?", (now - GAME_KEY_DAYS * 86400,))
         old = now - PROGRESS_DAYS * 86400
         for table in ("character_skills", "character_quests"):

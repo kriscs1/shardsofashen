@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- The central server's admin page (central/app.py /api/admin/...): servers, accounts, what characters have got to, ads.
+<!-- The central server's admin page (central/app.py /api/admin/...): servers, accounts, what characters have got to.
      Plain on purpose: the browser's own font and colours, no pictures, nothing loaded till its tab's opened. -->
 <html lang="en">
 <head>
@@ -54,7 +54,7 @@ tr.open { cursor: pointer; } tr.open:hover { background: #8882; }
 <div id="panel" hidden>
   <nav id="tabs"><button data-tab="summary">Summary</button><button data-tab="servers">Servers</button>
     <button data-tab="accounts">Accounts</button><button data-tab="characters">Characters</button>
-    <button data-tab="quests">Quests</button><button data-tab="skills">Skills</button><button data-tab="ads">Ads</button>
+    <button data-tab="quests">Quests</button><button data-tab="skills">Skills</button>
     <button id="logout" style="margin-left:auto">Sign out</button></nav>
   <div id="filter" class="row" hidden><input id="q" class="grow" placeholder="Search"><select id="server" class="grow"></select></div>
   <main id="view"></main>
@@ -138,7 +138,7 @@ const TABS = {
       line("Characters played in the last day", r.today), line("In the last week", r.week),
       line("Game servers reporting", r.reporting), line("Servers listed", r.approved), line("Waiting for approval", r.servers - r.approved),
       line("Servers up now", r.up), line("Email (password codes)", r.mail ? "On" : "Off"),
-      line("Sign in with Google", r.google ? "On" : "Off"), line("AdSense (browsers)", r.adsense ? "On" : "Off"),
+      line("Sign in with Google", r.google ? "On" : "Off"),
     ], ""));
   } },
 
@@ -170,7 +170,7 @@ const TABS = {
     { l: "Name", v: (a) => `${esc(a.name)}<div class="dim">since ${esc(day(a.made))}</div>` },
     { l: "State", v: (a) => [a.deleted ? `Deleted ${esc(day(a.deleted))}: name kept` : a.banned ? `<b>Banned</b>: ${esc(a.banned)}` : "Fine",
       a.admin ? "admin" : "", a.google ? "Google" : ""].filter(Boolean).join(", ") +
-      (a.bought ? `<div>Full game: ${esc(BOUGHT[a.bought] || a.bought)}, ${esc(day(a.bought_at))}</div>` : a.pass_until ? `<div>Time pass till ${esc(when(a.pass_until))}</div>` : '<div class="dim">Demo</div>') },
+      (a.bought ? `<div>Full game: ${esc(BOUGHT[a.bought] || a.bought)}, ${esc(day(a.bought_at))}</div>` : '<div class="dim">Demo</div>') },
     { l: "Email", v: (a) => (esc(a.email) || '<span class="dim">none</span>') + (a.pending ? `<div class="dim">${esc(a.pending)} (not confirmed)</div>` : "") },
     { l: "", v: (a) => {
       const n = esc(a.name);
@@ -220,12 +220,6 @@ const TABS = {
     ], r.skills, "No characters have been reported yet."));
   } },
 
-  ads: { load: async () => {
-    const r = await admin("ads");
-    if (!r.ok) return;
-    view('<p class="dim">Your own ads, one at random each time the start screen opens (in a browser, AdSense instead when DS_ADSENSE_CLIENT is set). A picture is a file name in the ads folder, or a full address.</p><div id="ad-rows"></div><div class="row"><button data-act="ad-add">Add one</button><button data-act="ad-save">Save</button></div>');
-    r.ads.forEach(adRow);
-  } },
 };
 
 // (a list that comes a page at a time: the newest asked for wins)
@@ -247,14 +241,6 @@ async function list(what, body, rowsOf, cols, none, at) {
     if (got.length < page) more_(null); else on();
   } : null);
   on();
-}
-
-function adRow(ad = {}) {
-  const row = document.createElement("div");
-  row.className = "row";
-  row.innerHTML = '<input class="t grow" placeholder="What it says"><input class="l grow" placeholder="Link"><input class="i grow" placeholder="Picture"><button data-act="ad-drop">Remove</button>';
-  row.querySelector(".t").value = ad.text || ""; row.querySelector(".l").value = ad.link || ""; row.querySelector(".i").value = ad.image || "";
-  $("ad-rows").append(row);
 }
 
 async function showCharacter(server, name) {
@@ -316,13 +302,6 @@ const ACTS = {
   characters: (d) => { $("q").value = d.n; $("server").value = ""; tab("characters"); },
   quest: (d) => showQuest(d.q),
   back: () => true,
-  "ad-add": () => adRow(),
-  "ad-drop": (d, el) => el.parentElement.remove(),
-  "ad-save": async () => {
-    const ads = [...$("ad-rows").children].map((row) => ({ text: row.querySelector(".t").value.trim(),
-      link: row.querySelector(".l").value.trim(), image: row.querySelector(".i").value.trim() })).filter((a) => a.text);
-    await admin("ads", { ads }); return true;
-  },
 };
 $("view").addEventListener("click", async (ev) => {
   const el = ev.target.closest("[data-act]");

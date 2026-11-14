@@ -376,11 +376,11 @@ docker compose -f deploy/docker-compose.yml exec game python tools/admin.py admi
 
 Without Docker, `deploy/shards-of-ashen.service` runs it under systemd behind any HTTPS reverse proxy.
 
-## The central server (accounts, the remote games list, ads)
+## The central server (accounts, the remote games list)
 
 One central server serves the whole game. Every version's start screen connects to it first (the Android app, the
 desktop app, and a browser, which gets the start screen from it): players have one account there for every game, it
-lists the remote game servers (each announces itself to it), and it serves the ads on the start screen.
+and it lists the remote game servers (each announces itself to it). There are no ads, anywhere.
 
 - **The game's own** is `https://shardsofashen.hallisium.com`: the apps' start screen (`web/home/config.js`) and a cloud
   server's `.env` (`deploy/cloud.env.example`) point there already.
@@ -428,7 +428,7 @@ lists the remote game servers (each announces itself to it), and it serves the a
   admin page (`https://central.example.com/admin`, signed in with a Hallisium account named in `DS_CENTRAL_ADMINS` (one
   with no account yet is signed up with the admin code the central server's log gives as it starts) or
   made admin there). `DS_CENTRAL_APPROVED` lists servers (their ids) approved before they ever call. The admin page
-  also finds accounts (ban, unban, make admin, delete), edits the start screen's ads, and counts everything.
+  also finds accounts (ban, unban, make admin, delete), and counts everything.
 - **Characters' progress**: every game that can reach the central server (its `DS_CENTRAL`, also an app's game alone or
   on a network; `DS_PROGRESS=0` turns it off) tells it what its characters have got to (`server/progress.py`): level,
   skills, each quest's stage, Shards, gold, where they are. Only what's changed, every five minutes, zipped: nothing at
@@ -474,23 +474,10 @@ lists the remote game servers (each announces itself to it), and it serves the a
   isn't set). It needs SMTP; one an hour from a game server.
 - **The privacy policy** is at `/privacy`: set `DS_CENTRAL_OPERATOR` (who runs it) and `DS_CENTRAL_CONTACT` (an email
   to write to) for its blanks. Read it through before going public: it's written for this game, but it's yours.
-- **AdSense** (browsers only: Google's rules put apps on AdMob instead): set `DS_ADSENSE_CLIENT` (`ca-pub-...`) and
-  `DS_ADSENSE_SLOT`; the start screen shows the ad unit in a browser, `/ads.txt` gives Google its line, and the
-  privacy policy names it. Add the site in AdSense and, for players in the EEA and UK, turn on Google's consent
-  message there (Privacy & messaging).
-- **AdMob** (the Android app; android/README.md says how to build it in): set `DS_ADMOB_APP` (`ca-app-pub-...~...`)
-  here too, so `/app-ads.txt` gives AdMob its line and the privacy policy names it. Give this server's address as
-  the developer website in the Play Store listing (AdMob looks for `app-ads.txt` there). The desktop app keeps
-  showing your own ads.
-- **Ads**: a JSON list at `DS_CENTRAL_ADS` (`/data/ads.json` in the compose file):
-  `[{"text": "...", "link": "https://...", "image": "banner.png"}]`, the pictures in `DS_CENTRAL_ADS_DIR`
-  (`/data/ads/`). One is shown on the start screen each time it opens. Without the file, a few of the game's own
-  notes. (House ads, chosen by you, shown wherever AdSense and AdMob aren't.)
 - **Owning the game** (`central/bought.py`; `dev/Roadmap-7.md`): an account has the full game once a purchase is
   checked with the store it came from, never on an app's word, and one purchase counts for one account (only its hash
-  is kept). The admin page's Accounts shows each one's (bought where and when, a time pass, or Demo), and **Give the
-  full game** / **Take it back** (a refund, a gift). A game server is told with the ticket (`full`, `pass_until`) and
-  asks `/api/game/owns` again only when a pass runs out. The demo (the Isle, level 5: `data/Config.ini` `[Demo]`) is
+  is kept). The admin page's Accounts shows each one's (bought where and when, or Demo), and **Give the full game** /
+  **Take it back** (a refund, a gift). A game server is told with the ticket (`full`). The demo (the Isle, level 5: `data/Config.ini` `[Demo]`) is
   only for accounts without it once `DS_DEMO=1`; till then everyone has the full game. Each store is set up by its
   own settings; one that isn't refuses its purchases:
   - **Google Play**: in the Play Console, Setup > API access, link a Google Cloud project and make a service account
@@ -512,17 +499,10 @@ lists the remote game servers (each announces itself to it), and it serves the a
     has Buy the full game (it opens that page) and I've bought it, which asks itch.io for a purchase made with the
     account's confirmed email (never an email the player types). itch.io isn't asked again: a refund there is yours to
     give, so take the full game back on the admin page when you do.
-- **The time pass** (`central/admob.py`): in the Android app, an account in the demo can watch a rewarded ad for an
-  hour of the full game (`DS_PASS_MINUTES`, 60), a few a day (`DS_PASSES_A_DAY`, 3). Google tells the central server
-  itself, never the app: in AdMob, the rewarded ad unit's **Server-side verification** callback URL is
-  `https://<central>/api/pass/reward`, and `DS_ADMOB_REWARDED` is that ad unit's id (`ca-app-pub-.../...`), so another
-  game's rewards are refused. Each reward is checked against Google's signature (its keys from gstatic.com, kept a
-  day) and is no older than an hour; the app's one-off key is its custom data, so one ad is one pass. Without
-  `DS_ADMOB_REWARDED`, or with the demo off, there's no time pass. **`DS_PLAY_INTEGRITY=1`** asks Google Play first
-  that it's the real app from Google Play on a real phone (Play Integrity), so an emulator or a tampered app can't
-  farm passes (and AdMob doesn't see machine-made views): in the Play Console, Test and release > App integrity, link
-  the Google Cloud project your Play service account (above) is in and turn on the Play Integrity API there; the
-  central server has Google decode each verdict with that account.
+- **No ads**: there are none, and no time pass for watching one (they're gone since 14 November 2026). A central
+  server's `.env` from before may still have `DS_ADSENSE_CLIENT`, `DS_ADSENSE_SLOT`, `DS_ADMOB_APP`,
+  `DS_ADMOB_REWARDED`, `DS_PASS_MINUTES`, `DS_PASSES_A_DAY` or `DS_PLAY_INTEGRITY`: nothing reads them, so they can go
+  (and `ads.json` and the `ads/` folder in its data). In AdSense and AdMob, the site and the app can be removed.
 - **Backups**: a whole copy of the database once a day (UTC; the first as it starts), the last 14 kept, in `backups`
   beside it (`/data/backups` in the compose file, or wherever `DS_CENTRAL_BACKUPS` says). It's every account, purchase
   and friend, so send them off the VM: `DS_BACKUP_S3` in its `.env` (Backups off the machine), or by hand now and

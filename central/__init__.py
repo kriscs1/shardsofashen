@@ -1,1 +1,1 @@
-"""The central server: accounts, the remote servers list, ads (central/app.py)."""
+"""The central server: accounts, the remote servers list (central/app.py)."""

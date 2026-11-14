@@ -44,7 +44,7 @@ COPY deploy/cloud-setup.sh cloud/cloud-setup.sh
 COPY deploy/docker-compose.worlds.yml cloud/worlds/docker-compose.yml
 COPY deploy/Caddyfile.worlds cloud/worlds/Caddyfile
 COPY deploy/worlds.env.example cloud/worlds/worlds.env.example
-# (and the central server's: accounts, the remote servers list, the ads - the same image, "python -m central")
+# (and the central server's: accounts, the remote servers list - the same image, "python -m central")
 COPY deploy/docker-compose.central.yml central-deploy/docker-compose.yml
 COPY deploy/Caddyfile.central central-deploy/Caddyfile
 COPY deploy/central.env.example central-deploy/central.env.example

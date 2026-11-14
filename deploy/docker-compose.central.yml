@@ -1,5 +1,5 @@
-# The central server (central/): every player's account and friends, the list of remote game servers, the ads on the
-# start screen, and the start screen for a browser. One for the whole game: the apps and every game server point at it
+# The central server (central/): every player's account and friends, the list of remote game servers, and the start
+# screen for a browser. One for the whole game: the apps and every game server point at it
 # (web/home/config.js DS_CENTRAL_DEFAULT; a game server's DS_CENTRAL). The same image as the game, run as
 # "python -m central", with Caddy in front (HTTPS) and an updater that restarts it whenever a newer image is out.
 # Everything it keeps is in the centraldata volume.
@@ -7,9 +7,6 @@
 # deploy/central-setup.sh sets it all up on a fresh Ubuntu or Debian VM. By hand: put this file, Caddyfile.central
 # (as Caddyfile) and a .env (from central.env.example: DS_CENTRAL_DOMAIN is the one you must set) in one folder,
 # then "docker compose up -d".
-#
-# Ads: a JSON list in the volume's ads.json, [{"text": "...", "link": "https://...", "image": "banner.png"}], the
-# pictures in its ads/ folder (docker compose cp ads.json central:/data/ads.json). Without it, the game's own notes.
 name: shards-of-ashen-central
 
 services:
@@ -21,13 +18,11 @@ services:
       DS_CENTRAL_DB: /data/central.db
       DS_CENTRAL_NAME: ${DS_CENTRAL_NAME:-Shards of Ashen}
       DS_CENTRAL_MOTD: ${DS_CENTRAL_MOTD:-}
-      DS_CENTRAL_ADS: /data/ads.json
-      DS_CENTRAL_ADS_DIR: /data/ads
       DS_REGISTRATION: ${DS_REGISTRATION:-open}
       DS_PASSWORD_MIN: ${DS_PASSWORD_MIN:-8}
       DS_REGISTER_PER_DAY: ${DS_REGISTER_PER_DAY:-3}
       DS_TRUST_PROXY: "1"
-      DS_CENTRAL_ADMINS: ${DS_CENTRAL_ADMINS:-}        # (who may use /admin: approve servers, accounts, ads)
+      DS_CENTRAL_ADMINS: ${DS_CENTRAL_ADMINS:-}        # (who may use /admin: approve servers, accounts)
       DS_CENTRAL_APPROVED: ${DS_CENTRAL_APPROVED:-}    # (servers listed without waiting: their ids, comma-separated)
       DS_CENTRAL_OPERATOR: ${DS_CENTRAL_OPERATOR:-}    # (the privacy policy: who runs it, and how to reach them)
       DS_CENTRAL_CONTACT: ${DS_CENTRAL_CONTACT:-}
@@ -40,23 +35,16 @@ services:
       DS_SUPPORT_EMAIL: ${DS_SUPPORT_EMAIL:-}          # (where a game's Send log goes: support@hallisium.com if empty)
       DS_GOOGLE_CLIENT_ID: ${DS_GOOGLE_CLIENT_ID:-}    # (sign in with Google: README-Server.md says how; none, no button)
       DS_GOOGLE_CLIENT_SECRET: ${DS_GOOGLE_CLIENT_SECRET:-}
-      DS_ADSENSE_CLIENT: ${DS_ADSENSE_CLIENT:-}        # (ca-pub-...: AdSense on the start screen in a browser)
-      DS_ADSENSE_SLOT: ${DS_ADSENSE_SLOT:-}
-      DS_ADMOB_APP: ${DS_ADMOB_APP:-}                  # (ca-app-pub-...~...: the Android app's, for /app-ads.txt and the privacy policy)
       DS_DEMO: ${DS_DEMO:-}                            # (1: an account without the full game plays the demo; README-Server.md "Owning the game")
-      DS_PLAY_SERVICE_ACCOUNT: ${DS_PLAY_SERVICE_ACCOUNT:-}   # (/data/play.json: Google Play's service account key, for purchases and Play Integrity)
+      DS_PLAY_SERVICE_ACCOUNT: ${DS_PLAY_SERVICE_ACCOUNT:-}   # (/data/play.json: Google Play's service account key, for purchases)
       DS_PLAY_PACKAGE: ${DS_PLAY_PACKAGE:-io.github.kriscs1.shardsofashen}
       DS_FULL_PRODUCT: ${DS_FULL_PRODUCT:-full_game}
-      DS_PLAY_INTEGRITY: ${DS_PLAY_INTEGRITY:-}        # (1: a time pass only for the real app from Google Play, on a real phone)
       DS_STEAM_APP: ${DS_STEAM_APP:-}                  # (Steam: the app's id, and a publisher Web API key)
       DS_STEAM_KEY: ${DS_STEAM_KEY:-}
       DS_ITCH_GAME: ${DS_ITCH_GAME:-}                  # (itch.io: the game's id, and an API key)
       DS_ITCH_KEY: ${DS_ITCH_KEY:-}
       DS_BUY_URL: ${DS_BUY_URL:-}                      # (the website's Buy: the game's itch.io page, and its price as shown)
       DS_BUY_PRICE: ${DS_BUY_PRICE:-}
-      DS_ADMOB_REWARDED: ${DS_ADMOB_REWARDED:-}        # (the time pass's rewarded ad unit, ca-app-pub-.../...; none, no time pass)
-      DS_PASS_MINUTES: ${DS_PASS_MINUTES:-60}
-      DS_PASSES_A_DAY: ${DS_PASSES_A_DAY:-3}
       DS_BACKUP_S3: ${DS_BACKUP_S3:-}                  # (each day's backup off the machine too: README-Server.md "Backups off the machine")
       DS_BACKUP_S3_KEY: ${DS_BACKUP_S3_KEY:-}
       DS_BACKUP_S3_SECRET: ${DS_BACKUP_S3_SECRET:-}
